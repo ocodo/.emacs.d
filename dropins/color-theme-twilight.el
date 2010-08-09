@@ -3,7 +3,7 @@
   (color-theme-install
    '(color-theme-twilight
       ((background-color . "#141414")
-      (background-mode . light)
+      (background-mode . dark)
       (border-color . "#000000")
       (cursor-color . "#a7a7a7")
       (foreground-color . "#f8f8f8")

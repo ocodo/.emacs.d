@@ -3,7 +3,7 @@
   (color-theme-install
    '(color-theme-greenlcd
       ((background-color . "#041b09")
-      (background-mode . light)
+      (background-mode . dark)
       (border-color . "#052e0d")
       (cursor-color . "#0d6d21")
       (foreground-color . "#eceeed")

@@ -3,7 +3,7 @@
   (color-theme-install
    '(color-theme-hihat
       ((background-color . "#111418")
-      (background-mode . light)
+      (background-mode . dark)
       (border-color . "#1f1f1f")
       (cursor-color . "#17721b")
       (foreground-color . "#eeeeec")
