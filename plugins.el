@@ -20,6 +20,7 @@
 (require 'movetext)
 (require 'markdown-mode)
 (require 'rainbow-mode)
+(require 'scrollbellfix)
 (require 'sr-speedbar)
 (require 'tabbar-extension)
 (require 'kill-buffer-without-confirm)
@@ -39,7 +40,7 @@
 		    'java-mode-hook
 		    'js-mode-hook
 		    'c++-mode-hook))
-   (add-hook hook 'hideshowvis-enable))
+  (add-hook hook 'hideshowvis-enable))
 
 (server-start nil)
 
