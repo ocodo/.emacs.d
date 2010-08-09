@@ -191,7 +191,7 @@ Set this to 'always to always skip, or 'help-balance to be more
 criterious when skipping.")
 
 (defvar autopair-emulation-alist nil
-  "A dinamic keymap for autopair set mostly from the current
+  "A dynamic keymap for autopair set mostly from the current
   syntax table.")
 
 (defvar autopair-dont-activate nil
