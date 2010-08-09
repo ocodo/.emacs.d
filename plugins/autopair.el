@@ -467,7 +467,7 @@ A list of four elements is returned:
           (blink-matching-paren (not autopair-action)))
       (call-interactively beyond-autopair))))
 
-(defvar autopair-autowrap nil
+(defvar autopair-autowrap t
   "If non-nil autopair attempts to wrap the selected region.
 
 This is also done in an optimistic \"try-to-balance\" fashion.")
