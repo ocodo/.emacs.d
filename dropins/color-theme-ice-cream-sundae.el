@@ -3,7 +3,7 @@
   (color-theme-install
    '(color-theme-ice-cream-sundae
       ((background-color . "#010513")
-      (background-mode . light)
+      (background-mode . dark)
       (border-color . "#2a1414")
       (cursor-color . "#ffffff")
       (foreground-color . "#ddd7c0")

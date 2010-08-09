@@ -3,7 +3,7 @@
   (color-theme-install
    '(color-theme-splodge
       ((background-color . "#0f061e")
-      (background-mode . light)
+      (background-mode . dark)
       (border-color . "#471010")
       (cursor-color . "#ffffff")
       (foreground-color . "#ffffff")

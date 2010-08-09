@@ -3,7 +3,7 @@
   (color-theme-install
    '(color-theme-amber
       ((background-color . "#160903")
-      (background-mode . light)
+      (background-mode . dark)
       (border-color . "#472400")
       (cursor-color . "#a35000")
       (foreground-color . "#eeeeec")

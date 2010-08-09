@@ -3,7 +3,7 @@
   (color-theme-install
    '(color-theme-almost-monokai
       ((background-color . "#1f1f1f")
-      (background-mode . light)
+      (background-mode . dark)
       (border-color . "#072231")
       (cursor-color . "#dad085")
       (foreground-color . "#f8f8f2")

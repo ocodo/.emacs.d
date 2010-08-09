@@ -3,7 +3,7 @@
   (color-theme-install
    '(color-theme-cactus
       ((background-color . "#000018")
-      (background-mode . light)
+      (background-mode . dark)
       (border-color . "#323232")
       (cursor-color . "#ffffff")
       (foreground-color . "#ffffff")
