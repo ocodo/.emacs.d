@@ -24,3 +24,5 @@
 (autoload 'rm-kill-ring-save "rect-mark"
   "Copy a rectangular region to the kill ring." t)
 
+;; Darkroom additional bindings
+(global-set-key (quote [M-S-return]) 'darkroom-mode)

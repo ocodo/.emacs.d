@@ -112,6 +112,9 @@ mouse-3: Remove current window from display")))))
 ;; Load a nice theme...
 (color-theme-jadedragon)
 
+;; We default, with customize, to MacBook settings 
+;; ...and override here.
+
 ;; Windows specific font settings...
 (when 
     (eq system-type 'windows-nt) 
