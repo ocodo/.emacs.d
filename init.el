@@ -123,3 +123,10 @@ mouse-3: Remove current window from display")))))
 		      :foreground "#F80"
 		      :height 0.7)
   )
+
+;; LoungeMac large font...
+(if
+    (string= system-name "LoungeMac.local")
+    (set-face-attribute 'default nil
+		      :height 180)
+  )
