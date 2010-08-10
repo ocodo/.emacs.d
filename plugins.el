@@ -36,6 +36,9 @@
 	       "\\(def\\|do\\|{\\)" "\\(end\\|end\\|}\\)" "#"
 	       (lambda (arg) (ruby-end-of-block)) nil))
 
+(add-to-list 'hs-special-modes-alist
+	     '(css-mode "{" "}" "/[*/]" nil nil))
+
 (dolist (hook (list 'emacs-lisp-mode-hook
 		    'lisp-mode-hook
 		    'ruby-mode-hook
@@ -46,6 +49,7 @@
 		    'c-mode-hook
 		    'java-mode-hook
 		    'js-mode-hook
+		    'css-mode-hook
 		    'c++-mode-hook))
   (add-hook hook 'hideshowvis-enable))
 
