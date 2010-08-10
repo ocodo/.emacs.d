@@ -1,4 +1,5 @@
-;; NTEmacs/w32 init.el 
+;; Mac Cocoa Emacs.app & NTEmacs/w32 
+;; init.el 
 
 ;; Load plugins...
 (load "~/.emacs.d/plugins.el")
@@ -108,6 +109,17 @@ mouse-3: Remove current window from display")))))
  '(vhdl-speedbar-package-selected-face ((((class color) (background dark)) (:inherit speedbar-button-face :foreground "Grey80" :underline t))))
  '(vhdl-speedbar-subprogram-face ((((class color) (background dark)) (:inherit speedbar-button-face :foreground "BurlyWood2")))))
 
-(put 'set-goal-column 'disabled nil)
+;; Load a nice theme...
+(color-theme-jadedragon)
 
-(color-theme-jadedragon-660650)
+;; Windows specific font settings...
+(when 
+    (eq system-type 'windows-nt) 
+  (set-face-attribute 'default nil
+		      :family "DejaVu Sans Mono"
+		      :height 110)
+  (set-face-attribute 'hs-face nil 
+		      :background "#200"
+		      :foreground "#F80"
+		      :height 0.7)
+  )

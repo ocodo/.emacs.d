@@ -57,6 +57,17 @@
 ;; - don't show '-' in fringe if the foldable region ends on the same line
 ;;
 
+;; Space invader bitmap...
+;; #b00111100
+;; #b01111110
+;; #b11011011
+;; #b11011011
+;; #b11111111
+;; #b01111110
+;; #b10011001
+;; #b10100101
+;; #b10000001
+
 (define-fringe-bitmap 'hideshowvis-hideable-marker [
 						    #b00000000
 						    #b00000000
@@ -169,6 +180,17 @@
 ;; in the fringe and a yellow marker indicating the number of hidden lines at
 ;; the end of the line for hidden regions:
 
+;; Space invader bitmap
+
+;; #b00111100
+;; #b01111110
+;; #b11011011
+;; #b11011011
+;; #b11111111
+;; #b01111110
+;; #b01011010
+;; #b01000010
+;; #b01100110
 
 (define-fringe-bitmap 'hs-marker [
 				  #b00000000
