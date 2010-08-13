@@ -1,0 +1,4 @@
+# yasnippet: css-mode
+# name : text transform
+# --
+text-transform: ${1:$$(yas/choose-value '( "none" "capitalize" "uppercase" "lowercase" "inherit" ))}

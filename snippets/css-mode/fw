@@ -1,0 +1,4 @@
+# yasnippet: css-mode
+# name : font-weight
+# --
+font-weight: ${1:$$(yas/choose-value '( "bold" "normal" "bolder" "lighter" ))};
