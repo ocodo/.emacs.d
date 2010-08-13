@@ -1,0 +1,4 @@
+#yasnippet: css-mode
+#name : position
+# --
+position: ${1:$$(yas/choose-value '( "absolute" "fixed" "relative" "static" "inherit" ))};

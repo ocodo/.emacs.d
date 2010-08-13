@@ -1,0 +1,5 @@
+# yasnippet: css-mode
+# name : text-decoration
+# --
+text-decoration: ${1:$$(yas/choose-value '("none" "underline" "overline" "line-through" "blink" "inherit"))};
+

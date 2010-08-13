@@ -1,0 +1,4 @@
+# yasnippet: css-mode
+# name : height
+# --
+height: $1px;

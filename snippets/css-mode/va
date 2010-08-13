@@ -1,0 +1,4 @@
+# yasnippet: css-mode
+# name : vertical align
+# --
+vertical-align: ${1:$$(yas/choose-value '(" px" "%" "baseline" "sub" "super" "top" "text-top" "middle" "bottom" "text-bottom" ))};
