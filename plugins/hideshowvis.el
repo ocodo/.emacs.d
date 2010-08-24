@@ -2,8 +2,6 @@
 ;;
 ;; Copyright 2008 Jan Rehders
 ;;
-;; Modified by: Jasonm23 - jasonm23 at no spam gmail dot com
-;;
 ;; Author: Jan Rehders <cmdkeen@gmx.de>
 ;; Version: 0.2
 ;; Contributions by Bryan Waite
@@ -57,27 +55,7 @@
 ;; - don't show '-' in fringe if the foldable region ends on the same line
 ;;
 
-;; Space invader bitmap...
-;; #b00111100
-;; #b01111110
-;; #b11011011
-;; #b11011011
-;; #b11111111
-;; #b01111110
-;; #b10011001
-;; #b10100101
-;; #b10000001
-
-(define-fringe-bitmap 'hideshowvis-hideable-marker [
-						    #b00000000
-						    #b00000000
-						    #b11111110
-						    #b01111100
-						    #b00111000
-						    #b00010000
-						    #b00000000
-						    #b00000000
-						    ])
+(define-fringe-bitmap 'hideshowvis-hideable-marker [0 0 0 126 126 0 0 0])
 
 (defconst hideshowvis-version "v0.2" "Version of hideshowvis minor mode")
 
@@ -172,7 +150,6 @@
      )))
 
 (defun hideshowvis-enable ()
-
   (hideshowvis-minor-mode 1))
 
 
@@ -180,62 +157,42 @@
 ;; in the fringe and a yellow marker indicating the number of hidden lines at
 ;; the end of the line for hidden regions:
 
-;; Space invader bitmap
 
-;; #b00111100
-;; #b01111110
-;; #b11011011
-;; #b11011011
-;; #b11111111
-;; #b01111110
-;; #b01011010
-;; #b01000010
-;; #b01100110
-
-(define-fringe-bitmap 'hs-marker [
-				  #b00000000
-				  #b00100000
-				  #b00110000
-				  #b00111000
-				  #b00111100
-				  #b00111000
-				  #b00110000
-				  #b00100000
-				  ])
-
-(defcustom hs-fringe-face 'hs-fringe-face
-  "*Specify face used to highlight the fringe on hidden regions."
-  :type 'face
-  :group 'hideshow)
-
-(defface hs-fringe-face
-  '((t (:foreground "#888" :box (:line-width 2 :color "grey75" :style released-button))))
-  "Face used to highlight the fringe on folded regions"
-  :group 'hideshow)
-
-(defcustom hs-face 'hs-face
-  "*Specify the face to to use for the hidden region indicator"
-  :type 'face
-  :group 'hideshow)
-
-(defface hs-face
-  '((t (:background "#000" :box t)))
-  "Face to hightlight the ... area of hidden regions"
-  :group 'hideshow)
-
-(defun display-code-line-counts (ov)
-  (when (eq 'code (overlay-get ov 'hs))
-    (let* ((marker-string "*fringe-dummy*")
-           (marker-length (length marker-string))
-           (display-string (format "(%d)..." (count-lines (overlay-start ov) (overlay-end ov))))
-           )
-      (overlay-put ov 'help-echo "Hiddent text. C-c,= to show")
-      (put-text-property 0 marker-length 'display (list 'left-fringe 'hs-marker 'hs-fringe-face) marker-string)
-      (overlay-put ov 'before-string marker-string)
-      (put-text-property 0 (length display-string) 'face 'hs-face display-string)
-      (overlay-put ov 'display display-string)
-      )))
-
-(setq hs-set-up-overlay 'display-code-line-counts)
+;; (define-fringe-bitmap 'hs-marker [0 24 24 126 126 24 24 0])
+;; 
+;; (defcustom hs-fringe-face 'hs-fringe-face
+;;   "*Specify face used to highlight the fringe on hidden regions."
+;;   :type 'face
+;;   :group 'hideshow)
+;; 
+;; (defface hs-fringe-face
+;;   '((t (:foreground "#888" :box (:line-width 2 :color "grey75" :style released-button))))
+;;   "Face used to highlight the fringe on folded regions"
+;;   :group 'hideshow)
+;; 
+;; (defcustom hs-face 'hs-face
+;;   "*Specify the face to to use for the hidden region indicator"
+;;   :type 'face
+;;   :group 'hideshow)
+;; 
+;; (defface hs-face
+;;   '((t (:background "#ff8" :box t)))
+;;   "Face to hightlight the ... area of hidden regions"
+;;   :group 'hideshow)
+;; 
+;; (defun display-code-line-counts (ov)
+;;   (when (eq 'code (overlay-get ov 'hs))
+;;     (let* ((marker-string "*fringe-dummy*")
+;;            (marker-length (length marker-string))
+;;            (display-string (format "(%d)..." (count-lines (overlay-start ov) (overlay-end ov))))
+;;            )
+;;       (overlay-put ov 'help-echo "Hiddent text. C-c,= to show")
+;;       (put-text-property 0 marker-length 'display (list 'left-fringe 'hs-marker 'hs-fringe-face) marker-string)
+;;       (overlay-put ov 'before-string marker-string)
+;;       (put-text-property 0 (length display-string) 'face 'hs-face display-string)
+;;       (overlay-put ov 'display display-string)
+;;       )))
+;; 
+;; (setq hs-set-up-overlay 'display-code-line-counts)
 
 (provide 'hideshowvis)

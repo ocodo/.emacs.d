@@ -7,11 +7,17 @@
 ;; Libs.
 (require 'color-theme)
 (require 'dropins)
-(require 'autopair) 
+(require 'autopair)
 (autopair-global-mode)
+(require 'cua-base)
+(cua-mode 1)
+
+;; CUA shift + click select region
+ (define-key global-map (kbd "<S-down-mouse-1>") 'ignore) ; turn off font dialog
+ (define-key global-map (kbd "<S-mouse-1>") 'mouse-set-point)
+ (put 'mouse-set-point 'CUA 'move)
+
 (require 'darkroom-mode)
-(require 'delsel) 
-(delete-selection-mode t)
 (require 'gist)
 (require 'ido)
 (require 'movetext)
@@ -29,7 +35,9 @@
 ;; arrow bitmaps in the fringe, and switches
 ;; on the hidden number of lines view.
 ;; http://gist.github.com/514946
-(require 'hideshowvis) 
+;; (require 'hideshowvis)
+
+;; Perhaps CEDET / Semantic does this better?
 
 (add-to-list 'hs-special-modes-alist
 	     '(ruby-mode

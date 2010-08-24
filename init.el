@@ -11,6 +11,7 @@
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 
 (require 'yasnippet-bundle)
+(yas/load-directory "~/.emacs.d/snippets" )
 
 ;; Customize stuff... 
 (custom-set-variables
@@ -36,6 +37,7 @@
  '(linum-delay nil)
  '(linum-eager t)
  '(linum-format " %5d ")
+ '(minimap-window-location (quote right))
  '(mode-line-format (quote ("%e" #(" " 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")) mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-frame-identification mode-line-buffer-identification #("   " 0 3 (help-echo "mouse-1: Select (drag to resize)
@@ -63,6 +65,7 @@ mouse-3: Remove current window from display")))))
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "#041b09" :foreground "#eceeed" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "apple" :family "Monaco"))))
+ '(cua-rectangle ((default (:inherit region :background "#330000")) (((class color)) (:background "maroon" :foreground "white"))))
  '(cursor ((t (:background "#5599bb" :foreground "white"))))
  '(custom-button ((((type x w32 ns) (class color)) (:background "lightgrey" :foreground "black" :box (:line-width 2 :style released-button) :family "Trebuchet MS"))))
  '(custom-button-mouse ((((type x w32 ns) (class color)) (:background "grey90" :foreground "black" :box (:line-width 2 :style released-button) :family "Trebuchet MS"))))
@@ -78,6 +81,8 @@ mouse-3: Remove current window from display")))))
  '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.3))))
  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.2))))
  '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.1))))
+ '(minimap-active-region-background ((t (:background "#280708"))))
+ '(minimap-font-face ((default (:height 20 :family "Monaco")) (nil nil)))
  '(mode-line ((t (:background "grey30" :foreground "gray90" :weight light :height 0.8 :family "verdana"))))
  '(mode-line-buffer-id ((t (:inherit mode-line :weight bold))))
  '(mode-line-emphasis ((t (:inherit mode-line :weight bold))))
@@ -110,7 +115,7 @@ mouse-3: Remove current window from display")))))
  '(vhdl-speedbar-subprogram-face ((((class color) (background dark)) (:inherit speedbar-button-face :foreground "BurlyWood2")))))
 
 ;; Load a nice theme...
-(color-theme-jadedragon)
+(color-theme-tilak)
 
 ;; We default, with customize, to MacBook settings 
 ;; ...and override here.
@@ -131,5 +136,4 @@ mouse-3: Remove current window from display")))))
 (if
     (string= system-name "LoungeMac.local")
     (set-face-attribute 'default nil
-		      :height 180)
-  )
+		      :height 180))
