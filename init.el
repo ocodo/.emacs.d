@@ -13,6 +13,17 @@
 (require 'yasnippet-bundle)
 (yas/load-directory "~/.emacs.d/snippets" )
 
+;; Load additional snippets
+;; (yas/load-directory "~/.emacs.d/snippets")
+;; Periodically re-create the yasnippet-bundle
+;; with M-x yas/compile-bundle
+;;
+;; You will need to migrate additional snippets
+;; into the main snippets folder before
+;; compiling the bundle.
+;;
+;; see http://yasnippet.googlecode.com/svn/trunk/doc/snippet-organization.html
+
 ;; Customize stuff... 
 (custom-set-variables
   ;; custom-set-variables was added by Custom.
@@ -37,6 +48,7 @@
  '(linum-delay nil)
  '(linum-eager t)
  '(linum-format " %5d ")
+ '(markdown-css-path "/screen.css")
  '(mode-line-format (quote ("%e" #(" " 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")) mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-frame-identification mode-line-buffer-identification #("   " 0 3 (help-echo "mouse-1: Select (drag to resize)
@@ -71,7 +83,6 @@ mouse-3: Remove current window from display")))))
  '(custom-button-pressed ((((type x w32 ns) (class color)) (:background "lightgrey" :foreground "black" :box (:line-width 2 :style pressed-button) :family "Trebuchet MS"))))
  '(fringe ((((class color) (background dark)) (:background "#111111" :foreground "white"))))
  '(hl-line ((t (:inherit highlight :background "#191929"))))
- '(hs-face ((t (:inherit variable-pitch :background "#300" :foreground "grey70" :box nil :height 0.8))))
  '(lazy-highlight ((((class color) (min-colors 88) (background dark)) (:background "#002244"))))
  '(linum ((t (:inherit font-lock-constant-face :weight normal :height 0.8))))
  '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 1.7))))
@@ -121,12 +132,13 @@ mouse-3: Remove current window from display")))))
 (when 
     (eq system-type 'windows-nt) 
   (set-face-attribute 'default nil
-		      :family "DejaVu Sans Mono"
-		      :height 110)
-  (set-face-attribute 'hs-face nil 
-		      :background "#200"
-		      :foreground "#F80"
-		      :height 0.7)
+		      ;; :family "DejaVu Sans Mono"
+		      :family "Monaco"
+		      :height 100)
+  ;; (set-face-attribute 'hs-face nil 
+  ;;   		      :background "#200"
+  ;;   		      :foreground "#F80"
+  ;;   		      :height 0.7)
   )
 
 ;; LoungeMac large font...

@@ -4,6 +4,7 @@
               keyboard-quit mwheel-scroll down up next-line previous-line
               backward-char forward-char))
     (ding)))
+
 (setq ring-bell-function 'scroll-bell-function)
 
-(provide 'scrollbellfix)
+(provide 'scroll-bell-fix)

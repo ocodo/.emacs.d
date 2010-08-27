@@ -33,7 +33,7 @@
   (interactive "*p")
   (move-text-internal (- arg)))
 
-(provide 'movetext)
+(provide 'move-text)
 
 
 (global-set-key [M-up] 'move-text-up)
