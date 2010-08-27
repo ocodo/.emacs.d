@@ -12,10 +12,8 @@
     
     (setq exec-path (cons cygwin-bin exec-path))
     (setenv "PATH" (concat cygwin-bin ";" (getenv "PATH")))
-    
-    ;; By default use the Windows HOME.
-    ;; Otherwise, uncomment below to set a HOME
-    ;; (setenv "HOME" "//SYDFPS01/Users/Jason.Milkins")
+
+    ;; Set HOME in emacs-23/site-lisp/start.el
     
     ;; NT-emacs assumes a Windows shell. Change to baash.
     (setq shell-file-name "bash")
