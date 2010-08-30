@@ -37,7 +37,7 @@
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
  '(ediff-diff3-program "diff3")
- '(fringe-mode 16 nil (fringe))
+ '(fringe-mode 8 nil (fringe))
  '(global-hl-line-mode nil)
  '(global-linum-mode t)
  '(indicate-buffer-boundaries (quote right))
@@ -62,6 +62,7 @@ mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))) #("-%+" 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))))
+ '(sockpuppet-color "#234")
  '(speedbar-use-images nil)
  '(tabbar-background-color "grey20")
  '(tabbar-mode t nil (tabbar))
@@ -123,7 +124,7 @@ mouse-3: Remove current window from display")))))
  '(vhdl-speedbar-subprogram-face ((((class color) (background dark)) (:inherit speedbar-button-face :foreground "BurlyWood2")))))
 
 ;; Load a nice theme...
-(color-theme-tilak)
+(color-theme-jadedragon)
 
 ;; We default, with customize, to MacBook settings 
 ;; ...and override here.

@@ -4015,7 +4015,9 @@ Use multiple times to bind different COMMANDs to the same KEY."
 		       ("pad" "padding: $1;\n" "padding: ..." nil nil nil nil nil)
 		       ("pad" "padding: ${top} ${right} ${bottom} ${left};\n" "padding: top right bottom left" nil nil nil nil nil)
 		       ("pad" "padding-right: $1;\n" "padding-right: ..." nil nil nil nil nil)
-		       ("pad" "padding-top: $1;\n" "padding-top: ..." nil nil nil nil nil))
+		       ("pad" "padding-top: $1;\n" "padding-top: ..." nil nil nil nil nil)
+		       ("br" "border-radius: $1;\n-moz-border-radius: $1;\n-webkit-border-radius: $1;" "border-radius: ..." nil nil nil nil nil)
+		       )
 		     '(text-mode))
 
 

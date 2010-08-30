@@ -22,7 +22,6 @@
 (require 'move-text)
 (require 'markdown-mode)
 (require 'textile-mode)
-(require 'rnc-mode)
 (require 'rainbow-mode)
 (require 'scroll-bell-fix)
 (require 'squeeze-view)
