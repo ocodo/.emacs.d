@@ -4,6 +4,8 @@
 ;; Load plugins...
 (load "~/.emacs.d/plugins.el")
 
+
+
 ;; turn off menubar - uncomment
 ;; (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 
@@ -40,6 +42,7 @@
  '(fringe-mode 8 nil (fringe))
  '(global-hl-line-mode nil)
  '(global-linum-mode t)
+ '(global-visual-line-mode t)
  '(indicate-buffer-boundaries (quote right))
  '(inhibit-startup-screen t)
  '(initial-buffer-choice nil)
@@ -67,6 +70,7 @@ mouse-3: Remove current window from display")))))
  '(tabbar-background-color "grey20")
  '(tabbar-mode t nil (tabbar))
  '(tabbar-separator (quote (0.2)))
+ '(truncate-lines t)
  '(yas/global-mode t nil (yasnippet))
  '(yas/prompt-functions (quote (yas/dropdown-prompt yas/x-prompt yas/completing-prompt yas/ido-prompt yas/no-prompt)))
  '(yas/triggers-in-field t)
@@ -133,17 +137,17 @@ mouse-3: Remove current window from display")))))
 (when 
     (eq system-type 'windows-nt) 
   (set-face-attribute 'default nil
-		      ;; :family "DejaVu Sans Mono"
-		      :family "Monaco"
-		      :height 100)
+                      ;; :family "DejaVu Sans Mono"
+                      :family "Monaco"
+                      :height 100)
   ;; (set-face-attribute 'hs-face nil 
-  ;;   		      :background "#200"
-  ;;   		      :foreground "#F80"
-  ;;   		      :height 0.7)
+  ;;                  :background "#200"
+  ;;                  :foreground "#F80"
+  ;;                  :height 0.7)
   )
 
 ;; LoungeMac large font...
 (if
     (string= system-name "LoungeMac.local")
     (set-face-attribute 'default nil
-		      :height 180))
+                      :height 180))

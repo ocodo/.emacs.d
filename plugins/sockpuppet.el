@@ -1,5 +1,5 @@
 ;;; sockpuppet.el - Emacs client interface for sockpuppet chat server
-(defconst sockpuppet-version "0.1")
+(defconst sockpuppet-version "0.2")
 
 ;; Copyright (c)2010 Jasonm23. (by)(nc)(sa) Some rights reserved.
 ;; Author: Jasonm23 <jasonm23@gmail.com>
@@ -22,12 +22,15 @@
 ;;
 ;; Commentary:
 ;;
-;; Allows you to connect to sock.exe (chat server) and provides 
-;; customization options, e.g. Nickname setting.
+;; Sockpuppet Mode
+
+(require 'easymenu)
+
+;; customization options, e.g. Nickname, Color, Host.
 
 (defgroup sockpuppet nil
   "Sockpuppet connection options"
-  :tag "SockPuppet")
+  :group 'sockpuppet)
 
 (defcustom sockpuppet-nick "Jason" 
   "Nickname to use on sockpuppet"
@@ -46,46 +49,94 @@
   "Sockpuppet port number"
   :group 'sockpuppet)
 
+;; End of customizations...
 (defvar sockpuppet-process "sock-process"
   "name to use for sockpuppet connection process")
 
 (defvar sockpuppet-buffer "sock-buffer"
   "name to use for sockpuppet output buffer")
 
+(defvar sockpuppet-is-online nil)
+
+;;; Functions ==============================================
+
 (defun sockpuppet-connect ()
   "Connect to sockpuppet"
   (interactive)
-  (when (not (get-process sockpuppet-process))
+  (when (not sockpuppet-is-online)
     (open-network-stream sockpuppet-process sockpuppet-buffer sockpuppet-host sockpuppet-service)
+    (setq sock-puppet-frame
+    (make-frame '(
+     (name . "sock-puppet") 
+     (width . 45)
+     (height . 45))))
+    (select-frame sock-puppet-frame)
+    (switch-to-buffer "sock-buffer")
+    (sockpuppet-mode)
+    (setq sockpuppet-is-online t)
     (sockpuppet-send-message (concat "/nick " sockpuppet-nick))
     (sleep-for 1)
     (sockpuppet-send-message (concat "/color 0x" 
 				     (8-bit-hex (nth 0 (color-values sockpuppet-color)))
 				     (8-bit-hex (nth 1 (color-values sockpuppet-color)))
 				     (8-bit-hex (nth 2 (color-values sockpuppet-color)))))))
-
+  
 (defun sockpuppet-disconnect ()
+  "End the sockpuppet session and kill it's buffer and frame"
   (interactive)
-  (when (get-process sockpuppet-process)
-    (delete-process sockpuppet-process)))
+  (when (eq sockpuppet-is-online t)
+    (delete-process sockpuppet-process)
+    (select-frame sock-puppet-frame)
+    (delete-frame)
+    (kill-buffer "sock-buffer")
+    (setq sockpuppet-is-online nil)
+    ))
 
 (defun sockpuppet-send-message (message)
   "Send a string message to sockpuppet"
   (interactive "sSockpuppet Message: ")
-  (when (get-process sockpuppet-process)
-    (print message)
+  (when (eq sockpuppet-is-online t)
     (process-send-string sockpuppet-process message)))
 
-(defun 8-bit-hex ( i )
+(defun 8-bit-hex (i)
   (format "%02X" (floor (* 255 (/ (float i) (float 65535))))))
 
 (defun sockpuppet-send-region (start end)
   "send the selected region to sockpuppet" 
   (interactive "r")
-  (when (get-process sockpuppet-process)
-    (print (buffer-substring-no-properties start end))
+  (when (eq sockpuppet-is-online t)
     (process-send-region sockpuppet-process start end )))
 
-(provide 'sock-puppet)
+(defun sockpuppet-show-version ()
+  "Show the current version of SockPuppet for Emacs"
+  (interactive)
+  (message (format "SockPuppet for Emacs v%s" sockpuppet-version)))
 
+;;; Keymap ================================================================
+
+(defvar sockpuppet-mode-map
+  (let ((sockpuppet-mode-map (make-keymap)))
+    ;; Element insertion
+    (define-key sockpuppet-mode-map "\C-m" 'sockpuppet-send-message)
+    sockpuppet-mode-map)
+  "Keymap for Markdown major mode.")
+
+;;; Menu ==================================================================
+
+(easy-menu-define sockpuppet-mode-menu sockpuppet-mode-map
+  "Menu for SockPuppet mode"
+  '("SockPuppet"
+    ["Send Message" sockpuppet-send-message]
+    ["Send Region" sockpuppet-send-region]
+    "---"
+    ["Version" sockpuppet-show-version]))
+
+;;; Sockpuppet Mode =======================================================
+
+(define-derived-mode sockpuppet-mode fundamental-mode "SockPuppet"
+  "Major mode for using sockpuppet buffers"
+  (easy-menu-add sockpuppet-mode-menu sockpuppet-mode-map)
+  (global-set-key "\M-p" 'sockpuppet-send-region))
+
+(provide 'sock-puppet)
 ;; end-of-sockpuppet.el
