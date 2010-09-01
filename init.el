@@ -4,8 +4,6 @@
 ;; Load plugins...
 (load "~/.emacs.d/plugins.el")
 
-
-
 ;; turn off menubar - uncomment
 ;; (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 
@@ -125,7 +123,7 @@ mouse-3: Remove current window from display")) \.\.\.)))
  '(vhdl-speedbar-subprogram-face ((((class color) (background dark)) (:inherit speedbar-button-face :foreground "BurlyWood2")))))
 
 ;; Load a nice theme...
-(color-theme-jadedragon)
+(color-theme-amber)
 
 ;; We default, with customize, to MacBook settings 
 ;; ...and override here.
@@ -147,4 +145,5 @@ mouse-3: Remove current window from display")) \.\.\.)))
 (if
     (string= system-name "LoungeMac.local")
     (set-face-attribute 'default nil
-                      :height 160))
+                      :family "Monaco"
+                      :height 150))
