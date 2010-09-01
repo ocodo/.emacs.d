@@ -11,6 +11,7 @@
 (autopair-global-mode)
 (require 'cua-base)
 (cua-mode 1)
+(setq cua-auto-tabify-rectangles nil)
 
 ;; CUA shift + click select region
  (define-key global-map (kbd "<S-down-mouse-1>") 'ignore) ; turn off font dialog
