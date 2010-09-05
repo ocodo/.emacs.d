@@ -18,7 +18,6 @@
  (define-key global-map (kbd "<S-mouse-1>") 'mouse-set-point)
  (put 'mouse-set-point 'CUA 'move)
 
-(require 'darkroom-mode)
 (require 'ido)
 (require 'move-text)
 (require 'markdown-mode)
@@ -28,7 +27,6 @@
 (require 'squeeze-view)
 (require 'sr-speedbar)
 (require 'sunrise-commander)
-(require 'tabbar-extension)
 (require 'kill-buffer-without-confirm)
 (require 'xfrp_find_replace_pairs)
 
@@ -63,6 +61,10 @@
 ;; (require 'csharp-completion)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; All specific non terminal mode stuff.
+(when (window-system)
+  (require 'darkroom-mode)
+  (require 'tabbar-extension)
 ;; Hideshow settings (code folding)
 ;; (require 'hideshow)
 
@@ -70,33 +72,32 @@
 ;; arrow bitmaps in the fringe, and switches
 ;; on the hidden number of lines view.
 ;; http://gist.github.com/514946
-(require 'hideshowvis)
+  (require 'hideshowvis)
+  (add-to-list 'hs-special-modes-alist
+	       '(ruby-mode
+		 "\\(def\\|do\\|{\\)"
+		 "\\(end\\|\\)}"
+		 "#"
+		 (lambda (arg) (ruby-end-of-block)) nil))
+  (add-to-list 'hs-special-modes-alist
+	       '(css-mode "{" "}" "/[*/]" nil nil))
+  (dolist (hook (list 'emacs-lisp-mode-hook
+		      'lisp-mode-hook
+		      'ruby-mode-hook
+		      'perl-mode-hook
+		      'php-mode-hook
+		      'python-mode-hook
+		      'lua-mode-hook
+		      'c-mode-hook
+		      'java-mode-hook
+		      'js-mode-hook
+		      'css-mode-hook
+		      'c++-mode-hook))
+    (add-hook hook 'hideshowvis-enable)))
 
-;; Perhaps CEDET / Semantic does this better?
-
-(add-to-list 'hs-special-modes-alist
-	     '(ruby-mode
-	       "\\(def\\|do\\|{\\)"
-	       "\\(end\\|\\)}"
-	       "#"
-	       (lambda (arg) (ruby-end-of-block)) nil))
-
-(add-to-list 'hs-special-modes-alist
-	     '(css-mode "{" "}" "/[*/]" nil nil))
-
-(dolist (hook (list 'emacs-lisp-mode-hook
-		    'lisp-mode-hook
-		    'ruby-mode-hook
-		    'perl-mode-hook
-		    'php-mode-hook
-		    'python-mode-hook
-		    'lua-mode-hook
-		    'c-mode-hook
-		    'java-mode-hook
-		    'js-mode-hook
-		    'css-mode-hook
-		    'c++-mode-hook))
-  (add-hook hook 'hideshowvis-enable))
+;; Things to run specifically when in a terminal
+(when (not (window-system))
+  (menu-bar-mode -1))
 
 ;; Start the emacs server.
 (server-start nil)
