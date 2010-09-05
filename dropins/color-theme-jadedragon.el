@@ -2,7 +2,7 @@
   (interactive)
   (color-theme-install
    '(color-theme-jadedragon
-      ((background-color . "#000505")
+      ((background-color . "#000000")
       (background-mode . dark)
       (border-color . "#000c0f")
       (cursor-color . "#00a3a2")

@@ -24,6 +24,7 @@
 ;; This minor mode will add background to strings that matches color names.
 ;; i.e.
 ;;     #0000ff
+;;     0x777777
 ;; Will be printed in white with a blue background.
 ;;
 
@@ -41,8 +42,8 @@
   :group 'help)
 
 ;; Hexadecimal colors
-(defvar rainbow-hexadecimal-colors-font-lock-keywords
-  '("#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?"
+(defvar rainbow-hexadecimal-colors-font-lock-keywords 
+  '("\\(#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?\\|0x[0-9a-fA-F]\\{6\\}\\)"
     (0 (rainbow-colorize-itself)))
   "Font-lock keywords to add for hexadecimal colors.")
 
@@ -119,6 +120,7 @@ will be enabled if a major mode has been detected from the
   "Return a matched string propertized with a face whose
 background is COLOR. The foreground is computed using
 `rainbow-color-luminance', and is either white or black."
+  (setq color (replace-regexp-in-string "0x" "#" color))
   (put-text-property
    (match-beginning 0) (match-end 0)
    'face `((:foreground ,(if (> 128.0 (rainbow-x-color-luminance color))

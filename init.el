@@ -56,14 +56,16 @@ mouse-3: Remove current window from display")) mode-line-mule-info mode-line-cli
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")) mode-line-position (vc-mode vc-mode) #("  " 0 2 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
-mouse-3: Remove current window from display")) \.\.\.)))
- '(server-host "127.0.0.1")
- '(server-temp-file-regexp "^~/.emacs.d/server/draft$")
- '(server-use-tcp t)
+mouse-3: Remove current window from display")) mode-line-modes (which-func-mode ("" which-func-format #("  " 0 2 (help-echo "mouse-1: Select (drag to resize)
+mouse-2: Make current window occupy the whole frame
+mouse-3: Remove current window from display")))) (global-mode-string ("" global-mode-string #("  " 0 2 (help-echo "mouse-1: Select (drag to resize)
+mouse-2: Make current window occupy the whole frame
+mouse-3: Remove current window from display")))) #("-%+" 0 1 (help-echo "mouse-1: Select (drag to resize)
+mouse-2: Make current window occupy the whole frame
+mouse-3: Remove current window from display")))))
  '(sockpuppet-color "#234")
  '(speedbar-use-images nil)
  '(tabbar-background-color "grey20")
- '(tabbar-mode t nil (tabbar))
  '(tabbar-separator (quote (0.2)))
  '(truncate-lines t)
  '(yas/global-mode t nil (yasnippet))
@@ -75,7 +77,7 @@ mouse-3: Remove current window from display")) \.\.\.)))
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#041b09" :foreground "#eceeed" :inverse-video nil :box nil \.\.\.))))
+ '(default ((t (:inherit nil :stipple nil :background "#000" :foreground "#ffffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 1 :width normal :foundry "default" :family "default"))))
  '(cua-rectangle ((default (:inherit region :background "#330000")) (((class color)) (:background "maroon" :foreground "white"))))
  '(cursor ((t (:background "#5599bb" :foreground "white"))))
  '(custom-button ((((type x w32 ns) (class color)) (:background "lightgrey" :foreground "black" :box (:line-width 2 :style released-button) :family "Trebuchet MS"))))
@@ -123,7 +125,7 @@ mouse-3: Remove current window from display")) \.\.\.)))
  '(vhdl-speedbar-subprogram-face ((((class color) (background dark)) (:inherit speedbar-button-face :foreground "BurlyWood2")))))
 
 ;; Load a nice theme...
-(color-theme-amber)
+(color-theme-jadedragon)
 
 ;; We default, with customize, to MacBook settings 
 ;; ...and override here.
@@ -145,5 +147,4 @@ mouse-3: Remove current window from display")) \.\.\.)))
 (if
     (string= system-name "LoungeMac.local")
     (set-face-attribute 'default nil
-                      :family "Monaco"
-                      :height 150))
+                      :height 180))
