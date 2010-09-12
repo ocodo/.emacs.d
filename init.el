@@ -147,4 +147,5 @@ mouse-3: Remove current window from display")))))
 (if
     (string= system-name "LoungeMac.local")
     (set-face-attribute 'default nil
-                      :height 180))
+			:family "Monaco"
+                      :height 150))
