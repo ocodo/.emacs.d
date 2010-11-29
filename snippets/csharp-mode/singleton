@@ -1,0 +1,16 @@
+#name : public sealed class Singleton {...} 
+# --
+#region Singleton ${1:className}
+public sealed class $1
+{
+    private readonly static $1 _instance = new $1();
+
+    public static $1 Instance  { get { return _instance; } }
+
+    private $1()
+    {
+	// implementation here
+    }
+}
+
+#endregion

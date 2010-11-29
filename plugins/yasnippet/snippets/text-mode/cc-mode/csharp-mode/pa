@@ -1,0 +1,24 @@
+#name : switch(args[0]) {...}
+# --
+      //Console.WriteLine("args.Length={0}", args.Length);
+      if (args.Length < 1) Usage();
+      else 
+      {
+	switch (args[0].ToLower())
+	{
+	case "$1":
+	  if (args.Length != 3) Usage(); 
+	  else
+	    CallSomethin(args[1], args[2]);
+	  break;
+	case "$2":
+	  if (args.Length != 2) Usage();
+	  else
+	    SomethingElse(args[1]);
+	  break;
+	default:
+	  Usage();
+	  break;
+	}
+      }
+

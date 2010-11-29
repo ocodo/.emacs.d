@@ -1,0 +1,29 @@
+#name : xmlserializer { ... }
+# --
+{
+      XmlSerializer s1 = new XmlSerializer(typeof(${1:type}));
+
+      // use this to "suppress" the default xsd and xsd-instance namespaces
+      XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+      ns.Add("", "");
+
+      s1.Serialize(new XTWFND(System.Console.Out), object, ns);
+      System.Console.WriteLine("\n");
+}
+
+  $0
+  /// XmlTextWriterFormattedNoDeclaration
+  /// helper class : eliminates the XML Documentation at the
+  /// start of a XML doc. 
+  /// XTWFND = XmlTextWriterFormattedNoDeclaration
+  /// usage:       s1.Serialize(new XTWFND(System.Console.Out), thing, ns);
+
+  public class XTWFND : System.Xml.XmlTextWriter
+  {
+    public XTWFND(System.IO.StringWriter w) : base(w) { Formatting=System.Xml.Formatting.Indented;  }
+    public XTWFND(System.IO.TextWriter w) : base(w) { Formatting = System.Xml.Formatting.Indented; }
+    public XTWFND(System.IO.Stream s) : base(s, null) { Formatting = System.Xml.Formatting.Indented; }
+    public XTWFND(string filename) : base(filename, null) { Formatting = System.Xml.Formatting.Indented; }
+    public override void WriteStartDocument() { }
+  }
+
