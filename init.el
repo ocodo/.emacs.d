@@ -34,6 +34,7 @@
  '(color-theme-illegal-faces "^w3-")
  '(color-theme-is-cumulative t)
  '(color-theme-mode-hook nil)
+ '(current-language-environment "UTF-8")
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
  '(ediff-diff3-program "diff3")
@@ -46,6 +47,7 @@
  '(initial-buffer-choice nil)
  '(initial-major-mode (quote markdown-mode))
  '(initial-scratch-message nil)
+ '(keyboard-coding-system (quote utf-8-auto-unix))
  '(linum-delay nil)
  '(linum-eager t)
  '(linum-format " %5d ")
@@ -63,8 +65,11 @@ mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))) #("-%+" 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))))
- '(sockpuppet-color "#234")
+ '(sockpuppet-color "#185a97")
+ '(sockpuppet-host "10.1.6.107")
+ '(sockpuppet-nick "GorgaR!")
  '(speedbar-use-images nil)
+ '(sql-mysql-program "/usr/local/mysql/bin/mysql")
  '(tabbar-background-color "grey20")
  '(tabbar-separator (quote (0.2)))
  '(truncate-lines t)
@@ -147,5 +152,15 @@ mouse-3: Remove current window from display")))))
 (if
     (string= system-name "LoungeMac.local")
     (set-face-attribute 'default nil
-			:family "Monaco"
-                      :height 150))
+                      :height 180))
+
+;; load sockpuppet last - test
+(if 
+    (getenv "SOCKPUPPET") 
+    (progn       
+      (require 'sockpuppet)
+      (message "sockpuppet client loaded")
+      )
+  (message "No sockpuppet client"))
+
+

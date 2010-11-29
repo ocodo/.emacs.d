@@ -1,0 +1,10 @@
+#name : if (...) { ... } else { ... }
+# --
+if (${1:predicate})
+{
+  ${2:// then clause}
+}
+else
+{
+  ${3:// else clause}
+}

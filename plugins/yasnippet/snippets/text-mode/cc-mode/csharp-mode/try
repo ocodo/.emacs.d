@@ -1,0 +1,10 @@
+#name : try { ... } catch { ... }
+# --
+try 
+{
+  $0
+}
+catch (System.Exception exc1)
+{
+  throw new Exception("uncaught exception", exc1);
+}

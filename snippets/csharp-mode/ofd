@@ -1,0 +1,9 @@
+#name : new OpenFileDialog; if (DialogResult.OK) { ... }
+# --
+var dlg = new System.Windows.Forms.OpenFileDialog();
+dlg.Filter = "${1:filter string}"; // ex: "C# (*.cs)|*.cs|Text (*.txt)|*.txt";
+if (dlg.ShowDialog() == DialogResult.OK)
+{
+    string fileName = dlg.FileName;
+    $0
+}

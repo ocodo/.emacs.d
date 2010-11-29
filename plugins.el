@@ -19,6 +19,7 @@
  (put 'mouse-set-point 'CUA 'move)
 
 (require 'ido)
+(require 'gist)
 (require 'move-text)
 (require 'markdown-mode)
 (require 'textile-mode)
@@ -32,10 +33,11 @@
 
 (require 'package)
 
-;; (require 'csharp-mode)
+(require 'csharp-mode)
 
-;; (setq auto-mode-alist
-;;       (append '(("\\.cs$" . csharp-mode)) auto-mode-alist))
+(setq auto-mode-alist
+       (append '(("\\.cs$" . csharp-mode)) auto-mode-alist))
+
 ;; (defun my-csharp-mode-fn ()
 ;;   "function that runs when csharp-mode is initialized for a buffer."
 ;;   ...insert your code here...
@@ -64,7 +66,7 @@
 ;; All specific non terminal mode stuff.
 (when (window-system)
   (require 'darkroom-mode)
-  (require 'tabbar-extension)
+  ;; (require 'tabbar-extension)
 ;; Hideshow settings (code folding)
 ;; (require 'hideshow)
 

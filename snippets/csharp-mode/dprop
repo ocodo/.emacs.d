@@ -1,0 +1,11 @@
+#name: DependencyProperty
+# --
+
+public ${1:String} ${2:Name}
+{
+  get { return ($1)GetValue($2Property); }
+  set { SetValue($2Property, value); }
+}
+public static readonly DependencyProperty $2Property = DependencyProperty.Register("$2", typeof($1), typeof(${3:EnclosingType}));
+
+$0

@@ -43,7 +43,7 @@
 
 ;; Hexadecimal colors
 (defvar rainbow-hexadecimal-colors-font-lock-keywords 
-  '("\\(#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?\\|0x[0-9a-fA-F]\\{6\\}\\)"
+  '("\\(#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3,4\\}?\\|0x[0-9a-fA-F]\\{6\\}\\)"
     (0 (rainbow-colorize-itself)))
   "Font-lock keywords to add for hexadecimal colors.")
 

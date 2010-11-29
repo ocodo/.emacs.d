@@ -1,0 +1,6 @@
+#name : foreach ... { ... }
+# --
+foreach (${1:type} ${2:var} in  ${3:IEnumerable}) 
+{
+    ${4:// body...}
+}
