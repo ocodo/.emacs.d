@@ -91,12 +91,11 @@
   "End the sockpuppet session and kill it's buffer and frame"
   (interactive)
   (when (eq sockpuppet-is-online t)
-    (setq sockpuppet-is-online nil)
     (delete-process sockpuppet-process)
-    (kill-buffer (get-buffer "sock-buffer"))
     (select-frame sock-puppet-frame)
     (delete-frame)
-    (message "Disconnected from sock-puppet...")
+    (kill-buffer "sock-buffer")
+    (setq sockpuppet-is-online nil)
     ))
 
 (defun sockpuppet-send-message (message)
@@ -121,7 +120,6 @@
 
 (defun entry-color-block (beg end len)
   "Tidy up the message color string."
-  (when (eq sockpuppet-is-online t)
   (linum-mode 0)
   (let (in-message new-message color match-overlay)
     (setq in-message (buffer-substring-no-properties beg end))
@@ -135,7 +133,7 @@
 	  (overlay-put match-overlay 'face `((:background ,color)
 					     (:foreground ,(if (> 128.0 (color-luminance color))
 						   "white" "black"))))) 
-      nil))))
+      nil)))
 
 (defun color-luminance (color)
   "Calculate the luminance of a color string (e.g. \"#ffaa00\", \"blue\")."
@@ -177,7 +175,6 @@
     ;; Element insertion
     (define-key sockpuppet-mode-map "\C-m" 'sockpuppet-send-message)
     (define-key sockpuppet-mode-map '[(mouse-3)] 'browse-url-at-mouse)
-    (define-key sockpuppet-mode-map (kbd "C-7") 'google)
     sockpuppet-mode-map)
   "Keymap for Markdown major mode.")
 
