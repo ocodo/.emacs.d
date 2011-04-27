@@ -35,6 +35,7 @@
  '(color-theme-is-cumulative t)
  '(color-theme-mode-hook nil)
  '(current-language-environment "UTF-8")
+ '(dired-listing-switches "-alhF")
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
  '(ediff-diff3-program "diff3")
@@ -65,9 +66,6 @@ mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))) #("-%+" 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))))
- '(sockpuppet-color "#185a97")
- '(sockpuppet-host "10.1.6.107")
- '(sockpuppet-nick "GorgaR!")
  '(speedbar-use-images nil)
  '(sql-mysql-program "/usr/local/mysql/bin/mysql")
  '(tabbar-background-color "grey20")
@@ -154,13 +152,5 @@ mouse-3: Remove current window from display")))))
     (set-face-attribute 'default nil
                       :height 180))
 
-;; load sockpuppet last - test
-(if 
-    (getenv "SOCKPUPPET") 
-    (progn       
-      (require 'sockpuppet)
-      (message "sockpuppet client loaded")
-      )
-  (message "No sockpuppet client"))
-
-
+(put 'erase-buffer 'disabled nil)
+(put 'downcase-region 'disabled nil)

@@ -30,7 +30,7 @@
 (require 'sunrise-commander)
 (require 'kill-buffer-without-confirm)
 (require 'xfrp_find_replace_pairs)
-
+(require 'actionscript-mode)
 (require 'package)
 
 (require 'csharp-mode)
@@ -66,9 +66,6 @@
 ;; All specific non terminal mode stuff.
 (when (window-system)
   (require 'darkroom-mode)
-  ;; (require 'tabbar-extension)
-;; Hideshow settings (code folding)
-;; (require 'hideshow)
 
 ;; we use a version of hideshowvis which has
 ;; arrow bitmaps in the fringe, and switches
@@ -103,6 +100,10 @@
 
 ;; Start the emacs server.
 (server-start nil)
+
+;; Start the Chrome Edit server.
+(require 'edit-server)
+(edit-server-start)
 
 ;; Setup global key bindings.
 (load "keybindings")
