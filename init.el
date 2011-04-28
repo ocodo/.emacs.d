@@ -154,3 +154,4 @@ mouse-3: Remove current window from display")))))
 
 (put 'erase-buffer 'disabled nil)
 (put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
