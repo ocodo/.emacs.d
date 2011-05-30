@@ -146,11 +146,14 @@ mouse-3: Remove current window from display")))))
   ;;                  :height 0.7)
   )
 
-;; LoungeMac large font...
+;; LoungeMac large font... 192-168-1-102.tpgi.com.au
 (if
-    (string= system-name "LoungeMac.local")
+    (string= system-name "192-168-1-102.tpgi.com.au")
     (set-face-attribute 'default nil
-                      :height 180))
+                      :family "Monaco"
+                      :height 80))
+
+(system-name)
 
 (put 'erase-buffer 'disabled nil)
 (put 'downcase-region 'disabled nil)
