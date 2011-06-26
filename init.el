@@ -131,6 +131,9 @@ mouse-3: Remove current window from display")))))
 (color-theme-jadedragon)
 
 ;; We default, with customize, to MacBook settings 
+  (set-face-attribute 'default nil
+		      :family "Monaco"
+		      :height 100)
 ;; ...and override here.
 
 ;; Windows specific font settings...
@@ -140,20 +143,7 @@ mouse-3: Remove current window from display")))))
                       ;; :family "DejaVu Sans Mono"
                       :family "Monaco"
                       :height 100)
-  ;; (set-face-attribute 'hs-face nil 
-  ;;                  :background "#200"
-  ;;                  :foreground "#F80"
-  ;;                  :height 0.7)
   )
-
-;; LoungeMac large font... 192-168-1-102.tpgi.com.au
-(if
-    (string= system-name "192-168-1-102.tpgi.com.au")
-    (set-face-attribute 'default nil
-                      :family "Monaco"
-                      :height 160))
-
-(system-name)
 
 (put 'erase-buffer 'disabled nil)
 (put 'downcase-region 'disabled nil)
