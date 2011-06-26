@@ -151,7 +151,7 @@ mouse-3: Remove current window from display")))))
     (string= system-name "192-168-1-102.tpgi.com.au")
     (set-face-attribute 'default nil
                       :family "Monaco"
-                      :height 80))
+                      :height 160))
 
 (system-name)
 
