@@ -31,7 +31,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+(require 'cl))
 
 (require 'regexp-opt)
 (require 'faces)
@@ -43,9 +43,8 @@
 
 ;; Hexadecimal colors
 (defvar rainbow-hexadecimal-colors-font-lock-keywords 
-  '("\\(#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3,4\\}?\\|0x[0-9a-fA-F]\\{6\\}\\)"
-    (0 (rainbow-colorize-itself)))
-  "Font-lock keywords to add for hexadecimal colors.")
+'("\\(#\\|0x\\)?\\([0-9a-f]\\)\\{3\\}\\([0-9a-f]\\{3\\}\\)?"
+    (0 (rainbow-colorize-itself)))  "Font-lock keywords to add for hexadecimal colors.")
 
 ;; rgb() colors
 (defvar rainbow-html-rgb-colors-font-lock-keywords
@@ -120,7 +119,9 @@ will be enabled if a major mode has been detected from the
   "Return a matched string propertized with a face whose
 background is COLOR. The foreground is computed using
 `rainbow-color-luminance', and is either white or black."
+
   (setq color (replace-regexp-in-string "0x" "#" color))
+  (setq color (if (< (length color) 7) (concat "#" color) color))
   (put-text-property
    (match-beginning 0) (match-end 0)
    'face `((:foreground ,(if (> 128.0 (rainbow-x-color-luminance color))

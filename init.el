@@ -68,6 +68,7 @@ mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))))
  '(speedbar-use-images nil)
  '(sql-mysql-program "/usr/local/mysql/bin/mysql")
+ '(tab-width 4)
  '(tabbar-background-color "grey20")
  '(tabbar-separator (quote (0.2)))
  '(truncate-lines t)
