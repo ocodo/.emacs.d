@@ -134,7 +134,7 @@ mouse-3: Remove current window from display")))))
 ;; We default, with customize, to MacBook settings 
   (set-face-attribute 'default nil
 		      :family "Monaco"
-		      :height 100)
+		      :height 130)
 ;; ...and override here.
 
 ;; Windows specific font settings...
