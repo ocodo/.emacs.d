@@ -34,6 +34,7 @@
  '(color-theme-illegal-faces "^w3-")
  '(color-theme-is-cumulative t)
  '(color-theme-mode-hook nil)
+ '(cua-mode t nil (cua-base))
  '(current-language-environment "UTF-8")
  '(dired-listing-switches "-alhF")
  '(ediff-custom-diff-program "diff")
@@ -43,6 +44,7 @@
  '(global-hl-line-mode nil)
  '(global-linum-mode t)
  '(global-visual-line-mode t)
+ '(indent-tabs-mode nil)
  '(indicate-buffer-boundaries (quote right))
  '(inhibit-startup-screen t)
  '(initial-buffer-choice nil)
@@ -51,7 +53,7 @@
  '(keyboard-coding-system (quote utf-8-auto-unix))
  '(linum-delay nil)
  '(linum-eager t)
- '(linum-format " %5d ")
+ '(linum-format "%7d")
  '(markdown-css-path "/screen.css")
  '(mode-line-format (quote ("%e" #(" " 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
@@ -66,6 +68,8 @@ mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))) #("-%+" 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))))
+ '(scroll-bar-mode nil)
+ '(scss-compile-at-save nil)
  '(speedbar-use-images nil)
  '(sql-mysql-program "/usr/local/mysql/bin/mysql")
  '(tab-width 4)
@@ -81,7 +85,7 @@ mouse-3: Remove current window from display")))))
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#000" :foreground "#ffffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 1 :width normal :foundry "default" :family "default"))))
+ '(default ((t (:inherit nil :stipple nil :background "#000000" :foreground "#ffffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "apple" :family "Monaco"))))
  '(cua-rectangle ((default (:inherit region :background "#330000")) (((class color)) (:background "maroon" :foreground "white"))))
  '(cursor ((t (:background "#5599bb" :foreground "white"))))
  '(custom-button ((((type x w32 ns) (class color)) (:background "lightgrey" :foreground "black" :box (:line-width 2 :style released-button) :family "Trebuchet MS"))))
