@@ -133,7 +133,7 @@ mouse-3: Remove current window from display")))))
  '(vhdl-speedbar-subprogram-face ((((class color) (background dark)) (:inherit speedbar-button-face :foreground "BurlyWood2")))))
 
 ;; Load a nice theme...
-(color-theme-jadedragon)
+(color-theme-sevilleretro)
 
 ;; We default, with customize, to MacBook settings 
   (set-face-attribute 'default nil
@@ -153,3 +153,4 @@ mouse-3: Remove current window from display")))))
 (put 'erase-buffer 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
