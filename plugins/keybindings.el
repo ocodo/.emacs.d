@@ -13,13 +13,19 @@
 (global-set-key (kbd "<s-left>") 'previous-buffer)
 
 (global-set-key (kbd "s-/" ) 'dabbrev-expand)
+(global-set-key (kbd "<s-return>" ) 'dabbrev-expand)
+
 (global-set-key (kbd "s-b") 'switch-to-buffer)
 
-(global-set-key (kbd "s-1") 'delete-other-windows)
+(global-set-key (kbd "s-n") 'find-file)
+
+(global-set-key (kbd "s-1") ' delete-other-windows)
 
 ;; completion at point
 (global-set-key [(control tab)] 'completion-at-point)
 
 ;; Darkroom additional bindings
 (global-set-key '[M-S-return] 'darkroom-mode)
+
+(global-set-key '[M-s-return] 'darkroom-mode)
 
