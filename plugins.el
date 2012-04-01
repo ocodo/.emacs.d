@@ -32,6 +32,8 @@
 (require 'xfrp_find_replace_pairs)
 (require 'actionscript-mode)
 (require 'package)
+(require 'haml-mode)
+(require 'scss-mode)
 
 (require 'csharp-mode)
 
