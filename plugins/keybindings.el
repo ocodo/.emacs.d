@@ -17,6 +17,9 @@
 
 (global-set-key (kbd "s-b") 'switch-to-buffer)
 
+(global-set-key (kbd "s--") 'text-scale-decrease) 
+(global-set-key (kbd "s-=") 'text-scale-increase) 
+
 (global-set-key (kbd "s-n") 'find-file)
 
 (global-set-key (kbd "s-1") ' delete-other-windows)
