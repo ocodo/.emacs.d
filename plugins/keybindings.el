@@ -22,7 +22,12 @@
 
 (global-set-key (kbd "s-n") 'find-file)
 
-(global-set-key (kbd "s-1") ' delete-other-windows)
+(global-set-key (kbd "s-1") 'delete-other-windows)
+(global-set-key (kbd "s-2") 'split-window-horizontally)
+(global-set-key (kbd "s-3") 'split-window-vertically)
+
+(global-set-key (kbd "s-`") 'other-window)
+(global-set-key (kbd "s-~") 'other-frame)
 
 ;; completion at point
 (global-set-key [(control tab)] 'completion-at-point)
