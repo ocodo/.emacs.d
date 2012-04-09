@@ -84,7 +84,7 @@
   :group 'dired
   :prefix "dired-details-")
 
-(defcustom dired-details-hidden-string "[...]"
+(defcustom dired-details-hidden-string "[_]"
   "*This string will be shown in place of file details and symbolic links."
   :group 'dired-details
   :type 'string)
@@ -119,6 +119,7 @@ hidden), 'shown (details are visible).")
       
        (define-key dired-mode-map "(" 'dired-details-hide)
        (define-key dired-mode-map ")" 'dired-details-show)
+       (define-key dired-mode-map "0" 'dired-details-toggle)
 
       (defadvice dired-revert (before remember-the-details activate)
         (dired-details-delete-overlays)))))
