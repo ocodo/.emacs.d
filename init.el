@@ -54,6 +54,7 @@
  '(linum-delay nil)
  '(linum-eager t)
  '(linum-format "%7d")
+ '(ls-lisp-emulation (quote MacOS))
  '(markdown-css-path "/screen.css")
  '(mode-line-format (quote ("%e" #(" " 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
