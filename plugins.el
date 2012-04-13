@@ -7,10 +7,30 @@
 ;; Libs.
 (require 'color-theme)
 (require 'dropins)
-(require 'autopair)
 
-(require 'dired-details)
-(dired-details-install)
+(require 'autopair)
+(autopair-global-mode) ;; Todo: issues with scss mode... resolve.
+
+(require 'ls-lisp)
+(setq ls-lisp-use-insert-directory-program nil)
+(setq ls-lisp-verbosity nil)
+
+(defadvice ls-lisp-format (around my-ls-lisp-format 
+  (file-name file-attr file-size switches time-index now))
+  "Advice definition which removes unnecessary information
+during file listing in dired. For such purposes 
+`ls-lisp-verbosity' customized variable can be used, but 
+even if it is equal to nil dired will display file 
+permissions field like \"drwxrwxrwx\".\. So here we just 
+get full control to what dired shows and leave only those 
+fields which we need."
+  (progn
+    ad-do-it
+    (setq ad-return-value 
+          (concat (substring ad-return-value 0 1)
+                  " "
+                  (substring ad-return-value 29 )))))
+(ad-activate 'ls-lisp-format t)
 
 (require 'ido)
 (require 'gist)
