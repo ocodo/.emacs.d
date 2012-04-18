@@ -134,7 +134,8 @@ mouse-3: Remove current window from display")))))
  '(vhdl-speedbar-subprogram-face ((((class color) (background dark)) (:inherit speedbar-button-face :foreground "BurlyWood2")))))
 
 ;; Load a nice theme...
-(color-theme-sevilleretro)
+;; (color-theme-sevilleretro)
+(color-theme-deepblueday)
 
 ;; We default, with customize, to MacBook settings 
   (set-face-attribute 'default nil
