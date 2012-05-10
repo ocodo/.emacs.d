@@ -37,3 +37,14 @@
 
 (global-set-key '[M-s-return] 'darkroom-mode)
 
+;; Linum mode toggle
+
+(global-set-key (kbd "s-0") 'linum-mode)
+
+;; Dired mode additions
+
+(eval-after-load 'dired
+  '(define-key dired-mode-map [mouse-3] 'dired-maybe-insert-subdir))
+
+
+;; More ...?
