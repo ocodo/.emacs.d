@@ -13,6 +13,10 @@
 (require 'yasnippet-bundle)
 (yas/load-directory "~/.emacs.d/snippets" )
 
+(setq package-archives '(("ELPA" . "http://tromey.com/elpa/") 
+                          ("gnu" . "http://elpa.gnu.org/packages/")
+                          ("marmalade" . "http://marmalade-repo.org/packages/")))
+
 ;; Load additional snippets
 ;; (yas/load-directory "~/.emacs.d/snippets")
 ;; Periodically re-create the yasnippet-bundle
@@ -34,6 +38,7 @@
  '(color-theme-illegal-faces "^w3-")
  '(color-theme-is-cumulative t)
  '(color-theme-mode-hook nil)
+ '(column-number-mode t)
  '(cua-mode t nil (cua-base))
  '(current-language-environment "UTF-8")
  '(dired-listing-switches "-alhF")
@@ -55,6 +60,7 @@
  '(linum-eager t)
  '(linum-format "%7d")
  '(ls-lisp-emulation (quote MacOS))
+ '(make-backup-files nil)
  '(markdown-css-path "/screen.css")
  '(mode-line-format (quote ("%e" #(" " 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
@@ -135,7 +141,7 @@ mouse-3: Remove current window from display")))))
 
 ;; Load a nice theme...
 ;; (color-theme-sevilleretro)
-(color-theme-deepblueday)
+(color-theme-turquoise)
 
 ;; We default, with customize, to MacBook settings 
   (set-face-attribute 'default nil
