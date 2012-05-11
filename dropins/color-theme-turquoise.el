@@ -1,13 +1,14 @@
-(defun color-theme-turquiose ()
+;; Turquiose
+(defun color-theme-turquiose-2323 ()
   (interactive)
   (color-theme-install
-   '(color-theme-turquiose
+   '(color-theme-turquiose-2323
       ((background-color . "#000407")
-      (background-mode . light)
+      (foreground-color . "#ddfffc")
+      (background-mode . dark)
       (border-color . "#052e2d")
       (cursor-color . "#0d6d6c")
-      (foreground-color . "#ddfffc")
-      (mouse-color . "black"))
+      (mouse-color . "#323232"))
      (fringe ((t (:background "#052e2d"))))
      (mode-line ((t (:foreground "#9cf6f4" :background "#0b2c2d"))))
      (region ((t (:background "#0c5f59"))))
@@ -22,4 +23,8 @@
      (minibuffer-prompt ((t (:foreground "#00faf2" :bold t))))
      (font-lock-warning-face ((t (:foreground "red" :bold t))))
      )))
-(provide 'color-theme-turquiose)
+
+(provide 'color-theme-turquiose-2323)
+
+
+
