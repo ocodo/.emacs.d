@@ -43,9 +43,11 @@ fields which we need."
 (require 'squeeze-view)
 (require 'kill-buffer-without-confirm)
 (require 'xfrp_find_replace_pairs)
-(require 'package)
 (require 'haml-mode)
 (require 'scss-mode)
+
+;;(load-file "plugins/graphviz-dot-mode.el")
+;; Causing problems with post-command-hooks
 
 ;; All specific non terminal mode stuff.
 (when (window-system)
@@ -112,6 +114,12 @@ fields which we need."
 (global-set-key (kbd "s-1") 'delete-other-windows)
 (global-set-key (kbd "s-2") 'split-window-horizontally)
 (global-set-key (kbd "s-3") 'split-window-vertically)
+(global-set-key (kbd "s-4") 'delete-other-windows-vertically)
+(global-set-key (kbd "s-5") 'delete-window)
+
+
+(global-set-key (kbd "C-M-,") 'shrink-window-horizontally)
+(global-set-key (kbd "C-M-.") 'enlarge-window-horizontally)
 
 (global-set-key (kbd "s-`") 'other-window)
 (global-set-key (kbd "s-~") 'other-frame)
@@ -132,4 +140,3 @@ fields which we need."
 (eval-after-load 'dired
   '(define-key dired-mode-map [mouse-3] 'dired-maybe-insert-subdir))
 
-;; More ...?

@@ -13,9 +13,6 @@
 (require 'yasnippet-bundle)
 (yas/load-directory "~/.emacs.d/snippets" )
 
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                          ("marmalade" . "http://marmalade-repo.org/packages/")))
-
 ;; Load additional snippets
 ;; (yas/load-directory "~/.emacs.d/snippets")
 ;; Periodically re-create the yasnippet-bundle
@@ -74,9 +71,9 @@ mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))) #("-%+" 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")))))
+ '(mouse-wheel-scroll-amount (quote (1)))
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
- '(speedbar-use-images nil)
  '(sql-mysql-program "/usr/local/mysql/bin/mysql")
  '(tab-width 4)
  '(tabbar-background-color "grey20")
@@ -159,10 +156,10 @@ mouse-3: Remove current window from display")))))
 (put 'upcase-region 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 
-
 ;; Load a nice theme...
-;; (color-theme-sevilleretro)
 (defun color-theme-tq2323 () (interactive) (color-theme-install '(color-theme-tq2323 ((background-color . "#000407") (foreground-color . "#ddfffc") (background-mode . dark) (border-color . "#052e2d") (cursor-color . "#0d6d6c") (mouse-color . "#323232")) (fringe ((t (:background "#052e2d")))) (mode-line ((t (:foreground "#9cf6f4" :background "#0b2c2d")))) (region ((t (:background "#0c5f59")))) (font-lock-builtin-face ((t (:foreground "#0b8e87")))) (font-lock-comment-face ((t (:foreground "#265f59")))) (font-lock-function-name-face ((t (:foreground "#60c3be")))) (font-lock-keyword-face ((t (:foreground "#0abda7")))) (font-lock-string-face ((t (:foreground "#aaedee")))) (font-lock-type-face ((t (:foreground"#1f8e8a")))) (font-lock-constant-face ((t (:foreground "#1ae9d7")))) (font-lock-variable-name-face ((t (:foreground "#0ebeb8")))) (minibuffer-prompt ((t (:foreground "#00faf2" :bold t)))) (font-lock-warning-face ((t (:foreground "red" :bold t)))))))
 
 
 (color-theme-tq2323)
+
+(setq mouse-wheel-scroll-amount '(0.01))
