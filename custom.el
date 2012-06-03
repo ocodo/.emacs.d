@@ -1,9 +1,9 @@
 ;; Customize stuff... 
 (custom-set-variables
-  ;; custom-set-variables was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(auto-install-save-confirm nil)
  '(color-theme-illegal-faces "^w3-")
  '(color-theme-is-cumulative t)
@@ -15,7 +15,7 @@
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
  '(ediff-diff3-program "diff3")
- '(fringe-mode 8 nil (fringe))
+ '(fringe-mode 12 nil (fringe))
  '(global-hl-line-mode nil)
  '(global-linum-mode t)
  '(global-visual-line-mode t)
@@ -23,7 +23,6 @@
  '(indicate-buffer-boundaries (quote right))
  '(inhibit-startup-screen t)
  '(initial-buffer-choice nil)
- '(initial-major-mode (quote markdown-mode))
  '(initial-scratch-message nil)
  '(keyboard-coding-system (quote utf-8-auto-unix))
  '(linum-delay nil)
@@ -58,10 +57,10 @@ mouse-3: Remove current window from display")))))
  '(yas/triggers-in-field t)
  '(yas/wrap-around-region t))
 (custom-set-faces
-  ;; custom-set-faces was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "#000000" :foreground "#ffffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "apple" :family "Monaco"))))
  '(cua-rectangle ((default (:inherit region :background "#330000")) (((class color)) (:background "maroon" :foreground "white"))))
  '(cursor ((t (:background "#5599bb" :foreground "white"))))
