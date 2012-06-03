@@ -63,4 +63,69 @@
         (set-frame-width (selected-frame) (/ (x-display-pixel-width) (frame-char-width))))))
 
 
+(defun big-left-1 ()
+  "thisandthat."
+  (interactive)
+  (if window-system
+      (progn 
+        (set-frame-height-to-display-height)
+        (set-frame-width-to-two-thirds-display-width)
+        (set-frame-position-left-hand-side)
+        )))
+
+
+(defun big-left-2 ()
+  "thisandthat."
+  (interactive)
+  (if window-system
+      (progn 
+        (set-frame-height-to-display-height)
+        (set-frame-width-to-three-quarters-display-width)
+        (set-frame-position-left-hand-side)
+        )))
+
+(defun big-left-3 ()
+  "thisandthat."
+  (interactive)
+  (if window-system
+      (progn 
+        (set-frame-height-to-85-percent-display-height)
+        (set-frame-width-to-three-quarters-display-width)
+        (set-frame-position-left-hand-side)
+        )))
+
+
+
+(defun big-right-1 ()
+  "thisandthat."
+  (interactive)
+  (if window-system
+      (progn 
+        (set-frame-height-to-display-height)
+        (set-frame-width-to-two-thirds-display-width)
+        (set-frame-position-right-hand-side)
+        )))
+
+
+(defun big-right-2 ()
+  "thisandthat."
+  (interactive)
+  (if window-system
+      (progn 
+        (set-frame-height-to-display-height)
+        (set-frame-width-to-three-quarters-display-width)
+        (set-frame-position-right-hand-side)
+        )))
+
+(defun big-right-3 ()
+  "thisandthat."
+  (interactive)
+  (if window-system
+      (progn 
+        (set-frame-height-to-85-percent-display-height)
+        (set-frame-width-to-three-quarters-display-width)
+        (set-frame-position-right-hand-side)
+        )))
+
+
 (provide 'frame-play)
