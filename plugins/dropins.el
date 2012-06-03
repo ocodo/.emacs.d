@@ -56,6 +56,5 @@
 	  )
     )
 
-(load-dropins)
 (provide 'dropins)
 
