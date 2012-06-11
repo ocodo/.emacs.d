@@ -3,15 +3,15 @@
 
     Alt ]      : next buffer
     
-    Alt [      : previouCmd buffer
+    Alt [      : previous buffer
     
     Cmd ]      : next buffer
     
-    Cmd [      : previouCmd buffer
+    Cmd [      : previous buffer
     
     Cmd right  : next buffer
     
-    Cmd left   : previouCmd buffer
+    Cmd left   : previous buffer
     
     Cmd /      : hippie expand
     
@@ -29,7 +29,7 @@
     
     Cmd 3      : split window vertically
     
-    Cmd 4      : delete other windowCmd vertically
+    Cmd 4      : delete other windows vertically
     
     Cmd 5      : delete window
     
