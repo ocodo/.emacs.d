@@ -1,7 +1,5 @@
 ;; Keys.
 (progn 
-  (global-set-key (kbd "M-]") 'next-buffer)
-  (global-set-key (kbd "M-[") 'previous-buffer)
   (global-set-key (kbd "s-]") 'next-buffer)
   (global-set-key (kbd "s-[") 'previous-buffer)
   (global-set-key (kbd "<s-right>") 'next-buffer)
@@ -29,8 +27,6 @@
   (global-set-key (kbd "s-~") 'other-frame)
   (global-set-key [(control tab)] 'completion-at-point)
   (global-set-key (kbd "<s-return>" ) 'completion-at-point)
-  (global-set-key '[M-S-return] 'darkroom-mode)
-  (global-set-key '[M-s-return] 'darkroom-mode)
   (global-set-key (kbd "s-0") 'linum-mode)
   )
 

@@ -1,9 +1,4 @@
 # ocodo emacs keys
-
-
-    Alt ]      : next buffer
-    
-    Alt [      : previous buffer
     
     Cmd ]      : next buffer
     
