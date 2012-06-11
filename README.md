@@ -1,0 +1,37 @@
+# Ocodo emacs dot
+
+You want Emacs, but you scared silly of it?
+
+Never fear, Ocodo's dot emacs directory will make it all a little less painful, this is a purist free zone, and frankly, if you're already configuring Emacs to be superhardcore, I suggest you buy those foot-pedals, forget about other peoples dotfiles and sharpen up your emacs lisp skills.
+
+## Still here?
+
+Ok, I guess you're interested enough to proceed... 
+
+This set up is primarily used on a Mac, with Cocoa Emacs 24.1rc, get that version if you want to be fully compatible. However, I use it quite happily on a few linux/unix boxes, without many issues, however, I do customize several Mac key shortcuts, using the Cmd key (e.g. Cmd-o opens a new file) .. you've been warned.
+
+Also worth noting is CUA mode is active, that's the C-x C-v C-c keys for Cut/Copy/Paste and C-z for undo, it also includes a great rectangle mode, which you can start with C-enter.
+
+## M-x 
+
+M-x is my favourite thing about Emacs, and I think for a lot of other people too. M-x let's you access every single interactive function that's active in Emacs, (there's hundreds of non-interactive ones too, but I'm going to tell you to go in search of knowledge yourself now... at least on the topic of EmacsLisp.)
+
+# Get it...
+
+I'll assume you don't already have a `.emacs` or `.emacs.d` in your home folder, if you do, just stop, look at what I'm doing in `init.el` and rip out what you want to use, or **backup your dot-emacs** and have a play, chances are I'm doing something that will irritate you, no one's config will be better than yours, but there might be something cool you want to use too. 
+
+Open your Terminal... (Unix / Mac) 
+
+    cd ~
+    git clone git://github.com/ocodo/emacs.d.git .emacs.d
+
+Run Emacs and away you go...
+
+# Contributing?
+
+Well, this isn't something I'll want to pull changes on personally, however, feel very free to fork and do what you like.
+
+# Anything else?
+
+Well, I like the Icons I made and there's a color-theme editor over at http://jasonm23.github.com
+

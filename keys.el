@@ -1,7 +1,5 @@
 ;; Keys.
 (progn 
-  (global-set-key [(control n)] 'find-file)
-
   (global-set-key (kbd "M-]") 'next-buffer)
   (global-set-key (kbd "M-[") 'previous-buffer)
   (global-set-key (kbd "s-]") 'next-buffer)
@@ -9,13 +7,14 @@
   (global-set-key (kbd "<s-right>") 'next-buffer)
   (global-set-key (kbd "<s-left>") 'previous-buffer)
 
-  (global-set-key (kbd "s-/" ) 'dabbrev-expand)
+  (global-set-key (kbd "s-/" ) 'hippie-expand)
+
   (global-set-key (kbd "s-b") 'switch-to-buffer)
 
   (global-set-key (kbd "s--") 'text-scale-decrease) 
   (global-set-key (kbd "s-=") 'text-scale-increase) 
 
-  (global-set-key (kbd "s-n") 'find-file)
+  (global-set-key (kbd "s-o") 'find-file)
 
   (global-set-key (kbd "s-1") 'delete-other-windows)
   (global-set-key (kbd "s-2") 'split-window-horizontally)

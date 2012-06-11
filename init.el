@@ -1,13 +1,36 @@
+;;                     _                                             _       _   
+;;  ___   ___ ___   __| | ___     ___ _ __ ___   __ _  ___ ___    __| | ___ | |_ 
+;; / _ \ / __/ _ \ / _` |/ _ \   / _ \ '_ ` _ \ / _` |/ __/ __|  / _` |/ _ \| __|
+;;| (_) | (_| (_) | (_| | (_) | |  __/ | | | | | (_| | (__\__ \ | (_| | (_) | |_ 
+;; \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
+;;                                                                               
 ;; init.el 
 (progn (cd "~/.emacs.d") (normal-top-level-add-subdirs-to-load-path))
 
-(require 'cl)
+;; Note, I don't use auto-load very often, which can lead to Emacs taking a couple of seconds to be ready, 
+;; however, I usually leave it running for days on end and OS X opens another Frame (window) 
+;; when I "open with..." Emacs. 
+
+;; with Emacs 24.1rc common-lisp should be required explicitly as soon as possible, some .el's forget to require it.
+;; previous versions seem to be more lax about it.
+(require 'cl) 
+
+;; Dropins is a quick way to load a bunch of simple .el packages
+;; .el's placed in the ./dropins folder will be loaded automatically.
 (require 'dropins)
 (load-dropins)
+
 ;; el-get installer
-
 ; (add-to-list 'load-path "~/.emacs.d/el-get/el-get") (unless (require 'el-get nil t) (with-current-buffer (url-retrieve-synchronously "https://raw.github.com/dimitri/el-get/master/el-get-install.el") (goto-char (point-max)) (eval-print-last-sexp))) (el-get 'sync)
+;; Too unstable (same goes for package.el) for my liking, but feel free to uncomment to use el-get (apt-get for emacs).
 
+(require 'package)
+(add-to-list 'package-archives
+             '("elpa" . "http://tromey.com/elpa/"))
+(add-to-list 'package-archives
+             '("marmalade" . "http://marmalade-repo.org/packages/"))
+
+;; My personally installed packages (they live in ./plugins/)
 (progn 
   (require 'resize-window)
   (require 'dired-details+)
@@ -24,14 +47,12 @@
   (require 'kill-buffer-without-confirm)
   (require 'xfrp_find_replace_pairs)
   (require 'haml-mode)
+  (require 'scss-mode)
   (require 'highlight-indentation)
-  (require 'scss-mode))
+  (require 'lorem-ipsum)
+  (require 'org-ghi)
+)
 
-(require 'package)
-(add-to-list 'package-archives
-             '("elpa" . "http://tromey.com/elpa/"))
-(add-to-list 'package-archives
-             '("marmalade" . "http://marmalade-repo.org/packages/"))
 
 ;; turn off menubar - uncomment
 (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
@@ -46,11 +67,6 @@
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
-
-;; Load a nice theme...
-;;(defun color-theme-tq2323 () (interactive) (color-theme-install '(color-theme-tq2323 ((background-color . "#000407") (foreground-color . "#ddfffc") (background-mode . dark) (border-color . "#052e2d") (cursor-color . "#0d6d6c") (mouse-color . "#323232")) (fringe ((t (:background "#052e2d")))) (mode-line ((t (:foreground "#9cf6f4" :background "#0b2c2d")))) (region ((t (:background "#0c5f59")))) (font-lock-builtin-face ((t (:foreground "#0b8e87")))) (font-lock-comment-face ((t (:foreground "#265f59")))) (font-lock-function-name-face ((t (:foreground "#60c3be")))) (font-lock-keyword-face ((t (:foreground "#0abda7")))) (font-lock-string-face ((t (:foreground "#aaedee")))) (font-lock-type-face ((t (:foreground"#1f8e8a")))) (font-lock-constant-face ((t (:foreground "#1ae9d7")))) (font-lock-variable-name-face ((t (:foreground "#0ebeb8")))) (minibuffer-prompt ((t (:foreground "#00faf2" :bold t)))) (font-lock-warning-face ((t (:foreground "red" :bold t)))))))
-;;(color-theme-tq2323)
-;; this is now external... 
 
 (when (window-system)
   (require 'hideshowvis)
@@ -83,9 +99,10 @@
 ;; Key bindings live in keys.el
 (load-file "~/.emacs.d/keys.el")
 
-;; (color-theme-tq2323)
-
+;; One of my custom themes, blue shades on a very dark blue.
 (color-theme-deepblueday)
+
+;; 3/4 width to the left of the display.
 (big-left-3)
 
 ;; Start the emacs server.
