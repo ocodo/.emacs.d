@@ -31,28 +31,25 @@
              '("marmalade" . "http://marmalade-repo.org/packages/"))
 
 ;; My personally installed packages (they live in ./plugins/)
-(progn 
-  (require 'resize-window)
-  (require 'dired-details+)
-  (require 'ls-lisp)
-  (require 'frame-play)
-  (require 'ido)
-  (require 'gist)
-  (require 'move-text)
-  (require 'markdown-mode)
-  (require 'textile-mode)
-  (require 'rainbow-mode)
-  (require 'scroll-bell-fix)
-  (require 'squeeze-view)
-  (require 'kill-buffer-without-confirm)
-  (require 'xfrp_find_replace_pairs)
-  (require 'haml-mode)
-  (require 'scss-mode)
-  (require 'highlight-indentation)
-  (require 'lorem-ipsum)
-  (require 'org-ghi)
-)
-
+(require 'resize-window               ) ;; interactively size window
+(require 'dired-details+              ) ;; a better (less verbose) directory viewing mode. 
+(require 'ls-lisp                     ) ;; ls replacement in emacs-lisp
+(require 'frame-play                  ) ;; a few pre-sets for sizing and moving frames (your OS calls them windows)
+(require 'ido                         ) ;; Interactively DO things...
+(require 'gist                        ) ;; Github Gist mode
+(require 'move-text                   ) ;; Move the current line or region up / donw. (I've bound this to M-up M-down)
+(require 'markdown-mode               ) ;; Markdown text mode
+(require 'textile-mode                ) ;; Textile text mode
+(require 'rainbow-mode                ) ;; Colours hex rgb and other color modes (X11 color names etc.)
+(require 'scroll-bell-fix             ) ;; a small hack to turn off the buffer scroll past top/end bell.
+(require 'squeeze-view                ) ;; try squeeze-view-narrow or squeeze-view-wide (unsqueeze-view to turn off)
+(require 'kill-buffer-without-confirm ) ;; yes, I really meant to close it.
+(require 'xfrp_find_replace_pairs     ) ;; it's all in the name...
+(require 'haml-mode                   ) ;; I love Haml. html made beautiful
+(require 'scss-mode                   ) ;; LESS but more.
+(require 'highlight-indentation       ) ;; visual guides for indentation
+(require 'lorem-ipsum                 ) ;; Throw some lipsum text in there.
+(require 'org-ghi                     ) ;; Github Issues in Org-Mode.
 
 ;; turn off menubar - uncomment
 (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
@@ -63,47 +60,41 @@
 (require 'yasnippet-bundle)
 (yas/load-directory "~/.emacs.d/snippets" )
 
-(put 'erase-buffer 'disabled nil)
-(put 'downcase-region 'disabled nil)
-(put 'upcase-region 'disabled nil)
-(put 'narrow-to-region 'disabled nil)
+(put 'erase-buffer     'disabled nil )
+(put 'downcase-region  'disabled nil )
+(put 'upcase-region    'disabled nil )
+(put 'narrow-to-region 'disabled nil )
 
 (when (window-system)
   (require 'hideshowvis)
   (add-to-list 'hs-special-modes-alist
-	       '(ruby-mode
-		 "\\(def\\|do\\|{\\)"
-		 "\\(end\\|\\)}"
-		 "#"
-		 (lambda (arg) (ruby-end-of-block)) nil))
+               '(ruby-mode
+                 "\\(def\\|do\\|{\\)"
+                 "\\(end\\|\\)}"
+                 "#"
+                 (lambda (arg) (ruby-end-of-block)) nil))
   (add-to-list 'hs-special-modes-alist
-	       '(css-mode "{" "}" "/[*/]" nil nil))
+               '(css-mode "{" "}" "/[*/]" nil nil))
   (dolist (hook (list 'emacs-lisp-mode-hook
-		      'lisp-mode-hook
-		      'ruby-mode-hook
-		      'perl-mode-hook
-		      'php-mode-hook
-		      'python-mode-hook
-		      'lua-mode-hook
-		      'c-mode-hook
-		      'java-mode-hook
-		      'js-mode-hook
-		      'css-mode-hook
-		      'c++-mode-hook))
+                      'lisp-mode-hook
+                      'ruby-mode-hook
+                      'perl-mode-hook
+                      'php-mode-hook
+                      'python-mode-hook
+                      'lua-mode-hook
+                      'c-mode-hook
+                      'java-mode-hook
+                      'js-mode-hook
+                      'css-mode-hook
+                      'c++-mode-hook))
     (add-hook hook 'hideshowvis-enable)))
 
-;; Customize stuff goes in custom.el
-(setq custom-file "~/.emacs.d/custom.el")
-(load-file "~/.emacs.d/custom.el")
+(setq custom-file "~/.emacs.d/custom.el") ;; Customize stuff goes in custom.el
+(load-file        "~/.emacs.d/custom.el") ;; <- load customizations...
+(load-file        "~/.emacs.d/keys.el"  ) ;; Key bindings live in keys.el
+(color-theme-deepblueday)                 ;; Blue shades on a very dark blue.
+(big-left-3)                              ;; 3/4 width to the left of the display.
+(server-start nil)                        ;; Start the emacs server.
 
-;; Key bindings live in keys.el
-(load-file "~/.emacs.d/keys.el")
 
-;; One of my custom themes, blue shades on a very dark blue.
-(color-theme-deepblueday)
 
-;; 3/4 width to the left of the display.
-(big-left-3)
-
-;; Start the emacs server.
-(server-start nil)
