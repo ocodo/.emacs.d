@@ -1,4 +1,4 @@
-# ocodo emacs keys
+# ocodo emacs key bindings
 
 
     Alt ]      : next buffer
