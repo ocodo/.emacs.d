@@ -37,6 +37,8 @@ Just a few key bindings, you'll find them in keys.el
 
 > On the Mac, within Emacs, your **Opt** (aka. **Alt**) key is the **Meta** key, the **Cmd** key is the **Super** key.
 
+> So in the list above, `C-` is **Ctrl+**, `s-` is **Cmd** or what Emacs calls **Super**, and `M-` is **Alt+** or **Opt+** what Emacs calls **Meta**.
+
 > It's worth noting Emacs also uses the **Esc** key as **Meta**, so you can press **Esc** once, and Emacs will act as if you're holding down **Opt/Alt**. This is a bit confusing to many, but it's a nice alternative to finger stretching, RSI inducing keyboard gymnastics.
 
 > So `Esc, x` is the same as `M-x` for example.
