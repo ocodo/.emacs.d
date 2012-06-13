@@ -93,7 +93,7 @@
 (load-file        "~/.emacs.d/custom.el") ;; <- load customizations...
 (load-file        "~/.emacs.d/keys.el"  ) ;; Key bindings live in keys.el
 (color-theme-deepblueday)                 ;; Blue shades on a very dark blue.
-(big-left-3)                              ;; 3/4 width to the left of the display.
+(set-frame-big-left-2)                    ;; 75% width, 100% high, move to top/left.
 (server-start nil)                        ;; Start the emacs server.
 
 
