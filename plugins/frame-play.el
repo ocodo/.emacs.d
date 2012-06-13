@@ -1,4 +1,6 @@
 ;; a simple set of frame positioning macros...
+;; frame width and height 100% values are approximate,
+;; and tuned for Emacs24.1 on OS X 
 
 (defun set-frame-position-right-hand-side ()
 
@@ -72,7 +74,7 @@
   (interactive)
   (if window-system
       (progn
-        (set-frame-width (selected-frame) (/ (x-display-pixel-width) (frame-char-width) )))))
+        (set-frame-width (selected-frame) (/ (- (x-display-pixel-width) 30) (frame-char-width) )))))
 
 
 (defun set-frame-big-left-1 ()

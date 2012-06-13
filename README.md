@@ -44,7 +44,9 @@ Well, this isn't something I'll want to pull changes on personally, however, fee
 
 # Anything else?
 
-Well, I like the Icons I made and there's a color-theme editor over at http://jasonm23.github.com
+Well, I made some replacement Emacs Icons and there's a color-theme
+editor and a dozen or so dark color themes over at
+http://jasonm23.github.com
 
 Other than that, I strongly encourage you to journey deep into Emacs, it's very interesting and powerful, and thanks to really nice displays and font rendering on the Mac it can even look nice too!
 
