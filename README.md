@@ -1,8 +1,20 @@
-# Ocodo emacs dot
+# Super quick start guide...
+
+Assuming you have `git` installed...
+
+In a terminal window, type:
+
+    git clone git://github.com/ocodo/emacs.d.git ~/.emacs.d
+
+
+Now start Emacs.app - if you run in a Terminal, I suggest iTerm2 and set the Terminal mode to `xterm-256color`
+
+### Ocodo emacs dot - the 'proper' intro
 
 You want Emacs, but you scared silly of it?
 
 Never fear, Ocodo's dot emacs directory will make it all a little less painful, this is a purist free zone, and frankly, if you're already configuring Emacs to be superhardcore, I suggest you buy those foot-pedals, forget about other peoples dotfiles and sharpen up your emacs lisp skills.
+
 
 ## Still here?
 
@@ -35,3 +47,8 @@ Well, this isn't something I'll want to pull changes on personally, however, fee
 
 Well, I like the Icons I made and there's a color-theme editor over at http://jasonm23.github.com
 
+# Disclaimer.
+
+These dotfiles are tested on OS X, they work on other platforms too, but don't do any specific customizations for them (e.g. cygwin etc.) but any POSIX compliant OS should be fine.
+
+Having said that, I use them most with http://emacsformacosx.com/emacs-builds/Emacs-24.1-universal-10.6.8.dmg and http://emacsformacosx.com/emacs-builds/Emacs-23.3-universal-10.6.6.dmg on Lion and Mt.Lion Dev Preview, with acceptable results.
