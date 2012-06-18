@@ -51,7 +51,7 @@
 (require 'lorem-ipsum                 ) ;; Throw some lipsum text in there.
 (require 'org-ghi                     ) ;; Github Issues in Org-Mode.
 (require 'yaml-mode                   ) ;; yaml editing mode
-(require 'rinari                      ) ;; Ruby on Rails mode 
+;; (require 'rinari                      ) ;; Ruby on Rails mode 
 
 ;; turn off menubar - uncomment
 (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
