@@ -24,15 +24,15 @@
 ; (add-to-list 'load-path "~/.emacs.d/el-get/el-get") (unless (require 'el-get nil t) (with-current-buffer (url-retrieve-synchronously "https://raw.github.com/dimitri/el-get/master/el-get-install.el") (goto-char (point-max)) (eval-print-last-sexp))) (el-get 'sync)
 ;; Too unstable (same goes for package.el) for my liking, but feel free to uncomment to use el-get (apt-get for emacs).
 
-(require 'package)
-(add-to-list 'package-archives
-             '("elpa" . "http://tromey.com/elpa/"))
-(add-to-list 'package-archives
-             '("marmalade" . "http://marmalade-repo.org/packages/"))
+;; (require 'package)
+;; (add-to-list 'package-archives
+;;              '("elpa" . "http://tromey.com/elpa/"))
+;; (add-to-list 'package-archives
+;;              '("marmalade" . "http://marmalade-repo.org/packages/"))
 
 ;; My personally installed packages (they live in ./plugins/)
 (require 'resize-window               ) ;; interactively size window
-(require 'dired-details+              ) ;; a better (less verbose) directory viewing mode. 
+(require 'dired-details+              ) ;; a better (less verbose) directory viewing mode. (requires dired-details itself.)
 (require 'ls-lisp                     ) ;; ls replacement in emacs-lisp
 (require 'frame-play                  ) ;; a few pre-sets for sizing and moving frames (your OS calls them windows)
 (require 'ido                         ) ;; Interactively DO things...
@@ -50,6 +50,8 @@
 (require 'highlight-indentation       ) ;; visual guides for indentation
 (require 'lorem-ipsum                 ) ;; Throw some lipsum text in there.
 (require 'org-ghi                     ) ;; Github Issues in Org-Mode.
+(require 'yaml-mode                   ) ;; yaml editing mode
+(require 'rinari                      ) ;; Ruby on Rails mode 
 
 ;; turn off menubar - uncomment
 (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
@@ -92,9 +94,11 @@
 (setq custom-file "~/.emacs.d/custom.el") ;; Customize stuff goes in custom.el
 (load-file        "~/.emacs.d/custom.el") ;; <- load customizations...
 (load-file        "~/.emacs.d/keys.el"  ) ;; Key bindings live in keys.el
-(color-theme-deepblueday)                 ;; Blue shades on a very dark blue.
-(set-frame-big-left-2)                    ;; 75% width, 100% high, move to top/left.
+(color-theme-turquiose-2323)              ;; Blue shades on a very dark blue.
 (server-start nil)                        ;; Start the emacs server.
+
+;;; modern/fancy modeline modification
+(require 'powerline)
 
 
 
