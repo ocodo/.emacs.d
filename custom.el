@@ -31,7 +31,7 @@
  '(linum-format "%7d")
  '(ls-lisp-emulation (quote MacOS))
  '(make-backup-files nil)
- '(markdown-css-path "/screen.css")
+ '(markdown-css-path "https://raw.github.com/jasonm23/markdown-css-themes/gh-pages/markdark.css")
  '(mode-line-format (quote ("%e" #(" " 0 1 (help-echo "mouse-1: Select (drag to resize)
 mouse-2: Make current window occupy the whole frame
 mouse-3: Remove current window from display")) mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-frame-identification mode-line-buffer-identification #("   " 0 3 (help-echo "mouse-1: Select (drag to resize)
