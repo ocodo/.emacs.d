@@ -1,5 +1,0 @@
-#name : while read line
-# --
-while read ${1:line}; do
-  $0
-done < <($2)

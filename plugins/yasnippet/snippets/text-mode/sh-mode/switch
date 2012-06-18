@@ -1,9 +1,0 @@
-#name : switch
-# --
-case ${1:variable} in
-  $0
-
-  # Default
-  *)
-  ;;
-esac
