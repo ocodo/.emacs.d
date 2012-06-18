@@ -1,5 +1,0 @@
-#name : while IFS=, read
-# --
-while IFS=, read ${1:vars}; do
-  $0
-done

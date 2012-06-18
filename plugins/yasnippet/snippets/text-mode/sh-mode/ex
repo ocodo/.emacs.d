@@ -1,3 +1,0 @@
-#name : export
-# --
-export ${1:variable}=${2:value}

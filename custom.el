@@ -53,11 +53,7 @@ mouse-3: Remove current window from display")))))
  '(tab-width 4)
  '(tabbar-background-color "grey20")
  '(tabbar-separator (quote (0.2)))
- '(truncate-lines t)
- '(yas/global-mode t nil (yasnippet))
- '(yas/prompt-functions (quote (yas/dropdown-prompt yas/x-prompt yas/completing-prompt yas/ido-prompt yas/no-prompt)))
- '(yas/triggers-in-field t)
- '(yas/wrap-around-region t))
+ '(truncate-lines t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
