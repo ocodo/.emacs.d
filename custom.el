@@ -11,6 +11,7 @@
  '(column-number-mode t)
  '(cua-mode t nil (cua-base))
  '(current-language-environment "UTF-8")
+ '(custom-safe-themes (quote ("9f5fe6191b981ce29a2b4f8e4dbcefef7dd33b292d80c620f754be174efa9d58" default)))
  '(dired-listing-switches "-alhF")
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
@@ -61,7 +62,7 @@ mouse-3: Remove current window from display")))))
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#000000" :foreground "#ffffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "apple" :family "Monaco"))))
+ '(default ((t (:inherit nil :stipple nil :background "#000000" :foreground "#ddf3ff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 150 :width normal :foundry "apple" :family "Menlo"))))
  '(cua-rectangle ((default (:inherit region :background "#330000")) (((class color)) (:background "maroon" :foreground "white"))))
  '(cursor ((t (:background "#5599bb" :foreground "white"))))
  '(custom-button ((((type x w32 ns) (class color)) (:background "lightgrey" :foreground "black" :box (:line-width 2 :style released-button) :family "Trebuchet MS"))))

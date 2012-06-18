@@ -1,5 +1,4 @@
 ;; Keys.
-(progn 
   (global-set-key (kbd "s-]") 'next-buffer)
   (global-set-key (kbd "s-[") 'previous-buffer)
   (global-set-key (kbd "<s-right>") 'next-buffer)
@@ -28,6 +27,16 @@
   (global-set-key [(control tab)] 'completion-at-point)
   (global-set-key (kbd "<s-return>" ) 'completion-at-point)
   (global-set-key (kbd "s-0") 'linum-mode)
+
+;; bind Alt-Cmd-Return to fullscreen toggle on os x in
+;; window mode, if ns-toggle-fullscreen is available.
+(when 
+    (and 
+     (fboundp 'ns-toggle-fullscreen)
+     (window-system)
+     )
+  (global-set-key (kbd "<M-s-return>") 
+                  'ns-toggle-fullscreen)
   )
 
 ;; Dired mode specific
