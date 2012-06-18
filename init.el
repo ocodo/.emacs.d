@@ -63,9 +63,6 @@
 (require 'org-ghi                     ) ;; Github Issues in Org-Mode.
 (require 'yaml-mode                   ) ;; yaml editing mode
 
-(require 'yasnippet-bundle)
-(yas/load-directory "~/.emacs.d/snippets" )
-
 (put 'erase-buffer     'disabled nil )
 (put 'downcase-region  'disabled nil )
 (put 'upcase-region    'disabled nil )
