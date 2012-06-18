@@ -7,7 +7,7 @@
 ;; init.el 
 ;; Go dark immediately when on x, os x etc.
 (when (window-system)
-  (set-face-foreground 'default "#000000")
+  (set-face-foreground 'default "#777777")
   (set-face-background 'default "#000000")
   ;; This will be reset by color theme
   )
@@ -32,14 +32,14 @@
 (load-dropins)
 
 ;; el-get installer
-; (add-to-list 'load-path "~/.emacs.d/el-get/el-get") (unless (require 'el-get nil t) (with-current-buffer (url-retrieve-synchronously "https://raw.github.com/dimitri/el-get/master/el-get-install.el") (goto-char (point-max)) (eval-print-last-sexp))) (el-get 'sync)
+(add-to-list 'load-path "~/.emacs.d/el-get/el-get") (unless (require 'el-get nil t) (with-current-buffer (url-retrieve-synchronously "https://raw.github.com/dimitri/el-get/master/el-get-install.el") (goto-char (point-max)) (eval-print-last-sexp))) (el-get 'sync)
 ;; Too unstable (same goes for package.el) for my liking, but feel free to uncomment to use el-get (apt-get for emacs).
 
-;; (require 'package)
-;; (add-to-list 'package-archives
-;;              '("elpa" . "http://tromey.com/elpa/"))
-;; (add-to-list 'package-archives
-;;              '("marmalade" . "http://marmalade-repo.org/packages/"))
+(require 'package)
+(add-to-list 'package-archives
+             '("elpa" . "http://tromey.com/elpa/"))
+(add-to-list 'package-archives
+             '("marmalade" . "http://marmalade-repo.org/packages/"))
 
 ;; My personally installed packages (they live in ./plugins/)
 (require 'resize-window               ) ;; interactively size window
@@ -62,7 +62,6 @@
 (require 'lorem-ipsum                 ) ;; Throw some lipsum text in there.
 (require 'org-ghi                     ) ;; Github Issues in Org-Mode.
 (require 'yaml-mode                   ) ;; yaml editing mode
-;; (require 'rinari                      ) ;; Ruby on Rails mode 
 
 (require 'yasnippet-bundle)
 (yas/load-directory "~/.emacs.d/snippets" )
@@ -100,7 +99,7 @@
 (load-file        "~/.emacs.d/custom.el") ;; <- load customizations...
 (load-file        "~/.emacs.d/keys.el"  ) ;; Key bindings live in keys.el
 (server-start nil)                        ;; Start the emacs server.
-(color-theme-deepblueday)                 ;; Bluegreen shades...
+(color-theme-deepblueday)                 ;; DeepBlue shades...
 
 ;;; modern/fancy modeline modification
 (require 'powerline)
