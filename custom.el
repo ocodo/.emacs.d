@@ -5,6 +5,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(auto-install-save-confirm nil)
+ '(blink-cursor-mode nil)
  '(color-theme-illegal-faces "^w3-")
  '(color-theme-is-cumulative t)
  '(color-theme-mode-hook nil)
