@@ -5,6 +5,17 @@
 ;; \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;                                                                               
 ;; init.el 
+;; Go dark immediately when on x, os x etc.
+(when (window-system)
+  (set-face-foreground 'default "#000000")
+  (set-face-background 'default "#000000")
+  ;; This will be reset by color theme
+  )
+
+;; turn off that horrible toolbar & menu
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+
 (progn (cd "~/.emacs.d") (normal-top-level-add-subdirs-to-load-path))
 
 ;; Note, I don't use auto-load very often, which can lead to Emacs taking a couple of seconds to be ready, 
@@ -53,12 +64,6 @@
 (require 'yaml-mode                   ) ;; yaml editing mode
 ;; (require 'rinari                      ) ;; Ruby on Rails mode 
 
-;; turn off menubar - uncomment
-(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-
-;; turn off toolbar
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-
 (require 'yasnippet-bundle)
 (yas/load-directory "~/.emacs.d/snippets" )
 
@@ -94,11 +99,11 @@
 (setq custom-file "~/.emacs.d/custom.el") ;; Customize stuff goes in custom.el
 (load-file        "~/.emacs.d/custom.el") ;; <- load customizations...
 (load-file        "~/.emacs.d/keys.el"  ) ;; Key bindings live in keys.el
-(color-theme-turquiose)                   ;; Bluegreen shades...
 (server-start nil)                        ;; Start the emacs server.
+(color-theme-deepblueday)                 ;; Bluegreen shades...
 
 ;;; modern/fancy modeline modification
 (require 'powerline)
-
+;;; reload after theme changes
 
 
