@@ -94,7 +94,7 @@
 (setq custom-file "~/.emacs.d/custom.el") ;; Customize stuff goes in custom.el
 (load-file        "~/.emacs.d/custom.el") ;; <- load customizations...
 (load-file        "~/.emacs.d/keys.el"  ) ;; Key bindings live in keys.el
-(color-theme-turquiose-2323)              ;; Blue shades on a very dark blue.
+(color-theme-turquiose)                   ;; Bluegreen shades...
 (server-start nil)                        ;; Start the emacs server.
 
 ;;; modern/fancy modeline modification
