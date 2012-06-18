@@ -61,8 +61,8 @@
 (require 'highlight-indentation       ) ;; visual guides for indentation
 (require 'lorem-ipsum                 ) ;; Throw some lipsum text in there.
 (require 'org-ghi                     ) ;; Github Issues in Org-Mode.
-(require 'yaml-mode                   ) ;; yaml editing mode
-;; (require 'rinari                      ) ;; Ruby on Rails mode 
+(require 'yaml-mode                   ) ;; yaml editing 
+(require 'rinari                      ) ;; Ruby on Rails mode 
 
 (require 'yasnippet-bundle)
 (yas/load-directory "~/.emacs.d/snippets" )
