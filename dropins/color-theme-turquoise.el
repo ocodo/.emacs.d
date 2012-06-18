@@ -1,8 +1,8 @@
 ;; Turquiose
-(defun color-theme-turquiose-2323 ()
+(defun color-theme-turquiose ()
   (interactive)
   (color-theme-install
-   '(color-theme-turquiose-2323
+   '(color-theme-turquiose
       ((background-color . "#000407")
       (foreground-color . "#ddfffc")
       (background-mode . dark)
@@ -24,7 +24,7 @@
      (font-lock-warning-face ((t (:foreground "red" :bold t))))
      )))
 
-(provide 'color-theme-turquiose-2323)
+(provide 'color-theme-turquiose)
 
 
 
