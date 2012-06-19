@@ -18,9 +18,10 @@
   ;; This will be reset by color theme
   )
 
-;; turn off that horrible toolbar & menu
+;; turn off toolbar 
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+;;(& uncomment this to turn off menu)
+;; (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 
 (put 'erase-buffer     'disabled nil)
 (put 'downcase-region  'disabled nil)
