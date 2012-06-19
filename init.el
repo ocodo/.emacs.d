@@ -80,14 +80,12 @@
 
 (when (window-system)
   (require 'hideshowvis)
+
   (add-to-list 'hs-special-modes-alist
-               '(ruby-mode
-                 "\\(def\\|do\\|{\\)"
-                 "\\(end\\|\\)}"
-                 "#"
-                 (lambda (arg) (ruby-end-of-block)) nil))
-  (add-to-list 'hs-special-modes-alist
-               '(css-mode "{" "}" "/[*/]" nil nil))
+	     '(ruby-mode
+	       "\\(def\\|do\\|{\\)" "\\(end\\|end\\|}\\)" "#"
+	       (lambda (arg) (ruby-end-of-block)) nil))
+
   (dolist (hook (list 'emacs-lisp-mode-hook
                       'lisp-mode-hook
                       'ruby-mode-hook
@@ -107,6 +105,9 @@
 (load-file        "~/.emacs.d/keys.el"  ) ;; Key bindings live in keys.el
 (server-start nil)                        ;; Start the emacs server.
 (color-theme-deepblueday)                 ;; DeepBlue shades...
+
+(require 'yasnippet)
+(yas/global-mode 1)
 
 ;;; modern/fancy modeline modification
 (require 'powerline)

@@ -1,10 +1,12 @@
 ;;; hideshowvis.el --- Add markers to the fringe for regions foldable by hideshow.el
 ;;
-;; Copyright 2008-2010 Jan Rehders
+;; Copyright 2008-2012 Jan Rehders
 ;;
 ;; Author: Jan Rehders <cmdkeen@gmx.de>
-;; Version: 0.3
 ;; Contributions by Bryan Waite and Michael Heerdegen
+;; 
+;; Version: 0.4
+;; Additional contributions: 2010, 2012, Jason Milkins.
 ;;
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,12 +26,13 @@
 ;;
 ;;; Commentary:
 ;;
-;; This minor mode will add little +/- displays to foldable regions in the
-;; buffer and to folded regions. It is indented to be used in conjunction with
-;; hideshow.el which is a part of GNU Emacs since version 20.
+;; This minor mode will add little arrow bitmaps to the fringe for,
+;; foldable regions in the buffer and to folded regions. It is
+;; indented to be used in conjunction with hideshow.el which is a part
+;; of GNU Emacs since version 20.
 ;;
-;; Currently it works for me but is not tested heavily. Please report any bugs
-;; to the above email address
+;; Currently it works for me but is not tested heavily. Please report
+;; any bugs to the above email address
 ;;
 ;;; Installation:
 ;; Add the following to your .emacs:
@@ -47,14 +50,19 @@
 ;;   (add-hook hook 'hideshowvis-enable))
 ;;
 ;; If enabling hideshowvis-minor-mode is slow on your machine use M-x,
-;; customize-option, hideshowvis-ignore-same-line and set it to nil. This will
-;; then display - icons for foldable regions of one line, too but is faster
+;; customize-option, hideshowvis-ignore-same-line and set it to
+;; nil. This will then display - icons for foldable regions of one
+;; line, too but is faster
 ;;
-;; At the end of this file you will find code to add to your .emacs to enable
-;; displaying a + symbol in the fringe for folded regions. It is not enabled by
-;; default because it might interfere with custom hs-set-up-overlay functions
+;; At the end of this file you will find code to add to your .emacs to
+;; enable displaying a + symbol in the fringe for folded regions. It
+;; is not enabled by default because it might interfere with custom
+;; hs-set-up-overlay functions
 ;;
 ;;; Changelog
+;;
+;; v0.4, 2010-07-03
+;; - arrow bitmaps ▶▼ now replace the existing + / - bitmaps. 
 ;;
 ;; v0.3, 2010-08-26
 ;; - added autoload cookies
@@ -65,18 +73,10 @@
 ;; - don't show '-' in fringe if the foldable region ends on the same line
 ;;
 
-(define-fringe-bitmap 'hideshowvis-hideable-marker [
-						    #b00000000
-						    #b00000000
-						    #b11111110
-						    #b01111100
-						    #b00111000
-						    #b00010000
-						    #b00000000
-						    #b00000000
-						    ])
+;; arrow pointing down
+(define-fringe-bitmap 'hideshowvis-hideable-marker [0 0 254 124 56 16 0 0]) 
 
-(defconst hideshowvis-version "v0.2" "Version of hideshowvis minor mode")
+(defconst hideshowvis-version "v0.4" "Version of hideshowvis minor mode")
 
 (defface hideshowvis-hidable-face
   '((t (:foreground "#ccc" :box t)))
@@ -177,20 +177,11 @@
   (hideshowvis-minor-mode 1))
 
 
-;; Add the following to your .emacs and uncomment it in order to get a + symbol
-;; in the fringe and a yellow marker indicating the number of hidden lines at
-;; the end of the line for hidden regions:
-;;
-(define-fringe-bitmap 'hs-marker [
-				  #b00000000
-				  #b00100000
-				  #b00110000
-				  #b00111000
-				  #b00111100
-				  #b00111000
-				  #b00110000
-				  #b00100000
-				  ])
+;; Uncomment the following to enable a clickable arrow pointing right,
+;; and a small indicator box, which displays the number of lines
+;; hidden.
+
+(define-fringe-bitmap 'hs-marker [0 32 48 56 60 56 48 32]) ;; arrow pointing right. 
 
 (defcustom hs-fringe-face 'hs-fringe-face
   "*Specify face used to highlight the fringe on hidden regions."
