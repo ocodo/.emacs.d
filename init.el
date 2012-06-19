@@ -32,14 +32,24 @@
 (load-dropins)
 
 ;; el-get installer
-(add-to-list 'load-path "~/.emacs.d/el-get/el-get") (unless (require 'el-get nil t) (with-current-buffer (url-retrieve-synchronously "https://raw.github.com/dimitri/el-get/master/el-get-install.el") (goto-char (point-max)) (eval-print-last-sexp))) (el-get 'sync)
-;; Too unstable (same goes for package.el) for my liking, but feel free to uncomment to use el-get (apt-get for emacs).
+(add-to-list 'load-path "~/.emacs.d/el-get/el-get") 
+(unless 
+    (require 'el-get nil t) (with-current-buffer (url-retrieve-synchronously "https://raw.github.com/dimitri/el-get/master/el-get-install.el") 
+                              (goto-char (point-max)) 
+                              (eval-print-last-sexp))) 
 
+(el-get 'sync)
+
+;; elpa
 (require 'package)
 (add-to-list 'package-archives
              '("elpa" . "http://tromey.com/elpa/"))
 (add-to-list 'package-archives
              '("marmalade" . "http://marmalade-repo.org/packages/"))
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/"))
+
+(package-initialize)
 
 ;; My personally installed packages (they live in ./plugins/)
 (require 'resize-window               ) ;; interactively size window
