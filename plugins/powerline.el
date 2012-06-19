@@ -55,26 +55,26 @@
    (format "/* XPM */
 static char * chamfer[] = {
 \"12 18 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\".....        \",
-\"......       \",
-\".......      \",
-\"........     \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \"};"
+\"@@@@@       \",
+\"@@@@@@      \",
+\"@@@@@@@     \",
+\"@@@@@@@@    \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \"};"
            (if color1 color1 "None")
            (if color2 color2 "None"))
    'xpm t :ascent 'center))
@@ -86,26 +86,26 @@ static char * chamfer[] = {
    (format "/* XPM */
 static char * rounded[] = {
 \"12 18 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\"....         \",
-\"......       \",
-\".......      \",
-\"........     \",
-\"........     \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \",
-\".........    \"};"
+\"@@@@        \",
+\"@@@@@@      \",
+\"@@@@@@@     \",
+\"@@@@@@@@    \",
+\"@@@@@@@@    \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \"};"
            (if color1 color1 "None")
            (if color2 color2 "None"))
    'xpm t :ascent 'center))
@@ -118,235 +118,235 @@ static char * rounded[] = {
    (format "/* XPM */
 static char * slant_left[] = {
 \"12 18 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\"....         \",
-\"....         \",
-\".....        \",
-\".....        \",
-\"......       \",
-\"......       \",
-\".......      \",
-\".......      \",
-\"........     \",
-\"........     \",
-\".........    \",
-\".........    \",
-\"..........   \",
-\"..........   \",
-\"...........  \",
-\"...........  \",
-\"............ \",
-\"............\"};"
+\"@@@@         \",
+\"@@@@         \",
+\"@@@@@        \",
+\"@@@@@        \",
+\"@@@@@@       \",
+\"@@@@@@       \",
+\"@@@@@@@      \",
+\"@@@@@@@      \",
+\"@@@@@@@@     \",
+\"@@@@@@@@     \",
+\"@@@@@@@@@    \",
+\"@@@@@@@@@    \",
+\"@@@@@@@@@@   \",
+\"@@@@@@@@@@   \",
+\"@@@@@@@@@@@  \",
+\"@@@@@@@@@@@  \",
+\"@@@@@@@@@@@@ \",
+\"@@@@@@@@@@@@\"};"
            (if color1 color1 "None")
            (if color2 color2 "None"))
    'xpm t :ascent 'center))
 
 (defun slant-right-xpm
   (color1 color2)
-  "Return an XPM right slant string representing."
+  "Return an XPM right slant string representing@"
   (create-image
    (format "/* XPM */
 static char * slant_right[] = {
 \"12 18 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\"        ....\",
-\"        ....\",
-\"       .....\",
-\"       .....\",
-\"      ......\",
-\"      ......\",
-\"     .......\",
-\"     .......\",
-\"    ........\",
-\"    ........\",
-\"   .........\",
-\"   .........\",
-\"  ..........\",
-\"  ..........\",
-\" ...........\",
-\" ...........\",
-\"............\",
-\"............\"};"
+\"        @@@@\",
+\"        @@@@\",
+\"       @@@@@\",
+\"       @@@@@\",
+\"      @@@@@@\",
+\"      @@@@@@\",
+\"     @@@@@@@\",
+\"     @@@@@@@\",
+\"    @@@@@@@@\",
+\"    @@@@@@@@\",
+\"   @@@@@@@@@\",
+\"   @@@@@@@@@\",
+\"  @@@@@@@@@@\",
+\"  @@@@@@@@@@\",
+\" @@@@@@@@@@@\",
+\" @@@@@@@@@@@\",
+\"@@@@@@@@@@@@\",
+\"@@@@@@@@@@@@\"};"
            (if color2 color2 "None")
            (if color1 color1 "None"))
    'xpm t :ascent 'center))
 
 (defun arrow-left-xpm
   (color1 color2)
-  "Return an XPM left arrow string representing."
+  "Return an XPM left arrow string representing@"
   (create-image
    (format "/* XPM */
 static char * arrow_left[] = {
 \"12 18 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\".           \",
-\"..          \",
-\"...         \",
-\"....        \",
-\".....       \",
-\"......      \",
-\".......     \",
-\"........    \",
-\".........   \",
-\".........   \",
-\"........    \",
-\".......     \",
-\"......      \",
-\".....       \",
-\"....        \",
-\"...         \",
-\"..          \",
-\".           \"};"
+\"@           \",
+\"@@          \",
+\"@@@         \",
+\"@@@@        \",
+\"@@@@@       \",
+\"@@@@@@      \",
+\"@@@@@@@     \",
+\"@@@@@@@@    \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@    \",
+\"@@@@@@@     \",
+\"@@@@@@      \",
+\"@@@@@       \",
+\"@@@@        \",
+\"@@@         \",
+\"@@          \",
+\"@           \"};"
            (if color1 color1 "None")
            (if color2 color2 "None"))
    'xpm t :ascent 'center))
 
 (defun arrow-right-xpm
   (color1 color2)
-  "Return an XPM right arrow string representing."
+  "Return an XPM right arrow string representing@"
   (create-image
    (format "/* XPM */
 static char * arrow_right[] = {
 \"12 18 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\"           .\",
-\"          ..\",
-\"         ...\",
-\"        ....\",
-\"       .....\",
-\"      ......\",
-\"     .......\",
-\"    ........\",
-\"   .........\",
-\"   .........\",
-\"    ........\",
-\"     .......\",
-\"      ......\",
-\"       .....\",
-\"        ....\",
-\"         ...\",
-\"          ..\",
-\"           .\"};"
+\"           @\",
+\"          @@\",
+\"         @@@\",
+\"        @@@@\",
+\"       @@@@@\",
+\"      @@@@@@\",
+\"     @@@@@@@\",
+\"    @@@@@@@@\",
+\"   @@@@@@@@@\",
+\"   @@@@@@@@@\",
+\"    @@@@@@@@\",
+\"     @@@@@@@\",
+\"      @@@@@@\",
+\"       @@@@@\",
+\"        @@@@\",
+\"         @@@\",
+\"          @@\",
+\"           @\"};"
            (if color2 color2 "None")
            (if color1 color1 "None"))
    'xpm t :ascent 'center))
 
 (defun arrow14-left-xpm
   (color1 color2)
-  "Return an XPM left arrow string representing."
+  "Return an XPM left arrow string representing@"
   (create-image
    (format "/* XPM */
 static char * arrow_left[] = {
 \"12 14 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\".           \",
-\"..          \",
-\"...         \",
-\"....        \",
-\".....       \",
-\"......      \",
-\".......     \",
-\".......     \",
-\"......      \",
-\".....       \",
-\"....        \",
-\"...         \",
-\"..          \",
-\".           \"};"
+\"@           \",
+\"@@          \",
+\"@@@         \",
+\"@@@@        \",
+\"@@@@@       \",
+\"@@@@@@      \",
+\"@@@@@@@     \",
+\"@@@@@@@     \",
+\"@@@@@@      \",
+\"@@@@@       \",
+\"@@@@        \",
+\"@@@         \",
+\"@@          \",
+\"@           \"};"
            (if color1 color1 "None")
            (if color2 color2 "None"))
    'xpm t :ascent 'center))
 
 (defun arrow14-right-xpm
   (color1 color2)
-  "Return an XPM right arrow string representing."
+  "Return an XPM right arrow string representing@"
   (create-image
    (format "/* XPM */
 static char * arrow_right[] = {
 \"12 14 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\"           .\",
-\"          ..\",
-\"         ...\",
-\"        ....\",
-\"       .....\",
-\"      ......\",
-\"     .......\",
-\"     .......\",
-\"      ......\",
-\"       .....\",
-\"        ....\",
-\"         ...\",
-\"          ..\",
-\"           .\"};"
+\"           @\",
+\"          @@\",
+\"         @@@\",
+\"        @@@@\",
+\"       @@@@@\",
+\"      @@@@@@\",
+\"     @@@@@@@\",
+\"     @@@@@@@\",
+\"      @@@@@@\",
+\"       @@@@@\",
+\"        @@@@\",
+\"         @@@\",
+\"          @@\",
+\"           @\"};"
            (if color2 color2 "None")
            (if color1 color1 "None"))
    'xpm t :ascent 'center))
 
 (defun curve-right-xpm
   (color1 color2)
-  "Return an XPM right curve string representing."
+  "Return an XPM right curve string representing@"
   (create-image
    (format "/* XPM */
 static char * curve_right[] = {
 \"12 18 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\"           .\",
-\"         ...\",
-\"         ...\",
-\"       .....\",
-\"       .....\",
-\"       .....\",
-\"      ......\",
-\"      ......\",
-\"      ......\",
-\"      ......\",
-\"      ......\",
-\"      ......\",
-\"       .....\",
-\"       .....\",
-\"       .....\",
-\"         ...\",
-\"         ...\",
-\"           .\"};"
+\"           @\",
+\"         @@@\",
+\"         @@@\",
+\"       @@@@@\",
+\"       @@@@@\",
+\"       @@@@@\",
+\"      @@@@@@\",
+\"      @@@@@@\",
+\"      @@@@@@\",
+\"      @@@@@@\",
+\"      @@@@@@\",
+\"      @@@@@@\",
+\"       @@@@@\",
+\"       @@@@@\",
+\"       @@@@@\",
+\"         @@@\",
+\"         @@@\",
+\"           @\"};"
            (if color2 color2 "None")
            (if color1 color1 "None"))
    'xpm t :ascent 'center))
 
 (defun curve-left-xpm
   (color1 color2)
-  "Return an XPM left curve string representing."
+  "Return an XPM left curve string representing@"
   (create-image
    (format "/* XPM */
 static char * curve_left[] = {
 \"12 18 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
-\".           \",
-\"...         \",
-\"...         \",
-\".....       \",
-\".....       \",
-\".....       \",
-\"......      \",
-\"......      \",
-\"......      \",
-\"......      \",
-\"......      \",
-\"......      \",
-\".....       \",
-\".....       \",
-\".....       \",
-\"...         \",
-\"...         \",
-\".           \"};"
+\"@           \",
+\"@@@         \",
+\"@@@         \",
+\"@@@@@       \",
+\"@@@@@       \",
+\"@@@@@       \",
+\"@@@@@@      \",
+\"@@@@@@      \",
+\"@@@@@@      \",
+\"@@@@@@      \",
+\"@@@@@@      \",
+\"@@@@@@      \",
+\"@@@@@       \",
+\"@@@@@       \",
+\"@@@@@       \",
+\"@@@         \",
+\"@@@         \",
+\"@           \"};"
            (if color1 color1 "None")
            (if color2 color2 "None"))
    'xpm t :ascent 'center))
@@ -359,7 +359,7 @@ static char * curve_left[] = {
     (format "/* XPM */
 static char * %s[] = {
 \"%i %i 2 1\",
-\". c %s\",
+\"@ c %s\",
 \"  c %s\",
 "
             (downcase (replace-regexp-in-string " " "_" name))
@@ -496,18 +496,14 @@ install the memoized function over the original function."
                             (arrow-left-xpm color1 color2))
                            ((eq powerline-arrow-shape 'slant)
                             (slant-left-xpm color1 color2))
-
                            ((eq powerline-arrow-shape 'chamfer)
                             (chamfer-xpm color1 color2))
-
                            ((eq powerline-arrow-shape 'rounded)
                             (rounded-xpm color1 color2))
-
                            ((eq powerline-arrow-shape 'slant-left)
                             (slant-left-xpm color1 color2))
                            ((eq powerline-arrow-shape 'slant-right)
                             (slant-right-xpm color1 color2))
-
                            ((eq powerline-arrow-shape 'arrow14)
                             (arrow14-left-xpm color1 color2))
                            ((eq powerline-arrow-shape 'curve)
@@ -543,18 +539,14 @@ install the memoized function over the original function."
                           (arrow-right-xpm color1 color2))
                          ((eq powerline-arrow-shape 'slant)
                           (slant-right-xpm color1 color2))
-
                          ((eq powerline-arrow-shape 'rounded)
                           (rounded-xpm color1 color2))
-
                          ((eq powerline-arrow-shape 'chamfer)
                           (chamfer-xpm color1 color2))
-
                          ((eq powerline-arrow-shape 'slant-left)
                           (slant-left-xpm color1 color2))
                          ((eq powerline-arrow-shape 'slant-right)
                           (slant-right-xpm color1 color2))
-
                          ((eq powerline-arrow-shape 'arrow14)
                           (arrow14-right-xpm color1 color2))
                          ((eq powerline-arrow-shape 'curve)
