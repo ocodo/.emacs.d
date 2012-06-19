@@ -5,6 +5,7 @@
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;                                                                                 
 
+(setq exec-path (append exec-path '("/Developer/usr/bin") ))
 ;; init.el 
 (require 'cl)
 
