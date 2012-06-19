@@ -10,7 +10,7 @@
       (mouse-color . "black"))
      (fringe ((t (:background "#05202e"))))
      (mode-line ((t (:foreground "#47c0ff" :background "#0b222d"))))
-     (region ((t (:background "#004361"))))
+     (region ((t (:background "#001726"))))
      (font-lock-builtin-face ((t (:foreground "#0b5e8e"))))
      (font-lock-comment-face ((t (:foreground "#264e5f"))))
      (font-lock-function-name-face ((t (:foreground "#60a8c3"))))

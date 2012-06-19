@@ -20,6 +20,8 @@
 ;; color-themes or binding setups.
 ;;
 
+(require 'cl)
+
 (defgroup dropins nil
   "Library dropin folder"
   :group 'convenience
