@@ -1,3 +1,6 @@
 [submodule "yasnippet"]
 	path = yasnippet
 	url = git://github.com/capitaomorte/yasnippet.git
+[submodule "el-get"]
+        path = el-get/el-get
+        url = http://github.com/dimitri/el-get.git
