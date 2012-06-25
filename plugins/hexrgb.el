@@ -527,14 +527,16 @@ Returns a list of RGB components of value 0.0 to 1.0, inclusive."
                          blue   qq))))
     (list red green blue)))
 
-(defun hexrgb-hsv-to-hex (hue saturation value)
+(defun hexrgb-hsv-to-hex (hue saturation value &optional nb-digits)
   "Return the hex RBG color string for inputs HUE, SATURATION, VALUE.
 The inputs are each in the range 0 to 1.
-The output string is of the form \"#RRRRGGGGBBBB\"."
+The output string is of the form \"#RRRRGGGGBBBB\" unless the
+  nb-digits &optional argument is supplied."
   (hexrgb-color-values-to-hex
-   (mapcar (lambda (x) (floor (* x 65535.0))) (hexrgb-hsv-to-rgb hue saturation value))))
+   (mapcar (lambda (x) (floor (* x 65535.0))) (hexrgb-hsv-to-rgb hue
+  saturation value)) (or nb-digits 4)))
 
-(defun hexrgb-rgb-to-hex (red green blue)
+(defun hexrgb-rgb-to-hex (red green blue &optional nb-digits) 
   "Return the hex RBG color string for inputs RED, GREEN, BLUE.
 The inputs are each in the range 0 to 1.
 The output string is of the form \"#RRRRGGGGBBBB\"."
@@ -562,27 +564,36 @@ components."
           (/ (hexrgb-hex-to-int (substring color (1+ len) (+ 1 len len))) 65535.0)
           (/ (hexrgb-hex-to-int (substring color (+ 1 len len))) 65535.0))))
 
-(defun hexrgb-color-name-to-hex (color)
+(defun hexrgb-color-name-to-hex (color &optional nb-digits)
   "Return the RGB hex string for the COLOR name, starting with \"#\".
-If COLOR is already a string starting with \"#\", then just return it."
+If COLOR is already a string starting with \"#\", then just return
+  it."
+  (setq nb-digits (or nb-digits 4))
   (let ((components  (x-color-values color)))
     (unless components (error "No such color: %S" color))
     (unless (hexrgb-rgb-hex-string-p color)
-      (setq color  (hexrgb-color-values-to-hex components))))
+      (setq color  (hexrgb-color-values-to-hex components nb-digits))))
   color)
 
 ;; Color "components" would be better in the name than color "value"
 ;; but this name follows the Emacs tradition (e.g. `x-color-values',
 ;; 'ps-color-values', `ps-e-x-color-values').
-(defun hexrgb-color-values-to-hex (components)
+(defun hexrgb-color-values-to-hex (components &optional nb-digits)
   "Convert list of rgb color COMPONENTS to a hex string, #XXXXXXXXXXXX.
 Each X in the string is a hexadecimal digit.
-Input COMPONENTS is as for the output of `x-color-values'."
-;; Just hard-code 4 as the number of hex digits, since `x-color-values'
+Input COMPONENTS is as for the output of `x-color-values'. &optional
+nbdigits, specifies the length of each hex color component"
+;; nbdigits was previously hardcoded as 4, since `x-color-values'
 ;; seems to produce appropriate integer values for `4'.
-  (concat "#" (hexrgb-int-to-hex (nth 0 components) 4) ; red
-          (hexrgb-int-to-hex (nth 1 components) 4) ; green
-          (hexrgb-int-to-hex (nth 2 components) 4))) ; blue
+;; however, with the ubiquity of 6 digit hex colors, this is
+;; impractical for the majority of use cases. So I've change the
+;; parameter to a optional argument, and added support for the
+;; nbdigits where values are converted to hex, e.g. hexrgb-hsv-to-hex,
+;; etc.
+  (setq nb-digits (or nb-digits 4))
+  (concat "#" (hexrgb-int-to-hex (nth 0 components) nb-digits) ; red
+          (hexrgb-int-to-hex (nth 1 components) nb-digits) ; green
+          (hexrgb-int-to-hex (nth 2 components) nb-digits))) ; blue
 
 (defun hexrgb-hex-to-color-values (color)
   "Convert hex COLOR to a list of RGB color components.
@@ -704,7 +715,7 @@ NB-DIGITS is the number of hex digits.  If INT is too large to be
 represented with NB-DIGITS, then the result is truncated from the
 left.  So, for example, INT=256 and NB-DIGITS=2 returns \"00\", since
 the hex equivalent of 256 decimal is 100, which is more than 2 digits."
-  (setq nb-digits  (or nb-digits 4))
+  (setq nb-digits (or nb-digits 4))
   (substring (format (concat "%0" (int-to-string nb-digits) "X") int) (- nb-digits)))
 
 ;; Inspired by Elisp Info manual, node "Comparison of Numbers".
