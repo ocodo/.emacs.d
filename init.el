@@ -61,6 +61,7 @@
 ;;;# Convenience and completion
 (require 'ido)                         ;; Interactively DO things...
 (require 'lorem-ipsum)                 ;; Throw some Lorem ipsum filler text in.
+(require 'switch-window)               ;; Select windows by number.
 
 ;;;# asthetic convenience
 (require 'rainbow-mode)                ;; Colours hex rgb and other color modes (X11 color names etc.)
@@ -77,11 +78,9 @@
 (require 'org-ghi)                     ;; Github Issues in Org-Mode.
 (require 'gist)                        ;; Github Gist mode
 
-
 ;;; modern/fancy modeline modification, seems to need a reload after
 ;;; the theme changes - it's a bit experimental / unstable.
 (require 'powerline)
-
 ;; Notes on Powerline:
 ;; rounded radius / chamfer size
 ;; 
