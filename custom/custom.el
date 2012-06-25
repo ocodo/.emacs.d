@@ -42,7 +42,7 @@
  '(default ((t (:inherit nil :stipple nil :background "#000407" :foreground "#ddf3ff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "apple" :family "Monaco"))))
  '(cua-rectangle ((default (:inherit region :background "#330000")) (((class color)) (:background "maroon" :foreground "white"))))
  '(cursor ((t (:background "#5599bb" :foreground "white"))))
- '(linum ((t (:weight normal :height 0.8))))
+ '(linum ((t (:background "black" :foreground "#202020" :box nil :height 90))))
  '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 1.7))))
  '(markdown-header-face-2 ((t (:inherit markdown-header-face :height 1.5))))
  '(markdown-header-face-3 ((t (:inherit markdown-header-face :height 1.4))))

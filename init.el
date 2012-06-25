@@ -67,7 +67,7 @@
 (require 'rainbow-mode)                ;; Colours hex rgb and other color modes (X11 color names etc.)
 (require 'resize-window)               ;; interactively size window
 (require 'highlight-indentation)       ;; visual guides for indentation
-(require 'squeeze-view)                ;; try squeeze-view-narrow or squeeze-view-wide (unsqueeze-view to turn off)
+(require 'squeeze-view)                ;; squeeze view, use in conjuction with fullscreen mode
 
 ;;;# annoyance reduction.
 (require 'frame-play)                  ;; a few presets for sizing and moving frames (your OS calls them windows)
