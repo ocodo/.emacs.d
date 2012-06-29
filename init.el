@@ -12,13 +12,6 @@
 ;; dirty, but cheap way to get .emacs.d subfolders into the load path.
 (progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
 
-;; Go dark immediately when on x, os x etc.
-(when (window-system)
-  (set-face-foreground 'default "#777777")
-  (set-face-background 'default "#000000")
-  ;; This will be reset by color theme
-  )
-
 ;; turn off toolbar 
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 ;;(& uncomment this to turn off menu)
@@ -28,13 +21,6 @@
 (put 'downcase-region  'disabled nil)
 (put 'upcase-region    'disabled nil)
 (put 'narrow-to-region 'disabled nil)
-
-;; .el's placed in the ./dropins folder will be loaded automatically.
-(require 'dropins)
-(load-dropins)
-
-;; default color theme.
-(color-theme-deepblueday)
 
 ;; Modes init (things that need more than just a require.) 
 (require 'init-el-get)
@@ -56,18 +42,23 @@
 (require 'textile-mode)                ;; Textile text mode
 
 ;;;# New Edit methods 
+(require 'textmate)                    ;; Textmate emulation : Tim Vishners version.
 (require 'move-text)                   ;; Move the current line or region up / done.
-(require 'xfrp_find_replace_pairs) 
+(require 'xfrp_find_replace_pairs)     ;;
 
 ;;;# Convenience and completion
 (require 'ido)                         ;; Interactively DO things...
 (require 'lorem-ipsum)                 ;; Throw some Lorem ipsum filler text in.
+(require 'switch-window)               ;; Select windows by number.
+
+;; Blogging with Jekyll and Hyde
+(require 'hyde)
 
 ;;;# asthetic convenience
 (require 'rainbow-mode)                ;; Colours hex rgb and other color modes (X11 color names etc.)
 (require 'resize-window)               ;; interactively size window
 (require 'highlight-indentation)       ;; visual guides for indentation
-(require 'squeeze-view)                ;; try squeeze-view-narrow or squeeze-view-wide (unsqueeze-view to turn off)
+(require 'squeeze-view)                ;; squeeze view, use in conjuction with fullscreen mode
 
 ;;;# annoyance reduction.
 (require 'frame-play)                  ;; a few presets for sizing and moving frames (your OS calls them windows)
@@ -78,11 +69,9 @@
 (require 'org-ghi)                     ;; Github Issues in Org-Mode.
 (require 'gist)                        ;; Github Gist mode
 
-
 ;;; modern/fancy modeline modification, seems to need a reload after
 ;;; the theme changes - it's a bit experimental / unstable.
 (require 'powerline)
-
 ;; Notes on Powerline:
 ;; rounded radius / chamfer size
 ;; 
@@ -115,5 +104,3 @@
 ;;(set-face-font 'default "Consolas")
 ;;(set-face-font 'default "Droid Sans Mono")
 
-;; default color theme
-(color-theme-deepblueday)                 ;; DeepBlue shades...

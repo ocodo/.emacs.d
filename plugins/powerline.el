@@ -16,29 +16,28 @@
 
 ;;; Code:
 
-(defvar powerline-color1)
-(setq powerline-color1 "#123550")
+(defcustom powerline-color1 "#123550"
+  "Powerline color 1 info blocks background")
 
-(defvar powerline-color2)
-(setq powerline-color2 "#112230")
+(defcustom powerline-color2 "#112230"
+  "Powerline color 2 vcs info middle block background")
+
+(defcustom powerline-arrow-shape 'chamfer14
+  "Powerline graphic shape")
 
 (defvar powerline-minor-modes nil)
 
-(defvar powerline-arrow-shape)
-
 ;; Set this var in .emacs - possible values:
-;; chamfer 
+;; chamfer
 ;; rounded
 ;; arrow
-;; arrow-14 
+;; arrow-14
 ;; slant
 ;; slant-left
 ;; slant-right;
 ;; half
 ;; percent
 ;; curve
-
-(setq powerline-arrow-shape 'chamfer)
 
 (set-face-attribute 'mode-line nil
                     :background "#112230"
@@ -57,10 +56,11 @@ static char * chamfer[] = {
 \"12 18 2 1\",
 \"@ c %s\",
 \"  c %s\",
-\"@@@@@       \",
-\"@@@@@@      \",
 \"@@@@@@@     \",
 \"@@@@@@@@    \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
 \"@@@@@@@@@   \",
 \"@@@@@@@@@   \",
 \"@@@@@@@@@   \",
@@ -79,6 +79,33 @@ static char * chamfer[] = {
            (if color2 color2 "None"))
    'xpm t :ascent 'center))
 
+(defun chamfer14-xpm
+  (color1 color2)
+  "Return an XPM chamfer string representing."
+  (create-image
+   (format "/* XPM */
+static char * chamfer[] = {
+\"12 14 2 1\",
+\"@ c %s\",
+\"  c %s\",
+\"@@@@@@@     \",
+\"@@@@@@@@    \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \",
+\"@@@@@@@@@   \"};"
+           (if color1 color1 "None")
+           (if color2 color2 "None"))
+   'xpm t :ascent 'center))
+  
 (defun rounded-xpm
   (color1 color2)
   "Return an XPM rounded string representing."
@@ -437,6 +464,7 @@ install the memoized function over the original function."
 
 (memoize 'rounded-xpm)
 (memoize 'chamfer-xpm)
+(memoize 'chamfer14-xpm)
 (memoize 'slant-left-xpm)
 (memoize 'slant-right-xpm)
 (memoize 'arrow-left-xpm)
@@ -498,6 +526,8 @@ install the memoized function over the original function."
                             (slant-left-xpm color1 color2))
                            ((eq powerline-arrow-shape 'chamfer)
                             (chamfer-xpm color1 color2))
+                           ((eq powerline-arrow-shape 'chamfer14)
+                            (chamfer14-xpm color1 color2))
                            ((eq powerline-arrow-shape 'rounded)
                             (rounded-xpm color1 color2))
                            ((eq powerline-arrow-shape 'slant-left)
@@ -515,8 +545,9 @@ install the memoized function over the original function."
                      'local-map (make-mode-line-mouse-map
                                  'mouse-1 (lambda () (interactive)
                                             (setq powerline-arrow-shape
-                                                  (cond ((eq powerline-arrow-shape 'chamfer)     'rounded)
-                                                        ((eq powerline-arrow-shape 'rounded)       'arrow)
+                                                  (cond ((eq powerline-arrow-shape 'chamfer)     'chamfer14)
+                                                        ((eq powerline-arrow-shape 'chamfer14)   'rounded)
+                                                        ((eq powerline-arrow-shape 'rounded)     'arrow)
                                                         ((eq powerline-arrow-shape 'arrow)       'slant)
                                                         ((eq powerline-arrow-shape 'slant)       'slant-left)
                                                         ((eq powerline-arrow-shape 'slant-left)  'slant-right)
@@ -543,6 +574,8 @@ install the memoized function over the original function."
                           (rounded-xpm color1 color2))
                          ((eq powerline-arrow-shape 'chamfer)
                           (chamfer-xpm color1 color2))
+                         ((eq powerline-arrow-shape 'chamfer14)
+                          (chamfer14-xpm color1 color2))
                          ((eq powerline-arrow-shape 'slant-left)
                           (slant-left-xpm color1 color2))
                          ((eq powerline-arrow-shape 'slant-right)
@@ -558,7 +591,8 @@ install the memoized function over the original function."
                    'local-map (make-mode-line-mouse-map
                                'mouse-1 (lambda () (interactive)
                                           (setq powerline-arrow-shape
-                                                  (cond ((eq powerline-arrow-shape 'chamfer)     'rounded)
+                                                  (cond ((eq powerline-arrow-shape 'chamfer)     'chamfer14)
+                                                        ((eq powerline-arrow-shape 'chamfer14)   'rounded)
                                                         ((eq powerline-arrow-shape 'rounded)     'arrow)
                                                         ((eq powerline-arrow-shape 'arrow)       'slant)
                                                         ((eq powerline-arrow-shape 'slant)       'slant-left)
