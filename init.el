@@ -67,7 +67,9 @@
 
 ;;;# .. github convenience
 (require 'org-ghi)                     ;; Github Issues in Org-Mode.
-(require 'gist)                        ;; Github Gist mode
+;; (require 'gist)                     ;; Github Gist mode
+(require 'pastie)                      ;; Pastie mode
+
 
 ;;; modern/fancy modeline modification, seems to need a reload after
 ;;; the theme changes - it's a bit experimental / unstable.
@@ -94,6 +96,7 @@
 
 ;; Anything that needs to run after custom.
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
+(fset 'yes-or-no-p 'y-or-n-p)
 
 ;; Quick access to default font face for fickle f-users, like me.
 (set-face-font 'default "Monaco")

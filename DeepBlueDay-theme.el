@@ -1,35 +1,35 @@
-(deftheme MechanicalTurq
-  "MechanicalTurq By: Jasonm23 / Created 2012-06-26.")
+(deftheme DeepBlueDay
+  "DeepBlueDay By: Jasonm23 / Created 2012-06-26.")
 
   (custom-theme-set-variables
-   'MechanicalTurq
-
-   '(powerline-color1 "#00779a")
-   '(powerline-color2 "#00475a")
-   '(linum-format " %7i ")
+   'DeepBlueDay
    '(fringe-mode 6 nil (fringe))
+   '(linum-format " %7d ")
+   '(powerline-color1 "#00468a")
+   '(powerline-color2 "#00172a")
    )
 
   (custom-theme-set-faces
-   'MechanicalTurq
+   'DeepBlueDay
+
    '(default 
-      ((t 
-        (:family 
-         "Monaco" 
-         :foundry "apple" 
-         :width normal 
-         :height 110 
-         :weight normal 
-         :slant normal 
-         :underline nil 
-         :overline nil 
-         :strike-through nil 
-         :box nil 
-         :inverse-video nil 
-         :foreground "#ffffff" 
-         :background "#00080A" 
-         :stipple nil 
-         :inherit nil))))
+      ((t (
+           :family 
+           "Monaco" 
+           :foundry "apple" 
+           :width normal 
+           :height 110 
+           :weight normal 
+           :slant normal 
+           :underline nil 
+           :overline nil 
+           :strike-through nil 
+           :box nil 
+           :inverse-video nil 
+           :foreground "#ffffff" 
+           :background "#00060A" 
+           :stipple nil 
+           :inherit nil))))
 
    '(fixed-pitch 
      ((t (:family "Monospace"))))
@@ -38,25 +38,22 @@
      ((t (:family "Sans Serif"))))
 
    '(escape-glyph ;; Things like  and other control chars.
-     ((t (:foreground "#FF6600" :background "#011d2c"))))
+     ((t (:foreground "#FF6600" :background "#011d3c"))))
 
    ;; Line Numbers (linum-mode)
-
    '(linum
-     ((t (:background "#00181b" :foreground "#005050" :box nil :height 100))))
+     ((t (:background "#001526" :foreground "#003047" :box nil :height 100))))
 
    ;; Margin Fringes
-
    '(fringe
-     ((t ( :background "#00181b" :Foreground "#006060" ))))
+     ((t ( :background "#001526" :Foreground "#006080" ))))
 
    ;; Mode-line / status line
-
    '(mode-line 
-     ((t (:background "#0b2c2d" :box nil :foreground "#0cd6e4" :height 85))))
+     ((t (:background "#0b283d" :box nil :foreground "#0c86e4" :height 85))))
 
    '(mode-line-inactive
-     ((t (:weight light :box nil :background "#002329" :foreground "#000000" :inherit (mode-line)))))
+     ((t (:weight light :box nil :background "#002339" :foreground "#000000" :inherit (mode-line)))))
    '(mode-line-emphasis 
      ((t (:weight bold))))
 
@@ -66,67 +63,57 @@
    '(mode-line-buffer-id
      ((t (:weight bold :box nil))))
 
-   ;; Powerline
-
-   
-
    ;; Cursor
-
    '(cursor
-     ((t (:foreground "#ffffff" :background "#013d4c"))))
+     ((t (:foreground "#ffffff" :background "#00253c"))))
 
    ;; Minibuffer
-
    '(minibuffer-prompt 
-     ((t (:weight bold :foreground "#00aab2"))))
+     ((t (:weight bold :foreground "#006a92"))))
 
    '(minibuffer-message 
      ((t (:foreground "#ffffff"))))
 
    ;; Region
-
    '(region 
-     ((t (:background "#001f26"))))
+     ((t (:background "#00002f"))))
 
    ;; Secondary region 
-
    '(secondary-selection
-     ((((class color) (min-colors 88) (background dark)) (:background "#144053"))))
+     ((((class color) (min-colors 88) (background dark)) (:background "#144083"))))
 
-   ;; font-lock - syntax highlighting
-
-   '(font-lock-builtin-face              ((t (:foreground "#508590"))))
-   '(font-lock-comment-face              ((t (:foreground "#265f59"))))
-   '(font-lock-comment-delimiter-face    ((t (:foreground "#467882" ))))
+   ;; font-lock - syntax 
+   '(font-lock-builtin-face              ((t (:foreground "#206590"))))
+   '(font-lock-comment-face              ((t (:foreground "#205f89"))))
+   '(font-lock-comment-delimiter-face    ((t (:foreground "#2078a2" ))))
    '(font-lock-doc-face                  ((t (:inherit (font-lock-string-face)))))
-   '(font-lock-function-name-face        ((t (:foreground "#60c3be"))))
-   '(font-lock-keyword-face              ((t (:foreground "#0abda7"))))
+   '(font-lock-function-name-face        ((t (:foreground "#3083be"))))
+   '(font-lock-keyword-face              ((t (:foreground "#0a8da7"))))
    '(font-lock-negation-char-face        ((t nil)))
    '(font-lock-preprocessor-face         ((t (:inherit (font-lock-builtin-face)))))
    '(font-lock-regexp-grouping-backslash ((t (:inherit (bold)))))
    '(font-lock-regexp-grouping-construct ((t (:inherit (bold)))))
-   '(font-lock-string-face               ((t (:foreground "#aaedee"))))
-   '(font-lock-constant-face             ((t (:foreground "#1ae9d7"))))
-   '(font-lock-type-face                 ((t (:foreground "#1f8e8a"))))
-   '(font-lock-variable-name-face        ((t (:foreground "#0ebeb8"))))
+   '(font-lock-string-face               ((t (:foreground "#00adee"))))
+   '(font-lock-constant-face             ((t (:foreground "#0a99e7"))))
+   '(font-lock-type-face                 ((t (:foreground "#1f5e8a"))))
+   '(font-lock-variable-name-face        ((t (:foreground "#0e8eb8"))))
    '(font-lock-warning-face              ((t (:weight bold :foreground "#FF0000"))))
 
    ;; Hightlight
-
    '(highlight 
      ((((class color) (min-colors 88) (background light))
-       (:background "#004453")) 
+       (:background "#003453")) 
       (((class color) 
         (min-colors 88) 
         (background dark)) 
-       (:background "#004450")) 
+       (:background "#003450")) 
       (((class color) (min-colors 16) 
         (background light)) 
-       (:background "#004450")) 
+       (:background "#003450")) 
       (((class color) 
         (min-colors 16) 
         (background dark)) 
-       (:background "#005560")) 
+       (:background "#004560")) 
       (((class color) 
         (min-colors 8)) 
        (:foreground "#000000" :background "#00FF00")) 
@@ -251,6 +238,6 @@
 
    )
 
-(provide-theme 'MechanicalTurq)
+(provide-theme 'DeepBlueDay)
 
 
