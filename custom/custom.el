@@ -9,7 +9,7 @@
  '(column-number-mode t)
  '(cua-mode t nil (cua-base))
  '(current-language-environment "UTF-8")
- '(custom-enabled-themes (quote (MechanicalTurq)))
+ '(custom-enabled-themes (quote (MechanicalTurq DeepBlueDay)))
  '(custom-safe-themes t)
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
@@ -41,7 +41,8 @@
  '(tabbar-background-color "grey20")
  '(tabbar-separator (quote (0.2)))
  '(truncate-lines t)
- '(visible-bell t))
+ '(visible-bell t)
+ '(window-left-margin 0))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
