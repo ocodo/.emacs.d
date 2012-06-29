@@ -1,8 +1,8 @@
 ;; Keys.
 (global-set-key (kbd "C-c q") 'auto-fill-mode)
 
-(global-set-key (kbd "s-]") 'next-buffer)
-(global-set-key (kbd "s-[") 'previous-buffer)
+;;(global-set-key (kbd "s-]") 'next-buffer)
+;;(global-set-key (kbd "s-[") 'previous-buffer)
 
 (global-set-key (kbd "<s-right>") 'next-buffer)
 (global-set-key (kbd "<s-left>") 'previous-buffer)
