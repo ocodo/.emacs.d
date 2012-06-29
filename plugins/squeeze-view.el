@@ -31,7 +31,13 @@
 ;; `squeeze-view-size' - asks for a margin size.
 ;;
 
-(defcustom squeeze-view-margin 70
+(defcustom squeeze-view-linum t
+  "Specifies if line numbers are shown in a squeeze view")
+
+(defcustom squeeze-view-fringe 550
+  "Specifies the fringe width for squeeze-view")
+
+(defcustom squeeze-view-margin 0
   "Specifies the standard margin size for a squeezed
   view. Defaults to 70.")
 
@@ -39,10 +45,12 @@
   "Squeeze the view, designed to improve readability/focus by
 reducing the window viewable area, similar to WriteRoom"
   (interactive)
-  (linum-mode 0)
+  (if (equal t squeeze-view-linum)
+      (linum-mode 1)
+    (linum-mode 0))
   (delete-other-windows)
-  (set-window-fringes nil 1 1)
-  (set-window-margins nil squeeze-view-margin squeeze-view-margin)
+  (set-window-fringes nil squeeze-view-fringe squeeze-view-fringe t)
+  ;;(set-window-margins nil squeeze-view-margin squeeze-view-margin)
   )
 
 (defun unsqueeze-view () 
@@ -58,8 +66,9 @@ reducing the window viewable area, similar to WriteRoom"
   (interactive "nSqueeze margins: ")
   (linum-mode 0)
   (delete-other-windows)
-  (set-window-fringes nil 1 1)
+  (set-window-fringes nil squeeze-view-fringe squeeze-view-fringe squeeze-view-linum)
   (set-window-margins nil margin margin)
   )
 
 (provide 'squeeze-view)
+
