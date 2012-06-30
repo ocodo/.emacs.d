@@ -27,6 +27,7 @@
  '(linum-eager t)
  '(linum-format "%7d")
  '(make-backup-files nil)
+ '(markdown-command "redcarpet")
  '(markdown-css-path "/Users/jason/Projects/markdown-css-themes/markdown6.css")
  '(org-agenda-files (quote ("~/Dropbox/MobileOrg/agendas.org")))
  '(org-default-notes-file "~/Dropbox/MobileOrg/notes.org")
