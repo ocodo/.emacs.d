@@ -7,9 +7,9 @@
 ;; Copyright (C) 2004-2012, Drew Adams, all rights reserved.
 ;; Created: Mon Sep 20 22:58:45 2004
 ;; Version: 21.0
-;; Last-Updated: Sat Mar 17 19:00:37 2012 (-0700)
-;;           By: dradams
-;;     Update #: 897
+;; Last-Updated: 01:19pm Sun 01/Jul (+10.00)
+;;           By: jasonm23
+;;     Update #: 899
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/hexrgb.el
 ;; Keywords: number, hex, rgb, color, background, frames, display
 ;; Compatibility: GNU Emacs: 20.x, 21.x, 22.x, 23.x
@@ -72,6 +72,16 @@
 ;;    `hexrgb-rgb-hex-to-rgb-hex', `hexrgb-rgb-to-hex',
 ;;    `hexrgb-rgb-to-hsv'.
 ;;
+;;  New non-interactive functions
+;;
+;;     `hexrgb-hex-set-brightness, `hexrgb-hex-set-saturation,
+;;     `hexrgb-hex-set-hue
+;;
+;;  New interactive functions 
+;;     
+;;     `hexrgb-hex-hue-group
+;;     `hexrgb-hex-sat-group 
+;;     `hexrgb-hex-val-group
 ;;
 ;;  Add this to your initialization file (~/.emacs or ~/_emacs):
 ;;
@@ -83,6 +93,33 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Change Log:
+;;
+;; 2012/07/01 jasonm23
+;;
+;;     Added 3 interactive functions that spit out a set of 10 colors from one hex color.
+;;     hue, sat, val scales.
+;;     e.g. 
+;;     M-x hexrgb-hex-val-group 
+;;         #33aaaa 
+;;     inserts: 
+;;         #2D98D6, #2887BE, #2376A6, #1E658E, #195477, #14435F, #0F3247, #0A212F, #051017,
+;;     at the current cursor position.
+;;
+;;     This is made more flexible with the addition of a defcustom: `hexrgb-color-group-format'
+;;     Which is set to "%s, " by default, can be set to any printf formatting pattern.
+;;
+;;     For example, creating a set of font-lock-face- settings is pretty easy, set 
+;;     `hexrgb-color-group-format' to equal..
+;;
+;;     "'(font-lock-_-face ((t (:foreground \"%s\"))))"
+;;
+;;     This is only useful when using rainbow-mode at the same time, and you like to experiment
+;;     with colors.
+;;
+;; 2012/06/30 jasonm23 
+;;     Modified hexrgb-hsv-to-hex to accept nb-digits. added new
+;;     functions  hexrgb-hex-adjust-brightness,  hexrgb-hex-adjust-saturation,
+;;      hexrgb-hex-adjust-hue
 ;;
 ;; 2012/03/17 dadams
 ;;     Added: hexrgb-(red|green|blue-hex, hexrgb-rgb-hex-to-rgb-hex, hexrgb-hex-to-hex.
@@ -805,6 +842,54 @@ X must be between 0.0 and 1.0, or else an error is raised."
   (floor (* x 65535.0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; New functions
+;;
+
+(defun hexrgb-hex-set-brightness
+  (hex brightness)
+  "set brightness of a hex color, amount values from 0-1
+   returns a 6 digit hex color"
+  (let* ((hsv (hexrgb-hex-to-hsv hex))
+         (h (first hsv)) (s (second hsv)) (v (third hsv)))
+    (hexrgb-hsv-to-hex h s (* brightness v) 2)))
+
+(defun hexrgb-hex-set-saturation
+  (hex saturation)
+  "set saturation of a hex color, amount values from 0-1
+   returns a 6 digit hex color"
+  (let* ((hsv (hexrgb-hex-to-hsv hex))
+         (h (first hsv)) (s (second hsv)) (v (third hsv)))
+    (hexrgb-hsv-to-hex h (* saturation s) v 2)))
+
+(defun hexrgb-hex-set-hue
+  (hex hue)
+  "set hue of a hex color, amount values from 0-1
+   returns a 6 digit hex color"
+  (let* ((hsv (hexrgb-hex-to-hsv hex))
+         (s (second hsv)) (v (third hsv)))
+    (hexrgb-hsv-to-hex hue s v 2)))
+
+ (defcustom hexrgb-color-group-format "%s, " "DOCSTRING")
+
+ (defun hexrgb-hex-hue-group (hex ) "Return a list of hexcolors of different hues"
+   (interactive "sHex color: ")
+   (loop for n from 9 downto 1 do
+         (insert
+          (format (or hexrgb-color-group-format "\n%s") (hexrgb-hex-set-hue hex (* n 0.1))))))
+
+ (defun hexrgb-hex-sat-group (hex) "DOCSTRING"
+   (interactive "sHex color: ")
+   (loop for n from 9 downto 1 do
+         (insert
+          (format (or hexrgb-color-group-format "\n%s") (hexrgb-hex-set-saturation hex (* n 0.1))))))
+
+ (defun hexrgb-hex-val-group (hex) "DOCSTRING"
+   (interactive "sHex color: ")
+   (loop for n from 9 downto 1 do
+         (insert
+          (format (or hexrgb-color-group-format "\n%s") (hexrgb-hex-set-brightness hex (* n 0.1))))))
+
+;;
 
 (provide 'hexrgb)
 

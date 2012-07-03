@@ -2007,7 +2007,8 @@ This is an exact copy of `line-number-at-pos' for use in emacs21."
   ;; do the initial link fontification
   (markdown-fontify-buffer-wiki-links))
 
-;(add-to-list 'auto-mode-alist '("\\.text$" . markdown-mode))
+(add-to-list 'auto-mode-alist 
+              '("\\.md$" . markdown-mode))
 
 ;;; GitHub Flavored Markdown Mode  ============================================
 

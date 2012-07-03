@@ -9,7 +9,7 @@
  '(column-number-mode t)
  '(cua-mode t nil (cua-base))
  '(current-language-environment "UTF-8")
- '(custom-enabled-themes (quote (MechanicalTurq DeepBlueDay)))
+ '(custom-enabled-themes (quote (Tangerine)))
  '(custom-safe-themes t)
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")

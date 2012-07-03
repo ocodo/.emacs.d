@@ -13,23 +13,7 @@
    'DeepBlueDay
 
    '(default 
-      ((t (
-           :family 
-           "Monaco" 
-           :foundry "apple" 
-           :width normal 
-           :height 110 
-           :weight normal 
-           :slant normal 
-           :underline nil 
-           :overline nil 
-           :strike-through nil 
-           :box nil 
-           :inverse-video nil 
-           :foreground "#ffffff" 
-           :background "#00060A" 
-           :stipple nil 
-           :inherit nil))))
+      ((t (:foreground "#ffffff" :background "#00060A" ))))
 
    '(fixed-pitch 
      ((t (:family "Monospace"))))

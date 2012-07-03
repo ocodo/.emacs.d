@@ -17,6 +17,10 @@
 ;;(& uncomment this to turn off menu)
 ;; (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 
+;; assume you'd prefer y / n to typing yes / no
+;; with power comes responsibility.
+(fset 'yes-or-no-p 'y-or-n-p)
+
 (put 'erase-buffer     'disabled nil)
 (put 'downcase-region  'disabled nil)
 (put 'upcase-region    'disabled nil)
@@ -27,7 +31,7 @@
 (require 'init-elpa)
 (require 'init-yasnippet)
 (require 'init-dired)
-(require 'init-hideshowvis)   
+(require 'init-hideshowvis)
  
 ;; manually installed packages (find them in ./plugins/) - these could
 ;; probably all become auto-loaded. (next time)
@@ -67,8 +71,8 @@
 
 ;;;# .. github convenience
 (require 'org-ghi)                     ;; Github Issues in Org-Mode.
-;; (require 'gist)                     ;; Github Gist mode
-(require 'pastie)                      ;; Pastie mode
+(require 'gist)                        ;; Github Gist mode
+(require 'hexrgb)                      ;; hexrgb functions
 
 
 ;;; modern/fancy modeline modification, seems to need a reload after
@@ -96,7 +100,6 @@
 
 ;; Anything that needs to run after custom.
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
-(fset 'yes-or-no-p 'y-or-n-p)
 
 ;; Quick access to default font face for fickle f-users, like me.
 (set-face-font 'default "Monaco")
@@ -107,3 +110,4 @@
 ;;(set-face-font 'default "Consolas")
 ;;(set-face-font 'default "Droid Sans Mono")
 
+(require 'handy-functions)
