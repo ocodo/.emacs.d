@@ -7,6 +7,3 @@
 [submodule "vendor/magit"]
 	path = vendor/magit
 	url = git://github.com/magit/magit.git
-[submodule "vendor/hyde"]
-	path = vendor/hyde
-	url = git://github.com/copyninja/Hyde.git
