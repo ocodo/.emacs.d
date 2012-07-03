@@ -32,7 +32,6 @@
 (require 'javascript-mode "javascript" t)
 (require 'js nil t)
 
-
 ;; User definable variables
 
 (defgroup haml nil

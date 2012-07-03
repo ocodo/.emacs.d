@@ -1,0 +1,46 @@
+;;(defun color-theme-hihat ()
+;;  (interactive)
+;;  (color-theme-install
+;;   '(color-theme-hihat
+;;      ((background-color . "#111418")
+;;      (background-mode . dark)
+;;      (border-color . "#1f1f1f")
+;;      (cursor-color . "#17721b")
+;;      (foreground-color . "#eeeeec")
+;;      (mouse-color . "black"))
+;;     (fringe ((t (:background "#1f1f1f"))))
+;;     (mode-line ((t (:foreground "#ffffff" :background "#191d48"))))
+;;     (region ((t (:background "#483352"))))
+;;     (font-lock-builtin-face ((t (:foreground "#729fcf"))))
+;;     (font-lock-comment-face ((t (:foreground "#888a85"))))
+;;     (font-lock-constant-name-face ((t (:foreground "#a9571a"))))
+;;     (font-lock-function-name-face ((t (:foreground "#f9971a"))))
+;;     (font-lock-keyword-face ((t (:foreground "#96b9df"))))
+;;     (font-lock-string-face ((t (:foreground "#61b253"))))
+;;     (font-lock-type-face ((t (:foreground"#8ae234"))))
+;;     (font-lock-variable-name-face ((t (:foreground "#eeeeec"))))
+;;     (minibuffer-prompt ((t (:foreground "#53a7e9" :bold t))))
+;;     (font-lock-warning-face ((t (:foreground "Red" :bold t))))
+;;     )))
+;;(provide 'color-theme-hihat)
+
+(deftheme hihat
+    "hihat")
+
+(custom-theme-set-variables
+  'hihat
+     '(powerline-color1 "#00779a")
+     '(powerline-color2 "#00475a")
+     '(linum-format " %7i ")
+     '(fringe-mode 6 nil (fringe))
+     )
+
+
+(custom-theme-set-faces
+  'hihat
+
+)
+
+
+(provide-theme 'hihat)
+
