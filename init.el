@@ -93,6 +93,8 @@
 (require 'gist)                        ;; Github Gist mode
 (require 'hexrgb)                      ;; hexrgb functions
 
+;; Magit
+(require 'magit)
 
 (when (window-system)
 
@@ -162,9 +164,6 @@
   (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 
   (load-theme 'Jadedragon)
-  ;; Works with Emacs 23 & 24, earlier
-  ;; versions... go fish.
-  ;; Not 100% terminal
-  ;; compatible, but much nicer than
-  ;; angry-fruit-salad
+  ;; Works with Emacs 23 & 24, earlier versions... sorry.
+  ;; 256 color xterm compatible
 )
