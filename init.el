@@ -118,7 +118,7 @@
 )
 
 (setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
-(load-file        "~/.emacs.d/custom/custom.el") ;; <- load customizations...
+(load custom-file)
 
 (require 'custom-keys)                           ;; Key bindings live in keys.el
 
