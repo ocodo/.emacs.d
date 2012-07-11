@@ -49,7 +49,7 @@
 
    ;; Cursor
    '(cursor
-     ((t (:foreground "#ffffff" :background "#00253c"))))
+     ((t (:foreground "#ffffff" :background "orange"))))
 
    ;; Minibuffer
    '(minibuffer-prompt 
