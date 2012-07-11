@@ -71,6 +71,18 @@
 
 ;;;# Convenience and completion
 (require 'ido)                         ;; Interactively DO things...
+
+;; ido-mode is like magic pixie dust!
+(when (> emacs-major-version 21)
+  (ido-mode t)
+  (setq ido-enable-prefix nil
+        ido-enable-flex-matching t
+        ido-create-new-buffer 'always
+        ido-use-filename-at-point 'guess
+        ido-max-prospects 10))
+
+(setq ido-max-directory-size 100000)
+
 (require 'lorem-ipsum)                 ;; Throw some Lorem ipsum filler text in.
 (require 'switch-window)               ;; Select windows by number.
 
@@ -126,7 +138,6 @@
 
 ;; Anything that needs to run after custom.
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
-
 
 ;; Default Font for different window systems
 (when (window-system)
