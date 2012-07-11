@@ -11,6 +11,8 @@
  '(current-language-environment "UTF-8")
  '(custom-enabled-themes (quote (Tangerine)))
  '(custom-safe-themes t)
+ '(display-time-mode nil)
+ '(display-time-world-time-format "%A %d %B %R %Z (%z)")
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
  '(ediff-diff3-program "diff3")
@@ -43,7 +45,8 @@
  '(tabbar-separator (quote (0.2)))
  '(truncate-lines t)
  '(visible-bell t)
- '(window-left-margin 0))
+ '(window-left-margin 0)
+ '(zoneinfo-style-world-list (quote (("Australia/Sydney" "Sydney") ("Europe/London" "London") ("Thailand/Bangkok" "Bangkok") ("America/Vancouver" "Vancouver") ("America/Los_Angeles" "San Fransisco") ("America/New_York" "New York") ("Asia/Shanghai" "Shanghai") ("Asia/Tokyo" "Tokyo")))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

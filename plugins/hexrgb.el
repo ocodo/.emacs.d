@@ -883,7 +883,7 @@ X must be between 0.0 and 1.0, or else an error is raised."
          (insert
           (format (or hexrgb-color-group-format "\n%s") (hexrgb-hex-set-saturation hex (* n 0.1))))))
 
- (defun hexrgb-hex-val-group (hex) "DOCSTRING"
+ (defun hexrgb-hex-val-group (hex) "Insert a set of colors with a range of brightness (val) "
    (interactive "sHex color: ")
    (loop for n from 9 downto 1 do
          (insert
