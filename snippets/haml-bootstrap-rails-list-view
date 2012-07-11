@@ -1,0 +1,24 @@
+# -*- mode: haml -*-
+# key: itab
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+/ Bootstrap Table
+%table.table
+  %tr
+    %th ${1:First Column}
+    %th view
+    %th edit
+    %th delete
+  - @${2:Model}s.each do |$2|
+    %tr
+      %td= link_to $2.$1, $2
+      %td.span1
+        = link_to $2 do
+          .icon-info-sign
+      %td.span1
+        = link_to edit_$2_path($2) do
+          .icon-pencil
+      %td.span1
+        = link_to $2, {:confirm => 'Are you sure?', :method => :delete } do
+          .icon-trash
+$0
