@@ -5,7 +5,7 @@
   (loop for a from 10.0 downto 0.0 do
         (let* ((hsv (hexrgb-hex-to-hsv hex)) 
                (f   (* a 0.1)))
-          (insert (format "%s %s %s : %d%% \n"
+          (insert (format ";; %s %s %s : %d%% \n"
                           (hexrgb-hsv-to-hex (first hsv) (second hsv) (* f (third hsv)) 2)
                           (hexrgb-hsv-to-hex (first hsv) (* f (second hsv)) (third hsv) 2)
                           (hexrgb-hsv-to-hex (* f (first hsv)) (second hsv) (third hsv) 2)
