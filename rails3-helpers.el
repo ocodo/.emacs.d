@@ -1,8 +1,15 @@
 ;; Rails 3 helpers...
 
+(defun camelize (s)
+  "Convert under_score string S to CamelCase string."
+  (mapconcat 'identity (mapcar
+                        '(lambda (word) (capitalize (downcase word)))
+                        (split-string s "_")) ""))
+
 (defun rails3/create-migration (migration-name)
    "Create a Rails 3 migration buffer."
    (interactive "sName (e.g. model_add_column ) : ")
+   (set-time-zone-rule t)
    (let*
        (  
         ( timestamp  (format-time-string "%Y%m%d%H%M%S")  )
@@ -14,7 +21,10 @@
      (insert (format "class %s < ActiveRecord::Migration\n" classname)) 
      (insert "  def change\n")
      (insert "  end\n")
-     (insert "end\n")))
+     (insert "end\n"))
+   (set-time-zone-rule nil))
+
+
 
 
 ;; ------------------------------------------------
@@ -59,9 +69,4 @@
 ;; :timestamp
 
 
-(defun camelize (s)
-  "Convert under_score string S to CamelCase string."
-  (mapconcat 'identity (mapcar
-                        '(lambda (word) (capitalize (downcase word)))
-                        (split-string s "_")) ""))
 
