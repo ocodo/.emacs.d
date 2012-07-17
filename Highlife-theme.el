@@ -1,14 +1,14 @@
 (deftheme Highlife
   "A light-on-dark theme with background tints.")
 
-(let ((background  "#000")
+(let ((background  "#141414")
       (foreground "#dcdded")
       (selection "#1F1414")
       (hl-line "#111926")
       (cursor "#b23f1e")
       (comment "#00686E")
-      (gray-1 "#878289")   (gray-1bg "#181d23")
-      (gray-2 "#2a3441")   (gray-2bg "#181820")
+      (gray-1 "#878289")   (gray-1bg "#181818")
+      (gray-2 "#2a3441")   (gray-2bg "#202020")
       (gray-3 "#b3adb4")   (gray-3bg "#0e1116")
       (gray-4 "#1f2730")
       (gray-5 "#242d38")
@@ -58,7 +58,7 @@
    `(fringe ((t (:background ,gray-2bg))))
 
    ;; Linum
-   `(linum ((t (:foreground ,gray-6 :background ,purple-1bg))))
+   `(linum ((t (:foreground ,gray-6 :background ,gray-1bg))))
 
    `(mode-line ((t (:foreground ,blue-1 :background ,blue-2bg :font "Lucida Grande"))))
    `(mode-line-inactive ((t (:foreground ,blue-4 :background ,gray-4))))

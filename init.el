@@ -76,10 +76,11 @@
 (require 'switch-window)               ;; Select windows by number.
 
 ;; Blogging with Jekyll and Hyde
-(require 'hyde)
+(require 'hyde) ;; this is going soon, I'm switching to octopress
 
 ;;;# asthetic convenience
 (require 'rainbow-mode)                ;; Colours hex rgb and other color modes (X11 color names etc.)
+(require 'rainbow-delimiters)          ;; Delimiter coloring
 (require 'resize-window)               ;; interactively size window
 (require 'highlight-indentation)       ;; visual guides for indentation
 (require 'squeeze-view)                ;; squeeze view, use in conjuction with fullscreen mode
