@@ -70,8 +70,12 @@
  `(button ((t (:background ,(tw-color tw-button-bg) :underline t))))
 
  ;;; basic coloring
+
+ `(fixed-pitch    ((t ( :family "Lekton"              ))))
+ `(variable-pitch ((t ( :family "Bitstream Vera Sans" ))))
+
  `(default ((t (:background ,(tw-color tw-default-bg)
-                            :foreground ,(tw-color tw-default-fg)))))
+                            :foreground ,(tw-color tw-default-fg) :inherit (fixed-pitch) ))))
  `(cursor ((t (:background ,(tw-color tw-cursor-bg)
                            :foreground ,(tw-color tw-cursor-fg)))))
  `(fringe ((t (:background "#1a1a1a"))))

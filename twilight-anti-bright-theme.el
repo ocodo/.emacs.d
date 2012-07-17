@@ -1,24 +1,37 @@
 (deftheme twilight-anti-bright
   "A soothing light-on-dark theme.")
 
-(let ((background "#14191f")
+(let ((background "#0f0f0f")
       (foreground "#dcdddd")
       (selection "#313c4d")
       (hl-line "#11151a")
       (cursor "#b47434")
-      (comment "#716d73")
+      (comment "#132B3A")
 
-      (gray-1 "#878289")   (gray-1bg "#181d23")
-      (gray-2 "#2a3441")
-      (gray-3 "#b3adb4")   (gray-3bg "#0e1116")
-      (gray-4 "#1f2730")
-      (gray-5 "#242d38")
-      (gray-6 "#192028")
+;; #316D93 #316D93 #316D93 : 100% 
+;; #2C6284 #3A7093 #318E93 : 90% 
+;; #275775 #447493 #319376 : 80% 
+;; #224C66 #4E7893 #319355 : 70% 
+;; #1D4158 #587C93 #319334 : 60% 
+;; #183649 #628093 #4F9331 : 50% 
+;; #132B3A #6B8393 #709331 : 40% 
+;; #0E202C #758793 #919331 : 30% 
+;; #09151D #7F8B93 #937331 : 20% 
+;; #040A0E #898F93 #935231 : 10% 
+;; #000000 #939393 #933131 : 0% 
+
+
+      (gray-1 "#828282")   (gray-1bg "#1a1a1a")
+      (gray-2 "#333333")
+      (gray-3 "#aaaaaa")   (gray-3bg "#111111")
+      (gray-4 "#252525")
+      (gray-5 "#2a2a2a")
+      (gray-6 "#202020")
       (red-1 "#d15120")    (red-1bg "#2a1f1f")
       (red-2 "#b23f1e")    (red-2bg "#251c1e")
       (brown-1 "#9f621d")  (brown-1bg "#2a1f1f")
       (orange-1 "#d97a35") (orange-1bg "#272122")
-      (yellow-1 "#deae3e") (yellow-1bg "#2a2921")
+      (yellow-1 "#deae3e") (yellow-1bg "#242118")
       (green-1 "#81af34")  (green-1bg "#1a2321")
       (green-2 "#4e9f75")  (green-2bg "#1a2321")
       (blue-1 "#7e9fc9")   (blue-1bg "#1e252f")
@@ -43,7 +56,7 @@
    ;; Font-lock stuff
    `(font-lock-builtin-face ((t (:foreground ,yellow-1 :background ,yellow-1bg))))
    `(font-lock-constant-face ((t (:foreground ,purple-1 :background ,purple-1bg))))
-   `(font-lock-comment-face ((t (:foreground ,comment :background ,gray-1bg :italic t))))
+   `(font-lock-comment-face ((t (:foreground ,comment :background ,gray-3bg :italic t))))
    `(font-lock-doc-face ((t (:foreground ,gray-1 :background ,gray-1bg))))
    `(font-lock-doc-string-face ((t (:foreground ,gray-1 :background ,gray-1bg))))
    `(font-lock-function-name-face ((t (:foreground ,red-1 :background ,red-1bg))))
@@ -58,8 +71,8 @@
    ;; UI related
    `(link ((t (:foreground ,blue-1 :background ,blue-1bg))))
    `(fringe ((t (:background ,gray-1bg))))
-   `(mode-line ((t (:foreground ,blue-1 :background ,blue-2bg))))
-   `(mode-line-inactive ((t (:foreground ,blue-4 :background ,gray-4))))
+   `(mode-line ((t (:foreground ,gray-1 :background ,gray-1bg, :box nil))))
+   `(mode-line-inactive ((t (:foreground "#000" :background ,gray-4))))
    `(vertical-border ((t (:background ,background :foreground ,gray-5))))
 
    ;; Linum
