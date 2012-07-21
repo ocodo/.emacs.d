@@ -30,6 +30,7 @@
 ;; Comment out for standard yes/no behaviour.
 (fset 'yes-or-no-p 'y-or-n-p)
 
+;; 
 (put 'erase-buffer     'disabled nil)
 (put 'downcase-region  'disabled nil)
 (put 'upcase-region    'disabled nil)
