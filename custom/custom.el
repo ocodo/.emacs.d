@@ -16,7 +16,7 @@
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
  '(ediff-diff3-program "diff3")
- '(fringe-mode 9 nil (fringe))
+ '(fringe-mode 4 nil (fringe))
  '(global-hl-line-mode nil)
  '(global-linum-mode t)
  '(global-visual-line-mode t)
@@ -25,6 +25,7 @@
  '(inhibit-startup-screen t)
  '(initial-buffer-choice nil)
  '(initial-scratch-message nil)
+ '(ispell-dictionary nil)
  '(linum-delay nil)
  '(linum-eager t)
  '(linum-format "%7d")
@@ -53,10 +54,10 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(markdown-header-face ((t (:inherit font-lock-function-name-face :weight bold :family "Helvetica Neue"))))
- '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 3.0))))
- '(markdown-header-face-2 ((t (:inherit markdown-header-face :height 2.5))))
- '(markdown-header-face-3 ((t (:inherit markdown-header-face :height 2.0))))
- '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.8))))
+ '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 2.0))))
+ '(markdown-header-face-2 ((t (:inherit markdown-header-face :height 1.9))))
+ '(markdown-header-face-3 ((t (:inherit markdown-header-face :height 1.8))))
+ '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.7))))
  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))))
- '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.4)))))
+ '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.5)))))
 
