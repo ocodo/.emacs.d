@@ -10,3 +10,6 @@
 [submodule "vendor/hyde"]
 	path = vendor/hyde
 	url = git://github.com/copyninja/Hyde.git
+[submodule "vendor/cucumber"]
+	path = vendor/cucumber
+	url = git@github.com:jasonm23/cucumber.el.git
