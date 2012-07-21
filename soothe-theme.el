@@ -59,7 +59,7 @@
        (blue-4         "#365e7a") 
        (blue-4bg       "#172028")
 
-       (purple-1       "#a878b5") 
+       (purple-1       "#7878b5") 
        (purple-1bg     "#1D1B25")
 
        ;; special colors 
@@ -85,15 +85,15 @@
    ;; Font-lock stuff
    `(font-lock-builtin-face                    ((t (:foreground ,red-2       :background ,red-1bg                       ))))
    `(font-lock-constant-face                   ((t (:foreground ,purple-1    :background ,purple-1bg                    ))))
-   `(font-lock-comment-face                    ((t (:foreground ,turquoise-1 :background ,alt-background :italic t      ))))
-   `(font-lock-comment-delimiter-face          ((t (:foreground ,turquoise-2 :background ,alt-background :italic t      ))))
+   `(font-lock-comment-face                    ((t (:foreground ,turquoise-2 :background ,alt-background :italic t      ))))
+   `(font-lock-comment-delimiter-face          ((t (:foreground ,turquoise-1 :background ,alt-background :italic t      ))))
    `(font-lock-doc-face                        ((t (:foreground ,blue-3      :background ,gray-1bg                      ))))
    `(font-lock-doc-string-face                 ((t (:foreground ,blue-3      :background ,gray-1bg                      ))))
    `(font-lock-function-name-face              ((t (:foreground ,red-1       :background ,red-1bg                       ))))
    `(font-lock-keyword-face                    ((t (:foreground ,orange-1    :background ,orange-1bg                    ))))
    `(font-lock-negation-char-face              ((t (:foreground ,yellow-1    :background ,yellow-1bg                    ))))
    `(font-lock-preprocessor-face               ((t (:foreground ,orange-1    :background ,orange-1bg                    ))))
-   `(font-lock-string-face                     ((t (:foreground ,turquoise-1 :background ,turquoise-2bg                 ))))
+   `(font-lock-string-face                     ((t (:foreground ,blue-3      :background ,turquoise-2bg                 ))))
    `(font-lock-type-face                       ((t (:foreground ,red-2       :background ,red-2bg :bold nil             ))))
    `(font-lock-variable-name-face              ((t (:foreground ,blue-1      :background ,blue-1bg                      ))))
    `(font-lock-warning-face                    ((t (:foreground ,red-2       :background ,red-2bg                       ))))
