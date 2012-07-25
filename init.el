@@ -60,6 +60,7 @@
 (require 'haml-mode)                   ;; http://haml.info 
 (require 'scss-mode)                   ;; http://sass-lang.com 
 (require 'yaml-mode)
+(require 'feature-mode)
 
 ;;;# docs and blogs
 (require 'markdown-mode)               ;; Markdown text mode
