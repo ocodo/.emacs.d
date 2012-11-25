@@ -59,6 +59,7 @@
 ;;;# specialized syntax editing
 (require 'haml-mode)                   ;; http://haml.info 
 (require 'scss-mode)                   ;; http://sass-lang.com 
+(require 'coffee-mode)                 ;; http://coffeescript.org
 (require 'yaml-mode)
 
 ;;;# docs and blogs

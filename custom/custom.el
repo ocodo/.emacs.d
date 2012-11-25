@@ -35,6 +35,7 @@
  '(org-agenda-files (quote ("~/Dropbox/MobileOrg/agendas.org")))
  '(org-default-notes-file "~/Dropbox/MobileOrg/notes.org")
  '(org-directory "~/Dropbox/MobileOrg")
+ '(org-export-html-style-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"markdown6.css\">")
  '(org-mobile-checksum-binary "/sbin/md5")
  '(org-mobile-directory "~/Dropbox/MobileOrg")
  '(org-mobile-inbox-for-pull "~/Dropbox/MobileOrg/index.org")
