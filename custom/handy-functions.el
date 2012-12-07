@@ -8,6 +8,11 @@
   (interactive)
   (insert (format "%s" (* (/ float-pi 180) (random 361)))))
 
+(defun fraction-radian (denominator)
+  (interactive "nDenomiator:")
+  (insert (format "%s" (/ (* float-pi 2) denominator)))
+)
+
 (defun random-in-range (start end) 
   (random t)
   (+ start (random (+ 1 (- end start)))))
