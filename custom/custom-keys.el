@@ -25,7 +25,7 @@
 (global-set-key (kbd "C-M-,") 'shrink-window-horizontally)
 (global-set-key (kbd "C-M-.") 'enlarge-window-horizontally)
 
-(global-set-key (kbd "s-`") 'other-window)
+(global-set-key (kbd "s-`") 'switch-window)
 (global-set-key (kbd "s-~") 'other-frame)
 (global-set-key [(control tab)] 'completion-at-point)
 (global-set-key (kbd "<s-return>" ) 'completion-at-point)

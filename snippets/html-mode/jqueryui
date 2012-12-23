@@ -1,0 +1,7 @@
+
+# contributor: J Milkins <jasonm23@gmail.com>
+#name :JQuery UI google hosted (1.9.2min) 
+# key: jqui
+# --
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+$0

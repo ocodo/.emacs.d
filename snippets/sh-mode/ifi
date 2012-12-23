@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+#name : ifi - integer comparison tests
+# --
+if [[ "$1" -${2:$$(yas/choose-value '(
+"le"
+"lt"
+"ge"
+"gt" 
+"ne" 
+"eq" 
+))} "$3" ]]; then
+  $0
+fi

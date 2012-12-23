@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: ajax
+# key: ajax
+# binding: direct-keybinding
+# expand-env: ((some-var some-value))
+# type: command
+# --
+$.ajax({
+  url: $1,
+  dataType: 'json',
+  data: $2,
+  success: function(data){
+     $0
+  }
+});
