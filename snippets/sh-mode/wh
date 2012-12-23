@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+#name : while
+# --
+while read ${1:variable}; do
+  $0
+done

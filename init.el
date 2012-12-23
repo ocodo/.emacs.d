@@ -61,6 +61,7 @@
 (require 'scss-mode)                   ;; http://sass-lang.com 
 (require 'coffee-mode)                 ;; http://coffeescript.org
 (require 'yaml-mode)
+(require 'mustache-mode)
 
 ;;;# docs and blogs
 (require 'markdown-mode)               ;; Markdown text mode

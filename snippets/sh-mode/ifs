@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+#name : ifs - string comparison tests
+# --
+if [ ${1:$$(yas/choose-value '("-z" "-n"))} "$2" ${3:$$(yas/choose-value '("=" "!=" "<" ">"))} "$4" ]; then
+  $0
+fi
