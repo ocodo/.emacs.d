@@ -13,3 +13,6 @@
 [submodule "vendor/cucumber"]
 	path = vendor/cucumber
 	url = git@github.com:jasonm23/cucumber.el.git
+[submodule "auto-complete"]
+	path = auto-complete
+	url = http://cx4a.org/repo/auto-complete.git
