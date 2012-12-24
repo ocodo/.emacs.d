@@ -20,9 +20,6 @@
 ;; and then return us to the user home directory, for find-file etc.
 (progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
 
-(require 'auto-complete-config)
-(ac-config-default)
-
 ;; turn off toolbar 
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 ;;(& uncomment this to turn off menu)
@@ -66,6 +63,8 @@
 (require 'yaml-mode)
 (require 'mustache-mode)
 
+
+
 ;;;# docs and blogs
 (require 'markdown-mode)               ;; Markdown text mode
 (require 'textile-mode)                ;; Textile text mode
@@ -75,9 +74,28 @@
 (require 'move-text)                   ;; Move the current line or region up / done.
 (require 'xfrp_find_replace_pairs)     ;;
 
-;;;# Convenience and completion
-(require 'ido)                         ;; Interactively DO things...
+(require 'frame-play)                  ;; a few presets for sizing and moving frames (aka OS Windows)
+;; This deserves a little note here's the frame functions
+;; set-frame-position-right-hand-side 
+;; set-frame-position-left-hand-side 
+;; set-frame-height-to-display-height
+;; set-frame-height-to-85-percent-display-height 
+;; set-frame-width-to-two-thirds-display-width 
+;; set-frame-width-to-three-quarters-display-width 
+;; set-frame-width-to-half-display-width 
+;; set-frame-width-to-display-width 
+;; set-frame-big-left-1 - flush to top left, two thirds wide, 100% high
+;; set-frame-big-left-2 - flush to top left, three quarters wide, 100% high
+;; set-frame-big-left-3 - flush to top left, three quarters wide, 85% high (I like a little room sometimes)
+;; set-frame-big-right-1 - as above but flush top right.
+;; set-frame-big-right-2 - ...
+;; set-frame-big-right-3 - ...
 
+;;;# Convenience and completion
+(require 'auto-complete-config)        ;; Very nice autocomplete, still trying it out, but cool!
+(ac-config-default)
+
+(require 'ido)                         ;; Interactively DO things...
 (require 'lorem-ipsum)                 ;; Throw some Lorem ipsum filler text in.
 (require 'switch-window)               ;; Select windows by number.
 
@@ -92,7 +110,6 @@
 (require 'squeeze-view)                ;; squeeze view, use in conjuction with fullscreen mode
 
 ;;;# annoyance reduction.
-(require 'frame-play)                  ;; a few presets for sizing and moving frames (your OS calls them windows)
 (require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
 (require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
 
