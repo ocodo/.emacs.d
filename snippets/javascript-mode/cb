@@ -1,0 +1,8 @@
+# -*- coding: utf-8; mode: snippet -*-
+# name: callback function
+# key: cb
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# --
+function (${1:args}){
+   $0
+}

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: jquery
+# key: at
+# name: appendto
+# --
+appendTo( $0 )

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: jquery
+# name: jquery selector class
+# key: q
+# --
+\$(".${1:class}")${2: .}
