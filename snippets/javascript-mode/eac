@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: snippet -*-
 # name: jQuery each()
-# key: eac
+# key: $.e
 # group: jquery
 # contributor: David Miller <david@deadpansincerity.com>
 # --

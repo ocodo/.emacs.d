@@ -1,0 +1,9 @@
+# -*- coding: utf-8; mode: snippet -*-
+# name: jQuery .each()
+# key: e
+# group: jquery
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# --
+each(function(${1:index},${2:element}){
+    $0
+});

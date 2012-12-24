@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: jquery
+# key: as
+# name: attrs - setter
+# --
+attr('${1:attr}', '${2:value}')${3:.}

@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: jquery
+# key: dr
+# name: document.ready
+# --
+\$(document).ready( function() {
+    $0
+});

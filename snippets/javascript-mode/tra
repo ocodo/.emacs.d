@@ -1,0 +1,7 @@
+# -*- coding: utf-8; mode: snippet -*-
+# name: jQuery transfer()
+# key: tra
+# group: jquery
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# --
+.effect("transfer", { to: \$('${1:selector}') }, ${2:500});

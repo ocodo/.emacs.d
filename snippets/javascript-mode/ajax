@@ -1,11 +1,10 @@
 # -*- mode: snippet -*-
-# name: ajax
+# -*- coding: utf-8 -*-
+# name: jQuery ajax
 # key: ajax
-# binding: direct-keybinding
-# expand-env: ((some-var some-value))
-# type: command
+# group: jquery
 # --
-$.ajax({
+\$.ajax( {
   url: $1,
   dataType: 'json',
   data: $2,

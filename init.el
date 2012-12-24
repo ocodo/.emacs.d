@@ -20,6 +20,9 @@
 ;; and then return us to the user home directory, for find-file etc.
 (progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
 
+(require 'auto-complete-config)
+(ac-config-default)
+
 ;; turn off toolbar 
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 ;;(& uncomment this to turn off menu)
@@ -171,3 +174,4 @@
   ;; Works with Emacs 23 & 24, earlier versions... sorry.
   ;; 256 color xterm compatible
 )
+

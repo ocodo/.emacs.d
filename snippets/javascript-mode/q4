@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: jquery
+# key: q
+# name: jquery selector - new tag object
+# --
+\$("<${1:tag}></$1>")${2:.}
