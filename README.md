@@ -4,8 +4,9 @@ Assuming you have `git` installed...
 
 In a terminal window, type:
 
-    git clone git://github.com/ocodo/emacs.d.git ~/.emacs.d
+    git clone --recursive  git://github.com/ocodo/emacs.d.git ~/.emacs.d
 
+(You need `--recursive` to grab all the submodules I'm using.)
 
 Now start Emacs.app - if you run in a Terminal, I suggest iTerm2 and set the Terminal mode to `xterm-256color`
 
