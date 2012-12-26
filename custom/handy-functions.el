@@ -1,3 +1,7 @@
+(defun align-number-right (begin end)
+  "Align region to equal signs"
+   (interactive "r")
+   (align-regexp begin end ".* \\([0-9]+\\).*" -1 1 nil))
 ;; Handy functions, add little helpers in here.
 (defun insert-random-in-range (start end)         
   (interactive "nRange start:\nnRange end:")
@@ -10,8 +14,7 @@
 
 (defun fraction-radian (denominator)
   (interactive "nDenomiator:")
-  (insert (format "%s" (/ (* float-pi 2) denominator)))
-)
+  (insert (format "%s" (/ (* float-pi 2) denominator))))
 
 (defun random-in-range (start end) 
   (random t)
