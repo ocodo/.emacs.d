@@ -68,18 +68,3 @@ And of course, the official emacs tour and manual...
 These dotfiles are tested on OS X, they work on other platforms too, but don't do any specific customizations for them (e.g. cygwin etc.) but any POSIX compliant OS should be fine.
 
 Having said that, I use them most with http://emacsformacosx.com/emacs-builds/Emacs-24.1-universal-10.6.8.dmg and http://emacsformacosx.com/emacs-builds/Emacs-23.3-universal-10.6.6.dmg on Lion and Mt.Lion Dev Preview, with good results.
-
-# And another thing...
-
-This isn't the tidiest .emacs kit you can get, but it's in constant
-use, it's constantly updated... however, if you can't write emacs
-lisp, or if you want me to add a feature, or you generally want to
-tell me how I should be doing this, you need to stop. I won't be
-adding any features, I won't be reorganising, or doing anything to
-these files at your request, go ahead, raid them, pilfer and plunder
-anything useful, but consider me unresponsive on this project, it's
-mine, I'm sharing it with you, that's going to have to be enough, and
-if you've really read all the way down here, I commend you, but also
-suggest you do something more productive with your time, and
-immediately begin engineering your version of the perfect .emacs.d and
-also, your idea of a perfect life, now, go.
