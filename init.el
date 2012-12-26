@@ -155,11 +155,18 @@
 ;; Default Font for different window systems
 (when (window-system)
 
+
   ;; Mac OS X
   (when (eq system-type 'darwin)
-    (set-face-font 'default "Monaco")
+    ;;(set-face-font 'default "Monaco")
+    ;;(set-face-font 'default "Source Code Pro")
+    (set-face-font 'default "Menlo")
     )
-
+  ;; Sample Text for font viewing 
+  '("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "1234567890!@#$%^&*()-=_+[]\{}|;':<>?,./")
+  
   ;; Windows whatever...
   (when (eq system-type 'windows-nt)
     (set-face-font 'default "Consolas")
@@ -178,6 +185,7 @@
   ;;(set-face-font 'default "Bitstream Vera Sans Mono")
   ;;(set-face-font 'default "Consolas")
   ;;(set-face-font 'default "Droid Sans Mono")
+  ;;(set-face-font 'default "Source Code Pro")
 )
 
 (require 'handy-functions) ;; my lab area for little defuns
