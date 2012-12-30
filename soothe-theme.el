@@ -46,7 +46,8 @@
        (green-2bg      "#1a2321")
 
        (turquoise-1    "#11535F")
-       (turquoise-2    "#07272D")
+       (turquoise-2    "#082E36")
+
        (turquoise-1bg  "#05181C")
        (turquoise-2bg  "#041316")
 
