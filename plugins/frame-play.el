@@ -150,4 +150,35 @@
         (set-frame-position-right-hand-side)
         )))
 
+
+(defun set-frame-height-percent-of-display-height ( percent )
+  "Size the current frame height to a given percentage of the
+current display height - nb:approximately, Emacs sets frame
+height by char rows, so we calculate from the current frame
+character height"
+  (interactive "nPercent: ")
+  (if window-system
+      (progn 
+        (set-frame-height (selected-frame) (floor (* (/ (x-display-pixel-height) (frame-char-height)) (/ percent 100.0)))))))
+
+
+(defun set-frame-to-bottom-screen-edit ( )
+  "Set the frame to a convenient position at the bottom of the
+screen, changing the height and width too. Width will be set to 100%. Height will be set to 35%" 
+  (interactive)
+  (if window-system
+      (progn
+        (set-frame-height-percent-of-display-height (* 0.37 100))
+        (set-frame-width-to-display-width)
+        (set-frame-position (selected-frame) 0 
+                            (floor (* (x-display-pixel-height) 0.62))
+                            )
+        
+        
+        )))
+
 (provide 'frame-play)
+
+
+
+
