@@ -1,0 +1,17 @@
+# -*- mode: snippet -*-
+# name: Filetype segment of Info.plist
+# key: filetype
+# group: plist
+# --
+<dict>
+	<key>CFBundleTypeExtensions</key>
+	<array>
+		<string>$1</string>
+	</array>
+	<key>CFBundleTypeIconFile</key>
+	<string>${2:-icon.icns}</string>
+	<key>CFBundleTypeName</key>
+	<string>${3:Doc type}</string>
+	<key>CFBundleTypeRole</key>
+	<string>Editor</string>
+</dict>

@@ -1,8 +1,8 @@
-(deftheme JasonDefaults
+(deftheme jason-defaults
   "Created 2012-07-09.")
 
 (custom-theme-set-variables
- 'JasonDefaults
+ 'jason-defaults
  '(current-language-environment "UTF-8")
  '(custom-safe-themes t)
  '(ediff-custom-diff-program "diff")
@@ -33,7 +33,7 @@
  '(blink-cursor-mode nil))
 
 (custom-theme-set-faces
- 'JasonDefaults
+ 'jason-defaults
  '(markdown-header-face ((t (:inherit font-lock-function-name-face :weight bold :family "Helvetica Neue"))))
  '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 3.0))))
  '(markdown-header-face-2 ((t (:inherit markdown-header-face :height 2.5))))
@@ -42,4 +42,4 @@
  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))))
  '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.4)))))
 
-(provide-theme 'JasonDefaults)
+(provide-theme 'jason-defaults)

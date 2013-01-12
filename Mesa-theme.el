@@ -1,12 +1,8 @@
-(defun Test
-  "test"
-  (insert "test"))
-
-(deftheme Mesa
-  "Mesa theme")
+(deftheme mesa
+  "mesa theme")
 
 (custom-theme-set-variables
- 'Mesa
+ 'mesa
  '(fringe-mode 6 nil (fringe) )
  '(linum-format     " %7d "   )
  '(powerline-color1 "grey40"  )
@@ -15,7 +11,7 @@
 
 ;; Comment
 (custom-theme-set-faces
- 'Mesa
+ 'mesa
 
  '(fixed-pitch                         ((t (                                                          :family "Monaco"                                ))))
  '(variable-pitch                      ((t (                                                          :family "Bitstream Vera Sans"                   ))))
@@ -66,4 +62,4 @@
  '(tooltip                             ((t (:foreground "black"        :background "LightYellow"                    :inherit (variable-pitch)         ))))
 )
 
-(provide-theme 'Mesa)
+(provide-theme 'mesa)

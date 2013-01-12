@@ -33,8 +33,8 @@
   (interactive "*p")
   (move-text-internal (- arg)))
 
-(provide 'move-text)
-
-
+;; Move text up / down 
 (global-set-key [M-up] 'move-text-up)
 (global-set-key [M-down] 'move-text-down)
+
+(provide 'move-text)

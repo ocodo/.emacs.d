@@ -1,15 +1,15 @@
-(deftheme Tangerine
-  "Tangerine Created by Jasonm23 - 2012-07-02.")
+(deftheme tangerine
+  "tangerine Created by Jasonm23 - 2012-07-02.")
 
 (custom-theme-set-variables
- 'Tangerine
+ 'tangerine
  '(powerline-color1 "#6D3300")
  '(powerline-color2 "#411E00")
  '(linum-format " %7i ")
  '(fringe-mode 6))
 
 (custom-theme-set-faces
- 'Tangerine
+ 'tangerine
  '(fixed-pitch ((t (:family "Monospace"))))
  '(variable-pitch ((t (:family "Sans Serif"))))
  '(escape-glyph ((t (:foreground "#FF6600" :background "#011d2c"))))
@@ -56,4 +56,4 @@
  '(query-replace ((t (:inherit (isearch)))))
  '(default ((t (:foreground "#FFaa78" :background "#160a00")))))
 
-(provide-theme 'Tangerine)
+(provide-theme 'tangerine)

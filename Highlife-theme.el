@@ -1,4 +1,4 @@
-(deftheme Highlife
+(deftheme highlife
   "A light-on-dark theme with background tints.")
 
 (let ((background  "#141414")
@@ -27,7 +27,7 @@
       (purple-1 "#543C5A" ) (purple-1bg "#12111a"))
 
   (custom-theme-set-faces
-   'Highlife
+   'highlife
 
    ;; Basics
    `(default ((t (:background ,background :foreground ,foreground))))
@@ -113,7 +113,7 @@
    )
 
   (custom-theme-set-variables
-   'Highlife
+   'highlife
 
    ;; Powerline
    `(powerline-color1 ,gray-5)
@@ -137,4 +137,4 @@
   (add-to-list 'custom-theme-load-path
                (file-name-as-directory (file-name-directory load-file-name))))
 
-(provide-theme 'Highlife)
+(provide-theme 'highlife)

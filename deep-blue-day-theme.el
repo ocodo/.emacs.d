@@ -1,8 +1,8 @@
-(deftheme DeepBlueDay
-  "DeepBlueDay By: Jasonm23 / Created 2012-06-26.")
+(deftheme deep-blue-day
+  "deep-blue-day By: Jasonm23 / Created 2012-06-26.")
 
   (custom-theme-set-variables
-   'DeepBlueDay
+   'deep-blue-day
    '(fringe-mode 6 nil (fringe))
    '(linum-format " %7d ")
    '(powerline-color1 "#00468a")
@@ -10,7 +10,7 @@
    )
 
   (custom-theme-set-faces
-   'DeepBlueDay
+   'deep-blue-day
 
    '(default 
       ((t (:foreground "#ffffff" :background "#00060A" ))))
@@ -222,6 +222,6 @@
 
    )
 
-(provide-theme 'DeepBlueDay)
+(provide-theme 'deep-blue-day)
 
 

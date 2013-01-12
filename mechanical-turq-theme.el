@@ -1,8 +1,8 @@
-(deftheme MechanicalTurq
-  "MechanicalTurq By: Jasonm23 / Created 2012-06-26.")
+(deftheme mechanical-turq
+  "mechanical-turq By: Jasonm23 / Created 2012-06-26.")
 
 (custom-theme-set-variables
- 'MechanicalTurq
+ 'mechanical-turq
 
  '(powerline-color1 "#00779a")
  '(powerline-color2 "#00475a")
@@ -11,7 +11,7 @@
  )
 
 (custom-theme-set-faces
- 'MechanicalTurq
+ 'mechanical-turq
  '(default 
     ((t 
       (:foreground "#ffffff" 
@@ -233,6 +233,6 @@
  
  )
 
-(provide-theme 'MechanicalTurq)
+(provide-theme 'mechanical-turq)
 
 

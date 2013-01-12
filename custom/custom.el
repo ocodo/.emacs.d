@@ -4,7 +4,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(Linum-format "%7i ")
+ '(ansi-term-color-vector [unspecified "#110F13" "#d13120" "#81af34" "#deae3e" "#7e9fc9" "#7878b5" "#7e9fc9" "#dcdddd"] t)
  '(auto-install-save-confirm nil)
+ '(autopair-global-mode t)
  '(blink-cursor-mode nil)
  '(column-number-mode t)
  '(cua-mode t nil (cua-base))
@@ -16,6 +19,8 @@
  '(ediff-custom-diff-program "diff")
  '(ediff-diff-program "diff")
  '(ediff-diff3-program "diff3")
+ '(fci-rule-character-color "#202020")
+ '(fci-rule-color "#202020")
  '(fringe-mode 4 nil (fringe))
  '(global-hl-line-mode nil)
  '(global-linum-mode t)
@@ -40,6 +45,7 @@
  '(org-mobile-directory "~/Dropbox/MobileOrg")
  '(org-mobile-inbox-for-pull "~/Dropbox/MobileOrg/index.org")
  '(powerline-arrow-shape (quote chamfer14))
+ '(safe-local-variable-values (quote ((eval ignore-errors "Write-contents-functions is a buffer-local alternative to before-save-hook" (add-hook (quote write-contents-functions) (lambda nil (delete-trailing-whitespace) nil)) (require (quote whitespace)) "Sometimes the mode needs to be toggled off and on." (whitespace-mode 0) (whitespace-mode 1)) (whitespace-line-column . 80) (whitespace-style face trailing lines-tail) (require-final-newline . t))))
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
  '(tab-width 4)

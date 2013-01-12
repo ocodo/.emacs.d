@@ -16,3 +16,6 @@
 [submodule "auto-complete"]
 	path = auto-complete
 	url = http://cx4a.org/repo/auto-complete.git
+[submodule "vendor/nyan-mode"]
+	path = vendor/nyan-mode
+    url = git@github.com:ocodo/nyan-mode.git
