@@ -1,15 +1,15 @@
-(deftheme Bubbleberry 
-  "Bubbleberry - Created by Jasonm23 - 2012-07-02 (+1000) 08:39PM")
+(deftheme bubbleberry 
+  "bubbleberry - Created by Jasonm23 - 2012-07-02 (+1000) 08:39PM")
 
 (custom-theme-set-variables
- 'Bubbleberry
+ 'bubbleberry
  '(linum-format " %7i ")
  '(fringe-mode 5 nil (fringe))
  '(powerline-color1 "#3d3d68")
  '(powerline-color2 "#292945"))
 
 (custom-theme-set-faces
- 'Bubbleberry
+ 'bubbleberry
  ;; basic theming.
  '(default                          ((t (:foreground "#ABAEB3" :background "#222222" ))))
  '(region                           ((t (:background "#101010" ))))
@@ -105,4 +105,4 @@
     (((type tty) (class mono)) (:inverse-video t)) (t (:background "#888888"))))
 )
 
-(provide-theme 'Bubbleberry)
+(provide-theme 'bubbleberry)

@@ -39,12 +39,10 @@
 (global-set-key (kbd "<s-return>" ) 'completion-at-point)
 
 ;; line duplicate up / down
-
-(global-set-key (kbd "M-s-<down>") "\C-a\C- \C-n\C-a\C-b\M-w\C-j\C-y")
-(global-set-key (kbd "M-s-<up>") "\C-a\C- \C-n\C-a\C-b\M-w\C-p\C-j\C-a\C-y\C-a")
+(global-set-key [M-s-down] "\C-a\C- \C-n\C-a\C-b\M-w\C-j\C-y")
+(global-set-key [M-s-up] "\C-a\C- \C-n\C-a\C-b\M-w\C-p\C-j\C-a\C-y\C-a")
 
 ;; Auto fill mode (tidy up text line length automatically.)
-
 (global-set-key (kbd "C-c q") 'auto-fill-mode)
 
 ;; Turn on off line numbers

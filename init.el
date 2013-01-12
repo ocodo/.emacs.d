@@ -9,9 +9,11 @@
 ;; versions of Git. (git is now required for many Emacs things now.)
 (when (eq system-type 'darwin)
   (when (file-exists-p "/Developer/usr/bin")
-    (setq exec-path (append exec-path '("/Developer/usr/bin"))))
+    (setq exec-path (append '("/Developer/usr/bin") exec-path)))
   (when (file-exists-p "/Applications/Xcode.app/Contents/Developer/usr/bin")
-    (setq exec-path (append exec-path '("/Applications/Xcode.app/Contents/Developer/usr/bin"))))
+    (setq exec-path (append '("/Applications/Xcode.app/Contents/Developer/usr/bin") exec-path)))
+  (when (file-exists-p "~/.rvm/")
+    (setq exec-path (append '("~/.rvm/bin") exec-path)))
   )
 
 (require 'cl)
@@ -48,6 +50,7 @@
  ;; Emacs 23 Specific stuff...
 )
 
+
 (require 'init-el-get)
 (require 'init-yasnippet)
 (require 'init-dired)
@@ -73,10 +76,9 @@
 
 ;;;# New Edit methods 
 (require 'textmate)                    ;; Textmate emulation : Tim Vishners version.
-(require 'move-text)                   ;; Move the current line or region up / done.
 (require 'xfrp_find_replace_pairs)     ;;
 
-(require 'frame-play)                  ;; a few presets for sizing and moving frames (aka OS Windows)
+(require 'frame-adjust)                  ;; a few presets for sizing and moving frames (aka OS Windows)
 ;; This deserves a little note here's the frame functions
 ;; set-frame-position-right-hand-side 
 ;; set-frame-position-left-hand-side 
@@ -94,10 +96,11 @@
 ;; set-frame-big-right-3 - ...
 
 ;;;# Convenience and completion
-(require 'auto-complete-config)        ;; Very nice autocomplete, still trying it out, but cool!
+(require 'move-text)                   ;; move line/region up down. (bound to meta-arrow-up/down)
+(require 'auto-complete-config)        ;; Very nice autocomplete.
 (ac-config-default)
 
-(require 'ido)                         ;; Interactively DO things...
+;; (require 'ido)                         ;; Interactively DO things... 
 (require 'lorem-ipsum)                 ;; Throw some Lorem ipsum filler text in.
 (require 'switch-window)               ;; Select windows by number.
 
@@ -111,6 +114,9 @@
 (require 'highlight-indentation)       ;; visual guides for indentation
 (require 'squeeze-view)                ;; squeeze view, use in conjuction with fullscreen mode
 
+;; Stupid
+(require 'nyan-mode)                   ;; The good kind of stupid
+
 ;;;# annoyance reduction.
 (require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
 (require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
@@ -122,28 +128,6 @@
 
 ;; Magit
 (require 'magit)
-
-
-(when (window-system)
-
-;; window system stuff (only tested on Emacs.app Mac OS X.)
-
-;;; modern/fancy modeline modification, seems to need a reload after
-;;; the theme changes - it's a bit experimental / unstable.
-  (require 'powerline)
-  ;; Notes on Powerline:
-  ;; rounded radius / chamfer size
-  ;; 
-  ;; This is as good a place as any to make a note about the powerline
-  ;; bitmaps I've added, as of this moment I've placed a few fixed size
-  ;; bitmap images into the powerline.el however, I think it would be a
-  ;; lot nicer to be able to specify the rounded corner or chamfer
-  ;; radius.
-  ;;
-  ;; But I'll need a couple of geometric functions and I'm short on time
-  ;; to do this now, so this is a note to bug me in the future.
-  ;; 
-)
 
 (setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
 (load custom-file)
@@ -158,6 +142,8 @@
 ;; Default Font for different window systems
 (when (window-system)
 
+  ;; powerline
+  ;; (require 'powerline) ;; off for the moment.
 
   ;; Mac OS X
   (when (eq system-type 'darwin)
@@ -194,12 +180,15 @@
 (require 'handy-functions) ;; my lab area for little defuns
 
 (unless (window-system)
-  (message "running on the terminal")
-  ;; Do your terminal specific stuff.
-  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-
-  (load-theme 'Jadedragon)
-  ;; Works with Emacs 23 & 24, earlier versions... sorry.
-  ;; 256 color xterm compatible
+  (menu-bar-mode -1)
+  (load-theme 'mesa)
 )
 
+;; Trying a modeline hack - has a cleaner design than powerline, and doesn't break in HTML mode (the main dealbreaker.)
+;; For powerline go back to c1b702e6c2abd2dea2306f3ea2655bac00705e86 
+(load-file "~/.emacs.d/custom/mode-line-hack.el")
+
+;; Trying out Nyan-mode for a laugh... 
+(nyan-mode t) ;; on
+(setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible.
+(nyan-start-animation)

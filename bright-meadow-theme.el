@@ -1,11 +1,11 @@
-(deftheme BlueSkyDay
+(deftheme bright-meadow
   "Created 2012-07-09.")
 
 (custom-theme-set-variables
- 'BlueSkyDay
+ 'bright-meadow
  '(linum-format "%7d")
- '(powerline-color1 "SkyBlue3")
- '(powerline-color2 "LightSkyBlue2")
+ '(powerline-color1 "PaleGreen4")
+ '(powerline-color2 "PaleGreen2")
  '(fringe-mode 9)
  '(current-language-environment "UTF-8")
  '(ediff-custom-diff-program "diff")
@@ -34,14 +34,14 @@
  '(blink-cursor-mode nil))
 
 (custom-theme-set-faces
- 'BlueSkyDay
+ 'bright-meadow
  '(fixed-pitch ((t (:family "Inconsolata"))))
  '(variable-pitch ((t (:family "Helvetica Neue"))))
  '(escape-glyph ((t (:background "grey30" :foreground "orange"))))
- '(linum ((t (:foreground "grey80" :background "white" :box nil :height 100))))
- '(fringe ((t (:Foreground "grey53" :background "SlateGray1"))))
- '(mode-line ((t (:background "SlateGray2" :foreground "DodgerBlue4" :box nil :height 85))))
- '(mode-line-inactive ((t (:weight light :box nil :background "SlateGray1" :foreground "LightBlue3" :inherit (mode-line)))))
+ '(linum ((t (:foreground "PaleGreen3" :background nil :box nil :height 100))))
+ '(fringe ((t (:Foreground "PaleGreen3" :background "PaleGreen3"))))
+ '(mode-line ((t (:background "PaleGreen2" :foreground "green4" :box nil :height 85))))
+ '(mode-line-inactive ((t (:weight light :box nil :background "PaleGreen3" :foreground "DarkSeaGreen2" :inherit (mode-line)))))
  '(mode-line-emphasis ((t (:weight bold))))
  '(mode-line-highlight ((t (:box nil (t (:inherit (highlight)))))))
  '(mode-line-buffer-id ((t (:weight bold :box nil))))
@@ -86,6 +86,7 @@
  '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.8))))
  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))))
  '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.4))))
- '(default ((t (:background "white" :foreground "grey30")))))
+ '(default ((t (:background "#D6FFD6" :foreground "SpringGreen4")))))
 
-(provide-theme 'BlueSkyDay)
+(provide-theme 'bright-meadow)
+
