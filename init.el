@@ -5,6 +5,13 @@
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;                                          
 
+;; Smoother scrolling
+(setq redisplay-dont-pause t
+  scroll-margin 1
+  scroll-step 1
+  scroll-conservatively 10000
+  scroll-preserve-screen-position 1)
+
 ;; A little hack to find Git on systems that only have XCode installed
 ;; versions of Git. (git is now required for many Emacs things now.)
 (when (eq system-type 'darwin)
