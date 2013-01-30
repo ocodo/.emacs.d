@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: kendo template
+# key: ktmp
+# group: kendo
+# --
+<!-- Template : ${1:Name} -->
+<script type="text/x-kendo-template" id="${2:template-id}">
+  <div>
+    $0
+  </div>
+</script>

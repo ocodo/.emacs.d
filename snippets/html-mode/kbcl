@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: data-bind click
+# group: kendo
+# key: kbcl
+# contributor: Jason Milkins
+# --
+data-bind="click: $0"

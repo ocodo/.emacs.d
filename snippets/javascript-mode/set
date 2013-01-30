@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: kendo
+# key: set
+# name: mvvm - setter
+# --
+set('${1:property}', ${2:value})
+$0
