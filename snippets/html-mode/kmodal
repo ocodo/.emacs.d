@@ -1,0 +1,31 @@
+# -*- mode: snippet -*-
+# name: kendo modal
+# key: kmodal
+# group: kendo
+# --
+<!-- Modal: ${1:name} -->
+<div id="$1"
+     data-role="modalview"  
+     data-model="${2:model}"
+     class="modal-view">    
+  <div data-role="header" 
+       class="modal-header">
+    <div data-role="navbar">
+      <span>${3:Heading}</span>
+      <a data-click="closeModalView"
+         data-role="button" 
+         data-align="right"><img src="img/close-modal-button.svg"/></a>
+    </div>
+  </div>
+  <div class="modal-view-inset">
+    $0
+  </div>
+  <div data-role="footer"  
+       class="modal-footer">
+    <a data-bind="click: ${5:okMethod}"
+       data-role="button">${6:Ok}</a>
+    <a data-click="closeModalView"
+       data-role="button" 
+       data-align="right">Cancel</a>
+  </div>
+</div>

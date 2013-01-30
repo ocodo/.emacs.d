@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: close modal
+# group: kendo
+# key: kmc
+# --
+\$('#${1:id}').data('kendoMobileModalView').close();

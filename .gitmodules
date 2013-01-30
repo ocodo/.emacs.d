@@ -1,21 +1,15 @@
 [submodule "yasnippet"]
 	path = yasnippet
 	url = git://github.com/capitaomorte/yasnippet.git
-[submodule "el-get"]
-	path = el-get
-	url = git://github.com/dimitri/el-get.git
-[submodule "vendor/magit"]
-	path = vendor/magit
-	url = git://github.com/magit/magit.git
-[submodule "vendor/hyde"]
-	path = vendor/hyde
-	url = git://github.com/copyninja/Hyde.git
 [submodule "vendor/cucumber"]
 	path = vendor/cucumber
 	url = git@github.com:jasonm23/cucumber.el.git
-[submodule "auto-complete"]
-	path = auto-complete
-	url = http://cx4a.org/repo/auto-complete.git
 [submodule "vendor/nyan-mode"]
 	path = vendor/nyan-mode
     url = git@github.com:ocodo/nyan-mode.git
+[submodule "vendor/emacs-soothe-theme"]
+	path = vendor/emacs-soothe-theme
+	url = git@github.com:jasonm23/emacs-soothe-theme.git
+[submodule "vendor/hyde"]
+	path = vendor/hyde
+	url = git://github.com/nibrahim/Hyde.git

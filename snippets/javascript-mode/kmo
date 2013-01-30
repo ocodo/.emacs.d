@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: open modal
+# group: kendo
+# key: kmo
+# --
+\$('#${1:id}').data('kendoMobileModalView').open();

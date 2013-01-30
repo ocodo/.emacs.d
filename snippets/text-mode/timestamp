@@ -1,4 +1,4 @@
-# name: (timestamp)
+# name: timestamp yyyymmddhhmmss
 # key: timestamp
 # --
 `(progn 

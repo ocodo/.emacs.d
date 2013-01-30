@@ -4,6 +4,42 @@
 ;;  | (_) | (_| (_) | (_| | (_) | |  __/ | | | | | (_| | (__\__ \ | (_| | (_) | |_ 
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;                                          
+;; dirty, but cheap way to get .emacs.d subfolders into the load path,
+;; and then return us to the user home directory, for find-file etc.
+
+;; Include common lisp
+(require 'cl)
+
+(progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
+
+;; Modes init (things that need more than just a require.) 
+(when (string-match "Emacs 24" (version))
+  (message "Running Emacs 24")
+  ;; Only run elpa on E24
+  (require 'init-elpa)
+)
+
+;; turn off toolbar.
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+
+;; menu bar mode only on OS X, just because it's pretty much out of
+;; the way, as opposed to sitting right there in the frame.
+(if  (and (window-system) (eq system-type 'darwin))
+    (menu-bar-mode 1)
+  (menu-bar-mode -1)
+)
+
+;; manually installed packages (find them in ./plugins/) - these could
+;; probably all become auto-loaded. (next time)
+(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
+
+;; AsciiDoc modw
+(autoload 'asciidoc-mode "asciidoc-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
+
+;; Rainbow mode for css automatically
+(add-hook 'css-mode-hook 'rainbow-mode)
+(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 
 ;; Smoother scrolling
 (setq redisplay-dont-pause t
@@ -12,8 +48,33 @@
   scroll-conservatively 10000
   scroll-preserve-screen-position 1)
 
-;; A little hack to find Git on systems that only have XCode installed
-;; versions of Git. (git is now required for many Emacs things now.)
+;; show paren mode
+(show-paren-mode 1)
+(setq show-paren-delay 0)
+
+;; prefer y / n to typing yes / no, but with power comes
+;; responsibility.  Comment out for standard speed-cripling yes/no
+;; behaviour.
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; allow advanced features
+(put 'set-goal-column  'disabled nil)
+(put 'erase-buffer     'disabled nil)
+(put 'downcase-region  'disabled nil)
+(put 'upcase-region    'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+
+;; Lorem-ipsum hook for nxml modes
+(add-hook 'nxml-mode-hook (lambda ()
+			    (setq Lorem-ipsum-paragraph-separator "<br><br>\n"
+				  Lorem-ipsum-sentence-separator "&nbsp;&nbsp;"
+				  Lorem-ipsum-list-beginning "<ul>\n"
+				  Lorem-ipsum-list-bullet "<li>"
+				  Lorem-ipsum-list-item-end "</li>\n"
+				  Lorem-ipsum-list-end "</ul>\n")))
+
+
+;; find XCode and RVM command line tools on OSX (cover the legacy and current XCode directory structures.)
 (when (eq system-type 'darwin)
   (when (file-exists-p "/Developer/usr/bin")
     (setq exec-path (append '("/Developer/usr/bin") exec-path)))
@@ -23,141 +84,46 @@
     (setq exec-path (append '("~/.rvm/bin") exec-path)))
   )
 
-(require 'cl)
+(add-to-list 'exec-path "~/bin")
 
-;; dirty, but cheap way to get .emacs.d subfolders into the load path,
-;; and then return us to the user home directory, for find-file etc.
-(progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
+;; use aspell for ispell
+(when (file-exists-p "/usr/local/bin/aspell")
+  (set-variable 'ispell-program-name "/usr/local/bin/aspell"))
 
-;; turn off toolbar 
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-;;(& uncomment this to turn off menu)
-;; (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-
-;; assume you'd prefer y / n to typing yes / no
-;; with power comes responsibility. 
-;; Comment out for standard yes/no behaviour.
-(fset 'yes-or-no-p 'y-or-n-p)
-
-;; 
-(put 'erase-buffer     'disabled nil)
-(put 'downcase-region  'disabled nil)
-(put 'upcase-region    'disabled nil)
-(put 'narrow-to-region 'disabled nil)
-
-;; Modes init (things that need more than just a require.) 
-(when (string-match "Emacs 24" (version))
-  (message "Running Emacs 24")
-  ;; Emacs 24 Specific stuff...
-  (require 'init-elpa)
-)
-
-(when (string-match "Emacs 23" (version))
- (message "Running Emacs 23")
- ;; Emacs 23 Specific stuff...
-)
-
-
-(require 'init-el-get)
 (require 'init-yasnippet)
-(require 'init-dired)
-(require 'init-hideshowvis)
- 
-;; manually installed packages (find them in ./plugins/) - these could
-;; probably all become auto-loaded. (next time)
-
-;;;# specialized syntax editing
-(require 'haml-mode)                   ;; http://haml.info 
-(require 'scss-mode)                   ;; http://sass-lang.com 
-(require 'coffee-mode)                 ;; http://coffeescript.org
-(require 'yaml-mode)
-(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
-(require 'mustache-mode)
-
-;;;# docs and blogs
-(require 'markdown-mode)               ;; Markdown text mode
-(require 'textile-mode)                ;; Textile text mode
-;; AsciiDoc modw
-(autoload 'asciidoc-mode "asciidoc-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
-
-;;;# New Edit methods 
-(require 'textmate)                    ;; Textmate emulation : Tim Vishners version.
-(require 'xfrp_find_replace_pairs)     ;;
-
-(require 'frame-adjust)                  ;; a few presets for sizing and moving frames (aka OS Windows)
-;; This deserves a little note here's the frame functions
-;; set-frame-position-right-hand-side 
-;; set-frame-position-left-hand-side 
-;; set-frame-height-to-display-height
-;; set-frame-height-to-85-percent-display-height 
-;; set-frame-width-to-two-thirds-display-width 
-;; set-frame-width-to-three-quarters-display-width 
-;; set-frame-width-to-half-display-width 
-;; set-frame-width-to-display-width 
-;; set-frame-big-left-1 - flush to top left, two thirds wide, 100% high
-;; set-frame-big-left-2 - flush to top left, three quarters wide, 100% high
-;; set-frame-big-left-3 - flush to top left, three quarters wide, 85% high (I like a little room sometimes)
-;; set-frame-big-right-1 - as above but flush top right.
-;; set-frame-big-right-2 - ...
-;; set-frame-big-right-3 - ...
+(require 'init-dired) 
+(require 'init-hideshowvis) 
+(require 'frame-adjust)                  ;; a few presets for sizing and moving frames (aka Operating System Windows)
 
 ;;;# Convenience and completion
-(require 'move-text)                   ;; move line/region up down. (bound to meta-arrow-up/down)
 (require 'auto-complete-config)        ;; Very nice autocomplete.
 (ac-config-default)
 
-;; (require 'ido)                         ;; Interactively DO things... 
-(require 'lorem-ipsum)                 ;; Throw some Lorem ipsum filler text in.
 (require 'switch-window)               ;; Select windows by number.
-
-;; Blogging with Jekyll and Hyde
-(require 'hyde) ;; this is going soon, I'm switching to octopress
-
-;;;# asthetic convenience
-(require 'rainbow-mode)                ;; Colours hex rgb and other color modes (X11 color names etc.)
-(require 'rainbow-delimiters)          ;; Delimiter coloring
 (require 'resize-window)               ;; interactively size window
 (require 'highlight-indentation)       ;; visual guides for indentation
-(require 'squeeze-view)                ;; squeeze view, use in conjuction with fullscreen mode
-
-;; Stupid
-(require 'nyan-mode)                   ;; The good kind of stupid
-
-;;;# annoyance reduction.
+(require 'squeeze-view)                ;; squeeze view, give yourself a write-room/typewriter like writing page
 (require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
 (require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
-
-;;;# .. github convenience
-(require 'org-ghi)                     ;; Github Issues in Org-Mode.
-(require 'gist)                        ;; Github Gist mode
-(require 'hexrgb)                      ;; hexrgb functions
-
-;; Magit
-(require 'magit)
+(require 'hexrgb)                      ;; hexrgb functions - my version is modified, lives in /plugins/
+(require 'liquid-mode)
 
 (setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
 (load custom-file)
+(require 'custom-keys)
 
-(require 'custom-keys)                           ;; Key bindings live in keys.el
-
-(server-start nil) ;; Start the emacs server.
-
-;; Anything that needs to run after custom.
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
+;; Conditional start of Emacs Server
+(setq server-use-tcp t)
+(when (and (fboundp 'server-running-p) (not (server-running-p))) (server-start))
 
 ;; Default Font for different window systems
 (when (window-system)
-
-  ;; powerline
-  ;; (require 'powerline) ;; off for the moment.
-
+ (global-linum-mode 1)
   ;; Mac OS X
   (when (eq system-type 'darwin)
     ;;(set-face-font 'default "Monaco")
     ;;(set-face-font 'default "Source Code Pro")
-    (set-face-font 'default "Menlo")
-    )
+    (set-face-font 'default "Menlo"))
   ;; Sample Text for font viewing 
   '("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
@@ -173,29 +139,26 @@
     ;; (set-face-font 'default "Droid Sans Mono") ;; for quick swapping.
     (set-face-font 'default "Bitstream Vera Sans Mono")
     )
-
-  ;; Quick access for some alternatives..
-  ;;(set-face-font 'default "Inconsolata")
-  ;;(set-face-font 'default "Monaco")
-  ;;(set-face-font 'default "Menlo")
-  ;;(set-face-font 'default "Bitstream Vera Sans Mono")
-  ;;(set-face-font 'default "Consolas")
-  ;;(set-face-font 'default "Droid Sans Mono")
-  ;;(set-face-font 'default "Source Code Pro")
 )
 
-(require 'handy-functions) ;; my lab area for little defuns
+;; auto-load hyde mode for Jekyll
+(require 'hyde-autoloads) ;; ./vendor/hyde
 
-(unless (window-system)
-  (menu-bar-mode -1)
-  (load-theme 'mesa)
-)
 
 ;; Trying a modeline hack - has a cleaner design than powerline, and doesn't break in HTML mode (the main dealbreaker.)
 ;; For powerline go back to c1b702e6c2abd2dea2306f3ea2655bac00705e86 
 (load-file "~/.emacs.d/custom/mode-line-hack.el")
 
-;; Trying out Nyan-mode for a laugh... 
+;; Try out Nyan-mode for a laugh... 
+;; Stupid
+(require 'nyan-mode)
 (nyan-mode t) ;; on
-(setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible.
-(nyan-start-animation)
+;; (setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible!
+;; (nyan-start-animation) ;; ok this is a but much...
+
+(load-theme 'soothe)
+
+(require 'handy-functions) ;; my lab area for little defuns, the sort
+                           ;; of thing people blog about, when they
+                           ;; have too much spare time.
+

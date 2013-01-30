@@ -3,6 +3,6 @@
 # key: cb
 # contributor: Jason Milkins <jasonm23@gmail.com>
 # --
-function (${1:args}){
+function ($1){
    $0
 }
