@@ -145,8 +145,7 @@
 (require 'hyde-autoloads) ;; ./vendor/hyde
 
 
-;; Trying a modeline hack - has a cleaner design than powerline, and doesn't break in HTML mode (the main dealbreaker.)
-;; For powerline go back to c1b702e6c2abd2dea2306f3ea2655bac00705e86 
+;; minimal clean / modeline
 (load-file "~/.emacs.d/custom/mode-line-hack.el")
 
 ;; Try out Nyan-mode for a laugh... 
@@ -162,3 +161,12 @@
                            ;; of thing people blog about, when they
                            ;; have too much spare time.
 
+
+;; Configure multi-web-mode
+(require 'multi-web-mode)
+(setq mweb-default-major-mode 'html-mode)
+(setq mweb-tags '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
+                  (js-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
+                  (css-mode "<style +type=\"text/css\"[^>]*>" "</style>")))
+(setq mweb-filename-extensions '("php" "htm" "html" "ctp" "phtml" "php4" "php5"))
+(multi-web-global-mode 1)
