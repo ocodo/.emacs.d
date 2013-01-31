@@ -1,3 +1,5 @@
+(require 's)
+
 ;; Handy functions, add little helpers in here.
 
 (defun align-number-right (begin end)
@@ -10,7 +12,7 @@
   (insert (format "%i" (random-in-range start end))))
 
 (defun insert-random-radian ()
-  "insert a radian value from 0 to 6.28318 (2PI)"
+  "insert a radian value from 0 to 6.28318 (2PI : 360 deg)"
   (interactive)
   (insert (format "%s" (* (/ float-pi 180) (random 361)))))
 
@@ -22,7 +24,7 @@
   (random t)
   (+ start (random (+ 1 (- end start)))))
 
-(defun insert-radians-for-degrees (degrees)
+(defun degrees-to-radians (degrees)
   "Insert radians for degrees"
   (interactive "ndegrees:")
   (insert (format "%s" (* (/ float-pi 180) degrees))))
@@ -45,7 +47,7 @@
   (indent-region (point-min) (point-max)))
 
 (defun cleanup-buffer ()
-  "Perform a bunch of operations on the whitespace content of a buffer."
+  "Perform a cleanup operations on a buffer, tabs to spaces, re-indent, trim whitespace"
   (interactive)
   (indent-buffer)
   (untabify-buffer)
@@ -118,8 +120,8 @@
 (global-set-key (kbd "C-o") 'open-line-below)
 
 (defun shell-command-on-region-replace (start end command)
-  "Run shell-command-on-region interactivly replacing the region in place"
-  (interactive (let (string) 
+  "Run shell-command-on-region interactively replacing the region in place"
+  (interactive (let (string)
                  (unless (mark)
                    (error "The mark is not set now, so there is no region"))
                  (setq string (read-from-minibuffer "Shell command on region: "
@@ -130,7 +132,7 @@
   (shell-command-on-region start end command t t))
 
 (defun directory-of-library (library-name)
-  "open directory with dired which contains the give library"
+  "open directory with dired which contains the given library"
   (interactive "M")
   (dired (file-name-as-directory
           (file-name-directory (find-library-name library-name)))))
@@ -144,7 +146,7 @@
     (kill-this-buffer)))
 
 (defun switch-to-scratch ()
-  "switch to scratch , take if region is active"
+  "switch to scratch, grab the region if it's active"
   (interactive)
   (let ((contents
          (and (region-active-p)
@@ -159,14 +161,14 @@
 (defun ca-with-comment (str)
   (format "%s%s%s" comment-start str comment-end))
 
-(defun ca-all-asscs (asslist query)
+(defun ca-all-asscs (assoc_list query)
   "returns a list of all corresponding values (like rassoc)"
   (cond
-   ((null asslist) nil)
+   ((null assoc_list) nil)
    (t
-    (if (equal (cdr (car asslist)) query)
-        (cons (car (car asslist)) (ca-all-asscs (cdr asslist) query))
-      (ca-all-asscs (cdr asslist) query)))))
+    (if (equal (cdr (car assoc_list)) query)
+        (cons (car (car assoc_list)) (ca-all-asscs (cdr assoc_list) query))
+      (ca-all-asscs (cdr assoc_list) query)))))
 
 (defun shell-command-on-buffer-file ()
   "prompts for a command and executes that command on to the associated
@@ -186,75 +188,45 @@
        (let* ((fn-list (dired-get-marked-files nil arg)))
          (mapc 'find-file fn-list)))))
 
-(require 's)
-
+;; A bunch of "on point or region" do something commands, mostly
+;; (all?) using the 's' library.  Possibly worth extracting to it's
+;; own feature.
 (defun snake-case-at-point-or-region ()
   "snake_case the current word or text selection."
   (interactive)
-  (let (pos1 pos2 meat)
-    (if (and transient-mark-mode mark-active)
-        (setq pos1 (region-beginning)
-              pos2 (region-end))
-      (setq pos1 (car (bounds-of-thing-at-point 'symbol))
-            pos2 (cdr (bounds-of-thing-at-point 'symbol))))
-    (setq meat (s-snake-case  (buffer-substring-no-properties pos1 pos2)))
-    (delete-region pos1 pos2)
-    (insert (s-snake-case meat))
-    )
-  )
+  (operate-on-point-or-region 's-snake-case))
 
 (defun dasherise-at-point-or-region ()
   "dasherise-the-current CamelCase or snake_case word or text selection."
   (interactive)
-  (let (pos1 pos2 meat)
-    (if (and transient-mark-mode mark-active)
-        (setq pos1 (region-beginning)
-              pos2 (region-end))
-      (setq pos1 (car (bounds-of-thing-at-point 'symbol))
-            pos2 (cdr (bounds-of-thing-at-point 'symbol))))
-    (setq meat (s-dashed-words (buffer-substring-no-properties pos1 pos2)))
-    (delete-region pos1 pos2)
-    (insert  meat)    
-    )
-  )
+  (operate-on-point-or-region 's-dash-words))
 
 (defun upper-camelcase-at-point-or-region ()
-  "UpperCamelCaseTheCurrent dashed or snake_case word or any words in text selection."
+  "UpperCamelCaseTheCurrent dashed-or-snake_case_words or any words in text selection."
   (interactive)
-  (let (pos1 pos2 meat)
-    (if (and transient-mark-mode mark-active)
-        (setq pos1 (region-beginning)
-              pos2 (region-end))
-      (setq pos1 (car (bounds-of-thing-at-point 'symbol))
-            pos2 (cdr (bounds-of-thing-at-point 'symbol))))
-    (setq meat (s-upper-camel-case (buffer-substring-no-properties pos1 pos2)))
-    (delete-region pos1 pos2)
-    (insert  meat)    
-    )
-  )
-
+  (operate-on-point-or-region 's-upper-camel-case))
 
 (defun lower-camelcase-at-point-or-region ()
   "lowerCamelCaseTheCurrent dashed or snake_case word or any words in text selection."
   (interactive)
+  (operate-on-point-or-region 's-lower-camel-case))
+
+(defun operate-on-point-or-region (fn)
+  "Get the current unspaced string at point, or the current region, if selected, and replace it with the return value of fn - an ordinary defun."
   (let (pos1 pos2 meat)
     (if (and transient-mark-mode mark-active)
         (setq pos1 (region-beginning)
               pos2 (region-end))
       (setq pos1 (car (bounds-of-thing-at-point 'symbol))
             pos2 (cdr (bounds-of-thing-at-point 'symbol))))
-    (setq meat (s-lower-camel-case (buffer-substring-no-properties pos1 pos2)))
+    (setq meat (funcall fn (buffer-substring-no-properties pos1 pos2)))
     (delete-region pos1 pos2)
-    (insert  meat)    
-    )
-  )
-
-
+    (insert  meat)))
 
 (defun yank-repeat (&optional arg)
-  "Repeat yank with M- number"
+  "Repeat yank with M- number, (normal opertation of M- number
+yank is to get that numbered item from the kill ring)"
   (interactive "*p")
-  (dotimes (i arg)
-    (yank)))
+  (dotimes (string-to-int arg) (yank)))
 
 (provide 'handy-functions)
