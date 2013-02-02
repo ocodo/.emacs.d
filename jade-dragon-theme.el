@@ -1,15 +1,15 @@
-(deftheme jadedragon 
-  "jadedragon - Created by Jasonm23 - 8:50pm(+1000) 2012-07-02")
+(deftheme jade-dragon 
+  "jade-dragon - Created by Jasonm23 - 8:50pm(+1000) 2012-07-02")
 
   (custom-theme-set-variables
-   'jadedragon
+   'jade-dragon
    '(linum-format " %7i ")
    '(fringe-mode 5 nil (fringe))
    '(powerline-color1 "#14948b")
    '(powerline-color2 "#006161"))
 
   (custom-theme-set-faces
-   'jadedragon
+   'jade-dragon
 
    ;; basic theming.
    '(default                          ((t (:foreground "#ffffff" :background "#000000" ))))
@@ -108,4 +108,4 @@
 
    )
 
-(provide-theme 'jadedragon)
+(provide-theme 'jade-dragon)
