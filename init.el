@@ -144,7 +144,6 @@
 ;; auto-load hyde mode for Jekyll
 (require 'hyde-autoloads) ;; ./vendor/hyde
 
-
 ;; minimal clean / modeline
 (load-file "~/.emacs.d/custom/mode-line-hack.el")
 
