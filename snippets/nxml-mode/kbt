@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: data-bind text
+# group: kendo
+# key: kbt
+# contributor: Jason Milkins
+# --
+data-bind="text: $0"

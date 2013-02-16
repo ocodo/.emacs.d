@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# name: kendo mobile view
+# key: kvi
+# group: kendo
+# contributor: J Milkins <jasonm23@gmail.com>
+# --
+<div data-role="view" data-layout="${1:layout}-layout" id="${2:name}">
+$0
+</div>

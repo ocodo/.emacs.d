@@ -63,6 +63,7 @@
 (put 'downcase-region  'disabled nil)
 (put 'upcase-region    'disabled nil)
 (put 'narrow-to-region 'disabled nil)
+(put 'narrow-to-page   'disabled nil)
 
 ;; Lorem-ipsum hook for nxml modes
 (add-hook 'nxml-mode-hook (lambda ()
@@ -80,9 +81,10 @@
     (setq exec-path (append '("/Developer/usr/bin") exec-path)))
   (when (file-exists-p "/Applications/Xcode.app/Contents/Developer/usr/bin")
     (setq exec-path (append '("/Applications/Xcode.app/Contents/Developer/usr/bin") exec-path)))
-  (when (file-exists-p "~/.rvm/")
+  (when (file-exists-p "~/.rvm/bin")
     (setq exec-path (append '("~/.rvm/bin") exec-path)))
-  )
+  (when (file-exists-p "/usr/local/share/npm/bin")
+    (setq exec-path (append '("/usr/local/share/npm/bin") exec-path))))
 
 (add-to-list 'exec-path "~/bin")
 
@@ -93,6 +95,8 @@
 (require 'init-yasnippet)
 (require 'init-dired) 
 (require 'init-hideshowvis) 
+(require 'init-multi-web-mode)
+
 (require 'frame-adjust)                  ;; a few presets for sizing and moving frames (aka Operating System Windows)
 
 ;;;# Convenience and completion
@@ -119,7 +123,7 @@
 ;; Default Font for different window systems
 (when (window-system)
  (global-linum-mode 1)
-  ;; Mac OS X
+  ;; Mac OS X 
   (when (eq system-type 'darwin)
     ;;(set-face-font 'default "Monaco")
     ;;(set-face-font 'default "Source Code Pro")
@@ -161,11 +165,3 @@
                            ;; have too much spare time.
 
 
-;; Configure multi-web-mode
-(require 'multi-web-mode)
-(setq mweb-default-major-mode 'html-mode)
-(setq mweb-tags '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
-                  (js-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
-                  (css-mode "<style +type=\"text/css\"[^>]*>" "</style>")))
-(setq mweb-filename-extensions '("php" "htm" "html" "ctp" "phtml" "php4" "php5"))
-(multi-web-global-mode 1)

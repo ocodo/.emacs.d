@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# name: kendo mobile link to actionsheet
+# key: kal
+# group: kendo
+# contributor: J Milkins <jasonm23@gmail.com>
+# --
+<a data-role="button" data-icon="${1:action}" data-rel="actionsheet" href="\#${2:name}-actionsheet"></a>
+$0

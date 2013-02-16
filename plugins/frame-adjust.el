@@ -1,16 +1,16 @@
 ;;
-;; a simple set of frame positioning macros...
-;; frame width and height 100% values are approximate,
-;; and tuned for Emacs24.1 on OS X - should work everywhere though.
+;; a simple set of frame positioning macros...  frame width and height 100%
+;; values are approximate, and tuned for Emacs24.1 Cocoa on OS X
 ;;
-;; This collection will let you frig with the window position and
-;; size, locking to the top left, or top right of the current
-;; display. Sizing to max (char dimensions) and also a
-;; set-frame-to-footer for editing while using the top half of the
-;; screen for some other purpose, ie. playing video to be trasncribed
-;; or just for use with the various Chrome or Firefox Textarea ->
+;; At the moment, Emacs mac treats all displays as a single X display (called
+;; "Mac") - so this library won't work with multiple screens + Emacs Mac
+;;
+;; This collection will let you frig with the window position and size, locking
+;; to the top left, or top right of the current display. Sizing to max (char
+;; dimensions) and also a set-frame-to-footer for editing while using the top
+;; half of the screen for some other purpose, ie. playing video to be
+;; trasncribed or just for use with the various Chrome or Firefox Textarea ->
 ;; Emacs extensions
-;;
 
 (defun set-frame-position-top-right-hand-side ()
   "Position the current frame to the top/right of the Display"
@@ -45,7 +45,6 @@ nb:approximately, Emacs sets frame height by char rows."
       (progn
         (set-frame-height (selected-frame) (floor (* (/ (x-display-pixel-height) (frame-char-height)) 0.85))))))
 
-
 (defun set-frame-width-to-two-thirds-display-width ()
   "Size the current frame to two thirds the display width. -
 nb:approximately, Emacs sets frame width by char columns."
@@ -79,7 +78,7 @@ nb:approximately, Emacs sets frame width by char columns."
         (set-frame-width (selected-frame) (/ (- (x-display-pixel-width) 30) (frame-char-width))))))
 
 (defun set-frame-maximize ()
-  "Quit worrying about ns-fullscreen or Lion's shitty native
+  "Quit worrying about ns-fullscreen or Lion's sh*tty native
 fullscreen (aka. multiscreen hijack) and just maximize to the
 current display."
   (interactive)

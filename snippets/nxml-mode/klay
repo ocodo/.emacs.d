@@ -1,0 +1,16 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# name: kendo mobile layout
+# key: klay
+# group: kendo
+# contributor: J Milkins <jasonm23@gmail.com>
+# --
+<div data-role="layout" data-id="${1:name}-layout">
+  <div data-role="header">
+    ${2:header}
+  </div>
+  <div data-role="footer">
+    ${3:footer}
+  </div>
+</div>
+$0

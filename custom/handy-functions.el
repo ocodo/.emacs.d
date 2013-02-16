@@ -191,6 +191,8 @@
 ;; A bunch of "on point or region" do something commands, mostly
 ;; (all?) using the 's' library.  Possibly worth extracting to it's
 ;; own feature.
+(require 's)
+
 (defun snake-case-at-point-or-region ()
   "snake_case the current word or text selection."
   (interactive)
@@ -211,6 +213,17 @@
   (interactive)
   (operate-on-point-or-region 's-lower-camel-case))
 
+(defun humanize-at-point-or-region ()
+  "Humanize variable names, insert spaces instead of - or _ or un-CamelCase humps to spaced words."
+  (interactive)
+  (operate-on-point-or-region 's-capitalized-words))
+
+(defun titleized-at-point-or-region ()
+  "Convert dashed, underscored or (both styles of) CamelCase, 
+  or spaced words in region, Title Case Words."
+  (interactive)
+  (operate-on-point-or-region 's-titleized-words))
+
 (defun operate-on-point-or-region (fn)
   "Get the current unspaced string at point, or the current region, if selected, and replace it with the return value of fn - an ordinary defun."
   (let (pos1 pos2 meat)
@@ -223,10 +236,25 @@
     (delete-region pos1 pos2)
     (insert  meat)))
 
+
+
 (defun yank-repeat (&optional arg)
   "Repeat yank with M- number, (normal opertation of M- number
 yank is to get that numbered item from the kill ring)"
   (interactive "*p")
   (dotimes (string-to-int arg) (yank)))
+
+(defun smart-beginning-of-line ()
+  "Move point to first non-whitespace character or beginning-of-line.
+
+Move point to the first non-whitespace character on this line.
+If point was already at that position, move point to beginning of line."
+  (interactive)
+  (let ((oldpos (point)))
+    (back-to-indentation)
+    (and (= oldpos (point))
+         (beginning-of-line))))
+
+(global-set-key (kbd "C-a") 'smart-beginning-of-line)
 
 (provide 'handy-functions)
