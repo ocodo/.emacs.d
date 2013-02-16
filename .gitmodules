@@ -7,6 +7,3 @@
 [submodule "vendor/nyan-mode"]
 	path = vendor/nyan-mode
     url = git@github.com:ocodo/nyan-mode.git
-[submodule "vendor/emacs-soothe-theme"]
-	path = vendor/emacs-soothe-theme
-	url = git@github.com:jasonm23/emacs-soothe-theme.git
