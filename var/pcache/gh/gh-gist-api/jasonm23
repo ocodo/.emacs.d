@@ -1,7 +1,0 @@
-;; Object gh/gh-gist-api/jasonm23
-;; EIEIO PERSISTENT OBJECT
-(gh-cache "gh/gh-gist-api/jasonm23"
-  :file "jasonm23"
-  :entries #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8 data ())
-  :timestamp 1359083572.150077
-  )

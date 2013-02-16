@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: data-bind currency
+# group: kendo
+# key: kbc
+# contributor: Jason Milkins
+# --
+data-bind="currency: $0"
