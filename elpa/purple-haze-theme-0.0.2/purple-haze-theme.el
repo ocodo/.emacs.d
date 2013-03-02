@@ -40,7 +40,7 @@
    ((t (:family "Sans Serif"))))
 
  '(escape-glyph ;; Things like  and other control chars.
-   ((t (:foreground "#FF6600" :background "#211d3c"))))
+   ((t (:foreground "#FFF" :background "#211d3c"))))
 
  ;; Line Numbers (linum-mode)
  '(linum

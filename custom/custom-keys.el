@@ -28,8 +28,9 @@
 (global-set-key [M-down] 'move-text-down)
 
 ;; line duplicate up / down
-(global-set-key [s-down] "\C-a\C- \C-n\C-a\C-b\M-w\C-j\C-y\C-a")
-(global-set-key [s-up] "\C-a\C- \C-n\C-a\C-b\M-w\C-p\C-j\C-a\C-y\C-a")
+
+(global-set-key [s-up] [?\C-a ?\C-a ?\C-k ?\C-y left ?\C-a ?\C-a return up ?\C-y ?\C-a])
+(global-set-key [s-down] [?\C-a ?\C-a ?\C-k ?\C-y return ?\C-y ?\C-a])
 
 ;; Auto fill mode toggle (tidy up text line length automatically.)
 (global-set-key (kbd "C-c q") 'auto-fill-mode)
@@ -47,33 +48,33 @@
 
 (when (and (window-system) (eq system-type 'darwin)) 
 
+  (message "binding osx specific shortcuts")
   ;; Cmd-o to find-file...
   (global-set-key (kbd "s-o") 'find-file)
 
   ;; Cmd-Shift-s : write-file (not use save-as dialog)
-  (global-set-key [s-S] 'write-file)
+  (global-set-key (kbd "s-S") 'write-file)
 
   ;; Cmd-Shift-r : write-region ( save selection )
-  (global-set-key [s-R] 'write-region)
+  (global-set-key (kbd "s-R") 'write-region)
 
   ;; Cmd-p : unbound from print dialog, focus stealing annoyance.
   ;; Instead bound to the useful find-file-at-point
-  (global-set-key [s-p] 'find-file-at-point)
-  ;;
+  (global-set-key (kbd "s-p") 'find-file-at-point)
 
   ;; Cmd-m : unbound - I don't need minimize bound
   ;; unbind : Ctrl-z too (minimize.)
-  (global-unset-key [s-m])
+  (global-unset-key (kbd "s-m"))
 
   ;; Cmd-h : unbound - I don't need hide bound
-  (global-unset-key [s-h])
+  (global-unset-key (kbd "s-h"))
   ;; Note: Emacs Mac is unaffected, as it leaves Cmd-h to the OS, and
   ;; it'll hide anyway.
 
   ;; Cmd-alt-l : Load library
-  (global-set-key [M-s-l] 'load-library)
+  (global-set-key (kbd "M-s-l") 'load-library)
 
-  ;; Cmd-t : hardwired for many people from browsers, TextMate, etc. as
+  ;; cmd-t : hardwired for many people from browsers, TextMate, etc. as
   ;; open a new tab (ie. buffer) - so we bind it here as: open a file.
   ;; By default it's bound in OSX Emacs as open the font dialog. No, really.
   (global-set-key [8388724] 'find-file)

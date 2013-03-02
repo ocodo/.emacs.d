@@ -15,7 +15,7 @@
     (cond (buffer-read-only
            (propertize " RO " 'face 'mode-line-read-only-face))
           ((buffer-modified-p)
-           (propertize " ** " 'face 'mode-line-modified-face))
+           (propertize " *-* " 'face 'mode-line-modified-face))
           (t "      ")))
    "    "
    ; directory and buffer/file name
@@ -66,44 +66,17 @@
 (make-face 'mode-line-process-face)
 (make-face 'mode-line-80col-face)
 
-(set-face-attribute 'mode-line nil
-    :foreground "gray60" :background "gray10"
-    :inverse-video nil
-    :box '(:line-width 6 :color "gray10" :style nil))
-(set-face-attribute 'mode-line-inactive nil
-    :foreground "gray80" :background "gray40"
-    :inverse-video nil
-    :box '(:line-width 6 :color "gray40" :style nil))
+(set-face-attribute 'mode-line nil          :foreground "gray60" :background "#1B141F" :inverse-video nil :box '(:line-width 4 :color "#1B141F" :style nil))
+(set-face-attribute 'mode-line-inactive nil :foreground "gray80" :background "#1B141F" :inverse-video nil :box '(:line-width 4 :color "#1B141F" :style nil))
 
-(set-face-attribute 'mode-line-read-only-face nil
-    :inherit 'mode-line-face
-    :foreground "#4271ae"
-    :box '(:line-width 2 :color "#4271ae"))
-(set-face-attribute 'mode-line-modified-face nil
-    :inherit 'mode-line-face
-    :foreground "#c82829"
-    :background "#ffffff"
-    :box '(:line-width 2 :color "#c82829"))
-(set-face-attribute 'mode-line-folder-face nil
-    :inherit 'mode-line-face
-    :foreground "gray60")
-(set-face-attribute 'mode-line-filename-face nil
-    :inherit 'mode-line-face
-    :foreground "#eab700"
-    :weight 'bold)
-(set-face-attribute 'mode-line-position-face nil
-    :inherit 'mode-line-face
-    :family "Menlo" :height 100)
-(set-face-attribute 'mode-line-mode-face nil
-    :inherit 'mode-line-face
-    :foreground "gray80")
-(set-face-attribute 'mode-line-minor-mode-face nil
-    :inherit 'mode-line-mode-face
-    :foreground "gray40"
-    :height 110)
-(set-face-attribute 'mode-line-process-face nil
-    :inherit 'mode-line-face
-    :foreground "#718c00")
-(set-face-attribute 'mode-line-80col-face nil
-    :inherit 'mode-line-position-face
-    :foreground "black" :background "#eab700")
+(set-face-attribute 'mode-line-read-only-face nil  :inherit 'mode-line-face          :foreground "#4271ae" :box '(:line-width 2 :color "#4271ae"))
+(set-face-attribute 'mode-line-modified-face nil   :inherit 'mode-line-face          :foreground "#FF0000" :background "#999" :box '(:line-width 2 :color "#880000"))
+(set-face-attribute 'mode-line-folder-face nil     :inherit 'mode-line-face          :foreground "gray50")
+(set-face-attribute 'mode-line-filename-face nil   :inherit 'mode-line-face          :foreground "#3467a0" :weight 'bold)
+(set-face-attribute 'mode-line-position-face nil   :inherit 'mode-line-face                                :family "Menlo" :height 100)
+(set-face-attribute 'mode-line-mode-face nil       :inherit 'mode-line-face          :foreground "gray80")
+(set-face-attribute 'mode-line-minor-mode-face nil :inherit 'mode-line-mode-face     :foreground "gray40" :height 90)
+(set-face-attribute 'mode-line-process-face nil    :inherit 'mode-line-face          :foreground "#718c00")
+(set-face-attribute 'mode-line-80col-face nil      :inherit 'mode-line-position-face :foreground "black" :background "#db6000")
+
+(provide 'mode-line-hack)

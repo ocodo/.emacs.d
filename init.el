@@ -83,16 +83,51 @@
     (setq exec-path (append '("/Applications/Xcode.app/Contents/Developer/usr/bin") exec-path)))
   (when (file-exists-p "~/.rvm/bin")
     (setq exec-path (append '("~/.rvm/bin") exec-path)))
+  (when (file-exists-p "/usr/local/bin/")
+    (setq exec-path (append '("/usr/local/bin") exec-path)))
   (when (file-exists-p "/usr/local/share/npm/bin")
     (setq exec-path (append '("/usr/local/share/npm/bin") exec-path))))
 
 (add-to-list 'exec-path "~/bin")
 
+;; Ruby mode filetype hooks ------------------------------------------------------------------------
+;; -- this will need migrating to init-ruby-mode.el or sumthin'
+
+(dolist (pattern '("\\.rb$" "Rakefile$" "\.rake$" "\.rxml$" "\.rjs$" ".irbrc$" "\.builder$" "\.ru$" "\.rabl$" "\.gemspec$" "Gemfile$"))
+   (add-to-list 'auto-mode-alist (cons pattern 'ruby-mode)))
+
+(add-hook 'ruby-mode-hook 'flymake-ruby-load)
+
+;; Markdown file handling
+
+(dolist (pattern '("\\.md$" "\\.markdown$"))
+  (add-to-list 'auto-mode-alist (cons pattern 'markdown-mode)))
+
+;; JavaScript/JSON special files
+
+(dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
+  (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
+
+;; -------------------------------------------------------------------------------------------------
+
+(require 'flymake-jshint)
+(add-hook 'javascript-mode-hook 'flymake-jshint)
+
+;; -------------------------------------------------------------------------------------------------
+
+;; Highlight TODO/FIXME/BUG/HACK/REFACTOR & THE HORROR in code - I'm hoping the last one will catch on.
+
+(add-hook 'prog-mode-hook
+               (lambda ()
+                (font-lock-add-keywords nil
+                 '(("\\<\\(FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\):" 1 font-lock-warning-face t)))))
+
+;; -------------------------------------------------------------------------------------------------
+
 ;; use aspell for ispell
 (when (file-exists-p "/usr/local/bin/aspell")
   (set-variable 'ispell-program-name "/usr/local/bin/aspell"))
 
-(require 'init-yasnippet)
 (require 'init-dired) 
 (require 'init-hideshowvis) 
 (require 'init-multi-web-mode)
@@ -156,12 +191,14 @@
 (require 'nyan-mode)
 (nyan-mode t) ;; on
 ;; (setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible!
-;; (nyan-start-animation) ;; ok this is a but much...
+;; (nyan-start-animation) ;; ok that is a bit much...
 
-(load-theme 'soothe)
+(set-face-attribute 'default nil :height 140)
+(load-theme 'deep-thought)
+
 
 (require 'handy-functions) ;; my lab area for little defuns, the sort
                            ;; of thing people blog about, when they
                            ;; have too much spare time.
 
-
+(put 'dired-find-alternate-file 'disabled nil)

@@ -1,0 +1,44 @@
+flymake-csslint
+
+flymake-csslint.el is an Emacs integration of CSSLint. The
+implementation is very much based on flymake-jshint.el by Wilfred
+Hughes.
+
+Installation and usage
+
+The easiest way to install flymake-csslint is probably to install it via
+the ELPA archive at Marmalade.
+
+ELPA (package.el) is part of Emacs 24. For Emacs 23 see Marmalade for
+installation instructions.
+
+If you don't install via ELPA make sure that flymake-csslint.el is in
+your load-path and require the library
+
+    (add-to-list 'load-path "~/.emacs.d/path/to/flymake-csslint")
+    (require 'flymake-csslint)
+
+Requirements
+
+To use CSSLint with emacs, you will need to have a command line version
+of CSSLint installed, see installation instructions at
+https://github.com/stubbornella/csslint/wiki/Command-line-interface.
+
+If the csslint executable is not available on your PATH your need to
+configure the flymake-csslint-program variable and let it point to the
+executable.
+
+    M-x customize-variable <RET> flymake-csslint-program <RET>
+
+Debugging
+
+If CSSLint isn't working for any reason, execute
+
+    M-x set-variable <RET> flymake-log-level <RET> 3 <RET>
+
+and you will see what is going wrong listed in the Messages buffer.
+
+Development of flymake-csslint
+
+flymake-csslint.el is developed at GitHub. Feature requests, ideas, bug
+reports, and pull request are more that welcome!
