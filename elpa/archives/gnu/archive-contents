@@ -38,6 +38,9 @@
  (djvu .
        [(0 5)
 	nil "Edit and view Djvu files via djvused" single])
+ (docbook .
+	  [(0 1)
+	   nil "Info-like viewer for DocBook" single])
  (ediprolog .
 	    [(1 0)
 	     nil "Emacs Does Interactive Prolog" single])
@@ -63,7 +66,7 @@
 	      [(1 0)
 	       nil "Major mode for Jgraph files" single])
  (js2-mode .
-	   [(1 1)
+	   [(20130228)
 	    ((emacs
 	      (24 1)))
 	    "Improved JavaScript editing mode" single])
@@ -104,7 +107,7 @@
 	 [(0 8)
 	  nil "OAuth 2.0 Authorization Protocol" single])
  (org .
-      [(20130211)
+      [(20130225)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
 		[(0 1)
@@ -113,7 +116,7 @@
 	[(0 1)
 	 nil "Queue data structure" single])
  (rainbow-mode .
-	       [(0 6)
+	       [(0 7)
 		nil "Colorize color names in buffers" single])
  (register-list .
 		[(0 1)

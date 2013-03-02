@@ -1,9 +1,3 @@
-[submodule "yasnippet"]
-	path = yasnippet
-	url = git://github.com/capitaomorte/yasnippet.git
-[submodule "vendor/cucumber"]
-	path = vendor/cucumber
-	url = git@github.com:jasonm23/cucumber.el.git
 [submodule "vendor/nyan-mode"]
 	path = vendor/nyan-mode
     url = git@github.com:ocodo/nyan-mode.git

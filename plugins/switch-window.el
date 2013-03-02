@@ -55,7 +55,7 @@
 (defgroup switch-window nil "switch-window customization group"
   :group 'convenience)
 
-(defcustom switch-window-increase 12
+(defcustom switch-window-increase 5
   "How much to increase text size in the window numbering, maximum"
   :type 'integer
   :group 'switch-window)
