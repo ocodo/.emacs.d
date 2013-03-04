@@ -1,5 +1,27 @@
 (deftheme dark-atomic
-  "2013-02-01 - by: Jason Milkins - A dark blue theme, designed for GUI use")
+  "2013-02-01 - Jason Milkins - A dark blue theme, designed for GUI use, based on subatomic-theme.el")
+
+;; Originally based on subatomic-theme.el
+;;  --- Nice looking emacs 24 theme
+
+;; Copyright 2012 John Olsson
+
+;; Author: John Olsson <john@cryon.se>
+;; URL: https://github.com/cryon/subatomic
+;; Version: 1.2
+
+;; This file is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published
+;; by the Free Software Foundation, either version 3 of the License,
+;; or (at your option) any later version.
+
+;; This file is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
 
 (custom-theme-set-faces
  'dark-atomic
@@ -189,8 +211,6 @@
   (set-face-attribute 'rainbow-delimiters-depth-9-face nil :foreground "#14373C")
   (set-face-attribute 'rainbow-delimiters-unmatched-face nil :foreground "#660000"))
 
-
 (eval-after-load "rainbow-delimiters" '(dark-atomic-rainbow-delim-set-face))
-
 
 (provide-theme 'dark-atomic)
