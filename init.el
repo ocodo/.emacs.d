@@ -103,6 +103,12 @@
 (dolist (pattern '("\\.md$" "\\.markdown$"))
   (add-to-list 'auto-mode-alist (cons pattern 'markdown-mode)))
 
+;; Flymake - stop those !@$!*$ modal dialogs
+
+(defun flymake-display-warning (warning) 
+  "Display a warning to the user, using the message buffer"
+  (message warning))
+
 ;; JavaScript/JSON special files
 
 (dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
@@ -120,7 +126,7 @@
 (add-hook 'prog-mode-hook
                (lambda ()
                 (font-lock-add-keywords nil
-                 '(("\\<\\(FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\):" 1 font-lock-warning-face t)))))
+                 '(("\\<\\(NOTE\\|FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\):" 1 font-lock-warning-face t)))))
 
 ;; -------------------------------------------------------------------------------------------------
 
