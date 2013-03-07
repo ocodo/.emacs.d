@@ -107,7 +107,7 @@
 	 [(0 8)
 	  nil "OAuth 2.0 Authorization Protocol" single])
  (org .
-      [(20130225)
+      [(20130304)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
 		[(0 1)
@@ -131,8 +131,11 @@
 		 [(4 0)
 		  nil "Insert operators with surrounding spaces smartly" single])
  (sml-mode .
-	   [(6 3)
+	   [(6 4)
 	    nil "Major mode for editing (Standard) ML" single])
+ (sokoban .
+	  [(1 0 4)
+	   nil "Sokoban game for emacs" tar])
  (svg-clock .
 	    [(0 4)
 	     nil "Analog clock using Scalable Vector Graphics" single])

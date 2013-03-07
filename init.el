@@ -33,7 +33,7 @@
 ;; probably all become auto-loaded. (next time)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 
-;; AsciiDoc modw
+;; AsciiDoc mode
 (autoload 'asciidoc-mode "asciidoc-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
 
@@ -41,7 +41,10 @@
 (add-hook 'css-mode-hook 'rainbow-mode)
 (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 
-;; Smoother scrolling
+;; Git gutter global mode
+(add-hook 'prog-mode-hook 'git-gutter-mode)
+
+;; Smoother scrolling (no multiline jumps.)
 (setq redisplay-dont-pause t
   scroll-margin 1
   scroll-step 1
@@ -199,12 +202,14 @@
 ;; (setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible!
 ;; (nyan-start-animation) ;; ok that is a bit much...
 
-(set-face-attribute 'default nil :height 140)
 (load-theme 'deep-thought)
+(set-face-attribute 'default nil :height 140)
 
+(require 'rainbow-mode) ;; temporarily rolling back to 0.6 as 0.7 is broken.
 
 (require 'handy-functions) ;; my lab area for little defuns, the sort
                            ;; of thing people blog about, when they
                            ;; have too much spare time.
 
 (put 'dired-find-alternate-file 'disabled nil)
+
