@@ -14,7 +14,7 @@
  '(cua-mode t nil (cua-base))
  '(current-language-environment "UTF-8")
  '(custom-safe-themes t)
- '(custom-theme-load-path (quote ("~/.emacs.d/elpa/purple-haze-theme-0.0.2/" "~/.emacs.d/elpa/soothe-theme-0.2.0/" "~/.emacs.d/elpa/cyberpunk-theme-20121015.1228/" "~/.emacs.d/elpa/inkpot-theme-20120505.908/" "~/.emacs.d/elpa/molokai-theme-20120503.1929/" "~/.emacs.d/elpa/monokai-theme-0.0.8/" "~/.emacs.d/elpa/subatomic-theme-20121226.1934/" "~/.emacs.d/elpa/tango-2-theme-20120312.1325/" "~/.emacs.d/elpa/underwater-theme-20120615.1149/" "~/.emacs.d/elpa/zen-and-art-theme-20120622.937/" "~/.emacs.d/elpa/zenburn-theme-20130110.1020/" "~/.emacs.d/elpa/purple-haze-theme-0.0.2/" "~/.emacs.d/elpa/ujelly-theme-1.0.12/" "~/.emacs.d/elpa/deep-thought-theme-0.0.3/" "~/.emacs.d/elpa/github-theme-0.0.3/" custom-theme-directory t)))
+ '(custom-theme-load-path (quote ("~/.emacs.d/elpa/purple-haze-theme-0.0.2/" "~/.emacs.d/elpa/soothe-theme-0.2.0/" "~/.emacs.d/elpa/cyberpunk-theme-20121015.1228/" "~/.emacs.d/elpa/inkpot-theme-20120505.908/" "~/.emacs.d/elpa/molokai-theme-20120503.1929/" "~/.emacs.d/elpa/monokai-theme-0.0.8/" "~/.emacs.d/elpa/subatomic-theme-20121226.1934/" "~/.emacs.d/elpa/tango-2-theme-20120312.1325/" "~/.emacs.d/elpa/underwater-theme-20120615.1149/" "~/.emacs.d/elpa/zen-and-art-theme-20120622.937/" "~/.emacs.d/elpa/zenburn-theme-20130110.1020/" "~/.emacs.d/elpa/purple-haze-theme-0.0.2/" "~/.emacs.d/elpa/ujelly-theme-1.0.12/" "~/.emacs.d/elpa/deep-thought-theme-0.0.5/" "~/.emacs.d/elpa/github-theme-0.0.3/" custom-theme-directory t)))
  '(display-time-mode nil)
  '(display-time-world-time-format "%A %d %B %R %Z (%z)")
  '(ediff-custom-diff-program "diff")

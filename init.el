@@ -29,6 +29,19 @@
   (menu-bar-mode -1)
 )
 
+;; Ret and indent binding
+(global-set-key (kbd "RET") 'newline-and-indent)
+
+;; turn off M-` menu shortcut, and use it for getting magit-status instead
+(global-set-key (kbd "M-`") 'magit-status)
+
+;; Turn on things that auto-load isn't doing for us...
+(yas-global-mode t)
+(flex-autopair-mode t)
+
+;; Similarly explicitly require for the same reason
+(require 'iedit)
+
 ;; manually installed packages (find them in ./plugins/) - these could
 ;; probably all become auto-loaded. (next time)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
@@ -77,6 +90,21 @@
 				  Lorem-ipsum-list-item-end "</li>\n"
 				  Lorem-ipsum-list-end "</ul>\n")))
 
+(add-to-list 'auto-mode-alist
+             '("\\.\\(x[ms]l\\|rng\\|x?html?\\)\\'" . nxml-mode))
+
+(setq
+ nxml-child-indent 2
+ nxml-outline-child-indent 2
+ nxml-slash-auto-complete-flag t)
+
+(add-hook 'nxml-mode-hook
+          '(lambda ()
+             (setq rng-schema-locating-files '("schemas.xml"
+                                               "~/.emacs.d/nxml-schemas/schemas.xml"))))
+
+;; Markdown mode - TAB for <pre></pre> block
+(add-hook 'markdown-mode-hook (lambda () (define-key markdown-mode-map (kbd "<tab>") 'markdown-insert-pre)))
 
 ;; find XCode and RVM command line tools on OSX (cover the legacy and current XCode directory structures.)
 (when (eq system-type 'darwin)
@@ -106,11 +134,38 @@
 (dolist (pattern '("\\.md$" "\\.markdown$"))
   (add-to-list 'auto-mode-alist (cons pattern 'markdown-mode)))
 
-;; Flymake - stop those !@$!*$ modal dialogs
+(defun flymake-settings ()
+  "Settings for `flymake'."
+  ;; Flymake - stop those !@$!*$ modal dialogs
+  (setq flymake-gui-warnings-enabled nil)
 
-(defun flymake-display-warning (warning) 
-  "Display a warning to the user, using the message buffer"
-  (message warning))
+  (defun flymake-display-current-warning/error ()
+    "Display warning/error under cursor."
+    (interactive)
+    (let ((ovs (overlays-in (point) (1+ (point)))))
+      (dolist (ov ovs)
+        (catch 'found
+          (when (flymake-overlay-p ov)
+            (message (overlay-get ov 'help-echo))
+            (throw 'found t))))))
+
+  (defun flymake-goto-next-error-disp ()
+    "Go to next error in err ring, and then display warning/error."
+    (interactive)
+    (flymake-goto-next-error)
+    (flymake-display-current-warning/error))
+
+  (defun flymake-goto-prev-error-disp ()
+    "Go to previous error in err ring, and then display warning/error."
+    (interactive)
+    (flymake-goto-prev-error)
+    (flymake-display-current-warning/error))
+
+)
+
+(eval-after-load "flymake"
+  `(flymake-settings))
+
 
 ;; JavaScript/JSON special files
 
