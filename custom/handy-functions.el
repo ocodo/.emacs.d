@@ -236,8 +236,6 @@
     (delete-region pos1 pos2)
     (insert  meat)))
 
-
-
 (defun yank-repeat (&optional arg)
   "Repeat yank with M- number, (normal opertation of M- number
 yank is to get that numbered item from the kill ring)"
@@ -245,10 +243,7 @@ yank is to get that numbered item from the kill ring)"
   (dotimes (string-to-int arg) (yank)))
 
 (defun smart-beginning-of-line ()
-  "Move point to first non-whitespace character or beginning-of-line.
-
-Move point to the first non-whitespace character on this line.
-If point was already at that position, move point to beginning of line."
+  "Move point to first non-whitespace character or beginning-of-line."
   (interactive)
   (let ((oldpos (point)))
     (back-to-indentation)
@@ -273,5 +268,24 @@ or nil if not found."
                        ((or (null parent) (equal parent (directory-file-name parent))) nil) ; Not found
                        (t (find-file-r (directory-file-name parent))))))) ; Continue
     (find-file-r default-directory)))
+
+(defun pretty-print-xml-region (begin end)
+  "Pretty format XML markup in region."
+  (interactive "r")
+  (save-excursion
+    ;; split <foo><bar> or </foo><bar>, but not <foo></foo>
+    (goto-char begin)
+    (while (search-forward-regexp ">[ \t]*<[^/]" end t)
+      (backward-char 2) (insert "\n") (incf end))
+    ;; split <foo/></foo> and </foo></foo>
+    (goto-char begin)
+    (while (search-forward-regexp "<.*?/.*?>[ \t]*<" end t)
+      (backward-char) (insert "\n") (incf end))
+    ;; put xml namespace decls on newline
+    (goto-char begin)
+    (while (search-forward-regexp "\\(<\\([a-zA-Z][-:A-Za-z0-9]*\\)\\|['\"]\\) \\(xmlns[=:]\\)" end t)
+      (goto-char (match-end 0))
+      (backward-char 6) (insert "\n") (incf end))
+    (indent-region begin end nil)))
 
 (provide 'handy-functions)

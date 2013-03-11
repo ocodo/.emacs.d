@@ -1,0 +1,9 @@
+<locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+  <transformURI fromPattern="*.xml" toPattern="*.rnc"/>
+  <documentElement localName="locatingRules" uri="locate.rnc"/>
+  <typeId id="html5" uri="html5.rnc"/>
+  <typeId id="xhtml5" uri="xhtml5.rnc"/>
+  <!-- This looks like a bit of a hack, but it should do for now -->
+  <uri pattern="*.html.erb" typeId="xhtml5" />
+  <uri pattern="pom.xml" uri="maven-v4_0_0.rnc"/>
+</locatingRules>

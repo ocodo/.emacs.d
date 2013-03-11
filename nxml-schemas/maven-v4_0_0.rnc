@@ -1,0 +1,461 @@
+default namespace = "http://maven.apache.org/POM/4.0.0"
+
+start =
+  notAllowed
+  | element project {
+      element parent {
+        element artifactId { \string }?
+        & element groupId { \string }?
+        & element version { \string }?
+        & element relativePath { \string }?
+      }?
+      & element modelVersion { \string }?
+      & element groupId { \string }?
+      & element artifactId { \string }?
+      & element packaging { \string }?
+      & element name { \string }?
+      & element version { \string }?
+      & element description { \string }?
+      & element url { \string }?
+      & element prerequisites {
+          element maven { \string }?
+        }?
+      & element issueManagement {
+          element system { \string }?
+          & element url { \string }?
+        }?
+      & element ciManagement {
+          element system { \string }?
+          & element url { \string }?
+          & element notifiers {
+              element notifier {
+                element type { \string }?
+                & element sendOnError { boolean }?
+                & element sendOnFailure { boolean }?
+                & element sendOnSuccess { boolean }?
+                & element sendOnWarning { boolean }?
+                & element address { \string }?
+                & element configuration { element6* }?
+              }*
+            }?
+        }?
+      & element inceptionYear { \string }?
+      & element mailingLists {
+          element mailingList {
+            element name { \string }?
+            & element subscribe { \string }?
+            & element unsubscribe { \string }?
+            & element post { \string }?
+            & element archive { \string }?
+            & element otherArchives {
+                element otherArchive { \string }*
+              }?
+          }*
+        }?
+      & element developers {
+          element developer {
+            element id { \string }?
+            & element name { \string }?
+            & element email { \string }?
+            & element url { \string }?
+            & element organization { \string }?
+            & element organizationUrl { \string }?
+            & element roles {
+                element role { \string }*
+              }?
+            & element timezone { \string }?
+            & element properties { element7* }?
+          }*
+        }?
+      & element contributors {
+          element contributor {
+            element name { \string }?
+            & element email { \string }?
+            & element url { \string }?
+            & element organization { \string }?
+            & element organizationUrl { \string }?
+            & element roles {
+                element role { \string }*
+              }?
+            & element timezone { \string }?
+            & element properties { element8* }?
+          }*
+        }?
+      & element licenses {
+          element license {
+            element name { \string }?
+            & element url { \string }?
+            & element distribution { \string }?
+            & element comments { \string }?
+          }*
+        }?
+      & element scm {
+          element connection { \string }?
+          & element developerConnection { \string }?
+          & element tag { \string }?
+          & element url { \string }?
+        }?
+      & element organization {
+          element name { \string }?
+          & element url { \string }?
+        }?
+      & element build {
+          element sourceDirectory { \string }?
+          & element scriptSourceDirectory { \string }?
+          & element testSourceDirectory { \string }?
+          & element outputDirectory { \string }?
+          & element testOutputDirectory { \string }?
+          & element extensions {
+              element extension {
+                element groupId { \string }?
+                & element artifactId { \string }?
+                & element version { \string }?
+              }*
+            }?
+          & element defaultGoal { \string }?
+          & element resources {
+              element resource { Resource }*
+            }?
+          & element testResources {
+              element testResource { Resource }*
+            }?
+          & element directory { \string }?
+          & element finalName { \string }?
+          & element filters {
+              element filter { \string }*
+            }?
+          & element pluginManagement { PluginManagement }?
+          & element plugins {
+              element plugin { Plugin }*
+            }?
+        }?
+      & element profiles {
+          element profile {
+            element id { \string }?
+            & element activation {
+                element activeByDefault { boolean }?
+                & element jdk { \string }?
+                & element os {
+                    element name { \string }?
+                    & element family { \string }?
+                    & element arch { \string }?
+                    & element version { \string }?
+                  }?
+                & element property {
+                    element name { \string }?
+                    & element value { \string }?
+                  }?
+                & element file {
+                    element missing { \string }?
+                    & element exists { \string }?
+                  }?
+              }?
+            & element build {
+                element defaultGoal { \string }?
+                & element resources {
+                    element resource { Resource }*
+                  }?
+                & element testResources {
+                    element testResource { Resource }*
+                  }?
+                & element directory { \string }?
+                & element finalName { \string }?
+                & element filters {
+                    element filter { \string }*
+                  }?
+                & element pluginManagement { PluginManagement }?
+                & element plugins {
+                    element plugin { Plugin }*
+                  }?
+              }?
+            & element modules {
+                element module { \string }*
+              }?
+            & element repositories {
+                element repository { Repository }*
+              }?
+            & element pluginRepositories {
+                element pluginRepository { Repository }*
+              }?
+            & element dependencies {
+                element dependency { Dependency }*
+              }?
+            & element reports { element5* }?
+            & element reporting { Reporting }?
+            & element dependencyManagement { DependencyManagement }?
+            & element distributionManagement { DistributionManagement }?
+            & element properties { element2* }?
+          }*
+        }?
+      & element modules {
+          element module { \string }*
+        }?
+      & element repositories {
+          element repository { Repository }*
+        }?
+      & element pluginRepositories {
+          element pluginRepository { Repository }*
+        }?
+      & element dependencies {
+          element dependency { Dependency }*
+        }?
+      & element reports { element1* }?
+      & element reporting { Reporting }?
+      & element dependencyManagement { DependencyManagement }?
+      & element distributionManagement { DistributionManagement }?
+      & element properties { element0* }?
+    }
+DistributionManagement =
+  ((notAllowed
+    | element repository { DeploymentRepository })?
+   & (notAllowed
+      | element snapshotRepository { DeploymentRepository })?
+   & (notAllowed
+      | element site {
+          element id { \string }?
+          & element name { \string }?
+          & element url { \string }?
+        })?
+   & (notAllowed
+      | element downloadUrl { \string })?
+   & (notAllowed
+      | element relocation {
+          element groupId { \string }?
+          & element artifactId { \string }?
+          & element version { \string }?
+          & element message { \string }?
+        })?
+   & (notAllowed
+      | element status { \string })?),
+  empty
+Reporting =
+  ((notAllowed
+    | element excludeDefaults { boolean })?
+   & (notAllowed
+      | element outputDirectory { \string })?
+   & (notAllowed
+      | element plugins {
+          element plugin {
+            element groupId { \string }?
+            & element artifactId { \string }?
+            & element version { \string }?
+            & element inherited { \string }?
+            & element configuration { element4* }?
+            & element reportSets {
+                element reportSet {
+                  element id { \string }?
+                  & element configuration { element3* }?
+                  & element inherited { \string }?
+                  & element reports {
+                      element report { \string }*
+                    }?
+                }*
+              }?
+          }*
+        })?),
+  empty
+RepositoryPolicy =
+  ((notAllowed
+    | element enabled { boolean })?
+   & (notAllowed
+      | element updatePolicy { \string })?
+   & (notAllowed
+      | element checksumPolicy { \string })?),
+  empty
+DeploymentRepository =
+  ((notAllowed
+    | element uniqueVersion { boolean })?
+   & (notAllowed
+      | element id { \string })?
+   & (notAllowed
+      | element name { \string })?
+   & (notAllowed
+      | element url { \string })?
+   & (notAllowed
+      | element layout { \string })?),
+  empty
+\string = xsd:string
+boolean = xsd:boolean
+Dependency =
+  ((notAllowed
+    | element groupId { \string })?
+   & (notAllowed
+      | element artifactId { \string })?
+   & (notAllowed
+      | element version { \string })?
+   & (notAllowed
+      | element type { \string })?
+   & (notAllowed
+      | element classifier { \string })?
+   & (notAllowed
+      | element scope { \string })?
+   & (notAllowed
+      | element systemPath { \string })?
+   & (notAllowed
+      | element exclusions {
+          element exclusion {
+            element artifactId { \string }?
+            & element groupId { \string }?
+          }*
+        })?
+   & (notAllowed
+      | element optional { boolean })?),
+  empty
+Repository =
+  ((notAllowed
+    | element releases { RepositoryPolicy })?
+   & (notAllowed
+      | element snapshots { RepositoryPolicy })?
+   & (notAllowed
+      | element id { \string })?
+   & (notAllowed
+      | element name { \string })?
+   & (notAllowed
+      | element url { \string })?
+   & (notAllowed
+      | element layout { \string })?),
+  empty
+Plugin =
+  ((notAllowed
+    | element groupId { \string })?
+   & (notAllowed
+      | element artifactId { \string })?
+   & (notAllowed
+      | element version { \string })?
+   & (notAllowed
+      | element extensions { boolean })?
+   & (notAllowed
+      | element executions {
+          element execution {
+            element id { \string }?
+            & element phase { \string }?
+            & element goals {
+                element goal { \string }*
+              }?
+            & element inherited { \string }?
+            & element configuration { element9* }?
+          }*
+        })?
+   & (notAllowed
+      | element dependencies {
+          element dependency { Dependency }*
+        })?
+   & (notAllowed
+      | element goals { element10* })?
+   & (notAllowed
+      | element inherited { \string })?
+   & (notAllowed
+      | element configuration { element11* })?),
+  empty
+element1 =
+  element * {
+    mixed {
+      (element1
+       | attribute * { text })*
+    }
+  }
+element0 =
+  element * {
+    mixed {
+      (element0
+       | attribute * { text })*
+    }
+  }
+element3 =
+  element * {
+    mixed {
+      (element3
+       | attribute * { text })*
+    }
+  }
+element2 =
+  element * {
+    mixed {
+      (element2
+       | attribute * { text })*
+    }
+  }
+element5 =
+  element * {
+    mixed {
+      (element5
+       | attribute * { text })*
+    }
+  }
+element4 =
+  element * {
+    mixed {
+      (element4
+       | attribute * { text })*
+    }
+  }
+element10 =
+  element * {
+    mixed {
+      (element10
+       | attribute * { text })*
+    }
+  }
+element11 =
+  element * {
+    mixed {
+      (element11
+       | attribute * { text })*
+    }
+  }
+element8 =
+  element * {
+    mixed {
+      (element8
+       | attribute * { text })*
+    }
+  }
+element9 =
+  element * {
+    mixed {
+      (element9
+       | attribute * { text })*
+    }
+  }
+element6 =
+  element * {
+    mixed {
+      (element6
+       | attribute * { text })*
+    }
+  }
+element7 =
+  element * {
+    mixed {
+      (element7
+       | attribute * { text })*
+    }
+  }
+Resource =
+  ((notAllowed
+    | element targetPath { \string })?
+   & (notAllowed
+      | element filtering { boolean })?
+   & (notAllowed
+      | element directory { \string })?
+   & (notAllowed
+      | element includes {
+          element include { \string }*
+        })?
+   & (notAllowed
+      | element excludes {
+          element exclude { \string }*
+        })?),
+  empty
+DependencyManagement =
+  (notAllowed
+   | element dependencies {
+       element dependency { Dependency }*
+     })?,
+  empty
+PluginManagement =
+  (notAllowed
+   | element plugins {
+       element plugin { Plugin }*
+     })?,
+  empty
