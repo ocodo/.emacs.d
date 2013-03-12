@@ -2,7 +2,7 @@
 ;;;
 ;;; Author: Jason Milkins <jasonm23@gmail.com>
 ;;; Url: https://github.com/jasonm23/emacs-deep-thought-theme
-;;; Version: 0.0.5
+;;; Version: 0.0.6
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -33,9 +33,12 @@
  'deep-thought
 
  '(default
-   ((((class color) (min-colors 88)) (:foreground "#FFF" :background "#000F14"))
-    (((class color) (min-colors 16)) (:foreground "#fff" :background "#000"))
-    (((class color) (min-colors 8)) (:foreground "#fff" :background "#000")) (t (:inverse-video t))))
+   (
+    (((class color) (min-colors 16777216)) (:foreground "#fff" :background "#000F14"))
+    (((class color) (min-colors 88))       (:foreground "#fff" :background "#000"))
+    (((class color) (min-colors 16))       (:foreground "#fff" :background "#000"))
+    (((class color) (min-colors 8))        (:foreground "#fff" :background "#000")))
+   )
 
  '(fixed-pitch
    ((t (:family "Monospace"))))
