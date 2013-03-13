@@ -125,8 +125,13 @@
  (websocket .
 	    [(20130123 2144)
 	     nil "Emacs WebSocket client and server [source: github]" single])
+ (weblogger .
+	    [(20110926 1218)
+	     ((xml-rpc
+	       (1 6 8)))
+	     "Weblog maintenance via XML-RPC APIs [source: bzr]" single])
  (web-mode .
-	   [(20130309 2342)
+	   [(20130312 2359)
 	    nil "major mode for editing HTML templates [source: github]" single])
  (wc-mode .
 	  [(20120531 1344)
@@ -238,7 +243,7 @@
 	       (0 2 3)))
 	     "Utilities for Unicode characters [source: github]" tar])
  (typo .
-       [(20130128 251)
+       [(20130312 1948)
 	nil "Minor mode for typographic editing [source: github]" single])
  (typing .
 	 [(20121026 2118)
@@ -534,7 +539,7 @@
 	     [(20130218 1829)
 	      nil "slime extensions for ritz [source: github]" single])
  (slime .
-	[(20130308 1112)
+	[(20130312 1749)
 	 nil "Superior Lisp Interaction Mode for Emacs [source: github]" tar])
  (slim-mode .
 	    [(20130117 1415)
@@ -658,7 +663,7 @@
 		     [(20120326 1309)
 		      nil "Ruby string interpolation helpers [source: github]" single])
  (ruby-end .
-	   [(20121008 1818)
+	   [(20130312 1845)
 	    nil "Automatic insertion of end blocks for Ruby. [source: github]" tar])
  (ruby-electric .
 		[(20130127 1902)
@@ -756,7 +761,7 @@
 	  [(20121017 157)
 	   nil "No description available. [source: github]" single])
  (quickrun .
-	   [(20130311 2031)
+	   [(20130312 2331)
 	    nil "Run commands quickly [source: github]" single])
  (quickref .
 	   [(20130113 1700)
@@ -963,9 +968,6 @@
 	     (xml-rpc
 	      (1 6 8)))
 	    "Blog from Org mode to wordpress [source: github]" tar])
- (org-toodledo .
-	       [(20120721 1825)
-		nil "Toodledo integration for Emacs Org mode [source: github]" tar])
  (org-readme .
 	     [(20121210 1149)
 	      ((http-post-simple
@@ -1023,7 +1025,7 @@
 	   [(20121026 1649)
 	    nil "Octopress interface for Emacs [source: github]" single])
  (occidental-theme .
-		   [(20121203 1301)
+		   [(20130312 2058)
 		    nil "Custom theme for faces based on Adwaita [source: github]" single])
  (object-registry .
 		  [(20130303 1712)
@@ -1291,6 +1293,9 @@
  (lib-requires .
 	       [(20121228 1946)
 		nil "Commands to list Emacs Lisp library dependencies. [source: wiki]" single])
+ (lexbind-mode .
+	       [(20130312 854)
+		nil "Puts the value of lexical-binding in the mode line ;; [source: github]" single])
  (levenshtein .
 	      [(20051013 1756)
 	       nil "Edit distance between two strings. [source: wiki]" single])
@@ -1647,7 +1652,7 @@
 	    (20120509)))
 	  "helm-sources and some utilities for GNU R. [source: github]" single])
  (helm .
-       [(20130311 1239)
+       [(20130312 1129)
 	nil "Helm is an Emacs incremental and narrowing framework [source: github]" tar])
  (header2 .
 	  [(20121228 2051)
@@ -1788,7 +1793,7 @@
 	    [(20110509 1226)
 	     nil "Minor mode for incremental blame for Git [source: github]" single])
  (gist .
-       [(20130311 1926)
+       [(20130312 2058)
 	((eieio
 	  (1 3))
 	 (gh
@@ -1858,7 +1863,7 @@
 	    [(20121228 2016)
 	     nil "Non-interactive frame and window functions. [source: wiki]" single])
  (frame-cmds .
-	     [(20130206 2246)
+	     [(20130312 2015)
 	      nil "Frame and window commands (interactive functions). [source: wiki]" single])
  (font-utils .
 	     [(20121205 1454)
@@ -2083,10 +2088,8 @@
 		   [(20121009 734)
 		    nil "The simplest unit test framework in the world [source: wiki]" single])
  (erlang .
-	 [(20130214 1536)
-	  ((flymake-mode
-	    (0 4 6)))
-	  "Erlang major mode [source: github]" tar])
+	 [(20130304 1059)
+	  nil "Erlang major mode [source: github]" tar])
  (ergoemacs-mode .
 		 [(20130226 1049)
 		  nil "A minor mode, a keybinding set based on ergonomics. [source: git]" tar])
@@ -2116,7 +2119,7 @@
 	   [(20130220 1109)
 	    nil "assign files to projects, programatically [source: github]" tar])
  (epc .
-      [(20130308 1432)
+      [(20130312 2201)
        ((concurrent
 	 (0 3 1))
 	(ctable
@@ -2211,7 +2214,7 @@
 	      (1 1 0)))
 	    "Extensions for Edebug [source: github]" single])
  (ecukes .
-	 [(20130223 1322)
+	 [(20130312 1902)
 	  ((s
 	    (1 3 0))
 	   (dash
@@ -2291,6 +2294,9 @@
  (dpaste .
 	 [(20120823 1129)
 	  nil "Emacs integration for dpaste.com [source: github]" single])
+ (dot-mode .
+	   [(20100803 1208)
+	    nil "Minor mode to repeat typing or commands [source: wiki]" single])
  (dom .
       [(20091224 1827)
        nil "DOM implementation [source: wiki]" single])
@@ -2328,7 +2334,7 @@
 	 [(20130206 1702)
 	  nil "Extensions to Dired. [source: wiki]" single])
  (dircmp .
-	 [(20120517 2118)
+	 [(20130312 1331)
 	  nil "Compare and sync directories. [source: github]" tar])
  (diminish .
 	   [(20091203 1912)
@@ -2707,6 +2713,9 @@
 	    (deferred
 	      (0 3 1)))
 	   "Airplay bindings to Emacs [source: github]" tar])
+ (ahg .
+      [(20130215 1117)
+       nil "Alberto's Emacs interface for Mercurial (Hg) [source: hg]" single])
  (ag .
      [(20130309 1625)
       nil "A front-end for ag, the C ack replacement. [source: github]" single])
@@ -2722,7 +2731,7 @@
 		    [(20120404 1553)
 		     nil "A simple mode for editing Actionscript 3 files [source: github]" single])
  (ack-menu .
-	   [(20130127 2136)
+	   [(20130312 131)
 	    ((mag-menu
 	      (0 1 0)))
 	    "A menu-based front-end for ack [source: github]" tar])
@@ -2761,5 +2770,8 @@
 	      nil "auto-complete.el source for dabbrev [source: wiki]" single])
  (abl-mode .
 	   [(20120718 1655)
-	    nil "Python TDD minor mode [source: github]" single]))
+	    nil "Python TDD minor mode [source: github]" single])
+ (org-toodledo .
+	       [(20120721 1825)
+		nil "Toodledo integration for Emacs Org mode [source: github]" tar]))
 
