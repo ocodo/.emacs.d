@@ -1,10 +1,12 @@
 ;;; mainline.el --- modeline replacement forked from powerline.el
 ;;;
 ;;; Author: Jason Milkins
-;;; Version: 1.0.2
+;;; Version: 1.0.3
 ;;; Keywords: statusline / modeline
 ;;;
 ;;; Changelog:
+;;; 1.0.3 : Fixed usage instructions
+;;; 1.0.2 : Added to marmalade - documentation updated, renamed to mainline.
 ;;;
 ;;; 1.0.1 : added additional xpm shape chamfer14, adjusted chamfer xpm.
 ;;;       : mainline-color1, mainline-color2, mainline-arrow-shape 
@@ -24,8 +26,7 @@
 ;;;
 ;;; Using mainline.el.
 ;;;
-;;; Add a require to .emacs (or install from elpa/marmalade which will
-;;; setup autoloads)
+;;; Add a require to .emacs / init.el :
 ;;;
 ;;;     (require 'mainline) 
 ;;;
