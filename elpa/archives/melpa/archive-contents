@@ -2358,7 +2358,7 @@
    [(20130220 40)
     nil "quickly browse, filter, and edit plain text notes [source: git]" single])
  (deferred .
-   [(20130210 1619)
+   [(20130312 1514)
     nil "Simple asynchronous functions for emacs lisp [source: github]" single])
  (dash .
        [(20130311 1525)

@@ -254,8 +254,16 @@
 ;; (setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible!
 ;; (nyan-start-animation) ;; ok that is a bit much...
 
+;; Custom themes added to load-path
+(require 'dash)
+(setq custom-theme-load-path (-concat custom-theme-load-path (split-string
+                     (shell-command-to-string "grep -Rl \"(deftheme\" ~/.emacs.d/elpa/**/*.el | while read a; do; echo $(dirname $a); done"))))
+
 (load-theme 'deep-thought)
+
 (set-face-attribute 'default nil :height 140)
+
+(require 'mainline)
 
 (require 'rainbow-mode) ;; temporarily rolling back to 0.6 as 0.7 is broken.
 

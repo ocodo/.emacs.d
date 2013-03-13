@@ -14,7 +14,6 @@
  '(cua-mode t nil (cua-base))
  '(current-language-environment "UTF-8")
  '(custom-safe-themes t)
- '(custom-theme-load-path (quote ("~/.emacs.d/elpa/purple-haze-theme-0.0.2/" "~/.emacs.d/elpa/soothe-theme-0.2.0/" "~/.emacs.d/elpa/cyberpunk-theme-20121015.1228/" "~/.emacs.d/elpa/inkpot-theme-20120505.908/" "~/.emacs.d/elpa/molokai-theme-20120503.1929/" "~/.emacs.d/elpa/monokai-theme-0.0.8/" "~/.emacs.d/elpa/subatomic-theme-20121226.1934/" "~/.emacs.d/elpa/tango-2-theme-20120312.1325/" "~/.emacs.d/elpa/underwater-theme-20120615.1149/" "~/.emacs.d/elpa/zen-and-art-theme-20120622.937/" "~/.emacs.d/elpa/zenburn-theme-20130110.1020/" "~/.emacs.d/elpa/purple-haze-theme-0.0.2/" "~/.emacs.d/elpa/ujelly-theme-1.0.12/" "~/.emacs.d/elpa/deep-thought-theme-0.0.5/" "~/.emacs.d/elpa/github-theme-0.0.3/" custom-theme-directory t)))
  '(display-time-mode nil)
  '(display-time-world-time-format "%A %d %B %R %Z (%z)")
  '(ediff-custom-diff-program "diff")
@@ -53,7 +52,7 @@
  '(visible-bell t)
  '(whitespace- nil)
  '(window-left-margin 0)
- '(yas/prompt-functions (quote (yas/dropdown-prompt yas/x-prompt yas/completing-prompt yas/ido-prompt yas/no-prompt)))
+ '(yas-prompt-functions (quote (yas-dropdown-prompt yas/x-prompt yas/completing-prompt yas/ido-prompt yas/no-prompt)))
  '(zoneinfo-style-world-list (quote (("Australia/Sydney" "Sydney") ("Europe/London" "London") ("Thailand/Bangkok" "Bangkok") ("America/Vancouver" "Vancouver") ("America/Los_Angeles" "San Fransisco") ("America/New_York" "New York") ("Asia/Shanghai" "Shanghai") ("Asia/Tokyo" "Tokyo")))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -61,11 +60,11 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t :height 135)))
- '(markdown-header-face ((t (:inherit font-lock-function-name-face :weight bold :family "Helvetica Neue"))))
- '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 2.0))))
- '(markdown-header-face-2 ((t (:inherit markdown-header-face :height 1.9))))
- '(markdown-header-face-3 ((t (:inherit markdown-header-face :height 1.8))))
- '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.7))))
- '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))))
- '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.5)))))
+ '(markdown-header-face ((t (:inherit font-lock-function-name-face :weight bold :family "Helvetica Neue"))) t)
+ '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 2.0))) t)
+ '(markdown-header-face-2 ((t (:inherit markdown-header-face :height 1.9))) t)
+ '(markdown-header-face-3 ((t (:inherit markdown-header-face :height 1.8))) t)
+ '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.7))) t)
+ '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))) t)
+ '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.5))) t))
 
