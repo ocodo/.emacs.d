@@ -166,7 +166,6 @@
 (eval-after-load "flymake"
   `(flymake-settings))
 
-
 ;; JavaScript/JSON special files
 
 (dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
@@ -247,13 +246,11 @@
 ;; auto-load hyde mode for Jekyll
 (require 'hyde-autoloads) ;; ./vendor/hyde
 
-;; minimal clean / modeline
-(load-file "~/.emacs.d/custom/mode-line-hack.el")
-
 ;; Try out Nyan-mode for a laugh... 
 ;; Stupid
 (require 'nyan-mode)
 (nyan-mode t) ;; on
+
 ;; (setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible!
 ;; (nyan-start-animation) ;; ok that is a bit much...
 
