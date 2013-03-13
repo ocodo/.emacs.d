@@ -1,10 +1,11 @@
 ;;; mainline.el --- modeline replacement forked from powerline.el
 ;;;
-;;; Author: Jason Milkins
-;;; Version: 1.0.3
+;;; Author: Jason Milkins / Nicolas Rougier
+;;; Version: 1.0.4
 ;;; Keywords: statusline / modeline
 ;;;
 ;;; Changelog:
+;;; 1.0.4 : Fixed custom vars
 ;;; 1.0.3 : Fixed usage instructions
 ;;; 1.0.2 : Added to marmalade - documentation updated, renamed to mainline.
 ;;;
@@ -26,7 +27,7 @@
 ;;;
 ;;; Using mainline.el.
 ;;;
-;;; Add a require to .emacs / init.el :
+;;; Add a require to .emacs / init.el
 ;;;
 ;;;     (require 'mainline) 
 ;;;
@@ -52,24 +53,21 @@
 ;;; emacsfodder.github.com/blog/powerline-enhanced/
 ;;;
 
+
+
 (defcustom mainline-color1 "#123550"
-  "Mainline color 1 info blocks background")
+  "Mainline color 1 info blocks background"
+  :group 'mainline)
 
 (defcustom mainline-color2 "#112230"
-  "Mainline color 2 vcs info middle block background")
+  "Mainline color 2 vcs info middle block background"
+  :group 'mainline)
 
 (defcustom mainline-arrow-shape 'chamfer14
-  "Mainline graphic shape")
+  "Mainline graphic shape"
+  :group 'mainline)
 
 (defvar mainline-minor-modes nil)
-
-(set-face-attribute 'mode-line nil
-                    :background "#112230"
-                    :box nil)
-(set-face-attribute 'mode-line-inactive nil
-                    :box nil)
-
-(scroll-bar-mode -1)
 
 (defun chamfer-xpm
   (color1 color2)
@@ -670,8 +668,8 @@ install the memoized function over the original function."
   `(defun ,(intern (concat "mainline-" (symbol-name name)))
      (side color1 &optional color2)
      (mainline-make side
-                     ,string
-                     color1 color2)))
+                    ,string
+                    color1 color2)))
 
 (defun mainline-mouse (click-group click-type string)
   (cond ((eq click-group 'minor)
@@ -693,19 +691,22 @@ install the memoized function over the original function."
             nil))))
 
 (defmainline arrow       "")
+
 (defmainline buffer-id   (propertize (car (propertized-buffer-identification "%12b"))
-                                      'face (mainline-make-face color1)))
+                                     'face (mainline-make-face color1)))
+
 (defvar mainline-buffer-size-suffix t)
+
 (defmainline buffer-size (propertize
-                           (if mainline-buffer-size-suffix
-                               "%I"
-                             "%i")
-                           'local-map (make-mode-line-mouse-map
-                                       'mouse-1 (lambda () (interactive)
-                                                  (setq mainline-buffer-size-suffix
-                                                        (not mainline-buffer-size-suffix))
-                                                  (redraw-modeline)))))
-(defmainline rmw         "%*")
+                          (if mainline-buffer-size-suffix
+                              "%I"
+                            "%i")
+                          'local-map (make-mode-line-mouse-map
+                                      'mouse-1 (lambda () (interactive)
+                                                 (setq mainline-buffer-size-suffix
+                                                       (not mainline-buffer-size-suffix))
+                                                 (redraw-modeline)))))
+(defmainline rmw "%*")
 
 (defmainline major-mode  
   (propertize mode-name
@@ -717,6 +718,7 @@ install the memoized function over the original function."
                            (define-key map [mode-line mouse-2] 'describe-mode)
                            (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
                            map)))
+
 (defmainline minor-modes 
   (let ((mms (split-string (format-mode-line minor-mode-alist))))
     (apply 'concat
@@ -731,52 +733,55 @@ install the memoized function over the original function."
                                                (define-key map [mode-line down-mouse-3]   (mainline-mouse 'minor 'menu mm))
                                                (define-key map [header-line down-mouse-3] (mainline-mouse 'minor 'menu mm))
                                                map))) mms))))
-(defmainline row         "%4l")
-(defmainline column      "%3c")
-(defmainline percent     "%6p")
+(defmainline row "%4l")
+(defmainline column "%3c")
+(defmainline percent "%6p")
 
-(defmainline narrow      (let (real-point-min real-point-max)
-                            (save-excursion
-                              (save-restriction
-                                (widen)
-                                (setq real-point-min (point-min) real-point-max (point-max))))
-                            (when (or (/= real-point-min (point-min))
-                                      (/= real-point-max (point-max)))
-                              (propertize "Narrow"
-                                          'help-echo "mouse-1: Remove narrowing from the current buffer"
-                                          'local-map (make-mode-line-mouse-map
-                                                      'mouse-1 'mode-line-widen)))))
+(defmainline narrow (let (real-point-min real-point-max)
+                      (save-excursion
+                        (save-restriction
+                          (widen)
+                          (setq real-point-min (point-min) real-point-max (point-max))))
+                      (when (or (/= real-point-min (point-min))
+                                (/= real-point-max (point-max)))
+                        (propertize "Narrow"
+                                    'help-echo "mouse-1: Remove narrowing from the current buffer"
+                                    'local-map (make-mode-line-mouse-map
+                                                'mouse-1 'mode-line-widen)))))
 (defmainline status      "%s")
 (defmainline emacsclient mode-line-client)
 (defmainline vc vc-mode)
 
-(defmainline percent-xpm (propertize "  "
-                                      'display
-                                      (let (pmax
-                                            pmin
-                                            (ws (window-start))
-                                            (we (window-end)))
-                                        (save-restriction
-                                          (widen)
-                                          (setq pmax (point-max))
-                                          (setq pmin (point-min)))
-                                        (percent-xpm pmax pmin we ws 15 color1 color2))))
+(defmainline
+  percent-xpm
+  (propertize "  "
+              'display
+              (let (pmax
+                    pmin
+                    (ws (window-start))
+                    (we (window-end)))
+                (save-restriction
+                  (widen)
+                  (setq pmax (point-max))
+                  (setq pmin (point-min)))
+                (percent-xpm pmax pmin we ws 15 color1 color2))))
 
-(setq-default mode-line-format
-              (list "%e"
-                    '(:eval (concat
-                             (mainline-rmw            'left   nil  )
-                             (mainline-buffer-id      'left   nil  mainline-color1  )
-                             (mainline-major-mode     'left        mainline-color1  )
-                             (mainline-minor-modes    'left        mainline-color1  )
-                             (mainline-narrow         'left        mainline-color1  mainline-color2  )
-                             (mainline-vc             'center                        mainline-color2  )
-                             (mainline-make-fill                                     mainline-color2  )
-                             (mainline-row            'right       mainline-color1  mainline-color2  )
-                             (mainline-make-text      ":"          mainline-color1  )
-                             (mainline-column         'right       mainline-color1  )
-                             (mainline-percent        'right  nil  mainline-color1  )
-                             (mainline-make-text      "  "    nil  )))))
+(setq-default
+ mode-line-format
+ (list "%e"
+       '(:eval (concat
+                (mainline-rmw            'left   nil  )
+                (mainline-buffer-id      'left   nil  mainline-color1  )
+                (mainline-major-mode     'left        mainline-color1  )
+                (mainline-minor-modes    'left        mainline-color1  )
+                (mainline-narrow         'left        mainline-color1   mainline-color2  )
+                (mainline-vc             'center                        mainline-color2  )
+                (mainline-make-fill                                     mainline-color2  )
+                (mainline-row            'right       mainline-color1   mainline-color2  )
+                (mainline-make-text      ":"          mainline-color1  )
+                (mainline-column         'right       mainline-color1  )
+                (mainline-percent        'right  nil  mainline-color1  )
+                (mainline-make-text      "  "    nil  )))))
 
 (provide 'mainline)
 

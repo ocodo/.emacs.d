@@ -131,7 +131,7 @@
 	       (1 6 8)))
 	     "Weblog maintenance via XML-RPC APIs [source: bzr]" single])
  (web-mode .
-	   [(20130312 2359)
+	   [(20130313 904)
 	    nil "major mode for editing HTML templates [source: github]" single])
  (wc-mode .
 	  [(20120531 1344)
@@ -1055,7 +1055,7 @@
 		     [(20130220 2142)
 		      nil "Tiny functionality enhancements for evaluating sexps. [source: github]" single])
  (nrepl .
-	[(20130311 1820)
+	[(20130311 2057)
 	 ((clojure-mode
 	   (2 0 0)))
 	 "Client for Clojure nREPL [source: github]" single])
@@ -1519,7 +1519,7 @@
 		[(20130204 1653)
 		 nil "Major mode API client for status.net open microblogging [source: github]" tar])
  (icicles .
-	  [(20130311 2258)
+	  [(20130313 326)
 	   nil "Minibuffer input completion and cycling. [source: wiki]" tar])
  (ibuffer-vc .
 	     [(20121217 826)
@@ -1750,7 +1750,7 @@
 	       [(20121121 38)
 		nil "Automatic resizing of Emacs windows to the golden ratio [source: github]" single])
  (go-mode .
-	  [(20130307 1312)
+	  [(20130312 2137)
 	   nil "Major mode for the Go programming language [source: hg]" tar])
  (gnus-alias .
 	     [(20121124 22)
@@ -2209,10 +2209,8 @@
 	      [(20121205 328)
 	       nil "server that responds to edit requests from Chrome [source: github]" single])
  (edebug-x .
-	   [(20130310 2353)
-	    ((dash
-	      (1 1 0)))
-	    "Extensions for Edebug [source: github]" single])
+	   [(20130313 1121)
+	    nil "Extensions for Edebug [source: github]" single])
  (ecukes .
 	 [(20130312 1902)
 	  ((s

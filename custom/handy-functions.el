@@ -288,4 +288,12 @@ or nil if not found."
       (backward-char 6) (insert "\n") (incf end))
     (indent-region begin end nil)))
 
+(defun toggle-fullscreen ()
+  "Toggle full screen"
+  (interactive)
+  (when window-system
+    (set-frame-parameter
+     nil 'fullscreen
+     (when (not (frame-parameter nil 'fullscreen)) 'fullboth)) ))
+
 (provide 'handy-functions)

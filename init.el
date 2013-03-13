@@ -81,6 +81,7 @@
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page   'disabled nil)
 
+
 ;; Lorem-ipsum hook for nxml modes
 (add-hook 'nxml-mode-hook (lambda ()
 			    (setq Lorem-ipsum-paragraph-separator "<br><br>\n"
@@ -98,14 +99,13 @@
  nxml-outline-child-indent 2
  nxml-slash-auto-complete-flag t)
 
-(add-hook 'nxml-mode-hook
-          '(lambda ()
-             (setq rng-schema-locating-files '("schemas.xml"
-                                               "~/.emacs.d/nxml-schemas/schemas.xml"))))
+(adjoin "~/.emacs.d/nxml-schemas/schemas.xml" rng-schema-locating-files)
 
 ;; Markdown mode - TAB for <pre></pre> block
-(add-hook 'markdown-mode-hook (lambda () (define-key markdown-mode-map (kbd "<tab>") 'markdown-insert-pre)))
+(add-hook 'markdown-mode-hook
+          (lambda () (define-key markdown-mode-map (kbd "<tab>") 'markdown-insert-pre)))
 
+;; -- Path -----------------------------------------------------------------------------------------------
 ;; find XCode and RVM command line tools on OSX (cover the legacy and current XCode directory structures.)
 (when (eq system-type 'darwin)
   (when (file-exists-p "/Developer/usr/bin")
@@ -256,20 +256,27 @@
 
 ;; Custom themes added to load-path
 (require 'dash)
-(setq custom-theme-load-path (-concat custom-theme-load-path (split-string
-                     (shell-command-to-string "grep -Rl \"(deftheme\" ~/.emacs.d/elpa/**/*.el | while read a; do; echo $(dirname $a); done"))))
+(require 's)
+
+(-each
+ (-map
+  (lambda (item)
+    (format "~/.emacs.d/elpa/%s" item))
+  (-filter
+   (lambda (item) (s-contains? "theme" item))
+   (directory-files "~/.emacs.d/elpa/")))
+ (lambda (item)
+   (add-to-list 'custom-theme-load-path item)))
 
 (load-theme 'deep-thought)
 
 (set-face-attribute 'default nil :height 140)
 
+(require 'w3m)
 (require 'mainline)
-
 (require 'rainbow-mode) ;; temporarily rolling back to 0.6 as 0.7 is broken.
-
 (require 'handy-functions) ;; my lab area for little defuns, the sort
                            ;; of thing people blog about, when they
                            ;; have too much spare time.
 
 (put 'dired-find-alternate-file 'disabled nil)
-
