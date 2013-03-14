@@ -99,7 +99,7 @@
  nxml-outline-child-indent 2
  nxml-slash-auto-complete-flag t)
 
-(adjoin "~/.emacs.d/nxml-schemas/schemas.xml" rng-schema-locating-files)
+;; (adjoin "~/.emacs.d/nxml-schemas/schemas.xml" rng-schema-locating-files)
 
 ;; Markdown mode - TAB for <pre></pre> block
 (add-hook 'markdown-mode-hook
@@ -195,7 +195,7 @@
 (require 'init-hideshowvis) 
 (require 'init-multi-web-mode)
 
-(require 'frame-adjust)                  ;; a few presets for sizing and moving frames (aka Operating System Windows)
+(require 'mac-frame-adjust)                  ;; a few presets for sizing and moving frames (aka Operating System Windows)
 
 ;;;# Convenience and completion
 (require 'auto-complete-config)        ;; Very nice autocomplete.
@@ -253,6 +253,10 @@
 
 ;; (setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible!
 ;; (nyan-start-animation) ;; ok that is a bit much...
+
+;; IDO Mode... (now that I know how to dired/new-file from it, it's suddenly useful (C-j))
+(require 'ido)
+(ido-mode t)
 
 ;; Custom themes added to load-path
 (require 'dash)

@@ -10,7 +10,7 @@
 ;; I want C-z to undo, but I keep C-x,C-c,C-v as default. If CUA mode
 ;; is set full, they clobber too many nice Emacs features.  Instead,
 ;; since I'm mac centric I bind Cmd-x,c,v to cut/copy/paste.
-  (global-set-key [c-z] 'undo)
+(global-set-key [c-z] 'undo)
 
 ;; append region to file 
 (global-set-key (kbd "C-x C-a") 'append-to-file)
@@ -66,7 +66,7 @@
   ;; unbind : Ctrl-z too (minimize.)
   (global-unset-key (kbd "s-m"))
 
-  ;; Cmd-h : unbound - I don't need hide bound
+  ;; Cmd-h : unbound - I don't need/want hide bound
   (global-unset-key (kbd "s-h"))
   ;; Note: Emacs Mac is unaffected, as it leaves Cmd-h to the OS, and
   ;; it'll hide anyway.
@@ -74,14 +74,14 @@
   ;; Cmd-alt-l : Load library
   (global-set-key (kbd "M-s-l") 'load-library)
 
-  ;; cmd-t : hardwired for many people from browsers, TextMate, etc. as
-  ;; open a new tab (ie. buffer) - so we bind it here as: open a file.
-  ;; By default it's bound in OSX Emacs as open the font dialog. No, really.
-  (global-set-key [8388724] 'find-file)
+  ;; cmd-t : hardwired for many people from browsers, TextMate,
+  ;; etc. as open a new tab (ie. buffer) - so we bind it here as: open
+  ;; a file.  By default it's bound in OSX Emacs as open the font
+  ;; dialog. Really? but no thanks.
+  (global-set-key (kbd "s-t") 'find-file)
 
   ;; Cmd-u : is default wired to revert buffer, I quite like that, but
-  ;; this seems like a good place to tag that info. (ns cocoa emacs)
-  
+  ;; this seems like a good place to tag that info. (ns cocoa emacs) 
 
   ;; Navigating around frames, windows & buffers
   (global-set-key (kbd "s-`") 'switch-window) 
