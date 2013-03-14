@@ -8,13 +8,13 @@
 ;; You may also like the Emacs cocoa keys, and want to use them with
 ;; Emacs mac, so this is for you.
 
-;; Check for the existence of an identifying function from mac.c
-(when (functionp 'mac-process-hi-command)
+;; Check for the existence of a function with mac- prefix
+(when (symbolp 'mac-control-modifier)
   ;; Re-map modifiers
   (setq mac-control-modifier 'control
         mac-option-modifier 'meta
         mac-command-modifier 'super)
-)
+  )
 
 ;; Fullscreen mode toggle in emacs mac. This invokes the Kiosk mode
 ;; fullscreen, ie. only one display is hijacked. not the obnoxious
@@ -29,6 +29,7 @@
 ;;
 ;; Side-note: Emacs mac port has pixel scrolling, and I'm a sucker for
 ;; that.
+
 (defvar mac-fullscreen-on  nil 
   "keep a track of mac-mouse-turn-o(n|ff)-fullscreen, assumes fullscreen is not on")
 (defun mac-toggle-fullscreen () 
@@ -52,7 +53,7 @@
 )
 
 ;; Bind "Emacs Mac port" keys the same as Emacs NS/Cocoa
-(when (fboundp 'mac-process-hi-command)
+(when (symbolp 'mac-control-modifier)
 
   (global-set-key (kbd "s-s") 'save-buffer)
   (global-set-key (kbd "s-z") 'undo)
@@ -65,9 +66,11 @@
   (global-set-key (kbd "s-u") 'revert-buffer)
   (global-set-key (kbd "s-a") 'mark-whole-buffer)
   (global-set-key (kbd "s-l") 'goto-line)
+  (global-set-key (kbd "s-'") 'switch-window)
 
-  (global-set-key (kbd "<home>") 'beginning-of-buffer)
-  (global-set-key (kbd "<end>") 'end-of-buffer)
+;;
+;;  (global-set-key (kbd "<home>") 'beginning-of-buffer)
+;;  (global-set-key (kbd "<end>") 'end-of-buffer)
 
   ;; Navigating around frames, windows & buffers
   (global-set-key (kbd "C-`") 'switch-window)
