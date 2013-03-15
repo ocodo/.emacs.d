@@ -6,18 +6,7 @@
 ;;                                          
 ;; dirty, but cheap way to get .emacs.d subfolders into the load path,
 ;; and then return us to the user home directory, for find-file etc.
-
-;; Include common lisp
-(require 'cl)
-
 (progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
-
-;; Modes init (things that need more than just a require.) 
-(when (string-match "Emacs 24" (version))
-  (message "Running Emacs 24")
-  ;; Only run elpa on E24
-  (require 'init-elpa)
-)
 
 ;; turn off toolbar.
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
@@ -29,18 +18,34 @@
   (menu-bar-mode -1)
 )
 
-;; Ret and indent binding
-(global-set-key (kbd "RET") 'newline-and-indent)
+(setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
 
-;; turn off M-` menu shortcut, and use it for getting magit-status instead
-(global-set-key (kbd "M-`") 'magit-status)
+;; Include common lisp
+(require 'cl) ;; one day can remove this...
+(require 'cl-lib)
+
+;; Modes init (things that need more than just a require.) 
+(when (string-match "Emacs 24" (version))
+  (message "Running Emacs 24")
+  ;; Only run elpa on E24
+  (require 'init-elpa)
+)
+
+;; Include Magnar's string and list libs
+(require 'dash)
+(require 's)
+
+;; Explicitly require libs that autoload borks
+(require 'iedit)
+(require 'ag)
+
+;; IDO Mode... knowing how to ditch IDO at runtime is a big help, C-j
+(require 'ido)
+(ido-mode t)
 
 ;; Turn on things that auto-load isn't doing for us...
 (yas-global-mode t)
 (flex-autopair-mode t)
-
-;; Similarly explicitly require for the same reason
-(require 'iedit)
 
 ;; manually installed packages (find them in ./plugins/) - these could
 ;; probably all become auto-loaded. (next time)
@@ -84,12 +89,14 @@
 
 ;; Lorem-ipsum hook for nxml modes
 (add-hook 'nxml-mode-hook (lambda ()
-			    (setq Lorem-ipsum-paragraph-separator "<br><br>\n"
-				  Lorem-ipsum-sentence-separator "&nbsp;&nbsp;"
-				  Lorem-ipsum-list-beginning "<ul>\n"
-				  Lorem-ipsum-list-bullet "<li>"
-				  Lorem-ipsum-list-item-end "</li>\n"
-				  Lorem-ipsum-list-end "</ul>\n")))
+                            (setq Lorem-ipsum-paragraph-separator "<br><br>\n"
+                                  Lorem-ipsum-sentence-separator "&nbsp;&nbsp;"
+                                  Lorem-ipsum-list-beginning "<ul>\n"
+                                  Lorem-ipsum-list-bullet "<li>"
+                                  Lorem-ipsum-list-item-end "</li>\n"
+                                  Lorem-ipsum-list-end "</ul>\n")                            
+                            (setq rng-schema-locating-files (list "~/.emacs.d/nxml-schemas/schemas.xml" "schemas.xml")))) 
+
 
 (add-to-list 'auto-mode-alist
              '("\\.\\(x[ms]l\\|rng\\|x?html?\\)\\'" . nxml-mode))
@@ -99,7 +106,8 @@
  nxml-outline-child-indent 2
  nxml-slash-auto-complete-flag t)
 
-;; (adjoin "~/.emacs.d/nxml-schemas/schemas.xml" rng-schema-locating-files)
+
+
 
 ;; Markdown mode - TAB for <pre></pre> block
 (add-hook 'markdown-mode-hook
@@ -133,6 +141,8 @@
 
 (dolist (pattern '("\\.md$" "\\.markdown$"))
   (add-to-list 'auto-mode-alist (cons pattern 'markdown-mode)))
+
+;; Flymake settings
 
 (defun flymake-settings ()
   "Settings for `flymake'."
@@ -254,14 +264,7 @@
 ;; (setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible!
 ;; (nyan-start-animation) ;; ok that is a bit much...
 
-;; IDO Mode... (now that I know how to dired/new-file from it, it's suddenly useful (C-j))
-(require 'ido)
-(ido-mode t)
-
 ;; Custom themes added to load-path
-(require 'dash)
-(require 's)
-
 (-each
  (-map
   (lambda (item)
@@ -278,9 +281,10 @@
 
 (require 'w3m)
 (require 'mainline)
+
+(setq mainline-arrow-shape 'slant-left)
+
 (require 'rainbow-mode) ;; temporarily rolling back to 0.6 as 0.7 is broken.
-(require 'handy-functions) ;; my lab area for little defuns, the sort
-                           ;; of thing people blog about, when they
-                           ;; have too much spare time.
+(require 'handy-functions) ;; my lab area for little defuns...
 
 (put 'dired-find-alternate-file 'disabled nil)

@@ -1,0 +1,1088 @@
+default namespace = "http://www.springframework.org/schema/aop"
+namespace local = ""
+namespace ns1 = "http://www.springframework.org/schema/task"
+namespace ns10 = "http://www.springframework.org/schema/tx"
+namespace ns11 = "http://www.springframework.org/schema/jdbc"
+namespace ns12 = "http://www.springframework.org/schema/beans"
+namespace ns2 = "http://www.springframework.org/schema/jms"
+namespace ns3 = "http://www.springframework.org/schema/util"
+namespace ns4 = "http://www.springframework.org/schema/context"
+namespace ns5 = "http://www.springframework.org/schema/tool"
+namespace ns6 = "http://www.springframework.org/schema/lang"
+namespace ns7 = "http://www.springframework.org/schema/jee"
+namespace ns8 = "http://www.springframework.org/schema/mvc"
+namespace ns9 = "http://www.springframework.org/schema/oxm"
+
+start =
+  scheduler
+  | executor
+  | annotation-driven3
+  | scheduled-tasks
+  | listener-container
+  | jca-listener-container
+  | constant
+  | set
+  | map2
+  | \list
+  | properties
+  | property-path
+  | annotation-config
+  | mbean-server
+  | spring-configured
+  | property-placeholder
+  | load-time-weaver
+  | component-scan
+  | property-override
+  | mbean-export
+  | annotation
+  | defaults
+  | groovy
+  | jruby
+  | bsh
+  | jndi-lookup
+  | local-slsb
+  | remote-slsb
+  | aspectj-autoproxy
+  | config
+  | scoped-proxy
+  | resources
+  | view-controller
+  | interceptors
+  | annotation-driven
+  | default-servlet-handler
+  | xmlbeans-marshaller
+  | jibx-marshaller
+  | jaxb2-marshaller
+  | annotation-driven2
+  | jta-transaction-manager
+  | advice
+  | set2
+  | \attribute
+  | qualifier
+  | meta
+  | lookup-method
+  | arg-type
+  | (notAllowed
+     | element ns12:beans {
+         attribute default-destroy-method { xsd:string }?,
+         attribute default-init-method { xsd:string }?,
+         attribute default-autowire-candidates { xsd:string }?,
+         attribute default-autowire {
+           xsd:NMTOKEN "no"
+           | xsd:NMTOKEN "byName"
+           | xsd:NMTOKEN "byType"
+           | xsd:NMTOKEN "constructor"
+         }?,
+         attribute default-merge { xsd:boolean }?,
+         attribute default-lazy-init { xsd:boolean }?,
+         description?,
+         (import
+          | alias
+          | bean
+          | (scheduler
+             | executor
+             | annotation-driven3
+             | scheduled-tasks
+             | listener-container
+             | jca-listener-container
+             | constant
+             | set
+             | map2
+             | \list
+             | properties
+             | property-path
+             | annotation-config
+             | mbean-server
+             | spring-configured
+             | property-placeholder
+             | load-time-weaver
+             | component-scan
+             | property-override
+             | mbean-export
+             | annotation
+             | defaults
+             | groovy
+             | jruby
+             | bsh
+             | jndi-lookup
+             | local-slsb
+             | remote-slsb
+             | aspectj-autoproxy
+             | config
+             | scoped-proxy
+             | resources
+             | view-controller
+             | interceptors
+             | annotation-driven
+             | default-servlet-handler
+             | xmlbeans-marshaller
+             | jibx-marshaller
+             | jaxb2-marshaller
+             | annotation-driven2
+             | jta-transaction-manager
+             | advice
+             | embedded-database
+             | initialize-database)+)+,
+         attribute * - (ns12:* | local:*) { text }*
+       })
+  | description
+  | value
+  | map
+  | import
+  | idref
+  | null
+  | key
+  | bean
+  | constructor-arg
+  | alias
+  | replaced-method
+  | prop
+  | property
+  | list2
+  | ref
+  | entry
+  | props
+  | array
+  | embedded-database
+  | initialize-database
+\list =
+  notAllowed
+  | element ns3:list {
+      anonymous4,
+      attribute id { xsd:ID }?,
+      attribute list-class { xsd:string }?,
+      attribute scope { xsd:string }?
+    }
+lookup-method =
+  notAllowed
+  | element ns12:lookup-method {
+      attribute name { xsd:string }?,
+      attribute bean { xsd:string }?
+    }
+set =
+  notAllowed
+  | element ns3:set {
+      anonymous4,
+      attribute id { xsd:ID }?,
+      attribute set-class { xsd:string }?,
+      attribute scope { xsd:string }?
+    }
+anonymous0 =
+  anonymous3,
+  attribute lookup-home-on-startup { xsd:boolean }?,
+  attribute cache-home { xsd:boolean }?,
+  attribute business-interface { xsd:string }
+anonymous1 = attribute id { xsd:ID }?
+scheduled-tasks =
+  notAllowed
+  | element ns1:scheduled-tasks {
+      attribute scheduler { xsd:string }?,
+      element ns1:scheduled {
+        attribute method { xsd:string },
+        attribute ref { xsd:string },
+        attribute fixed-rate { xsd:string }?,
+        attribute fixed-delay { xsd:string }?,
+        attribute cron { xsd:string }?
+      }+
+    }
+element1 =
+  element * {
+    mixed {
+      (attribute * { text }
+       | element1)*
+    }
+  }
+jaxb2-marshaller =
+  notAllowed
+  | element ns9:jaxb2-marshaller {
+      anonymous1,
+      element ns9:class-to-be-bound {
+        attribute name { xsd:string }
+      }*,
+      attribute contextPath { xsd:string }?
+    }
+component-scan =
+  notAllowed
+  | element ns4:component-scan {
+      attribute scoped-proxy {
+        xsd:string "no"
+        | xsd:string "interfaces"
+        | xsd:string "targetClass"
+      }?,
+      attribute scope-resolver { xsd:string }?,
+      attribute name-generator { xsd:string }?,
+      attribute annotation-config { xsd:boolean }?,
+      attribute use-default-filters { xsd:boolean }?,
+      attribute resource-pattern { xsd:string }?,
+      attribute base-package { xsd:string },
+      element ns4:include-filter { filterType }*,
+      element ns4:exclude-filter { filterType }*
+    }
+interceptors =
+  notAllowed
+  | element ns8:interceptors {
+      (bean
+       | element ns8:interceptor {
+           element ns8:mapping {
+             attribute path { xsd:string }
+           }+,
+           bean
+         })+
+    }
+annotation-driven =
+  notAllowed
+  | element ns8:annotation-driven {
+      attribute validator { xsd:string }?,
+      attribute conversion-service { xsd:string }?
+    }
+anonymous3 =
+  anonymous1,
+  (notAllowed
+   | element ns7:environment { xsd:string })?,
+  attribute environment-ref { xsd:string }?,
+  attribute jndi-name { xsd:string },
+  attribute resource-ref { xsd:boolean }?,
+  attribute expose-access-context { xsd:boolean }?
+anonymous2 =
+  attribute arg-names { xsd:string }?,
+  attribute method { xsd:string },
+  attribute pointcut-ref { xsd:string }?,
+  attribute pointcut { xsd:string }?
+properties =
+  notAllowed
+  | element ns3:properties {
+      anonymous6,
+      attribute id { xsd:ID }?,
+      attribute location { xsd:string }?,
+      attribute local-override { xsd:boolean }?,
+      attribute scope { xsd:string }?
+    }
+prop =
+  notAllowed
+  | element ns12:prop {
+      mixed {
+        attribute key { xsd:string }
+      }
+    }
+map =
+  notAllowed
+  | element ns12:map {
+      anonymous5,
+      attribute merge {
+        xsd:NMTOKEN "default" | xsd:NMTOKEN "false" | xsd:NMTOKEN "true"
+      }?
+    }
+anyType =
+  mixed {
+    (attribute * { text }
+     | element1)*
+  },
+  empty
+scoped-proxy =
+  notAllowed
+  | element scoped-proxy {
+      attribute proxy-target-class { xsd:boolean }?
+    }
+ref =
+  notAllowed
+  | element ns12:ref {
+      attribute bean { xsd:string }?,
+      attribute local { xsd:IDREF }?,
+      attribute parent { xsd:string }?
+    }
+qualifier =
+  notAllowed
+  | element ns12:qualifier {
+      attribute value { xsd:string }?,
+      attribute type { xsd:string }?,
+      \attribute*
+    }
+anonymous4 = anonymous9, collectionElements
+alias =
+  notAllowed
+  | element ns12:alias {
+      attribute name { xsd:string },
+      attribute alias { xsd:string }
+    }
+config =
+  notAllowed
+  | element config {
+      attribute expose-proxy { xsd:boolean }?,
+      attribute proxy-target-class { xsd:boolean }?,
+      element pointcut { pointcutType }*,
+      element advisor {
+        attribute order { xsd:int }?,
+        attribute pointcut-ref { xsd:string }?,
+        attribute pointcut { xsd:string }?,
+        attribute advice-ref { xsd:string },
+        attribute id { xsd:ID }?
+      }*,
+      element aspect {
+        attribute order { xsd:int }?,
+        attribute ref { xsd:string }?,
+        attribute id { xsd:ID }?,
+        (element pointcut { pointcutType }
+         | element declare-parents {
+             attribute delegate-ref { xsd:string }?,
+             attribute default-impl { xsd:string }?,
+             attribute implement-interface { xsd:string },
+             attribute types-matching { xsd:string }
+           }
+         | element before { basicAdviceType }
+         | element after { basicAdviceType }
+         | element after-returning {
+             anonymous2,
+             attribute returning { xsd:string }?
+           }
+         | element after-throwing {
+             anonymous2,
+             attribute throwing { xsd:string }?
+           }
+         | element around { basicAdviceType })*
+      }*
+    }
+anonymous5 =
+  anonymous9,
+  description?,
+  entry*,
+  attribute key-type { xsd:string }?
+remote-slsb =
+  notAllowed
+  | element ns7:remote-slsb {
+      anonymous0,
+      attribute home-interface { xsd:string }?,
+      attribute refresh-home-on-connect-failure { xsd:boolean }?,
+      attribute cache-session-bean { xsd:boolean }?
+    }
+constant =
+  notAllowed
+  | element ns3:constant {
+      attribute static-field { xsd:string },
+      attribute id { xsd:ID }?
+    }
+null =
+  notAllowed
+  | element ns12:null { text }
+annotation =
+  notAllowed
+  | element ns5:annotation {
+      attribute kind { xsd:string "direct" | xsd:string "ref" }?,
+      element ns5:expected-type {
+        attribute type { xsd:string }
+      }?,
+      element ns5:assignable-to {
+        attribute restriction {
+          xsd:NMTOKEN "both"
+          | xsd:NMTOKEN "interface-only"
+          | xsd:NMTOKEN "class-only"
+        }?,
+        attribute type { xsd:string }?
+      }?,
+      element ns5:exports {
+        attribute identifier { xsd:string }?,
+        attribute type { xsd:string }?
+      }*,
+      element ns5:registers-scope {
+        attribute name { xsd:string }
+      }*,
+      element ns5:expected-method {
+        attribute expression { xsd:string }?,
+        attribute type-ref { xsd:string }?,
+        attribute type { xsd:string }?
+      }*
+    }
+defaults =
+  notAllowed
+  | element ns6:defaults { defaultableAttributes }
+jca-listener-container =
+  notAllowed
+  | element ns2:jca-listener-container {
+      attribute phase { xsd:string }?,
+      attribute prefetch { xsd:int }?,
+      attribute concurrency { xsd:string }?,
+      attribute transaction-manager { xsd:string }?,
+      attribute acknowledge {
+        xsd:NMTOKEN "client"
+        | xsd:NMTOKEN "dups-ok"
+        | xsd:NMTOKEN "auto"
+        | xsd:NMTOKEN "transacted"
+      }?,
+      attribute client-id { xsd:string }?,
+      attribute destination-type {
+        xsd:NMTOKEN "topic"
+        | xsd:NMTOKEN "queue"
+        | xsd:NMTOKEN "durableTopic"
+      }?,
+      attribute message-converter { xsd:string }?,
+      attribute destination-resolver { xsd:string }?,
+      attribute activation-spec-factory { xsd:string }?,
+      attribute resource-adapter { xsd:string }?,
+      element ns2:listener { listenerType }*
+    }
+anonymous6 = anonymous9, prop*
+propertyType =
+  (attribute value { xsd:string }?,
+   attribute ref { xsd:string }?,
+   attribute name { xsd:string },
+   description?,
+   (meta
+    | bean
+    | ref
+    | idref
+    | value
+    | null
+    | array
+    | list2
+    | set2
+    | map
+    | props
+    | (scheduler
+       | executor
+       | annotation-driven3
+       | scheduled-tasks
+       | listener-container
+       | jca-listener-container
+       | constant
+       | set
+       | map2
+       | \list
+       | properties
+       | property-path
+       | annotation-config
+       | mbean-server
+       | spring-configured
+       | property-placeholder
+       | load-time-weaver
+       | component-scan
+       | property-override
+       | mbean-export
+       | annotation
+       | defaults
+       | groovy
+       | jruby
+       | bsh
+       | jndi-lookup
+       | local-slsb
+       | remote-slsb
+       | aspectj-autoproxy
+       | config
+       | scoped-proxy
+       | resources
+       | view-controller
+       | interceptors
+       | annotation-driven
+       | default-servlet-handler
+       | xmlbeans-marshaller
+       | jibx-marshaller
+       | jaxb2-marshaller
+       | annotation-driven2
+       | jta-transaction-manager
+       | advice
+       | embedded-database
+       | initialize-database))?),
+  empty
+property-placeholder =
+  notAllowed
+  | element ns4:property-placeholder {
+      anonymous8,
+      attribute system-properties-mode {
+        xsd:string "NEVER"
+        | xsd:string "OVERRIDE"
+        | xsd:string "FALLBACK"
+      }?
+    }
+anonymous7 =
+  anonymous1,
+  (notAllowed
+   | element ns6:inline-script { anyType })?,
+  (notAllowed
+   | element ns6:property { propertyType })*,
+  defaultableAttributes,
+  attribute script-source { xsd:string }?,
+  attribute name { xsd:string }?,
+  attribute scope { xsd:string }?,
+  attribute autowire {
+    xsd:NMTOKEN "default"
+    | xsd:NMTOKEN "no"
+    | xsd:NMTOKEN "byName"
+    | xsd:NMTOKEN "byType"
+  }?,
+  attribute depends-on { xsd:string }?,
+  attribute init-method { xsd:string }?,
+  attribute destroy-method { xsd:string }?
+resources =
+  notAllowed
+  | element ns8:resources {
+      attribute order { xsd:int }?,
+      attribute cache-period { xsd:string }?,
+      attribute location { xsd:string },
+      attribute mapping { xsd:string }
+    }
+xmlbeans-marshaller =
+  notAllowed
+  | element ns9:xmlbeans-marshaller {
+      anonymous1,
+      attribute options { xsd:string }?
+    }
+jndi-lookup =
+  notAllowed
+  | element ns7:jndi-lookup {
+      anonymous3,
+      attribute cache { xsd:boolean }?,
+      attribute expected-type { xsd:string }?,
+      attribute lookup-on-startup { xsd:boolean }?,
+      attribute proxy-interface { xsd:string }?,
+      attribute default-value { xsd:string }?,
+      attribute default-ref { xsd:string }?
+    }
+advice =
+  notAllowed
+  | element ns10:advice {
+      anonymous1,
+      element ns10:attributes {
+        element ns10:method {
+          attribute no-rollback-for { xsd:string }?,
+          attribute rollback-for { xsd:string }?,
+          attribute read-only { xsd:boolean }?,
+          attribute timeout { xsd:integer }?,
+          attribute isolation {
+            xsd:string "READ_UNCOMMITTED"
+            | xsd:string "SERIALIZABLE"
+            | xsd:string "READ_COMMITTED"
+            | xsd:string "REPEATABLE_READ"
+            | xsd:string "DEFAULT"
+          }?,
+          attribute propagation {
+            xsd:string "NESTED"
+            | xsd:string "MANDATORY"
+            | xsd:string "SUPPORTS"
+            | xsd:string "NEVER"
+            | xsd:string "REQUIRED"
+            | xsd:string "NOT_SUPPORTED"
+            | xsd:string "REQUIRES_NEW"
+          }?,
+          attribute name { xsd:string }
+        }+
+      }?,
+      attribute transaction-manager { xsd:string }?
+    }
+arg-type =
+  notAllowed
+  | element ns12:arg-type {
+      mixed {
+        attribute match { xsd:string }?
+      }
+    }
+array =
+  notAllowed
+  | element ns12:array {
+      anonymous4,
+      attribute merge {
+        xsd:NMTOKEN "default" | xsd:NMTOKEN "false" | xsd:NMTOKEN "true"
+      }?
+    }
+collectionElements =
+  description?,
+  (bean
+   | ref
+   | idref
+   | value
+   | null
+   | array
+   | list2
+   | set2
+   | map
+   | props
+   | (scheduler
+      | executor
+      | annotation-driven3
+      | scheduled-tasks
+      | listener-container
+      | jca-listener-container
+      | constant
+      | set
+      | map2
+      | \list
+      | properties
+      | property-path
+      | annotation-config
+      | mbean-server
+      | spring-configured
+      | property-placeholder
+      | load-time-weaver
+      | component-scan
+      | property-override
+      | mbean-export
+      | annotation
+      | defaults
+      | groovy
+      | jruby
+      | bsh
+      | jndi-lookup
+      | local-slsb
+      | remote-slsb
+      | aspectj-autoproxy
+      | config
+      | scoped-proxy
+      | resources
+      | view-controller
+      | interceptors
+      | annotation-driven
+      | default-servlet-handler
+      | xmlbeans-marshaller
+      | jibx-marshaller
+      | jaxb2-marshaller
+      | annotation-driven2
+      | jta-transaction-manager
+      | advice
+      | embedded-database
+      | initialize-database)+)+
+mbean-server =
+  notAllowed
+  | element ns4:mbean-server {
+      anonymous1,
+      attribute agent-id { xsd:string }?
+    }
+bsh =
+  notAllowed
+  | element ns6:bsh { dynamicScriptType }
+pointcutType =
+  (attribute expression { xsd:string },
+   attribute id { xsd:ID }),
+  empty
+property-override =
+  notAllowed
+  | element ns4:property-override { anonymous8 }
+bean =
+  notAllowed
+  | element ns12:bean {
+      anonymous1,
+      description?,
+      (meta
+       | constructor-arg
+       | property
+       | qualifier
+       | lookup-method
+       | replaced-method
+       | (scheduler
+          | executor
+          | annotation-driven3
+          | scheduled-tasks
+          | listener-container
+          | jca-listener-container
+          | constant
+          | set
+          | map2
+          | \list
+          | properties
+          | property-path
+          | annotation-config
+          | mbean-server
+          | spring-configured
+          | property-placeholder
+          | load-time-weaver
+          | component-scan
+          | property-override
+          | mbean-export
+          | annotation
+          | defaults
+          | groovy
+          | jruby
+          | bsh
+          | jndi-lookup
+          | local-slsb
+          | remote-slsb
+          | aspectj-autoproxy
+          | config
+          | scoped-proxy
+          | resources
+          | view-controller
+          | interceptors
+          | annotation-driven
+          | default-servlet-handler
+          | xmlbeans-marshaller
+          | jibx-marshaller
+          | jaxb2-marshaller
+          | annotation-driven2
+          | jta-transaction-manager
+          | advice
+          | embedded-database
+          | initialize-database)+)+,
+      attribute factory-bean { xsd:string }?,
+      attribute factory-method { xsd:string }?,
+      attribute destroy-method { xsd:string }?,
+      attribute init-method { xsd:string }?,
+      attribute primary { xsd:boolean }?,
+      attribute autowire-candidate {
+        xsd:NMTOKEN "default" | xsd:NMTOKEN "false" | xsd:NMTOKEN "true"
+      }?,
+      attribute depends-on { xsd:string }?,
+      attribute autowire {
+        xsd:NMTOKEN "default"
+        | xsd:NMTOKEN "no"
+        | xsd:NMTOKEN "byName"
+        | xsd:NMTOKEN "byType"
+        | xsd:NMTOKEN "constructor"
+      }?,
+      attribute lazy-init {
+        xsd:NMTOKEN "default" | xsd:NMTOKEN "false" | xsd:NMTOKEN "true"
+      }?,
+      attribute abstract { xsd:boolean }?,
+      attribute scope { xsd:string }?,
+      attribute parent { xsd:string }?,
+      attribute class { xsd:string }?,
+      attribute name { xsd:string }?,
+      attribute * - (ns12:* | local:*) { text }*
+    }
+import =
+  notAllowed
+  | element ns12:import {
+      attribute resource { xsd:string }
+    }
+description =
+  notAllowed
+  | element ns12:description { text }
+set2 =
+  notAllowed
+  | element ns12:set {
+      anonymous4,
+      attribute merge {
+        xsd:NMTOKEN "default" | xsd:NMTOKEN "false" | xsd:NMTOKEN "true"
+      }?
+    }
+meta =
+  notAllowed
+  | element ns12:meta { metaType }
+listener-container =
+  notAllowed
+  | element ns2:listener-container {
+      attribute phase { xsd:string }?,
+      attribute prefetch { xsd:int }?,
+      attribute concurrency { xsd:string }?,
+      attribute transaction-manager { xsd:string }?,
+      attribute acknowledge {
+        xsd:NMTOKEN "client"
+        | xsd:NMTOKEN "dups-ok"
+        | xsd:NMTOKEN "auto"
+        | xsd:NMTOKEN "transacted"
+      }?,
+      attribute cache {
+        xsd:NMTOKEN "connection"
+        | xsd:NMTOKEN "session"
+        | xsd:NMTOKEN "auto"
+        | xsd:NMTOKEN "none"
+        | xsd:NMTOKEN "consumer"
+      }?,
+      attribute client-id { xsd:string }?,
+      attribute destination-type {
+        xsd:NMTOKEN "topic"
+        | xsd:NMTOKEN "queue"
+        | xsd:NMTOKEN "durableTopic"
+      }?,
+      attribute error-handler { xsd:string }?,
+      attribute message-converter { xsd:string }?,
+      attribute destination-resolver { xsd:string }?,
+      attribute task-executor { xsd:string }?,
+      attribute connection-factory { xsd:string }?,
+      attribute container-class { xsd:string }?,
+      attribute container-type {
+        xsd:NMTOKEN "default" | xsd:NMTOKEN "simple"
+      }?,
+      element ns2:listener { listenerType }*
+    }
+map2 =
+  notAllowed
+  | element ns3:map {
+      anonymous5,
+      attribute id { xsd:ID }?,
+      attribute map-class { xsd:string }?,
+      attribute scope { xsd:string }?
+    }
+property-path =
+  notAllowed
+  | element ns3:property-path {
+      attribute path { xsd:string },
+      attribute id { xsd:ID }?
+    }
+filterType =
+  (attribute expression { xsd:string },
+   attribute type {
+     xsd:string "annotation"
+     | xsd:string "aspectj"
+     | xsd:string "assignable"
+     | xsd:string "regex"
+     | xsd:string "custom"
+   }),
+  empty
+local-slsb =
+  notAllowed
+  | element ns7:local-slsb { anonymous0 }
+value =
+  notAllowed
+  | element ns12:value {
+      mixed {
+        attribute type { xsd:string }?
+      }
+    }
+anonymous8 =
+  attribute local-override { xsd:boolean }?,
+  attribute ignore-unresolvable { xsd:boolean }?,
+  attribute ignore-resource-not-found { xsd:boolean }?,
+  attribute order { xsd:integer }?,
+  attribute file-encoding { xsd:string }?,
+  attribute properties-ref { xsd:string }?,
+  attribute location { xsd:string }?
+annotation-driven2 =
+  notAllowed
+  | element ns10:annotation-driven {
+      attribute order { xsd:int }?,
+      attribute proxy-target-class { xsd:boolean }?,
+      attribute mode { xsd:string "aspectj" | xsd:string "proxy" }?,
+      attribute transaction-manager { xsd:string }?
+    }
+entry =
+  notAllowed
+  | element ns12:entry {
+      attribute value-ref { xsd:string }?,
+      attribute value { xsd:string }?,
+      attribute key-ref { xsd:string }?,
+      attribute key { xsd:string }?,
+      key?,
+      collectionElements
+    }
+embedded-database =
+  notAllowed
+  | element ns11:embedded-database {
+      anonymous1,
+      element ns11:script { scriptType }*,
+      attribute type {
+        xsd:string "HSQL" | xsd:string "H2" | xsd:string "DERBY"
+      }?
+    }
+scheduler =
+  notAllowed
+  | element ns1:scheduler {
+      attribute pool-size { xsd:string }?,
+      attribute id { xsd:string }
+    }
+list2 =
+  notAllowed
+  | element ns12:list {
+      anonymous4,
+      attribute merge {
+        xsd:NMTOKEN "default" | xsd:NMTOKEN "false" | xsd:NMTOKEN "true"
+      }?
+    }
+annotation-config =
+  notAllowed
+  | element ns4:annotation-config { anyType }
+property =
+  notAllowed
+  | element ns12:property { propertyType }
+anonymous9 = attribute value-type { xsd:string }?
+mbean-export =
+  notAllowed
+  | element ns4:mbean-export {
+      attribute registration {
+        xsd:NMTOKEN "ignoreExisting"
+        | xsd:NMTOKEN "replaceExisting"
+        | xsd:NMTOKEN "failOnExisting"
+      }?,
+      attribute server { xsd:string }?,
+      attribute default-domain { xsd:string }?
+    }
+load-time-weaver =
+  notAllowed
+  | element ns4:load-time-weaver {
+      attribute aspectj-weaving {
+        xsd:string "off" | xsd:string "on" | xsd:string "autodetect"
+      }?,
+      attribute weaver-class { xsd:string }?
+    }
+replaced-method =
+  notAllowed
+  | element ns12:replaced-method {
+      attribute replacer { xsd:string }?,
+      attribute name { xsd:string }?,
+      arg-type*
+    }
+jta-transaction-manager =
+  notAllowed
+  | element ns10:jta-transaction-manager { anyType }
+constructor-arg =
+  notAllowed
+  | element ns12:constructor-arg {
+      attribute value { xsd:string }?,
+      attribute ref { xsd:string }?,
+      attribute name { xsd:string }?,
+      attribute type { xsd:string }?,
+      attribute index { xsd:string }?,
+      description?,
+      (bean
+       | ref
+       | idref
+       | value
+       | null
+       | array
+       | list2
+       | set2
+       | map
+       | props
+       | scheduler
+       | executor
+       | annotation-driven3
+       | scheduled-tasks
+       | listener-container
+       | jca-listener-container
+       | constant
+       | set
+       | map2
+       | \list
+       | properties
+       | property-path
+       | annotation-config
+       | mbean-server
+       | spring-configured
+       | property-placeholder
+       | load-time-weaver
+       | component-scan
+       | property-override
+       | mbean-export
+       | annotation
+       | defaults
+       | groovy
+       | jruby
+       | bsh
+       | jndi-lookup
+       | local-slsb
+       | remote-slsb
+       | aspectj-autoproxy
+       | config
+       | scoped-proxy
+       | resources
+       | view-controller
+       | interceptors
+       | annotation-driven
+       | default-servlet-handler
+       | xmlbeans-marshaller
+       | jibx-marshaller
+       | jaxb2-marshaller
+       | annotation-driven2
+       | jta-transaction-manager
+       | advice
+       | embedded-database
+       | initialize-database)?
+    }
+view-controller =
+  notAllowed
+  | element ns8:view-controller {
+      attribute view-name { xsd:string }?,
+      attribute path { xsd:string }
+    }
+jibx-marshaller =
+  notAllowed
+  | element ns9:jibx-marshaller {
+      anonymous1,
+      attribute target-class { xsd:string },
+      attribute bindingName { xsd:string }?
+    }
+idref =
+  notAllowed
+  | element ns12:idref {
+      attribute bean { xsd:string }?,
+      attribute local { xsd:IDREF }?
+    }
+annotation-driven3 =
+  notAllowed
+  | element ns1:annotation-driven {
+      attribute proxy-target-class { xsd:boolean }?,
+      attribute mode { xsd:string "aspectj" | xsd:string "proxy" }?,
+      attribute scheduler { xsd:string }?,
+      attribute executor { xsd:string }?
+    }
+basicAdviceType = anonymous2, empty
+\attribute =
+  notAllowed
+  | element ns12:attribute { metaType }
+executor =
+  notAllowed
+  | element ns1:executor {
+      attribute rejection-policy {
+        xsd:string "CALLER_RUNS"
+        | xsd:string "DISCARD"
+        | xsd:string "ABORT"
+        | xsd:string "DISCARD_OLDEST"
+      }?,
+      attribute keep-alive { xsd:string }?,
+      attribute queue-capacity { xsd:string }?,
+      attribute pool-size { xsd:string }?,
+      attribute id { xsd:string }
+    }
+listenerType =
+  (attribute response-destination { xsd:string }?,
+   attribute method { xsd:string }?,
+   attribute ref { xsd:string },
+   attribute selector { xsd:string }?,
+   attribute subscription { xsd:string }?,
+   attribute destination { xsd:string },
+   attribute id { xsd:ID }?),
+  empty
+initialize-database =
+  notAllowed
+  | element ns11:initialize-database {
+      attribute ignore-failures {
+        xsd:string "DROPS" | xsd:string "ALL" | xsd:string "NONE"
+      }?,
+      attribute enabled { xsd:string }?,
+      attribute data-source { xsd:string }?,
+      element ns11:script { scriptType }+
+    }
+key =
+  notAllowed
+  | element ns12:key { collectionElements }
+props =
+  notAllowed
+  | element ns12:props {
+      anonymous6,
+      attribute merge {
+        xsd:NMTOKEN "default" | xsd:NMTOKEN "false" | xsd:NMTOKEN "true"
+      }?
+    }
+spring-configured =
+  notAllowed
+  | element ns4:spring-configured { xsd:string }
+groovy =
+  notAllowed
+  | element ns6:groovy {
+      anonymous7,
+      attribute customizer-ref { text }?
+    }
+default-servlet-handler =
+  notAllowed
+  | element ns8:default-servlet-handler {
+      attribute default-servlet-name { xsd:string }?
+    }
+dynamicScriptType =
+  (anonymous7,
+   attribute script-interfaces { text }?),
+  empty
+jruby =
+  notAllowed
+  | element ns6:jruby { dynamicScriptType }
+scriptType =
+  attribute location { xsd:string }?,
+  empty
+defaultableAttributes = attribute refresh-check-delay { xsd:long }?
+metaType =
+  (attribute value { xsd:string },
+   attribute key { xsd:string }),
+  empty
+aspectj-autoproxy =
+  notAllowed
+  | element aspectj-autoproxy {
+      attribute expose-proxy { xsd:boolean }?,
+      attribute proxy-target-class { xsd:boolean }?,
+      element include {
+        attribute name { xsd:string }?
+      }*
+    }
