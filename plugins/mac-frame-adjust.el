@@ -1,21 +1,21 @@
 ;; Emacs Mac Port - frame adjust - this is for personal use only,
 ;; because it's not very good ;)
 
-(require 'cl-lib)
+(require 'cl)
 (require 's)
 (require 'dash)
 
 (defun mac-calculate-displays-list ()
   "List of displays on a Mac, each display is represented as (w h)
    e.g. (1280 1024)"
-  (cl-mapl
+  (-map
    (lambda (str)
      (setq i (s-index-of "@" str))
      (when i
-       (setq str (car (split-string str "@"))))
-     (cl-mapl
+       (setq str (car (s-split "@" str))))
+     (-map
       (lambda (str)
-        (string-to-number str)) (split-string str "x")))
+        (string-to-number str)) (s-split "x" str)))
    (s-lines
     (s-replace
      " " ""
@@ -24,8 +24,8 @@
       (s-trim
        (s-chomp
         (shell-command-to-string
-         "system_profiler  SPDisplaysDataType | grep -E 'Resolution' | tr -s ' '"))))))))
 
+         "system_profiler  SPDisplaysDataType | grep -E 'Resolution' | tr -s ' '"))))))))
 (defvar mac-displays-list (mac-calculate-displays-list)
   "memo of mac-calculate-displays-list - List of displays on a
    Mac, each display is represented as (w h) e.g. (1280 1024)")
@@ -33,13 +33,14 @@
 (defun mac-largest-display ()
   "return the dimensions of the largest Mac display/screen"
   (let*
-      ((d-list (cl-mapl
+      ((d-list (-map
                 (lambda (d)
                   (--reduce (+ acc it) d))
-                (mac-displays-list)))
+                mac-displays-list))
        (d (reduce 'max d-list))
        (i (position d d-list )))
-    (nth i (mac-displays-list))))
+    (nth i mac-displays-list)))
+
 
 (defun mac-largest-display-pixel-width ()
   "pixel width of largest disply"

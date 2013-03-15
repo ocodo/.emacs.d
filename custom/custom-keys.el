@@ -7,6 +7,12 @@
 
 ;; Keys - universal 
 
+;; Ret and indent binding
+(global-set-key (kbd "RET") 'newline-and-indent)
+
+;; turn off M-` menu shortcut, and use it for getting magit-status instead
+(global-set-key (kbd "M-`") 'magit-status)
+
 ;; I want C-z to undo, but I keep C-x,C-c,C-v as default. If CUA mode
 ;; is set full, they clobber too many nice Emacs features.  Instead,
 ;; since I'm mac centric I bind Cmd-x,c,v to cut/copy/paste.
@@ -27,7 +33,8 @@
 (global-set-key [M-up] 'move-text-up)
 (global-set-key [M-down] 'move-text-down)
 
-;; line duplicate up / down
+;; line duplicate up / down -
+;; FIXME: this should be ditched in favor of something that works with region or current line
 
 (global-set-key [s-up] [?\C-a ?\C-a ?\C-k ?\C-y left ?\C-a ?\C-a return up ?\C-y ?\C-a])
 (global-set-key [s-down] [?\C-a ?\C-a ?\C-k ?\C-y return ?\C-y ?\C-a])
