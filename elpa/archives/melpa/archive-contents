@@ -644,7 +644,7 @@
       [(20130210 1710)
        nil "Emacs integration for rvm [source: github]" single])
  (rust-mode .
-	    [(20130225 2342)
+	    [(20130308 1251)
 	     ((cm-mode
 	       (0 1 0)))
 	     "A major emacs mode for editing Rust source code [source: github]" single])
@@ -856,7 +856,7 @@
 		  [(20120403 1455)
 		   nil "Interact with Pivotal Tracker through its API [source: github]" single])
  (php-mode .
-	   [(20130314 621)
+	   [(20130315 2020)
 	    nil "Major mode for editing PHP code [source: github]" tar])
  (php-eldoc .
 	    [(20130131 1429)
@@ -1539,7 +1539,7 @@
 		[(20130204 1653)
 		 nil "Major mode API client for status.net open microblogging [source: github]" tar])
  (icicles .
-	  [(20130313 326)
+	  [(20130316 8)
 	   nil "Minibuffer input completion and cycling. [source: wiki]" tar])
  (ibuffer-vc .
 	     [(20121217 826)
@@ -1655,7 +1655,7 @@
 		[(20130216 1417)
 		 nil "helm source for color-moccur.el [source: github]" single])
  (helm-ag .
-	  [(20130305 1430)
+	  [(20130316 1610)
 	   ((helm
 	     (1 0)))
 	   "the silver search with helm interface [source: github]" single])
@@ -1801,7 +1801,7 @@
 		       (0 1 1)))
 		     "Fringe version of git-gutter.el [source: github]" single])
  (git-gutter .
-	     [(20130314 2132)
+	     [(20130316 1312)
 	      nil "Port of Sublime Text plugin GitGutter [source: github]" single])
  (git-dwim .
 	   [(20130130 2150)
@@ -1813,7 +1813,7 @@
 	    [(20110509 1226)
 	     nil "Minor mode for incremental blame for Git [source: github]" single])
  (gist .
-       [(20130315 843)
+       [(20130315 2306)
 	((eieio
 	  (1 3))
 	 (gh
@@ -2051,12 +2051,12 @@
 	       [(20121109 238)
 		nil "increment/decrement numbers like in vim [source: github]" single])
  (evil-leader .
-	      [(20121117 1428)
+	      [(20130316 333)
 	       ((evil
 		 (0)))
 	       "let there be <leader> [source: github]" single])
  (evil .
-       [(20130306 1001)
+       [(20130315 2026)
 	((undo-tree
 	  (0 5 1)))
 	"Extensible Vi layer for Emacs. [source: git]" tar])
