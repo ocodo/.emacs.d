@@ -10,6 +10,7 @@
 	  '(lambda()
          (visual-line-mode 0) ;; unwrap lines.
          (linum-mode 0) ;; turn off line numbers.
+         (auto-revert-mode) ;; auto-refresh dired
          (define-key dired-mode-map [mouse-3] 'dired-maybe-insert-subdir)
 	     (define-key dired-mode-map (kbd "C-{") 'dired-narrow-window)
          )
