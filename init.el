@@ -269,7 +269,7 @@
  (lambda (item)
    (add-to-list 'custom-theme-load-path item)))
 
-(load-theme 'deep-thought)
+(load-theme 'soothe)
 
 (set-face-attribute 'default nil :height 140)
 
