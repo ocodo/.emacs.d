@@ -73,12 +73,10 @@
 (show-paren-mode 1)
 (setq show-paren-delay 0)
 
-;; prefer y / n to typing yes / no, but with power comes
-;; responsibility.  Comment out for standard speed-cripling yes/no
-;; behaviour.
+;; use y / n instead of yes / no
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;; allow advanced features
+;; allow "restricted" features
 (put 'set-goal-column  'disabled nil)
 (put 'erase-buffer     'disabled nil)
 (put 'downcase-region  'disabled nil)
@@ -86,8 +84,7 @@
 (put 'narrow-to-region 'disabled nil)
 (put 'narrow-to-page   'disabled nil)
 
-
-;; Lorem-ipsum hook for nxml modes
+;; nxml mode init
 (add-hook 'nxml-mode-hook (lambda ()
                             (setq Lorem-ipsum-paragraph-separator "<br><br>\n"
                                   Lorem-ipsum-sentence-separator "&nbsp;&nbsp;"
@@ -97,7 +94,6 @@
                                   Lorem-ipsum-list-end "</ul>\n")                            
                             (setq rng-schema-locating-files (list "~/.emacs.d/nxml-schemas/schemas.xml" "schemas.xml")))) 
 
-
 (add-to-list 'auto-mode-alist
              '("\\.\\(x[ms]l\\|rng\\|x?html?\\)\\'" . nxml-mode))
 
@@ -105,9 +101,6 @@
  nxml-child-indent 2
  nxml-outline-child-indent 2
  nxml-slash-auto-complete-flag t)
-
-
-
 
 ;; Markdown mode - TAB for <pre></pre> block
 (add-hook 'markdown-mode-hook
@@ -205,6 +198,7 @@
 (require 'init-hideshowvis) 
 (require 'init-multi-web-mode)
 
+;; Emacs Mac port specific frame adjust
 (require 'mac-frame-adjust)                  ;; a few presets for sizing and moving frames (aka Operating System Windows)
 
 ;;;# Convenience and completion
@@ -217,7 +211,7 @@
 (require 'squeeze-view)                ;; squeeze view, give yourself a write-room/typewriter like writing page
 (require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
 (require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
-(require 'hexrgb)                      ;; hexrgb functions - my version is modified, lives in /plugins/
+(require 'hexrgb)
 (require 'liquid-mode)
 
 (setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
@@ -280,7 +274,7 @@
 (set-face-attribute 'default nil :height 140)
 
 (require 'w3m)
-(require 'mainline)
+(require 'main-line)
 
 (setq mainline-arrow-shape 'slant-left)
 
