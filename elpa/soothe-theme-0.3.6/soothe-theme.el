@@ -1,9 +1,19 @@
 ;;; soothe-theme.el --- a dark colorful theme for Emacs24.
 ;;; Author: Jason Milkins <jasonm23@gmail.com>
 ;;; Url: https://github.com/jasonm23/emacs-soothe-theme
-;;; Version: 0.3.5
+;;; Version: 0.3.6
 ;;;
 ;;; Changelog:
+;;; 0.3.6 : beginning work on additional mode support
+;;;       : added git-gutter
+;;;       : added dropdown-list
+;;;       : added stubs/extention lists for guns, rcirc, message
+;;;       :       ido + magit (more),
+;;;       :       ac, compilation,
+;;;       :       dired, diff, iedit,
+;;;       :       cua, change, Man, woman,
+;;;       :       commint, info, custom, popup
+;;;       :       widget, whitespace, w3m, more...
 ;;; 0.3.5 : bugfix
 ;;; 0.3.4 : added support for main-line and flymake
 ;;; 0.3.0 : cleaned up for elpa
@@ -156,6 +166,107 @@
    `(mode-line                                 ((t (:foreground ,gray-2      :background ,gray-3bg  :box nil :height 85 ))))
    `(mode-line-inactive                        ((t (:foreground ,gray-6      :background ,gray-3bg  :box nil :height 85 ))))
    `(vertical-border                           ((t (:foreground ,gray-4      :background ,background                    ))))
+
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; Compilation mode
+   ;; `(compilation-column-number              ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(compilation-error                      ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(compilation-info                       ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(compilation-line-number                ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(compilation-mode-line-exit             ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(compilation-mode-line-fail             ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(compilation-mode-line-run              ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(compilation-warning                    ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(completions-annotations                ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(completions-common-part                ((t (:foreground ,foam        :background ,background                    )))) 
+   ;; `(completions-first-difference           ((t (:foreground ,foam        :background ,background                    )))) 
+
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; Auto Complete - preparation for theming
+   ;; `(ac-candidate-face           ((t (:foreground ,background :background ,foam )))) 
+   ;; `(ac-candidate-mouse-face     ((t (:foreground ,background :background ,foam )))) 
+   ;; `(ac-completion-face          ((t (:foreground ,background :background ,foam )))) 
+   ;; `(ac-gtags-candidate-face     ((t (:foreground ,background :background ,foam )))) 
+   ;; `(ac-gtags-selection-face     ((t (:foreground ,background :background ,foam )))) 
+   ;; `(ac-selection-face           ((t (:foreground ,background :background ,foam )))) 
+   ;; `(ac-yasnippet-candidate-face ((t (:foreground ,background :background ,foam )))) 
+   ;; `(ac-yasnippet-selection-face ((t (:foreground ,background :background ,foam )))) 
+
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; Dired
+   ;; dired-directory
+   ;; dired-flagged
+   ;; dired-header
+   ;; dired-ignored
+   ;; dired-mark
+   ;; dired-marked
+   ;; dired-perm-write
+   ;; dired-symlink
+   ;; dired-warning
+
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; Gnus
+
+   ;; gnus-group-mail-1
+   ;; gnus-group-mail-1-empty
+   ;; gnus-group-mail-2
+   ;; gnus-group-mail-2-empty
+   ;; gnus-group-mail-3
+   ;; gnus-group-mail-3-empty
+   ;; gnus-group-mail-low
+   ;; gnus-group-mail-low-empty
+   ;; gnus-group-news-1
+   ;; gnus-group-news-1-empty
+   ;; gnus-group-news-2
+   ;; gnus-group-news-2-empty
+   ;; gnus-group-news-3
+   ;; gnus-group-news-3-empty
+   ;; gnus-group-news-4
+   ;; gnus-group-news-4-empty
+   ;; gnus-group-news-5
+   ;; gnus-group-news-5-empty
+   ;; gnus-group-news-6
+   ;; gnus-group-news-6-empty
+   ;; gnus-group-news-low
+   ;; gnus-group-news-low-empty
+   ;; gnus-splash
+   ;; gnus-summary-cancelled
+   ;; gnus-summary-high-ancient
+   ;; gnus-summary-high-read
+   ;; gnus-summary-high-ticked
+   ;; gnus-summary-high-undownloaded
+   ;; gnus-summary-high-unread
+   ;; gnus-summary-low-ancient
+   ;; gnus-summary-low-read
+   ;; gnus-summary-low-ticked
+   ;; gnus-summary-low-undownloaded
+   ;; gnus-summary-low-unread
+   ;; gnus-summary-normal-ancient
+   ;; gnus-summary-normal-read
+   ;; gnus-summary-normal-ticked
+   ;; gnus-summary-normal-undownloaded
+   ;; gnus-summary-normal-unread
+   ;; gnus-summary-selected
+
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; Diff
+   ;; diff-added
+   ;; diff-changed
+   ;; diff-context   
+   ;; diff-file-header
+   ;; diff-function
+   ;; diff-header
+   ;; diff-hunk-header
+   ;; diff-index
+   ;; diff-indicator-added
+   ;; diff-indicator-changed
+   ;; diff-indicator-removed
+   ;; diff-nonexistent
+   ;; diff-refine-added
+   ;; diff-refine-change
+   ;; diff-refine-removed
+   ;; diff-removed
+
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; Linum
    `(linum                                     ((t (:foreground ,gray-5bg    :background ,alt-background :height 90     ))))
@@ -167,6 +278,11 @@
    ;; ido
    `(ido-only-match                            ((t (:foreground ,green-1     :background ,green-1bg                     ))))
    `(ido-subdir                                ((t (:foreground ,purple-1    :background ,purple-1bg                    ))))
+
+  ;; ido-first-match
+  ;; ido-incomplete-regexp
+  ;; ido-indicator
+  ;; ido-virtual
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; whitespace-mode
    `(whitespace-empty                          ((t (:foreground ,yellow-1    :background ,turquoise-2bg                 ))))
@@ -187,10 +303,54 @@
    `(flymake-errline                           ((t (:underline ,red-2                                                   ))))
    `(flymake-warnline                          ((t (:underline ,green-2                                                 ))))
    ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; dropdown-list
+   `(dropdown-list-selection-face              ((t (:foreground ,foam        :background ,purple-1bg                    ))))
+   `(dropdown-list-face                        ((t (:foreground ,background  :background ,foam                          ))))
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; git gutter mode
+   `(git-gutter:added                          ((t (:foreground ,green-1     :background ,green-2bg                     ))))
+   `(git-gutter:deleted                        ((t (:foreground ,red-1       :background ,red-1bg                       ))))
+   `(git-gutter:modified                       ((t (:foreground ,purple-1    :background ,purple-1bg                    ))))
+   `(git-gutter:unchanged                      ((t (                         :background ,yellow-1bg                    ))))
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; 
+   ;;-----------------------------------------------------------------------------------------------------------------------
    ;; magit
    `(magit-diff-add                            ((t (:foreground ,green-1                                                ))))
    `(magit-diff-del                            ((t (:foreground ,red-2                                                  ))))
    `(magit-item-highlight                      ((t (                         :background ,gray-1bg                      ))))
+
+   ;; Preparation for extended magit mode theming
+   ;; `(magit-branch 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-whitespace-warning-face      ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-section-title                ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-header                       ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-item-mark                    ((t (:foreground ,foam        :background ,background       ))))
+   ;;                                            
+   ;; `(magit-diff-hunk-header 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-diff-merge-proposed 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-diff-none 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-diff-file-header             ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-diff-merge-current           ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-diff-merge-separator         ((t (:foreground ,foam        :background ,background       ))))
+   ;;                                            
+   ;; `(magit-log-author 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-graph 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-head-label-bisect-good 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-head-label-local 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-head-label-remote 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-message 	 ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-date                     ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-head-label-bisect-bad    ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-head-label-default       ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-head-label-patches       ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-head-label-tags          ((t (:foreground ,foam        :background ,background       ))))
+   ;; `(magit-log-sha1                     ((t (:foreground ,foam        :background ,background       ))))
+
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; iedit-occurrence
+   ;; iedit-read-only-occurrence
+ 
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; highlight-indentation-mode
    `(highlight-indentation-face                ((t (                         :background ,background-dark               ))))
@@ -214,8 +374,6 @@
   (custom-theme-set-variables
    'soothe
 
-   `(powerline-color1 ,gray-6)
-   `(powerline-color2 ,gray-3bg)
    `(main-line-color1 ,gray-6)
    `(main-line-color2 ,gray-3bg)
    `(Linum-format "%7i ")
@@ -257,5 +415,306 @@
 
 (provide-theme 'soothe)
 
-;;; soothe-theme.el ends here
+;;; List of themes to include...
 
+;;; Man-overstrike
+;;; Man-reverse
+;;; Man-underline
+
+;;; bold
+;;; bold-italic
+;;; border
+;;; buffer-menu-buffer
+;;; button
+
+;;; c-annotation-face
+
+;;; change-log-acknowledgment
+;;; change-log-conditionals
+;;; change-log-date
+;;; change-log-email
+;;; change-log-file
+;;; change-log-function
+;;; change-log-list
+;;; change-log-name
+
+;;; comint-highlight-input
+;;; comint-highlight-prompt
+
+;;; completions-annotations
+;;; completions-common-part
+;;; completions-first-difference
+
+;;; cua-global-mark
+;;; cua-rectangle
+;;; cua-rectangle-noselect
+
+;;; custom-button
+;;; custom-button-mouse
+;;; custom-button-pressed
+;;; custom-button-pressed-unraised
+;;; custom-button-unraised
+;;; custom-changed
+;;; custom-comment
+;;; custom-comment-tag
+;;; custom-documentation
+;;; custom-face-tag
+;;; custom-group-subtitle
+;;; custom-group-tag
+;;; custom-group-tag-1
+;;; custom-invalid
+;;; custom-link
+;;; custom-modified
+;;; custom-rogue
+;;; custom-saved
+;;; custom-set
+;;; custom-state
+;;; custom-themed
+;;; custom-variable-button
+;;; custom-variable-tag
+;;; custom-visibility
+
+;;; ecb-default-general-face
+;;; ecb-default-highlight-face
+;;; ecb-method-face
+;;; ecb-tag-header-face
+
+;;; error
+;;; escape-glyph
+;;; file-name-shadow
+;;; fixed-pitch
+
+;;; glyphless-char
+
+;;; header-line
+;;; help-argument-name
+
+;;; hi-black-b
+;;; hi-black-hb
+;;; hi-blue
+;;; hi-blue-b
+;;; hi-green
+;;; hi-green-b
+;;; hi-pink
+;;; hi-red-b
+;;; hi-yellow
+
+;;; hideshowvis-hidable-face
+
+;;; highlight
+;;; highlight-changes
+;;; highlight-changes-delete
+;;; highlight-indentation-current-column-face
+;;; highlight-indentation-face
+
+;;; hl-line
+
+;;; hs-face
+;;; hs-fringe-face
+
+;;; info-header-node
+;;; info-header-xref
+;;; info-menu-header
+;;; info-menu-star
+;;; info-node
+;;; info-title-1
+;;; info-title-2
+;;; info-title-3
+;;; info-title-4
+;;; info-xref
+;;; info-xref-visited
+
+;;; isearch
+;;; isearch-fail
+
+;;; italic
+
+;;; lazy-highlight
+
+;;; link
+;;; link-visited
+
+;;; log-edit-header
+;;; log-edit-summary
+;;; log-edit-unknown-header
+
+;;; mac-ts-caret-position
+;;; mac-ts-converted-text
+;;; mac-ts-raw-text
+;;; mac-ts-selected-converted-text
+
+;;; main-line-#141414-white
+;;; main-line-#202020-white
+
+;;; match
+;;; menu
+
+;;; message-cited-text
+;;; message-header-cc
+;;; message-header-name
+;;; message-header-newsgroups
+;;; message-header-other
+;;; message-header-subject
+;;; message-header-to
+;;; message-header-xheader
+;;; message-mml
+;;; message-separator
+
+;;; minibuffer-prompt
+
+;;; mode-line
+;;; mode-line-buffer-id
+;;; mode-line-emphasis
+;;; mode-line-highlight
+;;; mode-line-inactive
+
+;;; mouse
+
+;;; next-error
+
+;;; nobreak-space
+
+;;; org-date
+;;; org-done
+;;; org-hide
+;;; org-link
+;;; org-todo
+
+;;; popup-face
+;;; popup-isearch-match
+;;; popup-menu-face
+;;; popup-menu-mouse-face
+;;; popup-menu-selection-face
+;;; popup-menu-summary-face
+;;; popup-scroll-bar-background-face
+;;; popup-scroll-bar-foreground-face
+;;; popup-summary-face
+;;; popup-tip-face
+
+;;; powerline-active1
+;;; powerline-active2
+;;; powerline-inactive1
+;;; powerline-inactive2
+
+;;; proced-mark
+;;; proced-marked
+;;; proced-sort-header
+
+;;; query-replace
+
+;;; rcirc-bright-nick
+;;; rcirc-dim-nick
+;;; rcirc-keyword
+;;; rcirc-my-nick
+;;; rcirc-nick-in-message
+;;; rcirc-nick-in-message-full-line
+;;; rcirc-other-nick
+;;; rcirc-prompt
+;;; rcirc-server
+;;; rcirc-server-prefix
+;;; rcirc-timestamp
+;;; rcirc-track-keyword
+;;; rcirc-track-nick
+;;; rcirc-url
+
+;;; rst-adornment
+;;; rst-block
+;;; rst-comment
+;;; rst-definition
+;;; rst-directive
+;;; rst-emphasis1
+;;; rst-emphasis2
+;;; rst-external
+;;; rst-level-1
+;;; rst-level-2
+;;; rst-level-3
+;;; rst-level-4
+;;; rst-level-5
+;;; rst-level-6
+;;; rst-literal
+;;; rst-reference
+;;; rst-transition
+
+;;; scroll-bar
+
+;;; secondary-selection
+;;; shadow
+
+;;; show-paren-match
+;;; show-paren-mismatch
+
+;;; speedbar-button-face
+;;; speedbar-directory-face
+;;; speedbar-file-face
+;;; speedbar-highlight-face
+;;; speedbar-selected-face
+;;; speedbar-separator-face
+;;; speedbar-tag-face
+
+;;; success
+
+;;; tool-bar
+
+;;; tooltip
+
+;;; trailing-whitespace
+
+;;; underline
+
+;;; variable-pitch
+
+;;; vertical-border
+
+;;; w3m-anchor
+;;; w3m-arrived-anchor
+;;; w3m-bold
+;;; w3m-current-anchor
+;;; w3m-form-button
+;;; w3m-form-button-mouse
+;;; w3m-form-button-pressed
+;;; w3m-header-line-location-content
+;;; w3m-header-line-location-title
+;;; w3m-history-current-url
+;;; w3m-image
+;;; w3m-image-anchor
+;;; w3m-insert
+;;; w3m-italic
+;;; w3m-strike-through
+;;; w3m-tab-background
+;;; w3m-tab-mouse
+;;; w3m-tab-selected
+;;; w3m-tab-selected-background
+;;; w3m-tab-selected-retrieving
+;;; w3m-tab-unselected
+;;; w3m-tab-unselected-retrieving
+;;; w3m-tab-unselected-unseen
+;;; w3m-underline
+
+;;; warning
+
+;;; whitespace-empty
+;;; whitespace-hspace
+;;; whitespace-indentation
+;;; whitespace-line
+;;; whitespace-newline
+;;; whitespace-space
+;;; whitespace-space-after-tab
+;;; whitespace-tab
+;;; whitespace-trailing
+
+;;; widget-button
+;;; widget-button-pressed
+;;; widget-documentation
+;;; widget-field
+;;; widget-inactive
+;;; widget-single-line-field
+
+;;; woman-addition
+;;; woman-bold
+;;; woman-italic
+;;; woman-unknown
+
+;;; yas--field-debug-face
+;;; yas-field-highlight-face
+
+;;; soothe-theme.el ends here
