@@ -57,6 +57,8 @@
 
 ;; Rainbow mode for css automatically
 (add-hook 'css-mode-hook 'rainbow-mode)
+
+;; Rainbow delimiters for all prog modes
 (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
 
 ;; Git gutter global mode
@@ -77,12 +79,13 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; allow "restricted" features
-(put 'set-goal-column  'disabled nil)
-(put 'erase-buffer     'disabled nil)
-(put 'downcase-region  'disabled nil)
-(put 'upcase-region    'disabled nil)
-(put 'narrow-to-region 'disabled nil)
-(put 'narrow-to-page   'disabled nil)
+(put 'set-goal-column           'disabled nil)
+(put 'erase-buffer              'disabled nil)
+(put 'downcase-region           'disabled nil)
+(put 'upcase-region             'disabled nil)
+(put 'narrow-to-region          'disabled nil)
+(put 'narrow-to-page            'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
 
 ;; nxml mode init
 (add-hook 'nxml-mode-hook (lambda ()
@@ -205,6 +208,7 @@
 (require 'auto-complete-config)        ;; Very nice autocomplete.
 (ac-config-default)
 
+(require 'dropdown-list)               ;; dropdown list for use with yasnippet
 (require 'switch-window)               ;; Select windows by number.
 (require 'resize-window)               ;; interactively size window
 (require 'highlight-indentation)       ;; visual guides for indentation
@@ -276,9 +280,6 @@
 (require 'w3m)
 (require 'main-line)
 
-(setq mainline-arrow-shape 'slant-left)
+(setq main-line-separator-style 'zigzag-left)
 
-(require 'rainbow-mode) ;; temporarily rolling back to 0.6 as 0.7 is broken.
 (require 'handy-functions) ;; my lab area for little defuns...
-
-(put 'dired-find-alternate-file 'disabled nil)

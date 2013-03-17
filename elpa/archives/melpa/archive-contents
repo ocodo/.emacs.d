@@ -120,7 +120,7 @@
 	[(20130114 1335)
 	 nil "Writable grep buffer and apply the changes to files [source: github]" single])
  (weechat .
-	  [(20130315 926)
+	  [(20130316 1636)
 	   nil "No description available. [source: github]" tar])
  (websocket .
 	    [(20130123 2144)
@@ -508,7 +508,7 @@
 	      [(20100703 1358)
 	       nil "major mode for editing smarty templates [source: github]" single])
  (smartrep .
-	   [(20120905 2101)
+	   [(20130312 1839)
 	    nil "Support sequential operation which omitted prefix keys. [source: github]" single])
  (smartparens .
 	      [(20130315 2109)
@@ -722,7 +722,7 @@
 	  [(20130305 10)
 	   nil "Compatible layer for URL request in Emacs [source: github]" tar])
  (replace-from-region .
-		      [(20130130 117)
+		      [(20130316 2304)
 		       nil "Replace commands whose query is from region [source: wiki]" single])
  (regex-tool .
 	     [(20120510 209)
@@ -1218,8 +1218,8 @@
 	       [(20120927 1839)
 		nil "mapping macros that report progress [source: github]" tar])
  (mainline .
-	   [(20130313 1347)
-	    nil "modeline replacement forked from powerline.el [source: github]" single])
+	   [(20130317 953)
+	    nil "modeline replacement forked from an early version of powerline.el [source: github]" single])
  (magnet .
 	 [(20121107 1805)
 	  nil "one config and one data directory for Emacs [source: github]" single])
@@ -1246,7 +1246,7 @@
 			       [(20121223 154)
 				nil "Advice for magit-log-edit-commit [source: github]" single])
  (magit .
-	[(20130304 2017)
+	[(20130316 2111)
 	 nil "Control Git from Emacs. [source: github]" tar])
  (mag-menu .
 	   [(20130224 56)
@@ -1260,7 +1260,7 @@
 	     [(20090309 1715)
 	      nil "in-buffer mathematical operations [source: github]" single])
  (lua-mode .
-	   [(20130315 821)
+	   [(20130317 124)
 	    nil "a major-mode for editing Lua scripts [source: github]" single])
  (lorem-ipsum .
 	      [(20051013 1756)
@@ -1539,7 +1539,7 @@
 		[(20130204 1653)
 		 nil "Major mode API client for status.net open microblogging [source: github]" tar])
  (icicles .
-	  [(20130316 8)
+	  [(20130317 54)
 	   nil "Minibuffer input completion and cycling. [source: wiki]" tar])
  (ibuffer-vc .
 	     [(20121217 826)
@@ -2051,7 +2051,7 @@
 	       [(20121109 238)
 		nil "increment/decrement numbers like in vim [source: github]" single])
  (evil-leader .
-	      [(20130316 333)
+	      [(20130316 1414)
 	       ((evil
 		 (0)))
 	       "let there be <leader> [source: github]" single])
@@ -2131,7 +2131,7 @@
 		  [(20100717 958)
 		   nil "Add score support to tracked channel buffers [source: git]" single])
  (erc-image .
-	    [(20130315 1538)
+	    [(20130316 1929)
 	     ((erc
 	       (5 3)))
 	     "Show received image urls in the ERC buffer [source: github]" single])
@@ -2355,7 +2355,7 @@
 	 [(20130206 1702)
 	  nil "Extensions to Dired. [source: wiki]" single])
  (dircmp .
-	 [(20130312 1331)
+	 [(20130316 1327)
 	  nil "Compare and sync directories. [source: github]" tar])
  (diminish .
 	   [(20091203 1912)
