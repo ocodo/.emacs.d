@@ -1,9 +1,14 @@
 ;;; soothe-theme.el --- a dark colorful theme for Emacs24.
 ;;; Author: Jason Milkins <jasonm23@gmail.com>
 ;;; Url: https://github.com/jasonm23/emacs-soothe-theme
-;;; Version: 0.3.7
+;;; Version: 0.3.8
 ;;;
 ;;; Changelog:
+;;; 0.3.8 : Added support for isearch
+;;;       : Additional support for mode-line
+;;;       : modified main-line colors
+;;;       : modified link / link-visited
+;;;       : added tooltip face
 ;;; 0.3.7 : extended magit support
 ;;;       : added iedit support
 ;;;       : added CUA support
@@ -180,10 +185,21 @@
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; UI related
    `(link                                      ((t (:foreground ,blue-1      :background ,blue-1bg                      ))))
+   `(link-visited                              ((t (:foreground ,blue-3      :background ,blue-4bg                      ))))
    `(fringe                                    ((t (                         :background ,gray-3bg                      ))))
-   `(mode-line                                 ((t (:foreground ,gray-2      :background ,gray-3bg  :box nil :height 85 ))))
-   `(mode-line-inactive                        ((t (:foreground ,gray-6      :background ,gray-3bg  :box nil :height 85 ))))
    `(vertical-border                           ((t (:foreground ,gray-4      :background ,background                    ))))
+   `(mode-line                                 ((t (:foreground ,gray-2      :background ,gray-3bg  :box nil :height 85 ))))
+   `(mode-line-inactive                        ((t (:foreground ,gray-5      :background ,gray-2bg  :box nil :height 85 ))))
+   `(mode-line-highlight                       ((t (:box nil))))
+   ;; mode-line-buffer-id
+   ;; mode-line-emphasis
+   ;; mode-line-inactive
+
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; isearch
+   `(isearch                                   ((t (:foreground ,foam        :background ,purple-3                      )))) 
+   `(isearch-fail                              ((t (:foreground ,foam        :background ,red-4                         ))))
+   `(lazy-highlight                            ((t (:foreground ,purple-1    :background ,green-2bg                     ))))
 
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; Compilation mode
@@ -202,16 +218,18 @@
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; Auto Complete
    ;;
-   `(ac-selection-face           ((t (:foreground ,dirty-crem :background ,dirty-crem-bg )))) 
-   `(ac-candidate-face           ((t (:foreground ,background :background ,dirty-crem )))) 
-   `(ac-yasnippet-candidate-face ((t (:foreground ,background :background ,green-2 ))))
-   `(ac-yasnippet-selection-face ((t (:foreground ,foam       :background ,dirty-crem-bg )))) 
-   `(ac-gtags-candidate-face     ((t (:foreground ,background :background ,purple-3 )))) 
-   `(ac-gtags-selection-face     ((t (:foreground ,dirty-crem :background ,dirty-crem-bg )))) 
-   `(ac-candidate-mouse-face     ((t (:foreground ,foam       :background ,turquoise-1 )))) 
-   `(ac-completion-face          ((t (:foreground ,snow-code  :background ,purple-3bg :underline t )))) 
+   `(ac-selection-face                         ((t (:foreground ,dirty-crem  :background ,dirty-crem-bg                 )))) 
+   `(ac-candidate-face                         ((t (:foreground ,background  :background ,dirty-crem                    )))) 
+   `(ac-yasnippet-candidate-face               ((t (:foreground ,background  :background ,green-2                       ))))
+   `(ac-yasnippet-selection-face               ((t (:foreground ,foam        :background ,dirty-crem-bg                 )))) 
+   `(ac-gtags-candidate-face                   ((t (:foreground ,background  :background ,purple-3                      )))) 
+   `(ac-gtags-selection-face                   ((t (:foreground ,dirty-crem  :background ,dirty-crem-bg                 )))) 
+   `(ac-candidate-mouse-face                   ((t (:foreground ,foam        :background ,turquoise-1                   )))) 
+   `(ac-completion-face                        ((t (:foreground ,snow-code   :background ,purple-3bg :underline t       )))) 
    ;; used by AC
    `(popup-tip-face                            ((t (:foreground ,dirty-crem  :background ,dirty-crem-bg                 ))))
+   `(tooltip                                   ((t (:foreground ,dirty-crem-bg  :background ,dirty-crem :height 110 ))))
+
    ;;; popup-face
    ;;; popup-isearch-match
    ;;; popup-menu-face
@@ -298,7 +316,7 @@
 
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; Linum
-   `(linum                                     ((t (:foreground ,gray-5bg    :background ,alt-background :height 90     ))))
+   `(linum                                     ((t (:foreground ,dirty-crem-bg :background ,alt-background :height 90     ))))
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; show-paren-mode
    `(show-paren-match                          ((t (:foreground ,foam        :background ,red-1bg                       ))))
@@ -399,8 +417,8 @@
   (custom-theme-set-variables
    'soothe
 
-   `(main-line-color1 ,gray-6)
-   `(main-line-color2 ,gray-3bg)
+   `(main-line-color1 ,purple-1bg)
+   `(main-line-color2 ,gray-2bg)
    `(Linum-format "%7i ")
    `(fringe-mode 4)
 
@@ -545,9 +563,6 @@
 ;;; info-xref
 ;;; info-xref-visited
 
-;;; isearch
-;;; isearch-fail
-
 ;;; italic
 
 ;;; lazy-highlight
@@ -563,9 +578,6 @@
 ;;; mac-ts-converted-text
 ;;; mac-ts-raw-text
 ;;; mac-ts-selected-converted-text
-
-;;; main-line-#141414-white
-;;; main-line-#202020-white
 
 ;;; match
 ;;; menu
@@ -583,11 +595,6 @@
 
 ;;; minibuffer-prompt
 
-;;; mode-line
-;;; mode-line-buffer-id
-;;; mode-line-emphasis
-;;; mode-line-highlight
-;;; mode-line-inactive
 
 ;;; mouse
 
@@ -600,7 +607,6 @@
 ;;; org-hide
 ;;; org-link
 ;;; org-todo
-
 
 ;;; powerline-active1
 ;;; powerline-active2
@@ -666,7 +672,6 @@
 
 ;;; tool-bar
 
-;;; tooltip
 
 ;;; trailing-whitespace
 
