@@ -264,7 +264,7 @@
 	   [(20130129 1533)
 	    nil "Major mode for editing files for Tup [source: github]" single])
  (tumblesocks .
-	      [(20121217 1728)
+	      [(20130317 38)
 	       ((htmlize
 		 (1 39))
 		(oauth
@@ -939,7 +939,7 @@
 	    (0 1 1)))
 	  "A package manager for Emacs, using Carton. [source: github]" tar])
  (page-break-lines .
-		   [(20130201 1817)
+		   [(20130317 852)
 		    nil "Display ugly ^L page breaks as tidy horizontal lines [source: github]" single])
  (packed .
 	 [(20130127 419)
@@ -1218,7 +1218,7 @@
 	       [(20120927 1839)
 		nil "mapping macros that report progress [source: github]" tar])
  (mainline .
-	   [(20130317 953)
+	   [(20130317 1521)
 	    nil "modeline replacement forked from an early version of powerline.el [source: github]" single])
  (magnet .
 	 [(20121107 1805)
@@ -1427,7 +1427,7 @@
 		[(20121004 1726)
 		 nil "Watch continuous integration build status [source: github]" single])
  (jedi .
-       [(20130314 1645)
+       [(20130315 1610)
 	((epc
 	  (0 1 0))
 	 (auto-complete
@@ -1672,7 +1672,7 @@
 	    (20120509)))
 	  "helm-sources and some utilities for GNU R. [source: github]" single])
  (helm .
-       [(20130313 2255)
+       [(20130317 823)
 	nil "Helm is an Emacs incremental and narrowing framework [source: github]" tar])
  (header2 .
 	  [(20121228 2051)
@@ -1801,7 +1801,7 @@
 		       (0 1 1)))
 		     "Fringe version of git-gutter.el [source: github]" single])
  (git-gutter .
-	     [(20130316 1312)
+	     [(20130317 1110)
 	      nil "Port of Sublime Text plugin GitGutter [source: github]" single])
  (git-dwim .
 	   [(20130130 2150)

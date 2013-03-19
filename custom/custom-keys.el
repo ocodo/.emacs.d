@@ -4,6 +4,7 @@
 ;; (takes care of conditional loading itself.)
 ;; Brings the Emacs mac key bindings (closer) into line with Emacs Cocoa.
 (require 'mac-port-keys)
+(require 'custom-mac-fn-keys)
 
 ;; Keys - universal 
 
