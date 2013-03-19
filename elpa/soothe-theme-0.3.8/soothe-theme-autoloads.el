@@ -3,7 +3,7 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "soothe-theme" "soothe-theme.el" (20808 19656
+;;;### (autoloads nil "soothe-theme" "soothe-theme.el" (20808 24674
 ;;;;;;  0 0))
 ;;; Generated autoloads from soothe-theme.el
 
@@ -11,7 +11,7 @@
 
 ;;;***
 
-;;;### (autoloads nil nil ("soothe-theme-pkg.el") (20808 19657 23944
+;;;### (autoloads nil nil ("soothe-theme-pkg.el") (20808 24674 833057
 ;;;;;;  0))
 
 ;;;***
