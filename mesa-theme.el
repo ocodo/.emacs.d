@@ -5,8 +5,8 @@
  'mesa
  '(fringe-mode 6 nil (fringe) )
  '(linum-format     " %7d "   )
- '(powerline-color1 "grey40"  )
- '(powerline-color2 "grey50"  )
+ '(main-line-color1 "grey40"  )
+ '(main-line-color2 "grey50"  )
  )
 
 ;; Comment
