@@ -246,8 +246,8 @@
 
   ;; GNU Linux (Droid or Vera)
   (when (eq system-type 'gnu/linux)
-    ;; (set-face-font 'default "Droid Sans Mono") ;; for quick swapping.
-    (set-face-font 'default "Bitstream Vera Sans Mono")
+    (set-face-font 'default "Droid Sans Mono") ;; for quick swapping.
+    ;; (set-face-font 'default "Bitstream Vera Sans Mono")
     )
 )
 
@@ -272,6 +272,6 @@
 (require 'w3m)
 (require 'main-line)
 
-(setq main-line-separator-style 'zigzag-left)
+(setq main-line-separator-style 'wave)
 
 (require 'handy-functions) ;; my lab area for little defuns...
