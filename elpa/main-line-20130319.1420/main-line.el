@@ -1,10 +1,11 @@
 ;;; main-line.el --- modeline replacement forked from an early version of powerline.el
 ;;;
 ;;; Author: Jason Milkins
-;;; Version: 1.2.5
+;;; Version: 1.2.6
 ;;; Keywords: statusline / modeline
 ;;; Url: https://github.com/jasonm23/emacs-mainline
 ;;; Changelog:
+;;; 1.2.6 : fixed rounded xpm
 ;;; 1.2.5 : shrunk percent xpm to 3x14 - added roundstub, roundstub-left, roundstub-right
 ;;; 1.2.4 : added separator style, contour, contour-left & contour-right, resized brace to 19px
 ;;; 1.2.3 : added separator style, brace
@@ -783,8 +784,7 @@ static char * curve_right[] = {
 \"  c %s\",
 \"           @\",
 \"         @@@\",
-\"         @@@\",
-\"       @@@@@\",
+\"        @@@@\",
 \"       @@@@@\",
 \"       @@@@@\",
 \"      @@@@@@\",
@@ -793,10 +793,11 @@ static char * curve_right[] = {
 \"      @@@@@@\",
 \"      @@@@@@\",
 \"      @@@@@@\",
+\"      @@@@@@\",
+\"      @@@@@@\",
 \"       @@@@@\",
 \"       @@@@@\",
-\"       @@@@@\",
-\"         @@@\",
+\"        @@@@\",
 \"         @@@\",
 \"           @\"};"
            (if color2 color2 "None")
@@ -814,8 +815,7 @@ static char * curve_left[] = {
 \"  c %s\",
 \"@           \",
 \"@@@         \",
-\"@@@         \",
-\"@@@@@       \",
+\"@@@@        \",
 \"@@@@@       \",
 \"@@@@@       \",
 \"@@@@@@      \",
@@ -824,10 +824,11 @@ static char * curve_left[] = {
 \"@@@@@@      \",
 \"@@@@@@      \",
 \"@@@@@@      \",
+\"@@@@@@      \",
+\"@@@@@@      \",
 \"@@@@@       \",
 \"@@@@@       \",
-\"@@@@@       \",
-\"@@@         \",
+\"@@@@        \",
 \"@@@         \",
 \"@           \"};"
            (if color1 color1 "None")

@@ -1,222 +1,142 @@
-/* Extracted and interpreted from adcstyle.css and frameset_styles.css */
+@import url(http://fonts.googleapis.com/css?family=Vollkorn:400,400italic,700,700italic&subset=latin);
 
-/* body */
+html, body {
+        padding:1em;
+        margin:auto;
+        max-width:42em;
+        background:#fefefe;
+	}
 body {
-	margin: 20px auto;
-    width: 800px;
-	background-color: #fff;
-	color: #000;
-	font: 13px "Myriad Pro", "Lucida Grande", Lucida, Verdana, sans-serif;
-}
+	font: 1.3em "Vollkorn", Palatino, Times;
+	color: #333;
+	line-height: 1.4;
+	text-align: justify;
+	}
+header, nav, article, footer {
+	width: 700px;
+	margin:0 auto;
+	}
+article {
+	margin-top: 4em;
+	margin-bottom: 4em;
+	min-height: 400px;
+	}
+footer {
+	margin-bottom:50px;
+	}
+video {
+	margin: 2em 0;
+	border:1px solid #ddd;
+	}
 
-/* links */
-a:link {
-	color: #00f;
-	text-decoration: none;
-}
-
-a:visited {
-	color: #00a;
-	text-decoration: none;
-}
-
-a:hover {
-	color: #f60;
-	text-decoration: underline;
-}
-	
-a:active {
-	color: #f60;
-	text-decoration: underline;
-}
-
-
-/* html tags */
-
-/*  Work around IE/Win code size bug - courtesy Jesper, waffle.wootest.net  */
-
-* html code	{
-	font-size: 101%;
-}
-
-* html pre {
-	font-size: 101%;
-}
-
-/* code */
-
-pre, code {
-	font-size: 11px; font-family: monaco, courier, consolas, monospace;
-}
-
-pre {
-	margin-top: 5px;
-	margin-bottom: 10px;
-	border: 1px solid #c7cfd5;
-	background: #f1f5f9;
-	margin: 20px 0;
-	padding: 8px;
-	text-align: left;
-}
-
-hr {
-	color: #919699;
-	size: 1;
-	width: 100%;
-	noshade: "noshade"
-}
-
-/* headers */
-
-
-h1, h2, h3, h4, h5, h6 {
-	font-family: "Myriad Pro", "Lucida Grande", Lucida, Verdana, sans-serif;
-	font-weight: bold;
-}
-
-h1	{
-	margin-top: 1em;
-	margin-bottom: 25px;
-	color: #000;
-	font-weight: bold;
-	font-size: 30px;
-}
-h2	{
-	margin-top: 2.5em;
-	font-size: 24px;
-	color: #000;
-	padding-bottom: 2px;
-	border-bottom: 1px solid #919699;
-}
-h3	{
-	margin-top: 2em;
-	margin-bottom: .5em;
-	font-size: 17px;
-	color: #000;
-}
-h4	{
-	margin-top: 2em;
-	margin-bottom: .5em;
-	font-size: 15px;
-	color: #000;
-}
-h5	{
-	margin-top: 20px;
-	margin-bottom: .5em;
-    padding: 0;
-	font-size: 13px;
-	color: #000;
-}
-
-h6	{
-	margin-top: 20px;
-	margin-bottom: .5em;
-    padding: 0;
-	font-size: 11px;
-	color: #000;
-}
-
-p {
-    margin-top: 0px;
-    margin-bottom: 10px;
-}
-
-/* lists */
-
-ul	{
-	list-style: square outside;
-	margin: 0 0 0 30px;
-	padding: 0 0 12px 6px;
-}
-
-li	{
-	margin-top: 7px;
-}
-	        
-ol {
-	list-style-type: decimal;
-	list-style-position: outside;
-	margin: 0 0 0 30px;
-	padding: 0 0 12px 6px;
-}
-	
-ol ol {
-	list-style-type: lower-alpha;
-    list-style-position: outside;
-	margin: 7px 0 0 30px;
-	padding: 0 0 0 10px;
-    }
-
-ul ul {
-	margin-left: 40px;
-	padding: 0 0 0 6px;
-}
-
-li>p { display: inline }
-li>p+p { display: block }
-li>a+p { display: block }
-
-
-/* table */
-
-table {
-    width: 100%;
-	border-top: 1px solid #919699;
-	border-left: 1px solid #919699;
-	border-spacing: 0;
-}
-	
-table th {
-	padding: 4px 8px 4px 8px;
-	background: #E2E2E2;
-	font-size: 12px;
-	border-bottom: 1px solid #919699;
-	border-right: 1px solid #919699;
-}
-table th p {
-	font-weight: bold;
-	margin-bottom: 0px; 
-}
-	
-table td {
-	padding: 8px;
-	font-size: 12px;
-	vertical-align: top;
-	border-bottom: 1px solid #919699;
-	border-right: 1px solid #919699;
-}
-table td p {
-	margin-bottom: 0px; 
-}
-table td p + p  {
-	margin-top: 5px; 
-}
-table td p + p + p {
-	margin-top: 5px; 
-}
-
-/* forms */
-
-form {
+nav {
+	font-size: .9em;
+	font-style: italic;
+	border-bottom: 1px solid #ddd;
+	padding: 1em 0;
+	}
+nav p {
 	margin: 0;
-}
+	}
 
-button {
-	margin: 3px 0 10px 0;
-}
-input {
-	vertical-align: middle;
-	padding: 0;
-	margin: 0 0 5px 0;
-}
+/* Typography
+-------------------------------------------------------- */
 
-select {
-	vertical-align: middle;
-	padding: 0;
-	margin: 0 0 3px 0;
-}
+h1 {
+	margin-top: 0;
+	font-weight: normal;
+	}
+h2 {
+	font-weight: normal;
+	}
+h3 {
+	font-weight: normal;
+	font-style: italic;
+	margin-top:3em;
+	}
+p {
+	margin-top:0;
+	-webkit-hypens:auto;
+	-moz-hypens:auto;
+	hyphens:auto;
+	}
+ul {
+	list-style: square;
+	padding-left:1.2em;
+	}
+ol {
+	padding-left:1.2em;
+	}
+blockquote {
+	margin-left: 1em;
+	padding-left: 1em;
+	border-left: 1px solid #ddd;
+	}
+code {
+	font-family: "Consolas", "Menlo", "Monaco", monospace, serif;
+	font-size: .9em;
+	background: white;
+	}
+a {
+	color: #2484c1;
+	text-decoration: none;
+	}
+a:hover {
+	text-decoration: underline;
+	}
+a img {
+	border:none;
+	}
+h1 a, h1 a:hover {
+	color: #333;
+	text-decoration: none;
+	}
+hr {
+	color : #ddd;
+	height : 1px;
+	margin: 2em 0;
+	border-top : solid 1px #ddd;
+	border-bottom : none;
+	border-left: 0;
+	border-right: 0;
+	}
+p#heart{
+	font-size: 2em;
+	line-height: 1;
+	text-align: center;
+	color: #ccc;
+	}
+.red {
+	color:#B50000;
+	}
 
-textarea {
-	margin: 0 0 10px 0;
-	width: 100%;
-}
+/* Home Page
+--------------------------- */
+
+body#index li {
+	margin-bottom: 1em;
+	}
+
+
+/* iPad
+-------------------------------------------------------- */
+@media only screen and (max-device-width: 1024px) {
+body {
+	font-size: 120%;
+	line-height: 1.4;
+	}
+} /* @iPad */
+
+/* iPhone
+-------------------------------------------------------- */
+@media only screen and (max-device-width: 480px) {
+body {
+	text-align: left;
+	}
+article, footer {
+	width: auto;
+	}
+article {
+	padding: 0 10px;
+	}
+} /* @iPhone */
