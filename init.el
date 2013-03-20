@@ -215,7 +215,7 @@
 (require 'squeeze-view)                ;; squeeze view, give yourself a write-room/typewriter like writing page
 (require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
 (require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
-(require 'hexrgb)
+
 (require 'liquid-mode)
 
 (setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
@@ -253,14 +253,6 @@
 
 ;; auto-load hyde mode for Jekyll
 (require 'hyde-autoloads) ;; ./vendor/hyde
-
-;; Try out Nyan-mode for a laugh... 
-;; Stupid
-(require 'nyan-mode)
-(nyan-mode t) ;; on
-
-;; (setq nyan-wavy-trail nil) ;; no wavy tail, I like things sensible!
-;; (nyan-start-animation) ;; ok that is a bit much...
 
 ;; Custom themes added to load-path
 (-each

@@ -1,9 +1,5 @@
 (require 'hexrgb)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; New functions
-;;
-
 (defun hexrgb-hex-set-brightness
   (hex brightness)
   "set brightness of a hex color, amount values from 0-1
@@ -28,7 +24,7 @@
          (s (second hsv)) (v (third hsv)))
     (hexrgb-hsv-to-hex hue s v 2)))
 
-(defcustom hexrgb-color-group-format "%s, " "DOCSTRING")
+(defcustom hexrgb-color-group-format "%s, " "Used by the hexrgb-hex-(hue|sat|val)-group functions, ")
 
 (defun hexrgb-hex-hue-group (hex ) "Return a list of hexcolors of different hues"
   (interactive "sHex color: ")
@@ -48,10 +44,31 @@
         (insert
          (format (or hexrgb-color-group-format "\n%s") (hexrgb-hex-set-brightness hex (* n 0.1))))))
 
+(defun hexrgb-interpolate (color1 color2)
+  "interpolate two colors, to get their median color"
+  (let* (
+         (c1 (replace-regexp-in-string "#" "" color1))
+         (c2 (replace-regexp-in-string "#" "" color2))
+         
+         (c1r (string-to-number (substring c1 0 2) 16)) 
+         (c1b (string-to-number (substring c1 2 4) 16)) 
+         (c1g (string-to-number (substring c1 4 6) 16)) 
+         (c2r (string-to-number (substring c2 0 2) 16)) 
+         (c2b (string-to-number (substring c2 2 4) 16)) 
+         (c2g (string-to-number (substring c2 4 6) 16)) 
+
+         (red (/ (+ c1r c2r) 2))
+         (grn (/ (+ c1g c2g) 2))
+         (blu (/ (+ c1b c2b) 2))
+         )
+    (format "#%02X%02X%02X" red grn blu)
+    )
+  )
+
 (defun hexrgb-cssrgb-to-hex (cssrgb)
   "convert a css rgb color to hex"
   (let ((rgb 
-  (cdr (s-match  "rgb(\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*)" cssrgb))))
+  (cdr (s-match  "rgba?(\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*)" cssrgb))))
     (setq r (nth 0 rgb) 
           g (nth 1 rgb)
           b (nth 2 rgb))
@@ -65,6 +82,15 @@
   (let ((rgb nil))
     (setq rgb (hexrgb-hex-to-rgb hex))
     (format "rgb(%i, %i, %i)"
+           (* (nth 0 rgb) 65535.0)
+           (* (nth 1 rgb) 65535.0)
+           (* (nth 2 rgb) 65535.0))))
+
+(defun hexrgb-hex-to-cssrgba (hex)
+  "convert a hex rgb color to css rgb"
+  (let ((rgb nil))
+    (setq rgb (hexrgb-hex-to-rgb hex))
+    (format "rgba(%i, %i, %i, 1.0)"
            (* (nth 0 rgb) 65535.0)
            (* (nth 1 rgb) 65535.0)
            (* (nth 2 rgb) 65535.0))))
@@ -92,6 +118,19 @@
       (setq pos1 (car (bounds-of-thing-at-point 'symbol))
             pos2 (cdr (bounds-of-thing-at-point 'symbol))))
     (setq meat (hexrgb-hex-to-cssrgb (buffer-substring-no-properties pos1 pos2)))
+    (delete-region pos1 pos2)
+    (insert  meat)))
+
+(defun hexcolor-at-point-or-region-to-css-rgba ()
+  "hex #000000 at point or region to css rgba(0,0,0,1.0) opacity is always 1.0, included for convenience"
+  (interactive)
+  (let (pos1 pos2 meat)
+    (if (and transient-mark-mode mark-active)
+        (setq pos1 (region-beginning)
+              pos2 (region-end))
+      (setq pos1 (car (bounds-of-thing-at-point 'symbol))
+            pos2 (cdr (bounds-of-thing-at-point 'symbol))))
+    (setq meat (hexrgb-hex-to-cssrgba (buffer-substring-no-properties pos1 pos2)))
     (delete-region pos1 pos2)
     (insert  meat)))
 
