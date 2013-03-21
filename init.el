@@ -39,12 +39,10 @@
 (require 'iedit)
 (require 'ag)
 
-;; IDO Mode... knowing how to ditch IDO at runtime is a big help, C-j
-(require 'ido)
-(ido-mode t)
-
 ;; Turn on things that auto-load isn't doing for us...
 (yas-global-mode t)
+
+;; Autopair alternative
 (flex-autopair-mode t)
 
 ;; manually installed packages (find them in ./plugins/) - these could
@@ -270,7 +268,7 @@
 (set-face-attribute 'default nil :height 140)
 
 (require 'w3m)
-(require 'main-line)
+;; (require 'main-line)
 
 (setq main-line-separator-style 'wave)
 
