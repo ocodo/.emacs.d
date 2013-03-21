@@ -36,7 +36,7 @@
 	    [(20130218 2229)
 	     nil "Yet another snippet extension for Emacs. [source: github]" tar])
  (yascroll .
-	   [(20120502 1738)
+	   [(20130321 334)
 	    nil "Yet Another Scroll Bar Mode [source: github]" single])
  (yari .
        [(20110417 2248)
@@ -134,7 +134,7 @@
 	       (1 6 8)))
 	     "Weblog maintenance via XML-RPC APIs [source: bzr]" single])
  (web-mode .
-	   [(20130320 121)
+	   [(20130321 820)
 	    nil "major mode for editing HTML templates [source: github]" single])
  (web .
       [(20130312 1014)
@@ -359,7 +359,7 @@
 		 [(20120406 2251)
 		  nil "generic major mode for tabulated lists. [source: github]" single])
  (tabbar-ruler .
-	       [(20130220 2253)
+	       [(20130320 1033)
 		((tabbar
 		  (2 0 1)))
 		"Setup tabbar to look pretty... [source: github]" tar])
@@ -661,7 +661,7 @@
 	    [(20130315 250)
 	     nil "A better backspace [source: github]" single])
  (s .
-    [(20130319 1534)
+    [(20130320 1524)
      nil "The long lost Emacs string manipulation library. [source: github]" single])
  (rvm .
       [(20130210 1710)
@@ -855,7 +855,7 @@
 	  [(20121128 2315)
 	   nil "Show tooltip at point [source: github]" single])
  (popwin .
-	 [(20121210 2054)
+	 [(20130321 132)
 	  nil "Popup Window Manager. [source: github]" single])
  (popup .
 	[(20130117 1954)
@@ -882,7 +882,7 @@
 	   [(20130315 2020)
 	    nil "Major mode for editing PHP code [source: github]" tar])
  (php-eldoc .
-	    [(20130131 1429)
+	    [(20130320 2207)
 	     nil "eldoc backend for php [source: github]" tar])
  (php+-mode .
 	    [(20121129 1452)
@@ -997,6 +997,13 @@
 	      ((browse-url-dwim
 		(0 6 2)))
 	      "Web browsing helpers for OS X [source: github]" single])
+ (orglue .
+	 [(20130319 1359)
+	  ((epic
+	    (0 1))
+	   (org-mac-link-grabber
+	    (1 0 1)))
+	  "more functionality to org-mode. [source: github]" tar])
  (org2blog .
 	   [(20130115 2217)
 	    ((org
@@ -1120,7 +1127,7 @@
       [(20120507 7)
        nil "Emacs mode for filesystem navigation [source: hg]" tar])
  (namespaces .
-	     [(20130320 1312)
+	     [(20130320 1906)
 	      nil "An implementation of namespaces for Elisp, with an emphasis on immutabilty. [source: github]" single])
  (n3-mode .
 	  [(20130115 2145)
@@ -1247,7 +1254,7 @@
 	       [(20120927 1839)
 		nil "mapping macros that report progress [source: github]" tar])
  (main-line .
-	    [(20130320 1111)
+	    [(20130320 1807)
 	     nil "modeline replacement forked from an early version of powerline.el [source: github]" single])
  (magnet .
 	 [(20121107 1805)
@@ -1311,9 +1318,6 @@
  (log4j-mode .
 	     [(20101016 1722)
 	      nil "major mode for viewing log files [source: github]" single])
- (loccur .
-	 [(20100307 1414)
-	  nil "Perform an occur-like folding in current buffer [source: svn]" single])
  (load-theme-buffer-local .
 			  [(20120703 17)
 			   nil "Install emacs24 color themes by buffer. [source: github]" single])
@@ -1741,6 +1745,9 @@
 	     ((popwin
 	       (0 3 0)))
 	     "Guide the following key bindings automatically and dynamically [source: github]" single])
+ (gruber-darker-theme .
+		      [(20130320 2010)
+		       nil "Gruber Darker color theme for Emacs 24. [source: github]" single])
  (groovy-mode .
 	      [(20120510 1755)
 	       nil "Groovy mode derived mode [source: bzr]" single])
@@ -1830,7 +1837,7 @@
 		       (0 1 1)))
 		     "Fringe version of git-gutter.el [source: github]" single])
  (git-gutter .
-	     [(20130318 1241)
+	     [(20130320 2326)
 	      nil "Port of Sublime Text plugin GitGutter [source: github]" single])
  (git-dwim .
 	   [(20130130 2150)
@@ -2146,7 +2153,7 @@
 	 [(20130304 1059)
 	  nil "Erlang major mode [source: github]" tar])
  (ergoemacs-mode .
-		 [(20130313 1028)
+		 [(20130320 1942)
 		  nil "A minor mode, a keybinding set based on ergonomics. [source: git]" tar])
  (eredis .
 	 [(20120808 2207)
@@ -2173,6 +2180,11 @@
  (eproject .
 	   [(20130220 1109)
 	    nil "assign files to projects, programatically [source: github]" tar])
+ (epic .
+       [(20130320 1540)
+	((htmlize
+	  (1 47)))
+	"Evernote Picker [source: github]" tar])
  (epc .
       [(20130312 2201)
        ((concurrent
@@ -2552,7 +2564,7 @@
 		      (0 8 0)))
 		    "Yasnippets for clojure [source: github]" tar])
  (clojure-mode .
-	       [(20130225 1036)
+	       [(20130320 1351)
 		nil "Major mode for Clojure code [source: github]" single])
  (cljsbuild-mode .
 		 [(20130110 1632)
@@ -2646,6 +2658,9 @@
  (birds-of-paradise-plus-theme .
 			       [(20120811 1252)
 				nil "A brown/orange light-on-dark theme for Emacs 24 (deftheme). [source: github]" single])
+ (bf-mode .
+	  [(20130320 1248)
+	   nil "Browse file persistently on dired [source: github]" single])
  (bdo .
       [(20130314 1020)
        nil "Do things to a browser page from Emacs. BETA! [source: github]" tar])
@@ -2818,7 +2833,7 @@
 	     (1 4)))
 	   "Auto-complete sources for input of mathematical symbols and latex tags [source: github]" single])
  (ac-js2 .
-	 [(20130318 1502)
+	 [(20130320 1728)
 	  ((js2-mode
 	    (20090723))
 	   (skewer-mode
@@ -2830,6 +2845,9 @@
  (abl-mode .
 	   [(20120718 1655)
 	    nil "Python TDD minor mode [source: github]" single])
+ (loccur .
+	 [(20100307 1414)
+	  nil "Perform an occur-like folding in current buffer [source: svn]" single])
  (magit .
 	[(20130318 1630)
 	 nil "Control Git from Emacs. [source: github]" tar]))

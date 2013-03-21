@@ -18,8 +18,8 @@
 	      [(0 4 1)
 	       nil "Major mode for CoffeeScript files" tar])
  (company .
-	  [(0 5)
-	   nil "Flexible inline text and code completion" tar])
+	  [(0 6)
+	   nil "Modular in-buffer completion framework" tar])
  (csv-mode .
 	   [(1 1)
 	    nil "Major mode for editing comma/char separated values" single])
@@ -54,7 +54,7 @@
 			[(1 1)
 			 nil "Parse and browse f90 interfaces" single])
  (ggtags .
-	 [(0 6)
+	 [(0 6 1)
 	  nil "GNU Global source code tagging system" single])
  (heap .
        [(0 3)
