@@ -136,8 +136,26 @@
 (dolist (pattern '("\\.md$" "\\.markdown$"))
   (add-to-list 'auto-mode-alist (cons pattern 'markdown-mode)))
 
-;; Flymake settings
+;; -------------------------------------------------------------------------------------------------
+;; Highlight TODO/FIXME/BUG/HACK/REFACTOR & THE HORROR in code - I'm hoping the last one will catch on.
+(add-hook 'prog-mode-hook
+               (lambda ()
+                (font-lock-add-keywords nil
+                 '(("\\<\\(NOTE\\|FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\):" 1 font-lock-warning-face t)))))
 
+;; -------------------------------------------------------------------------------------------------
+;; use aspell for ispell
+(when (file-exists-p "/usr/local/bin/aspell")
+  (set-variable 'ispell-program-name "/usr/local/bin/aspell"))
+
+;; -------------------------------------------------------------------------------------------------
+;; Explicit mode inits
+(require 'init-dired) 
+(require 'init-hideshowvis) 
+(require 'init-multi-web-mode)
+
+;; -------------------------------------------------------------------------------------------------
+;; Flymake settings
 (defun flymake-settings ()
   "Settings for `flymake'."
   ;; Flymake - stop those !@$!*$ modal dialogs
@@ -170,37 +188,19 @@
 (eval-after-load "flymake"
   `(flymake-settings))
 
+;; -------------------------------------------------------------------------------------------------
 ;; JavaScript/JSON special files
-
 (dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
   (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
 
-;; -------------------------------------------------------------------------------------------------
-
 (require 'flymake-jshint)
-(add-hook 'javascript-mode-hook 'flymake-jshint)
+(add-hook 'javascript-mode-hook 'flymake-mode)
 
 ;; -------------------------------------------------------------------------------------------------
-
-;; Highlight TODO/FIXME/BUG/HACK/REFACTOR & THE HORROR in code - I'm hoping the last one will catch on.
-
-(add-hook 'prog-mode-hook
-               (lambda ()
-                (font-lock-add-keywords nil
-                 '(("\\<\\(NOTE\\|FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\):" 1 font-lock-warning-face t)))))
-
+;; Additional requires
 ;; -------------------------------------------------------------------------------------------------
-
-;; use aspell for ispell
-(when (file-exists-p "/usr/local/bin/aspell")
-  (set-variable 'ispell-program-name "/usr/local/bin/aspell"))
-
-(require 'init-dired) 
-(require 'init-hideshowvis) 
-(require 'init-multi-web-mode)
-
 ;; Emacs Mac port specific frame adjust
-(require 'mac-frame-adjust)                  ;; a few presets for sizing and moving frames (aka Operating System Windows)
+(require 'mac-frame-adjust)            ;; a few presets for sizing and moving frames (aka OS Windows)
 
 ;;;# Convenience and completion
 (require 'auto-complete-config)        ;; Very nice autocomplete.
@@ -213,8 +213,6 @@
 (require 'squeeze-view)                ;; squeeze view, give yourself a write-room/typewriter like writing page
 (require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
 (require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
-
-(require 'liquid-mode)
 
 (setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
 (load custom-file)
@@ -268,8 +266,13 @@
 (set-face-attribute 'default nil :height 140)
 
 (require 'w3m)
-;; (require 'main-line)
-
+(require 'main-line)
 (setq main-line-separator-style 'wave)
+
+(require 'marmalade)
+;; modes-init/init-marmalade.el is in .gitignore
+(when (file-readable-p "modes-init/init-marmalade.el")
+  (load-file "modes-init/init-marmalade.el"))
+
 
 (require 'handy-functions) ;; my lab area for little defuns...
