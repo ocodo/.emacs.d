@@ -8,9 +8,24 @@
 ;; and then return us to the user home directory, for find-file etc.
 (progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
 
+;; -- Path -----------------------------------------------------------------------------------------------
+;; find XCode and RVM command line tools on OSX (cover the legacy and current XCode directory structures.)
+(when (eq system-type 'darwin)
+  (when (file-exists-p "/Developer/usr/bin")
+    (setq exec-path (append '("/Developer/usr/bin") exec-path)))
+  (when (file-exists-p "/Applications/Xcode.app/Contents/Developer/usr/bin")
+    (setq exec-path (append '("/Applications/Xcode.app/Contents/Developer/usr/bin") exec-path)))
+  (when (file-exists-p "~/.rvm/bin")
+    (setq exec-path (append '("~/.rvm/bin") exec-path)))
+  (when (file-exists-p "/usr/local/bin/")
+    (setq exec-path (append '("/usr/local/bin") exec-path)))
+  (when (file-exists-p "/usr/local/share/npm/bin")
+    (setq exec-path (append '("/usr/local/share/npm/bin") exec-path))))
+
+(add-to-list 'exec-path "~/bin")
+
 ;; turn off toolbar.
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-
 ;; menu bar mode only on OS X, just because it's pretty much out of
 ;; the way, as opposed to sitting right there in the frame.
 (if  (and (window-system) (eq system-type 'darwin))
@@ -18,11 +33,20 @@
   (menu-bar-mode -1)
 )
 
+(setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
+(load custom-file)
+(require 'custom-keys)
+
 (setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
 
+;; Explicitly require libs that autoload borks
 ;; Include common lisp
 (require 'cl) ;; one day can remove this...
 (require 'cl-lib)
+(require 'dash)
+(require 's)
+(require 'iedit)
+(require 'ag)
 
 ;; Modes init (things that need more than just a require.) 
 (when (string-match "Emacs 24" (version))
@@ -31,13 +55,47 @@
   (require 'init-elpa)
 )
 
-;; Include Magnar's string and list libs
-(require 'dash)
-(require 's)
+;; -------------------------------------------------------------------------------------------------
+;; Additional requires
+;; -------------------------------------------------------------------------------------------------
+;; Emacs Mac port specific frame adjust
+(require 'mac-frame-adjust)            ;; a few presets for sizing and moving frames (aka OS Windows)
 
-;; Explicitly require libs that autoload borks
-(require 'iedit)
-(require 'ag)
+;;;# Convenience and completion
+(require 'auto-complete-config)        ;; Very nice autocomplete.
+(ac-config-default)
+
+(require 'dropdown-list)               ;; dropdown list for use with yasnippet
+(require 'switch-window)               ;; Select windows by number.
+(require 'resize-window)               ;; interactively size window
+(require 'highlight-indentation)       ;; visual guides for indentation
+(require 'squeeze-view)                ;; squeeze view, give yourself a write-room/typewriter like writing page
+(require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
+(require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
+
+;; auto-load hyde mode for Jekyll
+(require 'hyde-autoloads) ;; ./vendor/hyde
+
+(require 'w3m)
+(require 'main-line)
+(setq main-line-separator-style 'wave)
+
+;; -------------------------------------------------------------------------------------------------
+;; Explicit mode inits
+(require 'init-dired)
+(require 'init-hideshowvis)
+(require 'init-multi-web-mode)
+(require 'init-nxml)
+(require 'init-flymake)
+(require 'init-markdown)
+
+;; conditional - add your own init-marmalade or just login manually
+(load-library "marmalade")
+;; modes-init/init-marmalade.el is in .gitignore
+(when (file-readable-p "modes-init/init-marmalade.el")
+  (load-file "modes-init/init-marmalade.el"))
+
+(require 'handy-functions) ;; my lab area for little defuns...
 
 ;; Turn on things that auto-load isn't doing for us...
 (yas-global-mode t)
@@ -45,7 +103,6 @@
 ;; Autopair alternative
 (flex-autopair-mode t)
 
-;; manually installed packages (find them in ./plugins/) - these could
 ;; probably all become auto-loaded. (next time)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 
@@ -85,44 +142,6 @@
 (put 'narrow-to-page            'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
 
-;; nxml mode init
-(add-hook 'nxml-mode-hook (lambda ()
-                            (setq Lorem-ipsum-paragraph-separator "<br><br>\n"
-                                  Lorem-ipsum-sentence-separator "&nbsp;&nbsp;"
-                                  Lorem-ipsum-list-beginning "<ul>\n"
-                                  Lorem-ipsum-list-bullet "<li>"
-                                  Lorem-ipsum-list-item-end "</li>\n"
-                                  Lorem-ipsum-list-end "</ul>\n")                            
-                            (setq rng-schema-locating-files (list "~/.emacs.d/nxml-schemas/schemas.xml" "schemas.xml")))) 
-
-(add-to-list 'auto-mode-alist
-             '("\\.\\(x[ms]l\\|rng\\|x?html?\\)\\'" . nxml-mode))
-
-(setq
- nxml-child-indent 2
- nxml-outline-child-indent 2
- nxml-slash-auto-complete-flag t)
-
-;; Markdown mode - TAB for <pre></pre> block
-(add-hook 'markdown-mode-hook
-          (lambda () (define-key markdown-mode-map (kbd "<tab>") 'markdown-insert-pre)))
-
-;; -- Path -----------------------------------------------------------------------------------------------
-;; find XCode and RVM command line tools on OSX (cover the legacy and current XCode directory structures.)
-(when (eq system-type 'darwin)
-  (when (file-exists-p "/Developer/usr/bin")
-    (setq exec-path (append '("/Developer/usr/bin") exec-path)))
-  (when (file-exists-p "/Applications/Xcode.app/Contents/Developer/usr/bin")
-    (setq exec-path (append '("/Applications/Xcode.app/Contents/Developer/usr/bin") exec-path)))
-  (when (file-exists-p "~/.rvm/bin")
-    (setq exec-path (append '("~/.rvm/bin") exec-path)))
-  (when (file-exists-p "/usr/local/bin/")
-    (setq exec-path (append '("/usr/local/bin") exec-path)))
-  (when (file-exists-p "/usr/local/share/npm/bin")
-    (setq exec-path (append '("/usr/local/share/npm/bin") exec-path))))
-
-(add-to-list 'exec-path "~/bin")
-
 ;; Ruby mode filetype hooks ------------------------------------------------------------------------
 ;; -- this will need migrating to init-ruby-mode.el or sumthin'
 
@@ -130,11 +149,6 @@
    (add-to-list 'auto-mode-alist (cons pattern 'ruby-mode)))
 
 (add-hook 'ruby-mode-hook 'flymake-ruby-load)
-
-;; Markdown file handling
-
-(dolist (pattern '("\\.md$" "\\.markdown$"))
-  (add-to-list 'auto-mode-alist (cons pattern 'markdown-mode)))
 
 ;; -------------------------------------------------------------------------------------------------
 ;; Highlight TODO/FIXME/BUG/HACK/REFACTOR & THE HORROR in code - I'm hoping the last one will catch on.
@@ -149,74 +163,10 @@
   (set-variable 'ispell-program-name "/usr/local/bin/aspell"))
 
 ;; -------------------------------------------------------------------------------------------------
-;; Explicit mode inits
-(require 'init-dired) 
-(require 'init-hideshowvis) 
-(require 'init-multi-web-mode)
-
-;; -------------------------------------------------------------------------------------------------
-;; Flymake settings
-(defun flymake-settings ()
-  "Settings for `flymake'."
-  ;; Flymake - stop those !@$!*$ modal dialogs
-  (setq flymake-gui-warnings-enabled nil)
-
-  (defun flymake-display-current-warning/error ()
-    "Display warning/error under cursor."
-    (interactive)
-    (let ((ovs (overlays-in (point) (1+ (point)))))
-      (dolist (ov ovs)
-        (catch 'found
-          (when (flymake-overlay-p ov)
-            (message (overlay-get ov 'help-echo))
-            (throw 'found t))))))
-
-  (defun flymake-goto-next-error-disp ()
-    "Go to next error in err ring, and then display warning/error."
-    (interactive)
-    (flymake-goto-next-error)
-    (flymake-display-current-warning/error))
-
-  (defun flymake-goto-prev-error-disp ()
-    "Go to previous error in err ring, and then display warning/error."
-    (interactive)
-    (flymake-goto-prev-error)
-    (flymake-display-current-warning/error))
-
-)
-
-(eval-after-load "flymake"
-  `(flymake-settings))
-
-;; -------------------------------------------------------------------------------------------------
 ;; JavaScript/JSON special files
 (dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
   (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
 
-(require 'flymake-jshint)
-(add-hook 'javascript-mode-hook 'flymake-mode)
-
-;; -------------------------------------------------------------------------------------------------
-;; Additional requires
-;; -------------------------------------------------------------------------------------------------
-;; Emacs Mac port specific frame adjust
-(require 'mac-frame-adjust)            ;; a few presets for sizing and moving frames (aka OS Windows)
-
-;;;# Convenience and completion
-(require 'auto-complete-config)        ;; Very nice autocomplete.
-(ac-config-default)
-
-(require 'dropdown-list)               ;; dropdown list for use with yasnippet
-(require 'switch-window)               ;; Select windows by number.
-(require 'resize-window)               ;; interactively size window
-(require 'highlight-indentation)       ;; visual guides for indentation
-(require 'squeeze-view)                ;; squeeze view, give yourself a write-room/typewriter like writing page
-(require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
-(require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
-
-(setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
-(load custom-file)
-(require 'custom-keys)
 
 ;; Conditional start of Emacs Server
 (setq server-use-tcp t)
@@ -247,9 +197,6 @@
     )
 )
 
-;; auto-load hyde mode for Jekyll
-(require 'hyde-autoloads) ;; ./vendor/hyde
-
 ;; Custom themes added to load-path
 (-each
  (-map
@@ -265,14 +212,3 @@
 
 (set-face-attribute 'default nil :height 140)
 
-(require 'w3m)
-(require 'main-line)
-(setq main-line-separator-style 'wave)
-
-(require 'marmalade)
-;; modes-init/init-marmalade.el is in .gitignore
-(when (file-readable-p "modes-init/init-marmalade.el")
-  (load-file "modes-init/init-marmalade.el"))
-
-
-(require 'handy-functions) ;; my lab area for little defuns...
