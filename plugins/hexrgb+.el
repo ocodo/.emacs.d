@@ -47,23 +47,22 @@
 (defun hexrgb-interpolate (color1 color2)
   "interpolate two colors, to get their median color"
   (let* (
-         (c1 (replace-regexp-in-string "#" "" color1))
-         (c2 (replace-regexp-in-string "#" "" color2))
-         
-         (c1r (string-to-number (substring c1 0 2) 16)) 
-         (c1b (string-to-number (substring c1 2 4) 16)) 
-         (c1g (string-to-number (substring c1 4 6) 16)) 
-         (c2r (string-to-number (substring c2 0 2) 16)) 
-         (c2b (string-to-number (substring c2 2 4) 16)) 
-         (c2g (string-to-number (substring c2 4 6) 16)) 
+         (rgb1 (hexrgb-hex-to-rgb color1))
+         (rgb2 (hexrgb-hex-to-rgb color2))
 
-         (red (/ (+ c1r c2r) 2))
-         (grn (/ (+ c1g c2g) 2))
-         (blu (/ (+ c1b c2b) 2))
+         (red (/ (+ (nth 0 rgb1) (nth 0 rgb2)) 2))
+         (grn (/ (+ (nth 1 rgb1) (nth 1 rgb2)) 2))
+         (blu (/ (+ (nth 2 rgb1) (nth 2 rgb2)) 2))
          )
-    (format "#%02X%02X%02X" red grn blu)
+    (format "#%02X%02X%02X"
+            (* red 65535.0) 
+            (* grn 65535.0) 
+            (* blu 65535.0) 
+            )
     )
   )
+
+(hexrgb-interpolate "#FFFFFF" "#000000")
 
 (defun hexrgb-cssrgb-to-hex (cssrgb)
   "convert a css rgb color to hex"

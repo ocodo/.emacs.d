@@ -18,7 +18,7 @@
 	      [(0 4 1)
 	       nil "Major mode for CoffeeScript files" tar])
  (company .
-	  [(0 6)
+	  [(0 6 1)
 	   nil "Modular in-buffer completion framework" tar])
  (csv-mode .
 	   [(1 1)
@@ -54,7 +54,7 @@
 			[(1 1)
 			 nil "Parse and browse f90 interfaces" single])
  (ggtags .
-	 [(0 6 1)
+	 [(0 6 2)
 	  nil "GNU Global source code tagging system" single])
  (heap .
        [(0 3)
@@ -74,7 +74,7 @@
       [(1 0)
        nil "Lexical analyser construction" single])
  (lmc .
-      [(1 0)
+      [(1 1)
        nil "Little Man Computer in Elisp" single])
  (load-dir .
 	   [(0 0 3)

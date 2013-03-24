@@ -130,14 +130,23 @@ are both 14px high, and brace which is 19px high"
   "when set to true buffer size is shown as K/Mb/Gb etc.")
 
 (defun interpolate (color1 color2)
-  "Interpolate between two hex colors, they must be supplied as hex colors with leading #"
+  "Interpolate between two hex colors, they must be supplied as
+  hex colors with leading # - Note: this has been implemented
+  independently, there are functions in hexrgb.el that would help
+  this out a bit, but I wanted this to require only cl-lib (which
+  it built in), and nothing else."
   (let* (
          (c1 (replace-regexp-in-string "#" "" color1))
          (c2 (replace-regexp-in-string "#" "" color2)) 
-         (c1r (string-to-number (substring c1 0 2) 16)) (c1b (string-to-number (substring c1 2 4) 16)) (c1g (string-to-number (substring c1 4 6) 16)) 
-         (c2r (string-to-number (substring c2 0 2) 16)) (c2b (string-to-number (substring c2 2 4) 16)) (c2g (string-to-number (substring c2 4 6) 16)) 
-         (red (/ (+ c1r c2r) 2)) (grn (/ (+ c1g c2g) 2)) (blu (/ (+ c1b c2b) 2)))
-
+         (c1r (string-to-number (substring c1 0 2) 16))
+         (c1b (string-to-number (substring c1 2 4) 16))
+         (c1g (string-to-number (substring c1 4 6) 16)) 
+         (c2r (string-to-number (substring c2 0 2) 16))
+         (c2b (string-to-number (substring c2 2 4) 16))
+         (c2g (string-to-number (substring c2 4 6) 16)) 
+         (red (/ (+ c1r c2r) 2))
+         (grn (/ (+ c1g c2g) 2))
+         (blu (/ (+ c1b c2b) 2)))
     (format "#%02X%02X%02X" red grn blu))
   )
 

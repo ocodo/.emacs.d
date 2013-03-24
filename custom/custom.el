@@ -31,7 +31,7 @@
  '(initial-scratch-message nil)
  '(ispell-dictionary nil)
  '(js-indent-level 2)
- '(js3-indent-level 4)
+ '(js3-indent-level 2)
  '(jshint-configuration-path "~/.jshintrc")
  '(linum-delay nil)
  '(linum-eager t)
@@ -45,7 +45,7 @@
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
  '(send-mail-function (quote sendmail-send-it))
- '(tab-width 4)
+ '(tab-width 2)
  '(tabbar-background-color "grey20")
  '(tabbar-separator (quote (0.2)))
  '(truncate-lines t)
@@ -59,7 +59,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t :height 135)))
+ '(default ((t :height 140)))
  '(markdown-header-face ((t (:inherit font-lock-function-name-face :weight bold :family "Helvetica Neue"))) t)
  '(markdown-header-face-1 ((t (:inherit markdown-header-face :height 2.0))) t)
  '(markdown-header-face-2 ((t (:inherit markdown-header-face :height 1.9))) t)

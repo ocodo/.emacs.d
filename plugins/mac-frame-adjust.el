@@ -26,9 +26,22 @@
         (shell-command-to-string
 
          "system_profiler  SPDisplaysDataType | grep -E 'Resolution' | tr -s ' '"))))))))
+
 (defvar mac-displays-list (mac-calculate-displays-list)
   "memo of mac-calculate-displays-list - List of displays on a
    Mac, each display is represented as (w h) e.g. (1280 1024)")
+
+(defvar mac-max-height-correct 0
+  "Set to the amount you need to slice off the max display
+  height, for example, if setting frame height to full display
+  height, sets the frame too large, and the title bar is
+  positioned behind the mac menu bar, set this variable to set
+  make the max height a little smaller, eg. 60-90 will fix
+  it. Often the value required will depend on the default font
+  you're using. - default is 0
+
+  currently only used by mac-set-frame-height-to-display-height
+  however this is used by several other functions" )
 
 (defun mac-largest-display ()
   "return the dimensions of the largest Mac display/screen"
@@ -77,7 +90,7 @@ nb:approximately, Emacs sets frame height by char rows."
   (interactive)
   (if window-system
       (progn
-        (set-frame-height (selected-frame) (/ (- (mac-largest-display-pixel-height) 90) (frame-char-height))))))
+        (set-frame-height (selected-frame) (/ (- (mac-largest-display-pixel-height) mac-max-height-correct) (frame-char-height))))))
 
 (defun mac-set-frame-height-to-85-percent-display-height ()
   "Size the current frame height to 85% of display height -
@@ -336,7 +349,7 @@ height, top/center position."
 (global-set-key (kbd "C-x C-M-<down>") 'mac-set-frame-bottom-w100-h50-percent)
 
 (global-set-key (kbd "C-x M-s-<right>") 'mac-set-frame-right-w30-h100-percent)
-(global-set-key (kbd "C-x M-s-<left>") 'mac-set-frame-right-w30-h100-percent)
+(global-set-key (kbd "C-x M-s-<left>") 'mac-set-frame-left-w25-h100-percent)
 (global-set-key (kbd "C-x M-s-<up>") 'mac-set-frame-center-w50-h100-percent)
 (global-set-key (kbd "C-x M-s-<down>") 'mac-set-frame-center-w75-h100-percent)
 
