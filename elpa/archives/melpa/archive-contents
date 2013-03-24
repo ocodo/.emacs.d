@@ -527,7 +527,7 @@
 	   [(20130312 1839)
 	    nil "Support sequential operation which omitted prefix keys. [source: github]" single])
  (smartparens .
-	      [(20130323 1816)
+	      [(20130323 2214)
 	       ((dash
 		 (1 0 2)))
 	       "Smart insertion and wrapping with parens/user defined pairs/tags [source: github]" tar])
@@ -1598,7 +1598,7 @@
 		[(20130204 1653)
 		 nil "Major mode API client for status.net open microblogging [source: github]" tar])
  (icicles .
-	  [(20130318 54)
+	  [(20130323 2127)
 	   nil "Minibuffer input completion and cycling. [source: wiki]" tar])
  (ibuffer-vc .
 	     [(20121217 826)
@@ -2032,7 +2032,7 @@
 		(0 4 13)))
 	      "A flymake handler for go-mode files [source: github]" single])
  (flymake-gjshint .
-		  [(20130322 40)
+		  [(20130324 1009)
 		   nil "A flymake handler for javascript using jshint and gjslint [source: github]" single])
  (flymake-easy .
 	       [(20130106 1817)
@@ -2108,7 +2108,7 @@
 	     [(20121218 1555)
 	      nil "R drag and Drop [source: github]" tar])
  (expand-region .
-		[(20130223 2052)
+		[(20130302 1954)
 		 nil "Increase selected region by semantic units. [source: github]" tar])
  (exec-path-from-shell .
 		       [(20121108 945)
@@ -2176,7 +2176,7 @@
 			 (0 2)))
 		       "Edit a hex color stamp, using a QT or the internal color picker [source: github]" tar])
  (es-auto-auto-indent .
-		      [(20130212 928)
+		      [(20130323 2219)
 		       ((es-lib
 			 (0 1)))
 		       "Indents code as you type [source: github]" single])
@@ -2253,7 +2253,7 @@
 	   [(20120413 1107)
 	    nil "Emacs window session manager [source: github]" single])
  (elpy .
-       [(20130323 1312)
+       [(20130323 2152)
 	((auto-complete
 	  (1 4))
 	 (fuzzy
