@@ -30,7 +30,10 @@
 )
 
 (require 'flymake-jshint)
-(add-hook 'javascript-mode-hook 'flymake-mode)
+(add-hook 'javascript-mode-hook
+          (lambda ()
+            (flymake-mode t)
+            (flymake-jshint-load t)))
 
 
 (eval-after-load "flymake"
