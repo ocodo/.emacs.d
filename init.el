@@ -77,8 +77,11 @@
 (require 'hyde-autoloads) ;; ./vendor/hyde
 
 (require 'w3m)
-(require 'main-line)
-(setq main-line-separator-style 'wave)
+
+;; --- Main-line only on window systems ----- (a fork of Powerline
+(when (window-system)
+  (require 'main-line)
+  (setq main-line-separator-style 'wave))
 
 ;; -------------------------------------------------------------------------------------------------
 ;; Explicit mode inits
