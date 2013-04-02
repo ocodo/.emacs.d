@@ -1,3 +1,4 @@
+(require 'flymake-checkers)
 ;; -------------------------------------------------------------------------------------------------
 ;; Flymake settings
 (defun flymake-settings ()
@@ -26,15 +27,13 @@
     (interactive)
     (flymake-goto-prev-error)
     (flymake-display-current-warning/error))
-
 )
 
 (require 'flymake-jshint)
-(add-hook 'javascript-mode-hook
+(add-hook 'js-mode-hook
           (lambda ()
-            (flymake-mode t)
-            (flymake-jshint-load t)))
-
+            (flymake-mode)
+            (flymake-jshint-load)))
 
 (eval-after-load "flymake"
   `(flymake-settings))

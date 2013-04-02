@@ -6,3 +6,5 @@ auto-save-list
 /url/*
 /bookmarks
 /modes-init/init-marmalade.el
+/newsticker/feeds/Emacs Wiki/data
+/newsticker/feeds/Hacker News/data
