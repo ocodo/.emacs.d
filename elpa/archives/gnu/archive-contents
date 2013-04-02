@@ -18,7 +18,7 @@
 	      [(0 4 1)
 	       nil "Major mode for CoffeeScript files" tar])
  (company .
-	  [(0 6 2)
+	  [(0 6 6)
 	   nil "Modular in-buffer completion framework" tar])
  (csv-mode .
 	   [(1 1)
@@ -107,7 +107,7 @@
 	 [(0 8)
 	  nil "OAuth 2.0 Authorization Protocol" single])
  (org .
-      [(20130325)
+      [(20130401)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
 		[(0 1)
