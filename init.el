@@ -80,7 +80,7 @@
 
 ;; --- Main-line only on window systems ----- (a fork of Powerline
 (when (window-system)
-  (require 'main-line)
+  (load-library "main-line")
   (setq main-line-separator-style 'wave))
 
 ;; -------------------------------------------------------------------------------------------------
