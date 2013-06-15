@@ -1,7 +1,7 @@
 (1
  (ack .
-      [(0 9)
-       nil "Interface to ack, a source code search tool" tar])
+      [(1 2)
+       nil "Interface to ack-like source code search tools" tar])
  (adaptive-wrap .
 		[(0 2)
 		 nil "Smart line-wrapping with wrap-prefix" single])
@@ -12,16 +12,16 @@
 	 [(11 86)
 	  nil "Integrated environment for *TeX*" tar])
  (cl-lib .
-	 [(0 2)
+	 [(0 3)
 	  nil "Properly prefixed CL functions and macros" single])
  (coffee-mode .
 	      [(0 4 1)
 	       nil "Major mode for CoffeeScript files" tar])
  (company .
-	  [(0 6 7)
+	  [(0 6 10)
 	   nil "Modular in-buffer completion framework" tar])
  (csv-mode .
-	   [(1 1)
+	   [(1 2)
 	    nil "Major mode for editing comma/char separated values" single])
  (debbugs .
 	  [(0 4)
@@ -57,7 +57,7 @@
 			[(1 1)
 			 nil "Parse and browse f90 interfaces" single])
  (ggtags .
-	 [(0 6 3)
+	 [(0 6 6)
 	  nil "GNU Global source code tagging system" single])
  (heap .
        [(0 3)
@@ -69,7 +69,7 @@
 	      [(1 0)
 	       nil "Major mode for Jgraph files" single])
  (js2-mode .
-	   [(20130307)
+	   [(20130608)
 	    ((emacs
 	      (24 1)))
 	    "Improved JavaScript editing mode" single])
@@ -80,7 +80,7 @@
       [(1 1)
        nil "Lexical analyser construction" tar])
  (lmc .
-      [(1 1)
+      [(1 2)
        nil "Little Man Computer in Elisp" single])
  (load-dir .
 	   [(0 0 3)
@@ -112,8 +112,11 @@
  (oauth2 .
 	 [(0 8)
 	  nil "OAuth 2.0 Authorization Protocol" single])
+ (omn-mode .
+	   [(1 0)
+	    nil "Support for OWL Manchester Notation" single])
  (org .
-      [(20130408)
+      [(20130610)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
 		[(0 1)
@@ -122,7 +125,7 @@
 	[(0 1)
 	 nil "Queue data structure" single])
  (rainbow-mode .
-	       [(0 7)
+	       [(0 8)
 		nil "Colorize color names in buffers" single])
  (register-list .
 		[(0 1)
