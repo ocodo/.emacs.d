@@ -1,0 +1,217 @@
+This is /home/melpa/melpa/working/flycheck-20130606.1406/changes.info,
+produced by makeinfo version 4.13 from
+/home/melpa/melpa/working/flycheck/doc/changes.texi.
+
+This appendix provides a comprehensive changelog of all releases:
+
+
+File: changes.info,  Node: Top,  Up: (dir)
+
+Top
+***
+
+* Menu:
+
+* master        :: unreleased
+* 0.12          :: May 18, 2013
+* 0.11          :: May 01, 2013
+* 0.10          :: Apr 21, 2013
+* 0.9           :: Apr 13, 2013
+* 0.8           :: Apr 09, 2013
+* 0.7.1         :: Feb 23, 2013
+* 0.7           :: Feb 14, 2013
+* 0.6.1         :: Jan 30, 2013
+* 0.6           :: Jan 29, 2013
+* 0.5           :: Dec 28, 2012
+* 0.4           :: Nov 21, 2012
+* 0.3           :: Oct 20, 2012
+* 0.2           :: Oct 15, 2012
+* 0.1           :: Oct 11, 2012
+
+
+File: changes.info,  Node: 0.1,  Next: 0.2,  Up: Changes
+
+0.1 (Oct 11, 2012)
+==================
+
+Initial release as flymake-checkers
+
+   * New syntax checkers
+
+        * TeX/LaTeX
+
+        * Shell scripts
+
+        * Python
+
+        * Ruby
+
+        * Coffeescript
+
+        * Emacs Lisp
+
+
+
+File: changes.info,  Node: 0.2,  Next: 0.3,  Prev: 0.1,  Up: Changes
+
+0.2 (Oct 15, 2012)
+==================
+
+   * New syntax checkers
+
+        * PHP
+
+   * API changes
+
+        * lunaryorn/flycheck/issues/2, Simplify syntax checker
+          declarations
+
+
+
+File: changes.info,  Node: 0.3,  Next: 0.4,  Prev: 0.2,  Up: Changes
+
+0.3 (Oct 20, 2012)
+==================
+
+   * lunaryorn/flycheck/issues/4, Replace `flymake-mode' with a custom
+     syntax checking minor mode
+
+
+File: changes.info,  Node: 0.4,  Next: 0.5,  Prev: 0.3,  Up: Changes
+
+0.4 (Nov 21, 2012)
+==================
+
+   * lunaryorn/flycheck/issues/5, Rename the project to Flycheck
+
+   * New syntax checkers
+
+        * lunaryorn/flycheck/issues/9, HAML
+
+        * lunaryorn/flycheck/issues/9, CSS
+
+        * lunaryorn/flycheck/issues/9, Javascript with `jsl'
+
+        * lunaryorn/flycheck/issues/16, Javascript with `jshint'
+
+        * lunaryorn/flycheck/issues/12, JSON
+
+        * LaTeX with `lacheck'
+
+   * Bug fixes
+        * lunaryorn/flycheck/issues/10, Fix type error when checking
+          compressed Emacs Lisp
+
+
+
+File: changes.info,  Node: 0.5,  Next: 0.6,  Prev: 0.4,  Up: Changes
+
+0.5 (Dec 28, 2012)
+==================
+
+   * New syntax checkers:
+
+        * lunaryorn/flycheck/issues/15, SASS
+
+        * lunaryorn/flycheck/issues/21, Perl
+
+        * XML
+
+        * lunaryorn/flycheck/issues/30, Lua
+
+   * New features:
+
+        * lunaryorn/flycheck/issues/25, Support manual buffer-local
+          selection of syntax checker
+
+        * lunaryorn/flycheck/issues/28, Add customizable error
+          indicators
+
+        * lunaryorn/flycheck/issues/27, Echo error messages at point
+          without 3rd-party libraries like flymake-cursor
+
+   * Improvements:
+
+        * lunaryorn/flycheck/issues/24, Remember the last automatically
+          selected syntax checker
+
+   * Bug fixes:
+
+        * lunaryorn/flycheck/issues/19, Fix syntax checking of buffers
+          without backing files
+
+   * API changes:
+
+        * lunaryorn/flycheck/issues/15, Replace underlying Flymake API
+          with a custom syntax checking implementation
+
+
+
+File: changes.info,  Node: 0.6,  Next: 0.6.1,  Prev: 0.5,  Up: Changes
+
+0.6 (Jan 29, 2013)
+==================
+
+   * New syntax checkers:
+
+        * lunaryorn/flycheck/issues/53, Emacs Lisp with
+          `checkdoc-current-buffer'
+
+        * lunaryorn/flycheck/issues/72, PHP with PHP CodeSniffer
+
+   * Removed syntax checkers:
+
+        * Javascript with `jsl'
+
+   * New features:
+
+        * lunaryorn/flycheck/issues/26, Error navigation with
+          `next-error' and `previous-error'
+
+        * lunaryorn/flycheck/issues/33, Fringe icons instead of error
+          indicators
+
+        * lunaryorn/flycheck/issues/59, Menu entry for Flycheck
+
+        * lunaryorn/flycheck/issues/35, Customizable error
+          highlighting, taking the column number into account
+
+        * Configuration files for syntax checkers
+
+        * Add configuration file support to the syntax checkers
+          `coffee-coffeelint', `html-tidy', `javascript-jshint',
+          `pyton-flake8' and `tex-chktex'
+
+        * lunaryorn/flycheck/issues/58, Allow to compile a buffer with
+          a syntax checker for testing purposes
+
+        * lunaryorn/flycheck/issues/31, Use multiple syntax checkers
+          during a syntax check
+
+        * lunaryorn/flycheck/issues/52, Add dedicated help for syntax
+          checkers
+
+   * Improvements:
+
+        * lunaryorn/flycheck/issues/55, Match error patterns in order
+          of declaration
+
+   * Bug fixes:
+
+        * lunaryorn/flycheck/issues/24, Inherit highlighting faces from
+          built-in faces
+
+        * lunaryorn/flycheck/issues/36, Correct error patterns of the
+          HTML syntax checker
+
+        * lunaryorn/flycheck/issues/42, Detect syntax errors in the
+          `python-flake8' syntax checker
+
+        * Fix various regressions after introducing unit tests
+
+        * lunaryorn/flycheck/issues/45, Inhibit syntax checking during
+          package installation
+
+        * lunaryorn/flycheck/issues/54, Disable syntax checking in
+          Tramp buffers
+
