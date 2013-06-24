@@ -69,12 +69,12 @@
 	      [(1 0)
 	       nil "Major mode for Jgraph files" single])
  (js2-mode .
-	   [(20130608)
+	   [(20130619)
 	    ((emacs
 	      (24 1)))
 	    "Improved JavaScript editing mode" single])
  (jumpc .
-	[(2 0)
+	[(3 0)
 	 nil "jump to previous insertion points" single])
  (lex .
       [(1 1)
@@ -116,7 +116,7 @@
 	   [(1 0)
 	    nil "Support for OWL Manchester Notation" single])
  (org .
-      [(20130610)
+      [(20130617)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
 		[(0 1)
