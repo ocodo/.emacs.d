@@ -438,6 +438,9 @@
  (textile-mode .
 	       [(20120721 2158)
 		nil "Textile markup editing major mode [github]" single])
+ (tex-smart-umlauts .
+		    [(20130708 401)
+		     nil "Smart umlaut conversion for TeX. [darcs]" single])
  (test-simple .
 	      [(20130710 1126)
 	       nil "Simple Unit Test Framework for Emacs Lisp [github]" single])
@@ -681,7 +684,7 @@
 	   [(20130312 1839)
 	    nil "Support sequential operation which omitted prefix keys. [github]" single])
  (smartparens .
-	      [(20130708 52)
+	      [(20130712 1601)
 	       ((cl-lib
 		 (0 1))
 		(dash
@@ -691,7 +694,7 @@
 	       [(20130214 1142)
 		nil "vim-like window controlling plugin [github]" single])
  (smart-tabs-mode .
-		  [(20130710 1349)
+		  [(20130712 950)
 		   nil "Intelligently indent with tabs, align with spaces! [github]" single])
  (smart-tab .
 	    [(20130317 1157)
@@ -1081,13 +1084,11 @@
 		[(20130614 1235)
 		 nil "Project oriented automatic builder and error highlighter, flymake for projects [github]" tar])
  (projectile .
-	     [(20130711 1629)
+	     [(20130712 124)
 	      ((s
 		(1 0 0))
 	       (dash
-		(1 0 0))
-	       (grizzl
-		(0 1 0)))
+		(1 0 0)))
 	      "Manage and navigate projects in Emacs easily [github]" single])
  (project-persist .
 		  [(20130422 1607)
@@ -1946,7 +1947,7 @@
 		     (1 0)))
 		   "Add conditional branching to keyboard macros [github]" single])
  (kivy-mode .
-	    [(20130319 1633)
+	    [(20130710 2132)
 	     nil "Emacs major mode for editing Kivy files [github]" single])
  (kite .
        [(20130201 2038)
@@ -2338,6 +2339,11 @@
 	      ((helm
 		(1 0)))
 	      "helm sources for sheet [github]" single])
+ (helm-rubygems-local .
+		      [(20130711 2039)
+		       ((helm
+			 (1 5 3)))
+		       "Installed local rubygems find-file for helm [github]" single])
  (helm-rails .
 	     [(20130424 1719)
 	      ((helm
@@ -2456,7 +2462,7 @@
 	    (20120509)))
 	  "helm-sources and some utilities for GNU R. [github]" single])
  (helm .
-       [(20130711 2037)
+       [(20130712 1307)
 	nil "Helm is an Emacs incremental and narrowing framework [github]" tar])
  (header2 .
 	  [(20130606 1652)
@@ -2996,7 +3002,7 @@
 	      (0 3 1)))
 	   "File activity logger [github]" single])
  (f .
-    [(20130711 1821)
+    [(20130712 1224)
      ((s
        (1 6 0))
       (dash
@@ -3499,7 +3505,7 @@
 		[(20130328 1119)
 		 nil "make file details hide-able in dired [wiki]" single])
  (dired+ .
-	 [(20130608 1717)
+	 [(20130712 816)
 	  nil "Extensions to Dired. [wiki]" single])
  (dircmp .
 	 [(20130316 1327)
@@ -3648,7 +3654,7 @@
 		      (2 2 7)))
 		    "company-mode completion back-end for inf-ruby [github]" single])
  (company-cmake .
-		[(20130421 538)
+		[(20130712 1700)
 		 ((company
 		   (0 6 8)))
 		 "company-mode completion back-end for CMake [github]" tar])
@@ -3849,7 +3855,7 @@
 	   [(20081011 2126)
 	    nil "Quote text with a semi-box. [github]" single])
  (bookmark+ .
-	    [(20130704 1557)
+	    [(20130712 727)
 	     nil "Bookmark+: extensions to standard library `bookmark.el'. [wiki]" tar])
  (bm .
      [(20121212 2224)
@@ -4148,8 +4154,5 @@
 	    nil "Python TDD minor mode [github]" single])
  (abc-mode .
 	   [(20130607 917)
-	    nil "Major mode for editing abc music files [github]" single])
- (tex-smart-umlauts .
-		    [(20130306 313)
-		     nil "Smart umlaut conversion for TeX. [darcs]" single]))
+	    nil "Major mode for editing abc music files [github]" single]))
 
