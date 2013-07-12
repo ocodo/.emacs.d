@@ -91,6 +91,7 @@
 (require 'init-nxml)
 (require 'init-flymake)
 (require 'init-markdown)
+(require 'init-ruby)
 
 ;; conditional - add your own init-marmalade or just login manually
 (load-library "marmalade")
