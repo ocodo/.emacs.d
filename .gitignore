@@ -8,3 +8,4 @@ auto-save-list
 /modes-init/init-marmalade.el
 /newsticker/feeds/Emacs Wiki/data
 /newsticker/feeds/Hacker News/data
+.emacs-theme
