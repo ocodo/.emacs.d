@@ -24,7 +24,7 @@
 		 [(20111231 345)
 		  nil "Unfold CSS-selector-like expressions to markup [github]" single])
  (zenburn-theme .
-		[(20130712 1931)
+		[(20130713 921)
 		 nil "A low contrast color theme for Emacs. [github]" single])
  (zen-and-art-theme .
 		    [(20120622 937)
@@ -1084,7 +1084,7 @@
 		[(20130614 1235)
 		 nil "Project oriented automatic builder and error highlighter, flymake for projects [github]" tar])
  (projectile .
-	     [(20130712 124)
+	     [(20130713 258)
 	      ((s
 		(1 0 0))
 	       (dash
@@ -1151,7 +1151,7 @@
 	     [(20100504 829)
 	      nil "undo/redo position [wiki]" single])
  (plenv .
-	[(20130616 117)
+	[(20130707 1516)
 	 nil "A plenv wrapper for Emacs [github]" single])
  (pkgbuild-mode .
 		[(20120214 2332)
@@ -1942,9 +1942,11 @@
      [(20130618 1212)
       nil "key/value data structure functions [github]" single])
  (kmacro-decision .
-		  [(20130617 2009)
+		  [(20130713 412)
 		   ((el-x
-		     (1 0)))
+		     (1 0))
+		    (jb-misc-macros
+		     (0 2)))
 		   "Add conditional branching to keyboard macros [github]" single])
  (kivy-mode .
 	    [(20130710 2132)
