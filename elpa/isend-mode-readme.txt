@@ -6,7 +6,7 @@ does the same in a language-agnostic way.
 
 Basic usage:
 
-1. Open an `ansi-term' buffer where the interpeter will live.
+1. Open an `ansi-term' buffer where the interpreter will live.
    For example:
 
      M-x ansi-term RET /bin/sh RET
