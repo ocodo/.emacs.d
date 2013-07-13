@@ -24,7 +24,7 @@
 		 [(20111231 345)
 		  nil "Unfold CSS-selector-like expressions to markup [github]" single])
  (zenburn-theme .
-		[(20130711 1128)
+		[(20130712 1931)
 		 nil "A low contrast color theme for Emacs. [github]" single])
  (zen-and-art-theme .
 		    [(20120622 937)
@@ -187,7 +187,7 @@
 	       [(20120331 1344)
 		nil "run a shell command when saving a buffer [github]" single])
  (wacspace .
-	   [(20130703 1909)
+	   [(20130712 1328)
 	    ((dash
 	      (1 2 0))
 	     (cl-lib
@@ -684,7 +684,7 @@
 	   [(20130312 1839)
 	    nil "Support sequential operation which omitted prefix keys. [github]" single])
  (smartparens .
-	      [(20130712 1601)
+	      [(20130712 1646)
 	       ((cl-lib
 		 (0 1))
 		(dash
@@ -1163,7 +1163,7 @@
 	   [(20130709 819)
 	    nil "Major mode for Pig files [github]" single])
  (php-mode .
-	   [(20130709 2006)
+	   [(20130712 1240)
 	    nil "Major mode for editing PHP code [github]" single])
  (php-eldoc .
 	    [(20130328 1526)
@@ -1351,7 +1351,7 @@
 	      (0 1)))
 	    "Blog from Org mode to wordpress [github]" tar])
  (org-trello .
-	     [(20130708 1733)
+	     [(20130712 2043)
 	      ((org
 		(7 9 2))
 	       (dash
@@ -1747,7 +1747,7 @@
 	       [(20130627 1653)
 		nil "Add interactive commands for every manpages installed in your computer. [github]" single])
  (mallard-snippets .
-		   [(20130327 334)
+		   [(20130712 2144)
 		    ((yasnippet
 		      (0 8 0)))
 		    "Yasnippets for Mallard [github]" tar])
@@ -1777,7 +1777,7 @@
 			       [(20130518 0)
 				nil "Advice for magit-log-edit-commit [github]" single])
  (magit .
-	[(20130707 2304)
+	[(20130712 2330)
 	 ((cl-lib
 	   (0 2)))
 	 "Control Git from Emacs. [github]" tar])
@@ -2462,7 +2462,7 @@
 	    (20120509)))
 	  "helm-sources and some utilities for GNU R. [github]" single])
  (helm .
-       [(20130712 1307)
+       [(20130712 1435)
 	nil "Helm is an Emacs incremental and narrowing framework [github]" tar])
  (header2 .
 	  [(20130606 1652)
@@ -2520,7 +2520,7 @@
 	      [(20130506 1025)
 	       nil "Groovy mode derived mode [github]" tar])
  (grizzl .
-	 [(20130621 2203)
+	 [(20130713 824)
 	  nil "Fuzzy Search Library & Completing Read [github]" tar])
  (grin .
        [(20110806 1658)
@@ -2776,7 +2776,7 @@
 	    [(20130608 1859)
 	     nil "Non-interactive frame and window functions. [wiki]" single])
  (frame-cmds .
-	     [(20130705 1633)
+	     [(20130712 1641)
 	      nil "Frame and window commands (interactive functions). [wiki]" single])
  (foreign-regexp .
 		 [(20130618 1921)
@@ -3002,7 +3002,7 @@
 	      (0 3 1)))
 	   "File activity logger [github]" single])
  (f .
-    [(20130712 1224)
+    [(20130712 2039)
      ((s
        (1 6 0))
       (dash
@@ -3198,7 +3198,7 @@
 	     [(20130623 2308)
 	      nil "Unofficial Emmet's support for emacs [github]" single])
  (emamux-ruby-test .
-		   [(20130702 1245)
+		   [(20130712 2135)
 		    ((emamux
 		      (0 1))
 		     (projectile
@@ -3210,6 +3210,9 @@
  (emagician-fix-spell-memory .
 			     [(20130415 1244)
 			      nil "Simple hack into ispell to fix (muscle) memory problems [github]" single])
+ (emacsc .
+	 [(20130712 1419)
+	  nil "helper for emacsc(1) [github]" tar])
  (emacs-setup .
 	      [(20120727 926)
 	       nil "Package for maintaining your emacs configuration. Clean up your .emacs! [github]" tar])
@@ -3505,7 +3508,7 @@
 		[(20130328 1119)
 		 nil "make file details hide-able in dired [wiki]" single])
  (dired+ .
-	 [(20130712 816)
+	 [(20130712 2232)
 	  nil "Extensions to Dired. [wiki]" single])
  (dircmp .
 	 [(20130316 1327)
@@ -3558,7 +3561,7 @@
 		[(20130417 1034)
 		 nil "Search the word at point with Dash [github]" single])
  (dash .
-       [(20130711 2200)
+       [(20130712 2307)
 	nil "A modern list library for Emacs [github]" single])
  (dart-mode .
 	    [(20121218 1449)
@@ -3612,7 +3615,7 @@
 	       [(20090510 2255)
 		nil "Mode for editing crontab files [github]" single])
  (creole .
-	 [(20130711 2244)
+	 [(20130712 1917)
 	  ((noflet
 	    (0 0 3))
 	   (kv
@@ -4036,7 +4039,7 @@
 	   [(20130606 946)
 	    nil "open anything / QuickSilver-like candidate-selection framework [git]" tar])
  (anti-zenburn-theme .
-		     [(20130711 2344)
+		     [(20130713 29)
 		      nil "Low-contrast Zenburn-inverted theme [github]" single])
  (ansi .
        [(20121008 1920)
