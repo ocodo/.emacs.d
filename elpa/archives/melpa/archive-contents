@@ -684,7 +684,7 @@
 	   [(20130312 1839)
 	    nil "Support sequential operation which omitted prefix keys. [github]" single])
  (smartparens .
-	      [(20130712 1646)
+	      [(20130713 2035)
 	       ((cl-lib
 		 (0 1))
 		(dash
@@ -694,7 +694,7 @@
 	       [(20130214 1142)
 		nil "vim-like window controlling plugin [github]" single])
  (smart-tabs-mode .
-		  [(20130712 950)
+		  [(20130713 2257)
 		   nil "Intelligently indent with tabs, align with spaces! [github]" single])
  (smart-tab .
 	    [(20130317 1157)
@@ -1678,7 +1678,7 @@
 	    [(20120716 1647)
 	     nil "advanced highlighting of matching parentheses [wiki]" single])
  (mew .
-      [(20130704 2349)
+      [(20130713 1928)
        nil "Messaging in the Emacs World [github]" tar])
  (metaweblog .
 	     [(20130707 1701)
@@ -1766,6 +1766,11 @@
 		     ((magit
 		       (1 3 0)))
 		     "Push remote support for Magit. [github]" tar])
+ (magit-inotify .
+		[(20130712 2213)
+		 ((magit
+		   (1 3 0)))
+		 "Refresh status buffer if git tree changes [github]" single])
  (magit-gh-pulls .
 		 [(20130405 1828)
 		  ((gh
@@ -1777,7 +1782,7 @@
 			       [(20130518 0)
 				nil "Advice for magit-log-edit-commit [github]" single])
  (magit .
-	[(20130712 2330)
+	[(20130713 1802)
 	 ((cl-lib
 	   (0 2)))
 	 "Control Git from Emacs. [github]" tar])
@@ -1942,7 +1947,7 @@
      [(20130618 1212)
       nil "key/value data structure functions [github]" single])
  (kmacro-decision .
-		  [(20130713 412)
+		  [(20130713 2239)
 		   ((el-x
 		     (1 0))
 		    (jb-misc-macros
@@ -2418,7 +2423,7 @@
 	       (1 0 1)))
 	     "helm-sources and some utilities for gist. [github]" single])
  (helm-flymake .
-	       [(20130707 1851)
+	       [(20130714 334)
 		((helm
 		  (1 0)))
 		"helm interface for flymake [github]" single])
@@ -2481,7 +2486,7 @@
 	   (1 2)))
 	 "Emacs client for hastebin (http://hastebin.com/about.md) [github]" single])
  (haskell-mode .
-	       [(20130710 1716)
+	       [(20130713 1230)
 		nil "A Haskell editing mode [github]" tar])
  (hardhat .
 	  [(20130522 1243)
@@ -3004,7 +3009,7 @@
 	      (0 3 1)))
 	   "File activity logger [github]" single])
  (f .
-    [(20130712 2039)
+    [(20130713 2113)
      ((s
        (1 6 0))
       (dash
@@ -3111,7 +3116,7 @@
 	 [(20130701 1012)
 	  nil "Erlang major mode [github]" tar])
  (ergoemacs-mode .
-		 [(20130711 1659)
+		 [(20130713 1341)
 		  ((org-cua-dwim
 		    (0 5)))
 		  "A minor mode, a keybinding set based on ergonomics. [github]" tar])
@@ -3200,7 +3205,7 @@
 	     [(20130623 2308)
 	      nil "Unofficial Emmet's support for emacs [github]" single])
  (emamux-ruby-test .
-		   [(20130712 2135)
+		   [(20130714 8)
 		    ((emamux
 		      (0 1))
 		     (projectile
@@ -3504,13 +3509,13 @@
 	     [(20130527 2225)
 	      nil "Find duplicate files and display them in a dired buffer [github]" single])
  (dired-details+ .
-		 [(20121228 2028)
+		 [(20130713 1652)
 		  nil "Enhancements to library `dired-details+.el'. [wiki]" single])
  (dired-details .
 		[(20130328 1119)
 		 nil "make file details hide-able in dired [wiki]" single])
  (dired+ .
-	 [(20130712 2232)
+	 [(20130714 133)
 	  nil "Extensions to Dired. [wiki]" single])
  (dircmp .
 	 [(20130316 1327)
@@ -3617,7 +3622,7 @@
 	       [(20090510 2255)
 		nil "Mode for editing crontab files [github]" single])
  (creole .
-	 [(20130712 1917)
+	 [(20130713 2258)
 	  ((noflet
 	    (0 0 3))
 	   (kv
@@ -3718,6 +3723,9 @@
  (cm-mode .
 	  [(20120814 1203)
 	   nil "Wrapper for CodeMirror-style Emacs modes [github]" single])
+ (clues-theme .
+	      [(20130713 205)
+	       nil "Emacs 24 theme which is ok I suppose [github]" single])
  (cloud-to-butt-erc .
 		    [(20130627 1908)
 		     nil "Replace 'the cloud' with 'my butt' [github]" single])
@@ -3998,6 +4006,9 @@
  (auto-async-byte-compile .
 			  [(20120811 837)
 			   nil "Automatically byte-compile when saved [wiki]" single])
+ (audio-notes-mode .
+		   [(20130712 1953)
+		    nil "Play audio notes synced from somewhere else. [github]" single])
  (auctex-latexmk .
 		 [(20130620 2312)
 		  nil "Add LatexMk support to AUCTeX [github]" single])
@@ -4041,7 +4052,7 @@
 	   [(20130606 946)
 	    nil "open anything / QuickSilver-like candidate-selection framework [git]" tar])
  (anti-zenburn-theme .
-		     [(20130713 29)
+		     [(20130713 2332)
 		      nil "Low-contrast Zenburn-inverted theme [github]" single])
  (ansi .
        [(20121008 1920)
