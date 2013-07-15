@@ -460,7 +460,7 @@
 		[(20120312 1325)
 		 nil "Tango 2 color theme for GNU Emacs 24 [github]" single])
  (tagedit .
-	  [(20130514 1551)
+	  [(20130714 1409)
 	   ((s
 	     (1 3 1))
 	    (dash
@@ -657,7 +657,7 @@
 		  (24 1)))
 		"a dark colorful theme for Emacs24. [github]" single])
  (solarized-theme .
-		  [(20130709 1851)
+		  [(20130714 2215)
 		   nil "The Solarized color theme, ported to Emacs. [github]" tar])
  (snippet .
 	  [(20130210 1815)
@@ -684,7 +684,7 @@
 	   [(20130312 1839)
 	    nil "Support sequential operation which omitted prefix keys. [github]" single])
  (smartparens .
-	      [(20130713 2035)
+	      [(20130714 1912)
 	       ((cl-lib
 		 (0 1))
 		(dash
@@ -703,7 +703,7 @@
 		 [(20051013 1756)
 		  nil "Beautify the operators in codes [wiki]" single])
  (smart-mode-line .
-		  [(20130706 2123)
+		  [(20130714 2206)
 		   nil "A color coded smart mode-line. [github]" single])
  (smart-forward .
 		[(20130205 1352)
@@ -1575,7 +1575,7 @@
 	      (1 2 0)))
 	    "a mustache templating library in emacs lisp [github]" tar])
  (multiple-cursors .
-		   [(20130711 914)
+		   [(20130714 1407)
 		    nil "Multiple cursors for Emacs. [github]" tar])
  (multifiles .
 	     [(20130615 2249)
@@ -1782,7 +1782,7 @@
 			       [(20130518 0)
 				nil "Advice for magit-log-edit-commit [github]" single])
  (magit .
-	[(20130713 1802)
+	[(20130714 1345)
 	 ((cl-lib
 	   (0 2)))
 	 "Control Git from Emacs. [github]" tar])
@@ -1862,6 +1862,9 @@
  (load-relative .
 		[(20130410 549)
 		 nil "relative file load (within a multi-file Emacs package) [github]" single])
+ (livescript-mode .
+		  [(20121017 41)
+		   nil "Major mode for editing LiveScript files [github]" single])
  (lively .
 	 [(20120728 1413)
 	  nil "Interactively updating text [wiki]" single])
@@ -2057,7 +2060,7 @@
 		[(20121004 1726)
 		 nil "Watch continuous integration build status [github]" single])
  (jedi .
-       [(20130621 2057)
+       [(20130714 1415)
 	((epc
 	  (0 1 0))
 	 (auto-complete
@@ -2469,7 +2472,7 @@
 	    (20120509)))
 	  "helm-sources and some utilities for GNU R. [github]" single])
  (helm .
-       [(20130712 1435)
+       [(20130714 703)
 	nil "Helm is an Emacs incremental and narrowing framework [github]" tar])
  (header2 .
 	  [(20130606 1652)
@@ -2486,7 +2489,7 @@
 	   (1 2)))
 	 "Emacs client for hastebin (http://hastebin.com/about.md) [github]" single])
  (haskell-mode .
-	       [(20130713 1230)
+	       [(20130714 1249)
 		nil "A Haskell editing mode [github]" tar])
  (hardhat .
 	  [(20130522 1243)
@@ -2521,7 +2524,7 @@
 	       (0 3 0)))
 	     "Guide the following key bindings automatically and dynamically [github]" single])
  (gruber-darker-theme .
-		      [(20130702 2042)
+		      [(20130714 1725)
 		       nil "Gruber Darker color theme for Emacs 24. [github]" single])
  (groovy-mode .
 	      [(20130506 1025)
@@ -2988,7 +2991,7 @@
 	    [(20130323 1403)
 	     nil "A major mode for the Fetchnotes note taking service [github]" single])
  (feature-mode .
-	       [(20130705 1801)
+	       [(20130714 2220)
 		nil "Major mode for editing Gherkin (i.e. Cucumber) user stories [github]" tar])
  (fastnav .
 	  [(20120211 1557)
@@ -3109,6 +3112,19 @@
 	  ((cl-lib
 	    (1 0)))
 	  "A collection of emacs utilities [github]" tar])
+ (ert-runner .
+	     [(20130713 2149)
+	      ((s
+		(1 6 1))
+	       (dash
+		(1 4 0))
+	       (f
+		(0 2 0))
+	       (commander
+		(0 0 1))
+	       (ansi
+		(0 0 2)))
+	      "Opinionated Ert testing workflow [github]" tar])
  (ert-expectations .
 		   [(20121009 734)
 		    nil "The simplest unit test framework in the world [wiki]" single])
@@ -3672,7 +3688,7 @@
 	  [(20130604 316)
 	   nil "Modular in-buffer completion framework [github]" tar])
  (commander .
-	    [(20130623 1439)
+	    [(20130714 1037)
 	     ((s
 	       (1 6 0))
 	      (dash
@@ -3821,12 +3837,12 @@
 	      [(20121205 1453)
 	       nil "Clickable text defined by regular expression [github]" single])
  (butler .
-	 [(20130528 2136)
+	 [(20130714 1457)
 	  ((web
 	    (0 3 7)))
 	  "Client for Jenkins [github]" tar])
  (buster-snippets .
-		  [(20121202 2127)
+		  [(20130714 1440)
 		   nil "Yasnippets for the Buster javascript testing framework [github]" tar])
  (buster-mode .
 	      [(20121219 1422)
@@ -4007,7 +4023,7 @@
 			  [(20120811 837)
 			   nil "Automatically byte-compile when saved [wiki]" single])
  (audio-notes-mode .
-		   [(20130712 1953)
+		   [(20130714 1430)
 		    nil "Play audio notes synced from somewhere else. [github]" single])
  (auctex-latexmk .
 		 [(20130620 2312)
