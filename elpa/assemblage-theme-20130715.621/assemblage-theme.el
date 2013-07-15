@@ -1,12 +1,12 @@
-;;; assemblage-theme.el --- 
+;;; assemblage-theme.el --- a dark theme for Emacs 24
 ;;;
 ;;; Author: Jason Milkins <jasonm23@gmail.com>
 ;;; Url: https://github.com/jasonm23/emacs-assemblage-theme 
-;;; Version: 20130715.620
+;;; Version: 20130715.621
 ;;;
 ;;; Changelog :
 ;;;
-;;; 20130715.620: Inital version
+;;; 20130715.621: Inital version
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by

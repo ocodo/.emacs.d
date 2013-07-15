@@ -4,15 +4,15 @@
 
 
 ;;;### (autoloads nil "assemblage-theme" "assemblage-theme.el" (20963
-;;;;;;  41110))
+;;;;;;  41275))
 ;;; Generated autoloads from assemblage-theme.el
 
 (when load-file-name (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
 
 ;;;***
 
-;;;### (autoloads nil nil ("assemblage-theme-pkg.el") (20963 41110
-;;;;;;  388917))
+;;;### (autoloads nil nil ("assemblage-theme-pkg.el") (20963 41276
+;;;;;;  3761))
 
 ;;;***
 
