@@ -2,7 +2,8 @@
 ;;;
 ;;; Author: Jason Milkins <jasonm23@gmail.com>
 ;;; Url: https://github.com/jasonm23/emacs-clues-theme 
-;;; Version: 20130714.2351
+;; Version: 20130715.1010
+;;; X-Original-Version: 20130714.2351
 ;;;
 ;;; Changelog :
 ;;; 20130714.2351: Background color normalised, based on pull by Kaustav Das Modak (Github: kaustavdm)
