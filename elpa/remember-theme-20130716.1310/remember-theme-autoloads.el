@@ -4,7 +4,7 @@
 
 
 ;;;### (autoloads (remember-theme-load remember-theme-save) "remember-theme"
-;;;;;;  "remember-theme.el" (20964 55703 0 0))
+;;;;;;  "remember-theme.el" (20965 18222 0 0))
 ;;; Generated autoloads from remember-theme.el
 
 (autoload 'remember-theme-save "remember-theme" "\
@@ -27,8 +27,8 @@ creating or editing this file is not supported
 
 ;;;***
 
-;;;### (autoloads nil nil ("remember-theme-pkg.el") (20964 55705
-;;;;;;  362040 0))
+;;;### (autoloads nil nil ("remember-theme-pkg.el") (20965 18223
+;;;;;;  17432 0))
 
 ;;;***
 
