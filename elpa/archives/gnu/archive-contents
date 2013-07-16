@@ -116,7 +116,7 @@
 	   [(1 0)
 	    nil "Support for OWL Manchester Notation" single])
  (org .
-      [(20130712)
+      [(20130715)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
 		[(0 1)
