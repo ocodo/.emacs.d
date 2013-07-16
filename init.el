@@ -45,8 +45,10 @@
 (require 'cl-lib)
 (require 'dash)
 (require 's)
+(require 'f)
 (require 'iedit)
 (require 'ag)
+(require 'multiple-cursors)
 
 ;; Modes init (things that need more than just a require.) 
 (when (string-match "Emacs 24" (version))
