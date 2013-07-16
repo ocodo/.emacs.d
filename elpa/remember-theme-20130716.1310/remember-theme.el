@@ -2,9 +2,11 @@
 ;;;
 ;;; Author: Jason Milkins <jasonm23@gmail.com>
 ;;; Url: https://github.com/jasonm23/emacs-remember-theme
-;;; Version: 20130716.311
+;;; Version: 20130716.1310
 ;;;
 ;;; Changelog :
+;;;
+;;; 20130716.1310 L Fixed typo
 ;;;
 ;;; 20130716.311 : Unload all loaded themes before loading the
 ;;; remembered theme.
@@ -39,7 +41,7 @@
 ;;; 
 ;;; To help me do this automatically, I've created this little feature that
 ;;; remembers the current theme when Emacs closes, and loads it again when
-;;; you start up.
+;;; you start up (clearing any other loaded themes first.)
 ;;; 
 ;;; If you install via elpa (marmalade repo) everything is set up for you
 ;;; automatically.
@@ -67,7 +69,7 @@ theme name.
 ~/.emacs-theme is created by remember-theme-save manually
 creating or editing this file is not supported"
   (loop for theme
-        in custome-enabled-themes
+        in custom-enabled-themes
         do (disable-theme theme))
   (when (file-exists-p "~/.emacs-theme")
       (load-theme (intern (car (nreverse (with-temp-buffer
