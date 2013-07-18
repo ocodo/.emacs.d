@@ -176,7 +176,7 @@
 
 ;; Conditional start of Emacs Server
 (setq server-use-tcp t)
-(when (and (fboundp 'server-running-p) (not (server-running-p))) (server-start))
+(server-start)
 
 ;; Default Font for different window systems
 (when (window-system)
