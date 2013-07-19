@@ -9,3 +9,5 @@ auto-save-list
 /newsticker/feeds/Emacs Wiki/data
 /newsticker/feeds/Hacker News/data
 .emacs-theme
+server/**
+server
