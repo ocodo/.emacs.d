@@ -64,7 +64,7 @@
 ;; Emacs Mac port specific frame adjust
 (require 'mac-frame-adjust)            ;; a few presets for sizing and moving frames (aka OS Windows)
 
-;;;# Convenience and completion
+;;; Convenience and completion
 (require 'auto-complete-config)        ;; Very nice autocomplete.
 (ac-config-default)
 

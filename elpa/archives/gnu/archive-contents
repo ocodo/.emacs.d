@@ -3,7 +3,7 @@
       [(1 2)
        nil "Interface to ack-like source code search tools" tar])
  (adaptive-wrap .
-		[(0 2)
+		[(0 3)
 		 nil "Smart line-wrapping with wrap-prefix" single])
  (all .
       [(1 0)
