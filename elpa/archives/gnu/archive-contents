@@ -116,7 +116,7 @@
 	   [(1 0)
 	    nil "Support for OWL Manchester Notation" single])
  (org .
-      [(20130715)
+      [(20130722)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
 		[(0 1)
@@ -167,7 +167,7 @@
 		  [(0 1)
 		   nil "Unicode confusables table" tar])
  (vlf .
-      [(0 2)
+      [(0 9)
        nil "View Large Files" single])
  (windresize .
 	     [(0 1)
