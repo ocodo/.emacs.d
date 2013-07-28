@@ -11,3 +11,5 @@ auto-save-list
 .emacs-theme
 server/**
 server
+tramp
+.mc-lists.el
