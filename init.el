@@ -4,7 +4,9 @@
 ;;  | (_) | (_| (_) | (_| | (_) | |  __/ | | | | | (_| | (__\__ \ | (_| | (_) | |_ 
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;                                          
-;; dirty, but cheap way to get .emacs.d subfolders into the load path,
+;; --
+
+;; First a dirty, but cheap way to get .emacs.d subfolders into the load path,
 ;; and then return us to the user home directory, for find-file etc.
 (progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
 
@@ -79,7 +81,10 @@
 ;; auto-load hyde mode for Jekyll
 (require 'hyde-autoloads) ;; ./vendor/hyde
 
-(require 'w3m)
+(if
+    (s-contains? "w3m not found" (shell-command-to-string "which w3m"))
+     (message "w3m not available")
+  (require 'w3m))
 
 ;; --- Main-line only on window systems ----- (a fork of Powerline
 (when (window-system)
@@ -152,7 +157,7 @@
 ;; Ruby mode filetype hooks ------------------------------------------------------------------------
 ;; -- this will need migrating to init-ruby-mode.el or sumthin'
 
-(dolist (pattern '("\\.rb$" "Rakefile$" "\.rake$" "\.rxml$" "\.rjs$" ".irbrc$" "\.builder$" "\.ru$" "\.rabl$" "\.gemspec$" "Gemfile$"))
+(dolist (pattern '("\\.rb$" "^Rakefile$" "\.rake$" "\.rxml$" "\.rjs$" ".irbrc$" "\.builder$" "\.ru$" "\.rabl$" "\.gemspec$" "Gemfile$" "^.pryrc$"))
    (add-to-list 'auto-mode-alist (cons pattern 'ruby-mode)))
 
 (add-hook 'ruby-mode-hook 'flymake-ruby-load)
@@ -162,7 +167,7 @@
 (add-hook 'prog-mode-hook
                (lambda ()
                 (font-lock-add-keywords nil
-                 '(("\\<\\(NOTE\\|FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\):" 1 font-lock-warning-face t)))))
+                 '(("\\<\\(NOTE\\|FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\)" 1 font-lock-warning-face t)))))
 
 ;; -------------------------------------------------------------------------------------------------
 ;; use aspell for ispell
@@ -173,7 +178,6 @@
 ;; JavaScript/JSON special files
 (dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
   (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
-
 
 ;; Conditional start of Emacs Server
 (setq server-use-tcp t)
@@ -204,18 +208,7 @@
     )
 )
 
-;; Custom themes added to load-path
-(-each
- (-map
-  (lambda (item)
-    (format "~/.emacs.d/elpa/%s" item))
-  (-filter
-   (lambda (item) (s-contains? "theme" item))
-   (directory-files "~/.emacs.d/elpa/")))
- (lambda (item)
-   (add-to-list 'custom-theme-load-path item)))
-
-(load-theme 'soothe)
+(load-theme 'clues)
 
 (set-face-attribute 'default nil :height 140)
 

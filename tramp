@@ -1,41 +1,23 @@
-;; -*- emacs-lisp -*- <13/07/23 22:56:42 /Users/jason/.emacs.d/tramp>
+;; -*- emacs-lisp -*- <13/07/29 13:58:17 /Users/jason/.emacs.d/tramp>
 ;; Tramp connection history.  Don't change this file.
 ;; You can delete it, forcing Tramp to reapply the checks.
 
-((["sudo" "root" "192-168-1-107.tpgi.com.au" nil nil]
-  ("uname" "Darwin 11.4.2")
-  ("test" "test")
-  ("remote-path"
-   ("/usr/bin" "/bin" "/usr/sbin" "/sbin" "/usr/local/bin" "/usr/local/sbin"))
-  ("remote-shell" "/bin/sh")
-  ("busybox" nil)
-  ("perl-file-spec" t)
-  ("perl-cwd-realpath" t)
-  ("perl" "\\perl")
-  ("file-exists" "test -e")
-  ("readlink" nil)
-  ("stat" nil)
-  ("id" "/usr/bin/id")
-  ("gid-integer" 0)
-  ("uid-integer" 0))
- (["sudo" "root" "localhost" nil nil]
+((["sshx" nil "mail.local" nil nil]
   ("uname" "Darwin 11.4.2")
   ("test" "test")
   ("remote-path"
    ("/usr/bin" "/bin" "/usr/sbin" "/sbin" "/usr/local/bin" "/usr/local/sbin" "/opt/local/bin"))
   ("remote-shell" "/bin/sh")
   ("busybox" nil)
+  ("~" "/Users/jason")
+  ("file-exists" "test -e")
   ("perl-file-spec" t)
   ("perl-cwd-realpath" t)
   ("perl" "\\perl5")
-  ("file-exists" "test -e")
   ("ls" "/bin/ls")
   ("ls-dired" nil)
   ("stat" nil)
   ("id" "/usr/bin/id")
-  ("gid-integer" 0)
+  ("gid-integer" 20)
   ("readlink" nil)
-  ("uid-integer" 0)
-  ("~root" "/var/root"))
- (["scpc" nil "ssh" nil nil]
-  nil))
+  ("uid-integer" 501)))

@@ -3,7 +3,7 @@
       [(1 2)
        nil "Interface to ack-like source code search tools" tar])
  (adaptive-wrap .
-		[(0 3)
+		[(0 5)
 		 nil "Smart line-wrapping with wrap-prefix" single])
  (all .
       [(1 0)
@@ -116,7 +116,7 @@
 	   [(1 0)
 	    nil "Support for OWL Manchester Notation" single])
  (org .
-      [(20130722)
+      [(20130729)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
 		[(0 1)
