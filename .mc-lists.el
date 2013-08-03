@@ -8,11 +8,15 @@
         autopair-skip-close-maybe
         beginning-of-visual-line
         cua-cut-region
+        cua-delete-region
         cua-paste
         cua-scroll-up
         end-of-visual-line
         keyboard-escape-quit
         multiple-cursors-mode
+        ruby-end-space
+        slim-electric-backspace
+        smart-beginning-of-line
         ))
 
 (setq mc/cmds-to-run-once
@@ -20,4 +24,5 @@
         beginning-of-buffer
         cua-scroll-down
         end-of-buffer
+        mac-mwheel-scroll
         ))
