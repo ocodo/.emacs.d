@@ -319,4 +319,20 @@ or nil if not found."
      nil 'fullscreen
      (when (not (frame-parameter nil 'fullscreen)) 'fullboth)) ))
 
+(defun copy-region-to-osx-clipboard ()
+  "Copy current region to the OS X Clipboard"
+  (interactive)
+  (shell-command-on-region
+   (region-beginning)
+   (region-end)
+   "pbcopy"))
+
+(defun copy-buffer-to-osx-clipboard ()
+  "Copy contents of current buffer to the OS X Clipboard"
+  (interactive)
+  (shell-command-on-region
+   (point-min)
+   (point-max)
+   "pbcopy"))
+
 (provide 'handy-functions)
