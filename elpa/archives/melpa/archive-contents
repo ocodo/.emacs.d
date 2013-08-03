@@ -508,7 +508,7 @@
 		 [(20121210 10)
 		  nil "A mode for SystemTap [github]" single])
  (syslog-mode .
-	      [(20130624 1904)
+	      [(20130802 2127)
 	       ((hide-lines
 		 (20130623)))
 	       "Major-mode for viewing log files [github]" single])
@@ -602,6 +602,51 @@
  (stem .
        [(20130120 2111)
 	nil "No description available. [github]" single])
+ (starter-kit-ruby .
+		   [(20120128 1450)
+		    ((inf-ruby
+		      (2 2 3))
+		     (starter-kit
+		      (2 0 1)))
+		    "Saner defaults and goodies for Ruby [github]" single])
+ (starter-kit-perl .
+		   [(20120128 1450)
+		    nil "Some helpful Perl code [github]" single])
+ (starter-kit-lisp .
+		   [(20120504 2007)
+		    ((starter-kit
+		      (2 0 2))
+		     (elisp-slime-nav
+		      (0 1)))
+		    "Saner defaults and goodies for lisp languages [github]" single])
+ (starter-kit-js .
+		 [(20110930 2320)
+		  ((starter-kit
+		    (2 0 1)))
+		  "Saner defaults and goodies for Javascript [github]" single])
+ (starter-kit-eshell .
+		     [(20121001 1714)
+		      nil "Saner defaults and goodies: eshell tweaks [github]" single])
+ (starter-kit-bindings .
+		       [(20120101 1955)
+			((starter-kit
+			  (2 0 2)))
+			"Saner defaults and goodies: bindings [github]" single])
+ (starter-kit .
+	      [(20121025 1511)
+	       ((paredit
+		 (22))
+		(idle-highlight-mode
+		 (1 1 1))
+		(find-file-in-project
+		 (3 0))
+		(smex
+		 (1 1 2))
+		(ido-ubiquitous
+		 (0 3))
+		(magit
+		 (0 8 1)))
+	       "Saner defaults and goodies. [github]" tar])
  (stan-mode .
 	    [(20130416 1559)
 	     nil "Major mode for editing STAN files [github]" tar])
@@ -800,11 +845,11 @@
 	     [(20120509 1105)
 	      nil "Take a screenshot in Emacs [wiki]" single])
  (scratch-pop .
-	      [(20130511 1324)
-	       nil "popup scratch [github]" single])
+	      [(20130802 2039)
+	       nil "popup \"scratch\"es [github]" single])
  (scratch-palette .
-		  [(20130620 1842)
-		   nil "add scratch notes for each file [github]" single])
+		  [(20130802 2041)
+		   nil "save scratch notes on each file [github]" single])
  (scratch-log .
 	      [(20120131 821)
 	       nil "Utility for *scratch* buffer. [github]" single])
@@ -1060,6 +1105,12 @@
  (pyregexp .
 	   [(20130531 929)
 	    nil "[deprecated, use visual-regexp/visual-regexp-steroids instead] A Python regexp/replace command for Emacs with interactive visual feedback [github]" tar])
+ (pylint .
+	 [(20121112 1335)
+	  nil "minor mode for running `pylint' [hg]" single])
+ (py-import-check .
+		  [(20130802 1150)
+		   nil "Finds the unused python imports using importchecker [github]" single])
  (purty-mode .
 	     [(20130214 1502)
 	      nil "Safely pretty-print greek letters, mathematical symbols, or anything else. [github]" single])
@@ -1216,6 +1267,9 @@
  (perlbrew .
 	   [(20130126 2153)
 	    nil "A perlbrew wrapper for Emacs [github]" single])
+ (perl-completion .
+		  [(20090528 1536)
+		   nil "No description available. [github]" single])
  (peg .
       [(20130320 158)
        nil "Parsing Expression Grammars in Emacs Lisp [wiki]" single])
@@ -1474,9 +1528,6 @@
 		       ((emacs
 			 (24 2)))
 		       "Display org properties in the agenda buffer. [github]" single])
- (org .
-      [(20130731 1445)
-       nil "Outline-based notes management and organizer [git]" tar])
  (openwith .
 	   [(20120531 1636)
 	    nil "Open files with external programs [hg]" single])
@@ -1555,7 +1606,7 @@
 		     (9)))
 		   "decompilation extension for nrepl.el [github]" single])
  (nrepl .
-	[(20130729 1256)
+	[(20130802 739)
 	 ((clojure-mode
 	   (2 0 0))
 	  (cl-lib
@@ -1664,7 +1715,7 @@
 	       (1 1)))
 	     "Mote minor mode [github]" single])
  (monokai-theme .
-		[(20130716 1710)
+		[(20130803 118)
 		 nil "A fruity color theme for Emacs. [git]" single])
  (monky .
 	[(20130513 1413)
@@ -1844,7 +1895,7 @@
 			       [(20130730 1032)
 				nil "Advice for magit-log-edit-commit [github]" single])
  (magit .
-	[(20130801 1704)
+	[(20130803 129)
 	 nil "control Git from Emacs [github]" tar])
  (mag-menu .
 	   [(20130224 56)
@@ -2297,7 +2348,7 @@
 	     [(20130723 2333)
 	      nil "Extensions to `icomplete.el'. [wiki]" single])
  (icicles .
-	  [(20130801 1506)
+	  [(20130802 2259)
 	   nil "Minibuffer input completion and cycling. [wiki]" tar])
  (ibuffer-vc .
 	     [(20130728 926)
@@ -2537,7 +2588,7 @@
 	    (20120509)))
 	  "helm-sources and some utilities for GNU R. [github]" single])
  (helm .
-       [(20130719 1026)
+       [(20130802 1656)
 	nil "Helm is an Emacs incremental and narrowing framework [github]" tar])
  (header2 .
 	  [(20130723 2321)
@@ -2923,10 +2974,15 @@
 		  (0 1)))
 		"A flymake handler for ruby-mode files [github]" single])
  (flymake-python-pyflakes .
-			  [(20130512 1844)
+			  [(20130730 131)
 			   ((flymake-easy
 			     (0 8)))
 			   "A flymake handler for python-mode files using pyflakes (or flake8) [github]" single])
+ (flymake-puppet .
+		 [(20130731 2203)
+		  ((flymake-easy
+		    (0 9)))
+		  "An Emacs flymake handler for syntax-checking puppet using puppet-lint [github]" single])
  (flymake-php .
 	      [(20121104 1902)
 	       ((flymake-easy
@@ -3152,7 +3208,7 @@
 		 (0)))
 	       "let there be <leader> [github]" single])
  (evil .
-       [(20130711 831)
+       [(20130802 2228)
 	((undo-tree
 	  (0 6 3)))
 	"Extensible Vi layer for Emacs. [git]" tar])
@@ -3233,7 +3289,7 @@
 	 [(20130701 1012)
 	  nil "Erlang major mode [github]" tar])
  (ergoemacs-mode .
-		 [(20130730 2128)
+		 [(20130802 1309)
 		  ((org-cua-dwim
 		    (0 5)))
 		  "A minor mode, a keybinding set based on ergonomics. [github]" tar])
@@ -3453,7 +3509,7 @@
       [(20130702 925)
        nil "Emacs Got Git - Emacs interface to Git [github]" tar])
  (editorconfig .
-	       [(20130716 2356)
+	       [(20130802 1542)
 		nil "EditorConfig Emacs extension [github]" single])
  (edit-server-htmlize .
 		      [(20130327 1537)
@@ -3746,7 +3802,7 @@
 	       [(20090510 2255)
 		nil "Mode for editing crontab files [github]" single])
  (creole .
-	 [(20130729 35)
+	 [(20130802 922)
 	  ((noflet
 	    (0 0 3))
 	   (kv
@@ -4301,53 +4357,5 @@
 	    nil "Python TDD minor mode [github]" single])
  (abc-mode .
 	   [(20130607 917)
-	    nil "Major mode for editing abc music files [github]" single])
- (pylint .
-	 [(20121112 1335)
-	  nil "minor mode for running `pylint' [hg]" single])
- (starter-kit-ruby .
-		   [(20120128 1450)
-		    ((inf-ruby
-		      (2 2 3))
-		     (starter-kit
-		      (2 0 1)))
-		    "Saner defaults and goodies for Ruby [github]" single])
- (starter-kit-perl .
-		   [(20120128 1450)
-		    nil "Some helpful Perl code [github]" single])
- (starter-kit-lisp .
-		   [(20120504 2007)
-		    ((starter-kit
-		      (2 0 2))
-		     (elisp-slime-nav
-		      (0 1)))
-		    "Saner defaults and goodies for lisp languages [github]" single])
- (starter-kit-js .
-		 [(20110930 2320)
-		  ((starter-kit
-		    (2 0 1)))
-		  "Saner defaults and goodies for Javascript [github]" single])
- (starter-kit-eshell .
-		     [(20121001 1714)
-		      nil "Saner defaults and goodies: eshell tweaks [github]" single])
- (starter-kit-bindings .
-		       [(20120101 1955)
-			((starter-kit
-			  (2 0 2)))
-			"Saner defaults and goodies: bindings [github]" single])
- (starter-kit .
-	      [(20121025 1511)
-	       ((paredit
-		 (22))
-		(idle-highlight-mode
-		 (1 1 1))
-		(find-file-in-project
-		 (3 0))
-		(smex
-		 (1 1 2))
-		(ido-ubiquitous
-		 (0 3))
-		(magit
-		 (0 8 1)))
-	       "Saner defaults and goodies. [github]" tar]))
+	    nil "Major mode for editing abc music files [github]" single]))
 
