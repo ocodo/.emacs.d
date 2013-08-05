@@ -174,7 +174,7 @@
 	     (1 2)))
 	   "Chat via WeeChat's relay protocol in Emacs [github]" tar])
  (websocket .
-	    [(20130706 1746)
+	    [(20130803 1409)
 	     nil "Emacs WebSocket client and server [github]" single])
  (weblogger .
 	    [(20110926 1218)
@@ -182,7 +182,7 @@
 	       (1 6 8)))
 	     "Weblog maintenance via XML-RPC APIs [bzr]" single])
  (web-mode .
-	   [(20130730 21)
+	   [(20130804 1700)
 	    nil "major mode for editing html templates [github]" single])
  (web .
       [(20130429 1926)
@@ -228,6 +228,13 @@
  (visible-mark .
 	       [(20080221 651)
 		nil "Make marks visible. [wiki]" single])
+ (virtualenvwrapper .
+		    [(20130804 1726)
+		     ((dash
+		       (1 5 0))
+		      (s
+		       (1 6 1)))
+		     "a modern virtualenv tool for Emacs [github]" single])
  (virtualenv .
 	     [(20120930 1034)
 	      nil "Virtualenv for Python [github]" single])
@@ -385,6 +392,9 @@
 	 ((emacs
 	   (23 1)))
 	 "Tiny Tiny RSS elisp bindings [github]" single])
+ (tt-mode .
+	  [(20130804 1145)
+	   nil "Emacs major mode for editing Template Toolkit files. [github]" single])
  (truthy .
 	 [(20121106 1302)
 	  ((list-utils
@@ -690,7 +700,7 @@
 		  (24 1)))
 		"a dark colorful theme for Emacs24. [github]" single])
  (solarized-theme .
-		  [(20130725 601)
+		  [(20130804 1358)
 		   nil "The Solarized color theme, ported to Emacs. [github]" tar])
  (snippet .
 	  [(20130210 1815)
@@ -717,7 +727,7 @@
 	   [(20130312 1839)
 	    nil "Support sequential operation which omitted prefix keys. [github]" single])
  (smartparens .
-	      [(20130715 1530)
+	      [(20130804 1820)
 	       ((cl-lib
 		 (0 1))
 		(dash
@@ -932,7 +942,7 @@
       [(20130521 902)
        nil "Emacs integration for rvm [github]" single])
  (rust-mode .
-	    [(20130724 1711)
+	    [(20130803 1831)
 	     nil "A major emacs mode for editing Rust source code [github]" single])
  (ruby-tools .
 	     [(20121008 1851)
@@ -942,6 +952,11 @@
 		  ((ruby-mode
 		    (1 0)))
 		  "Minor mode for Behaviour and Test Driven [github]" single])
+ (ruby-refactor .
+		[(20130803 955)
+		 ((ruby-mode
+		   (1 2)))
+		 "A minor mode which presents various Ruby refactoring helpers. [github]" single])
  (ruby-interpolation .
 		     [(20120326 1309)
 		      nil "Ruby string interpolation helpers [github]" single])
@@ -1145,7 +1160,7 @@
 			 (0 8 0)))
 		       "Snippets for processing-mode [github]" tar])
  (processing-mode .
-		  [(20130801 1521)
+		  [(20130804 1120)
 		   nil "Major mode for Processing 2.0 [github]" single])
  (proc-net .
 	   [(20130322 12)
@@ -1185,7 +1200,7 @@
 	[(20130324 1305)
 	 nil "Visual Popup User Interface [github]" single])
  (pophint .
-	  [(20130802 48)
+	  [(20130804 1927)
 	   ((popup
 	     (0 5 0))
 	    (log4e
@@ -1703,7 +1718,7 @@
 	 [(20130723 2348)
 	  nil "Extensions to `mouse.el'. [wiki]" single])
  (motion-mode .
-	      [(20130701 1300)
+	      [(20130801 1041)
 	       ((flymake-easy
 		 (0 7))
 		(flymake-cursor
@@ -1895,7 +1910,7 @@
 			       [(20130730 1032)
 				nil "Advice for magit-log-edit-commit [github]" single])
  (magit .
-	[(20130803 129)
+	[(20130804 315)
 	 nil "control Git from Emacs [github]" tar])
  (mag-menu .
 	   [(20130224 56)
@@ -2348,7 +2363,7 @@
 	     [(20130723 2333)
 	      nil "Extensions to `icomplete.el'. [wiki]" single])
  (icicles .
-	  [(20130802 2259)
+	  [(20130804 229)
 	   nil "Minibuffer input completion and cycling. [wiki]" tar])
  (ibuffer-vc .
 	     [(20130728 926)
@@ -2588,7 +2603,7 @@
 	    (20120509)))
 	  "helm-sources and some utilities for GNU R. [github]" single])
  (helm .
-       [(20130802 1656)
+       [(20130804 1901)
 	nil "Helm is an Emacs incremental and narrowing framework [github]" tar])
  (header2 .
 	  [(20130723 2321)
@@ -2787,7 +2802,7 @@
 		       (0 1 1)))
 		     "Fringe version of git-gutter.el [github]" single])
  (git-gutter+ .
-	      [(20130801 1143)
+	      [(20130803 2130)
 	       nil "Manage Git hunks straight from the buffer [github]" single])
  (git-gutter .
 	     [(20130613 2232)
@@ -3070,7 +3085,7 @@
 			      (24 1)))
 			    "Change mode line color with Flycheck status [github]" single])
  (flycheck .
-	   [(20130731 1956)
+	   [(20130803 2037)
 	    ((s
 	      (1 6 0))
 	     (dash
@@ -3208,7 +3223,7 @@
 		 (0)))
 	       "let there be <leader> [github]" single])
  (evil .
-       [(20130802 2228)
+       [(20130804 1513)
 	((undo-tree
 	  (0 6 3)))
 	"Extensible Vi layer for Emacs. [git]" tar])
@@ -3289,7 +3304,7 @@
 	 [(20130701 1012)
 	  nil "Erlang major mode [github]" tar])
  (ergoemacs-mode .
-		 [(20130802 1309)
+		 [(20130804 52)
 		  ((org-cua-dwim
 		    (0 5)))
 		  "A minor mode, a keybinding set based on ergonomics. [github]" tar])
@@ -3330,11 +3345,11 @@
 	  (1 47)))
 	"Evernote Picker [github]" tar])
  (epc .
-      [(20130312 2201)
+      [(20130804 1428)
        ((concurrent
 	 (0 3 1))
 	(ctable
-	 (0 1 1)))
+	 (0 1 2)))
        "A RPC stack for the Emacs Lisp [github]" tar])
  (enotify .
 	  [(20130407 1548)
