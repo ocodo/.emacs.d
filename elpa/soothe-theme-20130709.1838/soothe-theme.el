@@ -508,7 +508,7 @@
      [,background ,red-1 ,green-1 ,yellow-1 ,blue-1 ,purple-1 ,blue-3 ,foreground])
    `(ansi-term-color-vector
      ;; black, red, green, yellow, blue, magenta, cyan, white
-     [unspecified ,background ,red-1 ,green-1 ,yellow-1 ,blue-1 ,purple-1 ,blue-3 ,foreground])
+     [,background ,red-1 ,green-1 ,yellow-1 ,blue-1 ,purple-1 ,blue-3 ,foreground])
    )
   )
 
