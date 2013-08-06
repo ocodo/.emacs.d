@@ -13,3 +13,4 @@ server/**
 server
 tramp
 .mc-lists.el
+/tramp
