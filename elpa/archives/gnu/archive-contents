@@ -125,7 +125,7 @@
 	[(0 1)
 	 nil "Queue data structure" single])
  (rainbow-mode .
-	       [(0 8)
+	       [(0 9)
 		nil "Colorize color names in buffers" single])
  (register-list .
 		[(0 1)
