@@ -122,6 +122,10 @@
 (autoload 'asciidoc-mode "asciidoc-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
 
+;; Auto add executable permissions to scripts when saved
+(add-hook 'after-save-hook
+          'executable-make-buffer-file-executable-if-script-p)
+
 ;; Rainbow mode for css automatically
 (add-hook 'css-mode-hook 'rainbow-mode)
 
