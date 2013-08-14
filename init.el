@@ -1,9 +1,9 @@
-;;                       _                                             _       _ 
-;;    ___   ___ ___   __| | ___     ___ _ __ ___   __ _  ___ ___    __| | ___ | |_ 
+;;                       _                                             _       _
+;;    ___   ___ ___   __| | ___     ___ _ __ ___   __ _  ___ ___    __| | ___ | |_
 ;;   / _ \ / __/ _ \ / _` |/ _ \   / _ \ '_ ` _ \ / _` |/ __/ __|  / _` |/ _ \| __|
-;;  | (_) | (_| (_) | (_| | (_) | |  __/ | | | | | (_| | (__\__ \ | (_| | (_) | |_ 
+;;  | (_) | (_| (_) | (_| | (_) | |  __/ | | | | | (_| | (__\__ \ | (_| | (_) | |_
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
-;;                                          
+;;
 ;; --
 
 ;; First a dirty, but cheap way to get .emacs.d subfolders into the load path,
@@ -52,8 +52,8 @@
 (require 'ag)
 (require 'multiple-cursors)
 (require 'js2-refactor)
-          
-;; Modes init (things that need more than just a require.) 
+
+;; Modes init (things that need more than just a require.)
 (when (string-match "Emacs 24" (version))
   (message "Running Emacs 24")
   ;; Only run elpa on E24
@@ -81,6 +81,16 @@
 ;; auto-load hyde mode for Jekyll
 (require 'hyde-autoloads) ;; ./vendor/hyde
 
+;; Safe cleanup, probably a package?
+(defun safe-buffer-cleanup ()
+  "Clean whitespace, kill tabs, set to UTF8"
+  (untabify (point-min) (point-max))
+  (delete-trailing-whitespace)
+  (set-buffer-file-coding-system 'utf-8))
+
+(add-hook 'before-save-hook 'safe-buffer-cleanup)
+
+;; Do this better...
 (if
     (s-contains? "w3m not found" (shell-command-to-string "which w3m"))
      (message "w3m not available")
@@ -190,16 +200,16 @@
 ;; Default Font for different window systems
 (when (window-system)
  (global-linum-mode 1)
-  ;; Mac OS X 
+  ;; Mac OS X
   (when (eq system-type 'darwin)
     ;;(set-face-font 'default "Monaco")
     ;;(set-face-font 'default "Source Code Pro")
     (set-face-font 'default "Menlo"))
-  ;; Sample Text for font viewing 
+  ;; Sample Text for font viewing
   '("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "1234567890!@#$%^&*()-=_+[]\{}|;':<>?,./")
-  
+
   ;; Windows whatever...
   (when (eq system-type 'windows-nt)
     (set-face-font 'default "Consolas")
@@ -215,4 +225,3 @@
 (load-theme 'clues)
 
 (set-face-attribute 'default nil :height 140)
-
