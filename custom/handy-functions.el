@@ -119,9 +119,7 @@
 (global-set-key (kbd "C-S-o") 'open-line-above)
 (global-set-key (kbd "C-o") 'open-line-below)
 
-;; Originally swiped from rejeep's emacs.d rejeep-defuns.el. I'll be
-;; modifying it later to leave the cursor at the top or bottom of the newly
-;; duplicated line/region.
+;; Originally swiped from rejeep's emacs.d rejeep-defuns.el.
 (defun duplicate-current-line-or-region (arg)
   "Duplicates the current line or region ARG times.
 If there's no region, the current line will be duplicated. However, if
@@ -143,11 +141,12 @@ there's a region, all lines that region covers will be duplicated."
       (goto-char (+ origin (* (length region) arg) arg)))))
 
 (defun shell-command-on-region-replace (start end command)
-  "Run shell-command-on-region interactively replacing the region in place"
+  "Run shell-command-on-region replacing the region in place, or
+inserting the stdout into the buffer at point"
   (interactive (let (string)
                  (unless (mark)
                    (error "The mark is not set now, so there is no region"))
-                 (setq string (read-from-minibuffer "Shell command on region: "
+                 (setq string (read-from-minibuffer "Shell region | replace: "
                                                     nil nil nil
                                                     'shell-command-history))
                  (list (region-beginning) (region-end)
@@ -242,7 +241,7 @@ there's a region, all lines that region covers will be duplicated."
   (operate-on-point-or-region 's-capitalized-words))
 
 (defun titleized-at-point-or-region ()
-  "Convert dashed, underscored or (both styles of) CamelCase, 
+  "Convert dashed, underscored or (both styles of) CamelCase,
   or spaced words in region, Title Case Words."
   (interactive)
   (operate-on-point-or-region 's-titleized-words))
