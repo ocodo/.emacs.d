@@ -141,8 +141,8 @@ there's a region, all lines that region covers will be duplicated."
       (goto-char (+ origin (* (length region) arg) arg)))))
 
 (defun shell-command-on-region-replace (start end command)
-  "Run shell-command-on-region replacing the region in place, or
-inserting the stdout into the buffer at point"
+  "Run shell-command-on-region replacing the selected region with
+stdout, or inserting at the current point. Note, if the mark is still active (even though the region isn't visible.) it will be used. TODO is in place to fix this, but it's low on my list of things."
   (interactive (let (string)
                  (unless (mark)
                    (error "The mark is not set now, so there is no region"))
