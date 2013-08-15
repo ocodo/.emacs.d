@@ -1,12 +1,17 @@
 ;; Note: this is all very Emacs Cocoa specific, ie. super "s-" maps to the Cmd/Apple key.
 
-;; for Emacs Mac, (not Emacs Cocoa) - 
+;; for Emacs Mac, (not Emacs Cocoa) -
 ;; (takes care of conditional loading itself.)
 ;; Brings the Emacs mac key bindings (closer) into line with Emacs Cocoa.
 (require 'mac-port-keys)
 (require 'custom-mac-fn-keys)
 
-;; Keys - universal 
+;; Keys - universal
+
+;; Newest additions at the top...
+
+(global-set-key (kbd "M-P") 'fiplr-find-file)
+(global-set-key (kbd "s-|") 'shell-command-on-region-replace)
 
 ;; Ret and indent binding
 (global-set-key (kbd "RET") 'newline-and-indent)
@@ -19,7 +24,7 @@
 ;; since I'm mac centric I bind Cmd-x,c,v to cut/copy/paste.
 (global-set-key [c-z] 'undo)
 
-;; append region to file 
+;; append region to file
 (global-set-key (kbd "C-x C-a") 'append-to-file)
 
 ;; Resize window horizontally
@@ -54,7 +59,7 @@
 ;; don't want my bindings, if you're over that, and just need text,
 ;; and non-modality, you're in the right place.
 
-(when (and (window-system) (eq system-type 'darwin)) 
+(when (and (window-system) (eq system-type 'darwin))
 
   (message "binding osx specific shortcuts")
   ;; Cmd-o to find-file...
@@ -89,10 +94,10 @@
   (global-set-key (kbd "s-t") 'find-file)
 
   ;; Cmd-u : is default wired to revert buffer, I quite like that, but
-  ;; this seems like a good place to tag that info. (ns cocoa emacs) 
+  ;; this seems like a good place to tag that info. (ns cocoa emacs)
 
   ;; Navigating around frames, windows & buffers
-  (global-set-key (kbd "s-`") 'switch-window) 
+  (global-set-key (kbd "s-`") 'switch-window)
 
   (global-set-key (kbd "s-~") 'other-frame)
 
@@ -108,12 +113,12 @@
   (global-set-key (kbd "s-4") 'delete-other-windows-vertically)
 
   (global-set-key (kbd "s-5") 'delete-window)
-  ;; same command on Cmd-C-w 
+  ;; same command on Cmd-C-w
   (global-set-key [C-s-w] 'delete-window)
 
   ;; Text "zoom"
-  (global-set-key (kbd "s--") 'text-scale-decrease) 
-  (global-set-key (kbd "s-=") 'text-scale-increase) 
+  (global-set-key (kbd "s--") 'text-scale-decrease)
+  (global-set-key (kbd "s-=") 'text-scale-increase)
 
   ;; line numbers off on
   (global-set-key (kbd "s-0") 'linum-mode)
@@ -121,13 +126,13 @@
   ;; highly inclusive expand
   (global-set-key (kbd "s-/" ) 'hippie-expand)
 
-  ;; "contextual" completion 
+  ;; "contextual" completion
   (global-set-key (kbd "<s-return>" ) 'completion-at-point)
 
   ;; narrow / widen region
   (global-set-key (kbd "s-§") 'narrow-to-region)
   (global-set-key (kbd "C-§") 'widen)
-    
+
   )
 
 ;; Please Note: there are still bindings littered about, I will clean this up! (one day!)
