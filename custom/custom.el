@@ -1,4 +1,4 @@
-;; Customize stuff... 
+;; Customize stuff...
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -23,7 +23,6 @@
  '(fci-rule-color "#202020")
  '(fringe-mode 6 nil (fringe))
  '(global-hl-line-mode nil)
- '(global-visual-line-mode t)
  '(indent-tabs-mode nil)
  '(indicate-buffer-boundaries (quote right))
  '(inhibit-startup-screen t)
@@ -39,7 +38,7 @@
  '(linum-format " %7d ")
  '(main-line-separator-style (quote chamfer))
  '(make-backup-files nil)
- '(markdown-command "redcarpet")
+ '(markdown-command "markdown")
  '(markdown-css-path "markdown.css")
  '(newsticker-url-list (quote (("Hacker News" "https://news.ycombinator.com/rss" nil nil nil) ("Emacs Reddit" "http://www.reddit.com/r/emacs.rss" nil nil nil))))
  '(powerline-color1 "#191919")
@@ -72,4 +71,3 @@
  '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.7))))
  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))))
  '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.5)))))
-
