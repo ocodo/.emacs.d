@@ -35,6 +35,9 @@
         (heap
          (0 3)))
        "Dictionary data structure" single])
+ (dismal .
+   [(1 5)
+    nil "Dis Mode Ain't Lotus: Spreadsheet program Emacs" tar])
  (djvu .
        [(0 5)
   nil "Edit and view Djvu files via djvused" single])
@@ -72,7 +75,7 @@
      [(20130619)
       ((emacs
         (24 1)))
-      "Improved JavaScript editing mode" single])
+      "Improved JavaScript editing mode" tar])
  (jumpc .
   [(3 0)
    nil "jump to previous insertion points" single])
@@ -171,7 +174,7 @@
        nil "View Large Files" single])
  (websocket .
       [(1 1)
-       nil "Emacs WebSocket client and server" single])
+       nil "Emacs WebSocket client and server" tar])
  (windresize .
        [(0 1)
         nil "Resize windows interactively" single])
