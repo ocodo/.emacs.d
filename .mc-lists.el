@@ -12,8 +12,10 @@
         cua-paste
         cua-scroll-up
         end-of-visual-line
+        indent-for-tab-command
         keyboard-escape-quit
         multiple-cursors-mode
+        nxml-electric-slash
         ruby-end-space
         slim-electric-backspace
         smart-beginning-of-line
