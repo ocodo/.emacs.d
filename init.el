@@ -90,7 +90,7 @@
 
 (add-hook 'before-save-hook 'safe-buffer-cleanup)
 
-;; Do this better...
+;; Check for w3m
 (if
     (s-contains? "w3m not found" (shell-command-to-string "which w3m"))
      (message "w3m not available")
@@ -221,6 +221,17 @@
     ;; (set-face-font 'default "Bitstream Vera Sans Mono")
     )
 )
+
+;; Custom themes from elpa/melpa/marmalade added to load-path
+(-each
+ (-map
+  (lambda (item)
+    (format "~/.emacs.d/elpa/%s" item))
+  (-filter
+   (lambda (item) (s-contains? "theme" item))
+   (directory-files "~/.emacs.d/elpa")))
+ (lambda (item)
+   (add-to-list 'custom-theme-load-path item)))
 
 (load-theme 'clues)
 

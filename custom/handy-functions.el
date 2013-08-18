@@ -1,7 +1,6 @@
 (require 's)
 
 ;; Handy functions, add little helpers in here.
-
 (defun align-number-right (begin end)
   "Align region to equal signs"
   (interactive "r")
@@ -333,5 +332,29 @@ or nil if not found."
    (point-min)
    (point-max)
    "pbcopy"))
+
+(defun search-backward-wrapped-string (wrap_start wrap_end)
+  "Search for a string behind point which is wrapped in two
+strings, wrap_start and wrap_end.
+
+if wrap_end and wrap_start are equal, we first position the point
+at the beginning of the first wrap_end match, before the initial
+point.
+
+The string found between the two wrappers is returned.
+
+This is useful for naive finding of symbols previously defined in the
+buffer."
+  (save-excursion
+    (when (equal wrap_start wrap_end)
+      (search-backward wrap-end))
+    (let* ((start_match
+            (+ (search-backward wrap_start)
+               (length wrap_start)))
+           (end_match 0))
+      (goto-char start_match)
+      (setq end_match (- (search-forward wrap_end) 1))
+      (buffer-substring-no-properties start_match end_match))))
+
 
 (provide 'handy-functions)
