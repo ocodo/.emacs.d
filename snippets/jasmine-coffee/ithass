@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: it has string result
+# key: ithass
+# --
+it "should have a ${1:", inject ($2)->
