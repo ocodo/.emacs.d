@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toBeGreaterThan
+# group: expect
+# key: etbg
+# --
+expect($1).toBeGreaterThan($2)
+$0

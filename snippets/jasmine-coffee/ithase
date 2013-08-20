@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: it has equal
+# group: angular-tests
+# key: ithase
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+it "should have ${1:something} that is equal to ${2:result}", ->
+  expect($1).toEqual("$2")

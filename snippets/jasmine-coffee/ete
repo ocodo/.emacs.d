@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toEqual
+# group: expect
+# key: ete
+# --
+expect($1).toEqual($2)
+$0

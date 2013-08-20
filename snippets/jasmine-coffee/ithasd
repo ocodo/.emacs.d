@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: check module has dependency
+# group: angular-tests
+# key: ithasd
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+it 'should have ${1:$$(jasmine-coffee-ng/before-each-module-name)}.${2:$$(yas/choose-value jasmine-ng/dependency-types)} as a dependency', ->
+  expect(hasModule('$1.$2')).toEqual true

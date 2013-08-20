@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: beforeEach
+# key: bef
+# --
+beforeEach ->
+
+$0
