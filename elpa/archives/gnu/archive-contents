@@ -119,7 +119,7 @@
      [(1 0)
       nil "Support for OWL Manchester Notation" single])
  (org .
-      [(20130812)
+      [(20130819)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
     [(0 1)
@@ -156,6 +156,9 @@
   ((queue
     (0 1)))
   "Tagged non-deterministic finite-state automata" single])
+ (temp-buffer-browse .
+         [(1 0)
+          nil "temp buffer browse mode" single])
  (trie .
        [(0 2 6)
   ((tNFA
