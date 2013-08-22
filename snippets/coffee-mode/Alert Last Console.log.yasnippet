@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: alert from last console.log
+# key: alc
+# --
+alert${1:$$(re-backward-match-group "console.log\\\\(.*\\\\)\\n")}
+$0

@@ -969,7 +969,7 @@
         (0 0 3)))
       "s operations for buffers [github]" single])
  (s .
-    [(20130818 822)
+    [(20130820 1601)
      nil "The long lost Emacs string manipulation library. [github]" single])
  (rvm .
       [(20130521 902)
@@ -1789,7 +1789,7 @@
         (1 2 0)))
       "a mustache templating library in emacs lisp [github]" tar])
  (multiple-cursors .
-       [(20130815 2110)
+       [(20130821 1255)
         nil "Multiple cursors for Emacs. [github]" tar])
  (multifiles .
        [(20130615 2249)
@@ -2438,7 +2438,7 @@
         [(20130422 1226)
          nil "Makes ido-mode display vertically. [github]" single])
  (ido-ubiquitous .
-     [(20121214 2145)
+     [(20130820 1824)
       nil "Use ido (nearly) everywhere. [github]" single])
  (ido-sort-mtime .
      [(20130427 1211)
@@ -3195,7 +3195,7 @@
          [(20130610 1705)
     nil "Helpers for easily building flymake checkers [github]" single])
  (flymake-cursor .
-     [(20121220 957)
+     [(20130821 407)
       nil "displays flymake error msg in minibuffer after delay [wiki]" single])
  (flymake-css .
         [(20121104 1904)
