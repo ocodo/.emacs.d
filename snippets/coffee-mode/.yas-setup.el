@@ -8,10 +8,3 @@
     (re-search-backward-lax-whitespace rexp)
     (when  (= (+ 2 (* n 2)) (length (match-data)))
       (match-string-no-properties n)))))
-
-(defun jasmine-coffee-ng/before-each-module-name ()
-  "Find the name of a module included by a previous beforeEach"
-  (re-backward-match-group "beforeEach(? ?module(? ?['\"]\\(.*\\)['\"])? ?)?"))
-
-(defvar jasmine-ng/dependency-types
-  '("Controllers" "Directives" "Services" "Routes" "Filters"))
