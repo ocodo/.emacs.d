@@ -1,6 +1,6 @@
 (1
  (ack .
-      [(1 2)
+      [(1 3)
        nil "Interface to ack-like source code search tools" tar])
  (adaptive-wrap .
     [(0 5)
@@ -16,7 +16,7 @@
     nil "Properly prefixed CL functions and macros" single])
  (coffee-mode .
         [(0 4 1)
-         nil "Major mode for CoffeeScript files" tar])
+         nil "Major mode for CoffeeScript files" single])
  (company .
     [(0 6 10)
      nil "Modular in-buffer completion framework" tar])
@@ -37,7 +37,9 @@
        "Dictionary data structure" single])
  (dismal .
    [(1 5)
-    nil "Dis Mode Ain't Lotus: Spreadsheet program Emacs" tar])
+    ((cl-lib
+      (0)))
+    "Dis Mode Ain't Lotus: Spreadsheet program Emacs" tar])
  (djvu .
        [(0 5)
   nil "Edit and view Djvu files via djvused" single])
@@ -60,7 +62,7 @@
       [(1 1)
        nil "Parse and browse f90 interfaces" single])
  (ggtags .
-   [(0 6 6)
+   [(0 6 7)
     nil "GNU Global source code tagging system" single])
  (heap .
        [(0 3)
@@ -99,7 +101,7 @@
      nil "Sidebar showing a \"mini-map\" of a buffer" single])
  (muse .
        [(3 20)
-  nil "Authoring and publishing tool" tar])
+  nil "Authoring and publishing tool for Emacs" tar])
  (nhexl-mode .
        [(0 1)
         nil "Minor mode to edit files via hex-dump format" single])
@@ -108,7 +110,7 @@
     nil "Show line numbers in the margin" single])
  (notes-mode .
        [(1 30)
-        nil "Organizing on-line note-taking" tar])
+        nil "Indexing system for on-line note-taking" tar])
  (num3-mode .
       [(1 1)
        nil "highlight groups of digits in long numbers" single])
@@ -135,7 +137,7 @@
      nil "Interactively list/edit registers" single])
  (shen-mode .
       [(0 1)
-       nil "Utilities for working with Shen code." tar])
+       nil "A major mode for editing shen source code" tar])
  (sisu-mode .
       [(3 0 3)
        nil "Major mode for SiSU markup text" single])
@@ -186,4 +188,4 @@
    nil "Emacs Interface to XClip" single])
  (yasnippet .
       [(0 8 0)
-       nil "A template system for Emacs" tar]))
+       nil "Yet another snippet extension for Emacs." tar]))

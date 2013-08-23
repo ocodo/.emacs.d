@@ -1,0 +1,81 @@
+2013-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Sync from ack/master
+
+2013-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Mark merge point of ack-el.
+
+2013-05-04  Leo Liu  <sdl.web@gmail.com>
+
+	* ack: bump to version 1.2 to make the archiver happy
+
+	Fix http://debbugs.gnu.org/14338
+
+2013-04-21  Leo Liu  <sdl.web@gmail.com>
+
+	* ack: doc fix and release 1.01
+
+	Support the silver search (ag) 
+	https://github.com/ggreer/the_silver_searcher which is an order of 
+	magnitude faster than ack.
+
+2013-04-20  Leo Liu  <sdl.web@gmail.com>
+
+	* ack: Release v1.0
+
+2013-02-26  Leo Liu  <sdl.web@gmail.com>
+
+	* ack.el: work around bug http://debbugs.gnu.org/13811
+
+	Use setq-local and enhance minibuffer prompt update feature.
+
+2013-02-07  Leo Liu  <sdl.web@gmail.com>
+
+	* ack: release v0.9
+
+	- remove emacs 23 support
+	- add a new command ack-mode-display-match
+
+2013-01-13  Leo Liu  <sdl.web@gmail.com>
+
+	New command ack-yank-symbol-at-point and bind it to M-Y
+
+	Thanks to scottj@irc.freenode.net for request and testing. Also update
+	copyright years.
+
+2012-11-19  Leo Liu  <sdl.web@gmail.com>
+
+	* ack.el (ack-buffer-name-function): New user variable
+
+	Thanks to scottj@irc.freenode.net for request and testing.
+
+2012-10-21  Leo Liu  <sdl.web@gmail.com>
+
+	* ack.el: Make minibuffer prompt more informative
+
+2012-10-08  Leo Liu  <sdl.web@gmail.com>
+
+	* README (Usage): Doc fix
+
+2012-10-08  Chong Yidong  <cyd@gnu.org>
+
+	Fix copyright headers for ack package
+
+2012-10-08  Chong Yidong  <cyd@gnu.org>
+
+	Convert packages/ack/README.rst to a package.el compatible README. 
+	Tweak the description of the ack package in packages/ack/ack-pkg.el.
+
+2012-10-04  Leo Liu  <sdl.web@gmail.com>
+
+	Add file ack-pkg.el
+
+2012-10-04  Leo Liu  <sdl.web@gmail.com>
+
+	Sync ack.el and pcmpl-ack.el to version 0.8
+
+2012-10-01  Leo Liu  <sdl.web@gmail.com>
+
+	Add ack
+
