@@ -177,6 +177,9 @@
  (vlf .
       [(0 9 1)
        nil "View Large Files" single])
+ (w3 .
+     [(4 0 48)
+      nil "Fully customizable, largely undocumented web browser for Emacs" tar])
  (websocket .
       [(1 1)
        nil "Emacs WebSocket client and server" tar])
