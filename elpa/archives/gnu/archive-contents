@@ -5,6 +5,9 @@
  (adaptive-wrap .
     [(0 5)
      nil "Smart line-wrapping with wrap-prefix" single])
+ (adjust-parens .
+    [(1 0)
+     nil "Indent and dedent Lisp code, automatically adjust close parens" single])
  (all .
       [(1 0)
        nil "Edit all lines matching a given regexp" single])
