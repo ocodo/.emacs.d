@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# contributor: Translated to yasnippet by sublime-snippet import
+# key: resdm
+# group: rails
+# name: resources with a custom member block
+# --
+resources :${1:res_name} do
+  member do
+    ${2:get} :${3:action}
+  end
+end

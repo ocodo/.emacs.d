@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# contributor: Translated to yasnippet by sublime-snippet import
+# key: vlif
+# group: rails
+# name: validates_length_of if
+# --
+validates_length_of :${1:attribute}, within: ${2:3..20}${3:, on: :${4:create}, message: "${5:must be present}"}, if: proc { |obj| ${6:obj.condition?} }}
