@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# contributor: Translated to yasnippet by sublime-snippet import
+# key: vcif
+# group: rails
+# name: validates_confirmation_of if
+# --
+validates_confirmation_of :${1:attribute}${2:, on: :${3:create}, message: "${4:should match confirmation}", if: proc { |obj| ${5:obj.condition?} }}

@@ -1,0 +1,25 @@
+# -*- mode: snippet -*-
+# name: defface template
+# key: defface
+# group: deftheme
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+(defface ${1:face-name}
+       '(
+         ;; 24bit
+         (((class color) (min-colors 16777216) (background dark )) :background "${2:unspecified}"   :foreground "${3:unspecified}" :underline "${4:unspecified}" :bold ${5:unspecified} :italic ${6:unspecified} :height ${7:unspecified} )
+         (((class color) (min-colors 16777216) (background light)) :background "${8:unspecified}"   :foreground "${9:unspecified}" :underline "${10:unspecified}" :bold ${11:unspecified} :italic ${12:unspecified} :height ${13:unspecified} )
+         ;; xterm 256 
+         (((class color) (min-colors 254)      (background dark )) :background "${14:unspecified}"   :foreground "${15:unspecified}" :underline "${16:unspecified}" :bold ${17:unspecified} :italic ${18:unspecified} :height ${19:unspecified} )
+         (((class color) (min-colors 254)      (background light)) :background "${20:unspecified}"   :foreground "${21:unspecified}" :underline "${22:unspecified}" :bold ${23:unspecified} :italic ${24:unspecified} :height ${25:unspecified} )
+         ;; rxvt 88 
+         (((class color) (min-colors 88)       (background dark )) :background "${26:unspecified}"   :foreground "${27:unspecified}" :underline "${28:unspecified}" :bold ${29:unspecified} :italic ${30:unspecified} :height ${31:unspecified} )
+         (((class color) (min-colors 88)       (background light)) :background "${32:unspecified}"   :foreground "${33:unspecified}" :underline "${34:unspecified}" :bold ${35:unspecified} :italic ${36:unspecified} :height ${37:unspecified} )
+         ;; ansi 16 
+         (((class color) (min-colors 16)       (background dark))  :background "${38:unspecified}"   :foreground "${39:unspecified}" :underline "${40:unspecified}" :bold ${41:unspecified} :italic ${42:unspecified} :height ${43:unspecified} )
+         (((class color) (min-colors 16)       (background light)) :background "${44:unspecified}"   :foreground "${45:unspecified}" :underline "${46:unspecified}" :bold ${47:unspecified} :italic ${48:unspecified} :height ${49:unspecified} )
+         ;; default case 
+         (t                                                        :background "${50:unspecified}"   :foreground "${51:unspecified}" :underline "${52:unspecified}" :bold ${53:unspecified} :italic ${54:unspecified} :height ${55:unspecified} ))
+         
+       "${56:docstring}"
+       :group '${57:group})
