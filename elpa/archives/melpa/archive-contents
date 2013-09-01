@@ -602,7 +602,7 @@
     [(20130122 1322)
      nil "Functions for working with comints [github]" single])
  (sublimity .
-      [(20130826 1951)
+      [(20130901 1336)
        nil "smooth-scrolling and minimap, like sublime editor [github]" tar])
  (sublime-themes .
      [(20130824 956)
@@ -811,7 +811,7 @@
       [(20130620 1413)
        nil "Rip Clojure namespaces apart and rebuild them. [github]" single])
  (skewer-mode .
-        [(20130826 2009)
+        [(20130831 2324)
          ((simple-httpd
      (1 4 0))
     (js2-mode
@@ -1852,7 +1852,7 @@
          [(20120608 1835)
     nil "Create and manage multiple shells within Emacs [wiki]" single])
  (multi .
-  [(20130831 117)
+  [(20130901 103)
    ((emacs
      (24)))
    "Clojure-style multi-methods for emacs lisp [github]" single])
@@ -3547,7 +3547,7 @@
    [(20130827 1016)
     nil "Erlang major mode [github]" tar])
  (ergoemacs-mode .
-     [(20130831 1009)
+     [(20130831 2145)
       ((org-cua-dwim
         (0 5)))
       "Emacs mode based on common modern software interface and ergonomics. [github]" tar])
@@ -4536,7 +4536,7 @@
      [(20130606 946)
       nil "open anything / QuickSilver-like candidate-selection framework [git]" tar])
  (anti-zenburn-theme .
-         [(20130827 2344)
+         [(20130901 236)
           nil "Low-contrast Zenburn-inverted theme [github]" single])
  (ansi .
        [(20130827 1653)
