@@ -124,7 +124,7 @@
      [(1 0)
       nil "Support for OWL Manchester Notation" single])
  (org .
-      [(20130826)
+      [(20130902)
        nil "Outline-based notes management and organizer" tar])
  (quarter-plane .
     [(0 1)
@@ -190,8 +190,8 @@
        [(0 1)
         nil "Resize windows interactively" single])
  (xclip .
-  [(1 0)
-   nil "Emacs Interface to XClip" single])
+  [(1 1)
+   nil "use xclip to copy&paste" single])
  (yasnippet .
       [(0 8 0)
        nil "Yet another snippet extension for Emacs." tar]))

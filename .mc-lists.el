@@ -11,6 +11,7 @@
         cua-delete-region
         cua-paste
         cua-scroll-up
+        dabbrev-expand
         end-of-visual-line
         indent-for-tab-command
         keyboard-escape-quit
@@ -26,5 +27,6 @@
         beginning-of-buffer
         cua-scroll-down
         end-of-buffer
+        iedit-mode
         mac-mwheel-scroll
         ))
