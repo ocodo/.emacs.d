@@ -4,4 +4,4 @@
 # group: rails
 # name: render (inline, locals)
 # --
-render inline: "${1:<%= 'hello' %>}", locals: { ${2:name}: "${3:value}"$4 }
+render inline: "${1:= 'hello' }", locals: { ${2:name}: "${3:value}"$4 }
