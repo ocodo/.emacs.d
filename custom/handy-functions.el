@@ -222,7 +222,7 @@ stdout, or inserting at the current point. Note, if the mark is still active (ev
 (defun dasherise-at-point-or-region ()
   "dasherise-the-current CamelCase or snake_case word or text selection."
   (interactive)
-  (operate-on-point-or-region 's-dash-words))
+  (operate-on-point-or-region 's-dashed-words))
 
 (defun upper-camelcase-at-point-or-region ()
   "UpperCamelCaseTheCurrent dashed-or-snake_case_words or any words in text selection."
