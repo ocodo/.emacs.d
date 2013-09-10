@@ -236,3 +236,4 @@
 (load-theme 'clues)
 
 (set-face-attribute 'default nil :height 140)
+(put 'scroll-left 'disabled nil)
