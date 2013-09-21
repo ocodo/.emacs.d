@@ -18,6 +18,7 @@
   (when (file-exists-p "/Applications/Xcode.app/Contents/Developer/usr/bin")
     (setq exec-path (append '("/Applications/Xcode.app/Contents/Developer/usr/bin") exec-path)))
   (when (file-exists-p "~/.rvm/bin")
+    (rvm-use-default)
     (setq exec-path (append '("~/.rvm/bin") exec-path)))
   (when (file-exists-p "/usr/local/bin/")
     (setq exec-path (append '("/usr/local/bin") exec-path)))
@@ -35,11 +36,12 @@
   (menu-bar-mode -1)
 )
 
-(setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
-(load custom-file)
-(require 'custom-keys)
-
-(setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
+;; Modes init (things that need more than just a require.)
+(when (string-match "Emacs 24" (version))
+  (message "Running Emacs 24")
+  ;; Only run elpa on E24
+  (require 'init-elpa)
+)
 
 ;; Explicitly require libs that autoload borks
 ;; Include common lisp
@@ -53,13 +55,24 @@
 (require 'multiple-cursors)
 (require 'js2-refactor)
 
-;; Modes init (things that need more than just a require.)
-(when (string-match "Emacs 24" (version))
-  (message "Running Emacs 24")
-  ;; Only run elpa on E24
-  (require 'init-elpa)
-)
+;; Custom themes from elpa/melpa/marmalade added to load-path
+(-each
+ (-map
+  (lambda (item)
+    (format "~/.emacs.d/elpa/%s" item))
+  (-filter
+   (lambda (item) (s-contains? "theme" item))
+   (directory-files "~/.emacs.d/elpa")))
+ (lambda (item)
+   (add-to-list 'custom-theme-load-path item)))
 
+(setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
+(load custom-file)
+(require 'custom-keys)
+
+(setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
+
+(load-theme 'clues)
 ;; -------------------------------------------------------------------------------------------------
 ;; Additional requires
 ;; -------------------------------------------------------------------------------------------------
@@ -168,14 +181,6 @@
 (put 'narrow-to-page            'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
 
-;; Ruby mode filetype hooks ------------------------------------------------------------------------
-;; -- this will need migrating to init-ruby-mode.el or sumthin'
-
-(dolist (pattern '("\\.rb$" "^Rakefile$" "\.rake$" "\.rxml$" "\.rjs$" ".irbrc$" "\.builder$" "\.ru$" "\.rabl$" "\.gemspec$" "Gemfile$" "^.pryrc$" "^config.ru$"))
-   (add-to-list 'auto-mode-alist (cons pattern 'ruby-mode)))
-
-(add-hook 'ruby-mode-hook 'flymake-ruby-load)
-
 ;; -------------------------------------------------------------------------------------------------
 ;; Highlight TODO/FIXME/BUG/HACK/REFACTOR & THE HORROR in code - I'm hoping the last one will catch on.
 (add-hook 'prog-mode-hook
@@ -193,8 +198,7 @@
 (dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
   (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
 
-;; Conditional start of Emacs Server
-(setq server-use-tcp t)
+;; Start Emacs Server
 (server-start)
 
 ;; Default Font for different window systems
@@ -222,18 +226,6 @@
     )
 )
 
-;; Custom themes from elpa/melpa/marmalade added to load-path
-(-each
- (-map
-  (lambda (item)
-    (format "~/.emacs.d/elpa/%s" item))
-  (-filter
-   (lambda (item) (s-contains? "theme" item))
-   (directory-files "~/.emacs.d/elpa")))
- (lambda (item)
-   (add-to-list 'custom-theme-load-path item)))
-
-(load-theme 'clues)
 
 (set-face-attribute 'default nil :height 140)
 (put 'scroll-left 'disabled nil)

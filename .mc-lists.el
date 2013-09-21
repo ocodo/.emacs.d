@@ -26,6 +26,7 @@
       '(
         beginning-of-buffer
         cua-scroll-down
+        delete-horizontal-space
         end-of-buffer
         iedit-mode
         mac-mwheel-scroll
