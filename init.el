@@ -18,7 +18,6 @@
   (when (file-exists-p "/Applications/Xcode.app/Contents/Developer/usr/bin")
     (setq exec-path (append '("/Applications/Xcode.app/Contents/Developer/usr/bin") exec-path)))
   (when (file-exists-p "~/.rvm/bin")
-    (rvm-use-default)
     (setq exec-path (append '("~/.rvm/bin") exec-path)))
   (when (file-exists-p "/usr/local/bin/")
     (setq exec-path (append '("/usr/local/bin") exec-path)))
@@ -54,6 +53,10 @@
 (require 'ag)
 (require 'multiple-cursors)
 (require 'js2-refactor)
+
+;; rvm.el loaded by elpa/melpa
+(when (file-exists-p "~/.rvm")
+  (rvm-use-default))
 
 ;; Custom themes from elpa/melpa/marmalade added to load-path
 (-each
