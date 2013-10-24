@@ -35,6 +35,10 @@
   (menu-bar-mode -1)
 )
 
+;; Turn on winner mode (window config/layout undo/redo control)
+(when (fboundp 'winner-mode)
+  (winner-mode 1))
+
 ;; Modes init (things that need more than just a require.)
 (when (string-match "Emacs 24" (version))
   (message "Running Emacs 24")
