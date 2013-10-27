@@ -36,7 +36,7 @@
       nil "Major mode for editing comma/char separated values" single
       ((:url . "http://centaur.maths.qmul.ac.uk/Emacs/"))])
  (debbugs .
-    [(0 4)
+    [(0 5)
      nil "SOAP library to access debbugs servers" tar
      ((:url . "http://elpa.gnu.org/packages/debbugs.html"))])
  (dict-tree .
