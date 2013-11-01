@@ -8,7 +8,7 @@
      nil "Smart line-wrapping with wrap-prefix" single
      ((:url . "http://elpa.gnu.org/packages/adaptive-wrap.html"))])
  (adjust-parens .
-    [(1 2)
+    [(1 3)
      nil "Indent and dedent Lisp code, automatically adjust close parens" tar
      ((:url . "http://elpa.gnu.org/packages/adjust-parens.html"))])
  (all .
@@ -162,7 +162,7 @@
       nil "Support for OWL Manchester Notation" single
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html"))])
  (org .
-      [(20131021)
+      [(20131028)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
