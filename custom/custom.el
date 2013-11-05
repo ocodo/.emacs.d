@@ -40,7 +40,7 @@
  '(powerline-default-separator (quote chamfer))
  '(powerline-default-separator-dir (quote (left . left)))
  '(rinari-rails-env "development")
- '(safe-local-variable-values (quote ((rainbow-mode . 1) (rainbow-mode . t) (eval when (fboundp (quote rainbow-mode)) (rainbow-mode 1)) (eval ignore-errors "Write-contents-functions is a buffer-local alternative to before-save-hook" (add-hook (quote write-contents-functions) (lambda nil (delete-trailing-whitespace) nil)) (require (quote whitespace)) "Sometimes the mode needs to be toggled off and on." (whitespace-mode 0) (whitespace-mode 1)) (whitespace-line-column . 80) (whitespace-style face trailing lines-tail) (require-final-newline . t))))
+ '(safe-local-variable-values (quote ((eval progn (message "Setting project specific key bindings") (global-set-key [24 down] (quote duplicate-current-line-or-region)) (global-set-key "i" (quote iedit-mode))) (rainbow-mode . 1) (rainbow-mode . t) (eval when (fboundp (quote rainbow-mode)) (rainbow-mode 1)) (eval ignore-errors "Write-contents-functions is a buffer-local alternative to before-save-hook" (add-hook (quote write-contents-functions) (lambda nil (delete-trailing-whitespace) nil)) (require (quote whitespace)) "Sometimes the mode needs to be toggled off and on." (whitespace-mode 0) (whitespace-mode 1)) (whitespace-line-column . 80) (whitespace-style face trailing lines-tail) (require-final-newline . t))))
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
  '(send-mail-function (quote sendmail-send-it))
