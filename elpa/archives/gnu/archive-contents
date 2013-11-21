@@ -49,6 +49,12 @@
          (0 3)))
        "Dictionary data structure" single
        ((:url . "http://www.dr-qubit.org/emacs.php"))])
+ (diff-hl .
+    [(1 5 1)
+     ((cl-lib
+       (0 2)))
+     "Highlight uncommitted changes" tar
+     ((:url . "https://github.com/dgutov/diff-hl"))])
  (dismal .
    [(1 5)
     ((cl-lib
@@ -84,8 +90,10 @@
        nil "Parse and browse f90 interfaces" single
        ((:url . "http://github.com/wence-/f90-iface/"))])
  (ggtags .
-   [(0 7 0)
-    nil "GNU Global source code tagging system" single
+   [(0 7 6)
+    ((emacs
+      (24)))
+    "GNU Global source code tagging system" single
     ((:url . "https://github.com/leoliu/ggtags"))])
  (heap .
        [(0 3)
@@ -100,7 +108,7 @@
          nil "Major mode for Jgraph files" single
          ((:url . "http://elpa.gnu.org/packages/jgraph-mode.html"))])
  (js2-mode .
-     [(20130619)
+     [(20131106)
       ((emacs
         (24 1)))
       "Improved JavaScript editing mode" tar
@@ -162,7 +170,7 @@
       nil "Support for OWL Manchester Notation" single
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html"))])
  (org .
-      [(20131104)
+      [(20131118)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
