@@ -35,15 +35,12 @@
 
 (global-set-key [(control tab)] 'completion-at-point)
 
-;; Mpve line / region
+;; Move line / region
 (global-set-key [M-up] 'move-text-up)
 (global-set-key [M-down] 'move-text-down)
 
-;; line duplicate up / down -
-;; FIXME: this should be ditched in favor of something that works with region or current line
-
-(global-set-key [s-up] [?\C-a ?\C-a ?\C-k ?\C-y left ?\C-a ?\C-a return up ?\C-y ?\C-a])
-(global-set-key [s-down] [?\C-a ?\C-a ?\C-k ?\C-y return ?\C-y ?\C-a])
+;; duplicate region/line
+(global-set-key [s-down] 'duplicate-current-line-or-region)
 
 ;; Auto fill mode toggle (tidy up text line length automatically.)
 (global-set-key (kbd "C-c q") 'auto-fill-mode)

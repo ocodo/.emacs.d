@@ -131,6 +131,8 @@
 (require 'init-markdown)
 (require 'init-ruby)
 
+(autoload 'dirtree "dirtree" "Add directory to tree view" t)
+
 ;; conditional - add your own init-marmalade or just login manually
 (load-library "marmalade")
 ;; modes-init/init-marmalade.el is in .gitignore
