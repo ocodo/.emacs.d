@@ -156,6 +156,9 @@
 ;; probably all become auto-loaded. (next time)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 
+;; Hamlc hook
+(add-to-list 'auto-mode-alist '("\\.hamlc" . haml-mode))
+
 ;; AsciiDoc mode
 (autoload 'asciidoc-mode "asciidoc-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
