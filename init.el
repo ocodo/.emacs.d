@@ -122,14 +122,20 @@
   (setq main-line-separator-style 'wave))
 
 ;; -------------------------------------------------------------------------------------------------
-;; Explicit mode inits
-(require 'init-dired)
-(require 'init-hideshowvis)
-(require 'init-multi-web-mode)
-(require 'init-nxml)
-(require 'init-flymake)
-(require 'init-markdown)
-(require 'init-ruby)
+;; Explicit mode initialisations
+(mapcar 'require
+        (list
+
+         'init-dired
+         'init-hideshowvis
+         'init-multi-web-mode
+         'init-nxml
+         'init-flymake
+         'init-markdown
+         'init-ruby
+         'init-pivotal
+
+         ))
 
 (autoload 'dirtree "dirtree" "Add directory to tree view" t)
 

@@ -191,7 +191,7 @@
         ((:url . "http://elpa.gnu.org/packages/nhexl-mode.html")
          (:keywords "data"))])
  (nlinum .
-   [(1 1)
+   [(1 2)
     nil "Show line numbers in the margin" single
     ((:url . "http://elpa.gnu.org/packages/nlinum.html")
      (:keywords "convenience"))])
@@ -215,7 +215,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20131230)
+      [(20140106)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
