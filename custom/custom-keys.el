@@ -10,6 +10,8 @@
 
 ;; Newest additions at the top...
 
+(global-set-key (kbd "C-x M-w") 'rotate-windows)
+
 (global-set-key (kbd "M-P") 'fiplr-find-file)
 (global-set-key (kbd "s-|") 'shell-command-on-region-replace)
 
