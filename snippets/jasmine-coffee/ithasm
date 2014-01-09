@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: check module has method
+# group: angular-tests
+# key: ithasm
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+it "should have a ${1:MethodName} method", inject (${2:$$(jasmine-coffee-ng/before-each-module-name)})->
+  expect($2.$1).toBeDefined()

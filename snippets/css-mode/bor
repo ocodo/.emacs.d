@@ -1,0 +1,4 @@
+# yasnippet : css-mode
+# name : border
+# --
+border${1:$$(yas/choose-value '( "" "-top" "-right" "-bottom" "-left" ))}: ${2:size}px ${3:color} ${4:$$(yas/choose-value '( "dotted" "dashed" "solid" "double" "groove" "ridge" "inset" "outset" ))};

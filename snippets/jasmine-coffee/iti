@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: it "should .." with inject
+# group: angular-tests
+# key: iti
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+it "should $1", inject ($2)->
+  $0

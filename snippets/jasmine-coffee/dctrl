@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: describe controller
+# group: angular-tests
+# key: dctrl
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+describe "${1:controller}", ->
+  {$scope, ctrl} = [null, null]
+
+  beforeEach inject ($rootScope, $controller)->
+    $scope = $rootScope.$new()
+    ctrl  = $controller "$1", $scope: $scope
+
+  $0

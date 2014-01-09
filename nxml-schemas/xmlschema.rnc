@@ -1,0 +1,1471 @@
+namespace doc = "http://www.jenitennison.com/doc"
+namespace local = ""
+default namespace xs = "http://www.w3.org/2001/XMLSchema"
+
+doc:p [
+  "\x{a}" ~
+  "  RELAX NG schema for XML Schema by "
+  doc:link [ href = "mailto:mail@jenitennison.com" "Jeni Tennison" ]
+  ". Based on \x{a}" ~
+  "  "
+  doc:link [
+    href = "http://www.w3.org/TR/2001/REC-xmlschema-1-20010502/"
+    "XML \x{a}" ~
+    "  Schema Part I: Structures Recommendation"
+  ]
+  " and "
+  doc:link [
+    href = "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/"
+    "XML Schema Part \x{a}" ~
+    "  II: Datatypes"
+  ]
+  ".\x{a}"
+]
+doc:changes [
+  date = "2001-11-24"
+  "\x{a}" ~
+  "  "
+  doc:p [
+    "\x{a}" ~
+    "    Amended to comply with 10 August 2001 Tutorial.\x{a}" ~
+    "  "
+  ]
+  "\x{a}" ~
+  "  "
+  doc:change [ "Removed key attributes." ]
+  "\x{a}" ~
+  "  "
+  doc:change [ "Replaced not element with except elements." ]
+  "\x{a}" ~
+  "  "
+  doc:change [
+    "\x{a}" ~
+    "    Replaced multiple consecutive optional attributes to use the \x{a}" ~
+    "    zeroOrMore/choice pattern.\x{a}" ~
+    "  "
+  ]
+  "\x{a}" ~
+  "  "
+  doc:change [
+    "\x{a}" ~
+    "    Removed interleave elements inside list elements (which are no longer \x{a}" ~
+    "    permitted).\x{a}" ~
+    "  "
+  ]
+  "\x{a}"
+]
+doc:changes [
+  date = "2004-10-12"
+  "\x{a}" ~
+  "  "
+  doc:p [ "Amended to comply with final version of RNG." ]
+  "\x{a}" ~
+  "  "
+  doc:change [ "Changed to avoid conflicting ID types." ]
+  "\x{a}"
+]
+[
+  doc:p [
+    "\x{a}" ~
+    "    This allows any number of attributes that are not in the XML Schema \x{a}" ~
+    "    namespace or are in no namespace.  This is somewhat more complicated than \x{a}" ~
+    "    the XML Schema anyAttribute equivalent. \x{a}" ~
+    "  "
+  ]
+]
+openAttrs = attribute * - (xs:* | local:* | xml:lang) { text }*
+[
+  doc:p [
+    "\x{a}" ~
+    "    This allows any number of attributes that are not in the XML Schema \x{a}" ~
+    "    namespace or are in no namespace, an optional id attribute of type ID, \x{a}" ~
+    "    and an optional annotation element.  This is used as the basis for many \x{a}" ~
+    "    element content models.\x{a}" ~
+    "  "
+  ]
+]
+annotated =
+  openAttrs,
+  attribute id { xsd:ID }?,
+  annotation?
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the content model of the top level of the schema.\x{a}" ~
+    "  "
+  ]
+]
+schemaTop = redefinable | topLevelElement | topLevelAttribute | notation
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the components that can be redefined within the redefine \x{a}" ~
+    "    element.  They also occur at the top level of the schema.\x{a}" ~
+    "  "
+  ]
+]
+redefinable =
+  topLevelSimpleType
+  | topLevelComplexType
+  | namedGroup
+  | namedAttributeGroup
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the values for the various form attributes: \x{a}" ~
+    "    elementFormDefault and attributeFormDefault on the schema element, and\x{a}" ~
+    "    the form attributes on the element and attribute elements.\x{a}" ~
+    "  "
+  ]
+]
+formChoice = "qualified" | "unqualified"
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the values that can be taken in the lists used to control\x{a}" ~
+    "    derivation by extension or restriction (this is 'reduced' derivation\x{a}" ~
+    "    because some derivation can involve substitution).  This RELAX NG schema, \x{a}" ~
+    "    like the XML Schema Recommendation here, allows the keywords 'extension' and \x{a}" ~
+    "    'restriction' to be repeated any number of times.\x{a}" ~
+    "  "
+  ]
+]
+reducedDerivationControl = list { ("extension" | "restriction")* }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the possible values for attributes that control derivation.\x{a}" ~
+    "  "
+  ]
+]
+derivationSet = "#all" | reducedDerivationControl
+[
+  doc:p [
+    "\x{a}" ~
+    "    This is the beginning point for the schema, and defines the schema \x{a}" ~
+    "    element.\x{a}" ~
+    "  "
+  ]
+]
+start =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-schema" ]
+  element schema {
+    openAttrs,
+    (attribute version { xsd:token }
+     | attribute finalDefault { derivationSet }
+     | attribute blockDefault { blockSet }
+     | attribute attributeFormDefault { formChoice }
+     | attribute elementFormDefault { formChoice }
+     | attribute id { xsd:ID }
+     | attribute xml:lang { xsd:language })*,
+    ([
+       doc:p [
+         "\x{a}" ~
+         "          If a targetNamespace attribute is specified on the schema \x{a}" ~
+         "          element, then the namespace attribute on the import elements \x{a}" ~
+         "          that it contains are optional.\x{a}" ~
+         "        "
+       ]
+     ]
+     (attribute targetNamespace { xsd:anyURI },
+      (\include | importOptionalNamespace | redefine | annotation)*)
+     | [
+         doc:p [
+           "\x{a}" ~
+           "          If a targetNamespace attribute is not specified on the schema \x{a}" ~
+           "          element, then the import elements that it contains must specify \x{a}" ~
+           "          a namespace.\x{a}" ~
+           "        "
+         ]
+       ]
+       ((\include | importRequiredNamespace | redefine | annotation)*)),
+    (schemaTop, annotation*)*
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the value type for the maxOccurs attribute, which may be a \x{a}" ~
+    "    non-negative number or the keyword 'unbounded'.\x{a}" ~
+    "  "
+  ]
+]
+allNNI = xsd:nonNegativeInteger | xsd:token "unbounded"
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the occurs attributes, minOccurs and maxOccurs, as they \x{a}" ~
+    "    are normally used.\x{a}" ~
+    "  "
+  ]
+]
+occurs =
+  (attribute minOccurs { xsd:nonNegativeInteger }
+   | attribute maxOccurs { allNNI })*
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the possible content of complex types.\x{a}" ~
+    "  "
+  ]
+]
+typeDefParticle = groupRef | all | choice | sequence
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the particles that can make up a model group.\x{a}" ~
+    "  "
+  ]
+]
+nestedParticle = localElement | groupRef | choice | sequence | any
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the relationship between fixed and default attributes on \x{a}" ~
+    "    element and attribute elements - if one is present, then the other cannot \x{a}" ~
+    "    be.  This is a constraint that cannot be specified using XML Schema.\x{a}" ~
+    "  "
+  ]
+]
+fixedOrDefault =
+  empty
+  | attribute fixed { text }
+  | attribute default { text }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the relationship between the type attribute and the \x{a}" ~
+    "    simpleType element child of attribute elements - if one is present, then \x{a}" ~
+    "    the other cannot be, although it is possible for neither to be allowed.\x{a}" ~
+    "  "
+  ]
+]
+attributeType =
+  empty
+  | attribute type { xsd:QName }
+  | localSimpleType
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes attribute elements when used in a local context.  They \x{a}" ~
+    "    have an optional use attribute, possibly a fixed or default attribute, \x{a}" ~
+    "    and then can either have a ref attribute (referring to a top-level \x{a}" ~
+    "    attribute) or a name attribute with an optional form attribute and \x{a}" ~
+    "    specifying an attribute type.\x{a}" ~
+    "  "
+  ]
+]
+localAttribute =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-attribute" ]
+  element attribute {
+    annotated,
+    attribute use {
+      xsd:token "optional"
+      | xsd:token "prohibited"
+      | xsd:token "required"
+    }?,
+    fixedOrDefault,
+    (attribute ref { xsd:QName }
+     | (attribute name { xsd:NCName },
+        attribute form { formChoice }?,
+        attributeType))
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes attribute elements when used at the top level of the \x{a}" ~
+    "    schema.  They must have a name, may have a fixed or default attribute, \x{a}" ~
+    "    and specify their type through a type attribute or child simpleType \x{a}" ~
+    "    element.  The name attribute of each attribute element that appears at \x{a}" ~
+    "    the top level of the schema is unique.\x{a}" ~
+    "  "
+  ]
+]
+topLevelAttribute =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-attribute" ]
+  element attribute {
+    annotated,
+    attribute name { xsd:NCName },
+    fixedOrDefault,
+    attributeType
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the model group for specifying the attributes in a complex \x{a}" ~
+    "    type, an extension or restriction.\x{a}" ~
+    "  "
+  ]
+]
+attrDecls = (localAttribute | attributeGroupRef)*, anyAttribute?
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the anyAttribute wildcard.\x{a}" ~
+    "  "
+  ]
+]
+anyAttribute =
+  [
+    doc:href = "http://www.w3.org/TR/xmlschema-1/#element-anyAttribute"
+  ]
+  element anyAttribute { wildcard }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the content of a complexType element.  As children, it can \x{a}" ~
+    "    have a simpleContent, a complexContent or a model group.  Only if it has \x{a}" ~
+    "    one of the latter two, may it have a mixed attribute.  This latter \x{a}" ~
+    "    constraint is something that cannot be specified in XML Schema.\x{a}" ~
+    "  "
+  ]
+]
+complexTypeModel =
+  simpleContent
+  | (attribute mixed { xsd:boolean }?,
+     (complexContent | (typeDefParticle?, attrDecls)))
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the basic content of a complexType element.\x{a}" ~
+    "  "
+  ]
+]
+complexType = annotated, complexTypeModel
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the model for a complexType element at the top level of \x{a}" ~
+    "    the schema.  It must have a name, which provides a unique identifier \x{a}" ~
+    "    within the type symbol space.  It may have abstract, block and/or final \x{a}" ~
+    "    attributes.  Otherwise it is the same as other complexTypes.\x{a}" ~
+    "  "
+  ]
+]
+topLevelComplexType =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-complexType" ]
+  element complexType {
+    complexType,
+    attribute name { xsd:NCName },
+    (attribute abstract { xsd:boolean }
+     | attribute block { derivationSet }
+     | attribute final { derivationSet })*
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the model for a local complexType element.\x{a}" ~
+    "  "
+  ]
+]
+localComplexType =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-complexType" ]
+  element complexType { complexType }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a restriction element within a complexContent element \x{a}" ~
+    "    (i.e. one that restricts a complex type).  It has a base attribute, may \x{a}" ~
+    "    contain a model group and may contain attribute declarations of various \x{a}" ~
+    "    sorts.\x{a}" ~
+    "  "
+  ]
+]
+complexRestriction =
+  [
+    doc:href =
+      "http://www.w3.org/TR/xmlschema-1/#element-complexContent::restriction"
+  ]
+  element restriction {
+    annotated,
+    attribute base { xsd:QName },
+    typeDefParticle?,
+    attrDecls
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the basic model for an extension element: adding a \x{a}" ~
+    "    required base attribute to the model used for most components.\x{a}" ~
+    "  "
+  ]
+]
+extensionType =
+  annotated,
+  attribute base { xsd:QName }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an extension element within a complexContent element \x{a}" ~
+    "    (i.e. one that restricts a complex type).  It may contain a model group \x{a}" ~
+    "    and may contain attribute declarations of various sorts.\x{a}" ~
+    "  "
+  ]
+]
+complexExtension =
+  [
+    doc:href =
+      "http://www.w3.org/TR/xmlschema-1/#element-complexContent::extension"
+  ]
+  element extension { extensionType, typeDefParticle?, attrDecls }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a complexContent element.  It may have a mixed attribute, \x{a}" ~
+    "    and either a restriction or extension element as content.\x{a}" ~
+    "  "
+  ]
+]
+complexContent =
+  [
+    doc:href =
+      "http://www.w3.org/TR/xmlschema-1/#element-complexContent"
+  ]
+  element complexContent {
+    annotated,
+    attribute mixed { xsd:boolean }?,
+    (complexRestriction | complexExtension)
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a restriction element that appears within a simpleContent \x{a}" ~
+    "    or simpleType element (i.e. one that restricts a simple type).  Its \x{a}" ~
+    "    content follows the simple restriction model that is detailed below, and \x{a}" ~
+    "    may include attribute declarations.\x{a}" ~
+    "  "
+  ]
+]
+simpleRestriction =
+  [
+    doc:href =
+      "http://www.w3.org/TR/xmlschema-1/#element-simpleContent::restriction"
+  ]
+  element restriction { annotated, simpleRestrictionModel, attrDecls }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an extension element that appears within a simpleContent \x{a}" ~
+    "    element (i.e. one that extends a simple type).  Like other extensions, it \x{a}" ~
+    "    has a base type, but it can only be used to add attributes.\x{a}" ~
+    "  "
+  ]
+]
+simpleExtension =
+  [
+    doc:href =
+      "http://www.w3.org/TR/xmlschema-1/#element-simpleContent::extension"
+  ]
+  element extension { extensionType, attrDecls }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a simpleContent element, whose content can either hold a \x{a}" ~
+    "    restriction or extension element.\x{a}" ~
+    "  "
+  ]
+]
+simpleContent =
+  [
+    doc:href = "http://www.w3.org/TR/xmlschema-1/#element-simpleContent"
+  ]
+  element simpleContent {
+    annotated, (simpleRestriction | simpleExtension)
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the possible values for block attributes on element elements, \x{a}" ~
+    "    which includes substitution amongst the list of possible values.  This \x{a}" ~
+    "    RELAX NG schema, like the XML Schema Recommendation, allows each of the \x{a}" ~
+    "    keywords 'extension', 'restriction' and 'substitution' to occur more than \x{a}" ~
+    "    once within the list.\x{a}" ~
+    "  "
+  ]
+]
+blockSet =
+  xsd:token "#all"
+  | list { ("extension" | "restriction" | "substitution")* }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes the basic content model of an element element.  It is \x{a}" ~
+    "    annotated, may have a fixed or default attribute, and may have nillable \x{a}" ~
+    "    and/or block attributes.  Its type may be specified through a type \x{a}" ~
+    "    attribute, a local simple type or a local complex type - the choice \x{a}" ~
+    "    between these methods is something that cannot be indicated with XML \x{a}" ~
+    "    Schema.  This content is optionally followed by some identify constraints.\x{a}" ~
+    "  "
+  ]
+]
+\element =
+  annotated,
+  fixedOrDefault,
+  (attribute nillable { xsd:boolean }
+   | attribute block { blockSet })*,
+  (empty
+   | attribute type { xsd:QName }
+   | localSimpleType
+   | localComplexType),
+  identityConstraint*
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an element element that appears at the top level of the \x{a}" ~
+    "    schema.  On top of the basic content for an element element, it has to \x{a}" ~
+    "    have a name, which is a unique identifier in the element symbol space.  It \x{a}" ~
+    "    may have substitutionGroup, abstract and/or final attributes.\x{a}" ~
+    "  "
+  ]
+]
+topLevelElement =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-element" ]
+  element element {
+    \element,
+    attribute name { xsd:NCName },
+    (attribute substitutionGroup { xsd:QName }
+     | attribute abstract { xsd:boolean }
+     | attribute final { derivationSet })*
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an element element that appears locally, within a \x{a}" ~
+    "    complexType or group element.  It may have minOccurs and/or maxOccurs \x{a}" ~
+    "    attributes.  If it has a ref attribute, then that's all it can \x{a}" ~
+    "    have.  Otherwise, it must have a name and specifies its type in the same \x{a}" ~
+    "    way as the basic element content model described above.  It may in this \x{a}" ~
+    "    case also have a form element.  These constraints on local elements \x{a}" ~
+    "    cannot be described within XML Schema.\x{a}" ~
+    "  "
+  ]
+]
+localElement =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-element" ]
+  element element {
+    occurs,
+    (attribute ref { xsd:QName }
+     | (\element,
+        attribute name { xsd:NCName },
+        attribute form { formChoice }?))
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an group element that appears at the top level of the \x{a}" ~
+    "    schema.  It must have a name attribute, and must have one of an all, \x{a}" ~
+    "    choice or sequence element child.\x{a}" ~
+    "  "
+  ]
+]
+namedGroup =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-group" ]
+  element group {
+    annotated,
+    attribute name { xsd:NCName },
+    (element all { allModel }
+     | element choice { simpleExplicitGroup }
+     | element sequence { simpleExplicitGroup })
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes group element that occurs locally, referring to a \x{a}" ~
+    "    top-level named group.  It may have occurrence attributes, and must have \x{a}" ~
+    "    a ref attribute.\x{a}" ~
+    "  "
+  ]
+]
+groupRef =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-group" ]
+  element group {
+    annotated,
+    occurs,
+    attribute ref { xsd:QName }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the content of a model group (not a group element) in the \x{a}" ~
+    "    normal run of things.  It has occurrence attributes and any number of \x{a}" ~
+    "    particles within it.\x{a}" ~
+    "  "
+  ]
+]
+explicitGroup = annotated, occurs, nestedParticle*
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the content of a model group (not a group element) within a \x{a}" ~
+    "    named group - it differs from the above in that it doesn't have any \x{a}" ~
+    "    occurrence attributes.\x{a}" ~
+    "  "
+  ]
+]
+simpleExplicitGroup = annotated, nestedParticle*
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the content of an all element.  It contains element elements \x{a}" ~
+    "    that are similar to local element elements, but the minOccurs and \x{a}" ~
+    "    maxOccurs attributes can only take values of 0 or 1.\x{a}" ~
+    "  "
+  ]
+]
+allModel =
+  annotated,
+  element element {
+    (attribute minOccurs {
+       xsd:nonNegativeInteger "0" | xsd:nonNegativeInteger "1"
+     }
+     | attribute maxOccurs {
+         xsd:nonNegativeInteger "0" | xsd:nonNegativeInteger "1"
+       })*,
+    (attribute ref { xsd:QName }
+     | (\element,
+        attribute name { xsd:NCName },
+        attribute form { formChoice }?))
+  }*
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an all element that appears outside a named group (i.e. as \x{a}" ~
+    "    the content of a complexType element).  It has the standard model for an \x{a}" ~
+    "    all element, but adds minOccurs and maxOccurs attributes which can only \x{a}" ~
+    "    take certain values.\x{a}" ~
+    "  "
+  ]
+]
+all =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-all" ]
+  element all {
+    allModel,
+    (attribute minOccurs {
+       xsd:nonNegativeInteger "0" | xsd:nonNegativeInteger "1"
+     }
+     | attribute maxOccurs { xsd:nonNegativeInteger "1" })*
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a choice element that appears outside a named group.\x{a}" ~
+    "  "
+  ]
+]
+choice =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-choice" ]
+  element choice { explicitGroup }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a sequence element that appears outside a named group.\x{a}" ~
+    "  "
+  ]
+]
+sequence =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-sequence" ]
+  element sequence { explicitGroup }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a wildcard element (i.e. any or anyAttribute).  The \x{a}" ~
+    "    namespace attribute can take a list URIs interspersed with the keywords \x{a}" ~
+    "    '##targetNamespace' and/or '##local'.  This RELAX NG schema, like the XML \x{a}" ~
+    "    Schema Recommendation, allows the keywords to be specified more than once \x{a}" ~
+    "    each within the list, if they're given.  This model also specifies the \x{a}" ~
+    "    processContents attribute.\x{a}" ~
+    "  "
+  ]
+]
+wildcard =
+  annotated,
+  (attribute namespace {
+     xsd:token "##any"
+     | xsd:token "##other"
+     | list { (xsd:anyURI | "##targetNamespace" | "##local")* }
+   }
+   | attribute processContents {
+       xsd:token "lax" | xsd:token "skip" | xsd:token "strict"
+     })*
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an any element as a wildcard.\x{a}" ~
+    "  "
+  ]
+]
+any =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-any" ]
+  element any { wildcard, occurs }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an attributeGroup element as it appears at the top level \x{a}" ~
+    "    of the schema.  It must have a name attribute, and then contains \x{a}" ~
+    "    attribute declarations.\x{a}" ~
+    "  "
+  ]
+]
+namedAttributeGroup =
+  [
+    doc:href =
+      "http://www.w3.org/TR/xmlschema-1/#element-attributeGroup"
+  ]
+  element attributeGroup {
+    annotated,
+    attribute name { xsd:NCName },
+    attrDecls
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an attributeGroup element as it appears within a complex \x{a}" ~
+    "    type.  It must have a ref attribute.\x{a}" ~
+    "  "
+  ]
+]
+attributeGroupRef =
+  [
+    doc:href =
+      "http://www.w3.org/TR/xmlschema-1/#element-attributeGroup"
+  ]
+  element attributeGroup {
+    annotated,
+    attribute ref { xsd:QName }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an include element, which must have a schemaLocation \x{a}" ~
+    "    attribute.\x{a}" ~
+    "  "
+  ]
+]
+\include =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-include" ]
+  element include {
+    annotated,
+    attribute schemaLocation { xsd:anyURI }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a redefine element, which must have a schemaLocation \x{a}" ~
+    "    attribute and can then contain any mix of annotations and redefinable \x{a}" ~
+    "    components.\x{a}" ~
+    "  "
+  ]
+]
+redefine =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-redefine" ]
+  element redefine {
+    openAttrs,
+    attribute id { xsd:ID }?,
+    attribute schemaLocation { xsd:anyURI },
+    (annotation | redefinable)*
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the basic model for an import element - an optional \x{a}" ~
+    "    schemaLocation attribute.\x{a}" ~
+    "  "
+  ]
+]
+import =
+  annotated,
+  attribute schemaLocation { xsd:anyURI }?
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an import element that's used when its parent schema \x{a}" ~
+    "    element doesn't specify a targetNamespace.  In these cases, the \x{a}" ~
+    "    import element must give a namespace attribute.\x{a}" ~
+    "  "
+  ]
+]
+importRequiredNamespace =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-import" ]
+  element import {
+    import,
+    attribute namespace { xsd:anyURI }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an import element that's used when its parent schema \x{a}" ~
+    "    element specifies a targetNamespace.  In these cases, the namespace \x{a}" ~
+    "    attribute on the import element is optional.\x{a}" ~
+    "  "
+  ]
+]
+importOptionalNamespace =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-import" ]
+  element import {
+    import,
+    attribute namespace { xsd:anyURI }?
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a selector element.  The xpath attribute is a simplified \x{a}" ~
+    "    XPath - the regular expression given here is the one from the XML Schema \x{a}" ~
+    "    for XML Schema.\x{a}" ~
+    "  "
+  ]
+]
+selector =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-selector" ]
+  element selector {
+    annotated,
+    attribute xpath {
+      xsd:token {
+        pattern =
+          "(\.//)?(((child::)?((\i\c*:)?(\i\c*|\*)))|\.)(/(((child::)?((\i\c*:)?(\i\c*|\*)))|\.))*(\|(\.//)?(((child::)?((\i\c*:)?(\i\c*|\*)))|\.)(/(((child::)?((\i\c*:)?(\i\c*|\*)))|\.))*)*"
+      }
+    }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a field element.  The xpath attribute is a simplified \x{a}" ~
+    "    XPath - the regular expression given here is the one from the XML Schema \x{a}" ~
+    "    for XML Schema.\x{a}" ~
+    "  "
+  ]
+]
+field =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-field" ]
+  element field {
+    annotated,
+    attribute xpath {
+      xsd:token {
+        pattern =
+          "(\.//)?((((child::)?((\i\c*:)?(\i\c*|\*)))|\.)/)*((((child::)?((\i\c*:)?(\i\c*|\*)))|\.)|((attribute::|@)((\i\c*:)?(\i\c*|\*))))(\|(\.//)?((((child::)?((\i\c*:)?(\i\c*|\*)))|\.)/)*((((child::)?((\i\c*:)?(\i\c*|\*)))|\.)|((attribute::|@)((\i\c*:)?(\i\c*|\*)))))*"
+      }
+    }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the basic content for identity constraints - a name attribute \x{a}" ~
+    "    that uniquely identifies the identity constraint, a selector element and \x{a}" ~
+    "    one or more field elements.\x{a}" ~
+    "  "
+  ]
+]
+keybase =
+  annotated,
+  attribute name { xsd:NCName },
+  selector,
+  field+
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives a model group for the three identity constraint elements, used \x{a}" ~
+    "    within the content of element elements.\x{a}" ~
+    "  "
+  ]
+]
+identityConstraint = unique | key | keyref
+[
+  doc:p [ "\x{a}" ~ "    This describes a unique element.\x{a}" ~ "  " ]
+]
+unique =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-unique" ]
+  element unique { keybase }
+[ doc:p [ "\x{a}" ~ "    This describes a key element.\x{a}" ~ "  " ] ]
+key =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-key" ]
+  element key { keybase }
+[
+  doc:p [ "\x{a}" ~ "    This describes a keyref element.\x{a}" ~ "  " ]
+]
+keyref =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-keyref" ]
+  element keyref {
+    keybase,
+    attribute refer { xsd:QName }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a notation element.  The names of notation elements are \x{a}" ~
+    "    unique in the notation symbol space.  The public attribute is required, \x{a}" ~
+    "    and the system attribute is optional.\x{a}" ~
+    "  "
+  ]
+]
+notation =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-notation" ]
+  element notation {
+    annotated,
+    attribute name { xsd:NCName },
+    attribute public { xsd:token },
+    attribute system { xsd:anyURI }?
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This is designed to describe the content of the appinfo elements in the \x{a}" ~
+    "    schema.  At the moment this allows any mixed content without validation.  \x{a}" ~
+    "    Note that this is fairly complex compared to the XML Schema equivalent, \x{a}" ~
+    "    which would be a single any element.\x{a}" ~
+    "  "
+  ]
+]
+appinfoContent = anyContent
+anyContent =
+  mixed {
+    element * - xs:* {
+      attribute * { text }*,
+      anyContent,
+      empty
+    }*
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an appinfo element.  It has an optional source attribute \x{a}" ~
+    "    and can currently contain anything at all.\x{a}" ~
+    "  "
+  ]
+]
+appinfo =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-appinfo" ]
+  element appinfo {
+    attribute source { xsd:anyURI }?,
+    appinfoContent
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This is designed to describe the content of the documentation elements in \x{a}" ~
+    "    the schema.  At the moment this allows any mixed content without \x{a}" ~
+    "    validation.  Note that this is fairly complex compared to the XML Schema \x{a}" ~
+    "    equivalent, which would be a single any element.\x{a}" ~
+    "  "
+  ]
+]
+documentationContent = anyContent
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a documentation element.  It has optional source \x{a}" ~
+    "    and xml:lang attributes and can currently contain anything at all.\x{a}" ~
+    "  "
+  ]
+]
+documentation =
+  [
+    doc:href = "http://www.w3.org/TR/xmlschema-1/#element-documentation"
+  ]
+  element documentation {
+    (attribute source { xsd:anyURI }
+     | attribute xml:lang { xsd:language })*,
+    documentationContent
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an annotation element.  It can have any attributes, may \x{a}" ~
+    "    have an id attribute, and contains any number of documentation or appinfo \x{a}" ~
+    "    elements.\x{a}" ~
+    "  "
+  ]
+]
+annotation =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-annotation" ]
+  element annotation {
+    openAttrs,
+    attribute id { xsd:ID }?,
+    (documentation | appinfo)*
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the various types of derivation of simple types.\x{a}" ~
+    "  "
+  ]
+]
+simpleDerivation = simpleRestriction | \list | union
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the values of the final attribute for simple types.  This \x{a}" ~
+    "    RELAX NG schema for XML Schema, like the XML Schema Recommendation, allows \x{a}" ~
+    "    the keywords 'list', 'union' and 'restriction' to appear more than once \x{a}" ~
+    "    within the list.\x{a}" ~
+    "  "
+  ]
+]
+simpleDerivationSet =
+  xsd:token "#all"
+  | list { ("list" | "union" | "restriction")* }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This gives the basic content of a simple type.\x{a}" ~
+    "  "
+  ]
+]
+simpleType = annotated, simpleDerivation
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a simpleType element as it appears at the top level of the \x{a}" ~
+    "    schema.  It has to have a name attribute and may have a final attribute.\x{a}" ~
+    "  "
+  ]
+]
+topLevelSimpleType =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-simpleType" ]
+  element simpleType {
+    simpleType,
+    attribute name { xsd:NCName },
+    attribute final { simpleDerivationSet }?
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a simpleType element as it appears within an attribute or\x{a}" ~
+    "    element.\x{a}" ~
+    "  "
+  ]
+]
+localSimpleType =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-simpleType" ]
+  element simpleType { simpleType }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes the relationship between the various range facets.  Only \x{a}" ~
+    "    one of minExclusive and minInclusive can be present, and only one of \x{a}" ~
+    "    maxExclusive and maxInclusive can be present.  This is a constraint that \x{a}" ~
+    "    can't easily be expressed using XML Schema.  This RELAX NG schema \x{a}" ~
+    "    for XML Schema is a little more restrictive than the XML Schema \x{a}" ~
+    "    Recommendation in that it also forces there to be a maximum of one of \x{a}" ~
+    "    each of these types of facets.\x{a}" ~
+    "  "
+  ]
+]
+rangeFacets =
+  (minExclusive | minInclusive)? & (maxExclusive | maxInclusive)?
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies optional totalDigits and fractionDigits elements.  This \x{a}" ~
+    "    RELAX NG schema for XML Schema is a little more restrictive than the XML \x{a}" ~
+    "    Schema Recommendation in that it also forces there to be a maximum of one \x{a}" ~
+    "    of each of these types of facets.\x{a}" ~
+    "  "
+  ]
+]
+digitFacets = totalDigits?, fractionDigits?
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies optional length, minLength and maxLength elements.  This \x{a}" ~
+    "    RELAX NG schema for XML Schema is a little more restrictive than the XML \x{a}" ~
+    "    Schema Recommendation in that it also forces there to be a maximum of one \x{a}" ~
+    "    of each of these types of facets, and says that if a length element is \x{a}" ~
+    "    given, then neither minLength nor maxLength should be present.\x{a}" ~
+    "  "
+  ]
+]
+lengthFacets = length | (minLength? & maxLength?)
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies zero or more enumeration or pattern elements and an \x{a}" ~
+    "    optional whiteSpace element.  This RELAX NG schema for XML Schema is a \x{a}" ~
+    "    little more restrictive than the XML Schema Recommendation in that it \x{a}" ~
+    "    also forces there to be a maximum of one whiteSpace element within the \x{a}" ~
+    "    facets.  Note that the whiteSpace facet is constrained to have a value of \x{a}" ~
+    "    'collapse'.\x{a}" ~
+    "  "
+  ]
+]
+commonFacets = enumeration*, whiteSpaceCollapse?, pattern*
+[
+  doc:p [
+    "\x{a}" ~
+    "    This specifies the types of facets that are valid in restrictions on the \x{a}" ~
+    "    built-in data types.  This can only perform rudimentary checking, but \x{a}" ~
+    "    should be enough in most circumstances.  Note that for xs:anySimpleType \x{a}" ~
+    "    and xs:string, the whiteSpace facet can take any value, for \x{a}" ~
+    "    xs:normalizedString it can be 'replace' or 'collapse', and for all other \x{a}" ~
+    "    built-in types it has to be 'collapse'.\x{a}" ~
+    "  "
+  ]
+]
+simpleRestrictionModel =
+  (attribute base { xsd:QName "xs:anySimpleType" },
+   (rangeFacets
+    & digitFacets
+    & lengthFacets
+    & whiteSpace?
+    & enumeration*
+    & pattern*))
+  | (attribute base { xsd:QName "xs:string" },
+     (lengthFacets & whiteSpace? & enumeration* & pattern*))
+  | (attribute base { xsd:QName "xs:normalizedString" },
+     (lengthFacets
+      & whiteSpaceReplaceOrCollapse?
+      & enumeration*
+      & pattern*))
+  | (attribute base {
+       xsd:QName "xs:token"
+       | xsd:QName "xs:language"
+       | xsd:QName "xs:Name"
+       | xsd:QName "xs:NCName"
+       | xsd:QName "xs:ID"
+       | xsd:QName "xs:IDREF"
+       | xsd:QName "xs:IDREFS"
+       | xsd:QName "xs:NMTOKEN"
+       | xsd:QName "xs:NMTOKENS"
+       | xsd:QName "xs:ENTITY"
+       | xsd:QName "xs:ENTITIES"
+       | xsd:QName "xs:hexBinary"
+       | xsd:QName "xs:base64Binary"
+       | xsd:QName "xs:anyURI"
+       | xsd:QName "xs:QName"
+       | xsd:QName "xs:NOTATION"
+     },
+     (lengthFacets & commonFacets))
+  | (attribute base { xsd:QName "xs:boolean" },
+     (whiteSpaceCollapse? & pattern*))
+  | (attribute base {
+       xsd:QName "xs:decimal"
+       | xsd:QName "xs:integer"
+       | xsd:QName "xs:nonPositiveInteger"
+       | xsd:QName "xs:nonNegativeInteger"
+       | xsd:QName "xs:positiveInteger"
+       | xsd:QName "xs:negativeInteger"
+       | xsd:QName "xs:unsignedLong"
+       | xsd:QName "xs:unsignedInt"
+       | xsd:QName "xs:unsignedShort"
+       | xsd:QName "xs:unsignedByte"
+       | xsd:QName "xs:long"
+       | xsd:QName "xs:int"
+       | xsd:QName "xs:short"
+       | xsd:QName "xs:byte"
+     },
+     (digitFacets & rangeFacets & commonFacets))
+  | (attribute base {
+       xsd:QName "xs:float"
+       | xsd:QName "xs:double"
+       | xsd:QName "xs:duration"
+       | xsd:QName "xs:dateTime"
+       | xsd:QName "xs:time"
+       | xsd:QName "xs:date"
+       | xsd:QName "xs:gYearMonth"
+       | xsd:QName "xs:gYear"
+       | xsd:QName "xs:gMonthDay"
+       | xsd:QName "xs:gMonth"
+       | xsd:QName "xs:gDay"
+     },
+     (rangeFacets & commonFacets))
+  | # the detailed checking above is superfluous
+    # until there's a way to do 'difference'
+    # within attribute values, because it will
+    # always match the following
+    ((attribute base { xsd:QName }
+      | localSimpleType),
+     (rangeFacets
+      & digitFacets
+      & lengthFacets
+      & whiteSpace?
+      & enumeration*
+      & pattern*))
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a list element.  It can either specify a local simple type \x{a}" ~
+    "    or have a itemType attribute.  This constraint cannot be expressed in XML \x{a}" ~
+    "    Schema.\x{a}" ~
+    "  "
+  ]
+]
+\list =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-list" ]
+  element list {
+    annotated,
+    (localSimpleType
+     | attribute itemType { xsd:QName })
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a union element.  If the memberTypes attribute is missing \x{a}" ~
+    "    or empty, then it must contain one or more simpleType elements; if \x{a}" ~
+    "    it's present, then it can contain simpleType elements or list simple \x{a}" ~
+    "    types in the memberTypes attribute.  This constraint cannot be expressed \x{a}" ~
+    "    in XML Schema.\x{a}" ~
+    "  "
+  ]
+]
+union =
+  [ doc:href = "http://www.w3.org/TR/xmlschema-1/#element-union" ]
+  element union {
+    annotated,
+    ((attribute memberTypes {
+        list { xsd:QName+ }
+      },
+      localSimpleType*)
+     | (attribute memberTypes { empty }?,
+        localSimpleType+))
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This is the basic content of a facet.  It has an optional fixed attribute.\x{a}" ~
+    "  "
+  ]
+]
+facet =
+  annotated,
+  attribute fixed { xsd:boolean }?
+[
+  doc:p [
+    "\x{a}" ~
+    "    This is the content of a facet that cannot be fixed (enumeration or \x{a}" ~
+    "    pattern).  It has a value attribute that can take any kind of value.\x{a}" ~
+    "  "
+  ]
+]
+noFixedFacet =
+  annotated,
+  attribute value { text }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This is the content of a range facet.  The value must be one of the data \x{a}" ~
+    "    types shown (as these are the only types of data that accept ranges).  I \x{a}" ~
+    "    haven't gone so far as to indicate the data type of the value \x{a}" ~
+    "    attribute of a range facet according to the base type as this would be \x{a}" ~
+    "    very complicated (although it would be possible in RELAX NG).\x{a}" ~
+    "  "
+  ]
+]
+rangeFacet =
+  facet,
+  attribute value {
+    xsd:decimal
+    | xsd:float
+    | xsd:double
+    | xsd:duration
+    | xsd:dateTime
+    | xsd:time
+    | xsd:date
+    | xsd:gYearMonth
+    | xsd:gYear
+    | xsd:gMonthDay
+    | xsd:gMonth
+    | xsd:gDay
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a minExclusive element.\x{a}" ~
+    "  "
+  ]
+]
+minExclusive =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-minExclusive"
+  ]
+  element minExclusive { rangeFacet }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a minInclusive element.\x{a}" ~
+    "  "
+  ]
+]
+minInclusive =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-minInclusive"
+  ]
+  element minInclusive { rangeFacet }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a maxExclusive element.\x{a}" ~
+    "  "
+  ]
+]
+maxExclusive =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-maxExclusive"
+  ]
+  element maxExclusive { rangeFacet }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a maxInclusive element.\x{a}" ~
+    "  "
+  ]
+]
+maxInclusive =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-maxInclusive"
+  ]
+  element maxInclusive { rangeFacet }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This is the content of a numerical facet.\x{a}" ~
+    "  "
+  ]
+]
+numFacet =
+  facet,
+  attribute value { xsd:nonNegativeInteger }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a totalDigits element.  The value attribute must take a \x{a}" ~
+    "    positive integer.\x{a}" ~
+    "  "
+  ]
+]
+totalDigits =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-totalDigits"
+  ]
+  element totalDigits {
+    facet,
+    attribute value { xsd:positiveInteger }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a fractionDigits element.\x{a}" ~
+    "  "
+  ]
+]
+fractionDigits =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-fractionDigits"
+  ]
+  element fractionDigits { numFacet }
+[
+  doc:p [ "\x{a}" ~ "    This describes a length element.\x{a}" ~ "  " ]
+]
+length =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-length"
+  ]
+  element length { numFacet }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a minLength element.\x{a}" ~
+    "  "
+  ]
+]
+minLength =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-minLength"
+  ]
+  element minLength { numFacet }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a maxLength element.\x{a}" ~
+    "  "
+  ]
+]
+maxLength =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-maxLength"
+  ]
+  element maxLength { numFacet }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes an enumeration element.\x{a}" ~
+    "  "
+  ]
+]
+enumeration =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-enumeration"
+  ]
+  element enumeration { noFixedFacet }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a whiteSpace element that can take any of the permitted \x{a}" ~
+    "    values.\x{a}" ~
+    "  "
+  ]
+]
+whiteSpace =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-whiteSpace"
+  ]
+  element whiteSpace {
+    facet,
+    attribute value {
+      xsd:token "preserve" | xsd:token "replace" | xsd:token "collapse"
+    }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a whiteSpace element that can only take the values \x{a}" ~
+    "    'replace' or 'collapse'.\x{a}" ~
+    "  "
+  ]
+]
+whiteSpaceReplaceOrCollapse =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-whiteSpace"
+  ]
+  element whiteSpace {
+    facet,
+    attribute value { xsd:token "replace" | xsd:token "collapse" }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a whiteSpace element that can only take the value \x{a}" ~
+    "    'collapse'.\x{a}" ~
+    "  "
+  ]
+]
+whiteSpaceCollapse =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-whiteSpace"
+  ]
+  element whiteSpace {
+    facet,
+    attribute value { xsd:token "collapse" }
+  }
+[
+  doc:p [
+    "\x{a}" ~
+    "    This describes a pattern element.\x{a}" ~
+    "  "
+  ]
+]
+pattern =
+  [
+    doc:href =
+      "http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/datatypes.html#element-pattern"
+  ]
+  element pattern { noFixedFacet }

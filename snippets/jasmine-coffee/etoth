@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toThrow
+# group: expect
+# key: etoth
+# --
+expect( -> ${1:fn()} ).toThrow(${2:e})
+$0

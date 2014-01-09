@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# name: kendo mobile action sheet
+# key: kash
+# group: kendo
+# contributor: J Milkins <jasonm23@gmail.com>
+# --
+<ul data-role="actionsheet" data-id="${1:name}-actionsheet">
+  <li><a data-action="${2:handler}">${3:label}</a></li>
+</ul>
+$0

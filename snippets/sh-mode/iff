@@ -1,0 +1,19 @@
+# -*- mode: snippet -*-
+#name : iff - file tests
+# --
+if [ -${1:$$(yas/choose-value '(
+"G"
+"O"
+"x"
+"w"
+"r"
+"s"
+"d"
+"f"
+"e" 
+ ))} $2 ]; then
+  $0
+fi
+
+
+

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toBeLessThan
+# group: expect
+# key: etbl
+# --
+expect($1).toBeLessThan($2)
+$0

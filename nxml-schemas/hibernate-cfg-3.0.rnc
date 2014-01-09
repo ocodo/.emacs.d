@@ -1,0 +1,146 @@
+# Hibernate file-based configuration document.
+# 
+# <!DOCTYPE hibernate-configuration PUBLIC
+#	"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+#	"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+# 
+# An instance of this document contains property settings and references
+# to mapping files for a number of SessionFactory instances to be listed
+# in JNDI.
+#
+
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+hibernate-configuration =
+  element hibernate-configuration {
+    attlist.hibernate-configuration, session-factory, security?
+  }
+attlist.hibernate-configuration &= empty
+property = element property { attlist.property, text }
+attlist.property &= attribute name { text }
+mapping = element mapping { attlist.mapping, empty }
+# reference to a mapping file
+attlist.mapping &= attribute resource { text }?
+attlist.mapping &= attribute file { text }?
+attlist.mapping &= attribute jar { text }?
+attlist.mapping &= attribute package { text }?
+attlist.mapping &= attribute class { text }?
+class-cache = element class-cache { attlist.class-cache, empty }
+attlist.class-cache &= attribute class { text }
+attlist.class-cache &= attribute region { text }?
+attlist.class-cache &=
+  attribute usage {
+    "read-only"
+    | "read-write"
+    | "nonstrict-read-write"
+    | "transactional"
+  }
+attlist.class-cache &=
+  [ a:defaultValue = "all" ] attribute include { "all" | "non-lazy" }?
+collection-cache =
+  element collection-cache { attlist.collection-cache, empty }
+attlist.collection-cache &= attribute collection { text }
+attlist.collection-cache &= attribute region { text }?
+attlist.collection-cache &=
+  attribute usage {
+    "read-only"
+    | "read-write"
+    | "nonstrict-read-write"
+    | "transactional"
+  }
+event = element event { attlist.event, listener* }
+attlist.event &=
+  attribute type {
+    "auto-flush"
+    | "merge"
+    | "create"
+    | "create-onflush"
+    | "delete"
+    | "dirty-check"
+    | "evict"
+    | "flush"
+    | "flush-entity"
+    | "load"
+    | "load-collection"
+    | "lock"
+    | "refresh"
+    | "replicate"
+    | "save-update"
+    | "save"
+    | "update"
+    | "pre-load"
+    | "pre-update"
+    | "pre-insert"
+    | "pre-delete"
+    | "pre-collection-recreate"
+    | "pre-collection-remove"
+    | "pre-collection-update"
+    | "post-load"
+    | "post-update"
+    | "post-insert"
+    | "post-delete"
+    | "post-collection-recreate"
+    | "post-collection-remove"
+    | "post-collection-update"
+    | "post-commit-update"
+    | "post-commit-insert"
+    | "post-commit-delete"
+  }
+listener = element listener { attlist.listener, empty }
+attlist.listener &=
+  attribute type {
+    "auto-flush"
+    | "merge"
+    | "create"
+    | "create-onflush"
+    | "delete"
+    | "dirty-check"
+    | "evict"
+    | "flush"
+    | "flush-entity"
+    | "load"
+    | "load-collection"
+    | "lock"
+    | "refresh"
+    | "replicate"
+    | "save-update"
+    | "save"
+    | "update"
+    | "pre-load"
+    | "pre-update"
+    | "pre-insert"
+    | "pre-delete"
+    | "pre-collection-recreate"
+    | "pre-collection-remove"
+    | "pre-collection-update"
+    | "post-load"
+    | "post-update"
+    | "post-insert"
+    | "post-delete"
+    | "post-collection-recreate"
+    | "post-collection-remove"
+    | "post-collection-update"
+    | "post-commit-update"
+    | "post-commit-insert"
+    | "post-commit-delete"
+  }?
+attlist.listener &= attribute class { text }
+session-factory =
+  element session-factory {
+    attlist.session-factory,
+    property*,
+    mapping*,
+    (class-cache | collection-cache)*,
+    event*,
+    listener*
+  }
+attlist.session-factory &= attribute name { text }?
+# the JNDI name
+security = element security { attlist.security, grant* }
+attlist.security &= attribute context { text }
+# the JACC contextID
+grant = element grant { attlist.grant, empty }
+attlist.grant &= attribute role { text }
+attlist.grant &= attribute entity-name { text }
+attlist.grant &= attribute actions { text }
+start = hibernate-configuration

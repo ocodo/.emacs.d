@@ -1,0 +1,55 @@
+# -*- mode: snippet -*-
+# name: Controller Stub
+# key: cstub
+# group: Rails
+# --
+
+class ${1:Resource}sController < ApplicationController
+
+  respond_to :html
+
+  def index
+    @${2:resource}s = $1.all
+    respond_with @$2s
+  end
+
+  def show
+    @$2 = $1.find params[:id]
+    respond_with @$2
+  end
+
+  def new
+    @$2 = $1.new
+    respond_with @$2
+  end
+
+  def create
+    @$2 = $1.new(params[:$2])
+    if @$2.save
+      cookies[:last_$2_id] = @$2.id
+      flash[:notice] = "Successfully created $2."
+    end
+    respond_with @$2
+  end
+
+  def edit
+    @$2 = $1.find(params[:id])
+    respond_with @$2
+  end
+
+  def update
+    @$2 = $1.find params[:id]
+    if @$2.update_attributes params[:$2]
+      flash[:notice] = "Successfully updated $2."
+    end
+    respond_with @$2
+  end
+
+  def destroy
+    @$2 = $1.find params[:id]
+    @$2.destroy
+    flash[:notice] = "Successfully destroyed $2."
+    respond_with @$2 
+  end
+  
+end

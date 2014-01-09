@@ -1,0 +1,4 @@
+# yasnippet: snippet-mode
+# name: choose
+# --
+\${$1:$$(yas/choose-value '( ${2:choices} ))\}$0

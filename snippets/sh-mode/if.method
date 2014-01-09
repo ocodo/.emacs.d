@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+#name : if - function
+# --
+if ${1:fn}; then
+  $0
+fi

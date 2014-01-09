@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: img with bound attributes
+# group: kendo
+# key: kdi
+# contributor: Jason Milkins
+# --
+<img data-bind="attr: {src:'$1', alt:'$2' } "/>$0

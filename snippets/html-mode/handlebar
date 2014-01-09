@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# contributor: J Milkins <jasonm23@gmail.com>
+# name: handlebars Template snippet
+# key: handlebar
+# --
+<script id="$1" type="text/x-handlebars-template">
+$0
+</script>

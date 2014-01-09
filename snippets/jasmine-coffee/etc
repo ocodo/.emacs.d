@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toContain
+# group: expect
+# key: etc
+# --
+expect($1).toContain($2)
+$0

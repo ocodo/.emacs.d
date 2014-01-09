@@ -1,0 +1,11 @@
+#name : class ... { ... }
+# --
+public class ${1:Classname}
+{
+  // default ctor
+  public ${1:Classname}()
+  {
+  }
+  
+  ${2:// methods here}
+}

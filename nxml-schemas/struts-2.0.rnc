@@ -1,0 +1,139 @@
+# /*
+#  * $Id$
+#  *
+#  * Licensed to the Apache Software Foundation (ASF) under one
+#  * or more contributor license agreements.  See the NOTICE file
+#  * distributed with this work for additional information
+#  * regarding copyright ownership.  The ASF licenses this file
+#  * to you under the Apache License, Version 2.0 (the
+#  * "License"); you may not use this file except in compliance
+#  * with the License.  You may obtain a copy of the License at
+#  *
+#  *  http://www.apache.org/licenses/LICENSE-2.0
+#  *
+#  * Unless required by applicable law or agreed to in writing,
+#  * software distributed under the License is distributed on an
+#  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#  * KIND, either express or implied.  See the License for the
+#  * specific language governing permissions and limitations
+#  * under the License.
+#  */
+
+# START SNIPPET: strutsDtd
+
+# Struts configuration DTD.
+# Use the following DOCTYPE
+# 
+# <!DOCTYPE struts PUBLIC 
+#      "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+#      "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+struts =
+  element struts {
+    attlist.struts, (package | \include | bean | constant)*
+  }
+attlist.struts &= empty
+package =
+  element package {
+    attlist.package,
+    result-types?,
+    interceptors?,
+    default-interceptor-ref?,
+    default-action-ref?,
+    default-class-ref?,
+    global-results?,
+    global-exception-mappings?,
+    action*
+  }
+attlist.package &=
+  attribute name { text },
+  attribute extends { text }?,
+  attribute namespace { text }?,
+  attribute abstract { text }?,
+  attribute externalReferenceResolver { xsd:NMTOKEN }?
+result-types =
+  element result-types { attlist.result-types, result-type+ }
+attlist.result-types &= empty
+result-type = element result-type { attlist.result-type, param* }
+attlist.result-type &=
+  attribute name { text },
+  attribute class { text },
+  [ a:defaultValue = "false" ] attribute default { "true" | "false" }?
+interceptors =
+  element interceptors {
+    attlist.interceptors, (interceptor | interceptor-stack)+
+  }
+attlist.interceptors &= empty
+interceptor = element interceptor { attlist.interceptor, param* }
+attlist.interceptor &=
+  attribute name { text },
+  attribute class { text }
+interceptor-stack =
+  element interceptor-stack {
+    attlist.interceptor-stack, interceptor-ref*
+  }
+attlist.interceptor-stack &= attribute name { text }
+interceptor-ref =
+  element interceptor-ref { attlist.interceptor-ref, param* }
+attlist.interceptor-ref &= attribute name { text }
+default-interceptor-ref =
+  element default-interceptor-ref {
+    attlist.default-interceptor-ref, text
+  }
+attlist.default-interceptor-ref &= attribute name { text }
+default-action-ref =
+  element default-action-ref { attlist.default-action-ref, text }
+attlist.default-action-ref &= attribute name { text }
+default-class-ref =
+  element default-class-ref { attlist.default-class-ref, text }
+attlist.default-class-ref &= attribute class { text }
+global-results =
+  element global-results { attlist.global-results, result+ }
+attlist.global-results &= empty
+global-exception-mappings =
+  element global-exception-mappings {
+    attlist.global-exception-mappings, exception-mapping+
+  }
+attlist.global-exception-mappings &= empty
+action =
+  element action {
+    attlist.action,
+    (param | result | interceptor-ref | exception-mapping)*
+  }
+attlist.action &=
+  attribute name { text },
+  attribute class { text }?,
+  attribute method { text }?,
+  attribute converter { text }?
+param = element param { attlist.param, text }
+attlist.param &= attribute name { text }
+result = element result { attlist.result, (text | param)* }
+attlist.result &=
+  attribute name { text }?,
+  attribute type { text }?
+exception-mapping =
+  element exception-mapping {
+    attlist.exception-mapping, (text | param)*
+  }
+attlist.exception-mapping &=
+  attribute name { text }?,
+  attribute exception { text },
+  attribute result { text }
+\include = element include { attlist.include, text }
+attlist.include &= attribute file { text }
+bean = element bean { attlist.bean, text }
+attlist.bean &=
+  attribute type { text }?,
+  attribute name { text }?,
+  attribute class { text },
+  attribute scope { text }?,
+  attribute static { text }?,
+  attribute optional { text }?
+constant = element constant { attlist.constant, text }
+attlist.constant &=
+  attribute name { text },
+  attribute value { text }
+start = struts
+# END SNIPPET: strutsDtd

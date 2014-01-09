@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toBe
+# group: expect
+# key: etb
+# --
+expect($1).toBe($2)
+$0

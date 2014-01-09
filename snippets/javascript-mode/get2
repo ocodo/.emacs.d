@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: kendo
+# key: get
+# name: mvvm - getter
+# --
+get('${1:property}').$0

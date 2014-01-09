@@ -1,0 +1,6 @@
+#name : using ... { ... }
+# --
+using (${1:type} ${2:var} = new ${1:type}(${4:ctor args})) 
+{
+    ${5:// body...}
+}

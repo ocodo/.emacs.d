@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: line
+# key: line
+# group: svg
+# --
+<line x1="${1:0}" y1="${2:0}" x2="${3:0}" y2="${4:10}" stroke="${6:black}" stroke-width="${7:1}"/>

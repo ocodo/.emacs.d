@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: Snippet header
+# key: header
+# --
+# -*- mode: snippet -*-
+# name: $1
+# group: $2
+# key: $3
+# keybinding: $5
+# expand-env: ($7)
+# contributor: $6
+# --
+$0

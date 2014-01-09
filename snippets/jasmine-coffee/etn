@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toBeNull
+# group: expect
+# key: etn
+# --
+expect($1).toBeNull()
+$0

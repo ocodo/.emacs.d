@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: ng-pluralize
+# key: ng
+# --
+ng-pluralize count="${1:model}" when="{
+  '0': '${2:none}',
+  'one': '${3:one}',
+  'other': '{} $0'
+}"`
+(ng-snip/docs "ng-pluralize")
+(ng-snip/maybe-space-after-attr)`

@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# name: kendo mobile actionsheet button
+# key: kab
+# group: kendo
+# contributor: J Milkins <jasonm23@gmail.com>
+# --
+<li><a data-action="${1:handler}">${2:label}</a></li>
+$0

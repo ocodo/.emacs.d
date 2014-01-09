@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: setup describe dependencies
+# group: angular-tests
+# key: ddeps
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+describe "Dependencies:", ->
+  deps = undefined
+  hasModule = (m) ->
+    deps.indexOf(m) >= 0
+
+  beforeEach ->
+    deps = module.value("${1:$$(jasmine-coffee-ng/before-each-module-name)}").requires
+
+  $0

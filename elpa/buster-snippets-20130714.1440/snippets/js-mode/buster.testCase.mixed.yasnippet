@@ -1,0 +1,17 @@
+# -*- mode: snippet -*-
+# name: buster.testCase.mixed
+# key: tc
+# condition: buster-testcase-snippets-enabled
+# --
+if (typeof require === "function" && typeof module !== "undefined") {
+  var buster = require("buster");
+  var ${5:`buster-default-global`} = { ${4:${2:$(lower-camel-case (file-name-nondirectory yas/text))}}: require("${1:`(buster--guess-lib-folder)`}${2:`(chop-test-suffix (buffer-file-name-body))`}")$3 };
+}
+
+(function (${8:${7:$(buster--shortcuts-for-globals yas/text)}}) {
+  `(buster--maybe-use-strict)
+ ``(buster--maybe-add-local-asserts)
+ `buster.testCase("${6:${2:$(capitalized-words (file-name-nondirectory yas/text))}}", {
+    tt$0
+  });
+}(${7:${5:$(if buster-add-default-global-to-iife yas/text)})));

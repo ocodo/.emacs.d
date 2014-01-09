@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# contributor: J Milkins <jasonm23@gmail.com>
+# name :JQuery google hosted (1.8.3min) 
+# key: jq
+# --
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+$0

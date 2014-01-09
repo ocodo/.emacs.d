@@ -1,0 +1,1461 @@
+# Hibernate Mapping DTD.
+# 
+# <!DOCTYPE hibernate-mapping PUBLIC 
+#     "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+#     "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+# 
+# An instance of this XML document may contain mappings for an arbitrary 
+# number of classes. The class mappings may contain associations to classes
+# mapped in the same document or in another document. No class may be 
+# mapped more than once. Each document may also contain definitions of an
+# arbitrary number of queries, and import declarations of arbitrary classes. 
+#
+
+# The document root.
+
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+hibernate-mapping =
+  element hibernate-mapping {
+    attlist.hibernate-mapping,
+    meta*,
+    identifier-generator*,
+    typedef*,
+    filter-def*,
+    import*,
+    (class | subclass | joined-subclass | union-subclass)*,
+    resultset*,
+    (query | sql-query)*,
+    filter-def*,
+    fetch-profile*,
+    database-object*
+  }
+attlist.hibernate-mapping &= attribute schema { text }?
+# default: none
+attlist.hibernate-mapping &= attribute catalog { text }?
+# default: none
+attlist.hibernate-mapping &=
+  [ a:defaultValue = "none" ] attribute default-cascade { text }?
+attlist.hibernate-mapping &=
+  [ a:defaultValue = "property" ] attribute default-access { text }?
+attlist.hibernate-mapping &=
+  [ a:defaultValue = "true" ]
+  attribute default-lazy { "true" | "false" }?
+attlist.hibernate-mapping &=
+  [ a:defaultValue = "true" ]
+  attribute auto-import { "true" | "false" }?
+attlist.hibernate-mapping &= attribute package { text }?
+# default: none
+
+# <meta.../> is used to assign meta-level attributes to a class
+# or property.  Is currently used by codegenerator as a placeholder for
+# values that is not directly related to OR mappings.
+meta = element meta { attlist.meta, text }
+attlist.meta &= attribute attribute { text }
+attlist.meta &=
+  [ a:defaultValue = "true" ] attribute inherit { "true" | "false" }?
+# <identifier-generator.../> allows customized short-naming of IdentifierGenerator implementations.
+identifier-generator =
+  element identifier-generator { attlist.identifier-generator, empty }
+attlist.identifier-generator &= attribute name { text }
+attlist.identifier-generator &= attribute class { text }
+# <typedef.../> allows defining a customized type mapping for a Hibernate type. May
+# contain parameters for parameterizable types.
+typedef = element typedef { attlist.typedef, param* }
+attlist.typedef &= attribute class { text }
+attlist.typedef &= attribute name { text }
+# IMPORT element definition; an explicit query language "import"
+import = element import { attlist.import, empty }
+attlist.import &= attribute class { text }
+attlist.import &= attribute rename { text }?
+# default: unqualified class name
+
+# Root entity mapping.  Poorly named as entities do not have to be represented by 
+# classes at all.  Mapped entities may be represented via different methodologies 
+# (POJO, Map, Dom4j).
+class =
+  element class {
+    attlist.class,
+    meta*,
+    subselect?,
+    cache?,
+    synchronize*,
+    comment?,
+    tuplizer*,
+    (id | composite-id),
+    discriminator?,
+    natural-id?,
+    (version | timestamp)?,
+    (property
+     | many-to-one
+     | one-to-one
+     | component
+     | dynamic-component
+     | properties
+     | any
+     | map
+     | set
+     | \list
+     | bag
+     | idbag
+     | array
+     | primitive-array)*,
+    ((join*, subclass*) | joined-subclass* | union-subclass*),
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    filter*,
+    fetch-profile*,
+    resultset*,
+    (query | sql-query)*
+  }
+attlist.class &= attribute entity-name { text }?
+attlist.class &= attribute name { text }?
+# this is the class name
+attlist.class &= attribute proxy { text }?
+# default: no proxy interface
+attlist.class &= attribute lazy { "true" | "false" }?
+attlist.class &= attribute table { text }?
+# default: unqualified classname
+attlist.class &= attribute schema { text }?
+# default: none
+attlist.class &= attribute catalog { text }?
+# default: none
+attlist.class &= attribute subselect { text }?
+attlist.class &= attribute discriminator-value { text }?
+# default: unqualified class name | none
+attlist.class &=
+  [ a:defaultValue = "true" ] attribute mutable { "true" | "false" }?
+attlist.class &= attribute abstract { "true" | "false" }?
+attlist.class &=
+  [ a:defaultValue = "implicit" ]
+  attribute polymorphism { "implicit" | "explicit" }?
+attlist.class &= attribute where { text }?
+# default: none
+attlist.class &= attribute persister { text }?
+attlist.class &=
+  [ a:defaultValue = "false" ]
+  attribute dynamic-update { "true" | "false" }?
+attlist.class &=
+  [ a:defaultValue = "false" ]
+  attribute dynamic-insert { "true" | "false" }?
+attlist.class &= attribute batch-size { text }?
+attlist.class &=
+  [ a:defaultValue = "false" ]
+  attribute select-before-update { "true" | "false" }?
+attlist.class &=
+  [ a:defaultValue = "version" ]
+  attribute optimistic-lock { "none" | "version" | "dirty" | "all" }?
+attlist.class &= attribute check { text }?
+# default: none
+attlist.class &= attribute rowid { text }?
+attlist.class &= attribute node { text }?
+# TUPLIZER element; defines tuplizer to use for a component/entity for a given entity-mode
+tuplizer = element tuplizer { attlist.tuplizer, empty }
+attlist.tuplizer &=
+  attribute entity-mode { "pojo" | "dom4j" | "dynamic-map" }?
+# entity mode for which tuplizer is in effect
+attlist.tuplizer &= attribute class { text }
+# the tuplizer class to use
+
+# FILTER-DEF element; top-level filter definition.
+filter-def =
+  element filter-def { attlist.filter-def, (text | filter-param)* }
+attlist.filter-def &= attribute name { text }
+# The filter name
+attlist.filter-def &= attribute condition { text }?
+# FILTER-PARAM element; qualifies parameters found within a FILTER-DEF
+# condition.
+filter-param = element filter-param { attlist.filter-param, empty }
+attlist.filter-param &= attribute name { text }
+# The parameter name
+attlist.filter-param &= attribute type { text }
+# The parameter type
+
+# FILTER element; used to apply a filter.
+filter = element filter { attlist.filter, text }
+attlist.filter &= attribute name { text }
+attlist.filter &= attribute condition { text }?
+#
+fetch-profile = element fetch-profile { attlist.fetch-profile, fetch* }
+attlist.fetch-profile &= attribute name { text }
+# The <fetch> element defines a single path to which the fetch
+# refers, as well as the style of fetch to apply.  The 'root' of the
+# path is different depending upon the context in which the
+# containing <fetch-profile/> occurs; within a <class/> element,
+# the entity-name of the containing class mapping is assumed...
+fetch = element fetch { attlist.fetch, empty }
+attlist.fetch &= attribute entity { text }?
+# Implied as long as the containing fetch profile is contained in a class mapping
+attlist.fetch &= attribute association { text }
+attlist.fetch &=
+  [ a:defaultValue = "join" ] attribute style { "join" | "select" }?
+# A join allows some properties of a class to be persisted to a second table
+join =
+  element join {
+    attlist.join,
+    subselect?,
+    comment?,
+    key,
+    (property | many-to-one | component | dynamic-component | any)*,
+    sql-insert?,
+    sql-update?,
+    sql-delete?
+  }
+attlist.join &= attribute table { text }
+attlist.join &= attribute schema { text }?
+# default: none
+attlist.join &= attribute catalog { text }?
+# default: none
+attlist.join &= attribute subselect { text }?
+attlist.join &=
+  [ a:defaultValue = "join" ] attribute fetch { "join" | "select" }?
+attlist.join &=
+  [ a:defaultValue = "false" ] attribute inverse { "true" | "false" }?
+attlist.join &=
+  [ a:defaultValue = "false" ] attribute optional { "true" | "false" }?
+# A natural-id element allows declaration of the unique business key
+natural-id =
+  element natural-id {
+    attlist.natural-id,
+    (property | many-to-one | component | dynamic-component | any)*
+  }
+attlist.natural-id &=
+  [ a:defaultValue = "false" ] attribute mutable { "true" | "false" }?
+# Declares the id type, column and generation algorithm for an entity class.
+# If a name attribut is given, the id is exposed to the application through the 
+# named property of the class. If not, the id is only exposed to the application 
+# via Session.getIdentifier()
+id = element id { attlist.id, meta*, column*, type?, generator? }
+attlist.id &= attribute name { text }?
+attlist.id &= attribute node { text }?
+attlist.id &= attribute access { text }?
+attlist.id &= attribute column { text }?
+attlist.id &= attribute type { text }?
+attlist.id &= attribute length { text }?
+attlist.id &= attribute unsaved-value { text }?
+# any|none|null|undefined|0|-1|...
+
+# A composite key may be modelled by a java class with a property for each 
+# key column. The class must implement java.io.Serializable and reimplement equals() 
+# and hashCode().
+composite-id =
+  element composite-id {
+    attlist.composite-id,
+    meta*,
+    (key-property | key-many-to-one)+,
+    generator?
+  }
+attlist.composite-id &= attribute class { text }?
+attlist.composite-id &=
+  [ a:defaultValue = "false" ] attribute mapped { "true" | "false" }?
+attlist.composite-id &= attribute name { text }?
+attlist.composite-id &= attribute node { text }?
+attlist.composite-id &= attribute access { text }?
+attlist.composite-id &=
+  [ a:defaultValue = "undefined" ]
+  attribute unsaved-value { "undefined" | "any" | "none" }?
+# Polymorphic data requires a column holding a class discriminator value. This
+# value is not directly exposed to the application.
+discriminator =
+  element discriminator { attlist.discriminator, (column | formula)? }
+attlist.discriminator &= attribute column { text }?
+# default: "class"|none
+attlist.discriminator &= attribute formula { text }?
+attlist.discriminator &=
+  [ a:defaultValue = "string" ] attribute type { text }?
+attlist.discriminator &=
+  [ a:defaultValue = "true" ] attribute not-null { "true" | "false" }?
+attlist.discriminator &= attribute length { text }?
+attlist.discriminator &=
+  [ a:defaultValue = "false" ] attribute force { "true" | "false" }?
+attlist.discriminator &=
+  [ a:defaultValue = "true" ] attribute insert { "true" | "false" }?
+# Versioned data requires a column holding a version number. This is exposed to the
+# application through a property of the Java class.
+version = element version { attlist.version, meta*, column* }
+attlist.version &= attribute name { text }
+attlist.version &= attribute node { text }?
+attlist.version &= attribute access { text }?
+attlist.version &= attribute column { text }?
+attlist.version &=
+  [ a:defaultValue = "integer" ] attribute type { text }?
+attlist.version &=
+  [ a:defaultValue = "undefined" ]
+  attribute unsaved-value { "null" | "negative" | "undefined" }?
+attlist.version &=
+  [ a:defaultValue = "never" ]
+  attribute generated { "never" | "always" }?
+attlist.version &= attribute insert { "true" | "false" }?
+timestamp = element timestamp { attlist.timestamp, meta* }
+attlist.timestamp &= attribute name { text }
+attlist.timestamp &= attribute node { text }?
+attlist.timestamp &= attribute column { text }?
+attlist.timestamp &= attribute access { text }?
+attlist.timestamp &=
+  [ a:defaultValue = "null" ]
+  attribute unsaved-value { "null" | "undefined" }?
+attlist.timestamp &=
+  [ a:defaultValue = "vm" ] attribute source { "vm" | "db" }?
+attlist.timestamp &=
+  [ a:defaultValue = "never" ]
+  attribute generated { "never" | "always" }?
+# Subclass declarations are nested beneath the root class declaration to achieve
+# polymorphic persistence with the table-per-hierarchy mapping strategy.
+# 
+# See the note on the class element regarding <pojo/> vs. @name usage...
+subclass =
+  element subclass {
+    attlist.subclass,
+    meta*,
+    tuplizer*,
+    synchronize*,
+    (property
+     | many-to-one
+     | one-to-one
+     | component
+     | dynamic-component
+     | any
+     | map
+     | set
+     | \list
+     | bag
+     | idbag
+     | array
+     | primitive-array)*,
+    join*,
+    subclass*,
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    fetch-profile*,
+    resultset*,
+    (query | sql-query)*
+  }
+attlist.subclass &= attribute entity-name { text }?
+attlist.subclass &= attribute name { text }?
+attlist.subclass &= attribute proxy { text }?
+# default: no proxy interface
+attlist.subclass &= attribute discriminator-value { text }?
+# default: unqualified class name | none
+attlist.subclass &=
+  [ a:defaultValue = "false" ]
+  attribute dynamic-update { "true" | "false" }?
+attlist.subclass &=
+  [ a:defaultValue = "false" ]
+  attribute dynamic-insert { "true" | "false" }?
+attlist.subclass &=
+  [ a:defaultValue = "false" ]
+  attribute select-before-update { "true" | "false" }?
+attlist.subclass &= attribute extends { text }?
+# default: empty when a toplevel, otherwise the nearest class definition
+attlist.subclass &= attribute lazy { "true" | "false" }?
+attlist.subclass &= attribute abstract { "true" | "false" }?
+attlist.subclass &= attribute persister { text }?
+attlist.subclass &= attribute batch-size { text }?
+attlist.subclass &= attribute node { text }?
+# Joined subclasses are used for the normalized table-per-subclass mapping strategy
+# 
+# See the note on the class element regarding <pojo/> vs. @name usage...
+joined-subclass =
+  element joined-subclass {
+    attlist.joined-subclass,
+    meta*,
+    subselect?,
+    synchronize*,
+    comment?,
+    tuplizer*,
+    key,
+    (property
+     | many-to-one
+     | one-to-one
+     | component
+     | dynamic-component
+     | properties
+     | any
+     | map
+     | set
+     | \list
+     | bag
+     | idbag
+     | array
+     | primitive-array)*,
+    joined-subclass*,
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    fetch-profile*,
+    resultset*,
+    (query | sql-query)*
+  }
+attlist.joined-subclass &= attribute entity-name { text }?
+attlist.joined-subclass &= attribute name { text }?
+attlist.joined-subclass &= attribute proxy { text }?
+# default: no proxy interface
+attlist.joined-subclass &= attribute table { text }?
+# default: unqualified class name
+attlist.joined-subclass &= attribute schema { text }?
+attlist.joined-subclass &= attribute catalog { text }?
+attlist.joined-subclass &= attribute subselect { text }?
+attlist.joined-subclass &=
+  [ a:defaultValue = "false" ]
+  attribute dynamic-update { "true" | "false" }?
+attlist.joined-subclass &=
+  [ a:defaultValue = "false" ]
+  attribute dynamic-insert { "true" | "false" }?
+attlist.joined-subclass &=
+  [ a:defaultValue = "false" ]
+  attribute select-before-update { "true" | "false" }?
+attlist.joined-subclass &= attribute extends { text }?
+# default: none when toplevel, otherwise the nearest class definition
+attlist.joined-subclass &= attribute lazy { "true" | "false" }?
+attlist.joined-subclass &= attribute abstract { "true" | "false" }?
+attlist.joined-subclass &= attribute persister { text }?
+attlist.joined-subclass &= attribute check { text }?
+# default: none
+attlist.joined-subclass &= attribute batch-size { text }?
+attlist.joined-subclass &= attribute node { text }?
+# Union subclasses are used for the table-per-concrete-class mapping strategy
+# 
+# See the note on the class element regarding <pojo/> vs. @name usage...
+union-subclass =
+  element union-subclass {
+    attlist.union-subclass,
+    meta*,
+    subselect?,
+    synchronize*,
+    comment?,
+    tuplizer*,
+    (property
+     | many-to-one
+     | one-to-one
+     | component
+     | dynamic-component
+     | properties
+     | any
+     | map
+     | set
+     | \list
+     | bag
+     | idbag
+     | array
+     | primitive-array)*,
+    union-subclass*,
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    fetch-profile*,
+    resultset*,
+    (query | sql-query)*
+  }
+attlist.union-subclass &= attribute entity-name { text }?
+attlist.union-subclass &= attribute name { text }?
+attlist.union-subclass &= attribute proxy { text }?
+# default: no proxy interface
+attlist.union-subclass &= attribute table { text }?
+# default: unqualified class name
+attlist.union-subclass &= attribute schema { text }?
+attlist.union-subclass &= attribute catalog { text }?
+attlist.union-subclass &= attribute subselect { text }?
+attlist.union-subclass &=
+  [ a:defaultValue = "false" ]
+  attribute dynamic-update { "true" | "false" }?
+attlist.union-subclass &=
+  [ a:defaultValue = "false" ]
+  attribute dynamic-insert { "true" | "false" }?
+attlist.union-subclass &=
+  [ a:defaultValue = "false" ]
+  attribute select-before-update { "true" | "false" }?
+attlist.union-subclass &= attribute extends { text }?
+# default: none when toplevel, otherwise the nearest class definition
+attlist.union-subclass &= attribute lazy { "true" | "false" }?
+attlist.union-subclass &= attribute abstract { "true" | "false" }?
+attlist.union-subclass &= attribute persister { text }?
+attlist.union-subclass &= attribute check { text }?
+# default: none
+attlist.union-subclass &= attribute batch-size { text }?
+attlist.union-subclass &= attribute node { text }?
+# Property of an entity class or component, component-element, composite-id, etc. 
+# JavaBeans style properties are mapped to table columns.
+property =
+  element property {
+    attlist.property, meta*, (column | formula)*, type?
+  }
+attlist.property &= attribute name { text }
+attlist.property &= attribute node { text }?
+attlist.property &= attribute access { text }?
+attlist.property &= attribute type { text }?
+attlist.property &= attribute column { text }?
+attlist.property &= attribute length { text }?
+attlist.property &= attribute precision { text }?
+attlist.property &= attribute scale { text }?
+attlist.property &= attribute not-null { "true" | "false" }?
+attlist.property &=
+  [ a:defaultValue = "false" ] attribute unique { "true" | "false" }?
+attlist.property &= attribute unique-key { text }?
+attlist.property &= attribute index { text }?
+# include the columns spanned by this property in an index
+attlist.property &= attribute update { "true" | "false" }?
+attlist.property &= attribute insert { "true" | "false" }?
+attlist.property &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.property &= attribute formula { text }?
+attlist.property &=
+  [ a:defaultValue = "false" ] attribute lazy { "true" | "false" }?
+attlist.property &=
+  [ a:defaultValue = "never" ]
+  attribute generated { "never" | "insert" | "always" }?
+# Declares the type of the containing property (overrides an eventually existing type
+# attribute of the property). May contain param elements to customize a ParametrizableType.
+type = element type { attlist.type, param* }
+attlist.type &= attribute name { text }
+# Declares an association between two entities (Or from a component, component element,
+# etc. to an entity).
+many-to-one =
+  element many-to-one {
+    attlist.many-to-one, meta*, (column | formula)*
+  }
+attlist.many-to-one &= attribute name { text }
+attlist.many-to-one &= attribute access { text }?
+attlist.many-to-one &= attribute class { text }?
+attlist.many-to-one &= attribute entity-name { text }?
+attlist.many-to-one &= attribute column { text }?
+attlist.many-to-one &= attribute not-null { "true" | "false" }?
+attlist.many-to-one &=
+  [ a:defaultValue = "false" ] attribute unique { "true" | "false" }?
+attlist.many-to-one &= attribute unique-key { text }?
+attlist.many-to-one &= attribute index { text }?
+attlist.many-to-one &= attribute cascade { text }?
+attlist.many-to-one &=
+  attribute outer-join { "true" | "false" | "auto" }?
+attlist.many-to-one &= attribute fetch { "join" | "select" }?
+attlist.many-to-one &=
+  [ a:defaultValue = "true" ] attribute update { "true" | "false" }?
+attlist.many-to-one &=
+  [ a:defaultValue = "true" ] attribute insert { "true" | "false" }?
+attlist.many-to-one &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.many-to-one &= attribute foreign-key { text }?
+attlist.many-to-one &= attribute property-ref { text }?
+attlist.many-to-one &= attribute formula { text }?
+attlist.many-to-one &=
+  attribute lazy { "false" | "proxy" | "no-proxy" }?
+attlist.many-to-one &=
+  [ a:defaultValue = "exception" ]
+  attribute not-found { "exception" | "ignore" }?
+attlist.many-to-one &= attribute node { text }?
+attlist.many-to-one &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+# Declares a one-to-one association between two entities (Or from a component, 
+# component element, etc. to an entity).
+one-to-one = element one-to-one { attlist.one-to-one, meta*, formula* }
+attlist.one-to-one &= attribute name { text }
+attlist.one-to-one &= attribute formula { text }?
+attlist.one-to-one &= attribute access { text }?
+attlist.one-to-one &= attribute class { text }?
+attlist.one-to-one &= attribute entity-name { text }?
+attlist.one-to-one &= attribute cascade { text }?
+attlist.one-to-one &=
+  attribute outer-join { "true" | "false" | "auto" }?
+attlist.one-to-one &= attribute fetch { "join" | "select" }?
+attlist.one-to-one &=
+  [ a:defaultValue = "false" ]
+  attribute constrained { "true" | "false" }?
+attlist.one-to-one &= attribute foreign-key { text }?
+attlist.one-to-one &= attribute property-ref { text }?
+attlist.one-to-one &= attribute lazy { "false" | "proxy" | "no-proxy" }?
+attlist.one-to-one &= attribute node { text }?
+attlist.one-to-one &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+# A property embedded in a composite identifier or map index (always not-null).
+key-property =
+  element key-property { attlist.key-property, meta*, column*, type? }
+attlist.key-property &= attribute name { text }
+attlist.key-property &= attribute access { text }?
+attlist.key-property &= attribute type { text }?
+attlist.key-property &= attribute column { text }?
+attlist.key-property &= attribute length { text }?
+attlist.key-property &= attribute node { text }?
+# A many-to-one association embedded in a composite identifier or map index 
+# (always not-null, never cascade).
+key-many-to-one =
+  element key-many-to-one { attlist.key-many-to-one, meta*, column* }
+attlist.key-many-to-one &= attribute name { text }
+attlist.key-many-to-one &= attribute access { text }?
+attlist.key-many-to-one &= attribute class { text }?
+attlist.key-many-to-one &= attribute entity-name { text }?
+attlist.key-many-to-one &= attribute column { text }?
+attlist.key-many-to-one &= attribute foreign-key { text }?
+attlist.key-many-to-one &= attribute lazy { "false" | "proxy" }?
+# An "any" association is a polymorphic association to any table with
+# the given identifier type. The first listed column is a VARCHAR column 
+# holding the name of the class (for that row).
+any = element any { attlist.any, meta*, meta-value*, column, column+ }
+attlist.any &= attribute id-type { text }
+attlist.any &= attribute meta-type { text }?
+# - default: Hibernate.STRING
+attlist.any &= attribute name { text }
+attlist.any &= attribute access { text }?
+attlist.any &=
+  [ a:defaultValue = "true" ] attribute insert { "true" | "false" }?
+attlist.any &=
+  [ a:defaultValue = "true" ] attribute update { "true" | "false" }?
+attlist.any &= attribute cascade { text }?
+attlist.any &= attribute index { text }?
+# include the columns spanned by this association in an index
+attlist.any &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.any &=
+  [ a:defaultValue = "false" ] attribute lazy { "true" | "false" }?
+attlist.any &= attribute node { text }?
+meta-value = element meta-value { attlist.meta-value, empty }
+attlist.meta-value &= attribute value { text }
+attlist.meta-value &= attribute class { text }
+# A component is a user-defined class, persisted along with its containing entity
+# to the table of the entity class. JavaBeans style properties of the component are
+# mapped to columns of the table of the containing entity. A null component reference
+# is mapped to null values in all columns and vice versa. Components do not support
+# shared reference semantics.
+component =
+  element component {
+    attlist.component,
+    meta*,
+    tuplizer*,
+    \parent?,
+    (property
+     | many-to-one
+     | one-to-one
+     | component
+     | dynamic-component
+     | any
+     | map
+     | set
+     | \list
+     | bag
+     | array
+     | primitive-array)*
+  }
+attlist.component &= attribute class { text }?
+attlist.component &= attribute name { text }
+attlist.component &= attribute access { text }?
+attlist.component &=
+  [ a:defaultValue = "false" ] attribute unique { "true" | "false" }?
+attlist.component &=
+  [ a:defaultValue = "true" ] attribute update { "true" | "false" }?
+attlist.component &=
+  [ a:defaultValue = "true" ] attribute insert { "true" | "false" }?
+attlist.component &=
+  [ a:defaultValue = "false" ] attribute lazy { "true" | "false" }?
+attlist.component &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+attlist.component &= attribute node { text }?
+# A dynamic-component maps columns of the database entity to a java.util.Map 
+# at the Java level
+dynamic-component =
+  element dynamic-component {
+    attlist.dynamic-component,
+    (property
+     | many-to-one
+     | one-to-one
+     | component
+     | dynamic-component
+     | any
+     | map
+     | set
+     | \list
+     | bag
+     | array
+     | primitive-array)*
+  }
+attlist.dynamic-component &= attribute name { text }
+attlist.dynamic-component &= attribute access { text }?
+attlist.dynamic-component &=
+  [ a:defaultValue = "false" ] attribute unique { "true" | "false" }?
+attlist.dynamic-component &=
+  [ a:defaultValue = "true" ] attribute update { "true" | "false" }?
+attlist.dynamic-component &=
+  [ a:defaultValue = "true" ] attribute insert { "true" | "false" }?
+attlist.dynamic-component &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+attlist.dynamic-component &= attribute node { text }?
+# properties declares that the contained properties form an alternate key. The name
+# attribute allows an alternate key to be used as the target of a property-ref.
+properties =
+  element properties {
+    attlist.properties,
+    (property | many-to-one | component | dynamic-component)*
+  }
+attlist.properties &= attribute name { text }
+attlist.properties &=
+  [ a:defaultValue = "false" ] attribute unique { "true" | "false" }?
+attlist.properties &=
+  [ a:defaultValue = "true" ] attribute insert { "true" | "false" }?
+attlist.properties &=
+  [ a:defaultValue = "true" ] attribute update { "true" | "false" }?
+attlist.properties &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+attlist.properties &= attribute node { text }?
+# The parent element maps a property of the component class as a pointer back to
+# the owning entity.
+\parent = element parent { attlist.parent, empty }
+attlist.parent &= attribute name { text }
+# Collection declarations nested inside a class declaration indicate a foreign key 
+# relationship from the collection table to the enclosing class.
+map =
+  element map {
+    attlist.map,
+    meta*,
+    subselect?,
+    cache?,
+    synchronize*,
+    comment?,
+    key,
+    (map-key
+     | composite-map-key
+     | map-key-many-to-many
+     | index
+     | composite-index
+     | index-many-to-many
+     | index-many-to-any),
+    (\element
+     | one-to-many
+     | many-to-many
+     | composite-element
+     | many-to-any),
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    sql-delete-all?,
+    filter*
+  }
+attlist.map &= attribute name { text }
+attlist.map &= attribute access { text }?
+attlist.map &= attribute table { text }?
+# default: name
+attlist.map &= attribute schema { text }?
+# default: none
+attlist.map &= attribute subselect { text }?
+attlist.map &= attribute catalog { text }?
+# default: none
+attlist.map &= attribute lazy { "true" | "false" | "extra" }?
+attlist.map &=
+  [ a:defaultValue = "true" ] attribute mutable { "true" | "false" }?
+attlist.map &=
+  [ a:defaultValue = "false" ] attribute inverse { "true" | "false" }?
+attlist.map &= [ a:defaultValue = "unsorted" ] attribute sort { text }?
+# unsorted|natural|"comparator class", default: unsorted
+attlist.map &= attribute cascade { text }?
+attlist.map &= attribute order-by { text }?
+# default: none
+attlist.map &= attribute where { text }?
+# default: none
+attlist.map &= attribute batch-size { text }?
+attlist.map &= attribute outer-join { "true" | "false" | "auto" }?
+attlist.map &= attribute fetch { "join" | "select" | "subselect" }?
+attlist.map &= attribute check { text }?
+# default: none
+attlist.map &= attribute persister { text }?
+attlist.map &= attribute collection-type { text }?
+attlist.map &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.map &= attribute node { text }?
+attlist.map &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+set =
+  element set {
+    attlist.set,
+    meta*,
+    subselect?,
+    cache?,
+    synchronize*,
+    comment?,
+    key,
+    (\element
+     | one-to-many
+     | many-to-many
+     | composite-element
+     | many-to-any),
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    sql-delete-all?,
+    filter*
+  }
+attlist.set &= attribute name { text }
+attlist.set &= attribute access { text }?
+attlist.set &= attribute table { text }?
+# default: name
+attlist.set &= attribute schema { text }?
+# default: none
+attlist.set &= attribute catalog { text }?
+# default: none
+attlist.set &= attribute subselect { text }?
+attlist.set &= attribute lazy { "true" | "false" | "extra" }?
+attlist.set &= [ a:defaultValue = "unsorted" ] attribute sort { text }?
+# unsorted|natural|"comparator class"
+attlist.set &=
+  [ a:defaultValue = "false" ] attribute inverse { "true" | "false" }?
+attlist.set &=
+  [ a:defaultValue = "true" ] attribute mutable { "true" | "false" }?
+attlist.set &= attribute cascade { text }?
+attlist.set &= attribute order-by { text }?
+# default: none
+attlist.set &= attribute where { text }?
+# default: none
+attlist.set &= attribute batch-size { text }?
+attlist.set &= attribute outer-join { "true" | "false" | "auto" }?
+attlist.set &= attribute fetch { "join" | "select" | "subselect" }?
+attlist.set &= attribute persister { text }?
+attlist.set &= attribute collection-type { text }?
+attlist.set &= attribute check { text }?
+# default: none
+attlist.set &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.set &= attribute node { text }?
+attlist.set &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+bag =
+  element bag {
+    attlist.bag,
+    meta*,
+    subselect?,
+    cache?,
+    synchronize*,
+    comment?,
+    key,
+    (\element
+     | one-to-many
+     | many-to-many
+     | composite-element
+     | many-to-any),
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    sql-delete-all?,
+    filter*
+  }
+attlist.bag &= attribute name { text }
+attlist.bag &= attribute access { text }?
+attlist.bag &= attribute table { text }?
+# default: name
+attlist.bag &= attribute schema { text }?
+# default: none
+attlist.bag &= attribute catalog { text }?
+# default: none
+attlist.bag &= attribute subselect { text }?
+attlist.bag &= attribute lazy { "true" | "false" | "extra" }?
+attlist.bag &=
+  [ a:defaultValue = "false" ] attribute inverse { "true" | "false" }?
+attlist.bag &=
+  [ a:defaultValue = "true" ] attribute mutable { "true" | "false" }?
+attlist.bag &= attribute cascade { text }?
+attlist.bag &= attribute order-by { text }?
+# default: none
+attlist.bag &= attribute where { text }?
+# default: none
+attlist.bag &= attribute batch-size { text }?
+attlist.bag &= attribute outer-join { "true" | "false" | "auto" }?
+attlist.bag &= attribute fetch { "join" | "select" | "subselect" }?
+attlist.bag &= attribute persister { text }?
+attlist.bag &= attribute collection-type { text }?
+attlist.bag &= attribute check { text }?
+# default: none
+attlist.bag &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.bag &= attribute node { text }?
+attlist.bag &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+idbag =
+  element idbag {
+    attlist.idbag,
+    meta*,
+    subselect?,
+    cache?,
+    synchronize*,
+    comment?,
+    collection-id,
+    key,
+    (\element | many-to-many | composite-element | many-to-any),
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    sql-delete-all?,
+    filter*
+  }
+attlist.idbag &= attribute name { text }
+attlist.idbag &= attribute access { text }?
+attlist.idbag &= attribute table { text }?
+# default: name
+attlist.idbag &= attribute schema { text }?
+# default: none
+attlist.idbag &= attribute catalog { text }?
+# default: none
+attlist.idbag &= attribute subselect { text }?
+attlist.idbag &= attribute lazy { "true" | "false" | "extra" }?
+attlist.idbag &=
+  [ a:defaultValue = "true" ] attribute mutable { "true" | "false" }?
+attlist.idbag &= attribute cascade { text }?
+attlist.idbag &= attribute order-by { text }?
+# default: none
+attlist.idbag &= attribute where { text }?
+# default: none
+attlist.idbag &= attribute batch-size { text }?
+attlist.idbag &= attribute outer-join { "true" | "false" | "auto" }?
+attlist.idbag &= attribute fetch { "join" | "select" | "subselect" }?
+attlist.idbag &= attribute persister { text }?
+attlist.idbag &= attribute collection-type { text }?
+attlist.idbag &= attribute check { text }?
+# default: none
+attlist.idbag &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.idbag &= attribute node { text }?
+attlist.idbag &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+\list =
+  element list {
+    attlist.list,
+    meta*,
+    subselect?,
+    cache?,
+    synchronize*,
+    comment?,
+    key,
+    (index | list-index),
+    (\element
+     | one-to-many
+     | many-to-many
+     | composite-element
+     | many-to-any),
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    sql-delete-all?,
+    filter*
+  }
+attlist.list &= attribute name { text }
+attlist.list &= attribute access { text }?
+attlist.list &= attribute table { text }?
+# default: name
+attlist.list &= attribute schema { text }?
+# default: none
+attlist.list &= attribute catalog { text }?
+# default: none
+attlist.list &= attribute subselect { text }?
+attlist.list &= attribute lazy { "true" | "false" | "extra" }?
+attlist.list &=
+  [ a:defaultValue = "false" ] attribute inverse { "true" | "false" }?
+attlist.list &=
+  [ a:defaultValue = "true" ] attribute mutable { "true" | "false" }?
+attlist.list &= attribute cascade { text }?
+attlist.list &= attribute where { text }?
+# default: none
+attlist.list &= attribute batch-size { text }?
+attlist.list &= attribute outer-join { "true" | "false" | "auto" }?
+attlist.list &= attribute fetch { "join" | "select" | "subselect" }?
+attlist.list &= attribute persister { text }?
+attlist.list &= attribute collection-type { text }?
+attlist.list &= attribute check { text }?
+# default: none
+attlist.list &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.list &= attribute node { text }?
+attlist.list &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+array =
+  element array {
+    attlist.array,
+    meta*,
+    subselect?,
+    cache?,
+    synchronize*,
+    comment?,
+    key,
+    (index | list-index),
+    (\element
+     | one-to-many
+     | many-to-many
+     | composite-element
+     | many-to-any),
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    sql-delete-all?
+  }
+attlist.array &= attribute name { text }
+attlist.array &= attribute access { text }?
+attlist.array &= attribute table { text }?
+# default: name
+attlist.array &= attribute schema { text }?
+# default: none
+attlist.array &= attribute catalog { text }?
+# default: none
+attlist.array &= attribute subselect { text }?
+attlist.array &=
+  [ a:defaultValue = "false" ] attribute inverse { "true" | "false" }?
+attlist.array &=
+  [ a:defaultValue = "true" ] attribute mutable { "true" | "false" }?
+attlist.array &= attribute element-class { text }?
+attlist.array &= attribute cascade { text }?
+attlist.array &= attribute where { text }?
+# default: none
+attlist.array &= attribute batch-size { text }?
+attlist.array &= attribute outer-join { "true" | "false" | "auto" }?
+attlist.array &= attribute fetch { "join" | "select" | "subselect" }?
+attlist.array &= attribute persister { text }?
+attlist.array &= attribute collection-type { text }?
+attlist.array &= attribute check { text }?
+# default: none
+attlist.array &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.array &= attribute node { text }?
+attlist.array &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+primitive-array =
+  element primitive-array {
+    attlist.primitive-array,
+    meta*,
+    subselect?,
+    cache?,
+    synchronize*,
+    comment?,
+    key,
+    (index | list-index),
+    \element,
+    loader?,
+    sql-insert?,
+    sql-update?,
+    sql-delete?,
+    sql-delete-all?
+  }
+attlist.primitive-array &= attribute name { text }
+attlist.primitive-array &= attribute access { text }?
+attlist.primitive-array &= attribute table { text }?
+# default: name
+attlist.primitive-array &= attribute schema { text }?
+# default: none
+attlist.primitive-array &= attribute catalog { text }?
+# default: none
+attlist.primitive-array &= attribute subselect { text }?
+attlist.primitive-array &=
+  [ a:defaultValue = "true" ] attribute mutable { "true" | "false" }?
+attlist.primitive-array &= attribute where { text }?
+# default: none
+attlist.primitive-array &= attribute batch-size { text }?
+attlist.primitive-array &=
+  attribute outer-join { "true" | "false" | "auto" }?
+attlist.primitive-array &=
+  attribute fetch { "join" | "select" | "subselect" }?
+attlist.primitive-array &= attribute persister { text }?
+attlist.primitive-array &= attribute collection-type { text }?
+attlist.primitive-array &= attribute check { text }?
+# default: none
+attlist.primitive-array &=
+  [ a:defaultValue = "true" ]
+  attribute optimistic-lock { "true" | "false" }?
+# only supported for properties of a class (not component)
+attlist.primitive-array &= attribute node { text }?
+attlist.primitive-array &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+# Declares the element type of a collection of basic type
+\element =
+  element element { attlist.element, (column | formula)*, type? }
+attlist.element &= attribute column { text }?
+attlist.element &= attribute node { text }?
+attlist.element &= attribute formula { text }?
+attlist.element &= attribute type { text }?
+attlist.element &= attribute length { text }?
+attlist.element &= attribute precision { text }?
+attlist.element &= attribute scale { text }?
+attlist.element &=
+  [ a:defaultValue = "false" ] attribute not-null { "true" | "false" }?
+attlist.element &=
+  [ a:defaultValue = "false" ] attribute unique { "true" | "false" }?
+# One to many association. This tag declares the entity-class
+# element type of a collection and specifies a one-to-many relational model
+one-to-many = element one-to-many { attlist.one-to-many, empty }
+attlist.one-to-many &= attribute class { text }?
+attlist.one-to-many &=
+  [ a:defaultValue = "exception" ]
+  attribute not-found { "exception" | "ignore" }?
+attlist.one-to-many &= attribute node { text }?
+attlist.one-to-many &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+attlist.one-to-many &= attribute entity-name { text }?
+#  No column declaration attributes required in this case. The primary
+# key column of the associated class is already mapped elsewhere.
+
+# Many to many association. This tag declares the entity-class
+# element type of a collection and specifies a many-to-many relational model
+many-to-many =
+  element many-to-many {
+    attlist.many-to-many, meta*, (column | formula)*, filter*
+  }
+attlist.many-to-many &= attribute class { text }?
+attlist.many-to-many &= attribute node { text }?
+attlist.many-to-many &=
+  [ a:defaultValue = "true" ] attribute embed-xml { "true" | "false" }?
+attlist.many-to-many &= attribute entity-name { text }?
+attlist.many-to-many &= attribute column { text }?
+attlist.many-to-many &= attribute formula { text }?
+attlist.many-to-many &=
+  [ a:defaultValue = "exception" ]
+  attribute not-found { "exception" | "ignore" }?
+attlist.many-to-many &=
+  attribute outer-join { "true" | "false" | "auto" }?
+attlist.many-to-many &= attribute fetch { "join" | "select" }?
+attlist.many-to-many &= attribute lazy { "false" | "proxy" }?
+attlist.many-to-many &= attribute foreign-key { text }?
+attlist.many-to-many &=
+  [ a:defaultValue = "false" ] attribute unique { "true" | "false" }?
+attlist.many-to-many &= attribute where { text }?
+attlist.many-to-many &= attribute order-by { text }?
+attlist.many-to-many &= attribute property-ref { text }?
+# A composite element allows a collection to hold instances of an arbitrary 
+# class, without the requirement of joining to an entity table. Composite elements
+# have component semantics - no shared references and ad hoc null value semantics. 
+# Composite elements may not hold nested collections.
+composite-element =
+  element composite-element {
+    attlist.composite-element,
+    meta*,
+    \parent?,
+    tuplizer*,
+    (property | many-to-one | any | nested-composite-element)*
+  }
+attlist.composite-element &= attribute class { text }
+attlist.composite-element &= attribute node { text }?
+nested-composite-element =
+  element nested-composite-element {
+    attlist.nested-composite-element,
+    \parent?,
+    tuplizer*,
+    (property | many-to-one | any | nested-composite-element)*
+  }
+attlist.nested-composite-element &= attribute class { text }
+attlist.nested-composite-element &= attribute name { text }
+attlist.nested-composite-element &= attribute access { text }?
+attlist.nested-composite-element &= attribute node { text }?
+# Declares the column name of a foreign key.
+key = element key { attlist.key, column* }
+attlist.key &= attribute column { text }?
+attlist.key &= attribute property-ref { text }?
+attlist.key &= attribute foreign-key { text }?
+attlist.key &=
+  [ a:defaultValue = "noaction" ]
+  attribute on-delete { "cascade" | "noaction" }?
+attlist.key &= attribute not-null { "true" | "false" }?
+attlist.key &= attribute update { "true" | "false" }?
+attlist.key &= attribute unique { "true" | "false" }?
+# Declares the type and column mapping for a collection index (array or
+# list index, or key of a map).
+list-index = element list-index { attlist.list-index, column? }
+attlist.list-index &= attribute column { text }?
+attlist.list-index &= [ a:defaultValue = "0" ] attribute base { text }?
+map-key =
+  element map-key { attlist.map-key, (column | formula)*, type? }
+attlist.map-key &= attribute column { text }?
+attlist.map-key &= attribute formula { text }?
+attlist.map-key &= attribute type { text }?
+attlist.map-key &= attribute length { text }?
+attlist.map-key &= attribute node { text }?
+index = element index { attlist.index, column* }
+attlist.index &= attribute column { text }?
+attlist.index &= attribute type { text }?
+# required for maps
+attlist.index &= attribute length { text }?
+# Many to many association mapped to the key of a map. ie. a map keyed
+# on entities.
+map-key-many-to-many =
+  element map-key-many-to-many {
+    attlist.map-key-many-to-many, (column | formula)*
+  }
+attlist.map-key-many-to-many &= attribute class { text }?
+attlist.map-key-many-to-many &= attribute entity-name { text }?
+attlist.map-key-many-to-many &= attribute column { text }?
+attlist.map-key-many-to-many &= attribute formula { text }?
+attlist.map-key-many-to-many &= attribute foreign-key { text }?
+index-many-to-many =
+  element index-many-to-many { attlist.index-many-to-many, column* }
+attlist.index-many-to-many &= attribute class { text }
+attlist.index-many-to-many &= attribute entity-name { text }?
+attlist.index-many-to-many &= attribute column { text }?
+attlist.index-many-to-many &= attribute foreign-key { text }?
+# Composite index of a map ie. a map keyed on components.
+composite-map-key =
+  element composite-map-key {
+    attlist.composite-map-key, (key-property | key-many-to-one)+
+  }
+attlist.composite-map-key &= attribute class { text }
+composite-index =
+  element composite-index {
+    attlist.composite-index, (key-property | key-many-to-one)+
+  }
+attlist.composite-index &= attribute class { text }
+# A "many to any" defines a polymorphic association to any table 
+# with the given identifier type. The first listed column is a VARCHAR column 
+# holding the name of the class (for that row).
+many-to-any =
+  element many-to-any {
+    attlist.many-to-any, meta-value*, column, column+
+  }
+attlist.many-to-any &= attribute id-type { text }
+attlist.many-to-any &= attribute meta-type { text }?
+# - default: Hibernate.CLASS
+index-many-to-any =
+  element index-many-to-any {
+    attlist.index-many-to-any, column, column+
+  }
+attlist.index-many-to-any &= attribute id-type { text }
+attlist.index-many-to-any &= attribute meta-type { text }?
+# - default: Hibernate.CLASS
+collection-id =
+  element collection-id {
+    attlist.collection-id, meta*, column*, generator
+  }
+attlist.collection-id &= attribute column { text }
+attlist.collection-id &= attribute type { text }
+attlist.collection-id &= attribute length { text }?
+# Generators generate unique identifiers. The class attribute specifies a Java 
+# class implementing an id generation algorithm.
+generator = element generator { attlist.generator, param* }
+attlist.generator &= attribute class { text }
+param = element param { attlist.param, text }
+attlist.param &= attribute name { text }
+# The column element is an alternative to column attributes and required for 
+# mapping associations to classes with composite ids.
+column = element column { attlist.column, comment? }
+attlist.column &= attribute name { text }
+attlist.column &= attribute length { text }?
+# default: 255
+attlist.column &= attribute precision { text }?
+attlist.column &= attribute scale { text }?
+attlist.column &= attribute not-null { "true" | "false" }?
+# default: false (except for id properties)
+attlist.column &= attribute unique { "true" | "false" }?
+# default: false (except for id properties)
+attlist.column &= attribute unique-key { text }?
+# default: no unique key
+attlist.column &= attribute sql-type { text }?
+# override default column type for hibernate type
+attlist.column &= attribute index { text }?
+attlist.column &= attribute check { text }?
+# default: no check constraint
+attlist.column &= attribute default { text }?
+# default: no default value
+attlist.column &= attribute read { text }?
+# default: column name
+attlist.column &= attribute write { text }?
+# default: parameter placeholder ('?')
+
+# The formula and subselect elements allow us to map derived properties and 
+# entities.
+formula = element formula { attlist.formula, text }
+attlist.formula &= empty
+subselect = element subselect { attlist.subselect, text }
+attlist.subselect &= empty
+# The cache element enables caching of an entity class.
+cache = element cache { attlist.cache, empty }
+attlist.cache &=
+  attribute usage {
+    "read-only"
+    | "read-write"
+    | "nonstrict-read-write"
+    | "transactional"
+  }
+attlist.cache &= attribute region { text }?
+# default: class or collection role name
+attlist.cache &=
+  [ a:defaultValue = "all" ] attribute include { "all" | "non-lazy" }?
+# The comment element allows definition of a database table or column comment.
+comment = element comment { attlist.comment, text }
+attlist.comment &= empty
+# The loader element allows specification of a named query to be used for fetching
+# an entity or collection
+loader = element loader { attlist.loader, empty }
+attlist.loader &= attribute query-ref { text }
+# The query element declares a named Hibernate query string
+query = element query { attlist.query, (text | query-param)* }
+attlist.query &= attribute name { text }
+attlist.query &= attribute flush-mode { "auto" | "never" | "always" }?
+attlist.query &=
+  [ a:defaultValue = "false" ] attribute cacheable { "true" | "false" }?
+attlist.query &= attribute cache-region { text }?
+attlist.query &= attribute fetch-size { text }?
+attlist.query &= attribute timeout { text }?
+attlist.query &=
+  attribute cache-mode {
+    "get" | "ignore" | "normal" | "put" | "refresh"
+  }?
+attlist.query &= attribute read-only { "true" | "false" }?
+attlist.query &= attribute comment { text }?
+# The sql-query element declares a named SQL query string
+sql-query =
+  element sql-query {
+    attlist.sql-query,
+    (text
+     | return-scalar
+     | return
+     | return-join
+     | load-collection
+     | synchronize
+     | query-param)*
+  }
+attlist.sql-query &= attribute name { text }
+attlist.sql-query &= attribute resultset-ref { text }?
+attlist.sql-query &=
+  attribute flush-mode { "auto" | "never" | "always" }?
+attlist.sql-query &=
+  [ a:defaultValue = "false" ] attribute cacheable { "true" | "false" }?
+attlist.sql-query &= attribute cache-region { text }?
+attlist.sql-query &= attribute fetch-size { text }?
+attlist.sql-query &= attribute timeout { text }?
+attlist.sql-query &=
+  attribute cache-mode {
+    "get" | "ignore" | "normal" | "put" | "refresh"
+  }?
+attlist.sql-query &= attribute read-only { "true" | "false" }?
+attlist.sql-query &= attribute comment { text }?
+attlist.sql-query &=
+  [ a:defaultValue = "false" ] attribute callable { "true" | "false" }?
+# The query-param element is used only by tools that generate
+# finder methods for named queries
+query-param = element query-param { attlist.query-param, empty }
+attlist.query-param &= attribute name { text }
+attlist.query-param &= attribute type { text }
+# The resultset element declares a named resultset mapping definition for SQL queries
+resultset =
+  element resultset {
+    attlist.resultset,
+    (return-scalar | return | return-join | load-collection)*
+  }
+attlist.resultset &= attribute name { text }
+# Defines a return component for a sql-query.  Alias refers to the alias
+# used in the actual sql query; lock-mode specifies the locking to be applied
+# when the query is executed.  The class, collection, and role attributes are mutually exclusive;
+# class refers to the class name of a "root entity" in the object result; collection refers
+# to a collection of a given class and is used to define custom sql to load that owned collection
+# and takes the form "ClassName.propertyName"; role refers to the property path for an eager fetch
+# and takes the form "owningAlias.propertyName"
+return =
+  element return {
+    attlist.return, (return-discriminator?, return-property)*
+  }
+attlist.return &= attribute alias { text }?
+attlist.return &= attribute entity-name { text }?
+attlist.return &= attribute class { text }?
+attlist.return &=
+  [ a:defaultValue = "read" ]
+  attribute lock-mode {
+    "none" | "read" | "upgrade" | "upgrade-nowait" | "write"
+  }?
+return-property =
+  element return-property { attlist.return-property, return-column* }
+attlist.return-property &= attribute name { text }
+attlist.return-property &= attribute column { text }?
+return-column = element return-column { attlist.return-column, empty }
+attlist.return-column &= attribute name { text }
+return-discriminator =
+  element return-discriminator { attlist.return-discriminator, empty }
+attlist.return-discriminator &= attribute column { text }
+return-join =
+  element return-join { attlist.return-join, return-property* }
+attlist.return-join &= attribute alias { text }
+attlist.return-join &= attribute property { text }
+attlist.return-join &=
+  [ a:defaultValue = "read" ]
+  attribute lock-mode {
+    "none" | "read" | "upgrade" | "upgrade-nowait" | "write"
+  }?
+load-collection =
+  element load-collection { attlist.load-collection, return-property* }
+attlist.load-collection &= attribute alias { text }
+attlist.load-collection &= attribute role { text }
+attlist.load-collection &=
+  [ a:defaultValue = "read" ]
+  attribute lock-mode {
+    "none" | "read" | "upgrade" | "upgrade-nowait" | "write"
+  }?
+return-scalar = element return-scalar { attlist.return-scalar, empty }
+attlist.return-scalar &= attribute column { text }
+attlist.return-scalar &= attribute type { text }?
+synchronize = element synchronize { attlist.synchronize, empty }
+attlist.synchronize &= attribute table { text }
+# custom sql operations
+sql-insert = element sql-insert { attlist.sql-insert, text }
+attlist.sql-insert &=
+  [ a:defaultValue = "false" ] attribute callable { "true" | "false" }?
+attlist.sql-insert &= attribute check { "none" | "rowcount" | "param" }?
+sql-update = element sql-update { attlist.sql-update, text }
+attlist.sql-update &=
+  [ a:defaultValue = "false" ] attribute callable { "true" | "false" }?
+attlist.sql-update &= attribute check { "none" | "rowcount" | "param" }?
+sql-delete = element sql-delete { attlist.sql-delete, text }
+attlist.sql-delete &=
+  [ a:defaultValue = "false" ] attribute callable { "true" | "false" }?
+attlist.sql-delete &= attribute check { "none" | "rowcount" | "param" }?
+sql-delete-all = element sql-delete-all { attlist.sql-delete-all, text }
+attlist.sql-delete-all &=
+  [ a:defaultValue = "false" ] attribute callable { "true" | "false" }?
+attlist.sql-delete-all &=
+  attribute check { "none" | "rowcount" | "param" }?
+# Element for defining "auxiliary" database objects.  Must be one of two forms:
+# 
+# #1 :
+#     <database-object>
+#         <definition class="CustomClassExtendingAuxiliaryObject"/>
+#     </database-object>
+# 
+# #2 :
+#     <database-object>
+#         <create>CREATE OR REPLACE ....</create>
+#         <drop>DROP ....</drop>
+#     </database-object>
+database-object =
+  element database-object {
+    attlist.database-object,
+    (definition | (create, drop)),
+    dialect-scope*
+  }
+attlist.database-object &= empty
+definition = element definition { attlist.definition, empty }
+attlist.definition &= attribute class { text }
+create = element create { attlist.create, text }
+attlist.create &= empty
+drop = element drop { attlist.drop, text }
+attlist.drop &= empty
+# dialect-scope element allows scoping auxiliary-objects to a particular
+# Hibernate dialect implementation.
+dialect-scope = element dialect-scope { attlist.dialect-scope, text }
+attlist.dialect-scope &= attribute name { text }
+start = hibernate-mapping
