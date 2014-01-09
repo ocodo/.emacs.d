@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# name: jquery selector - id
+# key: q
+# group: jquery
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# --
+\$("#${1:id}")${2:.}

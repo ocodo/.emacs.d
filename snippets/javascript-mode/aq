@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: jquery
+# key: ag
+# name: attr - getter
+# --
+attr('${1:attr}')${2:.}

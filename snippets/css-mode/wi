@@ -1,0 +1,4 @@
+# yasnippet: css-mode
+# name : width
+# --
+width: $1px;

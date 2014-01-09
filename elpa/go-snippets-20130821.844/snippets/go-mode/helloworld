@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# contributer: Yusuke Tsutsumi <tsutsumi.yusuke@gmail.com>
+# name: helloworld
+# key: helloworld
+# decription: hello world example snippet
+# --
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Printf("Hello, 世界\n")
+}
+$0

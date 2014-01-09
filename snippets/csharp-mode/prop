@@ -1,0 +1,16 @@
+#name : property ... { ... }
+# --
+private ${1:Type} _${2:Name};
+public ${1:Type} ${2:Name}
+{
+  get 
+  {
+    ${3://get impl}
+  }
+
+  set 
+  {
+    ${4://get impl}
+  }
+
+}

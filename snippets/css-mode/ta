@@ -1,0 +1,4 @@
+# yasnippet: css-mode
+# name : text-align
+# --
+text-align: ${1:$$(yas/choose-value '( "center" "left" "right" ))};

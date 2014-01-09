@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toBeFalsy
+# group: expect
+# key: etf
+# --
+expect($1).toBeFalsy()
+$0

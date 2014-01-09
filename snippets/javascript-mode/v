@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# key: v
+# name: var
+# --
+var ${1:name} = $0;

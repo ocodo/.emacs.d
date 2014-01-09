@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toBeUndefined
+# group: expect
+# key: etu
+# --
+expect($1).toBeUndefined()
+$0

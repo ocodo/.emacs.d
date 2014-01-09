@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: text
+# key: text
+# group: svg
+# --
+<text x="${1:0}" y="${2:0}" fill="black"></text>

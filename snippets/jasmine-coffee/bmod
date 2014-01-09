@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: beforeEach module
+# group: angular-tests
+# key: bmod
+# --
+beforeEach module "$1"
+
+$0

@@ -1,0 +1,7 @@
+# name: timestamp yyyymmddhhmmss
+# key: timestamp
+# --
+`(progn 
+ (set-time-zone-rule t)
+ (insert (format-time-string "%Y%m%d%H%M%S"))
+ (set-time-zone-rule nil))`

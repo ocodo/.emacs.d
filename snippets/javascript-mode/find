@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# group: jquery
+# key: f
+# name: find something
+# --
+find('${1:something}').$0

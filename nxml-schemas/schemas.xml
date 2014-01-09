@@ -1,0 +1,36 @@
+<locatingRules 
+    xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+
+  <transformURI fromPattern="*.xml" toPattern="*.rnc"/>
+
+  <documentElement localName="locatingRules"           uri="locate.rnc"/>
+  <documentElement localName="hibernate-mapping"       uri="hibernate-mapping-3.0.rnc"/>
+  <documentElement localName="hibernate-configuration" uri="hibernate-cfg-3.0.rnc"/>
+
+  <documentElement localName="project" typeId="Ant"/>
+  <documentElement localName="beans"   typeId="Spring3.0"/>
+  <documentElement localName="struts"  typeId="Struts2.0"/>
+  <documentElement localName="schema"  typeId="XML Schema" prefix="xsd"/>
+
+  <namespace ns="http://maven.apache.org/POM/4.0.0"           typeId="Maven2" />  
+  <namespace ns="http://www.springframework.org/schema/beans" typeId="Spring3.0" />
+  <namespace ns="http://www.w3.org/2001/XMLSchema"            typeId="XML Schema"/>
+
+  <typeId id="html5"             uri="html5.rnc"/>
+  <typeId id="xhtml5"            uri="xhtml5.rnc"/>
+  <typeId id="Ant"               uri="ant.rnc"/>
+  <typeId id="Struts2.0"         uri="struts-2.0.rnc"/>
+  <typeId id="Spring3.0"         uri="spring-3.0.rnc"/>
+  <typeId id="XML Schema"        uri="xmlschema.rnc"/>
+  <typeId id="hibernate-mapping" uri="hibernate-mapping-3.0.rnc"/>
+  <typeId id="Maven"             uri="maven-v4_0_0.rnc"/>
+  
+  <uri pattern="pom.xml"    typeId="Maven"/>
+  <uri pattern="*.xsd"      typeId="XML Schema"/>
+  <uri pattern="*.html"     typeId="xhtml5" />
+  <uri pattern="*.html.erb" typeId="xhtml5" />
+  <uri pattern="*.rhtml"    typeId="xhtml5" />
+  <uri pattern="build.xml"  typeId="Ant"/>
+  <uri pattern="*.hbm.xml"  typeId="hibernate-mapping"/>
+
+</locatingRules>

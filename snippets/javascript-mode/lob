@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: log object
+# key: lob
+# --
+console.log(JSON.stringify(${1:data},null,"\t"));
+$0

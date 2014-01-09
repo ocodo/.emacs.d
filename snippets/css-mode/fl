@@ -1,0 +1,4 @@
+# yasnippet: css-mode
+# name : float
+# --
+float: ${1:$$(yas/choose-value '( "left" "right" "none" "inherit" ))};

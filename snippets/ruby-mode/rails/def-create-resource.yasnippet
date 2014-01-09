@@ -1,0 +1,20 @@
+# -*- mode: snippet -*-
+# contributor: Translated to yasnippet by sublime-snippet import
+# key: defcreate
+# group: rails
+# name: def create - resource
+# --
+def create
+  @${1:model} = ${2:${1/[[:alpha:]]+|(_)/(?1::\u$0)/g}}.new(params[:$1])
+  $0
+  respond_to do |format|
+    if @$1.save
+      flash[:notice] = '$2 was successfully created.'
+      format.html { redirect_to(@$1) }
+      format.xml { render xml: @$1, status: :created, location: @$1 }
+    else
+      format.html { render action: "new" }
+      format.xml { render xml: @$1.errors, status: :unprocessable_entity }
+    end
+  end
+end

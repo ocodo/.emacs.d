@@ -1,0 +1,19 @@
+# -*- mode: snippet -*-
+# name: ng-confirm button and modal
+# key: ngconfirm
+# --
+<button class="btn ${1:btn-primary} btn-huge btn-block ng-confirm"
+        title="${2:Confirm}"
+
+        action-text="${3:Are you sure?}"
+        action-button-text="${4:Ok}"
+        action-button-classes="${5:btn-huge btn-block}"
+        action-button-main-class="${6:btn-success}"
+        action-function="$7"
+
+        cancel-button-main-class="${8:btn-danger}"
+        cancel-button-text="${9:Cancel}"
+        cancel-button-classes="${10:btn-huge btn-block}"
+        cancel-function="${11:closeModal()}" >
+        ${12:Button}
+</button>

@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# key: {
+# name: add a block
+# --
+{
+    $0
+}

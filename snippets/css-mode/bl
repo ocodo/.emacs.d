@@ -1,0 +1,7 @@
+# yasnippet: css-mode
+# name : block
+# --
+${1:block}
+{
+  $0
+}

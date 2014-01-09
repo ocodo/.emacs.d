@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# -*- coding: utf-8 -*-
+# name: jQuery ajax
+# key: ajax
+# group: jquery
+# --
+\$.ajax( {
+  url: $1,
+  dataType: 'json',
+  data: $2,
+  success: function(data){
+     $0
+  }
+});

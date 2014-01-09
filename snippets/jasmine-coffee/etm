@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: toMatch
+# group: expect
+# key: etm
+# --
+expect($1).toMatch($2)
+$0
