@@ -1,6 +1,8 @@
 ;; Emacs Mac Port - frame adjust - this is for personal use only,
 ;; because it's not very good ;)
 
+;; I recommend using Zephyros (or Slate) instead
+
 (require 'cl)
 (require 's)
 (require 'dash)
