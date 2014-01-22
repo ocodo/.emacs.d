@@ -117,9 +117,9 @@
   (require 'w3m))
 
 ;; --- Main-line only on window systems ----- (a fork of Powerline
-(when (window-system)
-  (load-library "main-line")
-  (setq main-line-separator-style 'wave))
+;(when (window-system)
+;  (load-library "main-line")
+;  (setq main-line-separator-style 'wave))
 
 ;; -------------------------------------------------------------------------------------------------
 ;; Explicit mode initialisations
@@ -247,3 +247,5 @@
 
 (set-face-attribute 'default nil :height 140)
 (put 'scroll-left 'disabled nil)
+
+(require 'mode-line-hack)
