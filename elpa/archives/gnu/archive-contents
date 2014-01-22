@@ -215,7 +215,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140106)
+      [(20140113)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
@@ -320,6 +320,11 @@
     (0)))
   "Utilities for implementing an indentation/navigation engine using a generalized LALR parser" tar
   ((:url . "http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html"))])
+ (wpuzzle .
+    [(1 0)
+     nil "find as many word in a given time" single
+     ((:url . "http://elpa.gnu.org/packages/wpuzzle.html")
+      (:keywords))])
  (xclip .
   [(1 3)
    nil "use xclip to copy&paste" single
