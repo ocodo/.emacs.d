@@ -244,8 +244,11 @@
     )
 )
 
-
-(set-face-attribute 'default nil :height 140)
 (put 'scroll-left 'disabled nil)
 
-(require 'armitp-mode-line)
+;; After rememebr-theme has loaded its theme...
+(add-hook 'remember-theme-after-load-hook
+          (lambda () ""
+            (set-face-attribute 'default nil :height 180)
+            (set-face-attribute 'linum nil :height 110)
+            (require 'armitp-mode-line)))
