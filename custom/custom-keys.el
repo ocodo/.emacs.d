@@ -14,6 +14,11 @@
 (global-set-key (kbd "C-c SPC") 'ace-jump-mode)
 (global-set-key (kbd "C-c ;")   'iedit-mode)
 
+(global-set-key (kbd "C-c C-1") 'ruby-toggle-block)
+(global-set-key (kbd "C-c C-2") 'ruby-toggle-hash-syntax)
+
+(global-set-key (kbd "M-s M-s") 'helm-git-grep)
+
 (global-set-key (kbd "M-P")     'fiplr-find-file)
 (global-set-key (kbd "s-|")     'shell-command-on-region-replace)
 
