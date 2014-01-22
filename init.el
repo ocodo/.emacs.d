@@ -216,6 +216,11 @@
 (dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
   (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
 
+;; --------------------------------------------------------------------------------
+;; Shell mode specials...
+(dolist (pattern '("\\.zsh"))
+  (add-to-list 'auto-mode-alist (cons pattern 'sh-mode)))
+
 ;; Start Emacs Server
 (server-start)
 
