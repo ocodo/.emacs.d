@@ -50,8 +50,6 @@
                 face mode-line-process-face)
    (global-mode-string global-mode-string)
    "    "
-   ; nyan-mode uses nyan cat as an alternative to %p
-   (:eval (when nyan-mode (list (nyan-create))))
    ))
 
 ;; Helper function
@@ -81,6 +79,7 @@
 
 (set-face-attribute 'mode-line nil
     :foreground "gray60" :background "gray20"
+    :height 160
     :inverse-video nil
     :box '(:line-width 6 :color "gray20" :style nil))
 (set-face-attribute 'mode-line-inactive nil
