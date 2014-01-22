@@ -248,4 +248,4 @@
 (set-face-attribute 'default nil :height 140)
 (put 'scroll-left 'disabled nil)
 
-(require 'mode-line-hack)
+(require 'armitp-mode-line)
