@@ -1,8 +1,6 @@
 (when
-    (and
-     (window-system)
-     (eq system-type 'darwin)
-     )
+
+    (and (window-system) (eq system-type 'darwin))
 
   ;;
   ;; extended f keys on mac keyboard
@@ -16,6 +14,6 @@
   (global-set-key (kbd "<f18>") nil )
   (global-set-key (kbd "<f19>") 'package-list-packages )
 
-)
+  )
 
 (provide 'custom-mac-fn-keys)
