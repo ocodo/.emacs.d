@@ -38,7 +38,7 @@
     nil "Integrated environment for *TeX*" tar
     ((:url . "http://www.gnu.org/software/auctex/"))])
  (cl-lib .
-   [(0 3)
+   [(0 4)
     nil "Properly prefixed CL functions and macros" single
     ((:url . "http://elpa.gnu.org/packages/cl-lib.html")
      (:keywords quote nil))])
@@ -49,7 +49,7 @@
     (:keywords quote
          ("coffeescript" "major" "mode")))])
  (company .
-    [(0 6 13)
+    [(0 6 14)
      nil "Modular in-buffer completion framework" tar
      ((:keywords quote
            ("abbrev" "convenience" "matching"))
@@ -298,8 +298,11 @@
        (:keywords quote
       ("sml")))])
  (sokoban .
-    [(1 0 4)
-     nil "Sokoban game for emacs" tar nil])
+    [(1 4)
+     nil "Implementation of Sokoban for Emacs." tar
+     ((:keywords quote
+           ("games"))
+      (:url . "http://elpa.gnu.org/packages/sokoban.html"))])
  (svg-clock .
       [(0 5)
        nil "Analog clock using Scalable Vector Graphics" single
