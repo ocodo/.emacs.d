@@ -134,6 +134,8 @@
          'init-markdown
          'init-ruby
          'init-pivotal
+         'init-ido
+         'init-projectile-rails
 
          ))
 
