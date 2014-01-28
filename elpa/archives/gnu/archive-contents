@@ -248,7 +248,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords quote nil))])
  (org .
-      [(20140121)
+      [(20140127)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
