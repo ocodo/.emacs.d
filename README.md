@@ -6,10 +6,10 @@ In a terminal window, type:
 
     git clone --recursive  git://github.com/ocodo/emacs.d.git ~/.emacs.d
 
-(You need `--recursive` to grab all the submodules I'm using.)
+Now start Emacs - if you're running in a shell, (ie. iTerm2)
+set the Terminal mode to `xterm-256color`, e.g.
 
-Now start Emacs.app - if you run in a Terminal, I suggest iTerm2 and
-set the Terminal mode to `xterm-256color`
+    export TERM=xterm-256color
 
 # Ocodo emacs dot, *'proper'* intro
 
@@ -21,19 +21,11 @@ Emacs Mac Port work just fine)
 
 # Get it...
 
-I'll assume you don't already have a `.emacs` or `.emacs.d` in your
-home folder, if you do, just stop, look at what I'm doing in `init.el`
-and rip out what you want to use, or **backup your dot-emacs** and
-have a play, chances are I'm doing something that will irritate you,
-no one's config will be better than yours, but there might be
-something cool you want to use too.
-
-Open your Terminal... (Unix / Mac)
-
     cd ~
     git clone --recursive --depth 1 git://github.com/ocodo/emacs.d.git .emacs.d
 
-Run Emacs and away you go...
+
+Start Emacs
 
 ### Here's a few places that should help you on your voyage of discovery...
 

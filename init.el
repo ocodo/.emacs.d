@@ -85,6 +85,7 @@
 ;; -------------------------------------------------------------------------------------------------
 ;; Emacs Mac port specific frame adjust
 (require 'mac-frame-adjust)            ;; a few presets for sizing and moving frames (aka OS Windows)
+;; To be deprecated in favor of Zephyros / Slate / Phoenix etc.
 
 ;;; Convenience and completion
 (require 'auto-complete-config)        ;; Very nice autocomplete.
@@ -110,17 +111,6 @@
 
 (add-hook 'before-save-hook 'safe-buffer-cleanup)
 
-;; Check for w3m
-(if
-    (s-contains? "w3m not found" (shell-command-to-string "which w3m"))
-     (message "w3m not available")
-  (require 'w3m))
-
-;; --- Main-line only on window systems ----- (a fork of Powerline
-;(when (window-system)
-;  (load-library "main-line")
-;  (setq main-line-separator-style 'wave))
-
 ;; -------------------------------------------------------------------------------------------------
 ;; Explicit mode initialisations
 (mapcar 'require
@@ -133,7 +123,6 @@
          'init-flymake
          'init-markdown
          'init-ruby
-         'init-pivotal
          'init-ido
          'init-projectile-rails
 
@@ -143,9 +132,16 @@
 
 ;; conditional - add your own init-marmalade or just login manually
 (load-library "marmalade")
-;; modes-init/init-marmalade.el is in .gitignore
+
+;; modes-init/init-marmalade.el is in .gitignore - it should contain
+;; the marmalade api-key needed by marmalade.el
 (when (file-readable-p "modes-init/init-marmalade.el")
   (load-file "modes-init/init-marmalade.el"))
+
+;; modes-init/init-pivotal.el is in .gitignore - it should contain the
+;; api-key required by elpa/pivotal-tracker.el
+(when (file-readable-p "modes-init/init-pivotal.el")
+  (load-file "modes-init/init-pivotal.el"))
 
 (require 'handy-functions) ;; my lab area for little defuns...
 
