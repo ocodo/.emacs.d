@@ -6,7 +6,7 @@
        ("tools" "processes" "convenience"))
   (:url . "https://github.com/leoliu/ack-el"))])
  (ada-mode .
-     [(5 0)
+     [(5 0 1)
       ((wisi
         (1 0)))
       "major-mode for editing Ada sources" tar
@@ -36,7 +36,8 @@
  (auctex .
    [(11 87 2)
     nil "Integrated environment for *TeX*" tar
-    ((:url . "http://www.gnu.org/software/auctex/"))])
+    ((:keywords quote nil)
+     (:url . "http://www.gnu.org/software/auctex/"))])
  (cl-lib .
    [(0 4)
     nil "Properly prefixed CL functions and macros" single
@@ -61,7 +62,7 @@
        (:keywords quote
       ("convenience")))])
  (debbugs .
-    [(0 5)
+    [(0 6)
      nil "SOAP library to access debbugs servers" tar
      ((:keywords quote
            ("comm" "hypermedia"))
@@ -182,7 +183,7 @@
        ((:keywords quote nil)
   (:url . "http://elpa.gnu.org/packages/lex.html"))])
  (lmc .
-      [(1 2)
+      [(1 3)
        nil "Little Man Computer in Elisp" single
        ((:url . "http://elpa.gnu.org/packages/lmc.html")
   (:keywords quote nil))])
@@ -237,7 +238,7 @@
        ((:url . "http://elpa.gnu.org/packages/num3-mode.html")
         (:keywords quote nil))])
  (oauth2 .
-   [(0 9)
+   [(0 10)
     nil "OAuth 2.0 Authorization Protocol" single
     ((:url . "http://elpa.gnu.org/packages/oauth2.html")
      (:keywords quote
@@ -248,7 +249,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords quote nil))])
  (org .
-      [(20140127)
+      [(20140203)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
@@ -341,13 +342,15 @@
        ("convenience" "files" "undo" "redo" "history" "tree")))])
  (uni-confusables .
       [(0 1)
-       nil "Unicode confusables table" tar nil])
+       nil "Unicode confusables table" tar
+       ((:keywords quote nil)
+        (:url . "http://elpa.gnu.org/packages/uni-confusables.html"))])
  (vlf .
-      [(1 2)
-       nil "View Large Files" single
-       ((:url . "https://github.com/m00natic/vlfi")
-  (:keywords quote
-       ("large files" "utilities")))])
+      [(1 4)
+       nil "View Large Files" tar
+       ((:keywords quote
+       ("large files" "utilities"))
+  (:url . "https://github.com/m00natic/vlfi"))])
  (w3 .
      [(4 0 49)
       nil "Fully customizable, largely undocumented web browser for Emacs" tar

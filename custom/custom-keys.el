@@ -10,6 +10,8 @@
 
 ;; Newest additions at the top...
 
+(global-set-key (kbd "M-i") 'evil-mode)
+
 (global-set-key (kbd "C-c C-w") 'rotate-window)
 (global-set-key (kbd "C-c C-l") 'rotate-layout)
 (global-set-key (kbd "C-x r e") 'rgrep)

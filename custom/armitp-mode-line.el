@@ -38,6 +38,10 @@
                 face mode-line-filename-face)
    ; narrow [default -- keep?]
    " %n "
+   (:eval
+    (if (and (boundp 'evil-mode-line-tag) evil-mode-line-tag)
+        (format "%s" evil-mode-line-tag)
+      (t "   ")))
    ; mode indicators: vc, recursive edit, major mode, minor modes, process, global
    (vc-mode vc-mode)
    "  %["
