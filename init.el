@@ -254,4 +254,6 @@
           (lambda () ""
             (set-face-attribute 'default nil :height 180)
             (set-face-attribute 'linum nil :height 110)
-            (require 'armitp-mode-line)))
+            (require 'armitp-mode-line)
+            )
+          )
