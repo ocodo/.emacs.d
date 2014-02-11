@@ -66,4 +66,5 @@
  '(markdown-header-face-3 ((t (:inherit markdown-header-face :height 1.8))) t)
  '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.7))) t)
  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))) t)
- '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.5))) t))
+ '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.5))) t)
+ '(stripe-highlight ((t (:background "#181818")))))
