@@ -6,9 +6,16 @@
 ;;
 ;; --
 
-;; First a dirty, but cheap way to get .emacs.d subfolders into the load path,
-;; and then return us to the user home directory, for find-file etc.
-(progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
+(setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
+(load custom-file)
+
+;; turn off toolbar.
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+;; menu bar mode only on OS X, just because it's pretty much out of
+;; the way, as opposed to sitting right there in the frame.
+(if  (and (window-system) (eq system-type 'darwin))
+    (menu-bar-mode 1)
+  (menu-bar-mode -1))
 
 ;; -- Path -----------------------------------------------------------------------------------------------
 ;; find XCode and RVM command line tools on OSX (cover the legacy and current XCode directory structures.)
@@ -26,144 +33,76 @@
 
 (add-to-list 'exec-path "~/bin")
 
-;; turn off toolbar.
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-;; menu bar mode only on OS X, just because it's pretty much out of
-;; the way, as opposed to sitting right there in the frame.
-(if  (and (window-system) (eq system-type 'darwin))
-    (menu-bar-mode 1)
-  (menu-bar-mode -1)
-)
-
-;; Turn on winner mode (window config/layout undo/redo control)
-(when (fboundp 'winner-mode)
-  (winner-mode 1))
-
-;; Modes init (things that need more than just a require.)
-(when (string-match "Emacs 24" (version))
-  (message "Running Emacs 24")
-  ;; Only run elpa on E24
-  (require 'init-elpa)
-)
-
-;; Explicitly require libs that autoload borks
-;; Include common lisp
-(require 'cl) ;; one day can remove this...
-(require 'cl-lib)
-(require 'dash)
-(require 's)
-(require 'f)
-(require 'iedit)
-(require 'ag)
-(require 'multiple-cursors)
-(require 'js2-refactor)
-
-;; rvm.el loaded by elpa/melpa
-(when (file-exists-p "~/.rvm")
-  (rvm-use-default))
-
-;; Custom themes from elpa/melpa/marmalade added to load-path
-(-each
- (-map
-  (lambda (item)
-    (format "~/.emacs.d/elpa/%s" item))
-  (-filter
-   (lambda (item) (s-contains? "theme" item))
-   (directory-files "~/.emacs.d/elpa")))
- (lambda (item)
-   (add-to-list 'custom-theme-load-path item)))
-
-(setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
-(load custom-file)
-(require 'custom-keys)
-
 (setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
 
-(load-theme 'clues)
-;; -------------------------------------------------------------------------------------------------
-;; Additional requires
-;; -------------------------------------------------------------------------------------------------
-;; Emacs Mac port specific frame adjust
-(require 'mac-frame-adjust)            ;; a few presets for sizing and moving frames (aka OS Windows)
-;; To be deprecated in favor of Zephyros / Slate / Phoenix etc.
+(progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
 
-;;; Convenience and completion
-(require 'auto-complete-config)        ;; Very nice autocomplete.
-(ac-config-default)
-
-(require 'dropdown-list)               ;; dropdown list for use with yasnippet
-(require 'switch-window)               ;; Select windows by number.
-(require 'resize-window)               ;; interactively size window
-(require 'highlight-indentation)       ;; visual guides for indentation
-(require 'squeeze-view)                ;; squeeze view, give yourself a write-room/typewriter like writing page
-(require 'kill-buffer-without-confirm) ;; yes, I really meant to close it.
-(require 'scroll-bell-fix)             ;; a small hack to turn off the buffer scroll past top/end bell.
-
-;; auto-load hyde mode for Jekyll
-(require 'hyde-autoloads) ;; ./vendor/hyde
-
-;; Safe cleanup, probably a package?
-(defun safe-buffer-cleanup ()
-  "Clean whitespace, kill tabs, set to UTF8"
-  (untabify (point-min) (point-max))
-  (delete-trailing-whitespace)
-  (set-buffer-file-coding-system 'utf-8))
-
-(add-hook 'before-save-hook 'safe-buffer-cleanup)
-
-;; -------------------------------------------------------------------------------------------------
-;; Explicit mode initialisations
+;; Require ...
 (mapcar 'require
         (list
 
-         'init-dired
-         'init-hideshowvis
-         'init-multi-web-mode
-         'init-nxml
-         'init-flymake
-         'init-markdown
-         'init-ruby
-         'init-ido
-         'init-projectile-rails
+          'cl 'cl-lib
 
-         ))
+          'init-elpa
 
-(autoload 'dirtree "dirtree" "Add directory to tree view" t)
+          'dash 's 'f
 
-;; conditional - add your own init-marmalade or just login manually
+          'custom-keys
+
+          'ag
+          'auto-complete-config
+          'dropdown-list
+          'handy-functions
+          'highlight-indentation
+          'hyde-autoloads
+          'iedit
+          'js2-refactor
+          'kill-buffer-without-confirm
+          'mac-frame-adjust
+          'multiple-cursors
+          'resize-window
+          'scroll-bell-fix
+          'squeeze-view
+          'switch-window
+
+          'init-buffer-clean
+          'init-coffee
+          'init-dired
+          'init-elpa-themes
+          'init-flymake
+          'init-hideshowvis
+          'init-ido
+          'init-markdown
+          'init-multi-web-mode
+          'init-nxml
+          'init-projectile-rails
+          'init-ruby
+          'init-winner
+          ))
+
+(load-theme 'clues)
+
+(ac-config-default)
+
 (load-library "marmalade")
 
-;; modes-init/init-marmalade.el is in .gitignore - it should contain
-;; the marmalade api-key needed by marmalade.el
 (when (file-readable-p "modes-init/init-marmalade.el")
   (load-file "modes-init/init-marmalade.el"))
 
-;; modes-init/init-pivotal.el is in .gitignore - it should contain the
-;; api-key required by elpa/pivotal-tracker.el
 (when (file-readable-p "modes-init/init-pivotal.el")
   (load-file "modes-init/init-pivotal.el"))
 
-(require 'handy-functions) ;; my lab area for little defuns...
-
 ;; Turn on things that auto-load isn't doing for us...
 (yas-global-mode t)
-
-;; Autopair alternative
 (flex-autopair-mode t)
 
-;; probably all become auto-loaded. (next time)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 
-;; Hamlc hook
 (add-to-list 'auto-mode-alist '("\\.hamlc" . haml-mode))
 
-;; AsciiDoc mode
 (autoload 'asciidoc-mode "asciidoc-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
 
-;; Auto add executable permissions to scripts when saved
-(add-hook 'after-save-hook
-          'executable-make-buffer-file-executable-if-script-p)
 
 ;; Rainbow mode for css automatically
 (add-hook 'css-mode-hook 'rainbow-mode)
@@ -176,19 +115,14 @@
 
 ;; Smoother scrolling (no multiline jumps.)
 (setq redisplay-dont-pause t
-  scroll-margin 1
-  scroll-step 1
-  scroll-conservatively 10000
-  scroll-preserve-screen-position 1)
+      scroll-margin 1
+      scroll-step 1
+      scroll-conservatively 10000
+      scroll-preserve-screen-position 1)
 
-;; show paren mode
 (show-paren-mode 1)
 (setq show-paren-delay 0)
-
-;; use y / n instead of yes / no
 (fset 'yes-or-no-p 'y-or-n-p)
-
-;; allow "restricted" features
 (put 'set-goal-column           'disabled nil)
 (put 'erase-buffer              'disabled nil)
 (put 'downcase-region           'disabled nil)
@@ -197,34 +131,26 @@
 (put 'narrow-to-page            'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
 
-;; -------------------------------------------------------------------------------------------------
-;; Highlight TODO/FIXME/BUG/HACK/REFACTOR & THE HORROR in code - I'm hoping the last one will catch on.
 (add-hook 'prog-mode-hook
-               (lambda ()
-                (font-lock-add-keywords nil
-                 '(("\\<\\(NOTE\\|FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\)" 1 font-lock-warning-face t)))))
+          (lambda ()
+            (font-lock-add-keywords nil
+                                    '(("\\<\\(NOTE\\|FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\)" 1 font-lock-warning-face t)))))
 
-;; -------------------------------------------------------------------------------------------------
-;; use aspell for ispell
 (when (file-exists-p "/usr/local/bin/aspell")
   (set-variable 'ispell-program-name "/usr/local/bin/aspell"))
 
-;; -------------------------------------------------------------------------------------------------
-;; JavaScript/JSON special files
 (dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
   (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
 
-;; --------------------------------------------------------------------------------
-;; Shell mode specials...
+(add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
 (dolist (pattern '("\\.zsh"))
   (add-to-list 'auto-mode-alist (cons pattern 'sh-mode)))
 
-;; Start Emacs Server
 (server-start)
 
 ;; Default Font for different window systems
 (when (window-system)
- (global-linum-mode 1)
+  (global-linum-mode 1)
   ;; Mac OS X
   (when (eq system-type 'darwin)
     ;;(set-face-font 'default "Monaco")
@@ -245,15 +171,13 @@
     (set-face-font 'default "Droid Sans Mono") ;; for quick swapping.
     ;; (set-face-font 'default "Bitstream Vera Sans Mono")
     )
-)
+  )
 
 (put 'scroll-left 'disabled nil)
 
-;; After rememebr-theme has loaded its theme...
 (add-hook 'remember-theme-after-load-hook
-          (lambda () ""
+          (lambda ()
             (set-face-attribute 'default nil :height 180)
             (set-face-attribute 'linum nil :height 110)
             (require 'armitp-mode-line)
-            )
-          )
+            ))

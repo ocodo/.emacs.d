@@ -80,7 +80,7 @@
         (:keywords quote
        ("extensions" "matching" "data structures trie" "tree" "dictionary" "completion" "regexp")))])
  (diff-hl .
-    [(1 5 1)
+    [(1 5 2)
      ((cl-lib
        (0 2)))
      "Highlight uncommitted changes" tar

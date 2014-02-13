@@ -7,14 +7,15 @@
   (adjust-window-trailing-edge (selected-window) (- 30 (window-width)) t))
 
 (add-hook 'dired-mode-hook
-	  '(lambda()
+    '(lambda()
          (visual-line-mode 0) ;; unwrap lines.
          (linum-mode 0) ;; turn off line numbers.
          (auto-revert-mode) ;; auto-refresh dired
          (define-key dired-mode-map [mouse-3] 'dired-maybe-insert-subdir)
-	     (define-key dired-mode-map (kbd "C-{") 'dired-narrow-window)
+       (define-key dired-mode-map (kbd "C-{") 'dired-narrow-window)
          )
       )
 
-(provide 'init-dired)
+(autoload 'dirtree "dirtree" "Add directory to tree view" t)
 
+(provide 'init-dired)
