@@ -50,8 +50,10 @@
 (global-set-key [(control tab)] 'completion-at-point)
 
 ;; Move line / region
-(global-set-key [M-up]          'move-text-up)
-(global-set-key [M-down]        'move-text-down)
+(global-set-key [M-up]               'move-text-up)
+(global-set-key [M-down]             'move-text-down)
+(global-set-key (kbd "<ESC> <up>")   'move-text-up)
+(global-set-key (kbd "<ESC> <down>") 'move-text-down)
 
 ;; duplicate region/line
 (global-set-key [s-down]        'duplicate-current-line-or-region)
