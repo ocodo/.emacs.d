@@ -33,11 +33,6 @@
 ;; turn off M-` menu shortcut, and use it for getting magit-status instead
 (global-set-key (kbd "M-`")     'magit-status)
 
-;; I want C-z to undo, but I keep C-x,C-c,C-v as default. If CUA mode
-;; is set full, they clobber too many nice Emacs features.  Instead,
-;; since I'm mac centric I bind Cmd-x,c,v to do cut/copy/paste.
-(global-set-key (kbd "C-z")     'undo)
-
 ;; append region to file
 (global-set-key (kbd "C-x C-a") 'append-to-file)
 
