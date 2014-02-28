@@ -34,7 +34,7 @@
       ((:url . "http://elpa.gnu.org/packages/ascii-art-to-unicode.html")
        (:keywords quote nil))])
  (auctex .
-   [(11 87 2)
+   [(11 87 3)
     nil "Integrated environment for *TeX*" tar
     ((:keywords quote nil)
      (:url . "http://www.gnu.org/software/auctex/"))])
