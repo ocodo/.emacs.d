@@ -140,7 +140,7 @@
      ((:url . "http://elpa.gnu.org/packages/flylisp.html")
       (:keywords quote nil))])
  (ggtags .
-   [(0 7 11)
+   [(0 7 12)
     ((emacs
       (24)))
     "emacs frontend to GNU Global source code tagging system" single
@@ -148,7 +148,7 @@
      (:keywords quote
           ("tools" "convenience")))])
  (gnugo .
-  [(2 3 0)
+  [(2 3 1)
    nil "play GNU Go in a buffer" tar
    ((:keywords quote nil)
     (:url . "http://elpa.gnu.org/packages/gnugo.html"))])
