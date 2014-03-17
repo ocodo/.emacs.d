@@ -6,9 +6,13 @@
        ("tools" "processes" "convenience"))
   (:url . "https://github.com/leoliu/ack-el"))])
  (ada-mode .
-     [(5 0 1)
+     [(5 1 1)
       ((wisi
-        (1 0)))
+        (1 0 2))
+       (cl-lib
+        (0 4))
+       (emacs
+        (24 2)))
       "major-mode for editing Ada sources" tar
       ((:keywords quote nil)
        (:url . "http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html"))])
@@ -210,7 +214,7 @@
      (:keywords quote
           ("maint")))])
  (minimap .
-    [(1 1)
+    [(1 2)
      nil "Sidebar showing a \"mini-map\" of a buffer" single
      ((:url . "http://elpa.gnu.org/packages/minimap.html")
       (:keywords quote nil))])
@@ -255,7 +259,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords quote nil))])
  (org .
-      [(20140303)
+      [(20140310)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
@@ -363,6 +367,14 @@
       ((:keywords quote
       ("faces" "help" "comm" "news" "mail" "processes" "mouse" "hypermedia"))
        (:url . "http://elpa.gnu.org/packages/w3.html"))])
+ (web-server .
+       [(0 1 0)
+        ((emacs
+    (24 3)))
+        "Emacs Web Server" tar
+        ((:keywords quote
+        ("http" "server" "network"))
+         (:url . "https://github.com/eschulte/emacs-web-server"))])
  (websocket .
       [(1 1)
        nil "Emacs WebSocket client and server" tar
@@ -376,9 +388,11 @@
          (:keywords quote
         ("window")))])
  (wisi .
-       [(1 0)
+       [(1 0 2)
   ((cl-lib
-    (0)))
+    (0 4))
+   (emacs
+    (24 2)))
   "Utilities for implementing an indentation/navigation engine using a generalized LALR parser" tar
   ((:keywords quote nil)
    (:url . "http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html"))])
