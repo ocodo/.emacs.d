@@ -332,4 +332,16 @@ buffer."
       (buffer-substring-no-properties start_match end_match))))
 
 
+;; Change a string to a ruby symbol, note: naive operation
+(defun ruby-make-symbol-at-point ()
+  "Dirt simple, just prefix current word with a colon"
+  (interactive)
+  (operate-on-point-or-region 'ruby-prepend-colon))
+
+(defun ruby-prepend-colon (s) ""
+  (format ":%s" s))
+
+(eval-after-load 'ruby-mode
+  '(define-key ruby-mode-map (kbd "C-c :") 'ruby-make-symbol-at-point))
+
 (provide 'handy-functions)
