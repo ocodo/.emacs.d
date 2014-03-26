@@ -24,7 +24,7 @@
 
 (global-set-key (kbd "M-s M-s") 'helm-git-grep)
 
-(global-set-key (kbd "M-P")     'fiplr-find-file)
+(global-set-key (kbd "M-P")     'projectile-find-file)
 (global-set-key (kbd "s-|")     'shell-command-on-region-replace)
 
 ;; Ret and indent binding
