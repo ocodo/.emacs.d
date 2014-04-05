@@ -29,7 +29,7 @@
        ((:url . "http://elpa.gnu.org/packages/all.html")
   (:keywords "matching"))])
  (ascii-art-to-unicode .
-           [(1 4)
+           [(1 5)
       nil "a small artist adjunct" single
       ((:url . "http://elpa.gnu.org/packages/ascii-art-to-unicode.html")
        (:keywords))])
@@ -96,6 +96,15 @@
      nil "Info-like viewer for DocBook" single
      ((:url . "http://elpa.gnu.org/packages/docbook.html")
       (:keywords "docs" "help"))])
+ (easy-kill .
+      [(0 9 1)
+       ((emacs
+         (24))
+        (cl-lib
+         (0 5)))
+       "kill & mark things easily" single
+       ((:url . "https://github.com/leoliu/easy-kill")
+        (:keywords "killing" "convenience"))])
  (ediprolog .
       [(1 0)
        nil "Emacs Does Interactive Prolog" single
@@ -127,7 +136,7 @@
      ((:url . "http://elpa.gnu.org/packages/flylisp.html")
       (:keywords))])
  (ggtags .
-   [(0 8 1)
+   [(0 8 2)
     ((emacs
       (24))
      (cl-lib
