@@ -4,7 +4,7 @@
 
 
 ;;;### (autoloads (ac-inf-ruby-enable) "ac-inf-ruby" "ac-inf-ruby.el"
-;;;;;;  (21223 22941 0 0))
+;;;;;;  (21311 59553 0 0))
 ;;; Generated autoloads from ac-inf-ruby.el
 
 (autoload 'ac-inf-ruby-enable "ac-inf-ruby" "\
@@ -14,7 +14,7 @@ Add `ac-source-inf-ruby' to `ac-sources' for this buffer.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ac-inf-ruby-pkg.el") (21223 22941 872718
+;;;### (autoloads nil nil ("ac-inf-ruby-pkg.el") (21311 59553 844863
 ;;;;;;  0))
 
 ;;;***
