@@ -341,6 +341,15 @@ buffer."
 (defun ruby-prepend-colon (s) ""
   (format ":%s" s))
 
+(defun pcre-regexp-from-list-of-words (words)
+  "insert a pcre regexp to match a list of words"
+  (interactive "sList of words for regexp: ")
+  (insert
+   (pcre-to-elisp
+    (regexp-opt (split-string words)))))
+
+(global-set-key (kbd "C-c R") 'pcre-regexp-from-list-of-words)
+
 (eval-after-load 'ruby-mode
   '(define-key ruby-mode-map (kbd "C-c :") 'ruby-make-symbol-at-point))
 
