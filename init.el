@@ -41,11 +41,14 @@
 (mapcar 'require
         (list
 
-          'cl 'cl-lib
+          'cl
+          'cl-lib
 
           'init-elpa
 
-          'dash 's 'f
+          'dash
+          's
+          'f
 
           'custom-keys
 
@@ -58,7 +61,7 @@
           'iedit
           'js2-refactor
           'kill-buffer-without-confirm
-          'mac-frame-adjust
+          'mac-frame-adjust ;; Remove this and use Zephros (etc.) instead
           'multiple-cursors
           'resize-window
           'scroll-bell-fix
@@ -94,7 +97,6 @@
 
 ;; Turn on things that auto-load isn't doing for us...
 (yas-global-mode t)
-(flex-autopair-mode t)
 
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 

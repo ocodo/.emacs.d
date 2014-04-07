@@ -34,7 +34,7 @@
       ((:url . "http://elpa.gnu.org/packages/ascii-art-to-unicode.html")
        (:keywords))])
  (auctex .
-   [(11 87 3)
+   [(11 87 4)
     nil "Integrated environment for *TeX*" tar
     ((:url . "http://www.gnu.org/software/auctex/"))])
  (cl-lib .
@@ -146,7 +146,9 @@
      (:keywords "tools" "convenience"))])
  (gnugo .
   [(2 3 1)
-   nil "play GNU Go in a buffer" tar
+   ((ascii-art-to-unicode
+     (1 5)))
+   "play GNU Go in a buffer" tar
    ((:url . "http://elpa.gnu.org/packages/gnugo.html"))])
  (heap .
        [(0 3)
