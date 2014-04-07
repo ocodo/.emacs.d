@@ -98,6 +98,9 @@
 ;; Turn on things that auto-load isn't doing for us...
 (yas-global-mode t)
 
+;; Use the awesome smartparens mode
+(smartparens-mode t)
+
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 
 (add-to-list 'auto-mode-alist '("\\.hamlc" . haml-mode))
