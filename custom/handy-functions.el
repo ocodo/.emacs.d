@@ -338,6 +338,14 @@ buffer."
   (interactive)
   (operate-on-point-or-region 'ruby-prepend-colon))
 
+(defun ruby-make-interpolated-string-at-point-or-region ()
+  "Simple conversion of string/reigion to ruby interpolated string"
+  (interactive)
+  (operate-on-point-or-region 'ruby-interpolated-string))
+
+(defun ruby-interpolated-string (s) ""
+  (format "#{%s}" s))
+
 (defun ruby-prepend-colon (s) ""
   (format ":%s" s))
 
@@ -352,5 +360,8 @@ buffer."
 
 (eval-after-load 'ruby-mode
   '(define-key ruby-mode-map (kbd "C-c :") 'ruby-make-symbol-at-point))
+
+(eval-after-load 'ruby-mode
+  '(define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region))
 
 (provide 'handy-functions)

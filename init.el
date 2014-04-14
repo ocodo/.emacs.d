@@ -99,7 +99,7 @@
 (yas-global-mode t)
 
 ;; Use the awesome smartparens mode
-(smartparens-mode t)
+(smartparens-global-mode t)
 
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 
