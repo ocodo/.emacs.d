@@ -3,7 +3,7 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "clues-theme" "clues-theme.el" (21323 32107
+;;;### (autoloads nil "clues-theme" "clues-theme.el" (21327 30918
 ;;;;;;  0 0))
 ;;; Generated autoloads from clues-theme.el
 
@@ -11,7 +11,7 @@
 
 ;;;***
 
-;;;### (autoloads nil nil ("clues-theme-pkg.el") (21323 32107 309270
+;;;### (autoloads nil nil ("clues-theme-pkg.el") (21327 30918 549347
 ;;;;;;  0))
 
 ;;;***

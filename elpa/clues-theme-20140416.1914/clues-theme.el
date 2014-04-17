@@ -2,11 +2,13 @@
 ;;
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; Url: https://github.com/jasonm23/emacs-clues-theme
-;; Version: 20140409.1959
-;; X-Original-Version: 20140410.1055
+;; Version: 20140416.1914
+;; X-Original-Version: 20140417.1000
 ;; Package-Requires: ((emacs "24.0"))
 ;;
 ;;; Changelog :
+;; 20140417.1000: Improve visibility of diff backgrounds
+;;
 ;; 20140410.1055: Improve visibility of linenums
 ;;
 ;; 20140228.0154: Improve visibility of region and secondary-selection
@@ -147,12 +149,11 @@
  '(git-gutter:added                    ((t (:foreground "#609f60" :bold t))))
  '(git-gutter:modified                 ((t (:foreground "#3388cc" :bold t))))
  '(git-gutter:deleted                  ((t (:foreground "#cc3333" :bold t))))
- '(diff-added                          ((t (:background "#132013"))))
- '(diff-removed                        ((t (:background "#290a0a"))))
+ '(diff-added                          ((t (:background "#305030"))))
+ '(diff-removed                        ((t (:background "#903010"))))
  '(diff-file-header                    ((t (:background "#362145"))))
  '(diff-context                        ((t (:foreground "#E0E4CC"))))
  '(diff-hunk-header                    ((t (:background "#242130"))))
-
  )
 
 ;; Rainbow delimiters
