@@ -52,10 +52,10 @@
 
           'custom-keys
 
+          'handy-functions
           'ag
           'auto-complete-config
           'dropdown-list
-          'handy-functions
           'highlight-indentation
           'hyde-autoloads
           'iedit
@@ -127,6 +127,7 @@
 
 (show-paren-mode 1)
 (setq show-paren-delay 0)
+(setq kill-whole-line 1)
 (fset 'yes-or-no-p 'y-or-n-p)
 (put 'set-goal-column           'disabled nil)
 (put 'erase-buffer              'disabled nil)
