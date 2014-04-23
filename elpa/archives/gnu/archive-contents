@@ -5,9 +5,9 @@
        ((:keywords "tools" "processes" "convenience")
   (:url . "https://github.com/leoliu/ack-el"))])
  (ada-mode .
-     [(5 1 1)
+     [(5 1 3)
       ((wisi
-        (1 0 2))
+        (1 0 4))
        (cl-lib
         (0 4))
        (emacs
@@ -48,8 +48,12 @@
          ((:url . "http://github.com/defunkt/coffee-mode")
     (:keywords "coffeescript" "major" "mode"))])
  (company .
-    [(0 7 3)
-     nil "Modular in-buffer completion framework" tar
+    [(0 8 0)
+     ((emacs
+       (24 1))
+      (cl-lib
+       (0 5)))
+     "Modular text completion framework" tar
      ((:keywords "abbrev" "convenience" "matching")
       (:url . "http://company-mode.github.io/"))])
  (csv-mode .
@@ -241,7 +245,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140414)
+      [(20140421)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
@@ -351,7 +355,7 @@
         ((:url . "http://elpa.gnu.org/packages/windresize.html")
          (:keywords "window"))])
  (wisi .
-       [(1 0 2)
+       [(1 0 4)
   ((cl-lib
     (0 4))
    (emacs
