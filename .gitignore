@@ -15,3 +15,4 @@ tramp
 .mc-lists.el
 /tramp
 /modes-init/init-pivotal.el
+/modes-init/init-paradox.el
