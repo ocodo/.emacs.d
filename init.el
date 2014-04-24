@@ -17,22 +17,6 @@
     (menu-bar-mode 1)
   (menu-bar-mode -1))
 
-;; -- Path -----------------------------------------------------------------------------------------------
-;; find XCode and RVM command line tools on OSX (cover the legacy and current XCode directory structures.)
-(when (eq system-type 'darwin)
-  (when (file-exists-p "/Developer/usr/bin")
-    (setq exec-path (append '("/Developer/usr/bin") exec-path)))
-  (when (file-exists-p "/Applications/Xcode.app/Contents/Developer/usr/bin")
-    (setq exec-path (append '("/Applications/Xcode.app/Contents/Developer/usr/bin") exec-path)))
-  (when (file-exists-p "~/.rvm/bin")
-    (setq exec-path (append '("~/.rvm/bin") exec-path)))
-  (when (file-exists-p "/usr/local/bin/")
-    (setq exec-path (append '("/usr/local/bin") exec-path)))
-  (when (file-exists-p "/usr/local/share/npm/bin")
-    (setq exec-path (append '("/usr/local/share/npm/bin") exec-path))))
-
-(add-to-list 'exec-path "~/bin")
-
 (setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
 
 (progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
@@ -80,8 +64,14 @@
           'init-nxml
           'init-projectile-rails
           'init-ruby
+          'init-rvm
           'init-winner
           ))
+
+;; find XCode and RVM command line tools on OSX (cover the legacy and
+;; current XCode directory structures.)
+(when (eq system-type 'darwin)
+  (exec-path-from-shell-initialize))
 
 (load-theme 'clues)
 
@@ -89,16 +79,19 @@
 
 (load-library "marmalade")
 
-(when (file-readable-p "modes-init/init-marmalade.el")
-  (load-file "modes-init/init-marmalade.el"))
+;; Optional init modes (for example those which contain security
+;; keys/tokens) - These files are added to .gitignore and only loaded
+;; when present.
+(optional-mode-inits
+        '("marmalade"
+          "pivotal"
+          "paradox"))
 
-(when (file-readable-p "modes-init/init-pivotal.el")
-  (load-file "modes-init/init-pivotal.el"))
 
 ;; Turn on things that auto-load isn't doing for us...
 (yas-global-mode t)
 
-;; Use the awesome smartparens mode
+;; Use SmartParens mode
 (smartparens-global-mode t)
 
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
@@ -106,6 +99,7 @@
 (add-to-list 'auto-mode-alist '("\\.hamlc" . haml-mode))
 
 (autoload 'asciidoc-mode "asciidoc-mode" nil t)
+
 (add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
 
 
@@ -114,9 +108,11 @@
 
 ;; Rainbow delimiters for all prog modes
 (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'css-mode-hook 'rainbow-delimiters-mode)
 
-;; Git gutter global mode
+;; Git gutter
 (add-hook 'prog-mode-hook 'git-gutter-mode)
+(add-hook 'css-mode-hook 'git-gutter-mode)
 
 ;; Smoother scrolling (no multiline jumps.)
 (setq redisplay-dont-pause t
@@ -149,6 +145,7 @@
   (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
 
 (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
+
 (dolist (pattern '("\\.zsh"))
   (add-to-list 'auto-mode-alist (cons pattern 'sh-mode)))
 
