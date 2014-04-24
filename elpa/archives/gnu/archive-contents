@@ -101,14 +101,14 @@
      ((:url . "http://elpa.gnu.org/packages/docbook.html")
       (:keywords "docs" "help"))])
  (easy-kill .
-      [(0 9 2)
+      [(0 9 3)
        ((emacs
          (24))
         (cl-lib
          (0 5)))
-       "kill & mark things easily" single
-       ((:url . "https://github.com/leoliu/easy-kill")
-        (:keywords "killing" "convenience"))])
+       "kill & mark things easily" tar
+       ((:keywords "killing" "convenience")
+        (:url . "https://github.com/leoliu/easy-kill"))])
  (ediprolog .
       [(1 0)
        nil "Emacs Does Interactive Prolog" single
@@ -245,7 +245,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140421)
+      [(20140422)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)

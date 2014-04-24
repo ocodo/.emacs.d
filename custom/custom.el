@@ -39,6 +39,7 @@
  '(markdown-command "markdown")
  '(markdown-css-path "markdown.css")
  '(newsticker-url-list (quote (("Hacker News" "https://news.ycombinator.com/rss" nil nil nil) ("Emacs Reddit" "http://www.reddit.com/r/emacs.rss" nil nil nil))))
+ '(paradox-automatically-star t)
  '(powerline-default-separator (quote chamfer))
  '(powerline-default-separator-dir (quote (left . left)))
  '(rinari-rails-env "development")
@@ -67,4 +68,4 @@
  '(markdown-header-face-4 ((t (:inherit markdown-header-face :height 1.7))) t)
  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))) t)
  '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.5))) t)
- '(stripe-highlight ((t (:background "#181818")))))
+ '(stripe-highlight ((t (:background "#181818"))) t))
