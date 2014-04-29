@@ -4,7 +4,6 @@
 ;;  | (_) | (_| (_) | (_| | (_) | |  __/ | | | | | (_| | (__\__ \ | (_| | (_) | |_
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;
-;; --
 
 (setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
 (load custom-file)
@@ -19,57 +18,57 @@
 
 (setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
 
-(progn (cd "~/.emacs.d/") (normal-top-level-add-subdirs-to-load-path) (cd "~"))
+(progn
+  (cd user-emacs-directory)
+  (normal-top-level-add-subdirs-to-load-path)
+  (cd "~/"))
 
 ;; Require ...
 (mapcar 'require
         (list
 
-          'cl
-          'cl-lib
+         'cl
+         'cl-lib
 
-          'init-elpa
+         'init-elpa
 
-          'dash
-          's
-          'f
+         'dash
+         's
+         'f
 
-          'custom-keys
+         'custom-keys
 
-          'handy-functions
-          'ag
-          'auto-complete-config
-          'dropdown-list
-          'highlight-indentation
-          'hyde-autoloads
-          'iedit
-          'js2-refactor
-          'kill-buffer-without-confirm
-          'mac-frame-adjust ;; Remove this and use Zephros (etc.) instead
-          'multiple-cursors
-          'resize-window
-          'scroll-bell-fix
-          'squeeze-view
-          'switch-window
+         'handy-functions
+         'ag
+         'auto-complete-config
+         'dropdown-list
+         'highlight-indentation
+         'hyde-autoloads
+         'iedit
+         'js2-refactor
+         'kill-buffer-without-confirm
+         'mac-frame-adjust ;; Remove this and use Zephros (etc.) instead
+         'multiple-cursors
+         'resize-window
+         'scroll-bell-fix
+         'squeeze-view
+         'switch-window
 
-          'init-buffer-clean
-          'init-coffee
-          'init-dired
-          'init-elpa-themes
-          'init-flymake
-          'init-hideshowvis
-          'init-ido
-          'init-markdown
-          'init-multi-web-mode
-          'init-nxml
-          'init-projectile-rails
-          'init-ruby
-          'init-rvm
-          'init-winner
-          ))
+         'init-buffer-clean
+         'init-coffee
+         'init-dired
+         'init-elpa-themes
+         'init-flymake
+         'init-hideshowvis
+         'init-ido
+         'init-markdown
+         'init-multi-web-mode
+         'init-nxml
+         'init-projectile-rails
+         'init-ruby
+         'init-rvm
+         'init-winner))
 
-;; find XCode and RVM command line tools on OSX (cover the legacy and
-;; current XCode directory structures.)
 (when (eq system-type 'darwin)
   (exec-path-from-shell-initialize))
 
@@ -83,9 +82,9 @@
 ;; keys/tokens) - These files are added to .gitignore and only loaded
 ;; when present.
 (optional-mode-inits
-        '("marmalade"
-          "pivotal"
-          "paradox"))
+ '("marmalade"
+   "pivotal"
+   "paradox"))
 
 
 ;; Turn on things that auto-load isn't doing for us...
@@ -94,14 +93,11 @@
 ;; Use SmartParens mode
 (smartparens-global-mode t)
 
-(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
-
-(add-to-list 'auto-mode-alist '("\\.hamlc" . haml-mode))
-
 (autoload 'asciidoc-mode "asciidoc-mode" nil t)
 
+(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.hamlc" . haml-mode))
 (add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
-
 
 ;; Rainbow mode for css automatically
 (add-hook 'css-mode-hook 'rainbow-mode)
@@ -177,6 +173,7 @@
   )
 
 (put 'scroll-left 'disabled nil)
+(kill-buffer "*Compile-Log*")
 
 (add-hook 'remember-theme-after-load-hook
           (lambda ()

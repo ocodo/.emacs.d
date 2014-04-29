@@ -110,6 +110,8 @@ shell-escaped, so they may contain $ etc."
       (when (re-search-forward "__RESULT\0\\(.*\\)" nil t)
         (match-string 1)))))
 
+(exec-path-from-shell-getenvs '("PATH"))
+
 (defun exec-path-from-shell-getenvs (names)
   "Get the environment variables with NAMES from the user's shell.
 
