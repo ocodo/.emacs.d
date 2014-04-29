@@ -41,7 +41,7 @@
    (:eval
     (if (and (boundp 'evil-mode-line-tag) evil-mode-line-tag)
         (format "%s" evil-mode-line-tag)
-      (t "   ")))
+      (format "   ")))
    ; mode indicators: vc, recursive edit, major mode, minor modes, process, global
    (vc-mode vc-mode)
    "  %["
