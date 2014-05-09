@@ -29,7 +29,7 @@
        ((:url . "http://elpa.gnu.org/packages/all.html")
   (:keywords "matching"))])
  (ascii-art-to-unicode .
-           [(1 5)
+           [(1 6)
       nil "a small artist adjunct" single
       ((:url . "http://elpa.gnu.org/packages/ascii-art-to-unicode.html")
        (:keywords))])
@@ -140,7 +140,7 @@
      ((:url . "http://elpa.gnu.org/packages/flylisp.html")
       (:keywords))])
  (ggtags .
-   [(0 8 3)
+   [(0 8 4)
     ((emacs
       (24))
      (cl-lib
@@ -245,7 +245,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140428)
+      [(20140505)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
@@ -338,9 +338,9 @@
       ((:keywords "faces" "help" "comm" "news" "mail" "processes" "mouse" "hypermedia")
        (:url . "http://elpa.gnu.org/packages/w3.html"))])
  (web-server .
-       [(0 1 0)
+       [(0 1 1)
         ((emacs
-    (24 3)))
+    (24 4)))
         "Emacs Web Server" tar
         ((:keywords "http" "server" "network")
          (:url . "https://github.com/eschulte/emacs-web-server"))])
