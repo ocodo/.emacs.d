@@ -24,50 +24,54 @@
   (cd "~/"))
 
 ;; Require ...
-(mapcar 'require
-        (list
+(add-hook 'after-init-hook
+          (lambda ())
+          "require and init"
+          (mapcar 'require
+                  (list
 
-         'cl
-         'cl-lib
+                   'cl
+                   'cl-lib
 
-         'init-elpa
+                   'init-elpa
 
-         'dash
-         's
-         'f
+                   'dash
+                   's
+                   'f
 
-         'custom-keys
+                   'custom-keys
 
-         'handy-functions
-         'ag
-         'auto-complete-config
-         'dropdown-list
-         'highlight-indentation
-         'hyde-autoloads
-         'iedit
-         'js2-refactor
-         'kill-buffer-without-confirm
-         'mac-frame-adjust ;; Remove this and use Zephros (etc.) instead
-         'multiple-cursors
-         'resize-window
-         'scroll-bell-fix
-         'squeeze-view
-         'switch-window
+                   'handy-functions
+                   'ag
+                   'auto-complete-config
+                   'dropdown-list
+                   'highlight-indentation
+                   'hyde-autoloads
+                   'iedit
+                   'js2-refactor
+                   'kill-buffer-without-confirm
+                   'mac-frame-adjust
+                   'multiple-cursors
+                   'resize-window
+                   'scroll-bell-fix
+                   'squeeze-view
+                   'switch-window
 
-         'init-buffer-clean
-         'init-coffee
-         'init-dired
-         'init-elpa-themes
-         'init-flymake
-         'init-hideshowvis
-         'init-ido
-         'init-markdown
-         'init-multi-web-mode
-         'init-nxml
-         'init-projectile-rails
-         'init-ruby
-         'init-rvm
-         'init-winner))
+                   'init-buffer-clean
+                   ;; 'init-company-mode ;; not yet...
+                   'init-coffee
+                   'init-dired
+                   'init-elpa-themes
+                   'init-flymake
+                   'init-hideshowvis
+                   'init-ido
+                   'init-markdown
+                   'init-multi-web-mode
+                   'init-nxml
+                   'init-projectile-rails
+                   'init-ruby
+                   'init-rvm
+                   'init-winner)))
 
 (when (eq system-type 'darwin)
   (exec-path-from-shell-initialize))
