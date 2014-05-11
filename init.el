@@ -15,7 +15,6 @@
 (if  (and (window-system) (eq system-type 'darwin))
     (menu-bar-mode 1)
   (menu-bar-mode -1))
-
 (setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
 
 (progn
@@ -23,7 +22,7 @@
   (normal-top-level-add-subdirs-to-load-path)
   (cd "~/"))
 
-;; Require ...
+;; Explicit Requires ...
 (add-hook 'after-init-hook
           (lambda ())
           "require and init"
@@ -55,30 +54,41 @@
                    'resize-window
                    'scroll-bell-fix
                    'squeeze-view
-                   'switch-window
+                   'switch-window)))
 
-                   'init-buffer-clean
-                   ;; 'init-company-mode ;; not yet...
-                   'init-coffee
-                   'init-dired
-                   'init-elpa-themes
-                   'init-flymake
-                   'init-hideshowvis
-                   'init-ido
-                   'init-markdown
-                   'init-multi-web-mode
-                   'init-nxml
-                   'init-projectile-rails
-                   'init-ruby
-                   'init-rvm
-                   'init-winner)))
-
-(when (eq system-type 'darwin)
-  (exec-path-from-shell-initialize))
-
-(load-theme 'clues)
-
-(ac-config-default)
+;; mode inits
+(process-mode-inits
+ '("asciidoc"
+   "autocomplete"
+   "buffer-clean"
+   "codenotes"
+   "coffee"
+   "dired"
+   "elpa-themes"
+   "emacs-daemon"
+   "exec-path"
+   "flymake"
+   "haml"
+   "hideshowvis"
+   "json-mode"
+   "ido"
+   "ispell"
+   "markdown"
+   "misc-settings"
+   "multi-web-mode"
+   "nxml"
+   "projectile-rails"
+   "rainbow"
+   "rainbow-delimiters"
+   "ruby"
+   "rvm"
+   "remember-theme"
+   "sh"
+   "smartparens"
+   "smooth-scroll"
+   "winner"
+   "yaml"
+   "yasnippet"))
 
 (load-library "marmalade")
 
@@ -89,67 +99,6 @@
  '("marmalade"
    "pivotal"
    "paradox"))
-
-
-;; Turn on things that auto-load isn't doing for us...
-(yas-global-mode t)
-
-;; Use SmartParens mode
-(smartparens-global-mode t)
-
-(autoload 'asciidoc-mode "asciidoc-mode" nil t)
-
-(add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
-(add-to-list 'auto-mode-alist '("\\.hamlc" . haml-mode))
-(add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
-
-;; Rainbow mode for css automatically
-(add-hook 'css-mode-hook 'rainbow-mode)
-
-;; Rainbow delimiters for all prog modes
-(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
-(add-hook 'css-mode-hook 'rainbow-delimiters-mode)
-
-;; Git gutter
-(add-hook 'prog-mode-hook 'git-gutter-mode)
-(add-hook 'css-mode-hook 'git-gutter-mode)
-
-;; Smoother scrolling (no multiline jumps.)
-(setq redisplay-dont-pause t
-      scroll-margin 1
-      scroll-step 1
-      scroll-conservatively 10000
-      scroll-preserve-screen-position 1)
-
-(show-paren-mode 1)
-(setq show-paren-delay 0)
-(setq kill-whole-line 1)
-(fset 'yes-or-no-p 'y-or-n-p)
-(put 'set-goal-column           'disabled nil)
-(put 'erase-buffer              'disabled nil)
-(put 'downcase-region           'disabled nil)
-(put 'upcase-region             'disabled nil)
-(put 'narrow-to-region          'disabled nil)
-(put 'narrow-to-page            'disabled nil)
-(put 'dired-find-alternate-file 'disabled nil)
-
-(add-hook 'prog-mode-hook
-          (lambda ()
-            (font-lock-add-keywords nil
-                                    '(("\\<\\(NOTE\\|FIXME\\|TODO\\|BUG\\|HACK\\|REFACTOR\\|THE HORROR\\)" 1 font-lock-warning-face t)))))
-
-(when (file-exists-p "/usr/local/bin/aspell")
-  (set-variable 'ispell-program-name "/usr/local/bin/aspell"))
-
-(dolist (pattern '("\\.jshintrc$" "\\.jslint$"))
-  (add-to-list 'auto-mode-alist (cons pattern 'json-mode)))
-
-(add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
-
-(dolist (pattern '("\\.zsh"))
-  (add-to-list 'auto-mode-alist (cons pattern 'sh-mode)))
-
-(server-start)
 
 ;; Default Font for different window systems
 (when (window-system)
@@ -176,12 +125,5 @@
     )
   )
 
-(put 'scroll-left 'disabled nil)
+;; clean up after flymake
 (kill-buffer "*Compile-Log*")
-
-(add-hook 'remember-theme-after-load-hook
-          (lambda ()
-            (set-face-attribute 'default nil :height 180)
-            (set-face-attribute 'linum nil :height 110)
-            (require 'armitp-mode-line)
-            ))
