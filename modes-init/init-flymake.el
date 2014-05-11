@@ -26,8 +26,7 @@
     "Go to previous error in err ring, and then display warning/error."
     (interactive)
     (flymake-goto-prev-error)
-    (flymake-display-current-warning/error))
-)
+    (flymake-display-current-warning/error)))
 
 (require 'flymake-jshint)
 (add-hook 'js-mode-hook

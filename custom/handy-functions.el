@@ -9,7 +9,7 @@
 (defun load-optional-mode-init (name)
   "Check for existence of a mode init script, and load if found"
   (let (file)
-    (setq file (format "modes-init/init-%s.el" name))
+    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
     (when (file-readable-p file)
       (load-file file))))
 
@@ -30,6 +30,17 @@ trying to run it."
 
   (mapcar 'load-optional-mode-init names))
 
+(defun load-mode-init (name)
+  "load a mode-init file expect an error if it doesn't map to an
+existing file"
+  (let (file)
+    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
+    (load-file file)))
+
+(defun process-mode-inits (names)
+  "Process a list of mandatory mode init names, convention is as
+above"
+  (mapcar 'load-mode-init names))
 
 ;; Handy functions, add little helpers in here.
 (defun align-number-right (begin end)
