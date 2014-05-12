@@ -87,6 +87,9 @@
   ;; Cmd-Shift-r : write-region ( save selection )
   (global-set-key (kbd "s-R")               'write-region)
 
+  ;; Cmd-t : fuzzy open file in project
+  (global-set-key (kbd "s-t")               'projectile-find-file)
+
   ;; Cmd-p : unbound from print dialog, focus stealing annoyance.
   ;; Instead bound to the useful find-file-at-point
   (global-set-key (kbd "s-p")               'find-file-at-point)
@@ -102,15 +105,6 @@
 
   ;; Cmd-alt-l : Load library
   (global-set-key (kbd "M-s-l")             'load-library)
-
-  ;; cmd-t : hardwired for many people from browsers, TextMate,
-  ;; etc. as open a new tab (ie. buffer) - so we bind it here as: open
-  ;; a file.  By default it's bound in OSX Emacs as open the font
-  ;; dialog. Really? but no thanks.
-  (global-set-key (kbd "s-t")               'fiplr-find-file)
-
-  ;; Cmd-u : is default wired to revert buffer, I quite like that, but
-  ;; this seems like a good place to tag that info. (ns cocoa emacs)
 
   ;; Navigating around frames, windows & buffers
   (global-set-key (kbd "s-`")               'switch-window)
