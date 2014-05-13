@@ -29,7 +29,7 @@
        ((:url . "http://elpa.gnu.org/packages/all.html")
   (:keywords "matching"))])
  (ascii-art-to-unicode .
-           [(1 6)
+           [(1 7)
       nil "a small artist adjunct" single
       ((:url . "http://elpa.gnu.org/packages/ascii-art-to-unicode.html")
        (:keywords))])
@@ -245,7 +245,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140505)
+      [(20140512)
        nil "Outline-based notes management and organizer" tar nil])
  (quarter-plane .
     [(0 1)
@@ -267,6 +267,11 @@
      nil "Interactively list/edit registers" single
      ((:url . "http://elpa.gnu.org/packages/register-list.html")
       (:keywords "register"))])
+ (rudel .
+  [(0 3)
+   nil "A collaborative editing framework for Emacs" tar
+   ((:keywords "rudel" "collaboration")
+    (:url . "http://rudel.sourceforge.net/"))])
  (shen-mode .
       [(0 1)
        nil "A major mode for editing shen source code" tar
