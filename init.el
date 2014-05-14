@@ -68,6 +68,7 @@
    "emacs-daemon"
    "exec-path"
    "flymake"
+   "guide"
    "haml"
    "hideshowvis"
    "json-mode"
