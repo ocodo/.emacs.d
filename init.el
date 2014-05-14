@@ -1,9 +1,14 @@
+;;;
+;;; Commentary: init.
 ;;                       _                                             _       _
 ;;    ___   ___ ___   __| | ___     ___ _ __ ___   __ _  ___ ___    __| | ___ | |_
 ;;   / _ \ / __/ _ \ / _` |/ _ \   / _ \ '_ ` _ \ / _` |/ __/ __|  / _` |/ _ \| __|
 ;;  | (_) | (_| (_) | (_| | (_) | |  __/ | | | | | (_| | (__\__ \ | (_| | (_) | |_
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;
+
+
+;;; Code:
 
 (setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
 (load custom-file)
@@ -125,6 +130,3 @@
     ;; (set-face-font 'default "Bitstream Vera Sans Mono")
     )
   )
-
-;; clean up after flymake
-(kill-buffer "*Compile-Log*")
