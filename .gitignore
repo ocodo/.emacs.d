@@ -1,18 +1,17 @@
 ac-comphist.dat
 auto-save-list
-
-
+recentf
 /var
 /url/*
 /bookmarks
-/modes-init/init-marmalade.el
 /newsticker/feeds/Emacs Wiki/data
 /newsticker/feeds/Hacker News/data
 .emacs-theme
 server/**
 server
-tramp
 .mc-lists.el
+tramp
 /tramp
+/modes-init/init-marmalade.el
 /modes-init/init-pivotal.el
 /modes-init/init-paradox.el
