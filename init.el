@@ -67,7 +67,7 @@
    "elpa-themes"
    "emacs-daemon"
    "exec-path"
-   "flymake"
+   "flycheck"
    "guide"
    "haml"
    "hideshowvis"
