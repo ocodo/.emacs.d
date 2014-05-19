@@ -264,13 +264,14 @@ stdout, or inserting at the current point. Note, if the mark is still active (ev
 
 (defun operate-on-point-or-region (fn)
   "Get the current unspaced string at point, or the current region, if selected, and replace it with the return value of fn - an ordinary defun."
-  (let (pos1 pos2 meat)
+  (let (pos1 pos2 meat excerpt)
     (if (and transient-mark-mode mark-active)
         (setq pos1 (region-beginning)
               pos2 (region-end))
       (setq pos1 (car (bounds-of-thing-at-point 'symbol))
             pos2 (cdr (bounds-of-thing-at-point 'symbol))))
-    (setq meat (funcall fn (buffer-substring-no-properties pos1 pos2)))
+    (setq excerpt (buffer-substring-no-properties pos1 pos2))
+    (setq meat (funcall fn excerpt))
     (delete-region pos1 pos2)
     (insert  meat)))
 
