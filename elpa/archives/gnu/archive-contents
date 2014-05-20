@@ -247,13 +247,18 @@
  (org .
       [(20140512)
        nil "Outline-based notes management and organizer" tar nil])
+ (poker .
+  [(0 1)
+   nil "Texas hold'em poker" single
+   ((:url . "http://elpa.gnu.org/packages/poker.html")
+    (:keywords "games"))])
  (quarter-plane .
     [(0 1)
      nil "Minor mode for quarter-plane style editing" single
      ((:url . "http://elpa.gnu.org/packages/quarter-plane.html")
       (:keywords "convenience" "wp"))])
  (queue .
-  [(0 1)
+  [(0 1 1)
    nil "Queue data structure" single
    ((:url . "http://www.dr-qubit.org/emacs.php")
     (:keywords "extensions" "data structures" "queue"))])
@@ -377,6 +382,10 @@
    nil "use xclip to copy&paste" single
    ((:url . "http://elpa.gnu.org/packages/xclip.html")
     (:keywords "convenience" "tools"))])
+ (xpm .
+      [(1 0 0)
+       nil "edit XPM images" tar
+       ((:url . "http://elpa.gnu.org/packages/xpm.html"))])
  (yasnippet .
       [(0 8 0)
        nil "Yet another snippet extension for Emacs." tar
