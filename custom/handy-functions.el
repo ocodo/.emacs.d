@@ -1,27 +1,32 @@
+;;; handy-functions --- a collection of functions I've been too lazy to organize...
+;;; Commentary:
+;;; Code:
+
 (require 's)
 
 (defun prepend-existing-to-exec-path (path)
-  "If path exists, prepend it to exec-path"
+  "If PATH exists, prepend it to `exec-path'."
   (when (file-exists-p path)
     (setq exec-path (append '(path) exec-path))))
 
 ;; Optional modes-init handling
 (defun load-optional-mode-init (name)
-  "Check for existence of a mode init script, and load if found"
+  "Check for existence of a mode init script NAME, and load if found."
   (let (file)
     (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
     (when (file-readable-p file)
       (load-file file))))
 
 (defun optional-mode-inits (names)
-  "Processes a list of optional mode init names. The convention
-used, is to store an optional init file in .emacs.d/modes-init/
-named as init-{name} (replacing {name} with the name you wish to
-use, usually the name of the mode/feature being initialized.)
+  "Processes a list of optional mode init NAMES.
+The convention used, is to store an optional init file in
+`.emacs.d/modes-init/' named as init-{name} (replacing {name}
+with the name you wish to use, usually the name of the
+mode/feature being initialized.)
 
 For example, for paradox, a github token is required, which you
 shouldn't keep in a public git repository with the rest of your
-emacs config. So we'd add modes-init/init-paradox.el to
+Emacs config.  So we'd add `modes-init/init-paradox.el' to
 .gitignore.
 
 To avoid issues when we want to load the init script, we use
@@ -31,20 +36,18 @@ trying to run it."
   (mapcar 'load-optional-mode-init names))
 
 (defun load-mode-init (name)
-  "load a mode-init file expect an error if it doesn't map to an
-existing file"
+  "Load a mode-init file NAME expect an error if it doesn't map to an existing file."
   (let (file)
     (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
     (load-file file)))
 
 (defun process-mode-inits (names)
-  "Process a list of mandatory mode init names, convention is as
-above"
+  "Process a list of mandatory mode init NAMES, convention is as above."
   (mapcar 'load-mode-init names))
 
 ;; Handy functions, add little helpers in here.
 (defun align-number-right (begin end)
-  "Align region to equal signs"
+  "Align region to equal signs from BEGIN to END."
   (interactive "r")
   (align-regexp begin end ".* \\([0-9]+\\).*" -1 1 nil))
 
@@ -76,25 +79,29 @@ above"
   (insert (format-time-string "%l:%M%P(%z) %Y-%m-%d")))
 
 (defun utc-seconds ()
+  "Insert UTC seconds."
   (interactive)
   (insert (format-time-string "%s")))
 
 (defun untabify-buffer ()
+  "Untabify the current buffer."
   (interactive)
   (untabify (point-min) (point-max)))
 
 (defun indent-buffer ()
+  "Indent the current buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
 
 (defun cleanup-buffer ()
-  "Perform a cleanup operations on a buffer, tabs to spaces, re-indent, trim whitespace"
+  "Perform a cleanup operations on a buffer, tabs to spaces, re-indent, trim whitespace."
   (interactive)
   (indent-buffer)
   (untabify-buffer)
   (delete-trailing-whitespace))
 
 (defun toggle-window-split ()
+  "Toggle the current window split."
   (interactive)
   (if (= (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
@@ -120,12 +127,14 @@ above"
           (if this-win-2nd (other-window 1))))))
 
 (defun open-line-below ()
+  "Open a newline below the current point."
   (interactive)
   (save-excursion
     (end-of-line)
     (newline)))
 
 (defun open-line-above ()
+  "Open a newline above the current point."
   (interactive)
   (save-excursion
     (beginning-of-line)
@@ -137,9 +146,7 @@ above"
 
 ;; Originally swiped from rejeep's emacs.d rejeep-defuns.el.
 (defun duplicate-current-line-or-region (arg)
-  "Duplicates the current line or region ARG times.
-If there's no region, the current line will be duplicated. However, if
-there's a region, all lines that region covers will be duplicated."
+  "Duplicates the current line or region ARG times."
   (interactive "p")
   (let (beg end (origin (point)))
     (if (and (region-active-p) (> (point) (mark)))
@@ -157,8 +164,7 @@ there's a region, all lines that region covers will be duplicated."
       (goto-char (+ origin (* (length region) arg) arg)))))
 
 (defun shell-command-on-region-replace (start end command)
-  "Run shell-command-on-region replacing the selected region with
-stdout, or inserting at the current point. Note, if the mark is still active (even though the region isn't visible.) it will be used. TODO is in place to fix this, but it's low on my list of things."
+  "Run `shell-command-on-region' replacing the selected region.  START END COMMAND."
   (interactive (let (string)
                  (unless (mark)
                    (error "The mark is not set now, so there is no region"))
@@ -184,7 +190,7 @@ stdout, or inserting at the current point. Note, if the mark is still active (ev
     (kill-this-buffer)))
 
 (defun switch-to-scratch ()
-  "switch to scratch, grab the region if it's active"
+  "Switch to scratch, grab the region if it's active."
   (interactive)
   (let ((contents
          (and (region-active-p)
@@ -197,10 +203,11 @@ stdout, or inserting at the current point. Note, if the mark is still active (ev
           (insert contents)))))
 
 (defun ca-with-comment (str)
+  "Wrap STR with comment."
   (format "%s%s%s" comment-start str comment-end))
 
 (defun ca-all-asscs (assoc_list query)
-  "returns a list of all corresponding values (like rassoc)"
+  "Return a list of all corresponding values (like rassoc) ASSOC_LIST QUERY."
   (cond
    ((null assoc_list) nil)
    (t
@@ -226,18 +233,13 @@ stdout, or inserting at the current point. Note, if the mark is still active (ev
        (let* ((fn-list (dired-get-marked-files nil arg)))
          (mapc 'find-file fn-list)))))
 
-;; A bunch of "on point or region" do something commands, mostly
-;; (all?) using the 's' library.  Possibly worth extracting to it's
-;; own feature.
-(require 's)
-
 (defun snake-case-at-point-or-region ()
-  "snake_case the current word or text selection."
+  "Snake_case the current word or text selection."
   (interactive)
   (operate-on-point-or-region 's-snake-case))
 
 (defun dasherise-at-point-or-region ()
-  "dasherise-the-current CamelCase or snake_case word or text selection."
+  "Dasherise-the-current CamelCase or snake_case word or text selection."
   (interactive)
   (operate-on-point-or-region 's-dashed-words))
 
@@ -247,7 +249,7 @@ stdout, or inserting at the current point. Note, if the mark is still active (ev
   (operate-on-point-or-region 's-upper-camel-case))
 
 (defun lower-camelcase-at-point-or-region ()
-  "lowerCamelCaseTheCurrent dashed or snake_case word or any words in text selection."
+  "LowerCamelCaseTheCurrent dashed or snake_case word or any words in text selection."
   (interactive)
   (operate-on-point-or-region 's-lower-camel-case))
 
@@ -257,13 +259,13 @@ stdout, or inserting at the current point. Note, if the mark is still active (ev
   (operate-on-point-or-region 's-capitalized-words))
 
 (defun titleized-at-point-or-region ()
-  "Convert dashed, underscored or (both styles of) CamelCase,
-  or spaced words in region, Title Case Words."
+  "Convert snaked, dashed, underscored, camelcase, or spaced words in region to Title Case."
   (interactive)
   (operate-on-point-or-region 's-titleized-words))
 
 (defun operate-on-point-or-region (fn)
-  "Get the current unspaced string at point, or the current region, if selected, and replace it with the return value of fn - an ordinary defun."
+  "Get the current unspaced string at point.
+Replace with the return value of the function FN"
   (let (pos1 pos2 meat excerpt)
     (if (and transient-mark-mode mark-active)
         (setq pos1 (region-beginning)
@@ -276,40 +278,21 @@ stdout, or inserting at the current point. Note, if the mark is still active (ev
     (insert  meat)))
 
 (defun yank-repeat (&optional arg)
-  "Repeat yank with M- number, (normal opertation of M- number
-yank is to get that numbered item from the kill ring)"
+  "Repeat yank n times ARG."
   (interactive "*p")
   (dotimes (string-to-int arg) (yank)))
 
 (defun smart-beginning-of-line ()
-  "Move point to first non-whitespace character or beginning-of-line."
+  "Move point to first non-whitespace character or `beginning-of-line'."
   (interactive)
   (let ((oldpos (point)))
     (back-to-indentation)
     (and (= oldpos (point))
          (beginning-of-line))))
-
 (global-set-key (kbd "C-a") 'smart-beginning-of-line)
 
-(defun find-file-upwards (file-to-find)
-  "Recursively searches each parent directory starting from the default-directory.
-looking for a file with name file-to-find.  Returns the path to it
-or nil if not found."
-  (cl-labels
-      ((find-file-r (path)
-                    (let* ((parent (file-name-directory path))
-                           (possible-file (concat parent file-to-find)))
-                      (cond
-                       ((file-exists-p possible-file) possible-file) ; Found
-                       ;; The parent of ~ is nil and the parent of / is itself.
-                       ;; Thus the terminating condition for not finding the file
-                       ;; accounts for both.
-                       ((or (null parent) (equal parent (directory-file-name parent))) nil) ; Not found
-                       (t (find-file-r (directory-file-name parent))))))) ; Continue
-    (find-file-r default-directory)))
-
 (defun pretty-print-xml-region (begin end)
-  "Pretty format XML markup in region."
+  "Pretty format XML markup in region BEGIN END."
   (interactive "r")
   (save-excursion
     ;; split <foo><bar> or </foo><bar>, but not <foo></foo>
@@ -328,7 +311,7 @@ or nil if not found."
     (indent-region begin end nil)))
 
 (defun toggle-fullscreen ()
-  "Toggle full screen"
+  "Toggle full screen."
   (interactive)
   (when window-system
     (set-frame-parameter
@@ -336,7 +319,7 @@ or nil if not found."
      (when (not (frame-parameter nil 'fullscreen)) 'fullboth)) ))
 
 (defun copy-region-to-osx-clipboard ()
-  "Copy current region to the OS X Clipboard"
+  "Copy contents of the current region to the OS X Clipboard."
   (interactive)
   (shell-command-on-region
    (region-beginning)
@@ -344,7 +327,7 @@ or nil if not found."
    "pbcopy"))
 
 (defun copy-buffer-to-osx-clipboard ()
-  "Copy contents of current buffer to the OS X Clipboard"
+  "Copy contents of the current buffer to the OS X Clipboard."
   (interactive)
   (shell-command-on-region
    (point-min)
@@ -352,20 +335,22 @@ or nil if not found."
    "pbcopy"))
 
 (defun search-backward-wrapped-string (wrap_start wrap_end)
-  "Search for a string behind point which is wrapped in two
-strings, wrap_start and wrap_end.
+  "Search for a string backwards from the current point.
 
-if wrap_end and wrap_start are equal, we first position the point
-at the beginning of the first wrap_end match, before the initial
+Use the strings WRAP_START and WRAP_END, to match the start and
+end of the string.
+
+if WRAP_END and WRAP_START are equal, we first position the point
+at the beginning of the first WRAP_END match, before the initial
 point.
 
 The string found between the two wrappers is returned.
 
-This is useful for naive finding of symbols previously defined in the
-buffer."
+This is useful for naive finding of symbols previously defined in
+the buffer."
   (save-excursion
     (when (equal wrap_start wrap_end)
-      (search-backward wrap-end))
+      (search-backward wrap_end))
     (let* ((start_match
             (+ (search-backward wrap_start)
                (length wrap_start)))
@@ -376,24 +361,32 @@ buffer."
 
 
 ;; Change a string to a ruby symbol, note: naive operation
-(defun ruby-make-symbol-at-point ()
-  "Dirt simple, just prefix current word with a colon"
+(defun ruby-toggle-symbol-at-point ()
+  "Dirt simple, just prefix current word with a colon."
   (interactive)
-  (operate-on-point-or-region 'ruby-prepend-colon))
+  (operate-on-point-or-region 'ruby-toggle-symbol-name))
 
 (defun ruby-make-interpolated-string-at-point-or-region ()
-  "Simple conversion of string/reigion to ruby interpolated string"
+  "Simple conversion of string/reigion to ruby interpolated string."
   (interactive)
   (operate-on-point-or-region 'ruby-interpolated-string))
 
-(defun ruby-interpolated-string (s) ""
+(defun ruby-interpolated-string (s)
+  "Make a ruby interpolated string entry S is a string."
   (format "#{%s}" s))
 
-(defun ruby-prepend-colon (s) ""
+(defun ruby-prepend-colon (s)
+  "Prepend a colon on the provided string S."
   (format ":%s" s))
 
+(defun ruby-toggle-symbol-name (s)
+  "Toggle colon prefix on string S."
+  (if (s-matches? "^:.*" s)
+      (s-replace ":" "" s)
+    (ruby-prepend-colon s)))
+
 (defun pcre-regexp-from-list-of-words (words)
-  "insert a pcre regexp to match a list of words"
+  "Insert a pcre regexp to match a list of WORDS."
   (interactive "sList of words for regexp: ")
   (insert
    (pcre-to-elisp
@@ -402,9 +395,11 @@ buffer."
 (global-set-key (kbd "C-c R") 'pcre-regexp-from-list-of-words)
 
 (eval-after-load 'ruby-mode
-  '(define-key ruby-mode-map (kbd "C-c :") 'ruby-make-symbol-at-point))
+  '(define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-at-point))
 
 (eval-after-load 'ruby-mode
   '(define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region))
 
 (provide 'handy-functions)
+
+;;; handy-functions.el ends here
