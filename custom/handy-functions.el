@@ -400,6 +400,20 @@ the buffer."
 (eval-after-load 'ruby-mode
   '(define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region))
 
+(defun browse-to-jasmine-spec ()
+  "Quickly open a jasmine spec, only works on the top class for the moment"
+  (interactive)
+  (let (pos1 pos2 jasmine-spec-name)
+    (if (and transient-mark-mode mark-active)
+        (setq pos1 (region-beginning)
+              pos2 (region-end))
+      (setq pos1 (car (bounds-of-thing-at-point 'symbol))
+            pos2 (cdr (bounds-of-thing-at-point 'symbol))))
+    (setq jasmine-spec-name (buffer-substring-no-properties pos1 pos2))
+
+    (browse-url (format "http://localhost:3000/jasmine?spec=%s" jasmine-spec-name))))
+
+
 (provide 'handy-functions)
 
 ;;; handy-functions.el ends here
