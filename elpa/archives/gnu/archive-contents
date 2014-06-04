@@ -29,9 +29,9 @@
        ((:url . "http://elpa.gnu.org/packages/all.html")
   (:keywords "matching"))])
  (ascii-art-to-unicode .
-           [(1 8)
+           [(1 9)
       nil "a small artist adjunct" single
-      ((:url . "http://elpa.gnu.org/packages/ascii-art-to-unicode.html")
+      ((:url . "http://www.gnuvola.org/software/aa2u/")
        (:keywords "ascii" "unicode" "box-drawing"))])
  (auctex .
    [(11 87 5)
@@ -257,7 +257,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140526)
+      [(20140602)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -400,10 +400,10 @@
    ((:url . "http://elpa.gnu.org/packages/xclip.html")
     (:keywords "convenience" "tools"))])
  (xpm .
-      [(1 0 1)
+      [(1 0 2)
        nil "edit XPM images" tar
        ((:keywords "multimedia" "xpm")
-  (:url . "http://elpa.gnu.org/packages/xpm.html"))])
+  (:url . "http://www.gnuvola.org/software/xpm/"))])
  (yasnippet .
       [(0 8 0)
        nil "Yet another snippet extension for Emacs." tar
