@@ -74,6 +74,7 @@
    "exec-path"
    "flycheck"
    "guide"
+   "git-gutter"
    "haml"
    "hideshowvis"
    "json-mode"
