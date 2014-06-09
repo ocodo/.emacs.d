@@ -1,20 +1,19 @@
-;;;
-;;; Commentary: init.
+;;; init --- ocodo's emacs config
+;;; Commentary:
 ;;                       _                                             _       _
 ;;    ___   ___ ___   __| | ___     ___ _ __ ___   __ _  ___ ___    __| | ___ | |_
 ;;   / _ \ / __/ _ \ / _` |/ _ \   / _ \ '_ ` _ \ / _` |/ __/ __|  / _` |/ _ \| __|
 ;;  | (_) | (_| (_) | (_| | (_) | |  __/ | | | | | (_| | (__\__ \ | (_| | (_) | |_
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;
-
-
 ;;; Code:
 
-(setq custom-file "~/.emacs.d/custom/custom.el") ;; Customize stuff goes in custom.el
+(setq custom-file (concat user-emacs-directory "custom/custom.el"))
 (load custom-file)
 
 ;; turn off toolbar.
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+
 ;; menu bar mode only on OS X, just because it's pretty much out of
 ;; the way, as opposed to sitting right there in the frame.
 (if  (and (window-system) (eq system-type 'darwin))
@@ -27,25 +26,21 @@
   (normal-top-level-add-subdirs-to-load-path)
   (cd "~/"))
 
+
 ;; Explicit Requires ...
 (add-hook 'after-init-hook
           (lambda ())
           "require and init"
           (mapcar 'require
                   (list
-
                    'cl
                    'cl-lib
-
                    'init-elpa
-
-                   'dash
                    's
+                   'dash
                    'f
-
-                   'custom-keys
-
                    'handy-functions
+                   'custom-keys
                    'ag
                    'auto-complete-config
                    'dropdown-list
@@ -122,12 +117,12 @@
 
   ;; Windows whatever...
   (when (eq system-type 'windows-nt)
-    (set-face-font 'default "Consolas")
-    )
+    (set-face-font 'default "Consolas"))
 
   ;; GNU Linux (Droid or Vera)
   (when (eq system-type 'gnu/linux)
     (set-face-font 'default "Droid Sans Mono") ;; for quick swapping.
     ;; (set-face-font 'default "Bitstream Vera Sans Mono")
-    )
-  )
+    ))
+
+;;; init.el ends here
