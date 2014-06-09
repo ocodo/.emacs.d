@@ -38,7 +38,7 @@
     nil "Integrated environment for *TeX*" tar
     ((:url . "http://www.gnu.org/software/auctex/"))])
  (chess .
-  [(2 0 0)
+  [(2 0 1)
    ((cl-lib
      (0 5)))
    "Play chess in GNU Emacs" tar
