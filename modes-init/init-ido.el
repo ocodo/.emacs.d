@@ -1,3 +1,8 @@
+;;; init-ido --- initialize ido mode.
+;;; Commentary:
+;;; Code:
+
+(setq ido-create-new-buffer 'always)
 (setq ido-enable-flex-matching t)
 (setq ido-everywhere t)
 (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
@@ -21,3 +26,5 @@
                                    (smex-major-mode-commands)))
 
 (provide 'init-ido)
+
+;;; init-ido.el ends here
