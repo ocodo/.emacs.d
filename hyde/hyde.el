@@ -23,7 +23,7 @@
 (require 'hyde-md)
 
 ;; Constants for internal use
-(defconst hyde/hyde-version "0.2" 
+(defconst hyde/hyde-version "0.2"
   "Hyde version")
 
 ;; Internal customisable variables
@@ -38,7 +38,7 @@
   :type 'string
   :group 'hyde)
 
-(defcustom hyde-posts-dir 
+(defcustom hyde-posts-dir
   "_posts"
   "Directory which contains the list of posts"
   :type 'string
@@ -50,7 +50,7 @@
   :type 'string
   :group 'hyde)
 
-(defcustom hyde/hyde-list-posts-command 
+(defcustom hyde/hyde-list-posts-command
   "/bin/ls -1tr "
   "Command to list the posts"
   :type 'string
@@ -170,10 +170,10 @@
   "Commits the changes in the repository"
   (interactive "d\nMCommit message : ")
   (let (
-	(post-file-name (nth 
-			 1
-			 (split-string (strip-string (thing-at-point 'line)) " : ")))
-	(dir (get-text-property pos 'dir)))
+  (post-file-name (nth
+       1
+       (split-string (strip-string (thing-at-point 'line)) " : ")))
+  (dir (get-text-property pos 'dir)))
     (hyde/vc-commit (concat hyde-home "/" dir) post-file-name commit-message)
     (hyde/load-posts)))
 
@@ -197,16 +197,16 @@
   (interactive)
   (cd hyde-home)
   (shell-command (format "%s" hyde/deploy-command)))
-  
-  
+
+
 ;; Utility functions
 (defun hyde/hyde-file-local-unsaved-changed (dir file)
   "Returns true if and only if the given file contains unsaved changes"
     (let (
-	(buffer (get-file-buffer file))
-	)
+  (buffer (get-file-buffer file))
+  )
     (if buffer
-	(buffer-modified-p buffer)
+  (buffer-modified-p buffer)
       nil)))
 
 (defun strip-string (str)
@@ -226,7 +226,7 @@ Status indicators are as follows:
 C Committed but not yet pushed
 M Local saved changes (uncommitted)
 E Local unsaved changes"
-  (or 
+  (or
    (and (hyde/hyde-file-local-unsaved-changed dir file) "E")
    (and (hyde/hyde-file-local-uncommitted-changed dir file) "M")
    (and (hyde/hyde-file-committed-not-pushed dir file) "C")
@@ -239,8 +239,8 @@ properly and returns them so that they can be presented to the
 user"
   (cd (concat hyde-home "/" dir))
   (let (
-	(posts (split-string (strip-string (shell-command-to-string
-					    hyde/hyde-list-posts-command )))))
+  (posts (split-string (strip-string (shell-command-to-string
+              hyde/hyde-list-posts-command )))))
     (map 'list (lambda (f) (format "%s : %s" (hyde/file-status dir f) f)) posts)))
 
 ;;;###autoload
@@ -248,13 +248,13 @@ user"
   "Promotes the post under the cursor from a draft to a post"
   (interactive "d")
   (let (
-	(post-file-name (nth 
-			 1
-			 (split-string (strip-string (thing-at-point 'line)) " : ")))
-	(dir (get-text-property pos 'dir)))
+  (post-file-name (nth
+       1
+       (split-string (strip-string (thing-at-point 'line)) " : ")))
+  (dir (get-text-property pos 'dir)))
     (if (equal dir hyde-drafts-dir)
-	(hyde/hyde-rename-file (concat dir "/" post-file-name)
-			       (concat hyde-posts-dir "/" post-file-name)))
+  (hyde/hyde-rename-file (concat dir "/" post-file-name)
+             (concat hyde-posts-dir "/" post-file-name)))
     (hyde/load-posts)))
 
 
@@ -263,11 +263,11 @@ user"
   "Opens the post under cursor in the editor"
   (interactive "d")
   (let (
-	(post-file-name (nth 
-			 1
-			 (split-string (strip-string (thing-at-point 'line)) " : ")))
-	(dir (get-text-property pos 'dir)))
-    (find-file 
+  (post-file-name (nth
+       1
+       (split-string (strip-string (thing-at-point 'line)) " : ")))
+  (dir (get-text-property pos 'dir)))
+    (find-file
      (strip-string (concat hyde-home "/" dir "/" post-file-name)))
     (hyde-markdown-mode)))
 
@@ -275,19 +275,24 @@ user"
 (defun hyde/new-post (title)
   "Creates a new post"
   (interactive "MEnter post title: ")
-  (let ((post-file-name (format "%s/%s/%s.markdown" 
-				hyde-home hyde-drafts-dir (concat 
-							  (format-time-string "%Y-%m-%d-")
-							  (downcase (replace-regexp-in-string " " "_" title))))))
+  (let ((post-file-name (format "%s/%s/%s.markdown"
+        hyde-home hyde-drafts-dir (concat
+                (format-time-string "%Y-%m-%d-")
+                (downcase (replace-regexp-in-string " " "_" title))))))
 
     (save-excursion
       (find-file post-file-name)
       (insert "---\n")
       (insert "layout: post\n")
       (insert (format "title: \"%s\"\n" title))
-      (insert "comments: true\n")
-      (insert "categories: [Emacs]\n")
-      (insert "tags: [emacs24]\n")      
+      (insert (format "modified: %s\n" (current-time-string)))
+      (insert "tags: []\n")
+      (insert "image:\n")
+      (insert "  feature:\n")
+      (insert "  credit:\n")
+      (insert "  creditlink:\n")
+      (insert "comments: \n")
+      (insert "share: \n")
       (insert "---\n\n")
       (save-buffer))
     (hyde/hyde-add-file post-file-name)
@@ -305,7 +310,7 @@ user"
 
 ;; Keymaps
 (defvar hyde-mode-map
-  (let 
+  (let
       ((hyde-mode-map (make-sparse-keymap)))
     (define-key hyde-mode-map (kbd "n") 'hyde/new-post)
     (define-key hyde-mode-map (kbd "g") 'hyde/load-posts)
@@ -331,23 +336,23 @@ user"
   (insert ":: Editing blog at:" hyde-home "\n")
   (insert ":: Posts\n")
   ;; Insert posts from posts directory
-  (let 
+  (let
       ((posts (hyde/list-format-posts hyde-posts-dir)))
     (dolist (post posts)
       (progn
-	(save-excursion
-	  (insert (concat post "\n")))
-	(put-text-property (point) (+ (point) (length post)) 'dir hyde-posts-dir)
-	(forward-line))))
+  (save-excursion
+    (insert (concat post "\n")))
+  (put-text-property (point) (+ (point) (length post)) 'dir hyde-posts-dir)
+  (forward-line))))
     (insert "\n:: Drafts\n")
-    (let 
-	((posts (hyde/list-format-posts hyde-drafts-dir)))
+    (let
+  ((posts (hyde/list-format-posts hyde-drafts-dir)))
       (dolist (post posts)
-	(progn
-	  (save-excursion
-	    (insert (concat post "\n")))
-	  (put-text-property (point) (+ (point) (length post)) 'dir hyde-drafts-dir)
-	  (forward-line))))
+  (progn
+    (save-excursion
+      (insert (concat post "\n")))
+    (put-text-property (point) (+ (point) (length post)) 'dir hyde-drafts-dir)
+    (forward-line))))
     ;; Insert footer
     (insert (concat "\n\n:: Hyde version " hyde/hyde-version "\n"))
     (insert "Key:\n-----\n . Committed and pushed\n C Committed but not yet pushed\n M Local saved changes (uncommitted)\n E Local unsaved changes\n")
@@ -356,30 +361,30 @@ user"
 (defun hyde/read-config (hyde-home)
   "Loads up the config file to set the blog deployment and other information"
   (let (
-	(config-file (concat hyde-home "/.hyde.el"))
-	)
+  (config-file (concat hyde-home "/.hyde.el"))
+  )
     (message (format "Loading %s" config-file))
     (load-file config-file)
     ))
-  
+
 
 (defun hyde/hyde-mode (home)
   "The Hyde major mode to edit Jekyll posts."
   (kill-all-local-variables)
   (dolist (x '(hyde-deploy-dir
-	       hyde-posts-dir
-	       hyde-drafts-dir
-	       hyde/hyde-list-posts-command
-	       hyde/jekyll-command
-	       hyde/deploy-command
-	       hyde/git/remote
-	       hyde/git/remote-branch))
+         hyde-posts-dir
+         hyde-drafts-dir
+         hyde/hyde-list-posts-command
+         hyde/jekyll-command
+         hyde/deploy-command
+         hyde/git/remote
+         hyde/git/remote-branch))
     (make-variable-buffer-local x))
   (set (make-local-variable 'hyde-home) home)
   (use-local-map hyde-mode-map)
   (set (make-local-variable 'font-lock-defaults) '(hyde-font-lock-keywords))
   (setq major-mode 'hyde/hyde-mode
-	mode-name "Hyde")
+  mode-name "Hyde")
   (hyde/read-config hyde-home)
   (hyde/load-posts)
   (hl-line-mode t)
@@ -392,8 +397,8 @@ user"
   "Enters hyde mode"
   (interactive "DBlog : ")
   (let (
-	(hyde-buffer (concat "*Hyde : " home "*"))
-	)
+  (hyde-buffer (concat "*Hyde : " home "*"))
+  )
     (switch-to-buffer (get-buffer-create hyde-buffer)))
   (hyde/hyde-mode home))
 
