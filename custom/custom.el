@@ -19,16 +19,13 @@
  '(ediff-diff3-program "diff3")
  '(fci-rule-character-color "#202020")
  '(fci-rule-color "#202020")
- '(fiplr-ignored-globs
-   (quote
-    ((directories
-      (".git" ".svn" ".hg" ".bzr" "tmp" "log"))
-     (files
-      (".#*" "*~" "*.so" "*.jpg" "*.png" "*.gif" "*.pdf" "*.gz" "*.zip" ".DS_Store" ".gitkeep")))))
+ '(fiplr-ignored-globs (quote ((directories (".git" ".svn" ".hg" ".bzr" "tmp" "log")) (files (".#*" "*~" "*.so" "*.jpg" "*.png" "*.gif" "*.pdf" "*.gz" "*.zip" ".DS_Store" ".gitkeep")))))
+ '(glasses-original-separator "-")
+ '(glasses-separate-parentheses-p nil)
+ '(glasses-separator "-")
+ '(glasses-uncapitalize-p t)
  '(global-hl-line-mode nil)
- '(grep-find-ignored-directories
-   (quote
-    ("SCCS" "RCS" "CVS" "MCVS" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "tmp" "log" "vendor")))
+ '(grep-find-ignored-directories (quote ("SCCS" "RCS" "CVS" "MCVS" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "tmp" "log" "vendor")))
  '(indent-tabs-mode nil)
  '(indicate-buffer-boundaries (quote right))
  '(inhibit-startup-screen t)
@@ -44,10 +41,7 @@
  '(make-backup-files nil)
  '(markdown-command "markdown")
  '(markdown-css-path "markdown.css")
- '(newsticker-url-list
-   (quote
-    (("Hacker News" "https://news.ycombinator.com/rss" nil nil nil)
-     ("Emacs Reddit" "http://www.reddit.com/r/emacs.rss" nil nil nil))))
+ '(newsticker-url-list (quote (("Hacker News" "https://news.ycombinator.com/rss" nil nil nil) ("Emacs Reddit" "http://www.reddit.com/r/emacs.rss" nil nil nil))))
  '(paradox-automatically-star t)
  '(paradox-github-token t)
  '(recentf-max-menu-items 30)
@@ -55,35 +49,7 @@
  '(recentf-menu-title "Recent Files...")
  '(recentf-mode t)
  '(rinari-rails-env "development")
- '(safe-local-variable-values
-   (quote
-    ((eval progn
-           (message "Setting project specific key bindings")
-           (global-set-key
-            [24 down]
-            (quote duplicate-current-line-or-region))
-           (global-set-key "i"
-                           (quote iedit-mode)))
-     (rainbow-mode . 1)
-     (rainbow-mode . t)
-     (eval when
-           (fboundp
-            (quote rainbow-mode))
-           (rainbow-mode 1))
-     (eval ignore-errors "Write-contents-functions is a buffer-local alternative to before-save-hook"
-           (add-hook
-            (quote write-contents-functions)
-            (lambda nil
-              (delete-trailing-whitespace)
-              nil))
-           (require
-            (quote whitespace))
-           "Sometimes the mode needs to be toggled off and on."
-           (whitespace-mode 0)
-           (whitespace-mode 1))
-     (whitespace-line-column . 80)
-     (whitespace-style face trailing lines-tail)
-     (require-final-newline . t))))
+ '(safe-local-variable-values (quote ((eval progn (message "Setting project specific key bindings") (global-set-key [24 down] (quote duplicate-current-line-or-region)) (global-set-key "i" (quote iedit-mode))) (rainbow-mode . 1) (rainbow-mode . t) (eval when (fboundp (quote rainbow-mode)) (rainbow-mode 1)) (eval ignore-errors "Write-contents-functions is a buffer-local alternative to before-save-hook" (add-hook (quote write-contents-functions) (lambda nil (delete-trailing-whitespace) nil)) (require (quote whitespace)) "Sometimes the mode needs to be toggled off and on." (whitespace-mode 0) (whitespace-mode 1)) (whitespace-line-column . 80) (whitespace-style face trailing lines-tail) (require-final-newline . t))))
  '(scroll-bar-mode nil)
  '(scss-compile-at-save nil)
  '(send-mail-function (quote sendmail-send-it))
@@ -94,19 +60,8 @@
  '(visible-bell t)
  '(whitespace- nil)
  '(window-left-margin 0)
- '(yas-prompt-functions
-   (quote
-    (yas-dropdown-prompt yas/x-prompt yas/completing-prompt yas/ido-prompt yas/no-prompt)))
- '(zoneinfo-style-world-list
-   (quote
-    (("Australia/Sydney" "Sydney")
-     ("Europe/London" "London")
-     ("Thailand/Bangkok" "Bangkok")
-     ("America/Vancouver" "Vancouver")
-     ("America/Los_Angeles" "San Fransisco")
-     ("America/New_York" "New York")
-     ("Asia/Shanghai" "Shanghai")
-     ("Asia/Tokyo" "Tokyo")))))
+ '(yas-prompt-functions (quote (yas-dropdown-prompt yas/x-prompt yas/completing-prompt yas/ido-prompt yas/no-prompt)))
+ '(zoneinfo-style-world-list (quote (("Australia/Sydney" "Sydney") ("Europe/London" "London") ("Thailand/Bangkok" "Bangkok") ("America/Vancouver" "Vancouver") ("America/Los_Angeles" "San Fransisco") ("America/New_York" "New York") ("Asia/Shanghai" "Shanghai") ("Asia/Tokyo" "Tokyo")))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
