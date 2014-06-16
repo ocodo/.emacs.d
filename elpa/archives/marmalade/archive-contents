@@ -1,17 +1,19 @@
 (1
- (emacs-cl .
-     [(0 5)
-      nil "Emacs Common Lisp" tar])
- (operate-on-number .
-        [(1 1 0)
-         nil "Operate on number at point with arithmetic functions" single])
- (marmalade-upload .
-       [(0 0 2)
-        ((web
-          (0 4 1))
-         (kv
-          (0 0 19)))
-        "upload client for marmalade from emacs" single])
+ (highlight-sexp .
+     [(1 0)
+      nil "highlight current zone according to its context" single])
+ (tdd .
+      [(1 0)
+       nil "recompile on save and indicate success in the mode line" single])
+ (markdown-toc .
+         [(0 0 5)
+    ((s
+      (1 7 0))
+     (dash
+      (2 5 0))
+     (markdown-mode
+      (2 0)))
+    "A simple TOC generator for markdown file" tar])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
@@ -198,8 +200,10 @@
      [(8 0 4)
       nil "major mode for editing html templates" single])
  (web .
-      [(0 4 1)
-       nil "useful HTTP client" single])
+      [(0 4 2)
+       ((dash
+   (2 3 0)))
+       "useful HTTP client" single])
  (weather-metno .
     [(20140121)
      ((emacs
@@ -211,7 +215,7 @@
     [(2012 3 27 2)
      nil "Get weather reports via worldweatheronline.com" single])
  (wcheck-mode .
-        [(2013 6 25)
+        [(2014 5 17)
          nil "General interface for text checkers" tar])
  (wc-mode .
     [(1 3)
@@ -977,10 +981,8 @@
        (1 0 0)))
      "An Emacs interface for RuboCop" single])
  (rspec-mode .
-       [(1 7)
-        ((ruby-mode
-    (1 0)))
-        "Enhance ruby-mode for RSpec" single])
+       [(1 10)
+        nil "Enhance ruby-mode for RSpec" tar])
  (roy-mode .
      [(0 1 0)
       nil "Roy major mode" single])
@@ -1292,7 +1294,7 @@
      [(0 12)
       nil "Emacs Lisp interface to the PostgreSQL RDBMS" single])
  (perspective .
-        [(1 9)
+        [(1 10)
          nil "switch between named \"perspectives\" of the editor" single])
  (persistent-soft .
       [(0 8 8)
@@ -1445,7 +1447,7 @@
         (1 6 8)))
       "Blog from Org mode to wordpress" tar])
  (org-trello .
-       [(0 4 4)
+       [(0 4 8)
         ((db
     (0 0 6))
          (s
@@ -1499,7 +1501,7 @@
          (6 1)))
        "basic support for magit links" single])
  (org-journal .
-        [(1 4 6)
+        [(1 4 8)
          nil "a simple org-mode based journaling mode" single])
  (org-gnome .
       [(0 1)
@@ -1531,6 +1533,9 @@
  (org-blog .
      [(1 18 1 1)
       nil "create and publish a blog with org-mode" single])
+ (operate-on-number .
+        [(1 1 0)
+         nil "Operate on number at point with arithmetic functions" single])
  (openwith .
      [(20120531)
       nil "Open files with external programs" single])
@@ -1763,6 +1768,13 @@
  (master-mode .
         [(0 1)
          nil "Become an Emacs master" single])
+ (marmalade-upload .
+       [(0 0 4)
+        ((web
+          (0 4 2))
+         (kv
+          (0 0 19)))
+        "upload client for marmalade from emacs" single])
  (marmalade-test .
      [(0 0 1)
       nil "A test tarball package." tar])
@@ -1776,7 +1788,7 @@
            (0 9 9 6 10)))
          "The Marmalade package store service." tar])
  (marmalade-demo .
-     [(0 0 3)
+     [(0 0 5)
       nil "a demonstration elpa package" single])
  (marmalade .
       [(0 0 4)
@@ -2817,7 +2829,7 @@
        (0 6 0)))
      "Cask support in Flycheck" single])
  (flycheck .
-     [(0 18)
+     [(0 19)
       ((s
         (1 9 0))
        (dash
@@ -2830,7 +2842,7 @@
         (0 3))
        (emacs
         (24 1)))
-      "On-the-fly syntax checking (Flymake done right)" tar])
+      "Modern on-the-fly syntax checking for GNU Emacs" tar])
  (flx-ido .
     [(0 2)
      ((flx
@@ -2953,7 +2965,7 @@
       (1)))
     "Paredit support for evil keybindings" single])
  (evil-numbers .
-         [(0 3)
+         [(0 4)
     nil "increment/decrement numbers like in vim" single])
  (evil-nerd-commenter .
           [(1 3 1)
@@ -2962,7 +2974,7 @@
          [(1 3 0)
     nil "Vim matchit ported into Emacs (requires EVIL)" tar])
  (evil-leader .
-        [(0 4 1)
+        [(0 4 3)
          ((evil
      (0)))
          "let there be <leader>" single])
@@ -3084,11 +3096,14 @@
  (emacs-droid .
         [(0 0 0)
          nil "Android application development tools for Emacs" single])
+ (emacs-cl .
+     [(0 5)
+      nil "Emacs Common Lisp" tar])
  (elscreen .
      [(1 4 6)
       nil "Screen for Emacsen" single])
  (elpy .
-       [(1 2 1)
+       [(1 4 1)
   ((auto-complete
     (1 4))
    (find-file-in-project
@@ -3103,17 +3118,17 @@
     (0 97))
    (nose
     (0 1 1))
-   (virtualenv
-    (1 2))
+   (pyvenv
+    (1 0))
    (yasnippet
     (0 8 0)))
   "Emacs Python Development Environment" tar])
  (elpakit .
-    [(1 0 7)
+    [(1 1 1)
      ((anaphora
        (0 0 6))
       (dash
-       (1 0 3)))
+       (2 3 0)))
      "package archive builder" single])
  (elpa-mirror .
         [(1 1 2)
@@ -3122,7 +3137,7 @@
        [(0 4)
         nil "Handy functions for inspecting and comparing package archives" single])
  (elnode .
-   [(0 9 9 7 7)
+   [(0 9 9 7 8)
     ((web
       (0 1 4))
      (dash
@@ -3394,14 +3409,14 @@
   (0 0 11)))
       "A database for EmacsLisp" single])
  (dash-functional .
-      [(1 0 0)
+      [(1 1 0)
        ((dash
          (2 0 0))
         (emacs
          (24)))
        "Collection of useful combinators for Emacs Lisp" single])
  (dash .
-       [(2 5 0)
+       [(2 7 0)
   nil "A modern list library for Emacs" single])
  (dart-mode .
       [(0 9)
