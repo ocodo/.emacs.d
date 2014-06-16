@@ -257,7 +257,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140602)
+      [(20140613)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -400,7 +400,7 @@
    ((:url . "http://elpa.gnu.org/packages/xclip.html")
     (:keywords "convenience" "tools"))])
  (xpm .
-      [(1 0 2)
+      [(1 0 3)
        nil "edit XPM images" tar
        ((:keywords "multimedia" "xpm")
   (:url . "http://www.gnuvola.org/software/xpm/"))])
