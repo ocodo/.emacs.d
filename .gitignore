@@ -13,5 +13,4 @@ server
 tramp
 /tramp
 /modes-init/init-marmalade.el
-/modes-init/init-pivotal.el
 /modes-init/init-paradox.el
