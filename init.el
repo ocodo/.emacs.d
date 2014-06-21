@@ -42,6 +42,7 @@
                    'handy-functions
                    'custom-keys
                    'ag
+                   'armitp-mode-line
                    'auto-complete-config
                    'dropdown-list
                    'highlight-indentation
