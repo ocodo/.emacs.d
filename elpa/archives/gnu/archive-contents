@@ -37,8 +37,13 @@
    [(11 87 5)
     nil "Integrated environment for *TeX*" tar
     ((:url . "http://www.gnu.org/software/auctex/"))])
+ (aumix-mode .
+       [(7)
+        nil "run the aumix program in a buffer" single
+        ((:url . "http://user42.tuxfamily.org/aumix-mode/index.html")
+         (:keywords "multimedia" "mixer" "aumix"))])
  (chess .
-  [(2 0 1)
+  [(2 0 2)
    ((cl-lib
      (0 5)))
    "Play chess in GNU Emacs" tar
@@ -257,7 +262,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140616)
+      [(20140619)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -310,7 +315,7 @@
       ((:url . "http://xwl.appspot.com/ref/smart-operator.el")
        (:keywords))])
  (sml-mode .
-     [(6 4)
+     [(6 5)
       nil "Major mode for editing (Standard) ML" single
       ((:url . "http://elpa.gnu.org/packages/sml-mode.html")
        (:keywords "sml"))])
