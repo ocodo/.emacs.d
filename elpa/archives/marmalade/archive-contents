@@ -215,7 +215,7 @@
     [(2012 3 27 2)
      nil "Get weather reports via worldweatheronline.com" single])
  (wcheck-mode .
-        [(2014 5 17)
+        [(2014 6 21)
          nil "General interface for text checkers" tar])
  (wc-mode .
     [(1 3)
