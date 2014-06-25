@@ -3763,7 +3763,7 @@
      (1 1)))
    "Client for IRC in Emacs" tar])
  (cider .
-  [(0 5 0)
+  [(0 6 0)
    ((clojure-mode
      (2 0 0))
     (cl-lib

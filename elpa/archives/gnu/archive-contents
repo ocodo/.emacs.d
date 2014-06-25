@@ -222,6 +222,13 @@
     nil "Analyze the memory usage of Emacs in various ways" single
     ((:url . "http://elpa.gnu.org/packages/memory-usage.html")
      (:keywords "maint"))])
+ (metar .
+  [(0 1)
+   ((cl-lib
+     (0 5)))
+   "Retrieve and decode METAR weather information" single
+   ((:url . "http://elpa.gnu.org/packages/metar.html")
+    (:keywords "comm"))])
  (minimap .
     [(1 2)
      nil "Sidebar showing a \"mini-map\" of a buffer" single
