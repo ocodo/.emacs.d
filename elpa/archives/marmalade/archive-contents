@@ -3473,7 +3473,7 @@
         [(0 0 5)
          nil "a markup mode for creole" single])
  (creole .
-   [(1 0 3)
+   [(1 0 4)
     ((noflet
       (0 0 3))
      (kv
