@@ -4,7 +4,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(Linum-format "%7i ")
  '(auto-install-save-confirm nil)
  '(blink-cursor-mode nil)
  '(column-number-mode t)
@@ -61,7 +60,7 @@
  '(whitespace- nil)
  '(window-left-margin 0)
  '(yas-prompt-functions (quote (yas-dropdown-prompt yas/x-prompt yas/completing-prompt yas/ido-prompt yas/no-prompt)))
- '(zoneinfo-style-world-list (quote (("Australia/Sydney" "Sydney") ("Europe/London" "London") ("Thailand/Bangkok" "Bangkok") ("America/Vancouver" "Vancouver") ("America/Los_Angeles" "San Fransisco") ("America/New_York" "New York") ("Asia/Shanghai" "Shanghai") ("Asia/Tokyo" "Tokyo")))))
+ '(zoneinfo-style-world-list (quote (("Australia/Sydney" "Sydney") ("Europe/London" "London") ("Asia/Bangkok" "Bangkok") ("America/Vancouver" "Vancouver") ("America/Los_Angeles" "San Fransisco") ("America/New_York" "New York") ("Asia/Shanghai" "Shanghai") ("Asia/Tokyo" "Tokyo")))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
