@@ -80,6 +80,7 @@
    "misc-settings"
    "multi-web-mode"
    "nxml"
+   "projectile"
    "projectile-rails"
    "rainbow"
    "rainbow-delimiters"
