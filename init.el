@@ -111,6 +111,9 @@
   (when (eq system-type 'darwin)
     ;;(set-face-font 'default "Monaco")
     ;;(set-face-font 'default "Source Code Pro")
+    ;;(set-face-font 'default "Source Code Pro Light")
+    ;;(set-face-font 'default "Inconsolata")
+    ;;(set-face-font 'default "Bitstream Vera Sans Mono")
     (set-face-font 'default "Menlo"))
   ;; Sample Text for font viewing
   '("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
