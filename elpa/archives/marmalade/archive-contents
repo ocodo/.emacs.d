@@ -1,4 +1,7 @@
 (1
+ (eldoro .
+   [(0 1 0)
+    nil "A pomodoro timer/tracker that works with org-mode." tar])
  (highlight-sexp .
      [(1 0)
       nil "highlight current zone according to its context" single])
@@ -102,7 +105,7 @@
         [(0 7 1)
          nil "Wrap text with punctation or tag" single])
  (world-time-mode .
-      [(0 0 2)
+      [(0 0 6)
        nil "show whole days of world-time diffs" single])
  (workspaces .
        [(0 1)
