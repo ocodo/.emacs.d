@@ -1,0 +1,2 @@
+
+(1 (wanderlust . [(20140512 832) ((semi (1 14 6))) "Yet Another Message Interface on Emacsen" tar nil]) (semi . [(20130719 2051) ((flim (1 14 2))) "A library to provide MIME features." tar nil]) (flim . [(20130626 204) ((apel (10 8))) "A library to provide basic features about message representation or encoding." tar nil]) (apel . [(20130823 2314) nil "APEL (A Portable Emacs Library) provides support for portable Emacs Lisp programs" tar nil]) (2048-game . [(20140330 1212) nil "play 2048 in Emacs" single ((:url . "https://bitbucket.org/zck/2048.el"))]))
