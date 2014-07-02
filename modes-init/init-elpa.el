@@ -8,7 +8,6 @@
         '(
           ("melpa"      . "http://melpa.milkbox.net/packages/")
           ("marmalade"  . "http://marmalade-repo.org/packages/")
-          ("elpa"       . "http://tromey.com/elpa/") ;; Discontinued?
           ("e6h"        . "http://www.e6h.org/packages/") ;; Wanderlust
           ("gnu"        . "http://elpa.gnu.org/packages/")
           ))
