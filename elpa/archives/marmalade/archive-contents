@@ -9,14 +9,14 @@
       [(1 0)
        nil "recompile on save and indicate success in the mode line" single])
  (markdown-toc .
-         [(0 0 5)
-    ((s
-      (1 7 0))
+         [(0 0 6)
+    ((markdown-mode
+      (2 0))
      (dash
       (2 5 0))
-     (markdown-mode
-      (2 0)))
-    "A simple TOC generator for markdown file" tar])
+     (s
+      (1 7 0)))
+    "A simple TOC generator for markdown file" single])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
