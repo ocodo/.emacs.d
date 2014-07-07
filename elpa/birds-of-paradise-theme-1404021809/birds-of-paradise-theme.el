@@ -17,6 +17,7 @@
 
 (custom-theme-set-variables
  'birds-of-paradise
+ ;; Add variables you want to set with this theme
 )
 
 (custom-theme-set-faces
@@ -87,14 +88,13 @@
  '(diff-changed                        ((t (:foreground "#3388cc"))))
  '(diff-hunk-header                    ((t (:background "#242130"))))
 
-
  '(font-lock-comment-face ((t (:foreground "#6B4E32"  :italic t))))
  '(font-lock-constant-face ((t (:foreground "#6C99BB"  ))))
  '(font-lock-type-face ((t (:foreground "#EFAC32"  ))))
  '(font-lock-keyword-face ((t (:foreground "#EF5D32"  ))))
  '(font-lock-string-face ((t (:foreground "#D9D762"  :italic t))))
  '(font-lock-variable-name-face ((t (:foreground "#7DAF9C"  ))))
- '(font-lock-warning-face ((t (:foreground "#CC4232"  :italic t :underline t))))
+ '(font-lock-warning-face ((t (:foreground "white" :italic t :underline t))))
  '(error ((t (:foreground "#E6E1C4" :background "#CC4232" ))))
  '(font-lock-preprocessor-face ((t (:foreground "#8996A8"  ))))
  '(diff-removed ((t (:foreground "#F8F8F8" :background "#420E09" ))))
@@ -106,14 +106,14 @@
 
 ;; Rainbow delimiters
  '(rainbow-delimiters-depth-1-face ((t (:foreground "#a84223"))))
- '(rainbow-delimiters-depth-2-face ((t (:foreground "#b94827"))))
+ '(rainbow-delimiters-depth-2-face ((t (:foreground "#e69d88"))))
  '(rainbow-delimiters-depth-3-face ((t (:foreground "#c94f2a"))))
- '(rainbow-delimiters-depth-4-face ((t (:foreground "#d45934"))))
- '(rainbow-delimiters-depth-5-face ((t (:foreground "#d86745"))))
+ '(rainbow-delimiters-depth-4-face ((t (:foreground "#e29077"))))
+ '(rainbow-delimiters-depth-5-face ((t (:foreground "#d45934"))))
  '(rainbow-delimiters-depth-6-face ((t (:foreground "#db7456"))))
- '(rainbow-delimiters-depth-7-face ((t (:foreground "#df8266"))))
- '(rainbow-delimiters-depth-8-face ((t (:foreground "#e29077"))))
- '(rainbow-delimiters-depth-9-face ((t (:foreground "#e69d88"))))
+ '(rainbow-delimiters-depth-7-face ((t (:foreground "#d86745"))))
+ '(rainbow-delimiters-depth-8-face ((t (:foreground "#df8266"))))
+ '(rainbow-delimiters-depth-9-face ((t (:foreground "#b94827"))))
  '(rainbow-delimiters-unmatched-face ((t (:foreground "#FF0000"))))
 ) ;; End face definitions
 
