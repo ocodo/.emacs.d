@@ -39,7 +39,9 @@ trying to run it."
   "Load a mode-init file NAME expect an error if it doesn't map to an existing file."
   (let (file)
     (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
-    (load-file file)))
+    (if (file-exists-p file)
+        (load-file file)
+      (message "Warning: %s doesn't exist" file))))
 
 (defun process-mode-inits (names)
   "Process a list of mandatory mode init NAMES, convention is as above."
@@ -52,11 +54,12 @@ trying to run it."
   (align-regexp begin end ".* \\([0-9]+\\).*" -1 1 nil))
 
 (defun insert-random-in-range (start end)
+  "Insert a random number within the range of START and END."
   (interactive "nRange start:\nnRange end:")
   (insert (format "%i" (random-in-range start end))))
 
 (defun insert-random-radian ()
-  "insert a radian value from 0 to 6.28318 (2PI : 360 deg)"
+  "Insert a radian value from 0 to 6.28318 (2PI : 360 deg)."
   (interactive)
   (insert (format "%s" (* (/ float-pi 180) (random 361)))))
 
