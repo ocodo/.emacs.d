@@ -141,6 +141,15 @@
         nil "Minor mode to visualize epoch timestamps" single
         ((:url . "http://elpa.gnu.org/packages/epoch-view.html")
          (:keywords "data" "timestamp" "epoch" "unix"))])
+ (ergoemacs-mode .
+     [(5 14 7 1)
+      ((emacs
+        (24 1))
+       (undo-tree
+        (0 6 5)))
+      "Emacs mode based on common modern software interface and ergonomics." tar
+      ((:keywords "convenience")
+       (:url . "https://github.com/ergoemacs/ergoemacs-mode"))])
  (f90-interface-browser .
       [(1 1)
        nil "Parse and browse f90 interfaces" single
@@ -245,7 +254,7 @@
         ((:url . "http://elpa.gnu.org/packages/nhexl-mode.html")
          (:keywords "data"))])
  (nlinum .
-   [(1 4)
+   [(1 5)
     nil "Show line numbers in the margin" single
     ((:url . "http://elpa.gnu.org/packages/nlinum.html")
      (:keywords "convenience"))])
@@ -269,7 +278,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140630)
+      [(20140707)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
