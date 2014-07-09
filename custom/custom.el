@@ -4,6 +4,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector ["#1F1611" "#660000" "#144212" "#EFC232" "#5798AE" "#BE73FD" "#93C1BC" "#E6E1DC"])
+ '(ansi-term-color-vector [unspecified "#1F1611" "#660000" "#144212" "#EFC232" "#5798AE" "#BE73FD" "#93C1BC" "#E6E1DC"])
  '(auto-install-save-confirm nil)
  '(blink-cursor-mode nil)
  '(column-number-mode t)
@@ -23,7 +25,9 @@
  '(glasses-separate-parentheses-p nil)
  '(glasses-separator "-")
  '(glasses-uncapitalize-p t)
+ '(global-auto-revert-mode t)
  '(global-hl-line-mode nil)
+ '(global-undo-tree-mode t)
  '(grep-find-ignored-directories (quote ("SCCS" "RCS" "CVS" "MCVS" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "tmp" "log" "vendor")))
  '(indent-tabs-mode nil)
  '(indicate-buffer-boundaries (quote right))

@@ -42,6 +42,11 @@
         nil "run the aumix program in a buffer" single
         ((:url . "http://user42.tuxfamily.org/aumix-mode/index.html")
          (:keywords "multimedia" "mixer" "aumix"))])
+ (caps-lock .
+      [(1 0)
+       nil "Caps-lock as a minor mode" single
+       ((:url . "http://elpa.gnu.org/packages/caps-lock.html")
+        (:keywords))])
  (chess .
   [(2 0 3)
    ((cl-lib
@@ -385,6 +390,11 @@
       nil "Fully customizable, largely undocumented web browser for Emacs" tar
       ((:keywords "faces" "help" "comm" "news" "mail" "processes" "mouse" "hypermedia")
        (:url . "http://elpa.gnu.org/packages/w3.html"))])
+ (wcheck-mode .
+        [(2014 6 21)
+         nil "General interface for text checkers" single
+         ((:url . "https://github.com/tlikonen/wcheck-mode")
+    (:keywords "text" "spell" "check" "languages" "ispell"))])
  (web-server .
        [(0 1 1)
         ((emacs
