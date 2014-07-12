@@ -195,6 +195,11 @@
     nil "Incremental occur" single
     ((:url . "http://elpa.gnu.org/packages/ioccur.html")
      (:keywords))])
+ (javaimp .
+    [(0 4)
+     nil "Add and reorder Java import statements in Maven projects" single
+     ((:url . "http://elpa.gnu.org/packages/javaimp.html")
+      (:keywords "java" "maven" "programming"))])
  (jgraph-mode .
         [(1 0)
          nil "Major mode for Jgraph files" single
