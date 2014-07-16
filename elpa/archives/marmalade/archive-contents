@@ -1699,8 +1699,8 @@
          (1 1)))
        "Mote minor mode" single])
  (monokai-theme .
-    [(0 0 11)
-     nil "REQUIRES EMACS 24: Monokai Color Theme for Emacs." single])
+    [(0 0 12)
+     nil "DEPRECATED: Monokai Color Theme for Emacs." single])
  (monky .
   [(0 1)
    nil "control Hg from Emacs." single])
