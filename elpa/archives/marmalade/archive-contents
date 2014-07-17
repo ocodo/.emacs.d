@@ -1,6 +1,6 @@
 (1
  (clojure-env .
-        [(0 0 2)
+        [(0 0 3)
          nil "manage clojure environments with Emacs" single])
  (snakehump .
       [(0 1 1)
@@ -1844,7 +1844,7 @@
       [(1 2 2)
        nil "modeline replacement forked from an early version of powerline.el" single])
  (maildir .
-    [(0 0 23)
+    [(0 0 25)
      ((kv
        (0 0 17))
       (dash
@@ -4032,7 +4032,7 @@
           (1 2 0)))
         "Yasnippets for AngularJS" tar])
  (android-mode .
-         [(0 2 5)
+         [(0 3 0)
     nil "Minor mode for Android application development" single])
  (anaphora .
      [(1 0 0)
