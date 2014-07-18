@@ -11,6 +11,11 @@
 (setq custom-file (concat user-emacs-directory "custom/custom.el"))
 (load custom-file)
 
+;; Manage history
+(savehist-mode 1)
+(setq savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
+(setq savehist-file "~/.emacs.d/tmp/savehist")
+
 ;; turn off toolbar.
 (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 
