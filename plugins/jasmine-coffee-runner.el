@@ -43,22 +43,13 @@
   "describe(? ?[\"']\\(.*\\)\\(?:[\"'],\\) ?)?"
   "Regexp to find a jasmine coffee-mode `describe'.")
 
-(defun jasmine-coffee/get-previous-describe-marker-and-description (&optional all)
-  "Find previous Jasmine `describe'.
-
-Return start marker and description string.
-
-If ALL is specified use collect all and return as a list."
-
+(defun jasmine-coffee/get-previous-describe-marker-and-description ()
+  "Find previous Jasmine `describe', return start marker and description string."
   (save-excursion
     (with-demoted-errors
-      (if all
-          (progn (re-search-backward jasmine-coffee/describe-regexp 0 t -1))
-          (progn
-            (re-search-backward jasmine-coffee/describe-regexp 0 t )
-            (destructuring-bind (start end description-start description-end) (match-data)
-              (list start (buffer-substring-no-properties description-start description-end))))
-          ))))
+      (re-search-backward jasmine-coffee/describe-regexp 0 t )
+      (destructuring-bind (start end description-start description-end) (match-data)
+        (list start (buffer-substring-no-properties description-start description-end))))))
 
 (defun jasmine-coffee/get-previous-it-marker-and-description ()
   "Find the nearest Jasmine `it' definition, return start marker and description string."
