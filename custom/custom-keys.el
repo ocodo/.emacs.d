@@ -3,12 +3,15 @@
 ;; for Emacs Mac, (not Emacs Cocoa) -
 ;; (takes care of conditional loading itself.)
 ;; Brings the Emacs mac key bindings (closer) into line with Emacs Cocoa.
-(require 'mac-port-keys)
-(require 'custom-mac-fn-keys)
 
 ;; Keys - universal
 
 ;; Newest additions at the top...
+
+;;; Code:
+
+(require 'mac-port-keys)
+(require 'custom-mac-fn-keys)
 
 (global-set-key (kbd "M-i")                 'evil-mode)
 
@@ -143,7 +146,7 @@
 
   ;; narrow / widen region
   (global-set-key (kbd "s-§")               'narrow-to-region)
-  (global-set-key (kbd "C-§")               'widen)
+  (global-set-key (kbd "C-§")               'widen )
 
   )
 
