@@ -23,9 +23,9 @@
         "C-c @"
         "C-c !"
         "C-c &"
-
         ))
 
-(provide 'init-guide)
+(global-set-key (kbd "C-x n g") 'guide-key-mode)
 
+(provide 'init-guide)
 ;;; init-guide.el ends here

@@ -1,3 +1,4 @@
+(require 'dash)
 ;; Custom themes from elpa/melpa/marmalade added to load-path
 ;; When they don't do it themeselves...
 (-each
