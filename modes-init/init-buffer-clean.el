@@ -1,4 +1,5 @@
 ;; Safe cleanup, probably a package?
+;;;###autoload
 (defun safe-buffer-cleanup ()
   "Clean whitespace, kill tabs, set to UTF8"
   (untabify (point-min) (point-max))

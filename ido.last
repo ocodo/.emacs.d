@@ -9,21 +9,23 @@
 
 ;; ----- ido-work-directory-list -----
 (
+ "/home/jason/.emacs.d/modes-init/"
  "/home/jason/.emacs.d/elpa/projectile-20140624.443/"
 )
 
 ;; ----- ido-work-file-list -----
 (
+ "init-coffee.el"
  "projectile.el"
 )
 
 ;; ----- ido-dir-file-cache -----
 (
- ("/home/jason/.emacs.d/modes-init/" (21446 30445 642176 999000) "init-flymake.el" "init-ruby.el" "init-guide.el" "init-rvm.el" "init-rainbow-delimiters.el" "init-winner.el" "init-ido.el" "init-git-gutter.el" "init-company-mode.el" "init-sh.el" "init-multi-web-mode.el" "init-exec-path.el" "init-yaml.el" "init-dired.el" "init-remember-theme.el" "init-pivotal.el" "./" "init-misc-settings.el" "init-nxml.el" "init-elpa-themes.el" "init-rainbow.el" "init-emacs-daemon.el" "init-codenotes.el" "init-projectile.el" "init-yasnippet.el" "init-smartparens.el" "init-markdown.el" "init-coffee.el" "init-buffer-clean.el" "init-autocomplete.el" "init-enh-ruby.el" "init-elpa.el" "init-json-mode.el" "init-haml.el" "init-projectile-rails.el" "init-flycheck.el" "init-hideshowvis.el" "init-ispell.el" "../" "init-smooth-scroll.el" "init-asciidoc.el")
+ ("/home/jason/.emacs.d/modes-init/" (21452 38674 318176 999000) "init-flymake.el" "init-ruby.el" "init-guide.el" "init-rvm.el" "init-rainbow-delimiters.el" "init-winner.el" "init-ido.el" "init-git-gutter.el" "init-company-mode.el" "init-sh.el" "init-multi-web-mode.el" "init-exec-path.el" "init-yaml.el" "init-dired.el" "init-remember-theme.el" "init-pivotal.el" "./" "init-misc-settings.el" "init-nxml.el" "init-elpa-themes.el" "init-rainbow.el" "init-emacs-daemon.el" "init-codenotes.el" "init-projectile.el" "init-yasnippet.el" "init-smartparens.el" "init-markdown.el" "init-coffee.el" "init-buffer-clean.el" "init-autocomplete.el" "init-enh-ruby.el" "init-elpa.el" "init-json-mode.el" "init-haml.el" "init-projectile-rails.el" "init-flycheck.el" "init-hideshowvis.el" "init-ispell.el" "../" "init-smooth-scroll.el" "init-asciidoc.el")
 
- ("/home/jason/.emacs.d/" (21446 29532 418176 999000) "snippets/" "init.el" ".gitignore" "tramp" "var/" "tangerine-theme.el" "mesa-theme.el" "testing" "dark-atomic-theme.el" "vendor/" "url/" "auto-save-list/" "elpa/" "jade-dragon-theme.el" "bright-meadow-theme.el" "projectile-bookmarks.eld" "hyde/" "lovely-theme.el" "modes-init/" "./" "places" "twilight-anti-bright-theme.el" "ac-comphist.dat" "midnight-theme.el" "markdown.css" "server/" ".mc-lists.el" "recentf" "custom/" ".gitmodules" "nxml-schemas/" "visual-progress-mode.el" "plugins/" "deep-blue-day-theme.el" "README.md" "old-color-themes/" "ido.last" "high-life-theme.el" "bubbleberry-theme.el" "eshell/" ".git/" "../" "line-above-below.el" "jason-defaults-theme.el" "blue-sky-day-theme.el" "mechanical-turq-theme.el")
+ ("/home/jason/.emacs.d/" (21452 38673 214176 999000) "snippets/" "init.el" ".gitignore" "tramp" "var/" "testing" "vendor/" "url/" "auto-save-list/" "elpa/" "projectile-bookmarks.eld" "hyde/" "theme-holding/" "modes-init/" "./" "places" "ac-comphist.dat" "markdown.css" "server/" ".mc-lists.el" "recentf" "custom/" ".gitmodules" "nxml-schemas/" "visual-progress-mode.el" "plugins/" "README.md" "old-color-themes/" "ido.last" "eshell/" "tmp/" ".git/" "../")
 
- ("/home/jason/" (21446 28230 798176 999000) "google-chrome-stable_current_i386.deb.1" ".ssh/" "selenium-server-standalone-2.41.0.jar" ".zsh_history" "AppIcon.icns" ".Xauthority" ".gitconfig" ".pki/" ".emacs.d/" ".bash_logout" ".antigen/" ".sqlite_history" ".zcompdump" ".cache/" ".bash_profile" "icomoon.eot" ".smex-items" "HydraBackdrop.ai" ".mysql_history" ".gem/" ".npm/" "./" ".emacs-theme" "chromedriver_linux64.zip" "icomoon.ttf" ".autoenv_authorized" ".config/" ".autoenv_authorized.tmp" "google-chrome-stable_current_amd64.deb" ".guard_history" "chromedriver" ".bundle/" "digitalocean/" ".psql_history" ".bashrc" ".zshrc" "icomoon.svg" ".bash_history" "antigen/" ".pip/" "icomoon.woff" ".pry_history" ".gnupg/" ".rvm/" ".zprofile" ".irb-history" ".profile" "Projects/" "google-chrome-stable_current_i386.deb" "tmp/" ".zsh/" ".local/" "../" ".lesshst")
+ ("/home/jason/" (21452 36683 838176 999000) "google-chrome-stable_current_i386.deb.1" ".ssh/" "selenium-server-standalone-2.41.0.jar" ".zsh_history" "AppIcon.icns" ".Xauthority" ".gitconfig" ".pki/" ".emacs.d/" ".bash_logout" ".antigen/" ".sqlite_history" ".zcompdump" ".cache/" ".bash_profile" "icomoon.eot" ".smex-items" ".mysql_history" ".gem/" ".npm/" "./" ".emacs-theme" "chromedriver_linux64.zip" "icomoon.ttf" ".autoenv_authorized" ".config/" ".autoenv_authorized.tmp" "google-chrome-stable_current_amd64.deb" ".guard_history" "chromedriver" ".bundle/" "digitalocean/" ".psql_history" ".bashrc" ".zshrc" "icomoon.svg" ".bash_history" "antigen/" ".pip/" "icomoon.woff" ".pry_history" ".gnupg/" ".rvm/" ".zprofile" ".irb-history" ".profile" "Projects/" "google-chrome-stable_current_i386.deb" "tmp/" ".zsh/" ".local/" "../" ".lesshst")
 
  ("/home/jason/.emacs.d/plugins/" (21442 46220 798176 999000) "kill-buffer-without-confirm.el" "mac-frame-adjust.el" "frame-adjust.el" "switch-window.el" "./" "sed-mode.el" "xfrp_find_replace_pairs.el" "windata.el" "hexrgb+.el" "scroll-bell-fix.el" "rainbow-mode.el" "rails-generate-migration.el" "resize-window.el" "shellfix.el" "hideshowvis.el" "squeeze-view.el" "../")
 
