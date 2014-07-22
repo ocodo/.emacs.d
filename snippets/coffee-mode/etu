@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toBeUndefined
-# group: expect
+# name: expect().toBeUndefined
+# group: jasmine
 # key: etu
 # --
 expect($1).toBeUndefined()

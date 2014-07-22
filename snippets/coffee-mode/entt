@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toBeTruthy
+# group: jasmine
+# key: entt
+# --
+expect($1).not.toBeTruthy()
+$0

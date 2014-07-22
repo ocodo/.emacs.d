@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toThrow
-# group: expect
+# name: expect().toThrow
+# group: jasmine
 # key: etoth
 # --
 expect( -> ${1:fn()} ).toThrow(${2:e})

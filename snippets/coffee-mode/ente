@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toEqual
+# group: jasmine
+# key: ente
+# --
+expect($1).not.toEqual($2)
+$0

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toContain
+# group: jasmine
+# key: entc
+# --
+expect($1).not.toContain($2)
+$0

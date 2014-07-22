@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toEqual
-# group: expect
+# name: expect().toEqual
+# group: jasmine
 # key: ete
 # --
 expect($1).toEqual($2)

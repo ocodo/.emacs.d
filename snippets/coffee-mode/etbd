@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toBeDefined
-# group: expect
+# name: expect().toBeDefined
+# group: jasmine
 # key: etbd
 # --
 expect($1).toBeDefined()

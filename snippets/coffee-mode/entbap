@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toBeAPromise
+# group: jasmine
+# key: entbap
+# --
+expect($1).not.toBeAPromise()
+$0

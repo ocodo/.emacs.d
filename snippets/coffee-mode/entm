@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toMatch
+# group: jasmine
+# key: entm
+# --
+expect($1).not.toMatch($2)
+$0

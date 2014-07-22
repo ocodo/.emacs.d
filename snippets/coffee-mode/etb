@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toBe
-# group: expect
+# name: expect().toBe
+# group: jasmine
 # key: etb
 # --
 expect($1).toBe($2)

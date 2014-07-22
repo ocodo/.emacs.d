@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toHaveBeenCalled
+# group: jasmine
+# key: enthbc
+# --
+expect($1).not.toHaveBeenCalled()
+$0

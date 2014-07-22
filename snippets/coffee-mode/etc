@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toContain
-# group: expect
+# name: expect().toContain
+# group: jasmine
 # key: etc
 # --
 expect($1).toContain($2)
