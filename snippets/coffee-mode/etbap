@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().toBeAPromise
+# group: jasmine
+# key: etbap
+# --
+expect($1).toBeAPromise()
+$0

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toThrow
+# group: jasmine
+# key: entoth
+# --
+expect( -> ${1:fn()} ).not.toThrow(${2:e})
+$0

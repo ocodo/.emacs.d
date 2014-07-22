@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toBeNull
+# group: jasmine
+# key: entn
+# --
+expect($1).not.toBeNull()
+$0

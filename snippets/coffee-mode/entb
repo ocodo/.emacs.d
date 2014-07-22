@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toBe
+# group: jasmine
+# key: entb
+# --
+expect($1).not.toBe($2)
+$0

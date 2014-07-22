@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toBeNull
-# group: expect
+# name: expect().toBeNull
+# group: jasmine
 # key: etn
 # --
 expect($1).toBeNull()

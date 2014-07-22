@@ -4,5 +4,4 @@
 # key: bmod
 # --
 beforeEach module "$1"
-
-$0
+  $0

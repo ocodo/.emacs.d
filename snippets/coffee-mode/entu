@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().not.toBeUndefined
+# group: jasmine
+# key: entu
+# --
+expect($1).not.toBeUndefined()
+$0

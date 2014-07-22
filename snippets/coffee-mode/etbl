@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toBeLessThan
-# group: expect
+# name: expect().toBeLessThan
+# group: jasmine
 # key: etbl
 # --
 expect($1).toBeLessThan($2)

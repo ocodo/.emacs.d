@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: toMatch
-# group: expect
+# name: expect().toMatch
+# group: jasmine
 # key: etm
 # --
 expect($1).toMatch($2)

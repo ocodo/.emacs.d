@@ -1,8 +1,7 @@
 # -*- mode: snippet -*-
-# name: it "should .."
+# name: jset
 # group: jasmine
-# key: it
+# key: jset
 # expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
 # --
-it "should $1", ->
-  $0
+jset '$1', -> $0

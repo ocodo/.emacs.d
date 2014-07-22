@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: expect().toHaveBeenCalled
+# group: jasmine
+# key: ethbc
+# --
+expect($1).toHaveBeenCalled()
+$0
