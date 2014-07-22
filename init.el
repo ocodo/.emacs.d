@@ -11,56 +11,93 @@
 (setq custom-file (concat user-emacs-directory "custom/custom.el"))
 (load custom-file)
 
+;; Optional modes-init handling
+(defun load-optional-mode-init (name)
+  "Check for existence of a mode init script NAME, and load if found."
+  (let (file)
+    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
+    (when (file-readable-p file)
+      (load-file file))))
+
+(defun optional-mode-inits (names)
+  "Processes a list of optional mode init NAMES.
+The convention used, is to store an optional init file in
+`.emacs.d/modes-init/' named as init-{name} (replacing {name}
+with the name you wish to use, usually the name of the
+mode/feature being initialized.)
+
+For example, for paradox, a github token is required, which you
+shouldn't keep in a public git repository with the rest of your
+Emacs config.  So we'd add `modes-init/init-paradox.el' to
+.gitignore.
+
+To avoid issues when we want to load the init script, we use
+load-optional-mode-init to check that the script exists, before
+trying to run it."
+
+  (mapcar 'load-optional-mode-init names))
+
+(defun load-mode-init (name)
+  "Load a mode-init file NAME expect an error if it doesn't map to an existing file."
+  (let (file)
+    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
+    (if (file-exists-p file)
+        (load-file file)
+      (message "Warning: %s doesn't exist" file))))
+
+(defun process-mode-inits (names)
+  "Process a list of mandatory mode init NAMES, convention is as above."
+  (mapcar 'load-mode-init names))
+
 ;; Manage history
+(eval-after-load "savehist-mode"
+  (lambda ()
+    (setq savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
+    (setq savehist-file "~/.emacs.d/tmp/savehist")))
+
 (savehist-mode 1)
-(setq savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
-(setq savehist-file "~/.emacs.d/tmp/savehist")
 
 ;; turn off toolbar.
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
 
 ;; menu bar mode only on OS X, just because it's pretty much out of
 ;; the way, as opposed to sitting right there in the frame.
-(if  (and (window-system) (eq system-type 'darwin))
-    (menu-bar-mode 1)
+(unless  (and (window-system) (eq system-type 'darwin))
   (menu-bar-mode -1))
+
 (setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
 
-(progn
-  (cd user-emacs-directory)
-  (normal-top-level-add-subdirs-to-load-path)
-  (cd "~/"))
+(cd user-emacs-directory)
+(normal-top-level-add-subdirs-to-load-path)
+(cd "~/")
 
+(autoload 'cl                    "cl")
+(autoload 'cl-lib                "cl-lib")
+(autoload 's                     "s")
+(autoload 'dash                  "dash")
+(autoload 'f                     "f")
+(autoload 'ag                    "ag")
+(autoload 'dropdown-list         "dropdown-list")
+(autoload 'highlight-indentation "highlight-indentation")
+(autoload 'iedit                 "iedit")
+(autoload 'js2-refactor          "js2-refactor")
+(autoload 'multiple-cursors      "multiple-cursors")
 
 ;; Explicit Requires ...
-(add-hook 'after-init-hook
-          (lambda ())
-          "require and init"
-          (mapcar 'require
-                  (list
-                   'cl
-                   'cl-lib
-                   'init-elpa
-                   's
-                   'dash
-                   'f
-                   'handy-functions
-                   'custom-keys
-                   'ag
-                   'armitp-mode-line
-                   'auto-complete-config
-                   'dropdown-list
-                   'highlight-indentation
-                   'hyde-autoloads
-                   'iedit
-                   'js2-refactor
-                   'kill-buffer-without-confirm
-                   'mac-frame-adjust
-                   'multiple-cursors
-                   'resize-window
-                   'scroll-bell-fix
-                   'squeeze-view
-                   'switch-window)))
+(mapcar 'require
+        (list
+         'init-elpa
+         'handy-functions
+         'custom-keys
+         'armitp-mode-line
+         'auto-complete-config
+         'hyde-autoloads
+         'kill-buffer-without-confirm
+         'mac-frame-adjust
+         'resize-window
+         'scroll-bell-fix
+         'squeeze-view
+         'switch-window))
 
 ;; mode inits
 (process-mode-inits
@@ -134,5 +171,4 @@
     (set-face-font 'default "Droid Sans Mono") ;; for quick swapping.
     ;; (set-face-font 'default "Bitstream Vera Sans Mono")
     ))
-
 ;;; init.el ends here

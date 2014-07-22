@@ -9,44 +9,6 @@
   (when (file-exists-p path)
     (setq exec-path (append '(path) exec-path))))
 
-;; Optional modes-init handling
-(defun load-optional-mode-init (name)
-  "Check for existence of a mode init script NAME, and load if found."
-  (let (file)
-    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
-    (when (file-readable-p file)
-      (load-file file))))
-
-(defun optional-mode-inits (names)
-  "Processes a list of optional mode init NAMES.
-The convention used, is to store an optional init file in
-`.emacs.d/modes-init/' named as init-{name} (replacing {name}
-with the name you wish to use, usually the name of the
-mode/feature being initialized.)
-
-For example, for paradox, a github token is required, which you
-shouldn't keep in a public git repository with the rest of your
-Emacs config.  So we'd add `modes-init/init-paradox.el' to
-.gitignore.
-
-To avoid issues when we want to load the init script, we use
-load-optional-mode-init to check that the script exists, before
-trying to run it."
-
-  (mapcar 'load-optional-mode-init names))
-
-(defun load-mode-init (name)
-  "Load a mode-init file NAME expect an error if it doesn't map to an existing file."
-  (let (file)
-    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
-    (if (file-exists-p file)
-        (load-file file)
-      (message "Warning: %s doesn't exist" file))))
-
-(defun process-mode-inits (names)
-  "Process a list of mandatory mode init NAMES, convention is as above."
-  (mapcar 'load-mode-init names))
-
 ;; Handy functions, add little helpers in here.
 (defun align-number-right (begin end)
   "Align region to equal signs from BEGIN to END."
