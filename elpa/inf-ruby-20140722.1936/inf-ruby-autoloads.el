@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (21454 64874 182176
+;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (21455 44969 394176
 ;;;;;;  999000))
 ;;; Generated autoloads from inf-ruby.el
 
@@ -80,7 +80,7 @@ Run racksh, custom console.rb, or just IRB, in DIR.
 (autoload 'inf-ruby-file-contents-match "inf-ruby" "\
 
 
-\(fn FILE REGEXP)" nil nil)
+\(fn FILE REGEXP &optional MATCH-GROUP)" nil nil)
  (dolist (mode ruby-source-modes) (add-hook (intern (format "%s-hook" mode)) 'inf-ruby-minor-mode))
 
 ;;;***

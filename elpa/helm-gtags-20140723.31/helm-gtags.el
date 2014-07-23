@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Version: 20140608.734
-;; X-Original-Version: 1.2.7
+;; Version: 20140723.31
+;; X-Original-Version: 1.2.8
 ;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -924,6 +924,14 @@ Generate new TAG file in selected directory with `C-u C-u'"
           (set-process-query-on-exit-flag proc nil)
           (set-process-sentinel proc 'helm-gtags--update-tags-sentinel)
           (setq helm-gtags--last-update-time current-time))))))
+
+;;;###autoload
+(defun helm-gtags-resume ()
+  "Resurrect previously invoked `helm-gtags` command."
+  (interactive)
+  (unless (get-buffer helm-gtags-buffer)
+    (error "Error: helm-gtags buffer is not existed."))
+  (helm-resume helm-gtags-buffer))
 
 (defvar helm-gtags-mode-name " Helm Gtags")
 (defvar helm-gtags-mode-map (make-sparse-keymap))
