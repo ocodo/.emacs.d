@@ -8,7 +8,7 @@
 
 ;; Author: Chris Done <chrisdone@gmail.com>
 ;; URL: https://github.com/chrisdone/god-mode
-;; Version: 20140608.252
+;; Version: 20140723.23
 ;; X-Original-Version: 2.12.1
 
 ;; This file is not part of GNU Emacs.
@@ -154,7 +154,8 @@ our own keybindings."
 (defun god-mode-upper-p (char)
   "Is the given char upper case?"
   (and (>= char ?A)
-       (<= char ?Z)))
+       (<= char ?Z)
+       (/= char ?G)))
 
 (defun god-mode-lookup-key-sequence (&optional key key-string-so-far)
   "Lookup the command for the given `key' (or the next keypress,
