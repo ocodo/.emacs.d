@@ -71,21 +71,21 @@ trying to run it."
 (normal-top-level-add-subdirs-to-load-path)
 (cd "~/")
 
-(autoload 'cl                    "cl")
-(autoload 'cl-lib                "cl-lib")
-(autoload 's                     "s")
-(autoload 'dash                  "dash")
-(autoload 'f                     "f")
-(autoload 'ag                    "ag")
-(autoload 'dropdown-list         "dropdown-list")
-(autoload 'highlight-indentation "highlight-indentation")
-(autoload 'iedit                 "iedit")
-(autoload 'js2-refactor          "js2-refactor")
-(autoload 'multiple-cursors      "multiple-cursors")
 
 ;; Explicit Requires ...
 (mapcar 'require
         (list
+         'cl
+         'cl-lib
+         's
+         'dash
+         'f
+         'ag
+         'dropdown-list
+         'highlight-indentation
+         'iedit
+         'js2-refactor
+         'multiple-cursors
          'init-elpa
          'handy-functions
          'custom-keys
