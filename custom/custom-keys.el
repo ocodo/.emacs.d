@@ -123,8 +123,8 @@
 
   ;; window-splitting
   (global-set-key (kbd "s-1")               'delete-other-windows)
-  (global-set-key (kbd "s-2")               'split-window-horizontally)
-  (global-set-key (kbd "s-3")               'split-window-vertically)
+  (global-set-key (kbd "s-2")               'split-window-vertically)
+  (global-set-key (kbd "s-3")               'split-window-horizontally)
   (global-set-key (kbd "s-4")               'delete-other-windows-vertically)
 
   (global-set-key (kbd "s-5")               'delete-window)
