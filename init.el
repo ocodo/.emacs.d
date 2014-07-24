@@ -84,6 +84,7 @@ trying to run it."
          'dropdown-list
          'highlight-indentation
          'iedit
+         'misc
          'js2-refactor
          'multiple-cursors
          'init-elpa

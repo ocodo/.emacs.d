@@ -12,8 +12,6 @@
 
 (require 'mac-port-keys)
 (require 'custom-mac-fn-keys)
-(require 'iedit-mode)
-(require 'misc)
 
 (global-set-key (kbd "M-Z")                 'zap-to-char)
 (global-set-key (kbd "M-z")                 'zap-up-to-char)
