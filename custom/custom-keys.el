@@ -12,11 +12,18 @@
 
 (require 'mac-port-keys)
 (require 'custom-mac-fn-keys)
+(require 'iedit-mode)
+(require 'misc)
 
-(global-set-key (kbd "M-i")                 'evil-mode)
+(global-set-key (kbd "M-Z")                 'zap-to-char)
+(global-set-key (kbd "M-z")                 'zap-up-to-char)
+(global-set-key (kbd "s-8")                 'rotate-window)
+(global-set-key (kbd "s-7")                 'rotate-layout)
+(global-set-key (kbd "M-i")                 'evil-mode) ;; Toggle
 
 (global-set-key (kbd "C-c C-w")             'rotate-window)
 (global-set-key (kbd "C-c C-l")             'rotate-layout)
+
 (global-set-key (kbd "C-x g")               'ag)
 
 (global-set-key (kbd "C-c SPC")             'ace-jump-mode)
@@ -27,6 +34,7 @@
 
 ;; Projectile find file - flx based
 (global-set-key (kbd "M-P")                 'projectile-find-file)
+(global-set-key (kbd "M-p")                 'projectile-find-file)
 (global-set-key (kbd "C-x p")               'projectile-find-file)
 
 ;; Smartparens slurp / barf - use instead of paredit
