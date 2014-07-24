@@ -78,6 +78,12 @@
   (global-set-key (kbd "C-`") 'switch-window)
   (global-set-key (kbd "C-~") 'other-frame)
 
+  ;; Swipe left and right for buffer navigation tends to irritate me,
+  ;; and I never use it purposely (C-x left, C-x right or super-left
+  ;; and super-right are better anyway)
+  (global-unset-key [swipe-left])
+  (global-unset-key [swipe-right])
+
 )
 
 (provide 'mac-port-keys)
