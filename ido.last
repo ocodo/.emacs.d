@@ -3,7 +3,7 @@
 ;; ----- ido-last-directory-list -----
 (
  ("/home/jason/" . ".emacs.d/")
- ("/home/jason/.emacs.d/" . "modes-init/")
+ ("/home/jason/.emacs.d/" . "plugins/")
  ("/home/jason/.emacs.d/elpa/" . "projectile-20140624.443/")
 )
 
@@ -25,15 +25,15 @@
 
 ;; ----- ido-dir-file-cache -----
 (
- ("/home/jason/" (21454 27225 130176 999000) "google-chrome-stable_current_i386.deb.1" ".ssh/" "selenium-server-standalone-2.41.0.jar" ".zsh_history" "AppIcon.icns" ".Xauthority" ".gitconfig" ".pki/" ".emacs.d/" ".bash_logout" ".antigen/" ".sqlite_history" ".zcompdump" ".cache/" ".bash_profile" "icomoon.eot" ".smex-items" ".mysql_history" ".gem/" ".npm/" "./" ".emacs-theme" "chromedriver_linux64.zip" "icomoon.ttf" ".autoenv_authorized" ".config/" ".autoenv_authorized.tmp" "google-chrome-stable_current_amd64.deb" ".guard_history" "chromedriver" ".bundle/" "digitalocean/" ".psql_history" ".bashrc" ".zshrc" "icomoon.svg" ".bash_history" "antigen/" ".pip/" "icomoon.woff" ".pry_history" ".gnupg/" ".rvm/" ".zprofile" ".irb-history" ".profile" "Projects/" "google-chrome-stable_current_i386.deb" "tmp/" ".zsh/" ".local/" "../" ".lesshst")
+ ("/home/jason/.emacs.d/plugins/" (21452 35974 118176 999000) "kill-buffer-without-confirm.el" "mac-frame-adjust.el" "frame-adjust.el" "switch-window.el" "./" "sed-mode.el" "jasmine-coffee-runner.el" "xfrp_find_replace_pairs.el" "windata.el" "hexrgb+.el" "scroll-bell-fix.el" "rainbow-mode.el" "rails-generate-migration.el" "resize-window.el" "shellfix.el" "hideshowvis.el" "squeeze-view.el" "../" "open-line-below.el")
 
- ("/home/jason/.emacs.d/" (21454 26157 682176 999000) "snippets/" "init.el" ".gitignore" "tramp" "var/" "testing" "vendor/" "url/" "auto-save-list/" "elpa/" "projectile-bookmarks.eld" "hyde/" "theme-holding/" "modes-init/" "./" "places" "ac-comphist.dat" "markdown.css" "server/" "history" ".mc-lists.el" "recentf" "custom/" ".gitmodules" "nxml-schemas/" "plugins/" "README.md" "old-color-themes/" "ido.last" "eshell/" "tmp/" ".git/" "../")
+ ("/home/jason/.emacs.d/" (21455 44974 118176 999000) "snippets/" "init.el" ".gitignore" "tramp" "var/" "testing" "vendor/" "url/" "auto-save-list/" "elpa/" "projectile-bookmarks.eld" "hyde/" "theme-holding/" "modes-init/" "./" "places" "ac-comphist.dat" "markdown.css" "server/" "history" ".mc-lists.el" "recentf" "custom/" ".gitmodules" "nxml-schemas/" "plugins/" "README.md" "old-color-themes/" "ido.last" "eshell/" "tmp/" ".git/" "../")
+
+ ("/home/jason/" (21455 44928 34176 999000) "google-chrome-stable_current_i386.deb.1" ".ssh/" "selenium-server-standalone-2.41.0.jar" ".zsh_history" "AppIcon.icns" ".Xauthority" ".gitconfig" ".pki/" ".emacs.d/" ".bash_logout" ".antigen/" ".sqlite_history" ".zcompdump" ".cache/" ".bash_profile" "icomoon.eot" ".smex-items" ".mysql_history" ".gem/" ".npm/" "./" ".emacs-theme" "chromedriver_linux64.zip" "icomoon.ttf" ".autoenv_authorized" ".config/" ".autoenv_authorized.tmp" "google-chrome-stable_current_amd64.deb" ".guard_history" "chromedriver" ".bundle/" "digitalocean/" ".psql_history" ".bashrc" ".zshrc" "icomoon.svg" ".bash_history" "antigen/" ".pip/" "icomoon.woff" ".pry_history" ".gnupg/" ".rvm/" ".zprofile" ".irb-history" ".profile" "Projects/" "google-chrome-stable_current_i386.deb" "tmp/" ".zsh/" ".local/" "../" ".lesshst")
 
  ("/home/jason/.emacs.d/snippets/coffee-mode/" (21454 14191 666176 999000) "Ternary If.yasnippet" "entc" "it" "ithasd" "Array comprehension.yasnippet" "Class.yasnippet" "entm" "jset" "llog.yasnippet" "etbap" "entu" "enthbcw" "entbd" "ita" "etm" "Unless.yasnippet" "etn" ".yas-setup.el" "Else if.yasnippet" "ete" "etu" "entn" "ithass" "Switch.yasnippet" "entt" "Angular Http Callback.yasnippet" "ethbcw" "Try __ Catch.yasnippet" "Object comprehension.yasnippet" "etb" "./" "etbd" "ithasm" "entbap" "etbl" "entb" "ddeps" "etc" "Interpolated Code.yasnippet" "etoth" "des" "ett" "Alert Last Console.log.yasnippet" "bmod" "Range comprehension (inclusive).yasnippet" "jlet" "Bound Function.yasnippet" "etbg" "dctrl" "ente" "entf" "Function.yasnippet" "log.yasnippet" "Raw javascript.yasnippet" "enthbc" "entoth" "entbg" "entbl" "ethbc" "If __ Else.yasnippet" "Range comprehension (exclusive).yasnippet" "../" "require.yasnippet" "iti" "If.yasnippet" "bef" "etf" "ithase")
 
  ("/home/jason/.emacs.d/modes-init/" (21452 39123 138176 999000) "init-flymake.el" "init-ruby.el" "init-guide.el" "init-rvm.el" "init-rainbow-delimiters.el" "init-winner.el" "init-ido.el" "init-git-gutter.el" "init-company-mode.el" "init-sh.el" "init-multi-web-mode.el" "init-exec-path.el" "init-yaml.el" "init-dired.el" "init-remember-theme.el" "init-pivotal.el" "./" "init-misc-settings.el" "init-nxml.el" "init-elpa-themes.el" "init-rainbow.el" "init-emacs-daemon.el" "init-codenotes.el" "init-projectile.el" "init-yasnippet.el" "init-smartparens.el" "init-markdown.el" "init-coffee.el" "init-buffer-clean.el" "init-autocomplete.el" "init-enh-ruby.el" "init-elpa.el" "init-json-mode.el" "init-haml.el" "init-projectile-rails.el" "init-flycheck.el" "init-hideshowvis.el" "init-ispell.el" "../" "init-smooth-scroll.el" "init-asciidoc.el")
-
- ("/home/jason/.emacs.d/plugins/" (21442 46220 798176 999000) "kill-buffer-without-confirm.el" "mac-frame-adjust.el" "frame-adjust.el" "switch-window.el" "./" "sed-mode.el" "xfrp_find_replace_pairs.el" "windata.el" "hexrgb+.el" "scroll-bell-fix.el" "rainbow-mode.el" "rails-generate-migration.el" "resize-window.el" "shellfix.el" "hideshowvis.el" "squeeze-view.el" "../")
 
  ("/home/jason/.emacs.d/elpa/projectile-20140624.443/" (21424 12167 422176 999000) "projectile.el" "projectile-pkg.elc" "projectile-autoloads.el" "./" "projectile-pkg.el" "projectile.elc" "../")
 
