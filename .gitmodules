@@ -1,3 +1,0 @@
-[submodule "vendor/nyan-mode"]
-	path = vendor/nyan-mode
-    url = git://github.com/ocodo/nyan-mode.git
