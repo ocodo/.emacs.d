@@ -1,10 +1,10 @@
 ;;; god-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (god-mode-maybe-activate god-mode-all god-mode
-;;;;;;  god-local-mode) "god-mode" "god-mode.el" (21406 24817 0 0))
+;;;### (autoloads nil "god-mode" "god-mode.el" (21455 44972 426176
+;;;;;;  999000))
 ;;; Generated autoloads from god-mode.el
 
 (autoload 'god-local-mode "god-mode" "\
@@ -29,16 +29,9 @@ Activate God mode locally on individual buffers when appropriate.
 
 ;;;***
 
-;;;### (autoloads nil nil ("god-mode-pkg.el") (21406 24817 657064
-;;;;;;  0))
-
-;;;***
-
-(provide 'god-mode-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; god-mode-autoloads.el ends here

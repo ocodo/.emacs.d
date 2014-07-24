@@ -1,16 +1,10 @@
 ;;; helm-gtags-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (helm-gtags-mode helm-gtags-update-tags helm-gtags-clear-all-stacks
-;;;;;;  helm-gtags-clear-stack helm-gtags-show-stack helm-gtags-pop-stack
-;;;;;;  helm-gtags-parse-file helm-gtags-find-tag-from-here helm-gtags-find-files
-;;;;;;  helm-gtags-find-pattern helm-gtags-find-symbol helm-gtags-find-rtag
-;;;;;;  helm-gtags-find-tag helm-gtags-select-path helm-gtags-select
-;;;;;;  helm-gtags-previous-history helm-gtags-next-history helm-gtags-clear-cache
-;;;;;;  helm-gtags-clear-all-cache) "helm-gtags" "helm-gtags.el"
-;;;;;;  (21428 50389 0 0))
+;;;### (autoloads nil "helm-gtags" "helm-gtags.el" (21455 44969 942176
+;;;;;;  999000))
 ;;; Generated autoloads from helm-gtags.el
 
 (autoload 'helm-gtags-clear-all-cache "helm-gtags" "\
@@ -104,6 +98,11 @@ Generate new TAG file in selected directory with `C-u C-u'
 
 \(fn)" t nil)
 
+(autoload 'helm-gtags-resume "helm-gtags" "\
+Resurrect previously invoked `helm-gtags` command.
+
+\(fn)" t nil)
+
 (autoload 'helm-gtags-mode "helm-gtags" "\
 Toggle Helm-Gtags mode on or off.
 With a prefix argument ARG, enable Helm-Gtags mode if ARG is
@@ -115,16 +114,9 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("helm-gtags-pkg.el") (21428 50389 489978
-;;;;;;  0))
-
-;;;***
-
-(provide 'helm-gtags-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; helm-gtags-autoloads.el ends here

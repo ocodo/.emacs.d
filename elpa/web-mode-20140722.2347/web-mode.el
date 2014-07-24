@@ -3,7 +3,7 @@
 
 ;; Copyright 2011-2014 François-Xavier Bois
 
-;; Version: 9.0.50
+;; Version: 9.0.51
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: July 2011
@@ -46,7 +46,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "9.0.50"
+(defconst web-mode-version "9.0.51"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -3314,12 +3314,13 @@ the environment as needed for ac-sources, right before they're used.")
          ((and (null close-expr) (looking-at-p "[ ]*/>"))
           (setq flags (logior flags 24))
           (search-forward ">")
-          (when (logand flags 8)
+          (when (> (logand flags 8) 0)
+;;            (message "ici%S" (point))
             (setq props (plist-put props 'tag-type 'void)))
           (setq tend (point)))
          ((null close-expr)
           (setq flags (logior flags (web-mode-tag-skip reg-end)))
-          (when (logand flags 8) ;;(eq (char-before (1- (point))) ?\/)
+          (when (> (logand flags 8) 0) ;;(eq (char-before (1- (point))) ?\/)
             ;;            (message "ici")
             (setq props (plist-put props 'tag-type 'void)))
           ;;          (search-forward ">")
@@ -4366,7 +4367,7 @@ the environment as needed for ac-sources, right before they're used.")
       (setq beg (next-single-property-change pos 'tag-attr))
       (if (and beg (< beg reg-end))
           (progn
-            (setq flags (get-text-property beg 'tag-attr))
+            (setq flags (or (get-text-property beg 'tag-attr) 0))
 ;;            (message "beg=%S flags=%S" beg flags)
             (setq face (cond
                         ((= (logand flags 1) 1) 'web-mode-html-attr-custom-face)
@@ -5117,7 +5118,7 @@ the environment as needed for ac-sources, right before they're used.")
 ;; tag-case=lower|upper-case , attr-case=lower|upper-case
 ;; special-chars=unicode|html-entities
 ;; smart-apostrophes=bool , smart-quotes=bool , indentation=bool
-(defun web-mode-buffer-normalize ()
+(defun web-mode-dom-normalize ()
   "Normalize buffer"
   (interactive)
   (save-excursion
@@ -8912,19 +8913,26 @@ the environment as needed for ac-sources, right before they're used.")
   "web-mode-block-previous-position"
   (unless pos (setq pos (point)))
   (cond
+   ((= pos (point-min))
+    (setq pos nil))
    ((get-text-property pos 'block-side)
     (setq pos (web-mode-block-beginning-position pos))
+    ;;(message "pos=%S  <%c>" pos (char-after pos))
     (when (and pos (> pos (point-min)))
       (setq pos (1- pos))
       (while (and (> pos (point-min))
                   (eq (char-after pos) ?\n))
         (setq pos (1- pos))
-        )
-      ;;(message "pos=%S  <%c>" pos (char-after pos))
+        ) ;while
+;;      (message "pos=%S  <%c>" pos (char-after pos))
       (if (get-text-property pos 'block-side)
           (setq pos (web-mode-block-beginning-position pos))
+;;        (message "pos=%S  <%c> %S" pos (char-after pos) (get-text-property pos 'block-side))
         (setq pos (previous-single-property-change pos 'block-side))
+;;        (message "pos=%S" pos)
         (cond
+         ((and (null pos) (get-text-property (point-min) 'block-beg))
+          (setq pos (point-min)))
          ((and pos (get-text-property pos 'block-beg))
           )
          ((and pos (> pos (point-min)))
@@ -8932,9 +8940,11 @@ the environment as needed for ac-sources, right before they're used.")
          )
         ) ;if
       ) ;when
+;;    (message "pos=%S  <%c>" pos (char-after pos))
     ) ;block-side
    (t
     (setq pos (previous-single-property-change pos 'block-side))
+;;    (message "ici")
     (when (and pos (> pos (point-min)))
       (setq pos (web-mode-block-beginning-position (1- pos))))
     )
