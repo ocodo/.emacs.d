@@ -1,5 +1,6 @@
 ;; Dired mode init
 (require 'dired-details+)
+(require 'dirtree)
 
 (setq dired-details-initially-hide t)
 
@@ -13,7 +14,5 @@
 
 (add-hook 'dired-after-readin-hook
           #'(lambda () (dired-details-activate)))
-
-(autoload 'dirtree "dirtree" "Add directory to tree view" t)
 
 (provide 'init-dired)
