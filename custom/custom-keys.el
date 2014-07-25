@@ -12,7 +12,9 @@
 
 (require 'mac-port-keys)
 (require 'custom-mac-fn-keys)
+(require 'misc)
 
+(global-set-key (kbd "C-=")                 'cua-set-rectangle-mark)
 (global-set-key (kbd "M-Z")                 'zap-to-char)
 (global-set-key (kbd "M-z")                 'zap-up-to-char)
 (global-set-key (kbd "s-8")                 'rotate-window)
