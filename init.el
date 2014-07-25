@@ -71,34 +71,35 @@ trying to run it."
 (normal-top-level-add-subdirs-to-load-path)
 (cd "~/")
 
+(require 'init-elpa)
+(require 'cl)
+(require 'cl-lib)
+(require 's)
+(require 'f)
+(require 'dash)
 
 ;; Explicit Requires ...
-(mapcar 'require
-        (list
-         'cl
-         'cl-lib
-         's
-         'dash
-         'f
-         'ag
-         'dropdown-list
-         'highlight-indentation
-         'iedit
-         'misc
-         'js2-refactor
-         'multiple-cursors
-         'init-elpa
-         'handy-functions
-         'custom-keys
-         'armitp-mode-line
-         'auto-complete-config
-         'hyde-autoloads
-         'kill-buffer-without-confirm
-         'mac-frame-adjust
-         'resize-window
-         'scroll-bell-fix
-         'squeeze-view
-         'switch-window))
+(add-hook 'after-init-hook
+          (lambda ()
+            "Require all libraries in this list"
+            (mapcar 'require
+                  (list
+                   'handy-functions
+                   'custom-keys
+                   'ag
+                   'armitp-mode-line
+                   'highlight-indentation
+                   'hyde-autoloads
+                   'iedit
+                   'js2-refactor
+                   'kill-buffer-without-confirm
+                   'mac-frame-adjust
+                   'multiple-cursors
+                   'resize-window
+                   'scroll-bell-fix
+                   'squeeze-view
+                   'switch-window
+                   ))))
 
 ;; mode inits
 (process-mode-inits
