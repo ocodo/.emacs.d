@@ -1,5 +1,5 @@
 (when (window-system)
-  (autoload 'hideshowvis "hideshowvis")
+  (require 'hideshowvis)
 
   (add-to-list 'hs-special-modes-alist
        '(ruby-mode
