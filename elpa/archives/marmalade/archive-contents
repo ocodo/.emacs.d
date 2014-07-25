@@ -1,4 +1,9 @@
 (1
+ (how-many-lines-in-project .
+          [(0 2)
+           ((find-file-in-project
+             (3 3)))
+           "Calculate how many lines are there in your project." single])
  (clojure-env .
         [(0 0 3)
          nil "manage clojure environments with Emacs" single])
@@ -1844,7 +1849,7 @@
       [(1 2 2)
        nil "modeline replacement forked from an early version of powerline.el" single])
  (maildir .
-    [(0 0 26)
+    [(0 0 27)
      ((kv
        (0 0 17))
       (dash
