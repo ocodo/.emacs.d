@@ -1,4 +1,4 @@
 ;; init-asciidoc
-(autoload 'asciidoc-mode "asciidoc-mode" nil t)
+(require 'asciidoc)
 (add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode))
 (provide 'init-asciidoc)
