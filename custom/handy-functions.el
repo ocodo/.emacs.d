@@ -1,8 +1,19 @@
-;;; handy-functions --- a collection of functions I've been too lazy to organize...
+;;; handy-functions --- a collection of functions I'm too lazy to organize properly...
 ;;; Commentary:
+;;
+;;  A collection of miscellaneous functions, which are either
+;;  candidates to migrate to a minor mode, or will languish here in
+;;  perpetuity.
+;;
+;;  Sorted in no particular order.
+;;
+;;; License:
+;;  GPL3
+;;
 ;;; Code:
 
 (require 's)
+(require 'find-func)
 
 (defun prepend-existing-to-exec-path (path)
   "If PATH exists, prepend it to `exec-path'."
@@ -26,17 +37,14 @@
   (insert (format "%s" (* (/ float-pi 180) (random 361)))))
 
 (defun fraction-radian (denominator)
+  "Fraction DENOMINATOR of circle to radians."
   (interactive "nDenomiator:")
   (insert (format "%s" (/ (* float-pi 2) denominator))))
 
 (defun random-in-range (start end)
+  "Return a random number in range START to END."
   (random t)
   (+ start (random (+ 1 (- end start)))))
-
-(defun degrees-to-radians (degrees)
-  "Insert radians for degrees"
-  (interactive "ndegrees:")
-  (insert (format "%s" (* (/ float-pi 180) degrees))))
 
 (defun now-is ()
   "Insert current time."
@@ -140,15 +148,16 @@
                        string)))
   (shell-command-on-region start end command t t))
 
-(defun directory-of-library (library-name)
-  "open directory with dired which contains the given library"
+(defun directory-of-library (libraryname)
+  "Open directory with dired which contain the given LIBRARYNAME."
   (interactive "M")
   (dired (file-name-as-directory
-          (file-name-directory (find-library-name library-name)))))
+          (file-name-directory (find-library-name libraryname)))))
 
 (defun delete-this-file ()
+  "Delete the file being edited."
   (interactive)
-  (or (buffer-file-name) (error "no file is currently being edited"))
+  (or (buffer-file-name) (error "There is no file associated with this buffer"))
   (when (yes-or-no-p (format "Really delete '%s'?"
                              (file-name-nondirectory buffer-file-name)))
     (delete-file (buffer-file-name))
@@ -181,10 +190,10 @@
       (ca-all-asscs (cdr assoc_list) query)))))
 
 (defun shell-command-on-buffer-file ()
-  "prompts for a command and executes that command on to the associated
- file of current buffer. if no buffer is associated gives an error"
+  "Run a shell command, using the file of current buffer as input.
+Return an error if no buffer file."
   (interactive)
-  (or (buffer-file-name) (error "no file is associated file to this buffer"))
+  (or (buffer-file-name) (error "There is no file associated with this buffer"))
   (let* ((my-cmd (read-shell-command "Command to run: "))
          (cmd-to-run (concat my-cmd " " (buffer-file-name))))
     (shell-command cmd-to-run)))
@@ -324,7 +333,6 @@ the buffer."
       (setq end_match (- (search-forward wrap_end) 1))
       (buffer-substring-no-properties start_match end_match))))
 
-
 ;; Change a string to a ruby symbol, note: naive operation
 (defun ruby-toggle-symbol-at-point ()
   "Dirt simple, just prefix current word with a colon."
@@ -365,20 +373,13 @@ the buffer."
 (eval-after-load 'ruby-mode
   '(define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region))
 
-(defun browse-to-jasmine-spec ()
-  "Quickly open a jasmine spec, only works on the top class for the moment"
+(defun kill-whole-word ()
+  "Kill the current word at point."
   (interactive)
-  (let (pos1 pos2 jasmine-spec-name)
-    (if (and transient-mark-mode mark-active)
-        (setq pos1 (region-beginning)
-              pos2 (region-end))
-      (setq pos1 (car (bounds-of-thing-at-point 'symbol))
-            pos2 (cdr (bounds-of-thing-at-point 'symbol))))
-    (setq jasmine-spec-name (buffer-substring-no-properties pos1 pos2))
+  (backward-word)
+  (kill-word 1))
 
-    (browse-url (format "http://localhost:3000/jasmine?spec=%s" jasmine-spec-name))))
-
+(global-set-key (kbd "ESC M-d") 'kill-whole-word)
 
 (provide 'handy-functions)
-
 ;;; handy-functions.el ends here
