@@ -36,6 +36,8 @@
 ;;; Requires: ((coffee-mode))
 ;;; Code:
 
+(require 'coffee-mode)
+
 (defvar jasmine-coffee/base-url
   "http://localhost:3000/jasmine?spec="
   "Base URL for our Jasmine spec runner.")
@@ -60,61 +62,13 @@
   (rx "beforeEach" (? "(") (? " ") "->")
   "Regexp to find a jasmine coffee-mode `beforeEach'.")
 
-(defun jasmine-coffee/verify-single ()
-  "Compose the Spec URL launch a browser and run the single spec above the cursor point."
-  (interactive)
-  (jasmine-coffee/verify-it))
-
-(defun jasmine-coffee/verify-it ()
-  "Compose the Spec URL launch a browser and run the single spec above the cursor point."
-  (interactive)
-  (let* ((start-column 0) (spec-string ""))
-    (save-excursion
-      (re-search-backward jasmine-coffee/it-regexp)
-      (setq start-column (current-column))
-      (setq spec-string (match-string-no-properties 1))
-      (while
-          (re-search-backward jasmine-coffee/describe-regexp 0 t)
-        (when (< (current-column) start-column)
-          (setq start-column (current-column))
-          (setq spec-string (format "%s %s" (match-string 1) spec-string)))))
-    (setq spec-string (replace-regexp-in-string "#" "%23" spec-string))
-    (browse-url (url-encode-url (concat jasmine-coffee/base-url spec-string)))))
-
-(defun jasmine-coffee/verify-group ()
-  "Compose the Spec URL launch a browser and run the spec at the cursor point."
-  (interactive)
-  (jasmine-coffee/verify-describe))
-
-(defun jasmine-coffee/verify-describe ()
-  "Compose the Spec URL launch a browser and run the spec at the cursor point."
-  (interactive)
-  (let* ((start-column 0) (spec-string ""))
-    (save-excursion
-      (re-search-backward jasmine-coffee/describe-regexp)
-      (setq start-column (current-column))
-      (setq spec-string (match-string-no-properties 1))
-      (while
-          (re-search-backward jasmine-coffee/describe-regexp 0 t)
-        (when (< (current-column) start-column)
-          (setq start-column (current-column))
-          (setq spec-string (format "%s %s" (match-string 1) spec-string)))))
-    (setq spec-string (replace-regexp-in-string "#" "%23" spec-string))
-    (browse-url (url-encode-url (concat jasmine-coffee/base-url spec-string)))))
-
-(defun jasmine-coffee/var-to-jlet ()
-  "Convert local var on current line to a jlet.
-Don't move it, in case it's a multiline expression."
-  (interactive)
-  (save-excursion
-    (jasmine-coffee/var-to-function-call-form "jlet")))
-
-(defun jasmine-coffee/var-to-jset ()
-  "Convert local var on current line to a jset.
-Don't move it, in case it's a multiline expression."
-  (interactive)
-  (save-excursion
-    (jasmine-coffee/var-to-function-call-form "jset")))
+(defun jasmine-coffee/kill-line-or-region ()
+  "Utility function to kill whole line or region."
+  (let (region)
+    (setq region (if (use-region-p)
+                     (list (region-beginning) (region-end))
+                     (list (line-beginning-position) (line-beginning-position 2))))
+    (kill-region (car region) (car (cdr region)))))
 
 (defun jasmine-coffee/var-to-function-call-form (function-call-prefix)
   "Non-interactive convert variable to FUNCTION-CALL-PREFIX form."
@@ -137,36 +91,115 @@ Don't move it, in case it's a multiline expression."
     (delete-horizontal-space)
     (insert " -> ")))
 
-(defun jasmine-coffee/move-to-previous-before-each ()
-  "Move the current line or region to the previous beforeEach body."
+(defun jasmine-coffee/move-to-indentedation ()
+  "Move to the indentation of the current line."
+  (move-end-of-line 1)
+  (back-to-indentation))
+
+(defun jasmine-coffee/get-region-indent-list ()
+  "Collect list of indent columns from region."
+  (let (columns-list
+        (end (region-end)))
+    (save-excursion
+      (when (= (point) end) (exchange-point-and-mark))
+      (while (< (point) end)
+        (jasmine-coffee/move-to-indentedation)
+        (push (current-column) columns-list)
+        (forward-line 1)))
+    (reverse columns-list)))
+
+(defun jasmine-coffee/get-current-line-indent-as-list ()
+  "Get a list containing the current line's indentation column."
+  (jasmine-coffee/move-to-indentedation)
+  (list (current-column)))
+
+(defun jasmine-coffee/get-indent-list ()
+  "Get a list of indent positions from either the region or the current line."
+  (if (use-region-p)
+      (jasmine-coffee/get-region-indent-list)
+    (jasmine-coffee/get-current-line-indent-as-list)))
+
+(defun jasmine-coffee/reset-indentation (indent-list)
+  "From the current posion reset indentation using the supplied INDENT-LIST."
+  (let* ((current (current-column))
+         (first (pop indent-list))
+         (difference (- current first)))
+    (while indent-list
+      (forward-line)
+      (indent-line-to (+ difference (pop indent-list))))))
+
+(defun jasmine-coffee/move-to-previous-thing (pattern)
+  "Move the current line or region to the previous thing defined by PATTERN."
+  (save-excursion
+    (let* ((indent-list (jasmine-coffee/get-indent-list)))
+      (jasmine-coffee/kill-line-or-region)
+      (re-search-backward pattern)
+      (end-of-line)
+      (save-excursion
+        (yank))
+      (delete-horizontal-space)
+      (coffee-newline-and-indent)
+      (jasmine-coffee/reset-indentation indent-list))))
+
+(defun jasmine-coffee/verify-thing (pattern)
+  "Compose and launch a jasmine spec URL for the previous thing defined by PATTERN."
+  (let* ((start-column 0) (spec-string ""))
+    (save-excursion
+      (re-search-backward pattern)
+      (setq start-column (current-column))
+      (setq spec-string (match-string-no-properties 1))
+      (while
+          (re-search-backward jasmine-coffee/describe-regexp 0 t)
+        (when (< (current-column) start-column)
+          (setq start-column (current-column))
+          (setq spec-string (format "%s %s" (match-string 1) spec-string)))))
+    (setq spec-string (replace-regexp-in-string "#" "%23" spec-string))
+    (save-current-buffer)
+    (browse-url (url-encode-url (concat jasmine-coffee/base-url spec-string)))))
+
+(defun jasmine-coffee/var-to-jlet ()
+  "Convert local var on current line to a jlet.
+Don't move it, in case it's a multiline expression."
   (interactive)
   (save-excursion
-    (jasmine-coffee/kill-line-or-region)
-    (re-search-backward jasmine-coffee/before-each-regexp)
-    (end-of-line)
-    (coffee-newline-and-indent)
-    (yank)))
+    (jasmine-coffee/var-to-function-call-form "jlet")))
+
+(defun jasmine-coffee/var-to-jset ()
+  "Convert local var on current line to a jset.
+Don't move it, in case it's a multiline expression."
+  (interactive)
+  (save-excursion
+    (jasmine-coffee/var-to-function-call-form "jset")))
 
 (defun jasmine-coffee/move-to-previous-describe ()
   "Move the current line or region to the previous describe body."
   (interactive)
-  (save-excursion
-    (jasmine-coffee/kill-line-or-region)
-    (re-search-backward jasmine-coffee/describe-regexp)
-    (end-of-line)
-    (coffee-newline-and-indent)
-    (yank)))
+  (jasmine-coffee/move-to-previous-thing jasmine-coffee/describe-regexp))
 
-(defun jasmine-coffee/kill-line-or-region ()
-  "Utility function to kill whole line or region."
-  (let* (region (list ))
-    (setq region (if (use-region-p)
-                     (list (region-beginning) (region-end))
-                   (progn
-                     (beginning-of-line)
-                     (delete-horizontal-space)
-                     (list (line-beginning-position) (line-beginning-position 2)))))
-    (kill-region (car region) (car (cdr region)))))
+(defun jasmine-coffee/move-to-previous-before-each ()
+  "Move the current line or region to the previous beforeEach body."
+  (interactive)
+  (jasmine-coffee/move-to-previous-thing jasmine-coffee/before-each-regexp))
+
+(defun jasmine-coffee/verify-describe ()
+  "Compose the Spec URL launch a browser and run the specs within the describe block found behind the cursor point."
+  (interactive)
+  (jasmine-coffee/verify-thing jasmine-coffee/describe-regexp))
+
+(defun jasmine-coffee/verify-group ()
+  "Alias for verify describe."
+  (interactive)
+  (jasmine-coffee/verify-describe))
+
+(defun jasmine-coffee/verify-it ()
+  "Compose the Spec URL launch a browser and run the single spec above the cursor point."
+  (interactive)
+  (jasmine-coffee/verify-thing jasmine-coffee/it-regexp))
+
+(defun jasmine-coffee/verify-single ()
+  "Alias for verify it."
+  (interactive)
+  (jasmine-coffee/verify-it))
 
 (provide 'jasmine-coffee)
 ;;; jasmine-coffee.el ends here
