@@ -65,7 +65,7 @@
          ((:url . "http://github.com/defunkt/coffee-mode")
     (:keywords "coffeescript" "major" "mode"))])
  (company .
-    [(0 8 1)
+    [(0 8 2)
      ((emacs
        (24 1))
       (cl-lib
@@ -152,12 +152,12 @@
         ((:url . "http://elpa.gnu.org/packages/epoch-view.html")
          (:keywords "data" "timestamp" "epoch" "unix"))])
  (ergoemacs-mode .
-     [(5 14 7 2)
+     [(5 14 7 3)
       ((emacs
         (24 1))
        (undo-tree
         (0 6 5)))
-      "Emacs mode based on common modern software interface and ergonomics." tar
+      "Emacs mode based on common modern interface and ergonomics." tar
       ((:keywords "convenience")
        (:url . "https://github.com/ergoemacs/ergoemacs-mode"))])
  (f90-interface-browser .
@@ -293,7 +293,7 @@
       ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
        (:keywords))])
  (org .
-      [(20140721)
+      [(20140728)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)

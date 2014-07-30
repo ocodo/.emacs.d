@@ -1,4 +1,12 @@
 (1
+ (mv-shell .
+     [(1 2)
+      nil "keep buffers in sync with filename throughout 'mv'commands in shell-mode." single])
+ (fancy-battery .
+    [(0 1)
+     ((emacs
+       (24 1)))
+     "Fancy battery display" single])
  (how-many-lines-in-project .
           [(0 2)
            ((find-file-in-project
@@ -217,7 +225,7 @@
      [(8 0 4)
       nil "major mode for editing html templates" single])
  (web .
-      [(0 4 2)
+      [(0 4 3)
        ((dash
    (2 3 0)))
        "useful HTTP client" single])
@@ -3150,9 +3158,9 @@
        [(0 4)
         nil "Handy functions for inspecting and comparing package archives" single])
  (elnode .
-   [(0 9 9 7 9)
+   [(0 9 9 8 1)
     ((web
-      (0 1 4))
+      (0 4 3))
      (dash
       (1 1 0))
      (noflet
@@ -3819,7 +3827,7 @@
   [(0 1)
    nil "implementation of a hash table whose key-value pairs expire" single])
  (c-eldoc .
-    [(0 5)
+    [(0 7)
      nil "helpful description of the arguments to C functions" single])
  (button-lock .
         [(1 0 0)
