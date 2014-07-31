@@ -23,6 +23,10 @@
 ;;
 ;;    M-x jasmine-coffee/var-to-jset
 ;;
+;;  Convert a local var assignment to a lazy
+;;
+;;    M-x jasmine-coffee/var-to-lazy
+;;
 ;;  Move the current line or region to the previous describe body
 ;;
 ;;    M-x jasmine-coffee/move-to-previous-describe
@@ -177,7 +181,7 @@ jasmine-let.  It is not a part of jasmine."
 (defun jasmine-coffee/var-to-jset ()
   "Convert local var on the current line to a jset.
 
-jset is a variable evaluation form similar to rspec's set.
+jset is a variable evaluation form similar to rspec's let!.
 It is not a part of jasmine."
   (interactive)
   (save-excursion
