@@ -70,7 +70,7 @@
                      (list (line-beginning-position) (line-beginning-position 2))))
     (kill-region (car region) (car (cdr region)))))
 
-(defun jasmine-coffee/var-to-function-call-form (function-call-prefix)
+(defun jasmine-coffee/var-to-function-form (function-call-prefix)
   "Non-interactive convert variable to FUNCTION-CALL-PREFIX form."
   ;; NOTE: This is a very simplistic macro-like implementation, I
   ;; should improve it.
@@ -142,9 +142,10 @@
       (jasmine-coffee/reset-indentation indent-list))))
 
 (defun jasmine-coffee/verify-thing (pattern)
-  "Compose and launch a jasmine spec URL for the previous thing defined by PATTERN."
+  "Compose and launch a jasmine spec URL for the thing defined by PATTERN."
   (let* ((start-column 0) (spec-string ""))
     (save-excursion
+      (move-end-of-line 1)
       (re-search-backward pattern)
       (setq start-column (current-column))
       (setq spec-string (match-string-no-properties 1))
@@ -157,19 +158,30 @@
     (save-current-buffer)
     (browse-url (url-encode-url (concat jasmine-coffee/base-url spec-string)))))
 
-(defun jasmine-coffee/var-to-jlet ()
-  "Convert local var on current line to a jlet.
-Don't move it, in case it's a multiline expression."
+(defun jasmine-coffee/var-to-lazy ()
+  "Convert local var on the current line to a lazy.
+See Jasmine-let github.com:xaethos/jasmine-let.git"
   (interactive)
   (save-excursion
-    (jasmine-coffee/var-to-function-call-form "jlet")))
+    (jasmine-coffee/var-to-function-form "lazy")))
+
+(defun jasmine-coffee/var-to-jlet ()
+  "Convert local var on the current line to a jlet.
+
+jlet is a lazy evaluation variable form for jasmine, similar to
+jasmine-let.  It is not a part of jasmine."
+  (interactive)
+  (save-excursion
+    (jasmine-coffee/var-to-function-form "jlet")))
 
 (defun jasmine-coffee/var-to-jset ()
-  "Convert local var on current line to a jset.
-Don't move it, in case it's a multiline expression."
+  "Convert local var on the current line to a jset.
+
+jset is a variable evaluation form similar to rspec's set.
+It is not a part of jasmine."
   (interactive)
   (save-excursion
-    (jasmine-coffee/var-to-function-call-form "jset")))
+    (jasmine-coffee/var-to-function-form "jset")))
 
 (defun jasmine-coffee/move-to-previous-describe ()
   "Move the current line or region to the previous describe body."
@@ -182,22 +194,24 @@ Don't move it, in case it's a multiline expression."
   (jasmine-coffee/move-to-previous-thing jasmine-coffee/before-each-regexp))
 
 (defun jasmine-coffee/verify-describe ()
-  "Compose the Spec URL launch a browser and run the specs within the describe block found behind the cursor point."
+  "Compose and launch Spec URL for the current describe block."
   (interactive)
   (jasmine-coffee/verify-thing jasmine-coffee/describe-regexp))
 
 (defun jasmine-coffee/verify-group ()
-  "Alias for verify describe."
+  "Alias for verify describe.
+Compose and launch Spec URL for the current describe block."
   (interactive)
   (jasmine-coffee/verify-describe))
 
 (defun jasmine-coffee/verify-it ()
-  "Compose the Spec URL launch a browser and run the single spec above the cursor point."
+  "Compose and launch spec URL for the current spec."
   (interactive)
   (jasmine-coffee/verify-thing jasmine-coffee/it-regexp))
 
 (defun jasmine-coffee/verify-single ()
-  "Alias for verify it."
+  "Alias for verify it.
+Compose and launch spec URL for the current spec."
   (interactive)
   (jasmine-coffee/verify-it))
 
