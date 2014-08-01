@@ -50,8 +50,9 @@ trying to run it."
   (mapcar 'load-mode-init names))
 
 ;; Manage history
+(require 'savehist)
 (eval-after-load "savehist-mode"
-  (lambda ()
+  (progn
     (setq savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
     (setq savehist-file "~/.emacs.d/tmp/savehist")))
 
