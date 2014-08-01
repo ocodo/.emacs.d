@@ -136,22 +136,21 @@
   "Non-interactive convert variable to FUNCTION-CALL-PREFIX form."
   ;; NOTE: This is a very simplistic macro-like implementation, I
   ;; should improve it.
-  (with-demoted-errors
-    (beginning-of-line)
-    (re-search-forward "=")
-    (kill-backward-chars 1)
-    (insert ",")
-    (beginning-of-line)
-    (search-forward-regexp "[^\s]")
-    (backward-char)
-    (insert (format "%s '" function-call-prefix))
-    (search-forward-regexp "[\s]")
-    (backward-char)
-    (insert "'")
-    (delete-horizontal-space)
-    (forward-char)
-    (delete-horizontal-space)
-    (insert " -> ")))
+  (beginning-of-line)
+  (re-search-forward "=")
+  (kill-backward-chars 1)
+  (insert ",")
+  (beginning-of-line)
+  (search-forward-regexp "[^\s]")
+  (backward-char)
+  (insert (format "%s '" function-call-prefix))
+  (search-forward-regexp "[\s]")
+  (backward-char)
+  (insert "'")
+  (delete-horizontal-space)
+  (forward-char)
+  (delete-horizontal-space)
+  (insert " -> "))
 
 (defun jasmine-coffee/move-to-indentation ()
   "Move to the indentation of the current line."
