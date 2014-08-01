@@ -4,7 +4,7 @@ Assuming you have `git` installed...
 
 In a terminal window, type:
 
-    git clone --recursive --depth 1 git://github.com/ocodo/emacs.d.git ~/.emacs.d
+    git clone https://github.com/ocodo/emacs.d.git ~/.emacs.d
 
 Now start Emacs - if you're running in a shell, (ie. iTerm2)
 set the Terminal mode to `xterm-256color`, e.g.
