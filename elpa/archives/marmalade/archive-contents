@@ -3,7 +3,7 @@
      [(1 2)
       nil "keep buffers in sync with filename throughout 'mv'commands in shell-mode." single])
  (fancy-battery .
-    [(0 1)
+    [(0 2)
      ((emacs
        (24 1)))
      "Fancy battery display" single])
@@ -1072,7 +1072,7 @@
        (1 2)))
      "A library for pasting to https://refheap.com" single])
  (recursive-narrow .
-       [(1 0)
+       [(1 2)
         nil "narrow-to-region that operates recursively" single])
  (rect-mark .
       [(1 4)
@@ -3158,7 +3158,7 @@
        [(0 4)
         nil "Handy functions for inspecting and comparing package archives" single])
  (elnode .
-   [(0 9 9 8 1)
+   [(0 9 9 8 4)
     ((web
       (0 4 3))
      (dash
