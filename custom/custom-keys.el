@@ -14,6 +14,8 @@
 (require 'custom-mac-fn-keys)
 (require 'misc)
 
+(global-set-key (kbd "C-x /")               'align-regexp)
+
 (global-set-key (kbd "C-=")                 'cua-set-rectangle-mark)
 (global-set-key (kbd "M-Z")                 'zap-to-char)
 (global-set-key (kbd "M-z")                 'zap-up-to-char)
