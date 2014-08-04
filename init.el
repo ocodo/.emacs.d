@@ -82,25 +82,26 @@ trying to run it."
 ;; Explicit Requires ...
 (add-hook 'after-init-hook
           (lambda ()
-            "Require all libraries in this list"
-            (mapcar 'require
-                  (list
-                   'handy-functions
-                   'custom-keys
-                   'ag
-                   'armitp-mode-line
-                   'highlight-indentation
-                   'hyde-autoloads
-                   'iedit
-                   'js2-refactor
-                   'kill-buffer-without-confirm
-                   'mac-frame-adjust
-                   'multiple-cursors
-                   'resize-window
-                   'scroll-bell-fix
-                   'squeeze-view
-                   'switch-window
-                   ))))
+            "Load all libraries in this list"
+            (dolist (i '(
+                         "handy-functions"
+                         "custom-keys"
+                         "ag"
+                         "armitp-mode-line"
+                         "highlight-indentation"
+                         "hyde-autoloads"
+                         "iedit"
+                         "js2-refactor"
+                         "kill-buffer-without-confirm"
+                         "mac-frame-adjust"
+                         "multiple-cursors"
+                         "resize-window"
+                         "scroll-bell-fix"
+                         "squeeze-view"
+                         "switch-window"
+                         )) (load-library i))
+            (setq debug-on-error nil)
+            ))
 
 ;; mode inits
 (process-mode-inits
@@ -123,6 +124,7 @@ trying to run it."
    "ispell"
    "markdown"
    "misc-settings"
+   "moonscript"
    "multi-web-mode"
    "nxml"
    "projectile"
