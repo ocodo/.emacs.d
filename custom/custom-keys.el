@@ -137,7 +137,7 @@
   (global-set-key (kbd "s-3")               'split-window-horizontally)
   (global-set-key (kbd "s-4")               'delete-other-windows-vertically)
 
-  (global-set-key (kbd "s-5")               'delete-window)
+  (global-set-key (kbd "s-0")               'delete-window)
   ;; same command on Cmd-C-w
   (global-set-key [C-s-w]                   'delete-window)
 
@@ -146,7 +146,7 @@
   (global-set-key (kbd "s-=")               'text-scale-increase)
 
   ;; line numbers off on
-  (global-set-key (kbd "s-0")               'linum-mode)
+  (global-set-key (kbd "s-\\")               'linum-mode)
 
   ;; highly inclusive expand
   (global-set-key (kbd "s-/" )              'hippie-expand)
