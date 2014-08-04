@@ -239,7 +239,7 @@ jasmine-let.  It is not a part of jasmine."
   "Convert local var on the current line to a jset.
 
 jset is a variable evaluation form similar to rspec's let!.
-It is not a part of jasmine."
+Itx is not a part of jasmine."
   (interactive)
   (save-excursion
     (jasmine-coffee/var-to-function-form "jset")))
@@ -275,6 +275,63 @@ Compose and launch Spec URL for the current describe block."
 Compose and launch spec URL for the current spec."
   (interactive)
   (jasmine-coffee/verify-it))
+
+(defun jasmine-coffee/navigate-to-next-thing (regexp)
+  "Navigate cursor to the body of the next matching REGEXP."
+  (with-demoted-errors
+    (re-search-forward regexp))
+  (forward-line 1)
+  (jc/move-to-indentation))
+
+(defun jasmine-coffee/navigate-to-previous-thing (regexp)
+  "Navigate cursor to the body of the previous REGEXP."
+  (with-demoted-errors
+    (re-search-backward regexp))
+  (forward-line 1)
+  (jc/move-to-indentation))
+
+(defun jasmine-coffee/navigate-to-next-it ()
+  "Navigate cursor to the body of the next it/spec."
+  (interactive)
+  (jasmine-coffee/navigate-to-next-thing jasmine-coffee/it-regexp))
+
+(defun jasmine-coffee/navigate-to-previous-it ()
+  "Navigate cursor to the body of the previous it/spec."
+  (interactive)
+  (jasmine-coffee/navigate-to-previous-thing jasmine-coffee/it-regexp))
+
+(defun jasmine-coffee/navigate-to-next-describe ()
+  "Navigate cursor to the body of the next describe."
+  (interactive)
+  (jasmine-coffee/navigate-to-next-thing jasmine-coffee/describe-regexp))
+
+(defun jasmine-coffee/navigate-to-previous-describe ()
+  "Navigate cursor to the body of the previous describe."
+  (interactive)
+  (jasmine-coffee/navigate-to-previous-thing jasmine-coffee/describe-regexp))
+
+(defun jasmine-coffee/toggle-spec-enabled ()
+  "Toggle the current it/spec on/off using it/itx."
+  (interactive)
+  (save-excursion
+    (jc/end-of-line)
+    (with-demoted-errors
+      (re-search-backward (rx line-start (+ blank) "it" (group (? "x")))))
+    (jc/move-to-indentation)
+    (when (looking-at "it ") (forward-char 2) (insert "x"))
+    (when (looking-at "itx") (forward-char 2) (delete-char 1))))
+
+(defun jc/move-to-indentation ()
+  "Internal function to jump to indentation column."
+  (jc/end-of-line)
+  (back-to-indentation))
+
+(defun jc/end-of-line ()
+  "Internal function jump to end of line."
+  (move-end-of-line 1))
+
+;; jasmine-coffee/navigate-to-next-before
+;; jasmine-coffee/navigate-to-previous-before
 
 (provide 'jasmine-coffee)
 ;;; jasmine-coffee.el ends here
