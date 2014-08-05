@@ -15,6 +15,7 @@
 (require 'misc)
 
 (global-set-key (kbd "C-x /")               'align-regexp)
+(global-set-key (kbd "C-^")                 'join-line-from-below)
 
 (global-set-key (kbd "C-=")                 'cua-set-rectangle-mark)
 (global-set-key (kbd "M-Z")                 'zap-to-char)

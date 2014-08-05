@@ -15,6 +15,12 @@
 (require 's)
 (require 'find-func)
 
+(defun join-line-from-below ()
+  "Join line from below."
+  (interactive)
+  (forward-line 1)
+  (delete-indentation))
+
 (defun prepend-existing-to-exec-path (path)
   "If PATH exists, prepend it to `exec-path'."
   (when (file-exists-p path)
