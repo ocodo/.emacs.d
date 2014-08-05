@@ -238,8 +238,8 @@ rspec's `let'.  It is not a part of jasmine."
 (defun jasmine-coffee/var-to-jset ()
   "Convert local var on the current line to a `jset'.
 
-`jset' is a variable evaluation form similar to rspec's let!.
-Itx is not a part of jasmine."
+`jset' is a variable evaluation form similar to rspec's `let!'.
+It is not a part of jasmine."
   (interactive)
   (save-excursion
     (jasmine-coffee/var-to-function-form "jset")))
@@ -310,8 +310,15 @@ Compose and launch spec URL for the current `it' spec."
   (interactive)
   (jasmine-coffee/navigate-to-previous-thing jasmine-coffee/describe-regexp))
 
-;; jasmine-coffee/navigate-to-next-before
-;; jasmine-coffee/navigate-to-previous-before
+(defun jasmine-coffee/navigate-to-next-before-each ()
+  "Navigate cursor to the body of the next `beforeEach' block."
+  (interactive)
+  (jasmine-coffee/navigate-to-previous-thing jasmine-coffee/before-each-regexp))
+
+(defun jasmine-coffee/navigate-to-previous-before-each ()
+  "Navigate cursor to the body of the previous `beforeEach' block."
+  (interactive)
+  (jasmine-coffee/navigate-to-previous-thing jasmine-coffee/before-each-regexp))
 
 (defun jasmine-coffee/toggle-spec-enabled ()
   "Toggle the current `it' spec on/off."
