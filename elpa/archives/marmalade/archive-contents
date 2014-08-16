@@ -1522,14 +1522,14 @@
      [(20120112)
       nil "org html export for text/html MIME emails" single])
  (org-magit .
-      [(0 2 0)
+      [(0 2 2)
        ((magit
-         (0 8))
+         (1 2 0))
         (org
          (6 1)))
        "basic support for magit links" single])
  (org-journal .
-        [(1 5 1)
+        [(1 5 2)
          nil "a simple org-mode based journaling mode" single])
  (org-gnome .
       [(0 1)
@@ -2853,13 +2853,9 @@
        (0 6 0)))
      "Cask support in Flycheck" single])
  (flycheck .
-     [(0 19)
-      ((s
-        (1 9 0))
-       (dash
+     [(0 20)
+      ((dash
         (2 4 0))
-       (f
-        (0 11 0))
        (pkg-info
         (0 4))
        (cl-lib
