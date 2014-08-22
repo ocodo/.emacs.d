@@ -1,47 +1,4 @@
 (1
- (jump-dls .
-     [(0 4)
-      nil "Jump to definition of symbol using various methods." single])
- (mv-shell .
-     [(1 2)
-      nil "keep buffers in sync with filename throughout 'mv'commands in shell-mode." single])
- (fancy-battery .
-    [(0 2)
-     ((emacs
-       (24 1)))
-     "Fancy battery display" single])
- (how-many-lines-in-project .
-          [(0 2)
-           ((find-file-in-project
-             (3 3)))
-           "Calculate how many lines are there in your project." single])
- (clojure-env .
-        [(0 0 3)
-         nil "manage clojure environments with Emacs" single])
- (snakehump .
-      [(0 1 1)
-       nil "Convert between compound word conventions" tar])
- (env-var-import .
-     [(2 1)
-      nil "Import shell environment variables in GUI Emacs" single])
- (eldoro .
-   [(0 1 0)
-    nil "A pomodoro timer/tracker that works with org-mode." tar])
- (highlight-sexp .
-     [(1 0)
-      nil "highlight current zone according to its context" single])
- (tdd .
-      [(1 0)
-       nil "recompile on save and indicate success in the mode line" single])
- (markdown-toc .
-         [(0 0 6)
-    ((markdown-mode
-      (2 0))
-     (dash
-      (2 5 0))
-     (s
-      (1 7 0)))
-    "A simple TOC generator for markdown file" single])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
@@ -498,6 +455,9 @@
  (tdd-status-mode-line .
            [(0 1 2)
       nil "TDD status on the mode-line" single])
+ (tdd .
+      [(1 0)
+       nil "recompile on save and indicate success in the mode line" single])
  (tbemail .
     [(0 2)
      nil "Provide syntax highlighting for email editing via" single])
@@ -706,6 +666,9 @@
  (sokoban .
     [(1 23)
      nil "Play the Sokoban game in emacs" single])
+ (snakehump .
+      [(0 1 1)
+       nil "Convert between compound word conventions" tar])
  (smtpmail-multi .
      [(0 6)
       nil "Use different smtp servers for sending mail" single])
@@ -885,6 +848,9 @@
         (sequences
          (0 1 0)))
        "A dead simple way to load sensitive information" single])
+ (sedated .
+    [(1 0)
+     nil "A few extremely simple sed functions for familiar text manipulation" single])
  (seclusion-mode .
      [(1 1 1)
       nil "Edit in seclusion. A Dark Room mode." single])
@@ -1674,6 +1640,9 @@
  (mwe-log-commands .
        [(20041106)
         nil "log keyboard commands to buffer" single])
+ (mv-shell .
+     [(1 2)
+      nil "keep buffers in sync with filename throughout 'mv'commands in shell-mode." single])
  (mustache-mode .
     [(1 2)
      nil "A major mode for editing Mustache files." single])
@@ -1826,6 +1795,15 @@
  (markup-faces .
          [(1 0 0)
     nil "collection of faces for markup language modes" single])
+ (markdown-toc .
+         [(0 0 6)
+    ((markdown-mode
+      (2 0))
+     (dash
+      (2 5 0))
+     (s
+      (1 7 0)))
+    "A simple TOC generator for markdown file" single])
  (markdown-mode .
     [(2 0)
      nil "Emacs Major mode for Markdown-formatted text files" single])
@@ -2075,6 +2053,9 @@
  (kanban .
    [(0 1 2)
     nil "Parse org-todo headlines to use org-tables as Kanban tables" single])
+ (jump-dls .
+     [(0 4)
+      nil "Jump to definition of symbol using various methods." single])
  (jump-char .
       [(0 1)
        nil "navigation by char" single])
@@ -2282,7 +2263,7 @@
       (0 0 6)))
     "chainsaw powered logging" single])
  (hungry-delete .
-    [(1 0)
+    [(1 1)
      nil "hungry delete minor mode" single])
  (httpd .
   [(1 0 1)
@@ -2305,6 +2286,11 @@
  (ht .
      [(1 5)
       nil "The missing hash table library for Emacs" single])
+ (how-many-lines-in-project .
+          [(0 3)
+           ((find-file-in-project
+             (3 3)))
+           "Calculate how many lines are there in your project." single])
  (hook-utils .
        [(1 0)
         nil "Add a few utility functions for manipulating hooks" single])
@@ -2345,6 +2331,9 @@
  (highlight-symbol .
        [(1 1)
         nil "automatic and manual symbol highlighting" single])
+ (highlight-sexp .
+     [(1 0)
+      nil "highlight current zone according to its context" single])
  (highlight-parentheses .
       [(1 0 1)
        nil "highlight surrounding parentheses" single])
@@ -2937,6 +2926,11 @@
  (fancy-mode .
        [(0 1)
         nil "Major mode for programming with the Fancy language." single])
+ (fancy-battery .
+    [(0 2)
+     ((emacs
+       (24 1)))
+     "Fancy battery display" single])
  (fakir .
   [(0 1 9)
    ((noflet
@@ -3093,6 +3087,9 @@
   (ctable
    (0 1 1)))
        "A RPC stack for the Emacs Lisp" single])
+ (env-var-import .
+     [(2 1)
+      nil "Import shell environment variables in GUI Emacs" single])
  (enclose .
     [(0 0 2)
      nil "Enclose cursor within punctuation pairs" single])
@@ -3212,6 +3209,9 @@
  (electric-case .
     [(2 2 1)
      nil "insert camelCase, snake_case words without \"Shift\"ing" single])
+ (eldoro .
+   [(0 1 0)
+    nil "A pomodoro timer/tracker that works with org-mode." tar])
  (el-x .
        [(0 3 0)
   ((cl-lib
@@ -3436,7 +3436,7 @@
          (24)))
        "Collection of useful combinators for Emacs Lisp" single])
  (dash .
-       [(2 7 0)
+       [(2 8 0)
   nil "A modern list library for Emacs" single])
  (dart-mode .
       [(0 9)
@@ -3739,6 +3739,9 @@
  (clojure-here .
          [(0 11)
     nil "Clojure process in a buffer" single])
+ (clojure-env .
+        [(0 0 3)
+         nil "manage clojure environments with Emacs" single])
  (cljsbuild-mode .
      [(0 2 0)
       nil "A minor mode for the ClojureScript 'lein cljsbuild' command" single])
