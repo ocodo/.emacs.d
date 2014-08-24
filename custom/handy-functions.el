@@ -387,5 +387,66 @@ the buffer."
 
 (global-set-key (kbd "ESC M-d") 'kill-whole-word)
 
+(defun sass-hex-color-to-var ()
+  "Find a hex color, and replace it with a newly created variable name.
+Place the created variable at the top of the file.  Name it based
+on the property being set, and its CSS selector, and set its
+css-value to the hex color found."
+  (interactive)
+  (let
+      (css-value
+       css-property
+       css-value-position
+       variable-name
+       variable-definition
+       indent-level
+       (css-selector ""))
+    (save-excursion
+      ;; search for a hex color
+      (re-search-forward
+       (rx bol (0+ blank)
+           ;; CSS Property name
+           (group (? "-") (regex "[_A-z]") (1+ (regex "[_0-9A-z-]")))
+           (* blank) ":" (* blank) (* (regex "[A-z,0-9.% ]"))
+           ;; Hex color
+           (group "#" (** 3 6 (any hex-digit))) ";" eol))
+
+      (setq css-value-position (match-beginning 2))
+      (setq css-property (match-string-no-properties 1))
+      (setq css-value  (match-string-no-properties 2))
+
+      (move-end-of-line 1)
+      (back-to-indentation)
+      (setq indent-level (current-column))
+      (while (< 0 indent-level)
+        (re-search-backward
+         (rx bol (* blank) (? "&") (? (any "." "#"))
+             (group (any "_" alpha) (* (any "_" "-" "," " " ":" alphanumeric)))
+             (* blank) "{"))
+        (move-end-of-line 1)
+        (back-to-indentation)
+        (when (> indent-level (current-column))
+          (setq indent-level (current-column))
+          (setq css-selector
+                (format "%s_%s" (match-string-no-properties 1) css-selector))))
+
+      (setq variable-name
+            (replace-regexp-in-string
+             (rx (>= 2 "_")) "_"
+             (replace-regexp-in-string
+              (rx (any "&" ":" "-" "," " "))
+              "_"
+              (format "$%s%s" css-selector css-property))))
+
+      (setq variable-definition (format "%s: %s;" variable-name css-value)))
+    (goto-char css-value-position)
+
+    (re-search-forward
+     (rx "#" (** 3 6 (any hex-digit)) (0+ blank) ";" ))
+    (replace-match (format "%s;" variable-name) t)
+
+    (goto-char 0) (newline) (goto-char 0)
+    (insert variable-definition)))
+
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
