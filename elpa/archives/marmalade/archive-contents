@@ -1,9 +1,4 @@
 (1
- (file-format .
-        [(0 0 1)
-         ((s
-     (1 5 0)))
-         "templates with files as the source" single])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
@@ -112,8 +107,8 @@
     (24)))
         "declarative configuration for Emacsen" single])
  (with-namespace .
-     [(1 1)
-      nil "Poor-man's namespaces for elisp" single])
+   [(1 1)
+    nil "Poor-man's namespaces for elisp" single])
  (wisp-mode .
       [(0 1 5)
        nil "Tools for wisp: the Whitespace-to-Lisp preprocessor" single])
@@ -416,8 +411,8 @@
       [(0 1 3)
        nil "Mojor mode for editing TOML files" single])
  (toggle-test .
-        [(1 0 1)
-         nil "Toggle between source and test files. It is language agnostic and creates source/test files if they don't exist." single])
+        [(1 0 2)
+         nil "Toggle between source and test files in various programming languages" single])
  (todotxt .
     [(0 2 3)
      nil "A major mode for editing todo.txt files" single])
@@ -1013,7 +1008,7 @@
  (request-deferred .
        [(0 2 0)
         ((deferred
-           (0 3 1))
+       (0 3 1))
          (request
           (0 2 0)))
         "Wrap request.el by deferred" single])
@@ -1615,7 +1610,7 @@
   nil "Easy Python test running in Emacs" single])
  (noflet .
    [(0 0 12)
-    nil "locally override functions" single])
+     nil "locally override functions" single])
  (no-easy-keys .
          [(1 0 2)
     nil "Learn the proper Emacs movement keys" single])
@@ -1781,7 +1776,7 @@
      [(0 0 1)
       nil "A test tarball package." tar])
  (marmalade-service .
-        [(2 0 15)
+        [(2 0 16)
          ((dash
            (1 1 0))
           (s
@@ -1923,8 +1918,8 @@
         [(0 1)
          nil "Insert dummy pseudo Latin text." single])
  (loop .
-       [(1 1)
-  nil "friendly imperative loop structures" single])
+    [(1 1)
+     nil "friendly imperative loop structures" single])
  (look-mode .
       [(1 0)
        nil "quick file viewer for image and text file browsing" single])
@@ -2927,6 +2922,11 @@
  (fill-column-indicator .
       [(1 86)
        nil "Graphically indicate the fill column" single])
+ (file-format .
+        [(0 0 3)
+         ((s
+     (1 5 0)))
+         "templates with files as the source" single])
  (fic-ext-mode .
          [(0 1)
     nil "Show FIXME/TODO/BUG(...) in special face only in comments and strings" single])
@@ -3167,7 +3167,7 @@
        [(0 4)
         nil "Handy functions for inspecting and comparing package archives" single])
  (elnode .
-   [(0 9 9 8 6)
+   [(0 9 9 8 7)
     ((web
       (0 4 3))
      (dash
@@ -3415,11 +3415,11 @@
       (1 287)))
           "Yet Another `describe-bindings' with `anything'." single])
  (deft .
-   [(0 3)
-    nil "quickly browse, filter, and edit plain text notes" single])
+     [(0 3)
+      nil "quickly browse, filter, and edit plain text notes" single])
  (deferred .
-   [(0 3 1)
-    nil "Simple asynchronous functions for emacs lisp" single])
+     [(0 3 1)
+      nil "Simple asynchronous functions for emacs lisp" single])
  (deep-thought-theme .
          [(0 1 1)
           nil "Emacs 24 theme with the Answer to The Ultimate Question" single])
@@ -3539,7 +3539,7 @@
  (concurrent .
        [(0 3 1)
         ((deferred
-     (0 3 1)))
+       (0 3 1)))
         "Concurrent utility functions for emacs lisp" single])
  (company-inf-ruby .
        [(0 2)
@@ -3850,7 +3850,7 @@
  (butler .
    [(0 2 0)
     ((deferred
-       (3 1))
+         (3 1))
      (json
       (1 2)))
     "Emacs client for Jenkins" tar])
