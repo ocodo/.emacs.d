@@ -1,4 +1,10 @@
 (1
+ (linky-client .
+         [(0 0 2)
+    nil "a client for linky.elnode.org" single])
+ (fixme-mode .
+       [(1 0 1)
+        nil "fixme minor mode to highlight warning words" single])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
@@ -185,9 +191,11 @@
      [(8 0 4)
       nil "major mode for editing html templates" single])
  (web .
-      [(0 4 3)
+      [(0 4 5)
        ((dash
-   (2 3 0)))
+   (2 3 0))
+  (s
+   (1 5 0)))
        "useful HTTP client" single])
  (weather-metno .
     [(20140121)
@@ -1041,7 +1049,7 @@
        (1 2)))
      "A library for pasting to https://refheap.com" single])
  (recursive-narrow .
-       [(1 2)
+       [(20140801 1400)
         nil "narrow-to-region that operates recursively" single])
  (rect-mark .
       [(1 4)
@@ -2923,7 +2931,7 @@
       [(1 86)
        nil "Graphically indicate the fill column" single])
  (file-format .
-        [(0 0 3)
+        [(0 0 4)
          ((s
      (1 5 0)))
          "templates with files as the source" single])
@@ -3385,6 +3393,9 @@
  (dired-single .
          [(1 7)
     nil "reuse the current dired buffer to visit another directory" single])
+ (dired-nav-enhance .
+        [(1 0)
+         nil "Enhanced navigation for dired buffers" single])
  (dired-efap .
        [(0 8)
         nil "Edit Filename At Point in a dired buffer" single])
