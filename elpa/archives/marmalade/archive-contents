@@ -1,4 +1,7 @@
 (1
+ (vc-tfs .
+   [(0 1 2)
+    nil "Support for TFS version control system" single])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
@@ -898,7 +901,7 @@
     [(20110708)
      nil "Mode-specific scratch buffers" single])
  (scpaste .
-    [(0 6 1)
+    [(0 6 2)
      ((htmlize
        (1 39)))
      "Paste to the web via scp." single])
@@ -1512,7 +1515,7 @@
          (6 1)))
        "basic support for magit links" single])
  (org-journal .
-        [(1 5 2)
+        [(1 5 3)
          nil "a simple org-mode based journaling mode" single])
  (org-gnome .
       [(0 1)
@@ -1554,7 +1557,7 @@
            [(0 2)
             nil "Browse the current file in OpenStack cgit" single])
  (om-mode .
-    [(0 5 20140914)
+    [(0 5 20140916)
      nil "Insert Om component template with life cycle." single])
  (offlineimap .
         [(0 1)
