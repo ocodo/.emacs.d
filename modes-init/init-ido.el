@@ -9,6 +9,7 @@
 
 (ido-mode 1)
 (ido-vertical-mode 1)
+(setq gc-cons-threshold 20000000)
 (flx-ido-mode 1)
 
 (global-set-key [(meta x)] (lambda ()
