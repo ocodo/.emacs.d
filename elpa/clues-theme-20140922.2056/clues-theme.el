@@ -2,11 +2,13 @@
 ;;
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; Url: https://github.com/jasonm23/emacs-clues-theme
-;; Version: 20140922.241
-;; X-Original-Version: 20140922.1722
+;; Version: 20140922.2056
+;; X-Original-Version: 20140923.1012
 ;; Package-Requires: ((emacs "24.0"))
 ;;
 ;;; Changelog :
+;; 20140923.1012: Remove change to linum height, fix rainbow delimiters faces settings.
+;;
 ;; 20140922.1722: Add highlight-indentation-mode support
 ;;
 ;; 20140417.1000: Improve visibility of diff backgrounds
@@ -95,7 +97,7 @@
     (((class color) (min-colors 16))       (:foreground "#fff" :background "#000"))
     (((class color) (min-colors 8))        (:foreground "#fff" :background "#000")))
    )
- '(linum                               ((t (:foreground "#6a6a6a"  :background "#110B14" :height 96                                    ))))
+ '(linum                               ((t (:foreground "#6a6a6a"  :background "#110B14"                                               ))))
  '(minibuffer-prompt                   ((t (:foreground "#1278A8"  :background nil       :weight bold                                  ))))
  '(escape-glyph                        ((t (:foreground "orange"   :background nil                                                     ))))
  '(highlight                           ((t (:foreground "orange"   :background nil                                                     ))))
@@ -130,7 +132,7 @@
  '(mode-line-emphasis                  ((t (                                             :weight bold                                  ))))
  '(mode-line-buffer-id                 ((t (                                             :box nil :weight bold                         ))))
  '(mode-line-inactive                  ((t (:foreground "#555555"  :background "#111111" :box nil :weight light :inherit (mode-line)   ))))
- '(mode-line                           ((t (:foreground "#777777"  :background "#111111" :box nil :height 85 :inherit (variable-pitch) ))))
+ '(mode-line                           ((t (:foreground "#777777"  :background "#111111" :box nil :inherit (variable-pitch) ))))
  '(isearch                             ((t (:foreground "#99ccee"  :background "#444444"                                               ))))
  '(isearch-fail                        ((t (                       :background "#ffaaaa"                                               ))))
  '(lazy-highlight                      ((t (                       :background "#77bbdd"                                               ))))
@@ -154,25 +156,22 @@
  '(git-gutter:deleted                  ((t (:foreground "#cc3333" :bold t))))
  '(diff-added                          ((t (:background "#305030"))))
  '(diff-removed                        ((t (:background "#903010"))))
+ '(diff-changed                        ((t (:background "#103090"))))
  '(diff-file-header                    ((t (:background "#362145"))))
  '(diff-context                        ((t (:foreground "#E0E4CC"))))
  '(diff-hunk-header                    ((t (:background "#242130"))))
+ 
+ '(rainbow-delimiters-depth-1-face     ((t (:foreground "#99998A" ))))
+ '(rainbow-delimiters-depth-2-face     ((t (:foreground "#776644" ))))
+ '(rainbow-delimiters-depth-3-face     ((t (:foreground "#888866" ))))
+ '(rainbow-delimiters-depth-4-face     ((t (:foreground "#AAAA88" ))))
+ '(rainbow-delimiters-depth-5-face     ((t (:foreground "#CCCCAA" ))))
+ '(rainbow-delimiters-depth-6-face     ((t (:foreground "#DEDEAA" ))))
+ '(rainbow-delimiters-depth-7-face     ((t (:foreground "#EFEFBB" ))))
+ '(rainbow-delimiters-depth-8-face     ((t (:foreground "#FFFFCC" ))))
+ '(rainbow-delimiters-depth-9-face     ((t (:foreground "#FFFFEE" ))))
+ '(rainbow-delimiters-depth-unmatched-face     ((t (:foreground "#AA0000" ))))
  )
-
-;; Rainbow delimiters
-(defun clues-rainbow-delim-set-face ()
-  (set-face-attribute 'rainbow-delimiters-depth-1-face   nil :foreground "#99998A")
-  (set-face-attribute 'rainbow-delimiters-depth-2-face   nil :foreground "#776644")
-  (set-face-attribute 'rainbow-delimiters-depth-3-face   nil :foreground "#888866")
-  (set-face-attribute 'rainbow-delimiters-depth-4-face   nil :foreground "#AAAA88")
-  (set-face-attribute 'rainbow-delimiters-depth-5-face   nil :foreground "#CCCCAA")
-  (set-face-attribute 'rainbow-delimiters-depth-6-face   nil :foreground "#DEDEAA")
-  (set-face-attribute 'rainbow-delimiters-depth-7-face   nil :foreground "#EFEFBB")
-  (set-face-attribute 'rainbow-delimiters-depth-8-face   nil :foreground "#FFFFCC")
-  (set-face-attribute 'rainbow-delimiters-depth-9-face   nil :foreground "#FFFFEE")
-  (set-face-attribute 'rainbow-delimiters-unmatched-face nil :foreground "#AA0000"))
-
-(eval-after-load "rainbow-delimiters" '(clues-rainbow-delim-set-face))
 
 ;;;###autoload
 (when load-file-name
