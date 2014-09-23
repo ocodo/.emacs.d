@@ -124,6 +124,32 @@
   (rx "beforeEach" (? "(") (? " ") "->")
   "Regexp to find a jasmine coffee-mode `beforeEach'.")
 
+(defvar jasmine-coffee/code-root "app/assets/javascript"
+  "JavaScript app code root folder.")
+(defvar jasmine-coffee/spec-root "spec/javascript"
+  "JavaScript app spec root folder.")
+(defvar jasmine-coffee/spec-suffix "_spec"
+  "Spec filename suffix.
+ie. Appears before filename extension.")
+
+(defun jasmine-coffee/switch-to-spec ()
+"Find and open the spec file corresponding to the current file."
+
+;; Use a custom variable to denote the Jasmine spec root
+;; folder.
+;;
+;; Use a custom variable to denote the JavaScript app
+;; root folder.
+;;
+;; Ask for the above on first run.  Save to project root, assume git.
+;;
+;; Add to `.dir-locals.el`.
+
+;; Assume symmetry of paths / filenames + spec name suffix pattern,
+;; eg.  `_spec`"
+;;
+)
+
 (defun jasmine-coffee/kill-line-or-region ()
   "Utility function to kill whole line or region."
   (let (region)
