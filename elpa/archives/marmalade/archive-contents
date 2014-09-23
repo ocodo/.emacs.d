@@ -1,7 +1,7 @@
 (1
- (vc-tfs .
-   [(0 1 2)
-    nil "Support for TFS version control system" single])
+ (dirtrack-buffer-name-track-mode .
+          [(1 0 0)
+           nil "minor mode to cause shell buffers to reflect the working directory" single])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
@@ -260,6 +260,9 @@
  (vcard .
   [(0 1)
    nil "vcard parsing and display routines" single])
+ (vc-tfs .
+   [(0 1 2)
+    nil "Support for TFS version control system" single])
  (vc-darcs .
      [(1 12)
       nil "a VC backend for darcs" single])
