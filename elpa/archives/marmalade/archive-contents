@@ -1,4 +1,15 @@
 (1
+ (ertx .
+       [(0 0 1)
+  nil "Extra useful testing functions for EmacsLisp." single])
+ (shadchen .
+     [(1 1)
+      nil "pattern matching for elisp" single])
+ (git-draft .
+      [(0 0 1)
+       ((dash
+         (2 9 0)))
+       "draft git commit messages" single])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
@@ -1490,7 +1501,7 @@
     (21 0)))
         "Integrates Readme.org and Commentary/Change-logs." single])
  (org-publish-agenda .
-         [(1 4)
+         [(1 5)
           nil "Publish org agenda with links to other files" single])
  (org-protocol-jekyll .
           [(0 1)
