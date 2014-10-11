@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: spyOn
+# group: jasmine
+# key: son
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+spyOn(${1:object}, "${2:method}")$0

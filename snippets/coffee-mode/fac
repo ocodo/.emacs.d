@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: factories.build
+# group: jasmine
+# key: fac
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+factories.build${1:class}()

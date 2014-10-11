@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: spyOn dataStore andCallThrough
+# group: jasmine
+# key: sondc
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+spyOn(J.dataStore.${1:class}, "${2:method}").andCallThrough() $0

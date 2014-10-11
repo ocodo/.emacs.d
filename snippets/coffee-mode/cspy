@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Create spy
+# group: jasmine
+# key: cspy
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+jasmine.createSpy('${2:object_method}')

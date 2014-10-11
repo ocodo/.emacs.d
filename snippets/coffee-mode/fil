@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: _.filter
+# group: underscore
+# key: fil
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+_.filter ${1:l}, (${2:e})->
+  $0

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: _.chain
+# group: underscore
+# key: chain
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+_.chain ${1:a}
+$0
