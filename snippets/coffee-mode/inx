@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: inNextTick
+# group: jasmine
+# key: inx
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+inNextTick ->
+  $0
+  done()
+, ${1:250}

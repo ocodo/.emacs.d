@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# key: when
+# name: When
+# --
+when ${1:value}
+  ${2:# body...}

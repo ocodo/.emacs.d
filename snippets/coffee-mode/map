@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: _.map
+# group: underscore
+# key: map
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+_.map ${1:l}, (${2:e})->
+  $0

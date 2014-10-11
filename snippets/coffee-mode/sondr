@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: spyOn dataStore andReturn
+# group: jasmine
+# key: sondr
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+spyOn(J.dataStore.${1:class}, "${2:method}").andReturn ${3:value} $0

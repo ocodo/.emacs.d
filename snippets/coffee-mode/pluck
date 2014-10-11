@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: _.pluck
+# group: underscore
+# key: pluck
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+_.pluck ${1:l}, "${2:key}"

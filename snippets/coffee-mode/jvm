@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: J.viewModel
+# group: jasmine
+# key: jvm
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+J.viewModel
