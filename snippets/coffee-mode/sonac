@@ -1,7 +1,7 @@
 # -*- mode: snippet -*-
 # name: spyOn andCallThrough
 # group: jasmine
-# key: sonap
+# key: sonac
 # expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
 # --
 spyOn(${1:object}, "${2:method}").andCallThrough() $0
