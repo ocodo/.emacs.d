@@ -158,6 +158,9 @@
   ;; narrow / widen region
   (global-set-key (kbd "s-§")               'narrow-to-region)
   (global-set-key (kbd "C-§")               'widen )
+  ;; narrow / widen region
+  (global-set-key (kbd "C-M-`")             'narrow-to-region)
+  (global-set-key (kbd "s-M-`")             'widen )
 
   )
 
