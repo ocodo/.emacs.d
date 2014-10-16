@@ -121,10 +121,13 @@
 ;;
 ;;; Licence: GPL3
 ;;
-;;; Requires: ((coffee-mode))
+;;; Requires: ((coffee-mode) (s) (dash) (projectile))
 ;;; Code:
 
 (require 'coffee-mode)
+(require 's)
+(require 'dash)
+(require 'projectile)
 
 (defgroup jasmine-coffee nil
   "Tools for Jasmine on CoffeeScript."
@@ -155,6 +158,11 @@
 (defvar jasmine-coffee/before-each-regexp
   (rx "beforeEach" (? "(") (? " ") "->")
   "Regexp to find a jasmine coffee-mode `beforeEach'.")
+
+(defcustom jasmine-coffee/jasmine-specs-file "JASMINE_SPECS.yml"
+  "Name of the Jasmine specs index file."
+  :type 'string
+  :group 'jasmine-coffee)
 
 (defcustom jasmine-coffee/code-root "/app/assets/javascripts"
   "JavaScript app code root folder."
@@ -255,22 +263,37 @@ ie. Appears before filename extension."
       (coffee-newline-and-indent)
       (jasmine-coffee/reset-indentation indent-list))))
 
-(defun jasmine-coffee/verify-thing (pattern)
-  "Compose and launch a jasmine spec URL for the thing defined by PATTERN."
-  (let* ((start-column 0) (spec-string ""))
+(defun jasmine-coffee/spec-meta-data (pattern)
+  "Collec jasmine spec metadata matching nearest PATTERN."
+  (let* ((start-column 0)
+         (spec-string "")
+         spec-column
+         spec-line)
     (save-excursion
       (move-end-of-line 1)
       (re-search-backward pattern)
       (setq start-column (current-column))
+      (setq spec-column start-column)
+      (setq spec-line  (line-number-at-pos))
       (setq spec-string (match-string-no-properties 1))
       (while
           (re-search-backward jasmine-coffee/describe-regexp 0 t)
         (when (< (current-column) start-column)
           (setq start-column (current-column))
           (setq spec-string (format "%s %s" (match-string 1) spec-string)))))
-    (setq spec-string (replace-regexp-in-string "#" "%23" spec-string))
+    (list
+     (url-encode-url (replace-regexp-in-string "#" "%23" spec-string))
+     spec-column
+     spec-line
+     (buffer-file-name))))
+
+(defun jasmine-coffee/verify-thing (pattern)
+  "Launch a composed jasmine spec URL.
+For the nearest thing behind the
+current cursor, defined by PATTERN."
+  (let* ((spec-string (car (jasmine-coffee/spec-meta-data pattern))))
     (save-current-buffer)
-    (browse-url (url-encode-url (concat jasmine-coffee/base-url spec-string)))))
+    (browse-url (concat jasmine-coffee/base-url spec-string))))
 
 (defun jasmine-coffee/var-to-lazy ()
   "Convert local var on the current line to a `lazy'.
@@ -382,7 +405,7 @@ Compose and launch spec URL for the current `it' spec."
          (is-a-spec   (s-contains? ext-spec (buffer-file-name)))
          (roots       (list jasmine-coffee/code-root jasmine-coffee/spec-root))
          (exts        (list ext-code ext-spec))
-         (target-file ""))
+         target-file)
 
     (if is-coffee
         (progn
@@ -392,10 +415,83 @@ Compose and launch spec URL for the current `it' spec."
 
           (add-to-list 'roots (buffer-file-name) t)
           (add-to-list 'exts (apply 's-replace roots) t)
-          (setq target-file (apply 's-replace exts))
-          (find-file target-file))
 
-      (message "Not a jasmine coffee file"))))
+          (find-file (apply 's-replace exts))
+
+      (message "Not a jasmine coffee file")))))
+
+(defun jasmine-coffee/find-spec-by-url (&optional url)
+  "Find a jasmine spec by the supplied spec URL.
+
+It uses the JASMINE_SPECS file to find and open the
+spec described by the given URL."
+
+)
+
+(defun jasmine-coffee/collect-specs (pattern)
+  "Gather the spec strings by PATTERN and TYPE, then add them to the SPEC-LIST."
+  (let (current-spec spec-list)
+    (goto-char (point-max))
+    (while (re-search-backward pattern 0 t)
+      (jc/end-of-line)
+      (setq current-spec
+            (apply 'format
+                   (-flatten
+                    (list "- file: %s\n  line: %d\n  col: %d\n  url: %s"
+                          (reverse (jasmine-coffee/spec-meta-data pattern))))))
+      (add-to-list 'spec-list current-spec t)
+      (beginning-of-line))
+    spec-list))
+
+(defun jasmine-coffee/index-specs (&optional spec-file)
+  "Index a jasmine-spec SPEC-FILE."
+
+  (when spec-file (find-file spec-file))
+
+  (let* ((ext-spec      (format "%s%s" jasmine-coffee/spec-suffix jasmine-coffee/extension))
+         (is-a-spec     (s-contains? ext-spec (buffer-file-name)))
+         (path-filename (buffer-file-name))
+         spec-line
+         spec-column
+         current-spec)
+    (if is-a-spec
+        (save-excursion
+          (-flatten (list
+                     (jasmine-coffee/collect-specs jasmine-coffee/describe-regexp)
+                     (jasmine-coffee/collect-specs jasmine-coffee/it-regexp))))
+      nil)))
+
+(defun jasmine-coffee/index-spec-to-file (&optional spec-file index-file)
+   "Write SPEC-FILE index to INDEX-FILE."
+   (let* (specs-list)
+     (unless spec-file (setq spec-file (buffer-file-name)))
+     (unless (and index-file
+                  (file-exists-p index-file))
+       (setq index-file
+             (format "%s/%s"
+                     projectile--project-root
+                     jasmine-coffee/jasmine-specs-file)))
+     (setq specs-list (jasmine-coffee/index-specs spec-file))
+     (when specs-list
+       (append-to-file (s-join "\n" specs-list) nil index-file))))
+
+(defun jasmine-coffee/index-all-specs (&optional index-file spec-folder)
+  "Generate jasmine specs INDEX-FILE for all specs found in SPEC-FOLDER."
+  (unless (and index-file
+               (file-exists-p index-file))
+    (setq index-file
+          (format "%s/%s"
+                  projectile--project-root
+                  jasmine-coffee/jasmine-specs-file)))
+
+  (unless spec-folder
+    (setq spec-folder
+          (format "%s/%s"
+                  projectile--project-root
+                  jasmine-coffee/spec-root)))
+
+  (dolist (f (projectile-files-in-project-directory spec-folder))
+    (jasmine-coffee/index-spec-to-file f index-file)))
 
 (defun jasmine-coffee/toggle-spec-enabled ()
   "Toggle the current `it' spec on/off."
