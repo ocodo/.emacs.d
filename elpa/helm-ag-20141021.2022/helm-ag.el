@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Version: 20141021.627
+;; Version: 20141021.2022
 ;; X-Original-Version: 0.29
 ;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
 
@@ -306,7 +306,7 @@
 ;;;###autoload
 (defun helm-do-ag (&optional basedir)
   (interactive)
-  (let ((helm-ag-default-directory (or basedir default-directory)))
+  (let ((helm-ag-default-directory (or basedir (helm-ag--default-directory))))
     (helm-ag-save-current-context)
     (helm :sources '(helm-source-do-ag) :buffer "*helm-ag*"
           :input (helm-ag--insert-thing-at-point helm-ag-insert-at-point))))
