@@ -24,3 +24,5 @@
             (erase-buffer))
           (append-to-buffer bufb (region-beginning) (region-end))
           (ediff-buffers bufa bufb))))
+
+(provide 'diff-region)

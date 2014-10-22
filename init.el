@@ -88,6 +88,7 @@ trying to run it."
                          "custom-keys"
                          "ag"
                          "armitp-mode-line"
+                         "diff-region"
                          "highlight-indentation"
                          "hyde-autoloads"
                          "iedit"
@@ -99,7 +100,8 @@ trying to run it."
                          "scroll-bell-fix"
                          "squeeze-view"
                          "switch-window"
-                         )) (load-library i))
+                         )) (load-library i)
+                            (message "Loaded library: %s" i))
             (setq debug-on-error nil)
             ))
 
@@ -111,6 +113,7 @@ trying to run it."
    "codenotes"
    "coffee"
    "dired"
+   "drag-stuff"
    "elpa-themes"
    "emacs-daemon"
    "exec-path"
