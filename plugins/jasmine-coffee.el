@@ -420,13 +420,26 @@ Compose and launch spec URL for the current `it' spec."
 
       (message "Not a jasmine coffee file")))))
 
+(defun jasmine-coffee/jump-to-data-store ()
+  "Jump to a data-store."
+
+  )
+
+(defun jasmine-coffee/toggle-view-model-and-view ()
+  "Jump between view and view model."
+  (let (
+        (jump-list
+         '(templates ("/templates/" "/templates/\\(.*\\)\\(\\.hamlc\\)" "/templates/\\1.hamlc")
+                     views ("/views/" "/views/\\(.*\\)\\_view\\(\\.js.coffee\\)" "/views/\\1_view\\2")
+                     view-models ("/view_models/" "/view_models/\\(.*\\)\\(\\.js.coffee\\)" "/view_models/\\1\\2"))))))
+
 (defun jasmine-coffee/find-spec-by-url (&optional url)
   "Find a jasmine spec by the supplied spec URL.
 
 It uses the JASMINE_SPECS file to find and open the
 spec described by the given URL."
 
-)
+  )
 
 (defun jasmine-coffee/collect-specs (pattern)
   "Gather the spec strings by PATTERN and TYPE, then add them to the SPEC-LIST."
