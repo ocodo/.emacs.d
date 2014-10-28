@@ -1,11 +1,16 @@
 ;;; soothe-theme.el --- a dark colorful theme for Emacs24.
 ;;; Author: Jason Milkins <jasonm23@gmail.com>
 ;;; Url: https://github.com/jasonm23/emacs-soothe-theme
-;; Version: 20141014.1935
-;;; X-Original-Version: 20130805.0658
+;; Version: 20141027.741
+;;; X-Original-Version: 20141027.2233
 ;;; Package-Requires: ((emacs "24.1"))
 ;;;
 ;;; Change Log:
+;;; 20141027.2233 : Fix rainbow delimiters
+;;; 20141027.0939 : Fix comment color
+;;; 20141023.2139 : Fixed rainbow delimiters for better legibility, @osener
+;;;                 Added new faces @osener
+;;;                 Moved rainbow delimiters to custom faces
 ;;; 20130805.0658 : Deferred ansi-term issue - will revist.
 ;;; 20130805.0148 : Fix ansi-term issue
 ;;; 0.3.19        : Styles for js3 added
@@ -45,6 +50,15 @@
 ;;; 0.3.0         : cleaned up for elpa
 ;;; 0.1.0         : initial version
 ;;;
+;;;
+;;; Commentary:
+;;;   An amalgam of muted color tones and highlighted
+;;;   backgrounds.  Builtin support for rainbow-delimiters, org-mode,
+;;;   whitespace-mode, ECB, flyspell, ido, linum, highlight
+;;;   indentation, show-paren-mode, further mode support to come.
+;;;
+;;; License:
+;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
 ;;; the Free Software Foundation, version 3 of the License.
@@ -59,13 +73,10 @@
 ;;;
 ;;; This file is not a part of Emacs
 ;;;
-;;; Commentary: An amalgam of muted color tones and highlighted
-;;;   backgrounds.  Builtin support for rainbow-delimiters, org-mode,
-;;;   whitespace-mode, ECB, flyspell, ido, linum, highlight
-;;;   indentation, show-paren-mode, further mode support to come.
+;;; Code:
 
 (unless (>= emacs-major-version 24)
-  (error "soothe-theme requires Emacs 24 or later."))
+  (error "Soothe-theme requires Emacs 24 or later"))
 
 (deftheme soothe
   "soothe-theme An amalgam of muted color tones and highlighted
@@ -141,32 +152,7 @@
   ;; TODO: Use defface method (class color) (min-colors ...)
 
   (unless (window-system)
-    (setq background      "#000000")
-    (setq background-dark "#000000")
-    (setq alt-background  "#000000")
-    (setq dirty-crem-bg   "#000000")
-    (setq gray-1bg        "#000000")
-    (setq gray-2bg        "#000000")
-    (setq gray-3bg        "#000000")
-    (setq gray-4bg        "#000000")
-    (setq gray-5bg        "#000000")
-    (setq gray-6bg        "#000000")
-    (setq red-1bg         "#000000")
-    (setq red-2bg         "#000000")
-    (setq brown-1bg       "#000000")
-    (setq orange-1bg      "#000000")
-    (setq yellow-1bg      "#000000")
-    (setq green-1bg       "#000000")
-    (setq green-2bg       "#000000")
-    (setq turquoise-1bg   "#000000")
-    (setq turquoise-2bg   "#000000")
-    (setq blue-1bg        "#000000")
-    (setq blue-2bg        "#000000")
-    (setq blue-3bg        "#000000")
-    (setq blue-4bg        "#000000")
-    (setq purple-1bg      "#000000")
-    (setq purple-2bg      "#000000")
-    (setq purple-3bg      "#000000")
+    (message "In a Terminal Install xterm-frobs.el (via MELPA) and use xterm-256color for the greater good")
     )
 
   (custom-theme-set-faces
@@ -186,7 +172,7 @@
    ;; Font-lock stuff
    `(font-lock-builtin-face                    ((t (:foreground ,red-2       :background ,red-1bg                       ))))
    `(font-lock-constant-face                   ((t (:foreground ,purple-1    :background ,purple-1bg                    ))))
-   `(font-lock-comment-face                    ((t (:foreground ,turquoise-2 :background ,alt-background :italic t      ))))
+   `(font-lock-comment-face                    ((t (:foreground ,purple-1    :background ,alt-background :italic t      ))))
    `(font-lock-comment-delimiter-face          ((t (:foreground ,turquoise-1 :background ,alt-background :italic t      ))))
    `(font-lock-doc-face                        ((t (:foreground ,blue-3      :background ,gray-1bg                      ))))
    `(font-lock-doc-string-face                 ((t (:foreground ,blue-3      :background ,gray-1bg                      ))))
@@ -204,7 +190,7 @@
    `(link-visited                              ((t (:foreground ,blue-3      :background ,blue-4bg                      ))))
    `(fringe                                    ((t (                         :background ,gray-3bg                      ))))
    `(vertical-border                           ((t (:foreground ,gray-4      :background ,background                    ))))
-   `(mode-line                                 ((t (:foreground ,gray-2      :background ,gray-3bg  :box nil :height 85 ))))
+   `(mode-line                                 ((t (:foreground ,gray-2      :background ,gray-3bg  :box nil            ))))
    `(mode-line-inactive                        ((t (:foreground ,gray-5      :background ,gray-2bg  :inherit mode-line  ))))
    `(mode-line-highlight                       ((t (:foreground ,red-1))))
    `(mode-line-buffer-id                       ((t (:foreground ,orange-1))))
@@ -243,8 +229,8 @@
    `(ac-candidate-mouse-face                   ((t (:foreground ,foam        :background ,turquoise-1                   ))))
    `(ac-completion-face                        ((t (:foreground ,snow-code   :background ,purple-3bg :underline t       ))))
    ;; used by AC
-   `(popup-tip-face                            ((t (:foreground ,dirty-crem  :background ,dirty-crem-bg                 ))))
-   `(tooltip                                   ((t (:foreground ,dirty-crem-bg  :background ,dirty-crem :height 110 ))))
+   `(popup-tip-face                            ((t (:foreground ,dirty-crem     :background ,dirty-crem-bg              ))))
+   `(tooltip                                   ((t (:foreground ,dirty-crem-bg  :background ,dirty-crem                 ))))
 
    ;; `(popup-face                       ((t (:foreground nil :background nil ))))
    ;; `(popup-isearch-match              ((t (:foreground nil :background nil ))))
@@ -356,21 +342,21 @@
    ;; ------------------------------------------------------------------------------------------
    ;; JS3 mode
 
-   `(js3-error-face                    ((t (:underline ,red-1        :background ,red-1bg )))) 
-   `(js3-warning-face                  ((t (:underline ,yellow-1     :background ,yellow-1bg )))) 
-   `(js3-external-variable-face        ((t (:foreground ,purple-1    :background ,purple-1bg )))) 
-   `(js3-function-param-face           ((t (:foreground ,blue-3      :background ,blue-3bg )))) 
-   `(js3-instance-member-face          ((t (:foreground ,dirty-crem  :background ,purple-1bg )))) 
-   `(js3-magic-paren-face              ((t (:foreground ,snow-code   :background ,purple-1bg )))) 
-   `(js3-private-function-call-face    ((t (:foreground ,orange-1    :background ,orange-1bg )))) 
-   `(js3-private-member-face           ((t (:foreground ,orange-2    :background ,orange-1bg )))) 
-   `(js3-jsdoc-html-tag-delimiter-face ((t (:foreground ,blue-4      :background ,blue-2bg )))) 
-   `(js3-jsdoc-html-tag-name-face      ((t (:foreground ,foam        :background ,blue-3bg )))) 
-   `(js3-jsdoc-tag-face                ((t (:foreground ,green-3     :background ,green-2bg )))) 
-   `(js3-jsdoc-type-face               ((t (:foreground ,green-2     :background ,green-2bg )))) 
-   `(js3-jsdoc-value-face              ((t (:foreground ,green-1     :background ,green-1bg )))) 
+   `(js3-error-face                    ((t (:underline ,red-1        :background ,red-1bg ))))
+   `(js3-warning-face                  ((t (:underline ,yellow-1     :background ,yellow-1bg ))))
+   `(js3-external-variable-face        ((t (:foreground ,purple-1    :background ,purple-1bg ))))
+   `(js3-function-param-face           ((t (:foreground ,blue-3      :background ,blue-3bg ))))
+   `(js3-instance-member-face          ((t (:foreground ,dirty-crem  :background ,purple-1bg ))))
+   `(js3-magic-paren-face              ((t (:foreground ,snow-code   :background ,purple-1bg ))))
+   `(js3-private-function-call-face    ((t (:foreground ,orange-1    :background ,orange-1bg ))))
+   `(js3-private-member-face           ((t (:foreground ,orange-2    :background ,orange-1bg ))))
+   `(js3-jsdoc-html-tag-delimiter-face ((t (:foreground ,blue-4      :background ,blue-2bg ))))
+   `(js3-jsdoc-html-tag-name-face      ((t (:foreground ,foam        :background ,blue-3bg ))))
+   `(js3-jsdoc-tag-face                ((t (:foreground ,green-3     :background ,green-2bg ))))
+   `(js3-jsdoc-type-face               ((t (:foreground ,green-2     :background ,green-2bg ))))
+   `(js3-jsdoc-value-face              ((t (:foreground ,green-1     :background ,green-1bg ))))
 
-   
+
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; Diff
    `(diff-added                                ((t (:foreground ,green-3     :background ,green-2bg                     ))))
@@ -391,7 +377,7 @@
    ;; `(diff-refine-removed    ((t (:foreground nil :background nil ))))
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; Linum
-   `(linum                                     ((t (:foreground ,gray-6 :background ,alt-background :height 90   ))))
+   `(linum                                     ((t (:foreground ,gray-6 :background ,alt-background ))))
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; show-paren-mode
    `(show-paren-match                          ((t (:foreground ,foam        :background ,orange-1                      ))))
@@ -457,6 +443,11 @@
    `(magit-log-head-label-tags                 ((t (:foreground ,orange-1    :background ,orange-1bg                    ))))
    `(magit-log-sha1                            ((t (:foreground ,turquoise-1 :background ,turquoise-1bg                 ))))
    ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; diff-hl
+   `(diff-hl-insert                            ((t (:foreground ,green-1     :background ,green-2bg                     ))))
+   `(diff-hl-delete                            ((t (:foreground ,red-1       :background ,red-1bg                       ))))
+   `(diff-hl-change                            ((t (:foreground ,purple-1    :background ,purple-1bg                    ))))
+   ;;-----------------------------------------------------------------------------------------------------------------------
    ;; IEdit
    `(iedit-occurrence                          ((t (:foreground ,green-3   :background ,orange-1bg                     ))))
    `(iedit-read-only-occurrence                ((t (:foreground ,red-1     :background ,orange-1bg                     ))))
@@ -479,9 +470,24 @@
    `(org-todo                                  ((t (:foreground ,red-1       :background ,red-1bg                       ))))
    ;;-----------------------------------------------------------------------------------------------------------------------
    ;; cua-mode
-   `(cua-global-mark        ((t(:foreground ,foam :background ,turquoise-1                                              ))))
-   `(cua-rectangle          ((t(:foreground ,foam :background ,purple-4                                                 ))))
-   `(cua-rectangle-noselect ((t(:foreground ,foam :background ,orange-1                                                 ))))
+   `(cua-global-mark                           ((t(:foreground ,foam :background ,turquoise-1                           ))))
+   `(cua-rectangle                             ((t(:foreground ,foam :background ,purple-4                              ))))
+   `(cua-rectangle-noselect                    ((t(:foreground ,foam :background ,orange-1                              ))))
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; hl-sexp
+   `(hl-sexp-face                              ((t (                         :background ,turquoise-2bg                 ))))
+   ;;-----------------------------------------------------------------------------------------------------------------------
+   ;; Rainbow delimiters
+   `(rainbow-delimiters-depth-1-face           ((t (:foreground "#D65921"                                               ))))
+   `(rainbow-delimiters-depth-2-face           ((t (:foreground "#2B88A8"                                               ))))
+   `(rainbow-delimiters-depth-3-face           ((t (:foreground "#FFA07E"                                               ))))
+   `(rainbow-delimiters-depth-4-face           ((t (:foreground "#30D039"                                               ))))
+   `(rainbow-delimiters-depth-5-face           ((t (:foreground "#58A0A2"                                               ))))
+   `(rainbow-delimiters-depth-6-face           ((t (:foreground "#6070DF"                                               ))))
+   `(rainbow-delimiters-depth-7-face           ((t (:foreground "#D78060"                                               ))))
+   `(rainbow-delimiters-depth-8-face           ((t (:foreground "#FFDD77"                                               ))))
+   `(rainbow-delimiters-depth-9-face           ((t (:foreground "#44FF88"                                               ))))
+   `(rainbow-delimiters-unmatched-face         ((t (:foreground "#F92672"                                               ))))
    )
 
   (custom-theme-set-variables
@@ -509,22 +515,6 @@
      [,background ,red-1 ,green-1 ,yellow-1 ,blue-1 ,purple-1 ,blue-3 ,foreground])
    )
   )
-
-;; Rainbow delimiters
-(defun soothe-rainbow-delim-set-face ()
-  (set-face-attribute 'rainbow-delimiters-depth-1-face   nil :foreground "#2B583D")
-  (set-face-attribute 'rainbow-delimiters-depth-2-face   nil :foreground "#2B5858")
-  (set-face-attribute 'rainbow-delimiters-depth-3-face   nil :foreground "#2B3C58")
-  (set-face-attribute 'rainbow-delimiters-depth-4-face   nil :foreground "#342B58")
-  (set-face-attribute 'rainbow-delimiters-depth-5-face   nil :foreground "#4F2B58")
-  (set-face-attribute 'rainbow-delimiters-depth-6-face   nil :foreground "#582B45")
-  (set-face-attribute 'rainbow-delimiters-depth-7-face   nil :foreground "#58462B")
-  (set-face-attribute 'rainbow-delimiters-depth-8-face   nil :foreground "#4E582B")
-  (set-face-attribute 'rainbow-delimiters-depth-9-face   nil :foreground "#33582B")
-  (set-face-attribute 'rainbow-delimiters-unmatched-face nil :foreground "#660000"))
-
-
-(eval-after-load "rainbow-delimiters" '(soothe-rainbow-delim-set-face))
 
 ;;;###autoload
 (when load-file-name
