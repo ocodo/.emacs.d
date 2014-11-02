@@ -1,9 +1,8 @@
 ;;; seti-theme.el --- A dark colored theme, inspired by Seti Atom Theme
 ;;
-;; Tries to reproduce the feel of https://github.com/jesseweed/seti-ui
 ;;
 ;; Author: Vlad Piersec <vlad.piersec@gmail.com>
-;; Version: 20140816.738
+;; Version: 20141101.1308
 ;; X-Original-Version: 0.1
 ;; Keywords: themes
 ;; URL: https://github.com/caisah/seti-ui-theme.el
@@ -25,6 +24,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
 ;;
+;;; Commentary
+;;
+;; Dark theme inspired by Atom's Seti 
+;;
+;; Tries to reproduce the feel of https://github.com/jesseweed/seti-ui
 ;;; Code
 
 (deftheme seti
