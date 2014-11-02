@@ -9,7 +9,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 20140921.845
+;; Version: 20141101.1
 ;; X-Original-Version: 3.1.0-cvs
 ;; Package-Requires: ((emacs "24.1"))
 
@@ -512,8 +512,8 @@ Called by `imenu--generic-function'."
                 ;; namespace
                 "\\([a-z0-9-]+\\)")
        (1 font-lock-type-face nil t))
-      ;; foo/ Foo/ @Foo/
-      ("\\(?:\\<\\|\\.\\)@?\\([a-zA-Z][a-z0-9_-]*\\)/" 1 font-lock-type-face)
+      ;; foo/ Foo/ @Foo/ /FooBar
+      ("\\(?:\\<\\|\\.\\)@?\\([a-zA-Z][a-zA-Z0-9$_-]*\\)/" 1 font-lock-type-face)
       ;; fooBar
       ("\\(?:\\<\\|/\\)\\([a-z]+[A-Z]+[a-zA-Z0-9$]*\\>\\)" 1 'clojure-interop-method-face)
       ;; Highlight grouping constructs in regular expressions

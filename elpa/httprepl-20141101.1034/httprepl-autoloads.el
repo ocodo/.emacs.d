@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "httprepl" "httprepl.el" (21558 39466 646547
-;;;;;;  72000))
+;;;### (autoloads nil "httprepl" "httprepl.el" (21590 19643 0 0))
 ;;; Generated autoloads from httprepl.el
 
 (autoload 'httprepl "httprepl" "\
