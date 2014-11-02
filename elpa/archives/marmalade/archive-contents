@@ -1201,6 +1201,19 @@
  (psgml .
 	[(1 4 1)
 	 nil "Lennart Staflin's Psgml package, with Elisp syntax and sgml-validate fixed for Emacsen >=24." tar])
+ (psci .
+       [(0 0 5)
+	((purescript-mode
+	  (13 10))
+	 (dash
+	  (2 9 0))
+	 (s
+	  (1 9 0))
+	 (f
+	  (0 17 1))
+	 (deferred
+	     (0 3 2)))
+	"Major mode for purescript repl psci" single])
  (ps-ccrypt .
 	    [(1 10)
 	     nil "reading/writing/loading encrypted files" tar])
@@ -1547,9 +1560,9 @@
 	       (0 1)))
 	     "Orgmode integration with the GNOME desktop" single])
  (org-email .
-	    [(2 1)
+	    [(3 0 0)
 	     ((shadchen
-	       (1 1))
+	       (1 2))
 	      (dash
 	       (2 9 0))
 	      (noflet
@@ -2761,6 +2774,9 @@
 		 ((emacs
 		   (24 1)))
 		 "Restore Emacs frame" single])
+ (fooddice .
+	   [(0 1)
+	    nil "Help me I am hungry and dont know what to eat!" single])
  (font-utils .
 	     [(0 7 0)
 	      ((persistent-soft
@@ -3250,7 +3266,7 @@
 	   [(1 4 6)
 	    nil "Screen for Emacsen" single])
  (elpy .
-       [(1 5 1)
+       [(1 6 0)
 	((company
 	  (0 8 2))
 	 (find-file-in-project
@@ -3312,7 +3328,7 @@
 		     (0 2)))
 		   "Make M-. and M-, work in elisp like they do in slime" single])
  (elisp-indexer .
-		[(0 0 7)
+		[(0 0 8)
 		 nil "indexing utils for emacslisp" single])
  (elisp-depend .
 	       [(1 0 2)
@@ -4174,7 +4190,7 @@
 		  (1 11 5)))
 		"Space align various Clojure forms" single])
  (alchemist .
-	    [(0 2 0)
+	    [(0 3 0)
 	     ((emacs
 	       (24)))
 	     "Elixir tooling integration into emacs" tar])
