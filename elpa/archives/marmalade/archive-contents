@@ -1,4 +1,19 @@
 (1
+ (karma .
+  [(0 1 0)
+   nil "Karma Test Runner Emacs Integration" single])
+ (fpaste .
+   [(0 1 2)
+    nil "Send text to http://fpaste.org" single])
+ (evil-escape .
+        [(1 1)
+         ((emacs
+     (24))
+    (evil
+     (1 0 9))
+    (key-chord
+     (0 6)))
+         "Customizable key sequence to escape from insert state and everything else." single])
  (zone-matrix .
         [(0 0 1)
          nil "Matrix themed Zone mode" tar])
@@ -127,7 +142,7 @@
      [(1 4)
       nil "Remember buffer positions per-window, not per buffer" single])
  (window-number .
-    [(1 0 2)
+    [(1 0 3)
      nil "Select windows by numbers." single])
  (window-margin .
     [(0 1)
@@ -883,6 +898,11 @@
         (sequences
          (0 1 0)))
        "A dead simple way to load sensitive information" single])
+ (seethru .
+    [(0 2)
+     ((shadchen
+       (1 4)))
+     "Easily change Emacs' transparency" single])
  (sedated .
     [(1 0)
      nil "A few extremely simple sed functions for familiar text manipulation" single])
@@ -1585,6 +1605,9 @@
  (org-cua-dwim .
          [(0 5)
     nil "Org-mode and Cua mode compatibility layer" single])
+ (org-cliplink .
+         [(0 1 1)
+    nil "a simple command that takes a URL from the clipboard and inserts an org-mode link with a title of a page found by the URL into the current buffer" single])
  (org-blog .
      [(1 18 1 1)
       nil "create and publish a blog with org-mode" single])
@@ -1841,6 +1864,13 @@
  (mc-jump .
     [(1 0 0)
      nil "like \"jump-char\", but \"multiple-cursors\" friendly" single])
+ (mbe .
+      [(0 1)
+       ((emacs
+   (24))
+  (cl-lib
+   (0 5)))
+       "Macros by Example" single])
  (maxframe .
      [(0 5 1)
       nil "maximize the emacs frame based on display size" single])
@@ -2158,7 +2188,7 @@
    [(0 1 2)
     nil "Parse org-todo headlines to use org-tables as Kanban tables" single])
  (jump-dls .
-     [(0 5)
+     [(0 6)
       nil "Jump to definition of symbol using various methods." single])
  (jump-char .
       [(0 1)
@@ -2601,6 +2631,9 @@
  (goto-chg .
      [(1 6)
       nil "goto last change" single])
+ (gotham-theme .
+         [(1 0)
+    nil "A very dark Emacs color theme." single])
  (gopher .
    [(0 0 2)
     nil "easily access and navigate Gopher servers" single])
@@ -3096,11 +3129,9 @@
        (0 3 2)))
      "Alternatives to `message'" single])
  (expectations-mode .
-        [(0 0 4)
-         ((nrepl
-           (0 1 5))
-          (clojure-mode
-           (1 11)))
+        [(0 0 5)
+         ((cider
+           (0 7 0)))
          "Minor mode for expectations tests" single])
  (expand-region .
     [(0 10 0)
@@ -3283,7 +3314,7 @@
     (0 8 0)))
   "Emacs Python Development Environment" tar])
  (elpakit .
-    [(2 0 2)
+    [(2 0 3)
      ((dash
        (2 9 0))
       (shadchen
@@ -3330,7 +3361,7 @@
          (0 2)))
        "Make M-. and M-, work in elisp like they do in slime" single])
  (elisp-indexer .
-    [(0 0 8)
+    [(0 0 9)
      nil "indexing utils for emacslisp" single])
  (elisp-depend .
          [(1 0 2)
@@ -4041,7 +4072,7 @@
          (0 3 2)))
        "Context-sensitive external browse URL or Internet search" single])
  (browse-kill-ring .
-       [(1 3 1)
+       [(2 0 0)
         nil "interactively insert items from kill-ring" single])
  (boxquote .
      [(1 23)
@@ -4192,7 +4223,7 @@
       (1 11 5)))
     "Space align various Clojure forms" single])
  (alchemist .
-      [(0 5 0)
+      [(0 6 0)
        ((emacs
          (24))
         (pkg-info
