@@ -27,7 +27,7 @@
 ;; see http://www.dduckster.com/Blog/awesome/sublime-theme-dd-waher
 ;;
 
-(unless (>= 24 emacs-major-version)
+(unless (>= emacs-major-version 24)
   (error "waher-theme requires Emacs 24 or later."))
 
 (deftheme waher
