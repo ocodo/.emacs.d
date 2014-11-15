@@ -1,5 +1,5 @@
-(when (string-match "Emacs 24" (version))
-  (message "Running Emacs 24 - init ELPA")
+(when (>= emacs-major-version 24)
+  (message "Emacs %s - init packages" emacs-version)
 
   ;; elpa/package.el
   (require 'package)

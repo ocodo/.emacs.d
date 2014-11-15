@@ -8,6 +8,8 @@
 ;;
 ;;; Code:
 
+(setq mode-line-format nil)
+
 (setq custom-file (concat user-emacs-directory "custom/custom.el"))
 (load custom-file)
 
