@@ -1,6 +1,6 @@
 ;;; jasmine-coffee --- Helpers for Jasmine (in coffeescript).
 ;;; Author: Jason Milkins
-;;; Version: 20141014
+;;; Version: 20141115
 ;;; Commentary:
 ;;
 ;;  This file is not a part of Emacs
@@ -80,12 +80,12 @@
 ;;
 ;; ### Verify specs and groups
 ;;
-;; * jasmine-coffee/verify-describe & jasmine-coffee/verify-group
+;; * `jasmine-coffee/verify-describe` & `jasmine-coffee/verify-group`
 ;;
 ;; Verify the current describe block via opening a jasmine url, using
 ;; `jasmine-coffee/base-url` (a custom variable)
 ;;
-;; * jasmine-coffee/verify-it / jasmine-coffee/verify-single
+;; * `jasmine-coffee/verify-it` & `jasmine-coffee/verify-single`
 ;;
 ;; Launch the current spec in a browser window, using the
 ;; jasmine-coffee/base-url (custom variable)
@@ -156,7 +156,9 @@
   "Regexp to find a jasmine coffee-mode `describe'.")
 
 (defvar jasmine-coffee/before-each-regexp
-  (rx "beforeEach" (? "(") (? " ") "->")
+  (rx "beforeEach" (? "(") (? " ")
+      (? "asyncSpec") (? "(") (? " ")  (? "(done)")
+      (? " ") "->")
   "Regexp to find a jasmine coffee-mode `beforeEach'.")
 
 (defcustom jasmine-coffee/jasmine-specs-file "JASMINE_SPECS.yml"
@@ -190,7 +192,7 @@ ie. Appears before filename extension."
   (let (region)
     (setq region (if (use-region-p)
                      (list (region-beginning) (region-end))
-                     (list (line-beginning-position) (line-beginning-position 2))))
+                   (list (line-beginning-position) (line-beginning-position 2))))
     (kill-region (car region) (car (cdr region)))))
 
 (defun jasmine-coffee/var-to-function-form (function-call-prefix)
@@ -355,14 +357,14 @@ Compose and launch spec URL for the current `it' spec."
 (defun jasmine-coffee/navigate-to-next-thing (regexp)
   "Navigate cursor to the body of the next matching REGEXP."
   (with-demoted-errors
-    (re-search-forward regexp))
+      (re-search-forward regexp))
   (forward-line 1)
   (jc/move-to-indentation))
 
 (defun jasmine-coffee/navigate-to-previous-thing (regexp)
   "Navigate cursor to the body of the previous REGEXP."
   (with-demoted-errors
-    (re-search-backward regexp))
+      (re-search-backward regexp))
   (forward-line 1)
   (jc/move-to-indentation))
 
@@ -389,7 +391,7 @@ Compose and launch spec URL for the current `it' spec."
 (defun jasmine-coffee/navigate-to-next-before-each ()
   "Navigate cursor to the body of the next `beforeEach' block."
   (interactive)
-  (jasmine-coffee/navigate-to-previous-thing jasmine-coffee/before-each-regexp))
+  (jasmine-coffee/navigate-to-next-thing jasmine-coffee/before-each-regexp))
 
 (defun jasmine-coffee/navigate-to-previous-before-each ()
   "Navigate cursor to the body of the previous `beforeEach' block."
@@ -418,7 +420,7 @@ Compose and launch spec URL for the current `it' spec."
 
           (find-file (apply 's-replace exts))
 
-      (message "Not a jasmine coffee file")))))
+          (message "Not a jasmine coffee file")))))
 
 (defun jasmine-coffee/jump-to-data-store ()
   "Jump to a data-store."
@@ -475,18 +477,18 @@ spec described by the given URL."
       nil)))
 
 (defun jasmine-coffee/index-spec-to-file (&optional spec-file index-file)
-   "Write SPEC-FILE index to INDEX-FILE."
-   (let* (specs-list)
-     (unless spec-file (setq spec-file (buffer-file-name)))
-     (unless (and index-file
-                  (file-exists-p index-file))
-       (setq index-file
-             (format "%s/%s"
-                     projectile--project-root
-                     jasmine-coffee/jasmine-specs-file)))
-     (setq specs-list (jasmine-coffee/index-specs spec-file))
-     (when specs-list
-       (append-to-file (s-join "\n" specs-list) nil index-file))))
+  "Write SPEC-FILE index to INDEX-FILE."
+  (let* (specs-list)
+    (unless spec-file (setq spec-file (buffer-file-name)))
+    (unless (and index-file
+                 (file-exists-p index-file))
+      (setq index-file
+            (format "%s/%s"
+                    projectile--project-root
+                    jasmine-coffee/jasmine-specs-file)))
+    (setq specs-list (jasmine-coffee/index-specs spec-file))
+    (when specs-list
+      (append-to-file (s-join "\n" specs-list) nil index-file))))
 
 (defun jasmine-coffee/index-all-specs (&optional index-file spec-folder)
   "Generate jasmine specs INDEX-FILE for all specs found in SPEC-FOLDER."
@@ -512,7 +514,7 @@ spec described by the given URL."
   (save-excursion
     (jc/end-of-line)
     (with-demoted-errors
-      (re-search-backward (rx line-start (+ blank) "it" (group (? "x")))))
+        (re-search-backward (rx line-start (+ blank) "it" (group (? "x")))))
     (jc/move-to-indentation)
     (when (looking-at "it ") (forward-char 2) (insert "x"))
     (when (looking-at "itx") (forward-char 2) (delete-char 1))))
