@@ -8,7 +8,9 @@
 ;;
 ;;; Code:
 
-(setq mode-line-format nil)
+;; Custom mac osx startup look
+(when (and (window-system) (eq system-type 'darwin))
+  (setq mode-line-format nil))
 
 (setq custom-file (concat user-emacs-directory "custom/custom.el"))
 (load custom-file)
@@ -50,6 +52,34 @@ trying to run it."
 (defun process-mode-inits (names)
   "Process a list of mandatory mode init NAMES, convention is as above."
   (mapcar 'load-mode-init names))
+
+(defun set-window-system-font ()
+  "Set the window system font."
+  ;; Default Font for different window systems
+  (when (window-system)
+    (global-linum-mode 1)
+    ;; Mac OS X
+    (when (eq system-type 'darwin)
+      ;;(set-face-font 'default "Monaco")
+      ;;(set-face-font 'default "Source Code Pro")
+      ;;(set-face-font 'default "Source Code Pro Light")
+      ;;(set-face-font 'default "Inconsolata")
+      ;;(set-face-font 'default "Bitstream Vera Sans Mono")
+      (set-face-font 'default "Menlo"))
+    ;; Sample Text for font viewing
+    '("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz"
+      "1234567890!@#$%^&*()-=_+[]\{}|;':<>?,./")
+
+    ;; Windows whatever...
+    (when (eq system-type 'windows-nt)
+      (set-face-font 'default "Consolas"))
+
+    ;; GNU Linux (Droid or Vera)
+    (when (eq system-type 'gnu/linux)
+      ;; for quick swapping.
+      ;; (set-face-font 'default "Bitstream Vera Sans Mono")
+      (set-face-font 'default "Droid Sans Mono"))))
 
 ;; Manage history
 (require 'savehist)
@@ -105,7 +135,7 @@ trying to run it."
                          )) (load-library i)
                             (message "Loaded library: %s" i))
             (setq debug-on-error nil)
-            ))
+            (set-window-system-font)))
 
 ;; mode inits
 (process-mode-inits
@@ -156,29 +186,4 @@ trying to run it."
    "pivotal"
    "paradox"))
 
-;; Default Font for different window systems
-(when (window-system)
-  (global-linum-mode 1)
-  ;; Mac OS X
-  (when (eq system-type 'darwin)
-    ;;(set-face-font 'default "Monaco")
-    ;;(set-face-font 'default "Source Code Pro")
-    ;;(set-face-font 'default "Source Code Pro Light")
-    ;;(set-face-font 'default "Inconsolata")
-    ;;(set-face-font 'default "Bitstream Vera Sans Mono")
-    (set-face-font 'default "Menlo"))
-  ;; Sample Text for font viewing
-  '("ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "1234567890!@#$%^&*()-=_+[]\{}|;':<>?,./")
-
-  ;; Windows whatever...
-  (when (eq system-type 'windows-nt)
-    (set-face-font 'default "Consolas"))
-
-  ;; GNU Linux (Droid or Vera)
-  (when (eq system-type 'gnu/linux)
-    (set-face-font 'default "Droid Sans Mono") ;; for quick swapping.
-    ;; (set-face-font 'default "Bitstream Vera Sans Mono")
-    ))
 ;;; init.el ends here
