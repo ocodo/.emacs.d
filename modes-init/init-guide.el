@@ -23,6 +23,8 @@
         "C-c @"
         "C-c !"
         "C-c &"
+        "C-c p"
+        "%"
         ))
 
 (global-set-key (kbd "C-x n g") 'guide-key-mode)
