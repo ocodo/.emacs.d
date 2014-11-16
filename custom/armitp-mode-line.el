@@ -83,15 +83,16 @@
   (make-face 'mode-line-80col-face)
 
   (set-face-attribute 'mode-line nil
+                      :inherit 'mode-line-face
                       :foreground "gray60" :background "gray20"
                       :height 160
                       :inverse-video nil
                       :box '(:line-width 6 :color "gray20" :style nil))
   (set-face-attribute 'mode-line-inactive nil
+                      :inherit 'mode-line-face
                       :foreground "gray80" :background "gray40"
                       :inverse-video nil
                       :box '(:line-width 6 :color "gray40" :style nil))
-
   (set-face-attribute 'mode-line-read-only-face nil
                       :inherit 'mode-line-face
                       :foreground "#4271ae"
@@ -110,21 +111,22 @@
                       :weight 'bold)
   (set-face-attribute 'mode-line-position-face nil
                       :inherit 'mode-line-face
-                      :family "Menlo" :height 100)
+                      :height 100)
   (set-face-attribute 'mode-line-mode-face nil
                       :inherit 'mode-line-face
                       :foreground "gray80")
   (set-face-attribute 'mode-line-minor-mode-face nil
-                      :inherit 'mode-line-mode-face
-                      :foreground "gray40"
+                      :inherit 'mode-line-face
+                      :foreground "gray70"
                       :height 110)
   (set-face-attribute 'mode-line-process-face nil
                       :inherit 'mode-line-face
                       :foreground "#718c00")
   (set-face-attribute 'mode-line-80col-face nil
-                      :inherit 'mode-line-position-face
-                      :foreground "black" :background "#eab700"))
+                      :inherit 'mode-line-face-position-face
+                      :foreground "black" :background "#eab700")
 
+  )
 
 (provide 'armitp-mode-line)
 
