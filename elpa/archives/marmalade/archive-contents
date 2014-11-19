@@ -3165,7 +3165,7 @@
 			    (0)))
 			  "evil textobjects based on indentation" single])
  (evil-escape .
-	      [(1 1)
+	      [(1 3)
 	       ((emacs
 		 (24))
 		(evil
@@ -4003,6 +4003,13 @@
  (chicken-scheme .
 		 [(1 3 0)
 		  nil "Scheme-mode extensions for Chicken Scheme" single])
+ (checkbox .
+	   [(0 2 1)
+	    ((emacs
+	      (24))
+	     (cl-lib
+	      (0 5)))
+	    "Quick manipulation of textual checkboxes" single])
  (charmap .
 	  [(0 0 1)
 	   nil "Unicode table for Emacs" single])
