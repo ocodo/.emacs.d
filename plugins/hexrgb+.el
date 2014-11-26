@@ -1,30 +1,45 @@
+;;; package --- hexrgb+ - Additional Color functions and helpers for hexrgb.el
+
+;;; Commentary:
+;;  Set hue, sat, brightness of a hexrgb color + a bunch of other
+;;  color tools I built for personal use.
+;;
+;;; Licence:
+;;  GNU/GPL2
+;;
+;;; Code:
+
 (require 'hexrgb)
 
-(defun hexrgb-hex-set-brightness
-  (hex brightness)
+(defgroup hexrgb+ nil
+  "Hexrgb+ customizations."
+  :group 'tools)
+
+(defcustom hexrgb-color-group-format
+  "%s, "
+  "Used by the hexrgb-hex-(hue|sat|val)-group functions."
+  :group 'hexrgb+)
+
+(defun hexrgb-hex-set-brightness (hex brightness)
   "set brightness of a hex color, amount values from 0-1
    returns a 6 digit hex color"
   (let* ((hsv (hexrgb-hex-to-hsv hex))
          (h (first hsv)) (s (second hsv)) (v (third hsv)))
     (hexrgb-hsv-to-hex h s (* brightness v) 2)))
 
-(defun hexrgb-hex-set-saturation
-  (hex saturation)
+(defun hexrgb-hex-set-saturation (hex saturation)
   "set saturation of a hex color, amount values from 0-1
    returns a 6 digit hex color"
   (let* ((hsv (hexrgb-hex-to-hsv hex))
          (h (first hsv)) (s (second hsv)) (v (third hsv)))
     (hexrgb-hsv-to-hex h (* saturation s) v 2)))
 
-(defun hexrgb-hex-set-hue
-  (hex hue)
+(defun hexrgb-hex-set-hue (hex hue)
   "set hue of a hex color, amount values from 0-1
    returns a 6 digit hex color"
   (let* ((hsv (hexrgb-hex-to-hsv hex))
          (s (second hsv)) (v (third hsv)))
     (hexrgb-hsv-to-hex hue s v 2)))
-
-(defcustom hexrgb-color-group-format "%s, " "Used by the hexrgb-hex-(hue|sat|val)-group functions, ")
 
 (defun hexrgb-hex-hue-group (hex ) "Return a list of hexcolors of different hues"
   (interactive "sHex color: ")
@@ -55,20 +70,18 @@
          (blu (/ (+ (nth 2 rgb1) (nth 2 rgb2)) 2))
          )
     (format "#%02X%02X%02X"
-            (* red 65535.0) 
-            (* grn 65535.0) 
-            (* blu 65535.0) 
+            (* red 65535.0)
+            (* grn 65535.0)
+            (* blu 65535.0)
             )
     )
   )
 
-(hexrgb-interpolate "#FFFFFF" "#000000")
-
 (defun hexrgb-cssrgb-to-hex (cssrgb)
   "convert a css rgb color to hex"
-  (let ((rgb 
+  (let ((rgb
   (cdr (s-match  "rgba?(\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*,\s*\\([0-9]\\{1,3\\}\\(?:\s*%\\)?\\)\s*)" cssrgb))))
-    (setq r (nth 0 rgb) 
+    (setq r (nth 0 rgb)
           g (nth 1 rgb)
           b (nth 2 rgb))
     (format "#%02X%02X%02X"
