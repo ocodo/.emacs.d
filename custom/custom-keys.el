@@ -15,6 +15,9 @@
 (require 'custom-mac-fn-keys)
 (require 'misc)
 
+(global-set-key (kbd "<home>") 'beginning-of-line)
+(global-set-key (kbd "<end>") 'end-of-line)
+
 (global-set-key (kbd "C-x /")               'align-regexp)
 (global-set-key (kbd "C-x g")               'ag)
 
