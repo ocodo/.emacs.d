@@ -132,6 +132,7 @@ trying to run it."
                          "scroll-bell-fix"
                          "squeeze-view"
                          "switch-window"
+                         "xterm-256-to-hex"
                          )) (load-library i)
                             (message "Loaded library: %s" i))
             (setq debug-on-error nil)
