@@ -361,7 +361,7 @@
 	     [(0 1 1)
 	      nil "Major mode for editing typescript" single])
  (twittering-mode .
-		  [(2 0 0)
+		  [(3 0 1)
 		   nil "Major mode for Twitter" single])
  (twilight-theme .
 		 [(1 0 0)
@@ -3945,9 +3945,16 @@
 		   ((project-mode
 		     (1 0)))
 		   "Extends project-mode for Clojure projects" single])
+ (clojure-mode-extra-font-locking .
+				  [(3 0 0)
+				   ((clojure-mode
+				     (3 0)))
+				   "Extra font-locking for Clojure mode" single])
  (clojure-mode .
-	       [(2 1 1)
-		nil "Major mode for Clojure code" single])
+	       [(3 0 1)
+		((emacs
+		  (24 1)))
+		"Major mode for Clojure code" single])
  (clojure-here .
 	       [(0 11)
 		nil "Clojure process in a buffer" single])
@@ -4000,15 +4007,19 @@
 	   (1 1)))
 	 "Client for IRC in Emacs" tar])
  (cider .
-	[(0 6 0)
+	[(0 8 1)
 	 ((clojure-mode
-	   (2 0 0))
+	   (3 0 0))
 	  (cl-lib
-	   (0 3))
+	   (0 5))
 	  (dash
 	   (2 4 1))
 	  (pkg-info
-	   (0 4)))
+	   (0 4))
+	  (emacs
+	   (24))
+	  (queue
+	   (0 1 1)))
 	 "Clojure Integrated Development Environment and REPL" tar])
  (chm-view .
 	   [(0 2 2)
@@ -4248,7 +4259,7 @@
 		  (1 11 5)))
 		"Space align various Clojure forms" single])
  (alchemist .
-	    [(0 6 0)
+	    [(0 7 2)
 	     ((emacs
 	       (24))
 	      (pkg-info
