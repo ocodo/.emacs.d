@@ -1,8 +1,9 @@
-;; Note: this is all very Emacs Cocoa specific, ie. super "s-" maps to the Cmd/Apple key.
+;; These binding are for both Emacs Mac and Emacs Cocoa (25.0~) (it
+;; should take care of conditional binding itself.)  Brings the Emacs
+;; mac key bindings closer into line with Emacs Cocoa. Also adds a lot
+;; of Mac specific bindings to Super (ie. ⌘) and elsewhere
 
-;; for Emacs Mac, (not Emacs Cocoa) -
-;; (takes care of conditional loading itself.)
-;; Brings the Emacs mac key bindings (closer) into line with Emacs Cocoa.
+;; Many universal / terminal
 
 ;; Keys - universal
 
@@ -15,6 +16,8 @@
 (require 'misc)
 
 (global-set-key (kbd "C-x /")               'align-regexp)
+(global-set-key (kbd "C-x g")               'ag)
+
 (global-set-key (kbd "C-^")                 'join-line-from-below)
 
 (global-set-key (kbd "C-=")                 'cua-set-rectangle-mark)
@@ -26,8 +29,6 @@
 
 (global-set-key (kbd "C-c C-w")             'rotate-window)
 (global-set-key (kbd "C-c C-l")             'rotate-layout)
-
-(global-set-key (kbd "C-x g")               'ag)
 
 (global-set-key (kbd "C-c SPC")             'ace-jump-mode)
 (global-set-key (kbd "C-c ;")               'iedit-mode)
@@ -60,7 +61,6 @@
 (global-set-key (kbd "C-M-.")               'enlarge-window-horizontally) ;; Ctrl-Alt->
 
 ;; Completion / Abbreviation
-
 (global-set-key [(control tab)]             'completion-at-point)
 
 ;; Move line / region
@@ -75,11 +75,9 @@
 ;; Auto fill mode toggle (tidy up text line length automatically.)
 (global-set-key (kbd "C-c q")               'auto-fill-mode)
 
-;; bind Alt-Cmd-Return to fullscreen toggle on os x in
-;; window mode, if ns-toggle-fullscreen is available.
-;; otherwise just max size the frame.
-(when (and (window-system) (fboundp         'ns-toggle-fullscreen))
-    (global-set-key (kbd "<M-s-return>")    'ns-toggle-fullscreen))
+;; Toggle fullscreen (>= emacs-version 24.4)
+(when (>= (string-to-number (format "%i.%i"  emacs-major-version emacs-minor-version)) 24.4)
+  (global-set-key (kbd "<S-s-return>")    'toggle-fullscreen))
 
 ;; unset some annoying things in the OS X build, no dialogs, also add
 ;; a few osx centric bindings.  If you like dialogs, you probably
@@ -147,7 +145,8 @@
   (global-set-key (kbd "s-=")               'text-scale-increase)
 
   ;; line numbers off on
-  (global-set-key (kbd "s-\\")               'linum-mode)
+  (global-set-key (kbd "s-\\")              'linum-mode)
+  (global-set-key (kbd "s-\\")              'linum-mode)
 
   ;; highly inclusive expand
   (global-set-key (kbd "s-/" )              'hippie-expand)
@@ -158,12 +157,13 @@
   ;; narrow / widen region
   (global-set-key (kbd "s-§")               'narrow-to-region)
   (global-set-key (kbd "C-§")               'widen )
+
   ;; narrow / widen region
   (global-set-key (kbd "C-M-`")             'narrow-to-region)
   (global-set-key (kbd "s-M-`")             'widen )
 
   )
 
-;; Please Note: there are still bindings littered about, I will clean this up! (one day!)
+;; Please Note: there are still bindings littered about, they are mostly cleaned up.
 
 (provide 'custom-keys)

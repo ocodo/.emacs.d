@@ -15,6 +15,23 @@
 (require 's)
 (require 'find-func)
 
+(defvar saved-mode-line
+  nil
+  "Save register for mode-line.")
+
+(defun toggle-mode-line-on-off ()
+  "Toggle the modeline off and on.
+Uses saved-mode-line as a register.
+
+Note this only affects the current buffer,
+and it doesn't seem to work wth key bindings."
+  (interactive)
+  (if (eq mode-line-format nil)
+      (setq mode-line-format saved-mode-line)
+    (progn
+      (setq saved-mode-line mode-line-format)
+      (setq mode-line-format nil))))
+
 (defun join-line-from-below ()
   "Join line from below."
   (interactive)
