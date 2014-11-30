@@ -175,6 +175,7 @@ trying to run it."
    "smartparens"
    "smooth-scroll"
    "winner"
+   "xterm"
    "yaml"
    "yasnippet"))
 
