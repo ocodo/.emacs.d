@@ -1,14 +1,13 @@
 ;;; csharp-mode.el --- C# mode derived mode
-;; Version: 20130824.1200
 
 ;; Author     : Dylan R. E. Moonfire (original)
-;; Maintainer : Dino Chiesa <dpchiesa@hotmail.com>
+;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
-;; Modified   : May 2011
-;; Version    : 0.8.6
+;; Modified   : November 2014
+;; Version    : 0.8.7
 ;; Keywords   : c# languages oop mode
-;; X-URL      : http://code.google.com/p/csharpmode/
-;; Last-saved : <2011-May-21 20:28:30>
+;; X-URL      : https://github.com/josteink/csharp-mode
+;; Last-saved : <2014-Nov-29 13:56:00>
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -378,10 +377,16 @@
 ;;          - imenu: split menus now have better labels, are sorted correctly.
 ;;
 ;;    0.8.6 DPC 2011 May ??
-;;          -
-
+;;          - extern keyword
+;;
+;;    0.8.7 2014 November 29
+;;          - Fix broken cl-dependency in emacs24.4 and defadvice for tooltips.
+;;
 
 (require 'cc-mode)
+
+;; cc-defs in emacs 24.4 depends on cl-macroexpand-all, but does not load 'cl itself.
+(require 'cl)
 
 (message  (concat "Loading " load-file-name))
 
@@ -1853,7 +1858,7 @@ wrote this alternative.
   csharp '("namespace"))
 
 (c-lang-defconst c-other-kwds
-  csharp '("sizeof" "typeof" "is" "as" "yield"
+  csharp '("sizeof" "typeof" "is" "as" "yield" "extern"
            "where" "select" "in" "from"))
 
 (c-lang-defconst c-overloadable-operators
@@ -3939,7 +3944,7 @@ Returns nil if not found.
 See also, `string-indexof'
 
 "
-  (let ((i (length s))
+  (let ((i (1- (length s)))
         ix c2)
     (while (and (>= i 0) (not ix))
       (setq c2 (aref s i))
@@ -5578,29 +5583,6 @@ Key bindings:
 
 
 
-
-  ;; =======================================================
-  ;;
-  ;; This section attempts to workaround an anomalous display behavior
-  ;; for tooltips.  It's not strictly necessary, only for aesthetics.  The
-  ;; issue is that tooltips can get clipped.  This is the topic of Emacs
-  ;; bug #5908, unfixed in v23 and present in v22.
-
-
-  (defadvice tooltip-show (before
-                           flymake-for-csharp-fixup-tooltip
-                           (arg &optional use-echo-area)
-                           activate compile)
-    (progn
-      (if ;;(and (not use-echo-area) (eq major-mode 'csharp-mode))
-          (not use-echo-area)
-          (let ((orig (ad-get-arg 0)))
-            (ad-set-arg 0 (concat " " (cheeso-string-trim (cheeso-reform-string 74 orig) ?\ )))
-            ))))
-
-
-
-
 ;; ========================================================================
 ;; YA-snippet integration
 
@@ -5853,7 +5835,7 @@ $0" "XML Documentation" nil)
 [assembly: AssemblyTitle(\"$1\")]
 [assembly: AssemblyCompany(\"${2:YourCoName}\")]
 [assembly: AssemblyProduct(\"${3}\")]
-[assembly: AssemblyCopyright(\"Copyright Â© ${4:Someone} 2011\")]
+[assembly: AssemblyCopyright(\"Copyright © ${4:Someone} 2011\")]
 [assembly: AssemblyTrademark(\"\")]
 [assembly: AssemblyCulture(\"\")]
 [assembly: AssemblyConfiguration(\"\")]
