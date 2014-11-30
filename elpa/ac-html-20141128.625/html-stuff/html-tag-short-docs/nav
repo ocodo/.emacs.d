@@ -1,0 +1,22 @@
+The HTML Navigation Element (<nav>) represents a section of a page that links to other pages or to parts within the page: a section with navigation links.
+
+Usage notes:
+
+Not all links of a document must be in a <nav> element, which is intended only for major block of navigation links; typically the <footer> element often has a list of links that don't need to be in a <nav> element.
+A document may have several <nav> elements, for example, one for site navigation and one for intra-page navigation.
+User agents, such as screen readers targeting disabled users, can use this element to determine whether to omit the initial rendering of this content.
+
+Content categories:
+Flow content, sectioning content, palpable content.
+
+Permitted content:
+Flow content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content.
+
+DOM interface:
+HTMLElement

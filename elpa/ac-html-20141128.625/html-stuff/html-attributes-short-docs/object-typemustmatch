@@ -1,0 +1,3 @@
+typemustmatch [HTML5]
+
+This Boolean attribute indicates if the type and the actual content type resource must match in order of this one to be used.

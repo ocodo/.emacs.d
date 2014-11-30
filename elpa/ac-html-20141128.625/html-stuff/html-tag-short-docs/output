@@ -1,0 +1,16 @@
+The HTML <output> element represents the result of a calculation or user action.
+
+Content categories:
+Flow content, phrasing content, listed, labelable, resettable  form-associated element, palpable content.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing content.
+
+DOM interface:
+HTMLOutputElement

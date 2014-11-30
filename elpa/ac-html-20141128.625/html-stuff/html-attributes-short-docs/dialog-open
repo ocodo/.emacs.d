@@ -1,0 +1,3 @@
+open
+
+Indicates that the dialog is active and available for interaction. When the open attribute is not set, it shouldn't be shown to the user.

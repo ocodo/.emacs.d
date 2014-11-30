@@ -1,0 +1,10 @@
+The HTML <element> element is used to define new custom DOM elements.
+
+Content categories:
+Transparent content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+DOM interface:
+HTMLElement

@@ -1,0 +1,20 @@
+dir
+
+Like all other HTML elements, this element has the global attributes, with a slight semantic difference: the dir attribute is not inherited. If not set, its default value is the auto which let the browser decide the direction based on the element's content.
+
+[global attribute]
+
+Defines the text direction. Allowed values are ltr (Left-To-Right) or rtl (Right-To-Left)
+
+This enumerated attribute indicates the directionality of the element's text. It can have the following values:
+
+ltr, which means left to right and is to be used for languages that are written from the left to the right (like English);
+rtl, which means right to left and is to be used for languages that are written from the right to the left (like Arabic);
+auto, which let the user agent decides. It uses a basic algorithm as it parses the characters inside the element until it finds a character with a strong directionality, then apply that directionality to the whole element.
+
+Usage notes:
+This attribute is mandatory for the <bdo> element where it has a different semantic meaning.
+This attribute is not inherited by the <bdi> element. If not set, its value is auto.
+This attribute can be overridden by the CSS properties direction and unicode-bidi, if a CSS page is active and the element supports these properties.
+As the directionality of the text is semantically related to its content and not to its presentation, it is recommended that web developers use this attribute instead of the related CSS properties when possible. That way, the text will display correctly even on a browser that doesn't support CSS or has the CSS deactivated.
+The auto value should be used for data with an unknown directionality, like data coming from user input, eventually stored in a database.

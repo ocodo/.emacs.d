@@ -1,0 +1,22 @@
+The HTML <details> Element is used as a disclosure widget from which the user can retrieve additional information.
+
+This is an experimental technology.
+
+Browser Compatibility:
+Desktop: C O S
+Mobile: A
+
+Content categories:
+Flow content, sectioning root, interactive content, palpable content.
+
+Permitted content:
+One <summary> element followed by flow content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content.
+
+DOM interface:
+HTMLDetailsElement

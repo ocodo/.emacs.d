@@ -1,0 +1,3 @@
+width [Trashed]
+
+Contains the preferred count of characters that a line should have. Though technically still implemented, this attribute has no visual effect; to achieve such an effect, use CSS styling instead.

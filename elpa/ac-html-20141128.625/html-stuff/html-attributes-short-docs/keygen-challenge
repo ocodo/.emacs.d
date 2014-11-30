@@ -1,0 +1,3 @@
+challenge
+
+A challenge string that is submitted along with the public key. Defaults to an empty string if not specified.

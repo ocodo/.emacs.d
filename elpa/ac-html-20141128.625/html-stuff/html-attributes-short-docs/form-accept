@@ -1,0 +1,6 @@
+accept [HTML4] [Trash]
+
+A comma-separated list of content types that the server accepts.
+
+Usage note: 
+This attribute has been removed in HTML5 and should no longer be used. Instead, use the accept attribute of the specific <input> element.

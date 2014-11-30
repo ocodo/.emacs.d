@@ -1,0 +1,20 @@
+The HTML <menuitem> element represents a command that a user is able to invoke through a popup menu. This includes context menus, as well as menus that might be attached to a menu button.
+
+A command can either be defined explicitly, with a textual label and optional icon to describe its appearance, or alternatively as an indirect command whose behavior is defined by a separate element. Commands can also optionally include a checkbox or be grouped to share radio buttons. (Menu items for indirect commands gain checkboxes or radio buttons when defined against elements <input type="checkbox"> and <input type="radio">.)
+
+This is an experimental technology.
+
+Content categories:
+None.
+
+Permitted content:
+None, it is an empty element.
+
+Tag omission:
+Must have a start tag and must not have an end tag.
+
+Permitted parent elements:
+The <menu> element, where that element is in the popup menu state. (If specified, the type attribute of the <menu> element must be popup; if missing, the parent element of the <menu> must itself be a <menu> in the popup menu state.)
+
+DOM interface:
+HTMLMenuItemElement

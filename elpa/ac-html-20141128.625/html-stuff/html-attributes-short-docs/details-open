@@ -1,0 +1,3 @@
+open
+
+This Boolean attribute indicates whether the details will be shown to the user on page load. Default is false and so details will be hidden.
