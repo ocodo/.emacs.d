@@ -1,7 +1,4 @@
 (1
- (gitattributes-whitespace .
-			   [(1 20141128)
-			    nil "configure whitespace settings from gitattributes" single])
  (zone-matrix .
 	      [(0 0 1)
 	       nil "Matrix themed Zone mode" tar])
@@ -2693,6 +2690,9 @@
  (gitconfig .
 	    [(1 0 0)
 	     nil "Emacs lisp interface to work with git-config variables" single])
+ (gitattributes-whitespace .
+			   [(1 20141128)
+			    nil "configure whitespace settings from gitattributes" single])
  (git-gutter-fringe .
 		    [(0 12)
 		     ((git-gutter

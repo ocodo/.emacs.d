@@ -1,12 +1,10 @@
 ;;; csharp-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (csharp-mode csharp-cmd-line-limit csharp-msbuild-tool
-;;;;;;  csharp-make-tool csharp-want-imenu csharp-want-yasnippet-fixup
-;;;;;;  csharp-want-flymake-fixup csharp-mode-hook) "csharp-mode"
-;;;;;;  "csharp-mode.el" (21017 59093 0 0))
+;;;### (autoloads nil "csharp-mode" "csharp-mode.el" (21627 18720
+;;;;;;  629235 56000))
 ;;; Generated autoloads from csharp-mode.el
 
 (defvar csharp-mode-hook nil "\
@@ -237,16 +235,14 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil nil ("csharp-mode-pkg.el") (21017 59093 609174
-;;;;;;  0))
+;;;### (autoloads nil nil ("csharp-mode-package-template.el" "csharp-mode-pkg.el")
+;;;;;;  (21627 18720 654736 636000))
 
 ;;;***
 
-(provide 'csharp-mode-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; csharp-mode-autoloads.el ends here
