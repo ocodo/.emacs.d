@@ -1,0 +1,3 @@
+language [Deprecated]
+
+Like the type attribute, this attribute identifies the scripting language in use. Unlike the type attribute, however, this attribute’s possible values were never standardized. The type attribute should be used instead.

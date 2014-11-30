@@ -1,0 +1,3 @@
+media [Experimental]
+
+Media query of the resource's intended media; this should be used only in a <picture> element.

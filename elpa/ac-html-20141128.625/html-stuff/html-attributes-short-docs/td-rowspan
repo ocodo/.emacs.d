@@ -1,0 +1,3 @@
+rowspan
+
+This attribute contains a non-negative integer value that indicates for how many rows the cell extends. Its default value is 1; if its value is set to 0, it extends until the end of the table section (<thead>, <tbody>, <tfoot>, even if implicitly defined, that the cell belongs to. Values higher than 65534 are clipped down to 65534.

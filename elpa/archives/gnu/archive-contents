@@ -5,9 +5,9 @@
        ((:keywords "tools" "processes" "convenience")
 	(:url . "https://github.com/leoliu/ack-el"))])
  (ada-mode .
-	   [(5 1 6)
+	   [(5 1 7)
 	    ((wisi
-	      (1 0 6))
+	      (1 1 0))
 	     (cl-lib
 	      (0 4))
 	     (emacs
@@ -326,7 +326,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20141117)
+      [(20141124)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -461,7 +461,7 @@
 	      ((:url . "http://elpa.gnu.org/packages/windresize.html")
 	       (:keywords "window"))])
  (wisi .
-       [(1 0 6)
+       [(1 1 0)
 	((cl-lib
 	  (0 4))
 	 (emacs

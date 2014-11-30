@@ -1,0 +1,6 @@
+scrolling [HTML4 only]
+
+Enumerated attribute indicating when the browser should provide a scroll bar (or other scrolling device) for the frame:
+  auto: Only when needed.
+  yes: Always provide a scroll bar.
+  no: Never provide a scoll bar.

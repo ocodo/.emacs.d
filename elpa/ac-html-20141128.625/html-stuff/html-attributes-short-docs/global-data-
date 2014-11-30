@@ -1,0 +1,9 @@
+Lets you attach custom attributes to an HTML element.
+
+This class of attributes, called custom data attributes, allows proprietary information to be exchanged between the HTML and its DOM representation that may be used by scripts. All such custom data are available via the HTMLElement interface of the element the attribute is set on. The HTMLElement.dataset property gives access to them.
+The * may be replaced by any name following the production rule of xml names with the following restrictions:
+
+the name must not start with xml, whatever case is used for these letters;
+the name must not contain any semicolon (U+003A);
+the name must not contain capital A to Z letters.
+Note that the HTMLElement.dataset attribute is a StringMap and the name of the custom data attribute data-test-value will be accessible via HTMLElement.dataset.testValue as any dash (U+002D) is replaced by the capitalization of the next letter (camelcase).

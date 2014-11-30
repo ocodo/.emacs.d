@@ -1,0 +1,13 @@
+Indicates whether spell checking is allowed for the element.
+
+This enumerated attribute defines whether the element may be checked for spelling errors. It may have the following values:
+
+true, which indicates that the element should be, if possible, checked for spelling errors;
+false, which indicates that the element should not be checked for spelling errors.
+
+If this attribute is not set, its default value is element-type and browser-defined. This default value may also be inherited, which means that the element content will be checked for spelling errors only if its nearest ancestor has a spellcheck state of true.
+
+Usage note:
+his attribute is an enumerated one and not a Boolean one. This means that the explicit usage of one of the values true or false is mandatory and that a shorthand like <label spellcheck>Example Label</label> is not allowed. The correct usage is <label spellcheck="true">Example Label</label>.
+This attribute is merely a hint for the browser: browsers are not required to be able to check for spelling errors. Typically non-editable elements are not checked for spelling errors, even if the spellcheck attribute is set to true and the browser supports spellchecking.
+The default value of this attribute is browser and element-dependant.

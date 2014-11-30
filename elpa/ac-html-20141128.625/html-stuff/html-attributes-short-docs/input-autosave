@@ -1,0 +1,3 @@
+autosave [HTML5]
+
+This attribute should be defined as a unique value. If the value of the type attribute is search, previous search term values will persist in the dropdown across page load.

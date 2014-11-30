@@ -1,0 +1,3 @@
+onafterprint [HTML5]
+
+Function to call after the user has printed the document.

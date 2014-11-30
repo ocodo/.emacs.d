@@ -1,0 +1,3 @@
+type
+
+The type of control to display. The default type is text, if this attribute is not specified.

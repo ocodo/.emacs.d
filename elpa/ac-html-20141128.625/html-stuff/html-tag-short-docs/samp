@@ -1,0 +1,19 @@
+The HTML <samp> element is an element intended to identify sample output from a computer program. It is usually displayed in the browser's default monotype font (such as Lucida Console).
+
+Content categories:
+Flow content, phrasing content, palpable content.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing content.
+
+DOM interface:
+HTMLElement
+
+Note:
+A CSS rule can be defined for the samp selector to override the browser's default font face. Preferences set by the user might take precedence over the specified CSS.

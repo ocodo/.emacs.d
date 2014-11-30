@@ -1,0 +1,3 @@
+max
+
+The upper numeric bound of the measured range. This must be greater than the minimum value (min attribute), if specified. If unspecified, the maximum value is 1.

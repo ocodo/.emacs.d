@@ -1,0 +1,16 @@
+The HTML List item element (<li>) is used to represent a list item. It should be contained in an ordered list (<ol>), an unordered list (<ul>) or a menu (<menu>), where it represents a single entity in that list. In menus and unordered lists, list items are ordinarily displayed using bullet points. In ordered lists, they are usually displayed with some ascending counter on the left such as a number or letter.
+
+Content categories:
+None.
+
+Permitted content:
+Flow content.
+
+Tag omission:
+The end tag can be omitted if it is immediately followed by another <li> element or if there is no more content in its parent element.
+
+Permitted parent elements:
+An <ul>, <ol> or <menu> element. Though not a non-conforming usage, the obsolete <dir> may also be a parent.
+
+DOM interface:
+HTMLLIElement

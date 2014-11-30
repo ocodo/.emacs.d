@@ -1,0 +1,6 @@
+usemap
+
+The partial URL (starting with '#') of an image map associated with the element.
+
+Usage note: 
+You cannot use this attribute if the <img> element is a descendant of an <a> or <button> element.

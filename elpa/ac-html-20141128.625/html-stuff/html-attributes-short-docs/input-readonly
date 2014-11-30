@@ -1,0 +1,4 @@
+readonly
+
+This Boolean attribute indicates that the user cannot modify the value of the control.
+[HTML5] This attribute is ignored if the value of the type attribute is hidden, range, color, checkbox, radio, file, or a button type.

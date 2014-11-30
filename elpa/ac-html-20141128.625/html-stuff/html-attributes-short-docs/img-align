@@ -1,0 +1,5 @@
+align [Deprecated since HTML4.01] [Obsolete since HTML5]
+
+Use the vertical-align CSS property instead.
+
+The alignment of the image with respect to its surrounding context.

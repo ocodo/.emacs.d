@@ -1,0 +1,5 @@
+name [HTML5]
+
+The name associated with the group, which is submitted with the form data.
+
+The label for the field set is given by the first <legend> element that is a child of this field set.

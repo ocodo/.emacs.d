@@ -1,4 +1,7 @@
 (1
+ (gitattributes-whitespace .
+			   [(1 20141128)
+			    nil "configure whitespace settings from gitattributes" single])
  (zone-matrix .
 	      [(0 0 1)
 	       nil "Matrix themed Zone mode" tar])
@@ -113,7 +116,7 @@
    [(1 1)
     nil "Poor-man's namespaces for elisp" single])
  (wisp-mode .
-	    [(0 1 5)
+	    [(0 2)
 	     nil "Tools for wisp: the Whitespace-to-Lisp preprocessor" single])
  (wisp .
        [(0 1 4)
@@ -1570,7 +1573,7 @@
 	       (0 1)))
 	     "Orgmode integration with the GNOME desktop" single])
  (org-email .
-	    [(3 0 0)
+	    [(3 0 1)
 	     ((shadchen
 	       (1 2))
 	      (dash
@@ -1596,8 +1599,8 @@
 	       [(0 5)
 		nil "Org-mode and Cua mode compatibility layer" single])
  (org-cliplink .
-	       [(0 1 1)
-		nil "a simple command that takes a URL from the clipboard and inserts an org-mode link with a title of a page found by the URL into the current buffer" single])
+	       [(0 2)
+		nil "insert org-mode links by URL from the clipboard" single])
  (org-blog .
 	   [(1 18 1 1)
 	    nil "create and publish a blog with org-mode" single])
@@ -2178,7 +2181,7 @@
 	[(0 1 0)
 	 nil "Karma Test Runner Emacs Integration" single])
  (kanban .
-	 [(0 1 2)
+	 [(0 1 3)
 	  nil "Parse org-todo headlines to use org-tables as Kanban tables" single])
  (jump-dls .
 	   [(0 6)
@@ -3000,13 +3003,13 @@
 			      (24 1)))
 			    "Change mode line color with Flycheck status" single])
  (flycheck-cask .
-		[(0 1)
-		 ((flycheck
+		[(0 2)
+		 ((emacs
+		   (24 1))
+		  (flycheck
 		   (0 14))
 		  (dash
-		   (2 0 0))
-		  (f
-		   (0 6 0)))
+		   (2 4 0)))
 		 "Cask support in Flycheck" single])
  (flycheck .
 	   [(0 21)
@@ -3176,7 +3179,7 @@
 			    (0)))
 			  "evil textobjects based on indentation" single])
  (evil-escape .
-	      [(1 5 1)
+	      [(1 6 0)
 	       ((emacs
 		 (24))
 		(evil
@@ -4259,11 +4262,9 @@
 		  (1 11 5)))
 		"Space align various Clojure forms" single])
  (alchemist .
-	    [(0 7 2)
+	    [(0 8 0)
 	     ((emacs
-	       (24))
-	      (pkg-info
-	       (0 5)))
+	       (24)))
 	     "Elixir tooling integration into emacs" tar])
  (ahg .
       [(0 99)
