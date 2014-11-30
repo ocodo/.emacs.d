@@ -1,4 +1,7 @@
-;; Specific to the Mac Port by Yamamoto Mitsuharu aka. Railwaycat
+;;; mac-port-keys --- keys Specific to the Mac Port patches to Emacs by Yamamoto Mitsuharu.
+
+;;; Commentary:
+;; Specific to the Mac Port by Yamamoto Mitsuharu.
 ;; (not to be confused with the Emacs installed by MacPorts)
 
 ;; Emacs Mac has a different set of defaults to Emacs Cocoa/NS
@@ -8,13 +11,15 @@
 ;; You may also like the Emacs cocoa keys, and want to use them with
 ;; Emacs mac, so this is for you.
 
+;;; Code:
+
 ;; Check for the existence of a function with mac- prefix
 (when (symbolp 'mac-control-modifier)
-  ;; Re-map modifiers
-  (setq mac-control-modifier 'control
-        mac-option-modifier 'meta
-        mac-command-modifier 'super)
-  )
+  ;; Re-map modifiers - Give us Hyper instead of the Fn key.
+  (setq mac-control-modifier  'control
+        mac-option-modifier   'meta
+        mac-command-modifier  'super
+        mac-function-modifier 'hyper))
 
 ;; Fullscreen mode toggle in emacs mac. This invokes the Kiosk mode
 ;; fullscreen, ie. only one display is hijacked. not the obnoxious
@@ -30,30 +35,8 @@
 ;; Side-note: Emacs mac port has pixel scrolling, and I'm a sucker for
 ;; that.
 
-(defvar mac-fullscreen-on  nil
-  "keep a track of mac-mouse-turn-o(n|ff)-fullscreen, assumes fullscreen is not on")
-(defun mac-toggle-fullscreen ()
-  "toggle fullscreen mode in Emacs mac (by Yamamoto Mitsuharu)"
-  (interactive)
-  ;; check we are in the emacs mac build
-  (when (functionp 'mac-process-hi-command)
-  (if (eq mac-fullscreen-on t)
-      (progn
-        (mac-mouse-turn-off-fullscreen t)
-        (setq mac-fullscreen-on nil)
-      )
-      (progn
-        (mac-mouse-turn-on-fullscreen t)
-        (setq mac-fullscreen-on t)
-      )
-    )))
-
-(when (and (window-system) (fboundp 'mac-mouse-turn-on-fullscreen))
-  (global-set-key (kbd "<M-s-return>") 'mac-toggle-fullscreen)
-)
-
 ;; Bind "Emacs Mac port" keys the same as Emacs NS/Cocoa
-(when (symbolp 'mac-control-modifier)
+(when (symbolp 'mac-super-modifier)
 
   (global-set-key (kbd "s-s")    'save-buffer)
   (global-set-key (kbd "s-z")    'undo)
@@ -87,3 +70,5 @@
 )
 
 (provide 'mac-port-keys)
+
+;;; mac-port-keys.el ends here
