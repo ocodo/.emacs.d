@@ -6,10 +6,10 @@
 ;;
 ;;  The color stepping (dark / light; sat / desat; hue up/down) is particularly nice...
 ;;  Always use in conjunction with rainbow-mode
-;;
+
 ;;; Licence:
 ;;  GNU/GPL2
-;;
+
 ;;; Code:
 (require 'hexrgb)
 (require 's)
@@ -62,7 +62,7 @@
   "Replacement simple RGB to hex."
   (destructuring-bind
       (red green blue)
-      (mapcar 'dec-to-byte   rgb)
+      (mapcar 'to-8bit   rgb)
     (format "#%02X%02X%02X" red green blue)))
 
 (defun hexrgb+-rgb-to-hsv (rgb)
@@ -299,20 +299,20 @@ Insert a list of hexcolors of different brightness (val)."
     (destructuring-bind (r g b) (mapcar 'string-to-number rgb)
       (format "#%02X%02X%02X" r g b))))
 
-(defun dec-to-byte (n)
+(defun to-8bit (n)
   "Convert N (0.0-1.0) to 0-255."
   (* n 255.0))
 
 (defun hexrgb+-hex-to-cssrgb (hex)
   "Convert a HEX rgb color to cssrgb."
   (destructuring-bind (r g b)
-      (mapcar 'dec-to-byte (hexrgb+-hex-to-rgb hex))
+      (mapcar 'to-8bit (hexrgb+-hex-to-rgb hex))
     (format "rgb(%i, %i, %i)" r g b)))
 
 (defun hexrgb+-hex-to-cssrgba (hex)
   "Convert a HEX rgb color to css rgba (only with 1.0 alpha)."
   (destructuring-bind (r g b)
-      (mapcar 'dec-to-byte (hexrgb+-hex-to-rgb hex))
+      (mapcar 'to-8bit (hexrgb+-hex-to-rgb hex))
     (format "rgba(%i, %i, %i, 1.0)" r g b)))
 
 (defun hexrgb+-cssrgb-at-point-or-region-to-hex ()
@@ -333,14 +333,14 @@ Opacity is always set to 1.0."
 
 ;; ERT Tests...
 
-(ert-deftest test-dec-to-byte ()
+(ert-deftest test-to-8bit ()
   "Test conversion of 0.0-0.1 to 0-255."
   (skip-unless (featurep 'hexrgb+))
-  (should (equal (dec-to-byte 0)      0.0))
-  (should (equal (dec-to-byte 1)      255.0))
-  (should (equal (dec-to-byte 0.3231) 82.3905))
-  (should (equal (dec-to-byte 0.7)    178.5))
-  (should (equal (dec-to-byte 0.25)   63.75)))
+  (should (equal (to-8bit 0)      0.0))
+  (should (equal (to-8bit 1)      255.0))
+  (should (equal (to-8bit 0.3231) 82.3905))
+  (should (equal (to-8bit 0.7)    178.5))
+  (should (equal (to-8bit 0.25)   63.75)))
 
 (ert-deftest test-hexrgb+-interpolate ()
   "Test color interpolation."
