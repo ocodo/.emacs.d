@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (21627 321 941235
+;;;### (autoloads nil "alchemist" "alchemist.el" (21628 2825 365235
 ;;;;;;  56000))
 ;;; Generated autoloads from alchemist.el
 
@@ -26,7 +26,7 @@ Key bindings:
 ;;;;;;  "alchemist-compile.el" "alchemist-complete.el" "alchemist-execute.el"
 ;;;;;;  "alchemist-help.el" "alchemist-hooks.el" "alchemist-mix.el"
 ;;;;;;  "alchemist-pkg.el" "alchemist-project.el" "alchemist-utils.el")
-;;;;;;  (21627 321 982705 265000))
+;;;;;;  (21628 2825 457014 922000))
 
 ;;;***
 
