@@ -16,10 +16,13 @@
 ;; Check for the existence of a function with mac- prefix
 (when (symbolp 'mac-control-modifier)
   ;; Re-map modifiers - Give us Hyper instead of the Fn key.
-  (setq mac-control-modifier  'control
-        mac-option-modifier   'meta
-        mac-command-modifier  'super
-        mac-function-modifier 'hyper))
+  (setq
+   mac-control-modifier  'control
+   mac-option-modifier   'meta
+   mac-command-modifier  'super
+   ;; mac-function-modifier 'hyper ;; use with some keyboards.
+   ;; TOOD: Setup a toggle.
+   ))
 
 ;; Fullscreen mode toggle in emacs mac. This invokes the Kiosk mode
 ;; fullscreen, ie. only one display is hijacked. not the obnoxious
