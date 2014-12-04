@@ -1,2 +1,2 @@
 
-(1 (wanderlust . [(20141109 1207) ((semi (1 14 6))) "Yet Another Message Interface on Emacsen" tar nil]) (semi . [(20141109 9) ((flim (1 14 9))) "A library to provide MIME features." tar nil]) (flim . [(20140914 1446) ((apel (10 8))) "A library to provide basic features about message representation or encoding." tar nil]))
+(1 (wanderlust . [(20141201 2209) ((semi (1 14 7))) "Yet Another Message Interface on Emacsen" tar nil]))
