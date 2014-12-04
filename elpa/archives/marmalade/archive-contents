@@ -861,6 +861,9 @@
  (shadchen .
 	   [(1 4)
 	    nil "pattern matching for elisp" single])
+ (shackle .
+	  [(0 1)
+	   nil "Enforce rules for popups" single])
  (setup-cygwin .
 	       [(21 0)
 		nil "Set up Emacs for using Cygwin" single])
