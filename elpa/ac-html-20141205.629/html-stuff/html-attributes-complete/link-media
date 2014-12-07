@@ -1,0 +1,48 @@
+all Default. Suitable for all devices
+and Specifies an AND operator
+aspect-ratio Specifies the width/height ratio of the targeted display area.\nExample: media="screen and (aspect-ratio:16/9)"\n
+aural Speech synthesizers
+braille Braille feedback devices
+color Specifies the bits per color of target display.\nExample: media="screen and (color:3)"\n
+color-index Specifies the number of colors the target display can handle.\nExample: media="screen and (color-index:256)"\n
+device-aspect-ratio Specifies the device-width/device-height ratio of the target display/paper.\nExample: media="screen and (aspect-ratio:16/9)"\n
+device-height Specifies the height of the target display/paper.\n"min-" and "max-" prefixes can be used.\nExample: media="screen and (device-height:500px)"\n
+device-width Specifies the width of the target display/paper.\n"min-" and "max-" prefixes can be used.\nExample: media="screen and (device-width:500px)"\n
+grid Specifies if the output device is grid or bitmap.\nPossible values are "1" for grid, and "0" otherwise.\nExample: media="handheld and (grid:1)"\n
+handheld Handheld devices (small screen, limited bandwidth)
+height Specifies the height of the  targeted display area.\n"min-" and "max-" prefixes can be used.\nExample: media="screen and (max-height:700px)"\n
+interlace Value for "scam"
+landscape Example: (orientation: landscape)
+max-aspect-ratio Specifies the width/height ratio of the targeted display area.\nExample: media="screen and (max-aspect-ratio:16/9)"\n
+max-color Specifies the bits per color of target display.
+max-color-index Specifies the number of colors the target display can handle.\nExample: media="screen and (max-color-index:256)"\n
+max-device-aspect-ratio Specifies the device-width/device-height ratio of the target display/paper.\nExample: media="screen and (max-aspect-ratio:16/9)"\n
+max-device-height Specifies the height of the target display/paper.
+max-device-width Specifies the width of the target display/paper.
+max-height Specifies the height of the  targeted display area.
+max-monochrome Specifies the bits per pixel in a monochrome frame buffer.\n"min-" and "max-" prefixes can be used.\nExample: media="screen and (max-monochrome:2)"\n
+max-resolution Specifies the pixel density (dpi or dpcm) of the target display/paper.\n"min-" and "max-" prefixes can be used.\nExample: media="print and (max-resolution:300dpi)"\n
+max-width Specifies the width of the targeted display area.
+min-aspect-ratio Specifies the width/height ratio of the targeted display area.\nExample: media="screen and (min-aspect-ratio:16/9)"\n
+min-color Specifies the bits per color of target display.
+min-color-index Specifies the number of colors the target display can handle.\nExample: media="screen and (min-color-index:256)"\n
+min-device-aspect-ratio Specifies the device-width/device-height ratio of the target display/paper.\nExample: media="screen and (min-aspect-ratio:16/9)"\n
+min-device-height Specifies the height of the target display/paper.
+min-device-width Specifies the width of the target display/paper.
+min-height Specifies the height of the  targeted display area.
+min-monochrome Specifies the bits per pixel in a monochrome frame buffer.\n"min-" and "max-" prefixes can be used.\nExample: media="screen and (min-monochrome:2)"\n
+min-resolution Specifies the pixel density (dpi or dpcm) of the target display/paper.\n"min-" and "max-" prefixes can be used.\nExample: media="print and (min-resolution:300dpi)"\n
+min-width Specifies the width of the targeted display area.
+monochrome Specifies the bits per pixel in a monochrome frame buffer.\n"min-" and "max-" prefixes can be used.\nExample: media="screen and (monochrome:2)"\n
+not Specifies a NOT operator
+orientation Specifies the orientation of the target display/paper.\nPossible values: "portrait" or "landscape"\nExample: media="all and (orientation: landscape)"\n
+portrait Example: (orientation: landscape)
+print Print preview mode/printed pages
+progressive Value for "scan"
+projection Projectors
+resolution Specifies the pixel density (dpi or dpcm) of the target display/paper.\n"min-" and "max-" prefixes can be used.\nExample: media="print and (resolution:300dpi)"\n
+scan Specifies scanning method of a tv display.\nPossible values are "progressive" and "interlace".\nExample: media="tv and (scan:interlace)"\n
+screen Computer screens
+tty Teletypes and similar media using a fixed-pitch character grid
+tv Television type devices (low resolution, limited scroll ability)
+width Specifies the width of the targeted display area.\n"min-" and "max-" prefixes can be used.\nExample: media="screen and (min-width:500px)"\n
