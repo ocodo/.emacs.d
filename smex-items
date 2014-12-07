@@ -1,0 +1,29 @@
+
+;; ----- smex-history -----
+(
+ eww
+ duplicate-current-line-or-region
+ eww-copy-page-url
+ multi-web-mode
+ web-mode
+ nxml-mode
+ kurecolor-decrease-brightness-by-step
+)
+
+;; ----- smex-data -----
+(
+ (helm-themes . 1)
+ (armitp-mode-line . 1)
+ (package-list-packages . 1)
+ (occur . 1)
+ (find-file-at-point . 1)
+ (eww . 5)
+ (rainbow-mode . 1)
+ (kurecolor-increase-brightness-by-step . 4)
+ (kurecolor-decrease-brightness-by-step . 14)
+ (web-mode . 2)
+ (nxml-mode . 1)
+ (multi-web-mode . 2)
+ (duplicate-current-line-or-region . 19)
+ (eww-copy-page-url . 1)
+)

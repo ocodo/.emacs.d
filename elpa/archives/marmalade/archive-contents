@@ -862,8 +862,10 @@
 	   [(1 4)
 	    nil "pattern matching for elisp" single])
  (shackle .
-	  [(0 1)
-	   nil "Enforce rules for popups" single])
+	  [(0 1 1)
+	   ((cl-lib
+	     (0 5)))
+	   "Enforce rules for popups" single])
  (setup-cygwin .
 	       [(21 0)
 		nil "Set up Emacs for using Cygwin" single])
@@ -3647,7 +3649,7 @@
 		     (24)))
 		   "Collection of useful combinators for Emacs Lisp" single])
  (dash .
-       [(2 9 0)
+       [(2 10 0)
 	nil "A modern list library for Emacs" single])
  (dart-mode .
 	    [(0 9)
@@ -4265,7 +4267,7 @@
 		  (1 11 5)))
 		"Space align various Clojure forms" single])
  (alchemist .
-	    [(0 8 0)
+	    [(0 9 0)
 	     ((emacs
 	       (24)))
 	     "Elixir tooling integration into emacs" tar])
