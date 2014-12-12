@@ -1,9 +1,9 @@
 
 ;; ----- smex-history -----
 (
+ package-list-packages
  eww
  duplicate-current-line-or-region
- eww-copy-page-url
  multi-web-mode
  web-mode
  nxml-mode
@@ -14,7 +14,7 @@
 (
  (helm-themes . 1)
  (armitp-mode-line . 1)
- (package-list-packages . 1)
+ (package-list-packages . 2)
  (occur . 1)
  (find-file-at-point . 1)
  (eww . 5)
