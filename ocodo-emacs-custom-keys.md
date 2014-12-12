@@ -61,7 +61,6 @@
 * <kbd>Cmd-7       </kbd>  rotate-layout
 * <kbd>Cmd-8       </kbd>  rotate-window
 * <kbd>Cmd-down    </kbd>  duplicate-current-line-or-region
-* <kbd>Cmd-down    </kbd>  duplicate-current-line-or-region
 * <kbd>Cmd-return  </kbd>  completion-at-point
 * <kbd>Cmd-=       </kbd>  text-scale-increase
 * <kbd>Cmd-M-`     </kbd>  widen (exit narrow-to-region)
