@@ -32,7 +32,8 @@
 * <kbd>C-x C-a     </kbd>  append-to-file
 * <kbd>C-x a left  </kbd>  sp-backward-slurp-sexp
 * <kbd>C-x a right </kbd>  sp-backward-barf-sexp
-* <kbd>C-x g       </kbd>  ag
+* <kbd>C-x g       </kbd>  Ag
+* <kbd>C-x n g     </kbd>  Toggle Guide Key Mode...
 * <kbd>C-x p       </kbd>  projectile-find-file
 * <kbd>C-x r left  </kbd>  sp-forward-slurp-sexp
 * <kbd>C-x r right </kbd>  sp-forward-barf-sexp
