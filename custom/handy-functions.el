@@ -465,5 +465,10 @@ css-value to the hex color found."
     (goto-char 0) (newline) (goto-char 0)
     (insert variable-definition)))
 
+(defun open-opsmanager ()
+  "Open OpsManager in dired."
+  (interactive)
+  (find-file "~/workspace/OpsManager"))
+
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
