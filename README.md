@@ -134,11 +134,25 @@ And of course, the official emacs tour and manual...
 * [Emacs Manual](http://www.gnu.org/software/emacs/manual/html_mono/emacs.html)
 * [The Emacs manual as a PDF](http://www.gnu.org/software/emacs/manual/emacs.pdf)
 
-
 ### Invaluable reading
 
-Lisp is the backbone of Emacs, and although emacs-lisp isn't quite up
-there with Common Lisp or Clojure, it's still extremely powerful as a
-programming tool.  If you have a chance, read Paul Graham's OnLisp, it
-is the most extraordinary book, when it comes to revealing the true
-power of Lisp.  It's available as a free PDF - http://www.paulgraham.com/onlisp.html
+As you may know, Lisp is the backbone of Emacs, and although
+emacs-lisp isn't quite up there with Common Lisp or Clojure, it's
+still extremely powerful as a programming tool.
+
+If you have a chance, read Paul Graham's OnLisp, it is the most
+extraordinary book, when it comes to revealing the true power of Lisp
+it's in a class of it's own.
+
+It's available as a free PDF download from
+http://www.paulgraham.com/onlisp.html
+
+### Still don't know what Emacs actually is?
+
+Emacs is often jokingly called an OS, really though, it's a Lisp
+programming scratchpad, quite similar to the old Symbolics Lisp
+Machines, Smalltalk, IPython, IJulia etc. albeit without much
+attention paid to GUI features.
+
+Just 30+ years focussed on editing features... thousands of them, just
+take a look at `M-x package-list-packages`.
