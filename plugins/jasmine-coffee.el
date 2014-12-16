@@ -80,6 +80,10 @@
 ;;
 ;; ### Verify specs and groups
 ;;
+;; * `jasmine-coffee/verify-suite`
+;;
+;; Verify all specs in this suite
+;;
 ;; * `jasmine-coffee/verify-describe` & `jasmine-coffee/verify-group`
 ;;
 ;; Verify the current describe block via opening a jasmine url, using
@@ -331,6 +335,12 @@ It is not a part of jasmine."
   "Move the current line or region to the previous `beforeEach' body."
   (interactive)
   (jasmine-coffee/move-to-previous-thing jasmine-coffee/before-each-regexp))
+
+(defun jasmine-coffee/verify-suite ()
+  "Compose and launch Spec URL for the current Jasmine suite."
+  (interactive)
+  (goto-char 0)
+  (jasmine-coffee/verify-thing jasmine-coffee/describe-regexp))
 
 (defun jasmine-coffee/verify-describe ()
   "Compose and launch Spec URL for the current `describe' block."
