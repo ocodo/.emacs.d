@@ -6,7 +6,7 @@ Fork this repo, and then add it as upstream.
 
     git remote add upstream https://github.com/ocodo/emacs.d
 
-You can add packages from Elpa, and customisations to `local-init.el`,
+You can add packages from Elpa, and customisations to `local/init.el`,
 these will run after `init.el` has finished.
 
 Note: extended downstream customisation options are being added soon.
@@ -81,7 +81,7 @@ making it to MELPA.
 At the moment I use a version controlled custom file, I will make this user controlled.
 
 My intended solution: Create a separate repo for use as `custom.el` (etc),
-clone and symlink this custom repo to `~/.emacs.d/local-custom/`.
+clone and symlink this custom repo to `~/.emacs.d/local/`.
 
 Have `init.el` check the existence of `./local-custom/custom.el` and use
 it instead of `./custom/custom.el`
