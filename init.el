@@ -12,8 +12,13 @@
 (when (and (window-system) (eq system-type 'darwin))
   (setq mode-line-format nil))
 
-(setq custom-file (concat user-emacs-directory "custom/custom.el"))
-(load custom-file)
+;; Custom loaded from local (non-git) or regular (git-shared)
+(let (local-custom)
+  (setq local-custom (concat user-emacs-directory "local/custom.el"))
+  (if (file-readable-p local-custom)
+      (setq custom-file local-custom)
+    (setq custom-file (concat user-emacs-directory "custom/custom.el")))
+  (load custom-file))
 
 ;; Optional modes-init handling
 (defun load-optional-mode-init (name)
@@ -137,7 +142,8 @@ trying to run it."
                          )) (load-library i)
                             (message "Loaded library: %s" i))
             (setq debug-on-error nil)
-            (set-window-system-font)))
+            (set-window-system-font)
+            ))
 
 ;; mode inits
 (process-mode-inits
@@ -187,5 +193,10 @@ trying to run it."
  '("marmalade"
    "pivotal"
    "paradox"))
+
+;; Load local init if found
+(let ((local-init (concat user-emacs-directory "local/init.el")))
+  (when (file-readable-p local-init)
+    (load-file local-init)))
 
 ;;; init.el ends here
