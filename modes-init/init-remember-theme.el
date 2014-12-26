@@ -1,8 +1,9 @@
 ;; init-remember-theme
+(require 'armitp-mode-line)
 (add-hook 'remember-theme-after-load-hook
           (lambda ()
-            (set-face-attribute 'default nil :height 180)
-            (armitp-mode-line)
-            ))
+            (armitp-mode-line)))
 
 (provide 'init-remember-theme)
+
+;;; init-remember-theme.el ends here

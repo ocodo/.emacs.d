@@ -1,4 +1,4 @@
-;;; init --- ocodo's emacs config
+;; init --- ocodo's emacs config
 ;;; Commentary:
 ;;                       _                                             _       _
 ;;    ___   ___ ___   __| | ___     ___ _ __ ___   __ _  ___ ___    __| | ___ | |_
@@ -84,7 +84,8 @@ trying to run it."
     (when (eq system-type 'gnu/linux)
       ;; for quick swapping.
       ;; (set-face-font 'default "Bitstream Vera Sans Mono")
-      (set-face-font 'default "Droid Sans Mono"))))
+      ;; (set-face-font 'default "Droid Sans Mono")
+      (set-face-font 'default "DejaVu Sans Mono"))))
 
 ;; Manage history
 (require 'savehist)
@@ -109,14 +110,19 @@ trying to run it."
 (normal-top-level-add-subdirs-to-load-path)
 (cd "~/")
 
-(require 'init-elpa)
-(require 'cl)
-(require 'cl-lib)
-(require 's)
-(require 'f)
-(require 'dash)
-
 ;; Explicit Requires ...
+(dolist (i (list
+           'init-elpa
+           'cl
+           'cl-lib
+           's
+           'f
+           'dash
+           )
+         "Mandatory Requires done.")
+  (require i))
+
+;; Requires loaded after init
 (add-hook 'after-init-hook
           (lambda ()
             "Load all libraries in this list"

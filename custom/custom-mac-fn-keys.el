@@ -3,7 +3,7 @@
     (and (window-system) (eq system-type 'darwin))
 
   ;;
-  ;; extended f keys on mac keyboard
+  ;; extended f keys on Apple keyboard (chicklet style, extended)
   ;;
 
   (global-set-key (kbd "<f13>") 'overwrite-mode )
