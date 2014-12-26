@@ -26,8 +26,6 @@
 (global-set-key (kbd "C-=")                 'cua-set-rectangle-mark)
 (global-set-key (kbd "M-Z")                 'zap-to-char)
 (global-set-key (kbd "M-z")                 'zap-up-to-char)
-(global-set-key (kbd "s-8")                 'rotate-window)
-(global-set-key (kbd "s-7")                 'rotate-layout)
 (global-set-key (kbd "M-i")                 'evil-mode) ;; Toggle
 
 (global-set-key (kbd "C-c C-w")             'rotate-window)
@@ -72,15 +70,8 @@
 (global-set-key (kbd "<ESC> <up>")          'move-text-up)
 (global-set-key (kbd "<ESC> <down>")        'move-text-down)
 
-;; duplicate region/line
-(global-set-key [s-down]                    'duplicate-current-line-or-region)
-
 ;; Auto fill mode toggle (tidy up text line length automatically.)
 (global-set-key (kbd "C-c q")               'auto-fill-mode)
-
-;; Toggle fullscreen (>= emacs-version 24.4)
-(when (>= (string-to-number (format "%i.%i"  emacs-major-version emacs-minor-version)) 24.4)
-  (global-set-key (kbd "<S-s-return>")    'toggle-fullscreen))
 
 ;; unset some annoying things in the OS X build, no dialogs, also add
 ;; a few osx centric bindings.  If you like dialogs, you probably
@@ -90,12 +81,21 @@
 ;; config from scratch, borrow ideas from here or enywhere
 ;; else. That's the true Emacs way, (if there is one.)
 
-(when (and (window-system) (eq system-type  'darwin))
+(when (and (window-system) (or (eq system-type  'darwin) (eq system-type 'gnu/linux)))
 
-  (message "binding osx specific shortcuts")
+  (message "binding Super Key shortcuts - slightly osx specific, work with GNU/Linux too")
+
+  ;; Toggle fullscreen (>= emacs-version 24.4)
+  (when (>= (string-to-number (format "%i.%i"  emacs-major-version emacs-minor-version)) 24.4)
+    (global-set-key (kbd "<S-s-return>")    'toggle-fullscreen))
+
   ;; Cmd-o to find-file...
   (global-set-key (kbd "s-o")               'find-file)
+  ;; duplicate region/line
+  (global-set-key [s-down]                    'duplicate-current-line-or-region)
 
+  (global-set-key (kbd "s-8")                 'rotate-window)
+  (global-set-key (kbd "s-7")                 'rotate-layout)
   ;; Cmd-Shift-s : write-file (not use save-as dialog)
   (global-set-key (kbd "s-S")               'write-file)
 

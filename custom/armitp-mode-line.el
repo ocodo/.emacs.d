@@ -85,7 +85,7 @@
   (set-face-attribute 'mode-line nil
                       :inherit 'mode-line-face
                       :foreground "gray60" :background "gray20"
-                      :height 160
+                      :height 120
                       :inverse-video nil
                       :box '(:line-width 6 :color "gray20" :style nil))
   (set-face-attribute 'mode-line-inactive nil
@@ -118,14 +118,13 @@
   (set-face-attribute 'mode-line-minor-mode-face nil
                       :inherit 'mode-line-face
                       :foreground "gray70"
-                      :height 110)
+                      :height 90)
   (set-face-attribute 'mode-line-process-face nil
                       :inherit 'mode-line-face
                       :foreground "#718c00")
   (set-face-attribute 'mode-line-80col-face nil
                       :inherit 'mode-line-face-position-face
                       :foreground "black" :background "#eab700")
-
   )
 
 (provide 'armitp-mode-line)

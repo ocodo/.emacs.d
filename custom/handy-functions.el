@@ -465,6 +465,17 @@ css-value to the hex color found."
     (goto-char 0) (newline) (goto-char 0)
     (insert variable-definition)))
 
+(defun markdown-codefence-region (start end)
+  "Enclose the region (START END) in a GFM code-fence, ie. enclosed in three backticks."
+  (interactive "r")
+  (if (and start end)
+      (progn
+    (goto-char end)
+    (insert "```\n\n")
+    (goto-char start)
+    (insert "\n\n```"))
+    (message "markdown-codefence-region requires a region")))
+
 (defun open-opsmanager ()
   "Open OpsManager in dired."
   (interactive)
