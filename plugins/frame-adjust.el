@@ -13,6 +13,8 @@
 ;; Emacs extensions
 ;;
 
+;;; Code:
+
 (defun set-frame-position-top-right-hand-side ()
   "Position the current frame to the top/right of the Display"
   (interactive)
