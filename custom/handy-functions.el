@@ -470,10 +470,15 @@ css-value to the hex color found."
   (interactive "r")
   (if (and start end)
       (progn
-    (goto-char end)
-    (insert "```\n\n")
-    (goto-char start)
-    (insert "\n\n```"))
+        (goto-char end)
+        (insert "\n```\n\n")
+        (delete-blank-lines) ; keep only a single blank line below
+        (goto-char start)
+        (insert "\n\n```\n")
+        (forward-line -2)
+        (delete-blank-lines) ; keep only a single blank line above
+        (goto-char end)
+        (forward-line))
     (message "markdown-codefence-region requires a region")))
 
 (defun open-opsmanager ()
