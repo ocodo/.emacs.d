@@ -1,28 +1,25 @@
-/local/*
-/local/init.el
-/local/custom.el
-
+.emacs-theme
+.mc-lists.el
+.thesaurus.cache
+/tmp/savehist
 ac-comphist.dat
 auto-save-list
-recentf
-var
-url/*
 bookmarks
-newsticker/feeds/Emacs Wiki/data
-newsticker/feeds/Hacker News/data
-.emacs-theme
-server/**
-server
-.mc-lists.el
-tramp
+history
+ido.last
+local/
+local/custom.el
+local/init.el
 modes-init/init-marmalade.el
 modes-init/init-paradox.el
-projectile-bookmarks.eld
-/tmp/savehist
-history
-
-ido.last
+newsticker/feeds/Emacs Wiki/data
+newsticker/feeds/Hacker News/data
 places
-
-.thesaurus.cache
+projectile-bookmarks.eld
+recentf
+server
+server/**
 smex-items
+tramp
+url/*
+var
