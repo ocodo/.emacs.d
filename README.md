@@ -16,90 +16,45 @@ updates from `upstream` - pick one with `M-x helm-themes`
 
 ### Updating from upstream
 
-
     git pull --all
 
+Make sure we're in our own master branch
 
-    # Make sure we're in our own master branch
     git checkout master
 
-    # Grab all the upstream changes
+Grab all the upstream changes
+
     git rebase upstream/master
 
 If you've modified shared resources, you'll have conflicts to deal
 with.
 
-If you wish to maintain upstream update compatibility, only update
-your `local-init.el`
+If you wish to maintain upstream complete update compatibility, only
+update your `./local/..` (which is ignored by git, so you can make it
+a separate git repository if you want to.)
 
-### Breaking away
+I suggest you break away from upstream as soon as you are comfortable
+installing your own packages.
 
-Any time you feel like breaking away, you can just start updating your
-own packages and writing your own handy tools for day to day use.
+### Local Config
 
-My general update procedure is to jump onto a remote server, update
-all packages, and push them to upstream.  Any extension work I do
-which might be helpful for general use will be released to MELPA.
+This config is intended to be used to make Emacs a highly useful
+editor, and give it some minimalist UI touches. (no Menu, no Toolbar,
+etc.) It also includes a huge library of pre-installed extensions.
 
-These steps will update and store all changes to git.
+To add localised config, create and use the folder `./local/`
 
-    M-x package-list-packages U x y
+Add general config to `./local/init.el`
 
-When prompted to delete old packages, `y`.
+Customize will write to (and load from) `./local/custom.el` if you add
+it before startup.
 
-Exit Emacs, from `~/.emacs.d` :
+Copy `./custom/custom.el` to `./local/custom.el` if you want to start
+from the same state as the general config.
 
-    git add -A && git commit -m "Update Packages" && git push
+# Local Color Theme Persistence
 
-### Where are you coming from?
-
-Note that I'm restructuring this emacs config to be easy to use as a
-default, in particular for users coming from SublimeText / TextMate.
-
-Vim users, are recommended to try [**SpaceMacs**](https://github.com/syl20bnr/spacemacs)
-
-Users of Eclipse, Visual Studio, XCode, IntelliJ (and other JetBrains
-IDE's) are encouraged to use their current IDE as a build, debug
-environment.  Emacs will be useful to you for major editing tasks,
-org-mode, and as a curiosity.  Give it a bit of attention, but don't
-try switching wholesale, until you've got over a few misconceptions.
-
-Emacs is growing daily, and the in the last few years, this growth has
-accelerated significantly.  Keep an eye on it, you will be rewarded by
-it's power when you can wield it.
-
-### Possible outliers...
-
-The only place which might be worth looking at long term, is my
-`/plugins` folder, there I have specifically hacked, and embryonic
-packages, some of which have not been released for many years.  Some
-may remain there, with small updates applied periodically, never
-making it to MELPA.
-
-### Custom
-
-At the moment I use a version controlled custom file, I will make this user controlled.
-
-My intended solution: Create a separate repo for use as `custom.el` (etc),
-clone and symlink this custom repo to `~/.emacs.d/local/`.
-
-Have `init.el` check the existence of `./local-custom/custom.el` and use
-it instead of `./custom/custom.el`
-
-Note `./custom/` has a set of `handy-functions.el` and a few key
-binding files (mostly Mac OS X specific.)
-
-### Sed and Moonscript modes
-
-Two mode plugins in particular are `./plugins/sed-mode.el` and
-`./plugins/moonscript-mode.el` these were not written by me, however I
-seem to be one of the few places they can be found, if you're the
-original author, I urge you to release them or ask around on emacs
-mailing list or reddit/r/emacs for a maintainer.
-
-# Color Theme Persistence
-
-You color-theme selection is always stored outside this repository in
+You color-theme selection is always stored locally, in
 ~/.emacs-theme - initially this will be non-existent or empty.
 
 After first running Emacs with this config, simply run:
@@ -156,3 +111,7 @@ attention paid to GUI features.
 
 Just 30+ years focussed on editing features... thousands of them, just
 take a look at `M-x package-list-packages`.
+
+I've added scores of editing features tailored to my own tastes, I'm
+sure you'll find it relatively easy to add your own once you get over
+parenthesiophobia (the fear of Lisp.)
