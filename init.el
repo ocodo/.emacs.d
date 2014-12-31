@@ -87,6 +87,12 @@ trying to run it."
       ;; (set-face-font 'default "Droid Sans Mono")
       (set-face-font 'default "DejaVu Sans Mono"))))
 
+(defun load-local-init ()
+  "Load local init if found."
+  (let ((local-init (concat user-emacs-directory "local/init.el")))
+    (when (file-readable-p local-init)
+      (load-file local-init))))
+
 ;; Manage history
 (require 'savehist)
 (eval-after-load "savehist-mode"
@@ -149,6 +155,7 @@ trying to run it."
                             (message "Loaded library: %s" i))
             (setq debug-on-error nil)
             (set-window-system-font)
+            (load-local-init)
             ))
 
 ;; mode inits
@@ -199,10 +206,5 @@ trying to run it."
  '("marmalade"
    "pivotal"
    "paradox"))
-
-;; Load local init if found
-(let ((local-init (concat user-emacs-directory "local/init.el")))
-  (when (file-readable-p local-init)
-    (load-file local-init)))
 
 ;;; init.el ends here
