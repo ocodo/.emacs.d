@@ -481,6 +481,15 @@ css-value to the hex color found."
         (forward-line))
     (message "markdown-codefence-region requires a region")))
 
+(defun reload-current-chrome-tab-osx ()
+  "Run a simple applescript to reload the current Google Chrome tab.
+
+OSX specific of course."
+  (interactive)
+  (shell-command "echo 'tell application \"Google Chrome\"
+                             reload active tab of window 1
+                        end tell' | osascript" nil nil))
+
 (defun open-opsmanager ()
   "Open OpsManager in dired."
   (interactive)
