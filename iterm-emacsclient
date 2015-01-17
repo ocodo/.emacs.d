@@ -1,0 +1,2 @@
+#!/bin/zsh --login
+emacsclient -e "(find-file \"$1\")" -e "(goto-line $2)" -a /Applications/Emacs.app/Contents/MacOS/Emacs
