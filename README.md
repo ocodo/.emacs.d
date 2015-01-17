@@ -115,3 +115,26 @@ take a look at `M-x package-list-packages`.
 I've added scores of editing features tailored to my own tastes, I'm
 sure you'll find it relatively easy to add your own once you get over
 parenthesiophobia (the fear of Lisp.)
+
+### Iterm2 Osx "Semantic History"
+
+If you use Iterm2, you may be a little sad that there's no Emacs entry
+in the `Open With Editor..` "Semantic History" option. (If you don't
+know of it, you'll find it in Advanced preferences)
+
+There's a few solutions dotted around in different gists and other
+places around the web. Personally I didn't have too much luck with the
+scripts I found, so I've added one to my config which works better for
+me.
+
+To set it up, just set *Semantic History* to `Run coprocess...` and
+paste in this command line.
+
+    ~/.emacs.d/iterm-emacsclient \1 \2 > /dev/null 2> /dev/null
+
+You will then be able to `Cmd` click on filenames in iTerm2 and it
+will open up an Emacs buffer (or start Emacs from `/Applications`)
+with the file at line number.
+
+For example clicking on `README.md:130` in this folder, would open
+README.md at line 130.
