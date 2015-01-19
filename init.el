@@ -151,6 +151,7 @@ trying to run it."
                          "squeeze-view"
                          "switch-window"
                          "xterm-256-to-hex"
+                         "super-num-zero-map"
                          )) (load-library i)
                             (message "Loaded library: %s" i))
             (setq debug-on-error nil)

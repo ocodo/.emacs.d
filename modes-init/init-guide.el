@@ -25,6 +25,8 @@
         "C-c &"
         "C-c p"
         "%"
+
+        "s-<kp-0>"
         ))
 
 (global-set-key (kbd "C-x n g") 'guide-key-mode)
