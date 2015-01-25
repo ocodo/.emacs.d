@@ -1,0 +1,5 @@
+Disable all the controls within the <fieldset> at once.
+For <a class="btn">  Opera <18, IE11 use JS to disable such link.
+
+While Bootstrap will apply these styles in all browsers, Internet Explorer 11 and below don't fully support the disabled attribute on a <fieldset>.
+Use custom JavaScript to disable the fieldset in these browsers.

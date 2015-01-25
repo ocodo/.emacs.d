@@ -1,0 +1,19 @@
+small For de-emphasizing inline or blocks of text, use the <small> tag to set text at 85% the size of the parent.\n\nHeading elements receive their own font-size for nested <small> elements.\n
+pre 
+section 
+footer (<blockquote>) Naming a source. Identifying the source
+mark Highlighting text
+abbr
+u Underline text
+samp 
+var 
+address
+cite (<blockquote>) Naming a source.
+code 
+del Indicating blocks of text that have been deleted
+strong Bold. Emphasizing a snippet of text with a heavier font-weight.
+blockquote Wrap <blockquote> around any HTML as the quote. For straight quotes, we recommend a <p>\nAdd a <footer> for identifying the source. Wrap the name of the source work in <cite>\n
+s Indicating blocks of text that are no longer relevant
+em Italics
+ins Indicating additions to the document
+kbd 

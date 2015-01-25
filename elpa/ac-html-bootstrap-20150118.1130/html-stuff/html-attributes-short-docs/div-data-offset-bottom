@@ -1,0 +1,5 @@
+Pixels to offset from screen when calculating position of scroll.
+If a single number is provided, the offset will be applied in both top and bottom directions.
+To provide a unique, bottom and top offset just provide an object offset:
+  { top: 10 } or offset: { top: 10, bottom: 5 }.
+Use a function when you need to dynamically calculate an offset.
