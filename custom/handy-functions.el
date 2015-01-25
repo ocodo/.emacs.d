@@ -488,7 +488,8 @@ OSX specific of course."
   (interactive)
   (shell-command "echo 'tell application \"Google Chrome\"
                              reload active tab of window 1
-                        end tell' | osascript" nil nil))
+                        end tell' | osascript" nil nil)
+  (message "refreshed active Google Chrome tab"))
 
 (defun open-opsmanager ()
   "Open OpsManager in dired."
