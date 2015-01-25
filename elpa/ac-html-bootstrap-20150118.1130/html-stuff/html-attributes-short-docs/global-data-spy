@@ -1,0 +1,13 @@
+Automatically updating nav targets based on scroll position.
+CSS
+  body { position: relative; }
+HTML
+  <body data-spy="scroll" data-target=".navbar-example">
+  ..
+   <div class="navbar-example">
+    <ul class="nav nav-tabs" role="tablist">
+    ..
+    </ul>
+   </div>
+  ..
+  </body>

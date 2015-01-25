@@ -1,0 +1,14 @@
+checkbox
+checkbox-inline
+disabled To have the <label> for the checkbox or radio also display a "not-allowed" cursor when the user hovers over the label, add the .disabled class to your:\n.radio, .radio-inline, .checkbox, .checkbox-inline, or <fieldset>.\n\nFor <a>  Opera <18, IE11 use JS to disable such link.\n
+fieldset
+label
+label-danger
+label-default
+label-info
+label-primary
+label-success
+label-warning
+radio
+radio-inline
+sr-only Screen readers will have trouble with your forms if you don't include a label for every input.\nFor these inline forms, you can hide the labels using the .sr-only class. \n  <div class="form-group">\n    <label class="sr-only" for="pwf">Password</label>\n    <input type="password" class="form-control" id="pwd" placeholder="Password">\n  </div>\n

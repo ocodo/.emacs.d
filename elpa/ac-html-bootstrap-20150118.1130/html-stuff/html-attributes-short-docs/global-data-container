@@ -1,0 +1,4 @@
+Appends the tooltip/popover to a specific element.
+Example: container: 'body'.
+Allows you to position the tooltip/popover in the flow of the document near the triggering element.
+Prevent the tooltip/popover from floating away from the triggering element during a window resize.

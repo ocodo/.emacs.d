@@ -1,0 +1,3 @@
+form-control Set to width: 100%; by default. Wrap labels and controls in .form-group for optimum spacing.
+input-lg modifier classes to decrease or increase the height and font-size of form controls
+input-sm modifier classes to decrease or increase the height and font-size of form controls

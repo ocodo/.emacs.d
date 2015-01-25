@@ -1,0 +1,3 @@
+Used to mark a carousel as animating starting at page load.
+It cannot be used in combination with (redundant and unnecessary) explicit JavaScript initialization of the same carousel.
+<div id="carousel-example" class="carousel slide" data-ride="carousel">
