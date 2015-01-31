@@ -10,6 +10,8 @@
   (rvm-activate-corresponding-ruby))
 ;; (add-hook 'ruby-mode-hook 'company-robe)
 
+(add-hook 'after-init-hook 'inf-ruby-switch-setup)
+
 (add-hook 'ruby-mode-hook (lambda()
                               (define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region)
                               (define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-name)
