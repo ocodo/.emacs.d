@@ -496,5 +496,13 @@ OSX specific of course."
   (interactive)
   (find-file "~/workspace/OpsManager"))
 
+(defun get-osx-display-resolution ()
+  "Get the current display resolution in OSX."
+  (s-split "x" (replace-regexp-in-string "\n" ""
+                                         (shell-command-to-string
+                                          "system_profiler SPDisplaysDataType |\
+                                           grep Resolution |\
+                                           sed -e 's/Resolution: //' -e 's/ //g'"))))
+
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
