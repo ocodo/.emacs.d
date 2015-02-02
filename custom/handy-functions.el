@@ -507,10 +507,11 @@ OSX specific of course."
 (defun increase-default-font-height (m)
   "Adjust the default font :height by 10, universal argument is M (to set by multiples)."
   (interactive "p")
-  (set-face-attribute 'default nil :height
-                      (+ (* m 10) (face-attribute 'default :height))))
+  (let ((new-height (+ (* m 10) (face-attribute 'default :height))))
+    (set-face-attribute 'default nil :height new-height)
+    (message "Default font height set to %i" new-height)))
 
-(global-set-key (kbd "<M-kp-add>") 'adjust-default-font-height)
+(global-set-key (kbd "C-c <M-kp-add>") 'increase-default-font-height)
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
