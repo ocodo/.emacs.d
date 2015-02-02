@@ -504,5 +504,13 @@ OSX specific of course."
                                            grep Resolution |\
                                            sed -e 's/Resolution: //' -e 's/ //g'"))))
 
+(defun increase-default-font-height (m)
+  "Adjust the default font :height by 10, universal argument is M (to set by multiples)."
+  (interactive "p")
+  (set-face-attribute 'default nil :height
+                      (+ (* m 10) (face-attribute 'default :height))))
+
+(global-set-key (kbd "<M-kp-add>") 'adjust-default-font-height)
+
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
