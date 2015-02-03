@@ -511,7 +511,7 @@ OSX specific of course."
     (set-face-attribute 'default nil :height new-height)
     (message "Default font height set to %i" new-height)))
 
-(global-set-key (kbd "C-c <M-kp-add>") 'increase-default-font-height)
+(global-set-key (kbd "C-c M-+") 'increase-default-font-height)
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
