@@ -10,6 +10,83 @@
 ;;; License:
 ;;  GPL3
 ;;
+;;; Commentary:
+;;
+;; Some handy functions, homemade, pilfered, re-jigged, squeezed,
+;; shuffled... do what thou wilt.
+;;
+;; List of defuns alphabetically...
+;; (each should have it's DOCSTRING in place, do C-h f {name} for more info)
+;;
+;; - align-number-right
+;; - cleanup-buffer
+;; - copy-buffer-to-osx-clipboard
+;; - copy-region-to-osx-clipboard
+;; - dasherise-at-point-or-region
+;; - delete-this-buffer-and-file
+;; - directory-of-library
+;; - duplicate-current-line-or-region
+;; - eval-and-replace
+;; - fraction-radian
+;; - humanize-at-point-or-region
+;; - increase-default-font-height
+;; - indent-buffer
+;; - insert-random-in-range
+;; - insert-random-radian
+;; - join-line-from-below
+;; - join-line-or-lines-in-region
+;; - kill-whole-word
+;; - lower-camelcase-at-point-or-region
+;; - magit-just-amend
+;; - markdown-codefence-region
+;; - my-dired-find-file
+;; - now-is
+;; - open-line-above
+;; - open-line-below
+;; - open-opsmanager
+;; - pcre-regexp-from-list-of-words
+;; - pretty-print-xml-region
+;; - reload-current-chrome-tab-osx
+;; - rename-this-buffer-and-file
+;; - ruby-make-interpolated-string-at-point-or-region
+;; - ruby-toggle-symbol-at-point
+;; - sass-hex-color-to-var
+;; - set-default-font-height
+;; - shell-command-on-buffer-file
+;; - shell-command-on-region-replace
+;; - smart-beginning-of-line
+;; - snake-case-at-point-or-region
+;; - switch-to-scratch
+;; - titleized-at-point-or-region
+;; - toggle-fullscreen
+;; - toggle-mode-line-on-off
+;; - toggle-window-split
+;; - untabify-buffer
+;; - upper-camelcase-at-point-or-region
+;; - utc-seconds
+;; - yank-repeat
+;;
+;; Non interactive
+;;
+;; - get-osx-display-resolution
+;; - operate-on-point-or-region
+;; - prepend-existing-to-exec-path
+;; - random-in-range
+;; - ruby-interpolated-string
+;; - ruby-prepend-colon
+;; - ruby-toggle-symbol-name
+;; - search-backward-wrapped-string
+;;
+;; Global keys ...
+;;
+;; - C-S-o    open-line-above
+;; - C-o      open-line-below
+;; - C-a      smart-beginning-of-line
+;; - C-c R    pcre-regexp-from-list-of-words
+;; - ESC M-d  kill-whole-word
+;; - C-c M-+  increase-default-font-height
+;; - C-c =    set-default-font-height
+;;
 ;;; Code:
 
 (require 's)
@@ -177,14 +254,46 @@ and it doesn't seem to work wth key bindings."
   (dired (file-name-as-directory
           (file-name-directory (find-library-name libraryname)))))
 
-(defun delete-this-file ()
-  "Delete the file being edited."
+(defun join-line-or-lines-in-region ()
+  "Join this line or the lines in the selected region."
   (interactive)
-  (or (buffer-file-name) (error "There is no file associated with this buffer"))
-  (when (yes-or-no-p (format "Really delete '%s'?"
-                             (file-name-nondirectory buffer-file-name)))
-    (delete-file (buffer-file-name))
-    (kill-this-buffer)))
+  (cond ((region-active-p)
+         (let ((min (line-number-at-pos (region-beginning))))
+           (goto-char (region-end))
+           (while (> (line-number-at-pos) min)
+             (join-line))))
+        (t (call-interactively 'join-line))))
+
+(defun rename-this-buffer-and-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name))
+        (read-file-name-function 'read-file-name-default))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (cond ((get-buffer new-name)
+               (error "A buffer named '%s' already exists!" new-name))
+              (t
+               (rename-file filename new-name 1)
+               (rename-buffer new-name)
+               (set-visited-file-name new-name)
+               (set-buffer-modified-p nil)
+               (message "File '%s' successfully renamed to '%s'" name (file-name-nondirectory new-name))))))))
+
+(defun delete-this-buffer-and-file (force)
+  "Delete the file connected to this buffer and kill it, FORCE is universal argument."
+  (interactive "P")
+  (let ((filename (buffer-file-name))
+        (buffer (current-buffer))
+        (name (buffer-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "'%s' is not a file buffer" name)
+      (when (or force (yes-or-no-p (format  "Delete '%s', Are you sure? " filename)))
+        (delete-file filename)
+        (kill-buffer buffer)
+        (message "Deleted '%s'" filename)))))
 
 (defun switch-to-scratch ()
   "Switch to scratch, grab the region if it's active."
@@ -199,18 +308,22 @@ and it doesn't seem to work wth key bindings."
           (goto-char (buffer-end 1))
           (insert contents)))))
 
-(defun ca-with-comment (str)
-  "Wrap STR with comment."
-  (format "%s%s%s" comment-start str comment-end))
+(defun eval-and-replace ()
+  "Replace the preceding sexp with its value."
+  (interactive)
+  (backward-kill-sexp)
+  (condition-case nil
+      (prin1 (eval (read (current-kill 0)))
+             (current-buffer))
+    (error (message "Invalid expression")
+           (insert (current-kill 0)))))
 
-(defun ca-all-asscs (assoc_list query)
-  "Return a list of all corresponding values (like rassoc) ASSOC_LIST QUERY."
-  (cond
-   ((null assoc_list) nil)
-   (t
-    (if (equal (cdr (car assoc_list)) query)
-        (cons (car (car assoc_list)) (ca-all-asscs (cdr assoc_list) query))
-      (ca-all-asscs (cdr assoc_list) query)))))
+(defun magit-just-amend ()
+  "Just git commit --amend."
+  (interactive)
+  (save-window-excursion
+    (shell-command "git --no-pager commit --amend --reuse-message=HEAD")
+    (magit-refresh)))
 
 (defun shell-command-on-buffer-file ()
   "Run a shell command, using the file of current buffer as input.
@@ -220,6 +333,8 @@ Return an error if no buffer file."
   (let* ((my-cmd (read-shell-command "Command to run: "))
          (cmd-to-run (concat my-cmd " " (buffer-file-name))))
     (shell-command cmd-to-run)))
+
+(require 'dired)
 
 (eval-after-load "dired"
   '(progn
@@ -286,6 +401,7 @@ Replace with the return value of the function FN"
     (back-to-indentation)
     (and (= oldpos (point))
          (beginning-of-line))))
+
 (global-set-key (kbd "C-a") 'smart-beginning-of-line)
 
 (defun pretty-print-xml-region (begin end)
@@ -511,7 +627,18 @@ OSX specific of course."
     (set-face-attribute 'default nil :height new-height)
     (message "Default font height set to %i" new-height)))
 
+(defun set-default-font-height (p)
+  "Set the default font :height P (prefix arg) or enter in minibuffer."
+  (interactive "P")
+  (unless p
+    (setq p (string-to-number (read-from-minibuffer
+                               (format "Set default font height (currently %s): "
+                                       (face-attribute 'default :height))))))
+  (set-face-attribute 'default nil :height  p)
+  (message "Default font height set to %s" p))
+
 (global-set-key (kbd "C-c M-+") 'increase-default-font-height)
+(global-set-key (kbd "C-c =") 'set-default-font-height)
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
