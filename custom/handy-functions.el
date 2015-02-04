@@ -318,6 +318,7 @@ and it doesn't seem to work wth key bindings."
     (error (message "Invalid expression")
            (insert (current-kill 0)))))
 
+(require 'magit)
 (defun magit-just-amend ()
   "Just git commit --amend."
   (interactive)
@@ -335,7 +336,6 @@ Return an error if no buffer file."
     (shell-command cmd-to-run)))
 
 (require 'dired)
-
 (eval-after-load "dired"
   '(progn
      (define-key dired-mode-map "F" 'my-dired-find-file)
