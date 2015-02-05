@@ -22,21 +22,19 @@
 ;; - cleanup-buffer
 ;; - copy-buffer-to-osx-clipboard
 ;; - copy-region-to-osx-clipboard
-;; - dasherise-at-point-or-region
+
 ;; - delete-this-buffer-and-file
 ;; - directory-of-library
 ;; - duplicate-current-line-or-region
 ;; - eval-and-replace
-;; - fraction-radian
-;; - humanize-at-point-or-region
 ;; - increase-default-font-height
+;; - fraction-radian
 ;; - indent-buffer
 ;; - insert-random-in-range
 ;; - insert-random-radian
 ;; - join-line-from-below
 ;; - join-line-or-lines-in-region
 ;; - kill-whole-word
-;; - lower-camelcase-at-point-or-region
 ;; - magit-just-amend
 ;; - markdown-codefence-region
 ;; - my-dired-find-file
@@ -55,16 +53,21 @@
 ;; - shell-command-on-buffer-file
 ;; - shell-command-on-region-replace
 ;; - smart-beginning-of-line
-;; - snake-case-at-point-or-region
 ;; - switch-to-scratch
 ;; - titleized-at-point-or-region
 ;; - toggle-fullscreen
 ;; - toggle-mode-line-on-off
 ;; - toggle-window-split
 ;; - untabify-buffer
-;; - upper-camelcase-at-point-or-region
 ;; - utc-seconds
 ;; - yank-repeat
+
+;; String mangling/conversion
+;; - lower-camelcase-at-point-or-region
+;; - dasherise-at-point-or-region
+;; - snake-case-at-point-or-region
+;; - humanize-at-point-or-region
+;; - upper-camelcase-at-point-or-region
 ;;
 ;; Non interactive
 ;;
@@ -90,6 +93,7 @@
 ;;; Code:
 
 (require 's)
+(require 'dash)
 (require 'find-func)
 
 (defvar saved-mode-line
@@ -308,13 +312,22 @@ and it doesn't seem to work wth key bindings."
           (goto-char (buffer-end 1))
           (insert contents)))))
 
-(defun eval-and-replace ()
-  "Replace the preceding sexp with its value."
+(defun eval-and-replace-prin1 ()
+  "Replace the preceding sexp with its value using prin1."
   (interactive)
   (backward-kill-sexp)
   (condition-case nil
       (prin1 (eval (read (current-kill 0)))
              (current-buffer))
+    (error (message "Invalid expression")
+           (insert (current-kill 0)))))
+
+(defun eval-and-replace ()
+  "Replace the preceding sexp with its value."
+  (interactive)
+  (backward-kill-sexp)
+  (condition-case nil
+      (insert (format "%s" (eval (read (current-kill 0)))))
     (error (message "Invalid expression")
            (insert (current-kill 0)))))
 
@@ -614,11 +627,12 @@ OSX specific of course."
 
 (defun get-osx-display-resolution ()
   "Get the current display resolution in OSX."
-  (s-split "x" (replace-regexp-in-string "\n" ""
-                                         (shell-command-to-string
-                                          "system_profiler SPDisplaysDataType |\
-                                           grep Resolution |\
-                                           sed -e 's/Resolution: //' -e 's/ //g'"))))
+  (--map (s-split "x" it)
+         (--filter (not (string= it ""))
+                   (s-split "\n" (shell-command-to-string
+                                  "system_profiler SPDisplaysDataType |\
+                                   grep Resolution |\
+                                   sed -e 's/Resolution: //' -e 's/ //g'")))))
 
 (defun increase-default-font-height (m)
   "Adjust the default font :height by 10, universal argument is M (to set by multiples)."
