@@ -348,16 +348,6 @@ Return an error if no buffer file."
          (cmd-to-run (concat my-cmd " " (buffer-file-name))))
     (shell-command cmd-to-run)))
 
-(require 'dired)
-(eval-after-load "dired"
-  '(progn
-     (define-key dired-mode-map "F" 'my-dired-find-file)
-     (defun my-dired-find-file (&optional arg)
-       "Open each of the marked files, or the file under the point, or when prefix arg, the next N files "
-       (interactive "P")
-       (let* ((fn-list (dired-get-marked-files nil arg)))
-         (mapc 'find-file fn-list)))))
-
 (defun snake-case-at-point-or-region ()
   "Snake_case the current word or text selection."
   (interactive)
