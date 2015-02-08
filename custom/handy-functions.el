@@ -102,7 +102,7 @@
 
 (defun toggle-mode-line-on-off ()
   "Toggle the modeline off and on.
-Uses saved-mode-line as a register.
+Uses `saved-mode-line' as a register.
 
 Note this only affects the current buffer,
 and it doesn't seem to work wth key bindings."
@@ -124,7 +124,6 @@ and it doesn't seem to work wth key bindings."
   (when (file-exists-p path)
     (setq exec-path (append '(path) exec-path))))
 
-;; Handy functions, add little helpers in here.
 (defun align-number-right (begin end)
   "Align region to equal signs from BEGIN to END."
   (interactive "r")
