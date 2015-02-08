@@ -42,6 +42,30 @@
 
 (defvar remv:module-path (file-name-directory load-file-name))
 
+(defcustom remv:theme
+  "default"
+  "Theme name to use with markdown viewer."
+  :type '(choice
+          (const "default")
+          (const "cerulean")
+          (const "cosmo")
+          (const "cyborg")
+          (const "darkly")
+          (const "flatly")
+          (const "journal")
+          (const "lumen")
+          (const "paper")
+          (const "readable")
+          (const "sandstone")
+          (const "simplex")
+          (const "slate")
+          (const "spacelab")
+          (const "superhero")
+          (const "united")
+          (const "yeti"))
+
+  :group 'realtime-emacs-markdown-view)
+
 (defun remv:init-websocket (port)
   (let ((url (format "ws://0.0.0.0:%d/emacs" port)))
     (message "Connect to %s" url)
@@ -59,10 +83,14 @@
     (let ((str (buffer-substring-no-properties (point-min) (point-max))))
       (websocket-send-text remv:websocket str))))
 
+(defun remv:update-theme ()
+  (let ((theme-url (format "http://0.0.0.0:%d/settings?theme=%s" remv:port remv:theme)))
+    (message "%s" (shell-command-to-string (format "curl -s %S" theme-url)))))
+
 (defvar remv:webapp-process nil)
 
 (defun remv:webapp-launch-command (port)
-  (format "bundle exec ruby realtime_markdown_viewer.rb -p %d" port))
+  (format "bundle exec ruby realtime-emacs-markdown-view.rb -p %d" port))
 
 (defun remv:webapp-launch (port)
   (when (not remv:webapp-process)
@@ -83,8 +111,7 @@
     (sleep-for 5)
     (remv:init-websocket port)
     (add-hook 'kill-emacs-hook 'remv:kill-process)
-    (add-hook 'post-command-hook 'remv:send-to-server nil t))
-  (browse-url (format "http://localhost:%d" port)))
+    (add-hook 'post-command-hook 'remv:send-to-server nil t)))
 
 (defun remv:finalize ()
   (websocket-close remv:websocket)

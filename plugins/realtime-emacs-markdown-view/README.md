@@ -1,24 +1,20 @@
 # Realtime Emacs Markdown View
 
-Emacs module for realtime editing/previewing of Markdown as HTML (also
+Emacs extension for realtime editing and previewing of Markdown as HTML (also
 using bootstrap css.)
 
-Note: This is a fork of [Syohei Yoshida's](https://github.com/syohex)
-Realtime Markdown Viewer.
+This is began as a fork of Syohex's Realtime Markdown
+Viewer. Particularly as effort to fix / simplify. Notably this fork is
+using only Ruby/Sinatra (ie. no Perl support).
 
-Syohex's version allows the user to pick between a Perl or Ruby
-based http/websocket server. In an effort to simplify, this fork is
-using only Ruby/Sinatra.
+Also no static web files (bootstrap and jquery.) are stored locally
+they are served by CDN.
 
-There are also no static web files (bootstrap and jquery.) They are
-served by CDN.
+#### Dependencies
 
-## Requirements
-
-* Emacs 24.
-* Latest [websocket.el](https://github.com/ahyatt/emacs-websocket)
-    - websocket.el older than 2012/SEP/01 does not support multibyte characters
-* [SinatraRB](http://www.sinatrarb.com/)
+* Emacs 24
+* [websocket.el](https://github.com/ahyatt/emacs-websocket) latest
+* [Sinatra / Ruby](http://www.sinatrarb.com/)
 
 #### Installation
 
@@ -59,6 +55,8 @@ Any activity in the Emacs markdown buffer will trigger an update in
 the browser page.
 
 ### Troubleshooting
+
+
 
 Sinatra uses a gem called `eventmachine` which uses native extensions,
 this can prove a bit troublesome when run from Emacs, (note: only if
