@@ -7,9 +7,10 @@ This is a simplified fork of
 
 NOTE: Syohex's version allows the user to pick between a Perl or Ruby
 based http/websocket server. In an effort to simplify this fork is
-using Ruby/Sinatra to reduce maintenance overhead.
+using only Ruby/Sinatra.
 
 ## Requirements
+
 * Emacs 24.
 * Latest [websocket.el](https://github.com/ahyatt/emacs-websocket)
     - websocket.el older than 2012/SEP/01 does not support multibyte characters
@@ -31,23 +32,16 @@ Clone the repo into a folder within your `.emacs.d` and add it to the `load-path
 
 For example:
 
-```
-cd ~/.emacs.d/plugins/
-
-git clone https://github.com/jasonm23/emacs-realtime-markdown-viewer
-```
+    cd ~/.emacs.d/plugins/
+    git clone https://github.com/jasonm23/emacs-realtime-markdown-viewer
 
 Then add it to the load-path, ie. add the following line to `~/.emacs.d/init.el` (or `~/.emacs`):
 
-```
-(add-path (concat user-emacs-directory "/plugins/emacs-realtime-markdown-viewer/" ))
-```
+    (add-path (concat user-emacs-directory "/plugins/emacs-realtime-markdown-viewer/" ))
 
 In a shell, run the following line:
 
-````
-bundle install
-````
+    bundle install
 
 (from the `~/.emacs.d/plugins/emacs-realtime-markdown-viewer` folder)
 
@@ -55,18 +49,13 @@ bundle install
 
 When you want to turn previewing on in an `markdown-mode` buffer do the following:
 
-
 From emacs:
 
-```
-M-x realtime-markdown-viewer-mode
-```
+    M-x realtime-markdown-viewer-mode
 
 From the browser:
 
-```
-open http://0.0.0.0:5021/
-```
+    open http://0.0.0.0:5021/
 
 The next time you make a change to the Emacs buffer, the browser will
 render it as HTML.
