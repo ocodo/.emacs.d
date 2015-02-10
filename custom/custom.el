@@ -53,8 +53,8 @@
  '(linum-eager t)
  '(lua-indent-level 2)
  '(make-backup-files nil)
- '(markdown-command "kramdown -i GFM")
- '(markdown-css-path "http://bootswatch.com/readable/bootstrap.css")
+ '(markdown-command "redcarpet")
+ '(markdown-css-path "http://bootswatch.com/simplex/bootstrap.css")
  '(newsticker-url-list
    (quote
     (("Hacker News" "https://news.ycombinator.com/rss" nil nil nil)
