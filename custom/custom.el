@@ -54,7 +54,7 @@
  '(lua-indent-level 2)
  '(make-backup-files nil)
  '(markdown-command "kramdown -i GFM")
- '(markdown-css-path "markdown.css")
+ '(markdown-css-path "http://bootswatch.com/readable/bootstrap.css")
  '(newsticker-url-list
    (quote
     (("Hacker News" "https://news.ycombinator.com/rss" nil nil nil)
