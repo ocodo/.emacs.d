@@ -32,26 +32,26 @@
 
          :on-close
          (lambda (websocket)
-           (setq elmarv:ws-server-closed t))))
-
-  (setq elmarv:ws-conn
-        (websocket-open
-         (format "ws://localhost:%s" elmarv:ws-port))))
+           (setq elmarv:ws-server-closed t)))))
 
 (defun elmarv:ws-stop ()
   (websocket-server-close elmarv:ws-server))
 
-(defun elmarv:send-to-server ()
-  (markdown)
-  (websocket-send-text
-   elmarv:ws-conn
-   (with-current-buffer markdown-output-buffer-name (buffer-string))))
+(defun elmarv:send-to-clients ()
+  (async-start
+   (lambda () (markdown))
+   (lambda () (mapcar (lambda (ws)
+                         (websocket-send-text
+                          ws
+                          (with-current-buffer markdown-output-buffer-name (buffer-string))))
+                       websocket-server-websockets))))
 
-(defvar elmarv:html-head (format "<!DOCTYPE html>
+(defvar elmarv:html-head)
+(setq elmarv:html-head (format "<!DOCTYPE html>
 <html>
   <head>
     <link href=\"%s\" media=\"all\" rel=\"stylesheet\" />
-    <script type=\"application/javascript\" src=\"%s\" />
+    <script type=\"application/javascript\" src=\"%s\" ></script>
   </head>
   <body id=\"preview\" class=\"container\">" markdown-css-path elmarv:jquery-cdn-url))
 
@@ -100,7 +100,7 @@
                 :port elmarv:elnode-port
                 :host "localhost")
   (add-hook 'kill-emacs-hook 'elmarv:shutdown)
-  (add-hook 'post-command-hook 'elmarv:send-to-server nil t))
+  (add-hook 'post-command-hook 'elmarv:send-to-clients nil t))
 
 (defun elmarv:shutdown ()
   (elmarv:ws-stop)
