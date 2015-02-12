@@ -643,5 +643,14 @@ OSX specific of course."
 (global-set-key (kbd "C-c M-+") 'increase-default-font-height)
 (global-set-key (kbd "C-c =") 'set-default-font-height)
 
+(defun set-pivotal-api-key-from-dotfile ()
+  "Set the `pivotal-api-token' from the setting in ~/.pivotal_api_key if it exists."
+  (interactive)
+  (if (file-exists-p "~/.pivotal_api_key")
+      (progn
+        (setq pivotal-api-token (substring-no-properties (with-temp-buffer (insert-file-contents "~/.pivotal_api_key") (buffer-string)) 5 37))
+        (message "Pivotal api token was set to: %S" pivotal-api-token))
+    (message "~/.pivotal_api_key was not found")))
+
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
