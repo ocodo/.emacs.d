@@ -103,6 +103,8 @@
   (add-hook 'post-command-hook 'elmarv:send-to-clients nil t))
 
 (defun elmarv:shutdown ()
+  (remove-hook 'post-command-hook 'elmarv:send-to-clients)
+  (remove-hook 'kill-emacs-hook 'elmarv:shutdown)
   (elmarv:ws-stop)
   (elnode-stop elmarv:elnode-port))
 
