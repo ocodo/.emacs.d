@@ -116,7 +116,7 @@ I've added scores of editing features tailored to my own tastes, I'm
 sure you'll find it relatively easy to add your own once you get over
 parenthesiophobia (the fear of Lisp.)
 
-### Iterm2 Osx "Semantic History"
+### iTerm2 OSX Semantic History
 
 If you use Iterm2, you may be a little sad that there's no Emacs entry
 in the `Open With Editor..` "Semantic History" option. (If you don't
@@ -127,14 +127,15 @@ places around the web. Personally I didn't have too much luck with the
 scripts I found, so I've added one to my config which works better for
 me.
 
-To set it up, just set *Semantic History* to `Run coprocess...` and
-paste in this command line.
+Set **Semantic History** to **Run coprocess...** and
+paste in the following:
 
-    ~/.emacs.d/iterm-emacsclient \1 \2 > /dev/null 2> /dev/null
+    ~/.emacs.d/iterm-emacsclient +\2 \1
 
-You will then be able to `Cmd` click on filenames in iTerm2 and it
-will open up an Emacs buffer (or start Emacs from `/Applications`)
-with the file at line number.
+Then you're able to <kbd>Cmd</kbd> click on filenames in **iTerm2**
+and it will open up an Emacs buffer (or start Emacs from
+`/Applications`)
 
-For example clicking on `README.md:130` in this folder, would open
-README.md at line 130.
+To open the file at line number.  <kbd>Cmd</kbd> clicking on a
+filename printed in the terminal with a number suffix,
+e.g. `README.md:130` would open **README.md** at line 130.
