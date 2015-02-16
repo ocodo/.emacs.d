@@ -24,7 +24,6 @@ get '/emacs' do
         strikethrough: true,
         no_intra_emphasis: true
       }
-      puts settings.theme
       markdown = Redcarpet::Markdown.new(renderer, extensions)
       html = markdown.render msg
       EM.next_tick do
