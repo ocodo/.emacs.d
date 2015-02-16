@@ -20,6 +20,8 @@
 
 ;;; Commentary:
 ;;  A simplified fork of Syohei Yoshida's RTMV (only uses Ruby)
+;;  Provides support for Github Flavoured Markdown and uses a CSS theme
+;;  broadly based on Github Markdown view.
 
 ;;; Code:
 
@@ -34,37 +36,13 @@
   :prefix "remv:")
 
 (defcustom remv:port 5021
-  "Port number for Sinatra web server."
+  "Port number for Ruby/SinatraRb web server."
   :type 'integer
   :group 'realtime-emacs-markdown-view)
 
 (defvar remv:websocket)
 
 (defvar remv:module-path (file-name-directory load-file-name))
-
-(defcustom remv:theme
-  "default"
-  "Theme name to use with markdown viewer."
-  :type '(choice
-          (const "default")
-          (const "cerulean")
-          (const "cosmo")
-          (const "cyborg")
-          (const "darkly")
-          (const "flatly")
-          (const "journal")
-          (const "lumen")
-          (const "paper")
-          (const "readable")
-          (const "sandstone")
-          (const "simplex")
-          (const "slate")
-          (const "spacelab")
-          (const "superhero")
-          (const "united")
-          (const "yeti"))
-
-  :group 'realtime-emacs-markdown-view)
 
 (defun remv:init-websocket (port)
   (let ((url (format "ws://0.0.0.0:%d/emacs" port)))
@@ -82,10 +60,6 @@
   (when realtime-emacs-markdown-view-mode
     (let ((str (buffer-substring-no-properties (point-min) (point-max))))
       (websocket-send-text remv:websocket str))))
-
-(defun remv:update-theme ()
-  (let ((theme-url (format "http://0.0.0.0:%d/settings?theme=%s" remv:port remv:theme)))
-    (message "%s" (shell-command-to-string (format "curl -s %S" theme-url)))))
 
 (defvar remv:webapp-process nil)
 

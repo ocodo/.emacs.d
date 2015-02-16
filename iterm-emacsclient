@@ -1,2 +1,18 @@
 #!/bin/zsh --login
-emacsclient -e "(find-file \"$1\")" -e "(goto-line $2)" -a /Applications/Emacs.app/Contents/MacOS/Emacs
+#
+# Extremely simple emacsclient wrapper for item2 "Semantic History" process running.
+#
+# In iTerm2 Session preferences <Advanced> pane setup Semantic History to:
+#
+# [Run command...]
+#
+# in the text input paste the line below:
+#
+# ~/.emacs.d/iterm-emacsclient \2 \1
+#
+
+if [[ $1 == "+" ]]; then
+  shift
+fi
+
+emacsclient $1 $2 -n -a /Applications/Emacs.app/Contents/MacOS/Emacs
