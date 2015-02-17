@@ -64,7 +64,11 @@
 (defvar remv:webapp-process nil)
 
 (defun remv:webapp-launch-command (port)
-  (format "bundle exec ruby realtime-emacs-markdown-view.rb -p %d" port))
+  (let ((ruby "bundle exec ruby"))
+    (with-demoted-errors "RVM not available: %S"
+      (when (and (boundp 'rvm--current-ruby-binary-path) (not (eq nil rvm--current-ruby-binary-path)))
+        (setq ruby (format "bundle exec %sruby" (car rvm--current-ruby-binary-path)))))
+    (format "%s realtime-emacs-markdown-view.rb -p %d" ruby port)))
 
 (defun remv:webapp-launch (port)
   (when (not remv:webapp-process)

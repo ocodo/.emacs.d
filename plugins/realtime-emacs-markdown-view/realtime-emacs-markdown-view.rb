@@ -21,7 +21,9 @@ get '/emacs' do
         autolink: true,
         tables: true,
         superscript: true,
+        footnotes: true,
         strikethrough: true,
+        fenced_code_blocks: true,
         no_intra_emphasis: true
       }
       markdown = Redcarpet::Markdown.new(renderer, extensions)
