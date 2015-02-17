@@ -51,3 +51,18 @@ Then open in a web browser (with Javascript enabled):
 
 Any activity in the Emacs markdown buffer will trigger an update in
 the browser page.
+
+### RVM
+
+When using RVM, you'll need to install the `rvm.el` package (find it on MELPA)
+
+Once Emacs starts, and `rvm.el` is installed, do:
+
+    M-x rvm-use-default
+
+Realtime emacs markdown view mode will find the correct `ruby` to
+use. (assuming that you did `bundle install` with the default `rvm`
+ruby, if not, use the `M-x rvm-use` command to select the correct
+ruby/gemset combination first.)
+
+For more on RVM visit https://rvm.io
