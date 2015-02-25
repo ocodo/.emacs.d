@@ -1,0 +1,1632 @@
+types:
+  tooltiptags: &TOOLTIPTAGS global
+  # label - because of "<input radio"
+  buttons: &BUTTONS [button, a, input, label]
+  headers: &H1H6 [h1, h2, h3, h4, h5, h6]
+  # GRID SYSTEM
+  grid: &GRID
+    col-xs-1: Horizontal at all times
+    col-xs-2: Horizontal at all times
+    col-xs-3: Horizontal at all times
+    col-xs-4: Horizontal at all times
+    col-xs-5: Horizontal at all times
+    col-xs-6: Horizontal at all times
+    col-xs-7: Horizontal at all times
+    col-xs-8: Horizontal at all times
+    col-xs-9: Horizontal at all times
+    col-xs-10: Horizontal at all times
+    col-xs-11: Horizontal at all times
+    col-xs-12: Horizontal at all times
+
+    col-sm-1: 750px.\nColumn width ~62px
+    col-sm-2: 750px.\nColumn width ~62px
+    col-sm-3: 750px.\nColumn width ~62px
+    col-sm-4: 750px.\nColumn width ~62px
+    col-sm-5: 750px.\nColumn width ~62px
+    col-sm-6: 750px.\nColumn width ~62px
+    col-sm-7: 750px.\nColumn width ~62px
+    col-sm-8: 750px.\nColumn width ~62px
+    col-sm-9: 750px.\nColumn width ~62px
+    col-sm-10: 750px.\nColumn width ~62px
+    col-sm-11: 750px.\nColumn width ~62px
+    col-sm-12: 750px.\nColumn width ~62px
+
+    col-md-1: 970px.\nColumn width ~81px
+    col-md-2: 970px.\nColumn width ~81px
+    col-md-3: 970px.\nColumn width ~81px
+    col-md-4: 970px.\nColumn width ~81px
+    col-md-5: 970px.\nColumn width ~81px
+    col-md-6: 970px.\nColumn width ~81px
+    col-md-7: 970px.\nColumn width ~81px
+    col-md-8: 970px.\nColumn width ~81px
+    col-md-9: 970px.\nColumn width ~81px
+    col-md-10: 970px.\nColumn width ~81px
+    col-md-11: 970px.\nColumn width ~81px
+    col-md-12: 970px.\nColumn width ~81px
+
+    col-lg-1: 1170px.\nColumn width ~97px
+    col-lg-2: 1170px.\nColumn width ~97px
+    col-lg-3: 1170px.\nColumn width ~97px
+    col-lg-4: 1170px.\nColumn width ~97px
+    col-lg-5: 1170px.\nColumn width ~97px
+    col-lg-6: 1170px.\nColumn width ~97px
+    col-lg-7: 1170px.\nColumn width ~97px
+    col-lg-8: 1170px.\nColumn width ~97px
+    col-lg-9: 1170px.\nColumn width ~97px
+    col-lg-10: 1170px.\nColumn width ~97px
+    col-lg-11: 1170px.\nColumn width ~97px
+    col-lg-12: 1170px.\nColumn width ~97px
+
+    col-xs-offset-1: Increase the left margin of a column 
+    col-xs-offset-2: Increase the left margin of a column
+    col-xs-offset-3: Increase the left margin of a column
+    col-xs-offset-4: Increase the left margin of a column
+    col-xs-offset-5: Increase the left margin of a column
+    col-xs-offset-6: Increase the left margin of a column
+    col-xs-offset-7: Increase the left margin of a column
+    col-xs-offset-8: Increase the left margin of a column
+    col-xs-offset-9: Increase the left margin of a column
+    col-xs-offset-10: Increase the left margin of a column
+    col-xs-offset-11: Increase the left margin of a column
+    col-xs-offset-12: Increase the left margin of a column
+
+    col-sm-offset-1: Increase the left margin of a column 
+    col-sm-offset-2: Increase the left margin of a column
+    col-sm-offset-3: Increase the left margin of a column
+    col-sm-offset-4: Increase the left margin of a column
+    col-sm-offset-5: Increase the left margin of a column
+    col-sm-offset-6: Increase the left margin of a column
+    col-sm-offset-7: Increase the left margin of a column
+    col-sm-offset-8: Increase the left margin of a column
+    col-sm-offset-9: Increase the left margin of a column
+    col-sm-offset-10: Increase the left margin of a column
+    col-sm-offset-11: Increase the left margin of a column
+    col-sm-offset-12: Increase the left margin of a column
+
+    col-md-offset-1: Increase the left margin of a column 
+    col-md-offset-2: Increase the left margin of a column
+    col-md-offset-3: Increase the left margin of a column
+    col-md-offset-4: Increase the left margin of a column
+    col-md-offset-5: Increase the left margin of a column
+    col-md-offset-6: Increase the left margin of a column
+    col-md-offset-7: Increase the left margin of a column
+    col-md-offset-8: Increase the left margin of a column
+    col-md-offset-9: Increase the left margin of a column
+    col-md-offset-10: Increase the left margin of a column
+    col-md-offset-11: Increase the left margin of a column
+    col-md-offset-12: Increase the left margin of a column
+
+    col-lg-offset-1: Increase the left margin of a column 
+    col-lg-offset-2: Increase the left margin of a column
+    col-lg-offset-3: Increase the left margin of a column
+    col-lg-offset-4: Increase the left margin of a column
+    col-lg-offset-5: Increase the left margin of a column
+    col-lg-offset-6: Increase the left margin of a column
+    col-lg-offset-7: Increase the left margin of a column
+    col-lg-offset-8: Increase the left margin of a column
+    col-lg-offset-9: Increase the left margin of a column
+    col-lg-offset-10: Increase the left margin of a column
+    col-lg-offset-11: Increase the left margin of a column
+    col-lg-offset-12: Increase the left margin of a column
+
+    col-xs-push-1:
+    col-xs-push-2:
+    col-xs-push-3:
+    col-xs-push-4:
+    col-xs-push-5:
+    col-xs-push-6:
+    col-xs-push-7:
+    col-xs-push-8:
+    col-xs-push-9:
+    col-xs-push-10:
+    col-xs-push-11:
+    col-xs-push-12:
+
+    col-sm-push-1:
+    col-sm-push-2:
+    col-sm-push-3:
+    col-sm-push-4:
+    col-sm-push-5:
+    col-sm-push-6:
+    col-sm-push-7:
+    col-sm-push-8:
+    col-sm-push-9:
+    col-sm-push-10:
+    col-sm-push-11:
+    col-sm-push-12:
+
+    col-md-push-1:
+    col-md-push-2:
+    col-md-push-3:
+    col-md-push-4:
+    col-md-push-5:
+    col-md-push-6:
+    col-md-push-7:
+    col-md-push-8:
+    col-md-push-9:
+    col-md-push-10:
+    col-md-push-11:
+    col-md-push-12:
+
+    col-lg-push-1:
+    col-lg-push-2:
+    col-lg-push-3:
+    col-lg-push-4:
+    col-lg-push-5:
+    col-lg-push-6:
+    col-lg-push-7:
+    col-lg-push-8:
+    col-lg-push-9:
+    col-lg-push-10:
+    col-lg-push-11:
+    col-lg-push-12:
+
+    col-xs-pull-1:
+    col-xs-pull-2:
+    col-xs-pull-3:
+    col-xs-pull-4:
+    col-xs-pull-5:
+    col-xs-pull-6:
+    col-xs-pull-7:
+    col-xs-pull-8:
+    col-xs-pull-9:
+    col-xs-pull-10:
+    col-xs-pull-11:
+    col-xs-pull-12:
+
+    col-sm-pull-1:
+    col-sm-pull-2:
+    col-sm-pull-3:
+    col-sm-pull-4:
+    col-sm-pull-5:
+    col-sm-pull-6:
+    col-sm-pull-7:
+    col-sm-pull-8:
+    col-sm-pull-9:
+    col-sm-pull-10:
+    col-sm-pull-11:
+    col-sm-pull-12:
+
+    col-md-pull-1:
+    col-md-pull-2:
+    col-md-pull-3:
+    col-md-pull-4:
+    col-md-pull-5:
+    col-md-pull-6:
+    col-md-pull-7:
+    col-md-pull-8:
+    col-md-pull-9:
+    col-md-pull-10:
+    col-md-pull-11:
+    col-md-pull-12:
+
+    col-lg-pull-1:
+    col-lg-pull-2:
+    col-lg-pull-3:
+    col-lg-pull-4:
+    col-lg-pull-5:
+    col-lg-pull-6:
+    col-lg-pull-7:
+    col-lg-pull-8:
+    col-lg-pull-9:
+    col-lg-pull-10:
+    col-lg-pull-11:
+    col-lg-pull-12:
+
+  responsive: &RESPONSIVE
+    visible-xs-block: Extra small devices (<768px).\nSet Visible of component
+    visible-sm-block: Small devices (>768px).\nSet Visible of component
+    visible-md-block: Medium devices (>992px).\nSet Visible of component
+    visible-lg-block: Large devices (>1200px).\nSet Visible of component
+
+    visible-xs-inline: Extra small devices (<768px).\nSet Visible of component
+    visible-sm-inline: Small devices (>768px).\nSet Visible of component
+    visible-md-inline: Medium devices (>992px).\nSet Visible of component
+    visible-lg-inline: Large devices (>1200px).\nSet Visible of component
+
+    visible-xs-inline-block: Extra small devices (<768px).\nSet Visible of component
+    visible-sm-inline-block: Small devices (>768px).\nSet Visible of component
+    visible-md-inline-block: Medium devices (>992px).\nSet Visible of component
+    visible-lg-inline-block: Large devices (>1200px).\nSet Visible of component
+
+    hidden-xs: Hidden for extra small devices (<768px)
+    hidden-sm: Hidden for small devices (>768px)
+    hidden-md: Hidden for medium devices (>992px)
+    hidden-lg: Hidden for large devices (>1200px)
+
+    visible-print-block: &TGLPRNCNT Toggling content for print
+    visible-print-inline: *TGLPRNCNT
+    visible-print-inline-block: *TGLPRNCNT
+    hidden-print: *TGLPRNCNT
+
+  icons: &GLYPHICONS
+    glyphicon: |
+      Base class
+      Be sure to leave a space between the icon and text for proper padding.
+    glyphicon-asterisk:
+    glyphicon-plus:
+    glyphicon-euro:
+    glyphicon-minus:
+    glyphicon-cloud:
+    glyphicon-envelope:
+    glyphicon-pencil:
+    glyphicon-glass:
+    glyphicon-music:
+    glyphicon-search:
+    glyphicon-heart:
+    glyphicon-star:
+    glyphicon-star-empty:
+    glyphicon-user:
+    glyphicon-film:
+    glyphicon-th-large:
+    glyphicon-th:
+    glyphicon-th-list:
+    glyphicon-ok:
+    glyphicon-remove:
+    glyphicon-zoom-in:
+    glyphicon-zoom-out:
+    glyphicon-off:
+    glyphicon-signal:
+    glyphicon-cog:
+    glyphicon-trash:
+    glyphicon-home:
+    glyphicon-file:
+    glyphicon-time:
+    glyphicon-road:
+    glyphicon-download-alt:
+    glyphicon-download:
+    glyphicon-upload:
+    glyphicon-inbox:
+    glyphicon-play-circle:
+    glyphicon-repeat:
+    glyphicon-refresh:
+    glyphicon-list-alt:
+    glyphicon-lock:
+    glyphicon-flag:
+    glyphicon-headphones:
+    glyphicon-volume-off:
+    glyphicon-volume-down:
+    glyphicon-volume-up:
+    glyphicon-qrcode:
+    glyphicon-barcode:
+    glyphicon-tag:
+    glyphicon-tags:
+    glyphicon-book:
+    glyphicon-bookmark:
+    glyphicon-print:
+    glyphicon-camera:
+    glyphicon-font:
+    glyphicon-bold:
+    glyphicon-italic:
+    glyphicon-text-height:
+    glyphicon-text-width:
+    glyphicon-align-left:
+    glyphicon-align-center:
+    glyphicon-align-right:
+    glyphicon-align-justify:
+    glyphicon-list:
+    glyphicon-indent-left:
+    glyphicon-indent-right:
+    glyphicon-facetime-video:
+    glyphicon-picture:
+    glyphicon-map-marker:
+    glyphicon-adjust:
+    glyphicon-tint:
+    glyphicon-edit:
+    glyphicon-share:
+    glyphicon-check:
+    glyphicon-move:
+    glyphicon-step-backward:
+    glyphicon-fast-backward:
+    glyphicon-backward:
+    glyphicon-play:
+    glyphicon-pause:
+    glyphicon-stop:
+    glyphicon-forward:
+    glyphicon-fast-forward:
+    glyphicon-step-forward:
+    glyphicon-eject:
+    glyphicon-chevron-left:
+    glyphicon-chevron-right:
+    glyphicon-plus-sign:
+    glyphicon-minus-sign:
+    glyphicon-remove-sign:
+    glyphicon-ok-sign:
+    glyphicon-question-sign:
+    glyphicon-info-sign:
+    glyphicon-screenshot:
+    glyphicon-remove-circle:
+    glyphicon-ok-circle:
+    glyphicon-ban-circle:
+    glyphicon-arrow-left:
+    glyphicon-arrow-right:
+    glyphicon-arrow-up:
+    glyphicon-arrow-down:
+    glyphicon-share-alt:
+    glyphicon-resize-full:
+    glyphicon-resize-small:
+    glyphicon-exclamation-sign:
+    glyphicon-gift:
+    glyphicon-leaf:
+    glyphicon-fire:
+    glyphicon-eye-open:
+    glyphicon-eye-close:
+    glyphicon-warning-sign:
+    glyphicon-plane:
+    glyphicon-calendar:
+    glyphicon-random:
+    glyphicon-comment:
+    glyphicon-magnet:
+    glyphicon-chevron-up:
+    glyphicon-chevron-down:
+    glyphicon-retweet:
+    glyphicon-shopping-cart:
+    glyphicon-folder-close:
+    glyphicon-folder-open:
+    glyphicon-resize-vertical:
+    glyphicon-resize-horizontal:
+    glyphicon-hdd:
+    glyphicon-bullhorn:
+    glyphicon-bell:
+    glyphicon-certificate:
+    glyphicon-thumbs-up:
+    glyphicon-thumbs-down:
+    glyphicon-hand-right:
+    glyphicon-hand-left:
+    glyphicon-hand-up:
+    glyphicon-hand-down:
+    glyphicon-circle-arrow-right:
+    glyphicon-circle-arrow-left:
+    glyphicon-circle-arrow-up:
+    glyphicon-circle-arrow-down:
+    glyphicon-globe:
+    glyphicon-wrench:
+    glyphicon-tasks:
+    glyphicon-filter:
+    glyphicon-briefcase:
+    glyphicon-fullscreen:
+    glyphicon-dashboard:
+    glyphicon-paperclip:
+    glyphicon-heart-empty:
+    glyphicon-link:
+    glyphicon-phone:
+    glyphicon-pushpin:
+    glyphicon-usd:
+    glyphicon-gbp:
+    glyphicon-sort:
+    glyphicon-sort-by-alphabet:
+    glyphicon-sort-by-alphabet-alt:
+    glyphicon-sort-by-order:
+    glyphicon-sort-by-order-alt:
+    glyphicon-sort-by-attributes:
+    glyphicon-sort-by-attributes-alt:
+    glyphicon-unchecked:
+    glyphicon-expand:
+    glyphicon-collapse-down:
+    glyphicon-collapse-up:
+    glyphicon-log-in:
+    glyphicon-flash:
+    glyphicon-log-out:
+    glyphicon-new-window:
+    glyphicon-record:
+    glyphicon-save:
+    glyphicon-open:
+    glyphicon-saved:
+    glyphicon-import:
+    glyphicon-export:
+    glyphicon-send:
+    glyphicon-floppy-disk:
+    glyphicon-floppy-saved:
+    glyphicon-floppy-remove:
+    glyphicon-floppy-save:
+    glyphicon-floppy-open:
+    glyphicon-credit-card:
+    glyphicon-transfer:
+    glyphicon-cutlery:
+    glyphicon-header:
+    glyphicon-compressed:
+    glyphicon-earphone:
+    glyphicon-phone-alt:
+    glyphicon-tower:
+    glyphicon-stats:
+    glyphicon-sd-video:
+    glyphicon-hd-video:
+    glyphicon-subtitles:
+    glyphicon-sound-stereo:
+    glyphicon-sound-dolby:
+    glyphicon-sound-5-1:
+    glyphicon-sound-6-1:
+    glyphicon-sound-7-1:
+    glyphicon-copyright-mark:
+    glyphicon-registration-mark:
+    glyphicon-cloud-download:
+    glyphicon-cloud-upload:
+    glyphicon-tree-conifer:
+    glyphicon-tree-deciduous:
+
+  container: &CONTAINER
+    container-fluid: Create the fluid layouts in order to utilize the 100% width of the viewport.
+    container: Fixed-width layout
+
+attributes:
+
+  - class:
+      t: global
+      v: *GRID
+  - class:
+      t: div
+      v:
+        row: Predefined grid class
+  - class:
+      t: div
+      v: *CONTAINER
+
+  - class:
+      t: div
+      v:
+        clearfix: |
+          Add the extra clearfix for only the required viewport
+          “micro clearfix” generates pseudo-elements and sets their display to table. This creates an anonymous table-cell and a new block formatting context that means the :before pseudo-element prevents top-margin collapse. The :after pseudo-element is used to clear the floats. As a result, there is no need to hide any generated content and the total amount of code needed is reduced.
+  - class:
+      t: *H1H6
+      v:
+        small: Create lighter, secondary text in any heading
+
+  # text:
+  - class:
+      t: global
+      v:
+        text-left: Left aligned text.
+        text-center: Center aligned text.
+        text-right: Right aligned text.
+        text-justify: Justified text.
+        text-nowrap: No wrap text.
+        small: |
+          For de-emphasizing inline or blocks of text, use the <small> tag to set text at 85% the size of the parent.
+          Heading elements receive their own font-size for nested <small> elements.
+        text-lowercase: Lowercased text.
+        text-uppercase: Uppercased text.
+        text-capitalize: Capitalized text.
+
+  - class:
+      t: abbr
+      v: 
+        initialism: Add .initialism to an abbreviation for a slightly smaller font-size.
+
+  - class:
+      t: blockquote
+      v:
+        blockquote-reverse: A blockquote with right-aligned content
+  - class:
+      t: [ul, ol]
+      v:
+        list-unstyled: |
+          Remove the default list-style and left margin on list items (immediate children only).
+          This only applies to immediate children list items, meaning you will need to add the class for any nested lists as well.
+        list-inline: Place all list items on a single line with display: inline-block; and some light padding.
+  - class:
+      t: dl
+      v: Make terms and descriptions in <dl> line up side-by-side. Starts off stacked like default <dl>s, but when the navbar expands, so do these.
+
+  # tables
+  - class:
+      t: table
+      v:
+        table: |
+          For basic styling—light padding and only horizontal dividers.
+          It may seem super redundant, but given the widespread use of tables for other plugins like calendars and date pickers, we've opted to isolate our custom table styles.
+        table-striped: Striped tables are styled via the :nth-child CSS selector, which is not available in Internet Explorer 8.
+        table-bordered: Bordered version
+        table-hover: Enable a hover state on table rows within a <tbody>
+        table-condensed: Make tables more compact by cutting cell padding in half.
+        table-responsive: |
+          Create responsive tables by wrapping any .table in .table-responsive to make them scroll horizontally on small devices (under 768px).
+          When viewing on anything larger than 768px wide, you will not see any difference in these tables.
+
+  - class:
+      t: [tr, td]
+      v: [active, success, warning, danger, info]
+
+  # - class:
+  #     t: [table, th, td, tr, thead, tbody, tfoot ]    
+
+  # forms
+  - class:
+      t: form
+      v:
+        form-inline: |
+          Left-aligned and inline-block controls.
+          This only applies to forms within viewports that are at least 768px wide.
+        form-horizontal: |
+          Predefined grid classes to align labels and groups of form controls in a horizontal layout.
+          NO NEED FOR .row
+
+  - class:
+      t: [input, textarea, select]
+      v:
+        form-control: Set to width: 100%; by default. Wrap labels and controls in .form-group for optimum spacing.
+        input-lg: &FMMOD modifier classes to decrease or increase the height and font-size of form controls
+        input-sm: *FMMOD
+  - class:
+      t: [label]
+      v:
+        sr-only: |
+          Screen readers will have trouble with your forms if you don't include a label for every input.
+          For these inline forms, you can hide the labels using the .sr-only class. 
+            <div class="form-group">
+              <label class="sr-only" for="pwf">Password</label>
+              <input type="password" class="form-control" id="pwd" placeholder="Password">
+            </div>
+  - class:
+      t: span
+      v:
+        sr-only: |
+          Screen readers
+          <span id="err" class="sr-only">(error)</span>          
+  - class:
+      t: div
+      v: 
+        form-group: |
+          Wrap labels and controls in .form-group for optimum spacing.
+          Don't mix form groups with input groups
+        form-group-lg: &FMGRMOD Styles to the inputs and labels within a .form-group.
+        form-group-sm: *FMGRMOD
+        has-warning: &HASTEXT Any .control-label, .form-control, and .help-block within that element will receive the validation styles.
+        has-error: *HASTEXT
+        has-success: *HASTEXT
+        has-feedback: |
+          Add right feedback icon.
+          Feedback icons only work with textual <input class="form-control"> elements
+           (error)
+          Ex.
+           <div class="form-group has-success has-feedback">
+            <label class="control-label" for="success">Input with success</label>
+            <input type="text" class="form-control" id="success" aria-describedby="successStatus">
+            <span class="glyphicon glyphicon-ok form-control-feedback" aria-hidden="true"></span>
+            <span id="successStatus" class="sr-only">(success)</span>
+           </div>
+
+  - class:
+      t: div
+      v:
+        disabled: |
+          To have the <label> for the checkbox or radio also display a "not-allowed" cursor when the user hovers over the label, add the .disabled class to your:
+          .radio, .radio-inline, .checkbox, .checkbox-inline, or <fieldset>.
+
+          For <a>  Opera <18, IE11 use JS to disable such link.
+  - class:
+      t: [div, label]
+      v:
+        radio:
+        radio-inline:
+        checkbox:
+        checkbox-inline:
+        fieldset:
+  - class:
+      t: p
+      v:
+        form-control-static: |
+          Place plain text next to a form label within a form
+           <form class="form-horizontal" role="form">
+             <div class="form-group">
+             <label class="col-sm-2 control-label">Email</label>
+              <div class="col-sm-10">
+                <p class="form-control-static">email@example.com</p>
+              </div>
+            </div>
+
+  # button
+  - class:
+      t: *BUTTONS
+      v:
+        btn: Highly recommend using the <button> element whenever possible to ensure matching cross-browser rendering.
+        btn-default:
+        btn-primary:
+        btn-success:
+        btn-info:
+        btn-warning:
+        btn-danger:
+        btn-link: Deemphasize a button by making it look like a link while maintaining button behavior
+
+  - class:
+      t: *BUTTONS
+      v:
+        btn-lg: &BTNSIZE Button sizing
+        btn-sm: *BTNSIZE
+        btn-xs: *BTNSIZE
+        btn-block: Create block level buttons—those that span the full width of a parent
+        active: Pressed button
+        disabled: |
+          Disabled state.
+
+          For <a>  Opera <18, IE11 use JS to disable such link.
+
+  # labels
+  - class:
+      t: [label, span]
+      v:
+        label:
+        label-default:
+        label-primary:
+        label-success:
+        label-info:
+        label-warning:
+        label-danger:
+
+  # images
+  - class:
+      t: img
+      v:
+        img-responsive: |
+          This applies
+           { max-width: 100%; height: auto; }
+          to the image so that it scales nicely to the parent element.
+        img-rounded: Adds border-radius:6px to give the image rounded corners.
+        img-circle: Makes the entire image round by adding border-radius:500px.
+        img-thumbnail: Adds a bit of padding and a gray border:
+
+  # helpers
+
+  - class:
+      t: [p, span, div, a]
+      v:
+        text-muted: &TXTHELPER |
+          Contextual colors
+          Convey meaning through color with a handful of emphasis utility classes.
+          These may also be applied to links and will darken on hover just like our default link styles.
+        text-primary: *TXTHELPER
+        text-success: *TXTHELPER
+        text-info: *TXTHELPER
+        text-warning: *TXTHELPER
+        text-danger: *TXTHELPER
+        bg-primary: &TXTHELPERBG Contextual backgrounds
+        bg-success: *TXTHELPERBG
+        bg-info: *TXTHELPERBG
+        bg-warning: *TXTHELPERBG
+        bg-danger: *TXTHELPERBG
+
+  - class:
+      t: [button, a]
+      v:
+        close: Generic close icon for dismissing content like modals and alerts.
+        
+  - class:
+      t: [p, div, span, a]
+      v: 
+        pull-left: Float an element to the left with a class
+        pull-right: Float an element to the right with a class
+        center-block: Center content blocks
+        show: Force an element to be shown including for screen readers 
+        hidden: Force an element to be hidden including for screen readers 
+
+  - class:
+      t: global
+      v: *RESPONSIVE
+
+  # Accessibility
+  - class:
+      t: global
+      v:
+        sr-only: Hides an element to all devices except screen readers
+        sr-only-focusable: Combine with .sr-only to show the element again when it is focused e.g. by a keyboard-only user
+        text-hide: "Replace an element's text content with a background image."
+
+  - class:
+      t: i
+      v: *GLYPHICONS
+
+  # dropdowns and button group
+  - class:
+      t: span
+      v: 
+        caret: Use carets to indicate dropdown functionality and direction
+        icon-bar: |
+          May be used in ".navbar-toggle .collapsed" as collapse toggle button
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>      
+  - class:
+      t: div
+      v:
+        dropdown: |
+          <div class="dropdown">
+              <button class="btn btn-default dropdown-toggle"
+              data-toggle="dropdown" aria-expanded="true" id="drMenu1">
+                Dropdown
+                  <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="drMenu1">
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Something else here</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Separated link</a></li>
+              </ul>
+          </div>
+        dropup: <div class="btn-group dropup">
+  - data-toggle:
+      t: *BUTTONS
+      v:
+        dropdown: |
+          <button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+      d: Toggle facility
+  - class:
+      t: *BUTTONS
+      v: 
+        dropdown-toggle:
+
+  - class:
+      t: ul
+      v:
+        dropdown-menu: |
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu3">
+           <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Regular link</a></li>
+           <li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">Disabled link</a></li>
+           <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Another link</a></li>
+          </ul>
+        dropdown-menu-right:
+        dropdown-menu-left:
+
+  - class:
+      t: li
+      v:
+        dropdown-header: Add a header to label sections of actions in any dropdown menu.
+        divider: Add a divider to separate series of links in a dropdown menu.
+        disabled:
+
+  - data-toggle:
+      t: *BUTTONS
+      v: collapse
+
+  - data-target:
+      t: *BUTTONS
+      v: 
+        "#bs-": d
+      d: |
+        1. Link to collected nav links, forms, and other content for toggling
+        2. Activate a modal 
+        <button type="button" data-toggle="modal" data-target="#myModal">Launch modal</button>
+
+  - class:
+      t: div
+      v:
+        btn-group: |
+          Group a series of buttons together on a single line with the button group.
+          Place a .btn-group within another .btn-group when you want dropdown menus mixed with a series of buttons.
+          
+          <div class="btn-group" role="group" aria-label="...">
+            <button type="button" class="btn btn-default">Left</button>
+            <button type="button" class="btn btn-default">Middle</button>
+            <button type="button" class="btn btn-default">Right</button>
+          </div>
+        btn-toolbar: |
+          <div class="btn-toolbar">
+            <div class="btn-group">
+        btn-group-lg:
+        btn-group-sm:
+        btn-group-xs:
+        btn-group-vertical: Make a set of buttons appear vertically stacked rather than horizontally
+        btn-group-justified: |
+          Make a group of buttons stretch at equal sizes to span the entire width of its parent. Also works with button dropdowns within the button group.
+            <div class="btn-group btn-group-justified" role="group"..
+
+  # input groups
+  - class:
+      t: [ div, span, p ]
+      v:
+        input-group: |
+          Place one add-on or button on either side of an input
+           <div class="input-group">
+             <span class="input-group-addon">@</span>
+             <input type="text" class="form-control" placeholder="Username">
+           </div>
+        input-group-lg:
+        input-group-sm:
+        input-group-btn: |
+          Segmented buttons
+           <div class="input-group">
+            <div class="input-group-btn">
+               Button and dropdown menu here
+            </div>
+            <input type="text" class="form-control">
+          </div>
+  - class:
+      t: span
+      v: 
+        input-group-addon: |
+          <div class="input-group">
+             <span class="input-group-addon">@</span>
+             <input type="text" class="form-control" placeholder="Username">
+
+  # Nav
+  - class:
+      t: [ul, ol]
+      v:
+        nav:
+        nav-tabs: |
+          Example with data-toggle
+          <div role="tabpanel">
+
+          <!-- Nav tabs -->
+          <ul class="nav nav-tabs" role="tablist">
+           <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Home</a></li>
+           <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Profile</a></li>
+          </ul>
+          <!-- Tab panes -->
+          <div class="tab-content">
+           <div role="tabpanel" class="tab-pane active" id="home">...</div>
+           <div role="tabpanel" class="tab-pane" id="profile">...</div>
+          </div>
+
+          </div>
+        nav-pills:
+        nav-stacked: |
+          Vertically stackable pills
+          <ul class="nav nav-pills nav-stacked">
+            ..
+          </ul>
+        nav-justified:
+        navbar-nav:
+
+  - class:
+      t: [button, a, div]
+      v: 
+        navbar-brand: |
+          Replace the navbar brand with your own image by swapping the text for an <img>.
+          Since the .navbar-brand has its own padding and height, you may need to override some CSS depending on your image.
+          <div class="navbar-header">
+           <a class="navbar-brand"..
+
+  - class:
+      t: li
+      v: 
+        active: |
+          <ul class="nav nav-tabs">
+            <li class="active"><a href=..
+            <li>..
+        disabled: |
+          This class will only change the <a>'s appearance, not its functionality.
+          Use custom JavaScript to disable links here.
+
+  - class:
+      t: [nav, div]
+      v:
+        navbar: |
+          <nav class="navbar navbar-default"
+        navbar-default: Opposite to .navbar-inverse
+        navbar-inverse: Modify the look of the navbar Opposite to .navbar-default
+        navbar-fixed-top: |
+          Fixed to top.
+          Include a .container or .container-fluid to center and pad navbar content.
+          Also add padding! "body { padding-top: 70px; }" (after bs css)
+        navbar-fixed-bottom: |
+          Fixed bottom.
+          Also add padding! "body { padding-bottom: 70px; }" (after bs css)
+        navbar-static-top: Create a full-width navbar that scrolls away with the page by adding
+  - class:
+      t: form
+      v:
+        navbar-form: |
+          Use the alignment options to decide where it resides within the navbar content.
+
+          <form class="navbar-form navbar-left" role="search">
+          <div class="form-group">
+            <input type="text" class="form-control" placeholder="Search">
+          </div>
+
+  - class:
+      t: [button, input]
+      v: 
+        navbar-btn: Add the .navbar-btn class to <button> elements not residing in a <form> to vertically center them in the navbar
+  - class:
+      t: [nav, form, a, div, button]
+      v: 
+        navbar-left: These classes are mixin-ed version of .pull-left
+        navbar-right: These classes are mixin-ed version of .pull-right
+  - class:
+      t: [span, p]
+      v: 
+        navbar-text: Text inside navbad
+  - class:
+      t: div
+      v:
+        navbar-header: Header of navbar
+        navbar-collapse: |
+          <div class="navbar-header">
+           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#FOO"
+  - class:
+      t: a
+      v:
+        navbar-link: |
+          Links that are not within the regular navbar navigation component,
+          use the .navbar-link class to add the proper colors for the default and inverse navbar options.
+
+  # breadcrumb
+  - class:
+      t: [ul, ol]
+      v:
+        breadcrumb: |
+          Indicate the current page's location within a navigational hierarchy.
+          Separators are automatically added in CSS through :before and content.
+
+          Home / Links / Data
+          <ol class="breadcrumb">
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Library</a></li>
+            <li class="active">Data</li>
+          </ol>
+
+  # pagination / pager
+  - class:
+      t: [ul, ol]
+      v:
+        pager: |
+          By default, the pager centers links.
+           <nav>
+             <ul class="pager">
+               <li><a href="#">Previous</a></li>
+               <li><a href="#">Next</a></li>
+             </ul>
+           </nav>
+        pagination-lg:
+        pagination-sm:
+        pagination: |
+          Provide pagination links
+
+           <nav>
+             <ul class="pagination">
+               <li>
+                 <a href="#" aria-label="Previous">
+                   <span aria-hidden="true">&laquo;</span>
+                 </a>
+               </li>
+               <li><a href="#">1</a></li>
+               <li><a href="#">2</a></li>
+               ..etc..
+  - class:
+      t: li
+      v:
+        previous: &PAGERALIGN |
+          You can align each link to the sides .pager
+          <nav>
+            <ul class="pager">
+              <li class="previous"><a href="#">Older</a></li>
+              <li class="next"><a href="#">Newer</a></li>
+            </ul>
+          </nav>
+        next: *PAGERALIGN
+
+  # badge
+  - class:
+      t: span
+      v:
+        badge: Easily highlight new or unread items by adding a <span class="badge"> to links, Bootstrap navs, and more.
+
+  # jambotron
+  - class:
+      t: div
+      v:
+        jumbotron: |
+          A lightweight, flexible component that can optionally extend the entire viewport to showcase key content on your site.
+          To make the jumbotron full width, and without rounded corners,
+          place it outside all .containers and instead add a .container within
+
+  # misc, page-header
+  - class:
+      t: div
+      v:
+        page-header: A simple shell for an h1.
+
+  # thumb
+  - class:
+      t: [div, a, span]
+      v:
+        thumbnail:
+        caption: caption of thumb
+  # alert
+  - class:
+      t: [div, span]
+      v:
+        alert:
+        alert-success:
+        alert-info:
+        alert-warning:
+        alert-danger:
+        alert-dismissible: |
+          Build on any alert by adding an optional .alert-dismissible and close button.
+          Be sure to use the <button> element with the data attribut
+
+          data-dismiss="alert"
+
+          <div class="alert alert-warning alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>Warning!</strong> Better check yourself, you're not looking too good.
+          </div>
+  - data-dismiss:
+      t: *BUTTONS
+      v:
+        alert:
+      d: .alert-dismissible. Close alert
+  - class:
+      t: a
+      v:
+        alert-link: Use the .alert-link utility class to quickly provide matching colored links within any alert.
+
+  # progressbar
+  - class:
+      t: div
+      v:
+        progress:
+        progress-bar: |
+          Show filled bar
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
+              60%
+            </div>
+          </div>
+        progress-bar-success:
+        progress-bar-info:
+        progress-bar-warning:
+        progress-bar-danger:
+        progress-bar-striped:
+        active: Animate progress-bar
+
+  # media
+  - class:
+      t: div
+      v:
+        media: |
+          Abstract object styles for building various types of components.
+          (like blog comments, Tweets, etc)
+          that feature a left- or right-aligned image alongside textual content.
+        media-body:
+  - class:
+      t: [div, a, span]
+      v:
+        media-left:
+        media-right:
+        media-middle:
+        media-bottom:
+  - class:
+      t: *H1H6
+      v:
+        media-heading: Media heading, h4
+
+  # list group
+  - class:
+      t: [ul, ol, div]
+      v:
+        list-group: &LISTGROUPEXAMPLE |
+          <div class="list-group">
+           <a href="#" class="list-group-item active">
+            <h4 class="list-group-item-heading">List group item heading</h4>
+            <p class="list-group-item-text">...</p>
+           </a>
+          </div>
+
+          or
+
+          <ul class="list-group">
+            <li class="list-group-item"...
+  - class:
+      t: [li, a]
+      v:
+        list-group-item: *LISTGROUPEXAMPLE
+        active:
+  - class:
+      t: *H1H6
+      v:
+        list-group-item-heading: *LISTGROUPEXAMPLE
+  - class:
+      t: p
+      v:
+        list-group-item-text: *LISTGROUPEXAMPLE
+
+  # panel
+  - class:
+      t: div
+      v:
+        panel: |
+          While not always necessary, sometimes you need to put your DOM in a box.
+          For those situations, try the panel component.
+
+          <div class="panel panel-default">
+           <div class="panel-body">
+            Basic panel example
+           </div>
+          </div>
+        panel-heading: Container for heading and h1-h6 .panel-title
+        panel-default:
+
+        panel-primary: &PANELCONTEXT Opposite to .panel-default
+        panel-success:
+        panel-info:
+        panel-warning:
+        panel-danger:
+
+        panel-body:
+        panel-footer: |
+          Wrap buttons or secondary text in .panel-footer.
+          Note that panel footers do not inherit colors and borders when using contextual variations as they are not meant to be in the foreground.
+        panel-group: |
+          <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+           <div class="panel panel-default">
+             <div class="panel-heading" role="tab" id="headingOne">
+  - class:
+      t: *H1H6
+      v:
+        panel-title:
+
+  # Responsive embed
+  - class:
+      t: div
+      v:
+        embed-responsive: |
+          Allow browsers to determine video or slideshow dimensions based on the width of their containing block by creating an intrinsic ratio that will properly scale on any device.
+        embed-responsive-16by9:
+        embed-responsive-4by3:
+  - class:
+      t: [iframe, embed, video, object]
+      v:
+        embed-responsive-item: |
+          Pro-Tip! You don't need to include frameborder="0" in your <iframe>s as we override that for you.
+
+  - class:
+      t: div
+      v:
+        well: Use the well as a simple effect on an element to give it an inset effect.
+        well-lg:
+        well-sm:
+  ########################################
+  # some js
+  ########################################
+  # modal
+  - class:
+      t: div
+      v: 
+        modal: |
+          <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+           <div class="modal-content">
+            <div class="modal-header">
+            ..
+            <div class="modal-body">
+            ..
+            <div class="modal-footer">
+            
+        fade: |
+          1. Modal animation. Slide it down.
+          2. Fade effect for .tab-pane
+        in: |
+          1. .fade .in animation for modal, (first .tab-pane .fade), etc
+          2. .panel-collapse .collapse .in - default open panel
+        modal-dialog:
+        modal-content:
+        modal-header: Top section of the modal w/ title and dismiss
+        modal-body: Where all modal content resides (sibling of .modal-header and .modal-footer)
+        modal-footer: |
+          Footer (for actions)
+          <div class="modal-footer">
+           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+           <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+  - class:
+      t: *H1H6
+      v:
+        modal-title:
+  - data-toggle:
+      t: *BUTTONS
+      v:
+        modal: |
+          Activate a modal without writing JavaScript. Set data-toggle="modal" on a controller element, like a button, along with a data-target="#foo" or href="#foo" to target a specific modal to toggle.
+
+          <button type="button" data-toggle="modal" data-target="#myModal">Launch modal</button>
+  - data-target:
+      t: *BUTTONS
+      v:
+        "#myModal": Activate modal, example.
+  - data-backdrop:
+      t: div
+      d: |
+        Includes a modal-backdrop element.
+        Default true
+        Alternatively, specify static for a backdrop which doesn't close the modal on click.
+        <div id="myModal" class="modal fade" role="dialog" data-backdrop="true">
+      v: [true, false, static]
+  - data-keyboard: 
+      d: Closes the modal when escape key is pressed. Default true. Carousel - react for keyboard
+      t: div
+      v: [true, false]
+  - data-show:
+      d: Shows the modal when initialized. Default true
+      t: div
+      v: [true, false]
+  - data-dismiss:
+      t: *BUTTONS
+      v:
+        modal: |
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span></button>
+
+  # scrollspy
+  - data-spy:
+      d: |
+        Automatically updating nav targets based on scroll position.
+        CSS
+          body { position: relative; }
+        HTML
+          <body data-spy="scroll" data-target=".navbar-example">
+          ..
+           <div class="navbar-example">
+            <ul class="nav nav-tabs" role="tablist">
+            ..
+            </ul>
+           </div>
+          ..
+          </body>
+      t: global
+      v: scroll
+  - data-target:
+      d: |
+        For scrollspy.
+        <body data-spy="scroll" data-target=".navbar-example">
+        ..
+          <div class="navbar-example">
+           <ul class="nav nav-tabs" role="tablist">
+        ..
+           </ul>
+          </div>
+        ..
+        </body>
+      t: global
+  - data-offset:
+      d: Pixels to offset from top when calculating position of scroll.
+      t: global
+      v: 
+        10: Default
+        16:
+        20:
+  # tab.js
+  - data-toggle:
+      t: li
+      v:
+        tab: |
+          <ul class="nav nav-tabs">
+           <li class="active"><a href="#home" data-toggle="tab">Home</a></li>
+          ..
+          <div class="tab-content">
+            <div class="tab-pane active" id="home">...</div>
+        pill: |
+          <ul class="nav nav-pills">
+           <li class="active"><a href="#tab_a" data-toggle="pill">Pill A</a></li>
+           <li><a href="#tab_b" data-toggle="pill">Pill B</a></li>
+           <li><a href="#tab_c" data-toggle="pill">Pill C</a></li>
+           <li><a href="#tab_d" data-toggle="pill">Pill D</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active" id="tab_a">...</div>
+  - class:
+      t: div
+      v: 
+        tab-content: |
+          <div class="tab-content">
+          <div role="tabpanel" class="tab-pane fade in active" id="home">...</div>
+          <div role="tabpanel" class="tab-pane fade" id="profile">...</div>
+        tab-pane: |
+          <div role="tabpanel" class="tab-pane fade in active" id="home">...</div>
+  #tooltip.js
+  - data-toggle:
+      t: *TOOLTIPTAGS
+      v:
+        tooltip: |
+          Tooltip.
+          For performance reasons, the Tooltip and Popover data-apis are opt-in,
+          meaning YOU MUST INITIALIZE THEM YOURSELF.
+          
+          $(function () {
+            $('[data-toggle="tooltip"]').tooltip({placement: 'bottom'})
+          })
+  - data-animation:
+      t: *TOOLTIPTAGS
+      v: [true, false]
+      d: Animation for tooltip/popover.
+  - data-container:
+      t: global
+      d: |
+        Appends the tooltip/popover to a specific element.
+        Example: container: 'body'.
+        Allows you to position the tooltip/popover in the flow of the document near the triggering element.
+        Prevent the tooltip/popover from floating away from the triggering element during a window resize.
+      v: 
+        false:
+        body:
+  - data-delay:
+      t: *TOOLTIPTAGS
+      v:
+        0:
+        1000:
+        "{": &DELAYEXAMPLE Onject: '{ "show": 500, "hide": 100 }'
+        show: *DELAYEXAMPLE
+        hide: *DELAYEXAMPLE
+      d: |
+        Delay, Number or Object '{ "show": 500, "hide": 100 }'
+        Note, use data-delay='{"..' 
+          not data-delay="{.."
+      
+  - data-html:
+      t: *TOOLTIPTAGS
+      d: Insert HTML into the tooltip/popover. If false, jQuery's TEXT method will be used to insert content into the DOM. Use text if you're worried about XSS attacks.
+      v: [true, false]
+  - data-placement:
+      t: *TOOLTIPTAGS
+      d: |
+        How to position the tooltip/popover.
+        When "auto" is specified, it will dynamically reorient the tooltip/popover.
+        "auto left" - left if possible
+      v: [top, bottom, left, right, auto]
+  - data-selector:
+      t: *TOOLTIPTAGS
+      d: |
+        String
+        If a selector is provided, tooltip/popover objects will be delegated to the specified targets.
+        In practice, this is used to enable dynamic HTML content to have tooltips/popover added.
+      v: "false"
+  - data-template:
+      t: *TOOLTIPTAGS
+      d: |
+        For tooltip/popover, base html
+  - data-title:
+      t: *TOOLTIPTAGS
+      d: Default title value if not present "title" attribute
+  - data-trigger:
+      t: *TOOLTIPTAGS
+      d: |
+        How tooltip/popover is triggered - click | hover | focus | manual.
+        You may pass multiple triggers; separate them with a space.
+      v: [click, hover, focus, manual]
+  - data-viewport:
+      t: *TOOLTIPTAGS
+      d: |
+        String or object.
+        Keeps the tooltip/popover within the bounds of this element.
+        Example: viewport: '#viewport' or { "selector": "#viewport", "padding": 0 }
+      v: 
+        selector: Ex. { selector: 'body', padding: 0 }
+  # ..and popover.js
+  - data-toggle:
+      t: *TOOLTIPTAGS
+      v: 
+        popover: |
+          Popover.
+          For performance reasons, the Tooltip and Popover data-apis are opt-in,
+          meaning YOU MUST INITIALIZE THEM YOURSELF.
+
+          $(function () {
+            $('[data-toggle="popover"]').popover({placement: 'bottom'})
+          })
+  - data-content:
+      t: *TOOLTIPTAGS
+      d: Content of popover.
+  # button.js
+  - data-loading-text:
+      t: *BUTTONS
+      d: |
+        A loading state on a button
+        data-loading-text="Loading..."
+  - data-toggle:
+      t: *BUTTONS
+      v: 
+        button: |
+          Single toggle button
+          Pre-toggled buttons need .active and aria-pressed="true"
+          <button type="button" class="btn btn-primary" data-toggle="button"
+                  aria-pressed="false" autocomplete="off">
+            Single toggle
+          </button>
+        buttons: |
+          Togglable Checkbox or radio buttons.
+          <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-primary active">
+              <input type="checkbox" autocomplete="off" checked> Checkbox 1 (pre-checked)
+            </label>
+            <label class="btn btn-primary">
+              <input type="checkbox" autocomplete="off"> Checkbox 2
+            </label>
+            <label class="btn btn-primary">
+              <input type="checkbox" autocomplete="off"> Checkbox 3
+           </label>
+          </div>
+  - class:
+      t: div
+      v:
+        collapse: |
+          Ex. opened collapsable panel.
+          .panel-collapse .collapse .in
+        panel-collapse: |
+          Be sure to add the class collapse to the collapsible element. If you'd like it to default open, add the additional class in.
+  # carousel.js
+  - data-ride:
+      t: div
+      v: carousel
+      d: |
+        Used to mark a carousel as animating starting at page load.
+        It cannot be used in combination with (redundant and unnecessary) explicit JavaScript initialization of the same carousel.
+        <div id="carousel-example" class="carousel slide" data-ride="carousel">
+  - class:
+      t: div
+      v: 
+        carousel: |
+          Ensure for JS: $('.carousel').carousel()
+          Ex.
+          <div id="example" class="carousel slide" data-ride="carousel">
+           <!-- Indicators -->
+           <ol class="carousel-indicators">
+            <li data-target="#example" data-slide-to="0" class="active"></li>
+            <li data-target="#example" data-slide-to="1"></li>
+            ..
+           <!-- Wrapper for slides -->
+           <div class="carousel-inner" role="listbox">
+            <div class="item active">
+             <img src="..." alt="...">
+             <div class="carousel-caption">
+             ..
+             </div>
+             .. more wrappers
+           </div>
+           <!-- Controls -->
+           <a class="left carousel-control" href="#example" role="button" data-slide="prev">
+             <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+             <span class="sr-only">Previous</span>
+           </a>
+           .. <a> next ..
+          </div>
+        slide: |
+          Slide carousel
+        carousel-caption: |
+          Add captions to your slides. Within any .item
+          <div class="item">
+            <img src="..." alt="...">
+            <div class="carousel-caption">
+              <h3>...</h3>
+              <p>...</p>
+            </div>
+          </div>
+        carousel-inner: |
+          <!-- Wrapper for slides -->
+           <div class="carousel-inner" role="listbox">
+            <div class="item active">
+             <img src="..." alt="...">
+             <div class="carousel-caption">
+             ..
+             </div>
+             .. more wrappers
+           </div>
+  - class:
+      t: *BUTTONS
+      v:
+        carousel-control: |
+           <a class="left carousel-control" href="#example" role="button" data-slide="prev">
+             <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+             <span class="sr-only">Previous</span>
+           </a>
+        left: &LEFTRIGHTCARUSEL |
+          See .carousel-control
+           <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+        right: *LEFTRIGHTCARUSEL
+  - class:
+      t: [ul, ol]
+      v:
+        carousel-indicators: |
+          <ol class="carousel-indicators">
+            <li data-target="#carousel-example" data-slide-to="0" class="active"></li>
+            <li data-target="#carousel-example" data-slide-to="1"></li>
+            <li data-target="#carousel-example" data-slide-to="2"></li>
+          </ol>
+  # ensure active for li exists
+  - class:
+      t: li
+      v: active
+  - data-pause:
+      t: div
+      d: Pauses the cycling of the carousel on mouseenter and resumes the cycling of the carousel on mouseleave.
+      v:
+        hover: default
+        false:
+  - data-interval:
+      t: div
+      d: The amount of time to delay between automatically cycling an item. If false, carousel will not automatically cycle.
+      v: [5000, 3000, 2000]
+  - data-wrap:
+      t: div
+      d: |
+        Whether the carousel should cycle continuously or have hard stops.
+        Default true.
+      v: [true, false]
+  - data-slide:
+      t: *BUTTONS
+      d: Carousel controll, next, prev.
+      v: [next, prev]
+  - data-slide-to:
+      t: li
+      d: Carousel controll
+      v: [0, 1, 2]
+  # affix.js
+  - data-spy:
+      t: global
+      v:
+        affix: |
+          <ul class="nav nav-tabs nav-stacked" data-spy="affix" data-offset-top="125">
+            <li class="active"><a href="#one">Section One</a></li>
+            <li><a href="#two">Section Two</a></li>
+            <li><a href="#three">Section Three</a></li>
+          </ul>
+          The affix plugin toggles between three classes,
+          each representing a particular state: .affix, .affix-top, and .affix-bottom.
+          You must provide the styles for these classes yourself (independent of this plugin) to handle the actual positions.
+  - data-offset-top:
+      d: &DATAOFFSETAFFIX |
+        Pixels to offset from screen when calculating position of scroll.
+        If a single number is provided, the offset will be applied in both top and bottom directions.
+        To provide a unique, bottom and top offset just provide an object offset:
+          { top: 10 } or offset: { top: 10, bottom: 5 }.
+        Use a function when you need to dynamically calculate an offset.
+      v: [100, 200]
+      t: div
+  - data-offset-bottom:
+      t: div
+      d: *DATAOFFSETAFFIX
+      v: [100, 200]
+
+  ########################################
+  # Attribute description
+  ########################################
+  - disabled:
+      t: fieldset
+      d: |
+        Disable all the controls within the <fieldset> at once.
+        For <a class="btn">  Opera <18, IE11 use JS to disable such link.
+
+        While Bootstrap will apply these styles in all browsers, Internet Explorer 11 and below don't fully support the disabled attribute on a <fieldset>.
+        Use custom JavaScript to disable the fieldset in these browsers.
+  
+# TAGS
+tags:
+  mark: Highlighting text
+  s: Indicating blocks of text that are no longer relevant
+  del: Indicating blocks of text that have been deleted
+  ins: Indicating additions to the document
+  u: Underline text
+  small: |
+    For de-emphasizing inline or blocks of text, use the <small> tag to set text at 85% the size of the parent.
+
+    Heading elements receive their own font-size for nested <small> elements.
+  strong: Bold. Emphasizing a snippet of text with a heavier font-weight.
+  em: Italics
+  abbr: |
+    Stylized implementation of HTML's <abbr> element for abbreviations and acronyms to show the expanded version on hover.
+    Abbreviations with a title attribute have a light dotted bottom border and a help cursor on hover, providing additional context on hover.
+    <abbr title="attribute">attr</abbr>
+  address: |
+    Present contact information for the nearest ancestor or the entire body of work.
+    Preserve formatting by ending all lines with <br>.
+
+    <address>
+      <strong>Twitter, Inc.</strong><br>
+      795 Folsom Ave, Suite 600<br>
+      San Francisco, CA 94107<br>
+      <abbr title="Phone">P:</abbr> (123) 456-7890
+    </address>
+
+  blockquote: |
+    Wrap <blockquote> around any HTML as the quote. For straight quotes, we recommend a <p>
+    Add a <footer> for identifying the source. Wrap the name of the source work in <cite>
+
+  footer: (<blockquote>) Naming a source. Identifying the source
+  cite: (<blockquote>) Naming a source.
+
+  code:
+  section:
+  kbd:
+  pre:
+  var:
+  samp:
+
