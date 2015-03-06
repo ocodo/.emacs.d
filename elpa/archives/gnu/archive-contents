@@ -88,7 +88,7 @@
 	       ((:url . "http://github.com/defunkt/coffee-mode")
 		(:keywords "coffeescript" "major" "mode"))])
  (company .
-	  [(0 8 11)
+	  [(0 8 12)
 	   ((emacs
 	     (24 1))
 	    (cl-lib
@@ -321,6 +321,11 @@
 		 nil "relative file load (within a multi-file Emacs package)" single
 		 ((:url . "http://github.com/rocky/emacs-load-relative")
 		  (:keywords "internal"))])
+ (loc-changes .
+	      [(1 2)
+	       nil "keep track of positions even after buffer changes" single
+	       ((:url . "http://github.com/rocky/emacs-loc-changes")
+		(:keywords))])
  (markchars .
 	    [(0 2 0)
 	     nil "Mark chars fitting certain characteristics" single
@@ -387,7 +392,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20150223)
+      [(20150302)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
