@@ -1,17 +1,18 @@
 ;; Emacs init for quick loading for use with git etc.
 
-;;(let ((default-directory user-emacs-directory))
-;;  (normal-top-level-add-subdirs-to-load-path))
-
+(menu-bar-mode -1)
 (package-initialize)
+
 (let ((~ user-emacs-directory))
-  (load-file (concat ~ "custom/custom.el"))
-  (load-library (concat ~ "custom/quick-funcs"))
-  (load-library (concat ~ "modes-init/init-misc-settings"))
-  (load-library (concat ~ "modes-init/init-ido"))
-)
+  (load-file (concat ~ "custom/custom.el")))
 
 (require 'gruvbox-theme)
 
+(let ((default-directory user-emacs-directory))
+  (normal-top-level-add-subdirs-to-load-path)
+  (load-library "quick-funcs")
+  (load-library "init-misc-settings")
+  (load-library "init-rainbow-delimiters")
+  (load-library "init-ido"))
 
-(menu-bar-mode -1)
+(message "EmacsQ ready")
