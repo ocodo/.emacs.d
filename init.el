@@ -112,9 +112,8 @@ trying to run it."
 
 (setq frame-title-format '("%b %I %+%@%t%Z %m %n %e"))
 
-(cd user-emacs-directory)
-(normal-top-level-add-subdirs-to-load-path)
-(cd "~/")
+(let ((default-directory user-emacs-directory))
+  (normal-top-level-add-subdirs-to-load-path))
 
 ;; Explicit Requires ...
 (dolist (i (list
