@@ -464,6 +464,13 @@
 	   nil "Implementation of Sokoban for Emacs." tar
 	   ((:keywords "games")
 	    (:url . "http://elpa.gnu.org/packages/sokoban.html"))])
+ (spinner .
+	  [(1 0)
+	   ((cl-lib
+	     (0 5)))
+	   "Add spinners and progress-bars to the mode-line for ongoing operations" single
+	   ((:url . "https://github.com/Bruce-Connor/spinner.el")
+	    (:keywords "processes" "mode-line"))])
  (svg .
       [(0 1)
        ((emacs
