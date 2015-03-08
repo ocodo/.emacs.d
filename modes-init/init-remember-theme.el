@@ -1,9 +1,10 @@
 ;; init-remember-theme
-(require 'armitp-mode-line)
 (add-hook 'remember-theme-after-load-hook
           (lambda ()
             (armitp-mode-line)))
 
-(provide 'init-remember-theme)
+(remember-theme-load)
+(add-hook 'kill-emacs-hook 'remember-theme-save)
 
+(provide 'init-remember-theme)
 ;;; init-remember-theme.el ends here
