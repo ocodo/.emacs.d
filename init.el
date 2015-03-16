@@ -51,7 +51,8 @@
   (load-library i))
 
 ;; mode inits
-(dolist (i '("asciidoc"
+(dolist (i '("exec-path"
+             "asciidoc"
              "autocomplete"
              "buffer-clean"
              "codenotes"
@@ -59,7 +60,6 @@
              "dired"
              "elpa-themes"
              "emacs-daemon"
-             "exec-path"
              "eww"
              "flycheck"
              "guide"
@@ -88,6 +88,10 @@
              "yaml"
              "yasnippet"))
   (load-library (format "init-%s" i)))
+
+;; This is set by some packages erroneously. (e.g. AsciiDoc)
+;; send fix patches to package authors who do this.
+(setq debug-on-error nil)
 
 (load-local-init)
 
