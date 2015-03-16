@@ -106,7 +106,7 @@
 		      ((:keywords "abbrev" "convenience" "matching")
 		       (:url . "https://github.com/company-mode/company-statistics"))])
  (context-coloring .
-		   [(6 0 0)
+		   [(6 1 0)
 		    ((emacs
 		      (24))
 		     (js2-mode
