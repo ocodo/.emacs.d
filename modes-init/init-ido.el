@@ -9,7 +9,23 @@
 
 (ido-mode 1)
 (ido-vertical-mode 1)
-(setq gc-cons-threshold 20000000)
+
+(setf ido-decorations '("\n⇨ "
+                        ""
+                        "\n  "
+                        "\n  ..."
+                        "["
+                        "]"
+                        " [❌  No match]"
+                        " [✅  Matched]"
+                        " [😦  Not readable]"
+                        " [😢  Too big]"
+                        " [😟  Confirm]"
+                        "\n⇨ "
+                        ""))
+
+(ido-ubiquitous-mode 1)
+(setq gc-cons-threshold 30000000)
 (flx-ido-mode 1)
 
 (global-set-key [(meta x)] (lambda ()
