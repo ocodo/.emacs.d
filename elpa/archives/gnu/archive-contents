@@ -52,7 +52,7 @@
 			((:url . "http://www.gnuvola.org/software/aa2u/")
 			 (:keywords "ascii" "unicode" "box-drawing"))])
  (auctex .
-	 [(11 88 2)
+	 [(11 88 3)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -111,7 +111,7 @@
 		      ((:keywords "abbrev" "convenience" "matching")
 		       (:url . "https://github.com/company-mode/company-statistics"))])
  (context-coloring .
-		   [(6 1 0)
+		   [(6 2 0)
 		    ((emacs
 		      (24))
 		     (js2-mode
@@ -397,7 +397,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20150316)
+      [(20150323)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -492,6 +492,15 @@
 	     "Analog clock using Scalable Vector Graphics" single
 	     ((:url . "http://elpa.gnu.org/packages/svg-clock.html")
 	      (:keywords "demo" "svg" "clock"))])
+ (swiper .
+	 [(0 1 0)
+	  ((emacs
+	    (24 1))
+	   (ivy
+	    (0 1 0)))
+	  "Isearch with an overview. Oh, man!" tar
+	  ((:keywords "matching")
+	   (:url . "https://github.com/abo-abo/swiper"))])
  (tNFA .
        [(0 1 1)
 	((queue
@@ -516,6 +525,11 @@
 		  "Enhanced versions of some timer.el functions" single
 		  ((:url . "http://elpa.gnu.org/packages/timerfunctions.html")
 		   (:keywords))])
+ (tiny .
+       [(0 1)
+	nil "Quickly generate linear ranges in Emacs" tar
+	((:keywords "convenience")
+	 (:url . "https://github.com/abo-abo/tiny"))])
  (trie .
        [(0 2 6)
 	((tNFA
