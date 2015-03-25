@@ -49,6 +49,7 @@
  '(js3-enter-indents-newline t)
  '(js3-indent-level 2)
  '(jshint-configuration-path "~/.jshintrc")
+ '(json-reformat:indent-width 2)
  '(linum-delay nil)
  '(linum-eager t)
  '(lua-indent-level 2)
