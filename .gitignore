@@ -7,9 +7,7 @@ auto-save-list
 bookmarks
 history
 ido.last
-local/
-local/custom.el
-local/init.el
+/local
 modes-init/init-marmalade.el
 modes-init/init-paradox.el
 newsticker/feeds/Emacs Wiki/data
