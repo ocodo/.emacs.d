@@ -22,3 +22,5 @@ tramp
 url/*
 var
 /.persistent-scratch
+
+.DS_Store
