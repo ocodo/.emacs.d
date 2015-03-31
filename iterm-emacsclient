@@ -8,7 +8,7 @@
 #
 # in the text input paste the line below:
 #
-# ~/.emacs.d/iterm-emacsclient \2 \1
+# ~/.emacs.d/iterm-emacsclient +\2 \1
 #
 
 if [[ $1 == "+" ]]; then
