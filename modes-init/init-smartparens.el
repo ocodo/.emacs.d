@@ -16,4 +16,10 @@
                     (not (eq this-original-command 'self-insert-command)))))
           (cua--fallback))))))
 
+;; Smartparens slurp / barf - use instead of paredit
+(global-set-key (kbd "C-x r <left>")        'sp-forward-slurp-sexp)
+(global-set-key (kbd "C-x r <right>")       'sp-forward-barf-sexp)
+(global-set-key (kbd "C-x a <left>")        'sp-backward-slurp-sexp)
+(global-set-key (kbd "C-x a <right>")       'sp-backward-barf-sexp)
+
 (provide 'init-smartparens)

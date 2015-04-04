@@ -54,6 +54,7 @@
 (dolist (i '("exec-path"
              "asciidoc"
              "autocomplete"
+             "anzu"
              "buffer-clean"
              "codenotes"
              "coffee"
@@ -84,6 +85,7 @@
              "sh"
              "smartparens"
              "smooth-scroll"
+             "swiper"
              "winner"
              "yaml"
              "yasnippet"))

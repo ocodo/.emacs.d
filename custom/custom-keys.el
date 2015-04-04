@@ -9,6 +9,9 @@
 
 ;; Newest additions at the top...
 
+;; PLEASE NOTE: to be more modular, these bindings will be moved out
+;; to their respective modes init (see ../modes-init/init-*.el)
+
 ;;; Code:
 
 (require 'mac-port-keys)
@@ -26,6 +29,7 @@
 (global-set-key (kbd "C-=")                 'cua-set-rectangle-mark)
 (global-set-key (kbd "M-Z")                 'zap-to-char)
 (global-set-key (kbd "M-z")                 'zap-up-to-char)
+
 (global-set-key (kbd "M-i")                 'evil-mode) ;; Toggle
 
 (global-set-key (kbd "C-c C-w")             'rotate-window)
@@ -33,20 +37,6 @@
 
 (global-set-key (kbd "C-c SPC")             'ace-jump-mode)
 (global-set-key (kbd "C-c ;")               'iedit-mode)
-
-(global-set-key (kbd "C-c C-1")             'ruby-toggle-block)
-(global-set-key (kbd "C-c C-2")             'ruby-toggle-hash-syntax)
-
-;; Projectile find file - flx based
-(global-set-key (kbd "M-P")                 'projectile-find-file)
-(global-set-key (kbd "M-p")                 'projectile-find-file)
-(global-set-key (kbd "C-x p")               'projectile-find-file)
-
-;; Smartparens slurp / barf - use instead of paredit
-(global-set-key (kbd "C-x r <left>")        'sp-forward-slurp-sexp)
-(global-set-key (kbd "C-x r <right>")       'sp-forward-barf-sexp)
-(global-set-key (kbd "C-x a <left>")        'sp-backward-slurp-sexp)
-(global-set-key (kbd "C-x a <right>")       'sp-backward-barf-sexp)
 
 ;; Return and indent binding
 (global-set-key (kbd "RET")                 'newline-and-indent)
@@ -92,10 +82,10 @@
   ;; Cmd-o to find-file...
   (global-set-key (kbd "s-o")               'find-file)
   ;; duplicate region/line
-  (global-set-key [s-down]                    'duplicate-current-line-or-region)
+  (global-set-key [s-down]                  'duplicate-current-line-or-region)
 
-  (global-set-key (kbd "s-8")                 'rotate-window)
-  (global-set-key (kbd "s-7")                 'rotate-layout)
+  (global-set-key (kbd "s-8")               'rotate-window)
+  (global-set-key (kbd "s-7")               'rotate-layout)
   ;; Cmd-Shift-s : write-file (not use save-as dialog)
   (global-set-key (kbd "s-S")               'write-file)
 
@@ -149,7 +139,6 @@
 
   ;; line numbers off on
   (global-set-key (kbd "s-\\")              'linum-mode)
-  (global-set-key (kbd "s-\\")              'linum-mode)
 
   ;; highly inclusive expand
   (global-set-key (kbd "s-/" )              'hippie-expand)
@@ -158,15 +147,9 @@
   (global-set-key (kbd "<s-return>" )       'completion-at-point)
 
   ;; narrow / widen region
-  (global-set-key (kbd "s-§")               'narrow-to-region)
-  (global-set-key (kbd "C-§")               'widen )
-
-  ;; narrow / widen region
   (global-set-key (kbd "C-M-`")             'narrow-to-region)
   (global-set-key (kbd "s-M-`")             'widen )
 
   )
-
-;; Please Note: there are still bindings littered about, they are mostly cleaned up.
 
 (provide 'custom-keys)
