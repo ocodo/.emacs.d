@@ -614,8 +614,9 @@ OSX specific of course."
 (global-set-key (kbd "C-c =") 'set-default-font-height)
 
 (eval-after-load 'ruby-mode
-  '(define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-at-point)
-  '(define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region))
+  (lambda ()
+    (define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-at-point)
+    (define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region)))
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
