@@ -34,6 +34,17 @@
 		[(3 0)
 		 nil "Indent and dedent Lisp code, automatically adjust close parens" tar
 		 ((:url . "http://elpa.gnu.org/packages/adjust-parens.html"))])
+ (aggressive-indent .
+		    [(1 0 1)
+		     ((emacs
+		       (24 1))
+		      (names
+		       (20150125 9))
+		      (cl-lib
+		       (0 5)))
+		     "Minor mode to aggressively keep your code always indented" single
+		     ((:url . "http://github.com/Malabarba/aggressive-indent-mode")
+		      (:keywords "indent" "lisp" "maint" "tools"))])
  (ahungry-theme .
 		[(1 0 6)
 		 ((emacs
@@ -145,6 +156,13 @@
 	    "Remove visual distractions and focus on writing" single
 	    ((:url . "http://elpa.gnu.org/packages/darkroom.html")
 	     (:keywords "convenience" "emulations"))])
+ (dbus-codegen .
+	       [(0 1)
+		((cl-lib
+		  (0 5)))
+		"Lisp code generation for D-Bus." single
+		((:url . "http://elpa.gnu.org/packages/dbus-codegen.html")
+		 (:keywords "comm" "dbus" "convenience"))])
  (debbugs .
 	  [(0 6)
 	   nil "SOAP library to access debbugs servers" tar
@@ -274,10 +292,10 @@
 	((:url . "http://www.dr-qubit.org/emacs.php")
 	 (:keywords "extensions" "data structures" "heap" "priority queue"))])
  (hydra .
-	[(0 11 0)
+	[(0 12 1)
 	 ((cl-lib
 	   (0 5)))
-	 "Make bindings that stick around" tar
+	 "Make bindings that stick around." tar
 	 ((:keywords "bindings")
 	  (:url . "https://github.com/abo-abo/hydra"))])
  (ioccur .
@@ -285,6 +303,13 @@
 	  nil "Incremental occur" single
 	  ((:url . "http://elpa.gnu.org/packages/ioccur.html")
 	   (:keywords))])
+ (iterators .
+	    [(0 1)
+	     ((emacs
+	       (25)))
+	     "Functions for working with iterators" single
+	     ((:url . "http://elpa.gnu.org/packages/iterators.html")
+	      (:keywords "extensions" "elisp"))])
  (javaimp .
 	  [(0 5)
 	   nil "Add and reorder Java import statements in Maven projects" single
@@ -406,7 +431,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20150323)
+      [(20150330)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -502,11 +527,9 @@
 	     ((:url . "http://elpa.gnu.org/packages/svg-clock.html")
 	      (:keywords "demo" "svg" "clock"))])
  (swiper .
-	 [(0 1 0)
+	 [(0 2 0)
 	  ((emacs
-	    (24 1))
-	   (ivy
-	    (0 1 0)))
+	    (24 1)))
 	  "Isearch with an overview. Oh, man!" tar
 	  ((:keywords "matching")
 	   (:url . "https://github.com/abo-abo/swiper"))])
