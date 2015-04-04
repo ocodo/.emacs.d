@@ -574,7 +574,14 @@ OSX specific of course."
         (message "Pivotal api token was set to: %S" pivotal-api-token))
     (message "~/.pivotal_api_key was not found")))
 
-;; Quick describe popups
+;; Quick helpers to describe function or variable at point in help or popup
+(defun describe-thing-at-point ()
+  (interactive)
+  (let* ((thing (symbol-at-point)))
+    (cond
+     ((fboundp thing) (describe-function thing))
+     ((boundp thing) (describe-variable thing)))))
+
 (defun describe-thing-in-popup ()
   (interactive)
   (let* ((thing (symbol-at-point)))
@@ -603,11 +610,14 @@ OSX specific of course."
                :scroll-bar t
                :margin t)))
 
+
 ;; Key bindings
+
+(global-set-key (kbd "ESC M-p") 'describe-thing-in-popup)
+(global-set-key (kbd "ESC M-i") 'describe-thing-at-point)
 
 (global-set-key (kbd "C-c M-+") 'increase-default-font-height)
 (global-set-key (kbd "ESC M-d") 'kill-whole-word)
-(global-set-key (kbd "ESC M-p") 'describe-thing-in-popup)
 (global-set-key (kbd "C-a") 'smart-beginning-of-line)
 (global-set-key (kbd "C-S-o") 'open-line-above)
 (global-set-key (kbd "C-o") 'open-line-below)
