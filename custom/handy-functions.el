@@ -15,70 +15,7 @@
 ;; Some handy functions, homemade, pilfered, re-jigged, squeezed,
 ;; shuffled... do what thou wilt.
 ;;
-;; List of defuns alphabetically...
-;; (each should have it's DOCSTRING in place, do C-h f {name} for more info)
-;;
-;; - align-number-right
-;; - cleanup-buffer
-;; - copy-buffer-to-osx-clipboard
-;; - copy-region-to-osx-clipboard
-
-;; - delete-this-buffer-and-file
-;; - directory-of-library
-;; - duplicate-current-line-or-region
-;; - eval-and-replace
-;; - increase-default-font-height
-;; - fraction-radian
-;; - indent-buffer
-;; - insert-random-in-range
-;; - insert-random-radian
-;; - join-line-from-below
-;; - join-line-or-lines-in-region
-;; - kill-whole-word
-;; - magit-just-amend
-;; - markdown-codefence-region
-;; - my-dired-find-file
-;; - now-is
-;; - open-line-above
-;; - open-line-below
-;; - open-opsmanager
-;; - pcre-regexp-from-list-of-words
-;; - pretty-print-xml-region
-;; - reload-current-chrome-tab-osx
-;; - rename-this-buffer-and-file
-;; - ruby-make-interpolated-string-at-point-or-region
-;; - ruby-toggle-symbol-at-point
-;; - sass-hex-color-to-var
-;; - set-default-font-height
-;; - shell-command-on-buffer-file
-;; - shell-command-on-region-replace
-;; - smart-beginning-of-line
-;; - switch-to-scratch
-;; - titleized-at-point-or-region
-;; - toggle-fullscreen
-;; - toggle-mode-line-on-off
-;; - toggle-window-split
-;; - untabify-buffer
-;; - utc-seconds
-;; - yank-repeat
-
-;; String mangling/conversion
-;; - lower-camelcase-at-point-or-region
-;; - dasherise-at-point-or-region
-;; - snake-case-at-point-or-region
-;; - humanize-at-point-or-region
-;; - upper-camelcase-at-point-or-region
-;;
-;; Non interactive
-;;
-;; - get-osx-display-resolution
-;; - operate-on-point-or-region
-;; - prepend-existing-to-exec-path
-;; - random-in-range
-;; - ruby-interpolated-string
-;; - ruby-prepend-colon
-;; - ruby-toggle-symbol-name
-;; - search-backward-wrapped-string
+;; list with M-x occur "(defun"
 ;;
 ;; Global keys ...
 ;;
@@ -87,6 +24,7 @@
 ;; - C-a      smart-beginning-of-line
 ;; - C-c R    pcre-regexp-from-list-of-words
 ;; - ESC M-d  kill-whole-word
+;; - ESC M-p  describe-thing-in-popup (just does emacs lisp functions and variables)
 ;; - C-c M-+  increase-default-font-height
 ;; - C-c =    set-default-font-height
 ;;
@@ -95,6 +33,7 @@
 (require 's)
 (require 'dash)
 (require 'find-func)
+(require 'popup)
 
 (defvar saved-mode-line
   nil
@@ -216,9 +155,6 @@ and it doesn't seem to work wth key bindings."
     (beginning-of-line)
     (newline)
     (forward-line -1)))
-
-(global-set-key (kbd "C-S-o") 'open-line-above)
-(global-set-key (kbd "C-o") 'open-line-below)
 
 ;; Originally swiped from rejeep's emacs.d rejeep-defuns.el.
 (defun duplicate-current-line-or-region (arg)
@@ -404,8 +340,6 @@ Replace with the return value of the function FN"
     (and (= oldpos (point))
          (beginning-of-line))))
 
-(global-set-key (kbd "C-a") 'smart-beginning-of-line)
-
 (defun pretty-print-xml-region (begin end)
   "Pretty format XML markup in region BEGIN END."
   (interactive "r")
@@ -506,21 +440,12 @@ the buffer."
    (pcre-to-elisp
     (regexp-opt (split-string words)))))
 
-(global-set-key (kbd "C-c R") 'pcre-regexp-from-list-of-words)
-
-(eval-after-load 'ruby-mode
-  '(define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-at-point))
-
-(eval-after-load 'ruby-mode
-  '(define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region))
-
 (defun kill-whole-word ()
   "Kill the current word at point."
   (interactive)
   (backward-word)
   (kill-word 1))
 
-(global-set-key (kbd "ESC M-d") 'kill-whole-word)
 
 (defun sass-hex-color-to-var ()
   "Find a hex color, and replace it with a newly created variable name.
@@ -640,9 +565,6 @@ OSX specific of course."
   (set-face-attribute 'default nil :height  p)
   (message "Default font height set to %s" p))
 
-(global-set-key (kbd "C-c M-+") 'increase-default-font-height)
-(global-set-key (kbd "C-c =") 'set-default-font-height)
-
 (defun set-pivotal-api-key-from-dotfile ()
   "Set the `pivotal-api-token' from the setting in ~/.pivotal_api_key if it exists."
   (interactive)
@@ -651,6 +573,49 @@ OSX specific of course."
         (setq pivotal-api-token (substring-no-properties (with-temp-buffer (insert-file-contents "~/.pivotal_api_key") (buffer-string)) 5 37))
         (message "Pivotal api token was set to: %S" pivotal-api-token))
     (message "~/.pivotal_api_key was not found")))
+
+;; Quick describe popups
+(defun describe-thing-in-popup ()
+  (interactive)
+  (let* ((thing (symbol-at-point)))
+    (cond
+     ((fboundp thing) (describe-in-popup 'describe-function))
+     ((boundp thing) (describe-in-popup 'describe-variable)))))
+
+(defun describe-variable-in-popup ()
+  (interactive)
+  (describe-in-popup 'describe-variable))
+
+(defun describe-function-in-popup ()
+  (interactive)
+  (describe-in-popup 'describe-function))
+
+(defun describe-in-popup (fn)
+  (let* ((thing (symbol-at-point))
+         (description (save-window-excursion
+                        (funcall fn thing)
+                        (switch-to-buffer "*Help*")
+                        (buffer-string))))
+    (popup-tip description
+               :point (point)
+               :around t
+               :height 30
+               :scroll-bar t
+               :margin t)))
+
+;; Key bindings
+
+(global-set-key (kbd "C-c M-+") 'increase-default-font-height)
+(global-set-key (kbd "ESC M-d") 'kill-whole-word)
+(global-set-key (kbd "ESC M-p") 'describe-thing-in-popup)
+(global-set-key (kbd "C-a") 'smart-beginning-of-line)
+(global-set-key (kbd "C-S-o") 'open-line-above)
+(global-set-key (kbd "C-o") 'open-line-below)
+(global-set-key (kbd "C-c =") 'set-default-font-height)
+
+(eval-after-load 'ruby-mode
+  '(define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-at-point)
+  '(define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region))
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
