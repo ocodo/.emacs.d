@@ -432,6 +432,9 @@ the buffer."
   (if (s-matches? "^:.*" s)
       (s-replace ":" "" s)
     (ruby-prepend-colon s)))
+    
+;; Saved macro to replace selection with try(:selection)
+(fset 'ruby-selected-to-try-call [?\C-w ?t ?r ?y ?\( ?: ?\C-y right])    
 
 (defun pcre-regexp-from-list-of-words (words)
   "Insert a pcre regexp to match a list of WORDS."
