@@ -8,6 +8,7 @@
 ;;
 ;;; Code:
 (require 'cl)
+
 (let ((default-directory user-emacs-directory))
   (add-to-list 'load-path (expand-file-name "init-helpers")))
 
