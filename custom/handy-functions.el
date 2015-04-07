@@ -614,10 +614,28 @@ OSX specific of course."
                :margin t)))
 
 
-;; Key bindings
+(defun zap-to-string (&optional arg)
+  (interactive "p")
+  (let ((str (read-from-minibuffer "Zap to string: ")))
+    (kill-region (point) (progn
+                           (search-forward str nil nil arg)
+                           (point)))))
 
-(global-set-key (kbd "ESC M-p") 'describe-thing-in-popup)
-(global-set-key (kbd "ESC M-i") 'describe-thing-at-point)
+(defun zap-to-regexp (&optional arg)
+  (interactive "p")
+  (let ((regexp (read-from-minibuffer "Zap to regexp: ")))
+    (kill-region (point) (progn
+                           (re-search-forward regexp nil nil arg)
+                           (point)))))
+
+;; Ruby key map additions ... should be moved (and fixed!) FIXME
+
+(eval-after-load 'ruby-mode
+  (lambda ()
+    (define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-at-point)
+    (define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region)))
+
+;; Key bindings
 
 (global-set-key (kbd "C-c M-+") 'increase-default-font-height)
 (global-set-key (kbd "ESC M-d") 'kill-whole-word)
@@ -626,10 +644,11 @@ OSX specific of course."
 (global-set-key (kbd "C-o") 'open-line-below)
 (global-set-key (kbd "C-c =") 'set-default-font-height)
 
-(eval-after-load 'ruby-mode
-  (lambda ()
-    (define-key ruby-mode-map (kbd "C-c :") #'ruby-toggle-symbol-at-point)
-    (define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region)))
+(global-set-key (kbd "ESC M-p") 'describe-thing-in-popup)
+(global-set-key (kbd "ESC M-i") 'describe-thing-at-point)
+
+(global-set-key (kbd "ESC M-z")   'zap-to-string)
+(global-set-key (kbd "ESC C-M-z")   'zap-to-regexp)
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
