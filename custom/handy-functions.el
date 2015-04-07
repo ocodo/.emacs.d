@@ -408,34 +408,6 @@ the buffer."
       (setq end_match (- (search-forward wrap_end) 1))
       (buffer-substring-no-properties start_match end_match))))
 
-;; Change a string to a ruby symbol, note: naive operation
-(defun ruby-toggle-symbol-at-point ()
-  "Dirt simple, just prefix current word with a colon."
-  (interactive)
-  (operate-on-point-or-region 'ruby-toggle-symbol-name))
-
-(defun ruby-make-interpolated-string-at-point-or-region ()
-  "Simple conversion of string/reigion to ruby interpolated string."
-  (interactive)
-  (operate-on-point-or-region 'ruby-interpolated-string))
-
-(defun ruby-interpolated-string (s)
-  "Make a ruby interpolated string entry S is a string."
-  (format "#{%s}" s))
-
-(defun ruby-prepend-colon (s)
-  "Prepend a colon on the provided string S."
-  (format ":%s" s))
-
-(defun ruby-toggle-symbol-name (s)
-  "Toggle colon prefix on string S."
-  (if (s-matches? "^:.*" s)
-      (s-replace ":" "" s)
-    (ruby-prepend-colon s)))
-
-;; Saved macro to replace selection with try(:selection)
-(fset 'ruby-selected-to-try-call [?\C-w ?t ?r ?y ?\( ?: ?\C-y right])
-
 (defun pcre-regexp-from-list-of-words (words)
   "Insert a pcre regexp to match a list of WORDS."
   (interactive "sList of words for regexp: ")
@@ -627,23 +599,18 @@ OSX specific of course."
     (kill-region (point) (progn
                            (re-search-forward regexp nil nil arg)
                            (point)))))
-
-;; Ruby key map additions ... should be moved (and fixed!) FIXME
-
 ;; Key bindings
 
-(global-set-key (kbd "C-c M-+") 'increase-default-font-height)
-(global-set-key (kbd "ESC M-d") 'kill-whole-word)
-(global-set-key (kbd "C-a") 'smart-beginning-of-line)
-(global-set-key (kbd "C-S-o") 'open-line-above)
-(global-set-key (kbd "C-o") 'open-line-below)
-(global-set-key (kbd "C-c =") 'set-default-font-height)
-
-(global-set-key (kbd "ESC M-p") 'describe-thing-in-popup)
-(global-set-key (kbd "ESC M-i") 'describe-thing-at-point)
-
+(global-set-key (kbd "C-c M-+")   'increase-default-font-height)
+(global-set-key (kbd "ESC M-d")   'kill-whole-word)
+(global-set-key (kbd "C-a")       'smart-beginning-of-line)
+(global-set-key (kbd "C-S-o")     'open-line-above)
+(global-set-key (kbd "C-o")       'open-line-below)
+(global-set-key (kbd "C-c =")     'set-default-font-height)
+(global-set-key (kbd "ESC M-p")   'describe-thing-in-popup)
+(global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
 (global-set-key (kbd "ESC M-z")   'zap-to-string)
-(global-set-key (kbd "ESC C-M-z")   'zap-to-regexp)
+(global-set-key (kbd "ESC C-M-z") 'zap-to-regexp)
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
