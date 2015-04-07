@@ -628,7 +628,7 @@ OSX specific of course."
 
 (eval-after-load 'ruby-mode
   (lambda ()
-    (define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-at-point)
+    (define-key ruby-mode-map (kbd "C-c :") #'ruby-toggle-symbol-at-point)
     (define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region)))
 
 (provide 'handy-functions)
