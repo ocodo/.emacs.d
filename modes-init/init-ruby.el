@@ -1,5 +1,19 @@
-(dolist (pattern '("\\.rb$" "Guardfile" "^Rakefile$" "\.rake$" "\.rxml$" "\.rjs$" ".irbrc$" "\.builder$" "\.ru$" "\.rabl$" "\.gemspec$" "Gemfile$" "^.pryrc$" "^config.ru$"))
-   (add-to-list 'auto-mode-alist (cons pattern 'ruby-mode)))
+(dolist (p '("\\.rb$"
+                   "Guardfile"
+                   "^Rakefile$"
+                   "\.rake$"
+                   "\.rxml$"
+                   "\.rhtml$"
+                   "\.rjs$"
+                   "\.irbrc$"
+                   "\.builder$"
+                   "\.ru$"
+                   "\.rabl$"
+                   "\.gemspec$"
+                   "Gemfile$"
+                   "^.pryrc$"
+                   "^config.ru$"))
+  (add-to-list 'auto-mode-alist (cons p 'ruby-mode)))
 
 (add-hook 'ruby-mode-hook 'flymake-ruby-load)
 (add-hook 'ruby-mode-hook 'ruby-end-mode)
@@ -12,11 +26,11 @@
 
 (add-hook 'after-init-hook 'inf-ruby-switch-setup)
 
-(add-hook 'ruby-mode-hook (lambda()
-                              (define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region)
-                              (define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-name)
-                              (define-key ruby-mode-map (kbd "C-c {") 'ruby-toggle-block)
-                              (define-key ruby-mode-map (kbd "C-c +") 'ruby-toggle-hash-syntax)
-                              ))
+(add-hook 'ruby-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region)
+            (local-set-key (kbd "C-c :") 'ruby-toggle-symbol-name)
+            (local-set-key (kbd "C-c {") 'ruby-toggle-block)
+            (local-set-key (kbd "C-c +") 'ruby-toggle-hash-syntax)))
 
 (provide 'init-ruby)
