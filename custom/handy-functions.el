@@ -587,6 +587,7 @@ OSX specific of course."
 
 
 (defun zap-to-string (&optional arg)
+  "Zap text up to a string, ARG can be minus to zap backwards."
   (interactive "p")
   (let ((str (read-from-minibuffer "Zap to string: ")))
     (kill-region (point) (progn
@@ -594,10 +595,31 @@ OSX specific of course."
                            (point)))))
 
 (defun zap-to-regexp (&optional arg)
+  "Zap text up to a regexp, ARG can be minus to zap backwards."
   (interactive "p")
   (let ((regexp (read-from-minibuffer "Zap to regexp: ")))
     (kill-region (point) (progn
                            (re-search-forward regexp nil nil arg)
+                           (point)))))
+
+;; Key bindings
+(defun zap-up-to-string (&optional arg)
+  "Zap text up to a string, ARG can be minus to zap backwards."
+  (interactive "p")
+  (let ((str (read-from-minibuffer "Zap up to string: ")))
+    (kill-region (point) (progn
+                           (search-forward str nil nil arg)
+                           (backward-char (* arg (length str)))
+                           (point)))))
+
+(defun zap-up-to-regexp (&optional arg)
+  "Zap text up to a regexp, ARG can be minus to zap backwards."
+  (interactive "p")
+  (let
+      ((regexp (read-from-minibuffer "Zap up to regexp: ")))
+    (kill-region (point) (progn
+                           (re-search-forward regexp nil nil arg)
+                           (re-search-backward regexp nil nil arg)
                            (point)))))
 ;; Key bindings
 
@@ -609,8 +631,8 @@ OSX specific of course."
 (global-set-key (kbd "C-c =")     'set-default-font-height)
 (global-set-key (kbd "ESC M-p")   'describe-thing-in-popup)
 (global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
-(global-set-key (kbd "ESC M-z")   'zap-to-string)
-(global-set-key (kbd "ESC C-M-z") 'zap-to-regexp)
+(global-set-key (kbd "ESC M-z")   'zap-up-to-string)
+(global-set-key (kbd "ESC C-M-z") 'zap-up-to-regexp)
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
