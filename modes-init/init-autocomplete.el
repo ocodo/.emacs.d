@@ -4,5 +4,6 @@
 (require 'dropdown-list)
 
 (ac-config-default)
+(setf ac-delay 0.25)
 
 (provide 'init-autocomplete)
