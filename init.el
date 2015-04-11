@@ -54,11 +54,12 @@
 ;; mode inits
 (dolist (i '("exec-path"
              "asciidoc"
-             "autocomplete"
+             ;; "autocomplete" ;; Removed in favor of Company mode (trial period)
              "anzu"
              "buffer-clean"
              "codenotes"
              "coffee"
+             "company"
              "dired"
              "elpa-themes"
              "emacs-daemon"
