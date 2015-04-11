@@ -1,1 +1,0 @@
-(define-package "ace-flyspell" "20150405.2033" "Jump to and correct spelling errors using `ace-jump-mode' and flyspell" '((ace-jump-mode "2.0")) :url "https://github.com/cute-jumper/ace-flyspell" :keywords '("extensions"))
