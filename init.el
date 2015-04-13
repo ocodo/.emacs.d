@@ -43,6 +43,7 @@
              "kill-buffer-without-confirm"
              "mac-frame-adjust"
              "multiple-cursors"
+             "opl-coffee"
              "resize-window"
              "scroll-bell-fix"
              "squeeze-view"
