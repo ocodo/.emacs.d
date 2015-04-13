@@ -418,38 +418,23 @@ Compose and launch spec URL for the current `it' spec."
          (roots       (list jasmine-coffee/code-root jasmine-coffee/spec-root))
          (exts        (list ext-code ext-spec))
          target-file)
-
     (if is-coffee
         (progn
           (when is-a-spec
             (setq roots (nreverse roots))
             (setq exts (nreverse exts)))
-
           (add-to-list 'roots (buffer-file-name) t)
           (add-to-list 'exts (apply 's-replace roots) t)
-
           (find-file (apply 's-replace exts))
-
           (message "Not a jasmine coffee file")))))
 
-(defun jasmine-coffee/jump-to-data-store ()
-  "Jump to a data-store."
-
-  )
-
-(defun jasmine-coffee/toggle-view-model-and-view ()
-  "Jump between view and view model."
-  (let (
-        (jump-list
-         '(templates ("/templates/" "/templates/\\(.*\\)\\(\\.hamlc\\)" "/templates/\\1.hamlc")
-                     views ("/views/" "/views/\\(.*\\)\\_view\\(\\.js.coffee\\)" "/views/\\1_view\\2")
-                     view-models ("/view_models/" "/view_models/\\(.*\\)\\(\\.js.coffee\\)" "/view_models/\\1\\2"))))))
-
 (defun jasmine-coffee/find-spec-by-url (&optional url)
-  "Find a jasmine spec by the supplied spec URL.
-
-It uses the JASMINE_SPECS file to find and open the
-spec described by the given URL."
+  "Find a jasmine spec by the supplied spec URL."
+  (interactive)
+  ;; 1. split up the URL into useful chunks ie spec=\\(.*\\)
+  ;; 2. Search for a file which contains "^describe ['"]%spec-top-level-describe-string%['"] *, *->"
+  ;; 3. In the found file (if found) try to match the rest of the url string...
+  ;;
 
   )
 
@@ -470,7 +455,6 @@ spec described by the given URL."
 
 (defun jasmine-coffee/index-specs (&optional spec-file)
   "Index a jasmine-spec SPEC-FILE."
-
   (when spec-file (find-file spec-file))
 
   (let* ((ext-spec      (format "%s%s" jasmine-coffee/spec-suffix jasmine-coffee/extension))
