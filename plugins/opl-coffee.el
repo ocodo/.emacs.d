@@ -4,36 +4,55 @@
 ;;
 ;;  A collection of useful tools and helpers for working with OpsManager CoffeeSource
 ;;
-;;  - Visit a template for a viewmodel
-;;  - Visit a viewmodel for a template
-;;
 ;;; Code:
 
 ;;;###autoload
-(defun opl/coffee:switch-to-related (from-file-rx to-replace type-from type-to)
-  "Generalised function to find a related file in the same structure."
+(defun opl-coffee-switch-to-related (regexp replace to from)
+  "Use REGEXP and REPLACE to generate a filename to open.
+TO and FROM are used for labelling the error messages, for example
+switching TO `template' FROM `view-model'.
+
+Error out If the buffer file name doesn't match with REGEXP or
+if the filename generated doesn't exist."
   (let* ((filename (buffer-file-name))
-         (template-filename (replace-regexp-in-string from-file-rx to-replace filename)))
-    (unless (string-match from-file-rx filename)
-      (error "The current file does not appear to be a %s" type-from))
+         (template-filename (replace-regexp-in-string regexp replace filename)))
+    (unless (string-match regexp filename)
+      (error "The current file does not appear to be a %s" from))
     (unless (file-exists-p template-filename)
-      (error "The %s you are looking for is either missing or not conventionally named" type-to))
+      (error "The %s you are looking for is either missing or not conventionally named" to))
     (find-file template-filename)))
 
 ;;;###autoload
-(defun opl/coffee:get-template-for-viewmodel ()
-  "Get the template for the viewmodel."
-  (interactive)
-  (opl/coffee:switch-to-related "\\(^.*\\)\\(view_models\\)\\(.*\\)\\(\\.js\\.coffee\\)" "\\1templates\\3.hamlc"
-                                "view-model" "template"))
+(defun opl-rxdotfix (s)
+"Escape dots for regexp in S."
+  (replace-regexp-in-string "\\." "\\\\." s))
 
 ;;;###autoload
-(defun opl/coffee:get-viewmodel-for-template ()
-  "Get the viewmodel for the template."
-  (interactive)
-  (opl/coffee:switch-to-related "\\(^.*\\)\\(templates\\)\\(.*\\)\\(\\.hamlc\\)" "\\1view_models\\3.js.coffee"
-                                "template" "view-model"))
+(defun opl-switcher (src src-ext dest dest-ext to from)
+  "Build an opl file switching defun.
+
+Use SRC folder, SRC-EXT (file extension) and DEST folder DEST-EXT
+file extension.
+
+TO and FROM are used to generate the interactive function name
+and for error messages.  See `opl-coffee-switch-to-related`."
+
+  (defalias (intern (concat "opl-coffee-switch-to-" to "-from-" from))
+    (lambda ()
+      (interactive)
+      (opl-coffee-switch-to-related
+       (concat "\\(^.*\\)\\(" (opl-rxdotfix src)
+               "\\)\\(.*\\)\\(" (opl-rxdotfix src-ext)
+               "\\)")
+       (concat "\\1" dest
+               "\\3" dest-ext)
+       to from))))
+
+;;             from folder   - ext          to folder      - ext         to name       from name
+(opl-switcher  "view_models"  ".js.coffee"  "templates"    ".hamlc"      "template"    "view-model")
+(opl-switcher  "templates"    ".hamlc"      "view_models"  ".js.coffee"  "view-model"  "template")
+(opl-switcher  "views"        ".js.coffee"  "view_models"  ".js.coffee"  "view-model"  "view")
+(opl-switcher  "view_models"  ".js.coffee"  "views"        ".js.coffee"  "view"        "view-model")
 
 (provide 'opl-coffee)
-
 ;;; opl-coffee ends here
