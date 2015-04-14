@@ -7,20 +7,28 @@
 ;;; Code:
 
 ;;;###autoload
-(defun opl-coffee-switch-to-related (regexp replace to from)
-  "Use REGEXP and REPLACE to generate a filename to open.
-TO and FROM are used for labelling the error messages, for example
-switching TO `template' FROM `view-model'.
+(defun opl-coffee-switch-to-related (regexp replace from to)
+  "Using the current file, open a related file.
 
-Error out If the buffer file name doesn't match with REGEXP or
-if the filename generated doesn't exist."
+Uses REGEXP and REPLACE to generate the new filename.
+
+FROM and TO are used for labelling the error messages.
+
+For example FROM `view-model' TO `template'.
+
+Throws an error if the buffer file name doesn't match with REGEXP or
+if the target filename generated doesn't exist.
+
+When prefixed with universal argument, the target file is created
+if it doesn't exist."
+
   (let* ((filename (buffer-file-name))
-         (template-filename (replace-regexp-in-string regexp replace filename)))
+         (target-filename (replace-regexp-in-string regexp replace filename)))
     (unless (string-match regexp filename)
       (error "The current file does not appear to be a %s" from))
-    (unless (file-exists-p template-filename)
+    (unless (or (file-exists-p target-filename) current-prefix-arg)
       (error "The %s you are looking for is either missing or not conventionally named" to))
-    (find-file template-filename)))
+    (find-file target-filename)))
 
 ;;;###autoload
 (defun opl-rxdotfix (s)
@@ -28,31 +36,38 @@ if the filename generated doesn't exist."
   (replace-regexp-in-string "\\." "\\\\." s))
 
 ;;;###autoload
-(defun opl-switcher (src src-ext dest dest-ext to from)
+(defun opl-switcher (src src-ext dest dest-ext from to)
   "Build an opl file switching defun.
 
-Use SRC folder, SRC-EXT (file extension) and DEST folder DEST-EXT
-file extension.
+Use SRC, SRC-EXT and DEST, DEST-EXT (folder names & file extensions).
 
-TO and FROM are used to generate the interactive function name
+FROM and TO are used to generate a named interactive function
 and for error messages.  See `opl-coffee-switch-to-related`."
 
-  (defalias (intern (concat "opl-coffee-switch-to-" to "-from-" from))
-    (lambda ()
+  (defalias (intern (concat "opl-coffee-switch-from-" from "-to-" to))
+    `(lambda ()
       (interactive)
       (opl-coffee-switch-to-related
-       (concat "\\(^.*\\)\\(" (opl-rxdotfix src)
-               "\\)\\(.*\\)\\(" (opl-rxdotfix src-ext)
+       (concat "\\(^.*\\)\\(" (opl-rxdotfix ,src)
+               "\\)\\(.*\\)\\(" (opl-rxdotfix ,src-ext)
                "\\)")
-       (concat "\\1" dest
-               "\\3" dest-ext)
-       to from))))
+       (concat "\\1" ,dest
+               "\\3" ,dest-ext)
+       ,from ,to))))
 
-;;             from folder   - ext          to folder      - ext         to name       from name
-(opl-switcher  "view_models"  ".js.coffee"  "templates"    ".hamlc"      "template"    "view-model")
-(opl-switcher  "templates"    ".hamlc"      "view_models"  ".js.coffee"  "view-model"  "template")
-(opl-switcher  "views"        ".js.coffee"  "view_models"  ".js.coffee"  "view-model"  "view")
-(opl-switcher  "view_models"  ".js.coffee"  "views"        ".js.coffee"  "view"        "view-model")
+(dolist (switcher
+
+         (list
+;;        from folder     .ext              to folder     .ext              from name    to name
+;;        ------------------------------------------------------------------------------------------
+          '("templates"   ".hamlc"          "view_models" ".js.coffee"      "template"   "view-model")
+          '("templates"   ".hamlc"          "views"       "_view.js.coffee" "template"   "view"      )
+          '("view_models" ".js.coffee"      "templates"   ".hamlc"          "view-model" "template"  )
+          '("view_models" ".js.coffee"      "views"       "_view.js.coffee" "view-model" "view"      )
+          '("views"       "_view.js.coffee" "view_models" ".js.coffee"      "view"       "view-model")
+          '("views"       "_view.js.coffee" "templates"   ".hamlc"          "view"       "template"  )))
+
+  (apply 'opl-switcher switcher))
 
 (provide 'opl-coffee)
 ;;; opl-coffee ends here
