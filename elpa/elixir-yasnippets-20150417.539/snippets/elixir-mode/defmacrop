@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: defmacrop
+# key: defmacrop
+# --
+defmacrop ${1:Macro()} do
+$0
+end

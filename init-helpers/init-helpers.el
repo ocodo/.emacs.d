@@ -14,11 +14,14 @@
         (load-file file)
       (message "Warning: %s doesn't exist" file))))
 
+(defun require-init (name)
+  (require (intern (format "init-%s" (downcase (symbol-name name))))))
+
 ;; Optional modes-init handling
 (defun load-optional-mode-init (name)
   "Check for existence of a mode init script NAME, and load if found."
   (let (file)
-    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
+    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory (symbol-name name)))
     (when (file-readable-p file)
       (load-file file))))
 

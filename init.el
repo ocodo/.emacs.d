@@ -24,75 +24,76 @@
   (normal-top-level-add-subdirs-to-load-path))
 
 ;; Explicit Requires ...
-(dolist (i '("init-elpa"
-             "cl"
-             "cl-lib"
-             "s"
-             "f"
-             "dash"
-             "handy-functions"
-             "custom-keys"
-             "ag"
-             "armitp-mode-line"
-             "diff-region"
-             "highlight-indentation"
-             "hyde-autoloads"
-             "kurecolor"
-             "iedit"
-             "js2-refactor"
-             "kill-buffer-without-confirm"
-             "mac-frame-adjust"
-             "multiple-cursors"
-             "opl-coffee"
-             "resize-window"
-             "scroll-bell-fix"
-             "squeeze-view"
-             "switch-window"
-             "xterm-256-to-hex"
-             "super-num-zero-map"))
-  (load-library i))
+(dolist (i '(init-elpa
+             cl
+             cl-lib
+             s
+             f
+             dash
+             handy-functions
+             custom-keys
+             ag
+             armitp-mode-line
+             diff-region
+             highlight-indentation
+             hyde-autoloads
+             kurecolor
+             iedit
+             js2-refactor
+             kill-buffer-without-confirm
+             mac-frame-adjust
+             multiple-cursors
+             opl-coffee
+             resize-window
+             scroll-bell-fix
+             squeeze-view
+             switch-window
+             xterm-256-to-hex
+             super-num-zero-map))
+  (require i))
 
 ;; mode inits
-(dolist (i '("exec-path"
-             "asciidoc"
-             ;; "autocomplete" ;; Removed in favor of Company mode (trial period)
-             "anzu"
-             "buffer-clean"
-             "codenotes"
-             "coffee"
-             "company"
-             "dired"
-             "elpa-themes"
-             "emacs-daemon"
-             "eww"
-             "flycheck"
-             "guide"
-             "git-gutter"
-             "haml"
-             "hideshowvis"
-             "json-mode"
-             "ido"
-             "ispell"
-             "markdown"
-             "misc-settings"
-             "moonscript"
-             "multi-web-mode"
-             "nxml"
-             "projectile"
-             "projectile-rails"
-             "rainbow"
-             "rainbow-delimiters"
-             "ruby"
-             "rvm"
-             "remember-theme"
-             "sh"
-             "smartparens"
-             "smooth-scroll"
-             "swiper"
-             "winner"
-             "yaml"
-             "yasnippet"))
-  (load-library (format "init-%s" i)))
+(dolist (init '(exec-path
+             asciidoc
+             autocomplete
+             anzu
+             buffer-clean
+             codenotes
+             coffee
+             ;; company ;; Sorry, no thank you company mode, still not comparably useful vs AC mode.
+             dired
+             elpa-themes
+             emacs-daemon
+             eww
+             flycheck
+             guide
+             git-gutter
+             haml
+             hideshowvis
+             json-mode
+             ido
+             ispell
+             markdown
+             misc-settings
+             moonscript
+             multi-web-mode
+             nxml
+             pivotal
+             projectile
+             projectile-rails
+             rainbow
+             rainbow-delimiters
+             ruby
+             rvm
+             remember-theme
+             sh
+             smartparens
+             smooth-scroll
+             swiper
+             winner
+             yaml
+             yasnippet))
+  (require-init init))
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
@@ -103,6 +104,6 @@
 ;; Optional init modes (for example those which contain security
 ;; keys/tokens) - These files are added to .gitignore and only loaded
 ;; when present.
-(mapcar 'load-optional-mode-init '("pivotal"))
+;; (mapcar 'load-optional-mode-init '( ... list of optionals ... ))
 
 ;;; init.el ends here
