@@ -4,8 +4,8 @@
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20150411.2240
-;; Version: 0.1.8
+;; Package-Version: 20150422.924
+;; Version: 0.1.9
 
 ;;; Commentary:
 
@@ -232,6 +232,7 @@
 
    ;; Matches and Isearch
    `(lazy-highlight                            ((t (:foreground ,darktooth-light0 :background ,darktooth-dark2 ))))
+   `(highlight                                 ((t (:foreground ,darktooth-light0_hard :background ,darktooth-faded_blue))))
    `(match                                     ((t (:foreground ,darktooth-light0 :background ,darktooth-dark2 ))))
    `(isearch                                   ((t (:foreground ,darktooth-light0 :background ,darktooth-faded_aqua ))))
    `(isearch-fail                              ((t (:foreground ,darktooth-light0_hard :background ,darktooth-faded_red ))))

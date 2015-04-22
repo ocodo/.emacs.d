@@ -19,12 +19,28 @@
         "")))
 
 (smt/defwidget buffer-dirty
-  :text (lambda (widget) (when (and (or (buffer-file-name) buffer-offer-save)
-                                    (buffer-modified-p)) "*")))
+  :text (lambda (widget)
+          (when (and (or
+                      (buffer-file-name)
+                      buffer-offer-save)
+                     (buffer-modified-p))
+            "*")))
+
+(smt/defwidget position-info
+  :text (lambda (widget)
+          (format-mode-line "%I %l:%c"))
+  :on-click (lambda (widget event)
+              (what-cursor-position)))
 
 (defun smt/buffer-name-text (widget)
   (concat
    (format-mode-line "%b")))
+
+(smt/defwidget major-mode
+  :text (lambda (widget)
+          (format-mode-line mode-name))
+  :on-click (lambda (widget event)
+              (message "%s" (format-mode-line mode-line-modes))))
 
 (defun smt/minor-mode-indicator-text (widget)
   (let (( text

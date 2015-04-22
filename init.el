@@ -89,6 +89,7 @@
              sh
              smartparens
              smooth-scroll
+             svg-mode-line
              swiper
              winner
              yaml
