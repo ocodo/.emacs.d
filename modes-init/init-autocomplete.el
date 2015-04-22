@@ -5,7 +5,11 @@
 
 (ac-config-default)
 
-(setf ac-delay 0.25)
+(defun ac-coffee-mode-setup ()
+  (setq ac-sources (append '(ac-source-yasnippet) ac-sources)))
+
+(defun ac-ruby-mode-setup ()
+  (setq ac-sources (append '(ac-source-yasnippet ac-source-robe) ac-sources)))
 
 (defun ac-common-setup ()
   (add-to-list 'ac-sources 'ac-source-filename))
