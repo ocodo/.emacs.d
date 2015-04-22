@@ -6,6 +6,6 @@
    sh-indentation 2
    sh-basic-offset 2))
 
-(dolist (pattern '("\\.zsh"))
+(dolist (pattern '("\\.zsh$"))
   (add-to-list 'auto-mode-alist (cons pattern 'sh-mode)))
 (provide 'init-sh)
