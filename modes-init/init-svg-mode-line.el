@@ -10,14 +10,21 @@
 (defun smt/buffer-indicators-text (widget)
   (let ((indicators
          (concat
-          (if buffer-read-only "R/O" "R/W")
-          (if (buffer-modified-p) "*" "")
+          (if buffer-read-only " RO " " RW ")
           " ")
          ))
 
     (if (< 1 (length indicators))
         indicators
         "")))
+
+(smt/defwidget buffer-dirty
+  :text (lambda (widget) (when (and (or (buffer-file-name) buffer-offer-save)
+                                    (buffer-modified-p)) "*")))
+
+(defun smt/buffer-name-text (widget)
+  (concat
+   (format-mode-line "%b")))
 
 (defun smt/minor-mode-indicator-text (widget)
   (let (( text
@@ -39,6 +46,9 @@
         (concat " " text)
         "")))
 
+(smt/defrow default-left
+  :widgets '(buffer-info buffer-name buffer-dirty which-function)
+  :margin 2)
 
 (defun smt/ocodo-background (theme)
   (let ((width (smt/window-pixel-width))
@@ -72,7 +82,7 @@
 
 (defun smt/ocodo-title-style (widget)
   (list :font-weight "normal"
-        :font-size "10pt"
+        :font-size "8pt"
         :font-family "Menlo"
         :filter nil
         :fill (if (smt/window-active-p)
@@ -81,25 +91,53 @@
 
 (defun smt/ocodo-major-mode-style (widget)
   (list :font-weight "normal"
-        :font-size "10pt"
+        :font-size "8pt"
+        :filter nil
+        :font-family "Helvetica"
+        :fill (if (smt/window-active-p)
+                  "#AAAAAA"
+                  "#666666")))
+
+(defun smt/ocodo-info-style (widget)
+  (list :font-weight "normal"
+        :font-size "6pt"
+        :filter nil
+        :font-family "Helvetica"
+        :fill (if (smt/window-active-p)
+                  "#999999"
+                "#555555")))
+
+(defun smt/ocodo-dirty-style (widget)
+  (list :font-weight "normal"
+        :font-size "8pt"
+        :filter nil
+        :font-family "Menlo"
+        :fill (if (smt/window-active-p)
+                  "#FF6600"
+                "#AA0000")))
+
+(defun smt/ocodo-minor-mode-style (widget)
+  (list :font-weight "normal"
+        :font-size "8pt"
         :filter nil
         :font-family "Helvetica"
         :fill (if (smt/window-active-p)
                   "#FFFFFF"
                   "#666666")))
 
-(defun smt/ocodo-minor-mode-style (widget)
-  (list :font-weight "normal"
-        :font-size "10pt"
+(defun smt/ocodo-version-control-style (widget)
+  (list :font-weight "bold"
+        :font-size "8pt"
         :filter nil
         :font-family "Helvetica"
         :fill (if (smt/window-active-p)
-                  "#FFFFFF"
+                  "#30ACB1"
                   "#666666")))
 
 (smt/deftheme ocodo
   :defs (smt/filter-inset 0 1)
   :background 'smt/ocodo-background
+  :pixel-height 24
   :style
   (lambda (theme)
     (smt/combine-styles
@@ -121,7 +159,7 @@
         (cons 'version-control
               (smt/make-widget
                :prototype 'version-control
-               :style 'smt/ocodo-minor-mode-style))
+               :style 'smt/ocodo-version-control-style))
 
         (cons 'position-info
               (smt/make-widget
@@ -131,7 +169,12 @@
         (cons 'buffer-info
               (smt/make-widget
                :prototype 'buffer-info
-               :style 'smt/ocodo-title-style))
+               :style 'smt/ocodo-info-style))
+
+        (cons 'buffer-dirty
+              (smt/make-widget
+               :prototype 'buffer-dirty
+               :style 'smt/ocodo-dirty-style))
 
         (cons 'buffer-name
               (smt/make-widget
@@ -145,7 +188,7 @@
   (setf (getf theme-archetype :style)
         (list :font-family "Menlo"
               :font-size "10pt"))
-  (setf (getf row-archetype :baseline) 14))
+  (setf (getf row-archetype :baseline) 15))
 
 (smt/set-theme 'ocodo)
 (set-face-attribute 'mode-line nil :box nil)
