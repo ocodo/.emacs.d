@@ -101,7 +101,7 @@
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)" :fill-opacity 1)
       (rect :width "100%" :height 1 :x 0 :y height :fill "#383838" :fill-opacity 1)
 
-      (g :transform ,(format "translate(%i,0)"  (- width 80))
+      (g :transform ,(format "translate(%i,0)" (- width 80))
          (g :transform "matrix(1.25,0,0,-1.25,0,32)"
             (g :transform "matrix(0.14833729,0,0,0.14833729,31.537529,25.978459)"    (path :fill "#6cb681" :fill-opacity 0.6 :d "M 0,0 39.208,-61.232 78.417,0 0,0 z"))
             (g :transform "matrix(0.14833729,0,0,0.14833729,43.16965,25.978459)"     (path :fill "#62b286" :fill-opacity 0.6 :d "m 0,0 -39.208,-61.232 83.937,0 L 5.521,0 0,0 z"))
@@ -137,6 +137,7 @@
             (g :transform "translate(635.7247,494.4888)" (path :fill "#e57d50" :fill-opacity 0.6  :d "m 0,0 -39.21,-61.232 83.938,0 L 5.521,0 0,0 z" ))
             (g :transform "translate(641.2455,494.4888)" (path :fill "#c14b47" :fill-opacity 0.6  :d "M 0,0 39.208,-61.232 68.317,-15.771 68.317,0 0,0 z" ))
             (g :transform "translate(680.4531,433.2564)" (path :fill "#b63840" :fill-opacity 0.6  :d "m 0,0 29.11,0 0,45.461 L 0,0 z" ))
+
             (g :transform "translate(344.7012,433.2563)" (path :fill "#028f85" :fill-opacity 0.6  :d "M 0,0 -41.97,-65.545 -83.939,0 0,0 z" ))
             (g :transform "translate(302.731,367.7109)"  (path :fill "#3f9f88" :fill-opacity 0.6  :d "M 0,0 41.97,65.545 83.94,0 0,0 z" ))
             (g :transform "translate(428.6396,433.2563)" (path :fill "#72aa88" :fill-opacity 0.6  :d "M 0,0 -41.969,-65.545 -83.938,0 0,0 z" ))
@@ -148,6 +149,7 @@
             (g :transform "translate(680.4531,433.2563)" (path :fill "#c76b4d" :fill-opacity 0.6  :d "M 0,0 -41.968,-65.545 -83.938,0 0,0 z" ))
             (g :transform "translate(638.4852,367.7112)" (path :fill "#b14f43" :fill-opacity 0.6  :d "m 0,0 71.078,0 0,20.083 L 41.968,65.545 0,0 z" ))
             (g :transform "translate(680.4531,433.2564)" (path :fill "#963336" :fill-opacity 0.6  :d "M 0,0 29.11,-45.462 29.11,0 0,0 z" ))
+
             (g :transform "translate(271.7697,319.3578)" (path :fill "#00707a" :fill-opacity 0.6  :d "M 0,0 61.923,0 30.962,48.353 0,0 z" ))
             (g :transform "translate(302.7312,367.7112)" (path :fill "#007d7e" :fill-opacity 0.6  :d "m 0,0 30.961,-48.353 22.017,0 L 83.939,0 0,0 z" ))
             (g :transform "translate(355.7091,319.3578)" (path :fill "#69a489" :fill-opacity 0.6  :d "M 0,0 61.922,0 30.961,48.353 0,0 z" ))
