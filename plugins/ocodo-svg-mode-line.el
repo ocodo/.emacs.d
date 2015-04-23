@@ -1,6 +1,9 @@
-;;; ocodo-svg-mode-line --- Yet another attempt at a super cool modeline for Emacs, this one using svg-mode-line-themes.
+;;; ocodo-svg-mode-line --- Yet another attempt at a super cool modeline for Emacs
 
 ;;; Commentary:
+
+;; Made with the svg-mode-line-themes toolkit from Sabof.
+;; https://github.com/sabof/svg-mode-line-themes
 
 ;; Hopefully a skillful Emacs user will see the correlation of xmlgen
 ;; and svg below (esp. ocodo:smt/background) and from there, with some
@@ -18,6 +21,9 @@
 ;; 'ocodo-svg-mode-line) in your .emacs
 
 ;; I hope you enjoy it.
+
+;; Please Note: I am using Menlo as my default named font, other
+;; styles use the generic "sans-serif" font pointer.
 
 ;;; Code:
 
@@ -277,11 +283,13 @@
          'default-position
          'default-right))
 
-(let (( theme (cdr (assoc 'archetype smt/themes)))
-      ( row (cdr (assoc 'archetype smt/rows))))
-  (setf (getf theme :style)
-        (list :font-family "Menlo"
-              :font-size "10pt"))
+
+(let ((theme (cdr (assoc 'archetype smt/themes)))
+      (row (cdr (assoc 'archetype smt/rows))))
+
+  ;; Customise to use your desired default font
+  (setf (getf theme :style) (list :font-size "10pt" :font-family "Menlo"))
+
   (setf (getf row :baseline) 19))
 
 (smt/set-theme 'ocodo:smt)
