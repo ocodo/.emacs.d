@@ -170,7 +170,7 @@
 (defun smt/ocodo-title-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
-        :font-family "Helvetica"
+        :font-family "sans-serif"
         :filter nil
         :fill (if (smt/window-active-p)
                   "#FFFFFF"
@@ -180,7 +180,7 @@
   (list :font-weight "normal"
         :font-size "10pt"
         :filter nil
-        :font-family "Helvetica"
+        :font-family "sans-serif"
         :fill (if (smt/window-active-p)
                   "#AAAAAA"
                 "#666666")))
@@ -189,7 +189,7 @@
   (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
-        :font-family "Helvetica"
+        :font-family "sans-serif"
         :fill (if (smt/window-active-p)
                   "#999999"
                 "#555555")))
@@ -198,7 +198,6 @@
   (list :font-weight "normal"
         :font-size "8pt"
         :filter nil
-        :font-family "Menlo"
         :fill (if (smt/window-active-p)
                   "#DDDDDD"
                 "#999999")))
@@ -207,7 +206,7 @@
   (list :font-weight "normal"
         :font-size "11pt"
         :filter nil
-        :font-family "Sans"
+        :font-family "sans-serif"
         :fill (if (and (or buffer-file-name buffer-offer-save) (buffer-modified-p))
                   ;; Dirty
                   (if (smt/window-active-p)
@@ -220,7 +219,6 @@
   (list :font-weight "normal"
         :font-size "8pt"
         :filter nil
-        :font-family "Menlo"
         :fill (if (smt/window-active-p)
                   "#FFFFFF"
                 "#666666")))
@@ -229,7 +227,7 @@
   (list :font-weight "bold"
         :font-size "8pt"
         :filter nil
-        :font-family "Helvetica"
+        :font-family "sans-serif"
         :fill (if (smt/window-active-p)
                   "#60B18C"
                 "#666666")))
