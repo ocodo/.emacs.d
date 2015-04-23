@@ -16,32 +16,14 @@
 
     (if (< 1 (length indicators))
         indicators
-        "")))
-
-(smt/defwidget buffer-dirty
-  :text (lambda (widget)
-          (when (and (or
-                      (buffer-file-name)
-                      buffer-offer-save)
-                     (buffer-modified-p))
-            "*")))
-
-(smt/defwidget position-info
-  :text (lambda (widget)
-          (format-mode-line "%I %l:%c"))
-  :on-click (lambda (widget event)
-              (what-cursor-position)))
+      "")))
 
 (defun smt/buffer-name-text (widget)
   (concat
    (format-mode-line "%b")))
 
-(smt/defwidget major-mode
-  :text (lambda (widget)
-          (format-mode-line mode-name))
-  :on-click (lambda (widget event)
-              (message "%s" (format-mode-line mode-line-modes))))
 
+;; TODO: Edit to use ... something!
 (defun smt/minor-mode-indicator-text (widget)
   (let (( text
           (concat
@@ -60,13 +42,34 @@
            )))
     (if (plusp (length text))
         (concat " " text)
-        "")))
+      "")))
+
+(smt/defwidget buffer-dirty
+  :text (lambda (widget)
+          (when (and (or
+                      (buffer-file-name)
+                      buffer-offer-save)
+                     (buffer-modified-p))
+            "*")))
+
+(smt/defwidget position-info
+  :text (lambda (widget)
+          (format-mode-line "%l:%c [%p] %I"))
+  :on-click (lambda (widget event)
+              (what-cursor-position)))
+
+
+(smt/defwidget major-mode
+  :text (lambda (widget)
+          (format-mode-line mode-name))
+  :on-click (lambda (widget event)
+              (message "%s" (format-mode-line mode-line-modes))))
 
 (smt/defrow default-left
   :widgets '(buffer-info buffer-name buffer-dirty which-function)
-  :margin 2)
+  :margin 1)
 
-(defun smt/ocodo-background (theme)
+(defun ocodo:smt/ocodo-background (theme)
   (let ((width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -84,7 +87,7 @@
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)" :fill-opacity 1)
       (rect :width "100%" :height 1 :x 0 :y height :fill "#383838" :fill-opacity 1))))
 
-(defun smt/ocodo-overlay (theme)
+(defun ocodo:smt/ocodo-overlay (theme)
   (let ((width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -99,11 +102,11 @@
 (defun smt/ocodo-title-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
-        :font-family "Menlo"
+        :font-family "Helvetica"
         :filter nil
         :fill (if (smt/window-active-p)
                   "#FFFFFF"
-                  "#666666")))
+                "#666666")))
 
 (defun smt/ocodo-major-mode-style (widget)
   (list :font-weight "normal"
@@ -112,7 +115,7 @@
         :font-family "Helvetica"
         :fill (if (smt/window-active-p)
                   "#AAAAAA"
-                  "#666666")))
+                "#666666")))
 
 (defun smt/ocodo-info-style (widget)
   (list :font-weight "normal"
@@ -122,6 +125,15 @@
         :fill (if (smt/window-active-p)
                   "#999999"
                 "#555555")))
+
+(defun smt/ocodo-position-info-style (widget)
+  (list :font-weight "normal"
+        :font-size "8pt"
+        :filter nil
+        :font-family "Menlo"
+        :fill (if (smt/window-active-p)
+                  "#DDDDDD"
+                "#999999")))
 
 (defun smt/ocodo-dirty-style (widget)
   (list :font-weight "normal"
@@ -139,7 +151,7 @@
         :font-family "Helvetica"
         :fill (if (smt/window-active-p)
                   "#FFFFFF"
-                  "#666666")))
+                "#666666")))
 
 (defun smt/ocodo-version-control-style (widget)
   (list :font-weight "bold"
@@ -148,19 +160,12 @@
         :font-family "Helvetica"
         :fill (if (smt/window-active-p)
                   "#30ACB1"
-                  "#666666")))
+                "#666666")))
 
-(smt/deftheme ocodo
-  :defs (smt/filter-inset 0 1)
-  :background 'smt/ocodo-background
+(smt/deftheme ocodo:smt
   :pixel-height 24
-  :style
-  (lambda (theme)
-    (smt/combine-styles
-     (smt/t-style (smt/t-prototype theme))
-     `(:filter
-       "url(#inset)"
-       :fill "#404448")))
+  :background 'ocodo:smt/ocodo-background
+  :overlay    'ocodo:smt/ocodo-overlay
   :local-widgets
   (list (cons 'major-mode
               (smt/make-widget
@@ -180,7 +185,7 @@
         (cons 'position-info
               (smt/make-widget
                :prototype 'position-info
-               :style 'smt/ocodo-minor-mode-style))
+               :style 'smt/ocodo-position-info-style))
 
         (cons 'buffer-info
               (smt/make-widget
@@ -196,17 +201,20 @@
               (smt/make-widget
                :prototype 'buffer-name
                :style 'smt/ocodo-title-style)))
-  :rows (list 'default-left 'default-position 'default-right)
-  :overlay 'smt/ocodo-overlay)
 
-(let (( theme-archetype (cdr (assoc 'archetype smt/themes)))
-      ( row-archetype (cdr (assoc 'archetype smt/rows))))
-  (setf (getf theme-archetype :style)
+  :rows (list
+         'default-left
+         'default-position
+         'default-right))
+
+(let (( theme (cdr (assoc 'archetype smt/themes)))
+      ( row (cdr (assoc 'archetype smt/rows))))
+  (setf (getf theme :style)
         (list :font-family "Menlo"
               :font-size "10pt"))
-  (setf (getf row-archetype :baseline) 15))
+  (setf (getf row :baseline) 15))
 
-(smt/set-theme 'ocodo)
+(smt/set-theme 'ocodo:smt)
 (set-face-attribute 'mode-line nil :box nil)
 (set-face-attribute 'mode-line-inactive nil :box nil)
 
