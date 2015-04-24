@@ -42,4 +42,11 @@
  '(markdown-header-face-5 ((t (:inherit markdown-header-face :height 1.6))))
  '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.4)))))
 
+;;;###autoload
+(and load-file-name
+     (boundp 'custom-theme-load-path)
+     (add-to-list 'custom-theme-load-path
+                  (file-name-as-directory
+                   (file-name-directory load-file-name                                                                                                             ))))
+
 (provide-theme 'jason-defaults)

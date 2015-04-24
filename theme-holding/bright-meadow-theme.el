@@ -88,5 +88,11 @@
  '(markdown-header-face-6 ((t (:inherit markdown-header-face :height 1.4))))
  '(default ((t (:background "#D6FFD6" :foreground "SpringGreen4")))))
 
-(provide-theme 'bright-meadow)
+;;;###autoload
+(and load-file-name
+     (boundp 'custom-theme-load-path)
+     (add-to-list 'custom-theme-load-path
+                  (file-name-as-directory
+                   (file-name-directory load-file-name                                                                                                             ))))
 
+(provide-theme 'bright-meadow)
