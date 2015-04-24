@@ -96,7 +96,7 @@
   (require-init init))
 
 ;; Super fancy modeline I will probably grow tired of in a few weeks...
-(require 'ocodo-svg-mode-line)
+(require 'ocodo-slim-svg-mode-line)
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
