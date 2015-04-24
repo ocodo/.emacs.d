@@ -12,6 +12,6 @@
   (setq ac-sources (append '(ac-source-yasnippet ac-source-robe) ac-sources)))
 
 (defun ac-common-setup ()
-  (add-to-list 'ac-sources 'ac-source-filename))
+  (append ac-sources '(ac-source-filename ac-source-files-in-current-dir)))
 
 (provide 'init-autocomplete)
