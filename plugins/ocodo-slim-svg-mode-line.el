@@ -8,7 +8,7 @@
 ;; https://github.com/sabof/svg-mode-line-themes
 
 ;; Hopefully a skillful Emacs user will see the correlation of xmlgen
-;; and svg below (esp. ocodo:smt/background) and from there, with some
+;; and svg below (esp. ocodo-slim:smt/background) and from there, with some
 ;; careful visual work, can pull any old thing from Inkscape and make
 ;; a nice adornment to their modeline.
 
@@ -94,7 +94,7 @@ Overrides smt core."
   :on-click (lambda (widget event)
               (message " %s " (format-mode-line mode-line-modes))))
 
-(defun ocodo:smt/background (theme)
+(defun ocodo-slim:smt/background (theme)
   (let ((width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -177,7 +177,7 @@ Overrides smt core."
       )))
 
 
-(defun ocodo:smt/overlay (theme)
+(defun ocodo-slim:smt/overlay (theme)
   (let ((width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -254,10 +254,10 @@ Overrides smt core."
   :align "right"
   :margin 25)
 
-(smt/deftheme ocodo:smt
+(smt/deftheme ocodo-slim:smt
   :pixel-height 26
-  :background 'ocodo:smt/background
-  :overlay    'ocodo:smt/overlay
+  :background 'ocodo-slim:smt/background
+  :overlay    'ocodo-slim:smt/overlay
   :local-widgets
   ;;; Note order of widgets are determined by smt/defrows above.
   (list (cons 'major-mode
@@ -300,7 +300,7 @@ Overrides smt core."
          'default-position
          'default-right))
 
-(smt/set-theme 'ocodo:smt)
+(smt/set-theme 'ocodo-slim:smt)
 
 (provide 'ocodo-slim-svg-mode-line)
 ;;; ocodo-svg-mode-line.el ends here
