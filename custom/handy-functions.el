@@ -621,6 +621,31 @@ OSX specific of course."
                            (re-search-forward regexp nil nil arg)
                            (re-search-backward regexp nil nil arg)
                            (point)))))
+
+(defun make-kurecolor-hue-table ()
+  "Make a hue table from hex color at top of kill ring, no error checking."
+  (interactive)
+  (let ((color (car kill-ring-yank-pointer)))
+    (loop for (a b) in '((1 12) (13 24) (25 36))
+          do
+          (insert ";; ")
+          (loop for i from a upto b do
+                (insert (format "%-4s    " (format "%s°" (* i 10)))))
+          (newline-and-indent)
+          (insert ";;")
+          (loop for i from a upto b do
+                (insert (format " %s" (kurecolor-hex-set-hue color (/ (* i 10) 360.0)))))
+          (newline-and-indent))))
+
+(defun search-for-nearest-hex-color (p)
+  "Search to the nearest hex color.
+Use negative prefix P to go backward."
+  (interactive "p")
+  (let ((regexp "#[0-9a-fA-F]\\{3,6\\}"))
+    (if (> p 0)
+        (search-forward-regexp regexp)
+      (search-backward-regexp regexp))))
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
