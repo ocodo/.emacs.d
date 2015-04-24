@@ -65,16 +65,19 @@ Overrides smt core."
 WIDGET is a required param.
 Overrides smt core."
   (concat
-   (when defining-kbd-macro                             " REC ")
+   (when defining-kbd-macro                             " 🔴 ")
    (when (bound-and-true-p aai-mode)                    " I ")
    (when (or (bound-and-true-p evil-local-mode)
-             (bound-and-true-p evil-mode))              " [eVil] ")
+             (bound-and-true-p evil-mode))              " 😈 ")
    (when (bound-and-true-p dired-omit-mode)             " O ")
-   (when (bound-and-true-p save-auto-hook)              " A ")
+   (when (bound-and-true-p rainbow-mode)                " 🌈 ")
+   (when (bound-and-true-p global-auto-revert-mode)     " AutoRvt ")
+   (when (bound-and-true-p visual-line-mode)            " VLine ")
+
    (when (/= (- (point-max) (point-min)) (buffer-size)) " N ")
    (when (bound-and-true-p wmi)                         " M ")
    (when (bound-and-true-p multiple-cursors-mode)       " mc ")
-   (when (bound-and-true-p iedit-mode)                  " iedit ")))
+   (when (bound-and-true-p iedit-mode)                  " iEdit ")))
 
 (smt/defwidget buffer-dirty
   :text (lambda (widget)
@@ -100,7 +103,8 @@ Overrides smt core."
     `((\defs
        (linearGradient
         :id "twisted" :x1 "0%" :y1 "0%" :x2 "100%" :y2 "25%"
-        (stop :offset "0%"  :style "stop-color:#000000;stop-opacity:0.3")
+        (stop :offset "0%"  :style "stop-color:40
+;stop-opacity:0.3")
         (stop :offset "25%"  :style "stop-color:#484848;stop-opacity:0.3")
         (stop :offset "75%"  :style "stop-color:#484848;stop-opacity:0.3")
         (stop :offset "100%"  :style "stop-color:#000000;stop-opacity:0.3"))
@@ -227,7 +231,7 @@ Overrides smt core."
 
 (defun smt/ocodo-minor-mode-style (widget)
   (list :font-weight "normal"
-        :font-size "8pt"
+        :font-size "6pt"
         :filter nil
         :fill (if (smt/window-active-p) "#FFFFFF" "#666666")))
 
