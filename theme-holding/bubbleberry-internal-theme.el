@@ -1,15 +1,15 @@
-(deftheme bubbleberry 
-  "bubbleberry - Created by Jasonm23 - 2012-07-02 (+1000) 08:39PM")
+(deftheme bubbleberry-internal
+  "bubbleberry-internal - Created by Jasonm23 - 2012-07-02 (+1000) 08:39PM")
 
 (custom-theme-set-variables
- 'bubbleberry
+ 'bubbleberry-internal
  '(linum-format " %7i ")
  '(fringe-mode 5 nil (fringe))
  '(powerline-color1 "#3d3d68")
  '(powerline-color2 "#292945"))
 
 (custom-theme-set-faces
- 'bubbleberry
+ 'bubbleberry-internal
  ;; basic theming.
  '(default                          ((t (:foreground "#ABAEB3" :background "#222222" ))))
  '(region                           ((t (:background "#101010" ))))
@@ -37,72 +37,79 @@
  '(next-error ((t          (:inherit (region)))))
  '(query-replace ((t       (:inherit (isearch)))))
  '(button ((t              (:inherit (link)))))
- '(fixed-pitch ((t         (:family "Monospace")))) 
+ '(fixed-pitch ((t         (:family "Monospace"))))
  '(variable-pitch ((t      (:family "Sans Serif"))))
  '(escape-glyph ((t        (:foreground "#FF6600"))))
  '(mode-line-emphasis ((t  (:weight bold))))
  '(mode-line-highlight ((t (:box nil (t (:inherit (highlight)))))))
-  
- '(highlight 
-   ((((class color) (min-colors 88) (background light)) (:background "#003453")) 
-    (((class color) (min-colors 88) (background dark))  (:background "#003450")) 
-    (((class color) (min-colors 16) (background light)) (:background "#003450")) 
-    (((class color) (min-colors 16) (background dark))  (:background "#004560")) 
+
+ '(highlight
+   ((((class color) (min-colors 88) (background light)) (:background "#003453"))
+    (((class color) (min-colors 88) (background dark))  (:background "#003450"))
+    (((class color) (min-colors 16) (background light)) (:background "#003450"))
+    (((class color) (min-colors 16) (background dark))  (:background "#004560"))
     (((class color) (min-colors 8))                     (:foreground "#000000" :background "#00FF00")) (t (:inverse-video t))))
 
- '(shadow 
-   ((((class color grayscale) (min-colors 88) (background light)) (:foreground "#999999")) 
+ '(shadow
+   ((((class color grayscale) (min-colors 88) (background light)) (:foreground "#999999"))
     (((class color grayscale) (min-colors 88) (background dark))  (:foreground "#999999"))
     (((class color) (min-colors 8) (background light))            (:foreground "#00ff00"))
     (((class color) (min-colors 8) (background dark))             (:foreground "#ffff00"))))
-  
+
  '(trailing-whitespace
    ((((class color) (background light)) (:background "#ff0000"))
     (((class color) (background dark))  (:background "#ff0000")) (t (:inverse-video t))))
-  
+
  '(link
-   ((((class color) (min-colors 88) (background light)) (:underline t :foreground "#00b7f0")) 
-    (((class color) (background light))                 (:underline t :foreground "#0044FF")) 
+   ((((class color) (min-colors 88) (background light)) (:underline t :foreground "#00b7f0"))
+    (((class color) (background light))                 (:underline t :foreground "#0044FF"))
     (((class color) (min-colors 88) (background dark))  (:underline t :foreground "#0099aa"))
     (((class color) (background dark))                  (:underline t :foreground "#0099aa")) (t (:inherit (underline)))))
-  
- '(link-visited 
-   ((default                            (:inherit (link))) 
-    (((class color) (background light)) (:inherit (link))) 
+
+ '(link-visited
+   ((default                            (:inherit (link)))
+    (((class color) (background light)) (:inherit (link)))
     (((class color) (background dark))  (:inherit (link)))))
-  
- '(header-line 
-   ((default                                      (:inherit (mode-line))) (((type tty)) (:underline t :inverse-video nil)) 
-    (((class color grayscale) (background light)) (:box nil :foreground "#222222" :background "#bbbbbb")) 
-    (((class color grayscale) (background dark))  (:box nil :foreground "#bbbbbb" :background "#222222")) 
-    (((class mono) (background light))            (:underline t :box nil :inverse-video nil :foreground "#000000" :background "#ffffff")) 
+
+ '(header-line
+   ((default                                      (:inherit (mode-line))) (((type tty)) (:underline t :inverse-video nil))
+    (((class color grayscale) (background light)) (:box nil :foreground "#222222" :background "#bbbbbb"))
+    (((class color grayscale) (background dark))  (:box nil :foreground "#bbbbbb" :background "#222222"))
+    (((class mono) (background light))            (:underline t :box nil :inverse-video nil :foreground "#000000" :background "#ffffff"))
     (((class mono) (background dark))             (:underline t :box nil :inverse-video nil :foreground "#ffffff" :background "#000000"))))
-  
+
  '(isearch
-   ((((class color) (min-colors 88) (background light)) (:foreground "#99ccee" :background "#444444")) 
-    (((class color) (min-colors 88) (background dark))  (:foreground "#bb3311" :background "#444444")) 
+   ((((class color) (min-colors 88) (background light)) (:foreground "#99ccee" :background "#444444"))
+    (((class color) (min-colors 88) (background dark))  (:foreground "#bb3311" :background "#444444"))
     (((class color) (min-colors 16))                    (:foreground "#0088cc" :background "#444444"))
     (((class color) (min-colors 8))                     (:foreground "#0088cc" :background "#444444")) (t (:inverse-video t))))
-  
+
  '(isearch-fail
    ((((class color) (min-colors 88) (background light)) (:background "#ffaaaa"))
     (((class color) (min-colors 88) (background dark))  (:background "#880000"))
     (((class color) (min-colors 16))                    (:background "#FF0000"))
     (((class color) (min-colors 8))                     (:background "#FF0000"))
     (((class color grayscale))                          (:foreground "#888888")) (t (:inverse-video t))))
-  
+
  '(lazy-highlight
    ((((class color) (min-colors 88) (background light)) (:background "#77bbdd"))
     (((class color) (min-colors 88) (background dark)) (:background "#77bbdd"))
     (((class color) (min-colors 16)) (:background "#4499ee"))
     (((class color) (min-colors 8)) (:background "#4499ee")) (t (:underline t))))
-  
+
  '(match
    ((((class color) (min-colors 88) (background light)) (:background "#3388cc"))
     (((class color) (min-colors 88) (background dark)) (:background "#3388cc"))
     (((class color) (min-colors 8) (background light)) (:foreground "#000000" :background "#FFFF00"))
-    (((class color) (min-colors 8) (background dark)) (:foreground "#ffffff" :background "#0000FF")) 
+    (((class color) (min-colors 8) (background dark)) (:foreground "#ffffff" :background "#0000FF"))
     (((type tty) (class mono)) (:inverse-video t)) (t (:background "#888888"))))
 )
 
-(provide-theme 'bubbleberry)
+;;;###autoload
+(and load-file-name
+     (boundp 'custom-theme-load-path)
+     (add-to-list 'custom-theme-load-path
+                  (file-name-as-directory
+                   (file-name-directory load-file-name                                                                                                             ))))
+
+(provide-theme 'bubbleberry-internal)

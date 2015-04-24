@@ -1,4 +1,4 @@
-(deftheme jade-dragon 
+(deftheme jade-dragon
   "jade-dragon - Created by Jasonm23 - 8:50pm(+1000) 2012-07-02")
 
   (custom-theme-set-variables
@@ -107,5 +107,11 @@
       (((type tty) (class mono)) (:inverse-video t)) (t (:background "#888888"))))
 
    )
+;;;###autoload
+(and load-file-name
+     (boundp 'custom-theme-load-path)
+     (add-to-list 'custom-theme-load-path
+                  (file-name-as-directory
+                   (file-name-directory load-file-name                                                                                                             ))))
 
 (provide-theme 'jade-dragon)
