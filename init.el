@@ -95,7 +95,9 @@
              yasnippet))
   (require-init init))
 
-(require 'ocodo-grass-smt)
+;; When GUI (hopefully svg is available!)
+;; Load an SVG Modeline
+(when (window-system) (require 'ocodo-grass-smt))
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
