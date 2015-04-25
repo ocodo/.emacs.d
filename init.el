@@ -24,7 +24,7 @@
   (normal-top-level-add-subdirs-to-load-path))
 
 ;; Explicit Requires ...
-(dolist (i '(init-elpa
+(dolist (lib '(init-elpa
              cl
              cl-lib
              s
@@ -50,7 +50,7 @@
              switch-window
              xterm-256-to-hex
              super-num-zero-map))
-  (load-library (symbol-name i)))
+  (load-library (symbol-name lib)))
 
 ;; mode inits
 (dolist (init '(exec-path
