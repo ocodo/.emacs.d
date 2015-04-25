@@ -50,7 +50,7 @@
              switch-window
              xterm-256-to-hex
              super-num-zero-map))
-  (require i))
+  (load-library (symbol-name i)))
 
 ;; mode inits
 (dolist (init '(exec-path
@@ -93,7 +93,7 @@
              winner
              yaml
              yasnippet))
-  (require-init init))
+  (load-mode-init (symbol-name init)))
 
 ;; When GUI (hopefully svg is available!)
 ;; Load an SVG Modeline
