@@ -65,16 +65,18 @@ Overrides smt core."
 WIDGET is a required param.
 Overrides smt core."
   (concat
-   (when defining-kbd-macro                             " REC ")
-   (when (bound-and-true-p aai-mode)                    " I ")
-   (when (or (bound-and-true-p evil-local-mode)
-             (bound-and-true-p evil-mode))              " [eVil] ")
-   (when (bound-and-true-p dired-omit-mode)             " O ")
-   (when (bound-and-true-p save-auto-hook)              " A ")
-   (when (/= (- (point-max) (point-min)) (buffer-size)) " N ")
-   (when (bound-and-true-p wmi)                         " M ")
-   (when (bound-and-true-p multiple-cursors-mode)       " mc ")
-   (when (bound-and-true-p iedit-mode)                  " iedit ")))
+     (when defining-kbd-macro                             " REC ")
+     (when (bound-and-true-p projectile-mode)             " Prj ")
+     (when (bound-and-true-p projectile-rails-mode)       " Rails ")
+     (when (bound-and-true-p smartparens-mode)            " [S] ")
+     (when (or (bound-and-true-p evil-local-mode)
+               (bound-and-true-p evil-mode))              " Evil ")
+     (when (bound-and-true-p dired-omit-mode)             " O ")
+     (when (bound-and-true-p rainbow-mode)                " Rbow ")
+     (when (bound-and-true-p global-auto-revert-mode)     " ARv ")
+     (when (bound-and-true-p visual-line-mode)            " Vl ")
+     (when (bound-and-true-p multiple-cursors-mode)       " Mc ")
+     (when (bound-and-true-p iedit-mode)                  " iE ")))
 
 (smt/defwidget buffer-dirty
   :text (lambda (widget)
