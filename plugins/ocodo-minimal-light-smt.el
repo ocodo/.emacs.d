@@ -109,15 +109,16 @@ Overrides smt core."
       `((\defs
          (linearGradient
           :id "twisted" :x1 "0%" :y1 "0%" :x2 "100%" :y2 "15%"
-          (stop :offset "0%"  :stop-color ,bg-gradient-main :stop-opacity 0)
-          (stop :offset "25%" :stop-color ,bg-gradient-main :stop-opacity 0)
-          (stop :offset "75%" :stop-color ,bg-gradient-main :stop-opacity 0)
-          (stop :offset "100%" :stop-color ,bg-gradient-dark :stop-opacity 0 ))
+          (stop :offset "0%"  :stop-color ,bg-gradient-main :stop-opacity 0.2)
+          (stop :offset "25%" :stop-color ,bg-gradient-main :stop-opacity 0.2)
+          (stop :offset "75%" :stop-color ,bg-gradient-main :stop-opacity 0.2)
+          (stop :offset "100%" :stop-color ,bg-gradient-dark :stop-opacity 0.2))
          (filter
           :id "blur"
           (feGaussianBlur
            :stdDeviation "5")
           (feComposite)))
+        (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
         (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)")
         (path :fill "#EBEAEA" :d "M0 0 L230 0 L239 12 L230 26 L0 26 Z")
         (path :fill "#F6F1F1" :d ,(format
