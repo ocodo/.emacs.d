@@ -1,5 +1,5 @@
 ;;; svg-mode-line-themes.el --- SVG-based themes for mode-line
-;;; Version: 0.1.2
+;;; Version: 0.1.3
 ;;; Package-Requires: ((xmlgen "0.4"))
 ;;; Author: sabof
 ;;; URL: https://github.com/sabof/svg-mode-line-themes
@@ -71,7 +71,10 @@
   (force-mode-line-update))
 
 ;;;###autoload
-(defun smt/enable (&optional use-header-line)
+(defun* smt/enable (&optional use-header-line)
+  (unless (image-type-available-p 'svg)
+    (display-warning 'svg-mode-line-themes "SVG support is not available")
+    (return-from smt/enable))
   (set-default (if use-header-line
                    'header-line-format
                  'mode-line-format)
