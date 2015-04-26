@@ -55,7 +55,7 @@ Overrides smt core."
   (if buffer-read-only " RO " " RW "))
 
 (defun smt/buffer-name-text (widget)
-  "Show the buffer name,
+  "Show the current buffer name.
 WIDGET is a required param.
 Overrides smt core."
   (format-mode-line "%b"))
@@ -66,18 +66,17 @@ WIDGET is a required param.
 Overrides smt core."
   (concat
    (when defining-kbd-macro                             " 🔴 ")
-   (when (bound-and-true-p aai-mode)                    " I ")
+   (when (bound-and-true-p projectile-mode)             " 📝 ")
+   (when (bound-and-true-p projectile-rails-mode)       " 🚄 ")
+   (when (bound-and-true-p smartparens-mode)            " ☊ ")
    (when (or (bound-and-true-p evil-local-mode)
              (bound-and-true-p evil-mode))              " 😈 ")
    (when (bound-and-true-p dired-omit-mode)             " O ")
    (when (bound-and-true-p rainbow-mode)                " 🌈 ")
-   (when (bound-and-true-p global-auto-revert-mode)     " AutoRvt ")
-   (when (bound-and-true-p visual-line-mode)            " VLine ")
-
-   (when (/= (- (point-max) (point-min)) (buffer-size)) " N ")
-   (when (bound-and-true-p wmi)                         " M ")
-   (when (bound-and-true-p multiple-cursors-mode)       " mc ")
-   (when (bound-and-true-p iedit-mode)                  " iEdit ")))
+   (when (bound-and-true-p global-auto-revert-mode)     " ARv ")
+   (when (bound-and-true-p visual-line-mode)            " ☰ ")
+   (when (bound-and-true-p multiple-cursors-mode)       " ❖ ")
+   (when (bound-and-true-p iedit-mode)                  " iE ")))
 
 (smt/defwidget buffer-dirty
   :text (lambda (widget)
@@ -91,6 +90,7 @@ Overrides smt core."
   :on-click (lambda (widget event)
               (what-cursor-position t)))
 
+
 (smt/defwidget major-mode
   :text (lambda (widget)
           (format-mode-line mode-name))
@@ -98,7 +98,12 @@ Overrides smt core."
               (message " %s " (format-mode-line mode-line-modes))))
 
 (defun ocodo-grass:smt/background (theme)
-  (let ((width (smt/window-pixel-width))
+  (let ((os (cond
+             ((eq (window-system) 'ns) "file:///Users/jason/.emacs.d/plugins/apple-os-icon.svg")
+             ((eq (window-system) 'mac) "file:///Users/jason/.emacs.d/plugins/apple-os-icon.svg")
+             ((eq (window-system) 'x)  "file:///Users/jason/.emacs.d/plugins/linux-os-icon.svg")
+            ))
+        (width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
        (linearGradient
@@ -114,7 +119,10 @@ Overrides smt core."
          :stdDeviation "5")
         (feComposite)))
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)" :fill-opacity 1)
-      (rect :width "100%" :height 1 :x 0 :y height :fill "#383838" :fill-opacity 1)
+      (rect :width "100%" :height 2 :x 0 :y 0 :fill "#383838" :fill-opacity 0.2)
+
+      (image :width "100%" :height 2000 :x 0 :y 0
+       :xlink:href "file:///Users/jason/Downloads/Grey-damask-pattern-vector/Damask 6.svg")
 
       (g :transform "translate(-38,0)"
          (g :transform "matrix(1.25,0,0,-1.25,0,32)"
@@ -177,6 +185,7 @@ Overrides smt core."
             (g :transform "matrix(0.14833729,0,0,0.14833729,51.437629,5.9236201e-7)" (path :fill "#AEC680" :fill-opacity 0.7 :d "M 0,0 61.922,0 30.962,48.353 0,0 z"))
             (g :transform "matrix(0.14833729,0,0,0.14833729,56.030478,7.1726129)"    (path :fill "#B1D766" :fill-opacity 0.7 :d "m 0,0 30.96,-48.353 22.016,0 18.102,28.27 L 71.078,0 0,0 z"))
             (g :transform "matrix(0.14833729,0,0,0.14833729,63.88878,5.9236201e-7)"  (path :fill "#C1EE67" :fill-opacity 0.7 :d "m 0,0 18.102,0 0,28.27 L 0,0 z"))))
+
       )))
 
 (defun ocodo-grass:smt/overlay (theme)
@@ -305,4 +314,9 @@ Overrides smt core."
 (smt/set-theme 'ocodo-grass:smt)
 
 (provide 'ocodo-grass-smt)
+
+;; Local Variables:
+;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
+;; End:
+
 ;;; ocodo-grass-smt.el ends here
