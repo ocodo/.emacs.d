@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "svg-mode-line-themes" "svg-mode-line-themes.el"
-;;;;;;  (21818 58250 159401 0))
+;;;;;;  (21820 32875 0 0))
 ;;; Generated autoloads from svg-mode-line-themes.el
 
 (autoload 'smt/next-theme "svg-mode-line-themes" "\
@@ -27,7 +27,7 @@
 ;;;### (autoloads nil nil ("svg-mode-line-themes-bio-diesel.el" "svg-mode-line-themes-black-crystal.el"
 ;;;;;;  "svg-mode-line-themes-core.el" "svg-mode-line-themes-diesel.el"
 ;;;;;;  "svg-mode-line-themes-nasa.el" "svg-mode-line-themes-pkg.el"
-;;;;;;  "svg-mode-line-themes-widgets.el") (21818 58250 193913 113000))
+;;;;;;  "svg-mode-line-themes-widgets.el") (21820 32875 975930 0))
 
 ;;;***
 
