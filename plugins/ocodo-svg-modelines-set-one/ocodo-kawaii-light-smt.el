@@ -33,9 +33,9 @@
 ;;; Code:
 
 (require 'svg-mode-line-themes)
+(require 'ocodo-smt-overrides)
 
 (smt/enable)
-
 (let ((theme (cdr (assoc 'archetype smt/themes)))
       (row (cdr (assoc 'archetype smt/rows))))
   ;; *******************************************************
@@ -44,67 +44,14 @@
   (setf (getf theme :style) (list :font-size "10pt" :font-family "Menlo"))
   (setf (getf row :baseline) 17))
 
-(setq default-active "#000000")
-(setq default-inactive "#333333")
-(setq bg-gradient-main "#484848")
-(setq bg-gradient-dark "#000000")
-(setq bg-gradient-hi "#FFFFFF")
-(setq overlay-dark "#000000")
-(setq overlay-light "#FFFFFF")
-
 (set-face-attribute 'mode-line nil :box nil)
 (set-face-attribute 'mode-line-inactive nil :box nil)
-
-(defun smt/buffer-indicators-text (widget)
-  "Provide buffer state indicators.
-WIDGET is a required param.
-Overrides smt core."
-  (if buffer-read-only " RO " " RW "))
-
-(defun smt/buffer-name-text (widget)
-  "Show the current buffer name.
-WIDGET is a required param.
-Overrides smt core."
-  (format-mode-line "%b"))
-
-(defun smt/minor-mode-indicator-text (widget)
-  "Minor mode indication.
-WIDGET is a required param.
-Overrides smt core."
-  (concat
-   (when defining-kbd-macro                             " REC ")
-   (when (bound-and-true-p projectile-mode)             " Prj ")
-   (when (bound-and-true-p projectile-rails-mode)       " Rails ")
-   (when (bound-and-true-p smartparens-mode)            " [S] ")
-   (when (or (bound-and-true-p evil-local-mode)
-             (bound-and-true-p evil-mode))              " Evil ")
-   (when (bound-and-true-p dired-omit-mode)             " O ")
-   (when (bound-and-true-p rainbow-mode)                " Rbow ")
-   (when (bound-and-true-p global-auto-revert-mode)     " ARv ")
-   (when (bound-and-true-p visual-line-mode)            " Vl ")
-   (when (bound-and-true-p multiple-cursors-mode)       " Mc ")
-   (when (bound-and-true-p iedit-mode)                  " iE ")))
-
-(smt/defwidget buffer-dirty
-  :text (lambda (widget)
-          (if (and (buffer-modified-p)
-                   (or buffer-file-name buffer-offer-save))
-              " ❉ " " ✓ ")))
-
-(smt/defwidget position-info
-  :text (lambda (widget)
-          (format-mode-line "%l:%c [%p] %I"))
-  :on-click (lambda (widget event)
-              (what-cursor-position t)))
-
-(smt/defwidget major-mode
-  :text (lambda (widget)
-          (format-mode-line mode-name))
-  :on-click (lambda (widget event)
-              (message " %s " (format-mode-line mode-line-modes))))
+(smt/set-theme 'ocodo-kawaii-light:smt)
 
 (defun ocodo-kawaii-light:smt/background (theme)
-  (let ((width (smt/window-pixel-width))
+  (let ((bg-gradient-dark "#000000")
+        (bg-gradient-main "#484848")
+        (width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
        (linearGradient
@@ -119,49 +66,50 @@ Overrides smt core."
          :stdDeviation "5")
         (feComposite)))
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
-      (image :x -18 :y -12 :width 75 :height 75 :xlink:href "http://i.imgur.com/Sv9cC3J.png")
-      )))
+      ;; Moustache Banana... inject your own cuteness/darkness/blanditude here
+      (image :x -18 :y -12 :width 75 :height 75 :xlink:href "http://i.imgur.com/Sv9cC3J.png"))))
 
 (defun ocodo-kawaii-light:smt/overlay (theme)
-  (let ((width (smt/window-pixel-width))
+  (let ((overlay-dark "#000000")
+        (overlay-light "#FFFFFF")
+        (width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
        (linearGradient
         :id "over-gradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"
         (stop :offset 0 :stop-color ,overlay-light :stop-opacity 0.2)
         (stop :offset 1 :stop-color ,overlay-dark :stop-opacity 0.5)))
-      (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#over-gradient)")
-      )))
+      (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#over-gradient)"))))
 
-(defun smt/ocodo-buffer-name-style (widget)
+(defun smt/ocodo-kawaii-light-buffer-name-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :font-family "sans-serif"
         :filter nil
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) "#000000" "#333333")))
 
-(defun smt/ocodo-major-mode-style (widget)
+(defun smt/ocodo-kawaii-light-major-mode-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :filter nil
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) "#000000" "#333333")))
 
-(defun smt/ocodo-info-style (widget)
+(defun smt/ocodo-kawaii-light-info-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) "#000000" "#333333")))
 
-(defun smt/ocodo-position-info-style (widget)
+(defun smt/ocodo-kawaii-light-position-info-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :filter nil
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) "#000000" "#333333")))
 
-(defun smt/ocodo-dirty-style (widget)
+(defun smt/ocodo-kawaii-light-dirty-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :filter nil
@@ -172,13 +120,13 @@ Overrides smt core."
                 ;; Untouched
                 (if (smt/window-active-p) "#3d7058" "#143519"))))
 
-(defun smt/ocodo-minor-mode-style (widget)
-  (list :font-weight "normal"
+(defun smt/ocodo-kawaii-light-minor-mode-style (widget)
+o  (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) "#000000" "#333333")))
 
-(defun smt/ocodo-version-control-style (widget)
+(defun smt/ocodo-kawaii-light-version-control-style (widget)
   (list :font-weight "bold"
         :font-size "8pt"
         :filter nil
@@ -186,7 +134,6 @@ Overrides smt core."
         :fill (if (smt/window-active-p) "#5D3D70" "#333333")))
 
 (smt/defrow default-left
-  ;; rw/ro filename saved?
   :widgets '(buffer-info buffer-name buffer-dirty)
   :margin 7)
 
@@ -205,50 +152,54 @@ Overrides smt core."
   :background 'ocodo-kawaii-light:smt/background
   :overlay    'ocodo-kawaii-light:smt/overlay
   :local-widgets
-  ;;; Note order of widgets are determined by smt/defrows above.
+  ;;; Note order of widgets are determined by smt/defrows above, not here.
   (list (cons 'major-mode
               (smt/make-widget
                :prototype 'major-mode
-               :style 'smt/ocodo-major-mode-style))
+               :style 'smt/ocodo-kawaii-light-major-mode-style))
 
         (cons 'minor-modes
               (smt/make-widget
                :prototype 'minor-modes
-               :style 'smt/ocodo-minor-mode-style))
+               :style 'smt/ocodo-kawaii-light-minor-mode-style))
 
         (cons 'version-control
               (smt/make-widget
                :prototype 'version-control
-               :style 'smt/ocodo-version-control-style))
+               :style 'smt/ocodo-kawaii-light-version-control-style))
 
         (cons 'position-info
               (smt/make-widget
                :prototype 'position-info
-               :style 'smt/ocodo-position-info-style))
+               :style 'smt/ocodo-kawaii-light-position-info-style))
 
         (cons 'buffer-info
               (smt/make-widget
                :prototype 'buffer-info
-               :style 'smt/ocodo-info-style))
+               :style 'smt/ocodo-kawaii-light-info-style))
 
         (cons 'buffer-dirty
               (smt/make-widget
                :prototype 'buffer-dirty
-               :style 'smt/ocodo-dirty-style))
+               :style 'smt/ocodo-kawaii-light-dirty-style))
 
         (cons 'buffer-name
               (smt/make-widget
                :prototype 'buffer-name
-               :style 'smt/ocodo-buffer-name-style)))
+               :style 'smt/ocodo-kawaii-light-buffer-name-style)))
 
   :rows (list 'default-left 'default-right 'default-position))
 
 (smt/set-theme 'ocodo-kawaii-light:smt)
 
+;;;###autoload
 (provide 'ocodo-kawaii-light-smt)
 
+;; Hi-lock: (("(\\(smt/def[^ ]*\\)" (1 'font-lock-keyword-face append)))
+;; Hi-lock: end
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
+;; eval: (hi-lock-mode)
 ;; End:
 
 ;;; ocodo-kawaii-light-smt.el ends here

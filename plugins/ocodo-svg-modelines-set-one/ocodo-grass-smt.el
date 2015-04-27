@@ -33,77 +33,27 @@
 ;;; Code:
 
 (require 'svg-mode-line-themes)
+(require 'ocodo-smt-overrides)
 
-(smt/enable)
+;;;###autoload
+(defun ocodo-grass-svg-modeline ()
+  (interactive)
+  (smt/enable)
+  (let ((theme (cdr (assoc 'archetype smt/themes)))
+        (row (cdr (assoc 'archetype smt/rows))))
+    ;; *******************************************************
+    ;;  Customise to use your desired default monospaced font
+    ;; *******************************************************
+    (setf (getf theme :style) (list :font-size "10pt" :font-family "Menlo"))
 
-(let ((theme (cdr (assoc 'archetype smt/themes)))
-      (row (cdr (assoc 'archetype smt/rows))))
-  ;; *******************************************************
-  ;;  Customise to use your desired default monospaced font
-  ;; *******************************************************
-  (setf (getf theme :style) (list :font-size "10pt" :font-family "Menlo"))
+    (setf (getf row :baseline) 17))
+  (set-face-attribute 'mode-line nil :box nil)
+  (set-face-attribute 'mode-line-inactive nil :box nil)
+  (smt/set-theme 'ocodo-grass:smt))
 
-  (setf (getf row :baseline) 17))
-
-(set-face-attribute 'mode-line nil :box nil)
-(set-face-attribute 'mode-line-inactive nil :box nil)
-
-(defun smt/buffer-indicators-text (widget)
-  "Provide buffer state indicators.
-WIDGET is a required param.
-Overrides smt core."
-  (if buffer-read-only " RO " " RW "))
-
-(defun smt/buffer-name-text (widget)
-  "Show the current buffer name.
-WIDGET is a required param.
-Overrides smt core."
-  (format-mode-line "%b"))
-
-(defun smt/minor-mode-indicator-text (widget)
-  "Minor mode indication.
-WIDGET is a required param.
-Overrides smt core."
-  (concat
-     (when defining-kbd-macro                             " REC ")
-     (when (bound-and-true-p projectile-mode)             " Prj ")
-     (when (bound-and-true-p projectile-rails-mode)       " Rails ")
-     (when (bound-and-true-p smartparens-mode)            " [S] ")
-     (when (or (bound-and-true-p evil-local-mode)
-               (bound-and-true-p evil-mode))              " Evil ")
-     (when (bound-and-true-p dired-omit-mode)             " O ")
-     (when (bound-and-true-p rainbow-mode)                " Rbow ")
-     (when (bound-and-true-p global-auto-revert-mode)     " ARv ")
-     (when (bound-and-true-p visual-line-mode)            " Vl ")
-     (when (bound-and-true-p multiple-cursors-mode)       " Mc ")
-     (when (bound-and-true-p iedit-mode)                  " iE ")))
-
-(smt/defwidget buffer-dirty
-  :text (lambda (widget)
-          (if (and (buffer-modified-p)
-                   (or buffer-file-name buffer-offer-save))
-              " ❉ " " ✓ ")))
-
-(smt/defwidget position-info
-  :text (lambda (widget)
-          (format-mode-line "%l:%c [%p] %I"))
-  :on-click (lambda (widget event)
-              (what-cursor-position t)))
-
-
-(smt/defwidget major-mode
-  :text (lambda (widget)
-          (format-mode-line mode-name))
-  :on-click (lambda (widget event)
-              (message " %s " (format-mode-line mode-line-modes))))
 
 (defun ocodo-grass:smt/background (theme)
-  (let ((os (cond
-             ((eq (window-system) 'ns) "file:///Users/jason/.emacs.d/plugins/apple-os-icon.svg")
-             ((eq (window-system) 'mac) "file:///Users/jason/.emacs.d/plugins/apple-os-icon.svg")
-             ((eq (window-system) 'x)  "file:///Users/jason/.emacs.d/plugins/linux-os-icon.svg")
-            ))
-        (width (smt/window-pixel-width))
+  (let ((width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
        (linearGradient
@@ -182,7 +132,6 @@ Overrides smt core."
             (g :transform "matrix(0.14833729,0,0,0.14833729,51.437629,5.9236201e-7)" (path :fill "#AEC680" :fill-opacity 0.7 :d "M 0,0 61.922,0 30.962,48.353 0,0 z"))
             (g :transform "matrix(0.14833729,0,0,0.14833729,56.030478,7.1726129)"    (path :fill "#B1D766" :fill-opacity 0.7 :d "m 0,0 30.96,-48.353 22.016,0 18.102,28.27 L 71.078,0 0,0 z"))
             (g :transform "matrix(0.14833729,0,0,0.14833729,63.88878,5.9236201e-7)"  (path :fill "#C1EE67" :fill-opacity 0.7 :d "m 0,0 18.102,0 0,28.27 L 0,0 z"))))
-
       )))
 
 (defun ocodo-grass:smt/overlay (theme)
@@ -197,34 +146,34 @@ Overrides smt core."
         (stop :offset "100%" :style "stop-color:#000000;stop-opacity:0.8")))
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#over-gradient)"))))
 
-(defun smt/ocodo-buffer-name-style (widget)
+(defun smt/ocodo-grass-buffer-name-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :font-family "sans-serif"
         :filter nil
         :fill (if (smt/window-active-p) "#FFFFFF" "#666666")))
 
-(defun smt/ocodo-major-mode-style (widget)
+(defun smt/ocodo-grass-major-mode-style (widget)
   (list :font-weight "normal"
         :font-size "10pt"
         :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#AAAAAA" "#666666")))
 
-(defun smt/ocodo-info-style (widget)
+(defun smt/ocodo-grass-info-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#999999" "#555555")))
 
-(defun smt/ocodo-position-info-style (widget)
+(defun smt/ocodo-grass-position-info-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :filter nil
         :fill (if (smt/window-active-p) "#DDDDDD" "#999999")))
 
-(defun smt/ocodo-dirty-style (widget)
+(defun smt/ocodo-grass-dirty-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :filter nil
@@ -235,13 +184,13 @@ Overrides smt core."
                 ;; Untouched
                 (if (smt/window-active-p) "#1F4F25" "#143519"))))
 
-(defun smt/ocodo-minor-mode-style (widget)
+(defun smt/ocodo-grass-minor-mode-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
         :fill (if (smt/window-active-p) "#FFFFFF" "#666666")))
 
-(defun smt/ocodo-version-control-style (widget)
+(defun smt/ocodo-grass-version-control-style (widget)
   (list :font-weight "bold"
         :font-size "8pt"
         :filter nil
@@ -271,48 +220,50 @@ Overrides smt core."
   (list (cons 'major-mode
               (smt/make-widget
                :prototype 'major-mode
-               :style 'smt/ocodo-major-mode-style))
+               :style 'smt/ocodo-grass-major-mode-style))
 
         (cons 'minor-modes
               (smt/make-widget
                :prototype 'minor-modes
-               :style 'smt/ocodo-minor-mode-style))
+               :style 'smt/ocodo-grass-minor-mode-style))
 
         (cons 'version-control
               (smt/make-widget
                :prototype 'version-control
-               :style 'smt/ocodo-version-control-style))
+               :style 'smt/ocodo-grass-version-control-style))
 
         (cons 'position-info
               (smt/make-widget
                :prototype 'position-info
-               :style 'smt/ocodo-position-info-style))
+               :style 'smt/ocodo-grass-position-info-style))
 
         (cons 'buffer-info
               (smt/make-widget
                :prototype 'buffer-info
-               :style 'smt/ocodo-info-style))
+               :style 'smt/ocodo-grass-info-style))
 
         (cons 'buffer-dirty
               (smt/make-widget
                :prototype 'buffer-dirty
-               :style 'smt/ocodo-dirty-style))
+               :style 'smt/ocodo-grass-dirty-style))
 
         (cons 'buffer-name
               (smt/make-widget
                :prototype 'buffer-name
-               :style 'smt/ocodo-buffer-name-style)))
+               :style 'smt/ocodo-grass-buffer-name-style)))
 
   :rows (list
          'default-left
          'default-position
          'default-right))
 
-(smt/set-theme 'ocodo-grass:smt)
 
 (provide 'ocodo-grass-smt)
 
+;; Hi-lock: (("(\\(smt/def[^ ]*\\)" (1 'font-lock-keyword-face append)))
+;; Hi-lock: end
 ;; Local Variables:
+;; eval: (hi-lock-mode)
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
 ;; End:
 

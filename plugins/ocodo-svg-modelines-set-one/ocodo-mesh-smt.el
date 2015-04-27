@@ -1,4 +1,4 @@
-;;; ocodo-svg-mode-line --- Yet another attempt at a super cool modeline for Emacs
+;;; ocodo-mesh-smt --- Yet another attempt at a super cool modeline for Emacs
 
 ;;; Commentary:
 
@@ -6,7 +6,7 @@
 ;; https://github.com/sabof/svg-mode-line-themes
 
 ;; Hopefully a skillful Emacs user will see the correlation of xmlgen
-;; and svg below (esp. ocodo:smt/background) and from there, with some
+;; and svg below (esp. ocodo-mesh:smt/background) and from there, with some
 ;; careful visual work, can pull any old thing from Inkscape and make
 ;; a nice adornment to their modeline.
 
@@ -85,7 +85,7 @@
   :align "right"
   :margin 30)
 
-(defun ocodo:smt/background (theme)
+(defun ocodo-mesh:smt/background (theme)
   (let ((width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -165,7 +165,7 @@
             (g :transform "translate(691.4611,319.3578)" (path :fill "#83373c" :fill-opacity 0.6  :d "m 0,0 18.102,0 0,28.27 L 0,0 z" )))))))
 
 
-(defun ocodo:smt/overlay (theme)
+(defun ocodo-mesh:smt/overlay (theme)
   (let ((width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -242,10 +242,10 @@
                   "#60B18C"
                 "#666666")))
 
-(smt/deftheme ocodo:smt
+(smt/deftheme ocodo-mesh:smt
   :pixel-height 32
-  :background 'ocodo:smt/background
-  :overlay    'ocodo:smt/overlay
+  :background 'ocodo-mesh:smt/background
+  :overlay    'ocodo-mesh:smt/overlay
   :local-widgets
   (list (cons 'major-mode
               (smt/make-widget
@@ -296,9 +296,9 @@
 
   (setf (getf row :baseline) 19))
 
-(smt/set-theme 'ocodo:smt)
+(smt/set-theme 'ocodo-mesh:smt)
 (set-face-attribute 'mode-line nil :box nil)
 (set-face-attribute 'mode-line-inactive nil :box nil)
 
-(provide 'ocodo-svg-mode-line)
-;;; ocodo-svg-mode-line.el ends here
+(provide 'ocodo-mesh)
+;;; ocodo-mesh-smt.el ends here
