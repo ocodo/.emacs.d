@@ -1,4 +1,5 @@
 ;;; ocodo-smt-overrides --- Override some core parts of svg-mode-line-themes
+(require 'svg-mode-line-themes)
 
 (defun smt/buffer-indicators-text (widget)
   "Provide buffer state indicators.
@@ -47,5 +48,14 @@ Overrides smt core."
           (format-mode-line mode-name))
   :on-click (lambda (widget event)
               (message " %s " (format-mode-line mode-line-modes))))
+
+(defun ocodo:smt/setup (baseline &optional monofont)
+  (let ((theme (cdr (assoc 'archetype smt/themes)))
+        (row (cdr (assoc 'archetype smt/rows))))
+    (setf (getf theme :style) (list :font-size "10pt" :font-family monofont))
+    (setf (getf row :baseline) baseline))
+
+  (set-face-attribute 'mode-line nil :box nil)
+  (set-face-attribute 'mode-line-inactive nil :box nil))
 
 (provide 'ocodo-smt-overrides)

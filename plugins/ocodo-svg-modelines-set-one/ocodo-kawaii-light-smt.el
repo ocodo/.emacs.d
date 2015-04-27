@@ -36,17 +36,6 @@
 (require 'ocodo-smt-overrides)
 
 (smt/enable)
-(let ((theme (cdr (assoc 'archetype smt/themes)))
-      (row (cdr (assoc 'archetype smt/rows))))
-  ;; *******************************************************
-  ;;  Customise to use your desired default monospaced font
-  ;; *******************************************************
-  (setf (getf theme :style) (list :font-size "10pt" :font-family "Menlo"))
-  (setf (getf row :baseline) 17))
-
-(set-face-attribute 'mode-line nil :box nil)
-(set-face-attribute 'mode-line-inactive nil :box nil)
-(smt/set-theme 'ocodo-kawaii-light:smt)
 
 (defun ocodo-kawaii-light:smt/background (theme)
   (let ((bg-gradient-dark "#000000")
@@ -121,7 +110,7 @@
                 (if (smt/window-active-p) "#3d7058" "#143519"))))
 
 (defun smt/ocodo-kawaii-light-minor-mode-style (widget)
-o  (list :font-weight "normal"
+  (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
         :fill (if (smt/window-active-p) "#000000" "#333333")))
@@ -190,12 +179,14 @@ o  (list :font-weight "normal"
 
   :rows (list 'default-left 'default-right 'default-position))
 
+(ocodo:smt/setup 17 "Menlo")
+
 (smt/set-theme 'ocodo-kawaii-light:smt)
 
 ;;;###autoload
 (provide 'ocodo-kawaii-light-smt)
 
-;; Hi-lock: (("(\\(smt/def[^ ]*\\)" (1 'font-lock-keyword-face append)))
+;; Hi-lock: (("(\\(smt/[^ ]*\\)" (1 ' font-lock-keyword-face append)))
 ;; Hi-lock: end
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))

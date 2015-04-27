@@ -7,8 +7,6 @@
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;
 ;;; Code:
-(load-library "cl")
-
 (let ((default-directory user-emacs-directory))
   (add-to-list 'load-path (expand-file-name "init-helpers")))
 
@@ -25,11 +23,6 @@
 
 ;; Explicit Requires ...
 (dolist (lib '(init-elpa
-               cl
-               cl-lib
-               s
-               f
-               dash
                handy-functions
                custom-keys
                ag
@@ -97,7 +90,10 @@
 
 ;; When GUI (hopefully svg is available!)
 ;; Load an SVG Modeline
-(when (and (image-type-available-p 'svg) (window-system)) (require 'ocodo-grass-smt))
+(when (and (image-type-available-p 'svg) (window-system))
+  (load-library "ocodo-grass-smt")
+  (smt/enable)
+  (smt/set-theme 'ocodo-grass:smt))
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
