@@ -56,7 +56,9 @@
         (feComposite)))
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
       ;; Moustache Banana... inject your own cuteness/darkness/blanditude here
-      (image :x -18 :y -12 :width 75 :height 75 :xlink:href "http://i.imgur.com/Sv9cC3J.png"))))
+      (image :x -18 :y -12
+             :width 75 :height 75
+             :xlink:href "http://i.imgur.com/Sv9cC3J.png"))))
 
 (defun ocodo-kawaii-light:smt/overlay (theme)
   (let ((overlay-dark "#000000")
@@ -124,7 +126,7 @@
 
 (smt/defrow default-left
   :widgets '(buffer-info buffer-name buffer-dirty)
-  :margin 7)
+  :margin 9)
 
 (smt/defrow default-right
   :widgets '(major-mode version-control minor-modes)
@@ -180,10 +182,6 @@
   :rows (list 'default-left 'default-right 'default-position))
 
 (ocodo:smt/setup 17 "Menlo")
-
-(smt/set-theme 'ocodo-kawaii-light:smt)
-
-;;;###autoload
 (provide 'ocodo-kawaii-light-smt)
 
 ;; Hi-lock: (("(\\(smt/[^ ]*\\)" (1 ' font-lock-keyword-face append)))

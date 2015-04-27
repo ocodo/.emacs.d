@@ -90,10 +90,13 @@
 
 ;; When GUI (hopefully svg is available!)
 ;; Load an SVG Modeline
-(when (and (image-type-available-p 'svg) (window-system))
+(when (image-type-available-p 'svg)
   (load-library "ocodo-grass-smt")
+  (load-library "ocodo-kawaii-light-smt")
+  (load-library "ocodo-mesh-smt")
   (smt/enable)
-  (smt/set-theme 'ocodo-grass:smt))
+  (smt/set-theme 'ocodo-mesh:smt)
+  )
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
