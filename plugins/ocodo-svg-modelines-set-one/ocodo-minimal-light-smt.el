@@ -1,48 +1,15 @@
 ;;; ocodo-minimal-light-smt --- Yet another attempt at a super cool modeline for Emacs
-
+;;
 ;;; Commentary:
-
-;; Work in progress, check commit history for variations.
-
+;;
 ;; Made with the svg-mode-line-themes toolkit from Sabof.
 ;; https://github.com/sabof/svg-mode-line-themes
-
-;; Hopefully a skillful Emacs user will see the correlation of xmlgen
-;; and svg below (esp. ocodo-minimal-light:smt/background) and from there, with some
-;; careful visual work, can pull any old thing from Inkscape and make
-;; a nice adornment to their modeline.
-
-;; Note you will be able to include external svg/png (and other
-;; format) images using the (image ) svg tag.
-
-;; Obviously this could proliferate to nyan-cats, hello kitty and
-;; other pop culture iconography all over people's modelines... (no
-;; comment on that, but I expect it will be fun for a moment.)
-
-;; Please this is provided as an example / inspiration, there won't be
-;; support etc. (not for now at least)
-
-;; To install, put this file in your emacs load-path and do (require
-;; 'ocodo-svg-mode-line) in your .emacs
-
-;; I hope you enjoy it.
-
-;; Please Note: I am using Menlo as my default named font, other
-;; styles use the generic "sans-serif" font pointer.
-
+;;
 ;;; Code:
 
-(require 'svg-mode-line-themes)
+(require 'ocodo-smt-overrides)
 
-(smt/enable)
-
-(let ((theme (cdr (assoc 'archetype smt/themes)))
-      (row (cdr (assoc 'archetype smt/rows))))
-  ;; *******************************************************
-  ;;  Customise to use your desired default monospaced font
-  ;; *******************************************************
-  (setf (getf theme :style) (list :font-size "10pt" :font-family "Menlo"))
-  (setf (getf row :baseline) 17))
+(setq ocodo-minimal-light:fileurl-prefix (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
 (setq default-active "#000000")
 (setq default-inactive "#333333")
@@ -51,57 +18,6 @@
 (setq bg-gradient-hi "#FFFFFF")
 (setq overlay-dark "#000000")
 (setq overlay-light "#FFFFFF")
-
-(set-face-attribute 'mode-line nil :box nil)
-(set-face-attribute 'mode-line-inactive nil :box nil)
-
-(defun smt/buffer-indicators-text (widget)
-  "Provide buffer state indicators.
-WIDGET is a required param.
-Overrides smt core."
-  (if buffer-read-only " RO " " RW "))
-
-(defun smt/buffer-name-text (widget)
-  "Show the current buffer name.
-WIDGET is a required param.
-Overrides smt core."
-  (format-mode-line "%b"))
-
-(defun smt/minor-mode-indicator-text (widget)
-  "Minor mode indication.
-WIDGET is a required param.
-Overrides smt core."
-  (concat
-   (when defining-kbd-macro                             " REC ")
-   (when (bound-and-true-p projectile-mode)             " Prj ")
-   (when (bound-and-true-p projectile-rails-mode)       " Rails ")
-   (when (bound-and-true-p smartparens-mode)            " [S] ")
-   (when (or (bound-and-true-p evil-local-mode)
-             (bound-and-true-p evil-mode))              " Evil ")
-   (when (bound-and-true-p dired-omit-mode)             " O ")
-   (when (bound-and-true-p rainbow-mode)                " Rbow ")
-   (when (bound-and-true-p global-auto-revert-mode)     " ARv ")
-   (when (bound-and-true-p visual-line-mode)            " Vl ")
-   (when (bound-and-true-p multiple-cursors-mode)       " Mc ")
-   (when (bound-and-true-p iedit-mode)                  " iE ")))
-
-(smt/defwidget buffer-dirty
-  :text (lambda (widget)
-          (if (and (buffer-modified-p)
-                   (or buffer-file-name buffer-offer-save))
-              " ❉ " " ✓ ")))
-
-(smt/defwidget position-info
-  :text (lambda (widget)
-          (format-mode-line "%l:%c [%p] %I"))
-  :on-click (lambda (widget event)
-              (what-cursor-position t)))
-
-(smt/defwidget major-mode
-  :text (lambda (widget)
-          (format-mode-line mode-name))
-  :on-click (lambda (widget event)
-              (message " %s " (format-mode-line mode-line-modes))))
 
 (defun ocodo-minimal-light:smt/background (theme)
   (let ((width (smt/window-pixel-width))

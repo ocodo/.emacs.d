@@ -9,16 +9,11 @@
 
 (require 'ocodo-smt-overrides)
 
-(when load-file-name
-  (setq ocodo-grass-smt-fileurl
-        (concat "file://" (file-name-directory
-                           (if load-file-name
-                               load-file-name
-                             (buffer-file-name))))))
+(setq ocodo-grass:fileurl-prefix (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
 (defun ocodo-grass:smt/background (theme)
-  (let* ((mesh-left (concat ocodo-grass-smt-fileurl "mesh-grass-left.svg"))
-         (mesh-right (concat ocodo-grass-smt-fileurl "mesh-grass-right.svg"))
+  (let* ((mesh-left (concat ocodo-grass:fileurl-prefix "mesh-grass-left.svg"))
+         (mesh-right (concat ocodo-grass:fileurl-prefix "mesh-grass-right.svg"))
          (width (smt/window-pixel-width))
          (height (smt/t-pixel-height theme)))
     `((\defs

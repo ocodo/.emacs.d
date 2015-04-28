@@ -1,35 +1,10 @@
 ;;; ocodo-kawaii-light-smt --- Yet another attempt at a super cool modeline for Emacs
-
+;;
 ;;; Commentary:
-
-;; Work in progress, check commit history for variations.
-
+;;
 ;; Made with the svg-mode-line-themes toolkit from Sabof.
 ;; https://github.com/sabof/svg-mode-line-themes
-
-;; Hopefully a skillful Emacs user will see the correlation of xmlgen
-;; and svg below (esp. ocodo-kawaii-light:smt/background) and from there, with some
-;; careful visual work, can pull any old thing from Inkscape and make
-;; a nice adornment to their modeline.
-
-;; Note you will be able to include external svg/png (and other
-;; format) images using the (image ) svg tag.
-
-;; Obviously this could proliferate to nyan-cats, hello kitty and
-;; other pop culture iconography all over people's modelines... (no
-;; comment on that, but I expect it will be fun for a moment.)
-
-;; Please this is provided as an example / inspiration, there won't be
-;; support etc. (not for now at least)
-
-;; To install, put this file in your emacs load-path and do (require
-;; 'ocodo-svg-mode-line) in your .emacs
-
-;; I hope you enjoy it.
-
-;; Please Note: I am using Menlo as my default named font, other
-;; styles use the generic "sans-serif" font pointer.
-
+;;
 ;;; Code:
 
 (require 'svg-mode-line-themes)
@@ -56,8 +31,7 @@
         (feComposite)))
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
       ;; Moustache Banana... inject your own cuteness/darkness/blanditude here
-      (image :x -18 :y -12
-             :width 75 :height 75
+      (image :x -18 :y -12 :width 75 :height 75
              :xlink:href "http://i.imgur.com/Sv9cC3J.png"))))
 
 (defun ocodo-kawaii-light:smt/overlay (theme)
@@ -126,7 +100,7 @@
 
 (smt/defrow default-left
   :widgets '(buffer-info buffer-name buffer-dirty)
-  :margin 9)
+  :margin 8)
 
 (smt/defrow default-right
   :widgets '(major-mode version-control minor-modes)
