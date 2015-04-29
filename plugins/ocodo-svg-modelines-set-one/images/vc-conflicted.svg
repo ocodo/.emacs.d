@@ -9,12 +9,12 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="100"
-   height="100"
+   width="26"
+   height="26"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.5 r10040"
-   sodipodi:docname="vc-ok.svg">
+   inkscape:version="0.48.2 r9819"
+   sodipodi:docname="vc-conflicted.svg">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -25,16 +25,20 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="87.675737"
-     inkscape:cy="4.1043085"
+     inkscape:cx="24.104308"
+     inkscape:cy="61.247253"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="820"
-     inkscape:window-height="1149"
-     inkscape:window-x="560"
-     inkscape:window-y="233"
-     inkscape:window-maximized="0" />
+     inkscape:window-width="1088"
+     inkscape:window-height="721"
+     inkscape:window-x="324"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -43,7 +47,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -51,27 +55,38 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-952.36218)">
-    <path
-       transform="matrix(0.81871343,0,0,0.81871497,36.25731,987.15747)"
-       d="m 77.857145,18.571428 a 61.07143,61.07143 0 1 1 -122.14286,0 61.07143,61.07143 0 1 1 122.14286,0 z"
-       sodipodi:ry="61.07143"
-       sodipodi:rx="61.07143"
-       sodipodi:cy="18.571428"
-       sodipodi:cx="16.785715"
-       id="path2987"
-       style="fill:#ffff00;fill-opacity:1;stroke:none"
-       sodipodi:type="arc" />
-    <text
-       xml:space="preserve"
-       style="font-size:101.45310211px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial Rounded MT Bold;-inkscape-font-specification:Arial Rounded MT Bold"
-       x="51.902718"
-       y="1038.7228"
-       id="text2991"
-       sodipodi:linespacing="125%"><tspan
-         sodipodi:role="line"
-         id="tspan2993"
-         x="51.902718"
-         y="1038.7228">!</tspan></text>
+     transform="translate(-1.9292078e-7,-1026.3622)">
+    <rect
+       style="fill:#000000;fill-rule:evenodd;stroke:none;stroke-width:0.53268707000000004px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:0.19607843"
+       id="rect4507"
+       width="25.467314"
+       height="25.467314"
+       x="0.2663433"
+       y="1026.6285" />
+    <g
+       id="g3180"
+       transform="translate(4.9999999,-5.0000529)">
+      <path
+         sodipodi:type="arc"
+         style="fill:#ffff00;fill-opacity:1;stroke:none"
+         id="path2987"
+         sodipodi:cx="16.785715"
+         sodipodi:cy="18.571428"
+         sodipodi:rx="61.07143"
+         sodipodi:ry="61.07143"
+         d="m 77.857145,18.571428 c 0,33.72882 -27.34261,61.071431 -61.07143,61.071431 -33.728819,0 -61.07143,-27.342611 -61.07143,-61.071431 0,-33.728819 27.342611,-61.07143 61.07143,-61.07143 33.72882,0 61.07143,27.342611 61.07143,61.07143 z"
+         transform="matrix(0.13099415,0,0,0.13099439,5.8011698,1041.9295)" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text2991"
+         y="1050.1799"
+         x="8.007926"
+         style="font-size:16.23249626px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial Rounded MT Bold;-inkscape-font-specification:Arial Rounded MT Bold"
+         xml:space="preserve"><tspan
+           y="1050.1799"
+           x="8.007926"
+           id="tspan2993"
+           sodipodi:role="line">!</tspan></text>
+    </g>
   </g>
 </svg>

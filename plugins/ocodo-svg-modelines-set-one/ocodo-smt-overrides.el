@@ -1,5 +1,6 @@
 ;;; ocodo-smt-overrides --- Override some core parts of svg-mode-line-themes
 (require 'svg-mode-line-themes)
+(require 'vc)
 
 (defun smt/buffer-indicators-text (widget)
   "Provide buffer state indicators.
@@ -58,11 +59,14 @@ Overrides smt core."
   (set-face-attribute 'mode-line nil :box nil)
   (set-face-attribute 'mode-line-inactive nil :box nil))
 
-(defun ocodo:smt/vc-state-svg-fileurl ()
+(defun* ocodo:smt/vc-state-svg-fileurl ()
+  (unless (ignore-errors (let ((path (file-name-directory (buffer-file-name))))
+                           (vc-call-backend (vc-responsible-backend path) 'root path)))
+    (return-from ocodo:smt/vc-state-svg-fileurl))
   (ignore-errors
     (let ((file-prefix (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
           (vcs (vc-state (buffer-file-name))))
-      (when (buffer-file-name)
+      (when (and (buffer-file-name))
         (cond
          ((eq vcs 'edited)       (concat file-prefix "images/vc-change.svg"))
          ((eq vcs 'up-to-date)   (concat file-prefix "images/vc-ok.svg"))
@@ -82,9 +86,10 @@ Overrides smt core."
         (stop :offset "75%"  :stop-color "#484848" :stop-opacity 0.3)
         (stop :offset "100%" :stop-color "#000000" :stop-opacity 0.3)))
       (rect  :width "100%"  :height "100%"  :x 0  :y 0  :fill "url(#twisted)"  :fill-opacity 1)
-      (image :x 50            :y 5 :height 16 :width 16  :xlink:href ,(ocodo:smt/vc-state-svg-fileurl))
       (image :x -60           :y 0 :height 26 :width 100 :xlink:href ,url)
-      (image :x ,(- width 30) :y 0 :height 26 :width 100 :xlink:href ,url))))
+      (image :x ,(- width 30) :y 0 :height 26 :width 100 :xlink:href ,url)
+      (image :x 40            :y 0 :height 26 :width 26  :xlink:href ,(ocodo:smt/vc-state-svg-fileurl))
+      )))
 
 (defun ocodo:smt/overlay (theme)
   (let ((width (smt/window-pixel-width))

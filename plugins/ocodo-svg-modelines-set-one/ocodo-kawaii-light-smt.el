@@ -13,7 +13,7 @@
       (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
 (smt/defrow default-left
-  :margin 7
+  :margin 9
   :widgets '(buffer-info buffer-name buffer-dirty)
   :align "left")
 
