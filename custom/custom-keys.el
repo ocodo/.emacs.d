@@ -60,6 +60,9 @@
 (global-set-key (kbd "<ESC> <up>")          'move-text-up)
 (global-set-key (kbd "<ESC> <down>")        'move-text-down)
 
+;; Eval
+(global-set-key (kbd "C-x <ESC> e")        'eval-buffer)
+
 ;; Auto fill mode toggle (tidy up text line length automatically.)
 (global-set-key (kbd "C-c q")               'auto-fill-mode)
 

@@ -7,14 +7,30 @@
 ;;
 ;;; Code:
 
-(require 'svg-mode-line-themes)
 (require 'ocodo-smt-overrides)
 
-(smt/enable)
+(setq ocodo-mesh-aqua:fileurl-prefix
+      (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
+
+(smt/defrow default-left
+  :margin 5
+  :widgets '(buffer-info buffer-name buffer-dirty)
+  :align "left")
+
+(smt/defrow default-position
+  :margin 6
+  :widgets '(position-info)
+  :align "right")
+
+(smt/defrow default-right
+  :margin 25
+  :widgets '(major-mode version-control minor-modes)
+  :align "right")
 
 (defun ocodo-kawaii-light:smt/background (theme)
   (let ((bg-gradient-dark "#000000")
         (bg-gradient-main "#484848")
+        (image-url "images/rainbow-stache-banana.png")
         (width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -23,61 +39,42 @@
         (stop :offset "0%"  :stop-color ,bg-gradient-main :stop-opacity 0.2)
         (stop :offset "25%" :stop-color ,bg-gradient-main :stop-opacity 0.2)
         (stop :offset "75%" :stop-color ,bg-gradient-main :stop-opacity 0.2)
-        (stop :offset "100%" :stop-color ,bg-gradient-dark :stop-opacity 0.2))
-       (filter
-        :id "blur"
-        (feGaussianBlur
-         :stdDeviation "5")
-        (feComposite)))
+        (stop :offset "100%" :stop-color ,bg-gradient-dark :stop-opacity 0.2)))
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
       ;; Moustache Banana... inject your own cuteness/darkness/blanditude here
       (image :x -18 :y -12 :width 75 :height 75
-             :xlink:href "http://i.imgur.com/Sv9cC3J.png"))))
+             :xlink:href ,image-url))))
 
 (defun ocodo-kawaii-light:smt/overlay (theme)
-  (let ((overlay-dark "#000000")
-        (overlay-light "#FFFFFF")
-        (width (smt/window-pixel-width))
-        (height (smt/t-pixel-height theme)))
-    `((\defs
-       (linearGradient
-        :id "over-gradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"
-        (stop :offset 0 :stop-color ,overlay-light :stop-opacity 0.2)
-        (stop :offset 1 :stop-color ,overlay-dark :stop-opacity 0.5)))
-      (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#over-gradient)"))))
+  (ocodo:smt/overlay theme))
 
 (defun smt/ocodo-kawaii-light-buffer-name-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :font-family "sans-serif"
-        :filter nil
         :fill (if (smt/window-active-p) "#000000" "#333333")))
 
 (defun smt/ocodo-kawaii-light-major-mode-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
-        :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#000000" "#333333")))
 
 (defun smt/ocodo-kawaii-light-info-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
-        :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#000000" "#333333")))
 
 (defun smt/ocodo-kawaii-light-position-info-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
-        :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#000000" "#333333")))
 
 (defun smt/ocodo-kawaii-light-dirty-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
-        :filter nil
         :font-family "sans-serif"
         :fill (if (and (or buffer-file-name buffer-offer-save) (buffer-modified-p))
                   ;; Dirty
@@ -88,29 +85,13 @@
 (defun smt/ocodo-kawaii-light-minor-mode-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
-        :filter nil
         :fill (if (smt/window-active-p) "#000000" "#333333")))
 
 (defun smt/ocodo-kawaii-light-version-control-style (widget)
   (list :font-weight "bold"
         :font-size "8pt"
-        :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#5D3D70" "#333333")))
-
-(smt/defrow default-left
-  :widgets '(buffer-info buffer-name buffer-dirty)
-  :margin 8)
-
-(smt/defrow default-right
-  :widgets '(major-mode version-control minor-modes)
-  :align "right"
-  :margin 25)
-
-(smt/defrow default-position
-  :widgets '(position-info)
-  :align "right"
-  :margin 1)
 
 (smt/deftheme ocodo-kawaii-light:smt
   :pixel-height 24

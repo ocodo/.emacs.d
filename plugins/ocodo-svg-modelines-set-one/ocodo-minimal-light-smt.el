@@ -11,13 +11,12 @@
 
 (setq ocodo-minimal-light:fileurl-prefix (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
+;; TODO: Don't do this...
 (setq default-active "#000000")
 (setq default-inactive "#333333")
 (setq bg-gradient-main "#484848")
 (setq bg-gradient-dark "#000000")
 (setq bg-gradient-hi "#FFFFFF")
-(setq overlay-dark "#000000")
-(setq overlay-light "#FFFFFF")
 
 (defun ocodo-minimal-light:smt/background (theme)
   (let ((width (smt/window-pixel-width))
@@ -28,34 +27,12 @@
         (stop :offset "0%"  :stop-color ,bg-gradient-main :stop-opacity 0.2)
         (stop :offset "25%" :stop-color ,bg-gradient-main :stop-opacity 0.2)
         (stop :offset "75%" :stop-color ,bg-gradient-main :stop-opacity 0.2)
-        (stop :offset "100%" :stop-color ,bg-gradient-dark :stop-opacity 0.2))
-       (filter
-        :id "blur"
-        (feGaussianBlur
-         :stdDeviation "5")
-        (feComposite)))
+        (stop :offset "100%" :stop-color ,bg-gradient-dark :stop-opacity 0.2)))
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
-      (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)")
-      (path :fill "#EBEAEA" :d "M0 0 L230 0 L239 12 L230 26 L0 26 Z")
-      (path :fill "#F6F1F1" :d ,(format
-                                 "M%i 0 L%i 0 L%i 12 L%i 26 L%i 26 Z"
-                                 width (- width 110) (- width 119) (- width 110) width))
-      )))
-
+      (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)"))))
 
 (defun ocodo-minimal-light:smt/overlay (theme)
-  (let ((width (smt/window-pixel-width))
-        (height (smt/t-pixel-height theme)))
-    `((\defs
-       (linearGradient
-        :id "over-gradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"
-        (stop :offset 0 :stop-color ,overlay-light :stop-opacity 0.1 )
-        (stop :offset 0.5 :stop-color ,overlay-light :stop-opacity 0.0 )
-        (stop :offset 0.5 :stop-color ,overlay-dark :stop-opacity 0.0 )
-        (stop :offset 1 :stop-color ,overlay-dark :stop-opacity 0.1)))
-
-      (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#over-gradient)")
-      )))
+  (ocodo:smt/overlay theme))
 
 (defun smt/ocodo-buffer-name-style (widget)
   (list :font-weight "normal"
@@ -166,8 +143,6 @@
                :style 'smt/ocodo-buffer-name-style)))
 
   :rows (list 'default-left 'default-right 'default-position))
-
-(smt/set-theme 'ocodo-minimal-light:smt)
 
 (provide 'ocodo-minimal-light-smt)
 

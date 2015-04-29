@@ -58,4 +58,44 @@ Overrides smt core."
   (set-face-attribute 'mode-line nil :box nil)
   (set-face-attribute 'mode-line-inactive nil :box nil))
 
+(defun ocodo:smt/vc-state-svg-fileurl ()
+  (ignore-errors
+    (let ((file-prefix (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
+          (vcs (vc-state (buffer-file-name))))
+      (when (buffer-file-name)
+        (cond
+         ((eq vcs 'edited)       (concat file-prefix "images/vc-change.svg"))
+         ((eq vcs 'up-to-date)   (concat file-prefix "images/vc-ok.svg"))
+         ((eq vcs 'conflict)     (concat file-prefix "images/vc-conflicted.svg"))
+         ((eq vcs 'unregistered) (concat file-prefix "images/vc-unknown.svg"))
+         ((eq vcs nil)           (concat file-prefix "images/vc-unknown.svg")))))))
+
+;; TODO: Extend to do optional positioning etc.
+(defun ocodo:smt/edge-image (theme url)
+  (let* ((width (smt/window-pixel-width))
+         (height (smt/t-pixel-height theme)))
+    `((\defs
+       (linearGradient
+        :id "twisted" :x1 "0%" :y1 "0%" :x2 "100%" :y2 "25%"
+        (stop :offset "0%"   :stop-color "#484848" :stop-opacity 0.3)
+        (stop :offset "25%"  :stop-color "#484848" :stop-opacity 0.3)
+        (stop :offset "75%"  :stop-color "#484848" :stop-opacity 0.3)
+        (stop :offset "100%" :stop-color "#000000" :stop-opacity 0.3)))
+      (rect  :width "100%"  :height "100%"  :x 0  :y 0  :fill "url(#twisted)"  :fill-opacity 1)
+      (image :x 50            :y 5 :height 16 :width 16  :xlink:href ,(ocodo:smt/vc-state-svg-fileurl))
+      (image :x -60           :y 0 :height 26 :width 100 :xlink:href ,url)
+      (image :x ,(- width 30) :y 0 :height 26 :width 100 :xlink:href ,url))))
+
+(defun ocodo:smt/overlay (theme)
+  (let ((width (smt/window-pixel-width))
+        (height (smt/t-pixel-height theme)))
+    `((\defs
+       (linearGradient
+        :id "over-gradient" :x1 "0%" :y1 "0%" :x2 "0%" :y2 "100%"
+        (stop :offset "0%" :style "stop-color:#FFFFFF;stop-opacity:0.1")
+        (stop :offset "20%" :style "stop-color:#000000;stop-opacity:0.0")
+        (stop :offset "90%" :style "stop-color:#000000;stop-opacity:0.5")
+        (stop :offset "100%" :style "stop-color:#000000;stop-opacity:0.8")))
+      (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#over-gradient)"))))
+
 (provide 'ocodo-smt-overrides)
