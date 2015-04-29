@@ -13,7 +13,7 @@
       (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
 (smt/defrow default-left
-  :margin 5
+  :margin 7
   :widgets '(buffer-info buffer-name buffer-dirty)
   :align "left")
 
@@ -30,7 +30,9 @@
 (defun ocodo-kawaii-light:smt/background (theme)
   (let ((bg-gradient-dark "#000000")
         (bg-gradient-main "#484848")
-        (image-url "images/rainbow-stache-banana.png")
+        (image-url (concat
+                    ocodo-mesh-aqua:fileurl-prefix
+                    "images/rainbow-stache-banana.png"))
         (width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
