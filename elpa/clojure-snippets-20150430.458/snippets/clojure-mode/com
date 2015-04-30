@@ -1,0 +1,7 @@
+# name: com
+# key: com
+# --
+(defrecord $0 [$1]
+  component/Lifecycle
+  (start [this] $2)
+  (stop [this] $3))
