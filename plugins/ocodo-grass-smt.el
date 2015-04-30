@@ -121,9 +121,6 @@ Overrides smt core."
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)" :fill-opacity 1)
       (rect :width "100%" :height 2 :x 0 :y 0 :fill "#383838" :fill-opacity 0.2)
 
-      (image :width "100%" :height 2000 :x 0 :y 0
-       :xlink:href "file:///Users/jason/Downloads/Grey-damask-pattern-vector/Damask 6.svg")
-
       (g :transform "translate(-38,0)"
          (g :transform "matrix(1.25,0,0,-1.25,0,32)"
             (g :transform "matrix(-0.14833729,0,0,0.14833729,105.25468,-47.37267)"
