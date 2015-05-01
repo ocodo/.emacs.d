@@ -57,7 +57,7 @@
      id="layer1"
      transform="translate(-3.7234755e-7,-1026.3623)">
     <rect
-       style="fill:#000000;fill-opacity:0.19607843;fill-rule:evenodd;stroke:none"
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect5017"
        width="26"
        height="26"
@@ -73,8 +73,7 @@
          style="fill:#d40000;fill-opacity:1;stroke:none" />
       <g
          transform="matrix(0.16,0,0,0.16,-0.23936548,883.98432)"
-         id="text2991"
-         style="font-size:101.45310211px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Arial Rounded MT Bold;-inkscape-font-specification:Arial Rounded MT Bold">
+         id="text2991" fill="#ffffff" fill-opacity="1">
         <path
            inkscape:connector-curvature="0"
            id="path3321"

@@ -64,7 +64,7 @@ Overrides smt core."
                            (vc-call-backend (vc-responsible-backend path) 'root path)))
     (return-from ocodo:smt/vc-state-svg-fileurl))
   (ignore-errors
-    (let ((file-prefix (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
+    (let ((file-prefix (concat "file://" (file-name-directory (locate-library "ocodo-smt-overrides"))))
           (vcs (vc-state (buffer-file-name))))
       (when (and (buffer-file-name))
         (cond
@@ -88,7 +88,7 @@ Overrides smt core."
       (rect  :width "100%"  :height "100%"  :x 0  :y 0  :fill "url(#twisted)"  :fill-opacity 1)
       (image :x -60           :y 0 :height 26 :width 100 :xlink:href ,url)
       (image :x ,(- width 30) :y 0 :height 26 :width 100 :xlink:href ,url)
-      (image :x 40            :y 0 :height 26 :width 26  :xlink:href ,(ocodo:smt/vc-state-svg-fileurl))
+      (image :x ,(- width 16) :y 0 :height 16 :width 16  :xlink:href ,(ocodo:smt/vc-state-svg-fileurl))
       )))
 
 (defun ocodo:smt/overlay (theme)
