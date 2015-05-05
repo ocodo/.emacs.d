@@ -24,6 +24,7 @@ if it doesn't exist."
 
   (let* ((filename (buffer-file-name))
          (target-filename (replace-regexp-in-string regexp replace filename)))
+    (message "Switch from %S to %S" filename target-filename)
     (unless (string-match regexp filename)
       (error "The current file does not appear to be a %s" from))
     (unless (or (file-exists-p target-filename) current-prefix-arg)

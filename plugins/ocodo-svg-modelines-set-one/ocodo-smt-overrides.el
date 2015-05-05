@@ -88,7 +88,6 @@ Overrides smt core."
       (rect  :width "100%"  :height "100%"  :x 0  :y 0  :fill "url(#twisted)"  :fill-opacity 1)
       (image :x -60           :y 0 :height 26 :width 100 :xlink:href ,url)
       (image :x ,(- width 30) :y 0 :height 26 :width 100 :xlink:href ,url)
-      (image :x ,(- width 16) :y 0 :height 16 :width 16  :xlink:href ,(ocodo:smt/vc-state-svg-fileurl))
       )))
 
 (defun ocodo:smt/overlay (theme)
