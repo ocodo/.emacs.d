@@ -10,6 +10,25 @@
 (defvar smt/current-theme nil)
 
 (defmacro smt/deftype (name &rest props)
+  "This macro generates a Type of NAME with PROPS.
+
+To define an instance of type use smt/{NAME}-
+
+To make ... (what's the difference with def and make?)
+
+
+To check if func is a of this type use a predicate smt/{NAME}-p
+
+A PREFIX is generated as the first char of NAME. So be careful not to create types with the same first.
+
+(to fix) The value of each of the PROPS can read with smt/get a helper for each is generated as
+
+
+smt/{prefix}-{propname}
+
+smt/{prefix}-prototype, creates another type based on this one.
+
+"
   (declare (indent 1))
   (let* (( maker-sym
            (intern (concat "smt/make-"
@@ -47,24 +66,24 @@
        (put (quote ,definer-sym) 'common-lisp-indent-function
             '(1 &body))
        (,definer-sym archetype
-           ,@(append (list :prototype nil :type (list 'quote name))
-                     props))
+         ,@(append (list :prototype nil :type (list 'quote name))
+                   props))
        ,@(progn
-          (let (result)
-            (dotimes (iter (length props))
-              (when (evenp iter)
-                (push `(defun ,(intern
-                                (concat getter-prefix
-                                        (substring
-                                         (symbol-name
-                                          (nth iter props))
-                                         1)))
-                           (,name)
-                         (smt/maybe-funcall
-                          ,(list get-sym name (nth iter props))
-                          ,name))
-                      result)))
-            result))
+           (let (result)
+             (dotimes (iter (length props))
+               (when (evenp iter)
+                 (push `(defun ,(intern
+                                 (concat getter-prefix
+                                         (substring
+                                          (symbol-name
+                                           (nth iter props))
+                                          1)))
+                            (,name)
+                          (smt/maybe-funcall
+                           ,(list get-sym name (nth iter props))
+                           ,name))
+                       result)))
+             result))
        (defun ,get-sym (object property)
          (smt/get object property ,namespace-sym))
        (defun ,prototype-getter-sym (object)
@@ -73,6 +92,7 @@
          (and (consp object)
               (eq ',name (smt/get object :type ,namespace-sym))))
        )))
+
 (put 'smt/deftype 'common-lisp-indent-function
      '(1 &body))
 
@@ -96,7 +116,7 @@
           ;; contain a symbol that is not fboundp.
           (and (symbolp thing) (not (booleanp thing))))
       (apply thing args)
-      thing))
+    thing))
 
 ;;;; Types
 ;;; Theme
@@ -111,7 +131,6 @@
   :pixel-height (lambda (theme) (frame-char-height))
   :rows nil)
 
-
 ;;; Row
 
 (smt/deftype row
@@ -119,7 +138,11 @@
   :baseline 'smt/text-base-line-default
   :width 'smt/r-width-default
   :margin 0
+  :padding-left 0
+  :padding-right 0
   :always-visible nil
+  :background nil
+  :overlay nil
   :widgets nil
   :style nil
   :export 'smt/r-export-default)
@@ -147,6 +170,8 @@
 (smt/deftype widget
   :style 'smt/style-default
   :on-click nil
+  :background nil
+  :overlay nil
   :text ""
   :width 'smt/w-width-default
   :export 'smt/w-export-default)
@@ -260,35 +285,37 @@
 (defun smt/t-normalize-widget (theme widget-or-name)
   (if (smt/widget-p widget-or-name)
       widget-or-name
-      (or (cdr (assoc widget-or-name (smt/t-local-widgets theme)))
-          (cdr (assoc widget-or-name smt/widgets))
-          (error "Can't process widget: %s" widget-or-name))))
+    (or (cdr (assoc widget-or-name (smt/t-local-widgets theme)))
+        (cdr (assoc widget-or-name smt/widgets))
+        (error "Can't process widget: %s" widget-or-name))))
 
 (defun smt/t-normalize-row (theme row-or-name)
   (if (smt/row-p row-or-name)
       row-or-name
-      (or (cdr (assoc row-or-name smt/rows))
-          (error "Can't process row: %s" row-or-name))))
+    (or (cdr (assoc row-or-name smt/rows))
+        (error "Can't process row: %s" row-or-name))))
 
 (defun smt/r-export-default (row theme)
-  `(text
-    :text-anchor
-    ,(if (equal (smt/r-align row) "left")
-         "start"
-         "end")
-    :x ,(if (equal (smt/r-align row) "left")
-            (* (smt/r-margin row)
-               (frame-char-width))
-            (- (smt/window-pixel-width)
-               (* (smt/r-margin row)
-                  (frame-char-width))))
-    :y ,(smt/r-baseline row)
-    ,@(mapcar (lambda (widget-or-name)
-                (smt/w-export
-                 (smt/t-normalize-widget
-                  theme widget-or-name)
-                 row theme))
-              (smt/r-widgets row))))
+  `(svg :x ,(if (equal (smt/r-align row) "left")
+                (* (smt/r-margin row) (frame-char-width))
+              (- (smt/window-pixel-width)
+                 (* (smt/r-margin row) (frame-char-width))
+                 (* (smt/r-width row) (frame-char-width))))
+        :y 0
+        :width ,(* (smt/r-width row) (frame-char-width))
+        ,(smt/r-background row)
+        (text :x ,(if (equal (smt/r-align row) "left")
+                      (smt/r-padding-left row)
+                    (- (* (smt/r-width row) (frame-char-width)) (smt/r-padding-right row)))
+              :y ,(smt/r-baseline row)
+              :text-anchor ,(if (equal (smt/r-align row) "left") "start" "end")
+              ,@(mapcar (lambda (widget-or-name)
+                          (smt/w-export
+                           (smt/t-normalize-widget
+                            theme widget-or-name)
+                           row theme))
+                        (smt/r-widgets row)))
+        ,(smt/r-overlay row)))
 
 (defun smt/w-export-default (widget row theme)
   `(tspan
@@ -344,7 +371,7 @@
         ( width (smt/r-width row)))
     (if (equal "left" (smt/r-align row))
         margin
-        (- (smt/window-width) (+ margin width)))))
+      (- (smt/window-width) (+ margin width)))))
 
 ;;; Methods EOF
 
@@ -427,21 +454,21 @@
 
 (defun smt/combine-styles (&rest plists)
   (cond
-    ( (= 1 (length plists))
-      (car plists))
-    ( (null plists)
-      nil)
-    ( t (let (( plistC (copy-list (car plists)))
-              ( plistB (cadr plists))
-              key val)
-          (dotimes (iter (/ (length plistB) 2))
-            (setq key (nth (* 2 iter) plistB)
-                  val (nth (1+ (* 2 iter)) plistB))
-            (if (null val)
-                (remf plistC key)
-                (setf (getf plistC key) val)))
-          (apply 'smt/combine-styles plistC (cddr plists))
-          ))))
+   ( (= 1 (length plists))
+     (car plists))
+   ( (null plists)
+     nil)
+   ( t (let (( plistC (copy-list (car plists)))
+             ( plistB (cadr plists))
+             key val)
+         (dotimes (iter (/ (length plistB) 2))
+           (setq key (nth (* 2 iter) plistB)
+                 val (nth (1+ (* 2 iter)) plistB))
+           (if (null val)
+               (remf plistC key)
+             (setf (getf plistC key) val)))
+         (apply 'smt/combine-styles plistC (cddr plists))
+         ))))
 
 (defun smt/modeline-format ()
   (let ((theme (smt/get-current-theme)))
@@ -482,7 +509,6 @@
 
 (defun smt/register-user-location (&optional ignore)
   (setq smt/user-selected-window (selected-window)))
-
 
 ;; Local Variables:
 ;; eval: (hi-lock-mode)

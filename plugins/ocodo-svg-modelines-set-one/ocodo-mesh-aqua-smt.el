@@ -14,6 +14,7 @@
 
 (smt/defrow default-left
   :margin 5
+  :background `(rect :x 0 :y 0 :width 26 :height 26 :fill "#FF6600")
   :widgets '(buffer-info buffer-name buffer-dirty)
   :align "left")
 

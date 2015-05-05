@@ -13,22 +13,69 @@
       (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
 (smt/defrow default-left
-  :margin 5
+  :margin 0.5
+  :padding-left (lambda (row) (frame-char-width))
+  :padding-right (lambda (row) (frame-char-width))
+  :always-visible t
+  :background (lambda (row)
+                `(rect :y 2
+                       :width ,(* (frame-char-width) (smt/r-width row))
+                       :height 19
+                       :rx 7
+                       :fill "#000000"
+                       :fill-opacity 0.7))
+  :overlay (lambda (row)
+             `(rect :y 3
+                    :width ,(* (frame-char-width) (smt/r-width row))
+                    :height 19
+                    :rx 7
+                    :fill "#FFFFFF"
+                    :fill-opacity 0.1))
   :widgets '(buffer-info buffer-name buffer-dirty)
   :align "left")
 
 (smt/defrow default-position
   :margin 6
+  :padding-left (lambda (row) (frame-char-width))
+  :padding-right (lambda (row) (frame-char-width))
+  :always-visible t
+  :background (lambda (row)
+                `(g :fill "#5f8a4c"
+                  (rect :x 0 :y 3
+                         :width ,(* (smt/r-width row) (frame-char-size))
+                         :height 1
+                         :fill-opacity 1)
+                  (rect :x 0 :y 3
+                         :width ,(* (smt/r-width row) (frame-char-size))
+                         :height 19
+                         :fill-opacity 0.3)))
   :widgets '(position-info)
   :align "right")
 
 (smt/defrow default-right
   :margin 25
+  :padding-left (lambda (row) (frame-char-width))
+  :padding-right (lambda (row) (frame-char-width))
+  :always-visible t
+  :background (lambda (row)
+                `(g :fill "#5F8A4C"
+                  (rect :x 0 :y 3
+                         :width ,(* (smt/r-width row) (frame-char-size))
+                         :height 1
+                         :fill-opacity 1)
+                  (rect :x 0 :y 3
+                         :width ,(* (smt/r-width row) (frame-char-size))
+                         :height 19
+                         :fill-opacity 0.3)))
+
   :widgets '(major-mode version-control minor-modes)
   :align "right")
 
 (defun ocodo-mesh-grass:smt/background (theme)
-  (ocodo:smt/edge-image theme (concat ocodo-mesh-aqua:fileurl-prefix "images/mesh-grass.svg")))
+  (ocodo:smt/edge-image theme
+                        (concat
+                         ocodo-mesh-aqua:fileurl-prefix
+                         "images/mesh-grass.svg")))
 
 (defun ocodo-mesh-grass:smt/overlay (theme)
   (ocodo:smt/overlay theme))
@@ -58,7 +105,7 @@
 
 (defun smt/ocodo-mesh-grass-dirty-style (widget)
   (list :font-weight "normal"
-        :font-size "11pt"
+        :font-size "9pt"
         :font-family "sans-serif"
         :fill (if (and (or buffer-file-name buffer-offer-save) (buffer-modified-p))
                   ;; Dirty
@@ -76,6 +123,14 @@
         :font-size "8pt"
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#60B18C" "#3D7058")))
+
+(smt/ocodo-mesh-grass-major-mode-style 'major-mode)
+(smt/ocodo-mesh-grass-major-mode-style 'minor-modes)
+(smt/ocodo-mesh-grass-major-mode-style 'version-control)
+(smt/ocodo-mesh-grass-major-mode-style 'position-info)
+(smt/ocodo-mesh-grass-major-mode-style 'buffer-name)
+(smt/ocodo-mesh-grass-major-mode-style 'buffer-info)
+(smt/ocodo-mesh-grass-major-mode-style 'buffer-dirty)
 
 (smt/deftheme ocodo-mesh-grass:smt
   :pixel-height 26
@@ -120,7 +175,7 @@
 
   :rows (list 'default-left 'default-position 'default-right))
 
-(ocodo:smt/setup 17 "Menlo")
+(ocodo:smt/setup 15 "Menlo")
 
 (provide 'ocodo-mesh-grass-smt)
 
