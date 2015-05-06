@@ -646,6 +646,15 @@ Use negative prefix P to go backward."
         (search-forward-regexp regexp)
       (search-backward-regexp regexp))))
 
+(defun snippy-comment ()
+  (interactive)
+  (end-of-line)
+  (newline)
+  (insert "- - 8<")
+  (loop repeat 60 do (insert " -"))
+  (beginning-of-line)
+  (comment-region (point-at-bol) (point-at-eol)))
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
