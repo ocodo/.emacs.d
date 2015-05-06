@@ -1,0 +1,3 @@
+frameborder [HTML4 only]
+
+The value 1 (the default) tells the browser to draw a border between this frame and every other frame. The value 0 tells the browser not to draw a border between this frame and other frames.

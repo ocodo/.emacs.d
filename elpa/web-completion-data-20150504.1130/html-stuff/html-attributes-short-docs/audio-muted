@@ -1,0 +1,1 @@
+A Boolean attribute which indicates whether the audio will be initially silenced. Its default value is false, meaning that the audio will be played.

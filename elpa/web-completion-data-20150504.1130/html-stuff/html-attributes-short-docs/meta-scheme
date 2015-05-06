@@ -1,0 +1,6 @@
+scheme [Trashed]
+
+This attribute defines the scheme in which the metadata is described. A scheme is a context leading to the correct interpretations of the content value, like a format.
+
+Notes: 
+Do not use this attribute as it is obsolete. There is no replacement for it as there was no real usage for it. Omit it altogether.

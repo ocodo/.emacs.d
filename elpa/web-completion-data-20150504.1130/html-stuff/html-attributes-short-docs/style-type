@@ -1,0 +1,3 @@
+type
+
+This attribute defines the styling language as a MIME type (charset should not be specified). 'text/css' is assumed if this attribute is absent.

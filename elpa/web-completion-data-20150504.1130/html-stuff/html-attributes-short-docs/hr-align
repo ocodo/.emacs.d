@@ -1,0 +1,3 @@
+align [Deprecated since HTML4.01] [Obsolete since HTML5]
+
+Sets the alignment of the rule on the page. If no value is specified, the default value is left.

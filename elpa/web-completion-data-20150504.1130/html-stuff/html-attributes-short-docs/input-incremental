@@ -1,0 +1,3 @@
+incremental [!]
+
+This is a nonstandard attribute supported by Safari that only applies when the type is search. If the attribute is present, regardless of what its value is, the <input> fires search events as the user edits the text value. The event is only fired after an implementation-defined timeout has elapsed since the most recent keystroke; new keystrokes reset the timeout. In other words, the event firing is debounced. If the attribute is absent, the search event is only fired when the user explicitly initiates a search (e.g. by pressing the Enter key while within field).

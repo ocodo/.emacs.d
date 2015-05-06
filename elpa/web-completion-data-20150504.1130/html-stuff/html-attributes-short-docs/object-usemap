@@ -1,0 +1,3 @@
+usemap
+
+A hash-name reference to a <map> element; that is a '#' followed by the value of a name of a map element.

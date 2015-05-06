@@ -1,0 +1,19 @@
+The HTML <caption> Element (or HTML Table Caption Element) represents the title of a table. Though it is always the first descendant of a <table>, its styling, using CSS, may place it elsewhere, relative to the table.
+
+Usage note: 
+When the <table> element that is the parent of this <caption> is the only descendant of a <figure> element, use the <figcaption> element instead.
+
+Content categories:
+None.
+
+Permitted content:
+Flow content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+A <table> element, as its first descendant.
+
+DOM interface:
+HTMLTableCaptionElement

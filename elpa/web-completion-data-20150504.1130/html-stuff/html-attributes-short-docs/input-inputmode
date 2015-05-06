@@ -1,0 +1,3 @@
+inputmode [HTML5]
+
+A hint to the browser for which keyboard to display. This attribute applies when the value of the type attribute is text, password, email, or url.

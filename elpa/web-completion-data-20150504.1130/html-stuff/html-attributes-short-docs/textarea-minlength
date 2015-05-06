@@ -1,0 +1,3 @@
+minlength [HTML5]
+
+The minimum number of characters (Unicode code points) required that the user should enter.

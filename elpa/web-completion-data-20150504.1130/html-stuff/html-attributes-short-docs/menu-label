@@ -1,0 +1,3 @@
+label
+
+The name of the menu as shown to the user. Used within nested menus, to provide a label through which the submenu can be accessed. Must only be specified when the parent element is a <menu> in the popup menu state.
