@@ -364,6 +364,18 @@ Compose and launch spec URL for the current `it' spec."
   (interactive)
   (jasmine-coffee/verify-it))
 
+(defun jasmine-coffee/show-all-spec-headings ()
+  "Open an occur buffer for all the describe and it headings."
+  (interactive)
+  (occur "\\(describe \\|it \\)[\"'].*?\\([\"'],\\)" nil))
+
+(defun jasmine-coffee/show-all-spec-headings-jlets-jsets ()
+  "Open an occur buffer for all the describe and it headings.
+
+Include jlet and jset definitions."
+  (interactive)
+  (occur "\\(describe \\|it \\|j[sl]et \\)[\"'].*?\\([\"'],\\)" nil))
+
 (defun jasmine-coffee/navigate-to-next-thing (regexp)
   "Navigate cursor to the body of the next matching REGEXP."
   (with-demoted-errors
