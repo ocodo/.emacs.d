@@ -19,8 +19,11 @@
   "Check for existence of a mode init script NAME, and load if found."
   (let (file)
     (setq file (format "%smodes-init/init-%s.el" user-emacs-directory (symbol-name name)))
-    (when (file-readable-p file)
-      (load-file file))))
+    (if (file-readable-p file)
+        (progn
+          (load-file file)
+          (message "Optional mode init: %s, was loaded" name))
+      (message "Optional mode init: %s, not found" name))))
 
 (defun set-window-system-font ()
   "Set the window system font."

@@ -71,6 +71,7 @@
                 moonscript
                 multi-web-mode
                 nxml
+                occur
                 pivotal
                 projectile
                 projectile-rails
