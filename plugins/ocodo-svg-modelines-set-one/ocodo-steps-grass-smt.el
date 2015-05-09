@@ -1,4 +1,4 @@
-;;; ocodo-steps-aqua-smt --- Yet another attempt at a super cool modeline for Emacs
+;;; ocodo-steps-grass-smt --- Yet another attempt at a super cool modeline for Emacs
 ;;
 ;;; Commentary:
 ;;
@@ -9,7 +9,7 @@
 
 (require 'ocodo-smt-overrides)
 
-(setq ocodo-mesh-aqua:fileurl-prefix
+(setq ocodo-steps-grass:fileurl-prefix
       (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
 (smt/defrow default-left
@@ -27,36 +27,36 @@
   :widgets '(major-mode version-control minor-modes)
   :align "right")
 
-(defun ocodo-mesh-aqua:smt/background (theme)
-  (ocodo:smt/edge-image theme (concat ocodo-mesh-aqua:fileurl-prefix "images/mesh-aqua.svg")))
+(defun ocodo-steps-grass:smt/background (theme)
+  (ocodo:smt/edge-image theme (concat ocodo-steps-grass:fileurl-prefix "images/steps-grass.svg")))
 
-(defun ocodo-mesh-aqua:smt/overlay (theme)
+(defun ocodo-steps-grass:smt/overlay (theme)
   (ocodo:smt/overlay theme))
 
-(defun smt/ocodo-mesh-aqua-buffer-name-style (widget)
+(defun smt/ocodo-steps-grass-buffer-name-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#FFFFFF" "#666666")))
 
-(defun smt/ocodo-mesh-aqua-major-mode-style (widget)
+(defun smt/ocodo-steps-grass-major-mode-style (widget)
   (list :font-weight "normal"
         :font-size "10pt"
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#AAAAAA" "#666666")))
 
-(defun smt/ocodo-mesh-aqua-info-style (widget)
+(defun smt/ocodo-steps-grass-info-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#999999" "#555555")))
 
-(defun smt/ocodo-mesh-aqua-position-info-style (widget)
+(defun smt/ocodo-steps-grass-position-info-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :fill (if (smt/window-active-p) "#DDDDDD" "#999999")))
 
-(defun smt/ocodo-mesh-aqua-dirty-style (widget)
+(defun smt/ocodo-steps-grass-dirty-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :font-family "sans-serif"
@@ -66,63 +66,63 @@
                 ;; Untouched
                 (if (smt/window-active-p) "#1F4F25" "#143519"))))
 
-(defun smt/ocodo-mesh-aqua-minor-mode-style (widget)
+(defun smt/ocodo-steps-grass-minor-mode-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :fill (if (smt/window-active-p) "#FFFFFF" "#666666")))
 
-(defun smt/ocodo-mesh-aqua-version-control-style (widget)
+(defun smt/ocodo-steps-grass-version-control-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#60ACB1" "#365E63")))
 
-(smt/deftheme ocodo-mesh-aqua:smt
+(smt/deftheme ocodo-steps-grass:smt
   :pixel-height 26
-  :background 'ocodo-mesh-aqua:smt/background
-  :overlay    'ocodo-mesh-aqua:smt/overlay
+  :background 'ocodo-steps-grass:smt/background
+  :overlay    'ocodo-steps-grass:smt/overlay
   :local-widgets
   ;;; Note order of widgets are determined by smt/defrows above.
   (list (cons 'major-mode
               (smt/make-widget
                :prototype 'major-mode
-               :style 'smt/ocodo-mesh-aqua-major-mode-style))
+               :style 'smt/ocodo-steps-grass-major-mode-style))
 
         (cons 'minor-modes
               (smt/make-widget
                :prototype 'minor-modes
-               :style 'smt/ocodo-mesh-aqua-minor-mode-style))
+               :style 'smt/ocodo-steps-grass-minor-mode-style))
 
         (cons 'version-control
               (smt/make-widget
                :prototype 'version-control
-               :style 'smt/ocodo-mesh-aqua-version-control-style))
+               :style 'smt/ocodo-steps-grass-version-control-style))
 
         (cons 'position-info
               (smt/make-widget
                :prototype 'position-info
-               :style 'smt/ocodo-mesh-aqua-position-info-style))
+               :style 'smt/ocodo-steps-grass-position-info-style))
 
         (cons 'buffer-info
               (smt/make-widget
                :prototype 'buffer-info
-               :style 'smt/ocodo-mesh-aqua-info-style))
+               :style 'smt/ocodo-steps-grass-info-style))
 
         (cons 'buffer-dirty
               (smt/make-widget
                :prototype 'buffer-dirty
-               :style 'smt/ocodo-mesh-aqua-dirty-style))
+               :style 'smt/ocodo-steps-grass-dirty-style))
 
         (cons 'buffer-name
               (smt/make-widget
                :prototype 'buffer-name
-               :style 'smt/ocodo-mesh-aqua-buffer-name-style)))
+               :style 'smt/ocodo-steps-grass-buffer-name-style)))
 
   :rows (list 'default-left 'default-position 'default-right))
 
 (ocodo:smt/setup 17 "Menlo")
 
-(provide 'ocodo-mesh-aqua-smt)
+(provide 'ocodo-steps-grass-smt)
 
 ;; Hi-lock: (("(\\(smt/[^ ]*\\)" (1 ' font-lock-keyword-face append)))
 ;; Hi-lock: end
@@ -131,4 +131,4 @@
 ;; eval: (hi-lock-mode)
 ;; End:
 
-;;; ocodo-mesh-aqua-smt.el ends here
+;;; ocodo-steps-grass-smt.el ends here

@@ -9,14 +9,11 @@
 
 (require 'ocodo-smt-overrides)
 
-(setq ocodo-minimal-light:fileurl-prefix (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
-
-;; TODO: Don't do this...
-(setq default-active "#000000")
-(setq default-inactive "#333333")
-(setq bg-gradient-main "#484848")
-(setq bg-gradient-dark "#000000")
-(setq bg-gradient-hi "#FFFFFF")
+(setq ocodo-minimal-light:default-active "#000000")
+(setq ocodo-minimal-light:default-inactive "#333333")
+(setq ocodo-minimal-light:bg-gradient-main "#484848")
+(setq ocodo-minimal-light:bg-gradient-dark "#000000")
+(setq ocodo-minimal-light:bg-gradient-hi "#FFFFFF")
 
 (defun ocodo-minimal-light:smt/background (theme)
   (let ((width (smt/window-pixel-width))
@@ -24,10 +21,10 @@
     `((\defs
        (linearGradient
         :id "twisted" :x1 "0%" :y1 "0%" :x2 "100%" :y2 "15%"
-        (stop :offset "0%"  :stop-color ,bg-gradient-main :stop-opacity 0.2)
-        (stop :offset "25%" :stop-color ,bg-gradient-main :stop-opacity 0.2)
-        (stop :offset "75%" :stop-color ,bg-gradient-main :stop-opacity 0.2)
-        (stop :offset "100%" :stop-color ,bg-gradient-dark :stop-opacity 0.2)))
+        (stop :offset "0%"  :stop-color ,ocodo-minimal-light:bg-gradient-main :stop-opacity 0.2)
+        (stop :offset "25%" :stop-color ,ocodo-minimal-light:bg-gradient-main :stop-opacity 0.2)
+        (stop :offset "75%" :stop-color ,ocodo-minimal-light:bg-gradient-main :stop-opacity 0.2)
+        (stop :offset "100%" :stop-color ,ocodo-minimal-light:bg-gradient-dark :stop-opacity 0.2)))
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)"))))
 
@@ -39,28 +36,28 @@
         :font-size "11pt"
         :font-family "sans-serif"
         :filter nil
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) ocodo-minimal-light:default-active ocodo-minimal-light:default-inactive)))
 
 (defun smt/ocodo-major-mode-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :filter nil
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) ocodo-minimal-light:default-active ocodo-minimal-light:default-inactive)))
 
 (defun smt/ocodo-info-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) ocodo-minimal-light:default-active ocodo-minimal-light:default-inactive)))
 
 (defun smt/ocodo-position-info-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :filter nil
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) ocodo-minimal-light:default-active ocodo-minimal-light:default-inactive)))
 
 (defun smt/ocodo-dirty-style (widget)
   (list :font-weight "normal"
@@ -77,7 +74,7 @@
   (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
-        :fill (if (smt/window-active-p) default-active default-inactive)))
+        :fill (if (smt/window-active-p) ocodo-minimal-light:default-active ocodo-minimal-light:default-inactive)))
 
 (defun smt/ocodo-version-control-style (widget)
   (list :font-weight "bold"
