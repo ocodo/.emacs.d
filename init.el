@@ -77,6 +77,7 @@
                 projectile-rails
                 rainbow
                 rainbow-delimiters
+                rspec
                 ruby
                 rvm
                 remember-theme
@@ -93,13 +94,15 @@
 ;; Load an SVG Modeline
 (when (image-type-available-p 'svg)
   (smt/enable)
-  (load-library "ocodo-kawaii-light-smt")
-  (load-library "ocodo-minimal-light-smt")
-  (load-library "ocodo-mesh-grass-smt")
-  (load-library "ocodo-steps-grass-smt")
-  (load-library "ocodo-mesh-aqua-smt")
-  (load-library "ocodo-steps-aqua-smt")
-  (smt/set-theme 'ocodo-mesh-aqua:smt))
+  (require 'ocodo-kawaii-light-smt)
+  (require 'ocodo-minimal-light-smt)
+  (require 'ocodo-mesh-grass-smt)
+  (require 'ocodo-steps-grass-smt)
+  (require 'ocodo-mesh-aqua-smt)
+  (require 'ocodo-steps-aqua-smt))
+
+(when (image-type-available-p 'svg)
+  (smt/set-theme 'ocodo-steps-aqua:smt))
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.

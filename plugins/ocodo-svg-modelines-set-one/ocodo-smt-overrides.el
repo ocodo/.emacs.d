@@ -1,6 +1,7 @@
 ;;; ocodo-smt-overrides --- Override some core parts of svg-mode-line-themes
+
+;;; Code:
 (require 'svg-mode-line-themes)
-(require 'vc)
 
 (defun smt/buffer-indicators-text (widget)
   "Provide buffer state indicators.
@@ -59,26 +60,6 @@ Overrides smt core."
   (set-face-attribute 'mode-line nil :box nil)
   (set-face-attribute 'mode-line-inactive nil :box nil))
 
-(defun* ocodo:smt/vc-state-fileurl ()
-  (unless (ignore-errors (let ((path (file-name-directory (buffer-file-name))))
-                           (vc-call-backend (vc-responsible-backend path) 'root path)))
-    (return-from ocodo:smt/vc-state-svg-fileurl))
-  (ignore-errors
-    (let ((file-prefix (concat "file://" (file-name-directory (locate-library "ocodo-smt-overrides"))))
-          (vcs (vc-state (buffer-file-name))))
-      (when (and (buffer-file-name))
-        (cond
-         ((eq vcs 'edited)       (concat file-prefix "images/vc-change.svg"))
-         ((eq vcs 'up-to-date)   (concat file-prefix "images/vc-ok.svg"))
-         ((eq vcs 'conflict)     (concat file-prefix "images/vc-conflicted.svg"))
-         ((eq vcs 'unregistered) (concat file-prefix "images/vc-unknown.svg"))
-         ((eq vcs nil)           (concat file-prefix "images/vc-unknown.svg")))))))
-
-(defun ocodo:smt/vc-state-image (theme)
-  `((image :x 0 :y 0
-           :height ,(smt/t-pixel-height theme) :width ,(smt/t-pixel-height theme)
-           :xlink:href ,(ocodo:smt/vc-state-fileurl))))
-
 ;; TODO: Extend to do optional positioning etc.
 (defun ocodo:smt/edge-image (theme url)
   (let* ((width (smt/window-pixel-width))
@@ -91,8 +72,8 @@ Overrides smt core."
         (stop :offset "75%"  :stop-color "#484848" :stop-opacity 0.3)
         (stop :offset "100%" :stop-color "#000000" :stop-opacity 0.3)))
       (rect  :width "100%"  :height "100%"  :x 0  :y 0  :fill "url(#twisted)"  :fill-opacity 1)
-      (image :x -60           :y 0 :height 26 :width 100 :xlink:href ,url)
-      (image :x ,(- width 30) :y 0 :height 26 :width 100 :xlink:href ,url))))
+      (image :x -50           :y 0 :height 26 :width 100 :xlink:href ,url)
+      (image :x ,(- width 50) :y 0 :height 26 :width 100 :xlink:href ,url))))
 
 (defun ocodo:smt/overlay (theme)
   (let ((width (smt/window-pixel-width))
