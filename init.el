@@ -94,8 +94,11 @@
 (when (image-type-available-p 'svg)
   (smt/enable)
   (load-library "ocodo-kawaii-light-smt")
+  (load-library "ocodo-minimal-light-smt")
   (load-library "ocodo-mesh-grass-smt")
+  (load-library "ocodo-steps-grass-smt")
   (load-library "ocodo-mesh-aqua-smt")
+  (load-library "ocodo-steps-aqua-smt")
   (smt/set-theme 'ocodo-mesh-aqua:smt))
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
