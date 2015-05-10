@@ -12,18 +12,21 @@
 (setq ocodo-minimal-dark:fileurl-prefix
       (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
-(smt/defrow default-left
+(smt/defrow ocodo-minimal-dark:smt-left
   :margin 1
+  :always-visible t
   :widgets '(buffer-info buffer-name buffer-dirty)
   :align "left")
 
-(smt/defrow default-position
+(smt/defrow ocodo-minimal-dark:smt-right
   :margin 1
+  :always-visible t
   :widgets '(position-info)
   :align "right")
 
-(smt/defrow default-right
+(smt/defrow ocodo-minimal-dark:smt-mid
   :margin 25
+  :always-visible t
   :widgets '(major-mode version-control minor-modes)
   :align "right")
 
@@ -118,7 +121,7 @@
                :prototype 'buffer-name
                :style 'smt/ocodo-minimal-dark-buffer-name-style)))
 
-  :rows (list 'default-left 'default-position 'default-right))
+  :rows (list 'ocodo-minimal-dark:smt-left 'ocodo-minimal-dark:smt-right 'ocodo-minimal-dark:smt-mid))
 
 (ocodo:smt/setup 17 "Menlo")
 

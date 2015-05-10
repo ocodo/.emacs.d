@@ -12,18 +12,21 @@
 (setq ocodo-mesh-aqua:fileurl-prefix
       (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
-(smt/defrow default-left
+(smt/defrow ocodo-mesh-aqua:smt-left
   :margin 5
+  :always-visible t
   :widgets '(buffer-info buffer-name buffer-dirty)
   :align "left")
 
-(smt/defrow default-position
+(smt/defrow ocodo-mesh-aqua:smt-right
   :margin 6
+  :always-visible t
   :widgets '(position-info)
   :align "right")
 
-(smt/defrow default-right
+(smt/defrow ocodo-mesh-aqua:smt-mid
   :margin 25
+  :always-visible t
   :widgets '(major-mode version-control minor-modes)
   :align "right")
 
@@ -118,7 +121,7 @@
                :prototype 'buffer-name
                :style 'smt/ocodo-mesh-aqua-buffer-name-style)))
 
-  :rows (list 'default-left 'default-position 'default-right))
+  :rows (list 'ocodo-mesh-aqua:smt-left 'ocodo-mesh-aqua:smt-right 'ocodo-mesh-aqua:smt-mid))
 
 (ocodo:smt/setup 17 "Menlo")
 

@@ -35,9 +35,9 @@ Overrides smt core."
 
 (smt/defwidget buffer-dirty
   :text (lambda (widget)
-          (if (and (buffer-modified-p)
-                   (or buffer-file-name buffer-offer-save))
-              " ❉ " " ✓ ")))
+          (when (buffer-file-name)
+            (if (and (buffer-modified-p) (or buffer-file-name buffer-offer-save))
+                " ❉ " " ✓ "))))
 
 (smt/defwidget position-info
   :text (lambda (widget)

@@ -94,14 +94,8 @@
 ;; Load an SVG Modeline
 (when (image-type-available-p 'svg)
   (smt/enable)
-  (require 'ocodo-kawaii-light-smt)
-  (require 'ocodo-minimal-light-smt)
-  (require 'ocodo-mesh-grass-smt)
-  (require 'ocodo-steps-grass-smt)
-  (require 'ocodo-mesh-aqua-smt)
-  (require 'ocodo-steps-aqua-smt))
-
-(when (image-type-available-p 'svg)
+  (require 'ocodo-svg-modelines)
+  (ocodo-svg-modelines/init)
   (smt/set-theme 'ocodo-steps-aqua:smt))
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)

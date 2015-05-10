@@ -12,18 +12,21 @@
 (setq ocodo-mesh-aqua:fileurl-prefix
       (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
 
-(smt/defrow default-left
-  :margin 9
+(smt/defrow ocodo-kawaii-light:smt-left
+  :margin 7
+  :always-visible t
   :widgets '(buffer-info buffer-name buffer-dirty)
   :align "left")
 
-(smt/defrow default-position
-  :margin 6
+(smt/defrow ocodo-kawaii-light:smt-right
+  :margin 1
+  :always-visible t
   :widgets '(position-info)
   :align "right")
 
-(smt/defrow default-right
+(smt/defrow ocodo-kawaii-light:smt-mid
   :margin 25
+  :always-visible t
   :widgets '(major-mode version-control minor-modes)
   :align "right")
 
@@ -54,25 +57,25 @@
   (list :font-weight "normal"
         :font-size "11pt"
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) "#000000" "#333333")))
+        :fill (if (smt/window-active-p) "#000000" "#777777")))
 
 (defun smt/ocodo-kawaii-light-major-mode-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) "#000000" "#333333")))
+        :fill (if (smt/window-active-p) "#000000" "#777777")))
 
 (defun smt/ocodo-kawaii-light-info-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) "#000000" "#333333")))
+        :fill (if (smt/window-active-p) "#000000" "#777777")))
 
 (defun smt/ocodo-kawaii-light-position-info-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) "#000000" "#333333")))
+        :fill (if (smt/window-active-p) "#000000" "#777777")))
 
 (defun smt/ocodo-kawaii-light-dirty-style (widget)
   (list :font-weight "normal"
@@ -80,20 +83,20 @@
         :font-family "sans-serif"
         :fill (if (and (or buffer-file-name buffer-offer-save) (buffer-modified-p))
                   ;; Dirty
-                  (if (smt/window-active-p) "#FF6060" "#763030")
+                  (if (smt/window-active-p) "#FF6060" "#E5B7B7")
                 ;; Untouched
-                (if (smt/window-active-p) "#3d7058" "#143519"))))
+                (if (smt/window-active-p) "#3d7058" "#A3CCA9"))))
 
 (defun smt/ocodo-kawaii-light-minor-mode-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
-        :fill (if (smt/window-active-p) "#000000" "#333333")))
+        :fill (if (smt/window-active-p) "#000000" "#777777")))
 
 (defun smt/ocodo-kawaii-light-version-control-style (widget)
   (list :font-weight "bold"
         :font-size "8pt"
         :font-family "sans-serif"
-        :fill (if (smt/window-active-p) "#5D3D70" "#333333")))
+        :fill (if (smt/window-active-p) "#5D3D70" "#777777")))
 
 (smt/deftheme ocodo-kawaii-light:smt
   :pixel-height 24
@@ -136,7 +139,9 @@
                :prototype 'buffer-name
                :style 'smt/ocodo-kawaii-light-buffer-name-style)))
 
-  :rows (list 'default-left 'default-right 'default-position))
+  :rows (list 'ocodo-kawaii-light:smt-left
+              'ocodo-kawaii-light:smt-mid
+              'ocodo-kawaii-light:smt-right))
 
 (ocodo:smt/setup 17 "Menlo")
 (provide 'ocodo-kawaii-light-smt)

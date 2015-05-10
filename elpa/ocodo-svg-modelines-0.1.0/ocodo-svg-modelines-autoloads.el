@@ -7,7 +7,7 @@
 ;;;;;;  (21838 13697 0 0))
 ;;; Generated autoloads from ocodo-svg-modelines.el
 
-(autoload 'ocodo-smt-collection-one/init "ocodo-svg-modelines" "\
+(autoload 'ocodo-svg-modelines/init "ocodo-svg-modelines" "\
 Initialize Ocodo's SVG Modeline collection.
 
 \(fn)" t nil)
