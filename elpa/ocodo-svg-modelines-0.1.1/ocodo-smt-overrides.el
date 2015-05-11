@@ -3,6 +3,9 @@
 ;;; Code:
 (require 'svg-mode-line-themes)
 
+(defun ocodo-smt:string-from-file (file)
+  (with-temp-buffer (insert-file-contents file) (buffer-string)))
+
 (defun smt/buffer-indicators-text (widget)
   "Provide buffer state indicators.
 WIDGET is a required param.
@@ -74,6 +77,21 @@ Overrides smt core."
       (rect  :width "100%"  :height "100%"  :x 0  :y 0  :fill "url(#twisted)"  :fill-opacity 1)
       (image :x -50           :y 0 :height 26 :width 100 :xlink:href ,url)
       (image :x ,(- width 50) :y 0 :height 26 :width 100 :xlink:href ,url))))
+
+(defun ocodo:smt/edge-svg (theme svg)
+  (let* ((width (smt/window-pixel-width))
+         (height (smt/t-pixel-height theme)))
+    `((\defs
+       (linearGradient
+        :id "twisted" :x1 "0%" :y1 "0%" :x2 "100%" :y2 "25%"
+        (stop :offset "0%"   :stop-color "#484848" :stop-opacity 0.3)
+        (stop :offset "25%"  :stop-color "#484848" :stop-opacity 0.3)
+        (stop :offset "75%"  :stop-color "#484848" :stop-opacity 0.3)
+        (stop :offset "100%" :stop-color "#000000" :stop-opacity 0.3)))
+      (rect  :width "100%"  :height "100%"  :x 0  :y 0  :fill "url(#twisted)"  :fill-opacity 1)
+      (svg   :x -50           :y 0 :height 26 :width 100 ,svg)
+      (svg   :x ,(- width 50) :y 0 :height 26 :width 100 ,svg))))
+
 
 (defun ocodo:smt/overlay (theme)
   (let ((width (smt/window-pixel-width))

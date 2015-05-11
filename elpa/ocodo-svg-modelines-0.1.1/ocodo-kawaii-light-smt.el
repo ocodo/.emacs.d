@@ -1,5 +1,10 @@
 ;;; ocodo-kawaii-light-smt --- Yet another attempt at a super cool modeline for Emacs
 ;;
+;; Author: ocodo <what.is.ocodo@gmail.com>
+;; Package-Requires: ((svg-mode-line-themes))
+;; Version: 0.1.1
+;; URL: https://github.com/ocodo/ocodo-svg-modelines
+;;
 ;;; Commentary:
 ;;
 ;; Made with the svg-mode-line-themes toolkit from Sabof.
@@ -9,8 +14,20 @@
 
 (require 'ocodo-smt-overrides)
 
-(setq ocodo-mesh-aqua:fileurl-prefix
-      (concat "file://" (file-name-directory (or load-file-name buffer-file-name))))
+(defvar ocodo-kawaii-light:folder
+  (file-name-directory (or load-file-name buffer-file-name)))
+
+(defvar ocodo-kawaii-light:images
+  (concat ocodo-kawaii-light:folder "images/"))
+
+(defvar ocodo-kawaii-light:fileurl-prefix
+  (concat "file://" ocodo-kawaii-light:folder))
+
+(defvar ocodo-kawaii-light:graphic
+  (concat "data:image/png;base64,"
+          (ocodo-smt:string-from-file
+           (concat ocodo-kawaii-light:images
+                   "rainbow-stache-banana.png.base64"))))
 
 (smt/defrow ocodo-kawaii-light:smt-left
   :margin 7
@@ -33,9 +50,6 @@
 (defun ocodo-kawaii-light:smt/background (theme)
   (let ((bg-gradient-dark "#000000")
         (bg-gradient-main "#484848")
-        (image-url (concat
-                    ocodo-mesh-aqua:fileurl-prefix
-                    "images/rainbow-stache-banana.png"))
         (width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -48,7 +62,7 @@
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
       ;; Moustache Banana... inject your own cuteness/darkness/blanditude here
       (image :x -18 :y -12 :width 75 :height 75
-             :xlink:href ,image-url))))
+             :xlink:href ,ocodo-kawaii-light:graphic))))
 
 (defun ocodo-kawaii-light:smt/overlay (theme)
   (ocodo:smt/overlay theme))

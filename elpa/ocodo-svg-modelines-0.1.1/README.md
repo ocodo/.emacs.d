@@ -1,5 +1,19 @@
 # Ocodo SVG modelines
 
+### Version 0.1.1
+
+Upgrade notes:
+
+External png and svg images are now loaded as data uri
+(image/png,base64 and xml/svg,utf8.) This will allow the modelines to
+function fully on any Emacs build which has image-svg
+support. (ie. `--with-librsvg` configured builds)
+
+This won't affect OS X/Emacs Mac Port users, who will already be
+enjoying full svg support.
+
+# Abstract
+
 A completely superfluous, but otherwise most excellent collection
 of awesome modelines... if not now, then at some point in the
 future, you might want, need and maybe even love these.
@@ -28,7 +42,7 @@ Each modeline currently features
 
 See roadmap for a few ideas on the direction of the project...
 
-Anyway, without further ado, aside from this droning preable, here's the
+Anyway, without further ado, aside from this droning preamble, here's the
 modeline designs I have for you so far.
 
 ### ocodo-kawaii-light:smt
@@ -86,21 +100,20 @@ Manual installation is necessary at the moment. Package installation
 via MELPA will be available soon (a few days from now: 2015-05-10
 8:55AM UTC+0800)
 
-Use these steps to install:
+Follow these steps:
 
-From a terminal, where both `git` and GNU `tar` are available.
-
-    git clone https://github.com/ocodo/ocodo-svg-modelines ~/ocodo-svg-modelines-0.1.0
-
-    tar cvf ocodo-svg-modelines-0.1.0.tar ~/ocodo-svg-modelines-0.1.0
+    wget https://github.com/ocodo/ocodo-svg-modelines/archive/0.1.1.tar.gz
+    gunzip 0.1.1.tar.gz
+    mv 0.1.1.tar ~/ocodo-svg-modelines-0.1.1.tar
 
 Subsequently, from Emacs:
 
-    M-x package-install-file <RET> ~/ocodo-svg-modelines-0.1.0.tar
+    M-x package-install <RET> svg-mode-line-themes
+    M-x package-install-file <RET> ~/ocodo-svg-modelines-0.1.1.tar
 
 ## Usage
 
-    M-x ocodo-smt-collection-one/init
+    M-x ocodo-svg-modelines/init
 
     M-x smt/set-theme
 
@@ -120,10 +133,8 @@ is first class.
 
 Visit https://github.com/railwaycat/homebrew-emacsmacport for more info.
 
-On Linux and other *nix, build Emacs 25.x from source (Emacs git HEAD
-from savannah.) librsvg support should include loading external
-resources in SVG, which is used by these modelines. (older versions do
-not support external resource loading.)
+Emacs homebrew builds which are not Emacs-Mac-Port will function as the Linux
+builds described below.
 
 ## Problems or Suggestions
 
