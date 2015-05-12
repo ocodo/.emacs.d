@@ -1,3 +1,0 @@
-checked
-
-Boolean attribute which indicates whether the command is selected. May only be used when the type attribute is checkbox or radio.

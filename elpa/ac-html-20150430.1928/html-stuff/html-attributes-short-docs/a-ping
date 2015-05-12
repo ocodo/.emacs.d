@@ -1,3 +1,0 @@
-ping [html5]
-
-The 'ping' attribute, if present, sends the URLs of the resources a notification/ping if the user follows the hyperlink.

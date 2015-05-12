@@ -1,6 +1,0 @@
-value
-
-The textual content of this attribute represents the label explaining the option. If it is not defined, its default value is the text content of the element.
-
-Usage note: 
-the label attribute is designed to contain a short label typically used in a hierarchical menu. The value attribute describes a longer label designed to be used near a radio button, for example.

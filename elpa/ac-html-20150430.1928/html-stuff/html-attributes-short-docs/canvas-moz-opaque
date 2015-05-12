@@ -1,3 +1,0 @@
-moz-opaque
-
-Lets the canvas know whether or not translucency will be a factor. If the canvas knows there's no translucency, painting performance can be optimized.

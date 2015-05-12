@@ -1,3 +1,0 @@
-type
-
-The content type of the resource specified by data. At least one of data and type must be defined.

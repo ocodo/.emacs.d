@@ -1,3 +1,0 @@
-onbeforeprint [HTML5]
-
-Function to call when the user requests printing of the document.

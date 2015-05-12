@@ -1,3 +1,0 @@
-buffered
-
-An attribute you can read to determine which time ranges of the media have been buffered. This attribute contains a TimeRanges object.

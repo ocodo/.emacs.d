@@ -1,3 +1,0 @@
-rev [HTML4 only] [Obsolete since HTML5]
-
-This attribute specifies a reverse link, the inverse relationship of the rel attribute. It is useful for indicating where an object came from, such as the author of a document.

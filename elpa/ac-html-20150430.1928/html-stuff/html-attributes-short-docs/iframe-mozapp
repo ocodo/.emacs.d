@@ -1,3 +1,0 @@
-mozapp [!] [Only available on Firefox OS]
-
-For frames hosting an open web app, this specifies the URL of the app manifest. This ensures that the app is loaded with the right permissions. See Using the Browser API for details. Available in Gecko 13.0 and later.

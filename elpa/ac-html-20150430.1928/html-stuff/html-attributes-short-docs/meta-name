@@ -1,4 +1,0 @@
-name
-
-This attribute defines the name of a document-level metadata. It should not be set if one of the attributes itemprop, http-equiv or charset is also set.
-This document-level metadata name is associated with a value, contained by the content attribute.

@@ -1,3 +1,0 @@
-type [Trashed]
-
-Only used if the valuetype is set to "ref". Specifies the MIME type of values found at the URI specified by value.

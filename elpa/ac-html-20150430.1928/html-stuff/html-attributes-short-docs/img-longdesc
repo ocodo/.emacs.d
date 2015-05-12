@@ -1,3 +1,0 @@
-longdesc [HTML4 only]
-
-The URL of a description of the image to be displayed, which supplements the alt text. In HTML5, use a regular <a> element to link to the description.

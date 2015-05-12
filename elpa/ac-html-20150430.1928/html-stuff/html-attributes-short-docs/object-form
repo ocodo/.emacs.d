@@ -1,3 +1,0 @@
-form [HTML5]
-
-The form element, if any, that the object element is associated with (its form owner). The value of the attribute must be an ID of a <form> element in the same document.

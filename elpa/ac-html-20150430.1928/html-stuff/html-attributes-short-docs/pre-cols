@@ -1,3 +1,0 @@
-cols [!] [Trashed]
-
-Contains the preferred count of characters that a line should have. It was a non-standard synonym of width. To achieve such an effect, use CSS styling instead.

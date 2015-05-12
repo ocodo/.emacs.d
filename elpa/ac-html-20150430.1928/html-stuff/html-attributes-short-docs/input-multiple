@@ -1,3 +1,0 @@
-multiple [HTML5]
-
-This Boolean attribute indicates whether the user can enter more than one value. This attribute applies when the type attribute is set to email or file; otherwise it is ignored.

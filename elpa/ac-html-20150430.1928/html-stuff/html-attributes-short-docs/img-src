@@ -1,3 +1,0 @@
-src
-
-Image URL, this attribute is obligatory for the <img> element. On browsers supporting srcset, src is ignored if this one is provided.

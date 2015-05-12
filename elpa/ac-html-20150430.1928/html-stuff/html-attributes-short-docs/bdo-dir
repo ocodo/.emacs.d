@@ -1,6 +1,0 @@
-dir
-
-Text direction in this element. Possible values are:
-  ltr: Indicates that the text should go in a left-to-right direction.
-  rtl: Indicates that the text should go in a right-to-left direction.
-  auto: The browser decides which direction based on the element's content.

@@ -1,8 +1,0 @@
-autocomplete [HTML5]
-
-Indicates whether input elements can by default have their values automatically completed by the browser. This setting can be overridden by an autocomplete attribute on an element belonging to the form. Possible values are:
-  off: The user must explicitly enter a value into each field for every use, or the document provides its own auto-completion method; the browser does not automatically complete entries.
-  on: The browser can automatically complete values based on values that the user has previously entered in the form.
-  
-Note: 
-If you set autocomplete to off in a form because the document provides its own auto-completion, then you should also set autocomplete to off for each of the form's input elements that the document can auto-complete. For details, see Google Chrome notes.

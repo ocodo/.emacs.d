@@ -1,3 +1,0 @@
-codebase [HTML4 only] [Obsolete since HTML5]
-
-The base path used to resolve relative URIs specified by classid, data, or archive. If not specified, the default is the base URI of the current document.

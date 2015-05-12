@@ -1,3 +1,0 @@
-type
-
-The MIME-type of the resource, optionally with a codecs parameter. See RFC 4281 for information about how to specify codecs.

@@ -1,3 +1,0 @@
-autoplay
-
-A Boolean attribute; if specified, the video will automatically begin to play back as soon as it can do so without stopping to finish loading the data.

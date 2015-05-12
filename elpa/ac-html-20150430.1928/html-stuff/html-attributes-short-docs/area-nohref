@@ -1,6 +1,0 @@
-nohref [HTML4 only] [Obsolete since Gecko 5.0]
-
-Indicates that no hyperlink exists for the associated area. Either this attribute or the href attribute must be present in the element.
-
-Usage note: 
-This attribute is obsolete in HTML5, instead omitting the href attribute is sufficient.
