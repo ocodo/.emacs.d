@@ -1,7 +1,7 @@
 ;;; ocodo-svg-modelines --- a collection of beautiful, modern SVG modelines
 ;;
 ;; Author: ocodo <what.is.ocodo@gmail.com>
-;; Package-Requires: ((svg-mode-line-themes))
+;; Package-Requires: ((svg-mode-line-themes "0"))
 ;; Version: 0.1.2
 ;; URL: https://github.com/ocodo/ocodo-svg-modelines
 ;;
@@ -109,7 +109,9 @@
 ;;
 ;; ## Installation
 ;;
-;; Package installation via MELPA will be available soon
+;; Package installation via MELPA
+;;
+;;     M-x package-install RET ocodo-svg-modelines
 ;;
 ;; ## Manual Installation
 ;;
