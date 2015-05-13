@@ -1,11 +1,11 @@
 # Ocodo SVG modelines
 
-### Version 0.1.1
+### Version 0.1.2
 
 Upgrade notes:
 
 External png and svg images are now loaded as data uri
-(image/png,base64 and xml/svg,utf8.) This will allow the modelines to
+(image/png,base64 and xml/svg,base64.) This will allow the modelines to
 function fully on any Emacs build which has image-svg
 support. (ie. `--with-librsvg` configured builds)
 
@@ -45,31 +45,35 @@ See roadmap for a few ideas on the direction of the project...
 Anyway, without further ado, aside from this droning preamble, here's the
 modeline designs I have for you so far.
 
-### ocodo-kawaii-light:smt
+### ocodo-geometry-flakes-smt
+
+![](screenshots/ocodo-geometry-flakes-smt.png)
+
+### ocodo-kawaii-light-smt
 
 ![](screenshots/ocodo-kawaii-light-smt.png)
 
-### ocodo-minimal-light:smt
+### ocodo-minimal-light-smt
 
 ![](screenshots/ocodo-minimal-light-smt.png)
 
-### ocodo-minimal-dark:smt
+### ocodo-minimal-dark-smt
 
 ![](screenshots/ocodo-minimal-dark-smt.png)
 
-### ocodo-mesh-grass:smt
+### ocodo-mesh-grass-smt
 
 ![](screenshots/ocodo-mesh-grass-smt.png)
 
-### ocodo-mesh-aqua:smt
+### ocodo-mesh-aqua-smt
 
 ![](screenshots/ocodo-mesh-aqua-smt.png)
 
-### ocodo-steps-grass:smt
+### ocodo-steps-grass-smt
 
 ![](screenshots/ocodo-steps-grass-smt.png)
 
-### ocodo-steps-aqua:smt
+### ocodo-steps-aqua-smt
 
 ![](screenshots/ocodo-steps-aqua-smt.png)
 
@@ -96,45 +100,47 @@ Also:
 
 ## Installation
 
-Manual installation is necessary at the moment. Package installation
-via MELPA will be available soon (a few days from now: 2015-05-10
-8:55AM UTC+0800)
+Package installation via MELPA will be available soon
+
+## Manual Installation
 
 Follow these steps:
 
-    wget https://github.com/ocodo/ocodo-svg-modelines/archive/0.1.1.tar.gz
-    gunzip 0.1.1.tar.gz
-    mv 0.1.1.tar ~/ocodo-svg-modelines-0.1.1.tar
+    git clone https://github.com/ocodo/ocodo-svg-modelines ~/ocodo-svg-modelines-0.1.2
+    rm -rf ~/ocodo-svg-modelines-0.1.2/.git && cd ~
+    tar cf ~/ocodo-svg-modelines-0.1.2.tar ocodo-svg-modelines-0.1.2
 
 Subsequently, from Emacs:
 
     M-x package-install <RET> svg-mode-line-themes
-    M-x package-install-file <RET> ~/ocodo-svg-modelines-0.1.1.tar
+    M-x package-install-file <RET> ~/ocodo-svg-modelines-0.1.2.tar
 
 ## Usage
 
-    M-x ocodo-svg-modelines/init
-
+    M-x ocodo-svg-modelines-init
     M-x smt/set-theme
 
-You can then select one of the ocodo themes listed above.
+Now select one of the ocodo themes listed...
 
-## Caveat Emptor
+... and be all happy.
 
-Please note this package is quite experimental and full SVG
+## But be warned!
+
+Please be aware, this package is quite experimental and full SVG
 functionality isn't available on all Emacs builds.
 
-If you are on OS X, I recommend you use the Emacs Mac Port build, it
-is available via `brew`. It uses webkit to render SVG, so SVG support
-is first class.
+Ensure you have SVG support in your Emacs build, either use Emacs Mac
+Port on OS X or...
 
-    brew tap railwaycat/emacsmacport
-    brew install emacs-mac
+You can also build Emacs on OS X with `brew` using:
 
-Visit https://github.com/railwaycat/homebrew-emacsmacport for more info.
+    brew install emacs --HEAD --with-cocoa --with-librsvg
 
-Emacs homebrew builds which are not Emacs-Mac-Port will function as the Linux
-builds described below.
+When building Linux, `./configure` using `--with-librsvg` (ensure rsvg
+support was reported by configure.)
+
+If in doubt Librsvg is the important part. (unless you're using Emacs
+Mac Port, which uses WebKit to render SVG.)
 
 ## Problems or Suggestions
 

@@ -2,7 +2,7 @@
 ;;
 ;; Author: ocodo <what.is.ocodo@gmail.com>
 ;; Package-Requires: ((svg-mode-line-themes))
-;; Version: 0.1.1
+;; Version: 0.1.2
 ;; URL: https://github.com/ocodo/ocodo-svg-modelines
 ;;
 ;;; Commentary:
@@ -14,7 +14,7 @@
 
 (require 'ocodo-smt-overrides)
 
-(defun ocodo-minimal-light:smt/background (theme)
+(defun ocodo-minimal-light-smt-background (theme)
   (let ((width (smt/window-pixel-width))
         (height (smt/t-pixel-height theme)))
     `((\defs
@@ -27,38 +27,38 @@
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "#FFFFFF")
       (rect :width "100%" :height "100%" :x 0 :y 0 :fill "url(#twisted)"))))
 
-(defun ocodo-minimal-light:smt/overlay (theme)
-  (ocodo:smt/overlay theme))
+(defun ocodo-minimal-light-smt-overlay (theme)
+  (ocodo-smt-overlay theme))
 
-(defun smt/ocodo-buffer-name-style (widget)
+(defun ocodo-buffer-name-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :font-family "sans-serif"
         :filter nil
         :fill (if (smt/window-active-p) "#000000" "#777777")))
 
-(defun smt/ocodo-major-mode-style (widget)
+(defun ocodo-major-mode-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#000000" "#777777")))
 
-(defun smt/ocodo-info-style (widget)
+(defun ocodo-info-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#000000" "#777777")))
 
-(defun smt/ocodo-position-info-style (widget)
+(defun ocodo-position-info-style (widget)
   (list :font-weight "normal"
         :font-size "8pt"
         :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#000000" "#777777")))
 
-(defun smt/ocodo-dirty-style (widget)
+(defun ocodo-dirty-style (widget)
   (list :font-weight "normal"
         :font-size "11pt"
         :filter nil
@@ -69,80 +69,80 @@
                 ;; Untouched
                 (if (smt/window-active-p) "#3d7058" "#A3CCA9"))))
 
-(defun smt/ocodo-minor-mode-style (widget)
+(defun ocodo-minor-mode-style (widget)
   (list :font-weight "normal"
         :font-size "6pt"
         :filter nil
         :fill (if (smt/window-active-p) "#000000" "#777777")))
 
-(defun smt/ocodo-version-control-style (widget)
+(defun ocodo-version-control-style (widget)
   (list :font-weight "bold"
         :font-size "8pt"
         :filter nil
         :font-family "sans-serif"
         :fill (if (smt/window-active-p) "#5D3D70" "#777777")))
 
-(smt/defrow ocodo-minimal-light:smt-left
+(smt/defrow ocodo-minimal-light-row-left
   :widgets '(buffer-info buffer-name buffer-dirty)
   :always-visible t
   :margin 1)
 
-(smt/defrow ocodo-minimal-light:smt-mid
+(smt/defrow ocodo-minimal-light-row-mid
   :widgets '(major-mode version-control minor-modes)
   :always-visible t
   :align "right"
   :margin 25)
 
-(smt/defrow ocodo-minimal-light:smt-right
+(smt/defrow ocodo-minimal-light-row-right
   :widgets '(position-info)
   :always-visible t
   :align "right"
   :margin 1)
 
-(smt/deftheme ocodo-minimal-light:smt
+(smt/deftheme ocodo-minimal-light-smt
   :pixel-height 24
-  :background 'ocodo-minimal-light:smt/background
-  :overlay    'ocodo-minimal-light:smt/overlay
+  :background 'ocodo-minimal-light-smt-background
+  :overlay    'ocodo-minimal-light-smt-overlay
   :local-widgets
   ;;; Note order of widgets are determined by smt/defrows above.
   (list (cons 'major-mode
               (smt/make-widget
                :prototype 'major-mode
-               :style 'smt/ocodo-major-mode-style))
+               :style 'ocodo-major-mode-style))
 
         (cons 'minor-modes
               (smt/make-widget
                :prototype 'minor-modes
-               :style 'smt/ocodo-minor-mode-style))
+               :style 'ocodo-minor-mode-style))
 
         (cons 'version-control
               (smt/make-widget
                :prototype 'version-control
-               :style 'smt/ocodo-version-control-style))
+               :style 'ocodo-version-control-style))
 
         (cons 'position-info
               (smt/make-widget
                :prototype 'position-info
-               :style 'smt/ocodo-position-info-style))
+               :style 'ocodo-position-info-style))
 
         (cons 'buffer-info
               (smt/make-widget
                :prototype 'buffer-info
-               :style 'smt/ocodo-info-style))
+               :style 'ocodo-info-style))
 
         (cons 'buffer-dirty
               (smt/make-widget
                :prototype 'buffer-dirty
-               :style 'smt/ocodo-dirty-style))
+               :style 'ocodo-dirty-style))
 
         (cons 'buffer-name
               (smt/make-widget
                :prototype 'buffer-name
-               :style 'smt/ocodo-buffer-name-style)))
+               :style 'ocodo-buffer-name-style)))
 
-  :rows (list 'ocodo-minimal-light:smt-left
-              'ocodo-minimal-light:smt-mid
-              'ocodo-minimal-light:smt-right))
+  :rows (list 'ocodo-minimal-light-row-left
+              'ocodo-minimal-light-row-mid
+              'ocodo-minimal-light-row-right))
 
 (provide 'ocodo-minimal-light-smt)
 
