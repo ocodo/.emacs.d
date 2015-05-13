@@ -95,8 +95,8 @@
 (when (image-type-available-p 'svg)
   (smt/enable)
   (require 'ocodo-svg-modelines)
-  (ocodo-svg-modelines/init)
-  (smt/set-theme 'ocodo-steps-aqua:smt))
+  (ocodo-svg-modelines-init)
+  (smt/set-theme 'ocodo-geometry-flakes-smt))
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.

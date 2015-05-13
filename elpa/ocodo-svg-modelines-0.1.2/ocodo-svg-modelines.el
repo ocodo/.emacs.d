@@ -187,6 +187,7 @@
   (when (image-type-available-p 'svg)
     (smt/enable)
     (require 'ocodo-kawaii-light-smt)
+    (require 'ocodo-geometry-flakes-smt)
     (require 'ocodo-minimal-light-smt)
     (require 'ocodo-minimal-dark-smt)
     (require 'ocodo-steps-aqua-smt)

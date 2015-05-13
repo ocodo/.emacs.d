@@ -8,6 +8,7 @@
 ;;; Code:
 (require 'svg-mode-line-themes)
 
+;;;###autoload
 (defun ocodo-smt-string-from-file (file)
   (with-temp-buffer (insert-file-contents file) (buffer-string)))
 
