@@ -96,7 +96,7 @@
   (smt/enable)
   (require 'ocodo-svg-modelines)
   (ocodo-svg-modelines-init)
-  (smt/set-theme 'ocodo-geometry-flakes-smt))
+  (smt/set-theme 'ocodo-mesh-retro-aqua-smt))
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
