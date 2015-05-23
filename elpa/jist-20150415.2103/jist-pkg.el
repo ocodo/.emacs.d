@@ -1,0 +1,1 @@
+(define-package "jist" "20150415.2103" "Manage gists from emacs" '((emacs "24") (cl-lib "0.5") (magit "1.2.1") (request "0.2.0") (pkg-info "0.4")) :url "https://github.com/emacs-pe/jist.el" :keywords '("convenience"))
