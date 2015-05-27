@@ -4,6 +4,7 @@
 ;;; Code:
 
 (require 'projectile)
+(require 'projectile-rails)
 
 ;;;###autoload
 (defun opl-find-file-in-folder (folder)
@@ -55,15 +56,52 @@
 
 ;; Jump to Factories
 ;;;###autoload
-(defvar opl-rails-factory-girl-folder
-  "spec/factories"
-  "FactoryGirl factories folder.")
+(defun projectile-opl-rails-find-view-model ()
+  (interactive)
+  (projectile-rails-find-resource
+   "view-model: "
+   '(("app/assets/javascripts/opl/view_models/" "\\(.+\\)\\.js\\.coffee"))))
 
 ;;;###autoload
-(defun opl-jump-to-factory-girl-factory ()
-  "Jump to a factory girl, factory."
+(defun projectile-opl-rails-find-feature ()
   (interactive)
-  (opl-find-file-in-folder opl-rails-factory-girl-folder))
+  (projectile-rails-find-resource
+   "feature: "
+   '(("spec/features/" "spec/features/\\(.+\\)_spec\\.rb$"))
+   "spec/features/${filename}.rb"))
+
+;;;###autoload
+(defun projectile-opl-rails-find-jasmine ()
+  (interactive)
+  (projectile-rails-find-resource
+   "jasmine: "
+   '(("spec/javascripts/" "spec/javascripts/\\(.+\\)_spec\\.js\\.coffee$"))
+   "spec/javascripts/${filename}_spec.js.coffee"))
+
+;;;###autoload
+(defun projectile-opl-rails-find-siteprism-page ()
+  (interactive)
+  (projectile-rails-find-resource
+   "siteprism page: "
+   '(("spec/features/support/pages/" "spec/features/support/pages/\\(.+\\)\\.rb"))
+   "spec/features/support/pages/${filename}.rb"))
+
+;;;###autoload
+(defun projectile-opl-rails-find-factory ()
+  (interactive)
+  (projectile-rails-find-resource
+   "factory: "
+   '(("spec/factories/" "spec/factories/\\(.+\\)\\.rb")) "spec/factories/${filename}.rb"))
+
+;;;###autoload
+(defun projectile-opl-rails-find-current-factory ()
+  (interactive)
+  (beginning-of-line)
+  (search-forward-regexp "create\\(_list\\)? :\\([[:alnum:]_]*\\)")
+  (let ((factory (pluralize-string (match-string-no-properties 2))))
+    (if factory
+        (find-file-other-window (format "%s/spec/factories/%s.rb" (projectile-project-root) factory))
+      (projectile-opl-rails-find-factory))))
 
 (provide 'opl-rails)
 ;;; opl-rails.el ends here
