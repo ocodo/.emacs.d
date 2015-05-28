@@ -51,11 +51,11 @@
 (defun opl-rails-find-current-factory ()
   (interactive)
   (beginning-of-line)
-  (search-forward-regexp "create\\(_list\\)? :\\([[:alnum:]_]*\\)")
+  (search-forward-regexp "create\\(_list\\)?(? ?:\\([[:alnum:]_]*\\)")
   (let ((factory (pluralize-string (match-string-no-properties 2))))
     (if factory
         (find-file-other-window (format "%s/spec/factories/%s.rb" (projectile-project-root) factory))
-      (projectile-opl-rails-find-factory))))
+      (opl-rails-find-factory))))
 
 (provide 'opl-rails)
 ;;; opl-rails.el ends here
