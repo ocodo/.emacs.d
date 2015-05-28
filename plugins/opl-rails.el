@@ -57,5 +57,16 @@
         (find-file-other-window (format "%s/spec/factories/%s.rb" (projectile-project-root) factory))
       (opl-rails-find-factory))))
 
+;; TODO:
+;; - integrate opl-coffee
+;; - use projectile rails find resource pattern
+;; - find data store
+;; - find concerns
+;; - find service
+;; - find ... get tree of js/coffee and specs/javascripts
+;; - assist move if in the wrong place / naming convention
+;; - generator integration / replacement
+;; - more spec helpers / factory / page helpers
+
 (provide 'opl-rails)
 ;;; opl-rails.el ends here
