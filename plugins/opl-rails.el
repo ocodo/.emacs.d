@@ -154,14 +154,40 @@
    '(("app/assets/javascripts/opl/sync/" "app/assets/javascripts/opl/sync/\\(.+\\)\\.js.coffee"))
    "app/assets/javascripts/opl/sync/${filename}.js.coffee"))
 
+;;;###autoload
+(defun opl-rails-find-services ()
+  (interactive)
+  (projectile-rails-find-resource
+   "Rails service: "
+   '(("app/services/" "app/services/\\(.+\\)\\.rb"))
+   "app/services/${filename}.rb"))
+
+;;;###autoload
+(defun opl-rails-find-concerns ()
+  (interactive)
+  (projectile-rails-find-resource
+   "Rails service: "
+   '(("app/concerns/" "app/concerns/\\(.+\\)\\.rb"))
+   "app/concerns/${filename}.rb"))
+
+;;;###autoload
+(defun opl-rails-find-workers ()
+  (interactive)
+  (projectile-rails-find-resource
+   "Rails service: "
+   '(("app/workers/" "app/workers/\\(.+\\)\\.rb"))
+   "app/workers/${filename}.rb"))
+
+;;;###autoload
+(defun opl-rails-find-active-admin ()
+  (interactive)
+  (projectile-rails-find-resource
+   "Rails service: "
+   '(("app/admin/" "app/admin/\\(.+\\)\\.rb"))
+   "app/admin/${filename}.rb"))
 
 ;; TODO:
 ;; - integrate opl-coffee
-;; - use projectile rails find resource pattern
-;; - find data store
-;; - find concerns
-;; - find service
-;; - find ... get tree of js/coffee and specs/javascripts
 ;; - assist move if in the wrong place / naming convention
 ;; - generator integration / replacement
 ;; - more spec helpers / factory / page helpers
