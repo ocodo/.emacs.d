@@ -10,6 +10,7 @@
         "C-x a"
         "C-x n"
         "C-x r"
+        "C-x j"
         "C-x 4"
         "C-x 5"
         "C-x 8 1"
