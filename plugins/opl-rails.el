@@ -9,13 +9,6 @@
 (require 'projectile-rails)
 
 ;;;###autoload
-(defun opl-rails-find-view-model ()
-  (interactive)
-  (projectile-rails-find-resource
-   "view-model: "
-   '(("app/assets/javascripts/opl/view_models/" "\\(.+\\)\\.js\\.coffee"))))
-
-;;;###autoload
 (defun opl-rails-find-feature ()
   (interactive)
   (projectile-rails-find-resource
@@ -36,7 +29,7 @@
   (interactive)
   (projectile-rails-find-resource
    "siteprism page: "
-   '(("spec/features/support/pages/" "spec/features/support/pages/\\(.+\\)\\.rb"))
+   '(("spec/features/support/pages/" "spec/features/support/pages/\\(.+\\)\\.rb$"))
    "spec/features/support/pages/${filename}.rb"))
 
 ;;;###autoload
@@ -44,7 +37,7 @@
   (interactive)
   (projectile-rails-find-resource
    "factory: "
-   '(("spec/factories/" "spec/factories/\\(.+\\)\\.rb"))
+   '(("spec/factories/" "spec/factories/\\(.+\\)\\.rb$"))
    "spec/factories/${filename}.rb"))
 
 ;;;###autoload
@@ -62,7 +55,7 @@
   (interactive)
   (projectile-rails-find-resource
    "coffee app: "
-   '(("app/assets/javascripts/opl/app/" "app/assets/javascripts/opl/app/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/app/" "app/assets/javascripts/opl/app/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/app/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -70,7 +63,7 @@
   (interactive)
   (projectile-rails-find-resource
    "data models: "
-   '(("app/assets/javascripts/opl/data_models/" "app/assets/javascripts/opl/data_models/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/data_models/" "app/assets/javascripts/opl/data_models/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/data_models/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -78,7 +71,7 @@
   (interactive)
   (projectile-rails-find-resource
    "data store: "
-   '(("app/assets/javascripts/opl/data_store/" "app/assets/javascripts/opl/data_store/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/data_store/" "app/assets/javascripts/opl/data_store/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/data_store/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -86,7 +79,7 @@
   (interactive)
   (projectile-rails-find-resource
    "view models: "
-   '(("app/assets/javascripts/opl/view_models/" "app/assets/javascripts/opl/view_models/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/view_models/" "app/assets/javascripts/opl/view_models/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/view_models/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -94,7 +87,7 @@
   (interactive)
   (projectile-rails-find-resource
    "coffee helpers: "
-   '(("app/assets/javascripts/opl/helpers/" "app/assets/javascripts/opl/helpers/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/helpers/" "app/assets/javascripts/opl/helpers/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/helpers/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -102,8 +95,8 @@
   (interactive)
   (projectile-rails-find-resource
    "coffee lib: "
-   '(("app/assets/javascripts/opl/lib/" "app/assets/javascripts/opl/lib/\\(.+\\)\\.js.coffee")
-     ("app/assets/javascripts/lib/" "app/assets/javascripts/lib/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/lib/" "app/assets/javascripts/opl/lib/\\(.+\\)\\.js\\.coffee$")
+     ("app/assets/javascripts/lib/" "app/assets/javascripts/lib/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/lib/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -111,7 +104,7 @@
   (interactive)
   (projectile-rails-find-resource
    "coffee models: "
-   '(("app/assets/javascripts/opl/models/" "app/assets/javascripts/opl/models/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/models/" "app/assets/javascripts/opl/models/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/models/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -119,7 +112,7 @@
   (interactive)
   (projectile-rails-find-resource
    "coffee routers: "
-   '(("app/assets/javascripts/opl/routers/" "app/assets/javascripts/opl/routers/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/routers/" "app/assets/javascripts/opl/routers/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/routers/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -127,7 +120,7 @@
   (interactive)
   (projectile-rails-find-resource
    "coffee widgets: "
-   '(("app/assets/javascripts/opl/widgets/" "app/assets/javascripts/opl/widgets/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/widgets/" "app/assets/javascripts/opl/widgets/\\(.+\\)\\.js\\.coffee"))
    "app/assets/javascripts/opl/widgets/${filename}.js.coffee"))
 
 ;;;###autoload
@@ -135,8 +128,16 @@
   (interactive)
   (projectile-rails-find-resource
    "coffee views: "
-   '(("app/assets/javascripts/opl/views/" "app/assets/javascripts/opl/views/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/views/" "app/assets/javascripts/opl/views/\\(.+\\)\\.js\\.coffee"))
    "app/assets/javascripts/opl/views/${filename}.js.coffee"))
+
+;;;###autoload
+(defun opl-rails-find-shared-examples-coffee ()
+  (interactive)
+  (projectile-rails-find-resource
+   "coffee spec shared-examples: "
+   '(("spec/javascripts/shared_examples/" "spec/javascripts/shared_examples/\\(.+\\)_spec\\.js\\.coffee"))
+   "spec/javascripts/shared-examples/${filename}_spec.js.coffee"))
 
 ;;;###autoload
 (defun opl-rails-find-templates-hamlc ()
@@ -151,7 +152,7 @@
   (interactive)
   (projectile-rails-find-resource
    "coffee sync: "
-   '(("app/assets/javascripts/opl/sync/" "app/assets/javascripts/opl/sync/\\(.+\\)\\.js.coffee"))
+   '(("app/assets/javascripts/opl/sync/" "app/assets/javascripts/opl/sync/\\(.+\\)\\.js\\.coffee$"))
    "app/assets/javascripts/opl/sync/${filename}.js.coffee"))
 
 ;;;###autoload

@@ -499,6 +499,7 @@ css-value to the hex color found."
         (forward-line))
     (message "markdown-codefence-region requires a region")))
 
+;; TODO Make a Emacs interface to chrome-cli instead.
 (defun reload-current-chrome-tab-osx ()
   "Run a simple applescript to reload the current Google Chrome tab.
 
@@ -572,19 +573,21 @@ OSX specific of course."
   (interactive)
   (describe-in-popup 'describe-function))
 
+(require 'pos-tip)
+(require 'popup)
 (defun describe-in-popup (fn)
-  (let* ((thing (symbol-at-point))
-         (description (save-window-excursion
-                        (funcall fn thing)
-                        (switch-to-buffer "*Help*")
-                        (buffer-string))))
-    (popup-tip description
-               :point (point)
-               :around t
-               :height 30
-               :scroll-bar t
-               :margin t)))
+  "Open a postip containing the help text of `symbol-at-point' using FN.
 
+FN should be either `describe-variable' or `describe-function'."
+  (let* ((thing (symbol-at-point))
+         (description
+          (replace-regexp-in-string
+           "\\[BACK\\]" ""
+           (save-window-excursion
+             (funcall fn thing)
+             (switch-to-buffer "*Help*")
+             (buffer-string)))))
+    (pos-tip-show description 'popup-tip-face nil nil -1)))
 
 (defun zap-to-string (&optional arg)
   "Zap text up to a string, ARG can be minus to zap backwards."

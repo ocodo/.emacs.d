@@ -6,6 +6,11 @@
 ;;
 ;;; Code:
 
+;; (defun opl-coffee-mode-hook ()
+;;   (font-lock-add-keywords)
+;;   ;; TODO: Add some additional fontifying.
+;;   )
+
 ;;;###autoload
 (defun opl-coffee-switch-to-related (regexp replace from to)
   "Using the current file, open a related file.
