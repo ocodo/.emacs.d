@@ -74,6 +74,7 @@
                 multi-web-mode
                 nxml
                 occur
+                persistent-scratch
                 pivotal
                 projectile
                 projectile-rails
