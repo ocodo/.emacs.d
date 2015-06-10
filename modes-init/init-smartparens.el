@@ -21,5 +21,8 @@
 (global-set-key (kbd "C-x r <right>")       'sp-forward-barf-sexp)
 (global-set-key (kbd "C-x a <left>")        'sp-backward-slurp-sexp)
 (global-set-key (kbd "C-x a <right>")       'sp-backward-barf-sexp)
+(global-set-key (kbd "C-x r r")             'sp-rewrap-sexp)
+(global-set-key (kbd "C-x r s")             'sp-split-sexp)
+(global-set-key (kbd "C-x r j")             'sp-join-sexp)
 
 (provide 'init-smartparens)
