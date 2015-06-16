@@ -525,6 +525,14 @@ Include jlet and jset definitions."
     (when (looking-at "it ") (forward-char 2) (insert "x"))
     (when (looking-at "itx") (forward-char 2) (delete-char 1))))
 
+(defun jasmine-coffee/insert-subject ()
+  "Insert the subject of the top level describe."
+  (interactive)
+  (save-excursion
+  (goto-char 0)
+  (search-forward-regexp "describe[ (]?['\"]\\(.*?\\)['\"][ )]?, ?->"))
+  (insert (match-string-no-properties 1)))
+
 (defun jc/move-to-indentation ()
   "Internal function to jump to indentation column."
   (jc/end-of-line)
