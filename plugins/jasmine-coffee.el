@@ -533,6 +533,14 @@ Include jlet and jset definitions."
   (search-forward-regexp "describe[ (]?['\"]\\(.*?\\)['\"][ )]?, ?->"))
   (insert (match-string-no-properties 1)))
 
+(defun jasmine-coffee/insert-last-subject ()
+  "Insert the subject of the last describe."
+  (interactive)
+  (save-excursion
+  (goto-char 0)
+  (search-backward-regexp "describe[ (]?['\"]\\(.*?\\)['\"][ )]?, ?->"))
+  (insert (match-string-no-properties 1)))
+
 (defun jc/move-to-indentation ()
   "Internal function to jump to indentation column."
   (jc/end-of-line)
