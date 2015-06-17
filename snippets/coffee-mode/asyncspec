@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# group: jasmine
+# name: asyncSpec (done) ->
+# key: asy
+# --
+asyncSpec (done) ->
