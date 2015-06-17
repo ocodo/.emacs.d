@@ -1,1 +1,1 @@
-(persistent-scratch-autosave-mode 1)
+../available-inits/init-persistent-scratch.el

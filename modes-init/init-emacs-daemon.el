@@ -1,3 +1,1 @@
-;; init-emacs-daemon
-(server-start)
-(provide 'init-emacs-daemon)
+../available-inits/init-emacs-daemon.el

@@ -1,4 +1,1 @@
-(require 'moonscript-mode)
-(require 'moonscriptrepl-mode)
-
-(provide 'init-moonscript)
+../available-inits/init-moonscript.el

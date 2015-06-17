@@ -18,7 +18,7 @@
   (require 'remember-theme)
   (require 'armitp-mode-line)
   (require 'quick-funcs)
-  (require 'init-elpa)
+  (require 'elpa-init)
   (require 'init-misc-settings)
   (require 'init-rainbow-delimiters)
   (require 'init-dired)

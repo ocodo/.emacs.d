@@ -11,4 +11,4 @@
 
   (package-initialize)) ;; init elpa packages
 
-(provide 'init-elpa)
+(provide 'elpa-init)

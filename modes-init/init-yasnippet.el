@@ -1,3 +1,1 @@
-;; init-yasnippet
-(yas-global-mode t)
-(provide 'init-yasnippet)
+../available-inits/init-yasnippet.el

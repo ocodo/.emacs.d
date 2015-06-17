@@ -21,9 +21,10 @@
 (let ((default-directory user-emacs-directory))
   (normal-top-level-add-subdirs-to-load-path))
 
+(require 'elpa-init)
+
 ;; Explicit Requires ...
-(dolist (lib '(init-elpa
-               handy-functions
+(dolist (lib '(handy-functions
                custom-keys
                ag
                armitp-mode-line
@@ -47,51 +48,10 @@
                super-num-zero-map))
   (load-library (symbol-name lib)))
 
-;; mode inits
-(dolist (init '(exec-path
-                asciidoc
-                autocomplete
-                anzu
-                buffer-clean
-                codenotes
-                coffee
-                ;; company ;; Sorry, no thank you company mode, still not comparably useful vs AC mode.
-                dired
-                elpa-themes
-                emacs-daemon
-                eww
-                flycheck
-                guide
-                git-gutter
-                haml
-                hideshowvis
-                json-mode
-                ido
-                ispell
-                markdown
-                misc-settings
-                moonscript
-                multi-web-mode
-                nxml
-                occur
-                persistent-scratch
-                pivotal
-                projectile
-                projectile-rails
-                rainbow
-                rainbow-delimiters
-                rspec
-                ruby
-                rvm
-                remember-theme
-                sh
-                smartparens
-                smooth-scroll
-                swiper
-                winner
-                yaml
-                yasnippet))
-  (load-mode-init (symbol-name init)))
+(dolist (init-file
+         (directory-files
+          (concat user-emacs-directory "modes-init")))
+  (load-mode-init-file init-file))
 
 ;; When GUI (hopefully svg is available!)
 ;; Load an SVG Modeline

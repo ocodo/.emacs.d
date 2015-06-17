@@ -14,6 +14,16 @@
         (load-file file)
       (message "Warning: %s doesn't exist" file))))
 
+(defun load-mode-init-file (name)
+  "Load a mode-init file NAME expect an error if it doesn't map to an existing file."
+  (let (file)
+    (setq file (concat user-emacs-directory "modes-init/" name))
+    (unless (or (equal name ".") (equal name ".."))
+      (message "Loading Initializer: %s" file)
+      (if (file-exists-p file)
+          (load-file file)
+        (message "Warning: %s doesn't exist" file)))))
+
 ;; Optional modes-init handling
 (defun load-optional-mode-init (name)
   "Check for existence of a mode init script NAME, and load if found."
