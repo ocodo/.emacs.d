@@ -1,4 +1,0 @@
-An Emacs major mode to work with the [[http://jekyllrb.com][Jekyll]] blogging system.
-
-GPL Licensed
-
