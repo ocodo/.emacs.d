@@ -537,7 +537,6 @@ Include jlet and jset definitions."
   "Insert the subject of the last describe."
   (interactive)
   (save-excursion
-  (goto-char 0)
   (search-backward-regexp "describe[ (]?['\"]\\(.*?\\)['\"][ )]?, ?->"))
   (insert (match-string-no-properties 1)))
 
