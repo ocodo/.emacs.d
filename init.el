@@ -30,7 +30,6 @@
                armitp-mode-line
                diff-region
                highlight-indentation
-               hyde-autoloads
                kurecolor
                iedit
                js2-refactor
