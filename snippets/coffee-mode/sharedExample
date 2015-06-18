@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# group: jasmine
+# name: sharedExample
+# key: shex
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region 'nil))
+# --
+
+@SharedExamples.itBehavesLikeA${1:Thing} = (${2:args}) ->
+
+  describe '@SharedExamples.itBehavesLike$1', ->
+
+    $0

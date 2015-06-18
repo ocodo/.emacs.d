@@ -1,1 +1,1 @@
-/Users/jason/.emacs.d/available-inits/init-avy.el
+../available-inits/init-avy.el
