@@ -18,8 +18,11 @@
   (require 'savehist)
   (eval-after-load "savehist-mode"
     (progn
-      (setq savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
-      (setq savehist-file "~/.emacs.d/tmp/savehist")))
+      (let ((default-directory user-emacs-directory))
+        (setq savehist-additional-variables '(kill-ring search-ring regexp-search-ring))
+        (setq savehist-file (expand-file-name "tmp/savehist")))))
   (savehist-mode 1))
 
 (provide 'quick-init-helpers)
+
+

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: ko.observable
+# group: knockout
+# key: kob
+# --
+$1 = ko.observable $0
