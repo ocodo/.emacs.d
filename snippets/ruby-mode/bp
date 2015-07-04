@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# group: debugging
+# name: binding.pry
+# key: bp
+# --
+binding.pry

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# group: debugging
+# name: debugger
+# key: deb
+# --
+debugger
