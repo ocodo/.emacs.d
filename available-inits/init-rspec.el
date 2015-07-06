@@ -1,17 +1,17 @@
-;; Rspec init
+;; init-rspec -- Initialize rspec
+;;; Commentary:
+;;  Initialize rspec mode
+;;
+;;; Code:
 
 (require 'rvm)
 (require 'rspec-mode)
 
 (rspec-install-snippets)
-
-(add-hook 'after-init-hook 'inf-ruby-switch-setup)
-
-(defadvice rspec-compile (around rspec-compile-around)
-  "Use BASH shell for running the specs because of ZSH issues."
-  (let ((shell-file-name "/bin/bash"))
-    ad-do-it))
-
 (setq rspec-use-rvm t)
 
+;; Use C-x C-q to switch to interactive mode, for example with pry/debugger
+(add-hook 'after-init-hook 'inf-ruby-switch-setup)
+
 (provide 'init-rspec)
+;;; init-rspec.el ends here
