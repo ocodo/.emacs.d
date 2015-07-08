@@ -29,6 +29,10 @@
 ;; Saved macro to replace selection with try(:selection)
 (fset 'ruby-selected-to-try-call [?\C-w ?t ?r ?y ?\( ?: ?\C-y right])
 
+;; Saved macro to replace var assignment with a let (rspec)
+(fset 'rspec-var-to-let
+   [?l ?e ?t ?  ?\C-s ?= left delete backspace ?\C-c ?: ?\" left delete delete ?\C-  ?\C-r ?  right ?\{ right left ?\C-x ?r ?r ?\( right left ?\C-s ?  right left ?\C-  ?\C-e ?\{ left ?  ?\C-a ?\C-s ?\{ left right ?  end])
+
 (dolist (p '("\\.rb$"
              "Guardfile"
              "^Rakefile$"
