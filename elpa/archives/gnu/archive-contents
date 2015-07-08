@@ -48,7 +48,7 @@
 		     ((:url . "http://github.com/Malabarba/aggressive-indent-mode")
 		      (:keywords "indent" "lisp" "maint" "tools"))])
  (ahungry-theme .
-		[(1 0 8)
+		[(1 0 9)
 		 ((emacs
 		   (24)))
 		 "Ahungry color theme for Emacs.  Make sure to (load-theme 'ahungry)." tar
@@ -347,6 +347,11 @@
 	 nil "jump to previous insertion points" single
 	 ((:url . "http://elpa.gnu.org/packages/jumpc.html")
 	  (:keywords))])
+ (landmark .
+	   [(1 0)
+	    nil "Neural-network robot that learns landmarks" single
+	    ((:url . "http://elpa.gnu.org/packages/landmark.html")
+	     (:keywords "games" "neural network" "adaptive search" "chemotaxis"))])
  (let-alist .
 	    [(1 0 4)
 	     nil "Easily let-bind values of an assoc-list by their names" single

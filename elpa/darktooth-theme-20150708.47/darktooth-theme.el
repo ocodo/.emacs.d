@@ -4,7 +4,7 @@
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20150705.2041
+;; Package-Version: 20150708.47
 ;; Version: 0.1.26
 
 ;;; Commentary:
@@ -283,6 +283,9 @@
    `(popup-menu-selection-face                 ((t (:foreground ,darktooth-light0 :background ,darktooth-faded_blue ))))
    `(popup-tip-face                            ((t (:foreground ,darktooth-light0_hard :background ,darktooth-dark_aqua ))))
    ;; Use tip colors for the pos-tip color vars (see below)
+
+   ;; sh mode
+   `(sh-heredoc                                ((t (:foreground ,darktooth-bright_blue :background nil))))
 
    ;; Company Mode
    `(company-echo                              ((t (:inherit company-echo-common ))))
