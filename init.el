@@ -52,13 +52,16 @@
           (concat user-emacs-directory "modes-init")))
   (load-mode-init-file init-file))
 
-;; When GUI (hopefully svg is available!)
-;; Load an SVG Modeline
-(when (image-type-available-p 'svg)
-  (smt/enable)
-  (require 'ocodo-svg-modelines)
-  (ocodo-svg-modelines-init)
-  (smt/set-theme 'ocodo-mesh-retro-aqua-smt))
+;; ;; When GUI (hopefully svg is available!)
+;; ;; Load an SVG Modeline
+;; (when (image-type-available-p 'svg)
+;;   (smt/enable)
+;;   (require 'ocodo-svg-modelines)
+;;   (ocodo-svg-modelines-init)
+;;   (smt/set-theme 'ocodo-mesh-retro-aqua-smt))
+
+(require 'armitp-mode-line)
+(armitp-mode-line)
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
