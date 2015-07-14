@@ -20,7 +20,7 @@
    mac-control-modifier  'control
    mac-option-modifier   'meta
    mac-command-modifier  'super
-   ;; mac-function-modifier 'hyper
+   mac-function-modifier 'hyper
    ))
 
 ;; Fullscreen mode toggle in emacs mac. This invokes the Kiosk mode
