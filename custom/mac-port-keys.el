@@ -20,8 +20,12 @@
    mac-control-modifier  'control
    mac-option-modifier   'meta
    mac-command-modifier  'super
-   mac-function-modifier 'hyper
+   mac-function-modifier nil
    ))
+
+;; If using mac-function-modifier as hyper, you must also rebind Home,
+;; End, Pgup, Pgdn (others?) as they become Hyper-this/that.
+;; TODO.
 
 ;; Fullscreen mode toggle in emacs mac. This invokes the Kiosk mode
 ;; fullscreen, ie. only one display is hijacked. not the obnoxious
