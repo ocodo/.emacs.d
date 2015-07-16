@@ -1,4 +1,4 @@
-;;; mac-port-keys --- keys Specific to the Mac Port patches to Emacs by Yamamoto Mitsuharu.
+;;; mac-port-keys --- keys Specific to the Mac Port patches to Emacs by Yamamoto Mitsuharu. (at Chiba U, Japan)
 
 ;;; Commentary:
 ;; Specific to the Mac Port by Yamamoto Mitsuharu.
@@ -19,13 +19,32 @@
   (setq
    mac-control-modifier  'control
    mac-option-modifier   'meta
-   mac-command-modifier  'super
-   mac-function-modifier nil
-   ))
+   mac-command-modifier  'super))
 
-;; If using mac-function-modifier as hyper, you must also rebind Home,
-;; End, Pgup, Pgdn (others?) as they become Hyper-this/that.
-;; TODO.
+(when (symbolp 'mac-function-modifier)
+  ;; PC Keyboard with Menu key mapped as Fn
+  ;; via Seil/Karabiner
+  ;;
+  ;; Here -> Fn mapped as hyper
+  (setq mac-function-modifier 'hyper)
+
+  ;; If using mac-function-modifier as hyper, you must also rebind Home,
+  ;; End, Pgup, Pgdn (others?) as they become Hyper-this/that.
+
+  ;; So here we fix keys broken by function-modifier -> hyper
+  (global-set-key (kbd "H-<left>")        'smart-beginning-of-line)
+  (global-set-key (kbd "H-<right>")       'end-of-line)
+  (global-set-key (kbd "H-<up>")          'backward-page)
+  (global-set-key (kbd "H-<down>")        'forward-page)
+  (global-set-key (kbd "H-<backspace>")   'delete-char)
+  (global-set-key (kbd "M-H-<backspace>") 'kill-word)
+
+  (if (symbolp 'kill-whole-word)
+      ;; Map Mac Clear key to kill-whole-word - if available
+      (global-set-key (kbd "H-6")             'kill-whole-word)
+
+    ;; otherwise Map Mac Clear key to kill-whole-ine
+    (global-set-key (kbd "H-6")             'kill-whole-line)))
 
 ;; Fullscreen mode toggle in emacs mac. This invokes the Kiosk mode
 ;; fullscreen, ie. only one display is hijacked. not the obnoxious
@@ -43,7 +62,6 @@
 
 ;; Bind "Emacs Mac port" keys the same as Emacs NS/Cocoa
 (when (symbolp 'mac-super-modifier)
-
   (global-set-key (kbd "s-s")    'save-buffer)
   (global-set-key (kbd "s-z")    'undo)
   (global-set-key (kbd "s-x")    'cua-cut-region)
@@ -59,9 +77,9 @@
   (global-set-key (kbd "M-s-i")  'ispell-word)
   (global-set-key (kbd "s-'")    'switch-window)
 
-;;
-;;  (global-set-key (kbd "<home>") 'beginning-of-buffer)
-;;  (global-set-key (kbd "<end>") 'end-of-buffer)
+  ;;
+  ;;  (global-set-key (kbd "<home>") 'beginning-of-buffer)
+  ;;  (global-set-key (kbd "<end>") 'end-of-buffer)
 
   ;; Navigating around frames, windows & buffers
   (global-set-key (kbd "C-`") 'switch-window)
@@ -71,9 +89,7 @@
   ;; and I never use it purposely (C-x left, C-x right or super-left
   ;; and super-right are better anyway)
   (global-unset-key [swipe-left])
-  (global-unset-key [swipe-right])
-
-)
+  (global-unset-key [swipe-right]))
 
 (provide 'mac-port-keys)
 
