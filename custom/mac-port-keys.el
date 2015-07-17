@@ -34,8 +34,8 @@
   ;; So here we fix keys broken by function-modifier -> hyper
   (global-set-key (kbd "H-<left>")        'smart-beginning-of-line)
   (global-set-key (kbd "H-<right>")       'end-of-line)
-  (global-set-key (kbd "H-<up>")          'backward-page)
-  (global-set-key (kbd "H-<down>")        'forward-page)
+  (global-set-key (kbd "H-<up>")          'scroll-down-command)
+  (global-set-key (kbd "H-<down>")        'scroll-up-command)
   (global-set-key (kbd "H-<backspace>")   'delete-char)
   (global-set-key (kbd "M-H-<backspace>") 'kill-word)
 
