@@ -8,6 +8,10 @@
             (define-key markdown-mode-map (kbd "M-<down>") nil)
             (define-key markdown-mode-map (kbd "M-<left>") nil)
             (define-key markdown-mode-map (kbd "M-<right>") nil)
+            (define-key markdown-mode-map (kbd "C-c b") 'markdown-insert-bold)
+            (define-key markdown-mode-map (kbd "C-c l") 'markdown-insert-link)
+            (define-key markdown-mode-map (kbd "C-c c") 'markdown-insert-code)
+            (sp-local-pair 'markdown-mode "<kbd>" "</kbd>" :wrap "C-c k")
             ))
 
 ;; Markdown file handling
