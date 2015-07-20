@@ -22,7 +22,12 @@
 (sp-pair "`" "`"   :wrap "C-c `")
 
 ;; Major mode specific pairs
+
+;; Emacs lisp
 (sp-local-pair 'emacs-lisp-mode "`" "'")
+
+;; Ruby
+(sp-local-pair 'ruby-mode "|" "|" :wrap "C-c |")
 
 ;; Smartparens slurp / barf - use instead of paredit
 (global-set-key (kbd "C-x r <left>")        'sp-forward-slurp-sexp)
