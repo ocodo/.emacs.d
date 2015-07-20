@@ -1,9 +1,6 @@
 ;; init-smartparens
 (smartparens-global-mode t)
 
-(sp-pair "<%=" "%>")
-(sp-pair "<%" "%>")
-
 (unless (fboundp 'cua-replace-region)
   (defun cua-replace-region ()
     "Replace the active region with the character you type."
@@ -15,6 +12,17 @@
                     not-empty
                     (not (eq this-original-command 'self-insert-command)))))
           (cua--fallback))))))
+
+;; Global pairs with wrap shortcuts...
+(sp-pair "(" ")"   :wrap "C-c (")
+(sp-pair "[" "]"   :wrap "C-c [")
+(sp-pair "{" "}"   :wrap "C-c {")
+(sp-pair "\"" "\"" :wrap "C-c \"")
+(sp-pair "'" "'"   :wrap "C-c '")
+(sp-pair "`" "`"   :wrap "C-c `")
+
+;; Major mode specific pairs
+(sp-local-pair 'emacs-lisp-mode "`" "'")
 
 ;; Smartparens slurp / barf - use instead of paredit
 (global-set-key (kbd "C-x r <left>")        'sp-forward-slurp-sexp)
