@@ -1,0 +1,3 @@
+#!/bin/sh
+
+open $1 -n -a Emacs --args -Q -l "~/.emacs.d/emacsq.el" 

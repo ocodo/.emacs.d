@@ -1,0 +1,3 @@
+#!/bin/sh
+
+emacs -Q -l "~/.emacs.d/emacsq.el" $@

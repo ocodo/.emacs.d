@@ -1,0 +1,18 @@
+#!/bin/zsh --login
+#
+# Extremely simple emacsclient wrapper for item2 "Semantic History" process running.
+#
+# In iTerm2 Session preferences <Advanced> pane setup Semantic History to:
+#
+# [Run command...]
+#
+# in the text input paste the line below:
+#
+# ~/.emacs.d/iterm-emacsclient +\2 \1
+#
+
+if [[ $1 == "+" ]]; then
+  shift
+fi
+
+emacsclient $1 $2 -n -a /Applications/Emacs.app/Contents/MacOS/Emacs
