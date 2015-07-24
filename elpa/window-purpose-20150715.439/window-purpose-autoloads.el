@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "window-purpose" "window-purpose.el" (21893
-;;;;;;  22845 307401 0))
+;;;### (autoloads nil "window-purpose" "window-purpose.el" (21937
+;;;;;;  40937 771401 0))
 ;;; Generated autoloads from window-purpose.el
 
 (defvar purpose-mode nil "\
@@ -24,7 +24,7 @@ Toggle Purpose mode on or off according to the regular rules.
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-configuration" "window-purpose-configuration.el"
-;;;;;;  (21893 22845 323401 0))
+;;;;;;  (21937 40937 791401 0))
 ;;; Generated autoloads from window-purpose-configuration.el
 
 (autoload 'purpose-set-extension-configuration "window-purpose-configuration" "\
@@ -46,8 +46,8 @@ done.
 
 ;;;***
 
-;;;### (autoloads nil "window-purpose-x" "window-purpose-x.el" (21893
-;;;;;;  22845 303401 0))
+;;;### (autoloads nil "window-purpose-x" "window-purpose-x.el" (21937
+;;;;;;  40937 763401 0))
 ;;; Generated autoloads from window-purpose-x.el
 
 (autoload 'purpose-x-code1-setup "window-purpose-x" "\
@@ -134,8 +134,8 @@ The relation between `purpose-x-persp-switch-buffer-other-frame' and
 
 ;;;### (autoloads nil nil ("window-purpose-core.el" "window-purpose-fixes.el"
 ;;;;;;  "window-purpose-layout.el" "window-purpose-pkg.el" "window-purpose-prefix-overload.el"
-;;;;;;  "window-purpose-switch.el" "window-purpose-utils.el") (21893
-;;;;;;  22845 342814 629000))
+;;;;;;  "window-purpose-switch.el" "window-purpose-utils.el") (21937
+;;;;;;  40937 811316 15000))
 
 ;;;***
 
