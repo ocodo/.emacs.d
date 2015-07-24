@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "git-link" "git-link.el" (21879 1273 619401
+;;;### (autoloads nil "git-link" "git-link.el" (21937 41121 255401
 ;;;;;;  0))
 ;;; Generated autoloads from git-link.el
 
