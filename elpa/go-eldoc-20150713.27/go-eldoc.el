@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-eldoc
-;; Package-Version: 20150707.236
+;; Package-Version: 20150713.27
 ;; Version: 0.25
 ;; Package-Requires: ((go-mode "1.0.0") (cl-lib "0.5"))
 
@@ -79,14 +79,16 @@
       (> left-paren right-paren))))
 
 (defsubst go-eldoc--goto-opening-parenthesis ()
-  (ignore-errors (backward-up-list) t))
+  (and (ignore-errors (backward-up-list) t)
+       (eql (char-after) ?\()))
 
 (defun go-eldoc--inside-anon-function-p (from to)
   (save-excursion
     (goto-char to)
     (when (go-eldoc--goto-opening-parenthesis)
       (when (char-equal (char-after) ?\{)
-        (let ((func-start (point)))
+        (let ((func-start (point))
+              (case-fold-search nil))
           (goto-char from)
           (re-search-forward "\\<func\\s-*(" func-start t))))))
 
