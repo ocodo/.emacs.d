@@ -6,7 +6,7 @@
 ;; Author:     Chris Corbyn <chris@w3style.co.uk>
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL:        https://github.com/grizzl/grizzl
-;; Package-Version: 20150312.1043
+;; Package-Version: 20150711.2230
 ;; Version:    0.1.2
 ;; Keywords:   convenience, usability
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24.3"))
@@ -56,7 +56,7 @@
 ;; `grizzl-make-index':
 ;;
 ;;    (defvar *index* (grizzl-make-index '("one" "two" "three")))
-;;    (grizzl-completing-read "Number: " index)
+;;    (grizzl-completing-read "Number: " *index*)
 ;;
 ;; When the user hits ENTER, either one of the strings is returned on
 ;; success, or nil of nothing matched.

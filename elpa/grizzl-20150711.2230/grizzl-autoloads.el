@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "grizzl" "grizzl.el" (21766 9446 511401 0))
+;;;### (autoloads nil "grizzl" "grizzl.el" (21937 41115 879401 0))
 ;;; Generated autoloads from grizzl.el
 
 (autoload 'grizzl-make-index "grizzl" "\
