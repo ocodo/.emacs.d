@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "paren-completer" "paren-completer.el" (21920
-;;;;;;  42586 991401 0))
+;;;### (autoloads nil "paren-completer" "paren-completer.el" (21937
+;;;;;;  40995 587401 0))
 ;;; Generated autoloads from paren-completer.el
 
 (autoload 'paren-completer-add-single-delimiter "paren-completer" "\
