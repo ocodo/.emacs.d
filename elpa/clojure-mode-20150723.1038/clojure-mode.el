@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20150706.601
+;; Package-Version: 20150723.1038
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 4.2.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
@@ -420,11 +420,10 @@ Called by `imenu--generic-function'."
             "if-let" "if-not" "if-some"
             ".." "->" "->>" "as->" "doto" "and" "or"
             "dosync" "doseq" "dotimes" "dorun" "doall"
-            "load" "import" "unimport" "ns" "in-ns" "refer"
+            "ns" "in-ns"
             "with-open" "with-local-vars" "binding"
             "with-redefs" "with-redefs-fn"
-            "gen-class" "gen-and-load-class" "gen-and-save-class"
-            "handler-case" "handle" "declare") t)
+            "declare") t)
          "\\>")
        1 font-lock-keyword-face)
       (,(concat
@@ -433,11 +432,13 @@ Called by `imenu--generic-function'."
           '("*1" "*2" "*3" "*agent*"
             "*allow-unresolved-vars*" "*assert*" "*clojure-version*"
             "*command-line-args*" "*compile-files*"
-            "*compile-path*" "*e" "*err*" "*file*" "*flush-on-newline*"
+            "*compile-path*" "*data-readers*" "*default-data-reader-fn*"
+            "*e" "*err*" "*file*" "*flush-on-newline*"
             "*in*" "*macro-meta*" "*math-context*" "*ns*" "*out*"
             "*print-dup*" "*print-length*" "*print-level*"
             "*print-meta*" "*print-readably*"
             "*read-eval*" "*source-path*"
+            "*unchecked-math*"
             "*use-context-classloader*" "*warn-on-reflection*")
           t)
          "\\>")
@@ -455,8 +456,6 @@ Called by `imenu--generic-function'."
       ("\\\\\\([[:punct:]]\\|[a-z0-9]+\\>\\)" 0 'clojure-character-face)
       ;; Constant values (keywords), including as metadata e.g. ^:static
       ("\\<^?\\(:\\(\\sw\\|\\s_\\)+\\(\\>\\|\\_>\\)\\)" 1 'clojure-keyword-face)
-      ;; cljx annotations (#+clj and #+cljs)
-      ("#\\+cljs?\\>" 0 font-lock-preprocessor-face)
       ;; Java interop highlighting
       ;; CONST SOME_CONST (optionally prefixed by /)
       ("\\(?:\\<\\|/\\)\\([A-Z]+\\|\\([A-Z]+_[A-Z1-9_]+\\)\\)\\>" 1 font-lock-constant-face)
@@ -1085,11 +1084,36 @@ This will skip over sexps that don't represent objects, so that ^hints and
         (backward-sexp 1))
       (setq n (1- n)))))
 
+;;;###autoload
+(define-derived-mode clojurescript-mode clojure-mode "ClojureScript"
+  "Major mode for editing ClojureScript code.
+
+\\{clojurescript-mode-map}")
+
+;;;###autoload
+(define-derived-mode clojurec-mode clojure-mode "ClojureC"
+  "Major mode for editing ClojureC code.
+
+\\{clojurec-mode-map}")
+
+(defconst clojurex-font-lock-keywords
+  ;; cljx annotations (#+clj and #+cljs)
+  '(("#\\+cljs?\\>" 0 font-lock-preprocessor-face)))
+
+;;;###autoload
+(define-derived-mode clojurex-mode clojure-mode "ClojureX"
+  "Major mode for editing ClojureX code.
+
+\\{clojurex-mode-map}"
+  (font-lock-add-keywords nil clojurex-font-lock-keywords))
 
 ;;;###autoload
 (progn
   (add-to-list 'auto-mode-alist
-               '("\\.\\(clj[csx]?\\|dtm\\|edn\\)\\'" . clojure-mode))
+               '("\\.\\(clj\\|dtm\\|edn\\)\\'" . clojure-mode))
+  (add-to-list 'auto-mode-alist '("\\.cljc\\'" . clojurec-mode))
+  (add-to-list 'auto-mode-alist '("\\.cljx\\'" . clojurex-mode))
+  (add-to-list 'auto-mode-alist '("\\.cljs\\'" . clojurescript-mode))
   ;; boot build scripts are Clojure source files
   (add-to-list 'auto-mode-alist '("\\(?:build\\|profile\\)\\.boot\\'" . clojure-mode)))
 
