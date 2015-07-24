@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (21911 65090 219401
+;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (21937 41139 31401
 ;;;;;;  0))
 ;;; Generated autoloads from evil-snipe.el
 
