@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20150618.1758
+;; Package-Version: 20150722.407
 ;; Version: 1.2.1
 ;; Package-Requires: ((helm "0.0.0") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -68,17 +68,25 @@ path.  You can use `expand-file-name' function for that."
 of docsets are active.  Between 0 and 3 is sane."
   :group 'helm-dash)
 
+(defcustom helm-dash-enable-debugging t
+  "When non-nil capture stderr from sql commands and display in a
+buffer. Setting this to nil may speed up querys."
+  :group 'helm-dash)
+
 (defvar helm-dash-common-docsets
   '() "List of Docsets to search active by default.")
 
 
 (defun helm-dash-docset-path (docset)
   "Return the full path of the directory for DOCSET."
-  (let ((top-level (format "%s/%s.docset" (helm-dash-docsets-path) docset))
-        (nested (format "%s/%s/%s.docset" (helm-dash-docsets-path) docset docset)))
-    (if (file-directory-p top-level)
-        top-level
-      nested)))
+  (let* ((base (helm-dash-docsets-path))
+         (docdir (expand-file-name docset base)))
+    (cl-loop for dir in (list (format "%s/%s.docset" base docset)
+                              (format "%s/%s.docset" docdir docset)
+                              (when (file-directory-p docdir)
+                                (cl-first (directory-files docdir t "\\.docset\\'"))))
+             when (and dir (file-directory-p dir))
+             return dir)))
 
 (defun helm-dash-docset-db-path (docset)
   "Compose the path to sqlite DOCSET."
@@ -99,12 +107,34 @@ Suggested values are:
   (expand-file-name helm-dash-docsets-path))
 
 (defun helm-dash-sql (db-path sql)
-  ""
+  "Run the sql command, parse the results and display errors"
+  (helm-dash-parse-sql-results
+   (with-output-to-string
+     (let ((error-file (when helm-dash-enable-debugging
+                         (make-temp-file "helm-dash-errors-file"))))
+       (call-process "sqlite3" nil (list standard-output error-file) nil
+                     ;; args for sqlite3:
+                     "-list" db-path sql)
+
+       ;; display errors, stolen from emacs' `shell-command` function
+       (when (and error-file (file-exists-p error-file))
+         (if (< 0 (nth 7 (file-attributes error-file)))
+             (with-current-buffer (helm-dash-debugging-buffer)
+               (let ((pos-from-end (- (point-max) (point))))
+                 (or (bobp)
+                     (insert "\f\n"))
+                 ;; Do no formatting while reading error file,
+                 ;; because that can run a shell command, and we
+                 ;; don't want that to cause an infinite recursion.
+                 (format-insert-file error-file nil)
+                 ;; Put point after the inserted errors.
+                 (goto-char (- (point-max) pos-from-end)))
+               (display-buffer (current-buffer))))
+         (delete-file error-file))))))
+
+(defun helm-dash-parse-sql-results (sql-result-string)
   (mapcar (lambda (x) (split-string x "|" t))
-          (split-string
-           (with-output-to-string
-             (call-process-shell-command
-              (format "sqlite3 \"%s\" \"%s\"" db-path sql) nil standard-output)) "\n" t)))
+          (split-string sql-result-string "\n" t)))
 
 (defun helm-dash-filter-connections ()
   "Filter connections using `helm-dash-connections-filters'."
@@ -198,10 +228,12 @@ See here the reason: https://github.com/areina/helm-dash/issues/17.")
 (defun helm-dash-installed-docsets ()
   "Return a list of installed docsets."
   (let ((docset-path (helm-dash-docsets-path)))
-    (cl-loop for dir in (directory-files docset-path)
+    (cl-loop for dir in (directory-files docset-path nil "^[^.]")
              for full-path = (expand-file-name dir docset-path)
+             for subdir = (cl-first (directory-files full-path t "\\.docset\\'"))
              when (or (string-match-p "\\.docset\\'" dir)
-                      (file-directory-p (expand-file-name (format "%s.docset" dir) full-path)))
+                      (file-directory-p (expand-file-name (format "%s.docset" dir) full-path))
+                      (and subdir (file-directory-p subdir)))
              collecting (replace-regexp-in-string "\\.docset\\'" "" dir))))
 
 (defun helm-dash-read-docset (prompt choices)
@@ -388,10 +420,23 @@ Get required params to call `helm-dash-result-url' from SEARCH-RESULT."
     (candidates-process . helm-dash-search)
     (action-transformer . helm-dash-actions)))
 
+(defun helm-dash-debugging-buffer ()
+  "Return the helm-dash debugging buffer."
+  (get-buffer-create "*helm-dash-errors*"))
+
+(defun helm-dash-initialize-debugging-buffer ()
+  "Open debugging buffer and insert a header message."
+  (with-current-buffer (helm-dash-debugging-buffer)
+    (erase-buffer)
+    (insert "----------------")
+    (insert "\n HEY! This is helm-dash (sqlite) error logging. If you want to disable it, set `helm-dash-enable-debugging` to nil\n")
+    (insert "---------------- \n\n")))
+
 ;;;###autoload
 (defun helm-dash ()
   "Bring up a Dash search interface in helm."
   (interactive)
+  (helm-dash-initialize-debugging-buffer)
   (helm-dash-create-common-connections)
   (helm-dash-create-buffer-connections)
   (helm :sources (list (helm-source-dash-search))
@@ -403,6 +448,7 @@ Get required params to call `helm-dash-result-url' from SEARCH-RESULT."
   "Bring up a Dash search interface in helm using the symbol at
 point as prefilled search."
   (interactive)
+  (helm-dash-initialize-debugging-buffer)
   (helm-dash-create-common-connections)
   (helm-dash-create-buffer-connections)
   (helm :sources (list (helm-source-dash-search))
