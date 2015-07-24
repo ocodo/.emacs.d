@@ -106,12 +106,12 @@ If you set nil to this variable, then do not use delay timer.")
                                   (cons :previous     previous)
                                   (cons :current-line current-line)))))
 
-(defun error-tip-popup-error-message (errors)
+(defun error-tip-popup-error-message (errors &optional point)
   "Popup error message(s) from ERRORS.
 If there are multiple errors on current line, all current line's errors are
-appeared."
+appeared.  The POINT arg is a point to show up error(s)."
   (setq error-tip-popup-object
-        (popup-tip (error-tip-format errors) :nowait t :point (error-tip-get-point)))
+        (popup-tip (error-tip-format errors) :nowait t :point (or point (error-tip-get-point))))
   (add-hook 'pre-command-hook 'error-tip-delete-popup))
 
 (defun error-tip-get-point ()
@@ -190,7 +190,10 @@ See also ‘error-tip-notify-keep-messages’"
   (setq error-tip-notify-last-notification
         (notifications-notify
          :title "flycheck-tip"
-         :body  (format "%s" (error-tip-format (error-tip-get-errors)))
+         :body  (format "%s" (error-tip-format
+                              (if (cl-struct-p (car error-tip-current-errors))
+                                  (error-tip-get-errors)
+                                error-tip-current-errors)))
          :category "im.error"
          :replaces-id error-tip-notify-last-notification
          :timeout error-tip-notify-timeout)))

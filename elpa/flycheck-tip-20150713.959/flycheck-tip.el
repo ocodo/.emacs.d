@@ -106,6 +106,17 @@ or flycheck-tip-cycle-reverse."
     (t (setq flycheck-tip-avoid-show-func t
              error-tip-timer-delay nil))))
 
+(defun flycheck-tip-display-current-line-error-message (errors)
+  "Show current line's ERRORS by popup.
+This function is used to replace ‘flycheck-display-errors-function’."
+  (error-tip-delete-popup)
+  (let ((current-line-errors (mapcar #'flycheck-error-message errors))
+        ;; prevents frequently notification update
+        (error-tip-notify-keep-messages nil))
+    (when current-line-errors
+      (setq error-tip-current-errors current-line-errors)
+      (error-tip-popup-error-message current-line-errors (point)))))
+
 (provide 'flycheck-tip)
 
 ;; Local Variables:

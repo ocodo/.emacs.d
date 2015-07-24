@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "eclim-tip" "eclim-tip.el" (21906 2336 35401
+;;;### (autoloads nil "eclim-tip" "eclim-tip.el" (21937 41124 319401
 ;;;;;;  0))
 ;;; Generated autoloads from eclim-tip.el
 
@@ -19,8 +19,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "flycheck-tip" "flycheck-tip.el" (21906 2336
-;;;;;;  23401 0))
+;;;### (autoloads nil "flycheck-tip" "flycheck-tip.el" (21937 41124
+;;;;;;  299401 0))
 ;;; Generated autoloads from flycheck-tip.el
 
 (autoload 'flycheck-tip-cycle "flycheck-tip" "\
@@ -38,7 +38,7 @@ Do `flycheck-tip-cycle by reverse order.
 ;;;***
 
 ;;;### (autoloads nil nil ("error-tip.el" "flycheck-tip-pkg.el" "flymake-tip.el")
-;;;;;;  (21906 2336 46119 904000))
+;;;;;;  (21937 41124 330236 299000))
 
 ;;;***
 
