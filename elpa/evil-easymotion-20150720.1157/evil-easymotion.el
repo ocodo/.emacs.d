@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, evil
-;; Package-Version: 20150624.1526
+;; Package-Version: 20150720.1157
 ;; Version: 20141205
 ;; URL: https://github.com/pythonnut/evil-easymotion.el
 ;; Package-Requires: ((emacs "24") (avy "20150508.1418"))
@@ -116,11 +116,11 @@
           (with-demoted-errors
             (call-interactively func))
           (unless (memq (point) points)
-            (when (not (eobp)) (push (point) points))
             (and
+              (when (not (eobp))
+                (push (point) points))
               (>= (point) (window-start))
               (<= (point) (window-end))
-              (not (eobp))
               (not (bobp))))))
       (sort points #'<))))
 
