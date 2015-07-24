@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20150709.1457
+;; Package-Version: 20150723.1543
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 0.1
 
@@ -26,12 +26,22 @@
 (deftheme zerodark
   "A dark medium contrast theme")
 
+(defgroup zerodark
+  nil
+  "A dark theme inspired from One Dark and Niflheim.")
+
+(defcustom zerodark-use-paddings-in-mode-line t
+  "When non-nil, use top and bottom paddings in the mode-line."
+  :type 'boolean
+  :group 'zerodark)
+
 (let ((class '((class color) (min-colors 89)))
       (default "#abb2bf")
       (background "#282c34")
       (background-darker "#21252b")
       (background-lighter "#3a3f4b")
       (background-red "#4c3840")
+      (background-purple "#48384c")
       (background-blue "#38394c")
       (background-green "#3d4a41")
       (background-orange "#4a473d")
@@ -39,7 +49,7 @@
       (grey "#cccccc")
       (grey-dark "#666666")
       (highlight "#3e4451")
-      (comment "#5c6370")
+      (comment "#687080")
       (orange "#da8548")
       (red "#ff6c6b")
       (purple "#c678dd")
@@ -81,9 +91,17 @@
    `(font-lock-warning-face ((,class (:foreground ,red :weight bold :background ,background-red))))
 
    ;; Mode line faces
-   `(mode-line ((,class (:background ,background-blue :height 0.9 :foreground ,blue :box (:line-width 4 :color ,background-blue)))))
-   `(mode-line-inactive ((,class (:background ,background-darker :height 0.9 :foreground ,default :box (:line-width 4 :color ,background-darker)))))
+   `(mode-line ((,class (:background ,background-blue :height 0.9 :foreground ,blue
+                                     :box ,(when zerodark-use-paddings-in-mode-line
+                                              (list :line-width 4 :color background-blue))))))
+   `(mode-line-inactive ((,class (:background ,background-darker :height 0.9 :foreground ,default
+                                              :box ,(when zerodark-use-paddings-in-mode-line
+                                                       (list :line-width 4 :color background-darker))))))
    `(header-line ((,class (:inherit mode-line-inactive))))
+
+   ;; powerline
+   `(powerline-active1 ((,class (:height 0.9 :foreground ,blue :background ,background-darker))))
+   `(powerline-active2 ((,class (:height 0.9 :foreground ,blue :background ,background-lighter))))
 
    ;; mml
    `(message-mml-face ((,class (:foreground ,comment))))
@@ -292,6 +310,32 @@
    `(ediff-odd-diff-A ((,class (:background ,highlight :foreground unspecified))))
    `(ediff-odd-diff-B ((,class (:background ,highlight :foreground unspecified))))
    `(ediff-odd-diff-C ((,class (:background ,highlight :foreground unspecified))))
+
+   ;; helm
+   `(helm-candidate-number ((,class (:weight bold))))
+   `(helm-header-line-left-margin ((,class (:weight bold :foreground ,red))))
+   `(helm-source-header ((,class (:height 1.2 :weight bold :foreground ,blue :background ,background-blue))))
+   `(helm-selection ((,class (:background ,background-lighter))))
+   `(helm-match ((,class (:foreground ,blue))))
+   `(helm-M-x-key ((,class (:foreground ,blue :weight bold :background ,background-blue))))
+   `(helm-visible-mark ((,class (:weight bold :foreground ,orange :background ,background-darker))))
+
+   `(helm-buffer-directory ((,class (:foreground ,purple))))
+   `(helm-buffer-file ((,class ())))
+   `(helm-buffer-saved-out ((,class (:foreground ,red :weight bold))))
+
+   `(helm-ff-directory ((,class (:foreground ,purple))))
+   `(helm-ff-dotted-directory ((,class (:foreground ,purple))))
+   `(helm-ff-prefix ((,class (:weight bold :foreground ,red))))
+   `(helm-ff-file ((,class ())))
+   `(helm-ff-executable ((,class (:foreground ,green :weight bold :background ,background-green))))
+   `(helm-ff-symlink ((,class (:foreground ,orange))))
+   `(helm-ff-invalid-symlink ((,class (:foreground ,red :weight bold :background ,background-red))))
+   `(helm-history-deleted ((,class (:foreground ,red :weight bold :background ,background-red))))
+
+   ;; visible mark
+   `(visible-mark-face1 ((,class (:foreground ,red :inverse-video t))))
+   `(visible-mark-face2 ((,class (:foreground ,orange :inverse-video t))))
    ))
 
 
