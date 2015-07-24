@@ -1425,7 +1425,7 @@ When this function is called:
             (forward-char 1)))))
 
 (defalias 'lispy-parens
-    (lispy-pair "(" ")" "^\\|\\s-\\|\\[\\|[(`'#@~_%,]")
+    (lispy-pair "(" ")" "^\\|\\(?:> \\)\\|\\s-\\|\\[\\|[(`'#@~_%,]")
   "`lispy-pair' with ().")
 
 (defalias 'lispy-brackets
@@ -2976,29 +2976,62 @@ Quote newlines if ARG isn't 1."
       (save-excursion (insert (read str)))
       (forward-char offset))))
 
+(defvar lispy-teleport-global nil
+  "When non-nil, `lispy-teleport' will consider all open parens in window.
+Otherwise, only parens within the current defun are considered.
+When you press \"t\" in `lispy-teleport', this will be bound to t temporarily.")
+
+(defmacro lispy-quit-and-run (&rest body)
+  "Quit the minibuffer and run BODY afterwards."
+  `(progn
+     (put 'quit 'error-message "")
+     (run-at-time nil nil
+                  (lambda ()
+                    (put 'quit 'error-message "Quit")
+                    ,@body))
+     (minibuffer-keyboard-quit)))
+
 (defun lispy-teleport (arg)
   "Move ARG sexps into a sexp determined by `lispy-ace-paren'."
   (interactive "p")
   (let ((beg (point))
-        end endp regionp)
+        end endp regionp
+        deactivate-mark)
     (cond ((region-active-p)
-           (setq endp (= (point) (region-end)))
-           (setq regionp t)
-           (lispy-different))
+           (if (= (point) (region-end))
+               (progn
+                 (setq end (region-beginning))
+                 (setq endp t))
+             (setq end (region-end)))
+           (setq regionp t))
           ((lispy-left-p)
            (unless (lispy-dotimes arg
                      (forward-list 1))
-             (error "Unexpected")))
+             (error "Unexpected"))
+           (setq end (point)))
           ((lispy-right-p)
            (setq endp t)
            (unless (lispy-dotimes arg
                      (backward-list arg))
-             (error "Unexpected")))
+             (error "Unexpected"))
+           (setq end (point)))
           (t
            (error "Unexpected")))
-    (setq end (point))
-    (goto-char beg)
-    (lispy-ace-paren)
+    (let ((lispy-avy-keys (delete ?t lispy-avy-keys))
+          (avy-handler-function
+           (lambda (x)
+             (if (eq x ?t)
+                 (progn
+                   (avy--done)
+                   (lispy-quit-and-run
+                    (let ((lispy-teleport-global t))
+                      (when regionp
+                        (activate-mark))
+                      (lispy-teleport arg))))
+               (avy-handler-default x)))))
+      (lispy-ace-paren
+       (when lispy-teleport-global
+         2)))
     (forward-char 1)
     (unless (looking-at "(")
       (ignore-errors
@@ -3380,7 +3413,7 @@ When called twice in a row, restore point and mark."
   "Visually select a char within the current defun."
   (interactive)
   (let ((avy-keys lispy-avy-keys))
-    (avy--with-avy-keys lispy-ace-char
+    (avy-with lispy-ace-char
       (lispy--avy-do
        (string (read-char "Char: "))
        (save-excursion
@@ -3390,18 +3423,24 @@ When called twice in a row, restore point and mark."
        (lambda () t)
        lispy-avy-style-char))))
 
-(defun lispy-ace-paren ()
-  "Jump to an open paren within the current defun."
-  (interactive)
+(defun lispy-ace-paren (&optional arg)
+  "Jump to an open paren within the current defun.
+ARG can extend the bounds beyond the current defun."
+  (interactive "p")
+  (setq arg (or arg 1))
   (lispy--remember)
   (deactivate-mark)
-  (let ((avy-keys lispy-avy-keys))
-    (avy--with-avy-keys lispy-ace-paren
+  (let ((avy-keys lispy-avy-keys)
+        (bnd (if (eq arg 1)
+                 (save-excursion
+                   (lispy--out-backward 50)
+                   (lispy--bounds-dwim))
+               (cons (window-start)
+                     (window-end nil t)))))
+    (avy-with lispy-ace-paren
       (lispy--avy-do
        lispy-left
-       (save-excursion
-         (lispy--out-backward 50)
-         (lispy--bounds-dwim))
+       bnd
        (lambda () (not (lispy--in-string-or-comment-p)))
        lispy-avy-style-paren))))
 
@@ -3414,7 +3453,7 @@ Sexp is obtained by exiting the list ARG times."
        (progn (deactivate-mark) arg)
      (1- arg)))
   (let ((avy-keys lispy-avy-keys))
-    (avy--with-avy-keys lispy-ace-symbol
+    (avy-with lispy-ace-symbol
       (let ((avy--overlay-offset (if (eq lispy-avy-style-symbol 'at) -1 0)))
         (lispy--avy-do
          "[([{ ]\\(?:\\sw\\|\\s_\\|[\"'`#~,@]\\)"
@@ -3442,7 +3481,7 @@ Sexp is obtained by exiting list ARG times."
        (1- arg)))
     (let ((avy--overlay-offset (if (eq lispy-avy-style-symbol 'at) 0 1))
           (avy-keys lispy-avy-keys))
-      (avy--with-avy-keys 'lispy-ace-subword
+      (avy-with 'lispy-ace-subword
         (lispy--avy-do
          "[([{ -]\\(?:\\sw\\|\\s_\\|\\s(\\|[\"'`#]\\)"
          (lispy--bounds-dwim)
@@ -3463,14 +3502,13 @@ Use STYLE function to update the overlays."
     (dolist (x cands)
       (when (> (- (cdar x) (caar x)) 1)
         (cl-incf (caar x))))
-    (avy--goto
-     (avy--process
-      cands
-      (cl-case style
-        (pre #'avy--overlay-pre)
-        (at #'avy--overlay-at)
-        (at-full #'avy--overlay-at-full)
-        (post #'avy--overlay-post))))))
+    (avy--process
+     cands
+     (cl-case style
+       (pre #'avy--overlay-pre)
+       (at #'avy--overlay-at)
+       (at-full #'avy--overlay-at-full)
+       (post #'avy--overlay-post)))))
 
 (defun lispy-ace-symbol-replace (arg)
   "Jump to a symbol withing the current sexp and delete it.
@@ -3554,6 +3592,7 @@ Sexp is obtained by exiting the list ARG times."
 (declare-function org-cycle-internal-local "org")
 (declare-function org-content "org")
 (declare-function org-cycle-internal-global "org")
+(declare-function org-narrow-to-subtree "org")
 
 (defun lispy-tab ()
   "Indent code and hide/show outlines.
@@ -4198,11 +4237,8 @@ X is an item of a radio- or choice-type defcustom."
         ((looking-at lispy-outline)
          (save-excursion
            (outline-back-to-heading)
-           (narrow-to-region
-            (point)
-            (progn
-              (outline-next-heading)
-              (1- (point))))))))
+           (let ((org-outline-regexp outline-regexp))
+             (org-narrow-to-subtree))))))
 
 (defun lispy-widen ()
   "Forward to `widen'."
@@ -5110,8 +5146,11 @@ Ignore the matches in strings and comments."
                     (unless (lispy--in-string-or-comment-p)
                       (backward-char 1)
                       (save-excursion
-                        (with-syntax-table lispy--braces-table
-                          (forward-list 1))
+                        (if (save-match-data
+                              (looking-at "((ly-raw string"))
+                            (forward-list 1)
+                          (with-syntax-table lispy--braces-table
+                            (forward-list 1)))
                         (delete-char -1)
                         (insert "))"))
                       (delete-region (match-beginning 0) (match-end 0))
@@ -5581,7 +5620,7 @@ Unless inside string or comment, or `looking-back' at CONTEXT."
            (delete-region (match-beginning 0)
                           (match-end 0)))
           ((looking-at lispy-right))
-
+          ((eolp))
           (t
            (just-one-space)
            (when (lispy-after-string-p "( ")
@@ -6265,18 +6304,6 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
   ("l" lispy-move-right)
   ("SPC" lispy-other-space)
   ("g" lispy-goto-mode)))
-
-(lispy-defverb
- "transform"
- (("o" lispy-oneline)
-  ("m" lispy-multiline)
-  ("s" lispy-stringify)
-  ("d" lispy-to-defun)
-  ("l" lispy-to-lambda)
-  ("i" lispy-to-ifs)
-  ("c" lispy-to-cond)
-  ("f" lispy-flatten)
-  ("a" lispy-teleport)))
 
 (unless (package-installed-p 'hydra)
   (defmacro defhydra (name &rest _)
