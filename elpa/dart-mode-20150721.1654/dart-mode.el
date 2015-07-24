@@ -1,10 +1,10 @@
-;;; dart-mode.el --- Major mode for editing Dart files
+;;; dart-mode.el --- Major mode for editing Dart files -*- lexical-binding: t; -*-
 
 ;; Author: Natalie Weizenbaum
 ;; URL: http://code.google.com/p/dart-mode
-;; Package-Version: 20150619.1559
-;; Version: 0.13
-;; Package-Requires: ((cl-lib "0.5") (dash "2.10.0") (flycheck "0.24"))
+;; Package-Version: 20150721.1654
+;; Version: 0.14
+;; Package-Requires: ((cl-lib "0.5") (dash "2.10.0") (flycheck "0.23"))
 ;; Keywords: language
 
 ;; Copyright (C) 2011 Google Inc.
@@ -242,6 +242,9 @@
 
 ;;; CC indentation support
 
+(defvar c-syntactic-context nil
+  "A dynamically-bound variable used by cc-mode.")
+
 (defun dart-block-offset (info)
   "Calculate the correct indentation for inline functions.
 
@@ -259,7 +262,7 @@ functions taking them as parameters essentially don't exist."
 (defun dart-brace-list-cont-nonempty-offset (info)
   "Indent a brace-list line in the same style as arglist-cont-nonempty.
 This could be either an actual brace-list or an optional parameter."
-  (destructuring-bind (syntax . anchor) info
+  (destructuring-bind (_ . anchor) info
     ;; If we're in a function definition with optional arguments, indent as if
     ;; the brace wasn't there. Currently this misses the in-function function
     ;; definition, but that's probably acceptable.
@@ -453,7 +456,8 @@ whichever comes first."
 
 (defcustom dart-font-lock-extra-types nil
   "*List of extra types (aside from the type keywords) to recognize in DART mode.
-Each list item should be a regexp matching a single identifier.")
+Each list item should be a regexp matching a single identifier."
+  :group 'dart-mode)
 
 (defconst dart-font-lock-keywords-1 (c-lang-const c-matchers-1 dart)
   "Minimal highlighting for Dart mode.")
@@ -475,110 +479,6 @@ Each list item should be a regexp matching a single identifier.")
 (unless dart-mode-syntax-table
   (setq dart-mode-syntax-table
         (funcall (c-lang-const c-make-mode-syntax-table dart))))
-
-
-;;; Flymake Support
-
-(defun flymake-dart-init ()
-  "Return the dart_analyzer command to invoke for flymake."
-  (let* ((temp-file  (flymake-init-create-temp-buffer-copy
-                      'flymake-create-temp-inplace))
-	 (local-file (file-relative-name
-                      temp-file
-                      (file-name-directory buffer-file-name)))
-         ;; Work around Dart issue 7497
-         (work-dir (expand-file-name
-                    "flymake-dart-work"
-                    (flymake-get-temp-dir))))
-    (list "dart_analyzer" (list "--error_format" "machine" local-file
-                                "--work" work-dir))))
-
-(defun flymake-dart-cleanup ()
-  "Clean up after running the Dart analyzer."
-  (flymake-simple-cleanup)
-  (let ((dir-name (expand-file-name
-                   "flymake-dart-work"
-                   (flymake-get-temp-dir))))
-    (condition-case nil
-        (delete-dir dir-name t)
-      (error
-       (flymake-log 1 "Failed to delete dir %s, error ignored" dir-name)))))
-
-(eval-after-load 'flymake
-  '(progn
-     (when (boundp 'flymake-warn-line-regexp)
-       (add-hook 'dart-mode-hook
-                 (lambda ()
-                   (set (make-variable-buffer-local 'flymake-warn-line-regexp)
-                        "^WARNING|"))))
-
-     (defadvice flymake-post-syntax-check (before flymake-post-syntax-check-dart activate)
-       "Sets the exit code of the dart_analyzer process to 0.
-
-dart_analyzer can report errors for files other than the current
-file. flymake dies horribly if the process emits a non-zero exit
-code without any warnings for the current file. These two
-properties interact poorly."
-       (when (eq major-mode 'dart-mode)
-         (ad-set-arg 0 0)))
-
-     (push '("\\.dart\\'" flymake-dart-init flymake-dart-cleanup)
-           flymake-allowed-file-name-masks)
-     ;; Accept negative numbers to work around Dart issue 7495
-     (push '("^[^|]+|[^|]+|[^|]+|file:\\([^|]+\\)|\\([0-9]+\\)|\\([0-9]+\\)|[0-9]+|\\(.*\\)$"
-             1 2 3 4)
-           flymake-err-line-patterns)))
-
-
-;;; Formatter integration
-
-(defcustom dart-format-path "dartformat"
-  "The path to the dartformat executable.
-
-Defaults to looking it up on `exec-path'.")
-
-(defun dart-format-region (beg end)
-  "Run the Dart formatter on the current region.
-
-This uses `dart-format-path' to find the formatter."
-  (interactive "r")
-  (save-excursion
-    (goto-char beg)
-    (if (eolp) (forward-char))
-    (back-to-indentation)
-    (let ((indent (/ (current-column) 2)))
-      ;; Make sure that the region starts at the beginning of a line so that the
-      ;; formatter can re-indent it correctly.
-      (beginning-of-line)
-      (setq beg (point))
-
-      ;; Same with the end.
-      (goto-char end)
-      (unless (bolp)
-        (end-of-line)
-        (forward-char))
-      (setq end (point))
-
-      (call-process-region
-       beg end dart-format-path t t nil
-       "--statement" "--indent" (number-to-string indent)))))
-
-(defun dart-format-statement (pos)
-  "Run the Dart formatter on the current statement.
-
-This uses `dart-format-path' to find the formatter."
-  (interactive "d")
-  (save-excursion
-    (dart-beginning-of-statement)
-    (let ((beg (point)))
-      (loop do (condition-case nil
-                   (forward-sexp)
-                 (error (backward-up-list -1)))
-            until (if (looking-at "[[:space:]\\n]*\\(;\\)")
-                      (goto-char (match-end 1))
-                    (and (eq (char-before) ?})
-                         (eolp))))
-      (dart-format-region beg (point)))))
 
 
 ;;; Dart analysis server
@@ -679,35 +579,30 @@ directory or the current file directory to the analysis roots."
 (defun dart-start-analysis-server ()
   "Start the Dart analysis server."
   (when dart--analysis-server
-    (process-kill-without-query
+    (kill-process
      (dart--analysis-server-process dart--analysis-server))
     (kill-buffer (dart--analysis-server-buffer dart--analysis-server)))
-  (let ((dart-process
-         ;; set process-connection-type to nil so that emacs starts
-         ;; the analysis server controlled by a pipe rather than a
-         ;; pseudo-terminal. If the process is controlled by a
-         ;; pseudo-terminal, emacs will buffer requests to the analysis
-         ;; server with interspersed EOFs, which confuses the analysis
-         ;; server. This does not happen with pipes.
-         (let ((process-connection-type nil))
-           (start-process "dart-analysis-server"
-                          "*dart-analysis-server*"
-                          dart-executable-path
-                          dart-analysis-server-snapshot-path
-                          "--no-error-notification"))))
+  (let* ((process-connection-type nil)
+         (dart-process
+          (start-process "dart-analysis-server"
+                         "*dart-analysis-server*"
+                         dart-executable-path
+                         dart-analysis-server-snapshot-path
+                         "--no-error-notification")))
+    (set-process-query-on-exit-flag dart-process nil)
     (setq dart--analysis-server
           (dart--analysis-server-create dart-process))))
 
 (defun dart--analysis-server-create (process)
   "Create a Dart analysis server from PROCESS."
-  (lexical-let* ((buffer (generate-new-buffer (process-name process)))
+  (let* ((buffer (generate-new-buffer (process-name process)))
                  (instance (dart--make-analysis-server
                             :process process
                             :buffer buffer)))
     (buffer-disable-undo (dart--analysis-server-buffer instance))
     (set-process-filter
      process
-     (lambda (proc string)
+     (lambda (_ string)
        (dart--analysis-server-process-filter instance string)))
     instance))
 
@@ -736,7 +631,7 @@ length of the text before the change is CHANGE-BEFORE-LENGTH. See also
       . ((,buffer-file-name
           . ((type . "change")
              (edits
-              . (((offset . ,change-begin)
+              . (((offset . ,(- change-begin 1))
                   (length . ,change-before-length)
                   (replacement
                    . ,(buffer-substring change-begin change-end))))))))))))
@@ -793,8 +688,8 @@ The constructed request will call METHOD with optional PARAMS."
 
 (defun dart--analysis-server-on-error-callback (response)
   "If RESPONSE has an error, report it."
-  (-when-let (resp-err (assoc 'error response))
-    (dart-log (format "Response from server had error: %s" resp-err))))
+  (-when-let (resp-err (assoc-default 'error response))
+    (error "Analysis server error: %s" (assoc-default 'message resp-err))))
 
 (defun dart--analysis-server-enqueue (req-without-id callback)
   "Send REQ-WITHOUT-ID to the analysis server, call CALLBACK with the result."
@@ -802,21 +697,16 @@ The constructed request will call METHOD with optional PARAMS."
   (let ((request
          (json-encode (push (cons 'id (format "%s" dart--analysis-server-next-id))
                             req-without-id))))
-    (dart-info (concat "Sent:\n" request))
-    (if callback
-        (push (cons dart--analysis-server-next-id callback)
-              dart--analysis-server-callbacks)
-      (push
-       (cons dart--analysis-server-next-id
-             #'dart--analysis-server-on-error-callback)
-       dart--analysis-server-callbacks))
+
+    ;; Enqueue the request so that we can be sure all requests are processed in
+    ;; order.
+    (push (cons dart--analysis-server-next-id
+                (or callback #'dart--analysis-server-on-error-callback))
+          dart--analysis-server-callbacks)
+
+    (dart-info (concat "Sent: " request))
     (process-send-string (dart--analysis-server-process dart--analysis-server)
                          (concat request "\n"))))
-
-(defun dart--analysis-server-handle-response (callback response)
-  "Call CALLBACK with the parsed JSON RESPONSE from the analysis server."
-  (dart-info (concat "Received:\n" (format "%s" response)))
-  (funcall callback response))
 
 (defun dart--analysis-server-process-filter (das string)
   "Handle the event or method response from the dart analysis server.
@@ -837,10 +727,13 @@ the callback for that request is given the json decoded response."
         (let ((buf-lines (split-string (buffer-string) "\n")))
           (delete-region (point-min) (point-max))
           (insert (-last-item buf-lines))
-          (let ((json-lines (-map 'json-read-from-string
-                                  (-filter (lambda (s)
-                                             (not (or (null s) (string= "" s))))
-                                           (-butlast buf-lines)))))
+          (let ((json-lines
+                 (-map (lambda (s)
+                         (dart-info (concat "Received: " s))
+                         (json-read-from-string s))
+                       (-filter (lambda (s)
+                                  (not (or (null s) (string= "" s))))
+                                (-butlast buf-lines)))))
             (-each json-lines 'dart--analysis-server-handle-msg)))))))
 
 (defun dart--analysis-server-handle-msg (msg)
@@ -850,19 +743,22 @@ the callback for that request is given the json decoded response."
                (id (string-to-number raw-id)))
     (-if-let (resp-closure (assoc id dart--analysis-server-callbacks))
         (progn
-          (dart--analysis-server-handle-response (cdr resp-closure) msg)
           (setq dart--analysis-server-callbacks
-                (assq-delete-all id dart--analysis-server-callbacks)))
-      (dart-info (format "No callback was associated with id %s" raw-id)))))
+                (assq-delete-all id dart--analysis-server-callbacks))
+          (funcall (cdr resp-closure) msg))
+      (-if-let (err (assoc 'error msg))
+          (dart--analysis-server-on-error-callback msg)
+        (dart-info (format "No callback was associated with id %s" raw-id))))))
 
-(defun dart--flycheck-start (checker callback)
+(defun dart--flycheck-start (_ callback)
   "Run the CHECKER and report the errors to the CALLBACK."
   (dart-info (format "Checking syntax for %s" (current-buffer)))
   (dart--analysis-server-send
    "analysis.getErrors"
    `((file . ,(buffer-file-name)))
-   `(lambda (response)
-      (dart--report-errors response ,(current-buffer) ,callback))))
+   (let ((buffer (current-buffer)))
+     (lambda (response)
+       (dart--report-errors response buffer callback)))))
 
 (flycheck-define-generic-checker 'dart-analysis-server
   "Checks Dart source code for errors using Dart analysis server."
