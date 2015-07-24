@@ -419,6 +419,17 @@ Return DEFAULT if PROP is not in H."
       (message "")))
   nil)
 
+(defvar hydra-head-format "[%s]: "
+  "The formatter for each head of a plain docstring.")
+
+(defvar hydra-key-doc-function 'hydra-key-doc-function-default
+  "The function for formatting key-doc pairs.")
+
+(defun hydra-key-doc-function-default (key key-width doc doc-width)
+  "Doc"
+  (format (format "%%%ds: %%%ds" key-width (- -1 doc-width))
+          key doc))
+
 (defun hydra--hint (body heads)
   "Generate a hint for the echo area.
 BODY, and HEADS are parameters to `defhydra'."
@@ -434,16 +445,41 @@ BODY, and HEADS are parameters to `defhydra'."
              (cons (cadr h)
                    (cons pstr (cl-caddr h)))
              alist)))))
-    (let ((keys (nreverse (mapcar #'cdr alist))))
-      (mapconcat
-       (lambda (x)
-         (format
-          (if (> (length (cdr x)) 0)
-              (concat "[%s]: " (cdr x))
-            "%s")
-          (car x)))
-       keys
-       ", "))))
+
+    (let ((keys (nreverse (mapcar #'cdr alist)))
+          (n-cols (plist-get (cddr body) :columns)))
+      (if n-cols
+          (let ((n-rows (1+ (/ (length keys) n-cols)))
+                (max-key-len (apply #'max (mapcar (lambda (x) (length (car x))) keys)))
+                (max-doc-len (apply #'max (mapcar (lambda (x) (length (cdr x))) keys))))
+            (concat
+             "\n"
+             (mapconcat #'identity
+                        (mapcar
+                         (lambda (x)
+                           (mapconcat
+                            (lambda (y)
+                              (and y
+                                   (funcall hydra-key-doc-function
+                                            (car y)
+                                            max-key-len
+                                            (cdr y)
+                                            max-doc-len))) x ""))
+                         (hydra--matrix keys n-cols n-rows))
+                        "\n")))
+
+
+        (concat
+         (mapconcat
+          (lambda (x)
+            (format
+             (if (> (length (cdr x)) 0)
+                 (concat hydra-head-format (cdr x))
+               "%s")
+             (car x)))
+          keys
+          ", ")
+         (if keys "." ""))))))
 
 (defvar hydra-fontify-head-function nil
   "Possible replacement for `hydra-fontify-head-default'.")
@@ -469,13 +505,14 @@ HEAD's binding is returned as a string with a colored face."
                     "%%"
                   (car head))
                 'face
-                (cl-case head-color
-                  (blue 'hydra-face-blue)
-                  (red 'hydra-face-red)
-                  (amaranth 'hydra-face-amaranth)
-                  (pink 'hydra-face-pink)
-                  (teal 'hydra-face-teal)
-                  (t (error "Unknown color for %S" head))))))
+                (or (hydra--head-property head :face)
+                    (cl-case head-color
+                      (blue 'hydra-face-blue)
+                      (red 'hydra-face-red)
+                      (amaranth 'hydra-face-amaranth)
+                      (pink 'hydra-face-pink)
+                      (teal 'hydra-face-teal)
+                      (t (error "Unknown color for %S" head)))))))
 
 (defun hydra-fontify-head-greyscale (head _body)
   "Produce a pretty string from HEAD and BODY.
@@ -513,7 +550,7 @@ The expressions can be auto-expanded according to NAME."
         offset)
     (while (setq start
                  (string-match
-                  "\\(?:%\\( ?-?[0-9]*s?\\)\\(`[a-z-A-Z/0-9]+\\|(\\)\\)\\|\\(?:_\\( ?-?[0-9]*?\\)\\([-[:alnum:] ~.,;:/|?<>={}*+#]+?\\)_\\)"
+                  "\\(?:%\\( ?-?[0-9]*s?\\)\\(`[a-z-A-Z/0-9]+\\|(\\)\\)\\|\\(?:_\\( ?-?[0-9]*?\\)\\(\\[\\|]\\|[-[:alnum:] ~.,;:/|?<>={}*+#%]+?\\)_\\)"
                   docstring start))
       (cond ((eq ?_ (aref (match-string 0 docstring) 0))
              (let* ((key (match-string 4 docstring))
@@ -551,7 +588,11 @@ The expressions can be auto-expanded according to NAME."
     (if (eq ?\n (aref docstring 0))
         `(concat (format ,(substring docstring 1) ,@(nreverse varlist))
                  ,rest)
-      `(format ,(concat docstring ": " rest ".")))))
+      `(format ,(replace-regexp-in-string
+                 " +$" ""
+                 (concat docstring ": "
+                         (replace-regexp-in-string
+                          "\\(%\\)" "\\1\\1" rest)))))))
 
 (defun hydra--complain (format-string &rest args)
   "Forward to (`message' FORMAT-STRING ARGS) unless `hydra-verbose' is nil."
@@ -989,7 +1030,7 @@ result of `defhydra'."
                                           (if (boundp bind)
                                               (keymapp (symbol-value bind))
                                             t))
-                                     `(define-key ,bind ,final-key (function ,name)))
+                                     `(define-key ,bind ,final-key (quote ,name)))
                                     (t
                                      (error "Invalid :bind property `%S' for head %S" bind head)))))))
                       heads))
