@@ -4,9 +4,9 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
+;; Package-Version: 20150718.1106
 ;; Keywords: project, convenience
-;; Version: 20141117.1712
-;; X-Original-Version: 0.1.0
+;; Version: 0.1.0
 ;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -65,11 +65,18 @@ current GOPATH, or 'never to leave GOPATH untouched."
   '((gocode    . "github.com/nsf/gocode")
     (golint    . "github.com/golang/lint/golint")
     (godef     . "code.google.com/p/rog-go/exp/cmd/godef")
-    (goimports . "github.com/bradfitz/goimports")
     (errcheck  . "github.com/kisielk/errcheck")
+    (goimports . "golang.org/x/tools/cmd/goimports")
     (gorename  . "golang.org/x/tools/cmd/gorename")
+    (gomvpkg   . "golang.org/x/tools/cmd/gomvpkg")
     (oracle    . "golang.org/x/tools/cmd/oracle"))
   "Import paths for Go tools.")
+
+(defun go-projectile-tools-load-oracle ()
+  "Load go-oracle."
+  (require 'go-oracle (concat go-projectile-tools-path "/src/"
+                              (cdr (assq 'oracle go-projectile-tools))
+                              "/oracle.el")) t)
 
 (defun go-projectile-tools-add-path ()
   "Add go-projectile-tools-path to `exec-path' and friends."
@@ -77,11 +84,8 @@ current GOPATH, or 'never to leave GOPATH untouched."
     (unless (member path exec-path)
       (add-to-list 'exec-path path)
       (setenv "PATH" (concat (getenv "PATH") path-separator path))
-      (add-to-list 'load-path (concat go-projectile-tools-path "/src/"
-                                      (cdr (assq 'oracle go-projectile-tools))))
       (setq go-oracle-command (concat path "/oracle"))
-      (autoload 'go-oracle-mode "oracle")
-      (add-hook 'go-mode-hook 'go-oracle-mode)
+      (add-hook 'go-mode-hook 'go-projectile-tools-load-oracle)
       (add-to-list 'load-path (concat go-projectile-tools-path "/src/"
                                       "golang.org/x/tools/refactor/rename"))
       (autoload 'go-rename "rename" nil t)
