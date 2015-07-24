@@ -248,6 +248,11 @@ use `ycmd-parse-buffer'."
   :group 'ycmd
   :type 'boolean)
 
+(defcustom ycmd-hide-url-status t
+  "Whether to quash url status messages for ycmd requests."
+  :group 'ycmd
+  :type 'boolean)
+
 (defcustom ycmd-tag-files nil
   "Whether to collect identifiers from tags file.
 
@@ -360,7 +365,7 @@ This kills any ycmd server already running (under ycmd.el's
 control.) The newly started server will have a new HMAC secret."
   (interactive)
 
-  (ycmd-close)
+  (ycmd-close 0.5)
 
   (let ((hmac-secret (ycmd--generate-hmac-secret)))
     (ycmd--start-server hmac-secret)
@@ -368,15 +373,25 @@ control.) The newly started server will have a new HMAC secret."
 
   (ycmd--start-keepalive-timer))
 
-(defun ycmd-close ()
+(defun ycmd-close (&optional time-out-secs)
   "Shutdown any running ycmd server.
+
+Wait TIME-OUT-SECS seconds after `interrupt-process' call for the
+ycmd server to end before killing the process with
+`delete-process'.
 
 This does nothing if no server is running."
   (interactive)
 
   (unwind-protect
       (when (ycmd-running?)
-        (interrupt-process ycmd--server-process)
+        (condition-case nil
+            (progn
+              (interrupt-process ycmd--server-process)
+              (when time-out-secs
+                (sit-for time-out-secs)
+                (delete-process ycmd--server-process)))
+          (error nil))
         (ycmd--global-teardown)))
 
   (ycmd--kill-timer ycmd--keepalive-timer))
@@ -933,6 +948,13 @@ the name of the newly created file."
   (- (position-bytes (point))
      (position-bytes (line-beginning-position))))
 
+(defun ycmd--encode-string (s)
+  "Encode string S."
+  (if (eval-when-compile
+        (version-list-< (version-to-list emacs-version) '(25)))
+      s
+    (encode-coding-string s 'utf-8 t)))
+
 (defun ycmd--standard-content (&optional buffer)
   "Generate the 'standard' content for ycmd posts.
 
@@ -941,8 +963,10 @@ nil, this uses the current buffer."
   (with-current-buffer (or buffer (current-buffer))
     (let* ((column-num (+ 1 (ycmd--column-in-bytes)))
            (line-num (line-number-at-pos (point)))
-           (full-path (or (buffer-file-name) ""))
-           (file-contents (buffer-substring-no-properties (point-min) (point-max)))
+           (full-path (ycmd--encode-string (or (buffer-file-name) "")))
+           (file-contents (ycmd--encode-string
+                           (buffer-substring-no-properties
+                            (point-min) (point-max))))
            (file-types (or (ycmd-major-mode-to-file-types major-mode)
                            '("generic"))))
       `(("file_data" .
@@ -1009,15 +1033,12 @@ This is useful for debugging.")
 
 (defun ycmd--get-request-hmac (method path body)
   "Generate HMAC for request from METHOD, PATH and BODY."
-  (let* ((hmac-secret (encode-coding-string
-                       ycmd--hmac-secret 'utf-8 t))
-         (joined-hmac-input
-          (mapconcat
-           (lambda (val) (ycmd--hmac-function
-                          (encode-coding-string val 'utf-8 t)
-                          hmac-secret))
-           `(,method ,path ,(or body "")) "")))
-    (ycmd--hmac-function joined-hmac-input hmac-secret)))
+  (ycmd--hmac-function
+   (mapconcat (lambda (val)
+                (ycmd--hmac-function
+                 (ycmd--encode-string val) ycmd--hmac-secret))
+              `(,method ,path ,(or body "")) "")
+   ycmd--hmac-secret))
 
 (defun* ycmd--request (location
                        content
@@ -1044,7 +1065,8 @@ anything like that.)
 "
   (unless (ycmd-running?) (ycmd-open))
 
-  (let* ((ycmd-request-backend 'url-retrieve)
+  (let* ((url-show-status (not ycmd-hide-url-status))
+         (ycmd-request-backend 'url-retrieve)
          (content (json-encode content))
          (hmac (ycmd--get-request-hmac type location content))
          (encoded-hmac (base64-encode-string hmac 't)))
