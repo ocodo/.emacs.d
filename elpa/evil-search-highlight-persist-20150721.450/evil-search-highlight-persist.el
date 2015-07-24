@@ -1,6 +1,6 @@
 ;;; evil-search-highlight-persist.el --- Persistent highlights after search
 ;; Version: 20150107.4
-;; Package-Version: 20150216.154
+;; Package-Version: 20150721.450
 ;; X-Original-Version: 20140918
 
 ;; Author: Juanjo Alvarez <juanjo@juanjoalvarez.net>
@@ -40,6 +40,9 @@
 ;; (require 'evil-search-highlight-persist)
 ;; (global-evil-search-highlight-persist t)
 
+;; To only display string whose length is greater than or equal to 3
+;; (setq evil-search-highlight-string-min-len 3)
+
 
 ;;; Code:
 
@@ -64,14 +67,18 @@
   (interactive)
   (hlt-unhighlight-region-in-buffers (list (current-buffer))))
 
+(defvar evil-search-highlight-string-min-len 1 "min legth")
 (defun evil-search-highlight-persist-mark ()
   (let ((hlt-use-overlays-flag t)
         (hlt-last-face 'evil-search-highlight-persist-highlight-face))
-    (hlt-highlight-regexp-region-in-buffers
-     (car-safe (if isearch-regexp
-                   regexp-search-ring
-                 search-ring))
-     (list (current-buffer)))))
+    (setq tmp nil)
+    (if isearch-regexp
+        (setq tmp (car-safe regexp-search-ring))
+      (setq tmp (car-safe search-ring)))
+    (if (>= (length tmp) evil-search-highlight-string-min-len)
+        (hlt-highlight-regexp-region-in-buffers
+         tmp
+         (list (current-buffer))))))
 
 (defadvice isearch-exit (after isearch--highlight-persist)
   (evil-search-highlight-persist-remove-all)
