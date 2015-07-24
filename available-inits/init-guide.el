@@ -1,6 +1,8 @@
-;;; package --- init guide-key
+;;; package --- init guide-key-mode
 ;;; commentary:
 ;;; code:
+
+;;; No longer used. Please use: which-key-mode instead
 
 (setq guide-key/guide-key-sequence
       '("C-x"

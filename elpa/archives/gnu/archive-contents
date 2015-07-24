@@ -334,7 +334,7 @@
 	       ((:url . "http://elpa.gnu.org/packages/jgraph-mode.html")
 		(:keywords "tex" "wp"))])
  (js2-mode .
-	   [(20150202)
+	   [(20150713)
 	    ((emacs
 	      (24 1))
 	     (cl-lib
@@ -452,7 +452,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20150706)
+      [(20150720)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -636,7 +636,7 @@
 	      ((:keywords "http" "server" "network")
 	       (:url . "https://github.com/eschulte/emacs-web-server"))])
  (websocket .
-	    [(1 4)
+	    [(1 5)
 	     nil "Emacs WebSocket client and server" tar
 	     ((:keywords "communication" "websocket" "server")
 	      (:url . "http://elpa.gnu.org/packages/websocket.html"))])
