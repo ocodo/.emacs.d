@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20150630.318
+;; Package-Version: 20150722.239
 ;; Version: 0.40
 ;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
 
@@ -121,7 +121,12 @@ They are specified to `--ignore' options."
 (defvar helm-ag--default-target nil)
 (defvar helm-ag--buffer-search nil)
 (defvar helm-ag--command-feature nil)
+(defvar helm-ag--ignore-case nil)
 (defvar helm-do-ag--extensions nil)
+
+(defsubst helm-ag--ignore-case-p (cmds)
+  (cl-loop for opt in '("-i" "--ignore-case")
+           thereis (member opt cmds)))
 
 (defun helm-ag--save-current-context ()
   (let ((curpoint (with-helm-current-buffer
@@ -222,6 +227,7 @@ They are specified to `--ignore' options."
              (cmds (helm-ag--construct-command (helm-attr 'search-this-file)))
              (coding-system-for-read buf-coding)
              (coding-system-for-write buf-coding))
+        (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmds))
         (let ((ret (apply 'process-file (car cmds) nil t nil (cdr cmds))))
           (if (zerop (length (buffer-string)))
               (error "No output: '%s'" helm-ag--last-query)
@@ -301,7 +307,8 @@ They are specified to `--ignore' options."
 
 (defun helm-ag--highlight-candidate (candidate)
   (let ((limit (1- (length candidate)))
-        (last-pos 0))
+        (last-pos 0)
+        (case-fold-search helm-ag--ignore-case))
     (when helm-ag--valid-regexp-for-emacs
       (while (and (< last-pos limit)
                   (string-match helm-ag--elisp-regexp-query candidate last-pos))
@@ -684,7 +691,8 @@ Continue searching the parent directory? "))
                        (set-text-properties (1+ file-end) line-end
                                             '(face helm-grep-lineno))
 
-                       (let ((curpoint (point)))
+                       (let ((curpoint (point))
+                             (case-fold-search helm-ag--ignore-case))
                          (dolist (pattern patterns)
                            (let ((last-point (point)))
                              (while (re-search-forward pattern bound t)
@@ -726,8 +734,9 @@ Continue searching the parent directory? "))
 
 (defun helm-ag--do-ag-candidate-process ()
   (let* ((default-directory (or helm-ag--default-directory default-directory))
-         (proc (apply 'start-file-process "helm-do-ag" nil
-                      (helm-ag--construct-do-ag-command helm-pattern))))
+         (cmd-args (helm-ag--construct-do-ag-command helm-pattern))
+         (proc (apply 'start-file-process "helm-do-ag" nil cmd-args)))
+    (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmd-args))
     (prog1 proc
       (set-process-sentinel
        proc
