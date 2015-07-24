@@ -22,6 +22,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Customization variables
 
+(defcustom haskell-process-load-or-reload-prompt nil
+  "Nil means there will be no prompts on starting REPL. Defaults will be accepted."
+  :type 'boolean
+  :group 'haskell-interactive)
+
 (defgroup haskell nil
   "Major mode for editing Haskell programs."
   :link '(custom-manual "(haskell-mode)")
@@ -44,7 +49,7 @@ Used for locating additional package data files.")
 (defcustom haskell-process-type
   'auto
   "The inferior Haskell process type to use."
-  :type '(choice (const auto) (const ghci) (const cabal-repl) (const cabal-ghci) (const stack-ghci))
+  :type '(choice (const auto) (const ghci) (const cabal-repl) (const stack-ghci))
   :group 'haskell-interactive)
 
 (defcustom haskell-process-wrapper-function
@@ -101,12 +106,6 @@ when showing type information about symbols."
 (defcustom haskell-process-path-cabal
   "cabal"
   "Path to the `cabal' executable."
-  :group 'haskell-interactive
-  :type '(choice string (repeat string)))
-
-(defcustom haskell-process-path-cabal-ghci
-  "cabal-ghci"
-  "The path for starting cabal-ghci."
   :group 'haskell-interactive
   :type '(choice string (repeat string)))
 
