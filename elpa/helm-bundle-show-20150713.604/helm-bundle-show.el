@@ -1,11 +1,11 @@
-;;; helm-bundle-show.el --- bundle show with helm interface
+;;; helm-bundle-show.el --- bundle show with helm interface -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015 by Takashi Masuda
 
 ;; Author: Takashi Masuda <masutaka.net@gmail.com>
 ;; URL: https://github.com/masutaka/emacs-helm-bundle-show
-;; Package-Version: 20150415.935
-;; Version: 1.0.1
+;; Package-Version: 20150713.604
+;; Version: 1.1.0
 ;; Package-Requires: ((helm "1.6.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -51,7 +51,9 @@
 (defvar helm-bundle-show--action
   '(("Open Directory" . helm-bundle-show--find-file)
     ("Open Directory other window" . helm-bundle-show--find-file-other-window)
-    ("Open Directory other frame" . helm-bundle-show--find-file-other-frame)))
+    ("Open Directory other frame" . helm-bundle-show--find-file-other-frame)
+    ("Browse RubyGems url" . helm-bundle-show--browse-rubygems-url)
+    ("Copy RubyGems url" . helm-bundle-show--copy-rubygems-url)))
 
 (defun helm-bundle-show--find-file (gem)
   (find-file (helm-bundle-show--full-path gem)))
@@ -62,12 +64,23 @@
 (defun helm-bundle-show--find-file-other-frame (gem)
   (find-file-other-frame (helm-bundle-show--full-path gem)))
 
+(defun helm-bundle-show--browse-rubygems-url (gem)
+  (browse-url (helm-bundle-show--rubygems-url gem)))
+
+(defun helm-bundle-show--copy-rubygems-url (gem)
+  (let ((url (helm-bundle-show--rubygems-url gem)))
+    (kill-new url)
+    (message url)))
+
 (defun helm-bundle-show--full-path (gem)
   (with-temp-buffer
     (unless (zerop (call-process "bundle" nil t nil "show" gem))
       (error (format "Failed: bundle show %s" gem)))
     (goto-char (point-min))
     (helm-bundle-show--line-string)))
+
+(defun helm-bundle-show--rubygems-url (gem)
+  (concat "https://rubygems.org/gems/" gem))
 
 (defvar helm-bundle-show--source
   `((name . "bundle show")
