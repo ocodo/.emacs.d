@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20150709.1428
+;; Package-Version: 20150714.842
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.12.0
@@ -148,6 +148,20 @@ DIR is the project root."
         (default-directory dir))
     (projectile-compile-project helm-current-prefix-arg dir)))
 
+(defun helm-projectile-test-project (dir)
+  "A Helm action for test a project.
+DIR is the project root."
+  (let ((helm--reading-passwd-or-string t)
+        (default-directory dir))
+    (projectile-test-project helm-current-prefix-arg dir)))
+
+(defun helm-projectile-run-project (dir)
+  "A Helm action for run a project.
+DIR is the project root."
+  (let ((helm--reading-passwd-or-string t)
+        (default-directory dir))
+    (projectile-run-project helm-current-prefix-arg dir)))
+
 (defun helm-projectile-remove-known-project (_ignore)
   "Delete selected projects.
 _IGNORE means the argument does not matter.
@@ -157,7 +171,7 @@ It is there because Helm requires it."
     (with-helm-display-marked-candidates
       helm-marked-buffer-name
       projects
-      (if (not (y-or-n-p (format "Delete *%s projects(s)" len)))
+      (if (not (y-or-n-p (format "Delete *%s projects(s)? " len)))
           (message "(No deletion performed)")
         (progn
           (mapc (lambda (p)
@@ -170,12 +184,14 @@ It is there because Helm requires it."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
     (helm-projectile-define-key map
-      (kbd "C-d") 'dired
-      (kbd "M-g") 'helm-projectile-vc
-      (kbd "M-e") 'helm-projectile-switch-to-eshell
-      (kbd "C-s") 'helm-find-files-grep
-      (kbd "M-c") 'helm-projectile-compile-project
-      (kbd "M-D") 'helm-projectile-remove-known-project)
+      (kbd "C-d") #'dired
+      (kbd "M-g") #'helm-projectile-vc
+      (kbd "M-e") #'helm-projectile-switch-to-eshell
+      (kbd "C-s") #'helm-find-files-grep
+      (kbd "M-c") #'helm-projectile-compile-project
+      (kbd "M-t") #'helm-projectile-test-project
+      (kbd "M-r") #'helm-projectile-run-project
+      (kbd "M-D") #'helm-projectile-remove-known-project)
     map)
   "Mapping for known projectile projects.")
 
@@ -188,7 +204,7 @@ It is there because Helm requires it."
               projectile-known-projects))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-projects-map
-    :mode-line helm-ff-mode-line-string
+    :mode-line helm-read-file-name-mode-line-string
     :action '(("Switch to project" .
                (lambda (project)
                  (let ((projectile-completion-system 'helm))
@@ -249,7 +265,8 @@ It is there because Helm requires it."
                    (buffer-list))))
 
 (defvar helm-projectile-virtual-dired-remote-enable nil
-  "Enable virtual Dired manager in remote host. Disabled by default.")
+  "Enable virtual Dired manager on remote host.
+Disabled by default.")
 
 (defun helm-projectile-dired-files-new-action (candidate)
   "Create a Dired buffer from chosen files.
@@ -319,7 +336,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                                                           files)
                                                 (list candidate))))
               (rename-buffer dired-buffer-name))))
-      (error "You're not in a Dired buffer to add."))))
+      (error "You're not in a Dired buffer to add"))))
 
 (defun helm-projectile-dired-files-delete-action (candidate)
   "Delete selected entries from a Dired buffer.
@@ -350,13 +367,13 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
 (defvar helm-projectile-find-file-map
   (let ((map (copy-keymap helm-find-files-map)))
     (helm-projectile-define-key map
-      (kbd "C-c f") 'helm-projectile-dired-files-new-action
-      (kbd "C-c a") 'helm-projectile-dired-files-add-action
-      (kbd "M-e") 'helm-projectile-switch-to-eshell
-      (kbd "M-.") 'helm-projectile-ff-etags-select-action
-      (kbd "M-!") 'helm-projectile-find-files-eshell-command-on-file-action)
-    (define-key map (kbd "<left>") 'helm-previous-source)
-    (define-key map (kbd "<right>") 'helm-next-source)
+      (kbd "C-c f") #'helm-projectile-dired-files-new-action
+      (kbd "C-c a") #'helm-projectile-dired-files-add-action
+      (kbd "M-e") #'helm-projectile-switch-to-eshell
+      (kbd "M-.") #'helm-projectile-ff-etags-select-action
+      (kbd "M-!") #'helm-projectile-find-files-eshell-command-on-file-action)
+    (define-key map (kbd "<left>") #'helm-previous-source)
+    (define-key map (kbd "<right>") #'helm-next-source)
     map)
   "Mapping for file commands in Helm Projectile.")
 
@@ -392,7 +409,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :action-transformer 'helm-find-files-action-transformer
     :keymap helm-projectile-find-file-map
     :help-message helm-ff-help-message
-    :mode-line helm-ff-mode-line-string
+    :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions))
 
 (defvar helm-source-projectile-files-list
@@ -405,7 +422,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :coerce 'helm-projectile-coerce-file
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
-    :mode-line helm-ff-mode-line-string
+    :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     )
   "Helm source definition for Projectile files.")
@@ -420,7 +437,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :coerce 'helm-projectile-coerce-file
     :keymap helm-find-files-map
     :help-message 'helm-ff-help-message
-    :mode-line helm-ff-mode-line-string
+    :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     )
   "Helm source definition for all Projectile files in all projects.")
@@ -454,7 +471,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                 (kbd "C-c d") 'helm-projectile-dired-files-delete-action)
               map)
     :help-message 'helm-ff-help-message
-    :mode-line helm-ff-mode-line-string
+    :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-dired-file-actions)
   "Helm source definition for Projectile delete files.")
 
@@ -482,16 +499,16 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :keymap (let ((map (make-sparse-keymap)))
               (set-keymap-parent map helm-map)
               (helm-projectile-define-key map
-                (kbd "<left>") 'helm-previous-source
-                (kbd "<right>") 'helm-next-source
-                (kbd "C-c o") 'helm-projectile-dired-find-dir-other-window
-                (kbd "M-e")   'helm-projectile-switch-to-eshell
-                (kbd "C-c f") 'helm-projectile-dired-files-new-action
-                (kbd "C-c a") 'helm-projectile-dired-files-add-action
-                (kbd "C-s")   'helm-find-files-grep)
+                (kbd "<left>") #'helm-previous-source
+                (kbd "<right>") #'helm-next-source
+                (kbd "C-c o") #'helm-projectile-dired-find-dir-other-window
+                (kbd "M-e")   #'helm-projectile-switch-to-eshell
+                (kbd "C-c f") #'helm-projectile-dired-files-new-action
+                (kbd "C-c a") #'helm-projectile-dired-files-add-action
+                (kbd "C-s")   #'helm-find-files-grep)
               map)
     :help-message 'helm-ff-help-message
-    :mode-line helm-ff-mode-line-string
+    :mode-line helm-read-file-name-mode-line-string
     :action '(("Open Dired" . helm-projectile-dired-find-dir)
               ("Open Dired in other window `C-c o'" . helm-projectile-dired-find-dir)
               ("Switch to Eshell `M-e'" . helm-projectile-switch-to-eshell)
@@ -526,7 +543,6 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
    (persistent-action :initform 'helm-buffers-list-persistent-action)
    (keymap :initform helm-buffer-map)
    (volatile :initform t)
-   (mode-line :initform helm-buffer-mode-line-string)
    (persistent-help
     :initform
     "Show this buffer / C-u \\[helm-execute-persistent-action]: Kill this buffer")))
@@ -543,7 +559,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :coerce 'helm-projectile-coerce-file
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
-    :mode-line helm-ff-mode-line-string
+    :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     )
   "Helm source definition for recent files in current project.")
@@ -629,7 +645,7 @@ Other file extensions can be customized with the variable `projectile-other-file
                                        (define-key map (kbd "<right>") 'helm-next-source)
                                        map)
                              :help-message helm-ff-help-message
-                             :mode-line helm-ff-mode-line-string
+                             :mode-line helm-read-file-name-mode-line-string
                              :action helm-projectile-file-actions)
                   :buffer "*helm projectile*"
                   :prompt (projectile-prepend-project-name "Find other file: ")))))
@@ -665,7 +681,6 @@ If it is nil, or ack/ack-grep not found then use default grep command."
             :filter-one-by-one 'helm-grep-filter-one-by-one
             :candidate-number-limit 9999
             :nohighlight t
-            :mode-line helm-grep-mode-line-string
             ;; We need to specify keymap here and as :keymap arg [1]
             ;; to make it available in further resuming.
             :keymap helm-grep-map
@@ -793,31 +808,31 @@ If it is nil, or ack/ack-grep not found then use default grep command."
   "Toggle Helm version of Projectile commands."
   (if (> toggle 0)
       (progn
-        (setq projectile-switch-project-action 'helm-projectile-find-file)
-        (define-key projectile-command-map (kbd "a") 'helm-projectile-find-other-file)
-        (define-key projectile-command-map (kbd "f") 'helm-projectile-find-file)
-        (define-key projectile-command-map (kbd "F") 'helm-projectile-find-file-in-known-projects)
-        (define-key projectile-command-map (kbd "g") 'helm-projectile-find-file-dwim)
-        (define-key projectile-command-map (kbd "d") 'helm-projectile-find-dir)
-        (define-key projectile-command-map (kbd "p") 'helm-projectile-switch-project)
-        (define-key projectile-command-map (kbd "e") 'helm-projectile-recentf)
-        (define-key projectile-command-map (kbd "b") 'helm-projectile-switch-to-buffer)
-        (define-key projectile-command-map (kbd "s g") 'helm-projectile-grep)
-        (define-key projectile-command-map (kbd "s a") 'helm-projectile-ack)
-        (define-key projectile-command-map (kbd "s s") 'helm-projectile-ag)
+        (setq projectile-switch-project-action #'helm-projectile-find-file)
+        (define-key projectile-command-map (kbd "a") #'helm-projectile-find-other-file)
+        (define-key projectile-command-map (kbd "f") #'helm-projectile-find-file)
+        (define-key projectile-command-map (kbd "F") #'helm-projectile-find-file-in-known-projects)
+        (define-key projectile-command-map (kbd "g") #'helm-projectile-find-file-dwim)
+        (define-key projectile-command-map (kbd "d") #'helm-projectile-find-dir)
+        (define-key projectile-command-map (kbd "p") #'helm-projectile-switch-project)
+        (define-key projectile-command-map (kbd "e") #'helm-projectile-recentf)
+        (define-key projectile-command-map (kbd "b") #'helm-projectile-switch-to-buffer)
+        (define-key projectile-command-map (kbd "s g") #'helm-projectile-grep)
+        (define-key projectile-command-map (kbd "s a") #'helm-projectile-ack)
+        (define-key projectile-command-map (kbd "s s") #'helm-projectile-ag)
         (helm-projectile-commander-bindings))
     (progn
-      (setq projectile-switch-project-action 'projectile-find-file)
-      (define-key projectile-command-map (kbd "a") 'projectile-find-other-file)
-      (define-key projectile-command-map (kbd "f") 'projectile-find-file)
-      (define-key projectile-command-map (kbd "F") 'projectile-find-file-in-known-projects)
-      (define-key projectile-command-map (kbd "g") 'helm-projectile-find-file-dwim)
-      (define-key projectile-command-map (kbd "d") 'projectile-find-dir)
-      (define-key projectile-command-map (kbd "p") 'projectile-switch-project)
-      (define-key projectile-command-map (kbd "e") 'projectile-recentf)
-      (define-key projectile-command-map (kbd "b") 'projectile-switch-to-buffer)
-      (define-key projectile-command-map (kbd "s g") 'projectile-grep)
-      (define-key projectile-command-map (kbd "s s") 'projectile-ag)
+      (setq projectile-switch-project-action #'projectile-find-file)
+      (define-key projectile-command-map (kbd "a") #'projectile-find-other-file)
+      (define-key projectile-command-map (kbd "f") #'projectile-find-file)
+      (define-key projectile-command-map (kbd "F") #'projectile-find-file-in-known-projects)
+      (define-key projectile-command-map (kbd "g") #'helm-projectile-find-file-dwim)
+      (define-key projectile-command-map (kbd "d") #'projectile-find-dir)
+      (define-key projectile-command-map (kbd "p") #'projectile-switch-project)
+      (define-key projectile-command-map (kbd "e") #'projectile-recentf)
+      (define-key projectile-command-map (kbd "b") #'projectile-switch-to-buffer)
+      (define-key projectile-command-map (kbd "s g") #'projectile-grep)
+      (define-key projectile-command-map (kbd "s s") #'projectile-ag)
       (projectile-commander-bindings))))
 
 ;;;###autoload
@@ -839,7 +854,7 @@ If invoked outside of a project, displays a list of known projects to jump."
 ;;;###autoload
 (eval-after-load 'projectile
   '(progn
-     (define-key projectile-command-map (kbd "h") 'helm-projectile)))
+     (define-key projectile-command-map (kbd "h") #'helm-projectile)))
 
 (provide 'helm-projectile)
 
