@@ -1,13 +1,13 @@
-;;; ace-isearch.el --- A seamless bridge between isearch and ace-jump-mode -*- coding: utf-8; lexical-binding: t -*-
+;;; ace-isearch.el --- A seamless bridge between isearch, ace-jump-mode, avy and helm-swoop -*- coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2014 by Akira TAMAMORI
+;; Copyright (C) 2014, 2015 by Akira TAMAMORI
 
 ;; Author: Akira Tamamori
 ;; URL: https://github.com/tam17aki/ace-isearch
-;; Package-Version: 20150428.2005
-;; Version: 0.1.2
+;; Package-Version: 20150722.655
+;; Version: 0.1.3
 ;; Created: Sep 25 2014
-;; Package-Requires: ((ace-jump-mode "2.0") (helm-swoop "1.4") (emacs "24"))
+;; Package-Requires: ((ace-jump-mode "2.0") (avy "0.3") (helm-swoop "1.4") (emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
@@ -24,18 +24,18 @@
 
 ;;; Commentary:
 ;;
-;; `ace-isearch.el' provides a minor mode which combines `isearch' and
-;; `ace-jump-mode'.
+;; `ace-isearch.el' provides a minor mode which combines `isearch',
+;; `ace-jump-mode', `avy', and `helm-swoop'.
 ;;
 ;; The "default" behavior can be summrized as:
 ;;
-;; L = 1     : `ace-jump-mode'
+;; L = 1     : `ace-jump-mode' or `avy'
 ;; 1 < L < 6 : `isearch'
-;; L >= 6    : `helm-swoop-from-isearch'
+;; L >= 6    : `helm-swoop'
 ;;
 ;; where L is the input string length during `isearch'.  When L is 1, after a
-;; few seconds specified by `ace-isearch-input-idle-delay', `ace-jump-mode' will
-;; be invoked. Of course you can customize the above behaviour.
+;; few seconds specified by `ace-isearch-jump-delay', `ace-jump-mode' or `avy'
+;; will be invoked. Of course you can customize the above behaviour.
 
 ;;; Installation:
 ;;
@@ -50,22 +50,23 @@
 
 (require 'helm-swoop)
 (require 'ace-jump-mode)
+(require 'avy)
 
 (defgroup ace-isearch nil
   "Group of ace-isearch."
-  :group 'ace-jump)
+  :group 'convenience)
 
 (defcustom ace-isearch-lighter " AceI"
   "Lighter of ace-isearch-mode."
   :type 'string
   :group 'ace-isearch)
 
-(defcustom ace-isearch-input-idle-jump-delay 0.4
-  "Delay seconds for invoking `ace-jump-mode' during isearch."
+(defcustom ace-isearch-jump-delay 0.4
+  "Delay seconds for invoking `ace-jump-mode' or `avy' during isearch."
   :type 'number
   :group 'ace-isearch)
 
-(defcustom ace-isearch-input-idle-func-delay 0.0
+(defcustom ace-isearch-func-delay 0.0
   "Delay seconds for invoking `ace-isearch-function-from-isearch' during isearch."
   :type 'number
   :group 'ace-isearch)
@@ -76,14 +77,17 @@ during isearch."
   :type 'integer
   :group 'ace-isearch)
 
-(defcustom ace-isearch-submode 'ace-jump-word-mode
-  "Sub-mode for ace-jump-mode."
+(defcustom ace-isearch-function 'ace-jump-word-mode
+  "Function name in invoking ace-jump-mode or avy."
   :type '(choice (const :tag "Use ace-jump-word-mode." ace-jump-word-mode)
-                 (const :tag "Use ace-jump-char-mode." ace-jump-char-mode))
+                 (const :tag "Use ace-jump-char-mode." ace-jump-char-mode)
+                 (const :tag "Use avy-goto-word-1." avy-goto-word-1)
+                 (const :tag "Use avy-goto-word-1." avy-goto-subword-1)
+                 (const :tag "Use avy-goto-char." avy-goto-char))
   :group 'ace-isearch)
 
-(defcustom ace-isearch-use-ace-jump t
-  "If `nil', `ace-jump-mode' is never invoked.
+(defcustom ace-isearch-use-jump t
+  "If `nil', `ace-jump-mode' or `avy' is never invoked.
 
 If `t', it is always invoked if the length of `isearch-string' is
 equal to 1.
@@ -121,19 +125,25 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
   :type 'boolean
   :group 'ace-isearch)
 
-(defvar ace-isearch--submode-list
-  (list "ace-jump-word-mode" "ace-jump-char-mode")
-  "List of jump type for ace-jump-mode.")
+(defvar ace-isearch--function-list
+  (list "ace-jump-word-mode" "ace-jump-char-mode"
+        "avy-goto-word-1" "avy-goto-subword-1" "avy-goto-char")
+  "List of functions in jumping.")
 
-(defun ace-isearch-switch-submode ()
+(defvar ace-isearch--jump-during-isearch-p nil)
+(defvar ace-isearch--ace-jump-or-avy)
+
+(defun ace-isearch-switch-function ()
   (interactive)
-  (let ((submode (completing-read
-                  (format "Sub-mode (current is %s): " ace-isearch-submode)
-                  ace-isearch--submode-list nil t "ace-jump-")))
-    (setq ace-isearch-submode (intern-soft submode))
-    (message "Sub-mode of ace-isearch is set to %s." submode)))
+  (let ((function (completing-read
+                   (format "Function for ace-isearch (current is %s): "
+                           ace-isearch-function)
+                   ace-isearch--function-list nil t)))
+    (setq ace-isearch-function (intern-soft function))
+    (message "Function for ace-isearch is set to %s." function)))
 
 (defun ace-isearch--fboundp (func flag)
+  (declare (indent 1))
   (when flag
     (when (eq func nil)
       (error "function name must be specified!"))
@@ -141,50 +151,73 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
       (error (format "function %s is not bounded!" func)))
     t))
 
-(defun ace-isearch--pop-mark ()
-  (if (= (length isearch-string) 1) (progn (pop-mark))))
-
 (defun ace-isearch--jumper-function ()
   (cond ((and (= (length isearch-string) 1)
               (not (or isearch-regexp
                        isearch-word))
-              (ace-isearch--fboundp ace-isearch-submode
-                                    (or (eq ace-isearch-use-ace-jump t)
-                                        (and (eq ace-isearch-use-ace-jump 'printing-char)
-                                             (eq this-command 'isearch-printing-char))))
-              (sit-for ace-isearch-input-idle-jump-delay))
+              (ace-isearch--fboundp ace-isearch-function
+                (or (eq ace-isearch-use-jump t)
+                    (and (eq ace-isearch-use-jump 'printing-char)
+                         (eq this-command 'isearch-printing-char))))
+              (sit-for ace-isearch-jump-delay))
          (isearch-exit)
-         (funcall ace-isearch-submode (string-to-char isearch-string)))
+         (goto-char isearch-opoint)
+         (funcall ace-isearch-function (string-to-char isearch-string)))
 
         ((and (> (length isearch-string) 1)
               (< (length isearch-string) ace-isearch-input-length)
               (not isearch-success)
-              (sit-for ace-isearch-input-idle-jump-delay))
+              (sit-for ace-isearch-jump-delay))
          (if (ace-isearch--fboundp
               ace-isearch-fallback-function ace-isearch-use-fallback-function)
              (funcall ace-isearch-fallback-function)))
 
         ((and (>= (length isearch-string) ace-isearch-input-length)
               (not isearch-regexp)
-              (ace-isearch--fboundp
-               ace-isearch-function-from-isearch ace-isearch-use-function-from-isearch)
-              (sit-for ace-isearch-input-idle-func-delay))
+              (ace-isearch--fboundp ace-isearch-function-from-isearch
+                ace-isearch-use-function-from-isearch)
+              (sit-for ace-isearch-func-delay))
          (isearch-exit)
          (funcall ace-isearch-function-from-isearch))))
 
+(defun ace-isearch--make-ace-jump-or-avy ()
+  (cond ((or (eq ace-isearch-function 'ace-jump-char-mode)
+             (eq ace-isearch-function 'ace-jump-word-mode))
+         (setq ace-isearch--ace-jump-or-avy 'ace-jump))
+        ((or (eq ace-isearch-function 'avy-goto-word-1)
+             (eq ace-isearch-function 'avy-goto-subword-1)
+             (eq ace-isearch-function 'avy-goto-char))
+         (setq ace-isearch--ace-jump-or-avy 'avy))
+        (t
+         (error (format "Function name %s for ace-isearch is invalid!"
+                        ace-isearch-function)))))
+
+;;;###autoload
+(defun ace-isearch-jump-during-isearch ()
+  "Jump to the one of the current isearch candidates."
+  (interactive)
+  (if (< (length isearch-string) ace-isearch-input-length)
+      (cond ((eq ace-isearch--ace-jump-or-avy 'ace-jump)
+             (let ((ace-jump-mode-scope 'window))
+               (setq ace-isearch--jump-during-isearch-p t)
+               (isearch-exit)
+               (ace-jump-do (regexp-quote isearch-string))))
+            ((eq ace-isearch--ace-jump-or-avy 'avy)
+             (let ((avy-all-windows nil))
+               (avy-isearch))))))
+
 ;;;###autoload
 (define-minor-mode ace-isearch-mode
-  "Minor-mode which combines isearch and ace-jump-mode seamlessly."
+  "Minor-mode which combines isearch, ace-jump-mode, avy, and helm-swoop seamlessly."
   :group      'ace-isearch
   :init-value nil
   :global     nil
-  :lighter    ace-isearch-mode-lighter
+  :lighter    ace-isearch-lighter
   (if ace-isearch-mode
       (progn
         (add-hook 'isearch-update-post-hook 'ace-isearch--jumper-function nil t)
-        (add-hook 'ace-jump-mode-end-hook 'ace-isearch--pop-mark nil t))
-    (remove-hook 'isearch-update-post-hook 'ace-isearch--jumper-function t)
-    (remove-hook 'ace-jump-mode-end-hook 'ace-isearch--pop-mark t)))
+        (ace-isearch--make-ace-jump-or-avy))
+    (remove-hook 'isearch-update-post-hook 'ace-isearch--jumper-function t)))
 
 (defun ace-isearch--turn-on ()
   (unless (minibufferp)
@@ -195,23 +228,17 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
   ace-isearch-mode ace-isearch--turn-on
   :group 'ace-isearch)
 
-;; misc
-(defvar ace-isearch--active-when-isearch-exit-p nil)
-
-(defadvice isearch-exit (after do-ace-isearch-jump disable)
-  (if (and ace-isearch--active-when-isearch-exit-p
-           (> (length isearch-string) 1)
-           (< (length isearch-string) ace-isearch-input-length))
-      (let ((ace-jump-mode-scope 'window))
-        (ace-jump-do (regexp-quote isearch-string)))))
-
-(defun ace-isearch-set-ace-jump-after-isearch-exit (activate)
-  "Set invoking ace-jump-mode automatically when `isearch-exit' has done."
-  (if activate
-      (ad-enable-advice 'isearch-exit 'after 'do-ace-isearch-jump)
-    (ad-disable-advice 'isearch-exit 'after 'do-ace-isearch-jump))
-  (ad-activate 'isearch-exit)
-  (setq ace-isearch--active-when-isearch-exit-p activate))
+;; obsolete functions and variables
+(define-obsolete-function-alias 'ace-isearch-switch-submode
+  'ace-isearch-switch-function "0.1.3")
+(define-obsolete-variable-alias 'ace-isearch-submode
+  'ace-isearch-function "0.1.3")
+(define-obsolete-variable-alias 'ace-isearch-input-idle-jump-delay
+  'ace-isearch-jump-delay "0.1.3")
+(define-obsolete-variable-alias 'ace-isearch-input-idle-func-delay
+  'ace-isearch-func-delay "0.1.3")
+(define-obsolete-variable-alias 'ace-isearch-use-ace-jump
+  'ace-isearch-use-jump "0.1.3")
 
 (provide 'ace-isearch)
 ;;; ace-isearch.el ends here

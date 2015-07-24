@@ -3,12 +3,17 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ace-isearch" "ace-isearch.el" (21826 33892
-;;;;;;  631401 0))
+;;;### (autoloads nil "ace-isearch" "ace-isearch.el" (21937 41185
+;;;;;;  159401 0))
 ;;; Generated autoloads from ace-isearch.el
 
+(autoload 'ace-isearch-jump-during-isearch "ace-isearch" "\
+Jump to the one of the current isearch candidates.
+
+\(fn)" t nil)
+
 (autoload 'ace-isearch-mode "ace-isearch" "\
-Minor-mode which combines isearch and ace-jump-mode seamlessly.
+Minor-mode which combines isearch, ace-jump-mode, avy, and helm-swoop seamlessly.
 
 \(fn &optional ARG)" t nil)
 
