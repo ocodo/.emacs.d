@@ -4,7 +4,7 @@
 
 ;; Author: Bruce Williams <brwcodes@gmail.com>
 ;; Keywords: themes
-;; Package-Version: 20131230.1127
+;; Package-Version: 20150719.1231
 ;; URL: http://github.com/bruce/emacs-spacegray-theme
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "24.1"))
@@ -589,7 +589,19 @@
    `(term-color-blue    ((,class (:foreground ,blue :background ,blue))))
    `(term-color-magenta ((,class (:foreground ,purple :background ,purple))))
    `(term-color-cyan    ((,class (:foreground ,aqua :background ,aqua))))
-   `(term-color-white   ((,class (:foreground ,background :background ,background)))))
+   `(term-color-white   ((,class (:foreground ,background :background ,background))))
+
+   ;; helm
+   `(helm-buffer-saved-out ((,class (:inherit warning))))
+   `(helm-buffer-size ((,class (:foreground ,yellow))))
+   `(helm-buffer-not-saved ((,class (:foreground ,orange))))
+   `(helm-buffer-process ((,class (:foreground ,aqua))))
+   `(helm-buffer-directory ((,class (:foreground ,blue))))
+   `(helm-ff-directory ((,class (:foreground ,aqua))))
+   `(helm-candidate-number ((,class (:foreground ,red))))
+   `(helm-selection ((,class (:inherit highlight))))
+   `(helm-separator ((,class (:foreground ,purple))))
+   `(helm-source-header ((,class (:weight bold :foreground ,orange :height 1.25)))))
 
   (custom-theme-set-variables
    'spacegray
