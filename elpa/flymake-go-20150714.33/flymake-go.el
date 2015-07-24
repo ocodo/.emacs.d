@@ -2,10 +2,10 @@
 ;;
 ;; Author: Michael Fellinger <michael@iron.io>
 ;;         Robert Zaremba <robert.marek.zaremba@wp.eu>
-;; Version: 20130314.1541
+;; Version: 2013.03.14
+;; Package-Version: 20150714.33
 ;; Keywords: Go flymake
 ;; URL: https://github.com/robert-zaremba/flymake-go
-;; Package-Requires: ((flymake "0.4.13"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
