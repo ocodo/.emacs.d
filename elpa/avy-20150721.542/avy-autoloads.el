@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "avy" "avy.el" (21920 42684 759401 0))
+;;;### (autoloads nil "avy" "avy.el" (21937 41169 847401 0))
 ;;; Generated autoloads from avy.el
 
 (autoload 'avy-goto-char "avy" "\
@@ -55,7 +55,13 @@ Jump to the currently visible CHAR at a subword start.
 The window scope is determined by `avy-all-windows' (ARG negates it).
 The case of CHAR is ignored.
 
-\(fn CHAR ARG)" t nil)
+\(fn CHAR &optional ARG)" t nil)
+
+(autoload 'avy-goto-word-or-subword-1 "avy" "\
+Forward to `avy-goto-subword-1' or `avy-goto-word-1'.
+Which one depends on variable `subword-mode'.
+
+\(fn)" t nil)
 
 (autoload 'avy-goto-line "avy" "\
 Jump to a line start in current buffer.
