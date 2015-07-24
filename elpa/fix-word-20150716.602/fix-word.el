@@ -4,7 +4,7 @@
 ;;
 ;; Author: Mark Karpov <markkarpov@openmailbox.org>
 ;; URL: https://github.com/mrkkrp/fix-word
-;; Package-Version: 20150608.207
+;; Package-Version: 20150716.602
 ;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: word, convenience
@@ -94,6 +94,7 @@ There is also a macro that defines such commands for you:
 
 (defun fix-word--fix-and-move (fnc &optional arg)
   "Transform current word with function FNC and move to the next word.
+
 If argument ARG is supplied, repeat the operation that many times."
   (dotimes (_ (or arg 1))
     (fix-word--transform-word fnc)
@@ -105,6 +106,7 @@ If argument ARG is supplied, repeat the operation that many times."
 
 (defun fix-word--fix-quickly (fnc &optional arg)
   "Transform previous word with function FNC.
+
 If this function is invoked repeatedly, transform more words
 moving from right to left.  If argument ARG is supplied, repeat
 the operation that many times."
@@ -138,6 +140,7 @@ the operation that many times."
 ;;;###autoload
 (defmacro fix-word-define-command (name fnc &optional doc)
   "Define `fix-word'-based command named NAME.
+
 FNC is the processing function and DOC is documentation string."
   (declare (indent defun))
   `(defalias ',name (fix-word ,fnc)

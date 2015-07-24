@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "fix-word" "fix-word.el" (21868 32276 667401
+;;;### (autoloads nil "fix-word" "fix-word.el" (21937 41130 231401
 ;;;;;;  0))
 ;;; Generated autoloads from fix-word.el
 
@@ -50,6 +50,7 @@ There is also a macro that defines such commands for you:
 
 (autoload 'fix-word-define-command "fix-word" "\
 Define `fix-word'-based command named NAME.
+
 FNC is the processing function and DOC is documentation string.
 
 \(fn NAME FNC &optional DOC)" nil t)
