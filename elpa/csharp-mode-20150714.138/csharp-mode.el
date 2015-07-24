@@ -7,7 +7,7 @@
 ;; Modified   : May 2015
 ;; Version    : 0.8.10
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20150701.1341
+;; Package-Version: 20150714.138
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
 
@@ -4028,16 +4028,28 @@ The return value is meaningless, and is ignored by cc-mode.
    "warning [[:alnum:]]+: [^[\r\n]+\\[\\([^]\r\n]+\\)\\]$")
   "Regexp to match compilation warning from msbuild.")
 
+;; Notes on xbuild and devenv commonalities
+;;
+;; These regexes were tailored for xbuild, but apart from the concurrent
+;; build-marker ("1>") they share exactly the same match-markers.
+;;
+;; If we don't exclude the match-markers explicitly, these regexes
+;; will also be used to match for devenv as well, including the build-marker
+;; in the file-name, causing the lookup to fail.
+;;
+;; So if we don't want devenv to fail, we actually need to handle it in our
+;; xbuild-regexes, but then we automatically get devenv-support for free.
+
 (defconst csharp-compilation-re-xbuild-error
   (concat
-   "^[[:blank:]]*"
+   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
    "error [[:alnum:]]+: .+$")
   "Regexp to match compilation error from xbuild.")
 
 (defconst csharp-compilation-re-xbuild-warning
   (concat
-   "^[[:blank:]]*"
+   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
    "warning [[:alnum:]]+: .+$")
   "Regexp to match compilation warning from xbuild.")
