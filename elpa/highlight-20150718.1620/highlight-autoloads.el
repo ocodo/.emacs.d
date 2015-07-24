@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "highlight" "highlight.el" (21893 22942 99401
+;;;### (autoloads nil "highlight" "highlight.el" (21937 41080 131401
 ;;;;;;  0))
 ;;; Generated autoloads from highlight.el
 
@@ -214,9 +214,10 @@ Optional 5th arg MOUSEP non-nil means use `mouse-face', not `face'.
   Interactively, MOUSEP is provided by the prefix arg.
 
 Optional 6th arg BUFFERS is the list of buffers to highlight.
-  If non-nil then explicit START and END values are ignored, and the
-  actual values are determined automatically for each buffer, based on
-  whether the region is active there.
+  If non-nil and this command is called interactively then explicit
+  START and END values are ignored, and the actual values are
+  determined automatically for each buffer, based on whether the
+  region is active there.
 
 \(fn &optional START END FACE MSGP MOUSEP BUFFERS)" t nil)
 
