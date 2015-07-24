@@ -4,9 +4,8 @@
 ;;   Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
-;; URL: http://www.emacswiki.org/cgi-bin/wiki/FindFileInProject
-;; Package-Version: 20150528.633
-;; Git: git://github.com/technomancy/find-file-in-project.git
+;; URL: https://github.com/technomancy/find-file-in-project
+;; Package-Version: 20150722.2347
 ;; Version: 3.5
 ;; Created: 2008-03-18
 ;; Keywords: project, convenience
@@ -79,7 +78,9 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
+(eval-when-compile
+  (require 'cl))
 
 (defvar ffip-find-executable nil "Path of GNU find. If nil, we will find `find' path automatically")
 
@@ -101,8 +102,6 @@ May be set using .dir-locals.el. Checks each entry if set to a list.")
     ;; project misc
     "*.log"
     "bin"
-    "dist"
-    "target"
     ;; Mac
     ".DS_Store"
     ;; Ctags
@@ -183,7 +182,7 @@ This overrides variable `ffip-project-root' when set.")
                           (if (functionp ffip-project-root-function)
                               (funcall ffip-project-root-function)
                             (if (listp ffip-project-file)
-                                (some (apply-partially 'locate-dominating-file
+                                (cl-some (apply-partially 'locate-dominating-file
                                                        default-directory)
                                       ffip-project-file)
                               (locate-dominating-file default-directory
