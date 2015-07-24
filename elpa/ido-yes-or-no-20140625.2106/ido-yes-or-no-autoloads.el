@@ -1,10 +1,10 @@
 ;;; ido-yes-or-no-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (ido-yes-or-no-mode) "ido-yes-or-no" "ido-yes-or-no.el"
-;;;;;;  (21215 23830 0 0))
+;;;### (autoloads nil "ido-yes-or-no" "ido-yes-or-no.el" (21937 41186
+;;;;;;  735401 0))
 ;;; Generated autoloads from ido-yes-or-no.el
 
 (defvar ido-yes-or-no-mode nil "\
@@ -20,16 +20,9 @@ Use ido for `yes-or-no-p'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ido-yes-or-no-pkg.el") (21215 23830 644002
-;;;;;;  0))
-
-;;;***
-
-(provide 'ido-yes-or-no-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; ido-yes-or-no-autoloads.el ends here

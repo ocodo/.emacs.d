@@ -1,12 +1,12 @@
-
 ;;; ido-yes-or-no.el --- Use Ido to answer yes-or-no questions
 
 ;; Copyright 2011 Ryan C. Thompson
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-yes-or-no
-;; Version: 1.1
-;; Package-Requires: ((ido "0"))
+;; Package-Version: 20140625.2106
+;; Version: 1.2
+;; Package-Requires: ()
 
 (require 'ido)
 
