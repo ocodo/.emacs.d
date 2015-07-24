@@ -69,7 +69,9 @@
 
 (defcustom ivy-count-format "%-4d "
   "The style of showing the current candidate count for `ivy-read'.
-Set this to nil if you don't want the count."
+Set this to nil if you don't want the count.  You can also set it
+to e.g. \"(%d/%d) \" if you want to see both the candidate index
+and the candidate count."
   :type 'string)
 
 (defcustom ivy-wrap nil
@@ -128,10 +130,12 @@ Only \"./\" and \"../\" apply here. They appear in reverse order."
     (define-key map (kbd "M-v") 'ivy-scroll-down-command)
     (define-key map (kbd "C-M-n") 'ivy-next-line-and-call)
     (define-key map (kbd "C-M-p") 'ivy-previous-line-and-call)
+    (define-key map (kbd "C-M-m") 'ivy-call)
     (define-key map (kbd "M-q") 'ivy-toggle-regexp-quote)
     (define-key map (kbd "M-j") 'ivy-yank-word)
     (define-key map (kbd "M-i") 'ivy-insert-current)
     (define-key map (kbd "C-o") 'hydra-ivy/body)
+    (define-key map (kbd "M-o") 'ivy-dispatching-done)
     (define-key map (kbd "C-k") 'ivy-kill-line)
     (define-key map (kbd "S-SPC") 'ivy-restrict-to-matches)
     map)
@@ -264,6 +268,34 @@ When non-nil, it should contain one %d.")
          (setq ivy--prompt-extra " (match required)")
          (insert ivy-text)
          (ivy--exhibit))))
+
+(defun ivy-dispatching-done ()
+  "Select one of the available actions and call `ivy-done'."
+  (interactive)
+  (let ((actions (ivy-state-action ivy-last)))
+    (if (null (ivy--actionp actions))
+        (ivy-done)
+      (let* ((hint (concat ivy--current
+                           "\n"
+                           (mapconcat
+                            (lambda (x)
+                              (format "%s: %s"
+                                      (propertize
+                                       (car x)
+                                       'face 'font-lock-builtin-face)
+                                      (nth 2 x)))
+                            (cdr actions)
+                            "\n")
+                           "\n: "))
+             (key (string (read-key hint)))
+             (action (assoc key (cdr actions))))
+        (cond ((string= key ""))
+              ((null action)
+               (error "%s is not bound" key))
+              (t
+               (message "")
+               (ivy-set-action (nth 1 action))
+               (ivy-done)))))))
 
 (defun ivy-build-tramp-name (x)
   "Reconstruct X into a path.
@@ -442,7 +474,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (ivy-set-index (max (- ivy--index ivy-height)
                       0)))
 (defun ivy-minibuffer-grow ()
-  "Grow the minibuffer window by 1 line"
+  "Grow the minibuffer window by 1 line."
   (interactive)
   (setq-local max-mini-window-height
               (cl-incf ivy-height)))
@@ -494,7 +526,7 @@ If the input is empty, select the previous history element instead."
   (ivy-previous-line arg))
 
 (defun ivy-toggle-calling ()
-  "Flip `ivy-calling'"
+  "Flip `ivy-calling'."
   (interactive)
   (when (setq ivy-calling (not ivy-calling))
     (ivy-call)))
@@ -534,7 +566,7 @@ If the input is empty, select the previous history element instead."
         (format "[%d/%d] %s"
                 (car action)
                 (1- (length action))
-                (car (nth (car action) action)))
+                (nth 2 (nth (car action) action)))
       "[1/1] default")))
 
 (defun ivy-call ()
@@ -547,8 +579,10 @@ If the input is empty, select the previous history element instead."
                          (consp (car collection)))
                     (cdr (assoc ivy--current collection))
                   ivy--current)))
-        (with-selected-window (ivy-state-window ivy-last)
-          (funcall action x))))))
+        (if (eq (ivy-state-history ivy-last) 'extended-command-history)
+            (funcall action x)
+          (with-selected-window (ivy-state-window ivy-last)
+            (funcall action x)))))))
 
 (defun ivy-next-line-and-call (&optional arg)
   "Move cursor vertically down ARG candidates.
@@ -703,7 +737,7 @@ Prioritize directories."
   "An alist of sorting functions for each collection function.
 Interactive functions that call completion fit in here as well.
 
-For each entry, nil means no sorting. It's very useful to turn
+For each entry, nil means no sorting.  It's very useful to turn
 off the sorting for functions that have candidates in the natural
 buffer order, like `org-refile' or `Man-goto-section'.
 
@@ -770,7 +804,8 @@ Directories come first."
 
 PROMPT is a string to prompt with; normally it ends in a colon
 and a space.  When PROMPT contains %d, it will be updated with
-the current number of matching candidates.
+the current number of matching candidates.  If % appears elsewhere
+in the PROMPT it should be quoted as %%.
 See also `ivy-count-format'.
 
 COLLECTION is a list of strings.
@@ -802,7 +837,7 @@ candidates with each input."
       (setq action
             (if (functionp action)
                 `(1
-                  ("default" ,action)
+                  ("o" ,action "default")
                   ,@extra-actions)
               (delete-dups (append action extra-actions))))))
   (setq ivy-last
@@ -863,7 +898,8 @@ This is useful for recursive `ivy-read'."
         (re-builder (ivy-state-re-builder state))
         (dynamic-collection (ivy-state-dynamic-collection state))
         (initial-input (ivy-state-initial-input state))
-        (require-match (ivy-state-require-match state)))
+        (require-match (ivy-state-require-match state))
+        (matcher (ivy-state-matcher state)))
     (unless initial-input
       (setq initial-input (cdr (assoc this-command
                                       ivy-initial-inputs-alist))))
@@ -938,7 +974,7 @@ This is useful for recursive `ivy-read'."
                              ivy--index)
                         (and preselect
                              (ivy--preselect-index
-                              coll initial-input preselect))
+                              coll initial-input preselect matcher))
                         0))
       (setq ivy--old-re nil)
       (setq ivy--old-cands nil)
@@ -985,7 +1021,8 @@ DEF is the default value.
 _INHERIT-INPUT-METHOD is ignored for now.
 
 The history, defaults and input-method arguments are ignored for now."
-  (ivy-read prompt collection
+  (ivy-read (replace-regexp-in-string "%" "%%" prompt)
+            collection
             :predicate predicate
             :require-match require-match
             :initial-input (if (consp initial-input)
@@ -1020,15 +1057,21 @@ Minibuffer bindings:
       (setq completing-read-function 'ivy-completing-read)
     (setq completing-read-function 'completing-read-default)))
 
-(defun ivy--preselect-index (candidates initial-input preselect)
-  "Return the index in CANDIDATES filtered by INITIAL-INPUT for PRESELECT."
-  (when initial-input
-    (setq initial-input (ivy--regex-plus initial-input))
-    (setq candidates
-          (cl-remove-if-not
-           (lambda (x)
-             (string-match initial-input x))
-           candidates)))
+(defun ivy--preselect-index (candidates initial-input preselect matcher)
+  "Return the index in CANDIDATES filtered by INITIAL-INPUT for PRESELECT.
+When MATCHER is non-nil it's used instead of `cl-remove-if-not'."
+  (if initial-input
+      (progn
+        (setq initial-input (ivy--regex-plus initial-input))
+        (setq candidates
+              (if matcher
+                  (funcall matcher initial-input candidates)
+                (cl-remove-if-not
+                 (lambda (x)
+                   (string-match initial-input x))
+                 candidates))))
+    (when matcher
+      (setq candidates (funcall matcher "" candidates))))
   (or (cl-position preselect candidates :test #'equal)
       (cl-position-if
        (lambda (x)
@@ -1512,10 +1555,11 @@ BUFFER may be a string or nil."
 
 (ivy-set-actions
  'ivy-switch-buffer
- '(("kill"
+ '(("k"
     (lambda (x)
       (kill-buffer x)
-      (ivy--reset-state ivy-last)))))
+      (ivy--reset-state ivy-last))
+    "kill")))
 
 (defun ivy-switch-buffer ()
   "Switch to another buffer."
