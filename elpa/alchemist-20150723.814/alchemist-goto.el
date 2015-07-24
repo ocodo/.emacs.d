@@ -29,9 +29,10 @@
 (require 'etags)
 (require 'alchemist-utils)
 
-;; Tell the byte compiler to assume that functions are defined
-(declare-function alchemist-help--exp-at-point "alchemist-help.el")
-(declare-function alchemist-server-goto "alchemist-server.el")
+(eval-when-compile
+  ;; Tell the byte compiler to assume that functions are defined
+  (declare-function alchemist-help--exp-at-point "alchemist-help.el")
+  (declare-function alchemist-server-goto "alchemist-server.el"))
 
 (defgroup alchemist-goto nil
   "Functionality to jump modules and function definitions."
@@ -197,9 +198,9 @@ declaration has been found."
 
 (defun alchemist-goto--fetch-symbols-from-propertize-list (symbol)
   (cl-remove-if nil (mapcar (lambda (e)
-                           (if (string-match-p (format "^\\s-*\\(defp?\\|defmacrop?\\|defmodule\\)\s+%s" symbol) e)
-                               e)
-                           ) alchemist-goto--symbol-list)))
+                              (if (string-match-p (format "^\\s-*\\(defp?\\|defmacrop?\\|defmodule\\)\s+%s\\((.*\\)?$" symbol) e)
+                                  e)
+                              ) alchemist-goto--symbol-list)))
 
 (defun alchemist-goto--goto-symbol (symbol)
   (let ((amount (length (cl-remove-if nil (mapcar (lambda (e) (when (string= symbol e) e))
@@ -250,23 +251,11 @@ It will jump to the position of the symbol definition after selection."
 
 (defun alchemist-goto-jump-to-next-def-symbol ()
   (interactive)
-  (when (alchemist-goto--file-contains-defs-p)
-    (save-match-data
-      (end-of-line) ;; otherwise we could match on the current line and stay there forever
-      (unless (re-search-forward alchemist-goto--symbol-def-regex nil t)
-      (goto-char (point-min))
-        (re-search-forward alchemist-goto--symbol-def-regex nil t))
-      (back-to-indentation))))
+  (alchemist-utils--jump-to-next-matching-line alchemist-goto--symbol-def-regex 'back-to-indentation))
 
 (defun alchemist-goto-jump-to-previous-def-symbol ()
   (interactive)
-  (when (alchemist-goto--file-contains-defs-p)
-    (save-match-data
-      (beginning-of-line) ;; otherwise we could match on the current line and stay there forever
-      (unless (re-search-backward alchemist-goto--symbol-def-regex nil t)
-        (goto-char (point-max))
-        (re-search-backward alchemist-goto--symbol-def-regex nil t))
-      (back-to-indentation))))
+  (alchemist-utils--jump-to-previous-matching-line alchemist-goto--symbol-def-regex 'back-to-indentation))
 
 (defun alchemist-goto--extract-symbol-bare (str)
   (save-match-data
@@ -317,13 +306,10 @@ It will jump to the position of the symbol definition after selection."
 (defun alchemist-goto--open-definition (expr)
   (let* ((module (alchemist-goto--extract-module expr))
          (module (alchemist-goto--get-full-path-of-alias module))
-         (module (if module module "nil"))
-         (function (alchemist-goto--extract-function expr))
-         (function (if function function "\"\"")))
+         (function (alchemist-goto--extract-function expr)))
     (ring-insert find-tag-marker-ring (point-marker))
     (cond
-     ((and (string-equal module "nil")
-           (string-equal major-mode "elixir-mode")
+     ((and (null module)
            (alchemist-goto--symbol-definition-p function))
       (alchemist-goto--goto-symbol function))
      (t (alchemist-server-goto module function expr)))))
@@ -341,11 +327,13 @@ It will jump to the position of the symbol definition after selection."
   (format "^\s+\\(defp?\s+%s\(?\\|defmacrop?\s+%s\(?\\)" symbol symbol))
 
 (defun alchemist-goto--jump-to-elixir-source (module function)
-  (let ((function (replace-regexp-in-string "\?" "\\?" function)))
-    (when (re-search-forward (alchemist-gogo--symbol-definition-regex function) nil t)
-      (goto-char (match-beginning 0)))
+  (cond
+   (function
+    (alchemist-goto--fetch-symbol-definitions)
+    (alchemist-goto--goto-symbol function))
+   (t
     (when (re-search-forward (format "\\(defmodule\\|defimpl\\|defprotocol\\)\s+%s\s+do" module) nil t)
-      (goto-char (match-beginning 0)))))
+      (goto-char (match-beginning 0))))))
 
 (defun alchemist-goto--jump-to-erlang-source (module function)
   (when (re-search-forward (format "\\(^%s\(\\)" function) nil t)

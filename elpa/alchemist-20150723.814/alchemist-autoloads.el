@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (21920 42687 199401
+;;;### (autoloads nil "alchemist" "alchemist.el" (21937 41178 767401
 ;;;;;;  0))
 ;;; Generated autoloads from alchemist.el
 
@@ -22,8 +22,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (21920 42687
-;;;;;;  247401 0))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (21937 41178
+;;;;;;  823401 0))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -44,7 +44,7 @@ Show the IEx buffer if an IEx process is already run.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (21920 42687 207401 0))
+;;;;;;  (21937 41178 779401 0))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -55,7 +55,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (21920 42687 263401 0))
+;;;;;;  (21937 41178 839401 0))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -76,12 +76,12 @@ The following commands are available:
 
 ;;;***
 
-;;;### (autoloads nil nil ("alchemist-buffer.el" "alchemist-company.el"
-;;;;;;  "alchemist-compile.el" "alchemist-complete.el" "alchemist-eval.el"
-;;;;;;  "alchemist-execute.el" "alchemist-goto.el" "alchemist-help.el"
-;;;;;;  "alchemist-hooks.el" "alchemist-message.el" "alchemist-mix.el"
-;;;;;;  "alchemist-pkg.el" "alchemist-project.el" "alchemist-server.el"
-;;;;;;  "alchemist-utils.el") (21920 42687 278445 455000))
+;;;### (autoloads nil nil ("alchemist-company.el" "alchemist-compile.el"
+;;;;;;  "alchemist-complete.el" "alchemist-eval.el" "alchemist-execute.el"
+;;;;;;  "alchemist-goto.el" "alchemist-help.el" "alchemist-hooks.el"
+;;;;;;  "alchemist-message.el" "alchemist-mix.el" "alchemist-pkg.el"
+;;;;;;  "alchemist-project.el" "alchemist-report.el" "alchemist-server.el"
+;;;;;;  "alchemist-utils.el") (21937 41178 853594 552000))
 
 ;;;***
 

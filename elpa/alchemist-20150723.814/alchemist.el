@@ -5,8 +5,8 @@
 ;; Author: Samuel Tonini <tonini.samuel@gmail.com>
 
 ;; URL: http://www.github.com/tonini/alchemist.el
-;; Version: 1.3.0-cvs
-;; Package-Requires: ((emacs "24.4") (company "0.8.0"))
+;; Version: 1.3.0
+;; Package-Requires: ((elixir-mode "2.2.5") (emacs "24.4") (company "0.8.0"))
 ;; Keywords: languages, mix, elixir, elixirc, hex
 
 ;; This file is not part of GNU Emacs.
@@ -47,6 +47,7 @@
 
 (require 'easymenu)
 (require 'company)
+(require 'alchemist-report)
 (require 'alchemist-mix)
 (require 'alchemist-hooks)
 (require 'alchemist-message)
@@ -55,12 +56,11 @@
 (require 'alchemist-refcard)
 (require 'alchemist-company)
 
-
 (defun alchemist-mode-hook ()
   "Hook which enables `alchemist-mode'"
   (alchemist-mode 1))
 
-(defvar alchemist--version "1.3.0-cvs")
+(defvar alchemist--version "1.3.0")
 
 ;;;###autoload
 (defun alchemist-version (&optional show-version)
@@ -84,15 +84,16 @@ Key bindings:
   :keymap `((,alchemist-key-command-prefix . alchemist-mode-keymap))
   (cond (alchemist-mode
          (alchemist-server--start)
-         (alchemist-buffer-initialize-modeline))
+         (alchemist-test-initialize-modeline))
         (t
-         (alchemist-buffer-reset-modeline))))
+         (alchemist-test-reset-modeline))))
 
 (let ((map alchemist-mode-keymap))
   (define-key map (kbd "x") 'alchemist-mix)
   (define-key map (kbd "t") 'alchemist-mix-test)
   (define-key map (kbd "r") 'alchemist-mix-rerun-last-test)
   (define-key map (kbd "m c") 'alchemist-mix-compile)
+  (define-key map (kbd "m r") 'alchemist-mix-run)
   (define-key map (kbd "m t f") 'alchemist-mix-test-file)
   (define-key map (kbd "m t b") 'alchemist-mix-test-this-buffer)
   (define-key map (kbd "m t .") 'alchemist-mix-test-at-point)
@@ -106,6 +107,7 @@ Key bindings:
   (define-key map (kbd "h i") 'alchemist-help-history)
   (define-key map (kbd "h e") 'alchemist-help-search-at-point)
   (define-key map (kbd "h m") 'alchemist-help-search-marked-region)
+  (define-key map (kbd "h r") 'alchemist-refcard)
   (define-key map (kbd "p f") 'alchemist-project-find-test)
   (define-key map (kbd "p s") 'alchemist-project-toggle-file-and-tests)
   (define-key map (kbd "p o") 'alchemist-project-toggle-file-and-tests-other-window)
@@ -210,8 +212,7 @@ Key bindings:
      ["Documentation search history..." alchemist-help-history]
      "---"
      ["Documentation search at point..." alchemist-help-search-at-point]
-     ["Documentation search marked region..." alchemist-help-search-marked-region])
-    ))
+     ["Documentation search marked region..." alchemist-help-search-marked-region])))
 
 (add-hook 'elixir-mode-hook 'alchemist-mode-hook)
 

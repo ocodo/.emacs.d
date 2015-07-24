@@ -1,5 +1,6 @@
-(define-package "alchemist" "20150708.2322" "Elixir tooling integration into Emacs"
-  '((emacs "24.4")
+(define-package "alchemist" "20150723.814" "Elixir tooling integration into Emacs"
+  '((elixir-mode "2.2.5")
+    (emacs "24.4")
     (company "0.8.0"))
   :url "http://www.github.com/tonini/alchemist.el" :keywords
   '("languages" "mix" "elixir" "elixirc" "hex"))

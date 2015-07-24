@@ -27,7 +27,6 @@
 
 (require 'alchemist-utils)
 (require 'alchemist-project)
-(require 'alchemist-buffer)
 (require 'alchemist-compile)
 (require 'alchemist-execute)
 (require 'alchemist-help)
@@ -189,13 +188,14 @@ will be started instead."
                                      (concat search ".")))))))
 
 (defun alchemist-server-goto-filter (_process output)
-  (setq alchemist-server--output (cons output alchemist-server--output))
-  (if (string-match "END-OF-SOURCE$" output)
-      (let* ((output (apply #'concat (reverse alchemist-server--output)))
-             (output (replace-regexp-in-string "END-OF-SOURCE" "" output))
-             (output (replace-regexp-in-string "\n" "" output))
-             (file (replace-regexp-in-string "source-file-path:" "" output)))
-        (funcall alchemist-server-goto-callback file))))
+  (with-local-quit
+    (setq alchemist-server--output (cons output alchemist-server--output))
+    (if (string-match "END-OF-SOURCE$" output)
+        (let* ((output (apply #'concat (reverse alchemist-server--output)))
+               (output (replace-regexp-in-string "END-OF-SOURCE" "" output))
+               (output (replace-regexp-in-string "\n" "" output))
+               (file (replace-regexp-in-string "source-file-path:" "" output)))
+          (funcall alchemist-server-goto-callback file)))))
 
 (defun alchemist-server--mix-filter (_process output)
   (with-local-quit
@@ -206,9 +206,8 @@ will be started instead."
                (output (replace-regexp-in-string "\n$" "" output))
                (tasks (split-string output "\n"))
                (selected-task (alchemist-mix--completing-read "mix: " tasks))
-               (command (read-string "mix " (concat selected-task " "))))
-          (alchemist-mix-execute (list command)
-                                 alchemist-mix-buffer-name current-prefix-arg)))))
+               (command (read-shell-command "mix " (concat selected-task " "))))
+          (alchemist-mix-execute (list command) current-prefix-arg)))))
 
 (defun alchemist-server-goto (module function expr)
   (setq alchemist-server--output nil)
@@ -309,6 +308,15 @@ will be started instead."
   (setq alchemist-server--output nil)
   (set-process-filter (alchemist-server--process) #'alchemist-server-doc-filter)
   (process-send-string (alchemist-server--process) (format "DOC %s\n" search)))
+
+(defun alchemist-server-status ()
+  "Report the server status for the current Elixir project."
+  (interactive)
+  (message "Alchemist-Server-Status: [Project: %s Status: %s]"
+           (alchemist-server--process-name)
+           (if (alchemist-server--process-p)
+               "Connected"
+             "Not Connected")))
 
 (provide 'alchemist-server)
 
