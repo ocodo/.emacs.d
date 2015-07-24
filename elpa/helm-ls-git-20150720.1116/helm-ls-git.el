@@ -1,7 +1,7 @@
 ;;; helm-ls-git.el --- list git files. -*- lexical-binding: t -*-
-;; Package-Version: 20150708.329
+;; Package-Version: 20150720.1116
 
-;; Copyright (C) 2012 ~ 2014 Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Package-Requires: ((helm "1.5"))
 
@@ -24,6 +24,7 @@
 (require 'vc)
 (require 'vc-git)
 (require 'helm-files)
+(require 'helm-types)
 
 (defvaralias 'helm-c-source-ls-git 'helm-source-ls-git)
 (make-obsolete-variable 'helm-c-source-ls-git 'helm-source-ls-git "1.5.1")
@@ -197,16 +198,19 @@ The color of matched items can be customized in your .gitconfig."
             (buffer-substring-no-properties (goto-char (point-min))
                                             (line-end-position)))))
 
-(defun helm-ls-git-actions-list ()
-  (let ((actions (helm-actions-from-type-file)))
-    (helm-append-at-nth
-     (helm-interpret-value actions nil 'ignorefn)
-     (helm-make-actions "Git grep files (`C-u' only files with ext, `C-u C-u' all)"
-                        'helm-ls-git-grep
-                        "Gid" 'helm-ff-gid
-                        "Search in Git log (C-u show patch)"
-                        'helm-ls-git-search-log)
-     3)))
+(defun helm-ls-git-actions-list (&optional actions)
+  (helm-append-at-nth
+   actions
+   (helm-make-actions "Git status"
+                      (lambda (_candidate)
+                        (funcall helm-ls-git-status-command
+                                 (helm-default-directory)))
+                      "Git grep files (`C-u' only files with ext, `C-u C-u' all)"
+                      'helm-ls-git-grep
+                      "Gid" 'helm-ff-gid
+                      "Search in Git log (C-u show patch)"
+                      'helm-ls-git-search-log)
+   1))
 
 (defun helm-ls-git-match-part (candidate)
   (if (with-helm-buffer helm-ff-transformer-show-only-basename)
@@ -219,12 +223,11 @@ The color of matched items can be customized in your .gitconfig."
    (init :initform 'helm-ls-git-init)
    (keymap :initform helm-ls-git-map)
    (help-message :initform helm-generic-file-help-message)
-   (mode-line :initform helm-generic-file-mode-line-string)
    (match-part :initform 'helm-ls-git-match-part)
    (candidate-transformer :initform '(helm-ls-git-transformer
                                       helm-ls-git-sort-fn))
    (action-transformer :initform 'helm-transform-file-load-el)
-   (action :initform (helm-ls-git-actions-list))))
+   (action :initform (helm-ls-git-actions-list helm-type-file-actions))))
 
 ;;;###autoload
 (defclass helm-ls-git-status-source (helm-source-in-buffer)
@@ -395,6 +398,19 @@ The color of matched items can be customized in your .gitconfig."
       (pop-to-buffer "*vc-diff*")
       (diff-mode))))
 
+;; Overhide the actions of helm-type-buffer.
+(defmethod helm--setup-source :after ((source helm-source-buffers))
+  (let ((name (oref source :name)))
+    (when (string= name "Buffers in git project")
+      (set-slot-value
+       source 'action
+       (helm-append-at-nth
+        helm-type-buffer-actions
+        (helm-make-actions "Git status"
+                           (lambda (_candidate)
+                             (funcall helm-ls-git-status-command
+                                      (helm-default-directory))))
+        1)))))
 
 ;;;###autoload
 (defun helm-ls-git-ls (&optional arg)
@@ -411,7 +427,7 @@ The color of matched items can be customized in your .gitconfig."
           (helm-make-source "Git files" 'helm-ls-git-source
             :fuzzy-match helm-ls-git-fuzzy-match)
           helm-source-ls-git-buffers
-          (helm-make-source "Buffers in project" 'helm-source-buffers
+          (helm-make-source "Buffers in git project" 'helm-source-buffers
             :header-name #'helm-ls-git-header-name
             :buffer-list (lambda () (helm-browse-project-get-buffers
                                      (helm-ls-git-root-dir))))))
