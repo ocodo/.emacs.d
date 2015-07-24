@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "poly-R" "poly-R.el" (21857 50951 523401 0))
+;;;### (autoloads nil "poly-R" "poly-R.el" (21937 40992 67401 0))
 ;;; Generated autoloads from poly-R.el
  (autoload 'poly-noweb+r-mode "poly-R")
  (autoload 'poly-markdown+r-mode "poly-R")
@@ -17,28 +17,28 @@
 
 ;;;***
 
-;;;### (autoloads nil "poly-markdown" "poly-markdown.el" (21857 50951
-;;;;;;  515401 0))
+;;;### (autoloads nil "poly-markdown" "poly-markdown.el" (21937 40992
+;;;;;;  55401 0))
 ;;; Generated autoloads from poly-markdown.el
  (autoload 'poly-markdown-mode "poly-markdown")
 
 ;;;***
 
-;;;### (autoloads nil "poly-noweb" "poly-noweb.el" (21857 50951 495401
+;;;### (autoloads nil "poly-noweb" "poly-noweb.el" (21937 40992 19401
 ;;;;;;  0))
 ;;; Generated autoloads from poly-noweb.el
  (autoload 'poly-noweb-mode "poly-noweb")
 
 ;;;***
 
-;;;### (autoloads nil "poly-org" "poly-org.el" (21857 50951 519401
+;;;### (autoloads nil "poly-org" "poly-org.el" (21937 40992 59401
 ;;;;;;  0))
 ;;; Generated autoloads from poly-org.el
  (autoload 'poly-org-mode "poly-org")
 
 ;;;***
 
-;;;### (autoloads nil "polymode" "polymode.el" (21857 50951 507401
+;;;### (autoloads nil "polymode" "polymode.el" (21937 40992 39401
 ;;;;;;  0))
 ;;; Generated autoloads from polymode.el
 
@@ -92,10 +92,11 @@ BODY contains code to be executed after the complete
 
 ;;;***
 
-;;;### (autoloads nil nil ("poly-base.el" "polymode-classes.el" "polymode-common.el"
-;;;;;;  "polymode-configuration.el" "polymode-export.el" "polymode-methods.el"
-;;;;;;  "polymode-pkg.el" "polymode-tangle.el" "polymode-weave.el")
-;;;;;;  (21857 50951 546845 237000))
+;;;### (autoloads nil nil ("poly-base.el" "poly-erb.el" "poly-slim.el"
+;;;;;;  "polymode-classes.el" "polymode-common.el" "polymode-configuration.el"
+;;;;;;  "polymode-export.el" "polymode-methods.el" "polymode-pkg.el"
+;;;;;;  "polymode-tangle.el" "polymode-weave.el") (21937 40992 105014
+;;;;;;  298000))
 
 ;;;***
 
