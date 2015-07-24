@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; Maintainer: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/Bruce-Connor/names
-;; Version: 20150618.0
+;; Version: 20150723.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: extensions lisp
 ;; Prefix: names
@@ -48,8 +48,9 @@
   (setq edebug-inhibit-emacs-lisp-mode-bindings t)
   ;; And the `C-xX' binds.
   (defvar global-edebug-prefix)
-  (when (or (null (boundp 'global-edebug-prefix))
-            (eq ?\C-x (elt global-edebug-prefix 0)))
+  (when (ignore-errors
+          (or (null (boundp 'global-edebug-prefix))
+              (eq ?\C-x (elt global-edebug-prefix 0))))
     (setq global-edebug-prefix "")))
 (require 'edebug)
 (require 'bytecomp)
@@ -125,7 +126,7 @@ it will set PROP."
 
 ;;; ---------------------------------------------------------------
 ;;; Variables
-(defconst names-version "20150618.0" "Version of the names.el package.")
+(defconst names-version "20150723.0" "Version of the names.el package.")
 
 (defvar names--name nil
   "Name of the current namespace inside the `define-namespace' macro.")
@@ -443,8 +444,15 @@ See `define-namespace' for more information."
           (push key-and-args names--keywords))
 
         ;; First have to populate the bound and fbound lists. So we read
-        ;; the entire form (without evaluating it).
-        (mapc 'names-convert-form body)
+        ;; the entire form (without return it).
+        (if names--inside-make-autoload
+            ;; Dependencies haven't been loaded during autoload
+            ;; generation, so we better ignore errors here. Ideally we
+            ;; would only go through the forms marked for autoloading,
+            ;; but then we wouldn't know what symbols are var/function
+            ;; names.
+            (mapc (lambda (form) (ignore-errors (names-convert-form form))) body)
+          (mapc #'names-convert-form body))
         (setq names--current-run (1+ names--current-run))
 
         ;; Then we go back and actually namespace the entire form, which

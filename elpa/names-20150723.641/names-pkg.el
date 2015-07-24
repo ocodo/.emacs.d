@@ -1,4 +1,4 @@
-(define-package "names" "20150618.1011" "Namespaces for emacs-lisp. Avoid name clobbering without hiding symbols."
+(define-package "names" "20150723.641" "Namespaces for emacs-lisp. Avoid name clobbering without hiding symbols."
   '((emacs "24.1")
     (cl-lib "0.5"))
   :url "http://github.com/Bruce-Connor/names" :keywords
