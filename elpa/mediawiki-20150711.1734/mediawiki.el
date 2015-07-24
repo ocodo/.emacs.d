@@ -6,14 +6,14 @@
 ;;      Chong Yidong <cyd at stupidchicken com> for wikipedia.el,
 ;;      Uwe Brauer <oub at mat.ucm.es> for wikimedia.el
 ;; Author: Mark A. Hershberger <mah@everybody.org>
-;; Version: 2.2.5
-;; Package-Version: 20150403.1514
+;; Version: 2.2.6
+;; Package-Version: 20150711.1734
 ;; Created: Sep 17 2004
 ;; Keywords: mediawiki wikipedia network wiki
 ;; URL: http://github.com/hexmode/mediawiki-el
-;; Last Modified: <2015-04-03 18:08:35 mah>
+;; Last Modified: <2015-07-11 20:34:05 mah>
 
-(defconst mediawiki-version "2.2.5"
+(defconst mediawiki-version "2.2.6"
   "Current version of mediawiki.el.")
 
 ;; This file is NOT (yet) part of GNU Emacs.
@@ -1167,10 +1167,10 @@ return the whole revision structure."
   (let ((rev (cdr (nth revision (cddr (assq 'revisions (cddr page)))))))
     (cond
      ((eq bit 'content)
-      (cadr revision))
-     ((assoc bit (car revision))
-      (cdr (assoc bit (car revision))))
-     (t revision))))
+      (cadr rev))
+     ((assoc bit (car rev))
+      (cdr (assoc bit (car rev))))
+     (t rev))))
 
 (defun mediawiki-pagelist-find-page (pagelist title)
   "Given PAGELIST, extract the informaton for TITLE."
