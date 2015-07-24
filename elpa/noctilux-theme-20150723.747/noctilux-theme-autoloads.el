@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "noctilux-definitions" "noctilux-definitions.el"
-;;;;;;  (21906 2282 371401 0))
+;;;;;;  (21937 41034 99401 0))
 ;;; Generated autoloads from noctilux-definitions.el
 
 (when (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
@@ -12,7 +12,7 @@
 ;;;***
 
 ;;;### (autoloads nil nil ("noctilux-theme-pkg.el" "noctilux-theme.el")
-;;;;;;  (21906 2282 381838 854000))
+;;;;;;  (21937 41034 119266 734000))
 
 ;;;***
 
