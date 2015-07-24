@@ -1,9 +1,9 @@
-(define-package "flycheck" "20150709.1237" "On-the-fly syntax checking"
+(define-package "flycheck" "20150723.22" "On-the-fly syntax checking"
   '((dash "2.4.0")
     (pkg-info "0.4")
     (let-alist "1.0.1")
     (cl-lib "0.3")
-    (emacs "24.1"))
+    (emacs "24.3"))
   :url "https://www.flycheck.org" :keywords
   '("convenience" "languages" "tools"))
 ;; Local Variables:
