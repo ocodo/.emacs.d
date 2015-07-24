@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150710.304
+;; Package-Version: 20150723.437
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -143,6 +143,16 @@
              (match-string 1 s)
            s))))
 
+(defun counsel-variable-list ()
+  "Return the list of all currently bound variables."
+  (let (cands)
+    (mapatoms
+     (lambda (vv)
+       (when (or (get vv 'variable-documentation)
+                 (and (boundp vv) (not (keywordp vv))))
+         (push (symbol-name vv) cands))))
+    cands))
+
 ;;;###autoload
 (defun counsel-describe-variable ()
   "Forward to `describe-variable'."
@@ -150,13 +160,7 @@
   (let ((enable-recursive-minibuffers t))
     (ivy-read
      "Describe variable: "
-     (let (cands)
-       (mapatoms
-        (lambda (vv)
-          (when (or (get vv 'variable-documentation)
-                    (and (boundp vv) (not (keywordp vv))))
-            (push (symbol-name vv) cands))))
-       cands)
+     (counsel-variable-list)
      :keymap counsel-describe-map
      :preselect (counsel-symbol-at-point)
      :history 'counsel-describe-symbol-history
@@ -450,8 +454,8 @@ Skip some dotfiles unless `ivy-text' requires them."
 
 (ivy-set-actions
  'counsel-locate
- '(("xdg-open" counsel-locate-action-extern)
-   ("dired" counsel-locate-action-dired)))
+ '(("x" counsel-locate-action-extern "xdg-open")
+   ("d" counsel-locate-action-dired "dired")))
 
 ;;;###autoload
 (defun counsel-locate ()
@@ -718,8 +722,8 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
             :history 'counsel-rhythmbox-history
             :action
             '(1
-              ("Play song" helm-rhythmbox-play-song)
-              ("Enqueue song" counsel-rhythmbox-enqueue-song))))
+              ("p" helm-rhythmbox-play-song "Play song")
+              ("e" counsel-rhythmbox-enqueue-song "Enqueue song"))))
 
 (provide 'counsel)
 
