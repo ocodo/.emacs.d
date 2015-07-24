@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20150625.2350
+;; Package-Version: 20150723.144
 ;; Version: 0.9.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: window, location
@@ -201,9 +201,9 @@ LEAF is (PT . WND)."
               (concat
                (cl-case aw-leading-char-style
                  (char
-                  (apply #'string (last path)))
+                  (string (avy--key-to-char (car (last path)))))
                  (path
-                  (apply #'string (reverse path)))
+		  (mapconcat #'avy--key-to-char (reverse path) ""))
                  (t
                   (error "Bad `aw-leading-char-style': %S"
                          aw-leading-char-style)))
@@ -424,13 +424,12 @@ Windows are numbered top down, left to right."
 (defun aw-switch-to-window (window)
   "Switch to the window WINDOW."
   (let ((frame (window-frame window)))
+    (aw--push-window (selected-window))
     (when (and (frame-live-p frame)
                (not (eq frame (selected-frame))))
       (select-frame-set-input-focus frame))
     (if (window-live-p window)
-        (progn
-          (aw--push-window (selected-window))
-          (select-window window))
+        (select-window window)
       (error "Got a dead window %S" window))))
 
 (defun aw-flip-window ()
