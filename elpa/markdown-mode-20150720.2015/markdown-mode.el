@@ -29,7 +29,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.0
-;; Package-Version: 20150703.1903
+;; Package-Version: 20150720.2015
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
 
@@ -540,6 +540,15 @@
 ;;     (default: `end`).  The set of location options is the same as
 ;;     for `markdown-reference-location'.
 ;;
+;;   * `markdown-font-lock-support-mode' - the variable
+;;     `font-lock-support-mode' is made buffer-local and set to
+;;     `markdown-font-lock-support-mode', which is `jit-mode' by
+;;     default. This is currently the default support mode in Emacs as
+;;     well.  However, if fontification of multi-line constructs such
+;;     as preformatted code blocks, nested lists, and so on is
+;;     inaccurate, setting this to `nil' will allow more aggressive
+;;     fontification at the expense of some performance.
+;;
 ;;   * `comment-auto-fill-only-comments' - variable is made
 ;;     buffer-local and set to `nil' by default.  In programming
 ;;     language modes, when this variable is non-nil, only comments
@@ -930,6 +939,17 @@ and `iso-latin-1'.  Use `list-coding-systems' for more choices."
   :group 'markdown
   :type 'string)
 
+(defcustom markdown-font-lock-support-mode 'jit-lock-mode
+  "Support modes speed up Font Lock by being selective about when
+fontification occurs. Because Markdown has many multline
+constructions by nature, `markdown-mode' is aggressive about Font
+Lock by default. If fontification is inaccurate, try setting this
+to `nil' instead. See `font-lock-support-mode' for more details."
+  :type '(choice (const :tag "none" nil)
+		 (const :tag "fast lock" fast-lock-mode)
+		 (const :tag "lazy lock" lazy-lock-mode)
+		 (const :tag "jit lock" jit-lock-mode)))
+
 
 ;;; Font Lock =================================================================
 
@@ -1184,7 +1204,7 @@ Group 4 matches the entire second square bracket term.
 Group 5 matches the reference label.")
 
 (defconst markdown-regex-reference-definition
-  "^ \\{0,3\\}\\(\\[[^\n]+?\\]\\):\\s *\\(.*?\\)\\s *\\( \"[^\"]*\"$\\|$\\)"
+  "^ \\{0,3\\}\\(\\[[^]\n]+?\\]\\):\\s *\\(.*?\\)\\s *\\( \"[^\"]*\"$\\|$\\)"
   "Regular expression for a link definition [id]: ...")
 
 (defconst markdown-regex-footnote
@@ -1196,7 +1216,7 @@ Group 5 matches the reference label.")
   "Regexp identifying Markdown headers.")
 
 (defconst markdown-regex-header-1-atx
-  "^\\(#\\)[ \t]*\\(.+?\\)[ \t]*\\(#*\\)$"
+  "^\\(#\\)[ \t]*\\([^\\.].*?\\)[ \t]*\\(#*\\)$"
   "Regular expression for level 1 atx-style (hash mark) headers.")
 
 (defconst markdown-regex-header-2-atx
@@ -1249,12 +1269,18 @@ character, including newlines, but not two newlines in a row.
 The final group requires that the character following the code
 fragment is not a backquote.")
 
+(defconst markdown-regex-kbd
+  "\\(<kbd>\\)\\(\\(?:.\\|\n[^\n]\\)*?\\)\\(</kbd>\\)"
+  "Regular expression for matching <kbd> tags.
+Groups 1 and 3 match the opening and closing tags.
+Group 2 matches the key sequence.")
+
 (defconst markdown-regex-pre
   "^\\(    \\|\t\\).*$"
   "Regular expression for matching preformatted text sections.")
 
 (defconst markdown-regex-list
-  "^\\([ \t]*\\)\\([0-9]+\\.\\|[\\*\\+-]\\)\\([ \t]+\\)"
+  "^\\([ \t]*\\)\\([0-9#]+\\.\\|[\\*\\+-]\\)\\([ \t]+\\)"
   "Regular expression for matching list items.")
 
 (defconst markdown-regex-bold
@@ -1385,6 +1411,7 @@ on the value of `markdown-wiki-link-alias-first'.")
    (cons markdown-regex-hr 'markdown-header-face)
    (cons 'markdown-match-comments '((0 markdown-comment-face)))
    (cons 'markdown-match-code '((0 markdown-inline-code-face)))
+   (cons markdown-regex-kbd 'markdown-inline-code-face)
    (cons markdown-regex-angle-uri 'markdown-link-face)
    (cons markdown-regex-uri 'markdown-link-face)
    (cons markdown-regex-email 'markdown-link-face)
@@ -1894,7 +1921,9 @@ because `thing-at-point-looking-at' does not work reliably with
        ;; At headers and horizontal rules, reset levels
        ((markdown-new-baseline-p) (forward-line) (setq levels nil))
        ;; If the current line has sufficient indentation, mark out pre block
-       ((looking-at pre-regexp)
+       ;; The opening should be preceded by a blank line.
+       ((and (looking-at pre-regexp)
+             (markdown-prev-line-blank-p))
         (setq begin (match-beginning 0))
         (while (and (or (looking-at pre-regexp) (markdown-cur-line-blank-p))
                     (not (eobp)))
@@ -1936,21 +1965,24 @@ because `thing-at-point-looking-at' does not work reliably with
 (defun markdown-match-gfm-code-blocks (last)
   "Match GFM quoted code blocks from point to LAST."
   (let (open lang body close all)
-    (cond ((search-forward-regexp
-            "^\\(```\\)\\([^[:space:]]+[[:space:]]*\\)?$" last t)
-           (beginning-of-line)
-           (setq open (list (match-beginning 1) (match-end 1))
-                 lang (list (match-beginning 2) (match-end 2)))
-           (forward-line)
-           (setq body (list (point)))
-           (cond ((search-forward-regexp "^```$" last t)
-                  (setq body (reverse (cons (1- (match-beginning 0)) body))
-                        close (list (match-beginning 0) (match-end 0))
-                        all (list (car open) (match-end 0)))
-                  (set-match-data (append all open lang body close))
-                  t)
-                 (t nil)))
-          (t nil))))
+    (if (search-forward-regexp
+         "\\(?:\\`\\|[\n\r]+\\s *[\n\r]\\)\\(```\\)\\([^[:space:]]+[[:space:]]*\\|{[^}]*}\\)?$" last t)
+        (progn
+          (beginning-of-line)
+          (setq open (list (match-beginning 1) (match-end 1))
+                lang (list (match-beginning 2) (match-end 2)))
+          (if (markdown-prev-line-blank-p)
+              (progn
+                (forward-line)
+                (setq body (list (point)))
+                (if (search-forward-regexp "^```$" last t)
+                    (progn
+                      (setq body (reverse (cons (1- (match-beginning 0)) body))
+                            close (list (match-beginning 0) (match-end 0))
+                            all (list (car open) (match-end 0)))
+                      (set-match-data (append all open lang body close))
+                      t)))))
+      nil)))
 
 (defun markdown-match-generic-metadata (regexp last)
   "Match generic metadata specified by REGEXP from the point to LAST."
@@ -4675,7 +4707,7 @@ This is an exact copy of `line-number-at-pos' for use in emacs21."
   "Return prefix for filling paragraph or nil if not determined."
   (cond
    ;; List item inside blockquote
-   ((looking-at "^[ \t]*>[ \t]*\\([0-9]+\\.\\|[*+-]\\)[ \t]+")
+   ((looking-at "^[ \t]*>[ \t]*\\(\\(?:[0-9]+\\|#\\)\\.\\|[*+-]\\)[ \t]+")
     (replace-regexp-in-string
      "[0-9\\.*+-]" " " (match-string-no-properties 0)))
    ;; Blockquote
@@ -4761,10 +4793,16 @@ if ARG is omitted or nil."
   (set (make-local-variable 'markdown-mode-font-lock-keywords) nil)
   (set (make-local-variable 'font-lock-defaults) nil)
   (set (make-local-variable 'font-lock-multiline) t)
-  (markdown-reload-extensions)
+  (set (make-local-variable 'font-lock-support-mode)
+       markdown-font-lock-support-mode)
   ;; Extensions
   (make-local-variable 'markdown-enable-math)
-  (add-hook 'hack-local-variables-hook 'markdown-reload-extensions)
+  ;; Reload extensions
+  (if (and enable-local-variables buffer-file-name)
+      ;; Add a buffer-local hook to reload after file-local variables are read
+      (add-hook 'hack-local-variables-hook 'markdown-reload-extensions nil t)
+    ;; File local variables disabled or not visiting a file, reload now
+    (markdown-reload-extensions))
   ;; For imenu support
   (setq imenu-create-index-function 'markdown-imenu-create-index)
   ;; For menu support in XEmacs
@@ -4783,7 +4821,7 @@ if ARG is omitted or nil."
                     "\f" ; starts with a literal line-feed
                     "[ \t\f]*$" ; space-only line
                     "[ \t]*[*+-][ \t]+" ; unordered list item
-                    "[ \t]*[0-9]+\\.[ \t]+" ; ordered list item
+                    "[ \t]*\\(?:[0-9]+\\|#\\)\\.[ \t]+" ; ordered list item
                     "[ \t]*\\[\\S-*\\]:[ \t]+" ; link ref def
                     )
                   "\\|"))
