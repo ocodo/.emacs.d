@@ -29,7 +29,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.0
-;; Package-Version: 20150720.2015
+;; Package-Version: 20150724.2116
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
 
@@ -345,6 +345,20 @@
 ;;
 ;;     Existing list items can be moved up or down with `M-UP` or
 ;;     `M-DOWN` and indented or exdented with `M-RIGHT` or `M-LEFT`.
+;;
+;;   * Editing Subtrees: `M-S-UP`, `M-S-DOWN`, `M-S-LEFT`, and `M-S-RIGHT`
+;;
+;;     Entire subtrees of ATX headings can be promoted and demoted
+;;     with `M-S-LEFT` and `M-S-RIGHT`, which mirror the bindings
+;;     for promotion and demotion of list items. Similarly, subtrees
+;;     can be moved up and down with `M-S-UP` and `M-S-DOWN`.
+;;
+;;     Please note the following "boundary" behavior for promotion and
+;;     demotion.  Any level-six headings will not be demoted further
+;;     (i.e., they remain at level six, since Markdown and HTML define
+;;     only six levels) and any level-one headings will promoted away
+;;     entirely (i.e., heading markup will be removed, since a
+;;     level-zero heading is not defined).
 ;;
 ;;   * Shifting the Region: `C-c <` and `C-c >`
 ;;
@@ -729,7 +743,9 @@
 ;; priority.
 ;;
 ;; If you find any bugs in markdown-mode, please construct a test case
-;; or a patch and email me at <jrblevin@sdf.org>.
+;; or a patch and open a ticket on the [GitHub issue tracker][issues].
+;;
+;;  [issues]: https://github.com/jrblevin/markdown-mode/issues
 
 ;;; History:
 
@@ -3371,6 +3387,11 @@ Assumes match data is available for `markdown-regex-italic'."
     (define-key map (kbd "M-<left>") 'markdown-promote)
     (define-key map (kbd "M-<right>") 'markdown-demote)
     (define-key map (kbd "M-<return>") 'markdown-insert-list-item)
+    ;; Subtree editing
+    (define-key map (kbd "M-S-<up>") 'markdown-move-subtree-up)
+    (define-key map (kbd "M-S-<down>") 'markdown-move-subtree-down)
+    (define-key map (kbd "M-S-<left>") 'markdown-promote-subtree)
+    (define-key map (kbd "M-S-<right>") 'markdown-demote-subtree)
     ;; Movement
     (define-key map (kbd "M-{") 'markdown-backward-paragraph)
     (define-key map (kbd "M-}") 'markdown-forward-paragraph)
@@ -4084,6 +4105,41 @@ Calls `markdown-cycle' with argument t."
    ((match-end 1) 1)
    ((match-end 3) 2)
    ((- (match-end 5) (match-beginning 5)))))
+
+(defun markdown-promote-subtree (&optional arg)
+  "Promote the current subtree of ATX headings.
+Note that Markdown does not support heading levels higher than six
+and therefore level-six headings will not be promoted further."
+  (interactive "*P")
+  (save-excursion
+    (when (or (thing-at-point-looking-at markdown-regex-header-atx)
+              (re-search-backward markdown-regex-header-atx nil t))
+      (let ((level (length (match-string 1)))
+            (promote-or-demote (if arg 1 -1))
+            (remove 't))
+        (markdown-cycle-atx promote-or-demote remove)
+        (forward-line)
+        (catch 'end-of-subtree
+          (while (re-search-forward markdown-regex-header-atx nil t)
+            ;; Exit if this not a higher level heading; promote otherwise.
+            (if (<= (length (match-string-no-properties 1)) level)
+                (throw 'end-of-subtree nil)
+              (markdown-cycle-atx promote-or-demote remove))))))))
+
+(defun markdown-demote-subtree ()
+  "Demote the current subtree of ATX headings."
+  (interactive)
+  (markdown-promote-subtree t))
+
+(defun markdown-move-subtree-up ()
+  "Move the current subtree of ATX headings up."
+  (interactive)
+  (outline-move-subtree-up 1))
+
+(defun markdown-move-subtree-down ()
+  "Move the current subtree of ATX headings down."
+  (interactive)
+  (outline-move-subtree-down 1))
 
 
 ;;; Movement ==================================================================
