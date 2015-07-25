@@ -414,7 +414,7 @@
 	((:keywords "hypermedia")
 	 (:url . "http://mwolson.org/projects/EmacsMuse.html"))])
  (names .
-	[(20150618 0)
+	[(20150723 0)
 	 ((emacs
 	   (24 1))
 	  (cl-lib
