@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (21937 41157 947401
-;;;;;;  0))
+;;;### (autoloads nil "counsel" "counsel.el" (21939 8267 475401 0))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -78,6 +77,11 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 
 (autoload 'counsel-rhythmbox "counsel" "\
 Choose a song from the Rhythmbox library to play or enqueue.
+
+\(fn)" t nil)
+
+(autoload 'counsel-org-tag "counsel" "\
+Add or remove tags in org-mode.
 
 \(fn)" t nil)
 
