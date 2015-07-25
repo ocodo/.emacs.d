@@ -55,26 +55,34 @@ module EmacsElpa
         @g = Git.open EMACS_D
       end
 
-      def updatable_packages
+      def updated_packages
         elpa_rx = Regexp.new("^elpa/(.*?)/")
         package_name = Regexp.new("^(.*)-.*?$")
-        updatable = (@g.status.untracked.map(&:first) + @g.status.deleted.map(&:first)).collect {|f| elpa_rx.match(f)[1] if elpa_rx.match(f) }.compact.uniq.sort
-        updatable.map {|u| package_name.match(u)[1] if package_name.match(u) }.uniq
+        updatable = (
+          @g.status.untracked.map(&:first) +
+          @g.status.deleted.map(&:first)
+        ).collect { |f| elpa_rx.match(f)[1] if elpa_rx.match(f) }.
+                    compact.
+                    uniq.
+                    sort
+        
+        updatable.map {|u| package_name.match(u)[1] if package_name.match(u) }.
+          uniq
       end
-
-      def commit_all_updatable_packages
-        puts "Committing packages, current commit (for reset)"
-        puts `git log --pretty=oneline -1`
-        updatable_packages.each do |p|
-          puts "Committing updated package: #{p}"
-          update_package p
+      
+      def commit_all_packages        
+        updated_packages.each do |p|
+          commit_package p
         end
       end
 
-      def update_package(package, do_commit = true)
+      def commit_package(package, do_commit = true)
         @package = package
         @rx = Regexp.new("(^elpa/)(#{@package})-([^-]*?)/(.*)")
-        commit if do_commit
+        if do_commit
+          puts "Committing updated package: #{package}"          
+          commit
+        end
       end
 
       def commit_message
