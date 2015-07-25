@@ -1404,6 +1404,7 @@ or when `helm-pattern' is equal to \"~/\"."
                        (string= helm-pattern "~/")
                        ;; Only one remaining directory, expand it.
                        (and (= candnum 1)
+                            helm-ff--auto-update-state
                             (file-accessible-directory-p pat)
                             (null helm-ff--deleting-char-backward)))
                    (or
