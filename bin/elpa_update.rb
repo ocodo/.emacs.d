@@ -83,9 +83,9 @@ module EmacsElpa
 
         raise "No new version found for #{@package}" if ver == nil
 
-        return "[Updating #{@package}] version: #{ver} - removing versions: #{old.join(',')}" if old.length > 1
-        return "[Updating #{@package}] version: #{ver} - removing version: #{old.first}"      if old.length == 1
-        return "[Adding #{@package}] version: #{ver}"                                         if old.length == 0
+        return "[Updating #{@package}] version: #{ver} [removing old versions: #{old.join(',')}]" if old.length > 1
+        return "[Updating #{@package}] version: #{ver} [removing old version: #{old.first}]"      if old.length == 1
+        return "[Adding #{@package}] version: #{ver}"                                             if old.length == 0
       end
 
       def add_to_index
