@@ -1,4 +1,4 @@
-(define-package "ac-html-bootstrap" "20150505.720" "auto complete bootstrap3/fontawesome classes for `ac-html' and `company-web'"
+(define-package "ac-html-bootstrap" "20150724.250" "auto complete bootstrap3/fontawesome classes for `ac-html' and `company-web'"
   '((web-completion-data "0.1"))
   :url "https://github.com/osv/ac-html-bootstrap" :keywords
   '("html" "auto-complete" "bootstrap" "cssx"))

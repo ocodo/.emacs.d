@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 Olexandr Sydorchuk
 
 ;; Author: Olexandr Sydorchuk <olexandr.syd@gmail.com>
-;; Version: 0.9.2
+;; Version: 0.9.3
 ;; Keywords: html, auto-complete, bootstrap, cssx
 ;; Package-Requires: ((web-completion-data "0.1"))
 ;; URL: https://github.com/osv/ac-html-bootstrap
@@ -28,7 +28,7 @@
 ;;   If  you ok  that  "glyphicon"  classes allowed  only  for <i>  or
 ;; "label-default" for  <span>, <label> and  so on, this may  good for
 ;; you.   Alternative you  can use  package `ac-html-csswatcher'  that
-;; parse all css in prject.
+;; parse all css in project.
 
 ;;   However  this  package  provide documentation  with  samples  and
 ;; additional   data-  attributes   that  `ac-html-csswatcher'   can't
