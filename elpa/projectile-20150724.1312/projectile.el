@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20150722.2202
+;; Package-Version: 20150724.1312
 ;; Keywords: project, convenience
 ;; Version: 0.13.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -691,11 +691,9 @@ The current directory is assumed to be the project's root otherwise."
     (or (--some (let* ((cache-key (format "%s-%s" it dir))
                        (cache-value (gethash cache-key projectile-project-root-cache)))
                   (if cache-value
-                      (if (eq cache-value 'no-project-root)
-                          nil
-                        cache-value)
+                      cache-value
                     (let ((value (funcall it (file-truename dir))))
-                      (puthash cache-key (or value 'no-project-root) projectile-project-root-cache)
+                      (puthash cache-key value projectile-project-root-cache)
                       value)))
                 projectile-project-root-files-functions)
         (if projectile-require-project-root
@@ -798,14 +796,7 @@ Files are returned as relative paths to the project root."
   :group 'projectile
   :type 'string)
 
-(defun projectile--detect-find-command ()
-  "Determine the appropriate default find command based on its capabilities.
-Needed because of the differences between GNU find and BSD find."
-  (if (zerop (shell-command "find /dev/null -readable"))
-      "find . \\! -readable -prune -o \\( -type f -print0 \\)"
-      "find . \\! -perm +444 -prune -o \\( -type f -print0 \\)"))
-
-(defcustom projectile-generic-command (projectile--detect-find-command)
+(defcustom projectile-generic-command "find . \\! -perm +444 -prune -o \\( -type f -print0 \\)"
   "Command used by projectile to get the files in a generic project."
   :group 'projectile
   :type 'string)
