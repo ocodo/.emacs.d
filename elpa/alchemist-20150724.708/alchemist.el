@@ -5,7 +5,7 @@
 ;; Author: Samuel Tonini <tonini.samuel@gmail.com>
 
 ;; URL: http://www.github.com/tonini/alchemist.el
-;; Version: 1.3.0
+;; Version: 1.4.0-cvs
 ;; Package-Requires: ((elixir-mode "2.2.5") (emacs "24.4") (company "0.8.0"))
 ;; Keywords: languages, mix, elixir, elixirc, hex
 
@@ -47,6 +47,7 @@
 
 (require 'easymenu)
 (require 'company)
+(require 'elixir-mode)
 (require 'alchemist-report)
 (require 'alchemist-mix)
 (require 'alchemist-hooks)
@@ -60,7 +61,7 @@
   "Hook which enables `alchemist-mode'"
   (alchemist-mode 1))
 
-(defvar alchemist--version "1.3.0")
+(defvar alchemist--version "1.4.0-cvs")
 
 ;;;###autoload
 (defun alchemist-version (&optional show-version)
@@ -142,7 +143,7 @@ Key bindings:
   "Alchemist mode menu."
   '("Alchemist"
     ("Goto"
-     ["Jump to definiton at point" alchemist-goto-definition-at-point]
+     ["Jump to definition at point" alchemist-goto-definition-at-point]
      ["Jump back" alchemist-goto-jump-back])
     ("Evaluate"
      ["Evaluate current line" alchemist-eval-current-line]
