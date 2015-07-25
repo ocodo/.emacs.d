@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20150723.1543
+;; Package-Version: 20150724.1215
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 0.1
 
@@ -319,6 +319,7 @@
    `(helm-match ((,class (:foreground ,blue))))
    `(helm-M-x-key ((,class (:foreground ,blue :weight bold :background ,background-blue))))
    `(helm-visible-mark ((,class (:weight bold :foreground ,orange :background ,background-darker))))
+   `(helm-prefarg ((,class (:weight bold :foreground ,red :background ,background-red))))
 
    `(helm-buffer-directory ((,class (:foreground ,purple))))
    `(helm-buffer-file ((,class ())))
