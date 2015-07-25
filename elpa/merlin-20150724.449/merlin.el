@@ -331,7 +331,7 @@ An ocaml atom is any string containing [a-z_0-9A-Z`.]."
   (lexical-let ((overlay (make-overlay (car bounds) (cdr bounds))))
     (overlay-put overlay 'face face)
     (overlay-put overlay 'merlin-kind 'highlight)
-    (run-at-time 0.5 nil (lambda () (delete-overlay overlay)))))
+    (unwind-protect (sit-for 60) (delete-overlay overlay))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; PROCESS MANAGEMENT ;;
@@ -1848,4 +1848,14 @@ Short cuts:
       (remove-overlays nil nil 'merlin-kind 'error))))
 
 (provide 'merlin)
+
+;; Load these after (provide 'merlin) because they (require 'merlin)
+(eval-after-load 'company '(require 'merlin-company))
+(eval-after-load 'auto-complete '(require 'merlin-ac))
+(eval-after-load 'iedit '(require 'merlin-iedit))
+(require 'merlin-cap)
+
+;; Deprecated, remove at some point
+(require 'merlin-compat)
+
 ;;; merlin.el ends here
