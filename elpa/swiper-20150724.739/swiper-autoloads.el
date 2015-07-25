@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ivy" "ivy.el" (21937 40972 167401 0))
+;;;### (autoloads nil "ivy" "ivy.el" (21939 8236 63401 0))
 ;;; Generated autoloads from ivy.el
 
 (defvar ivy-mode nil "\
@@ -31,7 +31,7 @@ Minibuffer bindings:
 
 ;;;***
 
-;;;### (autoloads nil "swiper" "swiper.el" (21937 40972 155401 0))
+;;;### (autoloads nil "swiper" "swiper.el" (21939 8236 55401 0))
 ;;; Generated autoloads from swiper.el
 
 (autoload 'swiper-avy "swiper" "\
@@ -48,7 +48,7 @@ When non-nil, INITIAL-INPUT is the initial search pattern.
 ;;;***
 
 ;;;### (autoloads nil nil ("colir.el" "ivy-hydra.el" "swiper-pkg.el")
-;;;;;;  (21937 40972 178692 995000))
+;;;;;;  (21939 8236 78194 895000))
 
 ;;;***
 
