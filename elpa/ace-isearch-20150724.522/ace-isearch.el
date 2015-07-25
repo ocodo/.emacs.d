@@ -4,7 +4,7 @@
 
 ;; Author: Akira Tamamori
 ;; URL: https://github.com/tam17aki/ace-isearch
-;; Package-Version: 20150722.655
+;; Package-Version: 20150724.522
 ;; Version: 0.1.3
 ;; Created: Sep 25 2014
 ;; Package-Requires: ((ace-jump-mode "2.0") (avy "0.3") (helm-swoop "1.4") (emacs "24"))
@@ -46,8 +46,6 @@
 
 ;;; Code:
 
-(eval-when-compile (defvar helm-swoop-last-prefix-number 0))
-
 (require 'helm-swoop)
 (require 'ace-jump-mode)
 (require 'avy)
@@ -83,6 +81,7 @@ during isearch."
                  (const :tag "Use ace-jump-char-mode." ace-jump-char-mode)
                  (const :tag "Use avy-goto-word-1." avy-goto-word-1)
                  (const :tag "Use avy-goto-word-1." avy-goto-subword-1)
+                 (const :tag "Use avy-goto-word-or-subword-1." avy-goto-word-or-subword-1)
                  (const :tag "Use avy-goto-char." avy-goto-char))
   :group 'ace-isearch)
 
@@ -127,7 +126,8 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
 
 (defvar ace-isearch--function-list
   (list "ace-jump-word-mode" "ace-jump-char-mode"
-        "avy-goto-word-1" "avy-goto-subword-1" "avy-goto-char")
+        "avy-goto-word-1" "avy-goto-subword-1"
+        "avy-goto-word-or-subword-1" "avy-goto-char")
   "List of functions in jumping.")
 
 (defvar ace-isearch--jump-during-isearch-p nil)
@@ -135,12 +135,13 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
 
 (defun ace-isearch-switch-function ()
   (interactive)
-  (let ((function (completing-read
-                   (format "Function for ace-isearch (current is %s): "
-                           ace-isearch-function)
-                   ace-isearch--function-list nil t)))
-    (setq ace-isearch-function (intern-soft function))
-    (message "Function for ace-isearch is set to %s." function)))
+  (let ((func (completing-read
+               (format "Function for ace-isearch (current is %s): "
+                       ace-isearch-function)
+               ace-isearch--function-list nil t)))
+    (setq ace-isearch-function (intern-soft func))
+    (ace-isearch--make-ace-jump-or-avy)
+    (message "Function for ace-isearch is set to %s." func)))
 
 (defun ace-isearch--fboundp (func flag)
   (declare (indent 1))
@@ -162,6 +163,8 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
               (sit-for ace-isearch-jump-delay))
          (isearch-exit)
          (goto-char isearch-opoint)
+         (if (or (< (point) (window-start)) (> (point) (window-end)))
+             (message "Notice: Character '%s' could not be found in the \"selected visible window\"." isearch-string))
          (funcall ace-isearch-function (string-to-char isearch-string)))
 
         ((and (> (length isearch-string) 1)
@@ -186,6 +189,7 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
          (setq ace-isearch--ace-jump-or-avy 'ace-jump))
         ((or (eq ace-isearch-function 'avy-goto-word-1)
              (eq ace-isearch-function 'avy-goto-subword-1)
+             (eq ace-isearch-function 'avy-goto-word-or-subword-1)
              (eq ace-isearch-function 'avy-goto-char))
          (setq ace-isearch--ace-jump-or-avy 'avy))
         (t
