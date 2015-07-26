@@ -4,9 +4,8 @@
 
 ;; Author: Yuta Yamada <cokesboy"at"gmail.com>
 ;; URL: https://github.com/yuutayamada/flycheck-tip
-;; Version: 0.0.1
+;; Version: 0.5.0
 ;; Package-Requires: ((emacs "24.1") (popup "0.5.0"))
-;; Keywords: keyword
 
 ;;; License:
 ;; This program is free software: you can redistribute it and/or modify
@@ -28,10 +27,6 @@
 (require 'cl-lib)
 (require 'popup)
 (require 'notifications) ; this introduced from Emacs 24
-
-(autoload 'flycheck-tip-cycle "flycheck-tip")
-(autoload 'flymake-tip-cycle "flymake-tip")
-(autoload 'eclim-tip-cycle "eclim-tip")
 
 (defvar error-tip-notify-keep-messages nil
   "If the value is non-nil, keep error messages to notification area.
@@ -169,17 +164,25 @@ This function can catch error against flycheck, flymake and emcas-eclim."
       (and (fboundp 'eclim--problems-filtered)
            (eclim--problems-filtered))))
 
+;;;###autoload
 (defun error-tip-cycle-dwim (&optional reverse)
+  "Showing error function.
+This function switches proper error showing function by context.
+ (whether flycheck or flymake) The REVERSE option jumps by inverse if
+the value is non-nil."
   (interactive)
-  (cond
-   ((bound-and-true-p flycheck-mode)
-    (flycheck-tip-cycle reverse))
-   ((bound-and-true-p eclim-mode)
-    (eclim-tip-cycle reverse))
-   ((bound-and-true-p flymake-mode)
-    (flymake-tip-cycle reverse))))
+  (let ((func (cond
+               ((bound-and-true-p flycheck-mode)
+                'flycheck-tip-cycle)
+               ((bound-and-true-p eclim-mode)
+                'eclim-tip-cycle)
+               ((bound-and-true-p flymake-mode)
+                'flymake-tip-cycle))))
+    (funcall func reverse)))
 
+;;;###autoload
 (defun error-tip-cycle-dwim-reverse ()
+  "Same as ‘error-tip-cycle-dwim’, but it jumps to inverse direction."
   (interactive)
   (error-tip-cycle-dwim t))
 

@@ -5,7 +5,6 @@
 ;; Author: Yuta Yamada <cokesboy"at"gmail.com>
 ;; URL: https://github.com/yuutayamada/flycheck-tip
 ;; Package-Requires: ((popup "0.5.0"))
-;; Keywords: error
 
 ;;; License:
 ;; This program is free software: you can redistribute it and/or modify
