@@ -264,21 +264,9 @@ Bind the value of the provided KEYS and execute BODY."
   (with-current-buffer (nrepl-current-connection-buffer)
     (and nrepl-ops (nrepl-dict-get nrepl-ops op))))
 
-(defun nrepl-current-dir ()
-  "Return the directory of the current buffer."
-  (if buffer-file-name
-      (file-name-directory buffer-file-name)
-    default-directory))
-
 (defun nrepl-local-host-p (host)
   "Return t if HOST is local."
   (string-match-p tramp-local-host-regexp host))
-
-(defun nrepl-project-directory-for (dir-name)
-  "Return the project directory for the specified DIR-NAME."
-  (when dir-name
-    (or (locate-dominating-file dir-name "project.clj")
-        (locate-dominating-file dir-name "build.boot"))))
 
 (defun nrepl-find-reusable-repl-buffer (endpoint project-directory)
   "Check whether a reusable connection buffer already exists.
@@ -315,12 +303,11 @@ be reused."
             exact-buff)
         (zombi-buffer-or-new)))))
 
-(defun nrepl-extract-port (&optional dir)
+(defun nrepl-extract-port (dir)
   "Read port from .nrepl-port, nrepl-port or target/repl-port files in directory DIR."
-  (-when-let (dir (or dir (nrepl-project-directory-for (nrepl-current-dir))))
-    (or (nrepl--port-from-file (expand-file-name "repl-port" dir))
-        (nrepl--port-from-file (expand-file-name ".nrepl-port" dir))
-        (nrepl--port-from-file (expand-file-name "target/repl-port" dir)))))
+  (or (nrepl--port-from-file (expand-file-name "repl-port" dir))
+      (nrepl--port-from-file (expand-file-name ".nrepl-port" dir))
+      (nrepl--port-from-file (expand-file-name "target/repl-port" dir))))
 
 (defun nrepl--port-from-file (file)
   "Attempts to read port from a file named by FILE."
@@ -342,7 +329,7 @@ be reused."
        (eq (car object) 'dict)))
 
 (defun nrepl-dict-empty-p (dict)
-  "Return t if nREPL dict is empty."
+  "Return t if nREPL dict DICT is empty."
   (null (cdr dict)))
 
 (defun nrepl-dict-get (dict key)
@@ -368,14 +355,14 @@ Return new dict.  Dict is modified by side effects."
   (if (nrepl-dict-p dict)
       (cl-loop for l on (cdr dict) by #'cddr
                collect (car l))
-    (error "Not a nREPL dict.")))
+    (error "Not a nREPL dict")))
 
 (defun nrepl-dict-vals (dict)
   "Return all the values in the nREPL DICT."
   (if (nrepl-dict-p dict)
       (cl-loop for l on (cdr dict) by #'cddr
                collect (cadr l))
-    (error "Not a nREPL dict.")))
+    (error "Not a nREPL dict")))
 
 (defun nrepl-dict-map (fn dict)
   "Map FN on nREPL DICT.
@@ -383,7 +370,7 @@ FN must accept two arguments key and value."
   (if (nrepl-dict-p dict)
       (cl-loop for l on (cdr dict) by #'cddr
                collect (funcall fn (car l) (cadr l)))
-    (error "Not a nREPL dict.")))
+    (error "Not a nREPL dict")))
 
 (defun nrepl--cons (car list-or-dict)
   "Generic cons of CAR to LIST-OR-DICT."
@@ -780,9 +767,9 @@ confirmation."
 (defun nrepl-start-client-process (&optional host port server-proc)
   "Create new client process identified by HOST and PORT.
 In remote buffers, HOST and PORT are taken from the current tramp
-connection. SERVER-PROC must be a running nREPL server process within
-Emacs. This function creates connection buffer by a call to
-`nrepl-create-client-buffer-function'. Return newly created client
+connection.  SERVER-PROC must be a running nREPL server process within
+Emacs.  This function creates connection buffer by a call to
+`nrepl-create-client-buffer-function'.  Return newly created client
 process."
   (let* ((endpoint (nrepl-connect host port))
          (client-proc (plist-get endpoint :proc))
@@ -1137,7 +1124,7 @@ Used by `nrepl-start-server-process'.")
 Return a newly created process.
 Set `nrepl-server-filter' as the process filter, which starts REPL process
 with its own buffer once the server has started.
-If CALLBACK is non-nil, it should be function of 3 arguments. Once the
+If CALLBACK is non-nil, it should be function of 3 arguments.  Once the
 client process is started, the function is called with the server process,
 the port, and the client buffer."
   (let* ((default-directory (or directory default-directory))
