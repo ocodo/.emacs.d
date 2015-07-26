@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20150724.652
+;; Package-Version: 20150725.1154
 ;; Version: 0.4
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
@@ -210,6 +210,11 @@ prefixes in `which-key-paging-prefixes'"
 (defface which-key-separator-face
   '((t . (:inherit font-lock-comment-face)))
   "Face for the separator (default separator is an arrow)"
+  :group 'which-key)
+
+(defface which-key-note-face
+  '((t . (:inherit which-key-separator-face)))
+  "Face for notes or hints occasionally provided"
   :group 'which-key)
 
 (defface which-key-command-description-face
@@ -962,14 +967,24 @@ enough space based on your settings and frame size." prefix-keys)
              (prefix-w-face (which-key--propertize-key prefix-keys))
              (dash-w-face (propertize "-" 'face 'which-key-key-face))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
-                                      'face 'font-lock-comment-face))
+                                      'face 'which-key-separator-face))
              (status-top (when (< 1 n-pages)
                            (propertize (format "(%s of %s)" (1+ page-n) n-pages)
-                                       'face 'font-lock-comment-face)))
+                                       'face 'which-key-note-face)))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
              (status-left (s-pad-right first-col-width " " status-left))
+             (nxt-pg-hint (when (and (< 1 n-pages)
+                                     (eq 'which-key-show-next-page
+                                         (key-binding
+                                          (kbd (concat prefix-keys
+                                                       " "
+                                                       which-key-paging-key)))))
+                            (propertize (format "[%s pg %s]"
+                                                which-key-paging-key
+                                                (1+ (mod (1+ page-n) n-pages)))
+                                        'face 'which-key-note-face)))
              new-end lines first)
         (cond ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'left))
@@ -985,9 +1000,11 @@ enough space based on your settings and frame size." prefix-keys)
                        new-end (concat "\n" (s-repeat first-col-width " "))
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((eq which-key-show-prefix 'top)
-               (setq page (concat prefix-w-face dash-w-face "  " status-top "\n" page)))
+               (setq page (concat prefix-w-face dash-w-face "  "
+                                  status-top " " nxt-pg-hint "\n" page)))
               ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat prefix-w-face dash-w-face "  " status-top))))
+               (which-key--echo (concat prefix-w-face dash-w-face "  "
+                                        status-top " " nxt-pg-hint))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
             (which-key--echo page)
@@ -1004,7 +1021,9 @@ enough space based on your settings and frame size." prefix-keys)
                        (1+ which-key--current-page-n) 0)))
     (which-key--stop-timer)
     (setq unread-command-events
-          (listify-key-sequence which-key--current-prefix))
+          ;; forces event into current key sequence
+          (mapcar (lambda (ev) (cons t ev))
+                  (listify-key-sequence which-key--current-prefix)))
     (if which-key--last-try-2-loc
         (let ((which-key-side-window-location which-key--last-try-2-loc))
           (which-key--show-page next-page))
