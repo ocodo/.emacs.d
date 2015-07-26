@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "groovy-electric" "groovy-electric.el" (21818
-;;;;;;  58335 331401 0))
+;;;### (autoloads nil "groovy-electric" "groovy-electric.el" (21940
+;;;;;;  26155 747401 0))
 ;;; Generated autoloads from groovy-electric.el
 
 (autoload 'groovy-electric-mode "groovy-electric" "\
@@ -22,8 +22,8 @@ have Font Lock enabled. ${ } is expanded when in a GString
 
 ;;;***
 
-;;;### (autoloads nil "groovy-mode" "groovy-mode.el" (21818 58335
-;;;;;;  319401 0))
+;;;### (autoloads nil "groovy-mode" "groovy-mode.el" (21940 26155
+;;;;;;  739401 0))
 ;;; Generated autoloads from groovy-mode.el
  (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'" . groovy-mode))
 
@@ -45,7 +45,7 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "inf-groovy" "inf-groovy.el" (21818 58335 327401
+;;;### (autoloads nil "inf-groovy" "inf-groovy.el" (21940 26155 743401
 ;;;;;;  0))
 ;;; Generated autoloads from inf-groovy.el
 
@@ -101,12 +101,12 @@ of `groovy-program-name').  Runs the hooks `inferior-groovy-mode-hook'
 
 \(fn CMD)" t nil)
 
-(eval-after-load 'groovy-mode (add-hook 'groovy-mode-hook 'inf-groovy-keys))
+(eval-after-load 'groovy-mode (lambda nil (add-hook 'groovy-mode-hook 'inf-groovy-keys)))
 
 ;;;***
 
-;;;### (autoloads nil nil ("groovy-mode-pkg.el") (21818 58335 345544
-;;;;;;  796000))
+;;;### (autoloads nil nil ("groovy-mode-pkg.el") (21940 26155 757474
+;;;;;;  738000))
 
 ;;;***
 

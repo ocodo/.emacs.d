@@ -126,14 +126,14 @@ have Font Lock enabled. ${ } is expanded when in a GString"
 	   (save-excursion
 		 (char-equal ?\" (char-after (car (c-literal-limits)))))))
 
-(defun groovy-electric-is-last-command-char-expandable-punct-p()
+(defun groovy-electric-is-last-command-event-expandable-punct-p()
   (or (memq 'all groovy-electric-expand-delimiters-list)
-      (memq last-command-char groovy-electric-expand-delimiters-list)))
+      (memq last-command-event groovy-electric-expand-delimiters-list)))
 
 (defun groovy-electric-curlies(arg)
   (interactive "P")
   (self-insert-command (prefix-numeric-value arg))
-  (when (and (groovy-electric-is-last-command-char-expandable-punct-p)
+  (when (and (groovy-electric-is-last-command-event-expandable-punct-p)
 			 (groovy-electric-code-at-point-p))
 	(insert " ")
 	(save-excursion
@@ -144,16 +144,16 @@ have Font Lock enabled. ${ } is expanded when in a GString"
 (defun groovy-electric-matching-char(arg)
   (interactive "P")
   (self-insert-command (prefix-numeric-value arg))
-  (and (groovy-electric-is-last-command-char-expandable-punct-p)
+  (and (groovy-electric-is-last-command-event-expandable-punct-p)
        (groovy-electric-code-at-point-p)
        (save-excursion
-		 (insert (cdr (assoc last-command-char
+		 (insert (cdr (assoc last-command-event
 							 groovy-electric-matching-delimeter-alist))))))
 
 (defun groovy-electric-pound(arg)
   (interactive "P")
   (self-insert-command (prefix-numeric-value arg))
-  (when (and (groovy-electric-is-last-command-char-expandable-punct-p)
+  (when (and (groovy-electric-is-last-command-event-expandable-punct-p)
 			 (groovy-electric-gstring-at-point-p)
 			 (not (save-excursion ; make sure it is not escaped
 					(backward-char 1)
