@@ -5,7 +5,7 @@
 ;; Author: Steven Degutis
 ;; Maintainer: Christopher Reichert <creichert07@gmail.com>
 ;; Version: 1.0.0
-;; Package-Version: 20150724.1250
+;; Package-Version: 20150724.2337
 ;; Keywords: convenience
 ;; URL: https://github.com/creichert/ido-vertical-mode.el
 
@@ -135,19 +135,19 @@ so we can restore it when turning `ido-vertical-mode' off")
 
     (if (not ido-incomplete-regexp)
         (when ido-use-faces
-        ;; Make a copy of [ido-matches], otherwise the selected string
-        ;; could contain text properties which could lead to weird
-        ;; artifacts, e.g. buffer-file-name having text properties.
-        (when (eq comps ido-matches)
+          ;; Make a copy of [ido-matches], otherwise the selected string
+          ;; could contain text properties which could lead to weird
+          ;; artifacts, e.g. buffer-file-name having text properties.
+          (when (eq comps ido-matches)
             (setq comps (copy-sequence ido-matches)))
 
-        (dotimes (i ido-max-prospects)
+          (dotimes (i ido-max-prospects)
             (setf (nth i comps) (substring (if (listp (nth i comps))
-                                            (car (nth i comps))
-                                            (nth i comps))
-                                        0))
+                                               (car (nth i comps))
+                                             (nth i comps))
+                                           0))
             (when (string-match (if ido-enable-regexp name (regexp-quote name)) (nth i comps))
-            (ignore-errors
+              (ignore-errors
                 (add-face-text-property (match-beginning 0)
                                         (match-end 0)
                                         'ido-vertical-match-face
