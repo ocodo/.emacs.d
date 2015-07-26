@@ -1,8 +1,8 @@
 ;;; git-link.el --- Get the GitHub/Bitbucket/Gitorious URL for a buffer location
 
 ;; Author: Skye Shaw <skye.shaw@gmail.com>
-;; Version: 0.2.0
-;; Package-Version: 20150722.1704
+;; Version: 0.2.1
+;; Package-Version: 20150725.1322
 ;; Keywords: git
 ;; URL: http://github.com/sshaw/git-link
 
@@ -34,6 +34,10 @@
 
 ;;; Change Log:
 
+;; 2015-07-25 - v0.2.1
+;; * Fix for ButBucket's new URL format (Thanks Ev Dolzhenko)
+;; * Fix for GitLab's multiline format (Thanks Enrico Carlesso)
+;;
 ;; 2015-06-05 - v0.2.0
 ;; * Deactivate mark after killing the link (Thanks Kaushal Modi)
 ;; * Support for GitLab (Thanks Swaroop C H)
@@ -71,7 +75,7 @@
   '(("github.com"    git-link-github)
     ("bitbucket.org" git-link-bitbucket)
     ("gitorious.org" git-link-gitorious)
-    ("gitlab.com"    git-link-github))
+    ("gitlab.com"    git-link-gitlab))
   "Maps remote hostnames to a function capable of creating the appropriate file URL")
 
 (defvar git-link-commit-remote-alist
@@ -166,6 +170,16 @@
           (when (<= line-end line-start)
             (setq line-end nil)))
         (list line-start line-end)))))
+
+(defun git-link-gitlab (hostname dirname filename branch commit start end)
+  (format "https://%s/%s/blob/%s/%s#%s"
+	  hostname
+	  dirname
+	  (or branch commit)
+	  filename
+	  (if (and start end)
+	      (format "L%s-%s" start end)
+	    (format "L%s" start))))
 
 (defun git-link-github (hostname dirname filename branch commit start end)
   (format "https://%s/%s/blob/%s/%s#%s"
