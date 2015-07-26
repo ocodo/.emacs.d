@@ -63,6 +63,7 @@
 
 ;; Eval
 (global-set-key (kbd "C-x <ESC> e")        'eval-buffer)
+(global-set-key (kbd "M-<ESC> e")          'eval-buffer)
 
 ;; Auto fill mode toggle (tidy up text line length automatically.)
 (global-set-key (kbd "C-c q")               'auto-fill-mode)
