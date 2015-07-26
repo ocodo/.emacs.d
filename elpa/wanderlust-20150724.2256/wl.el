@@ -726,9 +726,9 @@ Entering Plugged mode calls the value of `wl-plugged-mode-hook'."
        (nth 1 spec)))
     (setq elmo-get-folder-function #'wl-folder-make-elmo-folder
 	  elmo-progress-callback-function #'wl-progress-callback-function)
-    (when wl-summary-no-from-message
+    (when (stringp wl-summary-no-from-message)
       (setq elmo-no-from wl-summary-no-from-message))
-    (when wl-summary-no-subject-message
+    (when (stringp wl-summary-no-subject-message)
       (setq elmo-no-subject wl-summary-no-subject-message))
     (elmo-global-flags-initialize (mapcar 'car wl-summary-flag-alist))
     (elmo-connect-signal
@@ -770,6 +770,12 @@ Entering Plugged mode calls the value of `wl-plugged-mode-hook'."
     (when (string-match "@[^.]+$" address)
       (elmo-warning
        "Domain portion of `wl-from' seems to be a local hostname.")))
+
+  ;; No-from and no-subject message
+  (unless (stringp wl-summary-no-from-message)
+    (elmo-warning "`wl-summary-no-from-message' must be a string."))
+  (unless (stringp wl-summary-no-subject-message)
+    (elmo-warning "`wl-summary-no-subject-message' must be a string."))
 
   ;; Message-ID
   (when wl-insert-message-id
