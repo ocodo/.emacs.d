@@ -1,4 +1,4 @@
-(define-package "alchemist" "20150725.951" "Elixir tooling integration into Emacs"
+(define-package "alchemist" "20150726.134" "Elixir tooling integration into Emacs"
   '((elixir-mode "2.2.5")
     (emacs "24.4")
     (company "0.8.0"))
