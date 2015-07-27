@@ -5,7 +5,7 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20150619.2338
+;; Package-Version: 20150726.531
 ;; Keywords: processes, clojure
 ;; Version: 1.2.0
 ;; Package-Requires: ((emacs "24.1") (clojure-mode "4.0"))
@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 ;;
-;; inf-lisp adapted for Clojure.
+;; inferior-lisp adapted for Clojure.
 ;;
 ;; If you're installing manually, you'll need to:
 ;;
@@ -35,7 +35,7 @@
 ;; * Add the following lines to your .emacs file:
 ;;
 ;;    (autoload 'inf-clojure "inf-clojure" "Run an inferior Clojure process" t)
-;;    (add-hook 'clojure-mode-hook 'inf-clojure-minor-mode)
+;;    (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
 
 ;;; Code:
 
@@ -44,7 +44,7 @@
 
 
 (defgroup inf-clojure nil
-  "Run an outside Clojure in an Emacs buffer."
+  "Run an external Clojure process (REPL) in an Emacs buffer."
   :group 'clojure)
 
 (defcustom inf-clojure-prompt-read-only t
@@ -144,7 +144,7 @@ The following commands are available:
   "Format-string for building a Clojure expression to load a file.
 This format string should use `%s' to substitute a file name
 and should result in a Clojure expression that will command the inferior Clojure
-to load that file.~"
+to load that file."
   :type 'string
   :group 'inf-clojure)
 
