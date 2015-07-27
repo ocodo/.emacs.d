@@ -38,6 +38,17 @@ This feature only activates when you leave from popup's message.")
 (defvar error-tip-notify-timeout (* 60 1000)
   "Value for time out.  The default value is 1 minute.")
 
+(defvar error-tip-notify-parametors
+  '(:title "flycheck-tip" :category "im.error")
+  "Parameters for ‘error-tip-notify’.
+You can add ‘notifications-notify’s parametors without :body, :replaces-id and
+:timeout.
+
+Example:
+
+  (setq error-tip-notify-parametors
+        (append error-tip-notify-parametors '(:app-icon \"/path/to/icon-file\")))")
+
 ;; INTERNAL VARIABLE
 (defvar error-tip-popup-object nil)
 (defvar error-tip-timer-object nil)
@@ -191,15 +202,15 @@ the value is non-nil."
   "Keep ERROR-MESSAGES on notification area.
 See also ‘error-tip-notify-keep-messages’"
   (setq error-tip-notify-last-notification
-        (notifications-notify
-         :title "flycheck-tip"
-         :body  (format "%s" (error-tip-format
-                              (if (cl-struct-p (car error-tip-current-errors))
-                                  (error-tip-get-errors)
-                                error-tip-current-errors)))
-         :category "im.error"
-         :replaces-id error-tip-notify-last-notification
-         :timeout error-tip-notify-timeout)))
+        (apply `((lambda ()
+                   (notifications-notify
+                    ,@(and error-tip-notify-parametors)
+                    :body ,(format "%s" (error-tip-format
+                                         (if (cl-struct-p (car error-tip-current-errors))
+                                             (error-tip-get-errors)
+                                           error-tip-current-errors)))
+                    :replaces-id error-tip-notify-last-notification
+                    :timeout error-tip-notify-timeout))))))
 
 (provide 'error-tip)
 
