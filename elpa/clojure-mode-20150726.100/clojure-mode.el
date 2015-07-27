@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20150723.1038
+;; Package-Version: 20150726.100
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 4.2.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
@@ -1084,11 +1084,21 @@ This will skip over sexps that don't represent objects, so that ^hints and
         (backward-sexp 1))
       (setq n (1- n)))))
 
+(defconst clojurescript-font-lock-keywords
+  (eval-when-compile
+    `(;; ClojureScript built-ins
+      (,(concat "(\\(?:\.*/\\)?"
+                (regexp-opt '("js-obj" "js-delete" "clj->js" "js->clj"))
+                "\\>")
+       0 font-lock-builtin-face)))
+  "Additional font-locking for `clojurescrip-mode'.")
+
 ;;;###autoload
 (define-derived-mode clojurescript-mode clojure-mode "ClojureScript"
   "Major mode for editing ClojureScript code.
 
-\\{clojurescript-mode-map}")
+\\{clojurescript-mode-map}"
+  (font-lock-add-keywords nil clojurescript-font-lock-keywords))
 
 ;;;###autoload
 (define-derived-mode clojurec-mode clojure-mode "ClojureC"
@@ -1098,7 +1108,8 @@ This will skip over sexps that don't represent objects, so that ^hints and
 
 (defconst clojurex-font-lock-keywords
   ;; cljx annotations (#+clj and #+cljs)
-  '(("#\\+cljs?\\>" 0 font-lock-preprocessor-face)))
+  '(("#\\+cljs?\\>" 0 font-lock-preprocessor-face))
+  "Additional font-locking for `clojurex-mode'.")
 
 ;;;###autoload
 (define-derived-mode clojurex-mode clojure-mode "ClojureX"
