@@ -1,4 +1,4 @@
-(define-package "robe" "20150723.1348" "Code navigation, documentation lookup and completion for Ruby"
+(define-package "robe" "20150726.1423" "Code navigation, documentation lookup and completion for Ruby"
   '((inf-ruby "2.3.0"))
   :url "https://github.com/dgutov/robe" :keywords
   '("ruby" "convenience" "rails"))

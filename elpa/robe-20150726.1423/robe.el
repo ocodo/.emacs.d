@@ -1,7 +1,7 @@
 ;;; robe.el --- Code navigation, documentation lookup and completion for Ruby
 
 ;; Copyright © 2012 Phil Hagelberg
-;; Copyright © 2012, 2013 Dmitry Gutov
+;; Copyright © 2012-2015 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
@@ -96,11 +96,11 @@ project."
       (setq robe-running nil)
       (when process
         (delete-process process))
-      (when (buffer-live-p ruby-buffer)
-        (kill-buffer ruby-buffer))
       (if (or force
               (yes-or-no-p "No Ruby console running. Launch automatically?"))
           (let ((conf (current-window-configuration)))
+            (when (buffer-live-p ruby-buffer)
+              (kill-buffer ruby-buffer))
             (inf-ruby-console-auto)
             (set-window-configuration conf))
         (error "Aborted"))))
