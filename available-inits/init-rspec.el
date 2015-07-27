@@ -14,7 +14,9 @@
 (add-hook 'after-init-hook 'inf-ruby-switch-setup)
 
 ;; Run in iTerm with `rspec-verify-single-iterm'
-(defvar iterm-command 'iterm2-nightly-command)
+(defcustom iterm-command
+  #'iterm2-nightly-command
+  "Function for running command in iTerm.")
 
 (defun rspec-verify-single-iterm ()
   "Run the specified example at point."
@@ -40,7 +42,7 @@
       (rvm-activate-corresponding-ruby))
 
   (let ((default-directory (or (rspec-project-root) default-directory)))
-    (apply 'iterm-command
+    (apply iterm-command
            (list (format "cd %s; %s"
                          default-directory
                          (mapconcat 'identity

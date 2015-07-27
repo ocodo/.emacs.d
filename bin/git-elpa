@@ -103,15 +103,11 @@ class GitElpa
   def commit_message
     old = old_versions
     ver = new_version
-
-    abort "No new version found for #{@package}" if ver == nil
-
-    return "[Removing #{@package}] [removing old version: #{old.join(',')}]" if ver.nil? && old.length == 1
-    return "[Removing #{@package}] [removing old versions: #{old.join(',')}]" if ver.nil? && old.length > 1
-
+    abort "No new version found for #{@package}"                                              if ver == nil
+    return "[Removing #{@package}] [removing old version: #{old.join(',')}]"                  if ver.nil? && old.length == 1
+    return "[Removing #{@package}] [removing old versions: #{old.join(',')}]"                 if ver.nil? && old.length > 1
     return "[Updating #{@package}] version: #{ver} [removing old versions: #{old.join(',')}]" if ver && old.length > 1
     return "[Updating #{@package}] version: #{ver} [removing old version: #{old.first}]"      if ver && old.length == 1
-
     return "[Adding #{@package}] version: #{ver}"                                             if ver && old.length == 0
   end
 
