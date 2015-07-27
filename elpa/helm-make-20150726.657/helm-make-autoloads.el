@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-make" "helm-make.el" (21841 22661 999401
-;;;;;;  0))
+;;;### (autoloads nil "helm-make" "helm-make.el" (21941 33127 0 0))
 ;;; Generated autoloads from helm-make.el
 
 (autoload 'helm-make "helm-make" "\
@@ -15,6 +14,12 @@ Call \"make -j ARG target\". Target is selected with completion.
 (autoload 'helm-make-projectile "helm-make" "\
 Call `helm-make' for `projectile-project-root'.
 ARG specifies the number of cores.
+
+By default `helm-make-projectile' will look in `projectile-project-root'
+followed by `projectile-project-root'/build, for a makefile.
+
+You can specify an additional directory to search for a makefile by
+setting the buffer local variable `helm-make-build-dir'.
 
 \(fn &optional ARG)" t nil)
 

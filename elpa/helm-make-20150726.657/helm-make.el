@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20150511.53
+;; Package-Version: 20150726.657
 ;; Version: 0.1.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -45,13 +45,19 @@
 
 (defcustom helm-make-build-dir ""
   "Specify a build directory for an out of source build.
-The path should be relative to the project root."
+The path should be relative to the project root.
+
+When non-nil `helm-make-projectile' will first look in that directory for a
+makefile."
   :type '(string)
   :group 'helm-make)
 (make-variable-buffer-local 'helm-make-build-dir)
 
 (defvar helm-make-command nil
   "Store the make command.")
+
+(defvar helm-make-target-history nil
+  "Holds the recently used targets.")
 
 (defun helm-make-action (target)
   "Make TARGET."
@@ -108,28 +114,50 @@ The path should be relative to the project root."
                      (helm :sources
                            `((name . "Targets")
                              (candidates . ,targets)
-                             (action . helm-make-action))))
+                             (action . helm-make-action))
+                           :history 'helm-make-target-history
+                           :preselect (car helm-make-target-history)))
                     (ivy
-                     (when (setq target (ivy-read "Target: " targets))
-                       (helm-make-action target)))
+                     (ivy-read "Target: "
+                               targets
+                               :history 'helm-make-target-history
+                               :preselect (car helm-make-target-history)
+                               :action 'helm-make-action
+                               :require-match t))
                     (ido
-                     (when (setq target (ido-completing-read "Target: " targets))
+                     (when (setq target (ido-completing-read
+                                         "Target: " targets
+                                         nil nil nil
+                                         'helm-make-target-history))
                        (helm-make-action target))))))))
       (error "No Makefile in %s" default-directory))))
 
 ;;;###autoload
 (defun helm-make-projectile (&optional arg)
   "Call `helm-make' for `projectile-project-root'.
-ARG specifies the number of cores."
+ARG specifies the number of cores.
+
+By default `helm-make-projectile' will look in `projectile-project-root'
+followed by `projectile-project-root'/build, for a makefile.
+
+You can specify an additional directory to search for a makefile by
+setting the buffer local variable `helm-make-build-dir'."
   (interactive "p")
   (require 'projectile)
   (setq helm-make-command (format "make -j%d %%s" arg))
-  (let ((makefile (expand-file-name
-                   "Makefile"
-		   (concat (projectile-project-root) helm-make-build-dir))))
-
-    (helm--make
-     (if (file-exists-p makefile) makefile "Makefile"))))
+  (let ((makefile
+         (cl-find-if 'file-exists-p
+                     (mapcar
+                      (lambda (x)
+                        (expand-file-name
+                         "Makefile"
+                         (concat (projectile-project-root) x)))
+                      (if (stringp helm-make-build-dir)
+                          `(,helm-make-build-dir "" "build")
+                        `(,@helm-make-build-dir "" "build"))))))
+    (if makefile
+        (helm--make makefile)
+      (error "No Makefile found in %s" default-directory))))
 
 (provide 'helm-make)
 
