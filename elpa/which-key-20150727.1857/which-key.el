@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20150726.608
+;; Package-Version: 20150727.1857
 ;; Version: 0.4
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
@@ -293,8 +293,12 @@ Used when `which-key-popup-type' is frame.")
   "Internal: Holds lighter backup")
 (defvar which-key--current-prefix nil
   "Internal: Holds current prefix")
-(defvar which-key--current-page-n nil)
-(defvar which-key--last-try-2-loc nil)
+(defvar which-key--current-page-n nil
+  "Internal: Current pages of showing buffer. Nil means no buffer
+showing.")
+(defvar which-key--last-try-2-loc nil
+  "Internal: Last location of side-window when two locations
+used.")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -517,12 +521,14 @@ total height."
 
 (defun which-key--hide-popup ()
   "This function is called to hide the which-key buffer."
-  (cl-case which-key-popup-type
-    ;; Not necessary to hide minibuffer
-    ;; (minibuffer (which-key--hide-buffer-minibuffer))
-    (side-window (which-key--hide-buffer-side-window))
-    (frame (which-key--hide-buffer-frame))
-    (custom (funcall which-key-custom-hide-popup-function))))
+  (unless (eq real-this-command 'which-key-show-next-page)
+    (setq which-key--current-page-n nil)
+    (cl-case which-key-popup-type
+      ;; Not necessary to hide minibuffer
+      ;; (minibuffer (which-key--hide-buffer-minibuffer))
+      (side-window (which-key--hide-buffer-side-window))
+      (frame (which-key--hide-buffer-frame))
+      (custom (funcall which-key-custom-hide-popup-function)))))
 
 (defun which-key--hide-buffer-side-window ()
   "Hide which-key buffer when side-window popup is used."
@@ -796,6 +802,7 @@ alists. Returns a list (key separator description)."
      unformatted)))
 
 (defun which-key--key-description< (a b)
+  "Sorting function used for `which-key-key-order'."
   (let* ((aem? (string-equal a ""))
          (bem? (string-equal b ""))
          (a1? (= 1 (length a)))
@@ -871,6 +878,9 @@ element in each list element of KEYS."
    (lambda (x y) (max x (string-width (nth index y)))) keys :initial-value 0))
 
 (defun which-key--pad-column (col-keys)
+  "Take a column of (key separator description) COL-KEYS,
+calculate the max width in the column and pad all cells out to
+that width."
   (let* ((col-key-width  (which-key--max-len col-keys 0))
          (col-sep-width  (which-key--max-len col-keys 1))
          (col-desc-width (which-key--max-len col-keys 2))
@@ -884,6 +894,8 @@ element in each list element of KEYS."
                   col-keys))))
 
 (defun which-key--partition-columns (keys avl-lines avl-width)
+  "Convert list of KEYS to columns based on dimensions AVL-LINES and AVL-WIDTH.
+Returns a plist that holds the page strings, as well as metadata."
   (let ((cols-w-widths (mapcar #'which-key--pad-column
                                (-partition-all avl-lines keys)))
         (page-width 0) (n-pages 0) (n-keys 0)
@@ -916,6 +928,10 @@ element in each list element of KEYS."
             :tot-keys (cl-reduce '+ keys/page :initial-value 0)))))
 
 (defun which-key--create-pages (keys sel-win-width)
+  "Create page strings using `which-key--partition-columns'.
+Will try to find the best number of rows and columns using the
+given dimensions and the length and wdiths of KEYS. SEL-WIN-WIDTH
+is the width of the live window."
   (let* ((max-dims (which-key--popup-max-dimensions sel-win-width))
          (max-lines (car max-dims))
          (max-width (cdr max-dims))
@@ -942,11 +958,13 @@ element in each list element of KEYS."
              (if found prev-result result)))))
 
 (defun which-key--lighter-status (n-shown n-tot)
+  "Possibly show N-SHOWN keys and N-TOT keys in the mode line."
   (when which-key-show-remaining-keys
     (setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
     (setcar (cdr (assq 'which-key-mode minor-mode-alist))
             (format " WK: %s/%s keys" n-shown n-tot))))
 (defun which-key--lighter-restore ()
+  "Restore the lighter for which-key."
   (when which-key-show-remaining-keys
     (setcar (cdr (assq 'which-key-mode minor-mode-alist)) which-key--lighter-backup)))
 
@@ -1034,21 +1052,31 @@ enough space based on your settings and frame size." prefix-keys)
           (which-key--show-popup (cons height width)))))))
 
 (defun which-key-show-next-page ()
-  "Show the next page of keys."
+  "Show the next page of keys.
+Will force an update if called before `which-key--update'."
   (interactive)
-  (let ((next-page (if which-key--current-page-n
-                       (1+ which-key--current-page-n) 0)))
-    (which-key--stop-timer)
-    (setq unread-command-events
-          ;; forces event into current key sequence
-          (mapcar (lambda (ev) (cons t ev))
-                  (listify-key-sequence which-key--current-prefix)))
-    (if which-key--last-try-2-loc
-        (let ((which-key-side-window-location which-key--last-try-2-loc))
+  (if which-key--current-page-n
+      ;; triggered after timer shows buffer
+      (let ((next-page (1+ which-key--current-page-n)))
+        (which-key--stop-timer)
+        (setq unread-command-events
+              ;; forces event into current key sequence
+              (mapcar (lambda (ev) (cons t ev))
+                      (listify-key-sequence which-key--current-prefix)))
+        (if which-key--last-try-2-loc
+            (let ((which-key-side-window-location which-key--last-try-2-loc))
+              (which-key--show-page next-page))
           (which-key--show-page next-page))
-      (which-key--show-page next-page))
-    (which-key--start-paging-timer)))
-
+        (which-key--start-paging-timer))
+    ;; triggered before buffer is showing
+    (let* ((keysbl (vconcat (butlast (append (this-single-command-keys) nil)))))
+      (which-key--stop-timer)
+      (setq unread-command-events
+            ;; forces event into current key sequence
+            (mapcar (lambda (ev) (cons t ev))
+                    (listify-key-sequence keysbl)))
+      (which-key--create-buffer-and-show keysbl)
+      (which-key--start-timer))))
 
 ;; (defun which-key-show-first-page ()
 ;;   "Show the first page of keys."
@@ -1063,6 +1091,7 @@ enough space based on your settings and frame size." prefix-keys)
 ;; Update
 
 (defun which-key--try-2-side-windows (keys page-n loc1 loc2 &rest _ignore)
+  "Try to show KEYS (PAGE-N) in LOC1 first. Only if no keys fit fallback to LOC2."
   (let (pages1)
     (let ((which-key-side-window-location loc1))
       (setq pages1 (which-key--create-pages keys (window-width))))
@@ -1078,9 +1107,26 @@ enough space based on your settings and frame size." prefix-keys)
         (which-key--show-page page-n)
         loc2))))
 
-(defun which-key--update ()
+(defun which-key--create-buffer-and-show (prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
 Finally, show the buffer."
+  (setq which-key--current-prefix prefix-keys
+        which-key--last-try-2-loc nil)
+  (let ((formatted-keys (which-key--get-formatted-key-bindings
+                         (current-buffer)))
+        (prefix-keys-desc (key-description prefix-keys)))
+    (cond ((= (length formatted-keys) 0)
+           (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
+          ((listp which-key-side-window-location)
+           (setq which-key--last-try-2-loc
+                 (apply #'which-key--try-2-side-windows
+                        formatted-keys 0 which-key-side-window-location)))
+          (t (setq which-key--pages-plist
+                   (which-key--create-pages formatted-keys (window-width)))
+             (which-key--show-page 0)))))
+
+(defun which-key--update ()
+  "Function run by timer to possibly trigger `which-key--create-buffer-and-show'."
   (let ((prefix-keys (this-single-command-keys)))
     ;; (when (> (length prefix-keys) 0)
     ;;  (message "key: %s" (key-description prefix-keys)))
@@ -1094,20 +1140,7 @@ Finally, show the buffer."
                 ;; just in case someone uses one of these
                 (keymapp (lookup-key function-key-map prefix-keys)))
                (not which-key-inhibit))
-      (setq which-key--current-prefix prefix-keys
-            which-key--last-try-2-loc nil)
-      (let ((formatted-keys (which-key--get-formatted-key-bindings
-                             (current-buffer)))
-            (prefix-keys-desc (key-description prefix-keys)))
-        (cond ((= (length formatted-keys) 0)
-               (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
-              ((listp which-key-side-window-location)
-               (setq which-key--last-try-2-loc
-                     (apply #'which-key--try-2-side-windows
-                            formatted-keys 0 which-key-side-window-location)))
-              (t (setq which-key--pages-plist
-                       (which-key--create-pages formatted-keys (window-width)))
-                 (which-key--show-page 0)))))))
+      (which-key--create-buffer-and-show prefix-keys))))
 
 ;; Timers
 
