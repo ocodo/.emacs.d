@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (21939 8267 475401 0))
+;;;### (autoloads nil "counsel" "counsel.el" (21943 17777 667401
+;;;;;;  0))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -43,6 +44,7 @@ Find file in the current Git repository.
 
 (autoload 'counsel-git-grep "counsel" "\
 Grep for a string in the current git repository.
+INITIAL-INPUT can be given as the initial minibuffer input.
 
 \(fn &optional INITIAL-INPUT)" t nil)
 

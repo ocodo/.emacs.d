@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150724.956
+;; Package-Version: 20150728.31
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -277,24 +277,21 @@
 (defvar counsel--git-grep-count nil
   "Store the line count in current repository.")
 
+(defun counsel-more-chars (n)
+  "Return two fake candidates prompting for at least N input."
+  (list ""
+        (format "%d chars more" (- n (length ivy-text)))))
+
 (defun counsel-git-grep-function (string &optional _pred &rest _unused)
   "Grep in the current git repository for STRING."
   (if (and (> counsel--git-grep-count 20000)
            (< (length string) 3))
-      (progn
-        (setq ivy--full-length counsel--git-grep-count)
-        (list ""
-              (format "%d chars more" (- 3 (length ivy-text)))))
+      (counsel-more-chars 3)
     (let* ((default-directory counsel--git-grep-dir)
            (cmd (format "git --no-pager grep --full-name -n --no-color -i -e %S"
-                        (ivy--regex string t)))
-           res)
+                        (ivy--regex string t))))
       (if (<= counsel--git-grep-count 20000)
-          (progn
-            (setq res (shell-command-to-string cmd))
-            (setq ivy--full-length nil)
-            (split-string res "\n" t))
-        (setq ivy--full-length -1)
+          (split-string (shell-command-to-string cmd) "\n" t)
         (counsel--gg-candidates (ivy--regex string))
         nil))))
 
@@ -328,18 +325,18 @@
 
 ;;;###autoload
 (defun counsel-git-grep (&optional initial-input)
-  "Grep for a string in the current git repository."
+  "Grep for a string in the current git repository.
+INITIAL-INPUT can be given as the initial minibuffer input."
   (interactive)
   (setq counsel--git-grep-dir
         (locate-dominating-file default-directory ".git"))
   (if (null counsel--git-grep-dir)
       (error "Not in a git repository")
     (setq counsel--git-grep-count (counsel--gg-count "" t))
-    (ivy-read "pattern: " 'counsel-git-grep-function
+    (ivy-read "git grep: " 'counsel-git-grep-function
               :initial-input initial-input
               :matcher #'counsel-git-grep-matcher
-              :dynamic-collection (when (> counsel--git-grep-count 20000)
-                                    'counsel-git-grep-function)
+              :dynamic-collection (> counsel--git-grep-count 20000)
               :keymap counsel-git-grep-map
               :action #'counsel-git-grep-action
               :unwind #'swiper--cleanup
@@ -416,13 +413,6 @@ Skip some dotfiles unless `ivy-text' requires them."
                  candidates))
         (setq ivy--old-re regexp))))
 
-(defun counsel-locate-function (str &rest _u)
-  (if (< (length str) 3)
-      (list ""
-            (format "%d chars more" (- 3 (length ivy-text))))
-    (counsel--async-command
-     (concat "locate -i --regex " (ivy--regex str)))))
-
 (defun counsel--async-command (cmd)
   (let* ((counsel--process " *counsel*")
          (proc (get-process counsel--process))
@@ -443,10 +433,12 @@ Skip some dotfiles unless `ivy-text' requires them."
         (with-current-buffer (process-buffer process)
           (setq ivy--all-candidates (split-string (buffer-string) "\n" t))
           (setq ivy--old-cands ivy--all-candidates))
-        (ivy--insert-minibuffer
-         (ivy--format ivy--all-candidates)))
+        (ivy--exhibit))
     (if (string= event "exited abnormally with code 1\n")
-        (message "Error"))))
+        (progn
+          (setq ivy--all-candidates '("Error"))
+          (setq ivy--old-cands ivy--all-candidates)
+          (ivy--exhibit)))))
 
 (defun counsel-locate-action-extern (x)
   "Use xdg-open shell command on X."
@@ -468,17 +460,23 @@ Skip some dotfiles unless `ivy-text' requires them."
  '(("x" counsel-locate-action-extern "xdg-open")
    ("d" counsel-locate-action-dired "dired")))
 
+(defun counsel-locate-function (str &rest _u)
+  (if (< (length str) 3)
+      (counsel-more-chars 3)
+    (counsel--async-command
+     (concat "locate -i --regex " (ivy--regex str)))
+    '("" "working...")))
+
 ;;;###autoload
 (defun counsel-locate ()
   "Call locate shell command."
   (interactive)
-  (ivy-read "Locate: " nil
-            :dynamic-collection #'counsel-locate-function
+  (ivy-read "Locate: " #'counsel-locate-function
+            :dynamic-collection t
             :history 'counsel-locate-history
-            :action
-            (lambda (val)
-              (when val
-                (find-file val)))))
+            :action (lambda (file)
+                      (when file
+                        (find-file file)))))
 
 (defun counsel--generic (completion-fn)
   "Complete thing at point with COMPLETION-FN."
@@ -558,8 +556,12 @@ The libraries are offered from `load-path'."
                          (get-text-property 0 'full-name x)))
               :keymap counsel-describe-map)))
 
+(defvar counsel-gg-state nil
+  "The current state of candidates / count sync.")
+
 (defun counsel--gg-candidates (regex)
   "Return git grep candidates for REGEX."
+  (setq counsel-gg-state -2)
   (counsel--gg-count regex)
   (let* ((default-directory counsel--git-grep-dir)
          (counsel-gg-process " *counsel-gg*")
@@ -584,11 +586,13 @@ The libraries are offered from `load-path'."
         (with-current-buffer (process-buffer process)
           (setq ivy--all-candidates (split-string (buffer-string) "\n" t))
           (setq ivy--old-cands ivy--all-candidates))
-        (unless (eq ivy--full-length -1)
-          (ivy--insert-minibuffer
-           (ivy--format ivy--all-candidates))))
+        (when (= 0 (cl-incf counsel-gg-state))
+          (ivy--exhibit)))
     (if (string= event "exited abnormally with code 1\n")
-        (message "Error"))))
+        (progn
+          (setq ivy--all-candidates '("Error"))
+          (setq ivy--old-cands ivy--all-candidates)
+          (ivy--exhibit)))))
 
 (defun counsel--gg-count (regex &optional no-async)
   "Quickly and asynchronously count the amount of git grep REGEX matches.
@@ -615,8 +619,8 @@ When NO-ASYNC is non-nil, do it synchronously."
              (when (string= event "finished\n")
                (with-current-buffer (process-buffer process)
                  (setq ivy--full-length (string-to-number (buffer-string))))
-               (ivy--insert-minibuffer
-                (ivy--format ivy--all-candidates)))))))))
+               (when (= 0 (cl-incf counsel-gg-state))
+                 (ivy--exhibit)))))))))
 
 (defun counsel--M-x-transformer (cmd)
   "Add a binding to CMD if it's bound in the current window.
@@ -744,7 +748,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (defvar org-indent-indentation-per-level)
 (defvar org-tags-column)
 (declare-function org-get-tags-string "org")
-(declare-function org-bound-and-true-p "org")
+(declare-function org-bound-and-true-p "org-macs")
 (declare-function org-move-to-column "org")
 
 (defun counsel-org-change-tags (tags)
@@ -809,19 +813,82 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (defun counsel-org-tag ()
   "Add or remove tags in org-mode."
   (interactive)
-  (setq counsel-org-tags (split-string (org-get-tags-string) ":" t))
-  (let ((org-setting-tags t)
-        (org-last-tags-completion-table
-         (append org-tag-persistent-alist
-                 (or org-tag-alist (org-get-buffer-tags))
-                 (and
-                  org-complete-tags-always-offer-all-agenda-tags
-                  (org-global-tags-completion-table
-                   (org-agenda-files))))))
-    (ivy-read (counsel-org-tag-prompt)
-              'org-tags-completion-function
-              :history 'org-tags-history
-              :action 'counsel-org-tag-action)))
+  (save-excursion
+    (unless (org-at-heading-p)
+      (org-back-to-heading t))
+    (setq counsel-org-tags (split-string (org-get-tags-string) ":" t))
+    (let ((org-setting-tags t)
+          (org-last-tags-completion-table
+           (append org-tag-persistent-alist
+                   (or org-tag-alist (org-get-buffer-tags))
+                   (and
+                    org-complete-tags-always-offer-all-agenda-tags
+                    (org-global-tags-completion-table
+                     (org-agenda-files))))))
+      (ivy-read (counsel-org-tag-prompt)
+                (lambda (str &rest _unused)
+                  (delete-dups
+                   (all-completions str 'org-tags-completion-function)))
+                :history 'org-tags-history
+                :action 'counsel-org-tag-action))))
+
+(defun counsel-ag-function (string &optional _pred &rest _unused)
+  "Grep in the current directory for STRING."
+  (if (< (length string) 3)
+      (counsel-more-chars 3)
+    (let ((regex (replace-regexp-in-string
+                  "\\\\)" ")"
+                  (replace-regexp-in-string
+                   "\\\\(" "("
+                   (ivy--regex string)))))
+      (counsel--async-command
+       (format "ag --noheading --nocolor %S" regex))
+      nil)))
+
+(defun counsel-ag (&optional initial-input)
+  "Grep for a string in the current directory using ag.
+INITIAL-INPUT can be given as the initial minibuffer input."
+  (interactive)
+  (setq counsel--git-grep-dir default-directory)
+  (ivy-read "ag: " 'counsel-ag-function
+            :initial-input initial-input
+            :dynamic-collection t
+            :history 'counsel-git-grep-history
+            :action #'counsel-git-grep-action
+            :unwind #'swiper--cleanup))
+
+(defun counsel-recoll-function (string &optional _pred &rest _unused)
+  "Grep in the current directory for STRING."
+  (if (< (length string) 3)
+      (counsel-more-chars 3)
+    (counsel--async-command
+     (format "recoll -t -b '%s'" string))
+    nil))
+
+;; This command uses the recollq command line tool that comes together
+;; with the recoll (the document indexing database) source:
+;;     http://www.lesbonscomptes.com/recoll/download.html
+;; You need to build it yourself (together with recoll):
+;;     cd ./query && make && sudo cp recollq /usr/local/bin
+;; You can try the GUI version of recoll with:
+;;     sudo apt-get install recoll
+;; Unfortunately, that does not install recollq.
+(defun counsel-recoll (&optional initial-input)
+  "Search for a string in the recoll database.
+You'll be given a list of files that match.
+Selecting a file will launch `swiper' for that file.
+INITIAL-INPUT can be given as the initial minibuffer input."
+  (interactive)
+  (ivy-read "recoll: " 'counsel-recoll-function
+            :initial-input initial-input
+            :dynamic-collection t
+            :history 'counsel-git-grep-history
+            :action (lambda (x)
+                      (when (string-match "file://\\(.*\\)\\'" x)
+                        (let ((file-name (match-string 1 x)))
+                          (find-file file-name)
+                          (unless (string-match "pdf$" x)
+                            (swiper ivy-text)))))))
 
 (provide 'counsel)
 
