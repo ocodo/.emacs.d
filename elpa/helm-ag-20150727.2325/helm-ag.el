@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20150722.239
+;; Package-Version: 20150727.2325
 ;; Version: 0.40
 ;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
 
@@ -124,9 +124,17 @@ They are specified to `--ignore' options."
 (defvar helm-ag--ignore-case nil)
 (defvar helm-do-ag--extensions nil)
 
-(defsubst helm-ag--ignore-case-p (cmds)
-  (cl-loop for opt in '("-i" "--ignore-case")
-           thereis (member opt cmds)))
+(defun helm-ag--ignore-case-p (cmds input)
+  (cl-loop for cmd in cmds
+           when (member cmd '("-i" "--ignore-case"))
+           return t
+
+           when (member cmd '("-s" "--case-sensitive"))
+           return nil
+
+           finally
+           return (let ((case-fold-search nil))
+                    (not (string-match-p "[A-Z]" input)))))
 
 (defun helm-ag--save-current-context ()
   (let ((curpoint (with-helm-current-buffer
@@ -227,7 +235,7 @@ They are specified to `--ignore' options."
              (cmds (helm-ag--construct-command (helm-attr 'search-this-file)))
              (coding-system-for-read buf-coding)
              (coding-system-for-write buf-coding))
-        (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmds))
+        (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmds helm-ag--last-query))
         (let ((ret (apply 'process-file (car cmds) nil t nil (cdr cmds))))
           (if (zerop (length (buffer-string)))
               (error "No output: '%s'" helm-ag--last-query)
@@ -736,7 +744,7 @@ Continue searching the parent directory? "))
   (let* ((default-directory (or helm-ag--default-directory default-directory))
          (cmd-args (helm-ag--construct-do-ag-command helm-pattern))
          (proc (apply 'start-file-process "helm-do-ag" nil cmd-args)))
-    (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmd-args))
+    (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmd-args helm-pattern))
     (prog1 proc
       (set-process-sentinel
        proc
@@ -846,7 +854,8 @@ Continue searching the parent directory? "))
                                             "Search in file(s): "
                                             :default default-directory
                                             :marked-candidates t :must-match t)))))
-         (helm-do-ag--extensions (helm-ag--do-ag-searched-extensions))
+         (helm-do-ag--extensions (when (and helm-ag--default-target (not basedir))
+                                   (helm-ag--do-ag-searched-extensions)))
          (one-directory-p (helm-do-ag--is-target-one-directory-p
                            helm-ag--default-target)))
     (helm-ag--set-do-ag-option)
