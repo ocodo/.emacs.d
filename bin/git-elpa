@@ -76,7 +76,6 @@ class GitElpa
                 compact.
                 uniq.
                 sort
-
     updated_names = updatable.map {|u| package_name.match(u)[1] if package_name.match(u) }.
       uniq
     if updated_names.length > 0
@@ -122,15 +121,16 @@ class GitElpa
       # Git add new folder contents
       puts "git add elpa/#{@package}-#{@ver}"
       %x(git add elpa/#{@package}-#{@ver})
+      puts `git status | grep #{@package}`
       return
     end
-
+    puts "Updating #{@package} to #{@ver} / removing #{@old.join(',')}"
     @g.add new_version_files unless @ver.nil?
     @g.remove old_version_files if @old.length > 0
   end
 
-  def commit(message = commit_message, add = true)
-    add_to_index if add
+  def commit(message = commit_message)
+    add_to_index
     @g.commit message
   end
 
