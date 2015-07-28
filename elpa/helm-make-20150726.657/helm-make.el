@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20150726.657
+;; Package-Version: 20150727.2355
 ;; Version: 0.1.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -109,6 +109,8 @@ makefile."
                       (unless (string-match "^\\." str)
                         (push str targets))))
                   (setq targets (nreverse targets))
+                  (setq helm-make-target-history
+                        (delete-dups helm-make-target-history))
                   (cl-case helm-make-completion-method
                     (helm
                      (helm :sources
@@ -116,7 +118,8 @@ makefile."
                              (candidates . ,targets)
                              (action . helm-make-action))
                            :history 'helm-make-target-history
-                           :preselect (car helm-make-target-history)))
+                           :preselect (when helm-make-target-history
+                                        (format "^%s$" (car helm-make-target-history)))))
                     (ivy
                      (ivy-read "Target: "
                                targets
