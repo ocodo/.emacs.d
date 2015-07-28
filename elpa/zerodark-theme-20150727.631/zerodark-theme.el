@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20150724.1215
+;; Package-Version: 20150727.631
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 0.1
 
@@ -55,6 +55,7 @@
       (purple "#c678dd")
       (blue "#61afef")
       (green "#98be65")
+      (green-light "#9eac8c")
       (peach "PeachPuff3")
       (diff-added-background "#284437")
       (diff-added-refined-background "#198754")
@@ -85,7 +86,7 @@
    `(font-lock-function-name-face ((,class (:foreground ,blue))))
    `(font-lock-keyword-face ((,class (:foreground ,purple :weight bold))))
    `(font-lock-string-face ((,class (:foreground ,green))))
-   `(font-lock-doc-face ((,class (:foreground ,comment))))
+   `(font-lock-doc-face ((,class (:foreground ,green-light))))
    `(font-lock-type-face ((,class (:foreground ,blue))))
    `(font-lock-variable-name-face ((,class (:foreground ,blue))))
    `(font-lock-warning-face ((,class (:foreground ,red :weight bold :background ,background-red))))
