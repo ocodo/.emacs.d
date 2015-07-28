@@ -719,7 +719,7 @@ See documentation of `completing-read' and `all-completions' for details."
     (prompt
      &key
        (name "Read File Name")
-       (initial-input (expand-file-name default-directory))
+       (initial-input default-directory)
        (buffer "*Helm file completions*")
        test
        (case-fold helm-file-name-case-fold-search)
@@ -850,15 +850,14 @@ Keys description:
          ;; Helm result.
          (result (helm
                   :sources src-list
-                  :input initial-input
+                  :input (expand-file-name initial-input)
                   :prompt prompt
                   :keymap cmap
                   :resume 'noresume
                   :case-fold-search case-fold
                   :default default
                   :buffer buffer
-                  :preselect (and (stringp preselect)
-                                  (regexp-quote preselect)))))
+                  :preselect preselect)))
     (or
      (cond ((and result (stringp result)
                  (string= result "") ""))
