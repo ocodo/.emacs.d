@@ -638,10 +638,10 @@ process buffer and run the hook `nrepl-disconnected-hook'."
 
 (defun nrepl-connect (host port)
   "Connect to machine identified by HOST and PORT.
-For local hosts use a direct connection. For remote hosts, if
+For local hosts use a direct connection.  For remote hosts, if
 `nrepl-force-ssh-for-remote-hosts' is nil, attempt a direct connection
-first. If `nrepl-force-ssh-for-remote-hosts' is non-nil or the direct
-connection failed, try to start a SSH tunneled connection. Return a plist
+first.  If `nrepl-force-ssh-for-remote-hosts' is non-nil or the direct
+connection failed, try to start a SSH tunneled connection.  Return a plist
 of the form (:proc PROC :host \"HOST\" :port PORT) that might contain
 additional key-values depending on the connection type."
   (let ((localp (if host
@@ -661,7 +661,7 @@ If NO-ERROR is non-nil, show messages instead of throwing an error."
         (error "Host (%s) and port (%s) must be provided" host port))
     (message "nREPL: Establishing direct connection to %s:%s ..." host port)
     (condition-case nil
-        (prog1 (list :proc (open-network-stream "nrepl" nil host port)
+        (prog1 (list :proc (open-network-stream "nrepl-connection" nil host port)
                      :host host :port port)
           (message "nREPL: Direct connection established"))
       (error (let ((mes "nREPL: Direct connection failed"))
@@ -683,7 +683,7 @@ If NO-ERROR is non-nil, show messages instead of throwing an error."
                 (process-get tunnel :waiting-for-port))
       (accept-process-output nil 0.005))
     (if (not (process-live-p tunnel))
-        (error "nREPL: SSH port forwarding failed. Check the '%s' buffer." tunnel-buf)
+        (error "nREPL: SSH port forwarding failed.  Check the '%s' buffer" tunnel-buf)
       (message "nREPL: SSH port forwarding established to localhost:%s" port)
       (let ((endpoint (nrepl--direct-connect "localhost" port)))
         (-> endpoint
@@ -1057,7 +1057,7 @@ session. POINT, if non-nil, is the position of INPUT in its buffer."
 
 (defun nrepl--pprint-eval-request (input &optional ns session right-margin)
   "Prepare :pprint-eval request message for INPUT.
-NS and SESSION are used for the context of the evaluation. RIGHT-MARGIN
+NS and SESSION are used for the context of the evaluation.  RIGHT-MARGIN
 specifies the maximum column-width of the pretty-printed result, and is
 included in the request if non-nil."
   (append (list "pprint" "true")
