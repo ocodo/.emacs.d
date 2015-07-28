@@ -29,7 +29,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.0
-;; Package-Version: 20150724.2116
+;; Package-Version: 20150727.855
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
 
@@ -4822,6 +4822,14 @@ if ARG is omitted or nil."
     (message "markdown-mode math support disabled"))
   (markdown-reload-extensions))
 
+(defun markdown-handle-local-variables ()
+  "Runs as a `hack-local-variables-hook' to update font lock rules.
+Checks to see if there is actually a markdown-mode file local variable
+before regenerating font-lock rules for extensions."
+  (when (and (boundp 'file-local-variables-alist)
+             (assoc 'markdown-enable-math file-local-variables-alist))
+    (markdown-reload-extensions)))
+
 
 ;;; Mode Definition  ==========================================================
 
@@ -4854,11 +4862,9 @@ if ARG is omitted or nil."
   ;; Extensions
   (make-local-variable 'markdown-enable-math)
   ;; Reload extensions
-  (if (and enable-local-variables buffer-file-name)
-      ;; Add a buffer-local hook to reload after file-local variables are read
-      (add-hook 'hack-local-variables-hook 'markdown-reload-extensions nil t)
-    ;; File local variables disabled or not visiting a file, reload now
-    (markdown-reload-extensions))
+  (markdown-reload-extensions)
+  ;; Add a buffer-local hook to reload after file-local variables are read
+  (add-hook 'hack-local-variables-hook 'markdown-handle-local-variables nil t)
   ;; For imenu support
   (setq imenu-create-index-function 'markdown-imenu-create-index)
   ;; For menu support in XEmacs
