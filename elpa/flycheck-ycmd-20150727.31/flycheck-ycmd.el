@@ -3,7 +3,7 @@
 ;;
 ;; Author: Austin Bingham <austin.bingham@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20150511.325
+;; Package-Version: 20150727.31
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((emacs "24") (dash "1.2.0") (flycheck "0.22") (ycmd "0.9"))
 ;;
@@ -58,8 +58,8 @@
   '(("ERROR" . error)
     ("WARNING" . warning)))
 
-(defun flycheck-ycmd--result-to-error (r)
-  "Convert ycmd parse result structure R into a flycheck error object."
+(defun flycheck-ycmd--result-to-error (checker r)
+  "Convert ycmd parse result for CHECKER structure R into a flycheck error object ."
   (ycmd--with-destructured-parse-result
    r
    (if (string-equal filepath (buffer-file-name))
@@ -69,13 +69,16 @@
         :buffer (current-buffer)
         :filename filepath
         :message text
+        :checker checker
         :level (assoc-default kind flycheck-ycmd--level-map 'string-equal 'error)))))
 
 (defun flycheck-ycmd--start (checker callback)
   "Start ycmd flycheck CHECKER using CALLBACK to communicate with flycheck."
   (let ((errors (delq
                  nil
-                 (mapcar 'flycheck-ycmd--result-to-error
+                 (mapcar #'(lambda (i)
+                             (flycheck-ycmd--result-to-error checker i)
+                             )
                          flycheck-ycmd--cache))))
     (funcall callback 'finished errors))
 
