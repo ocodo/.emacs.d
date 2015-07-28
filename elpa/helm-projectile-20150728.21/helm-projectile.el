@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20150714.842
+;; Package-Version: 20150728.21
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.12.0
@@ -766,7 +766,8 @@ If it is nil, or ack/ack-grep not found then use default grep command."
                                      (append grep-find-ignored-files grep-find-ignored-directories)
                                      " "))
                  (helm-ag-command-option options)
-                 (helm-ag-base-command (concat helm-ag-base-command " " ignored)))
+                 (helm-ag-base-command (concat helm-ag-base-command " " ignored))
+                 (current-prefix-arg nil))
             (helm-do-ag (projectile-project-root)))
         (error "You're not in a project"))
     (error "helm-ag not available")))
