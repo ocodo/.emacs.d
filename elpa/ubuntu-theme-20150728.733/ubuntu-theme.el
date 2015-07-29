@@ -4,7 +4,7 @@
 
 ;; Author: Francesc Rocher <francesc.rocher@gmail.com>
 ;; URL: http://github.com/rocher/ubuntu-theme
-;; Package-Version: 20150620.1533
+;; Package-Version: 20150728.733
 ;; Version: 0.3
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -75,6 +75,11 @@
  '(git-gutter+-unchanged ((t (:background "yellow" :foreground "black"))))
  '(header-line ((t (:box nil :foreground "grey90" :background "grey20" :inherit (mode-line)))))
  '(highlight ((t (:background "#441133"))))
+ '(info-menu-header ((t (:foreground "bisque" :underline t :weight normal :height 1.2 :family "Ubuntu Condensed"))))
+ '(info-title-1 ((t (:inherit info-title-2 :height 1.25))))
+ '(info-title-2 ((t (:inherit info-title-3 :height 1.25))))
+ '(info-title-3 ((t (:inherit info-title-4 :height 1.25))))
+ '(info-title-4 ((t (:foreground "bisque" :weight normal :height 1.25 :family "Ubuntu Condensed"))))
  '(isearch ((t (:background "palevioletred1" :foreground "brown4"))))
  '(isearch ((t (:background "palevioletred1" :foreground "brown4"))))
  '(isearch-fail ((t (:background "red4" :foreground "white"))))
@@ -96,6 +101,12 @@
  '(region ((t (:foreground "#FFFFFF" :background "#1D68C4"))))
  '(secondary-selection ((((class color) (min-colors 88) (background light)) (:background "yellow1")) (((class color) (min-colors 88) (background dark)) (:background "SkyBlue4")) (((class color) (min-colors 16) (background light)) (:background "yellow")) (((class color) (min-colors 16) (background dark)) (:background "SkyBlue4")) (((class color) (min-colors 8)) (:foreground "black" :background "cyan")) (t (:inverse-video t))))
  '(shadow ((((class color grayscale) (min-colors 88) (background light)) (:foreground "grey50")) (((class color grayscale) (min-colors 88) (background dark)) (:foreground "grey70")) (((class color) (min-colors 8) (background light)) (:foreground "green")) (((class color) (min-colors 8) (background dark)) (:foreground "yellow"))))
+ '(term-color-blue ((t (:background "midnight blue" :foreground "dodger blue"))))
+ '(term-color-cyan ((t (:background "cyan4" :foreground "cyan2"))))
+ '(term-color-green ((t (:background "green4" :foreground "green2"))))
+ '(term-color-magenta ((t (:background "magenta4" :foreground "magenta"))))
+ '(term-color-red ((t (:background "red4" :foreground "red"))))
+ '(term-color-yellow ((t (:background "yellow4" :foreground "yellow2"))))
  '(tooltip ((t (:foreground "black" :background "lightyellow" :inherit (variable-pitch)))))
  '(trailing-whitespace ((((class color) (background light)) (:background "red1")) (((class color) (background dark)) (:background "red1")) (t (:inverse-video t))))
  '(variable-pitch ((t (:family "Ubuntu"))))

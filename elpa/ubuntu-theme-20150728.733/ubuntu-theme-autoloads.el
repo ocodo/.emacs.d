@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ubuntu-theme" "ubuntu-theme.el" (21906 2240
-;;;;;;  511401 0))
+;;;### (autoloads nil "ubuntu-theme" "ubuntu-theme.el" (21944 12746
+;;;;;;  0 0))
 ;;; Generated autoloads from ubuntu-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
