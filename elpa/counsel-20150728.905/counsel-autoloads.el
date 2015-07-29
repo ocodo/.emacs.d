@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (21943 17777 667401
-;;;;;;  0))
+;;;### (autoloads nil "counsel" "counsel.el" (21944 12760 0 0))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -84,6 +83,11 @@ Choose a song from the Rhythmbox library to play or enqueue.
 
 (autoload 'counsel-org-tag "counsel" "\
 Add or remove tags in org-mode.
+
+\(fn)" t nil)
+
+(autoload 'counsel-org-tag-agenda "counsel" "\
+Set tags for the current agenda item.
 
 \(fn)" t nil)
 

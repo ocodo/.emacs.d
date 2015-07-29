@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150728.31
+;; Package-Version: 20150728.905
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -748,7 +748,6 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (defvar org-indent-indentation-per-level)
 (defvar org-tags-column)
 (declare-function org-get-tags-string "org")
-(declare-function org-bound-and-true-p "org-macs")
 (declare-function org-move-to-column "org")
 
 (defun counsel-org-change-tags (tags)
@@ -772,7 +771,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
          (goto-char (match-beginning 0))
          (let* ((c0 (current-column))
                 ;; compute offset for the case of org-indent-mode active
-                (di (if (org-bound-and-true-p org-indent-mode)
+                (di (if (bound-and-true-p org-indent-mode)
                         (* (1- org-indent-indentation-per-level) (1- level))
                       0))
                 (p0 (if (equal (char-before) ?*) (1+ (point)) (point)))
@@ -796,18 +795,29 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
     (setf (ivy-state-prompt ivy-last) prompt)
     (setq ivy--prompt (concat "%-4d " prompt)))
   (cond ((memq this-command '(ivy-done ivy-alt-done))
-         (with-selected-window (ivy-state-window ivy-last)
-           (counsel-org-change-tags
-            (if counsel-org-tags
-                (format ":%s:"
-                        (mapconcat #'identity counsel-org-tags ":"))
-              ""))))
+         (counsel-org-change-tags
+          (if counsel-org-tags
+              (format ":%s:"
+                      (mapconcat #'identity counsel-org-tags ":"))
+            "")))
         ((eq this-command 'ivy-call)
          (delete-minibuffer-contents))))
 
 (defun counsel-org-tag-prompt ()
   (format "Tags (%s): "
           (mapconcat #'identity counsel-org-tags ", ")))
+
+(defvar org-setting-tags)
+(defvar org-last-tags-completion-table)
+(defvar org-tag-persistent-alist)
+(defvar org-tag-alist)
+(defvar org-complete-tags-always-offer-all-agenda-tags)
+
+(declare-function org-at-heading-p "org")
+(declare-function org-back-to-heading "org")
+(declare-function org-get-buffer-tags "org")
+(declare-function org-global-tags-completion-table "org")
+(declare-function org-agenda-files "org")
 
 ;;;###autoload
 (defun counsel-org-tag ()
@@ -831,6 +841,18 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
                    (all-completions str 'org-tags-completion-function)))
                 :history 'org-tags-history
                 :action 'counsel-org-tag-action))))
+
+;;;###autoload
+(defun counsel-org-tag-agenda ()
+  "Set tags for the current agenda item."
+  (interactive)
+  (let ((store (symbol-function 'org-set-tags)))
+    (unwind-protect
+         (progn
+           (fset 'org-set-tags
+                 (symbol-function 'counsel-org-tag))
+           (org-agenda-set-tags nil nil))
+      (fset 'org-set-tags store))))
 
 (defun counsel-ag-function (string &optional _pred &rest _unused)
   "Grep in the current directory for STRING."
