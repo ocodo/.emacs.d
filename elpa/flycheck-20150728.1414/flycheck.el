@@ -1817,6 +1817,50 @@ Return a list of `flycheck-verification-result' objects."
   'help-function #'flycheck-describe-checker
   'help-echo "mouse-2, RET: describe Flycheck checker")
 
+(defun flycheck--verify-princ-checker (checker buffer &optional with-mm)
+  "Print verification result of CHECKER for BUFFER.
+
+When WITH-MM is given and non-nil, also include the major mode
+into the verification results."
+  (princ "  ")
+  (insert-button (symbol-name checker)
+                 'type 'help-flycheck-checker-doc
+                 'help-args (list checker))
+  (princ "\n")
+  (let ((results (with-current-buffer buffer
+                   (flycheck-verify-generic-checker checker))))
+    (when with-mm
+      (with-current-buffer buffer
+        (let* ((modes (flycheck-checker-get checker 'modes))
+               (mm-supported (memq major-mode modes))
+               (message-and-face
+                (cond
+                 ((not modes) '("No restriction" . success))
+                 (mm-supported (cons (format "`%s' supported" major-mode)
+                                     'success))
+                 (t (cons (format "`%s' not supported" major-mode) 'error)))))
+          (push (flycheck-verification-result-new
+                 :label "major mode"
+                 :message (car message-and-face)
+                 :face (cdr message-and-face))
+                results))))
+    (let* ((label-length
+            (-max (mapcar
+                   (lambda (res)
+                     (length (flycheck-verification-result-label res)))
+                   results)))
+           (message-column (+ 8 label-length)))
+      (dolist (result results)
+        (princ "    - ")
+        (princ (flycheck-verification-result-label result))
+        (princ ": ")
+        (princ (make-string (- message-column (current-column)) ?\ ))
+        (let ((message (flycheck-verification-result-message result))
+              (face (flycheck-verification-result-face result)))
+          (insert (propertize message 'face face)))
+        (princ "\n"))))
+  (princ "\n"))
+
 (defun flycheck-verify-setup ()
   "Check whether Flycheck can be used in this buffer.
 
@@ -1846,34 +1890,18 @@ possible problems are shown."
           (insert (propertize "There are no syntax checkers for this buffer!\n\n"
                               'face '(bold error))))
         (dolist (checker checkers)
-          (princ "  ")
-          (insert-button (symbol-name checker)
-                         'type 'help-flycheck-checker-doc
-                         'help-args (list checker))
-          (princ "\n")
-          (let* ((results (with-current-buffer buffer
-                            (flycheck-verify-generic-checker checker)))
-                 (label-length
-                  (-max (mapcar
-                         (lambda (res)
-                           (length (flycheck-verification-result-label res)))
-                         results)))
-                 (message-column (+ 8 label-length)))
-            (dolist (result results)
-              (princ "    - ")
-              (princ (flycheck-verification-result-label result))
-              (princ ": ")
-              (princ (make-string (- message-column (current-column)) ?\ ))
-              (let ((message (flycheck-verification-result-message result))
-                    (face (flycheck-verification-result-face result)))
-                (insert (propertize message 'face face)))
-              (princ "\n")))
-          (princ "\n"))
+          (flycheck--verify-princ-checker checker buffer))
         (princ "Flycheck Mode is ")
         (let ((enabled (buffer-local-value 'flycheck-mode buffer)))
           (insert (propertize (if enabled "enabled" "disabled")
                               'face (if enabled 'success '(warning bold)))))
         (princ ".\n")
+
+        (-when-let (selected-checker (buffer-local-value 'flycheck-checker buffer))
+          (princ "\n")
+          (insert (propertize "The following checker is explicitly selected for this buffer:\n\n"
+                              'face 'bold))
+          (flycheck--verify-princ-checker selected-checker buffer 'with-mm))
 
         (let ((unregistered-checkers (-difference (flycheck-defined-checkers)
                                                   flycheck-checkers)))
@@ -2901,11 +2929,11 @@ The following PROPERTIES constitute an error level:
      The severity is used by `flycheck-error-level-<' to
      determine the ordering of errors according to their levels.
 
-`:compilation-level LEVEL
+`:compilation-level LEVEL'
 
      A number indicating the broad class of messages that errors
      at this level belong to: one of 0 (info), 1 (warning), or
-     2 or nil (error). Defaults to nil.
+     2 or nil (error).  Defaults to nil.
 
      This is used by `flycheck-checker-pattern-to-error-regexp'
      to map error levels into `compilation-mode''s hierarchy and
@@ -5890,6 +5918,16 @@ Relative paths are relative to the file being checked."
   :safe #'flycheck-string-list-p
   :package-version '(flycheck . "0.24"))
 
+(flycheck-def-option-var flycheck-erlang-library-path nil erlang
+  "A list of library directories for Erlang.
+
+The value of this variable is a list of strings, where each
+string is a directory to add to the library path of erlc.
+Relative paths are relative to the file being checked."
+  :type '(repeat (directory :tag "Library directory"))
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "0.24"))
+
 (flycheck-define-checker erlang
   "An Erlang syntax checker using the Erlang interpreter.
 
@@ -5897,6 +5935,7 @@ See URL `http://www.erlang.org/'."
   :command ("erlc"
             "-o" temporary-directory
             (option-list "-I" flycheck-erlang-include-path)
+            (option-list "-pa" flycheck-erlang-library-path)
             "-Wall"
             source)
   :error-patterns
@@ -6294,11 +6333,58 @@ See URL `http://www.haskell.org/ghc/'."
   :modes (haskell-mode literate-haskell-mode)
   :next-checkers ((warning . haskell-hlint)))
 
+(flycheck-def-config-file-var flycheck-hlintrc haskell-hlint "HLint.hs"
+  :safe #'stringp)
+
+(flycheck-def-option-var flycheck-hlint-language-extensions
+    nil haskell-hlint
+  "Extensions list to enable for hlint.
+
+The value of this variable is a list of strings, where each
+string is a name of extension to enable in hlint. (i.e. \"QuasiQuotes\")
+
+Refer to http://community.haskell.org/~ndm/darcs/hlint/hlint.htm for
+more information."
+  :type '(repeat :tag "Extensions" (string :tag "Extension"))
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "0.24"))
+
+(flycheck-def-option-var flycheck-hlint-ignore-rules
+    nil haskell-hlint
+  "Ignore rules list for hlint checks.
+
+The value of this variable is a list of strings, where each
+string is an ignore rule. (i.e. \"Use fmap\")
+
+Refer to http://community.haskell.org/~ndm/darcs/hlint/hlint.htm for
+more information."
+  :type '(repeat :tag "Ignore rules" (string :tag "Ignore rule"))
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "0.24"))
+
+(flycheck-def-option-var flycheck-hlint-hint-packages
+    nil haskell-hlint
+  "Hint packages to include for hlint checks.
+
+The value of this variable is a list of strings, where each
+string is a default hint package. (i.e. (\"Generalise\" \"Default\" \"Dollar\"))
+
+Refer to http://community.haskell.org/~ndm/darcs/hlint/hlint.htm for
+more information."
+  :type '(repeat :tag "Hint packages" (string :tag "Hint package"))
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "0.24"))
+
 (flycheck-define-checker haskell-hlint
   "A Haskell style checker using hlint.
 
 See URL `https://github.com/ndmitchell/hlint'."
-  :command ("hlint" source-inplace)
+  :command ("hlint"
+            (option-list "-X" flycheck-hlint-language-extensions concat)
+            (option-list "-i=" flycheck-hlint-ignore-rules concat)
+            (option-list "-h" flycheck-hlint-hint-packages concat)
+            (config-file "-h" flycheck-hlintrc)
+            source-inplace)
   :error-patterns
   ((warning line-start
             (file-name) ":" line ":" column
@@ -6790,6 +6876,7 @@ Update the error level of ERR according to
 Requires Flake8 2.0 or newer. See URL
 `https://pypi.python.org/pypi/flake8'."
   :command ("flake8"
+            "--format=default"
             (config-file "--config" flycheck-flake8rc)
             (option "--max-complexity" flycheck-flake8-maximum-complexity nil
                     flycheck-option-int)
