@@ -115,12 +115,12 @@ class GitElpa
       # Move new version to old folder
       puts "mv elpa/#{@package}-#{@ver} elpa/#{@package}-#{@old.first}"
       %x(mv elpa/#{@package}-#{@ver} elpa/#{@package}-#{@old.first})
+      # Git add new folder contents
+      puts "git add elpa/#{@package}-#{@old.first}"
+      %x(git add elpa/#{@package}-#{@old.first})
       # Git mv old folder to new folder name
       puts "git mv elpa/#{@package}-#{@old.first} elpa/#{@package}-#{@ver}"
       %x(git mv elpa/#{@package}-#{@old.first} elpa/#{@package}-#{@ver})
-      # Git add new folder contents
-      puts "git add elpa/#{@package}-#{@ver}"
-      %x(git add elpa/#{@package}-#{@ver})
       puts `git status | grep #{@package}`
       return
     end
