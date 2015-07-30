@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20150728.849
+;; Package-Version: 20150728.2141
 ;; Keywords: project, convenience
 ;; Version: 0.13.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -801,7 +801,7 @@ Files are returned as relative paths to the project root."
   :group 'projectile
   :type 'string)
 
-(defcustom projectile-generic-command "find . \\! -perm +444 -prune -o \\( -type f -print0 \\)"
+(defcustom projectile-generic-command "find . \\! -perm /444 -prune -o \\( -type f -print0 \\)"
   "Command used by projectile to get the files in a generic project."
   :group 'projectile
   :type 'string)
