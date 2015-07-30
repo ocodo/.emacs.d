@@ -4,7 +4,7 @@
 
 ;; Author: Akira Tamamori
 ;; URL: https://github.com/tam17aki/ace-isearch
-;; Package-Version: 20150724.522
+;; Package-Version: 20150729.2320
 ;; Version: 0.1.3
 ;; Created: Sep 25 2014
 ;; Package-Requires: ((ace-jump-mode "2.0") (avy "0.3") (helm-swoop "1.4") (emacs "24"))
@@ -124,13 +124,17 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
   :type 'boolean
   :group 'ace-isearch)
 
+(defvar ace-isearch--ace-jump-function-list
+  (list "ace-jump-word-mode" "ace-jump-char-mode"))
+
+(defvar ace-isearch--avy-function-list
+  (list "avy-goto-word-1" "avy-goto-subword-1"
+        "avy-goto-word-or-subword-1" "avy-goto-char"))
+
 (defvar ace-isearch--function-list
-  (list "ace-jump-word-mode" "ace-jump-char-mode"
-        "avy-goto-word-1" "avy-goto-subword-1"
-        "avy-goto-word-or-subword-1" "avy-goto-char")
+  (append ace-isearch--ace-jump-function-list ace-isearch--avy-function-list)
   "List of functions in jumping.")
 
-(defvar ace-isearch--jump-during-isearch-p nil)
 (defvar ace-isearch--ace-jump-or-avy)
 
 (defun ace-isearch-switch-function ()
@@ -184,17 +188,15 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
          (funcall ace-isearch-function-from-isearch))))
 
 (defun ace-isearch--make-ace-jump-or-avy ()
-  (cond ((or (eq ace-isearch-function 'ace-jump-char-mode)
-             (eq ace-isearch-function 'ace-jump-word-mode))
-         (setq ace-isearch--ace-jump-or-avy 'ace-jump))
-        ((or (eq ace-isearch-function 'avy-goto-word-1)
-             (eq ace-isearch-function 'avy-goto-subword-1)
-             (eq ace-isearch-function 'avy-goto-word-or-subword-1)
-             (eq ace-isearch-function 'avy-goto-char))
-         (setq ace-isearch--ace-jump-or-avy 'avy))
-        (t
-         (error (format "Function name %s for ace-isearch is invalid!"
-                        ace-isearch-function)))))
+  (let ((func-str (format "%s" ace-isearch-function)))
+    (cond ((member func-str ace-isearch--function-list)
+           (cond ((member func-str ace-isearch--ace-jump-function-list)
+                  (setq ace-isearch--ace-jump-or-avy 'ace-jump))
+                 ((member func-str ace-isearch--avy-function-list)
+                  (setq ace-isearch--ace-jump-or-avy 'avy))))
+          (t
+           (error (format "Function name %s for ace-isearch is invalid!"
+                          ace-isearch-function))))))
 
 ;;;###autoload
 (defun ace-isearch-jump-during-isearch ()
@@ -203,7 +205,6 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
   (if (< (length isearch-string) ace-isearch-input-length)
       (cond ((eq ace-isearch--ace-jump-or-avy 'ace-jump)
              (let ((ace-jump-mode-scope 'window))
-               (setq ace-isearch--jump-during-isearch-p t)
                (isearch-exit)
                (ace-jump-do (regexp-quote isearch-string))))
             ((eq ace-isearch--ace-jump-or-avy 'avy)
