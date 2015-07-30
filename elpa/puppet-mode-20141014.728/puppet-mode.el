@@ -10,9 +10,9 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/lunaryorn/puppet-mode
+;; Package-Version: 20150730.1208
 ;; Keywords: languages
-;; Version: 20141014.728
-;; X-Original-Version: 0.4-cvs
+;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
 
 ;; This file is not part of GNU Emacs.
@@ -556,11 +556,32 @@ of the initial include plus puppet-include-indent."
         ;;      refreshonly => true,
         ;;    }
         (save-excursion
-          (goto-char array-start)
-          (forward-char 1)
-          (re-search-forward "\\S-")
-          (forward-char -1)
-          (setq cur-indent (current-column))))
+          (if (looking-at "^\\s-*],*")
+              ;; If a closing bracket is on a line by itself, align it with the
+              ;; opening bracket.
+              (progn
+                (goto-char array-start)
+                (setq cur-indent (current-indentation)))
+
+            (goto-char array-start)
+            (forward-char 1)
+
+            ;; If the point is at the end of the line, use normal indentation.
+            ;;
+            ;; For example:
+            ;; exec { 'foo':
+            ;;   creates => [
+            ;;     'foo',
+            ;;     'bar',
+            ;;   ]
+            ;; }
+            ;;
+            (if (eolp)
+                (setq cur-indent (+ (current-indentation) puppet-indent-level))
+              ;; Otherwise, attempt to align as described above.
+              (re-search-forward "\\S-")
+              (forward-char -1)
+              (setq cur-indent (current-column))))))
        (include-start
         (setq cur-indent include-start))
        ((and (looking-at "^\\s-*},?\\s-*$") block-indent)
