@@ -4,9 +4,9 @@
 ;;
 ;; Author: coldnew <coldnew.tw@gmail.com>
 ;; Keywords: converience
+;; Package-Version: 20150730.212
 ;; X-URL: http://github.com/coldnew/linum-relative
-;; Version: 20150224.2118
-;; X-Original-Version: 0.4
+;; Version: 0.4
 
 ;; This file is not part of GNU Emacs.
 
@@ -25,6 +25,9 @@
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
+;; [![License GPL3](https://img.shields.io/badge/license-GPL_3-green.svg?dummy)](http://www.gnu.org/licenses/gpl-3.0.html)
+;; [![MELPA](http://melpa.org/packages/linum-relative-badge.svg)](http://melpa.org/#/linum-relative)
+;; [![MELPA Stable](http://stable.melpa.org/packages/linum-relative-badge.svg)](http://stable.melpa.org/#/linum-relative)
 
 ;; ![Screenshot](https://github.com/coldnew/linum-relative/raw/master/screenshot/screenshot1.jpg)
 ;;
@@ -118,14 +121,22 @@ linum-releative will show the real line number at current line."
 	 (face (if current-p 'linum-relative-current-face 'linum)))
     (propertize (format linum-relative-format current-symbol) 'face face)))
 
+(defun linum-relative-on ()
+  "Turn ON linum-relative."
+  (unless (eq linum-format 'linum-relative)
+    (setq linum-relative-user-format linum-format)
+    (setq linum-format 'linum-relative)))
+
+(defun linum-relative-off ()
+  "Turn OFF linum-relative."
+  (setq linum-format linum-relative-user-format))
+
 (defun linum-relative-toggle ()
   "Toggle between linum-relative and linum."
   (interactive)
   (if (eq linum-format 'linum-relative)
-      (setq linum-format linum-relative-user-format)
-    (progn
-      (setq linum-relative-user-format linum-format)
-      (setq linum-format 'linum-relative))))
+      (linum-relative-off)
+    (linum-relative-on)))
 
 (setq linum-format 'linum-relative)
 
