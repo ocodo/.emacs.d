@@ -1702,9 +1702,9 @@ Jade
 Javascript
 ==========
 
-  1.    • ‘javascript-jshint’ (JSHint (http://jshint.com/))
-        • Or ‘javascript-eslint’ (ESLint (http://eslint.org/))
-        • Or ‘javascript-gjslint’ (Closure Linter
+  1.    • ‘javascript-jshint’ (JSHint (http://jshint.com/)),
+        • or ‘javascript-eslint’ (ESLint (http://eslint.org/)),
+        • or ‘javascript-gjslint’ (Closure Linter
           (https://developers.google.com/closure/utilities))
   2. ‘javascript-jscs’ (JSCS (http://jscs.info/))
   3. ‘javascript-standard’ (Standard
@@ -2907,35 +2907,35 @@ Ref: language-Haskell64731
 Ref: language-HTML66402
 Ref: language-Jade66699
 Ref: language-Javascript66778
-Ref: language-JSON68138
-Ref: language-Less68224
-Ref: language-Lua68281
-Ref: language-Perl68639
-Ref: language-PHP69174
-Ref: language-Puppet69866
-Ref: language-Python70048
-Ref: language-R71332
-Ref: language-Racket71769
-Ref: language-RPM Spec71844
-Ref: language-reStructuredText71958
-Ref: language-Ruby72347
-Ref: language-Rust73358
-Ref: language-Sass74296
-Ref: language-Scala74549
-Ref: language-SCSS75156
-Ref: language-Shell scripting languages75716
-Ref: language-Slim76452
-Ref: language-SQL76517
-Ref: language-TeX/LaTeX76614
-Ref: language-Texinfo77026
-Ref: language-Verilog77121
-Ref: language-XML77436
-Ref: language-YAML77604
-Node: Issues77743
-Node: GNU Free Documentation License78764
-Node: Main Index104111
-Node: Key Index112382
-Node: Function and Variable Index113890
+Ref: language-JSON68140
+Ref: language-Less68226
+Ref: language-Lua68283
+Ref: language-Perl68641
+Ref: language-PHP69176
+Ref: language-Puppet69868
+Ref: language-Python70050
+Ref: language-R71334
+Ref: language-Racket71771
+Ref: language-RPM Spec71846
+Ref: language-reStructuredText71960
+Ref: language-Ruby72349
+Ref: language-Rust73360
+Ref: language-Sass74298
+Ref: language-Scala74551
+Ref: language-SCSS75158
+Ref: language-Shell scripting languages75718
+Ref: language-Slim76454
+Ref: language-SQL76519
+Ref: language-TeX/LaTeX76616
+Ref: language-Texinfo77028
+Ref: language-Verilog77123
+Ref: language-XML77438
+Ref: language-YAML77606
+Node: Issues77745
+Node: GNU Free Documentation License78766
+Node: Main Index104113
+Node: Key Index112384
+Node: Function and Variable Index113892
 
 End Tag Table
 
