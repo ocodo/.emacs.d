@@ -7,8 +7,8 @@
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; Maintainer: Peter Fraenkel <pnf@podsnap.com>
 ;; URL: https://github.com/clojure-emacs/squiggly-clojure
-;; Version: 20150116.234
-;; X-Original-Version: 1.1.0
+;; Package-Version: 20150729.730
+;; Version: 1.1.0
 ;; Package-Requires: ((cider "0.8.1") (flycheck "0.22-cvs1") (let-alist "1.0.1") (emacs "24"))
 
 ;; This file is not part of GNU Emacs.
@@ -179,8 +179,8 @@ See URL `https://github.com/jonase/kibit' and URL
 (flycheck-clojure-define-cider-checker 'clojure-cider-typed
   "A syntax checker for Clojure, using Typed Clojure in Cider.
 
-See URL `https://github.com/clojure-emacs/cider/' for more
-information."
+See URL `https://github.com/clojure-emacs/cider/' and URL
+`https://github.com/clojure/core.typed' for more information."
   :form (lambda (ns)
           (format
            "(do (require 'squiggly-clojure.core) (squiggly-clojure.core/check-tc '%s))"
