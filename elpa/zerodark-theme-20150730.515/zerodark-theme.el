@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20150727.631
+;; Package-Version: 20150730.515
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 0.1
 
@@ -51,6 +51,7 @@
       (highlight "#3e4451")
       (comment "#687080")
       (orange "#da8548")
+      (orange-light "#ddbd78")
       (red "#ff6c6b")
       (purple "#c678dd")
       (blue "#61afef")
@@ -73,8 +74,8 @@
    `(highlight ((,class (:background ,highlight :foreground ,default :underline nil))))
    `(region ((,class (:background ,highlight :foreground ,default))))
    `(secondary-selection ((,class (:background ,highlight :foreground ,default))))
-   `(isearch ((,class (:background ,orange :foreground ,highlight))))
-   `(lazy-highlight ((,class (:background ,peach :foreground ,highlight))))
+   `(isearch ((,class (:background ,orange-light :foreground ,highlight))))
+   `(lazy-highlight ((,class (:background ,grey-dark :foreground ,orange-light))))
    `(hl-line ((,class (:background ,hl-line :underline unspecified :inherit nil))))
 
    `(match ((,class (:background ,background-green))))
@@ -183,6 +184,8 @@
    `(magit-reflog-amend ((,class (:background ,background-blue :foreground ,blue :weight bold))))
    `(magit-reflog-rebase ((,class (:background ,background-blue :foreground ,blue :weight bold))))
    `(magit-reflog-commit ((,class (:background ,background-green :foreground ,green :weight bold))))
+
+   `(magit-blame-heading ((,class (:foreground ,green :background ,background-green :box 1))))
 
    `(git-commit-summary ((,class (:weight bold))))
 
@@ -317,13 +320,25 @@
    `(helm-header-line-left-margin ((,class (:weight bold :foreground ,red))))
    `(helm-source-header ((,class (:height 1.2 :weight bold :foreground ,blue :background ,background-blue))))
    `(helm-selection ((,class (:background ,background-lighter))))
-   `(helm-match ((,class (:foreground ,blue))))
+   `(helm-match ((,class (:foreground ,purple :background ,background-purple :weight bold))))
+   `(helm-match-item ((,class (:inherit isearch))))
    `(helm-M-x-key ((,class (:foreground ,blue :weight bold :background ,background-blue))))
    `(helm-visible-mark ((,class (:weight bold :foreground ,orange :background ,background-darker))))
    `(helm-prefarg ((,class (:weight bold :foreground ,red :background ,background-red))))
+   `(helm-separator ((,class (:weight bold :foreground , blue))))
+
+   `(helm-grep-file ((,class ())))
+   `(helm-grep-finish ((,class (:foreground ,green))))
+   `(helm-grep-running ((,class (:foreground ,red))))
+   `(helm-grep-lineno ((,class (:foreground ,blue))))
+   `(helm-grep-match ((,class (:foreground ,purple :background ,background-purple :weight bold))))
+
+   `(helm-moccur-buffer ((,class ())))
 
    `(helm-buffer-directory ((,class (:foreground ,purple))))
    `(helm-buffer-file ((,class ())))
+   `(helm-buffer-process ((,class (:foreground ,purple))))
+   `(helm-buffer-size ((,class (:foreground ,blue))))
    `(helm-buffer-saved-out ((,class (:foreground ,red :weight bold))))
 
    `(helm-ff-directory ((,class (:foreground ,purple))))
