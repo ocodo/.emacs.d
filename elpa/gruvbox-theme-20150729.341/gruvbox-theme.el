@@ -7,7 +7,7 @@
 ;;          Greduan <me@greduan.com>
 ;; Maintainer: jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Package-Version: 20150622.1701
+;; Package-Version: 20150729.341
 ;; Version: 0.15.1
 
 ;;; Commentary:
@@ -239,6 +239,16 @@
     `(helm-separator                            ((t ( :foreground ,gruvbox-faded_red ))))
     `(helm-source-header                        ((t ( :foreground ,gruvbox-light2 ))))
     `(helm-visible-mark                         ((t ( :foreground ,gruvbox-black         :background ,gruvbox-light3       ))))
+
+    ;; company-mode
+    `(company-scrollbar-bg              ((t (:background ,gruvbox-dark1))))
+    `(company-scrollbar-fg              ((t (:background ,gruvbox-dark0_soft))))
+    `(company-tooltip                   ((t (:background ,gruvbox-dark0_soft))))
+    `(company-tooltip-annotation        ((t (:foreground ,gruvbox-neutral_green))))
+    `(company-tooltip-selection         ((t (:foreground ,gruvbox-neutral_purple))))
+    `(company-tooltip-common            ((t (:foreground ,gruvbox-neutral_blue :underline t))))
+    `(company-tooltip-common-selection  ((t (:foreground ,gruvbox-neutral_blue :underline t))))
+    `(company-preview-common            ((t (:foreground ,gruvbox-neutral_purple))))
 
     ;; Term
     `(term-color-black                  ((t (:foreground ,gruvbox-dark1))))
