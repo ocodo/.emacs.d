@@ -105,7 +105,9 @@ Only \"./\" and \"../\" apply here. They appear in reverse order."
 (defvar ivy-minibuffer-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-m") 'ivy-done)
+    (define-key map (kbd "C-M-m") 'ivy-call)
     (define-key map (kbd "C-j") 'ivy-alt-done)
+    (define-key map (kbd "C-M-j") 'ivy-immediate-done)
     (define-key map (kbd "TAB") 'ivy-partial-or-done)
     (define-key map (kbd "C-n") 'ivy-next-line)
     (define-key map (kbd "C-p") 'ivy-previous-line)
@@ -130,7 +132,6 @@ Only \"./\" and \"../\" apply here. They appear in reverse order."
     (define-key map (kbd "M-v") 'ivy-scroll-down-command)
     (define-key map (kbd "C-M-n") 'ivy-next-line-and-call)
     (define-key map (kbd "C-M-p") 'ivy-previous-line-and-call)
-    (define-key map (kbd "C-M-m") 'ivy-call)
     (define-key map (kbd "M-q") 'ivy-toggle-regexp-quote)
     (define-key map (kbd "M-j") 'ivy-yank-word)
     (define-key map (kbd "M-i") 'ivy-insert-current)
@@ -235,6 +236,13 @@ When non-nil, it should contain one %d.")
                     (put 'quit 'error-message "Quit")
                     ,@body))
      (minibuffer-keyboard-quit)))
+
+(defmacro with-ivy-window (&rest body)
+  "Execute BODY in the window from which `ivy-read' was called."
+  (declare (indent 0)
+           (debug t))
+  `(with-selected-window (ivy-state-window ivy-last)
+     ,@body))
 
 (defun ivy--done (text)
   "Insert TEXT and exit minibuffer."
@@ -1598,7 +1606,7 @@ BUFFER may be a string or nil."
   "Pull next word from buffer into search string."
   (interactive)
   (let (amend)
-    (with-selected-window (ivy-state-window ivy-last)
+    (with-ivy-window
       (let ((pt (point))
             (le (line-end-position)))
         (forward-word 1)
