@@ -1256,7 +1256,7 @@ When ARG is more than 1, mark ARGth element."
         ((= arg 0)
          (let ((bnd (lispy--bounds-dwim)))
            (lispy--mark
-            (cons (1+ (car bnd))
+            (cons (+ (car bnd) (if (eq (char-after (car bnd)) ?\#) 2 1))
                   (1- (cdr bnd))))))
         ((region-active-p)
          (deactivate-mark)
@@ -1410,19 +1410,14 @@ When this function is called:
               (backward-char))
             (backward-char))
            (t
-            (if (lispy-right-p)
-                (backward-list)
-              (if (looking-at (concat " *" lispy-right))
-                  (backward-sexp)))
-            (insert ,left)
-            (unless (looking-at " ")
-              (insert " "))
-            (forward-sexp)
-            (insert ,right)
-            (backward-sexp)
-            (skip-chars-forward "'`#")
-            (indent-sexp)
-            (forward-char 1)))))
+            (let ((bnd (lispy--bounds-dwim)))
+              (goto-char (car bnd))
+              (insert ,left)
+              (just-one-space)
+              (forward-sexp)
+              (insert ,right)
+              (goto-char (car bnd))
+              (forward-char 1))))))
 
 (defalias 'lispy-parens
     (lispy-pair "(" ")" "^\\|\\(?:> \\)\\|\\s-\\|\\[\\|[(`'#@~_%,]")
@@ -4519,7 +4514,10 @@ Otherwise return cons of current string, symbol or list bounds."
            bnd)
           (t
            (let ((res (ignore-errors
-                        (bounds-of-thing-at-point 'sexp))))
+                        (bounds-of-thing-at-point
+                         (if (looking-at lispy-right)
+                             'symbol
+                           'sexp)))))
              (if res
                  (save-excursion
                    (goto-char (cdr res))
