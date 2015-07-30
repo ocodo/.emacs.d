@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20150721.542
+;; Package-Version: 20150729.859
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -453,7 +453,9 @@ Set `avy-style' according to COMMMAND as well."
 
 (defun avy-action-goto (pt)
   "Goto PT."
-  (unless (= pt (point)) (push-mark))
+  (unless (or (= pt (point))
+              (region-active-p))
+    (push-mark))
   (goto-char pt))
 
 (defun avy-action-mark (pt)
