@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150728.905
+;; Package-Version: 20150730.659
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -302,13 +302,13 @@
 
 (defun counsel-git-grep-recenter ()
   (interactive)
-  (with-selected-window (ivy-state-window ivy-last)
+  (with-ivy-window
     (counsel-git-grep-action ivy--current)
     (recenter-top-bottom)))
 
 (defun counsel-git-grep-action (x)
   (when (string-match "\\`\\(.*?\\):\\([0-9]+\\):\\(.*\\)\\'" x)
-    (with-selected-window (ivy-state-window ivy-last)
+    (with-ivy-window
       (let ((file-name (match-string-no-properties 1 x))
             (line-number (match-string-no-properties 2 x)))
         (find-file (expand-file-name file-name counsel--git-grep-dir))
@@ -316,7 +316,6 @@
         (forward-line (1- (string-to-number line-number)))
         (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
         (unless (eq ivy-exit 'done)
-          (setq swiper--window (selected-window))
           (swiper--cleanup)
           (swiper--add-overlays (ivy--regex ivy-text)))))))
 
@@ -653,7 +652,7 @@ Optional INITIAL-INPUT is the initial input in the minibuffer."
           (lambda (cands)
             (funcall
              store
-             (with-selected-window (ivy-state-window ivy-last)
+             (with-ivy-window
                (mapcar #'counsel--M-x-transformer cands)))))
          (cands obarray)
          (pred 'commandp)
@@ -818,6 +817,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (declare-function org-get-buffer-tags "org")
 (declare-function org-global-tags-completion-table "org")
 (declare-function org-agenda-files "org")
+(declare-function org-agenda-set-tags "org-agenda")
 
 ;;;###autoload
 (defun counsel-org-tag ()
