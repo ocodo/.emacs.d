@@ -59,6 +59,19 @@
 (declare-function cua--pre-command-handler "cua-base")
 (declare-function delete-selection-pre-hook "delsel")
 
+;;; backport for older emacsen
+
+;; introduced in 24.3
+(unless (fboundp 'defvar-local)
+  (defmacro defvar-local (var val &optional docstring)
+    "Define VAR as a buffer-local variable with default value VAL.
+Like `defvar' but additionally marks the variable as being automatically
+buffer-local wherever it is set."
+    (declare (debug defvar) (doc-string 3))
+    ;; Can't use backquote here, it's too early in the bootstrap.
+    (list 'progn (list 'defvar var val docstring)
+          (list 'make-variable-buffer-local (list 'quote var)))))
+
 ;;;###autoload
 (defun sp-cheat-sheet (&optional arg)
   "Generate a cheat sheet of all the smartparens interactive functions.
@@ -1060,6 +1073,52 @@ by specifying its :suffix property."
                  (const :tag "Regexp" regexp)
                  (const :tag "Syntax class codes" syntax))
                 string))
+  :group 'smartparens)
+
+(defcustom sp-split-sexp-always-split-as-string t
+  "Determine if sexp inside string is split.
+
+If the point is inside a sexp inside a string, the default
+behaviour is now to split the string, such that:
+
+  \"foo (|) bar\"
+
+becomes
+
+   \"foo (\"|\") bar\"
+
+instead of
+
+   \"foo ()|() bar\".
+
+Note: the old default behaviour was the reverse, it would split
+the sexp, but this is hardly ever what you want.
+
+You can add a post-handler on string pair and check for
+'split-string action to add concatenation operators of the
+language you work in (in each major-mode you can have a separate
+hook).
+
+For example, in PHP the string concatenation operator is a
+dot (.), so you would add:
+
+  (defun my-php-post-split-handler (_ action _)
+    (when (eq action 'split-sexp)
+      (just-one-space)
+      (insert \".  . \")
+      (backward-char 3)))
+
+  (sp-local-pair 'php-mode \"'\" nil
+   :post-handlers '(my-php-post-split-handler))
+
+Then
+
+  echo 'foo |baz';
+
+results in
+
+  echo 'foo' . | . 'baz';"
+  :type 'boolean
   :group 'smartparens)
 
 ;; hybrid lines
@@ -2500,11 +2559,12 @@ see `sp-pair' for description."
           (context (sp--get-handler-context type)))
       (if hook
           (--each hook (sp--run-function-or-insertion it id action context))
+        ;; TODO: WHAT THE FUCK IS THIS ???11?
         (let ((tag-hook (plist-get
                          (--first (string-match-p
                                    (replace-regexp-in-string "_" ".*?" (plist-get it :open))
                                    id)
-                                  (cdr (assq 'html-mode sp-tags)))
+                                  (cdr (assq 'html-mode sp-tags))) ;; REALLY?
                          type)))
           (run-hook-with-args 'tag-hook id action context))))))
 
@@ -3250,8 +3310,6 @@ achieve this by using `sp-pair' or `sp-local-pair' with
                                                     (match-beginning 0)
                                                     (match-end 0))))
                         (get-sexp))
-                       ;; here comes the feature when we're somewhere in the
-                       ;; middle of the sexp (or outside), if ever supported.
                        ((eq sp-autoskip-closing-pair 'always)
                         (get-enclosing-sexp))))))
           (when (and active-sexp
@@ -3278,6 +3336,8 @@ achieve this by using `sp-pair' or `sp-local-pair' with
               (unless (or test-only
                           sp-buffer-modified-p)
                 (set-buffer-modified-p nil))
+              (unless test-only
+                (sp--run-hook-with-args (sp-get active-sexp :op) :post-handlers 'skip-closing-pair))
               re)))))))
 
 (defun sp-delete-pair (&optional arg)
@@ -6839,6 +6899,11 @@ If ARG is a raw prefix \\[universal-argument] split all the sexps in current exp
 in separate lists enclosed with delimiters of the current
 expression.
 
+See also setting `sp-split-sexp-always-split-as-string' which
+determines how sexps inside strings are treated and also for a
+discussion of how to automatically add concatenation operators to
+string splitting.
+
 Examples:
 
   (foo bar |baz quux)   -> (foo bar) |(baz quux)
@@ -6871,9 +6936,23 @@ Examples:
           (goto-char beg)
           (delete-char (length op))))))
    (t
-    (-when-let (ok (sp-get-enclosing-sexp 1))
-      (forward-char (- (prog1 (sp-backward-whitespace t) (insert (sp-get ok :cl)))))
-      (save-excursion (sp-forward-whitespace) (insert (sp-get ok :op)))))))
+    (let ((should-split-as-string
+           (and sp-split-sexp-always-split-as-string
+                (sp-point-in-string))))
+      (-when-let (ok (if should-split-as-string
+                         (save-excursion
+                           (goto-char (1- (cdr (sp-get-quoted-string-bounds))))
+                           (sp-get-enclosing-sexp 1))
+                       (sp-get-enclosing-sexp 1)))
+        (sp-get ok
+          (sp--run-hook-with-args :op :pre-handlers 'split-sexp)
+          (if should-split-as-string
+              (progn
+                (insert :cl)
+                (save-excursion (insert :op)))
+            (forward-char (- (prog1 (sp-backward-whitespace t) (insert :cl))))
+            (save-excursion (sp-forward-whitespace) (insert :op)))
+          (sp--run-hook-with-args :op :post-handlers 'split-sexp)))))))
 
 (defun sp--join-sexp (prev next)
   "Join the expressions PREV and NEXT if they are of the same type.
