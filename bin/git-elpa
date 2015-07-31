@@ -97,7 +97,6 @@ class GitElpa
     @old = old_versions
     @ver = new_version
     if do_commit
-      puts "Committing updated package: #{package}"
       commit
     end
   end
@@ -124,13 +123,13 @@ class GitElpa
       puts `git status | grep #{@package}`
       return
     end
-    puts "Updating #{@package} to #{@ver} / removing #{@old.join(',')}"
     @g.add new_version_files unless @ver.nil?
     @g.remove old_version_files if @old.length > 0
   end
 
   def commit(message = commit_message)
     add_to_index
+    puts @commit_message
     @g.commit message
   end
 
