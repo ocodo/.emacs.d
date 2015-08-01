@@ -26,6 +26,8 @@
 ;;; Code:
 
 (require 'alchemist-utils)
+(require 'alchemist-test-mode)
+(require 'alchemist-report)
 
 (defgroup alchemist-execute nil
   "Elixir's script execution integration."
@@ -81,7 +83,15 @@
   "Run a elixir with CMDLIST."
   (interactive (list (alchemist-execute--read-command alchemist-execute-command)))
   (let ((command (alchemist-utils--build-command cmdlist)))
-      (alchemist-report-run command "alchemist-execute-report" alchemist-execute-buffer-name 'alchemist-execute-mode)))
+    (alchemist-report-run command
+                          "alchemist-execute-report"
+                          alchemist-execute-buffer-name
+                          'alchemist-execute-mode
+                          nil
+                          #'(lambda (buffer)
+                              (with-current-buffer buffer
+                                (let ((inhibit-read-only t))
+                                  (alchemist-test--render-files)))))))
 
 (provide 'alchemist-execute)
 
