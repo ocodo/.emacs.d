@@ -513,7 +513,11 @@ BUFFER may be a buffer or a buffer name which contains mail message."
 	  (smtp-response-error response)) ;Bogus server?
 	(if (/= (car response) 334)
 	    (smtp-response-error response))
-	(sasl-step-set-data step (base64-decode-string (nth 1 response)))
+	;; Server may return human readable string.
+	;; https://msdn.microsoft.com/en-us/library/cc246825.aspx
+	(sasl-step-set-data step (condition-case nil
+				     (base64-decode-string (nth 1 response))
+				   (error (nth 1 response))))
 	(setq step (sasl-next-step client step))
 	(smtp-send-command
 	 connection
