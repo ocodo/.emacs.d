@@ -3,9 +3,9 @@
 
 ;; Author: Arjen Wiersma <arjen@wiersma.org>
 ;; Url: https://github.com/credmp/arjen-grey
-;; Package-Version: 20150726.1057
+;; Package-Version: 20150731.645
 ;; Keywords: faces
-;; Version: 20150726
+;; Version: 20150731
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 
 (deftheme arjen-grey "A soothing dark grey theme by Arjen")
 
+;; Use http://huecode.com to find some great colors!
 (custom-theme-set-faces
  'arjen-grey
  ;; Built in faces
@@ -65,9 +66,13 @@
  '(helm-selection ((t (:background "#3c4449" :underline nil))))
  '(helm-selection-line ((t (:background "#2a2f38"))))
  ;; Perspective faces
- '(persp-selected-face ((t (:foreground  "#eacc8c"
-                          ))))
+ '(persp-selected-face ((t (:foreground  "#eacc8c"))))
  )
+
+(custom-theme-set-variables
+  'arjen-grey
+  '(hl-paren-colors '("#B9F" "#B8D" "#B7B" "#B69"
+                      "#B57" "#B45" "#B33" "#B11")))
 
 ;;;###autoload
 (and load-file-name
