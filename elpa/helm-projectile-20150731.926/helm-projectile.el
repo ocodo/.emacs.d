@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20150728.2223
+;; Package-Version: 20150731.926
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.12.0
@@ -658,6 +658,7 @@ ACK-IGNORED-PATTERN is a file regex to exclude from searching.
 ACK-EXECUTABLE is the actual ack binary name.
 It is usually \"ack\" or \"ack-grep\".
 If it is nil, or ack/ack-grep not found then use default grep command."
+  (require 'grep)
   (let* ((default-directory (projectile-project-root))
          (helm-ff-default-directory (projectile-project-root))
          (follow (and helm-follow-mode-persistent
@@ -759,7 +760,7 @@ If it is nil, or ack/ack-grep not found then use default grep command."
   (interactive (if current-prefix-arg (list (read-string "option: " "" 'helm-ag-command-history))))
   (if (require 'helm-ag nil  'noerror)
       (if (projectile-project-p)
-          (let* ((grep-find-ignored-files (-union (projectile-ignored-files-rel)  grep-find-ignored-files))
+          (let* ((grep-find-ignored-files (-union (projectile-ignored-files-rel) grep-find-ignored-files))
                  (grep-find-ignored-directories (-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
                  (ignored (mapconcat (lambda (i)
                                        (concat "--ignore " i))
