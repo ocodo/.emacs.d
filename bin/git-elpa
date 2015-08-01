@@ -30,11 +30,6 @@ the problem package is much harder.
 To this end, I wrote this script to make each package have it's own
 commit history, (starting today!)
 
-TODO
-====
-
-Manage git history of a package better.
-
 Usage:
 ======
 
@@ -110,19 +105,6 @@ class GitElpa
   end
 
   def add_to_index
-    if !@ver.nil? && @old.length == 1
-      # Move new version to old folder
-      puts "mv elpa/#{@package}-#{@ver} elpa/#{@package}-#{@old.first}"
-      %x(mv elpa/#{@package}-#{@ver} elpa/#{@package}-#{@old.first})
-      # Git add new folder contents
-      puts "git add elpa/#{@package}-#{@old.first}"
-      %x(git add elpa/#{@package}-#{@old.first})
-      # Git mv old folder to new folder name
-      puts "git mv elpa/#{@package}-#{@old.first} elpa/#{@package}-#{@ver}"
-      %x(git mv elpa/#{@package}-#{@old.first} elpa/#{@package}-#{@ver})
-      puts `git status | grep #{@package}`
-      return
-    end
     @g.add new_version_files unless @ver.nil?
     @g.remove old_version_files if @old.length > 0
   end
@@ -158,14 +140,14 @@ require 'optparse'
 
 option_parser = OptionParser.new do |opts|
   elpa = GitElpa.new()
-  opts.banner = "
+  opts.banner = %Q^
 Emacs ELPA package commit tool
 
 This tool is designed to assist the storage of your installed ELPA packages.
 It will commit each package separately.
 
 Usage: git-elpa [options]
-"
+^
 
   opts.on "-l", "--list", "List updated packages" do
     puts "Listing updated ELPA packages...(to be committed)", ""
