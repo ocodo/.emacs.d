@@ -88,7 +88,7 @@ class GitElpa
 
   def commit_package(package, do_commit = true)
     @package = package
-    @rx = Regexp.new("(^elpa/)(#{@package})-([^-]*?)/(.*)")
+    @rx = Regexp.new("(^elpa/)(#{Regexp.quote(@package)})-([^-]*?)/(.*)")
     @old = old_versions
     @ver = new_version
     if do_commit
@@ -97,8 +97,8 @@ class GitElpa
   end
 
   def commit_message
-    return "[Removing #{@package}] [removing old version: #{@old.join(',')}]"                   if @ver.nil? && @old.length == 1
-    return "[Removing #{@package}] [removing old versions: #{@old.join(',')}]"                  if @ver.nil? && @old.length > 1
+    return "[Removing #{@package} version: #{@old.join(',')}]"                                  if @ver.nil? && @old.length == 1
+    return "[Removing #{@package} versions: #{@old.join(',')}]"                                 if @ver.nil? && @old.length > 1
     return "[Updating #{@package}] version: #{@ver} [removing old versions: #{@old.join(',')}]" if @ver && @old.length > 1
     return "[Updating #{@package}] version: #{@ver} [removing old version: #{@old.first}]"      if @ver && @old.length == 1
     return "[Adding #{@package}] version: #{@ver}"                                              if @ver && @old.length == 0
