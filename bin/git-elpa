@@ -111,7 +111,7 @@ class GitElpa
 
   def commit(message = commit_message)
     add_to_index
-    puts @commit_message
+    puts message
     @g.commit message
   end
 
