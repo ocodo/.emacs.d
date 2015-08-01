@@ -7,11 +7,11 @@
 ;; Copyright (C) 1995-2015, Drew Adams, all rights reserved.
 ;; Created: Wed Oct 11 15:07:46 1995
 ;; Version: 0
-;; Package-Version: 20150718.1620
+;; Package-Version: 20150731.1443
 ;; Package-Requires: ()
-;; Last-Updated: Sat Jul 18 09:20:20 2015 (-0700)
+;; Last-Updated: Fri Jul 31 07:44:34 2015 (-0700)
 ;;           By: dradams
-;;     Update #: 3938
+;;     Update #: 3944
 ;; URL: http://www.emacswiki.org/highlight.el
 ;; Doc URL: http://www.emacswiki.org/HighlightLibrary
 ;; Keywords: faces, help, local
@@ -743,6 +743,8 @@
 ;;
 ;;(@* "Change log")
 ;;
+;; 2015/07/31 dadams
+;;     hlt-(un)highlight-regions: Use new wide-n-restrictions format: (NUM BEG END), not (NUM BEG . END).
 ;; 2015/07/11 dadams
 ;;     Added: hlt-highlight-regions, hlt-highlight-regions-in-buffers,
 ;;            hlt-unhighlight-regions, hlt-highlight-regions-in-buffers.
@@ -1757,12 +1759,12 @@ Optional 6th arg BUFFERS is the list of buffers to highlight.
 
   (defun hlt-highlight-regions (&optional regions face msgp mousep buffers)
     "Apply `hlt-highlight-region' to each region in `wide-n-restrictions'.
-Non-interactively, REGIONS is a list of (START . END) region limits.
+Non-interactively, REGIONS is a list of (START END) region limits.
 The other args are passed to `hlt-highlight-region'.
 You need library `wide-n.el' for this command."
     (interactive (list (wide-n-limits) nil t current-prefix-arg))
-    (dolist (start.end  regions)
-      (hlt-highlight-region (car start.end) (cdr start.end) face msgp mousep buffers)))
+    (dolist (start+end  regions)
+      (hlt-highlight-region (car start+end) (cadr start+end) face msgp mousep buffers)))
 
   (defun hlt-highlight-regions-in-buffers (buffers &optional regions msgp)
     "Use `hlt-highlight-regions' in each buffer of list BUFFERS.
@@ -1786,12 +1788,12 @@ Non-nil optional arg MSGP means show status messages."
 
   (defun hlt-unhighlight-regions (&optional regions face msgp mousep buffers)
     "Apply `hlt-unhighlight-region' to each region in `wide-n-restrictions'.
-Non-interactively, REGIONS is a list of (START . END) region limits.
+Non-interactively, REGIONS is a list of (START END) region limits.
 The other args are passed to `hlt-unhighlight-region'.
 You need library `wide-n.el' for this command."
     (interactive (list (wide-n-limits) nil t current-prefix-arg))
-    (dolist (start.end  regions)
-      (hlt-unhighlight-region (car start.end) (cdr start.end) face msgp mousep buffers)))
+    (dolist (start+end  regions)
+      (hlt-unhighlight-region (car start+end) (cadr start+end) face msgp mousep buffers)))
 
   (defun hlt-unhighlight-regions-in-buffers (buffers &optional regions msgp)
     "Use `hlt-unhighlight-regions' in each buffer of list BUFFERS.
