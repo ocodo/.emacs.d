@@ -6445,7 +6445,7 @@ See URL `http://jade-lang.com'."
 See URL `http://www.jshint.com'."
   :command ("jshint" "--checkstyle-reporter"
             (config-file "--config" flycheck-jshintrc)
-            source)
+            source-inplace)
   :error-parser flycheck-parse-checkstyle
   :error-filter flycheck-dequalify-error-ids
   :modes (js-mode js2-mode js3-mode)
@@ -6540,7 +6540,7 @@ error."
 See URL `http://www.jscs.info'."
   :command ("jscs" "--reporter=checkstyle"
             (config-file "--config" flycheck-jscsrc)
-            source)
+            source-inplace)
   :error-parser flycheck-parse-jscs
   :error-filter (lambda (errors)
                   (flycheck-remove-error-ids
@@ -6618,10 +6618,15 @@ See URL `https://github.com/mpeterv/luacheck'."
             source)
   :error-patterns
   ((warning line-start (file-name)
-            ":" line ":" column ": (" (id (and "W" (one-or-more digit)))
-            ") " (message) line-end)
+            ":" line ":" column
+            ": (" (id "W" (one-or-more digit)) ") "
+            (message) line-end)
    (error line-start (file-name)
-          ":" line ":" column ":" (message) line-end))
+          ":" line ":" column ":"
+          ;; `luacheck' before 0.11.0 did not output codes for errors, hence
+          ;; the ID is optional here
+          (optional " (" (id "E" (one-or-more digit)) ") ")
+          (message) line-end))
   :modes lua-mode)
 
 (flycheck-define-checker lua
@@ -6765,10 +6770,10 @@ See URL `http://puppetlabs.com/'."
   (
    ;; Patterns for Puppet 4
    (error line-start "Error: Could not parse for environment "
-          (one-or-more word) ":"
+          (one-or-more (in "a-z" "0-9" "_")) ":"
           (message) " at " (file-name) ":" line ":" column line-end)
    (error line-start "Error: Could not parse for environment "
-          (one-or-more word) ":"
+          (one-or-more (in "a-z" "0-9" "_")) ":"
           (message) " in file " (file-name) " at line " line ":" column
           line-end)
    ;; Errors from Puppet < 4
