@@ -134,6 +134,11 @@ class GitElpa
   def old_version_files
     @g.status.deleted.map(&:first).select{|f| @rx.match(f) }
   end
+
+  def commit_archives
+    @g.add "elpa/archives"
+    @g.commit "Updating elpa archives"
+  end
 end
 
 require 'optparse'
@@ -168,6 +173,11 @@ Usage: git-elpa [options]
         #{`git log --pretty=oneline -1`}
     EOD
     elpa.commit_all_packages
+    exit 0
+  end
+
+  opts.on "-e", "--elpa-archive", "Commit updated elpa/melpa archive index" do
+    elpa.commit_archives
     exit 0
   end
 end
