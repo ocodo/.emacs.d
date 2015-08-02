@@ -4,9 +4,9 @@
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: environment
+;; Package-Version: 20150801.104
 ;; URL: https://github.com/purcell/exec-path-from-shell
-;; Version: 20141212.846
-;; X-Original-Version: DEV
+;; Version: DEV
 
 ;; This file is not part of GNU Emacs.
 
@@ -90,16 +90,10 @@
   "Double-quote S, escaping any double-quotes already contained in it."
   (concat "\"" (replace-regexp-in-string "\"" "\\\\\"" s) "\""))
 
-(defun exec-path-from-shell--tcsh-p (shell)
-  "Return non-nil if SHELL appears to be tcsh."
-  (and shell (string-match "tcsh$" shell)))
-
-(defun exec-path-from-shell--login-arg (shell)
-  "Return the name of the --login arg for SHELL."
-  (if (exec-path-from-shell--tcsh-p shell) "-d" "-l"))
-
 (defcustom exec-path-from-shell-arguments
-  (list (exec-path-from-shell--login-arg (getenv "SHELL")) "-i")
+  (if (string-match-p "t?csh$" (getenv "SHELL"))
+      (list "-d")
+    (list "-l" "-i"))
   "Additional arguments to pass to the shell.
 
 The default value denotes an interactive login shell."
@@ -113,7 +107,7 @@ The default value denotes an interactive login shell."
 
 (defun exec-path-from-shell--standard-shell-p (shell)
   "Return non-nil iff SHELL supports the standard ${VAR-default} syntax."
-  (not (string-match "\\(fish\\|tcsh\\)$" shell)))
+  (not (string-match "\\(fish\\|t?csh\\)$" shell)))
 
 (defun exec-path-from-shell-printf (str &optional args)
   "Return the result of printing STR in the user's shell.
