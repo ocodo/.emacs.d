@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20150728.1942
+;; Package-Version: 20150801.416
 ;; Version: 0.4
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
@@ -713,6 +713,10 @@ width) in lines and characters respectively."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for retrieving and formatting keys
 
+(defsubst which-key--safe-lookup-key (keymap key)
+  "Version of `lookup-key' that allows KEYMAP to be nil. KEY is not checked."
+  (when (keymapp keymap) (lookup-key keymap key)))
+
 (defun which-key--maybe-replace (string repl-alist &optional literal)
   "Perform replacements on STRING.
 REPL-ALIST is an alist where the car of each element is the text
@@ -797,7 +801,7 @@ alists. Returns a list (key separator description)."
               (desc (cdr key-desc-cons))
               (group (which-key--group-p desc))
               (keys (concat (key-description which-key--current-prefix) " " key))
-              (local (eq (lookup-key local-map (kbd keys)) (intern desc)))
+              (local (eq (which-key--safe-lookup-key local-map (kbd keys)) (intern desc)))
               (key (which-key--maybe-replace
                     key which-key-key-replacement-alist))
               (desc (which-key--maybe-replace
@@ -1143,9 +1147,9 @@ Finally, show the buffer."
                (or
                 (keymapp (key-binding prefix-keys))
                 ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
-                (keymapp (lookup-key key-translation-map prefix-keys))
+                (keymapp (which-key--safe-lookup-key key-translation-map prefix-keys))
                 ;; just in case someone uses one of these
-                (keymapp (lookup-key function-key-map prefix-keys)))
+                (keymapp (which-key--safe-lookup-key function-key-map prefix-keys)))
                (not which-key-inhibit))
       (which-key--create-buffer-and-show prefix-keys))))
 
