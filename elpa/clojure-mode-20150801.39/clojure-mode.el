@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20150729.712
+;; Package-Version: 20150801.39
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 4.2.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
@@ -980,13 +980,19 @@ nil."
 
 
 
-(defun clojure-project-dir ()
-  "Return the absolute path to the project's root directory."
-  (file-truename
-   (or (locate-dominating-file default-directory
-                               "project.clj")
-       (locate-dominating-file default-directory
-                               "build.boot"))))
+(defun clojure-project-dir (&optional dir-name)
+  "Return the absolute path to the project's root directory.
+
+Use `default-directory' if DIR-NAME is nil."
+  (let ((dir-name (or dir-name default-directory)))
+    (let ((lein-project-dir (locate-dominating-file dir-name "project.clj"))
+          (boot-project-dir (locate-dominating-file dir-name "build.boot")))
+      (file-truename
+       (cond ((not lein-project-dir) boot-project-dir)
+             ((not boot-project-dir) lein-project-dir)
+             (t (if (file-in-directory-p lein-project-dir boot-project-dir)
+                    lein-project-dir
+                  boot-project-dir)))))))
 
 (defun clojure-project-relative-path (path)
   "Denormalize PATH by making it relative to the project root."
@@ -998,8 +1004,8 @@ nil."
 PATH is expected to be an absolute file path.
 
 If PATH is nil, use the path to the file backing the current buffer."
-  (let* ((relative (clojure-project-relative-path
-                    (or path (file-truename (buffer-file-name)))))
+  (let* ((path (or path (file-truename (buffer-file-name))))
+         (relative (clojure-project-relative-path path))
          (sans-file-type (substring relative 0 (- (length (file-name-extension path t)))))
          (sans-file-sep (mapconcat 'identity (cdr (split-string sans-file-type "/")) "."))
          (sans-underscores (replace-regexp-in-string "_" "-" sans-file-sep)))
