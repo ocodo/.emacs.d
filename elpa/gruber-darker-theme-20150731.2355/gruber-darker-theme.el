@@ -4,7 +4,7 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20141010.105
+;; Package-Version: 20150731.2355
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -237,6 +237,8 @@
    `(jabber-chat-prompt-system ((t (:foreground ,gruber-darker-green))))
    `(jabber-rare-time-face ((t (:foreground ,gruber-darker-green))))
    `(jabber-roster-user-online ((t (:foreground ,gruber-darker-green))))
+   `(jabber-activity-face ((t (:foreground ,gruber-darker-red))))
+   `(jabber-activity-personal-face ((t (:foreground ,gruber-darker-yellow :bold t))))
 
    ;; Line Highlighting
    `(highlight ((t (:background ,gruber-darker-bg+1 :foreground nil))))
