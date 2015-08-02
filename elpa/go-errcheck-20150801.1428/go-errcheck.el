@@ -3,8 +3,8 @@
 ;; Copyright (C) 2013 Dominik Honnef
 
 ;; Author: Dominik Honnef <dominikh@fork-bomb.org>
-;; Version: 20150302.1629
-;; X-Original-Version: 1.0.2
+;; Version: 1.1.1
+;; Package-Version: 20150801.1428
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -61,6 +61,18 @@ Note that this uses RE2 regex syntax, not Emacs regex syntax."
         (if ignorepkg
             (concat "-ignorepkg=\"" (mapconcat 'identity ignorepkg ",") "\""))))
 
+(defun go-errcheck--common-arguments ()
+  (list
+   (if buffer-file-name
+       (file-name-directory buffer-file-name)
+     default-directory)
+   (if current-prefix-arg
+       (split-string
+        (read-from-minibuffer "Space-separated list of packages to ignore: ")
+        " "))
+   (if current-prefix-arg
+       (read-from-minibuffer "RE2 regexp for ignoring functions: "))))
+
 ;;;###autoload
 (defun go-errcheck (directory ignorepkg ignore)
   "Run errcheck on the current buffer's directory and display the
@@ -71,29 +83,44 @@ IGNOREPKG and IGNORE which will override any defaults or file
 local variables.
 
 When called non-interactively, DIRECTORY, IGNOREPKG and IGNORE
-can be specified as arguments."
+can be specified as arguments. If DIRECTORY is nil, it will
+default to the buffer's directory."
+  (interactive (go-errcheck--common-arguments))
+  (go--errcheck nil directory ignorepkg ignore))
+
+(defun go-errcheck-pkg (pkg directory ignorepkg ignore)
+  "Run errcheck on the package specified in PKG and display the
+output in a compilation buffer.
+
+PKG may either be a proper package name, or it may be a glob such
+as ./... – the latter will be relative to DIRECTORY. When called
+interactively, DIRECTORY will be the current buffer's directory.
+If PKG is nil, this function will behave identical to
+`go-errcheck'.
+
+For an explanation of the arguments other than PKG, see
+`go-errcheck'."
   (interactive
-   (list
-    (if buffer-file-name
-        (file-name-directory buffer-file-name)
-      default-directory)
-    (if current-prefix-arg
-        (split-string
-         (read-from-minibuffer "ignorepkg (Space-separated list of packages to ignore): ")
-         " "))
-    (if current-prefix-arg
-        (read-from-minibuffer "ignore (RE2 regexp to ignore functions): "))))
+   (append
+    (list (read-from-minibuffer "Package name, or something like ./...: "))
+    (go-errcheck--common-arguments)))
+  (go--errcheck pkg directory ignorepkg ignore))
+
+(defun go--errcheck (pkg directory ignorepkg ignore)
+  (setq directory (or directory (if buffer-file-name
+                                    (file-name-directory buffer-file-name)
+                                  default-directory)))
   (add-hook 'compilation-start-hook 'go-errcheck--compilation-hook)
-  (let ((default-directory (file-name-directory (buffer-file-name))))
+  (let ((default-directory directory))
     (compile (concat
               "errcheck "
               (mapconcat 'identity (go-errcheck--build-arguments
                                     (or ignorepkg go-errcheck-ignorepkg)
                                     (or ignore go-errcheck-ignore))
                          " ")
-              " .")))
+              " "
+              pkg)))
   (remove-hook 'compilation-start-hook 'go-errcheck--compilation-hook))
-
 
 (provide 'go-errcheck)
 

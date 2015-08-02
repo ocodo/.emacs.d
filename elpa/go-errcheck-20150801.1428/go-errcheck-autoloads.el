@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "go-errcheck" "go-errcheck.el" (21753 17568
-;;;;;;  351401 0))
+;;;### (autoloads nil "go-errcheck" "go-errcheck.el" (21949 40281
+;;;;;;  835401 0))
 ;;; Generated autoloads from go-errcheck.el
 
 (autoload 'go-errcheck "go-errcheck" "\
@@ -16,7 +16,8 @@ IGNOREPKG and IGNORE which will override any defaults or file
 local variables.
 
 When called non-interactively, DIRECTORY, IGNOREPKG and IGNORE
-can be specified as arguments.
+can be specified as arguments. If DIRECTORY is nil, it will
+default to the buffer's directory.
 
 \(fn DIRECTORY IGNOREPKG IGNORE)" t nil)
 
