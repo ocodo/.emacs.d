@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2015, Drew Adams, all rights reserved.
 ;; Created: Thu May 21 13:31:43 2009 (-0700)
-;; Last-Updated: Wed Jul 29 12:05:08 2015 (-0700)
+;; Last-Updated: Sat Aug  1 09:43:20 2015 (-0700)
 ;;           By: dradams
-;;     Update #: 7139
+;;     Update #: 7164
 ;; URL: http://www.emacswiki.org/icicles-cmd2.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -206,8 +206,9 @@
 ;;    `icicle-get-anything-req-pat-chars',
 ;;    `icicle-get-anything-types', `icicle-goto-marker-1',
 ;;    `icicle-goto-marker-1-action', `icicle-group-regexp',
-;;    `icicle-imenu-command-p', `icicle-imenu-help',
-;;    `icicle-imenu-in-buffer-p', `icicle-imenu-macro-p',
+;;    `icicle-hide/show-comments-1', `icicle-imenu-command-p',
+;;    `icicle-imenu-help', `icicle-imenu-in-buffer-p',
+;;    `icicle-imenu-macro-p',
 ;;    `icicle-imenu-non-interactive-function-p',
 ;;    `icicle-Info-apropos-complete-match',
 ;;    `icicle-Info-build-node-completions',
@@ -5613,7 +5614,8 @@ If user option `icicle-ignore-comments-flag' is nil then include
 THINGs located within comments.  Non-nil means to ignore comments for
 searching.  You can toggle this option using `C-M-;' in the
 minibuffer, but depending on when you do so you might need to invoke
-this command again.
+this command again.  See also option
+`icicle-hide-whitespace-before-comment-flag'.
 
 Non-interactively, if optional arg PREDICATE is non-nil then it is a
 predicate that acceptable things must satisfy.  It is passed the thing
@@ -5701,11 +5703,15 @@ list includes the names of the symbols that satisfy
     (mapcar #'list types)))
 
 ;; Same as `hide/show-comments' in `hide-comnt.el'.
+;; Same as `isearchp-hide/show-comments' in `isearch-prop.el' (except that is only Emacs 23+).
 ;;
 (defun icicle-hide/show-comments (&optional hide/show start end)
   "Hide or show comments from START to END.
 Interactively, hide comments, or show them if you use a prefix arg.
 \(This is thus *NOT* a toggle command.)
+
+If option `icicle-hide-whitespace-before-comment-flag' is non-nil,
+then hide also any whitespace preceding a comment.
 
 Interactively, START and END default to the region limits, if active.
 Otherwise, including non-interactively, they default to `point-min'
@@ -5723,35 +5729,46 @@ show them.
 This function does nothing in Emacs versions prior to Emacs 21,
 because it needs `comment-search-forward'."
   (interactive `(,(if current-prefix-arg 'show 'hide) ,@(icicle-region-or-buffer-limits)))
-  (when (require 'newcomment nil t)     ; `comment-search-forward'
-    (comment-normalize-vars)            ; Per Stefan, should call this first.
+  (when (and comment-start              ; No-op if no comment syntax defined.
+             (require 'newcomment nil t)) ; `comment-search-forward', Emacs 21+.
+    (comment-normalize-vars 'NO-ERROR)  ; Must call this first.
     (unless start (setq start  (point-min)))
     (unless end   (setq end    (point-max)))
     (unless (<= start end) (setq start  (prog1 end (setq end  start))))
-    (let ((bufmodp           (buffer-modified-p))
-          (buffer-read-only  nil)
-          cbeg cend)
-      (unwind-protect
-           (save-excursion
-             (goto-char start)
-             (while (and (< start end)
-                         (save-excursion
-                           (setq cbeg  (comment-search-forward end 'NOERROR))))
-               (when (string= "" comment-end) (goto-char cbeg))
-               (setq cend  (if (string= "" comment-end)
-                               (min (1+ (line-end-position)) (point-max))
-                             (cond ((fboundp 'comment-forward) ; Emacs 22+
-                                    (and (comment-forward 1)
-                                         (point)))
-                                   ((goto-char cbeg)
-                                    (search-forward comment-end end 'NOERROR))
-                                   )))
-               (when (and cbeg cend)
-                 (if (eq 'hide hide/show)
-                     (put-text-property cbeg cend 'invisible t)
-                   (put-text-property cbeg cend 'invisible nil)))
-               (goto-char (setq start  (or cend  end)))))
-        (set-buffer-modified-p bufmodp)))))
+    (if (fboundp 'with-silent-modifications)
+        (with-silent-modifications      ; Emacs 23+.
+            (restore-buffer-modified-p nil) (icicle-hide/show-comments-1 hide/show start end))
+      (let ((bufmodp           (buffer-modified-p)) ; Emacs < 23.
+            (buffer-read-only  nil)
+            (buffer-file-name  nil))    ; Inhibit `ask-user-about-supersession-threat'.
+        (set-buffer-modified-p nil)
+        (unwind-protect (icicle-hide/show-comments-1 hide/show start end)
+          (set-buffer-modified-p bufmodp))))))
+
+;; Used only so that we can use `hide/show-comments' with older Emacs releases that do not
+;; have macro `with-silent-modifications' and built-in `restore-buffer-modified-p', which
+;; it uses.
+(defun icicle-hide/show-comments-1 (hide/show start end)
+  "Helper for `hide/show-comments'."
+  (let (cbeg cend)
+    (save-excursion
+      (goto-char start)
+      (while (and (< start end)  (save-excursion (setq cbeg  (comment-search-forward end 'NOERROR))))
+        (goto-char cbeg)
+        (save-excursion
+          (setq cend  (cond ((fboundp 'comment-forward) ; Emacs 22+
+                             (if (comment-forward 1)  (if (= (char-before) ?\n) (1- (point)) (point))  end))
+                            ((string= "" comment-end) (min (line-end-position) end))
+                            (t (search-forward comment-end end 'NOERROR)))))
+        (when icicle-hide-whitespace-before-comment-flag ; Hide preceding whitespace.
+          (if (fboundp 'looking-back)   ; Emacs 22+
+              (when (looking-back "\n?\\s-*" nil 'GREEDY) (setq cbeg  (match-beginning 0)))
+            (while (memq (char-before cbeg) '(?\   ?\t ?\f)) (setq cbeg  (1- cbeg)))
+            (when (eq (char-before cbeg) ?\n) (setq cbeg  (1- cbeg))))
+          ;; First line: Hide newline after comment.
+          (when (and (= cbeg (point-min))  (= (char-after cend) ?\n)) (setq cend  (min (1+ cend) end))))
+        (when (and cbeg  cend) (put-text-property cbeg cend 'invisible (eq 'hide hide/show)))
+        (goto-char (setq start  (or cend  end)))))))
 
 ;;; Same as `with-comments-hidden' in `hide-comnt.el', except doc here mentions `C-M-;'.
 (defmacro icicle-with-comments-hidden (start end &rest body)
@@ -5763,7 +5780,9 @@ minibuffer, but depending on when you do so you might need to invoke
 the current command again.
 
 See `icicle-hide/show-comments', which is used to hide and show the
-comments.  Note that prior to Emacs 21, this never hides comments."
+comments.  Note that prior to Emacs 21, this never hides comments.
+
+See also option `icicle-hide-whitespace-before-comment-flag'."
   (let ((result  (make-symbol "result"))
         (ostart  (make-symbol "ostart"))
         (oend    (make-symbol "oend")))
@@ -5802,8 +5821,9 @@ either PREDICATE or TRANSFORM-FN disqualifies the thing being scanned
 currently, then scanning skips forward to the next thing.  The scan
 does not dig inside the current thing to look for a qualified THING.
 
-This function respects both `icicle-search-complement-domain-p' and
-`icicle-ignore-comments-flag'."
+This function respects `icicle-search-complement-domain-p',
+`icicle-ignore-comments-flag', and
+`icicle-hide-whitespace-before-comment-flag'."
   (let ((add-bufname-p  (and buffer  icicle-show-multi-completion-flag))
         (temp-list      ())
         (last-beg       nil))
@@ -5960,7 +5980,8 @@ Interactively:
 Ignores (skips) comments if `icicle-ignore-comments-flag' is non-nil.
 You can toggle this ignoring of comments using `C-M-;' in the
 minibuffer, but depending on when you do so you might need to invoke
-the current command again.
+the current command again.  See also option
+`icicle-hide-whitespace-before-comment-flag'.
 
 If you use this command or `icicle-previous-visible-thing'
 successively, even mixing the two, you are prompted for the type of
