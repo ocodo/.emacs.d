@@ -4,7 +4,7 @@
 ;;
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20150608.1952
+;; Package-Version: 20150802.2138
 ;; Version: 0.0.1
 ;;
 ;;; Commentary
@@ -20,7 +20,7 @@
   'atom-one-dark
 
   '(default ((t (:foreground "#abb2bf" :background "#31343F" ))))
-  '(cursor ((t (:background "#8599FF" ))))
+  '(cursor ((t (:background "#528BFF" ))))
   '(fringe ((t (:background "#31343F" ))))
   '(region ((t (:background "#504945" ))))
   '(highlight ((t (:background "#484b5b"))))
