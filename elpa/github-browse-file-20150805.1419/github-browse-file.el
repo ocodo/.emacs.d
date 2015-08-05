@@ -5,7 +5,7 @@
 ;; Author: Ozan Sener <ozan@ozansener.com>
 ;; Homepage: https://github.com/osener/github-browse-file
 ;; Version: 0.4.0
-;; Package-Version: 20150525.633
+;; Package-Version: 20150805.1419
 ;; Keywords: convenience vc git github
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -143,7 +143,7 @@ default to current line."
       (when (eq (char-before (region-end)) ?\n) (cl-decf end))
       (if (>= start end)
           (format "L%d" start)
-        (format "L%d-%d" start end))))
+        (format "L%d-L%d" start end))))
    (github-browse-file-show-line-at-point
     (format "L%d" (line-number-at-pos (point))))))
 
