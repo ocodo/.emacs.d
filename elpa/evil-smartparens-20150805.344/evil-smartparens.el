@@ -4,9 +4,9 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/evil-smartparens
-;; Package-Version: 20150609.224
+;; Package-Version: 20150805.344
 ;; Keywords: evil smartparens
-;; Version: 0.1.1
+;; Version: 0.2.0
 ;; Package-Requires: ((evil "1.0") (cl-lib "0.3") (emacs "24.4") (smartparens "1.6.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -79,8 +79,10 @@ list of (fn args) to pass to `apply''"
       (progn
         (push major-mode sp-navigate-consider-stringlike-sexp)
         (evil-sp--new-ending (point)
-                             (evil-sp--point-after '(sp-up-sexp 1)
-                                                   '(sp-backward-down-sexp 1))
+                             (or (ignore-errors
+                                   (evil-sp--point-after '(sp-up-sexp 1)
+                                                         '(sp-backward-down-sexp 1)))
+                                 (point))
                              :no-error))
     (pop sp-navigate-consider-stringlike-sexp)))
 
@@ -118,6 +120,24 @@ list of (fn args) to pass to `apply''"
              (re-search-forward (sp--get-closing-regexp) (point-at-eol)
                                 :noerror)))))
 
+(evil-define-operator evil-sp-backward-delete-char (beg end type register)
+  :motion evil-backward-char
+  (interactive "<R><x>")
+  (condition-case user-error
+      (if (save-excursion (forward-char) (sp-point-in-empty-sexp))
+          (save-excursion (forward-char) (sp-delete-char))
+        (evil-sp-delete beg end type register))
+    ('error (progn (goto-char end) (evil-sp--fail)))))
+
+(evil-define-operator evil-sp-delete-char (beg end type register)
+  :motion evil-forward-char
+  (interactive "<R><x>")
+  (condition-case user-error
+      (if (save-excursion (forward-char) (sp-point-in-empty-sexp))
+          (save-excursion (forward-char) (sp-delete-char))
+        (evil-sp-delete beg end type register))
+    ('error (progn (goto-char beg) (evil-sp--fail)))))
+
 (defun evil-sp--add-bindings ()
   (when smartparens-strict-mode
     (evil-define-key 'normal evil-smartparens-mode-map
@@ -125,8 +145,8 @@ list of (fn args) to pass to `apply''"
       (kbd "c") #'evil-sp-change
       (kbd "y") #'evil-sp-yank
       (kbd "S") #'evil-sp-change-whole-line
-      (kbd "X") #'sp-backward-delete-char
-      (kbd "x") #'sp-delete-char)
+      (kbd "X") #'evil-sp-backward-delete-char
+      (kbd "x") #'evil-sp-delete-char)
     (evil-define-key 'visual evil-smartparens-mode-map
       (kbd "X") #'evil-sp-delete
       (kbd "x") #'evil-sp-delete))
@@ -174,6 +194,9 @@ list of (fn args) to pass to `apply''"
 (evil-define-operator evil-sp-change (beg end type register yank-handler)
   "Call `evil-change' with a balanced region"
   (interactive "<R><x><y>")
+  ;; #20 don't delete the space after a word
+  (when (save-excursion (goto-char end) (looking-back " " (- (point) 5)))
+    (setq end (1- end)))
   (if (or (evil-sp--override)
           (= beg end)
           (and (eq type 'block)
@@ -275,16 +298,17 @@ proper dispatching."
 
 Unfortunately this only works for lisps."
   (when (memq major-mode sp--lisp-modes)
-    (ignore-errors
-      (save-excursion
-        (beginning-of-defun)
-        (let ((parse-state (parse-partial-sexp (point) (or point (point)))))
-          (when parse-state
-            (let ((in-string-p (nth 3 parse-state))
-                  (depth (first parse-state)))
-              (if in-string-p
-                  (1+ depth)
-                depth))))))))
+    (let ((point (or point (point))))
+      (ignore-errors
+        (save-excursion
+          (beginning-of-defun)
+          (let ((parse-state (parse-partial-sexp (point) point)))
+            (when parse-state
+              (let ((in-string-p (nth 3 parse-state))
+                    (depth (first parse-state)))
+                (if in-string-p
+                    (1+ depth)
+                  depth)))))))))
 
 (defun evil-sp--depth-at (&optional point)
   "Return the depth at POINT.
@@ -296,7 +320,7 @@ Strings affect depth."
       (setq point (1- (car (sp-get-comment-bounds))))))
   (let ((fast-depth (evil-sp--fast-depth-at point))
         (depth 0))
-    (if nil
+    (if fast-depth
         fast-depth
       (save-excursion
         (when point
@@ -355,7 +379,7 @@ by decrementing BEG."
 
 (defun evil-sp--fail ()
   "Error out with a friendly message."
-  (error "Can't find a safe region to act on!"))
+  (user-error "That would leave the buffer unbalanced"))
 
 (provide 'evil-smartparens)
 ;;; evil-smartparens.el ends here
