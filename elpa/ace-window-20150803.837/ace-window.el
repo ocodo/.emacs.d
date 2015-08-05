@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20150723.144
+;; Package-Version: 20150803.837
 ;; Version: 0.9.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: window, location
@@ -203,7 +203,10 @@ LEAF is (PT . WND)."
                  (char
                   (string (avy--key-to-char (car (last path)))))
                  (path
-		  (mapconcat #'avy--key-to-char (reverse path) ""))
+                  (mapconcat
+                   (lambda (x) (string (avy--key-to-char x)))
+                   (reverse path)
+                   ""))
                  (t
                   (error "Bad `aw-leading-char-style': %S"
                          aw-leading-char-style)))
