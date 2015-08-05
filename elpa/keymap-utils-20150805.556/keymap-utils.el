@@ -6,7 +6,7 @@
 ;; Package-Requires: ((cl-lib "0.3"))
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
-;; Package-Version: 20150531.1541
+;; Package-Version: 20150805.556
 
 ;; This file is not part of GNU Emacs.
 
@@ -456,21 +456,6 @@ Also see `kmu-define-keys'."
       (if (eq def :remove)
           (kmu-remove-key keymap key)
         (kmu-define-key keymap key def)))))
-
-(defun save-kmu-define-keys (file mapvar feature bindings)
-  (with-current-buffer (find-file-noselect file)
-    (widen)
-    (if (re-search-forward (format "^(kmu-define-keys %s "
-                                   (ork-entry-get-symbol "mapvar"))
-                           nil t)
-        (progn (beginning-of-line)
-               (delete-region (point) (progn (end-of-defun) (point))))
-      (goto-char (point-max)))
-    (when bindings
-      (insert (format "(kmu-define-keys %s %s" mapvar feature))
-      (--each bindings
-        (insert (format "\n  %S %s" (car it) (cadr it))))
-      (insert ")\n"))))
 
 ;;; Keymap Mapping
 
