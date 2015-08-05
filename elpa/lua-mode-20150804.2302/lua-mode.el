@@ -12,7 +12,7 @@
 ;;              Aaron Smith <aaron-lua@gelatinous.com>.
 ;;
 ;; URL:         http://immerrr.github.com/lua-mode
-;; Package-Version: 20150518.942
+;; Package-Version: 20150804.2302
 ;; Version:     20130419
 ;;
 ;; This file is NOT part of Emacs.
@@ -95,6 +95,11 @@
 
 
 ;; rx-wrappers for Lua
+
+(eval-when-compile
+  ;; Silence compilation warning about `compilation-error-regexp-alist' defined
+  ;; in compile.el.
+  (require 'compile))
 
 (eval-and-compile
   (defvar lua-rx-constituents)
@@ -728,7 +733,8 @@ Groups 6-9 can be used in any of argument regexps."
   (lua--setq-local comment-start                  lua-comment-start)
   (lua--setq-local comment-start-skip             lua-comment-start-skip)
   (lua--setq-local comment-use-syntax             t)
-  (lua--setq-local comment-use-global-state       t)
+  (with-no-warnings
+    (lua--setq-local comment-use-global-state     t))
   (lua--setq-local imenu-generic-expression       lua-imenu-generic-expression)
 
 
@@ -1668,6 +1674,10 @@ This function just searches for a `end' at the beginning of a line."
           (replace-match "\\\\\\&" t)))
       (concat "'" (buffer-string) "'"))))
 
+;;;###autoload
+(defalias 'run-lua #'lua-start-process)
+
+;;;###autoload
 (defun lua-start-process (&optional name program startfile &rest switches)
   "Start a lua process named NAME, running PROGRAM.
 PROGRAM defaults to NAME, which defaults to `lua-default-application'.

@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "lua-mode" "lua-mode.el" (21851 62776 771401
+;;;### (autoloads nil "lua-mode" "lua-mode.el" (21954 40902 827401
 ;;;;;;  0))
 ;;; Generated autoloads from lua-mode.el
 
@@ -15,6 +15,15 @@ Major mode for editing Lua code.
 (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
 
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+
+(defalias 'run-lua #'lua-start-process)
+
+(autoload 'lua-start-process "lua-mode" "\
+Start a lua process named NAME, running PROGRAM.
+PROGRAM defaults to NAME, which defaults to `lua-default-application'.
+When called interactively, switch to the process buffer.
+
+\(fn &optional NAME PROGRAM STARTFILE &rest SWITCHES)" t nil)
 
 ;;;***
 
