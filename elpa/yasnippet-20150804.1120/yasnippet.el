@@ -725,7 +725,7 @@ defined direct keybindings to the command
                      yas--direct-keymaps))
            yas--tables))
 
-(defun yas--modes-to-activate ()
+(defun yas--modes-to-activate (&optional mode)
   "Compute list of mode symbols that are active for `yas-expand'
 and friends."
   (let (dfs)
@@ -740,8 +740,10 @@ and friends."
                                       (not (memq neighbour explored))
                                       (symbolp neighbour))
                             append (funcall dfs neighbour explored)))))
-    (remove-duplicates (append yas--extra-modes
-                               (funcall dfs major-mode)))))
+    (remove-duplicates (if mode
+                           (funcall dfs mode)
+                         (append yas--extra-modes
+                                 (funcall dfs major-mode))))))
 
 (defvar yas-minor-mode-hook nil
   "Hook run when `yas-minor-mode' is turned on.")
@@ -1333,15 +1335,17 @@ return an expression that when evaluated will issue an error."
             yas--direct-keymaps))
     table))
 
-(defun yas--get-snippet-tables ()
-  "Get snippet tables for current buffer.
+(defun yas--get-snippet-tables (&optional mode)
+  "Get snippet tables for MODE.
+
+MODE defaults to the current buffer's `major-mode'.
 
 Return a list of `yas--table' objects.  The list of modes to
 consider is returned by `yas--modes-to-activate'"
   (remove nil
           (mapcar #'(lambda (name)
                       (gethash name yas--tables))
-                  (yas--modes-to-activate))))
+                  (yas--modes-to-activate mode))))
 
 (defun yas--menu-keymap-get-create (mode &optional parents)
   "Get or create the menu keymap for MODE and its PARENTS.
@@ -1661,33 +1665,16 @@ file with the same uuid would replace the previous snippet.
 You can use `yas--parse-template' to return such lists based on
 the current buffers contents."
   (if yas--creating-compiled-snippets
-      (progn
+      (let ((print-length nil))
         (insert ";;; Snippet definitions:\n;;;\n")
-        (let ((literal-snippets (list))
-              (print-length nil))
-          (dolist (snippet snippets)
-            (let ((key                    (nth 0 snippet))
-                  (template-content       (nth 1 snippet))
-                  (name                   (nth 2 snippet))
-                  (condition              (nth 3 snippet))
-                  (group                  (nth 4 snippet))
-                  (expand-env             (nth 5 snippet))
-                  (file                   nil) ;; omit on purpose
-                  (binding                (nth 7 snippet))
-                  (uuid                   (nth 8 snippet)))
-              (push `(,key
-                      ,template-content
-                      ,name
-                      ,condition
-                      ,group
-                      ,expand-env
-                      ,file
-                      ,binding
-                      ,uuid)
-                    literal-snippets)))
-          (insert (pp-to-string
-                   `(yas-define-snippets ',mode ',literal-snippets)))
-          (insert "\n\n")))
+        (dolist (snippet snippets)
+          ;; We omit file because the snippet will be loaded from
+          ;; the compiled file instead, so deleting or changing
+          ;; the original won't have any effect.
+          (setcar (nthcdr 6 snippet) nil))
+        (insert (pp-to-string
+                 `(yas-define-snippets ',mode ',snippets)))
+        (insert "\n\n"))
     ;; Normal case.
     (let ((snippet-table (yas--table-get-create mode))
           (template nil))
@@ -2305,6 +2292,24 @@ Honours `yas-choose-tables-first', `yas-choose-keys-first' and
             (remove-duplicates (mapcan #'yas--table-templates tables)
                                :test #'equal))))
 
+(defun yas-lookup-snippet (name &optional mode noerror)
+  "Get the snippet content for the snippet NAME in MODE's tables.
+
+MODE defaults to the current buffer's `major-mode'.  If NOERROR
+is non-nil, then don't signal an error if there isn't any snippet
+called NAME.
+
+Honours `yas-buffer-local-condition'."
+  (let* ((yas-choose-tables-first nil)  ; avoid prompts
+         (yas-choose-keys-first nil)
+         (snippet (cl-find name (yas--all-templates
+                                 (yas--get-snippet-tables mode))
+                           :key #'yas--template-name :test #'string=)))
+    (cond
+     (snippet (yas--template-content snippet))
+     (noerror nil)
+     (t (error "No snippet named: %s" name)))))
+
 (defun yas-insert-snippet (&optional no-condition)
   "Choose a snippet to expand, pop-up a list of choices according
 to `yas-prompt-functions'.
@@ -2562,10 +2567,9 @@ and `kill-buffer' instead."
               ;;
               (not (yas--template-file yas--editing-template))
               (not (file-writable-p (yas--template-file yas--editing-template)))
-              (and (listp yas-snippet-dirs)
-                   (second yas-snippet-dirs)
-                   (not (string-match (expand-file-name (first yas-snippet-dirs))
-                                      (yas--template-file yas--editing-template)))))
+              (and (cdr-safe yas-snippet-dirs)
+                   (not (string-prefix-p (expand-file-name (car yas-snippet-dirs))
+                                         (yas--template-file yas--editing-template)))))
              (y-or-n-p (yas--format "Looks like a library or new snippet. Save to new file? ")))
     (let* ((option (first (yas--guess-snippet-directories (yas--template-table yas--editing-template))))
            (chosen (and option
