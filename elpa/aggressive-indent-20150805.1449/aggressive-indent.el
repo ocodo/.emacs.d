@@ -4,8 +4,8 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: http://github.com/Malabarba/aggressive-indent-mode
-;; Package-Version: 20150701.801
-;; Version: 1.1
+;; Package-Version: 20150805.1449
+;; Version: 1.1.2
 ;; Package-Requires: ((emacs "24.1") (names "20150125.9") (cl-lib "0.5"))
 ;; Keywords: indent lisp maint tools
 ;; Prefix: aggressive-indent
@@ -172,6 +172,7 @@ commands will NOT be followed by a re-indent."
   '((memq this-command aggressive-indent-protected-commands)
     (region-active-p)
     buffer-read-only
+    undo-in-progress
     (null (buffer-modified-p))
     (and (boundp 'smerge-mode) smerge-mode)
     (let ((line (thing-at-point 'line)))
