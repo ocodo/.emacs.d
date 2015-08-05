@@ -28,10 +28,7 @@
 (require 'alchemist-utils)
 (require 'alchemist-project)
 (require 'alchemist-test-mode)
-
-;; Tell the byte compiler to assume that functions are defined
-(eval-when-compile
-  (declare-function alchemist-server--mix "alchemist-server.el"))
+(require 'alchemist-server)
 
 (defgroup alchemist-mix nil
   "Emacs integration for Elixir's mix."
@@ -41,6 +38,7 @@
 ;; Variables
 
 (defvar alchemist-last-run-test nil)
+(defvar alchemist-mix-filter-output nil)
 
 (defcustom alchemist-mix-command "mix"
   "The shell command for mix."
@@ -108,7 +106,7 @@ If the command `universal-argument' is called before `alchemist-mix',
 a prompt for a specific mix environment in which the task will be
 executed, gets called."
   (interactive)
-  (alchemist-server--mix))
+  (alchemist-server--mix #'alchemist-mix-filter))
 
 (defun alchemist-mix-display-mix-buffer ()
   "Display the mix buffer when exists."
@@ -192,6 +190,17 @@ arg is set."
        (alchemist-utils-deprecated-message "alchemist-mix-local-with-path" "alchemist-mix"))
 (defun alchemist-mix-hex-search () (interactive)
        (alchemist-utils-deprecated-message "alchemist-mix-local-hex-search" "alchemist-mix"))
+
+(defun alchemist-mix-filter (_process output)
+  (with-local-quit
+    (setq alchemist-mix-filter-output (cons output alchemist-mix-filter-output))
+    (when (alchemist-server-contains-end-marker-p output)
+      (let* ((output (alchemist-server-prepare-filter-output alchemist-mix-filter-output))
+             (tasks (split-string output "\n"))
+             (selected-task (alchemist-mix--completing-read "mix: " tasks))
+             (command (read-shell-command "mix " (concat selected-task " "))))
+        (setq alchemist-mix-filter-output nil)
+        (alchemist-mix-execute (list command) current-prefix-arg)))))
 
 (define-derived-mode alchemist-mix-mode fundamental-mode "Mix Mode"
   "Major mode for presenting Mix tasks.
