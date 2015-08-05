@@ -4,7 +4,7 @@
 
 ;; Author: Ivan Malison <IvanMalison@gmail.com>
 ;; Keywords: org projectile todo
-;; Package-Version: 20150701.1057
+;; Package-Version: 20150804.327
 ;; URL: https://github.com/IvanMalison/org-projectile
 ;; Version: 0.1.0
 ;; Package-Requires: ((projectile "0.11.0") (dash "2.10.0"))
@@ -39,6 +39,7 @@
 (defvar org-projectile:linked-capture-template "* TODO %? %A\n")
 
 (defvar org-projectile:force-linked t)
+(defvar org-projectile:counts-in-heading t)
 (defvar org-projectile:subheading-selection t)
 
 (defvar org-projectile:project-name-to-org-file
@@ -366,7 +367,8 @@
       (progn
         (goto-char (point-max))
         (or (bolp) (insert "\n"))
-        (insert "* " linked-heading)))
+        (insert "* " linked-heading)
+        (when org-projectile:counts-in-heading (insert " [/]"))))
     (nth 4 (org-heading-components))))
 
 (defun org-projectile:linked-heading (heading)
