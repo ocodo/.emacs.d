@@ -10,7 +10,7 @@
 ;; URL: https://github.com/elixir-lang/emacs-elixir
 ;; Created: Mon Nov 7 2011
 ;; Keywords: languages elixir
-;; Version: 2.2.5
+;; Version: 2.2.6
 ;; Package-Requires: ((emacs "24") (pkg-info "0.4"))
 
 ;; This file is not a part of GNU Emacs.
@@ -175,7 +175,7 @@
       ;; Finally, like other identifiers, it can be terminated with either `?'
       ;; or `!'.
       (module-names . ,(rx symbol-start
-                           (optional "%")
+                           (optional (or "%" "&"))
                            (one-or-more (any "A-Z"))
                            (zero-or-more (any "A-Z" "a-z" "_" "0-9"))
                            (zero-or-more
@@ -184,24 +184,10 @@
                                  (zero-or-more (any "A-Z" "a-z" "_" "0-9"))))
                            (optional (or "!" "?"))
                            symbol-end))
-      (operators1 . ,(rx symbol-start
-                         (or "<" ">" "+" "-" "*" "/" "!" "^" "&")
-                         symbol-end))
-      (operators2 . ,(rx symbol-start
-                         (or
-                          "==" "!=" "<=" ">=" "&&" "||" "<>" "++" "--" "|>" "=~"
-                          "->" "<-" "|" "." "=")
-                         symbol-end))
-      (operators3 . ,(rx symbol-start
-                         (or "<<<" ">>>" "|||" "&&&" "^^^" "~~~" "===" "!==")
-                         symbol-end))
       (pseudo-var . ,(rx symbol-start
                          (or "_" "__MODULE__" "__DIR__" "__ENV__" "__CALLER__"
                              "__block__" "__aliases__")
                          symbol-end))
-      (punctuation . ,(rx symbol-start
-                          (or "\\" "<<" ">>" "=>" "(" ")" ":" ";" "" "[" "]")
-                          symbol-end))
       (sigils . ,(rx "~" (or "B" "C" "R" "S" "b" "c" "r" "s" "w")))))
 
   (defmacro elixir-rx (&rest sexps)
@@ -388,8 +374,8 @@ is used to limit the scan."
     ;; Variable definitions
     (,(elixir-rx (group identifiers)
                  (zero-or-more space)
-                 "="
-                 (or (zero-or-more space)
+                 (repeat 1 "=")
+                 (or (or sigils identifiers space)
                      (one-or-more "\n")))
      1 font-lock-variable-name-face)
 
