@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# contributor: Mark Karpov
-# name: defclass
-# key: defclass
-# --
-(defclass ${1:name} (${2:parents})
-  ($0)${3:
-  (:documentation "${4:doc}")})

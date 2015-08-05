@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# contributor: Mark Karpov
-# name: case
-# key: case
-# --
-(case ${1:key-form}
-  (${2:match} ${3:result})${4:
-  (t ${5:otherwise})})

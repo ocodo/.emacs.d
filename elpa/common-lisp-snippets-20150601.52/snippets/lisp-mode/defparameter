@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# contributor: Mark Karpov
-# name: defparameter
-# key: defparameter
-# --
-(defparameter *${1:name}* ${2:nil}${3:
- "${4:doc}"})
-$0
