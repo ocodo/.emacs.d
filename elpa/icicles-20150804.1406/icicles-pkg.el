@@ -1,4 +1,4 @@
-(define-package "icicles" "20150801.1701" "Minibuffer input completion and cycling." 'nil :url "http://www.emacswiki.org/icicles.el" :keywords
+(define-package "icicles" "20150804.1406" "Minibuffer input completion and cycling." 'nil :url "http://www.emacswiki.org/icicles.el" :keywords
   '("extensions" "help" "abbrev" "local" "minibuffer" "projects" "keys" "apropos" "completion" "matching" "regexp" "command"))
 ;; Local Variables:
 ;; no-byte-compile: t
