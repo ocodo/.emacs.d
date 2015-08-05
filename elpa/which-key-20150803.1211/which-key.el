@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20150801.416
-;; Version: 0.4
+;; Package-Version: 20150803.1211
+;; Version: 0.5.1
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
 
@@ -24,8 +24,18 @@
 
 ;;; Commentary:
 
-;;  This is a rewrite of guide-key https://github.com/kai2nenobu/guide-key. See
-;;  https://github.com/justbur/emacs-which-key for more information.
+;; which-key is a minor mode for Emacs that displays the key bindings following
+;; your currently entered incomplete command (a prefix) in a popup. For example,
+;; after enabling the minor mode if you enter C-x and wait for the default of 1
+;; second the minibuffer will expand with all of the available key bindings that
+;; follow C-x (or as many as space allows given your settings). This includes
+;; prefixes like C-x 8 which are shown in a different face. Screenshots of what
+;; the popup will look like along with information about additional features can
+;; be found at https://github.com/justbur/emacs-which-key.
+;;
+;; which-key started as a rewrite of guide-key
+;; (https://github.com/kai2nenobu/guide-key), but the feature sets have since
+;; diverged.
 
 ;;; Code:
 
@@ -87,7 +97,8 @@ in the first example."
   :type '(alist :key-type regexp :value-type string))
 
 (defcustom which-key-description-replacement-alist
-  '(("Prefix Command" . "prefix") ("which-key-show-next-page" . "wk next pg"))
+  '(("Prefix Command" . "prefix") ("which-key-show-next-page" . "wk next pg")
+    ("\\`\\?\\?\\'" . "lambda"))
   "See `which-key-key-replacement-alist'.
 This is a list of lists for replacing descriptions."
   :group 'which-key
@@ -911,33 +922,32 @@ Returns a plist that holds the page strings, as well as metadata."
   (let ((cols-w-widths (mapcar #'which-key--pad-column
                                (-partition-all avl-lines keys)))
         (page-width 0) (n-pages 0) (n-keys 0)
-        page-cols pages page-widths keys/page)
-    (if (> (car (car cols-w-widths)) avl-width)
-        ;; give up if first column doesn't fit
+        page-cols pages page-widths keys/page col)
+    (if (> (apply #'max (mapcar #'car cols-w-widths)) avl-width)
+        ;; give up if no columns fit
         (list :pages nil :page-height 0 :page-widths '(0)
               :keys/page '(0) :n-pages 0 :tot-keys 0)
-      (dolist (col cols-w-widths)
-        (if (<= (+ (car col) page-width) avl-width)
-            (progn (push (cdr col) page-cols)
-                   (setq page-width (+ page-width (car col))
-                         n-keys  (+ (length (cdr col)) n-keys)))
-          (when (> (length page-cols) 0)
-            (push (which-key--join-columns page-cols) pages)
-            (push n-keys keys/page)
-            (push page-width page-widths)
-            (setq n-pages (1+ n-pages)
-                  n-keys (length (cdr col))
-                  page-cols (list (cdr col))
-                  page-width (car col)))))
-      (when (> (length page-cols) 0)
+      (while cols-w-widths
+        ;; start new page
+        (cl-incf n-pages)
+        (setq col (pop cols-w-widths)
+              page-cols (list (cdr col))
+              page-width (car col)
+              n-keys (length (cdr col)))
+        ;; add additional columns as long as they fit
+        (while (and cols-w-widths
+                    (<= (+ (caar cols-w-widths) page-width) avl-width))
+          (setq col (pop cols-w-widths))
+          (push (cdr col) page-cols)
+          (cl-incf page-width (car col))
+          (cl-incf n-keys (length (cdr col))))
         (push (which-key--join-columns page-cols) pages)
         (push n-keys keys/page)
-        (push page-width page-widths)
-        (setq n-pages (1+ n-pages)))
+        (push page-width page-widths))
       (list :pages (reverse pages) :page-height avl-lines
             :page-widths (reverse page-widths)
             :keys/page (reverse keys/page) :n-pages n-pages
-            :tot-keys (cl-reduce '+ keys/page :initial-value 0)))))
+            :tot-keys (apply #'+ keys/page)))))
 
 (defun which-key--create-pages (keys sel-win-width)
   "Create page strings using `which-key--partition-columns'.
