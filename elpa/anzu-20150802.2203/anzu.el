@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20150517.2142
-;; Version: 0.53
+;; Package-Version: 20150802.2203
+;; Version: 0.54
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -309,7 +309,7 @@
         (add-hook 'isearch-mode-hook 'anzu--cons-mode-line-search nil t)
         (add-hook 'isearch-mode-end-hook 'anzu--reset-mode-line nil t))
     (remove-hook 'isearch-update-post-hook 'anzu--update-post-hook t)
-    (remove-hook 'isearch-mode-hook 'anzu--cons-mode-line t)
+    (remove-hook 'isearch-mode-hook 'anzu--cons-mode-line-search t)
     (remove-hook 'isearch-mode-end-hook 'anzu--reset-mode-line t)
     (anzu--reset-mode-line)))
 
