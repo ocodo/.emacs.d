@@ -4,8 +4,8 @@
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20150728.137
-;; Version: 0.1.27
+;; Package-Version: 20150804.1854
+;; Version: 0.1.28
 
 ;;; Commentary:
 ;;  Color theme for Emacs, when soothe and gruvbox collide.
@@ -297,7 +297,8 @@
    ;; Use tip colors for the pos-tip color vars (see below)
 
    ;; sh mode
-   `(sh-heredoc                                ((t (:foreground ,darktooth-bright_blue :background nil))))
+   `(sh-heredoc                                ((t (:foreground ,darktooth-darkslategray4 :background nil))))
+   `(sh-quoted-exec                            ((t (:foreground ,darktooth-darkslategray4 :background nil))))
 
    ;; Company Mode
    `(company-echo                              ((t (:inherit company-echo-common ))))
