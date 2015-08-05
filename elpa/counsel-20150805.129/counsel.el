@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150730.659
+;; Package-Version: 20150805.129
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -358,7 +358,8 @@ INITIAL-INPUT can be given as the initial minibuffer input."
             :matcher #'counsel--find-file-matcher
             :action
             (lambda (x)
-              (find-file (expand-file-name x ivy--directory)))
+              (with-ivy-window
+                (find-file (expand-file-name x ivy--directory))))
             :preselect (when counsel-find-file-at-point
                          (require 'ffap)
                          (ffap-guesser))
