@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20150729.1953
-;; Version: 0.40
+;; Package-Version: 20150803.2313
+;; Version: 0.41
 ;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,9 @@
 
 (defsubst helm-ag--windows-p ()
   (memq system-type '(ms-dos windows-nt)))
+
+(defsubst helm-ag--has-drive-letter-p (path)
+  (string-match-p "\\`[a-zA-Z]:" path))
 
 (defcustom helm-ag-base-command
   (if (helm-ag--windows-p)
@@ -253,12 +256,20 @@ They are specified to `--ignore' options."
       (unless (file-directory-p target)
         target))))
 
+(defun helm-ag--extract-file-and-line (cand)
+  (if (and (helm-ag--windows-p) (helm-ag--has-drive-letter-p cand))
+      (when (string-match "\\(\\`[a-zA-Z]:[^:]+\\):\\([^:]+\\)" cand)
+        (cons (match-string-no-properties 1 cand)
+              (match-string-no-properties 2 cand)))
+    (let ((elems (split-string cand ":")))
+      (cons (cl-first elems) (cl-second elems)))))
+
 (defun helm-ag--find-file-action (candidate find-func this-file &optional persistent)
-  (let* ((elems (split-string candidate ":"))
-         (filename (or this-file (cl-first elems)))
+  (let* ((file-line (helm-ag--extract-file-and-line candidate))
+         (filename (or this-file (car file-line)))
          (line (if this-file
-                   (cl-first elems)
-                 (cl-second elems)))
+                   (car file-line)
+                 (cdr file-line)))
          (default-directory (or helm-ag--default-directory
                                 helm-ag--last-default-directory
                                 default-directory)))
@@ -750,7 +761,8 @@ Continue searching the parent directory? "))
                     targets))))))
 
 (defun helm-ag--do-ag-candidate-process ()
-  (let* ((default-directory (or helm-ag--default-directory
+  (let* ((non-essential nil)
+         (default-directory (or helm-ag--default-directory
                                 helm-ag--last-default-directory
                                 default-directory))
          (cmd-args (helm-ag--construct-do-ag-command helm-pattern))
@@ -793,14 +805,13 @@ Continue searching the parent directory? "))
   "Keymap for `helm-do-ag'.")
 
 (defvar helm-source-do-ag
-  `((name . "The Silver Searcher")
-    (candidates-process . helm-ag--do-ag-candidate-process)
-    (persistent-action . helm-ag--persistent-action)
-    (action . ,helm-ag--actions)
-    (no-matchplugin)
-    (nohighlight)
-    (requires-pattern . 3)
-    (candidate-number-limit . 9999)))
+  (helm-build-async-source "The Silver Searcher"
+    :candidates-process 'helm-ag--do-ag-candidate-process
+    :persistent-action  'helm-ag--persistent-action
+    :action helm-ag--actions
+    :nohighlight t
+    :requires-pattern 3
+    :candidate-number-limit 9999))
 
 (defun helm-ag--do-ag-up-one-level ()
   (interactive)
@@ -837,14 +848,21 @@ Continue searching the parent directory? "))
   (when (and current-prefix-arg (= (abs (prefix-numeric-value current-prefix-arg)) 4))
     (helm-grep-get-file-extensions helm-ag--default-target)))
 
-(defsubst helm-do-ag--is-target-one-directory-p (targets)
+(defsubst helm-do-ag--target-one-directory-p (targets)
   (and (listp targets) (= (length targets) 1) (file-directory-p (car targets))))
 
-(defsubst helm-do-ag--helm ()
-  (helm-ag--do-ag-set-command)
-  (helm :sources '(helm-source-do-ag) :buffer "*helm-ag*"
-        :input (helm-ag--insert-thing-at-point helm-ag-insert-at-point)
-        :keymap helm-do-ag-map))
+(defun helm-do-ag--helm ()
+  (let ((search-dir (if (not (helm-ag--windows-p))
+                        helm-ag--default-directory
+                      (if (helm-do-ag--target-one-directory-p helm-ag--default-target)
+                          (car helm-ag--default-target)
+                        helm-ag--default-directory))))
+    (helm-attrset 'name (helm-ag--helm-header search-dir)
+                  helm-source-do-ag)
+    (helm-ag--do-ag-set-command)
+    (helm :sources '(helm-source-do-ag) :buffer "*helm-ag*"
+          :input (helm-ag--insert-thing-at-point helm-ag-insert-at-point)
+          :keymap helm-do-ag-map)))
 
 ;;;###autoload
 (defun helm-do-ag-this-file ()
@@ -870,14 +888,12 @@ Continue searching the parent directory? "))
                                             :marked-candidates t :must-match t)))))
          (helm-do-ag--extensions (when (and helm-ag--default-target (not basedir))
                                    (helm-ag--do-ag-searched-extensions)))
-         (one-directory-p (helm-do-ag--is-target-one-directory-p
+         (one-directory-p (helm-do-ag--target-one-directory-p
                            helm-ag--default-target)))
     (helm-ag--set-do-ag-option)
     (helm-ag--set-command-feature)
     (helm-ag--save-current-context)
     (helm-attrset 'search-this-file this-file helm-source-do-ag)
-    (helm-attrset 'name (helm-ag--helm-header helm-ag--default-directory)
-                  helm-source-do-ag)
     (if (or (helm-ag--windows-p) (not one-directory-p)) ;; Path argument must be specified on Windows
         (helm-do-ag--helm)
       (let* ((helm-ag--default-directory
