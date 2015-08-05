@@ -1,13 +1,13 @@
 ;;; back-button.el --- Visual navigation through mark rings
 ;;
-;; Copyright (c) 2012-13 Roland Walker
+;; Copyright (c) 2012-2015 Roland Walker
 ;;
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/back-button
 ;; URL: http://raw.githubusercontent.com/rolandwalker/back-button/master/back-button.el
-;; Version: 20140508.1341
-;; X-Original-Version: 0.6.6
-;; Last-Updated: 24 Oct 2013
+;; Package-Version: 20150804.1304
+;; Version: 0.6.8
+;; Last-Updated:  4 Aug 2015
 ;; EmacsWiki: BackButton
 ;; Keywords: convenience, navigation, interface
 ;; Package-Requires: ((nav-flash "1.0.0") (smartrep "0.0.3") (ucs-utils "0.7.2") (list-utils "0.4.2") (persistent-soft "0.8.8") (pcache "0.2.3"))
@@ -223,7 +223,6 @@
 (declare-function ucs-utils-char                    "ucs-utils.el")
 (declare-function smartrep-define-key               "smartrep.el")
 (declare-function visible-mark-initialize-overlays  "visible-mark.el")
-(declare-function visible-mark-initialize-faces     "visible-mark.el")
 (declare-function visible-mark-move-overlays        "visible-mark.el")
 (declare-function back-button-push-mark             "back-button.el")
 
@@ -236,7 +235,7 @@
 ;;;###autoload
 (defgroup back-button nil
   "Visual navigation through mark rings."
-  :version "0.6.6"
+  :version "0.6.8"
   :link '(emacs-commentary-link :tag "Commentary" "back-button")
   :link '(url-link :tag "GitHub" "http://github.com/rolandwalker/back-button")
   :link '(url-link :tag "EmacsWiki" "http://emacswiki.org/emacs/BackButton")
@@ -628,7 +627,8 @@ TYPE may be 'global or 'local."
         (when (not (minibufferp (current-buffer)))
           (let ((visible-mark-max (length mark-ring)))
             (visible-mark-initialize-overlays)
-            (visible-mark-initialize-faces)
+            (when (fboundp 'visible-mark-initialize-faces)
+              (visible-mark-initialize-faces))
             (let ((mark-ring mark-ring))
               (when (eq type 'global)
                 (setq mark-ring global-mark-ring))

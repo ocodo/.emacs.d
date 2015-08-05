@@ -1,13 +1,10 @@
 ;;; back-button-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (back-button-global-forward back-button-global-backward
-;;;;;;  back-button-local-forward back-button-local-backward back-button-global
-;;;;;;  back-button-local back-button-mode back-button-push-mark-local-and-global
-;;;;;;  back-button-keys back-button-index back-button) "back-button"
-;;;;;;  "back-button.el" (21418 53840 0 0))
+;;;### (autoloads nil "back-button" "back-button.el" (21954 41116
+;;;;;;  59401 0))
 ;;; Generated autoloads from back-button.el
 
 (let ((loads (get 'back-button 'custom-loads))) (if (member '"back-button" loads) nil (put 'back-button 'custom-loads (cons '"back-button" loads))))
@@ -124,16 +121,9 @@ This command is much like the reverse of `pop-global-mark'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("back-button-pkg.el") (21418 53840 850564
-;;;;;;  0))
-
-;;;***
-
-(provide 'back-button-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; back-button-autoloads.el ends here
