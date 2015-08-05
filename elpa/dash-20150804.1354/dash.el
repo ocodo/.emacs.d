@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 2.11.0
-;; Package-Version: 20150717.1321
+;; Package-Version: 20150804.1354
 ;; Keywords: lists
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -1585,10 +1585,10 @@ Vectors:
                    If the PATTERN is longer than SOURCE, an `error' is
                    thrown.
 
-  [a1 a2 a3 ... &rest rest] ) - as above, but bind the rest of
-                                the sequence to REST.  This is
-                                conceptually the same as improper list
-                                matching (a1 a2 ... aN . rest)
+  [a1 a2 a3 ... &rest rest] - as above, but bind the rest of
+                              the sequence to REST.  This is
+                              conceptually the same as improper list
+                              matching (a1 a2 ... aN . rest)
 
 Key/value stores:
 
