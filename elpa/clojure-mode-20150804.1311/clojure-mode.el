@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20150801.39
+;; Package-Version: 20150804.1311
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 4.2.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
@@ -381,7 +381,7 @@ Called by `imenu--generic-function'."
        (2 font-lock-type-face nil t))
       ;; Function definition (anything that starts with def and is not
       ;; listed above)
-      (,(concat "(\\(?:[a-z\.-]+/\\)?\\(def\[a-z\-\]*-?\\)"
+      (,(concat "(\\(?:[a-z\.-]+/\\)?\\(def[^ \r\n\t]*\\)"
                 ;; Function declarations
                 "\\>"
                 ;; Any whitespace
@@ -983,16 +983,18 @@ nil."
 (defun clojure-project-dir (&optional dir-name)
   "Return the absolute path to the project's root directory.
 
-Use `default-directory' if DIR-NAME is nil."
+Use `default-directory' if DIR-NAME is nil.
+Return nil if not inside a project."
   (let ((dir-name (or dir-name default-directory)))
     (let ((lein-project-dir (locate-dominating-file dir-name "project.clj"))
           (boot-project-dir (locate-dominating-file dir-name "build.boot")))
-      (file-truename
-       (cond ((not lein-project-dir) boot-project-dir)
-             ((not boot-project-dir) lein-project-dir)
-             (t (if (file-in-directory-p lein-project-dir boot-project-dir)
-                    lein-project-dir
-                  boot-project-dir)))))))
+      (when (or lein-project-dir boot-project-dir)
+        (file-truename
+         (cond ((not lein-project-dir) boot-project-dir)
+               ((not boot-project-dir) lein-project-dir)
+               (t (if (file-in-directory-p lein-project-dir boot-project-dir)
+                      lein-project-dir
+                    boot-project-dir))))))))
 
 (defun clojure-project-relative-path (path)
   "Denormalize PATH by making it relative to the project root."
