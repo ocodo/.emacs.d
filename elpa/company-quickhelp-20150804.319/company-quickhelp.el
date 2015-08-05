@@ -4,9 +4,9 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/company-quickhelp
-;; Package-Version: 20150717.228
+;; Package-Version: 20150804.319
 ;; Keywords: company popup documentation quickhelp
-;; Version: 1.1.2
+;; Version: 1.2.0
 ;; Package-Requires: ((emacs "24.4") (company "0.8.9") (pos-tip "0.4.6"))
 
 ;; This file is not part of GNU Emacs.
@@ -45,8 +45,12 @@
   :group 'company)
 
 (defcustom company-quickhelp-delay 0.5
-  "Delay, in seconds, before the quickhelp popup appears."
-  :type 'number
+  "Delay, in seconds, before the quickhelp popup appears.
+
+If set to nil the popup won't automatically appear, but can still
+be triggered manually using `company-quickhelp-show'."
+  :type '(choice (number :tag "Delay in seconds")
+                 (const :tag "Don't popup help automatically" nil))
   :group 'company-quickhelp)
 
 (defcustom company-quickhelp-max-lines nil
@@ -54,6 +58,12 @@
   :type '(choice (integer :tag "Max lines to show in popup")
                  (const :tag "Don't limit the number of lines shown" nil))
   :group 'company-quickhelp)
+
+(defvar company-quickhelp-mode-map
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap (kbd "M-h") #'company-quickhelp-manual-begin)
+    keymap)
+  "The keymap used by `company-quickhelp'.")
 
 (defvar company-quickhelp--timer nil
   "Quickhelp idle timer.")
@@ -67,9 +77,11 @@
 (defun company-quickhelp-frontend (command)
   "`company-mode' front-end showing documentation in a `pos-tip' popup."
   (pcase command
-    (`post-command (company-quickhelp--set-timer))
+    (`post-command (when company-quickhelp-delay
+                     (company-quickhelp--set-timer)))
     (`hide
-     (company-quickhelp--cancel-timer)
+     (when company-quickhelp-delay
+       (company-quickhelp--cancel-timer))
      (pos-tip-hide))))
 
 (defun company-quickhelp--doc-and-meta (doc-buffer)
@@ -83,11 +95,13 @@
       (when (= (line-number-at-pos)
                (save-excursion (goto-char (point-max)) (line-number-at-pos)))
         (setq truncated nil))
-      ;; [back] appears at the end of the help buffer
       (while (and (not (= (line-number-at-pos) 1))
-                  (or (looking-at-p "\\[back\\]")
-                      (looking-at-p "\\[source\\]")
-                      (looking-at-p "^\\s-*$")))
+                  (or
+                   ;; [back] appears at the end of the help elisp help buffer
+                   (looking-at-p "\\[back\\]")
+                   ;; [source] cider's help buffer contains a link to source
+                   (looking-at-p "\\[source\\]")
+                   (looking-at-p "^\\s-*$")))
         (forward-line -1))
       (list :doc (buffer-substring-no-properties (point-min) (point-at-eol))
             :truncated truncated))))
@@ -111,18 +125,32 @@ just grab the first candidate and press forward."
             (concat doc "\n\n[...]")
           doc)))))
 
+(defun company-quickhelp-manual-begin ()
+  "Manually trigger the `company-quickhelp' popup for the
+currently active `company' completion candidate."
+  (interactive)
+  ;; This might seem a bit roundabout, but when I attempted to call
+  ;; `company-quickhelp--show' in a more direct manner it triggered a
+  ;; redisplay of company's list of completion candidates which looked
+  ;; quite weird.
+  (let ((company-quickhelp-delay 0.01))
+    (company-quickhelp--set-timer)))
+
 (defun company-quickhelp--show ()
   (company-quickhelp--ensure-compatibility)
   (company-quickhelp--cancel-timer)
   (let* ((selected (nth company-selection company-candidates))
          (doc (company-quickhelp--doc selected))
          (ovl company-pseudo-tooltip-overlay)
-         (overlay-width (* (frame-char-width) (if ovl (overlay-get ovl 'company-width) 0)))
-         (overlay-position (* (frame-char-width) (- (if ovl (overlay-get ovl 'company-column) 1) 1)))
+         (overlay-width (* (frame-char-width)
+                           (if ovl (overlay-get ovl 'company-width) 0)))
+         (overlay-position (* (frame-char-width)
+                              (- (if ovl (overlay-get ovl 'company-column) 1) 1)))
          (x-gtk-use-system-tooltips nil))
     (when (and ovl doc)
       (with-no-warnings
-        (pos-tip-show doc nil (overlay-start ovl) nil 300 80 nil (+ overlay-width overlay-position) 1)))))
+        (pos-tip-show doc nil (overlay-start ovl) nil 300 80 nil
+                      (+ overlay-width overlay-position) 1)))))
 
 (defun company-quickhelp--set-timer ()
   (when (null company-quickhelp--timer)
@@ -144,11 +172,11 @@ just grab the first candidate and press forward."
   (cond
    ((or (not (fboundp 'x-hide-tip))
         (not (fboundp 'x-show-tip)))
-    (error "Company-quickhelp doesn't work on your system.
-Most likely this means you're on a mac with an Emacs build using Cocoa instead of X."))
+    (user-error "Company-quickhelp doesn't work on your system.
+Most likely this means you're on a mac with an Emacs build using Cocoa instead of X"))
    ((or (null window-system)
         (eq window-system 'pc))
-    (error "Company-quickhelp doesn't work in the terminal!"))))
+    (user-error "Company-quickhelp doesn't work in the terminal"))))
 
 (defun company-quickhelp--enable ()
   (add-hook 'focus-out-hook #'company-quickhelp-hide)
@@ -166,7 +194,7 @@ Most likely this means you're on a mac with an Emacs build using Cocoa instead o
 ;;;###autoload
 (define-minor-mode company-quickhelp-mode
   "Provides documentation popups for `company-mode' using `pos-tip'."
-  :global t
+  :global t :keymap company-quickhelp-mode-map
   (if company-quickhelp-mode
       (company-quickhelp--enable)
     (company-quickhelp--disable)))
