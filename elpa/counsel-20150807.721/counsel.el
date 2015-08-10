@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150805.129
+;; Package-Version: 20150807.721
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -431,7 +431,9 @@ Skip some dotfiles unless `ivy-text' requires them."
   (if (string= event "finished\n")
       (progn
         (with-current-buffer (process-buffer process)
-          (setq ivy--all-candidates (split-string (buffer-string) "\n" t))
+          (setq ivy--all-candidates
+                (ivy--sort-maybe
+                 (split-string (buffer-string) "\n" t)))
           (setq ivy--old-cands ivy--all-candidates))
         (ivy--exhibit))
     (if (string= event "exited abnormally with code 1\n")
@@ -445,7 +447,11 @@ Skip some dotfiles unless `ivy-text' requires them."
   (call-process shell-file-name nil
                 nil nil
                 shell-command-switch
-                (format "xdg-open %s" (shell-quote-argument x))))
+                (format "%s %s"
+                        (if (eq system-type 'darwin)
+                                    "open"
+                                  "xdg-open")
+                        (shell-quote-argument x))))
 
 (declare-function dired-jump "dired-x")
 (defun counsel-locate-action-dired (x)
@@ -455,16 +461,33 @@ Skip some dotfiles unless `ivy-text' requires them."
 (defvar counsel-locate-history nil
   "History for `counsel-locate'.")
 
+(defcustom counsel-locate-options (if (eq system-type 'darwin)
+                                      '("-i")
+                                    '("-i" "--regex"))
+  "Command line options for `locate`."
+  :group 'ivy
+  :type  '(repeat string))
+
 (ivy-set-actions
  'counsel-locate
  '(("x" counsel-locate-action-extern "xdg-open")
    ("d" counsel-locate-action-dired "dired")))
 
+(defun counsel-unquote-regex-parens (str)
+  (replace-regexp-in-string
+   "\\\\)" ")"
+   (replace-regexp-in-string
+    "\\\\(" "("
+    str)))
+
 (defun counsel-locate-function (str &rest _u)
   (if (< (length str) 3)
       (counsel-more-chars 3)
     (counsel--async-command
-     (concat "locate -i --regex " (ivy--regex str)))
+     (format "locate %s '%s'"
+             (mapconcat #'identity counsel-locate-options " ")
+             (counsel-unquote-regex-parens
+              (ivy--regex str))))
     '("" "working...")))
 
 ;;;###autoload
@@ -859,11 +882,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   "Grep in the current directory for STRING."
   (if (< (length string) 3)
       (counsel-more-chars 3)
-    (let ((regex (replace-regexp-in-string
-                  "\\\\)" ")"
-                  (replace-regexp-in-string
-                   "\\\\(" "("
-                   (ivy--regex string)))))
+    (let ((regex (counsel-unquote-regex-parens (ivy--regex string))))
       (counsel--async-command
        (format "ag --noheading --nocolor %S" regex))
       nil)))
