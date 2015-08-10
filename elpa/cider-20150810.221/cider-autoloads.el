@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "cider" "cider.el" (21954 41110 763401 0))
+;;;### (autoloads nil "cider" "cider.el" (21960 42783 935401 0))
 ;;; Generated autoloads from cider.el
 
 (autoload 'cider-version "cider" "\
@@ -37,8 +37,8 @@ Create REPL buffer and start an nREPL client connection.
 
 ;;;***
 
-;;;### (autoloads nil "cider-apropos" "cider-apropos.el" (21954 41110
-;;;;;;  735401 0))
+;;;### (autoloads nil "cider-apropos" "cider-apropos.el" (21960 42783
+;;;;;;  843401 0))
 ;;; Generated autoloads from cider-apropos.el
 
 (autoload 'cider-apropos "cider-apropos" "\
@@ -55,8 +55,8 @@ Shortcut for (cider-apropos <query> nil t).
 
 ;;;***
 
-;;;### (autoloads nil "cider-browse-ns" "cider-browse-ns.el" (21954
-;;;;;;  41110 731401 0))
+;;;### (autoloads nil "cider-browse-ns" "cider-browse-ns.el" (21960
+;;;;;;  42783 831401 0))
 ;;; Generated autoloads from cider-browse-ns.el
 
 (autoload 'cider-browse-ns "cider-browse-ns" "\
@@ -71,8 +71,8 @@ List all loaded namespaces in BUFFER.
 
 ;;;***
 
-;;;### (autoloads nil "cider-classpath" "cider-classpath.el" (21954
-;;;;;;  41110 771401 0))
+;;;### (autoloads nil "cider-classpath" "cider-classpath.el" (21960
+;;;;;;  42783 947401 0))
 ;;; Generated autoloads from cider-classpath.el
 
 (autoload 'cider-classpath "cider-classpath" "\
@@ -87,8 +87,8 @@ Open a classpath entry.
 
 ;;;***
 
-;;;### (autoloads nil "cider-debug" "cider-debug.el" (21954 41110
-;;;;;;  731401 0))
+;;;### (autoloads nil "cider-debug" "cider-debug.el" (21960 42783
+;;;;;;  839401 0))
 ;;; Generated autoloads from cider-debug.el
 
 (autoload 'cider-debug-defun-at-point "cider-debug" "\
@@ -104,8 +104,8 @@ a number of keys will be prompted to the user.
 
 ;;;***
 
-;;;### (autoloads nil "cider-grimoire" "cider-grimoire.el" (21954
-;;;;;;  41110 751401 0))
+;;;### (autoloads nil "cider-grimoire" "cider-grimoire.el" (21960
+;;;;;;  42783 883401 0))
 ;;; Generated autoloads from cider-grimoire.el
 
 (autoload 'cider-grimoire-web "cider-grimoire" "\
@@ -128,8 +128,8 @@ opposite of what that option dictates.
 
 ;;;***
 
-;;;### (autoloads nil "cider-inspector" "cider-inspector.el" (21954
-;;;;;;  41110 751401 0))
+;;;### (autoloads nil "cider-inspector" "cider-inspector.el" (21960
+;;;;;;  42783 879401 0))
 ;;; Generated autoloads from cider-inspector.el
 
 (autoload 'cider-inspect "cider-inspector" "\
@@ -140,7 +140,7 @@ Eval the string EXPRESSION and inspect the result.
 ;;;***
 
 ;;;### (autoloads nil "cider-macroexpansion" "cider-macroexpansion.el"
-;;;;;;  (21954 41110 759401 0))
+;;;;;;  (21960 42783 919401 0))
 ;;; Generated autoloads from cider-macroexpansion.el
 
 (autoload 'cider-macroexpand-1 "cider-macroexpansion" "\
@@ -157,7 +157,7 @@ Invoke 'clojure.walk/macroexpand-all' on the expression preceding point.
 
 ;;;***
 
-;;;### (autoloads nil "cider-mode" "cider-mode.el" (21954 41110 739401
+;;;### (autoloads nil "cider-mode" "cider-mode.el" (21960 42783 855401
 ;;;;;;  0))
 ;;; Generated autoloads from cider-mode.el
 
@@ -184,8 +184,8 @@ Minor mode for REPL interaction from a Clojure buffer.
 
 ;;;***
 
-;;;### (autoloads nil "cider-scratch" "cider-scratch.el" (21954 41110
-;;;;;;  743401 0))
+;;;### (autoloads nil "cider-scratch" "cider-scratch.el" (21960 42783
+;;;;;;  863401 0))
 ;;; Generated autoloads from cider-scratch.el
 
 (autoload 'cider-scratch "cider-scratch" "\
@@ -195,8 +195,8 @@ Create a scratch buffer.
 
 ;;;***
 
-;;;### (autoloads nil "cider-selector" "cider-selector.el" (21954
-;;;;;;  41110 767401 0))
+;;;### (autoloads nil "cider-selector" "cider-selector.el" (21960
+;;;;;;  42783 943401 0))
 ;;; Generated autoloads from cider-selector.el
 
 (autoload 'cider-selector "cider-selector" "\
@@ -214,7 +214,7 @@ See `def-cider-selector-method' for defining new methods.
 ;;;### (autoloads nil nil ("cider-client.el" "cider-doc.el" "cider-eldoc.el"
 ;;;;;;  "cider-interaction.el" "cider-overlays.el" "cider-pkg.el"
 ;;;;;;  "cider-repl.el" "cider-stacktrace.el" "cider-test.el" "cider-util.el"
-;;;;;;  "nrepl-client.el") (21954 41110 786764 413000))
+;;;;;;  "nrepl-client.el") (21960 42783 970066 240000))
 
 ;;;***
 
