@@ -34,6 +34,7 @@
 ;;      Tom Willemse <tom at ryuslash.org>
 ;;      Trevor Murphy <trevor.m.murphy at gmail.com>
 ;;      Ulrich Müller <ulm at gentoo.org>
+;;      Vasilij Schneidermann <>
 ;;      Vegard Øye <vegard_oye at hotmail.com>
 ;;      Winfred Lu <winfred.lu at gmail.com>
 ;;      Wolfgang Jenkner <wjenkner at inode.at>
@@ -44,7 +45,7 @@
 ;;      To get in touch, please use the bug tracker or the
 ;;      mailing list (see below).
 ;; Created: 2011-03-01
-;; Version: 1.2.1
+;; Version: 1.2.2
 ;; Keywords: emulation, vim
 ;; URL: http://gitorious.org/evil
 ;;      Repository: git://gitorious.org/evil/evil.git
