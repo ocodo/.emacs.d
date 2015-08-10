@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.4.1
-;; Package-Version: 20150730.805
+;; Package-Version: 20150808.1414
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3") (seq "1.5"))
 ;; Keywords: comm, tools
 
@@ -252,7 +252,7 @@ and signal the error."
 (defun transmission-ensure-process ()
   (let* ((name "transmission")
          (process (get-process name)))
-    (if (and process (process-live-p process))
+    (if (process-live-p process)
         process
       (open-network-stream name (format "*%s" name)
                            transmission-host
@@ -794,7 +794,7 @@ When called with a prefix, also unlink torrent data on disk."
                        (if (= old-window-point beg) (region-end) beg)))))
     (transmission-draw transmission-refresh-function)
     (goto-char old-window-point)
-    (set-window-start nil old-window-start)
+    (setf (window-start) old-window-start)
     (and old-mark (set-mark old-mark)))
   (transmission-timer-run))
 
