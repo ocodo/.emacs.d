@@ -650,13 +650,19 @@ Use negative prefix P to go backward."
       (search-backward-regexp regexp))))
 
 (defun snippy-comment ()
+  "Insert a snip line - - 8< - - - comment."
   (interactive)
   (end-of-line)
   (newline)
   (insert "- - 8<")
-  (loop repeat 60 do (insert " -"))
+  (cl-loop repeat 60 do (insert " -"))
   (beginning-of-line)
   (comment-region (point-at-bol) (point-at-eol)))
+
+(defun flush-blank-lines ()
+  "Flush blank lines."
+  (interactive)
+  (flush-lines "^\s*$" nil nil t))
 
 ;; Key bindings
 
