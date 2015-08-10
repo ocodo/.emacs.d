@@ -169,21 +169,24 @@ File: wl-ja.info,  Node: MIME Modules,  Next: Download,  Prev: Start Me Up,  Up:
 2.1 MIME 用モジュールのインストール
 ===================================
 
-Wanderlust を使うためには、まず先に SEMI をインストールしておく 必要があ
-ります。
+Wanderlust を使うためには、APEL, FLIM, SEMI と呼ばれる パッケージが必要
+です。
 
-   SEMI は以下の場所からダウンロードできます。
+   Emacs 23 以降については、以下の場所にあるものを使用してください。
+SEMI は SEMI-EPG というパッケージ名になります。
 
-     SEMI:   ftp://ftp.m17n.org/pub/mule/semi/
+     APEL:     <https://github.com/wanderlust/apel>
+     FLIM:     <https://github.com/wanderlust/flim>
+     SEMI-EPG: <https://github.com/wanderlust/semi>
 
-   SEMI には APEL, FLIM と呼ばれるパッケージも必要です。 APEL, FLIM は以
-下の場所からダウンロードできます。
+   オリジナルの APEL, FLIM, SEMI は以下の場所からダウンロードできます。
 
-     APEL:   ftp://ftp.m17n.org/pub/mule/apel/
-     FLIM:   ftp://ftp.m17n.org/pub/mule/flim/
+     APEL:   <http://git.chise.org/elisp/dist/semi/>
+     FLIM:   <http://git.chise.org/elisp/dist/apel/>
+     SEMI:   <http://git.chise.org/elisp/dist/semi/>
 
-   APEL, FLIM, SEMI の順にインストールしてください。 基本的にすべて
-'make install' の実行で済むはずです (XEmacs 21 では 'make
+   APEL, FLIM, SEMI[-EPG] の順にインストールしてください。 基本的にすべ
+て 'make install' の実行で済むはずです (XEmacs 21 では 'make
 install-package')。
 
    インストールの方法の詳細については、各パッケージに添付されているドキ
@@ -191,7 +194,7 @@ install-package')。
 
    推奨される APEL, FLIM, SEMI のバージョンの組合せは、以下の通りです。
 
-   - APEL 10.6, FLIM 1.14.6, SEMI 1.14.6
+   - APEL 10.8, FLIM 1.14.9, SEMI-EPG 1.14.7
 
    その他、FLIM, SEMI にはいろいろな変形バージョンが存在しますが、 それ
 らのいずれも利用可能です。 基本的に最新版の組合せなら動作するはずです。
@@ -206,8 +209,8 @@ install-package')。
    ---------- Footnotes ----------
 
    (1) Emacs 19.34 ベースの Mule を使っている 場合、
-<http://www.jpl.org/elips/INSTALL-SEMI-ja.html> が参考にな るかもしれま
-せん。
+<http://www.jpl.org/ftp/attic/INSTALL-SEMI-ja.html> が参考にな るかもし
+れません。
 
 
 File: wl-ja.info,  Node: Download,  Next: Install,  Prev: MIME Modules,  Up: Start Me Up
@@ -219,13 +222,11 @@ Wanderlust 本体は以下の場所からダウンロードできます。
 
    一次配布元:
 
-     ftp://ftp.gohome.org/wl/
+     <https://github.com/wanderlust/wanderlust>
 
    ミラーしていただいている ftp, http サイト:
 
-     http://www.jpl.org/elips/wl/
-     http://www.ring.gr.jp/archives/text/elisp/wl/
-     ftp://ftp.ring.gr.jp/pub/text/elisp/wl/
+     <http://www.jpl.org/ftp/pub/github-snapshots/>
 
    入手したパッケージは適当な作業ディレクトリに展開しましょう。
 
@@ -243,16 +244,22 @@ Wanderlust では、SMTP, IMAP, NNTP, POP のコネクションにおいて、SS
 と、 'STARTTLS' command の後に SSL negotiation を始めるものの二種類 があ
 ります。
 
-   通常の SSL を利用するには 本パッケージの 'utils' ディレクトリにある
+   前者については、Emacs 24 以降でサポートされた、組み込み GnuTLS が 利
+用可能な場合はそれを使います。 次に、 'tls.el' が存在すればそれを使いま
+す。この時に GnuTLS に 含まれる 'gnutls-cli' にパスが通っている必要があ
+ります。 どちらもない場合は、本パッケージの 'utils' ディレクトリにある
 'ssl.el' をインストールする必要があります。なおかつ、OpenSSL に含ま れる
 'openssl' にパスが通っている必要があります。
 
-   STARTTLS を利用するには、さらに、starttls パッケージをインストール す
-る必要があります。
+   後者については 'starttls.el' が必要になります。 変数
+'starttls-use-gnutls' の値によって、GnuTLS もしくは starttls パッケージ
+が必要です。 'starttls.el' が無い、もしくは 'starttls.el' 内に
+'starttls-use-gnutls' の定義が無い場合は starttls パッケージを インスト
+ールする必要があります。
 
    starttls パッケージは以下の場所から入手できます。
 
-     ftp://opaopa.org/pub/elisp/
+     <ftp://opaopa.org/pub/elisp/>
 
 
 File: wl-ja.info,  Node: Install,  Next: Minimal Settings,  Prev: Download,  Up: Start Me Up
@@ -359,7 +366,7 @@ Wanderlust はバイトコンパイル、インストールをしなくても、
 
    また、下記にもマニュアルがあります。
 
-     http://www.gohome.org/wl/doc/wl-euc_toc.html
+     <http://wanderlust.github.io/wl-docs/wl-ja.html>
 
 
 File: wl-ja.info,  Node: Minimal Settings,  Next: Folder Definition,  Prev: Install,  Up: Start Me Up
@@ -611,10 +618,6 @@ RFC 2060 で規定された IMAP4rev1 を利用してメールを読むための
      ;; 例: SSL を利用してコネクションを張る
      (setq elmo-imap4-default-stream-type 'ssl)
 
-   (OpenSSL に含まれる 'openssl' にパスが通っている必要があります。
-STARTTLS を利用するには、さらに、starttls パッケージをインストールする必
-要があります。)
-
    認証法として、'login'、'cram-md5' もしくは 'digest-md5' を指定した場
 合、パスワードをエンコードして送信します。ただし、サーバ側が パスワード
 をエンコードして受け取る能力が無い場合は、確認の後、 'clear' (生パスワー
@@ -639,22 +642,20 @@ STARTTLS を利用するには、さらに、starttls パッケージをイン�
 -------------------------------------------------
 
 Emacs が UTF-7 に対応していれば，変数 'elmo-imap4-use-modified-utf7' に
-non-nil の値を設定すれば(デフォル トは 'nil')、日本語(やその他の英語以外
-の言語)でメールボックス名を指 定することができます。
+non-nil の値を設定すれば (デフォル トは Emacs 23 以降では 't'、それ以外
+では 'nil')、日本語 (や、 その他の英語以外の言語) でメールボックス名を指
+定することができます。
 
-   現在、Emacs を UTF-7 に対応させるには、Mule-UCS を別にインストールす
-る 必要があります。Mule-UCS は以下の Emacsen で動作します。
+   Emacs 23 以降では追加のパッケージは不要です。 それ以外の Emacsen では
+、Mule-UCS を別にインストールする必要があります。 Mule-UCS は以下の
+Emacsen で動作します。
 
    * Emacs 20.3 以降
    * XEmacs 21.2.37 以降
 
-   Mule-UCS は以下から入手可能です。
+   Mule-UCS は以下から2004年のスナップショットが入手可能です。
 
-     ftp://ftp.m17n.org/pub/mule/Mule-UCS/
-
-     cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/root login
-     Password: NULL (Just enter return key)
-     cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/root checkout ucs-conv
+     <http://www.jpl.org/ftp/pub/tmp/>
 
 
 File: wl-ja.info,  Node: NNTP Folder,  Next: MH Folder,  Prev: IMAP Folder,  Up: Folders
@@ -1012,11 +1013,6 @@ RFC 1939 で規定されている POP3 を利用してメールを読むため�
    変数 'elmo-pop3-default-stream-type' の値が 'ssl' なら、'!' を付け な
 くても SSL を使います。'starttls' なら '!!' を意味します。 これらの場合
 、通常の接続をするにはフォルダ名の最後に'!direct' を付けます。
-
-   (SSL を利用するには 本パッケージの 'utils/ssl.el' をインストールする
-必要があります。なおかつ、OpenSSL に含まれる 'openssl' にパスが通ってい
-る 必要があります。 STARTTLS を利用するには、さらに、starttls パッケージ
-をインストール する必要があります。)
 
 
 File: wl-ja.info,  Node: Shimbun Folder,  Next: Search Folder,  Prev: POP Folder,  Up: Folders
@@ -3928,7 +3924,7 @@ POP-before-SMTP によるメールの送信ができます。 そのために必
 
    なお、POP-before-SMTP については以下を参照してください。
 
-     http://www.iecc.com/pop-before-smtp.html
+     <http://www.iecc.com/pop-before-smtp.html>
 
 
 File: wl-ja.info,  Node: Key Bindings of Draft,  Next: Variables of Draft Mode,  Prev: Usage of Draft Mode,  Up: Draft
@@ -6001,7 +5997,7 @@ File: wl-ja.info,  Node: SpamOracle,  Next: Regular Expressions Header Matching,
 12.2.5 SpamOracle
 -----------------
 
-SpamOracle ('http://pauillac.inria.fr/~xleroy/software.html#spamoracle')
+SpamOracle (<http://pauillac.inria.fr/~xleroy/software.html#spamoracle>)
 は、Objective Caml で実装された spam フィルタです.
 
    'SpamOracle' を使用するには、'~/.wl'などに以下の設定を記述します。 (も
@@ -6128,6 +6124,11 @@ File: wl-ja.info,  Node: BBDB,  Next: LSDB,  Prev: imput,  Up: Living with other
 The Insidious Big Brother Database (<http://bbdb.sourceforge.net/>) を
 Wanderlust と共に使うには、 'util/bbdb-wl.el' を 'load-path' に置いて以
 下のように設定すれば OK です。
+
+   ただし、'util/bbdb-wl.el' は
+<http://savannah.nongnu.org/projects/bbdb/> で 開発されている、BBDB 3.x
+とは互換性がありません。 この場合は、BBDBV3-Wl
+(<https://gna.org/projects/bbdbv3-wl/>) が、 有用かもしれません。
 
    インストール時に 'load-path' 上に BBDB があれば、 'bbdb-wl.el' はバイ
 トコンパイル/インストールされます。 *Note Install::.
@@ -6321,7 +6322,8 @@ File: wl-ja.info,  Node: mime-w3m,  Prev: Addrbook,  Up: Living with other packa
 
 emacs-w3m (<http://emacs-w3m.namazu.org/>) に付属の 'mime-w3m.el' を使っ
 て、メッセージの html パートを 表示させることが出来ます。設定方法は
-'mime-w3m.el' の 先頭のコメントを参照してください。
+'mime-w3m.el' の 先頭のコメントを参照してください。 SEMI が SEMI-EPG で
+ある場合は、特別な設定は不要です。
 
 
 File: wl-ja.info,  Node: Highlights,  Next: Biff,  Prev: Living with other packages,  Up: Advanced Issues
@@ -7490,10 +7492,10 @@ File: wl-ja.info,  Node: Concept Index,  Next: Key Index,  Prev: Index,  Up: Ind
 * MIME modules:                          MIME Modules.        (line   6)
 * mime-w3m:                              mime-w3m.            (line   6)
 * Minimal Settings:                      Minimal Settings.    (line   6)
-* Modified UTF7:                         IMAP Folder.         (line  76)
+* Modified UTF7:                         IMAP Folder.         (line  72)
 * mu:                                    mu.                  (line   6)
 * mu-cite:                               mu-cite.             (line   6)
-* Mule-UCS:                              IMAP Folder.         (line  76)
+* Mule-UCS:                              IMAP Folder.         (line  72)
 * Multi Folder:                          Multi Folder.        (line   6)
 * namazu:                                namazu.              (line   6)
 * NetNews:                               NNTP Folder.         (line   6)
@@ -7504,7 +7506,7 @@ File: wl-ja.info,  Node: Concept Index,  Next: Key Index,  Prev: Index,  Up: Ind
 * notmuch:                               notmuch.             (line   6)
 * Offline:                               Disconnected Operations.
                                                               (line   6)
-* OpenSSL:                               Download.            (line  27)
+* OpenSSL:                               Download.            (line  25)
 * Overview:                              Overview.            (line   6)
 * Package install, XEmacs:               Install.             (line  66)
 * Package, XEmacs:                       Install.             (line  66)
@@ -7542,24 +7544,24 @@ File: wl-ja.info,  Node: Concept Index,  Next: Key Index,  Prev: Index,  Up: Ind
 * spamfilter:                            spamfilter.          (line   6)
 * SpamOracle:                            SpamOracle.          (line   6)
 * Split messages:                        Split messages.      (line   6)
-* SSL:                                   Download.            (line  27)
+* SSL:                                   Download.            (line  25)
 * Start up:                              Start Me Up.         (line   6)
 * Start Wanderlust:                      Start Wanderlust.    (line   6)
-* starttls:                              Download.            (line  27)
+* starttls:                              Download.            (line  25)
 * Sticky Summary:                        Sticky Summary.      (line   6)
 * Summary, Sticky:                       Sticky Summary.      (line   6)
 * supercite:                             supercite.           (line   6)
 * TAR:                                   Archiver.            (line   6)
 * Template:                              Template.            (line   6)
 * Terminology:                           Terminology.         (line   6)
-* ucs-conv:                              IMAP Folder.         (line  76)
-* Unicode:                               IMAP Folder.         (line  76)
+* ucs-conv:                              IMAP Folder.         (line  72)
+* Unicode:                               IMAP Folder.         (line  72)
 * Unplugged:                             Disconnected Operations.
                                                               (line   6)
 * UNZIP:                                 Archiver.            (line   6)
 * User-Agent:                            User-Agent Field.    (line   6)
-* UTF7:                                  IMAP Folder.         (line  76)
-* UTF8:                                  IMAP Folder.         (line  76)
+* UTF7:                                  IMAP Folder.         (line  72)
+* UTF8:                                  IMAP Folder.         (line  72)
 * w3m:                                   Shimbun Folder.      (line   6)
 * x-face:                                X-Face.              (line   6)
 * x-face-e21:                            x-face-mule.         (line  15)
@@ -8815,126 +8817,126 @@ Node: Top1392
 Node: Introduction2807
 Node: Start Me Up4252
 Node: MIME Modules4730
-Ref: MIME Modules-Footnote-15744
-Node: Download5850
-Node: Install6851
-Node: Minimal Settings9444
-Node: Folder Definition11322
-Node: Start Wanderlust12942
-Node: Overview13240
-Node: Folders13765
-Node: IMAP Folder14906
-Node: NNTP Folder17651
-Node: MH Folder18500
-Node: Maildir Folder18974
-Node: News Spool Folder19794
-Node: Archive Folder20307
-Node: Archiver21618
-Node: Archive Tips23509
-Node: Archive Vars24180
-Node: POP Folder25820
-Node: Shimbun Folder27438
-Node: Search Folder28343
-Node: namazu28832
-Node: grep30378
-Node: mu30793
-Node: notmuch31588
-Node: Multi Folder31981
-Node: Filter Folder32515
-Node: Pipe Folder36389
-Node: Internal Folder37454
-Node: File Folder38470
-Node: Access Folder38768
-Node: RSS Folder39101
-Node: Folder39917
-Node: Selecting Folder40175
-Node: Folder Manager46792
-Ref: Folder Manager-Footnote-153107
-Node: Summary53160
-Node: Usage of Summary Mode53704
-Node: Thread Operations57103
-Node: Cache57907
-Node: Auto Refile59387
-Node: Sticky Summary61487
-Node: Summary View62290
-Node: Mark and Action64393
-Node: Key Bindings of Summary65425
-Node: Variables of Summary80002
-Node: Message87389
-Node: Draft89654
-Node: Usage of Draft Mode90034
-Node: Parameters for Sending90522
-Node: Editing Header91615
-Node: Editing Message Body and Sending92517
-Node: Dynamical Message Re-arrangement93194
-Node: Template97304
-Node: POP-before-SMTP98816
-Node: Key Bindings of Draft100161
-Node: Variables of Draft Mode102006
-Node: Disconnected Operations111079
-Node: Off-line State111481
-Node: Enable Operations112041
-Node: Send Messages off-line112824
-Node: Re-file and Copy queue113253
-Node: Creation of Folders113762
-Node: Marking114080
-Node: Pre-fetching Reservations114339
-Node: Plugged Mode114614
-Node: Off-line State settings116527
-Node: Variables of Plugged Mode117453
-Node: Expire and Archive119765
-Node: Expire119999
-Node: Archive131389
-Node: Scoring133219
-Node: Score Commands133708
-Node: Score File Format139710
-Node: Address Book143745
-Node: Mail Addresses143987
-Node: Address Manager145105
-Node: Spam Filter145741
-Node: Usage of Spam Filter146081
-Node: Spam Filter Processors151424
-Node: bogofilter151938
-Node: spamfilter152931
-Node: bsfilter153567
-Node: SpamAssassin154743
-Node: SpamOracle156115
-Node: Regular Expressions Header Matching157207
-Node: Advanced Issues158039
-Node: Living with other packages158551
-Node: imput159224
-Node: BBDB159544
-Node: LSDB160491
-Node: supercite160960
-Node: mu-cite161281
-Node: X-Face161773
-Node: x-face-xmas162248
-Node: x-face-mule162629
-Node: dired-dd163367
-Node: MHC164100
-Node: Addrbook164625
-Node: mime-w3m164990
-Node: Highlights165257
-Node: Biff171105
-Node: Password Management171958
-Node: Split messages172829
-Node: Batch Processing175757
-Node: Advanced Settings176256
-Node: Draft for Reply176572
-Node: Thread Format179035
-Node: User-Agent Field180504
-Node: Customizable Valiables181126
-Node: Hooks186631
-Node: Migration186759
-Node: Before 2.12.0187006
-Node: Terminology188439
-Node: Mailing List189150
-Ref: Mailing List-Footnote-1190266
-Node: Addition190337
-Node: Index193027
-Node: Concept Index193259
-Node: Key Index208257
-Node: Variable Index236451
-Node: Function Index266362
+Ref: MIME Modules-Footnote-15954
+Node: Download6064
+Node: Install7289
+Node: Minimal Settings9886
+Node: Folder Definition11764
+Node: Start Wanderlust13384
+Node: Overview13682
+Node: Folders14207
+Node: IMAP Folder15348
+Node: NNTP Folder17874
+Node: MH Folder18723
+Node: Maildir Folder19197
+Node: News Spool Folder20017
+Node: Archive Folder20530
+Node: Archiver21841
+Node: Archive Tips23732
+Node: Archive Vars24403
+Node: POP Folder26043
+Node: Shimbun Folder27498
+Node: Search Folder28403
+Node: namazu28892
+Node: grep30438
+Node: mu30853
+Node: notmuch31648
+Node: Multi Folder32041
+Node: Filter Folder32575
+Node: Pipe Folder36449
+Node: Internal Folder37514
+Node: File Folder38530
+Node: Access Folder38828
+Node: RSS Folder39161
+Node: Folder39977
+Node: Selecting Folder40235
+Node: Folder Manager46852
+Ref: Folder Manager-Footnote-153167
+Node: Summary53220
+Node: Usage of Summary Mode53764
+Node: Thread Operations57163
+Node: Cache57967
+Node: Auto Refile59447
+Node: Sticky Summary61547
+Node: Summary View62350
+Node: Mark and Action64453
+Node: Key Bindings of Summary65485
+Node: Variables of Summary80062
+Node: Message87449
+Node: Draft89714
+Node: Usage of Draft Mode90094
+Node: Parameters for Sending90582
+Node: Editing Header91675
+Node: Editing Message Body and Sending92577
+Node: Dynamical Message Re-arrangement93254
+Node: Template97364
+Node: POP-before-SMTP98876
+Node: Key Bindings of Draft100223
+Node: Variables of Draft Mode102068
+Node: Disconnected Operations111141
+Node: Off-line State111543
+Node: Enable Operations112103
+Node: Send Messages off-line112886
+Node: Re-file and Copy queue113315
+Node: Creation of Folders113824
+Node: Marking114142
+Node: Pre-fetching Reservations114401
+Node: Plugged Mode114676
+Node: Off-line State settings116589
+Node: Variables of Plugged Mode117515
+Node: Expire and Archive119827
+Node: Expire120061
+Node: Archive131451
+Node: Scoring133281
+Node: Score Commands133770
+Node: Score File Format139772
+Node: Address Book143807
+Node: Mail Addresses144049
+Node: Address Manager145167
+Node: Spam Filter145803
+Node: Usage of Spam Filter146143
+Node: Spam Filter Processors151486
+Node: bogofilter152000
+Node: spamfilter152993
+Node: bsfilter153629
+Node: SpamAssassin154805
+Node: SpamOracle156177
+Node: Regular Expressions Header Matching157269
+Node: Advanced Issues158101
+Node: Living with other packages158613
+Node: imput159286
+Node: BBDB159606
+Node: LSDB160727
+Node: supercite161196
+Node: mu-cite161517
+Node: X-Face162009
+Node: x-face-xmas162484
+Node: x-face-mule162865
+Node: dired-dd163603
+Node: MHC164336
+Node: Addrbook164861
+Node: mime-w3m165226
+Node: Highlights165529
+Node: Biff171377
+Node: Password Management172230
+Node: Split messages173101
+Node: Batch Processing176029
+Node: Advanced Settings176528
+Node: Draft for Reply176844
+Node: Thread Format179307
+Node: User-Agent Field180776
+Node: Customizable Valiables181398
+Node: Hooks186903
+Node: Migration187031
+Node: Before 2.12.0187278
+Node: Terminology188711
+Node: Mailing List189422
+Ref: Mailing List-Footnote-1190538
+Node: Addition190609
+Node: Index193299
+Node: Concept Index193531
+Node: Key Index208529
+Node: Variable Index236723
+Node: Function Index266634
 
 End Tag Table

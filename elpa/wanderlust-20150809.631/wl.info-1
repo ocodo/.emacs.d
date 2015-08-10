@@ -158,27 +158,32 @@ File: wl.info,  Node: MIME Modules,  Next: Download,  Prev: Start Me Up,  Up: St
 2.1 Installing MIME modules
 ===========================
 
-You must install SEMI beforehand to use Wanderlust.
+You must install packages named APEL, FLIM and SEMI beforehand to use
+Wanderlust.
 
-   SEMI can be downloaded from following site:
+   For Emacs 23 or later, downloading from below URLs is highly
+recommended.  SEMI-EPG is corresponding package to SEMI.
 
-     SEMI:   ftp://ftp.m17n.org/pub/mule/semi/
+     APEL:     <https://github.com/wanderlust/apel>
+     FLIM:     <https://github.com/wanderlust/flim>
+     SEMI-EPG: <https://github.com/wanderlust/semi>
 
-   You need packages named APEL and FLIM to use SEMI. You can download
-APEL and FLIM from following URLs:
+   You can download original APEL, FLIM and SEMI from following URLs:
 
-     APEL:   ftp://ftp.m17n.org/pub/mule/apel/
-     FLIM:   ftp://ftp.m17n.org/pub/mule/flim/
+     APEL:   <http://git.chise.org/elisp/dist/semi/>
+     FLIM:   <http://git.chise.org/elisp/dist/apel/>
+     SEMI:   <http://git.chise.org/elisp/dist/semi/>
 
-   You have to install APEL, FLIM and SEMI in this order.  Generally,
-'make install' will do the job.  (In XEmacs 21, 'make install-package'.)
+   You have to install APEL, FLIM and SEMI[-EPG] in this order.
+Generally, 'make install' will do the job.  (In XEmacs 21, 'make
+install-package'.)
 
    Refer to the documents of each package for detailed installation
 procedure (1).
 
    Recommended combination of APEL, FLIM and SEMI are following:
 
-   - APEL 10.6, FLIM 1.14.6 and SEMI 1.14.6
+   - APEL 10.8, FLIM 1.14.9, SEMI-EPG 1.14.7
 
    You can also use many other FLIM/SEMI variants.  Combination of the
 latest versions should work.  For example, the following combination are
@@ -192,8 +197,8 @@ confirmed to work.
    ---------- Footnotes ----------
 
    (1) If you want to use SEMI on Emacs 19.34.
-<http://www.jpl.org/elips/INSTALL-SEMI-ja.html> (In Japanese) may help
-you.
+<http://www.jpl.org/ftp/attic/INSTALL-SEMI-ja.html> (In Japanese) may
+help you.
 
 
 File: wl.info,  Node: Download,  Next: Install,  Prev: MIME Modules,  Up: Start Me Up
@@ -204,13 +209,11 @@ File: wl.info,  Node: Download,  Next: Install,  Prev: MIME Modules,  Up: Start 
 You can download Wanderlust package from following sites:
 
    Original site:
-     ftp://ftp.gohome.org/wl/
+     <https://github.com/wanderlust/wanderlust>
 
    Mirrored ftp/http sites:
 
-     http://www.jpl.org/elips/wl/
-     http://www.ring.gr.jp/archives/text/elisp/wl/
-     ftp://ftp.ring.gr.jp/pub/text/elisp/wl/
+     <http://www.jpl.org/ftp/pub/github-snapshots/>
 
    Extract the obtained package to your working directory:
 
@@ -228,14 +231,20 @@ connections in Wanderlust.
 after the connection establishment (generic way).  The other one is to
 start SSL negotiation by invoking STARTTLS command in the each session.
 
-   To use the formal SSL (generic SSL), you must set 'PATH' to the
-directory that OpenSSL commands are installed.
+   For the formal SSL (generic SSL), Emacs 24 or later uses built-in
+GnuTLS if available.  if not available, Emacs try to use 'tls.el'.  In
+this case, GnuTLS's 'gnutls-cli' is needed.  if neither avialable,
+'ssl.el' of 'utils' directory and OpenSSL's 'openssl'.
 
-   To use the latter SSL(STARTTLS), you must install starttls package in
-addition to above.  You can download starttls package from the following
-site.
+   For the latter SSL (STARTTLS), you need 'starttls.el'.  Moreover,
+GnuTLS or starttls package is needed according to 'starttls-use-gnutls'
+variable's value.  If your Emacs doesn't have 'starttls.el' neither
+'starttls.el' doesn't have the defninition of 'starttls-use-gnutls', you
+need starttls package.
 
-     ftp://opaopa.org/pub/elisp/
+   You can download starttls package from the following site.
+
+     <ftp://opaopa.org/pub/elisp/>
 
 
 File: wl.info,  Node: Install,  Next: Minimal Settings,  Prev: Download,  Up: Start Me Up
@@ -341,7 +350,7 @@ configured by 'INFODIR' in 'Makefile'.
 
    You can read manual at the following URL:
 
-     http://www.gohome.org/wl/doc/wl_toc.html
+     <http://wanderlust.github.io/wl-docs/wl.html>
 
 
 File: wl.info,  Node: Minimal Settings,  Next: Folder Definition,  Prev: Install,  Up: Start Me Up
@@ -628,17 +637,20 @@ back to 'clear' without confirmation (default value is 'nil').
 
 You can use international mailbox names in MAILBOX part, if you are
 using Emacs with UTF-7 support and 'elmo-imap4-use-modified-utf7' is set
-to non-nil value (default value is 'nil').
+to non-nil value (default value is 't' on Emacs 23 or later and 'nil' on
+other Emacsen).
 
-   Currently, Mule-UCS package is required to use UTF-7.  Mule-UCS works
-on following Emacsen.
+   Emacs 23 or later doesn't need additional package.  Other Emacsen
+needs Mule-UCS package to use UTF-7.  Mule-UCS works on following
+Emacsen.
 
    * Emacs 20.3 or later
    * XEmacs 21.2.37 or later
 
-   You can obtain Mule-UCS package from following URL.
+   You can obtain Mule-UCS package (snapshot of 2004) from following
+URL.
 
-     ftp://ftp.m17n.org/pub/mule/Mule-UCS/
+     <http://www.jpl.org/ftp/pub/tmp/>
 
 
 File: wl.info,  Node: NNTP Folder,  Next: MH Folder,  Prev: IMAP Folder,  Up: Folders
@@ -3916,7 +3928,7 @@ per default (such as '&') is available, no settings are required.
 
    Refer to the following URL about POP-before-SMTP.
 
-     http://www.iecc.com/pop-before-smtp.html
+     <http://www.iecc.com/pop-before-smtp.html>
 
 
 File: wl.info,  Node: Key Bindings of Draft,  Next: Variables of Draft Mode,  Prev: Usage of Draft Mode,  Up: Draft
@@ -6057,7 +6069,7 @@ File: wl.info,  Node: SpamOracle,  Next: Regular Expressions Header Matching,  P
 12.2.5 SpamOracle
 -----------------
 
-SpamOracle ('http://pauillac.inria.fr/~xleroy/software.html#spamoracle')
+SpamOracle (<http://pauillac.inria.fr/~xleroy/software.html#spamoracle>)
 is a spam filter implemented by Objective Caml language.
 
    To use spam filter with 'spamoracle', write following setting in
@@ -6184,6 +6196,10 @@ File: wl.info,  Node: BBDB,  Next: LSDB,  Prev: imput,  Up: Living with other pa
 To use The Insidious Big Brother Database
 (<http://bbdb.sourceforge.net/>) with Wanderlust, place
 'util/bbdb-wl.el' on the 'load-path' and do the following settings.
+
+   But, 'util/bbdb-wl.el' is not compatible with BBDB 3.x
+(<http://savannah.nongnu.org/projects/bbdb/>).  For BBDB 3.x, BBDBV3-Wl
+(<https://gna.org/projects/bbdbv3-wl/>) may be useful.
 
    If BBDB is on the 'load-path' at the installation, 'bbdb-wl.el' is
 byte-compiled and installed.  *Note Install::.
@@ -6375,7 +6391,8 @@ File: wl.info,  Node: mime-w3m,  Prev: Addrbook,  Up: Living with other packages
 
 You can display html part by using 'mime-w3m.el' distributed with
 emacs-w3m (<http://emacs-w3m.namazu.org/>).  You can find the usage in
-comment region at the head of 'mime-w3m.el'.
+comment region at the head of 'mime-w3m.el'.  If you use SEMI-EPG, no
+additional setting is needed.
 
 
 File: wl.info,  Node: Highlights,  Next: Biff,  Prev: Living with other packages,  Up: Advanced Issues
@@ -7572,7 +7589,7 @@ Concept Index
 * Newsgroup:                             NNTP Folder.         (line   6)
 * NNTP Folder:                           NNTP Folder.         (line   6)
 * notmuch:                               notmuch.             (line   6)
-* OpenSSL:                               Download.            (line  26)
+* OpenSSL:                               Download.            (line  24)
 * Overview:                              Overview.            (line   6)
 * Package install, XEmacs:               Install.             (line  64)
 * Package, XEmacs:                       Install.             (line  64)
@@ -7609,10 +7626,10 @@ Concept Index
 * spamfilter:                            spamfilter.          (line   6)
 * SpamOracle:                            SpamOracle.          (line   6)
 * Split messages:                        Split messages.      (line   6)
-* SSL:                                   Download.            (line  26)
+* SSL:                                   Download.            (line  24)
 * Start up:                              Start Me Up.         (line   6)
 * Start Wanderlust:                      Start Wanderlust.    (line   6)
-* starttls:                              Download.            (line  26)
+* starttls:                              Download.            (line  24)
 * Sticky Summary:                        Sticky Summary.      (line   6)
 * Summary, Sticky:                       Sticky Summary.      (line   6)
 * supercite:                             supercite.           (line   6)
