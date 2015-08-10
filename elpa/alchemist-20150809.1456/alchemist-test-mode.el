@@ -25,6 +25,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 'alchemist-project)
 
 (defgroup alchemist-test-mode nil
@@ -62,7 +63,7 @@ Otherwise, it saves all modified buffers without asking."
 
 (defvar alchemist-test--last-run-status "")
 
-(defconst alchemist-test-report-buffer-name "*alchemist-test-report*"
+(defconst alchemist-test-report-buffer-name "*alchemist test report*"
   "Name of the test report buffer.")
 
 (defconst alchemist-test-report-process-name "alchemist-test-process"
@@ -179,7 +180,9 @@ Otherwise, it saves all modified buffers without asking."
     (let* ((file-with-line (button-get button 'file))
            (file (substring-no-properties file-with-line (match-beginning 1) (match-end 1)))
            (line (string-to-number (substring-no-properties file-with-line (match-beginning 2) (match-end 2))))
-           (file-path (expand-file-name (concat (alchemist-project-root) file))))
+           (file-path (if (file-exists-p file)
+                          file
+                        (expand-file-name (concat (alchemist-project-root) file)))))
       (with-current-buffer (find-file-other-window file-path)
         (goto-char (point-min))
         (forward-line (- line 1))))))
@@ -243,7 +246,7 @@ macro) while the values are the position at which the test matched."
 
 (defun alchemist-test-execute (command-list)
   (message "Testing...")
-  (let* ((command (mapconcat 'concat (alchemist-utils--flatten command-list) " ")))
+  (let* ((command (mapconcat 'concat (-flatten command-list) " ")))
     (alchemist-test-save-buffers)
     (alchemist-report-run command
                           alchemist-test-report-process-name

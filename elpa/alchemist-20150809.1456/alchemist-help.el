@@ -25,6 +25,7 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 'alchemist-utils)
 (require 'alchemist-project)
 (require 'alchemist-server)
@@ -38,7 +39,7 @@
 
 ;; Variables
 
-(defcustom alchemist-help-buffer-name "*elixir help*"
+(defcustom alchemist-help-buffer-name "*alchemist help*"
   "Name of the Elixir help buffer."
   :type 'string
   :group 'alchemist-help)
@@ -137,15 +138,12 @@ Argument END where the mark ends."
     expr))
 
 (defun alchemist-help--elixir-modules-to-list (str)
-  (let* ((modules (split-string str))
-         (modules (mapcar (lambda (m)
-                            (when (string-match-p "Elixir\\." m)
-                              (replace-regexp-in-string "Elixir\\." "" m))) modules))
+  (let* ((str (replace-regexp-in-string "^Elixir\\." "" str))
+         (modules (split-string str))
          (modules (delete nil modules))
          (modules (cl-sort modules 'string-lessp :key 'downcase))
-         (modules (delete-dups modules)))
+         (modules (-distinct modules)))
     modules))
-
 
 (defun alchemist-help-minor-mode-key-binding-summary ()
   (interactive)
@@ -202,6 +200,7 @@ Argument END where the mark ends."
         (if (alchemist-utils--empty-string-p string)
             (message "No documentation for [%s] found." alchemist-help-current-search-text)
           (alchemist-help--initialize-buffer string))
+        (setq alchemist-help-current-search-text nil)
         (setq alchemist-help-filter-output nil))))
 
 (defun alchemist-help-modules-filter (_process output)
@@ -221,7 +220,8 @@ Argument END where the mark ends."
                (search (cond
                         ((and module function)
                          search)
-                        (module
+                        ((and module
+                              (not (string-match-p "[\/0-9]+$" module)))
                          (concat module "."))
                         (t
                          search))))

@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (21954 41121 903401
+;;;### (autoloads nil "alchemist" "alchemist.el" (21960 42794 335401
 ;;;;;;  0))
 ;;; Generated autoloads from alchemist.el
 
@@ -22,8 +22,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (21954 41121
-;;;;;;  963401 0))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (21960 42794
+;;;;;;  431401 0))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -44,7 +44,7 @@ Show the IEx buffer if an IEx process is already run.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (21954 41121 915401 0))
+;;;;;;  (21960 42794 351401 0))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -55,7 +55,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (21954 41121 979401 0))
+;;;;;;  (21960 42794 463401 0))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -81,8 +81,8 @@ The following commands are available:
 ;;;;;;  "alchemist-goto.el" "alchemist-help.el" "alchemist-hooks.el"
 ;;;;;;  "alchemist-message.el" "alchemist-mix.el" "alchemist-pkg.el"
 ;;;;;;  "alchemist-project.el" "alchemist-report.el" "alchemist-scope.el"
-;;;;;;  "alchemist-server.el" "alchemist-utils.el") (21954 41121
-;;;;;;  998137 822000))
+;;;;;;  "alchemist-server.el" "alchemist-utils.el") (21960 42794
+;;;;;;  484963 215000))
 
 ;;;***
 

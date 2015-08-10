@@ -50,7 +50,7 @@
   :type 'string
   :group 'alchemist-mix)
 
-(defcustom alchemist-mix-test-default-options '("--exclude pending:true")
+(defcustom alchemist-mix-test-default-options '()
   "Default options for alchemist test command."
   :type '(repeat string)
   :group 'alchemist-mix)
@@ -67,7 +67,7 @@ not set explicitly."
     (define-key map "i" #'alchemist-mix-send-input-to-mix-process)
     map))
 
-(defvar alchemist-mix-buffer-name "*mix*"
+(defvar alchemist-mix-buffer-name "*alchemist mix*"
   "Name of the mix output buffer.")
 
 (defvar alchemist-mix--envs '("dev" "prod" "test")

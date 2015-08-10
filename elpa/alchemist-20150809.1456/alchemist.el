@@ -3,11 +3,11 @@
 ;; Copyright © 2014-2015 Samuel Tonini
 ;;
 ;; Author: Samuel Tonini <tonini.samuel@gmail.com>
-
+;; Maintainer: Samuel Tonini <tonini.samuel@gmail.com>
 ;; URL: http://www.github.com/tonini/alchemist.el
 ;; Version: 1.4.0-cvs
-;; Package-Requires: ((elixir-mode "2.2.5") (emacs "24.4") (company "0.8.0"))
-;; Keywords: languages, mix, elixir, elixirc, hex
+;; Package-Requires: ((elixir-mode "2.2.5") (dash "2.11.0") (emacs "24.4") (company "0.8.0"))
+;; Keywords: languages, elixir, elixirc, mix, hex, alchemist
 
 ;; This file is not part of GNU Emacs.
 
@@ -98,7 +98,7 @@ Key bindings:
   :global nil
   :keymap `((,alchemist-key-command-prefix . alchemist-mode-keymap))
   (cond (alchemist-mode
-         (alchemist-server--start)
+         (alchemist-server-start-if-not-running)
          (alchemist-test-initialize-modeline))
         (t
          (alchemist-test-reset-modeline))))
@@ -184,7 +184,6 @@ Key bindings:
      ["Execute this buffer" alchemist-execute-this-buffer]
      ["Execute file" alchemist-execute-file])
     ("Mix"
-     ["Mix deps..." alchemist-mix-deps-with-prompt]
      ["Mix compile..." alchemist-mix-compile]
      ["Mix run..." alchemist-mix-run]
      "---"
@@ -193,13 +192,6 @@ Key bindings:
      ["Mix test at point" alchemist-mix-test-at-point]
      "---"
      ["Mix..." alchemist-mix]
-     ["Mix new..." alchemist-mix-new]
-     ["Mix hex search..." alchemist-mix-hex-search]
-     "---"
-     ["Mix local..." alchemist-mix-local-with-prompt]
-     ["Mix local install..." alchemist-mix-local-install]
-     ["Mix local install (Path)..." alchemist-mix-local-install-with-path]
-     ["Mix local install (URL)..." alchemist-mix-local-install-with-url]
      "---"
      ["Display mix buffer" alchemist-mix-display-mix-buffer]
      "---"
@@ -227,8 +219,7 @@ Key bindings:
      ["Documentation search..." alchemist-help]
      ["Documentation search history..." alchemist-help-history]
      "---"
-     ["Documentation search at point..." alchemist-help-search-at-point]
-     ["Documentation search marked region..." alchemist-help-search-marked-region])))
+     ["Documentation search at point..." alchemist-help-search-at-point])))
 
 (add-hook 'elixir-mode-hook 'alchemist-mode-hook)
 
