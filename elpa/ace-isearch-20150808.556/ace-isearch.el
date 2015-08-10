@@ -4,8 +4,8 @@
 
 ;; Author: Akira Tamamori
 ;; URL: https://github.com/tam17aki/ace-isearch
-;; Package-Version: 20150729.2320
-;; Version: 0.1.3
+;; Package-Version: 20150808.556
+;; Version: 0.1.4
 ;; Created: Sep 25 2014
 ;; Package-Requires: ((ace-jump-mode "2.0") (avy "0.3") (helm-swoop "1.4") (emacs "24"))
 
@@ -52,14 +52,15 @@
 
 (defgroup ace-isearch nil
   "Group of ace-isearch."
-  :group 'convenience)
+  :group 'convenience
+  :prefix "ace-isearch-")
 
 (defcustom ace-isearch-lighter " AceI"
   "Lighter of ace-isearch-mode."
   :type 'string
   :group 'ace-isearch)
 
-(defcustom ace-isearch-jump-delay 0.4
+(defcustom ace-isearch-jump-delay 0.3
   "Delay seconds for invoking `ace-jump-mode' or `avy' during isearch."
   :type 'number
   :group 'ace-isearch)
@@ -175,8 +176,8 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
               (< (length isearch-string) ace-isearch-input-length)
               (not isearch-success)
               (sit-for ace-isearch-jump-delay))
-         (if (ace-isearch--fboundp
-              ace-isearch-fallback-function ace-isearch-use-fallback-function)
+         (if (ace-isearch--fboundp ace-isearch-fallback-function
+               ace-isearch-use-fallback-function)
              (funcall ace-isearch-fallback-function)))
 
         ((and (>= (length isearch-string) ace-isearch-input-length)
@@ -186,6 +187,14 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
               (sit-for ace-isearch-func-delay))
          (isearch-exit)
          (funcall ace-isearch-function-from-isearch))))
+
+(defun ace-isearch-pop-mark ()
+  "Jump back to the last location of `ace-jump-mode' invoked or `avy-push-mark'."
+  (interactive)
+  (cond ((eq ace-isearch--ace-jump-or-avy 'ace-jump)
+         (ace-jump-mode-pop-mark))
+        ((eq ace-isearch--ace-jump-or-avy 'avy)
+         (avy-pop-mark))))
 
 (defun ace-isearch--make-ace-jump-or-avy ()
   (let ((func-str (format "%s" ace-isearch-function)))
