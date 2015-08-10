@@ -3,11 +3,16 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "font-utils" "font-utils.el" (21856 4982 0
+;;;### (autoloads nil "font-utils" "font-utils.el" (21960 42763 55401
 ;;;;;;  0))
 ;;; Generated autoloads from font-utils.el
 
 (let ((loads (get 'font-utils 'custom-loads))) (if (member '"font-utils" loads) nil (put 'font-utils 'custom-loads (cons '"font-utils" loads))))
+
+(autoload 'font-utils-client-hostname "font-utils" "\
+Guess the client hostname, respecting $SSH_CONNECTION.
+
+\(fn)" nil nil)
 
 (autoload 'font-utils-name-from-xlfd "font-utils" "\
 Return the font-family name from XLFD, a string.

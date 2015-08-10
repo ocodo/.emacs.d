@@ -1,13 +1,13 @@
 ;;; font-utils.el --- Utility functions for working with fonts
 ;;
-;; Copyright (c) 2012-14 Roland Walker
+;; Copyright (c) 2012-2015 Roland Walker
 ;;
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/font-utils
 ;; URL: http://raw.githubusercontent.com/rolandwalker/font-utils/master/font-utils.el
-;; Package-Version: 20140712.1258
-;; Version: 0.7.2
-;; Last-Updated: 12 Jul 2014
+;; Package-Version: 20150806.1051
+;; Version: 0.7.8
+;; Last-Updated:  6 Aug 2015
 ;; EmacsWiki: FontUtils
 ;; Package-Requires: ((persistent-soft "0.8.8") (pcache "0.2.3"))
 ;; Keywords: extensions
@@ -67,6 +67,9 @@
 ;;
 ;; Bugs
 ;;
+;;     Behavior/echo messages are not sane when font-utils-use-memory-cache
+;;     is nil, or pcache is not available.
+;;
 ;;     Checking for font availability is slow on most systems.
 ;;     Workaround: where supported, font information will be cached
 ;;     to disk.  See customize for more.
@@ -79,6 +82,8 @@
 ;;     describes four styles of font name.
 ;;
 ;; TODO
+;;
+;;     Better support for disabling caching.
 ;;
 ;;     Possibly return a font object instead of font-info vector
 ;;     from font-utils-exists-p.
@@ -144,7 +149,7 @@
 ;;;###autoload
 (defgroup font-utils nil
   "Utility functions for working with fonts."
-  :version "0.7.2"
+  :version "0.7.8"
   :link '(emacs-commentary-link :tag "Commentary" "font-utils")
   :link '(url-link :tag "GitHub" "http://github.com/rolandwalker/font-utils")
   :link '(url-link :tag "EmacsWiki" "http://emacswiki.org/emacs/FontUtils")
@@ -246,6 +251,13 @@ the pathological case with regard to startup time."
     (setq ret-val (nreverse ret-val))))
 
 ;;;###autoload
+(defun font-utils-client-hostname nil
+  "Guess the client hostname, respecting $SSH_CONNECTION."
+  (let ((default "localhost"))
+    (or (car (split-string (or (getenv "SSH_CONNECTION") default)))
+        default)))
+
+;;;###autoload
 (defun font-utils-name-from-xlfd (xlfd)
   "Return the font-family name from XLFD, a string.
 
@@ -305,7 +317,7 @@ The cadr is the specifications as a normalized and sorted list."
   (setq font-name-b (car (font-utils-parse-name font-name-b)))
   (setq font-name-a (replace-regexp-in-string "[ \t_'\"-]+" "" font-name-a))
   (setq font-name-b (replace-regexp-in-string "[ \t_'\"-]+" "" font-name-b))
-  (string-equal (downcase font-name-a) (downcase font-name-b)))
+  (string-equal (upcase font-name-a) (upcase font-name-b)))
 
 ;;;###autoload
 (defun font-utils-is-qualified-variant (font-name-1 font-name-2)
@@ -383,60 +395,59 @@ echo area.
 When optional REGENERATE is true, always rebuild from
 scratch."
   (when (display-multi-font-p)
-    (when (and font-utils-use-persistent-storage
-               (not (stringp (persistent-softest-fetch 'font-utils-data-version font-utils-use-persistent-storage))))
-      (setq regenerate t))
-    (when (and font-utils-use-persistent-storage
-               (stringp (persistent-softest-fetch 'font-utils-data-version font-utils-use-persistent-storage))
-               (version<
-                (persistent-softest-fetch 'font-utils-data-version font-utils-use-persistent-storage)
-                (get 'font-utils 'custom-version)))
-      (setq regenerate t))
-    (when regenerate
-      (setq font-utils-all-names nil)
-      (persistent-softest-store (intern (format "checksum-%s" window-system))
-                             nil font-utils-use-persistent-storage)
-      (persistent-softest-store (intern (format "font-names-%s" window-system))
-                             nil font-utils-use-persistent-storage)
-      (persistent-softest-flush font-utils-use-persistent-storage))
-    (unless (or (hash-table-p font-utils-all-names)
-                (not font-utils-use-memory-cache))
-      (when progress
-        (message "Font cache ... checking"))
-      (let* ((old-checksum (persistent-softest-fetch
-                            (intern (format "checksum-%s" window-system)) font-utils-use-persistent-storage))
-             (listing (font-utils-list-names))
-             (new-checksum (md5 (mapconcat 'identity (sort listing 'string<) "") nil nil 'utf-8))
-             (dupes nil))
-        (when (equal old-checksum new-checksum)
-          (setq font-utils-all-names (persistent-softest-fetch
-                                      (intern (format "font-names-%s" window-system))
-                                      font-utils-use-persistent-storage)))
-        (unless (hash-table-p font-utils-all-names)
-          (when progress
-            (message "Font cache ... rebuilding"))
-          (setq font-utils-all-names (make-hash-table :size (* 5 (length listing)) :test 'equal))
-          (dolist (font-name listing)
-            (dolist (fuzzy-name (font-utils-create-fuzzy-matches font-name))
-              (callf upcase fuzzy-name)
-              (when (and (gethash fuzzy-name font-utils-all-names)
-                         (not (equal (gethash fuzzy-name font-utils-all-names) font-name)))
-                (push fuzzy-name dupes))
-              (puthash (upcase fuzzy-name) font-name font-utils-all-names)))
-          (delete-dups dupes)
-          (dolist (fuzzy-name dupes)
-            (remhash fuzzy-name font-utils-all-names))
-          (persistent-softest-store (intern (format "checksum-%s" window-system))
-                                    new-checksum font-utils-use-persistent-storage)
-          (let ((persistent-soft-inhibit-sanity-checks t))
-            (persistent-softest-store (intern (format "font-names-%s" window-system))
-                                      font-utils-all-names font-utils-use-persistent-storage))
-          (persistent-softest-store 'font-utils-data-version
-                                    (get 'font-utils 'custom-version)
-                                    font-utils-use-persistent-storage)
-          (persistent-softest-flush font-utils-use-persistent-storage)))
-      (when progress
-        (message "Font cache ... done")))))
+    (let* ((cache-id (format "w:%s-h:%s-e:%s-l:%s"
+                             window-system
+                             (font-utils-client-hostname)
+                             emacs-version
+                             (get 'font-utils 'custom-version)))
+           (checksum-key   (intern (format "checksum-%s"   cache-id)))
+           (font-names-key (intern (format "font-names-%s" cache-id)))
+           (store-place font-utils-use-persistent-storage))
+      (when regenerate
+        (setq font-utils-all-names nil)
+        (persistent-softest-store checksum-key
+                                  nil
+                                  store-place)
+        (persistent-softest-store font-names-key
+                                  nil
+                                  store-place)
+        (persistent-softest-flush store-place))
+      (unless (or (hash-table-p font-utils-all-names)
+                  (not font-utils-use-memory-cache))
+        (when progress
+          (message "Font cache ... checking"))
+        (let* ((old-checksum (persistent-softest-fetch checksum-key
+                              store-place))
+               (listing (font-utils-list-names))
+               (new-checksum (md5 (mapconcat 'identity (sort listing 'string<) "") nil nil 'utf-8))
+               (dupes nil))
+          (when (equal old-checksum new-checksum)
+            (setq font-utils-all-names (persistent-softest-fetch font-names-key
+                                        store-place)))
+          (unless (hash-table-p font-utils-all-names)
+            (when progress
+              (message "Font cache ... rebuilding"))
+            (setq font-utils-all-names (make-hash-table :size (* 5 (length listing)) :test 'equal))
+            (dolist (font-name listing)
+              (dolist (fuzzy-name (font-utils-create-fuzzy-matches font-name))
+                (callf upcase fuzzy-name)
+                (when (and (gethash fuzzy-name font-utils-all-names)
+                           (not (equal (gethash fuzzy-name font-utils-all-names) font-name)))
+                  (push fuzzy-name dupes))
+                (puthash (upcase fuzzy-name) font-name font-utils-all-names)))
+            (delete-dups dupes)
+            (dolist (fuzzy-name dupes)
+              (remhash fuzzy-name font-utils-all-names))
+            (persistent-softest-store checksum-key
+                                      new-checksum
+                                      store-place)
+            (let ((persistent-soft-inhibit-sanity-checks t))
+              (persistent-softest-store font-names-key
+                                        font-utils-all-names
+                                        store-place))
+            (persistent-softest-flush store-place)))
+        (when progress
+          (message "Font cache ... done"))))))
 
 ;;;###autoload
 (defun font-utils-read-name (&optional ido)
@@ -474,78 +485,77 @@ Optional SCOPE is a list of font names, within which FONT-NAME
 must \(leniently\) match."
   (when (display-multi-font-p)
     (let ((args (list font-name point-size strict scope)))
-      (if (gethash args font-utils-exists-p-mem)
-          (gethash args font-utils-exists-p-mem)
-        ;; else
-        (save-match-data
-          (when (fontp font-name 'font-spec)
-            (when (and (floatp (font-get font-name :size))
-                       (not point-size))
-              (setq point-size (font-get font-name :size)))
-            (setq font-name (or (font-get font-name :name) (font-get font-name :family))))
-          (puthash args
-                   (cond
-                     ((fontp font-name 'font-entity)
-                      (font-info font-name))
-                     ((vectorp font-name)
-                      font-name)
-                     (t
-                      (let ((font-name-list        nil)
-                            (fontconfig-params     ""))
+      (or (gethash args font-utils-exists-p-mem)
+          (save-match-data
+            (when (fontp font-name 'font-spec)
+              (when (and (floatp (font-get font-name :size))
+                         (not point-size))
+                (setq point-size (font-get font-name :size)))
+              (setq font-name (or (font-get font-name :name) (font-get font-name :family))))
+            (puthash args
+                     (cond
+                       ((fontp font-name 'font-entity)
+                        (font-info font-name))
+                       ((vectorp font-name)
+                        font-name)
+                       (t
+                        (let ((font-name-list        nil)
+                              (fontconfig-params     ""))
 
-                        ;; read all fonts if possible
-                        (font-utils-load-names (not font-utils-less-feedback))
+                          ;; read all fonts if possible
+                          (font-utils-load-names (not font-utils-less-feedback))
 
-                        ;; clean up name and set point-size.  Priority
-                        ;;    argument to function
-                        ;;    font-spec property
-                        ;;    fontconfig-style parameter
-                        ;;    fontconfig-style trailing size
-                        (when (string-match "\\(:.*\\)\\'" font-name)
-                          (setq fontconfig-params (match-string 1 font-name))
-                          (setq font-name (replace-match "" t t font-name))
-                          (when (string-match "\\<size=\\([0-9.]+\\)" fontconfig-params)
-                            (callf or point-size (string-to-number (match-string 1 fontconfig-params)))
-                            (setq fontconfig-params (replace-match "" t t fontconfig-params))))
-                        (when (string-match "-\\([0-9.]+\\)\\'" font-name)
-                          (callf or point-size (string-to-number (match-string 1 font-name)))
-                          (setq font-name (replace-match "" t t font-name)))
-                        (when (stringp point-size)
-                          (callf string-to-number point-size))
-                        (when (numberp point-size)
-                          (callf concat fontconfig-params (format ":size=%s" (round point-size))))
-                        (setq fontconfig-params (replace-regexp-in-string "::+" ":" fontconfig-params))
+                          ;; clean up name and set point-size.  Priority
+                          ;;    argument to function
+                          ;;    font-spec property
+                          ;;    fontconfig-style parameter
+                          ;;    fontconfig-style trailing size
+                          (when (string-match "\\(:.*\\)\\'" font-name)
+                            (setq fontconfig-params (match-string 1 font-name))
+                            (setq font-name (replace-match "" t t font-name))
+                            (when (string-match "\\<size=\\([0-9.]+\\)" fontconfig-params)
+                              (callf or point-size (string-to-number (match-string 1 fontconfig-params)))
+                              (setq fontconfig-params (replace-match "" t t fontconfig-params))))
+                          (when (string-match "-\\([0-9.]+\\)\\'" font-name)
+                            (callf or point-size (string-to-number (match-string 1 font-name)))
+                            (setq font-name (replace-match "" t t font-name)))
+                          (when (stringp point-size)
+                            (callf string-to-number point-size))
+                          (when (numberp point-size)
+                            (callf concat fontconfig-params (format ":size=%s" (round point-size))))
+                          (setq fontconfig-params (replace-regexp-in-string "::+" ":" fontconfig-params))
 
-                        ;; generate list of font names to try
-                        (setq font-name-list (if strict
-                                                 (list font-name)
-                                               (font-utils-create-fuzzy-matches font-name)))
+                          ;; generate list of font names to try
+                          (setq font-name-list (if strict
+                                                   (list font-name)
+                                                 (font-utils-create-fuzzy-matches font-name)))
 
-                        ;; constrain font list to scope requested
-                        (when scope
-                          (callf2 intersection scope font-name-list :test 'font-utils-lenient-name-equal))
+                          ;; constrain font list to scope requested
+                          (when scope
+                            (callf2 intersection scope font-name-list :test 'font-utils-lenient-name-equal))
 
-                        ;; constrain font list by font cache if possible
-                        (when (and font-utils-use-memory-cache
-                                   (hash-table-p font-utils-all-names))
-                          (setq font-name-list (remove-if-not #'(lambda (key)
-                                                                  (gethash (upcase
-                                                                            (replace-regexp-in-string "-[0-9.]+\\'" "" key))
-                                                                           font-utils-all-names))
-                                                              font-name-list)))
-                        ;; find the font
-                        (catch 'font
-                          (dolist (name font-name-list)
-                            ;; trailing colon disambiguates eg font names ending with "Italic"
-                            (let* ((query-name (concat name fontconfig-params ":"))
-                                   (font-vec (with-local-quit (ignore-errors (font-info query-name)))))
-                              (when (and font-vec
-                                         (or (find-font (font-spec :name name))    ; verify - some systems return the
-                                             (find-font (font-spec :family name))) ; default face on font-info failure
-                                         (or (not (numberp point-size))
-                                             (= point-size (aref font-vec 2))))
-                                (throw 'font font-vec))))))))
-                   font-utils-exists-p-mem))))))
+                          ;; if the font cache is available, use it to constrain the
+                          ;; font list and canonicalize the name
+                          (when (and font-utils-use-memory-cache
+                                     (hash-table-p font-utils-all-names))
+                            (setq font-name-list (delq nil (mapcar #'(lambda (key)
+                                                                       (gethash (upcase key)
+                                                                                font-utils-all-names))
+                                                                   font-name-list))))
+
+                          ;; find the font
+                          (catch 'font
+                            (dolist (name font-name-list)
+                              ;; trailing colon disambiguates eg font names ending with "Italic"
+                              (let* ((query-name (concat name fontconfig-params ":"))
+                                     (font-vec (with-local-quit (ignore-errors (font-info query-name)))))
+                                (when (and font-vec
+                                           (or (find-font (font-spec :name name))    ; verify - some systems return the
+                                               (find-font (font-spec :family name))) ; default face on font-info failure
+                                           (or (not (numberp point-size))
+                                               (= point-size (aref font-vec 2))))
+                                  (throw 'font font-vec))))))))
+                     font-utils-exists-p-mem))))))
 
 ;;;###autoload
 (defun font-utils-first-existing-font (font-names &optional no-normalize)
