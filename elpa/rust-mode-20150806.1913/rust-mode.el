@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code
 
 ;; Version: 0.2.0
-;; Package-Version: 20150731.536
+;; Package-Version: 20150806.1913
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -68,13 +68,6 @@
     (modify-syntax-entry ?*  ". 23"   table)
     (modify-syntax-entry ?\n "> b"    table)
     (modify-syntax-entry ?\^m "> b"   table)
-
-    table))
-
-(defvar rust-mode-character-literal-syntax-table
-  (let ((table (make-syntax-table rust-mode-syntax-table)))
-    (modify-syntax-entry ?' "\"" table)
-    (modify-syntax-entry ?\" "_" table)
 
     table))
 
