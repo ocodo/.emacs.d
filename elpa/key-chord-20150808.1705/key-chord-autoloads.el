@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "key-chord" "key-chord.el" (21856 4971 0 0))
+;;;### (autoloads nil "key-chord" "key-chord.el" (21960 42731 23401
+;;;;;;  0))
 ;;; Generated autoloads from key-chord.el
 
 (autoload 'key-chord-mode "key-chord" "\
