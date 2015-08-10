@@ -11,9 +11,9 @@
 ;;	Marius Vollmer <marius.vollmer@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (dash "2.10.0") (with-editor "2.1.0"))
+;; Package-Requires: ((emacs "24.4") (dash "2.11.0") (with-editor "20150808"))
 ;; Keywords: git tools vc
-;; Package-Version: 20150727.1401
+;; Package-Version: 20150808.1054
 ;; Homepage: https://github.com/magit/magit
 
 ;; This file is not part of GNU Emacs.
@@ -444,7 +444,7 @@ finally check current non-comment text."
 (defun git-commit-check-style-conventions (force)
   "Check for violations of certain basic style conventions.
 For each violation ask the user if she wants to proceed anyway.
-This makes sure the summary line isn't to long and that the
+This makes sure the summary line isn't too long and that the
 second line is empty."
   (or force
       (save-excursion
