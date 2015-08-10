@@ -103,7 +103,9 @@ Haskell Mode in one way or another.
 
    Most of Haskell Mode’s settings are configurable via customizable
 variables (*note (emacs)Easy Customization::, for details).  You can use
-‘M-x haskell-customize’ to browse the ‘haskell’ customization sub-tree.
+
+   ‘M-x customize-group <RET> haskell’ to browse the ‘haskell’
+customization sub-tree.
 
    One of the important setting you should customize is the
 ‘haskell-mode-hook’ variable (*note (emacs)Hooks::) which gets run right
@@ -515,6 +517,7 @@ Concept index
 * Menu:
 
 * CUA mode:                              Indentation.          (line 76)
+* customizing:                           Getting Started.      (line  9)
 * ‘haskell-mode’:                        Editing Haskell Code. (line  6)
 * indentation:                           Indentation.          (line  6)
 * layout rule:                           Indentation.          (line  6)
@@ -535,7 +538,6 @@ Function index
 * haskell-cabal-mode:                    Editing Cabal files.  (line  6)
 * haskell-cabal-visit-file:              Editing Cabal files.  (line 11)
 * haskell-compile:                       Compilation.          (line  6)
-* haskell-customize:                     Getting Started.      (line  9)
 * haskell-decl-scan-mode:                Declaration scanning. (line  6)
 * haskell-indent-mode:                   Indentation.          (line 24)
 * haskell-indentation-mode:              Indentation.          (line 35)
@@ -577,7 +579,7 @@ Variable index
 * haskell-compile-cabal-build-command-alt: Compilation.        (line 35)
 * haskell-compile-command:               Compilation.          (line 35)
 * haskell-decl-scan-mode-hook:           Declaration scanning. (line  6)
-* haskell-mode-hook:                     Getting Started.      (line 13)
+* haskell-mode-hook:                     Getting Started.      (line 15)
 * haskell-program-name:                  Inferior Haskell interpreter.
                                                                (line  6)
 * inferior-haskell-mode-hook:            Inferior Haskell interpreter.
@@ -590,21 +592,21 @@ Node: Top679
 Node: Introduction1857
 Node: Getting Help and Reporting Bugs2374
 Node: Getting Started3836
-Node: Editing Haskell Code4816
-Ref: Editing Haskell Code-Footnote-16756
-Ref: Editing Haskell Code-Footnote-26847
-Ref: Editing Haskell Code-Footnote-36906
-Node: Unicode support6990
-Node: Indentation8680
-Ref: Indentation-Footnote-112568
-Node: Declaration scanning12753
-Node: Compilation14890
-Node: Inferior Haskell interpreter17660
-Node: Interactive Haskell18590
-Node: Editing Cabal files20467
-Node: Concept index21346
-Node: Function index22095
-Node: Variable index24425
+Node: Editing Haskell Code4832
+Ref: Editing Haskell Code-Footnote-16772
+Ref: Editing Haskell Code-Footnote-26863
+Ref: Editing Haskell Code-Footnote-36922
+Node: Unicode support7006
+Node: Indentation8696
+Ref: Indentation-Footnote-112584
+Node: Declaration scanning12769
+Node: Compilation14906
+Node: Inferior Haskell interpreter17676
+Node: Interactive Haskell18606
+Node: Editing Cabal files20483
+Node: Concept index21362
+Node: Function index22184
+Node: Variable index24441
 
 End Tag Table
 
