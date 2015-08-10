@@ -101,7 +101,12 @@ Affect among others `completion-at-point', `completing-read-multiple'."
   :type 'boolean)
 
 (defcustom helm-mode-fuzzy-match nil
-  "Enable fuzzy matching in `helm-mode'."
+  "Enable fuzzy matching in `helm-mode' globally.
+Note that this will slow down completion and modify sorting
+which is unwanted in many places.
+This affect only the functions with completing-read helmized by helm-mode.
+To fuzzy match `completion-at-point' and friends see
+`helm-completion-in-region-fuzzy-match'."
   :group 'helm-mode
   :type 'boolean)
 
@@ -303,6 +308,8 @@ Keys description:
 
 - MUST-MATCH: Candidate selected must be one of COLLECTION.
 
+- FUZZY: Enable fuzzy matching.
+
 - REVERSE-HISTORY: When non--nil display history source after current
   source completion.
 
@@ -338,9 +345,14 @@ Keys description:
 
 - VOLATILE: Use volatile attribute \(enabled by default\).
 
-- SORT: A predicate to give to `sort' e.g `string-lessp'.
+- SORT: A predicate to give to `sort' e.g `string-lessp'
+  Use this only on small data as it is ineficient.
+  If you want to sort faster add a sort function to
+  FC-TRANSFORMER.
+  Note that FUZZY when enabled is already providing a sort function.
 
-- FC-TRANSFORMER: A `filtered-candidate-transformer' function.
+- FC-TRANSFORMER: A `filtered-candidate-transformer' function
+  or a list of functions.
 
 - HIST-FC-TRANSFORMER: A `filtered-candidate-transformer'
   function for the history source.
@@ -352,7 +364,7 @@ Keys description:
 - ALISTP: \(default is non--nil\) See `helm-comp-read-get-candidates'.
 
 - CANDIDATES-IN-BUFFER: when non--nil use a source build with
-  `helm-candidates-in-buffer' which is much faster.
+  `helm-source-in-buffer' which is much faster.
   Argument VOLATILE have no effect when CANDIDATES-IN-BUFFER is non--nil.
 
 Any prefix args passed during `helm-comp-read' invocation will be recorded
@@ -396,7 +408,9 @@ that use `helm-comp-read' See `helm-M-x' for example."
                                            (string= helm-pattern "")
                                            (assoc helm-pattern cands)
                                            (assoc (intern helm-pattern) cands)
-                                           (member helm-pattern cands))
+                                           (member helm-pattern cands)
+                                           (member (downcase helm-pattern) cands)
+                                           (member (upcase helm-pattern) cands))
                                  (setq cands (append (list
                                                       ;; Unquote helm-pattern
                                                       ;; when it is added
