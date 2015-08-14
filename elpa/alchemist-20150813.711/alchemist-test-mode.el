@@ -87,7 +87,7 @@ Otherwise, it saves all modified buffers without asking."
   :group 'alchemist-test)
 
 (defface alchemist-test--success-face
-  '((t (:inherit font-lock-variable-name-face :bold t :background "darkgreen" :foreground "#e0ff00")))
+  '((t (:inherit font-lock-variable-name-face :bold t :background "darkgreen" :foreground "white")))
   "Face for successful compilation run."
   :group 'alchemist-test)
 
@@ -187,9 +187,12 @@ Otherwise, it saves all modified buffers without asking."
         (goto-char (point-min))
         (forward-line (- line 1))))))
 
-(defun alchemist-test--handle-exit (status)
+(defun alchemist-test--handle-exit (status buffer)
   (when alchemist-test-status-modeline
-    (alchemist-test--set-modeline-color status)))
+    (alchemist-test--set-modeline-color status))
+  (with-current-buffer buffer
+    (let ((inhibit-read-only t))
+      (alchemist-test--render-files))))
 
 (defun alchemist-test-mode--buffer-contains-tests-p ()
   "Return nil if the current buffer contains no tests, non-nil if it does."
@@ -252,11 +255,7 @@ macro) while the values are the position at which the test matched."
                           alchemist-test-report-process-name
                           alchemist-test-report-buffer-name
                           'alchemist-test-report-mode
-                          #'alchemist-test--handle-exit
-                          #'(lambda (buffer)
-                              (with-current-buffer buffer
-                                (let ((inhibit-read-only t))
-                                  (alchemist-test--render-files)))))))
+                          #'alchemist-test--handle-exit)))
 
 (defun alchemist-test-initialize-modeline ()
   "Initialize the mode-line face."
@@ -333,6 +332,17 @@ to the selected one."
          (position (cdr (assoc selected tests))))
     (goto-char position)
     (back-to-indentation)))
+
+(defun alchemist-test-toggle-test-report-display ()
+  "Toggle between display or hidding `alchemist-test-report-buffer-name' buffer."
+  (interactive)
+  (let* ((buffer (get-buffer alchemist-test-report-buffer-name))
+         (window (get-buffer-window buffer)))
+    (if buffer
+        (if window
+            (quit-window nil window)
+          (display-buffer buffer))
+      (message "No Alchemist test report buffer exists."))))
 
 ;;;###autoload
 (define-minor-mode alchemist-test-mode

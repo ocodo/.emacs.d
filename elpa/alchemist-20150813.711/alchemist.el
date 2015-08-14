@@ -5,8 +5,8 @@
 ;; Author: Samuel Tonini <tonini.samuel@gmail.com>
 ;; Maintainer: Samuel Tonini <tonini.samuel@gmail.com>
 ;; URL: http://www.github.com/tonini/alchemist.el
-;; Version: 1.4.0-cvs
-;; Package-Requires: ((elixir-mode "2.2.5") (dash "2.11.0") (emacs "24.4") (company "0.8.0"))
+;; Version: 1.5.0-cvs
+;; Package-Requires: ((elixir-mode "2.2.5") (dash "2.11.0") (emacs "24.4") (company "0.8.0") (pkg-info "0.4"))
 ;; Keywords: languages, elixir, elixirc, mix, hex, alchemist
 
 ;; This file is not part of GNU Emacs.
@@ -42,10 +42,14 @@
 
 ;;; Code:
 
+;; Tell the byte compiler about autoloaded functions from packages
+(declare-function pkg-info-version-info "pkg-info" (package))
+
 (defgroup alchemist nil
   "Elixir Tooling Integration Into Emacs."
   :prefix "alchemist-"
   :group 'applications
+  :link '(url-link :tag "Website" "http://www.alchemist-elixir.org")
   :link '(url-link :tag "Github" "https://github.com/tonini/alchemist.el")
   :link '(emacs-commentary-link :tag "Commentary" "alchemist"))
 
@@ -75,13 +79,23 @@
   "Hook which enables `alchemist-mode'"
   (alchemist-mode 1))
 
-(defvar alchemist--version "1.4.0-cvs")
-
-;;;###autoload
 (defun alchemist-version (&optional show-version)
-  "Display Alchemist's version."
-  (interactive)
-  (message "Alchemist %s" (replace-regexp-in-string "-cvs" "snapshot" alchemist--version)))
+  "Get the Alchemist version as string.
+
+If called interactively or if SHOW-VERSION is non-nil, show the
+version in the echo area and the messages buffer.
+
+The returned string includes both, the version from package.el
+and the library version, if both a present and different.
+
+If the version number could not be determined, signal an error,
+if called interactively, or if SHOW-VERSION is non-nil, otherwise
+just return nil."
+  (interactive (list t))
+  (let ((version (pkg-info-version-info 'alchemist)))
+    (when show-version
+      (message "Alchemist version: %s" version))
+    version))
 
 (define-prefix-command 'alchemist-mode-keymap)
 
@@ -107,6 +121,7 @@ Key bindings:
   (define-key map (kbd "x") 'alchemist-mix)
   (define-key map (kbd "t") 'alchemist-mix-test)
   (define-key map (kbd "r") 'alchemist-mix-rerun-last-test)
+
   (define-key map (kbd "m c") 'alchemist-mix-compile)
   (define-key map (kbd "m r") 'alchemist-mix-run)
   (define-key map (kbd "m t f") 'alchemist-mix-test-file)
@@ -153,6 +168,7 @@ Key bindings:
 (define-key alchemist-mode-map (kbd "C-c , .") 'alchemist-goto-list-symbol-definitions)
 (define-key alchemist-mode-map (kbd "M-P") 'alchemist-goto-jump-to-previous-def-symbol)
 (define-key alchemist-mode-map (kbd "M-N") 'alchemist-goto-jump-to-next-def-symbol)
+(define-key alchemist-mode-map (kbd "C-c M-r") 'alchemist-test-toggle-test-report-display)
 
 (easy-menu-define alchemist-mode-menu alchemist-mode-map
   "Alchemist mode menu."
@@ -219,7 +235,9 @@ Key bindings:
      ["Documentation search..." alchemist-help]
      ["Documentation search history..." alchemist-help-history]
      "---"
-     ["Documentation search at point..." alchemist-help-search-at-point])))
+     ["Documentation search at point..." alchemist-help-search-at-point])
+    ("About"
+     ["Show Alchemist version" alchemist-version t])))
 
 (add-hook 'elixir-mode-hook 'alchemist-mode-hook)
 
