@@ -1,12 +1,12 @@
 ;;; ucs-utils-6.0-delta.el --- Unicode 5.2 to 6.0 delta
 ;;
-;; Copyright (c) 2012 Roland Walker
+;; Copyright (c) 2012-2015 Roland Walker
 ;;
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/ucs-utils
 ;; URL: http://raw.githubusercontent.com/rolandwalker/ucs-utils/master/ucs-utils-6.0-delta.el
-;; Version: 1.0.0
-;; Last-Updated:  6 Sep 2012
+;; Version: 1.0.2
+;; Last-Updated: 12 Aug 2015
 ;; EmacsWiki: UcsUtils
 ;; Keywords: i18n, extensions
 ;;
@@ -39,14 +39,14 @@
 ;; without modification, are permitted provided that the following
 ;; conditions are met:
 ;;
-;;    1. Redistributions of source code must retain the above
-;;       copyright notice, this list of conditions and the following
-;;       disclaimer.
+;;   1. Redistributions of source code must retain the above
+;;      copyright notice, this list of conditions and the following
+;;      disclaimer.
 ;;
-;;    2. Redistributions in binary form must reproduce the above
-;;       copyright notice, this list of conditions and the following
-;;       disclaimer in the documentation and/or other materials
-;;       provided with the distribution.
+;;   2. Redistributions in binary form must reproduce the above
+;;      copyright notice, this list of conditions and the following
+;;      disclaimer in the documentation and/or other materials
+;;      provided with the distribution.
 ;;
 ;; This software is provided by Roland Walker "AS IS" and any express
 ;; or implied warranties, including, but not limited to, the implied
@@ -73,15 +73,16 @@
 ;;; Code:
 ;;
 
+;;; declarations
+
 (eval-when-compile
-  ;; declarations
   (defvar ucs-utils-names-corrections))
+
+;;; supplement values from main library
 
 (when (and (not (assoc "CYRILLIC CAPITAL LETTER SHHA WITH DESCENDER" ucs-utils-names-corrections))
            (not (assoc "CYRILLIC CAPITAL LETTER SHHA WITH DESCENDER" (ucs-names))))
-  (setq ucs-utils-names-corrections
-        (append
-         ucs-utils-names-corrections
+  (nconc ucs-utils-names-corrections
          '(
            ;; Unicode 5.2 to 6.0 delta
            ("CYRILLIC CAPITAL LETTER SHHA WITH DESCENDER"                                     .  #x0526)
@@ -1948,7 +1949,13 @@
            ("ALCHEMICAL SYMBOL FOR DAY-NIGHT"                                                 .  #x1F770)
            ("ALCHEMICAL SYMBOL FOR MONTH"                                                     .  #x1F771)
            ("ALCHEMICAL SYMBOL FOR HALF DRAM"                                                 .  #x1F772)
-           ("ALCHEMICAL SYMBOL FOR HALF OUNCE"                                                .  #x1F773)))))
+           ("ALCHEMICAL SYMBOL FOR HALF OUNCE"                                                .  #x1F773)))
+
+  ;; generated names for CJK Unified Ideographs Extension D
+  (nconc ucs-utils-names-corrections
+         (mapcar #'(lambda (x)
+                     (cons (format "CJK IDEOGRAPH-%X" x) x))
+                 (number-sequence #x2B740 #x2B81D))))
 
 (provide 'ucs-utils-6.0-delta)
 

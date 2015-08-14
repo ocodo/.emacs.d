@@ -1,14 +1,10 @@
 ;;; ucs-utils-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (ucs-utils-install-aliases ucs-utils-ucs-insert
-;;;;;;  ucs-utils-eval ucs-utils-read-char-by-name ucs-utils-subst-char-in-region
-;;;;;;  ucs-utils-intact-string ucs-utils-string ucs-utils-vector
-;;;;;;  ucs-utils-first-existing-char ucs-utils-char ucs-utils-all-prettified-names
-;;;;;;  ucs-utils-pretty-name ucs-utils) "ucs-utils" "ucs-utils.el"
-;;;;;;  (21420 27143 0 0))
+;;;### (autoloads nil "ucs-utils" "ucs-utils.el" (21965 50174 483401
+;;;;;;  0))
 ;;; Generated autoloads from ucs-utils.el
 
 (let ((loads (get 'ucs-utils 'custom-loads))) (if (member '"ucs-utils" loads) nil (put 'ucs-utils 'custom-loads (cons '"ucs-utils" loads))))
@@ -206,13 +202,13 @@ Insert CHARACTER in COUNT copies, where CHARACTER is a Unicode code point.
 
 Works like `ucs-insert', with the following differences
 
-   * Uses `ido-completing-read' at the interactive prompt
+    * Uses `ido-completing-read' at the interactive prompt
 
-   * If `transient-mark-mode' is enabled, and the region contains
-     a valid UCS character name, that value is used as the
-     character name and the region is replaced.
+    * If `transient-mark-mode' is enabled, and the region contains
+      a valid UCS character name, that value is used as the
+      character name and the region is replaced.
 
-   * A UCS character name string may be passed for CHARACTER.
+    * A UCS character name string may be passed for CHARACTER.
 
 INHERIT is as documented at `ucs-insert'.
 
@@ -221,30 +217,28 @@ INHERIT is as documented at `ucs-insert'.
 (autoload 'ucs-utils-install-aliases "ucs-utils" "\
 Install aliases outside the \"ucs-utils-\" namespace.
 
-The following aliases will be installed
+The following aliases will be installed:
 
-   `ucs-char'                  for   `ucs-utils-char'
-   `ucs-first-existing-char'   for   `ucs-utils-first-existing-char'
-   `ucs-string'                for   `ucs-utils-string'
-   `ucs-intact-string'         for   `ucs-utils-intact-string'
-   `ucs-vector'                for   `ucs-utils-vector'
-   `ucs-pretty-name'           for   `ucs-utils-pretty-name'
-   `ucs-eval'                  for   `ucs-utils-eval'
+    `ucs-char'                  for   `ucs-utils-char'
+    `ucs-first-existing-char'   for   `ucs-utils-first-existing-char'
+    `ucs-string'                for   `ucs-utils-string'
+    `ucs-intact-string'         for   `ucs-utils-intact-string'
+    `ucs-vector'                for   `ucs-utils-vector'
+    `ucs-pretty-name'           for   `ucs-utils-pretty-name'
+    `ucs-eval'                  for   `ucs-utils-eval'
 
 \(fn)" t nil)
 
 ;;;***
 
 ;;;### (autoloads nil nil ("ucs-utils-6.0-delta.el" "ucs-utils-pkg.el")
-;;;;;;  (21420 27143 575696 0))
+;;;;;;  (21965 50174 519471 369000))
 
 ;;;***
 
-(provide 'ucs-utils-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; ucs-utils-autoloads.el ends here
