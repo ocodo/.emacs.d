@@ -1,11 +1,11 @@
-;;; ham-mode.el --- Html As Markdown. Transparently edit an html file using markdown.
+;;; ham-mode.el --- Html As Markdown. Transparently edit an html file using markdown  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013 Artur Malabarba <bruce.connor.am@gmail.com>
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/Bruce-Connor/ham-mode
-;; Version: 20140815.1335
-;; X-Original-Version: 1.1.1
+;; Package-Version: 20150811.606
+;; Version: 1.1.2
 ;; Package-Requires: ((html-to-markdown "1.2") (markdown-mode "2.0"))
 ;; Keywords: convenience emulation wp
 ;; Prefix: ham
@@ -75,8 +75,8 @@
 (require 'html-to-markdown)
 (require 'markdown-mode)
 
-(defconst ham-mode-version "1.1.1" "Version of the ham-mode.el package.")
-(defconst ham-mode-version-int 3 "Version of the ham-mode.el package, as an integer.")
+(defconst ham-mode-version "1.1.2" "Version of the ham-mode.el package.")
+(defconst ham-mode-version-int 4 "Version of the ham-mode.el package, as an integer.")
 (defun ham-bug-report ()
   "Opens github issues page in a web browser. Please send any bugs you find.
 Please include your emacs and ham-mode versions."
@@ -163,9 +163,9 @@ because this is called as an `after-save-hook', so that could
 lead to an infinite loop.")
 
 (defun ham-mode--run-conversion (command)
-  (unless (and (car command)
-	       (file-executable-p (car command)))
-    (error "Can't find the markdown executable! Is it installed? See `command'"))
+  (unless (and (car-safe command)
+               (executable-find (car command)))
+    (error "Can't find the markdown executable! Is it installed? See `ham-mode-markdown-to-html-command'"))
   (let ((file (buffer-file-name))
         output return)
     (unless file
@@ -174,7 +174,7 @@ lead to an infinite loop.")
           (with-temp-buffer
             (setq return
                   (apply 'call-process
-                         (car command)
+                         (executable-find (car command))
                          nil t nil
                          (mapcar
                           (lambda (x) (if (eq x 'file) file x))
