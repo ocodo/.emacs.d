@@ -39,6 +39,7 @@
              "\.rake$"
              "\.rxml$"
              "\.rhtml$"
+             "\.erb$"
              "\.rjs$"
              "\.irbrc$"
              "\.builder$"
