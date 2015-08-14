@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-eldoc
-;; Package-Version: 20150713.27
+;; Package-Version: 20150810.2007
 ;; Version: 0.25
 ;; Package-Requires: ((go-mode "1.0.0") (cl-lib "0.5"))
 
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; To use this package, add these lines to your .emacs file:
+;; To use this package, add these lines to your init.el file:
 ;;
 ;;     (require 'go-eldoc)
 ;;     (add-hook 'go-mode-hook 'go-eldoc-setup)
@@ -41,6 +41,11 @@
   "Eldoc for golang"
   :group 'go
   :prefix "go-eldoc-")
+
+(defcustom go-eldoc-gocode "gocode"
+  "gocode path"
+  :type 'string
+  :group 'go-eldoc)
 
 (defvar go-eldoc--builtins
   '(("append"  . "append,,func(slice []Type, elems ...Type) []Type")
@@ -145,17 +150,17 @@
 (defun go-eldoc--invoke-autocomplete ()
   (let ((temp-buffer (generate-new-buffer "*go-eldoc*")))
     (prog2
-	(call-process-region (point-min)
-			     (point-max)
-			     "gocode"
-			     nil
-			     temp-buffer
-			     nil
-			     "-f=emacs"
-			     "autocomplete"
-			     (or (buffer-file-name) "")
-			     (concat "c" (int-to-string (- (point) 1))))
-	(with-current-buffer temp-buffer (buffer-string))
+        (call-process-region (point-min)
+                             (point-max)
+                             go-eldoc-gocode
+                             nil
+                             temp-buffer
+                             nil
+                             "-f=emacs"
+                             "autocomplete"
+                             (or (buffer-file-name) "")
+                             (concat "c" (int-to-string (- (point) 1))))
+        (with-current-buffer temp-buffer (buffer-string))
       (kill-buffer temp-buffer))))
 
 (defsubst go-eldoc--assignment-index (lhs)
