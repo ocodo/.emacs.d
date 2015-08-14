@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20150803.1211
+;; Package-Version: 20150810.806
 ;; Version: 0.5.1
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
@@ -335,16 +335,18 @@ used.")
         (when which-key-use-C-h-for-paging
             (setq which-key--prefix-help-cmd-backup prefix-help-command
                   prefix-help-command #'which-key-show-next-page))
+        (when which-key-show-remaining-keys
+          (add-hook 'pre-command-hook #'which-key--lighter-restore))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
-        (add-hook 'pre-command-hook #'which-key--lighter-restore)
         (add-hook 'focus-out-hook #'which-key--stop-timer)
         (add-hook 'focus-in-hook #'which-key--start-timer)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
     (when which-key-use-C-h-for-paging
       (setq prefix-help-command which-key--prefix-help-cmd-backup))
+    (when which-key-show-remaining-keys
+      (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
-    (remove-hook 'pre-command-hook #'which-key--lighter-restore)
     (remove-hook 'focus-out-hook #'which-key--stop-timer)
     (remove-hook 'focus-in-hook #'which-key--start-timer)
     (which-key--stop-timer)))
@@ -869,17 +871,18 @@ BUFFER that follow the key sequence KEY-SEQ."
   (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
         (buffer (current-buffer))
         key-match desc-match unformatted)
-    (with-temp-buffer
-      (describe-buffer-bindings buffer which-key--current-prefix)
-      (goto-char (point-max)) ; want to put last keys in first
-      (while (re-search-backward
-              (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
-                      key-str-qt)
-              nil t)
-        (setq key-match (match-string 1)
-              desc-match (match-string 2))
-        (cl-pushnew (cons key-match desc-match) unformatted
-                    :test (lambda (x y) (string-equal (car x) (car y))))))
+    (save-match-data
+      (with-temp-buffer
+        (describe-buffer-bindings buffer which-key--current-prefix)
+        (goto-char (point-max)) ; want to put last keys in first
+        (while (re-search-backward
+                (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
+                        key-str-qt)
+                nil t)
+          (setq key-match (match-string 1)
+                desc-match (match-string 2))
+          (cl-pushnew (cons key-match desc-match) unformatted
+                      :test (lambda (x y) (string-equal (car x) (car y)))))))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
@@ -985,6 +988,7 @@ is the width of the live window."
     (setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
     (setcar (cdr (assq 'which-key-mode minor-mode-alist))
             (format " WK: %s/%s keys" n-shown n-tot))))
+
 (defun which-key--lighter-restore ()
   "Restore the lighter for which-key."
   (when which-key-show-remaining-keys
