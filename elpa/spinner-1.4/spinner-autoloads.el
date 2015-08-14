@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "spinner" "spinner.el" (21833 28620 19401 0))
+;;;### (autoloads nil "spinner" "spinner.el" (21965 50178 871401
+;;;;;;  0))
 ;;; Generated autoloads from spinner.el
 
 (autoload 'spinner-create "spinner" "\
@@ -23,7 +24,12 @@ curent buffer.  If BUFFER-LOCAL was set at creation time, then
 `force-mode-line-update' is called in that buffer instead.  When
 the spinner is stopped, the timer is deactivated.
 
-\(fn &optional TYPE BUFFER-LOCAL FPS)" nil nil)
+DELAY, if given, is the number of seconds to wait after starting
+the spinner before actually displaying it. It is safe to cancel
+the spinner before this time, in which case it won't display at
+all.
+
+\(fn &optional TYPE BUFFER-LOCAL FPS DELAY)" nil nil)
 
 (autoload 'spinner-start "spinner" "\
 Start a mode-line spinner of given TYPE-OR-OBJECT.
@@ -46,7 +52,11 @@ in the same buffer where the spinner was created.
 FPS, if given, is the number of desired frames per second.
 Default is `spinner-frames-per-second'.
 
-\(fn &optional TYPE-OR-OBJECT FPS)" nil nil)
+DELAY, if given, is the number of seconds to wait until actually
+displaying the spinner. It is safe to cancel the spinner before
+this time, in which case it won't display at all.
+
+\(fn &optional TYPE-OR-OBJECT FPS DELAY)" nil nil)
 
 ;;;***
 
