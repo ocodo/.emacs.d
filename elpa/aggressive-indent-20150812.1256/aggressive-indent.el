@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: http://github.com/Malabarba/aggressive-indent-mode
-;; Package-Version: 20150805.1449
+;; Package-Version: 20150812.1256
 ;; Version: 1.1.2
 ;; Package-Requires: ((emacs "24.1") (names "20150125.9") (cl-lib "0.5"))
 ;; Keywords: indent lisp maint tools
@@ -326,10 +326,15 @@ until nothing more happens."
                  (point-limit (if (and eod (< (point) eod))
                                   eod (point-max-marker))))
             (while (and (null (eobp))
-                        (< (point) point-limit)
-                        (/= (point)
-                            (progn (indent-according-to-mode)
-                                   (point))))
+                        (let ((op (point))
+                              (np (progn (indent-according-to-mode)
+                                         (point))))
+                          ;; As long as we're indenting things to the
+                          ;; left, keep indenting.
+                          (or (< np op)
+                              ;; If we're indenting to the right, or
+                              ;; not at all, stop at the limit.
+                              (< (point) point-limit))))
               (forward-line 1)
               (skip-chars-forward "[:blank:]\n"))))
       (goto-char p))))
