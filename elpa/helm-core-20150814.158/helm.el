@@ -30,6 +30,7 @@
 
 (require 'cl-lib)
 (require 'helm-lib)
+(require 'helm-match-plugin)
 (require 'helm-source)
 
 
@@ -233,7 +234,7 @@ so don't use strings, vectors or whatever to define them."
     (define-key map (kbd "C-t")        'helm-toggle-resplit-and-swap-windows)
     ;; Debugging command
     (define-key map (kbd "C-h C-d")    'undefined)
-    (define-key map (kbd "C-h C-d")    'helm-debug-output)
+    (define-key map (kbd "C-h C-d")    'helm-enable-or-switch-to-debug)
     ;; Allow to eval keymap without errors.
     (define-key map [f1] nil)
     (define-key map (kbd "C-h C-h")    'undefined)
@@ -824,7 +825,7 @@ Visible marks store candidate. Some actions uses marked candidates.
 
 ** Miscellaneous Commands
 
-\\[helm-toggle-resplit-window] : Toggle vertical/horizontal split helm window.
+\\[helm-toggle-resplit-and-swap-windows] : Toggle vertical/horizontal split on first hit and swap helm window on second hit.
 \\[helm-quit-and-find-file] : Drop into `find-file'.
 \\[helm-delete-current-selection] : Delete selected item (visually).
 \\[helm-kill-selection-and-quit] : Kill display value of candidate and quit (with prefix arg kill the real value).
@@ -844,6 +845,8 @@ It is very useful, so you should bind any key.
 \\{helm-map}"))
   "Detailed help message string for `helm'.
 It also accepts function or variable symbol.")
+
+(defvar helm-autoresize-mode) ;; Undefined in `helm-default-display-buffer'.
 
 
 ;;; Internal Variables
@@ -1889,6 +1892,7 @@ ANY-KEYMAP ANY-DEFAULT ANY-HISTORY See `helm'."
                  (helm-initialize
                   any-resume any-input any-default any-sources)
                  (helm-display-buffer helm-buffer)
+                 ;; We are now in helm-buffer.
                  (when helm-prevent-escaping-from-minibuffer
                    (helm--remap-mouse-mode 1)) ; Disable mouse bindings.
                  (add-hook 'post-command-hook 'helm--maybe-update-keymap)
@@ -1906,8 +1910,6 @@ ANY-KEYMAP ANY-DEFAULT ANY-HISTORY See `helm'."
             (helm-restore-position-on-quit)
             (helm-log (concat "[End session (quit)] " (make-string 34 ?-)))
             nil))
-      (remove-hook 'post-command-hook 'helm--maybe-update-keymap)
-      (remove-hook 'post-command-hook 'helm--update-header-line)
       (if (fboundp 'advice-add)
           (progn
             (advice-remove 'tramp-read-passwd
@@ -1951,6 +1953,8 @@ Called from lisp, you can specify a buffer-name as a string with ARG."
     (setq helm-compiled-sources nil)
     (setq cur-dir (buffer-local-value
                    'default-directory (get-buffer any-buffer)))
+    (setq helm-saved-selection nil
+          helm-saved-action nil)
     (unless (buffer-live-p helm-current-buffer)
       ;; `helm-current-buffer' may have been killed.
       (setq helm-current-buffer (current-buffer)))
@@ -2281,13 +2285,15 @@ It is intended to use this only in `helm-initial-setup'."
   ;; For initialization of helm locals vars that need
   ;; a value from current buffer, it is here.
   (helm-set-local-variable 'current-input-method current-input-method)
-  (setq helm-current-prefix-arg nil)
-  (setq helm-suspend-update-flag nil)
-  (setq helm-current-buffer (helm--current-buffer))
-  (setq helm-buffer-file-name buffer-file-name)
-  (setq helm-issued-errors nil)
-  (setq helm-compiled-sources nil)
-  (setq helm-saved-current-source nil)
+  (setq helm-current-prefix-arg nil
+        helm-saved-action nil
+        helm-saved-selection nil
+        helm-suspend-update-flag nil
+        helm-current-buffer (helm--current-buffer)
+        helm-buffer-file-name buffer-file-name
+        helm-issued-errors nil
+        helm-compiled-sources nil
+        helm-saved-current-source nil)
   (unless (and (or helm-split-window-state
                    helm--window-side-state)
                helm-reuse-last-window-split-state)
@@ -2600,6 +2606,8 @@ WARNING: Do not use this mode yourself, it is internal to helm."
   (with-current-buffer helm-buffer
     ;; bury-buffer from this window.
     (bury-buffer) ;[1]
+    (remove-hook 'post-command-hook 'helm--maybe-update-keymap)
+    (remove-hook 'post-command-hook 'helm--update-header-line)
     ;; Be sure we call this from helm-buffer.
     (helm-funcall-foreach 'cleanup))
   (helm-kill-async-processes)
@@ -2621,6 +2629,7 @@ WARNING: Do not use this mode yourself, it is internal to helm."
   ;; be a helm buffer.
   (replace-buffer-in-windows helm-buffer)
   (setq helm-alive-p nil)
+  (setq helm-debug nil)
   ;; This is needed in some cases where last input
   ;; is yielded infinitely in minibuffer after helm session.
   (helm-clean-up-minibuffer))
@@ -3567,14 +3576,14 @@ If PRESERVE-SAVED-ACTION is non--nil save action."
   (let ((source (or helm-saved-current-source
                     (helm-get-current-source)))
         non-essential)
-    (setq selection (or selection
-                        (helm-get-selection)
-                        (and (assoc 'accept-empty source) "")))
+    (setq selection (helm-coerce-selection
+                     (or selection
+                         helm-saved-selection
+                         (helm-get-selection)
+                         (and (assoc 'accept-empty source) ""))
+                     source))
     (unless preserve-saved-action (setq helm-saved-action nil))
-    (when (and selection action)
-      (helm-funcall-with-source
-       source action
-       (helm-coerce-selection selection source)))))
+    (when (and selection action) (funcall action selection))))
 
 (defun helm-coerce-selection (selection source)
   "Apply coerce attribute function to SELECTION in SOURCE.
@@ -4176,6 +4185,24 @@ to a list of forms.\n\n")
             (pp-to-string (with-current-buffer helm-buffer (eval v))) "\n"))
   (message "Calculating all helm-related values...Done"))
 
+;;;###autoload
+(defun helm-debug-toggle ()
+  "Enable/disable helm debug from outside of helm session."
+  (interactive)
+  (setq helm-debug (not helm-debug))
+  (message "Helm Debug is now %s"
+           (if helm-debug "Enabled" "Disabled")))
+
+(defun helm-enable-or-switch-to-debug ()
+  "First hit enable helm debugging, second hit switch to debug buffer."
+  (interactive)
+  (with-helm-alive-p
+    (if helm-debug
+        (helm-run-after-quit
+         #'helm-debug-open-last-log)
+        (setq helm-debug t)
+        (message "Debugging enabled"))))
+
 
 ;; Core: misc
 (defun helm-kill-buffer-hook ()
@@ -4308,6 +4335,37 @@ When at end of minibuffer delete all."
 ;;; Plugins (Deprecated in favor of helm-types)
 ;;
 ;; i.e Inherit instead of helm-type-* classes in your own classes.
+
+;; [DEPRECATED] Enable match-plugin by default in old sources.
+;; This is deprecated and will not run in sources
+;; created by helm-source.
+;; Keep it for backward compatibility with old sources.
+(defun helm-compile-source--match-plugin (source)
+  (if (assoc 'no-matchplugin source)
+      source
+    (let* ((searchers        helm-mp-default-search-functions)
+           (defmatch         (helm-aif (assoc-default 'match source)
+                                 (helm-mklist it)))
+           (defmatch-strict  (helm-aif (assoc-default 'match-strict source)
+                                 (helm-mklist it)))
+           (defsearch        (helm-aif (assoc-default 'search source)
+                                 (helm-mklist it)))
+           (defsearch-strict (helm-aif (assoc-default 'search-strict source)
+                                 (helm-mklist it)))
+           (matchfns         (cond (defmatch-strict)
+                                   (defmatch
+                                    (append helm-mp-default-match-functions defmatch))
+                                   (t helm-mp-default-match-functions)))
+           (searchfns        (cond (defsearch-strict)
+                                   (defsearch
+                                    (append searchers defsearch))
+                                   (t searchers))))
+      `(,(if (assoc 'candidates-in-buffer source)
+             `(search ,@searchfns) `(match ,@matchfns))
+         ,@source))))
+
+(add-to-list 'helm-compile-source-functions 'helm-compile-source--match-plugin)
+
 (defun helm-compile-source--type (source)
   (helm-aif (assoc-default 'type source)
       (append source (assoc-default it helm-type-attributes) nil)
@@ -4482,6 +4540,7 @@ To customize `helm-candidates-in-buffer' behavior, use `search',
   (let (buffer-read-only
         matches
         newmatches
+        (item-count 0)
         (case-fold-search (helm-set-case-fold-search)))
     (helm--search-from-candidate-buffer-1
      (lambda ()
@@ -4491,7 +4550,6 @@ To customize `helm-candidates-in-buffer' behavior, use `search',
          (forward-line 1) ; >>>[1]
          (setq newmatches nil)
          (cl-loop with pos-lst
-                  with item-count = 0
                   while (and (setq pos-lst (funcall searcher pattern))
                              (not (eobp)))
                   for cand = (apply get-line-fn

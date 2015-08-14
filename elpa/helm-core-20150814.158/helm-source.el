@@ -30,6 +30,15 @@
 
 (require 'cl-lib)
 (require 'eieio)
+(require 'helm-lib)
+
+(defvar helm-fuzzy-sort-fn)
+(defvar helm-fuzzy-match-fn)
+(defvar helm-fuzzy-search-fn)
+
+(declare-function helm-init-candidates-in-buffer "helm.el")
+(declare-function helm-interpret-value "helm.el")
+(declare-function helm-fuzzy-highlight-matches "helm.el")
 
 
 (defgeneric helm--setup-source (source)
@@ -737,7 +746,6 @@ Arguments ARGS are keyword value pairs as defined in CLASS."
 (defvar helm-mp-default-match-functions)
 
 (defun helm-source-mp-get-search-or-match-fns (source method)
-  (require 'helm-match-plugin)
   (let ((searchers        (and (eq method 'search)
                                helm-mp-default-search-functions))
         (defmatch         (helm-aif (slot-value source 'match)
