@@ -1,12 +1,12 @@
-;;; evil-terminal-cursor-changer.el --- Change cursor shape by evil state on terminal.
+;;; evil-terminal-cursor-changer.el --- Change cursor shape by evil state in terminal.
 ;;
 ;; Filename: evil-terminal-cursor-changer.el
-;; Description: Change cursor by evil state on terminal.
+;; Description: Change cursor by evil state in terminal.
 ;; Author: 7696122
 ;; Maintainer: 7696122
 ;; Created: Sat Nov  2 12:17:13 2013 (+0900)
 ;; Version: 0.0.2
-;; Package-Version: 20150710.1930
+;; Package-Version: 20150812.1003
 ;; Package-Requires: ((evil "1.0.8"))
 ;; Last-Updated: Sat May  9 01:53:50 2015 (+0900)
 ;;           By: Yongmun Kim
@@ -20,11 +20,30 @@
 ;;
 ;;; Commentary:
 
-;; Then add the following lines to ~/.emacs:
+;; [![MELPA](http://melpa.org/packages/evil-terminal-cursor-changer-badge.svg)](http://melpa.org/#/evil-terminal-cursor-changer)
+
+;; ## Introduce ##
 ;;
+;; evil-terminal-cursor-changer is changing cursor type by evil state for evil-mode.
+;; 
+;; When running in terminal, It's especially helpful to recognize evil's state.
+;;
+;; ## Install ##
+;; 
+;; 1. Config melpa: http://melpa.org/#/getting-started
+;; 
+;; 2. M-x package-install RET evil-terminal-cursor-changer RET
+;; 
+;; 3. Add code to your emacs config file:（for example: ~/.emacs）：
+;; 
+;; For Only terminal
+;; 
 ;;      (unless (display-graphic-p)
-;;        (require 'evil-terminal-cursor-changer))
-;;
+;;              (require 'evil-terminal-cursor-changer))
+;; 
+;; For All
+;; 
+;;      (require 'evil-terminal-cursor-changer)
 ;; 
 ;; If want change cursor shape type, add below line. This is evil's setting.
 ;;
@@ -32,7 +51,7 @@
 ;;      (setq evil-insert-state-cursor 'bar) ; ⎸
 ;;      (setq evil-emacs-state-cursor 'hbar) ; _
 ;;
-;; Now, works on Gnome Terminal(Gnome Desktop), iTerm(Mac OS X), Konsole(KDE Desktop).
+;; Now, works in Gnome Terminal(Gnome Desktop), iTerm(Mac OS X), Konsole(KDE Desktop).
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -62,37 +81,37 @@
 
 (require 'evil)
 
-(defun etcc--on-iterm? ()
-  "Running on iTerm."
+(defun etcc--in-iterm? ()
+  "Running in iTerm."
   (string= (getenv "TERM_PROGRAM") "iTerm.app"))
 
-(defun etcc--on-xterm? ()
-  "Runing on xterm."
+(defun etcc--in-xterm? ()
+  "Runing in xterm."
   (downcase (getenv "XTERM_VERSION")))
 
-(defun etcc--on-gnome-terminal? ()
-  "Running on gnome-terminal."
+(defun etcc--in-gnome-terminal? ()
+  "Running in gnome-terminal."
   (string= (getenv "COLORTERM") "gnome-terminal"))
 
-(defun etcc--on-konsole? ()
-  "Running on konsole."
+(defun etcc--in-konsole? ()
+  "Running in konsole."
   (if (getenv "KONSOLE_PROFILE_NAME") t nil))
 
-(defun etcc--on-apple-terminal? ()
-  "Running on Apple Terminal"
+(defun etcc--in-apple-terminal? ()
+  "Running in Apple Terminal"
   (string= (getenv "TERM_PROGRAM") "Apple_Terminal"))
 
-(defun etcc--on-tmux? ()
-  "Running on tmux."
+(defun etcc--in-tmux? ()
+  "Running in tmux."
   (if (getenv "TMUX") t nil))
 
 (defun etcc--get-cursor-shape (evil-cursor)
   "Detect cursor shape in evil-*-state-cursor variable"
   (if (listp evil-cursor)
       (dolist (el evil-cursor)
-	(if el
-	    (if (symbolp el) (return el)
-	      (if (consp el) (return (car el))))))
+        (if el
+            (if (symbolp el) (return el)
+              (if (consp el) (return (car el))))))
     (if (symbolp evil-cursor)
         evil-cursor
       cursor-type)))
@@ -100,7 +119,7 @@
 (defun etcc--get-current-gnome-profile-name ()
   "Return Current profile name of Gnome Terminal."
   ;; https://github.com/helino/current-gnome-terminal-profile/blob/master/current-gnome-terminal-profile.sh
-  (if (etcc--on-gnome-terminal?)
+  (if (etcc--in-gnome-terminal?)
       (let ((cmd "#!/bin/zsh
 FNAME=$HOME/.current_gnome_profile
 gnome-terminal --save-config=$FNAME
@@ -122,25 +141,25 @@ echo -n $TERM_PROFILE"))
 ;; "\e]50;CursorShape=0\x7"
 ;; (send-string-to-terminal "\e]50;CursorShape=2\x7")
 (defvar etcc--iterm-box-cursor-string "\e]50;CursorShape=0\x7"
-  "The cursor type box(block) on iTerm.")
+  "The cursor type box(block) in iTerm.")
 
 (defvar etcc--iterm-bar-cursor-string "\e]50;CursorShape=1\x7"
-  "The cursor type bar(ibeam) on iTerm.")
+  "The cursor type bar(ibeam) in iTerm.")
 
 (defvar etcc--iterm-hbar-cursor-string "\e]50;CursorShape=2\x7"
-  "The cursor type hbar(underline) on iTerm.")
+  "The cursor type hbar(underline) in iTerm.")
 
 (defvar etcc--tmux-iterm-box-cursor-string
   (concat "\ePtmux;\e" etcc--iterm-box-cursor-string "\e\\")
-  "The cursor type box(block) on iTerm and tmux.")
+  "The cursor type box(block) in iTerm and tmux.")
 
 (defvar etcc--tmux-iterm-bar-cursor-string
   (concat "\ePtmux;\e" etcc--iterm-bar-cursor-string "\e\\")
-  "The cursor type bar(ibeam) on iTerm and tmux.")
+  "The cursor type bar(ibeam) in iTerm and tmux.")
 
 (defvar etcc--tmux-iterm-hbar-cursor-string
   (concat "\ePtmux;\e" etcc--iterm-hbar-cursor-string "\e\\")
-  "The cursor type hbar(underline) on iTerm and tmux.")
+  "The cursor type hbar(underline) in iTerm and tmux.")
 
 (defvar etcc--gnome-terminal-set-cursor-string
   (format "gconftool-2 --type string --set /apps/gnome-terminal/profiles/%s/cursor_shape " (etcc--get-current-gnome-profile-name))
@@ -148,46 +167,46 @@ echo -n $TERM_PROFILE"))
 
 (defvar etcc--gnome-terminal-bar-cursor-string
   (concat etcc--gnome-terminal-set-cursor-string "ibeam")
-  "The cursor type bar(ibeam) on gnome-terminal.")
+  "The cursor type bar(ibeam) in gnome-terminal.")
 
 (defvar etcc--gnome-terminal-box-cursor-string
   (concat etcc--gnome-terminal-set-cursor-string "block")
-  "The cursor type box(block) on gnome-terminal.")
+  "The cursor type box(block) in gnome-terminal.")
 
 (defvar etcc--gnome-terminal-hbar-cursor-string
   (concat etcc--gnome-terminal-set-cursor-string "underline")
-  "The cursor type hbar(underline) on gnome-terminal.")
+  "The cursor type hbar(underline) in gnome-terminal.")
 
 (defun etcc--set-bar-cursor ()
   "Set cursor type bar(ibeam)."
-  (if (or (etcc--on-iterm?) (etcc--on-konsole?))
-      (if (etcc--on-tmux?)
+  (if (or (etcc--in-iterm?) (etcc--in-konsole?))
+      (if (etcc--in-tmux?)
           (send-string-to-terminal etcc--tmux-iterm-bar-cursor-string)
         (send-string-to-terminal etcc--iterm-bar-cursor-string)))
 
-  (if (etcc--on-gnome-terminal?)
+  (if (etcc--in-gnome-terminal?)
       (with-temp-buffer
         (shell-command etcc--gnome-terminal-bar-cursor-string t))))
 
 (defun etcc--set-hbar-cursor ()
   "Set cursor type hbar(underline)."
-  (if (or (etcc--on-iterm?) (etcc--on-konsole?))
-      (if (etcc--on-tmux?)
+  (if (or (etcc--in-iterm?) (etcc--in-konsole?))
+      (if (etcc--in-tmux?)
           (send-string-to-terminal etcc--tmux-iterm-hbar-cursor-string)
         (send-string-to-terminal etcc--iterm-hbar-cursor-string)))
 
-  (if (etcc--on-gnome-terminal?)
+  (if (etcc--in-gnome-terminal?)
       (with-temp-buffer
         (shell-command etcc--gnome-terminal-hbar-cursor-string t))))
 
 (defun etcc--set-box-cursor ()
   "Set cursor type box(block)."
-  (if (or (etcc--on-iterm?) (etcc--on-konsole?))
-      (if (etcc--on-tmux?)
+  (if (or (etcc--in-iterm?) (etcc--in-konsole?))
+      (if (etcc--in-tmux?)
           (send-string-to-terminal etcc--tmux-iterm-box-cursor-string)
         (send-string-to-terminal etcc--iterm-box-cursor-string)))
 
-  (if (etcc--on-gnome-terminal?)
+  (if (etcc--in-gnome-terminal?)
       (with-temp-buffer
         (shell-command etcc--gnome-terminal-box-cursor-string t))))
 
