@@ -261,7 +261,7 @@ Bind the value of the provided KEYS and execute BODY."
 
 (defun nrepl-op-supported-p (op)
   "Return t iff the given operation OP is supported by nREPL server."
-  (with-current-buffer (nrepl-current-connection-buffer)
+  (with-current-buffer (nrepl-default-connection-buffer)
     (and nrepl-ops (nrepl-dict-get nrepl-ops op))))
 
 (defun nrepl-local-host-p (host)
@@ -282,16 +282,16 @@ be reused."
                                  (or (and endpoint (equal endpoint nrepl-endpoint))
                                      (and project-directory (equal project-directory nrepl-project-dir)))))
                              repl-buffs)))
-    (cl-flet ((zombi-buffer-or-new
-               () (let ((zombi-buffs (-remove (lambda (buff)
+    (cl-flet ((zombie-buffer-or-new
+               () (let ((zombie-buffs (-remove (lambda (buff)
                                                 (process-live-p (get-buffer-process buff)))
                                               repl-buffs)))
-                    (if zombi-buffs
-                        (if (y-or-n-p (format "Zombi REPL buffers exist (%s).  Reuse? "
-                                              (cider-string-join zombi-buffs ", ")))
-                            (if (= (length zombi-buffs) 1)
-                                (car zombi-buffs)
-                              (completing-read "Choose REPL buffer: " zombi-buffs nil t))
+                    (if zombie-buffs
+                        (if (y-or-n-p (format "Zombie REPL buffers exist (%s).  Reuse? "
+                                              (cider-string-join zombie-buffs ", ")))
+                            (if (= (length zombie-buffs) 1)
+                                (car zombie-buffs)
+                              (completing-read "Choose REPL buffer: " zombie-buffs nil t))
                           'new)
                       'new))))
       (if exact-buff
@@ -299,9 +299,9 @@ be reused."
               (when (y-or-n-p
                      (format "REPL buffer already exists (%s).  Do you really want to create a new one? "
                              exact-buff))
-                (zombi-buffer-or-new))
+                (zombie-buffer-or-new))
             exact-buff)
-        (zombi-buffer-or-new)))))
+        (zombie-buffer-or-new)))))
 
 (defun nrepl-extract-port (dir)
   "Read port from .nrepl-port, nrepl-port or target/repl-port files in directory DIR."
@@ -851,7 +851,7 @@ If BUFFER is non-nil, close that buffer's connection."
 
 (defun nrepl-close (connection-buffer)
   "Close the nREPL connection for CONNECTION-BUFFER."
-  (interactive (list (nrepl-current-connection-buffer)))
+  (interactive (list (nrepl-default-connection-buffer)))
   (nrepl--close-connection-buffer connection-buffer)
   (run-hooks 'nrepl-disconnected-hook)
   (nrepl--connections-refresh))
@@ -949,17 +949,17 @@ Handles only stdout and stderr responses."
 ;; the up to date list.
 (defun nrepl-current-session ()
   "Return the current session."
-  (with-current-buffer (nrepl-current-connection-buffer)
+  (with-current-buffer (nrepl-default-connection-buffer)
     nrepl-session))
 
 (defun nrepl-current-tooling-session ()
   "Return the current tooling session."
-  (with-current-buffer (nrepl-current-connection-buffer)
+  (with-current-buffer (nrepl-default-connection-buffer)
     nrepl-tooling-session))
 
 (defun nrepl-next-request-id ()
   "Return the next request id."
-  (with-current-buffer (nrepl-current-connection-buffer)
+  (with-current-buffer (nrepl-default-connection-buffer)
     (number-to-string (cl-incf nrepl-request-counter))))
 
 (defun nrepl-send-request (request callback)
@@ -971,7 +971,7 @@ REQUEST is a pair list of the form (\"op\" \"operation\" \"par1-name\"
          (request (cons 'dict (lax-plist-put request "id" id)))
          (message (nrepl-bencode request)))
     (nrepl-log-message (cons '---> (cdr request)))
-    (with-current-buffer (nrepl-current-connection-buffer)
+    (with-current-buffer (nrepl-default-connection-buffer)
       (puthash id callback nrepl-pending-requests)
       (process-send-string nil message))))
 
@@ -1017,7 +1017,7 @@ sign of user input, so as not to hang the interface."
       (-when-let (id (nrepl-dict-get response "id"))
         ;; FIXME: This should go away eventually when we get rid of
         ;; pending-request hash table
-        (with-current-buffer (nrepl-current-connection-buffer)
+        (with-current-buffer (nrepl-default-connection-buffer)
           (remhash id nrepl-pending-requests)))
       response)))
 
@@ -1303,14 +1303,16 @@ ENDPOINT is a plist returned by `nrepl-connect'."
       (setq-local kill-buffer-query-functions nil))
     buffer))
 
-(defun nrepl-current-connection-buffer (&optional no-error)
-  "The connection to use for nREPL interaction.
+(defun nrepl-default-connection-buffer (&optional no-error)
+  "The default (fallback) connection to use for nREPL interaction.
 When NO-ERROR is non-nil, don't throw an error when no connection has been
 found."
   (or nrepl-connection-buffer
       (car (nrepl-connection-buffers))
       (unless no-error
         (error "No nREPL connection buffer"))))
+
+(define-obsolete-function-alias 'nrepl-current-connection-buffer 'nrepl-default-connection-buffer "0.10")
 
 (defun nrepl-connection-buffers ()
   "Return the list of connection buffers."
@@ -1328,7 +1330,7 @@ Purge the dead buffers from the `nrepl-connection-list' beforehand."
    (buffer-list)))
 
 ;; FIXME: Bad user api; don't burden users with management of
-;; the connection list, same holds for `cider-rotate-connection'.
+;; the connection list, same holds for `cider-rotate-default-connection'.
 (defun nrepl-make-connection-default (connection-buffer)
   "Make the nREPL CONNECTION-BUFFER the default connection.
 Moves CONNECTION-BUFFER to the front of `nrepl-connection-list'."
@@ -1339,7 +1341,7 @@ Moves CONNECTION-BUFFER to the front of `nrepl-connection-list'."
         (setq nrepl-connection-list
               (cons buf-name (delq buf-name nrepl-connection-list)))
         (nrepl--connections-refresh))
-    (message "Not in an nREPL REPL buffer.")))
+    (user-error "Not in an REPL buffer")))
 
 (defun nrepl--close-connection-buffer (conn-buffer)
   "Close CONN-BUFFER, removing it from `nrepl-connection-list'.
@@ -1490,11 +1492,6 @@ Refreshes EWOC."
   (let ((buffer (buffer-local-value 'nrepl-repl-buffer (get-buffer data))))
     (when buffer
       (select-window (display-buffer buffer)))))
-
-
-(define-obsolete-function-alias 'nrepl-send-request-sync 'nrepl-send-sync-request "0.8.0")
-(define-obsolete-function-alias 'nrepl-send-string 'nrepl-request:eval "0.8.0")
-(define-obsolete-function-alias 'nrepl-send-string-sync 'nrepl-sync-request:eval "0.8.0")
 
 (provide 'nrepl-client)
 

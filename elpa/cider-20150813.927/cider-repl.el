@@ -160,7 +160,7 @@ Currently its only purpose is to facilitate `cider-repl-clear-buffer'.")
 (defun cider-repl-buffer-name (&optional project-dir host port)
   "Generate a REPL buffer name based on current connection buffer.
 PROJECT-DIR, HOST and PORT are as in `nrepl-make-buffer-name'."
-  (with-current-buffer (or (nrepl-current-connection-buffer 'no-error)
+  (with-current-buffer (or (nrepl-default-connection-buffer 'no-error)
                            (current-buffer))
     (nrepl-make-buffer-name nrepl-repl-buffer-name-template project-dir host port)))
 
@@ -241,13 +241,6 @@ client process connection.  Unless NO-BANNER is non-nil, insert a banner."
     (cider-repl--mark-output-start)
     (cider-repl--mark-input-start)
     (cider-repl--insert-prompt cider-buffer-ns)))
-
-(defun cider-get-repl-buffer ()
-  "Return the REPL buffer for current connection."
-  (let ((buffer (get-buffer-create (cider-current-repl-buffer))))
-    (if (buffer-live-p buffer)
-        buffer
-      (error "No active REPL"))))
 
 
 ;;; REPL interaction
@@ -975,8 +968,8 @@ constructs."
 (cider-repl-add-shortcut "quit" #'cider-quit)
 (cider-repl-add-shortcut "restart" #'cider-restart)
 (cider-repl-add-shortcut "version" #'cider-version)
-(cider-repl-add-shortcut "conn-info" #'cider-display-current-connection-info)
-(cider-repl-add-shortcut "conn-rotate" #'cider-rotate-connection)
+(cider-repl-add-shortcut "conn-info" #'cider-display-connection-info)
+(cider-repl-add-shortcut "conn-rotate" #'cider-rotate-default-connection)
 (cider-repl-add-shortcut "clear" #'cider-repl-clear-buffer)
 (cider-repl-add-shortcut "ns" #'cider-repl-set-ns)
 (cider-repl-add-shortcut "help" #'cider-repl-shortcuts-help)
