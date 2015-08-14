@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150807.721
+;; Package-Version: 20150812.434
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -139,7 +139,7 @@
   "Return current symbol at point as a string."
   (let ((s (thing-at-point 'symbol)))
     (and (stringp s)
-         (if (string-match "\\`[`']?\\(.*\\)'?\\'" s)
+         (if (string-match "\\`[`']?\\(.*?\\)'?\\'" s)
              (match-string 1 s)
            s))))
 
