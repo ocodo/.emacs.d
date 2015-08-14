@@ -68,7 +68,7 @@
         (str           (if (eq variant 'dark) (if (display-graphic-p) "#2aa198" "#2aa198") (if (display-graphic-p) "#2aa198" "#2aa198")))
         (type          (if (eq variant 'dark) (if (display-graphic-p) "#38a882" "#5faf87") (if (display-graphic-p) "#428374" "#008787")))
         (comp          (if (eq variant 'dark) (if (display-graphic-p) "#c56ec3" "#d75fd7") (if (display-graphic-p) "#6c4173" "#8700af")))
-        (var           (if (eq variant 'dark) (if (display-graphic-p) "#adaab3" "#adaab3") (if (display-graphic-p) "#656370" "#767676")))
+        (var           (if (eq variant 'dark) (if (display-graphic-p) "#7590db" "#8787d7") (if (display-graphic-p) "#715ab1" "#af5fd7")))
         (err           (if (eq variant 'dark) (if (display-graphic-p) "#e0211d" "#e0211d") (if (display-graphic-p) "#e0211d" "#e0211d")))
         (war           (if (eq variant 'dark) (if (display-graphic-p) "#dc752f" "#dc752f") (if (display-graphic-p) "#dc752f" "#dc752f")))
         (inf           (if (eq variant 'dark) (if (display-graphic-p) "#2f96dc" "#2f96dc") (if (display-graphic-p) "#2f96dc" "#2f96dc")))
@@ -87,7 +87,9 @@
         (org-h2-bg     (if (eq variant 'dark) (if (display-graphic-p) "#293235" "#262626") (if (display-graphic-p) "#edf2e9" "#ffffff")))
         (org-h3-bg     (if (eq variant 'dark) (if (display-graphic-p) "#2d332c" "#262626") (if (display-graphic-p) "#f1f3e1" "#ffffff")))
         (org-h4-bg     (if (eq variant 'dark) (if (display-graphic-p) "#32322c" "#262626") (if (display-graphic-p) "#f6f1e1" "#ffffff")))
-        (highlight     (if (eq variant 'dark) (if (display-graphic-p) "#333c45" "#444444") (if (display-graphic-p) "#d3d3e7" "#d7d7ff"))))
+        (highlight     (if (eq variant 'dark) (if (display-graphic-p) "#333c45" "#444444") (if (display-graphic-p) "#d3d3e7" "#d7d7ff")))
+        (green-bg      (if (eq variant 'dark) (if (display-graphic-p) "#29422d" "#262626") (if (display-graphic-p) "#dae6d0" "#ffffff")))
+        (red-bg        (if (eq variant 'dark) (if (display-graphic-p) "#512e31" "#262626") (if (display-graphic-p) "#eed9d2" "#ffffff"))))
 
     (custom-theme-set-faces
      theme-name
@@ -122,10 +124,12 @@
      `(match ((,class (:background ,bg1 :foreground ,inf :weight bold))))
      `(minibuffer-prompt ((,class (:bold t :foreground ,keyword))))
      `(page-break-lines ((,class (:foreground ,active2))))
+     `(popup-tip-face ((,class (:background ,active2 :foreground ,base :bold nil :italic nil :underline nil))))
      `(region ((,class (:background ,highlight))))
      `(secondary-selection ((,class (:background ,bg3))))
      `(show-paren-match-face ((,class (:background ,suc))))
      `(success ((,class (:foreground ,suc))))
+     `(tooltip ((,class (:background ,active2 :foreground ,base :bold nil :italic nil :underline nil))))
      `(vertical-border ((,class (:foreground ,bg4))))
      `(warning ((,class (:foreground ,war ))))
 
@@ -337,14 +341,17 @@
      `(magit-blame-summary ((,class :background ,org-h4-bg :foreground ,yellow)))
      `(magit-blame-date    ((,class :background ,org-h4-bg :foreground ,green)))
      `(magit-branch ((,class (:foreground ,const :weight bold))))
+     `(magit-branch-current ((,class (:background ,org-h1-bg :foreground ,inf :weight bold :box t))))
+     `(magit-branch-local ((,class (:background ,org-h1-bg :foreground ,inf :weight bold))))
+     `(magit-branch-remote ((,class (:background ,org-h2-bg :foreground ,str :weight bold))))
      `(magit-diff-context-highlight ((,class (:background ,bg3 :foreground ,base))))
      `(magit-diff-file-header ((,class (:background nil :foreground ,str))))
      `(magit-diff-hunk-header ((,class (:background nil :foreground ,builtin))))
-     `(magit-hash ((,class (:foreground ,base))))
+     `(magit-hash ((,class (:foreground ,var))))
      `(magit-hunk-heading           ((,class (:background ,bg3))))
      `(magit-hunk-heading-highlight ((,class (:background ,bg3))))
      `(magit-item-highlight ((,class :background ,bg2)))
-     `(magit-log-author ((,class (:foreground ,base))))
+     `(magit-log-author ((,class (:foreground ,func))))
      `(magit-log-head-label-head ((,class (:background ,yellow :foreground ,bg1 :bold t))))
      `(magit-log-head-label-local ((,class (:background ,inf :foreground ,bg1 :bold t))))
      `(magit-log-head-label-remote ((,class (:background ,suc :foreground ,bg1 :bold t))))
@@ -370,9 +377,9 @@
 
 ;;;;; org
      `(org-agenda-clocking ((,class (:foreground ,comp))))
-     `(org-agenda-date ((,class (:foreground ,var :height 1.1))))
-     `(org-agenda-date-today ((,class (:weight bold :foreground ,keyword :height 1.3))))
-     `(org-agenda-date-weekend ((,class (:weight normal :foreground ,base))))
+     `(org-agenda-date ((,class (:foreground ,var :height ,(if spacemacs-theme-org-height 1.1 1.0)))))
+     `(org-agenda-date-today ((,class (:weight bold :foreground ,keyword :height ,(if spacemacs-theme-org-height 1.3 1.0)))))
+     `(org-agenda-date-weekend ((,class (:weight normal :foreground ,var))))
      `(org-agenda-done ((,class (:foreground ,(if (eq variant 'dark) suc green) :bold t))))
      `(org-agenda-structure ((,class (:weight bold :foreground ,comp))))
      `(org-block ((,class (:foreground ,base))))
@@ -430,6 +437,10 @@
      `(rainbow-delimiters-depth-7-face ((,class :foreground ,func)))
      `(rainbow-delimiters-depth-8-face ((,class :foreground ,str)))
      `(rainbow-delimiters-unmatched-face ((,class :foreground ,war)))
+
+;;;;; shm
+     `(shm-current-face ((,class (:background ,green-bg))))
+     `(shm-quarantine-face ((,class (:background ,red-bg))))
 
 ;;;;; smartparens
      `(sp-pair-overlay-face ((,class (:background ,highlight :foreground nil))))
