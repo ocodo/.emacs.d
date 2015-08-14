@@ -82,6 +82,12 @@
                                      (not (sp-point-in-string-or-comment))))
                                 (t (not (sp-point-in-string-or-comment)))))))
 
+;; <rant>Unfortunately emacs devs in their glorious wisdom decided to
+;; make @ no longer have prefix syntax, it is now a symbol... because
+;; apparently its use in symbols is so frequent.  Anyway, since we
+;; can't really change that, let's use a regexp based solution</rant>
+(add-to-list 'sp-sexp-prefix (list 'emacs-lisp-mode 'regexp "\\(?:,@\\|[',`]\\)"))
+
 ;; TODO: this should only be active in docstring, otherwise we want
 ;; the regexp completion \\{\\}.  To handle this feature, we must
 ;; allow multiple pairs on same opening (therefore, the unique ID must
@@ -104,6 +110,7 @@
 (eval-after-load "haskell-interactive-mode"     '(require 'smartparens-haskell))
 (--each '("python-mode" "python")
   (eval-after-load it '(require 'smartparens-python)))
+(eval-after-load "scala-mode" '(require 'smartparens-scala))
 
 (provide 'smartparens-config)
 
