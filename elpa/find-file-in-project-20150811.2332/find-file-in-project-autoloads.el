@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (21937 41132 587401 0))
+;;;;;;  (21965 50246 135401 0))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-current-full-filename-match-pattern-p "find-file-in-project" "\
