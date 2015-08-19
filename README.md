@@ -130,7 +130,7 @@ me.
 Set **Semantic History** to **Run coprocess...** and
 paste in the following:
 
-    ~/.emacs.d/iterm-emacsclient +\2 \1
+    ~/.emacs.d/bin/iterm-emacsclient +\2 \1
 
 Then you're able to <kbd>Cmd</kbd> click on filenames in **iTerm2**
 and it will open up an Emacs buffer (or start Emacs from
@@ -139,3 +139,45 @@ and it will open up an Emacs buffer (or start Emacs from
 To open the file at line number.  <kbd>Cmd</kbd> clicking on a
 filename printed in the terminal with a number suffix,
 e.g. `README.md:130` would open **README.md** at line 130.
+
+### git elpa
+
+I've included a utility to assist with keeping my elpa packages committed individually when they're updated.
+
+I keep versioned copies of elpa packages for several reasons. 
+
+- If a package suddenly disappears, I don't lose it.
+- If gnu elpa or melpa are down for any reason, I have multiple locations from which I can clone a full install of my .emacs.d.
+- If I have an issue with a package, it's very easy for me to rollback to a specific version.
+    - Thanks to my new git elpa utility, it's now even easier. I can cherry pick a single version of a package, without external dependency on the package's own repo, etc.  I can see the history of the package's main elisp file locally too.
+- If I wish to patch a package directly (obviously better to use defadvice, but that point aside) I can, however unlikely that may be.
+- bisecting the config is MUCH easier so bug discovery and fixing is improved.
+
+#### Git elpa usage
+
+After doing a package install / upgrade from within Emacs, `git-elpa` (`~/.emacs.d/bin/git-elpa`) will be able to list and commit the newly added/upgraded packages.
+
+- List all new / upgraded packages
+ 
+        git elpa -l 
+    
+- Commit a single package addition / upgrade
+
+        git elpa -c PACKAGENAME
+        
+    `PACKAGENAME` would be the name of the package without version info or `.el` file extension etc.
+    
+    e.g. 
+    
+        git elpa -c magit
+        
+    To perform the commit of the last magit version upgrade, add new files and remove old ones (from the git index)     and commit them with an auto-generated commit message
+    
+- Commit all new / upgraded packages
+
+        git elpa -a
+        
+    All packages will be commited in individual git commits, using auto-generated commit messages.
+
+    
+    
