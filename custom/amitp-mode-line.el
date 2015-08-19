@@ -1,5 +1,5 @@
-;;; armitp-mode-line.el --- Mode line customisation and beautification by Armit P
-;;; Author: Armit J Patel <amitp@cs.stanford.edu>
+;;; amitp-mode-line.el --- Mode line customisation and beautification by Amit J Patel
+;;; Author: Amit J Patel <amitp@cs.stanford.edu>
 
 ;;; Version: 1.0
 
@@ -12,7 +12,7 @@
 ;;; Code:
 
 ;;;###autoload
-(defun armitp-mode-line ()
+(defun amitp-mode-line ()
   "Just a lovely mode line customisation."
   (interactive)
   (setq-default
@@ -127,6 +127,6 @@
                       :foreground "black" :background "#eab700")
   )
 
-(provide 'armitp-mode-line)
+(provide 'amitp-mode-line)
 
-;;; armitp-mode-line.el ends here
+;;; amitp-mode-line.el ends here
