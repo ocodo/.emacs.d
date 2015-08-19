@@ -27,7 +27,6 @@
 (dolist (lib '(handy-functions
                custom-keys
                ag
-               armitp-mode-line
                diff-region
                highlight-indentation
                kurecolor
@@ -60,8 +59,8 @@
 ;;   (ocodo-svg-modelines-init)
 ;;   (smt/set-theme 'ocodo-mesh-retro-aqua-smt))
 
-(require 'armitp-mode-line)
-(armitp-mode-line)
+(require 'amitp-mode-line)
+(amitp-mode-line)
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
