@@ -16,7 +16,7 @@
   (normal-top-level-add-subdirs-to-load-path)
   (require 'custom-keys)
   (require 'remember-theme)
-  (require 'armitp-mode-line)
+  (require 'amitp-mode-line)
   (require 'quick-funcs)
   (require 'elpa-init)
   (require 'init-misc-settings)
