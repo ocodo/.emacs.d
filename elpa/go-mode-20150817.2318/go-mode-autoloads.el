@@ -3,7 +3,7 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "go-mode" "go-mode.el" (21920 42646 975401
+;;;### (autoloads nil "go-mode" "go-mode.el" (21975 62515 327401
 ;;;;;;  0))
 ;;; Generated autoloads from go-mode.el
 
@@ -50,7 +50,7 @@ for `find-tag':
 Please note that godef is an external dependency. You can install
 it with
 
-go get code.google.com/p/rog-go/exp/cmd/godef
+go get github.com/rogpeppe/godef
 
 
 If you're looking for even more integration with Go, namely
@@ -88,8 +88,8 @@ Tries to look for a URL at point.
 
 ;;;***
 
-;;;### (autoloads nil nil ("go-mode-pkg.el") (21920 42646 995963
-;;;;;;  488000))
+;;;### (autoloads nil nil ("go-mode-pkg.el") (21975 62515 345424
+;;;;;;  34000))
 
 ;;;***
 
