@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 2007-2015, Drew Adams, all rights reserved.
 ;; Created: Tue Nov 27 07:47:53 2007
-;; Last-Updated: Wed Aug 12 13:35:14 2015 (-0700)
+;; Last-Updated: Thu Aug 20 11:23:41 2015 (-0700)
 ;;           By: dradams
-;;     Update #: 11493
+;;     Update #: 11528
 ;; URL: http://www.emacswiki.org/icicles-chg.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -1161,6 +1161,22 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-cmd2.el'")
 ;;
+;; 2015/08/19 dadams
+;;     icicle-occur, icicle-search-(sentences|paragraphs|pages), icicle-compilation-search:
+;;       Use face remapping (face-remap-(re)set-base) instead of set-face-* for Emacs 23+.
+;;       Thx to Jonathan H (PythonNut).
+;; 2015/08/18 dadams
+;;     Added: icicle-select-zone, icicle-select-zone-action.
+;;     Renamed: icicle-narrow(-action) to icicle-buffer-narrowing(-action).
+;;     icicle-buffer-narrowing(-action): Use zz-izones-var, not zz-izones.
+;;     icicle-buffer-narrowing-action:
+;;       Corrected indexes into candidate - was off by one because of izone num index.
+;;       Bind zz-izone-add-anyway-p to nil, not t.  (Do not add new narrowings.)
+;;       Protect zz-narrowing-lighter with boundp mode-line-modes.
+;;       Applied renaming of zz-izone-add-anyway-p to zz-add-zone-anyway-p.
+;; 2015/08/16 dadams
+;;     Renamed: icicle-wide-n(-action) to icicle-narrow(-action).  Renamed wide-n.el stuff to zones.el.
+;;     icicle-narrow (was icicle-wide-n): Update for new zone format and lack of entry "all".
 ;; 2015/08/12 dadams
 ;;     icicle-wide-n, icicle-wide-n-action: Updated for wide-n.el restrictions format change.
 ;; 2015/08/01 dadams
@@ -3996,8 +4012,7 @@
 ;;     icicle-save-or-restore-input: If icicle-last-completion-candidate is nil, don't try to restore.
 ;; 2006/08/18 dadams
 ;;     icicle-minibuffer-setup: Reset icicle-last-completion-candidate to nil.
-;;     icicle-rebind-completion-maps:
-;;       Added icicle-Info-goto-node to icicle-completion-help-string.
+;;     icicle-rebind-completion-maps: Added icicle-Info-goto-node to icicle-completion-help-string.
 ;; 2006/08/15 dadams
 ;;     icicle-(bind|restore)-completion-keys:
 ;;       Bind icicle-help-on-(previous|next)-(apropos|prefix)-candidate.
@@ -4053,8 +4068,7 @@
 ;;              icicle-*-context-candidate to icicle-(next|previous)-candidate-per-mode,
 ;;              icicle-scroll-completions to icicle-scroll-Completions.
 ;;     icicle-minibuffer-setup:
-;;       Replaced icicle-display-Completions with icicle-prefix-complete, to get initial
-;;         highlight.
+;;       Replaced icicle-display-Completions with icicle-prefix-complete, to get initial highlight.
 ;; 2006/07/18 dadams
 ;;     icicle-call-then-update-Completions:
 ;;       Delete *Completions* window, depending on icicle-Completions-display-min-input-chars.
@@ -4517,6 +4531,10 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-mcmd.el'")
 ;;
+;; 2015/08/20 dadams
+;;     icicle-display-candidates-in-Completions, icicle-remove-Completions-window:
+;;       Use face remapping (face-remap-(add|remove)-relative) instead of set-face-* for Emacs 23+.
+;;       Thx to Jonathan H (PythonNut).
 ;; 2015/07/05 dadams
 ;;     Added: icicle-next-completion-style-set, alias cycle-icicle-completion-style-set,
 ;;            icicle-choose-completion-style-set.
@@ -6278,6 +6296,12 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-mode.el'")
 ;;
+;; 2015/08/20 dadams
+;;     Applied renaming of icicle-region-face-remapping to icicle-face-remapping-region.
+;; 2015/08/19 dadams
+;;     icicle-minibuffer-setup, icicle-restore-region-face:
+;;       Use face remapping (face-remap-(add|remove)-relative) instead of set-face-* for Emacs 23+.
+;;       Thx to Jonathan H (PythonNut).
 ;; 2015/07/05 dadams
 ;;     icicle-top-level-prep: Reset icicle-completion-style-set (new) also.
 ;; 2014/11/28 dadams
@@ -6667,7 +6691,7 @@
 ;;       Hard-code down/up in completion-list-mode-map - do not reuse prefix completion keys.
 ;;     Applied renaming of icicle-cycling-respects-completion-mode to icicle-default-cycling-mode.
 ;; 2010/10/08 dadams
-;;     icicle-minibuffer-setup: Don't set icicle-current-completion-mode in recursive minibuffer.
+;;     icicle-minibuffer-setup: Do not set icicle-current-completion-mode in recursive minibuffer.
 ;;     icicle-define-cycling-keys: Unconditionally define mouse wheel for modal cycling.
 ;; 2010/10/07 dadams
 ;;     Use icicle-current-TAB-method function, not variable, everywhere.
@@ -6746,7 +6770,7 @@
 ;;     icicle-mode, icicle-define-icicle-maps, icicle-bind-completion-keys:
 ;;       Updated doc string, menus, keys for completion-method command renamings.
 ;; 2009/09/26 dadams
-;;     icicle-minibuffer-setup: Don't complete if icicle-progressive-completing-p.
+;;     icicle-minibuffer-setup: Do not complete if icicle-progressive-completing-p.
 ;; 2009/09/16 dadams
 ;;     icy-mode: Add icicle-insert-buffer to doc string.
 ;;     icicle-define-icicle-maps: Added icicle-insert-buffer to icicle-menu-map.
@@ -6759,7 +6783,7 @@
 ;;       Ensure this-command-keys-vector is not empty.  Thx to Kai Tetzlaff and Lennart Borgman.
 ;; 2009/08/09 dadams
 ;;     icicle-minibuffer-setup: Set region background for recursive minibuffers too.
-;;     icicle-restore-region-face: Don't restore unless going back to top level.
+;;     icicle-restore-region-face: Do not restore unless going back to top level.
 ;; 2009/08/01 dadams
 ;;     Added: icicle-add-menu-item-to-cmd-history.  Thx to Lennart Borgman.
 ;;     icy-mode: add/remove pre-command-hook, respecting icicle-menu-items-to-history-flag.
@@ -8524,6 +8548,11 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-var.el'")
 ;;
+;; 2015/08/20 dadams
+;;     Added: icicle-face-remapping-Completions.
+;;     Renamed: icicle-region-face-remapping to icicle-face-remapping-region.
+;; 2015/08/19 dadams
+;;     Added: icicle-region-face-remapping.
 ;; 2015/07/05 dadams
 ;;     Added: icicle-completion-style-set.
 ;; 2015/04/11 dadams

@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2015, Drew Adams, all rights reserved.
 ;; Created: Thu May 21 13:31:43 2009 (-0700)
-;; Last-Updated: Wed Aug 12 13:33:43 2015 (-0700)
+;; Last-Updated: Wed Aug 19 22:00:14 2015 (-0700)
 ;;           By: dradams
-;;     Update #: 7179
+;;     Update #: 7253
 ;; URL: http://www.emacswiki.org/icicles-cmd2.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -66,7 +66,8 @@
 ;;    (+)`icicle-apply', (+)`icicle-bookmark-a-file',
 ;;    (+)`icicle-bookmark-tagged',
 ;;    (+)`icicle-bookmark-tagged-other-window',
-;;    (+)`icicle-choose-faces', (+)`icicle-choose-invisible-faces',
+;;    (+)`icicle-buffer-narrowing', (+)`icicle-choose-faces',
+;;    (+)`icicle-choose-invisible-faces',
 ;;    (+)`icicle-choose-visible-faces', (+)`icicle-comint-command',
 ;;    (+)`icicle-comint-search', (+)`icicle-compilation-search',
 ;;    `icicle-complete', (+)`icicle-complete-keys',
@@ -160,14 +161,13 @@
 ;;    (+)`icicle-search-xml-element',
 ;;    (+)`icicle-search-xml-element-text-node',
 ;;    (+)`icicle-select-frame', `icicle-select-frame-by-name',
-;;    (+)`icicle-select-text-at-point',
+;;    (+)`icicle-select-text-at-point', `icicle-select-zone',
 ;;    `icicle-set-S-TAB-methods-for-command',
 ;;    `icicle-set-TAB-methods-for-command', (+)`icicle-show-faces',
 ;;    (+)`icicle-show-only-faces', (+)`icicle-synonyms',
 ;;    (+)`icicle-tag-a-file', (+)`icicle-tags-search',
 ;;    (+)`icicle-untag-a-file', (+)`icicle-vardoc',
-;;    (+)`icicle-where-is', (+)`icicle-wide-n', (+)`synonyms',
-;;    (+)`what-which-how'.
+;;    (+)`icicle-where-is', (+)`synonyms', (+)`what-which-how'.
 ;;
 ;;  Non-interactive functions defined here:
 ;;
@@ -222,6 +222,7 @@
 ;;    `icicle-invisible-face-p', `icicle-invisible-p',
 ;;    `icicle-keys+cmds-w-prefix', `icicle-make-color-candidate',
 ;;    `icicle-marker+text', `icicle-markers',
+;;    `icicle-buffer-narrowing-action',
 ;;    `icicle-next-single-char-property-change',
 ;;    `icicle-next-visible-thing-1', `icicle-next-visible-thing-2',
 ;;    `icicle-next-visible-thing-and-bounds',
@@ -258,10 +259,11 @@
 ;;    `icicle-search-replace-match',
 ;;    `icicle-search-replace-search-hit', `icicle-search-thing-args',
 ;;    `icicle-search-thing-scan', `icicle-search-where-arg',
+;;    `icicle-select-zone-action',
 ;;    `icicle-set-completion-methods-for-command',
 ;;    `icicle-things-alist', `icicle-this-command-keys-prefix',
-;;    `icicle-update-f-l-keywords', `icicle-wide-n-action',
-;;    `icicle-widget-color-complete', `icicle-WYSIWYG-font'.
+;;    `icicle-update-f-l-keywords', `icicle-widget-color-complete',
+;;    `icicle-WYSIWYG-font'.
 ;;
 ;;  Internal variables defined here:
 ;;
@@ -445,8 +447,8 @@
 (defvar icicle-track-pt)                ; In `icicle-insert-thesaurus-entry'
 (defvar imenu-after-jump-hook)          ; In `imenu.el' (Emacs 22+)
 (defvar replace-count)                  ; In `replace.el'
-(defvar wide-n-lighter-narrow-part)     ; In `wide-n.el'
-(defvar wide-n-restrictions)            ; In `wide-n.el'
+(defvar zz-izones)                      ; In `zones.el'
+(defvar zz-lighter-narrowing-part)      ; In `zones.el'
 
 ;; (< emacs-major-version 21)
 (defvar tooltip-mode)                   ; In `tooltip.el'
@@ -6884,19 +6886,23 @@ This command is intended only for use in Icicle mode.  It is defined
 using `icicle-search'.  For more information, see the doc for command
 `icicle-search'."
   (interactive `(,@(icicle-region-or-buffer-limits) ,(icicle-search-where-arg)))
-  (let ((icicle-multi-completing-p  (and current-prefix-arg
-                                         (not (zerop (prefix-numeric-value current-prefix-arg)))
-                                         icicle-show-multi-completion-flag))
-        (fg                         (face-foreground 'icicle-search-main-regexp-others))
-        (bg                         (face-background 'icicle-search-main-regexp-others))
-        (icicle-transform-function  (and (not (interactive-p))  icicle-transform-function)))
-    (unwind-protect
-         (progn (set-face-foreground 'icicle-search-main-regexp-others nil)
-                (set-face-background 'icicle-search-main-regexp-others nil)
-                (icicle-search beg end ".*" (not icicle-show-multi-completion-flag) where))
+  (let* ((icicle-multi-completing-p  (and current-prefix-arg
+                                          (not (zerop (prefix-numeric-value current-prefix-arg)))
+                                          icicle-show-multi-completion-flag))
+         (icicle-transform-function  (and (not (interactive-p))  icicle-transform-function))
+         (remap                      (fboundp 'face-remap-set-base)) ; Emacs 23+
+         (fg                         (and (not remap)  (face-foreground 'icicle-search-main-regexp-others)))
+         (bg                         (and (not remap)  (face-background 'icicle-search-main-regexp-others))))
+    (unwind-protect (progn (if remap
+                               (face-remap-set-base 'icicle-search-main-regexp-others nil)
+                             (set-face-foreground 'icicle-search-main-regexp-others nil)
+                             (set-face-background 'icicle-search-main-regexp-others nil))
+                           (icicle-search beg end ".*" (not icicle-show-multi-completion-flag) where))
       (when icicle-search-cleanup-flag (icicle-search-highlight-cleanup))
-      (set-face-foreground 'icicle-search-main-regexp-others fg)
-      (set-face-background 'icicle-search-main-regexp-others bg))))
+      (if remap
+          (face-remap-reset-base 'icicle-search-main-regexp-others)
+        (set-face-foreground 'icicle-search-main-regexp-others fg)
+        (set-face-background 'icicle-search-main-regexp-others bg)))))
 
 (defun icicle-search-sentences (beg end &optional where) ; Bound to `M-s M-s s'.
   "`icicle-search' with sentences as contexts.
@@ -6925,20 +6931,24 @@ This command is intended only for use in Icicle mode.  It is defined
 using `icicle-search'.  For more information, see the doc for command
 `icicle-search'."
   (interactive `(,@(icicle-region-or-buffer-limits) ,(icicle-search-where-arg)))
-  (let ((icicle-multi-completing-p  (and current-prefix-arg
-                                         (not (zerop (prefix-numeric-value current-prefix-arg)))
-                                         icicle-show-multi-completion-flag))
-        (fg (face-foreground        'icicle-search-main-regexp-others))
-        (bg (face-background        'icicle-search-main-regexp-others))
-        (icicle-transform-function  (and (not (interactive-p))  icicle-transform-function)))
-    (unwind-protect
-         (progn (set-face-foreground 'icicle-search-main-regexp-others nil)
-                (set-face-background 'icicle-search-main-regexp-others nil)
-                (icicle-search beg end (concat "[A-Z][^.?!]+[.?!]")
-                               (not icicle-show-multi-completion-flag) where))
+  (let* ((icicle-multi-completing-p  (and current-prefix-arg
+                                          (not (zerop (prefix-numeric-value current-prefix-arg)))
+                                          icicle-show-multi-completion-flag))
+         (icicle-transform-function  (and (not (interactive-p))  icicle-transform-function))
+         (remap                      (fboundp 'face-remap-set-base)) ; Emacs 23+
+         (fg                         (and (not remap)  (face-foreground 'icicle-search-main-regexp-others)))
+         (bg                         (and (not remap)  (face-background 'icicle-search-main-regexp-others))))
+    (unwind-protect (progn (if (fboundp 'face-remap-set-base)
+                               (face-remap-set-base 'icicle-search-main-regexp-others nil)
+                             (set-face-foreground 'icicle-search-main-regexp-others nil)
+                             (set-face-background 'icicle-search-main-regexp-others nil))
+                           (icicle-search beg end (concat "[A-Z][^.?!]+[.?!]")
+                                          (not icicle-show-multi-completion-flag) where))
       (when icicle-search-cleanup-flag (icicle-search-highlight-cleanup))
-      (set-face-foreground 'icicle-search-main-regexp-others fg)
-      (set-face-background 'icicle-search-main-regexp-others bg))))
+      (if remap
+          (face-remap-reset-base 'icicle-search-main-regexp-others)
+        (set-face-foreground 'icicle-search-main-regexp-others fg)
+        (set-face-background 'icicle-search-main-regexp-others bg)))))
 
 (defun icicle-search-paragraphs (beg end &optional where) ; Bound to `M-s M-s p'.
   "`icicle-search' with paragraphs as contexts.
@@ -6961,19 +6971,23 @@ This command is intended only for use in Icicle mode.  It is defined
 using `icicle-search'.  For more information, see the doc for command
 `icicle-search'."
   (interactive `(,@(icicle-region-or-buffer-limits) ,(icicle-search-where-arg)))
-  (let ((icicle-multi-completing-p  (and current-prefix-arg
-                                         (not (zerop (prefix-numeric-value current-prefix-arg)))
-                                         icicle-show-multi-completion-flag))
-        (fg (face-foreground        'icicle-search-main-regexp-others))
-        (bg (face-background        'icicle-search-main-regexp-others))
-        (icicle-transform-function  (and (not (interactive-p))  icicle-transform-function)))
-    (unwind-protect
-         (progn (set-face-foreground 'icicle-search-main-regexp-others nil)
-                (set-face-background 'icicle-search-main-regexp-others nil)
-                (icicle-search beg end "\\(.+\n\\)+" (not icicle-show-multi-completion-flag) where))
+  (let* ((icicle-multi-completing-p  (and current-prefix-arg
+                                          (not (zerop (prefix-numeric-value current-prefix-arg)))
+                                          icicle-show-multi-completion-flag))
+         (icicle-transform-function  (and (not (interactive-p))  icicle-transform-function))
+         (remap                      (fboundp 'face-remap-set-base)) ; Emacs 23+
+         (fg                         (and (not remap)  (face-foreground 'icicle-search-main-regexp-others)))
+         (bg                         (and (not remap)  (face-background 'icicle-search-main-regexp-others))))
+    (unwind-protect (progn (if (fboundp 'face-remap-set-base)
+                               (face-remap-set-base 'icicle-search-main-regexp-others nil)
+                             (set-face-foreground 'icicle-search-main-regexp-others nil)
+                             (set-face-background 'icicle-search-main-regexp-others nil))
+                           (icicle-search beg end "\\(.+\n\\)+" (not icicle-show-multi-completion-flag) where))
       (when icicle-search-cleanup-flag (icicle-search-highlight-cleanup))
-      (set-face-foreground 'icicle-search-main-regexp-others fg)
-      (set-face-background 'icicle-search-main-regexp-others bg))))
+      (if (fboundp 'face-remap-reset-base)
+          (face-remap-reset-base 'icicle-search-main-regexp-others)
+        (set-face-foreground 'icicle-search-main-regexp-others fg)
+        (set-face-background 'icicle-search-main-regexp-others bg)))))
 
 (defun icicle-search-pages (beg end &optional where) ; Bound to `M-s M-s C-l'.
   "`icicle-search' with pages as contexts.
@@ -6995,20 +7009,24 @@ This command is intended only for use in Icicle mode.  It is defined
 using `icicle-search'.  For more information, see the doc for command
 `icicle-search'."
   (interactive `(,@(icicle-region-or-buffer-limits) ,(icicle-search-where-arg)))
-  (let ((icicle-multi-completing-p  (and current-prefix-arg
-                                         (not (zerop (prefix-numeric-value current-prefix-arg)))
-                                         icicle-show-multi-completion-flag))
-        (fg (face-foreground        'icicle-search-main-regexp-others))
-        (bg (face-background        'icicle-search-main-regexp-others))
-        (icicle-transform-function  (and (not (interactive-p))  icicle-transform-function)))
-    (unwind-protect
-         (progn (set-face-foreground 'icicle-search-main-regexp-others nil)
-                (set-face-background 'icicle-search-main-regexp-others nil)
-                (icicle-search beg end "\\([^\f]*[\f]\\|[^\f]+$\\)"
-                               (not icicle-show-multi-completion-flag) where))
+  (let* ((icicle-multi-completing-p  (and current-prefix-arg
+                                          (not (zerop (prefix-numeric-value current-prefix-arg)))
+                                          icicle-show-multi-completion-flag))
+         (icicle-transform-function  (and (not (interactive-p))  icicle-transform-function))
+         (remap                      (fboundp 'face-remap-set-base)) ; Emacs 23+
+         (fg                         (and (not remap)  (face-foreground 'icicle-search-main-regexp-others)))
+         (bg                         (and (not remap)  (face-background 'icicle-search-main-regexp-others))))
+    (unwind-protect (progn (if (fboundp 'face-remap-set-base)
+                               (face-remap-set-base 'icicle-search-main-regexp-others nil)
+                             (set-face-foreground 'icicle-search-main-regexp-others nil)
+                             (set-face-background 'icicle-search-main-regexp-others nil))
+                           (icicle-search beg end "\\([^\f]*[\f]\\|[^\f]+$\\)"
+                                          (not icicle-show-multi-completion-flag) where))
       (when icicle-search-cleanup-flag (icicle-search-highlight-cleanup))
-      (set-face-foreground 'icicle-search-main-regexp-others fg)
-      (set-face-background 'icicle-search-main-regexp-others bg))))
+      (if (fboundp 'face-remap-reset-base)
+          (face-remap-reset-base 'icicle-search-main-regexp-others)
+        (set-face-foreground 'icicle-search-main-regexp-others fg)
+        (set-face-background 'icicle-search-main-regexp-others bg)))))
 
 (defun icicle-comint-search (beg end)   ; Bound to `M-s M-s M-s', `C-c `' in `comint-mode'.
   "Use `icicle-search' to pick up a previous input for reuse.
@@ -7144,25 +7162,30 @@ information about the arguments, see the doc for command
   (save-excursion (goto-char (point-min))
                   (compilation-next-error 1)
                   (setq beg  (if beg (max beg (point)) (point))))
-  (let ((icicle-transform-function    (and (not (interactive-p))  icicle-transform-function))
-        (icicle-candidate-alt-action-fn
-         (if (boundp 'compilation-highlight-overlay) ; Emacs 22 test.
-             icicle-candidate-alt-action-fn
-           (lambda (cand)
-             (message "Cannot replace matching text in Emacs before version 22"))))
-        (next-error-highlight
-         ;; Highlight indefinitely.  `until-move' should be part of Emacs (patch sent), but it's not.
-         (if (and (featurep 'compile+)  (featurep 'simple+)) 'until-move 1000000))
-        (icicle-search-in-context-fn  'icicle-compilation-search-in-context-fn)
-        (fg (face-foreground          'icicle-search-main-regexp-others))
-        (bg (face-background          'icicle-search-main-regexp-others)))
+  (let* ((icicle-transform-function    (and (not (interactive-p))  icicle-transform-function))
+         (icicle-candidate-alt-action-fn
+          (if (boundp 'compilation-highlight-overlay) ; Emacs 22 test.
+              icicle-candidate-alt-action-fn
+            (lambda (cand)
+              (message "Cannot replace matching text in Emacs before version 22"))))
+         (next-error-highlight
+          ;; Highlight indefinitely.  `until-move' should be part of Emacs (patch sent), but it's not.
+          (if (and (featurep 'compile+)  (featurep 'simple+)) 'until-move 1000000))
+         (icicle-search-in-context-fn  'icicle-compilation-search-in-context-fn)
+         (remap                      (fboundp 'face-remap-set-base)) ; Emacs 23+
+         (fg                         (and (not remap)  (face-foreground 'icicle-search-main-regexp-others)))
+         (bg                         (and (not remap)  (face-background 'icicle-search-main-regexp-others))))
     (unwind-protect
          (progn
-           (set-face-foreground 'icicle-search-main-regexp-others nil)
-           (set-face-background 'icicle-search-main-regexp-others nil)
+           (if (fboundp 'face-remap-set-base)
+               (face-remap-set-base 'icicle-search-main-regexp-others nil)
+             (set-face-foreground 'icicle-search-main-regexp-others nil)
+             (set-face-background 'icicle-search-main-regexp-others nil))
            (icicle-search beg end ".*" t))
-      (set-face-foreground 'icicle-search-main-regexp-others fg)
-      (set-face-background 'icicle-search-main-regexp-others bg))))
+      (if (fboundp 'face-remap-reset-base)
+          (face-remap-reset-base 'icicle-search-main-regexp-others)
+        (set-face-foreground 'icicle-search-main-regexp-others fg)
+        (set-face-background 'icicle-search-main-regexp-others bg)))))
 
 (defun icicle-compilation-search-in-context-fn (cand+mrker replace-string)
   "`icicle-search-in-context-fn' used for `icicle-compilation-search'.
@@ -8425,8 +8448,11 @@ candidates to packages of different kinds."
             (Info-make-manuals-xref (concat (symbol-name package) " package")
                                     nil nil (not (called-interactively-p 'interactive)))))))))
 
-(defun icicle-wide-n ()
-  "Choose a restriction and apply it.  Or choose `No restriction' to widen.
+(defun icicle-buffer-narrowing ()
+  "Choose a narrowing (buffer restriction) and apply it.
+The candidates are taken from the variable that is the value of
+`zz-izones-var'.
+
 During completion you can use these keys\\<minibuffer-local-completion-map>:
 
 `C-RET'   - Goto marker named by current completion candidate
@@ -8445,46 +8471,115 @@ Use `mouse-2', `RET', or `S-RET' to choose a candidate as the final
 destination, or `C-g' to quit.  This is an Icicles command - see
 command `icicle-mode'."
   (interactive)
-  (unless (featurep 'wide-n) (error "You need library `wide-n.el' for this command"))
-  (unless (cadr wide-n-restrictions) (error "No restrictions - you have not narrowed this buffer"))
-  (if (< (length wide-n-restrictions) 3) ; Only one restriction.  If narrowed widen, else apply the restriction.
-      (wide-n 1 'MSG)
-    (let ((icicle-sort-comparer            'icicle-special-candidates-first-p)
-          (icicle-delete-candidate-object  (lambda (cand)
-                                             (let ((name.res  (icicle-get-alist-candidate cand)))
-                                               (with-current-buffer icicle-pre-minibuffer-buffer
-                                                 (setq wide-n-restrictions  (delete (cdr name.res)
-                                                                                    wide-n-restrictions))
-                                                 (wide-n-renumber))))))
-      (icicle-apply (let ((ns  ())
-                          beg end name)
-                      (save-restriction
-                        (widen)
-                        (dolist (res  wide-n-restrictions)
-                          (setq beg   (marker-position (cadr res))
-                                end   (marker-position (car (cddr res)))
-                                name  (format "%d-%d, %s" beg end (buffer-substring beg end))
-                                name  (replace-regexp-in-string "\n" " "
-                                                                (substring name 0 (min 30 (length name))))
-                                name  (format "%s\n" name))
-                          (push `(,name ,@res) ns)))
-                      ns)
-                    #'icicle-wide-n-action
-                    'NOMSG))))
+  (unless (featurep 'zones) (error "You need library `zones.el' for this command"))
+  (let ((val  (symbol-value zz-izones-var)))
+    (unless val (error "No previous narrowing"))
+    (if (< (length val) 2)              ; Only one narrowing.  If narrowed, widen, else narrow to it.
+        (zz-narrow 1 'MSG)
+      (let ((icicle-sort-comparer            'icicle-special-candidates-first-p)
+            (icicle-delete-candidate-object  (lambda (cand)
+                                               (let ((name.res  (icicle-get-alist-candidate cand)))
+                                                 (with-current-buffer icicle-pre-minibuffer-buffer
+                                                   (set zz-izones-var  (delete (cdr name.res) val))
+                                                   (zz-izones-renumber))))))
+        (icicle-apply (let ((ns  ())
+                            beg end name)
+                        (save-restriction
+                          (widen)
+                          (dolist (res  val)
+                            (setq beg   (marker-position (nth 1 res))
+                                  end   (marker-position (nth 2 res))
+                                  name  (format "%d-%d, %s" beg end (buffer-substring beg end))
+                                  name  (replace-regexp-in-string "\n" " " (substring name
+                                                                                      0 (min 50 (length name))))
+                                  name  (format "%s\n" name))
+                            (push `(,name ,@res) ns))) ; Go ahead and include the numerical index: (car RES).
+                        ns)
+                      #'icicle-buffer-narrowing-action
+                      'NOMSG)))))
 
-(defun icicle-wide-n-action (cand)
-  "Action function for `icicle-wide-n': Narrow region to candidate CAND.
-If CAND has car \"No restriction\" then widen it instead."
+(defun icicle-buffer-narrowing-action (candidate)
+  "Action function for `icicle-buffer-narrowing': Narrow to CANDIDATE region."
   (with-current-buffer icicle-pre-minibuffer-buffer
     (condition-case err
-        (let ((wide-n-push-anyway-p  t))
-          (narrow-to-region (cadr cand) (car (cddr cand)))
-          (wide-n-highlight-lighter)
-          (message wide-n-lighter-narrow-part))
-      (args-out-of-range
-       (setq wide-n-restrictions  (cdr wide-n-restrictions))
-       (error "Restriction removed because of invalid limits"))
+        (let ((zz-add-zone-anyway-p  nil))
+          (narrow-to-region (nth 2 candidate) (nth 3 candidate)) ; Skip the numerical index: (nth 1 CANDIDATE).
+          (zz-narrowing-lighter)
+          (message zz-lighter-narrowing-part))
+      (args-out-of-range (set zz-izones-var  (cdr (symbol-value zz-izones-var)))
+                         (error "Restriction removed because of invalid limits"))
       (error (error "%s" (error-message-string err))))))
+
+(defun icicle-select-zone ()
+  "Choose a buffer zone and select it as the active region.
+The candidates are taken from the variable that is the value of
+`zz-izones-var'.
+
+During completion you can use these keys\\<minibuffer-local-completion-map>:
+
+`C-RET'   - Goto marker named by current completion candidate
+`C-down'  - Goto marker named by next completion candidate
+`C-up'    - Goto marker named by previous completion candidate
+`C-next'  - Goto marker named by next apropos-completion candidate
+`C-prior' - Goto marker named by previous apropos-completion candidate
+`C-end'   - Goto marker named by next prefix-completion candidate
+`C-home'  - Goto marker named by previous prefix-completion candidate
+`\\[icicle-delete-candidate-object]' - Delete zone named by current completion candidate
+
+When candidate action and cycling are combined (e.g. `C-next'), option
+`icicle-act-before-cycle-flag' determines which occurs first.
+
+Use `mouse-2', `RET', or `S-RET' to choose a candidate as the final
+destination, or `C-g' to quit.  This is an Icicles command - see
+command `icicle-mode'."
+  (interactive)
+  (unless (featurep 'zones) (error "You need library `zones.el' for this command"))
+  (let ((var  zz-izones-var)
+        (val  (symbol-value zz-izones-var)))
+    (unless val (error "No zone to select"))
+    (if (< (length val) 2)              ; Only one zone - select it.
+        (zz-select-region 1 'MSG)
+      (let ((icicle-sort-comparer            'icicle-special-candidates-first-p)
+            (icicle-delete-candidate-object  (lambda (cand)
+                                               (let ((name.res  (icicle-get-alist-candidate cand)))
+                                                 (with-current-buffer icicle-pre-minibuffer-buffer
+                                                   (set zz-izones-var  (delete (cdr name.res) val))
+                                                   (zz-izones-renumber))))))
+        (icicle-apply (let ((ns  ())
+                            beg end name)
+                        (dolist (res  zz-izones)
+                          (setq beg   (marker-position (nth 1 res))
+                                end   (marker-position (nth 2 res))
+                                name  (format "%d-%d, %s" beg end (buffer-substring beg end))
+                                name  (replace-regexp-in-string "\n" " " (substring name
+                                                                                    0 (min 50 (length name))))
+                                name  (format "%s\n" name))
+                          (push `(,name ,@res) ns)) ; Go ahead and include the numerical index: (car RES).
+                        ns)
+                      #'icicle-select-zone-action
+                      'NOMSG)))))
+
+(defun icicle-select-zone-action (candidate)
+  "Action function for `icicle-select-zone': Select CANDIDATE as region."
+  (condition-case err
+      (save-selected-window
+        (pop-to-buffer icicle-pre-minibuffer-buffer)
+        (let* ((name       (car candidate))
+               (izone      (cdr candidate))
+               (izone      (zz-markerize izone))
+               (beg        (nth 1 izone))
+               (end        (nth 2 izone))
+               (other-buf  nil))
+          (when (and (not (local-variable-p zz-izones-var))
+                     (setq other-buf  (zz-izone-has-other-buffer-marker-p izone)) ; Returns marker or nil.
+                     (or (not (markerp beg))  (not (markerp end))  (eq (marker-buffer beg) (marker-buffer end)))
+                     (setq other-buf  (marker-buffer other-buf)))
+            (pop-to-buffer other-buf))
+          (goto-char beg)
+          (push-mark end nil t)
+          (setq deactivate-mark  nil)
+          (message "Region %s restored%s" name (if other-buf (format " in `%s'" other-buf) ""))))
+    (error (error "%s" (error-message-string err)))))
 
 (defvar icicle-key-prefix nil
   "A prefix key.")

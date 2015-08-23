@@ -8,9 +8,9 @@
 ;; Created: Tue Aug  1 14:21:16 1995
 ;; Version: 2015.07.05
 ;; Package-Requires: ()
-;; Last-Updated: Sat Aug  1 09:17:26 2015 (-0700)
+;; Last-Updated: Thu Aug 20 11:11:31 2015 (-0700)
 ;;           By: dradams
-;;     Update #: 23660
+;;     Update #: 23668
 ;; URL: http://www.emacswiki.org/icicles.el
 ;; Doc URL: http://emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer, projects,
@@ -211,7 +211,7 @@
 ;;    `icicle-bookmark-url', `icicle-bookmark-url-other-window'
 ;;    `icicle-bookmark-w3m-other-window', `icicle-buffer',
 ;;    `icicle-buffer-config', `icicle-buffer-list',
-;;    `icicle-buffer-no-search',
+;;    `icicle-buffer-narrowing', `icicle-buffer-no-search',
 ;;    `icicle-buffer-no-search-other-window',
 ;;    `icicle-buffer-other-window',
 ;;    `icicle-change-alternative-sort-order',
@@ -405,8 +405,8 @@
 ;;    `icicle-select-bookmarked-region', `icicle-select-frame',
 ;;    `icicle-select-frame-by-name', `icicle-select-text-at-point',
 ;;    `icicle-select-window', `icicle-select-window-by-name',
-;;    `icicle-send-bug-report', `icicle-send-signal-to-process',
-;;    `icicle-set-option-to-t',
+;;    `icicle-select-zone', `icicle-send-bug-report',
+;;    `icicle-send-signal-to-process', `icicle-set-option-to-t',
 ;;    `icicle-set-S-TAB-methods-for-command',
 ;;    `icicle-set-TAB-methods-for-command', `icicle-sexp-list',
 ;;    `icicle-shell-command', `icicle-shell-command-on-region',
@@ -452,10 +452,10 @@
 ;;    `icicle-visit-marked-file-of-content-other-window',
 ;;    `icicle-visit-marked-file-of-content-recursive',
 ;;    `icicle-visit-marked-file-of-content-recursive-other-window',
-;;    `icicle-where-is', `icicle-wide-n',
-;;    `icicle-widget-file-complete', `icicle-yank-maybe-completing',
-;;    `icicle-yank-pop-commands', `icicle-zap-to-char', `toggle',
-;;    `synonyms', `toggle-icicle-~-for-home-dir',
+;;    `icicle-where-is', `icicle-widget-file-complete',
+;;    `icicle-yank-maybe-completing', `icicle-yank-pop-commands',
+;;    `icicle-zap-to-char', `toggle', `synonyms',
+;;    `toggle-icicle-~-for-home-dir',
 ;;    `toggle-icicle-alternative-sorting',
 ;;    `toggle-icicle-angle-brackets', `toggle-icicle-annotation',
 ;;    `toggle-icicle-case-sensitivity', `toggle-icicle-C-for-actions',
@@ -1231,7 +1231,7 @@
 ;;    `icicle-mouse-candidate-action-1', `icicle-mouseover-help',
 ;;    `icicle-msg-maybe-in-minibuffer', `icicle-ms-windows-NET-USE',
 ;;    `icicle-multi-comp-apropos-complete-match', `icicle-multi-sort',
-;;    `icicle-nb-Completions-cols',
+;;    `icicle-buffer-narrowing-action', `icicle-nb-Completions-cols',
 ;;    `icicle-nb-of-cand-at-Completions-pos',
 ;;    `icicle-nb-of-cand-in-Completions-horiz',
 ;;    `icicle-next-candidate', `icicle-next-error-buffer-p',
@@ -1343,7 +1343,8 @@
 ;;    `icicle-search-replace-fixed-case-p',
 ;;    `icicle-search-replace-match', `icicle-search-thing-args',
 ;;    `icicle-search-thing-scan', `icicle-search-where-arg',
-;;    `icicle-select-minibuffer-contents' `icicle-set-calling-cmd',
+;;    `icicle-select-minibuffer-contents' `icicle-select-zone-action',
+;;    `icicle-set-calling-cmd',
 ;;    `icicle-set-completion-methods-for-command',
 ;;    `icicle-set-difference', `icicle-set-intersection',
 ;;    `icicle-set-union', `icicle-shell-command-on-file',
@@ -1386,7 +1387,7 @@
 ;;    `icicle-value-satisfies-type-p', `icicle-var-inherits-type-p',
 ;;    `icicle-var-is-of-type-p', `icicle-var-matches-type-p',
 ;;    `icicle-var-val-satisfies-type-p',
-;;    `icicle-visit-marked-file-of-content-1', `icicle-wide-n-action',
+;;    `icicle-visit-marked-file-of-content-1',
 ;;    `icicle-widget-color-complete', `icicle-widgetp',
 ;;    `icicle-window-at-bottom-p', `icicle-window-at-left-p',
 ;;    `icicle-window-at-right-p', `icicle-window-at-top-p',
@@ -1449,7 +1450,8 @@
 ;;    `icicle-explore-final-choice',
 ;;    `icicle-explore-final-choice-full', `icicle-extra-candidates',
 ;;    `icicle-extra-candidates-dir-insert-p',
-;;    `icicle-face-name-history', `icicle-fancy-candidates-p',
+;;    `icicle-face-name-history', `icicle-face-remapping-Completions',
+;;    `icicle-face-remapping-region', `icicle-fancy-candidates-p',
 ;;    `icicle-fancy-cands-internal-p', `icicle-file-menu-map',
 ;;    `icicle-file-name-completion-table', `icicle-files',
 ;;    `icicle-file-sort-first-time-p',
