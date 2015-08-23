@@ -1,11 +1,11 @@
 ;;; dired-subtree.el --- Insert subdirectories in a tree-like fashion
 
-;; Copyright (C) 2014 Matus Goljer
+;; Copyright (C) 2014-2015 Matúš Goljer
 
-;; Author: Matus Goljer <matus.goljer@gmail.com>
-;; Maintainer: Matus Goljer <matus.goljer@gmail.com>
+;; Author: Matúš Goljer <matus.goljer@gmail.com>
+;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Keywords: files
-;; Package-Version: 20150325.1034
+;; Package-Version: 20150819.948
 ;; Version: 0.0.1
 ;; Created: 25th February 2014
 ;; Package-requires: ((dash "2.5.0") (dired-hacks-utils "0.0.1"))
