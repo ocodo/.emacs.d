@@ -1,11 +1,11 @@
 ;;; dired-narrow.el --- Live-narrowing of search results for dired
 
-;; Copyright (C) 2014 Matúš Goljer <matus.goljer@gmail.com>
+;; Copyright (C) 2014-2015 Matúš Goljer
 
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
-;; Version: 20140711.1226
-;; X-Original-Version: 0.0.1
+;; Version: 0.0.1
+;; Package-Version: 20150819.948
 ;; Created: 14th February 2014
 ;; Package-requires: ((dash "2.7.0") (dired-hacks-utils "0.0.1"))
 ;; Keywords: files
@@ -48,6 +48,8 @@
 ;; the file name.  If the filter returns nil, the file is removed from
 ;; the view.  As an inspiration, look at the built-in functions
 ;; mentioned above.
+
+;; See https://github.com/Fuco1/dired-hacks for the entire collection.
 
 ;;; Code:
 
