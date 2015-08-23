@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.47
-;; Package-Version: 20150803.1420
+;; Package-Version: 20150814.1655
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -376,7 +376,7 @@ matched literally."
 with STRING defaulting to the symbol under point.
 
 If called with a prefix, prompts for flags to pass to ag."
-  (interactive (list (ag/read-from-minibuffer "Search regexp")
+  (interactive (list (ag/read-from-minibuffer "Search string")
                      (read-directory-name "Directory: ")))
   (ag/search string directory))
 
@@ -447,7 +447,7 @@ for the given regexp. The regexp should be in PCRE syntax, not
 Emacs regexp syntax.
 
 If called with a prefix, prompts for flags to pass to ag."
-  (interactive (list (ag/escape-pcre (ag/read-from-minibuffer "Search regexp"))))
+  (interactive (list (ag/read-from-minibuffer "Search regexp")))
   (ag/search regexp (ag/project-root default-directory) :regexp t))
 
 (autoload 'symbol-at-point "thingatpt")
@@ -457,7 +457,8 @@ If called with a prefix, prompts for flags to pass to ag."
 (make-obsolete 'ag-project-at-point 'ag-project "0.19")
 
 ;;;###autoload
-(defalias 'ag-regexp-project-at-point 'ag-project-regexp) ; TODO: mark as obsolete
+(defalias 'ag-regexp-project-at-point 'ag-project-regexp)
+(make-obsolete 'ag-regexp-project-at-point 'ag-project-regexp "0.46")
 
 ;;;###autoload
 (defun ag-dired (dir pattern)
