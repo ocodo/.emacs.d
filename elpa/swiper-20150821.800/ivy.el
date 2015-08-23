@@ -139,6 +139,7 @@ Only \"./\" and \"../\" apply here. They appear in reverse order."
     (define-key map (kbd "M-o") 'ivy-dispatching-done)
     (define-key map (kbd "C-k") 'ivy-kill-line)
     (define-key map (kbd "S-SPC") 'ivy-restrict-to-matches)
+    (define-key map (kbd "M-w") 'ivy-kill-ring-save)
     map)
   "Keymap used in the minibuffer.")
 (autoload 'hydra-ivy/body "ivy-hydra" "" t)
@@ -1375,7 +1376,18 @@ Should be run via minibuffer `post-command-hook'."
       (let ((buffer-undo-list t))
         (save-excursion
           (forward-line 1)
-          (insert text))))))
+          (insert text))))
+    (when (display-graphic-p)
+      (ivy--resize-minibuffer-to-fit))))
+
+(defun ivy--resize-minibuffer-to-fit ()
+  "Resize the minibuffer window so it has enough space to display
+all of the text contained in the minibuffer."
+  (with-selected-window (minibuffer-window)
+    (let ((text-height (cdr (window-text-pixel-size)))
+          (body-height (window-body-height nil t)))
+      (when (> text-height body-height)
+        (window-resize nil (- text-height body-height) nil t t)))))
 
 (declare-function colir-blend-face-background "ext:colir")
 
@@ -1647,6 +1659,18 @@ BUFFER may be a string or nil."
           (setq amend (buffer-substring-no-properties pt (point))))))
     (when amend
       (insert amend))))
+
+(defun ivy-kill-ring-save ()
+  "Store the current candidates into the kill ring.
+If the region is active, forward to `kill-ring-save' instead."
+  (interactive)
+  (if (region-active-p)
+      (call-interactively 'kill-ring-save)
+    (kill-new
+     (mapconcat
+      #'identity
+      ivy--old-cands
+      "\n"))))
 
 (defun ivy-insert-current ()
   "Make the current candidate into current input.
