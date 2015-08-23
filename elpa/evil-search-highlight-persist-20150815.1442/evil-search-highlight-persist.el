@@ -1,6 +1,6 @@
 ;;; evil-search-highlight-persist.el --- Persistent highlights after search
 ;; Version: 20150107.4
-;; Package-Version: 20150721.450
+;; Package-Version: 20150815.1442
 ;; X-Original-Version: 20140918
 
 ;; Author: Juanjo Alvarez <juanjo@juanjoalvarez.net>
@@ -107,7 +107,8 @@
 ;;;###autoload
 (defun turn-on-search-highlight-persist ()
   "Enable search-highlight-persist in the current buffer."
-  (evil-search-highlight-persist 1))
+  (evil-search-highlight-persist
+   (if (eq 'fundamental-mode major-mode) -1 1)))
 
 ;;;###autoload
 (defun turn-off-search-highlight-persist ()
