@@ -8,7 +8,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (async "20150807") (dash "2.11.0"))
+;; Package-Requires: ((emacs "24.4") (async "20150812") (dash "2.11.0"))
 ;; Keywords: tools
 ;; Homepage: https://github.com/magit/magit
 
@@ -85,6 +85,7 @@
 (require 'tramp-sh nil t)
 
 (and (require 'async-bytecomp nil t)
+     (memq 'magit (bound-and-true-p async-bytecomp-allowed-packages))
      (fboundp 'async-bytecomp-package-mode)
      (async-bytecomp-package-mode 1))
 
@@ -356,7 +357,7 @@ Modify the `process-environment' for processes started in BODY,
 instructing them to use the Emacsclient as $EDITOR.  If optional
 ENVVAR is provided then bind that environment variable instead.
 \n(fn [ENVVAR] BODY...)"
-  (declare (indent defun))
+  (declare (indent defun) (debug (body)))
   `(let ((with-editor--envvar ,(if (stringp (car body))
                                    (pop body)
                                  '(or with-editor--envvar "EDITOR")))
