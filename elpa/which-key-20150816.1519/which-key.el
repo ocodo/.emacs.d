@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20150810.806
+;; Package-Version: 20150816.1519
 ;; Version: 0.5.1
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
@@ -118,6 +118,16 @@ is overwritten with \"find files\". The second case works the
 same way using the alist matched when `major-mode' is
 emacs-lisp-mode."
 :group 'which-key)
+
+(defcustom which-key-prefix-title-alist '()
+  "An alist with elements of the form (key-sequence . prefix-title).
+key-sequence is a sequence of the sort produced by applying `kbd'
+then `listify-key-sequence' to create a canonical version of the
+key sequence. prefix-title is a string. The title is displayed
+alongside the actual current key sequence when
+`which-key-show-prefix' is set to either top or echo."
+  :group 'which-key
+  :type '(alist :key-type string :value-type string))
 
 (defcustom which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
@@ -468,6 +478,19 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
     (if (assq mode which-key-key-based-description-replacement-alist)
         (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
       (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
+
+;;;###autoload
+(defun which-key-add-prefix-title (key-seq-str name &optional force)
+  "Add title for KEY-SEQ-STR given by TITLE.
+FORCE, if non-nil, will add the new title even if one already
+exists. KEY-SEQ-STR should be a key sequence string suitable for
+`kbd' and NAME should be a string."
+  (interactive)
+  (let ((key-seq-lst (listify-key-sequence (kbd key-seq-str))))
+    (if (and (null force)
+             (assoc key-seq-lst which-key-prefix-title-alist))
+        (message "which-key: Prefix title not added. A title exists for this prefix.")
+      (push (cons key-seq-lst name) which-key-prefix-title-alist))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for computing window sizes
@@ -1025,9 +1048,17 @@ enough space based on your settings and frame size." prefix-keys)
              (dash-w-face (propertize "-" 'face 'which-key-key-face))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
-             (status-top (when (< 1 n-pages)
-                           (propertize (format "(%s of %s)" (1+ page-n) n-pages)
-                                       'face 'which-key-note-face)))
+             (status-top (when (assoc (listify-key-sequence which-key--current-prefix)
+                                      which-key-prefix-title-alist)
+                           (propertize
+                            (cdr (assoc (listify-key-sequence which-key--current-prefix)
+                                        which-key-prefix-title-alist))
+                             'face 'which-key-note-face)))
+             (status-top (concat status-top
+                                 (when (< 1 n-pages)
+                                   (propertize (format " (%s of %s)"
+                                                       (1+ page-n) n-pages)
+                                               'face 'which-key-note-face))))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
@@ -1063,10 +1094,10 @@ enough space based on your settings and frame size." prefix-keys)
                        new-end (concat "\n" (s-repeat first-col-width " "))
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((eq which-key-show-prefix 'top)
-               (setq page (concat prefix-w-face dash-w-face "  "
+               (setq page (concat prefix-w-face dash-w-face " "
                                   status-top " " nxt-pg-hint "\n" page)))
               ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat prefix-w-face dash-w-face "  "
+               (which-key--echo (concat prefix-w-face dash-w-face " "
                                         status-top " " nxt-pg-hint))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)

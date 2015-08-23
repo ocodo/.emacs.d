@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "which-key" "which-key.el" (21965 50171 675401
+;;;### (autoloads nil "which-key" "which-key.el" (21975 62408 443401
 ;;;;;;  0))
 ;;; Generated autoloads from which-key.el
 
@@ -56,6 +56,14 @@ be active for KEY-SEQUENCE and REPLACEMENT (MORE contains
 addition KEY-SEQUENCE REPLACEMENT pairs) to apply.
 
 \(fn MODE KEY-SEQUENCE REPLACEMENT &rest MORE)" nil nil)
+
+(autoload 'which-key-add-prefix-title "which-key" "\
+Add title for KEY-SEQ-STR given by TITLE.
+FORCE, if non-nil, will add the new title even if one already
+exists. KEY-SEQ-STR should be a key sequence string suitable for
+`kbd' and NAME should be a string.
+
+\(fn KEY-SEQ-STR NAME &optional FORCE)" t nil)
 
 ;;;***
 
