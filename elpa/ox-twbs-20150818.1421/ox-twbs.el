@@ -7,7 +7,7 @@
 ;;      Jambunathan K <kjambunathan at gmail dot com>
 ;;      Brandon van Beekum <marsmining at gmail dot com>
 ;; URL: https://github.com/marsmining/ox-twbs
-;; Package-Version: 20150712.115
+;; Package-Version: 20150818.1421
 ;; Keywords: org, html, publish, twitter, bootstrap
 ;; Version: 0.2.0
 
@@ -163,13 +163,11 @@
 $(function() {
     'use strict';
 
-    setTimeout(function() {
-        $('.bs-docs-sidebar li').first().addClass('active');
+    $('.bs-docs-sidebar li').first().addClass('active');
 
-        $(document.body).scrollspy({target: '.bs-docs-sidebar'});
+    $(document.body).scrollspy({target: '.bs-docs-sidebar'});
 
-        $('.bs-docs-sidebar').affix();
-    }, 500);
+    $('.bs-docs-sidebar').affix();
 });
 </script>"
   "Basic JavaScript that is needed by HTML files produced by Org mode.")
@@ -320,6 +318,10 @@ pre {
     }
     .bs-docs-sidebar.affix-bottom {
         position: absolute; /* Undo the static from mobile first approach */
+    }
+    .bs-docs-sidebar.affix .bs-docs-sidenav,.bs-docs-sidebar.affix-bottom .bs-docs-sidenav {
+        margin-top: 0;
+        margin-bottom: 0
     }
 }
 @media (min-width: 1200px) {
@@ -754,7 +756,7 @@ See `format-time-string' for more information on its components."
 ;;;; Template :: Mathjax
 
 (defcustom org-twbs-mathjax-options
-  '((path  "http://orgmode.org/mathjax/MathJax.js")
+  '((path  "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML")
     (scale "100")
     (align "center")
     (indent "2em")
@@ -787,48 +789,7 @@ You can also customize this for each buffer, using something like
                      (const :format "       " mathml) (boolean))))
 
 (defcustom org-twbs-mathjax-template
-  "<script type=\"text/javascript\" src=\"%PATH\"></script>
-<script type=\"text/javascript\">
-<!--/*--><![CDATA[/*><!--*/
-    MathJax.Hub.Config({
-        // Only one of the two following lines, depending on user settings
-        // First allows browser-native MathML display, second forces HTML/CSS
-        :MMLYES: config: [\"MMLorHTML.js\"], jax: [\"input/TeX\"],
-        :MMLNO: jax: [\"input/TeX\", \"output/HTML-CSS\"],
-        extensions: [\"tex2jax.js\",\"TeX/AMSmath.js\",\"TeX/AMSsymbols.js\",
-                     \"TeX/noUndefined.js\"],
-        tex2jax: {
-            inlineMath: [ [\"\\\\(\",\"\\\\)\"] ],
-            displayMath: [ ['$$','$$'], [\"\\\\[\",\"\\\\]\"], [\"\\\\begin{displaymath}\",\"\\\\end{displaymath}\"] ],
-            skipTags: [\"script\",\"noscript\",\"style\",\"textarea\",\"pre\",\"code\"],
-            ignoreClass: \"tex2jax_ignore\",
-            processEscapes: false,
-            processEnvironments: true,
-            preview: \"TeX\"
-        },
-        showProcessingMessages: true,
-        displayAlign: \"%ALIGN\",
-        displayIndent: \"%INDENT\",
-
-        \"HTML-CSS\": {
-             scale: %SCALE,
-             availableFonts: [\"STIX\",\"TeX\"],
-             preferredFont: \"TeX\",
-             webFont: \"TeX\",
-             imageFont: \"TeX\",
-             showMathMenu: true,
-        },
-        MMLorHTML: {
-             prefer: {
-                 MSIE:    \"MML\",
-                 Firefox: \"MML\",
-                 Opera:   \"HTML\",
-                 other:   \"HTML\"
-             }
-        }
-    });
-/*]]>*///-->
-</script>"
+  "<script type=\"text/javascript\" src=\"%PATH\"></script>"
   "The MathJax setup for HTML files."
   :group 'org-export-twbs
   :type 'string)
@@ -1014,9 +975,9 @@ style information."
 
 (define-obsolete-variable-alias 'org-twbs-style 'org-twbs-head "24.4")
 (defcustom org-twbs-head "
-<link  href=\"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/css/bootstrap.min.css\" rel=\"stylesheet\">
-<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.2/jquery.min.js\"></script>
-<script src=\"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js\"></script>"
+<link  href=\"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css\" rel=\"stylesheet\">
+<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.min.js\"></script>
+<script src=\"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js\"></script>"
   "Org-wide head definitions for exported HTML files.
 
 As the value of this option simply gets inserted into the HTML
