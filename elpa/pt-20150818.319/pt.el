@@ -3,11 +3,11 @@
 ;; Copyright (C) 2014 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/pt.el
+;; Package-Version: 20150818.319
 ;; Filename: pt.el
 ;; Description: A front-end for pt, the Platinum Searcher
 ;; Created: 2014-04-27
-;; Version: 20141018.828
-;; X-Original-Version: 0.0.3
+;; Version: 0.0.3
 ;; Keywords: pt ack ag grep search
 ;;
 ;; This file is not part of GNU Emacs.
@@ -58,10 +58,22 @@
   :type '(repeat (string))
   :group 'pt)
 
+(defvar pt-search-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map compilation-minor-mode-map)
+    (define-key map "n" 'next-error-no-select)
+    (define-key map "p" 'previous-error-no-select)
+    (define-key map "{" 'compilation-previous-file)
+    (define-key map "}" 'compilation-next-file)
+    map)
+  "Keymap for pt-search buffers.
+`compilation-minor-mode-map' is a cdr of this.")
+
 (define-compilation-mode pt-search-mode "Pt"
   "Platinum searcher results compilation mode"
   (set (make-local-variable 'truncate-lines) t)
   (set (make-local-variable 'compilation-disable-input) t)
+  (set (make-local-variable 'tool-bar-map) grep-mode-tool-bar-map)
   (let ((symbol 'compilation-pt)
         (pattern '("^\\([^:\n]+?\\):\\([0-9]+\\):[^0-9]" 1 2)))
     (set (make-local-variable 'compilation-error-regexp-alist) (list symbol))
