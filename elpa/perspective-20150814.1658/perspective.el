@@ -6,7 +6,7 @@
 
 ;; Author: Natalie Weizenbaum <nex342@gmail.com>
 ;; URL: http://github.com/nex3/perspective-el
-;; Package-Version: 20150508.1805
+;; Package-Version: 20150814.1658
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 1.12
 ;; Created: 2008-03-05
@@ -148,6 +148,10 @@ them in Emacs >= 23.2.  In older versions, this is identical to
 (defvar persp-interactive-completion-function
   (if ido-mode 'ido-completing-read 'completing-read)
   "The function which is used by perspective.el to interactivly complete user input")
+
+(defvar persp-before-switch-hook nil
+  "A hook that's run before `persp-switch'.
+Run with the previous perspective as `persp-curr'.")
 
 (defvar persp-switch-hook nil
   "A hook that's run after `persp-switch'.
@@ -461,6 +465,7 @@ perspective's local variables are set."
       (setq persp-last persp-curr)
       (when (null persp)
         (setq persp (persp-new name)))
+      (run-hooks 'persp-before-switch-hook)
       (persp-activate persp)
       name))
   (run-hooks 'persp-switch-hook))
