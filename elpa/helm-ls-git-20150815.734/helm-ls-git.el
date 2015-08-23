@@ -1,5 +1,5 @@
 ;;; helm-ls-git.el --- list git files. -*- lexical-binding: t -*-
-;; Package-Version: 20150720.1116
+;; Package-Version: 20150815.734
 
 ;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
@@ -273,7 +273,7 @@ The color of matched items can be customized in your .gitconfig."
   "Run Git Grep action from helm-ls-git."
   (interactive)
   (with-helm-alive-p
-    (helm-quit-and-execute-action 'helm-ls-git-grep)))
+    (helm-exit-and-execute-action 'helm-ls-git-grep)))
 
 
 (defun helm-ls-git-search-log (_candidate)
