@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code
 
 ;; Version: 0.2.0
-;; Package-Version: 20150806.1913
+;; Package-Version: 20150814.1710
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -65,7 +65,7 @@
 
     ;; Comments
     (modify-syntax-entry ?/  ". 124b" table)
-    (modify-syntax-entry ?*  ". 23"   table)
+    (modify-syntax-entry ?*  ". 23n"  table)
     (modify-syntax-entry ?\n "> b"    table)
     (modify-syntax-entry ?\^m "> b"   table)
 
@@ -79,12 +79,14 @@
 (defcustom rust-indent-offset 4
   "Indent Rust code by this number of spaces."
   :type 'integer
-  :group 'rust-mode)
+  :group 'rust-mode
+  :safe #'integerp)
 
 (defcustom rust-indent-method-chain nil
   "Indent Rust method chains, aligned by the '.' operators"
   :type 'boolean
-  :group 'rust-mode)
+  :group 'rust-mode
+  :safe #'booleanp)
 
 (defcustom rust-playpen-url-format "https://play.rust-lang.org/?code=%s"
   "Format string to use when submitting code to the playpen"
@@ -360,11 +362,14 @@
     "bool"
     "str" "char"))
 
-(defconst rust-re-CamelCase "[[:upper:]][[:word:][:multibyte:]_[:digit:]]*")
+(defconst rust-re-type-or-constructor
+  (rx symbol-start
+      (group upper (0+ (any word nonascii digit "_")))
+      symbol-end))
+
 (defconst rust-re-pre-expression-operators "[-=!%&*/:<>[{(|.^;}]")
 (defun rust-re-word (inner) (concat "\\<" inner "\\>"))
 (defun rust-re-grab (inner) (concat "\\(" inner "\\)"))
-(defun rust-re-grabword (inner) (rust-re-grab (rust-re-word inner)))
 (defun rust-re-item-def (itype)
   (concat (rust-re-word itype) "[[:space:]]+" (rust-re-grab rust-re-ident)))
 
@@ -401,7 +406,7 @@
      (,(concat "'" (rust-re-grab rust-re-ident) "[^']") 1 font-lock-variable-name-face)
 
      ;; CamelCase Means Type Or Constructor
-     (,(rust-re-grabword rust-re-CamelCase) 1 font-lock-type-face)
+     (,rust-re-type-or-constructor 1 font-lock-type-face)
      )
 
    ;; Item definitions

@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "rust-mode" "rust-mode.el" (21960 42686 979401
+;;;### (autoloads nil "rust-mode" "rust-mode.el" (21975 62442 807401
 ;;;;;;  0))
 ;;; Generated autoloads from rust-mode.el
 
