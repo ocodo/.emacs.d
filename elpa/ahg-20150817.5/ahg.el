@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20150624.705
+;; Package-Version: 20150817.5
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -129,6 +129,7 @@
         (define-key qmap "e" 'ahg-mq-edit-series)
         qmap))
     map))
+
 
 ;;-----------------------------------------------------------------------------
 ;; Customization
@@ -1215,6 +1216,25 @@ flag to hg update."
 ;; hg log
 ;;-----------------------------------------------------------------------------
 
+(defvar ahg-log-commands-map
+  '(
+    ("l" . ahg-short-log)
+    ("L" . ahg-log)
+    ("G" . ahg-glog)
+    ("H" . ahg-heads)
+    ("T" . ahg-tags)
+    ("B" . ahg-bookmarks)
+    ))
+
+(defun ahg-add-log-commands (map)
+  (mapc
+   (lexical-let ((map map))
+     (lambda (p)
+       (define-key map (car p) (cdr p))))
+   ahg-log-commands-map
+   ))
+
+
 (defvar ahg-short-log-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?g] 'ahg-short-log-refresh)
@@ -1236,6 +1256,7 @@ flag to hg update."
       (define-key emap "f" 'ahg-short-log-histedit-fold)
       (define-key emap "r" 'ahg-short-log-histedit-roll)
       (define-key map "E" emap))
+    (ahg-add-log-commands map)
     map)
   "Keymap used in `ahg-short-log-mode'.")
 
@@ -1700,6 +1721,7 @@ Commands:
     (define-key emap "f" 'ahg-log-histedit-fold)
     (define-key emap "r" 'ahg-log-histedit-roll)
     (define-key ahg-log-mode-map "E" emap))
+  (ahg-add-log-commands ahg-log-mode-map)
   (set (make-local-variable 'font-lock-defaults)
        (list 'ahg-log-font-lock-keywords t nil nil))
   (easy-menu-add ahg-log-mode-menu ahg-log-mode-map))
@@ -2099,6 +2121,7 @@ Commands:
     (define-key emap "f" 'ahg-glog-histedit-fold)
     (define-key emap "r" 'ahg-glog-histedit-roll)
     (define-key ahg-glog-mode-map "E" emap))
+  (ahg-add-log-commands ahg-glog-mode-map)
   (set (make-local-variable 'font-lock-defaults)
        (list 'ahg-glog-font-lock-keywords t nil nil))
   (set-face-foreground 'ahg-invisible-face (face-background 'default))
