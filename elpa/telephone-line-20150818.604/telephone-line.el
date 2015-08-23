@@ -4,7 +4,7 @@
 
 ;; Author: Daniel Bordak <dbordak@fastmail.fm>
 ;; URL: https://github.com/dbordak/telephone-line
-;; Version: 0.1
+;; Version: 0.2
 ;; Keywords: mode-line
 ;; Package-Requires: ((emacs "24.3") (cl-lib "0.5") (memoize "1.0.1") (names "0.5") (s "1.9.0") (seq "1.8"))
 
@@ -129,7 +129,12 @@ Secondary separators do not incur a background color change."
     (setq selected-window (frame-selected-window))))
 
 (add-hook 'window-configuration-change-hook #'-set-selected-window)
-(defadvice select-window (after select-window activate) (-set-selected-window))
+(defadvice select-window (after select-window activate)
+  "Set telephone-line's selected window value for use in determining the active mode-line."
+  (-set-selected-window))
+(defadvice select-frame (after select-frame activate)
+  "Set telephone-line's selected window value for use in determining the active mode-line."
+  (-set-selected-window))
 
 (defun selected-window-active ()
   "Return whether the current window is active."
@@ -217,7 +222,7 @@ separators, as they are conditional, are evaluated on-the-fly."
                           `(:eval
                             (telephone-line-add-subseparators
                              ',subsegments #',secondary-sep ',color-sym)))))
-                segments)
+                (seq-reverse segments))
         '(nil . nil))))
 
 (defun width (values num-separators)
@@ -241,15 +246,15 @@ separators, as they are conditional, are evaluated on-the-fly."
   :type '(alist :key-type segment-color :value-type subsegment-list)
   :group 'telephone-line)
 
-(defcustom rhs '((accent . (telephone-line-position-segment))
-                 (nil    . (telephone-line-misc-info-segment
-                            telephone-line-major-mode-segment)))
+(defcustom rhs '((nil    . (telephone-line-misc-info-segment
+                            telephone-line-major-mode-segment))
+                 (accent . (telephone-line-position-segment)))
   "Right hand side segment alist."
   :type '(alist :key-type segment-color :value-type subsegment-list)
   :group 'telephone-line)
 
 (defun -generate-mode-line-lhs ()
-  (add-separators (seq-reverse lhs)
+  (add-separators lhs
                   primary-left-separator
                   secondary-left-separator))
 
