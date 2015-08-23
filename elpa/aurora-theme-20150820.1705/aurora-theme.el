@@ -2,7 +2,8 @@
 
 ;; Author: Luis Cairampoma <redshacker11@gmail.com>
 ;; URL: http://github.com/xzerocode/aurora-theme
-;; Package-Version: 20150811.1308
+;; Package-Version: 20150820.1705
+;; Package-X-Original-Version: 20150818.1359
 ;; Version: 0.1
 
 ;;; Commentary:
@@ -20,21 +21,21 @@
 ;;; Color Palette
 
 (defvar aurora-colors-alist
-  '(("aurora-fg+1"     . "#FFFFFF")
+  '(("aurora-fg+1"     . "#FFFFEF")
     ("aurora-fg"       . "#CDD3D3")
-    ("aurora-fg-1"     . "#FFFFFF")
-    ("aurora-bg-2"     . "#FFFFFF")
+    ("aurora-fg-1"     . "#000000")
+    ("aurora-bg-2"     . "#000000")
     ("aurora-bg-1"     . "#2B3B40")
     ("aurora-bg-05"    . "#232A2F")
     ("aurora-bg"       . "#263238")
     ("aurora-bg+05"    . "#494949")
-    ("aurora-bg+1"     . "#263038")
-    ("aurora-bg+2"     . "#263038")
+    ("aurora-bg+1"     . "#232A2F")
+    ("aurora-bg+2"     . "#263238")
     ("aurora-bg+3"     . "#455a64")
     ("aurora-red"      . "#74CBC4")
     ("aurora-orange"   . "#C2E982")
-    ("aurora-yellow"   . "#FFEB95")
-    ("aurora-yellow+1" . "#F9D330")
+    ("aurora-yellow"   . "#FFCB6B")
+    ("aurora-yellow+1" . "#FFC400")
     ("aurora-green"    . "#546D7A")
     ("aurora-green+1"  . "#9FAA9B")
     ("aurora-green+2"  . "#9FC59F")
@@ -43,7 +44,7 @@
     ("aurora-cyan"     . "#FF516D")
     ("aurora-blue+1"   . "#74CBC4")
     ("aurora-blue"     . "#82B1FF")
-    ("aurora-magenta"  . "#A579C2"))
+    ("aurora-magenta"  . "#D9F5DD"))
   "List of aurora colors.
 Each element has the form (NAME . HEX).
 `+N' suffixes indicate a color is lighter.
@@ -71,7 +72,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(default ((t (:foreground ,aurora-fg :background ,aurora-bg))))
    `(cursor ((t (:foreground ,aurora-fg :background ,aurora-fg+1))))
    `(escape-glyph ((t (:foreground ,aurora-yellow :bold t))))
-   `(fringe ((t (:foreground ,aurora-fg :background ,aurora-bg+1))))
+   `(fringe ((t (:foreground ,aurora-fg :background ,aurora-bg+2))))
    `(header-line ((t (:foreground ,aurora-yellow
                                   :background ,aurora-bg-1
                                   :box (:line-width -1 :style released-button)))))
@@ -116,7 +117,7 @@ Also bind `class' to ((class color) (min-colors 89))."
      ((t (:foreground ,aurora-green
                       :background ,aurora-bg-05
                       :box (:line-width -1 :style released-button)))))
-   `(region ((,class (:background ,aurora-bg-1))
+   `(region ((,class (:background ,aurora-bg+3))
              (t :inverse-video t)))
    `(secondary-selection ((t (:background ,aurora-bg+2))))
    `(trailing-whitespace ((t (:background ,aurora-red))))
