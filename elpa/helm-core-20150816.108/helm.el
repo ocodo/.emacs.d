@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'advice) ; Shutup byte compiler about ad-deactivate.
 (require 'helm-lib)
 (require 'helm-match-plugin)
 (require 'helm-source)
@@ -1479,15 +1480,38 @@ Allow also checking if helm-buffer contain candidates."
   "Check if `helm-current-buffer' is modified since `helm' was invoked."
   (helm-buffer-is-modified helm-current-buffer))
 
-(defun helm-run-after-quit (function &rest args)
-  "Perform an action after quitting `helm'.
-The action is to call FUNCTION with arguments ARGS."
-  (setq helm-quit t)
+(defun helm-run-after-exit (function &rest args)
+  "Exectute FUNCTION with ARGS after exiting `helm'.
+The action is to call FUNCTION with arguments ARGS.
+Contrarily to `helm-exit-and-execute-action' this can be used
+to call non--actions functions with any ARGS or no ARGS at all.
+
+Use this on commands invoked from keybindings, but not
+on action functions invoked as action from the action menu,
+i.e functions called with RET."
   (helm-kill-async-processes)
   (helm-log "function = %S" function)
   (helm-log "args = %S" args)
-  (apply 'run-with-timer 0.1 nil function args)
+  (helm-exit-and-execute-action
+   (lambda (_candidate)
+     (apply function args))))
+
+(defun helm-exit-and-execute-action (action)
+  "Exit current helm session and execute ACTION.
+Argument ACTION is a function called with one arg (candidate)
+and part of the actions of current source.
+
+Use this on commands invoked from keybindings, but not
+on action functions invoked as action from the action menu,
+i.e functions called with RET."
+  (setq helm-saved-action action)
+  (setq helm-saved-selection (helm-get-selection))
   (helm-exit-minibuffer))
+
+(defalias 'helm-run-after-quit 'helm-run-after-exit)
+(make-obsolete 'helm-run-after-quit 'helm-run-after-exit "1.7.7")
+(defalias 'helm-quit-and-execute-action 'helm-exit-and-execute-action)
+(make-obsolete 'helm-quit-and-execute-action 'helm-exit-and-execute-action "1.7.7")
 
 (defun helm-interpret-value (value &optional source compute)
   "Interpret VALUE as variable, function or literal and return it.
@@ -1972,14 +1996,14 @@ Called from lisp, you can specify a buffer-name as a string with ARG."
   "Resume previous helm session within running helm."
   (interactive "p")
   (if (and helm-alive-p (> (length helm-buffers) arg))
-      (helm-run-after-quit `(lambda () (helm-resume (nth ,arg helm-buffers))))
+      (helm-run-after-exit `(lambda () (helm-resume (nth ,arg helm-buffers))))
     (message "No previous helm sessions to resume yet!")))
 
 (defun helm-resume-list-buffers-after-quit ()
   "List resumable helm buffers within running helm."
   (interactive)
   (if (and helm-alive-p (> (length helm-buffers) 0))
-      (helm-run-after-quit #'(lambda () (helm-resume t)))
+      (helm-run-after-exit #'(lambda () (helm-resume t)))
     (message "No previous helm sessions to resume yet!")))
 
 (defun helm-resume-p (any-resume)
@@ -4198,7 +4222,7 @@ to a list of forms.\n\n")
   (interactive)
   (with-helm-alive-p
     (if helm-debug
-        (helm-run-after-quit
+        (helm-run-after-exit
          #'helm-debug-open-last-log)
         (setq helm-debug t)
         (message "Debugging enabled"))))
@@ -5230,7 +5254,7 @@ With a prefix arg set to real value of current selection.
 Display value is what you see in `helm-buffer' and real value
 is what is used to perform actions."
   (interactive "P")
-  (helm-run-after-quit
+  (helm-run-after-exit
    (lambda (sel)
      (kill-new sel)
      (message "Killed: %s" sel))
