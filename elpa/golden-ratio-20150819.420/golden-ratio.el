@@ -6,7 +6,7 @@
 ;; Mantainer: Roman Gonzalez <romanandreg@gmail.com>
 ;; Created: 13 Oct 2012
 ;; Keywords: Window Resizing
-;; Package-Version: 20150526.1200
+;; Package-Version: 20150819.420
 ;; Version: 0.0.4
 
 ;; Code inspired by ideas from Tatsuhiro Ujihisa
@@ -81,6 +81,12 @@ will not cause the window to be resized to the golden ratio."
   :group 'golden-ratio
   :type 'boolean)
 
+(defcustom golden-ratio-exclude-buffer-regexp nil
+  "A list of regexp's used to match buffer names.
+Switching to a buffer whose name matches one of these regexps
+will prevent the window to be resized to the golden ratio."
+  :type '(repeat string)
+  :group 'golden-ratio)
 
 ;;; Compatibility
 ;;
@@ -137,6 +143,9 @@ will not cause the window to be resized to the golden ratio."
               (golden-ratio-exclude-major-mode-p)
               (member (buffer-name)
                       golden-ratio-exclude-buffer-names)
+              (and golden-ratio-exclude-buffer-regexp
+                (loop for r in golden-ratio-exclude-buffer-regexp
+                         thereis (string-match r (buffer-name))))
               (and golden-ratio-inhibit-functions
                    (loop for fun in golden-ratio-inhibit-functions
                          thereis (funcall fun))))
