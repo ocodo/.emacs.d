@@ -382,6 +382,7 @@
 
    ;; Helm
    `(helm-header ((,class (:foreground ,foreground :background ,background))))
+   `(helm-match ((,class (:foreground ,"gold1"))))
    `(helm-selection ((,class (:background ,current-line :foreground ,yellow))))
    `(helm-ff-file ((,class (:foreground ,foreground ))))
    `(helm-ff-directory ((,class (:foreground ,aqua ))))
@@ -776,6 +777,10 @@
        (360 . ,green)))
    `(vc-annotate-very-old-color nil)
    `(vc-annotate-background nil)
+
+   ;; highlight-sexp-mode
+   `(hl-sexp-background-color ,far-background)
+
    `(ansi-color-names-vector (vector ,foreground ,red ,green ,yellow ,blue ,purple ,aqua ,background))
    '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])))
 
