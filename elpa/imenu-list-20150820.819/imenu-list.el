@@ -4,7 +4,7 @@
 
 ;; Author: Bar Magal (2015)
 ;; Version: 0.4
-;; Package-Version: 20150804.705
+;; Package-Version: 20150820.819
 ;; Homepage: https://github.com/bmag/imenu-list
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -535,7 +535,10 @@ ARG is ignored."
           (with-current-buffer orig-buffer
             (imenu-list-update))))
     (imenu-list-stop-timer)
-    (ignore-errors (delete-windows-on imenu-list-buffer-name))))
+    (ignore-errors (quit-windows-on imenu-list-buffer-name))
+    ;; make sure *Ilist* is buried even if it wasn't shown in any window
+    (when (get-buffer imenu-list-buffer-name)
+      (bury-buffer (get-buffer imenu-list-buffer-name)))))
 
 (provide 'imenu-list)
 
