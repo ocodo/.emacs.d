@@ -5,9 +5,9 @@
 ;; Author: Henrik Lissner <http://github/hlissner>
 ;; Maintainer: Henrik Lissner <henrik@lissner.net>
 ;; Created: December 5, 2014
-;; Modified: July 3, 2015
-;; Version: 1.7.7
-;; Package-Version: 20150722.832
+;; Modified: August 16, 2015
+;; Version: 1.8.0
+;; Package-Version: 20150819.1826
 ;; Keywords: emulation, vim, evil, sneak, seek
 ;; Homepage: https://github.com/hlissner/evil-snipe
 ;; Package-Requires: ((evil "1.1.3"))
@@ -27,7 +27,8 @@
 ;;     (require 'evil-snipe)
 ;;     (evil-snipe-mode 1)
 ;;
-;; To replace evil-mode's f/F/t/T functionality with (1-character) snipe, use:
+;; To replace evil-mode's f/F/t/T functionality with (1-character) sniping, you
+;; also need:
 ;;
 ;;     (evil-snipe-override-mode 1)
 ;;
@@ -142,6 +143,21 @@ via cl and S with cc (or C).
 
 MUST BE SET BEFORE EVIL-SNIPE IS LOADED.")
 
+(defcustom evil-snipe-skip-leading-whitespace t
+  "If non-nil, single char sniping (f/F/t/T) will skip over leading whitespaces
+in a line (when you snipe for whitespace, e.g. f<space> or f<tab>)."
+  :group 'evil-snipe
+  :type 'boolean)
+
+(defcustom evil-snipe-tab-increment nil
+  "If non-nil, pressing TAB while sniping will add another character to your
+current search. For example, typing sab will search for 'ab'. In order to search
+for 'abcd', you do sa<tab><tab>bcd.
+
+If nil, TAB will search for literal tab characters."
+  :group 'evil-snipe
+  :type 'boolean)
+
 (defface evil-snipe-first-match-face
   '((t (:inherit isearch)))
   "Face for first match when sniping"
@@ -234,32 +250,38 @@ If `evil-snipe-count-scope' is 'letters, N = `count', so 5s will prompt you for
             (let* ((keystr (evil-snipe--keys data))
                    (prompt (if evil-snipe-show-prompt (concat (number-to-string i) ">" keystr) ""))
                    (key (read-event prompt)))
-              (cond ((eq key 'tab)                  ; Tab = adds more characters to search
+              (cond ((and (eq key 'tab)          ; Tab = adds more characters to search
+                          evil-snipe-tab-increment)
                      (setq i (1+ i)))
-                    ((eq key 'return)               ; Enter = search with
-                     (if (= i how-many)             ;         current characters
+                    ((eq key 'return)            ; Enter = search with
+                     (if (= i how-many)          ;         current characters
                          (throw 'abort 'repeat)
                        (throw 'abort data)))
-                    ((eq key 'escape)               ; Escape/C-g = abort
+                    ((eq key 'escape)            ; Escape/C-g = abort
                      (evil-snipe--pre-command)
                      (throw 'abort 'abort))
                     ;; Otherwise, process key
-                    (t (if (eq key 'backspace)      ; if backspace, delete a character
-                           (progn
-                             (cl-incf i)
-                             (let ((data-len (length data)))
-                               (if (<= (length data) 1)
-                                   (progn (evil-snipe--pre-command)
-                                          (throw 'abort 'abort))
-                                 (nbutlast data))))
-                         ;; Otherwise add it
-                         (setq regex-p (assoc key evil-snipe-symbol-groups))
-                         (setq data (append data (list (evil-snipe--process-key key))))
-                         (cl-decf i))
-                       (when evil-snipe-enable-incremental-highlight
+                    (t
+                     (cond ((eq key 'backspace)  ; if backspace, delete a character
+                            (cl-incf i)
+                            (let ((data-len (length data)))
+                              (if (<= (length data) 1)
+                                  (progn (evil-snipe--pre-command)
+                                         (throw 'abort 'abort))
+                                (nbutlast data))))
+                           (t ;; Otherwise add it
+                            (when (eq key 'tab) ; if tab gets this far, add \t
+                              (setq key ?\t))
+                            (setq regex-p (assoc key evil-snipe-symbol-groups))
+                            (setq data (append data (list (evil-snipe--process-key key))))
+                            (cl-decf i)))
+                     (when evil-snipe-enable-incremental-highlight
+                       (save-excursion
+                         (when evil-snipe-skip-leading-whitespace
+                           (evil-first-non-blank))
                          (evil-snipe--pre-command)
                          (evil-snipe--highlight-all count (evil-snipe--key-patterns data))
-                         (add-hook 'pre-command-hook 'evil-snipe--pre-command))))))
+                         (add-hook 'pre-command-hook 'evil-snipe--pre-command)))))))
           data))))
 
 (defun evil-snipe--bounds (&optional forward-p count)
@@ -316,7 +338,6 @@ depending on what `evil-snipe-scope' is set to."
     (while (and (< i (length string))
                 (string-match match string i))
       (when (= (% i count) 0)
-        ;; TODO Apply column-bound highlighting
         (evil-snipe--highlight (+ beg-offset (match-beginning 0))
                                (+ beg-offset (match-end 0))))
       (setq i (1+ (match-beginning 0))))))
@@ -406,6 +427,12 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
       (if forward-p (forward-char))
       (unless evil-snipe--consume-match (if forward-p (forward-char) (backward-char)))
       (unwind-protect
+          (when (and evil-snipe-skip-leading-whitespace
+                     (= (length string) 1)
+                     (<= orig-point (save-excursion (back-to-indentation) (point))))
+            (if forward-p
+                (evil-first-non-blank)
+              (evil-beginning-of-line)))
           (if (re-search-forward string (if forward-p (cdr scope) (car scope)) t count) ;; hi |
               (let* ((beg (match-beginning 0))
                      (end (match-end 0))
@@ -432,10 +459,12 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
                 (when (and keymap (not (evil-operator-state-p)))
                   (setq evil-snipe--transient-map-func (set-transient-map keymap))))
             (goto-char orig-point)
-            (user-error "Can't find %s" (evil-snipe--keys data)))
-        (when evil-snipe-enable-highlight
-          (evil-snipe--highlight-all count string))
-        (add-hook 'pre-command-hook 'evil-snipe--pre-command)))))
+            (user-error "Can't find %s" ;; show invisible keys
+                        (replace-regexp-in-string "\t" "<TAB>"
+                        (replace-regexp-in-string "\s" "<SPC>" (evil-snipe--keys data)))))
+          (when evil-snipe-enable-highlight
+            (evil-snipe--highlight-all count string))
+          (add-hook 'pre-command-hook 'evil-snipe--pre-command)))))
 
 ;; TODO Implement evil-snipe--seek-vertical
 (defun evil-snipe--seek-vertical (count keys)
@@ -453,8 +482,8 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
             (evil-snipe--consume-match (nth 3 evil-snipe--last))
             (evil-snipe--match-count (nth 4 evil-snipe--last)))
         (evil-snipe-seek (* count (nth 0 evil-snipe--last))   ;;count
-                        (nth 1 evil-snipe--last)
-                        (nth 2 evil-snipe--last)))          ;;keys
+                         (nth 1 evil-snipe--last)
+                         (nth 2 evil-snipe--last)))          ;;keys
     (user-error "Nothing to repeat")))
 
 (evil-define-motion evil-snipe-repeat-reverse (count)
@@ -597,7 +626,10 @@ KEYS is a list of character codes or strings."
   "evil-snipe minor mode that overrides evil-mode f/F/t/T/;/, bindings."
   :global t
   :keymap evil-snipe-override-mode-map
-  :group 'evil-snipe)
+  :group 'evil-snipe
+  (if evil-snipe-override-mode
+      (unless evil-snipe-mode
+        (evil-snipe-mode 1))))
 
 ;;;###autoload
 (defun turn-on-evil-snipe-mode (&optional internal)
