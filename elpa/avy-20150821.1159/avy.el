@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20150807.648
+;; Package-Version: 20150821.1159
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -766,16 +766,17 @@ LEAF is normally ((BEG . END) . WND)."
     (de-bruijn #'avy--overlay-at-full)
     (t (error "Unexpected style %S" style))))
 
-(defun avy--generic-jump (regex window-flip style)
+(defun avy--generic-jump (regex window-flip style &optional beg end)
   "Jump to REGEX.
 When WINDOW-FLIP is non-nil, do the opposite of `avy-all-windows'.
-STYLE determines the leading char overlay style."
+STYLE determines the leading char overlay style.
+BEG and END delimit the area where candidates are searched."
   (let ((avy-all-windows
          (if window-flip
              (not avy-all-windows)
            avy-all-windows)))
     (avy--process
-     (avy--regex-candidates regex)
+     (avy--regex-candidates regex beg end)
      (avy--style-fn style))))
 
 ;;* Commands
@@ -797,14 +798,13 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (defun avy-goto-char-in-line (char)
   "Jump to the currently visible CHAR in the current line."
   (interactive (list (read-char "char: " t)))
-  (let ((avy-all-windows nil))
-    (avy-with avy-goto-char
-      (avy--process
-       (save-restriction
-         (narrow-to-region (line-beginning-position)
-                           (line-end-position))
-         (avy--regex-candidates (regexp-quote (string char))))
-       (avy--style-fn avy-style)))))
+  (avy-with avy-goto-char
+    (avy--generic-jump
+     (regexp-quote (string char))
+     avy-all-windows
+     avy-style
+     (line-beginning-position)
+     (line-end-position))))
 
 ;;;###autoload
 (defun avy-goto-char-2 (char1 char2 &optional arg)
@@ -858,6 +858,7 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
       (avy--generic-jump regex arg avy-style))))
 
 (declare-function subword-backward "subword")
+(defvar subword-backward-regexp)
 
 ;;;###autoload
 (defun avy-goto-subword-0 (&optional arg predicate)
@@ -871,6 +872,8 @@ should return true."
   (require 'subword)
   (avy-with avy-goto-subword-0
     (let ((case-fold-search nil)
+          (subword-backward-regexp
+           "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([!-/:@`~[:upper:]]+\\W*\\)\\|\\W\\w+\\)")
           candidates)
       (avy-dowindows arg
         (let ((ws (window-start))
@@ -881,7 +884,8 @@ should return true."
             (while (> (point) ws)
               (when (or (null predicate)
                         (and predicate (funcall predicate)))
-                (push (cons (point) (selected-window)) window-cands))
+                (unless (get-char-property (point) 'invisible)
+                  (push (cons (point) (selected-window)) window-cands)))
               (subword-backward)))
           (setq candidates (nconc candidates window-cands))))
       (avy--process candidates (avy--style-fn avy-style)))))
@@ -907,6 +911,8 @@ Which one depends on variable `subword-mode'."
       (call-interactively #'avy-goto-subword-1)
     (call-interactively #'avy-goto-word-1)))
 
+(defvar visual-line-mode)
+
 (defun avy--line (&optional arg)
   "Select a line.
 The window scope is determined by `avy-all-windows' (ARG negates it)."
@@ -924,33 +930,47 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                 (push (cons
                        (if (eq avy-style 'post)
                            (line-end-position)
-                         (line-beginning-position))
+                         (point))
                        (selected-window)) candidates))
-              (forward-line 1))))))
+              (if visual-line-mode
+                  (ignore-errors
+                    (line-move 1))
+                (forward-line 1)))))))
     (setq avy-action #'identity)
     (avy--process (nreverse candidates) (avy--style-fn avy-style))))
 
 ;;;###autoload
 (defun avy-goto-line (&optional arg)
   "Jump to a line start in current buffer.
-The window scope is determined by `avy-all-windows' (ARG negates it)."
-  (interactive "P")
-  (avy-with avy-goto-line
-    (let* ((avy-handler-function
-            (lambda (char)
-              (if (or (< char ?0)
-                      (> char ?9))
-                  (avy-handler-default char)
-                (let ((line (read-from-minibuffer
-                             "Goto line: " (string char))))
-                  (when line
-                    (avy-push-mark)
-                    (goto-char (point-min))
-                    (forward-line (1- (string-to-number line)))
-                    (throw 'done 'exit))))))
-           (r (avy--line arg)))
-      (unless (eq r t)
-        (avy-action-goto r)))))
+
+When ARG is 1, jump to lines currently visible, with the option
+to cancel to `goto-line' by entering a number.
+
+When ARG is 4, negate the window scope determined by
+`avy-all-windows'.
+
+Otherwise, forward to `goto-line' with ARG."
+  (interactive "p")
+  (if (not (memq arg '(1 4)))
+      (progn
+        (goto-char (point-min))
+        (forward-line arg))
+    (avy-with avy-goto-line
+      (let* ((avy-handler-function
+              (lambda (char)
+                (if (or (< char ?0)
+                        (> char ?9))
+                    (avy-handler-default char)
+                  (let ((line (read-from-minibuffer
+                               "Goto line: " (string char))))
+                    (when line
+                      (avy-push-mark)
+                      (goto-char (point-min))
+                      (forward-line (1- (string-to-number line)))
+                      (throw 'done 'exit))))))
+             (r (avy--line (eq arg 4))))
+        (unless (eq r t)
+          (avy-action-goto r))))))
 
 ;;;###autoload
 (defun avy-copy-line (arg)
@@ -1034,7 +1054,9 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (defun avy-push-mark ()
   "Store the current point and window."
   (ring-insert avy-ring
-               (cons (point) (selected-window))))
+               (cons (point) (selected-window)))
+  (unless (region-active-p)
+    (push-mark)))
 
 (defun avy-pop-mark ()
   "Jump back to the last location of `avy-push-mark'."
