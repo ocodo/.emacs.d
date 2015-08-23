@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "flycheck-clojure" "flycheck-clojure.el" (21946
-;;;;;;  43598 407401 0))
+;;;### (autoloads nil "flycheck-clojure" "flycheck-clojure.el" (21975
+;;;;;;  62518 867401 0))
 ;;; Generated autoloads from flycheck-clojure.el
 
 (autoload 'flycheck-clojure-parse-cider-errors "flycheck-clojure" "\
