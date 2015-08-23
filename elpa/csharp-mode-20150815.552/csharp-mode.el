@@ -7,7 +7,7 @@
 ;; Modified   : May 2015
 ;; Version    : 0.8.10
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20150714.138
+;; Package-Version: 20150815.552
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
 
@@ -278,6 +278,10 @@
 ;;
 ;;    0.8.10 2015 May 31th
 ;;          - Imenu: Correctly handle support for default-values in paramlist.
+;;
+;;    0.8.11 2015 August 15th
+;;          - Make mode a derived mode. Improve evil-support.
+;;          - Fix all runtime warnings.
 ;;
 
 (require 'cc-mode)
@@ -2648,16 +2652,18 @@ this fn will be something like this:
      (\"(bottom)\"     . 1))
 
 "
-  (flet ((helper (list new)
-                 (if (null list) new
-                   (let* ((elt (car list))
-                          (topic (csharp--make-plural (csharp--first-word (car elt))))
-                          (xelt (assoc topic new)))
-                     (helper (cdr list)
-                             (if xelt
-                                 (progn (incf (cdr xelt)) new)
-                               (cons (cons topic 1) new)))))))
-    (nreverse (helper list nil))))
+  (letrec ((helper
+            (lambda (list new)
+              (if (null list) new
+                (let* ((elt (car list))
+                       (topic (csharp--make-plural
+                               (csharp--first-word(car elt))))
+                       (xelt (assoc topic new)))
+                  (funcall helper (cdr list)
+                           (if xelt
+                               (progn (incf (cdr xelt)) new)
+                             (cons (cons topic 1) new))))))))
+    (nreverse (funcall helper list nil))))
 
 
 
@@ -2915,36 +2921,37 @@ out into multiple submenus.
 
 "
   (let ((counts (csharp--imenu-counts menu-alist)))
-    (flet ((helper
-            (list new)
-            (if (null list)
-                new
-              (let* ((elt (car list))
-                     (topic (csharp--make-plural (csharp--first-word (car elt))))
-                     (xelt (assoc topic new)))
-                (helper
-                 (cdr list)
-                 (if xelt
-                     (progn
-                       (rplacd xelt (cons elt (cdr xelt)))
-                       new)
-                   (cons
+    (letrec ((helper
+              (lambda (list new)
+                (if (null list)
+                    new
+                  (let* ((elt (car list))
+                         (topic (csharp--make-plural
+                                 (csharp--first-word (car elt))))
+                         (xelt (assoc topic new)))
+                    (funcall
+                     helper (cdr list)
+                     (if xelt
+                         (progn
+                           (rplacd xelt (cons elt (cdr xelt)))
+                           new)
+                       (cons
 
-                    (cond
-                     ((> (cdr (assoc topic counts))
-                         csharp-imenu-max-similar-items-before-extraction)
-                      (cons topic (list elt)))
+                        (cond
+                         ((> (cdr (assoc topic counts))
+                             csharp-imenu-max-similar-items-before-extraction)
+                          (cons topic (list elt)))
 
-                     ((imenu--subalist-p elt)
-                      (cons (car elt)
-                            (csharp--imenu-reorg-alist-intelligently (cdr elt))))
-                     (t
-                      elt))
+                         ((imenu--subalist-p elt)
+                          (cons (car elt)
+                                (csharp--imenu-reorg-alist-intelligently (cdr elt))))
+                         (t
+                          elt))
 
-                    new)))))))
+                        new))))))))
 
       (csharp--imenu-break-into-submenus
-       (nreverse (helper menu-alist nil))))))
+       (nreverse (funcall helper menu-alist nil))))))
 
 
 
@@ -4160,7 +4167,7 @@ The return value is meaningless, and is ignored by cc-mode.
 
 ;;; The entry point into the mode
 ;;;###autoload
-  (defun csharp-mode ()
+(define-derived-mode csharp-mode c-mode "C#"
   "Major mode for editing C# code. This mode is derived from CC Mode to
 support C#.
 
@@ -4207,24 +4214,15 @@ use imenu, you can turn this off with the variable `csharp-want-imenu'.
 
 Key bindings:
 \\{csharp-mode-map}"
-    (interactive)
-    (kill-all-local-variables)
     (make-local-variable 'beginning-of-defun-function)
     (make-local-variable 'end-of-defun-function)
     (c-initialize-cc-mode t)
-    (set-syntax-table csharp-mode-syntax-table)
 
     ;; define underscore as part of a word in the Csharp syntax table
     (modify-syntax-entry ?_ "w" csharp-mode-syntax-table)
 
     ;; define @ as an expression prefix in Csharp syntax table
     (modify-syntax-entry ?@ "'" csharp-mode-syntax-table)
-
-    (setq major-mode 'csharp-mode
-          mode-name "C#"
-          local-abbrev-table csharp-mode-abbrev-table
-          abbrev-mode t)
-    (use-local-map csharp-mode-map)
 
     ;; `c-init-language-vars' is a macro that is expanded at compile
     ;; time to a large `setq' with all the language variables and their
@@ -4237,8 +4235,8 @@ Key bindings:
     (unless (or c-file-style
                 (stringp c-default-style)
                 (assq 'csharp-mode c-default-style))
-      (c-set-style "c#" t))
-    
+      (c-set-style "C#"))
+
     ;; `c-common-init' initializes most of the components of a CC Mode
     ;; buffer, including setup of the mode menu, font-lock, etc.
     ;; There's also a lower level routine `c-basic-common-init' that
@@ -4246,7 +4244,7 @@ Key bindings:
     ;; analysis and similar things working.
     (c-common-init 'csharp-mode)
 
-    (local-set-key (kbd "/") 'csharp-maybe-insert-codedoc)
+    (define-key csharp-mode-map (kbd "/") 'csharp-maybe-insert-codedoc)
 
     ;; Need the following for parse-partial-sexp to work properly with
     ;; verbatim literal strings Setting this var to non-nil tells
@@ -4273,10 +4271,6 @@ Key bindings:
         (speedbar-add-supported-extension '(".cs"))) ;; idempotent
 
     (c-update-modeline)
-    ;; run prog-mode-hooks if available
-    (if (boundp 'prog-mode-hook)
-	(c-run-mode-hooks 'prog-mode-hook 'c-mode-common-hook 'csharp-mode-hook)
-      (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook))
 
     ;; maybe do imenu scan after hook returns
     (if csharp-want-imenu
@@ -4298,8 +4292,7 @@ Key bindings:
     (setq beginning-of-defun-function 'csharp-move-back-to-beginning-of-defun)
     ;; end-of-defun-function   can remain forward-sexp !!
 
-    (set (make-local-variable 'comment-auto-fill-only-comments) t)
-    )
+    (set (make-local-variable 'comment-auto-fill-only-comments) t))
 
 (provide 'csharp-mode)
 
