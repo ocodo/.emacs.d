@@ -148,22 +148,24 @@ Argument END where the mark ends."
            "]-keys")))
 
 (defun alchemist-help--server-arguments (args)
-  (if (not (equal major-mode 'alchemist-iex-mode))
+  (if (and (not (equal major-mode 'alchemist-iex-mode))
+           (not (bound-and-true-p alchemist-help-minor-mode)))
       (let* ((modules (alchemist-utils--prepare-modules-for-elixir
                        (alchemist-scope-all-modules))))
-        (format "%s;%s" args modules))
-    (format "%s;[];" args)))
+        (format "{ \"%s\", [ context: %s, imports: %s, aliases: [] ] }" args (alchemist-scope-module) modules))
+    (format "{ \"%s\", [ context: Elixir, imports: [], aliases: [] ] }" args)))
 
 (defun alchemist-help--completion-server-arguments (args)
   "Build informations about the current context."
-  (if (not (equal major-mode 'alchemist-iex-mode))
+  (if (and (not (equal major-mode 'alchemist-iex-mode))
+           (not (bound-and-true-p alchemist-help-minor-mode)))
       (let* ((modules (alchemist-utils--prepare-modules-for-elixir
                        (alchemist-scope-all-modules)))
              (aliases (alchemist-utils--prepare-aliases-for-elixir
                        (alchemist-scope-aliases))))
-        (format "%s;%s;%s" args modules aliases))
-    (format "%s;[];[]" args)))
-
+        (format "{ \"%s\", [ context: %s, imports: %s, aliases: %s ] }"
+                args (alchemist-scope-module) modules aliases))
+    (format "{ \"%s\", [ context: Elixir, imports: [], aliases: [] ] }" args)))
 (defun alchemist-help-complete-filter-output (_process output)
   (with-local-quit
     (setq alchemist-help-filter-output (cons output alchemist-help-filter-output))
@@ -193,7 +195,7 @@ Argument END where the mark ends."
   (with-local-quit
     (setq alchemist-help-filter-output (cons output alchemist-help-filter-output))
     (if (alchemist-server-contains-end-marker-p output)
-        (let* ((output (apply #'concat (reverse alchemist-help-filter-output)))
+        (let* ((output (alchemist-server-prepare-filter-output alchemist-help-filter-output))
                (modules (alchemist-help--elixir-modules-to-list output))
                (search (completing-read
                         "Elixir help: "
@@ -211,7 +213,7 @@ Argument END where the mark ends."
                          (concat module "."))
                         (t
                          search))))
-          (alchemist-help-lookup-doc search)))))
+          (alchemist-help-lookup-doc (alchemist-utils--remove-dot-at-the-end search))))))
 
 ;; Public functions
 

@@ -97,14 +97,8 @@
     (-distinct candidates)))
 
 (defun alchemist-complete--output-to-list (output)
-  (let* ((output (replace-regexp-in-string "^cmp:" "" output))
-         (output (split-string output)))
+  (let* ((output (split-string output)))
     (-remove 'null output)))
-
-(defun alchemist-complete--clear-buffer (buffer)
-  "Clears the BUFFER from not used lines."
-  (with-current-buffer buffer
-    (delete-non-matching-lines "^cmp:" (point-min) (point-max))))
 
 (defun alchemist-complete--build-candidates-from-process-output (output)
   (let* ((output (alchemist-server-prepare-filter-output output))
@@ -135,17 +129,12 @@
 
 Please have a look at the company-dabbrev-code function for more
 detailed information."
-  (let ((case-fold-search company-dabbrev-code-ignore-case)
-        (candidates (company-dabbrev--search
-                     (company-dabbrev-code--make-regexp alchemist-company-last-completion)
-                     company-dabbrev-code-time-limit
-                     (pcase company-dabbrev-code-other-buffers
-                       (`t (list major-mode))
-                       (`code company-dabbrev-code-modes)
-                       (`all `all))
-                     t)))
-    (-distinct candidates)))
-
+  (let ((case-fold-search nil))
+    (-distinct (company-dabbrev--search
+                (company-dabbrev-code--make-regexp alchemist-company-last-completion)
+                company-dabbrev-code-time-limit
+                (list major-mode)
+                t))))
 
 (provide 'alchemist-complete)
 

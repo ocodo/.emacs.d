@@ -122,8 +122,7 @@
                (position (cdr (assoc selected-def alchemist-goto--symbol-name-and-pos))))
           (goto-char (if (overlayp position) (overlay-start position) position)))
       (let* ((position (cdr (assoc symbol alchemist-goto--symbol-name-and-pos-bare)))
-             (position (if (overlayp position) (overlay-start position) position))
-             (line-number-at-pos))
+             (position (if (overlayp position) (overlay-start position) position)))
         (when (not (equal (line-number-at-pos)
                      (line-number-at-pos position)))
           (goto-char position))))))
@@ -216,7 +215,8 @@ It will jump to the position of the symbol definition after selection."
     (ring-insert find-tag-marker-ring (point-marker))
     (cond
      ((and (null module)
-           (alchemist-goto--symbol-definition-p function))
+           (alchemist-goto--symbol-definition-p function)
+           (not (string= (buffer-name) alchemist-help-buffer-name)))
       (alchemist-goto--goto-symbol function))
      (t
       (setq alchemist-goto-callback (lambda (file)
@@ -241,7 +241,7 @@ It will jump to the position of the symbol definition after selection."
                                             (t
                                              (pop-tag-mark)
                                              (message "Don't know how to find: %s" expr)))))
-      (alchemist-server-goto (format "%s,%s" module function)
+      (alchemist-server-goto (format "{ \"%s,%s\", [ context: [], imports: [], aliases: [] ] }" module function)
                              #'alchemist-goto-filter)))))
 
 (defun alchemist-goto--open-file (file module function)
@@ -273,7 +273,7 @@ It will jump to the position of the symbol definition after selection."
     (setq alchemist-goto-filter-output (cons output alchemist-goto-filter-output))
     (if (alchemist-server-contains-end-marker-p output)
         (let* ((output (alchemist-server-prepare-filter-output alchemist-goto-filter-output))
-               (file (replace-regexp-in-string "source-file-path:" "" output)))
+               (file output))
           (setq alchemist-goto-filter-output nil)
           (funcall alchemist-goto-callback file)))))
 
