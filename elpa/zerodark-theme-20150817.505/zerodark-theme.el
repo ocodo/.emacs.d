@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20150811.348
+;; Package-Version: 20150817.505
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 0.1
 
@@ -356,11 +356,14 @@
    `(helm-history-deleted ((,class (:foreground ,red :weight bold :background ,background-red))))
 
    ;; visible mark
-   `(visible-mark-face1 ((,class (:background ,purple-dark))))
-   `(visible-mark-face2 ((,class (:background ,blue-dark))))
+   `(visible-mark-face1 ((,class (:foreground ,orange-light :inverse-video t))))
+   `(visible-mark-face2 ((,class (:foreground ,peach :inverse-video t))))
 
    ;; show-paren
    `(show-paren-match ((,class (:background ,blue-dark))))
+
+   ;; clojure
+   `(clojure-keyword-face ((,class (:inherit font-lock-builtin-face))))
    ))
 
 ;;;###autoload
