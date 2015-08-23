@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20150617.1931
-;; Version: 1.4.7
+;; Package-Version: 20150816.1935
+;; Version: 1.4.9
 ;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -55,6 +55,7 @@
 (require 'which-func)
 (require 'pulse)
 
+(declare-function helm-comp-read "helm-mode")
 (declare-function cygwin-convert-file-name-from-windows "cygw32.c")
 (declare-function cygwin-convert-file-name-to-windows "cygw32.c")
 
@@ -477,6 +478,13 @@ Always update if value of this variable is nil."
           (insert " " ref-func "|"))
         (forward-line 1)))))
 
+(defun helm-gtags--print-path-in-gtagslibpath (args)
+  (let ((libpath (getenv "GTAGSLIBPATH")))
+    (when libpath
+      (dolist (path (parse-colon-path libpath))
+        (let ((default-directory (file-name-as-directory path)))
+          (apply 'process-file "global" nil t nil "-Poa" args))))))
+
 (defun helm-gtags--exec-global-command (type input &optional detail)
   (let ((args (helm-gtags--construct-command type input)))
     (helm-gtags--find-tag-directory)
@@ -489,6 +497,9 @@ Always update if value of this variable is nil."
               (coding-system-for-write buf-coding))
           (unless (zerop (apply 'process-file "global" nil '(t nil) nil args))
             (error (format "%s: not found" input)))
+          ;; --path options does not support searching under GTAGSLIBPATH
+          (when (eq type 'find-file)
+            (helm-gtags--print-path-in-gtagslibpath args))
           (when detail
             (helm-gtags--show-detail)))))))
 
@@ -859,15 +870,14 @@ Always update if value of this variable is nil."
     :fuzzy-match helm-gtags-fuzzy-match
     :action helm-gtags--find-file-action))
 
+(defsubst helm-gtags--action-by-timer (src)
+  (run-with-timer 0.1 nil (lambda () (helm-gtags--common (list src) nil))))
+
 (defun helm-gtags--select-tag-action (c)
-  (helm-run-after-quit
-   (lambda ()
-     (helm-gtags--common (list (helm-gtags--source-select-tag c)) nil))))
+  (helm-gtags--action-by-timer (helm-gtags--source-select-tag c)))
 
 (defun helm-gtags--select-rtag-action (c)
-  (helm-run-after-quit
-   (lambda ()
-     (helm-gtags--common (list (helm-gtags--source-select-rtag c)) nil))))
+  (helm-gtags--action-by-timer (helm-gtags--source-select-rtag c)))
 
 (defun helm-gtags--select-cache-init-common (args tagfile)
   (let ((cache (helm-gtags--get-result-cache tagfile)))
