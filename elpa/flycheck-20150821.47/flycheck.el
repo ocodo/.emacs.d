@@ -7,7 +7,7 @@
 ;; Maintainer: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://www.flycheck.org
 ;; Keywords: convenience, languages, tools
-;; Version: 0.24-cvs
+;; Version: 0.25-cvs
 ;; Package-Requires: ((dash "2.4.0") (pkg-info "0.4") (let-alist "1.0.1") (cl-lib "0.3") (emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -194,6 +194,7 @@ attention to case differences."
     groovy
     haml
     handlebars
+    haskell-stack-ghc
     haskell-ghc
     haskell-hlint
     html-tidy
@@ -546,7 +547,7 @@ is at least as severe as this one.  If nil, navigate all errors."
 (defcustom flycheck-error-list-minimum-level nil
   "The minimum level of errors to display in the error list.
 
-If set to an error level, only displays errors whose error level
+If set to an error level, only display errors whose error level
 is at least as severe as this one in the error list.  If nil,
 display all errors.
 
@@ -2414,8 +2415,9 @@ checks."
   (let* ((syntax-check flycheck-current-syntax-check)
          (checker (flycheck-syntax-check-checker syntax-check))
          (errors (flycheck-relevant-errors
-                  (flycheck-filter-errors
-                   (flycheck-assert-error-list-p errors) checker))))
+                  (flycheck-expand-error-file-names
+                   (flycheck-filter-errors
+                    (flycheck-assert-error-list-p errors) checker)))))
     (unless (flycheck-disable-excessive-checker checker errors)
       (flycheck-report-current-errors errors))
     (let ((next-checker (flycheck-get-next-checker-for-buffer checker)))
@@ -2901,6 +2903,14 @@ with `flycheck-process-error-functions'."
   (setq flycheck-current-errors nil)
   (flycheck-report-status 'not-checked))
 
+(defun flycheck-expand-error-file-names (errors)
+  "Expand all relative file names in ERRORS."
+  (mapc (lambda (err)
+          (-when-let (filename (flycheck-error-filename err))
+            (setf (flycheck-error-filename err) (expand-file-name filename))))
+        errors)
+  errors)
+
 (defun flycheck-relevant-error-p (err)
   "Determine whether ERR is relevant for the current buffer.
 
@@ -2985,10 +2995,10 @@ nil."
                 (`running "*")
                 (`errored "!")
                 (`finished
-                 (if flycheck-current-errors
-                     (let-alist (flycheck-count-errors flycheck-current-errors)
-                       (format ":%s/%s" (or .error 0) (or .warning 0)))
-                   ""))
+                 (let-alist (flycheck-count-errors flycheck-current-errors)
+                   (if (or .error .warning)
+                       (format ":%s/%s" (or .error 0) (or .warning 0))
+                     "")))
                 (`interrupted "-")
                 (`suspicious "?"))))
     (concat " FlyC" text)))
@@ -4889,11 +4899,10 @@ ERR is in BUFFER-FILES, replace it with the return value of the
 function `buffer-file-name'."
   (flycheck-error-with-buffer err
     (-when-let (filename (flycheck-error-filename err))
-      (setq filename (expand-file-name filename))
-      (when (-any? (apply-partially #'flycheck-same-files-p filename)
+      (when (-any? (apply-partially #'flycheck-same-files-p
+                                    (expand-file-name filename))
                    buffer-files)
-        (setq filename (buffer-file-name)))
-      (setf (flycheck-error-filename err) filename)))
+        (setf (flycheck-error-filename err) (buffer-file-name)))))
   err)
 
 
@@ -6425,7 +6434,7 @@ is added to the GHC search path via `-i'."
   :package-version '(flycheck . "0.16"))
 
 (flycheck-def-option-var flycheck-ghc-language-extensions nil haskell-ghc
-  "Language extensions for GHC.
+  "Language extensions for GHC and Stack.
 
 The value of this variable is a list of strings, where each
 string is a Haskell language extension, as in the LANGUAGE
@@ -6433,6 +6442,47 @@ pragma.  Each extension is enabled via `-X'."
   :type '(repeat (string :tag "Language extension"))
   :safe #'flycheck-string-list-p
   :package-version '(flycheck . "0.19"))
+
+(flycheck-define-checker haskell-stack-ghc
+  "A Haskell syntax and type checker using `stack ghc'.
+
+See URL `https://github.com/commercialhaskell/stack'."
+  :command ("stack" "ghc" "--" "-Wall" "-fno-code"
+            (option-list "-X" flycheck-ghc-language-extensions concat)
+            (option-list "-i" flycheck-ghc-search-path concat)
+            (eval (concat
+                   "-i"
+                   (flycheck-module-root-directory
+                    (flycheck-find-in-buffer flycheck-haskell-module-re))))
+            (eval flycheck-ghc-args)
+            "-x" (eval
+                  (pcase major-mode
+                    (`haskell-mode "hs")
+                    (`literate-haskell-mode "lhs")))
+            source)
+  :error-patterns
+  ((warning line-start (file-name) ":" line ":" column ":"
+            (or " " "\n    ") "Warning:" (optional "\n")
+            (message
+             (one-or-more " ") (one-or-more not-newline)
+             (zero-or-more "\n"
+                           (one-or-more " ")
+                           (one-or-more not-newline)))
+            line-end)
+   (error line-start (file-name) ":" line ":" column ":"
+          (or (message (one-or-more not-newline))
+              (and "\n"
+                   (message
+                    (one-or-more " ") (one-or-more not-newline)
+                    (zero-or-more "\n"
+                                  (one-or-more " ")
+                                  (one-or-more not-newline)))))
+          line-end))
+  :error-filter
+  (lambda (errors)
+    (flycheck-sanitize-errors (flycheck-dedent-error-messages errors)))
+  :modes (haskell-mode literate-haskell-mode)
+  :next-checkers ((warning . haskell-hlint)))
 
 (flycheck-define-checker haskell-ghc
   "A Haskell syntax and type checker using ghc.
@@ -7666,7 +7716,7 @@ See URL `http://www.gnu.org/software/bash/'."
   "A Zsh syntax checker using the Zsh shell.
 
 See URL `http://www.zsh.org/'."
-  :command ("zsh" "-n" "-d" "-f" source)
+  :command ("zsh" "--no-exec" "--no-globalrcs" "--no-rcs" source)
   :error-patterns
   ((error line-start (file-name) ":" line ": " (message) line-end))
   :modes sh-mode

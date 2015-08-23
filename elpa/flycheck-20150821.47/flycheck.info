@@ -1658,10 +1658,13 @@ Handlebars
 Haskell
 =======
 
-  1. ‘haskell-ghc’ (syntax and type checker with GHC
-     (http://www.haskell.org/ghc/)), and
+  1.    • ‘haskell-stack-ghc’ (syntax and type checker using Stack
+          (https://github.com/commercialhaskell/stack)) in Stack
+          projects, or
+        • ‘haskell-ghc’ (syntax and type checker with GHC
+          (http://www.haskell.org/ghc/)),
 
-  2. ‘haskell-hlint’ (style checker with hlint
+  2. and ‘haskell-hlint’ (style checker with hlint
      (https://github.com/ndmitchell/hlint)), with the following options:
 
      ‘flycheck-hlint-language-extensions’
@@ -2611,11 +2614,11 @@ Main Index
 * Haml language:                         Supported languages. (line 264)
 * Handlebars language:                   Supported languages. (line 269)
 * Haskell language:                      Supported languages. (line 274)
-* HTML language:                         Supported languages. (line 324)
+* HTML language:                         Supported languages. (line 327)
 * installation:                          Installation.        (line  37)
-* Jade language:                         Supported languages. (line 335)
-* Javascript language:                   Supported languages. (line 340)
-* JSON language:                         Supported languages. (line 374)
+* Jade language:                         Supported languages. (line 338)
+* Javascript language:                   Supported languages. (line 343)
+* JSON language:                         Supported languages. (line 377)
 * Language, Ada:                         Supported languages. (line  30)
 * Language, AsciiDoc:                    Supported languages. (line  47)
 * Language, C/C++:                       Supported languages. (line  52)
@@ -2634,56 +2637,56 @@ Main Index
 * Language, Haml:                        Supported languages. (line 264)
 * Language, Handlebars:                  Supported languages. (line 269)
 * Language, Haskell:                     Supported languages. (line 274)
-* Language, HTML:                        Supported languages. (line 324)
-* Language, Jade:                        Supported languages. (line 335)
-* Language, Javascript:                  Supported languages. (line 340)
-* Language, JSON:                        Supported languages. (line 374)
-* Language, Less:                        Supported languages. (line 379)
-* Language, Lua:                         Supported languages. (line 384)
-* Language, Perl:                        Supported languages. (line 397)
-* Language, PHP:                         Supported languages. (line 414)
-* Language, Puppet:                      Supported languages. (line 434)
-* Language, Python:                      Supported languages. (line 441)
-* Language, R:                           Supported languages. (line 477)
-* Language, Racket:                      Supported languages. (line 491)
-* Language, reStructuredText:            Supported languages. (line 501)
-* Language, RPM Spec:                    Supported languages. (line 496)
-* Language, Ruby:                        Supported languages. (line 513)
-* Language, Rust:                        Supported languages. (line 541)
-* Language, Sass:                        Supported languages. (line 568)
-* Language, Scala:                       Supported languages. (line 578)
-* Language, SCSS:                        Supported languages. (line 597)
-* Language, Shell scripting languages:   Supported languages. (line 614)
-* Language, Slim:                        Supported languages. (line 632)
-* Language, SQL:                         Supported languages. (line 637)
-* Language, TeX/LaTeX:                   Supported languages. (line 642)
-* Language, Texinfo:                     Supported languages. (line 656)
-* Language, Verilog:                     Supported languages. (line 661)
-* Language, XML:                         Supported languages. (line 673)
-* Language, YAML:                        Supported languages. (line 680)
-* Less language:                         Supported languages. (line 379)
-* Lua language:                          Supported languages. (line 384)
+* Language, HTML:                        Supported languages. (line 327)
+* Language, Jade:                        Supported languages. (line 338)
+* Language, Javascript:                  Supported languages. (line 343)
+* Language, JSON:                        Supported languages. (line 377)
+* Language, Less:                        Supported languages. (line 382)
+* Language, Lua:                         Supported languages. (line 387)
+* Language, Perl:                        Supported languages. (line 400)
+* Language, PHP:                         Supported languages. (line 417)
+* Language, Puppet:                      Supported languages. (line 437)
+* Language, Python:                      Supported languages. (line 444)
+* Language, R:                           Supported languages. (line 480)
+* Language, Racket:                      Supported languages. (line 494)
+* Language, reStructuredText:            Supported languages. (line 504)
+* Language, RPM Spec:                    Supported languages. (line 499)
+* Language, Ruby:                        Supported languages. (line 516)
+* Language, Rust:                        Supported languages. (line 544)
+* Language, Sass:                        Supported languages. (line 571)
+* Language, Scala:                       Supported languages. (line 581)
+* Language, SCSS:                        Supported languages. (line 600)
+* Language, Shell scripting languages:   Supported languages. (line 617)
+* Language, Slim:                        Supported languages. (line 635)
+* Language, SQL:                         Supported languages. (line 640)
+* Language, TeX/LaTeX:                   Supported languages. (line 645)
+* Language, Texinfo:                     Supported languages. (line 659)
+* Language, Verilog:                     Supported languages. (line 664)
+* Language, XML:                         Supported languages. (line 676)
+* Language, YAML:                        Supported languages. (line 683)
+* Less language:                         Supported languages. (line 382)
+* Lua language:                          Supported languages. (line 387)
 * manual syntax checker selection:       Syntax checkers.     (line  39)
 * operating system:                      Installation.        (line   9)
 * options of syntax checkers:            Configuring checkers.
                                                               (line  20)
-* Perl language:                         Supported languages. (line 397)
-* PHP language:                          Supported languages. (line 414)
+* Perl language:                         Supported languages. (line 400)
+* PHP language:                          Supported languages. (line 417)
 * prerequisites:                         Installation.        (line   9)
-* Puppet language:                       Supported languages. (line 434)
-* Python language:                       Supported languages. (line 441)
-* R language:                            Supported languages. (line 477)
-* Racket language:                       Supported languages. (line 491)
-* reStructuredText language:             Supported languages. (line 501)
-* RPM Spec language:                     Supported languages. (line 496)
-* Ruby language:                         Supported languages. (line 513)
-* Rust language:                         Supported languages. (line 541)
-* Sass language:                         Supported languages. (line 568)
-* Scala language:                        Supported languages. (line 578)
-* SCSS language:                         Supported languages. (line 597)
-* Shell scripting languages language:    Supported languages. (line 614)
-* Slim language:                         Supported languages. (line 632)
-* SQL language:                          Supported languages. (line 637)
+* Puppet language:                       Supported languages. (line 437)
+* Python language:                       Supported languages. (line 444)
+* R language:                            Supported languages. (line 480)
+* Racket language:                       Supported languages. (line 494)
+* reStructuredText language:             Supported languages. (line 504)
+* RPM Spec language:                     Supported languages. (line 499)
+* Ruby language:                         Supported languages. (line 516)
+* Rust language:                         Supported languages. (line 544)
+* Sass language:                         Supported languages. (line 571)
+* Scala language:                        Supported languages. (line 581)
+* SCSS language:                         Supported languages. (line 600)
+* Shell scripting languages language:    Supported languages. (line 617)
+* Slim language:                         Supported languages. (line 635)
+* SQL language:                          Supported languages. (line 640)
 * syntax checker:                        Syntax checkers.     (line   6)
 * syntax checker configuration files:    Configuring checkers.
                                                               (line  43)
@@ -2693,11 +2696,11 @@ Main Index
                                                               (line  20)
 * syntax checker selection, automatic:   Syntax checkers.     (line   6)
 * syntax checker selection, manual:      Syntax checkers.     (line  39)
-* TeX/LaTeX language:                    Supported languages. (line 642)
-* Texinfo language:                      Supported languages. (line 656)
-* Verilog language:                      Supported languages. (line 661)
-* XML language:                          Supported languages. (line 673)
-* YAML language:                         Supported languages. (line 680)
+* TeX/LaTeX language:                    Supported languages. (line 645)
+* Texinfo language:                      Supported languages. (line 659)
+* Verilog language:                      Supported languages. (line 664)
+* XML language:                          Supported languages. (line 676)
+* YAML language:                         Supported languages. (line 683)
 
 
 File: flycheck.info,  Node: Key Index,  Next: Function and Variable Index,  Prev: Main Index,  Up: Top
@@ -2742,7 +2745,7 @@ Function and variable index
 * flycheck-checker:                      Syntax checkers.     (line  58)
 * flycheck-checker-error-threshold:      Reporting results.   (line  50)
 * flycheck-checkers:                     Syntax checkers.     (line  10)
-* flycheck-chktexrc:                     Supported languages. (line 650)
+* flycheck-chktexrc:                     Supported languages. (line 653)
 * flycheck-clang-args:                   Supported languages. (line  61)
 * flycheck-clang-blocks:                 Supported languages. (line  64)
 * flycheck-clang-definitions:            Supported languages. (line  66)
@@ -2785,13 +2788,13 @@ Function and variable index
 * flycheck-error-list-after-refresh-hook: Listing errors.     (line  14)
 * flycheck-error-list-highlight:         Listing errors.      (line  57)
 * flycheck-error-list-minimum-level:     Listing errors.      (line  50)
-* flycheck-eslint-rulesdir:              Supported languages. (line 352)
-* flycheck-eslintrc:                     Supported languages. (line 354)
+* flycheck-eslint-rulesdir:              Supported languages. (line 355)
+* flycheck-eslintrc:                     Supported languages. (line 357)
 * flycheck-first-error:                  Navigating errors.   (line  42)
-* flycheck-flake8-error-level-alist:     Supported languages. (line 456)
-* flycheck-flake8-maximum-complexity:    Supported languages. (line 459)
-* flycheck-flake8-maximum-line-length:   Supported languages. (line 462)
-* flycheck-flake8rc:                     Supported languages. (line 465)
+* flycheck-flake8-error-level-alist:     Supported languages. (line 459)
+* flycheck-flake8-maximum-complexity:    Supported languages. (line 462)
+* flycheck-flake8-maximum-line-length:   Supported languages. (line 465)
+* flycheck-flake8rc:                     Supported languages. (line 468)
 * flycheck-foodcritic-tags:              Supported languages. (line 127)
 * flycheck-gcc-args:                     Supported languages. (line  62)
 * flycheck-gcc-definitions:              Supported languages. (line  67)
@@ -2809,12 +2812,12 @@ Function and variable index
 * flycheck-gfortran-language-standard:   Supported languages. (line 225)
 * flycheck-gfortran-layout:              Supported languages. (line 229)
 * flycheck-gfortran-warnings:            Supported languages. (line 234)
-* flycheck-ghc-args:                     Supported languages. (line 305)
-* flycheck-ghc-language-extensions:      Supported languages. (line 319)
-* flycheck-ghc-no-user-package-database: Supported languages. (line 308)
-* flycheck-ghc-package-databases:        Supported languages. (line 311)
-* flycheck-ghc-search-path:              Supported languages. (line 316)
-* flycheck-gjslintrc:                    Supported languages. (line 364)
+* flycheck-ghc-args:                     Supported languages. (line 308)
+* flycheck-ghc-language-extensions:      Supported languages. (line 322)
+* flycheck-ghc-no-user-package-database: Supported languages. (line 311)
+* flycheck-ghc-package-databases:        Supported languages. (line 314)
+* flycheck-ghc-search-path:              Supported languages. (line 319)
+* flycheck-gjslintrc:                    Supported languages. (line 367)
 * flycheck-global-modes:                 Checking buffers.    (line   6)
 * flycheck-gnat-args:                    Supported languages. (line  34)
 * flycheck-gnat-include-path:            Supported languages. (line  36)
@@ -2822,55 +2825,55 @@ Function and variable index
 * flycheck-gnat-warnings:                Supported languages. (line  41)
 * flycheck-go-vet-print-functions:       Supported languages. (line 252)
 * flycheck-highlighting-mode:            Reporting results.   (line  15)
-* flycheck-hlint-hint-packages:          Supported languages. (line 287)
-* flycheck-hlint-ignore-rules:           Supported languages. (line 284)
-* flycheck-hlint-language-extensions:    Supported languages. (line 281)
-* flycheck-hlintrc:                      Supported languages. (line 290)
+* flycheck-hlint-hint-packages:          Supported languages. (line 290)
+* flycheck-hlint-ignore-rules:           Supported languages. (line 287)
+* flycheck-hlint-language-extensions:    Supported languages. (line 284)
+* flycheck-hlintrc:                      Supported languages. (line 293)
 * flycheck-idle-change-delay:            Checking buffers.    (line  40)
 * flycheck-indication-mode:              Reporting results.   (line  36)
 * flycheck-info:                         Reporting results.   (line  32)
-* flycheck-jscsrc:                       Supported languages. (line 368)
-* flycheck-jshintrc:                     Supported languages. (line 361)
+* flycheck-jscsrc:                       Supported languages. (line 371)
+* flycheck-jshintrc:                     Supported languages. (line 364)
 * flycheck-keymap-prefix:                Usage.               (line   8)
-* flycheck-lintr-caching:                Supported languages. (line 481)
-* flycheck-lintr-linters:                Supported languages. (line 485)
+* flycheck-lintr-caching:                Supported languages. (line 484)
+* flycheck-lintr-linters:                Supported languages. (line 488)
 * flycheck-list-errors:                  Listing errors.      (line   9)
 * flycheck-locate-config-file-functions: Configuring checkers.
                                                               (line  84)
-* flycheck-luacheckrc:                   Supported languages. (line 388)
+* flycheck-luacheckrc:                   Supported languages. (line 391)
 * flycheck-mode:                         Checking buffers.    (line   6)
 * flycheck-navigation-minimum-level:     Navigating errors.   (line  55)
 * flycheck-next-error:                   Navigating errors.   (line  22)
-* flycheck-perl-include-path:            Supported languages. (line 405)
-* flycheck-perlcritic-severity:          Supported languages. (line 408)
-* flycheck-phpcs-standard:               Supported languages. (line 428)
-* flycheck-phpmd-rulesets:               Supported languages. (line 423)
+* flycheck-perl-include-path:            Supported languages. (line 408)
+* flycheck-perlcritic-severity:          Supported languages. (line 411)
+* flycheck-phpcs-standard:               Supported languages. (line 431)
+* flycheck-phpmd-rulesets:               Supported languages. (line 426)
 * flycheck-previous-error:               Navigating errors.   (line  32)
-* flycheck-pylintrc:                     Supported languages. (line 471)
-* flycheck-rubocop-lint-only:            Supported languages. (line 521)
-* flycheck-rubocoprc:                    Supported languages. (line 524)
-* flycheck-rubylintrc:                   Supported languages. (line 527)
-* flycheck-rust-args:                    Supported languages. (line 545)
-* flycheck-rust-check-tests:             Supported languages. (line 547)
-* flycheck-rust-crate-root:              Supported languages. (line 550)
-* flycheck-rust-crate-type:              Supported languages. (line 554)
-* flycheck-rust-library-path:            Supported languages. (line 558)
-* flycheck-sass-compass:                 Supported languages. (line 572)
-* flycheck-scalastyle-jar:               Supported languages. (line 586)
-* flycheck-scalastylerc:                 Supported languages. (line 588)
-* flycheck-scss-compass:                 Supported languages. (line 604)
-* flycheck-scss-lintrc:                  Supported languages. (line 607)
+* flycheck-pylintrc:                     Supported languages. (line 474)
+* flycheck-rubocop-lint-only:            Supported languages. (line 524)
+* flycheck-rubocoprc:                    Supported languages. (line 527)
+* flycheck-rubylintrc:                   Supported languages. (line 530)
+* flycheck-rust-args:                    Supported languages. (line 548)
+* flycheck-rust-check-tests:             Supported languages. (line 550)
+* flycheck-rust-crate-root:              Supported languages. (line 553)
+* flycheck-rust-crate-type:              Supported languages. (line 557)
+* flycheck-rust-library-path:            Supported languages. (line 561)
+* flycheck-sass-compass:                 Supported languages. (line 575)
+* flycheck-scalastyle-jar:               Supported languages. (line 589)
+* flycheck-scalastylerc:                 Supported languages. (line 591)
+* flycheck-scss-compass:                 Supported languages. (line 607)
+* flycheck-scss-lintrc:                  Supported languages. (line 610)
 * flycheck-select-checker:               Syntax checkers.     (line  43)
 * flycheck-set-checker-executable:       Configuring checkers.
                                                               (line 125)
-* flycheck-shellcheck-excluded-warnings: Supported languages. (line 627)
+* flycheck-shellcheck-excluded-warnings: Supported languages. (line 630)
 * flycheck-sphinx-warn-on-missing-references: Supported languages.
-                                                              (line 508)
+                                                              (line 511)
 * flycheck-standard-error-navigation:    Navigating errors.   (line   6)
 * flycheck-temp-prefix:                  Checking buffers.    (line  71)
-* flycheck-tidyrc:                       Supported languages. (line 328)
+* flycheck-tidyrc:                       Supported languages. (line 331)
 * flycheck-verify-setup:                 Checking buffers.    (line  63)
-* flycheck-verilator-include-path:       Supported languages. (line 667)
+* flycheck-verilator-include-path:       Supported languages. (line 670)
 * flycheck-warning:                      Reporting results.   (line  32)
 * global-flycheck-mode:                  Checking buffers.    (line   6)
 * list-flycheck-errors:                  Listing errors.      (line   9)
@@ -2930,38 +2933,38 @@ Ref: language-Groovy65202
 Ref: language-Haml65312
 Ref: language-Handlebars65381
 Ref: language-Haskell65463
-Ref: language-HTML67134
-Ref: language-Jade67431
-Ref: language-Javascript67510
-Ref: language-JSON68872
-Ref: language-Less68958
-Ref: language-Lua69015
-Ref: language-Perl69373
-Ref: language-PHP69908
-Ref: language-Puppet70600
-Ref: language-Python70782
-Ref: language-R72066
-Ref: language-Racket72503
-Ref: language-RPM Spec72578
-Ref: language-reStructuredText72692
-Ref: language-Ruby73081
-Ref: language-Rust74092
-Ref: language-Sass75030
-Ref: language-Scala75283
-Ref: language-SCSS75890
-Ref: language-Shell scripting languages76450
-Ref: language-Slim77186
-Ref: language-SQL77251
-Ref: language-TeX/LaTeX77348
-Ref: language-Texinfo77760
-Ref: language-Verilog77855
-Ref: language-XML78170
-Ref: language-YAML78338
-Node: Issues78477
-Node: GNU Free Documentation License79498
-Node: Main Index104845
-Node: Key Index113262
-Node: Function and Variable Index114770
+Ref: language-HTML67307
+Ref: language-Jade67604
+Ref: language-Javascript67683
+Ref: language-JSON69045
+Ref: language-Less69131
+Ref: language-Lua69188
+Ref: language-Perl69546
+Ref: language-PHP70081
+Ref: language-Puppet70773
+Ref: language-Python70955
+Ref: language-R72239
+Ref: language-Racket72676
+Ref: language-RPM Spec72751
+Ref: language-reStructuredText72865
+Ref: language-Ruby73254
+Ref: language-Rust74265
+Ref: language-Sass75203
+Ref: language-Scala75456
+Ref: language-SCSS76063
+Ref: language-Shell scripting languages76623
+Ref: language-Slim77359
+Ref: language-SQL77424
+Ref: language-TeX/LaTeX77521
+Ref: language-Texinfo77933
+Ref: language-Verilog78028
+Ref: language-XML78343
+Ref: language-YAML78511
+Node: Issues78650
+Node: GNU Free Documentation License79671
+Node: Main Index105018
+Node: Key Index113435
+Node: Function and Variable Index114943
 
 End Tag Table
 
