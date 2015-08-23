@@ -269,7 +269,7 @@ The hint will consist of the possible nouns that apply to the verb."
   "Face for `lispy-view-test'."
   :group 'lispy-faces)
 
-(defvar lispy-mode-map (make-sparse-keymap))
+(defvar lispy-mode-map (make-sparse-keymap))
 
 (defvar lispy-known-verbs nil
   "List of registered verbs.")
@@ -1570,9 +1570,9 @@ When region is active, toggle a ~ at the start of the region."
 (defun lispy-hash ()
   "Insert #."
   (interactive)
-  (if (and (memq major-mode '(clojure-mode
-                              nrepl-repl-mode
-                              cider-clojure-interaction-mode))
+  (if (and (or (memq major-mode lispy-clojure-modes)
+               (memq major-mode '(nrepl-repl-mode
+                                  cider-clojure-interaction-mode)))
            (lispy-looking-back "\\sw #"))
       (progn
         (backward-delete-char 2)
@@ -3194,6 +3194,14 @@ SYMBOL is a string."
   (lispy--ensure-visible))
 
 ;;* Locals: dialect-related
+(defcustom lispy-eval-display-style 'message
+  "Choose a function to display the eval result."
+  :type '(choice
+          (const :tag "message" message)
+          (const :tag "overlay" overlay)))
+
+(defvar cider-eval-result-duration)
+
 (defun lispy-eval (arg)
   "Eval last sexp.
 When ARG is 2, insert the result as a comment."
@@ -3203,12 +3211,17 @@ When ARG is 2, insert the result as a comment."
     (save-excursion
       (unless (or (lispy-right-p) (region-active-p))
         (lispy-forward 1))
-      (message
-       (replace-regexp-in-string
-        "%" "%%" (lispy--eval (lispy--string-dwim) t))))))
+      (let ((result (replace-regexp-in-string
+                     "%" "%%" (lispy--eval (lispy--string-dwim) t))))
+        (if (eq lispy-eval-display-style 'message)
+            (message result)
+          (if (fboundp 'cider--display-interactive-eval-result)
+              (let ((cider-eval-result-duration 1))
+                (cider--display-interactive-eval-result result (point)))
+            (error "Please install CIDER 0.10 to display overlay")))))))
 
 (defvar lispy-do-pprint nil
-  "Try a pretty-print when this ins't nil.")
+  "Try a pretty-print when this isn't nil.")
 
 (defun lispy-eval-and-insert (&optional arg)
   "Eval last sexp and insert the result.
@@ -3702,9 +3715,9 @@ Pass the ARG along."
   (cond ((memq major-mode lispy-elisp-modes)
          (lispy-flatten--elisp arg))
 
-        ((memq major-mode '(clojure-mode
-                            nrepl-repl-mode
-                            cider-clojure-interaction-mode))
+        ((or (memq major-mode lispy-clojure-modes)
+             (memq major-mode '(nrepl-repl-mode
+                                cider-clojure-interaction-mode)))
          (require 'le-clojure)
          (lispy-flatten--clojure arg))
 
@@ -4684,10 +4697,9 @@ When ADD-OUTPUT is t, append the output to the result."
   (funcall
    (cond ((memq major-mode lispy-elisp-modes)
           'lispy--eval-elisp)
-         ((memq major-mode '(clojure-mode
-                             clojurescript-mode
-                             nrepl-repl-mode
-                             cider-clojure-interaction-mode))
+         ((or (memq major-mode lispy-clojure-modes)
+              (memq major-mode '(nrepl-repl-mode
+                                 cider-clojure-interaction-mode)))
           (require 'le-clojure)
           (lambda (x)
             (lispy--eval-clojure x add-output t)))
@@ -5922,7 +5934,7 @@ The outer delimiters are stripped."
                    (goto-char (car bnd))
                    (current-column)))
          (was-left (lispy-left-p)))
-    (if (or (and (memq major-mode '(clojure-mode))
+    (if (or (and (memq major-mode lispy-clojure-modes)
                  (string-match "\\^" str))
             (> (length str) 10000))
 
@@ -6210,7 +6222,8 @@ Return an appropriate `setq' expression when in `let', `dolist',
                     (forward-list))
                    ((lispy-right-p))
                    ((region-active-p)
-                    (lispy-complain "Unimplemented"))
+                    (when (eq (point) (region-beginning))
+                      (exchange-point-and-mark)))
                    (t
                     (up-list)))
              (lispy--preceding-sexp))))
