@@ -6,7 +6,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;; Version: 0.4.0-cvs
-;; Package-Version: 20150611.1440
+;; Package-Version: 20150818.1958
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 
@@ -62,6 +62,12 @@
   :type 'integer
   :package-version '(swift-mode "0.3.0"))
 
+(defcustom swift-indent-hanging-comma-offset 4
+  "Defines the indentation offset for hanging comma."
+  :group 'swift
+  :type 'integer
+  :package-version '(swift-mode "0.4.0"))
+
 (defcustom swift-repl-executable
   "xcrun swift"
   "Path to the Swift CLI."
@@ -100,8 +106,9 @@
        (top-level-st
         ("import" type)
         (decl)
-        ("ACCESSMOD" "class" class-decl-exp "{" class-level-sts "}")
-        ("ACCESSMOD" "protocol" class-decl-exp "{" protocol-level-sts "}"))
+        ("ACCESSMOD" "class" class-decl-exp "class-{" class-level-sts "}")
+        ("ACCESSMOD" "protocol" class-decl-exp "protocol-{" protocol-level-sts "}")
+        )
 
        (class-level-sts (class-level-st) (class-level-st ";" class-level-st))
        (class-level-st
@@ -133,14 +140,15 @@
              ("enum" decl-exp "{" enum-body "}")
              ("switch" exp "{" switch-body "}")
              (if-clause)
+             (guard-statement)
              ("for" for-head "{" insts "}")
              ("while" exp "{" insts "}"))
 
        (dot-exp (id "." id))
 
        (method-call (dot-exp "(" method-args ")"))
-       (method-args (method-arg) (method-arg "," method-arg))
-       (method-arg (exp "," "{" closure "}") (exp))
+       (method-args (method-arg) (method-args "," method-args))
+       (method-arg (id "{" closure "}") (exp))
 
        (exp (op-exp)
             ("[" decl-exps "]"))
@@ -154,11 +162,16 @@
        (enum-cases (enum-case) (enum-case ";" enum-case))
        (enum-body (enum-cases) (insts))
 
-       (case-exps (exp) (guard-exp))
-       (case (case-exps ":" insts))
-       (switch-body (case) (case "case" case))
+       (case-exps (exp)
+                  (guard-exp)
+                  (case-exps "," case-exps))
+       (case ("case" case-exps "case-:" insts))
+       (switch-body (case))
 
        (for-head (in-exp) (op-exp) (for-head ";" for-head))
+
+       (guard-conditional (exp) (let-decl) (var-decl))
+       (guard-statement ("guard" guard-conditional "elseguard" "{" insts "}"))
 
        (if-conditional (exp) (let-decl))
        (if-body ("if" if-conditional "{" insts "}"))
@@ -244,11 +257,17 @@
     (if (eolp) (forward-char 1) (forward-comment 1))
     ";")
 
-   ((looking-at "{") (forward-char 1) "{")
+   ((looking-at "{") (forward-char 1)
+    (if (looking-back "\\(class\\|protocol\\) [^{]+{" (line-beginning-position) t)
+        (concat (match-string 1) "-{")
+      "{"))
    ((looking-at "}") (forward-char 1) "}")
 
    ((looking-at ",") (forward-char 1) ",")
-   ((looking-at ":") (forward-char 1) ":")
+   ((looking-at ":") (forward-char 1)
+    (if (looking-back "case [^:]+:" (line-beginning-position 0) t)
+        "case-:"
+      ":"))
 
    ((looking-at "->") (forward-char 2) "->")
 
@@ -278,6 +297,10 @@
           (if (looking-at "\\([\n\t ]\\|.\\)+?\\(where.*[,]\\|:\\)")
               "case"
             "ecase"))
+         ((equal tok "else")
+          (if (looking-back "\\(guard.*\\)" (line-beginning-position) t)
+              "elseguard"
+            "else"))
          (t tok))))
    ))
 
@@ -289,11 +312,17 @@
            (swift-smie--implicit-semi-p))
       ";")
 
-     ((eq (char-before) ?\{) (backward-char 1) "{")
+     ((eq (char-before) ?\{) (backward-char 1)
+      (if (looking-back "\\(class\\|protocol\\) [^{]+" (line-beginning-position) t)
+          (concat (match-string 1) "-{")
+        "{"))
      ((eq (char-before) ?\}) (backward-char 1) "}")
 
      ((eq (char-before) ?,) (backward-char 1) ",")
-     ((eq (char-before) ?:) (backward-char 1) ":")
+     ((eq (char-before) ?:) (backward-char 1)
+      (if (looking-back "case [^:]+" (line-beginning-position 0))
+          "case-:"
+        ":"))
 
      ((looking-back "->" (- (point) 2) t)
       (goto-char (match-beginning 0)) "->")
@@ -325,6 +354,10 @@
             (if (looking-at "\\([\n\t ]\\|.\\)+?\\(where.*[,]\\|:\\)")
                 "case"
               "ecase"))
+           ((equal tok "else")
+            (if (looking-back "\\(guard.*\\)" (line-beginning-position) t)
+                "elseguard"
+              "else"))
            (t tok))))
      )))
 
@@ -341,6 +374,7 @@
       ((smie-rule-parent-p "=") 2)
       ;; Rule for the case statement.
       ((smie-rule-parent-p "case") swift-indent-offset)
+      ((smie-rule-parent-p ",") (smie-rule-parent swift-indent-offset))
       ;; Rule for the class definition.
       ((smie-rule-parent-p "class") (smie-rule-parent swift-indent-offset))))
 
@@ -370,9 +404,12 @@
 
     ;; Indent second line of the multi-line class
     ;; definitions with swift-indent-offset
+    (`(:before . "case")
+     (smie-rule-parent))
+
     (`(:before . ",")
-     (if (smie-rule-parent-p "class")
-       (smie-rule-parent swift-indent-offset)))
+     (if (smie-rule-parent-p "class" "case")
+         (smie-rule-parent swift-indent-hanging-comma-offset)))
 
     ;; Disable unnecessary default indentation for
     ;; "func" and "class" keywords
@@ -398,6 +435,7 @@
       ((smie-rule-prev-p "->") swift-indent-offset)
       ((smie-rule-parent-p "[") (smie-rule-parent swift-indent-offset))
       ((smie-rule-parent-p "{") nil)
+      ((smie-rule-parent-p "class-{") nil)
       (t (smie-rule-parent))))
     (`(:after . "->") (smie-rule-parent swift-indent-offset))
     ))
@@ -421,7 +459,7 @@
 
 (defvar swift-mode--statement-keywords
   '("break" "case" "continue" "default" "do" "else" "fallthrough"
-    "if" "in" "for" "return" "switch" "where" "while"))
+    "if" "in" "for" "return" "switch" "where" "while" "guard"))
 
 (defvar swift-mode--contextual-keywords
   '("associativity" "didSet" "get" "infix" "inout" "left" "mutating" "none"
@@ -728,20 +766,8 @@ You can send text to the REPL process from other buffers containing source.
     (modify-syntax-entry ?\) ")(" table)
     (modify-syntax-entry ?\[ "(]" table)
     (modify-syntax-entry ?\] ")[" table)
-
-    ;; HACK: This is not a correct syntax table definition
-    ;; for the braces, but it allows us disable smie indentation
-    ;; based on  syntax-table. Default behaviour doesn't work with
-    ;; closures in method arguments. For example:
-    ;;
-    ;; foo.bar(10,
-    ;;         closure: {
-    ;;         })
-    ;;
-    ;; With enabled syntax table, smie doesn't respect closing brace, so
-    ;; it's impossible to provide custom indentation rules
-    (modify-syntax-entry ?\{ "w" table)
-    (modify-syntax-entry ?\} "w" table)
+    (modify-syntax-entry ?\{ "(}" table)
+    (modify-syntax-entry ?\} "){" table)
 
     table))
 
