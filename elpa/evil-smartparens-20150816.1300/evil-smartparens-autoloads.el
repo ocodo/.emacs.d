@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-smartparens" "evil-smartparens.el" (21954
-;;;;;;  40962 339401 0))
+;;;### (autoloads nil "evil-smartparens" "evil-smartparens.el" (21975
+;;;;;;  62528 191401 0))
 ;;; Generated autoloads from evil-smartparens.el
 
 (autoload 'evil-smartparens-mode "evil-smartparens" "\

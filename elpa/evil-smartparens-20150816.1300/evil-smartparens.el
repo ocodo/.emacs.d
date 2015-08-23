@@ -4,7 +4,7 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/evil-smartparens
-;; Package-Version: 20150805.344
+;; Package-Version: 20150816.1300
 ;; Keywords: evil smartparens
 ;; Version: 0.2.0
 ;; Package-Requires: ((evil "1.0") (cl-lib "0.3") (emacs "24.4") (smartparens "1.6.3"))
@@ -26,9 +26,7 @@
 
 ;;; Commentary:
 
-;; Evil support for smartparens
-
-;; Provide `evil-smartparens-mode' which enables evil support for smartparens.
+;; Provide `evil-smartparens-mode' which enables evil support for `smartparens'.
 
 ;;; Code:
 
