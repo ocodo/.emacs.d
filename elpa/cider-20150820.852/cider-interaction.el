@@ -179,6 +179,20 @@ if the candidate is not namespace-qualified."
 
 (defconst cider-refresh-log-buffer "*cider-refresh-log*")
 
+(defcustom cider-refresh-show-log-buffer nil
+  "Controls when to display the refresh log buffer.
+
+If non-nil, the log buffer will be displayed every time `cider-refresh' is
+called.
+
+If nil, the log buffer will still be written to, but will never be
+displayed automatically.  Instead, the most relevant information will be
+displayed in the echo area."
+  :type '(choice (const :tag "always" t)
+                 (const :tag "never" nil))
+  :group 'cider
+  :package-version '(cider . "0.10.0"))
+
 (defcustom cider-refresh-before-fn nil
   "Clojure function for `cider-refresh' to call before reloading.
 
@@ -206,6 +220,27 @@ namespace-qualified function of zero arity."
                  (const repl-buffer))
   :group 'cider
   :package-version '(cider . "0.7.0"))
+
+(defcustom cider-eval-spinner-type 'progress-bar
+  "Appearance of the evaluation spinner.
+
+Value is a symbol. The possible values are the symbols in the
+`spinner-types' variable."
+  :type 'symbol
+  :group 'cider
+  :package-version '(cider . "0.10.0"))
+
+(defcustom cider-show-eval-spinner t
+  "When true, show the evaluation spinner in the mode line."
+  :type 'boolean
+  :group 'cider
+  :package-version '(cider . "0.10.0"))
+
+(defcustom cider-eval-spinner-delay 1
+  "Amount of time, in seconds, after which the evaluation spinner will be shown."
+  :type 'integer
+  :group 'cider
+  :package-version '(cider . "0.10.0"))
 
 (defface cider-error-highlight-face
   '((((supports :underline (:style wave)))
@@ -261,7 +296,7 @@ Signal an error if it is not supported."
   "Check whether all required nREPL ops are present."
   (let ((missing-ops (-remove 'nrepl-op-supported-p cider-required-nrepl-ops)))
     (when missing-ops
-      (cider-repl-emit-interactive-err-output
+      (cider-repl-emit-interactive-stderr
        (format "WARNING: The following required nREPL ops are not supported: \n%s\nPlease, install (or update) cider-nrepl %s and restart CIDER"
                (cider-string-join missing-ops " ")
                (upcase cider-version))))))
@@ -296,12 +331,12 @@ Signal an error if it is not supported."
   (let ((nrepl-version (cider--nrepl-version)))
     (if nrepl-version
         (when (version< nrepl-version cider-required-nrepl-version)
-          (cider-repl-emit-interactive-err-output
+          (cider-repl-emit-interactive-stderr
            (cider--insert-readme-button
             (format "WARNING: CIDER requires nREPL %s (or newer) to work properly"
                     cider-required-nrepl-version)
             "warning-saying-you-have-to-use-nrepl-027")))
-      (cider-repl-emit-interactive-err-output
+      (cider-repl-emit-interactive-stderr
        (format "WARNING: Can't determine nREPL's version. Please, update nREPL to %s."
                cider-required-nrepl-version)))))
 
@@ -312,7 +347,7 @@ Signal an error if it is not supported."
    (lambda (_buffer result)
      (let ((middleware-version (read result)))
        (unless (and middleware-version (equal cider-version middleware-version))
-         (cider-repl-emit-interactive-err-output
+         (cider-repl-emit-interactive-stderr
           (format "ERROR: CIDER's version (%s) does not match cider-nrepl's version (%s). Things will break!"
                   cider-version middleware-version)))))
    '()
@@ -440,11 +475,13 @@ When SET-NAMESPACE is t, sets the namespace in the REPL buffer to
 that of the namespace in the Clojure source buffer."
   (cider-ensure-connected)
   (let ((buffer (current-buffer)))
-    (when set-namespace
-      (cider-repl-set-ns (cider-current-ns)))
+    ;; first we switch to the REPL buffer
     (if cider-repl-display-in-current-window
         (pop-to-buffer-same-window repl-buffer)
       (pop-to-buffer repl-buffer))
+    ;; then if necessary we update its namespace
+    (when set-namespace
+      (cider-repl-set-ns (with-current-buffer buffer (cider-current-ns))))
     (cider-remember-clojure-buffer buffer)
     (goto-char (point-max))))
 
@@ -1214,9 +1251,9 @@ opposite of what that option dictates."
                                (lambda (buffer value)
                                  (cider-repl-emit-result buffer value t))
                                (lambda (buffer out)
-                                 (cider-repl-emit-output buffer out))
+                                 (cider-repl-emit-stdout buffer out))
                                (lambda (buffer err)
-                                 (cider-repl-emit-output buffer err))
+                                 (cider-repl-emit-stderr buffer err))
                                nil))
 
 (defun cider-insert-eval-handler (&optional buffer)
@@ -1228,7 +1265,7 @@ The handler simply inserts the result value in BUFFER."
                                    (with-current-buffer buffer
                                      (insert value)))
                                  (lambda (_buffer out)
-                                   (cider-repl-emit-interactive-output out))
+                                   (cider-repl-emit-interactive-stdout out))
                                  (lambda (_buffer err)
                                    (cider-handle-compilation-errors err eval-buffer))
                                  '())))
@@ -1252,14 +1289,14 @@ This is controlled via `cider-interactive-eval-output-destination'."
 
 The output can be send to either a dedicated output buffer or the current REPL buffer.
 This is controlled via `cider-interactive-eval-output-destination'."
-  (cider--emit-interactive-eval-output output 'cider-repl-emit-interactive-output))
+  (cider--emit-interactive-eval-output output 'cider-repl-emit-interactive-stdout))
 
 (defun cider-emit-interactive-eval-err-output (output)
   "Emit err output resulting from interactive code evaluation.
 
 The output can be send to either a dedicated output buffer or the current REPL buffer.
 This is controlled via `cider-interactive-eval-output-destination'."
-  (cider--emit-interactive-eval-output output 'cider-repl-emit-interactive-err-output))
+  (cider--emit-interactive-eval-output output 'cider-repl-emit-interactive-stderr))
 
 (defun cider-interactive-eval-handler (&optional buffer point)
   "Make an interactive eval handler for BUFFER.
@@ -1726,6 +1763,19 @@ Clears any compilation highlights and kills the error window."
 (defvar-local cider-interactive-eval-override nil
   "Function to call instead of `cider-interactive-eval'.")
 
+(defun cider-eval-spinner-handler (eval-buffer original-callback)
+  "Return a response handler that stops the spinner and calls ORIGINAL-CALLBACK.
+EVAL-BUFFER is the buffer where the spinner was started."
+  (lambda (response)
+    ;; buffer still exists and
+    ;; we've got status "done" from nrepl
+    ;; stop the spinner
+    (when (and (buffer-live-p eval-buffer)
+               (member "done" (nrepl-dict-get response "status")))
+      (with-current-buffer eval-buffer
+        (spinner-stop)))
+    (funcall original-callback response)))
+
 (defun cider-interactive-eval (form &optional callback bounds)
   "Evaluate FORM and dispatch the response to CALLBACK.
 This function is the main entry point in CIDER's interactive evaluation
@@ -1743,9 +1793,16 @@ arguments and only proceed with evaluation if it returns nil."
                  (functionp cider-interactive-eval-override)
                  (funcall cider-interactive-eval-override form callback bounds))
       (cider--prep-interactive-eval form)
+      (when cider-show-eval-spinner
+        (spinner-start cider-eval-spinner-type nil
+                       cider-eval-spinner-delay))
       (nrepl-request:eval
        form
-       (or callback (cider-interactive-eval-handler nil end))
+       (if cider-show-eval-spinner
+           (cider-eval-spinner-handler
+            (current-buffer)
+            (or callback (cider-interactive-eval-handler nil end)))
+         (or callback (cider-interactive-eval-handler nil end)))
        ;; always eval ns forms in the user namespace
        ;; otherwise trying to eval ns form for the first time will produce an error
        (if (cider-ns-form-p form) "user" (cider-current-ns))
@@ -2067,8 +2124,14 @@ opposite of what that option dictates."
 
 (defun cider-refresh--handle-response (response log-buffer)
   (nrepl-dbind-response response (out err reloading status error error-ns after before)
-    (cl-flet ((log (message &optional face)
-                   (cider-emit-into-popup-buffer log-buffer message face)))
+    (cl-flet* ((log (message &optional face)
+                    (cider-emit-into-popup-buffer log-buffer message face))
+
+               (log-echo (message &optional face)
+                         (log message face)
+                         (unless cider-refresh-show-log-buffer
+                           (let ((message-truncate-lines t))
+                             (message "cider-refresh: %s" (s-trim message))))))
       (cond (out
              (log out))
 
@@ -2076,28 +2139,28 @@ opposite of what that option dictates."
              (log err 'font-lock-warning-face))
 
             ((member "invoking-before" status)
-             (log (format "Calling %s\n" before) 'font-lock-string-face))
+             (log-echo (format "Calling %s\n" before) 'font-lock-string-face))
 
             ((member "invoked-before" status)
-             (log (format "Successfully called %s\n" before) 'font-lock-string-face))
+             (log-echo (format "Successfully called %s\n" before) 'font-lock-string-face))
 
             (reloading
-             (log (format "Reloading %s\n" reloading) 'font-lock-string-face))
+             (log-echo (format "Reloading %s\n" reloading) 'font-lock-string-face))
 
             ((member "reloading" (nrepl-dict-keys response))
-             (log "Nothing to reload\n" 'font-lock-string-face))
+             (log-echo "Nothing to reload\n" 'font-lock-string-face))
 
             ((member "ok" status)
-             (log "Reloading successful\n" 'font-lock-string-face))
+             (log-echo "Reloading successful\n" 'font-lock-string-face))
 
             (error-ns
-             (log (format "Error reloading %s\n" error-ns) 'font-lock-warning-face))
+             (log-echo (format "Error reloading %s\n" error-ns) 'font-lock-warning-face))
 
             ((member "invoking-after" status)
-             (log (format "Calling %s\n" after) 'font-lock-string-face))
+             (log-echo (format "Calling %s\n" after) 'font-lock-string-face))
 
             ((member "invoked-after" status)
-             (log (format "Successfully called %s\n" after) 'font-lock-string-face))))
+             (log-echo (format "Successfully called %s\n" after) 'font-lock-string-face))))
 
     (with-selected-window (or (get-buffer-window cider-refresh-log-buffer)
                               (selected-window))
@@ -2120,10 +2183,11 @@ reload would not otherwise recover from.  The trade-off of clearing is that
 stale code from any deleted files may not be completely unloaded."
   (interactive "p")
   (cider-ensure-op-supported "refresh")
-  (let ((log-buffer (cider-popup-buffer-display (or (get-buffer cider-refresh-log-buffer)
-                                                    (cider-make-popup-buffer cider-refresh-log-buffer))))
+  (let ((log-buffer (or (get-buffer cider-refresh-log-buffer)
+                        (cider-make-popup-buffer cider-refresh-log-buffer)))
         (clear? (>= arg 16))
         (refresh-all? (>= arg 4)))
+    (when cider-refresh-show-log-buffer (cider-popup-buffer-display log-buffer))
     (when clear? (nrepl-send-sync-request (list "op" "refresh-clear")))
     (nrepl-send-request (append (list "op" (if refresh-all? "refresh-all" "refresh")
                                       "print-length" cider-stacktrace-print-length
@@ -2142,9 +2206,9 @@ stale code from any deleted files may not be completely unloaded."
   "Load (eval) the Clojure file FILENAME in nREPL."
   (interactive (list
                 (read-file-name "Load file: " nil nil nil
-                                (if (buffer-file-name)
-                                    (file-name-nondirectory
-                                     (buffer-file-name))))))
+                                (when (buffer-file-name)
+                                  (file-name-nondirectory
+                                   (buffer-file-name))))))
   (-when-let (buf (find-buffer-visiting filename))
     (with-current-buffer buf
       (remove-overlays nil nil 'cider-type 'instrumented-defs)
@@ -2255,8 +2319,8 @@ the string contents of the region into a formatted string."
              (ops (nrepl-dict-keys (nrepl-dict-get session-info "ops")))
              (session-id (nrepl-dict-get session-info "session"))
              (session-type (cond
-                            ((equal session-id (nrepl-current-session)) "Active eval")
-                            ((equal session-id (nrepl-current-tooling-session)) "Active tooling")
+                            ((equal session-id (cider-current-session)) "Active eval")
+                            ((equal session-id (cider-current-tooling-session)) "Active tooling")
                             (t "Unknown"))))
         (with-current-buffer (cider-popup-buffer cider-nrepl-session-buffer)
           (read-only-mode -1)

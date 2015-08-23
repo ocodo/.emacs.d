@@ -33,7 +33,7 @@
 (require 'cider-client)
 (require 'cider-interaction)
 (require 'cider-doc)
-(require 'cider-eldoc) ; for cider-turn-on-eldoc-mode
+(require 'cider-eldoc) ; for cider-eldoc-setup
 (require 'cider-util)
 
 (require 'clojure-mode)
@@ -54,12 +54,12 @@
   "Face for the prompt in the REPL buffer."
   :group 'cider-repl)
 
-(defface cider-repl-output-face
+(defface cider-repl-stdout-face
   '((t (:inherit font-lock-string-face)))
   "Face for STDOUT output in the REPL buffer."
   :group 'cider-repl)
 
-(defface cider-repl-err-output-face
+(defface cider-repl-stderr-face
   '((t (:inherit font-lock-warning-face)))
   "Face for STDERR output in the REPL buffer."
   :group 'cider-repl
@@ -416,7 +416,7 @@ Return the position of the prompt beginning."
         (set-marker cider-repl-prompt-start-mark prompt-start)
         prompt-start))))
 
-(defun cider-repl-emit-output-at-pos (buffer string output-face position &optional bol)
+(defun cider-repl--emit-output-at-pos (buffer string output-face position &optional bol)
   "Using BUFFER, insert STRING (applying to it OUTPUT-FACE) at POSITION.
 If BOL is non-nil insert at the beginning of line."
   (with-current-buffer buffer
@@ -440,32 +440,32 @@ If BOL is non-nil insert at the beginning of line."
   (with-current-buffer (cider-current-repl-buffer)
     (let ((pos (cider-repl--end-of-line-before-input-start))
           (string (replace-regexp-in-string "\n\\'" "" string)))
-      (cider-repl-emit-output-at-pos (current-buffer) string face pos t)
+      (cider-repl--emit-output-at-pos (current-buffer) string face pos t)
       (ansi-color-apply-on-region pos (point-max)))))
 
-(defun cider-repl-emit-interactive-output (string)
+(defun cider-repl-emit-interactive-stdout (string)
   "Emit STRING as interactive output."
-  (cider-repl--emit-interactive-output string 'cider-repl-output-face))
+  (cider-repl--emit-interactive-output string 'cider-repl-stdout-face))
 
-(defun cider-repl-emit-interactive-err-output (string)
+(defun cider-repl-emit-interactive-stderr (string)
   "Emit STRING as interactive err output."
-  (cider-repl--emit-interactive-output string 'cider-repl-err-output-face))
+  (cider-repl--emit-interactive-output string 'cider-repl-stderr-face))
 
 (defun cider-repl--emit-output (buffer string face &optional bol)
   "Using BUFFER, emit STRING font-locked with FACE.
 If BOL is non-nil, emit at the beginning of the line."
   (with-current-buffer buffer
     (let ((pos (cider-repl--end-of-line-before-input-start)))
-      (cider-repl-emit-output-at-pos buffer string face cider-repl-input-start-mark bol)
+      (cider-repl--emit-output-at-pos buffer string face cider-repl-input-start-mark bol)
       (ansi-color-apply-on-region pos (point-max)))))
 
-(defun cider-repl-emit-output (buffer string)
+(defun cider-repl-emit-stdout (buffer string)
   "Using BUFFER, emit STRING as standard output."
-  (cider-repl--emit-output buffer string 'cider-repl-output-face))
+  (cider-repl--emit-output buffer string 'cider-repl-stdout-face))
 
-(defun cider-repl-emit-err-output (buffer string)
+(defun cider-repl-emit-stderr (buffer string)
   "Using BUFFER, emit STRING as error output."
-  (cider-repl--emit-output buffer string 'cider-repl-err-output-face))
+  (cider-repl--emit-output buffer string 'cider-repl-stderr-face))
 
 (defun cider-repl-emit-prompt (buffer)
   "Emit the REPL prompt into BUFFER."
@@ -548,9 +548,9 @@ the symbol."
                                  (unless cider-repl-use-pretty-printing
                                    (cider-repl-emit-result buffer value t)))
                                (lambda (buffer out)
-                                 (cider-repl-emit-output buffer out))
+                                 (cider-repl-emit-stdout buffer out))
                                (lambda (buffer err)
-                                 (cider-repl-emit-err-output buffer err))
+                                 (cider-repl-emit-stderr buffer err))
                                (lambda (buffer)
                                  (cider-repl-emit-prompt buffer))))
 
@@ -586,17 +586,24 @@ If NEWLINE is true then add a newline at the end of the input."
     (goto-char (point-max))
     (cider-repl--mark-input-start)
     (cider-repl--mark-output-start)
+    (when cider-show-eval-spinner
+        (spinner-start cider-eval-spinner-type nil
+                       cider-eval-spinner-delay))
     (if (and (not (string-match-p "\\`[ \t\r\n]*\\'" input))
              cider-repl-use-pretty-printing)
         (nrepl-request:pprint-eval
          input
-         (cider-repl-handler (current-buffer))
+         (cider-eval-spinner-handler
+          (current-buffer)
+          (cider-repl-handler (current-buffer)))
          (cider-current-ns)
          nil
          (1- (window-width)))
       (nrepl-request:eval
        input
-       (cider-repl-handler (current-buffer))
+       (cider-eval-spinner-handler
+        (current-buffer)
+        (cider-repl-handler (current-buffer)))
        (cider-current-ns)))))
 
 (defun cider-repl-return (&optional end-of-input)
@@ -661,7 +668,7 @@ text property `cider-old-input'."
   "Toggle pretty-printing in the REPL."
   (interactive)
   (setq cider-repl-use-pretty-printing (not cider-repl-use-pretty-printing))
-  (message "Pretty printing in nREPL %s."
+  (message "Pretty printing in REPL %s."
            (if cider-repl-use-pretty-printing "enabled" "disabled")))
 
 (defvar cider-repl-clear-buffer-hook)
@@ -679,12 +686,8 @@ text property `cider-old-input'."
 
 (defun cider-repl--end-of-line-before-input-start ()
   "Return the position of the end of the line preceding the beginning of input."
-  (save-excursion
-    (goto-char cider-repl-input-start-mark)
-    ;; do not use `previous-line', but `line-move' with noerror
-    ;; moving up from the first line should not throw error
-    (line-move -1 t nil nil)
-    (line-end-position)))
+  (1- (previous-single-property-change cider-repl-input-start-mark 'field nil
+                                       (1+ (point-min)))))
 
 (defun cider-repl-clear-output ()
   "Delete the output inserted since the last input."
@@ -708,9 +711,9 @@ text property `cider-old-input'."
   (nrepl-make-response-handler buffer
                                (lambda (_buffer _value))
                                (lambda (buffer out)
-                                 (cider-repl-emit-output buffer out))
+                                 (cider-repl-emit-stdout buffer out))
                                (lambda (buffer err)
-                                 (cider-repl-emit-err-output buffer err))
+                                 (cider-repl-emit-stderr buffer err))
                                (lambda (buffer)
                                  (cider-repl-emit-prompt buffer))))
 

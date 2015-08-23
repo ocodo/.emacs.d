@@ -29,23 +29,27 @@
 ;; Provides an Emacs Lisp client to connect to Clojure nREPL servers.
 ;;
 ;; A connection is an abstract idea of the communication between Emacs (client)
-;; and nREPL server.  On Emacs side connections are represented by two running
-;; processes.  The two processes are the server process and client process.  Each
-;; of these is represented by its own process buffer, filter and sentinel.
+;; and nREPL server.  On the Emacs side connections are represented by two
+;; running processes.  The two processes are the server process and client
+;; process (the connection to the server).  Each of these is represented by its
+;; own process buffer, filter and sentinel.
 ;;
 ;; The nREPL communication process can be broadly represented as follows:
 ;;
-;;    1) Server process is started as an Emacs subprocess (usually by
-;;      `cider-jack-in')
+;;    1) The server process is started as an Emacs subprocess (usually by
+;;      `cider-jack-in', which in turn fires up leiningen or boot). Note that
+;;       if a connection was established using `cider-connect' there won't be
+;;       a server process.
 ;;
-;;    2) Server's process filter (`nrepl-server-filter') detects the connection
-;;       port from the first plain text response from server and starts
-;;       communication process as another Emacs subprocess.  This is the nREPL
-;;       client process (`nrepl-client-filter').  All requests and responses
-;;       handling happen through this client connection.
+;;    2) The server's process filter (`nrepl-server-filter') detects the
+;;       connection port from the first plain text response from the server and
+;;       starts a communication process (socket connection) as another Emacs
+;;       subprocess.  This is the nREPL client process (`nrepl-client-filter').
+;;       All requests and responses handling happens through this client
+;;       connection.
 ;;
 ;;    3) Requests are sent by `nrepl-send-request' and
-;;       `nrepl-send-sync-request'.  Request is simply a list containing a
+;;       `nrepl-send-sync-request'.  A request is simply a list containing a
 ;;       requested operation name and the parameters required by the
 ;;       operation.  Each request has an associated callback that is called once
 ;;       the response for the request has arrived.  Besides the above functions
@@ -130,8 +134,7 @@ Setting this to nil disables the timeout functionality."
 
 (defcustom nrepl-hide-special-buffers nil
   "Control the display of some special buffers in buffer switching commands.
-When true some special buffers like the connection and the server
-buffer will be hidden."
+When true some special buffers like the server buffer will be hidden."
   :type 'boolean
   :group 'nrepl)
 
@@ -203,7 +206,7 @@ To be used for tooling calls (i.e. completion, eldoc, etc)")
 (defun nrepl-make-buffer-name (buffer-name-template &optional project-dir host port dup-ok)
   "Generate a buffer name using BUFFER-NAME-TEMPLATE.
 
-If not supplied PROJECT-DIR, PORT and HOST default to the buffer local
+If not supplied PROJECT-DIR, HOST and PORT default to the buffer local
 value of the `nrepl-project-dir' and `nrepl-endpoint'.
 
 The name will include the project name if available or the endpoint host if
@@ -842,13 +845,6 @@ values of *1, *2, etc."
         (setq nrepl-ops ops)
         (setq nrepl-versions versions)))))
 
-(defun nrepl-close-client-sessions ()
-  "Close the nREPL sessions for the active connection.
-If BUFFER is non-nil, close that buffer's connection."
-  (nrepl-sync-request:close (nrepl-current-session))
-  (nrepl-sync-request:close (nrepl-current-tooling-session)))
-(make-obsolete 'nrepl-close-client-sessions 'cider--close-buffer "0.10.0")
-
 (defun nrepl-close (connection-buffer)
   "Close the nREPL connection for CONNECTION-BUFFER."
   (interactive (list (nrepl-default-connection-buffer)))
@@ -928,11 +924,10 @@ Handles only stdout and stderr responses."
                                '()
                                ;; STDOUT
                                (lambda (buffer out)
-                                 ;; FIXME: rename into emit-out-output
-                                 (cider-repl-emit-output buffer out))
+                                 (cider-repl-emit-stdout buffer out))
                                ;; STDERR
                                (lambda (buffer err)
-                                 (cider-repl-emit-err-output buffer err))
+                                 (cider-repl-emit-stderr buffer err))
                                ;; DONE
                                '()))
 
@@ -946,16 +941,7 @@ Handles only stdout and stderr responses."
 ;; at https://github.com/clojure/tools.nrepl/blob/master/doc/ops.md. CIDER adds
 ;; many more operations through nREPL middleware. See
 ;; https://github.com/clojure-emacs/cider-nrepl#supplied-nrepl-middleware for
-;; the up to date list.
-(defun nrepl-current-session ()
-  "Return the current session."
-  (with-current-buffer (nrepl-default-connection-buffer)
-    nrepl-session))
-
-(defun nrepl-current-tooling-session ()
-  "Return the current tooling session."
-  (with-current-buffer (nrepl-default-connection-buffer)
-    nrepl-tooling-session))
+;; the up-to-date list.
 
 (defun nrepl-next-request-id ()
   "Return the next request id."
@@ -1012,7 +998,7 @@ sign of user input, so as not to hang the interface."
     (when (member "done" status)
       (-when-let* ((ex (nrepl-dict-get response "ex"))
                    (err (nrepl-dict-get response "err")))
-        (cider-repl-emit-interactive-err-output err)
+        (cider-repl-emit-interactive-stderr err)
         (message err))
       (-when-let (id (nrepl-dict-get response "id"))
         ;; FIXME: This should go away eventually when we get rid of
@@ -1026,14 +1012,14 @@ sign of user input, so as not to hang the interface."
 Register CALLBACK as the response handler."
   (nrepl-send-request (list "op" "stdin"
                             "stdin" input
-                            "session" (nrepl-current-session))
+                            "session" (cider-current-session))
                       callback))
 
 (defun nrepl-request:interrupt (pending-request-id callback)
   "Send an :interrupt request for PENDING-REQUEST-ID.
 Register CALLBACK as the response handler."
   (nrepl-send-request (list "op" "interrupt"
-                            "session" (nrepl-current-session)
+                            "session" (cider-current-session)
                             "interrupt-id" pending-request-id)
                       callback))
 
@@ -1043,7 +1029,7 @@ If POINT is non-nil and current buffer is a file buffer, \"point\" and
 \"file\" are added to the message."
   (append (and ns (list "ns" ns))
           (list "op" "eval"
-                "session" (or session (nrepl-current-session))
+                "session" (or session (cider-current-session))
                 "code" input)
           (when (and point (buffer-file-name))
             (list "file" (buffer-file-name)
@@ -1168,14 +1154,14 @@ the port, and the client buffer."
 
 (defun nrepl-server-sentinel (process event)
   "Handle nREPL server PROCESS EVENT."
-  (let* ((nrepl-buffer (process-buffer process))
-         (connection-buffer (buffer-local-value 'nrepl-connection-buffer nrepl-buffer))
-         (problem (if (and nrepl-buffer (buffer-live-p nrepl-buffer))
-                      (with-current-buffer nrepl-buffer
+  (let* ((server-buffer (process-buffer process))
+         (connection-buffer (buffer-local-value 'nrepl-connection-buffer server-buffer))
+         (problem (if (and server-buffer (buffer-live-p server-buffer))
+                      (with-current-buffer server-buffer
                         (buffer-substring (point-min) (point-max)))
                     "")))
-    (when nrepl-buffer
-      (kill-buffer nrepl-buffer))
+    (when server-buffer
+      (kill-buffer server-buffer))
     (cond
      ((string-match-p "^killed" event)
       nil)
@@ -1329,8 +1315,6 @@ Purge the dead buffers from the `nrepl-connection-list' beforehand."
      (with-current-buffer buffer (derived-mode-p 'cider-repl-mode)))
    (buffer-list)))
 
-;; FIXME: Bad user api; don't burden users with management of
-;; the connection list, same holds for `cider-rotate-default-connection'.
 (defun nrepl-make-connection-default (connection-buffer)
   "Make the nREPL CONNECTION-BUFFER the default connection.
 Moves CONNECTION-BUFFER to the front of `nrepl-connection-list'."
@@ -1341,7 +1325,7 @@ Moves CONNECTION-BUFFER to the front of `nrepl-connection-list'."
         (setq nrepl-connection-list
               (cons buf-name (delq buf-name nrepl-connection-list)))
         (nrepl--connections-refresh))
-    (user-error "Not in an REPL buffer")))
+    (user-error "Not in a REPL buffer")))
 
 (defun nrepl--close-connection-buffer (conn-buffer)
   "Close CONN-BUFFER, removing it from `nrepl-connection-list'.
@@ -1436,11 +1420,11 @@ The connections buffer is determined by
                    (concat " " cider-repl-type)
                  ""))))))
 
-(defun nrepl--project-name (stack)
-  "Extracts a project name from STACK, possibly nil.
-The project name is the final component of STACK if not nil."
-  (when stack
-    (file-name-nondirectory (directory-file-name stack))))
+(defun nrepl--project-name (dir)
+  "Extracts a project name from DIR, possibly nil.
+The project name is the final component of DIR if not nil."
+  (when dir
+    (file-name-nondirectory (directory-file-name dir))))
 
 (defun nrepl--update-connections-display (ewoc connections)
   "Update the connections EWOC to show CONNECTIONS."
