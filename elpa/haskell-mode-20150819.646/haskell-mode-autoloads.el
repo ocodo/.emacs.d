@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ghc-core" "ghc-core.el" (21960 42753 591401
+;;;### (autoloads nil "ghc-core" "ghc-core.el" (21975 62505 187401
 ;;;;;;  0))
 ;;; Generated autoloads from ghc-core.el
 
@@ -50,8 +50,8 @@ Major mode for GHC Core files.
 
 ;;;***
 
-;;;### (autoloads nil "ghci-script-mode" "ghci-script-mode.el" (21960
-;;;;;;  42753 539401 0))
+;;;### (autoloads nil "ghci-script-mode" "ghci-script-mode.el" (21975
+;;;;;;  62505 163401 0))
 ;;; Generated autoloads from ghci-script-mode.el
 
 (autoload 'ghci-script-mode "ghci-script-mode" "\
@@ -63,7 +63,7 @@ Major mode for working with .ghci files.
 
 ;;;***
 
-;;;### (autoloads nil "haskell" "haskell.el" (21960 42753 599401
+;;;### (autoloads nil "haskell" "haskell.el" (21975 62505 195401
 ;;;;;;  0))
 ;;; Generated autoloads from haskell.el
 
@@ -175,7 +175,7 @@ Dump minimal imports.
 ;;;***
 
 ;;;### (autoloads nil "haskell-align-imports" "haskell-align-imports.el"
-;;;;;;  (21960 42753 691401 0))
+;;;;;;  (21975 62505 243401 0))
 ;;; Generated autoloads from haskell-align-imports.el
 
 (defvar haskell-align-imports-pad-after-name nil "\
@@ -190,8 +190,8 @@ Align all the imports in the buffer.
 
 ;;;***
 
-;;;### (autoloads nil "haskell-bot" "haskell-bot.el" (21960 42753
-;;;;;;  687401 0))
+;;;### (autoloads nil "haskell-bot" "haskell-bot.el" (21975 62505
+;;;;;;  243401 0))
 ;;; Generated autoloads from haskell-bot.el
 
 (let ((loads (get 'haskell-bot 'custom-loads))) (if (member '"haskell-bot" loads) nil (put 'haskell-bot 'custom-loads (cons '"haskell-bot" loads))))
@@ -208,8 +208,8 @@ Align all the imports in the buffer.
 
 ;;;***
 
-;;;### (autoloads nil "haskell-cabal" "haskell-cabal.el" (21960 42753
-;;;;;;  651401 0))
+;;;### (autoloads nil "haskell-cabal" "haskell-cabal.el" (21975 62505
+;;;;;;  223401 0))
 ;;; Generated autoloads from haskell-cabal.el
 
 (add-to-list 'auto-mode-alist '("\\.cabal\\'" . haskell-cabal-mode))
@@ -253,8 +253,8 @@ Where to put the comma in lists")
 
 ;;;***
 
-;;;### (autoloads nil "haskell-checkers" "haskell-checkers.el" (21960
-;;;;;;  42753 639401 0))
+;;;### (autoloads nil "haskell-checkers" "haskell-checkers.el" (21975
+;;;;;;  62505 215401 0))
 ;;; Generated autoloads from haskell-checkers.el
 
 (let ((loads (get 'haskell-checkers 'custom-loads))) (if (member '"haskell-checkers" loads) nil (put 'haskell-checkers 'custom-loads (cons '"haskell-checkers" loads))))
@@ -296,8 +296,8 @@ Replace user's code with suggested replacements automatically (hlint only)")
 
 ;;;***
 
-;;;### (autoloads nil "haskell-commands" "haskell-commands.el" (21960
-;;;;;;  42753 683401 0))
+;;;### (autoloads nil "haskell-commands" "haskell-commands.el" (21975
+;;;;;;  62505 239401 0))
 ;;; Generated autoloads from haskell-commands.el
 
 (autoload 'haskell-process-restart "haskell-commands" "\
@@ -431,8 +431,8 @@ Find use cases of the identifier at point and highlight them all.
 
 ;;;***
 
-;;;### (autoloads nil "haskell-compile" "haskell-compile.el" (21960
-;;;;;;  42753 663401 0))
+;;;### (autoloads nil "haskell-compile" "haskell-compile.el" (21975
+;;;;;;  62505 227401 0))
 ;;; Generated autoloads from haskell-compile.el
 
 (let ((loads (get 'haskell-compile 'custom-loads))) (if (member '"haskell-compile" loads) nil (put 'haskell-compile 'custom-loads (cons '"haskell-compile" loads))))
@@ -486,7 +486,7 @@ node `(haskell-mode)compilation' for more details.
 ;;;***
 
 ;;;### (autoloads nil "haskell-complete-module" "haskell-complete-module.el"
-;;;;;;  (21960 42753 667401 0))
+;;;;;;  (21975 62505 227401 0))
 ;;; Generated autoloads from haskell-complete-module.el
 
 (defvar haskell-complete-module-preferred 'nil "\
@@ -502,7 +502,7 @@ Maximum items to display in minibuffer.")
 ;;;***
 
 ;;;### (autoloads nil "haskell-customize" "haskell-customize.el"
-;;;;;;  (21960 42753 659401 0))
+;;;;;;  (21975 62505 223401 0))
 ;;; Generated autoloads from haskell-customize.el
 
 (defvar haskell-process-load-or-reload-prompt nil "\
@@ -766,8 +766,8 @@ same vein as `haskell-indent-spaces'.")
 
 ;;;***
 
-;;;### (autoloads nil "haskell-debug" "haskell-debug.el" (21960 42753
-;;;;;;  531401 0))
+;;;### (autoloads nil "haskell-debug" "haskell-debug.el" (21975 62505
+;;;;;;  159401 0))
 ;;; Generated autoloads from haskell-debug.el
 
 (let ((loads (get 'haskell-debug 'custom-loads))) (if (member '"haskell-debug" loads) nil (put 'haskell-debug 'custom-loads (cons '"haskell-debug" loads))))
@@ -793,7 +793,7 @@ Face for muteds." :group (quote haskell-debug))
 ;;;***
 
 ;;;### (autoloads nil "haskell-decl-scan" "haskell-decl-scan.el"
-;;;;;;  (21960 42753 727401 0))
+;;;;;;  (21975 62505 267401 0))
 ;;; Generated autoloads from haskell-decl-scan.el
 
 (let ((loads (get 'haskell-decl-scan 'custom-loads))) (if (member '"haskell-decl-scan" loads) nil (put 'haskell-decl-scan 'custom-loads (cons '"haskell-decl-scan" loads))))
@@ -860,8 +860,8 @@ Invokes `haskell-decl-scan-mode-hook' on activation.
 
 ;;;***
 
-;;;### (autoloads nil "haskell-doc" "haskell-doc.el" (21960 42753
-;;;;;;  595401 0))
+;;;### (autoloads nil "haskell-doc" "haskell-doc.el" (21975 62505
+;;;;;;  187401 0))
 ;;; Generated autoloads from haskell-doc.el
 
 (let ((loads (get 'haskell-doc 'custom-loads))) (if (member '"haskell-doc" loads) nil (put 'haskell-doc 'custom-loads (cons '"haskell-doc" loads))))
@@ -934,7 +934,7 @@ current buffer.
 ;;;***
 
 ;;;### (autoloads nil "haskell-font-lock" "haskell-font-lock.el"
-;;;;;;  (21960 42753 627401 0))
+;;;;;;  (21975 62505 211401 0))
 ;;; Generated autoloads from haskell-font-lock.el
 
 (defvar haskell-font-lock-symbols nil "\
@@ -983,8 +983,8 @@ Inherit from `default' to avoid fontification of them." :group (quote haskell))
 
 ;;;***
 
-;;;### (autoloads nil "haskell-indent" "haskell-indent.el" (21960
-;;;;;;  42753 707401 0))
+;;;### (autoloads nil "haskell-indent" "haskell-indent.el" (21975
+;;;;;;  62505 255401 0))
 ;;; Generated autoloads from haskell-indent.el
 
 (let ((loads (get 'haskell-indent 'custom-loads))) (if (member '"haskell-indent" loads) nil (put 'haskell-indent 'custom-loads (cons '"haskell-indent" loads))))
@@ -1069,7 +1069,7 @@ Invokes `haskell-indent-hook' if not nil.
 ;;;***
 
 ;;;### (autoloads nil "haskell-indentation" "haskell-indentation.el"
-;;;;;;  (21960 42753 611401 0))
+;;;;;;  (21975 62505 199401 0))
 ;;; Generated autoloads from haskell-indentation.el
 
 (let ((loads (get 'haskell-indentation 'custom-loads))) (if (member '"haskell-indentation" loads) nil (put 'haskell-indentation 'custom-loads (cons '"haskell-indentation" loads))))
@@ -1094,40 +1094,45 @@ modes (e.g. fill-column-indicator).")
 Default face for indentations overlay." :group (quote haskell-indentation))
 
 (defface haskell-indentation-show-hl-line-face '((t :underline t :inherit hl-line)) "\
-Face used for indentations overlay after EOL if hl-line mode is enabled." :group (quote haskell-indentation))
+Face used for indentations overlay after EOL if `hl-line-mode'
+is enabled." :group (quote haskell-indentation))
 
 (defvar haskell-indentation-indent-leftmost t "\
-Indent to the left margin after certain keywords (for example after let .. in, case .. of).  If set to t it will only indent to the left.  If nil only relative to the containing expression.  If set to the keyword 'both then both positions are allowed.")
+Indent to the left margin after certain keywords.
+For example after \"let .. in\", \"case .. of\").  If set to t it
+will only indent to the left.  If nil only relative to the
+containing expression.  If set to the symbol 'both then both
+positions are allowed.")
 
 (custom-autoload 'haskell-indentation-indent-leftmost "haskell-indentation" t)
 
 (defvar haskell-indentation-layout-offset 2 "\
-Extra indentation to add before expressions in a haskell layout list.")
+Extra indentation to add before expressions in a Haskell layout list.")
 
 (custom-autoload 'haskell-indentation-layout-offset "haskell-indentation" t)
 
 (defvar haskell-indentation-starter-offset 2 "\
-Extra indentation after an opening keyword (e.g. let).")
+Extra indentation after an opening keyword (e.g. \"let\").")
 
 (custom-autoload 'haskell-indentation-starter-offset "haskell-indentation" t)
 
 (defvar haskell-indentation-left-offset 2 "\
-Extra indentation after an indentation to the left (e.g. after do).")
+Extra indentation after an indentation to the left (e.g. after \"do\").")
 
 (custom-autoload 'haskell-indentation-left-offset "haskell-indentation" t)
 
 (defvar haskell-indentation-ifte-offset 2 "\
-Extra indentation after the keywords `if' `then' or `else'.")
+Extra indentation after the keywords \"if\", \"then\", or \"else\".")
 
 (custom-autoload 'haskell-indentation-ifte-offset "haskell-indentation" t)
 
 (defvar haskell-indentation-where-pre-offset 2 "\
-Extra indentation before the keyword `where'.")
+Extra indentation before the keyword \"where\".")
 
 (custom-autoload 'haskell-indentation-where-pre-offset "haskell-indentation" t)
 
 (defvar haskell-indentation-where-post-offset 2 "\
-Extra indentation after the keyword `where'.")
+Extra indentation after the keyword \"where\".")
 
 (custom-autoload 'haskell-indentation-where-post-offset "haskell-indentation" t)
 
@@ -1135,7 +1140,7 @@ Extra indentation after the keyword `where'.")
 Haskell indentation mode that deals with the layout rule.
 It rebinds RET, DEL and BACKSPACE, so that indentations can be
 set and deleted as if they were real tabs.  It supports
-autofill-mode.
+`auto-fill-mode'.
 
 It is possible to render indent stops for current line as
 overlays.  Please read documentation for option
@@ -1154,7 +1159,7 @@ Turn on the haskell-indentation minor mode.
 ;;;***
 
 ;;;### (autoloads nil "haskell-interactive-mode" "haskell-interactive-mode.el"
-;;;;;;  (21960 42753 543401 0))
+;;;;;;  (21975 62505 163401 0))
 ;;; Generated autoloads from haskell-interactive-mode.el
 
 (defface haskell-interactive-face-prompt '((t :inherit font-lock-function-name-face)) "\
@@ -1192,8 +1197,8 @@ function `haskell-presentation-present', depending on variable
 
 ;;;***
 
-;;;### (autoloads nil "haskell-load" "haskell-load.el" (21960 42753
-;;;;;;  523401 0))
+;;;### (autoloads nil "haskell-load" "haskell-load.el" (21975 62505
+;;;;;;  155401 0))
 ;;; Generated autoloads from haskell-load.el
 
 (defface haskell-error-face '((((supports :underline (:style wave))) :underline (:style wave :color "#dc322f")) (t :inherit error)) "\
@@ -1217,8 +1222,8 @@ access the running context across :load/:reloads in GHCi.
 
 ;;;***
 
-;;;### (autoloads nil "haskell-menu" "haskell-menu.el" (21960 42753
-;;;;;;  635401 0))
+;;;### (autoloads nil "haskell-menu" "haskell-menu.el" (21975 62505
+;;;;;;  215401 0))
 ;;; Generated autoloads from haskell-menu.el
 
 (defvar haskell-menu-buffer-name "*haskell-menu*" "\
@@ -1233,8 +1238,8 @@ Launch the Haskell sessions menu.
 
 ;;;***
 
-;;;### (autoloads nil "haskell-mode" "haskell-mode.el" (21960 42753
-;;;;;;  695401 0))
+;;;### (autoloads nil "haskell-mode" "haskell-mode.el" (21975 62505
+;;;;;;  247401 0))
 ;;; Generated autoloads from haskell-mode.el
 
 (autoload 'haskell-version "haskell-mode" "\
@@ -1422,8 +1427,8 @@ Number of spaces to indent inwards.")
 
 ;;;***
 
-;;;### (autoloads nil "haskell-modules" "haskell-modules.el" (21960
-;;;;;;  42753 715401 0))
+;;;### (autoloads nil "haskell-modules" "haskell-modules.el" (21975
+;;;;;;  62505 263401 0))
 ;;; Generated autoloads from haskell-modules.el
 
 (autoload 'haskell-session-installed-modules "haskell-modules" "\
@@ -1447,7 +1452,7 @@ If DONTCREATE is non-nil don't create a new session.
 ;;;***
 
 ;;;### (autoloads nil "haskell-move-nested" "haskell-move-nested.el"
-;;;;;;  (21960 42753 703401 0))
+;;;;;;  (21975 62505 255401 0))
 ;;; Generated autoloads from haskell-move-nested.el
 
 (autoload 'haskell-move-nested "haskell-move-nested" "\
@@ -1481,7 +1486,7 @@ of the region instead.
 ;;;***
 
 ;;;### (autoloads nil "haskell-navigate-imports" "haskell-navigate-imports.el"
-;;;;;;  (21960 42753 719401 0))
+;;;;;;  (21975 62505 263401 0))
 ;;; Generated autoloads from haskell-navigate-imports.el
 
 (autoload 'haskell-navigate-imports "haskell-navigate-imports" "\
@@ -1502,8 +1507,8 @@ Return to the non-import point we were at before going to the module list.
 
 ;;;***
 
-;;;### (autoloads nil "haskell-session" "haskell-session.el" (21960
-;;;;;;  42753 615401 0))
+;;;### (autoloads nil "haskell-session" "haskell-session.el" (21975
+;;;;;;  62505 203401 0))
 ;;; Generated autoloads from haskell-session.el
 
 (autoload 'haskell-session-maybe "haskell-session" "\
@@ -1519,7 +1524,7 @@ Get the session process.
 ;;;***
 
 ;;;### (autoloads nil "haskell-simple-indent" "haskell-simple-indent.el"
-;;;;;;  (21960 42753 583401 0))
+;;;;;;  (21975 62505 183401 0))
 ;;; Generated autoloads from haskell-simple-indent.el
 
 (let ((loads (get 'haskell-simple-indent 'custom-loads))) (if (member '"haskell-simple-indent" loads) nil (put 'haskell-simple-indent 'custom-loads (cons '"haskell-simple-indent" loads))))
@@ -1545,7 +1550,7 @@ Turn on function `haskell-simple-indent-mode'.
 ;;;***
 
 ;;;### (autoloads nil "haskell-sort-imports" "haskell-sort-imports.el"
-;;;;;;  (21960 42753 647401 0))
+;;;;;;  (21975 62505 219401 0))
 ;;; Generated autoloads from haskell-sort-imports.el
 
 (autoload 'haskell-sort-imports "haskell-sort-imports" "\
@@ -1560,7 +1565,7 @@ within that region.
 ;;;***
 
 ;;;### (autoloads nil "haskell-unicode-input-method" "haskell-unicode-input-method.el"
-;;;;;;  (21960 42753 575401 0))
+;;;;;;  (21975 62505 179401 0))
 ;;; Generated autoloads from haskell-unicode-input-method.el
 
 (autoload 'turn-on-haskell-unicode-input-method "haskell-unicode-input-method" "\
@@ -1572,7 +1577,7 @@ See Info node `Unicode(haskell-mode)' for more details.
 ;;;***
 
 ;;;### (autoloads nil "highlight-uses-mode" "highlight-uses-mode.el"
-;;;;;;  (21960 42753 671401 0))
+;;;;;;  (21975 62505 231401 0))
 ;;; Generated autoloads from highlight-uses-mode.el
 
 (autoload 'highlight-uses-mode "highlight-uses-mode" "\
@@ -1582,8 +1587,8 @@ Minor mode for highlighting and jumping between uses.
 
 ;;;***
 
-;;;### (autoloads nil "inf-haskell" "inf-haskell.el" (21960 42753
-;;;;;;  527401 0))
+;;;### (autoloads nil "inf-haskell" "inf-haskell.el" (21975 62505
+;;;;;;  159401 0))
 ;;; Generated autoloads from inf-haskell.el
 
 (let ((loads (get 'inferior-haskell 'custom-loads))) (if (member '"inf-haskell" loads) nil (put 'inferior-haskell 'custom-loads (cons '"inf-haskell" loads))))
@@ -1709,8 +1714,8 @@ Minor mode for enabling inf-haskell process interaction.
 
 ;;;***
 
-;;;### (autoloads nil "w3m-haddock" "w3m-haddock.el" (21960 42753
-;;;;;;  679401 0))
+;;;### (autoloads nil "w3m-haddock" "w3m-haddock.el" (21975 62505
+;;;;;;  239401 0))
 ;;; Generated autoloads from w3m-haddock.el
 
 (defface w3m-haddock-heading-face '((((class color)) :inherit magit-item-highlight)) "\
@@ -1735,7 +1740,7 @@ You can rebind this if you're using hsenv by adding it to your
 ;;;;;;  "haskell-completions.el" "haskell-lexeme.el" "haskell-mode-pkg.el"
 ;;;;;;  "haskell-package.el" "haskell-presentation-mode.el" "haskell-process.el"
 ;;;;;;  "haskell-repl.el" "haskell-sandbox.el" "haskell-string.el"
-;;;;;;  "haskell-utils.el") (21960 42753 741312 859000))
+;;;;;;  "haskell-utils.el") (21975 62505 278169 121000))
 
 ;;;***
 

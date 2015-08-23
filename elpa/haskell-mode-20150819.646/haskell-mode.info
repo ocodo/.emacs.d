@@ -39,6 +39,7 @@ interpreter (e.g.  GHCi).
 * Inferior Haskell interpreter::    How to interact with GHCi (1)
 * Interactive Haskell::             How to interact with GHCi (2)
 * Editing Cabal files::             Cabal support
+* Changing REPL target::            Start REPL with selected target (i.e. test,bench,etc.)
 * Concept index::                   Index of Haskell Mode concepts
 * Function index::                  index of commands
 * Variable index::                  Index of options and types
@@ -486,7 +487,7 @@ associate with.
    TODO/WRITEME
 
 
-File: haskell-mode.info,  Node: Editing Cabal files,  Next: Concept index,  Prev: Interactive Haskell,  Up: Top
+File: haskell-mode.info,  Node: Editing Cabal files,  Next: Changing REPL target,  Prev: Interactive Haskell,  Up: Top
 
 11 Editing Cabal files
 **********************
@@ -508,7 +509,39 @@ visit the ‘.cabal’ file.  If you wish, you can bind
    TODO/WRITEME
 
 
-File: haskell-mode.info,  Node: Concept index,  Next: Function index,  Prev: Editing Cabal files,  Up: Top
+File: haskell-mode.info,  Node: Changing REPL target,  Next: Concept index,  Prev: Editing Cabal files,  Up: Top
+
+12 Changing REPL target
+***********************
+
+With ‘haskell-session-change-target’ you can change the section (defined
+in project’s ‘.cabal’ file) the interactive REPL session is started
+with.
+
+   After the session is started, you can switch the target for
+
+   - Testing
+
+   In ‘haskell-interactive-mode’ buffer invoke the
+‘haskell-session-change-target’ and enter the name of the test you wish
+to perform, i.e.  “test”.  Answer “yes” to restart the session.
+
+   - Benchmark
+
+   In ‘haskell-interactive-mode’ buffer invoke the
+‘haskell-session-change-target’ and enter the name of the benchmark you
+wish to perform, i.e.  “bench”.  Answer “yes” to restart the session.
+
+   - Executable
+
+   In ‘haskell-interactive-mode’ buffer invoke the
+‘haskell-session-change-target’ and enter the name of the executable you
+wish to work with.  Answer “yes” to restart the session.
+
+   TODO/WRITEME
+
+
+File: haskell-mode.info,  Node: Concept index,  Next: Function index,  Prev: Changing REPL target,  Up: Top
 
 Concept index
 *************
@@ -516,6 +549,7 @@ Concept index
  [index ]
 * Menu:
 
+* benchmarking:                          Changing REPL target. (line 18)
 * CUA mode:                              Indentation.          (line 76)
 * customizing:                           Getting Started.      (line  9)
 * ‘haskell-mode’:                        Editing Haskell Code. (line  6)
@@ -524,6 +558,7 @@ Concept index
 * literate programming:                  Editing Haskell Code. (line 27)
 * off-side rule:                         Indentation.          (line  6)
 * rectangle:                             Indentation.          (line 76)
+* testing:                               Changing REPL target. (line 12)
 * Unicode:                               Unicode support.      (line  6)
 
 
@@ -544,6 +579,7 @@ Function index
 * haskell-mode:                          Editing Haskell Code. (line  6)
 * haskell-move-nested-left:              Indentation.          (line 68)
 * haskell-move-nested-right:             Indentation.          (line 68)
+* haskell-session-change-target:         Changing REPL target. (line  6)
 * haskell-simple-indent-mode:            Indentation.          (line 17)
 * inferior-haskell-find-definition:      Inferior Haskell interpreter.
                                                                (line  6)
@@ -579,6 +615,7 @@ Variable index
 * haskell-compile-cabal-build-command-alt: Compilation.        (line 35)
 * haskell-compile-command:               Compilation.          (line 35)
 * haskell-decl-scan-mode-hook:           Declaration scanning. (line  6)
+* haskell-interactive-mode-hook:         Changing REPL target. (line  6)
 * haskell-mode-hook:                     Getting Started.      (line 15)
 * haskell-program-name:                  Inferior Haskell interpreter.
                                                                (line  6)
@@ -589,24 +626,25 @@ Variable index
 
 Tag Table:
 Node: Top679
-Node: Introduction1857
-Node: Getting Help and Reporting Bugs2374
-Node: Getting Started3836
-Node: Editing Haskell Code4832
-Ref: Editing Haskell Code-Footnote-16772
-Ref: Editing Haskell Code-Footnote-26863
-Ref: Editing Haskell Code-Footnote-36922
-Node: Unicode support7006
-Node: Indentation8696
-Ref: Indentation-Footnote-112584
-Node: Declaration scanning12769
-Node: Compilation14906
-Node: Inferior Haskell interpreter17676
-Node: Interactive Haskell18606
-Node: Editing Cabal files20483
-Node: Concept index21362
-Node: Function index22184
-Node: Variable index24441
+Node: Introduction1948
+Node: Getting Help and Reporting Bugs2465
+Node: Getting Started3927
+Node: Editing Haskell Code4923
+Ref: Editing Haskell Code-Footnote-16863
+Ref: Editing Haskell Code-Footnote-26954
+Ref: Editing Haskell Code-Footnote-37013
+Node: Unicode support7097
+Node: Indentation8787
+Ref: Indentation-Footnote-112675
+Node: Declaration scanning12860
+Node: Compilation14997
+Node: Inferior Haskell interpreter17767
+Node: Interactive Haskell18697
+Node: Editing Cabal files20574
+Node: Changing REPL target21460
+Node: Concept index22519
+Node: Function index23488
+Node: Variable index25818
 
 End Tag Table
 
