@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: ko.pureComputed
+# group: knockout
+# --
+@${1:computedName} = ko.pureComputed =>
+   ${2:functionBody}

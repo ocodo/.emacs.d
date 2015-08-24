@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-#
+# name: (bp for ruby reflexes) debugger
+# --
+debugger
