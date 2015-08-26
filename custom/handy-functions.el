@@ -421,7 +421,6 @@ the buffer."
   (backward-word)
   (kill-word 1))
 
-
 (defun sass-hex-color-to-var ()
   "Find a hex color, and replace it with a newly created variable name.
 Place the created variable at the top of the file.  Name it based
@@ -664,10 +663,27 @@ Use negative prefix P to go backward."
   (interactive)
   (flush-lines "^\s*$" nil nil t))
 
+(defun edit-handy-functions ()
+  "Open handy-functions.el for editing."
+  (interactive)
+  (find-file "~/.emacs.d/custom/handy-functions.el"))
+
+(defun copy-region-to-other-window ()
+  "Copy the current region to the other window."
+  (interactive)
+  (if (region-active-p)
+      (progn
+        (kill-ring-save (region-beginning) (region-end))
+        (other-window 1)
+        (cua-paste prefix-arg))
+    (message "no region selected")))
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
 (global-set-key (kbd "ESC M-d")   'kill-whole-word)
+(global-set-key (kbd "C-c ESC h") 'edit-handy-functions)
+(global-set-key (kbd "C-c ESC c") 'copy-region-to-other-window)
 (global-set-key (kbd "C-a")       'smart-beginning-of-line)
 (global-set-key (kbd "C-S-o")     'open-line-above)
 (global-set-key (kbd "C-o")       'open-line-below)
