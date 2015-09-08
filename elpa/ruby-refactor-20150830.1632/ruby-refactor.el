@@ -4,8 +4,8 @@
 
 ;; Authors: Andrew J Vargo <ajvargo@gmail.com>, Jeff Morgan <jeff.morgan@leandog.com>
 ;; Keywords: refactor ruby
-;; Version: 20140719.1645
-;; X-Original-Version: 0.1
+;; Package-Version: 20150830.1632
+;; Version: 0.1
 ;; URL: https://github.com/ajvargo/ruby-refactor
 ;; Package-Requires: ((ruby-mode "1.2"))
 
@@ -104,7 +104,6 @@
 ;; ## TODO
 ;; From the vim plugin, these remain to be done (I don't plan to do them all.)
 ;;  - remove inline temp (sexy!)
-;;  - convert post conditional
 
 ;;; Code:
 
@@ -164,6 +163,7 @@ being altered."
       (define-key prefix-map (kbd "l") 'ruby-refactor-extract-to-let)
       (define-key prefix-map (kbd "v") 'ruby-refactor-extract-local-variable)
       (define-key prefix-map (kbd "c") 'ruby-refactor-extract-constant)
+      (define-key prefix-map (kbd "o") 'ruby-refactor-convert-post-conditional)
       (define-key map ruby-refactor-keymap-prefix prefix-map))
     map)
   "Keymap to use in ruby refactor minor mode.")
@@ -429,7 +429,25 @@ If a region is not selected, the transformation uses the current line."
 (defun ruby-refactor-convert-post-conditional()
   "Convert post conditional expression to conditional expression"
   (interactive)
-  (error "Not Yet Implemented"))
+  (save-restriction
+    (save-match-data
+      (widen)
+      (let* ((text-begin (region-beginning))
+             (text-end (region-end))
+             (text (ruby-refactor-trim-newline-endings (buffer-substring-no-properties text-begin text-end)))
+             (conditional
+              (cond ((string-match-p "if" text) "if")
+                    ((string-match-p "unless" text) "unless")
+                    (t (error "You need an `if' or `unless' on the target line"))))
+             (line-components (ruby-refactor-trim-list (split-string text (format " %s " conditional)))))
+        (delete-region text-begin text-end)
+        (insert (format "%s %s" conditional (car line-components)))
+        (newline-and-indent)
+        (insert (format "%s" (cadr line-components)))
+        (newline-and-indent)
+        (insert "end")
+        (ruby-indent-line)
+        (search-backward conditional)))))
 
 ;;;###autoload
 (define-minor-mode ruby-refactor-mode
