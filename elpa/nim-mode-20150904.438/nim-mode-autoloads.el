@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "nim-mode" "nim-mode.el" (21965 50192 247401
+;;;### (autoloads nil "nim-mode" "nim-mode.el" (21998 34694 87401
 ;;;;;;  0))
 ;;; Generated autoloads from nim-mode.el
 
@@ -19,7 +19,7 @@ A major mode for the Nim programming language.
 ;;;### (autoloads nil nil ("company-nim.el" "nim-compile.el" "nim-fill.el"
 ;;;;;;  "nim-helper.el" "nim-indent.el" "nim-mode-pkg.el" "nim-rx.el"
 ;;;;;;  "nim-suggest.el" "nim-syntax.el" "nim-thing-at-point.el"
-;;;;;;  "nim-util.el" "nim-vars.el") (21965 50192 263059 336000))
+;;;;;;  "nim-util.el" "nim-vars.el") (21998 34694 95663 324000))
 
 ;;;***
 
