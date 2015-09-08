@@ -3,7 +3,7 @@
 ;;
 ;; Author: Jeremy Whitlock <jwhitlock@apache.org
 ;; Version: 0.2
-;; Package-Version: 20150512.2303
+;; Package-Version: 20150825.1105
 ;; Keywords: themes atom dark
 ;; URL: https://github.com/whitlockjc/atom-dark-theme-emacs
 ;;
@@ -139,6 +139,18 @@
  '(speedbar-selected-face ((t (:background "#4182C4" :foreground "#FFFFFF"))))
  '(speedbar-separator-face ((t (:background "grey11" :foreground "#C5C8C6" :overline "#7C7C7C"))))
  '(speedbar-tag-face ((t (:inherit (font-lock-function-name-face)))))
+
+ ;; whitespace
+ '(whitespace-empty ((t (:foreground "#333333"))))
+ '(whitespace-hspace ((t (:inherit (whitespace-empty)))))
+ '(whitespace-indentation ((t (:inherit (whitespace-empty)))))
+ '(whitespace-line ((t (:inherit (trailing-whitespace)))))
+ '(whitespace-newline ((t (:inherit (whitespace-empty)))))
+ '(whitespace-space ((t (:inherit (whitespace-empty)))))
+ '(whitespace-space-after-tab ((t (:inherit (whitespace-empty)))))
+ '(whitespace-space-before-tab ((t (:inherit (whitespace-empty)))))
+ '(whitespace-tab ((t (:inherit (whitespace-empty)))))
+ '(whitespace-trailing ((t (:inherit (trailing-whitespace)))))
  )
 
 (defvar atom-dark-theme-force-faces-for-mode t
@@ -164,20 +176,20 @@ Current modes, and their faces, impacted by this variable:
 ;;   http://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Remapping.html
 ;;
 ;; Of course, this might be confusing to some when in one mode they see keywords highlighted in one face and in another
-;; mode they see a different face.  That being said, you can set the `atom-dark-theme-force-faces-for-mode` variable to `nil`
-;; to disable this feature.
+;; mode they see a different face.  That being said, you can set the `atom-dark-theme-force-faces-for-mode` variable to
+;; `nil` to disable this feature.
 (defun atom-dark-theme-change-faces-for-mode ()
   (interactive)
   (and (eq atom-dark-theme-force-faces-for-mode t)
        (cond
-	((member major-mode '(conf-mode conf-javaprop-mode html-mode yaml-mode))
-	 (face-remap-add-relative 'font-lock-variable-name-face '(:inherit (font-lock-keyword-face))))
-	((eq major-mode 'java-mode)
-	 (face-remap-add-relative 'font-lock-variable-name-face '(:inherit (js2-function-param))))
-	((eq major-mode 'markdown-mode)
-	 (face-remap-add-relative 'default '(:foreground "#999")))
-	((member major-mode '(javascript-mode js2-mode))
-	 (face-remap-add-relative 'font-lock-doc-face '(:inherit (font-lock-comment-face)))))))
+        ((member major-mode '(conf-mode conf-javaprop-mode html-mode yaml-mode))
+         (face-remap-add-relative 'font-lock-variable-name-face '(:inherit (font-lock-keyword-face))))
+        ((eq major-mode 'java-mode)
+         (face-remap-add-relative 'font-lock-variable-name-face '(:inherit (js2-function-param))))
+        ((eq major-mode 'markdown-mode)
+         (face-remap-add-relative 'default '(:foreground "#999")))
+        ((member major-mode '(javascript-mode js2-mode))
+         (face-remap-add-relative 'font-lock-doc-face '(:inherit (font-lock-comment-face)))))))
 
 (add-hook 'after-change-major-mode-hook 'atom-dark-theme-change-faces-for-mode)
 
@@ -185,7 +197,7 @@ Current modes, and their faces, impacted by this variable:
 (and load-file-name
      (boundp 'custom-theme-load-path)
      (add-to-list 'custom-theme-load-path
-		  (file-name-as-directory (file-name-directory load-file-name))))
+                  (file-name-as-directory (file-name-directory load-file-name))))
 
 (provide-theme 'atom-dark)
 
