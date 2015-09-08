@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2015, Drew Adams, all rights reserved.
 ;; Created: Mon Feb 27 09:25:53 2006
-;; Last-Updated: Wed Jul 29 11:49:55 2015 (-0700)
+;; Last-Updated: Fri Aug 21 10:47:52 2015 (-0700)
 ;;           By: dradams
-;;     Update #: 15089
+;;     Update #: 15107
 ;; URL: http://www.emacswiki.org/icicles-fn.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: internal, extensions, help, abbrev, local, minibuffer,
@@ -173,6 +173,7 @@
 ;;    `icicle-levenshtein-one-match', `icicle-levenshtein-one-regexp',
 ;;    `icicle-levenshtein-strict-match', `icicle-list-position',
 ;;    `icicle-looks-like-dir-name-p', `icicle-local-keys-first-p',
+;;    `icicle-lru-window-for-buffer' (Emacs 24+),
 ;;    `icicle-make-char-candidate', `icicle-make-face-candidate',
 ;;    `icicle-make-plain-predicate', `icicle-major-mode-name-less-p',
 ;;    `icicle-maybe-sort-and-strip-candidates',
@@ -183,7 +184,8 @@
 ;;    `icicle-minibuffer-default-add-completions',
 ;;    `icicle-minibuf-input', `icicle-minibuf-input-sans-dir',
 ;;    `icicle-minibuffer-prompt-end', `icicle-mode-line-name-less-p',
-;;    `icicle-mouseover-help', `icicle-msg-maybe-in-minibuffer',
+;;    `icicle-mouseover-help', `icicle-mru-window-for-buffer' (Emacs
+;;    24+), `icicle-msg-maybe-in-minibuffer',
 ;;    `icicle-ms-windows-NET-USE',
 ;;    `icicle-multi-comp-apropos-complete-match', `icicle-multi-sort',
 ;;    `icicle-next-candidate', `icicle-next-error-buffer-p',
@@ -2410,8 +2412,7 @@ such a return value: (CHAR-NAME . CHAR-CODE)."
 (unless (fboundp 'icicle-ORIG-read-string)
   (defalias 'icicle-ORIG-read-string (symbol-function 'read-string)))
 
-(defun icicle-read-string (prompt &optional initial-input hist-m@%=!$+&^*z
-                           default-value inherit-input-method)
+(defun icicle-read-string (prompt &optional initial-input hist-m@%=!$+&^*z default-value inherit-input-method)
   "Read a string from the minibuffer, prompting with string PROMPT.
 If non-nil, second arg INITIAL-INPUT is a string to insert before reading.
   Vanilla Emacs considers it to be obsolete, but Icicles does not.  It
@@ -2426,7 +2427,7 @@ Fourth arg DEFAULT-VALUE is the default value.  If non-nil, it is used
 Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of enable-multibyte-characters."
   (when default-value
-    (setq prompt  (icicle-handle-default-for-prompt prompt default-value 'INCLUDE)))
+    (setq prompt  (icicle-handle-default-for-prompt prompt default-value (eq icicle-default-value t))))
   (let ((value  (read-from-minibuffer prompt initial-input nil nil hist-m@%=!$+&^*z
                                       default-value inherit-input-method)))
     (when (and default-value  (equal value ""))
@@ -5091,6 +5092,36 @@ occurrences."
 (defun icicle-unlist (object)
   "If OBJECT is a cons, return its car; else return OBJECT."
   (if (consp object) (car object) object))
+
+(when (fboundp 'window-use-time) ; Emacs 24+
+
+  (defun icicle-lru-window-for-buffer (buffer &optional minibuf all-frames)
+    "Return the least recently used window for BUFFER.
+Optional args MINIBUF and ALL-FRAMES are as for `get-buffer-window-list'."
+    (let* ((wins      (get-buffer-window-list buffer minibuf all-frames))
+           (lru-win   (car wins))
+           (lru-time  (window-use-time lru-win))
+           wtime)
+      (dolist (win  (cdr wins))
+        (when (time-less-p (setq wtime  (window-use-time win)) lru-time)
+          (setq lru-time  wtime
+                lru-win   win)))
+      lru-win))
+
+  (defun icicle-mru-window-for-buffer (buffer &optional minibuf all-frames)
+    "Return the most recently used window for BUFFER.
+Optional args MINIBUF and ALL-FRAMES are as for `get-buffer-window-list'."
+    (let* ((wins      (get-buffer-window-list buffer minibuf all-frames))
+           (mru-win   (car wins))
+           (mru-time  (window-use-time mru-win))
+           wtime)
+      (dolist (win  (cdr wins))
+        (unless (time-less-p (setq wtime  (window-use-time win)) mru-time)
+          (setq mru-time  wtime
+                mru-win   win)))
+      mru-win))
+
+  )
 
 (defun icicle-position (item list)
   "Zero-based position of first occurrence of ITEM in LIST, else nil."

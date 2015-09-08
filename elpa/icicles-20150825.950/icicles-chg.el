@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 2007-2015, Drew Adams, all rights reserved.
 ;; Created: Tue Nov 27 07:47:53 2007
-;; Last-Updated: Thu Aug 20 11:23:41 2015 (-0700)
+;; Last-Updated: Tue Aug 25 09:50:46 2015 (-0700)
 ;;           By: dradams
-;;     Update #: 11528
+;;     Update #: 11549
 ;; URL: http://www.emacswiki.org/icicles-chg.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -85,6 +85,9 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-cmd1.el'")
 ;;
+;; 2015/08/25 dadams
+;;     icicle-find-file-(no-search|of-content)-in-tags-table-1:
+;;       Fix for MS Windows: use file-relative-name, to convert \\ to /.  Thx to Chris Hecker.
 ;; 2015/08/04 dadams
 ;;     icicle-bbdb-complete-name:
 ;;       Corrected fix of 2014-01-25: Removed NOT for zerop string-to-number.  Thx to Nick Alcock.
@@ -1161,6 +1164,13 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-cmd2.el'")
 ;;
+;; 2015/08/23 dadams
+;;     icicle-buffer-narrowing, icicle-select-zone-action: Same as for icicle-select-zone yesterday.
+;; 2015/08/22 dadams
+;;     icicle-select-zone:
+;;       Added optional parameters.  Different prefix arg behavior (like zz-add-zone).
+;;       User can specify var.  Can select zones in multiple buffers.  Uses icicle-izones-var.
+;;     icicle-select-zone-action: Use icicle-izones-var, not zz-izones-var.
 ;; 2015/08/19 dadams
 ;;     icicle-occur, icicle-search-(sentences|paragraphs|pages), icicle-compilation-search:
 ;;       Use face remapping (face-remap-(re)set-base) instead of set-face-* for Emacs 23+.
@@ -2211,6 +2221,10 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-fn.el'")
 ;;
+;; 2015/08/21 dadams
+;;     Added: icicle-lru-window-for-buffer, icicle-mru-window-for-buffer.
+;; 2015/08/20
+;;     icicle-read-string: Replaced hard-coded non-nil INCLUDE arg by (eq icicle-default-value t).
 ;; 2015/07/05 dadams
 ;;     icicle-levenshtein-strict-match: Raise error if cannot load levenshtein.el.
 ;; 2015/02/20 dadams
@@ -4531,6 +4545,13 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-mcmd.el'")
 ;;
+;; 2015/08/21 dadams
+;;     icicle-display-candidates-in-Completions:
+;;       Use icicle-mru-window-for-buffer (Emacs 24+).
+;;       Do the font-family remapping even if 1on1-display-*Completions*-frame, because Icicles calls
+;;        i-d-c-i-C repeatedly, and it does with-output-to-help-buffer, which kills local vars,
+;;        including the face-remapping var.  IOW, cannot depend on 1on1-display-*Completions*-frame,
+;;        since that is called only once, when the frame is created.
 ;; 2015/08/20 dadams
 ;;     icicle-display-candidates-in-Completions, icicle-remove-Completions-window:
 ;;       Use face remapping (face-remap-(add|remove)-relative) instead of set-face-* for Emacs 23+.
@@ -8548,6 +8569,8 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-var.el'")
 ;;
+;; 2015/08/22 dadams
+;;     Added: icicle-izones-var.
 ;; 2015/08/20 dadams
 ;;     Added: icicle-face-remapping-Completions.
 ;;     Renamed: icicle-region-face-remapping to icicle-face-remapping-region.
