@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "flycheck" "flycheck.el" (21975 62521 623401
+;;;### (autoloads nil "flycheck" "flycheck.el" (21998 34833 723401
 ;;;;;;  0))
 ;;; Generated autoloads from flycheck.el
 
@@ -83,11 +83,9 @@ The following PROPERTIES constitute an error level:
      overlay categories.
 
      A category for an error level overlay should at least define
-     the `face' property, for error highlighting.  Other useful
-     properties for error level categories are `priority' to
-     influence the stacking of multiple error level overlays, and
-     `help-echo' to define a default error messages for errors
-     without messages.
+     the `face' property, for error highlighting.  Another useful
+     property for error level categories is `priority', to
+     influence the stacking of multiple error level overlays.
 
 `:fringe-bitmap BITMAP'
      A fringe bitmap symbol denoting the bitmap to use for fringe
@@ -219,8 +217,8 @@ Use this together with the `option', `option-list' and
 
 ;;;***
 
-;;;### (autoloads nil nil ("flycheck-ert.el" "flycheck-pkg.el") (21975
-;;;;;;  62521 635151 566000))
+;;;### (autoloads nil nil ("flycheck-ert.el" "flycheck-pkg.el") (21998
+;;;;;;  34833 742601 164000))
 
 ;;;***
 

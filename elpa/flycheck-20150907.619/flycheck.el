@@ -398,6 +398,24 @@ If set to nil, do not display errors at all."
   :package-version '(flycheck . "0.13")
   :risky t)
 
+(defcustom flycheck-help-echo-function #'flycheck-help-echo-all-error-messages
+  "Function to compute the contents of the error tooltips.
+
+If set to a function, call the function with the list of errors
+to display as single argument.  Each error is an instance of the
+`flycheck-error' struct.  The function is used to set the
+help-echo property of flycheck error overlays.  It should return
+a string, which is displayed when the user hovers over an error
+or presses \\[display-local-help].
+
+If set to nil, do not show error tooltips."
+  :group 'flycheck
+  :type '(choice (const :tag "Concatenate error messages to form a tooltip"
+                        flycheck-help-echo-all-error-messages)
+                 (function :tag "Help echo function"))
+  :package-version '(flycheck . "0.25")
+  :risky t)
+
 (defcustom flycheck-indication-mode 'left-fringe
   "The indication mode for Flycheck errors and warnings.
 
@@ -3036,11 +3054,9 @@ The following PROPERTIES constitute an error level:
      overlay categories.
 
      A category for an error level overlay should at least define
-     the `face' property, for error highlighting.  Other useful
-     properties for error level categories are `priority' to
-     influence the stacking of multiple error level overlays, and
-     `help-echo' to define a default error messages for errors
-     without messages.
+     the `face' property, for error highlighting.  Another useful
+     property for error level categories is `priority', to
+     influence the stacking of multiple error level overlays.
 
 `:fringe-bitmap BITMAP'
      A fringe bitmap symbol denoting the bitmap to use for fringe
@@ -3122,7 +3138,6 @@ show the icon."
 ;;; Built-in error levels
 (setf (get 'flycheck-error-overlay 'face) 'flycheck-error)
 (setf (get 'flycheck-error-overlay 'priority) 110)
-(setf (get 'flycheck-error-overlay 'help-echo) "Unknown error.")
 
 (flycheck-define-error-level 'error
   :severity 100
@@ -3134,7 +3149,6 @@ show the icon."
 
 (setf (get 'flycheck-warning-overlay 'face) 'flycheck-warning)
 (setf (get 'flycheck-warning-overlay 'priority) 100)
-(setf (get 'flycheck-warning-overlay 'help-echo) "Unknown warning.")
 
 (flycheck-define-error-level 'warning
   :severity 10
@@ -3146,7 +3160,6 @@ show the icon."
 
 (setf (get 'flycheck-info-overlay 'face) 'flycheck-info)
 (setf (get 'flycheck-info-overlay 'priority) 90)
-(setf (get 'flycheck-info-overlay 'help-echo) "Unknown info.")
 
 (flycheck-define-error-level 'info
   :severity -1
@@ -3395,8 +3408,34 @@ Return the created overlay."
       (setf (overlay-get overlay 'before-string)
             (flycheck-error-level-make-fringe-icon
              level flycheck-indication-mode)))
-    (setf (overlay-get overlay 'help-echo) (flycheck-error-message err))
+    (setf (overlay-get overlay 'help-echo) #'flycheck-help-echo)
     overlay))
+
+(defun flycheck-help-echo (window object pos)
+  "Construct a tooltip message.
+
+Most of the actual work is done by calling
+`flycheck-help-echo-function' with the appropriate list of
+errors.  Arguments WINDOW, OBJECT and POS are as described in
+info node `(elisp)Special properties', as this function is
+intended to be used as the 'help-echo property of flycheck error
+overlays."
+  (-when-let (buf (cond ((bufferp object) object)
+                        ((overlayp object) (overlay-buffer object))))
+    (with-current-buffer buf
+      (-when-let* ((fn flycheck-help-echo-function)
+                   (errs (flycheck-overlay-errors-at pos)))
+        (funcall fn errs)))))
+
+(defun flycheck-help-echo-all-error-messages (errs)
+  "Concatenate error messages and ids from ERRS."
+  (mapconcat
+   (lambda (err)
+     (when err
+       (if (flycheck-error-message err)
+           (flycheck-error-format-message-and-id err)
+         (format "Unknown %s" (flycheck-error-level err)))))
+   (reverse errs) "\n\n"))
 
 (defun flycheck-filter-overlays (overlays)
   "Get all Flycheck overlays from OVERLAYS."
@@ -3652,10 +3691,33 @@ Return a list with the contents of the table cell."
                   (flycheck-error-list-make-cell
                    (if id (format "%s" id) "")
                    'flycheck-error-list-id)
-                  (flycheck-error-list-make-cell message)
+                  (flycheck-error-list-make-cell
+                   (flycheck-flush-multiline-message message))
                   (flycheck-error-list-make-cell
                    (format "(%s)" checker)
                    'flycheck-error-list-checker-name)))))
+
+(defun flycheck-compute-message-column-offset ()
+  "Compute the amount of space to use in `flycheck-flush-multiline-message'."
+  (let* ((widths (mapcar (lambda (fmt)
+                           (pcase-let* ((`(,name ,width _ ,props) fmt)
+                                        (padding (plist-get props :pad-right)))
+                             (cons name (+ width (or padding 1)))))
+                         tabulated-list-format))
+         (before-msg (-take-while (lambda (fmt)
+                                    (not (string= (car fmt) "Message")))
+                                  widths)))
+    (apply #'+ tabulated-list-padding (mapcar #'cdr before-msg))))
+
+(defun flycheck-flush-multiline-message (msg)
+  "Prepare error message MSG for display in the error list.
+
+Prepend all lines of MSG except the first with enough space to
+ensure that they line up properly once the message is displayed."
+  (let* ((msg-offset (flycheck-compute-message-column-offset))
+         (spc (propertize " " 'display `(space . (:width ,msg-offset))))
+         (rep (concat "\\1" spc "\\2")))
+    (replace-regexp-in-string "\\([\r\n]+\\)\\(.\\)" rep msg)))
 
 (defun flycheck-error-list-current-errors ()
   "Read the list of errors in `flycheck-error-list-source-buffer'."
@@ -5736,7 +5798,7 @@ See URL `http://coq.inria.fr/'."
   ((error line-start "File \"" (file-name) "\", line " line
           ;; TODO: Parse the end column, once Flycheck supports that
           ", characters " column "-" (one-or-more digit) ":\n"
-          (or "Syntax error: " "Error: ")
+          (or "Syntax error:" "Error:")
           ;; Most Coq error messages span multiple lines, and end with a dot.
           ;; There are simple one-line messages, too, though.
           (message (or (and (one-or-more (or not-newline "\n")) ".")
@@ -5744,7 +5806,7 @@ See URL `http://coq.inria.fr/'."
           line-end))
   :error-filter
   (lambda (errors)
-    (dolist (err errors)
+    (dolist (err (flycheck-sanitize-errors errors))
       (setf (flycheck-error-message err)
             (replace-regexp-in-string (rx (1+ (syntax whitespace)) line-end)
                                       "" (flycheck-error-message err)
@@ -6312,7 +6374,7 @@ See URL `https://github.com/kisielk/errcheck'."
   :command ("errcheck" (eval (flycheck-go-package-name)))
   :error-patterns
   ((warning line-start
-            (file-name) ":" line ":" column (one-or-more "\t")
+            (file-name) ":" line ":" column (or (one-or-more "\t") ": ")
             (message)
             line-end))
   :error-filter
@@ -6443,11 +6505,24 @@ pragma.  Each extension is enabled via `-X'."
   :safe #'flycheck-string-list-p
   :package-version '(flycheck . "0.19"))
 
+(defvar flycheck-haskell-ghc-cache-directory nil
+  "The cache directory for `ghc' output.")
+
+(defun flycheck-haskell-ghc-cache-directory ()
+  "Get the cache location for `ghc' output.
+
+If no cache directory exists yet, create one and return it.
+Otherwise return the previously used cache directory."
+  (setq flycheck-haskell-ghc-cache-directory
+        (or flycheck-haskell-ghc-cache-directory
+            (make-temp-file "flycheck-haskell-ghc-cache" 'directory))))
+
 (flycheck-define-checker haskell-stack-ghc
   "A Haskell syntax and type checker using `stack ghc'.
 
 See URL `https://github.com/commercialhaskell/stack'."
-  :command ("stack" "ghc" "--" "-Wall" "-fno-code"
+  :command ("stack" "ghc" "--" "-Wall" "-no-link"
+            "-outputdir" (eval (flycheck-haskell-ghc-cache-directory))
             (option-list "-X" flycheck-ghc-language-extensions concat)
             (option-list "-i" flycheck-ghc-search-path concat)
             (eval (concat
@@ -6488,7 +6563,8 @@ See URL `https://github.com/commercialhaskell/stack'."
   "A Haskell syntax and type checker using ghc.
 
 See URL `http://www.haskell.org/ghc/'."
-  :command ("ghc" "-Wall" "-fno-code"
+  :command ("ghc" "-Wall" "-no-link"
+            "-outputdir" (eval (flycheck-haskell-ghc-cache-directory))
             (option-flag "-no-user-package-db"
                          flycheck-ghc-no-user-package-database)
             (option-list "-package-db" flycheck-ghc-package-databases)
@@ -6642,7 +6718,7 @@ See URL `http://jade-lang.com'."
 See URL `http://www.jshint.com'."
   :command ("jshint" "--checkstyle-reporter"
             (config-file "--config" flycheck-jshintrc)
-            source-inplace)
+            source)
   :error-parser flycheck-parse-checkstyle
   :error-filter flycheck-dequalify-error-ids
   :modes (js-mode js2-mode js3-mode)
@@ -6737,7 +6813,7 @@ error."
 See URL `http://www.jscs.info'."
   :command ("jscs" "--reporter=checkstyle"
             (config-file "--config" flycheck-jscsrc)
-            source-inplace)
+            source)
   :error-parser flycheck-parse-jscs
   :error-filter (lambda (errors)
                   (flycheck-remove-error-ids
@@ -7101,6 +7177,16 @@ Requires Flake8 2.0 or newer. See URL
                               ".pylintrc"
   :safe #'stringp)
 
+(flycheck-def-option-var flycheck-pylint-use-symbolic-id t python-pylint
+  "Whether to use pylint message symbols or message codes.
+
+A pylint message has both an opaque identifying code (such as `F0401') and a
+more meaningful symbolic code (such as `import-error').  This option governs
+which should be used and reported to the user."
+  :type 'boolean
+  :safe #'booleanp
+  :package-version '(flycheck . "0.24"))
+
 (flycheck-define-checker python-pylint
   "A Python syntax and style checker using Pylint.
 
@@ -7109,7 +7195,10 @@ This syntax checker requires Pylint 1.0 or newer.
 See URL `http://www.pylint.org/'."
   ;; -r n disables the scoring report
   :command ("pylint" "-r" "n"
-            "--msg-template" "{path}:{line}:{column}:{C}:{msg_id}:{msg}"
+            "--msg-template"
+            (eval (if flycheck-pylint-use-symbolic-id
+                      "{path}:{line}:{column}:{C}:{symbol}:{msg}"
+                    "{path}:{line}:{column}:{C}:{msg_id}:{msg}"))
             (config-file "--rcfile" flycheck-pylintrc)
             ;; Need `source-inplace' for relative imports (e.g. `from .foo
             ;; import bar'), see https://github.com/flycheck/flycheck/issues/280
