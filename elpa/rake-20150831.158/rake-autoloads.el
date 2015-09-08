@@ -3,8 +3,13 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "rake" "rake.el" (21700 32189 543401 0))
+;;;### (autoloads nil "rake" "rake.el" (21998 34636 239401 0))
 ;;; Generated autoloads from rake.el
+
+(autoload 'rake-rerun "rake" "\
+Re-runs the last task
+
+\(fn)" t nil)
 
 (autoload 'rake-regenerate-cache "rake" "\
 Regenerates the rake's cache for the current project.

@@ -4,8 +4,8 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/rake.el
-;; Version: 20150124.728
-;; X-Original-Version:           0.3.3
+;; Package-Version: 20150831.158
+;; Version:           0.3.3
 ;; Keywords:          rake, ruby
 ;; Package-Requires:  ((f "0.13.0") (dash "1.5.0") (cl-lib "0.5"))
 
@@ -104,7 +104,7 @@
 (defun rake--root ()
   (file-truename (locate-dominating-file default-directory "Rakefile")))
 
-(defun rake--unserialize-cache ()
+(defun rake--deserialize-cache ()
   "Read data serialized by `rake--serialize-cache' from `rake-cache-file'."
   (when (file-exists-p rake-cache-file)
     (with-temp-buffer
@@ -112,12 +112,16 @@
       (read (buffer-string)))))
 
 (defvar rake--cache
-  (or (rake--unserialize-cache)
+  (or (rake--deserialize-cache)
       (make-hash-table :test 'equal)))
+
+(defvar rake--last-root nil)
+(defvar rake--last-task nil)
+(defvar rake--last-mode nil)
 
 (defun rake--serialize-cache ()
   "Serialize `rake--cache' to `rake-cache-file'.
-The saved data can be restored with `rake--unserialize-cache'."
+The saved data can be restored with `rake--deserialize-cache'."
   (when (file-writable-p rake-cache-file)
     (with-temp-file rake-cache-file
       (insert (let (print-length) (prin1-to-string rake--cache))))))
@@ -192,6 +196,20 @@ If `rake-enable-caching' is t look in the cache, if not fallback to calling rake
                                 tasks
                               (rake--tasks-without-doscstrings tasks))))))
 
+(defun rake-compile (root task mode)
+  (setq rake--last-root root
+        rake--last-task task
+        rake--last-mode mode)
+  (rake--with-root root (compile task mode)))
+
+;;;###autoload
+(defun rake-rerun ()
+  "Re-runs the last task"
+  (interactive)
+  (when (not rake--last-root)
+    (error "No task was run"))
+  (rake-compile rake--last-root rake--last-task rake--last-mode))
+
 (define-derived-mode rake-compilation-mode compilation-mode "Rake Compilation"
   "Compilation mode used by `rake' command.")
 
@@ -232,13 +250,12 @@ If `rake-enable-caching' is t look in the cache, if not fallback to calling rake
                                                     :zeus    "zeus rake "
                                                     :bundler "bundle exec rake "
                                                     :vanilla "rake ")))
-         (task (rake--read-task root arg)))
-    (rake--with-root root
-                     (compile
-                      (if (= arg rake--edit-command)
-                          (read-string "Rake command: " (concat prefix task " "))
-                        (concat prefix task))
-                      (or compilation-mode 'rake-compilation-mode)))))
+         (task (rake--read-task root arg))
+         (task (if (= arg rake--edit-command)
+                   (read-string "Rake command: " (concat prefix task " "))
+                 (concat prefix task)))
+         (mode (or compilation-mode 'rake-compilation-mode)))
+    (rake-compile root task mode)))
 
 (provide 'rake)
 
