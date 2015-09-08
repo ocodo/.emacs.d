@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "gist" "gist.el" (21833 28733 291401 0))
+;;;### (autoloads nil "gist" "gist.el" (21998 34823 803401 0))
 ;;; Generated autoloads from gist.el
 
 (autoload 'gist-region "gist" "\
@@ -52,6 +52,14 @@ Copies the URL into the kill ring.
 
 \(fn)" t nil)
 
+(autoload 'gist-list-user "gist" "\
+Displays a list of a user's gists in a new buffer.  When called from
+  a program, pass 'current-user as the username to view the user's own
+  gists, or nil for the username and a non-nil value for force-reload to
+  reload the gists for the current buffer.
+
+\(fn USERNAME &optional FORCE-RELOAD BACKGROUND)" t nil)
+
 (autoload 'gist-list "gist" "\
 Displays a list of all of the current user's gists in a new buffer.
 
@@ -61,6 +69,26 @@ Displays a list of all of the current user's gists in a new buffer.
 
 
 \(fn ID)" t nil)
+
+(autoload 'gist-star "gist" "\
+
+
+\(fn)" t nil)
+
+(autoload 'gist-unstar "gist" "\
+
+
+\(fn)" t nil)
+
+(autoload 'gist-list-starred "gist" "\
+List your starred gists.
+
+\(fn &optional BACKGROUND)" t nil)
+
+(autoload 'gist-fork "gist" "\
+Fork a gist.
+
+\(fn)" t nil)
 
 ;;;***
 
