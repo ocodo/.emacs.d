@@ -4,8 +4,8 @@
 
 ;; Author: Christopher Wellons <wellons@nullprogram.com>
 ;; URL: https://github.com/skeeto/elisp-json-rpc
-;; Version: 20140602.806
-;; X-Original-Version: 0.0.1
+;; Package-Version: 20150830.1401
+;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
 ;;; Commentary:
@@ -64,7 +64,6 @@
                                             :buffer buffer
                                             :host host
                                             :service (json-rpc-port connection)
-                                            :family 'ipv4
                                             :coding '(utf-8 . utf-8))))
         (setf (process-sentinel process)
               (lambda (proc _)
