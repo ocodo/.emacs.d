@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20150731.926
+;; Package-Version: 20150831.1127
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.12.0
@@ -42,6 +42,7 @@
 
 (require 'projectile)
 (require 'cl-lib)
+(require 'grep)
 (require 'helm)
 (require 'helm-types)
 (require 'helm-locate)
@@ -275,14 +276,14 @@ CANDIDATE is the selected file, but choose the marked files if available."
            (not helm-projectile-virtual-dired-remote-enable))
       (message "Virtual Dired manager is disabled in remote host. Enable with %s."
                (propertize "helm-projectile-virtual-dired-remote-enable" 'face 'font-lock-keyword-face))
-    (let ((new-name (completing-read "Select or enter a new buffer name: "
-                                     (helm-projectile-all-dired-buffers)))
-          (helm--reading-passwd-or-string t)
-          (files (-filter (lambda (f)
+    (let ((files (-filter (lambda (f)
                             (not (string= f "")))
                           (mapcar (lambda (file)
                                     (replace-regexp-in-string (projectile-project-root) "" file))
                                   (helm-marked-candidates :with-wildcard t))))
+          (new-name (completing-read "Select or enter a new buffer name: "
+                                     (helm-projectile-all-dired-buffers)))
+          (helm--reading-passwd-or-string t)
           (default-directory (projectile-project-root)))
       ;; create a unique buffer that is unique to any directory in default-directory
       ;; or opened buffer; when Dired is passed with a non-existence directory name,
@@ -305,14 +306,14 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
       (message "Virtual Dired manager is disabled in remote host. Enable with %s."
                (propertize "helm-projectile-virtual-dired-remote-enable" 'face 'font-lock-keyword-face))
     (if (eq (with-helm-current-buffer major-mode) 'dired-mode)
-        (let* ((helm--reading-passwd-or-string t)
+        (let* ((marked-files (helm-marked-candidates :with-wildcard t))
+               (helm--reading-passwd-or-string t)
                (root (projectile-project-root)) ; store root for later use
                (dired-buffer-name (or (and (eq major-mode 'dired-mode) (buffer-name))
                                       (completing-read "Select a Dired buffer:"
                                                        (helm-projectile-all-dired-buffers))))
                (dired-files (with-current-buffer dired-buffer-name
                               (helm-projectile-files-in-current-dired-buffer)))
-               (marked-files (helm-marked-candidates :with-wildcard t))
                (files (sort (mapcar (lambda (file)
                                       (replace-regexp-in-string (projectile-project-root) "" file))
                                     (cl-nunion (if marked-files
@@ -434,7 +435,6 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                 (let ((projectile-require-project-root nil))
                   (projectile-all-project-files))
               (error nil)))
-    :coerce 'helm-projectile-coerce-file
     :keymap helm-find-files-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
@@ -605,7 +605,7 @@ With a prefix ARG invalidates the cache first."
 
 (helm-projectile-command "switch-project" 'helm-source-projectile-projects "Switch to project: " t)
 (helm-projectile-command "find-file" helm-source-projectile-files-and-dired-list "Find file: ")
-(helm-projectile-command "find-file-in-known-projects" 'helm-source-projectile-files-in-all-projects-list "Find file in projects: ")
+(helm-projectile-command "find-file-in-known-projects" 'helm-source-projectile-files-in-all-projects-list "Find file in projects: " t)
 (helm-projectile-command "find-dir" helm-source-projectile-directories-and-dired-list "Find dir: ")
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
 (helm-projectile-command "switch-to-buffer" 'helm-source-projectile-buffers-list "Switch to buffer: ")
@@ -658,7 +658,6 @@ ACK-IGNORED-PATTERN is a file regex to exclude from searching.
 ACK-EXECUTABLE is the actual ack binary name.
 It is usually \"ack\" or \"ack-grep\".
 If it is nil, or ack/ack-grep not found then use default grep command."
-  (require 'grep)
   (let* ((default-directory (projectile-project-root))
          (helm-ff-default-directory (projectile-project-root))
          (follow (and helm-follow-mode-persistent
