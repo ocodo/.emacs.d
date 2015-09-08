@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20150817.505
+;; Package-Version: 20150903.449
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 0.1
 
@@ -139,13 +139,13 @@
                                               :inverse-video unspecified))))
    `(whitespace-trailing ((,class (:background ,red :foreground ,background :weight bold
                                                :inverse-video nil))))
-   `(whitespace-line ((,class (:background unspecified :foreground unspecified
+   `(whitespace-line ((,class (:background unspecified :foreground ,red
                                            :inverse-video unspecified))))
    `(whitespace-space-before-tab ((,class (:inherit whitespace-space))))
    `(whitespace-space-after-tab ((,class (:inherit whitespace-space))))
    `(whitespace-indentation ((,class (:background unspecified :foreground ,highlight
                                                   :inverse-video unspecified))))
-   `(whitespace-empty ((,class (:background unspecified :foreground ,highlight
+   `(whitespace-empty ((,class (:background ,orange :foreground ,highlight
                                             :inverse-video unspecified))))
 
    ;; link faces
@@ -170,11 +170,16 @@
 
    ;; magit
    `(magit-diff-context-highlight ((,class (:background ,background-darker))))
-   `(magit-diff-file-heading ((,class (:weight normal))))
+   `(magit-diff-file-heading ((,class (:weight bold :foreground ,blue))))
+   `(magit-diff-file-heading-highlight ((,class (:weight bold :foreground ,blue :background ,background-blue))))
    `(magit-diff-removed-highlight ((,class (:background ,diff-removed-background))))
    `(magit-diff-removed ((,class (:background ,diff-removed-background))))
    `(magit-diff-added-highlight ((,class (:background ,diff-added-background))))
    `(magit-diff-added ((,class (:background ,diff-added-background))))
+   `(magit-diff-lines-heading ((,class (:background ,blue-dark :foreground "white"))))
+   `(magit-diff-hunk-heading ((,class (:background ,background-lighter))))
+   `(magit-diff-hunk-heading-highlight ((,class (:background ,blue-dark))))
+   `(magit-diff-hunk-heading ((,class (:background ,background-lighter))))
 
    `(magit-section-highlight ((,class (:background ,background-darker))))
    `(magit-section-heading ((,class (:foreground ,grey :weight bold))))
@@ -254,7 +259,7 @@
    `(org-done ((,class (:foreground ,blue :background ,background-blue :weight bold))))
    `(org-date ((,class (:background ,background-lighter))))
    `(org-scheduled-previously ((,class (:foreground ,red))))
-   `(org-scheduled ((,class (:foreground ,orange))))
+   `(org-scheduled ((,class (:foreground ,default))))
    `(org-headline-done ((,class (:foreground ,comment))))
    `(outline-1 ((,class (:foreground ,blue :weight bold))))
    `(outline-2 ((,class (:foreground ,purple :weight bold))))
@@ -266,9 +271,11 @@
    `(outline-8 ((,class (:weight bold))))
    `(org-column-title ((,class (:foreground unspecified :background unspecified))))
    `(org-agenda-date ((,class (:foreground ,purple :weight bold))))
+   `(org-agenda-date-today ((,class (:foreground ,blue :weight bold :background ,background-blue :box 1))))
    `(org-agenda-structure ((,class (:foreground ,orange :weight bold))))
    `(org-scheduled-today ((,class (:foreground ,default :weight bold))))
    `(org-agenda-done ((,class (:foreground ,comment))))
+   `(org-time-grid ((,class (:foreground ,comment))))
 
    ;; Gnus faces -- from wombat, feel free to improve :)
    `(gnus-group-news-1 ((,class (:weight bold :foreground "#95e454"))))
