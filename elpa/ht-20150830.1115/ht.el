@@ -3,8 +3,8 @@
 ;; Copyright (C) 2013 Wilfred Hughes
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
-;; Version: 20140122.1555
-;; X-Original-Version: 2.0
+;; Version: 2.0
+;; Package-Version: 20150830.1115
 ;; Keywords: hash table, hash map, hash
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -52,9 +52,13 @@ keys.  Default is `equal'.  It can be `eq', `eql', `equal' or a
 user-supplied test created via `define-hash-table-test'."
   (make-hash-table :test (or test 'equal)))
 
-(defun ht<-alist (alist)
-  "Create a hash table with initial values according to ALIST."
-  (let ((h (ht-create)))
+(defun ht<-alist (alist &optional test)
+  "Create a hash table with initial values according to ALIST.
+
+TEST indicates the function used to compare the hash
+keys.  Default is `equal'.  It can be `eq', `eql', `equal' or a
+user-supplied test created via `define-hash-table-test'."
+  (let ((h (ht-create test)))
     ;; the first key-value pair in an alist gets precedence, so we
     ;; start from the end of the list:
     (dolist (pair (reverse alist) h)
@@ -88,9 +92,13 @@ Errors if LIST doesn't contain an even number of elements."
     (when sublist (error "Expected an even number of elements"))
     (nreverse result)))
 
-(defun ht<-plist (plist)
-  "Create a hash table with initial values according to PLIST."
-  (let ((h (ht-create)))
+(defun ht<-plist (plist &optional test)
+  "Create a hash table with initial values according to PLIST.
+
+TEST indicates the function used to compare the hash
+keys.  Default is `equal'.  It can be `eq', `eql', `equal' or a
+user-supplied test created via `define-hash-table-test'."
+  (let ((h (ht-create test)))
     (dolist (pair (ht/group-pairs plist) h)
       (let ((key (car pair))
             (value (cadr pair)))
