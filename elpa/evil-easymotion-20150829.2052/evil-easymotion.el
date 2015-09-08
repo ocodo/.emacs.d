@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, evil
-;; Package-Version: 20150809.627
+;; Package-Version: 20150829.2052
 ;; Version: 20141205
 ;; URL: https://github.com/pythonnut/evil-easymotion.el
 ;; Package-Requires: ((emacs "24") (avy "20150508.1418"))
@@ -70,7 +70,7 @@
   "Value of `avy-keys' to set during motions. Set to nil to leave unchanged."
   :type '(repeat :tag "Keys" character))
 
-(defcustom evilem-style 'at
+(defcustom evilem-style nil
   "Value of `avy-style' to set during motions. Set to nil to leave unchanged."
   :type '(choice
            (const :tag "Pre" pre)
@@ -118,13 +118,14 @@
             last-command func)
           (with-demoted-errors
             (call-interactively func))
-          (unless (memq (point) points)
-            (and
-              (when (not (eobp))
-                (push (point) points))
-              (>= (point) (window-start))
-              (<= (point) (window-end))
-              (not (bobp))))))
+          (and
+            (>= (point) (window-start))
+            (<= (point) (window-end))
+            (not (or
+                   (memq (point) points)
+                   (eobp)
+                   (bobp)))
+            (push (point) points))))
       (sort points #'<))))
 
 (defmacro evilem-make-motion (name func &optional pre-hook post-hook vars)
