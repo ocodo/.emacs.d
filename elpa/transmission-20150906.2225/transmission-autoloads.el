@@ -3,15 +3,15 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "transmission" "transmission.el" (21960 42677
-;;;;;;  907401 0))
+;;;### (autoloads nil "transmission" "transmission.el" (21998 34606
+;;;;;;  203401 0))
 ;;; Generated autoloads from transmission.el
 
 (autoload 'transmission-add "transmission" "\
 Add a torrent by filename, URL, magnet link, or info hash.
-When called with a prefix, treat input as a string.
+When called with a prefix, prompt for DIRECTORY.
 
-\(fn TORRENT &optional ARG)" t nil)
+\(fn TORRENT &optional DIRECTORY)" t nil)
 
 (autoload 'transmission "transmission" "\
 Open a `transmission-mode' buffer.
