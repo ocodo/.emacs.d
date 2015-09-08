@@ -1,9 +1,9 @@
 ;;; helm-ls-git.el --- list git files. -*- lexical-binding: t -*-
-;; Package-Version: 20150815.734
+;; Package-Version: 20150904.150
 
 ;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
-;; Package-Requires: ((helm "1.5"))
+;; Package-Requires: ((helm "1.7.8"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -64,10 +64,18 @@ Valid values are symbol 'abs (default) or 'relative."
                helm-source-ls-git-buffers nil))
   :type 'boolean)
 
-(defcustom helm-ls-git-grep-command "git grep -n%cH --color=never --full-name -e %p %f"
+(defcustom helm-ls-git-grep-command
+  "git grep -n%cH --color=always --exclude-standard --no-index --full-name -e %p %f"
   "The git grep default command line.
-The option \"--color=always\" can be used safely, it is disabled by default though.
-The color of matched items can be customized in your .gitconfig."
+The option \"--color=always\" can be used safely.
+The color of matched items can be customized in your .gitconfig
+See `helm-grep-default-command' for more infos.
+
+The \"--exclude-standard\" and \"--no-index\" switches allow
+skipping unwanted files specified in ~/.gitignore_global
+and searching files not already staged.
+You have also to enable this in global \".gitconfig\" with
+    \"git config --global core.excludesfile ~/.gitignore_global\"."
   :group 'helm-ls-git
   :type 'string)
 
@@ -144,7 +152,10 @@ The color of matched items can be customized in your .gitconfig."
                 (apply #'process-file
                        "git"
                        nil (list t helm-ls-git-log-file) nil
-                       (list "ls-files" "--full-name" "--")))))))
+                       (list "ls-files" "--full-name" "--")))))
+    ;; Return empty string to give to `split-string'
+    ;; in `helm-ls-git-init'.
+    ""))
 
 (cl-defun helm-ls-git-root-dir (&optional (directory default-directory))
   (let ((root (locate-dominating-file directory ".git")))
