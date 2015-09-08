@@ -1,10 +1,10 @@
 ;;; dash.el --- A modern list library for Emacs
 
-;; Copyright (C) 2012-2014 Magnar Sveen
+;; Copyright (C) 2012-2015 Free Software Foundation, Inc.
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 2.11.0
-;; Package-Version: 20150804.1354
+;; Package-Version: 20150829.433
 ;; Keywords: lists
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -396,6 +396,14 @@ Thus function FN should return a list."
 
 (defun -flatten (l)
   "Take a nested list L and return its contents as a single, flat list.
+
+Note that because `nil' represents a list of zero elements (an
+empty list), any mention of nil in L will disappear after
+flattening.  If you need to preserve nils, consider `-flatten-n'
+or map them to some unique symbol and then map them back.
+
+Conses of two atoms are considered \"terminals\", that is, they
+aren't flattened further.
 
 See also: `-flatten-n'"
   (if (and (listp l) (listp (cdr l)))
@@ -1776,9 +1784,19 @@ Alias: `-uniq'"
   "Return a new list containing the elements of LIST1 and elements of LIST2 that are not in LIST1.
 The test for equality is done with `equal',
 or with `-compare-fn' if that's non-nil."
-  (let (result)
-    (--each list (!cons it result))
-    (--each list2 (unless (-contains? result it) (!cons it result)))
+  ;; We fall back to iteration implementation if the comparison
+  ;; function isn't one of `eq', `eql' or `equal'.
+  (let* ((result (reverse list))
+         ;; TODO: get rid of this dynamic variable, pass it as an
+         ;; argument instead.
+         (-compare-fn (if (bound-and-true-p -compare-fn)
+                          -compare-fn
+                        'equal)))
+    (if (memq -compare-fn '(eq eql equal))
+        (let ((ht (make-hash-table :test -compare-fn)))
+          (--each list (puthash it t ht))
+          (--each list2 (unless (gethash it ht) (!cons it result))))
+      (--each list2 (unless (-contains? result it) (!cons it result))))
     (nreverse result)))
 
 (defun -intersection (list list2)
@@ -1847,7 +1865,7 @@ Alias: `-is-prefix-p'"
   "Return non-nil if SUFFIX is suffix of LIST.
 
 Alias: `-is-suffix-p'"
-  (-is-prefix? (nreverse suffix) (nreverse list)))
+  (-is-prefix? (reverse suffix) (reverse list)))
 
 (defun -is-infix? (infix list)
   "Return non-nil if INFIX is infix of LIST.
