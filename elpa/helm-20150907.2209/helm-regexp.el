@@ -23,6 +23,8 @@
 (require 'helm-utils)
 (require 'helm-plugin)
 
+(declare-function helm-mm-split-pattern "helm-multi-match")
+
 
 (defgroup helm-regexp nil
   "Regexp related Applications and libraries for Helm."
@@ -234,7 +236,7 @@ arg METHOD can be one of buffer, buffer-other-window, buffer-other-frame."
   (let* ((split (helm-grep-split-line candidate))
          (buf (car split))
          (lineno (string-to-number (nth 1 split)))
-         (split-pat (helm-mp-split-pattern helm-input)))
+         (split-pat (helm-mm-split-pattern helm-input)))
     (cl-case method
       (buffer              (switch-to-buffer buf))
       (buffer-other-window (switch-to-buffer-other-window buf))

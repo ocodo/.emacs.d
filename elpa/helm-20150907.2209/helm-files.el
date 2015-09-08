@@ -51,6 +51,7 @@
 (declare-function helm-ls-svn-ls "ext:helm-ls-svn")
 
 (defvar recentf-list)
+(defvar helm-mm-matching-method)
 
 
 ;;; Type attributes
@@ -321,6 +322,7 @@ I.e use the -path/ipath arguments of find instead of -name/iname."
     (define-key map (kbd "M-g s")         'helm-ff-run-grep)
     (define-key map (kbd "M-g p")         'helm-ff-run-pdfgrep)
     (define-key map (kbd "M-g z")         'helm-ff-run-zgrep)
+    (define-key map (kbd "M-g a")         'helm-ff-run-grep-ag)
     (define-key map (kbd "C-c g")         'helm-ff-run-gid)
     (define-key map (kbd "M-.")           'helm-ff-run-etags)
     (define-key map (kbd "M-R")           'helm-ff-run-rename-file)
@@ -439,6 +441,7 @@ Don't set it directly, use instead `helm-ff-auto-update-initial-value'.")
    "Add marked files to file-cache" 'helm-ff-cache-add-file
    "Open file externally `C-c C-x, C-u to choose'" 'helm-open-file-externally
    "Grep File(s) `C-s, C-u Recurse'" 'helm-find-files-grep
+   "Grep current directory with AG" 'helm-find-files-ag
    "Zgrep File(s) `M-g z, C-u Recurse'" 'helm-ff-zgrep
    "Gid" 'helm-ff-gid
    "Switch to Eshell `M-e'" 'helm-ff-switch-to-eshell
@@ -637,6 +640,9 @@ ACTION must be an action supported by `helm-dired-action'."
   "Default action to grep files from `helm-find-files'."
   (helm-do-grep-1 (helm-marked-candidates :with-wildcard t)
                   helm-current-prefix-arg))
+
+(defun helm-find-files-ag (_candidate)
+  (helm-grep-ag-1 helm-ff-default-directory))
 
 (defun helm-ff-zgrep (_candidate)
   "Default action to zgrep files from `helm-find-files'."
@@ -1016,6 +1022,11 @@ This doesn't replace inside the files, only modify filenames."
   (interactive)
   (with-helm-alive-p
     (helm-exit-and-execute-action 'helm-find-files-grep)))
+
+(defun helm-ff-run-grep-ag ()
+  (interactive)
+  (with-helm-alive-p
+    (helm-exit-and-execute-action 'helm-find-files-ag)))
 
 (defun helm-ff-run-pdfgrep ()
   "Run Pdfgrep action from `helm-source-find-files'."
@@ -1729,7 +1740,7 @@ systems."
 
 (defun helm-ff-smart-completion-p ()
   (and helm-ff-smart-completion
-       (not (memq helm-mp-matching-method '(multi1 multi3p)))))
+       (not (memq helm-mm-matching-method '(multi1 multi3p)))))
 
 (defun helm-ff--transform-pattern-for-completion (pattern)
   "Maybe return PATTERN with it's basename modified as a regexp.
@@ -1737,8 +1748,8 @@ This happen only when `helm-ff-smart-completion' is enabled.
 This provide a similar behavior as `ido-enable-flex-matching'.
 See also `helm--mapconcat-pattern'.
 If PATTERN is an url returns it unmodified.
-When PATTERN contain a space fallback to match-plugin.
-If basename contain one or more space fallback to match-plugin.
+When PATTERN contain a space fallback to multi-match.
+If basename contain one or more space fallback to multi-match.
 If PATTERN is a valid directory name,return PATTERN unchanged."
   ;; handle bad filenames containing a backslash.
   (setq pattern (helm-ff-handle-backslash pattern))
@@ -1759,12 +1770,12 @@ If PATTERN is a valid directory name,return PATTERN unchanged."
            (and dir-p (string-match (regexp-quote bn) bd)))
        ;; Use full PATTERN on e.g "/ssh:host:".
        (regexp-quote pattern))
-      ;; Prefixing BN with a space call match-plugin completion.
+      ;; Prefixing BN with a space call multi-match completion.
       ;; This allow showing all files/dirs matching BN (Issue #518).
-      ;; FIXME: some match-plugin methods may not work here.
+      ;; FIXME: some multi-match methods may not work here.
       (dir-p (concat (regexp-quote bd) " " (regexp-quote bn)))
       ((or (not (helm-ff-smart-completion-p))
-           (string-match "\\s-" bn))    ; Fall back to match-plugin.
+           (string-match "\\s-" bn))    ; Fall back to multi-match.
        (concat (regexp-quote bd) bn))
       ((or (string-match "[*][.]?.*" bn) ; Allow entering wilcard.
            (string-match "/$" pattern)     ; Allow mkdir.
@@ -2338,15 +2349,17 @@ Use it for non--interactive calls of `helm-find-files'."
     (unless helm-source-find-files
       (setq helm-source-find-files (helm-make-source
                                     "Find Files" 'helm-source-ffiles)))
-    (helm :sources 'helm-source-find-files
-          :input fname
-          :case-fold-search helm-file-name-case-fold-search
-          :preselect preselect
-          :ff-transformer-show-only-basename
-          helm-ff-transformer-show-only-basename
-          :default def
-          :prompt "Find Files or Url: "
-          :buffer "*Helm Find Files*")))
+    (unwind-protect
+         (helm :sources 'helm-source-find-files
+               :input fname
+               :case-fold-search helm-file-name-case-fold-search
+               :preselect preselect
+               :ff-transformer-show-only-basename
+               helm-ff-transformer-show-only-basename
+               :default def
+               :prompt "Find Files or Url: "
+               :buffer "*Helm Find Files*")
+      (setq helm-ff-default-directory nil))))
 
 (defun helm-find-files-toggle-to-bookmark ()
   "Toggle helm-bookmark for `helm-find-files' and `helm-find-files.'"
@@ -2453,7 +2466,19 @@ Where ACTION is a symbol that can be one of:
 Argument FOLLOW when non--nil specify to follow FILES to destination for the actions
 copy and rename."
   (when (get-buffer dired-log-buffer) (kill-buffer dired-log-buffer))
-  (let ((fn     (cl-case action
+  ;; When default-directory in current-buffer is an invalid directory,
+  ;; (e.g buffer-file directory have been renamed somewhere else)
+  ;; be sure to use a valid value to give to dired-create-file.
+  ;; i.e async is creating a process buffer based on default-directory.
+  (let ((default-directory (or helm-ff-default-directory
+                               ;; Choose another directory available
+                               ;; when using this outside of hff.
+                               (if (file-directory-p default-directory)
+                                   default-directory
+                                   ;; Use a fake default-directory.
+                                   (file-name-as-directory
+                                    user-emacs-directory))))
+        (fn     (cl-case action
                   (copy       'dired-copy-file)
                   (rename     'dired-rename-file)
                   (symlink    'make-symbolic-link)

@@ -42,7 +42,8 @@
    ("Info"
     ["Info at point" helm-info-at-point t]
     ["Emacs Manual index" helm-info-emacs t]
-    ["Gnus Manual index" helm-info-gnus t])
+    ["Gnus Manual index" helm-info-gnus t]
+    ["Helm documentation" helm-documentation t])
    ("Org"
     ["Org keywords" helm-org-keywords t]
     ["Org headlines" helm-org-headlines t])
@@ -52,6 +53,7 @@
    ("Tools"
     ["Occur" helm-occur t]
     ["Grep" helm-do-grep t]
+    ["Grep current directory with AG" helm-do-grep-ag t]
     ["Gid"  helm-gid t]
     ["Etags" helm-etags-select t]
     ["Lisp complete at point" helm-lisp-completion-at-point t]
