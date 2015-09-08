@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20150809.207
+;; Package-Version: 20150901.646
 ;; Version: 0.3.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: convenience, links
@@ -179,7 +179,8 @@
         (while (progn (widget-forward 1)
                       (> (point) pt))
           (setq pt (point))
-          (when (plist-get (text-properties-at (point)) 'gnus-string)
+          (when (or (plist-get (text-properties-at (point)) 'gnus-string)
+                    (plist-get (text-properties-at (point)) 'shr-url))
             (push (point) candidates)))
         (nreverse candidates)))))
 
