@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20150722.407
+;; Package-Version: 20150907.320
 ;; Version: 1.2.1
 ;; Package-Requires: ((helm "0.0.0") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -38,9 +38,10 @@
 
 (require 'cl-lib)
 (require 'helm)
-(require 'helm-match-plugin)
+(require 'helm-multi-match)
 (require 'json)
 (require 'xml)
+(require 'format-spec)
 
 (defgroup helm-dash nil
   "Search Dash docsets using helm."
@@ -66,6 +67,14 @@ path.  You can use `expand-file-name' function for that."
   "Minimum length to start searching in docsets.
 0 facilitates discoverability, but may be a bit heavy when lots
 of docsets are active.  Between 0 and 3 is sane."
+  :group 'helm-dash)
+
+(defcustom helm-dash-candidate-format "%d %n (%t)"
+  "Format of the displayed candidates.
+Available formats are
+   %d - docset name
+   %n - name of the token
+   %t - type of the token"
   :group 'helm-dash)
 
 (defcustom helm-dash-enable-debugging t
@@ -376,8 +385,15 @@ Ex: This avoids searching for redis in redis unless you type 'redis redis'"
                             docset-type
                             (helm-dash-sub-docset-name-in-pattern helm-pattern (car docset))))))
 
-(defun helm-dash--candidate (docset x)
-  (cons (format "%s %s" (car docset) (cadr x)) (list (car docset) x)))
+(defun helm-dash--candidate (docset row)
+  "Return a list extracting info from DOCSET and ROW to build a helm candidate.
+First element is the display message of the candidate, rest is used to build
+candidate opts."
+  (cons (format-spec helm-dash-candidate-format
+		     (list (cons ?d (car docset))
+			   (cons ?n (cadr row))
+			   (cons ?t (car row))))
+	(list (car docset) row)))
 
 (defun helm-dash-result-url (docset-name filename &optional anchor)
   "Return the full, absolute URL to documentation: either a file:// URL joining
