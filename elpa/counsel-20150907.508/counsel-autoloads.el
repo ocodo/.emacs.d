@@ -3,12 +3,16 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (21975 62546 547401
-;;;;;;  0))
+;;;### (autoloads nil "counsel" "counsel.el" (21998 34876 87401 0))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
 Elisp completion at point.
+
+\(fn)" t nil)
+
+(autoload 'counsel-cl "counsel" "\
+Common Lisp completion at point.
 
 \(fn)" t nil)
 

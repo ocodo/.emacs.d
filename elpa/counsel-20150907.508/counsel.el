@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150820.334
+;; Package-Version: 20150907.508
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -82,18 +82,73 @@
               :initial-input str
               :action #'counsel--el-action)))
 
+(declare-function slime-symbol-start-pos "ext:slime")
+(declare-function slime-symbol-end-pos "ext:slime")
+(declare-function slime-contextual-completions "ext:slime-c-p-c")
+
+;;;###autoload
+(defun counsel-cl ()
+  "Common Lisp completion at point."
+  (interactive)
+  (setq counsel-completion-beg (slime-symbol-start-pos))
+  (setq counsel-completion-end (slime-symbol-end-pos))
+  (ivy-read "Symbol name: "
+            (car (slime-contextual-completions
+                  counsel-completion-beg
+                  counsel-completion-end))
+            :action #'counsel--el-action))
+
 (defun counsel--el-action (symbol)
   "Insert SYMBOL, erasing the previous one."
   (when (stringp symbol)
-    (when counsel-completion-beg
-      (delete-region
-       counsel-completion-beg
-       counsel-completion-end))
-    (setq counsel-completion-beg
-          (move-marker (make-marker) (point)))
-    (insert symbol)
-    (setq counsel-completion-end
-          (move-marker (make-marker) (point)))))
+    (with-ivy-window
+      (when counsel-completion-beg
+        (delete-region
+         counsel-completion-beg
+         counsel-completion-end))
+      (setq counsel-completion-beg
+            (move-marker (make-marker) (point)))
+      (insert symbol)
+      (setq counsel-completion-end
+            (move-marker (make-marker) (point))))))
+
+(declare-function deferred:sync! "ext:deferred")
+(declare-function jedi:complete-request "ext:jedi-core")
+(declare-function jedi:ac-direct-matches "ext:jedi")
+
+(defun counsel-jedi ()
+  "Python completion at point."
+  (interactive)
+  (let ((bnd (bounds-of-thing-at-point 'symbol)))
+    (if bnd
+        (progn
+          (setq counsel-completion-beg (car bnd))
+          (setq counsel-completion-end (cdr bnd)))
+      (setq counsel-completion-beg nil)
+      (setq counsel-completion-end nil)))
+  (deferred:sync!
+   (jedi:complete-request))
+  (ivy-read "Symbol name: " (jedi:ac-direct-matches)
+            :action #'counsel--py-action))
+
+(defun counsel--py-action (symbol)
+  "Insert SYMBOL, erasing the previous one."
+  (when (stringp symbol)
+    (with-ivy-window
+      (when counsel-completion-beg
+        (delete-region
+         counsel-completion-beg
+         counsel-completion-end))
+      (setq counsel-completion-beg
+            (move-marker (make-marker) (point)))
+      (insert symbol)
+      (setq counsel-completion-end
+            (move-marker (make-marker) (point)))
+      (when (equal (get-text-property 0 'symbol symbol) "f")
+        (insert "()")
+        (setq counsel-completion-end
+              (move-marker (make-marker) (point)))
+        (backward-char 1)))))
 
 (defvar counsel-describe-map
   (let ((map (make-sparse-keymap)))
@@ -289,7 +344,7 @@
       (counsel-more-chars 3)
     (let* ((default-directory counsel--git-grep-dir)
            (cmd (format "git --no-pager grep --full-name -n --no-color -i -e %S"
-                        (ivy--regex string t))))
+                        (setq ivy--old-re (ivy--regex string t)))))
       (if (<= counsel--git-grep-count 20000)
           (split-string (shell-command-to-string cmd) "\n" t)
         (counsel--gg-candidates (ivy--regex string))
@@ -813,6 +868,11 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
        (format ":%s:"
                (mapconcat #'identity counsel-org-tags ":"))
      "")))
+
+(defvar org-agenda-bulk-marked-entries)
+
+(declare-function org-get-at-bol "org")
+(declare-function org-agenda-error "org-agenda")
 
 (defun counsel-org-tag-action (x)
   (if (member x counsel-org-tags)
