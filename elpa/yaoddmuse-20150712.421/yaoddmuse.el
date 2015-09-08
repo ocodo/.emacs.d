@@ -8,7 +8,7 @@
 ;; Copyright (C) 2009, 2010 rubikitch, all rights reserved.
 ;; Created: 2009-01-06 12:41:17
 ;; Version: 0.1.2
-;; Package-Version: 20150524.313
+;; Package-Version: 20150712.421
 ;; Package-X-Original-Version: 20150521.1841
 ;; Last-Updated: 2015/21/05 2:40
 ;;           By: Michael Abrahams
@@ -725,17 +725,20 @@ Default is t."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Faces ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defface yaoddmuse-tag
-  '((t (:foreground "Gold")))
+  '((t (:inherit 'font-lock-preprocessor-face))
+    (((background dark)) (:foreground "Gold")))
   "Highlight tag."
   :group 'yaoddmuse)
 
 (defface yaoddmuse-link
-  '((t (:foreground "Khaki")))
+  '((((background dark)) (:foreground "Khaki"))
+    (t (:inherit 'link)))
   "Highlight link."
   :group 'yaoddmuse)
 
 (defface yaoddmuse-url
-  '((t (:foreground "Grey20")))
+  '((((background dark)) (:foreground "Grey20"))
+    (t (:inherit 'link :foreground unspecified :underline nil)))
   "Highlight link."
   :group 'yaoddmuse)
 
@@ -760,7 +763,8 @@ Default is t."
   :group 'yaoddmuse)
 
 (defface yaoddmuse-source-code
-  '((t (:foreground "Yellow")))
+  '((t (:inherit 'fixed-pitch))
+    (((background dark)) (:foreground "Yellow")))
   "Highlight source-code."
   :group 'yaoddmuse)
 

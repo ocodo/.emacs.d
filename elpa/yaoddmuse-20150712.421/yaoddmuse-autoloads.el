@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "yaoddmuse" "yaoddmuse.el" (21861 59918 991401
+;;;### (autoloads nil "yaoddmuse" "yaoddmuse.el" (21998 34580 579401
 ;;;;;;  0))
 ;;; Generated autoloads from yaoddmuse.el
 
