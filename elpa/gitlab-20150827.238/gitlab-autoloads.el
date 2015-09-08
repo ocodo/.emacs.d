@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "gitlab" "gitlab.el" (21893 22976 439401 0))
+;;;### (autoloads nil "gitlab" "gitlab.el" (21998 34816 871401 0))
 ;;; Generated autoloads from gitlab.el
 
 (autoload 'emacs-gitlab-version "gitlab" "\
@@ -20,8 +20,8 @@ just return nil.
 
 ;;;***
 
-;;;### (autoloads nil "gitlab-mode" "gitlab-mode.el" (21893 22976
-;;;;;;  443401 0))
+;;;### (autoloads nil "gitlab-mode" "gitlab-mode.el" (21998 34816
+;;;;;;  875401 0))
 ;;; Generated autoloads from gitlab-mode.el
 
 (autoload 'gitlab-show-project-description "gitlab-mode" "\
@@ -36,19 +36,19 @@ Show Gitlab issues.
 
 ;;;***
 
-;;;### (autoloads nil "gitlab-session" "gitlab-session.el" (21893
-;;;;;;  22976 463401 0))
+;;;### (autoloads nil "gitlab-session" "gitlab-session.el" (21998
+;;;;;;  34816 891401 0))
 ;;; Generated autoloads from gitlab-session.el
 
 (autoload 'gitlab-login "gitlab-session" "\
 Open a session.
 If it works, return the private token to perform HTTP request to Gitlab.
 
-\(fn)" nil nil)
+\(fn)" t nil)
 
 ;;;***
 
-;;;### (autoloads nil "gitlab-ui" "gitlab-ui.el" (21893 22976 451401
+;;;### (autoloads nil "gitlab-ui" "gitlab-ui.el" (21998 34816 879401
 ;;;;;;  0))
 ;;; Generated autoloads from gitlab-ui.el
 
@@ -62,7 +62,7 @@ Special mode for Gitlab buffers.
 ;;;### (autoloads nil nil ("gitlab-api.el" "gitlab-groups.el" "gitlab-issues.el"
 ;;;;;;  "gitlab-milestones.el" "gitlab-notes.el" "gitlab-pkg.el"
 ;;;;;;  "gitlab-projects.el" "gitlab-users.el" "gitlab-utils.el"
-;;;;;;  "gitlab-version.el") (21893 22976 481620 710000))
+;;;;;;  "gitlab-version.el") (21998 34816 909309 298000))
 
 ;;;***
 
