@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "aurora-theme" "aurora-theme.el" (21975 62556
-;;;;;;  883401 0))
+;;;### (autoloads nil "aurora-theme" "aurora-theme.el" (21998 34894
+;;;;;;  179401 0))
 ;;; Generated autoloads from aurora-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))

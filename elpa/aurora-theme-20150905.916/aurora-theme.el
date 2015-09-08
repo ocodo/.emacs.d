@@ -2,7 +2,7 @@
 
 ;; Author: Luis Cairampoma <redshacker11@gmail.com>
 ;; URL: http://github.com/xzerocode/aurora-theme
-;; Package-Version: 20150820.1705
+;; Package-Version: 20150905.916
 ;; Package-X-Original-Version: 20150818.1359
 ;; Version: 0.1
 
@@ -19,32 +19,31 @@
 (deftheme aurora "Aurora theme")
 
 ;;; Color Palette
-
 (defvar aurora-colors-alist
-  '(("aurora-fg+1"     . "#FFFFEF")
+  '(("aurora-fg+1"     . "#FFFFFF")
     ("aurora-fg"       . "#CDD3D3")
     ("aurora-fg-1"     . "#000000")
-    ("aurora-bg-2"     . "#000000")
+    ("aurora-bg-2"     . "#FFFFFF")
     ("aurora-bg-1"     . "#2B3B40")
     ("aurora-bg-05"    . "#232A2F")
     ("aurora-bg"       . "#263238")
-    ("aurora-bg+05"    . "#494949")
+    ("aurora-bg+05"    . "#324148")
     ("aurora-bg+1"     . "#232A2F")
-    ("aurora-bg+2"     . "#263238")
+    ("aurora-bg+2"     . "#FFFFFF")
     ("aurora-bg+3"     . "#455a64")
     ("aurora-red"      . "#74CBC4")
     ("aurora-orange"   . "#C2E982")
-    ("aurora-yellow"   . "#FFCB6B")
+    ("aurora-yellow"   . "#C792EA")
     ("aurora-yellow+1" . "#FFC400")
     ("aurora-green"    . "#546D7A")
-    ("aurora-green+1"  . "#9FAA9B")
+    ("aurora-green+1"  . "#FF516D")
     ("aurora-green+2"  . "#9FC59F")
     ("aurora-green+3"  . "#859900")
     ("aurora-green+4"  . "#F77669")
     ("aurora-cyan"     . "#FF516D")
-    ("aurora-blue+1"   . "#74CBC4")
+    ("aurora-blue+1"   . "#D9F5DD")
     ("aurora-blue"     . "#82B1FF")
-    ("aurora-magenta"  . "#D9F5DD"))
+    ("aurora-magenta"  . "#FFCB6B"))
   "List of aurora colors.
 Each element has the form (NAME . HEX).
 `+N' suffixes indicate a color is lighter.
@@ -67,13 +66,13 @@ Also bind `class' to ((class color) (min-colors 89))."
 ;;;; Built-in
 ;;;;; basic coloring
    '(button ((t (:underline t))))
-   `(link ((t (:foreground ,aurora-yellow :underline t :weight bold))))
+   `(link ((t (:foreground ,aurora-magenta :underline t :weight bold))))
    `(link-visited ((t (:foreground ,aurora-yellow+1 :underline t :weight normal))))
    `(default ((t (:foreground ,aurora-fg :background ,aurora-bg))))
    `(cursor ((t (:foreground ,aurora-fg :background ,aurora-fg+1))))
-   `(escape-glyph ((t (:foreground ,aurora-yellow :bold t))))
-   `(fringe ((t (:foreground ,aurora-fg :background ,aurora-bg+2))))
-   `(header-line ((t (:foreground ,aurora-yellow
+   `(escape-glyph ((t (:foreground ,aurora-yellow :bold t)))) 
+   `(fringe ((t (:foreground ,aurora-fg :background ,aurora-bg))))
+   `(header-line ((t (:foreground ,aurora-magenta
                                   :background ,aurora-bg-1
                                   :box (:line-width -1 :style released-button)))))
    `(highlight ((t (:background ,aurora-bg-05))))
@@ -92,51 +91,61 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(compilation-message-face ((t (:foreground ,aurora-blue))))
    `(compilation-warning-face ((t (:foreground ,aurora-orange :weight bold :underline t))))
    `(compilation-mode-line-exit ((t (:foreground ,aurora-green+2 :weight bold))))
-   `(compilation-mode-line-fail ((t (:foreground ,aurora-red :weight bold))))
+   `(compilation-mode-line-fail ((t (:foreground ,aurora-cyan :weight bold))))
    `(compilation-mode-line-run ((t (:foreground ,aurora-yellow :weight bold))))
 ;;;;; grep
    `(grep-context-face ((t (:foreground ,aurora-fg))))
-   `(grep-error-face ((t (:foreground ,aurora-red :weight bold :underline t))))
+   `(grep-error-face ((t (:foreground ,aurora-cyan :weight bold :underline t))))
    `(grep-hit-face ((t (:foreground ,aurora-blue))))
    `(grep-match-face ((t (:foreground ,aurora-orange :weight bold))))
    `(match ((t (:background ,aurora-bg-1 :foreground ,aurora-orange :weight bold))))
+
 ;;;;; isearch
-   `(isearch ((t (:foreground ,aurora-yellow+1 :weight bold :background ,aurora-bg+2))))
-   `(isearch-fail ((t (:foreground ,aurora-fg :background ,aurora-red))))
+   `(isearch ((t (:foreground ,aurora-yellow+1 :weight bold :background ,aurora-bg-05))))
+   `(isearch-fail ((t (:foreground ,aurora-fg :background ,"#e53935"))))
    `(lazy-highlight ((t (:foreground ,aurora-yellow+1 :weight bold :background ,aurora-bg-05))))
 
-   `(menu ((t (:foreground ,aurora-fg :background ,aurora-bg))))
-   `(minibuffer-prompt ((t (:foreground ,aurora-yellow))))
+   `(menu ((t (:foreground ,aurora-fg :background ,aurora-bg-1))))
+   `(minibuffer-prompt ((t (:foreground ,aurora-red))))
    `(mode-line
-     ((,class (:foreground ,aurora-green+1
-                           :background ,aurora-bg-1
+     ((,class (:foreground ,"#FFFFFF"
+                           :background ,"#324148"
                            :box (:line-width -1 :style released-button)))
       (t :inverse-video t)))
-   `(mode-line-buffer-id ((t (:foreground ,aurora-yellow :weight bold))))
-   `(mode-line-inactive
-     ((t (:foreground ,aurora-green
-                      :background ,aurora-bg-05
+  `(mode-line-buffer-id ((t (:foreground ,aurora-magenta :weight bold))))
+  `(mode-line-inactive
+     ((t (:foreground ,aurora-fg
+                      :background ,"#516872"
                       :box (:line-width -1 :style released-button)))))
    `(region ((,class (:background ,aurora-bg+3))
+
              (t :inverse-video t)))
-   `(secondary-selection ((t (:background ,aurora-bg+2))))
-   `(trailing-whitespace ((t (:background ,aurora-red))))
-   `(vertical-border ((t (:foreground ,aurora-fg))))
-;;;;; font lock
-   `(font-lock-builtin-face ((t (:foreground ,aurora-fg :weight bold))))
+   `(secondary-selection ((t (:background ,aurora-bg+3))))
+   `(trailing-whitespace ((t (:background ,aurora-cyan))))
+   `(vertical-border ((t (:foreground ,aurora-bg+3))))
+
+;;;;; powerline buffer
+   `(powerline-active1 ((t (:background ,"#516872" :inherit mode-line))))
+   `(powerline-active2 ((t (:background ,"#324148" :inherit mode-line))))
+   `(powerline-inactive1 ((t (:background ,"#324148" :inherit mode-line-inactive))))
+   `(powerline-inactive2 ((t (:background ,"#324148" :inherit mode-line-inactive))))
+
+;;;;; font lock212121
+   `(font-lock-builtin-face ((t (:foreground ,aurora-red :weight bold))))
    `(font-lock-comment-face ((t (:foreground ,aurora-green))))
    `(font-lock-comment-delimiter-face ((t (:foreground ,aurora-green))))
    `(font-lock-constant-face ((t (:foreground ,aurora-green+4))))
    `(font-lock-doc-face ((t (:foreground ,aurora-green+2))))
    `(font-lock-function-name-face ((t (:foreground ,aurora-cyan))))
-   `(font-lock-keyword-face ((t (:foreground ,aurora-yellow :weight bold))))
-   `(font-lock-negation-char-face ((t (:foreground ,aurora-yellow :weight bold))))
-   `(font-lock-preprocessor-face ((t (:foreground ,aurora-blue+1))))
-   `(font-lock-regexp-grouping-construct ((t (:foreground ,aurora-yellow :weight bold))))
+   `(font-lock-doc-string-face ((t (:foreground , aurora-fg-1))))
+   `(font-lock-keyword-face ((t (:foreground ,aurora-yellow))))
+   `(font-lock-negation-char-face ((t (:foreground ,aurora-magenta :weight bold))))
+   `(font-lock-preprocessor-face ((t (:foreground ,aurora-red))))
+   `(font-lock-regexp-grouping-construct ((t (:foreground ,aurora-yellow+1 :weight bold))))
    `(font-lock-regexp-grouping-backslash ((t (:foreground ,aurora-green :weight bold))))
-   `(font-lock-string-face ((t (:foreground ,aurora-red))))
+   `(font-lock-string-face ((t (:foreground ,aurora-orange))))
    `(font-lock-type-face ((t (:foreground ,aurora-blue))))
-   `(font-lock-variable-name-face ((t (:foreground ,aurora-orange))))
+   `(font-lock-variable-name-face ((t (:foreground ,aurora-red))))
    `(font-lock-warning-face ((t (:foreground ,aurora-yellow+1 :weight bold))))
 
    `(c-annotation-face ((t (:inherit font-lock-constant-face))))
@@ -435,7 +444,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(gnus-summary-normal-read ((t (:foreground ,aurora-green))))
    `(gnus-summary-normal-ticked ((t (:foreground ,aurora-orange :weight bold))))
    `(gnus-summary-normal-unread ((t (:foreground ,aurora-fg))))
-   `(gnus-summary-selected ((t (:foreground ,aurora-yellow :weight bold))))
+   `(gnus-summary-selected ((t (:foreground ,aurora-magenta :weight bold))))
    `(gnus-cite-1 ((t (:foreground ,aurora-blue))))
    `(gnus-cite-10 ((t (:foreground ,aurora-yellow))))
    `(gnus-cite-11 ((t (:foreground ,aurora-yellow))))
@@ -467,7 +476,7 @@ Also bind `class' to ((class color) (min-colors 89))."
                       :underline nil
                       :box nil))))
    `(helm-source-header
-     ((t (:foreground ,aurora-yellow
+     ((t (:foreground ,aurora-magenta
                       :background ,aurora-bg-1
                       :underline nil
                       :weight bold
@@ -514,10 +523,10 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(hl-sexp-face ((,class (:background ,aurora-bg+1))
                    (t :weight bold)))
 ;;;;; ido-mode
-   `(ido-first-match ((t (:foreground ,aurora-yellow :weight bold))))
+   `(ido-first-match ((t (:foreground ,aurora-cyan :weight bold))))
    `(ido-only-match ((t (:foreground ,aurora-orange :weight bold))))
-   `(ido-subdir ((t (:foreground ,aurora-yellow))))
-   `(ido-indicator ((t (:foreground ,aurora-yellow :background ,aurora-red))))
+   `(ido-subdir ((t (:foreground ,aurora-magenta))))
+   `(ido-indicator ((t (:foreground ,aurora-magenta :background ,aurora-red))))
 ;;;;; iedit-mode
    `(iedit-occurrence ((t (:background ,aurora-bg+2 :weight bold))))
 ;;;;; jabber-mode
@@ -662,11 +671,11 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(org-agenda-structure
      ((t (:inherit font-lock-comment-face))))
    `(org-archived ((t (:foreground ,aurora-fg :weight bold))))
-   `(org-checkbox ((t (:background ,aurora-bg+2 :foreground ,aurora-fg+1
+   `(org-checkbox ((t (:background ,aurora-bg+05 :foreground ,aurora-fg+1
                                    :box (:line-width 1 :style released-button)))))
    `(org-date ((t (:foreground ,aurora-blue :underline t))))
    `(org-deadline-announce ((t (:foreground ,aurora-red))))
-   `(org-done ((t (:bold t :weight bold :foreground ,aurora-green+3))))
+   `(org-done ((t (:bold t :weight bold :foreground ,aurora-red))))
    `(org-formula ((t (:foreground ,aurora-yellow+1))))
    `(org-headline-done ((t (:foreground ,aurora-green+3))))
    `(org-hide ((t (:foreground ,aurora-bg-1))))
@@ -677,7 +686,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(org-level-5 ((t (:foreground ,aurora-cyan))))
    `(org-level-6 ((t (:foreground ,aurora-green+2))))
    `(org-level-7 ((t (:foreground ,aurora-red))))
-   `(org-level-8 ((t (:foreground ,aurora-blue))))
+   `(org-level-8 ((t (:foreground ,aurora-blue+1))))
    `(org-link ((t (:foreground ,aurora-yellow+1 :underline t))))
    `(org-scheduled ((t (:foreground ,aurora-green+4))))
    `(org-scheduled-previously ((t (:foreground ,aurora-red))))
@@ -687,7 +696,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(org-table ((t (:foreground ,aurora-green+2))))
    `(org-tag ((t (:bold t :weight bold))))
    `(org-time-grid ((t (:foreground ,aurora-orange))))
-   `(org-todo ((t (:background, aurora-red :bold t :foreground ,aurora-bg :weight bold))))
+   `(org-todo ((t (:foreground ,aurora-cyan :weight bold)))) ;;ToDo
    `(org-upcoming-deadline ((t (:inherit font-lock-keyword-face))))
    `(org-warning ((t (:bold t :foreground ,aurora-red :weight bold :underline nil))))
    `(org-column ((t (:background ,aurora-bg-1))))
@@ -717,11 +726,6 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(p4-diff-ins-face ((t :inherit diff-added)))
 ;;;;; perspective
    `(persp-selected-face ((t (:foreground ,aurora-yellow+1 :inherit mode-line))))
-;;;;; powerline
-   `(powerline-active1 ((t (:background ,aurora-bg-05 :inherit mode-line))))
-   `(powerline-active2 ((t (:background ,aurora-bg+2 :inherit mode-line))))
-   `(powerline-inactive1 ((t (:background ,aurora-bg+1 :inherit mode-line-inactive))))
-   `(powerline-inactive2 ((t (:background ,aurora-bg+3 :inherit mode-line-inactive))))
 ;;;;; proofgeneral
    `(proof-active-area-face ((t (:underline t))))
    `(proof-boring-face ((t (:foreground ,aurora-fg :background ,aurora-bg+2))))
