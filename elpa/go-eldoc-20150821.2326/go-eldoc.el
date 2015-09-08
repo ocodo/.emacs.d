@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-eldoc
-;; Package-Version: 20150810.2007
-;; Version: 0.25
+;; Package-Version: 20150821.2326
+;; Version: 0.26
 ;; Package-Requires: ((go-mode "1.0.0") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -175,9 +175,10 @@
 (defun go-eldoc--goto-last-funcall (limit)
   (let ((level (car (syntax-ppss)))
         pos)
-    (while (re-search-forward "[[:word:][:multibyte:]]\\s-*+(" limit t)
-      (when (= level (1- (car (syntax-ppss))))
-        (setq pos (point))))
+    (save-excursion
+      (while (re-search-forward "[[:word:][:multibyte:]]\\s-*+(" limit t)
+        (when (= level (1- (car (syntax-ppss))))
+          (setq pos (point)))))
     (when pos
       (goto-char pos))))
 
