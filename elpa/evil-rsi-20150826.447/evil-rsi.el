@@ -4,7 +4,7 @@
 
 ;; Author: Quang Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/evil-rsi
-;; Package-Version: 20150702.1615
+;; Package-Version: 20150826.447
 ;; Version: 1.0.0
 ;; Keywords: evil rsi evil-rsi
 ;; Package-Requires: ((evil "1.0.0"))
@@ -64,6 +64,7 @@
             (evil-define-key 'insert map "\C-h" 'delete-backward-char)
             (evil-define-key 'motion map "\C-k" 'kill-line)
             (evil-define-key 'insert map "\C-k" 'kill-line)
+            (evil-define-key 'insert map (kbd "C-S-k") 'evil-insert-digraph)
             map))
 
 (dolist (sym '(auto-complete company))

@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-rsi" "evil-rsi.el" (21911 65092 531401
+;;;### (autoloads nil "evil-rsi" "evil-rsi.el" (21998 34847 51401
 ;;;;;;  0))
 ;;; Generated autoloads from evil-rsi.el
 
