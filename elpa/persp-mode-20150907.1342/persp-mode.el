@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 1.1.2
-;; Package-Version: 20150806.2359
+;; Version: 1.1.3
+;; Package-Version: 20150907.1342
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -455,6 +455,11 @@ to a wrong one.")
   "Backtrace function with base argument.")
 
 
+(defcustom persp-switch-wrap t
+  "Whether `persp-next' and `persp-prev' should wrap."
+  :group 'persp-mode
+  :type 'boolean)
+
 ;; Key bindings:
 
 (define-prefix-command 'persp-key-map)
@@ -462,6 +467,8 @@ to a wrong one.")
 (defvar persp-mode-map (make-sparse-keymap)
   "The keymap with a prefix for the persp-mode.")
 
+(define-key persp-key-map (kbd "n") #'persp-next)
+(define-key persp-key-map (kbd "p") #'persp-prev)
 (define-key persp-key-map (kbd "s") #'persp-switch)
 (define-key persp-key-map (kbd "r") #'persp-rename)
 (define-key persp-key-map (kbd "c") #'persp-kill)
@@ -765,19 +772,24 @@ instead it's contents will be erased.")
 (defun get-frame-persp (&optional frame)
   (frame-parameter frame 'persp))
 
-(defun* persp-names (&optional (phash *persp-hash*))
+(defun* persp-names (&optional (phash *persp-hash*) (reverse t))
   (let ((ret nil))
     (maphash #'(lambda (k p)
                  (push k ret))
              phash)
-    ret))
+    (if reverse
+        (reverse ret)
+      ret)))
+
+(defun persp-names-current-frame-fast-ordered ()
+  (mapcar #'caddr (cddddr persp-minor-mode-menu)))
 
 (defun* persp-get-by-name (name &optional (phash *persp-hash*) default)
   (gethash name phash default))
 
 
 (defsubst* persp-names-sorted (&optional (phash *persp-hash*))
-  (sort (persp-names phash) #'string<))
+  (sort (persp-names phash nil) #'string<))
 
 (defsubst persp-regexp-variants (variants &optional begin end)
   (unless begin (setq begin "\\`"))
@@ -858,6 +870,35 @@ instead it's contents will be erased.")
 
 ;; Perspective funcs:
 
+(defun persp-next ()
+  "Switch to next perspective (to the right)."
+  (interactive)
+  (let* ((persp-list (persp-names-current-frame-fast-ordered))
+         (persp-list-length (length persp-list))
+         (only-perspective? (equal persp-list-length 1))
+         (pos (position (safe-persp-name (get-frame-persp)) persp-list)))
+    (cond
+     ((null pos) nil)
+     (only-perspective? nil)
+     ((= pos (1- persp-list-length))
+      (if persp-switch-wrap (persp-switch (nth 0 persp-list))))
+     (t (persp-switch (nth (1+ pos) persp-list))))))
+
+(defun persp-prev ()
+  "Switch to previous perspective (to the left)."
+  (interactive)
+  (let* ((persp-list (persp-names-current-frame-fast-ordered))
+         (persp-list-length (length persp-list))
+         (only-perspective? (equal persp-list-length 1))
+         (pos (position (safe-persp-name (get-frame-persp)) persp-list)))
+    (cond
+     ((null pos) nil)
+     (only-perspective? nil)
+     ((= pos 0)
+      (if persp-switch-wrap
+          (persp-switch (nth (1- persp-list-length) persp-list))))
+     (t (persp-switch (nth (1- pos) persp-list))))))
+
 (defun* persp-add (persp &optional (phash *persp-hash*))
   "Insert `PERSP' to `PHASH'.
 If we adding to the `*persp-hash*' add entries to the mode menu.
@@ -887,7 +928,7 @@ Return the removed perspective."
       (remhash name phash)
       (when (eq phash *persp-hash*)
         (persp-remove-from-menu persp)
-        (setq persp-to-switch (or (car (persp-names phash)) persp-nil-name))
+        (setq persp-to-switch (or (car (persp-names phash nil)) persp-nil-name))
         (mapc #'(lambda (f)
                   (when (eq persp (get-frame-persp f))
                     (persp-switch persp-to-switch f)))
@@ -899,7 +940,7 @@ Return the removed perspective."
 Return the created perspective."
   (interactive "sA name for the new perspective: ")
   (if (and name (not (string= "" name)))
-      (if (member name (persp-names phash))
+      (if (member name (persp-names phash nil))
           (persp-get-by-name name phash)
         (let ((persp (if (string= persp-nil-name name)
                          nil
@@ -1181,7 +1222,7 @@ Return `NAME'."
                                                  (persp-kill str_name))))))))
 
 (defun persp-prompt (action &optional default require-match delnil delcur)
-  (let ((persps (persp-names-sorted)))
+  (let ((persps (persp-names-current-frame-fast-ordered)))
     (when delnil
       (setq persps (delete persp-nil-name persps)))
     (when delcur
@@ -1475,7 +1516,8 @@ does not exist or not a directory %S." p-save-dir)
     `(progn
        (let ((,c-frame (selected-frame)))
          ,@body
-         (select-frame ,c-frame)))))
+         (unless (eq (selected-frame) ,c-frame)
+           (select-frame ,c-frame))))))
 
 (defsubst persp-update-frames-window-confs (&optional names-regexp)
   (persp-preserve-frame
