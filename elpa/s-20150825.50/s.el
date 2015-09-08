@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Magnar Sveen
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
-;; Version: 20140910.334
-;; X-Original-Version: 1.9.0
+;; Version: 1.9.0
+;; Package-Version: 20150825.50
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -77,10 +77,10 @@ See also `s-split'."
               (push sub r)))
           (setq op (goto-char (match-end 0)))
           (setq n (1- n)))
-        (if (/= (point) (point-max))
-            (push (buffer-substring-no-properties op (point-max)) r)
-          (unless omit-nulls
-            (push "" r))))
+        (let ((sub (buffer-substring-no-properties op (point-max))))
+          (unless (and omit-nulls
+                       (equal sub ""))
+            (push sub r))))
       (nreverse r))))
 
 (defun s-lines (s)
