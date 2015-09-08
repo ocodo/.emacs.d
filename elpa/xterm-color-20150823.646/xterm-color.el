@@ -4,7 +4,7 @@
 ;; All rights reserved
 
 ;; Version: 1.0 - 2012-07-07
-;; Package-Version: 20150726.1643
+;; Package-Version: 20150823.646
 ;; Author: xristos@sdf.lonestar.org
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -648,7 +648,8 @@ Also see `xterm-color-unfontify-region'."
          (buf (get-buffer-create name)))
     (switch-to-buffer buf))
   (xterm-color--test-ansi)
-  (xterm-color--test-xterm))
+  (xterm-color--test-xterm)
+  (setq buffer-read-only t))
 
 (provide 'xterm-color)
 ;;; xterm-color.el ends here
