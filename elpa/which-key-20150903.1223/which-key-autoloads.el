@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "which-key" "which-key.el" (21975 62408 443401
+;;;### (autoloads nil "which-key" "which-key.el" (21998 34588 299401
 ;;;;;;  0))
 ;;; Generated autoloads from which-key.el
 
@@ -23,6 +23,12 @@ Toggle which-key-mode.
 
 (autoload 'which-key-setup-side-window-right "which-key" "\
 Apply suggested settings for side-window that opens on right.
+
+\(fn)" t nil)
+
+(autoload 'which-key-setup-side-window-right-bottom "which-key" "\
+Apply suggested settings for side-window that opens on right
+if there is space and the bottom otherwise.
 
 \(fn)" t nil)
 
@@ -58,12 +64,41 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply.
 \(fn MODE KEY-SEQUENCE REPLACEMENT &rest MORE)" nil nil)
 
 (autoload 'which-key-add-prefix-title "which-key" "\
-Add title for KEY-SEQ-STR given by TITLE.
-FORCE, if non-nil, will add the new title even if one already
-exists. KEY-SEQ-STR should be a key sequence string suitable for
-`kbd' and NAME should be a string.
+Deprecated in favor of `which-key-declare-prefixes'.
 
-\(fn KEY-SEQ-STR NAME &optional FORCE)" t nil)
+Add title for KEY-SEQ-STR given by TITLE. FORCE, if non-nil, will
+add the new title even if one already exists. KEY-SEQ-STR should
+be a key sequence string suitable for `kbd' and TITLE should be a
+string.
+
+\(fn KEY-SEQ-STR TITLE &optional FORCE)" nil nil)
+
+(autoload 'which-key-declare-prefixes "which-key" "\
+Name the KEY-SEQUENCE prefix NAME.
+KEY-SEQUENCE should be a string, acceptable to `kbd'. NAME can be
+a string or a cons cell of two strings. In the first case, the
+string is used as both the name and the title (the title is
+displayed in the echo area only). For Example,
+
+\(which-key-declare-prefixes \"C-x 8\" \"unicode\")
+
+or
+
+\(which-key-declare-prefixes \"C-x 8\" (\"unicode\" . \"Unicode Chararcters\"))
+
+MORE allows you to specifcy additional KEY-SEQUENCE NAME pairs.
+All names are added to `which-key-prefix-names-alist' and titles
+to `which-key-prefix-title-alist'.
+
+\(fn KEY-SEQUENCE NAME &rest MORE)" nil nil)
+
+(autoload 'which-key-declare-prefixes-for-mode "which-key" "\
+Functions like `which-key-declare-prefix-names'.
+The difference is that MODE specifies the `major-mode' that must
+be active for KEY-SEQUENCE and NAME (MORE contains
+addition KEY-SEQUENCE NAME pairs) to apply.
+
+\(fn MODE KEY-SEQUENCE NAME &rest MORE)" nil nil)
 
 ;;;***
 
