@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "bundler" "bundler.el" (21861 60019 963401
+;;;### (autoloads nil "bundler" "bundler.el" (21998 34887 387401
 ;;;;;;  0))
 ;;; Generated autoloads from bundler.el
 
@@ -41,6 +41,21 @@ Run bundle update for the current bundle.
 Set BUNDLE_GEMFILE environment variable.
 
 \(fn &optional GEMFILE)" t nil)
+
+(autoload 'bundle-outdated "bundler" "\
+List installed gems with newer versions available.
+
+\(fn)" t nil)
+
+(autoload 'bundle-show "bundler" "\
+Shows all gems that are part of the bundle, or the path to a given gem.
+
+\(fn)" t nil)
+
+(autoload 'bundle-version "bundler" "\
+Prints version information.
+
+\(fn)" t nil)
 
 ;;;***
 

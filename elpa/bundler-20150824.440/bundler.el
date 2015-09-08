@@ -4,7 +4,7 @@
 
 ;; Author: Tobias Svensson <tob@tobiassvensson.co.uk>
 ;; URL: http://github.com/tobiassvn/
-;; Package-Version: 20150527.646
+;; Package-Version: 20150824.440
 ;; Keywords: bundler ruby
 ;; Created: 31 Dec 2011
 ;; Version: 1.1.1
@@ -135,6 +135,24 @@
         (message "Warning: couldn't read file \"%s\". BUNDLE_GEMFILE unchanged." gemfile))
     (setenv "BUNDLE_GEMFILE")))
 
+;;;###autoload
+(defun bundle-outdated ()
+  "List installed gems with newer versions available."
+  (interactive)
+  (bundle-command "bundle outdated"))
+
+;;;###autoload
+(defun bundle-show ()
+  "Shows all gems that are part of the bundle, or the path to a given gem."
+  (interactive)
+  (bundle-command "bundle show"))
+
+;;;###autoload
+(defun bundle-version ()
+  "Prints version information."
+  (interactive)
+  (shell-command "bundle version"))
+
 (defun bundle-command (cmd)
   "Run cmd in an async buffer."
   (async-shell-command cmd "*Bundler*"))
@@ -155,14 +173,16 @@ Gemfile could not be found, or nil if the Gem could not be
 found."
   (let ((bundler-stdout
          (shell-command-to-string
-          (format "bundle show %s" (shell-quote-argument gem-name)))))
+          (format "bundle show %s" (shell-quote-argument gem-name))))
+        (remote (file-remote-p default-directory)))
     (cond
      ((string-match "Could not locate Gemfile" bundler-stdout)
       'no-gemfile)
      ((string-match "Could not find " bundler-stdout)
       nil)
      (t
-      (concat (replace-regexp-in-string
+      (concat remote
+              (replace-regexp-in-string
                "Resolving dependencies...\\|\n" ""
                bundler-stdout)
               "/")))))
