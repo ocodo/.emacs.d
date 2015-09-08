@@ -3,7 +3,7 @@
 
 ;; Author: Marijn Haverbeke
 ;; URL: http://ternjs.net/
-;; Package-Version: 20150821.333
+;; Package-Version: 20150830.1256
 ;; Version: 0.0.1
 ;; Package-Requires: ((json "1.2") (cl-lib "0.5") (emacs "24"))
 
@@ -473,7 +473,8 @@ list of strings, giving the binary name and arguments.")
 
 (defun tern-go-to-position (file pos)
   (find-file file)
-  (goto-char (min pos (point-max))))
+  (goto-char (min pos (point-max)))
+  (setf tern-last-point-pos (point)))
 
 ;; Query type
 
