@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "go-errcheck" "go-errcheck.el" (21949 40281
-;;;;;;  835401 0))
+;;;### (autoloads nil "go-errcheck" "go-errcheck.el" (21998 34812
+;;;;;;  71401 0))
 ;;; Generated autoloads from go-errcheck.el
 
 (autoload 'go-errcheck "go-errcheck" "\

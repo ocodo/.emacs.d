@@ -3,8 +3,8 @@
 ;; Copyright (C) 2013 Dominik Honnef
 
 ;; Author: Dominik Honnef <dominikh@fork-bomb.org>
-;; Version: 1.1.1
-;; Package-Version: 20150801.1428
+;; Version: 1.1.2
+;; Package-Version: 20150828.1135
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -113,7 +113,7 @@ For an explanation of the arguments other than PKG, see
   (add-hook 'compilation-start-hook 'go-errcheck--compilation-hook)
   (let ((default-directory directory))
     (compile (concat
-              "errcheck "
+              "errcheck -abspath "
               (mapconcat 'identity (go-errcheck--build-arguments
                                     (or ignorepkg go-errcheck-ignorepkg)
                                     (or ignore go-errcheck-ignore))
