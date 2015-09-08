@@ -88,6 +88,7 @@
 (require 'cl-lib)
 (require 'imenu)
 (require 'js)
+(require 'etags)
 
 (eval-and-compile
   (if (version< emacs-version "25.0")
@@ -1115,6 +1116,7 @@ information."
     (define-key map (kbd "C-c C-o") #'js2-mode-toggle-element)
     (define-key map (kbd "C-c C-w") #'js2-mode-toggle-warnings-and-errors)
     (define-key map [down-mouse-3] #'js2-down-mouse-3)
+    (define-key map (kbd "M-.") #'js2-jump-to-definition)
 
     (define-key map [menu-bar javascript]
       (cons "JavaScript" (make-sparse-keymap "JavaScript")))
@@ -6819,7 +6821,7 @@ of a simple name.  Called before EXPR has a parent node."
 
 (defconst js2-jsdoc-param-tag-regexp
   (concat "^\\s-*\\*+\\s-*\\(@"
-          "\\(?:param\\|argument\\)"
+          "\\(?:param\\|arg\\(?:ument\\)?\\|prop\\(?:erty\\)?\\)"
           "\\)"
           "\\s-*\\({[^}]+}\\)?"         ; optional type
           "\\s-*\\[?\\([[:alnum:]_$\.]+\\)?\\]?"  ; name
@@ -6861,7 +6863,6 @@ of a simple name.  Called before EXPR has a parent node."
              "memberOf"
              "name"
              "namespace"
-             "property"
              "since"
              "suppress"
              "this"
@@ -7967,46 +7968,42 @@ Scanner should be initialized."
     (js2-node-add-children fn-node pn)
     pn))
 
-(defun js2-define-destruct-symbols-internal
-    (node decl-type face &optional ignore-not-in-block name-nodes)
-  "Internal version of `js2-define-destruct-symbols'.  The only
-difference is that NAME-NODES is passed down recursively."
-  (cond
-   ((js2-name-node-p node)
-    (let (leftpos)
-      (js2-define-symbol decl-type (js2-name-node-name node)
-                         node ignore-not-in-block)
-      (when face
-        (js2-set-face (setq leftpos (js2-node-abs-pos node))
-                      (+ leftpos (js2-node-len node))
-                      face 'record))
-      (setq name-nodes (append name-nodes (list node)))))
-   ((js2-object-node-p node)
-    (dolist (elem (js2-object-node-elems node))
-      (setq name-nodes
-            (append name-nodes
-                    (js2-define-destruct-symbols-internal
-                     ;; In abbreviated destructuring {a, b}, right == left.
-                     (js2-object-prop-node-right elem)
-                     decl-type face ignore-not-in-block name-nodes)))))
-   ((js2-array-node-p node)
-    (dolist (elem (js2-array-node-elems node))
-      (when elem
-        (setq name-nodes
-              (append name-nodes
-                      (js2-define-destruct-symbols-internal
-                       elem decl-type face ignore-not-in-block name-nodes))))))
-   (t (js2-report-error "msg.no.parm" nil (js2-node-abs-pos node)
-                        (js2-node-len node))))
-  name-nodes)
-
 (defun js2-define-destruct-symbols (node decl-type face &optional ignore-not-in-block)
   "Declare and fontify destructuring parameters inside NODE.
 NODE is either `js2-array-node', `js2-object-node', or `js2-name-node'.
 
 Return a list of `js2-name-node' nodes representing the symbols
 declared; probably to check them for errors."
-  (js2-define-destruct-symbols-internal node decl-type face ignore-not-in-block))
+  (let (name-nodes)
+    (cond
+     ((js2-name-node-p node)
+      (let (leftpos)
+        (js2-define-symbol decl-type (js2-name-node-name node)
+                           node ignore-not-in-block)
+        (when face
+          (js2-set-face (setq leftpos (js2-node-abs-pos node))
+                        (+ leftpos (js2-node-len node))
+                        face 'record))
+        (list node)))
+     ((js2-object-node-p node)
+      (dolist (elem (js2-object-node-elems node))
+        (when (js2-object-prop-node-p elem)
+          (push (js2-define-destruct-symbols
+                 ;; In abbreviated destructuring {a, b}, right == left.
+                 (js2-object-prop-node-right elem)
+                 decl-type face ignore-not-in-block)
+                name-nodes)))
+      (apply #'append (nreverse name-nodes)))
+     ((js2-array-node-p node)
+      (dolist (elem (js2-array-node-elems node))
+        (when elem
+          (push (js2-define-destruct-symbols
+                 elem decl-type face ignore-not-in-block)
+                name-nodes)))
+      (apply #'append (nreverse name-nodes)))
+     (t (js2-report-error "msg.no.parm" nil (js2-node-abs-pos node)
+                          (js2-node-len node))
+        nil))))
 
 (defvar js2-illegal-strict-identifiers
   '("eval" "arguments")
@@ -8042,7 +8039,7 @@ represented by FN-NODE at POS."
                                  (eq (js2-current-token-type) js2-NAME)))
           params param
           param-name-nodes new-param-name-nodes
-          default-found rest-param-at)
+          rest-param-at)
       (when paren-free-arrow
         (js2-unget-token))
       (cl-loop for tt = (js2-peek-token)
@@ -8052,8 +8049,6 @@ represented by FN-NODE at POS."
                 ((and (not paren-free-arrow)
                       (or (= tt js2-LB) (= tt js2-LC)))
                  (js2-get-token)
-                 (when default-found
-                   (js2-report-error "msg.no.default.after.default.param"))
                  (setq param (js2-parse-destruct-primary-expr)
                        new-param-name-nodes (js2-define-destruct-symbols
                                              param js2-LP 'js2-function-param))
@@ -8075,14 +8070,8 @@ represented by FN-NODE at POS."
                  (js2-check-strict-function-params param-name-nodes (list param))
                  (setq param-name-nodes (append param-name-nodes (list param)))
                  ;; default parameter value
-                 (when (or (and default-found
-                                (not rest-param-at)
-                                (js2-must-match js2-ASSIGN
-                                                "msg.no.default.after.default.param"
-                                                (js2-node-pos param)
-                                                (js2-node-len param)))
-                           (and (>= js2-language-version 200)
-                                (js2-match-token js2-ASSIGN)))
+                 (when (and (>= js2-language-version 200)
+                            (js2-match-token js2-ASSIGN))
                    (cl-assert (not paren-free-arrow))
                    (let* ((pos (js2-node-pos param))
                           (tt (js2-current-token-type))
@@ -8092,8 +8081,7 @@ represented by FN-NODE at POS."
                           (len (- (js2-node-end right) pos)))
                      (setq param (make-js2-assign-node
                                   :type tt :pos pos :len len :op-pos op-pos
-                                  :left left :right right)
-                           default-found t)
+                                  :left left :right right))
                      (js2-node-add-children param left right)))
                  (push param params)))
                (when (and rest-param-at (> (length params) (1+ rest-param-at)))
@@ -12310,6 +12298,129 @@ it marks the next defun after the ones already marked."
          (beg (js2-node-abs-pos fn)))
     (unless (js2-ast-root-p fn)
       (narrow-to-region beg (+ beg (js2-node-len fn))))))
+
+(defun js2-jump-to-definition (&optional arg)
+  "Jump to the definition of an object's property, variable or function."
+  (interactive "P")
+  (ring-insert find-tag-marker-ring (point-marker))
+  (let* ((node (js2-node-at-point))
+         (parent (js2-node-parent node))
+         (names (if (js2-prop-get-node-p parent)
+                    (reverse (let ((temp (js2-compute-nested-prop-get parent)))
+                               (cl-loop for n in temp
+                                        with result = '()
+                                        do (push n result)
+                                        until (equal node n)
+                                        finally return result)))))
+         node-init)
+    (unless (and (js2-name-node-p node)
+                 (not (js2-var-init-node-p parent))
+                 (not (js2-function-node-p parent)))
+      (error "Node is not a supported jump node"))
+    (push (or (and names (pop names))
+              (unless (and (js2-object-prop-node-p parent)
+                           (eq node (js2-object-prop-node-left parent)))
+                node)) names)
+    (setq node-init (js2-search-scope node names))
+
+    ;; todo: display list of results in buffer
+    ;; todo: group found references by buffer
+    (unless node-init
+      (switch-to-buffer
+       (catch 'found
+         (unless arg
+           (mapc (lambda (b)
+                   (with-current-buffer b
+                     (when (derived-mode-p 'js2-mode)
+                       (setq node-init (js2-search-scope js2-mode-ast names))
+                       (if node-init
+                           (throw 'found b)))))
+                 (buffer-list)))
+         nil)))
+    (setq node-init (if (listp node-init) (car node-init) node-init))
+    (unless node-init
+      (pop-tag-mark)
+      (error "No jump location found"))
+    (goto-char (js2-node-abs-pos node-init))))
+
+(defun js2-search-object (node name-node)
+  "Check if object NODE contains element with NAME-NODE."
+  (cl-assert (js2-object-node-p node))
+  ;; Only support name-node and nodes for the time being
+  (cl-loop for elem in (js2-object-node-elems node)
+           for left = (js2-object-prop-node-left elem)
+           if (or (and (js2-name-node-p left)
+                       (equal (js2-name-node-name name-node)
+                              (js2-name-node-name left)))
+                  (and (js2-string-node-p left)
+                       (string= (js2-name-node-name name-node)
+                                (js2-string-node-value left))))
+           return elem))
+
+(defun js2-search-object-for-prop (object prop-names)
+  "Return node in OBJECT that matches PROP-NAMES or nil.
+PROP-NAMES is a list of values representing a path to a value in OBJECT.
+i.e. ('name' 'value') = {name : { value: 3}}"
+  (let (node
+        (temp-object object)
+        (temp t) ;temporay node
+        (names prop-names))
+    (while (and temp names (js2-object-node-p temp-object))
+      (setq temp (js2-search-object temp-object (pop names)))
+      (and (setq node temp)
+         (setq temp-object (js2-object-prop-node-right temp))))
+    (unless names node)))
+
+(defun js2-search-scope (node names)
+  "Searches NODE scope for jump location matching NAMES.
+NAMES is a list of property values to search for. For functions
+and variables NAMES will contain one element."
+  (let (node-init
+        (val (js2-name-node-name (car names))))
+    (setq node-init (js2-get-symbol-declaration node val))
+
+    (when (> (length names) 1)
+
+      ;; Check var declarations
+      (when (and node-init (string= val (js2-name-node-name node-init)))
+        (let ((parent (js2-node-parent node-init))
+              (temp-names names))
+          (pop temp-names) ;; First element is var name
+          (setq node-init (when (js2-var-init-node-p parent)
+                            (js2-search-object-for-prop
+                             (js2-var-init-node-initializer parent)
+                             temp-names)))))
+
+      ;; Check all assign nodes
+      (js2-visit-ast
+       js2-mode-ast
+       (lambda (node endp)
+         (unless endp
+           (if (js2-assign-node-p node)
+               (let ((left (js2-assign-node-left node))
+                     (right (js2-assign-node-right node))
+                     (temp-names names))
+                 (when (js2-prop-get-node-p left)
+                   (let* ((prop-list (js2-compute-nested-prop-get left))
+                          (found (cl-loop for prop in prop-list
+                                          until (not (string= (js2-name-node-name
+                                                               (pop temp-names))
+                                                              (js2-name-node-name prop)))
+                                          if (not temp-names) return prop))
+                          (found-node (or found
+                                          (when (js2-object-node-p right)
+                                            (js2-search-object-for-prop right
+                                                                        temp-names)))))
+                     (if found-node (push found-node node-init))))))
+           t))))
+    node-init))
+
+(defun js2-get-symbol-declaration (node name)
+  "Find scope for NAME from NODE."
+  (let ((scope (js2-get-defining-scope
+          (or (js2-node-get-enclosing-scope node)
+             node) name)))
+    (if scope (js2-symbol-ast-node (js2-scope-get-symbol scope name)))))
 
 (provide 'js2-mode)
 
