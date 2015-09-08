@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-cmd-t" "helm-cmd-t.el" (21818 58314 611401
+;;;### (autoloads nil "helm-cmd-t" "helm-cmd-t.el" (21998 34781 743401
 ;;;;;;  0))
 ;;; Generated autoloads from helm-cmd-t.el
 
@@ -29,7 +29,7 @@ Redirect to the correct grep based on `candidate-buffer'.
 ;;;***
 
 ;;;### (autoloads nil nil ("helm-C-x-b.el" "helm-cmd-t-find.el" "helm-cmd-t-pkg.el")
-;;;;;;  (21818 58314 629990 774000))
+;;;;;;  (21998 34781 761515 990000))
 
 ;;;***
 
