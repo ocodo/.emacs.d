@@ -4,9 +4,9 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20150819.110
+;; Package-Version: 20150905.600
 ;; Version: 0.42
-;; Package-Requires: ((helm "1.6.9") (cl-lib "0.5"))
+;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -460,7 +460,7 @@ They are specified to `--ignore' options."
 (defun helm-ag--run-other-window-action ()
   (interactive)
   (with-helm-alive-p
-    (helm-quit-and-execute-action 'helm-ag--action--find-file-other-window)))
+    (helm-exit-and-execute-action 'helm-ag--action--find-file-other-window)))
 
 (defsubst helm-ag--kill-edit-buffer ()
   (kill-buffer (get-buffer "*helm-ag-edit*")))
@@ -547,7 +547,7 @@ They are specified to `--ignore' options."
 
 (defun helm-ag-edit ()
   (interactive)
-  (helm-quit-and-execute-action 'helm-ag--edit))
+  (helm-exit-and-execute-action 'helm-ag--edit))
 
 (defconst helm-ag--help-message
   "\n* Helm Ag\n
@@ -619,7 +619,7 @@ Special commands:
 (defun helm-ag--run-save-buffer ()
   (interactive)
   (with-helm-alive-p
-    (helm-quit-and-execute-action 'helm-ag--save-results)))
+    (helm-exit-and-execute-action 'helm-ag--save-results)))
 
 (defvar helm-ag-map
   (let ((map (make-sparse-keymap)))
@@ -642,11 +642,12 @@ Special commands:
           (y-or-n-p "Current directory might be the project root. \
 Continue searching the parent directory? "))
       (let ((parent (file-name-directory (directory-file-name default-directory))))
-        (helm-run-after-quit
+        (helm-run-after-exit
          (lambda ()
-           (let ((default-directory parent))
+           (let* ((default-directory parent)
+                  (helm-ag--default-directory parent))
              (setq helm-ag--last-default-directory default-directory)
-             (helm-attrset 'name (helm-ag--helm-header default-directory) 'helm-ag-source)
+             (helm-attrset 'name (helm-ag--helm-header default-directory) helm-ag-source)
              (helm :sources '(helm-ag-source) :buffer "*helm-ag*" :keymap helm-ag-map)))))
     (message nil)))
 
@@ -667,8 +668,27 @@ Continue searching the parent directory? "))
       (helm-attrset 'name (helm-ag--helm-header helm-ag--default-directory) helm-ag-source)
       (helm :sources '(helm-ag-source) :buffer "*helm-ag*" :keymap helm-ag-map))))
 
+(defun helm-ag--split-string (str)
+  (with-temp-buffer
+    (insert str)
+    (goto-char (point-min))
+    (let ((prev (point))
+          patterns)
+      (while (search-forward " " nil 'move)
+        (cond ((looking-back "\\\\\\\\ " nil)
+               (push (buffer-substring-no-properties prev (1- (point))) patterns)
+               (skip-chars-forward " ")
+               (setq prev (point)))
+              ((looking-back "\\\\ " nil)
+               (replace-match " "))
+              (t (push (buffer-substring-no-properties prev (1- (point))) patterns)
+                 (skip-chars-forward " ")
+                 (setq prev (point)))))
+      (push (buffer-substring-no-properties prev (point)) patterns)
+      (reverse (cl-loop for p in patterns unless (string= p "") collect p)))))
+
 (defun helm-ag--join-patterns (input)
-  (let ((patterns (split-string input)))
+  (let ((patterns (helm-ag--split-string input)))
     (if (= (length patterns) 1)
         (car patterns)
       (cl-case helm-ag--command-feature
@@ -680,7 +700,7 @@ Continue searching the parent directory? "))
   (if helm-ag--command-feature
       (list (helm-ag--join-patterns input))
     (cl-loop with regexp = (helm-ag--pcre-to-elisp-regexp input)
-             for pattern in (split-string regexp)
+             for pattern in (helm-ag--split-string regexp)
              when (helm-ag--validate-regexp pattern)
              collect pattern)))
 
@@ -798,6 +818,7 @@ Continue searching the parent directory? "))
 
 (defvar helm-source-do-ag
   (helm-build-async-source "The Silver Searcher"
+    :init 'helm-ag--do-ag-set-command
     :candidates-process 'helm-ag--do-ag-candidate-process
     :persistent-action  'helm-ag--persistent-action
     :action helm-ag--actions
@@ -812,9 +833,10 @@ Continue searching the parent directory? "))
 Continue searching the parent directory? "))
       (let ((parent (file-name-directory (directory-file-name default-directory)))
             (initial-input helm-input))
-        (helm-run-after-quit
+        (helm-run-after-exit
          (lambda ()
-           (let ((default-directory parent))
+           (let ((default-directory parent)
+                 (helm-ag--default-directory parent))
              (setq helm-ag--last-default-directory default-directory)
              (helm-attrset 'name (helm-ag--helm-header parent)
                            helm-source-do-ag)
@@ -851,7 +873,6 @@ Continue searching the parent directory? "))
                         helm-ag--default-directory))))
     (helm-attrset 'name (helm-ag--helm-header search-dir)
                   helm-source-do-ag)
-    (helm-ag--do-ag-set-command)
     (helm :sources '(helm-source-do-ag) :buffer "*helm-ag*"
           :input (helm-ag--insert-thing-at-point helm-ag-insert-at-point)
           :keymap helm-do-ag-map)))
