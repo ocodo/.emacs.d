@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/evil-jumper
-;; Package-Version: 20150628.1031
+;; Package-Version: 20150830.1807
 ;; Filename: evil-jumper.el
 ;; Description: Jump like vimmers do!
 ;; Created: 2014-07-01
@@ -139,9 +139,12 @@ Note: The value of `evil-jumper-file' must also be non-nil."
   (with-temp-file evil-jumper-file
     (let ((jumps (evil-jumper--get-window-jump-list)))
       (dolist (jump jumps)
-        (let ((pos (car jump))
-              (file-name (cadr jump)))
-          (when (file-exists-p file-name)
+        (let* ((mark (car jump))
+               (pos (if (markerp mark)
+                        (marker-position mark)
+                      mark))
+               (file-name (cadr jump)))
+          (when (and (file-exists-p file-name) pos)
             (insert (format "%d" pos))
             (insert " ")
             (insert file-name)
@@ -171,7 +174,7 @@ Note: The value of `evil-jumper-file' must also be non-nil."
       (nbutlast target-list 1))
     (let ((file-name (buffer-file-name))
           (buffer-name (buffer-name))
-          (current-pos (point))
+          (current-pos (point-marker))
           (first-pos nil)
           (first-file-name nil)
           (excluded nil))

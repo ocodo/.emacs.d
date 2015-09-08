@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-jumper" "evil-jumper.el" (21906 2344
-;;;;;;  243401 0))
+;;;### (autoloads nil "evil-jumper" "evil-jumper.el" (21998 34849
+;;;;;;  19401 0))
 ;;; Generated autoloads from evil-jumper.el
 
 (defvar evil-jumper-mode nil "\
