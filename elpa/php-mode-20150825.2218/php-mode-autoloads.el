@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "php-mode" "php-mode.el" (21946 43548 823401
+;;;### (autoloads nil "php-mode" "php-mode.el" (21998 34646 27401
 ;;;;;;  0))
 ;;; Generated autoloads from php-mode.el
 
