@@ -4,7 +4,7 @@
 
 ;; Author: Mikhail <tensai@cirno.in> Kuryshev
 ;; Keywords: languages
-;; Package-Version: 20150404.2351
+;; Package-Version: 20150903.1940
 ;; Package-Requires: ((auto-complete "1.4.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -36,8 +36,11 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'auto-complete))
+  (require 'cl))
+
+(require 'auto-complete)
+
+(declare-function yas-expand-snippet "yasnippet")
 
 (defgroup go-autocomplete nil
   "auto-complete for go language."
@@ -127,10 +130,10 @@
 (defun ac-go-action ()
   (let ((item (cdr ac-last-completion)))
     (when (stringp item)
-      (setq symbol (get-text-property 0 'summary item))
-      (message "%s" symbol)
-      (when (and (featurep 'yasnippet) ac-go-expand-arguments-into-snippets)
-        (ac-go-insert-yas-snippet-string symbol)))))
+      (let ((symbol (get-text-property 0 'summary item)))
+        (message "%s" symbol)
+        (when (and (featurep 'yasnippet) ac-go-expand-arguments-into-snippets)
+          (ac-go-insert-yas-snippet-string symbol))))))
 
 (defun ac-go-insert-yas-snippet-string (s)
   (let ((ret "") (pos (point)) match-res match args)
@@ -176,7 +179,13 @@
         nil)))
 
 (defun ac-go-candidates ()
-  (ac-go-get-candidates (ac-go-format-autocomplete (ac-go-invoke-autocomplete))))
+  (let ((candidates (ac-go-get-candidates
+                     (ac-go-format-autocomplete (ac-go-invoke-autocomplete)))))
+    (if (equal candidates '("PANIC"))
+        (progn
+          (message "GOCODE PANIC: Please check your code by \"go build\"")
+          nil)
+      candidates)))
 
 (defun ac-go-prefix ()
   (or (ac-prefix-symbol)
