@@ -4,8 +4,8 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20150710.832
-;; Version: 1.1.3
+;; Package-Version: 20150901.1520
+;; Version: 1.1.4
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -144,8 +144,8 @@ depending on DISPLAY for keys which are either :foreground or
    (font-lock-keyword-face :foreground blue :weight bold)
    (font-lock-negation-char-face :foreground red)
    (font-lock-preprocessor-face :foreground red)
-   (font-lock-regexp-grouping-construct)
-   (font-lock-regexp-grouping-backslash)
+   (font-lock-regexp-grouping-construct :foreground yellow)
+   (font-lock-regexp-grouping-backslash :foreground yellow)
    (font-lock-string-face :foreground green)
    (font-lock-type-face :foreground orange)
    (font-lock-variable-name-face :foreground base5)
@@ -262,6 +262,18 @@ depending on DISPLAY for keys which are either :foreground or
 
    ;; makefile
    (makefile-space :background magenta)
+
+   ;; message-mode
+   (message-cited-text :foreground blue)
+   (message-header-cc :foreground base5)
+   (message-header-name :foreground orange)
+   (message-header-newsgroups :inherit shadow)
+   (message-header-other :foreground base5)
+   (message-header-subject :foreground base5)
+   (message-header-to :foreground base5)
+   (message-header-xheader :inherit shadow)
+   (message-mml :foreground yellow)
+   (message-separator :foreground blue)
 
    ;; outline
    (outline-1 :foreground red)
@@ -581,6 +593,10 @@ depending on DISPLAY for keys which are either :foreground or
    (markdown-header-face-4 :background base2)
    (markdown-header-face-5 :background base3)
    (markdown-header-face-6 :background base4)
+
+   ;; mu4e
+   (mu4e-header-highlight-face :inherit hl-line)
+   (mu4e-region-code :inherit region)
 
    ;; org-mode
    (org-agenda-dimmed-todo-face :inherit shadow)
