@@ -44,7 +44,10 @@
   :group 'convenience)
 
 (defface ivy-current-match
-  '((t (:inherit highlight)))
+  '((((class color) (background light))
+     :background "#1a4b77" :foreground "white")
+    (((class color) (background dark))
+     :background "#65a7e2" :foreground "black"))
   "Face used by Ivy for highlighting first match.")
 
 (defface ivy-confirm-face
@@ -77,6 +80,17 @@ and the candidate count."
 (defcustom ivy-wrap nil
   "Whether to wrap around after the first and last candidate."
   :type 'boolean)
+
+(defcustom ivy-display-style nil
+  "The style for formatting the minibuffer.
+
+By default, the matched strings will be copied as they are.
+
+With the fancy method, the matching parts of the regexp will be
+additionally highlighted, just like `swiper' does it."
+  :type '(choice
+          (const :tag "Plain" nil)
+          (const :tag "Fancy" fancy)))
 
 (defcustom ivy-on-del-error-function 'minibuffer-keyboard-quit
   "The handler for when `ivy-backward-delete-char' throws.
@@ -1397,7 +1411,15 @@ all of the text contained in the minibuffer."
 `propertize' or `add-face-text-property' in this case."
   (require 'colir)
   (condition-case nil
-      (colir-blend-face-background 0 (length str) face str)
+      (progn
+        (colir-blend-face-background 0 (length str) face str)
+        (let ((foreground (face-foreground face)))
+          (when foreground
+            (add-face-text-property
+             0 (length str)
+             `(:foreground ,foreground)
+             nil
+             str))))
     (error
      (ignore-errors
        (font-lock-append-text-property 0 (length str) 'face face str))))
@@ -1496,6 +1518,34 @@ This string will be inserted into the minibuffer.")
                s))
      cands "\n")))
 
+(defun ivy--format-minibuffer-line (str)
+  (let ((start 0)
+        (str (copy-sequence str)))
+    (when (eq ivy-display-style 'fancy)
+      (unless ivy--old-re
+        (setq ivy--old-re (funcall ivy--regex-function ivy-text)))
+      (while (and (string-match ivy--old-re str start)
+                  (> (- (match-end 0) (match-beginning 0)) 0))
+        (setq start (match-end 0))
+        (let ((i 0))
+          (while (<= i ivy--subexps)
+            (let ((face
+                   (cond ((zerop ivy--subexps)
+                          (cadr swiper-minibuffer-faces))
+                         ((zerop i)
+                          (car swiper-minibuffer-faces))
+                         (t
+                          (nth (1+ (mod (+ i 2) (1- (length swiper-minibuffer-faces))))
+                               swiper-minibuffer-faces)))))
+              (add-face-text-property
+               (match-beginning i)
+               (match-end i)
+               face
+               nil
+               str))
+            (cl-incf i)))))
+    str))
+
 (defun ivy--format (cands)
   "Return a string for CANDS suitable for display in the minibuffer.
 CANDS is a list of strings."
@@ -1517,18 +1567,11 @@ CANDS is a list of strings."
                                 x))
                             cands)))
       (setq ivy--current (copy-sequence (nth index cands)))
-      (setf (nth index cands)
-            (ivy--add-face ivy--current 'ivy-current-match))
       (setq cands (mapcar
-                   (lambda (s)
-                     (let ((s (copy-sequence s)))
-                       (when (fboundp 'add-face-text-property)
-                         (add-face-text-property
-                          0 (length s)
-                          `(:height ,(face-attribute 'default :height)
-                                    :overline nil) nil s))
-                       s))
+                   #'ivy--format-minibuffer-line
                    cands))
+      (setf (nth index cands)
+            (ivy--add-face (nth index cands) 'ivy-current-match))
       (let* ((ivy--index index)
              (res (concat "\n" (funcall ivy-format-function cands))))
         (put-text-property 0 (length res) 'read-only nil res)

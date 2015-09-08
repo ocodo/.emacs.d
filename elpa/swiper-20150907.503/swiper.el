@@ -61,6 +61,35 @@
   '((t (:inherit isearch-fail)))
   "Face for `swiper' matches modulo 3.")
 
+(defface swiper-minibuffer-match-face-1
+  '((((class color) (background light))
+     :background "#d3d3d3")
+    (((class color) (background dark))
+     :background "#555555"))
+  "The background face for `swiper' minibuffer matches."
+  :group 'function-args-faces)
+
+(defface swiper-minibuffer-match-face-2
+  '((((class color) (background light))
+     :background "#e99ce8" :weight bold)
+    (((class color) (background dark))
+     :background "#777777" :weight bold))
+  "Face for `swiper' minibuffer matches modulo 1.")
+
+(defface swiper-minibuffer-match-face-3
+  '((((class color) (background light))
+     :background "#bbbbff" :weight bold)
+    (((class color) (background dark))
+     :background "#7777ff" :weight bold))
+  "Face for `swiper' minibuffer matches modulo 2.")
+
+(defface swiper-minibuffer-match-face-4
+  '((((class color) (background light))
+     :background "#ffbbff" :weight bold)
+    (((class color) (background dark))
+     :background "#8a498a" :weight bold))
+  "Face for `swiper' minibuffer matches modulo 3.")
+
 (defface swiper-line-face
   '((t (:inherit highlight)))
   "Face for current `swiper' line.")
@@ -70,6 +99,13 @@
                           swiper-match-face-3
                           swiper-match-face-4)
   "List of `swiper' faces for group matches.")
+
+(defcustom swiper-minibuffer-faces
+  '(swiper-minibuffer-match-face-1
+    swiper-minibuffer-match-face-2
+    swiper-minibuffer-match-face-3
+    swiper-minibuffer-match-face-4)
+  "List of `swiper' faces for minibuffer group matches.")
 
 (defcustom swiper-min-highlight 2
   "Only highlight matches for regexps at least this long."
