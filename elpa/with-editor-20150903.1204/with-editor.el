@@ -40,7 +40,7 @@
 ;; export `$EDITOR' making sure the executed command uses the current
 ;; Emacs instance as "the editor".  With a prefix argument these
 ;; commands prompt for an alternative environment variable such as
-;; `$GIT_EDITOR'.  To always use these variants add this to you init
+;; `$GIT_EDITOR'.  To always use these variants add this to your init
 ;; file:
 ;;
 ;;   (define-key (current-global-map)
@@ -126,7 +126,7 @@ please see https://github.com/magit/magit/wiki/Emacsclient."))
           (lambda (v) (cl-mapcar (lambda (e) (concat v e)) exec-suffixes))
           (nconc (cl-mapcon (lambda (v)
                               (setq v (mapconcat #'identity (reverse v) "."))
-                              (list v (concat "-" v)))
+                              (list v (concat "-" v) (concat ".emacs" v)))
                             (reverse version-lst))
                  (list "")))
          (lambda (exec)
@@ -295,7 +295,11 @@ not a good idea to change such entries.")
              (kill-buffer)))
           (t
            (save-buffer)
-           (if clients (server-edit) (kill-buffer))))
+           (if clients
+               ;; Don't use `server-edit' because we do not want to show
+               ;; another buffer belonging to another client.  See #2197.
+               (server-done)
+             (kill-buffer))))
     (when pid
       (let ((default-directory dir))
         (process-file "kill" nil nil nil
@@ -447,6 +451,8 @@ which may or may not insert the text into the PROCESS' buffer."
           (with-editor-process-filter proc str t))
      filter)))
 
+(defvar with-editor-filter-visit-hook nil)
+
 (defun with-editor-output-filter (string)
   (save-match-data
     (if (string-match "^WITH-EDITOR: \\([0-9]+\\) OPEN \\(.+?\\)\r?$" string)
@@ -591,7 +597,7 @@ else like the former."
 (defun with-editor-shell-command-read-args (prompt &optional async)
   (let ((command (read-shell-command
                   prompt nil nil
-                  (--when-let (or (buffer-file-name)
+                  (--when-let (or buffer-file-name
                                   (and (eq major-mode 'dired-mode)
                                        (dired-get-filename nil t)))
                     (file-relative-name it)))))
