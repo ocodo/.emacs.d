@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20150727.2355
+;; Package-Version: 20150903.1427
 ;; Version: 0.1.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -32,7 +32,7 @@
 ;;; Code:
 
 (require 'helm)
-(require 'helm-match-plugin)
+(require 'helm-multi-match)
 
 (defgroup helm-make nil
   "Select a Makefile target with helm."
@@ -79,10 +79,47 @@ makefile."
   (helm--make
    "Makefile"))
 
+(defun helm--make-target-list-qp (makefile)
+  "Return sorted target list for MAKEFILE using \"make -qp\"."
+  (let ((default-directory (file-name-directory
+                            (expand-file-name makefile)))
+        targets target)
+    (with-temp-buffer
+      (insert (shell-command-to-string "make -qp"))
+      (goto-char (point-min))
+      (unless (re-search-forward "^# Files" nil t)
+        (error "Unexpected \"make -qp\" output"))
+      (while (re-search-forward "^\\([^%$:\/#\n\t =]+\\):\\([^=]\\|$\\)" nil t)
+        (setq target (match-string 1))
+        (unless (or (save-excursion
+		      (goto-char (match-beginning 0))
+		      (forward-line -1)
+		      (looking-at "^# Not a target:"))
+		    (string-match "^\\." target))
+          (push target targets)))
+      (sort (delete-dups targets) 'string<))))
+
+(defun helm--make-target-list-default (makefile)
+  "Return the target list for MAKEFILE by parsing it."
+  (let (targets)
+    (with-temp-buffer
+      (insert-file-contents makefile)
+      (goto-char (point-min))
+      (while (re-search-forward "^\\([^: \n]+\\):" nil t)
+        (let ((str (match-string 1)))
+          (unless (string-match "^\\." str)
+            (push str targets)))))
+    (setq targets (nreverse targets))))
+
+(defcustom helm-make-list-target-method 'default
+  "Method of obtaining the list of Makefile targets."
+  :type '(choice
+          (const :tag "Default" default)
+          (const :tag "make -qp" qp)))
+
 (defun helm--make (makefile)
   "Call make for MAKEFILE."
-  (let ((file (expand-file-name makefile))
-        targets)
+  (let ((file (expand-file-name makefile)))
     (if (file-exists-p file)
         (progn
           (when helm-make-do-save
@@ -99,40 +136,33 @@ makefile."
                  (with-current-buffer b
                    (save-buffer)))
                buffers)))
-          (with-helm-default-directory (file-name-directory file)
-              (with-temp-buffer
-                (insert-file-contents file)
-                (goto-char (point-min))
-                (let (targets target)
-                  (while (re-search-forward "^\\([^: \n]+\\):" nil t)
-                    (let ((str (match-string 1)))
-                      (unless (string-match "^\\." str)
-                        (push str targets))))
-                  (setq targets (nreverse targets))
-                  (setq helm-make-target-history
-                        (delete-dups helm-make-target-history))
-                  (cl-case helm-make-completion-method
-                    (helm
-                     (helm :sources
-                           `((name . "Targets")
-                             (candidates . ,targets)
-                             (action . helm-make-action))
-                           :history 'helm-make-target-history
-                           :preselect (when helm-make-target-history
-                                        (format "^%s$" (car helm-make-target-history)))))
-                    (ivy
-                     (ivy-read "Target: "
-                               targets
-                               :history 'helm-make-target-history
-                               :preselect (car helm-make-target-history)
-                               :action 'helm-make-action
-                               :require-match t))
-                    (ido
-                     (when (setq target (ido-completing-read
-                                         "Target: " targets
-                                         nil nil nil
-                                         'helm-make-target-history))
-                       (helm-make-action target))))))))
+          (let ((targets (if (eq helm-make-list-target-method 'default)
+                             (helm--make-target-list-default file)
+                           (helm--make-target-list-qp file))))
+            (delete-dups helm-make-target-history)
+            (cl-case helm-make-completion-method
+              (helm
+               (helm :sources
+                     `((name . "Targets")
+                       (candidates . ,targets)
+                       (action . helm-make-action))
+                     :history 'helm-make-target-history
+                     :preselect (when helm-make-target-history
+                                  (format "^%s$" (car helm-make-target-history)))))
+              (ivy
+               (ivy-read "Target: "
+                         targets
+                         :history 'helm-make-target-history
+                         :preselect (car helm-make-target-history)
+                         :action 'helm-make-action
+                         :require-match t))
+              (ido
+               (let ((target (ido-completing-read
+                              "Target: " targets
+                              nil nil nil
+                              'helm-make-target-history)))
+                 (when target
+                   (helm-make-action target)))))))
       (error "No Makefile in %s" default-directory))))
 
 ;;;###autoload

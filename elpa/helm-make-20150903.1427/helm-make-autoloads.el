@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-make" "helm-make.el" (21943 17755 919401
+;;;### (autoloads nil "helm-make" "helm-make.el" (21998 34770 739401
 ;;;;;;  0))
 ;;; Generated autoloads from helm-make.el
 
