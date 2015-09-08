@@ -5,7 +5,7 @@
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 1.25.1
-;; Package-Version: 20150711.150
+;; Package-Version: 20150906.321
 ;; Keywords: lisp, testing, unittest
 ;; URL: http://github.com/rejeep/el-mock.el
 
@@ -124,6 +124,9 @@
         (apply 'mock-verify-args args)))
 
 (defun mock-verify-args (funcsym expected-args actual-args expected-times)
+  (unless (= (length expected-args) (length actual-args))
+    (signal 'mock-error (list (cons funcsym expected-args)
+                              (cons funcsym actual-args))))
   (loop for e in expected-args
         for a in actual-args
         do
