@@ -1,4 +1,4 @@
-(define-package "telephone-line" "20150818.604" "Rewrite of Powerline"
+(define-package "telephone-line" "20150902.957" "Rewrite of Powerline"
   '((emacs "24.3")
     (cl-lib "0.5")
     (memoize "1.0.1")
