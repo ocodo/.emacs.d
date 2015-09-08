@@ -6,7 +6,7 @@
 ;; Maintainer: John Wiegley <jwiegley@gmail.com>
 ;; Created: 17 Jun 2012
 ;; Version: 2.0
-;; Package-Version: 20150817.2257
+;; Package-Version: 20150906.2051
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
