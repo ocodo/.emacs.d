@@ -1,4 +1,4 @@
-(define-package "paradox" "20150812.732" "A modern Packages Menu. Colored, with package ratings, and customizable."
+(define-package "paradox" "20150907.1552" "A modern Packages Menu. Colored, with package ratings, and customizable."
   '((emacs "24.4")
     (seq "1.7")
     (cl-lib "0.5")
