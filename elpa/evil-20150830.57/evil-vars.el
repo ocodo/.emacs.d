@@ -3,7 +3,7 @@
 ;; Author: Vegard Øye <vegard_oye at hotmail.com>
 ;; Maintainer: Vegard Øye <vegard_oye at hotmail.com>
 
-;; Version: 1.2.2
+;; Version: 1.2.3
 
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -1497,7 +1497,8 @@ Elements have the form (NAME . FUNCTION).")
      :close      hide-ifdef-block)
     ((outline-mode
       outline-minor-mode
-      org-mode)
+      org-mode
+      markdown-mode)
      :open-all   show-all
      :close-all  ,(lambda ()
                     (with-no-warnings (hide-sublevels 1)))
@@ -1710,7 +1711,7 @@ Otherwise the previous command is assumed as substitute.")
           (goto-char (point-min))
           (buffer-substring (point-min) (line-end-position)))
          ;; no repo, use plain version
-         (t "1.2.2")))))
+         (t "1.2.3")))))
   "The current version of Evil")
 
 (defun evil-version ()
