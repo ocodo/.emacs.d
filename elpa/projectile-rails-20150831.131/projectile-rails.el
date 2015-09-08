@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20150422.829
+;; Package-Version: 20150831.131
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -1045,6 +1045,7 @@ If file does not exist and ASK in not nil it will ask user to proceed."
     (define-key map (kbd "e") 'projectile-rails-find-environment)
     (define-key map (kbd "a") 'projectile-rails-find-locale)
     (define-key map (kbd "@") 'projectile-rails-find-mailer)
+    (define-key map (kbd "!") 'projectile-rails-find-validator)
     (define-key map (kbd "y") 'projectile-rails-find-layout)
     (define-key map (kbd "k") 'projectile-rails-find-rake-task)
     (define-key map (kbd "b") 'projectile-rails-find-job)
@@ -1210,7 +1211,7 @@ Killing the buffer will terminate to server's process."
                      ("i" "initializer" projectile-rails-find-initializer)
                      ("o" "log"         projectile-rails-find-log)
                      ("@" "mailer"      projectile-rails-find-mailer)
-                     (""  "validator"   projectile-rails-find-validator)
+                     ("!" "validator"   projectile-rails-find-validator)
                      ("y" "layout"      projectile-rails-find-layout)
                      ("n" "migration"   projectile-rails-find-migration)
                      ("k" "rake task"   projectile-rails-find-rake-task)
@@ -1255,6 +1256,66 @@ Killing the buffer will terminate to server's process."
                      ("x" "extract region" projectile-rails-extract-region))))
    :bind "") ;;accessible only from the main context menu
   )
+
+(condition-case nil
+    (progn
+      (defhydra hydra-projectile-rails-find (:color blue :columns 8)
+        "Find a resources"
+        ("m" projectile-rails-find-model       "model")
+        ("v" projectile-rails-find-view        "view")
+        ("c" projectile-rails-find-controller  "controller")
+        ("h" projectile-rails-find-helper      "helper")
+        ("l" projectile-rails-find-lib         "lib")
+        ("j" projectile-rails-find-javascript  "javascript")
+        ("s" projectile-rails-find-stylesheet  "stylesheet")
+        ("p" projectile-rails-find-spec        "spec")
+        ("u" projectile-rails-find-fixture     "fixture")
+        ("t" projectile-rails-find-test        "test")
+        ("f" projectile-rails-find-feature     "feature")
+        ("i" projectile-rails-find-initializer "initializer")
+        ("o" projectile-rails-find-log         "log")
+        ("@" projectile-rails-find-mailer      "mailer")
+        ("!" projectile-rails-find-validator   "validator")
+        ("y" projectile-rails-find-layout      "layout")
+        ("n" projectile-rails-find-migration   "migration")
+        ("k" projectile-rails-find-rake-task   "rake task")
+        ("b" projectile-rails-find-job         "job")
+
+        ("M" projectile-rails-find-current-model      "current model")
+        ("V" projectile-rails-find-current-view       "current view")
+        ("C" projectile-rails-find-current-controller "current controller")
+        ("H" projectile-rails-find-current-helper     "current helper")
+        ("J" projectile-rails-find-current-javascript "current javascript")
+        ("S" projectile-rails-find-current-stylesheet "current stylesheet")
+        ("P" projectile-rails-find-current-spec       "current spec")
+        ("U" projectile-rails-find-current-fixture    "current fixture")
+        ("T" projectile-rails-find-current-test       "current test")
+        ("N" projectile-rails-find-current-migration  "current migration"))
+
+      (defhydra hydra-projectile-rails-goto (:color blue :columns 8)
+        "Go to"
+        ("f" projectile-rails-goto-file-at-point "file at point")
+        ("g" projectile-rails-goto-gemfile       "Gemfile")
+        ("r" projectile-rails-goto-routes        "routes")
+        ("d" projectile-rails-goto-schema        "schema")
+        ("s" projectile-rails-goto-seeds         "seeds")
+        ("h" projectile-rails-goto-spec-helper   "spec helper"))
+
+      (defhydra hydra-projectile-rails-run (:color blue :columns 8)
+        "Run external command & interact"
+        ("r" projectile-rails-rake     "rake")
+        ("c" projectile-rails-console  "console")
+        ("s" projectile-rails-server   "server")
+        ("g" projectile-rails-generate "generate")
+        ("d" projectile-rails-destroy  "destroy")
+        ("x" projectile-rails-extract-region "extract region"))
+
+      (defhydra hydra-projectile-rails (:color blue :columns 8)
+        "Projectile Rails"
+        ("f" hydra-projectile-rails-find/body "Find a resource")
+        ("g" hydra-projectile-rails-goto/body "Goto")
+        ("r" hydra-projectile-rails-run/body "Run & interact")))
+  (error nil))
 
 (provide 'projectile-rails)
 
