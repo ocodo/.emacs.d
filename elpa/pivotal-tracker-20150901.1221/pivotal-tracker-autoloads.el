@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "pivotal-tracker" "pivotal-tracker.el" (21472
-;;;;;;  60280 178176 999000))
+;;;### (autoloads nil "pivotal-tracker" "pivotal-tracker.el" (21998
+;;;;;;  34644 23401 0))
 ;;; Generated autoloads from pivotal-tracker.el
 
 (defgroup pivotal nil "\

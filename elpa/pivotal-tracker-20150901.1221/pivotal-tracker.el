@@ -2,9 +2,9 @@
 
 ;; Author: John Andrews
 ;; URL: http://github.com/jxa/pivotal-tracker
+;; Package-Version: 20150901.1221
 ;; Created: 2010.11.14
-;; Version: 20140805.501
-;; X-Original-Version: 1.3.0
+;; Version: 1.3.0
 
 ;; This file is not part of GNU Emacs.
 
@@ -118,11 +118,7 @@
 (defun pivotal-set-project ()
   "set the current project, and load the current iteration for that project"
   (interactive)
-  (setq *pivotal-current-project*
-        (progn
-          (beginning-of-line)
-          (re-search-forward "\\([0-9]+\\)" (point-at-eol))
-          (match-string 1)))
+  (setq *pivotal-current-project* (pivotal-project-id-at-point))
   (pivotal-get-current))
 
 (defun pivotal-get-story (id)
@@ -200,6 +196,28 @@
                "PUT"
                'pivotal-check-task-callback
                (format "<task><complete>true</complete></task>")))
+
+(defun pivotal-kill-ring-save-story-url ()
+  "saves the external story URL as if killed, but don't kill anything"
+  (interactive)
+  (let ((story-url (pivotal-story-url-at-point)))
+    (kill-new story-url)
+    (message (concat "copied story URL to kill ring: " story-url))))
+
+(defun pivotal-open-story-in-browser ()
+  "asks a WWW browser to load the story"
+  (interactive)
+  (browse-url (pivotal-story-url-at-point)))
+
+(defun pivotal-open-current-project-in-browser ()
+  "asks a WWW browser to load the current project"
+  (interactive)
+  (browse-url (pivotal-get-project-url *pivotal-current-project*)))
+
+(defun pivotal-open-project-at-point-in-browser ()
+  "asks a WWW browser to open the project at point"
+  (interactive)
+  (browse-url (pivotal-get-project-url (pivotal-project-id-at-point))))
 
 ;;;;;;;; CALLBACKS
 
@@ -316,6 +334,9 @@
   (define-key pivotal-mode-map (kbd "T") 'pivotal-add-task)
   (define-key pivotal-mode-map (kbd "+") 'pivotal-add-story)
   (define-key pivotal-mode-map (kbd "F") 'pivotal-check-task)
+  (define-key pivotal-mode-map (kbd "l") 'pivotal-kill-ring-save-story-url)
+  (define-key pivotal-mode-map (kbd "o") 'pivotal-open-story-in-browser)
+  (define-key pivotal-mode-map (kbd "C-o") 'pivotal-open-current-project-in-browser)
   (setq font-lock-defaults '(pivotal-font-lock-keywords))
   (font-lock-mode))
 
@@ -328,6 +349,7 @@
   (define-key pivotal-project-mode-map (kbd "j") 'next-line)
   (define-key pivotal-project-mode-map (kbd "k") 'previous-line)
 
+  (define-key pivotal-project-mode-map (kbd "o") 'pivotal-open-project-at-point-in-browser)
   (define-key pivotal-project-mode-map (kbd ".") 'pivotal-set-project)
   (define-key pivotal-project-mode-map (kbd "C-m") 'pivotal-set-project))
 
@@ -390,6 +412,11 @@
           (pivotal-get-project project-id)
         project))))
 
+(defun pivotal-get-project-url (project-id)
+  (replace-regexp-in-string "/services/v3/" "/n/"
+                            (pivotal-url
+                             "projects" project-id)))
+
 (defun pivotal-get-estimate-scale (project-id)
   (let* ((project             (pivotal-get-project project-id))
          (point-scale-str     (cdr (assoc 'point_scale project)))
@@ -405,6 +432,12 @@
 (defvar pivotal-story-requester-history '())
 
 (defvar pivotal-story-estimate-history '())
+
+(defun pivotal-project-id-at-point ()
+  (save-excursion
+    (beginning-of-line)
+    (re-search-forward "\\([0-9]+\\)" (point-at-eol))
+    (match-string 1)))
 
 (defun pivotal-project-member->member-name-id-association (project-member)
   `(,(cdr (assoc 'name (assoc 'person project-member)))
@@ -551,6 +584,12 @@
          (story-str (symbol-name story-sym)))
     (string-match "pivotal-\\([0-9]+\\)" story-str)
     (match-string 1 story-str)))
+
+(defun pivotal-story-url-at-point (&optional position)
+  (replace-regexp-in-string "/services/v3/" "/n/"
+                            (pivotal-url
+                             "projects" *pivotal-current-project*
+                             "stories" (pivotal-story-id-at-point position))))
 
 (defun pivotal-task-id-at-point (&optional position)
   (save-excursion
