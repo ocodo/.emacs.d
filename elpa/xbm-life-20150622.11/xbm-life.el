@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/xbm-life
-;; Package-Version: 20150325.44
+;; Package-Version: 20150622.11
 ;; Version: 0.1
 ;; Package-Requires:
 ;; Keywords: games
@@ -615,7 +615,6 @@ Valid format specifiers are:
 Use ARG as prefix argument to create a buffer with a different
 name."
   (interactive "P")
-  (message "%s" arg)
   (let ((buffer-name (if (consp arg)
                          (read-string "Buffer name: " nil nil "*xbm life*")
                        "*xbm life*")))
