@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Package-Version: 20150819.2302
+;; Package-Version: 20150830.1828
 ;; Version: 0.1
 ;; Keywords: typescript languages
 ;; Package-Requires: ()
@@ -277,14 +277,14 @@ Match group 1 is the name of the macro.")
 
 (defconst typescript--keyword-re
   (typescript--regexp-opt-symbol
-   '("any" "bool" "boolean" "break" "case" "catch" "class" "constructor"
-     "continue" "declare" "default" "delete" "do" "else"
+   '("any" "bool" "boolean" "break" "case" "catch" "class" "const"
+     "constructor" "continue" "declare" "default" "delete" "do" "else"
      "enum" "export" "extends" "extern" "false" "finally" "for"
-     "function" "goto" "if" "implements" "import" "in"
-     "instanceof" "interface" "module" "new" "null" "number"
-      "private" "protected" "public" "return" "static" "string"
+     "function" "goto" "if" "implements" "import" "in" "instanceof"
+     "interface" "let" "module" "namespace" "new" "null" "number"
+     "private" "protected" "public" "return" "static" "string"
      "super" "switch"  "this" "throw" "true"
-     "try" "typeof" "var" "void"
+     "try" "type" "typeof" "var" "void"
      "while" ))
   "Regexp matching any typescript keyword.")
 

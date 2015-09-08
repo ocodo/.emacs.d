@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "typescript-mode" "typescript-mode.el" (21975
-;;;;;;  62416 15401 0))
+;;;### (autoloads nil "typescript-mode" "typescript-mode.el" (21998
+;;;;;;  34600 699401 0))
 ;;; Generated autoloads from typescript-mode.el
 
 (autoload 'typescript-mode "typescript-mode" "\
