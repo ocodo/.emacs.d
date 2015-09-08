@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20150807.620
+;; Package-Version: 20150831.1127
 ;; Keywords: project, convenience
 ;; Version: 0.13.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -1780,19 +1780,22 @@ This is a subset of `grep-read-files', where either a matching entry from
                (and ext (concat "*." ext)))))
       (or default-alias default-extension))))
 
-(defun projectile-grep (&optional arg)
+(defun projectile-grep (&optional regexp arg)
   "Perform rgrep in the project.
 
 With a prefix ARG asks for files (globbing-aware) which to grep in.
 With prefix ARG of `-' (such as `M--'), default the files (without prompt),
-to `projectile-grep-default-files'."
-  (interactive "P")
+to `projectile-grep-default-files'.
+
+With REGEXP given, don't query the user for a regexp."
+  (interactive "i\nP")
   (require 'grep) ;; for `rgrep'
   (let* ((roots (projectile-get-project-directories))
-         (search-regexp (if (and transient-mark-mode mark-active)
-                            (buffer-substring (region-beginning) (region-end))
-                          (read-string (projectile-prepend-project-name "Grep for: ")
-                                       (projectile-symbol-at-point))))
+         (search-regexp (or regexp
+                            (if (and transient-mark-mode mark-active)
+                                (buffer-substring (region-beginning) (region-end))
+                              (read-string (projectile-prepend-project-name "Grep for: ")
+                                           (projectile-symbol-at-point)))))
          (files (and arg (or (and (equal current-prefix-arg '-)
                                   (projectile-grep-default-files))
                              (read-string (projectile-prepend-project-name "Grep in: ")
