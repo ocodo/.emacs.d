@@ -7,7 +7,7 @@
 ;; Modified   : May 2015
 ;; Version    : 0.8.10
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20150815.552
+;; Package-Version: 20150906.1210
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
 
@@ -281,7 +281,9 @@
 ;;
 ;;    0.8.11 2015 August 15th
 ;;          - Make mode a derived mode. Improve evil-support.
-;;          - Fix all runtime warnings.
+;;          - Add support for devenv compilation-output.
+;;          - Fix all runtime warnings
+;;          - Fix error with string-values in #region directives.
 ;;
 
 (require 'cc-mode)
@@ -4220,6 +4222,12 @@ Key bindings:
 
     ;; define underscore as part of a word in the Csharp syntax table
     (modify-syntax-entry ?_ "w" csharp-mode-syntax-table)
+
+    ;; ensure #region and #pragma directives are not treated as computational
+    ;; expressions and thus wont have string and character rules applied to
+    ;; them.
+    (modify-syntax-entry ?# "< b" csharp-mode-syntax-table)
+    (modify-syntax-entry ?\n "> b" csharp-mode-syntax-table)
 
     ;; define @ as an expression prefix in Csharp syntax table
     (modify-syntax-entry ?@ "'" csharp-mode-syntax-table)
