@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("evil-terminal-cursor-changer.el") (21975
-;;;;;;  62524 235171 596000))
+;;;### (autoloads nil nil ("evil-terminal-cursor-changer.el") (21998
+;;;;;;  34844 962289 395000))
 
 ;;;***
 
