@@ -3,8 +3,13 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "dired+" "dired+.el" (21948 19776 859401 0))
+;;;### (autoloads nil "dired+" "dired+.el" (21998 34866 3401 0))
 ;;; Generated autoloads from dired+.el
+
+(defvar diff-switches "-c" "\
+*A string or list of strings specifying switches to be passed to diff.")
+
+(custom-autoload 'diff-switches "dired+" t)
 
 (defvar diredp-auto-focus-frame-for-thumbnail-tooltip-flag nil "\
 *Non-nil means automatically focus the frame for a thumbnail tooltip.
@@ -17,6 +22,11 @@ It also has no effect for Emacs versions prior to Emacs 22.")
 
 (custom-autoload 'diredp-auto-focus-frame-for-thumbnail-tooltip-flag "dired+" t)
 
+(defvar diredp-compressed-extensions '(".tar" ".taz" ".tgz" ".arj" ".lzh" ".zip" ".z" ".Z" ".gz" ".bz2") "\
+*List of compressed-file extensions, for highlighting.")
+
+(custom-autoload 'diredp-compressed-extensions "dired+" t)
+
 (defvar diredp-dwim-any-frame-flag pop-up-frames "\
 *Non-nil means the target directory can be in a window in another frame.
 Only visible frames are considered.
@@ -24,6 +34,16 @@ This is used by ``dired-dwim-target-directory'.
 This option has no effect for Emacs versions before Emacs 22.")
 
 (custom-autoload 'diredp-dwim-any-frame-flag "dired+" t)
+
+(unless (fboundp 'define-minor-mode) (defcustom diredp-highlight-autofiles-mode t "*Non-nil means highlight names of files that are autofile bookmarks.\nAutofiles that have tags are highlighted using face\n`diredp-tagged-autofile-name'.  Those with no tags are highlighted\nusing face `diredp-autofile-name'.\n\nSetting this option directly does not take effect; use either\n\\[customize] or command `diredp-highlight-autofiles-mode'.\n\nNOTE: When `dired+.el' is loaded (for the first time per Emacs\nsession), the highlighting is turned ON, regardless of the option\nvalue.  To prevent this and have the highlighting OFF by default, you\nmust do one of the following:\n\n * Put (diredp-highlight-autofiles-mode -1) in your init file, AFTER\n   it loads `dired+.el'.\n\n * Customize the option to `nil', AND ensure that your `custom-file'\n   (or the `custom-saved-variables' part of your init file) is\n   evaluated before `dired+.el' is loaded.\n\nThis option has no effect unless you use libraries `Bookmark and\n`highlight.el'." :set (lambda (symbol value) (diredp-highlight-autofiles-mode (if value 1 -1))) :initialize 'custom-initialize-default :type 'boolean :group 'Dired-Plus :require 'dired+))
+
+(defvar diredp-ignore-compressed-flag t "\
+*Non-nil means to font-lock names of compressed files as ignored files.
+This applies to filenames whose extensions are in
+`diredp-compressed-extensions'.  If nil they are highlighted using
+face `diredp-compressed-file-name'.")
+
+(custom-autoload 'diredp-ignore-compressed-flag "dired+" t)
 
 (defvar diredp-image-preview-in-tooltip (or (and (boundp 'image-dired-thumb-size) image-dired-thumb-size) 100) "\
 *Whether and what kind of image preview to show in a tooltip.
@@ -55,11 +75,6 @@ option has no effect.)")
 
 (custom-autoload 'diredp-image-show-this-file-use-frame-flag "dired+" t)
 
-(defvar diff-switches "-c" "\
-*A string or list of strings specifying switches to be passed to diff.")
-
-(custom-autoload 'diff-switches "dired+" t)
-
 (defvar diredp-prompt-for-bookmark-prefix-flag nil "\
 *Non-nil means prompt for a prefix string for bookmark names.")
 
@@ -76,8 +91,6 @@ name and DESCRIPTION describes DRIVE.")
 *Non-nil means Dired \"next\" commands wrap around to buffer beginning.")
 
 (custom-autoload 'diredp-wrap-around-flag "dired+" t)
-
-(unless (fboundp 'define-minor-mode) (defcustom diredp-highlight-autofiles-mode t "*Non-nil means highlight names of files that are autofile bookmarks.\nAutofiles that have tags are highlighted using face\n`diredp-tagged-autofile-name'.  Those with no tags are highlighted\nusing face `diredp-autofile-name'.\n\nSetting this option directly does not take effect; use either\n\\[customize] or command `diredp-highlight-autofiles-mode'.\n\nNOTE: When `dired+.el' is loaded (for the first time per Emacs\nsession), the highlighting is turned ON, regardless of the option\nvalue.  To prevent this and have the highlighting OFF by default, you\nmust do one of the following:\n\n * Put (diredp-highlight-autofiles-mode -1) in your init file, AFTER\n   it loads `dired+.el'.\n\n * Customize the option to `nil', AND ensure that your `custom-file'\n   (or the `custom-saved-variables' part of your init file) is\n   evaluated before `dired+.el' is loaded.\n\nThis option has no effect unless you use libraries `Bookmark and\n`highlight.el'." :set (lambda (symbol value) (diredp-highlight-autofiles-mode (if value 1 -1))) :initialize 'custom-initialize-default :type 'boolean :group 'Dired-Plus :require 'dired+))
 
 (autoload 'diredp-image-dired-create-thumb "dired+" "\
 Create thumbnail image file for FILE (default: file on current line).
@@ -1645,6 +1658,18 @@ Examples:
      First, Dired just the source files: `dired *.el'.
      Then, use \\[dired-mark-sexp] with this sexp:
           (not (file-exists-p (concat name \"c\")))
+
+There's an ambiguity when a single integer not followed by a unit
+prefix precedes the file mode: It is then parsed as inode number
+and not as block size (this always works for GNU coreutils ls).
+
+Another limitation is that the uid field is needed for the
+function to work correctly.  In particular, the field is not
+present for some values of `ls-lisp-emulation'.
+
+This function operates only on the buffer content and does not
+refer at all to the underlying file system.  Contrast this with
+`find-dired', which might be preferable for the task at hand.
 
 \(fn PREDICATE &optional UNMARK-P)" t nil)
 
