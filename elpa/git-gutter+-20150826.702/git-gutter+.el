@@ -1,10 +1,10 @@
-;;; git-gutter+.el --- Manage Git hunks straight from the buffer
+;;; git-gutter+.el --- Manage Git hunks straight from the buffer -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013 by Syohei YOSHIDA and contributors
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com> and contributors
 ;; URL: https://github.com/nonsequitur/git-gutter-plus
-;; Package-Version: 20150705.558
+;; Package-Version: 20150826.702
 ;; Version: 0.3
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (require 'tramp)
 (require 'log-edit)
 (require 'git-commit)
@@ -210,24 +210,24 @@ calculated width looks wrong. (This can happen with some special characters.)"
   (list :type type :content content :start-line start :end-line end))
 
 (defun git-gutter+-get-diffinfos ()
-  (loop while (re-search-forward git-gutter+-hunk-header-regex nil t)
-        ;; Hunk header format:
-        ;; @@ -{del-line},{del-len} +{add-line},{add-len} @@
-        for del-len  = (string-to-number (or (match-string 2) "1"))
-        for add-line = (string-to-number (match-string 3))
-        for add-len  = (string-to-number (or (match-string 4) "1"))
-        for type = (cond ((zerop del-len) 'added)
-                         ((zerop add-len) 'deleted)
-                         (t 'modified))
-        for start-line = (if (eq type 'deleted)
-                             (1+ add-line)
-                           add-line)
-        for end-line = (if (eq type 'deleted)
-                           start-line
-                         (1- (+ add-line add-len)))
-        for content = (git-gutter+-diff-content)
-        collect
-        (git-gutter+-make-diffinfo type content start-line end-line)))
+  (cl-loop while (re-search-forward git-gutter+-hunk-header-regex nil t)
+           ;; Hunk header format:
+           ;; @@ -{del-line},{del-len} +{add-line},{add-len} @@
+           for del-len  = (string-to-number (or (match-string 2) "1"))
+           for add-line = (string-to-number (match-string 3))
+           for add-len  = (string-to-number (or (match-string 4) "1"))
+           for type = (cond ((zerop del-len) 'added)
+                            ((zerop add-len) 'deleted)
+                            (t 'modified))
+           for start-line = (if (eq type 'deleted)
+                                (1+ add-line)
+                              add-line)
+           for end-line = (if (eq type 'deleted)
+                              start-line
+                            (1- (+ add-line add-len)))
+           for content = (git-gutter+-diff-content)
+           collect
+           (git-gutter+-make-diffinfo type content start-line end-line)))
 
 (defun git-gutter+-diff-content ()
   (save-excursion
@@ -254,13 +254,13 @@ calculated width looks wrong. (This can happen with some special characters.)"
     (propertize " " 'display `((margin left-margin) ,gutter-sep))))
 
 (defsubst git-gutter+-select-face (type)
-  (case type
+  (cl-case type
     (added 'git-gutter+-added)
     (modified 'git-gutter+-modified)
     (deleted 'git-gutter+-deleted)))
 
 (defsubst git-gutter+-select-sign (type)
-  (case type
+  (cl-case type
     (added git-gutter+-added-sign)
     (modified git-gutter+-modified-sign)
     (deleted git-gutter+-deleted-sign)))
@@ -287,21 +287,21 @@ calculated width looks wrong. (This can happen with some special characters.)"
          (end-line (plist-get diffinfo :end-line))
          (type (plist-get diffinfo :type))
          (sign (git-gutter+-propertized-sign type)))
-    (case type
+    (cl-case type
       ((modified added) (git-gutter+-view-region sign start-line end-line))
       (deleted (git-gutter+-view-at-pos
                 sign (git-gutter+-line-to-pos start-line))))))
 
 (defun git-gutter+-sign-width (sign)
-  (loop for s across sign
-        sum (char-width s)))
+  (cl-loop for s across sign
+           sum (char-width s)))
 
 (defun git-gutter+-longest-sign-width ()
   (let ((signs (list git-gutter+-modified-sign
                      git-gutter+-added-sign
                      git-gutter+-deleted-sign)))
     (when git-gutter+-unchanged-sign
-      (add-to-list 'signs git-gutter+-unchanged-sign))
+      (push signs git-gutter+-unchanged-sign))
     (+ (apply 'max (mapcar 'git-gutter+-sign-width signs))
        (git-gutter+-sign-width git-gutter+-separator-sign))))
 
@@ -444,7 +444,7 @@ calculated width looks wrong. (This can happen with some special characters.)"
 (defun git-gutter+-process-diff (curfile)
   (let ((diff-result (git-gutter+-diff curfile)))
     (when diff-result
-      (destructuring-bind
+      (cl-destructuring-bind
           (diff-header diffinfos) diff-result
         (setq git-gutter+-diff-header diff-header
               git-gutter+-diffinfos   diffinfos)
@@ -453,33 +453,33 @@ calculated width looks wrong. (This can happen with some special characters.)"
           (funcall git-gutter+-view-diff-function diffinfos))))))
 
 (defun git-gutter+-search-near-diff-index (diffinfos is-reverse)
-  (loop with current-line = (line-number-at-pos)
-        with cmp-fn = (if is-reverse '> '<)
-        for diffinfo in (if is-reverse (reverse diffinfos) diffinfos)
-        for index = 0 then (1+ index)
-        for start-line = (plist-get diffinfo :start-line)
-        when (funcall cmp-fn current-line start-line)
-        return (if is-reverse
-                   (1- (- (length diffinfos) index))
-                 index)))
+  (cl-loop with current-line = (line-number-at-pos)
+           with cmp-fn = (if is-reverse '> '<)
+           for diffinfo in (if is-reverse (reverse diffinfos) diffinfos)
+           for index = 0 then (1+ index)
+           for start-line = (plist-get diffinfo :start-line)
+           when (funcall cmp-fn current-line start-line)
+           return (if is-reverse
+                      (1- (- (length diffinfos) index))
+                    index)))
 
 (defun git-gutter+-diffinfo-at-point ()
   (save-restriction
     (widen)
-    (loop with current-line = (line-number-at-pos)
-          for diffinfo in git-gutter+-diffinfos
-          for start = (plist-get diffinfo :start-line)
-          for end   = (or (plist-get diffinfo :end-line) (1+ start))
-          when (and (>= current-line start) (<= current-line end))
-          return diffinfo)))
+    (cl-loop with current-line = (line-number-at-pos)
+             for diffinfo in git-gutter+-diffinfos
+             for start = (plist-get diffinfo :start-line)
+             for end   = (or (plist-get diffinfo :end-line) (1+ start))
+             when (and (>= current-line start) (<= current-line end))
+             return diffinfo)))
 
 (defun git-gutter+-collect-deleted-line (str)
   (with-temp-buffer
     (insert str)
     (goto-char (point-min))
-    (loop while (re-search-forward "^-\\(.*?\\)$" nil t)
-          collect (match-string 1) into deleted-lines
-          finally return deleted-lines)))
+    (cl-loop while (re-search-forward "^-\\(.*?\\)$" nil t)
+             collect (match-string 1) into deleted-lines
+             finally return deleted-lines)))
 
 (defun git-gutter+-delete-added-lines (start-line end-line)
   (forward-line (1- start-line))
@@ -499,7 +499,7 @@ calculated width looks wrong. (This can happen with some special characters.)"
       (let ((start-line (plist-get diffinfo :start-line))
             (end-line (plist-get diffinfo :end-line))
             (content (plist-get diffinfo :content)))
-        (case (plist-get diffinfo :type)
+        (cl-case (plist-get diffinfo :type)
           (added (git-gutter+-delete-added-lines start-line end-line))
           (deleted (forward-line (1- start-line))
                    (git-gutter+-insert-deleted-lines content))
@@ -666,12 +666,14 @@ calculated width looks wrong. (This can happen with some special characters.)"
     (if (not line-range)
         (git-gutter+-insert-hunk content type)
       (let ((diff-start-line (plist-get diffinfo :start-line))
-            (diff-end-line   (plist-get diffinfo :end-line))
             (start-line (car line-range))
             (end-line   (cdr line-range)))
         (git-gutter+-insert-hunk content type
                                 (1+ (- start-line diff-start-line))
                                 (1+ (- end-line diff-start-line)))))))
+
+;; Silence the byte-compiler
+(declare-function tramp-sh-handle-call-process-region nil)
 
 (unless (fboundp 'tramp-sh-handle-call-process-region)
   (defun tramp-sh-handle-call-process-region
@@ -708,7 +710,7 @@ calculated width looks wrong. (This can happen with some special characters.)"
 (defun git-gutter+-insert-hunk (hunk type &optional start end)
   "If START and END are provided, only insert addition (+) lines between
 START and END (inclusive). START and END are both line numbers starting with 1."
-  (destructuring-bind
+  (cl-destructuring-bind
       (del-line del-len add-line add-len) (git-gutter+-read-hunk-header hunk)
     (let* ((start (max 1 (or start 1)))
            (end   (min add-len (or end add-len)))
@@ -758,7 +760,7 @@ If TYPE is not `modified', also remove all deletion (-) lines."
 
 (defun git-gutter+-make-hunk-header (type num-lines-selected del-line del-len add-line)
   (let ((add-len num-lines-selected))
-    (case type
+    (cl-case type
       (added (setq add-line (1+ del-line)))
       (modified-trailing (setq add-line (+ del-line del-len)
                                del-line (1- add-line)
@@ -911,7 +913,8 @@ If TYPE is not `modified', also remove all deletion (-) lines."
 
 (defun git-gutter+-unstage-whole-buffer ()
   (interactive)
-  (git-gutter+-call-git '("reset" "--quiet" "HEAD"))
+  (git-gutter+-call-git (list "reset" "--quiet" "HEAD" "--"
+                             (file-name-nondirectory buffer-file-name)))
   (git-gutter+-refresh))
 
 (defun git-gutter+-anything-staged-p ()
@@ -1010,7 +1013,7 @@ If it's currently unset, set it to DEFAULT (t or nil)."
          (cell   (assq name fields)))
     (if cell
         (rplacd cell (if (equal (cdr cell) "yes") "no" "yes"))
-      (setq fields (acons name (if default "yes" "no") fields)))
+      (setq fields (cl-acons name (if default "yes" "no") fields)))
     (git-gutter+-commit-set-fields fields)))
 
 (defun git-gutter+-commit-toggle-input (name default)
@@ -1021,7 +1024,7 @@ set remove it."
          (cell (assq name fields)))
     (if cell
         (setq fields (assq-delete-all name fields))
-      (setq fields (acons name default fields)))
+      (setq fields (cl-acons name default fields)))
     (git-gutter+-commit-set-fields fields)))
 
 (defun git-gutter+-commit-get-fields ()
@@ -1053,6 +1056,8 @@ set remove it."
 ;;; git-gutter+-commit-mode
 ;; Like git-commit-mode, but adds keybindings to git-gutter+ commands and
 ;; highlighting support for the commit message header.
+
+(defvar save-place) ; Silence byte-compiler
 
 (define-derived-mode git-gutter+-commit-mode text-mode "Git-Gutter-Commit"
   ;; The following is copied from `git-commit-mode'.
