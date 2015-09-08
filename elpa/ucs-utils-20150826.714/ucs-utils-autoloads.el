@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ucs-utils" "ucs-utils.el" (21965 50174 483401
+;;;### (autoloads nil "ucs-utils" "ucs-utils.el" (21998 34598 151401
 ;;;;;;  0))
 ;;; Generated autoloads from ucs-utils.el
 
@@ -232,7 +232,7 @@ The following aliases will be installed:
 ;;;***
 
 ;;;### (autoloads nil nil ("ucs-utils-6.0-delta.el" "ucs-utils-pkg.el")
-;;;;;;  (21965 50174 519471 369000))
+;;;;;;  (21998 34598 189644 624000))
 
 ;;;***
 

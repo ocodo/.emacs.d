@@ -5,8 +5,8 @@
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/ucs-utils
 ;; URL: http://raw.githubusercontent.com/rolandwalker/ucs-utils/master/ucs-utils.el
-;; Version: 0.8.2
-;; Last-Updated: 12 Aug 2015
+;; Version: 0.8.4
+;; Last-Updated: 26 Aug 2015
 ;; EmacsWiki: UcsUtils
 ;; Package-Requires: ((persistent-soft "0.8.8") (pcache "0.2.3") (list-utils "0.4.2"))
 ;; Keywords: i18n, extensions
@@ -75,7 +75,7 @@
 ;;
 ;; Compatibility and Requirements
 ;;
-;;     GNU Emacs version 24.6-devel     : not tested
+;;     GNU Emacs version 25.1-devel     : not tested
 ;;     GNU Emacs version 24.5           : not tested
 ;;     GNU Emacs version 24.4           : yes
 ;;     GNU Emacs version 24.3           : yes
@@ -90,6 +90,11 @@
 ;; Bugs
 ;;
 ;; TODO
+;;
+;;     Accept synonyms on inputs? at least Tab would be nice.
+;;     There is an official list of aliases at
+;;
+;;         http://www.unicode.org/Public/8.0.0/ucd/NameAliases.txt
 ;;
 ;;     generated names for CJK blocks added in Unicode 6.2
 ;;         CJK Unified Ideographs
@@ -107,8 +112,6 @@
 ;;     ucs-utils-6.0-delta.el)
 ;;
 ;;     Namespace cache keys as with font-utils and unicode-utils.
-;;
-;;     Accept synonyms on inputs? at least Tab would be nice.
 ;;
 ;;     Separate test run without persistent-soft.el
 ;;
@@ -184,7 +187,7 @@
 ;;;###autoload
 (defgroup ucs-utils nil
   "Utilities for Unicode characters."
-  :version "0.8.2"
+  :version "0.8.4"
   :link '(emacs-commentary-link :tag "Commentary" "ucs-utils")
   :link '(url-link :tag "GitHub" "http://github.com/rolandwalker/ucs-utils")
   :link '(url-link :tag "EmacsWiki" "http://emacswiki.org/emacs/UcsUtils")
@@ -235,15 +238,15 @@ This is needed for performance reasons in most cases."
 
 (defvar ucs-utils-names-corrections
   '(
-    ;; ambiguities
+    ;; ambiguities: name collisions in various versions of the standard,
+    ;; for which the latest is preferred
     ("LATIN CAPITAL LETTER YOGH"                                 . #x021C)
     ("LATIN SMALL LETTER YOGH"                                   . #x021D)
     ("CYRILLIC CAPITAL LETTER E"                                 . #x042D)
     ("CYRILLIC CAPITAL LETTER I"                                 . #x0418)
     ("CYRILLIC SMALL LETTER I"                                   . #x0438)
     ("CYRILLIC SMALL LETTER E"                                   . #x044D)
-    ("TIBETAN LETTER -A"                                         . #x0F60)
-    ("TIBETAN SUBJOINED LETTER -A"                               . #x0FB0)
+    ("DOUBLE VERTICAL BAR"                                       . #x23F8)
     ("GEORGIAN SMALL LETTER AN"                                  . #x2D00)
     ("GEORGIAN SMALL LETTER BAN"                                 . #x2D01)
     ("GEORGIAN SMALL LETTER GAN"                                 . #x2D02)
@@ -296,6 +299,11 @@ This is needed for performance reasons in most cases."
     ("HALFWIDTH HANGUL LETTER CIEUC"                             . #xFFB8)
     ("SQUARED MV"                                                . #x1F14B)
     ("BELL"                                                      . #x1F514)
+    ;; this name is completely made up, to deal with #x1F514 BELL
+    ("ALERT (BEL)"                                               . #x0007)
+    ;; other ambiguities, such as a glitch in some Emacs release
+    ("TIBETAN LETTER -A"                                         . #x0F60)
+    ("TIBETAN SUBJOINED LETTER -A"                               . #x0FB0)
     ;; Unicode 6.0 to 6.1 delta
     ("ARMENIAN DRAM SIGN"                                        . #x058F)
     ("ARABIC SIGN SAMVAT"                                        . #x0604)
@@ -5959,6 +5967,47 @@ Like function `ucs-names' but with more characters."
           (setq ucs-utils-names (delete cell ucs-utils-names)))
         ucs-utils-names)))
 
+(defun ucs-utils-names-hash ()
+  "All UCS names, cached in hash `ucs-utils-names-hash'.
+
+Content will be taken from persistent storage if available.
+
+Returns nil unless `ucs-utils-trade-memory-for-speed' is set."
+  (when ucs-utils-trade-memory-for-speed
+    (or
+     ucs-utils-names-hash
+     (let* ((cache-id (format "e:%s-l:%s"
+                              emacs-version
+                              (get 'ucs-utils 'custom-version)))
+            (store-key (intern (format "names-hash-%s" cache-id)))
+            (store-place ucs-utils-use-persistent-storage))
+       (unless (and (persistent-softest-exists-p store-key store-place)
+                    (hash-table-p (setq ucs-utils-names-hash
+                                        (persistent-softest-fetch store-key store-place))))
+         (let ((dupes nil)
+               (key nil)
+               (gc-cons-threshold 80000000)
+               (gc-cons-percentage .5))
+           (setq ucs-utils-names-hash (make-hash-table :size (length (ucs-utils-names))
+                                                       :test 'equal))
+           (dolist (cell (ucs-utils-names))
+             (setq key (car cell))
+             (when (and (gethash key ucs-utils-names-hash)
+                        (not (eq (gethash key ucs-utils-names-hash) (cdr cell))))
+               (push key dupes))
+             (puthash key (cdr cell) ucs-utils-names-hash))
+           (delete-dups dupes)
+           (dolist (key dupes)
+             (remhash key ucs-utils-names-hash))
+           (dolist (cell ucs-utils-names-corrections)
+             (puthash (car cell) (cdr cell) ucs-utils-names-hash))
+           (let ((persistent-soft-inhibit-sanity-checks t))
+             (persistent-softest-store store-key
+                                       ucs-utils-names-hash
+                                       store-place))
+           (persistent-softest-flush store-place)))
+     ucs-utils-names-hash))))
+
 ;; Unfortunately we can't be dash-insensitive b/c UCS names are
 ;; sensitive to dashes eg TIBETAN LETTER -A vs TIBETAN LETTER A
 ;; or HANGUL JUNGSEONG O-E vs HANGUL JUNGSEONG OE.
@@ -5978,15 +6027,6 @@ in favor of later versions of the Unicode spec.  \"BELL\" is
 a famous example of a conflict.
 
 Returns nil if NAME does not exist."
-  (when (and ucs-utils-use-persistent-storage
-             (or (or (not (stringp (persistent-softest-fetch 'names-hash-emacs-version ucs-utils-use-persistent-storage)))
-                     (version< (persistent-softest-fetch 'names-hash-emacs-version ucs-utils-use-persistent-storage)
-                               emacs-version))
-                 (or (not (stringp (persistent-softest-fetch 'ucs-utils-data-version ucs-utils-use-persistent-storage)))
-                     (version< (persistent-softest-fetch 'ucs-utils-data-version ucs-utils-use-persistent-storage)
-                               (get 'ucs-utils 'custom-version)))))
-    (setq ucs-utils-names-hash nil)
-    (persistent-softest-store 'ucs-utils-names-hash nil ucs-utils-use-persistent-storage))
   (save-match-data
     (callf upcase name)
     (setq name (replace-regexp-in-string "\\<\\(BRAILLE DOTS\\|SELECTOR\\) \\([0-9]+\\)\\'" "\\1-\\2"
@@ -5995,33 +6035,9 @@ Returns nil if NAME does not exist."
                      (replace-regexp-in-string "[ \"]+\\'" ""
                        (replace-regexp-in-string " \\{2,\\}" " "
                          (replace-regexp-in-string "[_\t]" " "  name)))))))
-    (when (and ucs-utils-trade-memory-for-speed
-               (not (hash-table-p ucs-utils-names-hash)))
-      (unless (hash-table-p (setq ucs-utils-names-hash (persistent-softest-fetch 'ucs-utils-names-hash ucs-utils-use-persistent-storage)))
-        (let ((dupes nil)
-              (key nil)
-              (gc-cons-threshold 80000000)
-              (gc-cons-percentage .5))
-          (setq ucs-utils-names-hash (make-hash-table :size (length (ucs-utils-names)) :test 'equal))
-          (dolist (cell (ucs-utils-names))
-            (setq key (car cell))
-            (when (and (gethash key ucs-utils-names-hash)
-                       (not (eq (gethash key ucs-utils-names-hash) (cdr cell))))
-              (push key dupes))
-            (puthash key (cdr cell) ucs-utils-names-hash))
-          (delete-dups dupes)
-          (dolist (key dupes)
-            (remhash key ucs-utils-names-hash))
-          (dolist (cell ucs-utils-names-corrections)
-            (puthash (car cell) (cdr cell) ucs-utils-names-hash))
-          (persistent-softest-store 'names-hash-emacs-version emacs-version ucs-utils-use-persistent-storage)
-          (persistent-softest-store 'ucs-utils-data-version (get 'ucs-utils 'custom-version) ucs-utils-use-persistent-storage)
-          (let ((persistent-soft-inhibit-sanity-checks t))
-            (persistent-softest-store 'ucs-utils-names-hash ucs-utils-names-hash ucs-utils-use-persistent-storage))
-          (persistent-softest-flush ucs-utils-use-persistent-storage))))
     (cond
-      ((hash-table-p ucs-utils-names-hash)
-       (gethash name ucs-utils-names-hash))
+      ((hash-table-p (ucs-utils-names-hash))
+       (gethash name (ucs-utils-names-hash)))
       (t
        (cdr (assoc-string name (ucs-utils-names) t))))))
 
@@ -6121,52 +6137,44 @@ When optional PROGRESS is given, show progress when generating
 cache.
 
 When optional REGENERATE is given, re-generate cache."
-  (when (and ucs-utils-use-persistent-storage
-             (or (not (stringp (persistent-softest-fetch 'prettified-names-emacs-version ucs-utils-use-persistent-storage)))
-                 (version< (persistent-softest-fetch 'prettified-names-emacs-version ucs-utils-use-persistent-storage)
-                           emacs-version)))
-    (setq regenerate t))
-  (when (and ucs-utils-use-persistent-storage
-             (not (stringp (persistent-softest-fetch 'ucs-utils-data-version ucs-utils-use-persistent-storage))))
-    (setq regenerate t))
-  (when (and ucs-utils-use-persistent-storage
-             (stringp (persistent-softest-fetch 'ucs-utils-data-version ucs-utils-use-persistent-storage))
-             (version<
-              (persistent-softest-fetch 'ucs-utils-data-version ucs-utils-use-persistent-storage)
-              (get 'ucs-utils 'custom-version)))
-    (setq regenerate t))
-  (when regenerate
-    (setq ucs-utils-all-prettified-names nil)
-    (persistent-softest-store 'ucs-utils-all-prettified-names nil ucs-utils-use-persistent-storage))
-  (cond
-    (ucs-utils-all-prettified-names
-     t)
-    ((and (not regenerate)
-          (persistent-softest-exists-p 'ucs-utils-all-prettified-names ucs-utils-use-persistent-storage)
-          (consp (setq ucs-utils-all-prettified-names (persistent-softest-fetch 'ucs-utils-all-prettified-names ucs-utils-use-persistent-storage))))
-     t)
-    (t
-     (let ((reporter (make-progress-reporter "Caching formatted UCS names... " 0 (length (ucs-utils-names))))
-           (counter 0)
-           (draft-list nil)
-           (prev-name nil)
-           (gc-cons-threshold 80000000)
-           (gc-cons-percentage .5))
-       (dolist (cell (ucs-utils-names))
-         (when progress
-           (progress-reporter-update reporter (incf counter)))
-         (push (replace-regexp-in-string " " "_" (or (ucs-utils-pretty-name (cdr cell) 'no-hex) "")) draft-list))
-       (dolist (name (delete "" (sort draft-list 'string<)))
-         (unless (equal name prev-name)
-           (push name ucs-utils-all-prettified-names))
-         (setq prev-name name))
-       (callf nreverse ucs-utils-all-prettified-names)
-       (let ((persistent-soft-inhibit-sanity-checks t))
-         (persistent-softest-store 'ucs-utils-all-prettified-names ucs-utils-all-prettified-names ucs-utils-use-persistent-storage))
-       (persistent-softest-store 'prettified-names-emacs-version emacs-version ucs-utils-use-persistent-storage)
-       (persistent-softest-store 'ucs-utils-data-version (get 'ucs-utils 'custom-version) ucs-utils-use-persistent-storage)
-       (persistent-softest-flush ucs-utils-use-persistent-storage)
-       (progress-reporter-done reporter))))
+  (let* ((cache-id (format "e:%s-l:%s"
+                           emacs-version
+                           (get 'ucs-utils 'custom-version)))
+         (store-key (intern (format "all-prettified-names-%s" cache-id)))
+         (store-place ucs-utils-use-persistent-storage))
+    (when regenerate
+      (setq ucs-utils-all-prettified-names nil)
+      (persistent-softest-store store-key nil store-place))
+    (cond
+      (ucs-utils-all-prettified-names
+       t)
+      ((and (not regenerate)
+            (persistent-softest-exists-p store-key store-place)
+            (consp (setq ucs-utils-all-prettified-names
+                         (persistent-softest-fetch store-key store-place))))
+       t)
+      (t
+       (let ((reporter (make-progress-reporter "Caching formatted UCS names... " 0 (length (ucs-utils-names))))
+             (counter 0)
+             (draft-list nil)
+             (prev-name nil)
+             (gc-cons-threshold 80000000)
+             (gc-cons-percentage .5))
+         (dolist (cell (ucs-utils-names))
+           (when progress
+             (progress-reporter-update reporter (incf counter)))
+           (push (replace-regexp-in-string " " "_" (or (ucs-utils-pretty-name (cdr cell) 'no-hex) "")) draft-list))
+         (dolist (name (delete "" (sort draft-list 'string<)))
+           (unless (equal name prev-name)
+             (push name ucs-utils-all-prettified-names))
+           (setq prev-name name))
+         (callf nreverse ucs-utils-all-prettified-names)
+         (let ((persistent-soft-inhibit-sanity-checks t))
+           (persistent-softest-store store-key
+                                     ucs-utils-all-prettified-names
+                                     store-place))
+         (persistent-softest-flush store-place)
+         (progress-reporter-done reporter)))))
   ucs-utils-all-prettified-names)
 
 (defun ucs-utils--subst-char-in-region-1 (start end from-char to-char)
