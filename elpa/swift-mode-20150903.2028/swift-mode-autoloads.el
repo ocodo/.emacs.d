@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "swift-mode" "swift-mode.el" (21975 62440 683401
+;;;### (autoloads nil "swift-mode" "swift-mode.el" (21998 34618 155401
 ;;;;;;  0))
 ;;; Generated autoloads from swift-mode.el
 

@@ -6,7 +6,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;; Version: 0.4.0-cvs
-;; Package-Version: 20150818.1958
+;; Package-Version: 20150903.2028
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 
@@ -33,6 +33,7 @@
 
 (require 'rx)
 (require 'comint)
+(require 'cl-lib)
 
 (eval-and-compile
   ;; Added in Emacs 24.3
@@ -62,10 +63,11 @@
   :type 'integer
   :package-version '(swift-mode "0.3.0"))
 
-(defcustom swift-indent-hanging-comma-offset 4
+(defcustom swift-indent-hanging-comma-offset nil
   "Defines the indentation offset for hanging comma."
   :group 'swift
-  :type 'integer
+  :type '(choice (const :tag "Use default relative formatting" nil)
+                 (integer :tag "Custom offset"))
   :package-version '(swift-mode "0.4.0"))
 
 (defcustom swift-repl-executable
@@ -165,8 +167,8 @@
        (case-exps (exp)
                   (guard-exp)
                   (case-exps "," case-exps))
-       (case ("case" case-exps "case-:" insts))
-       (switch-body (case))
+       (case (case-exps "case-:" insts))
+       (switch-body (case) (case "case" case))
 
        (for-head (in-exp) (op-exp) (for-head ";" for-head))
 
@@ -219,7 +221,7 @@
                 "<<" ">>" "??")))
 
 (defvar swift-smie--decl-specifier-regexp
-  "\\(?1:class\\|mutating\\|override\\|static\\|unowned\\|weak\\)\\(?:[[:space:]]*func\\)")
+  "\\(?1:mutating\\|override\\|static\\|unowned\\|weak\\)")
 
 (defvar swift-smie--access-modifier-regexp
   (regexp-opt '("private" "public" "internal")))
@@ -234,7 +236,7 @@
              ;; ??, is? and as? are operators
              (looking-back "[?][?]\\|as[?]\\|is[?]" (- (point) 3) t)
              ;; "in" operator in closure
-             (looking-back "in" (- (point) 2) t)
+             (looking-back "\\bin" (- (point) 3) t)
              ;; Characters placed on the second line in multi-line expression
              (save-excursion
                (forward-comment (buffer-size))
@@ -250,6 +252,27 @@
                   (not (looking-back "[[:upper:]]>" (- (point) 2) t)))
              ))))
 
+(defun swift-smie--forward-token-debug ()
+  (let ((token (swift-smie--forward-token)))
+    (unless (equal token "")
+      (cl-assert (equal token
+                     (save-excursion (swift-smie--backward-token))) t))
+    token
+    ))
+
+(defun swift-smie--backward-token-debug ()
+  (let ((token (swift-smie--backward-token)))
+    (unless (equal token "")
+      (cl-assert (equal token
+                     (save-excursion (swift-smie--forward-token))) t))
+      token
+    ))
+
+(defconst swift-smie--lookback-max-lines -2
+  "Max number of lines 'looking-back' allowed to scan.
+In some cases we can't avoid reverse lookup and this operation can be slow.
+We try to constraint those lookups by reasonable number of lines.")
+
 (defun swift-smie--forward-token ()
   (skip-chars-forward " \t")
   (cond
@@ -258,14 +281,14 @@
     ";")
 
    ((looking-at "{") (forward-char 1)
-    (if (looking-back "\\(class\\|protocol\\) [^{]+{" (line-beginning-position) t)
+    (if (looking-back "\\(class\\|protocol\\) [^{]+{" (line-beginning-position swift-smie--lookback-max-lines) t)
         (concat (match-string 1) "-{")
       "{"))
    ((looking-at "}") (forward-char 1) "}")
 
    ((looking-at ",") (forward-char 1) ",")
    ((looking-at ":") (forward-char 1)
-    (if (looking-back "case [^:]+:" (line-beginning-position 0) t)
+    (if (looking-back "\\(case [^:]+\\|default\\):" (line-beginning-position 0) t)
         "case-:"
       ":"))
 
@@ -273,7 +296,9 @@
 
    ((looking-at "<") (forward-char 1)
     (if (looking-at "[[:upper:]]") "<T" "OP"))
-   ((looking-at ">") (forward-char 1)
+
+   ((looking-at ">[?!]?")
+    (goto-char (match-end 0))
     (if (looking-back "[[:space:]]>" 2 t) "OP" "T>"))
 
    ((looking-at swift-smie--operators-regexp)
@@ -313,14 +338,14 @@
       ";")
 
      ((eq (char-before) ?\{) (backward-char 1)
-      (if (looking-back "\\(class\\|protocol\\) [^{]+" (line-beginning-position) t)
+      (if (looking-back "\\(class\\|protocol\\) [^{]+" (line-beginning-position swift-smie--lookback-max-lines) t)
           (concat (match-string 1) "-{")
         "{"))
      ((eq (char-before) ?\}) (backward-char 1) "}")
 
      ((eq (char-before) ?,) (backward-char 1) ",")
      ((eq (char-before) ?:) (backward-char 1)
-      (if (looking-back "case [^:]+" (line-beginning-position 0))
+      (if (looking-back "case [^:]+\\|default" (line-beginning-position 0))
           "case-:"
         ":"))
 
@@ -332,6 +357,10 @@
      ((looking-back ">[?!]?" (- (point) 2) t)
       (goto-char (match-beginning 0))
       (if (looking-back "[[:space:]]" 1 t) "OP" "T>"))
+
+     ((looking-back (regexp-opt swift-mode--type-decl-keywords) (- (point) 9) t)
+      (goto-char (match-beginning 0))
+      (match-string-no-properties 0))
 
      ((looking-back swift-smie--operators-regexp (- (point) 3) t)
       (goto-char (match-beginning 0)) "OP")
@@ -372,18 +401,15 @@
       ;; assignment expression.
       ;; Static indentation relatively to =
       ((smie-rule-parent-p "=") 2)
-      ;; Rule for the case statement.
-      ((smie-rule-parent-p "case") swift-indent-offset)
       ((smie-rule-parent-p ",") (smie-rule-parent swift-indent-offset))
       ;; Rule for the class definition.
       ((smie-rule-parent-p "class") (smie-rule-parent swift-indent-offset))))
 
-    (`(:after . "{")
-     (if (smie-rule-parent-p "switch")
+    ;; Indentation rules for switch statements
+    (`(:before . "case")
+     (if (smie-rule-parent-p "{")
          (smie-rule-parent swift-indent-switch-case-offset)))
-    (`(:before . ";")
-     (if (smie-rule-parent-p "case")
-         (smie-rule-parent swift-indent-offset)))
+    (`(:before . "case-:") (smie-rule-parent swift-indent-offset))
 
     ;; Apply swift-indent-multiline-statement-offset only if
     ;; - if is a first token on the line
@@ -402,13 +428,8 @@
            (+ swift-indent-offset swift-indent-multiline-statement-offset)
          swift-indent-multiline-statement-offset)))
 
-    ;; Indent second line of the multi-line class
-    ;; definitions with swift-indent-offset
-    (`(:before . "case")
-     (smie-rule-parent))
-
     (`(:before . ",")
-     (if (smie-rule-parent-p "class" "case")
+     (if (and swift-indent-hanging-comma-offset (smie-rule-parent-p "class" "case"))
          (smie-rule-parent swift-indent-hanging-comma-offset)))
 
     ;; Disable unnecessary default indentation for
@@ -422,8 +443,12 @@
        (smie-rule-parent 0)))
 
     (`(:after . "(")
-     (if (smie-rule-parent-p "(") 0
-       (smie-rule-parent swift-indent-offset)))
+     (cond
+      ((smie-rule-parent-p "(") 0)
+      ((and (smie-rule-parent-p "." "func")
+            (not (smie-rule-hanging-p))) 1)
+      (t (smie-rule-parent swift-indent-offset))))
+
     (`(:before . "(")
      (cond
       ((smie-rule-next-p "[") (smie-rule-parent))
@@ -745,7 +770,7 @@ You can send text to the REPL process from other buffers containing source.
   (let ((table (make-syntax-table)))
 
     ;; Operators
-    (dolist (i '(?+ ?- ?* ?/ ?& ?| ?^ ?! ?< ?> ?~))
+    (dolist (i '(?+ ?- ?* ?/ ?& ?| ?^ ?< ?> ?~))
       (modify-syntax-entry i "." table))
 
     ;; Strings
@@ -754,7 +779,9 @@ You can send text to the REPL process from other buffers containing source.
 
     ;; Additional symbols
     (modify-syntax-entry ?_ "w" table)
-    (modify-syntax-entry ?: "_" table)
+    (modify-syntax-entry ?? "_" table)
+    (modify-syntax-entry ?! "_" table)
+    (modify-syntax-entry ?: "." table)
 
     ;; Comments
     (modify-syntax-entry ?/  ". 124b" table)
