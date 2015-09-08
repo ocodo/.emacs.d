@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20150821.1159
+;; Package-Version: 20150903.1838
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -650,7 +650,10 @@ LEAF is normally ((BEG . END) . WND)."
     (overlay-put ol 'window wnd)
     (overlay-put ol 'display (if (string= old-str "\n")
                                  (concat str "\n")
-                               str))
+                               ;; add padding for wide-width character
+                               (if (eq (string-width old-str) 2)
+                                   (concat str " ")
+                                 str)))
     (push ol avy--overlays-lead)))
 
 (defun avy--overlay-at-full (path leaf)
@@ -728,7 +731,10 @@ LEAF is normally ((BEG . END) . WND)."
                              ((string= old-str "\t")
                               (concat str (make-string (- tab-width len) ?\ )))
                              (t
-                              str)))
+                              ;; add padding for wide-width character
+                              (if (eq (string-width old-str) 2)
+                                  (concat str " ")
+                                str))))
           (push ol avy--overlays-lead))))))
 
 (defun avy--overlay-post (path leaf)
@@ -916,8 +922,7 @@ Which one depends on variable `subword-mode'."
 (defun avy--line (&optional arg)
   "Select a line.
 The window scope is determined by `avy-all-windows' (ARG negates it)."
-  (let ((avy-background nil)
-        candidates)
+  (let (candidates)
     (avy-dowindows arg
       (let ((ws (window-start)))
         (save-excursion
