@@ -37,7 +37,7 @@
 		 nil "Indent and dedent Lisp code, automatically adjust close parens" tar
 		 ((:url . "http://elpa.gnu.org/packages/adjust-parens.html"))])
  (aggressive-indent .
-		    [(1 1 3)
+		    [(1 2)
 		     ((emacs
 		       (24 1))
 		      (names
@@ -48,7 +48,7 @@
 		     ((:url . "http://github.com/Malabarba/aggressive-indent-mode")
 		      (:keywords "indent" "lisp" "maint" "tools"))])
  (ahungry-theme .
-		[(1 0 9)
+		[(1 0 10)
 		 ((emacs
 		   (24)))
 		 "Ahungry color theme for Emacs.  Make sure to (load-theme 'ahungry)." tar
@@ -65,7 +65,7 @@
 			((:url . "http://www.gnuvola.org/software/aa2u/")
 			 (:keywords "ascii" "unicode" "box-drawing"))])
  (auctex .
-	 [(11 88 7)
+	 [(11 88 8)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -132,6 +132,15 @@
 	   "Modular text completion framework" tar
 	   ((:keywords "abbrev" "convenience" "matching")
 	    (:url . "http://company-mode.github.io/"))])
+ (company-math .
+	       [(1 0 1)
+		((company
+		  (0 8 0))
+		 (math-symbol-lists
+		  (1 0)))
+		"Completion backends for unicode math symbols and latex tags" single
+		((:url . "https://github.com/vspinu/company-math")
+		 (:keywords "unicode" "symbols" "completion"))])
  (company-statistics .
 		     [(0 2 1)
 		      ((emacs
@@ -284,6 +293,15 @@
 	   "Color unbalanced parentheses and parentheses inconsistent with indentation" single
 	   ((:url . "http://elpa.gnu.org/packages/flylisp.html")
 	    (:keywords))])
+ (fsm .
+      [(0 2)
+       ((emacs
+	 (24 1))
+	(cl-lib
+	 (0 5)))
+       "state machine library" single
+       ((:url . "http://elpa.gnu.org/packages/fsm.html")
+	(:keywords "extensions"))])
  (ggtags .
 	 [(0 8 10)
 	  ((emacs
@@ -400,6 +418,11 @@
 	     nil "Mark chars fitting certain characteristics" single
 	     ((:url . "http://elpa.gnu.org/packages/markchars.html")
 	      (:keywords))])
+ (math-symbol-lists .
+		    [(1 0)
+		     nil "Lists of Unicode math symbols and latex commands" single
+		     ((:url . "https://github.com/vspinu/math-symbol-lists")
+		      (:keywords "unicode" "symbols" "mathematics"))])
  (memory-usage .
 	       [(0 2)
 		nil "Analyze the memory usage of Emacs in various ways" single
@@ -427,6 +450,13 @@
 	nil "Authoring and publishing tool for Emacs" tar
 	((:keywords "hypermedia")
 	 (:url . "http://mwolson.org/projects/EmacsMuse.html"))])
+ (nameless .
+	   [(0 3)
+	    ((emacs
+	      (24 4)))
+	    "Hide package namespace in your emacs-lisp code" single
+	    ((:url . "http://elpa.gnu.org/packages/nameless.html")
+	     (:keywords "convenience" "lisp"))])
  (names .
 	[(20150723 0)
 	 ((emacs
@@ -461,17 +491,13 @@
 	  ((:url . "http://elpa.gnu.org/packages/oauth2.html")
 	   (:keywords "comm"))])
  (omn-mode .
-	   [(1 1)
+	   [(1 2)
 	    nil "Support for OWL Manchester Notation" single
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(8 3 1)
-       ((emacs
-	 (23 2)))
-       "Outline-based notes management and organizer" tar
-       ((:keywords "outlines" "hypermedia" "calendar" "wp")
-	(:url . "http://orgmode.org"))])
+      [(20150907)
+       nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
        nil "Open Sound Control protocol library" single
@@ -555,7 +581,7 @@
 	   ((:keywords "games")
 	    (:url . "http://elpa.gnu.org/packages/sokoban.html"))])
  (sotlisp .
-	  [(1 2)
+	  [(1 3)
 	   ((emacs
 	     (24 1)))
 	   "Write lisp at the speed of thought." single
