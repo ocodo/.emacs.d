@@ -4,12 +4,12 @@
 ;; Copyright (C) 2014 Brandon van Beekum
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
-;;      Jambunathan K <kjambunathan at gmail dot com>
-;;      Brandon van Beekum <marsmining at gmail dot com>
+;;         Jambunathan K <kjambunathan at gmail dot com>
+;;         Brandon van Beekum <marsmining at gmail dot com>
 ;; URL: https://github.com/marsmining/ox-twbs
-;; Package-Version: 20150818.1421
+;; Package-Version: 20150906.1117
 ;; Keywords: org, html, publish, twitter, bootstrap
-;; Version: 0.2.0
+;; Version: 1.0.2
 
 ;; This file is not part of GNU Emacs.
 
@@ -137,7 +137,8 @@
     (:creator "CREATOR" nil org-twbs-creator-string)
     (:with-latex nil "tex" org-twbs-with-latex)
     (:with-toc nil nil 2)
-    (:section-numbers nil nil nil)
+    (:with-creator nil nil t)
+    (:section-numbers nil nil t)
     ;; Retrieve LaTeX header for fragments.
     (:latex-header "LATEX_HEADER" nil nil newline)))
 
@@ -1043,7 +1044,7 @@ arguments CAPTION and LABEL are given, use them for caption and
   (format "\n<figure%s>%s%s\n</figure>"
           ;; ID.
           (if (not (org-string-nw-p label)) ""
-            (format " id=\"%s\"" (org-export-solidify-link-text label)))
+            (format " id=\"%s\"" label))
           ;; Contents.
           (format "\n<p>%s</p>" contents)
           ;; Caption.
@@ -1174,17 +1175,23 @@ Replaces invalid characters with \"_\"."
                (org-twbs--anchor id n attributes)))
      def)))
 
+(defun org-twbs-collect-footnote-definitions (info)
+  "Signature change underneath us, released maybe with 8.3 commit URL at:
+http://orgmode.org/w/?p=org-mode.git;a=commit;h=014de0a532cbc60987d09d6040ed46195cffdf12
+Try the old 2-arity and if fails, try the new single-arity."
+  (condition-case nil
+      (org-export-collect-footnote-definitions (plist-get info :parse-tree) info)
+    (error (org-export-collect-footnote-definitions info))))
+
 (defun org-twbs-footnote-section (info)
   "Format the footnote section.
 INFO is a plist used as a communication channel."
-  (let* ((fn-alist (org-export-collect-footnote-definitions
-                    (plist-get info :parse-tree) info))
+  (let* ((fn-alist (org-twbs-collect-footnote-definitions info))
          (fn-alist
           (loop for (n type raw) in fn-alist collect
                 (cons n (if (eq (org-element-type raw) 'org-data)
                             (org-trim (org-export-data raw info))
-                          (format "<p>%s</p>"
-                                  (org-trim (org-export-data raw info))))))))
+                          (org-trim (org-export-data raw info)))))))
     (when fn-alist
       (org-twbs-format-footnotes-section
        (org-twbs--translate "Footnotes" info)
@@ -1619,7 +1626,15 @@ a plist used as a communication channel."
 
 ;;; Tables of Contents
 
-(defun org-twbs-toc (depth info)
+(defun org-twbs-collect-headlines (info depth &optional scope)
+  "Another arity change in org:
+http://orgmode.org/w/?p=org-mode.git;a=commit;h=b07e2f6ff1feddde83506b7fdb370bfe8e0a5337
+Try new 3-arity first, then old 2-arity."
+  (condition-case nil
+      (org-export-collect-headlines info depth scope)
+    (error (org-export-collect-headlines info depth))))
+
+(defun org-twbs-toc (depth info &optional scope)
   "Build a table of contents.
 DEPTH is an integer specifying the depth of the table.  INFO is a
 plist used as a communication channel.  Return the table of
@@ -1628,7 +1643,7 @@ contents as a string, or nil if it is empty."
          (mapcar (lambda (headline)
                    (cons (org-twbs--format-toc-headline headline info)
                          (org-export-get-relative-level headline info)))
-                 (org-export-collect-headlines info depth)))
+                 (org-twbs-collect-headlines info depth scope)))
         (outer-tag "nav"))
     (when toc-entries
       (concat (format "<%s id=\"table-of-contents\">\n" outer-tag)
@@ -1688,10 +1703,9 @@ INFO is a plist used as a communication channel."
                     (org-export-get-tags headline info))))
     (format "<a href=\"#%s\">%s</a>"
             ;; Label.
-            (org-export-solidify-link-text
-             (or (org-element-property :CUSTOM_ID headline)
-                 (concat "sec-"
-                         (mapconcat #'number-to-string headline-number "-"))))
+            (or (org-element-property :CUSTOM_ID headline)
+                (concat "sec-"
+                        (mapconcat #'number-to-string headline-number "-")))
             ;; Body.
             (concat
              (and (not (org-export-low-level-p headline info))
@@ -1733,7 +1747,7 @@ of listings as a string, or nil if it is empty."
                       (if (not label)
                           (concat (format initial-fmt (incf count)) " " title)
                         (format "<a href=\"#%s\">%s %s</a>"
-                                (org-export-solidify-link-text label)
+                                label
                                 (format initial-fmt (incf count))
                                 title))
                       "</li>")))
@@ -1768,7 +1782,7 @@ of tables as a string, or nil if it is empty."
                       (if (not label)
                           (concat (format initial-fmt (incf count)) " " title)
                         (format "<a href=\"#%s\">%s %s</a>"
-                                (org-export-solidify-link-text label)
+                                label
                                 (format initial-fmt (incf count))
                                 title))
                       "</li>")))
@@ -1981,8 +1995,7 @@ holding contextual information."
            (extra-ids (mapconcat
                        (lambda (id)
                          (org-twbs--anchor
-                          (org-export-solidify-link-text
-                           (if (org-uuidgen-p id) (concat "ID-" id) id))))
+                          (if (org-uuidgen-p id) (concat "ID-" id) id)))
                        (cdr ids) ""))
            ;; Create the headline text.
            (full-text (org-twbs-format-headline--wrap headline info)))
@@ -2160,6 +2173,15 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 
 ;;;; Latex Environment
 
+(defun org-twbs-format-latex-arity (prefix &optional dir overlays msg
+                                           at forbuffer processing-type)
+  "Arity fix for org-format-latex signature change here:
+http://orgmode.org/w/?p=org-mode.git;a=commit;h=8daf4a89f1a157c0ee2c91e5b990203679b31cf7
+Call 7-arity first, then 6-arity if first fails."
+  (condition-case nil
+      (org-format-latex prefix dir overlays msg at forbuffer processing-type)
+    (error (org-format-latex prefix dir overlays msg forbuffer processing-type))))
+
 (defun org-twbs-format-latex (latex-frag processing-type info)
   "Format a LaTeX fragment LATEX-FRAG into HTML.
 PROCESSING-TYPE designates the tool used for conversion.  It is
@@ -2190,8 +2212,9 @@ a plist containing export properties."
         (setq latex-frag (concat latex-header latex-frag))))
     (with-temp-buffer
       (insert latex-frag)
-      (org-format-latex cache-relpath cache-dir nil "Creating LaTeX Image..."
-                        nil nil processing-type)
+      (org-twbs-format-latex-arity cache-relpath cache-dir nil
+                                   "Creating LaTeX Image..."
+                                   nil nil processing-type)
       (buffer-string))))
 
 (defun org-twbs-latex-environment (latex-environment contents info)
@@ -2391,8 +2414,7 @@ INFO is a plist holding contextual information.  See
       (let ((destination (org-export-resolve-radio-link link info)))
         (if (not destination) desc
           (format "<a href=\"#%s\"%s>%s</a>"
-                  (org-export-solidify-link-text
-                   (org-element-property :value destination))
+                  (org-element-property :value destination)
                   attributes desc))))
      ;; Links pointing to a headline: Find destination and build
      ;; appropriate referencing command.
@@ -2447,10 +2469,10 @@ INFO is a plist holding contextual information.  See
                     (or desc (org-export-data (org-element-property
                                                :title destination) info)))))
              (format "<a href=\"#%s\"%s>%s</a>"
-                     (org-export-solidify-link-text href) attributes desc)))
+                     href attributes desc)))
           ;; Fuzzy link points to a target or an element.
           (t
-           (let* ((path (org-export-solidify-link-text path))
+           (let* ((path path)
                   (org-twbs-standalone-image-predicate 'org-twbs--has-caption-p)
                   (number (cond
                            (desc nil)
@@ -2681,7 +2703,7 @@ holding contextual information."
         (format "<div class=\"outline-text-%d\" id=\"text-%s\">\n%s</div>"
                 class-num
                 (or (org-element-property :CUSTOM_ID parent) section-number)
-                contents)))))
+                (or contents ""))))))
 
 ;;;; Radio Target
 
@@ -2689,8 +2711,7 @@ holding contextual information."
   "Transcode a RADIO-TARGET object from Org to HTML.
 TEXT is the text of the target.  INFO is a plist holding
 contextual information."
-  (let ((id (org-export-solidify-link-text
-             (org-element-property :value radio-target))))
+  (let ((id (org-element-property :value radio-target)))
     (org-twbs--anchor id text)))
 
 ;;;; Special Block
@@ -2722,7 +2743,7 @@ contextual information."
           (label (let ((lbl (org-element-property :name src-block)))
                    (if (not lbl) ""
                      (format " id=\"%s\""
-                             (org-export-solidify-link-text lbl))))))
+                             lbl)))))
       (if (not lang) (format "<pre class=\"example\"%s>\n%s</pre>" label code)
         (format
          "<div class=\"org-src-container\">\n%s%s\n</div>"
@@ -2883,7 +2904,7 @@ contextual information."
             (attributes
              (org-twbs--make-attribute-string
               (org-combine-plists
-               (and label (list :id (org-export-solidify-link-text label)))
+               (and label (list :id label))
                (plist-get info :html-table-attributes)
                (org-export-read-attribute :attr_html table))))
             (alignspec
@@ -2930,8 +2951,7 @@ contextual information."
   "Transcode a TARGET object from Org to HTML.
 CONTENTS is nil.  INFO is a plist holding contextual
 information."
-  (let ((id (org-export-solidify-link-text
-             (org-element-property :value target))))
+  (let ((id (org-element-property :value target)))
     (org-twbs--anchor id)))
 
 ;;;; Timestamp
