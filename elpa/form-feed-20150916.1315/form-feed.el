@@ -4,9 +4,9 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/form-feed
-;; Package-Version: 20150615.100
+;; Package-Version: 20150916.1315
 ;; Keywords: faces
-;; Version: 0.1.9
+;; Version: 0.2.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -80,11 +80,6 @@ columns.  A value of -1 would leave the last column empty."
     `(,form-feed-line-width . text))
    (t 'text)))
 
-(defcustom form-feed-kick-cursor t
-  "When t, entering a line moves the cursor away from it."
-  :type 'boolean
-  :group 'form-feed)
-
 (defcustom form-feed-extra-properties nil
   "List of additional text properties to add to form feeds."
   :type '(plist)
@@ -93,8 +88,7 @@ columns.  A value of -1 would leave the last column empty."
 (defvar form-feed--font-lock-face
   ;; NOTE see (info "(elisp) Search-based fontification") and the
   ;; `(MATCHER . FACESPEC)' section
-  `(face form-feed-line display (space . (:width ,form-feed--line-width))
-         ,@(when form-feed-kick-cursor '(point-entered form-feed--kick-cursor))
+  `(face form-feed-line display (space :width ,form-feed--line-width)
          ,@form-feed-extra-properties))
 
 (defvar form-feed--font-lock-keywords
@@ -112,15 +106,6 @@ columns.  A value of -1 would leave the last column empty."
 
 ;; Functions
 
-(defun form-feed--kick-cursor (old new)
-  "Kick cursor going from OLD to NEW upon entering a line.
-This is done to avoid leaving the cursor on the line which would
-lead to incorrect appearance."
-  (cond ((and (< old new) (/= (point-max) (point)))
-         (forward-char 1))
-        ((and (> old new) (/= (point-min) (point)))
-         (forward-char -1))))
-
 (defun form-feed--add-font-lock-keywords ()
   "Add buffer-local keywords to display page delimiter lines.
 Make sure the special properties involved get cleaned up on
@@ -128,8 +113,7 @@ removal of the keywords via
 `form-feed-remove-font-lock-keywords'."
   (font-lock-add-keywords nil form-feed--font-lock-keywords)
   (set (make-local-variable 'font-lock-extra-managed-props)
-       (append `(display ,(when form-feed-kick-cursor 'point-entered)
-                         ,@form-feed-extra-properties)
+       (append `(display ,@form-feed-extra-properties)
                font-lock-extra-managed-props)))
 
 (defun form-feed--remove-font-lock-keywords ()

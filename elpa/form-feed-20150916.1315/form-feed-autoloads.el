@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "form-feed" "form-feed.el" (21893 22980 895401
+;;;### (autoloads nil "form-feed" "form-feed.el" (22010 16123 409140
 ;;;;;;  0))
 ;;; Generated autoloads from form-feed.el
 
