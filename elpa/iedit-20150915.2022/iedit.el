@@ -161,7 +161,7 @@ An example of how to use this variable: todo")
 
 (defvar iedit-help-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (char-to-string help-char) 'iedit-help-for-help)
+    (define-key map (vector (event-convert-list `(,help-char))) 'iedit-help-for-help)
     (define-key map [help] 'iedit-help-for-help)
     (define-key map [f1] 'iedit-help-for-help)
     (define-key map "?" 'iedit-help-for-help)
@@ -246,7 +246,7 @@ This is like `describe-bindings', but displays only Iedit keys."
 (defvar iedit-mode-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map iedit-lib-keymap)
-    (define-key map (char-to-string help-char) iedit-help-map)
+    (define-key map (vector (event-convert-list `(,help-char))) iedit-help-map)
     (define-key map [help] iedit-help-map)
     (define-key map [f1] iedit-help-map)
     (define-key map (kbd "M-;") 'iedit-toggle-selection)
@@ -529,6 +529,8 @@ the initial string globally."
   "Restrict Iedit mode to current line."
   (interactive)
   (iedit-restrict-region (iedit-char-at-bol) (iedit-char-at-eol))
+  (setq iedit-num-lines-to-expand-up 0
+        iedit-num-lines-to-expand-down 0)
   (message "Restricted to current line, %d match%s."
            (length iedit-occurrences-overlays)
            (if (= 1 (length iedit-occurrences-overlays)) "" "es")))
