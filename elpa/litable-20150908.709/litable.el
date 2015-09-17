@@ -5,8 +5,8 @@
 ;; Author: Matus Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matus Goljer <matus.goljer@gmail.com>
 ;; Keywords: lisp
-;; Version: 20140306.236
-;; X-Original-Version: 0.0.20140306
+;; Package-Version: 20150908.709
+;; Version: 0.0.20140306
 ;; Created: 8th April 2013
 ;; Package-requires: ((dash "2.6.0"))
 
@@ -447,7 +447,7 @@ If depth = 0, also evaluate the current form and print the result."
 
 (defun litable--dump-list (list-symbol)
   "Insert (setq 'LIST-SYMBOL (append LIST-VALUE LIST-SYMBOL-default) to current buffer."
-  (symbol-macrolet ((value (symbol-value list-symbol)))
+  (cl-symbol-macrolet ((value (symbol-value list-symbol)))
     (insert "(setq " (symbol-name list-symbol) "\n"
             "      '(")
     (newline-and-indent)

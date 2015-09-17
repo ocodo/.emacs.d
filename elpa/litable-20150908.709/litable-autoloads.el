@@ -1,10 +1,10 @@
 ;;; litable-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (litable-mode) "litable" "litable.el" (21286 26475
-;;;;;;  0 0))
+;;;### (autoloads nil "litable" "litable.el" (22010 16052 105140
+;;;;;;  0))
 ;;; Generated autoloads from litable.el
 
 (autoload 'litable-mode "litable" "\
@@ -14,16 +14,9 @@ Toggle litable-mode
 
 ;;;***
 
-;;;### (autoloads nil nil ("litable-pkg.el") (21286 26475 273899
-;;;;;;  0))
-
-;;;***
-
-(provide 'litable-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; litable-autoloads.el ends here
