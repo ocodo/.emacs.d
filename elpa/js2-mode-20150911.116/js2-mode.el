@@ -7,7 +7,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;; URL:  https://github.com/mooz/js2-mode/
 ;;       http://code.google.com/p/js2-mode/
-;; Version: 20150713
+;; Version: 20150909
 ;; Keywords: languages, javascript
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -1116,7 +1116,7 @@ information."
     (define-key map (kbd "C-c C-o") #'js2-mode-toggle-element)
     (define-key map (kbd "C-c C-w") #'js2-mode-toggle-warnings-and-errors)
     (define-key map [down-mouse-3] #'js2-down-mouse-3)
-    (define-key map (kbd "M-.") #'js2-jump-to-definition)
+    (define-key map [remap js-find-symbol] #'js2-jump-to-definition)
 
     (define-key map [menu-bar javascript]
       (cons "JavaScript" (make-sparse-keymap "JavaScript")))
@@ -10654,7 +10654,13 @@ expression)."
                     (lambda (previous-elem)
                       (and (setq previous-elem-key-string
                                  (js2-property-key-string previous-elem))
-                           (string= previous-elem-key-string elem-key-string)))
+                           ;; Check if the property is a duplicate.
+                           (string= previous-elem-key-string elem-key-string)
+                           ;; But make an exception for getter / setter pairs.
+                           (not (and (js2-getter-setter-node-p elem)
+                                     (js2-getter-setter-node-p previous-elem)
+                                     (/= (js2-getter-setter-node-type elem)
+                                         (js2-getter-setter-node-type previous-elem))))))
                     elems))
           (js2-report-error "msg.dup.obj.lit.prop.strict"
                             elem-key-string
