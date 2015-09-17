@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "jazz-theme" "jazz-theme.el" (21795 63672 0
+;;;### (autoloads nil "jazz-theme" "jazz-theme.el" (22010 16072 509140
 ;;;;;;  0))
 ;;; Generated autoloads from jazz-theme.el
 

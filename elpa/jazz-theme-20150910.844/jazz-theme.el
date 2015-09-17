@@ -4,7 +4,7 @@
 
 ;; Author: Roman Parykin <donderom@ymail.com>
 ;; URL: https://github.com/donderom/jazz-theme
-;; Package-Version: 20150405.1424
+;; Package-Version: 20150910.844
 ;; Version: 1.0
 
 ;; Based on zenburn-theme.el
