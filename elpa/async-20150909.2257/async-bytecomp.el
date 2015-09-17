@@ -139,14 +139,20 @@ All *.elc files are systematically deleted before proceeding."
         async-bytecomp-allowed-packages)))
 
 (defadvice package--compile (around byte-compile-async)
-  (let ((cur-package (package-desc-name pkg-desc)))
+  (let ((cur-package (package-desc-name pkg-desc))
+        (pkg-dir (package-desc-dir pkg-desc)))
     (if (or (equal async-bytecomp-allowed-packages '(all))
             (memq cur-package (async-bytecomp-get-allowed-pkgs)))
         (progn
           (when (eq cur-package 'async)
             (fmakunbound 'async-byte-recompile-directory))
-          (package-activate-1 pkg-desc)
-          (load "async-bytecomp") ; emacs-24.3 don't reload new files.
+          ;; Add to `load-path' the latest version of async and
+          ;; reload it when reinstalling async.
+          (when (string= cur-package "async")
+            (cl-pushnew pkg-dir load-path)
+            (load "async-bytecomp"))
+          ;; `async-byte-recompile-directory' will add directory
+          ;; as needed to `load-path'.
           (async-byte-recompile-directory (package-desc-dir pkg-desc) t))
         ad-do-it)))
 
