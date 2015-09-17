@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "homebrew-mode" "homebrew-mode.el" (21998 35184
-;;;;;;  579401 0))
+;;;### (autoloads nil "homebrew-mode" "homebrew-mode.el" (22010 16082
+;;;;;;  757140 0))
 ;;; Generated autoloads from homebrew-mode.el
 
 (autoload 'homebrew-mode "homebrew-mode" "\

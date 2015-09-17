@@ -4,8 +4,8 @@
 
 ;; Author: Alex Dunn <dunn.alex@gmail.com>
 ;; URL: https://github.com/dunn/homebrew-mode
-;; Package-Version: 20150906.1709
-;; Version: 1.3.0
+;; Package-Version: 20150910.2031
+;; Version: 1.3.1
 ;; Package-Requires: ((emacs "24.4") (inf-ruby "2.4.0") (dash "1.2.0"))
 ;; Keywords: homebrew brew ruby
 ;; Prefix: homebrew
@@ -84,7 +84,9 @@
 ;;   have inline patches, set `homebrew-patch-whitespace-mode` to
 ;;   `t`. It’s off by default since it looks ugly.
 
-;;; Dependencies
+;;; Code:
+
+;; Dependencies
 
 ;; built-in
 (require 'dired)
@@ -96,11 +98,11 @@
 (require 'dash)
 (require 'inf-ruby)
 
-;;; Code:
+;; Version string
 
-(defconst homebrew-mode-version "1.3.0")
+(defconst homebrew-mode-version "1.3.1")
 
-;; Customization
+;; Custom variables
 
 (defgroup homebrew-mode nil
   "Minor mode for editing Homebrew formulae."
@@ -331,7 +333,7 @@ Pop the process buffer on failure."
   (interactive (list (homebrew--formula-from-file buffer-file-name)))
   (message "Auditing %s ..." formula)
   (set-process-sentinel
-    (homebrew--start-process homebrew-executable "audit" "--strict" "--online" formula)
+    (homebrew--start-process homebrew-executable "audit" formula "--strict" "--online")
     'homebrew--async-alert))
 
 (defun homebrew-brew-fetch (formula &rest args)
