@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20150802.2203
-;; Version: 0.54
+;; Package-Version: 20150912.1939
+;; Version: 0.56
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -305,6 +305,7 @@
   :lighter    anzu-mode-lighter
   (if anzu-mode
       (progn
+        (set (make-local-variable 'anzu--state) nil)
         (add-hook 'isearch-update-post-hook 'anzu--update-post-hook nil t)
         (add-hook 'isearch-mode-hook 'anzu--cons-mode-line-search nil t)
         (add-hook 'isearch-mode-end-hook 'anzu--reset-mode-line nil t))
@@ -561,7 +562,7 @@
   (let ((str (buffer-substring-no-properties
               (overlay-start ov) (overlay-end ov))))
     (when (string-match (regexp-quote str) from)
-      (replace-match replaced (not case-fold-search) nil str))))
+      (replace-match replaced (not case-fold-search) t str))))
 
 (defun anzu--append-replaced-string (content buf beg end use-regexp overlay-limit from)
   (let ((replacements 0))
