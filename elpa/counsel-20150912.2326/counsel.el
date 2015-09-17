@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150907.508
+;; Package-Version: 20150912.2326
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -286,11 +286,16 @@
   (require 'info-look)
   (info-lookup 'symbol symbol mode))
 
+(defvar counsel-unicode-char-history nil
+  "History for `counsel-unicode-char'.")
+
 ;;;###autoload
 (defun counsel-unicode-char ()
   "Insert a Unicode character at point."
   (interactive)
   (let ((minibuffer-allow-text-properties t))
+    (setq counsel-completion-beg (point))
+    (setq counsel-completion-end (point))
     (ivy-read "Unicode name: "
               (mapcar (lambda (x)
                         (propertize
@@ -298,7 +303,12 @@
                          'result (cdr x)))
                       (ucs-names))
               :action (lambda (char)
-                        (insert-char (get-text-property 0 'result char))))))
+                        (with-ivy-window
+                          (delete-region counsel-completion-beg counsel-completion-end)
+                          (setq counsel-completion-beg (point))
+                          (insert-char (get-text-property 0 'result char))
+                          (setq counsel-completion-end (point))))
+              :history 'counsel-unicode-char-history)))
 
 (declare-function cider-sync-request:complete "ext:cider-client")
 ;;;###autoload
@@ -1024,6 +1034,54 @@ INITIAL-INPUT can be given as the initial minibuffer input."
                           (find-file file-name)
                           (unless (string-match "pdf$" x)
                             (swiper ivy-text)))))))
+
+(defcustom counsel-yank-pop-truncate nil
+  "When non-nil, truncate the display of long strings."
+  :group 'ivy)
+
+;;;###autoload
+(defun counsel-yank-pop ()
+  "Ivy replacement for `yank-pop'."
+  (interactive)
+  (if (eq last-command 'yank)
+      (progn
+        (setq counsel-completion-end (point))
+        (setq counsel-completion-beg
+              (save-excursion
+                (search-backward (car kill-ring))
+                (point))))
+    (setq counsel-completion-beg (point))
+    (setq counsel-completion-end (point)))
+  (let ((candidates (cl-remove-if
+                     (lambda (s)
+                       (or (< (length s) 3)
+                           (string-match "\\`[\n[:blank:]]+\\'" s)))
+                     (delete-dups kill-ring))))
+    (when counsel-yank-pop-truncate
+      (setq candidates
+            (mapcar (lambda (s)
+                      (if (string-match "\\`\\(.*\n.*\n.*\n.*\\)\n" s)
+                          (progn
+                            (let ((s (copy-sequence s)))
+                              (put-text-property
+                               (match-end 1)
+                               (length s)
+                               'display
+                               " [...]"
+                               s)
+                              s))
+                        s))
+                    candidates)))
+    (ivy-read "kill-ring: " candidates
+              :action 'counsel-yank-pop-action)))
+
+(defun counsel-yank-pop-action (s)
+  "Insert S into the buffer, overwriting the previous yank."
+  (with-ivy-window
+    (delete-region counsel-completion-beg
+                   counsel-completion-end)
+    (insert (substring-no-properties s))
+    (setq counsel-completion-end (point))))
 
 (provide 'counsel)
 
