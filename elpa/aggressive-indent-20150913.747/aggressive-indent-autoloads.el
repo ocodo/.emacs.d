@@ -4,10 +4,8 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "aggressive-indent" "aggressive-indent.el"
-;;;;;;  (21998 34910 439401 0))
+;;;;;;  (22010 16201 197140 0))
 ;;; Generated autoloads from aggressive-indent.el
-
-(let ((loads (get 'aggressive-indent 'custom-loads))) (if (member '"aggressive-indent" loads) nil (put 'aggressive-indent 'custom-loads (cons '"aggressive-indent" loads))))
 
 (autoload 'aggressive-indent-indent-defun "aggressive-indent" "\
 Indent current defun.
@@ -53,7 +51,7 @@ See `aggressive-indent-mode' for more information on Aggressive-Indent mode.
 
 \(fn &optional ARG)" t nil)
 
-(autoload 'aggressive-indent-global-mode "aggressive-indent" nil nil nil)
+(defalias 'aggressive-indent-global-mode #'global-aggressive-indent-mode)
 
 ;;;***
 
