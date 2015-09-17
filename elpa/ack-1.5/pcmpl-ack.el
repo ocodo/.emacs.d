@@ -1,6 +1,6 @@
-;;; pcmpl-ack.el --- completion for ack    -*- lexical-binding: t; -*-
+;;; pcmpl-ack.el --- completion for ack and ag       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2013  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2015  Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
 ;; Keywords: tools, processes, convenience
@@ -27,6 +27,7 @@
 ;;
 ;; Install:
 ;;   (autoload 'pcomplete/ack "pcmpl-ack")
+;;   (autoload 'pcomplete/ag "pcmpl-ack")
 ;;
 ;; Usage:
 ;;   - To complete short options type '-' first
@@ -136,6 +137,40 @@ long options."
 
 ;;;###autoload
 (defalias 'pcomplete/ack-grep 'pcomplete/ack)
+
+(defvar pcmpl-ack-ag-options nil)
+
+(defun pcmpl-ack-ag-options ()
+  (or pcmpl-ack-ag-options
+      (setq pcmpl-ack-ag-options
+            (with-temp-buffer
+              (when (zerop (call-process "ag" nil t nil "--help"))
+                (let (short long)
+                  (goto-char (point-min))
+                  (while (re-search-forward "^ +\\(-[a-zA-Z]\\) " nil t)
+                    (push (match-string 1) short))
+                  (goto-char (point-min))
+                  (while (re-search-forward
+                          "^ +\\(?:-[a-zA-Z] \\)?\\(--\\(\\[no\\]\\)?[^ \t\n]+\\) "
+                          nil t)
+                    (if (match-string 2)
+                        (progn
+                          (replace-match "" nil nil nil 2)
+                          (push (match-string 1) long)
+                          (replace-match "no" nil nil nil 2)
+                          (push (match-string 1) long))
+                      (push (match-string 1) long)))
+                  (list (cons 'short (nreverse short))
+                        (cons 'long  (nreverse long)))))))))
+
+;;;###autoload
+(defun pcomplete/ag ()
+  "Completion for the `ag' command."
+  (while t
+    (if (pcomplete-match "^-" 0)
+        (pcomplete-here* (cdr (assq (if (pcomplete-match "^--" 0) 'long 'short)
+                                    (pcmpl-ack-ag-options))))
+      (pcomplete-here* (pcomplete-dirs-or-entries)))))
 
 (provide 'pcmpl-ack)
 ;;; pcmpl-ack.el ends here

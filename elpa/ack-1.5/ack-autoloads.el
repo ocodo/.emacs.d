@@ -1,9 +1,9 @@
 ;;; ack-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (ack) "ack" "ack.el" (21015 10681 0 0))
+;;;### (autoloads nil "ack" "ack.el" (22010 16204 857140 0))
 ;;; Generated autoloads from ack.el
 
 (autoload 'ack "ack" "\
@@ -20,8 +20,8 @@ minibuffer:
 
 ;;;***
 
-;;;### (autoloads (pcomplete/ack) "pcmpl-ack" "pcmpl-ack.el" (21015
-;;;;;;  10681 0 0))
+;;;### (autoloads nil "pcmpl-ack" "pcmpl-ack.el" (22010 16204 865140
+;;;;;;  0))
 ;;; Generated autoloads from pcmpl-ack.el
 
 (autoload 'pcomplete/ack "pcmpl-ack" "\
@@ -33,17 +33,20 @@ long options.
 
 (defalias 'pcomplete/ack-grep 'pcomplete/ack)
 
-;;;***
-
-;;;### (autoloads nil nil ("ack-pkg.el") (21015 10681 741398 0))
+(autoload 'pcomplete/ag "pcmpl-ack" "\
+Completion for the `ag' command.
+
+\(fn)" nil nil)
 
 ;;;***
 
-(provide 'ack-autoloads)
+;;;### (autoloads nil nil ("ack-pkg.el") (22010 16204 886340 75000))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; ack-autoloads.el ends here
