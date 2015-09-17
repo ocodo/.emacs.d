@@ -242,7 +242,7 @@ used to limit the exported source code blocks by language."
 			 (base-name (cond
 				     ((string= "yes" tangle)
 				      (file-name-sans-extension
-				       (buffer-file-name)))
+				       (nth 1 spec)))
 				     ((string= "no" tangle) nil)
 				     ((> (length tangle) 0) tangle)))
 			 (file-name (when base-name
@@ -362,13 +362,17 @@ that the appropriate major-mode is set.  SPEC has the form:
 			   (when (and comments (not (string= comments "no"))
 				      (> (length text) 0))
 			     (if org-babel-tangle-uncomment-comments
-				 ;; just plain comments with no processing
+				 ;; Plain comments: no processing.
 				 (insert text)
-			       ;; ensure comments are made to be
-			       ;; comments, and add a trailing newline
+			       ;; Ensure comments are made to be
+			       ;; comments, and add a trailing
+			       ;; newline.  Also ignore invisible
+			       ;; characters when commenting.
 			       (comment-region
-				(point) (progn (insert text) (point)))
-			       (end-of-line nil)
+				(point)
+				(progn (insert (org-no-properties text))
+				       (point)))
+			       (end-of-line)
 			       (insert "\n"))))))
     (when comment (funcall insert-comment comment))
     (when link-p
@@ -427,7 +431,7 @@ list to be used by `org-babel-tangle' directly."
 	 (start-line
 	  (save-restriction (widen)
 			    (+ 1 (line-number-at-pos (point)))))
-	 (file (buffer-file-name))
+	 (file (buffer-file-name (buffer-base-buffer)))
 	 (src-lang (nth 0 info))
 	 (params (nth 2 info))
 	 (extra (nth 3 info))
