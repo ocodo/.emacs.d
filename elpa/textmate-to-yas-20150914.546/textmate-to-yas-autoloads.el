@@ -1,12 +1,10 @@
 ;;; textmate-to-yas-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (yas-text-on-moving-away yas---t/ textmate-import-svn-from-url
-;;;;;;  textmate-import-bundle textmate-import-git-tar\.gz textmate-import-drag-and-drop
-;;;;;;  textmate-yas-submenu textmate-regexp-to-emacs-regexp) "textmate-to-yas"
-;;;;;;  "textmate-to-yas.el" (20923 51604 0 0))
+;;;### (autoloads nil "textmate-to-yas" "textmate-to-yas.el" (22010
+;;;;;;  15968 425140 0))
 ;;; Generated autoloads from textmate-to-yas.el
 
 (autoload 'textmate-regexp-to-emacs-regexp "textmate-to-yas" "\
@@ -57,16 +55,14 @@ Imports textmate bundle to new-dir.  Mode may be a string or a function determin
 
 ;;;***
 
-;;;### (autoloads nil nil ("textmate-to-yas-pkg.el") (20923 51604
-;;;;;;  597755 0))
+;;;### (autoloads nil nil ("textmate-to-yas-pkg.el") (22010 15968
+;;;;;;  440308 627000))
 
 ;;;***
 
-(provide 'textmate-to-yas-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; textmate-to-yas-autoloads.el ends here

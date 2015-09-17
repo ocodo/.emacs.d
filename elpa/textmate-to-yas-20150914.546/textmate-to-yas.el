@@ -729,7 +729,7 @@ C-c C-y M-a
       (setq max "0")
       (while (re-search-forward "[$][{]?\\([0-9]+\\)" nil t)
         (setq max (match-string 1)))
-      (setq max (+ 1 (string-to-int max)))
+      (setq max (+ 1 (string-to-number max)))
       (while (search-forward "`(or yas[/-]selected-text \"\")`" nil t)
         (replace-match (format "${%s:`%s`}" max
                                (if (boundp 'yas-selected-text)
