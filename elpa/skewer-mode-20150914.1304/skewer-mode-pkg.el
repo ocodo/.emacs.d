@@ -1,4 +1,4 @@
-(define-package "skewer-mode" "20150422.1818" "live browser JavaScript, CSS, and HTML interaction"
+(define-package "skewer-mode" "20150914.1304" "live browser JavaScript, CSS, and HTML interaction"
   '((simple-httpd "1.4.0")
     (js2-mode "20090723")
     (emacs "24")))
