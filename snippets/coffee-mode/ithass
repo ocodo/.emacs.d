@@ -2,4 +2,4 @@
 # name: it has string result
 # key: ithass
 # --
-it "should have a ${1:", inject ($2)->
+it 'should have a ${1:', inject ($2)->

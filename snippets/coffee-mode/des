@@ -3,5 +3,5 @@
 # group: jasmine
 # key: des
 # --
-describe "$1", ->
+describe '$1', ->
   $0

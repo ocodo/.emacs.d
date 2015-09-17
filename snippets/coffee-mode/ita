@@ -1,8 +1,8 @@
 # -*- mode: snippet -*-
-# name: it "should ..", asyncSpec (done)->
+# name: it 'should ..', asyncSpec (done)->
 # group: jasmine
 # key: ita
 # expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
 # --
-it "${1:should}", asyncSpec (done)->
+it '${1:should}', asyncSpec (done)->
   $0
