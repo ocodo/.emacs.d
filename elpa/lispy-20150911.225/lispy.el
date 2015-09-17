@@ -2027,11 +2027,27 @@ Return the amount of successful grow steps, nil instead of zero."
             (lispy-different)
           (goto-char (car bnd)))))))
 
+(defun lispy--backward-sexp-or-comment ()
+  (if (lispy--in-comment-p)
+      (goto-char (car (lispy--bounds-comment)))
+    (forward-sexp -1))
+  (skip-chars-backward " \n"))
+
+(defun lispy--forward-sexp-or-comment ()
+  (if (save-excursion
+        (skip-chars-forward " \n")
+        (lispy--in-comment-p))
+      (progn
+        (skip-chars-forward " \n")
+        (goto-char (cdr (lispy--bounds-comment))))
+    (forward-sexp 1)))
+
 (defun lispy-barf (arg)
   "Shrink current sexp or region by ARG sexps."
   (interactive "p")
   (cond ((region-active-p)
-         (let* ((str (lispy--string-dwim))
+         (let* ((bnd (lispy--bounds-dwim))
+                (str (lispy--string-dwim bnd))
                 (one-symbolp (lispy--symbolp str)))
            (if (= (point) (region-end))
                (cond (one-symbolp
@@ -2041,29 +2057,37 @@ Return the amount of successful grow steps, nil instead of zero."
                           (throw 'result i))))
                      ((lispy--in-comment-p)
                       (goto-char (car (lispy--bounds-comment)))
-                      (skip-chars-backward " \n"))
+                      (if (= (point) (region-beginning))
+                          (goto-char (cdr (lispy--bounds-comment)))
+                        (skip-chars-backward " \n")))
                      (t
-                      (save-restriction
-                        (narrow-to-region (region-beginning)
-                                          (point-max))
-                        (incf arg)
-                        (lispy-dotimes arg
-                          (forward-sexp -1))
-                        (forward-sexp 1)
-                        (widen))))
-             (if one-symbolp
-                 (lispy-dotimes arg
-                   (if (re-search-forward "\\s_+\\sw" (region-end) t)
-                       (backward-char 1)
-                     (throw 'result i)))
-               (save-restriction
-                 (narrow-to-region (point-min)
-                                   (region-end))
-                 (incf arg)
-                 (lispy-dotimes arg
-                   (forward-sexp 1))
-                 (forward-sexp -1)
-                 (widen))))))
+                      (incf arg)
+                      (lispy-dotimes arg
+                        (lispy--backward-sexp-or-comment))
+                      (when (< (point) (car bnd))
+                        (goto-char (car bnd)))
+                      (lispy--forward-sexp-or-comment)))
+             (cond (one-symbolp
+                    (lispy-dotimes arg
+                      (if (re-search-forward "\\s_+\\sw" (region-end) t)
+                          (backward-char 1)
+                        (throw 'result i))))
+                   ((lispy--in-comment-p)
+                    (goto-char (cdr (lispy--bounds-comment)))
+                    (if (= (region-beginning) (region-end))
+                        (goto-char (car bnd))
+                      (skip-chars-forward " \n")))
+                   (t
+                    (save-restriction
+                      (narrow-to-region (point-min)
+                                        (region-end))
+                      (incf arg)
+                      (lispy-dotimes arg
+                        (lispy--forward-sexp-or-comment))
+                      (if (lispy--in-comment-p)
+                          (goto-char (car (lispy--bounds-comment)))
+                        (forward-sexp -1))
+                      (widen)))))))
 
         ((looking-at "()"))
 
@@ -2894,7 +2918,13 @@ When SILENT is non-nil, don't issue messages."
                (when (lispy--in-string-or-comment-p)
                  (lispy--out-backward 1)))
               ((lispy--in-string-or-comment-p)
-               (self-insert-command 1))
+               (if (and (eq major-mode 'emacs-lisp-mode)
+                        (lispy-after-string-p ";; "))
+                   (progn
+                     (delete-char -1)
+                     (insert ";###autoload")
+                     (forward-char 1))
+                 (self-insert-command 1)))
               ((lispy-left-p)
                (setq bnd (lispy--bounds-dwim))
                (lispy-down 1)
@@ -2911,7 +2941,7 @@ When SILENT is non-nil, don't issue messages."
               ((eolp)
                (comment-dwim nil))
               ((looking-at " *[])}]")
-               (unless (looking-back "^ *")
+               (unless (lispy-bolp)
                  (insert "\n"))
                (insert ";;\n")
                (when (lispy--out-forward 1)
@@ -3428,14 +3458,23 @@ When ARG is non-nil, force select the window."
   (interactive)
   (lispy-goto-symbol (lispy--current-function)))
 
+(declare-function cider-doc-lookup "ext:cider-interaction")
+
 (defun lispy-describe ()
   "Display documentation for `lispy--current-function'."
   (interactive)
-  (let ((symbol (intern-soft (lispy--current-function))))
-    (cond ((fboundp symbol)
-           (describe-function symbol))
-          ((boundp symbol)
-           (describe-variable symbol)))))
+  (cond ((memq major-mode lispy-elisp-modes)
+         (let ((symbol (intern-soft (lispy--current-function))))
+           (cond ((fboundp symbol)
+                  (describe-function symbol))
+                 ((boundp symbol)
+                  (describe-variable symbol)))))
+        ((memq major-mode lispy-clojure-modes)
+         (cider-doc-lookup (lispy--current-function)))
+
+        (t
+         (lispy-complain
+          (format "%s isn't supported currently" major-mode)))))
 
 (defun lispy-arglist ()
   "Display arglist for `lispy--current-function'."
@@ -3473,7 +3512,6 @@ When called twice in a row, restore point and mark."
 
 ;;* Locals: avy-jump
 (declare-function avy--regex-candidates "avy")
-(declare-function avy--goto "avy")
 (declare-function avy--process "avy")
 (declare-function avy--overlay-post "avy")
 
@@ -3526,8 +3564,10 @@ Sexp is obtained by exiting the list ARG times."
         (lispy--avy-do
          "[([{ ]\\(?:\\sw\\|\\s_\\|[\"'`#~,@]\\)"
          (lispy--bounds-dwim)
-         (lambda () (or (not (lispy--in-string-or-comment-p))
-                        (lispy-looking-back ".\"")))
+         (lambda ()
+           (not (save-excursion
+                  (forward-char -1)
+                  (lispy--in-string-or-comment-p))))
          lispy-avy-style-symbol))))
   (unless (or (eq (char-after) ?\")
               (looking-at ". "))
@@ -3854,7 +3894,7 @@ With ARG, use the contents of `lispy-store-region-and-buffer' instead."
   (lispy-left 1)
   (lispy-delete 1)
   (save-excursion
-    (lispy--out-backward 1)
+    (lispy--out-backward 2)
     (lispy--normalize-1)))
 
 (defun lispy-bind-variable ()
@@ -4957,7 +4997,7 @@ FILE is the file where X is defined."
                 (error
                  (forward-sexp 1)))
               (setq str (replace-regexp-in-string
-                         "\n" " " (buffer-substring-no-properties beg (point))))
+                         "\n *" " " (buffer-substring-no-properties beg (point))))
               (setcar x str)
               (setcar (nthcdr 1 x) (intern tag-head))))))))
   x)
@@ -5191,7 +5231,7 @@ Ignore the matches in strings and comments."
                 (lispy--replace-regexp-in-code "\n" " (ly-raw newline)")
                 ;; ——— () —————————————————————
                 (goto-char (point-min))
-                (while (re-search-forward "[^\\]\\(()\\)" nil t)
+                (while (re-search-forward "\\(?:[^\\]\\|^\\)\\(()\\)" nil t)
                   (unless (lispy--in-string-or-comment-p)
                     (replace-match "(ly-raw empty)" nil nil nil 1)))
                 ;; ——— ? char syntax ——————————
@@ -5235,18 +5275,15 @@ Ignore the matches in strings and comments."
                         (insert "))"))
                       (delete-region (match-beginning 0) (match-end 0))
                       (insert "(ly-raw " class " ("))))
-                ;; ——— 123# ———————————————————
-                (goto-char (point-min))
-                (while (re-search-forward "[0-9]+\\(#\\)" nil t)
-                  (replace-match "\\#" nil t nil 1))
                 ;; ——— #1 —————————————————————
                 ;; Elisp syntax for circular lists
                 (goto-char (point-min))
                 (while (re-search-forward "\\(?:^\\|\\s-\\|\\s(\\)\\(#[0-9]+\\)" nil t)
-                  (replace-match (format "(ly-raw reference %S)"
-                                         (substring-no-properties
-                                          (match-string 1)))
-                                 nil nil nil 1))
+                  (unless (lispy--in-string-p)
+                    (replace-match (format "(ly-raw reference %S)"
+                                           (substring-no-properties
+                                            (match-string 1)))
+                                   nil nil nil 1)))
                 ;; ——— ' ——————————————————————
                 (goto-char (point-min))
                 (while (re-search-forward "'" nil t)
@@ -5313,6 +5350,14 @@ Ignore the matches in strings and comments."
                     (insert "\")")))
                 ;; ——— cons cell syntax ———————
                 (lispy--replace-regexp-in-code " \\. " " (ly-raw dot) ")
+                ;; Clojure # in the middle of the symbol
+                (goto-char (point-min))
+                (while (re-search-forward "\\(?:\\sw\\|\\s_\\)#" nil t)
+                  (unless (lispy--in-string-p)
+                    (let* ((bnd (lispy--bounds-dwim))
+                           (str (lispy--string-dwim bnd)))
+                      (delete-region (car bnd) (cdr bnd))
+                      (insert (format "(ly-raw symbol %S)" str)))))
                 ;; ———  ———————————————————————
                 (buffer-substring-no-properties
                  (point-min)
