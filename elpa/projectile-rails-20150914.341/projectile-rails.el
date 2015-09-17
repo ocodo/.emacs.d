@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20150831.131
+;; Package-Version: 20150914.341
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -268,8 +268,10 @@ The bound variables are \"singular\" and \"plural\"."
        (projectile-rails-goto-file
         (if (= (length files) 1)
             (gethash (-first-item files) choices)
-          (gethash (projectile-completing-read "Which exactly: " files)
-                   choices))))))
+          (concat
+           (f-dirname (gethash (-first-item files) choices))
+           (projectile-completing-read "Which exactly: " files)))
+        t))))
 
 (defun projectile-rails-spring-p ()
   (let ((path (concat temporary-file-directory "spring/%s"))
@@ -1215,7 +1217,8 @@ Killing the buffer will terminate to server's process."
                      ("y" "layout"      projectile-rails-find-layout)
                      ("n" "migration"   projectile-rails-find-migration)
                      ("k" "rake task"   projectile-rails-find-rake-task)
-                     ("b" "job"         projectile-rails-find-job))
+                     ("b" "job"         projectile-rails-find-job)
+                     ("a" "locale"      projectile-rails-find-locale))
                     ("Find an associated resource"
                      ("M" "model"       projectile-rails-find-current-model)
                      ("V" "view"        projectile-rails-find-current-view)
