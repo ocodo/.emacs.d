@@ -3,9 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "0blayout" "0blayout.el" (21960 42620 159401
+;;;### (autoloads nil "0blayout" "0blayout.el" (22010 16230 241140
 ;;;;;;  0))
 ;;; Generated autoloads from 0blayout.el
+
+(autoload '0blayout-add-keybindings-with-prefix "0blayout" "\
+Add 0blayout keybindings using the prefix PREFIX
+
+\(fn PREFIX)" nil nil)
 
 (defvar 0blayout-mode nil "\
 Non-nil if 0blayout mode is enabled.
