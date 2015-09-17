@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.9.0
-;; Package-Version: 20150825.50
+;; Package-Version: 20150909.608
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -102,6 +102,10 @@ See also `s-split'."
 (defun s-append (suffix s)
   "Concatenate S and SUFFIX."
   (concat s suffix))
+
+(defun s-wrap (left right s)
+  "Wrap S in strings LEFT and RIGHT."
+  (concat left s right))
 
 (defun s-repeat (num s)
   "Make a string of S repeated NUM times."
