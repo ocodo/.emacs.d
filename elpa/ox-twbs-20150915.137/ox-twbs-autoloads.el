@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ox-twbs" "ox-twbs.el" (21998 34655 275401
+;;;### (autoloads nil "ox-twbs" "ox-twbs.el" (22010 16001 813140
 ;;;;;;  0))
 ;;; Generated autoloads from ox-twbs.el
 

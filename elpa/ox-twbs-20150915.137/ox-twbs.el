@@ -7,9 +7,9 @@
 ;;         Jambunathan K <kjambunathan at gmail dot com>
 ;;         Brandon van Beekum <marsmining at gmail dot com>
 ;; URL: https://github.com/marsmining/ox-twbs
-;; Package-Version: 20150906.1117
+;; Package-Version: 20150915.137
 ;; Keywords: org, html, publish, twitter, bootstrap
-;; Version: 1.0.2
+;; Version: 1.0.3
 
 ;; This file is not part of GNU Emacs.
 
@@ -138,6 +138,7 @@
     (:with-latex nil "tex" org-twbs-with-latex)
     (:with-toc nil nil 2)
     (:with-creator nil nil t)
+    (:with-headline-numbers nil "whn" t)
     (:section-numbers nil nil t)
     ;; Retrieve LaTeX header for fragments.
     (:latex-header "LATEX_HEADER" nil nil newline)))
@@ -1626,6 +1627,11 @@ a plist used as a communication channel."
 
 ;;; Tables of Contents
 
+(defun org-twbs-display-headline-number-p (headline-number info)
+  "Predicate deciding if headline number should be displayed."
+  (let ((whn (plist-get info :with-headline-numbers)))
+    (or (eq whn t) (and (wholenump whn) (<= (length headline-number) whn)))))
+
 (defun org-twbs-collect-headlines (info depth &optional scope)
   "Another arity change in org:
 http://orgmode.org/w/?p=org-mode.git;a=commit;h=b07e2f6ff1feddde83506b7fdb370bfe8e0a5337
@@ -1710,6 +1716,7 @@ INFO is a plist used as a communication channel."
             (concat
              (and (not (org-export-low-level-p headline info))
                   (org-export-numbered-headline-p headline info)
+                  (org-twbs-display-headline-number-p headline-number info)
                   (concat (mapconcat #'number-to-string headline-number ".")
                           ". "))
              (apply (if (not (eq org-twbs-format-headline-function 'ignore))
@@ -1941,6 +1948,7 @@ holding contextual information."
          (headline-number (org-export-get-headline-number headline info))
          (section-number (and (not (org-export-low-level-p headline info))
                               (org-export-numbered-headline-p headline info)
+                              (org-twbs-display-headline-number-p headline-number info)
                               (mapconcat 'number-to-string
                                          headline-number ".")))
          (todo (and (plist-get info :with-todo-keywords)
