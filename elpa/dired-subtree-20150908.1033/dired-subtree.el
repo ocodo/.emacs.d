@@ -5,7 +5,7 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Keywords: files
-;; Package-Version: 20150819.948
+;; Package-Version: 20150908.1033
 ;; Version: 0.0.1
 ;; Created: 25th February 2014
 ;; Package-requires: ((dash "2.5.0") (dired-hacks-utils "0.0.1"))
@@ -259,7 +259,19 @@ If no SUBTREES are specified, use `dired-subtree-overlays'."
                 (overlay-put ov (car it) (cdr it)))
               (dired-subtree--filter-subtree ov))))))))
 
+(defun dired-subtree--after-insert ()
+  "After inserting the subtree, setup dired-details/dired-hide-details-mode."
+  (if (fboundp 'dired-insert-set-properties)
+      (let ((inhibit-read-only t)
+            (ov (dired-subtree--get-ov)))
+        (dired-insert-set-properties (overlay-start ov) (overlay-end ov)))
+    (when (featurep 'dired-details)
+      (dired-details-delete-overlays)
+      (dired-details-activate))))
+
 (add-hook 'dired-after-readin-hook 'dired-subtree--after-readin)
+
+(add-hook 'dired-subtree-after-insert-hook 'dired-subtree--after-insert)
 
 (defun dired-subtree--unmark ()
   "Unmark a file without moving point."
@@ -450,7 +462,8 @@ children."
 Return a string suitable for insertion in `dired' buffer."
   (with-temp-buffer
     (let ((insert-dir-fun  (if (and (featurep 'tramp)
-                                    (tramp-tramp-file-p dir-name))
+                                    (tramp-tramp-file-p dir-name)
+                                    (tramp-sh-handle-file-directory-p dir-name))
                                #'tramp-handle-insert-directory
                              #'insert-directory)))
       (funcall insert-dir-fun dir-name dired-listing-switches nil t))
