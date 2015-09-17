@@ -1175,15 +1175,15 @@ If CHOP-LENGTH is not specified, message set is not chopped."
                    (elmo-network-session-server-internal session)))
 ;;;         (if elmo-imap4-auth-user-realm
 ;;;		(sasl-client-set-property client 'realm elmo-imap4-auth-user-realm))
+            (setq sasl-read-passphrase
+                  (lambda (prompt)
+                    (elmo-get-passwd
+                     (elmo-network-session-password-key session))))
             (setq name (sasl-mechanism-name mechanism)
                   step (sasl-next-step client nil))
             (elmo-network-session-set-auth-internal
              session
              (intern (downcase name)))
-            (setq sasl-read-passphrase
-                  (lambda (prompt)
-                    (elmo-get-passwd
-                     (elmo-network-session-password-key session))))
             (setq tag
                   (elmo-imap4-send-command
                    session
@@ -2828,7 +2828,9 @@ time."
                        session
                        (list
                         "uid search since"
-                        (car (split-string internaldate " ")))) 'search)))
+			(elmo-date-get-description
+			 (elmo-date-get-offset-datevec
+			  (elmo-date-get-datevec internaldate) 1)))) 'search)))
                 (if (null candidates)
                     (setq result t)
                   (setq candidates
@@ -2839,8 +2841,10 @@ time."
                            "uid fetch"
                            (mapconcat 'number-to-string candidates ",")
                            "(internaldate)")) 'fetch))
+		  (setq internaldate (elmo-date-get-datevec internaldate))
                   (while candidates
-                    (if (string= (cadar candidates) internaldate)
+                    (if (equal (elmo-date-get-datevec (cadar candidates))
+			       internaldate)
                         (setq result (cons
                                       (cadadr candidates)
                                       result)))

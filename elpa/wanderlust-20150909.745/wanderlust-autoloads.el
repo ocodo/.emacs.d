@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "elmo" "elmo.el" (21960 42662 763401 0))
+;;;### (autoloads nil "elmo" "elmo.el" (22010 15945 421140 0))
 ;;; Generated autoloads from elmo.el
 
 (autoload 'elmo-make-folder "elmo" "\
@@ -16,7 +16,7 @@ encode and decode a multibyte string.
 
 ;;;***
 
-;;;### (autoloads nil "elmo-split" "elmo-split.el" (21960 42662 703401
+;;;### (autoloads nil "elmo-split" "elmo-split.el" (22010 15945 385140
 ;;;;;;  0))
 ;;; Generated autoloads from elmo-split.el
 
@@ -28,7 +28,7 @@ If prefix argument ARG is specified, do a reharsal (no harm).
 
 ;;;***
 
-;;;### (autoloads nil "wl" "wl.el" (21960 42662 239401 0))
+;;;### (autoloads nil "wl" "wl.el" (22010 15944 953140 0))
 ;;; Generated autoloads from wl.el
 
 (autoload 'wl "wl" "\
@@ -44,7 +44,7 @@ Pop up a frame to read messages via Wanderlust.
 
 ;;;***
 
-;;;### (autoloads nil "wl-addrmgr" "wl-addrmgr.el" (21960 42662 619401
+;;;### (autoloads nil "wl-addrmgr" "wl-addrmgr.el" (22010 15945 321140
 ;;;;;;  0))
 ;;; Generated autoloads from wl-addrmgr.el
 
@@ -55,7 +55,7 @@ Start an Address manager.
 
 ;;;***
 
-;;;### (autoloads nil "wl-draft" "wl-draft.el" (21960 42662 567401
+;;;### (autoloads nil "wl-draft" "wl-draft.el" (22010 15945 253140
 ;;;;;;  0))
 ;;; Generated autoloads from wl-draft.el
 
@@ -90,7 +90,7 @@ been implemented yet.  Partial support for SWITCH-FUNCTION now supported.
 ;;;;;;  "wl-fldmgr.el" "wl-folder.el" "wl-highlight.el" "wl-message.el"
 ;;;;;;  "wl-mime.el" "wl-refile.el" "wl-score.el" "wl-spam.el" "wl-summary.el"
 ;;;;;;  "wl-template.el" "wl-thread.el" "wl-util.el" "wl-vars.el"
-;;;;;;  "wl-version.el") (21960 42662 848051 413000))
+;;;;;;  "wl-version.el") (22010 15945 456334 819000))
 
 ;;;***
 
