@@ -7,7 +7,7 @@
 ;; Modified   : May 2015
 ;; Version    : 0.8.10
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20150906.1210
+;; Package-Version: 20150915.339
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
 
@@ -287,9 +287,7 @@
 ;;
 
 (require 'cc-mode)
-
-;; cc-defs in emacs 24.4 depends on cl-macroexpand-all, but does not load 'cl itself.
-(require 'cl)
+(require 'cl-lib)
 
 ;; ==================================================================
 ;; c# upfront stuff
@@ -1192,8 +1190,8 @@ a square parentasis block [ ... ]."
 (c-lang-defconst c-block-prefix-disallowed-chars
 
   ;; Allow ':' for inherit list starters.
-  csharp (set-difference (c-lang-const c-block-prefix-disallowed-chars)
-                         '(?: ?,)))
+  csharp (cl-set-difference (c-lang-const c-block-prefix-disallowed-chars)
+                            '(?: ?,)))
 
 
 (c-lang-defconst c-assignment-operators
@@ -2140,7 +2138,7 @@ Upon entry, it's assumed that the parens included in S.
 	      (setq state 0))
              ;; non-ws indicates the type spec is beginning
              (t
-              (incf i)
+              (cl-incf i)
               (setq state 3
                     need-type nil
                     nesting 0
@@ -2150,9 +2148,9 @@ Upon entry, it's assumed that the parens included in S.
            ;; slurping type
            ((= state 3)
             (cond
-             ((= ?> c) (incf nesting))
+             ((= ?> c) (cl-incf nesting))
              ((= ?< c)
-              (decf nesting)
+              (cl-decf nesting)
               (setq need-type t))
 
              ;; ws or comma maybe signifies the end of the typespec
@@ -2178,9 +2176,9 @@ Upon entry, it's assumed that the parens included in S.
              ((string-match "[ \t\f\v\n\r]" cs)
               t)
 
-             ((= 93 c) (incf nesting)) ;; sq brack
+             ((= 93 c) (cl-incf nesting)) ;; sq brack
              ((= 91 c)  ;; open sq brack
-              (decf nesting))
+              (cl-decf nesting))
 
              ;; handle this (extension methods), out, ref, params
              ((and (>= i 5)
@@ -2217,7 +2215,7 @@ Upon entry, it's assumed that the parens included in S.
 	      t)))
            )
 
-          (decf i))
+          (cl-decf i))
 
         (if (and (= state 3) (= nesting 0))
             (setq new (cons (substring s2 i ix2) new)))
@@ -2263,7 +2261,7 @@ For this input:
        ((and (= state 1) (or (= c 9) (= c 32)))
         (setq result (substring sig (1+ i))
               i 0)))
-      (decf i))
+      (cl-decf i))
     result))
 
 
@@ -2418,7 +2416,7 @@ more open-curlies are found.
 
               ;; count the using statements
               (while (re-search-forward (csharp--regexp 'using-stmt) limit t)
-                (incf count))
+                (cl-incf count))
 
               (setq marquis (if (eq count 1) "using (1)"
                               (format "usings (%d)" count)))
@@ -2663,7 +2661,7 @@ this fn will be something like this:
                        (xelt (assoc topic new)))
                   (funcall helper (cdr list)
                            (if xelt
-                               (progn (incf (cdr xelt)) new)
+                               (progn (cl-incf (cdr xelt)) new)
                              (cons (cons topic 1) new))))))))
     (nreverse (funcall helper list nil))))
 
@@ -2732,7 +2730,7 @@ See also, `string-lastindexof'
       (setq c2 (aref s i))
       (if (= c c2)
           (setq ix i))
-      (incf i))
+      (cl-incf i))
     ix))
 
 (defun string-lastindexof (s c)
@@ -2748,7 +2746,7 @@ See also, `string-indexof'
       (setq c2 (aref s i))
       (if (= c c2)
           (setq ix i))
-      (decf i))
+      (cl-decf i))
     ix))
 
 
@@ -2826,7 +2824,7 @@ Returns a new list, containing sublists.
                 label (concat "from " (csharp--imenu-submenu-label (caar this-chunk) base-name))
                 new (cons (cons label this-chunk) new)
                 len (- len chunksz))
-          (incf i))
+          (cl-incf i))
         new)))))
 
 
