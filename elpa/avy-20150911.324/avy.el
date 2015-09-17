@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20150903.1838
+;; Package-Version: 20150911.324
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -171,11 +171,11 @@ For example, to make SPC do the same as ?a, use
   "Face used for first non-terminating leading chars.")
 
 (defface avy-lead-face-1
-    '((t (:foreground "white" :background "gray")))
+  '((t (:foreground "white" :background "gray")))
   "Face used for matched leading chars.")
 
 (defface avy-lead-face-2
-    '((t (:foreground "white" :background "#f86bf3")))
+  '((t (:foreground "white" :background "#f86bf3")))
   "Face used for leading chars.")
 
 (defface avy-lead-face
@@ -959,7 +959,7 @@ Otherwise, forward to `goto-line' with ARG."
   (if (not (memq arg '(1 4)))
       (progn
         (goto-char (point-min))
-        (forward-line arg))
+        (forward-line (1- arg)))
     (avy-with avy-goto-line
       (let* ((avy-handler-function
               (lambda (char)
@@ -1037,19 +1037,30 @@ ARG lines can be used."
 (defcustom avy-timeout-seconds 0.5
   "How many seconds to wait for the second char.")
 
+(defun avy--read-string-timer ()
+  "Read as many chars as possible and return them as string.
+At least one char must be read, and then repeatedly one next char
+may be read if it is entered before `avy-timeout-seconds'."
+  (let ((str "") char)
+    (while (setq char (read-char (format "char%s: "
+                                         (if (string= str "")
+                                             str
+                                           (format " (%s)" str)))
+                                 t
+                                 (and (not (string= str ""))
+                                      avy-timeout-seconds)))
+      (setq str (concat str (list char))))
+    str))
+
 ;;;###autoload
 (defun avy-goto-char-timer (&optional arg)
-  "Read one or two consecutive chars and jump to the first one.
+  "Read one or many consecutive chars and jump to the first one.
 The window scope is determined by `avy-all-windows' (ARG negates it)."
   (interactive "P")
-  (let ((c1 (read-char "char 1: " t))
-        (c2 (read-char "char 2: " t avy-timeout-seconds)))
+  (let ((str (avy--read-string-timer)))
     (avy-with avy-goto-char-timer
       (avy--generic-jump
-       (regexp-quote
-        (if c2
-            (string c1 c2)
-          (string c1)))
+       (regexp-quote str)
        arg
        avy-style))))
 

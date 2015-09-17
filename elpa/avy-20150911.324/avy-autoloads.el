@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "avy" "avy.el" (21998 34892 43401 0))
+;;;### (autoloads nil "avy" "avy.el" (22010 16180 97140 0))
 ;;; Generated autoloads from avy.el
 
 (autoload 'avy-goto-char "avy" "\
@@ -99,7 +99,7 @@ Setup the default shortcuts.
 \(fn)" nil nil)
 
 (autoload 'avy-goto-char-timer "avy" "\
-Read one or two consecutive chars and jump to the first one.
+Read one or many consecutive chars and jump to the first one.
 The window scope is determined by `avy-all-windows' (ARG negates it).
 
 \(fn &optional ARG)" t nil)
