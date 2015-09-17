@@ -3,8 +3,8 @@
 ;; Copyright (C) 2014-2015  Mark Oteiza <mvoteiza@udel.edu>
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
-;; Version: 0.4.1
-;; Package-Version: 20150906.2225
+;; Version: 0.5
+;; Package-Version: 20150912.1325
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3") (seq "1.5"))
 ;; Keywords: comm, tools
 
@@ -694,6 +694,14 @@ When called with a prefix, also unlink torrent data on disk."
          (prog (car args)))
     (apply #'start-process prog nil args)))
 
+(defun transmission-find-file ()
+  "Visit the file at point with `find-file-read-only'."
+  (interactive)
+  (let ((file (transmission-files-file-at-point)))
+    (if file
+        (find-file-read-only file)
+      (user-error "File does not exist."))))
+
 
 ;; Drawing
 
@@ -770,51 +778,45 @@ Each form in BODY is a column descriptor."
         (transmission-torrents `(:ids ,id :fields ,transmission-info-fields)))
   (erase-buffer)
   (let-alist (elt transmission-torrent-vector 0)
-    (let* ((have (apply #'+ (mapcar #'transmission-hamming-weight
-                                    (base64-decode-string .pieces))))
-           (wanted (apply #'+ (cl-mapcar (lambda (w f)
-                                           (if (not (zerop w))
-                                               (cdr (assq 'length f)) 0))
-                                         .wanted .files)))
-           (vec
-            (vector
-             (format "ID: %d" id)
-             (concat "Name: " .name)
-             (concat "Hash: " .hashString)
-             (concat "Magnet: " (propertize .magnetLink 'font-lock-face 'link) "\n")
-             (format "Percent done: %d%%" (* 100 .percentDone))
-             (format "Bandwidth priority: %s"
-                     (car (rassoc .bandwidthPriority transmission-priority-alist)))
-             (concat "Ratio limit: "
-                     (transmission-torrent-seed-ratio .seedRatioLimit .seedRatioMode))
-             (unless (zerop .error)
-               (format "Error: %d %s\n" .error
-                       (propertize .errorString 'font-lock-face 'error)))
-             (format "Peers: connected to %d, uploading to %d, downloading from %d\n"
-                     .peersConnected .peersGettingFromUs .peersSendingToUs)
-             (concat "Date created:    " (transmission-time .dateCreated))
-             (concat "Date added:      " (transmission-time .addedDate))
-             (concat "Date finished:   " (transmission-time .doneDate))
-             (concat "Latest Activity: " (transmission-time .activityDate) "\n")
-             (concat (transmission-format-trackers .trackerStats) "\n")
-             (format "Wanted: %s (%d bytes)" (transmission-size wanted)
-                     wanted)
-             (format "Downloaded: %s (%d bytes)" (transmission-size .downloadedEver)
-                     .downloadedEver)
-             (format "Verified: %s (%d bytes)" (transmission-size .haveValid)
-                     .haveValid)
-             (unless (zerop .corruptEver)
-               (format "Corrupt: %s (%d bytes)" (transmission-size .corruptEver)
-                       .corruptEver))
-             (format "Total size: %s (%d bytes)" (transmission-size .totalSize)
-                     .totalSize)
-             (format "Piece size: %s (%d bytes) each"
-                     (transmission-size .pieceSize)
-                     .pieceSize)
-             (format "Piece count: %d / %d (%d%%)" have .pieceCount
-                     (transmission-percent have .pieceCount))
-             (when (and (not (= have 0)) (< have .pieceCount))
-               (format "Pieces:\n\n%s\n" (transmission-format-pieces .pieces .pieceCount))))))
+    (let ((vec
+           (vector
+            (format "ID: %d" id)
+            (concat "Name: " .name)
+            (concat "Hash: " .hashString)
+            (concat "Magnet: " (propertize .magnetLink 'font-lock-face 'link) "\n")
+            (format "Percent done: %d%%" (* 100 .percentDone))
+            (format "Bandwidth priority: %s"
+                    (car (rassoc .bandwidthPriority transmission-priority-alist)))
+            (concat "Ratio limit: "
+                    (transmission-torrent-seed-ratio .seedRatioLimit .seedRatioMode))
+            (unless (zerop .error)
+              (format "Error: %d %s\n" .error
+                      (propertize .errorString 'font-lock-face 'error)))
+            (format "Peers: connected to %d, uploading to %d, downloading from %d\n"
+                    .peersConnected .peersGettingFromUs .peersSendingToUs)
+            (concat "Date created:    " (transmission-time .dateCreated))
+            (concat "Date added:      " (transmission-time .addedDate))
+            (concat "Date finished:   " (transmission-time .doneDate))
+            (concat "Latest Activity: " (transmission-time .activityDate) "\n")
+            (concat (transmission-format-trackers .trackerStats) "\n")
+            (let ((wanted (apply #'+ (cl-mapcar (lambda (w f)
+                                                  (if (not (zerop w))
+                                                      (cdr (assq 'length f)) 0))
+                                                .wanted .files))))
+              (format "Wanted: %s (%d bytes)" (transmission-size wanted) wanted))
+            (format "Downloaded: %s (%d bytes)" (transmission-size .downloadedEver) .downloadedEver)
+            (format "Verified: %s (%d bytes)" (transmission-size .haveValid) .haveValid)
+            (unless (zerop .corruptEver)
+              (format "Corrupt: %s (%d bytes)" (transmission-size .corruptEver) .corruptEver))
+            (format "Total size: %s (%d bytes)" (transmission-size .totalSize) .totalSize)
+            (format "Piece size: %s (%d bytes) each" (transmission-size .pieceSize) .pieceSize)
+            (let ((have (apply #'+ (mapcar #'transmission-hamming-weight
+                                           (base64-decode-string .pieces)))))
+              (concat
+               (format "Piece count: %d / %d (%d%%)\n" have .pieceCount
+                       (transmission-percent have .pieceCount))
+               (when (and (not (= have 0)) (< have .pieceCount))
+                 (format "Pieces:\n\n%s\n" (transmission-format-pieces .pieces .pieceCount))))))))
       (insert (mapconcat #'identity (remove nil vec) "\n")))))
 
 (defun transmission-draw (fun)
@@ -851,16 +853,17 @@ Each form in BODY is a column descriptor."
                        (generate-new-buffer ,name))))
        (if (not id)
            (user-error "No torrent selected")
-         (switch-to-buffer buffer)
-         (let ((old-id (or transmission-torrent-id
-                           (cdr (assq 'id (tabulated-list-get-id))))))
-           (unless (eq major-mode ',mode)
-             (funcall #',mode))
-           (if (and old-id (eq old-id id))
-               (transmission-refresh)
-             (setq transmission-torrent-id id)
-             (transmission-draw transmission-refresh-function)
-             (goto-char (point-min))))))))
+         (with-current-buffer buffer
+           (let ((old-id (or transmission-torrent-id
+                             (cdr (assq 'id (tabulated-list-get-id))))))
+             (unless (eq major-mode ',mode)
+               (funcall #',mode))
+             (if (and old-id (eq old-id id))
+                 (transmission-refresh)
+               (setq transmission-torrent-id id)
+               (transmission-draw transmission-refresh-function)
+               (goto-char (point-min)))))
+         (switch-to-buffer buffer)))))
 
 
 ;; Major mode definitions
@@ -902,6 +905,7 @@ Key bindings:
 
 (defvar transmission-files-mode-map
   (let ((map (copy-keymap tabulated-list-mode-map)))
+    (define-key map (kbd "RET") 'transmission-find-file)
     (define-key map "!" 'transmission-files-command)
     (define-key map "i" 'transmission-info)
     (define-key map "m" 'transmission-move)
@@ -999,12 +1003,13 @@ Key bindings:
          (buffer (or (get-buffer name)
                      (generate-new-buffer name))))
     (unless (eq buffer (current-buffer))
-      (switch-to-buffer-other-window buffer)
-      (if (eq major-mode 'transmission-mode)
-          (transmission-refresh)
-        (transmission-mode)
-        (transmission-draw transmission-refresh-function)
-        (goto-char (point-min))))))
+      (with-current-buffer buffer
+        (if (eq major-mode 'transmission-mode)
+            (transmission-refresh)
+          (transmission-mode)
+          (transmission-draw transmission-refresh-function)
+          (goto-char (point-min))))
+      (switch-to-buffer-other-window buffer))))
 
 (provide 'transmission)
 
