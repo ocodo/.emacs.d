@@ -1,8 +1,8 @@
 ;;; keyfreq.el --- track command frequencies
-;; Version: 20141124.805
+;; Package-Version: 20150915.536
 ;; -*- coding: utf-8 -*-
 ;;
-;; Copyright 2009-2010 by David Capello
+;; Copyright 2009-2010, 2015 by David Capello
 ;; Copyright 2008 by Xah Lee
 ;; Copyright 2006 by Michal Nazarewicz
 ;; Copyright 2006 by Ryan Yeske
@@ -15,6 +15,10 @@
 ;; under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2 of the License, or
 ;; (at your option) any later version.
+;;
+;; Version 1.6 - 2015-09 - David Capello
+;; * Added keyfreq-reset thanks to @w-vi
+;; * Fixed issue running multiple instances of Emacs 24.5
 ;;
 ;; Version 1.5 - 2014-11 - David Capello
 ;; * Support cl-lib or cl
@@ -76,7 +80,7 @@
   "Customization group for Keyfreq mode.
 This mode stores number of times each command was called and
 provides it as a statistical data."
-  :package-version '(keyfreq . "1.5")
+  :package-version '(keyfreq . "1.6")
   :group 'local
   :prefix "keyfreq")
 
@@ -384,21 +388,47 @@ is used as MAJOR-MODE-SYMBOL argument."
       (insert (keyfreq-json-encode table)))))
 
 
+(defun keyfreq-reset ()
+  "Reset all statistics including those in the file."
+  (interactive)
+  (when (yes-or-no-p (concat "Delete keyfreq file? You will lost all your stats. "))
+    ;; clear the hash table
+    (clrhash keyfreq-table)
+    ;; Deal with the file
+    (when (keyfreq-file-is-unlocked)
+      ;; Lock the file
+      (keyfreq-file-claim-lock)
+      ;; Check that we have the lock
+      (if (eq (keyfreq-file-owner) (emacs-pid))
+	  (unwind-protect
+	      ;; if the file exists just delete it
+	      (if (file-exists-p keyfreq-file)
+		  (delete-file keyfreq-file))
+	    ;; Release the lock.
+	    (keyfreq-file-release-lock))))))
+
+
 (defun keyfreq-file-owner ()
   "Return the PID of the Emacs process that owns the table file lock file."
   (let (owner)
     (and (file-exists-p keyfreq-file-lock)
-	 (with-temp-buffer
-	   (insert-file-contents-literally keyfreq-file-lock)
-	   (goto-char (point-min))
-	   (setq owner (read (current-buffer)))
-	   (integerp owner))
+	 (ignore-errors
+	   (with-temp-buffer
+	     (insert-file-contents-literally keyfreq-file-lock)
+	     (goto-char (point-min))
+	     (setq owner (read (current-buffer)))
+	     (integerp owner)))
 	 owner)))
 
 
 (defun keyfreq-file-claim-lock ()
-  (write-region (number-to-string (emacs-pid)) nil
-		keyfreq-file-lock nil 'nomessage))
+  (let ((bak (symbol-function 'ask-user-about-lock)))
+    (fset 'ask-user-about-lock (lambda (file opponent) nil))
+    (unwind-protect
+	(write-region (number-to-string (emacs-pid)) nil
+		      keyfreq-file-lock nil 'nomessage)
+	(fset 'ask-user-about-lock bak))))
+
 
 
 (defun keyfreq-file-release-lock ()
