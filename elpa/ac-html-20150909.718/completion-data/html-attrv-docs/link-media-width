@@ -1,0 +1,1 @@
+Specifies the width of the targeted display area.n"min-" and "max-" prefixes can be used.nExample: media="screen and (min-width:500px)"n

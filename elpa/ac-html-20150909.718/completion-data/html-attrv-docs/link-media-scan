@@ -1,0 +1,1 @@
+Specifies scanning method of a tv display.nPossible values are "progressive" and "interlace".nExample: media="tv and (scan:interlace)"n

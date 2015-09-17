@@ -1,0 +1,3 @@
+data
+
+The address of the resource as a valid URL. At least one of data and type must be defined.

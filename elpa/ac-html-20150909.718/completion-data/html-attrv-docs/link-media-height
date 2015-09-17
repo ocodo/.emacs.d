@@ -1,0 +1,1 @@
+Specifies the height of the  targeted display area.n"min-" and "max-" prefixes can be used.nExample: media="screen and (max-height:700px)"n

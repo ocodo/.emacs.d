@@ -1,0 +1,3 @@
+media [HTML5]
+
+A hint of the media for which the linked resource was designed, for example print and screen. If omitted, it defaults to all. Use this attribute only if the href attribute is present.

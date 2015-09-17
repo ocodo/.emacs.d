@@ -1,0 +1,3 @@
+type
+
+This attribute identifies the scripting language of code embedded within a script element or referenced via the element’s src attribute. This is specified as a MIME type; examples of supported MIME types include text/javascript, text/ecmascript, application/javascript, and application/ecmascript. If this attribute is absent, the script is treated as JavaScript.

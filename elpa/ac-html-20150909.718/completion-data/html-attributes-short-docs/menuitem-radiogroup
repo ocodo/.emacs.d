@@ -1,0 +1,3 @@
+radiogroup
+
+This attribute specifies the name of a group of commands to be toggled as radio buttons when selected. May only be used where the type attribute is radio.

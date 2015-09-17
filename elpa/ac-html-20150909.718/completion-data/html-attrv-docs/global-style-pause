@@ -1,0 +1,1 @@
+The 'pause' property is a shorthand for setting 'pause-before' and 'pause-after'. If two values are given, the first value is 'pause-before' and the second is 'pause-after'. If only one value is given, it applies to both properties.

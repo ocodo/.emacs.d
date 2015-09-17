@@ -1,0 +1,3 @@
+src
+
+Required, address of the media resource. The value of this attribute is ignored when the <source> element is placed inside a <picture> element.

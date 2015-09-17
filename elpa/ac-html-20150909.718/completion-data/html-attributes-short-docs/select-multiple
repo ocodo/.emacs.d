@@ -1,0 +1,3 @@
+multiple
+
+This Boolean attribute indicates that multiple options can be selected in the list. If it is not specified, then only one option can be selected at a time.

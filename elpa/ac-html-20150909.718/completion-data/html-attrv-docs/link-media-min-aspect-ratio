@@ -1,0 +1,1 @@
+Specifies the width/height ratio of the targeted display area.nExample: media="screen and (min-aspect-ratio:16/9)"n

@@ -1,0 +1,3 @@
+onblur [HTML5]
+
+Function to call when the document loses focus.

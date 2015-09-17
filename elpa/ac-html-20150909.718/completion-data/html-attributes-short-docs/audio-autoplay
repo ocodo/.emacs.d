@@ -1,0 +1,3 @@
+autoplay
+
+A Boolean attribute; if specified (even if the value is "false"!), the audio will automatically begin to play back as soon as it can do so without stopping to finish loading the data.

@@ -1,0 +1,5 @@
+Deprecated.
+
+<isindex> is an HTML element which is used for putting a text field in the document for querying document. <isindex> is intented to use inside of <head> element by W3C, however browsers provide support wherever it is used in the document.
+
+This element deprecated in HTML 4.01. Because, it is not a good idea to use <isindex> for any purpose. Same effect can be created with a HTML form in a modern way.

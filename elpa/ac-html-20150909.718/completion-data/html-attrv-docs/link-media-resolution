@@ -1,0 +1,1 @@
+Specifies the pixel density (dpi or dpcm) of the target display/paper.n"min-" and "max-" prefixes can be used.nExample: media="print and (resolution:300dpi)"n

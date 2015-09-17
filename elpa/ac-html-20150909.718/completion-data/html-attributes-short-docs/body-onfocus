@@ -1,0 +1,3 @@
+onfocus [HTML5]
+
+Function to call when the document receives focus.

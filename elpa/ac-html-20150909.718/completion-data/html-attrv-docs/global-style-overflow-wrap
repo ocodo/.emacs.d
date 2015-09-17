@@ -1,0 +1,1 @@
+Specifies whether or not the browser may break lines within words in order to prevent overflow (when a string is too long to fit its containing box)nCSS3

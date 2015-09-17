@@ -1,0 +1,1 @@
+Specifies that the icon is scalable (like an SVG image)nExamples:n  <link rel="icon" href="icon.svg" sizes="any" type="image/svg+xml"> (any size)n

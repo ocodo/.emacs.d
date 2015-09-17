@@ -1,0 +1,3 @@
+name [Deprecated since HTML4.01] [Obsolete since HTML5]
+
+A name for the element. It is supported in HTML 4 only for backward compatibility. Use the id attribute instead.

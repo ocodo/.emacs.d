@@ -1,0 +1,1 @@
+Specifies if the output device is grid or bitmap.nPossible values are "1" for grid, and "0" otherwise.nExample: media="handheld and (grid:1)"n

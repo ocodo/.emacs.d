@@ -1,0 +1,1 @@
+Specifies the bits per pixel in a monochrome frame buffer.n"min-" and "max-" prefixes can be used.nExample: media="screen and (monochrome:2)"n

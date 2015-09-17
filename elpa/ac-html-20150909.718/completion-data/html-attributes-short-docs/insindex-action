@@ -1,0 +1,3 @@
+action [Deprecated]
+
+This attribute can be used in the case of needing to send query to a different URL. Action is not defined by W3C.

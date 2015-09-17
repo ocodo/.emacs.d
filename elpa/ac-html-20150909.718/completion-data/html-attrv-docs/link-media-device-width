@@ -1,0 +1,1 @@
+Specifies the width of the target display/paper.n"min-" and "max-" prefixes can be used.nExample: media="screen and (device-width:500px)"n

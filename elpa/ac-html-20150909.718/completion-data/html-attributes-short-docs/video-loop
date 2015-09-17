@@ -1,0 +1,3 @@
+loop
+
+A Boolean attribute; if specified, we will, upon reaching the end of the video, automatically seek back to the start.

@@ -1,0 +1,16 @@
+The HTML <fieldset> element is used to group several controls as well as labels (<label>) within a web form.
+
+Content categories:
+Flow content, sectioning root, listed, form-associated element, palpable content.
+
+Permitted content:
+An optional <legend> element, followed by flow content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content.
+
+DOM interface:
+HTMLFieldSetElement

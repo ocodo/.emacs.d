@@ -1,0 +1,3 @@
+onload [HTML5]
+
+Function to call when the document has finished loading.

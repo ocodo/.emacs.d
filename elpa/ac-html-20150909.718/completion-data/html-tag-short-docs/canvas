@@ -1,0 +1,24 @@
+The HTML <canvas> Element can be used to draw graphics via scripting (usually JavaScript). For example, it can be used to draw graphs, make photo compositions or even perform animations. You may (and should) provide alternate content inside the <canvas> block. That content will be rendered both on older browsers that don't support canvas and in browsers with JavaScript disabled.
+
+For more articles on canvas, see the canvas topic page.
+
+Content categories:
+Flow content, phrasing content, embedded content, palpable content.
+
+Permitted content:
+Transparent but with no interactive content descendants except for <a> elements, <button> elements, <input> elements whose type attribute is checkbox, radio, or button.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing_content.
+
+DOM interface:
+HTMLCanvasElement
+
+Notes:
+
+The displayed size of the canvas can be changed using a stylesheet. The image is scaled during rendering to fit the styled size.
+
+If you use canvas and doesn’t need to be transparent, set the moz-opaque attribute on the canvas tag. This information can be used internally to optimize rendering. However, this attribute has not been standardized and does only work in Mozilla-based rendering engines.

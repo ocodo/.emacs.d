@@ -1,0 +1,1 @@
+The "speak-as" property determines in what manner text gets rendered aurally, based upon a predefined list of possibilities.n Value: normal | spell-out || digits || [ literal-punctuation | no-punctuation ]nCSS3n

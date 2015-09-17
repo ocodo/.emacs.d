@@ -1,0 +1,3 @@
+longdesc [HTML4 only]
+
+A URI of a long description of the frame. Due to widespread misuse, this is not helpful for non-visual browsers.

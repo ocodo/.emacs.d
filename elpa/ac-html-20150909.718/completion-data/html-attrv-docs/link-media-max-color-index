@@ -1,0 +1,1 @@
+Specifies the number of colors the target display can handle.nExample: media="screen and (max-color-index:256)"n

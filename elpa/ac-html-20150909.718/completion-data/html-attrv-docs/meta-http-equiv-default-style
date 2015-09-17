@@ -1,0 +1,1 @@
+Specified the preferred style sheet to use.nExample:n<meta http-equiv="default-style" content="the document's preferred stylesheet">nNote:nThe value of the content attribute above must match the value of the title attribute on a link element in the same document, or it must match the value of the title attribute on a style element in the same document.n

@@ -1,0 +1,16 @@
+The HTML <p> element (or HTML Paragraph Element) represents a paragraph of text.
+
+Content categories:
+Flow content, palpable content.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+The start tag is mandatory. The end tag may be omitted if the <p> element is immediately followed by an <address>, <article>, <aside>, <blockquote>, <div>, <dl>, <fieldset>, <footer>, <form>, <h1>, <h2>, <h3>, <h4>, <h5>, <h6>, <header>, <hr>, <menu>, <nav>, <ol>, <pre>, <section>, <table>, <ul> or another <p> element, or if there is no more content in the parent element and the parent element is not an <a> element.
+
+Permitted parent elements:
+Any element that accepts flow content.
+
+DOM interface:
+HTMLParagraphElement

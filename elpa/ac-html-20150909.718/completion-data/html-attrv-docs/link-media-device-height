@@ -1,0 +1,1 @@
+Specifies the height of the target display/paper.n"min-" and "max-" prefixes can be used.nExample: media="screen and (device-height:500px)"n

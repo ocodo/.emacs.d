@@ -1,0 +1,16 @@
+The HTML <span> element is a generic inline container for phrasing content, which does not inherently represent anything. It can be used to group elements for styling purposes (using the class or id attributes), or because they share attribute values, such as lang. It should be used only when no other semantic element is appropriate. <span> is very much like a <div> element, but <div> is a block-level element whereas a <span> is an inline element.
+
+Content categories:
+Flow content, phrasing content.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing content, or any element that accepts flow content.
+
+DOM interface:
+HTMLSpanElement (before HTML 5, the interface was HTMLElement.

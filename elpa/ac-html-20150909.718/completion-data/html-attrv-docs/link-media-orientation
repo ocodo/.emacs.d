@@ -1,0 +1,1 @@
+Specifies the orientation of the target display/paper.nPossible values: "portrait" or "landscape"nExample: media="all and (orientation: landscape)"n

@@ -1,0 +1,3 @@
+coords [HTML4 only] [Obsolete since HTML5]
+
+For use with object shapes, this attribute uses a comma-separated list of numbers to define the coordinates of the object on the page.

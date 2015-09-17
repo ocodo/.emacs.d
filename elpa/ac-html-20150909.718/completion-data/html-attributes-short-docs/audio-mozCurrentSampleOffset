@@ -1,0 +1,3 @@
+mozCurrentSampleOffset
+
+The offset, specified as the number of samples since the beginning of the audio stream, at which the audio is currently playing.

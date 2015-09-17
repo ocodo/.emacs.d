@@ -1,0 +1,1 @@
+Specifies that the browser should not send a HTTP referer header if the user follows the hyperlink
