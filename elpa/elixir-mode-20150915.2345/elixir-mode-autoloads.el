@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "elixir-mode" "elixir-mode.el" (21998 34859
-;;;;;;  155401 0))
+;;;### (autoloads nil "elixir-mode" "elixir-mode.el" (22010 16148
+;;;;;;  121140 0))
 ;;; Generated autoloads from elixir-mode.el
 
 (autoload 'elixir-mode-open-modegithub "elixir-mode" "\
@@ -58,7 +58,7 @@ Major mode for editing Elixir code.
 ;;;***
 
 ;;;### (autoloads nil nil ("elixir-mode-pkg.el" "elixir-smie.el")
-;;;;;;  (21998 34859 173331 233000))
+;;;;;;  (22010 16148 133302 388000))
 
 ;;;***
 

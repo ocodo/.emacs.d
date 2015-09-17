@@ -121,9 +121,9 @@
                   ("try" "do" statements "catch" match-statements "end")
                   ("try" "do" statements "rescue" match-statements "end")
                   ("try" "do" statements "end")
-                  ("case" non-block-expr "do" match-statements "end"))
+                  ("case" non-block-expr "do" match-statements "end")
+                  ("for" non-block-expr "COMMA" "do:" non-block-expr))
        (non-block-expr (non-block-expr "OP" non-block-expr)
-                       (non-block-expr "COMMA" non-block-expr)
                        ("(" non-block-expr ")")
                        ("{" non-block-expr "}")
                        ("[" non-block-expr "]")
@@ -260,7 +260,10 @@
    ((looking-at elixir-smie--operator-regexp)
     (goto-char (match-end 0))
     "OP")
-   (t (smie-default-forward-token))))
+   (t
+    (let ((token (smie-default-forward-token)))
+      (unless (elixir-smie-empty-string-p token)
+        token)))))
 
 (defun elixir-smie-backward-token ()
   (let ((pos (point)))
@@ -355,9 +358,14 @@
        (if (elixir-smie-last-line-end-with-block-operator-p)
            (smie-rule-parent)
          0))
+      ((and (smie-rule-parent-p "after")
+            (smie-rule-hanging-p))
+       (smie-rule-parent elixir-smie-indent-basic))
       (t
        (smie-rule-parent))))
     (`(:before . "fn")
+     (smie-rule-parent))
+    (`(:before . "for")
      (smie-rule-parent))
     (`(:before . "do:")
      (cond
@@ -365,7 +373,17 @@
        (smie-rule-parent))
       ((and (smie-rule-parent-p ";")
             (not (smie-rule-hanging-p)))
-       (smie-rule-parent elixir-smie-indent-basic))))
+       (smie-rule-parent elixir-smie-indent-basic))
+      ;; Example
+      ;;
+      ;; hi = for i <- list, do: i
+      ;; # weird spacing now <- Indent
+      ;;
+      ;; for i <- list, do: i
+      ;; IO.puts 'WORKED' <- Indent
+      ((and (smie-rule-parent-p "for")
+            (not (smie-rule-hanging-p)))
+       (smie-rule-parent))))
     (`(:before . "do")
      (cond
       ((and (smie-rule-parent-p "case")
@@ -455,12 +473,34 @@
       (t elixir-smie-indent-basic)))
     (`(:before . "if")
      (cond
+      ;; Indent when if is inside a `->' block
+      ;;
+      ;; Example:
+      ;;
+      ;; whatever ->
+      ;;   if true do <-
+      ;;     :foo
+      ;;   end
+      ;;   ....
+      ((elixir-smie-last-line-end-with-block-operator-p)
+       (smie-rule-parent elixir-smie-indent-basic))
       (t
        (smie-rule-parent))))
     (`(:before . "->")
      (cond
-      ((smie-rule-hanging-p)
-       (smie-rule-parent elixir-smie-indent-basic))
+      ;; Example
+      ;;
+      ;; receive do
+      ;; after
+      ;;   2000 ->
+      ;;     IO.puts 'hello'
+      ;;     IO.puts 'status 2000 ends' <- Indent second line
+      ;;   { :ok } ->
+      ;;     ....
+      ((and (smie-rule-parent-p "after")
+            (not (smie-rule-sibling-p)))
+       (smie-rule-parent (+ elixir-smie-indent-basic
+                            elixir-smie-indent-basic)))
       ;; Example
       ;;
       ;; case parse do
@@ -472,9 +512,8 @@
           elixir-smie-indent-basic)
       ((and (not (smie-rule-hanging-p))
             (smie-rule-parent-p "MATCH-STATEMENT-DELIMITER"))
-       (smie-rule-parent)
-       )
-      ))
+       (smie-rule-parent))
+      (t (smie-rule-parent elixir-smie-indent-basic))))
     (`(:after . "->")
      (cond
       ;; This first condition is kind of complicated so I'll try to make this
@@ -503,8 +542,19 @@
         ((smie-rule-parent-p "catch" "rescue")
          (smie-rule-parent (+ elixir-smie-indent-basic
                               elixir-smie-indent-basic)))
-        ((smie-rule-parent-p "after" "do" "try")
-           (smie-rule-parent elixir-smie-indent-basic))
+        ((smie-rule-parent-p "do" "try")
+         (smie-rule-parent elixir-smie-indent-basic))
+        ;; Example
+        ;;
+        ;; receive do
+        ;; after
+        ;;   2000 ->
+        ;;     IO.puts 'hello' <- Indent two spaces
+        ((and (smie-rule-parent-p "after")
+              (smie-rule-hanging-p)
+              (not (smie-rule-sibling-p)))
+         (smie-rule-parent (+ elixir-smie-indent-basic
+                              elixir-smie-indent-basic)))
         (t (smie-rule-parent elixir-smie-indent-basic))))))
     (`(:before . ";")
      (cond
@@ -623,6 +673,12 @@ Rules:
             (if (elixir-smie--previous-line-empty-p)
                 (goto-char indent)
               (goto-char (elixir-smie--previous-line-indentation)))))))
+
+(defun elixir-smie-empty-string-p (string)
+  "Return non-nil if STRING is null, blank or whitespace only."
+  (or (null string)
+      (string= string "")
+      (if (string-match-p "^\s+$" string) t)))
 
 (add-to-list 'smie-indent-functions 'elixir-smie--indent-inside-heredoc)
 
