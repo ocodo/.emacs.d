@@ -413,16 +413,19 @@ If specified, also remove filename extension EXT."
       (file-name-nondirectory (directory-file-name fname)))))
 
 (defun helm-basedir (fname)
-  "Return the base directory of filename."
-  (helm-aif (and fname (file-name-directory fname))
+  "Return the base directory of filename ending by a slash."
+  (helm-aif (and fname
+                 (or (and (string= fname "~") "~")
+                     (file-name-directory fname)))
       (file-name-as-directory it)))
 
 (defun helm-current-directory ()
   "Return current-directory name at point.
 Useful in dired buffers when there is inserted subdirs."
-  (if (eq major-mode 'dired-mode)
-      (dired-current-directory)
-    default-directory))
+  (expand-file-name
+   (if (eq major-mode 'dired-mode)
+       (dired-current-directory)
+       default-directory)))
 
 (defun helm-w32-prepare-filename (file)
   "Convert filename FILE to something usable by external w32 executables."
