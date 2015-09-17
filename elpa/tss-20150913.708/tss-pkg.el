@@ -1,4 +1,4 @@
-(define-package "tss" "20141228.2257" "provide a interface for auto-complete.el/flymake.el on typescript-mode."
+(define-package "tss" "20150913.708" "provide a interface for auto-complete.el/flymake.el on typescript-mode."
   '((auto-complete "1.4.0")
     (json-mode "1.1.0")
     (log4e "0.2.0")

@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "tss" "tss.el" (21975 62425 215401 0))
+;;;### (autoloads nil "tss" "tss.el" (22010 15961 625140 0))
 ;;; Generated autoloads from tss.el
 
 (autoload 'tss-popup-help "tss" "\
@@ -53,7 +53,7 @@ Do setting recommemded configuration.
 
 ;;;***
 
-;;;### (autoloads nil "typescript" "typescript.el" (21975 62425 223401
+;;;### (autoloads nil "typescript" "typescript.el" (22010 15961 633140
 ;;;;;;  0))
 ;;; Generated autoloads from typescript.el
 
@@ -70,7 +70,7 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil nil ("tss-pkg.el") (21975 62425 237758 137000))
+;;;### (autoloads nil nil ("tss-pkg.el") (22010 15961 646553 93000))
 
 ;;;***
 
