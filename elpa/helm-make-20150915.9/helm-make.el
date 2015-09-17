@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20150903.1427
+;; Package-Version: 20150915.9
 ;; Version: 0.1.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -138,7 +138,8 @@ makefile."
                buffers)))
           (let ((targets (if (eq helm-make-list-target-method 'default)
                              (helm--make-target-list-default file)
-                           (helm--make-target-list-qp file))))
+                           (helm--make-target-list-qp file)))
+                (default-directory (file-name-directory file)))
             (delete-dups helm-make-target-history)
             (cl-case helm-make-completion-method
               (helm
