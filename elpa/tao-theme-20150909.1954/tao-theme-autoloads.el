@@ -3,16 +3,16 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "tao-yang-theme" "tao-yang-theme.el" (21998
-;;;;;;  34613 679401 0))
+;;;### (autoloads nil "tao-yang-theme" "tao-yang-theme.el" (22010
+;;;;;;  15973 817140 0))
 ;;; Generated autoloads from tao-yang-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
 
 ;;;***
 
-;;;### (autoloads nil "tao-yin-theme" "tao-yin-theme.el" (21998 34613
-;;;;;;  691401 0))
+;;;### (autoloads nil "tao-yin-theme" "tao-yin-theme.el" (22010 15973
+;;;;;;  833140 0))
 ;;; Generated autoloads from tao-yin-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
@@ -20,7 +20,7 @@
 ;;;***
 
 ;;;### (autoloads nil nil ("tao-theme-pkg.el" "tao-yinyang-common.el")
-;;;;;;  (21998 34613 701122 108000))
+;;;;;;  (22010 15973 843466 50000))
 
 ;;;***
 
