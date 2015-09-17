@@ -914,14 +914,39 @@ Honour `yas-dont-activate', which see."
 
 ;;; Internal structs for template management
 
-(defstruct (yas--template (:constructor yas--make-template))
+(cl-defstruct (yas--template
+               (:constructor yas--make-template)
+               ;; Handles `yas-define-snippets' format, plus the
+               ;; initial TABLE argument.
+               (:constructor
+                yas--define-snippets-2
+                (table
+                 key content
+                 &optional xname condition group
+                 expand-env load-file xkeybinding xuuid save-file
+                 &aux
+                 (name (or xname
+                           ;; A little redundant: we always get a name
+                           ;; from `yas--parse-template' except when
+                           ;; there isn't a file.
+                           (and load-file (file-name-nondirectory load-file))
+                           (and save-file (file-name-nondirectory save-file))
+                           key))
+                 (keybinding (yas--read-keybinding xkeybinding))
+                 (uuid (or xuuid name))
+                 (old (gethash uuid (yas--table-uuidhash table)))
+                 (menu-binding-pair
+                  (and old (yas--template-menu-binding-pair old)))
+                 (perm-group
+                  (and old (yas--template-perm-group old))))))
   "A template for a snippet."
   key
   content
   name
   condition
   expand-env
-  file
+  load-file
+  save-file
   keybinding
   uuid
   menu-binding-pair
@@ -1081,7 +1106,8 @@ keybinding)."
 (defun yas--update-template (table template)
   "Add or update TEMPLATE in TABLE.
 
-Also takes care of adding and updating to the associated menu."
+Also takes care of adding and updating to the associated menu.
+Return TEMPLATE."
   ;; Remove from table by uuid
   ;;
   (yas--remove-template-by-uuid table (yas--template-uuid template))
@@ -1090,7 +1116,8 @@ Also takes care of adding and updating to the associated menu."
   (yas--add-template table template)
   ;; Take care of the menu
   ;;
-  (yas--update-template-menu table template))
+  (yas--update-template-menu table template)
+  template)
 
 (defun yas--update-template-menu (table template)
   "Update every menu-related for TEMPLATE."
@@ -1384,7 +1411,7 @@ otherwise we attempt to calculate it from FILE.
 
 Return a snippet-definition, i.e. a list
 
- (KEY TEMPLATE NAME CONDITION GROUP VARS FILE KEYBINDING UUID)
+ (KEY TEMPLATE NAME CONDITION GROUP VARS LOAD-FILE KEYBINDING UUID)
 
 If the buffer contains a line of \"# --\" then the contents above
 this line are ignored. Directives can set most of these with the syntax:
@@ -1600,42 +1627,10 @@ Optional PROMPT sets the prompt to use."
 
 (defun yas--define-snippets-1 (snippet snippet-table)
   "Helper for `yas-define-snippets'."
-  ;; X) Calculate some more defaults on the values returned by
-  ;; `yas--parse-template'.
-  ;;
-  (let* ((file (seventh snippet))
-         (key (car snippet))
-         (name (or (third snippet)
-                   (and file
-                        (file-name-directory file))))
-         (condition (fourth snippet))
-         (group (fifth snippet))
-         (keybinding (yas--read-keybinding (eighth snippet)))
-         (uuid (or (ninth snippet)
-                  name))
-         (template (or (gethash uuid (yas--table-uuidhash snippet-table))
-                       (yas--make-template :uuid uuid
-                                           :table snippet-table))))
-    ;; X) populate the template object
-    ;;
-    (setf (yas--template-key template)        key)
-    (setf (yas--template-content template)    (second snippet))
-    (setf (yas--template-name template)       (or name key))
-    (setf (yas--template-group template)      group)
-    (setf (yas--template-condition template)  condition)
-    (setf (yas--template-expand-env template) (sixth snippet))
-    (setf (yas--template-file template)       (seventh snippet))
-    (setf (yas--template-keybinding template) keybinding)
-
-    ;; X) Update this template in the appropriate table. This step
-    ;;    also will take care of adding the key indicators in the
-    ;;    templates menu entry, if any
-    ;;
-    (yas--update-template snippet-table template)
-    ;; X) Return the template
-    ;;
-    ;;
-    template))
+  ;; Update the appropriate table.  Also takes care of adding the
+  ;; key indicators in the templates menu entry, if any.
+  (yas--update-template
+   snippet-table (apply #'yas--define-snippets-2 snippet-table snippet)))
 
 (defun yas-define-snippets (mode snippets)
   "Define SNIPPETS for MODE.
@@ -1643,7 +1638,7 @@ Optional PROMPT sets the prompt to use."
 SNIPPETS is a list of snippet definitions, each taking the
 following form
 
- (KEY TEMPLATE NAME CONDITION GROUP EXPAND-ENV FILE KEYBINDING UUID)
+ (KEY TEMPLATE NAME CONDITION GROUP EXPAND-ENV LOAD-FILE KEYBINDING UUID SAVE-FILE)
 
 Within these, only KEY and TEMPLATE are actually mandatory.
 
@@ -1668,10 +1663,13 @@ the current buffers contents."
       (let ((print-length nil))
         (insert ";;; Snippet definitions:\n;;;\n")
         (dolist (snippet snippets)
-          ;; We omit file because the snippet will be loaded from
-          ;; the compiled file instead, so deleting or changing
-          ;; the original won't have any effect.
-          (setcar (nthcdr 6 snippet) nil))
+          ;; Fill in missing elements with nil.
+          (setq snippet (append snippet (make-list (- 10 (length snippet)) nil)))
+          ;; Move LOAD-FILE to SAVE-FILE because we will load from the
+          ;; compiled file, not LOAD-FILE.
+          (let ((load-file (nth 6 snippet)))
+            (setcar (nthcdr 6 snippet) nil)
+            (setcar (nthcdr 9 snippet) load-file)))
         (insert (pp-to-string
                  `(yas-define-snippets ',mode ',snippets)))
         (insert "\n\n"))
@@ -1685,6 +1683,15 @@ the current buffers contents."
 
 
 ;;; Loading snippets from files
+
+(defun yas--template-get-file (template)
+  "Return TEMPLATE's LOAD-FILE or SAVE-FILE."
+  (or (yas--template-load-file template)
+      (let ((file (yas--template-save-file template)))
+        (when file
+          (yas--message 2 "%s has no load file, use save file, %s, instead."
+                        (yas--template-name template) file))
+        file)))
 
 (defun yas--load-yas-setup-file (file)
   (if (not yas--creating-compiled-snippets)
@@ -2292,6 +2299,14 @@ Honours `yas-choose-tables-first', `yas-choose-keys-first' and
             (remove-duplicates (mapcan #'yas--table-templates tables)
                                :test #'equal))))
 
+(defun yas--lookup-snippet-1 (name mode)
+  "Get the snippet called NAME in MODE's tables."
+  (let ((yas-choose-tables-first nil)   ; avoid prompts
+        (yas-choose-keys-first nil))
+    (cl-find name (yas--all-templates
+                   (yas--get-snippet-tables mode))
+             :key #'yas--template-name :test #'string=)))
+
 (defun yas-lookup-snippet (name &optional mode noerror)
   "Get the snippet content for the snippet NAME in MODE's tables.
 
@@ -2300,11 +2315,7 @@ is non-nil, then don't signal an error if there isn't any snippet
 called NAME.
 
 Honours `yas-buffer-local-condition'."
-  (let* ((yas-choose-tables-first nil)  ; avoid prompts
-         (yas-choose-keys-first nil)
-         (snippet (cl-find name (yas--all-templates
-                                 (yas--get-snippet-tables mode))
-                           :key #'yas--template-name :test #'string=)))
+  (let ((snippet (yas--lookup-snippet-1 name mode)))
     (cond
      (snippet (yas--template-content snippet))
      (noerror nil)
@@ -2356,7 +2367,7 @@ visited file in `snippet-mode'."
 
 (defun yas--visit-snippet-file-1 (template)
   "Helper for `yas-visit-snippet-file'."
-  (let ((file (yas--template-file template)))
+  (let ((file (yas--template-get-file template)))
     (cond ((and file (file-readable-p file))
            (find-file-other-window file)
            (snippet-mode)
@@ -2530,7 +2541,7 @@ When called interactively, prompt for the table name."
    ;;  template which is already loaded and neatly positioned,...
    ;;
    (yas--editing-template
-    (yas--define-snippets-1 (yas--parse-template (yas--template-file yas--editing-template))
+    (yas--define-snippets-1 (yas--parse-template (yas--template-load-file yas--editing-template))
                            (yas--template-table yas--editing-template)))
    ;; Try to use `yas--guessed-modes'. If we don't have that use the
    ;; value from `yas--compute-major-mode-and-parents'
@@ -2560,28 +2571,27 @@ Don't use this from a Lisp program, call `yas-load-snippet-buffer'
 and `kill-buffer' instead."
   (interactive (list (yas--read-table) current-prefix-arg))
   (yas-load-snippet-buffer table t)
-  (when (and (or
-              ;; Only offer to save this if it looks like a library or new
-              ;; snippet (loaded from elisp, from a dir in `yas-snippet-dirs'
-              ;; which is not the first, or from an unwritable file)
-              ;;
-              (not (yas--template-file yas--editing-template))
-              (not (file-writable-p (yas--template-file yas--editing-template)))
-              (and (cdr-safe yas-snippet-dirs)
-                   (not (string-prefix-p (expand-file-name (car yas-snippet-dirs))
-                                         (yas--template-file yas--editing-template)))))
-             (y-or-n-p (yas--format "Looks like a library or new snippet. Save to new file? ")))
-    (let* ((option (first (yas--guess-snippet-directories (yas--template-table yas--editing-template))))
-           (chosen (and option
-                        (yas--make-directory-maybe option))))
-      (when chosen
-        (let ((default-file-name (or (and (yas--template-file yas--editing-template)
-                                          (file-name-nondirectory (yas--template-file yas--editing-template)))
-                                     (yas--template-name yas--editing-template))))
-          (write-file (concat chosen "/"
-                              (read-from-minibuffer (format "File name to create in %s? " chosen)
-                                                    default-file-name)))
-          (setf (yas--template-file yas--editing-template) buffer-file-name)))))
+  (let ((file (yas--template-get-file yas--editing-template)))
+    (when (and (or
+                ;; Only offer to save this if it looks like a library or new
+                ;; snippet (loaded from elisp, from a dir in `yas-snippet-dirs'
+                ;; which is not the first, or from an unwritable file)
+                ;;
+                (not file)
+                (not (file-writable-p file))
+                (and (cdr-safe yas-snippet-dirs)
+                     (not (string-prefix-p (expand-file-name (car yas-snippet-dirs)) file))))
+               (y-or-n-p (yas--format "Looks like a library or new snippet. Save to new file? ")))
+      (let* ((option (first (yas--guess-snippet-directories (yas--template-table yas--editing-template))))
+             (chosen (and option
+                          (yas--make-directory-maybe option))))
+        (when chosen
+          (let ((default-file-name (or (and file (file-name-nondirectory file))
+                                       (yas--template-name yas--editing-template))))
+            (write-file (concat chosen "/"
+                                (read-from-minibuffer (format "File name to create in %s? " chosen)
+                                                      default-file-name)))
+            (setf (yas--template-load-file yas--editing-template) buffer-file-name))))))
   (when buffer-file-name
     (save-buffer)
     (quit-window kill)))
