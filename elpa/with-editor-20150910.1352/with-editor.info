@@ -180,7 +180,7 @@ File: with-editor.info,  Node: Using With-Editor commands,  Prev: Configuring Wi
 1.2 Using With-Editor commands
 ==============================
 
-This section describes how to use the with-editor library _outside_ of
+This section describes how to use the ‘with-editor’ library _outside_ of
 Magit.  You don’t need to know any of this just to create commits using
 Magit.
 
@@ -259,7 +259,7 @@ This section describes how to use the with-editor library _outside_ of
 Magit to teach another package how to have its child processes call
 home, just like Magit does.  You don’t need to know any of this just to
 create commits using Magit.  You can also ignore this if you use
-with-editor outside of Magit, but only as an end-user.
+‘with-editor’ outside of Magit, but only as an end-user.
 
    For information about interactive use and options which affect both
 interactive and non-interactive use, see *note Using the With-Editor
@@ -312,8 +312,8 @@ Node: Top1540
 Node: Using the With-Editor package3227
 Node: Configuring With-Editor3843
 Node: Using With-Editor commands7450
-Node: Using With-Editor as a library10614
-Node: Debugging12280
+Node: Using With-Editor as a library10620
+Node: Debugging12292
 
 End Tag Table
 
