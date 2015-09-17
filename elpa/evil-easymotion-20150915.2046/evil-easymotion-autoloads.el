@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-easymotion" "evil-easymotion.el" (21998
-;;;;;;  34850 619401 0))
+;;;### (autoloads nil "evil-easymotion" "evil-easymotion.el" (22010
+;;;;;;  16131 905140 0))
 ;;; Generated autoloads from evil-easymotion.el
 
 (autoload 'evilem-define "evil-easymotion" "\

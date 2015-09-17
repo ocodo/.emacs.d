@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, evil
-;; Package-Version: 20150829.2052
+;; Package-Version: 20150915.2046
 ;; Version: 20141205
 ;; URL: https://github.com/pythonnut/evil-easymotion.el
 ;; Package-Requires: ((emacs "24") (avy "20150508.1418"))
@@ -58,8 +58,7 @@
 
 ;;; Code:
 (eval-when-compile
-  (with-demoted-errors
-      (require 'avy)))
+  (require 'avy))
 
 (defgroup evilem nil
   "Emulate vim-easymotion"
@@ -130,10 +129,10 @@
 
 (defmacro evilem-make-motion (name func &optional pre-hook post-hook vars)
   "Automatically define an evil easymotion for `func', naming it `name'"
-  `(evil-define-motion ,name (count)
+  `(evil-define-motion ,name (_count)
      (evil-without-repeat
        (setq evil-this-type 'inclusive)
-       (let ,(append '((old-point (point))) vars)
+       (let ,vars
          ,(when pre-hook `(funcall ,pre-hook))
          (evilem-generic (evilem-collect ,func))
          ,(when post-hook `(funcall ,post-hook))))))
