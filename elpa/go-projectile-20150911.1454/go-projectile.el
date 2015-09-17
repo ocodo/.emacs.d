@@ -4,7 +4,7 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20150718.1106
+;; Package-Version: 20150911.1454
 ;; Keywords: project, convenience
 ;; Version: 0.1.0
 ;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16"))
@@ -64,7 +64,7 @@ current GOPATH, or 'never to leave GOPATH untouched."
 (defvar go-projectile-tools
   '((gocode    . "github.com/nsf/gocode")
     (golint    . "github.com/golang/lint/golint")
-    (godef     . "code.google.com/p/rog-go/exp/cmd/godef")
+    (godef     . "github.com/rogpeppe/godef")
     (errcheck  . "github.com/kisielk/errcheck")
     (goimports . "golang.org/x/tools/cmd/goimports")
     (gorename  . "golang.org/x/tools/cmd/gorename")
