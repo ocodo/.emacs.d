@@ -42,7 +42,7 @@
   "Initialize Common Lisp snippets, so Yasnippet can see them."
   (let ((dir (expand-file-name "snippets" common-lisp-snippets-root)))
     (when (boundp 'yas-snippet-dirs)
-      (add-to-list 'yas-snippet-dirs dir))
+      (add-to-list 'yas-snippet-dirs dir t))
     (yas-load-directory dir)))
 
 ;;;###autoload
