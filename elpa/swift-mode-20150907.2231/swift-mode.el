@@ -6,7 +6,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;; Version: 0.4.0-cvs
-;; Package-Version: 20150903.2028
+;; Package-Version: 20150907.2231
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 
@@ -108,8 +108,8 @@
        (top-level-st
         ("import" type)
         (decl)
-        ("ACCESSMOD" "class" class-decl-exp "class-{" class-level-sts "}")
-        ("ACCESSMOD" "protocol" class-decl-exp "protocol-{" protocol-level-sts "}")
+        ("ACCESSMOD" "class" class-decl-exp "{" class-level-sts "}")
+        ("ACCESSMOD" "protocol" class-decl-exp "{" protocol-level-sts "}")
         )
 
        (class-level-sts (class-level-st) (class-level-st ";" class-level-st))
@@ -279,16 +279,16 @@ We try to constraint those lookups by reasonable number of lines.")
    ((and (looking-at "\n\\|\/\/") (swift-smie--implicit-semi-p))
     (if (eolp) (forward-char 1) (forward-comment 1))
     ";")
-
-   ((looking-at "{") (forward-char 1)
-    (if (looking-back "\\(class\\|protocol\\) [^{]+{" (line-beginning-position swift-smie--lookback-max-lines) t)
-        (concat (match-string 1) "-{")
-      "{"))
+   (t
+    (forward-comment (point))
+    (cond
+   ((looking-at "{") (forward-char 1) "{")
    ((looking-at "}") (forward-char 1) "}")
 
    ((looking-at ",") (forward-char 1) ",")
    ((looking-at ":") (forward-char 1)
-    (if (looking-back "\\(case [^:]+\\|default\\):" (line-beginning-position 0) t)
+    ;; look-back until "case", "default", ":", "{", ";"
+    (if (looking-back "\\(case[\n\t ][^:{;]+\\|default[\n\t ]*\\):")
         "case-:"
       ":"))
 
@@ -328,6 +328,7 @@ We try to constraint those lookups by reasonable number of lines.")
             "else"))
          (t tok))))
    ))
+   ))
 
 (defun swift-smie--backward-token ()
   (let ((pos (point)))
@@ -337,15 +338,13 @@ We try to constraint those lookups by reasonable number of lines.")
            (swift-smie--implicit-semi-p))
       ";")
 
-     ((eq (char-before) ?\{) (backward-char 1)
-      (if (looking-back "\\(class\\|protocol\\) [^{]+" (line-beginning-position swift-smie--lookback-max-lines) t)
-          (concat (match-string 1) "-{")
-        "{"))
+     ((eq (char-before) ?\{) (backward-char 1) "{")
      ((eq (char-before) ?\}) (backward-char 1) "}")
 
      ((eq (char-before) ?,) (backward-char 1) ",")
      ((eq (char-before) ?:) (backward-char 1)
-      (if (looking-back "case [^:]+\\|default" (line-beginning-position 0))
+      ;; look-back until "case", "default", ":", "{", ";"
+      (if (looking-back "\\(case[\n\t ][^:{;]+\\|default[\n\t ]*\\)")
           "case-:"
         ":"))
 
