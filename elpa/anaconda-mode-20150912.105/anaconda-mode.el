@@ -4,8 +4,8 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20150907.422
-;; Version: 0.1.0
+;; Package-Version: 20150912.105
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -110,7 +110,7 @@
    "-c" "
 import os
 import sys
-directory = sys.argv[1]
+directory = sys.argv[-1]
 if not os.path.exists(directory):
     os.makedirs(directory)
 " anaconda-mode-server-directory)
@@ -118,20 +118,26 @@ if not os.path.exists(directory):
 
 (defvar anaconda-mode-check-installation-command
   (list "-c" "
-from pkg_resources import get_distribution
-def check_deps(deps=['anaconda_mode']):
-    for each in deps:
-        distrib = get_distribution(each)
-        requirements = distrib.requires()
-        check_deps(requirements)
-check_deps()
-")
+import sys, os
+from pkg_resources import find_distributions
+directory = sys.argv[-1]
+for dist in find_distributions(directory, only=True):
+    if dist.project_name == 'anaconda-mode':
+        break
+else:
+    # IPython patch sys.exit, so we can't use it.
+    os._exit(1)
+" anaconda-mode-server-directory)
   "Check if `anaconda-mode' server is installed or not.")
 
 (defvar anaconda-mode-install-server-command
-  (list "-m" "pip" "install" "-t" "."
-        (concat "anaconda_mode" "=="
-                anaconda-mode-server-version))
+  (list "-c" "
+import sys
+import pip
+directory = sys.argv[-2]
+version = sys.argv[-1]
+pip.main(['install', '-t', directory, 'anaconda_mode==' + version])
+" anaconda-mode-server-directory anaconda-mode-server-version)
   "Install `anaconda_mode' server.")
 
 (defun anaconda-mode-host ()
@@ -203,7 +209,6 @@ be bound."
   (setq anaconda-mode-process
         (start-pythonic :process anaconda-mode-process-name
                         :buffer anaconda-mode-process-buffer
-                        :cwd anaconda-mode-server-directory
                         :sentinel (lambda (process event) (anaconda-mode-check-sentinel process event callback))
                         :args anaconda-mode-check-installation-command)))
 
@@ -223,7 +228,6 @@ be bound."
   (setq anaconda-mode-process
         (start-pythonic :process anaconda-mode-process-name
                         :buffer anaconda-mode-process-buffer
-                        :cwd anaconda-mode-server-directory
                         :sentinel (lambda (process event) (anaconda-mode-install-sentinel process event callback))
                         :args anaconda-mode-install-server-command)))
 
@@ -321,23 +325,34 @@ submitted."
         (anaconda-mode-request-window (selected-window))
         (anaconda-mode-request-tick (buffer-chars-modified-tick)))
     (lambda (status)
-      (unwind-protect
-          (if (or (not (equal anaconda-mode-request-window (selected-window)))
-                  (with-current-buffer (window-buffer anaconda-mode-request-window)
-                    (or (not (equal anaconda-mode-request-buffer (current-buffer)))
-                        (not (equal anaconda-mode-request-point (point)))
-                        (not (equal anaconda-mode-request-tick (buffer-chars-modified-tick))))))
-              (message "Skip anaconda-mode %s response" command)
-            (goto-char url-http-end-of-headers)
-            (let* ((json-array-type 'list)
-                   (response (json-read)))
-              (if (assoc 'error response)
-                  (error (cdr (assoc 'error response)))
-                (with-current-buffer anaconda-mode-request-buffer
-                  ;; Terminate `apply' call with empty list so response
-                  ;; will be treated as single argument.
-                  (apply callback (cdr (assoc 'result response)) nil)))))
-        (kill-buffer (current-buffer))))))
+      (let ((http-buffer (current-buffer)))
+        (unwind-protect
+            (if (or (not (equal anaconda-mode-request-window (selected-window)))
+                    (with-current-buffer (window-buffer anaconda-mode-request-window)
+                      (or (not (equal anaconda-mode-request-buffer (current-buffer)))
+                          (not (equal anaconda-mode-request-point (point)))
+                          (not (equal anaconda-mode-request-tick (buffer-chars-modified-tick))))))
+                (message "Skip anaconda-mode %s response" command)
+              (goto-char url-http-end-of-headers)
+              (let* ((json-array-type 'list)
+                     (response (condition-case nil
+                                   (json-read)
+                                 (json-readtable-error
+                                  (progn
+                                    (let ((response-string (buffer-string)))
+                                      (pop-to-buffer
+                                       (with-current-buffer (get-buffer-create "*anaconda-response*")
+                                         (insert response-string)
+                                         (goto-char (point-min))
+                                         (current-buffer))))
+                                    (error "Can't read anaconda-mode server response"))))))
+                (if (assoc 'error response)
+                    (error (cdr (assoc 'error response)))
+                  (with-current-buffer anaconda-mode-request-buffer
+                    ;; Terminate `apply' call with empty list so response
+                    ;; will be treated as single argument.
+                    (apply callback (cdr (assoc 'result response)) nil)))))
+          (kill-buffer http-buffer))))))
 
 
 ;;; Code completion.
@@ -450,7 +465,7 @@ submitted."
   "Format eldoc string from RESULT."
   (when result
     (let* ((name (cdr (assoc 'name result)))
-           (index (cdr (assoc 'index result)))
+           (index (or (cdr (assoc 'index result)) 0))
            (params (cdr (assoc 'params result)))
            (doc (anaconda-mode-eldoc-format-definition name index params)))
       (if anaconda-mode-eldoc-as-single-line
@@ -550,11 +565,14 @@ PRESENTER is the function used to format buffer content."
                                `((module-path . ,(buffer-file-name))
                                  (line . ,(line-number-at-pos (point)))
                                  (column . ,(- (point) (line-beginning-position)))))))
-    (funcall find-function (cdr (assoc 'module-path definition)))
-    (goto-char 0)
-    (forward-line (1- (cdr (assoc 'line definition))))
-    (forward-char (cdr (assoc 'column definition)))
-    (setq anaconda-mode-go-back-definition backward-navigation)))
+    (--if-let (cdr (assoc 'module-path definition))
+        (progn
+          (funcall find-function it)
+          (goto-char 0)
+          (forward-line (1- (cdr (assoc 'line definition))))
+          (forward-char (cdr (assoc 'column definition)))
+          (setq anaconda-mode-go-back-definition backward-navigation))
+      (message "Can't open %s module" (cdr (assoc 'module-name definition))))))
 
 (defun anaconda-mode-view-insert-button (name definition)
   "Insert text button with NAME opening the DEFINITION."
