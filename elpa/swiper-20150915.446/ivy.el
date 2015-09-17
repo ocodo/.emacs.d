@@ -1229,6 +1229,8 @@ Insert .* between each char."
   (set (make-local-variable 'minibuffer-default-add-function)
        (lambda ()
          (list ivy--default)))
+  (when (and (display-graphic-p) (= (length (frame-list)) 1))
+    (setq truncate-lines t))
   (setq-local max-mini-window-height ivy-height)
   (add-hook 'post-command-hook #'ivy--exhibit nil t)
   ;; show completions with empty input
@@ -1398,10 +1400,12 @@ Should be run via minibuffer `post-command-hook'."
   "Resize the minibuffer window so it has enough space to display
 all of the text contained in the minibuffer."
   (with-selected-window (minibuffer-window)
-    (let ((text-height (cdr (window-text-pixel-size)))
-          (body-height (window-body-height nil t)))
-      (when (> text-height body-height)
-        (window-resize nil (- text-height body-height) nil t t)))))
+    (if (fboundp 'window-text-pixel-size)
+        (let ((text-height (cdr (window-text-pixel-size)))
+              (body-height (window-body-height nil t)))
+          (when (> text-height body-height)
+            (window-resize nil (- text-height body-height) nil t t)))
+      (fit-window-to-buffer))))
 
 (declare-function colir-blend-face-background "ext:colir")
 
@@ -1429,6 +1433,7 @@ all of the text contained in the minibuffer."
   "Return all items that match NAME in CANDIDATES.
 CANDIDATES are assumed to be static."
   (let* ((re (funcall ivy--regex-function name))
+         (re-str (if (listp re) (caar re) re))
          (matcher (ivy-state-matcher ivy-last))
          (case-fold-search (string= name (downcase name)))
          (cands (cond
@@ -1469,17 +1474,17 @@ CANDIDATES are assumed to be static."
          (tail (nthcdr ivy--index ivy--old-cands))
          idx)
     (when (and tail ivy--old-cands (not (equal "^" ivy--old-re)))
-      (unless (and (not (equal re ivy--old-re))
+      (unless (and (not (equal re-str ivy--old-re))
                    (or (setq ivy--index
                              (or
-                              (cl-position (if (and (> (length re) 0)
-                                                    (eq ?^ (aref re 0)))
-                                               (substring re 1)
-                                             re) cands
+                              (cl-position (if (and (> (length re-str) 0)
+                                                    (eq ?^ (aref re-str 0)))
+                                               (substring re-str 1)
+                                             re-str) cands
                                              :test #'equal)
                               (and ivy--directory
                                    (cl-position
-                                    (concat re "/") cands
+                                    (concat re-str "/") cands
                                     :test #'equal))))))
         (while (and tail (null idx))
           ;; Compare with eq to handle equal duplicates in cands
@@ -1490,7 +1495,7 @@ CANDIDATES are assumed to be static."
             (or (cl-position (ivy-state-preselect ivy-last)
                              cands :test #'equal)
                 ivy--index)))
-    (setq ivy--old-re (if cands re ""))
+    (setq ivy--old-re (if cands re-str ""))
     (setq ivy--old-cands cands)))
 
 (defvar ivy-format-function 'ivy-format-function-default
@@ -1499,13 +1504,16 @@ This string will be inserted into the minibuffer.")
 
 (defun ivy-format-function-default (cands)
   "Transform CANDS into a string for minibuffer."
-  (let ((ww (window-width)))
-    (mapconcat
-     (lambda (s)
-       (if (> (length s) ww)
-           (concat (substring s 0 (- ww 3)) "...")
-         s))
-     cands "\n")))
+  (if (bound-and-true-p truncate-lines)
+      (mapconcat #'identity cands "\n")
+    (let ((ww (- (window-width)
+                 (if (and (boundp 'fringe-mode) (eq fringe-mode 0)) 1 0))))
+      (mapconcat
+       (lambda (s)
+         (if (> (length s) ww)
+             (concat (substring s 0 (- ww 3)) "...")
+           s))
+       cands "\n"))))
 
 (defun ivy-format-function-arrow (cands)
   "Transform CANDS into a string for minibuffer."
@@ -1517,6 +1525,13 @@ This string will be inserted into the minibuffer.")
                  "  ")
                s))
      cands "\n")))
+
+(defcustom swiper-minibuffer-faces
+  '(swiper-minibuffer-match-face-1
+    swiper-minibuffer-match-face-2
+    swiper-minibuffer-match-face-3
+    swiper-minibuffer-match-face-4)
+  "List of `swiper' faces for minibuffer group matches.")
 
 (defun ivy--format-minibuffer-line (str)
   (let ((start 0)
