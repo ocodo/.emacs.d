@@ -5,6 +5,7 @@
 ;;
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; Maintainer: Sebastian Wiesner <swiesner@lunaryorn.com>
+;;             Clément Pit--Claudel <clement.pitclaudel@live.com>
 ;; URL: https://www.flycheck.org
 ;; Keywords: convenience, languages, tools
 ;; Version: 0.25-cvs
@@ -221,8 +222,8 @@ attention to case differences."
     r-lintr
     racket
     rpm-rpmlint
-    rst
     rst-sphinx
+    rst
     ruby-rubocop
     ruby-rubylint
     ruby
@@ -7336,10 +7337,7 @@ See URL `http://docutils.sourceforge.net/'."
           (file-name) ":" line
           ": (" (or "ERROR/3" "SEVERE/4") ") "
           (message) line-end))
-  :modes rst-mode
-  ;; Don't use the generic ReST checker in Sphinx projects, because it'll
-  ;; produce a lot of false positives.
-  :predicate (lambda () (not (flycheck-locate-sphinx-source-directory))))
+  :modes rst-mode)
 
 (flycheck-def-option-var flycheck-sphinx-warn-on-missing-references t rst-sphinx
   "Whether to warn about missing references in Sphinx.
@@ -7973,7 +7971,8 @@ See URL `https://github.com/nodeca/js-yaml'."
   :command ("js-yaml" source)
   :error-patterns
   ((error line-start
-          "JS-YAML: " (message) " at line " line ", column " column ":"
+          (or "JS-YAML" "YAMLException") ": "
+          (message) " at line " line ", column " column ":"
           line-end))
   :modes yaml-mode)
 
