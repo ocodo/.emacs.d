@@ -104,28 +104,6 @@ This variable must be set before starting the repl connection."
 
 
 ;;; Implementation
-(defun cider--update-instrumented-defs (defs)
-  "Update which DEFS in current buffer are instrumented."
-  (remove-overlays nil nil 'cider-type 'instrumented-defs)
-  (save-excursion
-    (dolist (name defs)
-      (goto-char (point-min))
-      (when (search-forward-regexp
-             (format "(def.*\\s-\\(%s\\)" (regexp-quote name))
-             nil 'noerror)
-        (cider--make-overlay
-         (match-beginning 1) (match-end 1) 'instrumented-defs
-         'face 'cider-instrumented-face)))))
-
-(defun cider--debug-handle-instrumented-defs (defs ns)
-  "Update display of NS according to instrumented DEFS."
-  (-when-let (buf (-first (lambda (b) (with-current-buffer b
-                                   (and (derived-mode-p 'clojure-mode)
-                                        (string= ns (cider-current-ns)))))
-                          (buffer-list)))
-    (with-current-buffer buf
-      (cider--update-instrumented-defs defs))))
-
 (defun cider-browse-instrumented-defs ()
   "List all instrumented definitions."
   (interactive)
@@ -147,8 +125,6 @@ This variable must be set before starting the repl connection."
 (defun cider--debug-response-handler (response)
   "Handle responses from the cider.debug middleware."
   (nrepl-dbind-response response (status id instrumented-defs ns causes)
-    (when (member "instrumented-defs" status)
-      (cider--debug-handle-instrumented-defs instrumented-defs ns))
     (when (member "eval-error" status)
       (cider--render-stacktrace-causes causes))
     (when (member "need-debug-input" status)
@@ -303,7 +279,7 @@ In order to work properly, this mode must be activated by
           (nrepl-dbind-response cider--debug-mode-response (input-type)
             ;; A debug session is an ongoing eval, but it's annoying to have the
             ;; spinner spinning while you debug.
-            (spinner-stop)
+            (when spinner-current (spinner-stop))
             (setq-local tool-bar-map cider--debug-mode-tool-bar-map)
             (add-hook 'kill-buffer-hook #'cider--debug-quit nil 'local)
             (add-hook 'before-revert-hook #'cider--debug-quit nil 'local)

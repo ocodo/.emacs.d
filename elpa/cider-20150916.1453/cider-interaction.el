@@ -532,7 +532,7 @@ such a link cannot be established automatically."
   (interactive)
   (cider-ensure-connected)
   (let ((conn-buf (or connection (completing-read "Connection: " (cider-connections))))
-        (project-dir (or project (read-directory-name "Project directory: " nil (clojure-project-dir)))))
+        (project-dir (or project (read-directory-name "Project directory: " nil (clojure-project-dir) nil (clojure-project-dir)))))
     (when conn-buf
       (with-current-buffer conn-buf
         (setq nrepl-project-dir project-dir)))))
@@ -563,6 +563,7 @@ type (Clojure or ClojureScript). If TYPE is nil, it is derived from the
 file extension."
   (cider-ensure-connected)
   (cond
+   ((cider--in-connection-buffer-p) (current-buffer))
    ((= 1 (length cider-connections)) (car cider-connections))
    (t (let* ((project-directory (clojure-project-dir (cider-current-dir)))
              (repls (and project-directory
@@ -1973,13 +1974,13 @@ If invoked with a prefix ARG eval the expression after inserting it."
 
 (defun cider-connected-p ()
   "Return t if CIDER is currently connected, nil otherwise."
-  (cider-default-connection 'no-error))
+  (not (null (cider-connections))))
 
 (defun cider-ensure-connected ()
   "Ensure there is a cider connection present, otherwise
 an error is signaled."
   (unless (cider-connected-p)
-    (error "No active nREPL connection")))
+    (error "No active nREPL connections")))
 
 (defun cider-enable-on-existing-clojure-buffers ()
   "Enable CIDER's minor mode on existing Clojure buffers.
@@ -2002,11 +2003,6 @@ See command `cider-mode'."
   "If not connected, disable `cider-mode' on existing Clojure buffers."
   (unless (cider-connected-p)
     (cider-disable-on-existing-clojure-buffers)))
-
-(defun cider-parent-ns (ns)
-  "Go up a level of NS.
-For example \"foo.bar.tar\" -> \"foo.bar\"."
-  (cider-string-join (butlast (split-string ns "\\.")) "."))
 
 
 ;;; Completion
@@ -2379,16 +2375,17 @@ With a prefix argument QUIT-ALL the command will kill all connections
 and all ancillary CIDER buffers."
   (interactive "P")
   (cider-ensure-connected)
-  (when (y-or-n-p "Are you sure you want to quit the current CIDER connection? ")
-    (if quit-all
-        (progn
-          (dolist (connection cider-connections)
-            (cider--quit-connection connection))
-          (message "All active nREPL connections were closed"))
-      (cider--quit-connection (cider-current-connection)))
-    ;; if there are no more connections we can kill all ancillary buffers
-    (unless (cider-connected-p)
-      (cider-close-ancillary-buffers))))
+  (if (and quit-all (y-or-n-p "Are you sure you want to quit all CIDER connections? "))
+      (progn
+        (dolist (connection cider-connections)
+          (cider--quit-connection connection))
+        (message "All active nREPL connections were closed"))
+    (let ((connection (cider-current-connection)))
+      (when (y-or-n-p (format "Are you sure you want to quit the current CIDER connection %s? " connection))
+        (cider--quit-connection connection))))
+  ;; if there are no more connections we can kill all ancillary buffers
+  (unless (cider-connected-p)
+    (cider-close-ancillary-buffers)))
 
 (defun cider--restart-connection (conn)
   "Restart the connection CONN."
@@ -2396,12 +2393,12 @@ and all ancillary CIDER buffers."
     (cider--quit-connection conn)
     ;; Workaround for a nasty race condition https://github.com/clojure-emacs/cider/issues/439
     ;; TODO: Find a better way to ensure `cider-quit' has finished
-    (message "Waiting for CIDER to quit...")
+    (message "Waiting for CIDER connection %s to quit..." conn)
     (sleep-for 2)
     (if project-dir
         (let ((default-directory project-dir))
           (cider-jack-in))
-      (error "Can't restart CIDER for unknown project"))))
+      (error "Can't restart CIDER connection for unknown project"))))
 
 (defun cider-restart (&optional restart-all)
   "Restart the currently active CIDER connection.

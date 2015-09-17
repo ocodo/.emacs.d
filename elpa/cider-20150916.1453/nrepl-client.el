@@ -330,6 +330,31 @@ FN must accept two arguments key and value."
                collect (funcall fn (car l) (cadr l)))
     (error "Not a nREPL dict")))
 
+(defun nrepl-dict-merge (dict1 dict2)
+  "Destructively merge DICT2 into DICT1.
+Keys in DICT2 override those in DICT1."
+  (let ((base (or dict1 '(dict))))
+    (nrepl-dict-map (lambda (k v)
+                      (nrepl-dict-put base k v))
+                    (or dict2 '(dict)))
+    base))
+
+(defun nrepl-dict-get-in (dict keys)
+  "Return the value in a nested DICT.
+KEYS is a list of keys.  Return nil if any of the keys is not present or if
+any of the values is nil."
+  (let ((out dict))
+    (while (and keys out)
+      (setq out (nrepl-dict-get out (pop keys))))
+    out))
+
+(defun nrepl-dict-flat-map (function dict)
+  "Map FUNCTION over DICT and flatten the result.
+FUNCTION follows the same restrictions as in `nrepl-dict-map', and it must
+also alway return a sequence (since the result will be flattened)."
+  (when dict
+    (apply #'append (nrepl-dict-map function dict))))
+
 (defun nrepl--cons (car list-or-dict)
   "Generic cons of CAR to LIST-OR-DICT."
   (if (eq (car list-or-dict) 'dict)
@@ -1101,6 +1126,8 @@ operations.")
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "n") #'next-line)
     (define-key map (kbd "p") #'previous-line)
+    (define-key map (kbd "TAB") #'forward-button)
+    (define-key map (kbd "<backtab>") #'backward-button)
     map))
 
 (define-derived-mode nrepl-messages-mode special-mode "nREPL Messages"
@@ -1125,7 +1152,8 @@ operations.")
         (re-search-forward "^(" nil t)
         (delete-region (point-min) (- (point) 1)))
       (goto-char (point-max))
-      (nrepl--pp msg)
+      (nrepl--pp msg (-some-> (lax-plist-get (cdr msg) "id")
+                              (nrepl--message-color)))
       (-when-let (win (get-buffer-window))
         (set-window-point win (point-max)))
       (setq buffer-read-only t))))
@@ -1136,29 +1164,54 @@ operations.")
   :type '(repeat color)
   :group 'nrepl)
 
-(defun nrepl--pp (object)
-  "Pretty print nREPL OBJECT."
+(defun nrepl--message-color (id)
+  "Return the color to use when pretty-printing the nREPL message with ID."
+  (-> (string-to-number id)
+      (mod (length nrepl-message-colors))
+      (nth nrepl-message-colors)))
+
+(defcustom nrepl-dict-max-message-size 5
+  "Max number of lines a dict can have before being truncated.
+Set this to nil to prevent truncation."
+  :type 'integer)
+
+(defun nrepl--expand-button (button)
+  "Expand the text hidden under overlay BUTTON."
+  (delete-overlay button))
+
+(defun nrepl--pp (object &optional foreground)
+  "Pretty print nREPL OBJECT, delimited using FOREGROUND."
   (if (not (and (listp object)
                 (memq (car object) '(<- ---> dict))))
       (progn (pp object (current-buffer))
              (unless (listp object) (insert "\n")))
-    (let* ((id (lax-plist-get (cdr object) "id"))
-           (id (and id (mod (string-to-number id)
-                            (length nrepl-message-colors))))
-           (head (format "(%s" (car object)))
-           (foreground (and id (nth id nrepl-message-colors))))
+    (let* ((head (format "(%s" (car object))))
       (cl-flet ((color (str)
-                       (propertize str 'face `(:weight ultra-bold :foreground ,foreground))))
+                       (propertize str 'face (append '(:weight ultra-bold)
+                                                     (when foreground `(:foreground ,foreground))))))
         (insert (color head))
-        (let ((indent (+ 2 (- (current-column) (length head)))))
+        (let ((indent (+ 2 (- (current-column) (length head))))
+              (l (point)))
           (if (null (cdr object))
               (insert ")\n")
-            (insert "\n")
+            (insert " \n")
             (cl-loop for l on (cdr object) by #'cddr
                      do (let ((str (format "%s%s  " (make-string indent ? ) (car l))))
                           (insert str)
                           (nrepl--pp (cadr l))))
-            (insert (color (format "%s)\n" (make-string (- indent 2) ? ))))))))))
+            (when (eq (car object) 'dict)
+              (delete-char -1)
+              (let ((truncate-lines t))
+                (when (and nrepl-dict-max-message-size
+                           (> (count-screen-lines l (point) t)
+                              nrepl-dict-max-message-size))
+                  (make-button (1+ l) (point)
+                               'display "..."
+                               'action #'nrepl--expand-button
+                               'face 'link
+                               'help-echo "RET: Expand dict."
+                               'follow-link t))))
+            (insert (color ")\n"))))))))
 
 (defun nrepl-messages-buffer ()
   "Return or create the buffer given by `nrepl-message-buffer-name'.
