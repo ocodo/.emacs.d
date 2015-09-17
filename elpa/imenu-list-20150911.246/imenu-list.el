@@ -4,7 +4,7 @@
 
 ;; Author: Bar Magal (2015)
 ;; Version: 0.4
-;; Package-Version: 20150820.819
+;; Package-Version: 20150911.246
 ;; Homepage: https://github.com/bmag/imenu-list
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -332,6 +332,18 @@ Either 'right, 'left, 'above or 'below. This value is passed directly to
                  (const left)
                  (const right)))
 
+(defcustom imenu-list-auto-resize nil
+  "If non-nil, auto-resize window after updating the imenu-list buffer.
+Resizing the width works only for emacs 24.4 and newer.  Resizing the
+height doesn't suffer that limitation."
+  :group 'imenu-list
+  :type 'hook)
+
+(defcustom imenu-list-update-hook nil
+  "Hook to run after updating the imenu-list buffer."
+  :group 'imenu-list
+  :type 'hook)
+
 (defun imenu-list-split-size ()
   "Convert `imenu-list-size' to proper argument for `split-window'."
   (let ((frame-size (if (member imenu-list-position '(left right))
@@ -389,6 +401,11 @@ If it doesn't exist, create it."
           (imenu-list-major-mode)
           buffer))))
 
+(defun imenu-list-resize-window ()
+  (let ((fit-window-to-buffer-horizontally t))
+    (mapc #'fit-window-to-buffer
+          (get-buffer-window-list (imenu-list-get-buffer-create)))))
+
 (defun imenu-list-update (&optional raise-imenu-errors)
   "Update the imenu-list buffer.
 If the imenu-list buffer doesn't exist, create it.
@@ -418,6 +435,9 @@ Oherwise `imenu-list-update' will return the error that has occured, as
             (with-current-buffer (imenu-list-get-buffer-create)
               (imenu-list-insert-entries)))
           (imenu-list--show-current-entry)
+          (when imenu-list-auto-resize
+            (imenu-list-resize-window))
+          (run-hooks 'imenu-list-update-hook)
           nil))))
 
 (defun imenu-list-show ()
