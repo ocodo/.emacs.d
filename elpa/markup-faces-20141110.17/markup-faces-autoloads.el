@@ -1,18 +1,16 @@
 ;;; markup-faces-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("markup-faces-pkg.el" "markup-faces.el")
-;;;;;;  (20733 54543 344736))
+;;;### (autoloads nil nil ("markup-faces.el") (22010 16047 231825
+;;;;;;  536000))
 
 ;;;***
 
-(provide 'markup-faces-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; markup-faces-autoloads.el ends here

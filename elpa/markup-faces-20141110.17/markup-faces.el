@@ -4,6 +4,7 @@
 ;;
 ;; Author: Florian Kaufmann <sensorflo@gmail.com>
 ;; URL: https://github.com/sensorflo/markup-faces
+;; Package-Version: 20141110.17
 ;; Version: 1.0.0
 ;; Created: 2010
 ;; Keywords: wp faces
@@ -133,10 +134,12 @@ HTML: <var>foo</var>"
   "For verbatim text.
 
 Verbatim in a sense that all its characters are to be taken
-verbatim/literally. Note that doesn't necessarily mean that that it is
-in a typewritter font.
+literally. Note that doesn't necessarily mean that that it is in
+a typewritter font.
 
-For example 'foo' in the following examples:
+For example 'foo' in the following examples. In parantheses is a
+summary what the command is for according to the given markup
+language.
 HTML: <pre>foo</pre>             (verbatim and typewriter font)
 LaTeX: verb|foo|                 (verbatim and typewriter font)
 MediaWiki: <nowiki>foo</nowiki>  (only verbatim)
@@ -333,8 +336,8 @@ LaTeX: \\{foo ...}
 Mediawiki: {{foo ...}}
 
 Note however that special commands might be fontified specially.
-For example in HTML's <b>important</b>, the whole tags, (i.e. '<b>'
-and '</b>') might be fontified with markup-bold-face. "
+For example in HTML's <b>important</b>, the whole tag,
+e.g. '<b>', might be fontified with markup-bold-face. "
   :group 'markup-faces-meta)
 
 (defface markup-attribute-face
