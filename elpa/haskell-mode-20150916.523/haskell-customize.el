@@ -52,7 +52,21 @@ Used for locating additional package data files.")
 ;;;###autoload
 (defcustom haskell-process-type
   'auto
-  "The inferior Haskell process type to use."
+  "The inferior Haskell process type to use.
+
+When set to 'auto (the default), the directory contents and
+available programs will be used to make a best guess at the
+process type:
+
+If the project directory or one of its parents contains a
+\"cabal.sandbox.config\" file, then cabal-repl will be used.
+
+If there's a \"stack.yaml\" file and the \"stack\" executable can
+be located, then stack-ghci will be used.
+
+Otherwise if there's a *.cabal file, cabal-repl will be used.
+
+If none of the above apply, ghci will be used."
   :type '(choice (const auto) (const ghci) (const cabal-repl) (const stack-ghci))
   :group 'haskell-interactive)
 
@@ -397,13 +411,19 @@ same vein as `haskell-indent-spaces'."
 (defun haskell-process-type ()
   "Return `haskell-process-type', or a guess if that variable is 'auto."
   (if (eq 'auto haskell-process-type)
-      (if (locate-dominating-file
-           default-directory
-           (lambda (d)
-             (or (file-directory-p (expand-file-name ".cabal-sandbox" d))
-                 (cl-find-if (lambda (f) (string-match-p ".\\.cabal\\'" f)) (directory-files d)))))
-          'cabal-repl
-        'ghci)
+      (cond
+       ;; User has explicitly initialized this project with cabal
+       ((locate-dominating-file default-directory "cabal.sandbox.config")
+        'cabal-repl)
+       ((and (locate-dominating-file default-directory "stack.yaml")
+             (executable-find "stack"))
+        'stack-ghci)
+       ((locate-dominating-file
+         default-directory
+         (lambda (d)
+           (cl-find-if (lambda (f) (string-match-p ".\\.cabal\\'" f)) (directory-files d))))
+        'cabal-repl)
+       (t 'ghci))
     haskell-process-type))
 
 (provide 'haskell-customize)

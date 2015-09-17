@@ -740,10 +740,7 @@ the current buffer."
     ("where"   .
      ,(apply-partially 'haskell-indentation-with-starter
                        'haskell-indentation-declaration-layout nil t))
-    ("::"      .
-     ,(apply-partially 'haskell-indentation-with-starter
-                       (apply-partially #'haskell-indentation-separated
-                                        #'haskell-indentation-type "->")))
+    ("::"      .        haskell-indentation-scoped-type)
     ("="       .
      ,(apply-partially 'haskell-indentation-statement-right
                        'haskell-indentation-expression))
@@ -833,6 +830,17 @@ After a lambda (backslash) there are two possible cases:
               (if (not parser)
                   (throw 'return nil)
                 (funcall (cdr parser))))))))))
+
+(defun haskell-indentation-scoped-type ()
+  "Parse scoped type declaration.
+
+For example
+   let x :: Int = 12
+   do x :: Int <- return 12"
+  (haskell-indentation-with-starter
+   (apply-partially #'haskell-indentation-separated #'haskell-indentation-type "->"))
+  (when (member current-token '("<-" "="))
+    (haskell-indentation-statement-right #'haskell-indentation-expression)))
 
 (defun haskell-indentation-data ()
   "Parse data or type declaration."
@@ -1041,7 +1049,7 @@ parser.  If parsing ends here, set indentation to left-indent."
                 (haskell-indentation-add-layout-indent)
                 (throw 'parse-end nil))
               ;; after an 'open' expression such as 'if', exit
-              (unless (member (car parser) '("(" "[" "{" "do" "case"))
+              (unless (member (car parser) '("(" "[" "{" "case"))
                 (throw 'return nil)))))))))
 
 (defun haskell-indentation-test-indentations ()
