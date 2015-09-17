@@ -155,6 +155,14 @@ This is a format string, don't forget the `%s'."
   :group 'helm-net
   :type '(alist :key-type string :value-type function))
 
+(defcustom helm-browse-url-firefox-new-window "-new-tab"
+  "Allow choosing to browse url in new window or new tab.
+Can be \"-new-tab\" (default) or \"-new-window\"."
+  :group 'helm-net
+  :type '(radio
+          (const :tag "New tab" "-new-tab")
+          (const :tag "New window" "-new-window")))
+
 
 ;;; Additional actions for search suggestions
 ;;
@@ -396,6 +404,21 @@ This is a format string, don't forget the `%s'."
      #'(lambda (process event)
          (when (string= event "finished\n")
            (message "%s process %s" process event))))))
+
+(defun helm-browse-url-firefox (url &optional _ignore)
+  "Same as `browse-url-firefox' but detach from emacs.
+So when you quit emacs you can keep your firefox open
+and not be prompted to kill firefox process.
+
+NOTE: Probably not supported on some systems (e.g Windows)."
+  (interactive (list (read-string "URL: " (browse-url-url-at-point))
+                     nil))
+  (let ((process-environment (browse-url-process-environment)))
+    (call-process-shell-command
+     (format "(%s %s %s &)"
+             browse-url-firefox-program
+             helm-browse-url-firefox-new-window
+             url))))
 
 (defun helm-browse-url-chromium (url &optional _ignore)
   "Browse URL with google chrome browser."

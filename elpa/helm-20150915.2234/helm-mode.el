@@ -663,7 +663,7 @@ See documentation of `completing-read' and `all-completions' for details."
          (entry           (assq current-command
                                 helm-completing-read-handlers-alist))
          (def-com         (cdr-safe entry))
-         (str-defcom      (and def-com (symbol-name def-com)))
+         (str-defcom      (and def-com (helm-symbol-name def-com)))
          (def-args        (list prompt collection predicate require-match
                                 initial-input hist def inherit-input-method))
          ;; Append the two extra args needed to set the buffer and source name
@@ -927,7 +927,7 @@ Don't use it directly, use instead `helm-read-file-name' in your programs."
          (entry (assq current-command
                       helm-completing-read-handlers-alist))
          (def-com  (cdr-safe entry))
-         (str-defcom (and def-com (symbol-name def-com)))
+         (str-defcom (and def-com (helm-symbol-name def-com)))
          (def-args (list prompt dir default-filename mustmatch initial predicate))
          ;; Append the two extra args needed to set the buffer and source name
          ;; in helm specialized functions.
@@ -1001,7 +1001,7 @@ Don't use it directly, use instead `helm-read-file-name' in your programs."
     (apply old--fn args)))
 
 (defun helm--completion-in-region (start end collection &optional predicate)
-  "[EXPERIMENTAL] Helm replacement of `completion--in-region'.
+  "Helm replacement of `completion--in-region'.
 Can be used as value for `completion-in-region-function'."
   (cl-declare (special require-match prompt))
   (if (memq major-mode helm-mode-no-completion-in-region-in-modes)
@@ -1014,7 +1014,7 @@ Can be used as value for `completion-in-region-function'."
            (let* ((enable-recursive-minibuffers t)
                   (input (buffer-substring-no-properties start end))
                   (current-command (or (helm-this-command) this-command))
-                  (str-command (symbol-name current-command))
+                  (str-command (helm-symbol-name current-command))
                   (buf-name (format "*helm-mode-%s*" str-command))
                   (require-match (or (and (boundp 'require-match) require-match)
                                      minibuffer-completion-confirm
@@ -1034,7 +1034,7 @@ Can be used as value for `completion-in-region-function'."
                   ;; Assume that when `afun' and `predicate' are null
                   ;; we are in filename completion.
                   (file-comp-p (or (helm-mode--in-file-completion-p)
-                                   (and (null afun) (null predicate)))) 
+                                   (and (null afun) (null predicate))))
                   ;; Completion-at-point and friends have no prompt.
                   (result (if (stringp data)
                               data
