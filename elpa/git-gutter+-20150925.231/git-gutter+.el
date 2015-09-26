@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com> and contributors
 ;; URL: https://github.com/nonsequitur/git-gutter-plus
-;; Package-Version: 20150826.702
-;; Version: 0.3
+;; Package-Version: 20150925.231
+;; Version: 0.4
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,7 +20,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Package-Requires: ((git-commit "0"))
+;; Package-Requires: ((git-commit "0") (dash "0"))
+;; Keywords: git vc
 
 ;;; Commentary:
 ;;
@@ -29,6 +30,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'dash)
 (require 'tramp)
 (require 'log-edit)
 (require 'git-commit)
@@ -148,12 +150,6 @@ calculated width looks wrong. (This can happen with some special characters.)"
 (defalias 'git-gutter+-popup-hunk 'git-gutter+-show-hunk)
 (defalias 'git-gutter+-revert-hunk 'git-gutter+-revert-hunks)
 
-(defmacro git-gutter+-awhen (test &rest body)
-  "Anaphoric when."
-  (declare (indent 1))
-  `(let ((it ,test))
-     (when it ,@body)))
-
 (defun git-gutter+-enable-default-display-mode ()
   (setq git-gutter+-view-diff-function 'git-gutter+-view-diff-infos
         git-gutter+-clear-function     'git-gutter+-clear-diff-infos
@@ -162,28 +158,31 @@ calculated width looks wrong. (This can happen with some special characters.)"
 (unless git-gutter+-view-diff-function
   (git-gutter+-enable-default-display-mode))
 
-(defun git-gutter+-call-git (args &optional file)
-  (if (and file (file-remote-p file))
-      (apply #'process-file git-gutter+-git-executable nil t nil args)
-    (apply #'call-process git-gutter+-git-executable nil t nil args)))
+(defun git-gutter+-call-git (args &optional file output-destination)
+  "Calls Git synchronously. Returns t on zero exit code, nil otherwise"
+  (zerop (if (and file (file-remote-p file))
+             (apply #'process-file git-gutter+-git-executable nil output-destination nil args)
+           (apply #'call-process git-gutter+-git-executable nil output-destination nil args))))
+
+(defun git-gutter+-insert-git-output (args &optional file)
+  "Inserts stdout from Git into the current buffer, ignores stderr.
+Returns t on zero exit code, nil otherwise."
+  (git-gutter+-call-git args file '(t nil)))
 
 (defun git-gutter+-in-git-repository-p (file)
   (with-temp-buffer
-    (let ((args '("rev-parse" "--is-inside-work-tree")))
-      (when (zerop (git-gutter+-call-git args file))
-        (goto-char (point-min))
-        (string= "true" (buffer-substring-no-properties
-                         (point) (line-end-position)))))))
+    (when (git-gutter+-insert-git-output '("rev-parse" "--is-inside-work-tree") file)
+      (goto-char (point-min))
+      (string= "true" (buffer-substring-no-properties
+                       (point) (line-end-position))))))
 
 (defun git-gutter+-root-directory (file)
   (with-temp-buffer
-    (let* ((args '("rev-parse" "--show-toplevel"))
-           (ret (git-gutter+-call-git args file)))
-      (when (zerop ret)
-        (goto-char (point-min))
-        (let ((root (buffer-substring-no-properties (point) (line-end-position))))
-          (unless (string= root "")
-            (file-name-as-directory root)))))))
+    (when (git-gutter+-insert-git-output '("rev-parse" "--show-toplevel") file)
+      (goto-char (point-min))
+      (let ((root (buffer-substring-no-properties (point) (line-end-position))))
+        (unless (string= root "")
+          (file-name-as-directory root))))))
 
 (defsubst git-gutter+-diff-args (file)
   (delq nil `("--no-pager" "diff" "--no-color" "--no-ext-diff" "-U0"
@@ -193,7 +192,7 @@ calculated width looks wrong. (This can happen with some special characters.)"
   (let ((args (git-gutter+-diff-args curfile))
         (file (buffer-file-name))) ;; for tramp
     (with-temp-buffer
-      (if (zerop (git-gutter+-call-git args file))
+      (if (git-gutter+-insert-git-output args file)
           (progn (goto-char (point-min))
                  (let ((diff-header (git-gutter+-get-diff-header))
                        (diffinfos   (git-gutter+-get-diffinfos)))
@@ -523,24 +522,35 @@ calculated width looks wrong. (This can happen with some special characters.)"
           (git-gutter+-do-revert-hunk diffinfo))
         (save-buffer))
       (if one-diffinfo-p
-          (git-gutter+-awhen (get-buffer git-gutter+-popup-buffer)
+          (--when-let (get-buffer git-gutter+-popup-buffer)
             (kill-buffer it))))))
 
 (defun git-gutter+-show-hunk (&optional diffinfo)
   "Show hunk at point in another window"
-  (interactive)
-  (git-gutter+-awhen (or diffinfo
-                        (git-gutter+-diffinfo-at-point))
+  (interactive (list (git-gutter+-diffinfo-at-point)))
+  (when diffinfo
     (save-selected-window
       (with-current-buffer (get-buffer-create git-gutter+-popup-buffer)
         (setq buffer-read-only nil)
         (erase-buffer)
-        (insert (plist-get it :content))
-        (insert "\n")
+        (insert (plist-get diffinfo :content) "\n")
         (goto-char (point-min))
         (diff-mode)
         (view-mode)
         (pop-to-buffer (current-buffer))))))
+
+(defun git-gutter+-show-hunk-inline-at-point ()
+  "Show hunk by temporarily expanding it at point"
+  (interactive)
+  (-when-let (diffinfo (git-gutter+-diffinfo-at-point))
+    (let ((diff (with-temp-buffer
+                  (insert (plist-get diffinfo :content) "\n")
+                  (diff-mode)
+                  ;; Force-fontify the invisible temp buffer
+                  (font-lock-default-function 'diff-mode)
+                  (font-lock-default-fontify-buffer)
+                  (buffer-string))))
+      (momentary-string-display diff (point-at-bol)))))
 
 (defun git-gutter+-next-hunk (arg)
   "Move to next diff hunk"
@@ -627,7 +637,7 @@ calculated width looks wrong. (This can happen with some special characters.)"
                                (line-number-at-pos (region-end))))))
   (if line-range
       (git-gutter+-diffinfos-between-lines line-range)
-    (git-gutter+-awhen (git-gutter+-diffinfo-at-point)
+    (--when-let (git-gutter+-diffinfo-at-point)
       (list it))))
 
 (defsubst git-gutter+-diffinfo-between-lines-p (diffinfo start-line end-line)
@@ -838,7 +848,7 @@ If TYPE is not `modified', also remove all deletion (-) lines."
     (setq buffer-read-only nil)
     (erase-buffer)
     (let ((default-directory dir))
-      (git-gutter+-call-git '("diff" "--staged") file))
+      (git-gutter+-insert-git-output '("diff" "--staged") file))
     (goto-char (point-min))
     (diff-mode)
     (view-mode)))
@@ -919,7 +929,7 @@ If TYPE is not `modified', also remove all deletion (-) lines."
 
 (defun git-gutter+-anything-staged-p ()
   "Return t if the current repo has staged changes"
-  (not (zerop (git-gutter+-call-git '("diff" "--quiet" "--cached")))))
+  (not (git-gutter+-call-git '("diff" "--quiet" "--cached"))))
 
 (defun git-gutter+-commit-toggle-amending ()
   "Toggle whether this will be an amendment to the previous commit.
@@ -979,7 +989,7 @@ If TYPE is not `modified', also remove all deletion (-) lines."
 
 (defun git-gutter+-git-output (args)
   (with-temp-buffer
-    (git-gutter+-call-git args)
+    (git-gutter+-insert-git-output args)
     ;; Delete trailing newlines
     (goto-char (point-min))
     (if (re-search-forward "\n+\\'" nil t)
@@ -1143,7 +1153,10 @@ set remove it."
   ;; `magit-update-vc-modeline' calls `vc-find-file-hook' (a function!) on each
   ;; buffer in the repo. Temporarily rebind it to `vc-find-file-hook-with-refresh',
   ;; which calls git-gutter+-refresh after updating the VC mode line.
-  ;;
+
+  ;; Silence the byte-compiler. The top-level defvar for `git-gutter+-orig-vc-find-file-hook'
+  ;; isn't sufficient for this compiled defadvice.
+  (defvar git-gutter+-orig-vc-find-file-hook)
   ;; Using `flet' would have been much simpler, but it's deprecated since 24.3.
   (setq git-gutter+-orig-vc-find-file-hook (symbol-function 'vc-find-file-hook))
   (fset 'vc-find-file-hook git-gutter+-vc-find-file-hook-with-refresh)
