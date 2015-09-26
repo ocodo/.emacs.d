@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 Pierre Lecocq
 ;; Author: Pierre Lecocq <pierre.lecocq@gmail.com>
 ;; URL: https://github.com/pierre-lecocq/darkmine-theme
-;; Package-Version: 20150610.803
+;; Package-Version: 20150925.1134
 ;; Version: 0.5
 
 ;; Permission is hereby granted, free of charge, to any person obtaining
@@ -88,6 +88,18 @@
    `(company-scrollbar-bg ((t (:inherit default :background ,grey-7))))
    `(company-scrollbar-fg ((t (:inherit default :background ,grey-9))))
 
+   ;; rainbow delimiters - from material
+   `(rainbow-delimiters-depth-1-face ((t (:foreground ,"#e91e63"))))
+   `(rainbow-delimiters-depth-2-face ((t (:foreground ,"#1565C0"))))
+   `(rainbow-delimiters-depth-3-face ((t (:foreground ,"#EF6C00"))))
+   `(rainbow-delimiters-depth-4-face ((t (:foreground ,"#B388FF"))))
+   `(rainbow-delimiters-depth-5-face ((t (:foreground ,"#76ff03"))))
+   `(rainbow-delimiters-depth-6-face ((t (:foreground ,"#26A69A"))))
+   `(rainbow-delimiters-depth-7-face ((t (:foreground ,"#B71C1C"))))
+   `(rainbow-delimiters-depth-8-face ((t (:foreground ,"#795548"))))
+   `(rainbow-delimiters-depth-9-face ((t (:foreground ,"#827717"))))
+   `(rainbow-delimiters-unmatched-face ((t (:foreground ,grey-10 :background ,"#EF6C00"))))
+
    ;; helm
    `(helm-ff-file ((t (:foreground ,white))))
    `(helm-ff-directory ((t (:foreground ,blue-1))))
@@ -95,6 +107,9 @@
    `(helm-candidate-number ((t (:foreground ,grey-10 :background ,blue-1))))
    `(helm-selection ((t (:background ,grey-4 :bold t))))
    `(helm-selection-line ((t (:background ,grey-4 :bold t))))
+
+   ;; eshell
+   `(eshell-prompt ((t (:foreground ,green-1 :bold t))))
   )
 )
 
