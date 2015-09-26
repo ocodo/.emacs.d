@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20150831.1127
+;; Package-Version: 20150917.551
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.12.0
@@ -667,7 +667,9 @@ If it is nil, or ack/ack-grep not found then use default grep command."
          (helm-grep-ignored-directories (-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
          (helm-grep-default-command (if use-ack-p
                                         (concat ack-executable " -H --no-group --no-color " ack-ignored-pattern " %p %f")
-                                      "grep -a -r %e -n%cH -e %p %f ."))
+                                      (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
+                                          "git --no-pager grep --no-color -n -e %p -- %f"
+                                        "grep -a -r %e -n%cH -e %p %f .")))
          (helm-grep-default-recurse-command helm-grep-default-command)
          (helm-source-grep
           (helm-build-async-source
