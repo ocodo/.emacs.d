@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20150916.920
-;; Version: 0.5.1
+;; Package-Version: 20150924.738
+;; Version: 0.6.1
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
 
@@ -105,21 +105,6 @@ This is a list of lists for replacing descriptions."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 
-(defcustom which-key-key-based-description-replacement-alist '()
-  "Each item in the list is a cons cell.
-The car of each cons cell is either a string like \"C-c\", in
-which case it's interpreted as a key sequence or a value of
-`major-mode'.  Here are two examples:
-
-(\"SPC f f\" . \"find files\")
-(emacs-lisp-mode . ((\"SPC m d\" . \"debug\")))
-
-In the first case the description of the key sequence \"SPC f f\"
-is overwritten with \"find files\". The second case works the
-same way using the alist matched when `major-mode' is
-emacs-lisp-mode."
-  :group 'which-key)
-
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
 commands. If the element is a string, assume it is a regexp
@@ -127,25 +112,7 @@ pattern for matching command names and use
 `which-key-highlighted-command-face' for any matching names. If
 the element is a cons cell, it should take the form (regexp .
 face to apply)."
-  :group 'which-key-key-based-description-replacement-alist)
-
-(defcustom which-key-prefix-name-alist '()
-  "An alist with elements of the form (key-sequence . prefix-name).
-key-sequence is a sequence of the sort produced by applying `kbd'
-then `listify-key-sequence' to create a canonical version of the
-key sequence. prefix-name is a string."
-  :group 'which-key
-  :type '(alist :key-type string :value-type string))
-
-(defcustom which-key-prefix-title-alist '()
-  "An alist with elements of the form (key-sequence . prefix-title).
-key-sequence is a sequence of the sort produced by applying `kbd'
-then `listify-key-sequence' to create a canonical version of the
-key sequence. prefix-title is a string. The title is displayed
-alongside the actual current key sequence when
-`which-key-show-prefix' is set to either top or echo."
-  :group 'which-key
-  :type '(alist :key-type string :value-type string))
+  :group 'which-key)
 
 (defcustom which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
@@ -263,46 +230,51 @@ prefixes in `which-key-paging-prefixes'"
   :type 'boolean)
 
 ;; Faces
+(defgroup which-key-faces nil
+  "Faces for which-key-mode"
+  :group 'which-key
+  :prefix "which-key-")
+
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
   "Face for which-key keys"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-separator-face
   '((t . (:inherit font-lock-comment-face)))
   "Face for the separator (default separator is an arrow)"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-note-face
   '((t . (:inherit which-key-separator-face)))
   "Face for notes or hints occasionally provided"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-command-description-face
   '((t . (:inherit font-lock-function-name-face)))
   "Face for the key description when it is a command"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-local-map-description-face
   '((t . (:inherit which-key-command-description-face)))
   "Face for the key description when it is found in `current-local-map'"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-highlighted-command-face
   '((t . (:inherit which-key-command-description-face :underline t)))
   "Default face for the command description when it is a command
-and it matches a string in `which-key-highlighted-command-face'."
-  :group 'which-key)
+and it matches a string in `which-key-highlighted-command-list'."
+  :group 'which-key-faces)
 
 (defface which-key-group-description-face
   '((t . (:inherit font-lock-keyword-face)))
   "Face for the key description when it is a group or prefix"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-special-key-face
   '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
   "Face for special keys (SPC, TAB, RET)"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 ;; Custom popup
 (defcustom which-key-custom-popup-max-dimensions-function nil
@@ -367,6 +339,28 @@ showing.")
   "Internal: Last location of side-window when two locations
 used.")
 
+(defvar which-key-key-based-description-replacement-alist '()
+  "New version of
+`which-key-key-based-description-replacement-alist'. Use
+`which-key-add-key-based-replacements' or
+`which-key-add-major-mode-key-based-replacements' to set this
+variable.")
+
+(defvar which-key-prefix-name-alist '()
+  "An alist with elements of the form (key-sequence . prefix-name).
+key-sequence is a sequence of the sort produced by applying `kbd'
+then `listify-key-sequence' to create a canonical version of the
+key sequence. prefix-name is a string.")
+
+(defvar which-key-prefix-title-alist '()
+  "An alist with elements of the form (key-sequence . prefix-title).
+key-sequence is a sequence of the sort produced by applying `kbd'
+then `listify-key-sequence' to create a canonical version of the
+key sequence. prefix-title is a string. The title is displayed
+alongside the actual current key sequence when
+`which-key-show-prefix' is set to either top or echo.")
+
+
 ;;;###autoload
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
@@ -384,7 +378,8 @@ used.")
       (progn
         (setq which-key--echo-keystrokes-backup echo-keystrokes)
         (unless which-key--is-setup (which-key--setup))
-        (setq which-key--prefix-help-cmd-backup prefix-help-command)
+        (unless (eq prefix-help-command 'which-key-show-next-page)
+          (setq which-key--prefix-help-cmd-backup prefix-help-command))
         (when which-key-use-C-h-for-paging
             (setq prefix-help-command #'which-key-show-next-page))
         (when which-key-show-remaining-keys
@@ -394,7 +389,8 @@ used.")
         (add-hook 'focus-in-hook #'which-key--start-timer)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
-    (setq prefix-help-command which-key--prefix-help-cmd-backup)
+    (when which-key--prefix-help-cmd-backup
+      (setq prefix-help-command which-key--prefix-help-cmd-backup))
     (when which-key-show-remaining-keys
       (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
@@ -409,6 +405,7 @@ set too high) and setup which-key buffer."
   (when (or (eq which-key-show-prefix 'echo)
             (eq which-key-popup-type 'minibuffer))
     (which-key--setup-echo-keystrokes))
+  (which-key--check-key-based-alist)
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
     ;; suppress confusing minibuffer message
@@ -434,6 +431,36 @@ it's set too high)."
       ;; (message "which-key: echo-keystrokes changed from %s to %s"
       ;;          previous echo-keystrokes)
       )))
+
+(defun which-key--check-key-based-alist ()
+  "Check (and fix if necessary) `which-key-key-based-description-replacement-alist'"
+  (let ((alist which-key-key-based-description-replacement-alist)
+        old-style res)
+    (dolist (cns alist)
+      (cond ((listp (car cns))
+             (push cns res))
+            ((stringp (car cns))
+             (setq old-style t)
+             (push (cons (listify-key-sequence (kbd (car cns))) (cdr cns)) res))
+            ((symbolp (car cns))
+             (let (new-mode-alist)
+               (dolist (cns2 (cdr cns))
+                 (cond ((listp (car cns2))
+                        (push cns2 new-mode-alist))
+                       ((stringp (car cns2))
+                        (setq old-style t)
+                        (push (cons (listify-key-sequence (kbd (car cns2))) (cdr cns2))
+                              new-mode-alist))))
+               (push (cons (car cns) new-mode-alist) res)))
+            (t (message "which-key: there's a problem with the \
+entry %s in which-key-key-based-replacement-alist" cns))))
+    (setq which-key-key-based-description-replacement-alist res)
+    (when old-style
+      (message "which-key: \
+ `which-key-key-based-description-replacement-alist' has changed format and you\
+ seem to be using the old format. Please use the functions \
+`which-key-add-key-based-replacements' and \
+`which-key-add-major-mode-key-based-replacements' instead."))))
 
 ;; Default configuration functions for use by users. Should be the "best"
 ;; configurations
@@ -475,15 +502,16 @@ bottom."
 
 ;; Helper functions to modify replacement lists.
 
-(defun which-key--add-key-val-to-alist (alist key value)
+(defun which-key--add-key-val-to-alist (alist key value &optional alist-name)
   "Internal function to add (KEY . VALUE) to ALIST."
   (when (or (not (stringp key)) (not (stringp value)))
-    (error "KEY and VALUE should be strings"))
+    (error "which-key: Error %s (key) and %s (value) should be strings"
+           key value))
   (let ((key-lst (listify-key-sequence (kbd key))))
     (cond ((null alist) (list (cons key-lst value)))
           ((assoc key-lst alist)
-           (message "which-key: changing %s name from %s to %s"
-                    key (cdr (assoc key-lst alist)) value)
+           (message "which-key: changing %s name from %s to %s in the %s alist"
+                    key (cdr (assoc key-lst alist)) value alist-name)
            (setcdr (assoc key-lst alist) value)
            alist)
           (t (cons (cons key-lst value) alist)))))
@@ -503,7 +531,7 @@ replacements are added to
     (setq which-key-key-based-description-replacement-alist
           (which-key--add-key-val-to-alist
            which-key-key-based-description-replacement-alist
-           key-sequence replacement))
+           key-sequence replacement "key-based"))
     (setq key-sequence (pop more) replacement (pop more))))
 (put 'which-key-add-key-based-replacements 'lisp-indent-function 'defun)
 
@@ -518,7 +546,9 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
     (error "MODE should be a symbol corresponding to a value of major-mode"))
   (let ((mode-alist (cdr (assq mode which-key-key-based-description-replacement-alist))))
     (while key-sequence
-      (setq mode-alist (which-key--add-key-val-to-alist mode-alist key-sequence replacement))
+      (setq mode-alist (which-key--add-key-val-to-alist
+                        mode-alist key-sequence replacement
+                        (format "key-based-%s" mode)))
       (setq key-sequence (pop more) replacement (pop more)))
     (if (assq mode which-key-key-based-description-replacement-alist)
         (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
@@ -560,11 +590,11 @@ to `which-key-prefix-title-alist'."
     (let ((-name (if (consp name) (car name) name))
           (-title (if (consp name) (cdr name) name)))
         (setq which-key-prefix-name-alist
-              (which-key--add-key-val-to-alist which-key-prefix-name-alist
-                                               key-sequence -name)
+              (which-key--add-key-val-to-alist
+               which-key-prefix-name-alist key-sequence -name "prefix-name")
               which-key-prefix-title-alist
-              (which-key--add-key-val-to-alist which-key-prefix-title-alist
-                                               key-sequence -title)))
+              (which-key--add-key-val-to-alist
+               which-key-prefix-title-alist key-sequence -title "prefix-title")))
     (setq key-sequence (pop more) name (pop more))))
 (put 'which-key-declare-prefixes 'lisp-indent-function 'defun)
 
@@ -582,9 +612,11 @@ addition KEY-SEQUENCE NAME pairs) to apply."
         (-title (if (consp name) (cdr name) name)))
     (while key-sequence
       (setq mode-name-alist (which-key--add-key-val-to-alist
-                             mode-name-alist key-sequence -name)
+                             mode-name-alist key-sequence -name
+                             (format "prefix-name-%s" mode))
             mode-title-alist (which-key--add-key-val-to-alist
-                              mode-title-alist key-sequence -title))
+                              mode-title-alist key-sequence -title
+                              (format "prefix-name-%s" mode)))
       (setq key-sequence (pop more) name (pop more)))
     (if (assq mode which-key-prefix-name-alist)
         (setcdr (assq mode which-key-prefix-name-alist) mode-name-alist)
