@@ -1,4 +1,4 @@
-(define-package "lispy" "20150911.225" "vi-like Paredit"
+(define-package "lispy" "20150923.502" "vi-like Paredit"
   '((emacs "24.1")
     (ace-window "0.9.0")
     (iedit "0.97")

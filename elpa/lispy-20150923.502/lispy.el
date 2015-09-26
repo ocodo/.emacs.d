@@ -1203,7 +1203,7 @@ Otherwise (`backward-delete-char-untabify' ARG)."
           ((and (lispy-after-string-p "\" ")
                 (not (looking-at lispy-right)))
            (let ((pt (point)))
-             (goto-char (match-beginning 0))
+             (backward-char 2)
              (delete-region (car (lispy--bounds-string)) pt))
            (lispy--delete-whitespace-backward)
            (unless (lispy-looking-back lispy-left)
@@ -1333,9 +1333,9 @@ When ARG is more than 1, mark ARGth element."
                 (goto-char pt)))))
 
           ((lispy-right-p)
-           (skip-chars-backward "() \n")
+           (skip-chars-backward "}]) \n")
            (set-mark-command nil)
-           (re-search-backward "[() \n]")
+           (re-search-backward "[][{}() \n]")
            (while (lispy--in-string-or-comment-p)
              (re-search-backward "[() \n]"))
            (forward-char 1))
@@ -2729,6 +2729,17 @@ When STEP is non-nil, insert in between each STEP elements instead."
 (defcustom lispy-multiline-threshold 32
   "Don't multiline expresssions shorter than this when printed as a string.")
 
+(defun lispy--translate-newlines (str)
+  "Replace quoted newlines with real ones in STR."
+  (with-temp-buffer
+    (insert str)
+    (goto-char (point-min))
+    (while (re-search-forward "\\\\n" nil t)
+      (unless (= ?\\
+                 (char-before (- (point) 2)))
+        (replace-match "\n" nil t)))
+    (buffer-string)))
+
 (defun lispy--multiline-1 (expr &optional quoted)
   "Transform a one-line EXPR into a multi-line.
 When QUOTED is not nil, assume that EXPR is quoted and ignore some rules."
@@ -2764,8 +2775,8 @@ When QUOTED is not nil, assume that EXPR is quoted and ignore some rules."
                   (string
                    (setq res
                          `(ly-raw string
-                                  ,(replace-regexp-in-string
-                                    "\\(?:[^\\]\\|^\\)\\(\\\\n\\)" "\n" (cadr expr) nil t 1))))
+                                  ,(lispy--translate-newlines
+                                    (cadr expr)))))
                   (t (unless (= (length expr) 2)
                        (error "Unexpected expr: %S" expr))
                      (unless (null res)
@@ -3591,10 +3602,10 @@ Sexp is obtained by exiting list ARG times."
           (avy-keys lispy-avy-keys))
       (avy-with 'lispy-ace-subword
         (lispy--avy-do
-         "[([{ -]\\(?:\\sw\\|\\s_\\|\\s(\\|[\"'`#]\\)"
+         "[([{ -/]\\(?:\\sw\\|\\s_\\|\\s(\\|[\"'`#]\\)"
          (lispy--bounds-dwim)
          (lambda () (or (not (lispy--in-string-or-comment-p))
-                   (lispy-looking-back ".\"")))
+                        (lispy-looking-back ".\"")))
          lispy-avy-style-symbol)))
     (skip-chars-forward "-([{ `'#") (mark-word)))
 
@@ -3884,18 +3895,36 @@ With ARG, use the contents of `lispy-store-region-and-buffer' instead."
 (defun lispy-unbind-variable ()
   "Subsititute let-bound variable."
   (interactive)
-  (forward-char 1)
+  (if (memq major-mode lispy-clojure-modes)
+      (lispy-unbind-variable-clojure)
+    (forward-char 1)
+    (lispy-flet (message (&rest _x))
+      (iedit-mode 0))
+    (lispy-mark-symbol)
+    (lispy-move-down 1)
+    (iedit-mode)
+    (deactivate-mark)
+    (lispy-left 1)
+    (lispy-delete 1)
+    (save-excursion
+      (lispy--out-backward 2)
+      (lispy--normalize-1))))
+
+(defun lispy-unbind-variable-clojure ()
+  "Subsititute let-bound variable in Clojure."
+  (interactive)
   (lispy-flet (message (&rest _x))
     (iedit-mode 0))
   (lispy-mark-symbol)
   (lispy-move-down 1)
   (iedit-mode)
+  (exchange-point-and-mark)
+  (lispy-slurp 1)
+  (delete-active-region)
   (deactivate-mark)
-  (lispy-left 1)
-  (lispy-delete 1)
-  (save-excursion
-    (lispy--out-backward 2)
-    (lispy--normalize-1)))
+  (lispy--out-backward 2)
+  (lispy--normalize-1)
+  (lispy-flow 1))
 
 (defun lispy-bind-variable ()
   "Bind current expression as variable."
