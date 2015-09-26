@@ -237,16 +237,14 @@
 	     ((:keywords "killing" "convenience")
 	      (:url . "https://github.com/leoliu/easy-kill"))])
  (ediprolog .
-	    [(1 0)
+	    [(1 1)
 	     nil "Emacs Does Interactive Prolog" single
 	     ((:url . "http://elpa.gnu.org/packages/ediprolog.html")
 	      (:keywords "languages" "processes"))])
  (el-search .
-	    [(0 0 2)
+	    [(0 0 3)
 	     ((emacs
-	       (25))
-	      (cl-lib
-	       (0)))
+	       (25)))
 	     "Expression based incremental search for emacs-lisp-mode" single
 	     ((:url . "http://elpa.gnu.org/packages/el-search.html")
 	      (:keywords "lisp"))])
@@ -496,7 +494,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20150914)
+      [(20150921)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -556,7 +554,7 @@
 		  ((:url . "http://elpa.gnu.org/packages/scroll-restore.html")
 		   (:keywords "scrolling"))])
  (seq .
-      [(1 8)
+      [(1 9)
        nil "Sequence manipulation functions" single
        ((:url . "http://elpa.gnu.org/packages/seq.html")
 	(:keywords "sequences"))])
@@ -722,6 +720,15 @@
 	 nil "use xclip to copy&paste" single
 	 ((:url . "http://elpa.gnu.org/packages/xclip.html")
 	  (:keywords "convenience" "tools"))])
+ (xelb .
+       [(0 1)
+	((emacs
+	  (24 4))
+	 (cl-generic
+	  (0 2)))
+	"X protocol Emacs Lisp Binding" tar
+	((:keywords "unix")
+	 (:url . "https://github.com/ch11ng/xelb"))])
  (xpm .
       [(1 0 3)
        nil "edit XPM images" tar
