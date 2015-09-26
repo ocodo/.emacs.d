@@ -292,6 +292,9 @@ not a good idea to change such entries.")
                  (ignore-errors
                    (server-send-string client "-error Canceled by user"))
                  (delete-process client))
+             ;; Fallback for when emacs was used as $EDITOR instead
+             ;; of emacsclient or the sleeping editor.  See #2258.
+             (ignore-errors (delete-file buffer-file-name))
              (kill-buffer)))
           (t
            (save-buffer)
@@ -404,6 +407,9 @@ ENVVAR is provided then bind that environment variable instead.
   "Honor `with-editor-server-window-alist' (which see)."
   (let ((server-window (with-current-buffer
                            (or next-buffer (current-buffer))
+                         (when with-editor-mode
+                           (setq with-editor-previous-winconf
+                                 (current-window-configuration)))
                          (with-editor-server-window))))
     ad-do-it))
 
