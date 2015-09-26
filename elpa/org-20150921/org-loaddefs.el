@@ -298,7 +298,7 @@ used to limit the exported source code blocks by language.
 ;;;;;;  org-search-view org-agenda-list org-batch-store-agenda-views
 ;;;;;;  org-store-agenda-views org-batch-agenda-csv org-batch-agenda
 ;;;;;;  org-agenda org-toggle-sticky-agenda) "org-agenda" "org-agenda.el"
-;;;;;;  (22005 1334))
+;;;;;;  (22014 16311))
 ;;; Generated autoloads from org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -867,18 +867,18 @@ PARAMS is a property list of parameters:
 
 :width    enforce same column widths with <N> specifiers.
 :id       the :ID: property of the entry where the columns view
-    should be built.  When the symbol `local', call locally.
-    When `global' call column view with the cursor at the beginning
-    of the buffer (usually this means that the whole buffer switches
-    to column view).  When \"file:path/to/file.org\", invoke column
-    view at the start of that file.  Otherwise, the ID is located
-    using `org-id-find'.
+	  should be built.  When the symbol `local', call locally.
+	  When `global' call column view with the cursor at the beginning
+	  of the buffer (usually this means that the whole buffer switches
+	  to column view).  When \"file:path/to/file.org\", invoke column
+	  view at the start of that file.  Otherwise, the ID is located
+	  using `org-id-find'.
 :hlines   When t, insert a hline before each item.  When a number, insert
-    a hline before each level <= that number.
+	  a hline before each level <= that number.
 :vlines   When t, make each column a colgroup to enforce vertical lines.
 :maxlevel When set to a number, don't capture headlines below this level.
 :skip-empty-rows
-    When t, skip rows where all specifiers other than ITEM are empty.
+	  When t, skip rows where all specifiers other than ITEM are empty.
 :format   When non-nil, specify the column view format to use.
 
 \(fn PARAMS)" nil nil)
@@ -1243,7 +1243,7 @@ line directly before or after the table.
 ;;;;;;  org-table-begin org-table-align org-table-export org-table-import
 ;;;;;;  org-table-convert-region org-table-create org-table-create-or-convert-from-region
 ;;;;;;  org-table-create-with-table\.el) "org-table" "org-table.el"
-;;;;;;  "e75a308b982103eeb16090dfaad827c1")
+;;;;;;  "4decaf424fd236b92cc6af26bccc5666")
 ;;; Generated autoloads from org-table.el
 
 (autoload 'org-table-create-with-table\.el "org-table" "\
@@ -1985,7 +1985,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22006 21594))
+;;;;;;  (22015 36568))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2011,7 +2011,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (22005 1334))
+;;;;;;  "org" "org.el" (22014 16310))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -2930,7 +2930,7 @@ Return output file name.
 
 ;;;### (autoloads (org-md-publish-to-md org-md-export-to-markdown
 ;;;;;;  org-md-convert-region-to-md org-md-export-as-markdown) "ox-md"
-;;;;;;  "ox-md.el" "74ed420b743934d8f965ee7a4654641e")
+;;;;;;  "ox-md.el" "3c6439f336a927158a9daba949eb34b2")
 ;;; Generated autoloads from ox-md.el
 
 (autoload 'org-md-export-as-markdown "ox-md" "\
@@ -3003,7 +3003,7 @@ Return output file name.
 ;;;***
 
 ;;;### (autoloads (org-odt-convert org-odt-export-to-odt org-odt-export-as-odf-and-open
-;;;;;;  org-odt-export-as-odf) "ox-odt" "ox-odt.el" "3d81254f8938d1d5728822d9baf96fd5")
+;;;;;;  org-odt-export-as-odf) "ox-odt" "ox-odt.el" "c7237cdfce35a4f2adb67b122993b0c8")
 ;;; Generated autoloads from ox-odt.el
 
 (put 'org-odt-preferred-output-format 'safe-local-variable 'stringp)
