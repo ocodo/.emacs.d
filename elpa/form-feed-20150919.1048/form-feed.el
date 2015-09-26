@@ -4,9 +4,9 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/form-feed
-;; Package-Version: 20150916.1315
+;; Package-Version: 20150919.1048
 ;; Keywords: faces
-;; Version: 0.2.0
+;; Version: 0.2.1
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -118,7 +118,10 @@ removal of the keywords via
 
 (defun form-feed--remove-font-lock-keywords ()
   "Remove buffer-local keywords displaying page delimiter lines."
-  (font-lock-remove-keywords nil form-feed--font-lock-keywords))
+  (font-lock-remove-keywords nil form-feed--font-lock-keywords)
+  (dolist (property (append '(display) form-feed-extra-properties))
+    (setq font-lock-extra-managed-props
+          (delq property font-lock-extra-managed-props))))
 
 ;;;###autoload
 (define-minor-mode form-feed-mode
