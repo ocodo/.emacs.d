@@ -1,5 +1,5 @@
 ;;; keyfreq.el --- track command frequencies
-;; Package-Version: 20150915.536
+;; Package-Version: 20150924.2005
 ;; -*- coding: utf-8 -*-
 ;;
 ;; Copyright 2009-2010, 2015 by David Capello
@@ -13,8 +13,11 @@
 ;;
 ;; Keyfreq is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
+;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
+;;
+;; Version 1.7 - 2015-09 - David Capello
+;; * Avoid accumulating key frequency if keyfreq-file-release-lock fails
 ;;
 ;; Version 1.6 - 2015-09 - David Capello
 ;; * Added keyfreq-reset thanks to @w-vi
@@ -80,7 +83,7 @@
   "Customization group for Keyfreq mode.
 This mode stores number of times each command was called and
 provides it as a statistical data."
-  :package-version '(keyfreq . "1.6")
+  :package-version '(keyfreq . "1.7")
   :group 'local
   :prefix "keyfreq")
 
@@ -123,14 +126,18 @@ by default."
   "Hash table storing number of times each command was called in each major mode
 since the last time the frequencies were saved in `keyfreq-file'.")
 
+(defvar keyfreq-excluded-commands '()
+  "List of commands excluded by keyfreq.")
 
 (defun keyfreq-pre-command-hook ()
   "Record command execution in `keyfreq-table' hash."
   (let ((command real-last-command) count)
     (when (and command (symbolp command))
       (setq count (gethash (cons major-mode command) keyfreq-table))
-      (puthash (cons major-mode command) (if count (1+ count) 1)
-	       keyfreq-table))))
+      (unless (memq command keyfreq-excluded-commands)
+        (puthash (cons major-mode command) (if count (1+ count) 1)
+                 keyfreq-table)
+        ))))
 
 
 (defun keyfreq-groups-major-modes (table)
@@ -422,13 +429,9 @@ is used as MAJOR-MODE-SYMBOL argument."
 
 
 (defun keyfreq-file-claim-lock ()
-  (let ((bak (symbol-function 'ask-user-about-lock)))
-    (fset 'ask-user-about-lock (lambda (file opponent) nil))
-    (unwind-protect
-	(write-region (number-to-string (emacs-pid)) nil
-		      keyfreq-file-lock nil 'nomessage)
-	(fset 'ask-user-about-lock bak))))
-
+  (ignore-errors
+    (write-region (number-to-string (emacs-pid)) nil
+		  keyfreq-file-lock nil 'nomessage nil 'excl)))
 
 
 (defun keyfreq-file-release-lock ()
@@ -447,33 +450,58 @@ is used as MAJOR-MODE-SYMBOL argument."
   (not (file-exists-p keyfreq-file-lock)))
 
 
-(defun keyfreq-table-save (table)
+(defun keyfreq-table-save (table &optional mustsave)
   "Append all values from the specified TABLE into the
 `keyfreq-file' as a sexp of an alist.  Then resets the TABLE
-if it was successfully merged."
+if it was successfully merged.
 
-  ;; Check that the lock file does not exist
-  (when (keyfreq-file-is-unlocked)
-    ;; Lock the file
-    (keyfreq-file-claim-lock)
+If MUSTSAVE is t, this function tries to save the table until it
+gets the lock and successfully saves it.  If MUSTSAVE is nil, it
+does nothing if the table cannot be saved."
 
-    ;; Check that we have the lock
-    (if (eq (keyfreq-file-owner) (emacs-pid))
-	(unwind-protect
-	    (progn
-	      ;; Load values and merge them with the current keyfreq-table
-	      (keyfreq-table-load table)
+  ;; Avoid adding nothing to the file
+  (if (> (hash-table-count table) 0)
+    (let (done)
+      ;; Check that the lock file doesn't exist
+      (while (not done)
+	(when (keyfreq-file-is-unlocked)
+	  ;; Lock the file
+	  (keyfreq-file-claim-lock)
 
-	      ;; Write the new frequencies
-	      (with-temp-file keyfreq-file
-		(let ((print-level nil)
-		      (print-length nil))
-		  (prin1 (cdr (keyfreq-list table 'no-sort)) (current-buffer)))))
+	  ;; Check that we have the lock
+	  (if (eq (keyfreq-file-owner) (emacs-pid))
+	      (unwind-protect
+		  (progn
+		    ;; Load values and merge them with the current keyfreq-table
+		    (keyfreq-table-load table)
 
-	  ;; Release the lock and reset the hash table.
-	  (keyfreq-file-release-lock)
-	  (clrhash table))
-      )))
+		    ;; Write the new frequencies
+		    (with-temp-file keyfreq-file
+		      (let ((l (cdr (keyfreq-list table 'no-sort))))
+			(insert "(")
+			(dolist (item l)
+			  (prin1 item (current-buffer))
+			  ;; Easy for git to track if every command is
+			  ;; one line
+			  (insert "\n"))
+			(insert ")"))))
+
+		;; Reset the hash table, enable the 'done' flag, and
+		;; release the lock.
+		(clrhash table)
+		(setq done t)
+		(keyfreq-file-release-lock))))
+
+	(if (and (not done) mustsave)
+	    ;; If we must save the file right now, we'll just keep
+	    ;; trying until we can get the lock.  So we can sleep some
+	    ;; milliseconds for the next while-loop cycle.
+	    (sleep-for 0.1)
+	  ;; If we can wait to the next timer's timeout, just enable
+	  ;; the 'done' flag to break the while-loop.
+	  (setq done t))
+
+	))))
 
 
 (defun keyfreq-table-load (table)
@@ -491,9 +519,11 @@ The table is not reset, so the values are appended to the table."
 	;; Add the values in the table
 	(while (and (listp l) l)
 	  (if (listp (car l))
-	      (puthash (caar l) (+ (gethash (caar l) table 0) (cdar l)) table))
+          (unless (memq (cdr (caar l)) keyfreq-excluded-commands)
+            (puthash (caar l) (+ (gethash (caar l) table 0) (cdar l)) table)))
 	  (setq l (cdr l)))
 	)))
+
 
 ;;;###autoload
 (define-minor-mode keyfreq-autosave-mode
@@ -515,8 +545,9 @@ and when emacs is killed."
 	(setq keyfreq-autosave--timer
 	      (run-at-time t keyfreq-autosave-timeout
 			   'keyfreq-autosave--do))
-	(add-hook 'kill-emacs-hook 'keyfreq-autosave--do))
-    (remove-hook 'kill-emacs-hook 'keyfreq-autosave--do)))
+	(add-hook 'kill-emacs-hook 'keyfreq-mustsave--do))
+    (keyfreq-mustsave--do)
+    (remove-hook 'kill-emacs-hook 'keyfreq-mustsave--do)))
 
 
 (defcustom keyfreq-autosave-timeout 600
@@ -535,6 +566,18 @@ value will take effect only after (re)enabling
   "Function executed periodically to save the `keyfreq-table' in `keyfreq-file'."
   (keyfreq-table-save keyfreq-table))
 
+
+(defun keyfreq-mustsave--do ()
+  "Function executed when we close Emacs."
+  (keyfreq-table-save keyfreq-table t))
+
+
+;;;###autoload
+(defun keyfreq-save-now ()
+  "Save keyfreq data now."
+  (interactive)
+  (keyfreq-mustsave--do)
+  (message "keyfreq data saved into %s" keyfreq-file))
 
 (provide 'keyfreq)
 
