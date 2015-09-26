@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: http://github.com/Malabarba/aggressive-indent-mode
-;; Package-Version: 20150913.747
+;; Package-Version: 20150919.1840
 ;; Version: 1.3
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: indent lisp maint tools
@@ -158,7 +158,7 @@ active.  If the minor mode is turned on with the local command,
   :type '(repeat symbol)
   :package-version '(aggressive-indent . "0.3.1"))
 
-(defcustom aggressive-indent-protected-commands '(undo undo-tree-undo undo-tree-redo)
+(defcustom aggressive-indent-protected-commands '(undo undo-tree-undo undo-tree-redo whitespace-cleanup)
   "Commands after which indentation will NOT be performed.
 Aggressive indentation could break things like `undo' by locking
 the user in a loop, so this variable is used to control which
@@ -307,22 +307,19 @@ until nothing more happens."
     (set-marker-insertion-type p t)
     (unwind-protect
         (progn
-          (goto-char r)
-          (setq was-begining-of-line
-                (= r (line-beginning-position)))
+          (unless (= l r)
+            (when (= (char-before r) ?\n)
+              (cl-decf r)))
           ;; If L is at the end of a line, skip that line.
           (unless (= l r)
-            (goto-char l)
-            (when (= l (line-end-position))
+            (when (= (char-after l) ?\n)
               (cl-incf l)))
           ;; Indent the affected region.
+          (goto-char r)
           (unless (= l r) (indent-region l r))
-          ;; `indent-region' doesn't do anything if R was the beginning of a line, so we indent manually there.
-          (when was-begining-of-line
-            (indent-according-to-mode))
           ;; And then we indent each following line until nothing happens.
           (forward-line 1)
-          (skip-chars-forward "[:blank:]\n")
+          (skip-chars-forward "[:blank:]\n\r\xc")
           (let* ((eod (ignore-errors
                         (save-excursion (end-of-defun)
                                         (point-marker))))
@@ -339,7 +336,7 @@ until nothing more happens."
                               ;; not at all, stop at the limit.
                               (< (point) point-limit))))
               (forward-line 1)
-              (skip-chars-forward "[:blank:]\n"))))
+              (skip-chars-forward "[:blank:]\n\r\xc"))))
       (goto-char p))))
 
 (defun aggressive-indent--softly-indent-region-and-on (l r &rest _)
