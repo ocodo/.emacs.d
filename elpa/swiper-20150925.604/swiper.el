@@ -259,29 +259,28 @@ there have line numbers. In the buffer, `ivy--regex' should be used."
   "`isearch' with an overview using `ivy'.
 When non-nil, INITIAL-INPUT is the initial search pattern."
   (interactive)
-  (unless (eq (length (help-function-arglist 'ivy-read)) 4)
-    (warn "You seem to be using the outdated stand-alone \"ivy\" package.
-Please remove it and update the \"swiper\" package."))
   (swiper--init)
   (let ((candidates (swiper--candidates))
         (preselect (buffer-substring-no-properties
                     (line-beginning-position)
-                    (line-end-position))))
+                    (line-end-position)))
+        (minibuffer-allow-text-properties t)
+        res)
     (unwind-protect
-         (ivy-read
-          "Swiper: "
-          candidates
-          :initial-input initial-input
-          :keymap swiper-map
-          :preselect preselect
-          :require-match t
-          :update-fn #'swiper--update-input-ivy
-          :unwind #'swiper--cleanup
-          :re-builder #'swiper--re-builder
-          :history 'swiper-history)
+         (setq res (ivy-read
+                    "Swiper: "
+                    candidates
+                    :initial-input initial-input
+                    :keymap swiper-map
+                    :preselect preselect
+                    :require-match t
+                    :update-fn #'swiper--update-input-ivy
+                    :unwind #'swiper--cleanup
+                    :re-builder #'swiper--re-builder
+                    :history 'swiper-history))
       (if (null ivy-exit)
           (goto-char swiper--opoint)
-        (swiper--action ivy--current ivy-text)))))
+        (swiper--action res ivy-text)))))
 
 (defun swiper--ensure-visible ()
   "Remove overlays hiding point."

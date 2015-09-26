@@ -3,8 +3,32 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ivy" "ivy.el" (22010 15976 885140 0))
+;;;### (autoloads nil "ivy" "ivy.el" (22021 61594 137140 0))
 ;;; Generated autoloads from ivy.el
+
+(autoload 'ivy-resume "ivy" "\
+Resume the last completion session.
+
+\(fn)" t nil)
+
+(autoload 'ivy-completing-read "ivy" "\
+Read a string in the minibuffer, with completion.
+
+This is an interface that conforms to `completing-read', so that
+it can be used for `completing-read-function'.
+
+PROMPT is a string to prompt with; normally it ends in a colon and a space.
+COLLECTION can be a list of strings, an alist, an obarray or a hash table.
+PREDICATE limits completion to a subset of COLLECTION.
+REQUIRE-MATCH is considered boolean. See `completing-read'.
+INITIAL-INPUT is a string that can be inserted into the minibuffer initially.
+_HISTORY is ignored for now.
+DEF is the default value.
+_INHERIT-INPUT-METHOD is ignored for now.
+
+The history, defaults and input-method arguments are ignored for now.
+
+\(fn PROMPT COLLECTION &optional PREDICATE REQUIRE-MATCH INITIAL-INPUT HISTORY DEF INHERIT-INPUT-METHOD)" nil nil)
 
 (defvar ivy-mode nil "\
 Non-nil if Ivy mode is enabled.
@@ -29,9 +53,19 @@ Minibuffer bindings:
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'ivy-switch-buffer "ivy" "\
+Switch to another buffer.
+
+\(fn)" t nil)
+
+(autoload 'ivy-recentf "ivy" "\
+Find a file on `recentf-list'.
+
+\(fn)" t nil)
+
 ;;;***
 
-;;;### (autoloads nil "swiper" "swiper.el" (22010 15976 877140 0))
+;;;### (autoloads nil "swiper" "swiper.el" (22021 61594 129140 0))
 ;;; Generated autoloads from swiper.el
 
 (autoload 'swiper-avy "swiper" "\
@@ -48,7 +82,7 @@ When non-nil, INITIAL-INPUT is the initial search pattern.
 ;;;***
 
 ;;;### (autoloads nil nil ("colir.el" "ivy-hydra.el" "swiper-pkg.el")
-;;;;;;  (22010 15976 898666 684000))
+;;;;;;  (22021 61594 144041 29000))
 
 ;;;***
 

@@ -137,8 +137,6 @@ Only \"./\" and \"../\" apply here. They appear in reverse order."
     (define-key map (kbd "M-d") 'ivy-kill-word)
     (define-key map (kbd "M-<") 'ivy-beginning-of-buffer)
     (define-key map (kbd "M->") 'ivy-end-of-buffer)
-    (define-key map (kbd "<left>") 'ivy-beginning-of-buffer)
-    (define-key map (kbd "<right>") 'ivy-end-of-buffer)
     (define-key map (kbd "M-n") 'ivy-next-history-element)
     (define-key map (kbd "M-p") 'ivy-previous-history-element)
     (define-key map (kbd "C-g") 'minibuffer-keyboard-quit)
@@ -443,6 +441,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (setq ivy-exit 'done)
   (exit-minibuffer))
 
+;;;###autoload
 (defun ivy-resume ()
   "Resume the last completion session."
   (interactive)
@@ -496,6 +495,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   (interactive)
   (ivy-set-index (max (- ivy--index ivy-height)
                       0)))
+
 (defun ivy-minibuffer-grow ()
   "Grow the minibuffer window by 1 line."
   (interactive)
@@ -890,6 +890,10 @@ candidates with each input."
              (let* ((hist (or history 'ivy-history))
                     (minibuffer-completion-table collection)
                     (minibuffer-completion-predicate predicate)
+                    (resize-mini-windows (cond
+                                          ((display-graphic-p) nil)
+                                          ((null resize-mini-windows) 'grow-only)
+                                          (t resize-mini-windows)))
                     (res (read-from-minibuffer
                           prompt
                           (ivy-state-initial-input ivy-last)
@@ -1030,6 +1034,7 @@ This is useful for recursive `ivy-read'."
                  nil)))
     (setf (ivy-state-initial-input ivy-last) initial-input)))
 
+;;;###autoload
 (defun ivy-completing-read (prompt collection
                             &optional predicate require-match initial-input
                               history def _inherit-input-method)
@@ -1229,7 +1234,7 @@ Insert .* between each char."
   (set (make-local-variable 'minibuffer-default-add-function)
        (lambda ()
          (list ivy--default)))
-  (when (and (display-graphic-p) (= (length (frame-list)) 1))
+  (when (display-graphic-p)
     (setq truncate-lines t))
   (setq-local max-mini-window-height ivy-height)
   (add-hook 'post-command-hook #'ivy--exhibit nil t)
@@ -1671,6 +1676,12 @@ BUFFER may be a string or nil."
           (find-file-other-window (cdr virtual))
         (switch-to-buffer-other-window buffer)))))
 
+(defun ivy--rename-buffer-action (buffer)
+  "Rename BUFFER."
+  (let ((new-name (read-string "Rename buffer (to new name): ")))
+    (with-current-buffer buffer
+      (rename-buffer new-name))))
+
 (defvar ivy-switch-buffer-map (make-sparse-keymap))
 
 (ivy-set-actions
@@ -1682,8 +1693,12 @@ BUFFER may be a string or nil."
     "kill")
    ("j"
     ivy--switch-buffer-other-window-action
-    "other")))
+    "other")
+   ("r"
+    ivy--rename-buffer-action
+    "rename")))
 
+;;;###autoload
 (defun ivy-switch-buffer ()
   "Switch to another buffer."
   (interactive)
@@ -1695,6 +1710,7 @@ BUFFER may be a string or nil."
                 :action #'ivy--switch-buffer-action
                 :keymap ivy-switch-buffer-map))))
 
+;;;###autoload
 (defun ivy-recentf ()
   "Find a file on `recentf-list'."
   (interactive)
