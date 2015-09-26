@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20150911.324
+;; Package-Version: 20150922.251
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -185,6 +185,10 @@ For example, to make SPC do the same as ?a, use
 (defface avy-background-face
   '((t (:foreground "gray40")))
   "Face for whole window background during selection.")
+
+(defface avy-goto-char-timer-face
+  '((t (:inherit highlight)))
+  "Face for matches during reading chars using `avy-goto-char-timer'.")
 
 (defconst avy-lead-faces '(avy-lead-face
                            avy-lead-face-0
@@ -729,7 +733,7 @@ LEAF is normally ((BEG . END) . WND)."
                        (cond ((string= old-str "\n")
                               (concat str "\n"))
                              ((string= old-str "\t")
-                              (concat str (make-string (- tab-width len) ?\ )))
+                              (concat str (make-string (max (- tab-width len) 0) ?\ )))
                              (t
                               ;; add padding for wide-width character
                               (if (eq (string-width old-str) 2)
@@ -1040,17 +1044,50 @@ ARG lines can be used."
 (defun avy--read-string-timer ()
   "Read as many chars as possible and return them as string.
 At least one char must be read, and then repeatedly one next char
-may be read if it is entered before `avy-timeout-seconds'."
-  (let ((str "") char)
-    (while (setq char (read-char (format "char%s: "
-                                         (if (string= str "")
-                                             str
-                                           (format " (%s)" str)))
-                                 t
-                                 (and (not (string= str ""))
-                                      avy-timeout-seconds)))
-      (setq str (concat str (list char))))
-    str))
+may be read if it is entered before `avy-timeout-seconds'.  `DEL'
+deletes the last char entered, and `RET' exits with the currently
+read string immediately instead of waiting for another char for
+`avy-timeout-seconds'."
+  (let ((str "") char break overlays regex)
+    (unwind-protect
+        (progn
+          (while (and (not break)
+                      (setq char (read-char (format "char%s: "
+                                                    (if (string= str "")
+                                                        str
+                                                      (format " (%s)" str)))
+                                            t
+                                            (and (not (string= str ""))
+                                                 avy-timeout-seconds))))
+            ;; Unhighlight
+            (dolist (ov overlays)
+              (delete-overlay ov))
+            (setq overlays nil)
+            (cond
+             ;; Handle RET
+             ((= char 13)
+              (setq break t))
+             ;; Handle DEL
+             ((= char 127)
+              (let ((l (length str)))
+                (when (>= l 1)
+                  (setq str (substring str 0 (1- l))))))
+             (t
+              (setq str (concat str (list char)))))
+            ;; Highlight
+            (when (>= (length str) 1)
+              (save-excursion
+                (goto-char (window-start))
+                (setq regex (regexp-quote str))
+                (while (re-search-forward regex (window-end) t)
+                  (unless (get-char-property (point) 'invisible)
+                    (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
+                      (push ov overlays)
+                      (overlay-put ov 'window (selected-window))
+                      (overlay-put ov 'face 'avy-goto-char-timer-face)))))))
+          str)
+      (dolist (ov overlays)
+        (delete-overlay ov)))))
 
 ;;;###autoload
 (defun avy-goto-char-timer (&optional arg)
