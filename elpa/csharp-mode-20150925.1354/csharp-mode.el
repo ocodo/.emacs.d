@@ -7,7 +7,7 @@
 ;; Modified   : May 2015
 ;; Version    : 0.8.10
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20150915.339
+;; Package-Version: 20150925.1354
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
 
@@ -288,6 +288,11 @@
 
 (require 'cc-mode)
 (require 'cl-lib)
+
+;; Work around emacs bug#18845
+(eval-when-compile
+  (when (and (= emacs-major-version 24) (>= emacs-minor-version 4))
+    (require 'cl)))
 
 ;; ==================================================================
 ;; c# upfront stuff
