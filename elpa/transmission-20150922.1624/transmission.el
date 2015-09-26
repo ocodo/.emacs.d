@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.5
-;; Package-Version: 20150912.1325
+;; Package-Version: 20150922.1624
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3") (seq "1.5"))
 ;; Keywords: comm, tools
 
@@ -202,10 +202,10 @@ See `format-time-string'."
                          (position-bytes (point))))))))
 
 (defun transmission--status ()
-  "Check the HTTP status code.  A 409 response from a
-Transmission session includes the \"X-Transmission-Session-Id\"
-header.  If a 409 is received, update `transmission-session-id'
-and signal the error."
+  "Check the HTTP status code.
+A 409 response from a Transmission session includes the
+\"X-Transmission-Session-Id\" header.  If a 409 is received,
+update `transmission-session-id' and signal the error."
   (save-excursion
     (goto-char (point-min))
     (skip-chars-forward "HTTP/")
@@ -273,6 +273,10 @@ and signal the error."
 (defun transmission-request (method &optional arguments tag)
   "Send a request to Transmission.
 
+METHOD is a string.
+ARGUMENTS is a plist having keys corresponding to METHOD.
+TAG is an integer and ignored.
+
 Details regarding the Transmission RPC can be found here:
 <https://trac.transmissionbt.com/browser/trunk/extras/rpc-spec.txt>"
   (let ((process (transmission-ensure-process))
@@ -290,15 +294,15 @@ Details regarding the Transmission RPC can be found here:
 ;; Response parsing
 
 (defun transmission-torrents (arguments)
-  "Return the \"torrents\" vector associated with the response
-from a \"torrent-get\" request with arguments ARGUMENTS."
-  (let* ((request `("torrent-get" ,arguments))
-         (response (apply #'transmission-request request)))
+  "Return a \"torrents\" vector of objects from a \"torrent-get\" request.
+Each object is an alist containing key-value pairs matching the
+\"fields\" value in ARGUMENTS."
+  (let ((response (transmission-request "torrent-get" arguments)))
     (cdr (cadr (assq 'arguments response)))))
 
 (defun transmission-torrent-value (torrent field)
-  "Return value in FIELD of in TORRENT, the \"torrents\" vector
-returned by `transmission-torrents'."
+  "Return value in vector TORRENT of key FIELD.
+TORRENT is the \"torrents\" vector returned by `transmission-torrents'."
   (cdr (assq field (elt torrent 0))))
 
 
@@ -338,6 +342,7 @@ returned by `transmission-torrents'."
       (_ state))))
 
 (defun transmission-size (bytes)
+  "Return string showing size BYTES in human-readable form."
   (file-size-human-readable bytes transmission-units))
 
 (defun transmission-percent (have total)
@@ -347,18 +352,19 @@ returned by `transmission-torrents'."
     (arith-error 0)))
 
 (defun transmission-files-directory-base (filename)
-  "Returns the top-most parent directory in string FILENAME"
+  "Return the top-most parent directory in string FILENAME."
   (let ((index (and (stringp filename)
                     (string-match "/" filename))))
     (if index (substring filename 0 (1+ index)))))
 
 (defun transmission-files-directory-prefix-p (title files)
+  "Return t if TITLE is a prefix to every element in FILES, otherwise nil."
   (seq-every-p (lambda (f) (string-prefix-p title (cdr-safe (assq 'name f))))
                files))
 
 (defun transmission-prop-values-in-region (prop)
-  "Return a list of values taken by text property PROP in region
-or at point, otherwise nil."
+  "Return a list of truthy values of text property PROP in region or at point.
+If none are found, return nil."
   (if (use-region-p)
       (let ((beg (region-beginning))
             (end (region-end))
@@ -395,15 +401,15 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
                (_ (list (/ seconds year) "y")))))))
 
 (defun transmission-rate (bytes)
-  "Return a the rate BYTES per second scaled according to
-`transmission-units'."
+  "Return a rate in units kilobytes per second.
+The rate is calculated from BYTES according to `transmission-units'."
   (let ((scale (if (eq 'iec transmission-units) 1024 1000)))
     (/ bytes scale)))
 
 (defun transmission-prompt-speed-limit (upload)
-  "Make a prompt to set transfer speed limit.  If UPLOAD is
-non-nil, make a prompt for upload rate, otherwise for download
-rate."
+  "Make a prompt to set transfer speed limit.
+If UPLOAD is non-nil, make a prompt for upload rate, otherwise
+for download rate."
   (let-alist (transmission-request "session-get")
     (let ((limit (if upload .arguments.speed-limit-up
                    .arguments.speed-limit-down))
@@ -423,7 +429,10 @@ rate."
                                  "): "))))))
 
 (defun transmission-prompt-read-repeatedly (prompt &optional collection)
-  "Read strings until an input is blank.  Returns inputs in a list."
+  "Read strings until an input is blank, with optional completion.
+PROMPT is a string to prompt with.
+COLLECTION can be a list among other things.  See `completing-read'.
+Returns a list of non-blank inputs."
   (let ((list '())
         entry)
    (catch :finished
@@ -442,7 +451,7 @@ rate."
     (transmission-torrent-value torrent 'trackers)))
 
 (defun transmission-files-do (action)
-  "Do stuff to files in `transmission-files-mode' buffers."
+  "Apply ACTION to files in `transmission-files-mode' buffers."
   (unless (memq action (list :files-wanted :files-unwanted
                              :priority-high :priority-low
                              :priority-normal))
@@ -467,8 +476,8 @@ If the file named \"foo\" does not exist, try \"foo.part\" before returning."
              (concat full ".part")))))
 
 (defun transmission-files-sort (torrent)
-  "Return the .files and .fileStats vectors in TORRENT, spliced
-together with indices for each file, and sorted by file name."
+  "Return the .files and .fileStats vectors in TORRENT.
+The two are spliced together with indices for each file, sorted by file name."
   (let* ((files (cl-map 'vector #'append
                         (transmission-torrent-value torrent 'files)
                         (transmission-torrent-value torrent 'fileStats)))
@@ -482,6 +491,7 @@ together with indices for each file, and sorted by file name."
                         (cdr (assq 'name b)))))))
 
 (defun transmission-time (seconds)
+  "Format a time string, given SECONDS from the epoch."
   (if (= 0 seconds)
       (format "Never")
     (format-time-string transmission-time-format (seconds-to-time seconds))))
@@ -511,8 +521,8 @@ together with indices for each file, and sorted by file name."
     (2 "Unlimited")))
 
 (defmacro transmission-let-ids (bindings &rest body)
-  "Execute BODY, binding list `ids' with `transmission-prop-values-in-region'.
-Similar to `when-let', except calls user-error if bindings are not truthy."
+  "Like `when-let', except call `user-error' if BINDINGS are not truthy.
+Execute BODY, binding list `ids' of torrent IDs at point or in region."
   (declare (indent 1) (debug t))
   `(let* ((ids (or (and transmission-torrent-id (list transmission-torrent-id))
                    (mapcar (lambda (id) (cdr (assq 'id id)))
@@ -527,7 +537,7 @@ Similar to `when-let', except calls user-error if bindings are not truthy."
 
 ;;;###autoload
 (defun transmission-add (torrent &optional directory)
-  "Add a torrent by filename, URL, magnet link, or info hash.
+  "Add TORRENT by filename, URL, magnet link, or info hash.
 When called with a prefix, prompt for DIRECTORY."
   (interactive (list (read-file-name "Add torrent: ")
                      (if current-prefix-arg
@@ -551,7 +561,7 @@ When called with a prefix, prompt for DIRECTORY."
         (_ (user-error .result))))))
 
 (defun transmission-move (location)
-  "Move torrent at point or in region to a new location."
+  "Move torrent at point or in region to a new LOCATION."
   (interactive (list (read-directory-name "New directory: ")))
   (transmission-let-ids ((arguments (list :ids ids :move t
                                           :location (expand-file-name location))))
@@ -576,7 +586,7 @@ When called with a prefix, also unlink torrent data on disk."
       (transmission-request "torrent-remove" arguments))))
 
 (defun transmission-set-bandwidth-priority (priority)
-  "Set bandwidth priority of torrent(s) at point or in region."
+  "Set bandwidth PRIORITY of torrent(s) at point or in region."
   (interactive
    (let ((completion-cycle-threshold t)
          (prompt (format "Set bandwidth priority %s: "
@@ -587,21 +597,21 @@ When called with a prefix, also unlink torrent data on disk."
     (transmission-request "torrent-set" arguments)))
 
 (defun transmission-set-download (limit)
-  "Set global download speed limit in KB/s."
+  "Set global download speed LIMIT in KB/s."
   (interactive (transmission-prompt-speed-limit nil))
   (let ((arguments (if (<= limit 0) '(:speed-limit-down-enabled :json-false)
                      `(:speed-limit-down-enabled t :speed-limit-down ,limit))))
     (transmission-request "session-set" arguments)))
 
 (defun transmission-set-upload (limit)
-  "Set global upload speed limit in KB/s."
+  "Set global upload speed LIMIT in KB/s."
   (interactive (transmission-prompt-speed-limit t))
   (let ((arguments (if (<= limit 0) '(:speed-limit-up-enabled :json-false)
                      `(:speed-limit-up-enabled t :speed-limit-up ,limit))))
     (transmission-request "session-set" arguments)))
 
 (defun transmission-set-ratio (limit)
-  "Set global seed ratio limit."
+  "Set global seed ratio LIMIT."
   (interactive (transmission-prompt-ratio-limit))
   (let ((arguments (if (<= limit 0) '(:seedRatioLimited :json-false)
                      `(:seedRatioLimited t :seedRatioLimit ,limit))))
@@ -630,6 +640,7 @@ When called with a prefix, also unlink torrent data on disk."
         (message .result)))))
 
 (defun transmission-trackers-remove ()
+  "Prompt for trackers to remove by ID from torrent at point."
   (interactive)
   (let ((id transmission-torrent-id))
     (if id
@@ -664,14 +675,17 @@ When called with a prefix, also unlink torrent data on disk."
         (delete-window)))))
 
 (defun transmission-files-unwant ()
+  "Mark file(s) at point or in region as unwanted."
   (interactive)
   (transmission-files-do :files-unwanted))
 
 (defun transmission-files-want ()
+  "Mark file(s) at point or in region as wanted."
   (interactive)
   (transmission-files-do :files-wanted))
 
 (defun transmission-files-priority (priority)
+  "Set bandwidth PRIORITY on file(s) at point or in region."
   (interactive
    (let* ((completion-cycle-threshold t)
           (collection '(high low normal))
@@ -681,16 +695,16 @@ When called with a prefix, also unlink torrent data on disk."
   (when (not (string= priority ""))
     (transmission-files-do (intern (concat ":priority-" priority)))))
 
-(defun transmission-files-command (command arg)
-  "Run a command COMMAND on the file at point."
+(defun transmission-files-command (command file)
+  "Run a command COMMAND on the FILE at point."
   (interactive
-   (let ((file (transmission-files-file-at-point)))
-     (if (not file)
-         (user-error "File does not exist.")
+   (let ((fap (transmission-files-file-at-point)))
+     (if (not fap)
+         (user-error "File does not exist")
        (list
-        (read-shell-command (format "! on %s: " (file-name-nondirectory file)))
-        file))))
-  (let* ((args (nconc (split-string command) (list arg)))
+        (read-shell-command (format "! on %s: " (file-name-nondirectory fap)))
+        fap))))
+  (let* ((args (nconc (split-string command) (list file)))
          (prog (car args)))
     (apply #'start-process prog nil args)))
 
@@ -700,7 +714,7 @@ When called with a prefix, also unlink torrent data on disk."
   (let ((file (transmission-files-file-at-point)))
     (if file
         (find-file-read-only file)
-      (user-error "File does not exist."))))
+      (user-error "File does not exist"))))
 
 
 ;; Drawing
@@ -715,7 +729,8 @@ When called with a prefix, also unlink torrent data on disk."
       (tabulated-list-init-header))))
 
 (defun transmission-format-pieces (pieces count)
-  (let* ((bytes (mapcar #'identity (base64-decode-string pieces)))
+  "Format into a string the bitfield PIECES holding COUNT boolean flags."
+  (let* ((bytes (base64-decode-string pieces))
          (bits (mapconcat #'transmission-byte->string bytes "")))
     (mapconcat #'identity (seq-partition (substring bits 0 count) 72) "\n")))
 
@@ -884,6 +899,15 @@ Each form in BODY is a column descriptor."
     map)
   "Keymap used in `transmission-info-mode' buffers.")
 
+(easy-menu-define transmission-info-mode-menu transmission-info-mode-map
+  "Menu used in `transmission-info-mode' buffers."
+  '("Transmission-Info"
+    ["Add Tracker URLs" transmission-trackers-add]
+    ["Remove Trackers" transmission-trackers-remove]
+    "--"
+    ["Refresh" revert-buffer]
+    ["Quit" quit-window]))
+
 (define-derived-mode transmission-info-mode special-mode "Transmission-Info"
   "Major mode for viewing and manipulating torrent attributes in Transmission.
 The hook `transmission-info-mode-hook' is run at mode
@@ -914,6 +938,18 @@ Key bindings:
     (define-key map "y" 'transmission-files-priority)
     map)
   "Keymap used in `transmission-files-mode' buffers.")
+
+(easy-menu-define transmission-files-mode-menu transmission-files-mode-map
+  "Menu used in `transmission-files-mode' buffers."
+  '("Transmission-Files"
+    ["Run Command On File" transmission-files-command]
+    ["Mark Files Unwanted" transmission-files-unwant]
+    ["Mark Files Wanted" transmission-files-want]
+    ["Set File's Bandwidth Priority" transmission-files-priority]
+    ["View Torrent Info" transmission-info]
+    "--"
+    ["Refresh" revert-buffer]
+    ["Quit" quit-window]))
 
 (define-derived-mode transmission-files-mode tabulated-list-mode "Transmission-Files"
   "Major mode for interacting with torrent files in Transmission.
@@ -962,6 +998,18 @@ Key bindings:
     (define-key map "y" 'transmission-set-bandwidth-priority)
     map)
   "Keymap used in `transmission-mode' buffers.")
+
+(easy-menu-define transmission-mode-menu transmission-mode-map
+  "Menu used in `transmission-mode' buffers."
+  '("Transmission"
+    ["Add Torrent" transmission-add]
+    ["Start/Stop Torrent" transmission-toggle
+     :help "Toggle pause on torrents at point or in region"]
+    ["View Torrent Files" transmission-files]
+    ["View Torrent Info" transmission-info]
+    "--"
+    ["Refresh" revert-buffer]
+    ["Quit" transmission-quit]))
 
 (define-derived-mode transmission-mode tabulated-list-mode "Transmission"
   "Major mode for interfacing with a Transmission daemon. See
