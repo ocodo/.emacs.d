@@ -13,11 +13,1196 @@ See the Apache Version 2.0 License for specific language governing permissions
 and limitations under the License.
 ***************************************************************************** */
 
-/// <reference path="lib.core.d.ts" />
+/// <reference no-default-lib="true"/>
 
 /////////////////////////////
-/// IE10 ECMAScript Extensions
+/// ECMAScript APIs
 /////////////////////////////
+
+declare var NaN: number;
+declare var Infinity: number;
+
+/**
+  * Evaluates JavaScript code and executes it. 
+  * @param x A String value that contains valid JavaScript code.
+  */
+declare function eval(x: string): any;
+
+/**
+  * Converts A string to an integer.
+  * @param s A string to convert into a number.
+  * @param radix A value between 2 and 36 that specifies the base of the number in numString. 
+  * If this argument is not supplied, strings with a prefix of '0x' are considered hexadecimal.
+  * All other strings are considered decimal.
+  */
+declare function parseInt(s: string, radix?: number): number;
+
+/**
+  * Converts a string to a floating-point number. 
+  * @param string A string that contains a floating-point number. 
+  */
+declare function parseFloat(string: string): number;
+
+/**
+  * Returns a Boolean value that indicates whether a value is the reserved value NaN (not a number). 
+  * @param number A numeric value.
+  */
+declare function isNaN(number: number): boolean;
+
+/** 
+  * Determines whether a supplied number is finite.
+  * @param number Any numeric value.
+  */
+declare function isFinite(number: number): boolean;
+
+/**
+  * Gets the unencoded version of an encoded Uniform Resource Identifier (URI).
+  * @param encodedURI A value representing an encoded URI.
+  */
+declare function decodeURI(encodedURI: string): string;
+
+/**
+  * Gets the unencoded version of an encoded component of a Uniform Resource Identifier (URI).
+  * @param encodedURIComponent A value representing an encoded URI component.
+  */
+declare function decodeURIComponent(encodedURIComponent: string): string;
+
+/** 
+  * Encodes a text string as a valid Uniform Resource Identifier (URI)
+  * @param uri A value representing an encoded URI.
+  */
+declare function encodeURI(uri: string): string;
+
+/**
+  * Encodes a text string as a valid component of a Uniform Resource Identifier (URI).
+  * @param uriComponent A value representing an encoded URI component.
+  */
+declare function encodeURIComponent(uriComponent: string): string;
+
+interface PropertyDescriptor {
+    configurable?: boolean;
+    enumerable?: boolean;
+    value?: any;
+    writable?: boolean;
+    get? (): any;
+    set? (v: any): void;
+}
+
+interface PropertyDescriptorMap {
+    [s: string]: PropertyDescriptor;
+}
+
+interface Object {
+    /** The initial value of Object.prototype.constructor is the standard built-in Object constructor. */
+    constructor: Function;
+
+    /** Returns a string representation of an object. */
+    toString(): string;
+
+    /** Returns a date converted to a string using the current locale. */
+    toLocaleString(): string;
+
+    /** Returns the primitive value of the specified object. */
+    valueOf(): Object;
+
+    /**
+      * Determines whether an object has a property with the specified name. 
+      * @param v A property name.
+      */
+    hasOwnProperty(v: string): boolean;
+
+    /**
+      * Determines whether an object exists in another object's prototype chain. 
+      * @param v Another object whose prototype chain is to be checked.
+      */
+    isPrototypeOf(v: Object): boolean;
+
+    /** 
+      * Determines whether a specified property is enumerable.
+      * @param v A property name.
+      */
+    propertyIsEnumerable(v: string): boolean;
+}
+
+interface ObjectConstructor {
+    new (value?: any): Object;
+    (): any;
+    (value: any): any;
+
+    /** A reference to the prototype for a class of objects. */
+    prototype: Object;
+
+    /** 
+      * Returns the prototype of an object. 
+      * @param o The object that references the prototype.
+      */
+    getPrototypeOf(o: any): any;
+
+    /**
+      * Gets the own property descriptor of the specified object. 
+      * An own property descriptor is one that is defined directly on the object and is not inherited from the object's prototype. 
+      * @param o Object that contains the property.
+      * @param p Name of the property.
+    */
+    getOwnPropertyDescriptor(o: any, p: string): PropertyDescriptor;
+
+    /** 
+      * Returns the names of the own properties of an object. The own properties of an object are those that are defined directly 
+      * on that object, and are not inherited from the object's prototype. The properties of an object include both fields (objects) and functions.
+      * @param o Object that contains the own properties.
+      */
+    getOwnPropertyNames(o: any): string[];
+
+    /** 
+      * Creates an object that has the specified prototype, and that optionally contains specified properties.
+      * @param o Object to use as a prototype. May be null
+      * @param properties JavaScript object that contains one or more property descriptors. 
+      */
+    create(o: any, properties?: PropertyDescriptorMap): any;
+
+    /**
+      * Adds a property to an object, or modifies attributes of an existing property. 
+      * @param o Object on which to add or modify the property. This can be a native JavaScript object (that is, a user-defined object or a built in object) or a DOM object.
+      * @param p The property name.
+      * @param attributes Descriptor for the property. It can be for a data property or an accessor property.
+      */
+    defineProperty(o: any, p: string, attributes: PropertyDescriptor): any;
+
+    /**
+      * Adds one or more properties to an object, and/or modifies attributes of existing properties. 
+      * @param o Object on which to add or modify the properties. This can be a native JavaScript object or a DOM object.
+      * @param properties JavaScript object that contains one or more descriptor objects. Each descriptor object describes a data property or an accessor property.
+      */
+    defineProperties(o: any, properties: PropertyDescriptorMap): any;
+
+    /**
+      * Prevents the modification of attributes of existing properties, and prevents the addition of new properties.
+      * @param o Object on which to lock the attributes. 
+      */
+    seal<T>(o: T): T;
+
+    /**
+      * Prevents the modification of existing property attributes and values, and prevents the addition of new properties.
+      * @param o Object on which to lock the attributes.
+      */
+    freeze<T>(o: T): T;
+
+    /**
+      * Prevents the addition of new properties to an object.
+      * @param o Object to make non-extensible. 
+      */
+    preventExtensions<T>(o: T): T;
+
+    /**
+      * Returns true if existing property attributes cannot be modified in an object and new properties cannot be added to the object.
+      * @param o Object to test. 
+      */
+    isSealed(o: any): boolean;
+
+    /**
+      * Returns true if existing property attributes and values cannot be modified in an object, and new properties cannot be added to the object.
+      * @param o Object to test.  
+      */
+    isFrozen(o: any): boolean;
+
+    /**
+      * Returns a value that indicates whether new properties can be added to an object.
+      * @param o Object to test. 
+      */
+    isExtensible(o: any): boolean;
+
+    /**
+      * Returns the names of the enumerable properties and methods of an object.
+      * @param o Object that contains the properties and methods. This can be an object that you created or an existing Document Object Model (DOM) object.
+      */
+    keys(o: any): string[];
+}
+
+/**
+  * Provides functionality common to all JavaScript objects.
+  */
+declare var Object: ObjectConstructor;
+
+/**
+  * Creates a new function.
+  */
+interface Function {
+    /**
+      * Calls the function, substituting the specified object for the this value of the function, and the specified array for the arguments of the function.
+      * @param thisArg The object to be used as the this object.
+      * @param argArray A set of arguments to be passed to the function.
+      */
+    apply(thisArg: any, argArray?: any): any;
+
+    /**
+      * Calls a method of an object, substituting another object for the current object.
+      * @param thisArg The object to be used as the current object.
+      * @param argArray A list of arguments to be passed to the method.
+      */
+    call(thisArg: any, ...argArray: any[]): any;
+
+    /**
+      * For a given function, creates a bound function that has the same body as the original function. 
+      * The this object of the bound function is associated with the specified object, and has the specified initial parameters.
+      * @param thisArg An object to which the this keyword can refer inside the new function.
+      * @param argArray A list of arguments to be passed to the new function.
+      */
+    bind(thisArg: any, ...argArray: any[]): any;
+
+    prototype: any;
+    length: number;
+
+    // Non-standard extensions
+    arguments: any;
+    caller: Function;
+}
+
+interface FunctionConstructor {
+    /**
+      * Creates a new function.
+      * @param args A list of arguments the function accepts.
+      */
+    new (...args: string[]): Function;
+    (...args: string[]): Function;
+    prototype: Function;
+}
+
+declare var Function: FunctionConstructor;
+
+interface IArguments {
+    [index: number]: any;
+    length: number;
+    callee: Function;
+}
+
+interface String {
+    /** Returns a string representation of a string. */
+    toString(): string;
+
+    /**
+      * Returns the character at the specified index.
+      * @param pos The zero-based index of the desired character.
+      */
+    charAt(pos: number): string;
+
+    /** 
+      * Returns the Unicode value of the character at the specified location.
+      * @param index The zero-based index of the desired character. If there is no character at the specified index, NaN is returned.
+      */
+    charCodeAt(index: number): number;
+
+    /**
+      * Returns a string that contains the concatenation of two or more strings.
+      * @param strings The strings to append to the end of the string.  
+      */
+    concat(...strings: string[]): string;
+
+    /**
+      * Returns the position of the first occurrence of a substring. 
+      * @param searchString The substring to search for in the string
+      * @param position The index at which to begin searching the String object. If omitted, search starts at the beginning of the string.
+      */
+    indexOf(searchString: string, position?: number): number;
+
+    /**
+      * Returns the last occurrence of a substring in the string.
+      * @param searchString The substring to search for.
+      * @param position The index at which to begin searching. If omitted, the search begins at the end of the string.
+      */
+    lastIndexOf(searchString: string, position?: number): number;
+
+    /**
+      * Determines whether two strings are equivalent in the current locale.
+      * @param that String to compare to target string
+      */
+    localeCompare(that: string): number;
+
+    /** 
+      * Matches a string with a regular expression, and returns an array containing the results of that search.
+      * @param regexp A variable name or string literal containing the regular expression pattern and flags.
+      */
+    match(regexp: string): RegExpMatchArray;
+
+    /** 
+      * Matches a string with a regular expression, and returns an array containing the results of that search.
+      * @param regexp A regular expression object that contains the regular expression pattern and applicable flags. 
+      */
+    match(regexp: RegExp): RegExpMatchArray;
+
+    /**
+      * Replaces text in a string, using a regular expression or search string.
+      * @param searchValue A string that represents the regular expression.
+      * @param replaceValue A string containing the text to replace for every successful match of searchValue in this string.
+      */
+    replace(searchValue: string, replaceValue: string): string;
+
+    /**
+      * Replaces text in a string, using a regular expression or search string.
+      * @param searchValue A string that represents the regular expression.
+      * @param replacer A function that returns the replacement text.
+      */
+    replace(searchValue: string, replacer: (substring: string, ...args: any[]) => string): string;
+
+    /**
+      * Replaces text in a string, using a regular expression or search string.
+      * @param searchValue A Regular Expression object containing the regular expression pattern and applicable flags.
+      * @param replaceValue A string containing the text to replace for every successful match of searchValue in this string.
+      */
+    replace(searchValue: RegExp, replaceValue: string): string;
+
+    /**
+      * Replaces text in a string, using a regular expression or search string.
+      * @param searchValue A Regular Expression object containing the regular expression pattern and applicable flags
+      * @param replacer A function that returns the replacement text.
+      */
+    replace(searchValue: RegExp, replacer: (substring: string, ...args: any[]) => string): string;
+
+    /**
+      * Finds the first substring match in a regular expression search.
+      * @param regexp The regular expression pattern and applicable flags. 
+      */
+    search(regexp: string): number;
+
+    /**
+      * Finds the first substring match in a regular expression search.
+      * @param regexp The regular expression pattern and applicable flags. 
+      */
+    search(regexp: RegExp): number;
+
+    /**
+      * Returns a section of a string.
+      * @param start The index to the beginning of the specified portion of stringObj. 
+      * @param end The index to the end of the specified portion of stringObj. The substring includes the characters up to, but not including, the character indicated by end. 
+      * If this value is not specified, the substring continues to the end of stringObj.
+      */
+    slice(start?: number, end?: number): string;
+
+    /**
+      * Split a string into substrings using the specified separator and return them as an array.
+      * @param separator A string that identifies character or characters to use in separating the string. If omitted, a single-element array containing the entire string is returned. 
+      * @param limit A value used to limit the number of elements returned in the array.
+      */
+    split(separator: string, limit?: number): string[];
+
+    /**
+      * Split a string into substrings using the specified separator and return them as an array.
+      * @param separator A Regular Express that identifies character or characters to use in separating the string. If omitted, a single-element array containing the entire string is returned. 
+      * @param limit A value used to limit the number of elements returned in the array.
+      */
+    split(separator: RegExp, limit?: number): string[];
+
+    /**
+      * Returns the substring at the specified location within a String object. 
+      * @param start The zero-based index number indicating the beginning of the substring.
+      * @param end Zero-based index number indicating the end of the substring. The substring includes the characters up to, but not including, the character indicated by end.
+      * If end is omitted, the characters from start through the end of the original string are returned.
+      */
+    substring(start: number, end?: number): string;
+
+    /** Converts all the alphabetic characters in a string to lowercase. */
+    toLowerCase(): string;
+
+    /** Converts all alphabetic characters to lowercase, taking into account the host environment's current locale. */
+    toLocaleLowerCase(): string;
+
+    /** Converts all the alphabetic characters in a string to uppercase. */
+    toUpperCase(): string;
+
+    /** Returns a string where all alphabetic characters have been converted to uppercase, taking into account the host environment's current locale. */
+    toLocaleUpperCase(): string;
+
+    /** Removes the leading and trailing white space and line terminator characters from a string. */
+    trim(): string;
+
+    /** Returns the length of a String object. */
+    length: number;
+
+    // IE extensions
+    /**
+      * Gets a substring beginning at the specified location and having the specified length.
+      * @param from The starting position of the desired substring. The index of the first character in the string is zero.
+      * @param length The number of characters to include in the returned substring.
+      */
+    substr(from: number, length?: number): string;
+
+    /** Returns the primitive value of the specified object. */
+    valueOf(): string;
+
+    [index: number]: string;
+}
+
+interface StringConstructor {
+    new (value?: any): String;
+    (value?: any): string;
+    prototype: String;
+    fromCharCode(...codes: number[]): string;
+}
+
+/** 
+  * Allows manipulation and formatting of text strings and determination and location of substrings within strings. 
+  */
+declare var String: StringConstructor;
+
+interface Boolean {
+    /** Returns the primitive value of the specified object. */
+    valueOf(): boolean;
+}
+
+interface BooleanConstructor {
+    new (value?: any): Boolean;
+    (value?: any): boolean;
+    prototype: Boolean;
+}
+
+declare var Boolean: BooleanConstructor;
+
+interface Number {
+    /**
+      * Returns a string representation of an object.
+      * @param radix Specifies a radix for converting numeric values to strings. This value is only used for numbers.
+      */
+    toString(radix?: number): string;
+
+    /** 
+      * Returns a string representing a number in fixed-point notation.
+      * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+      */
+    toFixed(fractionDigits?: number): string;
+
+    /**
+      * Returns a string containing a number represented in exponential notation.
+      * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+      */
+    toExponential(fractionDigits?: number): string;
+
+    /**
+      * Returns a string containing a number represented either in exponential or fixed-point notation with a specified number of digits.
+      * @param precision Number of significant digits. Must be in the range 1 - 21, inclusive.
+      */
+    toPrecision(precision?: number): string;
+
+    /** Returns the primitive value of the specified object. */
+    valueOf(): number;
+}
+
+interface NumberConstructor {
+    new (value?: any): Number;
+    (value?: any): number;
+    prototype: Number;
+
+    /** The largest number that can be represented in JavaScript. Equal to approximately 1.79E+308. */
+    MAX_VALUE: number;
+
+    /** The closest number to zero that can be represented in JavaScript. Equal to approximately 5.00E-324. */
+    MIN_VALUE: number;
+
+    /** 
+      * A value that is not a number.
+      * In equality comparisons, NaN does not equal any value, including itself. To test whether a value is equivalent to NaN, use the isNaN function.
+      */
+    NaN: number;
+
+    /** 
+      * A value that is less than the largest negative number that can be represented in JavaScript.
+      * JavaScript displays NEGATIVE_INFINITY values as -infinity. 
+      */
+    NEGATIVE_INFINITY: number;
+
+    /**
+      * A value greater than the largest number that can be represented in JavaScript. 
+      * JavaScript displays POSITIVE_INFINITY values as infinity. 
+      */
+    POSITIVE_INFINITY: number;
+}
+
+/** An object that represents a number of any kind. All JavaScript numbers are 64-bit floating-point numbers. */
+declare var Number: NumberConstructor;
+
+interface TemplateStringsArray extends Array<string> {
+    raw: string[];
+}
+
+interface Math {
+    /** The mathematical constant e. This is Euler's number, the base of natural logarithms. */
+    E: number;
+    /** The natural logarithm of 10. */
+    LN10: number;
+    /** The natural logarithm of 2. */
+    LN2: number;
+    /** The base-2 logarithm of e. */
+    LOG2E: number;
+    /** The base-10 logarithm of e. */
+    LOG10E: number;
+    /** Pi. This is the ratio of the circumference of a circle to its diameter. */
+    PI: number;
+    /** The square root of 0.5, or, equivalently, one divided by the square root of 2. */
+    SQRT1_2: number;
+    /** The square root of 2. */
+    SQRT2: number;
+    /**
+      * Returns the absolute value of a number (the value without regard to whether it is positive or negative). 
+      * For example, the absolute value of -5 is the same as the absolute value of 5.
+      * @param x A numeric expression for which the absolute value is needed.
+      */
+    abs(x: number): number;
+    /**
+      * Returns the arc cosine (or inverse cosine) of a number. 
+      * @param x A numeric expression.
+      */
+    acos(x: number): number;
+    /** 
+      * Returns the arcsine of a number. 
+      * @param x A numeric expression.
+      */
+    asin(x: number): number;
+    /**
+      * Returns the arctangent of a number. 
+      * @param x A numeric expression for which the arctangent is needed.
+      */
+    atan(x: number): number;
+    /**
+      * Returns the angle (in radians) from the X axis to a point.
+      * @param y A numeric expression representing the cartesian y-coordinate.
+      * @param x A numeric expression representing the cartesian x-coordinate.
+      */
+    atan2(y: number, x: number): number;
+    /**
+      * Returns the smallest number greater than or equal to its numeric argument. 
+      * @param x A numeric expression.
+      */
+    ceil(x: number): number;
+    /**
+      * Returns the cosine of a number. 
+      * @param x A numeric expression that contains an angle measured in radians.
+      */
+    cos(x: number): number;
+    /**
+      * Returns e (the base of natural logarithms) raised to a power. 
+      * @param x A numeric expression representing the power of e.
+      */
+    exp(x: number): number;
+    /**
+      * Returns the greatest number less than or equal to its numeric argument. 
+      * @param x A numeric expression.
+      */
+    floor(x: number): number;
+    /**
+      * Returns the natural logarithm (base e) of a number. 
+      * @param x A numeric expression.
+      */
+    log(x: number): number;
+    /**
+      * Returns the larger of a set of supplied numeric expressions. 
+      * @param values Numeric expressions to be evaluated.
+      */
+    max(...values: number[]): number;
+    /**
+      * Returns the smaller of a set of supplied numeric expressions. 
+      * @param values Numeric expressions to be evaluated.
+      */
+    min(...values: number[]): number;
+    /**
+      * Returns the value of a base expression taken to a specified power. 
+      * @param x The base value of the expression.
+      * @param y The exponent value of the expression.
+      */
+    pow(x: number, y: number): number;
+    /** Returns a pseudorandom number between 0 and 1. */
+    random(): number;
+    /** 
+      * Returns a supplied numeric expression rounded to the nearest number.
+      * @param x The value to be rounded to the nearest number.
+      */
+    round(x: number): number;
+    /**
+      * Returns the sine of a number.
+      * @param x A numeric expression that contains an angle measured in radians.
+      */
+    sin(x: number): number;
+    /**
+      * Returns the square root of a number.
+      * @param x A numeric expression.
+      */
+    sqrt(x: number): number;
+    /**
+      * Returns the tangent of a number.
+      * @param x A numeric expression that contains an angle measured in radians.
+      */
+    tan(x: number): number;
+}
+/** An intrinsic object that provides basic mathematics functionality and constants. */
+declare var Math: Math;
+
+/** Enables basic storage and retrieval of dates and times. */
+interface Date {
+    /** Returns a string representation of a date. The format of the string depends on the locale. */
+    toString(): string;
+    /** Returns a date as a string value. */
+    toDateString(): string;
+    /** Returns a time as a string value. */
+    toTimeString(): string;
+    /** Returns a value as a string value appropriate to the host environment's current locale. */
+    toLocaleString(): string;
+    /** Returns a date as a string value appropriate to the host environment's current locale. */
+    toLocaleDateString(): string;
+    /** Returns a time as a string value appropriate to the host environment's current locale. */
+    toLocaleTimeString(): string;
+    /** Returns the stored time value in milliseconds since midnight, January 1, 1970 UTC. */
+    valueOf(): number;
+    /** Gets the time value in milliseconds. */
+    getTime(): number;
+    /** Gets the year, using local time. */
+    getFullYear(): number;
+    /** Gets the year using Universal Coordinated Time (UTC). */
+    getUTCFullYear(): number;
+    /** Gets the month, using local time. */
+    getMonth(): number;
+    /** Gets the month of a Date object using Universal Coordinated Time (UTC). */
+    getUTCMonth(): number;
+    /** Gets the day-of-the-month, using local time. */
+    getDate(): number;
+    /** Gets the day-of-the-month, using Universal Coordinated Time (UTC). */
+    getUTCDate(): number;
+    /** Gets the day of the week, using local time. */
+    getDay(): number;
+    /** Gets the day of the week using Universal Coordinated Time (UTC). */
+    getUTCDay(): number;
+    /** Gets the hours in a date, using local time. */
+    getHours(): number;
+    /** Gets the hours value in a Date object using Universal Coordinated Time (UTC). */
+    getUTCHours(): number;
+    /** Gets the minutes of a Date object, using local time. */
+    getMinutes(): number;
+    /** Gets the minutes of a Date object using Universal Coordinated Time (UTC). */
+    getUTCMinutes(): number;
+    /** Gets the seconds of a Date object, using local time. */
+    getSeconds(): number;
+    /** Gets the seconds of a Date object using Universal Coordinated Time (UTC). */
+    getUTCSeconds(): number;
+    /** Gets the milliseconds of a Date, using local time. */
+    getMilliseconds(): number;
+    /** Gets the milliseconds of a Date object using Universal Coordinated Time (UTC). */
+    getUTCMilliseconds(): number;
+    /** Gets the difference in minutes between the time on the local computer and Universal Coordinated Time (UTC). */
+    getTimezoneOffset(): number;
+    /** 
+      * Sets the date and time value in the Date object.
+      * @param time A numeric value representing the number of elapsed milliseconds since midnight, January 1, 1970 GMT. 
+      */
+    setTime(time: number): number;
+    /**
+      * Sets the milliseconds value in the Date object using local time. 
+      * @param ms A numeric value equal to the millisecond value.
+      */
+    setMilliseconds(ms: number): number;
+    /** 
+      * Sets the milliseconds value in the Date object using Universal Coordinated Time (UTC).
+      * @param ms A numeric value equal to the millisecond value. 
+      */
+    setUTCMilliseconds(ms: number): number;
+
+    /**
+      * Sets the seconds value in the Date object using local time. 
+      * @param sec A numeric value equal to the seconds value.
+      * @param ms A numeric value equal to the milliseconds value.
+      */
+    setSeconds(sec: number, ms?: number): number;
+    /**
+      * Sets the seconds value in the Date object using Universal Coordinated Time (UTC).
+      * @param sec A numeric value equal to the seconds value.
+      * @param ms A numeric value equal to the milliseconds value.
+      */
+    setUTCSeconds(sec: number, ms?: number): number;
+    /**
+      * Sets the minutes value in the Date object using local time. 
+      * @param min A numeric value equal to the minutes value. 
+      * @param sec A numeric value equal to the seconds value. 
+      * @param ms A numeric value equal to the milliseconds value.
+      */
+    setMinutes(min: number, sec?: number, ms?: number): number;
+    /**
+      * Sets the minutes value in the Date object using Universal Coordinated Time (UTC).
+      * @param min A numeric value equal to the minutes value. 
+      * @param sec A numeric value equal to the seconds value. 
+      * @param ms A numeric value equal to the milliseconds value.
+      */
+    setUTCMinutes(min: number, sec?: number, ms?: number): number;
+    /**
+      * Sets the hour value in the Date object using local time.
+      * @param hours A numeric value equal to the hours value.
+      * @param min A numeric value equal to the minutes value.
+      * @param sec A numeric value equal to the seconds value. 
+      * @param ms A numeric value equal to the milliseconds value.
+      */
+    setHours(hours: number, min?: number, sec?: number, ms?: number): number;
+    /**
+      * Sets the hours value in the Date object using Universal Coordinated Time (UTC).
+      * @param hours A numeric value equal to the hours value.
+      * @param min A numeric value equal to the minutes value.
+      * @param sec A numeric value equal to the seconds value. 
+      * @param ms A numeric value equal to the milliseconds value.
+      */
+    setUTCHours(hours: number, min?: number, sec?: number, ms?: number): number;
+    /**
+      * Sets the numeric day-of-the-month value of the Date object using local time. 
+      * @param date A numeric value equal to the day of the month.
+      */
+    setDate(date: number): number;
+    /** 
+      * Sets the numeric day of the month in the Date object using Universal Coordinated Time (UTC).
+      * @param date A numeric value equal to the day of the month. 
+      */
+    setUTCDate(date: number): number;
+    /** 
+      * Sets the month value in the Date object using local time. 
+      * @param month A numeric value equal to the month. The value for January is 0, and other month values follow consecutively. 
+      * @param date A numeric value representing the day of the month. If this value is not supplied, the value from a call to the getDate method is used.
+      */
+    setMonth(month: number, date?: number): number;
+    /**
+      * Sets the month value in the Date object using Universal Coordinated Time (UTC).
+      * @param month A numeric value equal to the month. The value for January is 0, and other month values follow consecutively.
+      * @param date A numeric value representing the day of the month. If it is not supplied, the value from a call to the getUTCDate method is used.
+      */
+    setUTCMonth(month: number, date?: number): number;
+    /**
+      * Sets the year of the Date object using local time.
+      * @param year A numeric value for the year.
+      * @param month A zero-based numeric value for the month (0 for January, 11 for December). Must be specified if numDate is specified.
+      * @param date A numeric value equal for the day of the month.
+      */
+    setFullYear(year: number, month?: number, date?: number): number;
+    /**
+      * Sets the year value in the Date object using Universal Coordinated Time (UTC).
+      * @param year A numeric value equal to the year.
+      * @param month A numeric value equal to the month. The value for January is 0, and other month values follow consecutively. Must be supplied if numDate is supplied.
+      * @param date A numeric value equal to the day of the month.
+      */
+    setUTCFullYear(year: number, month?: number, date?: number): number;
+    /** Returns a date converted to a string using Universal Coordinated Time (UTC). */
+    toUTCString(): string;
+    /** Returns a date as a string value in ISO format. */
+    toISOString(): string;
+    /** Used by the JSON.stringify method to enable the transformation of an object's data for JavaScript Object Notation (JSON) serialization. */
+    toJSON(key?: any): string;
+}
+
+interface DateConstructor {
+    new (): Date;
+    new (value: number): Date;
+    new (value: string): Date;
+    new (year: number, month: number, date?: number, hours?: number, minutes?: number, seconds?: number, ms?: number): Date;
+    (): string;
+    prototype: Date;
+    /**
+      * Parses a string containing a date, and returns the number of milliseconds between that date and midnight, January 1, 1970.
+      * @param s A date string
+      */
+    parse(s: string): number;
+    /**
+      * Returns the number of milliseconds between midnight, January 1, 1970 Universal Coordinated Time (UTC) (or GMT) and the specified date. 
+      * @param year The full year designation is required for cross-century date accuracy. If year is between 0 and 99 is used, then year is assumed to be 1900 + year.
+      * @param month The month as an number between 0 and 11 (January to December).
+      * @param date The date as an number between 1 and 31.
+      * @param hours Must be supplied if minutes is supplied. An number from 0 to 23 (midnight to 11pm) that specifies the hour.
+      * @param minutes Must be supplied if seconds is supplied. An number from 0 to 59 that specifies the minutes.
+      * @param seconds Must be supplied if milliseconds is supplied. An number from 0 to 59 that specifies the seconds.
+      * @param ms An number from 0 to 999 that specifies the milliseconds.
+      */
+    UTC(year: number, month: number, date?: number, hours?: number, minutes?: number, seconds?: number, ms?: number): number;
+    now(): number;
+}
+
+declare var Date: DateConstructor;
+
+interface RegExpMatchArray extends Array<string> {
+    index?: number;
+    input?: string;
+}
+
+interface RegExpExecArray extends Array<string> {
+    index: number;
+    input: string;
+}
+
+interface RegExp {
+    /** 
+      * Executes a search on a string using a regular expression pattern, and returns an array containing the results of that search.
+      * @param string The String object or string literal on which to perform the search.
+      */
+    exec(string: string): RegExpExecArray;
+
+    /** 
+      * Returns a Boolean value that indicates whether or not a pattern exists in a searched string.
+      * @param string String on which to perform the search.
+      */
+    test(string: string): boolean;
+
+    /** Returns a copy of the text of the regular expression pattern. Read-only. The regExp argument is a Regular expression object. It can be a variable name or a literal. */
+    source: string;
+
+    /** Returns a Boolean value indicating the state of the global flag (g) used with a regular expression. Default is false. Read-only. */
+    global: boolean;
+
+    /** Returns a Boolean value indicating the state of the ignoreCase flag (i) used with a regular expression. Default is false. Read-only. */
+    ignoreCase: boolean;
+
+    /** Returns a Boolean value indicating the state of the multiline flag (m) used with a regular expression. Default is false. Read-only. */
+    multiline: boolean;
+
+    lastIndex: number;
+
+    // Non-standard extensions
+    compile(): RegExp;
+}
+
+interface RegExpConstructor {
+    new (pattern: string, flags?: string): RegExp;
+    (pattern: string, flags?: string): RegExp;
+    prototype: RegExp;
+
+    // Non-standard extensions
+    $1: string;
+    $2: string;
+    $3: string;
+    $4: string;
+    $5: string;
+    $6: string;
+    $7: string;
+    $8: string;
+    $9: string;
+    lastMatch: string;
+}
+
+declare var RegExp: RegExpConstructor;
+
+interface Error {
+    name: string;
+    message: string;
+}
+
+interface ErrorConstructor {
+    new (message?: string): Error;
+    (message?: string): Error;
+    prototype: Error;
+}
+
+declare var Error: ErrorConstructor;
+
+interface EvalError extends Error {
+}
+
+interface EvalErrorConstructor {
+    new (message?: string): EvalError;
+    (message?: string): EvalError;
+    prototype: EvalError;
+}
+
+declare var EvalError: EvalErrorConstructor;
+
+interface RangeError extends Error {
+}
+
+interface RangeErrorConstructor {
+    new (message?: string): RangeError;
+    (message?: string): RangeError;
+    prototype: RangeError;
+}
+
+declare var RangeError: RangeErrorConstructor;
+
+interface ReferenceError extends Error {
+}
+
+interface ReferenceErrorConstructor {
+    new (message?: string): ReferenceError;
+    (message?: string): ReferenceError;
+    prototype: ReferenceError;
+}
+
+declare var ReferenceError: ReferenceErrorConstructor;
+
+interface SyntaxError extends Error {
+}
+
+interface SyntaxErrorConstructor {
+    new (message?: string): SyntaxError;
+    (message?: string): SyntaxError;
+    prototype: SyntaxError;
+}
+
+declare var SyntaxError: SyntaxErrorConstructor;
+
+interface TypeError extends Error {
+}
+
+interface TypeErrorConstructor {
+    new (message?: string): TypeError;
+    (message?: string): TypeError;
+    prototype: TypeError;
+}
+
+declare var TypeError: TypeErrorConstructor;
+
+interface URIError extends Error {
+}
+
+interface URIErrorConstructor {
+    new (message?: string): URIError;
+    (message?: string): URIError;
+    prototype: URIError;
+}
+
+declare var URIError: URIErrorConstructor;
+
+interface JSON {
+    /**
+      * Converts a JavaScript Object Notation (JSON) string into an object.
+      * @param text A valid JSON string.
+      * @param reviver A function that transforms the results. This function is called for each member of the object. 
+      * If a member contains nested objects, the nested objects are transformed before the parent object is. 
+      */
+    parse(text: string, reviver?: (key: any, value: any) => any): any;
+    /**
+      * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
+      * @param value A JavaScript value, usually an object or array, to be converted.
+      */
+    stringify(value: any): string;
+    /**
+      * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
+      * @param value A JavaScript value, usually an object or array, to be converted.
+      * @param replacer A function that transforms the results.
+      */
+    stringify(value: any, replacer: (key: string, value: any) => any): string;
+    /**
+      * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
+      * @param value A JavaScript value, usually an object or array, to be converted.
+      * @param replacer Array that transforms the results.
+      */
+    stringify(value: any, replacer: any[]): string;
+    /**
+      * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
+      * @param value A JavaScript value, usually an object or array, to be converted.
+      * @param replacer A function that transforms the results.
+      * @param space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+      */
+    stringify(value: any, replacer: (key: string, value: any) => any, space: string | number): string;
+    /**
+      * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
+      * @param value A JavaScript value, usually an object or array, to be converted.
+      * @param replacer Array that transforms the results.
+      * @param space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+      */
+    stringify(value: any, replacer: any[], space: string | number): string;
+}
+/**
+  * An intrinsic object that provides functions to convert JavaScript values to and from the JavaScript Object Notation (JSON) format.
+  */
+declare var JSON: JSON;
+
+
+/////////////////////////////
+/// ECMAScript Array API (specially handled by compiler)
+/////////////////////////////
+
+interface Array<T> {
+    /**
+      * Gets or sets the length of the array. This is a number one higher than the highest element defined in an array.
+      */
+    length: number;
+    /**
+      * Returns a string representation of an array.
+      */
+    toString(): string;
+    toLocaleString(): string;
+    /**
+      * Appends new elements to an array, and returns the new length of the array.
+      * @param items New elements of the Array.
+      */
+    push(...items: T[]): number;
+    /**
+      * Removes the last element from an array and returns it.
+      */
+    pop(): T;
+    /**
+      * Combines two or more arrays.
+      * @param items Additional items to add to the end of array1.
+      */
+    concat<U extends T[]>(...items: U[]): T[];
+    /**
+      * Combines two or more arrays.
+      * @param items Additional items to add to the end of array1.
+      */
+    concat(...items: T[]): T[];
+    /**
+      * Adds all the elements of an array separated by the specified separator string.
+      * @param separator A string used to separate one element of an array from the next in the resulting String. If omitted, the array elements are separated with a comma.
+      */
+    join(separator?: string): string;
+    /**
+      * Reverses the elements in an Array. 
+      */
+    reverse(): T[];
+    /**
+      * Removes the first element from an array and returns it.
+      */
+    shift(): T;
+    /** 
+      * Returns a section of an array.
+      * @param start The beginning of the specified portion of the array.
+      * @param end The end of the specified portion of the array.
+      */
+    slice(start?: number, end?: number): T[];
+
+    /**
+      * Sorts an array.
+      * @param compareFn The name of the function used to determine the order of the elements. If omitted, the elements are sorted in ascending, ASCII character order.
+      */
+    sort(compareFn?: (a: T, b: T) => number): T[];
+
+    /**
+      * Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.
+      * @param start The zero-based location in the array from which to start removing elements.
+      */
+    splice(start: number): T[];
+
+    /**
+      * Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.
+      * @param start The zero-based location in the array from which to start removing elements.
+      * @param deleteCount The number of elements to remove.
+      * @param items Elements to insert into the array in place of the deleted elements.
+      */
+    splice(start: number, deleteCount: number, ...items: T[]): T[];
+
+    /**
+      * Inserts new elements at the start of an array.
+      * @param items  Elements to insert at the start of the Array.
+      */
+    unshift(...items: T[]): number;
+
+    /**
+      * Returns the index of the first occurrence of a value in an array.
+      * @param searchElement The value to locate in the array.
+      * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.
+      */
+    indexOf(searchElement: T, fromIndex?: number): number;
+
+    /**
+      * Returns the index of the last occurrence of a specified value in an array.
+      * @param searchElement The value to locate in the array.
+      * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at the last index in the array.
+      */
+    lastIndexOf(searchElement: T, fromIndex?: number): number;
+
+    /**
+      * Determines whether all the members of an array satisfy the specified test.
+      * @param callbackfn A function that accepts up to three arguments. The every method calls the callbackfn function for each element in array1 until the callbackfn returns false, or until the end of the array.
+      * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+      */
+    every(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): boolean;
+
+    /**
+      * Determines whether the specified callback function returns true for any element of an array.
+      * @param callbackfn A function that accepts up to three arguments. The some method calls the callbackfn function for each element in array1 until the callbackfn returns true, or until the end of the array.
+      * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+      */
+    some(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): boolean;
+
+    /**
+      * Performs the specified action for each element in an array.
+      * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array. 
+      * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+      */
+    forEach(callbackfn: (value: T, index: number, array: T[]) => void, thisArg?: any): void;
+
+    /**
+      * Calls a defined callback function on each element of an array, and returns an array that contains the results.
+      * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array. 
+      * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+      */
+    map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[];
+
+    /**
+      * Returns the elements of an array that meet the condition specified in a callback function. 
+      * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array. 
+      * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+      */
+    filter(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): T[];
+
+    /**
+      * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
+      * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
+      * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+      */
+    reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T;
+    /**
+      * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
+      * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
+      * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+      */
+    reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
+
+    /** 
+      * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
+      * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array. 
+      * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+      */
+    reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T;
+    /** 
+      * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
+      * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array. 
+      * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+      */
+    reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
+
+    [n: number]: T;
+}
+
+interface ArrayConstructor {
+    new (arrayLength?: number): any[];
+    new <T>(arrayLength: number): T[];
+    new <T>(...items: T[]): T[];
+    (arrayLength?: number): any[];
+    <T>(arrayLength: number): T[];
+    <T>(...items: T[]): T[];
+    isArray(arg: any): arg is Array<any>;
+    prototype: Array<any>;
+}
+
+declare var Array: ArrayConstructor;
+
+interface TypedPropertyDescriptor<T> {
+    enumerable?: boolean;
+    configurable?: boolean;
+    writable?: boolean;
+    value?: T;
+    get?: () => T;
+    set?: (value: T) => void;
+}
+
+declare type ClassDecorator = <TFunction extends Function>(target: TFunction) => TFunction | void;
+declare type PropertyDecorator = (target: Object, propertyKey: string | symbol) => void;
+declare type MethodDecorator = <T>(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
+declare type ParameterDecorator = (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
+
+declare type PromiseConstructorLike = new <T>(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) => PromiseLike<T>;
+
+interface PromiseLike<T> {
+    /**
+    * Attaches callbacks for the resolution and/or rejection of the Promise.
+    * @param onfulfilled The callback to execute when the Promise is resolved.
+    * @param onrejected The callback to execute when the Promise is rejected.
+    * @returns A Promise for the completion of which ever callback is executed.
+    */
+    then<TResult>(onfulfilled?: (value: T) => TResult | PromiseLike<TResult>, onrejected?: (reason: any) => TResult | PromiseLike<TResult>): PromiseLike<TResult>;
+    then<TResult>(onfulfilled?: (value: T) => TResult | PromiseLike<TResult>, onrejected?: (reason: any) => void): PromiseLike<TResult>;
+}
+
+interface ArrayLike<T> {
+    length: number;
+    [n: number]: T;
+}
+
 
 /**
   * Represents a raw buffer of binary data, which is used to store data for the 
@@ -70,14 +1255,14 @@ interface DataView {
       * no alignment constraint; multi-byte values may be fetched from any offset. 
       * @param byteOffset The place in the buffer at which the value should be retrieved.
       */
-    getFloat32(byteOffset: number, littleEndian: boolean): number;
+    getFloat32(byteOffset: number, littleEndian?: boolean): number;
 
     /**
       * Gets the Float64 value at the specified byte offset from the start of the view. There is
       * no alignment constraint; multi-byte values may be fetched from any offset. 
       * @param byteOffset The place in the buffer at which the value should be retrieved.
       */
-    getFloat64(byteOffset: number, littleEndian: boolean): number;
+    getFloat64(byteOffset: number, littleEndian?: boolean): number;
 
     /**
       * Gets the Int8 value at the specified byte offset from the start of the view. There is 
@@ -91,13 +1276,13 @@ interface DataView {
       * no alignment constraint; multi-byte values may be fetched from any offset. 
       * @param byteOffset The place in the buffer at which the value should be retrieved.
       */
-    getInt16(byteOffset: number, littleEndian: boolean): number;
+    getInt16(byteOffset: number, littleEndian?: boolean): number;
     /**
       * Gets the Int32 value at the specified byte offset from the start of the view. There is 
       * no alignment constraint; multi-byte values may be fetched from any offset. 
       * @param byteOffset The place in the buffer at which the value should be retrieved.
       */
-    getInt32(byteOffset: number, littleEndian: boolean): number;
+    getInt32(byteOffset: number, littleEndian?: boolean): number;
 
     /**
       * Gets the Uint8 value at the specified byte offset from the start of the view. There is 
@@ -111,14 +1296,14 @@ interface DataView {
       * no alignment constraint; multi-byte values may be fetched from any offset. 
       * @param byteOffset The place in the buffer at which the value should be retrieved.
       */
-    getUint16(byteOffset: number, littleEndian: boolean): number;
+    getUint16(byteOffset: number, littleEndian?: boolean): number;
 
     /**
       * Gets the Uint32 value at the specified byte offset from the start of the view. There is 
       * no alignment constraint; multi-byte values may be fetched from any offset. 
       * @param byteOffset The place in the buffer at which the value should be retrieved.
       */
-    getUint32(byteOffset: number, littleEndian: boolean): number;
+    getUint32(byteOffset: number, littleEndian?: boolean): number;
 
     /**
       * Stores an Float32 value at the specified byte offset from the start of the view. 
@@ -127,7 +1312,7 @@ interface DataView {
       * @param littleEndian If false or undefined, a big-endian value should be written, 
       * otherwise a little-endian value should be written.
       */
-    setFloat32(byteOffset: number, value: number, littleEndian: boolean): void;
+    setFloat32(byteOffset: number, value: number, littleEndian?: boolean): void;
 
     /**
       * Stores an Float64 value at the specified byte offset from the start of the view. 
@@ -136,7 +1321,7 @@ interface DataView {
       * @param littleEndian If false or undefined, a big-endian value should be written, 
       * otherwise a little-endian value should be written.
       */
-    setFloat64(byteOffset: number, value: number, littleEndian: boolean): void;
+    setFloat64(byteOffset: number, value: number, littleEndian?: boolean): void;
 
     /**
       * Stores an Int8 value at the specified byte offset from the start of the view. 
@@ -152,7 +1337,7 @@ interface DataView {
       * @param littleEndian If false or undefined, a big-endian value should be written, 
       * otherwise a little-endian value should be written.
       */
-    setInt16(byteOffset: number, value: number, littleEndian: boolean): void;
+    setInt16(byteOffset: number, value: number, littleEndian?: boolean): void;
 
     /**
       * Stores an Int32 value at the specified byte offset from the start of the view. 
@@ -161,7 +1346,7 @@ interface DataView {
       * @param littleEndian If false or undefined, a big-endian value should be written, 
       * otherwise a little-endian value should be written.
       */
-    setInt32(byteOffset: number, value: number, littleEndian: boolean): void;
+    setInt32(byteOffset: number, value: number, littleEndian?: boolean): void;
 
     /**
       * Stores an Uint8 value at the specified byte offset from the start of the view. 
@@ -177,7 +1362,7 @@ interface DataView {
       * @param littleEndian If false or undefined, a big-endian value should be written, 
       * otherwise a little-endian value should be written.
       */
-    setUint16(byteOffset: number, value: number, littleEndian: boolean): void;
+    setUint16(byteOffset: number, value: number, littleEndian?: boolean): void;
 
     /**
       * Stores an Uint32 value at the specified byte offset from the start of the view. 
@@ -186,7 +1371,7 @@ interface DataView {
       * @param littleEndian If false or undefined, a big-endian value should be written, 
       * otherwise a little-endian value should be written.
       */
-    setUint32(byteOffset: number, value: number, littleEndian: boolean): void;
+    setUint32(byteOffset: number, value: number, littleEndian?: boolean): void;
 }
 
 interface DataViewConstructor {
@@ -393,7 +1578,7 @@ interface Int8Array {
       * @param array A typed or untyped array of values to set.
       * @param offset The index in the current array at which the values are to be written.
       */
-    set(array: Int8Array, offset?: number): void;
+    set(array: ArrayLike<number>, offset?: number): void;
 
     /** 
       * Returns a section of an array.
@@ -442,8 +1627,7 @@ interface Int8Array {
 interface Int8ArrayConstructor {
     prototype: Int8Array;
     new (length: number): Int8Array;
-    new (array: Int8Array): Int8Array;
-    new (array: number[]): Int8Array;
+    new (array: ArrayLike<number>): Int8Array;
     new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Int8Array;
 
     /**
@@ -456,6 +1640,15 @@ interface Int8ArrayConstructor {
       * @param items A set of elements to include in the new array object.
       */
     of(...items: number[]): Int8Array;
+    
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Int8Array;
+
 }
 declare var Int8Array: Int8ArrayConstructor;
 
@@ -658,7 +1851,7 @@ interface Uint8Array {
       * @param array A typed or untyped array of values to set.
       * @param offset The index in the current array at which the values are to be written.
       */
-    set(array: Uint8Array, offset?: number): void;
+    set(array: ArrayLike<number>, offset?: number): void;
 
     /** 
       * Returns a section of an array.
@@ -708,8 +1901,7 @@ interface Uint8Array {
 interface Uint8ArrayConstructor {
     prototype: Uint8Array;
     new (length: number): Uint8Array;
-    new (array: Uint8Array): Uint8Array;
-    new (array: number[]): Uint8Array;
+    new (array: ArrayLike<number>): Uint8Array;
     new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Uint8Array;
 
     /**
@@ -722,8 +1914,290 @@ interface Uint8ArrayConstructor {
       * @param items A set of elements to include in the new array object.
       */
     of(...items: number[]): Uint8Array;
+    
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Uint8Array;
+
 }
 declare var Uint8Array: Uint8ArrayConstructor;
+
+/**
+  * A typed array of 8-bit unsigned integer (clamped) values. The contents are initialized to 0. 
+  * If the requested number of bytes could not be allocated an exception is raised.
+  */
+interface Uint8ClampedArray {
+    /**
+      * The size in bytes of each element in the array. 
+      */
+    BYTES_PER_ELEMENT: number;
+
+    /**
+      * The ArrayBuffer instance referenced by the array. 
+      */
+    buffer: ArrayBuffer;
+
+    /**
+      * The length in bytes of the array.
+      */
+    byteLength: number;
+
+    /**
+      * The offset in bytes of the array.
+      */
+    byteOffset: number;
+
+    /** 
+      * Returns the this object after copying a section of the array identified by start and end
+      * to the same array starting at position target
+      * @param target If target is negative, it is treated as length+target where length is the 
+      * length of the array. 
+      * @param start If start is negative, it is treated as length+start. If end is negative, it 
+      * is treated as length+end.
+      * @param end If not specified, length of the this object is used as its default value. 
+      */
+    copyWithin(target: number, start: number, end?: number): Uint8ClampedArray;
+
+    /**
+      * Determines whether all the members of an array satisfy the specified test.
+      * @param callbackfn A function that accepts up to three arguments. The every method calls 
+      * the callbackfn function for each element in array1 until the callbackfn returns false, 
+      * or until the end of the array.
+      * @param thisArg An object to which the this keyword can refer in the callbackfn function.
+      * If thisArg is omitted, undefined is used as the this value.
+      */
+    every(callbackfn: (value: number, index: number, array: Uint8ClampedArray) => boolean, thisArg?: any): boolean;
+
+    /**
+        * Returns the this object after filling the section identified by start and end with value
+        * @param value value to fill array section with
+        * @param start index to start filling the array at. If start is negative, it is treated as 
+        * length+start where length is the length of the array. 
+        * @param end index to stop filling the array at. If end is negative, it is treated as 
+        * length+end.
+        */
+    fill(value: number, start?: number, end?: number): Uint8ClampedArray;
+
+    /**
+      * Returns the elements of an array that meet the condition specified in a callback function. 
+      * @param callbackfn A function that accepts up to three arguments. The filter method calls 
+      * the callbackfn function one time for each element in the array. 
+      * @param thisArg An object to which the this keyword can refer in the callbackfn function. 
+      * If thisArg is omitted, undefined is used as the this value.
+      */
+    filter(callbackfn: (value: number, index: number, array: Uint8ClampedArray) => boolean, thisArg?: any): Uint8ClampedArray;
+
+    /** 
+      * Returns the value of the first element in the array where predicate is true, and undefined 
+      * otherwise.
+      * @param predicate find calls predicate once for each element of the array, in ascending 
+      * order, until it finds one where predicate returns true. If such an element is found, find 
+      * immediately returns that element value. Otherwise, find returns undefined.
+      * @param thisArg If provided, it will be used as the this value for each invocation of 
+      * predicate. If it is not provided, undefined is used instead.
+      */
+    find(predicate: (value: number, index: number, obj: Array<number>) => boolean, thisArg?: any): number;
+
+    /** 
+      * Returns the index of the first element in the array where predicate is true, and undefined 
+      * otherwise.
+      * @param predicate find calls predicate once for each element of the array, in ascending 
+      * order, until it finds one where predicate returns true. If such an element is found, find 
+      * immediately returns that element value. Otherwise, find returns undefined.
+      * @param thisArg If provided, it will be used as the this value for each invocation of 
+      * predicate. If it is not provided, undefined is used instead.
+      */
+    findIndex(predicate: (value: number) => boolean, thisArg?: any): number;
+
+    /**
+      * Performs the specified action for each element in an array.
+      * @param callbackfn  A function that accepts up to three arguments. forEach calls the 
+      * callbackfn function one time for each element in the array. 
+      * @param thisArg  An object to which the this keyword can refer in the callbackfn function. 
+      * If thisArg is omitted, undefined is used as the this value.
+      */
+    forEach(callbackfn: (value: number, index: number, array: Uint8ClampedArray) => void, thisArg?: any): void;
+
+    /**
+      * Returns the index of the first occurrence of a value in an array.
+      * @param searchElement The value to locate in the array.
+      * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the
+      *  search starts at index 0.
+      */
+    indexOf(searchElement: number, fromIndex?: number): number;
+
+    /**
+      * Adds all the elements of an array separated by the specified separator string.
+      * @param separator A string used to separate one element of an array from the next in the 
+      * resulting String. If omitted, the array elements are separated with a comma.
+      */
+    join(separator?: string): string;
+
+    /**
+      * Returns the index of the last occurrence of a value in an array.
+      * @param searchElement The value to locate in the array.
+      * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the 
+      * search starts at index 0.
+      */
+    lastIndexOf(searchElement: number, fromIndex?: number): number;
+
+    /**
+      * The length of the array.
+      */
+    length: number;
+
+    /**
+      * Calls a defined callback function on each element of an array, and returns an array that 
+      * contains the results.
+      * @param callbackfn A function that accepts up to three arguments. The map method calls the 
+      * callbackfn function one time for each element in the array. 
+      * @param thisArg An object to which the this keyword can refer in the callbackfn function. 
+      * If thisArg is omitted, undefined is used as the this value.
+      */
+    map(callbackfn: (value: number, index: number, array: Uint8ClampedArray) => number, thisArg?: any): Uint8ClampedArray;
+
+    /**
+      * Calls the specified callback function for all the elements in an array. The return value of 
+      * the callback function is the accumulated result, and is provided as an argument in the next 
+      * call to the callback function.
+      * @param callbackfn A function that accepts up to four arguments. The reduce method calls the 
+      * callbackfn function one time for each element in the array.
+      * @param initialValue If initialValue is specified, it is used as the initial value to start 
+      * the accumulation. The first call to the callbackfn function provides this value as an argument
+      * instead of an array value.
+      */
+    reduce(callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8ClampedArray) => number, initialValue?: number): number;
+
+    /**
+      * Calls the specified callback function for all the elements in an array. The return value of 
+      * the callback function is the accumulated result, and is provided as an argument in the next 
+      * call to the callback function.
+      * @param callbackfn A function that accepts up to four arguments. The reduce method calls the 
+      * callbackfn function one time for each element in the array.
+      * @param initialValue If initialValue is specified, it is used as the initial value to start 
+      * the accumulation. The first call to the callbackfn function provides this value as an argument 
+      * instead of an array value.
+      */
+    reduce<U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint8ClampedArray) => U, initialValue: U): U;
+
+    /** 
+      * Calls the specified callback function for all the elements in an array, in descending order. 
+      * The return value of the callback function is the accumulated result, and is provided as an 
+      * argument in the next call to the callback function.
+      * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls 
+      * the callbackfn function one time for each element in the array. 
+      * @param initialValue If initialValue is specified, it is used as the initial value to start 
+      * the accumulation. The first call to the callbackfn function provides this value as an 
+      * argument instead of an array value.
+      */
+    reduceRight(callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8ClampedArray) => number, initialValue?: number): number;
+
+    /** 
+      * Calls the specified callback function for all the elements in an array, in descending order. 
+      * The return value of the callback function is the accumulated result, and is provided as an 
+      * argument in the next call to the callback function.
+      * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls
+      * the callbackfn function one time for each element in the array. 
+      * @param initialValue If initialValue is specified, it is used as the initial value to start 
+      * the accumulation. The first call to the callbackfn function provides this value as an argument
+      * instead of an array value.
+      */
+    reduceRight<U>(callbackfn: (previousValue: U, currentValue: number, currentIndex: number, array: Uint8ClampedArray) => U, initialValue: U): U;
+
+    /**
+      * Reverses the elements in an Array. 
+      */
+    reverse(): Uint8ClampedArray;
+
+    /**
+      * Sets a value or an array of values.
+      * @param index The index of the location to set.
+      * @param value The value to set.
+      */
+    set(index: number, value: number): void;
+
+    /**
+      * Sets a value or an array of values.
+      * @param array A typed or untyped array of values to set.
+      * @param offset The index in the current array at which the values are to be written.
+      */
+    set(array: Uint8ClampedArray, offset?: number): void;
+
+    /** 
+      * Returns a section of an array.
+      * @param start The beginning of the specified portion of the array.
+      * @param end The end of the specified portion of the array.
+      */
+    slice(start?: number, end?: number): Uint8ClampedArray;
+
+    /**
+      * Determines whether the specified callback function returns true for any element of an array.
+      * @param callbackfn A function that accepts up to three arguments. The some method calls the 
+      * callbackfn function for each element in array1 until the callbackfn returns true, or until 
+      * the end of the array.
+      * @param thisArg An object to which the this keyword can refer in the callbackfn function. 
+      * If thisArg is omitted, undefined is used as the this value.
+      */
+    some(callbackfn: (value: number, index: number, array: Uint8ClampedArray) => boolean, thisArg?: any): boolean;
+
+    /**
+      * Sorts an array.
+      * @param compareFn The name of the function used to determine the order of the elements. If 
+      * omitted, the elements are sorted in ascending, ASCII character order.
+      */
+    sort(compareFn?: (a: number, b: number) => number): Uint8ClampedArray;
+
+    /**
+      * Gets a new Uint8ClampedArray view of the ArrayBuffer store for this array, referencing the elements
+      * at begin, inclusive, up to end, exclusive. 
+      * @param begin The index of the beginning of the array.
+      * @param end The index of the end of the array.
+      */
+    subarray(begin: number, end?: number): Uint8ClampedArray;
+
+    /**
+      * Converts a number to a string by using the current locale. 
+      */
+    toLocaleString(): string;
+
+    /**
+      * Returns a string representation of an array.
+      */
+    toString(): string;
+
+    [index: number]: number;
+}
+
+interface Uint8ClampedArrayConstructor {
+    prototype: Uint8ClampedArray;
+    new (length: number): Uint8ClampedArray;
+    new (array: ArrayLike<number>): Uint8ClampedArray;
+    new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Uint8ClampedArray;
+
+    /**
+      * The size in bytes of each element in the array. 
+      */
+    BYTES_PER_ELEMENT: number;
+
+    /**
+      * Returns a new array from a set of elements.
+      * @param items A set of elements to include in the new array object.
+      */
+    of(...items: number[]): Uint8ClampedArray;
+
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Uint8ClampedArray;
+}
+declare var Uint8ClampedArray: Uint8ClampedArrayConstructor;
 
 /**
   * A typed array of 16-bit signed integer values. The contents are initialized to 0. If the 
@@ -924,7 +2398,7 @@ interface Int16Array {
       * @param array A typed or untyped array of values to set.
       * @param offset The index in the current array at which the values are to be written.
       */
-    set(array: Int16Array, offset?: number): void;
+    set(array: ArrayLike<number>, offset?: number): void;
 
     /** 
       * Returns a section of an array.
@@ -974,8 +2448,7 @@ interface Int16Array {
 interface Int16ArrayConstructor {
     prototype: Int16Array;
     new (length: number): Int16Array;
-    new (array: Int16Array): Int16Array;
-    new (array: number[]): Int16Array;
+    new (array: ArrayLike<number>): Int16Array;
     new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Int16Array;
 
     /**
@@ -988,6 +2461,15 @@ interface Int16ArrayConstructor {
       * @param items A set of elements to include in the new array object.
       */
     of(...items: number[]): Int16Array;
+    
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Int16Array;
+
 }
 declare var Int16Array: Int16ArrayConstructor;
 
@@ -1190,7 +2672,7 @@ interface Uint16Array {
       * @param array A typed or untyped array of values to set.
       * @param offset The index in the current array at which the values are to be written.
       */
-    set(array: Uint16Array, offset?: number): void;
+    set(array: ArrayLike<number>, offset?: number): void;
 
     /** 
       * Returns a section of an array.
@@ -1240,8 +2722,7 @@ interface Uint16Array {
 interface Uint16ArrayConstructor {
     prototype: Uint16Array;
     new (length: number): Uint16Array;
-    new (array: Uint16Array): Uint16Array;
-    new (array: number[]): Uint16Array;
+    new (array: ArrayLike<number>): Uint16Array;
     new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Uint16Array;
 
     /**
@@ -1254,6 +2735,15 @@ interface Uint16ArrayConstructor {
       * @param items A set of elements to include in the new array object.
       */
     of(...items: number[]): Uint16Array;
+    
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Uint16Array;
+
 }
 declare var Uint16Array: Uint16ArrayConstructor;
 /**
@@ -1455,7 +2945,7 @@ interface Int32Array {
       * @param array A typed or untyped array of values to set.
       * @param offset The index in the current array at which the values are to be written.
       */
-    set(array: Int32Array, offset?: number): void;
+    set(array: ArrayLike<number>, offset?: number): void;
 
     /** 
       * Returns a section of an array.
@@ -1505,8 +2995,7 @@ interface Int32Array {
 interface Int32ArrayConstructor {
     prototype: Int32Array;
     new (length: number): Int32Array;
-    new (array: Int32Array): Int32Array;
-    new (array: number[]): Int32Array;
+    new (array: ArrayLike<number>): Int32Array;
     new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Int32Array;
 
     /**
@@ -1519,6 +3008,14 @@ interface Int32ArrayConstructor {
       * @param items A set of elements to include in the new array object.
       */
     of(...items: number[]): Int32Array;
+    
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Int32Array;
 }
 declare var Int32Array: Int32ArrayConstructor;
 
@@ -1721,7 +3218,7 @@ interface Uint32Array {
       * @param array A typed or untyped array of values to set.
       * @param offset The index in the current array at which the values are to be written.
       */
-    set(array: Uint32Array, offset?: number): void;
+    set(array: ArrayLike<number>, offset?: number): void;
 
     /** 
       * Returns a section of an array.
@@ -1771,8 +3268,7 @@ interface Uint32Array {
 interface Uint32ArrayConstructor {
     prototype: Uint32Array;
     new (length: number): Uint32Array;
-    new (array: Uint32Array): Uint32Array;
-    new (array: number[]): Uint32Array;
+    new (array: ArrayLike<number>): Uint32Array;
     new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Uint32Array;
 
     /**
@@ -1785,6 +3281,14 @@ interface Uint32ArrayConstructor {
       * @param items A set of elements to include in the new array object.
       */
     of(...items: number[]): Uint32Array;
+    
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Uint32Array;
 }
 declare var Uint32Array: Uint32ArrayConstructor;
 
@@ -1987,7 +3491,7 @@ interface Float32Array {
       * @param array A typed or untyped array of values to set.
       * @param offset The index in the current array at which the values are to be written.
       */
-    set(array: Float32Array, offset?: number): void;
+    set(array: ArrayLike<number>, offset?: number): void;
 
     /** 
       * Returns a section of an array.
@@ -2037,8 +3541,7 @@ interface Float32Array {
 interface Float32ArrayConstructor {
     prototype: Float32Array;
     new (length: number): Float32Array;
-    new (array: Float32Array): Float32Array;
-    new (array: number[]): Float32Array;
+    new (array: ArrayLike<number>): Float32Array;
     new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Float32Array;
 
     /**
@@ -2051,6 +3554,15 @@ interface Float32ArrayConstructor {
       * @param items A set of elements to include in the new array object.
       */
     of(...items: number[]): Float32Array;
+    
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Float32Array;
+
 }
 declare var Float32Array: Float32ArrayConstructor;
 
@@ -2253,7 +3765,7 @@ interface Float64Array {
       * @param array A typed or untyped array of values to set.
       * @param offset The index in the current array at which the values are to be written.
       */
-    set(array: Float64Array, offset?: number): void;
+    set(array: ArrayLike<number>, offset?: number): void;
 
     /** 
       * Returns a section of an array.
@@ -2303,8 +3815,7 @@ interface Float64Array {
 interface Float64ArrayConstructor {
     prototype: Float64Array;
     new (length: number): Float64Array;
-    new (array: Float64Array): Float64Array;
-    new (array: number[]): Float64Array;
+    new (array: ArrayLike<number>): Float64Array;
     new (buffer: ArrayBuffer, byteOffset?: number, length?: number): Float64Array;
 
     /**
@@ -2317,8 +3828,17 @@ interface Float64ArrayConstructor {
       * @param items A set of elements to include in the new array object.
       */
     of(...items: number[]): Float64Array;
+    
+    /**
+      * Creates an array from an array-like or iterable object.
+      * @param arrayLike An array-like or iterable object to convert to an array.
+      * @param mapfn A mapping function to call on every element of the array.
+      * @param thisArg Value of 'this' used to invoke the mapfn.
+      */
+    from(arrayLike: ArrayLike<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Float64Array;
 }
-declare var Float64Array: Float64ArrayConstructor;/////////////////////////////
+declare var Float64Array: Float64ArrayConstructor;
+/////////////////////////////
 /// ECMAScript Internationalization API 
 /////////////////////////////
 
@@ -2361,6 +3881,11 @@ declare module Intl {
         currency?: string;
         currencyDisplay?: string;
         useGrouping?: boolean;
+        minimumintegerDigits?: number;
+        minimumFractionDigits?: number;
+        maximumFractionDigits?: number;
+        minimumSignificantDigits?: number;
+        maximumSignificantDigits?: number;
     }
 
     interface ResolvedNumberFormatOptions {
@@ -2382,10 +3907,10 @@ declare module Intl {
         resolvedOptions(): ResolvedNumberFormatOptions;
     }
     var NumberFormat: {
-        new (locales?: string[], options?: NumberFormatOptions): Collator;
-        new (locale?: string, options?: NumberFormatOptions): Collator;
-        (locales?: string[], options?: NumberFormatOptions): Collator;
-        (locale?: string, options?: NumberFormatOptions): Collator;
+        new (locales?: string[], options?: NumberFormatOptions): NumberFormat;
+        new (locale?: string, options?: NumberFormatOptions): NumberFormat;
+        (locales?: string[], options?: NumberFormatOptions): NumberFormat;
+        (locale?: string, options?: NumberFormatOptions): NumberFormat;
         supportedLocalesOf(locales: string[], options?: NumberFormatOptions): string[];
         supportedLocalesOf(locale: string, options?: NumberFormatOptions): string[];
     }
@@ -2403,6 +3928,7 @@ declare module Intl {
         timeZoneName?: string;
         formatMatcher?: string;
         hour12?: boolean;
+        timeZone?: string;
     }
 
     interface ResolvedDateTimeFormatOptions {
@@ -2423,14 +3949,14 @@ declare module Intl {
     }
 
     interface DateTimeFormat {
-        format(date: number): string;
+        format(date?: Date | number): string;
         resolvedOptions(): ResolvedDateTimeFormatOptions;
     }
     var DateTimeFormat: {
-        new (locales?: string[], options?: DateTimeFormatOptions): Collator;
-        new (locale?: string, options?: DateTimeFormatOptions): Collator;
-        (locales?: string[], options?: DateTimeFormatOptions): Collator;
-        (locale?: string, options?: DateTimeFormatOptions): Collator;
+        new (locales?: string[], options?: DateTimeFormatOptions): DateTimeFormat;
+        new (locale?: string, options?: DateTimeFormatOptions): DateTimeFormat;
+        (locales?: string[], options?: DateTimeFormatOptions): DateTimeFormat;
+        (locale?: string, options?: DateTimeFormatOptions): DateTimeFormat;
         supportedLocalesOf(locales: string[], options?: DateTimeFormatOptions): string[];
         supportedLocalesOf(locale: string, options?: DateTimeFormatOptions): string[];
     }
@@ -2472,18 +3998,45 @@ interface Number {
 
 interface Date {
     /**
-      * Converts a date to a string by using the current or specified locale.  
+      * Converts a date and time to a string by using the current or specified locale.  
       * @param locales An array of locale strings that contain one or more language or locale tags. If you include more than one locale string, list them in descending order of priority so that the first entry is the preferred locale. If you omit this parameter, the default locale of the JavaScript runtime is used.
       * @param options An object that contains one or more properties that specify comparison options.
       */
     toLocaleString(locales?: string[], options?: Intl.DateTimeFormatOptions): string;
+    /**
+      * Converts a date to a string by using the current or specified locale.  
+      * @param locales An array of locale strings that contain one or more language or locale tags. If you include more than one locale string, list them in descending order of priority so that the first entry is the preferred locale. If you omit this parameter, the default locale of the JavaScript runtime is used.
+      * @param options An object that contains one or more properties that specify comparison options.
+      */
+    toLocaleDateString(locales?: string[], options?: Intl.DateTimeFormatOptions): string;
 
+    /**
+      * Converts a time to a string by using the current or specified locale.  
+      * @param locale Locale tag. If you omit this parameter, the default locale of the JavaScript runtime is used.
+      * @param options An object that contains one or more properties that specify comparison options.
+      */
+    toLocaleTimeString(locale?: string[], options?: Intl.DateTimeFormatOptions): string;
+    
+    /**
+      * Converts a date and time to a string by using the current or specified locale.  
+      * @param locale Locale tag. If you omit this parameter, the default locale of the JavaScript runtime is used.
+      * @param options An object that contains one or more properties that specify comparison options.
+      */
+    toLocaleString(locale?: string, options?: Intl.DateTimeFormatOptions): string;
+    
     /**
       * Converts a date to a string by using the current or specified locale.  
       * @param locale Locale tag. If you omit this parameter, the default locale of the JavaScript runtime is used.
       * @param options An object that contains one or more properties that specify comparison options.
       */
-    toLocaleString(locale?: string, options?: Intl.DateTimeFormatOptions): string;
+    toLocaleDateString(locale?: string, options?: Intl.DateTimeFormatOptions): string;
+
+    /**
+      * Converts a time to a string by using the current or specified locale.  
+      * @param locale Locale tag. If you omit this parameter, the default locale of the JavaScript runtime is used.
+      * @param options An object that contains one or more properties that specify comparison options.
+      */
+    toLocaleTimeString(locale?: string, options?: Intl.DateTimeFormatOptions): string;
 }
 
 
@@ -3580,16 +5133,11 @@ interface CanvasRenderingContext2D {
     clearRect(x: number, y: number, w: number, h: number): void;
     clip(fillRule?: string): void;
     closePath(): void;
-    createImageData(imageDataOrSw: number, sh?: number): ImageData;
-    createImageData(imageDataOrSw: ImageData, sh?: number): ImageData;
+    createImageData(imageDataOrSw: number | ImageData, sh?: number): ImageData;
     createLinearGradient(x0: number, y0: number, x1: number, y1: number): CanvasGradient;
-    createPattern(image: HTMLImageElement, repetition: string): CanvasPattern;
-    createPattern(image: HTMLCanvasElement, repetition: string): CanvasPattern;
-    createPattern(image: HTMLVideoElement, repetition: string): CanvasPattern;
+    createPattern(image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement, repetition: string): CanvasPattern;
     createRadialGradient(x0: number, y0: number, r0: number, x1: number, y1: number, r1: number): CanvasGradient;
-    drawImage(image: HTMLImageElement, offsetX: number, offsetY: number, width?: number, height?: number, canvasOffsetX?: number, canvasOffsetY?: number, canvasImageWidth?: number, canvasImageHeight?: number): void;
-    drawImage(image: HTMLCanvasElement, offsetX: number, offsetY: number, width?: number, height?: number, canvasOffsetX?: number, canvasOffsetY?: number, canvasImageWidth?: number, canvasImageHeight?: number): void;
-    drawImage(image: HTMLVideoElement, offsetX: number, offsetY: number, width?: number, height?: number, canvasOffsetX?: number, canvasOffsetY?: number, canvasImageWidth?: number, canvasImageHeight?: number): void;
+    drawImage(image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement, offsetX: number, offsetY: number, width?: number, height?: number, canvasOffsetX?: number, canvasOffsetY?: number, canvasImageWidth?: number, canvasImageHeight?: number): void;
     fill(fillRule?: string): void;
     fillRect(x: number, y: number, w: number, h: number): void;
     fillText(text: string, x: number, y: number, maxWidth?: number): void;
@@ -4747,12 +6295,12 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * @param elementId String that specifies the ID value. Case-insensitive.
       */
     getElementById(elementId: string): HTMLElement;
-    getElementsByClassName(classNames: string): NodeList;
+    getElementsByClassName(classNames: string): NodeListOf<Element>;
     /**
       * Gets a collection of objects based on the value of the NAME or ID attribute.
       * @param elementName Gets a collection of objects based on the value of the NAME or ID attribute.
       */
-    getElementsByName(elementName: string): NodeList;
+    getElementsByName(elementName: string): NodeListOf<Element>;
     /**
       * Retrieves a collection of objects based on the specified element name.
       * @param name Specifies the name of an element.
@@ -4930,8 +6478,8 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     getElementsByTagName(tagname: "wbr"): NodeListOf<HTMLElement>;
     getElementsByTagName(tagname: "x-ms-webview"): NodeListOf<MSHTMLWebViewElement>;
     getElementsByTagName(tagname: "xmp"): NodeListOf<HTMLBlockElement>;
-    getElementsByTagName(tagname: string): NodeList;
-    getElementsByTagNameNS(namespaceURI: string, localName: string): NodeList;
+    getElementsByTagName(tagname: string): NodeListOf<Element>;
+    getElementsByTagNameNS(namespaceURI: string, localName: string): NodeListOf<Element>;
     /**
       * Returns an object representing the current selection of the document that is loaded into the object displaying a webpage.
       */
@@ -4952,7 +6500,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
       * @param features Contains a list of items separated by commas. Each item consists of an option and a value, separated by an equals sign (for example, "fullscreen=yes, toolbar=yes"). The following values are supported.
       * @param replace Specifies whether the existing entry for the document is replaced in the history list.
       */
-    open(url?: string, name?: string, features?: string, replace?: boolean): Document | Window;
+    open(url?: string, name?: string, features?: string, replace?: boolean): Document;
     /** 
       * Returns a Boolean value that indicates whether a specified command can be successfully executed using execCommand, given the current state of the document.
       * @param commandId Specifies a command identifier.
@@ -5204,6 +6752,8 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     scrollTop: number;
     scrollWidth: number;
     tagName: string;
+    id: string;
+    className: string;
     getAttribute(name?: string): string;
     getAttributeNS(namespaceURI: string, localName: string): string;
     getAttributeNode(name: string): Attr;
@@ -5383,8 +6933,8 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     getElementsByTagName(name: "wbr"): NodeListOf<HTMLElement>;
     getElementsByTagName(name: "x-ms-webview"): NodeListOf<MSHTMLWebViewElement>;
     getElementsByTagName(name: "xmp"): NodeListOf<HTMLBlockElement>;
-    getElementsByTagName(name: string): NodeList;
-    getElementsByTagNameNS(namespaceURI: string, localName: string): NodeList;
+    getElementsByTagName(name: string): NodeListOf<Element>;
+    getElementsByTagNameNS(namespaceURI: string, localName: string): NodeListOf<Element>;
     hasAttribute(name: string): boolean;
     hasAttributeNS(namespaceURI: string, localName: string): boolean;
     msGetRegionContent(): MSRangeCollection;
@@ -5407,6 +6957,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     webkitMatchesSelector(selectors: string): boolean;
     webkitRequestFullScreen(): void;
     webkitRequestFullscreen(): void;
+    getElementsByClassName(classNames: string): NodeListOf<Element>;
     addEventListener(type: "MSGestureChange", listener: (ev: MSGestureEvent) => any, useCapture?: boolean): void;
     addEventListener(type: "MSGestureDoubleTap", listener: (ev: MSGestureEvent) => any, useCapture?: boolean): void;
     addEventListener(type: "MSGestureEnd", listener: (ev: MSGestureEvent) => any, useCapture?: boolean): void;
@@ -5521,7 +7072,7 @@ interface File extends Blob {
 
 declare var File: {
     prototype: File;
-    new(): File;
+    new (parts: (ArrayBuffer | ArrayBufferView | Blob | string)[], filename: string, properties?: FilePropertyBag): File;
 }
 
 interface FileList {
@@ -5565,7 +7116,7 @@ interface FormData {
 
 declare var FormData: {
     prototype: FormData;
-    new(): FormData;
+    new (form?: HTMLFormElement): FormData;
 }
 
 interface GainNode extends AudioNode {
@@ -5858,8 +7409,7 @@ interface HTMLAreasCollection extends HTMLCollection {
     /**
       * Adds an element to the areas, controlRange, or options collection.
       */
-    add(element: HTMLElement, before?: HTMLElement): void;
-    add(element: HTMLElement, before?: number): void;
+    add(element: HTMLElement, before?: HTMLElement | number): void;
     /**
       * Removes an element from the collection.
       */
@@ -6303,14 +7853,12 @@ declare var HTMLDocument: {
 interface HTMLElement extends Element {
     accessKey: string;
     children: HTMLCollection;
-    className: string;
     contentEditable: string;
     dataset: DOMStringMap;
     dir: string;
     draggable: boolean;
     hidden: boolean;
     hideFocus: boolean;
-    id: string;
     innerHTML: string;
     innerText: string;
     isContentEditable: boolean;
@@ -6397,7 +7945,6 @@ interface HTMLElement extends Element {
     contains(child: HTMLElement): boolean;
     dragDrop(): boolean;
     focus(): void;
-    getElementsByClassName(classNames: string): NodeList;
     insertAdjacentElement(position: string, insertedElement: Element): Element;
     insertAdjacentHTML(where: string, html: string): void;
     insertAdjacentText(where: string, text: string): void;
@@ -8607,8 +10154,7 @@ interface HTMLSelectElement extends HTMLElement {
       * @param element Variant of type Number that specifies the index position in the collection where the element is placed. If no value is given, the method places the element at the end of the collection.
       * @param before Variant of type Object that specifies an element to insert before, or null to append the object to the collection. 
       */
-    add(element: HTMLElement, before?: HTMLElement): void;
-    add(element: HTMLElement, before?: number): void;
+    add(element: HTMLElement, before?: HTMLElement | number): void;
     /**
       * Returns whether a form will validate when it is submitted, without having to submit it.
       */
@@ -9360,7 +10906,7 @@ interface IDBDatabase extends EventTarget {
     createObjectStore(name: string, optionalParameters?: any): IDBObjectStore;
     deleteObjectStore(name: string): void;
     transaction(storeNames: any, mode?: string): IDBTransaction;
-    addEventListener(type: "abort", listener: (ev: UIEvent) => any, useCapture?: boolean): void;
+    addEventListener(type: "abort", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "error", listener: (ev: ErrorEvent) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -9481,7 +11027,7 @@ interface IDBTransaction extends EventTarget {
     READ_ONLY: string;
     READ_WRITE: string;
     VERSION_CHANGE: string;
-    addEventListener(type: "abort", listener: (ev: UIEvent) => any, useCapture?: boolean): void;
+    addEventListener(type: "abort", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "complete", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "error", listener: (ev: ErrorEvent) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -9511,10 +11057,13 @@ interface ImageData {
     width: number;
 }
 
-declare var ImageData: {
+interface ImageDataConstructor {
     prototype: ImageData;
-    new(): ImageData;
+    new(width: number, height: number): ImageData;
+    new(array: Uint8ClampedArray, width: number, height: number): ImageData;
 }
+
+declare var ImageData: ImageDataConstructor; 
 
 interface KeyboardEvent extends UIEvent {
     altKey: boolean;
@@ -10198,7 +11747,7 @@ interface MessageEvent extends Event {
 
 declare var MessageEvent: {
     prototype: MessageEvent;
-    new(): MessageEvent;
+    new(type: string, eventInitDict?: MessageEventInit): MessageEvent;
 }
 
 interface MessagePort extends EventTarget {
@@ -10940,7 +12489,7 @@ interface ProgressEvent extends Event {
 
 declare var ProgressEvent: {
     prototype: ProgressEvent;
-    new(): ProgressEvent;
+    new(type: string, eventInitDict?: ProgressEventInit): ProgressEvent;
 }
 
 interface Range {
@@ -11210,6 +12759,7 @@ declare var SVGDescElement: {
 
 interface SVGElement extends Element {
     id: string;
+    className: any;
     onclick: (ev: MouseEvent) => any;
     ondblclick: (ev: MouseEvent) => any;
     onfocusin: (ev: FocusEvent) => any;
@@ -12769,8 +14319,7 @@ interface Screen extends EventTarget {
     systemXDPI: number;
     systemYDPI: number;
     width: number;
-    msLockOrientation(orientations: string): boolean;
-    msLockOrientation(orientations: string[]): boolean;
+    msLockOrientation(orientations: string | string[]): boolean;
     msUnlockOrientation(): void;
     addEventListener(type: "MSOrientationChange", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -12842,8 +14391,7 @@ interface SourceBuffer extends EventTarget {
     updating: boolean;
     videoTracks: VideoTrackList;
     abort(): void;
-    appendBuffer(data: ArrayBuffer): void;
-    appendBuffer(data: ArrayBufferView): void;
+    appendBuffer(data: ArrayBuffer | ArrayBufferView): void;
     appendStream(stream: MSStream, maxSize?: number): void;
     remove(start: number, end: number): void;
 }
@@ -12951,33 +14499,18 @@ declare var StyleSheetPageList: {
 }
 
 interface SubtleCrypto {
-    decrypt(algorithm: string, key: CryptoKey, data: ArrayBufferView): any;
-    decrypt(algorithm: Algorithm, key: CryptoKey, data: ArrayBufferView): any;
-    deriveBits(algorithm: string, baseKey: CryptoKey, length: number): any;
-    deriveBits(algorithm: Algorithm, baseKey: CryptoKey, length: number): any;
-    deriveKey(algorithm: string, baseKey: CryptoKey, derivedKeyType: string, extractable: boolean, keyUsages: string[]): any;
-    deriveKey(algorithm: string, baseKey: CryptoKey, derivedKeyType: Algorithm, extractable: boolean, keyUsages: string[]): any;
-    deriveKey(algorithm: Algorithm, baseKey: CryptoKey, derivedKeyType: string, extractable: boolean, keyUsages: string[]): any;
-    deriveKey(algorithm: Algorithm, baseKey: CryptoKey, derivedKeyType: Algorithm, extractable: boolean, keyUsages: string[]): any;
-    digest(algorithm: string, data: ArrayBufferView): any;
-    digest(algorithm: Algorithm, data: ArrayBufferView): any;
-    encrypt(algorithm: string, key: CryptoKey, data: ArrayBufferView): any;
-    encrypt(algorithm: Algorithm, key: CryptoKey, data: ArrayBufferView): any;
+    decrypt(algorithm: string | Algorithm, key: CryptoKey, data: ArrayBufferView): any;
+    deriveBits(algorithm: string | Algorithm, baseKey: CryptoKey, length: number): any;
+    deriveKey(algorithm: string | Algorithm, baseKey: CryptoKey, derivedKeyType: string | Algorithm, extractable: boolean, keyUsages: string[]): any;
+    digest(algorithm: string | Algorithm, data: ArrayBufferView): any;
+    encrypt(algorithm: string | Algorithm, key: CryptoKey, data: ArrayBufferView): any;
     exportKey(format: string, key: CryptoKey): any;
-    generateKey(algorithm: string, extractable: boolean, keyUsages: string[]): any;
-    generateKey(algorithm: Algorithm, extractable: boolean, keyUsages: string[]): any;
-    importKey(format: string, keyData: ArrayBufferView, algorithm: string, extractable: boolean, keyUsages: string[]): any;
-    importKey(format: string, keyData: ArrayBufferView, algorithm: Algorithm, extractable: boolean, keyUsages: string[]): any;
-    sign(algorithm: string, key: CryptoKey, data: ArrayBufferView): any;
-    sign(algorithm: Algorithm, key: CryptoKey, data: ArrayBufferView): any;
-    unwrapKey(format: string, wrappedKey: ArrayBufferView, unwrappingKey: CryptoKey, unwrapAlgorithm: string, unwrappedKeyAlgorithm: string, extractable: boolean, keyUsages: string[]): any;
-    unwrapKey(format: string, wrappedKey: ArrayBufferView, unwrappingKey: CryptoKey, unwrapAlgorithm: string, unwrappedKeyAlgorithm: Algorithm, extractable: boolean, keyUsages: string[]): any;
-    unwrapKey(format: string, wrappedKey: ArrayBufferView, unwrappingKey: CryptoKey, unwrapAlgorithm: Algorithm, unwrappedKeyAlgorithm: string, extractable: boolean, keyUsages: string[]): any;
-    unwrapKey(format: string, wrappedKey: ArrayBufferView, unwrappingKey: CryptoKey, unwrapAlgorithm: Algorithm, unwrappedKeyAlgorithm: Algorithm, extractable: boolean, keyUsages: string[]): any;
-    verify(algorithm: string, key: CryptoKey, signature: ArrayBufferView, data: ArrayBufferView): any;
-    verify(algorithm: Algorithm, key: CryptoKey, signature: ArrayBufferView, data: ArrayBufferView): any;
-    wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: string): any;
-    wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: Algorithm): any;
+    generateKey(algorithm: string | Algorithm, extractable: boolean, keyUsages: string[]): any;
+    importKey(format: string, keyData: ArrayBufferView, algorithm: string | Algorithm, extractable: boolean, keyUsages: string[]): any;
+    sign(algorithm: string | Algorithm, key: CryptoKey, data: ArrayBufferView): any;
+    unwrapKey(format: string, wrappedKey: ArrayBufferView, unwrappingKey: CryptoKey, unwrapAlgorithm: string | Algorithm, unwrappedKeyAlgorithm: string | Algorithm, extractable: boolean, keyUsages: string[]): any;
+    verify(algorithm: string | Algorithm, key: CryptoKey, signature: ArrayBufferView, data: ArrayBufferView): any;
+    wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: string | Algorithm): any;
 }
 
 declare var SubtleCrypto: {
@@ -13486,11 +15019,8 @@ interface WebGLRenderingContext {
     blendEquationSeparate(modeRGB: number, modeAlpha: number): void;
     blendFunc(sfactor: number, dfactor: number): void;
     blendFuncSeparate(srcRGB: number, dstRGB: number, srcAlpha: number, dstAlpha: number): void;
-    bufferData(target: number, size: number, usage: number): void;
-    bufferData(target: number, size: ArrayBufferView, usage: number): void;
-    bufferData(target: number, size: any, usage: number): void;
-    bufferSubData(target: number, offset: number, data: ArrayBufferView): void;
-    bufferSubData(target: number, offset: number, data: any): void;
+    bufferData(target: number, size: number | ArrayBufferView | ArrayBuffer, usage: number): void;
+    bufferSubData(target: number, offset: number, data: ArrayBufferView | ArrayBuffer): void;
     checkFramebufferStatus(target: number): number;
     clear(mask: number): void;
     clearColor(red: number, green: number, blue: number, alpha: number): void;
@@ -14333,8 +15863,7 @@ interface WebSocket extends EventTarget {
 
 declare var WebSocket: {
     prototype: WebSocket;
-    new(url: string, protocols?: string): WebSocket;
-    new(url: string, protocols?: any): WebSocket;
+    new(url: string, protocols?: string | string[]): WebSocket;
     CLOSED: number;
     CLOSING: number;
     CONNECTING: number;
@@ -14477,7 +16006,7 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     onvolumechange: (ev: Event) => any;
     onwaiting: (ev: Event) => any;
     opener: Window;
-    orientation: string;
+    orientation: string | number;
     outerHeight: number;
     outerWidth: number;
     pageXOffset: number;
@@ -14500,6 +16029,7 @@ interface Window extends EventTarget, WindowTimers, WindowSessionStorage, Window
     toolbar: BarProp;
     top: Window;
     window: Window;
+    URL: URL;
     alert(message?: any): void;
     blur(): void;
     cancelAnimationFrame(handle: number): void;
@@ -14683,7 +16213,7 @@ interface XMLHttpRequest extends EventTarget, XMLHttpRequestEventTarget {
     LOADING: number;
     OPENED: number;
     UNSENT: number;
-    addEventListener(type: "abort", listener: (ev: UIEvent) => any, useCapture?: boolean): void;
+    addEventListener(type: "abort", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "error", listener: (ev: ErrorEvent) => any, useCapture?: boolean): void;
     addEventListener(type: "load", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "loadend", listener: (ev: ProgressEvent) => any, useCapture?: boolean): void;
@@ -14953,7 +16483,7 @@ interface MSBaseReader {
     DONE: number;
     EMPTY: number;
     LOADING: number;
-    addEventListener(type: "abort", listener: (ev: UIEvent) => any, useCapture?: boolean): void;
+    addEventListener(type: "abort", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "error", listener: (ev: ErrorEvent) => any, useCapture?: boolean): void;
     addEventListener(type: "load", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "loadend", listener: (ev: ProgressEvent) => any, useCapture?: boolean): void;
@@ -15003,7 +16533,7 @@ interface NavigatorStorageUtils {
 
 interface NodeSelector {
     querySelector(selectors: string): Element;
-    querySelectorAll(selectors: string): NodeList;
+    querySelectorAll(selectors: string): NodeListOf<Element>;
 }
 
 interface RandomSource {
@@ -15051,7 +16581,7 @@ interface SVGLocatable {
 }
 
 interface SVGStylable {
-    className: SVGAnimatedString;
+    className: any;
     style: CSSStyleDeclaration;
 }
 
@@ -15109,7 +16639,7 @@ interface XMLHttpRequestEventTarget {
     onloadstart: (ev: Event) => any;
     onprogress: (ev: ProgressEvent) => any;
     ontimeout: (ev: ProgressEvent) => any;
-    addEventListener(type: "abort", listener: (ev: UIEvent) => any, useCapture?: boolean): void;
+    addEventListener(type: "abort", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "error", listener: (ev: ErrorEvent) => any, useCapture?: boolean): void;
     addEventListener(type: "load", listener: (ev: Event) => any, useCapture?: boolean): void;
     addEventListener(type: "loadend", listener: (ev: ProgressEvent) => any, useCapture?: boolean): void;
@@ -15131,15 +16661,34 @@ interface BlobPropertyBag {
     endings?: string;
 }
 
+interface FilePropertyBag {
+    type?: string;
+    lastModified?: number;
+}
+
 interface EventListenerObject {
     handleEvent(evt: Event): void;
 }
 
 declare type EventListenerOrEventListenerObject = EventListener | EventListenerObject;
 
+interface MessageEventInit extends EventInit {
+    data?: any;
+    origin?: string;
+    lastEventId?: string;
+    channel?: string;
+    source?: any;
+    ports?: MessagePort[];
+}
+
+interface ProgressEventInit extends EventInit {
+    lengthComputable?: boolean;
+    loaded?: number;
+    total?: number;
+}
+
 interface ErrorEventHandler {
-    (event: Event, source?: string, fileno?: number, columnNumber?: number): void;
-    (event: string, source?: string, fileno?: number, columnNumber?: number): void;
+    (message: string, filename?: string, lineno?: number, colno?: number, error?:Error): void;
 }
 interface PositionCallback {
     (position: Position): void;
@@ -15292,7 +16841,7 @@ declare var onunload: (ev: Event) => any;
 declare var onvolumechange: (ev: Event) => any;
 declare var onwaiting: (ev: Event) => any;
 declare var opener: Window;
-declare var orientation: string;
+declare var orientation: string | number;
 declare var outerHeight: number;
 declare var outerWidth: number;
 declare var pageXOffset: number;
@@ -15315,6 +16864,7 @@ declare var styleMedia: StyleMedia;
 declare var toolbar: BarProp;
 declare var top: Window;
 declare var window: Window;
+declare var URL: URL;
 declare function alert(message?: any): void;
 declare function blur(): void;
 declare function cancelAnimationFrame(handle: number): void;
@@ -15467,3 +17017,286 @@ declare function addEventListener(type: "volumechange", listener: (ev: Event) =>
 declare function addEventListener(type: "waiting", listener: (ev: Event) => any, useCapture?: boolean): void;
 declare function addEventListener(type: "wheel", listener: (ev: WheelEvent) => any, useCapture?: boolean): void;
 declare function addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
+/////////////////////////////
+/// WorkerGlobalScope APIs 
+/////////////////////////////
+// These are only available in a Web Worker 
+declare function importScripts(...urls: string[]): void;
+
+
+/////////////////////////////
+/// Windows Script Host APIS
+/////////////////////////////
+
+
+interface ActiveXObject {
+    new (s: string): any;
+}
+declare var ActiveXObject: ActiveXObject;
+
+interface ITextWriter {
+    Write(s: string): void;
+    WriteLine(s: string): void;
+    Close(): void;
+}
+
+interface TextStreamBase {
+    /**
+     * The column number of the current character position in an input stream.
+     */
+    Column: number;
+
+    /**
+     * The current line number in an input stream.
+     */
+    Line: number;
+
+    /**
+     * Closes a text stream.
+     * It is not necessary to close standard streams; they close automatically when the process ends. If 
+     * you close a standard stream, be aware that any other pointers to that standard stream become invalid.
+     */
+    Close(): void;
+}
+
+interface TextStreamWriter extends TextStreamBase {
+    /**
+     * Sends a string to an output stream.
+     */
+    Write(s: string): void;
+
+    /**
+     * Sends a specified number of blank lines (newline characters) to an output stream.
+     */
+    WriteBlankLines(intLines: number): void;
+
+    /**
+     * Sends a string followed by a newline character to an output stream.
+     */
+    WriteLine(s: string): void;
+}
+
+interface TextStreamReader extends TextStreamBase {
+    /**
+     * Returns a specified number of characters from an input stream, starting at the current pointer position.
+     * Does not return until the ENTER key is pressed.
+     * Can only be used on a stream in reading mode; causes an error in writing or appending mode.
+     */
+    Read(characters: number): string;
+
+    /**
+     * Returns all characters from an input stream.
+     * Can only be used on a stream in reading mode; causes an error in writing or appending mode.
+     */
+    ReadAll(): string;
+
+    /**
+     * Returns an entire line from an input stream.
+     * Although this method extracts the newline character, it does not add it to the returned string.
+     * Can only be used on a stream in reading mode; causes an error in writing or appending mode.
+     */
+    ReadLine(): string;
+
+    /**
+     * Skips a specified number of characters when reading from an input text stream.
+     * Can only be used on a stream in reading mode; causes an error in writing or appending mode.
+     * @param characters Positive number of characters to skip forward. (Backward skipping is not supported.)
+     */
+    Skip(characters: number): void;
+
+    /**
+     * Skips the next line when reading from an input text stream.
+     * Can only be used on a stream in reading mode, not writing or appending mode.
+     */
+    SkipLine(): void;
+
+    /**
+     * Indicates whether the stream pointer position is at the end of a line.
+     */
+    AtEndOfLine: boolean;
+
+    /**
+     * Indicates whether the stream pointer position is at the end of a stream.
+     */
+    AtEndOfStream: boolean;
+}
+
+declare var WScript: {
+    /**
+    * Outputs text to either a message box (under WScript.exe) or the command console window followed by
+    * a newline (under CScript.exe).
+    */
+    Echo(s: any): void;
+
+    /**
+     * Exposes the write-only error output stream for the current script.
+     * Can be accessed only while using CScript.exe.
+     */
+    StdErr: TextStreamWriter;
+
+    /**
+     * Exposes the write-only output stream for the current script.
+     * Can be accessed only while using CScript.exe.
+     */
+    StdOut: TextStreamWriter;
+    Arguments: { length: number; Item(n: number): string; };
+
+    /**
+     *  The full path of the currently running script.
+     */
+    ScriptFullName: string;
+
+    /**
+     * Forces the script to stop immediately, with an optional exit code.
+     */
+    Quit(exitCode?: number): number;
+
+    /**
+     * The Windows Script Host build version number.
+     */
+    BuildVersion: number;
+
+    /**
+     * Fully qualified path of the host executable.
+     */
+    FullName: string;
+
+    /**
+     * Gets/sets the script mode - interactive(true) or batch(false).
+     */
+    Interactive: boolean;
+
+    /**
+     * The name of the host executable (WScript.exe or CScript.exe).
+     */
+    Name: string;
+
+    /**
+     * Path of the directory containing the host executable.
+     */
+    Path: string;
+
+    /**
+     * The filename of the currently running script.
+     */
+    ScriptName: string;
+
+    /**
+     * Exposes the read-only input stream for the current script.
+     * Can be accessed only while using CScript.exe.
+     */
+    StdIn: TextStreamReader;
+
+    /**
+     * Windows Script Host version
+     */
+    Version: string;
+
+    /**
+     * Connects a COM object's event sources to functions named with a given prefix, in the form prefix_event.
+     */
+    ConnectObject(objEventSource: any, strPrefix: string): void;
+
+    /**
+     * Creates a COM object.
+     * @param strProgiID
+     * @param strPrefix Function names in the form prefix_event will be bound to this object's COM events.
+     */
+    CreateObject(strProgID: string, strPrefix?: string): any;
+
+    /**
+     * Disconnects a COM object from its event sources.
+     */
+    DisconnectObject(obj: any): void;
+
+    /**
+     * Retrieves an existing object with the specified ProgID from memory, or creates a new one from a file.
+     * @param strPathname Fully qualified path to the file containing the object persisted to disk.
+     *                       For objects in memory, pass a zero-length string.
+     * @param strProgID
+     * @param strPrefix Function names in the form prefix_event will be bound to this object's COM events.
+     */
+    GetObject(strPathname: string, strProgID?: string, strPrefix?: string): any;
+
+    /**
+     * Suspends script execution for a specified length of time, then continues execution.
+     * @param intTime Interval (in milliseconds) to suspend script execution.
+     */
+    Sleep(intTime: number): void;
+};
+
+/**
+ * Allows enumerating over a COM collection, which may not have indexed item access.
+ */
+interface Enumerator<T> {
+    /**
+     * Returns true if the current item is the last one in the collection, or the collection is empty,
+     * or the current item is undefined.
+     */
+    atEnd(): boolean;
+
+    /**
+     * Returns the current item in the collection
+     */
+    item(): T;
+
+    /**
+     * Resets the current item in the collection to the first item. If there are no items in the collection,
+     * the current item is set to undefined.
+     */
+    moveFirst(): void;
+
+    /**
+     * Moves the current item to the next item in the collection. If the enumerator is at the end of
+     * the collection or the collection is empty, the current item is set to undefined.
+     */
+    moveNext(): void;
+}
+
+interface EnumeratorConstructor {
+    new <T>(collection: any): Enumerator<T>;
+    new (collection: any): Enumerator<any>;
+}
+
+declare var Enumerator: EnumeratorConstructor;
+
+/**
+ * Enables reading from a COM safe array, which might have an alternate lower bound, or multiple dimensions.
+ */
+interface VBArray<T> {
+    /**
+     * Returns the number of dimensions (1-based).
+     */
+    dimensions(): number;
+
+    /**
+     * Takes an index for each dimension in the array, and returns the item at the corresponding location.
+     */
+    getItem(dimension1Index: number, ...dimensionNIndexes: number[]): T;
+
+    /**
+     * Returns the smallest available index for a given dimension.
+     * @param dimension 1-based dimension (defaults to 1)
+     */
+    lbound(dimension?: number): number;
+
+    /**
+     * Returns the largest available index for a given dimension.
+     * @param dimension 1-based dimension (defaults to 1)
+     */
+    ubound(dimension?: number): number;
+
+    /**
+     * Returns a Javascript array with all the elements in the VBArray. If there are multiple dimensions,
+     * each successive dimension is appended to the end of the array.
+     * Example: [[1,2,3],[4,5,6]] becomes [1,2,3,4,5,6]
+     */
+    toArray(): T[];
+}
+
+interface VBArrayConstructor {
+    new <T>(safeArray: any): VBArray<T>;
+    new (safeArray: any): VBArray<any>;
+}
+
+declare var VBArray: VBArrayConstructor;
