@@ -6,7 +6,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;; Version: 0.4.0-cvs
-;; Package-Version: 20150907.2231
+;; Package-Version: 20150923.2303
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 
@@ -34,13 +34,6 @@
 (require 'rx)
 (require 'comint)
 (require 'cl-lib)
-
-(eval-and-compile
-  ;; Added in Emacs 24.3
-  (unless (fboundp 'setq-local)
-    (defmacro setq-local (var val)
-      "Set variable VAR to value VAL in current buffer."
-      (list 'set (list 'make-local-variable (list 'quote var)) val))))
 
 (defgroup swift nil
   "Configuration for swift-mode."
@@ -152,12 +145,10 @@
        (method-args (method-arg) (method-args "," method-args))
        (method-arg (id "{" closure "}") (exp))
 
-       (exp (op-exp)
-            ("[" decl-exps "]"))
+       (exp ("[" decl-exps "]"))
        (in-exp (id "in" exp))
        (guard-exp (exp "where" exp))
-       (op-exp (exp "OP" exp))
-       (tern-exp (op-exp "?" exp ":" exp))
+       (tern-exp (exp "?" exp ":" exp))
 
        (enum-case ("ecase" assign-exp)
                   ("ecase" "(" type ")"))
@@ -184,7 +175,7 @@
        (closure (insts) (exp "in" insts) (exp "->" id "in" insts)))
      ;; Conflicts
      '((nonassoc "{") (assoc "in") (assoc ",") (assoc ";") (assoc ":") (right "="))
-     '((assoc "in") (assoc "where") (assoc "OP"))
+     '((assoc "in") (assoc "where"))
      '((assoc ";") (assoc "ecase"))
      '((assoc "case")))
 
@@ -194,6 +185,7 @@
               "^=" "|=" "&&=" "||=" "=")                       ;; Assignment (Right associative, precedence level 90)
        (left "||")                                             ;; Disjunctive (Left associative, precedence level 110)
        (left "&&")                                             ;; Conjunctive (Left associative, precedence level 120)
+       (right "??")                                            ;; Nil Coalescing (Right associativity, precedence level 120)
        (nonassoc "<" "<=" ">" ">=" "==" "!=" "===" "!==" "~=") ;; Comparative (No associativity, precedence level 130)
        (nonassoc "is" "as" "as!" "as?")                        ;; Cast (No associativity, precedence level 132)
        (nonassoc "..<" "...")                                  ;; Range (No associativity, precedence level 135)
@@ -212,13 +204,16 @@
              value)
     value))
 
+(defvar swift-smie--operators
+  '("*=" "/=" "%=" "+=" "-=" "<<=" ">>=" "&=" "^=" "|=" "&&=" "||="
+   "<" "<=" ">" ">=" "==" "!=" "===" "!==" "~=" "||" "&&"
+   "is" "as" "as!" "as?" "..<" "..."
+   "+" "-" "&+" "&-" "|" "^"
+   "*" "/" "%" "&*" "&/" "&%" "&"
+   "<<" ">>" "??"))
+
 (defvar swift-smie--operators-regexp
-  (regexp-opt '("*=" "/=" "%=" "+=" "-=" "<<=" ">>=" "&=" "^=" "|=" "&&=" "||="
-                "<" "<=" ">" ">=" "==" "!=" "===" "!==" "~=" "||" "&&"
-                "is" "as" "as!" "as?" "..<" "..."
-                "+" "-" "&+" "&-" "|" "^"
-                "*" "/" "%" "&*" "&/" "&%" "&"
-                "<<" ">>" "??")))
+  (regexp-opt swift-smie--operators))
 
 (defvar swift-smie--decl-specifier-regexp
   "\\(?1:mutating\\|override\\|static\\|unowned\\|weak\\)")
@@ -295,14 +290,11 @@ We try to constraint those lookups by reasonable number of lines.")
    ((looking-at "->") (forward-char 2) "->")
 
    ((looking-at "<") (forward-char 1)
-    (if (looking-at "[[:upper:]]") "<T" "OP"))
+    (if (looking-at "[[:upper:]]") "<T" "<"))
 
    ((looking-at ">[?!]?")
     (goto-char (match-end 0))
-    (if (looking-back "[[:space:]]>" 2 t) "OP" "T>"))
-
-   ((looking-at swift-smie--operators-regexp)
-    (goto-char (match-end 0)) "OP")
+    (if (looking-back "[[:space:]]>" 2 t) ">" "T>"))
 
    ((looking-at swift-smie--decl-specifier-regexp)
     (goto-char (match-end 1)) "DECSPEC")
@@ -352,17 +344,14 @@ We try to constraint those lookups by reasonable number of lines.")
       (goto-char (match-beginning 0)) "->")
 
      ((eq (char-before) ?<) (backward-char 1)
-      (if (looking-at "<[[:upper:]]") "<T" "OP"))
+      (if (looking-at "<[[:upper:]]") "<T" "<"))
      ((looking-back ">[?!]?" (- (point) 2) t)
       (goto-char (match-beginning 0))
-      (if (looking-back "[[:space:]]" 1 t) "OP" "T>"))
+      (if (looking-back "[[:space:]]" 1 t) ">" "T>"))
 
      ((looking-back (regexp-opt swift-mode--type-decl-keywords) (- (point) 9) t)
       (goto-char (match-beginning 0))
       (match-string-no-properties 0))
-
-     ((looking-back swift-smie--operators-regexp (- (point) 3) t)
-      (goto-char (match-beginning 0)) "OP")
 
      ((looking-back swift-smie--decl-specifier-regexp (- (point) 8) t)
       (goto-char (match-beginning 1)) "DECSPEC")
@@ -420,9 +409,10 @@ We try to constraint those lookups by reasonable number of lines.")
 
     ;; Apply swift-indent-multiline-statement-offset if
     ;; operator is the last symbol on the line
-    (`(:before . "OP")
+    (`(:before . ,(pred (lambda (token)
+                          (member token swift-smie--operators))))
      (when (and (smie-rule-hanging-p)
-                (not (smie-rule-parent-p "OP")))
+                (not (apply 'smie-rule-parent-p swift-smie--operators)))
        (if (smie-rule-parent-p "{")
            (+ swift-indent-offset swift-indent-multiline-statement-offset)
          swift-indent-multiline-statement-offset)))
@@ -637,76 +627,75 @@ We try to constraint those lookups by reasonable number of lines.")
 
 ;;; Flycheck
 
-(eval-after-load 'flycheck
-  (lambda ()
-    (flycheck-def-option-var flycheck-swift-sdk-path nil swift
-       "A path to the targeted SDK"
-       :type '(choice (const :tag "Don't link against sdk" nil)
-                      (string :tag "Targeted SDK path"))
-       :safe #'stringp)
+(with-eval-after-load 'flycheck
+  (flycheck-def-option-var flycheck-swift-sdk-path nil swift
+     "A path to the targeted SDK"
+     :type '(choice (const :tag "Don't link against sdk" nil)
+                    (string :tag "Targeted SDK path"))
+     :safe #'stringp)
 
-     (flycheck-def-option-var flycheck-swift-linked-sources nil swift
-       "Source files path to link against. Can be glob, i.e. *.swift"
-       :type '(choice (const :tag "Don't use linked sources" nil)
-                      (string :tag "Linked Sources"))
-       :safe #'stringp)
+   (flycheck-def-option-var flycheck-swift-linked-sources nil swift
+     "Source files path to link against. Can be glob, i.e. *.swift"
+     :type '(choice (const :tag "Don't use linked sources" nil)
+                    (string :tag "Linked Sources"))
+     :safe #'stringp)
 
-     (flycheck-def-option-var flycheck-swift-framework-search-paths nil swift
-       "A list of framework search paths"
-       :type '(repeat (directory :tag "Include directory"))
-       :safe #'flycheck-string-list-p)
+   (flycheck-def-option-var flycheck-swift-framework-search-paths nil swift
+     "A list of framework search paths"
+     :type '(repeat (directory :tag "Include directory"))
+     :safe #'flycheck-string-list-p)
 
-     (flycheck-def-option-var flycheck-swift-cc-include-search-paths nil swift
-       "A list of include file search paths to pass to the Objective C compiler"
-       :type '(repeat (directory :tag "Include directory"))
-       :safe #'flycheck-string-list-p)
+   (flycheck-def-option-var flycheck-swift-cc-include-search-paths nil swift
+     "A list of include file search paths to pass to the Objective C compiler"
+     :type '(repeat (directory :tag "Include directory"))
+     :safe #'flycheck-string-list-p)
 
-     (flycheck-def-option-var flycheck-swift-target "i386-apple-ios8.1" swift
-       "Target used by swift compiler"
-       :type '(choice (const :tag "Don't specify target" nil)
-                      (string :tag "Build target"))
-       :safe #'stringp)
+   (flycheck-def-option-var flycheck-swift-target "i386-apple-ios8.1" swift
+     "Target used by swift compiler"
+     :type '(choice (const :tag "Don't specify target" nil)
+                    (string :tag "Build target"))
+     :safe #'stringp)
 
-     (flycheck-def-option-var flycheck-swift-import-objc-header nil swift
-       "Objective C header file to import, if any"
-       :type '(choice (const :tag "Don't specify objective C bridging header" nil)
-                      (string :tag "Objective C bridging header path"))
-       :safe #'stringp)
+   (flycheck-def-option-var flycheck-swift-import-objc-header nil swift
+     "Objective C header file to import, if any"
+     :type '(choice (const :tag "Don't specify objective C bridging header" nil)
+                    (string :tag "Objective C bridging header path"))
+     :safe #'stringp)
 
-     (flycheck-define-checker swift
-       "Flycheck plugin for for Apple's Swift programming language."
-       :command ("swift"
-                 "-frontend" "-parse"
-                 (option "-sdk" flycheck-swift-sdk-path)
-                 (option-list "-F" flycheck-swift-framework-search-paths)
-                 ;; Swift compiler will complain about redeclaration
-                 ;; if we will include original file along with
-                 ;; temporary source file created by flycheck.
-                 ;; We also don't want a hidden emacs interlock files.
-                 (eval
-                  (let (source file)
-                    (when flycheck-swift-linked-sources
-                      (setq source (car (flycheck-substitute-argument 'source 'swift)))
-                      (setq file (file-name-nondirectory source))
-                      (cl-remove-if-not
-                       #'(lambda (path)
-                           (and
-                            (eq (string-match ".#" path) nil)
-                            (eq (string-match file path) nil)))
-                       (file-expand-wildcards flycheck-swift-linked-sources)))))
-                 (option "-target" flycheck-swift-target)
-                 (option "-import-objc-header" flycheck-swift-import-objc-header)
-                 (eval
-                  (mapcan
-                   #'(lambda (path) (list "-Xcc" (concat "-I" path)))
-                   flycheck-swift-cc-include-search-paths))
-                 "-primary-file" source)
-       :error-patterns
-       ((error line-start (file-name) ":" line ":" column ": "
-               "error: " (message) line-end)
-        (warning line-start (file-name) ":" line ":" column ": "
-                 "warning: " (message) line-end))
-       :modes swift-mode)))
+   (flycheck-define-checker swift
+     "Flycheck plugin for for Apple's Swift programming language."
+     :command ("swift"
+               "-frontend" "-parse"
+               (option "-sdk" flycheck-swift-sdk-path)
+               (option-list "-F" flycheck-swift-framework-search-paths)
+               ;; Swift compiler will complain about redeclaration
+               ;; if we will include original file along with
+               ;; temporary source file created by flycheck.
+               ;; We also don't want a hidden emacs interlock files.
+               (eval
+                (let (source file)
+                  (when flycheck-swift-linked-sources
+                    (setq source (car (flycheck-substitute-argument 'source 'swift)))
+                    (setq file (file-name-nondirectory source))
+                    (cl-remove-if-not
+                     #'(lambda (path)
+                         (and
+                          (eq (string-match ".#" path) nil)
+                          (eq (string-match file path) nil)))
+                     (file-expand-wildcards flycheck-swift-linked-sources)))))
+               (option "-target" flycheck-swift-target)
+               (option "-import-objc-header" flycheck-swift-import-objc-header)
+               (eval
+                (mapcan
+                 #'(lambda (path) (list "-Xcc" (concat "-I" path)))
+                 flycheck-swift-cc-include-search-paths))
+               "-primary-file" source)
+     :error-patterns
+     ((error line-start (file-name) ":" line ":" column ": "
+             "error: " (message) line-end)
+      (warning line-start (file-name) ":" line ":" column ": "
+               "warning: " (message) line-end))
+     :modes swift-mode))
 
 ;;; REPL
 
