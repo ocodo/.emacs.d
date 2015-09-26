@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20150912.105
+;; Package-Version: 20150922.537
 ;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (defvar url-http-end-of-headers))
+
 (require 'tramp)
 (require 'url)
 (require 'json)
@@ -38,6 +41,12 @@
 (defgroup anaconda-mode nil
   "Code navigation, documentation lookup and completion for Python."
   :group 'programming)
+
+(defcustom anaconda-mode-installation-directory
+  "~/.emacs.d/anaconda-mode"
+  "Installation directory for anaconda-mode server."
+  :group 'anaconda-mode
+  :type 'directory)
 
 (defcustom anaconda-mode-complete-callback
   'anaconda-mode-complete-callback
@@ -86,10 +95,6 @@
 (defvar anaconda-mode-server-version "0.1.1"
   "Server version needed to run anaconda-mode.")
 
-(defvar anaconda-mode-server-directory
-  (f-join "~" ".emacs.d" "anaconda-mode" anaconda-mode-server-version)
-  "Anaconda mode installation directory.")
-
 (defvar anaconda-mode-server-script "anaconda_mode.py"
   "Script file with anaconda-mode server.")
 
@@ -105,19 +110,15 @@
 (defvar anaconda-mode-port nil
   "Port for anaconda-mode connection.")
 
-(defvar anaconda-mode-ensure-directory-command
-  (list
-   "-c" "
+(defvar anaconda-mode-ensure-directory-command "
 import os
 import sys
 directory = sys.argv[-1]
 if not os.path.exists(directory):
     os.makedirs(directory)
-" anaconda-mode-server-directory)
-  "Create `anaconda-mode-server-directory' if necessary.")
+" "Create `anaconda-mode-server-directory' if necessary.")
 
-(defvar anaconda-mode-check-installation-command
-  (list "-c" "
+(defvar anaconda-mode-check-installation-command "
 import sys, os
 from pkg_resources import find_distributions
 directory = sys.argv[-1]
@@ -127,18 +128,19 @@ for dist in find_distributions(directory, only=True):
 else:
     # IPython patch sys.exit, so we can't use it.
     os._exit(1)
-" anaconda-mode-server-directory)
-  "Check if `anaconda-mode' server is installed or not.")
+" "Check if `anaconda-mode' server is installed or not.")
 
-(defvar anaconda-mode-install-server-command
-  (list "-c" "
+(defvar anaconda-mode-install-server-command "
 import sys
 import pip
 directory = sys.argv[-2]
 version = sys.argv[-1]
 pip.main(['install', '-t', directory, 'anaconda_mode==' + version])
-" anaconda-mode-server-directory anaconda-mode-server-version)
-  "Install `anaconda_mode' server.")
+" "Install `anaconda_mode' server.")
+
+(defun anaconda-mode-server-directory ()
+  "Anaconda mode installation directory."
+  (f-join anaconda-mode-installation-directory anaconda-mode-server-version))
 
 (defun anaconda-mode-host ()
   "Target host with anaconda-mode server."
@@ -179,8 +181,11 @@ be bound."
 
 (defun anaconda-mode-need-restart ()
   "Check if we need to restart `anaconda-mode-server'."
-  (when (anaconda-mode-running-p)
-    (not (pythonic-proper-environment-p anaconda-mode-process))))
+  (when (and (anaconda-mode-running-p)
+             (anaconda-mode-bound-p))
+    (or (not (pythonic-proper-environment-p anaconda-mode-process))
+        (not (equal (process-get anaconda-mode-process 'server-directory)
+                    (anaconda-mode-server-directory))))))
 
 (defun anaconda-mode-ensure-directory (&optional callback)
   "Ensure if `anaconda-mode-server-directory' exists.
@@ -190,9 +195,11 @@ be bound."
         (start-pythonic :process anaconda-mode-process-name
                         :buffer anaconda-mode-process-buffer
                         :sentinel (lambda (process event) (anaconda-mode-ensure-directory-sentinel process event callback))
-                        :args anaconda-mode-ensure-directory-command)))
+                        :args (list "-c"
+                                    anaconda-mode-ensure-directory-command
+                                    (anaconda-mode-server-directory)))))
 
-(defun anaconda-mode-ensure-directory-sentinel (process event &optional callback)
+(defun anaconda-mode-ensure-directory-sentinel (process _event &optional callback)
   "Run `anaconda-mode-check' if `anaconda-mode-server-directory' exists.
 Raise error otherwise.  PROCESS and EVENT are basic sentinel
 parameters.  CALLBACK function will be called when
@@ -200,7 +207,8 @@ parameters.  CALLBACK function will be called when
   (if (eq 0 (process-exit-status process))
       (anaconda-mode-check callback)
     (pop-to-buffer anaconda-mode-process-buffer)
-    (error "Can't create %s directory" anaconda-mode-server-directory)))
+    (error "Can't create %s directory"
+           (anaconda-mode-server-directory))))
 
 (defun anaconda-mode-check (&optional callback)
   "Check `anaconda-mode' server installation.
@@ -210,9 +218,11 @@ be bound."
         (start-pythonic :process anaconda-mode-process-name
                         :buffer anaconda-mode-process-buffer
                         :sentinel (lambda (process event) (anaconda-mode-check-sentinel process event callback))
-                        :args anaconda-mode-check-installation-command)))
+                        :args (list "-c"
+                                    anaconda-mode-check-installation-command
+                                    (anaconda-mode-server-directory)))))
 
-(defun anaconda-mode-check-sentinel (process event &optional callback)
+(defun anaconda-mode-check-sentinel (process _event &optional callback)
   "Run `anaconda-mode-bootstrap' if server installation check passed.
 Try to install `anaconda-mode' server otherwise.  PROCESS and
 EVENT are basic sentinel parameters.  CALLBACK function will be
@@ -229,9 +239,12 @@ be bound."
         (start-pythonic :process anaconda-mode-process-name
                         :buffer anaconda-mode-process-buffer
                         :sentinel (lambda (process event) (anaconda-mode-install-sentinel process event callback))
-                        :args anaconda-mode-install-server-command)))
+                        :args (list "-c"
+                                    anaconda-mode-install-server-command
+                                    (anaconda-mode-server-directory)
+                                    anaconda-mode-server-version))))
 
-(defun anaconda-mode-install-sentinel (process event &optional callback)
+(defun anaconda-mode-install-sentinel (process _event &optional callback)
   "Run `anaconda-mode-bootstrap' if server installation complete successfully.
 Raise error otherwise.  PROCESS and EVENT are basic sentinel
 parameters.  CALLBACK function will be called when
@@ -248,11 +261,12 @@ be bound."
   (setq anaconda-mode-process
         (start-pythonic :process anaconda-mode-process-name
                         :buffer anaconda-mode-process-buffer
-                        :cwd anaconda-mode-server-directory
+                        :cwd (anaconda-mode-server-directory)
                         :filter (lambda (process output) (anaconda-mode-bootstrap-filter process output callback))
                         :sentinel 'anaconda-mode-bootstrap-sentinel
                         :query-on-exit nil
-                        :args (list anaconda-mode-server-script))))
+                        :args (list anaconda-mode-server-script)))
+  (process-put anaconda-mode-process 'server-directory (anaconda-mode-server-directory)))
 
 (defun anaconda-mode-bootstrap-filter (process output &optional callback)
   "Set `anaconda-mode-port' from PROCESS OUTPUT.
@@ -271,7 +285,7 @@ called when `anaconda-mode-port' will be bound."
     (when callback
       (funcall callback))))
 
-(defun anaconda-mode-bootstrap-sentinel (process event)
+(defun anaconda-mode-bootstrap-sentinel (process _event)
   "Raise error if `anaconda-mode' server exit abnormally.
 PROCESS and EVENT are basic sentinel parameters."
   (unless (eq 0 (process-exit-status process))
@@ -324,7 +338,7 @@ submitted."
         (anaconda-mode-request-buffer (current-buffer))
         (anaconda-mode-request-window (selected-window))
         (anaconda-mode-request-tick (buffer-chars-modified-tick)))
-    (lambda (status)
+    (lambda (_status)
       (let ((http-buffer (current-buffer)))
         (unwind-protect
             (if (or (not (equal anaconda-mode-request-window (selected-window)))
@@ -559,6 +573,9 @@ PRESENTER is the function used to format buffer content."
   "Find DEFINITION file other window, go to DEFINITION point."
   (anaconda-mode-find-file-generic definition 'find-file-other-window))
 
+(defvar-local anaconda-mode-go-back-definition nil
+  "Previous definition from which current buffer was navigated.")
+
 (defun anaconda-mode-find-file-generic (definition find-function)
   "Find DEFINITION with FIND-FUNCTION."
   (let ((backward-navigation (when (buffer-file-name)
@@ -621,15 +638,12 @@ PRESENTER is the function used to format buffer content."
 \\{anaconda-mode-view-mode-map}"
   (setq next-error-function #'anaconda-mode-next-definition))
 
-(defun anaconda-mode-next-definition (num reset)
+(defun anaconda-mode-next-definition (num _reset)
   "Navigate tot the next definition in the view buffer.
 NUM is the number of definitions to move forward.  RESET mean go
 to the beginning of buffer before definitions navigation."
   (forward-button num)
   (anaconda-mode-view-jump-other-window (button-at (point))))
-
-(defvar-local anaconda-mode-go-back-definition nil
-  "Previous definition from which current buffer was navigated.")
 
 (defun anaconda-mode-go-back ()
   "Jump backward if buffer was navigated from `anaconda-mode' command."
