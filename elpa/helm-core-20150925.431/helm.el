@@ -3047,21 +3047,31 @@ sort on the real part."
 It is meant to use with `filter-one-by-one' slot."
   (let* ((pair (and (consp candidate) candidate))
          (display (helm-stringify (if pair (car pair) candidate)))
-         (real (cdr pair)))
+         (real (cdr pair))
+         (regex (helm-aif (and helm-migemo-mode
+                               (assoc helm-pattern
+                                      helm-mm--previous-migemo-info))
+                    (cdr it)
+                  helm-pattern)))
     (with-temp-buffer
       (insert display)
       (goto-char (point-min))
-      (if (search-forward helm-pattern nil t)
+      (if (re-search-forward regex nil t)
           (add-text-properties
            (match-beginning 0) (match-end 0) '(face helm-match))
-          (cl-loop with pattern = (if (string-match-p " " helm-pattern)
-                                      (split-string helm-pattern)
-                                      (split-string helm-pattern "" t))
-                   for p in pattern
+          (cl-loop with patterns = (if (string-match-p " " helm-pattern)
+                                       (split-string helm-pattern)
+                                       (split-string helm-pattern "" t))
+                   for p in patterns
+                   for re = (or (and helm-migemo-mode
+                                     (assoc-default
+                                      p helm-mm--previous-migemo-info))
+                                p)
                    do
-                   (when (search-forward p nil t)
+                   (when (re-search-forward re nil t)
                      (add-text-properties
-                      (match-beginning 0) (match-end 0) '(face helm-match)))))
+                      (match-beginning 0) (match-end 0)
+                      '(face helm-match)))))
       (setq display (buffer-string)))
     (if real (cons display real) display)))
 
@@ -4595,14 +4605,17 @@ To customize `helm-candidates-in-buffer' behavior, use `search',
                                         (list (point-at-bol) (point-at-eol))))
                   when (and (not (gethash cand helm-cib-hash))
                             (or
-                             ;; Always collect when cand is matched by searcher funcs
-                             ;; and match-part attr is not present.
+                             ;; Always collect when cand is matched
+                             ;; by searcher funcs and match-part attr
+                             ;; is not present.
                              (and (not match-part-fn)
                                   (not (consp pos-lst)))
                              ;; If match-part attr is present, or if SEARCHER fn
                              ;; returns a cons cell, collect PATTERN only if it
-                             ;; match the part of CAND specified by the match-part func.
-                             (helm-search-match-part cand pattern (or match-part-fn #'identity))))
+                             ;; match the part of CAND specified by
+                             ;; the match-part func.
+                             (helm-search-match-part
+                              cand pattern (or match-part-fn #'identity))))
                   do (helm--accumulate-candidates
                       cand newmatches helm-cib-hash item-count limit source))
          (setq matches (append matches (nreverse newmatches))))
@@ -4611,24 +4624,26 @@ To customize `helm-candidates-in-buffer' behavior, use `search',
 (defun helm-search-match-part (candidate pattern match-part-fn)
   "Match PATTERN only on part of CANDIDATE returned by MATCH-PART-FN.
 Because `helm-search-match-part' maybe called even if unspecified
-in source (negation), MATCH-PART-FN default to `identity' to match whole candidate.
-When using fuzzy matching and negation (i.e \"!\"), this function is always called."
+in source (negation), MATCH-PART-FN default to `identity'
+to match whole candidate.
+When using fuzzy matching and negation (i.e \"!\"),
+this function is always called."
   (let ((part (funcall match-part-fn candidate))
-        (fuzzy-regexp (cadr (gethash 'helm-pattern helm--fuzzy-regexp-cache))))
+        (fuzzy-regexp (cadr (gethash 'helm-pattern helm--fuzzy-regexp-cache)))
+        (matchfn (if helm-migemo-mode
+                     'helm-mm-migemo-string-match 'string-match)))
     (if (string-match " " pattern)
         (cl-loop for i in (split-string pattern) always
                  (if (string-match "\\`!" i)
-                     (not (string-match (substring i 1) part))
-                     (string-match i part)))
+                     (not (funcall matchfn (substring i 1) part))
+                     (funcall matchfn i part)))
         (if (string-match "\\`!" pattern)
-            (not (string-match (if helm--in-fuzzy
-                                   ;; Fuzzy regexp have already been
-                                   ;; computed with substring 1.
-                                   fuzzy-regexp
-                                   (substring 1 pattern))
-                               part))
-            (string-match (if helm--in-fuzzy fuzzy-regexp pattern)
-                          part)))))
+            (if helm--in-fuzzy
+                ;; Fuzzy regexp have already been
+                ;; computed with substring 1.
+                (not (string-match fuzzy-regexp part))
+                (not (funcall matchfn (substring 1 pattern) part)))
+            (funcall matchfn (if helm--in-fuzzy fuzzy-regexp pattern) part)))))
 
 (defun helm-initial-candidates-from-candidate-buffer (get-line-fn limit)
   (delq nil (cl-loop for i from 1 to limit
