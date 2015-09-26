@@ -4,7 +4,7 @@
 
 ;; Author: Quang Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/evil-commentary
-;; Package-Version: 20150628.1054
+;; Package-Version: 20150924.2343
 ;; Version: 1.0.0
 ;; Keywords: evil comment commentary evil-commentary
 ;; Package-Requires: ((evil "1.0.0"))
@@ -73,12 +73,18 @@ parameter."
   ;; Special treatment for org-mode
   (cond ((and (fboundp 'org-in-src-block-p)
               (org-in-src-block-p))
+         (let* ((current-line (line-number-at-pos))
+                (top-line (save-excursion
+                            (move-to-window-line 0)
+                            (line-number-at-pos)))
+                (offset (- current-line top-line)))
            (push-mark beg)
            (goto-char end)
            (setq mark-active t)
            (org-babel-do-in-edit-buffer
             (call-interactively 'evil-commentary))
-           (pop-mark))
+           (evil-scroll-line-to-top (1+ current-line))
+           (evil-scroll-line-up (1+ offset))))
         (t
          (let ((comment-function
                 (cdr (assoc major-mode
