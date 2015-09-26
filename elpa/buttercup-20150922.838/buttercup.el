@@ -565,9 +565,21 @@ KEYWORD can have one of the following values:
 
 (buttercup-define-matcher :to-have-been-called-with (spy &rest args)
   (let* ((calls (mapcar 'spy-context-args (spy-calls-all spy))))
-    (if (member args calls)
-        t
-      nil)))
+    (cond
+     ((not calls)
+      (cons nil
+            (format "Expected `%s' to have been called with %s, but it was not called at all" spy args)))
+     ((not (member args calls))
+      (cons nil
+            (format "Expected `%s' to have been called with %s, but it was called with %s"
+                    spy
+                    args
+                    (mapconcat (lambda (args)
+                                 (format "%S" args))
+                               calls
+                               ", "))))
+     (t
+      t))))
 
 (defun spy-calls-any (spy)
   "Return t iff SPY has been called at all, nil otherwise."
@@ -608,8 +620,9 @@ KEYWORD can have one of the following values:
   (interactive)
   (let ((buttercup-suites nil)
         (lexical-binding t))
-    (eval-defun nil)
-    (buttercup-run)
+    (save-selected-window
+      (eval-defun nil)
+      (buttercup-run))
     (message "Suite executed successfully")))
 
 ;;;###autoload
@@ -853,7 +866,11 @@ Calls either `buttercup-reporter-batch' or
                                     (insert (apply 'format fmt args))))))
       (unwind-protect
           (buttercup-reporter-batch event arg)
-        (fset 'buttercup--print old-print)))))
+        (fset 'buttercup--print old-print)))
+    (let ((w (get-buffer-window (current-buffer))))
+      (when w
+        (with-selected-window w
+          (goto-char (point-max)))))))
 
 ;;;;;;;;;;;;;
 ;;; Utilities
