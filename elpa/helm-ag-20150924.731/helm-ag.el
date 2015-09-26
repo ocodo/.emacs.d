@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20150914.727
-;; Version: 0.43
+;; Package-Version: 20150924.731
+;; Version: 0.45
 ;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -114,6 +114,7 @@ They are specified to `--ignore' options."
 (defvar helm-ag--default-directory nil)
 (defvar helm-ag--last-default-directory nil)
 (defvar helm-ag--last-query nil)
+(defvar helm-ag--last-command nil)
 (defvar helm-ag--elisp-regexp-query nil)
 (defvar helm-ag--valid-regexp-for-emacs nil)
 (defvar helm-ag--extra-options nil)
@@ -244,7 +245,8 @@ They are specified to `--ignore' options."
              (cmds (helm-ag--construct-command (helm-attr 'search-this-file)))
              (coding-system-for-read buf-coding)
              (coding-system-for-write buf-coding))
-        (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmds helm-ag--last-query))
+        (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmds helm-ag--last-query)
+              helm-ag--last-command cmds)
         (let ((ret (apply 'process-file (car cmds) nil t nil (cdr cmds))))
           (if (zerop (length (buffer-string)))
               (error "No output: '%s'" helm-ag--last-query)
@@ -443,7 +445,7 @@ They are specified to `--ignore' options."
     (helm-ag--query)
     (helm-attrset 'search-this-file (buffer-file-name) helm-ag-source)
     (helm-attrset 'name (format "Search at %s" filename) helm-ag-source)
-    (helm :sources '(helm-ag-source source) :buffer "*helm-ag*")))
+    (helm :sources '(helm-ag-source) :buffer "*helm-ag*")))
 
 (defun helm-ag--get-default-directory ()
   (let ((prefix-val (and current-prefix-arg (abs (prefix-numeric-value current-prefix-arg)))))
@@ -585,6 +587,7 @@ They are specified to `--ignore' options."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'helm-ag-mode-jump)
     (define-key map (kbd "C-o") 'helm-ag-mode-jump-other-window)
+    (define-key map (kbd "g") 'helm-ag--update-save-results)
     map))
 
 ;;;###autoload
@@ -594,29 +597,43 @@ They are specified to `--ignore' options."
 Special commands:
 \\{helm-ag-mode-map}")
 
+(defun helm-ag--put-result-in-save-buffer (result search-this-file-p)
+  (setq buffer-read-only t)
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (insert "-*- mode: helm-ag -*-\n\n"
+            (format "Ag Results for `%s':\n\n" helm-ag--last-query))
+    (save-excursion
+      (insert result)))
+  (helm-ag-mode)
+  (setq-local helm-ag--search-this-file-p search-this-file-p)
+  (setq-local helm-ag--default-directory default-directory))
+
 (defun helm-ag--save-results (_unused)
-  (let ((default-directory helm-ag--default-directory)
-        (buf "*helm ag results*")
-        search-this-file-p)
+  (let* ((search-this-file-p nil)
+         (result (with-current-buffer helm-buffer
+                   (goto-char (point-min))
+                   (forward-line 1)
+                   (buffer-substring (point) (point-max))))
+         (default-directory helm-ag--default-directory)
+         (buf "*helm ag results*"))
     (when (buffer-live-p (get-buffer buf))
       (kill-buffer buf))
     (with-current-buffer (get-buffer-create buf)
-      (setq buffer-read-only t)
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (insert "-*- mode: helm-ag -*-\n\n"
-                (format "Ag Results for `%s':\n\n" helm-ag--last-query))
-        (save-excursion
-          (insert (with-current-buffer helm-buffer
-                    (goto-char (point-min))
-                    (forward-line 1)
-                    (setq search-this-file-p (helm-attr 'search-this-file))
-                    (buffer-substring (point) (point-max))))))
-      (setq-local helm-ag--search-this-file-p search-this-file-p)
-      (setq-local helm-ag--default-directory helm-ag--default-directory)
-      (helm-ag-mode)
-      (pop-to-buffer buf))
-    (message "Helm Ag Results saved in `%s' buffer" buf)))
+      (helm-ag--put-result-in-save-buffer result search-this-file-p)
+      (pop-to-buffer buf)
+      (message "Helm Ag Results saved in `%s' buffer" buf))))
+
+(defun helm-ag--update-save-results ()
+  (interactive)
+  (let* ((default-directory helm-ag--default-directory)
+         (result (with-temp-buffer
+                   (apply #'process-file (car helm-ag--last-command) nil t nil
+                          (cdr helm-ag--last-command))
+                   (helm-ag--propertize-candidates helm-ag--last-query)
+                   (buffer-string))))
+    (helm-ag--put-result-in-save-buffer result helm-ag--search-this-file-p)
+    (message "Update Results")))
 
 (defun helm-ag--action-save-buffer (arg)
   (helm-ag--save-results arg))
@@ -709,38 +726,41 @@ Continue searching the parent directory? "))
              when (helm-ag--validate-regexp pattern)
              collect pattern)))
 
-(defun helm-ag--do-ag-propertize ()
-  (with-helm-window
-    (goto-char (point-min))
-    (let ((patterns (helm-ag--do-ag-highlight-patterns helm-input)))
-      (cl-loop with one-file-p = (helm-ag--search-only-one-file-p)
-               while (not (eobp))
-               do
-               (progn
-                 (let ((start (point))
-                       (bound (line-end-position))
-                       file-end line-end)
-                   (when (or one-file-p (search-forward ":" bound t))
-                     (setq file-end (1- (point)))
-                     (when (search-forward ":" bound t)
-                       (setq line-end (1- (point)))
-                       (unless one-file-p
-                         (set-text-properties start file-end '(face helm-moccur-buffer)))
-                       (set-text-properties (1+ file-end) line-end
-                                            '(face helm-grep-lineno))
+(defun helm-ag--propertize-candidates (input)
+  (goto-char (point-min))
+  (let ((patterns (helm-ag--do-ag-highlight-patterns input)))
+    (cl-loop with one-file-p = (helm-ag--search-only-one-file-p)
+             while (not (eobp))
+             do
+             (progn
+               (let ((start (point))
+                     (bound (line-end-position))
+                     file-end line-end)
+                 (when (or one-file-p (search-forward ":" bound t))
+                   (setq file-end (1- (point)))
+                   (when (search-forward ":" bound t)
+                     (setq line-end (1- (point)))
+                     (unless one-file-p
+                       (set-text-properties start file-end '(face helm-moccur-buffer)))
+                     (set-text-properties (1+ file-end) line-end
+                                          '(face helm-grep-lineno))
 
-                       (let ((curpoint (point))
-                             (case-fold-search helm-ag--ignore-case))
-                         (dolist (pattern patterns)
-                           (let ((last-point (point)))
-                             (while (re-search-forward pattern bound t)
-                               (set-text-properties (match-beginning 0) (match-end 0)
-                                                    '(face helm-match))
-                               (when (= last-point (point))
-                                 (forward-char 1))
-                               (setq last-point (point)))
-                             (goto-char curpoint)))))))
-                 (forward-line 1))))
+                     (let ((curpoint (point))
+                           (case-fold-search helm-ag--ignore-case))
+                       (dolist (pattern patterns)
+                         (let ((last-point (point)))
+                           (while (re-search-forward pattern bound t)
+                             (set-text-properties (match-beginning 0) (match-end 0)
+                                                  '(face helm-match))
+                             (when (= last-point (point))
+                               (forward-char 1))
+                             (setq last-point (point)))
+                           (goto-char curpoint)))))))
+               (forward-line 1)))))
+
+(defun helm-ag--do-ag-propertize (input)
+  (with-helm-window
+    (helm-ag--propertize-candidates input)
     (goto-char (point-min))
     (helm-display-mode-line (helm-get-current-source))))
 
@@ -789,6 +809,7 @@ Continue searching the parent directory? "))
     (when cmd-args
       (let ((proc (apply 'start-file-process "helm-do-ag" nil cmd-args)))
         (setq helm-ag--last-query helm-pattern
+              helm-ag--last-command cmd-args
               helm-ag--ignore-case (helm-ag--ignore-case-p cmd-args helm-pattern)
               helm-ag--last-default-directory default-directory)
         (prog1 proc
@@ -798,7 +819,7 @@ Continue searching the parent directory? "))
              (helm-process-deferred-sentinel-hook
               process event (helm-default-directory))
              (when (string= event "finished\n")
-               (helm-ag--do-ag-propertize)))))))))
+               (helm-ag--do-ag-propertize helm-input)))))))))
 
 (defconst helm-do-ag--help-message
   "\n* Helm Do Ag\n
@@ -890,17 +911,17 @@ Continue searching the parent directory? "))
 (defun helm-do-ag-this-file ()
   (interactive)
   (helm-aif (buffer-file-name)
-      (helm-do-ag default-directory it)
+      (helm-do-ag default-directory (list it))
     (error "Error: This buffer is not visited file.")))
 
 ;;;###autoload
-(defun helm-do-ag (&optional basedir this-file)
+(defun helm-do-ag (&optional basedir targets)
   (interactive)
   (require 'helm-mode)
   (setq helm-ag--original-window (selected-window))
   (helm-ag--clear-variables)
   (let* ((helm-ag--default-directory (or basedir default-directory))
-         (helm-ag--default-target (cond (this-file (list this-file))
+         (helm-ag--default-target (cond (targets targets)
                                         ((and (helm-ag--windows-p) basedir) (list basedir))
                                         (t
                                          (when (and (not basedir) (not helm-ag--buffer-search))
@@ -915,7 +936,7 @@ Continue searching the parent directory? "))
     (helm-ag--set-do-ag-option)
     (helm-ag--set-command-feature)
     (helm-ag--save-current-context)
-    (helm-attrset 'search-this-file this-file helm-source-do-ag)
+    (helm-attrset 'search-this-file (and (= (length targets) 1) (car targets)) helm-source-do-ag)
     (if (or (helm-ag--windows-p) (not one-directory-p)) ;; Path argument must be specified on Windows
         (helm-do-ag--helm)
       (let* ((helm-ag--default-directory

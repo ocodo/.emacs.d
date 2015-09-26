@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-ag" "helm-ag.el" (22010 16095 305140
+;;;### (autoloads nil "helm-ag" "helm-ag.el" (22021 61685 861140
 ;;;;;;  0))
 ;;; Generated autoloads from helm-ag.el
 
@@ -43,7 +43,7 @@ Special commands:
 (autoload 'helm-do-ag "helm-ag" "\
 
 
-\(fn &optional BASEDIR THIS-FILE)" t nil)
+\(fn &optional BASEDIR TARGETS)" t nil)
 
 (autoload 'helm-ag-project-root "helm-ag" "\
 
