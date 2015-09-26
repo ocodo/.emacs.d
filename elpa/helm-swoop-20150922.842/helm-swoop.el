@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013 by Shingo Fukuyama
 
 ;; Version: 1.6.0
-;; Package-Version: 20150831.843
+;; Package-Version: 20150922.842
 ;; Author: Shingo Fukuyama - http://fukuyama.co
 ;; URL: https://github.com/ShingoFukuyama/helm-swoop
 ;; Created: Oct 24 2013
@@ -1039,9 +1039,9 @@ If $linum is number, lines are separated by $linum"
                           (lambda () (split-string (helm-swoop--get-content) "\n"))))
                      ($action
                       (or $action
-                          '(("Go to Line"
+                          `(("Go to Line"
                              . (lambda ($line)
-                                 (switch-to-buffer $buf)
+                                 (switch-to-buffer ,$buf)
                                  (helm-swoop--goto-line
                                   (when (string-match "^[0-9]+" $line)
                                     (string-to-number
