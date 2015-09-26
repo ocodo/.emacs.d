@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "php-mode" "php-mode.el" (22010 15996 517140
+;;;### (autoloads nil "php-mode" "php-mode.el" (22021 61615 821140
 ;;;;;;  0))
 ;;; Generated autoloads from php-mode.el
 
@@ -32,7 +32,7 @@ Major mode for editing PHP code.
 ;;;;;;  "php-exif.el" "php-ext.el" "php-filesystem.el" "php-gd.el"
 ;;;;;;  "php-math.el" "php-mode-pkg.el" "php-pcre.el" "php-regex.el"
 ;;;;;;  "php-simplexml.el" "php-strings.el" "php-var.el" "php-xmlparser.el"
-;;;;;;  "php-xmlreader.el") (22010 15996 565892 263000))
+;;;;;;  "php-xmlreader.el") (22021 61615 867888 236000))
 
 ;;;***
 
