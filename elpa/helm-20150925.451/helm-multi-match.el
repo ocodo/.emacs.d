@@ -24,8 +24,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-
-(defvar helm-pattern)
+(require 'helm-lib)
 
 
 (defgroup helm-multi-match nil
@@ -251,6 +250,58 @@ i.e (identity (re-search-forward \"foo\" (point-at-eol) t)) => t."
     (setq pattern (helm-mm-3-get-patterns pattern)))
   (helm-mm-3-search-base
    pattern 're-search-forward 're-search-forward))
+
+;;; mp-3 with migemo
+;;
+;;
+(defvar helm-mm--previous-migemo-info nil
+  "[Internal] Cache previous migemo query.")
+(make-local-variable 'helm-mm--previous-migemo-info)
+
+(declare-function migemo-get-pattern "ext:migemo.el")
+(declare-function migemo-search-pattern-get "ext:migemo.el")
+
+(define-minor-mode helm-migemo-mode
+    "Enable migemo in helm.
+It will be available in the sources handling it,
+i.e the sources which have the slot :migemo with non--nil value."
+  :lighter " Hmio"
+  :group 'helm
+  :global t
+  (cl-assert (featurep 'migemo)
+             nil "No feature called migemo found, install migemo.el."))
+
+(defun helm-mm-migemo-string-match (pattern str)
+  "Migemo version of `string-match'."
+  (unless (assoc pattern helm-mm--previous-migemo-info)
+    (with-helm-buffer
+      (setq helm-mm--previous-migemo-info
+            (push (cons pattern (concat (migemo-get-pattern pattern)
+                                        "\\|" pattern))
+                  helm-mm--previous-migemo-info))))
+  (string-match (assoc-default pattern helm-mm--previous-migemo-info) str))
+
+(cl-defun helm-mm-3-migemo-match (str &optional (pattern helm-pattern))
+  (and helm-migemo-mode
+       (cl-loop for (pred . re) in (helm-mm-3-get-patterns pattern)
+                always (funcall pred (helm-mm-migemo-string-match re str)))))
+
+(defun helm-mm-migemo-forward (word &optional bound noerror count)
+  (with-helm-buffer
+    (unless (assoc word helm-mm--previous-migemo-info)
+      (setq helm-mm--previous-migemo-info
+            (push (cons word (if (delq 'ascii (find-charset-string word))
+                                 word
+                                 (concat (migemo-search-pattern-get word)
+                                         "\\|" word)))
+                  helm-mm--previous-migemo-info))))
+  (re-search-forward
+   (assoc-default word helm-mm--previous-migemo-info) bound noerror count))
+
+(defun helm-mm-3-migemo-search (pattern &rest _ignore)
+  (and helm-migemo-mode
+       (helm-mm-3-search-base
+        pattern 'helm-mm-migemo-forward 'helm-mm-migemo-forward)))
 
 
 ;;; mp-3p- (multiple regexp pattern 3 with prefix search)
