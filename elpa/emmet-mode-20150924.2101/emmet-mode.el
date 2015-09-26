@@ -6,7 +6,7 @@
 ;; Copyright (C) 2009-2012 Chris Done
 
 ;; Version: 1.0.10
-;; Package-Version: 20150410.803
+;; Package-Version: 20150924.2101
 ;; Author: Shin Aoyama <smihica@gmail.com>
 ;; URL: https://github.com/smihica/emmet-mode
 ;; Last-Updated: 2014-08-11 Mon
@@ -3154,16 +3154,16 @@ tbl))
 
 (defun emmet-prop-value (name input)
   (emmet-pif (emmet-parse "=\"\\(.*?\\)\"" 2
-                                  "=\"property value\""
-                                  (let ((value (elt it 1))
-                                        (input (elt it 2)))
-                                    `((,(read name) ,value) . ,input)))
-                 it
-                 (emmet-parse "=\\([^\\,\\+\\>\\{\\}\\ )]*\\)" 2
-                                  "=property value"
-                                  (let ((value (elt it 1))
-                                        (input (elt it 2)))
-                                    `((,(read name) ,value) . ,input)))))
+                          "=\"property value\""
+                          (let ((value (elt it 1))
+                                (input (elt it 2)))
+                            `((,(read name) ,(emmet-split-numbering-expressions value)) . ,input)))
+             it
+             (emmet-parse "=\\([^\\,\\+\\>\\{\\}\\ )]*\\)" 2
+                          "=property value"
+                          (let ((value (elt it 1))
+                                (input (elt it 2)))
+                            `((,(read name) ,(emmet-split-numbering-expressions value)) . ,input)))))
 
 (defun emmet-tag-classes (tag input)
   (let ((tag-data (cadr tag)))
