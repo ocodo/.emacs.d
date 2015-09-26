@@ -10,7 +10,7 @@
 ;; URL: https://github.com/elixir-lang/emacs-elixir
 ;; Created: Mon Nov 7 2011
 ;; Keywords: languages elixir
-;; Version: 2.2.6
+;; Version: 2.2.7
 ;; Package-Requires: ((emacs "24") (pkg-info "0.4"))
 
 ;; This file is not a part of GNU Emacs.
@@ -36,8 +36,9 @@
 
 ;;; Code:
 
-(require 'easymenu)           ; for menubar features
-(require 'elixir-smie)        ; syntax and indentation support
+(require 'easymenu)           ; Elixir Mode menu definition
+(require 'elixir-smie)        ; Syntax and indentation support
+(require 'pkg-info)           ; Display Elixir Mode package version
 
 (defgroup elixir nil
   "Major mode for editing Elixir code."
