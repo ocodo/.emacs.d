@@ -5,7 +5,7 @@
 ;; Author: Samuel Tonini <tonini.samuel@gmail.com>
 ;; Maintainer: Samuel Tonini <tonini.samuel@gmail.com>
 ;; URL: http://www.github.com/tonini/alchemist.el
-;; Version: 1.5.0
+;; Version: 1.5.2
 ;; Package-Requires: ((elixir-mode "2.2.5") (dash "2.11.0") (emacs "24.4") (company "0.8.0") (pkg-info "0.4"))
 ;; Keywords: languages, elixir, elixirc, mix, hex, alchemist
 
@@ -228,10 +228,7 @@ Key bindings:
     ("Project"
      ["Project find all tests" alchemist-project-find-test]
      ["Project toggle between file and test" alchemist-project-toggle-file-and-tests]
-     ["Project toggle between file and test in other window" alchemist-project-toggle-file-and-tests-other-window]
-     "---"
-     ["Project toggle compile when needed" alchemist-project-toggle-compile-when-needed
-      :style toggle :selected alchemist-project-compile-when-needed])
+     ["Project toggle between file and test in other window" alchemist-project-toggle-file-and-tests-other-window])
     ("Documentation"
      ["Documentation search..." alchemist-help]
      ["Documentation search history..." alchemist-help-history]
