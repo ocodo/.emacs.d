@@ -1,8 +1,8 @@
 ;;; git-link.el --- Get the GitHub/Bitbucket/Gitorious URL for a buffer location
 
 ;; Author: Skye Shaw <skye.shaw@gmail.com>
-;; Version: 0.2.2
-;; Package-Version: 20150912.1008
+;; Version: 0.3.0
+;; Package-Version: 20150921.2218
 ;; Keywords: git
 ;; URL: http://github.com/sshaw/git-link
 
@@ -34,6 +34,11 @@
 
 ;;; Change Log:
 
+;; 2015-09-21 - v0.3.0
+;; * Support for setting branch and remote names via `git config`
+;; * Added git-link-default-branch
+;; * Removed some functions, use emacs "private" convention for others
+;;
 ;; 2015-09-12 - v0.2.2
 ;; * Support for BitBucket's multiline format
 ;;
@@ -66,7 +71,10 @@
 (require 'thingatpt)
 
 (defvar git-link-default-remote "origin"
-  "Name of the remote branch to link to.")
+  "Name of the remote to link to.")
+
+(defvar git-link-default-branch nil
+  "Name of the branch to link to.")
 
 (defvar git-link-open-in-browser nil
   "If non-nil also open link in browser via `browse-url'.")
@@ -92,52 +100,50 @@
 ;; This probably wont work for git remotes that aren't services
 (defconst git-link-remote-regex "\\([-.[:word:]]+\\)[:/]\\([^/]+/[^/]+?\\)\\(?:\\.git\\)?$")
 
-(defun git-link-chomp (s)
-  (if (string-match "\\(\r?\n\\)+$" s)
-      (replace-match "" t t s)
-    s))
+(defun git-link--last-commit ()
+  (car (git-link--exec "--no-pager" "log" "-n1" "--pretty=format:%H")))
 
-(defun git-link-exec (&rest args)
-  (with-temp-buffer
-    ;; swallow stderr and return an empty string on failure
-    (apply 'call-process "git" nil (list (current-buffer) nil) nil args)
-    (buffer-string)))
+(defun git-link--branch ()
+  (or (car (git-link--exec "config" "--get" "git-link.branch"))
+      git-link-default-branch
+      (car (git-link--exec "symbolic-ref" "--short" "HEAD"))))
 
-(defun git-link-last-commit ()
-  (git-link-exec "--no-pager" "log" "-n1" "--pretty=format:%H"))
+(defun git-link--remote ()
+  (or (car (git-link--exec "config" "--get" "git-link.remote"))
+      git-link-default-remote))
 
-(defun git-link-current-branch ()
-  (git-link-chomp (git-link-exec "symbolic-ref" "--short" "HEAD")))
+(defun git-link--repo-root ()
+  (car (git-link--exec "rev-parse" "--show-toplevel")))
 
-(defun git-link-repo-root ()
-  (git-link-chomp (git-link-exec "rev-parse" "--show-toplevel")))
+(defun git-link--remote-url (name)
+  (car (git-link--exec "config" "--get" (format "remote.%s.url" name))))
 
-(defun git-link-remote-url (name)
-  (git-link-chomp (git-link-exec "config" "--get" (format "remote.%s.url" name))))
-
-(defun git-link-relative-filename ()
+(defun git-link--relative-filename ()
   (let* ((filename (buffer-file-name))
-	 (dir      (git-link-repo-root)))
+	 (dir      (git-link--repo-root)))
     (if (and dir filename)
 	(substring (file-truename filename)
 		   (1+ (length dir))))))
 
-(defun git-link-remote-host (remote-name)
-  (let ((url (git-link-remote-url remote-name)))
-    (if (string-match git-link-remote-regex url)
+(defun git-link--remote-host (remote-name)
+  (let ((url (git-link--remote-url remote-name)))
+    (if (and url (string-match git-link-remote-regex url))
 	(match-string 1 url))))
 
-(defun git-link-remote-dir (remote-name)
-  (let ((url (git-link-remote-url remote-name)))
-    (if (string-match git-link-remote-regex url)
+(defun git-link--remote-dir (remote-name)
+  (let ((url (git-link--remote-url remote-name)))
+    (if (and url (string-match git-link-remote-regex url))
         (match-string 2 url))))
 
-(defun git-link-remotes ()
-  "Returns the list of remotes for this repository, or nil on error"
-  (ignore-errors (process-lines "git" "remote")))
+(defun git-link--exec(&rest args)
+  (ignore-errors (apply 'process-lines `("git" ,@(when args args)))))
 
-(defun git-link-read-remote ()
-  (let ((remotes (git-link-remotes)))
+(defun git-link--remotes ()
+  (git-link--exec "remote"))
+
+(defun git-link--read-remote ()
+  (let ((remotes (git-link--remotes))
+	(current (git-link--remote)))
     (if remotes
         (completing-read "Remote: "
                          remotes
@@ -145,12 +151,12 @@
                          t
                          ""
                          nil
-                         (if (member git-link-default-remote remotes)
-                             git-link-default-remote
-                           (car remotes)))
-      git-link-default-remote)))
+                         (if (member current remotes)
+                             current
+                         (car remotes)))
+     current)))
 
-(defun git-link-get-region ()
+(defun git-link--get-region ()
   (save-restriction
     (widen)
     (save-excursion
@@ -173,6 +179,13 @@
           (when (<= line-end line-start)
             (setq line-end nil)))
         (list line-start line-end)))))
+
+(defun git-link--new (link)
+  (kill-new link)
+  (message link)
+  (setq deactivate-mark t)
+  (when git-link-open-in-browser
+    (browse-url link)))
 
 (defun git-link-gitlab (hostname dirname filename branch commit start end)
   (format "https://%s/%s/blob/%s/%s#%s"
@@ -233,13 +246,6 @@
 	  dirname
 	  commit))
 
-(defun git-link-new (link)
-  (kill-new link)
-  (message link)
-  (setq deactivate-mark t)
-  (when git-link-open-in-browser
-    (browse-url link)))
-
 ;;;###autoload
 (defun git-link (remote start end)
   "Create a URL representing the current buffer's location in its
@@ -249,14 +255,14 @@ or active region. The URL will be added to the kill ring.
 With a prefix argument prompt for the remote's name.
 Defaults to \"origin\"."
   (interactive (let* ((remote (if current-prefix-arg
-                                  (git-link-read-remote)
-                                git-link-default-remote))
-                      (region (git-link-get-region)))
+                                  (git-link--read-remote)
+                                (git-link--remote)))
+                      (region (git-link--get-region)))
                  (list remote (car region) (cadr region))))
-  (let* ((remote-host (git-link-remote-host remote))
-	 (filename    (git-link-relative-filename))
-	 (branch      (git-link-current-branch))
-	 (commit      (git-link-last-commit))
+  (let* ((remote-host (git-link--remote-host remote))
+	 (filename    (git-link--relative-filename))
+	 (branch      (git-link--branch))
+	 (commit      (git-link--last-commit))
 	 (handler     (cadr (assoc remote-host git-link-remote-alist))))
 
     (cond ((null filename)
@@ -268,10 +274,10 @@ Defaults to \"origin\"."
 	  ((not (functionp handler))
 	   (message "No handler for %s" remote-host))
 	  ;; null ret val
-	  ((git-link-new
+	  ((git-link--new
 	    (funcall handler
 		     remote-host
-		     (git-link-remote-dir remote)
+		     (git-link--remote-dir remote)
 		     filename
 		     (if git-link-use-commit nil branch)
 		     commit
@@ -288,9 +294,9 @@ With a prefix argument prompt for the remote's name.
 Defaults to \"origin\"."
 
   (interactive (list (if current-prefix-arg
-                         (git-link-read-remote)
-                       git-link-default-remote)))
-  (let* ((remote-host (git-link-remote-host remote))
+                         (git-link--read-remote)
+                       (git-link--remote))))
+  (let* ((remote-host (git-link--remote-host remote))
 	 (commit      (word-at-point))
 	 (handler     (cadr (assoc remote-host git-link-commit-remote-alist))))
     (cond ((null remote-host)
@@ -300,10 +306,10 @@ Defaults to \"origin\"."
 	  ((not (functionp handler))
 	   (message "No handler for %s" remote-host))
 	  ;; null ret val
-	  ((git-link-new
+	  ((git-link--new
 	    (funcall handler
 		     remote-host
-		     (git-link-remote-dir remote)
+		     (git-link--remote-dir remote)
 		     commit))))))
 
 (provide 'git-link)
