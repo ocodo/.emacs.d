@@ -51,7 +51,7 @@ Commit all updated packages (as individual commits)
 =end
 
 require 'git'
-require 'pry-byebug'
+require 'byebug'
 
 class GitElpa
 
@@ -105,8 +105,8 @@ class GitElpa
   end
 
   def add_to_index
-    @g.add new_version_files unless @ver.nil?
-    @g.remove old_version_files if @old.length > 0
+    %x[git add #{new_version_files.join(" ")}] unless @ver.nil?
+    %x[git rm #{old_version_files.join(" ")}] if @old.length > 0
   end
 
   def commit(message = commit_message)
