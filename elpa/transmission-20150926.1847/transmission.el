@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.5
-;; Package-Version: 20150922.1624
+;; Package-Version: 20150926.1847
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3") (seq "1.5"))
 ;; Keywords: comm, tools
 
@@ -57,10 +57,12 @@
 (require 'calc-bin)
 (require 'cl-lib)
 (require 'json)
-(require 'let-alist)
 (require 'seq)
-(require 'subr-x)
 (require 'tabulated-list)
+
+(eval-when-compile
+  (require 'let-alist)
+  (require 'subr-x))
 
 (defgroup transmission nil
   "Interface to a Transmission session."
