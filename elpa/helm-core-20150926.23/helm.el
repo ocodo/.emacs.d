@@ -2821,7 +2821,8 @@ Cache the candidates if there is not yet a cached value."
            (cl-loop for f in it
                  do (setq ,candidate (funcall f ,candidate))
                  finally return ,candidate)
-         (setq ,candidate (funcall it ,candidate)))))
+         (setq ,candidate (funcall it ,candidate)))
+     ,candidate))
 
 (defun helm--initialize-one-by-one-candidates (candidates source)
   "Process the CANDIDATES with the `filter-one-by-one' function in SOURCE.
@@ -3500,24 +3501,24 @@ after the source name by overlay."
   (cl-dolist (candidate (helm-transform-candidates
                          (helm-output-filter--collect-candidates
                           (split-string output-string "\n")
-                          (assoc 'incomplete-line source)
-                          source)
+                          (assoc 'incomplete-line source))
                          source t))
-    (when candidate     ; filter-one-by-one may return nil candidates.
-      (if (assq 'multiline source)
-          (let ((start (point)))
-            (helm-insert-candidate-separator)
-            (helm-insert-match candidate 'insert-before-markers source
-                               (1+ (cdr (assoc 'item-count source))))
-            (put-text-property start (point) 'helm-multiline t))
+    (setq candidate
+          (helm--maybe-process-filter-one-by-one-candidate candidate source))
+    (if (assq 'multiline source)
+        (let ((start (point)))
+          (helm-insert-candidate-separator)
           (helm-insert-match candidate 'insert-before-markers source
-                             (1+ (cdr (assoc 'item-count source)))))
-      (cl-incf (cdr (assoc 'item-count source)))
-      (when (>= (assoc-default 'item-count source) limit)
-        (helm-kill-async-process process)
-        (cl-return)))))
+                             (1+ (cdr (assoc 'item-count source))))
+          (put-text-property start (point) 'helm-multiline t))
+        (helm-insert-match candidate 'insert-before-markers source
+                           (1+ (cdr (assoc 'item-count source)))))
+    (cl-incf (cdr (assoc 'item-count source)))
+    (when (>= (assoc-default 'item-count source) limit)
+      (helm-kill-async-process process)
+      (cl-return))))
 
-(defun helm-output-filter--collect-candidates (lines incomplete-line-info source)
+(defun helm-output-filter--collect-candidates (lines incomplete-line-info)
   "Collect LINES maybe completing the truncated first and last lines."
   ;; The output of process may come in chunks of any size,
   ;; so the last line of LINES come truncated, this truncated line is
@@ -3528,17 +3529,21 @@ after the source name by overlay."
   (helm-log "incomplete-line-info = %S" (cdr incomplete-line-info))
   (butlast
    (cl-loop for line in lines
-         ;; On start `incomplete-line-info' value is empty string.
-         for newline = (helm-aif (cdr incomplete-line-info)
-                           (prog1
-                               (concat it line)
-                             (setcdr incomplete-line-info nil))
-                         line)
-         do (helm--maybe-process-filter-one-by-one-candidate newline source)
-         collect newline
-         ;; Store last incomplete line (last chunk truncated)
-         ;; until new output arrives.
-         finally do (setcdr incomplete-line-info line))))
+            ;; On start `incomplete-line-info' value is empty string.
+            for newline = (helm-aif (cdr incomplete-line-info)
+                              (prog1
+                                  (concat it line)
+                                (setcdr incomplete-line-info nil))
+                            line)
+            collect newline
+            ;; Store last incomplete line (last chunk truncated)
+            ;; until new output arrives.
+            ;; Previously we were storing 'line' in incomplete-line-info
+            ;; assuming output is truncated in only two chunks,
+            ;; which may be wrong if output is very large and is truncated
+            ;; in more than two chunks, so store now 'newline' which
+            ;; contain the previous chunks (Issue #1187).
+            finally do (setcdr incomplete-line-info newline))))
 
 (defun helm-output-filter--post-process ()
   (let ((src (helm-get-current-source)))
