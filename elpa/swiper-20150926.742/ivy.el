@@ -1294,6 +1294,10 @@ Insert .* between each char."
         (save-excursion
           (goto-char (point-min))
           (delete-region (point-min) (minibuffer-prompt-end))
+          (when (> (length n-str) (window-width))
+            (setq n-str (concat (substring n-str 0
+                                           (max (- (window-width) 30)
+                                                10)) "... ")))
           (set-text-properties 0 (length n-str)
                                `(face minibuffer-prompt ,@std-props)
                                n-str)
@@ -1410,7 +1414,10 @@ all of the text contained in the minibuffer."
               (body-height (window-body-height nil t)))
           (when (> text-height body-height)
             (window-resize nil (- text-height body-height) nil t t)))
-      (fit-window-to-buffer))))
+        (let ((text-height (count-screen-lines))
+              (body-height (window-body-height)))
+          (when (> text-height body-height)
+            (window-resize nil (- text-height body-height) nil t))))))
 
 (declare-function colir-blend-face-background "ext:colir")
 
@@ -1557,12 +1564,19 @@ This string will be inserted into the minibuffer.")
                          (t
                           (nth (1+ (mod (+ i 2) (1- (length swiper-minibuffer-faces))))
                                swiper-minibuffer-faces)))))
-              (add-face-text-property
-               (match-beginning i)
-               (match-end i)
-               face
-               nil
-               str))
+              (if (fboundp 'add-face-text-property)
+                  (add-face-text-property
+                   (match-beginning i)
+                   (match-end i)
+                   face
+                   nil
+                   str)
+                (font-lock-append-text-property
+                 (match-beginning i)
+                 (match-end i)
+                 'face
+                 face
+                 str)))
             (cl-incf i)))))
     str))
 
