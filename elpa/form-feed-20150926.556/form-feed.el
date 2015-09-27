@@ -4,9 +4,9 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/form-feed
-;; Package-Version: 20150919.1048
+;; Package-Version: 20150926.556
 ;; Keywords: faces
-;; Version: 0.2.1
+;; Version: 0.2.2
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -46,7 +46,10 @@
   :group 'faces)
 
 (defface form-feed-line
-  '((((type graphic)) :inherit font-lock-comment-face :strike-through t)
+  '((((type graphic)
+      (background light)) :strike-through "black")
+    (((type graphic)
+      (background dark)) :strike-through "white")
     (((type tty)) :inherit font-lock-comment-face :underline t))
   "Face for form-feed-mode lines."
   :group 'form-feed)
