@@ -494,7 +494,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20150921)
+      [(20150929)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -543,6 +543,13 @@
 		 nil "Interactively list/edit registers" single
 		 ((:url . "http://elpa.gnu.org/packages/register-list.html")
 		  (:keywords "register"))])
+ (rich-minority .
+		[(1 0)
+		 ((cl-lib
+		   (0 5)))
+		 "Clean-up and Beautify the list of minor-modes." single
+		 ((:url . "http://github.com/Malabarba/rich-minority")
+		  (:keywords "mode-line" "faces"))])
  (rudel .
 	[(0 3)
 	 nil "A collaborative editing framework for Emacs" tar
