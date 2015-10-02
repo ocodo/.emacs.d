@@ -1814,7 +1814,7 @@ PHP
 ===
 
   1. ‘php’ (syntax check with PHP CLI
-     (https://metacpan.org/pod/Perl::Critic))
+     (http://php.net/manual/en/features.commandline.php))
   2. ‘php-phpmd’ (code check with PHP Mess Detector (http://phpmd.org/))
   3. ‘php-phpcs’ (style check with PHP CodeSniffer
      (http://pear.php.net/package/PHP_CodeSniffer/))
@@ -2961,30 +2961,30 @@ Ref: language-Less69707
 Ref: language-Lua69764
 Ref: language-Perl70122
 Ref: language-PHP70657
-Ref: language-Puppet71349
-Ref: language-Python71531
-Ref: language-R73048
-Ref: language-Racket73485
-Ref: language-RPM Spec73560
-Ref: language-reStructuredText73674
-Ref: language-Ruby74068
-Ref: language-Rust75079
-Ref: language-Sass76017
-Ref: language-Scala76270
-Ref: language-SCSS76877
-Ref: language-Shell scripting languages77437
-Ref: language-Slim78173
-Ref: language-SQL78238
-Ref: language-TeX/LaTeX78335
-Ref: language-Texinfo78747
-Ref: language-Verilog78842
-Ref: language-XML79157
-Ref: language-YAML79325
-Node: Issues79464
-Node: GNU Free Documentation License80485
-Node: Main Index105832
-Node: Key Index114249
-Node: Function and Variable Index115757
+Ref: language-Puppet71361
+Ref: language-Python71543
+Ref: language-R73060
+Ref: language-Racket73497
+Ref: language-RPM Spec73572
+Ref: language-reStructuredText73686
+Ref: language-Ruby74080
+Ref: language-Rust75091
+Ref: language-Sass76029
+Ref: language-Scala76282
+Ref: language-SCSS76889
+Ref: language-Shell scripting languages77449
+Ref: language-Slim78185
+Ref: language-SQL78250
+Ref: language-TeX/LaTeX78347
+Ref: language-Texinfo78759
+Ref: language-Verilog78854
+Ref: language-XML79169
+Ref: language-YAML79337
+Node: Issues79476
+Node: GNU Free Documentation License80497
+Node: Main Index105844
+Node: Key Index114261
+Node: Function and Variable Index115769
 
 End Tag Table
 

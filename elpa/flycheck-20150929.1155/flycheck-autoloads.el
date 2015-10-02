@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "flycheck" "flycheck.el" (22021 61707 693140
+;;;### (autoloads nil "flycheck" "flycheck.el" (22030 34893 521140
 ;;;;;;  0))
 ;;; Generated autoloads from flycheck.el
 
@@ -217,8 +217,8 @@ Use this together with the `option', `option-list' and
 
 ;;;***
 
-;;;### (autoloads nil nil ("flycheck-ert.el" "flycheck-pkg.el") (22021
-;;;;;;  61707 705269 449000))
+;;;### (autoloads nil nil ("flycheck-ert.el" "flycheck-pkg.el") (22030
+;;;;;;  34893 531983 412000))
 
 ;;;***
 
