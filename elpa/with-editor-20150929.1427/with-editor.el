@@ -108,7 +108,7 @@
 (defun with-editor-locate-emacsclient ()
   "Search for a suitable Emacsclient executable."
   (--if-let (with-editor-locate-emacsclient-1 (with-editor-emacsclient-path) 3)
-      (shell-quote-argument it)
+      it
     (display-warning 'with-editor (format "\
 Cannot determine a suitable Emacsclient
 
@@ -137,7 +137,8 @@ please see https://github.com/magit/magit/wiki/Emacsclient."))
              (with-editor-locate-emacsclient-1 path (1- depth))))))
 
 (defun with-editor-emacsclient-version (exec)
-  (cadr (split-string (car (process-lines exec "--version")))))
+  (-when-let (1st-line (car (process-lines exec "--version")))
+    (cadr (split-string 1st-line))))
 
 (defun with-editor-emacsclient-path ()
   (let ((path exec-path))
@@ -384,12 +385,13 @@ ENVVAR is provided then bind that environment variable instead.
          (server-start))
        ;; Tell $EDITOR to use the Emacsclient.
        (setenv with-editor--envvar
-               (concat with-editor-emacsclient-executable
+               (concat (shell-quote-argument with-editor-emacsclient-executable)
        ;; Tell the process where the server file is.
                        (and (not server-use-tcp)
                             (concat " --socket-name="
-                                    (expand-file-name server-name
-                                                      server-socket-dir)))))
+                                    (shell-quote-argument
+                                     (expand-file-name server-name
+                                                       server-socket-dir))))))
        (when server-use-tcp
          (setenv "EMACS_SERVER_FILE"
                  (expand-file-name server-name server-auth-dir)))
@@ -659,7 +661,7 @@ See `with-editor.info' for instructions."
      (format "  server-use-tcp: %s\n" server-use-tcp)
      (format "  server-name: %s\n" server-name)
      (format "  server-socket-dir: %s\n" server-socket-dir))
-    (if (file-accessible-directory-p server-socket-dir)
+    (if (and server-socket-dir (file-accessible-directory-p server-socket-dir))
         (--each (directory-files server-socket-dir nil "^[^.]")
           (insert (format "    %s\n" it)))
       (insert (format "    %s: not an accessible directory\n"
@@ -689,7 +691,7 @@ See `with-editor.info' for instructions."
     (--each (with-editor-emacsclient-path)
       (insert (format "    %s (%s)\n" it (car (file-attributes it))))
       (when (file-directory-p it)
-        (dolist (exec (directory-files it nil "emacsclient"))
+        (dolist (exec (directory-files it t "emacsclient"))
           (insert (format "      %s (%s)\n" exec
                           (with-editor-emacsclient-version exec))))))))
 
