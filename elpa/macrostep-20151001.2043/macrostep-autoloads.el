@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "macrostep" "macrostep.el" (21998 34703 315401
+;;;### (autoloads nil "macrostep" "macrostep.el" (22030 34873 517140
 ;;;;;;  0))
 ;;; Generated autoloads from macrostep.el
 
@@ -32,7 +32,7 @@ buffer instead of inline in the current buffer.  Setting
 `macrostep-expand-in-separate-buffer' to non-nil swaps these two
 behaviors.
 
-\(fn TOGGLE-SEPARATE-BUFFER)" t nil)
+\(fn &optional TOGGLE-SEPARATE-BUFFER)" t nil)
 
 ;;;***
 
