@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "poly-R" "poly-R.el" (22021 61612 257140 0))
+;;;### (autoloads nil "poly-R" "poly-R.el" (22030 34837 281140 0))
 ;;; Generated autoloads from poly-R.el
  (autoload 'poly-noweb+r-mode "poly-R")
  (autoload 'poly-markdown+r-mode "poly-R")
@@ -17,28 +17,28 @@
 
 ;;;***
 
-;;;### (autoloads nil "poly-markdown" "poly-markdown.el" (22021 61612
-;;;;;;  245140 0))
+;;;### (autoloads nil "poly-markdown" "poly-markdown.el" (22030 34837
+;;;;;;  273140 0))
 ;;; Generated autoloads from poly-markdown.el
  (autoload 'poly-markdown-mode "poly-markdown")
 
 ;;;***
 
-;;;### (autoloads nil "poly-noweb" "poly-noweb.el" (22021 61612 225140
+;;;### (autoloads nil "poly-noweb" "poly-noweb.el" (22030 34837 257140
 ;;;;;;  0))
 ;;; Generated autoloads from poly-noweb.el
  (autoload 'poly-noweb-mode "poly-noweb")
 
 ;;;***
 
-;;;### (autoloads nil "poly-org" "poly-org.el" (22021 61612 249140
+;;;### (autoloads nil "poly-org" "poly-org.el" (22030 34837 277140
 ;;;;;;  0))
 ;;; Generated autoloads from poly-org.el
  (autoload 'poly-org-mode "poly-org")
 
 ;;;***
 
-;;;### (autoloads nil "polymode" "polymode.el" (22021 61612 233140
+;;;### (autoloads nil "polymode" "polymode.el" (22030 34837 265140
 ;;;;;;  0))
 ;;; Generated autoloads from polymode.el
 
@@ -69,7 +69,7 @@ BODY contains code to be executed after the complete
 :lighter SPEC   Optional LIGHTER is displayed in the mode line when
                 the mode is on. If omitted, it defaults to
                 the :lighter slot of CONFIG object.
-:keymap MAP	Same as the KEYMAP argument.
+:keymap MAP Same as the KEYMAP argument.
 
                 If nil, a new MODE-map keymap is created what
                 directly inherits from the keymap defined by
@@ -95,8 +95,8 @@ BODY contains code to be executed after the complete
 ;;;### (autoloads nil nil ("poly-base.el" "poly-erb.el" "poly-slim.el"
 ;;;;;;  "polymode-classes.el" "polymode-common.el" "polymode-configuration.el"
 ;;;;;;  "polymode-export.el" "polymode-methods.el" "polymode-pkg.el"
-;;;;;;  "polymode-tangle.el" "polymode-weave.el") (22021 61612 278420
-;;;;;;  320000))
+;;;;;;  "polymode-tangle.el" "polymode-weave.el") (22030 34837 299521
+;;;;;;  239000))
 
 ;;;***
 

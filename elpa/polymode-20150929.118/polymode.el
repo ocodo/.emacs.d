@@ -7,7 +7,7 @@
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "24"))
 ;; URL: https://github.com/vitoshka/polymode
-;; Keywords: emacs
+ ;; Keywords: emacs
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -557,3 +557,4 @@ BODY contains code to be executed after the complete
       (2 font-lock-variable-name-face)))))
 
 (provide 'polymode)
+;;; polymode.el ends here
