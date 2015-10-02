@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.5
-;; Package-Version: 20150926.1847
+;; Package-Version: 20150930.2112
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3") (seq "1.5"))
 ;; Keywords: comm, tools
 
@@ -229,6 +229,7 @@ update `transmission-session-id' and signal the error."
       (concat "Basic " (base64-encode-string auth)))))
 
 (defun transmission-http-post (process content)
+  "Send to PROCESS an HTTP POST request containing CONTENT."
   (with-current-buffer (process-buffer process)
     (erase-buffer))
   (let ((path transmission-rpc-path)
@@ -333,6 +334,9 @@ TORRENT is the \"torrents\" vector returned by `transmission-torrents'."
 ;; Other
 
 (defun transmission-status (status up down)
+  "Return a propertized string describing torrent status.
+STATUS is a key of `transmission-status-plist'.  UP and DOWN are
+transmission rates."
   (let ((state (plist-get transmission-status-plist status))
         (idle (propertize "idle" 'font-lock-face 'shadow)))
     (pcase status
@@ -580,7 +584,7 @@ When called with a prefix, prompt for DIRECTORY."
 
 (defun transmission-remove (&optional unlink)
   "Prompt to remove torrent at point or torrents in region.
-When called with a prefix, also unlink torrent data on disk."
+When called with a prefix UNLINK, also unlink torrent data on disk."
   (interactive "P")
   (transmission-let-ids ((arguments `(:ids ,ids :delete-local-data ,(and unlink t))))
     (when (yes-or-no-p (concat "Remove " (and unlink "and unlink ")
@@ -669,8 +673,8 @@ When called with a prefix, also unlink torrent data on disk."
   "Quit and bury the buffer."
   (interactive)
   (let ((cur (current-buffer)))
-    (if (seq-filter (lambda (b) (not (eq cur b)))
-                    (mapcar #'car (window-prev-buffers)))
+    (if (cl-some (lambda (b) (not (eq cur b)))
+                 (mapcar #'car (window-prev-buffers)))
         (quit-window)
       (if (one-window-p)
           (bury-buffer)
@@ -962,6 +966,7 @@ Key bindings:
 \\{transmission-files-mode-map}"
   :group 'transmission
   (buffer-disable-undo)
+  (setq-local line-move-visual nil)
   (setq tabulated-list-format
         [("Have" 4 nil :right-align t)
          ("Priority" 8 t)
@@ -1023,6 +1028,7 @@ Key bindings:
 \\{transmission-mode-map}"
   :group 'transmission
   (buffer-disable-undo)
+  (setq-local line-move-visual nil)
   (setq tabulated-list-format
         [("ETA" 4 (lambda (a b)
                      (> (cdr (assq 'eta (car a)))

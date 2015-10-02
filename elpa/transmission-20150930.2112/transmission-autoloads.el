@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "transmission" "transmission.el" (22023 52167
-;;;;;;  461140 0))
+;;;### (autoloads nil "transmission" "transmission.el" (22030 34818
+;;;;;;  845140 0))
 ;;; Generated autoloads from transmission.el
 
 (autoload 'transmission-add "transmission" "\
