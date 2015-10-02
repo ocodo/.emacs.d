@@ -77,10 +77,10 @@ Run each function of FUNCTIONS list in turn when called within DELAY seconds."
         (iter (cl-gensym "helm-iter-key"))
         (timeout delay))
     (eval (list 'defvar iter nil))
-    #'(lambda () (interactive) (helm-run-multi-key-command funs iter timeout))))
+    (lambda () (interactive) (helm-run-multi-key-command funs iter timeout))))
 
 (defun helm-run-multi-key-command (functions iterator delay)
-  (let ((fn #'(lambda ()
+  (let ((fn (lambda ()
                 (cl-loop for count from 1 to (length functions)
                       collect count)))
         next)
@@ -656,9 +656,6 @@ Other sources won't appear in the search results.
 If nil then there is no filtering.
 See also `helm-set-source-filter'.")
 
-(defvar helm-action-buffer "*helm action*"
-  "Buffer showing actions.")
-
 (defvar helm-selection-overlay nil
   "Overlay used to highlight the currently selected item.")
 
@@ -1081,26 +1078,6 @@ not `exit-minibuffer' or unwanted functions."
 
 
 ;; Helm API
-
-(defun helm-buffer-get ()
-  "Return `helm-action-buffer' if shown otherwise `helm-buffer'."
-  (if (helm-action-window)
-      helm-action-buffer
-    helm-buffer))
-
-(defun helm-window ()
-  "Window of `helm-buffer'."
-  (get-buffer-window (helm-buffer-get) 0))
-
-(defun helm-action-window ()
-  "Window of `helm-action-buffer'."
-  (get-buffer-window helm-action-buffer 'visible))
-
-(defmacro with-helm-window (&rest body)
-  "Be sure BODY is excuted in the helm window."
-  (declare (indent 0) (debug t))
-  `(with-selected-window (helm-window)
-     ,@body))
 
 (defmacro with-helm-restore-variables (&rest body)
   "Restore `helm-restored-variables' after executing BODY."
@@ -1831,7 +1808,7 @@ to 10 as session local variable.
                           ;; take precedence on same vars
                           ;; that may have been passed before helm call.
                           (helm-parse-keys plist)))
-            (apply fn (mapcar #'(lambda (key) (plist-get plist key))
+            (apply fn (mapcar (lambda (key) (plist-get plist key))
                               helm-argument-keys)))
         (apply fn plist))))) ; [1] fn == helm-internal.
 
@@ -2002,7 +1979,7 @@ Called from lisp, you can specify a buffer-name as a string with ARG."
   "List resumable helm buffers within running helm."
   (interactive)
   (if (and helm-alive-p (> (length helm-buffers) 0))
-      (helm-run-after-exit #'(lambda () (helm-resume t)))
+      (helm-run-after-exit (lambda () (helm-resume t)))
     (message "No previous helm sessions to resume yet!")))
 
 (defun helm-resume-p (any-resume)
@@ -2192,7 +2169,7 @@ The function used to display `helm-buffer'."
   "Allow setting `no-other-window' window parameter in all windows.
 Arg ENABLE will be the value of the `no-other-window' window property."
   (walk-windows
-   #'(lambda (w)
+   (lambda (w)
        (unless (window-dedicated-p w)
          (set-window-parameter w 'no-other-window enabled)))
    0))
@@ -2330,7 +2307,7 @@ It is intended to use this only in `helm-initial-setup'."
   ;; Call the init function for sources where appropriate
   (helm-funcall-foreach
    'init (and helm-source-filter
-              (cl-remove-if-not #'(lambda (s)
+              (cl-remove-if-not (lambda (s)
                                     (member (assoc-default 'name s)
                                             helm-source-filter))
                                 (helm-get-sources))))
@@ -2478,31 +2455,31 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
                               (thing-at-point 'symbol)))))
                (unwind-protect
                     (minibuffer-with-setup-hook
-                        #'(lambda ()
-                            ;; Start minor-mode with global value of helm-map.
-                            (helm--minor-mode 1)
-                            ;; Now overhide the global value of `helm-map' with
-                            ;; the local one which is in this order:
-                            ;; - The keymap of current source.
-                            ;; - The value passed in ANY-KEYMAP
-                            ;;   which will become buffer local.
-                            ;; - Or fallback to the global value of helm-map.
-                            (helm--maybe-update-keymap
-                             (or src-keymap any-keymap helm-map))
-                            (helm-log-run-hook 'helm-minibuffer-set-up-hook)
-                            (setq timer
-                                  (run-with-idle-timer
-                                   (max helm-input-idle-delay 0.001) 'repeat
-                                   #'(lambda ()
-                                       ;; Stop updating in persistent action
-                                       ;; or when `helm-suspend-update-flag'
-                                       ;; is non--nil.
-                                       (unless (or helm-in-persistent-action
-                                                   helm-suspend-update-flag)
-                                         (save-selected-window
-                                           (helm-check-minibuffer-input)
-                                           (helm-print-error-messages))))))
-                            (helm--update-header-line)) ; minibuffer has already been filled here
+                        (lambda ()
+                          ;; Start minor-mode with global value of helm-map.
+                          (helm--minor-mode 1)
+                          ;; Now overhide the global value of `helm-map' with
+                          ;; the local one which is in this order:
+                          ;; - The keymap of current source.
+                          ;; - The value passed in ANY-KEYMAP
+                          ;;   which will become buffer local.
+                          ;; - Or fallback to the global value of helm-map.
+                          (helm--maybe-update-keymap
+                           (or src-keymap any-keymap helm-map))
+                          (helm-log-run-hook 'helm-minibuffer-set-up-hook)
+                          (setq timer
+                                (run-with-idle-timer
+                                 (max helm-input-idle-delay 0.001) 'repeat
+                                 (lambda ()
+                                   ;; Stop updating in persistent action
+                                   ;; or when `helm-suspend-update-flag'
+                                   ;; is non--nil.
+                                   (unless (or helm-in-persistent-action
+                                               helm-suspend-update-flag)
+                                     (save-selected-window
+                                       (helm-check-minibuffer-input)
+                                       (helm-print-error-messages))))))
+                          (helm--update-header-line)) ; minibuffer has already been filled here
                       (read-from-minibuffer (or any-prompt "pattern: ")
                                             any-input helm-map
                                             nil hist tap
@@ -3055,7 +3032,7 @@ It is meant to use with `filter-one-by-one' slot."
                     (cdr it)
                   helm-pattern)))
     (with-temp-buffer
-      (insert display)
+      (insert (propertize display 'read-only nil)) ; Fix (#1176)
       (goto-char (point-min))
       (if (re-search-forward regex nil t)
           (add-text-properties
@@ -3582,7 +3559,7 @@ Meant to be called at beginning of a sentinel process function."
     (run-at-time (or (and (boundp 'tramp-connection-min-time-diff)
                           tramp-connection-min-time-diff)
                      5)
-                 nil #'(lambda ()
+                 nil (lambda ()
                          (when helm-alive-p ; Don't run timer fn after quit.
                            (setq helm-suspend-update-flag nil)
                            (helm-check-minibuffer-input))))))
@@ -3802,7 +3779,11 @@ Possible value of DIRECTION are 'next or 'previous."
         (put-text-property
          ;; Increment pos to handle the space before prompt (i.e `pref').
          (1+ pos) (+ 2 pos)
-         'face 'cursor header-line-format)
+         'face ;don't just use 'cursor; this can hide the current character
+         `((t :inverse-video t
+              :foreground ,(face-background 'cursor)
+              :background ,(face-background 'default)))
+         header-line-format)
         (when update (force-mode-line-update))))))
 
 (defun helm--update-header-line ()
@@ -4698,31 +4679,36 @@ Acceptable values of CREATE-OR-BUFFER:
          (local-bname (format " *helm candidates:%s*%s"
                               helm-source-name
                               (buffer-name helm-current-buffer)))
-         (register-func #'(lambda ()
-                            (setq helm-candidate-buffer-alist
-                                  (cons (cons helm-source-name create-or-buffer)
-                                        (delete (assoc helm-source-name
-                                                       helm-candidate-buffer-alist)
-                                                helm-candidate-buffer-alist)))))
-         (kill-buffers-func #'(lambda ()
-                                (cl-loop for b in (buffer-list)
-                                      if (string-match (format "^%s" (regexp-quote global-bname))
-                                                       (buffer-name b))
-                                      do (kill-buffer b))))
-         (create-func #'(lambda ()
-                          (with-current-buffer
-                              (get-buffer-create (if (eq create-or-buffer 'global)
-                                                     global-bname
-                                                   local-bname))
-                            (buffer-disable-undo)
-                            (erase-buffer)
-                            (font-lock-mode -1))))
-         (return-func #'(lambda ()
-                          (or (get-buffer local-bname)
-                              (get-buffer global-bname)
-                              (helm-aif (assoc-default helm-source-name
-                                                       helm-candidate-buffer-alist)
-                                  (and (buffer-live-p it) it))))))
+         (register-func
+          (lambda ()
+            (setq helm-candidate-buffer-alist
+                  (cons (cons helm-source-name create-or-buffer)
+                        (delete (assoc helm-source-name
+                                       helm-candidate-buffer-alist)
+                                helm-candidate-buffer-alist)))))
+         (kill-buffers-func
+          (lambda ()
+            (cl-loop for b in (buffer-list)
+                     if (string-match (format "^%s" (regexp-quote global-bname))
+                                      (buffer-name b))
+                     do (kill-buffer b))))
+         (create-func
+          (lambda ()
+            (with-current-buffer
+                (get-buffer-create (if (eq create-or-buffer 'global)
+                                       global-bname
+                                       local-bname))
+              (set (make-local-variable 'inhibit-read-only) t) ; Fix (#1176)
+              (buffer-disable-undo)
+              (erase-buffer)
+              (font-lock-mode -1))))
+         (return-func
+          (lambda ()
+            (or (get-buffer local-bname)
+                (get-buffer global-bname)
+                (helm-aif (assoc-default helm-source-name
+                                         helm-candidate-buffer-alist)
+                    (and (buffer-live-p it) it))))))
     (when create-or-buffer
       (funcall register-func)
       (unless (bufferp create-or-buffer)
@@ -5325,7 +5311,7 @@ in source in `helm-before-initialize-hook'.
 e.g:
 
 \(add-hook 'helm-before-initialize-hook
-          #'(lambda () (helm-attrset 'follow 1 helm-source-buffers-list)))
+          (lambda () (helm-attrset 'follow 1 helm-source-buffers-list)))
 
 This will enable `helm-follow-mode' automatically in `helm-source-buffers-list'."
   (interactive "p")
