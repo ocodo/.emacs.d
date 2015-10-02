@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20150924.738
+;; Package-Version: 20151001.1722
 ;; Version: 0.6.1
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
@@ -398,6 +398,19 @@ alongside the actual current key sequence when
     (remove-hook 'focus-in-hook #'which-key--start-timer)
     (which-key--stop-timer)))
 
+(defun which-key--init-buffer ()
+  "Initialize which-key buffer"
+  (unless (buffer-live-p which-key--buffer)
+    (setq which-key--buffer (get-buffer-create which-key-buffer-name))
+    (with-current-buffer which-key--buffer
+      ;; suppress confusing minibuffer message
+      (let (message-log-max)
+        (toggle-truncate-lines 1)
+        (message ""))
+      (setq-local cursor-type nil)
+      (setq-local cursor-in-non-selected-windows nil)
+      (setq-local mode-line-format nil))))
+
 (defun which-key--setup ()
   "Initial setup for which-key.
 Reduce `echo-keystrokes' if necessary (it will interfer if it's
@@ -406,15 +419,7 @@ set too high) and setup which-key buffer."
             (eq which-key-popup-type 'minibuffer))
     (which-key--setup-echo-keystrokes))
   (which-key--check-key-based-alist)
-  (setq which-key--buffer (get-buffer-create which-key-buffer-name))
-  (with-current-buffer which-key--buffer
-    ;; suppress confusing minibuffer message
-    (let (message-log-max)
-      (toggle-truncate-lines 1)
-      (message ""))
-    (setq-local cursor-type nil)
-    (setq-local cursor-in-non-selected-windows nil)
-    (setq-local mode-line-format nil))
+  (which-key--init-buffer)
   (setq which-key--is-setup t))
 
 (defun which-key--setup-echo-keystrokes ()
@@ -728,13 +733,14 @@ total height."
 ACT-POPUP-DIM includes the dimensions, (height . width) of the
 buffer text to be displayed in the popup.  Return nil if no window
 is shown, or if there is no need to start the closing timer."
-  (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
-    (cl-case which-key-popup-type
-      ;; Not called for minibuffer
-      ;; (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
-      (side-window (which-key--show-buffer-side-window act-popup-dim))
-      (frame (which-key--show-buffer-frame act-popup-dim))
-      (custom (funcall which-key-custom-show-popup-function act-popup-dim)))))
+  (let (golden-ratio-mode)
+    (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
+      (cl-case which-key-popup-type
+        ;; Not called for minibuffer
+        ;; (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
+        (side-window (which-key--show-buffer-side-window act-popup-dim))
+        (frame (which-key--show-buffer-frame act-popup-dim))
+        (custom (funcall which-key-custom-show-popup-function act-popup-dim))))))
 
 (defun which-key--fit-buffer-to-window-horizontally (&optional window &rest params)
   "Slightly modified version of `fit-buffer-to-window'.
@@ -1249,6 +1255,7 @@ area."
 
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
+  (which-key--init-buffer) ;; in case it was killed
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
         (prefix-keys (key-description which-key--current-prefix))
         page-n)
