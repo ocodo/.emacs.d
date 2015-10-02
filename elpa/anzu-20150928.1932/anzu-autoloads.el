@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "anzu" "anzu.el" (22010 16184 333140 0))
+;;;### (autoloads nil "anzu" "anzu.el" (22030 34925 777140 0))
 ;;; Generated autoloads from anzu.el
 
 (autoload 'anzu-mode "anzu" "\

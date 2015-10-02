@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20150912.1939
-;; Version: 0.56
+;; Package-Version: 20150928.1932
+;; Version: 0.57
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -205,7 +205,9 @@
               (overflow nil)
               (finish nil)
               (search-func (if (anzu--use-migemo-p)
-                               'migemo-forward
+                               (lambda (word &optional bound noerror count)
+                                 (ignore-errors
+                                   (migemo-forward word bound noerror count)))
                              're-search-forward))
               (case-fold-search (anzu--case-fold-search input)))
           (while (and (not finish) (funcall search-func input nil t))
