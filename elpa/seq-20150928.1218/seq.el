@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Package-Version: 20150917.1508
+;; Package-Version: 20150928.1218
 ;; Version: 1.9
 ;; Package: seq
 
@@ -166,8 +166,7 @@ If SEQ is empty, return INITIAL-VALUE and FUNCTION is not called."
       acc)))
 
 (defun seq-some (pred seq)
-  "Return non-nil if (PRED element) is non-nil for any element in SEQ, nil otherwise.
-If so, return the non-nil value returned by PRED."
+  "Return the first value for which if (PRED element) is non-nil for in SEQ."
   (catch 'seq--break
     (seq-doseq (elt seq)
       (let ((result (funcall pred elt)))
