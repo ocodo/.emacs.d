@@ -3,8 +3,8 @@
 ;; Copyright (C) 2015 Olexandr Sydorchuck
 
 ;; Author: Olexandr Sydorchuck  <olexandr.syd@gmail.com>
-;; Version: 0.1.4
-;; Package-Version: 20150724.229
+;; Version: 0.1.7
+;; Package-Version: 20150930.37
 ;; Keywords: html, css, less, auto-complete
 ;; Package-Requires: ((web-completion-data "0.1"))
 ;; URL: https://github.com/osv/ac-html-csswatcher
@@ -28,6 +28,10 @@
 
 ;; This package work `ac-html' and `company-web', please, install one of these.
 ;;
+;; For `ac-html' users: Since  ac-html 0.4 is alpha  stage, and not stable  yet. This
+;; package works with ac-html 0.3 series, if you are using ac-html 0.4
+;; series, you may downgrade ac-html aka reinstall from melpa-stable.
+;;
 ;; Preinstall:
 ;;
 ;; Install `csswatcher':
@@ -48,6 +52,7 @@
 ;;   ;; or if you prefer company-style names:
 ;;   (company-web-csswatcher-setup)
 ;;
+;; To enable completion when editing html use M-x `ac-html-csswatcher+' (or `company-web-csswatcher+') or add it in your hook.
 ;;
 ;; Configuration, project:
 ;;
@@ -72,7 +77,8 @@
 ;;
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
 (require 'web-completion-data)
 
 (defvar ac-html-csswatcher-source-dir nil
@@ -80,7 +86,7 @@
  value is computed by csswatcher programm.")
 (make-variable-buffer-local 'ac-html-csswatcher-source-dir)
 
-(defcustom ac-html-csswatcher-command "/home/anon/work/css_watcher/csswatcher"
+(defcustom ac-html-csswatcher-command "csswatcher"
   "The \"csswatcher\" command to be run."
   :type 'string
   :group 'ac-html-csswatcher)
@@ -128,6 +134,7 @@ Set `ac-html-csswatcher-source-dir' with returned by csswatcher value after \"AC
            (AC-HTML-CSSWATCHER-LOG "=> Process finished [%s]" proc)
            (setq ac-html-csswatcher-source-dir
                  (with-current-buffer csswatcher-output-bufffer
+                   (AC-HTML-CSSWATCHER-LOG "-- Result was: \n%s\n-- End of result\n" (buffer-string))
                    (when (string-match "PROJECT: \\(.*\\)$" (buffer-string))
                      (let ((project-dir (match-string 1 (buffer-string))))
                        (message "[csswatcher] parsed %s" project-dir)
