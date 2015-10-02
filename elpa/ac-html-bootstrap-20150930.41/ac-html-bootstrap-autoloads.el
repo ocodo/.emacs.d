@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "ac-html-bootstrap" "ac-html-bootstrap.el"
-;;;;;;  (21939 8275 975401 0))
+;;;;;;  (22030 34933 261140 0))
 ;;; Generated autoloads from ac-html-bootstrap.el
 
 (autoload 'ac-html-bootstrap+ "ac-html-bootstrap" "\
@@ -16,7 +16,7 @@ Enable bootstrap ac-html completion
 
 ;;;***
 
-;;;### (autoloads nil "ac-html-fa" "ac-html-fa.el" (21939 8275 979401
+;;;### (autoloads nil "ac-html-fa" "ac-html-fa.el" (22030 34933 261140
 ;;;;;;  0))
 ;;; Generated autoloads from ac-html-fa.el
 
@@ -29,8 +29,8 @@ Enable Font Awesome completion for `ac-html' or `company-web'
 
 ;;;***
 
-;;;### (autoloads nil nil ("ac-html-bootstrap-pkg.el") (21939 8275
-;;;;;;  990675 208000))
+;;;### (autoloads nil nil ("ac-html-bootstrap-pkg.el") (22030 34933
+;;;;;;  276159 817000))
 
 ;;;***
 
