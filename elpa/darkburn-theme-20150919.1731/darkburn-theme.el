@@ -4,8 +4,8 @@
 
 ;; Author: Jonas Gorauskas <jgorauskas@gmail.com>
 ;; URL: http://github.com/gorauskas/darkburn-theme
-;; Package-Version: 20150316.2155
-;; Version: 0.3
+;; Package-Version: 20150919.1731
+;; Version: 0.4
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -110,6 +110,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(highlight ((t (:background ,darkburn-bg-05))))
    `(success ((t (:foreground ,darkburn-green :weight bold))))
    `(warning ((t (:foreground ,darkburn-orange :weight bold))))
+   `(tooltip ((t (:foreground ,darkburn-fg :background ,darkburn-bg+1))))
 ;;;;; compilation
    `(compilation-column-face ((t (:foreground ,darkburn-yellow))))
    `(compilation-enter-directory-face ((t (:foreground ,darkburn-green))))
@@ -225,6 +226,13 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(android-mode-info-face ((t (:foreground ,darkburn-fg))))
    `(android-mode-verbose-face ((t (:foreground ,darkburn-green))))
    `(android-mode-warning-face ((t (:foreground ,darkburn-yellow))))
+;;;;; avy
+   `(avy-background-face
+     ((t (:foreground ,darkburn-fg-1 :background ,darkburn-bg :inverse-video nil))))
+   `(avy-lead-face-0
+     ((t (:foreground ,darkburn-green+3 :background ,darkburn-bg :inverse-video nil))))
+   `(avy-lead-face
+     ((t (:foreground ,darkburn-green+2 :background ,darkburn-bg :inverse-video nil))))
 ;;;;; company-mode
    `(company-tooltip ((t (:foreground ,darkburn-fg :background ,darkburn-bg+1))))
    `(company-tooltip-annotation ((t (:foreground ,darkburn-orange :background ,darkburn-bg+1))))
@@ -241,6 +249,8 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(bm-fringe-face ((t (:background ,darkburn-yellow-1 :foreground ,darkburn-bg))))
    `(bm-fringe-persistent-face ((t (:background ,darkburn-green-1 :foreground ,darkburn-bg))))
    `(bm-persistent-face ((t (:background ,darkburn-green-1 :foreground ,darkburn-bg))))
+;;;;; cider
+   `(cider-result-overlay-face ((t (:foreground ,darkburn-fg-1 :background unspecified))))
 ;;;;; circe
    `(circe-highlight-nick-face ((t (:foreground ,darkburn-cyan))))
    `(circe-my-message-face ((t (:foreground ,darkburn-fg))))
@@ -250,10 +260,6 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(circe-server-face ((t (:foreground ,darkburn-green))))
    `(circe-topic-diff-new-face ((t (:foreground ,darkburn-orange :weight bold))))
    `(circe-prompt-face ((t (:foreground ,darkburn-orange :background ,darkburn-bg :weight bold))))
-;;;;; clojure-test-mode
-   `(clojure-test-failure-face ((t (:foreground ,darkburn-orange :weight bold :underline t))))
-   `(clojure-test-error-face ((t (:foreground ,darkburn-red :weight bold :underline t))))
-   `(clojure-test-success-face ((t (:foreground ,darkburn-green+1 :weight bold :underline t))))
 ;;;;; coq
    `(coq-solve-tactics-face ((t (:foreground nil :inherit font-lock-constant-face))))
 ;;;;; ctable
@@ -261,14 +267,12 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(ctbl:face-continue-bar ((t (:background ,darkburn-bg-05 :foreground ,darkburn-bg))))
    `(ctbl:face-row-select ((t (:background ,darkburn-cyan :foreground ,darkburn-bg))))
 ;;;;; diff
-   `(diff-added ((,class (:foreground ,darkburn-green+4 :background nil))
-                 (t (:foreground ,darkburn-green-1 :background nil))))
-   `(diff-changed ((t (:foreground ,darkburn-yellow))))
-   `(diff-removed ((,class (:foreground ,darkburn-red :background nil))
-                   (t (:foreground ,darkburn-red-3 :background nil))))
-   `(diff-refine-added ((t (:inherit diff-added :weight bold))))
-   `(diff-refine-change ((t (:inherit diff-changed :weight bold))))
-   `(diff-refine-removed ((t (:inherit diff-removed :weight bold))))
+   `(diff-added          ((t (:background "#335533" :foreground ,darkburn-green))))
+   `(diff-changed        ((t (:background "#555511" :foreground ,darkburn-yellow-1))))
+   `(diff-removed        ((t (:background "#553333" :foreground ,darkburn-red-2))))
+   `(diff-refine-added   ((t (:background "#338833" :foreground ,darkburn-green4))))
+   `(diff-refine-change  ((t (:background "#888811" :foreground ,darkburn-yellow))))
+   `(diff-refine-removed ((t (:background "#883333" :foreground ,darkburn-red))))
    `(diff-header ((,class (:background ,darkburn-bg+2))
                   (t (:background ,darkburn-fg :foreground ,darkburn-bg))))
    `(diff-file-header
@@ -401,6 +405,10 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(erc-prompt-face ((t (:foreground ,darkburn-orange :background ,darkburn-bg-15 :weight bold))))  ;; DB
    `(erc-timestamp-face ((t (:foreground ,darkburn-green+4))))
    `(erc-underline-face ((t (:underline t))))
+;;;;; git-commit
+   `(git-commit-comment-action  ((,class (:foreground ,darkburn-green+1 :weight bold))))
+   `(git-commit-comment-branch  ((,class (:foreground ,darkburn-blue+1  :weight bold))))
+   `(git-commit-comment-heading ((,class (:foreground ,darkburn-yellow  :weight bold))))
 ;;;;; git-gutter
    `(git-gutter:added ((t (:foreground ,darkburn-green :weight bold :inverse-video t))))
    `(git-gutter:deleted ((t (:foreground ,darkburn-red :weight bold :inverse-video t))))
@@ -410,7 +418,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(git-gutter-fr:added ((t (:foreground ,darkburn-green  :weight bold))))
    `(git-gutter-fr:deleted ((t (:foreground ,darkburn-red :weight bold))))
    `(git-gutter-fr:modified ((t (:foreground ,darkburn-magenta :weight bold))))
-;;;;; git-rebase-mode
+;;;;; git-rebase
    `(git-rebase-hash ((t (:foreground, darkburn-orange))))
 ;;;;; gnus
    `(gnus-group-mail-1 ((t (:bold t :inherit gnus-group-mail-1-empty))))
@@ -533,6 +541,12 @@ Also bind `class' to ((class color) (min-colors 89))."
 ;;;;; hl-sexp
    `(hl-sexp-face ((,class (:background ,darkburn-bg+1))
                    (t :weight bold)))
+;;;;; hydra
+   `(hydra-face-red ((t (:foreground ,darkburn-red-1 :background ,darkburn-bg))))
+   `(hydra-face-amaranth ((t (:foreground ,darkburn-red-3 :background ,darkburn-bg))))
+   `(hydra-face-blue ((t (:foreground ,darkburn-blue :background ,darkburn-bg))))
+   `(hydra-face-pink ((t (:foreground ,darkburn-magenta :background ,darkburn-bg))))
+   `(hydra-face-teal ((t (:foreground ,darkburn-cyan :background ,darkburn-bg))))
 ;;;;; ido-mode
    `(ido-first-match ((t (:foreground ,darkburn-yellow :weight bold))))
    `(ido-only-match ((t (:foreground ,darkburn-orange :weight bold))))
@@ -599,13 +613,81 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(macrostep-macro-face
      ((t (:underline t))))
 ;;;;; magit
-   `(magit-item-highlight ((t (:background ,darkburn-bg+05))))
-   `(magit-section-title ((t (:foreground ,darkburn-yellow :weight bold))))
-   `(magit-process-ok ((t (:foreground ,darkburn-green :weight bold))))
-   `(magit-process-ng ((t (:foreground ,darkburn-red :weight bold))))
-   `(magit-branch ((t (:foreground ,darkburn-blue :weight bold))))
-   `(magit-log-author ((t (:foreground ,darkburn-orange))))
-   `(magit-log-sha1 ((t (:foreground ,darkburn-orange))))
+;;;;;; headings and diffs
+   `(magit-section-highlight           ((t (:background ,darkburn-bg+05))))
+   `(magit-section-heading             ((t (:foreground ,darkburn-yellow :weight bold))))
+   `(magit-section-heading-selection   ((t (:foreground ,darkburn-orange :weight bold))))
+   `(magit-diff-file-heading           ((t (:weight bold))))
+   `(magit-diff-file-heading-highlight ((t (:background ,darkburn-bg+05  :weight bold))))
+   `(magit-diff-file-heading-selection ((t (:background ,darkburn-bg+05
+                                            :foreground ,darkburn-orange :weight bold))))
+   `(magit-diff-hunk-heading           ((t (:background ,darkburn-bg+1))))
+   `(magit-diff-hunk-heading-highlight ((t (:background ,darkburn-bg+2))))
+   `(magit-diff-hunk-heading-selection ((t (:background ,darkburn-bg+2
+                                            :foreground ,darkburn-orange))))
+   `(magit-diff-lines-heading          ((t (:background ,darkburn-orange
+                                            :foreground ,darkburn-bg+2))))
+   `(magit-diff-context-highlight      ((t (:background ,darkburn-bg+05
+                                            :foreground "grey70"))))
+   `(magit-diffstat-added   ((t (:foreground ,darkburn-green+4))))
+   `(magit-diffstat-removed ((t (:foreground ,darkburn-red))))
+;;;;;; popup
+   `(magit-popup-heading             ((t (:foreground ,darkburn-yellow  :weight bold))))
+   `(magit-popup-key                 ((t (:foreground ,darkburn-green-1 :weight bold))))
+   `(magit-popup-argument            ((t (:foreground ,darkburn-green   :weight bold))))
+   `(magit-popup-disabled-argument   ((t (:foreground ,darkburn-fg-1    :weight normal))))
+   `(magit-popup-option-value        ((t (:foreground ,darkburn-blue-2  :weight bold))))
+;;;;;; process
+   `(magit-process-ok    ((t (:foreground ,darkburn-green  :weight bold))))
+   `(magit-process-ng    ((t (:foreground ,darkburn-red    :weight bold))))
+;;;;;; log
+   `(magit-log-author    ((t (:foreground ,darkburn-orange))))
+   `(magit-log-date      ((t (:foreground ,darkburn-fg-1))))
+   `(magit-log-graph     ((t (:foreground ,darkburn-fg+1))))
+;;;;;; sequence
+   `(magit-sequence-pick ((t (:foreground ,darkburn-yellow-2))))
+   `(magit-sequence-stop ((t (:foreground ,darkburn-green))))
+   `(magit-sequence-part ((t (:foreground ,darkburn-yellow))))
+   `(magit-sequence-head ((t (:foreground ,darkburn-blue))))
+   `(magit-sequence-drop ((t (:foreground ,darkburn-red))))
+   `(magit-sequence-done ((t (:foreground ,darkburn-fg-1))))
+   `(magit-sequence-onto ((t (:foreground ,darkburn-fg-1))))
+;;;;;; bisect
+   `(magit-bisect-good ((t (:foreground ,darkburn-green))))
+   `(magit-bisect-skip ((t (:foreground ,darkburn-yellow))))
+   `(magit-bisect-bad  ((t (:foreground ,darkburn-red))))
+;;;;;; blame
+   `(magit-blame-heading ((t (:background ,darkburn-bg-1 :foreground ,darkburn-blue-2))))
+   `(magit-blame-hash    ((t (:background ,darkburn-bg-1 :foreground ,darkburn-blue-2))))
+   `(magit-blame-name    ((t (:background ,darkburn-bg-1 :foreground ,darkburn-orange))))
+   `(magit-blame-date    ((t (:background ,darkburn-bg-1 :foreground ,darkburn-orange))))
+   `(magit-blame-summary ((t (:background ,darkburn-bg-1 :foreground ,darkburn-blue-2
+                                          :weight bold))))
+;;;;;; references etc
+   `(magit-dimmed         ((t (:foreground ,darkburn-bg+3))))
+   `(magit-hash           ((t (:foreground ,darkburn-bg+3))))
+   `(magit-tag            ((t (:foreground ,darkburn-orange :weight bold))))
+   `(magit-branch-remote  ((t (:foreground ,darkburn-green  :weight bold))))
+   `(magit-branch-local   ((t (:foreground ,darkburn-blue   :weight bold))))
+   `(magit-branch-current ((t (:foreground ,darkburn-blue   :weight bold :box t))))
+   `(magit-head           ((t (:foreground ,darkburn-blue   :weight bold))))
+   `(magit-refname        ((t (:background ,darkburn-bg+2 :foreground ,darkburn-fg :weight bold))))
+   `(magit-refname-stash  ((t (:background ,darkburn-bg+2 :foreground ,darkburn-fg :weight bold))))
+   `(magit-refname-wip    ((t (:background ,darkburn-bg+2 :foreground ,darkburn-fg :weight bold))))
+   `(magit-signature-good      ((t (:foreground ,darkburn-green))))
+   `(magit-signature-bad       ((t (:foreground ,darkburn-red))))
+   `(magit-signature-untrusted ((t (:foreground ,darkburn-yellow))))
+   `(magit-cherry-unmatched    ((t (:foreground ,darkburn-cyan))))
+   `(magit-cherry-equivalent   ((t (:foreground ,darkburn-magenta))))
+   `(magit-reflog-commit       ((t (:foreground ,darkburn-green))))
+   `(magit-reflog-amend        ((t (:foreground ,darkburn-magenta))))
+   `(magit-reflog-merge        ((t (:foreground ,darkburn-green))))
+   `(magit-reflog-checkout     ((t (:foreground ,darkburn-blue))))
+   `(magit-reflog-reset        ((t (:foreground ,darkburn-red))))
+   `(magit-reflog-rebase       ((t (:foreground ,darkburn-magenta))))
+   `(magit-reflog-cherry-pick  ((t (:foreground ,darkburn-green))))
+   `(magit-reflog-remote       ((t (:foreground ,darkburn-cyan))))
+   `(magit-reflog-other        ((t (:foreground ,darkburn-cyan))))
 ;;;;; egg
    `(egg-text-base ((t (:foreground ,darkburn-fg))))
    `(egg-help-header-1 ((t (:foreground ,darkburn-yellow))))
@@ -775,6 +857,9 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(proof-tacticals-name-face ((t (:inherit font-lock-constant-face :foreground nil :background ,darkburn-bg-15))))   ;; DB
    `(proof-tactics-name-face ((t (:inherit font-lock-constant-face :foreground nil :background ,darkburn-bg-15))))     ;; DB
    `(proof-warning-face ((t (:foreground ,darkburn-bg :background ,darkburn-yellow-1))))
+;;;;; racket-mode
+   `(racket-keyword-argument-face ((t (:inherit font-lock-constant-face))))
+   `(racket-selfeval-face ((t (:inherit font-lock-type-face))))
 ;;;;; rainbow-delimiters
    `(rainbow-delimiters-depth-1-face ((t (:foreground ,darkburn-fg))))
    `(rainbow-delimiters-depth-2-face ((t (:foreground ,darkburn-green+4))))
@@ -826,6 +911,25 @@ Also bind `class' to ((class color) (min-colors 89))."
 ;;;;; show-paren
    `(show-paren-mismatch ((t (:foreground ,darkburn-red+1 :background ,darkburn-bg+3 :weight bold))))
    `(show-paren-match ((t (:background ,darkburn-bg+3 :weight bold))))
+;;;;; smart-mode-line
+   ;; use (setq sml/theme nil) to enable Zenburn for sml
+   `(sml/global ((,class (:foreground ,darkburn-fg :weight bold))))
+   `(sml/modes ((,class (:foreground ,darkburn-yellow :weight bold))))
+   `(sml/minor-modes ((,class (:foreground ,darkburn-fg-1 :weight bold))))
+   `(sml/filename ((,class (:foreground ,darkburn-yellow :weight bold))))
+   `(sml/line-number ((,class (:foreground ,darkburn-blue :weight bold))))
+   `(sml/col-number ((,class (:foreground ,darkburn-blue+1 :weight bold))))
+   `(sml/position-percentage ((,class (:foreground ,darkburn-blue-1 :weight bold))))
+   `(sml/prefix ((,class (:foreground ,darkburn-orange))))
+   `(sml/git ((,class (:foreground ,darkburn-green+3))))
+   `(sml/process ((,class (:weight bold))))
+   `(sml/sudo ((,class  (:foreground ,darkburn-orange :weight bold))))
+   `(sml/read-only ((,class (:foreground ,darkburn-red-2))))
+   `(sml/outside-modified ((,class (:foreground ,darkburn-orange))))
+   `(sml/modified ((,class (:foreground ,darkburn-red))))
+   `(sml/vc-edited ((,class (:foreground ,darkburn-green+2))))
+   `(sml/charging ((,class (:foreground ,darkburn-green+4))))
+   `(sml/discharging ((,class (:foreground ,darkburn-red+1))))
 ;;;;; smartparens
    `(sp-show-pair-mismatch-face ((t (:foreground ,darkburn-red+1 :background ,darkburn-bg+3 :weight bold))))
    `(sp-show-pair-match-face ((t (:background ,darkburn-bg+3 :weight bold))))
@@ -998,6 +1102,10 @@ Also bind `class' to ((class color) (min-colors 89))."
                                           ,darkburn-blue ,darkburn-magenta ,darkburn-cyan ,darkburn-fg])
 ;;;;; fill-column-indicator
    `(fci-rule-color ,darkburn-bg-05)
+;;;;; nrepl-client
+   `(nrepl-message-colors
+     '(,darkburn-red ,darkburn-orange ,darkburn-yellow ,darkburn-green ,darkburn-green+4
+                    ,darkburn-cyan ,darkburn-blue+1 ,darkburn-magenta))
 ;;;;; vc-annotate
    `(vc-annotate-color-map
      '(( 20. . ,darkburn-red-1)
