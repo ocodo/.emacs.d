@@ -19,12 +19,7 @@ This is began as a fork of Syohex's Realtime Markdown Viewer.
 
 #### Installation
 
-Clone the repo into a folder within your `.emacs.d` and add it to the `load-path`
-
-For example:
-
-    cd ~/.emacs.d/plugins/
-    git clone https://github.com/jasonm23/realtime-emacs-markdown-view
+Copy these files into a folder within your `.emacs.d` and add it to the `load-path`
 
 Then add it to the load-path, ie. add the following line to `~/.emacs.d/init.el` (or `~/.emacs`):
 

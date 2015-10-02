@@ -313,6 +313,11 @@ Return an error if no buffer file."
   (interactive)
   (operate-on-point-or-region 's-titleized-words))
 
+(defun url-encode-string-at-point ()
+  "URL Encode the current string at point."
+  (interactive)
+  (operate-on-point-or-region 'url-encode-url))
+
 (defun operate-on-point-or-region (fn)
   "Get the current unspaced string at point.
 Replace with the return value of the function FN"
