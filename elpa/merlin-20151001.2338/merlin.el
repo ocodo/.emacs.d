@@ -409,8 +409,8 @@ synchronous command being processed by merlin otherwise."
                        (<= (car merlin--process-busy) command-priority))
                    (cons command-priority value))
                   ;; - previous one has higher priority, cancel request
-                  ((or (not (car merlin--process-busy)
-                            (<= command-priority (car merlin--process-busy))))
+                  ((or (not (car merlin--process-busy))
+                       (<= command-priority (car merlin--process-busy)))
                    ;; if we get there, caller knows how to handle the error
                    (assert command-priority)
                    (signal 'merlin-cancelled
@@ -824,10 +824,15 @@ may be nil, in that case the current cursor of merlin is used."
       (goto-char point)
       (merlin--tell-rest))))
 
+(defvar-local merlin--last-edit nil
+   "Coordinates (start . end) of last edition or nil, to prevent error messages from flickering when cursor is around edition.")
+
 (defun merlin--sync-edit (start end length)
   "Retract merlin--dirty-point, used when the buffer is edited."
-  (when (and merlin-mode (< (1- start) merlin--dirty-point))
-    (setq merlin--dirty-point (1- start))))
+  (when merlin-mode
+    (setq merlin--last-edit (cons start end))
+    (when (< (1- start) merlin--dirty-point)
+      (setq merlin--dirty-point (1- start)))))
 
 (defun merlin/sync-to-point (&optional point skip-marker)
   "Makes sure the buffer is synchronized on merlin-side and centered around (point)."
@@ -869,9 +874,12 @@ may be nil, in that case the current cursor of merlin is used."
   (when (and merlin-mode (not (current-message)))
     (let* ((errors (overlays-in (line-beginning-position) (line-end-position)))
            (err nil))
+      (when (or (not merlin--last-edit)
+                (not (or (= (point) (car merlin--last-edit))
+                         (= (point) (cdr merlin--last-edit)))))
       (setq errors (remove nil (mapcar 'merlin--overlay-pending-error errors)))
       (setq err (merlin--error-at-position (point) errors))
-      (when err (message "%s" (cdr (assoc 'message err)))))))
+      (when err (message "%s" (cdr (assoc 'message err))))))))
 
 (defun merlin--overlay-next-property-set (point prop &optional limit)
   "Find next point where PROP is set (like next-single-char-property-change but ensure that prop is not-nil)."
@@ -918,7 +926,11 @@ may be nil, in that case the current cursor of merlin is used."
     (if err (cons point err) nil)))
 
 (defun merlin--after-save ()
-  (when (merlin-error-after-save) (merlin-error-check)))
+  (when (and merlin-mode merlin-error-after-save) (merlin-error-check)))
+
+(defadvice basic-save-buffer (after merlin--after-save activate)
+  "The save hook is called only if buffer was modified, but user might want fresh errors anyway"
+  (merlin--after-save))
 
 (defun merlin-error-prev ()
   "Jump back to previous error."
@@ -1794,7 +1806,6 @@ Returns the position."
     (when (merlin-process-dead-p instance)
       (merlin-start-process merlin-default-flags conf))
     (add-to-list 'after-change-functions 'merlin--sync-edit)
-    (add-hook 'after-save-hook 'merlin--after-save nil 'local)
     (merlin--idle-timer)
     ;; Synchronizing will only do parsing and no typing.
     ;; That should be fast enough that the user don't realize.
