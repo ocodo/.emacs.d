@@ -4,7 +4,7 @@
 
 ;; Author: Mario Rodas <marsam@users.noreply.github.com>
 ;; URL: https://github.com/emacs-pe/jist.el
-;; Package-Version: 20150628.1952
+;; Package-Version: 20150927.1118
 ;; Keywords: convenience
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5") (magit "2.1.0") (request "0.2.0") (pkg-info "0.4"))
@@ -27,7 +27,6 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; [![Travis build status](https://travis-ci.org/emacs-pe/jist.el.png?branch=master)](https://travis-ci.org/emacs-pe/jist.el)
 ;;
 ;; Yet another [gist][] client for Emacs.
 ;;
