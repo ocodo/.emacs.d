@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2010 Chris Wanstrath
 
-;; Version: 0.6.0
-;; Package-Version: 20150906.2225
+;; Version: 0.6.1
+;; Package-Version: 20150930.859
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
 ;; URL: http://github.com/defunkt/coffee-mode
@@ -43,7 +43,7 @@
 ;; Customizable Variables
 ;;
 
-(defconst coffee-mode-version "0.6.0"
+(defconst coffee-mode-version "0.6.1"
   "The version of `coffee-mode'.")
 
 (defgroup coffee nil
@@ -248,11 +248,11 @@ called `coffee-compiled-buffer-name'."
     (goto-char (point-min))
     (let ((line (buffer-substring-no-properties (point) (line-end-position))))
       (when (string-match "[0-9.]+\\'" line)
-        (string-to-number (match-string-no-properties 0 line))))))
+        (match-string-no-properties 0 line)))))
 
 (defun coffee--map-file-name (coffee-file)
   (let* ((version (coffee--coffeescript-version))
-         (extension (if (>= version 1.8) ".js.map" ".map")))
+         (extension (if (version<= "1.8" version) ".js.map" ".map")))
     ;; foo.js: foo.js.map(>= 1.8), foo.map(< 1.8)
     (concat (file-name-sans-extension coffee-file) extension)))
 
