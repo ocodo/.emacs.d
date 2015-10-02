@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/pt.el
-;; Package-Version: 20150818.319
+;; Package-Version: 20150930.720
 ;; Filename: pt.el
 ;; Description: A front-end for pt, the Platinum Searcher
 ;; Created: 2014-04-27
@@ -62,7 +62,9 @@
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map compilation-minor-mode-map)
     (define-key map "n" 'next-error-no-select)
+    (define-key map "j" 'next-error-no-select)
     (define-key map "p" 'previous-error-no-select)
+    (define-key map "k" 'previous-error-no-select)
     (define-key map "{" 'compilation-previous-file)
     (define-key map "}" 'compilation-next-file)
     map)
