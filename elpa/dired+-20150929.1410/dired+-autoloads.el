@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22010 16156 97140 0))
+;;;### (autoloads nil "dired+" "dired+.el" (22030 34906 357140 0))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -1468,8 +1468,15 @@ Makes the first char of the name uppercase and the others lowercase.
 
 (autoload 'diredp-delete-this-file "dired+" "\
 In Dired, delete the file on the cursor line, upon confirmation.
+This uses `delete-file'.
+If the file is a symlink, remove the symlink.  If the file has
+multiple names, it continues to exist with the other names.
 
-\(fn)" t nil)
+For Emacs 24 and later, a prefix arg means that if
+`delete-by-moving-to-trash' is non-nil then trash the file instead of
+deleting it.
+
+\(fn &optional USE-TRASH-CAN)" t nil)
 
 (autoload 'diredp-capitalize-this-file "dired+" "\
 In Dired, rename the file on the cursor line by capitalizing it.

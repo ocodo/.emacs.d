@@ -7,11 +7,11 @@
 ;; Copyright (C) 1999-2015, Drew Adams, all rights reserved.
 ;; Created: Fri Mar 19 15:58:58 1999
 ;; Version: 2013.07.23
-;; Package-Version: 20150907.2155
+;; Package-Version: 20150929.1410
 ;; Package-Requires: ()
-;; Last-Updated: Mon Sep  7 21:55:05 2015 (-0700)
+;; Last-Updated: Tue Sep 29 14:11:09 2015 (-0700)
 ;;           By: dradams
-;;     Update #: 9312
+;;     Update #: 9326
 ;; URL: http://www.emacswiki.org/dired+.el
 ;; Doc URL: http://www.emacswiki.org/DiredPlus
 ;; Keywords: unix, mouse, directories, diredp, dired
@@ -646,6 +646,8 @@
 ;;
 ;;; Change Log:
 ;;
+;; 2015/09/29 dadams
+;;     diredp-delete-this-file: Redefined to use delete-file instead of dired-do-delete.
 ;; 2015/09/07 dadams
 ;;     diredp-font-lock-keywords-1: Do not test diredp-ignore-compressed-flag when highlighting file names.
 ;;                                  Use separate entries for compressed and non-compressed file names.
@@ -8949,13 +8951,28 @@ Makes the first char of the name uppercase and the others lowercase."
   (interactive "P")
   (dired-rename-non-directory #'capitalize "Rename by capitalizing:" arg))
 
+;; This is more useful than a single-file version of `dired-do-delete'.
+;;;###autoload
+(defun diredp-delete-this-file (&optional use-trash-can) ; Bound to `C-k', `delete'
+  "In Dired, delete the file on the cursor line, upon confirmation.
+This uses `delete-file'.
+If the file is a symlink, remove the symlink.  If the file has
+multiple names, it continues to exist with the other names.
+
+For Emacs 24 and later, a prefix arg means that if
+`delete-by-moving-to-trash' is non-nil then trash the file instead of
+deleting it."
+  (interactive "P")
+  (let ((file  (dired-get-filename)))
+    (if (not (yes-or-no-p (format "%s file `%s'? " (if (and use-trash-can  delete-by-moving-to-trash)
+                                                       "Trash"
+                                                     "Permanently delete")
+                                  file)))
+        (message "OK - canceled")
+      (if (> emacs-major-version 23) (delete-file file use-trash-can) (delete-file file))
+      (revert-buffer))))
 
 ;;; Versions of `dired-do-*' commands for just this line's file.
-;;;###autoload
-(defun diredp-delete-this-file ()       ; Bound to `C-k', `delete'
-  "In Dired, delete the file on the cursor line, upon confirmation."
-  (interactive) (dired-do-delete 1))
-
 ;;;###autoload
 (defun diredp-capitalize-this-file ()   ; Bound to `M-c'
   "In Dired, rename the file on the cursor line by capitalizing it.
