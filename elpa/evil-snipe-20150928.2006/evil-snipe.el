@@ -5,9 +5,9 @@
 ;; Author: Henrik Lissner <http://github/hlissner>
 ;; Maintainer: Henrik Lissner <henrik@lissner.net>
 ;; Created: December 5, 2014
-;; Modified: August 16, 2015
-;; Version: 1.8.0
-;; Package-Version: 20150819.1826
+;; Modified: September 28, 2015
+;; Version: 1.8.1
+;; Package-Version: 20150928.2006
 ;; Keywords: emulation, vim, evil, sneak, seek
 ;; Homepage: https://github.com/hlissner/evil-snipe
 ;; Package-Requires: ((evil "1.1.3"))
@@ -429,7 +429,7 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
       (unwind-protect
           (when (and evil-snipe-skip-leading-whitespace
                      (= (length string) 1)
-                     (<= orig-point (save-excursion (back-to-indentation) (point))))
+                     (< orig-point (save-excursion (back-to-indentation) (point))))
             (if forward-p
                 (evil-first-non-blank)
               (evil-beginning-of-line)))
