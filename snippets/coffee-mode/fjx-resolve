@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: fakeAjax resolve
+# key: fjx
+# group: jasmine
+# --
+fakeAjax.resolve(${1:data})

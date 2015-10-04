@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: fakeAjax deferred
+# key: fjx
+# group: jasmine
+# --
+jlet 'fakeAjax', -> $.Deferred()

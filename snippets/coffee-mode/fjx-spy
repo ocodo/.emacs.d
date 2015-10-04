@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: fakeAjax spy
+# key: fjx
+# group: jasmine
+# --
+spyOn($, 'ajax').andReturn fakeAjax
