@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: textInput: 
+# group: knockout
+# --
+textInput: ${1:bindable}
