@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# group: knockout
+# name: click:
+# --
+click: ${1:handler}

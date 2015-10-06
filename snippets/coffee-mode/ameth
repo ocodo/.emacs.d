@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+# name: Abstract method
+# --
+${1:abstractMethod}: (${2:parameters}) -> throw "[Abstract Method: $1 ($2) ${3:return type}]"

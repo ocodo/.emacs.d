@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# group: knockout
+# name: data-bind
+# --
+data-bind="$0"
