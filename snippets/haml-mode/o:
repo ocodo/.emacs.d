@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-# name: option: 
+# name: option:
 # group: knockout
 # --
-options: ${1:collection}, value: ${2:selectedItem}, optionsText: '${3:textProperty}', optionsCaption: '${4:caption}'
+options: ${1:collection}, value: ${2:selectedItem}, optionsText: '${3:textProperty}', optionsCaption: '${4:caption}'$0

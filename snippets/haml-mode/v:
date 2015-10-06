@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-# name: value: 
+# name: value:
 # group: knockout
 # --
-value: ${1:bindable}
+value: ${1:bindable}$0

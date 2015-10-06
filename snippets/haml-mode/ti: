@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-# name: textInput: 
+# name: textInput:
 # group: knockout
 # --
-textInput: ${1:bindable}
+textInput: ${1:bindable}$0

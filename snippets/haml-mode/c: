@@ -2,4 +2,4 @@
 # group: knockout
 # name: click:
 # --
-click: ${1:handler}
+click: ${1:handler}$0
