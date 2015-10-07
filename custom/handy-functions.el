@@ -35,6 +35,15 @@
 (require 'find-func)
 (require 'popup)
 
+(defun -sample (list)
+  "Return a random element from the LIST."
+    (nth (random (length list)) list))
+
+(defun insert-sample (strings)
+  "Insert a random item from a list of STRINGS."
+  (interactive "sList of strings separated by spaces: ")
+  (insert (-sample (s-split " " strings))))
+
 (defvar saved-mode-line
   nil
   "Save register for mode-line.")

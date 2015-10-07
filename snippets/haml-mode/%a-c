@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: action-button with completed
+# group: knockout
+# key: %ab
+# --
+%action-button(params="css: ${1:css}, click: ${2:click}, actionLabel: '${3:label}', workingLabel: '${4:working}', completedLabel: '${5:completed}', completed: ${6:completedObservable}, visible: ${7:visibleObservable}, disabled: ${8:disabledObservable}")

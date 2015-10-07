@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: action-button with confirm
+# group: knockout
+# key: %ab
+# --
+%action-button(params="css: ${1:css}, confirmMessage: '${2:confirm ?}', click: ${3:click}, actionLabel: '${4:label}', workingLabel: '${5:working}', completedLabel: '${6:completed}', completed: ${7:completedObservable}, visible: ${8:visibleObservable}, disabled: ${9:disabledObservable}")
