@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Knockout Extend throttle
+# group: knockout
+# key: throt:
+# --
+throttle: ${1:100}

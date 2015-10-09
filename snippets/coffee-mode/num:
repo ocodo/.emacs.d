@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Knockout Extend number
+# group: knockout
+# key: num:
+# --
+number: ${1:true}

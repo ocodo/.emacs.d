@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Knockout Extend required
+# group: knockout
+# key: req:
+# --
+required: ${1:true}

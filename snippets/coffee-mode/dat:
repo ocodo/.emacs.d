@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Knockout Extend date
+# group: knockout
+# key: dat:
+# --
+date: ${1:true}

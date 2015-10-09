@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Knockout Extend rateLimit
+# group: knockout
+# key: rate:
+# --
+rateLimit: ${1:100}

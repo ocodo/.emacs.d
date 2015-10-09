@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Knockout Extend Validation
+# group: knockout
+# key: vali:
+# --
+validation:
+  validator: -> ${1:body}
+  message: "${2:Message}"$0
