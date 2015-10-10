@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: checkedValue:
+# group: knockout
+# key: cv:
+# --
+checkedValue: $1

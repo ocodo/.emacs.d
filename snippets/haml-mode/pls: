@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: promiseLoadingScreen:
+# group: knockout
+# key: pls:
+# --
+promiseLoadingScreen: $1

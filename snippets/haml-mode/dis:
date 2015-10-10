@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: disable:
+# group: knockout
+# key: dis:
+# --
+disable: $1

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: displayDateTime:
+# group: knockout
+# key: ddt:
+# --
+displayDateTime: $1

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: hidden:
+# group: knockout
+# key: hi:
+# --
+hidden: $1

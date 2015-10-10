@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: checked:
+# group: knockout
+# key: ce:
+# --
+checked: $1

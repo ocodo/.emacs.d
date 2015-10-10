@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: attr:
+# group: knockout
+# key: at:
+# --
+attr: $1

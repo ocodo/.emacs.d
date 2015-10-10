@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: spinnerSelector:
+# group: knockout
+# key: ss:
+# --
+spinnerSelector: $1

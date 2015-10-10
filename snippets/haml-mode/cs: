@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: css:
+# group: knockout
+# key: cs:
+# --
+css: ${1:$$(yas/choose-value '( "{}" "" ))}

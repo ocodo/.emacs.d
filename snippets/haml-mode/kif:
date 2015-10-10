@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: / ko if:
+# group: knockout
+# key: kif:
+# --
+/ ko if: $1
+$0
+/ /ko

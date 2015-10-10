@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: / ko ifnot: 
+# group: knockout
+# key: kin:
+# --
+/ ko ifno: $1
+$0
+/ /ko

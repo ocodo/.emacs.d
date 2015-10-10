@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: html:
+# group: knockout
+# key: ht:
+# --
+html: $1

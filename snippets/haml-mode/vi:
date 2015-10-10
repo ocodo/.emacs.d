@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: visible:
+# group: knockout
+# key: vi:
+# --
+visible: $1

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: paginator:
+# group: knockout
+# key: pag:
+# --
+paginator: $1

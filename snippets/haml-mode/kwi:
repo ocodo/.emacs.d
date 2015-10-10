@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: / ko with:
+# group: knockout
+# key: kwi:
+# --
+/ ko with: $1
+$0
+/ /ko

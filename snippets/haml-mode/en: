@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: enable:
+# group: knockout
+# key: en:
+# --
+enable: $1

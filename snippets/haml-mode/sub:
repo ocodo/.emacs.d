@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: submit:
+# group: knockout
+# key: sub:
+# --
+submit: $1

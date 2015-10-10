@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: toggle:
+# group: knockout
+# key: tog:
+# --
+toggle: $1

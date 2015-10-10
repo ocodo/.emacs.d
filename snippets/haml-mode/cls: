@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: clickSelect:
+# group: knockout
+# key: cls:
+# --
+clickSelect: $1
