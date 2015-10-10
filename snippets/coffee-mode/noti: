@@ -3,4 +3,4 @@
 # group: knockout
 # key: noti:
 # --
-notify: ${1:$(yas-choose-value '("'always'" "'reference'" "'manual'" "function"))}
+notify: ${1:$$(yas/choose-value '( "'always'" "'reference'" "'manual'" "function" ))}
