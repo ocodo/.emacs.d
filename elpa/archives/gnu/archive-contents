@@ -176,6 +176,11 @@
 	    "Remove visual distractions and focus on writing" single
 	    ((:url . "http://elpa.gnu.org/packages/darkroom.html")
 	     (:keywords "convenience" "emulations"))])
+ (dash .
+       [(2 12 0)
+	nil "A modern list library for Emacs" tar
+	((:keywords "lists")
+	 (:url . "http://elpa.gnu.org/packages/dash.html"))])
  (dbus-codegen .
 	       [(0 1)
 		((cl-lib
@@ -494,7 +499,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (org .
-      [(20150929)
+      [(20151005)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
