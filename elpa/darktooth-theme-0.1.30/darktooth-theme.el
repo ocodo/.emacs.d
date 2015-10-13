@@ -4,8 +4,7 @@
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20151003.213
-;; Version: 0.1.29
+;; Version: 0.1.30
 
 ;;; Commentary:
 ;;  Color theme for Emacs, when soothe and gruvbox collide.
@@ -303,6 +302,10 @@
    `(popup-menu-selection-face                 ((t (:foreground ,darktooth-light0 :background ,darktooth-faded_blue ))))
    `(popup-tip-face                            ((t (:foreground ,darktooth-light0_hard :background ,darktooth-dark_aqua ))))
    ;; Use tip colors for the pos-tip color vars (see below)
+
+   ;; Inherit ac-dabbrev from popup menu face
+   `(ac-dabbrev-menu-face                      ((t (:inherit popup-face))))
+   `(ac-dabbrev-selection-face                 ((t (:inherit popup-menu-selection-face))))
 
    ;; sh mode
    `(sh-heredoc                                ((t (:foreground ,darktooth-darkslategray4 :background nil))))
