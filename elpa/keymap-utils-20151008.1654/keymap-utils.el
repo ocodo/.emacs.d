@@ -6,7 +6,7 @@
 ;; Package-Requires: ((cl-lib "0.3"))
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
-;; Package-Version: 20150805.556
+;; Package-Version: 20151008.1654
 
 ;; This file is not part of GNU Emacs.
 
@@ -453,7 +453,7 @@ Also see `kmu-define-keys'."
       (error "Odd number of elements in PLIST"))
     (let ((key (pop plist))
           (def (pop plist)))
-      (if (eq def :remove)
+      (if (memq def '(:remove -> >))
           (kmu-remove-key keymap key)
         (kmu-define-key keymap key def)))))
 
