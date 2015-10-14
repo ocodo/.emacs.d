@@ -5,9 +5,9 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20150726.531
+;; Package-Version: 20151013.153
 ;; Keywords: processes, clojure
-;; Version: 1.2.0
+;; Version: 1.3.0
 ;; Package-Requires: ((emacs "24.1") (clojure-mode "4.0"))
 
 ;; This file is part of GNU Emacs.
@@ -91,9 +91,9 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     (define-key map "\C-x\C-e" #'inf-clojure-eval-last-sexp) ; Gnu convention
     (define-key map "\C-c\C-e" #'inf-clojure-eval-last-sexp)
     (define-key map "\C-c\C-c" #'inf-clojure-eval-defun)     ; SLIME/CIDER style
+    (define-key map "\C-c\C-b" #'inf-clojure-eval-buffer)
     (define-key map "\C-c\C-r" #'inf-clojure-eval-region)
     (define-key map "\C-c\C-n" #'inf-clojure-eval-form-and-next)
-    (define-key map "\C-c\C-p" #'inf-clojure-eval-paragraph)
     (define-key map "\C-c\C-z" #'inf-clojure-switch-to-repl)
     (define-key map "\C-c\C-i" #'inf-clojure-show-ns-vars)
     (define-key map "\C-c\C-A" #'inf-clojure-apropos)
@@ -109,6 +109,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
         ["Eval top-level sexp at point" inf-clojure-eval-defun t]
         ["Eval last sexp" inf-clojure-eval-last-sexp t]
         ["Eval region" inf-clojure-eval-region t]
+        ["Eval buffer" inf-clojure-eval-buffer t]
         "--"
         ["Load file..." inf-clojure-load-file t]
         "--"
@@ -150,6 +151,11 @@ to load that file."
 
 (defcustom inf-clojure-prompt "^[^=> \n]+=> *"
   "Regexp to recognize prompts in the Inferior Clojure mode."
+  :type 'regexp
+  :group 'inf-clojure)
+
+(defcustom inf-clojure-subprompt " *#_=> *"
+  "Regexp to recognize subprompts in the Inferior Clojure mode."
   :type 'regexp
   :group 'inf-clojure)
 
@@ -265,12 +271,16 @@ to continue it."
       (replace-match "" t t string)
     string))
 
+(defun inf-clojure-remove-subprompts (string)
+  "Remove subprompts from STRING."
+  (replace-regexp-in-string inf-clojure-subprompt "" string))
+
 (defun inf-clojure-preoutput-filter (str)
   "Preprocess the output STR from interactive commands."
   (cond
    ((string-prefix-p "inf-clojure-" (symbol-name (or this-command last-command)))
-    ;; prepend a newline to the output string
-    (inf-clojure-chomp (concat "\n" str)))
+    ;; Remove subprompts and prepend a newline to the output string
+    (inf-clojure-chomp (concat "\n" (inf-clojure-remove-subprompts str))))
    (t str)))
 
 (defvar inf-clojure-project-root-files
@@ -319,41 +329,47 @@ of `inf-clojure-program').  Runs the hooks from
 ;;;###autoload
 (defalias 'run-clojure 'inf-clojure)
 
-(defun inf-clojure-eval-paragraph (&optional and-go)
-  "Send the current paragraph to the inferior Clojure process.
-Prefix argument means switch to the Clojure buffer afterwards."
-  (interactive "P")
-  (save-excursion
-    (mark-paragraph)
-    (inf-clojure-eval-region (point) (mark) and-go)))
-
 (defun inf-clojure-eval-region (start end &optional and-go)
   "Send the current region to the inferior Clojure process.
-Prefix argument means switch to the Clojure buffer afterwards."
+Prefix argument AND-GO means switch to the Clojure buffer afterwards."
   (interactive "r\nP")
-  (comint-send-region (inf-clojure-proc) start end)
-  (comint-send-string (inf-clojure-proc) "\n")
+  ;; replace multiple newlines at the end of the region by a single one
+  ;; or add one if there was no newline
+  (let ((str (replace-regexp-in-string
+              "[\n]*\\'" "\n"
+              (buffer-substring-no-properties start end))))
+    (comint-send-string (inf-clojure-proc) str))
   (if and-go (inf-clojure-switch-to-repl t)))
 
-(defun inf-clojure-eval-string (string)
-  "Send the string to the inferior Clojure process to be executed."
-  (comint-send-string (inf-clojure-proc) (concat string "\n")))
+(defun inf-clojure-eval-string (code)
+  "Send the string CODE to the inferior Clojure process to be executed."
+  (comint-send-string (inf-clojure-proc) (concat code "\n")))
 
 (defun inf-clojure-eval-defun (&optional and-go)
   "Send the current defun to the inferior Clojure process.
-Prefix argument means switch to the Clojure buffer afterwards."
+Prefix argument AND-GO means switch to the Clojure buffer afterwards."
   (interactive "P")
   (save-excursion
     (end-of-defun)
-    (skip-chars-backward " \t\n\r\f") ;  Makes allegro happy
     (let ((end (point)) (case-fold-search t))
       (beginning-of-defun)
       (inf-clojure-eval-region (point) end)))
   (if and-go (inf-clojure-switch-to-repl t)))
 
+(defun inf-clojure-eval-buffer (&optional and-go)
+  "Send the current buffer to the inferior Clojure process.
+Prefix argument AND-GO means switch to the Clojure buffer afterwards."
+  (interactive "P")
+  (save-excursion
+    (end-of-buffer)
+    (let ((end (point)) (case-fold-search t))
+      (beginning-of-buffer)
+      (inf-clojure-eval-region (point) end)))
+  (if and-go (inf-clojure-switch-to-repl t)))
+
 (defun inf-clojure-eval-last-sexp (&optional and-go)
   "Send the previous sexp to the inferior Clojure process.
-Prefix argument means switch to the Clojure buffer afterwards."
+Prefix argument AND-GO means switch to the Clojure buffer afterwards."
   (interactive "P")
   (inf-clojure-eval-region (save-excursion (backward-sexp) (point)) (point) and-go))
 
@@ -367,7 +383,7 @@ Prefix argument means switch to the Clojure buffer afterwards."
 
 (defun inf-clojure-switch-to-repl (eob-p)
   "Switch to the inferior Clojure process buffer.
-With argument, positions cursor at end of buffer."
+With prefix argument EOB-P, positions cursor at end of buffer."
   (interactive "P")
   (if (get-buffer-process inf-clojure-buffer)
       (let ((pop-up-frames
@@ -411,7 +427,7 @@ Used by this command to determine defaults."
   :group 'inf-clojure)
 
 (defun inf-clojure-load-file (file-name)
-  "Load a Clojure file into the inferior Clojure process."
+  "Load a Clojure file FILE-NAME into the inferior Clojure process."
   (interactive (comint-get-source "Load Clojure file: " inf-clojure-prev-l/c-dir/file
                                   inf-clojure-source-modes nil)) ; nil because LOAD
                                         ; doesn't need an exact name
