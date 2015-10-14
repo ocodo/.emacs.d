@@ -4,8 +4,8 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Package-Version: 20150914.1003
-;; Version: 3.6
+;; Package-Version: 20151005.2131
+;; Version: 3.7
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
@@ -71,7 +71,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-ubiquitous-version "3.6"
+(defconst ido-ubiquitous-version "3.7"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-ubiquitous, this variable may not
@@ -278,7 +278,7 @@ behavior. Instead, it must return an empty string like
 
 The `disable' mode is available as a default, which seems
 counterintuitive. But this allows you, if you so desire, to
-enable ido-ubiquitous selectively for only a few specifc commands
+enable ido-ubiquitous selectively for only a few specific commands
 using overrides and disable it for everything else."
   :type '(choice :tag "Default mode"
                  (const :menu-tag "Disable"
@@ -415,7 +415,7 @@ file a bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :group 'ido-ubiquitous)
 
 (defmacro ido-ubiquitous-with-override (override &rest body)
-  "Eval BODY with specicified OVERRIDE in place.
+  "Eval BODY with specified OVERRIDE in place.
 
 The OVERRIDE argument is evaluated normally, so if it is a
 literal symbol, it must be quoted.
