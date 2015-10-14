@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 Pierre Lecocq
 ;; Author: Pierre Lecocq <pierre.lecocq@gmail.com>
 ;; URL: https://github.com/pierre-lecocq/darkmine-theme
-;; Package-Version: 20150925.1134
+;; Package-Version: 20151005.115
 ;; Version: 0.5
 
 ;; Permission is hereby granted, free of charge, to any person obtaining
@@ -110,6 +110,9 @@
 
    ;; eshell
    `(eshell-prompt ((t (:foreground ,green-1 :bold t))))
+
+   ;; org-mode
+   `(org-block-background ((t (:background ,grey-3))))
   )
 )
 
