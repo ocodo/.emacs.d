@@ -564,13 +564,13 @@ specification.  Everything else is encoded as string."
 (defvar nrepl-response-handler-functions nil
   "List of functions to call on each nREPL message.
 Each of these functions should be a function with one argument, which will
-be called by `nrepl-client-filter' on every response received. The current
-buffer will be connection (REPL) buffer of the process. These functions
-should take a single argument, a dict representing the message. See
+be called by `nrepl-client-filter' on every response received.  The current
+buffer will be connection (REPL) buffer of the process.  These functions
+should take a single argument, a dict representing the message.  See
 `nrepl--dispatch-response' for an example.
 
 These functions are called before the message's own callbacks, so that they
-can affect the behaviour of the callbacks. Errors signaled by these
+can affect the behaviour of the callbacks.  Errors signaled by these
 functions are demoted to messages, so that they don't prevent the
 callbacks from running.")
 
@@ -808,11 +808,13 @@ values of *1, *2, etc."
   "Evaluation error handler.")
 
 (defun nrepl--mark-id-completed (id)
-  "Move ID from `nrepl-pending-requests' to `nrepl-completed-requests'."
+  "Move ID from `nrepl-pending-requests' to `nrepl-completed-requests'.
+It is safe to call this function multiple times on the same ID."
   ;; FIXME: This should go away eventually when we get rid of
   ;; pending-request hash table
-  (puthash id (gethash id nrepl-pending-requests) nrepl-completed-requests)
-  (remhash id nrepl-pending-requests))
+  (-when-let (handler (gethash id nrepl-pending-requests))
+    (puthash id handler nrepl-completed-requests)
+    (remhash id nrepl-pending-requests)))
 
 (defvar cider-buffer-ns)
 (declare-function cider-need-input "cider-interaction")
@@ -890,14 +892,16 @@ server responses."
   "Send REQUEST and register response handler CALLBACK using CONNECTION.
 REQUEST is a pair list of the form (\"op\" \"operation\" \"par1-name\"
 \"par1\" ... ). See the code of `nrepl-request:clone',
-`nrepl-request:stdin', etc."
+`nrepl-request:stdin', etc.
+Return the ID of the sent message."
   (let* ((id (nrepl-next-request-id connection))
          (request (cons 'dict (lax-plist-put request "id" id)))
          (message (nrepl-bencode request)))
     (nrepl-log-message (cons '---> (cdr request)))
     (with-current-buffer connection
       (puthash id callback nrepl-pending-requests)
-      (process-send-string nil message))))
+      (process-send-string nil message))
+    id))
 
 (defvar nrepl-ongoing-sync-request nil
   "Dynamically bound to t while a sync request is ongoing.")
@@ -1070,9 +1074,17 @@ the port, and the client buffer."
 (defun nrepl-server-filter (process output)
   "Process nREPL server output from PROCESS contained in OUTPUT."
   (with-current-buffer (process-buffer process)
-    (save-excursion
-      (goto-char (point-max))
-      (insert output)))
+    ;; auto-scroll on new output
+    (let ((moving (= (point) (process-mark process))))
+      (save-excursion
+        (goto-char (process-mark process))
+        (insert output)
+        (set-marker (process-mark process) (point)))
+      (when moving
+        (goto-char (process-mark process))
+        (-when-let (win (get-buffer-window))
+          (set-window-point win (point))))))
+  ;; detect the port the server is listening on from its output
   (when (string-match "nREPL server started on port \\([0-9]+\\)" output)
     (let ((port (string-to-number (match-string 1 output))))
       (message "nREPL server started on %s" port)

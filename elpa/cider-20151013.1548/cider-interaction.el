@@ -1344,6 +1344,7 @@ stale code from any deleted files may not be completely unloaded."
                                 (when (buffer-file-name)
                                   (file-name-nondirectory
                                    (buffer-file-name))))))
+  (cider-ensure-connected)
   (-when-let (buf (find-buffer-visiting filename))
     (with-current-buffer buf
       (remove-overlays nil nil 'cider-type 'instrumented-defs)
@@ -1579,6 +1580,22 @@ With a prefix argument, prompt for function to run instead of -main."
                                         'cider--namespace-history def)
                        name))))
         (user-error "No %s var defined in any namespace" name)))))
+
+(defconst cider-manual-url "https://github.com/clojure-emacs/cider/blob/master/README.md"
+  "The URL to CIDER's manual.")
+
+(defun cider-view-manual ()
+  "View the manual in your default browser."
+  (interactive)
+  (browse-url cider-manual-url))
+
+(defconst cider-report-bug-url "https://github.com/clojure-emacs/cider/issues/new"
+  "The URL to report a CIDER issue.")
+
+(defun cider-report-bug ()
+  "Report a bug in your default browser."
+  (interactive)
+  (browse-url cider-report-bug-url))
 
 (provide 'cider-interaction)
 

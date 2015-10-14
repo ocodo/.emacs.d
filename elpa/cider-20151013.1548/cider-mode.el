@@ -263,7 +263,7 @@ Returns to the buffer in which the command was invoked."
         ("Find"
          ["Find definition" cider-find-var]
          ["Find resource" cider-find-resource]
-         ["Jump back" cider-jump-back])
+         ["Go back" cider-pop-back])
         ("Test"
          ["Run test" cider-test-run-test]
          ["Run all tests" cider-test-run-tests]
@@ -275,6 +275,7 @@ Returns to the buffer in which the command was invoked."
         ["Toggle var tracing" cider-toggle-trace-var]
         ["Toggle ns tracing" cider-toggle-trace-ns]
         ["Refresh loaded code" cider-refresh]
+        ["Select any CIDER buffer" cider-selector]
         "--"
         ["Debug top-level form" cider-debug-defun-at-point]
         ["List instrumented defs" cider-browse-instrumented-defs]
@@ -296,6 +297,8 @@ Returns to the buffer in which the command was invoked."
         ["Quit" cider-quit]
         ["Restart" cider-restart]
         "--"
+        ["View manual online" cider-open-manual]
+        ["Report a bug" cider-report-bug]
         ["Version info" cider-version]))
     map))
 

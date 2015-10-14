@@ -130,9 +130,7 @@ This variable must be set before starting the repl connection."
     (when (member "need-debug-input" status)
       (cider--handle-debug response))
     (when (member "done" status)
-      (puthash id (gethash id nrepl-pending-requests)
-               nrepl-completed-requests)
-      (remhash id nrepl-pending-requests))))
+      (nrepl--mark-id-completed id))))
 
 (defun cider--debug-init-connection ()
   "Initialize a connection with the cider.debug middleware."
@@ -156,8 +154,10 @@ This variable must be set before starting the repl connection."
     ;; This is cosmetic, let's ensure it doesn't break the session no matter what.
     (ignore-errors
       ;; Result
-      (cider--make-result-overlay (cider-font-lock-as-clojure value) (point) nil
-                                  'before-string cider--fringe-arrow-string)
+      (cider--make-result-overlay (cider-font-lock-as-clojure value)
+        :where (point-marker)
+        :type 'debug-result
+        'before-string cider--fringe-arrow-string)
       ;; Code
       (cider--make-overlay (save-excursion (clojure-backward-logical-sexp 1) (point))
                            (point) 'debug-code
@@ -313,10 +313,7 @@ In order to work properly, this mode must be activated by
     ;; doesn't accidentally hit `n' between two messages (thus editing the code).
     (-when-let (proc (unless nrepl-ongoing-sync-request
                        (get-buffer-process (cider-current-connection))))
-      ;; This is for the `:done' sent in reply to the debug-input we provided.
-      (when (accept-process-output proc 0.2)
-        ;; This is for actually waiting for the next message.
-        (accept-process-output proc 1)))
+      (accept-process-output proc 0.5))
     (unless cider--debug-mode
       (setq buffer-read-only nil)
       (cider--debug-remove-overlays (current-buffer)))
@@ -329,7 +326,7 @@ In order to work properly, this mode must be activated by
     (with-current-buffer (or buffer (current-buffer))
       (unless cider--debug-mode
         (kill-local-variable 'tool-bar-map)
-        (remove-overlays nil nil 'cider-type 'result)
+        (remove-overlays nil nil 'cider-type 'debug-result)
         (remove-overlays nil nil 'cider-type 'debug-code)
         (setq cider--debug-prompt-overlay nil)
         (remove-overlays nil nil 'cider-type 'debug-prompt)))))
@@ -370,10 +367,9 @@ specific message."
                     (symbol-name last-command-event)
                   (cdr (assq last-command-event cider--debug-mode-commands-alist)))
                 nil))
-  (cider-nrepl-send-request
+  (cider-nrepl-send-unhandled-request
    (list "op" "debug-input" "input" (or command ":quit")
-         "key" (or key (nrepl-dict-get cider--debug-mode-response "key")))
-   #'ignore)
+         "key" (or key (nrepl-dict-get cider--debug-mode-response "key"))))
   (ignore-errors (cider--debug-mode -1)))
 
 (defun cider--debug-quit ()
