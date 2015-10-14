@@ -1,4 +1,4 @@
-(define-package "ac-html" "20150909.718" "auto complete source for html tags and attributes"
+(define-package "ac-html" "20151005.31" "auto complete source for html tags and attributes"
   '((auto-complete "1.4")
     (s "1.9")
     (f "0.17")
