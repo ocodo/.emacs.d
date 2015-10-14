@@ -5,7 +5,7 @@
 ;; Author: Steven Degutis
 ;; Maintainer: Christopher Reichert <creichert07@gmail.com>
 ;; Version: 1.0.0
-;; Package-Version: 20150914.1142
+;; Package-Version: 20151003.1833
 ;; Keywords: convenience
 ;; URL: https://github.com/creichert/ido-vertical-mode.el
 
@@ -343,6 +343,7 @@ This is based on:
 (define-minor-mode ido-vertical-mode
   "Makes ido-mode display vertically."
   :global t
+  :group 'ido-vertical-mode
   (if ido-vertical-mode
       (turn-on-ido-vertical)
     (turn-off-ido-vertical)))

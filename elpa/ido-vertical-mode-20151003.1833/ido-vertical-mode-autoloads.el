@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "ido-vertical-mode" "ido-vertical-mode.el"
-;;;;;;  (22010 16078 953140 0))
+;;;;;;  (22045 47962 657140 0))
 ;;; Generated autoloads from ido-vertical-mode.el
 
 (defvar ido-vertical-mode nil "\
