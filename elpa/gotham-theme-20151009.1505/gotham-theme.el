@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20150901.1520
+;; Package-Version: 20151009.1505
 ;; Version: 1.1.4
 
 ;; This file is NOT part of GNU Emacs.
@@ -39,6 +39,7 @@
 
 (defgroup gotham nil
   "A very dark Emacs theme"
+  :group 'themes
   :prefix "gotham-")
 
 (deftheme gotham "The Gotham color theme")
