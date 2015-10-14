@@ -6,7 +6,7 @@
 ;; Copyright (C) 2009-2012 Chris Done
 
 ;; Version: 1.0.10
-;; Package-Version: 20150924.2101
+;; Package-Version: 20151005.1850
 ;; Author: Shin Aoyama <smihica@gmail.com>
 ;; URL: https://github.com/smihica/emmet-mode
 ;; Last-Updated: 2014-08-11 Mon
@@ -3321,6 +3321,9 @@ tbl))
   "Function to execute when expanding a leaf node in the
   Emmet AST.")
 
+(defvar emmet-expand-jsx-className? nil
+  "Wether to use `className' when expanding `.classes'")
+
 (emmet-defparameter
  emmet-tag-settings-table
  (gethash "tags" (gethash "html" emmet-preferences)))
@@ -3444,7 +3447,8 @@ tbl))
        (puthash tag-name fn emmet-tag-snippets-table)))
 
    (let* ((id           (emmet-concat-or-empty " id=\"" tag-id "\""))
-          (classes      (emmet-mapconcat-or-empty " class=\"" tag-classes " " "\""))
+          (class-attr  (if emmet-expand-jsx-className? " className=\"" " class=\""))
+          (classes      (emmet-mapconcat-or-empty class-attr tag-classes " " "\""))
           (props        (let* ((tag-props-default
                                 (and settings (gethash "defaultAttr" settings)))
                                (merged-tag-props
