@@ -1018,6 +1018,11 @@ in large files.")
   "Face used to highlight function name in calls."
   :group 'js2-mode)
 
+(defface js2-object-property
+  '((t :inherit default))
+  "Face used to highlight named property in object literal."
+  :group 'js2-mode)
+
 (defface js2-instance-member
   '((t :foreground "DarkOrchid"))
   "Face used to highlight instance variables in javascript.
@@ -6753,6 +6758,8 @@ Shown at or above `js2-highlight-level' 3.")
                 (prop
                  (if (string-match js2-ecma-object-props prop-name)
                      'font-lock-constant-face))))))
+        (when (and (not face) prop-name)
+          (setq face 'js2-object-property))
         (when face
           (let ((pos (+ (js2-node-pos parent)  ; absolute
                         (js2-node-pos prop)))) ; relative
@@ -9968,9 +9975,9 @@ Returns an expression tree that includes PN, the parent node."
         (setq pn (js2-parse-tagged-template pn (make-js2-string-node :type tt))))
        (t
         (js2-unget-token)
-        (setq continue nil))))
-    (if (>= js2-highlight-level 2)
-        (js2-parse-highlight-member-expr-node pn))
+        (setq continue nil)))
+      (if (>= js2-highlight-level 2)
+          (js2-parse-highlight-member-expr-node pn)))
     pn))
 
 (defun js2-parse-tagged-template (tag-node tpl-node)
@@ -10723,7 +10730,7 @@ When `js2-is-in-destructuring' is t, forms like {a, b, c} will be permitted."
                       (if (js2-function-node-p
                            (js2-object-prop-node-right expr))
                           'font-lock-function-name-face
-                        'font-lock-variable-name-face)
+                        'js2-object-property)
                       'record)
         expr)))))
 
