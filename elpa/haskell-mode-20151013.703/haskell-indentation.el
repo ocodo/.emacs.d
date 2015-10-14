@@ -603,11 +603,18 @@ the current buffer."
       (while (not (bobp))
         (forward-comment (- (buffer-size)))
         (beginning-of-line)
-        (let ((ps (nth 8 (syntax-ppss))))
-          (when ps ;; inside comment or string
-            (goto-char ps)))
-        (when (= 0 (haskell-indentation-current-indentation))
-          (throw 'return nil))))
+        (let* ((ps (syntax-ppss))
+              (start-of-comment-or-string (nth 8 ps))
+              (start-of-list-expression (nth 1 ps)))
+          (cond
+           (start-of-comment-or-string
+            ;; inside comment or string
+            (goto-char start-of-comment-or-string))
+           (start-of-list-expression
+            ;; inside a parenthesized expression
+            (goto-char start-of-list-expression))
+           ((= 0 (haskell-indentation-current-indentation))
+             (throw 'return nil))))))
     (beginning-of-line)
     (when (bobp)
       (forward-comment (buffer-size)))))
@@ -679,15 +686,9 @@ the current buffer."
 
 (defconst haskell-indentation-toplevel-list
   `(("module"   . haskell-indentation-module)
-    ("data"     .
-     ,(apply-partially 'haskell-indentation-statement-right
-                       'haskell-indentation-data))
-    ("type"     .
-     ,(apply-partially 'haskell-indentation-statement-right
-                       'haskell-indentation-data))
-    ("newtype"  .
-     ,(apply-partially 'haskell-indentation-statement-right
-                       'haskell-indentation-data))
+    ("data"     . haskell-indentation-data)
+    ("type"     . haskell-indentation-data)
+    ("newtype"  .   haskell-indentation-data)
     ("class"    . haskell-indentation-class-declaration)
     ("instance" . haskell-indentation-class-declaration))
   "Alist of toplevel keywords with associated parsers.")
@@ -987,7 +988,10 @@ parser.  If parsing ends here, set indentation to left-indent."
     (haskell-indentation-add-indentation current-indent)
     (throw 'parse-end nil))
   (let ((current-indent (current-column)))
-    (funcall parser)))
+    (funcall parser)
+    (when (equal current-token "where")
+      (haskell-indentation-with-starter
+       #'haskell-indentation-expression-layout nil))))
 
 (defun haskell-indentation-guard ()
   "Parse \"guard\" statement."
@@ -1352,8 +1356,11 @@ line."
 (defun haskell-indentation-skip-token ()
   "Skip to the next token."
   (let ((case-fold-search nil))
-    (if (or (looking-at "'\\([^\\']\\|\\\\.\\)*'")
+    (if (or (looking-at "'\\([^\\']\\|\\\\.\\)'")
+            (looking-at "'\\\\\\([^\\']\\|\\\\.\\)*'")
             (looking-at "\"\\([^\\\"]\\|\\\\.\\)*\"")
+            ;; QuasiQuotes, with help of propertize buffer and string delimeters
+            (looking-at "\\s\"\\S\"*\\s\"")
             ;; Hierarchical names always start with uppercase
             (looking-at
              "[[:upper:]]\\(\\s_\\|\\sw\\|'\\)*\\(\\.\\(\\s_\\|\\sw\\|'\\)+\\)*")
