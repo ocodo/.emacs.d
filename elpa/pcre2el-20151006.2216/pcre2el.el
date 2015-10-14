@@ -7,7 +7,7 @@
 ;; Created:			14 Feb 2012
 ;; Updated:			24 July 2014
 ;; Version:                     1.8
-;; Package-Version: 20151001.2047
+;; Package-Version: 20151006.2216
 ;; Url:                         https://github.com/joddie/pcre2el
 ;; Package-Requires:            ((cl-lib "0.3"))
 
@@ -967,8 +967,8 @@ Consider using `pcre-mode' instead of this function."
 
 (defadvice find-tag-regexp
   (before pcre-mode first (regexp &optional next-p other-window) disable)
-  "Read regexp using PCRE syntax and convert to Elisp equivalent."
-  "Perform `find-tag-regexp' using emulated PCRE regexp syntax."
+  "Read regexp using PCRE syntax and convert to Elisp equivalent.
+Perform `find-tag-regexp' using emulated PCRE regexp syntax."
   (interactive
    (let ((args (find-tag-interactive "[PCRE] Find tag regexp: " t)))
      (list (rxt-pcre-to-elisp (nth 0 args))
