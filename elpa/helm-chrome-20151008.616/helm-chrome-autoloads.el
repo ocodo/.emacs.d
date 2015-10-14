@@ -1,10 +1,10 @@
 ;;; helm-chrome-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (helm-chrome-bookmarks) "helm-chrome" "helm-chrome.el"
-;;;;;;  (21428 50426 0 0))
+;;;### (autoloads nil "helm-chrome" "helm-chrome.el" (22045 48003
+;;;;;;  53140 0))
 ;;; Generated autoloads from helm-chrome.el
 
 (autoload 'helm-chrome-bookmarks "helm-chrome" "\
@@ -14,16 +14,9 @@ Search Chrome Bookmark using `helm'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("helm-chrome-pkg.el") (21428 50426 41719
-;;;;;;  0))
-
-;;;***
-
-(provide 'helm-chrome-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; helm-chrome-autoloads.el ends here
