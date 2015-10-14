@@ -4,7 +4,7 @@
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: faces
-;; Version: 0.11
+;; Version: 0.12
 
 ;; This file is part of GNU Emacs.
 
@@ -1104,25 +1104,29 @@ Return a value between 0 and 1."
 (defun rainbow-turn-on ()
   "Turn on raibow-mode."
   (font-lock-add-keywords nil
-                          rainbow-hexadecimal-colors-font-lock-keywords)
+                          rainbow-hexadecimal-colors-font-lock-keywords
+                          t)
   ;; Activate X colors?
   (when (or (eq rainbow-x-colors t)
             (and (eq rainbow-x-colors 'auto)
                  (memq major-mode rainbow-x-colors-major-mode-list)))
     (font-lock-add-keywords nil
-                            rainbow-x-colors-font-lock-keywords))
+                            rainbow-x-colors-font-lock-keywords
+                            t))
   ;; Activate LaTeX colors?
   (when (or (eq rainbow-latex-colors t)
             (and (eq rainbow-latex-colors 'auto)
                  (memq major-mode rainbow-latex-colors-major-mode-list)))
     (font-lock-add-keywords nil
-                            rainbow-latex-rgb-colors-font-lock-keywords))
+                            rainbow-latex-rgb-colors-font-lock-keywords
+                            t))
   ;; Activate ANSI colors?
   (when (or (eq rainbow-ansi-colors t)
             (and (eq rainbow-ansi-colors 'auto)
                  (memq major-mode rainbow-ansi-colors-major-mode-list)))
     (font-lock-add-keywords nil
-                            rainbow-ansi-colors-font-lock-keywords))
+                            rainbow-ansi-colors-font-lock-keywords
+                            t))
   ;; Activate HTML colors?
   (when (or (eq rainbow-html-colors t)
             (and (eq rainbow-html-colors 'auto)
@@ -1132,7 +1136,8 @@ Return a value between 0 and 1."
              (0 (rainbow-colorize-by-assoc rainbow-html-colors-alist)))))
     (font-lock-add-keywords nil
                             `(,@rainbow-html-colors-font-lock-keywords
-                              ,@rainbow-html-rgb-colors-font-lock-keywords)))
+                              ,@rainbow-html-rgb-colors-font-lock-keywords)
+                            t))
   ;; Activate R colors?
   (when (or (eq rainbow-r-colors t)
             (and (eq rainbow-r-colors 'auto)
@@ -1142,7 +1147,7 @@ Return a value between 0 and 1."
              (0 (rainbow-colorize-by-assoc rainbow-r-colors-alist)))))
     (font-lock-add-keywords nil
                             rainbow-r-colors-font-lock-keywords
-                            )))
+                            t)))
 
 (defun rainbow-turn-off ()
   "Turn off rainbow-mode."
@@ -1169,6 +1174,12 @@ This will fontify with colors the string like \"#aabbcc\" or \"blue\"."
 
 ;;;; ChangeLog:
 
+;; 2015-10-12  Julien Danjou  <julien@danjou.info>
+;; 
+;; 	rainbow: add font-lock at the end
+;; 
+;; 	See https://github.com/fxbois/web-mode/issues/612
+;; 
 ;; 2015-03-06  Julien Danjou  <julien@danjou.info>
 ;; 
 ;; 	rainbow: fix font-lock-mode refresh
