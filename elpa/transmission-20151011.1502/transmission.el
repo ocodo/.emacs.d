@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.5
-;; Package-Version: 20150930.2112
+;; Package-Version: 20151011.1502
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3") (seq "1.5"))
 ;; Keywords: comm, tools
 
@@ -247,6 +247,8 @@ update `transmission-session-id' and signal the error."
       (process-send-string process (buffer-string)))))
 
 (defun transmission-wait (process)
+  "Wait to receive HTTP response from PROCESS.
+Return JSON object parsed from content."
   (with-current-buffer (process-buffer process)
     (while (and (not (transmission--content-finished-p))
                 (process-live-p process))
@@ -300,8 +302,7 @@ Details regarding the Transmission RPC can be found here:
   "Return a \"torrents\" vector of objects from a \"torrent-get\" request.
 Each object is an alist containing key-value pairs matching the
 \"fields\" value in ARGUMENTS."
-  (let ((response (transmission-request "torrent-get" arguments)))
-    (cdr (cadr (assq 'arguments response)))))
+  (cdr (cadr (assq 'arguments (transmission-request "torrent-get" arguments)))))
 
 (defun transmission-torrent-value (torrent field)
   "Return value in vector TORRENT of key FIELD.
@@ -391,7 +392,7 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
   (if (<= seconds 0)
       (pcase percent
         (1 "Done")
-        (_ " Inf"))
+        (_ (if (char-displayable-p ?∞) (string ?∞) "Inf")))
     (let* ((minute (float 60))
            (hour (float 3600))
            (day (float 86400))
@@ -409,8 +410,8 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
 (defun transmission-rate (bytes)
   "Return a rate in units kilobytes per second.
 The rate is calculated from BYTES according to `transmission-units'."
-  (let ((scale (if (eq 'iec transmission-units) 1024 1000)))
-    (/ bytes scale)))
+  (/ bytes
+     (if (eq 'iec transmission-units) 1024 1000)))
 
 (defun transmission-prompt-speed-limit (upload)
   "Make a prompt to set transfer speed limit.
@@ -526,6 +527,14 @@ The two are spliced together with indices for each file, sorted by file name."
     (1 (format "%d (torrent-specific limit)" tlimit))
     (2 "Unlimited")))
 
+(defmacro transmission-tabulated-list-pred (key)
+  "Return a sorting predicate comparing values of KEY.
+KEY should be a key in an element of `tabulated-list-entries'."
+  (declare (debug t))
+  `(lambda (a b)
+     (> (cdr (assq ,key (car a)))
+        (cdr (assq ,key (car b))))))
+
 (defmacro transmission-let-ids (bindings &rest body)
   "Like `when-let', except call `user-error' if BINDINGS are not truthy.
 Execute BODY, binding list `ids' of torrent IDs at point or in region."
@@ -640,8 +649,9 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
     (let* ((urls (transmission-prompt-read-repeatedly "Add announce URLs: "))
            (trackers (mapcar (lambda (elt) (cdr (assq 'announce elt)))
                              (transmission-list-trackers ids)))
-           ;; Don't add trackers that are already there
-           (arguments (list :ids ids :trackerAdd (seq-difference urls trackers))))
+           (arguments (list :ids ids :trackerAdd
+                            ;; Don't add trackers that are already there
+                            (cl-set-difference urls trackers))))
       (let-alist (transmission-request "torrent-set" arguments)
         (message .result)))))
 
@@ -771,7 +781,7 @@ Each form in BODY is a column descriptor."
     (format "%3d%%" (* 100 .percentDone))
     (format "%d" (transmission-rate .rateDownload))
     (format "%d" (transmission-rate .rateUpload))
-    (format "%4.1f" (if (> .uploadRatio 0) .uploadRatio 0))
+    (format "%.1f" (if (> .uploadRatio 0) .uploadRatio 0))
     (transmission-status .status .rateUpload .rateDownload)
     .name)
   (setq tabulated-list-entries (reverse tabulated-list-entries))
@@ -799,55 +809,57 @@ Each form in BODY is a column descriptor."
         (transmission-torrents `(:ids ,id :fields ,transmission-info-fields)))
   (erase-buffer)
   (let-alist (elt transmission-torrent-vector 0)
-    (let ((vec
-           (vector
-            (format "ID: %d" id)
-            (concat "Name: " .name)
-            (concat "Hash: " .hashString)
-            (concat "Magnet: " (propertize .magnetLink 'font-lock-face 'link) "\n")
-            (format "Percent done: %d%%" (* 100 .percentDone))
-            (format "Bandwidth priority: %s"
-                    (car (rassoc .bandwidthPriority transmission-priority-alist)))
-            (concat "Ratio limit: "
-                    (transmission-torrent-seed-ratio .seedRatioLimit .seedRatioMode))
-            (unless (zerop .error)
-              (format "Error: %d %s\n" .error
-                      (propertize .errorString 'font-lock-face 'error)))
-            (format "Peers: connected to %d, uploading to %d, downloading from %d\n"
-                    .peersConnected .peersGettingFromUs .peersSendingToUs)
-            (concat "Date created:    " (transmission-time .dateCreated))
-            (concat "Date added:      " (transmission-time .addedDate))
-            (concat "Date finished:   " (transmission-time .doneDate))
-            (concat "Latest Activity: " (transmission-time .activityDate) "\n")
-            (concat (transmission-format-trackers .trackerStats) "\n")
-            (let ((wanted (apply #'+ (cl-mapcar (lambda (w f)
-                                                  (if (not (zerop w))
-                                                      (cdr (assq 'length f)) 0))
-                                                .wanted .files))))
-              (format "Wanted: %s (%d bytes)" (transmission-size wanted) wanted))
-            (format "Downloaded: %s (%d bytes)" (transmission-size .downloadedEver) .downloadedEver)
-            (format "Verified: %s (%d bytes)" (transmission-size .haveValid) .haveValid)
-            (unless (zerop .corruptEver)
-              (format "Corrupt: %s (%d bytes)" (transmission-size .corruptEver) .corruptEver))
-            (format "Total size: %s (%d bytes)" (transmission-size .totalSize) .totalSize)
-            (format "Piece size: %s (%d bytes) each" (transmission-size .pieceSize) .pieceSize)
-            (let ((have (apply #'+ (mapcar #'transmission-hamming-weight
-                                           (base64-decode-string .pieces)))))
-              (concat
-               (format "Piece count: %d / %d (%d%%)\n" have .pieceCount
-                       (transmission-percent have .pieceCount))
-               (when (and (not (= have 0)) (< have .pieceCount))
-                 (format "Pieces:\n\n%s\n" (transmission-format-pieces .pieces .pieceCount))))))))
-      (insert (mapconcat #'identity (remove nil vec) "\n")))))
+    (mapc
+     (lambda (elt) (if elt (insert elt "\n")))
+     (vector
+      (format "ID: %d" id)
+      (concat "Name: " .name)
+      (concat "Hash: " .hashString)
+      (concat "Magnet: " (propertize .magnetLink 'font-lock-face 'link) "\n")
+      (format "Percent done: %d%%" (* 100 .percentDone))
+      (format "Bandwidth priority: %s"
+              (car (rassoc .bandwidthPriority transmission-priority-alist)))
+      (concat "Ratio limit: "
+              (transmission-torrent-seed-ratio .seedRatioLimit .seedRatioMode))
+      (unless (zerop .error)
+        (format "Error: %d %s\n" .error
+                (propertize .errorString 'font-lock-face 'error)))
+      (format "Peers: connected to %d, uploading to %d, downloading from %d\n"
+              .peersConnected .peersGettingFromUs .peersSendingToUs)
+      (concat "Date created:    " (transmission-time .dateCreated))
+      (concat "Date added:      " (transmission-time .addedDate))
+      (concat "Date finished:   " (transmission-time .doneDate))
+      (concat "Latest Activity: " (transmission-time .activityDate) "\n")
+      (concat (transmission-format-trackers .trackerStats) "\n")
+      (let ((wanted (apply #'+ (cl-mapcar (lambda (w f)
+                                            (if (not (zerop w))
+                                                (cdr (assq 'length f)) 0))
+                                          .wanted .files))))
+        (format "Wanted: %s (%d bytes)" (transmission-size wanted) wanted))
+      (format "Downloaded: %s (%d bytes)" (transmission-size .downloadedEver) .downloadedEver)
+      (format "Verified: %s (%d bytes)" (transmission-size .haveValid) .haveValid)
+      (unless (zerop .corruptEver)
+        (format "Corrupt: %s (%d bytes)" (transmission-size .corruptEver) .corruptEver))
+      (format "Total size: %s (%d bytes)" (transmission-size .totalSize) .totalSize)
+      (format "Piece size: %s (%d bytes) each" (transmission-size .pieceSize) .pieceSize)
+      (let ((have (apply #'+ (mapcar #'transmission-hamming-weight
+                                     (base64-decode-string .pieces)))))
+        (concat
+         (format "Piece count: %d / %d (%d%%)" have .pieceCount
+                 (transmission-percent have .pieceCount))
+         (when (and (not (= have 0)) (< have .pieceCount))
+           (format "\nPieces:\n\n%s\n"
+                   (transmission-format-pieces .pieces .pieceCount)))))))))
 
 (defun transmission-draw (fun)
-  "FUN erases the buffer and draws a new one."
-  (setq buffer-read-only nil)
-  (funcall fun)
-  (set-buffer-modified-p nil)
-  (setq buffer-read-only t))
+  "Draw the buffer with new contents.
+FUN should update the buffer contents."
+  (with-silent-modifications
+    (funcall fun)))
 
 (defun transmission-refresh (&optional _arg _noconfirm)
+  "Refresh the current buffer, restoring window position, point, and mark.
+Also run the timer for timer object `transmission-timer'."
   (let* ((old-window-start (window-start))
          (old-column (current-column))
          (old-line (line-number-at-pos))
@@ -902,6 +914,7 @@ Each form in BODY is a column descriptor."
     (define-key map "m" 'transmission-move)
     (define-key map "t" 'transmission-trackers-add)
     (define-key map "T" 'transmission-trackers-remove)
+    (define-key map "y" 'transmission-set-bandwidth-priority)
     map)
   "Keymap used in `transmission-info-mode' buffers.")
 
@@ -910,19 +923,25 @@ Each form in BODY is a column descriptor."
   '("Transmission-Info"
     ["Add Tracker URLs" transmission-trackers-add]
     ["Remove Trackers" transmission-trackers-remove]
+    ["Move Torrent" transmission-move]
+    ["Reannounce Torrent" transmission-reannounce]
+    ["Set Bandwidth Priority" transmission-set-bandwidth-priority]
+    ["Verify Torrent" transmission-verify]
     "--"
     ["Refresh" revert-buffer]
     ["Quit" quit-window]))
 
 (define-derived-mode transmission-info-mode special-mode "Transmission-Info"
   "Major mode for viewing and manipulating torrent attributes in Transmission.
-The hook `transmission-info-mode-hook' is run at mode
+
+In addition to any hooks its parent mode might have run, this
+mode runs the hook `transmission-info-mode-hook' at mode
 initialization.
 
 Key bindings:
 \\{transmission-info-mode-map}"
   :group 'transmission
-  (buffer-disable-undo)
+  (setq buffer-undo-list t)
   (setq font-lock-defaults '(transmission-info-font-lock-keywords))
   (setq transmission-refresh-function
         (lambda () (transmission-draw-info transmission-torrent-id)))
@@ -949,9 +968,11 @@ Key bindings:
   "Menu used in `transmission-files-mode' buffers."
   '("Transmission-Files"
     ["Run Command On File" transmission-files-command]
+    ["Visit File" transmission-find-file
+     "Switch to a read-only buffer visiting file at point"]
     ["Mark Files Unwanted" transmission-files-unwant]
     ["Mark Files Wanted" transmission-files-want]
-    ["Set File's Bandwidth Priority" transmission-files-priority]
+    ["Set Files' Bandwidth Priority" transmission-files-priority]
     ["View Torrent Info" transmission-info]
     "--"
     ["Refresh" revert-buffer]
@@ -959,23 +980,22 @@ Key bindings:
 
 (define-derived-mode transmission-files-mode tabulated-list-mode "Transmission-Files"
   "Major mode for interacting with torrent files in Transmission.
-The hook `transmission-files-mode-hook' is run at mode
+
+In addition to any hooks its parent mode might have run, this
+mode runs the hook `transmission-files-mode-hook' at mode
 initialization.
 
 Key bindings:
 \\{transmission-files-mode-map}"
   :group 'transmission
-  (buffer-disable-undo)
   (setq-local line-move-visual nil)
   (setq tabulated-list-format
-        [("Have" 4 nil :right-align t)
-         ("Priority" 8 t)
-         ("Want" 4 t :right-align t)
-         ("Size" 9 (lambda (a b)
-                     (> (cdr (assq 'length (car a)))
-                        (cdr (assq 'length (car b)))))
-          :right-align t :transmission-size t)
-         ("Name" 0 t)])
+        `[("Have" 4 nil :right-align t)
+          ("Priority" 8 t)
+          ("Want" 4 t :right-align t)
+          ("Size" 9 ,(transmission-tabulated-list-pred 'length)
+           :right-align t :transmission-size t)
+          ("Name" 0 t)])
   (transmission-tabulated-list-format)
   (setq transmission-refresh-function
         (lambda () (transmission-draw-files transmission-torrent-id)))
@@ -1012,6 +1032,15 @@ Key bindings:
     ["Add Torrent" transmission-add]
     ["Start/Stop Torrent" transmission-toggle
      :help "Toggle pause on torrents at point or in region"]
+    ["Set Bandwidth Priority" transmission-set-bandwidth-priority]
+    ("Set Limits"
+     ["Set Global Download Limit" transmission-set-download]
+     ["Set Global Upload Limit" transmission-set-upload]
+     ["Set Global Seed Ratio Limit" transmission-set-ratio])
+    ["Move Torrent" transmission-move]
+    ["Reannounce Torrent" transmission-reannounce]
+    ["Verify Torrent" transmission-verify]
+    "--"
     ["View Torrent Files" transmission-files]
     ["View Torrent Info" transmission-info]
     "--"
@@ -1021,29 +1050,27 @@ Key bindings:
 (define-derived-mode transmission-mode tabulated-list-mode "Transmission"
   "Major mode for interfacing with a Transmission daemon. See
 https://trac.transmissionbt.com/ for more information about
-Transmission.  The hook `transmission-mode-hook' is run at mode
+Transmission.
+
+In addition to any hooks its parent mode might have run, this
+mode runs the hook `transmission-mode-hook' at mode
 initialization.
 
 Key bindings:
 \\{transmission-mode-map}"
   :group 'transmission
-  (buffer-disable-undo)
   (setq-local line-move-visual nil)
   (setq tabulated-list-format
-        [("ETA" 4 (lambda (a b)
-                     (> (cdr (assq 'eta (car a)))
-                        (cdr (assq 'eta (car b)))))
-          :right-align t)
-         ("Size" 9 (lambda (a b)
-                     (> (cdr (assq 'sizeWhenDone (car a)))
-                        (cdr (assq 'sizeWhenDone (car b)))))
-          :right-align t :transmission-size t)
-         ("Have" 4 nil :right-align t)
-         ("Down" 4 nil :right-align t)
-         ("Up" 3 nil :right-align t)
-         ("Ratio" 5 nil :right-align t)
-         ("Status" 11 t)
-         ("Name" 0 t)])
+        `[("ETA" 4 ,(transmission-tabulated-list-pred 'eta)
+           :right-align t)
+          ("Size" 9 ,(transmission-tabulated-list-pred 'sizeWhenDone)
+           :right-align t :transmission-size t)
+          ("Have" 4 nil :right-align t)
+          ("Down" 4 nil :right-align t)
+          ("Up" 3 nil :right-align t)
+          ("Ratio" 5 nil :right-align t)
+          ("Status" 11 t)
+          ("Name" 0 t)])
   (transmission-tabulated-list-format)
   (setq transmission-refresh-function #'transmission-draw-torrents)
   (setq-local revert-buffer-function #'transmission-refresh)
