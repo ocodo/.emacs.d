@@ -4,8 +4,8 @@
 
 ;; Author: Quang Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/evil-commentary
-;; Package-Version: 20150924.2343
-;; Version: 1.0.0
+;; Package-Version: 20151005.331
+;; Version: 1.0.2
 ;; Keywords: evil comment commentary evil-commentary
 ;; Package-Requires: ((evil "1.0.0"))
 
@@ -44,9 +44,6 @@
 ;;; Code:
 
 (require 'evil)
-
-(eval-when-compile
-  (require 'org nil t))
 
 (defgroup evil-commentary nil
   "Comment stuff out"
