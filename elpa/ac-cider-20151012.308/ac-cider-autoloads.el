@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ac-cider" "ac-cider.el" (21920 42690 971401
+;;;### (autoloads nil "ac-cider" "ac-cider.el" (22045 48158 661140
 ;;;;;;  0))
 ;;; Generated autoloads from ac-cider.el
 
