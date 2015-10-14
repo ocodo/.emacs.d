@@ -895,6 +895,19 @@ variable `sp-wrap-entire-symbol'."
   :type 'boolean
   :group 'smartparens)
 
+(defcustom sp-wrap-respect-direction nil
+  "When non-nil respect the wrap direction.
+
+When non-nil, wrapping with opening pair always jumps to the
+beginning of the region and wrapping with closing pair always
+jumps to the end of the region.
+
+When nil, closing pair places the point at the end of the region
+and the opening pair leaves the point at its original
+position (before or after the region)."
+  :type 'boolean
+  :group 'smartparens)
+
 ;; escaping custom
 (defcustom sp-autoescape-string-quote t
   "If non-nil, autoescape string quotes if typed inside string."
@@ -1396,6 +1409,9 @@ of pairs and wraps.")
     quack-insert-closing-paren
     quack-insert-opening-bracket
     quack-insert-closing-bracket
+    racket-insert-closing-paren
+    racket-insert-closing-bracket
+    racket-insert-closing-brace
     )
    "List of commands which are handled as if they were `self-insert-command's.
 
@@ -2929,8 +2945,10 @@ OPEN and CLOSE are the delimiters."
            open close))
     (cond
      ((eq wrapping-end :open)
-      (when (> sp-wrap-point sp-wrap-mark)
-        (goto-char (overlay-end oend))))
+      (if sp-wrap-respect-direction
+          (goto-char (overlay-start obeg))
+        (when (> sp-wrap-point sp-wrap-mark)
+          (goto-char (overlay-end oend)))))
      ((eq wrapping-end :close)
       (goto-char (overlay-end oend))))
     (sp-wrap--clean-overlays)
@@ -3587,7 +3605,8 @@ If the point is not inside a quoted string, return nil."
      (when ,res
        (setq ,beg (match-beginning 0))
        (setq ,end (match-end 0))
-       (setq ,str (match-string 0)))))
+       (setq ,str (match-string 0)))
+     ,res))
 
 (cl-defun sp--skip-match-p (ms mb me
                                &key
@@ -3700,13 +3719,14 @@ The expressions considered are those delimited by pairs on
            (bw-bound (if in-string-or-comment (car string-bounds) (point-min)))
            s e active-pair forward mb me ms r done
            possible-pairs possible-interfering-pairs possible-ops possible-cls)
-      (while (not done)
+      (while (and (not done)
+                  (sp--search-and-save-match
+                   search-fn
+                   (sp--get-allowed-regexp)
+                   (if back bw-bound fw-bound)
+                   r mb me ms))
         ;; search for the first opening pair.  Here, only consider tags
         ;; that are allowed in the current context.
-        (sp--search-and-save-match search-fn
-                                   (sp--get-allowed-regexp)
-                                   (if back bw-bound fw-bound)
-                                   r mb me ms)
         (unless (sp--skip-match-p ms mb me :global-skip global-skip-fn)
           ;; if the point originally wasn't inside of a string or comment
           ;; but now is, jump out of the string/comment and only search
@@ -4326,6 +4346,9 @@ prefix\" syntax class.  You can also specify a set of syntax code
 characters or a regexp for a specific major mode.  See
 `sp-sexp-prefix'.
 
+The point is expected to be at the opening delimiter of the sexp
+and the prefix is searched backwards.
+
 If the prefix property is defined for OP, the associated regexp
 is used to retrieve the prefix instead of the global setting."
   (let ((pref (sp-get-pair op :prefix)))
@@ -4771,16 +4794,27 @@ expressions are considered."
              ;; sexp.  We should skip a symbol forward and check if it
              ;; is a sexp, and then maybe readjust the output.
              (t (let* ((sym (sp-get-symbol nil))
-                       (sym-string (and sym (sp-get sym (buffer-substring-no-properties :beg :end)))))
+                       (sym-string (and sym (sp-get sym (buffer-substring-no-properties :beg :end))))
+                       (point-before-prefix (point)))
                   (when sym-string
-                    (goto-char (sp-get sym :end))
-                    (if (sp--looking-at (sp--get-opening-regexp))
+                    (if (sp--valid-initial-delimiter-p (sp--search-forward-regexp (sp--get-opening-regexp (sp--get-allowed-pair-list)) nil t))
                         (let* ((ms (match-string 0))
-                               (pref (sp--get-prefix (point) ms)))
+                               (pref (progn
+                                       ;; need to move before the
+                                       ;; opening, so (point) evals
+                                       ;; there.
+                                       (backward-char (length ms))
+                                       (sp--get-prefix (point) ms))))
+                          ;; We use >= because the first skip to
+                          ;; symbol might have skipped some prefix
+                          ;; chars which make prefix of the symbol
+                          ;; which together make prefix of a sexp.
+                          ;; For example \foo{} in latex, where \ is
+                          ;; prefix of symbol foo and \foo is prefix
+                          ;; of {
                           (if (and pref
-                                   (string-prefix-p
-                                    (sp--reverse-string sym-string)
-                                    (sp--reverse-string pref)))
+                                   (not (equal pref ""))
+                                   (>= point-before-prefix (- (point) (length pref))))
                               (sp-get-sexp nil)
                             sym))
                       sym)))))))))))))
@@ -6717,6 +6751,7 @@ Examples:
                      (when (and (> num-arg 0)
                                 (sp-point-in-comment)
                                 (goto-char (car (sp-get-comment-bounds)))
+                                (> (point) (sp-get ok :beg))
                                 (save-excursion
                                   (skip-chars-backward "\t ")
                                   (looking-back "^")))
@@ -7127,13 +7162,17 @@ not necessarily represent a valid balanced expression!"
                 (sp-get ok
                   (setq end :end)
                   (setq cl :cl)
-                  (setq suffix :suffix))))))
-        (unless point
-          (-when-let (ok (sp-get-thing))
-            (sp-get ok
-              (setq beg :beg)
-              (setq op :op)
-              (setq prefix :prefix)))))
+                  (setq suffix :suffix)))))
+          (unless point
+            (-when-let (ok (sp-get-thing))
+              (if (sp-compare-sexps ok enc)
+                  (progn
+                    (setq beg end)
+                    (setq end (sp-get enc :end-in)))
+                (sp-get ok
+                  (setq beg :beg)
+                  (setq op :op)
+                  (setq prefix :prefix)))))))
        ;; select up until beg of list
        ((and raw (= arg -4))
         (let ((enc (sp-get-enclosing-sexp)))
@@ -7636,24 +7675,39 @@ of the point."
         (indent-sexp))
       (sp--back-to-indentation column indentation))))
 
+(defun sp--balanced-context-p (count start-context end-context)
+  (let ((string-or-comment-count (cl-first count))
+        (normal-count (cl-second count)))
+    (cond
+     ((and start-context (eq start-context end-context))
+      (zerop string-or-comment-count))
+     ((eq start-context end-context) (zerop normal-count))
+     (t (= string-or-comment-count normal-count 0)))))
+
 (cl-defun sp-region-ok-p (start end)
   (save-restriction
     (save-excursion
       (narrow-to-region start end)
       (when (ignore-errors (scan-sexps (point-min) (point-max)) t)
-        (let ((count 0)
-              (start-context (progn (goto-char (point-min))
-                                    (sp-point-in-string-or-comment))))
+        (let ((count (list 0 0))
+              (start-context (progn (goto-char start) (sp-point-in-string-or-comment)))
+              (end-context (progn (goto-char end) (sp-point-in-string-or-comment))))
           (dolist (pairs (sp--get-allowed-pair-list))
             (goto-char (point-min))
             (while (re-search-forward (sp--strict-regexp-quote (car pairs)) end :noerror)
-              (when (eq start-context (sp-point-in-string-or-comment))
-                (incf count)))
+              (save-excursion
+                (backward-char)
+                (if (sp-point-in-string-or-comment)
+                    (cl-incf (cl-first count))
+                  (cl-incf (cl-second count)))))
             (goto-char (point-min))
             (while (re-search-forward (sp--strict-regexp-quote (cdr pairs)) end :noerror)
-              (when (eq start-context (sp-point-in-string-or-comment))
-                (decf count)))
-            (unless (= count 0)
+              (save-excursion
+                (backward-char)
+                (if (sp-point-in-string-or-comment)
+                    (cl-decf (cl-first count))
+                  (cl-decf (cl-second count)))))
+            (unless (sp--balanced-context-p count start-context end-context)
               (cl-return-from sp-region-ok-p)))
           t)))))
 
