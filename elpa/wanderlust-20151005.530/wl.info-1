@@ -59,6 +59,7 @@ Wanderlust User's Manual
 * Expire and Archive::       Automatic expiration and archiving of messages
 * Scoring::                  Score of the messages
 * Address Book::             Management of Address Book
+* Quick Search::             Quickly search your mail archive
 * Spam Filter::              Spam filtering
 * Advanced Issues::          Advanced Issues
 * Migration::                Switch from older version of Wanderlust
@@ -5531,7 +5532,7 @@ need to set 'elmo-msgdb-extra-fields'.
                      E: can be seen with elmo-msgdb-extra-fields settings
 
 
-File: wl.info,  Node: Address Book,  Next: Spam Filter,  Prev: Scoring,  Up: Top
+File: wl.info,  Node: Address Book,  Next: Quick Search,  Prev: Scoring,  Up: Top
 
 11 Address Book
 ***************
@@ -5637,9 +5638,80 @@ address book and insert address to draft buffer.
      Edit entry.
 
 
-File: wl.info,  Node: Spam Filter,  Next: Advanced Issues,  Prev: Address Book,  Up: Top
+File: wl.info,  Node: Quick Search,  Next: Spam Filter,  Prev: Address Book,  Up: Top
 
-12 Spam Filter
+12 Quick Search
+***************
+
+'wl-qs' provides an interface to quickly search your mail archive.  It
+can use an external search engine (*note Search Folder::), Gmail search,
+or a filter folder (*note Filter Folder::).
+
+   'wl-qs' provides the command 'wl-quicksearch-goto-search-folder'.
+Using it will first prompt for a search, and then jump to the search
+results.
+
+* Menu:
+
+* Setup::                       Setup
+* Searching::                   Searching
+
+
+File: wl.info,  Node: Setup,  Next: Searching,  Up: Quick Search
+
+12.1 Setup of 'wl-qs'
+=====================
+
+To setup, configure the value of 'wl-quicksearch-folder'.  This should
+be the name of the folder you would like to search.  For example,
+'%[Gmail]/All Mail:username@imap.gmail.com', '.archive' or '[]'.  The
+latter is advised if you use a mail index, such as mu, notmuch or
+namazu, as it is quite fast.
+
+
+File: wl.info,  Node: Searching,  Prev: Setup,  Up: Quick Search
+
+12.2 Searching
+==============
+
+To search your mail archive, use the command
+'wl-quicksearch-goto-search-folder', which can be called using ''' in a
+Summary buffer or the Folder buffer.  You will be prompted for a search,
+and then will immediately jump to the search results.
+
+12.2.1 Search folder
+--------------------
+
+If you use specified '[' as the value of 'wl-quicksearch-folder', you
+will be accessing a search folder (*note Search Folder::).  You will be
+prompted for a search string.  The syntax of the search will depend on
+the value of 'elmo-search-default-engine'.  Quotes will be escaped for
+you automatically and passed on to the search program.
+
+   (If you are using the grep search engine, you must specify a target
+folder.  Your 'wl-quicksearch-folder' should look like
+'[]~/Mail/semi!grep'.)
+
+12.2.2 Gmail
+------------
+
+If you use a gmail folder as your 'wl-quicksearch-folder', you will be
+prompted for a Gmail search query
+(<https://support.google.com/mail/answer/7190>).  You may use any Gmail
+search operator; the search is handled by Gmail's server.
+
+12.2.3 Filter folder
+--------------------
+
+If you are using any other type of folder, you will be prompted for a
+query using the interactive query builder.  When you have finished your
+query, you will be directed to a filter folder for your
+'wl-quicksearch-folder'.
+
+
+File: wl.info,  Node: Spam Filter,  Next: Advanced Issues,  Prev: Quick Search,  Up: Top
+
+13 Spam Filter
 **************
 
 'wl-spam' provides an frontend to external spam filtering programs.  You
@@ -5654,10 +5726,10 @@ messages operations on Wanderlust.
 
 File: wl.info,  Node: Usage of Spam Filter,  Next: Spam Filter Processors,  Prev: Spam Filter,  Up: Spam Filter
 
-12.1 Usage of Spam Filter
+13.1 Usage of Spam Filter
 =========================
 
-12.1.1 Initial Setting
+13.1.1 Initial Setting
 ----------------------
 
 To use 'wl-spam', write in '~/.wl' as follows:
@@ -5668,7 +5740,7 @@ To use 'wl-spam', write in '~/.wl' as follows:
      (setq elmo-spam-scheme 'bogofilter)
      (require 'wl-spam)
 
-12.1.2 spam mark
+13.1.2 spam mark
 ----------------
 
 The spam mark ('s') will be provided as new temporary mark.  Messages
@@ -5679,7 +5751,7 @@ walking in ordinary way.
    The spam mark is be put on by spam judgement described later, or by
 invoking 'k m' at any time.
 
-12.1.3 spam judgment
+13.1.3 spam judgment
 --------------------
 
 You can judge spam messages by following ways:
@@ -5724,7 +5796,7 @@ You can judge spam messages by following ways:
                   ;((spam-p :register t) "+spam")
                   (t "+inbox"))
 
-12.1.4 spam learning
+13.1.4 spam learning
 --------------------
 
 'wl-spam' automatically learn spam with refiling messages.
@@ -5763,7 +5835,7 @@ before and after.
 
    It do not learn anything in other cases.
 
-12.1.5 Key Bindings
+13.1.5 Key Bindings
 -------------------
 
 'k m'
@@ -5838,7 +5910,7 @@ before and after.
      Register messages with the target mark '*' as non-spam and remove
      spam mark.
 
-12.1.6 Customizable Variables
+13.1.6 Customizable Variables
 -----------------------------
 
 'wl-spam-folder'
@@ -5885,7 +5957,7 @@ before and after.
 
 File: wl.info,  Node: Spam Filter Processors,  Prev: Usage of Spam Filter,  Up: Spam Filter
 
-12.2 Supported Spam Filters
+13.2 Supported Spam Filters
 ===========================
 
 Supported spam filtering libraries are following ones.
@@ -5902,7 +5974,7 @@ Supported spam filtering libraries are following ones.
 
 File: wl.info,  Node: bogofilter,  Next: spamfilter,  Prev: Spam Filter Processors,  Up: Spam Filter Processors
 
-12.2.1 bogofilter
+13.2.1 bogofilter
 -----------------
 
 bogofilter (<http://bogofilter.sourceforge.net/>) is a spam filter
@@ -5913,7 +5985,7 @@ implemented by C language.
 
      (setq elmo-spam-scheme 'bogofilter)
 
-12.2.1.1 Customizable Variables
+13.2.1.1 Customizable Variables
 ...............................
 
 'elmo-spam-bogofilter-program'
@@ -5942,7 +6014,7 @@ implemented by C language.
 
 File: wl.info,  Node: spamfilter,  Next: bsfilter,  Prev: bogofilter,  Up: Spam Filter Processors
 
-12.2.2 spamfilter.el
+13.2.2 spamfilter.el
 --------------------
 
 'spamfilter.el'
@@ -5959,7 +6031,7 @@ somewhere else.  (Of cource, you have to have settings for
 
      (setq elmo-spam-scheme 'spamfilter)
 
-12.2.2.1 Customizable Variables
+13.2.2.1 Customizable Variables
 ...............................
 
 'elmo-spam-spamfilter-corpus-filename'
@@ -5969,7 +6041,7 @@ somewhere else.  (Of cource, you have to have settings for
 
 File: wl.info,  Node: bsfilter,  Next: SpamAssassin,  Prev: spamfilter,  Up: Spam Filter Processors
 
-12.2.3 bsfilter
+13.2.3 bsfilter
 ---------------
 
 bsfilter (<http://bsfilter.org/index-e.html>) is a spam filter
@@ -5980,7 +6052,7 @@ or somewhere else.
 
      (setq elmo-spam-scheme 'bsfilter)
 
-12.2.3.1 Customizable Variables
+13.2.3.1 Customizable Variables
 ...............................
 
 'elmo-spam-bsfilter-program'
@@ -6018,7 +6090,7 @@ or somewhere else.
 
 File: wl.info,  Node: SpamAssassin,  Next: SpamOracle,  Prev: bsfilter,  Up: Spam Filter Processors
 
-12.2.4 SpamAssassin
+13.2.4 SpamAssassin
 -------------------
 
 SpamAssassin (<http://spamassassin.org/>) is one of the most popular
@@ -6033,7 +6105,7 @@ beforehand.)
 
      (setq elmo-spam-scheme 'sa)
 
-12.2.4.1 Customize Variables
+13.2.4.1 Customize Variables
 ............................
 
 'elmo-spam-spamassassin-program'
@@ -6066,7 +6138,7 @@ beforehand.)
 
 File: wl.info,  Node: SpamOracle,  Next: Regular Expressions Header Matching,  Prev: SpamAssassin,  Up: Spam Filter Processors
 
-12.2.5 SpamOracle
+13.2.5 SpamOracle
 -----------------
 
 SpamOracle (<http://pauillac.inria.fr/~xleroy/software.html#spamoracle>)
@@ -6078,7 +6150,7 @@ beforehand.)
 
      (setq elmo-spam-scheme 'spamoracle)
 
-12.2.5.1 Customizable Variables
+13.2.5.1 Customizable Variables
 ...............................
 
 'elmo-spam-spamoracle-program'
@@ -6103,7 +6175,7 @@ beforehand.)
 
 File: wl.info,  Node: Regular Expressions Header Matching,  Prev: SpamOracle,  Up: Spam Filter Processors
 
-12.2.6 Regular Expressions Header Matching
+13.2.6 Regular Expressions Header Matching
 ------------------------------------------
 
 Examine if regular expression matches corresponding field in message
@@ -6117,7 +6189,7 @@ information, add one into 'elmo-msgdb-extra-fields'.  Then it will do
 examination by the overview information and avoid loading whole message
 body as far as possible.
 
-12.2.6.1 Customize Variables
+13.2.6.1 Customize Variables
 ............................
 
 'elmo-spam-header-good-alist'
@@ -6140,7 +6212,7 @@ body as far as possible.
 
 File: wl.info,  Node: Advanced Issues,  Next: Migration,  Prev: Spam Filter,  Up: Top
 
-13 Advanced Issues
+14 Advanced Issues
 ******************
 
 * Menu:
@@ -6158,7 +6230,7 @@ File: wl.info,  Node: Advanced Issues,  Next: Migration,  Prev: Spam Filter,  Up
 
 File: wl.info,  Node: Living with other packages,  Next: Highlights,  Prev: Advanced Issues,  Up: Advanced Issues
 
-13.1 Living with other packages
+14.1 Living with other packages
 ===============================
 
 Examples with other packages.
@@ -6179,7 +6251,7 @@ Examples with other packages.
 
 File: wl.info,  Node: imput,  Next: BBDB,  Prev: Living with other packages,  Up: Living with other packages
 
-13.1.1 imput
+14.1.1 imput
 ------------
 
 Place 'util/im-wl.el' on the 'load-path' and do the following settings.
@@ -6190,7 +6262,7 @@ Place 'util/im-wl.el' on the 'load-path' and do the following settings.
 
 File: wl.info,  Node: BBDB,  Next: LSDB,  Prev: imput,  Up: Living with other packages
 
-13.1.2 bbdb.el
+14.1.2 bbdb.el
 --------------
 
 To use The Insidious Big Brother Database
@@ -6226,7 +6298,7 @@ byte-compiled and installed.  *Note Install::.
 
 File: wl.info,  Node: LSDB,  Next: supercite,  Prev: BBDB,  Up: Living with other packages
 
-13.1.3 lsdb.el
+14.1.3 lsdb.el
 --------------
 
 The following is an example setting to use The Lovely Sister Database
@@ -6244,7 +6316,7 @@ address with LSDB).
 
 File: wl.info,  Node: supercite,  Next: mu-cite,  Prev: LSDB,  Up: Living with other packages
 
-13.1.4 sc.el(supercite), sc-register.el
+14.1.4 sc.el(supercite), sc-register.el
 ---------------------------------------
 
 The same setting as usual mailers should be OK. The following is an
@@ -6256,7 +6328,7 @@ example of settings:
 
 File: wl.info,  Node: mu-cite,  Next: X-Face,  Prev: supercite,  Up: Living with other packages
 
-13.1.5 mu-cite.el
+14.1.5 mu-cite.el
 -----------------
 
 The same setting as usual mailers should be OK. The following is an
@@ -6275,7 +6347,7 @@ example of settings.
 
 File: wl.info,  Node: X-Face,  Next: dired-dd,  Prev: mu-cite,  Up: Living with other packages
 
-13.1.6 x-face
+14.1.6 x-face
 -------------
 
 If you have installed one of the following, you can decode 'X-Face:'
@@ -6293,7 +6365,7 @@ in the draft buffer (if 'wl-auto-insert-x-face' is non-nil).
 
 File: wl.info,  Node: x-face-xmas,  Next: x-face-mule,  Prev: X-Face,  Up: X-Face
 
-13.1.6.1 x-face-xmas (for XEmacs)
+14.1.6.1 x-face-xmas (for XEmacs)
 .................................
 
 If you use 'x-face-xmas.el' in x-face (<ftp://jpl.org/pub/elisp/>)
@@ -6305,7 +6377,7 @@ If you use 'x-face-xmas.el' in x-face (<ftp://jpl.org/pub/elisp/>)
 
 File: wl.info,  Node: x-face-mule,  Prev: x-face-xmas,  Up: X-Face
 
-13.1.6.2 x-face-mule (for Emacs)
+14.1.6.2 x-face-mule (for Emacs)
 ................................
 
 If you use 'x-face-mule.el' in bitmap-mule
@@ -6314,7 +6386,7 @@ If you use 'x-face-mule.el' in bitmap-mule
      (autoload 'x-face-decode-message-header "x-face-mule")
      (setq wl-highlight-x-face-function 'x-face-decode-message-header)
 
-13.1.6.3 x-face-e21 (for Emacs 21.x)
+14.1.6.3 x-face-e21 (for Emacs 21.x)
 ....................................
 
 With Emacs 21.x, you can use 'x-face-e21.el'
@@ -6327,7 +6399,7 @@ X-Face.  In this case, bitmap-mule is not required.  Do as follows:
 
 File: wl.info,  Node: dired-dd,  Next: MHC,  Prev: X-Face,  Up: Living with other packages
 
-13.1.7 dired-dd(Dired-DragDrop)
+14.1.7 dired-dd(Dired-DragDrop)
 -------------------------------
 
 If you embed 'dired-dd-mime.el' in the dired-dd package, you can compose
@@ -6350,7 +6422,7 @@ general-purpose for SEMI).
 
 File: wl.info,  Node: MHC,  Next: Addrbook,  Prev: dired-dd,  Up: Living with other packages
 
-13.1.8 mhc.el
+14.1.8 mhc.el
 -------------
 
 Message Harmonized Calendaring system (<http://www.quickhack.net/mhc/>)
@@ -6372,7 +6444,7 @@ Message Harmonized Calendaring system (<http://www.quickhack.net/mhc/>)
 
 File: wl.info,  Node: Addrbook,  Next: mime-w3m,  Prev: MHC,  Up: Living with other packages
 
-13.1.9 wl-addrbook.el
+14.1.9 wl-addrbook.el
 ---------------------
 
 Addrbook of Mew (<http://www.mew.org/>)
@@ -6386,7 +6458,7 @@ Addrbook of Mew (<http://www.mew.org/>)
 
 File: wl.info,  Node: mime-w3m,  Prev: Addrbook,  Up: Living with other packages
 
-13.1.10 mime-w3m.el
+14.1.10 mime-w3m.el
 -------------------
 
 You can display html part by using 'mime-w3m.el' distributed with
@@ -6397,10 +6469,10 @@ additional setting is needed.
 
 File: wl.info,  Node: Highlights,  Next: Biff,  Prev: Living with other packages,  Up: Advanced Issues
 
-13.2 Highlights
+14.2 Highlights
 ===============
 
-13.2.1 Customizable Variables
+14.2.1 Customizable Variables
 -----------------------------
 
 'wl-summary-highlight'
@@ -6479,7 +6551,7 @@ File: wl.info,  Node: Highlights,  Next: Biff,  Prev: Living with other packages
      mouse is highlighted in the folder mode, summary mode, and the
      like.
 
-13.2.2 Setting Colors and Fonts of the Characters
+14.2.2 Setting Colors and Fonts of the Characters
 -------------------------------------------------
 
 If you want to change colors or fonts of the characters, you need to
@@ -6621,7 +6693,7 @@ in '~/.wl'.
 
 File: wl.info,  Node: Biff,  Next: Password Management,  Prev: Highlights,  Up: Advanced Issues
 
-13.3 Notify Mail arrival
+14.3 Notify Mail arrival
 ========================
 
 Following setting is to notify mail arrival of '%inbox' by the indicator
@@ -6629,7 +6701,7 @@ on the modeline
 
      (setq wl-biff-check-folder-list '("%inbox"))
 
-13.3.1 Customizable Variables
+14.3.1 Customizable Variables
 -----------------------------
 
 'wl-biff-check-folder-list'
@@ -6655,7 +6727,7 @@ on the modeline
 
 File: wl.info,  Node: Password Management,  Next: Split messages,  Prev: Biff,  Up: Advanced Issues
 
-13.4 Manage Passwords
+14.4 Manage Passwords
 =====================
 
 If you input passwords to connect servers, they are stored in the
@@ -6685,7 +6757,7 @@ elmo-passwd-alist-save'.
 
 File: wl.info,  Node: Split messages,  Next: Batch Processing,  Prev: Password Management,  Up: Advanced Issues
 
-13.5 Message splitting
+14.5 Message splitting
 ======================
 
 You can use 'elmo-split' to split message in folder specified by the
@@ -6803,7 +6875,7 @@ specified by 'elmo-split-default-action'.
 
 File: wl.info,  Node: Batch Processing,  Next: Advanced Settings,  Prev: Split messages,  Up: Advanced Issues
 
-13.6 Batch Processing
+14.6 Batch Processing
 =====================
 
 You can request wanderlust to do some job on the command line.  For now,
@@ -6814,7 +6886,7 @@ as follows to execute prefetching:
 
      % emacs -batch -l wl-batch -f wl-batch-prefetch
 
-13.6.1 Customize Variables
+14.6.1 Customize Variables
 --------------------------
 
 'wl-batch-prefetch-folder-list'
@@ -6824,7 +6896,7 @@ as follows to execute prefetching:
 
 File: wl.info,  Node: Advanced Settings,  Next: Customizable Variables,  Prev: Batch Processing,  Up: Advanced Issues
 
-13.7 Advanced Settings
+14.7 Advanced Settings
 ======================
 
 * Menu:
@@ -6836,7 +6908,7 @@ File: wl.info,  Node: Advanced Settings,  Next: Customizable Variables,  Prev: B
 
 File: wl.info,  Node: Draft for Reply,  Next: Thread Format,  Prev: Advanced Settings,  Up: Advanced Settings
 
-13.7.1 Draft for Replay
+14.7.1 Draft for Replay
 -----------------------
 
 If you type 'a' in the Summary Buffer, a draft for reply is prepared.
@@ -6916,7 +6988,7 @@ follows:
 
 File: wl.info,  Node: Thread Format,  Next: User-Agent Field,  Prev: Draft for Reply,  Up: Advanced Settings
 
-13.7.2 Appearance of Threads
+14.7.2 Appearance of Threads
 ----------------------------
 
        389  09/18(Fri)01:07 [ Teranishi         ] wl-0.6.3
@@ -6954,7 +7026,7 @@ File: wl.info,  Node: Thread Format,  Next: User-Agent Field,  Prev: Draft for R
 
 File: wl.info,  Node: User-Agent Field,  Prev: Thread Format,  Up: Advanced Settings
 
-13.7.3 User-Agent Field
+14.7.3 User-Agent Field
 -----------------------
 
 If you are eccentric enough to elaborate 'X-Mailer:' or 'User-Agent:'
@@ -6976,7 +7048,7 @@ and set it to variable 'wl-generate-mailer-string-function'.
 
 File: wl.info,  Node: Customizable Variables,  Next: Hooks,  Prev: Advanced Settings,  Up: Advanced Issues
 
-13.8 Customizable Variables
+14.8 Customizable Variables
 ===========================
 
 Customizable variables that have not been described yet:
@@ -7179,7 +7251,7 @@ Customizable variables that have not been described yet:
 
 File: wl.info,  Node: Hooks,  Prev: Customizable Variables,  Up: Advanced Issues
 
-13.9 Hooks
+14.9 Hooks
 ==========
 
 (Not yet written)
@@ -7187,7 +7259,7 @@ File: wl.info,  Node: Hooks,  Prev: Customizable Variables,  Up: Advanced Issues
 
 File: wl.info,  Node: Migration,  Next: Terminology,  Prev: Advanced Issues,  Up: Top
 
-14 Switch from older version of Wanderlust
+15 Switch from older version of Wanderlust
 ******************************************
 
 This chapter explains the important thing for the upgrade, or migration
@@ -7201,10 +7273,10 @@ limitations etc.
 
 File: wl.info,  Node: Before 2.12.0,  Prev: Migration,  Up: Migration
 
-14.1 Migration from prior to the version 2.12.0
+15.1 Migration from prior to the version 2.12.0
 ===============================================
 
-14.1.1 The conversion of msgdb
+15.1.1 The conversion of msgdb
 ------------------------------
 
 From version 2.12.0 on, the structure of msgdb is changed.  The msgdb
@@ -7236,7 +7308,7 @@ format.  But you will have following limitations.
   2. You may only use 'important' flag.  The other global flags may not
      be available.
 
-14.1.2 Changes from ''mark' folder to ''flag'.
+15.1.2 Changes from ''mark' folder to ''flag'.
 ----------------------------------------------
 
 The folder ''mark' will be automatically converted to ''flag' folder
@@ -7259,7 +7331,7 @@ message will not be processed, you may issue that command repeatedly.
 
 File: wl.info,  Node: Terminology,  Next: Mailing List,  Prev: Migration,  Up: Top
 
-15 Terminology around Wanderlust
+16 Terminology around Wanderlust
 ********************************
 
 Here we explain terminologies used in this manual.
@@ -7296,7 +7368,7 @@ Here we explain terminologies used in this manual.
 
 File: wl.info,  Node: Mailing List,  Next: Addition,  Prev: Terminology,  Up: Top
 
-16 Wanderlust Mailing List
+17 Wanderlust Mailing List
 **************************
 
 Topics related to Wanderlust are discussed in following mailing lists.
@@ -7324,7 +7396,7 @@ post to the mailing list even though you are not a member of it.
    I would like to express my thanks to the members of the mailing list
 for valuable advice and many pieces of code they contributed.
 
-16.1 Archive
+17.1 Archive
 ============
 
 You can read messages posted to the mailing list on the web or in
@@ -7348,10 +7420,10 @@ Japanese.
 
 File: wl.info,  Node: Addition,  Next: Index,  Prev: Mailing List,  Up: Top
 
-17 Additional Information
+18 Additional Information
 *************************
 
-17.1 Brief History
+18.1 Brief History
 ==================
 
      1998  3/05    Tried to make a prototype that displays MH messages in threads.
@@ -7405,7 +7477,7 @@ File: wl.info,  Node: Addition,  Next: Index,  Prev: Mailing List,  Up: Top
 
    See 'ChangeLog' for details.
 
-17.2 The Name
+18.2 The Name
 =============
 
 According to a dictionary, Wanderlust has the meaning:
@@ -7422,7 +7494,7 @@ Orchestration'.  At first I meant the red puppet in the Sesame Street,
 but you may associate it with Wandering => Drifting => Guidepost => St.
 Elmo's fire => elmo.
 
-17.3 Code Names
+18.3 Code Names
 ===============
 
 Each versions has code names (they are almost jokes).  Currently they
@@ -7598,6 +7670,7 @@ Concept Index
 * POP-before-SMTP:                       POP-before-SMTP.     (line   6)
 * POP3:                                  POP Folder.          (line   6)
 * qmail:                                 Maildir Folder.      (line   6)
+* Quick Search:                          Quick Search.        (line   6)
 * RAR:                                   Archiver.            (line   6)
 * Regular Expressions Header Matching:   Regular Expressions Header Matching.
                                                               (line   6)

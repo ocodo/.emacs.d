@@ -72,6 +72,7 @@ Wanderlust ユーザマニュアル
 * Expire and Archive::       メッセージの自動削除とアーカイブ
 * Scoring::                  メッセージのスコア
 * Address Book::             アドレス帳
+* Quick Search::             Quickly search your mail archive
 * Spam Filter::              Spam フィルタ
 * Advanced Issues::           より進んだ使い方
 * Migration::                旧バージョンからの移行
@@ -5470,7 +5471,7 @@ Wanderlust 特有のキーがあったり しますので、完全に互換性�
                      △: elmo-msgdb-extra-fields を設定すれば参照できる
 
 
-File: wl-ja.info,  Node: Address Book,  Next: Spam Filter,  Prev: Scoring,  Up: Top
+File: wl-ja.info,  Node: Address Book,  Next: Quick Search,  Prev: Scoring,  Up: Top
 
 11 アドレス帳
 *************
@@ -5569,9 +5570,80 @@ File: wl-ja.info,  Node: Address Manager,  Prev: Mail Addresses,  Up: Address Bo
      アドレス帳の項目を編集します。
 
 
-File: wl-ja.info,  Node: Spam Filter,  Next: Advanced Issues,  Prev: Address Book,  Up: Top
+File: wl-ja.info,  Node: Quick Search,  Next: Spam Filter,  Prev: Address Book,  Up: Top
 
-12 Spam フィルタ
+12 Quick Search
+***************
+
+'wl-qs' provides an interface to quickly search your mail archive.  It
+can use an external search engine (*note Search Folder::), Gmail search,
+or a filter folder (*note Filter Folder::).
+
+   'wl-qs' provides the command 'wl-quicksearch-goto-search-folder'.
+Using it will first prompt for a search, and then jump to the search
+results.
+
+* Menu:
+
+* Setup::                       Setup
+* Searching::                   Searching
+
+
+File: wl-ja.info,  Node: Setup,  Next: Searching,  Up: Quick Search
+
+12.1 Setup of 'wl-qs'
+=====================
+
+To setup, configure the value of 'wl-quicksearch-folder'.  This should
+be the name of the folder you would like to search.  For example,
+'%[Gmail]/All Mail:username@imap.gmail.com', '.archive' or '[]'.  The
+latter is advised if you use a mail index, such as mu, notmuch or
+namazu, as it is quite fast.
+
+
+File: wl-ja.info,  Node: Searching,  Prev: Setup,  Up: Quick Search
+
+12.2 Searching
+==============
+
+To search your mail archive, use the command
+'wl-quicksearch-goto-search-folder', which can be called using ''' in a
+Summary buffer or the Folder buffer.  You will be prompted for a search,
+and then will immediately jump to the search results.
+
+12.2.1 Search folder
+--------------------
+
+If you use specified '[' as the value of 'wl-quicksearch-folder', you
+will be accessing a search folder (*note Search Folder::).  You will be
+prompted for a search string.  The syntax of the search will depend on
+the value of 'elmo-search-default-engine'.  Quotes will be escaped for
+you automatically and passed on to the search program.
+
+   (If you are using the grep search engine, you must specify a target
+folder.  Your 'wl-quicksearch-folder' should look like
+'[]~/Mail/semi!grep'.)
+
+12.2.2 Gmail
+------------
+
+If you use a gmail folder as your 'wl-quicksearch-folder', you will be
+prompted for a Gmail search query
+(<https://support.google.com/mail/answer/7190>).  You may use any Gmail
+search operator; the search is handled by Gmail's server.
+
+12.2.3 Filter folder
+--------------------
+
+If you are using any other type of folder, you will be prompted for a
+query using the interactive query builder.  When you have finished your
+query, you will be directed to a filter folder for your
+'wl-quicksearch-folder'.
+
+
+File: wl-ja.info,  Node: Spam Filter,  Next: Advanced Issues,  Prev: Quick Search,  Up: Top
+
+13 Spam フィルタ
 ****************
 
 'wl-spam' は、外部 spam フィルタプログラムへのフロントエンドを提供 しま
@@ -5586,10 +5658,10 @@ File: wl-ja.info,  Node: Spam Filter,  Next: Advanced Issues,  Prev: Address Boo
 
 File: wl-ja.info,  Node: Usage of Spam Filter,  Next: Spam Filter Processors,  Prev: Spam Filter,  Up: Spam Filter
 
-12.1 使い方
+13.1 使い方
 ===========
 
-12.1.1 初期設定
+13.1.1 初期設定
 ---------------
 
 'wl-spam' を使うには、まず '~/.wl' に以下のように設定して下さ い。
@@ -5600,7 +5672,7 @@ File: wl-ja.info,  Node: Usage of Spam Filter,  Next: Spam Filter Processors,  P
      (setq elmo-spam-scheme 'bogofilter)
      (require 'wl-spam)
 
-12.1.2 spam マーク
+13.1.2 spam マーク
 ------------------
 
 一時的マークに spam マーク ('s') が追加されます。このマークの付いた メッ
@@ -5611,7 +5683,7 @@ File: wl-ja.info,  Node: Usage of Spam Filter,  Next: Spam Filter Processors,  P
    spam マークは、後述する spam の判定処理で自動的に付く他、'k m' と押 し
 て任意に付けることも出来ます。
 
-12.1.3 spam の判定
+13.1.3 spam の判定
 ------------------
 
 以下の方法で spam の判定を行うことが出来ます。
@@ -5655,7 +5727,7 @@ File: wl-ja.info,  Node: Usage of Spam Filter,  Next: Spam Filter Processors,  P
                   ;((spam-p :register t) "+spam")
                   (t "+inbox"))
 
-12.1.4 spam の学習
+13.1.4 spam の学習
 ------------------
 
 'wl-spam' は、メッセージをリファイルすることで、自動的に spam を学 習し
@@ -5693,7 +5765,7 @@ File: wl-ja.info,  Node: Usage of Spam Filter,  Next: Spam Filter Processors,  P
 
    上記以外のリファイルでは、学習は行われません。
 
-12.1.5 キーバインド
+13.1.5 キーバインド
 -------------------
 
 'k m'
@@ -5774,7 +5846,7 @@ File: wl-ja.info,  Node: Usage of Spam Filter,  Next: Spam Filter Processors,  P
      まとめ処理用マーク '*' のついたメッセージを non-spam として登録し
      spam マークを取り除きます。 す。
 
-12.1.6 カスタマイズ変数
+13.1.6 カスタマイズ変数
 -----------------------
 
 'wl-spam-folder'
@@ -5819,7 +5891,7 @@ File: wl-ja.info,  Node: Usage of Spam Filter,  Next: Spam Filter Processors,  P
 
 File: wl-ja.info,  Node: Spam Filter Processors,  Prev: Usage of Spam Filter,  Up: Spam Filter
 
-12.2 対応している Spam Filter
+13.2 対応している Spam Filter
 =============================
 
 デフォルトでは、以下の spam フィルタリングライブラリに対応しています。
@@ -5836,7 +5908,7 @@ File: wl-ja.info,  Node: Spam Filter Processors,  Prev: Usage of Spam Filter,  U
 
 File: wl-ja.info,  Node: bogofilter,  Next: spamfilter,  Prev: Spam Filter Processors,  Up: Spam Filter Processors
 
-12.2.1 bogofilter
+13.2.1 bogofilter
 -----------------
 
 bogofilter (<http://bogofilter.sourceforge.net/>) は、C言語で実装さ れた
@@ -5847,7 +5919,7 @@ spam フィルタです。
 
      (setq elmo-spam-scheme 'bogofilter)
 
-12.2.1.1 カスタマイズ変数
+13.2.1.1 カスタマイズ変数
 .........................
 
 'elmo-spam-bogofilter-program'
@@ -5875,7 +5947,7 @@ spam フィルタです。
 
 File: wl-ja.info,  Node: spamfilter,  Next: bsfilter,  Prev: bogofilter,  Up: Spam Filter Processors
 
-12.2.2 spamfilter.el
+13.2.2 spamfilter.el
 --------------------
 
 'spamfilter.el'
@@ -5890,7 +5962,7 @@ Lisp で実装された spam フィルタリングライブラリです。
 
      (setq elmo-spam-scheme 'spamfilter)
 
-12.2.2.1 カスタマイズ変数
+13.2.2.1 カスタマイズ変数
 .........................
 
 'elmo-spam-spamfilter-corpus-filename'
@@ -5900,7 +5972,7 @@ Lisp で実装された spam フィルタリングライブラリです。
 
 File: wl-ja.info,  Node: bsfilter,  Next: SpamAssassin,  Prev: spamfilter,  Up: Spam Filter Processors
 
-12.2.3 bsfilter
+13.2.3 bsfilter
 ---------------
 
 bsfilter (<http://bsfilter.org/>) は、Ruby で実装された spam フィルタで
@@ -5911,7 +5983,7 @@ bsfilter (<http://bsfilter.org/>) は、Ruby で実装された spam フィル�
 
      (setq elmo-spam-scheme 'bsfilter)
 
-12.2.3.1 カスタマイズ変数
+13.2.3.1 カスタマイズ変数
 .........................
 
 'elmo-spam-bsfilter-program'
@@ -5948,7 +6020,7 @@ bsfilter (<http://bsfilter.org/>) は、Ruby で実装された spam フィル�
 
 File: wl-ja.info,  Node: SpamAssassin,  Next: SpamOracle,  Prev: bsfilter,  Up: Spam Filter Processors
 
-12.2.4 SpamAssassin
+13.2.4 SpamAssassin
 -------------------
 
 SpamAssassin (<http://spamassassin.org/>) は、Perl 言語 で実装された、テ
@@ -5963,7 +6035,7 @@ SpamAssassin (<http://spamassassin.org/>) は、Perl 言語 で実装された�
 
      (setq elmo-spam-scheme 'sa)
 
-12.2.4.1 カスタマイズ変数
+13.2.4.1 カスタマイズ変数
 .........................
 
 'elmo-spam-spamassassin-program'
@@ -5994,7 +6066,7 @@ SpamAssassin (<http://spamassassin.org/>) は、Perl 言語 で実装された�
 
 File: wl-ja.info,  Node: SpamOracle,  Next: Regular Expressions Header Matching,  Prev: SpamAssassin,  Up: Spam Filter Processors
 
-12.2.5 SpamOracle
+13.2.5 SpamOracle
 -----------------
 
 SpamOracle (<http://pauillac.inria.fr/~xleroy/software.html#spamoracle>)
@@ -6006,7 +6078,7 @@ SpamOracle (<http://pauillac.inria.fr/~xleroy/software.html#spamoracle>)
 
      (setq elmo-spam-scheme 'spamoracle)
 
-12.2.5.1 カスタマイズ変数
+13.2.5.1 カスタマイズ変数
 .........................
 
 'elmo-spam-spamoracle-program'
@@ -6032,7 +6104,7 @@ SpamOracle (<http://pauillac.inria.fr/~xleroy/software.html#spamoracle>)
 
 File: wl-ja.info,  Node: Regular Expressions Header Matching,  Prev: SpamOracle,  Up: Spam Filter Processors
 
-12.2.6 Regular Expressions Header Matching
+13.2.6 Regular Expressions Header Matching
 ------------------------------------------
 
 メッセージヘッダの各フィールドが正規表現と合致するかどうかを検査し、spam
@@ -6045,7 +6117,7 @@ File: wl-ja.info,  Node: Regular Expressions Header Matching,  Prev: SpamOracle,
 'elmo-msgdb-extra-fields' に追加しておくと、出来るだけメッセージ本 体を
 読み込まずに overview 情報を元に検査します。
 
-12.2.6.1 カスタマイズ変数
+13.2.6.1 カスタマイズ変数
 .........................
 
 'elmo-spam-header-good-alist'
@@ -6068,7 +6140,7 @@ File: wl-ja.info,  Node: Regular Expressions Header Matching,  Prev: SpamOracle,
 
 File: wl-ja.info,  Node: Advanced Issues,  Next: Migration,  Prev: Spam Filter,  Up: Top
 
-13 より進んだ使い方
+14 より進んだ使い方
 *******************
 
 * Menu:
@@ -6086,7 +6158,7 @@ File: wl-ja.info,  Node: Advanced Issues,  Next: Migration,  Prev: Spam Filter, 
 
 File: wl-ja.info,  Node: Living with other packages,  Next: Highlights,  Prev: Advanced Issues,  Up: Advanced Issues
 
-13.1 パッケージのある生活
+14.1 パッケージのある生活
 =========================
 
 他のパッケージを使うための設定例です。
@@ -6107,7 +6179,7 @@ File: wl-ja.info,  Node: Living with other packages,  Next: Highlights,  Prev: A
 
 File: wl-ja.info,  Node: imput,  Next: BBDB,  Prev: Living with other packages,  Up: Living with other packages
 
-13.1.1 imput
+14.1.1 imput
 ------------
 
 'util/im-wl.el' を 'load-path' において以下のように設定すれば OK です。
@@ -6118,7 +6190,7 @@ File: wl-ja.info,  Node: imput,  Next: BBDB,  Prev: Living with other packages, 
 
 File: wl-ja.info,  Node: BBDB,  Next: LSDB,  Prev: imput,  Up: Living with other packages
 
-13.1.2 bbdb.el
+14.1.2 bbdb.el
 --------------
 
 The Insidious Big Brother Database (<http://bbdb.sourceforge.net/>) を
@@ -6156,7 +6228,7 @@ Wanderlust と共に使うには、 'util/bbdb-wl.el' を 'load-path' に置い�
 
 File: wl-ja.info,  Node: LSDB,  Next: supercite,  Prev: BBDB,  Up: Living with other packages
 
-13.1.3 lsdb.el
+14.1.3 lsdb.el
 --------------
 
 The Lovely Sister Database (<http://sourceforge.jp/projects/lsdb/>) を
@@ -6174,7 +6246,7 @@ Wanderlust と共に使うための設定例を以下に示します。
 
 File: wl-ja.info,  Node: supercite,  Next: mu-cite,  Prev: LSDB,  Up: Living with other packages
 
-13.1.4 sc.el(supercite), sc-register.el
+14.1.4 sc.el(supercite), sc-register.el
 ---------------------------------------
 
 普通のメーラと同じ設定で OK です。以下は、設定の一例です。
@@ -6185,7 +6257,7 @@ File: wl-ja.info,  Node: supercite,  Next: mu-cite,  Prev: LSDB,  Up: Living wit
 
 File: wl-ja.info,  Node: mu-cite,  Next: X-Face,  Prev: supercite,  Up: Living with other packages
 
-13.1.5 mu-cite.el
+14.1.5 mu-cite.el
 -----------------
 
 普通のメーラと同じ設定で OK です。以下は設定の一例です。
@@ -6205,7 +6277,7 @@ File: wl-ja.info,  Node: mu-cite,  Next: X-Face,  Prev: supercite,  Up: Living w
 
 File: wl-ja.info,  Node: X-Face,  Next: dired-dd,  Prev: mu-cite,  Up: Living with other packages
 
-13.1.6 x-face
+14.1.6 x-face
 -------------
 
 以下のいずれかをインストールすることで、 メッセージバッファの 'X-Face:'
@@ -6224,7 +6296,7 @@ File: wl-ja.info,  Node: X-Face,  Next: dired-dd,  Prev: mu-cite,  Up: Living wi
 
 File: wl-ja.info,  Node: x-face-xmas,  Next: x-face-mule,  Prev: X-Face,  Up: X-Face
 
-13.1.6.1 x-face-xmas (XEmacs の場合)
+14.1.6.1 x-face-xmas (XEmacs の場合)
 ....................................
 
 x-face (<ftp://jpl.org/pub/elisp/>) 1.3.6.13 以降に付属の
@@ -6236,7 +6308,7 @@ x-face (<ftp://jpl.org/pub/elisp/>) 1.3.6.13 以降に付属の
 
 File: wl-ja.info,  Node: x-face-mule,  Prev: x-face-xmas,  Up: X-Face
 
-13.1.6.2 x-face-mule (Emacs の場合)
+14.1.6.2 x-face-mule (Emacs の場合)
 ...................................
 
 bitmap-mule (<ftp://ftp.jpl.org/pub/elisp/bitmap/>) 8.0以降に 付属の
@@ -6245,7 +6317,7 @@ bitmap-mule (<ftp://ftp.jpl.org/pub/elisp/bitmap/>) 8.0以降に 付属の
      (autoload 'x-face-decode-message-header "x-face-mule")
      (setq wl-highlight-x-face-function 'x-face-decode-message-header)
 
-13.1.6.3 x-face-e21 (Emacs 21.x の場合)
+14.1.6.3 x-face-e21 (Emacs 21.x の場合)
 .......................................
 
 Emacs 21.x の場合には、'x-face-mule.el' の代わりに 'x-face-e21.el'
@@ -6258,7 +6330,7 @@ Emacs 21.x の場合には、'x-face-mule.el' の代わりに 'x-face-e21.el'
 
 File: wl-ja.info,  Node: dired-dd,  Next: MHC,  Prev: X-Face,  Up: Living with other packages
 
-13.1.7 dired-dd(Dired-DragDrop)
+14.1.7 dired-dd(Dired-DragDrop)
 -------------------------------
 
 dired-dd パッケージに含まれる 'dired-dd-mime.el' を組み込めば、GNU Emacs
@@ -6280,7 +6352,7 @@ dired-dd パッケージに含まれる 'dired-dd-mime.el' を組み込めば、
 
 File: wl-ja.info,  Node: MHC,  Next: Addrbook,  Prev: dired-dd,  Up: Living with other packages
 
-13.1.8 mhc.el
+14.1.8 mhc.el
 -------------
 
 Message Harmonized Calendaring system (<http://www.quickhack.net/mhc/>)
@@ -6302,7 +6374,7 @@ Message Harmonized Calendaring system (<http://www.quickhack.net/mhc/>)
 
 File: wl-ja.info,  Node: Addrbook,  Next: mime-w3m,  Prev: MHC,  Up: Living with other packages
 
-13.1.9 wl-addrbook.el
+14.1.9 wl-addrbook.el
 ---------------------
 
 Addrbook of Mew (<http://www.mew.org/>)
@@ -6317,7 +6389,7 @@ Addrbook of Mew (<http://www.mew.org/>)
 
 File: wl-ja.info,  Node: mime-w3m,  Prev: Addrbook,  Up: Living with other packages
 
-13.1.10 mime-w3m.el
+14.1.10 mime-w3m.el
 -------------------
 
 emacs-w3m (<http://emacs-w3m.namazu.org/>) に付属の 'mime-w3m.el' を使っ
@@ -6328,10 +6400,10 @@ emacs-w3m (<http://emacs-w3m.namazu.org/>) に付属の 'mime-w3m.el' を使っ
 
 File: wl-ja.info,  Node: Highlights,  Next: Biff,  Prev: Living with other packages,  Up: Advanced Issues
 
-13.2 ハイライトの設定
+14.2 ハイライトの設定
 =====================
 
-13.2.1 カスタマイズ変数
+14.2.1 カスタマイズ変数
 -----------------------
 
 'wl-summary-highlight'
@@ -6408,7 +6480,7 @@ File: wl-ja.info,  Node: Highlights,  Next: Biff,  Prev: Living with other packa
      初期設定は 't'。 Non-nil ならフォルダモード、サマリモードなどで マ
      ウスポインタの行をハイライトの対象とします。
 
-13.2.2 文字の色、フォントの設定
+14.2.2 文字の色、フォントの設定
 -------------------------------
 
 文字の色や、フォントを変えるには、Wanderlust で定義されている face を変
@@ -6543,7 +6615,7 @@ File: wl-ja.info,  Node: Highlights,  Next: Biff,  Prev: Living with other packa
 
 File: wl-ja.info,  Node: Biff,  Next: Password Management,  Prev: Highlights,  Up: Advanced Issues
 
-13.3 メールの着信を知らせる
+14.3 メールの着信を知らせる
 ===========================
 
 以下のように設定しておくと '%inbox' にメールが届いたときに、 モードライ
@@ -6551,7 +6623,7 @@ File: wl-ja.info,  Node: Biff,  Next: Password Management,  Prev: Highlights,  U
 
      (setq wl-biff-check-folder-list '("%inbox"))
 
-13.3.1 カスタマイズ変数
+14.3.1 カスタマイズ変数
 -----------------------
 
 'wl-biff-check-folder-list'
@@ -6577,7 +6649,7 @@ File: wl-ja.info,  Node: Biff,  Next: Password Management,  Prev: Highlights,  U
 
 File: wl-ja.info,  Node: Password Management,  Next: Split messages,  Prev: Biff,  Up: Advanced Issues
 
-13.4 パスワードの管理
+14.4 パスワードの管理
 =====================
 
 サーバに接続する為に入力したパスワードは変数 'elmo-passwd-alist' に 接続
@@ -6606,7 +6678,7 @@ File: wl-ja.info,  Node: Password Management,  Next: Split messages,  Prev: Biff
 
 File: wl-ja.info,  Node: Split messages,  Next: Batch Processing,  Prev: Password Management,  Up: Advanced Issues
 
-13.5 メッセージの振り分け
+14.5 メッセージの振り分け
 =========================
 
 'elmo-split' を使うと、変数 'elmo-split-folder' で指定したフ ォルダ内の
@@ -6722,7 +6794,7 @@ File: wl-ja.info,  Node: Split messages,  Next: Batch Processing,  Prev: Passwor
 
 File: wl-ja.info,  Node: Batch Processing,  Next: Advanced Settings,  Prev: Split messages,  Up: Advanced Issues
 
-13.6 バッチ処理
+14.6 バッチ処理
 ===============
 
 コマンドラインから wanderlust に仕事をさせることができます。 現在できる
@@ -6733,7 +6805,7 @@ File: wl-ja.info,  Node: Batch Processing,  Next: Advanced Settings,  Prev: Spli
 
      % emacs -batch -l wl-batch -f wl-batch-prefetch
 
-13.6.1 カスタマイズ変数
+14.6.1 カスタマイズ変数
 -----------------------
 
 'wl-batch-prefetch-folder-list'
@@ -6743,7 +6815,7 @@ File: wl-ja.info,  Node: Batch Processing,  Next: Advanced Settings,  Prev: Spli
 
 File: wl-ja.info,  Node: Advanced Settings,  Next: Customizable Valiables,  Prev: Batch Processing,  Up: Advanced Issues
 
-13.7 カスタマイズ〜応用編〜
+14.7 カスタマイズ〜応用編〜
 ===========================
 
 * Menu:
@@ -6755,7 +6827,7 @@ File: wl-ja.info,  Node: Advanced Settings,  Next: Customizable Valiables,  Prev
 
 File: wl-ja.info,  Node: Draft for Reply,  Next: Thread Format,  Prev: Advanced Settings,  Up: Advanced Settings
 
-13.7.1 返事用ドラフト
+14.7.1 返事用ドラフト
 ---------------------
 
 サマリモードで 'a' を押すと返事用のドラフトが用意されます。 用意される草
@@ -6834,7 +6906,7 @@ File: wl-ja.info,  Node: Draft for Reply,  Next: Thread Format,  Prev: Advanced 
 
 File: wl-ja.info,  Node: Thread Format,  Next: User-Agent Field,  Prev: Draft for Reply,  Up: Advanced Settings
 
-13.7.2 スレッドの見ため
+14.7.2 スレッドの見ため
 -----------------------
 
        389  09/18(金)01:07 [ てらにし          ] wl-0.6.3
@@ -6872,7 +6944,7 @@ File: wl-ja.info,  Node: Thread Format,  Next: User-Agent Field,  Prev: Draft fo
 
 File: wl-ja.info,  Node: User-Agent Field,  Prev: Thread Format,  Up: Advanced Settings
 
-13.7.3 User-Agent フィールド
+14.7.3 User-Agent フィールド
 ----------------------------
 
 'X-Mailer:' フィールドや 'User-Agent:' フィールドに凝りたいと いう変わっ
@@ -6895,7 +6967,7 @@ File: wl-ja.info,  Node: User-Agent Field,  Prev: Thread Format,  Up: Advanced S
 
 File: wl-ja.info,  Node: Customizable Valiables,  Next: Hooks,  Prev: Advanced Settings,  Up: Advanced Issues
 
-13.8 その他のカスタマイズ変数一覧
+14.8 その他のカスタマイズ変数一覧
 =================================
 
 その他のカスタマイズ変数一覧。
@@ -7090,7 +7162,7 @@ File: wl-ja.info,  Node: Customizable Valiables,  Next: Hooks,  Prev: Advanced S
 
 File: wl-ja.info,  Node: Hooks,  Prev: Customizable Valiables,  Up: Advanced Issues
 
-13.9 フック
+14.9 フック
 ===========
 
 (Not yet written)
@@ -7098,7 +7170,7 @@ File: wl-ja.info,  Node: Hooks,  Prev: Customizable Valiables,  Up: Advanced Iss
 
 File: wl-ja.info,  Node: Migration,  Next: Terminology,  Prev: Advanced Issues,  Up: Top
 
-14 旧バージョンからの移行
+15 旧バージョンからの移行
 *************************
 
 この章では、以前のバージョンから移行する場合に必要な設定の変更や、制限等
@@ -7111,10 +7183,10 @@ File: wl-ja.info,  Node: Migration,  Next: Terminology,  Prev: Advanced Issues, 
 
 File: wl-ja.info,  Node: Before 2.12.0,  Prev: Migration,  Up: Migration
 
-14.1 2.12.0 より前のバージョンからの移行
+15.1 2.12.0 より前のバージョンからの移行
 ========================================
 
-14.1.1 msgdb の変換について
+15.1.1 msgdb の変換について
 ---------------------------
 
 2.12.0 より前のバージョンから、msgdb の構造が変更されています。以後、新
@@ -7146,7 +7218,7 @@ File: wl-ja.info,  Node: Before 2.12.0,  Prev: Migration,  Up: Migration
 
   2. 'important' 以外のグローバルフラグが使用出来ません。
 
-14.1.2 ''mark' フォルダから ''flag' フォルダへの変更
+15.1.2 ''mark' フォルダから ''flag' フォルダへの変更
 ----------------------------------------------------
 
 新しいバージョンの Wanderlust を起動した時に ''mark' フォルダにあっ たメ
@@ -7169,7 +7241,7 @@ elmo-global-mark-upgrade' を実行する事で、再度 ''mark' フォルダか
 
 File: wl-ja.info,  Node: Terminology,  Next: Mailing List,  Prev: Migration,  Up: Top
 
-15 用語の解説
+16 用語の解説
 *************
 
 このマニュアルで使われている用語についての説明をします。
@@ -7206,7 +7278,7 @@ File: wl-ja.info,  Node: Terminology,  Next: Mailing List,  Prev: Migration,  Up
 
 File: wl-ja.info,  Node: Mailing List,  Next: Addition,  Prev: Terminology,  Up: Top
 
-16 メーリングリスト
+17 メーリングリスト
 *******************
 
 Wanderlust に関する議論は以下のメーリングリストで行われます。 最新バージ
@@ -7237,7 +7309,7 @@ Wanderlust に関する議論は以下のメーリングリストで行われま
    メーリングリストの皆様には貴重な御助言、コードをたくさん御提供いただ
 いて おります。この場を借りてお礼申し上げます。
 
-16.1 アーカイブ
+17.1 アーカイブ
 ===============
 
 メーリングリストに投稿されたメッセージは、ウェブや NetNews でも読むこと
@@ -7261,10 +7333,10 @@ Wanderlust に関する議論は以下のメーリングリストで行われま
 
 File: wl-ja.info,  Node: Addition,  Next: Index,  Prev: Mailing List,  Up: Top
 
-17 おまけ
+18 おまけ
 *********
 
-17.1 略歴
+18.1 略歴
 =========
 
      1998  3/05    MH メッセージをスレッド表示するプロトタイプを作ってみる。
@@ -7318,7 +7390,7 @@ File: wl-ja.info,  Node: Addition,  Next: Index,  Prev: Mailing List,  Up: Top
 
    詳しい変遷は 'ChangeLog' を御覧ください。
 
-17.2 名前
+18.2 名前
 =========
 
 Wanderlust には、研究社英和辞典によれば、
@@ -7334,7 +7406,7 @@ Wanderlust には、研究社英和辞典によれば、
 あの赤いぬいぐるみのつもりでしたが、放浪 => 漂流 => 道標 => St. Elmo's
 fire => elmo という、 それっぽい連想も可能です。
 
-17.3 コードネーム
+18.3 コードネーム
 =================
 
 各バージョンにはコードネームがついています(ほとんど冗談です)。 いまのと
@@ -7515,6 +7587,7 @@ File: wl-ja.info,  Node: Concept Index,  Next: Key Index,  Prev: Index,  Up: Ind
 * POP-before-SMTP:                       POP-before-SMTP.     (line   6)
 * POP3:                                  POP Folder.          (line   6)
 * qmail:                                 Maildir Folder.      (line   6)
+* Quick Search:                          Quick Search.        (line   6)
 * RAR:                                   Archiver.            (line   6)
 * Regular Expressions Header Matching:   Regular Expressions Header Matching.
                                                               (line   6)
@@ -8814,129 +8887,132 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 
 Tag Table:
 Node: Top1392
-Node: Introduction2807
-Node: Start Me Up4252
-Node: MIME Modules4730
-Ref: MIME Modules-Footnote-15954
-Node: Download6064
-Node: Install7289
-Node: Minimal Settings9886
-Node: Folder Definition11764
-Node: Start Wanderlust13384
-Node: Overview13682
-Node: Folders14207
-Node: IMAP Folder15348
-Node: NNTP Folder17874
-Node: MH Folder18723
-Node: Maildir Folder19197
-Node: News Spool Folder20017
-Node: Archive Folder20530
-Node: Archiver21841
-Node: Archive Tips23732
-Node: Archive Vars24403
-Node: POP Folder26043
-Node: Shimbun Folder27498
-Node: Search Folder28403
-Node: namazu28892
-Node: grep30438
-Node: mu30853
-Node: notmuch31648
-Node: Multi Folder32041
-Node: Filter Folder32575
-Node: Pipe Folder36449
-Node: Internal Folder37514
-Node: File Folder38530
-Node: Access Folder38828
-Node: RSS Folder39161
-Node: Folder39977
-Node: Selecting Folder40235
-Node: Folder Manager46852
-Ref: Folder Manager-Footnote-153167
-Node: Summary53220
-Node: Usage of Summary Mode53764
-Node: Thread Operations57163
-Node: Cache57967
-Node: Auto Refile59447
-Node: Sticky Summary61547
-Node: Summary View62350
-Node: Mark and Action64453
-Node: Key Bindings of Summary65485
-Node: Variables of Summary80062
-Node: Message87449
-Node: Draft89714
-Node: Usage of Draft Mode90094
-Node: Parameters for Sending90582
-Node: Editing Header91675
-Node: Editing Message Body and Sending92577
-Node: Dynamical Message Re-arrangement93254
-Node: Template97364
-Node: POP-before-SMTP98876
-Node: Key Bindings of Draft100223
-Node: Variables of Draft Mode102068
-Node: Disconnected Operations111141
-Node: Off-line State111543
-Node: Enable Operations112103
-Node: Send Messages off-line112886
-Node: Re-file and Copy queue113315
-Node: Creation of Folders113824
-Node: Marking114142
-Node: Pre-fetching Reservations114401
-Node: Plugged Mode114676
-Node: Off-line State settings116589
-Node: Variables of Plugged Mode117515
-Node: Expire and Archive119827
-Node: Expire120061
-Node: Archive131451
-Node: Scoring133281
-Node: Score Commands133770
-Node: Score File Format139772
-Node: Address Book143807
-Node: Mail Addresses144049
-Node: Address Manager145167
-Node: Spam Filter145803
-Node: Usage of Spam Filter146143
-Node: Spam Filter Processors151486
-Node: bogofilter152000
-Node: spamfilter152993
-Node: bsfilter153629
-Node: SpamAssassin154805
-Node: SpamOracle156177
-Node: Regular Expressions Header Matching157269
-Node: Advanced Issues158101
-Node: Living with other packages158613
-Node: imput159286
-Node: BBDB159606
-Node: LSDB160727
-Node: supercite161196
-Node: mu-cite161517
-Node: X-Face162009
-Node: x-face-xmas162484
-Node: x-face-mule162865
-Node: dired-dd163603
-Node: MHC164336
-Node: Addrbook164861
-Node: mime-w3m165226
-Node: Highlights165529
-Node: Biff171377
-Node: Password Management172230
-Node: Split messages173101
-Node: Batch Processing176029
-Node: Advanced Settings176528
-Node: Draft for Reply176844
-Node: Thread Format179307
-Node: User-Agent Field180776
-Node: Customizable Valiables181398
-Node: Hooks186903
-Node: Migration187031
-Node: Before 2.12.0187278
-Node: Terminology188711
-Node: Mailing List189422
-Ref: Mailing List-Footnote-1190538
-Node: Addition190609
-Node: Index193299
-Node: Concept Index193531
-Node: Key Index208529
-Node: Variable Index236723
-Node: Function Index266634
+Node: Introduction2869
+Node: Start Me Up4314
+Node: MIME Modules4792
+Ref: MIME Modules-Footnote-16016
+Node: Download6126
+Node: Install7351
+Node: Minimal Settings9948
+Node: Folder Definition11826
+Node: Start Wanderlust13446
+Node: Overview13744
+Node: Folders14269
+Node: IMAP Folder15410
+Node: NNTP Folder17936
+Node: MH Folder18785
+Node: Maildir Folder19259
+Node: News Spool Folder20079
+Node: Archive Folder20592
+Node: Archiver21903
+Node: Archive Tips23794
+Node: Archive Vars24465
+Node: POP Folder26105
+Node: Shimbun Folder27560
+Node: Search Folder28465
+Node: namazu28954
+Node: grep30500
+Node: mu30915
+Node: notmuch31710
+Node: Multi Folder32103
+Node: Filter Folder32637
+Node: Pipe Folder36511
+Node: Internal Folder37576
+Node: File Folder38592
+Node: Access Folder38890
+Node: RSS Folder39223
+Node: Folder40039
+Node: Selecting Folder40297
+Node: Folder Manager46914
+Ref: Folder Manager-Footnote-153229
+Node: Summary53282
+Node: Usage of Summary Mode53826
+Node: Thread Operations57225
+Node: Cache58029
+Node: Auto Refile59509
+Node: Sticky Summary61609
+Node: Summary View62412
+Node: Mark and Action64515
+Node: Key Bindings of Summary65547
+Node: Variables of Summary80124
+Node: Message87511
+Node: Draft89776
+Node: Usage of Draft Mode90156
+Node: Parameters for Sending90644
+Node: Editing Header91737
+Node: Editing Message Body and Sending92639
+Node: Dynamical Message Re-arrangement93316
+Node: Template97426
+Node: POP-before-SMTP98938
+Node: Key Bindings of Draft100285
+Node: Variables of Draft Mode102130
+Node: Disconnected Operations111203
+Node: Off-line State111605
+Node: Enable Operations112165
+Node: Send Messages off-line112948
+Node: Re-file and Copy queue113377
+Node: Creation of Folders113886
+Node: Marking114204
+Node: Pre-fetching Reservations114463
+Node: Plugged Mode114738
+Node: Off-line State settings116651
+Node: Variables of Plugged Mode117577
+Node: Expire and Archive119889
+Node: Expire120123
+Node: Archive131513
+Node: Scoring133343
+Node: Score Commands133832
+Node: Score File Format139834
+Node: Address Book143869
+Node: Mail Addresses144112
+Node: Address Manager145230
+Node: Quick Search145866
+Node: Setup146418
+Node: Searching146837
+Node: Spam Filter148247
+Node: Usage of Spam Filter148587
+Node: Spam Filter Processors153930
+Node: bogofilter154444
+Node: spamfilter155437
+Node: bsfilter156073
+Node: SpamAssassin157249
+Node: SpamOracle158621
+Node: Regular Expressions Header Matching159713
+Node: Advanced Issues160545
+Node: Living with other packages161057
+Node: imput161730
+Node: BBDB162050
+Node: LSDB163171
+Node: supercite163640
+Node: mu-cite163961
+Node: X-Face164453
+Node: x-face-xmas164928
+Node: x-face-mule165309
+Node: dired-dd166047
+Node: MHC166780
+Node: Addrbook167305
+Node: mime-w3m167670
+Node: Highlights167973
+Node: Biff173821
+Node: Password Management174674
+Node: Split messages175545
+Node: Batch Processing178473
+Node: Advanced Settings178972
+Node: Draft for Reply179288
+Node: Thread Format181751
+Node: User-Agent Field183220
+Node: Customizable Valiables183842
+Node: Hooks189347
+Node: Migration189475
+Node: Before 2.12.0189722
+Node: Terminology191155
+Node: Mailing List191866
+Ref: Mailing List-Footnote-1192982
+Node: Addition193053
+Node: Index195743
+Node: Concept Index195975
+Node: Key Index211046
+Node: Variable Index239240
+Node: Function Index269151
 
 End Tag Table
