@@ -192,7 +192,10 @@ than the default which is OBARRAY."
                         (helm-describe-function candidate)
                         (setq in-help t))
                     (setq help-cand candidate))))
-             (tm (run-at-time 1 0.1 'helm-M-x--notify-prefix-arg)))
+             (tm (run-at-time 1 0.1 'helm-M-x--notify-prefix-arg))
+             (helm-move-selection-after-hook
+              (cons (lambda () (setq current-prefix-arg nil))
+                    helm-move-selection-after-hook)))
         (setq extended-command-history
               (cl-loop for c in extended-command-history
                        when (and c (commandp (intern c)))
@@ -217,6 +220,7 @@ than the default which is OBARRAY."
                 :persistent-help "Describe this command"
                 :history (or history extended-command-history)
                 :reverse-history helm-M-x-reverse-history
+                :input-history 'helm-M-x-input-history
                 :del-input nil
                 :help-message 'helm-M-x-help-message
                 :must-match t

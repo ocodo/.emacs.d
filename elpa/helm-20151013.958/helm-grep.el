@@ -82,7 +82,7 @@ To customize the ANSI color in git-grep, GREP_COLORS have no effect,
 you will have to setup this in your .gitconfig:
 
     [color \"grep\"]
-	match = black yellow
+        match = black yellow
 
 where \"black\" is the foreground and \"yellow\" the background.
 See the git documentation for more infos.
@@ -167,9 +167,9 @@ If set to nil `doc-view-mode' will be used instead of an external command."
 
 (defcustom helm-grep-ignored-files
   (cons ".#*" (delq nil (mapcar (lambda (s)
-				  (unless (string-match-p "/\\'" s)
-				    (concat "*" s)))
-				completion-ignored-extensions)))
+                                  (unless (string-match-p "/\\'" s)
+                                    (concat "*" s)))
+                                completion-ignored-extensions)))
   "List of file names which `helm-grep' shall exclude."
   :group 'helm-grep
   :type '(repeat string))
@@ -179,6 +179,22 @@ If set to nil `doc-view-mode' will be used instead of an external command."
   "List of names of sub-directories which `helm-grep' shall not recurse into."
   :group 'helm-grep
   :type '(repeat string))
+
+(defcustom helm-grep-truncate-lines t
+  "When nil the grep line that appears will not be truncated."
+  :group 'helm-grep
+  :type 'boolean)
+
+(defcustom helm-grep-file-path-style 'basename
+  "File path display style when grep results are displayed.
+Possible value are:
+    basename: displays only the filename, none of the directory path
+    absolute: displays absolute path
+    relative: displays relative path from root grep directory."
+  :group 'helm-grep
+  :type '(choice (const :tag "Basename" basename)
+                 (const :tag "Absolute" absolute)
+                 (const :tag "Relative" relative)))
 
 
 ;;; Faces
@@ -934,7 +950,7 @@ in recurse, and ignoring EXTS, search being made on
      :input input
      :keymap helm-grep-map
      :history 'helm-grep-history
-     :truncate-lines t)))
+     :truncate-lines helm-grep-truncate-lines)))
 
 
 
@@ -984,9 +1000,13 @@ in recurse, and ignoring EXTS, search being made on
                      (expand-file-name (car split) root)
                    (car-safe split)))
          (lineno (nth 1 split))
-         (str    (nth 2 split)))
+         (str    (nth 2 split))
+         (display-fname (cl-ecase helm-grep-file-path-style
+                          (basename (file-name-nondirectory fname))
+                          (absolute fname)
+                          (relative (file-relative-name fname root)))))
     (if (and fname lineno str)
-        (cons (concat (propertize (file-name-nondirectory fname)
+        (cons (concat (propertize display-fname
                                   'face 'helm-grep-file
                                   'help-echo fname)
                       ":"
