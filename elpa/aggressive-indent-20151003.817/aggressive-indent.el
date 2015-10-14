@@ -4,8 +4,8 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: http://github.com/Malabarba/aggressive-indent-mode
-;; Package-Version: 20150919.1840
-;; Version: 1.3
+;; Package-Version: 20151003.817
+;; Version: 1.4
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: indent lisp maint tools
 ;; Prefix: aggressive-indent
@@ -349,6 +349,7 @@ or messages."
 ;;; Tracking changes
 (defvar aggressive-indent--changed-list nil
   "List of (left right) limit of regions changed in the last command loop.")
+(make-variable-buffer-local 'aggressive-indent--changed-list)
 
 (defun aggressive-indent--indent-if-changed ()
   "Indent any region that changed in the last command loop."
