@@ -6,7 +6,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;; Version: 0.4.0-cvs
-;; Package-Version: 20150923.2303
+;; Package-Version: 20151002.2313
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 
@@ -409,13 +409,13 @@ We try to constraint those lookups by reasonable number of lines.")
 
     ;; Apply swift-indent-multiline-statement-offset if
     ;; operator is the last symbol on the line
-    (`(:before . ,(pred (lambda (token)
+    (`(:after . ,(pred (lambda (token)
                           (member token swift-smie--operators))))
      (when (and (smie-rule-hanging-p)
-                (not (apply 'smie-rule-parent-p swift-smie--operators)))
-       (if (smie-rule-parent-p "{")
-           (+ swift-indent-offset swift-indent-multiline-statement-offset)
-         swift-indent-multiline-statement-offset)))
+                (not (apply 'smie-rule-parent-p
+                            (append swift-smie--operators '("?" ":" "=")))))
+       swift-indent-multiline-statement-offset
+       ))
 
     (`(:before . ",")
      (if (and swift-indent-hanging-comma-offset (smie-rule-parent-p "class" "case"))
@@ -483,7 +483,8 @@ We try to constraint those lookups by reasonable number of lines.")
 
 (defvar swift-mode--attribute-keywords
   '("class_protocol" "exported" "noreturn"
-    "NSCopying" "NSManaged" "objc" "auto_closure"
+    "NSCopying" "NSManaged" "objc" "autoclosure"
+    "available" "noescape" "nonobjc" "NSApplicationMain" "testable" "UIApplicationMain" "warn_unused_result" "convention"
     "IBAction" "IBDesignable" "IBInspectable" "IBOutlet"))
 
 (defvar swift-mode--keywords
