@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20150930.224
+;; Package-Version: 20151009.403
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -349,13 +349,16 @@
   (list ""
         (format "%d chars more" (- n (length ivy-text)))))
 
+(defvar counsel-git-grep-cmd "git --no-pager grep --full-name -n --no-color -i -e %S"
+  "Store the command for `counsel-git-grep'.")
+
 (defun counsel-git-grep-function (string &optional _pred &rest _unused)
   "Grep in the current git repository for STRING."
   (if (and (> counsel--git-grep-count 20000)
            (< (length string) 3))
       (counsel-more-chars 3)
     (let* ((default-directory counsel--git-grep-dir)
-           (cmd (format "git --no-pager grep --full-name -n --no-color -i -e %S"
+           (cmd (format counsel-git-grep-cmd
                         (setq ivy--old-re (ivy--regex string t)))))
       (if (<= counsel--git-grep-count 20000)
           (split-string (shell-command-to-string cmd) "\n" t)
@@ -389,11 +392,28 @@
 (defvar counsel-git-grep-history nil
   "History for `counsel-git-grep'.")
 
+(defvar counsel-git-grep-cmd-history
+  '("git --no-pager grep --full-name -n --no-color -i -e %S")
+  "History for `counsel-git-grep' shell commands.")
+
 ;;;###autoload
-(defun counsel-git-grep (&optional initial-input)
+(defun counsel-git-grep (&optional cmd initial-input)
   "Grep for a string in the current git repository.
+When CMD is a string, use it as a \"git grep\" command.
+When CMD is non-nil, prompt for a specific \"git grep\" command.
 INITIAL-INPUT can be given as the initial minibuffer input."
-  (interactive)
+  (interactive "P")
+  (cond
+    ((stringp cmd)
+     (setq counsel-git-grep-cmd cmd))
+    (cmd
+     (setq counsel-git-grep-cmd
+           (ivy-read "cmd: " counsel-git-grep-cmd-history
+                     :history 'counsel-git-grep-cmd-history))
+     (setq counsel-git-grep-cmd-history
+           (delete-dups counsel-git-grep-cmd-history)))
+    (t
+     (setq counsel-git-grep-cmd "git --no-pager grep --full-name -n --no-color -i -e %S")))
   (setq counsel--git-grep-dir
         (locate-dominating-file default-directory ".git"))
   (if (null counsel--git-grep-dir)
@@ -406,7 +426,8 @@ INITIAL-INPUT can be given as the initial minibuffer input."
               :keymap counsel-git-grep-map
               :action #'counsel-git-grep-action
               :unwind #'swiper--cleanup
-              :history 'counsel-git-grep-history)))
+              :history 'counsel-git-grep-history
+              :caller 'counsel-git-grep)))
 
 (defcustom counsel-find-file-at-point nil
   "When non-nil, add file-at-point to the list of candidates."
@@ -670,8 +691,9 @@ The libraries are offered from `load-path'."
     (setq proc (start-process-shell-command
                 counsel-gg-process
                 counsel-gg-process
-                (format "git --no-pager grep --full-name -n --no-color -i -e %S | head -n 200"
-                        regex)))
+                (concat
+                 (format counsel-git-grep-cmd regex)
+                 " | head -n 200")))
     (set-process-sentinel
      proc
      #'counsel--gg-sentinel)))
@@ -680,7 +702,9 @@ The libraries are offered from `load-path'."
   (if (string= event "finished\n")
       (progn
         (with-current-buffer (process-buffer process)
-          (setq ivy--all-candidates (split-string (buffer-string) "\n" t))
+          (setq ivy--all-candidates
+                (or (split-string (buffer-string) "\n" t)
+                    '("")))
           (setq ivy--old-cands ivy--all-candidates))
         (when (= 0 (cl-incf counsel-gg-state))
           (ivy--exhibit)))
@@ -695,7 +719,9 @@ The libraries are offered from `load-path'."
 When NO-ASYNC is non-nil, do it synchronously."
   (let ((default-directory counsel--git-grep-dir)
         (cmd (format "git grep -i -c '%s' | sed 's/.*:\\(.*\\)/\\1/g' | awk '{s+=$1} END {print s}'"
-                     regex))
+                     (replace-regexp-in-string
+                      "-" "\\\\-"
+                      (replace-regexp-in-string "'" "''" regex))))
         (counsel-ggc-process " *counsel-gg-count*"))
     (if no-async
         (string-to-number (shell-command-to-string cmd))
