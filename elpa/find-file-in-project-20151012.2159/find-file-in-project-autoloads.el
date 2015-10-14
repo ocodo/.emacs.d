@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22021 61710 817140 0))
+;;;;;;  (22045 48047 65140 0))
 ;;; Generated autoloads from find-file-in-project.el
 
 (defvar ffip-filename-rules '(ffip-filename-identity ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes))
@@ -12,7 +12,7 @@
 (defvar ffip-find-executable nil "\
 Path of GNU find. If nil, we will find `find' path automatically")
 
-(defvar ffip-project-file ".git" "\
+(defvar ffip-project-file '(".svn" ".git" ".hg") "\
 The file that should be used to define a project root.
 
 May be set using .dir-locals.el. Checks each entry if set to a list.")
@@ -35,6 +35,26 @@ If non-nil, overrides the project root directory location.")
 If non-nil, this function is called to determine the project root.
 
 This overrides variable `ffip-project-root' when set.")
+
+(autoload 'ffip-project-root "find-file-in-project" "\
+Return the root of the project.
+
+\(fn)" nil nil)
+
+(autoload 'ffip-filename-identity "find-file-in-project" "\
+ HelloWorld => [Hh]elloWorld
+
+\(fn KEYWORD)" nil nil)
+
+(autoload 'ffip-filename-camelcase-to-dashes "find-file-in-project" "\
+ HelloWorld => hello-world
+
+\(fn KEYWORD)" nil nil)
+
+(autoload 'ffip-filename-dashes-to-camelcase "find-file-in-project" "\
+ hello-world => [Hh]elloWorld
+
+\(fn KEYWORD)" nil nil)
 
 (autoload 'ffip-current-full-filename-match-pattern-p "find-file-in-project" "\
 Is current full file name (including directory) match the REGEX?
@@ -69,11 +89,11 @@ If NUM is given, only files modfied NUM days before will be selected.
 
 (put 'ffip-patterns 'safe-local-variable 'listp)
 
+(put 'ffip-filename-rules 'safe-local-variable 'listp)
+
 (put 'ffip-project-file 'safe-local-variable 'stringp)
 
 (put 'ffip-project-root 'safe-local-variable 'stringp)
-
-(put 'ffip-limit 'safe-local-variable 'integerp)
 
 ;;;***
 
