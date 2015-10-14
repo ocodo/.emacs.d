@@ -53,7 +53,7 @@
        (secondary-selection "#bf616a") ;; tab-control-hover-tab-close-button
        (foreground "#212121")
        (comment "#607d8b") ;; table-row
-       (red "#D54315") ;; tab-control-hover-tab-close-button
+       (red "#B71C1C") ;; tab-control-hover-tab-close-button
        (orange "#FF5722") ;; darker tab-control-dirty-tab-close-butto
        (yellow "#FFA000") ;; tab-control-dirty-tab-close-button
        (green "#558b2f") ;; complement tab-control-dirty-tab-close-button
@@ -820,4 +820,4 @@
 ;; hl-sexp-mode: nil
 ;; End:
 
-;;; spacegray-theme.el ends here
+;;; material-light-theme.el ends here
