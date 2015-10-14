@@ -1215,9 +1215,10 @@ Otherwise (`backward-delete-char-untabify' ARG)."
             (line-beginning-position)
             (point))
            (unless (bobp)
-             (if (save-excursion
-                   (backward-char 1)
-                   (lispy--in-comment-p))
+             (if (and (not (eolp))
+                      (save-excursion
+                        (backward-char 1)
+                        (lispy--in-comment-p)))
                  (progn
                    (backward-char 1)
                    (let ((bnd (lispy--bounds-comment)))
@@ -1357,12 +1358,8 @@ When ARG is more than 1, mark ARGth element."
   "Kill the quoted string or the list that includes the point."
   (interactive)
   (if (region-active-p)
-      (progn
-        (kill-new (buffer-substring-no-properties
-                   (region-beginning)
-                   (region-end)))
-        (newline-and-indent)
-        (insert (current-kill 0)))
+      (kill-region (region-beginning)
+                   (region-end))
     (let ((bounds (or (lispy--bounds-comment)
                       (lispy--bounds-string)
                       (lispy--bounds-list))))
@@ -1555,6 +1552,22 @@ If jammed between parens, \"(|(\" unjam: \"( |(\"."
     (lispy--space-unless "\\s-\\|\\s(\\|[~#:?'`]\\|\\\\")
     (insert "'")))
 
+(defun lispy-underscore (&optional arg)
+  "Insert _.
+For Clojure modes, toggle #_ sexp comment."
+  (interactive "p")
+  (setq arg (or arg 1))
+  (if (memq major-mode lispy-clojure-modes)
+      (let ((leftp (lispy--leftp)))
+        (unless leftp
+          (lispy-different))
+        (if (lispy-after-string-p "#_")
+            (delete-char -2)
+          (insert "#_"))
+        (unless leftp
+          (lispy-different)))
+    (self-insert-command arg)))
+
 (defun lispy-backtick ()
   "Insert `."
   (interactive)
@@ -1624,7 +1637,7 @@ When region is active, toggle a ~ at the start of the region."
      (if (and (not (lispy--in-string-or-comment-p))
               (if (memq major-mode lispy-clojure-modes)
                   (lispy-looking-back "[^#`'@~][#`'@~]+")
-                (lispy-looking-back "[^#`',@][#`',@]+")))
+                (lispy-looking-back "[^#`',@|][#`',@]+")))
          (save-excursion
            (goto-char (match-beginning 0))
            (newline-and-indent))
@@ -4314,11 +4327,14 @@ If already there, return it to previous position."
 (defun lispy--setq-doconst (x)
   "Return a cons of description and value for X.
 X is an item of a radio- or choice-type defcustom."
-  (setq x (car (last x)))
-  (cons (prin1-to-string x)
-        (if (symbolp x)
-            (list 'quote x)
-          x)))
+  (let (y)
+    (when (and (listp x)
+               (consp (setq y (last x))))
+      (setq x (car y))
+      (cons (prin1-to-string x)
+            (if (symbolp x)
+                (list 'quote x)
+              x)))))
 
 (defun lispy-setq ()
   "Set variable at point, with completion."
@@ -4721,24 +4737,29 @@ First, try to return `lispy--bounds-string'."
                                  (if (bolp) 0 1))))
                (setq pt (point)))
              (goto-char pt))
-           (let ((beg (lispy--beginning-of-comment))
-                 (pt (point))
-                 (col (current-column)))
-             (while (and (lispy--in-comment-p)
-                         (forward-comment 1)
-                         (lispy--beginning-of-comment)
-                         (and (= 1 (- (count-lines pt (point))
-                                      (if (bolp) 0 1)))
-                              ;; count comments starting in different columns
-                              ;; as separate
-                              (= col (current-column))
-                              ;; if there's code in between,
-                              ;; count comments as separate
-                              (lispy-looking-back "^\\s-*")))
-               (setq pt (point)))
-             (goto-char pt)
-             (end-of-line)
-             (cons beg (point)))))))
+           (if (looking-at "#|")
+               (cons (point)
+                     (progn
+                       (comment-forward)
+                       (point)))
+             (let ((beg (lispy--beginning-of-comment))
+                   (pt (point))
+                   (col (current-column)))
+               (while (and (lispy--in-comment-p)
+                           (forward-comment 1)
+                           (lispy--beginning-of-comment)
+                           (and (= 1 (- (count-lines pt (point))
+                                        (if (bolp) 0 1)))
+                                ;; count comments starting in different columns
+                                ;; as separate
+                                (= col (current-column))
+                                ;; if there's code in between,
+                                ;; count comments as separate
+                                (lispy-looking-back "^\\s-*")))
+                 (setq pt (point)))
+               (goto-char pt)
+               (end-of-line)
+               (cons beg (point))))))))
 
 (defun lispy--string-dwim (&optional bounds)
   "Return the string that corresponds to BOUNDS.
@@ -4808,6 +4829,7 @@ Return nil on failure, t otherwise."
 (defun lispy--beginning-of-comment ()
   "Go to beginning of comment on current line."
   (end-of-line)
+  (comment-beginning)
   (let ((cs (comment-search-backward (line-beginning-position) t)))
     (when cs
       (goto-char cs))))
@@ -6573,6 +6595,7 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
     (lispy-define-key map "F" 'lispy-follow t)
     (lispy-define-key map "D" 'pop-tag-mark)
     (lispy-define-key map "A" 'lispy-beginning-of-defun)
+    (lispy-define-key map "_" 'lispy-underscore)
     ;; miscellanea
     (lispy-define-key map "SPC" 'lispy-space)
     (lispy-define-key map "i" 'lispy-tab)
