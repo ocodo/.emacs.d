@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20150907.320
+;; Package-Version: 20151012.859
 ;; Version: 1.2.1
 ;; Package-Requires: ((helm "0.0.0") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -99,7 +99,10 @@ buffer. Setting this to nil may speed up querys."
 
 (defun helm-dash-docset-db-path (docset)
   "Compose the path to sqlite DOCSET."
-  (expand-file-name "Contents/Resources/docSet.dsidx" (helm-dash-docset-path docset)))
+  (let ((path (helm-dash-docset-path docset)))
+    (if path
+	(expand-file-name "Contents/Resources/docSet.dsidx" path)
+      (error "Cannot find docset '%s' in `helm-dash-docsets-path'" docset))))
 
 (defvar helm-dash-connections nil
   "List of conses like (\"Go\" . connection).")
@@ -123,7 +126,7 @@ Suggested values are:
                          (make-temp-file "helm-dash-errors-file"))))
        (call-process "sqlite3" nil (list standard-output error-file) nil
                      ;; args for sqlite3:
-                     "-list" db-path sql)
+                     "-list" "-init" "''" db-path sql)
 
        ;; display errors, stolen from emacs' `shell-command` function
        (when (and error-file (file-exists-p error-file))
