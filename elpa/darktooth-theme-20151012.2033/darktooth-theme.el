@@ -4,6 +4,7 @@
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
+;; Package-Version: 20151012.2033
 ;; Version: 0.1.30
 
 ;;; Commentary:
