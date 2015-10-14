@@ -25,7 +25,7 @@
 ;; Created: 28 Oct 2002
 ;; Last modified: 25 May 2015
 ;; Version: 0.3.10
-;; Package-Version: 20150525.1000
+;; Package-Version: 20151010.2359
 ;; Keywords: mode dot dot-language dotlanguage graphviz graphs att
 
 ;;; Commentary:
@@ -955,6 +955,9 @@ buffer is saved before the command is executed."
 (add-to-list 'auto-mode-alist '("\\.dot\\'" . graphviz-dot-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gv\\'" . graphviz-dot-mode))
+
+(eval-after-load 'org-mode
+    (add-to-list 'org-src-lang-modes  '("dot" . graphviz-dot)))
 
 (provide 'graphviz-dot-mode)
 ;;; graphviz-dot-mode.el ends here

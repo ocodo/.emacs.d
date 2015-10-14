@@ -4,22 +4,22 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "graphviz-dot-mode" "graphviz-dot-mode.el"
-;;;;;;  (21861 60002 743401 0))
+;;;;;;  (22045 48028 885140 0))
 ;;; Generated autoloads from graphviz-dot-mode.el
 
 (autoload 'graphviz-dot-mode "graphviz-dot-mode" "\
 Major mode for the dot language. \\<graphviz-dot-mode-map>
 TAB indents for graph lines.
 
-\\[graphviz-dot-indent-graph]	- Indentation function.
-\\[graphviz-dot-preview]	- Previews graph in a buffer.
-\\[graphviz-dot-view]	- Views graph in an external viewer.
-\\[graphviz-dot-indent-line]	- Indents current line of code.
-\\[graphviz-dot-complete-word]	- Completes the current word.
-\\[electric-graphviz-dot-terminate-line]	- Electric newline.
-\\[electric-graphviz-dot-open-brace]	- Electric open braces.
-\\[electric-graphviz-dot-close-brace]	- Electric close braces.
-\\[electric-graphviz-dot-semi]	- Electric semi colons.
+\\[graphviz-dot-indent-graph] - Indentation function.
+\\[graphviz-dot-preview]  - Previews graph in a buffer.
+\\[graphviz-dot-view] - Views graph in an external viewer.
+\\[graphviz-dot-indent-line]  - Indents current line of code.
+\\[graphviz-dot-complete-word]  - Completes the current word.
+\\[electric-graphviz-dot-terminate-line]  - Electric newline.
+\\[electric-graphviz-dot-open-brace]  - Electric open braces.
+\\[electric-graphviz-dot-close-brace] - Electric close braces.
+\\[electric-graphviz-dot-semi]  - Electric semi colons.
 
 Variables specific to this mode:
 
