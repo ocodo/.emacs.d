@@ -4,8 +4,8 @@
 
 ;; Author: Eric Schulte
 ;; URL: http://github.com/eschulte/jump.el/tree/master
-;; Version: 20130702.833
-;; X-Original-Version: DEV
+;; Package-Version: 20151009.129
+;; Version: DEV
 ;; Created: 2008-08-21
 ;; Keywords: project, convenience, navigation
 ;; Package-Requires: ((findr "0.7") (inflections "1.1"))
@@ -43,17 +43,17 @@
 ;;; Example: (jumping to the related model in a rails application)
 
 ;; (defjump
-;;   'rinari-find-model
-;;   '(("app/controllers/\\1_controller.rb#\\2"  . "app/models/\\1.rb#\\2")
-;;     ("app/views/\\1/.*"                       . "app/models/\\1.rb")
-;;     ("app/helpers/\\1_helper.rb"              . "app/models/\\1.rb")
-;;     ("db/migrate/.*create_\\1.rb"             . "app/models/\\1.rb")
-;;     ("test/functional/\\1_controller_test.rb" . "app/models/\\1.rb")
-;;     ("test/unit/\\1_test.rb#test_\\2"         . "app/models/\\1.rb#\\2")
-;;     ("test/unit/\\1_test.rb"                  . "app/models/\\1.rb")
-;;     ("test/fixtures/\\1.yml"                  . "app/models/\\1.rb")
-;;     (t                                        . "app/models/"))
-;;   'rinari-root
+;;   rinari-find-model
+;;   (("app/controllers/\\1_controller.rb#\\2"  . "app/models/\\1.rb#\\2")
+;;    ("app/views/\\1/.*"                       . "app/models/\\1.rb")
+;;    ("app/helpers/\\1_helper.rb"              . "app/models/\\1.rb")
+;;    ("db/migrate/.*create_\\1.rb"             . "app/models/\\1.rb")
+;;    ("test/functional/\\1_controller_test.rb" . "app/models/\\1.rb")
+;;    ("test/unit/\\1_test.rb#test_\\2"         . "app/models/\\1.rb#\\2")
+;;    ("test/unit/\\1_test.rb"                  . "app/models/\\1.rb")
+;;    ("test/fixtures/\\1.yml"                  . "app/models/\\1.rb")
+;;    (t                                        . "app/models/"))
+;;   rinari-root
 ;;   "Go to the most logical model given the current location."
 ;;   '(lambda (path)
 ;;      (message (shell-command-to-string
@@ -296,7 +296,7 @@ find the current method which defaults to `which-function'."
      ,(concat doc "\n\nautomatically created by `defjump'")
      (interactive "P")
      (let ((root ,(if (functionp root) `(,root) root))
-	   (method-command ,(or method-command 'which-function))
+	   (method-command ,(or method-command '(quote which-function)))
 	   matches)
        (loop ;; try every rule in mappings
 	for spec in (quote ,(mapcar
