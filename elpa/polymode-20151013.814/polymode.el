@@ -274,14 +274,16 @@ Return, how many chucks actually jumped over."
   (unless pm--ignore-post-command-hook
     (let ((*span* (pm/get-innermost-span))
           (pm--can-move-overlays t))
-      (pm-select-buffer (car (last *span*)) *span*))))
+	  (save-restriction
+		(widen)
+		(pm-select-buffer (car (last *span*)) *span*)))))
 
 (defun polymode-select-buffer ()
   "Select the appropriate (indirect) buffer corresponding to point's context.
 This funciton is placed in local post-command hook."
   (condition-case error
       (pm--sel-buf)
-    (error (message "polymode error: %s"
+    (error (message "polymode error (polymode-select-buffer): %s"
                     (error-message-string error)))))
 
 (defun pm/map-over-spans (fun beg end &optional count backward?)
@@ -308,9 +310,10 @@ the current innermost span."
       (pm-select-buffer (car (last *span*)) *span*) ;; object and type
       (goto-char (nth 1 *span*))
       (funcall fun)
+	  ;; enter next/previous chunk as head-tails don't include their boundaries
       (if backward?
-          (goto-char (max 1 (1- (nth 1 *span*)))) ;; enter previous chunk
-        (goto-char (nth 2 *span*))))));))
+          (goto-char (max 1 (1- (nth 1 *span*)))) 
+        (goto-char (min (point-max) (1+ (nth 2 *span*))))))))
 
 (defun pm/narrow-to-span (&optional span)
   "Narrow to current chunk."
@@ -341,47 +344,48 @@ in polymode buffers."
 	 (inhibit-point-motion-hooks t)
          (font-lock-dont-widen t)
          (buff (current-buffer)))
-    (with-silent-modifications
-      (font-lock-unfontify-region beg end)
-      (save-excursion
-        (save-window-excursion
-          (pm/map-over-spans
-           (lambda ()
-             (let ((sbeg (nth 1 *span*))
-                   (send (nth 2 *span*)))
-               (when (and font-lock-mode font-lock-keywords)
-                 (when parse-sexp-lookup-properties
-                   (pm--comment-region 1 sbeg))
-                 (condition-case err
-                     (if (oref pm/chunkmode :font-lock-narrow)
-                         (save-restriction
-                           ;; fixme: optimization oportunity: Cache chunk state
-                           ;; in text properties. For big chunks font-lock
-                           ;; fontifies it by smaller segments, thus
-                           ;; pm/fontify-region is called multiple times per
-                           ;; chunk and spans are computed each time.
-                           (narrow-to-region sbeg send)
-                           (funcall pm--fontify-region-original
-                                    (max sbeg beg) (min send end) verbose))
-                       (funcall pm--fontify-region-original
-                                (max sbeg beg) (min send end) verbose))
-                   (error (message "polymode font-lock error: %s (beg: %s end: %s)"
-                                   (error-message-string err) beg end)))
-                 (when parse-sexp-lookup-properties
-                   (pm--uncomment-region 1 sbeg)))
-               (pm--adjust-chunk-face sbeg send (pm-get-adjust-face pm/chunkmode))
-               ;; might be needed by external applications like flyspell
-               ;; fixme: this should be in a more generic place like pm-get-span
-               (put-text-property sbeg send 'chunkmode
-                                  (object-of-class-p pm/chunkmode 'pm-hbtchunkmode))
-               ;; even if failed, set to t to avoid infloop
-               (put-text-property beg end 'fontified t)))
-           beg end)
-          ;; needed to avoid moving last fontified buffer to second place
-	  ;; switching displayed buffer invalidates internal emacs assumptions
-	  ;; bug bug#19511, fixed in emacs ea1c146acf3
-          ;; (bury-buffer)
-	  )))))
+	(when pm--fontify ;; set by pm-debug-toggle-fontification
+	  (with-silent-modifications
+		(font-lock-unfontify-region beg end)
+		(save-excursion
+		  (save-window-excursion
+			(pm/map-over-spans
+			 (lambda ()
+			   (let ((sbeg (nth 1 *span*))
+					 (send (nth 2 *span*)))
+				 (when (and font-lock-mode font-lock-keywords)
+				   (when parse-sexp-lookup-properties
+					 (pm--comment-region 1 sbeg))
+				   (condition-case err
+					   (if (oref pm/chunkmode :font-lock-narrow)
+						   (save-restriction
+							 ;; fixme: optimization opportunity: Cache chunk state
+							 ;; in text properties. For big chunks font-lock
+							 ;; fontifies it by smaller segments, thus
+							 ;; pm/fontify-region is called multiple times per
+							 ;; chunk and spans are computed each time.
+							 (narrow-to-region sbeg send)
+							 (funcall pm--fontify-region-original
+									  (max sbeg beg) (min send end) verbose))
+						 (funcall pm--fontify-region-original
+								  (max sbeg beg) (min send end) verbose))
+					 (error (message "polymode font-lock error: %s (beg: %s end: %s)"
+									 (error-message-string err) beg end)))
+				   (when parse-sexp-lookup-properties
+					 (pm--uncomment-region 1 sbeg)))
+				 (pm--adjust-chunk-face sbeg send (pm-get-adjust-face pm/chunkmode))
+				 ;; might be needed by external applications like flyspell
+				 ;; fixme: this should be in a more generic place like pm-get-span
+				 (put-text-property sbeg send 'chunkmode
+									(object-of-class-p pm/chunkmode 'pm-hbtchunkmode))
+				 ;; even if failed, set to t to avoid infloop
+				 (put-text-property beg end 'fontified t)))
+			 beg end)
+			;; needed to avoid moving last fontified buffer to second place
+			;; switching displayed buffer invalidates internal emacs assumptions
+			;; bug bug#19511, fixed in emacs ea1c146acf3
+			;; (bury-buffer)
+			))))))
 
 (defun pm/syntax-begin-function ()
   (goto-char
@@ -555,6 +559,148 @@ BODY contains code to be executed after the complete
    '(("(\\(define-polymode\\)\\s +\\(\\(\\w\\|\\s_\\)+\\)"
       (1 font-lock-keyword-face)
       (2 font-lock-variable-name-face)))))
+
+
+;;; TOOLS for DEBUGGING
+
+(defvar pm--underline-overlay
+  (let ((overlay (make-overlay (point) (point))))
+    (overlay-put overlay 'face  '(:underline (:color "red" :style wave)))
+    overlay)
+  "Overlay used in `pm-debug-mode'.")
+
+(defvar pm--inverse-video-overlay
+  (let ((overlay (make-overlay (point) (point))))
+    (overlay-put overlay 'face  '(:inverse-video t))
+    overlay)
+  "Overlay used by `pm-debug-map-over-spans-and-highlight'.")
+
+(defvar pm-debug-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+	(define-key map (kbd "M-n M-i") 'pm-debug-info-on-span)
+	(define-key map (kbd "M-n M-h") 'pm-debug-map-over-spans-and-highlight)
+	(define-key map (kbd "M-n M-f") 'pm-debug-toggle-fontification)
+	;; (define-key map (kbd "M-n M-t") 'pm-debug-toggle-info-update)
+	map))
+
+(defun pm-debug-minor-mode-on ()
+  ;; activating everywhere (in case font-lock infloops in a polymode buffer )
+  (pm-debug-minor-mode t))
+
+(define-minor-mode pm-debug-minor-mode
+  "Turns on/off useful facilities for debugging polymode.
+
+Key bindings:
+\\{pm-debug-minor-mode-map}"
+  nil
+  " PMDBG"
+  :group 'polymode
+  (interactive)
+  (if pm-debug-minor-mode
+	  (progn
+		;; this is global hook. No need to complicate with local hooks
+		(add-hook 'post-command-hook 'pm-debug-highlight-current-span))
+	(delete-overlay pm--underline-overlay)
+	(delete-overlay pm--inverse-video-overlay)
+	(remove-hook 'post-command-hook 'pm-debug-highlight-current-span)))
+
+(define-globalized-minor-mode pm-debug-mode pm-debug-minor-mode pm-debug-minor-mode-on)
+
+(defun pm-debug-highlight-current-span ()
+  (when polymode-mode
+	(unless (eq this-command 'pm-debug-info-on-span)
+	  (delete-overlay pm--inverse-video-overlay))
+	(condition-case err
+		(let ((span (pm/get-innermost-span)))
+		  (pm--debug-info span)
+		  (move-overlay pm--underline-overlay (nth 1 span) (nth 2 span) (current-buffer)))
+	  (error (message "%s" (error-message-string err))))))
+
+(defgeneric pm-debug-info (chunkmode))
+(defmethod pm-debug-info (chunkmode)
+  (format "class:%s" (eieio-object-class-name chunkmode)))
+(defmethod pm-debug-info ((chunkmode pm-hbtchunkmode))
+  (format "head-reg:\"%s\" tail-reg:\"%s\" %s" 
+		  (oref obj :head-reg) (oref obj :tail-reg)
+		  (call-next-method)))
+(defmethod pm-debug-info ((chunkmode pm-hbtchunkmode))
+  (format "head-reg:\"%s\" tail-reg:\"%s\" %s" 
+		  (oref obj :head-reg) (oref obj :tail-reg)
+		  (call-next-method)))
+(defmethod pm-debug-info ((chunkmode pm-hbtchunkmode-auto))
+		  (call-next-method))
+
+(defun pm--debug-info (&optional span)
+  (let* ((span (or span (pm/get-innermost-span)))
+		 (message-log-max nil)
+		 (beg (nth 1 span))
+		 (end (nth 2 span))
+		 (obj (nth 3 span)))
+	(message "(%s) type:%s span:%s-%s %s"
+			 major-mode (or (car span) 'host) beg end (pm-debug-info obj))))
+
+(defun pm-debug-info-on-span ()
+  (interactive)
+  (if (not polymode-mode)
+	  (message "not in a polymode buffer")
+	(let ((span (pm/get-innermost-span)))
+	  (pm--debug-info span)
+	  (move-overlay pm--inverse-video-overlay (nth 1 span) (nth 2 span) (current-buffer)))))
+
+(defvar pm--fontify t)
+
+(defun pm-debug-toggle-fontification ()
+  (interactive)
+  (if pm--fontify
+	  (progn
+		(message "fontificaiton disabled")
+		(setq pm--fontify nil))
+	(message "fontificaiton enabled")
+	(setq pm--fontify t)))
+
+;; (defvar mp--debug-info-update t)
+;; (defun pm-debug-toggle-info-update ()
+;;   (interactive)
+;;   (if pm--debug-info-update
+;; 	  (progn
+;; 		(message "info disabled")
+;; 		(setq pm--debug-info-update nil))
+;; 	(message "info enabled")
+;; 	(setq pm--debug-info-update t)))
+
+(defun pm--blink-region (start end &optional delay)
+  (move-overlay pm--inverse-video-overlay start end (current-buffer))
+  (run-with-timer (or delay 0.4) nil (lambda () (delete-overlay pm--inverse-video-overlay))))
+
+(defun pm-debug-map-over-spans-and-highlight ()
+  (interactive)
+  (pm/map-over-spans (lambda ()
+                       (let ((start (nth 1 *span*))
+                             (end (nth 2 *span*)))
+                         (pm--blink-region start end)
+                         (sit-for 1)))
+                     (point-min) (point-max)))
+
+(defun pm--highlight-span (&optional hd-matcher tl-matcher)
+  (interactive)
+  (let* ((hd-matcher (or hd-matcher (oref pm/chunkmode :head-reg)))
+         (tl-matcher (or tl-matcher (oref pm/chunkmode :tail-reg)))
+         (span (pm--span-at-point hd-matcher tl-matcher)))
+    (pm--blink-region (nth 1 span) (nth 2 span))
+    (message "span: %s" span)))
+
+(defun pm--run-over-check ()
+  (interactive)
+  (goto-char (point-min))
+  (let ((start (current-time))
+        (count 1))
+    (polymode-select-buffer)
+    (while (< (point) (point-max))
+      (setq count (1+ count))
+      (forward-char)
+      (polymode-select-buffer))
+    (let ((elapsed  (float-time (time-subtract (current-time) start))))
+      (message "elapsed: %s  per-char: %s" elapsed (/ elapsed count)))))
 
 (provide 'polymode)
 ;;; polymode.el ends here

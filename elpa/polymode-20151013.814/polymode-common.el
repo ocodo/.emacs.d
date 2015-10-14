@@ -346,37 +346,6 @@ user interaction."
     (add-hook 'after-change-functions 'jit-lock-after-change nil t)
     (add-hook 'fontification-functions 'jit-lock-function)))
 
-
-;;; DEBUG STUFF
-(defun pm--map-over-spans-highlight ()
-  (interactive)
-  (pm/map-over-spans (lambda ()
-                       (let ((start (nth 1 *span*))
-                             (end (nth 2 *span*)))
-                         (ess-blink-region start end)
-                         (sit-for 1)))
-                     (point-min) (point-max)))
-
-(defun pm--highlight-span (&optional hd-matcher tl-matcher)
-  (interactive)
-  (let* ((hd-matcher (or hd-matcher (oref pm/chunkmode :head-reg)))
-         (tl-matcher (or tl-matcher (oref pm/chunkmode :tail-reg)))
-         (span (pm--span-at-point hd-matcher tl-matcher)))
-    (ess-blink-region (nth 1 span) (nth 2 span))
-    (message "%s" span)))
-
-(defun pm--run-over-check ()
-  (interactive)
-  (goto-char (point-min))
-  (let ((start (current-time))
-        (count 1))
-    (polymode-select-buffer)
-    (while (< (point) (point-max))
-      (setq count (1+ count))
-      (forward-char)
-      (polymode-select-buffer))
-    (let ((elapsed  (float-time (time-subtract (current-time) start))))
-      (message "elapsed: %s  per-char: %s" elapsed (/ elapsed count)))))
 
 (provide 'polymode-common)
 

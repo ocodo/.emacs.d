@@ -211,7 +211,8 @@ slot -buffer of SUBMODE. Create this buffer if does not exist."
 
 (defun pm--setup-buffer (&optional buffer)
   ;; General buffer setup, should work for indirect and base buffers
-  ;; alike. Assumes pm/polymode and pm/chunkmode is already in place. Return buffer.
+  ;; alike. Assume pm/polymode and pm/chunkmode is already in place. Return
+  ;; the buffer.
   (let ((buff (or buffer (current-buffer))))
     (with-current-buffer buff
       ;; Don't let parse-partial-sexp get fooled by syntax outside
@@ -242,23 +243,24 @@ slot -buffer of SUBMODE. Create this buffer if does not exist."
         (setq pm--indent-line-function-original indent-line-function)
         (set (make-local-variable 'indent-line-function) 'pm-indent-line-dispatcher))
 
-      ;; Kill the base buffer along with the indirect one; careful not
-      ;; to infloop.
-      ;; (add-hook 'kill-buffer-hook
-      ;;           '(lambda ()
-      ;;              ;; (setq kill-buffer-hook nil) :emacs 24 bug (killing
-      ;;              ;; dead buffer triggers an error)
-      ;;              (let ((base (buffer-base-buffer)))
-      ;;                (if  base
-      ;;                    (unless (buffer-local-value 'pm--killed-once base)
-      ;;                      (kill-buffer base))
-      ;;                  (setq pm--killed-once t))))
-      ;;           t t)
+      (add-hook 'kill-buffer-hook 'pm--kill-indirect-buffer t t)
 
       (when pm--dbg-hook
         (add-hook 'post-command-hook 'polymode-select-buffer nil t))
       (object-add-to-list pm/polymode '-buffers (current-buffer)))
     buff))
+
+(defvar-local pm--killed-once nil)
+(defun pm--kill-indirect-buffer ()
+  ;; find-alternate-file breaks (https://github.com/vspinu/polymode/issues/79)
+  (let ((base (buffer-base-buffer)))
+	(when  (and base (buffer-live-p base))
+	  ;; 'base' is non-nil in indirect buffers only
+	  (set-buffer-modified-p nil)
+	  (unless (buffer-local-value 'pm--killed-once base)
+		(with-current-buffer base
+		  (setq pm--killed-once t))
+		(kill-buffer base)))))
 
 (defvar pm--ib-prefix "")
 (defun pm--create-indirect-buffer (mode)
@@ -309,13 +311,13 @@ Return newlly created buffer."
 
 ;;; SPAN MANIPULATION
 (defgeneric pm-get-span (chunkmode &optional pos)
-  "Ask a chunkmode for the span at point.
+  "Ask the CHUNKMODE for the span at point.
 Return a list of three elements (TYPE BEG END OBJECT) where TYPE
 is a symbol representing the type of the span surrounding
 POS (head, tail, body). BEG and END are the coordinates of the
 span. OBJECT is a sutable object which is 'responsable' for this
-span. That is, OBJECT could be dispached upon with
-`pm-select-buffer', .. (fixme: complete list).
+span. This is an object that could be dispached upon with
+`pm-select-buffer',  .. (fixme: complete this list).
 
 Should return nil if there is no SUBMODE specific span around POS.")
 
@@ -360,7 +362,7 @@ point."
             (setcar (cddr span) end))))
 
       (unless (and (<= start end) (<= pos end) (>= pos start))
-        (error "Bad polymode selection: %s, %s"
+        (error "Bad polymode selection: span:%s pos:%s"
                (list start end) pos))
       (when (null (car span)) ; chunkmodes can compute the host span by returning nil
         (setcar (last span) (oref config -hostmode)))
@@ -383,7 +385,7 @@ point."
               ;; treat intersections with the host mode
               (if (car span-other)
                   span-other ;not host
-                ;; at this stage, car span should better be nil; no explicit check here.
+                ;; here, car span should better be nil; no explicit check
                 (setcar (cdr span-other) (max (nth 1 span-other) (nth 1 span)))
                 (setcar (cddr span-other) (min (nth 2 span-other) (nth 2 span)))
                 span-other)
@@ -444,8 +446,7 @@ The tail matcher will return a list (n, n) of the final characters is the block.
 
 
 All the stuff after the -end- of the head and before the start of the tail is
-sent to the new mode for syntax highlighting
-"
+sent to the new mode for syntax highlighting."
   (let* ((head-name (intern (format "pm-%s-head-matcher" name)))
          (tail-name (intern (format "pm-%s-tail-matcher" name))))
     `(progn
@@ -519,46 +520,87 @@ sent to the new mode for syntax highlighting
                     (list nil (cdr post) (car posh1))))))))))))
 
 (defun pm--span-at-point-reg-reg (head-matcher tail-matcher)
-  ;; efficent reg-reg lookup with only 2 searches
+  ;; Guaranteed to produce non-0 length spans. If no span has been found
+  ;; (head-matcher didn't match) return (nil (point-min) (point-max)).
+
+  ;; xxx1 relate to the first ascending search
+  ;; xxx2 relate to the second descending search
   (save-excursion
     (let* ((pos (point))
-           (reg (concat "\\(?1:\\(" tail-matcher "\\)\\)\\|\\(?2:\\(" head-matcher "\\)\\)"))
-           (pos1-end (if (re-search-backward reg nil t)
-                         (match-end 0)))
-           (pos1-tail? (or (null pos1-end) (match-end 1))) ;; consider point-min as a tail
-           (pos1-end (goto-char (or pos1-end  (point-min))))
-           (pos2-start (if (re-search-forward reg nil t)
-                           (match-beginning 0)))
-           (pos2-end (and pos2-start (match-end 0)))
-           (pos2-tail? (and pos2-start (match-end 1)))
-           (pos2-start (or pos2-start (point-max)))) ;consider pointmax as head
-      (if (or (< pos pos2-start)
-              (eq pos (point-max)))
-          ;; inside doc or chunk body
-          (if pos1-tail?
-              (list nil pos1-end pos2-start) ;doc
-            (list 'body pos1-end pos2-start)) ; chunk body
-        ;; else inside head or tail
-        (if (< pos pos2-end) ; <- this one should be always true
-            (if pos2-tail?
-                (list 'tail pos2-start pos2-end)
-              (list 'head pos2-start pos2-end)))
-        ))))
+		   
+		   (head1-beg (and (re-search-backward head-matcher nil t)
+						   (match-beginning 0)))
+		   (head1-end (and head1-beg (match-end 0))))
+	  
+	  (if head1-end
+		  ;; we know that (>= pos head1-end)
+		  ;;            -----------------------
+		  ;; host](head)[body](tail)[host](head)
+		  (let* ((tail1-beg (and (goto-char head1-end)
+								 (re-search-forward tail-matcher nil t)
+								 (match-beginning 0)))
+				 (tail1-end (and tail1-beg (match-end 0)))
+				 (tail1-beg (or tail1-beg (point-max)))
+				 (tail1-end (or tail1-end (point-max))))
+
+			(if (or (< pos tail1-end)
+					(= tail1-end (point-max)))
+				(if (<= pos tail1-beg)
+					;;            ------
+					;; host](head)[body](tail)[host](head))
+					(list 'body head1-end tail1-beg)
+				  ;;                  -----
+				  ;; host](head](body](tail)[host](head)
+				  (list 'tail tail1-beg tail1-end))
+			  
+			  ;;                        ------------
+			  ;; host](head](body](tail)[host](head)
+			  (let* ((head2-beg (or (and (re-search-forward head-matcher nil t)
+										 (match-beginning 0))
+									(point-max))))
+				(if (<= pos head2-beg)
+					;;                        ------
+					;; host](head](body](tail)[host](head)
+					(list nil tail1-end head2-beg)
+				  ;;                              ------
+				  ;; host](head](body](tail)[host](head)
+				  (list 'head head2-beg (match-end 0))))))
+
+		;; -----------
+		;; host](head)[body](tail)[host
+		(let ((head2-beg (and (goto-char (point-min))
+							  (re-search-forward head-matcher nil t)
+							  (match-beginning 0))))
+
+		  (if (null head2-beg)
+			  ;; no span found
+			  (list nil (point-min) (point-max))
+			
+			(if (<= pos head2-beg)
+				;; -----
+				;; host](head)[body](tail)[host
+				(list nil (point-min) head2-beg)
+			  ;;      ------
+			  ;; host](head)[body](tail)[host
+			  (list 'head head2-beg (match-end 0)))))))))
 
 (defun pm--span-at-point (head-matcher tail-matcher &optional pos)
   "Basic span detector with head/tail.
 
-HEAD-MATCHER and TAIL-MATCHER can be regexp or functions
-returning (cons beg end) and accepting one argument AHEAD that
-can be either 1 or -1 for either forward or backward search.
+Either of HEAD-MATCHER and TAIL-MATCHER can be a regexp or a
+function. When a function the matcher must accept one argument
+that can take either values 1 (forwards search) or -1 (backward
+search). This function must return either nil (no match) or
+a (cons BEG END) representing the span of the head or tail
+respectively. See `pm--default-matcher' for an example.
 
 Return (type span-start span-end) where type is one of the
 follwoing symbols:
 
-nil - pos is between (tail-reg or point-min) and (head-reg or point-max)
-body - pos is between head-reg and (tail-reg or point-max)
-head -  head span
-tail -  tail span"
+nil	  - pos is between point-min and head-reg, or between tail-reg and point-max
+body  - pos is between head-reg and tail-reg (exclusively)
+head  - head span
+tail  - tail span"
   ;; ! start of the span is part of the span !
   (save-restriction
     (widen)
