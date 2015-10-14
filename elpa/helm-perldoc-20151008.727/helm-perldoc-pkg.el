@@ -1,5 +1,5 @@
-(define-package "helm-perldoc" "20140701.1833" "perldoc with helm interface"
-  '((helm "1.0")
+(define-package "helm-perldoc" "20151008.727" "perldoc with helm interface"
+  '((helm-core "1.7.7")
     (deferred "0.3.1")
     (cl-lib "0.5"))
   :url "https://github.com/syohex/emacs-helm-perldoc")

@@ -1,11 +1,11 @@
 ;;; helm-perldoc.el --- perldoc with helm interface -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014 by Syohei YOSHIDA
+;; Copyright (C) 2015 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-perldoc
 ;; Version: 0.07
-;; Package-Requires: ((helm "1.0") (deferred "0.3.1") (cl-lib "0.5"))
+;; Package-Requires: ((helm-core "1.7.7") (deferred "0.3.1") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -265,14 +265,6 @@
       (goto-char (plist-get insertion-plist :point))
       (insert statement))))
 
-(define-helm-type-attribute 'perldoc
-  '((action
-     ("View Document" . helm-perldoc:action-view-document)
-     ("View Source Code" . helm-perldoc:action-view-source)
-     ("Import Modules" . helm-perldoc:action-insert-modules)
-     ("Check by corelist" . helm-perldoc:action-check-corelist))
-    "Perldoc helm attribute"))
-
 (defun helm-perldoc:filter-modules (modules)
   (cl-loop for module in modules
            when (and (not (string-match-p "\\`[[:digit:]]" module))
@@ -332,23 +324,29 @@
       (error "Please exec 'M-x helm-perldoc:setup'")))
   (sort (cl-copy-list helm-perldoc:modules) 'string<))
 
+(defvar helm-perldoc:actions
+  '(("View Document" . helm-perldoc:action-view-document)
+    ("View Source Code" . helm-perldoc:action-view-source)
+    ("Import Modules" . helm-perldoc:action-insert-modules)
+    ("Check by corelist" . helm-perldoc:action-check-corelist)))
+
 (defvar helm-perldoc:imported-source
-  '((name . "Imported Modules")
-    (candidates . helm-perldoc:imported-init)
-    (type . perldoc)
-    (candidate-number-limit . 9999)))
+  (helm-build-sync-source "Imported Modules"
+    :candidates 'helm-perldoc:imported-init
+    :action helm-perldoc:actions
+    :candidate-number-limit 9999))
 
 (defvar helm-perldoc:superclass-source
-  '((name . "SuperClass")
-    (candidates . helm-perldoc:superclass-init)
-    (type . perldoc)
-    (candidate-number-limit . 9999)))
+  (helm-build-sync-source "SuperClass"
+    :candidates 'helm-perldoc:superclass-init
+    :action helm-perldoc:actions
+    :candidate-number-limit 9999))
 
 (defvar helm-perldoc:other-source
-  '((name . "Installed Modules")
-    (candidates . helm-perldoc:other-init)
-    (type . perldoc)
-    (candidate-number-limit . 9999)))
+  (helm-build-sync-source "Installed Modules"
+    :candidates 'helm-perldoc:other-init
+    :action helm-perldoc:actions
+    :candidate-number-limit 9999))
 
 (defun helm-perldoc:check-buffer ()
   (let ((buf (get-buffer helm-perldoc:buffer)))
