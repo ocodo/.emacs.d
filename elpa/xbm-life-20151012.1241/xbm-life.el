@@ -4,8 +4,8 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/xbm-life
-;; Package-Version: 20150622.11
-;; Version: 0.1
+;; Package-Version: 20151012.1241
+;; Version: 0.1.1
 ;; Package-Requires:
 ;; Keywords: games
 
@@ -551,8 +551,8 @@ If yes, toggle the clicked cell."
 
 (define-key xbm-life-mode-map (kbd "l") 'xbm-life-load-pattern)
 (define-key xbm-life-mode-map (kbd "L") 'xbm-life-load-random-pattern)
-(define-key xbm-life-mode-map (kbd "r") 'xbm-life-reset)
-(define-key xbm-life-mode-map (kbd "R") 'xbm-life-randomize-grid)
+(define-key xbm-life-mode-map (kbd "r") 'xbm-life-randomize-grid)
+(define-key xbm-life-mode-map (kbd "g") 'xbm-life-reset)
 (define-key xbm-life-mode-map (kbd "p") 'xbm-life-play-or-pause)
 (define-key xbm-life-mode-map (kbd "SPC") 'xbm-life-play-or-pause)
 (define-key xbm-life-mode-map (kbd ".") 'xbm-life-single-step)
