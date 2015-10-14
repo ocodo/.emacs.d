@@ -1,10 +1,10 @@
 ;;; discover-my-major-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (discover-my-major) "discover-my-major" "discover-my-major.el"
-;;;;;;  (21359 36928 0 0))
+;;;### (autoloads nil "discover-my-major" "discover-my-major.el"
+;;;;;;  (22045 48071 265140 0))
 ;;; Generated autoloads from discover-my-major.el
 
 (autoload 'discover-my-major "discover-my-major" "\
@@ -13,18 +13,16 @@ If ARG is non-nil recreate the makey popup function even if it is already define
 
 \(fn ARG)" t nil)
 
-;;;***
-
-;;;### (autoloads nil nil ("discover-my-major-pkg.el") (21359 36928
-;;;;;;  589538 0))
+(autoload 'discover-my-mode "discover-my-major" "\
+Create a makey popup listing all MODE keys with their description.
+
+\(fn MODE)" t nil)
 
 ;;;***
 
-(provide 'discover-my-major-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; discover-my-major-autoloads.el ends here

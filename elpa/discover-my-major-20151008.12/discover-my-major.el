@@ -1,11 +1,11 @@
 ;;; discover-my-major.el --- Discover key bindings and their meaning for the current Emacs major mode
-;; Version: 20140510.1007
 
 ;; Copyright (C) 2014, Steckerhalter
 
 ;; Author: steckerhalter
 ;; Package-Requires: ((makey "0.2"))
 ;; URL: https://github.com/steckerhalter/discover-my-major
+;; Package-Version: 20151008.12
 ;; Keywords: discover help major-mode keys
 
 ;; This file is not part of GNU Emacs.
@@ -31,15 +31,53 @@
 
 (require 'makey)
 
-(defun dmm/major-mode-actions ()
-  "Loop over the bindings and return a list with the actions properly formatted."
-  (delq nil (mapcar 'dmm/format-binding (dmm/major-mode-bindings))))
+(defun dmm/major-mode-actions (&optional buffer)
+  "Returns a formatted list of major mode actions in BUFFER.
+If BUFFER is not specified then use the current buffer."
+  (delq nil (mapcar 'dmm/format-binding (dmm/major-mode-bindings buffer))))
+
+(defun dmm/mode-actions (mode &optional buffer)
+  "Return a formatted list of actions for MODE in BUFFER.
+If BUFFER is not specified then use the current buffer."
+  (delq nil (mapcar 'dmm/format-binding (dmm/mode-bindings mode buffer))))
+
+(defun dmm/mode-bindings (mode &optional buffer)
+  "Return a list with the bindings of MODE in BUFFER.
+If BUFFER is not specified then use the current buffer."
+  (let* ((buffer (or buffer (current-buffer)))
+         (mode-name (if (symbolp mode)
+                        (symbol-name mode)
+                      mode))
+         (mode-string (dmm/mode-string mode-name)))
+    (cdr (assoc mode-string (dmm/descbinds-all-sections (current-buffer))))))
 
 (defun dmm/major-mode-bindings (&optional buffer)
-  "Return a list with  the bindings of BUFFER.
+  "Return a list with the bindings of BUFFER.
 If BUFFER is not specified then use the current buffer."
   (let ((buffer (or buffer (current-buffer))))
-    (cdr (assoc "Major Mode Bindings:" (dmm/descbinds-all-sections (current-buffer))))))
+    (dmm/mode-bindings major-mode)))
+
+(defun dmm/mode-string (mode)
+  "Return the string describing MODE.
+This string is at the start of the section describing MODE in the
+output of `describe-buffer-bindings'."
+  (let* ((mode-name (if (symbolp mode)
+                        (symbol-name mode)
+                      mode))
+         (mode-string (if (eq mode-name (symbol-name major-mode))
+                          "Major Mode Bindings:"
+                        (format "`%s' Minor Mode Bindings:" mode-name))))
+    mode-string))
+
+(defun dmm/mode-has-bindings-p (mode &optional buffer)
+  "Returns t if MODE has bindings defined in BUFFER.
+If BUFFER is nil, checks for bindings in `current-buffer'. Returns nil
+if MODE is not a mode symbol or mode name or if MODE has no actions in
+BUFFER."
+  (let* ((mode-symbol (if (symbolp mode)
+                          mode
+                        (intern mode))))
+    (> (safe-length (dmm/mode-bindings mode-symbol (current-buffer))) 0)))
 
 (defun dmm/doc-summary (sym)
   "Return the docstring summary for the symbol SYM.
@@ -126,8 +164,48 @@ If ARG is non-nil recreate the makey popup function even if it is already define
                               (replace-regexp-in-string
                                "[\e\r\n\t]+" " "
                                (documentation major-mode))))
-               (actions ,(cons major-mode (dmm/major-mode-actions)))))))
+               (actions ,(cons major-mode (dmm/major-mode-actions (current-buffer))))))))
     (funcall (dmm/get-makey-func group-name))))
+
+(defvar dmm/discover-my-mode-history nil
+  "History list for `dmm/discover-my-mode'.")
+
+;;;###autoload
+(defun discover-my-mode (mode)
+  "Create a makey popup listing all MODE keys with their description."
+  (interactive
+   (let* ((active-modes (dmm/list-active-modes)))
+     (list
+      (completing-read "Discover mode: " active-modes 'symbolp t nil 'dmm/discover-my-mode-history nil))))
+  (let* ((mode-name (if (symbolp mode)
+                        (symbol-name mode)
+                      mode))
+         (mode-symbol
+          (if (symbolp mode)
+              mode
+            (intern mode))))
+    (if (dmm/mode-has-bindings-p mode-symbol)
+        (makey-initialize-key-groups
+         (list `(,mode-symbol
+                 (description ,(format
+                                "Discover my Mode: `%s' --- %s"
+                                mode-symbol
+                                (replace-regexp-in-string
+                                 "[\e\r\n\t]+" " "
+                                 (documentation mode-symbol))))
+                 (actions ,(cons mode-symbol (dmm/mode-actions mode-symbol (current-buffer)))))))
+      (error "Mode `%s' has no bindings in the current buffer." mode-name))
+    (funcall (dmm/get-makey-func mode-symbol))))
+
+(defun dmm/list-active-modes ()
+  "Returns a list of the active modes in the current buffer."
+  (let ((active-modes))
+    (mapc (lambda (mode) (condition-case nil
+                        (if (and (symbolp mode) (symbol-value mode))
+                            (add-to-list 'active-modes mode))
+                      (error nil) ))
+          minor-mode-list)
+    active-modes))
 
 (provide 'discover-my-major)
 
