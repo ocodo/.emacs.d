@@ -1,4 +1,4 @@
-(define-package "rspec-mode" "20150727.1418" "Enhance ruby-mode for RSpec"
+(define-package "rspec-mode" "20151003.315" "Enhance ruby-mode for RSpec"
   '((ruby-mode "1.0")
     (cl-lib "0.4"))
   :url "http://github.com/pezra/rspec-mode" :keywords
