@@ -3,10 +3,10 @@
 ;;
 ;; Author: Adam Schwartz <adam@adamschwartz.io>
 ;; URL: https://github.com/daschwa/helm-itunes
+;; Package-Version: 20151012.2348
 ;;
 ;; Created: 2014-06-02
-;; Version: 20140605.2137
-;; X-Original-Version: 0.0.1
+;; Version: 0.0.1
 ;; Package-Requires: ((helm "1.6.1"))
 
 ;;; Commentary:
@@ -31,11 +31,11 @@
 (require 'helm)
 
 ;; Change the music player to Spotify
-(defvar helm-itunes-music-player nil "initialize spotify-player variable")
+(defvar helm-itunes-music-player nil "Initialize spotify-player variable.")
 (setq-default helm-itunes-music-player "itunes")
 
 (defun helm-itunes-player (player)
-  "Choose Spotify or iTunes as the music player"
+  "Choose Spotify or iTunes as the music player."
 
   (interactive "sPlay music through Spotify? (y/n): ")
   (if (or (equal (downcase player) "y")
@@ -84,7 +84,7 @@ return matches" pattern))
 ;; Finally, concatenate the list items into a single string.
 
 (defun helm-itunes-get-song-list (pattern)
-  "Return a list of matching songs in your iTunes library"
+  "Return a list of matching songs in your iTunes library."
   (mapcar (lambda (song-list)
             (split-string song-list "\\,\s"))
           (split-string
@@ -94,7 +94,7 @@ return matches" pattern))
 
 
 (defun helm-itunes-itunes-format-track (track)
-  "Given a TRACK, return a formatted string to display"
+  "Given a TRACK, return a formatted string to display."
   (let ((song (nth 2 track))
         (artist (nth 0 track))
         (album (nth 1 track)))
@@ -102,7 +102,7 @@ return matches" pattern))
 
 
 (defun helm-itunes-spotify-format-track (track)
-  "Return a Spotify compatible string to play"
+  "Return a Spotify compatible string to play."
   (let ((song (url-hexify-string (nth 2 track)))
         (artist (url-hexify-string (nth 0 track)))
         (album (url-hexify-string (nth 1 track))))
@@ -115,7 +115,7 @@ return matches" pattern))
 ;; Our data is the same as what is displayed,
 ;; so each 'key' is the same as its 'value'.
 (defun helm-itunes-search-formatted (pattern)
-  "Create the helm search results candidates"
+  "Create the helm search results candidates."
   (mapcar (lambda (track)
             (cons (helm-itunes-itunes-format-track track)
                   (if (equal helm-itunes-music-player "spotify")
@@ -125,34 +125,31 @@ return matches" pattern))
 
 
 (defun helm-itunes-helm-search ()
-  "Initiate the search"
+  "Initiate the search."
   (helm-itunes-search-formatted helm-pattern))
 
 
 (defun helm-itunes-play-track (track)
-  (shell-command (format "osascript -e 'tell application %S to play track %S' "
+  (shell-command (format "osascript -e 'tell application %S to play track %S'"
                          helm-itunes-music-player track)))
 
-
-;;;###autoload
 (defvar helm-source-itunes-search
-  '((name . "iTunes Search")
-    (volatile)
-    (delayed . 1)    ; Change the delay to prevent Emacs from crashing.
-    (multiline)
-    (requires-pattern . 2)
-    (candidates-process . helm-itunes-helm-search)
-    (action . (("Play Track" . helm-itunes-play-track)))))
-
+  (helm-build-async-source "iTunes Search"
+    :candidates-process #'helm-itunes-helm-search
+    :delayed 1                ; Change the delay to prevent Emacs from crashing.
+    :volatile t
+    :multiline t
+    :requires-pattern 2
+    :action '(("Play Track" . helm-itunes-play-track))))
 
 ;;;###autoload
 (defun helm-itunes ()
   "Bring up a Spotify search interface in helm."
   (interactive)
-  (if (equal system-type 'darwin)
-      (helm :sources '(helm-source-itunes-search)
+  (if (eq system-type 'darwin)
+      (helm :sources 'helm-source-itunes-search
             :buffer "*helm-itunes*")
-    (message (format "Sorry, helm-itunes does not support %S" system-type))))
+    (message "Sorry, helm-itunes does not support %S" system-type)))
 
 
 (provide 'helm-itunes)
