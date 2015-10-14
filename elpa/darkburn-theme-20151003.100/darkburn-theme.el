@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Gorauskas <jgorauskas@gmail.com>
 ;; URL: http://github.com/gorauskas/darkburn-theme
-;; Package-Version: 20150919.1731
+;; Package-Version: 20151003.100
 ;; Version: 0.4
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -270,7 +270,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(diff-added          ((t (:background "#335533" :foreground ,darkburn-green))))
    `(diff-changed        ((t (:background "#555511" :foreground ,darkburn-yellow-1))))
    `(diff-removed        ((t (:background "#553333" :foreground ,darkburn-red-2))))
-   `(diff-refine-added   ((t (:background "#338833" :foreground ,darkburn-green4))))
+   `(diff-refine-added   ((t (:background "#338833" :foreground ,darkburn-green+4))))
    `(diff-refine-change  ((t (:background "#888811" :foreground ,darkburn-yellow))))
    `(diff-refine-removed ((t (:background "#883333" :foreground ,darkburn-red))))
    `(diff-header ((,class (:background ,darkburn-bg+2))
