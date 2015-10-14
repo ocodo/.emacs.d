@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-projectile" "helm-projectile.el" (22021
-;;;;;;  61679 961140 0))
+;;;### (autoloads nil "helm-projectile" "helm-projectile.el" (22045
+;;;;;;  47989 753140 0))
 ;;; Generated autoloads from helm-projectile.el
 
 (defvar helm-projectile-fuzzy-match t "\
@@ -36,9 +36,10 @@ Turn off helm-projectile key bindings.
 \(fn)" t nil)
 
 (autoload 'helm-projectile-grep "helm-projectile" "\
-Helm version of projectile-grep.
+Helm version of `projectile-grep'.
+DIR is the project root, if not set then current directory is used
 
-\(fn)" t nil)
+\(fn &optional DIR)" t nil)
 
 (autoload 'helm-projectile-ack "helm-projectile" "\
 Helm version of projectile-ack.
