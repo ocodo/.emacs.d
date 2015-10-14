@@ -2,8 +2,8 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/relative-line-numbers
-;; Package-Version: 20150624.714
-;; Version: 0.3.1
+;; Package-Version: 20151006.1446
+;; Version: 0.3.2
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -61,9 +61,9 @@ Recommended functions are:
  - `forward-line': invisible lines will be counted, counting follows physical
    lines,
  - `forward-visible-line': invisible lines will NOT be counted, counting follows
-   physical lines,
- - `vertical-motion': invisible lines will NOT be counted, counting follows
-   VISUAL lines."
+   physical lines.
+
+Using other functions is possible, but only at one's own risk."
   :type 'function
   :group 'relative-line-numbers)
 

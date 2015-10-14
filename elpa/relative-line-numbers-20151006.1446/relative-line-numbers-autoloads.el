@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "relative-line-numbers" "relative-line-numbers.el"
-;;;;;;  (21906 2249 595401 0))
+;;;;;;  (22045 47872 57140 0))
 ;;; Generated autoloads from relative-line-numbers.el
 
 (autoload 'relative-line-numbers-mode "relative-line-numbers" "\
