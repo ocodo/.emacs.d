@@ -3194,11 +3194,14 @@ and `helm-pattern'."
        (helm-log "Using here `helm-while-no-input'")
        (helm-while-no-input ,@body))))
 
+(defun helm--collect-matches (src-list)
+  (let ((matches (helm--maybe-use-while-no-input
+                  (cl-loop for src in src-list
+                           collect (helm-compute-matches src)))))
+    (unless (eq matches t) matches)))
+
 (defun helm--compute-sources (src-list)
-  (cl-loop with matches = (helm--maybe-use-while-no-input
-                           (cl-loop for src in src-list
-                                 collect (helm-compute-matches src)))
-        when (eq matches t) do (setq matches nil)
+  (cl-loop with matches = (helm--collect-matches src-list)
         for src in src-list
         for mtc in matches
         do (helm-render-source src mtc)))
@@ -3250,7 +3253,8 @@ is done on whole `helm-buffer' and not on current source."
   (with-current-buffer (helm-buffer-get)
     (set (make-local-variable 'helm-input-local) helm-pattern)
     (let (normal-sources
-          delayed-sources)
+          delayed-sources
+          matches)
       (unwind-protect
            (progn
              ;; Iterate over all the sources
@@ -3266,13 +3270,21 @@ is done on whole `helm-buffer' and not on current source."
                    ;; Export the variables from cl-loop
                    finally (setq delayed-sources ds
                                  normal-sources ns))
-             (erase-buffer)
-             ;; Render all the sources into the helm buffer after
-             ;; calculating all candidates.
-             ;; Candidates must be computed AFTER erasing buffer
-             ;; even if it cause flickering; Doing so avoid
-             ;; unexpected results when executing actions.
-             (helm--compute-sources normal-sources))
+             ;; When no normal-sources erase buffer
+             ;; for the next possible delayed source
+             ;; or the already computed normal-source
+             ;; that is no more "updateable" (requires-pattern).
+             (unless normal-sources (erase-buffer))
+             ;; Compute matches without rendering the sources.
+             (helm-log "Matches: %S"
+                       (setq matches (helm--collect-matches normal-sources)))
+             ;; If computing matches finished and is not interrupted
+             ;; erase the helm-buffer and render results (Fix #1157).
+             (when matches
+               (erase-buffer)
+               (cl-loop for src in normal-sources
+                        for mtc in matches
+                        do (helm-render-source src mtc))))
         (helm-log "Delayed sources = %S"
                   (mapcar (lambda (s) (assoc-default 'name s))
                           delayed-sources))
@@ -3731,6 +3743,11 @@ Possible value of DIRECTION are 'next or 'previous."
               `(" " mode-line-buffer-identification " "
                     (:eval (format "L%d" (helm-candidate-number-at-point)))
                     " " ,follow
+                    (:eval (and helm-marked-candidates
+                                (propertize
+                                 (format "M%d" (length helm-marked-candidates))
+                                 'face 'helm-visible-mark)))
+                    " "
                     (:eval (when ,helm--mode-line-display-prefarg
                              (let ((arg (prefix-numeric-value
                                          (or prefix-arg current-prefix-arg))))
@@ -3780,9 +3797,9 @@ Possible value of DIRECTION are 'next or 'previous."
          ;; Increment pos to handle the space before prompt (i.e `pref').
          (1+ pos) (+ 2 pos)
          'face ;don't just use 'cursor; this can hide the current character
-         `((t :inverse-video t
-              :foreground ,(face-background 'cursor)
-              :background ,(face-background 'default)))
+         (list :inverse-video t
+               :foreground (face-background 'cursor)
+               :background (face-background 'default))
          header-line-format)
         (when update (force-mode-line-update))))))
 
@@ -5082,8 +5099,9 @@ Argument ACTION if present will be used as second argument of `display-buffer'."
         (helm-aif (helm-this-visible-mark)
             (helm-delete-visible-mark it)
           (helm-make-visible-mark))
-        (unless (helm-end-of-source-p)
-          (helm-next-line))))))
+        (if (helm-end-of-source-p)
+            (helm-display-mode-line (helm-get-current-source))
+            (helm-next-line))))))
 
 (defun helm-file-completion-source-p ()
   "Return non--nil if current source is a file completion source."
@@ -5157,6 +5175,7 @@ Argument ACTION if present will be used as second argument of `display-buffer'."
         (helm-clear-visible-mark))
       (setq helm-marked-candidates nil)
       (helm-mark-current-line)
+      (helm-display-mode-line (helm-get-current-source))
       (message "%s candidates unmarked" len))))
 
 (defun helm-toggle-all-marks ()
