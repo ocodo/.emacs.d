@@ -30,7 +30,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.0
-;; Package-Version: 20150910.836
+;; Package-Version: 20151011.1256
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
 
@@ -491,6 +491,10 @@
 ;;   * `markdown-italic-underscore' - set to a non-nil value to use
 ;;     underscores for italic instead of asterisks (default: `nil').
 ;;
+;;   * `markdown-asymmetric-header' - set to a non-nil value to use
+;;     asymmetric header styling, placing header characters only on
+;;     the left of headers (default: `nil').
+;;
 ;;   * `markdown-indent-function' - the function to use for automatic
 ;;     indentation (default: `markdown-indent-line').
 ;;
@@ -873,6 +877,14 @@ promotion and demotion functions."
 
 (defcustom markdown-italic-underscore nil
   "Use underscores for italic instead of asterisks."
+  :group 'markdown
+  :type 'boolean)
+
+(defcustom markdown-asymmetric-header nil
+  "Determines if header style will be asymmetric.
+Set to non-nil to only have header characters to the left of the title.
+The default will ensure header characters are placed to the left and right
+of the title."
   :group 'markdown
   :type 'boolean)
 
@@ -2594,7 +2606,7 @@ header will be inserted."
            (insert text "\n" hdr))
           (t
            (setq hdr (make-string level ?#))
-           (insert hdr " " text " " hdr))))
+           (insert hdr " " text (when (null markdown-asymmetric-header) " " hdr)))))
   (markdown-ensure-blank-line-after)
   ;; Leave point at end of text
   (if setext
