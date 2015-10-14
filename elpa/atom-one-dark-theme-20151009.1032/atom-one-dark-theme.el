@@ -4,14 +4,14 @@
 ;;
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20150806.2117
-;; Version: 0.3.0
+;; Package-Version: 20151009.1032
+;; Version: 0.3.1
 ;;
-;;; Commentary
+;;; Commentary:
 ;;
 ;; An Emacs port of the Atom One Dark theme from Atom.io.
 ;;
-;;; Code
+;;; Code:
 
 (deftheme atom-one-dark
   "Atom One Dark - An Emacs port of the Atom One Dark theme from Atom.io.")
@@ -35,9 +35,10 @@
     ("atom-one-dark-gray"     . "#3E4451")
     ("atom-one-dark-silver"   . "#AAAAAA")
     ("atom-one-dark-black"    . "#0F1011"))
-  "List of Atom One Dark colors")
+  "List of Atom One Dark colors.")
 
 (defmacro atom-one-dark-with-color-variables (&rest body)
+  "Bind the colors list around BODY."
   (declare (indent 0))
   `(let ((class '((class color) (min-colors 89)))
          ,@ (mapcar (lambda (cons)
@@ -116,4 +117,7 @@
 
 (provide-theme 'atom-one-dark)
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
 ;;; atom-one-dark-theme.el ends here
