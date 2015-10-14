@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22030 34906 357140 0))
+;;;### (autoloads nil "dired+" "dired+.el" (22045 48075 265140 0))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -1641,9 +1641,10 @@ In Dired, change the mode of the file on the cursor line.
 
 (autoload 'dired-mark-sexp "dired+" "\
 Mark files for which PREDICATE returns non-nil.
-With non-nil prefix arg UNMARK-P, unmark those files instead.
+With a prefix arg, unmark or unflag those files instead.
 
-PREDICATE is a lisp sexp that can refer to the following variables:
+PREDICATE is a lisp sexp that can refer to the following symbols as
+variables:
 
     `mode'   [string]  file permission bits, e.g. \"-rw-r--r--\"
     `nlink'  [integer] number of links to file
