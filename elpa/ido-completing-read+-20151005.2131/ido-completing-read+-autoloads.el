@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "ido-completing-read+" "ido-completing-read+.el"
-;;;;;;  (21911 65051 531401 0))
+;;;;;;  (22045 47966 357140 0))
 ;;; Generated autoloads from ido-completing-read+.el
 
 (defvar ido-cr+-enable-next-call nil "\
@@ -18,7 +18,7 @@ If non-nil, replace `ido-completeing-read' completely with ido-cr+.
 
 Enabling this may interfere with or cause errors in other
 packages that use `ido-completing-read'. If you discover any such
-incompatibilites, please file a bug report at
+incompatibilities, please file a bug report at
 https://github.com/DarwinAwardWinner/ido-ubiquitous/issues")
 
 (custom-autoload 'ido-cr+-replace-completely "ido-completing-read+" t)

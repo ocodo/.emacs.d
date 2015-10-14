@@ -5,8 +5,8 @@
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 3.6
-;; Package-Version: 20150630.926
+;; Version: 3.7
+;; Package-Version: 20151005.2131
 ;; Package-Requires: ((emacs "24.1"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
@@ -17,7 +17,7 @@
 ;;
 ;;; Commentary:
 
-;; This package implments the `ido-completing-read+' function, which
+;; This package implements the `ido-completing-read+' function, which
 ;; is a wrapper for `ido-completing-read'. Importantly, it detects
 ;; edge cases that ordinary ido cannot handle and either adjusts them
 ;; so ido *can* handle them, or else simply falls back to Emacs'
@@ -42,7 +42,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-completing-read+-version "3.6"
+(defconst ido-completing-read+-version "3.7"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-completing-read+, this variable may
@@ -88,7 +88,7 @@ not be updated until you restart Emacs.")
     completing-read-function)
   "Alternate completing-read function to use when ido is not wanted.
 
-This will be used for functions that are incompatibile with ido
+This will be used for functions that are incompatible with ido
 or if ido cannot handle the completion arguments. It will also be
 used when the user requests non-ido completion manually via C-f
 or C-b."
@@ -122,7 +122,7 @@ disable fallback based on collection size, set this to nil."
 
 Enabling this may interfere with or cause errors in other
 packages that use `ido-completing-read'. If you discover any such
-incompatibilites, please file a bug report at
+incompatibilities, please file a bug report at
 https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :type 'boolean)
 
