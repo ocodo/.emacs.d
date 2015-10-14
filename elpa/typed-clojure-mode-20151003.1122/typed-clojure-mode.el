@@ -5,7 +5,7 @@
 ;; Author: John Walker <john.lou.walker@gmail.com>, Ambrose Bonnaire-Sergeant <abonnairesergeant@gmail.com>
 ;; URL: https://github.com/typedclojure/typed-clojure-mode
 ;; Version: 1.1.0
-;; Package-Requires: ((clojure-mode "2.1.1") (cider "0.8.1"))
+;; Package-Requires: ((clojure-mode "2.1.1") (cider "0.10.0-cvs"))
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ and annotation snippets.
   )
 
 (defun typed-clojure-read-eval-sync (s)
-  (read (nrepl-dict-get (nrepl-sync-request:eval s)
+  (read (nrepl-dict-get (cider-nrepl-sync-request:eval s)
                         "value")))
 
 (defun typed-clojure-qualify-ann-var (n)
