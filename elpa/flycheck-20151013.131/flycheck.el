@@ -6248,11 +6248,12 @@ Uses GCC's Fortran compiler gfortran.  See URL
             (eval flycheck-gfortran-args)
             source)
   :error-patterns
-  ((error line-start (file-name) ":" line "." column ":\n"
-          (= 3 (zero-or-more not-newline) "\n")
-          (or "Error" "Fatal Error") ": " (message) line-end)
-   (warning line-start (file-name) ":" line "." column ":\n"
-            (= 3 (zero-or-more not-newline) "\n")
+  ((error line-start (file-name) ":" line (or ":" ".") column (or ": " ":\n")
+          (or (= 3 (zero-or-more not-newline) "\n") "")
+          (or "Error" "Fatal Error") ": "
+          (message) line-end)
+   (warning line-start (file-name) ":" line (or ":" ".") column (or ": " ":\n")
+            (or (= 3 (zero-or-more not-newline) "\n") "")
             "Warning: " (message) line-end))
   :modes (fortran-mode f90-mode))
 
@@ -7306,6 +7307,9 @@ See URL `http://racket-lang.org/'."
   :command ("racket" "-f" source-inplace)
   :error-patterns
   ((error line-start (file-name) ":" line ":" column ":" (message) line-end))
+  :error-filter (lambda (errors)
+                  (flycheck-sanitize-errors
+                   (flycheck-increment-error-columns errors)))
   :modes racket-mode)
 
 (flycheck-define-checker rpm-rpmlint
