@@ -2,8 +2,8 @@
 
 ;; Author: Wataru MIYAGUNI <gonngo@gmail.com>
 ;; URL: https://github.com/gongo/json-reformat
-;; Package-Version: 20150930.705
-;; Version: 0.0.4
+;; Package-Version: 20151007.1728
+;; Version: 0.0.5
 ;; Keywords: json
 
 ;; Copyright (c) 2012 Wataru MIYAGUNI
@@ -170,7 +170,7 @@ Else t:
 If you want to customize the reformat style,
 please see the documentation of `json-reformat:indent-width'
 and `json-reformat:pretty-string?'."
-  (interactive "r")
+  (interactive "*r")
   (let ((start-line (line-number-at-pos begin))
         (json-key-type 'string)
         (json-object-type 'hash-table))
