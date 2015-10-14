@@ -4,9 +4,9 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-open-github
-;; Package-Version: 20150615.45
-;; Version: 0.13
-;; Package-Requires: ((helm "1.0") (gh "0.8.2") (cl-lib "0.5"))
+;; Package-Version: 20151009.2331
+;; Version: 0.14
+;; Package-Requires: ((helm-core "1.7.7") (gh "0.8.2") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -174,7 +174,7 @@ Either \"asc\" or \"desc\"."
   (interactive)
   (helm :sources '(helm-open-github--from-commit-source
                    helm-open-github--from-commit-direct-input-source)
-        :buffer "*open github*"))
+        :buffer "*helm open github*"))
 
 (defun helm-open-github--collect-files ()
   (let ((root (helm-open-github--root-directory)))
@@ -244,7 +244,7 @@ Either \"asc\" or \"desc\"."
   (if mark-active
       (helm-open-github--from-file-direct (buffer-file-name) (region-beginning) (region-end))
     (helm :sources '(helm-open-github--from-file-source)
-          :buffer "*open github*")))
+          :buffer "*helm open github*")))
 
 (defun helm-open-github--collect-issues ()
   (let ((remote-url (helm-open-github--remote-url)))
@@ -347,7 +347,7 @@ Either \"asc\" or \"desc\"."
         (helm-open-github--from-issues-direct host)
       (helm :sources '(helm-open-github--from-issues-source
                        helm-open-github--from-closed-issues-source)
-            :buffer  "*open github*"))))
+            :buffer  "*helm open github*"))))
 
 (defun helm-open-github--collect-pullreqs ()
   (let ((remote-url (helm-open-github--remote-url)))
@@ -376,13 +376,13 @@ Either \"asc\" or \"desc\"."
   (helm-open-github--pulls-view-common (oref candidate patch-url)))
 
 (defvar helm-open-github--from-pulls-source
-  '((name . "Open Github From Issues")
-    (candidates . helm-open-github--collect-pullreqs)
-    (volatile)
-    (real-to-display . helm-open-github--from-issues-format-candidate)
-    (action . (("Open issue page with browser" . helm-open-github--open-issue-url)
-               ("View Diff" . helm-open-github--pulls-view-diff)
-               ("View Patch" . helm-open-github--pulls-view-patch)))))
+  (helm-build-sync-source "Open Github From Issues"
+    :candidates 'helm-open-github--collect-pullreqs
+    :volatile t
+    :real-to-display 'helm-open-github--from-issues-format-candidate
+    :action '(("Open issue page with browser" . helm-open-github--open-issue-url)
+              ("View Diff" . helm-open-github--pulls-view-diff)
+              ("View Patch" . helm-open-github--pulls-view-patch))))
 
 ;;;###autoload
 (defun helm-open-github-from-pull-requests ()
@@ -391,7 +391,7 @@ Either \"asc\" or \"desc\"."
     (if (not (string= host "github.com"))
         (helm-open-github--from-issues-direct host)
       (helm :sources '(helm-open-github--from-pulls-source)
-            :buffer  "*open github*"))))
+            :buffer  "*helm open github*"))))
 
 (provide 'helm-open-github)
 
