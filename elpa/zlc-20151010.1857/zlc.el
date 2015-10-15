@@ -4,7 +4,7 @@
 
 ;; Author:  mooz <stillpedant@gmail.com>
 ;; Version: 0.0.5
-;; Package-Version: 20150321.2028
+;; Package-Version: 20151010.1857
 ;; Keywords: matching, convenience
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -210,10 +210,10 @@
     (progn (insert "/")
            (setq minibuffer-scroll-window nil))))
 
-(defmacro zlc--do-completion ()
+(defsubst zlc--do-completion ()
   (if (eq (car (help-function-arglist 'completion--do-completion)) '&optional)
-      '(completion--do-completion)
-    '(completion--do-completion (minibuffer-prompt-end) (point-max))))
+      (completion--do-completion)
+    (completion--do-completion (minibuffer-prompt-end) (point-max))))
 
 (defun zlc-minibuffer-complete ()
   "Complete the minibuffer contents as far as possible.

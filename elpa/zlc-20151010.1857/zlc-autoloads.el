@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "zlc" "zlc.el" (21775 43194 103401 0))
+;;;### (autoloads nil "zlc" "zlc.el" (22045 47803 557140 0))
 ;;; Generated autoloads from zlc.el
 
 (autoload 'zlc-mode "zlc" "\
