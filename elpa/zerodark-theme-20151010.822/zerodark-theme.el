@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20150903.449
+;; Package-Version: 20151010.822
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 0.1
 
@@ -371,6 +371,19 @@
 
    ;; clojure
    `(clojure-keyword-face ((,class (:inherit font-lock-builtin-face))))
+
+   ;; ledger
+   `(ledger-font-report-clickable-face ((,class (:foreground ,blue))))
+   `(ledger-font-posting-amount-face ((,class (:foreground ,purple))))
+   `(ledger-font-posting-date-face ((,class (:foreground ,red :background))))
+   `(ledger-font-payee-uncleared-face ((,class (:foreground ,red :weight bold))))
+   `(ledger-font-posting-account-face ((,class (:foreground ,blue))))
+   `(ledger-font-posting-account-pending-face ((,class (:foreground ,red))))
+   `(ledger-font-xact-highlight-face ((,class (:background ,background-darker))))
+   `(ledger-font-other-face ((,class (:inherit ,font-lock-comment-face))))
+   `(ledger-font-periodic-xact-face ((,class (:foreground ,green))))
+
+
    ))
 
 ;;;###autoload
