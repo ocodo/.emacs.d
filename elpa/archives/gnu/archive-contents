@@ -37,18 +37,16 @@
 		 nil "Indent and dedent Lisp code, automatically adjust close parens" tar
 		 ((:url . "http://elpa.gnu.org/packages/adjust-parens.html"))])
  (aggressive-indent .
-		    [(1 2)
+		    [(1 4)
 		     ((emacs
 		       (24 1))
-		      (names
-		       (20150125 9))
 		      (cl-lib
 		       (0 5)))
 		     "Minor mode to aggressively keep your code always indented" single
 		     ((:url . "http://github.com/Malabarba/aggressive-indent-mode")
 		      (:keywords "indent" "lisp" "maint" "tools"))])
  (ahungry-theme .
-		[(1 0 10)
+		[(1 0 11)
 		 ((emacs
 		   (24)))
 		 "Ahungry color theme for Emacs.  Make sure to (load-theme 'ahungry)." tar
@@ -438,6 +436,13 @@
 	 "Retrieve and decode METAR weather information" single
 	 ((:url . "http://elpa.gnu.org/packages/metar.html")
 	  (:keywords "comm"))])
+ (midi-kbd .
+	   [(0 2)
+	    ((emacs
+	      (25)))
+	    "Create keyboard events from Midi input" single
+	    ((:url . "http://elpa.gnu.org/packages/midi-kbd.html")
+	     (:keywords "convenience" "hardware" "multimedia"))])
  (minibuffer-line .
 		  [(0 1)
 		   nil "Display status info in the minibuffer window" single
@@ -539,7 +544,7 @@
 	 ((:url . "http://www.dr-qubit.org/emacs.php")
 	  (:keywords "extensions" "data structures" "queue"))])
  (rainbow-mode .
-	       [(0 11)
+	       [(0 12)
 		nil "Colorize color names in buffers" single
 		((:url . "http://elpa.gnu.org/packages/rainbow-mode.html")
 		 (:keywords "faces"))])
