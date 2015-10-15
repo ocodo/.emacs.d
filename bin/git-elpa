@@ -39,7 +39,7 @@ List all updated packages, not yet committed.
 
     git-elpa --commit=package-name
 
-Commit the package update (and old version removal). Tthe following
+Commit the package update (and old version removal). The following
 automatic commit message pattern will be used:
 
 "[package-name upgraded] to NEW_VERSION from OLD_VERSION"
@@ -51,6 +51,7 @@ Commit all updated packages (as individual commits)
 =end
 
 require 'git'
+require 'shellwords'
 require 'byebug'
 
 class GitElpa
@@ -61,18 +62,16 @@ class GitElpa
     @g = Git.open EMACS_D
   end
 
+  def updatable_files_from_git_status
+    %x[git status -s | grep -E -o '^( D | A |[?]{2} )elpa/.*?(\.signed|/)' | uniq].split("\n")
+  end
+
   def updated_packages
-    elpa_rx = Regexp.new("^elpa/(.*?)/")
     package_name = Regexp.new("^(.*)-.*?$")
-    updatable = (
-      @g.status.untracked.map(&:first) +
-      @g.status.deleted.map(&:first)
-    ).collect { |f| elpa_rx.match(f)[1] if elpa_rx.match(f) }.
-                compact.
-                uniq.
-                sort
-    updated_names = updatable.map {|u| package_name.match(u)[1] if package_name.match(u) }.
-      uniq
+    updatable = updatable_files_from_git_status
+                .map{|name| name[8..name.length] }
+    updated_names = updatable.map {|u| package_name.match(u)[1] if package_name.match(u) }.uniq
+
     if updated_names.length > 0
       updated_names
     else
@@ -88,7 +87,7 @@ class GitElpa
 
   def commit_package(package, do_commit = true)
     @package = package
-    @rx = Regexp.new("(^elpa/)(#{Regexp.quote(@package)})-([^-]*?)/(.*)")
+    @rx = Regexp.new("(^elpa/)(#{Regexp.quote(@package)})-([^-]*?)(\.signed|/.*)")
     @old = old_versions
     @ver = new_version
     if do_commit
@@ -99,20 +98,24 @@ class GitElpa
   def commit_message
     return "[Removing #{@package} version: #{@old.join(',')}]"                                  if @ver.nil? && @old.length == 1
     return "[Removing #{@package} versions: #{@old.join(',')}]"                                 if @ver.nil? && @old.length > 1
-    return "[Updating #{@package} version: #{@ver}][removing old versions: #{@old.join(',')}]" if @ver && @old.length > 1
-    return "[Updating #{@package} version: #{@ver}][removing old version: #{@old.first}]"      if @ver && @old.length == 1
+    return "[Updating #{@package} version: #{@ver}][removing old versions: #{@old.join(',')}]"  if @ver && @old.length > 1
+    return "[Updating #{@package} version: #{@ver}][removing old version: #{@old.first}]"       if @ver && @old.length == 1
     return "[Adding #{@package} version: #{@ver}]"                                              if @ver && @old.length == 0
   end
 
   def add_to_index
-    %x[git add #{new_version_files.join(" ")}] unless @ver.nil?
-    %x[git rm #{old_version_files.join(" ")}] if @old.length > 0
+    new_version_files.each do |file|
+      %x[git add "#{file.shellescape}"]
+    end unless @ver.nil?
+    old_version_files.each do |file|
+      %x[git rm -rf "#{file.shellescape}"]
+    end if @old.length > 0
   end
 
   def commit(message = commit_message)
     add_to_index
     puts message
-    @g.commit message
+    %x[git commit -m "#{message}"]
   end
 
   def new_version
@@ -127,12 +130,26 @@ class GitElpa
     old_version_files.map{|f| @rx.match(f)[3] }.uniq
   end
 
+  def cleanup_version_file_names list
+    list.map{|f| f.gsub(/^.{3}elpa\//, '')}
+      .select{|f| f != "" }
+  end
+
+  def filter_version_files status_rx
+    cleanup_version_file_names updatable_files_from_git_status
+                                .select{|file| status_rx.match file }
+                                .map{|file| file.gsub status_rx, ''}
+                                .select{|f| @rx.match(f) }
+  end
+
   def new_version_files
-    (@g.status.untracked.map(&:first) + @g.status.added.map(&:first)).select{|f| @rx.match(f) }
+    status_rx = /^( A |[?]{2} )/
+    filter_version_files status_rx
   end
 
   def old_version_files
-    @g.status.deleted.map(&:first).select{|f| @rx.match(f) }
+    status_rx = /^( D )/
+    filter_version_files status_rx
   end
 
   def commit_archives
