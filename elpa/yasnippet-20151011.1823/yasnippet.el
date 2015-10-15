@@ -728,22 +728,22 @@ defined direct keybindings to the command
 (defun yas--modes-to-activate (&optional mode)
   "Compute list of mode symbols that are active for `yas-expand'
 and friends."
-  (let (dfs)
-    (setq dfs (lambda (mode &optional explored)
-                (push mode explored)
-                (cons mode
-                      (loop for neighbour
-                            in (cl-list* (get mode 'derived-mode-parent)
-                                         (ignore-errors (symbol-function mode))
-                                         (gethash mode yas--parents))
-                            when (and neighbour
-                                      (not (memq neighbour explored))
-                                      (symbolp neighbour))
-                            append (funcall dfs neighbour explored)))))
-    (remove-duplicates (if mode
-                           (funcall dfs mode)
-                         (append yas--extra-modes
-                                 (funcall dfs major-mode))))))
+  (let (dfs explored)
+    (setq dfs (lambda (mode)
+                (unless (memq mode explored)
+                  (push mode explored)
+                  (loop for neighbour
+                        in (cl-list* (get mode 'derived-mode-parent)
+                                     (ignore-errors (symbol-function mode))
+                                     (gethash mode yas--parents))
+                        when (and neighbour
+                                  (not (memq neighbour explored))
+                                  (symbolp neighbour))
+                        do (funcall dfs neighbour)))))
+    (if mode
+        (funcall dfs mode)
+      (mapcar dfs (cons major-mode yas--extra-modes)))
+    explored))
 
 (defvar yas-minor-mode-hook nil
   "Hook run when `yas-minor-mode' is turned on.")
@@ -4014,11 +4014,10 @@ with their evaluated value into `yas--backquote-markers-and-strings'."
         (set-marker marker nil)))))
 
 (defun yas--scan-sexps (from count)
-  (condition-case _
+  (ignore-errors
+    (save-match-data ; `scan-sexps' may modify match data.
       (with-syntax-table (standard-syntax-table)
-        (scan-sexps from count))
-    (error
-     nil)))
+        (scan-sexps from count)))))
 
 (defun yas--make-marker (pos)
   "Create a marker at POS with nil `marker-insertion-type'."
@@ -4050,9 +4049,8 @@ When multiple expressions are found, only the last one counts."
                                    ;; after the ":", this will be
                                    ;; caught as a mirror with
                                    ;; transform later.
-                                   (not (save-match-data
-                                          (eq (string-match "$[ \t\n]*("
-                                                            (match-string-no-properties 2)) 0)))
+                                   (not (string-match-p "\\`\\$[ \t\n]*("
+                                                        (match-string-no-properties 2)))
                                    ;; allow ${0: some exit text}
                                    ;; (not (and number (zerop number)))
                                    (yas--make-field number
