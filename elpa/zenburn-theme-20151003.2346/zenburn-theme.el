@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/bbatsov/zenburn-emacs
-;; Package-Version: 20150831.716
+;; Package-Version: 20151003.2346
 ;; Version: 2.3-cvs
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -212,6 +212,22 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(font-latex-italic-face ((t (:foreground ,zenburn-cyan :slant italic))))
    `(font-latex-string-face ((t (:inherit ,font-lock-string-face))))
    `(font-latex-math-face ((t (:foreground ,zenburn-orange))))
+;;;;; agda-mode
+   `(agda2-highlight-keyword-face ((t (:foreground ,zenburn-yellow :weight bold))))
+   `(agda2-highlight-string-face ((t (:foreground ,zenburn-red))))
+   `(agda2-highlight-symbol-face ((t (:foreground ,zenburn-orange))))
+   `(agda2-highlight-primitive-type-face ((t (:foreground ,zenburn-blue-1))))
+   `(agda2-highlight-inductive-constructor-face ((t (:foreground ,zenburn-fg))))
+   `(agda2-highlight-coinductive-constructor-face ((t (:foreground ,zenburn-fg))))    
+   `(agda2-highlight-datatype-face ((t (:foreground ,zenburn-blue))))
+   `(agda2-highlight-function-face ((t (:foreground ,zenburn-blue))))
+   `(agda2-highlight-module-face ((t (:foreground ,zenburn-blue-1))))
+   `(agda2-highlight-error-face ((t (:foreground ,zenburn-bg :background ,zenburn-magenta))))
+   `(agda2-highlight-unsolved-meta-face ((t (:foreground ,zenburn-bg :background ,zenburn-magenta))))
+   `(agda2-highlight-unsolved-constraint-face ((t (:foreground ,zenburn-bg :background ,zenburn-magenta))))
+   `(agda2-highlight-termination-problem-face ((t (:foreground ,zenburn-bg :background ,zenburn-magenta))))
+   `(agda2-highlight-incomplete-pattern-face ((t (:foreground ,zenburn-bg :background ,zenburn-magenta))))
+   `(agda2-highlight-typechecks-face ((t (:background ,zenburn-red-4))))
 ;;;;; auto-complete
    `(ac-candidate-face ((t (:background ,zenburn-bg+3 :foreground ,zenburn-bg-2))))
    `(ac-selection-face ((t (:background ,zenburn-blue-4 :foreground ,zenburn-fg))))
@@ -253,6 +269,17 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(circe-server-face ((t (:foreground ,zenburn-green))))
    `(circe-topic-diff-new-face ((t (:foreground ,zenburn-orange :weight bold))))
    `(circe-prompt-face ((t (:foreground ,zenburn-orange :background ,zenburn-bg :weight bold))))
+;;;;; context-coloring
+   `(context-coloring-level-0-face ((t :foreground ,zenburn-fg)))
+   `(context-coloring-level-1-face ((t :foreground ,zenburn-cyan)))
+   `(context-coloring-level-2-face ((t :foreground ,zenburn-green+4)))
+   `(context-coloring-level-3-face ((t :foreground ,zenburn-yellow)))
+   `(context-coloring-level-4-face ((t :foreground ,zenburn-orange)))
+   `(context-coloring-level-5-face ((t :foreground ,zenburn-magenta)))
+   `(context-coloring-level-6-face ((t :foreground ,zenburn-blue+1)))
+   `(context-coloring-level-7-face ((t :foreground ,zenburn-green+2)))
+   `(context-coloring-level-8-face ((t :foreground ,zenburn-yellow-2)))
+   `(context-coloring-level-9-face ((t :foreground ,zenburn-red+1)))
 ;;;;; coq
    `(coq-solve-tactics-face ((t (:foreground nil :inherit font-lock-constant-face))))
 ;;;;; ctable
