@@ -50,16 +50,13 @@ Commit all updated packages (as individual commits)
 
 =end
 
-require 'git'
 require 'shellwords'
-require 'byebug'
 
 class GitElpa
 
   EMACS_D = File.join(Dir.home, ".emacs.d")
 
   def initialize
-    @g = Git.open EMACS_D
   end
 
   def updatable_files_from_git_status
@@ -153,8 +150,8 @@ class GitElpa
   end
 
   def commit_archives
-    @g.add "elpa/archives"
-    @g.commit "Updating elpa archives"
+    %x[git add elpa/archives]
+    %x[git commit -m "Updating elpa archives"]
   end
 end
 
