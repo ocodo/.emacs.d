@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20151008.1859
+;; Package-Version: 20151015.752
 ;; Version: 0.6.2
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
@@ -42,6 +42,9 @@
 (require 'cl-lib)
 (require 's)
 (require 'dash)
+
+(eval-when-compile
+  (defvar golden-ratio-mode))
 
 (defgroup which-key nil
   "Customization options for which-key-mode"
@@ -660,7 +663,7 @@ addition KEY-SEQUENCE NAME pairs) to apply."
 RECURSING is for internal use."
   (when recursing (define-key map key def))
   (map-keymap
-   (lambda (ev df)
+   (lambda (_ev df)
      (when (keymapp df)
        (which-key-define-key-recursively df key def t)))
    map))
@@ -1484,6 +1487,7 @@ Will force an update if called before `which-key--update'."
                                       keys (window-width)))
         (which-key--show-page page-n)
         loc2))))
+
 
 (defun which-key--create-buffer-and-show (prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
