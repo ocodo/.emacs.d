@@ -1,4 +1,4 @@
-(define-package "swiper" "20151014.1014" "Isearch with an overview. Oh, man!"
+(define-package "swiper" "20151016.143" "Isearch with an overview. Oh, man!"
   '((emacs "24.1"))
   :url "https://github.com/abo-abo/swiper" :keywords
   '("matching"))
