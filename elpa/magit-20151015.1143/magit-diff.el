@@ -230,6 +230,22 @@ be nil."
                         (regexp :tag "Author regexp"    "^Author:     ")
                         (regexp :tag "Committer regexp" "^Commit:     "))))
 
+(defcustom magit-revision-use-gravatar-kludge nil
+  "Whether to work around a bug which affects display of gravatars.
+
+Gravatar images are spliced into two halves which are then
+displayed on separate lines.  On OS X the splicing has a bug in
+some Emacs builds, which causes the top and bottom halves to be
+interchanged.  Enabling this option works around this issue by
+interchanging the halves once more, which cancels out the effect
+of the bug.
+
+See https://github.com/magit/magit/issues/2265
+and https://debbugs.gnu.org/cgi/bugreport.cgi?bug=7847."
+  :package-version '(magit . "2.3.0")
+  :group 'magit-revision
+  :type 'boolean)
+
 ;;; Faces
 
 (defface magit-diff-file-heading
@@ -933,8 +949,9 @@ then visit the actual file.  Otherwise when the diff is about
 an older commit, then visit the respective blob using
 `magit-find-file'.  Also see `magit-diff-visit-file-worktree'
 which, as the name suggests always visits the actual file."
-  (interactive (list (or (magit-file-at-point)
-                         (user-error "No file at point"))
+  (interactive (list (--if-let (magit-file-at-point)
+                         (expand-file-name it)
+                       (user-error "No file at point"))
                      current-prefix-arg))
   (if (file-accessible-directory-p file)
       (magit-diff-visit-directory file other-window)
@@ -1623,20 +1640,24 @@ or a ref which is not a branch, then it inserts nothing."
              (font-obj (query-font (font-at (point) (get-buffer-window))))
              (size     (* 2 (+ (aref font-obj 4) (aref font-obj 5))))
              (align-to (+ offset (ceiling (/ size (aref font-obj 7) 1.0))))
-             (gravatar-size (- size 2)))
+             (gravatar-size (- size 2))
+             (slice1  '(slice .0 .0 1.0 0.5))
+             (slice2  '(slice .0 .5 1.0 1.0)))
         (gravatar-retrieve
          email
-         (lambda (image offset align-to)
+         (lambda (image offset align-to slice1 slice2)
            (unless (eq image 'error)
              (insert (propertize " " 'display `((,@image :ascent center :relief 1)
-                                                (slice .0 .0 1.0 0.5))))
+                                                ,slice1)))
              (insert (propertize " " 'display `((space :align-to ,align-to))))
              (forward-line)
              (forward-char offset)
              (insert (propertize " " 'display `((,@image :ascent center :relief 1)
-                                                (slice .0 .5 1.0 1.0))))
+                                                ,slice2)))
              (insert (propertize " " 'display `((space :align-to ,align-to))))))
-         (list offset align-to))))))
+         (list offset align-to
+               (if magit-revision-use-gravatar-kludge slice2 slice1)
+               (if magit-revision-use-gravatar-kludge slice1 slice2)))))))
 
 (defun magit-revision-set-visibility (section)
   "Preserve section visibility when displaying another commit."
