@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20150913.639
+;; Package-Version: 20151016.201
 ;; Version: 1.4.9
 ;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
 
@@ -640,7 +640,7 @@ Always update if value of this variable is nil."
   (with-current-buffer (find-file-noselect file)
     (save-excursion
       (goto-char pos)
-      (format "%s:%d%s:%s"
+      (format "%s:%d:%s:%s"
               file (line-number-at-pos)
               (helm-aif (which-function) (format "[%s]" it) "")
               (helm-current-line-contents)))))
@@ -657,7 +657,8 @@ Always update if value of this variable is nil."
            for pos  = (plist-get context :position)
            for index = (1- stack-length) then (1- index)
            for line = (helm-gtags--file-content-at-pos file pos)
-           collect (cons (helm-gtags--files-candidate-transformer line) index)))
+           for cand = (helm-gtags--files-candidate-transformer line)
+           collect (cons cand (propertize cand 'index index))))
 
 (defun helm-gtags--persistent-action (cand)
   (let* ((file-and-line (helm-gtags--extract-file-and-line cand))
@@ -771,8 +772,9 @@ Always update if value of this variable is nil."
     :fuzzy-match helm-gtags-fuzzy-match
     :action 'helm-gtags--parse-file-action))
 
-(defun helm-gtags--show-stack-action (index)
-  (let* ((context-info (helm-gtags--get-context-info))
+(defun helm-gtags--show-stack-action (cand)
+  (let* ((index (get-text-property 0 'index cand))
+         (context-info (helm-gtags--get-context-info))
          (context-stack (plist-get context-info :stack)))
     (helm-gtags--put-context-stack helm-gtags--tag-location
                                    index context-stack)
