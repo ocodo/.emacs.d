@@ -1,5 +1,5 @@
 ;;; helm-ls-git.el --- list git files. -*- lexical-binding: t -*-
-;; Package-Version: 20151014.1312
+;; Package-Version: 20151014.2208
 
 ;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
@@ -68,6 +68,7 @@ Valid values are symbol 'abs (default) or 'relative."
 ;; alias it for backward compatibility.
 (defvar helm-ls-git-grep-command)
 (defvaralias 'helm-ls-git-grep-command 'helm-grep-git-grep-command)
+(make-obsolete-variable 'helm-ls-git-grep-command 'helm-grep-git-grep-command "1.8.0")
 
 (defcustom helm-ls-git-default-sources '(helm-source-ls-git-status
                                          helm-source-ls-git-buffers
