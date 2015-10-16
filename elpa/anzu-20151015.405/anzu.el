@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20151008.2237
-;; Version: 0.58
+;; Package-Version: 20151015.405
+;; Version: 0.59
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -662,9 +662,9 @@
       (point-max))))
 
 (defun anzu--region-begin (use-region thing backward)
-  (cond (current-prefix-arg (line-beginning-position))
+  (cond (use-region (region-beginning))
+        (current-prefix-arg (line-beginning-position))
         (thing (anzu--thing-begin thing))
-        (use-region (region-beginning))
         (backward (point-min))
         (t (point))))
 
@@ -674,10 +674,10 @@
     (line-end-position)))
 
 (defun anzu--region-end (use-region thing)
-  (cond (current-prefix-arg
+  (cond (use-region (region-end))
+        (current-prefix-arg
          (anzu--line-end-position (prefix-numeric-value current-prefix-arg)))
         (thing (anzu--thing-end thing))
-        (use-region (region-end))
         (t (point-max))))
 
 (defun anzu--begin-thing (at-cursor thing)
