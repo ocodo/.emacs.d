@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20151011.527
+;; Package-Version: 20151016.56
 ;; Keywords: project, convenience
 ;; Version: 0.13.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -2245,6 +2245,7 @@ With a prefix ARG invokes `projectile-commander' instead of
          (switch-project-action (if arg
                                     'projectile-commander
                                   projectile-switch-project-action)))
+    (run-hooks 'projectile-before-switch-project-hook)
     (funcall switch-project-action)
     (run-hooks 'projectile-switch-project-hook)))
 
@@ -2284,6 +2285,11 @@ This command will first prompt for the directory the file is in."
 
 (defcustom projectile-switch-project-hook nil
   "Hooks run when project is switched."
+  :group 'projectile
+  :type 'hook)
+
+(defcustom projectile-before-switch-project-hook nil
+  "Hooks run when right before project is switched."
   :group 'projectile
   :type 'hook)
 
