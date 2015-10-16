@@ -142,7 +142,7 @@
                                   (or "def" "defp" "defmodule" "defprotocol"
                                       "defmacro" "defmacrop" "defdelegate"
                                       "defexception" "defstruct" "defimpl"
-                                      "defcallback")
+                                      "defcallback" "defoverridable")
                                   symbol-end))
       (builtin-namespace . ,(rx (or line-start (not (any ".")))
                                 symbol-start
@@ -157,10 +157,6 @@
                                    symbol-start
                                    (or "def" "defp")
                                    symbol-end))
-      ;; Match `@doc' or `@moduledoc' syntax, with or without triple quotes.
-      (heredocs . ,(rx symbol-start
-                       (or "@doc" "@moduledoc" "~s")
-                       symbol-end))
       ;; The first character of an identifier must be a letter or an underscore.
       ;; After that, they may contain any alphanumeric character + underscore.
       ;; Additionally, the final character may be either `?' or `!'.
@@ -282,7 +278,7 @@ is used to limit the scan."
         (when (memq start-delim '(?' ?\"))
           (setq end (1+ end))
           (forward-char -1))
-        (while (re-search-forward "[\"']" end t)
+        (while (re-search-forward "[\"'#]" end t)
           (put-text-property (1- (point)) (point) 'syntax-table word-syntax))))))
 
 (defun elixir-syntax-propertize-function (start end)
@@ -304,7 +300,7 @@ is used to limit the scan."
     (when (and pos (> pos (point)))
       (goto-char pos)
       (let ((value (get-text-property pos 'elixir-interpolation)))
-        (if (eq (car value) ?\")
+        (if (car value)
             (progn
               (set-match-data (cdr value))
               t)
@@ -317,9 +313,8 @@ is used to limit the scan."
     (elixir-match-interpolation 0 font-lock-variable-name-face t)
 
     ;; Module attributes
-    (,(elixir-rx (group (or heredocs
-                            (and "@" (1+ identifiers)))))
-     1 elixir-attribute-face)
+    (,(elixir-rx (and "@" (1+ identifiers)))
+     0 elixir-attribute-face)
 
     ;; Keywords
     (,(elixir-rx (group (or builtin builtin-declaration builtin-namespace
