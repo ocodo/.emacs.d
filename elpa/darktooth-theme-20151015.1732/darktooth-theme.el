@@ -4,7 +4,7 @@
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20151012.2033
+;; Package-Version: 20151015.1732
 ;; Version: 0.1.30
 
 ;;; Commentary:
@@ -286,6 +286,20 @@
    `(powerline-active2                         ((t (:background ,darktooth-dark1 :inherit mode-line ))))
    `(powerline-inactive1                       ((t (:background ,darktooth-medium :inherit mode-line-inactive ))))
    `(powerline-inactive2                       ((t (:background ,darktooth-dark2 :inherit mode-line-inactive ))))
+
+   ;; smart-mode-line
+   ;; use (setq sml/theme nil) to enable Darktooth for sml
+   `(sml/filename                              ((t (:foreground ,darktooth-dark1 :weight bold))))
+   `(sml/prefix                                ((t (:foreground unspecified))))
+   `(sml/git                                   ((t (:foreground unspecified))))
+   `(sml/process                               ((t (:weight bold))))
+   `(sml/sudo                                  ((t (:foreground ,darktooth-dark_orange :weight bold))))
+   `(sml/read-only                             ((t (:foreground ,darktooth-bright_blue))))
+   `(sml/outside-modified                      ((t (:foreground ,darktooth-bright_blue))))
+   `(sml/modified                              ((t (:foreground ,darktooth-bright_blue))))
+   `(sml/vc-edited                             ((t (:foreground ,darktooth-bright_green))))
+   `(sml/charging                              ((t (:foreground ,darktooth-dark1))))
+   `(sml/discharging                           ((t (:foreground ,darktooth-dark1 :weight bold))))
 
    ;; Matches and Isearch
    `(lazy-highlight                            ((t (:foreground ,darktooth-light0 :background ,darktooth-dark2 ))))
