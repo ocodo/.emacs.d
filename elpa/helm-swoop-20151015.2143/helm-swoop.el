@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2013 by Shingo Fukuyama
 
-;; Version: 1.6.0
-;; Package-Version: 20150922.842
+;; Version: 1.7.0
+;; Package-Version: 20151015.2143
 ;; Author: Shingo Fukuyama - http://fukuyama.co
 ;; URL: https://github.com/ShingoFukuyama/helm-swoop
 ;; Created: Oct 24 2013
@@ -90,6 +90,7 @@
 (require 'cl-lib)
 (require 'helm)
 (require 'helm-utils)
+(require 'helm-grep)
 
 (declare-function migemo-search-pattern-get "migemo")
 
@@ -172,6 +173,7 @@
     (define-key $map (kbd "C-c C-e") 'helm-swoop-edit)
     (define-key $map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
     (define-key $map (kbd "C-w") 'helm-swoop-yank-thing-at-point)
+    (define-key $map (kbd "^") 'helm-swoop-caret-match)
     (delq nil $map))
   "Keymap for helm-swoop")
 
@@ -180,6 +182,19 @@
     (set-keymap-parent $map helm-map)
     (define-key $map (kbd "C-c C-e") 'helm-multi-swoop-edit)
     (delq nil $map)))
+
+(defvar helm-c-source-swoop-match-functions
+  '(helm-mm-exact-match
+    helm-mm-match
+    helm-fuzzy-match
+    helm-mm-3-migemo-match))
+
+(defvar helm-c-source-swoop-search-functions
+  '(helm-mm-exact-search
+    helm-mm-search
+    helm-candidates-in-buffer-search-default-fn
+    helm-fuzzy-search
+    helm-mm-3-migemo-search))
 
 (defcustom helm-swoop-pre-input-function
   (lambda () (thing-at-point 'symbol))
@@ -289,8 +304,8 @@
       (mapc (lambda ($wd)
               (when (and (helm-swoop--validate-regexp $wd) (< $threshold (length $wd)))
                 (goto-char (point-min))
-                ;; Optional require migemo.el & helm-migemo.el
-                (if (and (featurep 'migemo) (featurep 'helm-migemo))
+                ;; Optional require migemo.el
+                (if (and (featurep 'migemo) helm-migemo-mode)
                     (setq $wd (migemo-search-pattern-get $wd)))
                 ;; For caret begging match
                 (if (string-match "^\\^\\[0\\-9\\]\\+\\.\\(.+\\)" $wd)
@@ -480,34 +495,39 @@ If $linum is number, lines are separated by $linum"
                     (let (($regex (mapconcat 'identity
                                              (split-string helm-pattern " ")
                                              "\\|")))
-                      (when (or (and (and (featurep 'migemo) (featurep 'helm-migemo))
+                      (when (or (and (and (featurep 'migemo) helm-migemo-mode)
                                      (migemo-forward $regex nil t))
                                 (re-search-forward $regex nil t))
                         (goto-char (match-beginning 0))))
                     (helm-swoop--recenter)))))
-    (migemo) ;;? in exchange for those matches ^ $ [0-9] .*
-    ))
+    (match . ,helm-c-source-swoop-match-functions)
+    (search . ,helm-c-source-swoop-search-functions)))
 
 (defun helm-c-source-multi-swoop ($buf $func $action)
   `((name . ,$buf)
+    ;;(init . ,(funcall $func))
+    ;;(candidates-in-buffer)
     (candidates . ,(funcall $func))
     (action . ,$action)
     (header-line . ,(concat $buf "    [C-c C-e] Edit mode"))
     (keymap . ,helm-multi-swoop-map)
     (requires-pattern . 2)
-    (migemo)))
+    (match . ,helm-c-source-swoop-match-functions)
+    (search . ,helm-c-source-swoop-search-functions)))
 
 (defun helm-c-source-swoop-multiline ($linum)
   `((name . ,(buffer-name (current-buffer)))
-
-    (candidates . ,(if helm-swoop-list-cache
-                       (progn
-                         (helm-swoop--split-lines-by
-                          helm-swoop-list-cache "\n" $linum))
-                     (helm-swoop--split-lines-by
-                      (setq helm-swoop-list-cache
-                            (helm-swoop--get-content t))
-                      "\n" $linum)))
+    (init . (lambda ()
+              (with-current-buffer (helm-candidate-buffer 'local)
+                (insert ,(if helm-swoop-list-cache
+                             (progn
+                               (string-join (helm-swoop--split-lines-by
+                                             helm-swoop-list-cache "\n" $linum)))
+                           (string-join (helm-swoop--split-lines-by
+                                         (setq helm-swoop-list-cache
+                                               (helm-swoop--get-content t))
+                                         "\n" $linum)))))))
+    (candidates-in-buffer)
     (keymap . ,helm-swoop-map)
     (action . (("Go to Line"
                 . (lambda ($line)
@@ -521,7 +541,8 @@ If $linum is number, lines are separated by $linum"
                       (goto-char (match-beginning 0)))
                     (helm-swoop--recenter)))))
     (multiline)
-    (migemo)))
+    (match . ,helm-c-source-swoop-match-functions)
+    (search . ,helm-c-source-swoop-search-functions)))
 
 (defun helm-swoop--set-prefix (&optional $multiline)
   ;; Enable scrolling margin
@@ -767,9 +788,6 @@ If $linum is number, lines are separated by $linum"
           (funcall $disguise-caret))
       (insert "^"))))
 
-(unless (featurep 'helm-migemo)
-  (define-key helm-map (kbd "^") 'helm-swoop-caret-match))
-
 ;;; @ helm-swoop-edit -----------------------------------------
 
 (defvar helm-swoop-edit-target-buffer)
@@ -901,7 +919,7 @@ If $linum is number, lines are separated by $linum"
 
 (defun helm-swoop-edit ()
   (interactive)
-  (helm-quit-and-execute-action 'helm-swoop--edit))
+  (helm-exit-and-execute-action 'helm-swoop--edit))
 
 ;;; @ helm-multi-swoop ----------------------------------------
 (defvar helm-multi-swoop-buffer-list "*helm-multi-swoop buffers list*"
@@ -922,7 +940,7 @@ If $linum is number, lines are separated by $linum"
     (set-keymap-parent $map helm-map)
     (define-key $map (kbd "RET")
       (lambda () (interactive)
-        (helm-quit-and-execute-action 'helm-multi-swoop--exec)))
+        (helm-exit-and-execute-action 'helm-multi-swoop--exec)))
     (delq nil $map)))
 
 ;; action -----------------------------------------------------
@@ -1159,7 +1177,9 @@ If $linum is number, lines are separated by $linum"
   `((name . "helm-multi-swoop select buffers")
     (candidates . helm-multi-swoop--get-buffer-list)
     (header-line . "[C-SPC]/[M-SPC] select, [RET] next step")
-    (keymap . ,helm-multi-swoop-buffers-map)))
+    (keymap . ,helm-multi-swoop-buffers-map)
+    (match . ,helm-c-source-swoop-match-functions)
+    (search . ,helm-c-source-swoop-search-functions)))
 
 ;;;###autoload
 (defun helm-multi-swoop (&optional $query $buflist)
@@ -1491,7 +1511,7 @@ Last selected buffers will be applied to helm-multi-swoop.
 ;;;###autoload
 (defun helm-multi-swoop-edit ()
   (interactive)
-  (helm-quit-and-execute-action 'helm-multi-swoop--edit))
+  (helm-exit-and-execute-action 'helm-multi-swoop--edit))
 
 ;;; @ helm-swoop-same-face-at-point -----------------------------------
 
