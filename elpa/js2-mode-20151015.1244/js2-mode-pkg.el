@@ -1,4 +1,4 @@
-(define-package "js2-mode" "20151013.656" "Improved JavaScript editing mode"
+(define-package "js2-mode" "20151015.1244" "Improved JavaScript editing mode"
   '((emacs "24.1")
     (cl-lib "0.5"))
   :url "https://github.com/mooz/js2-mode/" :keywords
