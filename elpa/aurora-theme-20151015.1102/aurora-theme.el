@@ -2,7 +2,7 @@
 
 ;; Author: Luis Cairampoma <redshacker11@gmail.com>
 ;; URL: http://github.com/xzerocode/aurora-theme
-;; Package-Version: 20150905.916
+;; Package-Version: 20151015.1102
 ;; Package-X-Original-Version: 20150818.1359
 ;; Version: 0.1
 
@@ -198,7 +198,9 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(popup-isearch-match ((t (:background ,aurora-bg :foreground ,aurora-fg))))
 ;;;;; company-mode
    `(company-tooltip ((t (:foreground ,aurora-yellow :background ,aurora-bg+1))))
+   `(company-tooltip-annotation ((t (:foreground ,aurora-blue :background ,aurora-bg+1))))
    `(company-tooltip-selection ((t (:foreground ,aurora-fg :background ,aurora-bg-1))))
+   `(company-template-field ((t (:foreground ,aurora-magenta :background ,aurora-bg-1))))
    `(company-tooltip-mouse ((t (:background ,aurora-bg-1))))
    `(company-tooltip-common ((t (:foreground ,aurora-yellow :background ,aurora-bg-1))))
    `(company-tooltip-common-selection ((t (:background ,aurora-bg-1))))
