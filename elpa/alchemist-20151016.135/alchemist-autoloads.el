@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (22045 48119 669140
+;;;### (autoloads nil "alchemist" "alchemist.el" (22049 3365 338811
 ;;;;;;  0))
 ;;; Generated autoloads from alchemist.el
 
@@ -17,8 +17,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22045 48119
-;;;;;;  705140 0))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22049 3365
+;;;;;;  390811 0))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -38,8 +38,35 @@ Show the IEx buffer if an IEx process is already run.
 
 ;;;***
 
+;;;### (autoloads nil "alchemist-phoenix" "alchemist-phoenix.el"
+;;;;;;  (22049 3365 382811 0))
+;;; Generated autoloads from alchemist-phoenix.el
+
+(autoload 'alchemist-phoenix-project-p "alchemist-phoenix" "\
+Return non-nil if `default- is inside an Phoenix project.
+
+\(fn)" nil nil)
+
+(autoload 'alchemist-phoenix-mode "alchemist-phoenix" "\
+Minor mode for Elixir Phoenix web framework projects.
+
+The following commands are available:
+
+\\{alchemist-phoenix-mode-map}
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'alchemist-phoenix-enable-mode "alchemist-phoenix" "\
+
+
+\(fn)" nil nil)
+
+(dolist (hook '(alchemist-mode-hook)) (add-hook hook 'alchemist-phoenix-enable-mode))
+
+;;;***
+
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (22045 48119 681140 0))
+;;;;;;  (22049 3365 346811 0))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -50,7 +77,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (22045 48119 725140 0))
+;;;;;;  (22049 3365 402811 0))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -73,11 +100,11 @@ The following commands are available:
 
 ;;;### (autoloads nil nil ("alchemist-company.el" "alchemist-compile.el"
 ;;;;;;  "alchemist-complete.el" "alchemist-eval.el" "alchemist-execute.el"
-;;;;;;  "alchemist-goto.el" "alchemist-help.el" "alchemist-hooks.el"
-;;;;;;  "alchemist-message.el" "alchemist-mix.el" "alchemist-pkg.el"
-;;;;;;  "alchemist-project.el" "alchemist-report.el" "alchemist-scope.el"
-;;;;;;  "alchemist-server.el" "alchemist-utils.el") (22045 48119
-;;;;;;  743280 65000))
+;;;;;;  "alchemist-file.el" "alchemist-goto.el" "alchemist-help.el"
+;;;;;;  "alchemist-hooks.el" "alchemist-key.el" "alchemist-message.el"
+;;;;;;  "alchemist-mix.el" "alchemist-pkg.el" "alchemist-project.el"
+;;;;;;  "alchemist-report.el" "alchemist-scope.el" "alchemist-server.el"
+;;;;;;  "alchemist-utils.el") (22049 3365 421045 639000))
 
 ;;;***
 
