@@ -5,7 +5,7 @@
 ;; Author: KAWABATA, Taichi <kawabata.taichi_at_gmail.com>
 ;; Created: 2013-12-25
 ;; Version: 1.151008
-;; Package-Version: 20151008.616
+;; Package-Version: 20151014.2127
 ;; Package-Requires: ((helm "1.5") (cl-lib "0.3") (emacs "24"))
 ;; Keywords: tools
 ;; Human-Keywords: chrome bookmarks
@@ -79,15 +79,6 @@
   (setq helm-chrome--json (json-read-file helm-chrome-file))
   (setq helm-chrome--bookmarks (make-hash-table :test 'equal))
   (helm-chrome--add-bookmark helm-chrome--json))
-
-(defun helm-chrome--init ()
-  "Initialize an helm buffer with Chrome bookmarks."
-  (when (null helm-chrome--json)
-    (helm-chrome-reload-bookmarks))
-  (with-current-buffer (helm-candidate-buffer
-                        (get-buffer-create helm-chrome--buffer))
-    (cl-loop for name being the hash-keys of helm-chrome--bookmarks
-             do (insert name "\n"))))
 
 (defvar helm-chrome-source
   (helm-build-in-buffer-source "Chrome::Bookmarks"
