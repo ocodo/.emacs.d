@@ -85,6 +85,13 @@
        "set-based completion" tar
        ((:keywords "point" "location")
 	(:url . "https://github.com/abo-abo/avy"))])
+ (beacon .
+	 [(0 1 1)
+	  ((seq
+	    (1 9)))
+	  "Highlight the cursor whenever the window scrolls" single
+	  ((:url . "https://github.com/Malabarba/beacon")
+	   (:keywords "convenience"))])
  (bug-hunter .
 	     [(1 0)
 	      ((seq
@@ -336,7 +343,7 @@
 	((:url . "http://www.dr-qubit.org/emacs.php")
 	 (:keywords "extensions" "data structures" "heap" "priority queue"))])
  (hydra .
-	[(0 13 2)
+	[(0 13 3)
 	 ((cl-lib
 	   (0 5)))
 	 "Make bindings that stick around." tar
