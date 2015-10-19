@@ -39,8 +39,8 @@
   (not (null (cider-connections))))
 
 (defun cider-ensure-connected ()
-  "Ensure there is a cider connection present, otherwise
-an error is signaled."
+  "Ensure there is a cider connection present.
+An error is signaled in the absence of a connection."
   (unless (cider-connected-p)
     (error "No active nREPL connections")))
 
@@ -139,6 +139,10 @@ connections are returned, instead of just the most recent."
             cider-connections
           (car cider-connections)))))
 
+(defun cider-read-connection (prompt)
+  "Completing read for connections using PROMPT."
+  (get-buffer (completing-read prompt (mapcar #'buffer-name (cider-connections)))))
+
 (defun cider-assoc-project-with-connection (&optional project connection)
   "Associate a Clojure PROJECT with an nREPL CONNECTION.
 
@@ -146,7 +150,7 @@ Useful for connections created using `cider-connect', as for them
 such a link cannot be established automatically."
   (interactive)
   (cider-ensure-connected)
-  (let ((conn-buf (or connection (completing-read "Connection: " (mapcar #'buffer-name (cider-connections)))))
+  (let ((conn-buf (or connection (cider-read-connection "Connection: ")))
         (project-dir (or project (read-directory-name "Project directory: " nil (clojure-project-dir) nil (clojure-project-dir)))))
     (when conn-buf
       (with-current-buffer conn-buf
@@ -159,7 +163,7 @@ Useful for connections created using `cider-connect', as for them
 such a link cannot be established automatically."
   (interactive)
   (cider-ensure-connected)
-  (let ((conn (completing-read "Connection: " (cider-connections))))
+  (let ((conn (cider-read-connection "Connection: ")))
     (when conn
       (setq-local cider-connections (list conn)))))
 
@@ -174,7 +178,7 @@ such a link cannot be established automatically."
 A REPL is relevant if its `nrepl-project-dir' is compatible with the
 current directory (see `cider-find-connection-buffer-for-project-directory').
 If there is ambiguity, it is resolved by matching TYPE with the REPL
-type (Clojure or ClojureScript). If TYPE is nil, it is derived from the
+type (Clojure or ClojureScript).  If TYPE is nil, it is derived from the
 file extension."
   ;; Cleanup the connections list.
   (cider-connections)
@@ -205,6 +209,8 @@ file extension."
     (define-key map "g" #'cider-connection-browser)
     (define-key map "k" #'cider-connections-close-connection)
     (define-key map (kbd "RET") #'cider-connections-goto-connection)
+    (define-key map "?" #'describe-mode)
+    (define-key map "h" #'describe-mode)
     map))
 
 (declare-function cider-popup-buffer-mode "cider-popup")
@@ -250,7 +256,7 @@ The connections buffer is determined by
   (with-current-buffer (get-buffer-create cider--connection-browser-buffer-name)
     (let ((ewoc (ewoc-create
                  'cider--connection-pp
-                 "  Host              Port   Project\n")))
+                 "  REPL                           Host             Port    Project\n")))
       (setq-local cider--connection-ewoc ewoc)
       (cider--update-connections-display ewoc cider-connections)
       (setq buffer-read-only t)
@@ -263,8 +269,9 @@ The connections buffer is determined by
          (buffer (get-buffer connection))
          (endpoint (buffer-local-value 'nrepl-endpoint buffer)))
     (insert
-     (format "%s %-16s %5s   %s%s"
+     (format "%s %-30s %-16s %5s   %s%s"
              (if (equal connection (car cider-connections)) "*" " ")
+             (buffer-name connection)
              (car endpoint)
              (prin1-to-string (cadr endpoint))
              (or (cider--project-name
@@ -752,6 +759,26 @@ endpoint and Clojure version."
             (cider--clojure-version)
             (cider--nrepl-version))))
 
+(defun cider--connection-properties (conn-buffer)
+  "Extract the essential properties of CONN-BUFFER."
+  (with-current-buffer conn-buffer
+    (list
+     :host (car nrepl-endpoint)
+     :port (cadr nrepl-endpoint)
+     :project-dir nrepl-project-dir)))
+
+(defun cider--connection-host (conn-buffer)
+  "Get CONN-BUFFER's host."
+  (plist-get (cider--connection-properties conn-buffer) :host))
+
+(defun cider--connection-port (conn-buffer)
+  "Get CONN-BUFFER's port."
+  (plist-get (cider--connection-properties conn-buffer) :port))
+
+(defun cider--connection-project-dir (conn-buffer)
+  "Get CONN-BUFFER's project dir."
+  (plist-get (cider--connection-properties conn-buffer) :project-dir))
+
 (defun cider-display-connection-info (&optional show-default)
   "Display information about the current connection.
 
@@ -773,6 +800,17 @@ default connection."
                 (list (car cider-connections))))
   (message "Default nREPL connection: %s"
            (cider--connection-info (car cider-connections))))
+
+(defun cider-replicate-connection (&optional conn)
+  "Establish a new connection based on an existing connection.
+The new connection will use the same host and port.
+If CONN is not provided the user will be prompted to select a connection."
+  (interactive)
+  (let* ((conn (or conn (cider-read-connection "Select connection to replicate: ")))
+         (host (cider--connection-host conn))
+         (port (cider--connection-port conn))
+         (project-dir (cider--connection-project-dir conn)))
+    (cider-connect host port project-dir)))
 
 (define-obsolete-function-alias 'cider-rotate-connection 'cider-rotate-default-connection "0.10")
 (defun cider-extract-designation-from-current-repl-buffer ()
