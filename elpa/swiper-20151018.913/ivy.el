@@ -108,7 +108,10 @@ This is usually meant as a quick exit out of the minibuffer."
 (defcustom ivy-extra-directories '("../" "./")
   "Add this to the front of the list when completing file names.
 Only \"./\" and \"../\" apply here. They appear in reverse order."
-  :type 'list)
+  :type '(repeat :tag "Dirs"
+          (choice
+           (const :tag "Parent Directory" "../")
+           (const :tag "Current Directory" "./"))))
 
 (defcustom ivy-use-virtual-buffers nil
   "When non-nil, add `recentf-mode' and bookmarks to `ivy-switch-buffer'."
@@ -834,7 +837,9 @@ Prioritize directories."
         nil
       (string< x y))))
 
-(defvar ivy-sort-functions-alist
+(autoload 'Man-goto-section "man" "" t)
+
+(defcustom ivy-sort-functions-alist
   '((read-file-name-internal . ivy-sort-file-function-default)
     (internal-complete-buffer . nil)
     (counsel-git-grep-function . nil)
@@ -848,7 +853,17 @@ For each entry, nil means no sorting.  It's very useful to turn
 off the sorting for functions that have candidates in the natural
 buffer order, like `org-refile' or `Man-goto-section'.
 
-The entry associated to t is used for all fall-through cases.")
+The entry associated to t is used for all fall-through cases."
+  :type
+  '(alist
+    :key-type (choice
+               (const :tag "All other functions" t)
+               (function :tag "Function"))
+    :value-type (choice
+                 (const :tag "plain sort" string-lessp)
+                 (const :tag "file sort" ivy-sort-file-function-default)
+                 (const :tag "no sort" nil)))
+  :group 'ivy)
 
 (defvar ivy-index-functions-alist
   '((swiper . ivy-recompute-index-swiper)
@@ -1116,7 +1131,7 @@ This is useful for recursive `ivy-read'."
                  prompt)
                 ((null ivy-count-format)
                  (error
-                  "`ivy-count-format' can't be nil. Set it to an empty string instead."))
+                  "`ivy-count-format' can't be nil.  Set it to an empty string instead"))
                 ((string-match "%d.*%d" ivy-count-format)
                  (let ((w (length (number-to-string
                                    (length ivy--all-candidates))))
@@ -1148,7 +1163,7 @@ it can be used for `completing-read-function'.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
 COLLECTION can be a list of strings, an alist, an obarray or a hash table.
 PREDICATE limits completion to a subset of COLLECTION.
-REQUIRE-MATCH is considered boolean. See `completing-read'.
+REQUIRE-MATCH is considered boolean.  See `completing-read'.
 INITIAL-INPUT is a string that can be inserted into the minibuffer initially.
 _HISTORY is ignored for now.
 DEF is the default value.
