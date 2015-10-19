@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20151015.631
+;; Package-Version: 20151016.2127
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -1041,18 +1041,19 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
   "Grep in the current directory for STRING."
   (if (< (length string) 3)
       (counsel-more-chars 3)
-    (let ((regex (counsel-unquote-regex-parens
+    (let ((default-directory counsel--git-grep-dir)
+          (regex (counsel-unquote-regex-parens
                   (setq ivy--old-re
                         (ivy--regex string)))))
       (counsel--async-command
        (format "ag --noheading --nocolor %S" regex))
       nil)))
 
-(defun counsel-ag (&optional initial-input)
+(defun counsel-ag (&optional initial-input initial-directory)
   "Grep for a string in the current directory using ag.
 INITIAL-INPUT can be given as the initial minibuffer input."
   (interactive)
-  (setq counsel--git-grep-dir default-directory)
+  (setq counsel--git-grep-dir (or initial-directory default-directory))
   (ivy-read "ag: " 'counsel-ag-function
             :initial-input initial-input
             :dynamic-collection t
