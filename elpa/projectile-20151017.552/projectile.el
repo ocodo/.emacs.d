@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20151016.56
+;; Package-Version: 20151017.552
 ;; Keywords: project, convenience
 ;; Version: 0.13.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -969,23 +969,29 @@ opened through use of recentf."
   "Prepend the current project's name to STRING."
   (format "[%s] %s" (projectile-project-name) string))
 
+(defun projectile-read-buffer-to-switch (prompt)
+  "Read the name of a buffer to switch to, prompting with PROMPT.
+
+This function excludes the current buffer from the offered
+choices."
+  (projectile-completing-read
+   prompt
+   (-remove-item (buffer-name (current-buffer))
+                 (projectile-project-buffer-names))))
+
 ;;;###autoload
 (defun projectile-switch-to-buffer ()
   "Switch to a project buffer."
   (interactive)
   (switch-to-buffer
-   (projectile-completing-read
-    "Switch to buffer: "
-    (projectile-project-buffer-names))))
+   (projectile-read-buffer-to-switch "Switch to buffer: ")))
 
 ;;;###autoload
 (defun projectile-switch-to-buffer-other-window ()
   "Switch to a project buffer and show it in another window."
   (interactive)
   (switch-to-buffer-other-window
-   (projectile-completing-read
-    "Switch to buffer: "
-    (projectile-project-buffer-names))))
+   (projectile-read-buffer-to-switch "Switch to buffer: ")))
 
 ;;;###autoload
 (defun projectile-display-buffer ()
@@ -1108,7 +1114,7 @@ prefix the string will be assumed to be an ignore string."
   (let (keep ignore (dirconfig (projectile-dirconfig-file)))
     (when (projectile-file-exists-p dirconfig)
       (with-temp-buffer
-        (insert-file-contents-literally dirconfig)
+        (insert-file-contents dirconfig)
         (while (not (eobp))
           (pcase (char-after)
             (?+ (push (buffer-substring (1+ (point)) (line-end-position)) keep))
@@ -1694,7 +1700,7 @@ It assumes the test/ folder is at the same level as src/."
 (defun projectile-test-prefix (project-type)
   "Find default test files prefix based on PROJECT-TYPE."
   (cond
-   ((member project-type '(django python)) "test_")
+   ((member project-type '(django python python-tox)) "test_")
    ((member project-type '(lein-midje)) "t_")))
 
 (defun projectile-test-suffix (project-type)
@@ -2083,20 +2089,30 @@ For hg projects `monky-status' is used if available."
 (defvar projectile-compilation-cmd-map
   (make-hash-table :test 'equal)
   "A mapping between projects and the last compilation command used on them.")
+
 (defvar projectile-test-cmd-map
   (make-hash-table :test 'equal)
   "A mapping between projects and the last test command used on them.")
+
 (defvar projectile-run-cmd-map
   (make-hash-table :test 'equal)
   "A mapping between projects and the last run command used on them.")
+
 (defvar projectile-project-compilation-cmd nil
   "The command to use with `projectile-compile-project'.
 It takes precedence over the default command for the project type when set.
 Should be set via .dir-locals.el.")
+
+(defvar projectile-project-compilation-dir nil
+  "The directory to use with `projectile-compile-project'.
+The directory path is relative to the project root.
+Should be set via .dir-locals.el.")
+
 (defvar projectile-project-test-cmd nil
   "The command to use with `projectile-test-project'.
 It takes precedence over the default command for the project type when set.
 Should be set via .dir-locals.el.")
+
 (defvar projectile-project-run-cmd nil
   "The command to use with `projectile-run-project'.
 It takes precedence over the default command for the project type when set.
@@ -2114,9 +2130,9 @@ Should be set via .dir-locals.el.")
   "Retrieve default run command for PROJECT-TYPE."
   (plist-get (gethash project-type projectile-project-types) 'run-command))
 
-(defun projectile-compilation-command (project)
-  "Retrieve the compilation command for PROJECT."
-  (or (gethash project projectile-compilation-cmd-map)
+(defun projectile-compilation-command (compile-dir)
+  "Retrieve the compilation command for COMPILE-DIR."
+  (or (gethash compile-dir projectile-compilation-cmd-map)
       projectile-project-compilation-cmd
       (projectile-default-compilation-command (projectile-project-type))))
 
@@ -2139,6 +2155,14 @@ Should be set via .dir-locals.el.")
                           '(compile-history . 1)
                         'compile-history)))
 
+(defun projectile-compilation-dir ()
+  "Choose the directory to use for project compilation."
+  (if projectile-project-compilation-dir
+      (file-truename
+       (concat (file-name-as-directory (projectile-project-root))
+               (file-name-as-directory projectile-project-compilation-dir)))
+    (projectile-project-root)))
+
 (defun projectile-compile-project (arg &optional dir)
   "Run project compilation command.
 
@@ -2146,16 +2170,14 @@ Normally you'll be prompted for a compilation command, unless
 variable `compilation-read-command'.  You can force the prompt
 with a prefix ARG."
   (interactive "P")
-  (let* ((project-root (if dir
-                           dir
-                         (projectile-project-root)))
-         (default-directory project-root)
-         (default-cmd (projectile-compilation-command project-root))
+  (let* ((project-root (projectile-project-root))
+         (default-directory (or dir (projectile-compilation-dir)))
+         (default-cmd (projectile-compilation-command default-directory))
          (compilation-cmd (if (or compilation-read-command arg)
                               (projectile-read-command "Compile command: "
                                                        default-cmd)
                             default-cmd)))
-    (puthash project-root compilation-cmd projectile-compilation-cmd-map)
+    (puthash default-directory compilation-cmd projectile-compilation-cmd-map)
     (save-some-buffers (not compilation-ask-about-save)
                        (lambda ()
                          (projectile-project-buffer-p (current-buffer)
@@ -2247,7 +2269,7 @@ With a prefix ARG invokes `projectile-commander' instead of
                                   projectile-switch-project-action)))
     (run-hooks 'projectile-before-switch-project-hook)
     (funcall switch-project-action)
-    (run-hooks 'projectile-switch-project-hook)))
+    (run-hooks 'projectile-after-switch-project-hook)))
 
 
 (defun projectile-find-file-in-directory (&optional directory)
@@ -2283,8 +2305,8 @@ This command will first prompt for the directory the file is in."
   (let ((projectile-require-project-root nil))
     (find-file (projectile-completing-read "Find file in projects: " (projectile-all-project-files)))))
 
-(defcustom projectile-switch-project-hook nil
-  "Hooks run when project is switched."
+(defcustom projectile-after-switch-project-hook nil
+  "Hooks run right after project is switched."
   :group 'projectile
   :type 'hook)
 
