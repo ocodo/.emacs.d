@@ -4,8 +4,8 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.5
-;; Package-Version: 20151011.1502
-;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3") (seq "1.5"))
+;; Package-Version: 20151017.1937
+;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
 ;; This program is free software; you can redistribute it and/or
@@ -57,7 +57,6 @@
 (require 'calc-bin)
 (require 'cl-lib)
 (require 'json)
-(require 'seq)
 (require 'tabulated-list)
 
 (eval-when-compile
@@ -364,10 +363,10 @@ transmission rates."
                     (string-match "/" filename))))
     (if index (substring filename 0 (1+ index)))))
 
-(defun transmission-files-directory-prefix-p (title files)
-  "Return t if TITLE is a prefix to every element in FILES, otherwise nil."
-  (seq-every-p (lambda (f) (string-prefix-p title (cdr-safe (assq 'name f))))
-               files))
+(defun transmission-every-prefix-p (prefix list)
+  "Return t if PREFIX is a prefix to every string in LIST, otherwise nil."
+  (cl-every (lambda (string) (string-prefix-p prefix string))
+            list))
 
 (defun transmission-prop-values-in-region (prop)
   "Return a list of truthy values of text property PROP in region or at point.
@@ -445,17 +444,29 @@ Returns a list of non-blank inputs."
    (catch :finished
      (while t
        (setq entry (if (not collection) (read-string prompt)
-                     (let ((completion-cycle-threshold t))
-                       (completing-read prompt collection nil t))))
+                     (completing-read prompt collection nil)))
        (if (and (not (string-empty-p entry))
                 (not (string-blank-p entry)))
-           (push entry list)
+           (progn (push entry list)
+                  (setq collection (delete entry collection)))
          (throw :finished list))))))
 
 (defun transmission-list-trackers (id)
   "Return the \"trackers\" array for torrent id ID."
   (let ((torrent (transmission-torrents `(:ids ,id :fields ("trackers")))))
     (transmission-torrent-value torrent 'trackers)))
+
+(defun transmission-list-unique-announce-urls ()
+  "Return a list of unique announce URLs from all current torrents."
+  (let* ((torrents (transmission-torrents '(:fields ("trackers"))))
+         (trackers (mapcar (lambda (alist) (cdr (assq 'trackers alist)))
+                           torrents))
+         (urls (mapcar (lambda (vector)
+                         (mapcar (lambda (alist)
+                                   (cdr (assq 'announce alist)))
+                                 vector))
+                       trackers)))
+    (cl-delete-duplicates (apply #'append urls) :test #'string=)))
 
 (defun transmission-files-do (action)
   "Apply ACTION to files in `transmission-files-mode' buffers."
@@ -645,15 +656,18 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-trackers-add ()
   "Add announce URLs to torrent or torrents."
   (interactive)
-  (transmission-let-ids nil
-    (let* ((urls (transmission-prompt-read-repeatedly "Add announce URLs: "))
-           (trackers (mapcar (lambda (elt) (cdr (assq 'announce elt)))
-                             (transmission-list-trackers ids)))
-           (arguments (list :ids ids :trackerAdd
-                            ;; Don't add trackers that are already there
-                            (cl-set-difference urls trackers))))
-      (let-alist (transmission-request "torrent-set" arguments)
-        (message .result)))))
+  (transmission-let-ids
+      ((trackers (mapcar (lambda (elt) (cdr (assq 'announce elt)))
+                         (transmission-list-trackers ids)))
+       (urls (transmission-prompt-read-repeatedly
+              "Add announce URLs: "
+              (cl-set-difference (transmission-list-unique-announce-urls)
+                                 trackers :test #'equal)))
+       (arguments (list :ids ids :trackerAdd
+                        ;; Don't add trackers that are already there
+                        (cl-set-difference urls trackers :test #'equal))))
+    (let-alist (transmission-request "torrent-set" arguments)
+      (message .result))))
 
 (defun transmission-trackers-remove ()
   "Prompt for trackers to remove by ID from torrent at point."
@@ -662,9 +676,11 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
     (if id
         (let* ((trackers (mapcar (lambda (elt) (number-to-string (cdr (assq 'id elt))))
                                  (transmission-list-trackers id)))
-               (len (length trackers))
-               (prompt (concat "Remove tracker by ID"
-                               (if (> len 1) (format " (%d trackers): " len) ": ")))
+               (prompt (if trackers
+                           (format "Remove tracker by ID (%d trackers): "
+                                   (length trackers))
+                         (user-error "No trackers to remove")))
+               (completion-cycle-threshold t)
                (tids (transmission-prompt-read-repeatedly prompt trackers))
                (arguments (list :ids id :trackerRemove (mapcar #'string-to-number tids))))
           (let-alist (transmission-request "torrent-set" arguments)
@@ -748,7 +764,15 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   "Format into a string the bitfield PIECES holding COUNT boolean flags."
   (let* ((bytes (base64-decode-string pieces))
          (bits (mapconcat #'transmission-byte->string bytes "")))
-    (mapconcat #'identity (seq-partition (substring bits 0 count) 72) "\n")))
+    (cl-flet ((string-partition (s n)
+                (let ((res '()))
+                  (while (not (string-empty-p s))
+                    (let* ((last (length s))
+                           (middle (min n last)))
+                      (push (substring s 0 middle) res)
+                      (setq s (substring s middle last))))
+                  (nreverse res))))
+      (string-join (string-partition (substring bits 0 count) 72) "\n"))))
 
 (defun transmission-format-trackers (trackers)
   (let ((fmt (concat "Tracker %d: %s (Tier %d)\n"
@@ -791,9 +815,9 @@ Each form in BODY is a column descriptor."
   (setq transmission-torrent-vector
         (transmission-torrents `(:ids ,id :fields ,transmission-files-fields)))
   (let* ((files (transmission-files-sort transmission-torrent-vector))
-         (file (cdr (assq 'name (unless (zerop (length files)) (elt files 0)))))
-         (directory (transmission-files-directory-base file))
-         (truncate (if directory (transmission-files-directory-prefix-p directory files))))
+         (names (mapcar (lambda (x) (cdr (assq 'name x))) files))
+         (directory (transmission-files-directory-base (car names)))
+         (truncate (if directory (transmission-every-prefix-p directory names))))
     (setq tabulated-list-entries nil)
     (transmission-do-entries files
       (format "%3d%%" (transmission-percent .bytesCompleted .length))
