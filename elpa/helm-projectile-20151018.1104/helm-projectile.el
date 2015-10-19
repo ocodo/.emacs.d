@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20151010.507
+;; Package-Version: 20151018.1104
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.12.0
@@ -736,25 +736,24 @@ DIR is the project root, if not set then current directory is used"
                               #'helm-projectile-grep-or-ack project-root nil)))
 
 ;;;###autoload
-(defun helm-projectile-ack ()
+(defun helm-projectile-ack (&optional dir)
   "Helm version of projectile-ack."
   (interactive)
-  (if (projectile-project-p)
-      (let ((ack-ignored (mapconcat
-                          'identity
-                          (-union (-map (lambda (path)
-                                          (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
-                                        (projectile-ignored-directories))
-                                  (-map (lambda (path)
-                                          (concat "--ignore-file=match:" (shell-quote-argument path)))
-                                        (projectile-ignored-files))) " "))
-            (helm-ack-grep-executable (cond
-                                       ((executable-find "ack") "ack")
-                                       ((executable-find "ack-grep") "ack-grep")
-                                       (t (error "ack or ack-grep is not available.")))))
-        (funcall 'run-with-timer 0.01 nil
-                 #'helm-projectile-grep-or-ack t ack-ignored helm-ack-grep-executable))
-    (error "You're not in a project")))
+  (let ((project-root (or dir (projectile-project-root) (error "You're not in a project"))))
+    (let ((ack-ignored (mapconcat
+                        'identity
+                        (-union (-map (lambda (path)
+                                        (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
+                                      (projectile-ignored-directories))
+                                (-map (lambda (path)
+                                        (concat "--ignore-file=match:" (shell-quote-argument path)))
+                                      (projectile-ignored-files))) " "))
+          (helm-ack-grep-executable (cond
+                                     ((executable-find "ack") "ack")
+                                     ((executable-find "ack-grep") "ack-grep")
+                                     (t (error "ack or ack-grep is not available.")))))
+      (funcall 'run-with-timer 0.01 nil
+               #'helm-projectile-grep-or-ack project-root t ack-ignored helm-ack-grep-executable))))
 
 ;;;###autoload
 (defun helm-projectile-ag (&optional options)

@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-projectile" "helm-projectile.el" (22045
-;;;;;;  47989 753140 0))
+;;;### (autoloads nil "helm-projectile" "helm-projectile.el" (22052
+;;;;;;  19040 866811 0))
 ;;; Generated autoloads from helm-projectile.el
 
 (defvar helm-projectile-fuzzy-match t "\
@@ -44,7 +44,7 @@ DIR is the project root, if not set then current directory is used
 (autoload 'helm-projectile-ack "helm-projectile" "\
 Helm version of projectile-ack.
 
-\(fn)" t nil)
+\(fn &optional DIR)" t nil)
 
 (autoload 'helm-projectile-ag "helm-projectile" "\
 Helm version of projectile-ag.
