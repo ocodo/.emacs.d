@@ -6,7 +6,7 @@
 
 ;; Author: Natalie Weizenbaum <nex342@gmail.com>
 ;; URL: http://github.com/nex3/perspective-el
-;; Package-Version: 20150814.1658
+;; Package-Version: 20151016.1423
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 1.12
 ;; Created: 2008-03-05
@@ -736,6 +736,17 @@ See also `persp-add-buffer'."
           (with-selected-frame frame
             (persp-add-buffer buf)))))))
 
+(defadvice set-window-buffer (after persp-add-buffer-adv)
+  "Add BUFFER to the perspective for window's frame.
+
+See also `persp-add-buffer'."
+  (persp-protect
+    (let ((buf (ad-get-arg 1))
+          (frame (window-frame (ad-get-arg 0))))
+      (when (and buf frame)
+        (with-selected-frame frame
+          (persp-add-buffer buf))))))
+
 (defadvice switch-to-prev-buffer (around persp-ensure-buffer-in-persp)
   "Ensure that the selected buffer is in WINDOW's perspective."
   (let* ((window (window-normalize-window window t))
@@ -791,6 +802,7 @@ named collections of buffers and window configurations."
       (persp-protect
         (ad-activate 'switch-to-buffer)
         (ad-activate 'display-buffer)
+        (ad-activate 'set-window-buffer)
         (ad-activate 'switch-to-prev-buffer)
         (ad-activate 'recursive-edit)
         (ad-activate 'exit-recursive-edit)
