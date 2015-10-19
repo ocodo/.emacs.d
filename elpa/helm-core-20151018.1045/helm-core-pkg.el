@@ -1,4 +1,4 @@
-(define-package "helm-core" "20151015.2249" "Development files for Helm"
+(define-package "helm-core" "20151018.1045" "Development files for Helm"
   '((emacs "24")
     (cl-lib "0.5")
     (async "1.5"))

@@ -392,6 +392,11 @@ Add spaces at end if needed to reach WIDTH when STR is shorter than WIDTH."
   (describe-variable (helm-symbolify var))
   (message nil))
 
+(defun helm-describe-face (face)
+  "VAR is symbol or string."
+  (describe-face (helm-symbolify face))
+  (message nil))
+
 (defun helm-find-function (func)
   "FUNC is symbol or string."
   (find-function (helm-symbolify func)))
@@ -578,9 +583,7 @@ That is what completion commands operate on."
 ;;
 ;;
 (defun helm-yank-text-at-point ()
-  "Yank text at point in `helm-current-buffer' into minibuffer.
-If `helm-yank-symbol-first' is non--nil the first yank
-grabs the entire symbol."
+  "Yank text at point in `helm-current-buffer' into minibuffer."
   (interactive)
   (with-helm-current-buffer
     (let ((fwd-fn (or helm-yank-text-at-point-function #'forward-word)))
