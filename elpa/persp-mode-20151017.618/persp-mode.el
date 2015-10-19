@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 1.1.3
-;; Package-Version: 20150907.1342
+;; Version: 1.1.4
+;; Package-Version: 20151017.618
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -242,15 +242,17 @@ This variable and the switch/display-buffer advices may be removed in a next ver
 
 (defcustom persp-save-buffer-functions
   (list #'(lambda (b)
-            (when (tramp-tramp-file-p (buffer-file-name b))
-              `(def-buffer ,(buffer-name b)
-                 ,(persp-tramp-save-buffer-file-name b)
-                 ,(buffer-local-value 'major-mode b))))
-        #'(lambda (b)
             (block 'persp-skip-buffer
               (dolist (f-f persp-filter-save-buffers-functions)
                 (when (funcall f-f b)
                   (return-from 'persp-skip-buffer 'skip)))))
+        #'(lambda (b)
+            (if (or (featurep 'tramp) (require 'tramp nil t))
+                (when (tramp-tramp-file-p (buffer-file-name b))
+                  `(def-buffer ,(buffer-name b)
+                     ,(persp-tramp-save-buffer-file-name b)
+                     ,(buffer-local-value 'major-mode b)))
+              nil))
         #'(lambda (b)
             `(def-buffer ,(buffer-name b)
                ,(buffer-file-name b)
@@ -1411,7 +1413,10 @@ of the perspective %s can't be saved."
      ,(persp-parameters-to-savelist persp)))
 
 (defun persps-to-savelist (phash &optional names-regexp)
-  (mapcar #'persp-to-savelist (persp-persps phash names-regexp)))
+  (mapcar #'persp-to-savelist
+          (delete-if #'(lambda (p)
+                         (persp-parameter 'dont-save-to-file p))
+                     (persp-persps phash names-regexp))))
 
 (defsubst persp-save-with-backups (fname)
   (when (and (string= fname
