@@ -5,7 +5,7 @@
 ;; Author: Oleksandr Manzyuk <manzyuk@gmail.com>
 ;; Maintainer: Andrey Tykhonov <atykhonov@gmail.com>
 ;; URL: https://github.com/atykhonov/google-translate
-;; Version: 0.11.1
+;; Version: 0.11.2
 ;; Keywords: convenience
 
 ;; Contributors:
@@ -199,7 +199,8 @@ translate TEXT from SOURCE-LANGUAGE to TARGET-LANGUAGE."
       ("otf"    . "1")
       ("srcrom" . "1")
       ("ssel"   . "0")
-      ("tsel"   . "0")))
+      ("tsel"   . "0")
+      ("tk"     . "160396|290233")))
    for-test-purposes))
 
 (defun google-translate-json-text-phonetic (json)
