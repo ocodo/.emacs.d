@@ -138,8 +138,7 @@ positions are allowed."
 (define-minor-mode haskell-indentation-mode
   "Haskell indentation mode that deals with the layout rule.
 It rebinds RET, DEL and BACKSPACE, so that indentations can be
-set and deleted as if they were real tabs.  It supports
-`auto-fill-mode'.
+set and deleted as if they were real tabs.
 
 It is possible to render indent stops for current line as
 overlays.  Please read documentation for option
@@ -150,14 +149,13 @@ clashing with other modes."
   :keymap haskell-indentation-mode-map
   (kill-local-variable 'indent-line-function)
   (kill-local-variable 'indent-region-function)
-  (kill-local-variable 'normal-auto-fill-function)
+
   (when haskell-indentation-mode
     (set (make-local-variable 'indent-line-function)
          'haskell-indentation-indent-line)
     (set (make-local-variable 'indent-region-function)
          'haskell-indentation-indent-region)
-    (set (make-local-variable 'normal-auto-fill-function)
-         'haskell-indentation-auto-fill-function)
+
     (when haskell-indentation-show-indentations
       (haskell-indentation-enable-show-indentations))))
 
@@ -186,20 +184,6 @@ NIL otherwise."
 
 ;;----------------------------------------------------------------------------
 ;; UI starts here
-
-(defun haskell-indentation-auto-fill-function ()
-  "" ; FIXME
-  (when (> (current-column) fill-column)
-    (while (> (current-column) fill-column)
-      (skip-syntax-backward "-")
-      (skip-syntax-backward "^-"))
-    (let ((indent (car (last (haskell-indentation-find-indentations-safe)))))
-      (delete-horizontal-space)
-      (newline)
-      (when (haskell-indentation-bird-p)
-        (insert ">"))
-      (indent-to indent)
-      (end-of-line))))
 
 (defun haskell-indentation-reindent-to (col &optional move)
   "Reindent current line to COL, move the point there if MOVE is non-NIL."
@@ -1056,26 +1040,6 @@ parser.  If parsing ends here, set indentation to left-indent."
               (unless (member (car parser) '("(" "[" "{" "case"))
                 (throw 'return nil)))))))))
 
-(defun haskell-indentation-test-indentations ()
-  "Insert markers on a fresh line indicating indentation positions.
-Use for testing."
-  (interactive)
-  (let ((indentations
-         (save-excursion
-           (haskell-indentation-find-indentations-safe)))
-        (str "")
-        (pos 0))
-    (while indentations
-      (when (>= (car indentations) pos)
-        (setq str (concat str
-                          (make-string (- (car indentations) pos) ?\ )
-                          "|"))
-        (setq pos (+ 1 (car indentations))))
-      (setq indentations (cdr indentations)))
-    (end-of-line)
-    (newline)
-    (insert str)))
-
 (defun haskell-indentation-separated (parser separator &optional stmt-separator)
   "Evaluate PARSER separated by SEPARATOR and STMT-SEPARATOR.
 If STMT-SEPARATOR is not NIL, it will be used to set a new starter-indent.
@@ -1269,15 +1233,6 @@ layout starts."
             (< indent (car possible-indentations)))
     (setq possible-indentations
           (cons indent possible-indentations))))
-
-(defun haskell-indentation-token-test ()
-  "" ; FIXME
-  (let ((current-token nil)
-        (following-token nil)
-        (layout-indent 0)
-        (parse-line-number 0)
-        (indentation-point (mark)))
-    (haskell-indentation-read-next-token)))
 
 (defun haskell-indentation-read-next-token ()
   "Go to the next token and set current-token to the next token.
