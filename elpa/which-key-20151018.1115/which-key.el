@@ -4,10 +4,10 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20151015.752
+;; Package-Version: 20151018.1115
 ;; Version: 0.6.2
 ;; Keywords:
-;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -40,8 +40,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 's)
-(require 'dash)
 
 (eval-when-compile
   (defvar golden-ratio-mode))
@@ -1220,9 +1218,26 @@ BUFFER that follow the key sequence KEY-SEQ."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for laying out which-key buffer pages
 
+(defun which-key--n-empty-strings (n)
+  "Produce a list of N empty strings."
+  (let (res)
+    (dotimes (_i n res)
+      (setq res (cons "" res)))))
+
+(defun which-key--pad (columns)
+  "Pad COLUMNS to the same length using empty strings."
+  (let ((max-len (cl-reduce (lambda (a x) (max a (length x))) columns
+                            :initial-value 0)))
+    (mapcar
+     (lambda (c)
+       (if (< (length c) max-len)
+           (append c (which-key--n-empty-strings (- max-len (length c))))
+         c))
+     columns)))
+
 (defsubst which-key--join-columns (columns)
   "Transpose columns into rows, concat rows into lines and rows into page."
-  (let* ((padded (apply (apply-partially #'-pad "") (reverse columns)))
+  (let* ((padded (which-key--pad (reverse columns)))
          (rows (apply #'cl-mapcar #'list padded)))
     (mapconcat (lambda (row) (mapconcat #'identity row " ")) rows "\n")))
 
@@ -1242,17 +1257,24 @@ that width."
          (col-width      (+ 1 col-key-width col-sep-width col-desc-width)))
     (cons col-width
           (mapcar (lambda (k)
-                    (concat
-                     (s-repeat (- col-key-width (string-width (nth 0 k))) " ")
-                     (nth 0 k) (nth 1 k) (nth 2 k)
-                     (s-repeat (- col-desc-width (string-width (nth 2 k))) " ")))
+                    (format (concat "%" (int-to-string col-key-width)
+                                    "s%s%-" (int-to-string col-desc-width) "s")
+                            (nth 0 k) (nth 1 k) (nth 2 k)))
                   col-keys))))
+
+(defun which-key--partition-list (n list)
+  "Partition LIST into N-sized sublists"
+  (let (res)
+    (while list
+      (setq res (cons (cl-subseq list 0 (min n (length list))) res)
+            list (nthcdr n list)))
+    (reverse res)))
 
 (defun which-key--partition-columns (keys avl-lines avl-width)
   "Convert list of KEYS to columns based on dimensions AVL-LINES and AVL-WIDTH.
 Returns a plist that holds the page strings, as well as metadata."
   (let ((cols-w-widths (mapcar #'which-key--pad-column
-                               (-partition-all avl-lines keys)))
+                               (which-key--partition-list avl-lines keys)))
         (page-width 0) (n-pages 0) (n-keys 0)
         page-cols pages page-widths keys/page col)
     (if (> (apply #'max (mapcar #'car cols-w-widths)) avl-width)
@@ -1383,22 +1405,25 @@ enough space based on your settings and frame size." prefix-keys)
                                                'face 'which-key-note-face))))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
-             (prefix-left (s-pad-right first-col-width " " prefix-w-face))
-             (status-left (s-pad-right first-col-width " " status-left))
+             (prefix-left (format (concat "%-" (int-to-string first-col-width) "s")
+                                  prefix-w-face))
+             (status-left (format (concat "%-" (int-to-string first-col-width) "s")
+                                  status-left))
              (nxt-pg-hint (which-key--next-page-hint prefix-keys page-n n-pages))
              new-end lines first)
         (cond ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'left))
                (setq lines (split-string page "\n")
                      first (concat prefix-left (car lines) "\n" status-left)
-                     new-end (concat "\n" (s-repeat first-col-width " "))
+                     new-end (concat "\n" (make-string first-col-width 32))
                      page  (concat first (mapconcat #'identity (cdr lines) new-end))))
               ((eq which-key-show-prefix 'left)
                (if (= 1 height)
                    (setq page (concat prefix-left page))
                  (setq lines (split-string page "\n")
-                       first (concat prefix-left (car lines) "\n" (s-repeat first-col-width " "))
-                       new-end (concat "\n" (s-repeat first-col-width " "))
+                       first (concat prefix-left (car lines)
+                                     "\n" (make-string first-col-width 32))
+                       new-end (concat "\n" (make-string first-col-width 32))
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((eq which-key-show-prefix 'top)
                (setq page (concat prefix-w-face dash-w-face " "
