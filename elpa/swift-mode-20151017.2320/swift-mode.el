@@ -6,7 +6,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;; Version: 0.4.0-cvs
-;; Package-Version: 20151002.2313
+;; Package-Version: 20151017.2320
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 
@@ -89,13 +89,11 @@
        (decl (decl ";" decl))
        (decl (let-decl) (var-decl))
        (let-decl
-        ("let" id ":" type)
-        ("let" id "=" exp)
-        ("let" id ":" type "=" exp))
+        ("let" decl-exp)
+        ("let" decl-exp "=" exp))
        (var-decl
-        ("var" id ":" type)
-        ("var" id "=" exp)
-        ("var" id ":" type "=" exp))
+        ("var" decl-exp)
+        ("var" decl-exp "=" exp))
 
        (top-level-sts (top-level-st) (top-level-st ";" top-level-st))
        (top-level-st
@@ -126,7 +124,6 @@
        (insts (inst) (insts ";" insts))
        (inst (decl)
              (exp "=" exp)
-             (tern-exp)
              (in-exp)
              (dot-exp)
              (dot-exp "{" closure "}")
@@ -148,7 +145,6 @@
        (exp ("[" decl-exps "]"))
        (in-exp (id "in" exp))
        (guard-exp (exp "where" exp))
-       (tern-exp (exp "?" exp ":" exp))
 
        (enum-case ("ecase" assign-exp)
                   ("ecase" "(" type ")"))
@@ -174,7 +170,7 @@
 
        (closure (insts) (exp "in" insts) (exp "->" id "in" insts)))
      ;; Conflicts
-     '((nonassoc "{") (assoc "in") (assoc ",") (assoc ";") (assoc ":") (right "="))
+     '((nonassoc "{") (assoc "in") (assoc ",") (assoc ";") (right "=") (right ":"))
      '((assoc "in") (assoc "where"))
      '((assoc ";") (assoc "ecase"))
      '((assoc "case")))
@@ -183,6 +179,7 @@
      '(
        (right "*=" "/=" "%=" "+=" "-=" "<<=" ">>=" "&="
               "^=" "|=" "&&=" "||=" "=")                       ;; Assignment (Right associative, precedence level 90)
+       (right "?" ":")                                         ;; Ternary Conditional (Right associative, precedence level 100)
        (left "||")                                             ;; Disjunctive (Left associative, precedence level 110)
        (left "&&")                                             ;; Conjunctive (Left associative, precedence level 120)
        (right "??")                                            ;; Nil Coalescing (Right associativity, precedence level 120)
@@ -387,8 +384,7 @@ We try to constraint those lookups by reasonable number of lines.")
      (cond
       ;; Rule for ternary operator in
       ;; assignment expression.
-      ;; Static indentation relatively to =
-      ((smie-rule-parent-p "=") 2)
+      ((and (smie-rule-parent-p "?") (smie-rule-bolp)) 0)
       ((smie-rule-parent-p ",") (smie-rule-parent swift-indent-offset))
       ;; Rule for the class definition.
       ((smie-rule-parent-p "class") (smie-rule-parent swift-indent-offset))))
@@ -687,7 +683,7 @@ We try to constraint those lookups by reasonable number of lines.")
                (option "-target" flycheck-swift-target)
                (option "-import-objc-header" flycheck-swift-import-objc-header)
                (eval
-                (mapcan
+                (cl-mapcan
                  #'(lambda (path) (list "-Xcc" (concat "-I" path)))
                  flycheck-swift-cc-include-search-paths))
                "-primary-file" source)
