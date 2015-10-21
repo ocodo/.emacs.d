@@ -63,7 +63,7 @@
 			((:url . "http://www.gnuvola.org/software/aa2u/")
 			 (:keywords "ascii" "unicode" "box-drawing"))])
  (auctex .
-	 [(11 88 8)
+	 [(11 88 9)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -156,11 +156,11 @@
 		      ((:keywords "abbrev" "convenience" "matching")
 		       (:url . "https://github.com/company-mode/company-statistics"))])
  (context-coloring .
-		   [(7 0 0)
+		   [(7 1 0)
 		    ((emacs
 		      (24 3))
 		     (js2-mode
-		      (20150126)))
+		      (20150713)))
 		    "Highlight by scope" single
 		    ((:url . "https://github.com/jacksonrayhamilton/context-coloring")
 		     (:keywords "convenience" "faces" "tools"))])
@@ -578,7 +578,7 @@
 		  ((:url . "http://elpa.gnu.org/packages/scroll-restore.html")
 		   (:keywords "scrolling"))])
  (seq .
-      [(1 9)
+      [(1 11)
        nil "Sequence manipulation functions" single
        ((:url . "http://elpa.gnu.org/packages/seq.html")
 	(:keywords "sequences"))])
@@ -617,7 +617,7 @@
  (stream .
 	 [(1 0)
 	  ((emacs
-	    (25 1)))
+	    (25)))
 	  "Implementation of streams" single
 	  ((:url . "http://elpa.gnu.org/packages/stream.html")
 	   (:keywords "stream" "laziness" "sequences"))])
