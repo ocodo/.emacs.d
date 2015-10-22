@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Chris Wanstrath
 
 ;; Version: 0.6.1
-;; Package-Version: 20151010.31
+;; Package-Version: 20151019.2009
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
 ;; URL: http://github.com/defunkt/coffee-mode
@@ -404,7 +404,7 @@ called `coffee-compiled-buffer-name'."
 (defvar coffee-assign-regexp "\\(@?[_[:word:].$]+?\\)\\s-*:")
 
 ;; Local Assignment
-(defvar coffee-local-assign-regexp "\\s-*\\([_[:word:].$]+\\)\\s-*=\\(?:[^>=]\\|$\\)")
+(defvar coffee-local-assign-regexp "\\s-*\\([_[:word:].$]+\\)\\s-*\\??=\\(?:[^>=]\\|$\\)")
 
 ;; Lambda
 (defvar coffee-lambda-regexp "\\(?:(.*)\\)?\\s-*\\(->\\|=>\\)")
