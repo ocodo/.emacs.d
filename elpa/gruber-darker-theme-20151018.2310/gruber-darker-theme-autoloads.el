@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "gruber-darker-theme" "gruber-darker-theme.el"
-;;;;;;  (21998 34806 735401 0))
+;;;;;;  (22056 24053 890811 0))
 ;;; Generated autoloads from gruber-darker-theme.el
 
 (when load-file-name (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))

@@ -4,7 +4,7 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20150901.1029
+;; Package-Version: 20151018.2310
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -150,6 +150,8 @@
    ;; ERC
    `(erc-notice-face ((t (:foreground ,gruber-darker-wisteria))))
    `(erc-timestamp-face ((t (:foreground ,gruber-darker-green))))
+   `(erc-input-face ((t (:foreground ,gruber-darker-red+1))))
+   `(erc-my-nick-face ((t (:foreground ,gruber-darker-red+1))))
 
    ;; EShell
    `(eshell-ls-backup ((t (:foreground ,gruber-darker-quartz))))
