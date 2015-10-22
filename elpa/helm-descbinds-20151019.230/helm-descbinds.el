@@ -5,9 +5,10 @@
 ;; Copyright (C) 2013 Daniel Hackney <dan@haxney.org>
 
 ;; Author: Taiki SUGAWARA <buzz.taiki@gmail.com>
+;; URL: https://github.com/emacs-helm/helm-descbinds
+;; Package-Version: 20151019.230
 ;; Keywords: helm, help
-;; Version: 20140122.2158
-;; X-Original-Version: 1.08
+;; Version: 1.08
 ;; Package-Requires: ((helm "1.5"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -139,6 +140,7 @@ This function called two argument KEY and BINDING."
 
 (defcustom helm-descbinds-source-template
   `((candidate-transformer . helm-descbinds-transform-candidates)
+    (filtered-candidate-transformer . helm-fuzzy-highlight-matches)
     (persistent-action . helm-descbinds-action:describe)
     (action . ,helm-descbinds-actions))
   "A template of `helm-descbinds' source."
@@ -220,7 +222,7 @@ This function called two argument KEY and BINDING."
      ((stringp x)
       (insert x))
      ((commandp x)
-      (call-interactively x)))))
+      (run-at-time 0.01 nil (lambda (command) (call-interactively command)) x)))))
 
 (defun helm-descbinds-action:describe (candidate)
   "An action that describe selected CANDIDATE function."
@@ -281,10 +283,14 @@ This function called two argument KEY and BINDING."
                                                   'one-window))
                                          (cons 'delete-other-windows
                                                helm-before-initialize-hook)
-                                         helm-before-initialize-hook)))
+                                       helm-before-initialize-hook))
+        (enable-recursive-minibuffers t))
     (setq helm-descbind--initial-full-frame old-helm-full-frame)
     (helm :sources (helm-descbinds-sources
-                    (or buffer (current-buffer)) prefix))))
+                    (or buffer (current-buffer)) prefix)
+          :buffer "*helm-descbinds*"
+          :resume 'noresume
+          :allow-nest t)))
 
 (provide 'helm-descbinds)
 

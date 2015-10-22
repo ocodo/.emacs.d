@@ -1,11 +1,10 @@
 ;;; helm-descbinds-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (helm-descbinds helm-descbinds-uninstall helm-descbinds-install
-;;;;;;  helm-descbinds-mode) "helm-descbinds" "helm-descbinds.el"
-;;;;;;  (21428 50422 0 0))
+;;;### (autoloads nil "helm-descbinds" "helm-descbinds.el" (22056
+;;;;;;  24046 762811 0))
 ;;; Generated autoloads from helm-descbinds.el
 
 (defvar helm-descbinds-mode nil "\
@@ -39,16 +38,9 @@ Yet Another `describe-bindings' with `helm'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("helm-descbinds-pkg.el") (21428 50422
-;;;;;;  888599 0))
-
-;;;***
-
-(provide 'helm-descbinds-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; helm-descbinds-autoloads.el ends here
