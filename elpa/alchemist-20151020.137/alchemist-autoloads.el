@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (22049 3365 338811
+;;;### (autoloads nil "alchemist" "alchemist.el" (22056 24104 10811
 ;;;;;;  0))
 ;;; Generated autoloads from alchemist.el
 
@@ -17,8 +17,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22049 3365
-;;;;;;  390811 0))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22056 24104
+;;;;;;  46811 0))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -39,7 +39,7 @@ Show the IEx buffer if an IEx process is already run.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-phoenix" "alchemist-phoenix.el"
-;;;;;;  (22049 3365 382811 0))
+;;;;;;  (22056 24104 38811 0))
 ;;; Generated autoloads from alchemist-phoenix.el
 
 (autoload 'alchemist-phoenix-project-p "alchemist-phoenix" "\
@@ -66,7 +66,7 @@ The following commands are available:
 ;;;***
 
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (22049 3365 346811 0))
+;;;;;;  (22056 24104 18811 0))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -77,7 +77,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (22049 3365 402811 0))
+;;;;;;  (22056 24104 58811 0))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -101,10 +101,11 @@ The following commands are available:
 ;;;### (autoloads nil nil ("alchemist-company.el" "alchemist-compile.el"
 ;;;;;;  "alchemist-complete.el" "alchemist-eval.el" "alchemist-execute.el"
 ;;;;;;  "alchemist-file.el" "alchemist-goto.el" "alchemist-help.el"
-;;;;;;  "alchemist-hooks.el" "alchemist-key.el" "alchemist-message.el"
-;;;;;;  "alchemist-mix.el" "alchemist-pkg.el" "alchemist-project.el"
-;;;;;;  "alchemist-report.el" "alchemist-scope.el" "alchemist-server.el"
-;;;;;;  "alchemist-utils.el") (22049 3365 421045 639000))
+;;;;;;  "alchemist-hooks.el" "alchemist-interact.el" "alchemist-key.el"
+;;;;;;  "alchemist-macroexpand.el" "alchemist-message.el" "alchemist-mix.el"
+;;;;;;  "alchemist-pkg.el" "alchemist-project.el" "alchemist-report.el"
+;;;;;;  "alchemist-scope.el" "alchemist-server.el" "alchemist-utils.el")
+;;;;;;  (22056 24104 65598 841000))
 
 ;;;***
 
