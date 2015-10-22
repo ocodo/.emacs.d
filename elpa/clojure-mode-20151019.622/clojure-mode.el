@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20151013.855
+;; Package-Version: 20151019.622
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 4.2.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
@@ -706,6 +706,9 @@ Implementation function for `clojure--find-indent-spec'."
           ((or `defun `:defn)
            (when (= pos 0)
              :defn))
+          ((pred functionp)
+           (when (= pos 0)
+             method))
           (_
            (message "Invalid indent spec for `%s': %s" function method)
            nil))))))
