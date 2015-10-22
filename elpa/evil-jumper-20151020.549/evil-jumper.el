@@ -3,13 +3,13 @@
 ;; Copyright (C) 2014 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/evil-jumper
-;; Package-Version: 20150830.1807
+;; Package-Version: 20151020.549
 ;; Filename: evil-jumper.el
 ;; Description: Jump like vimmers do!
 ;; Created: 2014-07-01
 ;; Version: 0.2.1
 ;; Keywords: evil vim jumplist jump list
-;; Package-Requires: ((evil "0"))
+;; Package-Requires: ((evil "0") (cl-lib "0.5"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -48,7 +48,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (require 'evil)
 
 (defgroup evil-jumper nil
@@ -66,7 +66,7 @@
   :type 'boolean
   :group 'evil-jumper)
 
-(defcustom evil-jumper-ignored-file-patterns '("COMMIT_EDITMSG" "TAGS")
+(defcustom evil-jumper-ignored-file-patterns '("COMMIT_EDITMSG$" "TAGS$")
   "A list of pattern regexps to match on the file path to exclude from being included in the jump list."
   :type '(repeat string)
   :group 'evil-jumper)
@@ -94,7 +94,7 @@ Note: The value of `evil-jumper-file' must also be non-nil."
   (make-hash-table)
   "Hashtable which stores all jumps on a per window basis.")
 
-(defstruct evil-jumper-jump
+(cl-defstruct evil-jumper-jump
   jumps
   (idx -1))
 
