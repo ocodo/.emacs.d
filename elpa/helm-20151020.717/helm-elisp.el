@@ -323,7 +323,7 @@ in other window according to the value of `helm-elisp-help-function'."
       (helm-elisp-show-doc-modeline "Show brief doc in mode-line")
       (helm-elisp-show-help "Toggle show help for the symbol")))
 
-(defun helm-elisp--show-help-1 (candidate name)
+(defun helm-elisp--show-help-1 (candidate &optional name)
   (let ((sym (intern-soft candidate)))
     (cl-typecase sym
       ((and fboundp boundp)
@@ -333,21 +333,21 @@ in other window according to the value of `helm-elisp-help-function'."
       (bound    (helm-describe-variable sym))
       (face     (helm-describe-face sym)))))
 
-(defun helm-elisp-show-help (candidate name)
+(defun helm-elisp-show-help (candidate &optional name)
   "Show full help for the function CANDIDATE.
 Arg NAME specify the name of the top level function
 calling helm generic completion (e.g \"describe-function\")."
   (helm-elisp--persistent-help
    candidate 'helm-elisp--show-help-1 name))
   
-(defun helm-elisp-show-doc-modeline (candidate)
+(defun helm-elisp-show-doc-modeline (candidate &optional name)
   "Show brief documentation for the function in modeline."
   (let ((cursor-in-echo-area t)
         mode-line-in-non-selected-windows)
     (helm-show-info-in-mode-line
      (propertize
       (helm-get-first-line-documentation
-       (intern candidate))
+       (intern candidate) name)
       'face 'helm-lisp-completion-info))))
 
 (defun helm-lisp-completion-transformer (candidates _source)
@@ -365,13 +365,18 @@ calling helm generic completion (e.g \"describe-function\")."
         collect (cons (concat c spaces annot) c) into lst
         finally return (sort lst #'helm-generic-sort-fn)))
 
-(defun helm-get-first-line-documentation (sym)
+(defun helm-get-first-line-documentation (sym &optional name)
   "Return first line documentation of symbol SYM.
 If SYM is not documented, return \"Not documented\"."
   (let ((doc (cl-typecase sym
-                 (fbound  (documentation sym t))
-                 (bound   (documentation-property sym 'variable-documentation t))
-                 (face    (face-documentation sym)))))
+               ((and fboundp boundp)
+                (cond ((string= name "describe-function")
+                       (documentation sym t))
+                      ((string= name  "describe-variable")
+                       (documentation-property sym 'variable-documentation t))))
+               (fbound  (documentation sym t))
+               (bound   (documentation-property sym 'variable-documentation t))
+               (face    (face-documentation sym)))))
     (if (and doc (not (string= doc ""))
              ;; `documentation' return "\n\n(args...)"
              ;; for CL-style functions.
@@ -487,7 +492,16 @@ Filename completion happen if string start after or between a double quote."
     :action '(("Describe Variable" . helm-describe-variable)
               ("Find Variable" . helm-find-variable)
               ("Info lookup" . helm-info-lookup-symbol)
-              ("Set variable" . helm-set-variable))))
+              ("Set variable" . helm-set-variable))
+    :action-transformer
+    (lambda (actions candidate)
+      (let ((sym (helm-symbolify candidate)))
+        (if (custom-variable-p sym)
+            (append actions
+                    '(("Customize Variable" .
+                       (lambda (candidate)
+                         (customize-option (helm-symbolify candidate))))))
+          actions)))))
 
 (defun helm-def-source--emacs-faces (&optional default)
   (helm-build-in-buffer-source "Faces"
