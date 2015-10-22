@@ -4,7 +4,7 @@
 ;;
 ;; Author: coldnew <coldnew.tw@gmail.com>
 ;; Keywords: converience
-;; Package-Version: 20151014.2159
+;; Package-Version: 20151019.455
 ;; X-URL: http://github.com/coldnew/linum-relative
 ;; Version: 0.4
 
@@ -53,7 +53,7 @@
 ;;
 ;;     M-x linum-mode
 ;;
-;; Relative line numbering should already be enabled by default (by installing this package), following *linum-on* or enabling *linum-mode*. One can also use the *lineum-relative-toggle* interactive function to switch between relative and non-relative line numbering:
+;; Relative line numbering should already be enabled by default (by installing this package), following *linum-on* or enabling *linum-mode*. One can also use the *linum-relative-toggle* interactive function to switch between relative and non-relative line numbering:
 ;;
 ;;     M-x linum-relative-toggle
 ;;
