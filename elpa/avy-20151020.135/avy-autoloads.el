@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "avy" "avy.el" (22045 48113 161140 0))
+;;;### (autoloads nil "avy" "avy.el" (22056 24101 382811 0))
 ;;; Generated autoloads from avy.el
 
 (autoload 'avy-goto-char "avy" "\
@@ -75,6 +75,16 @@ When ARG is 4, negate the window scope determined by
 Otherwise, forward to `goto-line' with ARG.
 
 \(fn &optional ARG)" t nil)
+
+(autoload 'avy-goto-line-above "avy" "\
+Goto visible line above the cursor.
+
+\(fn)" t nil)
+
+(autoload 'avy-goto-line-below "avy" "\
+Goto visible line below the cursor.
+
+\(fn)" t nil)
 
 (autoload 'avy-copy-line "avy" "\
 Copy a selected line above the current line.

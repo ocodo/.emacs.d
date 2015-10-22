@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20151006.1231
+;; Package-Version: 20151020.135
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -486,6 +486,11 @@ Set `avy-style' according to COMMMAND as well."
 (defun avy--process (candidates overlay-fn)
   "Select one of CANDIDATES using `avy-read'.
 Use OVERLAY-FN to visualize the decision overlay."
+  (unless (and (consp (car candidates))
+               (windowp (cdar candidates)))
+    (setq candidates
+          (mapcar (lambda (x) (cons x (selected-window)))
+                  candidates)))
   (let ((len (length candidates))
         (cands (copy-sequence candidates))
         res)
@@ -547,6 +552,33 @@ Use OVERLAY-FN to visualize the decision overlay."
   (setq avy--overlays-back nil)
   (avy--remove-leading-chars))
 
+(defun avy--next-visible-point ()
+  "Return the next closest point without 'invisible property."
+  (let ((s (point)))
+    (while (and (not (= (point-max) (setq s (next-overlay-change s))))
+                (get-char-property s 'invisible)))
+    s))
+
+(defun avy--next-invisible-point ()
+  "Return the next closest point with 'invisible property."
+  (let ((s (point)))
+    (while (and (not (= (point-max) (setq s (next-overlay-change s))))
+                (not (get-char-property s 'invisible))))
+    s))
+
+(defun avy--find-visible-regions (rbeg rend)
+  "Return a list of all visible regions between RBEG and REND."
+  (let (visibles beg)
+    (save-excursion
+      (save-restriction
+        (narrow-to-region rbeg rend)
+        (setq beg (goto-char (point-min)))
+        (while (not (= (point) (point-max)))
+          (goto-char (avy--next-invisible-point))
+          (push (cons beg (point)) visibles)
+          (setq beg (goto-char (avy--next-visible-point))))
+        (nreverse visibles)))))
+
 (defun avy--regex-candidates (regex &optional beg end pred group)
   "Return all elements that match REGEX.
 Each element of the list is ((BEG . END) . WND)
@@ -557,11 +589,13 @@ When GROUP is non-nil, (BEG . END) should delimit that regex group."
                               (not (string= regex (upcase regex)))))
         candidates)
     (avy-dowindows nil
-      (let ((we (or end (window-end (selected-window) t))))
+      (dolist (pair (avy--find-visible-regions
+                     (or beg (window-start))
+                     (or end (window-end (selected-window) t))))
         (save-excursion
-          (goto-char (or beg (window-start)))
-          (while (re-search-forward regex we t)
-            (unless (get-char-property (point) 'invisible)
+          (goto-char (car pair))
+          (while (re-search-forward regex (cdr pair) t)
+            (unless (get-char-property (1- (point)) 'invisible)
               (when (or (null pred)
                         (funcall pred))
                 (push (cons (cons (match-beginning group)
@@ -923,15 +957,16 @@ Which one depends on variable `subword-mode'."
 
 (defvar visual-line-mode)
 
-(defun avy--line (&optional arg)
+(defun avy--line (&optional arg beg end)
   "Select a line.
-The window scope is determined by `avy-all-windows' (ARG negates it)."
+The window scope is determined by `avy-all-windows' (ARG negates it).
+Narrow the scope to BEG END."
   (let (candidates)
     (avy-dowindows arg
-      (let ((ws (window-start)))
+      (let ((ws (or beg (window-start))))
         (save-excursion
           (save-restriction
-            (narrow-to-region ws (window-end (selected-window) t))
+            (narrow-to-region ws (or end (window-end (selected-window) t)))
             (goto-char (point-min))
             (while (< (point) (point-max))
               (unless (get-char-property
@@ -980,6 +1015,24 @@ Otherwise, forward to `goto-line' with ARG."
              (r (avy--line (eq arg 4))))
         (unless (eq r t)
           (avy-action-goto r))))))
+
+;;;###autoload
+(defun avy-goto-line-above ()
+  "Goto visible line above the cursor."
+  (interactive)
+  (let ((r (avy--line nil (window-start) (point))))
+    (unless (eq r t)
+      (avy-action-goto r))))
+
+;;;###autoload
+(defun avy-goto-line-below ()
+  "Goto visible line below the cursor."
+  (interactive)
+  (let ((r (avy--line
+            nil (point)
+            (window-end (selected-window) t))))
+    (unless (eq r t)
+      (avy-action-goto r))))
 
 ;;;###autoload
 (defun avy-copy-line (arg)
