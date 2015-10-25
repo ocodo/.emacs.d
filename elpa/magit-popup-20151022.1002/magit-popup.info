@@ -330,18 +330,24 @@ to an existing popup using the following functions.
      of another command already defined for POPUP, the command is then
      placed before or after AT, depending on PREPEND.
 
+ -- Function: magit-define-popup-sequence-action popup key desc command
+          &optional at prepend
+
+     Like ‘magit-define-popup-action’, but modifies the value of the
+     ‘:sequence-actions’ property instead of ‘:actions’.
+
  -- Function: magit-change-popup-key popup type from to
 
      In POPUP, bind TO to what FROM was bound to.  TYPE is one of
-     ‘:action’, ‘:switch’, or ‘:option’.  Bind TO and unbind FROM, both
-     are characters.
+     ‘:action’, ‘:sequence-action’, ‘:switch’, or ‘:option’.  Bind TO
+     and unbind FROM, both are characters.
 
  -- Function: magit-remove-popup-key popup type key
 
      In POPUP, remove KEY’s binding of TYPE. POPUP is a popup command
      defined using ‘magit-define-popup’.  TYPE is one of ‘:action’,
-     ‘:switch’, or ‘:option’.  KEY is the character which is to be
-     unbound.
+     ‘:sequence-action’, ‘:switch’, or ‘:option’.  KEY is the character
+     which is to be unbound.
 
    It is also possible to change other aspects of a popup by setting a
 property using ‘plist-put’.  See *note Defining prefix commands:
@@ -645,10 +651,10 @@ Node: Top989
 Node: Introduction2158
 Node: Usage4735
 Node: Customizing existing popups9392
-Node: Other options13670
-Node: Defining prefix and suffix commands15375
-Node: Defining prefix commands17527
-Node: Defining suffix commands23534
+Node: Other options13961
+Node: Defining prefix and suffix commands15666
+Node: Defining prefix commands17818
+Node: Defining suffix commands23825
 
 End Tag Table
 
