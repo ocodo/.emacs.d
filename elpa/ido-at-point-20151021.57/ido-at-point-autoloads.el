@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ido-at-point" "ido-at-point.el" (21960 42734
-;;;;;;  907401 0))
+;;;### (autoloads nil "ido-at-point" "ido-at-point.el" (22060 27370
+;;;;;;  504220 768000))
 ;;; Generated autoloads from ido-at-point.el
 
 (autoload 'ido-at-point-mode "ido-at-point" "\
