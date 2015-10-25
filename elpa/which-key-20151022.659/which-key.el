@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20151020.626
+;; Package-Version: 20151022.659
 ;; Version: 0.6.2
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -543,9 +543,10 @@ bottom."
   (let ((key-lst (listify-key-sequence (kbd key))))
     (cond ((null alist) (list (cons key-lst value)))
           ((assoc key-lst alist)
-           (message "which-key: changing %s name from %s to %s in the %s alist"
-                    key (cdr (assoc key-lst alist)) value alist-name)
-           (setcdr (assoc key-lst alist) value)
+           (when (not (string-equal (cdr (assoc key-lst alist)) value))
+             (message "which-key: changing %s name from %s to %s in the %s alist"
+                      key (cdr (assoc key-lst alist)) value alist-name)
+             (setcdr (assoc key-lst alist) value))
            alist)
           (t (cons (cons key-lst value) alist)))))
 
