@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.5
-;; Package-Version: 20151020.1020
+;; Package-Version: 20151023.1819
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -231,13 +231,12 @@ update `transmission-session-id' and signal the error."
   "Send to PROCESS an HTTP POST request containing CONTENT."
   (with-current-buffer (process-buffer process)
     (erase-buffer))
-  (let ((path transmission-rpc-path)
-        (headers (list (cons transmission-session-header transmission-session-id)
+  (let ((headers (list (cons transmission-session-header transmission-session-id)
                        (cons "Content-length" (string-bytes content)))))
     (let ((auth (transmission--auth-string)))
       (if auth (push (cons "Authorization" auth) headers)))
     (with-temp-buffer
-      (insert (format "POST %s HTTP/1.1\r\n" path))
+      (insert (format "POST %s HTTP/1.1\r\n" transmission-rpc-path))
       (mapc (lambda (elt)
               (insert (format "%s: %s\r\n" (car elt) (cdr elt))))
             headers)
@@ -261,6 +260,9 @@ Return JSON object parsed from content."
   (transmission-wait process))
 
 (defun transmission-ensure-process ()
+  "Return a network process connected to a transmission daemon.
+When creating a new connection, the address is determined by the
+custom variables `transmission-host' and `transmission-service'."
   (let* ((name "transmission")
          (process (get-process name))
          (local (string-prefix-p "/" transmission-host)))
@@ -646,12 +648,12 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-toggle ()
   "Toggle torrent between started and stopped."
   (interactive)
-  (transmission-let-ids nil
-    (let* ((torrent (transmission-torrents (list :ids ids :fields '("status"))))
-           (status (transmission-torrent-value torrent 'status)))
-      (pcase status
-        (0 (transmission-request "torrent-start" (list :ids ids)))
-        ((or 4 6) (transmission-request "torrent-stop" (list :ids ids)))))))
+  (transmission-let-ids
+      ((torrent (transmission-torrents (list :ids ids :fields '("status"))))
+       (status (transmission-torrent-value torrent 'status)))
+    (pcase status
+      (0 (transmission-request "torrent-start" (list :ids ids)))
+      ((or 4 6) (transmission-request "torrent-stop" (list :ids ids))))))
 
 (defun transmission-trackers-add ()
   "Add announce URLs to torrent or torrents."
@@ -871,8 +873,8 @@ Each form in BODY is a column descriptor."
         (concat
          (format "Piece count: %d / %d (%d%%)" have .pieceCount
                  (transmission-percent have .pieceCount))
-         (when (and (not (= have 0)) (< have .pieceCount))
-           (format "\nPieces:\n\n%s\n"
+         (when (and (/= have 0) (< have .pieceCount))
+           (format "\nPieces:\n\n%s"
                    (transmission-format-pieces .pieces .pieceCount)))))))))
 
 (defun transmission-draw (fun)
