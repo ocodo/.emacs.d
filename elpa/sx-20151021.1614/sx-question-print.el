@@ -185,10 +185,10 @@ replaced with the comment."
            ("Newer"          . sx-answer-newer-p)
            ("More active"    . sx-answer-more-active-p))))
     (append (mapcar (lambda (x) (cons (concat (car x) " first") (cdr x)))
-              methods)
+                    methods)
             (mapcar (lambda (x) (cons (concat (car x) " last")
-                                 (sx--invert-predicate (cdr x))))
-              methods))))
+                                      (sx--invert-predicate (cdr x))))
+                    methods))))
 
 (defcustom sx-question-mode-answer-sort-function
   #'sx-answer-higher-score-p
@@ -196,7 +196,7 @@ replaced with the comment."
   :type
   (cons 'choice
         (mapcar (lambda (x) `(const :tag ,(car x) ,(cdr x)))
-          sx-question-mode--sort-methods))
+                sx-question-mode--sort-methods))
   :group 'sx-question-mode)
 
 (defcustom sx-question-mode-use-images
@@ -237,9 +237,9 @@ QUESTION must be a data structure returned by `json-read'."
       (sx-question-mode--print-close-reason .closed_reason .closed_date .closed_details))
     (sx-question-mode--print-section question)
     (mapc #'sx-question-mode--print-section
-      (cl-remove-if
-       #'sx--deleted-p
-       (cl-sort .answers sx-question-mode-answer-sort-function))))
+          (cl-remove-if
+           #'sx--deleted-p
+           (cl-sort .answers sx-question-mode-answer-sort-function))))
   (insert "\n\n                       ")
   (insert-text-button "Write an Answer" :type 'sx-button-answer)
   ;; Go up
@@ -255,9 +255,9 @@ DETAILS, when given is an alist further describing the close."
     (let-alist details
       (insert "\n    "
               (propertize (format " %s as %s, %s ago. "
-                            (if .on_hold "Put on hold" "Closed")
-                            reason
-                            (sx-time-since date))
+                                  (if .on_hold "Put on hold" "Closed")
+                                  reason
+                                  (sx-time-since date))
                           'face 'sx-question-mode-closed)
               "\n")
       (when .description
@@ -321,8 +321,8 @@ DATA can represent a question or an answer."
           (sx-time-seconds-to-date .creation_date)
           (when .last_edit_date
             (format sx-question-mode-last-edit-format
-              (sx-time-since .last_edit_date)
-              (sx-user--format "%d" .last_editor))))
+                    (sx-time-since .last_edit_date)
+                    (sx-user--format "%d" .last_editor))))
          'sx-question-mode-date)
 
         ;; Score and upvoted/downvoted status.
@@ -393,18 +393,18 @@ The comment is indented, filled, and then printed according to
                 " "))
       (insert
        (format sx-question-mode-comments-format
-         (sx-user--format "%d" .owner)
-         (substring
-          ;; We use temp buffer, so that image overlays don't get
-          ;; inserted with the comment.
-          (with-temp-buffer
-            ;; We fill with three spaces at the start, so the comment is
-            ;; slightly indented.
-            (sx-question-mode--insert-markdown (concat "   " (sx--squash-whitespace .body_markdown)))
-            (buffer-string))
-          ;; Then we remove the spaces from the first line, since we'll
-          ;; add the username there anyway.
-          3))))))
+               (sx-user--format "%d" .owner)
+               (substring
+                ;; We use temp buffer, so that image overlays don't get
+                ;; inserted with the comment.
+                (with-temp-buffer
+                  ;; We fill with three spaces at the start, so the comment is
+                  ;; slightly indented.
+                  (sx-question-mode--insert-markdown (concat "   " (sx--squash-whitespace .body_markdown)))
+                  (buffer-string))
+                ;; Then we remove the spaces from the first line, since we'll
+                ;; add the username there anyway.
+                3))))))
 
 (defun sx-question-mode--insert-header (&rest args)
   "Insert propertized ARGS.
@@ -506,6 +506,10 @@ font-locks code-blocks according to mode."
               (goto-char end)))))
       (goto-char (point-max)))))
 
+(defconst sx-question-mode-hr
+  (propertize (make-string 72 ?―)
+              'face 'markdown-header-rule-face))
+
 (defun sx-question-mode--insert-markdown (text)
   "Return TEXT fontified according to `markdown-mode'."
   (let ((beg (point)))
@@ -535,7 +539,8 @@ font-locks code-blocks according to mode."
         `((,(rx (or blank line-start)
                 (group-n 1 (and "@" (1+ (not space))))
                 symbol-end)
-           1 font-lock-builtin-face)))
+           1 font-lock-builtin-face)
+          ("^---+$" 0 '(face nil display ,sx-question-mode-hr))))
        ;; Everything.
        (font-lock-fontify-region (point-min) (point-max))
        (replace-regexp-in-string "[[:blank:]]+\\'" "" (buffer-string))))
@@ -573,6 +578,21 @@ This can be inline Markdown code or a Markdown code-block."
         (save-excursion
           (sx-question-mode--skip-and-fontify-pre 'dont-fontify)))))
 
+(defun sx-question-mode--standalone-tag-p (string)
+  "Return non-nil if STRING ends in \"/>\"."
+  (string-match "/[[:blank:]]*>\\'" string))
+
+(defun sx-question-mode--next-tag (tag &optional closing end)
+  "Move point to the next occurrence of html TAG, or return nil.
+Don't move past END.
+If CLOSING is non-nil, find a closing tag."
+  (search-forward-regexp
+   (format sx-question-mode--html-tag-regexp
+           (if closing
+               (concat "/[[:blank:]]*" tag)
+             tag))
+   end 'noerror))
+
 (defun sx-question-mode--process-html-tags (beg end-marker)
   "Hide all html tags between BEG and END and possibly interpret them.
 END-MARKER should be a marker."
@@ -580,17 +600,20 @@ END-MARKER should be a marker."
   ;; nested in itself (e.g., <kbd><kbd></kbd></kbd>).
   (set-marker-insertion-type end-marker t)
   (goto-char beg)
-  (while (search-forward-regexp
-          (format sx-question-mode--html-tag-regexp "[[:alpha:]]+")
-          end-marker 'noerror)
+  (while (sx-question-mode--next-tag "[[:alpha:]]+" nil end-marker)
     (unless (sx-question-mode--inside-code-p)
       (let ((tag (match-string 1))
+            (full (match-string 0))
             (l   (match-beginning 0)))
         (replace-match "")
-        (when (search-forward-regexp
-               (format sx-question-mode--html-tag-regexp (concat "/" tag))
-               ;; Searching for a match has no bounds.
-               end-marker 'noerror)
+        (pcase tag
+          (`"hr"
+           (unless (looking-at-p "^") (insert "\n"))
+           (insert (propertize "---" 'display sx-question-mode-hr))
+           (unless (eq (char-after) ?\n) (insert "\n")))
+          (`"br" (insert "\n  ")))
+        (when (and (not (sx-question-mode--standalone-tag-p full))
+                   (sx-question-mode--next-tag tag 'closing))
           (let ((r (copy-marker (match-beginning 0))))
             ;; The code tag is special, because it quotes everything inside.
             (if (string= tag "code")
@@ -599,18 +622,18 @@ END-MARKER should be a marker."
               (replace-match "")
               ;; Handle stuff between the two tags.
               (save-match-data (sx-question-mode--process-html-tags l r))
-              (cond
-               ((string= tag "kbd")
-                (add-text-properties l r '(face sx-question-mode-kbd-tag))
-                (when (looking-at-p
-                       (format sx-question-mode--html-tag-regexp "kbd"))
-                  (insert " ")))
-               ((string= tag "sub")
-                (add-text-properties
-                 l r '(face sx-question-mode-sub-sup-tag display (raise -0.3))))
-               ((string= tag "sup")
-                (add-text-properties
-                 l r '(face sx-question-mode-sub-sup-tag display (raise +0.3))))))))))))
+              (pcase tag
+                (`"kbd"
+                 (add-text-properties l r '(face sx-question-mode-kbd-tag))
+                 (when (looking-at-p
+                        (format sx-question-mode--html-tag-regexp "kbd"))
+                   (insert " ")))
+                (`"sub"
+                 (add-text-properties
+                  l r '(face sx-question-mode-sub-sup-tag display (raise -0.3))))
+                (`"sup"
+                 (add-text-properties
+                  l r '(face sx-question-mode-sub-sup-tag display (raise +0.3))))))))))))
 
 
 ;;; Handling links
@@ -693,11 +716,11 @@ URL is used as 'help-echo and 'url properties."
                       ;; Mouse-over
                       'help-echo
                       (format sx-button--link-help-echo
-                        ;; If TEXT is a shortened url, we don't shorten URL.
-                        (propertize (if (and (stringp text)
-                                             (string-match "^https?:" text))
-                                        url (sx--shorten-url url))
-                                    'face 'font-lock-function-name-face))
+                              ;; If TEXT is a shortened url, we don't shorten URL.
+                              (propertize (if (and (stringp text)
+                                                   (string-match "^https?:" text))
+                                              url (sx--shorten-url url))
+                                          'face 'font-lock-function-name-face))
                       ;; For visiting and stuff.
                       'sx-button-url url
                       'sx-button-copy url
@@ -715,7 +738,7 @@ If ID is nil, use FALLBACK-ID instead."
       (goto-char (point-min))
       (when (search-forward-regexp
              (format sx-question-mode--reference-regexp
-               (or id fallback-id))
+                     (or id fallback-id))
              nil t)
         (match-string-no-properties 1)))))
 
