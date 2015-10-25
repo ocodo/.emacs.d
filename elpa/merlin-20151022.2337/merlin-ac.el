@@ -34,10 +34,6 @@ auto-complete"
   "Display types in :summary"
   :group 'merlin-ac :type 'boolean)
 
-(defcustom merlin-ac-use-document nil
-  "Display types in :document"
-  :group 'merlin-ac :type 'boolean)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -67,7 +63,8 @@ auto-complete"
      (merlin/completion-entry-text merlin-ac--prefix data)
      :summary (when (and merlin-completion-types merlin-ac-use-summary) desc)
      :symbol (format "%c" (elt (cdr (assoc 'kind data)) 0))
-     :document (if (and merlin-completion-types merlin-ac-use-document) desc))))
+     :document (let ((doc (cdr-safe (assoc 'info data))))
+                 (unless (equal doc "") doc)))))
 
 (defun merlin-ac--source-refresh-cache ()
   "Refresh the cache of completion."
@@ -80,7 +77,7 @@ auto-complete"
   "Initialize the cache for `auto-complete' completion.
 Called at the beginning of a completion to fill the cache (the
 variable `merlin-ac--cache')."
-  (merlin/sync-to-point ac-point)
+  (merlin/sync)
   (setq merlin-ac--point ac-point)
   (merlin-ac--source-refresh-cache))
 
@@ -89,7 +86,7 @@ variable `merlin-ac--cache')."
   (let* ((bounds (merlin/completion-bounds))
          (start  (car-safe bounds))
          (end    (cdr-safe bounds)))
-    (unless (and bounds (< (- start end) merlin-ac-prefix-size))
+    (unless (and bounds (< (- end start) merlin-ac-prefix-size))
       start)))
 
 (defun merlin-ac--fetch-type ()
@@ -127,7 +124,7 @@ wrong then recompute it."
   "Locate the identifier currently selected in the ac-completion."
   (interactive)
   (when (ac-menu-live-p)
-    (merlin/sync-to-point)
+    (merlin/sync)
     (when (popup-hidden-p ac-menu)
       (ac-show-menu))
     (let ((merlin-locate-in-new-window 'always))
