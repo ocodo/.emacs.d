@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20151020.135
+;; Package-Version: 20151022.625
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -94,7 +94,7 @@ Use `avy-styles-alist' to customize this per-command."
           (const :tag "Post" post)
           (const :tag "De Bruijn" de-bruijn)))
 
-(defcustom avy-styles-alist nil
+(defcustom avy-styles-alist '((avy-goto-line . pre))
   "Alist of avy-jump commands to the style for each command.
 If the commands isn't on the list, `avy-style' is used."
   :type '(alist
@@ -620,10 +620,16 @@ When GROUP is non-nil, (BEG . END) should delimit that regex group."
     (let* ((pt (+ pt avy--overlay-offset))
            (ol (make-overlay pt (1+ pt) (window-buffer wnd)))
            (old-str (with-selected-window wnd
-                      (buffer-substring pt (1+ pt)))))
+                      (buffer-substring pt (1+ pt))))
+           (os-line-prefix (get-text-property 0 'line-prefix old-str))
+           (os-wrap-prefix (get-text-property 0 'wrap-prefix old-str)))
       (when avy-background
         (setq old-str (propertize
                        old-str 'face 'avy-background-face)))
+      (when os-line-prefix
+        (add-text-properties 0 1 `(line-prefix ,os-line-prefix) str))
+      (when os-wrap-prefix
+        (add-text-properties 0 1 `(wrap-prefix ,os-wrap-prefix) str))
       (overlay-put ol 'window wnd)
       (overlay-put ol 'display (concat str old-str))
       (push ol avy--overlays-lead))))
@@ -977,8 +983,9 @@ Narrow the scope to BEG END."
                          (point))
                        (selected-window)) candidates))
               (if visual-line-mode
-                  (ignore-errors
-                    (line-move 1))
+                  (progn
+                    (setq temporary-goal-column 0)
+                    (line-move-visual 1 t))
                 (forward-line 1)))))))
     (setq avy-action #'identity)
     (avy--process (nreverse candidates) (avy--style-fn avy-style))))
@@ -1094,24 +1101,27 @@ ARG lines can be used."
 (defcustom avy-timeout-seconds 0.5
   "How many seconds to wait for the second char.")
 
-(defun avy--read-string-timer ()
-  "Read as many chars as possible and return them as string.
+(defun avy--read-candidates ()
+  "Read as many chars as possible and return their occurences.
 At least one char must be read, and then repeatedly one next char
 may be read if it is entered before `avy-timeout-seconds'.  `DEL'
 deletes the last char entered, and `RET' exits with the currently
 read string immediately instead of waiting for another char for
-`avy-timeout-seconds'."
+`avy-timeout-seconds'.
+The format of the result is the same as that of `avy--regex-candidates'.
+This function obeys `avy-all-windows' setting."
   (let ((str "") char break overlays regex)
     (unwind-protect
         (progn
           (while (and (not break)
-                      (setq char (read-char (format "char%s: "
-                                                    (if (string= str "")
-                                                        str
-                                                      (format " (%s)" str)))
-                                            t
-                                            (and (not (string= str ""))
-                                                 avy-timeout-seconds))))
+                      (setq char
+                            (read-char (format "char%s: "
+                                               (if (string= str "")
+                                                   str
+                                                 (format " (%s)" str)))
+                                       t
+                                       (and (not (string= str ""))
+                                            avy-timeout-seconds))))
             ;; Unhighlight
             (dolist (ov overlays)
               (delete-overlay ov))
@@ -1129,20 +1139,31 @@ read string immediately instead of waiting for another char for
               (setq str (concat str (list char)))))
             ;; Highlight
             (when (>= (length str) 1)
-              (dolist (win (if avy-all-windows
-                               (window-list)
-                             (list (selected-window))))
-                (with-selected-window win
-                  (save-excursion
-                    (goto-char (window-start))
-                    (setq regex (regexp-quote str))
-                    (while (re-search-forward regex (window-end) t)
-                      (unless (get-char-property (point) 'invisible)
-                        (let ((ov (make-overlay (match-beginning 0) (match-end 0))))
-                          (push ov overlays)
-                          (overlay-put ov 'window (selected-window))
-                          (overlay-put ov 'face 'avy-goto-char-timer-face)))))))))
-          str)
+              (let (found)
+                (dolist (win (avy-window-list))
+                  (with-selected-window win
+                    (dolist (pair (avy--find-visible-regions
+                                   (window-start)
+                                   (window-end (selected-window) t)))
+                      (save-excursion
+                        (goto-char (car pair))
+                        (setq regex (regexp-quote str))
+                        (while (re-search-forward regex (cdr pair) t)
+                          (unless (get-char-property (1- (point)) 'invisible)
+                            (let ((ov (make-overlay
+                                       (match-beginning 0)
+                                       (match-end 0))))
+                              (setq found t)
+                              (push ov overlays)
+                              (overlay-put ov 'window (selected-window))
+                              (overlay-put ov 'face 'avy-goto-char-timer-face))))))))
+                ;; No matches at all, so there's surely a typo in the input.
+                (unless found (beep)))))
+          (nreverse (mapcar (lambda (ov)
+                              (cons (cons (overlay-start ov)
+                                          (overlay-end ov))
+                                    (overlay-get ov 'window)))
+                            overlays)))
       (dolist (ov overlays)
         (delete-overlay ov)))))
 
@@ -1151,12 +1172,13 @@ read string immediately instead of waiting for another char for
   "Read one or many consecutive chars and jump to the first one.
 The window scope is determined by `avy-all-windows' (ARG negates it)."
   (interactive "P")
-  (let ((str (avy--read-string-timer)))
+  (let ((avy-all-windows (if arg
+                             (not avy-all-windows)
+                           avy-all-windows)))
     (avy-with avy-goto-char-timer
-      (avy--generic-jump
-       (regexp-quote str)
-       arg
-       avy-style))))
+      (avy--process
+       (avy--read-candidates)
+       (avy--style-fn avy-style)))))
 
 (defvar avy-ring (make-ring 20)
   "Hold the window and point history.")
