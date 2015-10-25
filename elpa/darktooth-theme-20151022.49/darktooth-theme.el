@@ -5,8 +5,8 @@
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20151017.1807
-;; Version: 0.1.31
+;; Package-Version: 20151022.49
+;; Version: 0.1.32
 
 ;;; Commentary:
 ;;  Color theme for Emacs, when soothe and gruvbox collide.
@@ -400,7 +400,7 @@
    `(helm-selection                            ((t (:foreground ,darktooth-white :background ,darktooth-dark2))))
    `(helm-selection-line                       ((t (:foreground ,darktooth-white :background ,darktooth-dark2))))
    `(helm-separator                            ((t (:foreground ,darktooth-faded_red))))
-   `(helm-source-header                        ((t (:foreground ,darktooth-light2))))
+   `(helm-source-header                        ((t (:foreground ,darktooth-light2 :background ,darktooth-dark1))))
    `(helm-visible-mark                         ((t (:foreground ,darktooth-black :background ,darktooth-light3))))
 
    ;;Smerge
