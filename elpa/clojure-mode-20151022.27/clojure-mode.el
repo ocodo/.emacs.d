@@ -8,9 +8,9 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20151019.622
+;; Package-Version: 20151022.27
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 4.2.0-cvs
+;; Version: 5.0.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -78,7 +78,7 @@
   :link '(url-link :tag "Github" "https://github.com/clojure-emacs/clojure-mode")
   :link '(emacs-commentary-link :tag "Commentary" "clojure-mode"))
 
-(defconst clojure-mode-version "4.2.0-snapshot"
+(defconst clojure-mode-version "5.0.0-snapshot"
   "The current version of `clojure-mode'.")
 
 (defface clojure-keyword-face
