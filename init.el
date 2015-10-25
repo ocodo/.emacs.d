@@ -7,6 +7,9 @@
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;
 ;;; Code:
+
+;; (package-initialize)
+
 (let ((default-directory user-emacs-directory))
   (add-to-list 'load-path (expand-file-name "init-helpers")))
 
