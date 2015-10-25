@@ -3,11 +3,11 @@
 ;; Copyright (C) 2014 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/evil-jumper
-;; Package-Version: 20151020.549
+;; Package-Version: 20151024.1117
 ;; Filename: evil-jumper.el
 ;; Description: Jump like vimmers do!
 ;; Created: 2014-07-01
-;; Version: 0.2.1
+;; Version: 0.2.2
 ;; Keywords: evil vim jumplist jump list
 ;; Package-Requires: ((evil "0") (cl-lib "0.5"))
 ;;
@@ -144,7 +144,9 @@ Note: The value of `evil-jumper-file' must also be non-nil."
                         (marker-position mark)
                       mark))
                (file-name (cadr jump)))
-          (when (and (file-exists-p file-name) pos)
+          (when (and (not (file-remote-p file-name))
+                     (file-exists-p file-name)
+                     pos)
             (insert (format "%d" pos))
             (insert " ")
             (insert file-name)
