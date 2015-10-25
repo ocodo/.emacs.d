@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20150818.807
+;; Package-Version: 20151023.754
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -263,7 +263,7 @@ The buffer contains the raw HTTP response sent by the server."
     (beginning-of-line)
     (if (looking-at "^#")
         (if (re-search-forward "^[^#]" (point-max) t)
-            (point-at-bol))
+            (point-at-bol) (point-max))
       (if (re-search-backward "^#" (point-min) t)
           (point-at-bol 2)
         (point-min)))))
@@ -365,7 +365,7 @@ Optional argument STAY-IN-WINDOW do not move focus to response buffer if t."
     (while (not (eq last-min (goto-char (restclient-current-min))))
       (goto-char (restclient-current-min))
       (setq last-min (point))))
-  (goto-char (restclient-current-max))
+  (goto-char (+ (restclient-current-max) 1))
   (goto-char (restclient-current-min)))
 
 (defun restclient-jump-prev ()
