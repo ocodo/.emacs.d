@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20151019.328
+;; Package-Version: 20151024.1010
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -334,7 +334,9 @@
                   "git ls-files --full-name --")
                  "\n"
                  t))
-         (action (lambda (x) (find-file x))))
+         (action `(lambda (x)
+                    (let ((default-directory ,default-directory))
+                      (find-file x)))))
     (ivy-read "Find file: " cands
               :action action)))
 
