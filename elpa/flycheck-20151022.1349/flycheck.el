@@ -6368,14 +6368,35 @@ See URL `http://golang.org/cmd/go/' and URL
                    :message (if have-vet "present" "missing")
                    :face (if have-vet 'success '(bold error)))))))
 
+(flycheck-def-option-var flycheck-go-build-install-deps nil go-build
+  "Whether to install dependencies in `go build'.
+
+If non-nil automatically install dependencies with `go build'
+while syntax checking."
+  :type 'boolean
+  :safe #'booleanp
+  :package-version '(flycheck . "0.25"))
+
+(flycheck-def-option-var flycheck-go-build-tags nil go-build
+  "A list of tags for `go build'.
+
+Each item is a string with a tag to be given to `go build'."
+  :type '(repeat (string :tag "Tag"))
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "0.25"))
+
 (flycheck-define-checker go-build
   "A Go syntax and type checker using the `go build' command.
 
 See URL `http://golang.org/cmd/go'."
-  ;; We need to use `temporary-file-name' instead of `null-device', because Go
-  ;; can't write to the null device.  It's “too magic”.  See
-  ;; https://code.google.com/p/go/issues/detail?id=4851 for details.
-  :command ("go" "build" "-o" temporary-file-name)
+  ;; We need to use `temporary-file-name' instead of `null-device',
+  ;; because Go can't write to the null device.
+  ;; See https://github.com/golang/go/issues/4851
+  :command ("go" "build"
+            (option-flag "-i" flycheck-go-build-install-deps)
+            ;; multiple tags are listed as "dev debug ..."
+            (option-list "-tags=" flycheck-go-build-tags concat)
+            "-o" temporary-file-name)
   :error-patterns
   ((error line-start (file-name) ":" line ":"
           (optional column ":") " "
@@ -7690,15 +7711,6 @@ See URL `http://www.scala-lang.org/'."
   :safe #'stringp
   :package-version '(flycheck . "0.20"))
 
-(flycheck-def-option-var flycheck-scalastyle-jar nil scala-scalastyle
-  "The path to the main JAR file of Scalastyle.
-
-If this option is nil, or points to a non-existing file,
-`scala-scalastyle' can not be used."
-  :type '(file :must-match t)
-  :safe #'stringp
-  :package-version '(flycheck . "0.20"))
-
 (flycheck-define-checker scala-scalastyle
   "A Scala style checker using scalastyle.
 
@@ -7707,8 +7719,7 @@ Note that this syntax checker is not used if
 point to non-existing files.
 
 See URL `http://www.scalastyle.org'."
-  :command ("java"
-            (option "-jar" flycheck-scalastyle-jar)
+  :command ("scalastyle"
             (config-file "-c" flycheck-scalastylerc)
             source)
   :error-patterns
@@ -7723,26 +7734,11 @@ See URL `http://www.scalastyle.org'."
   :predicate
   ;; Inhibit this syntax checker if the JAR or the configuration are unset or
   ;; missing
-  (lambda () (and flycheck-scalastyle-jar flycheck-scalastylerc
-                  (file-exists-p flycheck-scalastyle-jar)
+  (lambda () (and flycheck-scalastylerc
                   (flycheck-locate-config-file flycheck-scalastylerc
                                                'scala-scalastyle)))
   :verify (lambda (checker)
             (list
-             (flycheck-verification-result-new
-              :label "JAR file"
-              :message (cond
-                        ((not flycheck-scalastyle-jar)
-                         "`flycheck-scalastyle-jar' not set")
-                        ((not (file-exists-p flycheck-scalastyle-jar))
-                         (format "file %s does not exist"
-                                 flycheck-scalastyle-jar))
-                        (t "present"))
-              :face (cond
-                     ((not flycheck-scalastyle-jar) '(bold warning))
-                     ((not (file-exists-p flycheck-scalastyle-jar))
-                      '(bold error))
-                     (t 'success)))
              (flycheck-verification-result-new
               :label "Configuration file"
               :message (cond
