@@ -4,8 +4,8 @@
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/Bruce-Connor/fancy-narrow
-;; Version: 20141123.617
-;; X-Original-Version: 0.9.4
+;; Package-Version: 20151021.333
+;; Version: 0.9.4
 ;; Keywords: faces convenience
 ;; Prefix: fancy-narrow
 ;; Separator: -
@@ -70,7 +70,8 @@ Please include your emacs and fancy-narrow-region versions."
   (browse-url "https://github.com/Bruce-Connor/fancy-narrow/issues/new"))
 (defgroup fancy-narrow nil
   "Customization group for fancy-narrow."
-  :prefix "fancy-narrow-")
+  :prefix "fancy-narrow-"
+  :group 'editing)
 
 (defconst fancy-narrow--help-string
   "This region is blocked from editing while buffer is narrowed."
