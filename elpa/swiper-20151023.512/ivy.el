@@ -375,6 +375,11 @@ When ARG is t, exit with current text, ignoring the candidates."
           ((and ivy--directory
                 (or
                  (and
+                  (not (equal ivy-text ""))
+                  (file-directory-p ivy-text)
+                  (setq dir (expand-file-name
+                             ivy-text ivy--directory)))
+                 (and
                   (not (string= ivy--current "./"))
                   (cl-plusp ivy--length)
                   (file-directory-p
@@ -475,7 +480,10 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
   "Exit the minibuffer with the current input."
   (interactive)
   (delete-minibuffer-contents)
-  (insert (setq ivy--current ivy-text))
+  (insert (setq ivy--current
+                (if ivy--directory
+                    (expand-file-name ivy-text ivy--directory)
+                  ivy-text)))
   (setq ivy-exit 'done)
   (exit-minibuffer))
 
@@ -841,8 +849,6 @@ Prioritize directories."
         nil
       (string< x y))))
 
-(autoload 'Man-goto-section "man" "" t)
-
 (defcustom ivy-sort-functions-alist
   '((read-file-name-internal . ivy-sort-file-function-default)
     (internal-complete-buffer . nil)
@@ -862,7 +868,7 @@ The entry associated to t is used for all fall-through cases."
   '(alist
     :key-type (choice
                (const :tag "All other functions" t)
-               (function :tag "Function"))
+               (symbol :tag "Function"))
     :value-type (choice
                  (const :tag "plain sort" string-lessp)
                  (const :tag "file sort" ivy-sort-file-function-default)
@@ -1498,7 +1504,7 @@ Should be run via minibuffer `post-command-hook'."
                               (string-match "\\`[[:alpha:]]:/" default-directory))
                          (ivy--cd (match-string 0 default-directory))
                        (ivy--cd "/")))
-                   (when (string-match "[[:alpha:]]:/" ivy-text)
+                   (when (string-match "[[:alpha:]]:/$" ivy-text)
                      (let ((drive-root (match-string 0 ivy-text)))
                        (when (file-exists-p drive-root)
                          (ivy--cd drive-root)))))
@@ -1686,7 +1692,7 @@ CANDIDATES are assumed to be static."
                  nil)
                 ivy--index)))))
 
-(defun ivy-recompute-index-swiper (re-str cands)
+(defun ivy-recompute-index-swiper (_re-str cands)
   (let ((tail (nthcdr ivy--index ivy--old-cands))
         idx)
     (if (and tail ivy--old-cands (not (equal "^" ivy--old-re)))
@@ -1840,8 +1846,8 @@ CANDS is a list of strings."
 (defcustom ivy-virtual-abbreviate 'name
   "The mode of abbreviation for virtual buffer names."
   :type '(choice
-          (const :tag "Only name" 'name)
-          (const :tag "Full path" 'full)
+          (const :tag "Only name" name)
+          (const :tag "Full path" full)
           ;; eventually, uniquify
           ))
 
