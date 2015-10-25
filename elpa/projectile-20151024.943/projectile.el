@@ -4,9 +4,9 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20151017.552
+;; Package-Version: 20151024.943
 ;; Keywords: project, convenience
-;; Version: 0.13.0-cvs
+;; Version: 0.13.0
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -45,6 +45,7 @@
 (require 'grep)
 
 (eval-when-compile
+  (defvar ag-ignore-list)
   (defvar ggtags-completion-table)
   (defvar tags-completion-table))
 
@@ -52,6 +53,10 @@
 (declare-function ggtags-update-tags "ggtags")
 (declare-function pkg-info-version-info "pkg-info")
 (declare-function tags-completion-table "etags")
+
+(defvar grep-files-aliases)
+(defvar grep-find-ignored-directories)
+(defvar grep-find-ignored-files)
 
 ;;;; Compatibility
 (eval-and-compile
@@ -206,9 +211,11 @@ Two example filter functions are shipped by default -
 (defcustom projectile-project-root-files
   '("rebar.config"       ; Rebar project file
     "project.clj"        ; Leiningen project file
+    "build.boot"         ; Boot-clj project file
     "SConstruct"         ; Scons project file
     "pom.xml"            ; Maven project file
     "build.sbt"          ; SBT project file
+    "gradlew"            ; Gradle wrapper script
     "build.gradle"       ; Gradle project file
     "Gemfile"            ; Bundler file
     "requirements.txt"   ; Pip file
@@ -337,6 +344,17 @@ Any function that does not take arguments will do."
   "If true, use `vc-git-grep' in git projects."
   :group 'projectile
   :type 'boolean)
+
+(defcustom projectile-test-prefix-function 'projectile-test-prefix
+  "Function to find test files prefix based on PROJECT-TYPE."
+  :group 'projectile
+  :type 'function)
+
+(defcustom projectile-test-suffix-function 'projectile-test-suffix
+  "Function to find test files suffix based on PROJECT-TYPE."
+  :group 'projectile
+  :type 'function)
+
 
 ;;; Idle Timer
 (defvar projectile-idle-timer nil
@@ -1513,15 +1531,16 @@ With a prefix ARG invalidates the cache first."
 (defvar projectile-project-types (make-hash-table)
   "A hash table holding all project types that are known to Projectile.")
 
-(defun projectile-register-project-type (project-type marker-files &optional compile-command test-command run-command)
+(defun projectile-register-project-type
+    (project-type marker-files &optional compile-cmd test-cmd run-cmd)
   "Register a project type with projectile.
 
 A project type is defined by PROJECT-TYPE, a set of MARKER-FILES,
-a COMPILE-COMMAND and a TEST-COMMAND."
+a COMPILE-CMD, a TEST-CMD, and a RUN-CMD."
   (puthash project-type (list 'marker-files marker-files
-                              'compile-command compile-command
-                              'test-command test-command
-                              'run-command run-command)
+                              'compile-command compile-cmd
+                              'test-command test-cmd
+                              'run-command run-cmd)
            projectile-project-types))
 
 (projectile-register-project-type 'rails-rspec '("Gemfile" "app" "lib" "db" "config" "spec") "bundle exec rails server" "bundle exec rspec")
@@ -1536,9 +1555,11 @@ a COMPILE-COMMAND and a TEST-COMMAND."
 (projectile-register-project-type 'scons '("SConstruct") "scons" "scons test")
 (projectile-register-project-type 'maven '("pom.xml") "mvn clean install" "mvn test")
 (projectile-register-project-type 'gradle '("build.gradle") "gradle build" "gradle test")
+(projectile-register-project-type 'gradlew '("gradlew") "./gradlew build" "./gradlew test")
 (projectile-register-project-type 'grails '("application.properties" "grails-app") "grails package" "grails test-app")
 (projectile-register-project-type 'lein-test '("project.clj") "lein compile" "lein test")
 (projectile-register-project-type 'lein-midje '("project.clj" ".midje.clj") "lein compile" "lein midje")
+(projectile-register-project-type 'boot-clj '("build.boot") "boot aot" "boot test")
 (projectile-register-project-type 'rebar '("rebar") "rebar" "rebar eunit")
 (projectile-register-project-type 'sbt '("build.sbt") "sbt compile" "sbt test")
 (projectile-register-project-type 'make '("Makefile") "make" "make test")
@@ -1681,16 +1702,6 @@ It assumes the test/ folder is at the same level as src/."
   (find-file
    (projectile-find-implementation-or-test (buffer-file-name))))
 
-(defcustom projectile-test-prefix-function 'projectile-test-prefix
-  "Function to find test files prefix based on PROJECT-TYPE."
-  :group 'projectile
-  :type 'function)
-
-(defcustom projectile-test-suffix-function 'projectile-test-suffix
-  "Function to find test files suffix based on PROJECT-TYPE."
-  :group 'projectile
-  :type 'function)
-
 (defun projectile-test-affix (project-type)
   "Find test files affix based on PROJECT-TYPE."
   (or (funcall projectile-test-prefix-function project-type)
@@ -1707,10 +1718,10 @@ It assumes the test/ folder is at the same level as src/."
   "Find default test files suffix based on PROJECT-TYPE."
   (cond
    ((member project-type '(rails-rspec ruby-rspec)) "_spec")
-   ((member project-type '(rails-test ruby-test lein-test go)) "_test")
+   ((member project-type '(rails-test ruby-test lein-test boot-clj go)) "_test")
    ((member project-type '(scons)) "test")
    ((member project-type '(maven symfony)) "Test")
-   ((member project-type '(gradle grails)) "Spec")))
+   ((member project-type '(gradle gradlew grails)) "Spec")))
 
 (defun projectile-dirname-matching-count (a b)
   "Count matching dirnames ascending file paths."
@@ -1802,10 +1813,8 @@ With REGEXP given, don't query the user for a regexp."
   (require 'grep) ;; for `rgrep'
   (let* ((roots (projectile-get-project-directories))
          (search-regexp (or regexp
-                            (if (and transient-mark-mode mark-active)
-                                (buffer-substring (region-beginning) (region-end))
-                              (read-string (projectile-prepend-project-name "Grep for: ")
-                                           (projectile-symbol-at-point)))))
+                            (read-string (projectile-prepend-project-name "Grep for: ")
+                                         (projectile-symbol-or-selection-at-point))))
          (files (and arg (or (and (equal current-prefix-arg '-)
                                   (projectile-grep-default-files))
                              (read-string (projectile-prepend-project-name "Grep in: ")
@@ -1838,7 +1847,7 @@ regular expression."
   (interactive
    (list (read-from-minibuffer
           (projectile-prepend-project-name (format "Ag %ssearch for: " (if current-prefix-arg "regexp " "")))
-          (projectile-symbol-at-point))
+          (projectile-symbol-or-selection-at-point))
          current-prefix-arg))
   (if (require 'ag nil 'noerror)
       (let ((ag-command (if arg 'ag-regexp 'ag))
@@ -1904,7 +1913,7 @@ regular expression."
                 (projectile--tags tags-completion-table))))
     (funcall find-tag-function (projectile-completing-read "Find tag: "
                                                            tags
-                                                           (projectile-symbol-at-point)))))
+                                                           (projectile-symbol-or-selection-at-point)))))
 
 (defun projectile--tags (completion-table)
   "Find tags using COMPLETION-TABLE."
@@ -2000,7 +2009,7 @@ to run the replacement."
   (interactive "P")
   (let* ((old-text (read-string
                     (projectile-prepend-project-name "Replace: ")
-                    (projectile-symbol-at-point)))
+                    (projectile-symbol-or-selection-at-point)))
          (new-text (read-string
                     (projectile-prepend-project-name
                      (format "Replace %s with: " old-text))))
@@ -2010,6 +2019,12 @@ to run the replacement."
                       (projectile-project-root)))
          (files (projectile-files-with-string old-text directory)))
     (tags-query-replace old-text new-text nil (cons 'list files))))
+
+(defun projectile-symbol-or-selection-at-point ()
+  "Get the symbol or selected text at point."
+  (if (use-region-p)
+      (buffer-substring-no-properties (region-beginning) (region-end))
+    (projectile-symbol-at-point)))
 
 (defun projectile-symbol-at-point ()
   "Get the symbol at point and strip its properties."
