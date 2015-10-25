@@ -305,9 +305,27 @@
     (`(:elem . args)
      -4)
     (`(:before . "OP")
-     (when (and (not (smie-rule-hanging-p))
-                (smie-rule-prev-p "OP"))
-       -2))
+     (cond ((and (not (smie-rule-hanging-p))
+                 (smie-rule-prev-p "OP"))
+            -2)
+           ((smie-rule-parent-p "def" "defp" "defmacro" "defmacrop")
+            (smie-rule-parent))))
+    (`(:before . "def")
+     (cond
+      (t
+       (smie-rule-parent))))
+    (`(:before . "defp")
+     (cond
+      (t
+       (smie-rule-parent))))
+    (`(:before . "defmacro")
+     (cond
+      (t
+       (smie-rule-parent))))
+    (`(:before . "defmacrop")
+     (cond
+      (t
+       (smie-rule-parent))))
     (`(:after . "OP")
      (cond
       ((smie-rule-sibling-p) nil)
@@ -373,7 +391,7 @@
        (smie-rule-parent))
       ((and (smie-rule-parent-p ";")
             (not (smie-rule-hanging-p)))
-       (smie-rule-parent elixir-smie-indent-basic))
+       (smie-rule-parent))
       ;; Example
       ;;
       ;; hi = for i <- list, do: i
@@ -382,6 +400,9 @@
       ;; for i <- list, do: i
       ;; IO.puts 'WORKED' <- Indent
       ((and (smie-rule-parent-p "for")
+            (not (smie-rule-hanging-p)))
+       (smie-rule-parent))
+      ((and (smie-rule-parent-p "OP")
             (not (smie-rule-hanging-p)))
        (smie-rule-parent))))
     (`(:before . "do")
