@@ -3737,7 +3737,7 @@ Possible value of DIRECTION are 'next or 'previous."
                                       (assoc-default 'mode-line source))
                                  (default-value 'helm-mode-line-string))
                              source))
-  (let ((follow (and (eq (cdr (assq 'follow source)) 1) "(HF) "))
+  (let ((follow (and (eq (cdr (assq 'follow source)) 1) " (HF)"))
         (marked (and helm-marked-candidates
                      (cl-loop with cur-name = (assoc-default 'name source)
                               for c in helm-marked-candidates
@@ -3748,19 +3748,21 @@ Possible value of DIRECTION are 'next or 'previous."
     (if helm-mode-line-string
         (setq mode-line-format
               `(" " mode-line-buffer-identification " "
-                    (:eval (format "L%d" (helm-candidate-number-at-point)))
-                    " " ,follow
+                    (:eval (format "L%-3d" (helm-candidate-number-at-point)))
+                    ,follow
                     (:eval ,(and marked
-                                 (propertize
-                                  (format "M%d" (length marked))
-                                  'face 'helm-visible-mark)))
-                    " "
+                                 (concat
+                                  " "
+                                  (propertize
+                                   (format "M%d" (length marked))
+                                   'face 'helm-visible-mark))))
                     (:eval (when ,helm--mode-line-display-prefarg
                              (let ((arg (prefix-numeric-value
                                          (or prefix-arg current-prefix-arg))))
                                (unless (= arg 1)
-                                 (propertize (format "[prefarg:%s] " arg)
+                                 (propertize (format " [prefarg:%s]" arg)
                                              'face 'helm-prefarg)))))
+                    " "
                     (:eval (helm-show-candidate-number
                             (car-safe helm-mode-line-string)))
                     " " helm--mode-line-string-real " " mode-line-end-spaces)
@@ -3833,11 +3835,15 @@ You can specify NAME of candidates e.g \"Buffers\" otherwise
 it is \"Candidate\(s\)\" by default."
   (when helm-alive-p
     (unless (helm-empty-source-p)
-      (propertize
-       (format "[%s %s]"
-               (helm-get-candidate-number 'in-current-source)
-               (or name "Candidate(s)"))
-       'face 'helm-candidate-number))))
+      ;; Build a fixed width string when candidate-number < 1000
+      (let* ((cand-name (or name "Candidate(s)"))
+             (width (length (format "[999 %s]" cand-name))))
+        (propertize
+         (format (concat "%-" (number-to-string width) "s")
+                 (format "[%s %s]"
+                         (helm-get-candidate-number 'in-current-source)
+                         cand-name))
+         'face 'helm-candidate-number)))))
 
 (cl-defun helm-move-selection-common (&key where direction)
   "Move the selection marker to a new position.
