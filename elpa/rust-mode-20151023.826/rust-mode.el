@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.2.0
-;; Package-Version: 20150828.2055
+;; Package-Version: 20151023.826
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -11,8 +11,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'misc)
-                   (require 'rx)
+(eval-when-compile (require 'rx)
                    (require 'compile)
                    (require 'url-vars))
 
