@@ -86,7 +86,7 @@
        ((:keywords "point" "location")
 	(:url . "https://github.com/abo-abo/avy"))])
  (beacon .
-	 [(0 2 1)
+	 [(0 3)
 	  ((seq
 	    (1 9)))
 	  "Highlight the cursor whenever the window scrolls" single
@@ -615,7 +615,7 @@
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
  (stream .
-	 [(1 0)
+	 [(1 0 1)
 	  ((emacs
 	    (25)))
 	  "Implementation of streams" single
