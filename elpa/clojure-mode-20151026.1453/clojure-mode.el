@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20151022.27
+;; Package-Version: 20151026.1453
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.0.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
@@ -187,21 +187,21 @@ Inherits from `emacs-lisp-mode-syntax-table'.")
   "Prevent paredit from inserting useless spaces.
 See `paredit-space-for-delimiter-predicates' for the meaning of
 ENDP and DELIM."
-  (if (or (derived-mode-p 'clojure-mode)
-          (derived-mode-p 'cider-repl-mode))
+  (or endp
+      (not (memq delim '(?\" ?{ ?\( )))
+      (not (or (derived-mode-p 'clojure-mode)
+               (derived-mode-p 'cider-repl-mode)))
       (save-excursion
         (backward-char)
-        (if (and (or (char-equal delim ?\()
-                     (char-equal delim ?\")
-                     (char-equal delim ?{))
-                 (not endp))
-            (if (char-equal (char-after) ?#)
-                (and (not (bobp))
-                     (or (char-equal ?w (char-syntax (char-before)))
-                         (char-equal ?_ (char-syntax (char-before)))))
-              t)
-          t))
-    t))
+        (cond ((eq (char-after) ?#)
+               (and (not (bobp))
+                    (or (char-equal ?w (char-syntax (char-before)))
+                        (char-equal ?_ (char-syntax (char-before))))))
+              ((and (eq delim ?\()
+                    (eq (char-after) ??)
+                    (eq (char-before) ?#))
+               nil)
+              (t)))))
 
 (defun clojure-no-space-after-tag (endp delimiter)
   "Prevent inserting a space after a reader-literal tag?
@@ -456,7 +456,7 @@ Called by `imenu--generic-function'."
       ;; Character literals - \1, \a, \newline, \u0000
       ("\\\\\\([[:punct:]]\\|[a-z0-9]+\\>\\)" 0 'clojure-character-face)
       ;; foo/ Foo/ @Foo/ /FooBar
-      ("\\(?:\\<:?\\|\\.\\)@?\\([a-zA-Z][.a-zA-Z0-9$_-]*\\)/" 1 font-lock-type-face)
+      ("\\(?:\\<:?\\|\\.\\)@?\\([a-zA-Z][.a-zA-Z0-9$_-]*\\)\\(/\\)" (1 font-lock-type-face) (2 'default))
       ;; Constant values (keywords), including as metadata e.g. ^:static
       ("\\<^?\\(:\\(\\sw\\|\\s_\\)+\\(\\>\\|\\_>\\)\\)" 1 'clojure-keyword-face append)
       ;; Java interop highlighting
@@ -478,7 +478,8 @@ Called by `imenu--generic-function'."
       ;; fooBar
       ("\\(?:\\<\\|/\\)\\([a-z]+[A-Z]+[a-zA-Z0-9$]*\\>\\)" 1 'clojure-interop-method-face)
       ;; Highlight `code` marks, just like `elisp'.
-      (,(rx "`" (group-n 1 (+ (or (syntax symbol) (syntax word)))) "`")
+      (,(rx "`" (group-n 1 (optional "#'")
+                         (+ (or (syntax symbol) (syntax word)))) "`")
        (1 'font-lock-constant-face prepend))
       ;; Highlight grouping constructs in regular expressions
       (clojure-font-lock-regexp-groups
@@ -686,11 +687,12 @@ Implementation function for `clojure--find-indent-spec'."
       (let* ((function (thing-at-point 'symbol))
              (method (or (when function ;; Is there a spec here?
                            (clojure--get-indent-method function))
-                         ;; `up-list' errors on unbalanced sexps.
                          (ignore-errors
-                           (up-list) ;; Otherwise look higher up.
-                           (clojure-backward-logical-sexp 1)
-                           (clojure--find-indent-spec-backtracking)))))
+                           ;; Otherwise look higher up.
+                           (pcase (syntax-ppss)
+                             (`(,(pred (< 0)) ,start . ,_)
+                              (goto-char start)
+                              (clojure--find-indent-spec-backtracking)))))))
         (when (numberp method)
           (setq method (list method)))
         (pcase method
@@ -879,7 +881,7 @@ it from Lisp code, use (put-clojure-indent 'some-symbol :defn)."
   (proxy '(2 nil nil (1)))
   (as-> 2)
 
-  (reify '(1 nil (1)))
+  (reify '(:defn (1)))
   (deftype '(2 nil nil (1)))
   (defrecord '(2 nil nil (1)))
   (defprotocol '(1))
@@ -895,7 +897,7 @@ it from Lisp code, use (put-clojure-indent 'some-symbol :defn)."
 
   ;; binding forms
   (let 1)
-  (letfn '(1 ((1)) nil))
+  (letfn '(1 ((:defn)) nil))
   (binding 1)
   (loop 1)
   (for 1)
@@ -1108,7 +1110,7 @@ Useful if a file has been renamed."
 Returns a list pair, e.g. (\"defn\" \"abc\") or (\"deftest\" \"some-test\")."
   (let ((re (concat "(\\(?:\\(?:\\sw\\|\\s_\\)+/\\)?"
                     ;; Declaration
-                    "\\(def\\sw*\\)\\>"
+                    "\\(def\\(?:\\sw\\|\\s_\\)*\\)\\>"
                     ;; Any whitespace
                     "[ \r\n\t]*"
                     ;; Possibly type or metadata
