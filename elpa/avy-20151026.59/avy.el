@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20151022.625
+;; Package-Version: 20151026.59
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -94,7 +94,7 @@ Use `avy-styles-alist' to customize this per-command."
           (const :tag "Post" post)
           (const :tag "De Bruijn" de-bruijn)))
 
-(defcustom avy-styles-alist '((avy-goto-line . pre))
+(defcustom avy-styles-alist nil
   "Alist of avy-jump commands to the style for each command.
 If the commands isn't on the list, `avy-style' is used."
   :type '(alist
@@ -614,24 +614,32 @@ When GROUP is non-nil, (BEG . END) should delimit that regex group."
   (mapc #'delete-overlay avy--overlays-lead)
   (setq avy--overlays-lead nil))
 
-(defun avy--overlay (str pt wnd)
-  "Create an overlay with STR at PT in WND."
-  (when (<= (1+ pt) (with-selected-window wnd (point-max)))
-    (let* ((pt (+ pt avy--overlay-offset))
-           (ol (make-overlay pt (1+ pt) (window-buffer wnd)))
-           (old-str (with-selected-window wnd
-                      (buffer-substring pt (1+ pt))))
+(defun avy--old-str (pt wnd)
+  "Return a one-char string at PT in WND."
+  (let ((old-str (with-selected-window wnd
+                   (buffer-substring pt (1+ pt)))))
+    (if avy-background
+        (propertize old-str 'face 'avy-background-face)
+      old-str)))
+
+(defun avy--overlay (str beg end wnd &optional compose-fn)
+  "Create an overlay with STR from BEG to END in WND.
+COMPOSE-FN is a lambda that concatenates the old string at BEG with STR."
+  (when (<= (1+ beg) (with-selected-window wnd (point-max)))
+    (let* ((beg (+ beg avy--overlay-offset))
+           (ol (make-overlay beg (or end (1+ beg)) (window-buffer wnd)))
+           (old-str (avy--old-str beg wnd))
            (os-line-prefix (get-text-property 0 'line-prefix old-str))
            (os-wrap-prefix (get-text-property 0 'wrap-prefix old-str)))
-      (when avy-background
-        (setq old-str (propertize
-                       old-str 'face 'avy-background-face)))
       (when os-line-prefix
         (add-text-properties 0 1 `(line-prefix ,os-line-prefix) str))
       (when os-wrap-prefix
         (add-text-properties 0 1 `(wrap-prefix ,os-wrap-prefix) str))
       (overlay-put ol 'window wnd)
-      (overlay-put ol 'display (concat str old-str))
+      (overlay-put ol 'category 'avy)
+      (overlay-put ol 'display (funcall
+                                (or compose-fn #'concat)
+                                str old-str))
       (push ol avy--overlays-lead))))
 
 (defcustom avy-highlight-first nil
@@ -645,6 +653,30 @@ Do this even when the char is terminating."
       c
     (or (cdr (assoc c avy-key-to-char-alist))
         (error "Unknown key %s" c))))
+
+(defun avy-candidate-beg (leaf)
+  "Return the start position for LEAF."
+  (cond ((numberp leaf)
+         leaf)
+        ((consp (car leaf))
+         (caar leaf))
+        (t
+         (car leaf))))
+
+(defun avy-candidate-end (leaf)
+  "Return the end position for LEAF."
+  (cond ((numberp leaf)
+         leaf)
+        ((consp (car leaf))
+         (cdar leaf))
+        (t
+         (car leaf))))
+
+(defun avy-candidate-wnd (leaf)
+  "Return the window for LEAF."
+  (if (consp leaf)
+      (cdr leaf)
+    (selected-window)))
 
 (defun avy--overlay-pre (path leaf)
   "Create an overlay with PATH at LEAF.
@@ -661,15 +693,8 @@ LEAF is normally ((BEG . END) . WND)."
                str))
     (avy--overlay
      str
-     (cond ((numberp leaf)
-            leaf)
-           ((consp (car leaf))
-            (caar leaf))
-           (t
-            (car leaf)))
-     (if (consp leaf)
-         (cdr leaf)
-       (selected-window)))))
+     (avy-candidate-beg leaf) nil
+     (avy-candidate-wnd leaf))))
 
 (defun avy--overlay-at (path leaf)
   "Create an overlay with PATH at LEAF.
@@ -678,27 +703,19 @@ LEAF is normally ((BEG . END) . WND)."
   (let* ((path (mapcar #'avy--key-to-char path))
          (str (propertize
                (string (car (last path)))
-               'face 'avy-lead-face))
-         (pt (+ (if (consp (car leaf))
-                    (caar leaf)
-                  (car leaf))
-                avy--overlay-offset))
-         (wnd (cdr leaf))
-         (ol (make-overlay pt (1+ pt)
-                           (window-buffer wnd)))
-         (old-str (with-selected-window wnd
-                    (buffer-substring pt (1+ pt)))))
-    (when avy-background
-      (setq old-str (propertize
-                     old-str 'face 'avy-background-face)))
-    (overlay-put ol 'window wnd)
-    (overlay-put ol 'display (if (string= old-str "\n")
-                                 (concat str "\n")
-                               ;; add padding for wide-width character
-                               (if (eq (string-width old-str) 2)
-                                   (concat str " ")
-                                 str)))
-    (push ol avy--overlays-lead)))
+               'face 'avy-lead-face)))
+    (avy--overlay
+     str
+     (avy-candidate-beg leaf) nil
+     (avy-candidate-wnd leaf)
+     (lambda (str old-str)
+       (cond ((string= old-str "\n")
+              (concat str "\n"))
+             ;; add padding for wide-width character
+             ((eq (string-width old-str) 2)
+              (concat str " "))
+             (t
+              str))))))
 
 (defun avy--overlay-at-full (path leaf)
   "Create an overlay with PATH at LEAF.
@@ -709,11 +726,9 @@ LEAF is normally ((BEG . END) . WND)."
                (apply #'string (reverse path))
                'face 'avy-lead-face))
          (len (length path))
-         (beg (if (consp (car leaf))
-                  (caar leaf)
-                (car leaf)))
+         (beg (avy-candidate-beg leaf))
          (wnd (cdr leaf))
-         oov)
+         end)
     (dotimes (i len)
       (set-text-properties (- len i 1) (- len i)
                            `(face ,(nth i avy-lead-faces))
@@ -727,59 +742,46 @@ LEAF is normally ((BEG . END) . WND)."
     (with-selected-window wnd
       (save-excursion
         (goto-char beg)
-        (when (setq oov
-                    (delq nil
-                          (mapcar
-                           (lambda (o)
-                             (and (eq (overlay-get o 'category) 'avy)
-                                  (eq (overlay-get o 'window) wnd)
-                                  (overlay-start o)))
-                           (overlays-in (point) (min (+ (point) len)
-                                                     (line-end-position))))))
-          (setq len (- (apply #'min oov) beg))
-          (setq str (substring str 0 len)))
-        (let ((other-ov (cl-find-if
-                         (lambda (o)
-                           (and (eq (overlay-get o 'category) 'avy)
-                                (eq (overlay-start o) beg)
-                                (not (eq (overlay-get o 'window) wnd))))
-                         (overlays-in (point) (min (+ (point) len)
-                                                   (line-end-position))))))
-          (when (and other-ov
-                     (> (overlay-end other-ov)
-                        (+ beg len)))
-            (setq str (concat str (buffer-substring
-                                   (+ beg len)
-                                   (overlay-end other-ov))))
-            (setq len (- (overlay-end other-ov)
-                         beg))))
-        (let* ((end (if (= beg (line-end-position))
+        (let* ((lep (if (bound-and-true-p visual-line-mode)
+                        (save-excursion
+                          (end-of-visual-line)
+                          (point))
+                      (line-end-position)))
+               (len-and-str (avy--update-offset-and-str len str lep)))
+          (setq len (car len-and-str))
+          (setq str (cdr len-and-str))
+          (setq end (if (= beg lep)
                         (1+ beg)
                       (min (+ beg
                               (if (eq (char-after) ?\t)
                                   1
                                 len))
-                           (line-end-position))))
-               (ol (make-overlay
-                    beg end
-                    (current-buffer)))
-               (old-str (buffer-substring beg (1+ beg))))
-          (when avy-background
-            (setq old-str (propertize
-                           old-str 'face 'avy-background-face)))
-          (overlay-put ol 'window wnd)
-          (overlay-put ol 'category 'avy)
-          (overlay-put ol 'display
-                       (cond ((string= old-str "\n")
-                              (concat str "\n"))
-                             ((string= old-str "\t")
-                              (concat str (make-string (max (- tab-width len) 0) ?\ )))
-                             (t
-                              ;; add padding for wide-width character
-                              (if (eq (string-width old-str) 2)
-                                  (concat str " ")
-                                str))))
-          (push ol avy--overlays-lead))))))
+                           lep)))
+          (when (and (bound-and-true-p visual-line-mode)
+                     (> len (- end beg)))
+            (setq len (- end beg))
+            (let ((old-str (apply #'string (reverse path))))
+              (setq str
+                    (substring
+                     (propertize
+                      old-str
+                      'face
+                      (if (= (length old-str) 1)
+                          'avy-lead-face
+                        'avy-lead-face-0))
+                     0 len)))))))
+    (avy--overlay
+     str beg end wnd
+     (lambda (str old-str)
+       (cond ((string= old-str "\n")
+              (concat str "\n"))
+             ((string= old-str "\t")
+              (concat str (make-string (max (- tab-width len) 0) ?\ )))
+             (t
+              ;; add padding for wide-width character
+              (if (eq (string-width old-str) 2)
+                  (concat str " ")
+                str)))))))
 
 (defun avy--overlay-post (path leaf)
   "Create an overlay with PATH at LEAF.
@@ -796,15 +798,49 @@ LEAF is normally ((BEG . END) . WND)."
                str))
     (avy--overlay
      str
-     (cond ((numberp leaf)
-            leaf)
-           ((consp (car leaf))
-            (cdar leaf))
-           (t
-            (car leaf)))
-     (if (consp leaf)
-         (cdr leaf)
-       (selected-window)))))
+     (avy-candidate-end leaf) nil
+     (avy-candidate-wnd leaf))))
+
+(defun avy--update-offset-and-str (offset str lep)
+  "Recalculate the length of the new overlay at point.
+
+OFFSET is the previous overlay length.
+STR is the overlay string that we wish to add.
+LEP is the line end position.
+
+We want to add an overlay between point and END=point+OFFSET.
+When other overlays already exist between point and END, set
+OFFSET to be the difference between the start of the first
+overlay and point.  This is equivalent to truncating our new
+overlay, so that it doesn't intersect with overlays that already
+exist."
+  (let* ((wnd (selected-window))
+         (beg (point))
+         (oov (delq nil
+                    (mapcar
+                     (lambda (o)
+                       (and (eq (overlay-get o 'category) 'avy)
+                            (eq (overlay-get o 'window) wnd)
+                            (overlay-start o)))
+                     (overlays-in beg (min (+ beg offset) lep))))))
+    (when oov
+      (setq offset (- (apply #'min oov) beg))
+      (setq str (substring str 0 offset)))
+    (let ((other-ov (cl-find-if
+                     (lambda (o)
+                       (and (eq (overlay-get o 'category) 'avy)
+                            (eq (overlay-start o) beg)
+                            (not (eq (overlay-get o 'window) wnd))))
+                     (overlays-in (point) (min (+ (point) offset) lep)))))
+      (when (and other-ov
+                 (> (overlay-end other-ov)
+                    (+ beg offset)))
+        (setq str (concat str (buffer-substring
+                               (+ beg offset)
+                               (overlay-end other-ov))))
+        (setq offset (- (overlay-end other-ov)
+                        beg))))
+    (cons offset str)))
 
 (defun avy--style-fn (style)
   "Transform STYLE symbol to a style function."
