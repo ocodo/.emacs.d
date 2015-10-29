@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20151022.534
+;; Package-Version: 20151027.908
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -999,13 +999,20 @@ ahg-status, and it has an ewoc associated with it."
             (let ((inhibit-read-only t)
                   (node (ewoc-nth ew 0)))
               (when warninglines
+                (let ((warn-re (concat "\\("
+                                       (mapconcat 'regexp-quote warninglines
+                                                  "\\)\\|\\(")
+                                       "\\)")))
+                  (save-excursion
+                    (while (re-search-forward warn-re nil t)
+                      (replace-match ""))))
                 (save-excursion
                   (re-search-forward "^-+$")
-                  (forward-char 1)
+                  (goto-char (point-max))
+                  (insert "\n" (match-string 0) "\nWarnings:\n")
                   (mapc 'insert (nreverse warninglines))
-                  (insert (match-string 0) "\n")
                   ))
-              (when node (goto-char (ewoc-location node)))))
+                (when node (goto-char (ewoc-location node)))))
           (when point-pos
             (with-current-buffer outbuf
               (ahg-goto-line-point point-pos)))
@@ -3052,10 +3059,10 @@ that buffer is refreshed instead.)"
             (while (search-forward-regexp regexp (point-at-eol) t)
               (setq found t)
               (setq nmatches (1+ nmatches))
-              (replace-match "\033[01;31m\\&\033[0m"))
+              (add-text-properties (match-beginning 0) (match-end 0)
+                                   (list 'font-lock-face grep-match-face)))
             (when found
-              (let ((line (buffer-substring-no-properties (point-at-bol)
-                                                          (point-at-eol)))
+              (let ((line (buffer-substring (point-at-bol) (point-at-eol)))
                     (pos (line-number-at-pos)))
                 (with-current-buffer buf
                   (save-excursion
@@ -3128,12 +3135,39 @@ the files under version control."
                         (pattern pattern))
             (lambda ()
               (interactive)
-              (ahg-manifest-grep pattern glob)))))
+              (ahg-manifest-grep pattern glob))))
+         (insert-footer
+          (lambda ()
+            (save-excursion
+              (goto-char (point-max))
+              (insert
+               (make-string
+                (1- (window-width
+                     (selected-window))) ?-)
+               "\naHg grep finished at "
+               (substring
+                (current-time-string) 0 19)
+               "\n")
+              (forward-line -1)
+              (let ((overlay (make-overlay (point-at-bol) (point-at-eol)))
+                    (map (make-sparse-keymap))
+                    (nop (lambda () (interactive) nil)))
+                (define-key map [mouse-1] nop)
+                (define-key map [mouse-2] nop)
+                (define-key map "\r" nop)
+                (overlay-put overlay 'face 'default)
+                (overlay-put overlay 'mouse-face 'default)
+                (overlay-put overlay 'help-echo (lambda (&rest args) nil))
+                (overlay-put overlay 'keymap map)
+                (overlay-put overlay 'local-map map)
+                )
+              ))))
     (if ahg-manifest-grep-use-xargs-grep
         (let* ((grep-setup-hook
                 (cons
                  (lexical-let ((root root)
-                               (header header))
+                               (header header)
+                               (insert-footer insert-footer))
                    (lambda ()
                      (let ((inhibit-read-only t))
                        (ahg-cd root)
@@ -3141,12 +3175,6 @@ the files under version control."
                        (insert header)
                        (goto-char (point-min))
                        (forward-line 1))
-                     (when (version<= "24.4" emacs-version)
-                       (font-lock-add-keywords
-                        nil
-                        '(("^aHg grep.*$"
-                           (0 '(face nil compilation-message nil
-                                     help-echo nil mouse-face nil) t)))))
                      (set (make-local-variable
                            'compilation-exit-message-function)
                           (lexical-let ((buf (current-buffer)))
@@ -3157,39 +3185,30 @@ the files under version control."
                               (cons msg code))))
                      (set (make-local-variable 'compilation-finish-functions)
                           (cons
-                           (lambda (buf msg)
-                             (with-current-buffer buf
-                               (when (and (boundp 'ahg-grep-ok)
-                                          ahg-grep-ok)
-                                 (let ((inhibit-read-only t))
-                                   (save-excursion
-                                     (goto-char (point-max))
-                                     (forward-line -1)
-                                     (beginning-of-line)
-                                     (kill-line)
-                                     (insert
-                                      (propertize
-                                       (concat
-                                        (make-string
-                                         (1- (window-width
-                                              (selected-window))) ?-)
-                                        "\naHg grep finished at "
-                                        (substring
-                                         (current-time-string) 0 19)
-                                        "\n")
-                                       'font-lock-face 'default))
-                                     (message "aHg grep finished")
-                                     (setq mode-line-process nil)
-                                     (force-mode-line-update))
-                                   (goto-char (point-min))
-                                   (forward-line 1)
-                                   (redisplay)
-                                   ))))
+                           (lexical-let ((insert-footer insert-footer))
+                             (lambda (buf msg)
+                               (with-current-buffer buf
+                                 (when (and (boundp 'ahg-grep-ok)
+                                            ahg-grep-ok)
+                                   (let ((inhibit-read-only t))
+                                     (save-excursion
+                                       (goto-char (point-max))
+                                       (forward-line -1)
+                                       (beginning-of-line)
+                                       (kill-line)
+                                       (funcall insert-footer)
+                                       (message "aHg grep finished")
+                                       (setq mode-line-process nil)
+                                       (force-mode-line-update))
+                                     (goto-char (point-min))
+                                     (forward-line 1)
+                                     (redisplay)
+                                     )))))
                            compilation-finish-functions))))
                  grep-setup-hook))
                (buf (grep
                      (format "%s files -0 %s | xargs -0 grep -I -nHE -e %s"
-                             ahg-hg-command
+                             (ahg-hg-command)
                              (if glob (concat "'glob:" glob "'") "")
                              (shell-quote-argument pattern))))
                (prevbuf (get-buffer "*ahg-grep*"))
@@ -3217,7 +3236,8 @@ the files under version control."
                (lexical-let ((buf buf)
                              (root root)
                              (glob glob)
-                             (pattern pattern))
+                             (pattern pattern)
+                             (insert-footer insert-footer))
                  (lambda (process status)
                    (if (string= status "finished\n")
                        (let ((inhibit-read-only t)
@@ -3237,14 +3257,8 @@ the files under version control."
                           (nreverse files))
                          (save-excursion
                            (goto-char (point-max))
-                           (insert
-                            (propertize
-                             (concat
-                              (make-string (1- (window-width
-                                                (selected-window))) ?-)
-                              "\naHg grep finished at "
-                              (substring (current-time-string) 0 19)
-                              "\n") 'font-lock-face 'default)))
+                           (insert "\n"))
+                         (funcall insert-footer)
                          (message "aHg grep finished")
                          (setq mode-line-process nil)
                          (force-mode-line-update))
@@ -4830,7 +4844,7 @@ destination buffer. If nil, a new buffer will be used.
                       'start-file-process-shell-command 
                     'start-file-process)
                   (concat "*ahg-command-" command "*") buffer
-                  ahg-hg-command
+                  (ahg-hg-command)
                   (append
                    (unless report-untrusted
                      (list "--config" "ui.report_untrusted=0"))
@@ -4960,8 +4974,14 @@ Commands:
       (cd dir)
     (error nil)))
 
+(defun ahg-hg-command ()
+  "Returns the command to use for invoking Mercurial.
+Defined as a function to make it easier for the user to customize
+for advanced settings (e.g. by defining an advice)."
+  ahg-hg-command)
+
 (defun ahg-call-process (cmd &optional args global-opts)
-  (let ((callargs (append (list ahg-hg-command nil t nil
+  (let ((callargs (append (list (ahg-hg-command) nil t nil
                                 "--config" "ui.report_untrusted=0")
                           global-opts (list cmd) args)))
     ;;(message "callargs: %s" callargs)
