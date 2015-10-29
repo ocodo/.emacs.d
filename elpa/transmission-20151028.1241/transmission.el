@@ -3,8 +3,8 @@
 ;; Copyright (C) 2014-2015  Mark Oteiza <mvoteiza@udel.edu>
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
-;; Version: 0.5
-;; Package-Version: 20151023.1819
+;; Version: 0.6
+;; Package-Version: 20151028.1241
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -75,14 +75,14 @@
 
 (defcustom transmission-service 9091
   "Port or name of the service for the Transmission session."
-  :type '(choice (integer :tag "Default" 9091)
+  :type '(choice (const :tag "Default" 9091)
                  (string :tag "Service")
                  (integer :tag "Port"))
   :group 'transmission)
 
 (defcustom transmission-rpc-path "/transmission/rpc"
   "Path to the Transmission session RPC interface."
-  :type '(choice (string :tag "Default" "/transmission/rpc")
+  :type '(choice (const :tag "Default" "/transmission/rpc")
                  (string :tag "Other path"))
   :group 'transmission)
 
@@ -256,25 +256,23 @@ Return JSON object parsed from content."
     (json-read)))
 
 (defun transmission-send (process content)
+  "Send PROCESS string CONTENT and wait for response synchronously."
   (transmission-http-post process content)
   (transmission-wait process))
 
-(defun transmission-ensure-process ()
-  "Return a network process connected to a transmission daemon.
+(defun transmission-make-network-process ()
+  "Return a network client process connected to a transmission daemon.
 When creating a new connection, the address is determined by the
 custom variables `transmission-host' and `transmission-service'."
-  (let* ((name "transmission")
-         (process (get-process name))
-         (local (string-prefix-p "/" transmission-host)))
-    (if (process-live-p process)
-        process
-      ;; I believe
-      ;; https://trac.transmissionbt.com/ticket/5265
-      (make-network-process
-       :name name :buffer (format " *%s*" name)
-       :host transmission-host
-       :service (if local transmission-host transmission-service)
-       :family (if local 'local)))))
+  (let ((buffer (generate-new-buffer " *transmission*"))
+        (local (string-prefix-p "/" transmission-host)))
+    ;; I believe
+    ;; https://trac.transmissionbt.com/ticket/5265
+    (make-network-process
+     :name "transmission" :buffer buffer
+     :host transmission-host
+     :service (if local transmission-host transmission-service)
+     :family (if local 'local))))
 
 (defun transmission-request (method &optional arguments tag)
   "Send a request to Transmission.
@@ -285,7 +283,7 @@ TAG is an integer and ignored.
 
 Details regarding the Transmission RPC can be found here:
 <https://trac.transmissionbt.com/browser/trunk/extras/rpc-spec.txt>"
-  (let ((process (transmission-ensure-process))
+  (let ((process (transmission-make-network-process))
         (content (json-encode `(:method ,method :arguments ,arguments :tag ,tag))))
     (unwind-protect
         (condition-case nil
@@ -295,6 +293,41 @@ Details regarding the Transmission RPC can be found here:
       (when (process-live-p process)
         (delete-process process)
         (kill-buffer (process-buffer process))))))
+
+
+;; Asynchronous calls
+
+(defun transmission-process-filter (process _string)
+  "Function used as a supplement to the default filter function for PROCESS."
+  (when (buffer-live-p (process-buffer process))
+    (with-current-buffer (process-buffer process)
+      (when (transmission--content-finished-p)
+        (condition-case e
+            (progn (transmission--status)
+                   (delete-process process))
+          (transmission-conflict
+           (let ((content (process-get process :transmission-request)))
+             (transmission-http-post process content)))
+          (error
+           (delete-process process)
+           (signal (car e) (cdr e))))))))
+
+(defun transmission-process-sentinel (process _message)
+  "Kill PROCESS's buffer."
+  (when (buffer-live-p (process-buffer process))
+    (kill-buffer (process-buffer process))))
+
+(defun transmission-request-async (method &optional arguments tag)
+  "Send a request to Transmission asynchronously.
+
+METHOD, ARGUMENTS, and TAG are the same as in `transmission-request'."
+  (let ((process (transmission-make-network-process))
+        (content (json-encode `(:method ,method :arguments ,arguments :tag ,tag))))
+    (set-process-sentinel process #'transmission-process-sentinel)
+    (add-function :after (process-filter process) 'transmission-process-filter)
+    (process-put process :transmission-request content)
+    (transmission-http-post process content)
+    process))
 
 
 ;; Response parsing
@@ -481,7 +514,7 @@ Returns a list of non-blank inputs."
                          (transmission-prop-values-in-region 'tabulated-list-id))))
     (if (and id indices)
         (let ((arguments (list :ids id action indices)))
-          (transmission-request "torrent-set" arguments))
+          (transmission-request-async "torrent-set" arguments))
       (user-error "No files selected or at point"))))
 
 (defun transmission-files-file-at-point ()
@@ -596,13 +629,13 @@ When called with a prefix, prompt for DIRECTORY."
     (when (y-or-n-p (format "Move torrent%s to %s? "
                             (if (cdr ids) "s" "")
                             location))
-     (transmission-request "torrent-set-location" arguments))))
+     (transmission-request-async "torrent-set-location" arguments))))
 
 (defun transmission-reannounce ()
   "Reannounce torrent at point or in region."
   (interactive)
   (transmission-let-ids nil
-    (transmission-request "torrent-reannounce" (list :ids ids))))
+    (transmission-request-async "torrent-reannounce" (list :ids ids))))
 
 (defun transmission-remove (&optional unlink)
   "Prompt to remove torrent at point or torrents in region.
@@ -611,7 +644,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   (transmission-let-ids ((arguments `(:ids ,ids :delete-local-data ,(and unlink t))))
     (when (yes-or-no-p (concat "Remove " (and unlink "and unlink ")
                                "torrent" (and (< 1 (length ids)) "s") "?"))
-      (transmission-request "torrent-remove" arguments))))
+      (transmission-request-async "torrent-remove" arguments))))
 
 (defun transmission-set-bandwidth-priority (priority)
   "Set bandwidth PRIORITY of torrent(s) at point or in region."
@@ -622,38 +655,37 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
      (list (completing-read prompt transmission-priority-alist nil t))))
   (transmission-let-ids ((number (cdr (assoc-string priority transmission-priority-alist)))
                          (arguments `(:ids ,ids :bandwidthPriority ,number)))
-    (transmission-request "torrent-set" arguments)))
+    (transmission-request-async "torrent-set" arguments)))
 
 (defun transmission-set-download (limit)
   "Set global download speed LIMIT in KB/s."
   (interactive (transmission-prompt-speed-limit nil))
   (let ((arguments (if (<= limit 0) '(:speed-limit-down-enabled :json-false)
                      `(:speed-limit-down-enabled t :speed-limit-down ,limit))))
-    (transmission-request "session-set" arguments)))
+    (transmission-request-async "session-set" arguments)))
 
 (defun transmission-set-upload (limit)
   "Set global upload speed LIMIT in KB/s."
   (interactive (transmission-prompt-speed-limit t))
   (let ((arguments (if (<= limit 0) '(:speed-limit-up-enabled :json-false)
                      `(:speed-limit-up-enabled t :speed-limit-up ,limit))))
-    (transmission-request "session-set" arguments)))
+    (transmission-request-async "session-set" arguments)))
 
 (defun transmission-set-ratio (limit)
   "Set global seed ratio LIMIT."
   (interactive (transmission-prompt-ratio-limit))
   (let ((arguments (if (<= limit 0) '(:seedRatioLimited :json-false)
                      `(:seedRatioLimited t :seedRatioLimit ,limit))))
-    (transmission-request "session-set" arguments)))
+    (transmission-request-async "session-set" arguments)))
 
 (defun transmission-toggle ()
   "Toggle torrent between started and stopped."
   (interactive)
   (transmission-let-ids
       ((torrent (transmission-torrents (list :ids ids :fields '("status"))))
-       (status (transmission-torrent-value torrent 'status)))
-    (pcase status
-      (0 (transmission-request "torrent-start" (list :ids ids)))
-      ((or 4 6) (transmission-request "torrent-stop" (list :ids ids))))))
+       (status (transmission-torrent-value torrent 'status))
+       (method (pcase status (0 "torrent-start") (_ "torrent-stop"))))
+    (transmission-request-async method (list :ids ids))))
 
 (defun transmission-trackers-add ()
   "Add announce URLs to torrent or torrents."
@@ -695,7 +727,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   "Verify torrent at point or in region."
   (interactive)
   (transmission-let-ids nil
-    (transmission-request "torrent-verify" (list :ids ids))))
+    (transmission-request-async "torrent-verify" (list :ids ids))))
 
 (defun transmission-quit ()
   "Quit and bury the buffer."
@@ -781,7 +813,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
                      "\t : %d peers, %d seeders, %d leechers, %d downloads")))
     (mapconcat (lambda (e)
                  (let-alist e
-                   (format fmt .id .scrape .tier
+                   (format fmt .id .announce .tier
                            (if (= -1 .lastAnnouncePeerCount) 0 .lastAnnouncePeerCount)
                            (if (= -1 .seederCount) 0 .seederCount)
                            (if (= -1 .leecherCount) 0 .leecherCount)
@@ -1091,10 +1123,12 @@ Key bindings:
            :right-align t)
           ("Size" 9 ,(transmission-tabulated-list-pred 'sizeWhenDone)
            :right-align t :transmission-size t)
-          ("Have" 4 nil :right-align t)
+          ("Have" 4 ,(transmission-tabulated-list-pred 'percentDone)
+           :right-align t)
           ("Down" 4 nil :right-align t)
           ("Up" 3 nil :right-align t)
-          ("Ratio" 5 nil :right-align t)
+          ("Ratio" 5 ,(transmission-tabulated-list-pred 'uploadRatio)
+           :right-align t)
           ("Status" 11 t)
           ("Name" 0 t)])
   (transmission-tabulated-list-format)
