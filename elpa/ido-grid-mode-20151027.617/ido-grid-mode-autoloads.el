@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ido-grid-mode" "ido-grid-mode.el" (22060 27053
-;;;;;;  516226 39000))
+;;;### (autoloads nil "ido-grid-mode" "ido-grid-mode.el" (22066 4159
+;;;;;;  321169 5000))
 ;;; Generated autoloads from ido-grid-mode.el
 
 (defvar ido-grid-mode nil "\

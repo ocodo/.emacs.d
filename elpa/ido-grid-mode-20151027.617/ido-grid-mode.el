@@ -5,7 +5,7 @@
 ;; Author: Tom Hinton
 ;; Maintainer: Tom Hinton <t@larkery.com>
 ;; Version: 1.0.1
-;; Package-Version: 20151024.1050
+;; Package-Version: 20151027.617
 ;; Keywords: convenience
 ;; URL: https://github.com/larkery/ido-grid-mode.el
 ;; Package-Requires: ((emacs "24.4"))
@@ -25,17 +25,25 @@
 
 ;;; Commentary:
 
-;; Makes ido-mode display prospects in a grid. The mechanism is based
-;; on ido-vertical-mode, but it is sufficiently different that I
-;; reimplemented it. The purpose is to look a bit like zsh style
-;; completion lists.  Most of the behaviour can be customized, in the
-;; ido-grid-mode group.  relevant variables are
-;; `ido-grid-mode-min-rows', `ido-grid-mode-max-rows',
-;; `ido-grid-mode-keys', `ido-grid-mode-start-collapsed'.  If you want
-;; ido-grid-mode to sometimes be more horizontal or more vertical, you
-;; can let `ido-grid-mode-max-rows' or `ido-grid-mode-max-columns'
-;; around the call you are interested in (or in advice around an
-;; existing command).
+;; Display your ido prospects in a grid, e.g (artist's ascii
+;; impression, see URL for some pictures):
+;;
+;; Find file:~/
+;; -> *this*      and-some       the
+;;    that        more-things    end
+;;    the-other   here
+;;
+;; The grid works a bit like the zsh completion grid; you can move
+;; around it with the arrow keys or tab/backtab, and it scrolls when
+;; you get to an edge if not everything will fit.
+;;
+;; Mostly customizable with (customize-group "ido-grid-mode"). You can
+;; change the keys bound, grid max/min dimensions, layout order (rows
+;; vs columns), and whether to appear immediately or after <tab>.
+;;
+;; Some examples of ways it can be used are at the github URL; it is
+;; easy to use advices to get different invocations for ido to display
+;; differently on the screen.
 
 ;;; Code:
 
@@ -56,7 +64,7 @@
 (defvar ido-directory-too-big)
 
 (defvar ido-report-no-match t
-  "Report [No Match] when no completions matches ido-text.")
+  "Report [No Match] when no completions matches `ido-text'.")
 
 (defvar ido-matches nil
   "List of files currently matching `ido-text'.")
@@ -76,7 +84,8 @@
 
 (defcustom ido-grid-mode-max-columns nil
   "The maximum number of columns - nil means no maximum."
-  :type '(choice 'integer (const :tag "Unlimited" nil))
+  :type '(choice (const :tag "Unlimited" nil)
+                 (integer :tag "Custom value"))
   :group 'ido-grid-mode)
 
 (defcustom ido-grid-mode-max-rows 5
@@ -191,7 +200,7 @@ Previous row is only really sensible when `ido-grid-mode-order' is row-wise, and
 
 (defcustom ido-grid-mode-scroll-wrap t
   "Whether to scroll the grid when hitting an edge, or to wrap
-  around. Scrolling always happens at the top left or bottom right."
+around. Scrolling always happens at the top left or bottom right."
   :type 'boolean
   :group 'ido-grid-mode)
 
@@ -201,6 +210,10 @@ Previous row is only really sensible when `ido-grid-mode-order' is row-wise, and
 (defvar ido-grid-mode-count 0)
 (defvar ido-grid-mode-offset 0)
 (defvar ido-grid-mode-common-match nil)
+
+;; offset into the match list. need to reset this when match list is
+;; changed.
+(defvar ido-grid-mode-rotated-matches nil)
 
 (defvar ido-grid-mode-collapsed nil)
 
@@ -383,7 +396,7 @@ Modifies `ido-grid-mode-rows', `ido-grid-mode-columns', `ido-grid-mode-count' an
          (col-count (length col-widths))
          (row-count (max ido-grid-mode-min-rows
                          (min ido-grid-mode-max-rows
-                              (/ (+ (length names) (- col-count 1)) col-count))))
+                              (/ (+ (length names) (- col-count 1)) (max 1 col-count)))))
          (grid-size (* row-count col-count))
          (col 0)
          (row 0)
@@ -404,8 +417,8 @@ Modifies `ido-grid-mode-rows', `ido-grid-mode-columns', `ido-grid-mode-count' an
     (setq ido-grid-mode-offset (max 0 (min ido-grid-mode-offset (- ido-grid-mode-count 1))))
     (setq indicator-row (if ido-grid-mode-prefix-scrolls
                             (if (ido-grid-mode-row-major)
-                                (/ ido-grid-mode-offset col-count)
-                              (% ido-grid-mode-offset row-count))
+                                (/ ido-grid-mode-offset (max 1 col-count))
+                              (% ido-grid-mode-offset (max 1 row-count)))
                           0))
 
     (if (ido-grid-mode-row-major)
@@ -546,7 +559,7 @@ groups, add the face to all of S."
 
 (defun ido-grid-mode-grid (name)
   "Draw the grid for input NAME."
-  (let* ((decoration-regexp (if ido-enable-regexp name (regexp-quote name)))
+  (let* ((decoration-regexp (if ido-enable-regexp ido-text (regexp-quote name)))
          (max-width (- (window-body-width (minibuffer-window)) 1))
          (decorator (lambda (name item _row _column offset)
                       (concat
@@ -590,7 +603,8 @@ groups, add the face to all of S."
         ido-grid-mode-columns 1
         ido-grid-mode-count 1)
 
-  (let ((ido-grid-mode-common-match
+  (let ((ido-matches ido-grid-mode-rotated-matches)
+        (ido-grid-mode-common-match
          (and (stringp ido-common-match-string)
               (> (length ido-common-match-string) (length name))
               (substring ido-common-match-string (length name)))))
@@ -760,89 +774,74 @@ It may not be possible to do this unless there is only 1 column."
                             ido-grid-mode-columns
                           ido-grid-mode-rows)))
 
-(defun ido-grid-mode-rotate-n (n matches items)
-  "Because ido's prospects are produced by filtering MATCHES to ITEMS,
-normal -rotate can't be used; we have to modify the ITEMS so that MATCHES
-appears rotated.
+(defun ido-grid-mode-rotate-matches-to (new-head)
+  (let ((new-tail ido-grid-mode-rotated-matches))
+    (while new-tail
+      (setq new-tail
+            (if (equal new-head
+                       (cadr new-tail))
+                (progn
+                  (setq new-head (cdr new-tail))
+                  (setcdr new-tail nil)
+                  (setq ido-grid-mode-rotated-matches
+                        (nconc new-head ido-grid-mode-rotated-matches))
+                  nil)
+              (cdr new-tail))))))
 
-This appears to break smex quite badly."
+(defun ido-grid-mode-equal-but-rotated (x y)
+  (when (equal (length x) (length y))
+    (let ((a (car x))
+          (y2 y))
+      ;; find where y2 overlaps x
+      (while (and y2
+                  (not (equal a
+                              (car y2))))
+        (setq y2 (cdr y2)))
+      (when y2 ;; if nil, a is not in y
+        (while (and x
+                    (equal (car x)
+                           (car y2)))
+          (setq x (cdr x)
+                y2 (or (cdr y2) y)))
 
-  ;; example (matches are uppercase)
-  ;; (A B c d e F G H i j) + 2
-  ;; A B F_G H + 2 =>
-  ;; G H A B F
-  ;; we could collect up items and move them
+        (not x)))))
 
-  ;; the last two items in matches need to be in front of the rest?
+;; this is not quite right, because rotated matches is not cleared on exit.
+;; however it seems to work OK
+(defun ido-grid-mode-set-matches (o &rest rest)
+  (let* ((did-something ido-rescan)
+         (result (apply o rest)))
 
-  ;; find cell with G in items
-  ;; break the cell before
-  ;; append the first cell
-  ;; G is the new head
-
-  ;; this is what ido chop does
-
-  ;; the reverse direction
-  ;; A B_F G H X Y Z - 2 =>
-  ;; F G H X Y Z A B
-  ;; is this essentially the same operation?
-
-  (let* ((items (copy-sequence items))
-         (match-count (length matches))
-         (n (if (< n 0) (+ match-count n) n))
-         (new-head (nth n matches))
-         (walker items)
-         new-tail)
-
-    (while walker
-      (if (eq new-head (cadr walker))
-          (setq new-tail walker
-                walker nil)
-        (setq walker (cdr walker))))
-
-    ;; splitting point's cdr is the cell whose car is new-head
-    (setq new-head (cdr new-tail)) ;; find new head
-    (setcdr new-tail nil) ;; break the tie
-    (nconc new-head items)))
+    (when (and did-something (not (ido-grid-mode-equal-but-rotated
+                                   ido-matches
+                                   ido-grid-mode-rotated-matches)))
+      (setq ido-grid-mode-rotated-matches (copy-sequence ido-matches)))
+    result))
 
 (defun ido-grid-mode-next-N (n)
   "Page N items off the top."
-  ;; argh - this is related to ido-cur-list
-  ;; that's why it doesn't work
-  (setq ido-cur-list (ido-grid-mode-rotate-n n ido-matches ido-cur-list)
-        ido-rescan t
-        ido-rotate t))
+  (ido-grid-mode-rotate-matches-to (nth n ido-grid-mode-rotated-matches)))
 
 (defun ido-grid-mode-previous-N (n)
   "Page N items off the bottom to the top."
-  (setq ido-cur-list (ido-grid-mode-rotate-n (- n) ido-matches ido-cur-list)
-        ido-rescan t
-        ido-rotate t)
-
-  ;; (when (and ido-matches
-  ;;            (< ido-grid-mode-count (length ido-matches)))
-  ;;   (let ((shift 0))
-  ;;     (while (<= shift ido-grid-mode-count)
-  ;;       (ido-prev-match)
-  ;;       (cl-incf shift)
-  ;;       (ido-grid-mode-completions ""))
-  ;;     (ido-next-match)
-  ;;     (ido-grid-mode-completions "")))
-  )
+  (ido-grid-mode-rotate-matches-to (nth (- (length ido-grid-mode-rotated-matches) n)
+                                        ido-grid-mode-rotated-matches)))
 
 (defvar ido-grid-mode-old-max-mini-window-height nil)
 (defvar ido-grid-mode-old-resize-mini-windows 'unknown)
 
 (defun ido-grid-mode-advise-match-temporary (o &rest args)
   "Advice for things which use `ido-matches' temporarily."
-  (let ((ido-matches (nthcdr ido-grid-mode-offset ido-matches))
+  (let ((ido-matches (nthcdr ido-grid-mode-offset ido-grid-mode-rotated-matches))
         (ido-grid-mode-offset 0))
     (apply o args)))
 
 (defun ido-grid-mode-advise-match-permanent (o &rest args)
-  "Advice for things which use `ido-matches' permanently"
-  (dotimes (_n ido-grid-mode-offset) (ido-next-match))
+  "Advice for things which use `ido-matches' permanently."
+  (ido-grid-mode-rotate-matches-to (nth ido-grid-mode-offset ido-grid-mode-rotated-matches))
+  (setq ido-matches ido-grid-mode-rotated-matches)
   (setq ido-grid-mode-offset 0)
+  (setq ido-grid-mode-rotated-matches nil)
   (setq max-mini-window-height (or ido-grid-mode-old-max-mini-window-height max-mini-window-height)
         resize-mini-windows (or (unless (equal ido-grid-mode-old-resize-mini-windows 'unknown)
                                   ido-grid-mode-old-resize-mini-windows)
@@ -893,7 +892,7 @@ This appears to break smex quite badly."
 (defvar ido-grid-mode-old-cannot-complete-command nil)
 
 (defun ido-grid-mode-enable ()
-  "Turn on ido-grid-mode."
+  "Turn on function `ido-grid-mode'."
   (setq ido-grid-mode-order
         (cl-case ido-grid-mode-order
           (rows nil)
@@ -903,14 +902,18 @@ This appears to break smex quite badly."
   (setq ido-grid-mode-old-cannot-complete-command ido-cannot-complete-command)
   (fset 'ido-completions #'ido-grid-mode-completions)
   (add-hook 'ido-setup-hook #'ido-grid-mode-ido-setup)
-  (ido-grid-mode-advise-functions))
+  (ido-grid-mode-advise-functions)
+  (advice-add 'ido-set-matches
+              :around #'ido-grid-mode-set-matches
+              '(:depth -50)))
 
 (defun ido-grid-mode-disable ()
-  "Turn off ido-grid-mode."
+  "Turn off function `ido-grid-mode'."
   (fset 'ido-completions ido-grid-mode-old-completions)
   (setq ido-cannot-complete-command ido-grid-mode-old-cannot-complete-command)
   (remove-hook 'ido-setup-hook #'ido-grid-mode-ido-setup)
-  (ido-grid-mode-unadvise-functions))
+  (ido-grid-mode-unadvise-functions)
+  (advice-remove 'ido-set-matches #'ido-grid-mode-set-matches))
 
 ;;;###autoload
 (define-minor-mode ido-grid-mode
