@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-adaptive" "helm-adaptive.el" (22060 27389
-;;;;;;  988215 599000))
+;;;### (autoloads nil "helm-adaptive" "helm-adaptive.el" (22066 4172
+;;;;;;  645176 554000))
 ;;; Generated autoloads from helm-adaptive.el
 
 (defvar helm-adaptive-mode nil "\
@@ -29,8 +29,8 @@ Useful when you have a old or corrupted `helm-adaptive-history-file'.
 
 ;;;***
 
-;;;### (autoloads nil "helm-apt" "helm-apt.el" (22060 27389 968215
-;;;;;;  604000))
+;;;### (autoloads nil "helm-apt" "helm-apt.el" (22066 4172 621176
+;;;;;;  540000))
 ;;; Generated autoloads from helm-apt.el
 
 (autoload 'helm-apt "helm-apt" "\
@@ -41,8 +41,8 @@ With a prefix arg reload cache.
 
 ;;;***
 
-;;;### (autoloads nil "helm-bookmark" "helm-bookmark.el" (22060 27390
-;;;;;;  12215 593000))
+;;;### (autoloads nil "helm-bookmark" "helm-bookmark.el" (22066 4172
+;;;;;;  681176 574000))
 ;;; Generated autoloads from helm-bookmark.el
 
 (autoload 'helm-bookmarks "helm-bookmark" "\
@@ -59,8 +59,8 @@ only if external library addressbook-bookmark.el is available.
 
 ;;;***
 
-;;;### (autoloads nil "helm-buffers" "helm-buffers.el" (22060 27389
-;;;;;;  964215 605000))
+;;;### (autoloads nil "helm-buffers" "helm-buffers.el" (22066 4172
+;;;;;;  617176 538000))
 ;;; Generated autoloads from helm-buffers.el
 
 (autoload 'helm-buffers-list "helm-buffers" "\
@@ -75,8 +75,8 @@ Preconfigured `helm' lightweight version (buffer -> recentf).
 
 ;;;***
 
-;;;### (autoloads nil "helm-color" "helm-color.el" (22060 27390 4215
-;;;;;;  594000))
+;;;### (autoloads nil "helm-color" "helm-color.el" (22066 4172 673176
+;;;;;;  569000))
 ;;; Generated autoloads from helm-color.el
 
 (autoload 'helm-colors "helm-color" "\
@@ -86,8 +86,8 @@ Preconfigured `helm' for color.
 
 ;;;***
 
-;;;### (autoloads nil "helm-command" "helm-command.el" (22060 27389
-;;;;;;  936215 613000))
+;;;### (autoloads nil "helm-command" "helm-command.el" (22066 4172
+;;;;;;  573176 513000))
 ;;; Generated autoloads from helm-command.el
 
 (autoload 'helm-M-x "helm-command" "\
@@ -103,8 +103,8 @@ You can get help on each command by persistent action.
 
 ;;;***
 
-;;;### (autoloads nil "helm-config" "helm-config.el" (22060 27390
-;;;;;;  8215 593000))
+;;;### (autoloads nil "helm-config" "helm-config.el" (22066 4172
+;;;;;;  681176 574000))
 ;;; Generated autoloads from helm-config.el
 
 (autoload 'helm-configuration "helm-config" "\
@@ -114,8 +114,8 @@ Customize `helm'.
 
 ;;;***
 
-;;;### (autoloads nil "helm-dabbrev" "helm-dabbrev.el" (22060 27389
-;;;;;;  972215 603000))
+;;;### (autoloads nil "helm-dabbrev" "helm-dabbrev.el" (22066 4172
+;;;;;;  629176 545000))
 ;;; Generated autoloads from helm-dabbrev.el
 
 (autoload 'helm-dabbrev "helm-dabbrev" "\
@@ -125,8 +125,8 @@ Preconfigured helm for dynamic abbreviations.
 
 ;;;***
 
-;;;### (autoloads nil "helm-elisp" "helm-elisp.el" (22060 27390 4215
-;;;;;;  594000))
+;;;### (autoloads nil "helm-elisp" "helm-elisp.el" (22066 4172 677176
+;;;;;;  572000))
 ;;; Generated autoloads from helm-elisp.el
 
 (autoload 'helm-lisp-completion-at-point "helm-elisp" "\
@@ -178,7 +178,7 @@ Preconfigured helm for complex command history.
 ;;;***
 
 ;;;### (autoloads nil "helm-elisp-package" "helm-elisp-package.el"
-;;;;;;  (22060 27389 940215 613000))
+;;;;;;  (22066 4172 577176 515000))
 ;;; Generated autoloads from helm-elisp-package.el
 
 (autoload 'helm-list-elisp-packages "helm-elisp-package" "\
@@ -194,8 +194,8 @@ Same as `helm-list-elisp-packages' but don't fetch packages on remote.
 
 ;;;***
 
-;;;### (autoloads nil "helm-elscreen" "helm-elscreen.el" (22060 27389
-;;;;;;  936215 613000))
+;;;### (autoloads nil "helm-elscreen" "helm-elscreen.el" (22066 4172
+;;;;;;  565176 508000))
 ;;; Generated autoloads from helm-elscreen.el
 
 (autoload 'helm-elscreen "helm-elscreen" "\
@@ -210,8 +210,8 @@ Preconfigured helm to list elscreen in history order.
 
 ;;;***
 
-;;;### (autoloads nil "helm-eshell" "helm-eshell.el" (22060 27389
-;;;;;;  948215 610000))
+;;;### (autoloads nil "helm-eshell" "helm-eshell.el" (22066 4172
+;;;;;;  593176 525000))
 ;;; Generated autoloads from helm-eshell.el
 
 (autoload 'helm-esh-pcomplete "helm-eshell" "\
@@ -226,8 +226,8 @@ Preconfigured helm for eshell history.
 
 ;;;***
 
-;;;### (autoloads nil "helm-eval" "helm-eval.el" (22060 27389 992215
-;;;;;;  598000))
+;;;### (autoloads nil "helm-eval" "helm-eval.el" (22066 4172 653176
+;;;;;;  559000))
 ;;; Generated autoloads from helm-eval.el
 
 (autoload 'helm-eval-expression "helm-eval" "\
@@ -247,8 +247,8 @@ Preconfigured helm for `helm-source-calculation-result'.
 
 ;;;***
 
-;;;### (autoloads nil "helm-external" "helm-external.el" (22060 27389
-;;;;;;  928215 616000))
+;;;### (autoloads nil "helm-external" "helm-external.el" (22066 4172
+;;;;;;  557176 503000))
 ;;; Generated autoloads from helm-external.el
 
 (autoload 'helm-run-external-command "helm-external" "\
@@ -261,8 +261,8 @@ You can set your own list of commands with
 
 ;;;***
 
-;;;### (autoloads nil "helm-files" "helm-files.el" (22060 27389 976215
-;;;;;;  603000))
+;;;### (autoloads nil "helm-files" "helm-files.el" (22066 4172 633176
+;;;;;;  547000))
 ;;; Generated autoloads from helm-files.el
 
 (autoload 'helm-browse-project "helm-files" "\
@@ -320,8 +320,8 @@ Preconfigured `helm' for `recentf'.
 
 ;;;***
 
-;;;### (autoloads nil "helm-font" "helm-font.el" (22060 27389 948215
-;;;;;;  610000))
+;;;### (autoloads nil "helm-font" "helm-font.el" (22066 4172 597176
+;;;;;;  527000))
 ;;; Generated autoloads from helm-font.el
 
 (autoload 'helm-select-xfont "helm-font" "\
@@ -336,8 +336,8 @@ Preconfigured helm for `ucs-names' math symbols.
 
 ;;;***
 
-;;;### (autoloads nil "helm-grep" "helm-grep.el" (22060 27390 16215
-;;;;;;  591000))
+;;;### (autoloads nil "helm-grep" "helm-grep.el" (22066 4172 685176
+;;;;;;  576000))
 ;;; Generated autoloads from helm-grep.el
 
 (autoload 'helm-goto-precedent-file "helm-grep" "\
@@ -394,8 +394,8 @@ Preconfigured helm for pdfgrep.
 
 ;;;***
 
-;;;### (autoloads nil "helm-help" "helm-help.el" (22060 27389 928215
-;;;;;;  616000))
+;;;### (autoloads nil "helm-help" "helm-help.el" (22066 4172 553176
+;;;;;;  501000))
 ;;; Generated autoloads from helm-help.el
 
 (autoload 'helm-documentation "helm-help" "\
@@ -421,8 +421,8 @@ HELM-ATTRIBUTE should be a symbol.
 
 ;;;***
 
-;;;### (autoloads nil "helm-id-utils" "helm-id-utils.el" (22060 27389
-;;;;;;  968215 604000))
+;;;### (autoloads nil "helm-id-utils" "helm-id-utils.el" (22066 4172
+;;;;;;  621176 540000))
 ;;; Generated autoloads from helm-id-utils.el
 
 (autoload 'helm-gid "helm-id-utils" "\
@@ -436,8 +436,8 @@ See <https://www.gnu.org/software/idutils/>.
 
 ;;;***
 
-;;;### (autoloads nil "helm-imenu" "helm-imenu.el" (22060 27389 960215
-;;;;;;  606000))
+;;;### (autoloads nil "helm-imenu" "helm-imenu.el" (22066 4172 609176
+;;;;;;  534000))
 ;;; Generated autoloads from helm-imenu.el
 
 (autoload 'helm-imenu "helm-imenu" "\
@@ -452,8 +452,8 @@ Preconfigured helm for fetching imenu entries of all buffers.
 
 ;;;***
 
-;;;### (autoloads nil "helm-info" "helm-info.el" (22060 27389 952215
-;;;;;;  609000))
+;;;### (autoloads nil "helm-info" "helm-info.el" (22066 4172 601176
+;;;;;;  529000))
 ;;; Generated autoloads from helm-info.el
 
 (autoload 'helm-info-at-point "helm-info" "\
@@ -464,8 +464,8 @@ With a prefix-arg insert symbol at point.
 
 ;;;***
 
-;;;### (autoloads nil "helm-locate" "helm-locate.el" (22060 27389
-;;;;;;  932215 614000))
+;;;### (autoloads nil "helm-locate" "helm-locate.el" (22066 4172
+;;;;;;  561176 505000))
 ;;; Generated autoloads from helm-locate.el
 
 (autoload 'helm-projects-find-files "helm-locate" "\
@@ -497,8 +497,8 @@ Where db_path is a filename matched by
 
 ;;;***
 
-;;;### (autoloads nil "helm-man" "helm-man.el" (22060 27389 992215
-;;;;;;  598000))
+;;;### (autoloads nil "helm-man" "helm-man.el" (22066 4172 657176
+;;;;;;  560000))
 ;;; Generated autoloads from helm-man.el
 
 (autoload 'helm-man-woman "helm-man" "\
@@ -509,8 +509,8 @@ With a prefix arg reinitialize the cache.
 
 ;;;***
 
-;;;### (autoloads nil "helm-misc" "helm-misc.el" (22060 27389 984215
-;;;;;;  600000))
+;;;### (autoloads nil "helm-misc" "helm-misc.el" (22066 4172 641176
+;;;;;;  551000))
 ;;; Generated autoloads from helm-misc.el
 
 (autoload 'helm-browse-menubar "helm-misc" "\
@@ -551,8 +551,8 @@ Preconfigured `helm' that provide completion of `comint' history.
 
 ;;;***
 
-;;;### (autoloads nil "helm-mode" "helm-mode.el" (22060 27389 920215
-;;;;;;  617000))
+;;;### (autoloads nil "helm-mode" "helm-mode.el" (22066 4172 541176
+;;;;;;  494000))
 ;;; Generated autoloads from helm-mode.el
 
 (autoload 'helm-comp-read "helm-mode" "\
@@ -719,7 +719,8 @@ Note: This mode is incompatible with Emacs23.
 
 ;;;***
 
-;;;### (autoloads nil "helm-net" "helm-net.el" (22060 27390 215 596000))
+;;;### (autoloads nil "helm-net" "helm-net.el" (22066 4172 669176
+;;;;;;  567000))
 ;;; Generated autoloads from helm-net.el
 
 (autoload 'helm-surfraw "helm-net" "\
@@ -739,8 +740,8 @@ Preconfigured `helm' for Wikipedia lookup with Wikipedia suggest.
 
 ;;;***
 
-;;;### (autoloads nil "helm-org" "helm-org.el" (22060 27390 16215
-;;;;;;  591000))
+;;;### (autoloads nil "helm-org" "helm-org.el" (22066 4172 689176
+;;;;;;  578000))
 ;;; Generated autoloads from helm-org.el
 
 (autoload 'helm-org-agenda-files-headings "helm-org" "\
@@ -760,8 +761,8 @@ Preconfigured helm for org templates.
 
 ;;;***
 
-;;;### (autoloads nil "helm-regexp" "helm-regexp.el" (22060 27390
-;;;;;;  215 596000))
+;;;### (autoloads nil "helm-regexp" "helm-regexp.el" (22066 4172
+;;;;;;  665176 565000))
 ;;; Generated autoloads from helm-regexp.el
 
 (autoload 'helm-moccur-mode "helm-regexp" "\
@@ -811,8 +812,8 @@ The prefix arg can be set before calling
 
 ;;;***
 
-;;;### (autoloads nil "helm-ring" "helm-ring.el" (22060 27389 924215
-;;;;;;  616000))
+;;;### (autoloads nil "helm-ring" "helm-ring.el" (22066 4172 549176
+;;;;;;  498000))
 ;;; Generated autoloads from helm-ring.el
 
 (defvar helm-push-mark-mode nil "\
@@ -869,8 +870,8 @@ This command is useful when used with persistent action.
 
 ;;;***
 
-;;;### (autoloads nil "helm-semantic" "helm-semantic.el" (22060 27389
-;;;;;;  964215 605000))
+;;;### (autoloads nil "helm-semantic" "helm-semantic.el" (22066 4172
+;;;;;;  613176 535000))
 ;;; Generated autoloads from helm-semantic.el
 
 (autoload 'helm-semantic "helm-semantic" "\
@@ -892,8 +893,8 @@ Fill in the symbol at point by default.
 
 ;;;***
 
-;;;### (autoloads nil "helm-sys" "helm-sys.el" (22060 27389 972215
-;;;;;;  603000))
+;;;### (autoloads nil "helm-sys" "helm-sys.el" (22066 4172 625176
+;;;;;;  543000))
 ;;; Generated autoloads from helm-sys.el
 
 (autoload 'helm-top "helm-sys" "\
@@ -913,8 +914,8 @@ Preconfigured helm for xrandr.
 
 ;;;***
 
-;;;### (autoloads nil "helm-tags" "helm-tags.el" (22060 27389 944215
-;;;;;;  611000))
+;;;### (autoloads nil "helm-tags" "helm-tags.el" (22066 4172 585176
+;;;;;;  520000))
 ;;; Generated autoloads from helm-tags.el
 
 (autoload 'helm-etags-select "helm-tags" "\
@@ -933,8 +934,8 @@ This function aggregates three sources of tag files:
 
 ;;;***
 
-;;;### (autoloads nil "helm-utils" "helm-utils.el" (22060 27389 936215
-;;;;;;  613000))
+;;;### (autoloads nil "helm-utils" "helm-utils.el" (22066 4172 569176
+;;;;;;  510000))
 ;;; Generated autoloads from helm-utils.el
 
 (autoload 'helm-show-all-in-this-source-only "helm-utils" "\
@@ -958,8 +959,8 @@ from its directory.
 ;;;***
 
 ;;;### (autoloads nil nil ("helm-aliases.el" "helm-easymenu.el" "helm-multi-match.el"
-;;;;;;  "helm-pkg.el" "helm-plugin.el" "helm-types.el") (22060 27390
-;;;;;;  20215 590000))
+;;;;;;  "helm-pkg.el" "helm-plugin.el" "helm-types.el") (22066 4172
+;;;;;;  693176 581000))
 
 ;;;***
 
