@@ -79,6 +79,11 @@ See also `bolp'"
       buffer
     (buffer-narrowed-p)))
 
+(defun m-buffer-at-string (buffer)
+  (with-current-buffer
+      buffer
+    (buffer-string)))
+
 (provide 'm-buffer-at)
 ;;; m-buffer-at.el ends here
 ;; #+end_src
