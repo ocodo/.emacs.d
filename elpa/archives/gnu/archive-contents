@@ -362,7 +362,7 @@
 	     ((:url . "http://elpa.gnu.org/packages/iterators.html")
 	      (:keywords "extensions" "elisp"))])
  (javaimp .
-	  [(0 5)
+	  [(0 6)
 	   nil "Add and reorder Java import statements in Maven projects" single
 	   ((:url . "http://elpa.gnu.org/packages/javaimp.html")
 	    (:keywords "java" "maven" "programming"))])
@@ -615,7 +615,7 @@
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
  (stream .
-	 [(1 0 1)
+	 [(2 0 1)
 	  ((emacs
 	    (25)))
 	  "Implementation of streams" single
