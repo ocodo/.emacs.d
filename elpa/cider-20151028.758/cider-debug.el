@@ -375,7 +375,7 @@ specific message."
   (ignore-errors (cider--debug-mode -1)))
 
 (defun cider--debug-quit ()
-  "Send a :quit reply to the debugger. Used in hooks."
+  "Send a :quit reply to the debugger.  Used in hooks."
   (when cider--debug-mode
     (cider-debug-mode-send-reply ":quit")
     (message "Quitting debug session")))
@@ -416,7 +416,22 @@ ID is the id of the message that instrumented CODE."
 (defun cider--debug-move-point (coordinates)
   "Place point on POS in FILE, then navigate into the next sexp.
 COORDINATES is a list of integers that specify how to navigate into the
-sexp."
+sexp.
+
+As an example, a COORDINATES list of '(1 0 2) means:
+  - enter this sexp and move forward once,
+  - enter this sexp,
+  - enter this sexp and move forward twice.
+
+In the following snippet, this takes us to the (* x 2) sexp (point is left
+at the end of the given sexp).
+
+    (letfn [(twice [x]
+              (* x 2))]
+      (twice 15))
+
+In addition to numbers, a coordinate can be a string. This string names the
+key of a map, and it means \"go to the value associated with this key\". "
   (condition-case-unless-debug nil
       ;; Navigate through sexps inside the sexp.
       (let ((in-syntax-quote nil))
@@ -474,9 +489,9 @@ sexp."
 (defun cider--handle-debug (response)
   "Handle debugging notification.
 RESPONSE is a message received from the nrepl describing the input
-needed. It is expected to contain at least \"key\", \"input-type\", and
+needed.  It is expected to contain at least \"key\", \"input-type\", and
 \"prompt\", and possibly other entries depending on the input-type."
-  (nrepl-dbind-response response (debug-value key coor code file point ns original-id
+  (nrepl-dbind-response response (debug-value key coor code file line column ns original-id
                                               input-type prompt inspect)
     (condition-case-unless-debug e
         (progn
@@ -485,15 +500,17 @@ needed. It is expected to contain at least \"key\", \"input-type\", and
                                                         (or prompt "Expression: "))
                                                        key))
             ((pred sequencep)
-             (when (or code (and file point))
+             (when (or code (and file line column))
                ;; We prefer in-source debugging.
-               (when (and file point)
+               (when (and file line column)
                  (if-let ((buf (find-buffer-visiting file)))
                      (if-let ((win (get-buffer-window buf)))
                          (select-window win)
                        (pop-to-buffer buf))
                    (find-file file))
-                 (goto-char point))
+                 ;; Get to the proper line & column in the file
+                 (forward-line (- line (line-number-at-pos)))
+                 (move-to-column column))
                ;; But we can create a temp buffer if that fails.
                (unless (or (looking-at-p (regexp-quote code))
                            (looking-at-p (regexp-quote (cider--debug-trim-code code))))
@@ -519,7 +536,7 @@ needed. It is expected to contain at least \"key\", \"input-type\", and
 ;;; User commands
 ;;;###autoload
 (defun cider-debug-defun-at-point ()
-  "Instrument the top-level expression at point.
+  "Instrument the \"top-level\" expression at point.
 If it is a defn, dispatch the instrumented definition.  Otherwise,
 immediately evaluate the instrumented expression.
 

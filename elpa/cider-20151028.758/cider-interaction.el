@@ -225,7 +225,7 @@ namespace-qualified function of zero arity."
 
 All of them are provided by CIDER's nREPL middleware (cider-nrepl).")
 
-(defvar cider-required-nrepl-version "0.2.7"
+(defvar cider-required-nrepl-version "0.2.11"
   "The minimum nREPL version that's known to work properly with CIDER.")
 
 ;;; Minibuffer
@@ -461,7 +461,7 @@ the results to be displayed in a different window."
 
 (defun cider-completion-get-context-at-point ()
   "Extract the context at point.
-If point is not inside the list, returns nil; otherwise return top-level
+If point is not inside the list, returns nil; otherwise return \"top-level\"
 form, with symbol at point replaced by __prefix__."
   (when (save-excursion
           (condition-case _
@@ -804,14 +804,14 @@ into a new error buffer."
        (setq causes (cider--handle-stacktrace-response response causes))))))
 
 (defun cider-default-err-handler ()
-  "This function determines how the error buffer is shown, and then delegates
-the actual error content to the eval or op handler."
+  "This function determines how the error buffer is shown.
+It delegates the actual error content to the eval or op handler."
   (if (cider-nrepl-op-supported-p "stacktrace")
       (cider-default-err-op-handler)
     (cider-default-err-eval-handler)))
 
 (defvar cider-compilation-regexp
-  '("\\(?:.*\\(warning, \\)\\|.*?\\(, compiling\\):(\\)\\([^:]*\\):\\([[:digit:]]+\\)\\(?::\\([[:digit:]]+\\)\\)?\\(\\(?: - \\(.*\\)\\)\\|)\\)" 3 4 5 (1))
+  '("\\(?:.*\\(warning, \\)\\|.*?\\(, compiling\\):(\\)\\(.*?\\):\\([[:digit:]]+\\)\\(?::\\([[:digit:]]+\\)\\)?\\(\\(?: - \\(.*\\)\\)\\|)\\)" 3 4 5 (1))
   "Specifications for matching errors and warnings in Clojure stacktraces.
 See `compilation-error-regexp-alist' for help on their format.")
 
@@ -886,7 +886,7 @@ If location could not be found, return nil."
 (defun cider-handle-compilation-errors (message eval-buffer)
   "Highlight and jump to compilation error extracted from MESSAGE.
 EVAL-BUFFER is the buffer that was current during user's interactive
-evaluation command. Honor `cider-auto-jump-to-error'."
+evaluation command.  Honor `cider-auto-jump-to-error'."
   (when-let ((loc (cider--find-last-error-location message))
              (overlay (make-overlay (nth 0 loc) (nth 1 loc) (nth 2 loc)))
              (info (cider-extract-error-info cider-compilation-regexp message)))
@@ -960,10 +960,10 @@ form independently.")
   (gethash (cider-current-connection) cider--ns-form-cache))
 
 (defun cider--prep-interactive-eval (form)
-  "Prepares the environment for an interactive eval of FORM.
+  "Prepare the environment for an interactive eval of FORM.
 
 If FORM is an ns-form, ensure that it is evaluated in the `user`
-namespace. Otherwise, ensure the current ns declaration has been
+namespace.  Otherwise, ensure the current ns declaration has been
 evaluated (so that the ns containing FORM exists).
 
 Clears any compilation highlights and kills the error window."
@@ -1008,7 +1008,8 @@ arguments and only proceed with evaluation if it returns nil."
        ;; always eval ns forms in the user namespace
        ;; otherwise trying to eval ns form for the first time will produce an error
        (if (cider-ns-form-p form) "user" (cider-current-ns))
-       start))))
+       (when start (line-number-at-pos start))
+       (when start (cider-column-number-at-pos start))))))
 
 (defun cider-interactive-pprint-eval (form &optional callback right-margin)
   "Evaluate FORM and dispatch the response to CALLBACK.
@@ -1090,7 +1091,7 @@ command `cider-debug-defun-at-point'."
    (cider--region-for-defun-at-point)))
 
 (defun cider-pprint-eval-defun-at-point ()
-  "Evaluate the top-level form at point and pprint its value in a popup buffer."
+  "Evaluate the \"top-level\" form at point and pprint its value in a popup buffer."
   (interactive)
   (cider--pprint-eval-form (cider-defun-at-point)))
 
