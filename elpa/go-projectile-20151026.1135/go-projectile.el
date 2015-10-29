@@ -4,10 +4,10 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20151022.1024
+;; Package-Version: 20151026.1135
 ;; Keywords: project, convenience
 ;; Version: 0.1.0
-;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16"))
+;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -39,6 +39,7 @@
 
 (require 'projectile)
 (require 'go-eldoc)
+(require 'go-rename)
 (require 'vc-git)
 (require 'autorevert)
 
@@ -86,9 +87,6 @@ current GOPATH, or 'never to leave GOPATH untouched."
       (setenv "PATH" (concat (getenv "PATH") path-separator path))
       (setq go-oracle-command (concat path "/oracle"))
       (add-hook 'go-mode-hook 'go-projectile-tools-load-oracle)
-      (add-to-list 'load-path (concat go-projectile-tools-path "/src/"
-                                      "golang.org/x/tools/refactor/rename"))
-      (autoload 'go-rename "rename" nil t)
       (setq go-rename-command (concat path "/gorename")))))
 
 (defun go-projectile-get-tools (&optional flag)
