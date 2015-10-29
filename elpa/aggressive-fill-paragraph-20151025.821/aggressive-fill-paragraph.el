@@ -2,7 +2,7 @@
 
 ;; Author: David Shepherd <davidshepherd7@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20150703.727
+;; Package-Version: 20151025.821
 ;; Package-Requires: ((dash "2.10.0"))
 ;; URL: https://github.com/davidshepherd7/aggressive-fill-paragraph-mode
 ;; Keywords: fill-paragraph, automatic, comments
@@ -29,6 +29,7 @@
 
 (defun afp-bullet-list-in-comments? ()
   "Try to check if we are inside a bullet pointed list."
+  (comment-normalize-vars)
   (and (comment-only-p (point-at-bol) (point-at-eol))
 
        ;; TODO: extend to match any line in paragraph
