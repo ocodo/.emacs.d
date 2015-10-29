@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20151022") (git-commit "20151022") (magit-popup "20151022"))
+;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20151028") (git-commit "20151028") (magit-popup "20151028"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -1124,7 +1124,8 @@ Non-interactively DIRECTORY is (re-)initialized unconditionally."
      (list directory)))
   (make-directory directory t)
   ;; `git init' does not understand the meaning of "~"!
-  (magit-call-git "init" (expand-file-name directory))
+  (magit-call-git "init" (magit-convert-git-filename
+                          (expand-file-name directory)))
   (magit-status-internal directory))
 
 ;;;; Branch
@@ -2169,7 +2170,11 @@ repository, otherwise in `default-directory'."
     (setq args (mapcar 'eval (eshell-parse-arguments (point-min)
                                                      (point-max))))
     (setq default-directory directory)
-    (magit-run-git-async args))
+    (let ((magit-git-global-arguments
+           ;; A human will want globbing by default.
+           (remove "--literal-pathspecs"
+                   magit-git-global-arguments)))
+     (magit-run-git-async args)))
   (magit-process-buffer))
 
 ;;;###autoload

@@ -45,9 +45,12 @@ Then show the status buffer for the new repository."
                   "Clone to: " nil nil nil
                   (and (string-match "\\([^./]+\\)\\(\\.git\\)?$" url)
                        (match-string 1 url))))))))
-  (make-directory directory t)
   (message "Cloning %s..." repository)
-  (when (= (magit-call-git "clone" repository directory) 0)
+  (when (= (magit-call-git "clone" repository
+                           ;; Stop cygwin git making a "c:" directory.
+                           (magit-convert-git-filename
+                            (expand-file-name directory)))
+           0)
     (message "Cloning %s...done" repository)
     (magit-status-internal directory)))
 
@@ -116,6 +119,7 @@ then read the remote."
   (interactive (list (or (magit-get-remote)
                          (magit-read-remote "Fetch remote"))
                      (magit-fetch-arguments)))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-async-no-revert "fetch" remote args))
 
 ;;;###autoload
@@ -123,12 +127,14 @@ then read the remote."
   "Fetch from another repository."
   (interactive (list (magit-read-remote "Fetch remote")
                      (magit-fetch-arguments)))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-async-no-revert "fetch" remote args))
 
 ;;;###autoload
 (defun magit-fetch-all (&optional args)
   "Fetch from all configured remotes."
   (interactive (list (magit-fetch-arguments)))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-async-no-revert "remote" "update" args))
 
 ;;; Pull
@@ -147,6 +153,7 @@ then read the remote."
 (defun magit-pull-current (remote branch &optional args)
   "Fetch and merge into current branch."
   (interactive (magit-pull-read-args t))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-with-editor "pull" args
                              (and (not (equal remote (magit-get-remote)))
                                   (not (equal branch (magit-get-remote-branch)))
@@ -156,6 +163,7 @@ then read the remote."
 (defun magit-pull (remote branch &optional args)
   "Fetch from another repository and merge a fetched branch."
   (interactive (magit-pull-read-args))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-with-editor "pull" args remote branch))
 
 (defun magit-pull-read-args (&optional use-upstream)
@@ -204,6 +212,7 @@ If the upstream isn't set, then read the remote branch.
 If `magit-push-always-verify' is not nil, however, always read
 the remote branch."
   (interactive (magit-push-read-args t))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-async-no-revert
    "push" "-v" args remote
    (if remote-branch
@@ -258,9 +267,9 @@ from what you expected.  For example inside the push popup type
 all push commands at once, consult the manual.
 
 While I have your attention, I would also like to warn you that
-pushing will be further improved in a later release (probably
-v2.3.0), and that you might be surprised by some of these
-changes, unless you read the documentation.
+pushing will be further improved in the v2.4.0 release, and that
+you might be surprised by some of these changes, unless you read
+the documentation.
 
 Setting this option to t makes little sense.  If you consider
 doing that, then you should probably just use `Pe' instead of
@@ -304,6 +313,7 @@ not exist, then push to \"origin\".  If that also doesn't exist
 then raise an error.  The local branch is pushed to the remote
 branch with the same name."
   (interactive (list (magit-push-arguments)))
+  (run-hooks 'magit-credential-hook)
   (-if-let (branch (magit-get-current-branch))
       (-if-let (remote (or (magit-remote-p (magit-get "magit.pushRemote"))
                            (magit-remote-p "origin")))
@@ -318,6 +328,7 @@ This runs `git push -v'.  What is being pushed depends on various
 Git variables as described in the `git-push(1)' and `git-config(1)'
 manpages."
   (interactive (list (magit-push-arguments)))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-async-no-revert "push" "-v" args))
 
 ;;;###autoload
@@ -326,6 +337,7 @@ manpages."
 If multiple remotes exit, then read one from the user.
 If just one exists, use that without requiring confirmation."
   (interactive (list (magit-read-remote "Push matching branches to" nil t)))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-async-no-revert "push" "-v" args remote ":"))
 
 (defun magit-push-tags (remote &optional args)
@@ -335,6 +347,7 @@ for a remote, offering the remote configured for the current
 branch as default."
   (interactive (list (magit-read-remote "Push tags to remote" nil t)
                      (magit-push-arguments)))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-async-no-revert "push" remote "--tags" args))
 
 ;;;###autoload
@@ -343,8 +356,8 @@ branch as default."
   (interactive
    (let  ((tag (magit-read-tag "Push tag")))
      (list tag (magit-read-remote (format "Push %s to remote" tag) nil t))))
+  (run-hooks 'magit-credential-hook)
   (magit-run-git-async-no-revert "push" remote tag))
-
 
 ;;; Email
 

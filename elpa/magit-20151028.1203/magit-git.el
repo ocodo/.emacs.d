@@ -386,10 +386,15 @@ returning the truename."
                         (expand-file-name gitdir))))
         (if (magit-bare-repo-p)
             gitdir
-          (let ((link (expand-file-name "gitdir" gitdir)))
-            (if (file-exists-p link)
+          (let* ((link (expand-file-name "gitdir" gitdir))
+                 (wtree (and (file-exists-p link)
+                             (magit-file-line link))))
+            (if (and wtree
+                     ;; Ignore .git/gitdir files that result from a
+                     ;; Git bug.  See #2364.
+                     (not (equal wtree ".git")))
                 ;; Return the linked working tree.
-                (file-name-directory (magit-file-line link))
+                (file-name-directory wtree)
               ;; Step outside the control directory to enter the working tree.
               (file-name-directory (directory-file-name gitdir)))))))))
 
@@ -540,6 +545,13 @@ Sorted from longest to shortest CYGWIN name."
             (cl-assoc filename magit-cygwin-mount-points
                       :test (lambda (f cyg) (string-prefix-p cyg f))))
       (concat win (substring filename (length cyg)))
+    filename))
+
+(defun magit-convert-git-filename (filename)
+  (-if-let ((cyg . win)
+            (cl-rassoc filename magit-cygwin-mount-points
+                       :test (lambda (f win) (string-prefix-p win f))))
+      (concat cyg (substring filename (length win)))
     filename))
 
 (defun magit-decode-git-path (path)
