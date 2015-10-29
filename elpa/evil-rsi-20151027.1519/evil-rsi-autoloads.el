@@ -3,13 +3,16 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-rsi" "evil-rsi.el" (21998 34847 51401
-;;;;;;  0))
+;;;### (autoloads nil "evil-rsi" "evil-rsi.el" (22066 4217 517200
+;;;;;;  970000))
 ;;; Generated autoloads from evil-rsi.el
 
 (defvar evil-rsi-mode nil "\
 Non-nil if Evil-Rsi mode is enabled.
-See the command `evil-rsi-mode' for a description of this minor mode.")
+See the command `evil-rsi-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `evil-rsi-mode'.")
 
 (custom-autoload 'evil-rsi-mode "evil-rsi" nil)
 

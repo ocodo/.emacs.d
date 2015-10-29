@@ -4,8 +4,8 @@
 
 ;; Author: Quang Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/evil-rsi
-;; Package-Version: 20150826.447
-;; Version: 1.0.0
+;; Package-Version: 20151027.1519
+;; Version: 1.1.1
 ;; Keywords: evil rsi evil-rsi
 ;; Package-Requires: ((evil "1.0.0"))
 
@@ -54,24 +54,34 @@
   :lighter " rsi"
   :global t
   :keymap (let ((map (make-sparse-keymap)))
-            (evil-define-key 'insert map "\C-a" 'beginning-of-line)
-            (evil-define-key 'motion map "\C-a" 'beginning-of-line)
-            (evil-define-key 'insert map "\C-b" 'backward-char)
-            (evil-define-key 'insert map "\C-d" 'delete-char)
-            (evil-define-key 'insert map "\C-e" 'end-of-line)
-            (evil-define-key 'motion map "\C-e" 'end-of-line)
-            (evil-define-key 'insert map "\C-f" 'forward-char)
-            (evil-define-key 'insert map "\C-h" 'delete-backward-char)
-            (evil-define-key 'motion map "\C-k" 'kill-line)
-            (evil-define-key 'insert map "\C-k" 'kill-line)
-            (evil-define-key 'insert map (kbd "C-S-k") 'evil-insert-digraph)
-            map))
+            (evil-define-key 'insert map "\C-a" #'beginning-of-line)
+            (evil-define-key 'motion map "\C-a" #'beginning-of-line)
+            (evil-define-key 'insert map "\C-b" #'backward-char)
+            (evil-define-key 'insert map "\C-d" #'delete-char)
+            (evil-define-key 'insert map "\C-e" #'end-of-line)
+            (evil-define-key 'motion map "\C-e" #'end-of-line)
+            (evil-define-key 'insert map "\C-f" #'forward-char)
+            (evil-define-key 'insert map "\C-h" #'delete-backward-char)
+            (evil-define-key 'motion map "\C-k" #'kill-line)
+            (evil-define-key 'insert map "\C-k" #'kill-line)
+            (evil-define-key 'insert map (kbd "C-S-k") #'evil-insert-digraph)
+            map)
+  (if evil-rsi-mode
+      (progn
+        (when evil-want-C-w-delete
+          (define-key minibuffer-local-map [remap kill-region] #'evil-delete-backward-word))
+        (define-key evil-ex-completion-map [remap evil-insert-digraph] #'kill-line)
+        (define-key evil-ex-completion-map "\C-S-k" #'evil-insert-digraph)
+        (define-key evil-ex-completion-map "\C-a" #'beginning-of-line))
+    (define-key minibuffer-local-map [remap kill-region] nil)
+    (define-key evil-ex-completion-map [remap evil-insert-digraph] nil)
+    (define-key evil-ex-completion-map "\C-a" #'evil-ex-completion)))
 
 (dolist (sym '(auto-complete company))
   (eval-after-load sym
     '(progn
-       (evil-define-key 'insert evil-rsi-mode-map "\C-n" 'next-line)
-       (evil-define-key 'insert evil-rsi-mode-map "\C-p" 'previous-line))))
+       (evil-define-key 'insert evil-rsi-mode-map "\C-n" #'next-line)
+       (evil-define-key 'insert evil-rsi-mode-map "\C-p" #'previous-line))))
 
 (provide 'evil-rsi)
 
