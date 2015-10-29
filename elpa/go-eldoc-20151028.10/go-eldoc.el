@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-eldoc
-;; Package-Version: 20150821.2326
+;; Package-Version: 20151028.10
 ;; Version: 0.26
 ;; Package-Requires: ((go-mode "1.0.0") (cl-lib "0.5"))
 
@@ -410,6 +410,7 @@
 
 ;;;###autoload
 (defun go-eldoc-setup ()
+  "Set up eldoc function and enable eldoc-mode."
   (interactive)
   (set (make-local-variable 'eldoc-documentation-function)
        'go-eldoc--documentation-function)
