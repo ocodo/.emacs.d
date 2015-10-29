@@ -210,7 +210,7 @@ negative ARG.  Handles bird style literate Haskell too."
     (catch 'parse-error
       ;;  - save the current column
       (let* ((ci (haskell-indentation-current-indentation))
-             (indentations (haskell-indentation-find-indentations-safe)))
+             (indentations (haskell-indentation-find-indentations)))
         ;; - jump to the next line and reindent to at the least same level        
         (delete-horizontal-space)
         (newline)
@@ -261,20 +261,18 @@ indentation points to the right, we switch going to the left."
     (unless (save-excursion
               (beginning-of-line)
               (nth 8 (syntax-ppss)))
-      ;; parse error is intentionally not catched here, it may come from
-      ;; `haskell-indentation-find-indentations-safe', but escapes the scope
+      ;; parse error is intentionally not cought here, it may come from
+      ;; `haskell-indentation-find-indentations', but escapes the scope
       ;; and aborts the opertaion before any moving happens
       (let* ((cc (current-column))
              (ci (haskell-indentation-current-indentation))
              (inds (save-excursion
                      (move-to-column ci)
-                     (haskell-indentation-find-indentations-safe)))
+                     (haskell-indentation-find-indentations)))
              (valid (memq ci inds))
              (cursor-in-whitespace (< cc ci)))
-        ;; can't happen right now, because of -safe, but we may want to have
-        ;; this in the future
-        ;; (when (null inds)
-        ;;   (error "returned indentations empty, but no parse error"))
+        (when (null inds)
+          (error "returned indentations empty, but no parse error"))
         (if (and valid cursor-in-whitespace)
             (move-to-column ci)
           (haskell-indentation-reindent-to
@@ -349,7 +347,7 @@ indentation points to the right, we switch going to the left."
            (ci (haskell-indentation-current-indentation))
            (inds (save-excursion
                    (move-to-column ci)
-                   (haskell-indentation-find-indentations-safe)))
+                   (haskell-indentation-find-indentations)))
            (cursor-in-whitespace (< cc ci))
            (pi (haskell-indentation-previous-indentation ci inds)))
       (if (null pi)
@@ -485,11 +483,6 @@ indentation points to the right, we switch going to the left."
      (t
       (haskell-indentation-parse-to-indentations)))))
 
-;; XXX: this is a hack, the parser shouldn't return nil without parse-error
-(defun haskell-indentation-find-indentations-safe ()
-  (or (haskell-indentation-find-indentations)
-      (haskell-indentation-first-indentation)))
-
 (defconst haskell-indentation-unicode-tokens
   '(("→" . "->")     ;; #x2192 RIGHTWARDS ARROW
     ("∷" . "::")     ;; #x2237 PROPORTION
@@ -507,7 +500,8 @@ indentation points to the right, we switch going to the left."
   `(("module"   . haskell-indentation-module)
     ("data"     . haskell-indentation-data)
     ("type"     . haskell-indentation-data)
-    ("newtype"  .   haskell-indentation-data)
+    ("newtype"  . haskell-indentation-data)
+    ("import"   . haskell-indentation-import)
     ("class"    . haskell-indentation-class-declaration)
     ("instance" . haskell-indentation-class-declaration))
   "Alist of toplevel keywords with associated parsers.")
@@ -677,6 +671,10 @@ For example
             (haskell-indentation-with-starter
              #'haskell-indentation-expression-layout nil))))))
 
+(defun haskell-indentation-import ()
+  "Parse import declaration."
+  (haskell-indentation-with-starter #'haskell-indentation-expression))
+
 (defun haskell-indentation-class-declaration ()
   "Parse class declaration."
   (haskell-indentation-with-starter
@@ -756,7 +754,7 @@ Skip the keyword or parenthesis." ; FIXME: better description needed
            (starter-indent (min starter-column current-indent))
            (left-indent
             (if end
-                (+ current-indent haskell-indentation-starter-offset)
+                (+ starter-indent haskell-indentation-starter-offset)
               left-indent)))
       (funcall parser)
       (cond ((eq current-token 'end-tokens)
@@ -926,7 +924,9 @@ l = [  1
            (throw 'return nil))
           (separator-column ; on the beginning of the line
            (setq current-indent (current-column))
-           (setq starter-indent separator-column)))))
+           (setq starter-indent separator-column)
+           (setq left-indent
+            (+ starter-indent haskell-indentation-starter-offset))))))
 
 (defun haskell-indentation-implicit-layout-list (parser)
   "An implicit layout list, elements are parsed with PARSER.
@@ -944,7 +944,9 @@ layout starts."
                (haskell-indentation-read-next-token))
               ((eq current-token 'end-tokens)
                (when (or (haskell-indentation-expression-token-p following-token)
-                         (string= following-token ";"))
+                         (string= following-token ";")
+                         (and (equal layout-indent 0)
+                              (member following-token (mapcar #'car haskell-indentation-toplevel-list))))
                  (haskell-indentation-add-layout-indent))
                (throw 'return nil))
               (t (throw 'return nil))))))
@@ -1119,7 +1121,6 @@ line."
            (when (= (current-column) (haskell-indentation-current-indentation))
              ;; on a new line
              (setq current-indent (current-column))
-             (setq left-indent (current-column))
              (setq parse-line-number (+ parse-line-number 1)))
            (cond ((and implicit-layout-active
                        (> layout-indent (current-column)))
@@ -1131,7 +1132,7 @@ line."
 
 (defun haskell-indentation-peek-token ()
   "Return token starting at point."
-  (cond ((looking-at "\\(if\\|then\\|else\\|let\\|in\\|mdo\\|rec\\|do\\|proc\\|case\\|of\\|where\\|module\\|deriving\\|data\\|type\\|newtype\\|class\\|instance\\)\\([^[:alnum:]'_]\\|$\\)")
+  (cond ((looking-at "\\(if\\|then\\|else\\|let\\|in\\|mdo\\|rec\\|do\\|proc\\|case\\|of\\|where\\|module\\|deriving\\|import\\|data\\|type\\|newtype\\|class\\|instance\\)\\([^[:alnum:]'_]\\|$\\)")
          (match-string-no-properties 1))
         ((looking-at "[][(){}[,;]")
          (match-string-no-properties 0))
