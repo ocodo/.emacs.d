@@ -575,6 +575,11 @@ handler."
   (interactive)
   (ycmd--goto "GoToImplementation"))
 
+(defun ycmd-goto-include ()
+  "Go to the include of the symbol at the current position."
+  (interactive)
+  (ycmd--goto "GoToInclude"))
+
 (defun ycmd-goto-imprecise ()
   "Fast implementation of Go To at the cost of precision.
 Useful in case compile-time is considerable."
@@ -583,8 +588,7 @@ Useful in case compile-time is considerable."
 
 (defun ycmd--handle-goto-exception (results)
   "Handle a Go To exception in RESULTS."
-  (let ((msg (assoc-default 'message results nil "UNKNOWN")))
-    (warn (format "goto exception: %s" msg))))
+  (message "%s" (assoc-default 'message results nil "Unknown exception")))
 
 (defun ycmd--handle-goto-success (location)
   "Handle a successfull Go To response for LOCATION."
@@ -901,7 +905,7 @@ Handle configuration file according the value of
 
             ((or (eq ycmd-extra-conf-handler 'load)
                  (and (eq ycmd-extra-conf-handler 'ask)
-                      (y-or-n-p (format "Load YCMD extra conf %s?" conf-file))))
+                      (y-or-n-p (format "Load YCMD extra conf %s? " conf-file))))
              (ycmd--request "/load_extra_conf_file"
                             `((filepath . ,conf-file))))
 
@@ -1114,7 +1118,7 @@ the name of the newly created file."
               (incf cont)
               (when (< ycmd-startup-timeout cont) ; timeout after specified period
                 (set-window-buffer nil proc-buff)
-                (error "Server timeout.")
+                (error "Server timeout")
                 (ycmd--report-status 'errored))))))))))
 
 (defun ycmd--column-in-bytes ()
@@ -1336,10 +1340,11 @@ _LEN is ununsed."
     (define-key map "o" 'ycmd-open)
     (define-key map "c" 'ycmd-close)
     (define-key map "." 'ycmd-goto)
+    (define-key map "gi" 'ycmd-goto-include)
     (define-key map "gd" 'ycmd-goto-definition)
     (define-key map "gD" 'ycmd-goto-declaration)
-    (define-key map "gi" 'ycmd-goto-implementation)
-    (define-key map "gI" 'ycmd-goto-imprecise)
+    (define-key map "gm" 'ycmd-goto-implementation)
+    (define-key map "gp" 'ycmd-goto-imprecise)
     (define-key map "s" 'ycmd-toggle-force-semantic-completion)
     (define-key map "v" 'ycmd-show-debug-info)
     (define-key map "d" 'ycmd-show-documentation)
