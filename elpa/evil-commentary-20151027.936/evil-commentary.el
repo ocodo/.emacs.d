@@ -4,8 +4,8 @@
 
 ;; Author: Quang Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/evil-commentary
-;; Package-Version: 20151005.331
-;; Version: 1.0.2
+;; Package-Version: 20151027.936
+;; Version: 1.2.0
 ;; Keywords: evil comment commentary evil-commentary
 ;; Package-Requires: ((evil "1.0.0"))
 
@@ -51,7 +51,8 @@
   :prefix "evil-commentary-")
 
 (defcustom evil-commentary-comment-function-for-mode-alist
-  '((f90-mode . f90-comment-region)
+  '((org-mode . evil-commentary/org-comment-or-uncomment-region)
+    (f90-mode . f90-comment-region)
     (web-mode . web-mode-comment-or-uncomment-region))
   "Mode-specific comment function.
 
@@ -67,27 +68,11 @@ parameter."
   "Comment or uncomment region that {motion} moves over."
   :move-point nil
   (interactive "<R>")
-  ;; Special treatment for org-mode
-  (cond ((and (fboundp 'org-in-src-block-p)
-              (org-in-src-block-p))
-         (let* ((current-line (line-number-at-pos))
-                (top-line (save-excursion
-                            (move-to-window-line 0)
-                            (line-number-at-pos)))
-                (offset (- current-line top-line)))
-           (push-mark beg)
-           (goto-char end)
-           (setq mark-active t)
-           (org-babel-do-in-edit-buffer
-            (call-interactively 'evil-commentary))
-           (evil-scroll-line-to-top (1+ current-line))
-           (evil-scroll-line-up (1+ offset))))
-        (t
-         (let ((comment-function
-                (cdr (assoc major-mode
-                            evil-commentary-comment-function-for-mode-alist))))
-           (if comment-function (funcall comment-function beg end)
-             (comment-or-uncomment-region beg end))))))
+  (let ((comment-function
+         (cdr (assoc major-mode
+                     evil-commentary-comment-function-for-mode-alist))))
+    (if comment-function (funcall comment-function beg end)
+      (comment-or-uncomment-region beg end))))
 
 (evil-define-operator evil-commentary-line (beg end type)
   "Comment or uncomment [count] lines."
@@ -131,11 +116,38 @@ parameter."
             map))
 
 ;;;###autoload
-(define-obsolete-variable-alias 'evil-commentary-default-setup
-  'evil-commentary-mode "0.0.3")
+(defmacro evil-commentary/org-babel-do-in-edit-buffer (beg end &rest body)
+  "Do `org-babel-do-in-edit-buffer' and restore view.
+
+Return the same value as `org-babel-do-in-edit-buffer'. Save top
+line of current window and restore it if sucess."
+  (declare (indent defun))
+  `(when (fboundp 'org-babel-do-in-edit-buffer)
+     (let ((top-line (line-number-at-pos (window-start)))
+           (current-point (point))
+           found)
+       (push-mark ,beg)
+       (goto-char ,end)
+       (setq mark-active t)
+       (setq found (eval '(org-babel-do-in-edit-buffer
+                             ,@body)))
+       (pop-mark)
+       (if (not found)
+           (goto-char current-point)
+         (save-excursion
+           (scroll-up 1)              ; stupid fix
+           (goto-char (point-min))
+           (forward-line (1- top-line))
+           (recenter 0)))
+       found)))
+
 ;;;###autoload
-(define-obsolete-function-alias 'evil-commentary-default-setup
-  'evil-commentary-mode "0.0.3")
+(defun evil-commentary/org-comment-or-uncomment-region (beg end)
+  "Comment function for `org-mode'."
+  (interactive "r")
+  (unless (evil-commentary/org-babel-do-in-edit-buffer beg end
+            (call-interactively 'evil-commentary))
+    (comment-or-uncomment-region beg end)))
 
 (provide 'evil-commentary)
 

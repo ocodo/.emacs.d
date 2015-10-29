@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-commentary" "evil-commentary.el" (22045
-;;;;;;  48052 165140 0))
+;;;### (autoloads nil "evil-commentary" "evil-commentary.el" (22066
+;;;;;;  4223 153203 932000))
 ;;; Generated autoloads from evil-commentary.el
 
 (defvar evil-commentary-mode nil "\
@@ -18,9 +18,20 @@ Commentary mode.
 
 \(fn &optional ARG)" t nil)
 
-(define-obsolete-variable-alias 'evil-commentary-default-setup 'evil-commentary-mode "0.0.3")
+(autoload 'evil-commentary/org-babel-do-in-edit-buffer "evil-commentary" "\
+Do `org-babel-do-in-edit-buffer' and restore view.
 
-(define-obsolete-function-alias 'evil-commentary-default-setup 'evil-commentary-mode "0.0.3")
+Return the same value as `org-babel-do-in-edit-buffer'. Save top
+line of current window and restore it if sucess.
+
+\(fn BEG END &rest BODY)" nil t)
+
+(function-put 'evil-commentary/org-babel-do-in-edit-buffer 'lisp-indent-function 'defun)
+
+(autoload 'evil-commentary/org-comment-or-uncomment-region "evil-commentary" "\
+Comment function for `org-mode'.
+
+\(fn BEG END)" t nil)
 
 ;;;***
 
