@@ -3638,8 +3638,7 @@ Sexp is obtained by exiting list ARG times."
      (if (region-active-p)
          (progn (deactivate-mark) arg)
        (1- arg)))
-    (let ((avy--overlay-offset (if (eq lispy-avy-style-symbol 'at) 0 1))
-          (avy-keys lispy-avy-keys))
+    (let ((avy-keys lispy-avy-keys))
       (avy-with 'lispy-ace-subword
         (lispy--avy-do
          "[([{ -/]\\(?:\\sw\\|\\s_\\|\\s(\\|[\"'`#]\\)"
@@ -4143,38 +4142,45 @@ Second region and buffer are the current ones."
              (lispy-complain "can't descend further"))))))
 
 ;;* Locals: edebug
+(declare-function lispy--clojure-debug-quit "le-clojure")
 (defun lispy-edebug-stop ()
   "Stop edebugging, while saving current function arguments."
   (interactive)
-  (if (bound-and-true-p edebug-active)
-      (save-excursion
-        (lispy-left 99)
-        (if (looking-at
-             "(\\(?:cl-\\)?def\\(?:un\\|macro\\)")
-            (progn
-              (goto-char (match-end 0))
-              (search-forward "(")
-              (backward-char 1)
-              (forward-sexp 1)
-              (let ((sexps
-                     (mapcar
-                      (lambda (x!)
-                        (when (consp x!)
-                          (setq x! (car x!)))
-                        (cons x!
-                              (let ((expr x!))
-                                (edebug-eval expr))))
-                      (delq '&key (delq '&optional (delq '&rest (lispy--preceding-sexp))))))
-                    (wnd (current-window-configuration))
-                    (pt (point)))
-                (run-with-timer
-                 0 nil
-                 `(lambda ()
-                    (mapc (lambda (x!) (set (car x!) (cdr x!))) ',sexps)
-                    (set-window-configuration ,wnd)
-                    (goto-char ,pt)))
-                (top-level)))))
-    (self-insert-command 1)))
+  (cond ((memq major-mode lispy-elisp-modes)
+         (if (bound-and-true-p edebug-active)
+             (save-excursion
+               (lispy-left 99)
+               (if (looking-at
+                    "(\\(?:cl-\\)?def\\(?:un\\|macro\\)")
+                   (progn
+                     (goto-char (match-end 0))
+                     (search-forward "(")
+                     (backward-char 1)
+                     (forward-sexp 1)
+                     (let ((sexps
+                            (mapcar
+                             (lambda (x!)
+                               (when (consp x!)
+                                 (setq x! (car x!)))
+                               (cons x!
+                                     (let ((expr x!))
+                                       (edebug-eval expr))))
+                             (delq '&key
+                                   (delq '&optional
+                                         (delq '&rest
+                                               (lispy--preceding-sexp))))))
+                           (wnd (current-window-configuration))
+                           (pt (point)))
+                       (run-with-timer
+                        0 nil
+                        `(lambda ()
+                           (mapc (lambda (x!) (set (car x!) (cdr x!))) ',sexps)
+                           (set-window-configuration ,wnd)
+                           (goto-char ,pt)))
+                       (top-level)))))
+           (self-insert-command 1)))
+        ((eq major-mode 'clojure-mode)
+         (lispy--clojure-debug-quit))))
 
 (defun lispy-edebug (arg)
   "Start/stop edebug of current thing depending on ARG.
@@ -4286,20 +4292,32 @@ An equivalent of `cl-destructuring-bind'."
 
 (defvar lispy-mode-map-x
   (let ((map (make-sparse-keymap)))
-    (define-key map "d" 'lispy-to-defun)
-    (define-key map "l" 'lispy-to-lambda)
-    (define-key map "e" 'lispy-edebug)
-    (define-key map "m" 'lispy-cursor-ace)
-    (define-key map "i" 'lispy-to-ifs)
+    (define-key map "a" nil)
+    (define-key map "b" 'lispy-bind-variable)
     (define-key map "c" 'lispy-to-cond)
+    (define-key map "d" 'lispy-to-defun)
+    (define-key map "e" 'lispy-edebug)
     (define-key map "f" 'lispy-flatten)
+    (define-key map "g" nil)
+    (define-key map "h" 'lispy-describe)
+    (define-key map "i" 'lispy-to-ifs)
+    (define-key map "j" 'lispy-debug-step-in)
+    (define-key map "k" 'lispy-extract-block)
+    (define-key map "l" 'lispy-to-lambda)
+    (define-key map "m" 'lispy-cursor-ace)
+    (define-key map "n" nil)
+    (define-key map "o" nil)
+    (define-key map "p" nil)
+    (define-key map "q" nil)
     (define-key map "r" 'lispy-eval-and-replace)
     (define-key map "s" 'save-buffer)
-    (define-key map "j" 'lispy-debug-step-in)
-    (define-key map "h" 'lispy-describe)
+    (define-key map "t" nil)
     (define-key map "u" 'lispy-unbind-variable)
-    (define-key map "b" 'lispy-bind-variable)
     (define-key map "v" 'lispy-view-test)
+    (define-key map "w" nil)
+    (define-key map "x" nil)
+    (define-key map "y" nil)
+    (define-key map "z" nil)
     (define-key map "B" 'lispy-store-region-and-buffer)
     (define-key map "R" 'lispy-reverse)
     (define-key map (char-to-string help-char) 'lispy-describe-bindings-C-4)
@@ -5776,13 +5794,14 @@ Defaults to `error'."
 (defun lispy--space-unless (context)
   "Insert one space.
 Unless inside string or comment, or `looking-back' at CONTEXT."
-  (unless (or lispy-no-space
-              (bolp)
-              (and (window-minibuffer-p)
-                   (eq (point) (minibuffer-prompt-end)))
-              (lispy--in-string-or-comment-p)
-              (lispy-looking-back context))
-    (insert " ")))
+  (let ((inhibit-field-text-motion t))
+    (unless (or lispy-no-space
+                (bolp)
+                (and (window-minibuffer-p)
+                     (eq (point) (minibuffer-prompt-end)))
+                (lispy--in-string-or-comment-p)
+                (lispy-looking-back context))
+      (insert " "))))
 
 (defun lispy--reindent (&optional arg)
   "Reindent current sexp.  Up-list ARG times before that."
@@ -6467,6 +6486,12 @@ Return an appropriate `setq' expression when in `let', `dolist',
                   (progn
                     ,@(cdr re))
                 lispy--eval-cond-msg)))
+          ((looking-at "(pcase\\s-*")
+           (goto-char (match-end 0))
+           `(if ,(pcase--expand (lispy--read (lispy--string-dwim))
+                                `((,(car tsexp) t)))
+                "pcase: t"
+              "pcase: nil"))
           ((and (looking-at "(\\(?:cl-\\)?\\(?:defun\\|defmacro\\)")
                 (save-excursion
                   (lispy-flow 1)
