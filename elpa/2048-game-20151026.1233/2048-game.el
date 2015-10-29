@@ -4,7 +4,7 @@
 
 ;; Author: Zachary Kanfer <zkanfer@gmail.com>
 ;; Version: 2014.03.27
-;; Package-Version: 20150404.2113
+;; Package-Version: 20151026.1233
 ;; URL: https://bitbucket.org/zck/2048.el
 
 ;; This file is not part of GNU Emacs
@@ -61,6 +61,7 @@
 (defun 2048-game () "Start playing 2048."
   (interactive)
   (switch-to-buffer "2048")
+  (buffer-disable-undo "2048")
   (2048-mode)
   (2048-init))
 

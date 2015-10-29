@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "2048-game" "2048-game.el" (21795 63714 0 0))
+;;;### (autoloads nil "2048-game" "2048-game.el" (22066 4272 825229
+;;;;;;  95000))
 ;;; Generated autoloads from 2048-game.el
 
 (autoload '2048-game "2048-game" "\
