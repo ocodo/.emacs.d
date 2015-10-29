@@ -2468,7 +2468,7 @@ checks."
   (let* ((syntax-check flycheck-current-syntax-check)
          (checker (flycheck-syntax-check-checker syntax-check))
          (errors (flycheck-relevant-errors
-                  (flycheck-expand-error-file-names
+                  (flycheck-fill-and-expand-error-file-names
                    (flycheck-filter-errors
                     (flycheck-assert-error-list-p errors) checker)))))
     (unless (flycheck-disable-excessive-checker checker errors)
@@ -2956,11 +2956,20 @@ with `flycheck-process-error-functions'."
   (setq flycheck-current-errors nil)
   (flycheck-report-status 'not-checked))
 
-(defun flycheck-expand-error-file-names (errors)
-  "Expand all relative file names in ERRORS."
+(defun flycheck-fill-and-expand-error-file-names (errors)
+  "Fill and expand file names in ERRORS.
+
+Expand all file names of ERRORS against the `default-directory'
+of the current buffer.  If the file name of an error is nil fill
+in the result of function `buffer-file-name' in the current
+buffer.
+
+Return ERRORS, modified in-place."
   (mapc (lambda (err)
-          (-when-let (filename (flycheck-error-filename err))
-            (setf (flycheck-error-filename err) (expand-file-name filename))))
+          (setf (flycheck-error-filename err)
+                (-if-let (filename (flycheck-error-filename err))
+                    (expand-file-name filename)
+                  (buffer-file-name))))
         errors)
   errors)
 
@@ -3257,6 +3266,20 @@ Returns sanitized ERRORS."
           (setf (flycheck-error-id err) nil))
         (when (eq column 0)
           (setf (flycheck-error-column err) nil)))))
+  errors)
+
+(defun flycheck-remove-error-file-names (file-name errors)
+  "Remove matching FILE-NAME from ERRORS.
+
+Use as `:error-filter' for syntax checkers that output faulty
+filenames.  Flycheck will later fill in the buffer file name.
+
+Return ERRORS."
+  (mapc (lambda (err)
+          (when (and (flycheck-error-filename err)
+                     (string= (flycheck-error-filename err) file-name))
+            (setf (flycheck-error-filename err) nil)))
+        errors)
   errors)
 
 (defun flycheck-increment-error-columns (errors &optional offset)
@@ -4246,6 +4269,14 @@ of command checkers is `flycheck-sanitize-errors'.
      `flycheck-parse-with-patterns'.  In this case,
      `:error-patterns' is mandatory.
 
+`:standard-input t'
+     Whether to send the buffer contents on standard input.
+
+     If this property is given and has a non-nil value, send the
+     contents of the buffer on standard input.
+
+     Defaults to nil.
+
 Note that you may not give `:start', `:interrupt', and
 `:print-doc' for a command checker.  You can give a custom
 `:verify' function, though, whose results will be appended to the
@@ -4273,7 +4304,8 @@ default `:verify' function of command checkers."
         (patterns (plist-get properties :error-patterns))
         (parser (or (plist-get properties :error-parser)
                     #'flycheck-parse-with-patterns))
-        (predicate (plist-get properties :predicate)))
+        (predicate (plist-get properties :predicate))
+        (standard-input (plist-get properties :standard-input)))
 
     (unless command
       (error "Missing :command in syntax checker %s" symbol))
@@ -4312,7 +4344,8 @@ default `:verify' function of command checkers."
       (pcase-dolist (`(,prop . ,value)
                      `((command . ,command)
                        (error-parser . ,parser)
-                       (error-patterns . ,patterns)))
+                       (error-patterns . ,patterns)
+                       (standard-input . ,standard-input)))
         (setf (flycheck-checker-get symbol prop) value)))))
 
 (eval-and-compile
@@ -4570,6 +4603,12 @@ symbols in the command."
           ;; process itself, to get rid of the global state ASAP.
           (process-put process 'flycheck-temporaries flycheck-temporaries)
           (setq flycheck-temporaries nil)
+          ;; Send the buffer to the process on standard input, if enabled
+          (when (flycheck-checker-get checker 'standard-input)
+            (save-restriction
+              (widen)
+              (process-send-region process (point-min) (point-max))
+              (process-send-eof process)))
           ;; Return the process
           process)
       (error
@@ -4953,15 +4992,21 @@ shell execution."
   ;; Note: Do NOT use `combine-and-quote-strings' here.  Despite it's name it
   ;; does not properly quote shell arguments, and actually breaks for special
   ;; characters.  See https://github.com/flycheck/flycheck/pull/522
-  (mapconcat
-   #'shell-quote-argument
-   (cons (flycheck-checker-executable checker)
-         (apply #'append
-                (mapcar (lambda (arg)
-                          (if (memq arg '(source source-inplace source-original))
-                              (list (or (buffer-file-name) ""))
-                            (flycheck-substitute-argument arg checker)))
-                        (flycheck-checker-arguments checker)))) " "))
+  (let* ((args (apply #'append
+                      (mapcar (lambda (arg)
+                                (if (memq arg '(source source-inplace source-original))
+                                    (list (buffer-file-name))
+                                  (flycheck-substitute-argument arg checker)))
+                              (flycheck-checker-arguments checker))))
+         (command (mapconcat
+                   #'shell-quote-argument
+                   (cons (flycheck-checker-executable checker) args)
+                   " ")))
+    (if (flycheck-checker-get checker 'standard-input)
+        ;; If the syntax checker expects the source from standard input add an
+        ;; appropriate shell redirection
+        (concat command " < " (shell-quote-argument (buffer-file-name)))
+      command)))
 
 (defun flycheck-compile-name (_name)
   "Get a name for a Flycheck compilation buffer.
@@ -5269,7 +5314,8 @@ SYMBOL with `flycheck-def-executable-var'."
              `(:predicate #',predicate))
          :next-checkers ',(plist-get properties :next-checkers)
          ,@(when verify-fn
-             `(:verify #',verify-fn))))))
+             `(:verify #',verify-fn))
+         :standard-input ',(plist-get properties :standard-input)))))
 
 
 ;;; Built-in checkers
@@ -5530,16 +5576,18 @@ See URL `http://clang.llvm.org/'."
                   (pcase major-mode
                     (`c++-mode "c++")
                     (`c-mode "c")))
-            source)
+            ;; Read from standard input
+            "-")
+  :standard-input t
   :error-patterns
   ((error line-start
-          (message "In file included from") " " (file-name) ":" line ":"
-          line-end)
-   (info line-start (file-name) ":" line ":" column
+          (message "In file included from") " " (or "<stdin>" (file-name))
+          ":" line ":" line-end)
+   (info line-start (or "<stdin>" (file-name)) ":" line ":" column
          ": note: " (optional (message)) line-end)
-   (warning line-start (file-name) ":" line ":" column
+   (warning line-start (or "<stdin>" (file-name)) ":" line ":" column
             ": warning: " (optional (message)) line-end)
-   (error line-start (file-name) ":" line ":" column
+   (error line-start (or "<stdin>" (file-name)) ":" line ":" column
           ": " (or "fatal error" "error") ": " (optional (message)) line-end))
   :error-filter
   (lambda (errors)
@@ -6797,10 +6845,15 @@ See URL `http://jade-lang.com'."
 
 See URL `http://www.jshint.com'."
   :command ("jshint" "--checkstyle-reporter"
+            "--filename" source-original
             (config-file "--config" flycheck-jshintrc)
-            source)
+            "-")
+  :standard-input t
   :error-parser flycheck-parse-checkstyle
-  :error-filter flycheck-dequalify-error-ids
+  :error-filter
+  (lambda (errors)
+    (flycheck-remove-error-file-names
+     "stdin" (flycheck-dequalify-error-ids errors)))
   :modes (js-mode js2-mode js3-mode)
   :next-checkers ((warning . javascript-jscs)))
 
@@ -6830,10 +6883,8 @@ See URL `https://github.com/eslint/eslint'."
   :command ("eslint" "--format=checkstyle"
             (config-file "--config" flycheck-eslintrc)
             (option "--rulesdir" flycheck-eslint-rulesdir)
-            ;; We need to use source-inplace because eslint looks for
-            ;; configuration files in the directory of the file being checked.
-            ;; See https://github.com/flycheck/flycheck/issues/447
-            source-inplace)
+            "--stdin" "--stdin-filename" source-original)
+  :standard-input t
   :error-parser flycheck-parse-checkstyle
   :error-filter (lambda (errors)
                   (mapc (lambda (err)
@@ -6893,11 +6944,13 @@ error."
 See URL `http://www.jscs.info'."
   :command ("jscs" "--reporter=checkstyle"
             (config-file "--config" flycheck-jscsrc)
-            source)
+            "-")
+  :standard-input t
   :error-parser flycheck-parse-jscs
   :error-filter (lambda (errors)
                   (flycheck-remove-error-ids
-                   (flycheck-sanitize-errors errors)))
+                   (flycheck-sanitize-errors
+                    (flycheck-remove-error-file-names "input" errors))))
   :modes (js-mode js2-mode js3-mode))
 
 (flycheck-define-checker javascript-standard
@@ -6909,11 +6962,10 @@ to the former.  To use it with the latter, set
 
 See URL `https://github.com/feross/standard' and URL
 `https://github.com/Flet/semistandard'."
-  :command ("standard" source)
+  :command ("standard" "--stdin")
+  :standard-input t
   :error-patterns
-  ((error line-start
-          "  " (file-name) ":" line ":" column ":" (message)
-          line-end))
+  ((error line-start "  <text>:" line ":" column ":" (message) line-end))
   :modes (js-mode js2-mode js3-mode))
 
 (flycheck-define-checker json-jsonlint
@@ -7489,11 +7541,16 @@ Otherwise report style issues as well."
 (flycheck-define-checker ruby-rubocop
   "A Ruby syntax and style checker using the RuboCop tool.
 
+You need at least RuboCop 0.34 for this syntax checker.
+
 See URL `http://batsov.com/rubocop/'."
   :command ("rubocop" "--display-cop-names" "--format" "emacs"
             (config-file "--config" flycheck-rubocoprc)
             (option-flag "--lint" flycheck-rubocop-lint-only)
-            source)
+            ;; Rubocop takes the original file name as argument when reading
+            ;; from standard input
+            "--stdin" source-original)
+  :standard-input t
   :error-patterns
   ((info line-start (file-name) ":" line ":" column ": C: "
          (optional (id (one-or-more (not (any ":")))) ": ") (message) line-end)
@@ -7520,6 +7577,7 @@ ruby-lint 2.0.2 or newer is required.  See URL
   :command ("ruby-lint" "--presenter=syntastic"
             (config-file "--config" flycheck-rubylintrc)
             source)
+  ;; Ruby Lint can't read from standard input
   :error-patterns
   ((info line-start
          (file-name) ":I:" line ":" column ": " (message) line-end)
@@ -7541,16 +7599,14 @@ implementations.
 Please consider using `ruby-rubocop' or `ruby-rubylint' instead.
 
 See URL `https://www.ruby-lang.org/'."
-  :command ("ruby" "-w" "-c" source)
+  :command ("ruby" "-w" "-c")
+  :standard-input t
   :error-patterns
   ;; These patterns support output from JRuby, too, to deal with RVM or Rbenv
-  ((error line-start
-          "SyntaxError in " (file-name) ":" line ": " (message)
-          line-end)
-   (warning line-start
-            (file-name) ":" line ":" (optional column ":")
+  ((error line-start "SyntaxError in -:" line ": " (message) line-end)
+   (warning line-start "-:" line ":" (optional column ":")
             " warning: " (message) line-end)
-   (error line-start (file-name) ":" line ": " (message) line-end))
+   (error line-start "-:" line ": " (message) line-end))
   :modes (enh-ruby-mode ruby-mode)
   :next-checkers ((warning . ruby-rubylint)))
 
@@ -7563,13 +7619,12 @@ versions of JRuby.
 Please consider using `ruby-rubocop' or `ruby-rubylint' instead.
 
 See URL `http://jruby.org/'."
-  :command ("jruby" "-w" "-c" source)
+  :command ("jruby" "-w" "-c")
+  :standard-input t
   :error-patterns
-  ((error line-start
-          "SyntaxError in " (file-name) ":" line ": " (message)
-          line-end)
-   (warning line-start (file-name) ":" line " warning: " (message) line-end)
-   (error line-start (file-name) ":" line ": " (message) line-end))
+  ((error line-start "SyntaxError in -:" line ": " (message) line-end)
+   (warning line-start "-:" line " warning: " (message) line-end)
+   (error line-start  "-:" line ": " (message) line-end))
   :modes (enh-ruby-mode ruby-mode)
   :next-checkers ((warning . ruby-rubylint)))
 
@@ -7943,15 +7998,16 @@ See URL `http://slim-lang.com'."
   "A SQL syntax checker using the sqlint tool.
 
 See URL `https://github.com/purcell/sqlint'."
-  :command ("sqlint" source)
+  :command ("sqlint")
+  :standard-input t
   :error-patterns
-  ((warning line-start (file-name) ":" line ":" column ":WARNING "
+  ((warning line-start "stdin:" line ":" column ":WARNING "
             (message (one-or-more not-newline)
                      (zero-or-more "\n"
                                    (one-or-more "  ")
                                    (one-or-more not-newline)))
             line-end)
-   (error line-start (file-name) ":" line ":" column ":ERROR "
+   (error line-start "stdin:" line ":" column ":ERROR "
           (message (one-or-more not-newline)
                    (zero-or-more "\n"
                                  (one-or-more "  ")
