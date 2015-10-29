@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ruby-refactor" "ruby-refactor.el" (21998 34632
-;;;;;;  443401 0))
+;;;### (autoloads nil "ruby-refactor" "ruby-refactor.el" (22066 4099
+;;;;;;  221133 145000))
 ;;; Generated autoloads from ruby-refactor.el
 
 (autoload 'ruby-refactor-extract-to-method "ruby-refactor" "\

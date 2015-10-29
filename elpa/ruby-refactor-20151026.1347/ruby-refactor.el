@@ -4,7 +4,7 @@
 
 ;; Authors: Andrew J Vargo <ajvargo@gmail.com>, Jeff Morgan <jeff.morgan@leandog.com>
 ;; Keywords: refactor ruby
-;; Package-Version: 20150830.1632
+;; Package-Version: 20151026.1347
 ;; Version: 0.1
 ;; URL: https://github.com/ajvargo/ruby-refactor
 ;; Package-Requires: ((ruby-mode "1.2"))
@@ -241,7 +241,7 @@ This depends the value of `ruby-refactor-let-position'."
         (format "(%s)" param-list)
       (format " %s" param-list))))
 
-(defun ruby-refactor-assignement-error-message ()
+(defun ruby-refactor-assignment-error-message ()
   "Message user with error if the (first) line of a let extraction is missing."
   (message "First line needs to have an assigment"))
 
@@ -264,7 +264,7 @@ This depends the value of `ruby-refactor-let-position'."
           (beginning-of-line)
           (unless (looking-at "^[ \t]*$") (newline-and-indent))
           (delete-blank-lines))
-      (ruby-refactor-assignement-error-message))))
+      (ruby-refactor-assignment-error-message))))
 
 (defun ruby-refactor-extract-region-to-let (flip-location)
   "Extract current region to let."
@@ -295,7 +295,7 @@ This depends the value of `ruby-refactor-let-position'."
               (beginning-of-line)
               (unless (looking-at "^[ \t]*$") (newline-and-indent))
               (delete-blank-lines))
-          (ruby-refactor-assignement-error-message))))
+          (ruby-refactor-assignment-error-message))))
 
 (defun ruby-refactor-define-extracted-method (function-name argument-list function-guts)
   (concat "def " function-name
