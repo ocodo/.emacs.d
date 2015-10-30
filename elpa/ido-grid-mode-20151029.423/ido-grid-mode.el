@@ -5,7 +5,7 @@
 ;; Author: Tom Hinton
 ;; Maintainer: Tom Hinton <t@larkery.com>
 ;; Version: 1.0.1
-;; Package-Version: 20151027.617
+;; Package-Version: 20151029.423
 ;; Keywords: convenience
 ;; URL: https://github.com/larkery/ido-grid-mode.el
 ;; Package-Requires: ((emacs "24.4"))
@@ -233,14 +233,6 @@ around. Scrolling always happens at the top left or bottom right."
          (existing (gethash key ido-grid-mode-lengths-cache)))
     (or existing (puthash key (mapcar fn stuff)
                           ido-grid-mode-lengths-cache))))
-
-(defmacro ido-grid-mode-debug (_s)
-  ;; `(with-current-buffer
-  ;;      (get-buffer-create "ido-grid-debug")
-  ;;    (end-of-buffer)
-  ;;    (insert ,_s)
-  ;;    (insert "\n"))
-  )
 
 ;; Compute the number of columns to use. This consumes about half the runtime,
 ;; and it could be a pure function
@@ -655,54 +647,40 @@ Counts matches, and tells you how many you can see in the grid."
   "Move `ido-grid-mode-offset' by DR rows and DC cols."
   (let* ((nrows ido-grid-mode-rows)
          (ncols ido-grid-mode-columns)
+         (match-count (length ido-grid-mode-rotated-matches))
 
          (row   (if (ido-grid-mode-row-major)
                     (/ ido-grid-mode-offset ido-grid-mode-columns)
                   (% ido-grid-mode-offset ido-grid-mode-rows)))
          (col   (if (ido-grid-mode-row-major)
                     (% ido-grid-mode-offset ido-grid-mode-columns)
-                  (/ ido-grid-mode-offset ido-grid-mode-rows))))
+                  (/ ido-grid-mode-offset ido-grid-mode-rows)))
 
+         new-offset)
+
+    ;; move the intended amount
     (cl-incf row dr)
     (cl-incf col dc)
 
-    (unless (or (and (= col 0)
-                     (= row -1))
-                (and (= row nrows)
-                     (= (1+ col) ncols))
-                (and (not ido-grid-mode-scroll-wrap)
-                     (if (ido-grid-mode-row-major)
-                         (not (< -1 row nrows))
-                       (not (< -1 col ncols)))))
+    ;; convert back into an offset
+    (setq new-offset
+          (% (if (ido-grid-mode-row-major)
+                 (+ col (* row ncols))
+               (+ row (* col nrows)))
+             match-count))
 
-      (while (< row 0)
-        (cl-decf col)
-        (cl-incf row nrows))
-
-      (while (>= row nrows)
-        (cl-incf col)
-        (cl-decf row nrows))
-
-      (while (< col 0)
-        (cl-decf row)
-        (cl-incf col ncols))
-
-      (while (>= col ncols)
-        (cl-incf row)
-        (cl-decf col ncols)))
-
-    (cond ((or (< row 0) (< col 0))  ; this is the case where we went upwards or left from the top
-           (funcall ido-grid-mode-scroll-up))
-
-          ;; this is the case where we have scrolled down
-          ((or (= row nrows) (= col ncols))
-           (funcall ido-grid-mode-scroll-down))
-
-          (t
-           (setq ido-grid-mode-offset
-                 (if (ido-grid-mode-row-major)
-                     (+ col (* row ncols))
-                   (+ row (* col nrows))))))
+    (cond ((< new-offset 0)
+           (cl-incf new-offset match-count)
+           (setq ido-grid-mode-offset new-offset)
+           (when (< ido-grid-mode-count match-count)
+             (let ((target (nth new-offset ido-grid-mode-rotated-matches)))
+               (funcall ido-grid-mode-scroll-up)
+               (setq ido-grid-mode-offset (cl-position target ido-grid-mode-rotated-matches)))))
+          ((>= new-offset ido-grid-mode-count)
+           (let ((target (nth new-offset ido-grid-mode-rotated-matches)))
+             (funcall ido-grid-mode-scroll-down)
+             (setq ido-grid-mode-offset (cl-position target ido-grid-mode-rotated-matches))))
+          (t (setq ido-grid-mode-offset new-offset)))
     ))
 
 (defun ido-grid-mode-left ()
@@ -749,14 +727,12 @@ Counts matches, and tells you how many you can see in the grid."
 (defun ido-grid-mode-previous-page ()
   "Page up in the grid."
   (interactive)
-  (ido-grid-mode-previous-N ido-grid-mode-count)
-  (setq ido-grid-mode-offset (- ido-grid-mode-count 1)))
+  (ido-grid-mode-previous-N ido-grid-mode-count))
 
 (defun ido-grid-mode-next-page ()
   "Page down in the grid."
   (interactive)
-  (ido-grid-mode-next-N ido-grid-mode-count)
-  (setq ido-grid-mode-offset 0))
+  (ido-grid-mode-next-N ido-grid-mode-count))
 
 (defun ido-grid-mode-previous-row ()
   "Scroll one up stride in the grid, kind of.
@@ -811,7 +787,6 @@ It may not be possible to do this unless there is only 1 column."
 (defun ido-grid-mode-set-matches (o &rest rest)
   (let* ((did-something ido-rescan)
          (result (apply o rest)))
-
     (when (and did-something (not (ido-grid-mode-equal-but-rotated
                                    ido-matches
                                    ido-grid-mode-rotated-matches)))
