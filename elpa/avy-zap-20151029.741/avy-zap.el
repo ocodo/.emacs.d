@@ -4,7 +4,7 @@
 
 ;; Author: Junpeng Qiu <qjpchmail@gmail.com>
 ;; URL: https://github.com/cute-jumper/avy-zap
-;; Package-Version: 20150913.1903
+;; Package-Version: 20151029.741
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: extensions
 
@@ -182,8 +182,8 @@ Otherwise, don't rebind."
 
 ;;;###autoload
 (defun avy-zap-to-char-dwim (&optional prefix)
-  "With PREFIX, call `avy-zap-to-char'.
-Without PREFIX, call `zap-to-char'."
+  "Without PREFIX, call `avy-zap-to-char'.
+With PREFIX, call `zap-to-char'."
   (interactive "P")
   (if (or prefix defining-kbd-macro executing-kbd-macro)
       (progn (setq current-prefix-arg)
@@ -198,8 +198,8 @@ Without PREFIX, call `zap-to-char'."
 
 ;;;###autoload
 (defun avy-zap-up-to-char-dwim (&optional prefix)
-  "With PREFIX, call `avy-zap-up-to-char'.
-Without PREFIX, call `zap-up-to-char'."
+  "Without PREFIX, call `avy-zap-up-to-char'.
+With PREFIX, call `zap-up-to-char'."
   (interactive "P")
   (if (or prefix defining-kbd-macro executing-kbd-macro)
       (progn (setq current-prefix-arg)
