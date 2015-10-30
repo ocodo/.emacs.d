@@ -2,6 +2,7 @@
 ;;; commentary:
 ;;; code:
 
+(which-key-mode t)
 (global-set-key (kbd "C-x n g") 'which-key-mode)
 
 (provide 'init-which-key)
