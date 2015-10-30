@@ -7,7 +7,7 @@
 ;; Description: fuzzy matching with good sorting
 ;; Created: Wed Apr 17 01:01:41 2013 (+0800)
 ;; Version: 0.6
-;; Package-Version: 20151028.1546
+;; Package-Version: 20151029.749
 ;; Package-Requires: ((cl-lib "0.3"))
 ;; URL: https://github.com/lewang/flx
 
@@ -347,6 +347,10 @@ For other parameters, see `flx-score'"
          (query-length (length query))
          (full-match-boost (and (< 1 query-length)
                                 (< query-length 5)))
+
+         ;; Raise recursion limit
+         (max-lisp-eval-depth 5000)
+         (max-specpdl-size 10000)
 
          ;; Dynamic Programming table for memoizing flx-find-best-match
          (match-cache (make-hash-table :test 'eql :size 10))
