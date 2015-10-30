@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20151027.908
+;; Package-Version: 20151029.736
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -380,7 +380,9 @@ hg. Otherwise, the default-directory is returned."
              (if (or (= status 0) 
                      (and ahg-summary-remote
                           (re-search-backward "^update: " nil t)))
-                 (buffer-substring-no-properties (point-min) (1- (point-max)))
+                 (replace-regexp-in-string
+                  "^branch: default\n" ""
+                  (buffer-substring-no-properties (point-min) (1- (point-max))))
                ;; if hg summary is not available, fall back to hg identify
                (ahg-identify root)))))
       (when ahg-summary-git-svn-info
