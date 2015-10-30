@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20151028.1952
+;; Package-Version: 20151029.1810
 ;; Version: 0.7
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -245,6 +245,13 @@ prefixes in `which-key-paging-prefixes'"
   variable to t makes it so that when on the last page, pressing
   C-h calls the default function instead of cycling pages. If you
   want which-key to cycle, set this to nil."
+  :group 'which-key
+  :type 'boolean)
+
+(defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
+  "Allow popup to show for evil operators. The popup is normally
+  inhibited in the middle of commands, but setting this to
+  non-nil will override this behavior for evil operators."
   :group 'which-key
   :type 'boolean)
 
@@ -1365,9 +1372,12 @@ area."
          (next-page-n (format "pg %s" (1+ (mod (1+ page-n) n-pages))))
          (use-descbind (and which-key--on-last-page which-key-use-C-h-for-paging
                             which-key-prevent-C-h-from-cycling)))
-    (when (or (and (< 1 n-pages) which-key-use-C-h-for-paging)
-              (and (< 1 n-pages) paging-key-bound)
-              use-descbind)
+    (when (and (or (and (< 1 n-pages) which-key-use-C-h-for-paging)
+                   (and (< 1 n-pages) paging-key-bound)
+                   use-descbind)
+               (not (and which-key-allow-evil-operators
+                         (boundp 'evil-this-operator)
+                         evil-this-operator)))
       (propertize (format "[%s %s]" key
                           (if use-descbind "help" next-page-n))
                   'face 'which-key-note-face))))
@@ -1547,7 +1557,8 @@ Finally, show the buffer."
                (not which-key-inhibit)
                ;; Do not display the popup if a command is currently being
                ;; executed
-               (null this-command))
+               (or (and which-key-allow-evil-operators evil-this-operator)
+                   (null this-command)))
       (which-key--create-buffer-and-show prefix-keys))))
 
 ;; Timers
