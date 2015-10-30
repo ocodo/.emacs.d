@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "web-mode" "web-mode.el" (22066 4078 373119
-;;;;;;  964000))
+;;;### (autoloads nil "web-mode" "web-mode.el" (22067 3454 171645
+;;;;;;  340000))
 ;;; Generated autoloads from web-mode.el
 
 (autoload 'web-mode "web-mode" "\
