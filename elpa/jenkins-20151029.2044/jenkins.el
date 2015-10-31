@@ -4,7 +4,7 @@
 
 ;; Author: Rustem Muslimov <r.muslimov@gmail.com>
 ;; Keywords: jenkins, convenience
-;; Package-Version: 20151022.1125
+;; Package-Version: 20151029.2044
 ;; Package-Requires: ((dash "2.12") (emacs "24.3") (json "1.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -26,14 +26,14 @@
 ;; "jenkins" options, or just directly define variables as shown below:
 ;;
 ;; (setq jenkins-api-token "<api token can be found on user's configure page>")
-;; (setq jenkins-hostname "<jenkins url>")
+;; (setq jenkins-url "<jenkins url>")
 ;; (setq jenkins-username "<your user name>")
 ;; (setq jenkins-viewname "<viewname>")
 
 ;;; Code:
 
-(require 'dash)
 (require 'cl-lib)
+(require 'dash)
 (require 'json)
 
 (defconst jenkins-buffer-name
@@ -74,8 +74,13 @@
   :type 'string
   :group 'jenkins)
 
+(defcustom jenkins-url nil
+  "Jenkins URL. Example http://jenkins.company.com:80/ "
+  :type 'string
+  :group 'jenkins)
+
 (defcustom jenkins-hostname nil
-  "Jenkins URL."
+  "DEPRECATED. Please use jenkins-url instead."
   :type 'string
   :group 'jenkins)
 
@@ -88,6 +93,10 @@
   "View name."
   :type 'string
   :group 'jenkins)
+
+(defun get-jenkins-url ()
+  "This function is for backward compatibility."
+  (or jenkins-url jenkins-hostname))
 
 
 (defvar *jenkins-jobs-list*
@@ -118,7 +127,7 @@
            "lastBuild[result,executor[progress]],"
            "lastCompletedBuild[result]]"
            )
-          jenkins-hostname jenkins-viewname))
+          (get-jenkins-url) jenkins-viewname))
 
 (defun jenkins-job-url (jobname)
   "JOBNAME url in jenkins."
@@ -127,12 +136,12 @@
            "api/json?depth=1&tree=builds"
            "[id,timestamp,result,url,building,"
            "culprits[fullName]]")
-          jenkins-hostname jobname))
+          (get-jenkins-url) jobname))
 
 (defun jenkins--setup-variables ()
   "Ask from user required variables if they not defined yet."
-  (unless jenkins-hostname
-    (setq jenkins-hostname (read-from-minibuffer "Jenkins hostname: ")))
+  (unless (or jenkins-hostname jenkins-url)
+    (setq jenkins-url (read-from-minibuffer "Jenkins URL: ")))
   (unless jenkins-username
     (setq jenkins-username (read-from-minibuffer "Jenkins username: ")))
   (unless jenkins-api-token
@@ -298,12 +307,12 @@
 (defun jenkins-visit-jenkins-web-page ()
   "Open main jenkins web page using predefined variables."
   (interactive)
-  (browse-url jenkins-hostname))
+  (browse-url (get-jenkins-url)))
 
 (defun jenkins-visit-job (jobname)
   "Open job's webpage using JOBNAME."
   (interactive)
-  (browse-url (format "%s/job/%s/" jenkins-hostname jobname)))
+  (browse-url (format "%s/job/%s/" (get-jenkins-url) jobname)))
 
 (defun jenkins--visit-job-from-main-screen ()
   "Open browser for current job."
@@ -364,7 +373,7 @@
   "Call jenkins build JOBNAME function."
   (let ((url-request-extra-headers (jenkins--get-auth-headers))
         (url-request-method "POST")
-        (build-url (format "%sjob/%s/build" jenkins-hostname jobname)))
+        (build-url (format "%sjob/%s/build" (get-jenkins-url) jobname)))
     (when (y-or-n-p (format "Ready to start %s?" jobname))
       (with-current-buffer (url-retrieve-synchronously build-url)
         (message (format "Building %s job started!" jobname))))))
