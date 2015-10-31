@@ -4,8 +4,8 @@
 
 ;; Author: Alex Dunn <dunn.alex@gmail.com>
 ;; URL: https://github.com/dunn/homebrew-mode
-;; Package-Version: 20150910.2031
-;; Version: 1.3.1
+;; Package-Version: 20151030.651
+;; Version: 1.3.2
 ;; Package-Requires: ((emacs "24.4") (inf-ruby "2.4.0") (dash "1.2.0"))
 ;; Keywords: homebrew brew ruby
 ;; Prefix: homebrew
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; # hombrew-mode
+;; # homebrew-mode
 
 ;; Emacs minor mode for editing [Homebrew](http://brew.sh) formulae.
 
@@ -100,7 +100,7 @@
 
 ;; Version string
 
-(defconst homebrew-mode-version "1.3.1")
+(defconst homebrew-mode-version "1.3.2")
 
 ;; Custom variables
 
@@ -190,7 +190,7 @@ Pop to the process buffer when it fails.
 Ignore the CHANGE of state argument passed by `set-process-sentinel'."
   (when (eq 'exit (process-status process))
     (let ( (exit-code (process-exit-status process))
-           (proc-name (homebrew--get-process-name process)))
+           (proc-name (process-name process)))
       (if (= 0 exit-code)
         (message "%s succeeded" proc-name)
         (progn
@@ -208,7 +208,7 @@ Unpack and enter the source dir.
 Ignore the CHANGE of state argument passed by `set-process-sentinel'."
   (when (eq 'exit (process-status process))
     (let* ( (exit-code (process-exit-status process))
-            (proc-name (homebrew--get-process-name process))
+            (proc-name (process-name process))
             ;; is there no replace-in-string?
             (unpack-cmd (replace-regexp-in-string "fetch" "unpack" proc-name)))
       (if (= 0 exit-code)
@@ -235,21 +235,6 @@ Ignore the CHANGE of state argument passed by `set-process-sentinel'."
           (message "%s failed with %d" proc-name exit-code)
           (pop-to-buffer (concat "*" proc-name "*")))))))
 
-(defun homebrew--start-process (command &rest args)
-  "Start an instance of `COMMAND` with the specified ARGS.
-
-For `brew` at least, the primary subcommand (e.g., 'install')
-must be the first element of ARGS.
-
-Return the process."
-  (let ((command-string (concat command " " (nth 0 args) " " (nth 1 args))))
-    (apply 'start-process
-      ;; Process name:
-      command-string
-      ;; Buffer name:
-      (concat "*" command-string "*")
-      command (-flatten (cons args homebrew-default-args)))))
-
 (defun homebrew--formula-file-p (buffer-or-string)
   "Return true if BUFFER-OR-STRING is:
 
@@ -268,26 +253,37 @@ Otherwise return nil."
         (if (string-match elem buffer-or-string)
           (setq match t))))))
 
-(defun homebrew--formula-from-file (string)
-  "Return the name of the formula located at the path specified by STRING.
-Return nil if there definitely isn't one."
-  (let ((f (and (homebrew--formula-file-p string) (file-exists-p string))))
-    ;; f will be nil if STRING isn't a valid pathname
-    (if f
-      (progn
-        (string-match ".*\/\\(.*\\)\\.rb" string)
-        (setq f (match-string 1 string))))
-    f))
-
-;; TODO: lol
-(defun homebrew--get-process-name (process)
-  "Return a simplified version of a PROCESS name."
-  (mapconcat 'identity (-take 3 (split-string (process-name process))) " "))
-
 ;; TODO: why
 (defun homebrew--process-args (args)
   "Make ARGS suitable for passing to `start-process'."
   (split-string (mapconcat 'identity args " ")))
+
+(defun homebrew--short-command (process)
+  "Return a simplified version of a PROCESS name."
+  ;; get the name of the formula
+  ;;
+  ;; FIXME: allow the formula to appear in other positions in the argument
+  ;; list
+  (let ((process (-flatten process)))
+    (string-match ".*\/\\(.*\\)\\.rb" (nth 1 process))
+    (let* ((formula (match-string 1 (nth 1 process)))
+            (command-string (concat "brew " (nth 0 process) " " formula)))
+      command-string)))
+
+(defun homebrew--start-process (&rest args)
+  "Start an instance of `brew` with the specified ARGS.
+
+The primary subcommand (e.g., 'install') must be the first
+element of ARGS.
+
+Return the process."
+  (let ((command-string (homebrew--short-command args)))
+    (apply 'start-process
+      ;; Process name:
+      command-string
+      ;; Buffer name:
+      (concat "*" command-string "*")
+      homebrew-executable (-flatten (cons args homebrew-default-args)))))
 
 ;; User functions
 
@@ -330,77 +326,63 @@ One prefix argument makes them build-time dependencies.  Two makes them run-time
 (defun homebrew-brew-audit (formula)
   "Run `brew audit --strict --online` on FORMULA.
 Pop the process buffer on failure."
-  (interactive (list (homebrew--formula-from-file buffer-file-name)))
+  (interactive (list buffer-file-name))
   (message "Auditing %s ..." formula)
   (set-process-sentinel
-    (homebrew--start-process homebrew-executable "audit" formula "--strict" "--online")
+    (homebrew--start-process "audit" formula "--strict" "--online")
     'homebrew--async-alert))
 
 (defun homebrew-brew-fetch (formula &rest args)
   "Download FORMULA, using ARGS, to the Homebrew cache, and alert when done."
-  (interactive (list (homebrew--formula-from-file buffer-file-name)
+  (interactive (list buffer-file-name
                  (read-string "Arguments (default --stable) " nil nil "--stable")))
   (message "Downloading %s ..." formula)
   (set-process-sentinel
-    (homebrew--start-process
-      homebrew-executable
-      "fetch"
-      formula
-      (homebrew--process-args args))
+    (homebrew--start-process "fetch" formula (homebrew--process-args args))
     'homebrew--async-alert))
 
 (defun homebrew-brew-install (formula &rest args)
   "Start `brew install FORMULA ARGS` in a separate buffer and open a window to that buffer."
-  (interactive (list (homebrew--formula-from-file buffer-file-name)
+  (interactive (list buffer-file-name
                  (read-string "Arguments (default --stable) " nil nil "--stable")))
   (set-process-sentinel
-    (homebrew--start-process homebrew-executable
-      "install"
-      formula
-      (homebrew--process-args args))
+    (homebrew--start-process "install" formula (homebrew--process-args args))
     'homebrew--async-alert)
   ;; This is instead of `pop-to-buffer' since we don't want the install buffer activated
   (let ((install-window (if (= 1 (length (window-list)))
                             (split-window-sensibly)
                           (next-window))))
     (with-selected-window install-window
-      (switch-to-buffer (concat "*" homebrew-executable " install " formula"*"))
+      (string-match ".*\/\\(.*\\)\\.rb" formula)
+      (switch-to-buffer (concat "*brew install " (match-string 1 formula) "*"))
       (goto-char (point-max)))))
 
 (defun homebrew-brew-test (formula &rest args)
   "Test FORMULA  with ARGS and alert when done."
-  (interactive (list (homebrew--formula-from-file buffer-file-name)
+  (interactive (list buffer-file-name
                  (read-string "Arguments (default --stable) " nil nil "--stable")))
 
   (message "Testing %s ..." formula)
   (set-process-sentinel
-    (homebrew--start-process
-      homebrew-executable
-      "test"
-      formula
-      (homebrew--process-args args))
+    (homebrew--start-process "test" formula (homebrew--process-args args))
     'homebrew--async-alert))
 
 (defun homebrew-brew-uninstall (formula)
   "Uninstall FORMULA, and alert when done."
-  (interactive (list (homebrew--formula-from-file buffer-file-name)))
+  (interactive (list buffer-file-name))
   (message "Uninstalling %s ..." formula)
   (set-process-sentinel
-    (homebrew--start-process homebrew-executable "uninstall" formula)
+    (homebrew--start-process "uninstall" formula)
     'homebrew--async-alert))
 
 (defun homebrew-brew-unpack (formula &rest args)
   "Download FORMULA with ARGS to the Homebrew cache, then unpack and open in a new window."
-  (interactive (list (homebrew--formula-from-file buffer-file-name)
+  (interactive (list buffer-file-name
                  (read-string "Arguments (default --stable) " nil nil "--stable")))
 
   (message "Unpacking %s ..." formula)
   (set-process-sentinel
-    (homebrew--start-process
-      homebrew-executable
-      "fetch"
-      formula
-      (homebrew--process-args args))
+    (homebrew--start-process "fetch" formula (homebrew--process-args args))
     'homebrew--async-unpack-and-jump))
 
 (defun homebrew-poet-insert (packages)
