@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20150914.341
+;; Package-Version: 20151030.206
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -605,7 +605,7 @@ The bound variable is \"filename\"."
              (s-blank? (buffer-string))
              (projectile-rails-expand-corresponding-snippet))))
 
-(defun projectile-rails--expand-snippet-for-module (last-part)
+(defun projectile-rails--snippet-for-module (last-part)
   (let ((parts (projectile-rails-classify (match-string 1 name))))
     (format
      (concat
@@ -615,29 +615,38 @@ The bound variable is \"filename\"."
      (-last-item parts)))
   )
 
+(defun projectile-rails--expand-snippet (snippet)
+  (yas-minor-mode-on)
+  (yas-expand-snippet snippet))
+
 (defun projectile-rails-expand-corresponding-snippet ()
   (let ((name (buffer-file-name)))
-    (yas-expand-snippet
-     (cond ((string-match "app/[^/]+/concerns/\\(.+\\)\\.rb$" name)
+    (cond ((string-match "app/[^/]+/concerns/\\(.+\\)\\.rb$" name)
+           (projectile-rails--expand-snippet
             (format
              "module %s\n  extend ActiveSupport::Concern\n$1\nend"
-             (s-join "::" (projectile-rails-classify (match-string 1 name)))))
-           ((string-match "app/controllers/\\(.+\\)\\.rb$" name)
+             (s-join "::" (projectile-rails-classify (match-string 1 name))))))
+          ((string-match "app/controllers/\\(.+\\)\\.rb$" name)
+           (projectile-rails--expand-snippet
             (format
              "class %s < ${1:ApplicationController}\n$2\nend"
-             (s-join "::" (projectile-rails-classify (match-string 1 name)))))
-           ((string-match "spec/[^/]+/\\(.+\\)_spec\\.rb$" name)
+             (s-join "::" (projectile-rails-classify (match-string 1 name))))))
+          ((string-match "spec/[^/]+/\\(.+\\)_spec\\.rb$" name)
+           (projectile-rails--expand-snippet
             (format
              "require \"spec_helper\"\n\ndescribe %s do\n$1\nend"
-             (s-join "::" (projectile-rails-classify (match-string 1 name)))))
-           ((string-match "app/models/\\(.+\\)\\.rb$" name)
+             (s-join "::" (projectile-rails-classify (match-string 1 name))))))
+          ((string-match "app/models/\\(.+\\)\\.rb$" name)
+           (projectile-rails--expand-snippet
             (format
              "class %s < ${1:ActiveRecord::Base}\n$2\nend"
-             (s-join "::" (projectile-rails-classify (match-string 1 name)))))
-           ((string-match "lib/\\(.+\\)\\.rb$" name)
-            (projectile-rails--expand-snippet-for-module "${1:module} %s\n$2\nend"))
-           ((string-match "app/\\(?:[^/]+\\)/\\(.+\\)\\.rb$" name)
-            (projectile-rails--expand-snippet-for-module "${1:class} %s\n$2\nend"))))))
+             (s-join "::" (projectile-rails-classify (match-string 1 name))))))
+          ((string-match "lib/\\(.+\\)\\.rb$" name)
+           (projectile-rails--expand-snippet
+            (projectile-rails--snippet-for-module "${1:module} %s\n$2\nend")))
+          ((string-match "app/\\(?:[^/]+\\)/\\(.+\\)\\.rb$" name)
+           (projectile-rails--expand-snippet
+            (projectile-rails--snippet-for-module "${1:class} %s\n$2\nend"))))))
 
 (defun projectile-rails-classify (name)
   "Accepts a filepath, splits it by '/' character and classifieses each of the element"
