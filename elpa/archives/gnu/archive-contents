@@ -86,9 +86,9 @@
        ((:keywords "point" "location")
 	(:url . "https://github.com/abo-abo/avy"))])
  (beacon .
-	 [(0 3)
+	 [(0 5 1)
 	  ((seq
-	    (1 9)))
+	    (1 11)))
 	  "Highlight the cursor whenever the window scrolls" single
 	  ((:url . "https://github.com/Malabarba/beacon")
 	   (:keywords "convenience"))])
@@ -210,7 +210,7 @@
 	     ((:url . "http://www.dr-qubit.org/emacs.php")
 	      (:keywords "extensions" "matching" "data structures trie" "tree" "dictionary" "completion" "regexp"))])
  (diff-hl .
-	  [(1 8 0)
+	  [(1 8 1)
 	   ((cl-lib
 	     (0 2)))
 	   "Highlight uncommitted changes" tar
@@ -615,7 +615,7 @@
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
  (stream .
-	 [(2 0 1)
+	 [(2 0 2)
 	  ((emacs
 	    (25)))
 	  "Implementation of streams" single
