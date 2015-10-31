@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.6
-;; Package-Version: 20151028.1241
+;; Package-Version: 20151030.1638
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -240,8 +240,7 @@ update `transmission-session-id' and signal the error."
       (mapc (lambda (elt)
               (insert (format "%s: %s\r\n" (car elt) (cdr elt))))
             headers)
-      (insert "\r\n")
-      (insert content)
+      (insert "\r\n" content)
       (process-send-string process (buffer-string)))))
 
 (defun transmission-wait (process)
