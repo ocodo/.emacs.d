@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/zone-nyan
-;; Package-Version: 20151029.201
+;; Package-Version: 20151030.1510
 ;; Version: 0.0.1
 ;; Package-Requires: ((esxml "0.3.1"))
 ;; Keywords: zone
@@ -598,7 +598,7 @@ If FLIP is non-nil, the rainbow will be flipped horizontally."
       (erase-buffer)
       (insert (propertize " " 'display
                           (create-image (zone-nyan-image time) 'svg t)))
-      (message "You've nyaned for %s seconds" (/ time 10.0))
+      (message "You've nyaned for %.1f seconds" (* time zone-nyan-interval))
       (setq time (1+ time))
       (sit-for zone-nyan-interval))))
 

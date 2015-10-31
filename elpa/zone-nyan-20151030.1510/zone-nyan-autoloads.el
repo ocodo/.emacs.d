@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "zone-nyan" "zone-nyan.el" (22066 4059 221107
-;;;;;;  497000))
+;;;### (autoloads nil "zone-nyan" "zone-nyan.el" (22068 38754 114206
+;;;;;;  202000))
 ;;; Generated autoloads from zone-nyan.el
 
 (autoload 'zone-nyan "zone-nyan" "\
