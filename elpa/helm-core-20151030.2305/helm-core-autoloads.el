@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm" "helm.el" (22066 4162 761170 969000))
+;;;### (autoloads nil "helm" "helm.el" (22068 38812 542128 432000))
 ;;; Generated autoloads from helm.el
 
 (autoload 'helm-define-multi-key "helm" "\
@@ -34,7 +34,7 @@ See `helm-define-multi-key'.
 
 \(fn NAME DOCSTRING FUNS &optional DELAY)" nil t)
 
-(function-put 'helm-multi-key-defun 'lisp-indent-function '2)
+(put 'helm-multi-key-defun 'lisp-indent-function '2)
 
 (autoload 'helm-define-key-with-subkeys "helm" "\
 Allow defining in MAP a KEY and SUBKEY to COMMAND.
@@ -70,7 +70,7 @@ so don't use strings, vectors or whatever to define them.
 
 \(fn MAP KEY SUBKEY COMMAND &optional OTHER-SUBKEYS MENU EXIT-FN)" nil nil)
 
-(function-put 'helm-define-key-with-subkeys 'lisp-indent-function '1)
+(put 'helm-define-key-with-subkeys 'lisp-indent-function '1)
 
 (autoload 'helm-debug-open-last-log "helm" "\
 Open helm log file of last helm session.
@@ -190,7 +190,7 @@ Enable/disable helm debug from outside of helm session.
 ;;;***
 
 ;;;### (autoloads nil nil ("helm-core-pkg.el" "helm-lib.el" "helm-multi-match.el"
-;;;;;;  "helm-source.el") (22066 4162 773170 976000))
+;;;;;;  "helm-source.el") (22068 38812 563368 490000))
 
 ;;;***
 

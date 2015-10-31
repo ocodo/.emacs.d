@@ -3037,8 +3037,10 @@ It is meant to use with `filter-one-by-one' slot."
       (if (re-search-forward regex nil t)
           (add-text-properties
            (match-beginning 0) (match-end 0) '(face helm-match))
-          (cl-loop with patterns = (if (string-match-p " " helm-pattern)
-                                       (split-string helm-pattern)
+          (cl-loop with multi-match
+                   with patterns = (if (string-match-p " " helm-pattern)
+                                       (prog1 (split-string helm-pattern)
+                                         (setq multi-match t))
                                        (split-string helm-pattern "" t))
                    for p in patterns
                    for re = (or (and helm-migemo-mode
@@ -3049,7 +3051,8 @@ It is meant to use with `filter-one-by-one' slot."
                    (when (re-search-forward re nil t)
                      (add-text-properties
                       (match-beginning 0) (match-end 0)
-                      '(face helm-match)))))
+                      '(face helm-match)))
+                   (when multi-match (goto-char (point-min)))))
       (setq display (buffer-string)))
     (if real (cons display real) display)))
 
@@ -5327,9 +5330,9 @@ is what is used to perform actions."
    (lambda (sel)
      (kill-new sel)
      ;; Return nil to force `helm-mode--keyboard-quit'
-     ;; in `helm-comp-read' otherwise the value "Killed: foo"
+     ;; in `helm-comp-read' otherwise the value "Saved to kill-ring: foo"
      ;; is used as exit value for `helm-comp-read'.
-     (prog1 nil (message "Killed: %s" sel) (sit-for 1)))
+     (prog1 nil (message "Saved to kill-ring: %s" sel) (sit-for 1)))
    (helm-get-selection nil (not arg))))
 
 (defun helm-copy-to-buffer ()
