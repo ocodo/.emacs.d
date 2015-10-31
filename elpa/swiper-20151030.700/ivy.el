@@ -693,16 +693,26 @@ Call the permanent action if possible."
 (defun ivy--cd-maybe ()
   "Check if the current input points to a different directory.
 If so, move to that directory, while keeping only the file name."
+  (require 'ffap)
   (when ivy--directory
-    (let* ((input (expand-file-name (ivy--input)))
-           (file (file-name-nondirectory input))
-           (dir (expand-file-name (file-name-directory input))))
-      (if (string= dir ivy--directory)
+    (let ((input (ivy--input))
+          url)
+      (if (setq url (ffap-url-p input))
           (progn
-            (delete-minibuffer-contents)
-            (insert file))
-        (ivy--cd dir)
-        (insert file)))))
+            (ivy-set-action
+             (lambda (_)
+               (funcall ffap-url-fetcher url)))
+            (setq ivy-exit 'done)
+            (exit-minibuffer))
+        (setq input (expand-file-name input))
+        (let ((file (file-name-nondirectory input))
+              (dir (expand-file-name (file-name-directory input))))
+          (if (string= dir ivy--directory)
+              (progn
+                (delete-minibuffer-contents)
+                (insert file))
+            (ivy--cd dir)
+            (insert file)))))))
 
 (defun ivy--maybe-scroll-history ()
   "If the selected history element has an index, scroll there."
@@ -1135,7 +1145,10 @@ This is useful for recursive `ivy-read'."
       (setq ivy--old-cands nil)
       (setq ivy--all-candidates coll))
     (setq ivy-exit nil)
-    (setq ivy--default (or (thing-at-point 'symbol) ""))
+    (setq ivy--default (or
+                        (thing-at-point 'url)
+                        (thing-at-point 'symbol)
+                        ""))
     (setq ivy--prompt
           (cond ((string-match "%.*d" prompt)
                  prompt)
@@ -1662,25 +1675,26 @@ CANDIDATES are assumed to be static."
          (func (or (and caller (cdr (assoc caller ivy-index-functions-alist)))
                    (cdr (assoc t ivy-index-functions-alist))
                    #'ivy-recompute-index-zero)))
-    (setq ivy--index
-          (or
-           (cl-position (if (and (> (length re-str) 0)
-                                 (eq ?^ (aref re-str 0)))
-                            (substring re-str 1)
-                          re-str) cands
-                          :test #'equal)
-           (and ivy--directory
-                (cl-position
-                 (concat re-str "/") cands
-                 :test #'equal))
-           (and (not (string= name ""))
-                (not (and (require 'flx nil 'noerror)
-                          (eq ivy--regex-function 'ivy--regex-fuzzy)
-                          (< (length cands) 200)))
+    (unless (eq this-command 'ivy-resume)
+      (setq ivy--index
+            (or
+             (cl-position (if (and (> (length re-str) 0)
+                                   (eq ?^ (aref re-str 0)))
+                              (substring re-str 1)
+                            re-str) cands
+                            :test #'equal)
+             (and ivy--directory
+                  (cl-position
+                   (concat re-str "/") cands
+                   :test #'equal))
+             (and (not (string= name ""))
+                  (not (and (require 'flx nil 'noerror)
+                            (eq ivy--regex-function 'ivy--regex-fuzzy)
+                            (< (length cands) 200)))
 
-                (cl-position (nth ivy--index ivy--old-cands)
-                             cands))
-           (funcall func re-str cands)))
+                  (cl-position (nth ivy--index ivy--old-cands)
+                               cands))
+             (funcall func re-str cands))))
     (when (and (or (string= name "")
                    (string= name "^"))
                (not (equal ivy--old-re "")))
