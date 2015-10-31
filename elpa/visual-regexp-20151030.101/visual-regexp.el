@@ -4,7 +4,7 @@
 
 ;; Author: Marko Bencun <mbencun@gmail.com>
 ;; URL: https://github.com/benma/visual-regexp.el/
-;; Package-Version: 20150329.954
+;; Package-Version: 20151030.101
 ;; Version: 0.8
 ;; Package-Requires: ((cl-lib "0.2"))
 ;; Keywords: regexp, replace, visual, feedback
@@ -57,7 +57,7 @@
 
 ;;; Installation
 
-;; If you are using Emacs 24, you can get visual-regexp from [melpa](http://melpa.milkbox.net/) with the package manager.
+;; If you are using Emacs 24, you can get visual-regexp from [melpa](https://melpa.org/) with the package manager.
 ;; Add the following code to your init file. Of course you can select your own key bindings.
 ;; ----------------------------------------------------------
 ;; (add-to-list 'load-path "folder-in-which-visual-regexp-files-are-in/") ;; if the files are not already in the load path
