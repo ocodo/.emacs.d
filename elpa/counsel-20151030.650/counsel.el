@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20151024.1010
+;; Package-Version: 20151030.650
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -176,10 +176,14 @@
     (if full-name
         (find-library full-name)
       (let ((sym (read x)))
-        (cond ((boundp sym)
+        (cond ((and (eq (ivy-state-caller ivy-last)
+                        'counsel-describe-variable)
+                    (boundp sym))
                (find-variable sym))
               ((fboundp sym)
                (find-function sym))
+              ((boundp sym)
+               (find-variable sym))
               ((or (featurep sym)
                    (locate-library
                     (prin1-to-string sym)))
@@ -225,7 +229,8 @@
      :sort t
      :action (lambda (x)
                (describe-variable
-                (intern x))))))
+                (intern x)))
+     :caller 'counsel-describe-variable)))
 
 (ivy-set-actions
  'counsel-describe-variable
@@ -256,7 +261,8 @@
               :sort t
               :action (lambda (x)
                         (describe-function
-                         (intern x))))))
+                         (intern x)))
+              :caller 'counsel-describe-function)))
 
 (defvar info-lookup-mode)
 (declare-function info-lookup->completions "info-look")
