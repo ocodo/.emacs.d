@@ -21,8 +21,8 @@
 
 (require 'cl-lib)
 (require 'color)
+(require 'eieio)
 
-(require 'memoize)
 (require 's)
 (require 'seq)
 
@@ -40,14 +40,6 @@
   "If non-nil, use an abbreviated name for the evil mode tag."
   :type 'boolean
   :group 'telephone-line-evil)
-
-(defun telephone-line-separator-height ()
-  "Get the height for a telephone-line separator."
-  (or telephone-line-height (frame-char-height)))
-
-(defun telephone-line-separator-width ()
-  "Get the default width for a telephone-line separator."
-  (ceiling (telephone-line-separator-height) 2))
 
 (defun telephone-line-create-axis (length)
   "Create an axis of length LENGTH.
@@ -140,50 +132,39 @@ color1 and color2."
        (cons (- 1 rem)  ;Right AA pixel
              (make-list (- total intpadding 2) 1)))))) ;Right gap
 
-(defun telephone-line-create-body (width height axis-func pattern-func)
-  "Create a bytestring of a PBM image body of dimensions WIDTH and HEIGHT, and shape created from AXIS-FUNC and PATTERN-FUNC."
-  (let* ((normalized-axis (telephone-line--normalize-axis
-                           (mapcar axis-func (telephone-line-create-axis height))))
-         (range (1+ (seq-max normalized-axis)))
-         (scaling-factor (/ width (float range))))
-    (mapcar (lambda (x)
-              (funcall pattern-func
-                       (* x scaling-factor) width))
-            normalized-axis)))
-
 (defmacro telephone-line-complement (func)
   "Return a function which is the complement of FUNC."
   `(lambda (x)
      (- (,func x))))
 
-(defun telephone-line--separator-arg-handler (arg)
-  "Translate ARG into an appropriate color for a separator."
-  (if (facep arg)
-      (face-attribute arg :background)
-    arg))
+(defclass telephone-line-separator ()
+  ((axis-func :initarg :axis-func)
+   (pattern-func :initarg :pattern-func :initform #'telephone-line-row-pattern)
+   (forced-width :initarg :forced-width :initform nil)
+   (alt-char :initarg :alt-char)
+   (image-cache :initform (make-hash-table :test 'equal :size 10))))
 
-(defmacro telephone-line--defseparator-internal (name body &optional alt-string)
-  (declare (indent defun))
-  `(defmemoize ,name (foreground background)
-     (let ((bg-color (telephone-line--separator-arg-handler background))
-           (fg-color (telephone-line--separator-arg-handler foreground)))
-       (if window-system
-           (telephone-line-propertize-image
-            (telephone-line--create-pbm-image ,body bg-color fg-color))
-         (list :propertize ,alt-string
-               'face (list :foreground fg-color
-                           :background bg-color
-                           :inverse-video t))))))
+(defmethod telephone-line-separator-height ((obj telephone-line-separator))
+  (or telephone-line-height (frame-char-height)))
 
-(defmacro telephone-line-defseparator (name axis-func pattern-func &optional alt-char forced-width)
-  "Define a separator named NAME, using AXIS-FUNC and PATTERN-FUNC to create the shape, optionally forcing FORCED-WIDTH.
+(defmethod telephone-line-separator-width ((obj telephone-line-separator))
+  (or (oref obj forced-width) (ceiling (telephone-line-separator-height obj) 2)))
 
-NOTE: Forced-width primary separators are not currently supported."
-  `(telephone-line--defseparator-internal ,name
-     (let ((height (telephone-line-separator-height))
-           (width (or ,forced-width (telephone-line-separator-width))))
-       (telephone-line-create-body width height ,axis-func ,pattern-func))
-     (char-to-string ,alt-char)))
+(defclass telephone-line-subseparator (telephone-line-separator)
+  ((pattern-func :initarg :pattern-func :initform #'telephone-line-row-pattern-hollow)))
+
+(defmethod telephone-line-separator-create-body ((obj telephone-line-separator))
+  "Create a bytestring of a PBM image body of dimensions WIDTH and HEIGHT, and shape created from AXIS-FUNC and PATTERN-FUNC."
+  (let* ((height (telephone-line-separator-height obj))
+         (width (telephone-line-separator-width obj))
+         (normalized-axis (telephone-line--normalize-axis
+                           (mapcar (oref obj axis-func) (telephone-line-create-axis height))))
+         (range (1+ (seq-max normalized-axis)))
+         (scaling-factor (/ width (float range))))
+    (mapcar (lambda (x)
+              (funcall (oref obj pattern-func)
+                       (* x scaling-factor) width))
+            normalized-axis)))
 
 (defun telephone-line--pad-body (body char-width)
   "Pad 2d byte-list BODY to a width of CHAR-WIDTH, given as a number of characters."
@@ -195,17 +176,41 @@ NOTE: Forced-width primary separators are not currently supported."
               (append left-padding row right-padding))
             body)))
 
-(defmacro telephone-line-defsubseparator (name axis-func pattern-func &optional alt-char forced-width)
-  "Define a subseparator named NAME, using AXIS-FUNC and PATTERN-FUNC to create the shape, optionally forcing FORCED-WIDTH."
-  `(telephone-line--defseparator-internal ,name
-     (let* ((height (telephone-line-separator-height))
-            (width (or ,forced-width (telephone-line-separator-width)))
-            (char-width (+ (ceiling width (frame-char-width))
-                           telephone-line-separator-extra-padding)))
-        (telephone-line--pad-body
-         (telephone-line-create-body width height ,axis-func ,pattern-func)
-         char-width))
-     (string ?  ,alt-char ? )))
+(defmethod telephone-line-separator-create-body ((obj telephone-line-subseparator))
+  (telephone-line--pad-body (call-next-method)
+              (+ (ceiling (telephone-line-separator-width obj)
+                          (frame-char-width))
+                 telephone-line-separator-extra-padding)))
+
+(defmethod telephone-line-separator--arg-handler (arg) :static
+  "Translate ARG into an appropriate color for a separator."
+  (if (facep arg)
+      (face-attribute arg :background)
+    arg))
+
+(defmethod telephone-line-separator-render ((obj telephone-line-separator) foreground background)
+  (telephone-line-separator--render obj
+                      (telephone-line-separator--arg-handler foreground)
+                      (telephone-line-separator--arg-handler background)))
+
+(defmethod telephone-line-separator--render ((obj telephone-line-separator) foreground background)
+  (if window-system
+      (let ((hash-key (concat background "_" foreground)))
+        ;; Return cached image if we have it.
+        (or (gethash hash-key (oref obj image-cache))
+            (puthash hash-key
+                     (telephone-line-propertize-image
+                      (telephone-line--create-pbm-image (telephone-line-separator-create-body obj)
+                                          background foreground))
+                     (oref obj image-cache))))
+
+      (list :propertize (char-to-string (oref obj alt-char))
+            'face (list :foreground foreground
+                        :background background
+                        :inverse-video t))))
+
+(defmethod telephone-line-separator-clear-cache ((obj telephone-line-separator))
+  (clrhash (oref obj image-cache)))
 
 :autoload
 (defmacro telephone-line-defsegment (name body)
@@ -228,8 +233,8 @@ Segment is not precompiled."
   `(defun ,name (face)
      (telephone-line-raw
       (mapcar (lambda (plist)
-                 (plist-put plist 'face face))
-               ,plists))))
+                (plist-put plist 'face face))
+              ,plists))))
 
 :autoload
 (defun telephone-line-raw (str &optional compiled)
@@ -247,9 +252,7 @@ Return nil for blank/empty strings."
   (font-lock-add-keywords 'emacs-lisp-mode
                           '("\\<telephone-line-defsegment*\\>"
                             "\\<telephone-line-defsegment-plist\\>"
-                            "\\<telephone-line-defsegment\\>"
-                            "\\<telephone-line-defseparator\\>"
-                            "\\<telephone-line-defsubseparator\\>")))
+                            "\\<telephone-line-defsegment\\>")))
 
 (unless (fboundp 'elisp--font-lock-flush-elisp-buffers)
   ;; In Emacs≥25, (via elisp--font-lock-flush-elisp-buffers and a few others)

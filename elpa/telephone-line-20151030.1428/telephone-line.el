@@ -6,7 +6,7 @@
 ;; URL: https://github.com/dbordak/telephone-line
 ;; Version: 0.2
 ;; Keywords: mode-line
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5") (memoize "1.0.1") (s "1.9.0") (seq "1.8"))
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5") (eieio "1.4") (s "1.9.0") (seq "1.8"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -82,33 +82,33 @@
   :group 'telephone-line-evil)
 
 (defface telephone-line-evil-operator
-  '((t (:background "sky blue" :inherit telephone-line-evil)))
+  '((t (:background "violet" :inherit telephone-line-evil)))
   "Face used in evil color-coded segments when in Operator state."
   :group 'telephone-line-evil)
 
 (defface telephone-line-evil-emacs
-  '((t (:background "blue violet" :inherit telephone-line-evil)))
+  '((t (:background "dark violet" :inherit telephone-line-evil)))
   "Face used in evil color-coded segments when in Emacs state."
   :group 'telephone-line-evil)
 
-(defcustom telephone-line-primary-left-separator #'telephone-line-abs-left
+(defcustom telephone-line-primary-left-separator 'telephone-line-abs-left
   "The primary separator to use on the left-hand side."
   :group 'telephone-line
   :type 'function)
 
-(defcustom telephone-line-primary-right-separator #'telephone-line-abs-right
+(defcustom telephone-line-primary-right-separator 'telephone-line-abs-right
   "The primary separator to use on the right-hand side."
   :group 'telephone-line
   :type 'function)
 
-(defcustom telephone-line-secondary-left-separator #'telephone-line-abs-hollow-left
+(defcustom telephone-line-secondary-left-separator 'telephone-line-abs-hollow-left
   "The secondary separator to use on the left-hand side.
 
 Secondary separators do not incur a background color change."
   :group 'telephone-line
   :type 'function)
 
-(defcustom telephone-line-secondary-right-separator #'telephone-line-abs-hollow-right
+(defcustom telephone-line-secondary-right-separator 'telephone-line-abs-hollow-right
   "The secondary separator to use on the right-hand side.
 
 Secondary separators do not incur a background color change."
@@ -177,9 +177,9 @@ Secondary separators do not incur a background color change."
            (cl-list*
             cur-subsegments ;New segment
             ;; Separator
-            `(:eval (funcall #',primary-sep
-                             (telephone-line-face-map ',prev-color-sym)
-                             (telephone-line-face-map ',cur-color-sym)))
+            `(:eval (telephone-line-separator-render ,primary-sep
+                                       (telephone-line-face-map ',prev-color-sym)
+                                       (telephone-line-face-map ',cur-color-sym)))
             accumulated-segments) ;Old segments
          (list cur-subsegments))
        cur-color-sym))))
@@ -195,7 +195,7 @@ Secondary separators do not incur a background color change."
   (let* ((cur-face (telephone-line-face-map color-sym))
          (opposite-face (telephone-line-face-map
                          (telephone-line-opposite-face-sym color-sym)))
-         (subseparator (funcall sep-func cur-face opposite-face)))
+         (subseparator (telephone-line-separator-render sep-func cur-face opposite-face)))
     (telephone-line-propertize-segment
      color-sym cur-face
      (cdr (seq-mapcat
@@ -218,14 +218,14 @@ separators, as they are conditional, are evaluated on-the-fly."
                     (cons color-sym
                           `(:eval
                             (telephone-line-add-subseparators
-                             ',subsegments #',secondary-sep ',color-sym)))))
+                             ',subsegments ,secondary-sep ',color-sym)))))
                 (seq-reverse segments))
         '(nil . nil))))
 
-(defun telephone-line-width (values num-separators)
+(defun telephone-line-width (values num-separators separator)
   "Get the column-length of VALUES, with NUM-SEPARATORS interposed."
   (let ((base-width (string-width (format-mode-line values)))
-        (separator-width (/ (telephone-line-separator-width)
+        (separator-width (/ (telephone-line-separator-width separator)
                             (float (frame-char-width)))))
     (if window-system
         (+ base-width
@@ -237,35 +237,36 @@ separators, as they are conditional, are evaluated on-the-fly."
       base-width)))
 
 (defcustom telephone-line-lhs '((accent . (telephone-line-vc-segment))
-                                (nil    . (telephone-line-minor-mode-segment
-                                           telephone-line-buffer-segment)))
+                  (nil    . (telephone-line-minor-mode-segment
+                             telephone-line-buffer-segment)))
   "Left hand side segment alist."
   :type '(alist :key-type segment-color :value-type subsegment-list)
   :group 'telephone-line)
 
 (defcustom telephone-line-rhs '((nil    . (telephone-line-misc-info-segment
-                                           telephone-line-major-mode-segment))
-                                (accent . (telephone-line-position-segment)))
+                             telephone-line-major-mode-segment))
+                  (accent . (telephone-line-position-segment)))
   "Right hand side segment alist."
   :type '(alist :key-type segment-color :value-type subsegment-list)
   :group 'telephone-line)
 
 (defun telephone-line--generate-mode-line-lhs ()
   (telephone-line-add-separators telephone-line-lhs
-                                 telephone-line-primary-left-separator
-                                 telephone-line-secondary-left-separator))
+                   telephone-line-primary-left-separator
+                   telephone-line-secondary-left-separator))
 
 (defun telephone-line--generate-mode-line-rhs ()
   (telephone-line-add-separators telephone-line-rhs
-                                 telephone-line-primary-right-separator
-                                 telephone-line-secondary-right-separator))
+                   telephone-line-primary-right-separator
+                   telephone-line-secondary-right-separator))
 
 (defun telephone-line--generate-mode-line ()
   `(,@(telephone-line--generate-mode-line-lhs)
     (:eval (telephone-line-fill
             (telephone-line-width
              ',(telephone-line--generate-mode-line-rhs)
-             ,(- (length telephone-line-rhs) 1))))
+             ,(- (length telephone-line-rhs) 1)
+             ,telephone-line-primary-right-separator)))
     ,@(telephone-line--generate-mode-line-rhs)))
 
 (defvar telephone-line--default-mode-line mode-line-format)

@@ -1,7 +1,7 @@
-(define-package "telephone-line" "20150910.1004" "Rewrite of Powerline"
+(define-package "telephone-line" "20151030.1428" "Rewrite of Powerline"
   '((emacs "24.3")
     (cl-lib "0.5")
-    (memoize "1.0.1")
+    (eieio "1.4")
     (s "1.9.0")
     (seq "1.8"))
   :url "https://github.com/dbordak/telephone-line" :keywords
