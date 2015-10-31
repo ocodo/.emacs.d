@@ -5,7 +5,7 @@
 ;; Author: Tom Hinton
 ;; Maintainer: Tom Hinton <t@larkery.com>
 ;; Version: 1.0.1
-;; Package-Version: 20151029.423
+;; Package-Version: 20151030.705
 ;; Keywords: convenience
 ;; URL: https://github.com/larkery/ido-grid-mode.el
 ;; Package-Requires: ((emacs "24.4"))
@@ -205,17 +205,48 @@ around. Scrolling always happens at the top left or bottom right."
   :group 'ido-grid-mode)
 
 ;; vars
-(defvar ido-grid-mode-rows 0)
-(defvar ido-grid-mode-columns 0)
-(defvar ido-grid-mode-count 0)
-(defvar ido-grid-mode-offset 0)
-(defvar ido-grid-mode-common-match nil)
+(defvar ido-grid-mode-rows 0
+  "The number of rows displayed last time the grid was presented.")
+(defvar ido-grid-mode-columns 0
+  "The number of columns displayed last time the grid was presented.")
+(defvar ido-grid-mode-count 0
+  "The number of items displayed last time the grid was presented.")
+(defvar ido-grid-mode-offset 0
+  "The offset into the displayed grid of the highlighted item.")
+(defvar ido-grid-mode-common-match nil
+  "The current common match prefix string, if there is one.")
+(defvar ido-grid-mode-rotated-matches nil
+  "A copy of `ido-matches' which has been rotated so that the
+  item in row/column 0,0 of the grid is the head of this list.
+  The selected item is the item at `ido-grid-mode-offset' in this
+  list.")
+
+;; debugging
+
+(defvar ido-grid-mode-debug-enabled nil)
+(defun ido-grid-mode-debug (fs &rest args)
+  (when ido-grid-mode-debug-enabled
+    (with-current-buffer (get-buffer-create "*ido-grid-mode-debug*")
+      (goto-char (point-max))
+      (insert (apply #'format (cons
+                               (concat
+                                "%d %d %d %d %s %s :: "
+                                fs)
+                               (append (list ido-grid-mode-rows
+                                             ido-grid-mode-columns
+                                             ido-grid-mode-offset
+                                             (length ido-grid-mode-rotated-matches)
+                                             (car ido-matches)
+                                             (car ido-grid-mode-rotated-matches))
+                                       args))) "\n"))))
 
 ;; offset into the match list. need to reset this when match list is
 ;; changed.
-(defvar ido-grid-mode-rotated-matches nil)
 
-(defvar ido-grid-mode-collapsed nil)
+(defvar ido-grid-mode-collapsed nil
+  "Whether the grid is currently collapsed; see
+  `ido-grid-mode-start-collapsed'. This is set to true in the
+  setup hook if that option is enabled.")
 
 (defun ido-grid-mode-row-major ()
   "Is the grid row major?"
@@ -353,7 +384,7 @@ rows or columns."
 
 (defun ido-grid-mode-copy-name (item)
   "Copy the `ido-name' of ITEM into a new string."
-  (substring (ido-name item) 0))
+  (substring (ido-grid-mode-name item) 0))
 
 (defun ido-grid-mode-string-width (s)
   "The displayed width of S in the minibuffer, excluding invisible text."
@@ -549,6 +580,13 @@ groups, add the face to all of S."
         mi)
     ""))
 
+(defun ido-grid-mode-name (item)
+  "Get the name, or something else if it is nil"
+  (let ((name (ido-name item)))
+    (cond ((not name) "<nil>")
+          ((zerop (length name)) "<empty>")
+          (t name))))
+
 (defun ido-grid-mode-grid (name)
   "Draw the grid for input NAME."
   (let* ((decoration-regexp (if ido-enable-regexp ido-text (regexp-quote name)))
@@ -570,7 +608,7 @@ groups, add the face to all of S."
                       ))
          (generated-grid (ido-grid-mode-gen-grid
                           ido-matches
-                          :name #'ido-name
+                          :name #'ido-grid-mode-name
                           :decorate decorator
                           :max-width max-width))
          (first-line (ido-grid-mode-gen-first-line)))
@@ -765,6 +803,7 @@ It may not be possible to do this unless there is only 1 column."
               (cdr new-tail))))))
 
 (defun ido-grid-mode-equal-but-rotated (x y)
+  "is X element-wise `equal' to Y up to a rotation?"
   (when (equal (length x) (length y))
     (let ((a (car x))
           (y2 y))
@@ -785,12 +824,19 @@ It may not be possible to do this unless there is only 1 column."
 ;; this is not quite right, because rotated matches is not cleared on exit.
 ;; however it seems to work OK
 (defun ido-grid-mode-set-matches (o &rest rest)
+  "The advice for `ido-set-matches'. This is called whenever the
+match list changes, and will update
+`ido-grid-mode-rotated-matches' if the new `ido-matches' is
+different, ignoring rotations."
   (let* ((did-something ido-rescan)
          (result (apply o rest)))
+    (ido-grid-mode-debug "setting matches")
     (when (and did-something (not (ido-grid-mode-equal-but-rotated
                                    ido-matches
                                    ido-grid-mode-rotated-matches)))
+      (ido-grid-mode-debug "matches changed")
       (setq ido-grid-mode-rotated-matches (copy-sequence ido-matches)))
+
     result))
 
 (defun ido-grid-mode-next-N (n)
