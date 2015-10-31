@@ -6,7 +6,7 @@
 ;; Package-Requires: ((cl-lib "0.3"))
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
-;; Package-Version: 20151008.1654
+;; Package-Version: 20151030.326
 
 ;; This file is not part of GNU Emacs.
 
@@ -485,11 +485,11 @@ Also see `kmu-define-keys'."
               (setq beg key end key)
               (while (and (setq mem (car (cl-member (1- beg) v :key 'car)))
                           (equal (cadr mem) def))
-                (decf beg)
+                (cl-decf beg)
                 (setq v (remove mem v)))
               (while (and (setq mem (car (cl-member (1+ end) v :key 'car)))
                           (equal (cadr mem) def))
-                (incf end)
+                (cl-incf end)
                 (setq v (remove mem v)))))
           (cond ((or (not beg) (eq beg end))
                  (push (list key def) vv))
