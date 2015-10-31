@@ -1,11 +1,10 @@
 ;;; html-to-markdown-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (html-to-markdown-this-buffer html-to-markdown-string
-;;;;;;  html-to-markdown) "html-to-markdown" "html-to-markdown.el"
-;;;;;;  (21163 198 0 0))
+;;;### (autoloads nil "html-to-markdown" "html-to-markdown.el" (22068
+;;;;;;  38805 838136 904000))
 ;;; Generated autoloads from html-to-markdown.el
 
 (autoload 'html-to-markdown "html-to-markdown" "\
@@ -47,16 +46,9 @@ Like `html-to-markdown', except ERASES the current buffer and inserts the result
 
 ;;;***
 
-;;;### (autoloads nil nil ("html-to-markdown-pkg.el") (21163 198
-;;;;;;  799077 0))
-
-;;;***
-
-(provide 'html-to-markdown-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; html-to-markdown-autoloads.el ends here
