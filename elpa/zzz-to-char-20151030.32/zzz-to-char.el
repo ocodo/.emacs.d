@@ -4,7 +4,7 @@
 ;;
 ;; Author: Mark Karpov <markkarpov@openmailbox.org>
 ;; URL: https://github.com/mrkkrp/zzz-to-char
-;; Package-Version: 20150905.537
+;; Package-Version: 20151030.32
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5")(avy "0.3.0"))
 ;; Keywords: convenience
@@ -72,8 +72,10 @@ This is internal function, see also `zzz-to-char' and
          (regexp-quote (string char)))
        nil
        avy-style
-       (- p zzz-to-char-reach)
-       (+ p zzz-to-char-reach)))
+       (max (- p zzz-to-char-reach)
+            (point-min))
+       (min (+ p zzz-to-char-reach)
+            (point-max))))
     (let ((n (point)))
       (when (/= n p)
         (cl-destructuring-bind (beg . end)
