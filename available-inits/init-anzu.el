@@ -1,7 +1,12 @@
-;; Anzu mode, pretty isearch and query replace
-(global-anzu-mode t)
+;;; init-anzu --- Anzu mode, pretty isearch and query replace
+;;; Commentary:
+;;; Code:
+(require 'use-package)
 
-(global-set-key (kbd "M-%") 'anzu-query-replace)
-(global-set-key (kbd "M-C-%") 'anzu-query-replace-regexp)
+(use-package anzu-mode
+  :init (global-anzu-mode t)
+  :bind (("M-%" . anzu-query-replace)
+         ("M-C-%" . anzu-query-replace-regexp)))
 
 (provide 'init-anzu)
+;;; init-anzu ends here

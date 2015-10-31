@@ -1,4 +1,3 @@
-
 ;; init-codenotes
 (add-hook 'prog-mode-hook
           (lambda ()

@@ -24,4 +24,4 @@ var
 /.persistent-scratch
 
 .DS_Store
-*.elc
+

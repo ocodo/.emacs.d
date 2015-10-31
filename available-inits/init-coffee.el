@@ -1,12 +1,20 @@
-(require 'jasmine-coffee)
+;;; init-coffee-mode --- initialize coffee-mode
+;;; Commentary:
+;;; Code:
+(require 'use-package)
 
-(eval-after-load 'coffee-mode
-  (lambda ()
-    (define-key coffee-mode-map (kbd "C-c C-n") 'flymake-goto-next-error)
-    (define-key coffee-mode-map (kbd "C-c C-p") 'flymake-goto-prev-error)
-    (define-key coffee-mode-map (kbd "C-c C-r") 'coffee-compile-region)
-    (define-key coffee-mode-map (kbd "C-c C-,") 'coffee-indent-shift-left)
-    (define-key coffee-mode-map (kbd "C-c C-.") 'coffee-indent-shift-right)
-    ))
+(use-package coffee-mode
+  :defer t
+  :init
+  (progn
+    (use-package jasmine-coffee ))
+  :bind
+  (:map coffee-mode-map
+        (("C-c C-n" . flymake-goto-next-error)
+         ("C-c C-p" . flymake-goto-prev-error)
+         ("C-c C-r" . coffee-compile-region)
+         ("C-c C-," . coffee-indent-shift-left)
+         ("C-c C-." . coffee-indent-shift-right))))
 
-(provide 'init-coffee)
+(provide 'init-coffee-mode)
+;;; init-coffee-mode ends here

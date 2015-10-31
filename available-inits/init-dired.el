@@ -1,29 +1,32 @@
-;; Dired mode init
-(require 'dired)
-(require 'dired-details+)
-(require 'dirtree)
+;;; init-dired --- initialize dired
+;;; Commentary:
+;;; Code:
+(require 'use-package)
 
-(setq dired-details-initially-hide t)
+(use-package dired
+  :init
+  (progn
+    (use-package dired-details+)
+    (use-package dirtree)
 
-(add-hook 'dired-mode-hook
-    '(lambda ()
-         (visual-line-mode 0) ;; unwrap lines.
-         (linum-mode 0)       ;; turn off line numbers.
-         (auto-revert-mode)   ;; auto-refresh dired
-         ))
+    (setq dired-details-initially-hide t)
 
-(defun my-dired-find-file (&optional arg)
-       "Open each of the marked files, or the file under the point, or when prefix arg, the next N files "
-       (interactive "P")
-       (let* ((fn-list (dired-get-marked-files nil arg)))
-         (mapc 'find-file fn-list)))
+    (defun my-dired-find-file (&optional arg)
+      "Open each of the marked files, or the file under the point, or when prefix arg, the next N files "
+      (interactive "P")
+      (let* ((fn-list (dired-get-marked-files nil arg)))
+        (mapc 'find-file fn-list)))
 
-(eval-after-load "dired"
-  '(progn
-     (define-key dired-mode-map "W" 'wdired-change-to-wdired-mode)
-     (define-key dired-mode-map "F" 'my-dired-find-file)))
+    (add-hook 'dired-after-readin-hook #'(lambda () (dired-details-activate)))
 
-(add-hook 'dired-after-readin-hook
-          #'(lambda () (dired-details-activate)))
+    (add-hook 'dired-mode-hook #'(lambda ()
+                                   (visual-line-mode 0)
+                                   (linum-mode 0)
+                                   (auto-revert-mode))))
+  :bind
+  (:map dired-mode-map
+        ("W" . wdired-change-to-wdired-mode)
+        ("F" . my-dired-find-file)))
 
 (provide 'init-dired)
+;;; init-dired ends here

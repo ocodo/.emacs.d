@@ -1,0 +1,21 @@
+# contributor: jasonmilkins
+# name: mode init skeleton
+# key: mode-init
+# key: init-mode
+# key: init
+# key: ini
+# --
+;;; init-${1:mode-name} --- ${2:description}
+;;; Commentary:
+;;; Code:
+(require 'use-package)
+
+(use-package $1
+  :init
+  ${3:init}
+  :bind
+  (${4:key-bindings})
+  )
+
+(provide 'init-$1)
+;;; init-$1 ends here

@@ -27,7 +27,7 @@
 
 (global-set-key (kbd "C-^")                 'join-line-from-below)
 
-(global-set-key (kbd "C-=")                 'cua-set-rectangle-mark)
+(global-set-key (kbd "C-x r u")             'cua-set-rectangle-mark)
 (global-set-key (kbd "M-Z")                 'zap-to-char)
 (global-set-key (kbd "M-z")                 'zap-up-to-char)
 
