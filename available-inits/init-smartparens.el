@@ -22,6 +22,7 @@
 (sp-pair "`" "`"   :wrap "C-c `")
 
 ;; Major mode specific pairs
+(sp-local-pair 'markdown-mode "<kbd>" "</kbd>" :wrap "C-c k")
 
 ;; lisp
 (sp-with-modes sp--lisp-modes

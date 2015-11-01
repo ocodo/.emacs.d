@@ -1,20 +1,19 @@
-# contributor: jasonmilkins
-# name: mode init skeleton
-# key: mode-init
-# key: init-mode
-# key: init
+# contributor: jasonm23
+# name: init mode template
 # key: ini
 # --
-;;; init-${1:mode-name} --- ${2:description}
+;;; init-${1:mode-name} --- initialize $1
 ;;; Commentary:
 ;;; Code:
 (require 'use-package)
 
 (use-package $1
-  :init
-  ${3:init}
+  :init ;; before use
+  $2
+  :config ;; after use
+  $3
   :bind
-  (${4:key-bindings})
+  $4
   )
 
 (provide 'init-$1)
