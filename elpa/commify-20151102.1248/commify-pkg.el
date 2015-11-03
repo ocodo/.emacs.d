@@ -1,0 +1,1 @@
+(define-package "commify" "20151102.1248" "Toggle grouping commas in numbers in buffer" '((s "1.9.0")) :url "https://github.com/ddoherty03/commify" :keywords '("convenience" "editing" "numbers" "grouping" "commas"))
