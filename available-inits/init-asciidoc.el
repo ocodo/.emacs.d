@@ -3,7 +3,7 @@
 ;;; Code:
 (require 'use-package)
 
-(use-package asciidoc-mode
+(use-package asciidoc
   :defer t
   :init (add-to-list 'auto-mode-alist '("\\.asciidoc$" . asciidoc-mode)))
 

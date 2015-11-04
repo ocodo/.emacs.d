@@ -4,11 +4,11 @@
 (require 'use-package)
 
 (use-package auto-complete
-  :config
+  :init
   (progn
     (use-package auto-complete-config)
-    (use-package dropdown-list)
     (use-package ac-dabbrev)
+    (use-package dropdown-list)
     (global-set-key (kbd "M-RET") (lambda () (interactive)
                                   (auto-complete-mode 1)
                                   (ac-start)))
