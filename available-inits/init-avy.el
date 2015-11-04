@@ -8,9 +8,18 @@
   (progn (bind-keys :map isearch-mode-map ("M-s M-s" . avy-isearch)))
   :config
   (progn
+    (defun avy-isearch ()
+      "Override to allow avy-background to work as configured."
+      (interactive)
+      (avy-with avy-isearch
+        (avy--process
+         (avy--regex-candidates isearch-string)
+         (avy--style-fn avy-style))
+        (isearch-done)))
+
     (setq avy-background t)
     (setq avy-keys (concat (number-sequence ?a ?z)
-                       (number-sequence ?A ?Z))))
+                           (number-sequence ?A ?Z))))
   :bind
   (("M-s M-s w" . avy-goto-word-0)
    ("M-s M-s l" . avy-goto-line)
