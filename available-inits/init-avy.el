@@ -19,7 +19,10 @@
         (isearch-done)))
 
     (setq avy-background t)
-    (setq avy-keys (-concat (number-sequence ?a ?z) (number-sequence ?A ?Z))))
+    (setq avy-all-windows 'all-frames)
+    (setq avy-style       'de-bruijn)
+    (setq avy-keys
+          (-concat (number-sequence ?a ?z) (number-sequence ?A ?Z))))
   :bind
   (("M-s M-s w" . avy-goto-word-0)
    ("M-s M-s l" . avy-goto-line)
