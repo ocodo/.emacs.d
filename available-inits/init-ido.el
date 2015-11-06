@@ -19,6 +19,7 @@
     (setq ido-create-new-buffer 'always)
     (setq ido-enable-flex-matching t)
     (setq ido-everywhere t)
+    (setq ido-auto-merge-work-directories-length -1)
     (setq gc-cons-threshold 30000000))
   :bind
   (("M-x" . smex)
