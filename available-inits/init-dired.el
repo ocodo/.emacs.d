@@ -9,6 +9,8 @@
     (use-package dired-details+)
     (use-package dirtree)
 
+    (bind-key "C-x C-d" 'ido-dired)
+
     (setq dired-details-initially-hide t)
 
     (defun my-dired-find-file (&optional arg)
@@ -23,10 +25,9 @@
                                    (visual-line-mode 0)
                                    (linum-mode 0)
                                    (auto-revert-mode))))
-  :bind
-  (:map dired-mode-map
-        ("W" . wdired-change-to-wdired-mode)
-        ("F" . my-dired-find-file)))
+  :bind (:map dired-mode-map
+              ("W" . wdired-change-to-wdired-mode)
+              ("F" . my-dired-find-file)))
 
 (provide 'init-dired)
 ;;; init-dired ends here

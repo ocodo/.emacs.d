@@ -2,12 +2,11 @@
 ;;; Commentary:
 ;;  setup paren-completer...
 ;;; Code:
+(require 'use-package)
 
-(require 'paren-completer)
-
-(global-set-key (kbd "s-]") 'paren-completer-add-single-delimiter)
-(global-set-key (kbd "s-}") 'paren-completer-add-all-delimiters)
+(use-package paren-completer
+  :bind (("s-]" . paren-completer-add-single-delimiter)
+         ("s-}" . paren-completer-add-all-delimiters)))
 
 (provide 'init-paren-completer)
-
 ;;; init-paren-completer.el ends here

@@ -559,7 +559,11 @@ OSX specific of course."
   (interactive)
   (if (file-exists-p "~/.pivotal_api_key")
       (progn
-        (setq pivotal-api-token (substring-no-properties (with-temp-buffer (insert-file-contents "~/.pivotal_api_key") (buffer-string)) 5 37))
+        (setq pivotal-api-token
+              (substring-no-properties
+               (with-temp-buffer
+                 (insert-file-contents "~/.pivotal_api_key")
+                 (buffer-string)) 5 37))
         (message "Pivotal api token was set to: %S" pivotal-api-token))
     (message "~/.pivotal_api_key was not found")))
 

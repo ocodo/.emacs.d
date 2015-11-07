@@ -1,13 +1,18 @@
 ;;; init-exec-path --- initialize exec-path
 ;;; Commentary:
 ;;; Code:
-(require 'use-package)
+(defvar exec-path-from-shell-initialize-done nil)
+(defun ensure-exec-path-initialize (fun &rest args)
+  "Advise `shell-command' (FUN with ARGS) to defer `exec-path' initialize.
 
-(use-package exec-path
-  :init ;; before use
-  (progn
+After first run `exec-path-from-shell-initialize-done' will be set to t."
+  (unless exec-path-from-shell-initialize-done
+    (message "setting up environment with exec-path")
+    (require 'exec-path)
     (exec-path-from-shell-initialize)
-    (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")))
+    (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")
+    (setq exec-path-from-shell-initialize-done t)))
 
+(advice-add 'shell-command :before #'ensure-exec-path-initialize)
 (provide 'init-exec-path)
 ;;; init-exec-path ends here

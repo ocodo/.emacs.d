@@ -1,70 +1,79 @@
-;; Rubu mode init
+;;; init-ruby --- initialize ruby-mode
+;;; Commentary:
+;;; Code:
+(require 'use-package)
 
-(require 'ruby-mode)
+(use-package ruby-mode
 
-(defun ruby-toggle-symbol-at-point ()
-  "Dirt simple, just prefix current word with a colon."
-  (interactive)
-  (operate-on-point-or-region 'ruby-toggle-symbol-name))
+  :mode ("\\.rb\\'"
+         "\\.rake\\'"
+         "\\.rxml\\'"
+         "\\.rhtml\\'"
+         "\\.erb\\'"
+         "\\.rjs\\'"
+         "\\.builder\\'"
+         "\\.ru\\'"
+         "\\.rabl\\'"
+         "\\.gemspec\\'"
+         "^\\.pryrc\\'"
+         "^\\.irbrc$"
+         "^Rakefile\\'"
+         "^Guardfile\\'"
+         "^Gemfile\\'"
+         "^config.ru\\'")
 
-(defun ruby-make-interpolated-string-at-point-or-region ()
-  "Simple conversion of string/reigion to ruby interpolated string."
-  (interactive)
-  (operate-on-point-or-region 'ruby-interpolated-string))
+  :interpreter "ruby"
 
-(defun ruby-interpolated-string (s)
-  "Make a ruby interpolated string entry S is a string."
-  (format "#{%s}" s))
+  :init (progn
+          (use-package handy-functions)
 
-(defun ruby-prepend-colon (s)
-  "Prepend a colon on the provided string S."
-  (format ":%s" s))
+          (inf-ruby-switch-setup)
 
-(defun ruby-toggle-symbol-name (s)
-  "Toggle colon prefix on string S."
-  (if (s-matches? "^:.*" s)
-      (s-replace ":" "" s)
-    (ruby-prepend-colon s)))
+          (defun ruby-toggle-symbol-at-point ()
+            "Dirt simple, just prefix current word with a colon."
+            (interactive)
+            (operate-on-point-or-region 'ruby-toggle-symbol-name))
 
-;; Saved macro to replace selection with try(:selection)
-(fset 'ruby-selected-to-try-call [?\C-w ?t ?r ?y ?\( ?: ?\C-y right])
+          (defun ruby-make-interpolated-string-at-point-or-region ()
+            "Simple conversion of string/reigion to ruby interpolated string."
+            (interactive)
+            (operate-on-point-or-region 'ruby-interpolated-string))
 
-;; Saved macro to replace var assignment with a let (rspec)
-(fset 'rspec-var-to-let
-   [?l ?e ?t ?  ?\C-s ?= left delete backspace ?\C-c ?: ?\" left delete delete ?\C-  ?\C-r ?  right ?\{ right left ?\C-x ?r ?r ?\( right left ?\C-s ?  right left ?\C-  ?\C-e ?\{ left ?  ?\C-a ?\C-s ?\{ left right ?  end])
+          (defun ruby-interpolated-string (s)
+            "Make a ruby interpolated string entry S is a string."
+            (format "#{%s}" s))
 
-(dolist (p '("\\.rb$"
-             "Guardfile"
-             "^Rakefile$"
-             "\.rake$"
-             "\.rxml$"
-             "\.rhtml$"
-             "\.erb$"
-             "\.rjs$"
-             "\.irbrc$"
-             "\.builder$"
-             "\.ru$"
-             "\.rabl$"
-             "\.gemspec$"
-             "Gemfile$"
-             "^.pryrc$"
-             "^config.ru$"))
-  (add-to-list 'auto-mode-alist (cons p 'ruby-mode)))
+          (defun ruby-prepend-colon (s)
+            "Prepend a colon on the provided string S."
+            (format ":%s" s))
 
-(add-hook 'ruby-mode-hook 'flymake-ruby-load)
-(add-hook 'ruby-mode-hook 'ruby-end-mode)
-(add-hook 'ruby-mode-hook 'robe-mode)
-(add-hook 'robe-mode-hook 'ac-robe-setup)
+          (defun ruby-toggle-symbol-name (s)
+            "Toggle colon prefix on string S."
+            (if (s-matches? "^:.*" s)
+                (s-replace ":" "" s)
+              (ruby-prepend-colon s)))
 
-(defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
-  (rvm-activate-corresponding-ruby))
-;; (add-hook 'ruby-mode-hook 'company-robe)
+          ;; Saved macro to replace selection with try(:selection)
+          (fset 'ruby-selected-to-try-call
+                [?\C-w ?t ?r ?y ?\( ?: ?\C-y right])
 
-(add-hook 'after-init-hook 'inf-ruby-switch-setup)
+          ;; Saved macro to replace var assignment with a let (rspec)
+          (fset 'rspec-var-to-let
+                [?l ?e ?t ?  ?\C-s ?= left delete backspace ?\C-c ?: ?\" left delete delete ?\C-  ?\C-r ?  right ?\{ right left ?\C-x ?r ?r ?\( right left ?\C-s ?  right left ?\C-  ?\C-e ?\{ left ?  ?\C-a ?\C-s ?\{ left right ?  end])
 
-(define-key ruby-mode-map (kbd "C-c #") 'ruby-make-interpolated-string-at-point-or-region)
-(define-key ruby-mode-map (kbd "C-c :") 'ruby-toggle-symbol-at-point)
-(define-key ruby-mode-map (kbd "C-c {") 'ruby-toggle-block)
-(define-key ruby-mode-map (kbd "C-c +") 'ruby-toggle-hash-syntax)
+          (defadvice inf-ruby-console-auto (before activate-rvm-for-robe activate)
+            (rvm-activate-corresponding-ruby))
+
+          (bind-keys :map ruby-mode-map
+                 ("C-c #" . ruby-make-interpolated-string-at-point-or-region)
+                 ("C-c :" . ruby-toggle-symbol-at-point)
+                 ("C-c {" . ruby-toggle-block)
+                 ("C-c +" . ruby-toggle-hash-syntax)))
+
+  :config (progn (flymake-ruby-load)
+                 (ruby-end-mode)
+                 (robe-mode)
+                 (ac-robe-setup)))
 
 (provide 'init-ruby)
+;;; init-ruby ends here

@@ -5,7 +5,7 @@
 
 (use-package eww
   :config
-  (progn (define-key eww-mode-map (kbd "L") 'browse-web)))
+  (progn (bind-key "L" 'browse-web eww-mode-map)))
 
 (provide 'init-eww)
 ;;; init-eww ends here
