@@ -2,8 +2,11 @@
 ;;; commentary:
 ;;; code:
 
-(which-key-mode t)
-(global-set-key (kbd "C-x n g") 'which-key-mode)
+(use-package which-key
+  :init (progn
+          (which-key-mode t)
+          (which-key-setup-minibuffer))
+  :bind ("C-x n g" . which-key-mode))
 
 (provide 'init-which-key)
 ;;; init-which-key.el ends here
