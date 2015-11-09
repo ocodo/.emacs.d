@@ -15,8 +15,6 @@
 ;; Some handy functions, homemade, pilfered, re-jigged, squeezed,
 ;; shuffled... do what thou wilt.
 ;;
-;; list with M-x occur "(defun"
-;;
 ;; Global keys ...
 ;;
 ;; - C-S-o    open-line-above
@@ -34,6 +32,15 @@
 (require 'dash)
 (require 'find-func)
 (require 'popup)
+
+(defun nuke-all-buffers ()
+  "Kill all buffers, leaving *scratch* only."
+  (interactive)
+  (mapc
+   (lambda (buffer)
+     (kill-buffer buffer))
+   (buffer-list))
+  (delete-other-windows))
 
 (defun -sample (list)
   "Return a random element from the LIST."
