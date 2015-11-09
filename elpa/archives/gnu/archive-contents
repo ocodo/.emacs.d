@@ -287,6 +287,13 @@
 		  "Emacs mode based on common modern interface and ergonomics." tar
 		  ((:keywords "convenience")
 		   (:url . "https://github.com/ergoemacs/ergoemacs-mode"))])
+ (exwm .
+       [(0 1)
+	((xelb
+	  (0 3)))
+	"Emacs X Window Manager" tar
+	((:keywords "unix")
+	 (:url . "https://github.com/ch11ng/exwm"))])
  (f90-interface-browser .
 			[(1 1)
 			 nil "Parse and browse f90 interfaces" single
@@ -622,7 +629,7 @@
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
  (stream .
-	 [(2 0 2)
+	 [(2 0 5)
 	  ((emacs
 	    (25)))
 	  "Implementation of streams" single
