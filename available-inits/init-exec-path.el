@@ -8,7 +8,7 @@
 After first run `exec-path-from-shell-initialize-done' will be set to t."
   (unless exec-path-from-shell-initialize-done
     (message "setting up environment with exec-path")
-    (require 'exec-path)
+    (require 'exec-path-from-shell)
     (exec-path-from-shell-initialize)
     (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")
     (setq exec-path-from-shell-initialize-done t)))
