@@ -102,10 +102,10 @@ class GitElpa
 
   def add_to_index
     new_version_files.each do |file|
-      %x[git add "#{file.shellescape}"]
+      %x[zsh -c "git add \"#{file.shellescape}\""]
     end unless @ver.nil?
     old_version_files.each do |file|
-      %x[git rm -rf "#{file.shellescape}"]
+      %x[zsh -c "git rm -rf \"#{file.shellescape}\""]
     end if @old.length > 0
   end
 
