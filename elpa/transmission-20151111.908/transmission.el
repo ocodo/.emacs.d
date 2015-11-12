@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.6
-;; Package-Version: 20151030.1638
+;; Package-Version: 20151111.908
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -305,26 +305,40 @@ Details regarding the Transmission RPC can be found here:
             (progn (transmission--status)
                    (delete-process process))
           (transmission-conflict
-           (let ((content (process-get process :transmission-request)))
+           (let ((content (process-get process :request)))
              (transmission-http-post process content)))
           (error
+           (process-put process :callback nil)
            (delete-process process)
-           (signal (car e) (cdr e))))))))
+           (message "%s" (error-message-string e))))))))
 
 (defun transmission-process-sentinel (process _message)
-  "Kill PROCESS's buffer."
+  "Dispatch callback function for PROCESS and kill the process buffer."
   (when (buffer-live-p (process-buffer process))
-    (kill-buffer (process-buffer process))))
+    (unwind-protect
+        (let* ((callback (process-get process :callback))
+               (buffer (and callback (process-get process :buffer)))
+               (content (and callback
+                             (with-current-buffer (process-buffer process)
+                               (transmission--move-to-content)
+                               (buffer-substring (point) (point-max))))))
+          (when (and callback (buffer-live-p buffer))
+            (with-current-buffer buffer
+              (funcall callback content))))
+      (kill-buffer (process-buffer process)))))
 
-(defun transmission-request-async (method &optional arguments tag)
+(defun transmission-request-async (callback method &optional arguments tag)
   "Send a request to Transmission asynchronously.
 
+CALLBACK accepts one argument, the HTTP response content.
 METHOD, ARGUMENTS, and TAG are the same as in `transmission-request'."
   (let ((process (transmission-make-network-process))
         (content (json-encode `(:method ,method :arguments ,arguments :tag ,tag))))
     (set-process-sentinel process #'transmission-process-sentinel)
     (add-function :after (process-filter process) 'transmission-process-filter)
-    (process-put process :transmission-request content)
+    (process-put process :request content)
+    (process-put process :buffer (current-buffer))
+    (process-put process :callback callback)
     (transmission-http-post process content)
     process))
 
@@ -500,7 +514,7 @@ Returns a list of non-blank inputs."
                                    (cdr (assq 'announce alist)))
                                  vector))
                        trackers)))
-    (cl-delete-duplicates (apply #'append urls) :test #'string=)))
+    (delete-dups (apply #'append urls))))
 
 (defun transmission-files-do (action)
   "Apply ACTION to files in `transmission-files-mode' buffers."
@@ -513,7 +527,7 @@ Returns a list of non-blank inputs."
                          (transmission-prop-values-in-region 'tabulated-list-id))))
     (if (and id indices)
         (let ((arguments (list :ids id action indices)))
-          (transmission-request-async "torrent-set" arguments))
+          (transmission-request-async nil "torrent-set" arguments))
       (user-error "No files selected or at point"))))
 
 (defun transmission-files-file-at-point ()
@@ -537,10 +551,10 @@ The two are spliced together with indices for each file, sorted by file name."
          (indices (cl-map 'vector (lambda (a b) (list (cons a b)))
                           (make-vector len 'index)
                           (number-sequence 0 len))))
-    (cl-sort (cl-map 'vector #'append files indices)
-             (lambda (a b)
-               (string< (cdr (assq 'name a))
-                        (cdr (assq 'name b)))))))
+    (sort (cl-mapcar #'append files indices)
+          (lambda (a b)
+            (string< (cdr (assq 'name a))
+                     (cdr (assq 'name b)))))))
 
 (defun transmission-time (seconds)
   "Format a time string, given SECONDS from the epoch."
@@ -569,8 +583,26 @@ The two are spliced together with indices for each file, sorted by file name."
   "String showing a torrent's seed ratio limit."
   (pcase mode
     (0 "Session limit")
-    (1 (format "%d (torrent-specific limit)" tlimit))
+    (1 (format "%.2f (torrent-specific limit)" tlimit))
     (2 "Unlimited")))
+
+(defun transmission-group-digits (n)
+  "Group digits of natural number N with delimiter \",\"."
+  (if (< n 1000)
+      (format "%s" n)
+    (let ((regexp (eval-when-compile (rx (group (= 3 digit))))))
+      ;; Good place for `thread-last' and `reverse'
+      ;; (thread-last (reverse (number-to-string n))
+      ;;     (replace-regexp-in-string regexp "\\1,")
+      ;;     (string-remove-suffix ",")
+      ;;     (reverse))
+      (cl-macrolet ((reverse-string (str)
+                      `(apply #'string (nreverse (string-to-list ,str)))))
+        (reverse-string
+         (string-remove-suffix
+          ","
+          (replace-regexp-in-string
+           regexp "\\1," (reverse-string (number-to-string n)))))))))
 
 (defmacro transmission-tabulated-list-pred (key)
   "Return a sorting predicate comparing values of KEY.
@@ -611,14 +643,17 @@ When called with a prefix, prompt for DIRECTORY."
                                     (format "magnet:?xt=urn:btih:%s" torrent)
                                   torrent)))
                  (list :download-dir directory))))
-    (let-alist (transmission-request "torrent-add" arguments)
-      (pcase .result
-        ("success"
-         (or (and .arguments.torrent-added.name
-                  (message "Added %s" .arguments.torrent-added.name))
-             (and .arguments.torrent-duplicate.name
-                  (user-error "Already added %s" .arguments.torrent-duplicate.name))))
-        (_ (user-error .result))))))
+    (transmission-request-async
+     (lambda (content)
+       (let-alist (json-read-from-string content)
+         (pcase .result
+           ("success"
+            (or (and .arguments.torrent-added.name
+                     (message "Added %s" .arguments.torrent-added.name))
+                (and .arguments.torrent-duplicate.name
+                     (message "Already added %s" .arguments.torrent-duplicate.name))))
+           (_ (message .result)))))
+     "torrent-add" arguments)))
 
 (defun transmission-move (location)
   "Move torrent at point or in region to a new LOCATION."
@@ -628,13 +663,13 @@ When called with a prefix, prompt for DIRECTORY."
     (when (y-or-n-p (format "Move torrent%s to %s? "
                             (if (cdr ids) "s" "")
                             location))
-     (transmission-request-async "torrent-set-location" arguments))))
+      (transmission-request-async nil "torrent-set-location" arguments))))
 
 (defun transmission-reannounce ()
   "Reannounce torrent at point or in region."
   (interactive)
   (transmission-let-ids nil
-    (transmission-request-async "torrent-reannounce" (list :ids ids))))
+    (transmission-request-async nil "torrent-reannounce" (list :ids ids))))
 
 (defun transmission-remove (&optional unlink)
   "Prompt to remove torrent at point or torrents in region.
@@ -642,40 +677,41 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   (interactive "P")
   (transmission-let-ids ((arguments `(:ids ,ids :delete-local-data ,(and unlink t))))
     (when (yes-or-no-p (concat "Remove " (and unlink "and unlink ")
-                               "torrent" (and (< 1 (length ids)) "s") "?"))
-      (transmission-request-async "torrent-remove" arguments))))
+                               "torrent" (and (< 1 (length ids)) "s") "? "))
+      (transmission-request-async nil "torrent-remove" arguments))))
 
-(defun transmission-set-bandwidth-priority (priority)
-  "Set bandwidth PRIORITY of torrent(s) at point or in region."
-  (interactive
-   (let ((completion-cycle-threshold t)
-         (prompt (format "Set bandwidth priority %s: "
-                         (mapcar #'car transmission-priority-alist))))
-     (list (completing-read prompt transmission-priority-alist nil t))))
-  (transmission-let-ids ((number (cdr (assoc-string priority transmission-priority-alist)))
-                         (arguments `(:ids ,ids :bandwidthPriority ,number)))
-    (transmission-request-async "torrent-set" arguments)))
+(defun transmission-set-bandwidth-priority ()
+  "Set bandwidth priority of torrent(s) at point or in region."
+  (interactive)
+  (transmission-let-ids nil
+    (let* ((completion-cycle-threshold t)
+           (prompt (format "Set bandwidth priority %s: "
+                           (mapcar #'car transmission-priority-alist)))
+           (priority (completing-read prompt transmission-priority-alist nil t))
+           (number (cdr (assoc-string priority transmission-priority-alist)))
+           (arguments `(:ids ,ids :bandwidthPriority ,number)))
+      (transmission-request-async nil "torrent-set" arguments))))
 
 (defun transmission-set-download (limit)
   "Set global download speed LIMIT in KB/s."
   (interactive (transmission-prompt-speed-limit nil))
   (let ((arguments (if (<= limit 0) '(:speed-limit-down-enabled :json-false)
                      `(:speed-limit-down-enabled t :speed-limit-down ,limit))))
-    (transmission-request-async "session-set" arguments)))
+    (transmission-request-async nil "session-set" arguments)))
 
 (defun transmission-set-upload (limit)
   "Set global upload speed LIMIT in KB/s."
   (interactive (transmission-prompt-speed-limit t))
   (let ((arguments (if (<= limit 0) '(:speed-limit-up-enabled :json-false)
                      `(:speed-limit-up-enabled t :speed-limit-up ,limit))))
-    (transmission-request-async "session-set" arguments)))
+    (transmission-request-async nil "session-set" arguments)))
 
 (defun transmission-set-ratio (limit)
   "Set global seed ratio LIMIT."
   (interactive (transmission-prompt-ratio-limit))
   (let ((arguments (if (<= limit 0) '(:seedRatioLimited :json-false)
                      `(:seedRatioLimited t :seedRatioLimit ,limit))))
-    (transmission-request-async "session-set" arguments)))
+    (transmission-request-async nil "session-set" arguments)))
 
 (defun transmission-toggle ()
   "Toggle torrent between started and stopped."
@@ -684,49 +720,58 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
       ((torrent (transmission-torrents (list :ids ids :fields '("status"))))
        (status (transmission-torrent-value torrent 'status))
        (method (pcase status (0 "torrent-start") (_ "torrent-stop"))))
-    (transmission-request-async method (list :ids ids))))
+    (transmission-request-async nil method (list :ids ids))))
 
 (defun transmission-trackers-add ()
   "Add announce URLs to torrent or torrents."
   (interactive)
   (transmission-let-ids
-      ((trackers (mapcar (lambda (elt) (cdr (assq 'announce elt)))
+      ((trackers (mapcar (lambda (x) (cdr (assq 'announce x)))
                          (transmission-list-trackers ids)))
-       (urls (transmission-prompt-read-repeatedly
-              "Add announce URLs: "
-              (cl-set-difference (transmission-list-unique-announce-urls)
-                                 trackers :test #'equal)))
+       (urls (or (transmission-prompt-read-repeatedly
+                  "Add announce URLs: "
+                  (cl-loop for url in (transmission-list-unique-announce-urls)
+                           unless (member url trackers) collect url))
+                 (user-error "No trackers to add")))
        (arguments (list :ids ids :trackerAdd
                         ;; Don't add trackers that are already there
-                        (cl-set-difference urls trackers :test #'equal))))
-    (let-alist (transmission-request "torrent-set" arguments)
-      (message .result))))
+                        (cl-loop for url in urls
+                                 unless (member url trackers) collect url))))
+    (transmission-request-async
+     (lambda (content)
+       (let-alist (json-read-from-string content) (message .result)))
+     "torrent-set" arguments)))
 
 (defun transmission-trackers-remove ()
   "Prompt for trackers to remove by ID from torrent at point."
   (interactive)
   (let ((id transmission-torrent-id))
     (if id
-        (let* ((trackers (mapcar (lambda (elt) (number-to-string (cdr (assq 'id elt))))
-                                 (transmission-list-trackers id)))
-               (prompt (if trackers
-                           (format "Remove tracker by ID (%d trackers): "
-                                   (length trackers))
+        (let* ((array (transmission-list-trackers id))
+               (prompt (if array
+                           (format "Remove tracker (%d trackers): "
+                                   (length array))
                          (user-error "No trackers to remove")))
-               (completion-cycle-threshold t)
-               (tids (transmission-prompt-read-repeatedly prompt trackers))
-               (arguments (list :ids id :trackerRemove (mapcar #'string-to-number tids))))
-          (let-alist (transmission-request "torrent-set" arguments)
-            (pcase .result
-              ("success" (message "success!"))
-              (_ (user-error .result)))))
+               (trackers (mapcar (lambda (x) (cdr (assq 'announce x))) array))
+               (urls (or (transmission-prompt-read-repeatedly prompt trackers)
+                         (user-error "No trackers selected for removal")))
+               (tids (mapcar (lambda (x) (cdr (assq 'id x)))
+                             (cl-loop for alist across array
+                                      if (member (cdr (assq 'announce alist))
+                                                 urls)
+                                      collect alist)))
+               (arguments (list :ids id :trackerRemove tids)))
+          (transmission-request-async
+           (lambda (content)
+             (let-alist (json-read-from-string content) (message .result)))
+           "torrent-set" arguments))
       (user-error "No torrent selected"))))
 
 (defun transmission-verify ()
   "Verify torrent at point or in region."
   (interactive)
   (transmission-let-ids nil
-    (transmission-request-async "torrent-verify" (list :ids ids))))
+    (transmission-request-async nil "torrent-verify" (list :ids ids))))
 
 (defun transmission-quit ()
   "Quit and bury the buffer."
@@ -793,6 +838,11 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
       (setf (cadr idx) (if (eq 'iec transmission-units) 9 7))
       (tabulated-list-init-header))))
 
+(defun transmission-format-size (bytes)
+  "Format size BYTES into a more readable string."
+  (format "%s (%s bytes)" (transmission-size bytes)
+          (transmission-group-digits bytes)))
+
 (defun transmission-format-pieces (pieces count)
   "Format into a string the bitfield PIECES holding COUNT boolean flags."
   (let* ((bytes (base64-decode-string pieces))
@@ -823,9 +873,9 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   "Map over SEQ, pushing each element to `tabulated-list-entries'.
 Each form in BODY is a column descriptor."
   (declare (indent 1) (debug t))
-  `(mapc (lambda (elt)
-           (let-alist elt
-             (push (list elt (vector ,@body)) tabulated-list-entries)))
+  `(mapc (lambda (x)
+           (let-alist x
+             (push (list x (vector ,@body)) tabulated-list-entries)))
          ,seq))
 
 (defun transmission-draw-torrents ()
@@ -867,7 +917,7 @@ Each form in BODY is a column descriptor."
   (erase-buffer)
   (let-alist (elt transmission-torrent-vector 0)
     (mapc
-     (lambda (elt) (if elt (insert elt "\n")))
+     (lambda (s) (if s (insert s "\n")))
      (vector
       (format "ID: %d" id)
       (concat "Name: " .name)
@@ -892,13 +942,13 @@ Each form in BODY is a column descriptor."
                                             (if (not (zerop w))
                                                 (cdr (assq 'length f)) 0))
                                           .wanted .files))))
-        (format "Wanted: %s (%d bytes)" (transmission-size wanted) wanted))
-      (format "Downloaded: %s (%d bytes)" (transmission-size .downloadedEver) .downloadedEver)
-      (format "Verified: %s (%d bytes)" (transmission-size .haveValid) .haveValid)
+        (concat "Wanted: " (transmission-format-size wanted)))
+      (concat "Downloaded: " (transmission-format-size .downloadedEver))
+      (concat "Verified: " (transmission-format-size .haveValid))
       (unless (zerop .corruptEver)
-        (format "Corrupt: %s (%d bytes)" (transmission-size .corruptEver) .corruptEver))
-      (format "Total size: %s (%d bytes)" (transmission-size .totalSize) .totalSize)
-      (format "Piece size: %s (%d bytes) each" (transmission-size .pieceSize) .pieceSize)
+        (concat "Corrupt: " (transmission-format-size .corruptEver)))
+      (concat "Total size: " (transmission-format-size .totalSize))
+      (format "Piece size: %s each" (transmission-format-size .pieceSize))
       (let ((have (apply #'+ (mapcar #'transmission-hamming-weight
                                      (base64-decode-string .pieces)))))
         (concat
