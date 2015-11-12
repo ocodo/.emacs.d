@@ -93,6 +93,7 @@
     (define-key map (kbd "C-l") 'swiper-recenter-top-bottom)
     (define-key map (kbd "C-'") 'swiper-avy)
     (define-key map (kbd "C-7") 'swiper-mc)
+    (define-key map (kbd "C-c C-f") 'swiper-toggle-face-matching)
     map)
   "Keymap for swiper.")
 
@@ -175,7 +176,7 @@
          (avy-action-goto (caar candidate)))))))
 
 (declare-function mc/create-fake-cursor-at-point "ext:multiple-cursors-core")
-(declare-function mc/maybe-multiple-cursors-mode "ext:multiple-cursors-core")
+(declare-function multiple-cursors-mode "ext:multiple-cursors-core")
 
 ;;;###autoload
 (defun swiper-mc ()
@@ -191,7 +192,7 @@
              (swiper--action cand)
              (when cands
                (mc/create-fake-cursor-at-point))))
-         (mc/maybe-multiple-cursors-mode)))
+         (multiple-cursors-mode 1)))
       (setq ivy-exit 'done)
       (exit-minibuffer))))
 
@@ -209,7 +210,9 @@
                                  gnus-summary-mode
                                  gnus-article-mode
                                  gnus-group-mode
-                                 emms-playlist-mode erc-mode
+                                 emms-playlist-mode
+                                 emms-stream-mode
+                                 erc-mode
                                  org-agenda-mode
                                  dired-mode
                                  jabber-chat-mode
@@ -221,6 +224,7 @@
                                  mu4e-view-mode
                                  mu4e-headers-mode
                                  help-mode
+                                 debbugs-gnu-mode
                                  w3m-mode)))
     (unless (> (buffer-size) 100000)
       (if (fboundp 'font-lock-ensure)
@@ -316,11 +320,16 @@ there have line numbers. In the buffer, `ivy--regex' should be used."
 (defvar swiper-history nil
   "History for `swiper'.")
 
+(defvar swiper-invocation-face nil
+  "The face at the point of invocation of `swiper'.")
+
 (defun swiper--ivy (&optional initial-input)
   "`isearch' with an overview using `ivy'.
 When non-nil, INITIAL-INPUT is the initial search pattern."
   (interactive)
   (swiper--init)
+  (setq swiper-invocation-face
+        (plist-get (text-properties-at (point)) 'face))
   (let ((candidates (swiper--candidates))
         (preselect (buffer-substring-no-properties
                     (line-beginning-position)
@@ -342,6 +351,33 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
          :caller 'swiper)
       (when (null ivy-exit)
         (goto-char swiper--opoint)))))
+
+(defun swiper-toggle-face-matching ()
+  "Toggle matching only the candidates with `swiper-invocation-face'."
+  (interactive)
+  (setf (ivy-state-matcher ivy-last)
+        (if (ivy-state-matcher ivy-last)
+            nil
+          #'swiper--face-matcher))
+  (setq ivy--old-re nil))
+
+(defun swiper--face-matcher (regexp candidates)
+  "Return REGEXP-matching CANDIDATES.
+Matched candidates should have `swiper-invocation-face'."
+  (cl-remove-if-not
+   (lambda (x)
+     (and
+      (string-match regexp x)
+      (let ((s (match-string 0 x))
+            (i 0))
+        (while (and (< i (length s))
+                    (text-property-any
+                     i (1+ i)
+                     'face swiper-invocation-face
+                     s))
+          (cl-incf i))
+        (eq i (length s)))))
+   candidates))
 
 (defun swiper--ensure-visible ()
   "Remove overlays hiding point."
@@ -392,9 +428,11 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
             (recenter)))
         (swiper--add-overlays re)))))
 
-(defun swiper--add-overlays (re &optional beg end)
+(defun swiper--add-overlays (re &optional beg end wnd)
   "Add overlays for RE regexp in visible part of the current buffer.
-BEG and END, when specified, are the point bounds."
+BEG and END, when specified, are the point bounds.
+WND, when specified is the window."
+  (setq wnd (or wnd (ivy-state-window ivy-last)))
   (let ((ov (if visual-line-mode
                 (make-overlay
                  (save-excursion
@@ -407,7 +445,7 @@ BEG and END, when specified, are the point bounds."
                (line-beginning-position)
                (1+ (line-end-position))))))
     (overlay-put ov 'face 'swiper-line-face)
-    (overlay-put ov 'window (ivy-state-window ivy-last))
+    (overlay-put ov 'window wnd)
     (push ov swiper--overlays)
     (let* ((wh (window-height))
            (beg (or beg (save-excursion
@@ -437,7 +475,7 @@ BEG and END, when specified, are the point bounds."
                                      swiper-faces)))))
                     (push overlay swiper--overlays)
                     (overlay-put overlay 'face face)
-                    (overlay-put overlay 'window (ivy-state-window ivy-last))
+                    (overlay-put overlay 'window wnd)
                     (overlay-put overlay 'priority i)))
                 (cl-incf i)))))))))
 
@@ -445,18 +483,22 @@ BEG and END, when specified, are the point bounds."
   "Goto line X."
   (if (null x)
       (user-error "No candidates")
-    (goto-char (point-min))
-    (funcall (if swiper-use-visual-line
-                 #'line-move
-               #'forward-line)
-             (1- (read (get-text-property 0 'display x))))
-    (re-search-forward
-     (ivy--regex ivy-text) (line-end-position) t)
-    (swiper--ensure-visible)
-    (when (/= (point) swiper--opoint)
-      (unless (and transient-mark-mode mark-active)
-        (push-mark swiper--opoint t)
-        (message "Mark saved where search started")))))
+    (with-ivy-window
+      (unless (equal (current-buffer)
+                     (ivy-state-buffer ivy-last))
+        (switch-to-buffer (ivy-state-buffer ivy-last)))
+      (goto-char (point-min))
+      (funcall (if swiper-use-visual-line
+                   #'line-move
+                 #'forward-line)
+               (1- (read (get-text-property 0 'display x))))
+      (re-search-forward
+       (ivy--regex ivy-text) (line-end-position) t)
+      (swiper--ensure-visible)
+      (when (/= (point) swiper--opoint)
+        (unless (and transient-mark-mode mark-active)
+          (push-mark swiper--opoint t)
+          (message "Mark saved where search started"))))))
 
 ;; (define-key isearch-mode-map (kbd "C-o") 'swiper-from-isearch)
 (defun swiper-from-isearch ()
