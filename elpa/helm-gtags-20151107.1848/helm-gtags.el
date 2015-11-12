@@ -1,12 +1,12 @@
-;;; helm-gtags.el --- GNU GLOBAL helm interface  -*- lexical-binding: t; -*-
+;;; helm-gtags.el --- GNU GLOBAL helm interface -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20151016.201
-;; Version: 1.4.9
-;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
+;; Package-Version: 20151107.1848
+;; Version: 1.5.0
+;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@
 (declare-function cygwin-convert-file-name-to-windows "cygw32.c")
 
 (defgroup helm-gtags nil
-  "GNU GLOBAL for helm"
+  "GNU GLOBAL for helm."
   :group 'helm)
 
 (defcustom helm-gtags-path-style 'root
@@ -181,6 +181,7 @@ Always update if value of this variable is nil."
 (defvar helm-gtags--real-tag-location nil)
 (defvar helm-gtags--last-input nil)
 (defvar helm-gtags--query nil)
+(defvar helm-gtags--last-default-directory nil)
 
 (defconst helm-gtags--buffer "*helm gtags*")
 
@@ -291,7 +292,7 @@ Always update if value of this variable is nil."
         (setq prompt (format "%s(default \"%s\") " prompt tagname)))
       (let ((completion-ignore-case helm-gtags-ignore-case)
             (completing-read-function 'completing-read-default))
-        (if helm-gtags-direct-helm-completing
+        (if (and helm-gtags-direct-helm-completing (memq type '(tag rtag symbol find-file)))
             (helm-comp-read prompt comp-func
                             :history 'helm-gtags--completing-history
                             :exec-when-only-one t
@@ -329,7 +330,8 @@ Always update if value of this variable is nil."
       (setq helm-gtags--tag-location tagroot))))
 
 (defun helm-gtags--base-directory ()
-  (let ((dir (or helm-gtags--local-directory
+  (let ((dir (or helm-gtags--last-default-directory
+                 helm-gtags--local-directory
                  (cl-case helm-gtags-path-style
                    (root (or helm-gtags--real-tag-location
                              helm-gtags--tag-location))
@@ -665,6 +667,8 @@ Always update if value of this variable is nil."
          (filename (car file-and-line))
          (line (cdr file-and-line))
          (default-directory (helm-gtags--base-directory)))
+    (when (eq helm-gtags-path-style 'relative)
+      (setq helm-gtags--last-default-directory default-directory))
     (find-file filename)
     (goto-char (point-min))
     (forward-line (1- line))
@@ -993,7 +997,11 @@ Always update if value of this variable is nil."
                   (file-relative-name buffile (helm-gtags--base-directory))))))
     (format "%s:%d" path (line-number-at-pos))))
 
+(defsubst helm-gtags--clear-variables ()
+  (setq helm-gtags--last-default-directory nil))
+
 (defun helm-gtags--common (srcs tagname)
+  (helm-gtags--clear-variables)
   (let ((helm-quit-if-no-candidate t)
         (helm-execute-action-at-once-if-one t)
         (dir (helm-gtags--searched-directory))
