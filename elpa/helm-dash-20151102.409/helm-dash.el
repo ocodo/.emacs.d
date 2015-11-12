@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20151029.438
+;; Package-Version: 20151102.409
 ;; Version: 1.2.1
 ;; Package-Requires: ((helm "0.0.0") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -229,7 +229,7 @@ See here the reason: https://github.com/areina/helm-dash/issues/17.")
 (defun helm-dash-available-docsets ()
   "Return a list of official docsets (http://kapeli.com/docset_links)."
   (delq nil (mapcar (lambda (docset)
-                      (let ((name (assoc-default 'name (cdr docset))))
+                      (let ((name (assoc-default 'name docset)))
                         (if (and (equal (file-name-extension name) "xml")
                                  (not
                                   (member (file-name-sans-extension name) helm-dash-ignored-docsets)))
