@@ -25,12 +25,13 @@
 ;; Copyright (C) 2015 Google, Inc. (Contributor: Samuel Freilich <sfreilich@google.com>)
 ;; Copyright (C) 2015 Antonis Kanouras <antonis@metadosis.gr>
 ;; Copyright (C) 2015 Howard Melman <hmelman@gmail.com>
+;; Copyright (C) 2015 Danny McClanahan <danieldmcclanahan@gmail.com>
 
 ;; Author: Jason R. Blevins <jrblevin@sdf.org>
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.0
-;; Package-Version: 20151011.1256
+;; Package-Version: 20151108.735
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
 
@@ -258,10 +259,14 @@
 ;;     and save the result in the file `basename.html`, where
 ;;     `basename` is the name of the Markdown file with the extension
 ;;     removed.  *Export and View:* press `C-c C-c v` to export the
-;;     file and view it in a browser.  **For both export commands, the
-;;     output file will be overwritten without notice.**
-;;     *Open:* `C-c C-c o` will open the Markdown source file directly
-;;     using `markdown-open-command'.
+;;     file and view it in a browser.  *Open:* `C-c C-c o` will open
+;;     the Markdown source file directly using `markdown-open-command'.
+;;     *Live Export*: Press `C-c C-c l` to turn on
+;;     `markdown-live-preview-mode' to view the exported output
+;;     side-by-side with the source Markdown. **For all export commands,
+;;     the output file will be overwritten without notice.**
+;;     `markdown-live-preview-window-function' can be customized to open
+;;     in a browser other than `eww'.
 ;;
 ;;     To summarize:
 ;;
@@ -271,6 +276,7 @@
 ;;       - `C-c C-c v`: `markdown-command' > `basename.html` > browser.
 ;;       - `C-c C-c w`: `markdown-command' > kill ring.
 ;;       - `C-c C-c o`: `markdown-open-command'.
+;;       - `C-c C-c l`: `markdown-live-preview-mode' > `*eww*` buffer.
 ;;
 ;;     `C-c C-c c` will check for undefined references.  If there are
 ;;     any, a small buffer will open with a list of undefined
@@ -752,6 +758,7 @@
 ;;     a monetary contribution in June 2015.
 ;;   * Howard Melman <hmelman@gmail.com> for supporting GFM checkboxes
 ;;     as buttons.
+;;   * Danny McClanahan <danieldmcclanahan@gmail.com> for live preview mode.
 
 ;;; Bugs:
 
@@ -1001,6 +1008,18 @@ to `nil' instead. See `font-lock-support-mode' for more details."
 
 (defcustom markdown-make-gfm-checkboxes-buttons t
   "When non-nil, make GFM checkboxes into buttons."
+  :group 'markdown
+  :type 'boolean)
+
+(defcustom markdown-live-preview-window-function 'markdown-live-preview-window-eww
+  "Function to display preview of Markdown output within Emacs. Function must
+update the buffer containing the preview and return the buffer."
+  :group 'markdown
+  :type 'function)
+
+(defcustom markdown-live-preview-delete-export t
+  "When non-nil, deleted exported html file when using
+`markdown-live-preview-export'."
   :group 'markdown
   :type 'boolean)
 
@@ -1942,7 +1961,7 @@ If the point is not in a list item, do nothing."
       (setq indent (markdown-cur-line-indent)))
     ;; Don't skip over whitespace for empty list items (marker and
     ;; whitespace only), just move to end of whitespace.
-    (if (looking-back (concat markdown-regex-list "\\s-*"))
+    (if (looking-back (concat markdown-regex-list "\\s-*") nil)
           (goto-char (match-end 3))
       (skip-syntax-backward "-"))))
 
@@ -2133,7 +2152,7 @@ Group 3 matches the closing backticks."
   "Match GFM quoted code blocks from point to LAST."
   (let (open lang body close all)
     (if (search-forward-regexp
-         "\\(?:\\`\\|[\n\r]+\\s *[\n\r]\\)\\(```\\)\\([^[:space:]]+[[:space:]]*\\|{[^}]*}\\)?$" last t)
+         "\\(?:\\`\\|[\n\r]+\\s *[\n\r]\\)\\(```\\)[ ]?\\([^[:space:]]+[[:space:]]*\\|{[^}]*}\\)?$" last t)
         (progn
           (beginning-of-line)
           (setq open (list (match-beginning 1) (match-end 1))
@@ -2198,7 +2217,7 @@ This helps improve font locking for block constructs such as pre blocks."
   (eval-when-compile (defvar font-lock-beg) (defvar font-lock-end))
   (save-excursion
     (goto-char font-lock-beg)
-    (unless (looking-back "\n\n")
+    (unless (looking-back "\n\n" nil)
       (let ((found (or (re-search-backward "\n\n" nil t) (point-min))))
         (goto-char font-lock-end)
         (when (re-search-forward "\n\n" nil t)
@@ -2220,7 +2239,7 @@ This helps improve font locking for block constructs such as pre blocks."
 (defun markdown-ensure-blank-line-before ()
   "If previous line is not already blank, insert a blank line before point."
   (unless (bolp) (insert "\n"))
-  (unless (or (bobp) (looking-back "\n\\s-*\n")) (insert "\n")))
+  (unless (or (bobp) (looking-back "\n\\s-*\n" nil)) (insert "\n")))
 
 (defun markdown-ensure-blank-line-after ()
   "If following line is not already blank, insert a blank line after point.
@@ -2606,7 +2625,8 @@ header will be inserted."
            (insert text "\n" hdr))
           (t
            (setq hdr (make-string level ?#))
-           (insert hdr " " text (when (null markdown-asymmetric-header) " " hdr)))))
+           (insert hdr " " text)
+           (when (null markdown-asymmetric-header) (insert " " hdr)))))
   (markdown-ensure-blank-line-after)
   ;; Leave point at end of text
   (if setext
@@ -2804,7 +2824,7 @@ Call `markdown-insert-gfm-code-block' interactively
 if three backquotes inserted at the beginning of line."
   (interactive "*P")
   (self-insert-command (prefix-numeric-value arg))
-  (when (looking-back "^```")
+  (when (looking-back "^```" nil)
     (replace-match "")
     (call-interactively #'markdown-insert-gfm-code-block)))
 
@@ -2815,12 +2835,13 @@ region is active, wrap this region with the markup instead.  If
 the region boundaries are not on empty lines, these are added
 automatically in order to have the correct markup."
   (interactive "sProgramming language [none]: ")
+  (when (> (length lang) 0) (setq lang (concat " " lang)))
   (if (markdown-use-region-p)
       (let ((b (region-beginning)) (e (region-end)))
         (goto-char e)
         ;; if we're on a blank line, don't newline, otherwise the ```
         ;; should go on its own line
-        (unless (looking-back "\n")
+        (unless (looking-back "\n" nil)
           (newline))
         (insert "```")
         (markdown-ensure-blank-line-after)
@@ -3381,7 +3402,7 @@ match."
             (let (match)
               (save-match-data
                 (dolist (prev-regexp previous)
-                  (or match (setq match (looking-back prev-regexp)))))
+                  (or match (setq match (looking-back prev-regexp nil)))))
               (unless match
                 (save-excursion (funcall function))))))
         (add-to-list 'previous regexp)))))
@@ -3542,6 +3563,7 @@ Assumes match data is available for `markdown-regex-italic'."
     (define-key map (kbd "C-c C-c e") 'markdown-export)
     (define-key map (kbd "C-c C-c v") 'markdown-export-and-preview)
     (define-key map (kbd "C-c C-c o") 'markdown-open)
+    (define-key map (kbd "C-c C-c l") 'markdown-live-preview-mode)
     (define-key map (kbd "C-c C-c w") 'markdown-kill-ring-save)
     (define-key map (kbd "C-c C-c c") 'markdown-check-refs)
     (define-key map (kbd "C-c C-c n") 'markdown-cleanup-list-numbers)
@@ -3596,6 +3618,8 @@ See also `markdown-mode-map'.")
     ["Export" markdown-export]
     ["Export & View" markdown-export-and-preview]
     ["Open" markdown-open]
+    ["Live Export" markdown-live-preview-mode
+     :style toggle :selected markdown-live-preview-mode]
     ["Kill ring save" markdown-kill-ring-save]
     "---"
     ("Headings"
@@ -4317,6 +4341,7 @@ When ARG is non-nil, repeat that many times.  When ARG is negative,
 move forward to the ARG-th following section."
   (interactive "P")
   (or arg (setq arg 1))
+  (forward-char 1)
   (or (re-search-backward markdown-regex-header nil t arg)
       (goto-char (point-min))))
 
@@ -4653,6 +4678,71 @@ current filename, but with the extension removed and replaced with .html."
   (interactive)
   (browse-url-of-file (markdown-export)))
 
+(defvar-local markdown-live-preview-buffer nil
+  "Buffer used to preview markdown output in `markdown-live-preview-export'.")
+
+(defun markdown-live-preview-window-eww (file)
+  "A `markdown-live-preview-window-function' for previewing with eww."
+  (eww-open-file file)
+  (get-buffer "*eww*"))
+
+(defun markdown-live-preview-window-serialize (buf)
+  "Get window point and scroll data for all windows displaying BUF if BUF is
+non-nil."
+  (when buf
+    (mapcar (lambda (win) (list win (window-point win) (window-start win)))
+            (get-buffer-window-list buf))))
+
+(defun markdown-live-preview-window-deserialize (window-posns)
+  "Apply window point and scroll data from WINDOW-POSNS, given by
+`markdown-live-preview-window-serialize'."
+  (destructuring-bind (win pt start) window-posns
+    (when (window-live-p win)
+      (set-window-buffer win markdown-live-preview-buffer)
+      (set-window-point win pt)
+      (set-window-start win start))))
+
+(defun markdown-live-preview-export ()
+  "Export to XHTML using `markdown-export' and browse the resulting file within
+Emacs using `markdown-live-preview-window-function' Return the buffer displaying
+the rendered output."
+  (interactive)
+  (let ((export-file (markdown-export))
+        ;; get positions in all windows currently displaying output buffer
+        (window-data
+         (markdown-live-preview-window-serialize markdown-live-preview-buffer))
+        (cur-buf (current-buffer)))
+    (save-window-excursion
+      ;; protect against `markdown-live-preview-window-function' changing
+      ;; `current-buffer'
+      (let ((output-buffer
+             (funcall markdown-live-preview-window-function export-file)))
+        (with-current-buffer cur-buf
+          (setq markdown-live-preview-buffer output-buffer))))
+    ;; reset all windows displaying output buffer to where they were, now with
+    ;; the new output
+    (mapc #'markdown-live-preview-window-deserialize window-data)
+    (when (and markdown-live-preview-delete-export
+               export-file (file-exists-p export-file))
+      (delete-file export-file)
+      (let ((buf (get-file-buffer export-file))) (when buf (kill-buffer buf))))
+    markdown-live-preview-buffer))
+
+(defun markdown-live-preview-remove ()
+  (when (buffer-live-p markdown-live-preview-buffer)
+    (kill-buffer markdown-live-preview-buffer))
+  (setq markdown-live-preview-buffer nil))
+
+(defun markdown-live-preview-if-markdown ()
+  (when (and (derived-mode-p 'markdown-mode)
+             markdown-live-preview-mode)
+    (markdown-live-preview-export)))
+
+(defun markdown-live-preview-remove-on-kill ()
+  (when (and (derived-mode-p 'markdown-mode)
+             markdown-live-preview-mode)
+    (markdown-live-preview-remove)))
+
 (defun markdown-open ()
   "Open file for the current buffer with `markdown-open-command'."
   (interactive)
@@ -4754,7 +4844,8 @@ and [[test test]] both map to Test-test.ext."
                              (downcase (substring basename 1 nil)))))
     (let* ((default
             (concat basename
-                    (if (buffer-file-name)
+                    (if (and (buffer-file-name)
+                             (file-name-extension (buffer-file-name)))
                         (concat "."
                                 (file-name-extension (buffer-file-name))))))
            (current default))
@@ -4929,7 +5020,7 @@ This is an exact copy of `line-number-at-pos' for use in emacs21."
 
 (defun markdown-inside-link-text-p ()
   "Return nil if not currently within link anchor text."
-  (looking-back "\\[[^]]*"))
+  (looking-back "\\[[^]]*" nil))
 
 (defun markdown-line-is-reference-definition-p ()
   "Return whether the current line is a (non-footnote) reference defition."
@@ -5217,6 +5308,18 @@ before regenerating font-lock rules for extensions."
          (longlines-mode 1)))
   ;; do the initial link fontification
   (markdown-fontify-buffer-wiki-links))
+
+
+;;; Live Preview Mode  ============================================
+(define-minor-mode markdown-live-preview-mode
+  "Toggle native previewing on save for a specific markdown file."
+  :lighter " MD-Preview"
+  (cond (markdown-live-preview-mode
+         (switch-to-buffer-other-window (markdown-live-preview-export)))
+        (t (markdown-live-preview-remove))))
+
+(add-hook 'after-save-hook #'markdown-live-preview-if-markdown)
+(add-hook 'kill-buffer-hook #'markdown-live-preview-remove-on-kill)
 
 
 (provide 'markdown-mode)
