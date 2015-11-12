@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "tree-mode" "tree-mode.el" (21746 45988 119401
-;;;;;;  0))
+;;;### (autoloads nil "tree-mode" "tree-mode.el" (22084 1809 108917
+;;;;;;  586000))
 ;;; Generated autoloads from tree-mode.el
 
 (autoload 'tree-minor-mode "tree-mode" "\
