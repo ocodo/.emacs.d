@@ -5,10 +5,10 @@
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/flycheck/flycheck-ocaml
-;; Package-Version: 20150609.1301
+;; Package-Version: 20151103.212
 ;; Keywords: convenience, tools, languages
-;; Version: 0.3-cvs
-;; Package-Requires: ((emacs "24.1") (flycheck "0.22") (merlin "2.0") (let-alist "1.0.3"))
+;; Version: 0.4-cvs
+;; Package-Requires: ((emacs "24.1") (flycheck "0.22") (merlin "2.3") (let-alist "1.0.3"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -62,13 +62,6 @@
 
 (require 'merlin)
 (require 'flycheck)
-
-;; Mark `merlin-command-priority' as dynamic variable, to make sure that this
-;; file is compiled correctly against older Merlin versions which don't provide
-;; this variable yet.  Otherwise the byte compiler would treat it as lexical
-;; variable and elide it, and things would not work well if Merlin is updated
-;; afterwards.
-(defvar merlin-command-priority)
 
 (defconst flycheck-ocaml-merlin-message-re
   (rx string-start
@@ -132,17 +125,14 @@ Return the corresponding `flycheck-error'."
       :message (if merlin-error-after-save "enabled" "disabled")
       :face (if merlin-error-after-save '(bold warning) 'success)))))
 
-(defvar-local flycheck-ocaml-merlin-last-errors nil
-  "Caches last errors received from Merlin.")
-
 (defun flycheck-ocaml-merlin-start (checker callback)
   "Start a Merlin syntax check with CHECKER.
 
 CALLBACK is the status callback passed by Flycheck."
-  (condition-case nil
-      (let ((merlin-command-priority 0))
-        (merlin-sync-to-point (point-max) t)
-        (merlin-send-command-async
+  (let ((callback-err (lambda (msg) (funcall callback 'errored msg))))
+    (merlin/sync-async
+      (lambda ()
+        (merlin/send-command-async
          'errors
          (lambda (data)
            (condition-case err
@@ -152,16 +142,10 @@ CALLBACK is the status callback passed by Flycheck."
                                       (flycheck-ocaml-merlin-parse-error alist
                                                                          checker))
                                     data))))
-                 ;; Cache the last errors, for use when Merlin is busy.
-                 (setq flycheck-ocaml-merlin-last-errors errors)
                  (funcall callback 'finished errors))
              (error (funcall callback 'errored (error-message-string err)))))
-         ;; The error callback
-         (lambda (msg)
-           (setq flycheck-ocaml-merlin-last-errors nil)
-           (funcall callback 'errored msg))))
-    (merlin-cancelled
-     (funcall callback 'finished flycheck-ocaml-merlin-last-errors))))
+         callback-err))
+      callback-err)))
 
 (flycheck-define-generic-checker 'ocaml-merlin
   "A syntax checker for OCaml using Merlin Mode.
