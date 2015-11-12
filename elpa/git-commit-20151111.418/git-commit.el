@@ -11,9 +11,9 @@
 ;;	Marius Vollmer <marius.vollmer@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (dash "20151021.113") (with-editor "20151028"))
+;; Package-Requires: ((emacs "24.4") (dash "20151021.113") (with-editor "20151111"))
 ;; Keywords: git tools vc
-;; Package-Version: 20151028.1203
+;; Package-Version: 20151111.418
 ;; Homepage: https://github.com/magit/magit
 
 ;; This file is not part of GNU Emacs.
