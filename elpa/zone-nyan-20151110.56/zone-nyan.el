@@ -4,8 +4,8 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/zone-nyan
-;; Package-Version: 20151030.1510
-;; Version: 0.0.1
+;; Package-Version: 20151110.56
+;; Version: 0.1.1
 ;; Package-Requires: ((esxml "0.3.1"))
 ;; Keywords: zone
 
@@ -37,6 +37,11 @@
 ;;; Code:
 
 (require 'esxml)
+
+(defgroup zone-nyan nil
+  "Zone out with nyan cat"
+  :group 'zone
+  :prefix "zone-nyan-")
 
 
 ;;; palette
@@ -583,8 +588,39 @@ If FLIP is non-nil, the rainbow will be flipped horizontally."
            (zone-nyan-pop-tart 25 (+ 25 pop-tart-offset))
            (zone-nyan-face (+ 35 face-x-offset) (+ 30 face-y-offset))))))))
 
-(defvar zone-nyan-interval (/ 1.0 10)
-  "Amount of time to wait until displaying the next frame.")
+(defcustom zone-nyan-interval 0.07
+  "Amount of time to wait until displaying the next frame."
+  :type 'float
+  :group 'zone-nyan)
+
+(defcustom zone-nyan-bg-music-program nil
+  "Program to call for playing background music."
+  :type '(choice (const :tag "None" nil)
+                 string)
+  :group 'zone-nyan)
+
+(defcustom zone-nyan-bg-music-args nil
+  "Optional list of arguments for `zone-nyan-bg-music-program'."
+  :type '(repeat string)
+  :group 'zone-nyan)
+
+(defvar zone-nyan-bg-music-process nil
+  "Current BG music process.")
+
+(defvar zone-nyan-progress-timer nil
+  "Timer for displaying the progress.
+It fires every 100ms.")
+
+(defvar zone-nyan-progress 0
+  "Holds the current progress of the timer.")
+
+(defun zone-nyan-progress ()
+  "Progress function.
+It informs the user just how many seconds they've wasted on
+watching nyan cat run."
+  (message "You've nyaned for %.1f seconds"
+           (/ zone-nyan-progress 10.0))
+  (setq zone-nyan-progress (1+ zone-nyan-progress)))
 
 ;;;###autoload
 (defun zone-nyan ()
@@ -592,15 +628,33 @@ If FLIP is non-nil, the rainbow will be flipped horizontally."
   (delete-other-windows)
   (setq cursor-type nil)
   (let ((time 0)
-        ;; HACK: zone aborts on read-only buffers
+        ;; HACK zone aborts on read-only buffers
         (inhibit-read-only t))
-    (while (not (input-pending-p))
-      (erase-buffer)
-      (insert (propertize " " 'display
-                          (create-image (zone-nyan-image time) 'svg t)))
-      (message "You've nyaned for %.1f seconds" (* time zone-nyan-interval))
-      (setq time (1+ time))
-      (sit-for zone-nyan-interval))))
+    (unwind-protect
+        (progn
+          (when zone-nyan-bg-music-program
+            (condition-case nil
+                (setq zone-nyan-bg-music-process
+                      (apply 'start-process "zone nyan" nil
+                             zone-nyan-bg-music-program
+                             zone-nyan-bg-music-args))
+              (error
+               (message "Couldn't start background music")
+               (sit-for 5))))
+          (setq zone-nyan-progress 0
+                zone-nyan-progress-timer
+                (run-at-time 0 0.1 'zone-nyan-progress))
+          (while (not (input-pending-p))
+            (erase-buffer)
+            (insert (propertize " " 'display
+                                (create-image (zone-nyan-image time) 'svg t)))
+            (goto-char (point-min))
+            (sit-for zone-nyan-interval)
+            (setq time (1+ time))))
+      (when zone-nyan-bg-music-process
+        (delete-process zone-nyan-bg-music-process))
+      (when zone-nyan-progress-timer
+        (cancel-timer zone-nyan-progress-timer)))))
 
 ;;;###autoload
 (defun zone-nyan-preview ()
