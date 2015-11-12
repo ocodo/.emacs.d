@@ -389,7 +389,7 @@ File: magit-popup.info,  Node: Other options,  Prev: Customizing existing popups
         • ‘nil’
 
           Ignore prefix arguments.
-     This option can be overriden for individual popups.
+     This option can be overridden for individual popups.
      ‘magit-show-refs-popup’ for example defaults to invoking the
      default action directly.  It only shows the popup buffer when a
      prefix argument is used.  See *note Customizing existing popups:
@@ -572,22 +572,33 @@ commands have to be defined separately using plain ‘defun’.
           enabled by default) and options with there default values, as
           in "–OPT~OPTVAL\".
 
-        • ‘:man-page’
-
-          The name of the manpage to be displayed when the user requests
-          help for an argument.
-     When MODE is ‘magit-popup-sequence-mode’, then the following
-     keywords are also meaningful:
-
         • ‘:sequence-predicate’
 
           When this function returns non-nil, then the popup uses
-          ‘:sequence-actions’ instead of ‘:actions’.
+          ‘:sequence-actions’ instead of ‘:actions’, and does not show
+          the ‘:switches’ and ‘:options’.
 
         • ‘:sequence-actions’
 
           The actions which can be invoked from the popup, when
           ‘:sequence-predicate’ returns non-nil.
+
+        • ‘:setup-function’
+
+          When this function is specified, then it is used instead of
+          ‘magit-popup-default-setup’.
+
+        • ‘:refresh-function’
+
+          When this function is specified, then it is used instead of
+          calling ‘magit-popup-insert-section’ three times with symbols
+          ‘magit-popup-switch-button’, ‘magit-popup-option-button’, and
+          finally ‘magit-popup-action-button’ as argument.
+
+        • ‘:man-page’
+
+          The name of the manpage to be displayed when the user requests
+          help for an argument.
 
 
 File: magit-popup.info,  Node: Defining suffix commands,  Prev: Defining prefix commands,  Up: Defining prefix and suffix commands
@@ -652,9 +663,9 @@ Node: Introduction2158
 Node: Usage4735
 Node: Customizing existing popups9392
 Node: Other options13961
-Node: Defining prefix and suffix commands15666
-Node: Defining prefix commands17818
-Node: Defining suffix commands23825
+Node: Defining prefix and suffix commands15667
+Node: Defining prefix commands17819
+Node: Defining suffix commands24265
 
 End Tag Table
 
