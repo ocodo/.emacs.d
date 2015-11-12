@@ -162,7 +162,62 @@ mode which should be enabled by default in current Emacsen.  *Note
 (emacs)Font Lock::, for more information on how to control
 ‘font-lock-mode’.
 
-4.2 Completion support
+4.2 Managing imports
+====================
+
+There are a few functions for managing imports.
+
+4.2.1 Jump to imports
+---------------------
+
+To jump to your import list, run
+
+   ‘M-x haskell-navigate-imports’
+
+   It’s nicer to have a keybinding to do this, for example:
+
+     (define-key haskell-mode-map [f8] 'haskell-navigate-imports)
+
+   You can hit it repeatedly to jump between groups of imports.  It will
+cycle.
+
+4.2.2 Format imports
+--------------------
+
+To generally format (sort, align) your imports, you can run
+
+   ‘M-x haskell-mode-format-imports’
+
+   Or ‘C-c C-.’.
+
+4.2.3 Sort imports
+------------------
+
+To just sort imports, jump to an import section and run
+
+   ‘M-x haskell-sort-imports’
+
+4.2.4 Align imports
+-------------------
+
+To just align imports, jump to an import section and run
+
+   ‘M-x haskell-align-imports’
+
+4.2.5 Entering imports
+----------------------
+
+If you have Haskell Interactive Mode enabled and a session open, you can
+write
+
+   ‘import’
+
+   And then hit ‘SPC’ (running ‘M-x haskell-mode-contextual-space’)
+which will prompt a list of all modules, either installed modules or
+local project directory files.  Then it’ll insert it and then format
+that module section.
+
+4.3 Completion support
 ======================
 
 ‘haskell-mode’ can complete symbols, pragma directives and language
@@ -370,6 +425,60 @@ to add the following to your Emacs initialization:
      (eval-after-load "which-func"
        '(add-to-list 'which-func-modes 'haskell-mode))
 
+7.1 Speedbar
+============
+
+Haskell-mode comes with declaration scanning support.  This means that
+if you enable Haskell support for speedbar:
+
+     (speedbar-add-supported-extension ".hs")
+
+   And open speedbar with
+
+   ‘M-x speedbar’
+
+   It gives a listing of each module and under each module:
+
+         Imports
+         Instances
+         Data types
+         Classes
+         Bindings
+
+   You will get a bar that looks like this:
+
+~/Projects/ace/src/ACE/
+0:<+> Types
+0:[+] Combinators.hs
+0:[-] Datalog.hs
+1:   {-} Classes
+2:      > ToTerm
+1:   {-} Imports
+2:      > ACE.Types.Syntax
+2:      > Database.Datalog
+1:   {-} Instances
+2:    {+} ToTerm A
+2:    {+} ToTerm Co to ToTerm Gen
+2:    {+} ToTerm Intransitive to ToTerm N
+2:    {+} ToTerm P
+2:    {+} ToTerm Quotation to ToTerm Un
+2:    {+} ToTerm V
+0:[-] Html.hs
+1:   {+} Imports
+1:   {+} Instances
+1:     > mtoMarkup
+1:     > toMarkupm
+1:     > wrap
+0:[-] Parsers.hs
+1:   {+} Imports
+1:   {-} Datatypes
+2:      > ACEParser
+0:[+] Pretty.hs
+0:[+] Tokenizer.hs
+
+   The hierarchy is expandable/collapsible and each entry will jump to
+the line in the right file when clicked/selected.
+
 
 File: haskell-mode.info,  Node: Compilation,  Next: Inferior Haskell interpreter,  Prev: Declaration scanning,  Up: Top
 
@@ -494,7 +603,17 @@ associated with at most one GHCi session, so when you call
 session associated yet, you’re asked which GHCi session to create or
 associate with.
 
-   TODO/WRITEME
+10.1 Using GHCi-ng
+==================
+
+Put ‘:set +c’ in your ‘.ghci’ or run it in the REPL. Then use these
+keybindings:
+
+     (define-key interactive-haskell-mode-map (kbd "M-.") 'haskell-mode-goto-loc)
+     (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at)
+
+   You have to load the module before it works, after that it will
+remember for the current GHCi session.
 
 
 File: haskell-mode.info,  Node: Editing Cabal files,  Next: Changing REPL target,  Prev: Interactive Haskell,  Up: Top
@@ -634,21 +753,21 @@ Node: Introduction1948
 Node: Getting Help and Reporting Bugs2465
 Node: Getting Started3927
 Node: Editing Haskell Code4923
-Ref: Editing Haskell Code-Footnote-17216
-Ref: Editing Haskell Code-Footnote-27307
-Ref: Editing Haskell Code-Footnote-37366
-Node: Unicode support7450
-Node: Indentation9140
-Ref: Indentation-Footnote-113028
-Node: Declaration scanning13213
-Node: Compilation15350
-Node: Inferior Haskell interpreter18120
-Node: Interactive Haskell19050
-Node: Editing Cabal files20927
-Node: Changing REPL target21813
-Node: Concept index22389
-Node: Function index23358
-Node: Variable index25688
+Ref: Editing Haskell Code-Footnote-18453
+Ref: Editing Haskell Code-Footnote-28544
+Ref: Editing Haskell Code-Footnote-38603
+Node: Unicode support8687
+Node: Indentation10377
+Ref: Indentation-Footnote-114265
+Node: Declaration scanning14450
+Node: Compilation17729
+Node: Inferior Haskell interpreter20499
+Node: Interactive Haskell21429
+Node: Editing Cabal files23698
+Node: Changing REPL target24584
+Node: Concept index25160
+Node: Function index26129
+Node: Variable index28459
 
 End Tag Table
 
