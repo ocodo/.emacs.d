@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2015 François-Xavier Bois
 
-;; Version: 12.4.2
-;; Package-Version: 20151029.1253
+;; Version: 13.0.2
+;; Package-Version: 20151110.2301
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: July 2011
@@ -20,14 +20,9 @@
 
 ;; Code goes here
 
-;;---- TODO --------------------------------------------------------------------
-
-;; v13 : invert path and XX (web-mode-engines-alist,
-;;       web-mode-content-types-alist) for more consistency
-
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "12.4.2"
+(defconst web-mode-version "13.0.2"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -61,7 +56,7 @@
   :type 'integer
   :group 'web-mode)
 
-(defcustom web-mode-jsx-expression-padding 2
+(defcustom web-mode-jsx-expression-padding 0
   "Multi-line jsx expression left padding."
   :type 'integer
   :group 'web-mode)
@@ -625,12 +620,12 @@ Must be used in conjunction with web-mode-enable-block-face."
 
 (defvar web-mode-auto-pairs nil)
 (defvar web-mode-block-regexp nil)
+(defvar web-mode-change-beg nil)
+(defvar web-mode-change-end nil)
 (defvar web-mode-chunk-length 64)
 (defvar web-mode-column-overlays nil)
 (defvar web-mode-comments-invisible nil)
 (defvar web-mode-content-type "")
-(defvar web-mode-inhibit-fontification nil)
-(defvar web-mode-end-tag-overlay nil)
 (defvar web-mode-engine nil)
 (defvar web-mode-engine-attr-regexp nil)
 (defvar web-mode-engine-font-lock-keywords nil)
@@ -639,19 +634,20 @@ Must be used in conjunction with web-mode-enable-block-face."
 (defvar web-mode-expand-initial-scroll nil)
 (defvar web-mode-expand-previous-state "")
 (defvar web-mode-font-lock-keywords '(web-mode-font-lock-highlight))
-(defvar web-mode-change-beg nil)
-(defvar web-mode-change-end nil)
-(defvar web-mode-hook nil)
+(defvar web-mode-inhibit-fontification nil)
+;;(defvar web-mode-hook nil)
 (defvar web-mode-inlay-regexp nil)
 (defvar web-mode-is-scratch nil)
 (defvar web-mode-jshint-errors 0)
-(defvar web-mode-obarray nil)
-(defvar web-mode-snippets nil)
-(defvar web-mode-start-tag-overlay nil)
 (defvar web-mode-minor-engine nil)
+(defvar web-mode-obarray nil)
+(defvar web-mode-overlay-tag-start nil)
+(defvar web-mode-overlay-tag-end nil)
+(defvar web-mode-snippets nil)
 (defvar web-mode-time (current-time))
 
-(defvar web-mode-pre-elements '("code" "pre" "textarea"))
+(defvar web-mode-pre-elements
+  '("code" "pre" "textarea"))
 
 (defvar web-mode-void-elements
   '("area" "base" "br" "col" "command" "embed" "hr" "img" "input" "keygen"
@@ -1950,6 +1946,14 @@ Auto-complete sources will sometimes need some tweaking to work
 nicely with web-mode. This hook gives users the chance to adjust
 the environment as needed for ac-sources, right before they're used.")
 
+(defvar web-mode-ignore-ac-start-advice nil
+  "If not nil 'defadvice' for 'ac-start' will be ignored.
+
+Can be set inside a hook in 'web-mode-before-auto-complete-hooks' to
+non nil to ignore the defadvice which sets ac-sources according to current
+language. This is needed if the corresponding auto-completion triggers
+another auto-completion with different ac-sources (e.g. ac-php)")
+
 (defvar web-mode-ac-sources-alist nil
   "alist mapping language names to ac-sources for that language.")
 
@@ -2170,13 +2174,13 @@ the environment as needed for ac-sources, right before they're used.")
   (make-local-variable 'web-mode-comment-style)
   (make-local-variable 'web-mode-content-type)
   (make-local-variable 'web-mode-css-indent-offset)
-  (make-local-variable 'web-mode-inhibit-fontification)
   (make-local-variable 'web-mode-display-table)
+  (make-local-variable 'web-mode-django-control-blocks)
+  (make-local-variable 'web-mode-django-control-blocks-regexp)
   (make-local-variable 'web-mode-enable-block-face)
   (make-local-variable 'web-mode-enable-inlays)
   (make-local-variable 'web-mode-enable-part-face)
   (make-local-variable 'web-mode-enable-sexp-functions)
-  (make-local-variable 'web-mode-end-tag-overlay)
   (make-local-variable 'web-mode-engine)
   (make-local-variable 'web-mode-engine-attr-regexp)
   (make-local-variable 'web-mode-engine-file-regexps)
@@ -2186,17 +2190,16 @@ the environment as needed for ac-sources, right before they're used.")
   (make-local-variable 'web-mode-expand-initial-scroll)
   (make-local-variable 'web-mode-expand-previous-state)
   (make-local-variable 'web-mode-indent-style)
+  (make-local-variable 'web-mode-inhibit-fontification)
   (make-local-variable 'web-mode-is-scratch)
   (make-local-variable 'web-mode-jshint-errors)
   (make-local-variable 'web-mode-last-enabled-feature)
   (make-local-variable 'web-mode-markup-indent-offset)
-  (make-local-variable 'web-mode-sql-indent-offset)
-  (make-local-variable 'web-mode-start-tag-overlay)
   (make-local-variable 'web-mode-minor-engine)
+  (make-local-variable 'web-mode-overlay-tag-end)
+  (make-local-variable 'web-mode-overlay-tag-start)
+  (make-local-variable 'web-mode-sql-indent-offset)
   (make-local-variable 'web-mode-time)
-
-  (make-local-variable 'web-mode-django-control-blocks)
-  (make-local-variable 'web-mode-django-control-blocks-regexp)
 
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start)
@@ -2213,11 +2216,6 @@ the environment as needed for ac-sources, right before they're used.")
   (make-local-variable 'indent-line-function)
   (make-local-variable 'parse-sexp-lookup-properties)
   (make-local-variable 'yank-excluded-properties)
-
-  ;; NOTE: required for block-code-beg|end
-  ;;(make-local-variable 'text-property-default-nonsticky)
-  ;;(add-to-list 'text-property-default-nonsticky '(block-token . t))
-  ;;(message "%S" text-property-default-nonsticky)
 
   (setq comment-end "-->"
         comment-start "<!--"
@@ -4907,8 +4905,7 @@ the environment as needed for ac-sources, right before they're used.")
    (save-excursion
      (save-restriction
        (save-match-data
-         (let (
-               (buffer-undo-list t)
+         (let ((buffer-undo-list t)
                ;;(inhibit-modification-hooks t)
                (inhibit-point-motion-hooks t)
                (inhibit-quit t))
@@ -5960,20 +5957,20 @@ the environment as needed for ac-sources, right before they're used.")
   )
 
 (defun web-mode-make-tag-overlays ()
-  (unless web-mode-start-tag-overlay
-    (setq web-mode-start-tag-overlay (make-overlay 1 1)
-          web-mode-end-tag-overlay (make-overlay 1 1))
-    (overlay-put web-mode-start-tag-overlay
+  (unless web-mode-overlay-tag-start
+    (setq web-mode-overlay-tag-start (make-overlay 1 1)
+          web-mode-overlay-tag-end (make-overlay 1 1))
+    (overlay-put web-mode-overlay-tag-start
                  'font-lock-face
                  'web-mode-current-element-highlight-face)
-    (overlay-put web-mode-end-tag-overlay
+    (overlay-put web-mode-overlay-tag-end
                  'font-lock-face
                  'web-mode-current-element-highlight-face)))
 
 (defun web-mode-delete-tag-overlays ()
-  (when web-mode-start-tag-overlay
-    (delete-overlay web-mode-start-tag-overlay)
-    (delete-overlay web-mode-end-tag-overlay)))
+  (when web-mode-overlay-tag-start
+    (delete-overlay web-mode-overlay-tag-start)
+    (delete-overlay web-mode-overlay-tag-end)))
 
 (defun web-mode-column-overlay-factory (index)
   (let (overlay)
@@ -6062,8 +6059,8 @@ the environment as needed for ac-sources, right before they're used.")
      (t
       (web-mode-make-tag-overlays)
       (setq len (length (get-text-property (caar ctx) 'tag-name)))
-      (move-overlay web-mode-start-tag-overlay (+ (caar ctx) 1) (+ (caar ctx) 1 len))
-      (move-overlay web-mode-end-tag-overlay (+ (cadr ctx) 2) (+ (cadr ctx) 2 len))
+      (move-overlay web-mode-overlay-tag-start (+ (caar ctx) 1) (+ (caar ctx) 1 len))
+      (move-overlay web-mode-overlay-tag-end (+ (cadr ctx) 2) (+ (cadr ctx) 2 len))
       ) ;t
      ) ;cond
     ))
@@ -6274,11 +6271,25 @@ the environment as needed for ac-sources, right before they're used.")
           (setq reg-beg (1+ reg-beg))
           (save-excursion
             (goto-char reg-beg)
-            (setq reg-col (+ (current-column)
-                             (cond
-                              ((looking-at-p "[ ]*$") web-mode-jsx-expression-padding)
-                              ((looking-at "[ ]+") (length (match-string-no-properties 0)))
-                              (t 0))))
+            ;;(setq reg-col (+ (current-column)
+            ;;                 (cond
+            ;;                  ((looking-at-p "[ ]*$") web-mode-jsx-expression-padding)
+            ;;                  ((looking-at "[ ]+") (length (match-string-no-properties 0)))
+            ;;                  (t 0))))
+
+            (cond
+             ((and (not (looking-at-p "[ ]*$"))
+                   (looking-back "^[[:space:]]*{"))
+              (setq reg-col (+ (current-indentation) 1
+                               (cond
+                                ((looking-at "[ ]+") (length (match-string-no-properties 0)))
+                                (t 0))
+                               ))
+              )
+             (t
+              (setq reg-col (+ (current-indentation) web-mode-code-indent-offset web-mode-jsx-expression-padding)))
+             )
+            ;;(message "%S %S %S" (point) (current-indentation) reg-col)
             ) ;save-excursion
           )
          ((string= web-mode-content-type "jsx")
@@ -6500,8 +6511,7 @@ the environment as needed for ac-sources, right before they're used.")
              (options (plist-get ctx :options))
              (chars (list curr-char prev-char)))
 
-        ;;(message "[%c] [%c]\n%S" curr-char prev-char ctx)
-        ;;(message "%S" prev-line)
+        ;;(message "curr-char=[%c] prev-char=[%c]\n%S" curr-char prev-char ctx)
 
         (cond
 
@@ -6587,8 +6597,10 @@ the environment as needed for ac-sources, right before they're used.")
 
          ((and (member language '("html" "xml" "javascript" "jsx"))
                (get-text-property pos 'tag-type)
-               (not (get-text-property pos 'tag-beg)))
-
+               (not (get-text-property pos 'tag-beg))
+               (or (not (string= language "jsx"))
+                   (string= options "is-html")))
+          ;;(message "html-attr")
           (cond
            ((and (get-text-property pos 'tag-attr)
                  (get-text-property (1- pos) 'tag-attr)
@@ -6612,6 +6624,7 @@ the environment as needed for ac-sources, right before they're used.")
          ((or (member language '("html" "xml"))
               (and (member language '("jsx"))
                    (string= options "is-html")))
+          ;;(message "html")
           (cond
            ((get-text-property pos 'tag-beg)
             (setq offset (web-mode-markup-indentation pos))
@@ -6656,7 +6669,7 @@ the environment as needed for ac-sources, right before they're used.")
           (setq offset (web-mode-lisp-indentation pos ctx)))
 
          ((member curr-char '(?\} ?\) ?]))
-
+          ;;(message "coucou")
           ;; TODO: create web-mode-part-opening-paren-position
           (let (ori)
             (if (get-text-property pos 'block-side)
@@ -6712,7 +6725,7 @@ the environment as needed for ac-sources, right before they're used.")
                (or (eq prev-char ?\))
                    (string-match-p "^else$" prev-line))
                (not (string-match-p "^\\([{.]\\|->\\)" curr-line)))
-          ;;(message "ici");
+          ;;(message "ici")
           (cond
            ((member language '("javascript" "jsx" "ejs"))
             (setq offset
@@ -6733,6 +6746,7 @@ the environment as needed for ac-sources, right before they're used.")
                (member ?\. chars)
                (not (string-match-p "^\\.\\.\\." curr-line))
                )
+          ;;(message "js-lineup")
           (when (web-mode-javascript-calls-beginning pos reg-beg)
             (cond
              ((cdr (assoc "lineup-calls" web-mode-indentation-params))
@@ -6751,6 +6765,7 @@ the environment as needed for ac-sources, right before they're used.")
           )
 
          ((and (member language '("javascript" "jsx" "ejs")) (member ?\+ chars))
+          ;;(message "js-concat")
           (cond
            ((not (web-mode-javascript-string-beginning pos reg-beg))
             )
@@ -6771,6 +6786,7 @@ the environment as needed for ac-sources, right before they're used.")
          ((and (member language '("javascript" "jsx" "ejs" "php"))
                (string-match-p "=>$" prev-line))
           (setq offset (+ prev-indentation web-mode-code-indent-offset))
+          ;;(message "ici%S" offset)
           )
 
          ;; #446
@@ -6779,6 +6795,7 @@ the environment as needed for ac-sources, right before they're used.")
                    (string-match-p "^[+-&|?:]" curr-line))
                (not (and (eq prev-char ?\:)
                          (string-match-p "^\\(case\\|default\\)" prev-line))))
+          ;;(message "la")
           (cond
            ((not (funcall (if (member language '("javascript" "jsx" "ejs"))
                               'web-mode-javascript-statement-beginning
@@ -6910,28 +6927,6 @@ the environment as needed for ac-sources, right before they're used.")
       ) ;when
 
     ))
-
-;; (defun web-mode-markup-indentation (pos)
-;;   (save-excursion
-;;     (goto-char pos)
-;;     (let ((offset 0) beg ret)
-;;       (setq beg (web-mode-markup-indentation-origin))
-;;       (when beg
-;;         (when (and (get-text-property pos 'jsx-depth)
-;;                    (not (get-text-property beg 'jsx-depth)))
-;;           (setq beg (web-mode-jsx-depth-beginning-position pos)))
-;;         (goto-char beg)
-;;         (setq ret (web-mode-element-is-opened beg pos))
-;;         (cond
-;;          ((null ret)
-;;           (setq offset (current-indentation)))
-;;          ((eq ret t)
-;;           (setq offset (+ (current-indentation) web-mode-markup-indent-offset)))
-;;          (t
-;;           (setq offset ret))
-;;          ) ;cond
-;;         ) ;when beg
-;;       offset)))
 
 (defun web-mode-markup-indentation (pos)
   (let ((offset 0) beg ret)
@@ -7913,12 +7908,13 @@ Pos should be in a tag."
         (deactivate-mark)
         ))))
 
-(defun web-mode-element-wrap ()
-  "Wrap current REGION with start and end tags."
+(defun web-mode-element-wrap (&optional tag-name)
+  "Wrap current REGION with start and end tags.
+Prompt user if TAG-NAME isn't provided."
   (interactive)
   (let (beg end pos tag sep)
     (save-excursion
-      (setq tag (read-from-minibuffer "Tag name? "))
+      (setq tag (or tag-name (read-from-minibuffer "Tag name? ")))
       (setq pos (point))
       (cond
        (mark-active
@@ -8981,8 +8977,15 @@ Pos should be in a tag."
         (backward-char)
         (setq auto-quoted t))
        ((and (eq char ?\")
+             (looking-back "=[ ]*\"")
              (not (looking-at-p "[ ]*[\"]")))
         (insert "\"")
+        (backward-char)
+        (setq auto-quoted t))
+       ((and (eq char ?\')
+             (looking-back "=[ ]*'")
+             (not (looking-at-p "[ ]*[']")))
+        (insert "'")
         (backward-char)
         (setq auto-quoted t))
        ((and (eq char ?\")
@@ -11201,14 +11204,17 @@ Pos should be in a tag."
 
 (defadvice ac-start (before web-mode-set-up-ac-sources activate)
   "Set `ac-sources' based on current language before running auto-complete."
-  (if (equal major-mode 'web-mode)
-      (progn
-        (run-hooks 'web-mode-before-auto-complete-hooks)
-        (when web-mode-ac-sources-alist
-          (let ((new-web-mode-ac-sources
-                 (assoc (web-mode-language-at-pos)
-                        web-mode-ac-sources-alist)))
-            (setq ac-sources (cdr new-web-mode-ac-sources)))))))
+  (when (equal major-mode 'web-mode)
+    ;; set ignore each time to nil. User has to implement a hook to change it
+    ;; for each completion
+    (setq web-mode-ignore-ac-start-advice nil)
+    (run-hooks 'web-mode-before-auto-complete-hooks)
+    (unless web-mode-ignore-ac-start-advice
+      (when web-mode-ac-sources-alist
+        (let ((new-web-mode-ac-sources
+               (assoc (web-mode-language-at-pos)
+                      web-mode-ac-sources-alist)))
+          (setq ac-sources (cdr new-web-mode-ac-sources)))))))
 
 ;;---- MINOR MODE ADDONS -------------------------------------------------------
 
