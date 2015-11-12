@@ -2,7 +2,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/auto-yasnippet
-;; Package-Version: 20150925.1557
+;; Package-Version: 20151109.410
 ;; Version: 0.3
 ;; Package-Requires: ((yasnippet "0.8.0"))
 
@@ -101,6 +101,10 @@
   "Directory to save auto yasnippets."
   :type 'directory)
 
+(defcustom aya-create-with-newline nil
+  "If non-nil `aya-create' creates snippet with trailing newline."
+  :type 'boolean)
+
 (defvar aya-current ""
   "Used as snippet body, when `aya-expand' is called.")
 
@@ -123,6 +127,13 @@ But if you set [A-Za-z0-9-_], Foo_bar will expand to $1.")
   "Function to call if no snippet markers were on line / in region.")
 (make-variable-buffer-local 'aya-default-function)
 
+(defun aya--maybe-append-newline (str)
+  "Append newline to STR if `aya-create-with-newline' is non-nil."
+  (if (and aya-create-with-newline
+           (not (string= "\n" (substring str -1))))
+      (concat str "\n")
+    str))
+
 ;;;###autoload
 (defun aya-create-one-line ()
   "A simplistic `aya-create' to create only one mirror.
@@ -132,18 +143,23 @@ It uses a different marker, which is `aya-marker-one-line'.
 You can use it to quickly generate one-liners such as
 menu.add_item(spamspamspam, \"spamspamspam\")"
   (interactive)
-  (let* ((beg (line-beginning-position))
-         (end (line-end-position))
-         (line (buffer-substring-no-properties beg (point))))
-    (when (string-match "\\$" line)
-      (setq line
-            (concat
-             (replace-regexp-in-string "\\$" "$1" line)
-             "$1"
-             (buffer-substring-no-properties (point) end)))
-      (delete-region beg end)
-      (setq aya-current line)
-      (yas-expand-snippet line))))
+  (when aya-marker-one-line
+    (let* ((beg (line-beginning-position))
+           (end (line-end-position))
+           (line (buffer-substring-no-properties beg (point)))
+           (re (regexp-quote aya-marker-one-line)))
+      (when (and (not (string-match (regexp-quote aya-marker) line))
+                 (string-match re line))
+        (setq line
+              (aya--maybe-append-newline
+               (concat
+                (replace-regexp-in-string re "$1" line)
+                (if (= (point) end) "" "$1")
+                (buffer-substring-no-properties (point) end))))
+        (delete-region beg end)
+        (when aya-create-with-newline (delete-char 1))
+        (setq aya-current line)
+        (yas-expand-snippet line)))))
 
 (defun aya--parse (str)
   "Parse STR."
@@ -191,9 +207,10 @@ with words prefixed by `aya-marker' as fields, and mirrors properly set up."
                  (lambda (x) (if (consp x) (cdr x) x))
                  res ""))
         (setq aya-current
-              (mapconcat
-               (lambda (x) (if (consp x) (format "$%d" (car x)) x))
-               res ""))
+              (aya--maybe-append-newline
+               (mapconcat
+                (lambda (x) (if (consp x) (format "$%d" (car x)) x))
+                res "")))
         ;; try some other useful action if it's defined for current buffer
         (and (functionp aya-default-function)
              (funcall aya-default-function))))))
