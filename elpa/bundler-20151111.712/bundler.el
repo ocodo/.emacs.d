@@ -4,11 +4,11 @@
 
 ;; Author: Tobias Svensson <tob@tobiassvensson.co.uk>
 ;; URL: http://github.com/tobiassvn/
-;; Package-Version: 20150824.440
+;; Package-Version: 20151111.712
 ;; Keywords: bundler ruby
 ;; Created: 31 Dec 2011
 ;; Version: 1.1.1
-;; Package-Requires: ((inf-ruby "2.1") (cl-lib "0.5")
+;; Package-Requires: ((inf-ruby "2.1") (cl-lib "0.5"))
 
 ;; This file is NOT part of GNU Emacs.
 
