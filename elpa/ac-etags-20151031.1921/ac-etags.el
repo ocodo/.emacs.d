@@ -1,11 +1,11 @@
 ;;; ac-etags.el --- etags/ctags completion source for auto-complete
 
-;; Copyright (C) 2013 by Syohei YOSHIDA
+;; Copyright (C) 2015 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-ac-etags
-;; Version: 20131127.311
-;; X-Original-Version: 0.06
+;; Package-Version: 20151031.1921
+;; Version: 0.06
 ;; Package-Requires: ((auto-complete "1.4"))
 
 ;; This program is free software; you can redistribute it and/or modify

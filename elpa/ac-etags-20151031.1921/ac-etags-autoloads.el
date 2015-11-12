@@ -1,10 +1,10 @@
 ;;; ac-etags-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (ac-etags-setup ac-etags-clear-cache ac-etags-ac-setup)
-;;;;;;  "ac-etags" "ac-etags.el" (21223 22942 0 0))
+;;;### (autoloads nil "ac-etags" "ac-etags.el" (22084 2032 812929
+;;;;;;  623000))
 ;;; Generated autoloads from ac-etags.el
 
 (autoload 'ac-etags-ac-setup "ac-etags" "\
@@ -24,16 +24,9 @@ Add `ac-source-etags' to `ac-sources' and enable `auto-complete' mode
 
 ;;;***
 
-;;;### (autoloads nil nil ("ac-etags-pkg.el") (21223 22942 770376
-;;;;;;  0))
-
-;;;***
-
-(provide 'ac-etags-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; ac-etags-autoloads.el ends here
