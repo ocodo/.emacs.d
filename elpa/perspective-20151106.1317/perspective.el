@@ -6,7 +6,7 @@
 
 ;; Author: Natalie Weizenbaum <nex342@gmail.com>
 ;; URL: http://github.com/nex3/perspective-el
-;; Package-Version: 20151016.1423
+;; Package-Version: 20151106.1317
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 1.12
 ;; Created: 2008-03-05
@@ -202,7 +202,7 @@ Run with the activated perspective active.")
 (make-variable-frame-local
  (defvar perspectives-hash nil
    "A hash containing all perspectives. The keys are the
-perspetives' names. The values are persp structs,
+perspectives' names. The values are persp structs,
 with the fields NAME, WINDOW-CONFIGURATION, BUFFERS,
 BUFFER-HISTORY, KILLED, POINT-MARKER, and LOCAL-VARIABLES.
 
