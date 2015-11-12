@@ -4,10 +4,10 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20151030.206
+;; Package-Version: 20151110.747
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
-;; Package-Requires:  ((projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
+;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -268,10 +268,14 @@ The bound variables are \"singular\" and \"plural\"."
        (projectile-rails-goto-file
         (if (= (length files) 1)
             (gethash (-first-item files) choices)
-          (concat
-           (f-dirname (gethash (-first-item files) choices))
-           (projectile-completing-read "Which exactly: " files)))
-        t))))
+          (projectile-rails--choose-file-or-new choices files))))))
+
+(defun projectile-rails--choose-file-or-new (choices files)
+  (let* ((choice (projectile-completing-read "Which exactly: " files))
+         (candidate (gethash choice choices)))
+    (if (f-exists? (projectile-expand-root candidate))
+        candidate
+      (concat (f-dirname (gethash (-first-item files) choices)) choice))))
 
 (defun projectile-rails-spring-p ()
   (let ((path (concat temporary-file-directory "spring/%s"))
@@ -357,6 +361,13 @@ The bound variable is \"filename\"."
    "controller: "
    '(("app/controllers/" "/controllers/\\(.+\\)_controller\\.rb$"))
    "app/controllers/${filename}_controller.rb"))
+
+(defun projectile-rails-find-serializer ()
+  (interactive)
+  (projectile-rails-find-resource
+   "serializer: "
+   '(("app/serializers/" "/serializers/\\(.+\\)_serializer\\.rb$"))
+   "app/serializers/${filename}_serializer.rb"))
 
 (defun projectile-rails-find-view ()
   (interactive)
@@ -487,6 +498,12 @@ The bound variable is \"filename\"."
   (projectile-rails-find-current-resource "app/controllers/"
                                           "app/controllers/\\(.*${plural}\\)_controller\\.rb$"
                                           'projectile-rails-find-controller))
+
+(defun projectile-rails-find-current-serializer ()
+  (interactive)
+  (projectile-rails-find-current-resource "app/serializers/"
+                                          "app/serializers/\\(.*${singular}\\)_serializer\\.rb$"
+                                          'projectile-rails-find-serializer))
 
 (defun projectile-rails-find-current-view ()
   (interactive)
@@ -944,7 +961,7 @@ If file does not exist and ASK in not nil it will ask user to proceed."
              (make-button (match-beginning 1) (match-end 1) 'action 'projectile-rails--log-buffer-find-template 'follow-link t))
             ((re-search-forward "Processing by \\(.+\\)#\\(?:[^ ]+\\)" (line-end-position) t)
              (make-button (match-beginning 1) (match-end 1) 'action 'projectile-rails--log-buffer-find-controller 'follow-link t)))
-      (next-line))))
+      (forward-line))))
 
 (defun projectile-rails-server-terminate ()
   (let ((process (get-buffer-process projectile-rails-server-buffer-name)))
@@ -1060,6 +1077,9 @@ If file does not exist and ASK in not nil it will ask user to proceed."
     (define-key map (kbd "y") 'projectile-rails-find-layout)
     (define-key map (kbd "k") 'projectile-rails-find-rake-task)
     (define-key map (kbd "b") 'projectile-rails-find-job)
+
+    (define-key map (kbd "z") 'projectile-rails-find-serializer)
+    (define-key map (kbd "Z") 'projectile-rails-find-current-serializer)
     ;; (define-key map (kbd "?") 'projectile-rails-find-validator)
 
     (define-key map (kbd "x") 'projectile-rails-extract-region)
@@ -1101,6 +1121,7 @@ If file does not exist and ASK in not nil it will ask user to proceed."
     ["Find layout"              projectile-rails-find-layout]
     ["Find rake task"           projectile-rails-find-rake-task]
     ["Find job"                 projectile-rails-find-job]
+    ["Find serializer"          projectile-rails-find-serializer]
     "--"
     ["Go to file at point"      projectile-rails-goto-file-at-point]
     "--"
@@ -1119,6 +1140,7 @@ If file does not exist and ASK in not nil it will ask user to proceed."
     ["Go to current test"       projectile-rails-find-current-test]
     ["Go to current migration"  projectile-rails-find-current-migration]
     ["Go to current fixture"    projectile-rails-find-current-fixture]
+    ["Go to current serializer" projectile-rails-find-current-serializer]
     "--"
     ["Extract to partial"       projectile-rails-extract-region]
     "--"
@@ -1227,6 +1249,7 @@ Killing the buffer will terminate to server's process."
                      ("n" "migration"   projectile-rails-find-migration)
                      ("k" "rake task"   projectile-rails-find-rake-task)
                      ("b" "job"         projectile-rails-find-job)
+                     ("z" "serializer"  projectile-rails-find-serializer)
                      ("a" "locale"      projectile-rails-find-locale))
                     ("Find an associated resource"
                      ("M" "model"       projectile-rails-find-current-model)
@@ -1238,7 +1261,8 @@ Killing the buffer will terminate to server's process."
                      ("P" "spec"        projectile-rails-find-current-spec)
                      ("U" "fixture"     projectile-rails-find-current-fixture)
                      ("T" "test"        projectile-rails-find-current-test)
-                     ("N" "migration"   projectile-rails-find-current-migration))))
+                     ("N" "migration"   projectile-rails-find-current-migration)
+                     ("Z" "serializer"  projectile-rails-find-current-serializer))))
    :bind "") ;;accessible only from the main context menu
 
   (discover-add-context-menu
@@ -1292,6 +1316,7 @@ Killing the buffer will terminate to server's process."
         ("n" projectile-rails-find-migration   "migration")
         ("k" projectile-rails-find-rake-task   "rake task")
         ("b" projectile-rails-find-job         "job")
+        ("z" projectile-rails-find-serializer  "serializer")
 
         ("M" projectile-rails-find-current-model      "current model")
         ("V" projectile-rails-find-current-view       "current view")
@@ -1302,7 +1327,8 @@ Killing the buffer will terminate to server's process."
         ("P" projectile-rails-find-current-spec       "current spec")
         ("U" projectile-rails-find-current-fixture    "current fixture")
         ("T" projectile-rails-find-current-test       "current test")
-        ("N" projectile-rails-find-current-migration  "current migration"))
+        ("N" projectile-rails-find-current-migration  "current migration")
+        ("Z" projectile-rails-find-current-serializer "current serializer"))
 
       (defhydra hydra-projectile-rails-goto (:color blue :columns 8)
         "Go to"
