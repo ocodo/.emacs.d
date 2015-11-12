@@ -269,7 +269,7 @@ The hint will consist of the possible nouns that apply to the verb."
   "Face for `lispy-view-test'."
   :group 'lispy-faces)
 
-(defvar lispy-mode-map (make-sparse-keymap))
+(defvar lispy-mode-map (make-sparse-keymap))
 
 (defvar lispy-known-verbs nil
   "List of registered verbs.")
@@ -1242,7 +1242,8 @@ Otherwise (`backward-delete-char-untabify' ARG)."
                 5))
     (ignore-errors
       (recenter -20)))
-  (when (lispy-left-p)
+  (when (and (lispy-left-p)
+             (not (lispy--in-string-or-comment-p)))
     (indent-sexp)))
 
 (defun lispy-mark ()
@@ -1421,7 +1422,8 @@ When this function is called:
             (insert ,left)
             (unless (eolp)
               (just-one-space))
-            (forward-sexp)
+            ;; when (looking-at lispy-right) `forward-sexp' will error
+            (ignore-errors (forward-sexp))
             (insert ,right)
             (backward-sexp)
             (indent-sexp)
@@ -1565,7 +1567,7 @@ Otherwise, when the region is active, toggle ' at the start of the region."
          (lispy-toggle-char ?\'))
         (t
          (lispy--space-unless "\\s-\\|\\s(\\|[~#:?'`]\\|\\\\")
-         (insert "'"))))
+         (self-insert-command arg))))
 
 (defun lispy-underscore (&optional arg)
   "Insert _ ARG times.
@@ -4611,6 +4613,7 @@ When ARG is given, paste at that place in the current list."
                 (str2 (caddr expr))
                 (keys (cddadr expr))
                 (keys (if (and (= (length keys) 1)
+                               (consp (car keys))
                                (eq (caar keys) 'execute-kbd-macro))
                           (cl-cadar keys)
                         keys))
@@ -5012,7 +5015,7 @@ When ADD-OUTPUT is t, append the output to the result."
                                  cider-clojure-interaction-mode)))
           (require 'le-clojure)
           (lambda (x)
-            (lispy--eval-clojure x add-output t)))
+            (lispy--eval-clojure x add-output (region-active-p))))
          ((eq major-mode 'scheme-mode)
           (require 'le-scheme)
           'lispy--eval-scheme)
@@ -5464,6 +5467,14 @@ Ignore the matches in strings and comments."
                       (setq sexp (buffer-substring-no-properties pt (point)))
                       (delete-region (1- pt) (point))
                       (insert (format "(ly-raw char %S)" sexp)))))
+                ;; ——— \ char syntax (Clojure)—
+                (goto-char (point-min))
+                (while (re-search-forward "\\\\\\sw\\b" nil t)
+                  (unless (lispy--in-string-or-comment-p)
+                    (replace-match (format "(ly-raw clojure-char %S)"
+                                           (substring-no-properties
+                                            (match-string 0)))
+                                   nil t)))
                 ;; ——— #' —————————————————————
                 (goto-char (point-min))
                 (while (re-search-forward "#'" nil t)
@@ -6046,7 +6057,8 @@ ACTION is called for the selected candidate."
                      :action (lambda (x)
                                (funcall action
                                         (cdr (assoc x candidates))))
-                     :history 'lispy-tag-history))
+                     :history 'lispy-tag-history
+                     :caller 'lispy-goto))
           (t
            (let ((res
                   (cl-case lispy-completion-method
@@ -6063,7 +6075,7 @@ ACTION is called for the selected candidate."
   "Jump to TAG."
   (if (eq (length tag) 3)
       (with-selected-window (if (eq lispy-completion-method 'ivy)
-                                (ivy-state-window ivy-last)
+                                (ivy--get-window ivy-last)
                               (selected-window))
         (push-mark)
         (find-file (cadr tag))
@@ -6160,6 +6172,9 @@ The outer delimiters are stripped."
           (char
            (delete-region beg (point))
            (insert "?" (caddr sxp)))
+          (clojure-char
+           (delete-region beg (point))
+           (insert (caddr sxp)))
           (function
            (delete-region beg (point))
            (insert (format "#'%S" (caddr sxp)))
@@ -6549,6 +6564,36 @@ PLIST currently accepts:
                 ,(or inserter
                      'self-insert-command))))))))
 
+(defun lispy--quote-maybe (x)
+  "Quote X if it's a symbol."
+  (cond ((null x)
+         nil)
+        ((or (symbolp x) (consp x))
+         (list 'quote x))
+        (t
+         x)))
+
+(defun lispy--pcase-pattern-matcher (pattern)
+  "Turn pcase PATTERN into a predicate.
+For any given pcase PATTERN, return a predicate P that returns
+non-nil for any EXP when and only when PATTERN matches EXP.  In
+that case, P returns a list of the form (bindings . BINDINGS) as
+non-nil value, where BINDINGS is a list of bindings that pattern
+matching with PATTERN would actually establish in a pcase branch."
+  (let ((arg (make-symbol "exp")))
+    `(lambda (,arg)
+       ,(pcase--u
+         `((,(pcase--match arg (pcase--macroexpand pattern))
+             ,(lambda (vars)
+                `(cons
+                  'progn
+                  (list
+                   ,@(nreverse (mapcar
+                                (lambda (binding)
+                                  `(list 'setq ',(car binding)
+                                         (lispy--quote-maybe ,(cdr binding))))
+                                vars)))))))))))
+
 (defun lispy--setq-expression ()
   "Return the smallest list to contain point.
 Return an appropriate `setq' expression when in `let', `dolist',
@@ -6612,10 +6657,13 @@ Return an appropriate `setq' expression when in `let', `dolist',
                 lispy--eval-cond-msg)))
           ((looking-at "(pcase\\s-*")
            (goto-char (match-end 0))
-           `(if ,(pcase--expand (lispy--read (lispy--string-dwim))
-                                `((,(car tsexp) t)))
-                "pcase: t"
-              "pcase: nil"))
+           (if (eval (pcase--expand (lispy--read (lispy--string-dwim))
+                                    `((,(car tsexp) t))))
+               `(progn
+                  ,(funcall (lispy--pcase-pattern-matcher (car tsexp))
+                            (eval (read (lispy--string-dwim))))
+                  "pcase: t")
+             "pcase: nil"))
           ((and (looking-at "(\\(?:cl-\\)?\\(?:defun\\|defmacro\\)")
                 (save-excursion
                   (lispy-flow 1)
