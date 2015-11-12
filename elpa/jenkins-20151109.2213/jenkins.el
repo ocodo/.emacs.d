@@ -4,7 +4,7 @@
 
 ;; Author: Rustem Muslimov <r.muslimov@gmail.com>
 ;; Keywords: jenkins, convenience
-;; Package-Version: 20151029.2044
+;; Package-Version: 20151109.2213
 ;; Package-Requires: ((dash "2.12") (emacs "24.3") (json "1.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -40,13 +40,6 @@
   "*jenkins-status*"
   "Name of jenkins buffer.")
 
-(defconst jenkins-list-format
-  [("#" 3 f :pad-right 2 :right-align t :col-source jenkins--render-indicator)
-   ("Name" 35 t :col-source jenkins--render-name)
-   ("Last success" 20 f :col-source :last-success)
-   ("Last failed" 20 f :col-source :last-failed)]
-  "List of columns for main jenkins jobs screen.")
-
 (defvar jenkins-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "b") 'jenkins--call-build-job-from-main-screen)
@@ -66,7 +59,7 @@
 (defgroup jenkins nil
   "Interact with a Jenkins CI server."
   :prefix "jenkins-"
-  :group 'convenience)
+  :group 'jenkins)
 
 ;; Set up these variables get proper working jenkins.el
 (defcustom jenkins-api-token nil
@@ -93,6 +86,30 @@
   "View name."
   :type 'string
   :group 'jenkins)
+
+(defcustom jenkins-colwidth-id 3
+  "Id column's width on main view."
+  :type 'integer
+  :group 'jenkins)
+
+(defcustom jenkins-colwidth-name 35
+  "Name column's width on main view."
+  :type 'integer
+  :group 'jenkins)
+
+(defcustom jenkins-colwidth-last-status 20
+  "Status column's width on main view."
+  :type 'integer
+  :group 'jenkins)
+
+(defun jenkins-list-format ()
+  "List of columns for main jenkins jobs screen."
+  (apply 'vector
+  `(("#" ,jenkins-colwidth-id f :pad-right 2 :right-align t :col-source jenkins--render-indicator)
+	("Name" ,jenkins-colwidth-name t :col-source jenkins--render-name)
+	("Last success" ,jenkins-colwidth-last-status f :col-source :last-success)
+	("Last failed" ,jenkins-colwidth-last-status f :col-source :last-failed))
+ ))
 
 (defun get-jenkins-url ()
   "This function is for backward compatibility."
@@ -184,7 +201,7 @@
                 (if (functionp col-source)
                     (funcall col-source it)
                   (plist-get it col-source))))
-            jenkins-list-format)))
+            (jenkins-list-format))))
    (mapcar 'cdr *jenkins-jobs-list*)))
 
 ;;; actions
@@ -333,7 +350,7 @@
   (setq major-mode 'jenkins-mode)
   (use-local-map jenkins-mode-map)
   (hl-line-mode 1)
-  (setq tabulated-list-format jenkins-list-format)
+  (setq tabulated-list-format (jenkins-list-format))
   (setq tabulated-list-entries 'jenkins--refresh-jobs-list)
   (tabulated-list-init-header)
   (tabulated-list-print))
