@@ -5,7 +5,7 @@
 ;; Author: Tom Hinton
 ;; Maintainer: Tom Hinton <t@larkery.com>
 ;; Version: 1.0.1
-;; Package-Version: 20151030.705
+;; Package-Version: 20151109.1344
 ;; Keywords: convenience
 ;; URL: https://github.com/larkery/ido-grid-mode.el
 ;; Package-Requires: ((emacs "24.4"))
@@ -139,6 +139,11 @@ displays more detail about this."
   :type 'boolean
   :group 'ido-grid-mode)
 
+(defface ido-grid-mode-jump-face
+  '((t (:foreground "red")))
+  "The face for jump indicators, when turned on"
+  :group 'ido-grid-mode)
+
 (defface ido-grid-mode-match
   '((t (:underline t)))
   "The face used to mark up matching groups when showing a regular expression."
@@ -154,14 +159,24 @@ displays more detail about this."
   :group 'ido-grid-mode
   :type 'boolean)
 
-(defcustom ido-grid-mode-keys '(tab backtab up down left right C-n C-p)
+(defcustom ido-grid-mode-keys '(tab backtab up down left right C-n C-p C-s C-r)
   "Which keys to reconfigure in the minibuffer.
 
-Tab and backtab will move to the next/prev thing, arrow keys will
+C-n, C-p, Tab and backtab will move to the next/prev thing, arrow keys will
 move around in the grid, and C-n, C-p will scroll the grid in
 pages."
   :group 'ido-grid-mode
-  :type '(set (const tab) (const backtab) (const up) (const down) (const left) (const right) (const C-n) (const C-p)))
+  :type '(set (const tab)
+              (const backtab)
+              (const up)
+              (const down)
+              (const left)
+              (const right)
+              (const C-n)
+              (const C-p)
+              (const C-s)
+              (const C-r)
+              ))
 
 (defcustom ido-grid-mode-advise-perm '(ido-exit-minibuffer)
   "Functions which will want to see the right thing at the head of the ido list."
@@ -202,6 +217,13 @@ Previous row is only really sensible when `ido-grid-mode-order' is row-wise, and
   "Whether to scroll the grid when hitting an edge, or to wrap
 around. Scrolling always happens at the top left or bottom right."
   :type 'boolean
+  :group 'ido-grid-mode)
+
+(defcustom ido-grid-mode-jump nil
+  "If t, use C-0 to C-9 to quickly select matches."
+  :type '(choice (const :tag "disabled" nil)
+                 (const :tag "with labels" label)
+                 (const :tag "without labels" quiet))
   :group 'ido-grid-mode)
 
 ;; vars
@@ -402,6 +424,21 @@ rows or columns."
           base-width)
       (string-width s))))
 
+(defun ido-grid-mode-padding-and-label (offset row col indicator-row row-padding)
+  (let* ((result
+          (if (zerop col)
+              (if (= row indicator-row) ido-grid-mode-prefix row-padding)
+            ido-grid-mode-padding))
+         (lr (length result)))
+    (when (and (eq ido-grid-mode-jump 'label)
+               (< 0 offset 11))
+      (setq result (substring result 0))
+      (aset result (- lr 2) (+ ?0 (% offset 10)))
+      (add-face-text-property (- lr 2) (- lr 1)
+                              'ido-grid-mode-jump-face nil result))
+
+    result))
+
 (cl-defun ido-grid-mode-gen-grid (items
                                   &key
                                   name
@@ -410,7 +447,7 @@ rows or columns."
   "Generate string which lays out the given ITEMS to fit in MAX-WIDTH. Also refers to `ido-grid-min-rows' and `ido-grid-max-rows', etc.
 NAME will be used to turn ITEMS into strings, and the DECORATE to fontify them based on their location and name.
 Modifies `ido-grid-mode-rows', `ido-grid-mode-columns', `ido-grid-mode-count' and sometimes `ido-grid-mode-offset' as a side-effect, sorry."
-  (let* ((row-padding (make-list (length ido-grid-mode-prefix) 32))
+  (let* ((row-padding (make-string (length ido-grid-mode-prefix) ?\ ))
          (names (ido-grid-mode-mapcar name items))
          (lengths (ido-grid-mode-mapcar #'ido-grid-mode-string-width names))
          (padded-width (- max-width (length row-padding)))
@@ -447,11 +484,7 @@ Modifies `ido-grid-mode-rows', `ido-grid-mode-columns', `ido-grid-mode-count' an
     (if (ido-grid-mode-row-major)
         ;; this is the row-major code, which is easy
         (while (and names (< row row-count))
-          (push
-           (if (zerop col)
-               (if (= row indicator-row) ido-grid-mode-prefix row-padding)
-             ido-grid-mode-padding)
-           all-rows)
+          (push (ido-grid-mode-padding-and-label index row col indicator-row row-padding) all-rows)
 
           (push (ido-grid-mode-pad (funcall decorate (pop names) (pop items) row col index)
                                    (pop lengths)
@@ -471,15 +504,10 @@ Modifies `ido-grid-mode-rows', `ido-grid-mode-columns', `ido-grid-mode-count' an
           (setq row (% index row-count)
                 col (/ index row-count))
 
-          (push
-           (if (zerop col)
-               (if (= row indicator-row)
-                   ido-grid-mode-prefix row-padding)
-             ido-grid-mode-padding)
+          (push (ido-grid-mode-padding-and-label index row col indicator-row row-padding)
            (elt row-lists (- row-count (1+ row))))
 
-          (push (ido-grid-mode-pad (funcall decorate (pop names) (pop items)
-                                            row col index)
+          (push (ido-grid-mode-pad (funcall decorate (pop names) (pop items) row col index)
                                    (pop lengths)
                                    (aref col-widths col))
                 (elt row-lists (- row-count (1+ row))))
@@ -586,6 +614,15 @@ groups, add the face to all of S."
     (cond ((not name) "<nil>")
           ((zerop (length name)) "<empty>")
           (t name))))
+
+;; (if (eq 'label ido-grid-mode-jump)
+;;     (if (< 0 offset 11)
+;;         (concat (let ((s (number-to-string (% offset 10))) )
+;;                   (add-face-text-property 0 1 'shadow nil s)
+;;                   s)
+;;                 " ")
+;;       "  ")
+;;   "")
 
 (defun ido-grid-mode-grid (name)
   "Draw the grid for input NAME."
@@ -895,6 +932,15 @@ different, ignoring rotations."
         max-mini-window-height (max max-mini-window-height
                                     (1+ ido-grid-mode-max-rows)))
 
+  (when ido-grid-mode-jump
+    (dotimes (x 10)
+      (define-key ido-completion-map (kbd (format "C-%d" x))
+        (lambda ()
+          (interactive)
+          (setq ido-grid-mode-offset (if (zerop x) 10 x))
+          (ido-exit-minibuffer)
+          ))))
+
   (dolist (k ido-grid-mode-keys)
     (cl-case k
       ('tab (setq ido-cannot-complete-command 'ido-grid-mode-tab))
@@ -905,6 +951,8 @@ different, ignoring rotations."
       ('down    (define-key ido-completion-map (kbd "<down>")    #'ido-grid-mode-down))
       ('C-n     (define-key ido-completion-map (kbd "C-n")       #'ido-grid-mode-next-page))
       ('C-p     (define-key ido-completion-map (kbd "C-p")       #'ido-grid-mode-previous-page))
+      ('C-s     (define-key ido-completion-map (kbd "C-s")       #'ido-grid-mode-next))
+      ('C-r     (define-key ido-completion-map (kbd "C-r")       #'ido-grid-mode-previous))
       )))
 
 ;; this could be done with advice - is advice better?
