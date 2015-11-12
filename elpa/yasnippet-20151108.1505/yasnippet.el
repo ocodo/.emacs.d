@@ -728,22 +728,21 @@ defined direct keybindings to the command
 (defun yas--modes-to-activate (&optional mode)
   "Compute list of mode symbols that are active for `yas-expand'
 and friends."
-  (let (dfs explored)
-    (setq dfs (lambda (mode)
-                (unless (memq mode explored)
-                  (push mode explored)
-                  (loop for neighbour
-                        in (cl-list* (get mode 'derived-mode-parent)
-                                     (ignore-errors (symbol-function mode))
-                                     (gethash mode yas--parents))
-                        when (and neighbour
-                                  (not (memq neighbour explored))
-                                  (symbolp neighbour))
-                        do (funcall dfs neighbour)))))
-    (if mode
-        (funcall dfs mode)
-      (mapcar dfs (cons major-mode yas--extra-modes)))
-    explored))
+  (let* ((explored (if mode (list mode) ; Building up list in reverse.
+                     (cons major-mode (reverse yas--extra-modes))))
+         (dfs
+          (lambda (mode)
+            (cl-loop for neighbour
+                     in (cl-list* (get mode 'derived-mode-parent)
+                                  (ignore-errors (symbol-function mode))
+                                  (gethash mode yas--parents))
+                     when (and neighbour
+                               (not (memq neighbour explored))
+                               (symbolp neighbour))
+                     do (push neighbour explored)
+                     (funcall dfs neighbour)))))
+    (mapcar dfs explored)
+    (nreverse explored)))
 
 (defvar yas-minor-mode-hook nil
   "Hook run when `yas-minor-mode' is turned on.")
@@ -1449,7 +1448,7 @@ Here's a list of currently recognized directives:
                                                      (point-max)))
                (setq bound (point))
                (goto-char (point-min))
-               (while (re-search-forward "^# *\\([^ ]+?\\) *: *\\(.*\\)$" bound t)
+               (while (re-search-forward "^# *\\([^ ]+?\\) *: *\\(.*?\\)[[:space:]]*$" bound t)
                  (when (string= "uuid" (match-string-no-properties 1))
                    (setq uuid (match-string-no-properties 2)))
                  (when (string= "type" (match-string-no-properties 1))
@@ -1751,8 +1750,8 @@ With prefix argument USE-JIT do jit-loading of snippets."
             (funcall fun)))
         ;; Look for buffers that are already in `mode-sym', and so
         ;; need the new snippets immediately...
-        ;; 
-        (when use-jit 
+        ;;
+        (when use-jit
           (cl-loop for buffer in (buffer-list)
                    do (with-current-buffer buffer
                         (when (eq major-mode mode-sym)
@@ -1760,7 +1759,7 @@ With prefix argument USE-JIT do jit-loading of snippets."
                           (push buffer impatient-buffers)))))))
     ;; ...after TOP-LEVEL-DIR has been completely loaded, call
     ;; `yas--load-pending-jits' in these impatient buffers.
-    ;; 
+    ;;
     (cl-loop for buffer in impatient-buffers
              do (with-current-buffer buffer (yas--load-pending-jits))))
   (when interactive
@@ -1779,9 +1778,9 @@ With prefix argument USE-JIT do jit-loading of snippets."
                           (current-time-string)))))
     ;; Normal case.
     (unless (file-exists-p (concat directory "/" ".yas-skip"))
-      (if (and (progn (yas--message 2 "Loading compiled snippets from %s" directory) t)
-               (load (expand-file-name ".yas-compiled-snippets" directory) 'noerror (<= yas-verbosity 3)))
-          (yas--message 2 "Loading snippet files from %s" directory)
+      (unless (and (load (expand-file-name ".yas-compiled-snippets" directory) 'noerror (<= yas-verbosity 3))
+                   (progn (yas--message 2 "Loaded compiled snippets from %s" directory) t))
+        (yas--message 2 "Loading snippet files from %s" directory)
         (yas--load-directory-2 directory mode-sym)))))
 
 (defun yas--load-directory-2 (directory mode-sym)
@@ -2226,7 +2225,7 @@ Common gateway for `yas-expand-from-trigger-key' and
                 ;; loops when other extensions use mechanisms similar
                 ;; to `yas--keybinding-beyond-yasnippet'. (github #525
                 ;; and #526)
-                ;; 
+                ;;
                 (yas-minor-mode nil)
                 (beyond-yasnippet (yas--keybinding-beyond-yasnippet)))
            (yas--message 4 "Falling back to %s"  beyond-yasnippet)
@@ -3403,6 +3402,7 @@ Only clears the field if it hasn't been modified and it point it
 at field start.  This hook doesn't do anything if an undo is in
 progress."
   (unless (or yas--inhibit-overlay-hooks
+              (not (overlayp yas--active-field-overlay)) ; Avoid Emacs bug #21824.
               (yas--undo-in-progress))
     (let* ((field (overlay-get overlay 'yas--field))
            (snippet (overlay-get yas--active-field-overlay 'yas--snippet)))
@@ -3429,7 +3429,7 @@ progress."
 ;; As of github #537 this no longer inhibits the command by issuing an
 ;; error: all the snippets at point, including nested snippets, are
 ;; automatically commited and the current command can proceed.
-;; 
+;;
 (defun yas--make-move-field-protection-overlays (snippet field)
   "Place protection overlays surrounding SNIPPET's FIELD.
 
