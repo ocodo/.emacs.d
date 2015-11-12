@@ -8,9 +8,9 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20151030.554
+;; Package-Version: 20151110.341
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 5.0.0
+;; Version: 5.0.1-cvs
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -78,50 +78,43 @@
   :link '(url-link :tag "Github" "https://github.com/clojure-emacs/clojure-mode")
   :link '(emacs-commentary-link :tag "Commentary" "clojure-mode"))
 
-(defconst clojure-mode-version "5.0.0"
+(defconst clojure-mode-version "5.0.1-snapshot"
   "The current version of `clojure-mode'.")
 
 (defface clojure-keyword-face
   '((t (:inherit font-lock-constant-face)))
   "Face used to font-lock Clojure keywords (:something)."
-  :group 'clojure
   :package-version '(clojure-mode . "3.0.0"))
 
 (defface clojure-character-face
   '((t (:inherit font-lock-string-face)))
   "Face used to font-lock Clojure character literals."
-  :group 'clojure
   :package-version '(clojure-mode . "3.0.0"))
 
 (defface clojure-interop-method-face
   '((t (:inherit font-lock-preprocessor-face)))
   "Face used to font-lock interop method names (camelCase)."
-  :group 'clojure
   :package-version '(clojure-mode . "3.0.0"))
 
 (defcustom clojure-defun-style-default-indent nil
   "When non-nil, use default indenting for functions and macros.
 Otherwise check `define-clojure-indent' and `put-clojure-indent'."
   :type 'boolean
-  :group 'clojure
   :safe 'booleanp)
 
 (defcustom clojure-use-backtracking-indent t
   "When non-nil, enable context sensitive indentation."
   :type 'boolean
-  :group 'clojure
   :safe 'booleanp)
 
 (defcustom clojure-max-backtracking 3
   "Maximum amount to backtrack up a list to check for context."
   :type 'integer
-  :group 'clojure
   :safe 'integerp)
 
 (defcustom clojure-docstring-fill-column fill-column
   "Value of `fill-column' to use when filling a docstring."
   :type 'integer
-  :group 'clojure
   :safe 'integerp)
 
 (defcustom clojure-docstring-fill-prefix-width 2
@@ -130,7 +123,6 @@ The default value conforms with the de facto convention for
 Clojure docstrings, aligning the second line with the opening
 double quotes on the third column."
   :type 'integer
-  :group 'clojure
   :safe 'integerp)
 
 (defcustom clojure-omit-space-between-tag-and-delimiters '(?\[ ?\{)
@@ -140,17 +132,15 @@ For example, \[ is allowed in :db/id[:db.part/user]."
               (const :tag "{" ?\{)
               (const :tag "(" ?\()
               (const :tag "\"" ?\"))
-  :group 'clojure
   :safe (lambda (value)
           (and (listp value)
                (cl-every 'characterp value))))
 
 (defcustom clojure-build-tool-files '("project.clj" "build.boot" "build.gradle")
-  "A list of files, which are looked for in order to identify the
-project's root. Out-of-the box clojure-mode understands lein,
-boot and gradle."
+  "A list of files, which identify a Clojure project's root.
+Out-of-the box clojure-mode understands lein, boot and gradle."
   :type '(repeat string)
-  :group 'clojure
+  :package-version '(clojure-mode . "5.0.0")
   :safe (lambda (value)
           (and (listp value)
                (cl-every 'stringp value))))
@@ -829,8 +819,9 @@ This function also returns nil meaning don't specify the indentation."
                        (or (and clojure-defun-style-default-indent
                                 ;; largely to preserve useful alignment of :require, etc in ns
                                 (not (string-match "^:" function)))
-                           (string-match "\\`\\(?:\\S +/\\)?\\(def\\|with-\\)"
-                                         function)))))
+                           (and (string-match "\\`\\(?:\\S +/\\)?\\(def[a-z]*\\|with-\\)"
+                                              function)
+                                (not (string-match "\\`default" (match-string 1 function))))))))
          (+ lisp-body-indent containing-form-column))
         (_ (clojure--normal-indent calculate-lisp-indent-last-sexp))))))
 
@@ -862,7 +853,6 @@ You can use this to let Emacs indent your own macros the same way
 that it indents built-in macros like with-open.  To manually set
 it from Lisp code, use (put-clojure-indent 'some-symbol :defn)."
   :type '(repeat symbol)
-  :group 'clojure
   :set 'add-custom-clojure-indents)
 
 (define-clojure-indent
@@ -896,8 +886,8 @@ it from Lisp code, use (put-clojure-indent 'some-symbol :defn)."
   (defrecord '(2 nil nil (1)))
   (defprotocol '(1))
   (extend 1)
-  (extend-protocol '(1 (1)))
-  (extend-type '(1 (1)))
+  (extend-protocol '(1 :defn))
+  (extend-type '(1 :defn))
   (specify '(1 (1)))
   (specify! '(1 (1)))
   (implement '(1 (1)))
@@ -1103,14 +1093,18 @@ Useful if a file has been renamed."
             (error "Namespace not found")))))))
 
 (defun clojure-find-ns ()
-  "Find the namespace of the current Clojure buffer."
-  (let ((regexp clojure-namespace-name-regex))
-    (save-excursion
-      (save-restriction
-        (widen)
-        (goto-char (point-min))
-        (when (re-search-forward regexp nil t)
-          (match-string-no-properties 4))))))
+  "Return the namespace of the current Clojure buffer.
+Return the namespace closest to point and above it.  If there are
+no namespaces above point, return the first one in the buffer."
+  (save-excursion
+    (save-restriction
+      (widen)
+      ;; The closest ns form above point.
+      (when (or (re-search-backward clojure-namespace-name-regex nil t)
+                ;; Or any form at all.
+                (and (goto-char (point-min))
+                     (re-search-forward clojure-namespace-name-regex nil t)))
+        (match-string-no-properties 4)))))
 
 (defun clojure-find-def ()
   "Find the var declaration macro and symbol name of the current form.
