@@ -11,7 +11,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://www.github.com/clojure-emacs/cider
 ;; Version: 0.10.0-cvs
-;; Package-Requires: ((clojure-mode "5.0.0") (pkg-info "0.4") (emacs "24.3") (queue "0.1.1") (spinner "1.4") (seq "1.9"))
+;; Package-Requires: ((emacs "24.3") (clojure-mode "5.0.0") (pkg-info "0.4") (queue "0.1.1") (spinner "1.4") (seq "1.9"))
 ;; Keywords: languages, clojure, cider
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -261,11 +261,11 @@ be reused."
                                 (and project-directory
                                      (equal project-directory nrepl-project-dir)))))
                         repl-buffers)))
-      (if (and (get-buffer-process exact-buff)
-               (y-or-n-p (format "REPL buffer already exists (%s).  \
+      (if (get-buffer-process exact-buff)
+          (when (y-or-n-p (format "REPL buffer already exists (%s).  \
 Do you really want to create a new one? "
-                                 exact-buff)))
-          (or (cider--select-zombie-buffer repl-buffers) 'new)
+                                  exact-buff))
+            'new)
         exact-buff)
     (or (cider--select-zombie-buffer repl-buffers) 'new)))
 

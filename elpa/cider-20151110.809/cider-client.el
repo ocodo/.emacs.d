@@ -28,11 +28,26 @@
 (require 'spinner)
 (require 'nrepl-client)
 (require 'cider-common)
+(require 'cider-util)
+(require 'clojure-mode)
 
 (require 'cider-compat)
 (require 'seq)
 
 ;;; Connection Buffer Management
+
+(defcustom cider-request-dispatch 'dynamic
+  "Controls the request dispatch mechanism when several connections are present.
+Dynamic dispatch tries to infer the connection based on the current project
+& currently visited file, while static dispatch simply uses the default
+connection.
+
+Project metadata is attached to connections when they are created with commands
+like `cider-jack-in' and `cider-connect'."
+  :type '(choice (const :tag "dynamic" dynamic)
+                 (const :tag "static" static))
+  :group 'cider
+  :package-version '(cider . "0.10.0"))
 
 (defvar cider-connections nil
   "A list of connections.")
@@ -108,14 +123,18 @@ Also close associated REPL and server buffers."
 
 
 ;;; Current connection logic
-(defvar-local cider-repl-type nil
+(defvar-local cider-repl-type "clj"
   "The type of this REPL buffer, usually either \"clj\" or \"cljs\".")
 
-(defun cider-find-connection-buffer-for-project-directory (project-directory &optional all-connections)
-  "Return the most appropriate connection-buffer for the given PROJECT-DIRECTORY.
+(defun cider-find-connection-buffer-for-project-directory (&optional project-directory all-connections)
+  "Return the most appropriate connection-buffer for the current project.
+
 By order of preference, this is any connection whose directory matches
-PROJECT-DIRECTORY, followed by any connection whose directory is nil,
+`clojure-project-dir', followed by any connection whose directory is nil,
 followed by any connection at all.
+
+If PROJECT-DIRECTORY is provided act on that project instead.
+
 Only return nil if `cider-connections' is empty (there are no connections).
 
 If more than one connection satisfy a given level of preference, return the
@@ -127,7 +146,9 @@ precedence over other connections associated with the same project.
 
 If ALL-CONNECTIONS is non-nil, the return value is a list and all matching
 connections are returned, instead of just the most recent."
-  (let ((fn (if all-connections #'seq-filter #'seq-find)))
+  (when-let ((project-directory (or project-directory
+                                    (clojure-project-dir (cider-current-dir))))
+             (fn (if all-connections #'seq-filter #'seq-find)))
     (or (funcall fn (lambda (conn)
                       (when-let ((conn-proj-dir (with-current-buffer conn
                                                   nrepl-project-dir)))
@@ -154,7 +175,7 @@ such a link cannot be established automatically."
   (interactive)
   (cider-ensure-connected)
   (let ((conn-buf (or connection (cider-read-connection "Connection: ")))
-        (project-dir (or project (read-directory-name "Project directory: " nil (clojure-project-dir) nil (clojure-project-dir)))))
+        (project-dir (or project (read-directory-name "Project directory: " (clojure-project-dir)))))
     (when conn-buf
       (with-current-buffer conn-buf
         (setq nrepl-project-dir project-dir)))))
@@ -181,28 +202,42 @@ such a link cannot be established automatically."
 A REPL is relevant if its `nrepl-project-dir' is compatible with the
 current directory (see `cider-find-connection-buffer-for-project-directory').
 If there is ambiguity, it is resolved by matching TYPE with the REPL
-type (Clojure or ClojureScript).  If TYPE is nil, it is derived from the
-file extension."
-  ;; Cleanup the connections list.
-  (cider-connections)
-  (cond
-   ((cider--in-connection-buffer-p) (current-buffer))
-   ((= 1 (length cider-connections)) (car cider-connections))
-   (t (let* ((project-directory (clojure-project-dir (cider-current-dir)))
-             (repls (and project-directory
-                         (cider-find-connection-buffer-for-project-directory project-directory 'all))))
-        (if (= 1 (length repls))
-            ;; Only one match, just return it.
-            (car repls)
-          ;; OW, find one matching the extension of current file.
-          (let ((type (or type (file-name-extension (or (buffer-file-name) "")))))
-            (or (seq-find (lambda (conn)
-                            (equal (with-current-buffer conn
-                                     (or cider-repl-type "clj"))
-                                   type))
-                          (append repls cider-connections))
+type (Clojure or ClojureScript).  TYPE is a string, which when nil is derived
+from the file extension."
+  (cider-connections) ; Cleanup the connections list.
+  (if (eq cider-request-dispatch 'dynamic)
+      (cond
+       ((cider--in-connection-buffer-p) (current-buffer))
+       ((= 1 (length cider-connections)) (car cider-connections))
+       (t (let ((repls (cider-find-connection-buffer-for-project-directory
+                        nil :all-connections)))
+            (if (= 1 (length repls))
+                ;; Only one match, just return it.
                 (car repls)
-                (car cider-connections))))))))
+              ;; OW, find one matching the extension of current file.
+              (let ((type (or type (file-name-extension (or (buffer-file-name) "")))))
+                (or (seq-find (lambda (conn)
+                                (equal (with-current-buffer conn
+                                         cider-repl-type)
+                                       type))
+                              (append repls cider-connections))
+                    (car repls)
+                    (car cider-connections)))))))
+    ;; TODO: Add logic to dispatch to a matching Clojure/ClojureScript REPL based on file type
+    (car cider-connections)))
+
+(defun cider-other-connection (&optional connection)
+  "Return the first connection of another type than `cider-current-connection', \
+in the same project, or nil.
+
+If CONNECTION is provided act on that connection instead."
+  (let* ((connection (or connection (cider-current-connection)))
+         (connection-type (cider--connection-type connection))
+         (other (if (equal connection-type "clj")
+                    (cider-current-connection "cljs")
+                  (cider-current-connection "clj"))))
+    (unless (equal connection-type (cider--connection-type other))
+      other)))
 
 
 ;;; Connection Browser
@@ -266,24 +301,29 @@ The connections buffer is determined by
       (cider-connections-buffer-mode)
       (display-buffer (current-buffer)))))
 
+(defun cider-client-name-repl-type (type)
+  "Return a human-readable name for a connection TYPE.
+TYPE can be any of the possible values of `cider-repl-type'."
+  (pcase type
+    ("clj" "Clojure")
+    ("cljs" "ClojureScript")
+    (_ "Unknown")))
+
 (defun cider--connection-pp (connection)
   "Print an nREPL CONNECTION to the current buffer."
   (let* ((buffer-read-only nil)
          (buffer (get-buffer connection))
          (endpoint (buffer-local-value 'nrepl-endpoint buffer)))
     (insert
-     (format "%s %-30s %-16s %5s   %s%s"
+     (format "%s %-30s %-16s %5s   %s"
              (if (equal connection (car cider-connections)) "*" " ")
              (buffer-name connection)
              (car endpoint)
              (prin1-to-string (cadr endpoint))
-             (or (cider--project-name
-                  (buffer-local-value 'nrepl-project-dir buffer))
-                 "")
              (with-current-buffer buffer
-               (if cider-repl-type
-                   (concat " " cider-repl-type)
-                 ""))))))
+               (if-let ((name (cider--project-name nrepl-project-dir)))
+                   (concat name " " (cider-client-name-repl-type cider-repl-type))
+                 (cider-client-name-repl-type cider-repl-type)))))))
 
 (defun cider--update-connections-display (ewoc connections)
   "Update the connections EWOC to show CONNECTIONS."
@@ -539,7 +579,7 @@ Display the results in a different window."
 
 Prompt according to prefix ARG and `cider-prompt-for-symbol'.
 A single or double prefix argument inverts the meaning of
-`cider-prompt-for-symbol'. A prefix of `-` or a double prefix argument causes
+`cider-prompt-for-symbol'.  A prefix of `-` or a double prefix argument causes
 the results to be displayed in a different window.  The default value is
 thing at point."
   (interactive "P")
@@ -679,7 +719,7 @@ loaded. If CALLBACK is nil, use `cider-load-file-handler'."
 (defcustom cider-eval-spinner-type 'progress-bar
   "Appearance of the evaluation spinner.
 
-Value is a symbol. The possible values are the symbols in the
+Value is a symbol.  The possible values are the symbols in the
 `spinner-types' variable."
   :type 'symbol
   :group 'cider
@@ -753,9 +793,7 @@ Info contains project name, current REPL namespace, host:port
 endpoint and Clojure version."
   (with-current-buffer connection-buffer
     (format "%s%s@%s:%s (Java %s, Clojure %s, nREPL %s)"
-            (if cider-repl-type
-                (upcase (concat cider-repl-type " "))
-              "")
+            (upcase (concat cider-repl-type " "))
             (or (cider--project-name nrepl-project-dir) "<no project>")
             (car nrepl-endpoint)
             (cadr nrepl-endpoint)
@@ -767,9 +805,16 @@ endpoint and Clojure version."
   "Extract the essential properties of CONN-BUFFER."
   (with-current-buffer conn-buffer
     (list
+     :type cider-repl-type
      :host (car nrepl-endpoint)
      :port (cadr nrepl-endpoint)
      :project-dir nrepl-project-dir)))
+
+(defun cider--connection-type (conn-buffer)
+  "Get CONN-BUFFER's type.
+
+Return value matches `cider-repl-type'."
+  (plist-get (cider--connection-properties conn-buffer) :type))
 
 (defun cider--connection-host (conn-buffer)
   "Get CONN-BUFFER's host."

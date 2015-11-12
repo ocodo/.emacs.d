@@ -80,6 +80,14 @@ which nREPL uses for temporary evaluation file names."
   (let ((fname (file-name-nondirectory file-name)))
     (string-match-p "^form-init" fname)))
 
+(defun cider--cljc-or-cljx-buffer-p (&optional buffer)
+  "Return true if the current buffer is visiting a cljc or cljx file.
+
+If BUFFER is provided act on that buffer instead."
+  (with-current-buffer (or buffer (current-buffer))
+    (or (derived-mode-p 'clojurec-mode) (derived-mode-p 'clojurex-mode))))
+
+
 ;;; Thing at point
 (defun cider-defun-at-point ()
   "Return the text of the top-level sexp at point."
@@ -131,6 +139,8 @@ which nREPL uses for temporary evaluation file names."
         ""
       str)))
 
+
+;;; sexp navigation
 (defun cider-sexp-at-point ()
   "Return the sexp at point as a string, otherwise nil."
   (let ((bounds (cider-bounds-of-sexp-at-point)))
@@ -159,7 +169,19 @@ instead."
                  (progn (clojure-forward-logical-sexp 1)
                         (point))))))
 
+(defun cider-start-of-next-sexp (&optional skip)
+  "Move to the start of the next sexp.
+Skip any non-logical sexps like ^metadata or #reader macros.
+If SKIP is an integer, also skip that many logical sexps first.
+Can only error if SKIP is non-nil."
+  (while (clojure--looking-at-non-logical-sexp)
+    (forward-sexp 1))
+  (when (and skip (> skip 0))
+    (dotimes (_ skip)
+      (forward-sexp 1)
+      (cider-start-of-next-sexp))))
 
+
 ;;; Text properties
 
 (defun cider-maybe-intern (name)
@@ -194,6 +216,7 @@ PROP is the name of a text property."
   (when more-text (insert more-text))
   (when break (insert "\n")))
 
+
 ;;; Font lock
 
 (defun cider--font-lock-ensure ()
@@ -272,6 +295,7 @@ Unless you specify a BUFFER it will default to the current one."
       (pkg-info-version-info 'cider)
     (error cider-version)))
 
+
 ;;; Strings
 
 (defun cider-string-join (strings &optional separator)
@@ -322,6 +346,7 @@ Any other value is just returned."
       (mapcar #'cider--deep-vector-to-list x)
     x))
 
+
 ;;; Words of inspiration
 (defun cider-user-first-name ()
   "Find the current user's first name."

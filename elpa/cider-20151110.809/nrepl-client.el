@@ -981,10 +981,11 @@ If LINE and COLUMN are non-nil and current buffer is a file buffer, \"line\",
           (list "op" "eval"
                 "session" session
                 "code" input)
-          (when (and line column (buffer-file-name))
-            (list "file" (buffer-file-name)
-                  "line" line
-                  "column" column))))
+          (let ((file (or (buffer-file-name) (buffer-name))))
+            (when (and line column file)
+              (list "file" file
+                    "line" line
+                    "column" column)))))
 
 (defun nrepl-request:eval (input callback connection session &optional ns line column)
   "Send the request INPUT and register the CALLBACK as the response handler.
