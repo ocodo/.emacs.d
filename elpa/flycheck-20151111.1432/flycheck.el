@@ -5391,12 +5391,18 @@ Uses the GNAT compiler from GCC.  See URL
   "A AsciiDoc syntax checker using the AsciiDoc compiler.
 
 See URL `http://www.methods.co.nz/asciidoc'."
-  :command ("asciidoc" source)
+  :command ("asciidoc" "-o" null-device "-")
+  :standard-input t
   :error-patterns
-  ((error line-start "asciidoc: ERROR: " (file-name)
-          ": Line " line ": " (message) line-end)
-   (warning line-start "asciidoc: " (or "WARNING" "DEPRECATED") ": " (file-name)
-            ": Line " line ": " (message) line-end))
+  ((error line-start
+          "asciidoc: ERROR: <stdin>: Line " line ": " (message)
+          line-end)
+   (warning line-start
+            "asciidoc: WARNING: <stdin>: Line " line ": " (message)
+            line-end)
+   (info line-start
+         "asciidoc: DEPRECATED: <stdin>: Line " line ": " (message)
+         line-end))
   :modes adoc-mode)
 
 (flycheck-def-args-var flycheck-clang-args c/c++-clang
@@ -5735,21 +5741,22 @@ Requires GCC 4.8 or newer.  See URL `https://gcc.gnu.org/'."
                   (pcase major-mode
                     (`c++-mode "c++")
                     (`c-mode "c")))
-            source
             ;; GCC performs full checking only when actually compiling, so
             ;; `-fsyntax-only' is not enough. Just let it generate assembly
             ;; code.
-            "-S" "-o" null-device)
+            "-S" "-o" null-device
+            ;; Read from standard input
+            "-")
+  :standard-input t
   :error-patterns
   ((error line-start
-          (message "In file included from") " " (file-name) ":" line ":"
-          column ":"
-          line-end)
-   (info line-start (file-name) ":" line ":" column
+          (message "In file included from") " " (or "<stdin>" (file-name))
+          ":" line ":" column ":" line-end)
+   (info line-start (or "<stdin>" (file-name)) ":" line ":" column
          ": note: " (message) line-end)
-   (warning line-start (file-name) ":" line ":" column
+   (warning line-start (or "<stdin>" (file-name)) ":" line ":" column
             ": warning: " (message) line-end)
-   (error line-start (file-name) ":" line ":" column
+   (error line-start (or "<stdin>" (file-name)) ":" line ":" column
           ": " (or "fatal error" "error") ": " (message) line-end))
   :error-filter
   (lambda (errors)
@@ -5865,9 +5872,10 @@ See URL `http://acrmp.github.io/foodcritic/'."
 
 See URL `http://coffeescript.org/'."
   ;; --print suppresses generation of compiled .js files
-  :command ("coffee" "--compile" "--print" source)
+  :command ("coffee" "--compile" "--print" "--stdio")
+  :standard-input t
   :error-patterns
-  ((error line-start (file-name) ":" line ":" column
+  ((error line-start "[stdin]:" line ":" column
           ": error: " (message) line-end))
   :modes coffee-mode
   :next-checkers ((warning . coffee-coffeelint)))
@@ -5885,11 +5893,13 @@ See URL `http://www.coffeelint.org/'."
   :command
   ("coffeelint"
    (config-file "--file" flycheck-coffeelintrc)
-   "--reporter" "checkstyle" source)
+   "--stdin" "--reporter" "checkstyle")
+  :standard-input t
   :error-parser flycheck-parse-checkstyle
   :error-filter (lambda (errors)
-                  (flycheck-remove-error-ids
-                   (flycheck-sanitize-errors errors)))
+                  (flycheck-remove-error-file-names
+                   "stdin" (flycheck-remove-error-ids
+                            (flycheck-sanitize-errors errors))))
   :modes coffee-mode)
 
 (flycheck-define-checker coq
@@ -6347,9 +6357,10 @@ Uses GCC's Fortran compiler gfortran.  See URL
   "A Go syntax and style checker using the gofmt utility.
 
 See URL `http://golang.org/cmd/gofmt/'."
-  :command ("gofmt" source)
+  :command ("gofmt")
+  :standard-input t
   :error-patterns
-  ((error line-start (file-name) ":" line ":" column ": " (message) line-end))
+  ((error line-start "<standard input>:" line ":" column ": " (message) line-end))
   :modes go-mode
   :next-checkers ((warning . go-golint)
                   ;; Fall back, if go-golint doesn't exist
@@ -6556,7 +6567,8 @@ try {
   "A Haml syntax checker using the Haml compiler.
 
 See URL `http://haml.info'."
-  :command ("haml" "-c" source)
+  :command ("haml" "-c" "--stdin")
+  :standard-input t
   :error-patterns
   ((error line-start "Syntax error on line " line ": " (message) line-end))
   :modes haml-mode)
@@ -6565,7 +6577,8 @@ See URL `http://haml.info'."
   "A Handlebars syntax checker using the Handlebars compiler.
 
 See URL `http://handlebarsjs.com/'."
-  :command ("handlebars" source)
+  :command ("handlebars" "-i-")
+  :standard-input t
   :error-patterns
   ((error line-start
           "Error: Parse error on line " line ":" (optional "\r") "\n"
@@ -6808,7 +6821,8 @@ See URL `https://github.com/ndmitchell/hlint'."
   "A HTML syntax and style checker using Tidy.
 
 See URL `https://github.com/w3c/tidy-html5'."
-  :command ("tidy" (config-file "-config" flycheck-tidyrc) "-e" "-q" source)
+  :command ("tidy" (config-file "-config" flycheck-tidyrc) "-e" "-q")
+  :standard-input t
   :error-patterns
   ((error line-start
           "line " line
@@ -6824,14 +6838,11 @@ See URL `https://github.com/w3c/tidy-html5'."
   "A Jade syntax checker using the Jade compiler.
 
 See URL `http://jade-lang.com'."
-  :command ("jade" source)
+  :command ("jade")
+  :standard-input t
   :error-patterns
-  ;; The pattern is based on the pattern in
-  ;; https://github.com/tardyp/SublimeLinter-jade/blob/master/linter.py#L23;
-  ;; tweaked slightly to:
-  ;; Error: (\S+):(\d+).*\r?\n(?:.*\|.*\n)+.*\n(.*)
   ((error line-start
-          "Error: " (file-name) ":" line (zero-or-more not-newline) "\n"
+          "Error: Jade:" line (zero-or-more not-newline) "\n"
           (one-or-more (and (zero-or-more not-newline) "|"
                             (zero-or-more not-newline) "\n"))
           (zero-or-more not-newline) "\n" (message) line-end))
@@ -6901,7 +6912,7 @@ See URL `https://github.com/eslint/eslint'."
                                  (flycheck-error-message err))))
                         (flycheck-sanitize-errors errors))
                   errors)
-  :modes (js-mode js2-mode js3-mode)
+  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode)
   :next-checkers ((warning . javascript-jscs)))
 
 (flycheck-def-config-file-var flycheck-gjslintrc javascript-gjslint ".gjslintrc"
@@ -6951,7 +6962,7 @@ See URL `http://www.jscs.info'."
                   (flycheck-remove-error-ids
                    (flycheck-sanitize-errors
                     (flycheck-remove-error-file-names "input" errors))))
-  :modes (js-mode js2-mode js3-mode))
+  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode))
 
 (flycheck-define-checker javascript-standard
   "A Javascript code and style checker for the (Semi-)Standard Style.
@@ -6966,12 +6977,14 @@ See URL `https://github.com/feross/standard' and URL
   :standard-input t
   :error-patterns
   ((error line-start "  <text>:" line ":" column ":" (message) line-end))
-  :modes (js-mode js2-mode js3-mode))
+  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode))
 
 (flycheck-define-checker json-jsonlint
   "A JSON syntax and style checker using jsonlint.
 
 See URL `https://github.com/zaach/jsonlint'."
+  ;; We can't use standard input for jsonlint, because it doesn't output errors
+  ;; anymore when using -c -q with standard input :/
   :command ("jsonlint" "-c" "-q" source)
   :error-patterns
   ((error line-start
@@ -7043,14 +7056,14 @@ See URL `https://github.com/mpeterv/luacheck'."
             "--formatter" "plain"
             "--codes"                   ; Show warning codes
             "--no-color"
-            source)
+            ;; Read from standard input
+            "-")
+  :standard-input t
   :error-patterns
-  ((warning line-start (file-name)
-            ":" line ":" column
+  ((warning line-start "stdin:" line ":" column
             ": (" (id "W" (one-or-more digit)) ") "
             (message) line-end)
-   (error line-start (file-name)
-          ":" line ":" column ":"
+   (error line-start "stdin:" line ":" column ":"
           ;; `luacheck' before 0.11.0 did not output codes for errors, hence
           ;; the ID is optional here
           (optional " (" (id "E" (one-or-more digit)) ") ")
@@ -7061,15 +7074,13 @@ See URL `https://github.com/mpeterv/luacheck'."
   "A Lua syntax checker using the Lua compiler.
 
 See URL `http://www.lua.org/'."
-  :command ("luac" "-p" source)
+  :command ("luac" "-p" "-")
+  :standard-input t
   :error-patterns
   ((error line-start
-          ;; Skip the name of the luac executable.  We also skip the file name,
-          ;; because luac is stupid enough as to abbreviate file names in its
-          ;; output, which for obvious reasons breaks our file name
-          ;; detection. See https://github.com/flycheck/flycheck/issues/251
+          ;; Skip the name of the luac executable.
           (minimal-match (zero-or-more not-newline))
-          ":" line ": " (message) line-end))
+          ": stdin:" line ": " (message) line-end))
   :modes lua-mode)
 
 (flycheck-def-option-var flycheck-perl-include-path nil perl
@@ -7087,11 +7098,11 @@ Relative paths are relative to the file being checked."
 
 See URL `http://www.perl.org'."
   :command ("perl" "-w" "-c"
-            (option-list "-I" flycheck-perl-include-path)
-            source)
+            (option-list "-I" flycheck-perl-include-path))
+  :standard-input t
   :error-patterns
   ((error line-start (minimal-match (message))
-          " at " (file-name) " line " line
+          " at - line " line
           (or "." (and ", " (zero-or-more not-newline))) line-end))
   :modes (perl-mode cperl-mode)
   :next-checkers (perl-perlcritic))
@@ -7114,19 +7125,19 @@ the `--severity' option to Perl Critic."
 See URL `https://metacpan.org/pod/Perl::Critic'."
   :command ("perlcritic" "--no-color" "--verbose" "%f/%l/%c/%s/%p/%m (%e)\n"
             (option "--severity" flycheck-perlcritic-severity nil
-                    flycheck-option-int)
-            source)
+                    flycheck-option-int))
+  :standard-input t
   :error-patterns
   ((info line-start
-         (file-name) "/" line "/" column "/" (any "1") "/"
+         "STDIN/" line "/" column "/" (any "1") "/"
          (id (one-or-more (not (any "/")))) "/" (message)
          line-end)
    (warning line-start
-            (file-name) "/" line "/" column "/" (any "234") "/"
+            "STDIN/" line "/" column "/" (any "234") "/"
             (id (one-or-more (not (any "/")))) "/" (message)
             line-end)
    (error line-start
-          (file-name) "/" line "/" column "/" (any "5") "/"
+          "STDIN/" line "/" column "/" (any "5") "/"
           (id (one-or-more (not (any "/")))) "/" (message)
           line-end))
   :modes (cperl-mode perl-mode))
@@ -7136,10 +7147,11 @@ See URL `https://metacpan.org/pod/Perl::Critic'."
 
 See URL `http://php.net/manual/en/features.commandline.php'."
   :command ("php" "-l" "-d" "error_reporting=E_ALL" "-d" "display_errors=1"
-            "-d" "log_errors=0" source)
+            "-d" "log_errors=0")
+  :standard-input t
   :error-patterns
   ((error line-start (or "Parse" "Fatal" "syntax") " error" (any ":" ",") " "
-          (message) " in " (file-name) " on line " line line-end))
+          (message) " in - on line " line line-end))
   :modes (php-mode php+-mode)
   :next-checkers ((warning . php-phpmd)
                   (warning . php-phpcs)))
@@ -7184,26 +7196,27 @@ or as path to a standard specification."
 
 See URL `http://pear.php.net/package/PHP_CodeSniffer/'."
   :command ("phpcs" "--report=checkstyle"
-            (option "--standard=" flycheck-phpcs-standard concat)
-            source)
+            (option "--standard=" flycheck-phpcs-standard concat))
+  :standard-input t
   :error-parser flycheck-parse-checkstyle
+  :error-filter
+  (lambda (errors)
+    (flycheck-sanitize-errors
+     (flycheck-remove-error-file-names "STDIN" errors)))
   :modes (php-mode php+-mode))
 
 (flycheck-define-checker puppet-parser
   "A Puppet DSL syntax checker using puppet's own parser.
 
 See URL `http://puppetlabs.com/'."
-  :command ("puppet" "parser" "validate" "--color=false" source)
+  :command ("puppet" "parser" "validate" "--color=false")
+  :standard-input t
   :error-patterns
   (
    ;; Patterns for Puppet 4
    (error line-start "Error: Could not parse for environment "
           (one-or-more (in "a-z" "0-9" "_")) ":"
-          (message) " at " (file-name) ":" line ":" column line-end)
-   (error line-start "Error: Could not parse for environment "
-          (one-or-more (in "a-z" "0-9" "_")) ":"
-          (message) " in file " (file-name) " at line " line ":" column
-          line-end)
+          (message) " at line " line ":" column line-end)
    ;; Errors from Puppet < 4
    (error line-start
           ;; Skip over the path of the Puppet executable
@@ -7315,14 +7328,15 @@ Requires Flake8 2.0 or newer. See URL
                     flycheck-option-int)
             (option "--max-line-length" flycheck-flake8-maximum-line-length nil
                     flycheck-option-int)
-            source)
+            "-")
+  :standard-input t
   :error-filter (lambda (errors)
                   (let ((errors (flycheck-sanitize-errors errors)))
                     (mapc #'flycheck-flake8-fix-error-level errors)
                     errors))
   :error-patterns
   ((warning line-start
-            (file-name) ":" line ":" (optional column ":") " "
+            "stdin:" line ":" (optional column ":") " "
             (id (one-or-more (any alpha)) (one-or-more digit)) " "
             (message (one-or-more not-newline))
             line-end))
@@ -7487,11 +7501,13 @@ part of a Sphinx project."
 See URL `http://docutils.sourceforge.net/'."
   ;; We need to use source-inplace to properly resolve relative paths in
   ;; include:: directives
-  :command ("rst2pseudoxml.py" "--report=2" "--halt=5" source-inplace)
+  :command ("rst2pseudoxml.py" "--report=2" "--halt=5"
+            ;; Read from standard input and throw output away
+            "-" null-device)
+  :standard-input t
   :error-patterns
-  ((warning line-start (file-name) ":" line ": (WARNING/2) " (message) line-end)
-   (error line-start
-          (file-name) ":" line
+  ((warning line-start "<stdin>:" line ": (WARNING/2) " (message) line-end)
+   (error line-start "<stdin>:" line
           ": (" (or "ERROR/3" "SEVERE/4") ") "
           (message) line-end))
   :modes rst-mode)
@@ -7968,9 +7984,13 @@ See URL `https://github.com/koalaman/shellcheck/'."
             "--shell" (eval (symbol-name sh-shell))
             (option "--exclude" flycheck-shellcheck-excluded-warnings list
                     flycheck-option-comma-separated-list)
-            source)
+            "-")
+  :standard-input t
   :error-parser flycheck-parse-checkstyle
-  :error-filter flycheck-dequalify-error-ids
+  :error-filter
+  (lambda (errors)
+    (flycheck-remove-error-file-names
+     "-" (flycheck-dequalify-error-ids errors)))
   :modes sh-mode
   :predicate (lambda () (memq sh-shell flycheck-shellcheck-supported-shells))
   :verify (lambda (_)
@@ -8120,17 +8140,18 @@ library.
 
 See URL `http://www.ruby-doc.org/stdlib-2.0.0/libdoc/yaml/rdoc/YAML.html'."
   :command ("ruby" "-ryaml" "-e" "begin;
-   file_name = ARGV[0]; \
-   YAML.load(ARGF); \
+   YAML.load(STDIN); \
  rescue Exception => e; \
-   STDERR.puts \"#{file_name}:#{e}\"; \
- end" source)
+   STDERR.puts \"stdin:#{e}\"; \
+ end")
+  :standard-input t
   :error-patterns
   (;; Syck (Ruby <= 1.9.2, unmaintained)
-   (error line-start (file-name)
-          ":syntax error on line " line ", col " column ": `" (message) "'" line-end)
+   (error line-start
+          "stdin:syntax error on line " line ", col " column ": `" (message) "'"
+          line-end)
    ;; Psych (Ruby >= 1.9.3)
-   (error line-start (file-name) ":" (zero-or-more not-newline) ":" (message)
+   (error line-start "stdin:" (zero-or-more not-newline) ":" (message)
           "at line " line " column " column  line-end))
   :modes yaml-mode)
 

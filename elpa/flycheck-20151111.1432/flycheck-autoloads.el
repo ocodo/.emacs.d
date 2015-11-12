@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "flycheck" "flycheck.el" (22066 4208 897196
-;;;;;;  396000))
+;;;### (autoloads nil "flycheck" "flycheck.el" (22084 1965 172924
+;;;;;;  545000))
 ;;; Generated autoloads from flycheck.el
 
 (autoload 'flycheck-info "flycheck" "\
@@ -103,7 +103,7 @@ The following PROPERTIES constitute an error level:
 
 \(fn LEVEL &rest PROPERTIES)" nil nil)
 
-(function-put 'flycheck-define-error-level 'lisp-indent-function '1)
+(put 'flycheck-define-error-level 'lisp-indent-function '1)
 
 (autoload 'flycheck-define-command-checker "flycheck" "\
 Define SYMBOL as syntax checker which runs a command.
@@ -184,9 +184,9 @@ default `:verify' function of command checkers.
 
 \(fn SYMBOL DOCSTRING &rest PROPERTIES)" nil nil)
 
-(function-put 'flycheck-define-command-checker 'lisp-indent-function '1)
+(put 'flycheck-define-command-checker 'lisp-indent-function '1)
 
-(function-put 'flycheck-define-command-checker 'doc-string-elt '2)
+(put 'flycheck-define-command-checker 'doc-string-elt '2)
 
 (autoload 'flycheck-def-config-file-var "flycheck" "\
 Define SYMBOL as config file variable for CHECKER, with default FILE-NAME.
@@ -203,7 +203,7 @@ argument to `flycheck-define-checker'.
 
 \(fn SYMBOL CHECKER &optional FILE-NAME &rest CUSTOM-ARGS)" nil t)
 
-(function-put 'flycheck-def-config-file-var 'lisp-indent-function '3)
+(put 'flycheck-def-config-file-var 'lisp-indent-function '3)
 
 (autoload 'flycheck-def-option-var "flycheck" "\
 Define SYMBOL as option variable with INIT-VALUE for CHECKER.
@@ -219,14 +219,14 @@ Use this together with the `option', `option-list' and
 
 \(fn SYMBOL INIT-VALUE CHECKER DOCSTRING &rest CUSTOM-ARGS)" nil t)
 
-(function-put 'flycheck-def-option-var 'lisp-indent-function '3)
+(put 'flycheck-def-option-var 'lisp-indent-function '3)
 
-(function-put 'flycheck-def-option-var 'doc-string-elt '4)
+(put 'flycheck-def-option-var 'doc-string-elt '4)
 
 ;;;***
 
-;;;### (autoloads nil nil ("flycheck-ert.el" "flycheck-pkg.el") (22066
-;;;;;;  4208 877196 384000))
+;;;### (autoloads nil nil ("flycheck-ert.el" "flycheck-pkg.el") (22084
+;;;;;;  1965 188597 927000))
 
 ;;;***
 
