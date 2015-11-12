@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (22030 34897 357140
-;;;;;;  0))
+;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (22084 1971 308924
+;;;;;;  941000))
 ;;; Generated autoloads from evil-snipe.el
 
 (defvar evil-snipe-mode nil "\
@@ -17,7 +17,14 @@ or call the function `evil-snipe-mode'.")
 (custom-autoload 'evil-snipe-mode "evil-snipe" nil)
 
 (autoload 'evil-snipe-mode "evil-snipe" "\
-evil-snipe minor mode.
+Toggle Evil-Snipe-Local mode in all buffers.
+With prefix ARG, enable Evil-Snipe mode if ARG is positive;
+otherwise, disable it.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
+Evil-Snipe-Local mode is enabled in all buffers where
+`turn-on-evil-snipe-mode' would do it.
+See `evil-snipe-local-mode' for more information on Evil-Snipe-Local mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -31,6 +38,23 @@ or call the function `evil-snipe-override-mode'.")
 (custom-autoload 'evil-snipe-override-mode "evil-snipe" nil)
 
 (autoload 'evil-snipe-override-mode "evil-snipe" "\
+Toggle Evil-Snipe-Override-Local mode in all buffers.
+With prefix ARG, enable Evil-Snipe-Override mode if ARG is positive;
+otherwise, disable it.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
+Evil-Snipe-Override-Local mode is enabled in all buffers where
+`turn-on-evil-snipe-override-mode' would do it.
+See `evil-snipe-override-local-mode' for more information on Evil-Snipe-Override-Local mode.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'evil-snipe-local-mode "evil-snipe" "\
+evil-snipe minor mode.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'evil-snipe-override-local-mode "evil-snipe" "\
 evil-snipe minor mode that overrides evil-mode f/F/t/T/;/, bindings.
 
 \(fn &optional ARG)" t nil)
@@ -38,12 +62,22 @@ evil-snipe minor mode that overrides evil-mode f/F/t/T/;/, bindings.
 (autoload 'turn-on-evil-snipe-mode "evil-snipe" "\
 Enable evil-snipe-mode in the current buffer.
 
-\(fn &optional INTERNAL)" nil nil)
+\(fn)" nil nil)
+
+(autoload 'turn-on-evil-snipe-override-mode "evil-snipe" "\
+Enable evil-snipe-mode in the current buffer.
+
+\(fn)" nil nil)
 
 (autoload 'turn-off-evil-snipe-mode "evil-snipe" "\
 Disable evil-snipe-mode in the current buffer.
 
-\(fn &optional INTERNAL)" nil nil)
+\(fn)" nil nil)
+
+(autoload 'turn-off-evil-snipe-override-mode "evil-snipe" "\
+Disable evil-snipe-override-mode in the current buffer.
+
+\(fn)" nil nil)
 
 ;;;***
 

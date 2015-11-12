@@ -5,9 +5,9 @@
 ;; Author: Henrik Lissner <http://github/hlissner>
 ;; Maintainer: Henrik Lissner <henrik@lissner.net>
 ;; Created: December 5, 2014
-;; Modified: September 28, 2015
-;; Version: 1.8.1
-;; Package-Version: 20150928.2006
+;; Modified: November 6, 2015
+;; Version: 1.8.4
+;; Package-Version: 20151106.1402
 ;; Keywords: emulation, vim, evil, sneak, seek
 ;; Homepage: https://github.com/hlissner/evil-snipe
 ;; Package-Requires: ((evil "1.1.3"))
@@ -16,21 +16,22 @@
 
 ;;; Commentary:
 ;;
-;; Snipe is f/F/t/T on steroids. It emulates vim-sneak and vim-seek for
-;; evil-mode by default, bound to s/S in normal mode and z/Z/x/X in visual or
-;; operator mode. With its N-character searching, it can also be adapted to
-;; replace evil-mode's f/F/t/T funcitonality. See the readme for more
-;; information.
+;; Evil-snipe emulates vim-seek and/or vim-sneak in evil-mode.
 ;;
-;; To enable globally, add the following lines to ~/.emacs:
+;; It provides 2-character motions for quickly (and more accurately) jumping around
+;; text, compared to evil's built-in f/F/t/T motions, incrementally highlighting
+;; candidate targets as you type.
+;;
+;; To enable globally:
 ;;
 ;;     (require 'evil-snipe)
 ;;     (evil-snipe-mode 1)
 ;;
-;; To replace evil-mode's f/F/t/T functionality with (1-character) sniping, you
-;; also need:
+;; To replace evil-mode's f/F/t/T functionality with (1-character) sniping:
 ;;
 ;;     (evil-snipe-override-mode 1)
+;;
+;; See included README.md for more information.
 ;;
 ;;; Code:
 
@@ -84,18 +85,16 @@ settings)"
   "Dictates the scope of searches, which can be one of:
 
     nil          ;; default; treat count as repeat count
-    'letters     ;; count = how many characters to expect and search for
-    'vertical    ;; find first match within N (visible) columns"
+    'letters     ;; count = how many characters to expect and search for"
   :group 'evil-snipe
   :type 'symbol)
 
 (defcustom evil-snipe-spillover-scope nil
-  "Takes any value `evil-snipe-scope' accepts. If nil, a failed search will
-simply fail. If non-nil, snipe will search for more matches within this scope.
-It is useful only if set to a broader scope than `evil-snipe-scope'.
+  "If non-nil, snipe will expand the search scope to this when a snipe fails,
+and continue the search (until it finds something or even this scope fails).
 
-This also applies to N>1 COUNT prefixes. E.g. if 3sab fails, it will extend the
-scope to `evil-snipe-spillover-scope''s to find a 3rd match."
+Accepts the same values as `evil-snipe-scope' and `evil-snipe-repeat-scope'.
+Is only useful if set to the same or broader scope than either."
   :group 'evil-snipe
   :type 'boolean)
 
@@ -122,19 +121,10 @@ letters."
   :group 'evil-snipe
   :type 'boolean)
 
-(defcustom evil-snipe-symbol-groups '()
+(defvar evil-snipe-symbol-groups '()
   "You specify key aliases here, in the format '(KEY REGEX). Any instance of KEY
-will be replaced with REGEX.
-
-Here are some examples:
-
-    ;; Alias [ and ] to all types of brackets
-    (add-to-list 'evil-snipe-symbol-groups '(?\\] \"[]})]\"))
-    (add-to-list 'evil-snipe-symbol-groups '(?\\[ \"[[{(]\"))
-    ;; For python style functions
-    (add-to-list 'evil-snipe-symbol-groups '(?\\: \"def .+:\"\))"
-  :group 'evil-snipe
-  :type 'list)
+will be replaced with REGEX. Use `evil-snipe-add-alias' to modify this.")
+(make-variable-buffer-local 'evil-snipe-symbol-groups)
 
 (defvar evil-snipe-auto-disable-substitute t
   "Disables evil's native s/S functionality (substitute) if non-nil. By default
@@ -344,13 +334,13 @@ depending on what `evil-snipe-scope' is set to."
 
 (defun evil-snipe--pre-command ()
   "Disables overlays and cleans up after evil-snipe."
-  (when evil-snipe-mode
+  (when evil-snipe-local-mode
     (remove-overlays nil nil 'category 'evil-snipe))
   (remove-hook 'pre-command-hook 'evil-snipe--pre-command))
 
 (defun evil-snipe--disable-transient-map ()
   "Disable lingering transient map, if necessary."
-  (when (and evil-snipe-mode (functionp evil-snipe--transient-map-func))
+  (when (and evil-snipe-local-mode (functionp evil-snipe--transient-map-func))
     (funcall evil-snipe--transient-map-func)
     (setq evil-snipe--transient-map-func nil)))
 
@@ -435,9 +425,7 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
               (evil-beginning-of-line)))
           (if (re-search-forward string (if forward-p (cdr scope) (car scope)) t count) ;; hi |
               (let* ((beg (match-beginning 0))
-                     (end (match-end 0))
-                     (window-start (window-start))
-                     (window-end (window-end)))
+                     (end (match-end 0)))
                 ;; Set cursor position
                 (if forward-p
                     (progn
@@ -450,18 +438,22 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
                 ;; Follow the cursor
                 (when evil-snipe-auto-scroll
                   (setq new-orig-point (point))
-                  (if (or (> window-start new-orig-point)
-                          (< window-end new-orig-point))
+                  (if (or (> (window-start) new-orig-point)
+                          (< (window-end) new-orig-point))
                       (evil-scroll-line-to-center (line-number-at-pos))
                     (evil-scroll-line-down (- (line-number-at-pos) (line-number-at-pos orig-point))))
                   (goto-char new-orig-point))
                 ;; Activate the repeat keymap
                 (when (and keymap (not (evil-operator-state-p)))
                   (setq evil-snipe--transient-map-func (set-transient-map keymap))))
+            (if evil-snipe-spillover-scope
+                (let ((evil-snipe-scope evil-snipe-spillover-scope)
+                      evil-snipe-spillover-scope)
+                  (evil-snipe--seek count data))
             (goto-char orig-point)
             (user-error "Can't find %s" ;; show invisible keys
                         (replace-regexp-in-string "\t" "<TAB>"
-                        (replace-regexp-in-string "\s" "<SPC>" (evil-snipe--keys data)))))
+                        (replace-regexp-in-string "\s" "<SPC>" (evil-snipe--keys data))))))
           (when evil-snipe-enable-highlight
             (evil-snipe--highlight-all count string))
           (add-hook 'pre-command-hook 'evil-snipe--pre-command)))))
@@ -575,7 +567,7 @@ KEYS is a list of character codes or strings."
   "Set a character alias for sniping. See `evil-snipe-symbol-groups'."
   (add-to-list 'evil-snipe-symbol-groups `(,char ,pattern)))
 
-(defvar evil-snipe-mode-map
+(defvar evil-snipe-local-mode-map
   (let ((map (make-sparse-keymap)))
     (evil-define-key 'motion map "s" 'evil-snipe-s)
     (evil-define-key 'motion map "S" 'evil-snipe-S)
@@ -590,7 +582,7 @@ KEYS is a list of character codes or strings."
       (define-key evil-normal-state-map "S" nil))
     map))
 
-(defvar evil-snipe-override-mode-map
+(defvar evil-snipe-override-local-mode-map
   (let ((map (make-sparse-keymap)))
     (evil-define-key 'motion map "f" 'evil-snipe-f)
     (evil-define-key 'motion map "F" 'evil-snipe-F)
@@ -611,43 +603,57 @@ KEYS is a list of character codes or strings."
 (defvar evil-snipe-mode-t-map (evil-snipe--transient-map "t" "T"))
 
 ;;;###autoload
-(define-minor-mode evil-snipe-mode
+(define-globalized-minor-mode evil-snipe-mode
+  evil-snipe-local-mode turn-on-evil-snipe-mode)
+
+;;;###autoload
+(define-globalized-minor-mode evil-snipe-override-mode
+  evil-snipe-override-local-mode turn-on-evil-snipe-override-mode)
+
+;;;###autoload
+(define-minor-mode evil-snipe-local-mode
   "evil-snipe minor mode."
-  :global t
   :lighter " snipe"
-  :keymap evil-snipe-mode-map
+  :keymap evil-snipe-local-mode-map
   :group 'evil-snipe
-  (if evil-snipe-mode
-      (turn-on-evil-snipe-mode t)
-    (turn-off-evil-snipe-mode t)))
+  (if evil-snipe-local-mode
+      (progn
+        (when (fboundp 'advice-add)
+          (advice-add 'evil-force-normal-state :before 'evil-snipe--pre-command))
+        (add-hook 'evil-insert-state-entry-hook 'evil-snipe--disable-transient-map nil t))
+    (when (fboundp 'advice-remove)
+      (advice-remove 'evil-force-normal-state 'evil-snipe--pre-command))
+    (remove-hook 'evil-insert-state-entry-hook 'evil-snipe--disable-transient-map t)))
 
 ;;;###autoload
-(define-minor-mode evil-snipe-override-mode
+(define-minor-mode evil-snipe-override-local-mode
   "evil-snipe minor mode that overrides evil-mode f/F/t/T/;/, bindings."
-  :global t
-  :keymap evil-snipe-override-mode-map
+  :keymap evil-snipe-override-local-mode-map
   :group 'evil-snipe
-  (if evil-snipe-override-mode
-      (unless evil-snipe-mode
-        (evil-snipe-mode 1))))
+  (if evil-snipe-override-local-mode
+      (unless evil-snipe-local-mode
+        (evil-snipe-local-mode 1))
+    (evil-snipe-local-mode -1)))
 
 ;;;###autoload
-(defun turn-on-evil-snipe-mode (&optional internal)
+(defun turn-on-evil-snipe-mode ()
   "Enable evil-snipe-mode in the current buffer."
-  (unless internal (evil-snipe-mode 1))
-  (when (fboundp 'advice-add)
-    (advice-add 'evil-force-normal-state :before 'evil-snipe--pre-command))
-  (add-hook 'evil-insert-state-entry-hook 'evil-snipe--disable-transient-map))
+  (evil-snipe-local-mode 1))
 
 ;;;###autoload
-(defun turn-off-evil-snipe-mode (&optional internal)
-  "Disable evil-snipe-mode in the current buffer."
-  (when (fboundp 'advice-remove)
-    (advice-remove 'evil-force-normal-state 'evil-snipe--pre-command))
-  (remove-hook 'evil-insert-state-entry-hook 'evil-snipe--disable-transient-map)
-  (unless internal (evil-snipe-mode -1))
-  (evil-snipe-override-mode -1))
+(defun turn-on-evil-snipe-override-mode ()
+  "Enable evil-snipe-mode in the current buffer."
+  (evil-snipe-override-local-mode 1))
 
+;;;###autoload
+(defun turn-off-evil-snipe-mode ()
+  "Disable evil-snipe-mode in the current buffer."
+  (evil-snipe-local-mode -1))
+
+;;;###autoload
+(defun turn-off-evil-snipe-override-mode ()
+  "Disable evil-snipe-override-mode in the current buffer."
+  (evil-snipe-override-local-mode -1))
 
 (provide 'evil-snipe)
 ;;; evil-snipe.el ends here
