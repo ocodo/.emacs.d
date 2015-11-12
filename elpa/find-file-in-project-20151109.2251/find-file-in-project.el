@@ -3,8 +3,8 @@
 ;; Copyright (C) 2006-2009, 2011-2012, 2015
 ;;   Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;;
-;; Version: 3.7
-;; Package-Version: 20151022.708
+;; Version: 3.8
+;; Package-Version: 20151109.2251
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -58,7 +58,7 @@
 
 ;; The variable `ffip-filename-rules' create some extra file names for
 ;; search when calling `find-file-in-project-by-selected'. For example,
-;; When file basename `hellWorld' provided, `HelloWorld', `hello-world'
+;; When file basename `helloWorld' provided, `HelloWorld', `hello-world'
 ;; are added as the file name search patterns.
 ;; `C-h v ffip-filename-rules' to see its default value.
 
@@ -68,9 +68,9 @@
 
 ;; ivy-mode is used for filter/search UI
 ;; In ivy-mode, SPACE is translated to regex ".*".
-;; For exmaple, the search string "dec fun pro" is transformed into
+;; For example, the search string "dec fun pro" is transformed into
 ;; a regex "\\(dec\\).*\\(fun\\).*\\(pro\\)"
-;;
+;; You switch to ido-mode by `(setq ffip-prefer-ido-mode t)'
 
 ;; GNU Find can be installed,
 ;;   - through `brew' on OS X
@@ -101,8 +101,11 @@
 ;;;###autoload
 (defvar ffip-project-file '(".svn" ".git" ".hg")
   "The file that should be used to define a project root.
-
 May be set using .dir-locals.el. Checks each entry if set to a list.")
+
+;;;###autoload
+(defvar ffip-prefer-ido-mode nil
+  "Use ido-mode instead of ivy-mode for displaying candidates.")
 
 ;;;###autoload
 (defvar ffip-patterns nil
@@ -111,29 +114,29 @@ May be set using .dir-locals.el. Checks each entry if set to a list.")
 ;;;###autoload
 (defvar ffip-prune-patterns
   '(;; VCS
-    ".git"
-    ".svn"
-    ".cvs"
-    ".bzr"
-    ".hg"
+    "*/.git/*"
+    "*/.svn/*"
+    "*/.cvs/*"
+    "*/.bzr/*"
+    "*/.hg/*"
     ;; project misc
     "*.log"
-    "bin"
+    "*/bin/*"
     ;; Mac
-    ".DS_Store"
+    "*/.DS_Store/*"
     ;; Ctags
-    "tags"
-    "TAGS"
+    "*/tags"
+    "*/TAGS"
     ;; Global/Cscope
-    "GTAGS"
-    "GPATH"
-    "GRTAGS"
-    "cscope.files"
+    "*/GTAGS"
+    "*/GPATH"
+    "*/GRTAGS"
+    "*/cscope.files"
     ;; html/javascript/css
     "*min.js"
     "*min.css"
-    "node_modules"
-    "bower_components"
+    "*/node_modules/*"
+    "*/bower_components/*"
     ;; Images
     "*.png"
     "*.jpg"
@@ -155,19 +158,19 @@ May be set using .dir-locals.el. Checks each entry if set to a list.")
     "*.dll"
     "*.exe"
     ;; Java
-    ".metadata"
-    ".gradle"
+    "*/.metadata*"
+    "*/.gradle/*"
     "*.class"
     "*.war"
     "*.jar"
     ;; Emacs/Vim
     "*flymake"
-    "#*#"
+    "*/#*#"
     ".#*"
     "*.swp"
     "*~"
     "*.elc"
-    ".cask"
+    "*/.cask/*"
     ;; Python
     "*.pyc")
   "List of directory/file patterns to not descend into when listing files in `find-file-in-project'.")
@@ -211,17 +214,8 @@ This overrides variable `ffip-project-root' when set.")
 
 ;;;###autoload
 (defun ffip-filename-identity (keyword)
-  " HelloWorld => [Hh]elloWorld "
-  (let (rlt
-        (c (elt keyword 0))
-        nc)
-    ;; a => 97, z => 122
-    (if (and (<= 97 c) (<= c 122)) (setq nc (- c 32)))
-    ;; A => 65, Z => 90
-    (if (and (<= 65 c) (<= c 90)) (setq nc (+ c 32)))
-    (setq rlt (replace-regexp-in-string "^[a-zA-Z]" (concat "[" (string c nc) "]") keyword t))
-    (if (and rlt ffip-debug) (message "ffip-filename-identity called. rlt=%s" rlt))
-    rlt))
+  "Return identical KEYWORD."
+  keyword)
 
 ;;;###autoload
 (defun ffip-filename-camelcase-to-dashes (keyword)
@@ -241,7 +235,7 @@ This overrides variable `ffip-project-root' when set.")
 
 ;;;###autoload
 (defun ffip-filename-dashes-to-camelcase (keyword)
-  " hello-world => [Hh]elloWorld "
+  " hello-world => HelloWorld "
   (let (rlt)
     (setq rlt (mapconcat (lambda (s) (capitalize s)) (split-string keyword "-") ""))
 
@@ -293,26 +287,29 @@ This overrides variable `ffip-project-root' when set.")
 (defun ffip--join-patterns (patterns)
   "Turn `ffip-patterns' into a string that `find' can use."
   (if ffip-patterns
-      (format "\\( %s \\)" (mapconcat (lambda (pat) (format "-name \"%s\"" pat))
+      (format "\\( %s \\)" (mapconcat (lambda (pat) (format "-iwholename \"%s\"" pat))
                          patterns " -or "))
     ""))
 
 (defun ffip--prune-patterns ()
   "Turn `ffip-prune-patterns' into a string that `find' can use."
-  (mapconcat (lambda (pat) (format "-name \"%s\"" pat))
+  (mapconcat (lambda (pat) (format "-iwholename \"%s\"" pat))
              ffip-prune-patterns " -or "))
 
 (defun ffip-completing-read (prompt collection)
   (let (rlt)
     (cond
-     ( (= 1 (length collection))
+     ((= 1 (length collection))
        ;; open file directly
        (setq rlt (car collection)))
+     ;; support ido-mode
+     ((and ffip-prefer-ido-mode (boundp 'ido-mode) ido-mode)
+      (setq rlt (ido-completing-read prompt collection)))
      (t
       (setq rlt (ivy-read prompt collection))))
     rlt))
 
-(defun ffip-project-files (keyword NUM)
+(defun ffip-project-search (keyword NUM)
   "Return an alist of all filenames in the project and their path.
 
 Files with duplicate filenames are suffixed with the name of the
@@ -351,7 +348,7 @@ directory they are found in so that they are unique."
     rlt))
 
 (defun ffip-find-files (keyword NUM)
-  (let* ((project-files (ffip-project-files keyword NUM))
+  (let* ((project-files (ffip-project-search keyword NUM))
          (files (mapcar 'car project-files))
          file root)
     (cond
@@ -371,7 +368,7 @@ directory they are found in so that they are unique."
 ;;;###autoload
 (defun find-file-in-project (&optional NUM)
   "Prompt with a completing list of all files in the project to find one.
-If NUM is given, only files modfied NUM days before will be selected.
+If NUM is given, only files modified NUM days before will be selected.
 
 The project's scope is defined as the first directory containing
 a `ffip-project-file' (It's value is \".git\" by default.
@@ -388,17 +385,23 @@ You can override this by setting the variable `ffip-project-root'."
                         (ffip-project-root))))
 
 ;;;###autoload
-(defun find-file-in-project-by-selected (&optional NUM)
+(defun find-file-in-project-by-selected (&optional num)
   "Similar to find-file-in-project.
 But use string from selected region to search files in the project.
-If no region is selected, you need provide one.
-If NUM is given, only files modfied NUM days before will be selected.
-"
+If no region is selected, you need provide keyword.
+
+Keyword could be ANY part of the file's full path and support wildcard.
+For example, to find /home/john/proj1/test.js, below keywords are valid:
+- test.js
+- orj1/tes
+- john*test
+
+If NUM is given, only files modified NUM days before will be selected."
   (interactive "P")
   (let ((keyword (if (region-active-p)
                      (buffer-substring-no-properties (region-beginning) (region-end))
                    (read-string "Enter keyword:"))))
-    (ffip-find-files keyword NUM)))
+    (ffip-find-files keyword num)))
 
 ;;;###autoload
 (defalias 'ffip 'find-file-in-project)
@@ -407,6 +410,7 @@ If NUM is given, only files modfied NUM days before will be selected.
 ;;;###autoload
 (progn
   (put 'ffip-patterns 'safe-local-variable 'listp)
+  (put 'ffip-prune-patterns 'safe-local-variable 'listp)
   (put 'ffip-filename-rules 'safe-local-variable 'listp)
   (put 'ffip-project-file 'safe-local-variable 'stringp)
   (put 'ffip-project-root 'safe-local-variable 'stringp))
