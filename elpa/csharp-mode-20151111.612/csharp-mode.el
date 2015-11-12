@@ -7,7 +7,7 @@
 ;; Modified   : May 2015
 ;; Version    : 0.8.10
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20150925.1354
+;; Package-Version: 20151111.612
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
 
@@ -1190,7 +1190,7 @@ a square parentasis block [ ... ]."
 
 
 (c-lang-defconst c-colon-type-list-kwds
-  csharp '("class"))
+  csharp '("class" "struct" "interface"))
 
 (c-lang-defconst c-block-prefix-disallowed-chars
 
@@ -1274,6 +1274,7 @@ a square parentasis block [ ... ]."
 (c-lang-defconst c-modifier-kwds
   csharp '("public" "partial" "private" "const" "abstract" "sealed"
            "protected" "ref" "out" "static" "virtual"
+           "implicit" "explicit" "fixed"
            "override" "params" "internal" "async"))
 
 
@@ -1286,10 +1287,16 @@ a square parentasis block [ ... ]."
   ;; csharp '("private" "protected" "public" "internal")
 )
 
+(c-lang-defconst c-opt-op-identifier-prefix
+  "Regexp matching the token before the ones in
+`c-overloadable-operators' when operators are specified in their \"identifier form\".
+
+This regexp is assumed to not match any non-operator identifier."
+  csharp (c-make-keywords-re t '("operator")))
 
 ;; Define the keywords that can have something following after them.
 (c-lang-defconst c-type-list-kwds
-  csharp '("struct" "class" "interface" "is" "as"
+  csharp '("struct" "class" "interface" "is" "as" "operator"
            "delegate" "event" "set" "get" "add" "remove"))
 
 ;; Handle typeless variable declaration
@@ -1313,6 +1320,7 @@ a square parentasis block [ ... ]."
 ;; Statement keywords followed by a paren sexp and then by a substatement.
 (c-lang-defconst c-block-stmt-2-kwds
   csharp '("for" "if" "switch" "while" "catch" "foreach" "using"
+           "fixed"
            "checked" "unchecked" "lock"))
 
 
@@ -1331,7 +1339,7 @@ a square parentasis block [ ... ]."
 
 ;; Keywords that start "primary expressions."
 (c-lang-defconst c-primary-expr-kwds
-  csharp '("this" "base"))
+  csharp '("this" "base" "operator"))
 
 ;; Treat namespace as an outer block so class indenting
 ;; works properly.
