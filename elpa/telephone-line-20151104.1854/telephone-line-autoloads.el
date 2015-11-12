@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "telephone-line" "telephone-line.el" (22068
-;;;;;;  38764 546191 636000))
+;;;### (autoloads nil "telephone-line" "telephone-line.el" (22084
+;;;;;;  1813 280918 945000))
 ;;; Generated autoloads from telephone-line.el
 
 (defvar telephone-line-mode nil "\
@@ -25,7 +25,7 @@ Toggle telephone-line on or off.
 
 ;;;### (autoloads nil nil ("telephone-line-pkg.el" "telephone-line-segments.el"
 ;;;;;;  "telephone-line-separators.el" "telephone-line-utils.el")
-;;;;;;  (22068 38764 557289 246000))
+;;;;;;  (22084 1813 294720 750000))
 
 ;;;***
 
