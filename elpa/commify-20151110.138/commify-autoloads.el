@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "commify" "commify.el" (22071 65268 0 0))
+;;;### (autoloads nil "commify" "commify.el" (22084 2002 216927 141000))
 ;;; Generated autoloads from commify.el
 
 (autoload 'commify-toggle "commify" "\

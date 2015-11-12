@@ -1,4 +1,4 @@
-;;; commify.el --- Toggle grouping commas in numbers in buffer
+;;; commify.el --- Toggle grouping commas in numbers
 
 ;; Copyright (C) 2015 Daniel E. Doherty
 
@@ -16,8 +16,8 @@
 ;; with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; Author: Daniel E. Doherty <ded-commify@ddoherty.net>
-;; Version: 1.0
-;; Package-Version: 20151102.1248
+;; Version: 1.1.2
+;; Package-Version: 20151110.138
 ;; Package-Requires: ((s "1.9.0"))
 ;; Keywords: convenience, editing, numbers, grouping, commas
 ;; URL: https://github.com/ddoherty03/commify
@@ -36,8 +36,9 @@
 ;;
 ;; Calling commify-toggle again removes the commas.  The cursor can also be
 ;; anywhere in the number or immediately before or after the number.
-;; commify/toggle works on floating or scientific numbers as well, but in only
-;; ever affect the digits before the decimal point.
+;; commify-toggle works on floating or scientific numbers as well, but it only
+;; ever affects the digits before the decimal point.  Afterwards, the cursor
+;; will be placed immediately after the affected number.
 ;;
 ;; You can configure these variables:
 ;;   - commify-group-char (default ",") to the char used for grouping
@@ -76,35 +77,49 @@
 ;; Main code:
 
 (defun commify--commas (n  &optional group-char group-size)
-  "For an integer N, return string version and insert GROUP-CHAR between groups of GROUP-SIZE digits."
+  "For an integer string N, insert GROUP-CHAR between groups of GROUP-SIZE digits."
   (unless group-char (setq group-char commify-group-char))
   (unless group-size (setq group-size commify-group-size))
   (let ((num nil)
         (grp-re nil)
         (rpl-str nil))
-    (setq num (s-reverse (format "%s" n)))
+    ;; reverse the string so we can insert the commas left-to-right
+    (setq num (s-reverse n))
+    ;; form the re to look for groups of group-size digits, e.g. "[0-9]\{3\}"
     (setq grp-re (concat "[0-9]\\{" (format "%s" group-size) "\\}"))
+    ;; form the replacement, e.g., "\&,"
     (setq rpl-str (concat "\\&" group-char))
+    ;; do the replacement in the reversed string
     (setq num (replace-regexp-in-string grp-re rpl-str num))
-    (s-reverse (replace-regexp-in-string ",$" "" num))))
+    ;; now chop off any trailing group-char and re-reverse the string.
+    (s-reverse (s-chop-suffix group-char num))))
 
 ;;;###autoload
 (defun commify-toggle ()
   "Toggle insertion or deletion of grouping characters in the number around point."
   (interactive)
   (save-excursion
+    ;; find the beginning of the number the cursor is in or after.
     (skip-chars-backward (concat commify-decimal-char commify-group-char "0-9e+-"))
+    ;; skip past any leading sign.
     (when (looking-at "[-+]")
       (skip-chars-forward "-+"))
+    ;; if there's a number to the right, proceed.
     (when (looking-at "[0-9]")
+      ;; record the start of the number.
       (let ((beg-num (point))
             (num nil))
+        ;; go forward across any digits or group-char.
         (skip-chars-forward (concat commify-group-char "0-9"))
+        ;; extract the number as a string.
         (setq num (delete-and-extract-region beg-num (point)))
         (if (s-contains? commify-group-char num)
+            ;; remove group-char if its in the string ...
             (insert (s-replace-all `((,commify-group-char . "")) num))
-          (insert (commify--commas (string-to-number num))))
+          ;; or add them if its not.
+          (insert (commify--commas num)))
         (goto-char beg-num))))
+  ;; move cursor to the end of the number.
   (skip-chars-forward (concat commify-decimal-char commify-group-char "0-9e+-")))
 
 (provide 'commify)
