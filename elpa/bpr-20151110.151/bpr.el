@@ -2,16 +2,17 @@
 
 ;; Author: Ilya Babanov <ilya-babanov@ya.ru>
 ;; URL: https://github.com/ilya-babanov/emacs-bpr
-;; Package-Version: 20151101.1308
-;; Version: 1.0
+;; Version: 1.4
 ;; Package-Requires: ((emacs "24"))
-;; Keywords: background, async, process, managment
+;; Keywords: background, async, process, management
 
 ;;; Commentary:
 ;; This package provides functionality for running processes in background.
-;; For detailed instructions see README.md file.
+;; For detailed instructions see https://github.com/ilya-babanov/emacs-bpr.
 
 ;;; Code:
+
+(require 'shell)
 
 (defgroup bpr nil
   "Background Process Runner"
@@ -19,11 +20,11 @@
   :group 'extensions)
 
 (defcustom bpr-close-after-success nil
-  "Should process's window be closed after success."
+  "Indicates whether the process output window is closed on success."
   :type 'boolean)
 
 (defcustom bpr-open-after-error t
-  "Should window with process output be opened after error."
+  "Indicates whether the process output window is shown on error."
   :group 'bpr
   :type 'boolean)
 
@@ -40,13 +41,18 @@
 (defcustom bpr-process-directory nil
   "Directory for process.
 If not nil, it will be assigned to default-direcotry.
-If nil, standart default-direcotry will be used,
-or projectile-project-root, if it's available."
+If nil, standard default-direcotry will be used,
+or projectile-project-root, if it's available and bpr-use-projectile isn't nil."
   :group 'bpr
   :type 'string)
 
+(defcustom bpr-use-projectile t
+  "Whether to use projectile-project-root (if available) for process's directory."
+  :group 'bpr
+  :type 'boolean)
+
 (defcustom bpr-erase-process-buffer t
-  "Shuld process's buffer be erased before starting new process."
+  "Indicates whether the process buffer is erased at the start of the new process."
   :group 'bpr
   :type 'boolean)
 
@@ -56,22 +62,27 @@ or projectile-project-root, if it's available."
   :type 'number)
 
 (defcustom bpr-show-progress t
-  "Should process's progress be shown."
+  "Whether to show progress messages for process."
   :group 'bpr
   :type 'boolean)
 
 (defcustom bpr-poll-timout 0.2
-  "Progress update interval"
+  "Progress update interval."
   :group 'bpr
   :type 'number)
 
 (defcustom bpr-colorize-output nil
-  "Should process's output be colorized"
+  "Whether to colorize process output buffer.
+For this operation `ansi-color-apply-on-region' is used."
   :group 'bpr
   :type 'boolean)
 
+(defvar bpr-last-buffer nil
+  "Buffer for the last spawned process.")
+
+;;;###autoload
 (defun bpr-spawn (cmd)
-  "Invokes passed CMD in background."
+  "Executes string CMD asynchronously in background."
   (interactive "sCommand:")
   (let* ((proc-name (bpr-create-process-name cmd))
          (process (get-process proc-name)))
@@ -81,6 +92,13 @@ or projectile-project-root, if it's available."
           (bpr-try-refresh-process-window process))
       (bpr-run-process cmd))))
 
+(defun bpr-open-last-buffer ()
+  "Opens the buffer of the last spawned process."
+  (interactive)
+  (if (buffer-live-p bpr-last-buffer)
+      (set-window-buffer (funcall bpr-window-creator) bpr-last-buffer)
+    (message "Can't find last used buffer")))
+
 (defun bpr-run-process (cmd)
   (message "Running process '%s'" cmd)
   (let* ((default-directory (bpr-get-current-directory))
@@ -88,7 +106,7 @@ or projectile-project-root, if it's available."
          (buff-name (concat "*" proc-name "*"))
          (buffer (get-buffer-create buff-name))
          (process (start-process-shell-command proc-name buffer cmd)))
-    (message default-directory)
+    (setq bpr-last-buffer buffer)
     (set-process-plist process (bpr-create-process-plist))
     (set-process-sentinel process 'bpr-handle-result)
     (bpr-handle-progress process)
@@ -100,7 +118,7 @@ or projectile-project-root, if it's available."
     (bpr-try-get-project-root)))
 
 (defun bpr-try-get-project-root ()
-  (if (fboundp 'projectile-project-root)
+  (if (and bpr-use-projectile (fboundp 'projectile-project-root))
       (projectile-project-root)
     default-directory))
 
@@ -118,9 +136,10 @@ or projectile-project-root, if it's available."
         'start-time (float-time)))
 
 (defun bpr-config-process-buffer (buffer)
-  (with-current-buffer buffer
-    (if bpr-erase-process-buffer (erase-buffer))
-    (funcall bpr-process-mode)))
+  (when buffer
+    (with-current-buffer buffer
+      (when bpr-erase-process-buffer (erase-buffer))
+      (funcall bpr-process-mode))))
 
 (defun bpr-handle-progress (process)
   (if (process-live-p process)
