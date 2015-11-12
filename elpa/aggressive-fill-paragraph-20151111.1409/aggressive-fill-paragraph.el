@@ -1,8 +1,9 @@
+;;; -*- lexical-binding: t; -*-
 ;;; aggressive-fill-paragraph.el --- A mode to automatically keep paragraphs filled
 
 ;; Author: David Shepherd <davidshepherd7@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20151025.821
+;; Package-Version: 20151111.1409
 ;; Package-Requires: ((dash "2.10.0"))
 ;; URL: https://github.com/davidshepherd7/aggressive-fill-paragraph-mode
 ;; Keywords: fill-paragraph, automatic, comments
@@ -16,30 +17,43 @@
 (require 'dash)
 
 
-;; Functions for testing conditions to suppress fill-paragraph
+;; Helpers
+
+(defun afp-inside-comment? ()
+  (nth 4 (syntax-ppss)))
 
 (defun afp-current-line ()
   (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+
+
+;; Functions for testing conditions to suppress fill-paragraph
 
 (defun afp-markdown-inside-code-block? ()
   """Basic test for indented code blocks in markdown."""
   (and (string-equal major-mode "markdown-mode")
        (string-match-p "^    " (afp-current-line))))
 
+(defun afp-start-of-comment? ()
+  "Check if we have just started writing a new comment line (it's
+  annoying if you are trying to write a list but it keeps getting
+  filled before you can type the * which afp recognises as a
+  list)."
+  (and (string-match-p (concat))))
 
 (defun afp-bullet-list-in-comments? ()
-  "Try to check if we are inside a bullet pointed list."
-  (comment-normalize-vars)
-  (and (comment-only-p (point-at-bol) (point-at-eol))
+  "Try to check if we are inside a bullet pointed list bulleted
+by *, + or -."
+  (and (afp-inside-comment?)
 
        ;; TODO: extend to match any line in paragraph
-       (string-match-p (concat "^[ ]*" comment-start "[ ]*[-\\*\\+]")
+       (string-match-p (concat "^\\s-*" comment-start "\\s-*[-\\*\\+]")
                        (afp-current-line))))
 
 ;; Org mode tables have their own filling behaviour which results in the
 ;; cursor being moved to the start of the table element, which is no good
 ;; for us! See issue #6.
 (require 'org)
+(declare-function org-element-type "org-element" element)
 (defun afp-in-org-table? ()
   (interactive)
   (and (derived-mode-p 'org-mode)
@@ -47,9 +61,11 @@
            (eql (org-element-type (org-element-at-point)) 'table-row))))
 
 (defcustom afp-suppress-fill-pfunction-list
-  (list #'afp-markdown-inside-code-block?
-        #'afp-bullet-list-in-comments?
-        #'afp-in-org-table?)
+  (list
+   #'afp-markdown-inside-code-block?
+   #'afp-bullet-list-in-comments?
+   #'afp-in-org-table?
+   )
   "List of predicate functions of no arguments, if any of these
   functions returns false then paragraphs will not be
   automatically filled."
@@ -59,6 +75,11 @@
   (list 'emacs-lisp-mode 'sh-mode 'python-mode)
   "List of major modes in which only comments should be filled."
   :group 'aggressive-fill-paragraph)
+
+(defcustom afp-fill-keys
+  (list ?\ ?.)
+  "List of keys after which to fill paragraph."
+  :group 'agressive-fill-paragraph)
 
 
 
@@ -78,6 +99,10 @@ and leaves everything else alone."
   "Check all functions in afp-suppress-fill-pfunction-list"
   (-any? #'funcall afp-suppress-fill-pfunction-list))
 
+
+;; Tell the byte compiler that these functions exist
+(declare-function ess-roxy-entry-p "ess-roxy" nil)
+(declare-function ess-roxy-fill-field "ess-roxy" nil)
 
 (defun afp-ess-fill-comments ()
   "Fill comments in ess-mode (for R and related languages),
@@ -116,28 +141,32 @@ taking care with special cases for documentation comments."
    (t #'fill-paragraph)))
 
 
-(defun afp-fill-then-insert-space ()
-  "The main function: fill the paragraph (if not suppressed,
-using the appropriate fill function), then insert a space."
-  (interactive)
-  (when (not (afp-suppress-fill?))
-    (funcall (afp-choose-fill-function)))
-  (insert " "))
+(defun aggressive-fill-paragraph-post-self-insert-function ()
+  "Fill paragraph when space is inserted and fill is not disabled
+for any reason."
+  (when (and (-contains? afp-fill-keys last-command-event)
+             (not (afp-suppress-fill?)))
 
-
-(defun afp-insert-space ()
-  (interactive)
-  (insert " "))
+    ;; Delete the charcter before filling and reinsert after. This is
+    ;; needed because we don't know if filling will remove whitespace.
+    (backward-delete-char 1)
+    (funcall (afp-choose-fill-function))
+    (insert last-command-event)))
 
 
 
 ;; Minor mode set up
 
 (define-minor-mode aggressive-fill-paragraph-mode
-  nil
-  :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "SPC") #'afp-fill-then-insert-space)
-            map))
+  "Toggle automatic paragraph fill when spaces are inserted in comments."
+  :global nil
+  :group 'electricity
+
+  (if aggressive-fill-paragraph-mode
+      (add-hook 'post-self-insert-hook
+                #'aggressive-fill-paragraph-post-self-insert-function nil t)
+    (remove-hook 'post-self-insert-hook
+                 #'aggressive-fill-paragraph-post-self-insert-function t)))
 
 (defun afp-setup-recommended-hooks ()
   "Install hooks to enable aggressive-fill-paragraph-mode in recommended major modes."
