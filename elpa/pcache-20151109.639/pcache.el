@@ -1,11 +1,11 @@
-;;; pcache.el --- persistent caching for Emacs
+;;; pcache.el --- persistent caching for Emacs.
 
 ;; Copyright (C) 2011  Yann Hodique
 
 ;; Author: Yann Hodique <yann.hodique@gmail.com>
 ;; Keywords:
-;; Version: 20150125.1653
-;; X-Original-Version: 0.3.1
+;; Package-Version: 20151109.639
+;; Version: 0.3.2
 ;; Package-Requires: ((eieio "1.3"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -208,6 +208,19 @@
       (delete-file fname))))
 
 (add-hook 'kill-emacs-hook 'pcache-kill-emacs-hook)
+
+;; in case we reload in place, clean all repositories with invalid version
+(let (to-clean)
+  (maphash #'(lambda (k v)
+               (condition-case nil
+                   (unless (eql (oref v :version)
+                                pcache-version-constant)
+                     (signal 'error nil))
+                 (error
+                  (setq to-clean (cons k to-clean)))))
+           *pcache-repositories*)
+  (dolist (k to-clean)
+    (remhash k *pcache-repositories*)))
 
 (provide 'pcache)
 ;;; pcache.el ends here
