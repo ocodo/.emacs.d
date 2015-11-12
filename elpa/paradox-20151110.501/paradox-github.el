@@ -45,12 +45,9 @@
 Currently, that means (un)starring repos.
 
 To generate an access token:
-  1. Visit the page https://github.com/settings/tokens/new and
-     login to github (if asked).
-  2. Give the token any name you want (Paradox, for instance).
-  3. The only permission we need is \"public_repo\", so unmark
-     all others.
-  4. Click on \"Generate Token\", copy the generated token, and
+  1. Visit the page https://github.com/settings/tokens/new?scopes=public_repo&description=Paradox
+     and login to github (if asked).
+  2. Click on \"Generate Token\", copy the generated token, and
      save it to this variable by writing
          (setq paradox-github-token TOKEN)
      somewhere in your configuration and evaluating it (or just
@@ -117,7 +114,7 @@ This will allow you to star/unstar packages from the Package Menu. "))
           (delete-other-windows))
         (if (y-or-n-p "Follow the instructions on the `paradox-github-token' variable.
 May I take you to the token generation page? ")
-            (browse-url "https://github.com/settings/tokens/new"))
+            (browse-url "https://github.com/settings/tokens/new?scopes=public_repo&description=Paradox"))
         (message "Once you're finished, simply call `paradox-list-packages' again.")
         nil))))
 
@@ -148,7 +145,7 @@ If QUERY is non-nil, ask the user first.
 Throws error if repo is malformed."
   (when (or (not query)
             (y-or-n-p (format "Really %sstar %s? "
-                        (if delete "un" "") repo)))
+                              (if delete "un" "") repo)))
     (paradox--github-action-star repo delete)
     (message "%starred %s." (if delete "Uns" "S") repo)
     (if delete
@@ -172,24 +169,23 @@ Much faster than `json-read'."
 
 (defun paradox--refresh-user-starred-list (&optional async)
   "Fetch the user's list of starred repos."
-  (paradox--github-action
-   "user/starred?per_page=100"
-   :async    (when async 'refresh)
-   :callback (lambda (res)
-               (setq paradox--user-starred-repos
-                     (make-hash-table :size (length res)
-                                      :test #'equal))
-               (dolist (it res)
-                 (puthash it t paradox--user-starred-repos)))
-   :reader   #'paradox--full-name-reader))
+  (paradox--github-action "user/starred?per_page=100"
+    :async    (when async 'refresh)
+    :callback (lambda (res)
+                (setq paradox--user-starred-repos
+                      (make-hash-table :size (length res)
+                                       :test #'equal))
+                (dolist (it res)
+                  (puthash it t paradox--user-starred-repos)))
+    :reader   #'paradox--full-name-reader))
 
 (defun paradox--github-action-star (repo &optional delete)
   "Call `paradox--github-action' with \"user/starred/REPO\" as the action.
 DELETE and NO-RESULT are passed on."
   (paradox--github-action (concat "user/starred/" repo)
-                          :async t
-                          :method (if (stringp delete) delete
-                                    (if delete "DELETE" "PUT"))))
+    :async t
+    :method (if (stringp delete) delete
+              (if delete "DELETE" "PUT"))))
 
 
 ;;; The Base (generic) function
@@ -207,8 +203,8 @@ Also print contents of current buffer to *Paradox Github*."
   (declare (indent 1))
   (paradox--github-report (buffer-string))
   (apply #'error
-    (concat format "  See *Paradox Github* buffer for the full result")
-    args))
+         (concat format "  See *Paradox Github* buffer for the full result")
+         args))
 
 (defvar paradox--github-errors-to-ignore nil
   "List of numbers to ignore when parsing the HTML return code.
@@ -240,13 +236,13 @@ Leave point at the return code on the first line."
      nil)
     ((or `400 `422) ;; Bad request.
      (paradox--github-error
-      "Github didn't understand my request, please file a bug report (M-x `paradox-bug-report')"))
+         "Github didn't understand my request, please file a bug report (M-x `paradox-bug-report')"))
     (`401 (paradox--github-error
-           (if (stringp paradox-github-token)
-               "Github says you're not authenticated, try creating a new Github token"
-             "Github says you're not authenticated, you need to configure `paradox-github-token'")))
+              (if (stringp paradox-github-token)
+                  "Github says you're not authenticated, try creating a new Github token"
+                "Github says you're not authenticated, you need to configure `paradox-github-token'")))
     (_ (paradox--github-error "Github returned: %S"
-                              (substring (thing-at-point 'line) 0 -1)))))
+         (substring (thing-at-point 'line) 0 -1)))))
 
 (defmacro paradox--with-github-buffer (method action async unwind-form
                                               &rest body)
@@ -281,7 +277,7 @@ value."
                 ,unwind-form
                 (paradox--github-report (buffer-string))
                 (message "async curl command %s\n  method: %s\n  action: %s"
-                  event ,method ,action))))))
+                         event ,method ,action))))))
        (if ,async
            (condition-case nil
                (set-process-sentinel
@@ -296,19 +292,19 @@ value."
            ;; Make the request.
            (condition-case nil
                (apply #'call-process
-                 "curl" nil t nil "-s" "-i" "-d" "" "-X" ,method ,action
-                 (when (stringp paradox-github-token)
-                   (list "-u" (concat paradox-github-token ":x-oauth-basic"))))
+                      "curl" nil t nil "-s" "-i" "-d" "" "-X" ,method ,action
+                      (when (stringp paradox-github-token)
+                        (list "-u" (concat paradox-github-token ":x-oauth-basic"))))
              (error ,unwind-form))
            ;; Do the processing.
            (funcall ,call-name))))))
 
 (cl-defun paradox--github-action (action &key
-                                         (method "GET")
-                                         reader
-                                         max-pages
-                                         (callback #'identity)
-                                         async)
+                                  (method "GET")
+                                  reader
+                                  max-pages
+                                  (callback #'identity)
+                                  async)
   "Contact the github api performing ACTION with METHOD.
 Default METHOD is \"GET\".
 
@@ -339,6 +335,7 @@ ASYNC determines to run the command asynchronously. In this case,
 the function's return value is undefined. In particular, if ASYNC
 is the symbol refresh, it means the package-menu should be
 refreshed after the operation is done."
+  (declare (indent 1))
   ;; Make sure the token's configured.
   (unless (string-match "\\`https?://" action)
     (setq action (concat "https://api.github.com/" action)))
@@ -347,26 +344,25 @@ refreshed after the operation is done."
     (when do-update
       (add-to-list 'package--downloads-in-progress do-update))
     (paradox--with-github-buffer method action async
-                                 (paradox--update-downloads-in-progress
-                                  do-update)
+                          (paradox--update-downloads-in-progress
+                           do-update)
       (cond
        ((not reader)
         (funcall callback nil))
        ((or (not next-page)
             (and max-pages (< max-pages 2)))
         (funcall callback
-          (unless (eobp) (funcall reader))))
+                 (unless (eobp) (funcall reader))))
        (t
         (let ((result (unless (eobp) (funcall reader))))
-          (paradox--github-action
-           next-page
-           :method method
-           :reader reader
-           :async  async
-           :max-pages (when max-pages (1- max-pages))
-           :callback (lambda (res)
-                       (funcall callback
-                         (append result res))))))))))
+          (paradox--github-action next-page
+            :method method
+            :reader reader
+            :async  async
+            :max-pages (when max-pages (1- max-pages))
+            :callback (lambda (res)
+                        (funcall callback
+                                 (append result res))))))))))
 
 (provide 'paradox-github)
 ;;; paradox-github.el ends here
