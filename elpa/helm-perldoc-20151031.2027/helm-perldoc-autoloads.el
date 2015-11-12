@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-perldoc" "helm-perldoc.el" (22045 47992
-;;;;;;  669140 0))
+;;;### (autoloads nil "helm-perldoc" "helm-perldoc.el" (22084 1921
+;;;;;;  140922 108000))
 ;;; Generated autoloads from helm-perldoc.el
 
 (autoload 'helm-perldoc:carton-setup "helm-perldoc" "\
@@ -34,8 +34,8 @@
 
 ;;;***
 
-;;;### (autoloads nil nil ("helm-perldoc-pkg.el") (22045 47992 681663
-;;;;;;  782000))
+;;;### (autoloads nil nil ("helm-perldoc-pkg.el") (22084 1921 153690
+;;;;;;  610000))
 
 ;;;***
 

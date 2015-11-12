@@ -22,6 +22,9 @@
 
 ;;; Commentary:
 
+;; helm-perldoc.el provides perldoc with helm interaface. You can see module document,
+;; module source code, import modules.
+
 ;;; Code:
 
 (require 'cl-lib)
