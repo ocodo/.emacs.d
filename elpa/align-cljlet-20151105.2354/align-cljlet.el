@@ -2,9 +2,9 @@
 
 ;; Copyrigth (C) 2011  Glen Stampoultzis
 
-;; Author: Glen Stampoultzis <gstamp(at)gmail.com>
-;; Version: 0.3
-;; Package-Version: 20150913.145
+;; Authors: Glen Stampoultzis <gstamp(at)gmail.com>, Reid D McKenzie <https://github.com/arrdem>
+;; Version: 0.4
+;; Package-Version: 20151105.2354
 ;; Package-Requires: ((clojure-mode "1.11.5"))
 ;; Keywords; clojure, align, let
 ;; URL: https://github.com/gstamp/align-cljlet
@@ -47,6 +47,8 @@
 ;; 23-Jan-2011 - Bug fixes and code cleanup.
 ;; 02-Apr-2012 - Package up for Marmalade
 ;; 30-Aug-2012 - Support for aligning defroute.
+;; 04-Nov-2015 - Support for metadata when calculating widths
+;; 04-Nov-2015 - Support for aligning for
 ;;
 ;;; Known limitations:
 ;;
@@ -92,6 +94,7 @@
             (setq name (buffer-substring-no-properties start (point)))
             (or
              (string-match " *let" name)
+             (string-match " *for" name)
              (string-match " *when-let" name)
              (string-match " *if-let" name)
              (string-match " *binding" name)
@@ -123,12 +126,21 @@
         ))
   t)
 
+(defun acl-forward-sexp ()
+  (progn
+    (while (or (looking-at "\\^")
+               (looking-at "\\s-"))
+      (if (looking-at "\\s-")
+          (forward-char)
+        (forward-sexp)))
+    (forward-sexp)))
+
 (defun acl-goto-next-pair ()
   "Skip ahead to the next definition"
   (condition-case nil
       (progn
-        (forward-sexp)
-        (forward-sexp)
+        (acl-forward-sexp)
+        (acl-forward-sexp)
         (forward-sexp)
         (backward-sexp)
         t)
@@ -138,7 +150,7 @@
   "Get the width of the current definition"
   (save-excursion
     (let ((col (current-column)))
-      (forward-sexp)
+      (acl-forward-sexp)
       (- (current-column) col))))
 
 (defun acl-has-next-sexp ()
@@ -146,7 +158,7 @@
   (save-excursion
     (condition-case nil
         (progn
-          (forward-sexp)
+          (acl-forward-sexp)
           't)
       ('error nil))))
 
@@ -155,7 +167,8 @@
 
   (condition-case nil
       (progn
-        (forward-sexp 2)
+        (acl-forward-sexp)
+        (acl-forward-sexp)
         (backward-sexp)
         't)
     ('error nil)))
@@ -186,7 +199,8 @@
   (save-excursion
     (condition-case nil
         (progn
-          (forward-sexp 2)
+          (acl-forward-sexp)
+          (acl-forward-sexp)
           t)
       (error nil))))
 
