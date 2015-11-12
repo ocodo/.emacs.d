@@ -1957,12 +1957,14 @@ Note that only existing directories are saved here."
     (unwind-protect
          (save-selected-window
            (cl-loop for c in marked do
-                    (progn (helm-preselect (if (and helm-ff-transformer-show-only-basename
-                                                    (not (helm-ff-dot-file-p c)))
-                                               (helm-basename c) c))
-                           (when (y-or-n-p (format "Really Delete file `%s'? " c))
-                             (helm-delete-file c helm-ff-signal-error-on-dot-files
-                                               'synchro)
+                    (progn (helm-preselect
+                            (if (and helm-ff-transformer-show-only-basename
+                                     (not (helm-ff-dot-file-p c)))
+                                (helm-basename c) c))
+                           (when (y-or-n-p
+                                  (format "Really Delete file `%s'? " c))
+                             (helm-delete-file
+                              c helm-ff-signal-error-on-dot-files 'synchro)
                              (helm-delete-current-selection)
                              (message nil)))))
       (with-helm-buffer
@@ -1975,11 +1977,13 @@ Note that only existing directories are saved here."
                            (helm-basename presel) presel)))))))
 
 (defun helm-ff-kill-buffer-fname (candidate)
-  (let ((buf (get-file-buffer candidate)))
-    (if buf
-        (progn
-          (kill-buffer buf) (message "Buffer `%s' killed" buf))
-      (message "No buffer to kill"))))
+  (let* ((buf      (get-file-buffer candidate))
+         (buf-name (buffer-name buf)))
+    (cond ((and buf (eq buf (get-buffer helm-current-buffer)))
+           (user-error
+            "Can't kill `helm-current-buffer' without quitting session"))
+          (buf (kill-buffer buf) (message "Buffer `%s' killed" buf-name))
+          (t (message "No buffer to kill")))))
 
 (defun helm-ff-kill-or-find-buffer-fname (candidate)
   "Find file CANDIDATE or kill it's buffer if it is visible.
@@ -1992,17 +1996,19 @@ in `helm-find-files-persistent-action'."
          (buf-name (buffer-name buf))
          (win (get-buffer-window buf))
          (helm--reading-passwd-or-string t))
-    (if (and buf win
-             (not (eq buf (get-buffer helm-current-buffer)))
-             (not (buffer-modified-p buf)))
-        (progn
-          (kill-buffer buf)
-          (set-window-buffer win helm-current-buffer)
-          (message "Buffer `%s' killed" buf-name))
-      (find-file candidate))))
+    (cond ((and buf win (eq buf (get-buffer helm-current-buffer)))
+           (user-error
+            "Can't kill `helm-current-buffer' without quitting session"))
+          ((and buf win (buffer-modified-p buf))
+           (message "Can't kill modified buffer, please save it before"))
+          ((and buf win)
+           (kill-buffer buf)
+           (set-window-buffer win helm-current-buffer)
+           (message "Buffer `%s' killed" buf-name))
+          (t (find-file candidate)))))
 
 (defun helm-ff-run-kill-buffer-persistent ()
-  "Execute `helm-ff-kill-buffer-fname' whitout quitting."
+  "Execute `helm-ff-kill-buffer-fname' without quitting."
   (interactive)
   (with-helm-alive-p
     (helm-attrset 'kill-buffer-fname 'helm-ff-kill-buffer-fname)
@@ -2020,12 +2026,11 @@ return FNAME prefixed with [?]."
          (prefix-url (propertize
                       " " 'display
                       (propertize "[@]" 'face 'helm-ff-prefix))))
-    (cond ((or file-or-symlinkp (file-exists-p fname)) fname)
+    (cond (file-or-symlinkp fname)
           ((or (string-match helm-ff-url-regexp fname)
                (and ffap-url-regexp (string-match ffap-url-regexp fname)))
            (concat prefix-url " " fname))
-          ((or new-file (not (file-exists-p fname)))
-           (concat prefix-new " " fname)))))
+          (new-file (concat prefix-new " " fname)))))
 
 (defun helm-ff-score-candidate-for-pattern (str pattern)
   (if (member str '("." ".."))
@@ -2723,12 +2728,11 @@ Called with a prefix arg open files in background without selecting them."
         ;; an existing filename, create or jump to it.
         ;; If the basedir of candidate doesn't exists,
         ;; ask for creating it.
-        (let ((dir (helm-basedir candidate)))
+        (let ((dir (and (not url-p) (helm-basedir candidate))))
           (find-file-at-point
            (cond ((and dir (file-directory-p dir))
-                  (substitute-in-file-name (car marked)))
-                 ;; FIXME Why do we use this on urls ?
-                 (url-p (helm-substitute-in-filename (car marked)))
+                  (substitute-in-file-name candidate))
+                 (url-p candidate)
                  ((funcall make-dir-fn dir) candidate))))))))
 
 (defun helm-shadow-boring-files (files)
@@ -3253,6 +3257,7 @@ utility mdfind.")
     :candidates-process 'helm-find-shell-command-fn
     :filtered-candidate-transformer 'helm-findutils-transformer
     :action-transformer 'helm-transform-file-load-el
+    :persistent-action 'helm-ff-kill-or-find-buffer-fname
     :action 'helm-type-file-actions
     :keymap helm-generic-files-map
     :candidate-number-limit 9999
