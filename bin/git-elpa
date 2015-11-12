@@ -59,6 +59,10 @@ class GitElpa
   def initialize
   end
 
+  def shellescape str
+    str.gsub!(/([^A-Za-z0-9_\-+.,:\/@\n])/, "\\\\\\1")
+  end
+
   def updatable_files_from_git_status
     %x[git status -s | grep -E -o '^( D | A |[?]{2} )elpa/.*?(\.signed|/)' | uniq].split("\n")
   end
@@ -102,7 +106,7 @@ class GitElpa
 
   def add_to_index
     new_version_files.each do |file|
-      %x[git add "#{file.shellescape}"]
+      %x[git add "#{shellescape file}"]
     end unless @ver.nil?
     old_version_files.each do |file|
       %x[git rm -rf "#{file.shellescape}"]

@@ -518,14 +518,14 @@
 	    ((:url . "http://elpa.gnu.org/packages/omn-mode.html")
 	     (:keywords))])
  (on-screen .
-	    [(1 3 1)
+	    [(1 3 2)
 	     ((cl-lib
 	       (0)))
 	     "guide your eyes while scrolling" single
-	     ((:url . "http://elpa.gnu.org/packages/on-screen.html")
+	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20151005)
+      [(20151109)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -766,7 +766,7 @@
 	 ((:url . "http://elpa.gnu.org/packages/xclip.html")
 	  (:keywords "convenience" "tools"))])
  (xelb .
-       [(0 3)
+       [(0 4)
 	((emacs
 	  (24 4))
 	 (cl-generic
