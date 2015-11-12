@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-ac-ispell
-;; Package-Version: 20150313.1728
+;; Package-Version: 20151031.1926
 ;; Version: 0.07
 ;; Package-Requires: ((auto-complete "1.4") (cl-lib "0.5"))
 
@@ -38,7 +38,7 @@
 ;;          (ac-ispell-setup)))
 ;;
 ;;    (add-hook 'git-commit-mode-hook 'ac-ispell-ac-setup)
-;;    (add-hook 'mail-mode-hook 'ac-ispell-ac-setupa)
+;;    (add-hook 'mail-mode-hook 'ac-ispell-ac-setup)
 
 ;;; Code:
 
