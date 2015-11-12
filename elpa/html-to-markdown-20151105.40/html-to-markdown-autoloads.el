@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "html-to-markdown" "html-to-markdown.el" (22068
-;;;;;;  38805 838136 904000))
+;;;### (autoloads nil "html-to-markdown" "html-to-markdown.el" (22084
+;;;;;;  1918 608921 991000))
 ;;; Generated autoloads from html-to-markdown.el
 
 (autoload 'html-to-markdown "html-to-markdown" "\
