@@ -22,8 +22,6 @@
 (global-set-key (kbd "<end>") 'end-of-line)
 
 (global-set-key (kbd "C-x /")               'align-regexp)
-(global-set-key (kbd "C-x g")               'ag)
-(global-set-key (kbd "C-x a k")             'ag-kill-buffers)
 
 (global-set-key (kbd "C-^")                 'join-line-from-below)
 
