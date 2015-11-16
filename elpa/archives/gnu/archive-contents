@@ -63,7 +63,7 @@
 			((:url . "http://www.gnuvola.org/software/aa2u/")
 			 (:keywords "ascii" "unicode" "box-drawing"))])
  (auctex .
-	 [(11 88 9)
+	 [(11 89)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -156,7 +156,7 @@
 		      ((:keywords "abbrev" "convenience" "matching")
 		       (:url . "https://github.com/company-mode/company-statistics"))])
  (context-coloring .
-		   [(7 1 0)
+		   [(7 2 0)
 		    ((emacs
 		      (24 3))
 		     (js2-mode
@@ -525,7 +525,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20151109)
+      [(20151116)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -533,7 +533,7 @@
        ((:url . "http://elpa.gnu.org/packages/osc.html")
 	(:keywords "comm" "processes" "multimedia"))])
  (other-frame-window .
-		     [(1 0 1)
+		     [(1 0 2)
 		      ((emacs
 			(24 4)))
 		      "Minor mode to enable global prefix keys for other frame/window buffer placement" single
@@ -629,7 +629,7 @@
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
  (stream .
-	 [(2 0 5)
+	 [(2 1 0)
 	  ((emacs
 	    (25)))
 	  "Implementation of streams" single
