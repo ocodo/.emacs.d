@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "github-browse-file" "github-browse-file.el"
-;;;;;;  (21954 40951 259401 0))
+;;;;;;  (22095 53610 413802 128000))
 ;;; Generated autoloads from github-browse-file.el
 
 (autoload 'github-browse-file "github-browse-file" "\
@@ -26,6 +26,11 @@ In Transient Mark mode, if the mark is active, highlight the contents of the
 region.
 
 \(fn &optional FORCE-MASTER)" t nil)
+
+(autoload 'github-browse-commit "github-browse-file" "\
+Show the GitHub page for the current commit.
+
+\(fn)" t nil)
 
 ;;;***
 
