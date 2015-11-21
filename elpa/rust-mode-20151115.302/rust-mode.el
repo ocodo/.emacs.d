@@ -1,10 +1,13 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.2.0
-;; Package-Version: 20151023.826
+;; Package-Version: 20151115.302
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
+
+;; This file is distributed under the terms of both the MIT license and the
+;; Apache License (version 2.0).
 
 ;;; Commentary:
 ;;
