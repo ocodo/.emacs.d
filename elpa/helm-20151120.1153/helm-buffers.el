@@ -451,6 +451,7 @@ Should be called after others transformers i.e (boring buffers)."
                 (helm-make-visible-mark)))
             (forward-line 1) (end-of-line))))
       (helm-mark-current-line)
+      (helm-display-mode-line (helm-get-current-source) t)
       (message "%s candidates marked" (length helm-marked-candidates)))))
 
 (defun helm-buffers-mark-similar-buffers ()
@@ -754,13 +755,11 @@ If REGEXP-FLAG is given use `query-replace-regexp'."
                           (helm-get-selection))))))
 
 (defun helm-buffers-list-persistent-action (candidate)
-  (if current-prefix-arg
-      (helm-buffers-persistent-kill candidate)
-      (let ((current (window-buffer helm-persistent-action-display-window)))
-        (if (or (eql current (get-buffer helm-current-buffer))
-                (not (eql current (get-buffer candidate))))
-            (switch-to-buffer candidate)
-            (switch-to-buffer helm-current-buffer)))))
+  (let ((current (window-buffer helm-persistent-action-display-window)))
+    (if (or (eql current (get-buffer helm-current-buffer))
+            (not (eql current (get-buffer candidate))))
+        (switch-to-buffer candidate)
+        (switch-to-buffer helm-current-buffer))))
 
 (defun helm-ediff-marked-buffers (_candidate &optional merge)
   "Ediff 2 marked buffers or CANDIDATE and `helm-current-buffer'.
