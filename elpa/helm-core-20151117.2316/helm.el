@@ -251,6 +251,20 @@ so don't use strings, vectors or whatever to define them."
                `(lambda ()
                   (interactive)
                   (helm-select-nth-action ,n))))
+    ;; Bind keys to allow executing default action
+    ;; on first 9 candidates before and after selection.
+    (cl-loop for n from 1 to 9
+         for key = (format "C-c %d" n)
+         for key- = (format "C-x %d" n)
+         for fn = `(lambda ()
+                     (interactive)
+                     (helm-execute-selection-action-at-nth ,n))
+         for fn- = `(lambda ()
+                      (interactive)
+                      (helm-execute-selection-action-at-nth ,(- n)))
+         do (progn
+              (define-key map (kbd key) fn)
+              (define-key map (kbd key-) fn-)))
     map)
   "Keymap for helm.")
 
@@ -713,6 +727,9 @@ and before performing action.")
 (defvar helm-move-selection-after-hook nil
   "Run after moving selection in `helm-buffer'.")
 
+(defvar helm-after-preselection-hook nil
+  "Run after preselection in `helm-buffer'.")
+
 (defvar helm-window-configuration-hook nil
   "Run when switching to and back from action buffer.")
 
@@ -815,6 +832,16 @@ These are the default key bindings:
 ** Shortcuts For nth Action
 
 f1-12: Execute nth 1 to 12 Action(s).
+
+** Shortcuts for executing Default Action on nth candidate
+
+C-x <n> => execute default action on number <n> candidate before selection.
+C-c <n> => execute default action on number <n> candidate after selection.
+
+Of course this works only on the 9 first and previous candidates.
+
+Helm provides nothing to visualize candidates numbers, up to you to install
+linum-relative package and enable linum-relative in helm..
 
 ** Visible Marks
 
@@ -2177,8 +2204,8 @@ Arg ENABLE will be the value of the `no-other-window' window property."
 
 (defun helm-default-display-buffer (buffer)
   "Default function to display `helm-buffer' BUFFER.
-It uses `switch-to-buffer' or `pop-to-buffer' depending of value of
-`helm-full-frame' and/or `helm-split-window-default-side'."
+It uses `switch-to-buffer' or `display-buffer' depending of value
+of `helm-full-frame' and/or `helm-split-window-default-side'."
   (if (or (buffer-local-value 'helm-full-frame (get-buffer buffer))
           (and (eq helm-split-window-default-side 'same)
                (one-window-p t)))
@@ -2193,7 +2220,7 @@ It uses `switch-to-buffer' or `pop-to-buffer' depending of value of
                (not (minibufferp helm-current-buffer))
                (not helm-split-window-in-side-p))
       (delete-other-windows))
-    (pop-to-buffer buffer)))
+    (display-buffer buffer)))
 
 
 ;;; Core: initialize
@@ -3166,6 +3193,10 @@ and `helm-pattern'."
             (helm-get-cached-candidates source) limit)
          ;; Compute candidates according to pattern with their match fns.
          (helm-match-from-candidates
+          ;; FIXME: What when volatile is used, and the display expected
+          ;; comes from the filtered-candidate-transformer fn ?
+          ;; In this case match function try to match on real which is maybe not
+          ;; a string.
           (helm-get-cached-candidates source) matchfns matchpartfn limit source))
        source))))
 
@@ -4305,7 +4336,8 @@ before the candidate we want to preselect."
       (helm-move--beginning-of-multiline-candidate))
     (when (helm-pos-header-line-p) (forward-line 1))
     (helm-mark-current-line)
-    (helm-display-mode-line (helm-get-current-source))))
+    (helm-display-mode-line (helm-get-current-source))
+    (helm-log-run-hook 'helm-after-preselection-hook)))
 
 (defun helm-delete-current-selection ()
   "Delete the currently selected item."
@@ -4923,6 +4955,15 @@ Possible values are 'left 'right 'below or 'above."
          (error "Sole action"))
         (t
          (error "Error in `helm-select-nth-action'"))))
+
+(defun helm-execute-selection-action-at-nth (linum)
+  "Allow to execute default action on candidate at LINUM."
+  (let ((prefarg current-prefix-arg))
+    (if (>= linum 0)
+        (helm-next-line linum)
+        (helm-previous-line (lognot (1- linum))))
+    (setq current-prefix-arg prefarg)
+    (helm-exit-minibuffer)))
 
 ;; Utility: Persistent Action
 (defmacro with-helm-display-same-window (&rest body)
