@@ -958,16 +958,18 @@ undesirable.
 
           Revert the buffers synchronously and be quiet about it.
 
-          This is the recommended setting, because for the other values
-          the revert messages might prevent you from seeing other, more
-          important, messages in the echo area.
+          This (or a negative number) is the recommended setting,
+          because for the other values the revert messages might prevent
+          you from seeing other, more important, messages in the echo
+          area.
 
         • NUMBER
 
-          An integer or float.  Revert the buffers asynchronously,
-          mentioning each one as it is being reverted.  If user input
-          arrives, then stop reverting.  After NUMBER seconds resume
-          reverting.
+          An integer or float.  Revert the buffers asynchronously.  If
+          NUMBER is positive, then mention each buffer as it is being
+          reverted.  If it is negative, then be quiet about it.  If user
+          input arrives, then stop reverting.  After (the absolute value
+          of) NUMBER seconds resume reverting.
 
    Buffers can also be refreshed explicitly, which is useful in buffers
 that weren’t current during the last refresh and after changes were made
@@ -4979,7 +4981,7 @@ quite verbosely, allowing these few users to undo the reverts using the
 ‘undo’ command and then disabling the automatic reverts for the future.
 Most users should however keep automatic reverts turned on and instead
 configure it to be less verbose by setting ‘magit-revert-buffers’ to ‘t’
-or even ‘silent’.
+or even ‘silent’.  This option is mentioned again in the next section.
 
 
 File: magit.info,  Node: Performance,  Prev: Safety,  Up: Essential settings
@@ -5078,9 +5080,23 @@ configuration: Per-repository configuration.
      many branches and merges.  For that reason ‘--color’ is not enabled
      by default anymore.  Consider leaving it at that.
 
+   • ‘magit-revert-buffers’
+
+     After running certain commands, after refreshing the current Magit
+     buffer, unmodified buffers visiting files belonging to the current
+     repository are reverted.  By default that happens synchronously,
+     which can be an issue if you visit many buffers.  Set this variable
+     to a number to revert asynchronously.  It’s best to use a negative
+     number because that causes the reverts to happen silently (which is
+     desirable because the revert messages would otherwise shadow other,
+     more important messages).
+
    • ‘magit-not-reverted-hook’
 
    • ‘magit-refresh-buffer-hook’
+
+     If third-party packages add functions to these hooks, then you
+     might want to consider removing them again.
 
    • ‘magit-refs-sections-hook’
 
@@ -6401,9 +6417,9 @@ Appendix B Keystroke Index
 * f o:                                   Fetching.            (line  19)
 * F o:                                   Pulling.             (line  17)
 * g:                                     Automatic refresh and revert.
-                                                              (line  66)
+                                                              (line  68)
 * G:                                     Automatic refresh and revert.
-                                                              (line  75)
+                                                              (line  77)
 * j:                                     Diff buffer.         (line  38)
 * k:                                     Viewing Git output.  (line  19)
 * k <1>:                                 Applying.            (line  37)
@@ -6873,9 +6889,9 @@ Appendix C Command Index
 * magit-reflog-head:                     Reflog.              (line  19)
 * magit-reflog-other:                    Reflog.              (line  15)
 * magit-refresh:                         Automatic refresh and revert.
-                                                              (line  66)
+                                                              (line  68)
 * magit-refresh-all:                     Automatic refresh and revert.
-                                                              (line  75)
+                                                              (line  77)
 * magit-remote-add:                      Remotes.             (line  13)
 * magit-remote-popup:                    Remotes.             (line   8)
 * magit-remote-remove:                   Remotes.             (line  28)
@@ -7032,7 +7048,7 @@ Appendix D Function Index
 * ido-enter-magit-status:                Status buffer.       (line  42)
 * magit-add-section-hook:                Section hooks.       (line  18)
 * magit-after-save-refresh-status:       Automatic refresh and revert.
-                                                              (line  84)
+                                                              (line  86)
 * magit-builtin-completing-read:         Completion and confirmation.
                                                               (line  23)
 * magit-call-git:                        Calling Git for effect.

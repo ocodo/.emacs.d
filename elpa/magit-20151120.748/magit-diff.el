@@ -78,7 +78,7 @@
 
 Except in status buffers, diffs are usually start out fully
 expanded.  Because that can take a long time, all diffs that
-haven't been fontified during a refresh before the treshold
+haven't been fontified during a refresh before the threshold
 defined here are instead displayed with their bodies collapsed.
 
 Note that this can cause sections that were previously expanded
@@ -987,14 +987,16 @@ which, as the name suggests always visits the actual file."
         (when col
           (move-to-column col)))
       (when unmerged-p
-        (smerge-start-session)))))
+        (smerge-start-session))
+      (with-current-buffer buffer
+        (run-hooks 'magit-diff-visit-file-hook)))))
 
 (defvar magit-display-file-buffer-function
   'magit-display-file-buffer-traditional
   "The function used by `magit-diff-visit-file' to display blob buffers.
 
 Other commands such as `magit-find-file' do not use this
-function.  Instead they use high-leverl functions to select the
+function.  Instead they use high-level functions to select the
 window to be used to display the buffer.  This variable and the
 related functions are an experimental feature and should be
 treated as such.")
