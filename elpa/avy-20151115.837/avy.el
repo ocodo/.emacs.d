@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20151111.450
+;; Package-Version: 20151115.837
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -391,31 +391,32 @@ multiple DISPLAY-FN invokations."
   ;; possible that the path-len must be incremented, e.g., if we're matching
   ;; for x and a buffer contains xaxbxcx only every second subsequence is
   ;; usable for the four matches.
-  (let* ((path-len (ceiling (log (length lst) (length keys))))
-         (alist (avy--path-alist-1 lst path-len keys)))
-    (while (not alist)
-      (cl-incf path-len)
-      (setq alist (avy--path-alist-1 lst path-len keys)))
-    (let* ((len (length (caar alist)))
-           (i 0))
-      (setq avy-current-path "")
-      (while (< i len)
-        (dolist (x (reverse alist))
-          (avy--overlay-at-full (reverse (car x)) (cdr x)))
-        (let ((char (funcall avy-translate-char-function (read-key))))
-          (avy--remove-leading-chars)
-          (setq alist
-                (delq nil
-                      (mapcar (lambda (x)
-                                (when (eq (caar x) char)
-                                  (cons (cdr (car x)) (cdr x))))
-                              alist)))
-          (setq avy-current-path
-                (concat avy-current-path (string (avy--key-to-char char))))
-          (cl-incf i)
-          (unless alist
-            (funcall avy-handler-function char))))
-      (cdar alist))))
+  (catch 'done
+    (let* ((path-len (ceiling (log (length lst) (length keys))))
+           (alist (avy--path-alist-1 lst path-len keys)))
+      (while (not alist)
+        (cl-incf path-len)
+        (setq alist (avy--path-alist-1 lst path-len keys)))
+      (let* ((len (length (caar alist)))
+             (i 0))
+        (setq avy-current-path "")
+        (while (< i len)
+          (dolist (x (reverse alist))
+            (avy--overlay-at-full (reverse (car x)) (cdr x)))
+          (let ((char (funcall avy-translate-char-function (read-key))))
+            (avy--remove-leading-chars)
+            (setq alist
+                  (delq nil
+                        (mapcar (lambda (x)
+                                  (when (eq (caar x) char)
+                                    (cons (cdr (car x)) (cdr x))))
+                                alist)))
+            (setq avy-current-path
+                  (concat avy-current-path (string (avy--key-to-char char))))
+            (cl-incf i)
+            (unless alist
+              (funcall avy-handler-function char))))
+        (cdar alist)))))
 
 ;;** Rest
 (defun avy-window-list ()
@@ -568,16 +569,19 @@ Use OVERLAY-FN to visualize the decision overlay."
 
 (defun avy--find-visible-regions (rbeg rend)
   "Return a list of all visible regions between RBEG and REND."
-  (let (visibles beg)
-    (save-excursion
-      (save-restriction
-        (narrow-to-region rbeg rend)
-        (setq beg (goto-char (point-min)))
-        (while (not (= (point) (point-max)))
-          (goto-char (avy--next-invisible-point))
-          (push (cons beg (point)) visibles)
-          (setq beg (goto-char (avy--next-visible-point))))
-        (nreverse visibles)))))
+  (setq rbeg (max rbeg (point-min)))
+  (setq rend (min rend (point-max)))
+  (when (< rbeg rend)
+    (let (visibles beg)
+      (save-excursion
+        (save-restriction
+          (narrow-to-region rbeg rend)
+          (setq beg (goto-char (point-min)))
+          (while (not (= (point) (point-max)))
+            (goto-char (avy--next-invisible-point))
+            (push (cons beg (point)) visibles)
+            (setq beg (goto-char (avy--next-visible-point))))
+          (nreverse visibles))))))
 
 (defun avy--regex-candidates (regex &optional beg end pred group)
   "Return all elements that match REGEX.
