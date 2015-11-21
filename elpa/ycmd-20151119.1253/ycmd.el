@@ -120,6 +120,7 @@
 
 (defgroup ycmd nil
   "a ycmd emacs client"
+  :link '(url-link :tag "Github" "https://github.com/abingham/emacs-ycmd")
   :group 'tools
   :group 'programming)
 
@@ -250,6 +251,14 @@ use `ycmd-parse-buffer'."
 
 (defcustom ycmd-hide-url-status t
   "Whether to quash url status messages for ycmd requests."
+  :group 'ycmd
+  :type 'boolean)
+
+(defcustom ycmd-bypass-url-proxy-services t
+  "Bypass proxies for local traffic with the ycmd server.
+
+If non-nil, bypass the variable `url-proxy-services' in
+`ycmd--request' by setting it to nil."
   :group 'ycmd
   :type 'boolean)
 
@@ -1244,6 +1253,8 @@ anything like that.)
   (unless (ycmd-running?) (ycmd-open))
 
   (let* ((url-show-status (not ycmd-hide-url-status))
+         (url-proxy-services (unless ycmd-bypass-url-proxy-services
+                               url-proxy-services))
          (ycmd-request-backend 'url-retrieve)
          (content (json-encode content))
          (hmac (ycmd--get-request-hmac type location content))
