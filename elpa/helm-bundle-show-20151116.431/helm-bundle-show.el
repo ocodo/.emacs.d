@@ -4,8 +4,8 @@
 
 ;; Author: Takashi Masuda <masutaka.net@gmail.com>
 ;; URL: https://github.com/masutaka/emacs-helm-bundle-show
-;; Package-Version: 20150816.526
-;; Version: 1.1.1
+;; Package-Version: 20151116.431
+;; Version: 1.1.3
 ;; Package-Requires: ((helm "1.7.6"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -27,6 +27,18 @@
 ;;; Code:
 
 (require 'helm)
+(require 'helm-files)
+
+(defgroup helm-bundle-show nil
+  "bundle show with helm interface"
+  :prefix "helm-bundle-show-"
+  :group 'helm)
+
+(defcustom helm-bundle-show-command-bundle
+  "bundle"
+  "*A bundle command"
+  :type 'string
+  :group 'helm-bundle-show)
 
 (defmacro helm-bundle-show--line-string ()
   `(buffer-substring-no-properties
@@ -37,7 +49,9 @@
 
 (defun helm-bundle-show--list-candidates ()
   (with-temp-buffer
-    (unless (zerop (call-process "bundle" nil t nil "show"))
+    (unless (zerop (apply #'call-process
+			  helm-bundle-show-command-bundle nil t nil
+			  "show"))
       (error "Failed: bundle show'"))
     (let ((gems))
       (goto-char (point-min))
@@ -74,7 +88,9 @@
 
 (defun helm-bundle-show--full-path (gem)
   (with-temp-buffer
-    (unless (zerop (call-process "bundle" nil t nil "show" gem))
+    (unless (zerop (apply #'call-process
+			  helm-bundle-show-command-bundle nil t nil
+			  "show" gem))
       (error (format "Failed: bundle show %s" gem)))
     (goto-char (point-min))
     (helm-bundle-show--line-string)))
