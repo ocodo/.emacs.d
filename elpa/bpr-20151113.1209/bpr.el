@@ -2,7 +2,7 @@
 
 ;; Author: Ilya Babanov <ilya-babanov@ya.ru>
 ;; URL: https://github.com/ilya-babanov/emacs-bpr
-;; Version: 1.4
+;; Version: 1.5
 ;; Package-Requires: ((emacs "24"))
 ;; Keywords: background, async, process, management
 
@@ -138,11 +138,12 @@ For this operation `ansi-color-apply-on-region' is used."
 (defun bpr-config-process-buffer (buffer)
   (when buffer
     (with-current-buffer buffer
-      (when bpr-erase-process-buffer (erase-buffer))
+      (when (and bpr-erase-process-buffer (not buffer-read-only))
+        (erase-buffer))
       (funcall bpr-process-mode))))
 
 (defun bpr-handle-progress (process)
-  (if (process-live-p process)
+  (when (process-live-p process)
       (let* ((show-progress (process-get process 'show-progress)))
         (when show-progress (bpr-show-progress-message process))
         (bpr-delay-progress-handler process))))
@@ -213,11 +214,11 @@ For this operation `ansi-color-apply-on-region' is used."
       (scroll-down-command (bpr-get-remaining-lines-count direction)))))
 
 (defun bpr-colorize-process-buffer (process)
-  (when (and
-         (process-get process 'colorize-output)
-         (fboundp 'ansi-color-apply-on-region))
+  (when (and (process-get process 'colorize-output)
+             (fboundp 'ansi-color-apply-on-region))
     (with-current-buffer (process-buffer process)
-      (ansi-color-apply-on-region (point-min) (point-max)))))
+      (unless buffer-read-only
+        (ansi-color-apply-on-region (point-min) (point-max))))))
 
 (defun bpr-get-remaining-lines-count (direction)
     (count-lines (point) (buffer-end direction)))
