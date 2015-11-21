@@ -6,7 +6,7 @@
 
 ;; Author: Kenji.I (Kenji Imakado) <ken.imakaado@gmail.com>
 ;; Version: 0.6.7
-;; Package-Version: 20151001.802
+;; Package-Version: 20151117.1505
 ;; Package-Requires: ((helm-core "1.7.7") (yasnippet "0.8.0") (cl-lib "0.3"))
 ;; Keywords: convenience, emulation
 
@@ -110,6 +110,10 @@ ex. for (...) { ... }"
   'helm-yas-create-new-snippet-insert
   "Function to be called when create new insert file."
   :type 'function
+  :group 'helm-yasnippet)
+
+(defface helm-yas-key '((t (:foreground "orange" :underline t)))
+  "Face used in helm-yas-complete to show key triggers."
   :group 'helm-yasnippet)
 
 (defvar helm-yas-cur-snippets-alist nil)
@@ -249,8 +253,9 @@ like `yas--current-key'"
                                       for name = (car dotlst)
                                       for template = (cdr dotlst)
                                       for key = (helm-yas-get-key-by-template template alist)
-                                      for name-inc-key = (concat "[" key "] " name)
+                                      for name-inc-key = (concat "[" (propertize key 'face 'helm-yas-key) "] " name)
                                       collect `(,name-inc-key . ,template))))
+
      ;; default ex: for (...) { ... }
      (t
       (setq transformed-list (cl-remove-if-not (lambda (lst)
