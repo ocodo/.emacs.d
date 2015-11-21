@@ -5,7 +5,7 @@
 ;; Author: Tom Hinton
 ;; Maintainer: Tom Hinton <t@larkery.com>
 ;; Version: 1.0.1
-;; Package-Version: 20151109.1344
+;; Package-Version: 20151120.911
 ;; Keywords: convenience
 ;; URL: https://github.com/larkery/ido-grid-mode.el
 ;; Package-Requires: ((emacs "24.4"))
@@ -569,7 +569,9 @@ Modifies `ido-grid-mode-rows', `ido-grid-mode-columns', `ido-grid-mode-count' an
     (concat
      (ido-grid-mode-gen-first-line) "\n"
      ido-grid-mode-exact-match-prefix
-     (let ((name (ido-grid-mode-copy-name (car ido-matches))))
+     (let ((standard-height `(:height ,(face-attribute 'default :height nil t)))
+           (name (ido-grid-mode-copy-name (car ido-matches))))
+       (add-face-text-property 0 (length name) standard-height nil name)
        (add-face-text-property
         0 (length name)
         'ido-only-match nil name)
@@ -615,27 +617,24 @@ groups, add the face to all of S."
           ((zerop (length name)) "<empty>")
           (t name))))
 
-;; (if (eq 'label ido-grid-mode-jump)
-;;     (if (< 0 offset 11)
-;;         (concat (let ((s (number-to-string (% offset 10))) )
-;;                   (add-face-text-property 0 1 'shadow nil s)
-;;                   s)
-;;                 " ")
-;;       "  ")
-;;   "")
-
 (defun ido-grid-mode-grid (name)
   "Draw the grid for input NAME."
-  (let* ((decoration-regexp (if ido-enable-regexp ido-text (regexp-quote name)))
+  (let* ((standard-height `(:height ,(face-attribute 'default :height nil t)))
+         (decoration-regexp (if ido-enable-regexp ido-text (regexp-quote name)))
          (max-width (- (window-body-width (minibuffer-window)) 1))
          (decorator (lambda (name item _row _column offset)
                       (concat
                        (let ((name (substring name 0))
                              (l (length name)))
+                         ;; enforce small size
+
+                         (add-face-text-property 0 l standard-height nil name)
+
                          ;; copy the name so we can add faces to it
                          (when (and (/= offset ido-grid-mode-offset) ; directories get ido-subdir
                                     (ido-final-slash name))
                            (add-face-text-property 0 l 'ido-subdir nil name))
+
                          ;; selected item gets special highlight
                          (when (= offset ido-grid-mode-offset)
                            (add-face-text-property 0 l 'ido-first-match nil name))
