@@ -4,20 +4,20 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22084 1969 380924 815000))
+;;;;;;  (22095 53621 113804 115000))
 ;;; Generated autoloads from find-file-in-project.el
 
 (defvar ffip-filename-rules '(ffip-filename-identity ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes))
 
 (defvar ffip-find-executable nil "\
-Path of GNU find. If nil, we will find `find' path automatically")
+Path of GNU find.  If nil, we will find `find' path automatically.")
 
 (defvar ffip-project-file '(".svn" ".git" ".hg") "\
 The file that should be used to define a project root.
-May be set using .dir-locals.el. Checks each entry if set to a list.")
+May be set using .dir-locals.el.  Checks each entry if set to a list.")
 
 (defvar ffip-prefer-ido-mode nil "\
-Use ido-mode instead of ivy-mode for displaying candidates.")
+Use `ido-mode' instead of `ivy-mode' for displaying candidates.")
 
 (defvar ffip-patterns nil "\
 List of patterns to look for with `find-file-in-project'.")
@@ -49,12 +49,12 @@ Return identical KEYWORD.
 \(fn KEYWORD)" nil nil)
 
 (autoload 'ffip-filename-camelcase-to-dashes "find-file-in-project" "\
- HelloWorld => hello-world
+HelloWorld => hello-world.
 
 \(fn KEYWORD)" nil nil)
 
 (autoload 'ffip-filename-dashes-to-camelcase "find-file-in-project" "\
- hello-world => HelloWorld
+hello-world => HelloWorld.
 
 \(fn KEYWORD)" nil nil)
 
@@ -65,34 +65,50 @@ Is current full file name (including directory) match the REGEX?
 
 (autoload 'find-file-in-project "find-file-in-project" "\
 Prompt with a completing list of all files in the project to find one.
-If NUM is given, only files modified NUM days before will be selected.
+
+If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
 The project's scope is defined as the first directory containing
 a `ffip-project-file' (It's value is \".git\" by default.
 
 You can override this by setting the variable `ffip-project-root'.
 
-\(fn &optional NUM)" t nil)
+\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
 (autoload 'ffip-get-project-root-directory "find-file-in-project" "\
-Get the full path of project root directory
+Get the full path of project root directory.
 
 \(fn)" nil nil)
 
 (autoload 'find-file-in-project-by-selected "find-file-in-project" "\
-Similar to find-file-in-project.
+Similar to `find-file-in-project'.
 But use string from selected region to search files in the project.
 If no region is selected, you need provide keyword.
 
 Keyword could be ANY part of the file's full path and support wildcard.
 For example, to find /home/john/proj1/test.js, below keywords are valid:
 - test.js
-- orj1/tes
+- roj1/tes
 - john*test
 
-If NUM is given, only files modified NUM days before will be selected.
+If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
-\(fn &optional NUM)" t nil)
+\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+
+(autoload 'find-directory-in-project-by-selected "find-file-in-project" "\
+Similar to `find-file-in-project-by-selected'.
+Use string from selected region to find directory in the project.
+If no region is selected, you need provide keyword.
+
+Keyword could be directory's base-name only or parent-directoy+base-name
+For example, to find /home/john/proj1/test, below keywords are valid:
+- test
+- roj1/test
+- john*test
+
+If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
+
+\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
 (defalias 'ffip 'find-file-in-project)
 
