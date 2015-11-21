@@ -18,7 +18,7 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20150713.2327
+;; Package-Version: 20151119.717
 ;; Version: 2.3.0
 
 ;;; Commentary:
@@ -147,13 +147,12 @@
 
 (defun indent-guide--beginning-of-level ()
   "Move to the beginning of current indentation level and return
-the point."
+the point. When no such points are found, just return nil."
   (back-to-indentation)
   (let* ((base-level (if (not (eolp))
                          (current-column)
                        (max (save-excursion
                               (skip-chars-forward "\s\t\n")
-                              (back-to-indentation)
                               (current-column))
                             (save-excursion
                               (skip-chars-backward "\s\t\n")
@@ -161,19 +160,15 @@ the point."
                               (current-column)))))
          (candidates (indent-guide--indentation-candidates (1- base-level)))
          (regex (concat "^" (regexp-opt candidates t) "[^\s\t\n]")))
-    (if (zerop base-level)
-        (point)
-      (beginning-of-line)
-      (or (and (search-backward-regexp regex nil t)
-               (goto-char (match-end 1)))
-          (goto-char (point-min))))))
+    (unless (zerop base-level)
+      (and (search-backward-regexp regex nil t)
+           (goto-char (match-end 1))))))
 
 ;; * generate guides
 
 (defun indent-guide--make-overlay (line col)
   "draw line at (line, col)"
-  (let ((original-pos (point))
-        diff string ov prop)
+  (let (diff string ov prop)
     (save-excursion
       ;; try to goto (line, col)
       (goto-char (point-min))
@@ -242,7 +237,8 @@ the point."
               (active-minibuffer-window))
     (let ((win-start (window-start))
           (win-end (window-end nil t))
-          line-col line-start line-end)
+          line-col line-start line-end
+          last-col)
       ;; decide line-col, line-start
       (save-excursion
         (indent-guide--beginning-of-level)
@@ -261,8 +257,11 @@ the point."
                       (forward-line 1)
                       (not (eobp))
                       (<= (point) win-end)))
-          (if (>= line-col (current-column))
-              (forward-line -1))
+          (when (>= line-col (setq last-col (current-column)))
+            (forward-line -1)
+            (while (and (looking-at "[\s\t\n]*$")
+                        (> (point) line-start)
+                        (zerop (forward-line -1)))))
           (setq line-end (line-number-at-pos)))
         ;; draw line
         (dotimes (tmp (- (1+ line-end) line-start))
