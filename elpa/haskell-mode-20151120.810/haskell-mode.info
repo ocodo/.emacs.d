@@ -227,6 +227,17 @@ extensions.  This is part of ‘haskell-interactive-mode’.
 provides completions for import statements taking into account currently
 loaded and available packages.
 
+4.4 Profiling and Debugging support
+===================================
+
+When profiling code with GHC, it is often useful to add cost centres
+(https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/profiling.html#cost-centres)
+by hand.  These allow finer-grained information about program behavior.
+‘haskell-mode’ provides the function ‘haskell-mode-toggle-scc-at-point’
+to make this more convenient.  It will remove an SCC annotation at point
+if one is present, or add one if point is over whitespace.  By default
+it is bound to ‘C-c C-s’.
+
    ---------- Footnotes ----------
 
    (1) for more information about the concept of "major modes" *note
@@ -518,12 +529,18 @@ to ‘C-c C-c’.
 Haskell program your currently visited buffer belongs to, by searching
 for a ‘.cabal’ file in the current of enclosing parent folders.  If a
 ‘.cabal’ file was found, the command defined in the
-‘haskell-compile-cabal-build-command’ option is used.  Moreover, when
-requesting to compile a ‘.cabal’-file is detected and a negative prefix
-argument (e.g.  ‘C-- C-c C-c’) was given, the alternative
-‘haskell-compile-cabal-build-command-alt’ is invoked.  By default,
-‘haskell-compile-cabal-build-command-alt’ contains a ‘cabal clean -s’
-command in order to force a full rebuild.
+‘haskell-compile-cabal-build-command’ option is used.  Note that to
+compile a ‘stack’ based project you will need to set this variable to
+‘stack build’.  As usual you can do it using ‘M-x customize-variable’ or
+with:
+
+     (setq haskell-compile-cabal-build-command "stack build")
+
+   Moreover, when requesting to compile a ‘.cabal’-file is detected and
+a negative prefix argument (e.g.  ‘C-- C-c C-c’) was given, the
+alternative ‘haskell-compile-cabal-build-command-alt’ is invoked.  By
+default, ‘haskell-compile-cabal-build-command-alt’ contains a ‘cabal
+clean -s’ command in order to force a full rebuild.
 
    Otherwise if no ‘.cabal’ could be found, a single-module compilation
 is assumed and ‘haskell-compile-command’ is used (_if_ the currently
@@ -753,21 +770,21 @@ Node: Introduction1948
 Node: Getting Help and Reporting Bugs2465
 Node: Getting Started3927
 Node: Editing Haskell Code4923
-Ref: Editing Haskell Code-Footnote-18453
-Ref: Editing Haskell Code-Footnote-28544
-Ref: Editing Haskell Code-Footnote-38603
-Node: Unicode support8687
-Node: Indentation10377
-Ref: Indentation-Footnote-114265
-Node: Declaration scanning14450
-Node: Compilation17729
-Node: Inferior Haskell interpreter20499
-Node: Interactive Haskell21429
-Node: Editing Cabal files23698
-Node: Changing REPL target24584
-Node: Concept index25160
-Node: Function index26129
-Node: Variable index28459
+Ref: Editing Haskell Code-Footnote-19016
+Ref: Editing Haskell Code-Footnote-29107
+Ref: Editing Haskell Code-Footnote-39166
+Node: Unicode support9250
+Node: Indentation10940
+Ref: Indentation-Footnote-114828
+Node: Declaration scanning15013
+Node: Compilation18292
+Node: Inferior Haskell interpreter21303
+Node: Interactive Haskell22233
+Node: Editing Cabal files24502
+Node: Changing REPL target25388
+Node: Concept index25964
+Node: Function index26933
+Node: Variable index29263
 
 End Tag Table
 
