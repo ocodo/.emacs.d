@@ -1,10 +1,10 @@
 ;;; wordsmith-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (wordsmith-mode) "wordsmith-mode" "wordsmith-mode.el"
-;;;;;;  (21236 38454 0 0))
+;;;### (autoloads nil "wordsmith-mode" "wordsmith-mode.el" (22095
+;;;;;;  53437 989777 403000))
 ;;; Generated autoloads from wordsmith-mode.el
 
 (autoload 'wordsmith-mode "wordsmith-mode" "\
@@ -17,16 +17,9 @@ this minor mode, see option `wordsmith-mode'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("wordsmith-mode-pkg.el") (21236 38454
-;;;;;;  448224 0))
-
-;;;***
-
-(provide 'wordsmith-mode-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; wordsmith-mode-autoloads.el ends here

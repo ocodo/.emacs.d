@@ -4,8 +4,8 @@
 
 ;; Author: istib <istib@thebati.net>
 
-;; Version: 20140203.427
-;; X-Original-Version: 20140202.001
+;; Version: 20140202.001
+;; Package-Version: 20151117.236
 
 ;;; Documentation:
 ;;
@@ -188,6 +188,4 @@ this minor mode, see option `wordsmith-mode'. "
     (wordsmith-disable-in-buffer)))
 
 (provide 'wordsmith-mode)
-;;; wordsmith.el ends here
-
 ;;; wordsmith-mode.el ends here
