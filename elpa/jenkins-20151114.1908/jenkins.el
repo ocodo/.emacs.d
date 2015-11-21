@@ -4,7 +4,7 @@
 
 ;; Author: Rustem Muslimov <r.muslimov@gmail.com>
 ;; Keywords: jenkins, convenience
-;; Package-Version: 20151109.2213
+;; Package-Version: 20151114.1908
 ;; Package-Requires: ((dash "2.12") (emacs "24.3") (json "1.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -285,23 +285,22 @@
 
 (defun jenkins-get-job-details (jobname)
   "Make to particular JOBNAME call."
-  (cl-labels ((convert-item (item)
-                (cl-labels ((retrieve (attr item)
-                              (cdr (assoc attr (cdr item)))))
+  (cl-labels ((retrieve (attr item)
+                        (cdr (assoc attr item)))
+              (convert-item (item)
                   (list
                    (string-to-number (retrieve 'id item))
-                   :author (let ((culprits (cdar item)))
+                   :author (let ((culprits (cdr (assoc 'culprits values))))
                              (if (> (length culprits) 0)
                                  (cdar (aref culprits 0)) "---"))
                    :url (retrieve 'url item)
                    :timestring (jenkins--time-since-to-text (/ (retrieve 'timestamp item) 1000))
                    :building (retrieve 'building item)
-                   :result (retrieve 'result item))))
+                   :result (retrieve 'result item)))
               (vector-take (N vec)
                 (--map
                  (aref vec it)
-                 (number-sequence 0 (1- (min  N (length vec))))
-                 )))
+                 (number-sequence 0 (1- (min  N (length vec)))))))
     (let* (
          (job-url (jenkins-job-url jobname))
          (raw-data (jenkins--retrieve-page-as-json job-url))

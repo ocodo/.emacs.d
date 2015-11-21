@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "jenkins" "jenkins.el" (22084 1910 140921 615000))
+;;;### (autoloads nil "jenkins" "jenkins.el" (22095 53571 73795 236000))
 ;;; Generated autoloads from jenkins.el
 
 (autoload 'jenkins "jenkins" "\
