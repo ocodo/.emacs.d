@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-make" "helm-make.el" (22010 16084 105140
-;;;;;;  0))
+;;;### (autoloads nil "helm-make" "helm-make.el" (22095 53576 837796
+;;;;;;  204000))
 ;;; Generated autoloads from helm-make.el
 
 (autoload 'helm-make "helm-make" "\
