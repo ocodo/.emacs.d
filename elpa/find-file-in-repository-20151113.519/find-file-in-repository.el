@@ -4,9 +4,9 @@
 
 ;; Author: Samuel Hoffstaetter <samuel@hoffstaetter.com>
 ;; Keywords: files, convenience, repository, project, source control
+;; Package-Version: 20151113.519
 ;; URL: https://github.com/hoffstaetter/find-file-in-repository
-;; Version: 20141214.2016
-;; X-Original-Version: 1.3
+;; Version: 1.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This libaray provides a drop-in replacement for find-file (ie. the
+;; This library provides a drop-in replacement for find-file (ie. the
 ;; "C-x f" command), that auto-completes all files in the current git,
 ;; mercurial, or other type of repository. When outside of a
 ;; repository, find-file-in-repository conveniently drops back to
@@ -47,13 +47,23 @@
 ;;    (global-set-key (kbd "C-x f") 'find-file-in-repository)
 
 ;;; Code:
+
+(defun ffir-system-is-windows()
+  (or (string-equal system-type "windows-nt")
+      (string-equal system-type "ms-dos")))
+
+(defvar ffir-format-str
+  (if (ffir-system-is-windows)
+      "cd %s & %s"
+    "cd %s; %s"))
+
 (defun ffir-shell-command (command file-separator working-dir)
   "Executes 'command' and returns the list of printed files in
    the form '((short/file/name . full/path/to/file) ...). The
    'file-separator' character is used to split the file names
    printed by the shell command and is usually set to \\n or \\0"
   (let ((command-output (shell-command-to-string
-                         (format "cd %s; %s"
+                         (format ffir-format-str
                                  (shell-quote-argument working-dir) command))))
     (let ((files (delete "" (split-string command-output file-separator))))
       (mapcar (lambda (file)
@@ -79,7 +89,7 @@
     (if root (file-name-as-directory root))))
 
 (defun ffir-locate-dominating-file-top (start-directory filename)
-  "Returns the furthest ancester directory of 'start-directory'
+  "Returns the furthest ancestor directory of 'start-directory'
    that contains a file of name 'filename'"
   (when start-directory
     (let ((next-directory
