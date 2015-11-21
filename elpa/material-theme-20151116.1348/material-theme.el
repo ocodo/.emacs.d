@@ -259,8 +259,12 @@
 
    `(csv-separator-face ((,class (:foreground ,orange))))
 
+   `(diff-hl-insert ((,class (:background ,green :foreground ,green))))
+   `(diff-hl-change ((,class (:background ,aqua :foreground ,aqua))))
+   `(diff-hl-delete ((,class (:background ,orange :foreground ,orange))))
+
    `(diff-added ((,class (:foreground ,green))))
-   `(diff-changed ((,class (:foreground ,purple))))
+   `(diff-changed ((,class (:foreground ,aqua))))
    `(diff-removed ((,class (:foreground ,orange))))
    `(diff-header ((,class (:foreground ,aqua :background nil))))
    `(diff-file-header ((,class (:foreground ,blue :background nil))))
@@ -598,6 +602,9 @@
    `(powerline-active2 ((t (:foreground ,foreground :background ,inactive-gray))))
    `(powerline-inactive1 ((t (:foreground ,comment :background ,selection))))
    `(powerline-inactive2 ((t (:foreground ,comment :background ,selection))))
+
+   ;; Spaceline
+   `(spaceline-python-venv ((t (:foreground ,yellow))))
 
    ;; Outline
    `(outline-1 ((,class (:inherit nil :foreground ,"#eceff1"))))

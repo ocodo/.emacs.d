@@ -263,11 +263,14 @@
 
    `(csv-separator-face ((,class (:foreground ,orange))))
 
+   `(diff-hl-insert ((,class (:background ,green :foreground ,green))))
+   `(diff-hl-change ((,class (:background ,blue :foreground ,blue))))
+   `(diff-hl-delete ((,class (:background ,orange :foreground ,orange))))
+
    `(diff-added ((,class (:foreground ,green))))
-   `(diff-changed ((,class (:foreground ,purple))))
+   `(diff-changed ((,class (:foreground ,blue))))
    `(diff-removed ((,class (:foreground ,orange))))
    `(diff-header ((,class (:foreground ,aqua :background nil))))
-   `(diff-file-header ((,class (:foreground ,blue :background nil))))
    `(diff-hunk-header ((,class (:foreground ,purple))))
    `(diff-refine-added ((,class (:inherit diff-added :inverse-video t))))
    `(diff-refine-removed ((,class (:inherit diff-removed :inverse-video t))))
@@ -604,6 +607,9 @@
    `(powerline-active2 ((t (:foreground ,foreground :background ,inactive-gray))))
    `(powerline-inactive1 ((t (:foreground ,comment :background ,selection))))
    `(powerline-inactive2 ((t (:foreground ,comment :background ,selection))))
+
+   ;; spaceline
+   `(spaceline-python-venv ((t (:foreground ,aqua))))
 
    ;; Outline
    `(outline-1 ((,class (:inherit nil :foreground ,"#424242"))))
