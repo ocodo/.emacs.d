@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20151023.754
+;; Package-Version: 20151112.1333
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -225,6 +225,10 @@ The buffer contains the raw HTTP response sent by the server."
         ;; Dont' attempt to decode. Instead, just switch to the raw HTTP response buffer and
         ;; rename it to target-buffer-name.
         (with-current-buffer raw-http-response-buffer
+          ;; We have to kill the target buffer if it exists, or `rename-buffer'
+          ;; will raise an error.
+          (when (get-buffer target-buffer-name)
+            (kill-buffer target-buffer-name))
           (rename-buffer target-buffer-name)
           raw-http-response-buffer)
       ;; Else, switch to the new, empty buffer that will contain the decoded HTTP
