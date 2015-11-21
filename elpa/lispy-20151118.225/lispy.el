@@ -288,6 +288,10 @@ using those packages."
            (const :tag "cider" cider)
            (const :tag "macrostep" macrostep))))
 
+(defvar-local lispy-old-outline-settings nil
+  "Store the old values of `outline-regexp' and `outline-level'.
+`lispy-mode' overrides those while it's on.")
+
 ;;;###autoload
 (define-minor-mode lispy-mode
   "Minor mode for navigating and editing LISP dialects.
@@ -315,13 +319,17 @@ backward through lists, which is useful to move into special.
   :lighter " LY"
   (if lispy-mode
       (progn
+        (setq lispy-old-outline-settings
+              (cons outline-regexp outline-level))
         (setq-local outline-level 'lispy-outline-level)
         (setq-local outline-regexp (substring lispy-outline 1))
         (when (called-interactively-p 'any)
           (mapc #'lispy-raise-minor-mode
                 (cons 'lispy-mode lispy-known-verbs))))
-    (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
-    (setq-local outline-level 'lisp-outline-level)))
+    (when lispy-old-outline-settings
+      (setq outline-regexp (car lispy-old-outline-settings))
+      (setq outline-level (cdr lispy-old-outline-settings))
+      (setq lispy-old-outline-settings nil))))
 
 (defun lispy-raise-minor-mode (mode)
   "Make MODE the first on `minor-mode-map-alist'."
@@ -1443,11 +1451,11 @@ When this function is called:
   "`lispy-pair' with ().")
 
 (defalias 'lispy-brackets
-    (lispy-pair "[" "]" "^\\|\\s-\\|\\s(\\|[']")
+    (lispy-pair "[" "]" "^\\|\\s-\\|\\s(\\|[`']")
   "`lispy-pair' with [].")
 
 (defalias 'lispy-braces
-    (lispy-pair "{" "}" "^\\|\\s-\\|\\s(\\|[{#^']")
+    (lispy-pair "{" "}" "^\\|\\s-\\|\\s(\\|[{#^`']")
   "`lispy-pair' with {}.")
 
 (defun lispy-quotes (arg)
@@ -3673,7 +3681,8 @@ Sexp is obtained by exiting list ARG times."
 Filter out the matches that don't match FILTER.
 Use STYLE function to update the overlays."
   (lispy--recenter-bounds bnd)
-  (let* ((cands (avy--regex-candidates
+  (let* ((avy-all-windows nil)
+         (cands (avy--regex-candidates
                  regex
                  (car bnd) (cdr bnd)
                  filter)))
@@ -4504,18 +4513,16 @@ When ARG is given, paste at that place in the current list."
          (unless (or (eolp) (looking-at lispy-right))
            (just-one-space)
            (forward-char -1)))
+        ((lispy-right-p)
+         (newline-and-indent)
+         (yank))
+        ((lispy-left-p)
+         (newline-and-indent)
+         (forward-line -1)
+         (indent-for-tab-command)
+         (yank))
         (t
-         (if (and (lispy-right-p)
-                  (save-excursion
-                    (forward-list -1)
-                    (bolp)))
-             (newline)
-           (when (bolp)
-             (open-line 1)))
-         (yank)
-         (when (and (lispy-right-p)
-                    (lispy-left-p))
-           (insert " ")))))
+         (yank))))
 
 (defalias 'lispy-font-lock-ensure
     (if (fboundp 'font-lock-ensure)
@@ -4673,7 +4680,7 @@ area between `lispy-eb-target-beg' and `lispy-eb-target-end'."
   (when (overlayp lispy-eb-input-overlay)
     (delete-overlay lispy-eb-input-overlay)))
 
-(defun lispy-eb--overlay-update-hook (occurrence after beg end &optional change)
+(defun lispy-eb--overlay-update-hook (_occurrence _after _beg _end &optional change)
   (when change
     (let ((inhibit-modification-hooks t)
           (str (buffer-substring-no-properties
