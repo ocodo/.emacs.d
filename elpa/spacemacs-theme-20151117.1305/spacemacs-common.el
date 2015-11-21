@@ -373,9 +373,13 @@
      `(magit-branch-current ((,class (:background ,org-h1-bg :foreground ,inf :weight bold :box t))))
      `(magit-branch-local ((,class (:background ,org-h1-bg :foreground ,inf :weight bold))))
      `(magit-branch-remote ((,class (:background ,org-h2-bg :foreground ,str :weight bold))))
-     `(magit-diff-context-highlight ((,class (:background ,bg3 :foreground ,base))))
-     `(magit-diff-file-header ((,class (:background nil :foreground ,str))))
-     `(magit-diff-hunk-header ((,class (:background nil :foreground ,builtin))))
+     `(magit-diff-context-highlight ((,class (:background ,bg2 :foreground ,base))))
+     `(magit-diff-file-header ((,class (:background ,comment-bg :foreground ,comment))))
+     `(magit-diff-file-heading ((,class (:background ,comment-bg :foreground ,comment))))
+     `(magit-diff-file-heading-highlight ((,class (:background ,comment-bg :foreground ,comment))))
+     `(magit-diff-hunk-header ((,class (:background ,ttip-bg :foreground ,ttip))))
+     `(magit-diff-hunk-heading ((,class (:background ,ttip-bg :foreground ,ttip))))
+     `(magit-diff-hunk-heading-highlight ((,class (:background ,ttip-bg :foreground ,ttip))))
      `(magit-hash ((,class (:foreground ,var))))
      `(magit-hunk-heading           ((,class (:background ,bg3))))
      `(magit-hunk-heading-highlight ((,class (:background ,bg3))))
@@ -478,6 +482,9 @@
 ;;;;; smartparens
      `(sp-pair-overlay-face ((,class (:background ,highlight :foreground nil))))
      `(sp-show-pair-match-face ((,class (:foreground ,(if (eq variant 'dark) suc red) :weight bold :underline t))))
+
+;;;;; spaceline
+     `(spaceline-python-venv ((,class (:foreground ,comp))))
 
 ;;;;; term
      `(term ((,class (:foreground ,base :background ,bg1))))
