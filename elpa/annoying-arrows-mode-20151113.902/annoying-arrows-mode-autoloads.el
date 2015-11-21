@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "annoying-arrows-mode" "annoying-arrows-mode.el"
-;;;;;;  (22021 61741 861140 0))
+;;;;;;  (22095 53664 253812 592000))
 ;;; Generated autoloads from annoying-arrows-mode.el
 
 (autoload 'annoying-arrows-mode "annoying-arrows-mode" "\

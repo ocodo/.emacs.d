@@ -3,8 +3,8 @@
 ;; Copyright (C) 2011 Magnar Sveen
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
-;; Keywords: learning
-;; Package-Version: 20130515.1000
+;; Version: 0.1.0
+;; Package-Version: 20151113.902
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
