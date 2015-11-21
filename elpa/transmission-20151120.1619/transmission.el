@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.6
-;; Package-Version: 20151111.908
+;; Package-Version: 20151120.1619
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -94,6 +94,11 @@
                                   (:password string))))
   :group 'transmission)
 
+(defcustom transmission-trackers '()
+  "List of tracker URLs."
+  :type '(repeat (string :tag "URL"))
+  :group 'transmission)
+
 (defcustom transmission-units nil
   "The flavor of units used to display file sizes.
 
@@ -153,7 +158,7 @@ See `format-time-string'."
 (defconst transmission-info-fields
   '("name" "hashString" "magnetLink" "activityDate" "addedDate"
     "dateCreated" "doneDate" "startDate" "peers" "pieces" "pieceCount"
-    "pieceSize" "trackers" "trackerStats" "peersConnected" "peersGettingFromUs"
+    "pieceSize" "trackerStats" "peersConnected" "peersGettingFromUs" "peersFrom"
     "peersSendingToUs" "sizeWhenDone" "error" "errorString" "wanted" "files"
     "downloadedEver" "corruptEver" "haveValid" "totalSize" "percentDone"
     "seedRatioLimit" "seedRatioMode" "bandwidthPriority"))
@@ -386,12 +391,15 @@ TORRENT is the \"torrents\" vector returned by `transmission-torrents'."
 STATUS is a key of `transmission-status-plist'.  UP and DOWN are
 transmission rates."
   (let ((state (plist-get transmission-status-plist status))
-        (idle (propertize "idle" 'font-lock-face 'shadow)))
+        (idle (propertize "idle" 'font-lock-face 'shadow))
+        (uploading
+         (propertize "uploading" 'font-lock-face 'font-lock-constant-face)))
     (pcase status
       (0 (propertize state 'font-lock-face 'warning))
       ((or 1 3 5) (propertize state 'font-lock-face '(bold shadow)))
       (2 (propertize state 'font-lock-face 'font-lock-function-name-face))
-      (4 (if (> down 0) (propertize state 'font-lock-face 'highlight) idle))
+      (4 (if (> down 0) (propertize state 'font-lock-face 'highlight)
+           (if (> up 0) uploading idle)))
       (6 (if (> up 0) (propertize state 'font-lock-face 'success) idle))
       (_ state))))
 
@@ -445,7 +453,7 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
            (day (float 86400))
            (month (* 29.53 day))
            (year (* 365.25 day)))
-      (apply #'format "%3.0f%s"
+      (apply #'format "%.0f%s"
              (pcase seconds
                ((pred (> minute)) (list seconds "s"))
                ((pred (> hour)) (list (/ seconds minute) "m"))
@@ -453,6 +461,14 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
                ((pred (> month)) (list (/ seconds day) "d"))
                ((pred (> year)) (list (/ seconds month) "M"))
                (_ (list (/ seconds year) "y")))))))
+
+(defun transmission-when (seconds)
+  "The `transmission-eta' of time between `current-time' and SECONDS."
+  (if (<= seconds 0)
+      "never"
+    (let ((secs (- seconds (time-to-seconds (current-time)))))
+      (format (if (< secs 0) "%s ago" "in %s")
+              (transmission-eta (abs secs) nil)))))
 
 (defun transmission-rate (bytes)
   "Return a rate in units kilobytes per second.
@@ -501,8 +517,8 @@ Returns a list of non-blank inputs."
 
 (defun transmission-list-trackers (id)
   "Return the \"trackers\" array for torrent id ID."
-  (let ((torrent (transmission-torrents `(:ids ,id :fields ("trackers")))))
-    (transmission-torrent-value torrent 'trackers)))
+  (let ((torrent (transmission-torrents `(:ids ,id :fields ("trackerStats")))))
+    (transmission-torrent-value torrent 'trackerStats)))
 
 (defun transmission-list-unique-announce-urls ()
   "Return a list of unique announce URLs from all current torrents."
@@ -537,21 +553,21 @@ If the file named \"foo\" does not exist, try \"foo.part\" before returning."
                (transmission-torrent-value transmission-torrent-vector 'downloadDir)))
          (base (cdr (assq 'name (tabulated-list-get-id))))
          (full (and dir base (concat dir base))))
-    (or (and (file-exists-p full) full)
-        (and (file-exists-p (concat full ".part"))
-             (concat full ".part")))))
+    (if full
+        (or (and (file-exists-p full) full)
+            (and (file-exists-p (concat full ".part"))
+                 (concat full ".part")))
+      (user-error "No file at point"))))
 
 (defun transmission-files-sort (torrent)
-  "Return the .files and .fileStats vectors in TORRENT.
+  "Return a list derived from the \"files\" and \"fileStats\" arrays in TORRENT.
 The two are spliced together with indices for each file, sorted by file name."
-  (let* ((files (cl-map 'vector #'append
-                        (transmission-torrent-value torrent 'files)
-                        (transmission-torrent-value torrent 'fileStats)))
-         (len (length files))
-         (indices (cl-map 'vector (lambda (a b) (list (cons a b)))
-                          (make-vector len 'index)
-                          (number-sequence 0 len))))
-    (sort (cl-mapcar #'append files indices)
+  (let ((files (transmission-torrent-value torrent 'files))
+        (stats (transmission-torrent-value torrent 'fileStats)))
+    (sort (cl-loop for f across files
+                   for s across stats
+                   for i below (length files)
+                   collect (append f s (list (cons 'index i))))
           (lambda (a b)
             (string< (cdr (assq 'name a))
                      (cdr (assq 'name b)))))))
@@ -730,7 +746,9 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
                          (transmission-list-trackers ids)))
        (urls (or (transmission-prompt-read-repeatedly
                   "Add announce URLs: "
-                  (cl-loop for url in (transmission-list-unique-announce-urls)
+                  (cl-loop for url in
+                           (append transmission-trackers
+                                   (transmission-list-unique-announce-urls))
                            unless (member url trackers) collect url))
                  (user-error "No trackers to add")))
        (arguments (list :ids ids :trackerAdd
@@ -743,29 +761,62 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
      "torrent-set" arguments)))
 
 (defun transmission-trackers-remove ()
-  "Prompt for trackers to remove by ID from torrent at point."
+  "Remove trackers from torrent at point by ID or announce URL."
   (interactive)
-  (let ((id transmission-torrent-id))
-    (if id
-        (let* ((array (transmission-list-trackers id))
-               (prompt (if array
-                           (format "Remove tracker (%d trackers): "
-                                   (length array))
-                         (user-error "No trackers to remove")))
-               (trackers (mapcar (lambda (x) (cdr (assq 'announce x))) array))
-               (urls (or (transmission-prompt-read-repeatedly prompt trackers)
-                         (user-error "No trackers selected for removal")))
-               (tids (mapcar (lambda (x) (cdr (assq 'id x)))
-                             (cl-loop for alist across array
-                                      if (member (cdr (assq 'announce alist))
-                                                 urls)
-                                      collect alist)))
-               (arguments (list :ids id :trackerRemove tids)))
-          (transmission-request-async
-           (lambda (content)
-             (let-alist (json-read-from-string content) (message .result)))
-           "torrent-set" arguments))
-      (user-error "No torrent selected"))))
+  (let* ((id (or transmission-torrent-id
+                 (user-error "No torrent selected")))
+         (array (or (transmission-list-trackers id)
+                    (user-error "No trackers to remove")))
+         (prompt (format "Remove tracker (%d trackers): " (length array)))
+         (trackers (mapcar (lambda (x) (cons (cdr (assq 'announce x))
+                                             (cdr (assq 'id x))))
+                           array))
+         (completion-extra-properties
+          `(:annotation-function
+            (lambda (x)
+              (format " ID# %d" (cdr (assoc x ',trackers))))))
+         (urls (or (transmission-prompt-read-repeatedly prompt trackers)
+                   (user-error "No trackers selected for removal")))
+         (tids (cl-loop for alist across array
+                        if (or (member (cdr (assq 'announce alist)) urls)
+                               (member (number-to-string (cdr (assq 'id alist))) urls))
+                        collect (cdr (assq 'id alist))))
+         (arguments (list :ids id :trackerRemove tids)))
+    (transmission-request-async
+     (lambda (content)
+       (let-alist (json-read-from-string content) (message .result)))
+     "torrent-set" arguments)))
+
+(defun transmission-trackers-replace ()
+  "Replace tracker by ID or announce URL."
+  (interactive)
+  (let* ((id (or transmission-torrent-id
+                 (user-error "No torrent selected")))
+         (trackers (or (mapcar (lambda (x)
+                                 (cons (cdr (assq 'announce x))
+                                       (cdr (assq 'id x))))
+                               (transmission-list-trackers id))
+                       (user-error "No trackers to replace")))
+         (prompt (format "Replace tracker (%d trackers): " (length trackers)))
+         (tid (or (let* ((completion-extra-properties
+                          `(:annotation-function
+                            (lambda (x)
+                              (format " ID# %d" (cdr (assoc x ',trackers))))))
+                         (tracker (completing-read prompt trackers)))
+                    (cl-loop for cell in trackers
+                             if (member tracker (list (car cell)
+                                                      (number-to-string (cdr cell))))
+                             return (cdr cell)))
+                  (user-error "No tracker selected for substitution")))
+         (replacement
+          (completing-read "Replacement tracker? "
+                           (append transmission-trackers
+                                   (transmission-list-unique-announce-urls))))
+         (arguments (list :ids id :trackerReplace (vector tid replacement))))
+    (transmission-request-async
+     (lambda (content)
+       (let-alist (json-read-from-string content) (message .result)))
+     "torrent-set" arguments)))
 
 (defun transmission-verify ()
   "Verify torrent at point or in region."
@@ -857,17 +908,55 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
                   (nreverse res))))
       (string-join (string-partition (substring bits 0 count) 72) "\n"))))
 
+(defun transmission-format-peers (peers origins connected sending receiving)
+  "Format peer information into a string.
+PEERS is an array of peer-specific data.
+ORIGINS is an alist giving counts of peers from different swarms.
+CONNECTED, SENDING, RECEIVING are numbers."
+  (cl-macrolet ((accumulate (array key)
+                  `(cl-loop for alist across ,array with x = 0
+                            if (eq t (cdr (assq ,key alist))) do (cl-incf x)
+                            finally return x)))
+    (concat
+     (format "Peers: %d connected, uploading to %d, downloading from %d"
+             connected sending receiving)
+     (format " (%d unchoked, %d interested)\n"
+             (- connected (accumulate peers 'clientIsChoked))
+             (accumulate peers 'peerIsInterested))
+     (pcase-let ((`(_ ,dht _ _ _ ,pex ,tracker) (mapcar #'cdr origins)))
+       (format "Peer origins: %d from DHT, %d from PEX, %d from trackers\n"
+               dht pex tracker)))))
+
+(defun transmission-format-tracker (tracker)
+  (let-alist tracker
+    (let* ((label (format "Tracker %d" .id))
+           (col (length label))
+           (fill (concat (make-string col ? ) ": "))
+           (result (pcase .lastAnnounceResult
+                     ((or "Success" (pred string-empty-p)) nil)
+                     (_ (concat "\n" fill
+                                (propertize .lastAnnounceResult
+                                            'font-lock-face 'warning))))))
+      (format (concat label ": %s (Tier %d)\n"
+                      fill "%d peers %s. Announcing %s\n"
+                      fill "%d seeders, %d leechers, %d downloads %s. Scraping %s"
+                      result)
+              .announce .tier
+              (if (= -1 .lastAnnouncePeerCount) 0 .lastAnnouncePeerCount)
+              (transmission-when .lastAnnounceTime)
+              (transmission-when .nextAnnounceTime)
+              (if (= -1 .seederCount) 0 .seederCount)
+              (if (= -1 .leecherCount) 0 .leecherCount)
+              (if (= -1 .downloadCount) 0 .downloadCount)
+              (transmission-when .lastScrapeTime)
+              (transmission-when .nextScrapeTime)))))
+
 (defun transmission-format-trackers (trackers)
-  (let ((fmt (concat "Tracker %d: %s (Tier %d)\n"
-                     "\t : %d peers, %d seeders, %d leechers, %d downloads")))
-    (mapconcat (lambda (e)
-                 (let-alist e
-                   (format fmt .id .announce .tier
-                           (if (= -1 .lastAnnouncePeerCount) 0 .lastAnnouncePeerCount)
-                           (if (= -1 .seederCount) 0 .seederCount)
-                           (if (= -1 .leecherCount) 0 .leecherCount)
-                           (if (= -1 .downloadCount) 0 .downloadCount))))
-               trackers "\n")))
+  "Format tracker information into a string.
+TRACKERS should be the \"trackerStats\" array."
+  (if (zerop (length trackers))
+      "Trackers: none\n"
+    (concat (mapconcat #'transmission-format-tracker trackers "\n") "\n")))
 
 (defmacro transmission-do-entries (seq &rest body)
   "Map over SEQ, pushing each element to `tabulated-list-entries'.
@@ -931,13 +1020,13 @@ Each form in BODY is a column descriptor."
       (unless (zerop .error)
         (format "Error: %d %s\n" .error
                 (propertize .errorString 'font-lock-face 'error)))
-      (format "Peers: connected to %d, uploading to %d, downloading from %d\n"
-              .peersConnected .peersGettingFromUs .peersSendingToUs)
+      (transmission-format-peers .peers .peersFrom .peersConnected
+                                 .peersGettingFromUs .peersSendingToUs)
       (concat "Date created:    " (transmission-time .dateCreated))
       (concat "Date added:      " (transmission-time .addedDate))
       (concat "Date finished:   " (transmission-time .doneDate))
       (concat "Latest Activity: " (transmission-time .activityDate) "\n")
-      (concat (transmission-format-trackers .trackerStats) "\n")
+      (transmission-format-trackers .trackerStats)
       (let ((wanted (apply #'+ (cl-mapcar (lambda (w f)
                                             (if (not (zerop w))
                                                 (cdr (assq 'length f)) 0))
@@ -999,7 +1088,7 @@ Also run the timer for timer object `transmission-timer'."
              (unless (eq major-mode ',mode)
                (funcall #',mode))
              (if (and old-id (eq old-id id))
-                 (transmission-refresh)
+                 (revert-buffer)
                (setq transmission-torrent-id id)
                (transmission-draw transmission-refresh-function)
                (goto-char (point-min)))))
@@ -1030,6 +1119,7 @@ Also run the timer for timer object `transmission-timer'."
   '("Transmission-Info"
     ["Add Tracker URLs" transmission-trackers-add]
     ["Remove Trackers" transmission-trackers-remove]
+    ["Replace Tracker" transmission-trackers-replace]
     ["Move Torrent" transmission-move]
     ["Reannounce Torrent" transmission-reannounce]
     ["Set Bandwidth Priority" transmission-set-bandwidth-priority]
