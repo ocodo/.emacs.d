@@ -1,8 +1,8 @@
-(define-package "flycheck" "20151111.1432" "On-the-fly syntax checking"
-  '((dash "2.4.0")
+(define-package "flycheck" "20151117.439" "On-the-fly syntax checking"
+  '((dash "2.12.1")
     (pkg-info "0.4")
-    (let-alist "1.0.1")
-    (cl-lib "0.3")
+    (let-alist "1.0.4")
+    (seq "1.11")
     (emacs "24.3"))
   :url "https://www.flycheck.org" :keywords
   '("convenience" "languages" "tools"))
