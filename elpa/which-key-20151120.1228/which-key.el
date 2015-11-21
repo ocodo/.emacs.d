@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20151103.1726
-;; Version: 0.7
+;; Package-Version: 20151120.1228
+;; Version: 0.7.1
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -40,6 +40,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'button)
 
 (eval-when-compile
   (defvar golden-ratio-mode))
@@ -69,10 +70,11 @@ Also adds \"..\". If nil, disable any truncation."
   :group 'which-key
   :type 'integer)
 
-(defcustom which-key-separator " → "
-  "Separator to use between key and description."
+(defcustom which-key-add-column-padding 0
+  "Additional padding (number of spaces) to add to the left of
+each key column."
   :group 'which-key
-  :type 'string)
+  :type 'integer)
 
 (defcustom which-key-unicode-correction 3
   "Correction for wide unicode characters.
@@ -90,8 +92,21 @@ of the which-key popup."
   :group 'which-key
   :type 'integer)
 
+(defcustom which-key-dont-use-unicode nil
+  "If non-nil, don't use any unicode characters in default setup."
+  :group 'which-key
+  :type 'integer)
+
+(defcustom which-key-separator
+  (if which-key-dont-use-unicode " : " " → ")
+  "Separator to use between key and description."
+  :group 'which-key
+  :type 'string)
+
 (defcustom which-key-key-replacement-alist
-  '(("<\\([[:alnum:]-]+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
+  (if which-key-dont-use-unicode
+      '(("<\\([[:alnum:]-]+\\)>" . "\\1"))
+    '(("<\\([[:alnum:]-]+\\)>" . "\\1") ("left" . "←") ("right" . "→")))
   "The strings in the car of each cons are replaced with the
 strings in the cdr for each key.  Elisp regexp can be used as
 in the first example."
@@ -131,9 +146,10 @@ and have `which-key-special-key-face' applied to them."
 Possible choices are echo for echo area (the default), left, top
 and nil. Nil turns the feature off."
   :group 'which-key
-  :type '(radio (const :tag "Left of keys" left)
-                (const :tag "In first line" top)
-                (const :tag "In echo area" echo)
+  :type '(radio (const :tag "Left of the keys" left)
+                (const :tag "In the first line" top)
+                (const :tag "In the last line" bottom)
+                (const :tag "In the echo area" echo)
                 (const :tag "Hide" nil)))
 
 (defcustom which-key-popup-type 'side-window
@@ -255,6 +271,15 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-hide-alt-key-translations t
+  "Hide key translations using Alt key if non nil.
+These translations are not relevant most of the times since a lot
+of terminals issue META modifier for the Alt key.
+
+See http://www.gnu.org/software/emacs/manual/html_node/emacs/Modifier-Keys.html"
+  :group 'which-key
+  :type 'boolean)
+
 ;; Faces
 (defgroup which-key-faces nil
   "Faces for which-key-mode"
@@ -365,6 +390,7 @@ showing.")
   "Internal: Last location of side-window when two locations
 used.")
 (defvar which-key--multiple-locations nil)
+(defvar which-key--using-top-level nil)
 
 (defvar which-key-key-based-description-replacement-alist '()
   "New version of
@@ -386,7 +412,6 @@ then `listify-key-sequence' to create a canonical version of the
 key sequence. prefix-title is a string. The title is displayed
 alongside the actual current key sequence when
 `which-key-show-prefix' is set to either top or echo.")
-
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -465,6 +490,18 @@ it's set too high)."
       ;; (message "which-key: echo-keystrokes changed from %s to %s"
       ;;          previous echo-keystrokes)
       )))
+
+(defun which-key-remove-default-unicode-chars ()
+  "Use of `which-key-dont-use-unicode' is preferred to this
+function, but it's included here in case someone cannot set that
+variable early enough in their configuration, if they are using a
+starter kit for example."
+  (when (string-equal which-key-separator " → ")
+    (setq which-key-separator " : "))
+  (setq which-key-key-replacement-alist
+        (delete '("left" . "←") which-key-key-replacement-alist))
+  (setq which-key-key-replacement-alist
+        (delete '("right" . "→") which-key-key-replacement-alist)))
 
 ;; (defun which-key--setup-undo-key ()
 ;;   "Bind `which-key-undo-key' in `which-key-undo-keymaps'."
@@ -747,6 +784,7 @@ total height."
   "This function is called to hide the which-key buffer."
   (unless (eq real-this-command 'which-key-show-next-page)
     (setq which-key--current-page-n nil
+          which-key--using-top-level nil
           which-key--on-last-page nil)
     (cl-case which-key-popup-type
       ;; Not necessary to hide minibuffer
@@ -949,39 +987,52 @@ width) in lines and characters respectively."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Sorting functions
 
-(defun which-key--alpha< (a b)
-  (let ((da (downcase a))
-        (db (downcase b)))
-    (if (string-equal da db)
-        (not (string-lessp a b))
-      (string-lessp da db))))
+(defun which-key--string< (a b &optional alpha)
+  (if alpha
+      (let ((da (downcase a))
+            (db (downcase b)))
+        (if (string-equal da db)
+            (not (string-lessp a b))
+          (string-lessp da db)))
+    (string-lessp a b)))
 
-(defun which-key--key-description-alpha< (a b)
-  "Sorting function used for `which-key-key-order-alpha'."
-  (let* ((aem? (string-equal a ""))
-         (bem? (string-equal b ""))
-         (a1? (= 1 (length a)))
-         (b1? (= 1 (length b)))
-         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
-         (asp? (string-match-p srgxp a))
-         (bsp? (string-match-p srgxp b))
-         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
-         (apr? (string-match-p prrgxp a))
-         (bpr? (string-match-p prrgxp b)))
-    (cond ((or aem? bem?) (and aem? (not bem?)))
-          ((and asp? bsp?)
-           (if (string-equal (substring a 0 3) (substring b 0 3))
-               (which-key--key-description< (substring a 3) (substring b 3))
-             (string-lessp a b)))
-          ((or asp? bsp?) asp?)
-          ((and a1? b1?) (which-key--alpha< a b))
-          ((or a1? b1?) a1?)
-          ((and apr? bpr?)
-           (if (string-equal (substring a 0 2) (substring b 0 2))
-               (which-key--key-description< (substring a 2) (substring b 2))
-             (string-lessp a b)))
-          ((or apr? bpr?) apr?)
-          (t (string-lessp a b)))))
+(defun which-key--key-description< (a b &optional alpha)
+  "Sorting function used for `which-key-key-order' and
+`which-key-key-order-alpha'."
+  (save-match-data
+    (let* ((rngrgxp "^\\([^ ]+\\) \\.\\. [^ ]+")
+           (a (if (string-match rngrgxp a) (match-string 1 a) a))
+           (b (if (string-match rngrgxp b) (match-string 1 b) b))
+           (aem? (string-equal a ""))
+           (bem? (string-equal b ""))
+           (a1? (= 1 (length a)))
+           (b1? (= 1 (length b)))
+           (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
+           (asp? (string-match-p srgxp a))
+           (bsp? (string-match-p srgxp b))
+           (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
+           (apr? (string-match-p prrgxp a))
+           (bpr? (string-match-p prrgxp b))
+           (afn? (string-match-p "<f[0-9]+>" a))
+           (bfn? (string-match-p "<f[0-9]+>" b)))
+      (cond ((or aem? bem?) (and aem? (not bem?)))
+            ((and asp? bsp?)
+             (if (string-equal (substring a 0 3) (substring b 0 3))
+                 (which-key--key-description< (substring a 3) (substring b 3) alpha)
+               (string-lessp a b)))
+            ((or asp? bsp?) asp?)
+            ((and a1? b1?) (which-key--string< a b alpha))
+            ((or a1? b1?) a1?)
+            ((and afn? bfn?)
+             (< (string-to-number (replace-regexp-in-string "<f\\([0-9]+\\)>" "\\1" a))
+                (string-to-number (replace-regexp-in-string "<f\\([0-9]+\\)>" "\\1" b))))
+            ((or afn? bfn?) afn?)
+            ((and apr? bpr?)
+             (if (string-equal (substring a 0 2) (substring b 0 2))
+                 (which-key--key-description< (substring a 2) (substring b 2) alpha)
+               (string-lessp a b)))
+            ((or apr? bpr?) apr?)
+            (t (string-lessp a b))))))
 
 (defsubst which-key-key-order-alpha (acons bcons)
   "Order key descriptions A and B.
@@ -991,34 +1042,7 @@ the ordering of classes are listed below.
 special (SPC,TAB,...) < single char < mod (C-,M-,...) < other.
 Sorts single characters alphabetically with lowercase coming
 before upper."
-  (which-key--key-description-alpha< (car acons) (car bcons)))
-
-(defun which-key--key-description< (a b)
-  "Sorting function used for `which-key-key-order'."
-  (let* ((aem? (string-equal a ""))
-         (bem? (string-equal b ""))
-         (a1? (= 1 (length a)))
-         (b1? (= 1 (length b)))
-         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
-         (asp? (string-match-p srgxp a))
-         (bsp? (string-match-p srgxp b))
-         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
-         (apr? (string-match-p prrgxp a))
-         (bpr? (string-match-p prrgxp b)))
-    (cond ((or aem? bem?) (and aem? (not bem?)))
-          ((and asp? bsp?)
-           (if (string-equal (substring a 0 3) (substring b 0 3))
-               (which-key--key-description< (substring a 3) (substring b 3))
-             (string-lessp a b)))
-          ((or asp? bsp?) asp?)
-          ((and a1? b1?) (string-lessp a b))
-          ((or a1? b1?) a1?)
-          ((and apr? bpr?)
-           (if (string-equal (substring a 0 2) (substring b 0 2))
-               (which-key--key-description< (substring a 2) (substring b 2))
-             (string-lessp a b)))
-          ((or apr? bpr?) apr?)
-          (t (string-lessp a b)))))
+  (which-key--key-description< (car acons) (car bcons) t))
 
 (defsubst which-key-key-order (acons bcons)
   "Order key descriptions A and B.
@@ -1032,6 +1056,10 @@ special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
   "Order descriptions of A and B.
 Uses `string-lessp' after applying lowercase."
   (string-lessp (downcase (cdr acons)) (downcase (cdr bcons))))
+
+(defsubst which-key--group-p (description)
+  (or (string-match-p "^\\(group:\\|Prefix\\)" description)
+      (keymapp (intern description))))
 
 (defun which-key-prefix-then-key-order (acons bcons)
   "Order first by whether A and/or B is a prefix with no prefix
@@ -1057,7 +1085,8 @@ to replace and the cdr is the replacement text.  Unless LITERAL is
 non-nil regexp is used in the replacements.  Whether or not a
 replacement occurs return the new STRING."
   (save-match-data
-    (let ((new-string string))
+    (let ((new-string string)
+          case-fold-search)
       (dolist (repl repl-alist)
         (when (string-match (car repl) new-string)
           (setq new-string
@@ -1092,13 +1121,25 @@ occurs return the new STRING."
   "KEY-LST is a list of keys produced by `listify-key-sequences'.
 A title is possibly returned using `which-key-prefix-title-alist'.
 An empty stiring is returned if no title exists."
-  (let* ((alist which-key-prefix-title-alist)
-         (res (assoc key-lst alist))
-         (mode-alist (assq major-mode alist))
-         (mode-res (when mode-alist (assoc key-lst mode-alist))))
-    (cond (mode-res (cdr mode-res))
-          (res (cdr res))
-          (t ""))))
+  (if key-lst
+      (let* ((alist which-key-prefix-title-alist)
+             (res (assoc key-lst alist))
+             (mode-alist (assq major-mode alist))
+             (mode-res (when mode-alist (assoc key-lst mode-alist)))
+             (binding (key-binding (apply #'vector key-lst)))
+             (alternate (when (and binding (symbolp binding))
+                          (symbol-name binding))))
+        (cond (mode-res (cdr mode-res))
+              (res (cdr res))
+              ((and (eq which-key-show-prefix 'echo) alternate)
+               alternate)
+              ((and (member which-key-show-prefix '(bottom top))
+                    (eq which-key-side-window-location 'bottom)
+                    echo-keystrokes)
+               (if alternate alternate
+                 (concat "Following " (key-description key-lst))))
+              (t "")))
+    "Top-level bindings"))
 
 (defun which-key--maybe-replace-key-based (string key-lst)
   "KEY-LST is a list of keys produced by `listify-key-sequences'
@@ -1121,7 +1162,8 @@ If KEY contains any \"special keys\" defined in
   (let ((key-w-face (propertize key 'face 'which-key-key-face))
         (regexp (concat "\\("
                         (mapconcat 'identity which-key-special-keys
-                                   "\\|") "\\)")))
+                                   "\\|") "\\)"))
+        case-fold-search)
     (save-match-data
       (if (and which-key-special-keys
                (string-match regexp key))
@@ -1135,13 +1177,9 @@ If KEY contains any \"special keys\" defined in
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
   (if (and which-key-max-description-length
-           (> (string-width desc) which-key-max-description-length))
+           (> (length desc) which-key-max-description-length))
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
-
-(defsubst which-key--group-p (description)
-  (or (string-match-p "^\\(group:\\|Prefix\\)" description)
-      (keymapp (intern description))))
 
 (defun which-key--highlight-face (description)
   "Return the highlight face for DESCRIPTION if it has one."
@@ -1160,21 +1198,40 @@ which-key-highlighted-command-list is not a string or a cons
 cell" el)))))
     face))
 
-(defun which-key--propertize-description (description group local hl-face)
+(defun which-key--propertize-description
+    (description group local hl-face &optional original-description)
   "Add face to DESCRIPTION where the face chosen depends on
 whether the description represents a group or a command. Also
 make some minor adjustments to the description string, like
-removing a \"group:\" prefix."
+removing a \"group:\" prefix.
+
+ORIGINAL-DESCRIPTION is the description given by
+`describe-buffer-bindings'."
   (let* ((desc description)
          (desc (if (string-match-p "^group:" desc)
                    (substring desc 6) desc))
          (desc (if group (concat "+" desc) desc))
          (desc (which-key--truncate-description desc)))
-    (propertize desc 'face
-                (cond (hl-face hl-face)
-                      (group 'which-key-group-description-face)
-                      (local 'which-key-local-map-description-face)
-                      (t 'which-key-command-description-face)))))
+    (eval
+     `(make-text-button
+       ,desc nil
+       'face ',(cond (hl-face hl-face)
+                     (group 'which-key-group-description-face)
+                     (local 'which-key-local-map-description-face)
+                     (t 'which-key-command-description-face))
+       'help-echo ,(cond
+                    ((and (fboundp (intern original-description))
+                          (documentation (intern original-description))
+                          tooltip-mode)
+                     (documentation (intern original-description)))
+                    ((and (fboundp (intern original-description))
+                          (documentation (intern original-description))
+                          (let* ((doc (documentation (intern original-description)))
+                                 (str (replace-regexp-in-string "\n" " " doc))
+                                 (max (floor (* (frame-width) 0.8))))
+                            (if (> (length str) max)
+                                (concat (substring str 0 max) "...")
+                              str)))))))))
 
 (defun which-key--format-and-replace (unformatted)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
@@ -1186,44 +1243,87 @@ alists. Returns a list (key separator description)."
     (mapcar
      (lambda (key-desc-cons)
        (let* ((key (car key-desc-cons))
-              (desc (cdr key-desc-cons))
-              (group (which-key--group-p desc))
+              (orig-desc (cdr key-desc-cons))
+              (group (which-key--group-p orig-desc))
               (keys (which-key--current-key-string key))
               (key-lst (which-key--current-key-list key))
               (local (eq (which-key--safe-lookup-key local-map (kbd keys))
-                         (intern desc)))
-              (hl-face (which-key--highlight-face desc))
+                         (intern orig-desc)))
+              (hl-face (which-key--highlight-face orig-desc))
               (key (which-key--maybe-replace
                     key which-key-key-replacement-alist))
               (desc (which-key--maybe-replace
-                     desc which-key-description-replacement-alist))
+                     orig-desc which-key-description-replacement-alist))
               (desc (which-key--maybe-replace-key-based desc key-lst))
               (desc (if group
                         (which-key--maybe-replace-prefix-name key-lst desc)
                       desc))
               (key-w-face (which-key--propertize-key key))
-              (desc-w-face (which-key--propertize-description desc group local hl-face)))
+              (desc-w-face (which-key--propertize-description
+                            desc group local hl-face orig-desc)))
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
+
+;; adapted from helm-descbinds
+(defun which-key--get-current-bindings ()
+  (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
+        (buffer (current-buffer))
+        (ignore-bindings '("self-insert-command" "ignore" "ignore-event" "company-ignore"))
+        (ignore-keys-regexp "mouse-\\|wheel-\\|remap\\|drag-\\|scroll-bar\\|select-window\\|switch-frame")
+        (ignore-sections-regexp "\\(Key translations\\|Function key map translations\\|Input decoding map translations\\)"))
+    (with-temp-buffer
+      (let ((indent-tabs-mode t))
+        (describe-buffer-bindings buffer which-key--current-prefix))
+      (goto-char (point-min))
+      (let ((header-p (not (= (char-after) ?\f)))
+            bindings header)
+        (while (not (eobp))
+          (cond
+           (header-p
+            (setq header (buffer-substring-no-properties
+                          (point)
+                          (line-end-position)))
+            (setq header-p nil)
+            (forward-line 3))
+           ((= (char-after) ?\f)
+            ;; (push (cons header (nreverse section)) bindings)
+            ;; (setq section nil)
+            (setq header-p t))
+           ((looking-at "^[ \t]*$")
+            ;; ignore
+            )
+           ((or (not (string-match-p ignore-sections-regexp header))
+                which-key--current-prefix)
+            (let ((binding-start (save-excursion
+                                   (and (re-search-forward "\t+" nil t)
+                                        (match-end 0))))
+                  key binding)
+              (when binding-start
+                (setq key (buffer-substring-no-properties (point) binding-start)
+                      ;; key (replace-regexp-in-string"^[ \t\n]+" "" key)
+                      ;; key (replace-regexp-in-string"[ \t\n]+$" "" key)
+                      )
+                (setq binding (buffer-substring-no-properties
+                               binding-start
+                               (line-end-position)))
+                (save-match-data
+                  (cond
+                   ((member binding ignore-bindings))
+                   ((string-match-p ignore-keys-regexp key))
+                   ((and which-key--current-prefix
+                         (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$" key-str-qt) key))
+                    (unless (assoc-string (match-string 1 key) bindings)
+                      (push (cons (match-string 1 key) binding) bindings)))
+                   ((string-match "^\\([^ \t]+\\|[^ \t]+ \\.\\. [^ \t]+\\)[ \t]+$" key)
+                    (unless (assoc-string (match-string 1 key) bindings)
+                      (push (cons (match-string 1 key) binding) bindings)))))))))
+          (forward-line))
+        (nreverse bindings)))))
 
 (defun which-key--get-formatted-key-bindings ()
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
-  (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
-        (buffer (current-buffer))
-        key-match desc-match unformatted)
-    (save-match-data
-      (with-temp-buffer
-        (describe-buffer-bindings buffer which-key--current-prefix)
-        (goto-char (point-max)) ; want to put last keys in first
-        (while (re-search-backward
-                (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
-                        key-str-qt)
-                nil t)
-          (setq key-match (match-string 1)
-                desc-match (match-string 2))
-          (cl-pushnew (cons key-match desc-match) unformatted
-                      :test (lambda (x y) (string-equal (car x) (car y)))))))
+  (let* ((unformatted (which-key--get-current-bindings)))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
@@ -1259,7 +1359,8 @@ element in each list element of KEYS."
   "Take a column of (key separator description) COL-KEYS,
 calculate the max width in the column and pad all cells out to
 that width."
-  (let* ((col-key-width  (which-key--max-len col-keys 0))
+  (let* ((col-key-width  (+ which-key-add-column-padding
+                            (which-key--max-len col-keys 0)))
          (col-sep-width  (which-key--max-len col-keys 1))
          (col-desc-width (which-key--max-len col-keys 2))
          (col-width      (+ 1 col-key-width col-sep-width col-desc-width)))
@@ -1308,7 +1409,7 @@ Returns a plist that holds the page strings, as well as metadata."
         (push page-width page-widths))
       (list :pages (nreverse pages) :page-height avl-lines
             :page-widths (nreverse page-widths)
-            :keys/page (nreverse keys/page) :n-pages n-pages
+            :keys/page (reverse keys/page) :n-pages n-pages
             :tot-keys (apply #'+ keys/page)))))
 
 (defun which-key--create-pages (keys sel-win-width)
@@ -1323,8 +1424,8 @@ is the width of the live window."
          (prefix-w-face (which-key--propertize-key prefix-keys-desc))
          (prefix-left (when (eq which-key-show-prefix 'left)
                         (+ 2 (string-width prefix-w-face))))
-         (prefix-top (eq which-key-show-prefix 'top))
-         (avl-lines (if prefix-top (- max-lines 1) max-lines))
+         (prefix-top-bottom (member which-key-show-prefix '(bottom top)))
+         (avl-lines (if prefix-top-bottom (- max-lines 1) max-lines))
          (min-lines (min avl-lines which-key-min-display-lines))
          (avl-width (if prefix-left (- max-width prefix-left) max-width))
          (vertical (and (eq which-key-popup-type 'side-window)
@@ -1379,11 +1480,19 @@ area."
                    (and (< 1 n-pages) paging-key-bound)
                    use-descbind)
                (not (and which-key-allow-evil-operators
-                         (boundp 'evil-this-operator)
-                         evil-this-operator)))
+                         (bound-and-true-p evil-this-operator))))
       (propertize (format "[%s %s]" key
                           (if use-descbind "help" next-page-n))
                   'face 'which-key-note-face))))
+
+(defun which-key--get-popup-map ()
+  (unless which-key--current-prefix
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd which-key-paging-key) #'which-key-show-next-page)
+      (when which-key-use-C-h-for-paging
+        ;; Show next page even when C-h is pressed
+        (define-key map (kbd "C-h") #'which-key-show-next-page))
+      map)))
 
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
@@ -1402,8 +1511,12 @@ enough space based on your settings and frame size." prefix-keys)
              (width (nth page-n (plist-get which-key--pages-plist :page-widths)))
              (n-shown (nth page-n (plist-get which-key--pages-plist :keys/page)))
              (n-tot (plist-get which-key--pages-plist :tot-keys))
-             (prefix-w-face (which-key--propertize-key prefix-keys))
-             (dash-w-face (propertize "-" 'face 'which-key-key-face))
+             (prefix-w-face (if (eq which-key-show-prefix 'echo) prefix-keys
+                              (which-key--propertize-key prefix-keys)))
+             (dash-w-face (if which-key--current-prefix
+                              (if (eq which-key-show-prefix 'echo) "-"
+                                (propertize "-" 'face 'which-key-key-face))
+                            ""))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
              (status-top (propertize (which-key--maybe-get-prefix-title
@@ -1437,11 +1550,25 @@ enough space based on your settings and frame size." prefix-keys)
                        new-end (concat "\n" (make-string first-col-width 32))
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((eq which-key-show-prefix 'top)
-               (setq page (concat prefix-w-face dash-w-face " "
-                                  status-top " " nxt-pg-hint "\n" page)))
+               (setq page
+                     (concat
+                      (when (or (null echo-keystrokes)
+                                (not (eq which-key-side-window-location 'bottom)))
+                        (concat prefix-w-face dash-w-face " "))
+                      status-top " " nxt-pg-hint "\n" page)))
+              ((eq which-key-show-prefix 'bottom)
+               (setq page
+                     (concat
+                      page "\n"
+                      (when (or (null echo-keystrokes)
+                                (not (eq which-key-side-window-location 'bottom)))
+                        (concat prefix-w-face dash-w-face " "))
+                      status-top " " nxt-pg-hint)))
               ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat prefix-w-face dash-w-face " "
-                                        status-top " " nxt-pg-hint))))
+               (which-key--echo (concat prefix-w-face dash-w-face
+                                        (when prefix-keys " ")
+                                        status-top (when status-top " ")
+                                        nxt-pg-hint))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
             (which-key--echo page)
@@ -1449,7 +1576,12 @@ enough space based on your settings and frame size." prefix-keys)
             (erase-buffer)
             (insert page)
             (goto-char (point-min)))
-          (which-key--show-popup (cons height width)))))))
+          (which-key--show-popup (cons height width)))))
+    ;; used for paging at top-level
+    (if (fboundp 'set-transient-map)
+        (set-transient-map (which-key--get-popup-map))
+      (with-no-warnings
+        (set-temporary-overlay-map (which-key--get-popup-map))))))
 
 (defun which-key-show-next-page ()
   "Show the next page of keys.
@@ -1490,6 +1622,13 @@ Will force an update if called before `which-key--update'."
         (which-key--show-page next-page))
       (which-key--start-paging-timer)))))
 
+;;;###autoload
+(defun which-key-show-top-level ()
+  "Show top-level bindings."
+  (interactive)
+  (setq which-key--using-top-level t)
+  (which-key--create-buffer-and-show nil))
+
 (defun which-key-undo ()
   "Undo last keypress and force which-key update."
   (interactive)
@@ -1524,16 +1663,15 @@ Will force an update if called before `which-key--update'."
         (which-key--show-page page-n)
         loc2))))
 
-
-(defun which-key--create-buffer-and-show (prefix-keys)
+(defun which-key--create-buffer-and-show (&optional prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
 Finally, show the buffer."
   (setq which-key--current-prefix prefix-keys
         which-key--last-try-2-loc nil)
   (let ((formatted-keys (which-key--get-formatted-key-bindings))
-        (prefix-keys-desc (key-description prefix-keys)))
+        (prefix-keys (key-description which-key--current-prefix)))
     (cond ((= (length formatted-keys) 0)
-           (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
+           (message "%s-  which-key: There are no keys to show" prefix-keys))
           ((listp which-key-side-window-location)
            (setq which-key--last-try-2-loc
                  (apply #'which-key--try-2-side-windows
@@ -1549,20 +1687,22 @@ Finally, show the buffer."
     ;;  (message "key: %s" (key-description prefix-keys)))
     ;; (when (> (length prefix-keys) 0)
     ;;  (message "key binding: %s" (key-binding prefix-keys)))
-    (when (and (> (length prefix-keys) 0)
-               (or (keymapp (key-binding prefix-keys))
-                   ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
-                   (keymapp (which-key--safe-lookup-key
-                             key-translation-map prefix-keys))
-                   ;; just in case someone uses one of these
-                   (keymapp (which-key--safe-lookup-key
-                             function-key-map prefix-keys)))
-               (not which-key-inhibit)
-               ;; Do not display the popup if a command is currently being
-               ;; executed
-               (or (and which-key-allow-evil-operators evil-this-operator)
-                   (null this-command)))
-      (which-key--create-buffer-and-show prefix-keys))))
+    (cond ((and (> (length prefix-keys) 0)
+                (or (keymapp (key-binding prefix-keys))
+                    ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
+                    (keymapp (which-key--safe-lookup-key
+                              key-translation-map prefix-keys))
+                    ;; just in case someone uses one of these
+                    (keymapp (which-key--safe-lookup-key
+                              function-key-map prefix-keys)))
+                (not which-key-inhibit)
+                ;; Do not display the popup if a command is currently being
+                ;; executed
+                (or (and which-key-allow-evil-operators (bound-and-true-p evil-this-operator))
+                    (null this-command)))
+           (which-key--create-buffer-and-show prefix-keys))
+          ((and which-key--current-page-n (not which-key--using-top-level))
+           (which-key--hide-popup)))))
 
 ;; Timers
 
