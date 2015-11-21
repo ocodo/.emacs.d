@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "list-packages-ext" "list-packages-ext.el"
-;;;;;;  (21440 45233 998176 999000))
+;;;;;;  (22095 53543 805790 863000))
 ;;; Generated autoloads from list-packages-ext.el
 
 (autoload 'lpe:edit-package-notes "list-packages-ext" "\

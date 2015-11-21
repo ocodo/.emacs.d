@@ -1,12 +1,12 @@
 ;;; list-packages-extras.el --- Extras for list-packages  -*- lexical-binding: t; -*-
-;; Version: 20130927.908
 
 ;; Copyright (C) 2013  Alessandro Piras
 
 ;; Author: Alessandro Piras <laynor@gmail.com>
 ;; Keywords: convenience, tools
+;; Package-Version: 20151115.916
 ;; Package-Requires: ((s "1.6.0") (ht "1.5.0") (persistent-soft "0.8.6"))
-;; Version 1.0
+;; Version: 1.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -505,6 +505,7 @@ Provides:
          (lpe:activate))
         (t (lpe:deactivate))))
 
+(defvar list-packages-ext-mode-hook nil)
 
 (defun lpe:activate ()
   (apply 'run-hooks list-packages-ext-mode-hook)
@@ -641,8 +642,7 @@ Provides:
 ;;;;  Filters
 
 (defvar lpe::*filters-history* nil)
-
-(setq lpe::*filters-history-pos* 0)
+(defvar lpe::*filters-history-pos* 0)
 
 (cl-defstruct (lpe::filter (:constructor lpe::make-filter)
                            (:copier lpe::copy-filter))
@@ -970,7 +970,7 @@ To activate searching in the package summary, see `lpe:search-in-summary-toggle'
   (interactive)
   (if (zerop lpe::*filters-history-pos*)
       (error "Already at the newest filter.")
-    (decf lpe::*filters-history-pos*)
+    (cl-decf lpe::*filters-history-pos*)
     (lpe::update-all)))
 
 
@@ -980,7 +980,7 @@ To activate searching in the package summary, see `lpe:search-in-summary-toggle'
   (interactive)
   (if (>= lpe::*filters-history-pos* (1- (length lpe::*filters-history*)))
       (error "End of history.")
-    (incf lpe::*filters-history-pos*)
+    (cl-incf lpe::*filters-history-pos*)
     (lpe::update-all)))
 
 
