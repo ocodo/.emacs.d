@@ -820,6 +820,7 @@ It is safe to call this function multiple times on the same ID."
 
 (defvar cider-buffer-ns)
 (declare-function cider-need-input "cider-interaction")
+(declare-function cider-set-buffer-ns "cider-mode")
 
 (defun nrepl-make-response-handler (buffer value-handler stdout-handler
                                            stderr-handler done-handler
@@ -846,7 +847,7 @@ server responses."
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
           (when (and ns (not (derived-mode-p 'clojure-mode)))
-            (setq cider-buffer-ns ns))))
+            (cider-set-buffer-ns ns))))
       (cond (value
              (when value-handler
                (funcall value-handler buffer value)))
@@ -946,8 +947,16 @@ sign of user input, so as not to hang the interface."
     (when (member "done" status)
       (when-let ((ex (nrepl-dict-get response "ex"))
                  (err (nrepl-dict-get response "err")))
-        (cider-repl-emit-interactive-stderr err)
-        (message "%s" err))
+        ;; non-eval requests currently don't set the *e var
+        ;; which is required by the stacktrace middleware
+        ;; so we have to handle them differently until this is resolved
+        (if (member "eval-error" status)
+            (funcall nrepl-err-handler)
+          ;; dump the stacktrace in the REPL
+          ;; TODO: This has to be replaced with rendering of the
+          ;; standard stacktrace buffer
+          (cider-repl-emit-interactive-stderr err)
+          (switch-to-buffer-other-window connection)))
       (when-let ((id (nrepl-dict-get response "id")))
         (with-current-buffer connection
           (nrepl--mark-id-completed id)))

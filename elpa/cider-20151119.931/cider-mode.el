@@ -308,13 +308,20 @@ Returns to the buffer in which the command was invoked."
 ;;; Dynamic indentation
 (defun cider--get-symbol-indent (symbol-name)
   "Return the indent metadata for SYMBOL-NAME in the current namespace."
-  (when-let ((indent
-              (nrepl-dict-get (cider-resolve-var (cider-current-ns) symbol-name)
-                              "indent")))
-    (let ((format (format ":indent metadata on ‘%s’ is unreadable! \nERROR: %%s"
-                          symbol-name)))
-      (with-demoted-errors format
-        (cider--deep-vector-to-list (read indent))))))
+  (let* ((ns (cider-current-ns))
+         (meta (cider-resolve-var ns symbol-name)))
+    (if-let ((indent (or (nrepl-dict-get meta "style/indent")
+                         (nrepl-dict-get meta "indent"))))
+        (let ((format (format ":indent metadata on ‘%s’ is unreadable! \nERROR: %%s"
+                              symbol-name)))
+          (with-demoted-errors format
+            (cider--deep-vector-to-list (read indent))))
+      ;; There's no indent metadata, but there might be a clojure-mode
+      ;; indent-spec with fully-qualified namespace.
+      (when (string-match cider-resolve--prefix-regexp symbol-name)
+        (when-let ((sym (intern-soft (replace-match (cider-resolve-alias ns (match-string 1 symbol-name))
+                                                    t t symbol-name 1))))
+          (get sym 'clojure-indent-function))))))
 
 
 ;;; Dynamic font locking
@@ -575,6 +582,12 @@ property."
               (cider--wrap-fontify-locals font-lock-fontify-region-function))
   (setq-local clojure-get-indent-function #'cider--get-symbol-indent)
   (setq next-error-function #'cider-jump-to-compilation-error))
+
+(defun cider-set-buffer-ns (ns)
+  "Set this buffer's namespace to NS and refresh font-locking."
+  (setq-local cider-buffer-ns ns)
+  (when (or cider-mode (derived-mode-p 'cider-repl-mode))
+    (cider-refresh-dynamic-font-lock ns)))
 
 (provide 'cider-mode)
 
