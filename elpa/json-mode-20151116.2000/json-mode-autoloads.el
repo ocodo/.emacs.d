@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "json-mode" "json-mode.el" (21812 54664 483401
-;;;;;;  0))
+;;;### (autoloads nil "json-mode" "json-mode.el" (22095 53561 325793
+;;;;;;  634000))
 ;;; Generated autoloads from json-mode.el
 
 (autoload 'json-mode "json-mode" "\
@@ -23,11 +23,6 @@ Major mode for editing JSON files
 Beautify / pretty-print the active region (or the entire buffer if no active region).
 
 \(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("json-mode-pkg.el") (21812 54664 489869
-;;;;;;  781000))
 
 ;;;***
 
