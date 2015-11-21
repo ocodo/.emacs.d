@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20151111.638
+;; Package-Version: 20151118.308
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -160,14 +160,12 @@
 (defun counsel-find-symbol ()
   "Jump to the definition of the current symbol."
   (interactive)
-  (ivy-set-action #'counsel--find-symbol)
-  (ivy-done))
+  (ivy-exit-with-action #'counsel--find-symbol))
 
 (defun counsel--info-lookup-symbol ()
   "Lookup the current symbol in the info docs."
   (interactive)
-  (ivy-set-action #'counsel-info-lookup-symbol)
-  (ivy-done))
+  (ivy-exit-with-action #'counsel-info-lookup-symbol))
 
 (defun counsel--find-symbol (x)
   "Find symbol definition that corresponds to string X."
@@ -393,7 +391,7 @@
     (let* ((enable-recursive-minibuffers t)
            (from (ivy--regex ivy-text))
            (to (query-replace-read-to from "Query replace" t)))
-      (ivy-set-action
+      (ivy-exit-with-action
        (lambda (_)
          (let (done-buffers)
            (dolist (cand ivy--old-cands)
@@ -405,9 +403,7 @@
                      (push file-name done-buffers)
                      (find-file file-name)
                      (goto-char (point-min)))
-                   (perform-replace from to t t nil))))))))
-      (setq ivy-exit 'done)
-      (exit-minibuffer))))
+                   (perform-replace from to t t nil)))))))))))
 
 (defun counsel-git-grep-recenter ()
   (interactive)
@@ -647,10 +643,12 @@ Update the minibuffer with the amount of lines collected every
       (delete-process process))))
 
 ;;;###autoload
-(defun counsel-locate ()
-  "Call locate shell command."
+(defun counsel-locate (&optional initial-input)
+  "Call the \"locate\" shell command.
+INITIAL-INPUT can be given as the initial minibuffer input."
   (interactive)
   (ivy-read "Locate: " #'counsel-locate-function
+            :initial-input initial-input
             :dynamic-collection t
             :history 'counsel-locate-history
             :action (lambda (file)
