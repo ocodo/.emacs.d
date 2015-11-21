@@ -1,0 +1,166 @@
+This is wl.info, produced by makeinfo version 5.2 from wl.texi.
+
+INFO-DIR-SECTION GNU Emacs Lisp
+START-INFO-DIR-ENTRY
+* Wanderlust: (wl).         Yet Another Message Interface On Emacsen
+END-INFO-DIR-ENTRY
+
+This file documents Wanderlust, Yet another message interface on
+Emacsen.
+
+   Copyright (C) 1998, 1999, 2000, 2001, 2002 Yuuichi Teranishi,
+Fujikazu Okunishi, Masahiro Murata, Kenichi Okada, Kaoru Takahashi, Bun Mizuhara
+and Masayuki Osada, Katsumi Yamaoka, Hiroya Murata and Yoichi Nakayama.
+
+   This edition is for Wanderlust version 2.15.9.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions.
+
+
+Indirect:
+wl.info-1: 1118
+wl.info-2: 312512
+
+Tag Table:
+(Indirect)
+Node: Top1118
+Node: Introduction3058
+Node: Start Me Up5133
+Node: MIME Modules5744
+Ref: MIME Modules-Footnote-17191
+Node: Download7319
+Node: Install8881
+Node: Minimal Settings12317
+Node: Folder Definition14786
+Node: Start Wanderlust17315
+Node: Overview17832
+Node: Folders18662
+Node: IMAP Folder20017
+Node: NNTP Folder23426
+Node: MH Folder24654
+Node: Maildir Folder25280
+Node: News Spool Folder26277
+Node: Archive Folder26935
+Node: Archiver28532
+Node: Archive Tips30902
+Node: Archive Vars31842
+Node: POP Folder34055
+Node: Shimbun Folder36199
+Node: RSS Folder37440
+Node: Search Folder38339
+Node: namazu38999
+Node: grep41032
+Node: mu41631
+Node: notmuch42519
+Node: Multi Folder42974
+Node: Filter Folder43647
+Node: Pipe Folder48800
+Node: Internal Folder50275
+Node: File Folder51698
+Node: Access Folder52058
+Node: Folder52495
+Node: Selecting Folder52847
+Node: Folder Manager62010
+Ref: Folder Manager-Footnote-171184
+Node: Summary71281
+Node: Usage of Summary Mode71957
+Node: Thread Operations77408
+Node: Cache78594
+Node: Auto Refile80989
+Node: Sticky Summary83838
+Node: Summary View84867
+Node: Mark and Action88084
+Node: Key Bindings of Summary89468
+Node: Variables of Summary109709
+Node: Message120317
+Node: Draft123028
+Node: Usage of Draft Mode123524
+Node: Parameters for Sending123850
+Node: Editing Header125357
+Node: Editing Message Body and Sending126762
+Node: Dynamical Message Re-arrangement127702
+Node: Template133659
+Node: POP-before-SMTP135604
+Node: Key Bindings of Draft137243
+Node: Variables of Draft Mode139668
+Node: Disconnected Operations153185
+Node: Off-line State153727
+Node: Enable Operations154430
+Node: Send Messages off-line155407
+Node: Re-file and Copy queue156124
+Node: Creation of Folders156911
+Node: Marking157378
+Node: Pre-fetching Reservations157678
+Node: Plugged Mode158040
+Node: Off-line State settings160473
+Node: Variables of Plugged Mode161688
+Node: Expire and Archive164869
+Node: Expire165160
+Node: Archive181999
+Node: Scoring184612
+Node: Score Commands185326
+Node: Score File Format194244
+Node: Address Book199719
+Node: Mail Addresses200035
+Node: Address Manager202001
+Node: Quick Search202717
+Node: Setup203266
+Node: Searching203682
+Node: Spam Filter205089
+Node: Usage of Spam Filter205512
+Node: Spam Filter Processors212856
+Node: bogofilter213386
+Node: spamfilter214750
+Node: bsfilter215564
+Node: SpamAssassin217223
+Node: SpamOracle219150
+Node: Regular Expressions Header Matching220509
+Node: Advanced Issues221710
+Node: Living with other packages222303
+Node: imput223005
+Node: BBDB223341
+Node: LSDB224619
+Node: supercite225150
+Node: mu-cite225525
+Node: X-Face226068
+Node: x-face-xmas226632
+Node: x-face-mule227020
+Node: dired-dd227793
+Node: MHC228547
+Node: Addrbook229098
+Node: mime-w3m229442
+Node: Highlights229805
+Node: Biff238227
+Node: Password Management239335
+Node: Split messages240617
+Node: Batch Processing244822
+Node: Advanced Settings245468
+Node: Draft for Reply245806
+Node: Thread Format248810
+Node: User-Agent Field250420
+Node: Customizable Variables251143
+Node: Hooks259590
+Node: Migration259716
+Node: Before 2.12.0260115
+Node: Terminology262242
+Node: Mailing List263229
+Ref: Mailing List-Footnote-1264757
+Node: Addition264835
+Node: Index268434
+Node: Concept Index268697
+Node: Key Index283282
+Node: Variable Index312512
+Node: Function Index342144
+
+End Tag Table

@@ -554,6 +554,7 @@ Search, Multi, Filter, Pipe, File, Access and Internal folder types.
 * Archive Folder::              '$' - Archive folder
 * POP Folder::                  '&' - POP folder
 * Shimbun Folder::              '@' - Shimbun Folder
+* RSS Folder::                  'rss' - RSS folder
 * Search Folder::               '[' - Search Folder
 * Multi Folder::                '*' - Multi folder
 * Filter Folder::               '/' - Filter folder
@@ -561,7 +562,6 @@ Search, Multi, Filter, Pipe, File, Access and Internal folder types.
 * Internal Folder::             ''' - Internal folder
 * File Folder::                          - File folder
 * Access Folder::                        - Access folder
-* RSS Folder::                           - RSS folder
 
 
 File: wl.info,  Node: IMAP Folder,  Next: NNTP Folder,  Prev: Folders,  Up: Folders
@@ -1012,7 +1012,7 @@ STARTTLS will be the default connection.  To use normal connection in
 these cases, add '!direct' at the end of folder name.
 
 
-File: wl.info,  Node: Shimbun Folder,  Next: Search Folder,  Prev: POP Folder,  Up: Folders
+File: wl.info,  Node: Shimbun Folder,  Next: RSS Folder,  Prev: POP Folder,  Up: Folders
 
 3.8 Shimbun Folder
 ==================
@@ -1052,10 +1052,40 @@ site and mailing list archives on WWW by using emacs-w3m
      Update summary view automatically after fetching.
 
 
-File: wl.info,  Node: Search Folder,  Next: Multi Folder,  Prev: Shimbun Folder,  Up: Folders
+File: wl.info,  Node: RSS Folder,  Next: Search Folder,  Prev: Shimbun Folder,  Up: Folders
 
-3.9 Search Folder
-=================
+3.9 RSS Folder
+==============
+
+An RSS folder presents the messages contained in an RSS or Atom feed:
+
+   Format:
+
+     'rss:' URL FOR RSS OR ATOM
+
+   Example:
+
+     rss:https://github.com/wanderlust/wanderlust/commits/master.atom
+
+   This folder type attempts to automatically handle all known versions
+of RSS and Atom.  Should you need more configurability, please use a
+Shimbun folder (*note Shimbun Folder::) instead.
+
+   Since this folder doesn't do any persistent caching, messages will
+disappear as soon as they expire from the feed.  Should you want
+persistent messages, combine this with a pipe folder (*note Pipe
+Folder::):
+
+     |rss:http://lwn.net/headlines/newrss|+lwn
+
+   You may also use an RSS, Atom or OPML feed as an access group, in
+which case related feeds will appear as subfolders.
+
+
+File: wl.info,  Node: Search Folder,  Next: Multi Folder,  Prev: RSS Folder,  Up: Folders
+
+3.10 Search Folder
+==================
 
 A folder to access messages found by an external program with some
 condition.
@@ -1067,8 +1097,8 @@ condition.
    The format of the SEARCH CONDITION and SEARCH TARGET depend on the
 SEARCH ENGINE.
 
-3.9.1 Supported search engines
-------------------------------
+3.10.1 Supported search engines
+-------------------------------
 
 Supported search engines are following ones.  Default search engine can
 be assigned by 'elmo-search-default-engine'.
@@ -1083,8 +1113,8 @@ be assigned by 'elmo-search-default-engine'.
 
 File: wl.info,  Node: namazu,  Next: grep,  Prev: Search Folder,  Up: Search Folder
 
-3.9.2 namazu
-------------
+3.10.2 namazu
+-------------
 
 The messages registered in the namazu-index is found by using namazu
 (<http://www.namazu.org/>).
@@ -1104,13 +1134,13 @@ Default value of the path of namazu index can be assigned by
      [semi flim]~/Mail/semi -> search "semi flim" from the index
                             in the directory "~/Mail/semi"
 
-3.9.2.1 Enter space to separate keywords
-........................................
+3.10.2.1 Enter space to separate keywords
+.........................................
 
 If you want to use space in folder entry, 'C-q <SPC>' will help you.
 
-3.9.2.2 Alias name for index
-............................
+3.10.2.2 Alias name for index
+.............................
 
 You can define an alias name for index.
 
@@ -1127,8 +1157,8 @@ You can define an alias name for index.
    to execute a namazu search with keyword 'wanderlust' using a index in
 the directory '~/.elmo/cache'.
 
-3.9.2.3 Multiple indices
-........................
+3.10.2.3 Multiple indices
+.........................
 
 You can specify a list for 'elmo-search-namazu-default-index-path' and
 'elmo-search-namazu-index-alias-alist'.  When list is specified, all
@@ -1150,8 +1180,8 @@ the directory '~/.elmo/cache' and '~/documents'.
 
 File: wl.info,  Node: grep,  Next: mu,  Prev: namazu,  Up: Search Folder
 
-3.9.3 grep
-----------
+3.10.3 grep
+-----------
 
 The files that exists in the directory specified with the SEARCH TARGET
 are found by using grep.
@@ -1172,8 +1202,8 @@ SEARCH TARGET cannot be omitted.
 
 File: wl.info,  Node: mu,  Next: notmuch,  Prev: grep,  Up: Search Folder
 
-3.9.4 mu
---------
+3.10.4 mu
+---------
 
 Search mail using mu (<http://www.djcbsoftware.nl/code/mu/>).
 
@@ -1186,10 +1216,12 @@ Search mail using mu (<http://www.djcbsoftware.nl/code/mu/>).
          -> messages to Jack with subject jellyfish containing the word tumbleweed
 
      [size:2k..2m date:20091201..20093112 flag:attach from:bill]
-         -> messages between 2 kilobytes and a 2Mb, written in December 2009 with an attachment from Bill
+         -> messages between 2 kilobytes and a 2Mb,
+            written in December 2009 with an attachment from Bill
 
      [subject:soc* flag:unread]
-         -> unread messages about things starting with 'soc' (soccer, society, socrates, ...)
+         -> unread messages about things starting with 'soc'
+            (soccer, society, socrates, ...)
 
      [mime:image/*]
          -> messages with images as attachment
@@ -1201,8 +1233,8 @@ Search mail using mu (<http://www.djcbsoftware.nl/code/mu/>).
 
 File: wl.info,  Node: notmuch,  Prev: mu,  Up: Search Folder
 
-3.9.5 notmuch
--------------
+3.10.5 notmuch
+--------------
 
 Search mail using notmuch (<http://notmuchmail.org/>).
 
@@ -1224,7 +1256,7 @@ Search mail using notmuch (<http://notmuchmail.org/>).
 
 File: wl.info,  Node: Multi Folder,  Next: Filter Folder,  Prev: Search Folder,  Up: Folders
 
-3.10 Multi Folder
+3.11 Multi Folder
 =================
 
 A folder to access virtual folder which collects messages from multiple
@@ -1249,7 +1281,7 @@ separated by ',' like 'FOLDER-1,FOLDER-2,...,FOLDER-N'.
 
 File: wl.info,  Node: Filter Folder,  Next: Pipe Folder,  Prev: Multi Folder,  Up: Folders
 
-3.11 Filter Folder
+3.12 Filter Folder
 ==================
 
 A folder to access virtual folder which collects all messages that
@@ -1386,7 +1418,7 @@ Advanced example:
 
 File: wl.info,  Node: Pipe Folder,  Next: Internal Folder,  Prev: Filter Folder,  Up: Folders
 
-3.12 Pipe Folder
+3.13 Pipe Folder
 ================
 
 In the pipe folder, messages are automatically transferred from the
@@ -1433,7 +1465,7 @@ the folder as follows:
 
 File: wl.info,  Node: Internal Folder,  Next: File Folder,  Prev: Pipe Folder,  Up: Folders
 
-3.13 Internal folder
+3.14 Internal folder
 ====================
 
 A folder to access internal messages of Wanderlust.
@@ -1472,7 +1504,7 @@ subdirectories of the cache directory ('~/.elmo/cache').
 
 File: wl.info,  Node: File Folder,  Next: Access Folder,  Prev: Internal Folder,  Up: Folders
 
-3.14 File folder
+3.15 File folder
 ================
 
 File Folder gives the view for local file system.  The one File Folder
@@ -1488,9 +1520,9 @@ corresponds to the one directory.
      file:/etc       -> /etc
 
 
-File: wl.info,  Node: Access Folder,  Next: RSS Folder,  Prev: File Folder,  Up: Folders
+File: wl.info,  Node: Access Folder,  Prev: File Folder,  Up: Folders
 
-3.15 Access folder
+3.16 Access folder
 ==================
 
 A folder to access virtual folder which collects messages from a root
@@ -1505,29 +1537,6 @@ automatically reflected.
 
      access:%INBOX -> All subfolders of IMAP mailbox "inbox".
      access:'cache -> All of 'cache folder
-
-
-File: wl.info,  Node: RSS Folder,  Prev: Access Folder,  Up: Folders
-
-3.16 RSS Folder
-===============
-
-An RSS folder presents the messages contained in an RSS or Atom feed:
-
-     rss:https://github.com/wanderlust/wanderlust/commits/master.atom
-
-   This folder type attempts to automatically handle all known versions
-of RSS and Atom.  Should you need more configurability, please use a
-Shimbun folder (*note Shimbun Folder::) instead.
-
-   Since this folder doesn't do any persistent caching, messages will
-disappear as soon as they expire from the feed.  Should you want
-persistent messages, combine this with a pipe folder:
-
-     |rss:http://lwn.net/http://lwn.net/headlines/newrss|+lwn
-
-   You may also use an RSS, Atom or OPML feed as an access group, in
-which case related feeds will appear as subfolders.
 
 
 File: wl.info,  Node: Folder,  Next: Summary,  Prev: Folders,  Up: Top

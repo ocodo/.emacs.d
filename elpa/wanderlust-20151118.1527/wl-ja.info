@@ -561,6 +561,7 @@ Filter, Pipe, File, Access, Internal の 15 種類です。
 * Archive Folder::           '$' - アーカイブフォルダ
 * POP Folder::               '&' - POP フォルダ
 * Shimbun Folder::           '@' - 新聞フォルダ
+* RSS Folder::               'rss' - RSS フォルダ
 * Search Folder::            '[' - 検索フォルダ
 * Multi Folder::             '*' - マルチフォルダ
 * Filter Folder::            '/' - フィルタフォルダ
@@ -568,7 +569,6 @@ Filter, Pipe, File, Access, Internal の 15 種類です。
 * Internal Folder::          ''' - 内部フォルダ
 * File Folder::                  - ファイルフォルダ
 * Access Folder::                - アクセスフォルダ
-* RSS Folder::                   - RSS フォルダ
 
 
 File: wl-ja.info,  Node: IMAP Folder,  Next: NNTP Folder,  Prev: Folders,  Up: Folders
@@ -1016,7 +1016,7 @@ RFC 1939 で規定されている POP3 を利用してメールを読むため�
 、通常の接続をするにはフォルダ名の最後に'!direct' を付けます。
 
 
-File: wl-ja.info,  Node: Shimbun Folder,  Next: Search Folder,  Prev: POP Folder,  Up: Folders
+File: wl-ja.info,  Node: Shimbun Folder,  Next: RSS Folder,  Prev: POP Folder,  Up: Folders
 
 3.8 新聞フォルダ
 ================
@@ -1055,10 +1055,38 @@ emacs-w3m (<http://emacs-w3m.namazu.org/>) を用いて WWW 上の新聞やニ�
      サマリの表示は、自動的に更新されます。
 
 
-File: wl-ja.info,  Node: Search Folder,  Next: Multi Folder,  Prev: Shimbun Folder,  Up: Folders
+File: wl-ja.info,  Node: RSS Folder,  Next: Search Folder,  Prev: Shimbun Folder,  Up: Folders
 
-3.9 検索フォルダ
+3.9 RSS フォルダ
 ================
+
+RSS や Atom フィードに含まれるメッセージを閲覧する為のフォルダです。
+
+   書式:
+
+     'rss:' RSS または ATOM のURL
+
+   例:
+
+     rss:https://github.com/wanderlust/wanderlust/commits/master.atom
+
+   サポートする RSS や Atom は全て自動的に扱われます。 より細かい設定が
+必要な場合は、新聞フォルダ (*note Shimbun Folder::) を 使ってください。
+
+   メッセージのキャッシュは持たないので、メッセージはフィードから無くな
+ると フォルダからも直ちに消失します。 保存する必要がある場合はパイプフォ
+ルダ (*note Pipe Folder::) と 組み合わせてください。
+
+     |rss:http://lwn.net/headlines/newrss|+lwn
+
+   RSS や Atom 及び OPML をアクセスグループとして扱うことができ、 その場
+合、関連するフィードはサブフォルダ内に現れます。
+
+
+File: wl-ja.info,  Node: Search Folder,  Next: Multi Folder,  Prev: RSS Folder,  Up: Folders
+
+3.10 検索フォルダ
+=================
 
 外部プログラムを用いて、検索式にマッチしたメッセージを集めた仮想的なフォ
 ルダを構成します。
@@ -1069,8 +1097,8 @@ File: wl-ja.info,  Node: Search Folder,  Next: Multi Folder,  Prev: Shimbun Fold
 
    検索式と検索対象の指定方法は、検索方式によって異なります。
 
-3.9.1 対応している検索方式
---------------------------
+3.10.1 対応している検索方式
+---------------------------
 
 デフォルトでは、以下の検索方式に対応しています。検索方式を省略した場合は
 、 'elmo-search-default-engine' で指定された検索方式が使用されます。
@@ -1085,8 +1113,8 @@ File: wl-ja.info,  Node: Search Folder,  Next: Multi Folder,  Prev: Shimbun Fold
 
 File: wl-ja.info,  Node: namazu,  Next: grep,  Prev: Search Folder,  Up: Search Folder
 
-3.9.2 namazu
-------------
+3.10.2 namazu
+-------------
 
 namazu (<http://www.namazu.org/>) を使って、インデックスに登録された 文
 書を検索します。
@@ -1106,13 +1134,13 @@ namazu (<http://www.namazu.org/>) を使って、インデックスに登録さ�
      [semi flim]~/Mail/semi -> ディレクトリ "~/Mail/semi" にあるインデックス
                                から "semi flim" を探す
 
-3.9.2.1 複数キーワードの入力
-............................
+3.10.2.1 複数キーワードの入力
+.............................
 
 フォルダ名入力時に空白を入力したい場合、'C-q <SPC>' でできます。
 
-3.9.2.2 インデックスのエイリアス名
-..................................
+3.10.2.2 インデックスのエイリアス名
+...................................
 
 インデックスにはエイリアス名(別名)を定義できます。
 
@@ -1128,8 +1156,8 @@ namazu (<http://www.namazu.org/>) を使って、インデックスに登録さ�
    と入力すれば、'~/.elmo/cache' にある namazu インデックスを対象として
 、 キーワード 'wanderlust' で検索を行います。
 
-3.9.2.3 複数インデックスの指定
-..............................
+3.10.2.3 複数インデックスの指定
+...............................
 
 'elmo-search-namazu-default-index-path',
 'elmo-search-namazu-index-alias-alist' の値としてインデックスのリス トを
@@ -1152,8 +1180,8 @@ namazu (<http://www.namazu.org/>) を使って、インデックスに登録さ�
 
 File: wl-ja.info,  Node: grep,  Next: mu,  Prev: namazu,  Up: Search Folder
 
-3.9.3 grep
-----------
+3.10.3 grep
+-----------
 
 grep を使って、検索対象で指定されたディレクトリにあるファイルを検索しま
 す。
@@ -1174,8 +1202,8 @@ grep を使って、検索対象で指定されたディレクトリにあるフ
 
 File: wl-ja.info,  Node: mu,  Next: notmuch,  Prev: grep,  Up: Search Folder
 
-3.9.4 mu
---------
+3.10.4 mu
+---------
 
 mu (<http://www.djcbsoftware.nl/code/mu/>) を使って、文書を検索します。
 
@@ -1188,10 +1216,12 @@ mu (<http://www.djcbsoftware.nl/code/mu/>) を使って、文書を検索しま�
          -> messages to Jack with subject jellyfish containing the word tumbleweed
 
      [size:2k..2m date:20091201..20093112 flag:attach from:bill]
-         -> messages between 2 kilobytes and a 2Mb, written in December 2009 with an attachment from Bill
+         -> messages between 2 kilobytes and a 2Mb,
+            written in December 2009 with an attachment from Bill
 
      [subject:soc* flag:unread]
-         -> サブジェクトが　'soc' で始まる (soccer, society, socrates, ...) 未読のメッセージを探す
+         -> サブジェクトが　'soc' で始まる (soccer, society, socrates, ...)
+            未読のメッセージを探す
 
      [mime:image/*]
          -> 画像が添付されたメッセージを探す
@@ -1203,8 +1233,8 @@ mu (<http://www.djcbsoftware.nl/code/mu/>) を使って、文書を検索しま�
 
 File: wl-ja.info,  Node: notmuch,  Prev: mu,  Up: Search Folder
 
-3.9.5 notmuch
--------------
+3.10.5 notmuch
+--------------
 
 notmuch (<http://notmuchmail.org/>) を使って、文書を検索します。
 
@@ -1226,7 +1256,7 @@ notmuch (<http://notmuchmail.org/>) を使って、文書を検索します。
 
 File: wl-ja.info,  Node: Multi Folder,  Next: Filter Folder,  Prev: Search Folder,  Up: Folders
 
-3.10 マルチフォルダ
+3.11 マルチフォルダ
 ===================
 
 複数のフォルダを仮想的に一つに見えるようにするフォルダです。
@@ -1250,7 +1280,7 @@ File: wl-ja.info,  Node: Multi Folder,  Next: Filter Folder,  Prev: Search Folde
 
 File: wl-ja.info,  Node: Filter Folder,  Next: Pipe Folder,  Prev: Multi Folder,  Up: Folders
 
-3.11 フィルタフォルダ
+3.12 フィルタフォルダ
 =====================
 
 指定した条件を満たすメッセージのみを含む仮想的なフォルダです。
@@ -1386,7 +1416,7 @@ File: wl-ja.info,  Node: Filter Folder,  Next: Pipe Folder,  Prev: Multi Folder,
 
 File: wl-ja.info,  Node: Pipe Folder,  Next: Internal Folder,  Prev: Filter Folder,  Up: Folders
 
-3.12 パイプフォルダ
+3.13 パイプフォルダ
 ===================
 
 フォルダ閲覧時に、自動的にメッセージの取り込みを実行するフォルダです。
@@ -1433,7 +1463,7 @@ File: wl-ja.info,  Node: Pipe Folder,  Next: Internal Folder,  Prev: Filter Fold
 
 File: wl-ja.info,  Node: Internal Folder,  Next: File Folder,  Prev: Pipe Folder,  Up: Folders
 
-3.13 内部フォルダ
+3.14 内部フォルダ
 =================
 
 Wanderlust の内部に保持したメッセージを閲覧するためのフォルダです。
@@ -1473,7 +1503,7 @@ Wanderlust の内部に保持したメッセージを閲覧するためのフォ
 
 File: wl-ja.info,  Node: File Folder,  Next: Access Folder,  Prev: Internal Folder,  Up: Folders
 
-3.14 ファイルフォルダ
+3.15 ファイルフォルダ
 =====================
 
 ローカルファイルシステムのファイルを閲覧するためのフォルダです。一つのデ
@@ -1489,9 +1519,9 @@ File: wl-ja.info,  Node: File Folder,  Next: Access Folder,  Prev: Internal Fold
      file:/etc       -> /etc
 
 
-File: wl-ja.info,  Node: Access Folder,  Next: RSS Folder,  Prev: File Folder,  Up: Folders
+File: wl-ja.info,  Node: Access Folder,  Prev: File Folder,  Up: Folders
 
-3.15 アクセスフォルダ
+3.16 アクセスフォルダ
 =====================
 
 指定されたフォルダの配下のサブフォルダを仮想的に一つのフォルダとして扱え
@@ -1505,29 +1535,6 @@ File: wl-ja.info,  Node: Access Folder,  Next: RSS Folder,  Prev: File Folder,  
 
      access:%INBOX -> %INBOX 以下の IMAP のメールボックスの全て
      access:'cache -> 全ての 'cache フォルダ
-
-
-File: wl-ja.info,  Node: RSS Folder,  Prev: Access Folder,  Up: Folders
-
-3.16 RSS Folder
-===============
-
-An RSS folder presents the messages contained in an RSS or Atom feed:
-
-     rss:https://github.com/wanderlust/wanderlust/commits/master.atom
-
-   This folder type attempts to automatically handle all known versions
-of RSS and Atom.  Should you need more configurability, please use a
-Shimbun folder (*note Shimbun Folder::) instead.
-
-   Since this folder doesn't do any persistent caching, messages will
-disappear as soon as they expire from the feed.  Should you want
-persistent messages, combine this with a pipe folder:
-
-     |rss:http://lwn.net/http://lwn.net/headlines/newrss|+lwn
-
-   You may also use an RSS, Atom or OPML feed as an access group, in
-which case related feeds will appear as subfolders.
 
 
 File: wl-ja.info,  Node: Folder,  Next: Summary,  Prev: Folders,  Up: Top
@@ -8898,121 +8905,121 @@ Node: Folder Definition11826
 Node: Start Wanderlust13446
 Node: Overview13744
 Node: Folders14269
-Node: IMAP Folder15410
-Node: NNTP Folder17936
-Node: MH Folder18785
-Node: Maildir Folder19259
-Node: News Spool Folder20079
-Node: Archive Folder20592
-Node: Archiver21903
-Node: Archive Tips23794
-Node: Archive Vars24465
-Node: POP Folder26105
-Node: Shimbun Folder27560
-Node: Search Folder28465
-Node: namazu28954
-Node: grep30500
-Node: mu30915
-Node: notmuch31710
-Node: Multi Folder32103
-Node: Filter Folder32637
-Node: Pipe Folder36511
-Node: Internal Folder37576
-Node: File Folder38592
-Node: Access Folder38890
-Node: RSS Folder39223
-Node: Folder40039
-Node: Selecting Folder40297
-Node: Folder Manager46914
-Ref: Folder Manager-Footnote-153229
-Node: Summary53282
-Node: Usage of Summary Mode53826
-Node: Thread Operations57225
-Node: Cache58029
-Node: Auto Refile59509
-Node: Sticky Summary61609
-Node: Summary View62412
-Node: Mark and Action64515
-Node: Key Bindings of Summary65547
-Node: Variables of Summary80124
-Node: Message87511
-Node: Draft89776
-Node: Usage of Draft Mode90156
-Node: Parameters for Sending90644
-Node: Editing Header91737
-Node: Editing Message Body and Sending92639
-Node: Dynamical Message Re-arrangement93316
-Node: Template97426
-Node: POP-before-SMTP98938
-Node: Key Bindings of Draft100285
-Node: Variables of Draft Mode102130
-Node: Disconnected Operations111203
-Node: Off-line State111605
-Node: Enable Operations112165
-Node: Send Messages off-line112948
-Node: Re-file and Copy queue113377
-Node: Creation of Folders113886
-Node: Marking114204
-Node: Pre-fetching Reservations114463
-Node: Plugged Mode114738
-Node: Off-line State settings116651
-Node: Variables of Plugged Mode117577
-Node: Expire and Archive119889
-Node: Expire120123
-Node: Archive131513
-Node: Scoring133343
-Node: Score Commands133832
-Node: Score File Format139834
-Node: Address Book143869
-Node: Mail Addresses144112
-Node: Address Manager145230
-Node: Quick Search145866
-Node: Setup146418
-Node: Searching146837
-Node: Spam Filter148247
-Node: Usage of Spam Filter148587
-Node: Spam Filter Processors153930
-Node: bogofilter154444
-Node: spamfilter155437
-Node: bsfilter156073
-Node: SpamAssassin157249
-Node: SpamOracle158621
-Node: Regular Expressions Header Matching159713
-Node: Advanced Issues160545
-Node: Living with other packages161057
-Node: imput161730
-Node: BBDB162050
-Node: LSDB163171
-Node: supercite163640
-Node: mu-cite163961
-Node: X-Face164453
-Node: x-face-xmas164928
-Node: x-face-mule165309
-Node: dired-dd166047
-Node: MHC166780
-Node: Addrbook167305
-Node: mime-w3m167670
-Node: Highlights167973
-Node: Biff173821
-Node: Password Management174674
-Node: Split messages175545
-Node: Batch Processing178473
-Node: Advanced Settings178972
-Node: Draft for Reply179288
-Node: Thread Format181751
-Node: User-Agent Field183220
-Node: Customizable Valiables183842
-Node: Hooks189347
-Node: Migration189475
-Node: Before 2.12.0189722
-Node: Terminology191155
-Node: Mailing List191866
-Ref: Mailing List-Footnote-1192982
-Node: Addition193053
-Node: Index195743
-Node: Concept Index195975
-Node: Key Index211046
-Node: Variable Index239240
-Node: Function Index269151
+Node: IMAP Folder15412
+Node: NNTP Folder17938
+Node: MH Folder18787
+Node: Maildir Folder19261
+Node: News Spool Folder20081
+Node: Archive Folder20594
+Node: Archiver21905
+Node: Archive Tips23796
+Node: Archive Vars24467
+Node: POP Folder26107
+Node: Shimbun Folder27562
+Node: RSS Folder28464
+Node: Search Folder29083
+Node: namazu29572
+Node: grep31126
+Node: mu31543
+Node: notmuch32364
+Node: Multi Folder32759
+Node: Filter Folder33293
+Node: Pipe Folder37167
+Node: Internal Folder38232
+Node: File Folder39248
+Node: Access Folder39546
+Node: Folder39860
+Node: Selecting Folder40118
+Node: Folder Manager46735
+Ref: Folder Manager-Footnote-153050
+Node: Summary53103
+Node: Usage of Summary Mode53647
+Node: Thread Operations57046
+Node: Cache57850
+Node: Auto Refile59330
+Node: Sticky Summary61430
+Node: Summary View62233
+Node: Mark and Action64336
+Node: Key Bindings of Summary65368
+Node: Variables of Summary79945
+Node: Message87332
+Node: Draft89597
+Node: Usage of Draft Mode89977
+Node: Parameters for Sending90465
+Node: Editing Header91558
+Node: Editing Message Body and Sending92460
+Node: Dynamical Message Re-arrangement93137
+Node: Template97247
+Node: POP-before-SMTP98759
+Node: Key Bindings of Draft100106
+Node: Variables of Draft Mode101951
+Node: Disconnected Operations111024
+Node: Off-line State111426
+Node: Enable Operations111986
+Node: Send Messages off-line112769
+Node: Re-file and Copy queue113198
+Node: Creation of Folders113707
+Node: Marking114025
+Node: Pre-fetching Reservations114284
+Node: Plugged Mode114559
+Node: Off-line State settings116472
+Node: Variables of Plugged Mode117398
+Node: Expire and Archive119710
+Node: Expire119944
+Node: Archive131334
+Node: Scoring133164
+Node: Score Commands133653
+Node: Score File Format139655
+Node: Address Book143690
+Node: Mail Addresses143933
+Node: Address Manager145051
+Node: Quick Search145687
+Node: Setup146239
+Node: Searching146658
+Node: Spam Filter148068
+Node: Usage of Spam Filter148408
+Node: Spam Filter Processors153751
+Node: bogofilter154265
+Node: spamfilter155258
+Node: bsfilter155894
+Node: SpamAssassin157070
+Node: SpamOracle158442
+Node: Regular Expressions Header Matching159534
+Node: Advanced Issues160366
+Node: Living with other packages160878
+Node: imput161551
+Node: BBDB161871
+Node: LSDB162992
+Node: supercite163461
+Node: mu-cite163782
+Node: X-Face164274
+Node: x-face-xmas164749
+Node: x-face-mule165130
+Node: dired-dd165868
+Node: MHC166601
+Node: Addrbook167126
+Node: mime-w3m167491
+Node: Highlights167794
+Node: Biff173642
+Node: Password Management174495
+Node: Split messages175366
+Node: Batch Processing178294
+Node: Advanced Settings178793
+Node: Draft for Reply179109
+Node: Thread Format181572
+Node: User-Agent Field183041
+Node: Customizable Valiables183663
+Node: Hooks189168
+Node: Migration189296
+Node: Before 2.12.0189543
+Node: Terminology190976
+Node: Mailing List191687
+Ref: Mailing List-Footnote-1192803
+Node: Addition192874
+Node: Index195564
+Node: Concept Index195796
+Node: Key Index210867
+Node: Variable Index239061
+Node: Function Index268972
 
 End Tag Table
