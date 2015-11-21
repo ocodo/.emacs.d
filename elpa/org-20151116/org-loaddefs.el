@@ -298,7 +298,7 @@ used to limit the exported source code blocks by language.
 ;;;;;;  org-search-view org-agenda-list org-batch-store-agenda-views
 ;;;;;;  org-store-agenda-views org-batch-agenda-csv org-batch-agenda
 ;;;;;;  org-agenda org-toggle-sticky-agenda) "org-agenda" "org-agenda.el"
-;;;;;;  (22080 13922))
+;;;;;;  (22088 8637))
 ;;; Generated autoloads from org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -652,8 +652,8 @@ Extract anniversaries from BBDB for display in the agenda.
 ;;;***
 
 ;;;### (autoloads (org-capture-import-remember-templates org-capture
-;;;;;;  org-capture-string) "org-capture" "org-capture.el" (22080
-;;;;;;  13922))
+;;;;;;  org-capture-string) "org-capture" "org-capture.el" (22088
+;;;;;;  8637))
 ;;; Generated autoloads from org-capture.el
 
 (autoload 'org-capture-string "org-capture" "\
@@ -832,7 +832,7 @@ Otherwise, return nil.
 ;;;### (autoloads (org-agenda-columns org-insert-columns-dblock org-dblock-write:columnview
 ;;;;;;  org-columns-number-to-string org-columns-compute org-columns
 ;;;;;;  org-columns-get-format-and-top-level org-columns-remove-overlays)
-;;;;;;  "org-colview" "org-colview.el" (22080 13922))
+;;;;;;  "org-colview" "org-colview.el" (22088 8637))
 ;;; Generated autoloads from org-colview.el
 
 (autoload 'org-columns-remove-overlays "org-colview" "\
@@ -896,7 +896,7 @@ Turn on or update column view in the agenda.
 ;;;***
 
 ;;;### (autoloads (org-check-version) "org-compat" "org-compat.el"
-;;;;;;  (22080 13922))
+;;;;;;  (22088 8637))
 ;;; Generated autoloads from org-compat.el
 
 (autoload 'org-check-version "org-compat" "\
@@ -995,7 +995,7 @@ Providing it allows for quicker computation.
 ;;;***
 
 ;;;### (autoloads (org-feed-show-raw-feed org-feed-goto-inbox org-feed-update
-;;;;;;  org-feed-update-all) "org-feed" "org-feed.el" "837071278de0325dc385dd050df9f2f8")
+;;;;;;  org-feed-update-all) "org-feed" "org-feed.el" "56102e4de09ad6277cb8df0263dd7720")
 ;;; Generated autoloads from org-feed.el
 
 (autoload 'org-feed-update-all "org-feed" "\
@@ -1180,7 +1180,7 @@ Dispatch to the appropriate function to store a link to an IRC session.
 ;;;***
 
 ;;;### (autoloads (org-load-noerror-mustsuffix) "org-macs" "org-macs.el"
-;;;;;;  (22080 13922))
+;;;;;;  (22088 8637))
 ;;; Generated autoloads from org-macs.el
 
 (autoload 'org-load-noerror-mustsuffix "org-macs" "\
@@ -1243,7 +1243,7 @@ line directly before or after the table.
 ;;;;;;  org-table-begin org-table-align org-table-export org-table-import
 ;;;;;;  org-table-convert-region org-table-create org-table-create-or-convert-from-region
 ;;;;;;  org-table-create-with-table\.el) "org-table" "org-table.el"
-;;;;;;  "b779614a0b81bde2f7835ce738dd3875")
+;;;;;;  "94b51f18b463bee706dad94f2063be23")
 ;;; Generated autoloads from org-table.el
 
 (autoload 'org-table-create-with-table\.el "org-table" "\
@@ -1587,7 +1587,7 @@ If NLAST is a number, only the NLAST fields will actually be summed.
 (autoload 'org-table-get-stored-formulas "org-table" "\
 Return an alist with the stored formulas directly after current table.
 
-\(fn &optional NOERROR)" t nil)
+\(fn &optional NOERROR)" nil nil)
 
 (autoload 'org-table-maybe-eval-formula "org-table" "\
 Check if the current field starts with \"=\" or \":=\".
@@ -1985,7 +1985,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22080 13926))
+;;;;;;  (22089 28901))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2011,7 +2011,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (22080 13922))
+;;;;;;  "org" "org.el" (22088 8638))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -2232,7 +2232,7 @@ Call the customize function with org as argument.
 
 ;;;***
 
-;;;### (autoloads nil "ox" "ox.el" "0f2701784e6ff78db49eeb7f1bcde49a")
+;;;### (autoloads nil "ox" "ox.el" "0e1eafac61ca2acc66f800d02bda6967")
 ;;; Generated autoloads from ox.el
 
 (autoload 'org-export-as "ox" "\
@@ -3215,7 +3215,7 @@ this command to convert it.
 
 ;;;### (autoloads (org-export-dispatch org-export-to-file org-export-to-buffer
 ;;;;;;  org-export-insert-default-template org-export-replace-region-by
-;;;;;;  org-export-string-as org-export-as) "ox" "ox.el" "0f2701784e6ff78db49eeb7f1bcde49a")
+;;;;;;  org-export-string-as org-export-as) "ox" "ox.el" "0e1eafac61ca2acc66f800d02bda6967")
 ;;; Generated autoloads from ox.el
 
 (autoload 'org-export-as "ox" "\
