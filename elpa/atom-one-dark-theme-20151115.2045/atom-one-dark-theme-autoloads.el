@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "atom-one-dark-theme" "atom-one-dark-theme.el"
-;;;;;;  (22084 2021 412928 660000))
+;;;;;;  (22095 53659 321811 582000))
 ;;; Generated autoloads from atom-one-dark-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
