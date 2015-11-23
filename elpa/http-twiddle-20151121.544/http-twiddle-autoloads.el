@@ -1,18 +1,16 @@
 ;;; http-twiddle-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("http-twiddle-pkg.el" "http-twiddle.el")
-;;;;;;  (20956 1500 512477 0))
+;;;### (autoloads nil nil ("http-twiddle.el") (22098 25061 24021
+;;;;;;  155000))
 
 ;;;***
 
-(provide 'http-twiddle-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; http-twiddle-autoloads.el ends here

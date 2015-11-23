@@ -6,8 +6,8 @@
 ;; Maintainer: Hasan Veldstra <h@vidiowiki.com>
 ;; Created: 1 Feb 2006
 ;; Adapted-By: Hasan Veldstra
-;; Version: 20121117.1436
-;; X-Original-Version: 1.0
+;; Version: 1.0
+;; Package-Version: 20151121.544
 ;; URL: https://github.com/hassy/http-twiddle/blob/master/http-twiddle.el
 ;; Keywords: HTTP, REST, SOAP
 
@@ -124,7 +124,7 @@ is substituted with the evaluated value formatted as string."
 
   (let ((content (buffer-string)))
     (with-temp-buffer
-      (set (make-variable-buffer-local 'font-lock-keywords)
+      (set (make-local-variable 'font-lock-keywords)
            http-twiddle-font-lock-keywords)
       (insert content)
       (http-twiddle-expand-template)
