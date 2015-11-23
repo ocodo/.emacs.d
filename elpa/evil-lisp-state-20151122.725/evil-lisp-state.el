@@ -4,10 +4,10 @@
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; Keywords: convenience editing evil smartparens lisp mnemonic
-;; Package-Version: 20150328.736
+;; Package-Version: 20151122.725
 ;; Created: 9 Oct 2014
-;; Version: 7.1
-;; Package-Requires: ((evil "1.0.9") (evil-leader "0.4.3") (smartparens "1.6.1"))
+;; Version: 8.0
+;; Package-Requires: ((evil "1.0.9") (bind-map "0") (smartparens "1.6.1"))
 ;; URL: https://github.com/syl20bnr/evil-lisp-state
 
 ;; This file is not part of GNU Emacs.
@@ -33,61 +33,61 @@
 ;; Principle:
 ;; ----------
 
-;; To execute a command while in normal state, the evil-leader is used.
-;; By default, the prefix for each command is `<leader> m`.
-;; Commands when executed set the current state to `lisp state`.
+;; To execute a command while in normal state, a leader is used.
+;; By default, the leader for each command is `SPC l`.
+;; By default, any command when executed sets the current state to
+;; `lisp state`.
 
 ;; By example, to slurp three times while in normal state:
-;;     <leader> m 3 s
+;;     <leader> 3 s
 ;; Or to wrap a symbol in parenthesis then slurping two times:
-;;     <leader> m w 2 s
+;;     <leader> w 2 s
 
-;; Key Binding    | Function
-;; ---------------|------------------------------------------------------------
-;; `leader'       | evil leader
-;; `leader m %'   | evil jump item
-;; `leader m :'   | ex command
-;; `leader m ('   | insert expression before (same level as current one)
-;; `leader m )'   | insert expression after (same level as current one)
-;; `leader m $'   | go to the end of current sexp
-;; `leader m ` k' | hybrid version of kill sexp (can be used in non lisp dialects)
-;; `leader m ` p' | hybrid version of push sexp (can be used in non lisp dialects)
-;; `leader m ` s' | hybrid version of slurp sexp (can be used in non lisp dialects)
-;; `leader m ` t' | hybrid version of transpose sexp (can be used in non lisp dialects)
-;; `leader m 0'   | go to the beginning of current sexp
-;; `leader m a'   | absorb expression
-;; `leader m b'   | forward barf expression
-;; `leader m B'   | backward barf expression
-;; `leader m c'   | convolute expression
-;; `leader m ds'  | delete symbol
-;; `leader m dw'  | delete word
-;; `leader m dx'  | delete expression
-;; `leader m e'   | (splice) unwrap current expression and kill all symbols after point
-;; `leader m E'   | (splice) unwrap current expression and kill all symbols before point
-;; `leader m h'   | previous symbol
-;; `leader m H'   | go to previous sexp
-;; `leader m i'   | switch to `insert state`
-;; `leader m I'   | go to beginning of current expression and switch to `insert state`
-;; `leader m j'   | next closing parenthesis
-;; `leader m J'   | join expression
-;; `leader m k'   | previous opening parenthesis
-;; `leader m l'   | next symbol
-;; `leader m L'   | go to next sexp
-;; `leader m p'   | paste after
-;; `leader m P'   | paste before
-;; `leader m r'   | raise expression (replace parent expression by current one)
-;; `leader m s'   | forwared slurp expression
-;; `leader m S'   | backward slurp expression
-;; `leader m t'   | transpose expression
-;; `leader m u'   | undo
-;; `leader m U'   | got to parent sexp backward
-;; `leader m C-r' | redo
-;; `leader m v'   | switch to `visual state`
-;; `leader m V'   | switch to `visual line state`
-;; `leader m C-v' | switch to `visual block state`
-;; `leader m w'   | wrap expression with parenthesis
-;; `leader m W'   | unwrap expression
-;; `leader m y'   | copy expression
+;; Key Binding  | Function
+;; -------------|------------------------------------------------------------
+;; `leader %'   | evil jump item
+;; `leader :'   | ex command
+;; `leader ('   | insert expression before (same level as current one)
+;; `leader )'   | insert expression after (same level as current one)
+;; `leader $'   | go to the end of current sexp
+;; `leader ` k' | hybrid version of kill sexp (can be used in non lisp dialects)
+;; `leader ` p' | hybrid version of push sexp (can be used in non lisp dialects)
+;; `leader ` s' | hybrid version of slurp sexp (can be used in non lisp dialects)
+;; `leader ` t' | hybrid version of transpose sexp (can be used in non lisp dialects)
+;; `leader 0'   | go to the beginning of current sexp
+;; `leader a'   | absorb expression
+;; `leader b'   | forward barf expression
+;; `leader B'   | backward barf expression
+;; `leader c'   | convolute expression
+;; `leader ds'  | delete symbol
+;; `leader dw'  | delete word
+;; `leader dx'  | delete expression
+;; `leader e'   | (splice) unwrap current expression and kill all symbols after point
+;; `leader E'   | (splice) unwrap current expression and kill all symbols before point
+;; `leader h'   | previous symbol
+;; `leader H'   | go to previous sexp
+;; `leader i'   | switch to `insert state`
+;; `leader I'   | go to beginning of current expression and switch to `insert state`
+;; `leader j'   | next closing parenthesis
+;; `leader J'   | join expression
+;; `leader k'   | previous opening parenthesis
+;; `leader l'   | next symbol
+;; `leader L'   | go to next sexp
+;; `leader p'   | paste after
+;; `leader P'   | paste before
+;; `leader r'   | raise expression (replace parent expression by current one)
+;; `leader s'   | forwared slurp expression
+;; `leader S'   | backward slurp expression
+;; `leader t'   | transpose expression
+;; `leader u'   | undo
+;; `leader U'   | got to parent sexp backward
+;; `leader C-r' | redo
+;; `leader v'   | switch to `visual state`
+;; `leader V'   | switch to `visual line state`
+;; `leader C-v' | switch to `visual block state`
+;; `leader w'   | wrap expression with parenthesis
+;; `leader W'   | unwrap expression
+;; `leader y'   | copy expression
 
 ;; Configuration:
 ;; --------------
@@ -100,16 +100,16 @@
 ;; setting `evil-lisp-state-global' to t. In this case
 ;; `evil-lisp-state-major-modes' has no effect.
 
-;; The prefix key is `<leader> m' by default, it is possible to
-;; change the `m' key to anything else with the variable
-;; `evil-lisp-state-leader-prefix'. Set it to an empty string
-;; if you want all the commands to be directly available
-;; under the `<leader>' key.
+;; The leader key is `SPC l' by default, it is possible to
+;; change it with the variable `evil-lisp-state-leader'.
+
+;; If you don't want commands to enter in `lisp state' by default
+;; set the variable `evil-lisp-state-enter-lisp-state-on-command'
+;; to nil. Then use the `,,' to enter manually in `lisp state'
 
 ;;; Code:
 
 (require 'evil)
-(require 'evil-leader)
 (require 'smartparens)
 
 (evil-define-state lisp
@@ -127,8 +127,8 @@
   :prefix 'evil-lisp-state-)
 
 (eval-and-compile
-  (defcustom evil-lisp-state-leader-prefix "m"
-    "Prefix key added to evil-lader."
+  (defcustom evil-lisp-state-leader "SPC l"
+    "Leader key."
     :type 'string
     :group 'evil-lisp-state)
 
@@ -141,6 +141,11 @@
     "Major modes where evil leader key bindings are defined.
 If `evil-lisp-state-global' is non nil then this variable has no effect."
     :type 'sexp
+    :group 'evil-lisp-state)
+
+  (defcustom evil-lisp-state-enter-lisp-state-on-command t
+    "If non nil, enter evil-lisp-state before executing command."
+    :type 'sexp
     :group 'evil-lisp-state))
 
 (defmacro evil-lisp-state-enter-command (command)
@@ -152,7 +157,8 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
     `(progn
        (defun ,funcname ()
         (interactive)
-        (evil-lisp-state)
+        (when evil-lisp-state-enter-lisp-state-on-command
+          (evil-lisp-state))
         (call-interactively ',command))
        ',funcname)))
 
@@ -163,6 +169,16 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
      (evil-normal-state)
      (call-interactively ',command)))
 
+
+;; leader maps
+(bind-map evil-lisp-state-map
+  :evil-keys (evil-lisp-state-leader)
+  :evil-states (normal))
+(bind-map evil-lisp-state-major-modes-map
+  :evil-keys (evil-lisp-state-leader)
+  :evil-states (normal)
+  :major-modes (evil-lisp-state-major-modes))
+
 ;; escape
 (define-key evil-lisp-state-map [escape] 'evil-normal-state)
 ;; toggle lisp state
@@ -172,8 +188,6 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
 (define-key evil-lisp-state-map "j" 'evil-next-visual-line)
 (define-key evil-lisp-state-map "k" 'evil-previous-visual-line)
 (define-key evil-lisp-state-map "l" 'evil-forward-char)
-;; leader
-(define-key evil-lisp-state-map (kbd evil-leader/leader) evil-leader--default-map)
 
 ;; auto-switch to lisp state commands
 (defconst evil-lisp-state-commands
@@ -238,15 +252,11 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
         (cmd (cdr x)))
     (eval
      `(progn
-        (define-key evil-lisp-state-map ,(kbd key) ',cmd)
         (if evil-lisp-state-global
-            (evil-leader/set-key
-              ,(kbd (concat evil-lisp-state-leader-prefix " " key))
+            (define-key evil-lisp-state-map ,(kbd key)
               (evil-lisp-state-enter-command ,cmd))
-          (dolist (mm evil-lisp-state-major-modes)
-            (evil-leader/set-key-for-mode mm
-              ,(kbd (concat evil-lisp-state-leader-prefix " " key))
-              (evil-lisp-state-enter-command ,cmd))))))))
+          (define-key evil-lisp-state-major-mode-map ,(kbd key)
+            (evil-lisp-state-enter-command ,cmd)))))))
 
 (defun lisp-state-toggle-lisp-state ()
   "Toggle the lisp state."
