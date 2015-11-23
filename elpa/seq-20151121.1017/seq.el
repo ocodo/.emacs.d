@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Package-Version: 20151028.759
+;; Package-Version: 20151121.1017
 ;; Version: 1.12
 ;; Package: seq
 
@@ -66,38 +66,17 @@ Evaluate BODY with VAR bound to each element of SEQ, in turn.
                               (pop ,index))))
            ,@body)))))
 
-(if (fboundp 'pcase-defmacro)
-    ;; Implementation of `seq-let' based on a `pcase'
-    ;; pattern. Requires Emacs>=25.1.
-    (progn
-      (pcase-defmacro seq (&rest args)
-        "pcase pattern matching sequence elements.
-Matches if the object is a sequence (list, string or vector), and
-binds each element of ARGS to the corresponding element of the
-sequence."
-        `(and (pred seq-p)
-              ,@(seq--make-pcase-bindings args)))
-
-      (defmacro seq-let (args seq &rest body)
-        "Bind the variables in ARGS to the elements of SEQ then evaluate BODY.
+;; Implementation of `seq-let' compatible with Emacs<25.1.
+(defmacro seq-let (args seq &rest body)
+  "Bind the variables in ARGS to the elements of SEQ then evaluate BODY.
 
 ARGS can also include the `&rest' marker followed by a variable
 name to be bound to the rest of SEQ."
-        (declare (indent 2) (debug t))
-        `(pcase-let ((,(seq--make-pcase-patterns args) ,seq))
-           ,@body)))
-
-  ;; Implementation of `seq-let' compatible with Emacs<25.1.
-  (defmacro seq-let (args seq &rest body)
-    "Bind the variables in ARGS to the elements of SEQ then evaluate BODY.
-
-ARGS can also include the `&rest' marker followed by a variable
-name to be bound to the rest of SEQ."
-    (declare (indent 2) (debug t))
-    (let ((seq-var (make-symbol "seq")))
-      `(let* ((,seq-var ,seq)
-              ,@(seq--make-bindings args seq-var))
-         ,@body))))
+  (declare (indent 2) (debug t))
+  (let ((seq-var (make-symbol "seq")))
+    `(let* ((,seq-var ,seq)
+            ,@(seq--make-bindings args seq-var))
+       ,@body)))
 
 (defun seq-drop (seq n)
   "Return a subsequence of SEQ without its first N elements.
@@ -416,33 +395,6 @@ This is an optimization for lists in `seq-take-while'."
                 (funcall pred (seq-elt seq n)))
       (setq n (+ 1 n)))
     n))
-
-(defun seq--make-pcase-bindings (args)
-  "Return a list of bindings of the variables in ARGS to the elements of a sequence."
-  (let ((bindings '())
-        (index 0)
-        (rest-marker nil))
-    (seq-doseq (name args)
-      (unless rest-marker
-        (pcase name
-          (`&rest
-           (progn (push `(app (pcase--flip seq-drop ,index)
-                              ,(seq--elt-safe args (1+ index)))
-                        bindings)
-                  (setq rest-marker t)))
-          (t
-           (push `(app (pcase--flip seq--elt-safe ,index) ,name) bindings))))
-      (setq index (1+ index)))
-    bindings))
-
-(defun seq--make-pcase-patterns (args)
-  "Return a list of `(seq ...)' pcase patterns from the argument list ARGS."
-  (cons 'seq
-        (seq-map (lambda (elt)
-                   (if (seq-p elt)
-                       (seq--make-pcase-patterns elt)
-                     elt))
-                 args)))
 
 ;; Helper function for the Backward-compatible version of `seq-let'
 ;; for Emacs<25.1.
