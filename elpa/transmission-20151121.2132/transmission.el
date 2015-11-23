@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.6
-;; Package-Version: 20151120.1619
+;; Package-Version: 20151121.2132
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -55,11 +55,11 @@
 ;;; Code:
 
 (require 'calc-bin)
-(require 'cl-lib)
 (require 'json)
 (require 'tabulated-list)
 
 (eval-when-compile
+  (require 'cl-lib)
   (require 'let-alist)
   (require 'subr-x))
 
@@ -421,8 +421,8 @@ transmission rates."
 
 (defun transmission-every-prefix-p (prefix list)
   "Return t if PREFIX is a prefix to every string in LIST, otherwise nil."
-  (cl-every (lambda (string) (string-prefix-p prefix string))
-            list))
+  (not (cl-loop for string in list
+                if (not (string-prefix-p prefix string)) return t)))
 
 (defun transmission-prop-values-in-region (prop)
   "Return a list of truthy values of text property PROP in region or at point.
@@ -828,8 +828,8 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   "Quit and bury the buffer."
   (interactive)
   (let ((cur (current-buffer)))
-    (if (cl-some (lambda (b) (not (eq cur b)))
-                 (mapcar #'car (window-prev-buffers)))
+    (if (cl-loop for buf in (mapcar #'car (window-prev-buffers))
+                 if (not (eq cur buf)) return t)
         (quit-window)
       (if (one-window-p)
           (bury-buffer)
@@ -882,8 +882,9 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 
 (defun transmission-tabulated-list-format (&optional _arg _noconfirm)
   "Initialize tabulated-list header or update `tabulated-list-format'."
-  (let ((idx (cl-some (lambda (e) (if (plist-get (cdr e) :transmission-size) e))
-                      tabulated-list-format)))
+  (let ((idx (cl-loop for format across tabulated-list-format
+                      if (plist-get (cdr format) :transmission-size)
+                      return format)))
     (if (eq (cadr idx) (if (eq 'iec transmission-units) 9 7))
         (or header-line-format (tabulated-list-init-header))
       (setf (cadr idx) (if (eq 'iec transmission-units) 9 7))
@@ -1027,10 +1028,9 @@ Each form in BODY is a column descriptor."
       (concat "Date finished:   " (transmission-time .doneDate))
       (concat "Latest Activity: " (transmission-time .activityDate) "\n")
       (transmission-format-trackers .trackerStats)
-      (let ((wanted (apply #'+ (cl-mapcar (lambda (w f)
-                                            (if (not (zerop w))
-                                                (cdr (assq 'length f)) 0))
-                                          .wanted .files))))
+      (let ((wanted (cl-loop for w across .wanted for f across .files with x = 0
+                             if (not (zerop w)) do (cl-incf x (cdr (assq 'length f)))
+                             finally return x)))
         (concat "Wanted: " (transmission-format-size wanted)))
       (concat "Downloaded: " (transmission-format-size .downloadedEver))
       (concat "Verified: " (transmission-format-size .haveValid))
