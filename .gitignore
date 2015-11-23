@@ -1,6 +1,7 @@
 .emacs-theme
 .mc-lists.el
 .thesaurus.cache
+.yas-compiled-snippets.el
 /tmp/savehist
 ac-comphist.dat
 auto-save-list
@@ -24,4 +25,3 @@ var
 /.persistent-scratch
 
 .DS_Store
-

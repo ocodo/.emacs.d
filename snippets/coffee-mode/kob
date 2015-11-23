@@ -3,4 +3,4 @@
 # group: knockout
 # key: kob
 # --
-$1 = ko.observable $0
+$1 = ko.observable($0)

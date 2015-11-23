@@ -3,4 +3,4 @@
 # group: knockout
 # key: koa
 # --
-$1 = ko.observableArray $0
+$1 = ko.observableArray($0)
