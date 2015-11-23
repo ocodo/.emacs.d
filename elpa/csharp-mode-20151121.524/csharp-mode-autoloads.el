@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "csharp-mode" "csharp-mode.el" (22084 1990
-;;;;;;  792926 287000))
+;;;### (autoloads nil "csharp-mode" "csharp-mode.el" (22098 25078
+;;;;;;  469085 773000))
 ;;; Generated autoloads from csharp-mode.el
 
 (defvar csharp-mode-hook nil "\
@@ -20,15 +20,7 @@
 (add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
 
 (autoload 'csharp-mode "csharp-mode" "\
-Major mode for editing C# code. This mode is derived from CC Mode to
-support C#.
-
-Normally, you'd want to autoload this mode by setting `auto-mode-alist' with
-an entry for csharp, in your .emacs file:
-
-   (autoload 'csharp-mode \"csharp-mode\" \"Major mode for editing C# code.\" t)
-   (setq auto-mode-alist
-      (append '((\"\\.cs$\" . csharp-mode)) auto-mode-alist))
+Major mode for editing C# code.
 
 The mode provides fontification and indent for C# syntax, as well
 as some other handy features.
@@ -52,15 +44,15 @@ To run your own logic after csharp-mode starts, do this:
 The function above is just a suggestion.
 
 
-IMenu Integraiton
+Imenu Integration
 ===============================
 
-Check the menubar for menu entries for Imenu; It is labelled
+Check the menubar for menu entries for Imenu; it is labelled
 \"Index\".
 
 The Imenu index gets computed when the file is .cs first opened and loaded.
 This may take a moment or two.  If you don't like this delay and don't
-use imenu, you can turn this off with the variable `csharp-want-imenu'.
+use Imenu, you can turn this off with the variable `csharp-want-imenu'.
 
 
 

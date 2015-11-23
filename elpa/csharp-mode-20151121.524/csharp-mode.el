@@ -4,12 +4,12 @@
 ;; Author     : Dylan R. E. Moonfire (original)
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
-;; Modified   : May 2015
-;; Version    : 0.8.10
+;; Modified   : November 2015
+;; Version    : 0.8.11
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20151111.612
+;; Package-Version: 20151121.524
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : <2014-Nov-29 13:56:00>
+;; Last-saved : <2015-Nov-21 14:23:00>
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -279,7 +279,7 @@
 ;;    0.8.10 2015 May 31th
 ;;          - Imenu: Correctly handle support for default-values in paramlist.
 ;;
-;;    0.8.11 2015 August 15th
+;;    0.8.11 2015 November 21st
 ;;          - Make mode a derived mode. Improve evil-support.
 ;;          - Add support for devenv compilation-output.
 ;;          - Fix all runtime warnings
@@ -4178,18 +4178,9 @@ The return value is meaningless, and is ignored by cc-mode.
                ))
 
 
-;;; The entry point into the mode
 ;;;###autoload
-(define-derived-mode csharp-mode c-mode "C#"
-  "Major mode for editing C# code. This mode is derived from CC Mode to
-support C#.
-
-Normally, you'd want to autoload this mode by setting `auto-mode-alist' with
-an entry for csharp, in your .emacs file:
-
-   (autoload 'csharp-mode \"csharp-mode\" \"Major mode for editing C# code.\" t)
-   (setq auto-mode-alist
-      (append '((\"\\.cs$\" . csharp-mode)) auto-mode-alist))
+(define-derived-mode csharp-mode prog-mode "C#"
+  "Major mode for editing C# code.
 
 The mode provides fontification and indent for C# syntax, as well
 as some other handy features.
@@ -4213,15 +4204,15 @@ To run your own logic after csharp-mode starts, do this:
 The function above is just a suggestion.
 
 
-IMenu Integraiton
+Imenu Integration
 ===============================
 
-Check the menubar for menu entries for Imenu; It is labelled
+Check the menubar for menu entries for Imenu; it is labelled
 \"Index\".
 
 The Imenu index gets computed when the file is .cs first opened and loaded.
 This may take a moment or two.  If you don't like this delay and don't
-use imenu, you can turn this off with the variable `csharp-want-imenu'.
+use Imenu, you can turn this off with the variable `csharp-want-imenu'.
 
 
 
@@ -4283,25 +4274,22 @@ Key bindings:
     ;; so I put it afterwards to make it stick.
     (make-local-variable 'paragraph-separate)
 
-    ;;(message "C#: set paragraph-separate")
-
     ;; Speedbar handling
-    (if (fboundp 'speedbar-add-supported-extension)
-        (speedbar-add-supported-extension '(".cs"))) ;; idempotent
+    (when (fboundp 'speedbar-add-supported-extension)
+      (speedbar-add-supported-extension '(".cs"))) ;; idempotent
 
     (c-update-modeline)
 
     ;; maybe do imenu scan after hook returns
-    (if csharp-want-imenu
-      (progn
-        ;; There are two ways to do imenu indexing. One is to provide a
-        ;; function, via `imenu-create-index-function'.  The other is to
-        ;; provide imenu with a list of regexps via
-        ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
-        ;; csharp-mode uses the former method.
-        ;;
-        (setq imenu-create-index-function 'csharp-imenu-create-index)
-        (imenu-add-menubar-index)))
+    (when csharp-want-imenu
+      ;; There are two ways to do imenu indexing. One is to provide a
+      ;; function, via `imenu-create-index-function'.  The other is to
+      ;; provide imenu with a list of regexps via
+      ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
+      ;; csharp-mode uses the former method.
+
+      (setq imenu-create-index-function 'csharp-imenu-create-index)
+      (imenu-add-menubar-index))
 
     ;; The paragraph-separate variable was getting stomped by
     ;; other hooks, so it must reside here.
@@ -4309,7 +4297,7 @@ Key bindings:
           "[ \t]*\\(//+\\|\\**\\)\\([ \t]+\\|[ \t]+<.+?>\\)$\\|^\f")
 
     (setq beginning-of-defun-function 'csharp-move-back-to-beginning-of-defun)
-    ;; end-of-defun-function   can remain forward-sexp !!
+    ;; `end-of-defun-function' can remain forward-sexp !!
 
     (set (make-local-variable 'comment-auto-fill-only-comments) t))
 
