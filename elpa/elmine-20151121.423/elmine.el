@@ -4,8 +4,10 @@
 ;;
 ;; Author: Arthur Andersen <leoc.git@gmail.com>
 ;; URL: http://github.com/leoc/elmine
-;; Version: 20130330.2100
+;; Package-Version: 20151121.423
+;; Version: 0.3
 ;; Keywords: tools
+;; Package-Requires: ((s "1.10.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -34,6 +36,7 @@
 ;;; Code:
 
 (require 'json)
+(require 's)
 
 (defun plist-merge (base new)
   "Merges two plists. The keys of the second one will overwrite the old ones."
