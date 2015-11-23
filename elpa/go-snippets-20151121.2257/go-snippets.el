@@ -26,8 +26,8 @@
 
 ;;; Code:
 
-(setq go-snippets-dir (file-name-directory (or (buffer-file-name)
-                                                load-file-name)))
+(defvar go-snippets-dir (file-name-directory (or (buffer-file-name)
+                                                 load-file-name)))
 
 ;;;###autoload
 (defun go-snippets-initialize ()
@@ -42,3 +42,4 @@
 (require 'yasnippet)
 
 (provide 'go-snippets)
+;;; go-snippets.el ends here

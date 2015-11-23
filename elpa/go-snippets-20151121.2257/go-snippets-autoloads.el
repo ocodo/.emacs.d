@@ -1,10 +1,10 @@
 ;;; go-snippets-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (go-snippets-initialize) "go-snippets" "go-snippets.el"
-;;;;;;  (21015 10665 0 0))
+;;;### (autoloads nil "go-snippets" "go-snippets.el" (22098 25065
+;;;;;;  633073 835000))
 ;;; Generated autoloads from go-snippets.el
 
 (autoload 'go-snippets-initialize "go-snippets" "\
@@ -16,16 +16,14 @@
 
 ;;;***
 
-;;;### (autoloads nil nil ("go-snippets-pkg.el") (21015 10665 381151
-;;;;;;  0))
+;;;### (autoloads nil nil ("go-snippets-pkg.el") (22098 25065 671626
+;;;;;;  353000))
 
 ;;;***
 
-(provide 'go-snippets-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; go-snippets-autoloads.el ends here
