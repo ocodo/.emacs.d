@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 1.1.4
-;; Package-Version: 20151017.618
+;; Version: 1.1.5
+;; Package-Version: 20151120.2338
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -586,8 +586,7 @@ to a wrong one.")
 
 (defun persp-asave-on-exit ()
   (when (> persp-auto-save-opt 0)
-    (persp-save-state-to-file persp-auto-save-fname *persp-hash*
-                              persp-auto-save-persps-to-their-file)))
+    (persp-save-state-to-file)))
 
 (defun persp-special-last-buffer-make-current ()
   (setq persp-special-last-buffer (current-buffer)))
@@ -1439,7 +1438,8 @@ of the perspective %s can't be saved."
   (write-file fname nil))
 
 (defun* persp-save-state-to-file (&optional (fname persp-auto-save-fname)
-                                            (phash *persp-hash*) respect-persp-file-parameter)
+                                            (phash *persp-hash*)
+                                            (respect-persp-file-parameter persp-auto-save-persps-to-their-file))
   (interactive (list (read-file-name "Save perspectives to file: "
                                      persp-save-dir)))
   (when (and fname phash)
@@ -1461,7 +1461,9 @@ does not exist or not a directory %S." p-save-dir)
               (mapc #'(lambda (gr)
                         (let ((pfname (car gr)) (pl (cdr gr)) names)
                           (mapc #'(lambda (p) (push (safe-persp-name p) names)) pl)
-                          (persp-save-to-file-by-names (or pfname p-save-file) phash names 'yes)))
+                          (if pfname
+                              (persp-save-to-file-by-names pfname phash names 'yes)
+                            (persp-save-to-file-by-names p-save-file phash names 'no))))
                     fg))
           (with-temp-buffer
             (erase-buffer)
@@ -1492,7 +1494,7 @@ does not exist or not a directory %S." p-save-dir)
         (setq bufferlist-diff (delete-if #'(lambda (b) (memq b bufferlist-pre))
                                          (funcall persp-buffer-list-function))))
       (mapc #'(lambda (pn) (persp-add (persp-get-by-name pn phash) temphash)) names)
-      (persp-save-state-to-file fname temphash)
+      (persp-save-state-to-file fname temphash nil)
       (mapc #'kill-buffer bufferlist-diff))))
 
 (defun persp-tramp-save-buffer-file-name (b)
