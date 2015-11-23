@@ -196,7 +196,7 @@ option_parser = OptionParser.new do |opts|
   opts.banner = BANNER
 
   opts.on "-l", "--list", "List updated packages" do
-    log "Listing updated ELPA packages...(to be committed)", ""
+    log "Listing updated ELPA packages...(to be committed)"
     puts elpa.updated_packages
     exit 0
   end
