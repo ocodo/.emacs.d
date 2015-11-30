@@ -7,7 +7,7 @@
 ;; Modified   : November 2015
 ;; Version    : 0.8.11
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20151121.524
+;; Package-Version: 20151129.1451
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2015-Nov-21 14:23:00>
 
@@ -285,6 +285,8 @@
 ;;          - Fix all runtime warnings
 ;;          - Fix error with string-values in #region directives.
 ;;
+;;    0.8.12 2015 November 29nth
+;;          - Fix issues with imenu indexing.
 
 (require 'cc-mode)
 (require 'cl-lib)
@@ -1484,9 +1486,12 @@ Most other csharp functions are not instrumented.
          "\\(?:override[ \t\n\r\f\v]+\\)?"            ;; optional
          "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2. return type - possibly generic
          "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; 3. name of func
+         "\\([[:alpha:]_][[:alnum:]_]*"               ;; 3. begin name of func
+         "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*[, ]?\\)*>\\)?"  ;; (with optional generic type parameter(s)
+         "\\)"                                        ;; 3. end of name of func
          "[ \t\n\r\f\v]*"
          "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
+         "\\(?:[ \t]*/[/*].*\\)?"                     ;; optional comment at end of line
          "[ \t\n\r\f\v]*"
          ))
 
