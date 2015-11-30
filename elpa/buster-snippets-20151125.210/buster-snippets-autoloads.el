@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "buster-snippets" "buster-snippets.el" (21642
-;;;;;;  20379 83401 0))
+;;;### (autoloads nil "buster-snippets" "buster-snippets.el" (22108
+;;;;;;  42472 649147 292000))
 ;;; Generated autoloads from buster-snippets.el
 
 (autoload 'buster-snippets-initialize "buster-snippets" "\
@@ -17,7 +17,7 @@
 ;;;***
 
 ;;;### (autoloads nil nil ("buster-snippet-helpers.el" "buster-snippets-pkg.el")
-;;;;;;  (21642 20379 314060 85000))
+;;;;;;  (22108 42472 945063 192000))
 
 ;;;***
 

@@ -4,6 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Keywords: snippets
+;; Package-Requires: ((yasnippet "0.8.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -113,6 +114,10 @@
 
 (require 'yasnippet)
 
+(defgroup buster-snippets nil
+  "Yasnippets for the Buster javascript testing framework."
+  :group 'yasnippet)
+
 (defcustom buster-use-strict nil
   "On non-nil value, add strict-declarations to test cases.")
 
@@ -138,18 +143,19 @@ frameworks while still using the buster-assertions package.")
 
 (require 'buster-snippet-helpers)
 
-(setq buster-snippets-root (file-name-directory (or load-file-name
-                                                     (buffer-file-name))))
+(defvar buster-snippets-root (file-name-directory (or load-file-name
+                                                      (buffer-file-name))))
 
 ;;;###autoload
 (defun buster-snippets-initialize ()
   (let ((snip-dir (expand-file-name "snippets" buster-snippets-root)))
     (when (boundp 'yas-snippet-dirs)
       (add-to-list 'yas-snippet-dirs snip-dir t))
-    (yas/load-directory snip-dir)))
+    (yas-load-directory snip-dir)))
 
 ;;;###autoload
 (eval-after-load "yasnippet"
   '(buster-snippets-initialize))
 
 (provide 'buster-snippets)
+;;; buster-snippets.el ends here

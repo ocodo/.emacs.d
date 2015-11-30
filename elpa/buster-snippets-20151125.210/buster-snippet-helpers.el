@@ -58,26 +58,26 @@
 (defun lower-camel-case (s)
   "Convert string 's' to camelCase string."
   (mapconcat 'identity (mapcar-head
-                        '(lambda (word) (downcase word))
-                        '(lambda (word) (capitalize (downcase word)))
+                        (lambda (word) (downcase word))
+                        (lambda (word) (capitalize (downcase word)))
                         (split-name s)) ""))
 
 (defun upper-camel-case (s)
   "Convert string 's' to CamelCase string."
   (mapconcat 'identity (mapcar
-                        '(lambda (word) (capitalize (downcase word)))
+                        (lambda (word) (capitalize (downcase word)))
                         (split-name s)) ""))
 
 (defun snake-case (s)
   "Convert string 's' to snake_case string."
   (mapconcat 'identity (mapcar
-                        '(lambda (word) (downcase word))
+                        (lambda (word) (downcase word))
                         (split-name s)) "_"))
 
 (defun capitalized-words (s)
   "Convert string 's' to Capitalized Words string."
   (mapconcat 'identity (mapcar
-                        '(lambda (word) (capitalize (downcase word)))
+                        (lambda (word) (capitalize (downcase word)))
                         (split-name s)) " "))
 
 (defun comma-if-looking-at-whitespace-and-quotes ()
@@ -97,7 +97,7 @@
 
 (defun buster--path-out-of-test (lib-dir)
   (mapconcat 'identity (mapcar
-                        '(lambda (word) "../")
+                        (lambda (word) "../")
                         (split-string lib-dir "/" t)) ""))
 
 ;; Shortcut globals for iife
