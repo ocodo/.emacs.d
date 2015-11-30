@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "multi-line" "multi-line.el" (22098 25093 249099
-;;;;;;  181000))
+;;;### (autoloads nil "multi-line" "multi-line.el" (22108 42351 509165
+;;;;;;  49000))
 ;;; Generated autoloads from multi-line.el
 
 (autoload 'multi-line "multi-line" "\
@@ -18,6 +18,12 @@ When ARG is provided single-line the statement at point instead.
 Single-line the statement at point.
 
 \(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("multi-line-decorator.el" "multi-line-pkg.el"
+;;;;;;  "multi-line-respace.el" "multi-line-shared.el") (22108 42351
+;;;;;;  542246 551000))
 
 ;;;***
 
