@@ -5,10 +5,10 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20151108.2345
+;; Package-Version: 20151129.34
 ;; Keywords: processes, clojure
 ;; Version: 1.3.0
-;; Package-Requires: ((emacs "24.1") (clojure-mode "4.0"))
+;; Package-Requires: ((emacs "24.1") (clojure-mode "5.0"))
 
 ;; This file is part of GNU Emacs.
 
