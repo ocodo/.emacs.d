@@ -132,12 +132,6 @@ set and deleted as if they were real tabs."
                'haskell-indentation-mode
                "2015-05-25")
 
-(defun haskell-indentation-parse-error (&rest args)
-  "Create error message from ARGS, log it and throw."
-  (let ((msg (apply 'format args)))
-    (message "%s" msg)
-    (throw 'parse-error msg)))
-
 (defvar haskell-literate) ; defined in haskell-mode.el
 
 (defun haskell-indentation-bird-p ()
@@ -206,19 +200,19 @@ negative ARG.  Handles bird style literate Haskell too."
   (if (haskell-indentation-bird-outside-code-p)
       (progn
         (delete-horizontal-space)
-        (newline))    
-    (catch 'parse-error
-      ;;  - save the current column
-      (let* ((ci (haskell-indentation-current-indentation))
-             (indentations (haskell-indentation-find-indentations)))
-        ;; - jump to the next line and reindent to at the least same level        
-        (delete-horizontal-space)
-        (newline)
-        (when (haskell-indentation-bird-p)
-          (insert "> "))
-        (haskell-indentation-reindent-to
-         (haskell-indentation-next-indentation (- ci 1) indentations 'nofail)
-         'move)))))
+        (newline))
+    ;;  - save the current column
+    (let* ((ci (haskell-indentation-current-indentation))
+           (indentations (or (haskell-indentation-find-indentations)
+                             '(0))))
+      ;; - jump to the next line and reindent to at the least same level
+      (delete-horizontal-space)
+      (newline)
+      (when (haskell-indentation-bird-p)
+        (insert "> "))
+      (haskell-indentation-reindent-to
+       (haskell-indentation-next-indentation (- ci 1) indentations 'nofail)
+       'move))))
 
 (defun haskell-indentation-next-indentation (col indentations &optional nofail)
   "Find the leftmost indentation which is greater than COL.
@@ -268,11 +262,11 @@ indentation points to the right, we switch going to the left."
              (ci (haskell-indentation-current-indentation))
              (inds (save-excursion
                      (move-to-column ci)
-                     (haskell-indentation-find-indentations)))
+                     (or (haskell-indentation-find-indentations)
+                         '(0))))
              (valid (memq ci inds))
              (cursor-in-whitespace (< cc ci)))
-        (when (null inds)
-          (error "returned indentations empty, but no parse error"))
+
         (if (and valid cursor-in-whitespace)
             (move-to-column ci)
           (haskell-indentation-reindent-to
@@ -347,7 +341,8 @@ indentation points to the right, we switch going to the left."
            (ci (haskell-indentation-current-indentation))
            (inds (save-excursion
                    (move-to-column ci)
-                   (haskell-indentation-find-indentations)))
+                   (or (haskell-indentation-find-indentations)
+                       '(0))))
            (cursor-in-whitespace (< cc ci))
            (pi (haskell-indentation-previous-indentation ci inds)))
       (if (null pi)
@@ -456,10 +451,7 @@ indentation points to the right, we switch going to the left."
           (haskell-indentation-first-indentation)
         (setq current-token (haskell-indentation-peek-token))
         (catch 'parse-end
-          (haskell-indentation-toplevel)
-          (unless (eq current-token 'end-tokens)
-            (haskell-indentation-parse-error
-             "Illegal token: %s" current-token)))
+          (haskell-indentation-toplevel))
         possible-indentations))))
 
 (defun haskell-indentation-first-indentation ()
@@ -765,9 +757,7 @@ Skip the keyword or parenthesis." ; FIXME: better description needed
              (when end
                (throw 'parse-end nil)))
             ((equal current-token end)
-             (haskell-indentation-read-next-token)) ; continue
-            (end (haskell-indentation-parse-error
-                  "Illegal token: %s" current-token))))))
+             (haskell-indentation-read-next-token))))))
 
 (defun haskell-indentation-case-alternative ()
   "" ; FIXME
@@ -1032,8 +1022,7 @@ layout starts."
                       left-indent)))))
           (throw 'parse-end nil))
         (haskell-indentation-phrase-rest (cddr phrase))))
-     ((string= (cadr phrase) "in")) ; fallthrough
-     (t (haskell-indentation-parse-error "Expecting %s" (cadr phrase))))))
+     ((string= (cadr phrase) "in")))))
 
 (defun haskell-indentation-add-indentation (indent)
   "" ; FIXME
