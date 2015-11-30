@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22095 53639 589807
-;;;;;;  657000))
+;;;### (autoloads nil "counsel" "counsel.el" (22108 42453 909149
+;;;;;;  738000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -97,6 +97,17 @@ Add or remove tags in org-mode.
 
 (autoload 'counsel-org-tag-agenda "counsel" "\
 Set tags for the current agenda item.
+
+\(fn)" t nil)
+
+(autoload 'counsel-ag "counsel" "\
+Grep for a string in the current directory using ag.
+INITIAL-INPUT can be given as the initial minibuffer input.
+
+\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
+
+(autoload 'counsel-grep "counsel" "\
+Grep for a string in the current file.
 
 \(fn)" t nil)
 
