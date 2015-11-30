@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20151112.1333
+;; Package-Version: 20151128.1512
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -156,7 +156,10 @@
           (delete-region start (point))
           (unless (eq guessed-mode 'image-mode)
             (apply guessed-mode '())
-            (font-lock-fontify-buffer))
+            (if (fboundp 'font-lock-flush)
+                (font-lock-flush)
+              (with-no-warnings
+                (font-lock-fontify-buffer))))
 
           (cond
            ((eq guessed-mode 'xml-mode)
