@@ -178,7 +178,7 @@ field logfile (see `merlin-start-process')"
   :group 'merlin :type 'filename)
 
 (defcustom merlin-arrow-keys-type-enclosing t
-  "If non-nil, after a type enclosing, up and down arrow are used to go up and down the AST."
+  "If non-nil, after a type enclosing, C+up and C+down arrow are used to go up and down the AST. As well, C+w copy the type to the kill ring and C+d destructure the expression."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-type-after-locate nil
@@ -1467,7 +1467,7 @@ loading"
 (defun merlin/jump (&optional target)
   "Jump to the TARGET"
   (let ((result (merlin/send-command
-                  (list 'jump (if (equal target "") "fun,let,module,match" target)
+                  (list 'jump (if (equal target "") "fun let module match" target)
                         'at (merlin/unmake-point (point))))))
     (unless result
       (error "Not found. (Check *Messages* for potential errors)"))
