@@ -147,7 +147,7 @@
 		((:url . "https://github.com/vspinu/company-math")
 		 (:keywords "unicode" "symbols" "completion"))])
  (company-statistics .
-		     [(0 2 1)
+		     [(0 2 2)
 		      ((emacs
 			(24 3))
 		       (company
@@ -194,7 +194,7 @@
 		((:url . "http://elpa.gnu.org/packages/dbus-codegen.html")
 		 (:keywords "comm" "dbus" "convenience"))])
  (debbugs .
-	  [(0 7)
+	  [(0 8)
 	   nil "SOAP library to access debbugs servers" tar
 	   ((:keywords "comm" "hypermedia")
 	    (:url . "http://elpa.gnu.org/packages/debbugs.html"))])
@@ -252,7 +252,7 @@
 	     ((:url . "http://elpa.gnu.org/packages/ediprolog.html")
 	      (:keywords "languages" "processes"))])
  (el-search .
-	    [(0 1)
+	    [(0 1 1)
 	     ((emacs
 	       (25)))
 	     "Expression based incremental search for emacs-lisp-mode" single
@@ -502,6 +502,11 @@
 	     [(1 30)
 	      nil "Indexing system for on-line note-taking" tar
 	      ((:url . "http://elpa.gnu.org/packages/notes-mode.html"))])
+ (ntlm .
+       [(2 0 0)
+	nil "NTLM (NT LanManager) authentication support" single
+	((:url . "http://elpa.gnu.org/packages/ntlm.html")
+	 (:keywords "ntlm" "sasl" "comm"))])
  (num3-mode .
 	    [(1 2)
 	     nil "highlight groups of digits in long numbers" single
@@ -525,7 +530,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20151116)
+      [(20151123)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -611,6 +616,13 @@
 	    nil "Major mode for editing (Standard) ML" single
 	    ((:url . "http://elpa.gnu.org/packages/sml-mode.html")
 	     (:keywords "sml"))])
+ (soap-client .
+	      [(3 0 2)
+	       ((cl-lib
+		 (0 5)))
+	       "Access SOAP web services" tar
+	       ((:keywords "soap" "web-services" "comm" "hypermedia")
+		(:url . "http://elpa.gnu.org/packages/soap-client.html"))])
  (sokoban .
 	  [(1 4)
 	   nil "Implementation of Sokoban for Emacs." tar
@@ -689,6 +701,11 @@
 	nil "Quickly generate linear ranges in Emacs" tar
 	((:keywords "convenience")
 	 (:url . "https://github.com/abo-abo/tiny"))])
+ (transcribe .
+	     [(0 0 1)
+	      nil "package for audio transcriptions" single
+	      ((:url . "http://elpa.gnu.org/packages/transcribe.html")
+	       (:keywords))])
  (trie .
        [(0 2 6)
 	((tNFA
