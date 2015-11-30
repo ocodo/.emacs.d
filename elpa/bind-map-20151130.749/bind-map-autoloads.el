@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "bind-map" "bind-map.el" (22098 25068 601076
-;;;;;;  620000))
+;;;### (autoloads nil "bind-map" "bind-map.el" (22108 42475 25146
+;;;;;;  985000))
 ;;; Generated autoloads from bind-map.el
 
 (autoload 'bind-map "bind-map" "\
@@ -20,6 +20,13 @@ which are optional.
 The keys to use for the leader binding. These are strings
 suitable for use in `kbd'.
 
+:override-minor-modes BOOL
+
+If non nil, make keys in :keys override the minor-mode maps, by
+using `emulation-mode-map-alists' instead of `global-map'. If
+either :major-modes or :minor-modes is specified, this setting
+has no effect.
+
 :evil-keys (KEY1 KEY2 ...)
 
 Like :keys but these bindings are only active in certain evil
@@ -29,6 +36,13 @@ states.
 
 Symbols representing the states to use for :evil-keys. If nil,
 use `bind-map-default-evil-states'.
+
+:evil-use-local BOOL
+
+This places all evil bindings in the local state maps for evil.
+These maps have high precedence and will mask most other evil
+bindings. If either :major-modes or :minor-modes is specified,
+this setting has no effect.
 
 :major-modes (MODE1 MODE2 ...)
 

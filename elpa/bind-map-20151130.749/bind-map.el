@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-bind-map
-;; Package-Version: 20151118.609
+;; Package-Version: 20151130.749
 ;; Version: 0.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -108,6 +108,13 @@ which are optional.
 The keys to use for the leader binding. These are strings
 suitable for use in `kbd'.
 
+:override-minor-modes BOOL
+
+If non nil, make keys in :keys override the minor-mode maps, by
+using `emulation-mode-map-alists' instead of `global-map'. If
+either :major-modes or :minor-modes is specified, this setting
+has no effect.
+
 :evil-keys (KEY1 KEY2 ...)
 
 Like :keys but these bindings are only active in certain evil
@@ -117,6 +124,13 @@ states.
 
 Symbols representing the states to use for :evil-keys. If nil,
 use `bind-map-default-evil-states'.
+
+:evil-use-local BOOL
+
+This places all evil bindings in the local state maps for evil.
+These maps have high precedence and will mask most other evil
+bindings. If either :major-modes or :minor-modes is specified,
+this setting has no effect.
 
 :major-modes (MODE1 MODE2 ...)
 
@@ -139,48 +153,60 @@ Declare a prefix command for MAP named COMMAND-NAME."
          (activate-func (intern (format "%s-activate-function" map)))
          (prefix-cmd (or (plist-get args :prefix-cmd)
                          (intern (format "%s-prefix" map))))
-         (keys (mapcar 'bind-map-kbd (plist-get args :keys)))
-         (evil-keys (mapcar 'bind-map-kbd (plist-get args :evil-keys)))
+         (keys (plist-get args :keys))
+         (override-minor-modes (plist-get args :override-minor-modes))
+         (evil-keys (plist-get args :evil-keys))
          (evil-states (or (plist-get args :evil-states)
                           bind-map-default-evil-states))
+         (evil-use-local (plist-get args :evil-use-local))
          (minor-modes (plist-get args :minor-modes))
          (major-modes (plist-get args :major-modes)))
     `(progn
        (defvar ,map (make-sparse-keymap))
        (unless (keymapp ,map)
          (error "bind-map: %s is not a keymap" ',map))
+       (defvar ,prefix-cmd nil)
        (setq ,prefix-cmd ,map)
        (setf (symbol-function ',prefix-cmd) ,map)
+       (defvar ,root-map (make-sparse-keymap))
 
        (when ',minor-modes
-         (defvar ,root-map (make-sparse-keymap))
          (dolist (mode ',minor-modes)
            (push (cons mode ,root-map) minor-mode-map-alist)))
 
        (when ',major-modes
-         (defvar ,root-map (make-sparse-keymap))
          (defvar ,major-mode-list '())
-         (defvar-local ,activate nil)
+         ;; compiler warns about making a local var below the top-level
+         (with-no-warnings
+           (defvar-local ,activate nil))
          (push (cons ',activate ,root-map) minor-mode-map-alist)
-         (setq ,major-mode-list (append ,major-mode-list ',major-modes))
+         (dolist (mode ',major-modes)
+           (add-to-list ',major-mode-list mode))
          (defun ,activate-func ()
            (setq ,activate (not (null (member major-mode ,major-mode-list)))))
          (add-hook 'change-major-mode-after-body-hook ',activate-func))
 
+       (when (and ,override-minor-modes
+                  (null ',major-modes)
+                  (null ',minor-modes))
+         (add-to-list 'emulation-mode-map-alists (list (cons t ,root-map))))
+
        (if (or ',minor-modes ',major-modes)
            ;;bind keys in root-map
            (progn
-             (dolist (key ',keys)
-               (define-key ,root-map key ',prefix-cmd))
+             (dolist (key (list ,@keys))
+               (define-key ,root-map (kbd key) ',prefix-cmd))
              (when ',evil-keys
                (bind-map-evil-define-key
-                ',evil-states ,root-map ',evil-keys ',prefix-cmd)))
+                ',evil-states ,root-map (list ,@evil-keys) ',prefix-cmd)))
          ;;bind in global maps
-         (dolist (key ',keys)
-           (global-set-key key ',prefix-cmd))
+         (dolist (key (list ,@keys))
+           (if ,override-minor-modes
+               (define-key ,root-map (kbd key) ',prefix-cmd)
+             (global-set-key (kbd key) ',prefix-cmd)))
          (when ',evil-keys
-           (bind-map-evil-define-key
-            ',evil-states nil ',evil-keys ',prefix-cmd))))))
+           (bind-map-evil-global-define-key
+            ',evil-states (list ,@evil-keys) ',prefix-cmd ,evil-use-local))))))
 (put 'bind-map 'lisp-indent-function 'defun)
 
 ;;;###autoload
@@ -227,24 +253,36 @@ concatenated with `bind-map-default-map-suffix'."
        ',map-name)))
 (put 'bind-map-for-minor-mode 'lisp-indent-function 'defun)
 
-(defun bind-map-kbd (key)
-  "If KEY is a string use `kbd'. If it's a symbol, use
-`symbol-value' then `kbd'."
-  (cond ((stringp key) (kbd key))
-        ((symbolp key) (kbd (symbol-value key)))
-        (t (error "bind-map-kbd: KEY should be a string or a symbol. KEY is %s" key))))
-
 (defun bind-map-evil-define-key (states map keys def)
   "Version of `evil-define-key' that binds DEF across multiple
 STATES and KEYS."
   (require 'evil)
   (dolist (state states)
     (dolist (key keys)
-      (if map
-          (eval
-           `(evil-define-key ',state ',map ,key ',def))
-        (eval
-         `(evil-global-set-key ',state ,key ',def))))))
+      (eval `(evil-define-key ',state ',map (kbd ,key) ',def)))))
+
+(defvar bind-map-local-bindings '()
+  "Elements are (STATE KEY DEF) each corresponding to a binding
+to place in a local state map.")
+
+(defun bind-map-local-mode-hook ()
+  (dolist (entry bind-map-local-bindings)
+    (let ((map (intern (format "evil-%s-state-local-map" (car entry)))))
+      (when (and (boundp map) (keymapp (symbol-value map)))
+        (define-key (symbol-value map) (cadr entry) (caddr entry))))))
+(add-hook 'evil-local-mode-hook 'bind-map-local-mode-hook)
+
+(defun bind-map-evil-global-define-key
+    (states keys def &optional use-local)
+  "Version of `evil-define-key' that binds DEF across multiple
+STATES and KEYS. USE-LOCAL will bind the keys in the local state
+maps which have higher precedence than most evil maps."
+  (require 'evil)
+  (dolist (key keys)
+    (dolist (state states)
+      (if use-local
+          (push (list state (kbd key) def) bind-map-local-bindings)
+        (eval `(evil-global-set-key ',state (kbd ,key) ',def))))))
 
 ;;;###autoload
 (defun bind-map-set-keys (map key def &rest bindings)
@@ -252,7 +290,7 @@ STATES and KEYS."
 BINDINGS is a series of KEY DEF pairs. Each KEY should be a
 string suitable for `kbd'."
   (while key
-    (define-key map (bind-map-kbd key) def)
+    (define-key map (kbd key) def)
     (setq key (pop bindings) def (pop bindings))))
 (put 'bind-map-set-keys 'lisp-indent-function 'defun)
 
@@ -263,8 +301,8 @@ Default bindings never override existing ones. BINDINGS is a
 series of KEY DEF pairs. Each KEY should be a string suitable for
 `kbd'."
   (while key
-    (unless (lookup-key map (bind-map-kbd key))
-      (define-key map (bind-map-kbd key) def))
+    (unless (lookup-key map (kbd key))
+      (define-key map (kbd key) def))
     (setq key (pop bindings) def (pop bindings))))
 (put 'bind-map-set-key-defaults 'lisp-indent-function 'defun)
 
