@@ -1,13 +1,21 @@
 ;;; js-comint-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (inferior-js-mode switch-to-js js-load-file-and-go
-;;;;;;  js-load-file js-send-buffer-and-go js-send-buffer js-send-last-sexp
-;;;;;;  js-send-last-sexp-and-go js-send-region-and-go js-send-region
-;;;;;;  run-js) "js-comint" "js-comint.el" (20729 12929))
+;;;### (autoloads nil "js-comint" "js-comint.el" (22108 42388 753159
+;;;;;;  79000))
 ;;; Generated autoloads from js-comint.el
+
+(autoload 'js-do-use-nvm "js-comint" "\
+Enable nvm.
+
+\(fn)" nil nil)
+
+(autoload 'js-select-node-version "js-comint" "\
+Use a given VERSION of node from nvm.
+
+\(fn &optional VERSION)" t nil)
 
 (autoload 'run-js "js-comint" "\
 Run an inferior Javascript process, input and output via buffer `*js*'.
@@ -82,20 +90,13 @@ Javascript source.
     switch-to-js switches the current buffer to the Javascript process buffer.
     js-send-region sends the current region to the Javascript process.
 
-
 \(fn)" t nil)
 
 ;;;***
 
-;;;### (autoloads nil nil ("js-comint-pkg.el") (20729 12929 733964))
-
-;;;***
-
-(provide 'js-comint-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; js-comint-autoloads.el ends here
