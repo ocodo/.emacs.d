@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'cider-interaction)
 
 ;; ===================================
@@ -110,7 +111,7 @@ The page size can be also changed interactively within the inspector."
   "Create an inspector response handler for BUFFER.
 
 The \"value\" slot of each successive response (if it exists) will be
-rendered into `cider-inspector-buffer'. Once a response is received with a
+rendered into `cider-inspector-buffer'.  Once a response is received with a
 \"status\" slot containing \"done\", `cider-inspector-buffer' will be
 displayed.
 
@@ -165,7 +166,7 @@ Does nothing if already on the first page."
                             (cider-inspector-response-handler (current-buffer))))
 
 (defun cider-inspector-set-page-size (page-size)
-  "Set the page size in pagination mode to the specified value.
+  "Set the page size in pagination mode to the specified PAGE-SIZE.
 
 Current page will be reset to zero."
   (interactive "nPage size:")
@@ -235,8 +236,7 @@ If ARG is negative, move backwards."
         (previously-wrapped-p nil))
     ;; Forward.
     (while (> arg 0)
-      (cl-destructuring-bind (pos foundp)
-          (cider-find-inspectable-object 'next maxpos)
+      (seq-let (pos foundp) (cider-find-inspectable-object 'next maxpos)
         (if foundp
             (progn (goto-char pos) (setq arg (1- arg))
                    (setq previously-wrapped-p nil))
@@ -245,8 +245,7 @@ If ARG is negative, move backwards."
             (error "No inspectable objects")))))
     ;; Backward.
     (while (< arg 0)
-      (cl-destructuring-bind (pos foundp)
-          (cider-find-inspectable-object 'prev minpos)
+      (seq-let (pos foundp) (cider-find-inspectable-object 'prev minpos)
         ;; CIDER-OPEN-INSPECTOR inserts the title of an inspector page
         ;; as a presentation at the beginning of the buffer; skip
         ;; that.  (Notice how this problem can not arise in ``Forward.'')
@@ -283,8 +282,7 @@ that value.
 2. If point is on an action then call that action.
 3. If point is on a range-button fetch and insert the range."
   (interactive)
-  (cl-destructuring-bind (property value)
-      (cider-inspector-property-at-point)
+  (seq-let (property value) (cider-inspector-property-at-point)
     (cl-case property
       (cider-value-idx
        (cider-inspector-push value))

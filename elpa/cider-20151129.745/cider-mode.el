@@ -85,15 +85,6 @@ entirely."
 `cider-switch-to-last-clojure-buffer' uses this variable to jump
 back to last Clojure source buffer.")
 
-(defcustom cider-switch-to-repl-command 'cider-switch-to-relevant-repl-buffer
-  "Select the command to be invoked when switching-to-repl.
-The default option is `cider-switch-to-relevant-repl-buffer'.  If
-you'd like to not use smart matching of repl buffer based on
-project directory, you can assign it to `cider-switch-to-current-repl-buffer'
-which will use the default REPL connection."
-  :type 'symbol
-  :group 'cider)
-
 (defun cider-remember-clojure-buffer (buffer)
   "Try to remember the BUFFER from which the user jumps.
 The BUFFER needs to be a Clojure buffer and current major mode needs
@@ -104,11 +95,6 @@ to jump back to the last Clojure source buffer."
                (derived-mode-p 'clojure-mode))
              (derived-mode-p 'cider-repl-mode))
     (setq cider-last-clojure-buffer buffer)))
-
-(defun cider-switch-to-repl-buffer (&optional arg)
-  "Invoke `cider-switch-to-repl-command'."
-  (interactive "P")
-  (funcall cider-switch-to-repl-command arg))
 
 (defun cider--switch-to-repl-buffer (repl-buffer &optional set-namespace)
   "Select the REPL-BUFFER, when possible in an existing window.
@@ -131,22 +117,7 @@ that of the namespace in the Clojure source buffer."
     (cider-remember-clojure-buffer buffer)
     (goto-char (point-max))))
 
-(defun cider-switch-to-default-repl-buffer (&optional set-namespace)
-  "Select the default REPL buffer, when possible in an existing window.
-
-Hint: You can use `display-buffer-reuse-frames' and
-`special-display-buffer-names' to customize the frame in which
-the buffer should appear.
-
-With a prefix argument SET-NAMESPACE, sets the namespace in the REPL buffer to
-that of the namespace in the Clojure source buffer."
-  (interactive "P")
-  (cider--switch-to-repl-buffer (cider-default-connection) set-namespace))
-
-(define-obsolete-function-alias 'cider-switch-to-current-repl-buffer
-  'cider-switch-to-default-repl-buffer "0.10")
-
-(defun cider-switch-to-relevant-repl-buffer (&optional set-namespace)
+(defun cider-switch-to-repl-buffer (&optional set-namespace)
   "Select the REPL buffer, when possible in an existing window.
 The buffer chosen is based on the file open in the current buffer.
 
@@ -169,7 +140,7 @@ of the namespace in the Clojure source buffer."
   "Load the current buffer into the relevant REPL buffer and switch to it."
   (interactive "P")
   (cider-load-buffer)
-  (cider-switch-to-relevant-repl-buffer set-namespace))
+  (cider-switch-to-repl-buffer set-namespace))
 
 (defun cider-switch-to-last-clojure-buffer ()
   "Switch to the last Clojure buffer.
@@ -285,7 +256,6 @@ Returns to the buffer in which the command was invoked."
         "--"
         ["Set ns" cider-repl-set-ns]
         ["Switch to REPL" cider-switch-to-repl-buffer]
-        ["Switch to Relevant REPL" cider-switch-to-relevant-repl-buffer]
         ["Toggle REPL Pretty Print" cider-repl-toggle-pretty-printing]
         ["Clear REPL output" cider-find-and-clear-repl-output]
         "--"
@@ -439,7 +409,8 @@ namespace itself."
   (interactive)
   (when cider-font-lock-dynamically
     (font-lock-remove-keywords nil cider--dynamic-font-lock-keywords)
-    (when-let ((symbols (cider-resolve-ns-symbols (or ns (cider-current-ns)))))
+    (when-let ((ns (or ns (cider-current-ns)))
+               (symbols (cider-resolve-ns-symbols ns)))
       (setq-local cider--dynamic-font-lock-keywords
                   (cider--compile-font-lock-keywords
                    symbols (cider-resolve-ns-symbols (cider-resolve-core-ns))))
@@ -544,18 +515,33 @@ before point."
 The local variables are stored in a list under the `cider-locals' text
 property."
   (lambda (beg end &rest rest)
-    (remove-text-properties beg end '(cider-locals nil cider-block-dynamic-font-lock nil))
-    (when cider-font-lock-dynamically
-      (save-excursion
-        (goto-char beg)
-        ;; If the inside of a `ns' form changed, reparse it from the start.
-        (when (and (not (bobp))
-                   (get-text-property (1- (point)) 'cider-block-dynamic-font-lock))
-          (ignore-errors (beginning-of-defun)))
-        (ignore-errors
-          (cider--parse-and-apply-locals
-           end (unless (bobp)
-                 (get-text-property (1- (point)) 'cider-locals))))))
+    (with-silent-modifications
+      (remove-text-properties beg end '(cider-locals nil cider-block-dynamic-font-lock nil))
+      (when cider-font-lock-dynamically
+        (save-excursion
+          (goto-char beg)
+          ;; If the inside of a `ns' form changed, reparse it from the start.
+          (when (and (not (bobp))
+                     (get-text-property (1- (point)) 'cider-block-dynamic-font-lock))
+            (ignore-errors (beginning-of-defun)))
+          (let ((locals-above (unless (bobp)
+                                (get-text-property (1- (point)) 'cider-locals))))
+            (save-excursion
+              ;; If there are locals above the current sexp, reapply them to the
+              ;; current sexp.
+              (when (and locals-above
+                         (condition-case nil
+                             (progn (up-list) t)
+                           (scan-error nil)))
+                (add-text-properties beg (point) `(cider-locals ,locals-above)))
+              ;; Extend the region being font-locked to include whole sexps.
+              (goto-char end)
+              (when (condition-case nil
+                        (progn (up-list) t)
+                      (scan-error nil))
+                (setq end (max end (point)))))
+            (ignore-errors
+              (cider--parse-and-apply-locals end locals-above))))))
     (apply func beg end rest)))
 
 

@@ -1205,20 +1205,21 @@ See command `cider-mode'."
 
 (defun cider-sync-request:toggle-trace-var (symbol)
   "Toggle var tracing for SYMBOL."
-  (cider-ensure-op-supported "toggle-trace-var")
   (thread-first (list "op" "toggle-trace-var"
+                      "session" (cider-current-session)
                       "ns" (cider-current-ns)
                       "sym" symbol)
     (cider-nrepl-send-sync-request)))
 
 (defun cider--toggle-trace-var (sym)
+  "Toggle var tracing for SYM."
   (let* ((trace-response (cider-sync-request:toggle-trace-var sym))
          (var-name (nrepl-dict-get trace-response "var-name"))
          (var-status (nrepl-dict-get trace-response "var-status")))
     (pcase var-status
-      ("not-found" (error "Var %s not found" sym))
-      ("not-traceable" (error "Var %s can't be traced because it's not bound to a function" var-name))
-      (_ (message "Var %s %s" var-name var-status)))))
+      ("not-found" (error "Var %s not found" (cider-propertize-var sym)))
+      ("not-traceable" (error "Var %s can't be traced because it's not bound to a function" (cider-propertize-var var-name)))
+      (_ (message "Var %s %s" (cider-propertize-var var-name) var-status)))))
 
 (defun cider-toggle-trace-var (arg)
   "Toggle var tracing.
@@ -1234,8 +1235,8 @@ opposite of what that option dictates."
 
 (defun cider-sync-request:toggle-trace-ns (ns)
   "Toggle namespace tracing for NS."
-  (cider-ensure-op-supported "toggle-trace-ns")
   (thread-first (list "op" "toggle-trace-ns"
+                      "session" (cider-current-session)
                       "ns" ns)
     (cider-nrepl-send-sync-request)))
 
@@ -1250,11 +1251,11 @@ Defaults to the current ns.  With prefix arg QUERY, prompts for a ns."
     (let* ((trace-response (cider-sync-request:toggle-trace-ns ns))
            (ns-status (nrepl-dict-get trace-response "ns-status")))
       (pcase ns-status
-        ("not-found" (error "ns %s not found" ns))
-        (_ (message "ns %s %s" ns ns-status))))))
+        ("not-found" (error "Namespace %s not found" (cider-propertize-ns ns)))
+        (_ (message "Namespace %s %s" (cider-propertize-ns ns) ns-status))))))
 
 (defun cider-undef ()
-  "Undefine the SYMBOL."
+  "Undefine a symbol from the current ns."
   (interactive)
   (cider-ensure-op-supported "undef")
   (cider-read-symbol-name
@@ -1262,6 +1263,7 @@ Defaults to the current ns.  With prefix arg QUERY, prompts for a ns."
    (lambda (sym)
      (cider-nrepl-send-request
       (list "op" "undef"
+            "session" (cider-current-session)
             "ns" (cider-current-ns)
             "symbol" sym)
       (cider-interactive-eval-handler (current-buffer))))))
@@ -1276,35 +1278,36 @@ Defaults to the current ns.  With prefix arg QUERY, prompts for a ns."
                          (unless cider-refresh-show-log-buffer
                            (let ((message-truncate-lines t))
                              (message "cider-refresh: %s" message)))))
-      (cond (out
-             (log out))
+      (cond
+       (out
+        (log out))
 
-            (err
-             (log err 'font-lock-warning-face))
+       (err
+        (log err 'font-lock-warning-face))
 
-            ((member "invoking-before" status)
-             (log-echo (format "Calling %s\n" before) 'font-lock-string-face))
+       ((member "invoking-before" status)
+        (log-echo (format "Calling %s\n" before) 'font-lock-string-face))
 
-            ((member "invoked-before" status)
-             (log-echo (format "Successfully called %s\n" before) 'font-lock-string-face))
+       ((member "invoked-before" status)
+        (log-echo (format "Successfully called %s\n" before) 'font-lock-string-face))
 
-            (reloading
-             (log-echo (format "Reloading %s\n" reloading) 'font-lock-string-face))
+       (reloading
+        (log-echo (format "Reloading %s\n" reloading) 'font-lock-string-face))
 
-            ((member "reloading" (nrepl-dict-keys response))
-             (log-echo "Nothing to reload\n" 'font-lock-string-face))
+       ((member "reloading" (nrepl-dict-keys response))
+        (log-echo "Nothing to reload\n" 'font-lock-string-face))
 
-            ((member "ok" status)
-             (log-echo "Reloading successful\n" 'font-lock-string-face))
+       ((member "ok" status)
+        (log-echo "Reloading successful\n" 'font-lock-string-face))
 
-            (error-ns
-             (log-echo (format "Error reloading %s\n" error-ns) 'font-lock-warning-face))
+       (error-ns
+        (log-echo (format "Error reloading %s\n" error-ns) 'font-lock-warning-face))
 
-            ((member "invoking-after" status)
-             (log-echo (format "Calling %s\n" after) 'font-lock-string-face))
+       ((member "invoking-after" status)
+        (log-echo (format "Calling %s\n" after) 'font-lock-string-face))
 
-            ((member "invoked-after" status)
-             (log-echo (format "Successfully called %s\n" after) 'font-lock-string-face))))
+       ((member "invoked-after" status)
+        (log-echo (format "Successfully called %s\n" after) 'font-lock-string-face))))
 
     (with-selected-window (or (get-buffer-window cider-refresh-log-buffer)
                               (selected-window))
@@ -1347,32 +1350,15 @@ unloaded."
   (with-current-buffer (find-file-noselect file)
     (substring-no-properties (buffer-string))))
 
-(defun cider-load-file (filename)
-  "Load (eval) the Clojure file FILENAME in nREPL."
-  (interactive (list
-                (read-file-name "Load file: " nil nil nil
-                                (when (buffer-file-name)
-                                  (file-name-nondirectory
-                                   (buffer-file-name))))))
-  (cider-ensure-connected)
-  (when-let ((buf (find-buffer-visiting filename)))
-    (with-current-buffer buf
-      (remove-overlays nil nil 'cider-type 'instrumented-defs)
-      (cider--clear-compilation-highlights)))
-  (cider--quit-error-window)
-  (cider--cache-ns-form)
-  (cider-request:load-file
-   (cider-file-string filename)
-   (funcall cider-to-nrepl-filename-function (cider--server-filename filename))
-   (file-name-nondirectory filename))
-  (message "Loading %s..." filename))
-
 (defun cider-load-buffer (&optional buffer)
   "Load (eval) BUFFER's file in nREPL.
 If no buffer is provided the command acts on the current buffer.
-The heavy lifting is done by `cider-load-file'."
+
+If the buffer is for a cljc or cljx file, and both a Clojure and
+ClojureScript REPL exists for the project, it is evaluated in both REPLs."
   (interactive)
   (check-parens)
+  (cider-ensure-connected)
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
     (unless buffer-file-name
@@ -1382,7 +1368,34 @@ The heavy lifting is done by `cider-load-file'."
                (or (eq cider-prompt-save-file-on-load 'always-save)
                    (y-or-n-p (format "Save file %s? " buffer-file-name))))
       (save-buffer))
-    (cider-load-file buffer-file-name)))
+    (remove-overlays nil nil 'cider-type 'instrumented-defs)
+    (cider--clear-compilation-highlights)
+    (cider--quit-error-window)
+    (cider--cache-ns-form)
+    (let ((filename (buffer-file-name)))
+      (cider-map-connections
+       (lambda (connection)
+         (cider-request:load-file (cider-file-string filename)
+                                  (funcall cider-to-nrepl-filename-function
+                                           (cider--server-filename filename))
+                                  (file-name-nondirectory filename)
+                                  connection)))
+      (message "Loading %s..." filename))))
+
+(defun cider-load-file (filename)
+  "Load (eval) the Clojure file FILENAME in nREPL.
+
+If the file is a cljc or cljx file, and both a Clojure and ClojureScript
+REPL exists for the project, it is evaluated in both REPLs.
+
+The heavy lifting is done by `cider-load-buffer'."
+  (interactive (list
+                (read-file-name "Load file: " nil nil nil
+                                (when (buffer-file-name)
+                                  (file-name-nondirectory
+                                   (buffer-file-name))))))
+  (when-let ((buffer (find-buffer-visiting filename)))
+    (cider-load-buffer buffer)))
 
 (defalias 'cider-eval-file 'cider-load-file
   "A convenience alias as some people are confused by the load-* names.")
@@ -1531,7 +1544,8 @@ and all ancillary CIDER buffers."
           (cider--quit-connection connection))
         (message "All active nREPL connections were closed"))
     (let ((connection (cider-current-connection)))
-      (when (y-or-n-p (format "Are you sure you want to quit the current CIDER connection %s? " connection))
+      (when (y-or-n-p (format "Are you sure you want to quit the current CIDER connection %s? "
+                              (cider-propertize-bold (buffer-name connection))))
         (cider--quit-connection connection))))
   ;; if there are no more connections we can kill all ancillary buffers
   (unless (cider-connected-p)
@@ -1543,7 +1557,8 @@ and all ancillary CIDER buffers."
     (cider--quit-connection conn)
     ;; Workaround for a nasty race condition https://github.com/clojure-emacs/cider/issues/439
     ;; TODO: Find a better way to ensure `cider-quit' has finished
-    (message "Waiting for CIDER connection %s to quit..." conn)
+    (message "Waiting for CIDER connection %s to quit..."
+             (cider-propertize-bold (buffer-name conn)))
     (sleep-for 2)
     (if project-dir
         (let ((default-directory project-dir))
@@ -1573,7 +1588,9 @@ With a prefix argument, prompt for function to run instead of -main."
   (interactive (list (when current-prefix-arg (read-string "Function name: "))))
   (let ((name (or function "-main")))
     (when-let ((response (cider-nrepl-send-sync-request
-                          (list "op" "ns-list-vars-by-name" "name" name))))
+                          (list "op" "ns-list-vars-by-name"
+                                "session" (cider-current-session)
+                                "name" name))))
       (if-let ((vars (split-string (substring (nrepl-dict-get response "var-list") 1 -1))))
           (cider-interactive-eval
            (if (= (length vars) 1)
@@ -1586,7 +1603,7 @@ With a prefix argument, prompt for function to run instead of -main."
                                         completions nil t nil
                                         'cider--namespace-history def)
                        name))))
-        (user-error "No %s var defined in any namespace" name)))))
+        (user-error "No %s var defined in any namespace" (cider-propertize-var name))))))
 
 (defconst cider-manual-url "https://github.com/clojure-emacs/cider/blob/master/README.md"
   "The URL to CIDER's manual.")

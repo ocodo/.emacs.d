@@ -181,7 +181,8 @@ To be used for tooling calls (i.e. completion, eldoc, etc)")
 
 ;;; nREPL Buffer Names
 
-(defconst nrepl-message-buffer-name "*nrepl-messages*")
+(defconst nrepl-message-buffer-name-template "*nrepl-messages %s*")
+(defconst nrepl-error-buffer-name "*nrepl-error*")
 (defconst nrepl-repl-buffer-name-template "*cider-repl%s*")
 (defconst nrepl-connection-buffer-name-template "*nrepl-connection%s*")
 (defconst nrepl-server-buffer-name-template "*nrepl-server%s*")
@@ -492,12 +493,12 @@ object is a root list or dict."
     (cons :stub stack))
    ;; else, throw a quiet error
    (t
-    (message "Invalid bencode message detected. See %s buffer."
-             nrepl-message-buffer-name)
-    (nrepl-log-message
+    (message "Invalid bencode message detected. See the %s buffer for details."
+             nrepl-error-buffer-name)
+    (nrepl-log-error
      (format "Decoder error at position %d (`%s'):"
              (point) (buffer-substring (point) (min (+ (point) 10) (point-max)))))
-    (nrepl-log-message (buffer-string))
+    (nrepl-log-error (buffer-string))
     (ding)
     ;; Ensure loop break and clean queues' states in nrepl-bdecode:
     (goto-char (point-max))
@@ -578,7 +579,6 @@ callbacks from running.")
 
 (defun nrepl-client-filter (proc string)
   "Decode message(s) from PROC contained in STRING and dispatch them."
-  ;; (nrepl-log-message string)
   (let ((string-q (process-get proc :string-q)))
     (queue-enqueue string-q string)
     ;; Start decoding only if the last letter is 'e'
@@ -598,7 +598,7 @@ First we check the callbacks of pending requests.  If no callback was found,
 we check the completed requests, since responses could be received even for
 older requests with \"done\" status."
   (nrepl-dbind-response response (id)
-    (nrepl-log-message (cons '<- (cdr response)))
+    (nrepl-log-message response 'response)
     (let ((callback (or (gethash id nrepl-pending-requests)
                         (gethash id nrepl-completed-requests))))
       (if callback
@@ -897,14 +897,17 @@ REQUEST is a pair list of the form (\"op\" \"operation\" \"par1-name\"
 \"par1\" ... ). See the code of `nrepl-request:clone',
 `nrepl-request:stdin', etc.
 Return the ID of the sent message."
-  (let* ((id (nrepl-next-request-id connection))
-         (request (cons 'dict (lax-plist-put request "id" id)))
-         (message (nrepl-bencode request)))
-    (nrepl-log-message (cons '---> (cdr request)))
-    (with-current-buffer connection
+  (with-current-buffer connection
+    (unless (or (plist-get request "session")
+                (not nrepl-session))
+      (setq request (append request (list "session" nrepl-session))))
+    (let* ((id (nrepl-next-request-id connection))
+           (request (cons 'dict (lax-plist-put request "id" id)))
+           (message (nrepl-bencode request)))
+      (nrepl-log-message request 'request)
       (puthash id callback nrepl-pending-requests)
-      (process-send-string nil message))
-    id))
+      (process-send-string nil message)
+      id)))
 
 (defvar nrepl-ongoing-sync-request nil
   "Dynamically bound to t while a sync request is ongoing.")
@@ -996,7 +999,7 @@ If LINE and COLUMN are non-nil and current buffer is a file buffer, \"line\",
                     "line" line
                     "column" column)))))
 
-(defun nrepl-request:eval (input callback connection session &optional ns line column)
+(defun nrepl-request:eval (input callback connection &optional session ns line column)
   "Send the request INPUT and register the CALLBACK as the response handler.
 The request is dispatched via CONNECTION and SESSION.  If NS is non-nil,
 include it in the request. LINE and COLUMN, if non-nil, define the position
@@ -1138,7 +1141,7 @@ the port, and the client buffer."
 ;;; Messages
 
 (defcustom nrepl-log-messages t
-  "If non-nil, log protocol messages to the `nrepl-message-buffer-name' buffer."
+  "If non-nil, log protocol messages to the `nrepl-message-buffer-name-template' buffer."
   :type 'boolean
   :group 'nrepl)
 
@@ -1175,17 +1178,26 @@ operations.")
   (setq-local paragraph-start "(--->\\|(<-")
   (setq-local paragraph-separate "(<-"))
 
-(defun nrepl-log-message (msg)
-  "Log the given MSG to the buffer given by `nrepl-message-buffer-name'."
+(defun nrepl-decorate-msg (msg type)
+  "Decorate nREPL MSG according to its TYPE."
+  (pcase type
+    (`request (cons '---> (cdr msg)))
+    (`response (cons '<- (cdr msg)))))
+
+(defun nrepl-log-message (msg type)
+  "Log the given MSG to the buffer given by `nrepl-message-buffer-name-template'.
+
+TYPE is either request or response."
   (when nrepl-log-messages
-    (with-current-buffer (nrepl-messages-buffer)
+    (with-current-buffer (nrepl-messages-buffer msg)
       (setq buffer-read-only nil)
       (when (> (buffer-size) nrepl-message-buffer-max-size)
         (goto-char (/ (buffer-size) nrepl-message-buffer-reduce-denominator))
         (re-search-forward "^(" nil t)
         (delete-region (point-min) (- (point) 1)))
       (goto-char (point-max))
-      (nrepl--pp msg (nrepl--message-color (lax-plist-get (cdr msg) "id")))
+      (nrepl--pp (nrepl-decorate-msg msg type)
+                 (nrepl--message-color (lax-plist-get (cdr msg) "id")))
       (when-let ((win (get-buffer-window)))
         (set-window-point win (point-max)))
       (setq buffer-read-only t))))
@@ -1244,20 +1256,47 @@ Set this to nil to prevent truncation."
                   (make-button (1+ l) (point)
                                'display "..."
                                'action #'nrepl--expand-button
+                               'mouse-action #'nrepl--expand-button
                                'face 'link
                                'help-echo "RET: Expand dict."
                                'follow-link t))))
             (insert (color ")\n"))))))))
 
-(defun nrepl-messages-buffer ()
-  "Return or create the buffer given by `nrepl-message-buffer-name'.
-The default buffer name is *nrepl-messages*."
-  (or (get-buffer nrepl-message-buffer-name)
-      (let ((buffer (get-buffer-create nrepl-message-buffer-name)))
+(defun nrepl-messages-buffer (msg)
+  "Return or create the buffer for MSG.
+The default buffer name is *nrepl-messages session*."
+  ;; Log `new-session' replies to the "orphan" buffer, because that's probably
+  ;; where we logged the request it's replying to.
+  (let* ((msg-session (or (unless (nrepl-dict-get msg "new-session")
+                            (nrepl-dict-get msg "session"))
+                          "00000000-0000-0000-0000-000000000000"))
+         (msg-buffer-name (format nrepl-message-buffer-name-template msg-session)))
+    (or (get-buffer msg-buffer-name)
+        (let ((buffer (get-buffer-create msg-buffer-name)))
+          (with-current-buffer buffer
+            (buffer-disable-undo)
+            (nrepl-messages-mode)
+            buffer)))))
+
+(defun nrepl-error-buffer ()
+  "Return or create the buffer.
+The default buffer name is *nrepl-error*."
+  (or (get-buffer nrepl-error-buffer-name)
+      (let ((buffer (get-buffer-create nrepl-error-buffer-name)))
         (with-current-buffer buffer
           (buffer-disable-undo)
-          (nrepl-messages-mode)
+          (fundamental-mode)
           buffer))))
+
+(defun nrepl-log-error (msg)
+  "Log the given MSG to the buffer given by `nrepl-error-buffer'."
+  (with-current-buffer (nrepl-error-buffer)
+    (setq buffer-read-only nil)
+    (goto-char (point-max))
+    (insert msg)
+    (when-let ((win (get-buffer-window)))
+      (set-window-point win (point-max)))
+    (setq buffer-read-only t)))
 
 (defun nrepl-create-client-buffer-default (endpoint)
   "Create an nREPL client process buffer.
