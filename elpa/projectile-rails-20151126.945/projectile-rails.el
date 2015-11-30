@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20151117.2
+;; Package-Version: 20151126.945
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -668,7 +668,7 @@ The bound variable is \"filename\"."
           ((string-match "spec/[^/]+/\\(.+\\)_spec\\.rb$" name)
            (projectile-rails--expand-snippet
             (format
-             "require \"spec_helper\"\n\ndescribe %s do\n$1\nend"
+             "require \"${1:rails_helper}\"\n\nRSpec.describe %s do\n$1\nend"
              (s-join "::" (projectile-rails-classify (match-string 1 name))))))
           ((string-match "app/models/\\(.+\\)\\.rb$" name)
            (projectile-rails--expand-snippet
@@ -831,12 +831,15 @@ The bound variable is \"filename\"."
            (projectile-rails-sanitize-and-goto-file "app/models/" (singularize-string name) ".rb"))
 
           ((string-match-p "^[A-Z]" name)
-           (loop for dir in (-concat
-                             (--map
-                              (concat "app/" it)
-                              (projectile-rails-list-entries 'f-directories "app/"))
-                             '("lib/"))
+           (loop for dir in (projectile-rails--code-directories)
                  until (projectile-rails-sanitize-and-goto-file dir name ".rb"))))))
+
+(defun projectile-rails--code-directories ()
+  (let ((app-dirs (projectile-rails-list-entries 'f-directories "app/")))
+    (-concat
+     (--map (concat "app/" it "/") app-dirs)
+     (--map (concat "app/" it "/concerns/") app-dirs)
+     '("lib/"))))
 
 (defun projectile-rails--view-p (path)
   (string-prefix-p "app/views/" (s-chop-prefix (projectile-rails-root) path)))
