@@ -4,12 +4,12 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Package-Version: 20151121.1415
-;; Version: 3.8
+;; Package-Version: 20151129.2144
+;; Version: 3.9
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
-;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.8") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.9") (cl-lib "0.5"))
 ;; Filename: ido-ubiquitous.el
 
 ;; This file is NOT part of GNU Emacs.
@@ -71,7 +71,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-ubiquitous-version "3.8"
+(defconst ido-ubiquitous-version "3.9"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-ubiquitous, this variable may not
@@ -409,6 +409,9 @@ functions marked as interactive. See
 `ido-ubiquitous-function-overrides' for how to modify the
 behavior of ido-ubiquitous for arbitrary functions.
 
+Note: If multiple overrides match the same commmand, the first
+one in the list will take precedence.
+
 If you need to add a new specification to this list, please also
 file a bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   :type '(repeat ido-ubiquitous-command-override-spec)
@@ -468,18 +471,34 @@ each function to apply the appropriate override."
         (cl-loop for (action match-type func) in newval
                  collect (list action match-type
                                (ido-ubiquitous--as-string func))))
-  (set-default sym newval)
   ;; set new overrides
-  (cl-loop for override in (eval sym)
+  (cl-loop for override in newval
            for (action match-type func) = override
-           if (eq match-type 'exact)
+
+           ;; Remove duplicate overrides
+           if (member func overridden-functions)
+           do (display-warning
+               'ido-ubiquitous
+               (format
+                "Removing duplicate override for function `%s'" func))
+
+           ;; Apply valid overrides
+           else if (eq match-type 'exact)
            do (ido-ubiquitous-apply-function-override func action)
+           and collect func into overridden-functions
+           and collect override into final-value
+
+           ;; Remove invalid overrides
            else
            do (display-warning
                'ido-ubiquitous
                (format
-                "Ignoring invalid function override match-type `%s' for function `%s'; only match-type `exact' is supported in `ido-ubiquitous-function-overrides'."
-                match-type func))))
+                "Removing invalid function override match-type `%s' for function `%s'; only match-type `exact' is supported in `ido-ubiquitous-function-overrides'."
+                match-type func))
+
+           ;; Set the value to only the overrides that were actually
+           ;; applied.
+           finally return (set-default sym final-value)))
 
 (defcustom ido-ubiquitous-function-overrides ido-ubiquitous-default-function-overrides
   "List of function override specifications for ido-ubiquitous
@@ -490,6 +509,12 @@ command override specifications (see
 specification has the form `(BEHAVIOR MATCH-TYPE MATCH-TEXT)'.
 However, `MATCH-TYPE' may ONLY be `exact'; No other match type is
 supported.
+
+Note: If multiple overrides are set for the same function, the
+first one in the list will take precedence, and the rest will be
+ignored and deleted from the override list, with a warning.
+Invalid override specifications will also be deleted with a
+warning.
 
 If you need to add a new specification to this list, please also file a
 bug report at https://github.com/DarwinAwardWinner/ido-ubiquitous/issues
@@ -614,7 +639,7 @@ completion for them."
       (ido-ubiquitous-fallback
        (ido-ubiquitous--explain-fallback sig)
        (apply ido-cr+-fallback-function orig-args)))))
-(define-obsolete-function-alias 'completing-read-ido #'completing-read-ido-ubiquitous
+(define-obsolete-function-alias 'completing-read-ido 'completing-read-ido-ubiquitous
   "ido-ubiquitous 3.0")
 
 ;;; Old-style default support
