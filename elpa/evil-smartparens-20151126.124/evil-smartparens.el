@@ -4,10 +4,10 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/evil-smartparens
-;; Package-Version: 20150913.58
+;; Package-Version: 20151126.124
 ;; Keywords: evil smartparens
 ;; Version: 0.3.0
-;; Package-Requires: ((evil "1.0") (cl-lib "0.3") (emacs "24.4") (smartparens "1.6.3"))
+;; Package-Requires: ((evil "1.0") (emacs "24.4") (smartparens "1.6.3"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -33,6 +33,7 @@
 (require 'evil)
 (require 'smartparens)
 (require 'subr-x)
+(require 'cl-lib)
 
 (defgroup evil-smartparens nil
   "`evil-mode' compat for `smartparens-mode'"
@@ -302,7 +303,7 @@ Unfortunately this only works for lisps."
           (let ((parse-state (parse-partial-sexp (point) point)))
             (when parse-state
               (let ((in-string-p (nth 3 parse-state))
-                    (depth (first parse-state)))
+                    (depth (cl-first parse-state)))
                 (if in-string-p
                     (1+ depth)
                   depth)))))))))

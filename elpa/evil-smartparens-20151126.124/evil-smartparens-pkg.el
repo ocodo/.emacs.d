@@ -1,0 +1,1 @@
+(define-package "evil-smartparens" "20151126.124" "Evil support for smartparens" '((evil "1.0") (emacs "24.4") (smartparens "1.6.3")) :url "https://www.github.com/expez/evil-smartparens" :keywords '("evil" "smartparens"))
