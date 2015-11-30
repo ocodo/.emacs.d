@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "tern-auto-complete" "tern-auto-complete.el"
-;;;;;;  (21975 62433 3401 0))
+;;;;;;  (22108 42287 625176 480000))
 ;;; Generated autoloads from tern-auto-complete.el
 
 (autoload 'tern-ac-setup "tern-auto-complete" "\

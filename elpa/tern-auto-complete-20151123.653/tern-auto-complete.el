@@ -1,9 +1,8 @@
-;;; -*- lexical-binding: t -*-
-;;; tern-auto-complete.el --- Tern Completion by auto-complete.el
+;;; tern-auto-complete.el --- Tern Completion by auto-complete.el -*- lexical-binding: t -*-
 
 ;; Author:  <m.sakurai at kiwanami.net>
 ;; Version: 0.0.1
-;; Package-Version: 20150611.639
+;; Package-Version: 20151123.653
 ;; Package-Requires: ((tern "0.0.1") (auto-complete "1.4") (cl-lib "0.5") (emacs "24"))
 
 ;;; Commentary:
