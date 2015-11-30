@@ -4,7 +4,7 @@
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; Keywords: convenience editing evil smartparens lisp mnemonic
-;; Package-Version: 20151122.725
+;; Package-Version: 20151126.1206
 ;; Created: 9 Oct 2014
 ;; Version: 8.0
 ;; Package-Requires: ((evil "1.0.9") (bind-map "0") (smartparens "1.6.1"))
@@ -45,6 +45,7 @@
 
 ;; Key Binding  | Function
 ;; -------------|------------------------------------------------------------
+;; `leader .'   | switch to `lisp state'
 ;; `leader %'   | evil jump item
 ;; `leader :'   | ex command
 ;; `leader ('   | insert expression before (same level as current one)
@@ -101,16 +102,17 @@
 ;; `evil-lisp-state-major-modes' has no effect.
 
 ;; The leader key is `SPC l' by default, it is possible to
-;; change it with the variable `evil-lisp-state-leader'.
+;; change it with the function `evil-lisp-state-leader'.
 
 ;; If you don't want commands to enter in `lisp state' by default
 ;; set the variable `evil-lisp-state-enter-lisp-state-on-command'
-;; to nil. Then use the `,,' to enter manually in `lisp state'
+;; to nil. Then use the `.' to enter manually in `lisp state'
 
 ;;; Code:
 
 (require 'evil)
 (require 'smartparens)
+(require 'bind-map)
 
 (evil-define-state lisp
   "Lisp state.
@@ -127,11 +129,6 @@
   :prefix 'evil-lisp-state-)
 
 (eval-and-compile
-  (defcustom evil-lisp-state-leader "SPC l"
-    "Leader key."
-    :type 'string
-    :group 'evil-lisp-state)
-
   (defcustom evil-lisp-state-global nil
     "If non nil evil-lisp-state is available everywhere."
     :type 'boolean
@@ -171,18 +168,22 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
 
 
 ;; leader maps
-(bind-map evil-lisp-state-map
-  :evil-keys (evil-lisp-state-leader)
-  :evil-states (normal))
-(bind-map evil-lisp-state-major-modes-map
-  :evil-keys (evil-lisp-state-leader)
-  :evil-states (normal)
-  :major-modes (evil-lisp-state-major-modes))
+(defun evil-lisp-state-leader (leader)
+  "Set LEADER."
+  (bind-map evil-lisp-state-map
+    :evil-keys (leader)
+    :evil-states (normal))
+  (eval
+   `(bind-map evil-lisp-state-major-mode-map
+      :evil-keys (,leader)
+      :evil-states (normal)
+      :major-modes ,evil-lisp-state-major-modes)))
+(evil-lisp-state-leader "SPC l")
 
 ;; escape
 (define-key evil-lisp-state-map [escape] 'evil-normal-state)
 ;; toggle lisp state
-(define-key evil-lisp-state-map ",," 'lisp-state-toggle-lisp-state)
+(define-key evil-lisp-state-map "." 'lisp-state-toggle-lisp-state)
 ;; hjkl
 (define-key evil-lisp-state-map "h" 'evil-backward-char)
 (define-key evil-lisp-state-map "j" 'evil-next-visual-line)
@@ -261,11 +262,12 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
 (defun lisp-state-toggle-lisp-state ()
   "Toggle the lisp state."
   (interactive)
-  (message "state: %s" evil-state)
   (if (eq 'lisp evil-state)
-      (evil-normal-state)
+      (progn
+        (message "state: lisp -> normal")
+        (evil-normal-state))
+    (message "state: %s -> lisp" evil-state)
     (evil-lisp-state)))
-
 (defun lisp-state-wrap (&optional arg)
   "Wrap a symbol with parenthesis."
   (interactive "P")
