@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 1.1.5
-;; Package-Version: 20151120.2338
+;; Version: 1.1.6
+;; Package-Version: 20151130.104
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -311,6 +311,13 @@ It's single argument is the created perspective."
 (defcustom persp-before-kill-functions nil
   "The list of functions that runs just before a perspective will be destroyed.
 It's single argument is the perspective that will be killed."
+  :group 'persp-mode
+  :type '(repeat (function :tag "Function")))
+
+(defcustom persp-before-switch-functions nil
+  "The list of functions that runs before actually switching to a perspective.
+These functions must take one argument -- a name of a perspective to switch
+(it could be a name of an unexistent perspective or it could be the same as current)."
   :group 'persp-mode
   :type '(repeat (function :tag "Function")))
 
@@ -918,7 +925,7 @@ Switch all frames with that perspective to another one.
 Return the removed perspective."
   (interactive "i")
   (unless name
-    (setq name (persp-prompt "to remove"
+    (setq name (persp-prompt nil "to remove"
                              (and (eq phash *persp-hash*) (safe-persp-name (get-frame-persp)))
                              t t)))
   (let ((persp (persp-get-by-name name phash))
@@ -1027,7 +1034,7 @@ If run interactively assume import from some perspective that is in the `*persp-
 into the current."
   (interactive "i")
   (unless name
-    (setq name (persp-prompt "to import buffers from" nil t nil t)))
+    (setq name (persp-prompt nil "to import buffers from" nil t nil t)))
   (let ((persp-from (persp-get-by-name name phash)))
     (persp-import-buffers-from persp-from persp-to)))
 
@@ -1083,7 +1090,7 @@ Return that old buffer."
 (defun persp-kill (name)
   (interactive "i")
   (unless name
-    (setq name (persp-prompt "to kill" (safe-persp-name (get-frame-persp)) t)))
+    (setq name (persp-prompt nil "to kill" (safe-persp-name (get-frame-persp)) t)))
   (when (or (not (string= name persp-nil-name))
             (yes-or-no-p "Really kill the 'nil' perspective\
 (It'l kill all buffers)?"))
@@ -1099,7 +1106,7 @@ Return that old buffer."
 (defun persp-kill-without-buffers (name)
   (interactive "i")
   (unless name
-    (setq name (persp-prompt "to kill(not killing buffers)"
+    (setq name (persp-prompt nil "to kill(not killing buffers)"
                              (safe-persp-name (get-frame-persp)) t)))
   (when (not (string= name persp-nil-name))
     (let ((persp (gethash name *persp-hash* :+-123emptynooo))
@@ -1136,7 +1143,8 @@ If there is no perspective with that name it will be created.
 Return `NAME'."
   (interactive "i")
   (unless name
-    (setq name (persp-prompt "to switch to" nil nil nil t)))
+    (setq name (persp-prompt nil "to switch to" nil nil nil t)))
+  (run-hook-with-args 'persp-before-switch-functions name)
   (if (string= name (safe-persp-name (get-frame-persp frame)))
       name
     (persp-frame-save-state frame)
@@ -1222,17 +1230,39 @@ Return `NAME'."
                             (vector str_name #'(lambda () (interactive)
                                                  (persp-kill str_name))))))))
 
-(defun persp-prompt (action &optional default require-match delnil delcur)
-  (let ((persps (persp-names-current-frame-fast-ordered)))
+(defun persp-prompt (multiple action &optional default require-match delnil delcur persp-list)
+  (let ((persps (or persp-list
+                    (persp-names-current-frame-fast-ordered))))
     (when delnil
       (setq persps (delete persp-nil-name persps)))
     (when delcur
       (setq persps (delete (safe-persp-name (get-frame-persp)) persps)))
-    (funcall persp-interactive-completion-function
-             (concat "Perspective name " action
-                     (if default (concat " (default " default ")") "")
-                     ": ")
-             persps nil require-match nil nil default)))
+    (let (retlst)
+      (macrolet ((call-pif ()
+                           `(funcall persp-interactive-completion-function
+                                     (concat
+                                      (when retlst
+                                        (concat "(" (mapconcat #'identity retlst " ") ") "))
+                                      "Perspective name " action
+                                      (if default (concat " (default " default ")") "")
+                                      ": ")
+                                     persps nil require-match nil nil default)))
+        (if multiple
+            (let ((done_str "[>done<]")
+                  cp)
+              (push done_str persps)
+              (block 'multi-ret
+                (while (setq cp (call-pif))
+                  (when default
+                    (setq persps (cdr persps)
+                          persps (cons default persps)
+                          persps (cons done_str persps))
+                    (setq default nil))
+                  (if (string= cp done_str)
+                      (return-from 'multi-ret retlst)
+                    (setq persps (delete cp persps))
+                    (push cp retlst)))))
+          (call-pif))))))
 
 (defun persp-make-frame-buffer-predicate (frame)
   (lexical-let ((oldpred (frame-parameter frame 'buffer-predicate)))
@@ -1457,7 +1487,8 @@ does not exist or not a directory %S." p-save-dir)
         (persp-save-all-persps-state)
         (if respect-persp-file-parameter
             (let ((fg (persp-group-by #'(lambda (p) (persp-parameter 'persp-file p))
-                                      (persp-persps phash))))
+                                      (persp-persps phash)))
+                  (persp-auto-save-persps-to-their-file nil))
               (mapc #'(lambda (gr)
                         (let ((pfname (car gr)) (pl (cdr gr)) names)
                           (mapc #'(lambda (p) (push (safe-persp-name p) names)) pl)
@@ -1476,12 +1507,13 @@ does not exist or not a directory %S." p-save-dir)
 (defun* persp-save-to-file-by-names (&optional (fname persp-auto-save-fname)
                                                (phash *persp-hash*)
                                                names keep-others)
-  (interactive (list (read-file-name "Save subset of perspectives to file: "
-                                     persp-save-dir)))
+  (interactive)
   (unless names
-    (setq names (split-string (read-string (format "What perspectives to save%s: "
-                                                   (persp-names phash)))
-                              " " t)))
+    (setq names (persp-prompt t "to save" (safe-persp-name (get-frame-persp)) t)))
+  (when (or (not fname) (called-interactively-p 'any))
+    (setq fname (read-file-name (format "Save subset of perspectives%s to file: "
+                                        names)
+                                persp-save-dir)))
   (when names
     (unless keep-others
       (setq keep-others (if (and (file-exists-p fname) (yes-or-no-p "Keep other perspectives in the file?"))
@@ -1493,7 +1525,11 @@ does not exist or not a directory %S." p-save-dir)
         (persp-load-state-from-file fname temphash (persp-regexp-variants names "[^" "]"))
         (setq bufferlist-diff (delete-if #'(lambda (b) (memq b bufferlist-pre))
                                          (funcall persp-buffer-list-function))))
-      (mapc #'(lambda (pn) (persp-add (persp-get-by-name pn phash) temphash)) names)
+      (mapc #'(lambda (pn)
+                (let ((p (persp-add (persp-get-by-name pn phash) temphash)))
+                  (when (and p persp-auto-save-persps-to-their-file)
+                    (set-persp-parameter 'persp-file fname p))))
+            names)
       (persp-save-state-to-file fname temphash nil)
       (mapc #'kill-buffer bufferlist-diff))))
 
@@ -1628,10 +1664,7 @@ does not exist or not a directory %S." p-save-dir)
                                     (expand-file-name persp-save-dir))
                                 (file-name-nondirectory fname)))
            (available-names (persp-list-persp-names-in-file p-save-file)))
-      (setq names (split-string (read-string (format "What perspectives to load%s: "
-                                                     ;;(mapconcat 'identity available-names " ")
-                                                     available-names ))
-                                " " t))))
+      (setq names (persp-prompt t "to load" nil nil nil available-names))))
   (when names
     (let ((names-regexp (persp-regexp-variants names)))
       (persp-load-state-from-file fname phash names-regexp t))))
