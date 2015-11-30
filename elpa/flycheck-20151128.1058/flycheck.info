@@ -928,7 +928,7 @@ File: flycheck.info,  Node: Defining syntax checkers,  Next: Finding error patte
 
 Flycheck provides the macro ‘flycheck-define-checker’ to define a new
 syntax checker.  The following example defines a simple syntax checker
-for the popular Pylint (http://www.pylint.org/) tool for Python:
+for the popular Rubocop (http://batsov.com/rubocop/) tool for Ruby:
 
      (flycheck-define-checker ruby-rubocop
        "A Ruby syntax and style checker using the RuboCop tool.
@@ -2957,70 +2957,70 @@ Ref: Syntax checker configuration files31293
 Ref: Syntax checker executables34180
 Node: Syntax checker definitions35384
 Node: Defining syntax checkers36565
-Node: Finding error patterns41851
-Node: Trying new checkers43395
-Node: Registering new checkers44080
-Node: Parsing structured output45628
-Node: Passing configuration to checkers46871
-Node: Controlling use of checkers50494
-Node: Applying multiple checkers51596
-Node: Flycheck hooks54867
-Node: Flycheck API56923
-Node: Command syntax checkers57261
-Node: Argument Substitution57631
-Node: Checker configuration57801
-Node: Error parsers58013
-Node: Errors58159
-Node: Supported languages58271
-Ref: language-Ada59480
-Ref: language-AsciiDoc60104
-Ref: language-C/C++60187
-Ref: language-CFEngine62788
-Ref: language-Chef62856
-Ref: language-Coffeescript63101
-Ref: language-Coq63501
-Ref: language-CSS63557
-Ref: language-D63667
-Ref: language-Emacs Lisp64112
-Ref: language-Erlang65240
-Ref: language-ERuby65494
-Ref: language-Fortran65589
-Ref: language-Go66482
-Ref: language-Groovy67417
-Ref: language-Haml67527
-Ref: language-Handlebars67596
-Ref: language-Haskell67678
-Ref: language-HTML69606
-Ref: language-Jade69903
-Ref: language-Javascript69982
-Ref: language-JSON71344
-Ref: language-Less71542
-Ref: language-Lua71599
-Ref: language-Perl71957
-Ref: language-PHP72492
-Ref: language-Puppet73196
-Ref: language-Python73378
-Ref: language-R74895
-Ref: language-RPM Spec75355
-Ref: language-reStructuredText75469
-Ref: language-Ruby75863
-Ref: language-Rust76877
-Ref: language-Sass77997
-Ref: language-Scala78250
-Ref: language-SCSS78816
-Ref: language-Shell scripting languages79376
-Ref: language-Slim80112
-Ref: language-SQL80177
-Ref: language-TeX/LaTeX80274
-Ref: language-Texinfo80686
-Ref: language-Verilog80781
-Ref: language-XML81096
-Ref: language-YAML81264
-Node: Issues81403
-Node: GNU Free Documentation License82424
-Node: Main Index107771
-Node: Key Index116115
-Node: Function and Variable Index117623
+Node: Finding error patterns41854
+Node: Trying new checkers43398
+Node: Registering new checkers44083
+Node: Parsing structured output45631
+Node: Passing configuration to checkers46874
+Node: Controlling use of checkers50497
+Node: Applying multiple checkers51599
+Node: Flycheck hooks54870
+Node: Flycheck API56926
+Node: Command syntax checkers57264
+Node: Argument Substitution57634
+Node: Checker configuration57804
+Node: Error parsers58016
+Node: Errors58162
+Node: Supported languages58274
+Ref: language-Ada59483
+Ref: language-AsciiDoc60107
+Ref: language-C/C++60190
+Ref: language-CFEngine62791
+Ref: language-Chef62859
+Ref: language-Coffeescript63104
+Ref: language-Coq63504
+Ref: language-CSS63560
+Ref: language-D63670
+Ref: language-Emacs Lisp64115
+Ref: language-Erlang65243
+Ref: language-ERuby65497
+Ref: language-Fortran65592
+Ref: language-Go66485
+Ref: language-Groovy67420
+Ref: language-Haml67530
+Ref: language-Handlebars67599
+Ref: language-Haskell67681
+Ref: language-HTML69609
+Ref: language-Jade69906
+Ref: language-Javascript69985
+Ref: language-JSON71347
+Ref: language-Less71545
+Ref: language-Lua71602
+Ref: language-Perl71960
+Ref: language-PHP72495
+Ref: language-Puppet73199
+Ref: language-Python73381
+Ref: language-R74898
+Ref: language-RPM Spec75358
+Ref: language-reStructuredText75472
+Ref: language-Ruby75866
+Ref: language-Rust76880
+Ref: language-Sass78000
+Ref: language-Scala78253
+Ref: language-SCSS78819
+Ref: language-Shell scripting languages79379
+Ref: language-Slim80115
+Ref: language-SQL80180
+Ref: language-TeX/LaTeX80277
+Ref: language-Texinfo80689
+Ref: language-Verilog80784
+Ref: language-XML81099
+Ref: language-YAML81267
+Node: Issues81406
+Node: GNU Free Documentation License82427
+Node: Main Index107774
+Node: Key Index116118
+Node: Function and Variable Index117626
 
 End Tag Table
 

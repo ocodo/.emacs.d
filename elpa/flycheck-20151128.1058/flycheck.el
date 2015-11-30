@@ -3360,17 +3360,23 @@ included file."
     (while remaining-errors
       (let* ((current-error (pop remaining-errors)))
         (when (funcall sentinel current-error)
-          ;; We found an error denoting errors in the included file, so process
-          ;; all subsequent errors until an error has the current file name
-          ;; again, and find the most severe error level
+          ;; We found an error denoting errors in the included file:
+          ;; 1. process all subsequent errors until faulty include file is found
+          ;; 2. process again all subsequent errors until an error has the
+          ;;    current file name again
+          ;; 3. find the most severe error level
           (let ((current-filename (flycheck-error-filename current-error))
                 (current-level nil)
-                (faulty-include-filename (flycheck-error-filename
-                                          (car remaining-errors))))
-            (while (and remaining-errors
-                        (not (string= (flycheck-error-filename
-                                       (car remaining-errors))
-                                      current-filename)))
+                (faulty-include-filename nil)
+                (filename nil)
+                (done (null remaining-errors)))
+
+            (while (not done)
+              (setq filename (flycheck-error-filename (car remaining-errors)))
+              (unless faulty-include-filename
+                (unless (string= filename current-filename)
+                  (setq faulty-include-filename filename)))
+
               (let* ((error-in-include (pop remaining-errors))
                      (in-include-level (flycheck-error-level error-in-include)))
                 (unless (funcall sentinel error-in-include)
@@ -3379,7 +3385,12 @@ included file."
                   (when (or (not current-level)
                             (> (flycheck-error-level-severity in-include-level)
                                (flycheck-error-level-severity current-level)))
-                    (setq current-level in-include-level)))))
+                    (setq current-level in-include-level))))
+
+              (setq done (or (null remaining-errors)
+                             (and faulty-include-filename
+                                  (string= filename current-filename)))))
+
             (setf (flycheck-error-level current-error) current-level
                   (flycheck-error-message current-error)
                   (format "In include %s" faulty-include-filename))))))
@@ -4323,8 +4334,7 @@ default `:verify' function of command checkers."
           ;; guard against syntax checker tools which are not installed
           (plist-put properties :predicate
                      (lambda ()
-                       (and (funcall flycheck-executable-find
-                                     (flycheck-checker-executable symbol))
+                       (and (flycheck-find-checker-executable symbol)
                             (or (not predicate) (funcall predicate))))))
 
     (apply #'flycheck-define-generic-checker symbol docstring
@@ -4369,6 +4379,13 @@ the syntax checker definition, if the variable is nil."
   (let ((var (flycheck-checker-executable-variable checker)))
     (or (and (boundp var) (symbol-value var))
         (flycheck-checker-default-executable checker))))
+
+(defun flycheck-find-checker-executable (checker)
+  "Get the full path of the executbale of CHECKER.
+
+Return the full absolute path to the executable of CHECKER, or
+nil if the executable does not exist."
+  (funcall flycheck-executable-find (flycheck-checker-executable checker)))
 
 (defun flycheck-checker-arguments (checker)
   "Get the command arguments of CHECKER."
@@ -4571,7 +4588,7 @@ symbols in the command."
   "Start a command CHECKER with CALLBACK."
   (let (process)
     (condition-case err
-        (let* ((program (flycheck-checker-executable checker))
+        (let* ((program (flycheck-find-checker-executable checker))
                (args (flycheck-checker-substituted-arguments checker))
                (command (funcall flycheck-command-wrapper-function
                                  (cons program args)))
@@ -4662,8 +4679,7 @@ symbols in the command."
 
 Return a list of `flycheck-verification-result' objects for
 CHECKER."
-  (let ((executable (funcall flycheck-executable-find
-                             (flycheck-checker-executable checker))))
+  (let ((executable (flycheck-find-checker-executable checker)))
     (list
      (flycheck-verification-result-new
       :label "executable"
@@ -7924,17 +7940,21 @@ See URL `https://github.com/brigade/scss-lint'."
   ;; Flycheck error.
   :error-parser flycheck-parse-scss-lint
   :modes scss-mode
-  :verify (lambda (_)
-            (with-temp-buffer
-              (call-process "scss-lint" nil t nil
-                            "--require=scss_lint_reporter_checkstyle")
-              (goto-char (point-min))
-              (let ((reporter-missing (re-search-forward
-                                       flycheck-scss-lint-checkstyle-re
-                                       nil 'no-error)))
+  :verify (lambda (checker)
+            (let* ((executable (flycheck-find-checker-executable checker))
+                   (reporter-missing
+                    (and executable
+                         (with-temp-buffer
+                           (call-process executable nil t nil
+                                         "--require=scss_lint_reporter_checkstyle")
+                           (goto-char (point-min))
+                           (re-search-forward
+                            flycheck-scss-lint-checkstyle-re
+                            nil 'no-error)))))
+              (when executable
                 (list
                  (flycheck-verification-result-new
-                  :label "Checkstyle reporter"
+                  :label "checkstyle reporter"
                   :message (if reporter-missing
                                "scss_lint_reporter_checkstyle missing"
                              "present")
