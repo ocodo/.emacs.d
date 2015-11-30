@@ -4,7 +4,7 @@
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: environment
-;; Package-Version: 20151121.1359
+;; Package-Version: 20151125.1133
 ;; URL: https://github.com/purcell/exec-path-from-shell
 ;; Version: DEV
 
@@ -81,6 +81,13 @@
   '("PATH" "MANPATH")
   "List of environment variables which are copied from the shell."
   :type '(repeat (string :tag "Environment variable"))
+  :group 'exec-path-from-shell)
+
+(defcustom exec-path-from-shell-check-startup-files t
+  "If non-nil, warn if variables are being set in the wrong shell startup files.
+Environment variables should be set in .profile or .zshenv rather than
+.bashrc or .zshrc."
+  :type 'boolean
   :group 'exec-path-from-shell)
 
 (defvar exec-path-from-shell-debug nil
@@ -189,23 +196,26 @@ variables such as `exec-path'."
 As a special case, if the variable is $PATH, then `exec-path' and
 `eshell-path-env' are also set appropriately.  The result is an alist,
 as described by `exec-path-from-shell-getenvs'."
-  (let ((pairs (exec-path-from-shell-getenvs names))
-        (without-minus-i (remove "-i" exec-path-from-shell-arguments)))
+  (let ((pairs (exec-path-from-shell-getenvs names)))
+    (when exec-path-from-shell-check-startup-files
+      (exec-path-from-shell--maybe-warn-about-startup-files pairs))
+    (mapc (lambda (pair)
+            (exec-path-from-shell-setenv (car pair) (cdr pair)))
+          pairs)))
 
+(defun exec-path-from-shell--maybe-warn-about-startup-files (pairs)
+  "Warn the user if the value of PAIRS seems to depend on interactive shell startup files."
+  (let ((without-minus-i (remove "-i" exec-path-from-shell-arguments)))
     ;; If the user is using "-i", we warn them if it is necessary.
     (unless (eq exec-path-from-shell-arguments without-minus-i)
       (let* ((exec-path-from-shell-arguments without-minus-i)
-             (alt-pairs (exec-path-from-shell-getenvs names))
+             (alt-pairs (exec-path-from-shell-getenvs (mapcar 'car pairs)))
              different)
         (dolist (pair pairs)
           (unless (equal pair (assoc (car pair) alt-pairs))
             (push (car pair) different)))
         (when different
-          (warn "You appear to be setting environment variables %S in your .bashrc or .zshrc: those files are only read by interactive shells, so you should instead set environment variables in startup files like .bash_profile or .zshenv.  Refer to your shell's man page for more info.  In future, exec-path-from-shell will not read variables set in the wrong files." different))))
-
-    (mapc (lambda (pair)
-            (exec-path-from-shell-setenv (car pair) (cdr pair)))
-          pairs)))
+          (message "You appear to be setting environment variables %S in your .bashrc or .zshrc: those files are only read by interactive shells, so you should instead set environment variables in startup files like .profile, .bash_profile or .zshenv.  Refer to your shell's man page for more info.  Customize `exec-path-from-shell-arguments' to remove \"-i\" when done, or disable `exec-path-from-shell-check-startup-files' to disable this message." different))))))
 
 ;;;###autoload
 (defun exec-path-from-shell-copy-env (name)
