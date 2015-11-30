@@ -4,8 +4,8 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/zone-nyan
-;; Package-Version: 20151113.1302
-;; Version: 0.2.0
+;; Package-Version: 20151124.1240
+;; Version: 0.2.1
 ;; Package-Requires: ((esxml "0.3.1"))
 ;; Keywords: zone
 
@@ -750,10 +750,10 @@ watching nyan cat run."
 (defun zone-nyan ()
   "Zone out with nyan cat!"
   (delete-other-windows)
+  (internal-show-cursor nil nil)
   (let ((time 0)
         ;; HACK zone aborts on read-only buffers
-        (inhibit-read-only t)
-        cursor-type)
+        (inhibit-read-only t))
     (unwind-protect
         (progn
           (when zone-nyan-bg-music-program
@@ -774,6 +774,7 @@ watching nyan cat run."
             (goto-char (point-min))
             (sit-for zone-nyan-interval)
             (setq time (1+ time))))
+      (internal-show-cursor nil t)
       (when zone-nyan-bg-music-process
         (delete-process zone-nyan-bg-music-process))
       (when zone-nyan-progress-timer
