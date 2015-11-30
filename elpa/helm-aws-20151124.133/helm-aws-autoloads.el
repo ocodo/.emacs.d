@@ -3,12 +3,12 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-aws" "helm-aws.el" (21783 34343 615401
-;;;;;;  0))
+;;;### (autoloads nil "helm-aws" "helm-aws.el" (22108 42403 513156
+;;;;;;  844000))
 ;;; Generated autoloads from helm-aws.el
 
 (autoload 'helm-aws "helm-aws" "\
-
+Show helm with a table of aws information.
 
 \(fn)" t nil)
 
