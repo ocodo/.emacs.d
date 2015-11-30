@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "macrostep" "macrostep.el" (22030 34873 517140
-;;;;;;  0))
+;;;### (autoloads nil "macrostep" "macrostep.el" (22108 42366 601162
+;;;;;;  572000))
 ;;; Generated autoloads from macrostep.el
 
 (autoload 'macrostep-mode "macrostep" "\
@@ -33,6 +33,24 @@ buffer instead of inline in the current buffer.  Setting
 behaviors.
 
 \(fn &optional TOGGLE-SEPARATE-BUFFER)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "macrostep-c" "macrostep-c.el" (22108 42366
+;;;;;;  601162 572000))
+;;; Generated autoloads from macrostep-c.el
+
+(autoload 'macrostep-c-mode-hook "macrostep-c" "\
+
+
+\(fn)" nil nil)
+
+(add-hook 'c-mode-hook #'macrostep-c-mode-hook)
+
+;;;***
+
+;;;### (autoloads nil nil ("macrostep-pkg.el") (22108 42366 612125
+;;;;;;  628000))
 
 ;;;***
 
