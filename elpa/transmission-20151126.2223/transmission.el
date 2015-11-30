@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.6
-;; Package-Version: 20151121.2132
+;; Package-Version: 20151126.2223
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -322,14 +322,11 @@ Details regarding the Transmission RPC can be found here:
   (when (buffer-live-p (process-buffer process))
     (unwind-protect
         (let* ((callback (process-get process :callback))
-               (buffer (and callback (process-get process :buffer)))
                (content (and callback
                              (with-current-buffer (process-buffer process)
                                (transmission--move-to-content)
                                (buffer-substring (point) (point-max))))))
-          (when (and callback (buffer-live-p buffer))
-            (with-current-buffer buffer
-              (funcall callback content))))
+          (if callback (run-at-time 0 nil callback content)))
       (kill-buffer (process-buffer process)))))
 
 (defun transmission-request-async (callback method &optional arguments tag)
@@ -342,7 +339,6 @@ METHOD, ARGUMENTS, and TAG are the same as in `transmission-request'."
     (set-process-sentinel process #'transmission-process-sentinel)
     (add-function :after (process-filter process) 'transmission-process-filter)
     (process-put process :request content)
-    (process-put process :buffer (current-buffer))
     (process-put process :callback callback)
     (transmission-http-post process content)
     process))
@@ -732,11 +728,15 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-toggle ()
   "Toggle torrent between started and stopped."
   (interactive)
-  (transmission-let-ids
-      ((torrent (transmission-torrents (list :ids ids :fields '("status"))))
-       (status (transmission-torrent-value torrent 'status))
-       (method (pcase status (0 "torrent-start") (_ "torrent-stop"))))
-    (transmission-request-async nil method (list :ids ids))))
+  (transmission-let-ids nil
+    (transmission-request-async
+     (lambda (content)
+       (let* ((response (json-read-from-string content))
+              (torrents (cdr (cadr (assq 'arguments response))))
+              (status (cdr (assq 'status (elt torrents 0))))
+              (method (pcase status (0 "torrent-start") (_ "torrent-stop"))))
+         (transmission-request-async nil method (list :ids ids))))
+     "torrent-get" (list :ids ids :fields '("status")))))
 
 (defun transmission-trackers-add ()
   "Add announce URLs to torrent or torrents."
@@ -918,15 +918,21 @@ CONNECTED, SENDING, RECEIVING are numbers."
                   `(cl-loop for alist across ,array with x = 0
                             if (eq t (cdr (assq ,key alist))) do (cl-incf x)
                             finally return x)))
-    (concat
-     (format "Peers: %d connected, uploading to %d, downloading from %d"
-             connected sending receiving)
-     (format " (%d unchoked, %d interested)\n"
-             (- connected (accumulate peers 'clientIsChoked))
-             (accumulate peers 'peerIsInterested))
-     (pcase-let ((`(_ ,dht _ _ _ ,pex ,tracker) (mapcar #'cdr origins)))
-       (format "Peer origins: %d from DHT, %d from PEX, %d from trackers\n"
-               dht pex tracker)))))
+    (if (zerop connected) "Peers: none\n"
+      (concat
+       (format "Peers: %d connected, uploading to %d, downloading from %d"
+               connected sending receiving)
+       (format " (%d unchoked, %d interested)\n"
+               (- connected (accumulate peers 'clientIsChoked))
+               (accumulate peers 'peerIsInterested))
+       (format
+        "Peer origins: %s\n"
+        (string-join
+         (cl-loop with x = 0 for cell in origins for src across
+                  ["cache" "DHT" "incoming" "LPD" "LTEP" "PEX" "tracker(s)"]
+                  if (not (zerop (setq x (cdr cell))))
+                  collect (format "%d from %s" x src))
+         ", "))))))
 
 (defun transmission-format-tracker (tracker)
   (let-alist tracker
