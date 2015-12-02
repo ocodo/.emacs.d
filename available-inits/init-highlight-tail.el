@@ -1,0 +1,7 @@
+(require 'highlight-tail)
+(setq  highlight-tail-colors '(("#AA1DD8" . 0)
+                               ("#1E2AEE" . 20)
+                               ("#0E6286" . 40)
+                               ("#14860E" . 60)
+                               ("#866B0E" . 80)
+                               ("#862F0E" . 99)))
