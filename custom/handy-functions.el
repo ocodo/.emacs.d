@@ -24,6 +24,7 @@
 ;; - ESC M-d  kill-whole-word
 ;; - ESC M-p  describe-thing-in-popup (just does emacs lisp functions and variables)
 ;; - C-c M-+  increase-default-font-height
+;; - C-c M--  decrease-default-font-height
 ;; - C-c =    set-default-font-height
 ;;
 ;;; Code:
@@ -563,6 +564,11 @@ OSX specific of course."
     (set-face-attribute 'default nil :height new-height)
     (message "Default font height set to %i" new-height)))
 
+(defun decrease-default-font-height (m)
+  "Adjust the default font :height by 10, universal argument is M (to set by multiples)."
+  (interactive "p")
+  (increase-default-font-height -1))
+
 (defun set-default-font-height (p)
   "Set the default font :height P (prefix arg) or enter in minibuffer."
   (interactive "P")
@@ -715,16 +721,26 @@ Use negative prefix P to go backward."
         (cua-paste prefix-arg))
     (message "no region selected")))
 
+(defun switch-to-minibuffer-window ()
+  "Switch to minibuffer window (if active)."
+  (interactive)
+  (when (active-minibuffer-window)
+    (select-frame-set-input-focus (window-frame (active-minibuffer-window)))
+    (select-window (active-minibuffer-window))))
+
+(global-set-key (kbd "<f12>") 'switch-to-minibuffer-window)
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
+(global-set-key (kbd "C-c M--")   'decrease-default-font-height)
+(global-set-key (kbd "C-c =")     'set-default-font-height)
 (global-set-key (kbd "ESC M-d")   'kill-whole-word)
 (global-set-key (kbd "C-c ESC h") 'edit-handy-functions)
 (global-set-key (kbd "C-c ESC c") 'copy-region-to-other-window)
 (global-set-key (kbd "C-a")       'smart-beginning-of-line)
 (global-set-key (kbd "C-S-o")     'open-line-above)
 (global-set-key (kbd "C-o")       'open-line-below)
-(global-set-key (kbd "C-c =")     'set-default-font-height)
 (global-set-key (kbd "ESC M-p")   'describe-thing-in-popup)
 (global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
