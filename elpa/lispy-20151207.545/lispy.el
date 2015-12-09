@@ -659,66 +659,65 @@ Return nil if can't move."
   (interactive "p")
   (when (called-interactively-p 'interactive)
     (lispy--remember))
-  (save-match-data
-    (cond ((region-active-p)
-           (let ((leftp (= (point) (region-beginning))))
-             (when leftp
-               (exchange-point-and-mark))
-             (cond ((save-excursion
-                      (skip-chars-forward " \n")
-                      (eobp)))
-                   ((lispy--symbolp (lispy--string-dwim))
-                    (lispy-dotimes arg
-                      (when (lispy-slurp 1)
-                        (lispy-different)
-                        (lispy-barf 1)
-                        (lispy-different))))
-
-                   ((looking-at "[\n ]+\\(;\\)")
-                    (deactivate-mark)
-                    (goto-char (match-beginning 1))
-                    (lispy--mark (lispy--bounds-comment)))
-
-                   (t
-                    (lispy-dotimes arg
-                      (forward-sexp 1)
+  (cond ((region-active-p)
+         (let ((leftp (= (point) (region-beginning))))
+           (when leftp
+             (exchange-point-and-mark))
+           (cond ((save-excursion
+                    (skip-chars-forward " \n")
+                    (eobp)))
+                 ((lispy--symbolp (lispy--string-dwim))
+                  (lispy-dotimes arg
+                    (when (lispy-slurp 1)
                       (lispy-different)
-                      (if (lispy--in-comment-p)
-                          (progn
-                            (goto-char (1+ (cdr (lispy--bounds-comment))))
-                            (skip-chars-forward "\n"))
-                        (forward-sexp 2)
-                        (forward-sexp -1))
+                      (lispy-barf 1)
                       (lispy-different))))
-             (when leftp
-               (exchange-point-and-mark))))
 
-          ((lispy-left-p)
-           (lispy-forward arg)
-           (let ((pt (point)))
-             (if (lispy-forward 1)
-                 (lispy-backward 1)
+                 ((looking-at "[\n ]+\\(;\\)")
+                  (deactivate-mark)
+                  (goto-char (match-beginning 1))
+                  (lispy--mark (lispy--bounds-comment)))
+
+                 (t
+                  (lispy-dotimes arg
+                    (forward-sexp 1)
+                    (lispy-different)
+                    (if (lispy--in-comment-p)
+                        (progn
+                          (goto-char (1+ (cdr (lispy--bounds-comment))))
+                          (skip-chars-forward "\n"))
+                      (forward-sexp 2)
+                      (forward-sexp -1))
+                    (lispy-different))))
+           (when leftp
+             (exchange-point-and-mark))))
+
+        ((lispy-left-p)
+         (lispy-forward arg)
+         (let ((pt (point)))
+           (if (lispy-forward 1)
+               (lispy-backward 1)
+             (goto-char pt)
+             (lispy-different))))
+
+        ((lispy-right-p)
+         (let ((pt (point)))
+           (unless (lispy-forward arg)
+             (goto-char pt))))
+
+        ((or (looking-at lispy-outline)
+             (and (bolp) (looking-at ";")))
+         (let ((pt (point)))
+           (lispy-dotimes arg
+             (outline-next-visible-heading 1)
+             (if (looking-at lispy-outline)
+                 (setq pt (point))
                (goto-char pt)
-               (lispy-different))))
+               (error "Last outline reached")))))
 
-          ((lispy-right-p)
-           (let ((pt (point)))
-             (unless (lispy-forward arg)
-               (goto-char pt))))
-
-          ((or (looking-at lispy-outline)
-               (and (bolp) (looking-at ";")))
-           (let ((pt (point)))
-             (lispy-dotimes arg
-               (outline-next-visible-heading 1)
-               (if (looking-at lispy-outline)
-                   (setq pt (point))
-                 (goto-char pt)
-                 (error "Last outline reached")))))
-
-          (t
-           (lispy-forward 1)
-           (lispy-backward 1))))
+        (t
+         (lispy-forward 1)
+         (lispy-backward 1)))
   (lispy--ensure-visible))
 
 (defun lispy-up (arg)
@@ -726,67 +725,66 @@ Return nil if can't move."
   (interactive "p")
   (when (called-interactively-p 'interactive)
     (lispy--remember))
-  (save-match-data
-    (cond ((region-active-p)
-           (let ((leftp (= (point) (region-beginning))))
-             (unless leftp
-               (exchange-point-and-mark))
-             (cond ((save-excursion
-                      (skip-chars-backward "\n ")
-                      (bobp)))
-                   ((looking-back "^ *\\(;\\)[^\n]*[\n ]*"
-                                  (save-excursion
-                                    (backward-sexp 1)
-                                    (point)))
-                    (deactivate-mark)
-                    (goto-char (match-beginning 1))
-                    (lispy--mark (lispy--bounds-comment))
-                    (exchange-point-and-mark))
-                   ((lispy--symbolp (lispy--string-dwim))
-                    (lispy-dotimes arg
-                      (when (lispy-slurp 1)
-                        (lispy-different)
-                        (lispy-barf 1)
-                        (lispy-different))))
-                   (t
-                    (lispy-dotimes arg
-                      (backward-sexp 1)
+  (cond ((region-active-p)
+         (let ((leftp (= (point) (region-beginning))))
+           (unless leftp
+             (exchange-point-and-mark))
+           (cond ((save-excursion
+                    (skip-chars-backward "\n ")
+                    (bobp)))
+                 ((looking-back "^ *\\(;\\)[^\n]*[\n ]*"
+                                (save-excursion
+                                  (backward-sexp 1)
+                                  (point)))
+                  (deactivate-mark)
+                  (goto-char (match-beginning 1))
+                  (lispy--mark (lispy--bounds-comment))
+                  (exchange-point-and-mark))
+                 ((lispy--symbolp (lispy--string-dwim))
+                  (lispy-dotimes arg
+                    (when (lispy-slurp 1)
                       (lispy-different)
-                      (if (lispy--in-comment-p)
-                          (progn
-                            (goto-char (1- (car (lispy--bounds-comment))))
-                            (skip-chars-backward "\n"))
-                        (backward-sexp 2)
-                        (backward-sexp -1))
+                      (lispy-barf 1)
                       (lispy-different))))
-             (unless leftp
-               (exchange-point-and-mark))))
+                 (t
+                  (lispy-dotimes arg
+                    (backward-sexp 1)
+                    (lispy-different)
+                    (if (lispy--in-comment-p)
+                        (progn
+                          (goto-char (1- (car (lispy--bounds-comment))))
+                          (skip-chars-backward "\n"))
+                      (backward-sexp 2)
+                      (backward-sexp -1))
+                    (lispy-different))))
+           (unless leftp
+             (exchange-point-and-mark))))
 
-          ((lispy-left-p)
-           (let ((pt (point)))
-             (unless (lispy-backward arg)
-               (goto-char pt))))
+        ((lispy-left-p)
+         (let ((pt (point)))
+           (unless (lispy-backward arg)
+             (goto-char pt))))
 
-          ((lispy-right-p)
-           (lispy-backward arg)
-           (let ((pt (point)))
-             (if (lispy-backward 1)
-                 (lispy-forward 1)
+        ((lispy-right-p)
+         (lispy-backward arg)
+         (let ((pt (point)))
+           (if (lispy-backward 1)
+               (lispy-forward 1)
+             (goto-char pt)
+             (lispy-different))))
+
+        ((or (looking-at lispy-outline)
+             (and (bolp) (looking-at ";")))
+         (let ((pt (point)))
+           (lispy-dotimes arg
+             (outline-previous-visible-heading 1)
+             (if (looking-at lispy-outline)
+                 (setq pt (point))
                (goto-char pt)
-               (lispy-different))))
-
-          ((or (looking-at lispy-outline)
-               (and (bolp) (looking-at ";")))
-           (let ((pt (point)))
-             (lispy-dotimes arg
-               (outline-previous-visible-heading 1)
-               (if (looking-at lispy-outline)
-                   (setq pt (point))
-                 (goto-char pt)
-                 (error "First outline reached")))))
-          (t
-           (lispy-backward 1)
-           (lispy-forward 1))))
+               (error "First outline reached")))))
+        (t
+         (lispy-backward 1)
+         (lispy-forward 1)))
   (lispy--ensure-visible))
 
 (defvar lispy-pos-ring (make-ring 100)
@@ -1098,7 +1096,8 @@ If position isn't special, move to previous or error."
              (delete-region pt (point))
              (unless (or (eolp)
                          (bolp)
-                         (lispy-bolp))
+                         (lispy-bolp)
+                         (eq (char-before) ?\ ))
                (insert " "))))
 
           (t
@@ -1168,7 +1167,8 @@ Otherwise (`backward-delete-char-untabify' ARG)."
                 (looking-at " *$"))
            (backward-delete-char-untabify arg))
 
-          ((or (lispy-right-p)
+          ((or (and (lispy-right-p)
+                    (not (lispy-looking-back "[\\?].")))
                (and (lispy-looking-back (concat lispy-right " "))
                     (or (lispy-left-p) (looking-at "\""))))
            (let ((pt (point)))
@@ -1194,7 +1194,7 @@ Otherwise (`backward-delete-char-untabify' ARG)."
                (indent-for-tab-command))))
 
           ((and (lispy-looking-back lispy-left)
-                (not (lispy-looking-back "\\\\.")))
+                (not (lispy-looking-back "[\\?].")))
            (lispy--out-forward 1)
            (lispy-delete-backward 1))
 
@@ -2240,17 +2240,23 @@ The outcome when ahead of sexps is different from when behind."
     (cond ((region-active-p))
 
           ((lispy-left-p)
-           (lispy--out-forward 1)
-           (backward-char 1)
-           (set-mark (point))
-           (goto-char pt))
+           (if (null (lispy--out-forward 1))
+               (progn
+                 (goto-char pt)
+                 (lispy-complain "Not enough depth to raise"))
+             (backward-char 1)
+             (set-mark (point))
+             (goto-char pt)))
 
           ((lispy-right-p)
-           (lispy--out-forward 1)
-           (backward-list)
-           (forward-char 1)
-           (set-mark (point))
-           (goto-char pt))
+           (if (null (lispy--out-forward 1))
+               (progn
+                 (goto-char pt)
+                 (lispy-complain "Not enough depth to raise"))
+             (backward-list)
+             (forward-char 1)
+             (set-mark (point))
+             (goto-char pt)))
 
           (t
            (error "Unexpected")))
@@ -4009,6 +4015,9 @@ With ARG, use the contents of `lispy-store-region-and-buffer' instead."
     (deactivate-mark)
     (lispy-left 1)
     (lispy-delete 1)
+    (when (looking-at "[ \n]*")
+      (delete-region (match-beginning 0)
+                     (match-end 0)))
     (save-excursion
       (lispy--out-backward 2)
       (lispy--normalize-1))))
@@ -5572,7 +5581,7 @@ Ignore the matches in strings and comments."
                 (goto-char (point-min))
                 (while (re-search-forward "\\(?:[^\\]\\|^\\)`" nil t)
                   (unless (lispy--in-string-or-comment-p)
-                    (when (looking-at "(")
+                    (when (looking-at lispy-left)
                       (delete-char -1)
                       (insert "(ly-raw \\` ")
                       (forward-list 1)
@@ -5903,7 +5912,7 @@ Defaults to `error'."
 ;;* Utilities: error reporting
 (defun lispy-complain (msg)
   "Display MSG if `lispy-verbose' is t."
-  (when lispy-verbose
+  (when (and lispy-verbose (null noninteractive))
     (message "%s: %s"
              (propertize
               (prin1-to-string
@@ -6013,9 +6022,9 @@ Unless inside string or comment, or `looking-back' at CONTEXT."
            (delete-region (match-beginning 0)
                           (1- (match-end 0))))
           ((looking-at "\n\n+"))
-          ((looking-at "[\n ]+")
-           (delete-region (match-beginning 0)
-                          (match-end 0)))
+          ((looking-at "\\([ ]*\\)\n")
+           (delete-region (match-beginning 1)
+                          (match-end 1)))
           ((looking-at lispy-right))
           ((eolp))
           (t
