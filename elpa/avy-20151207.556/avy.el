@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20151115.837
+;; Package-Version: 20151207.556
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -433,12 +433,18 @@ multiple DISPLAY-FN invokations."
         (t
          (error "Unrecognized option: %S" avy-all-windows))))
 
+(defcustom avy-all-windows-alt t
+  "The alternative `avy-all-windows' for use with \\[universal-argument]."
+  :type '(choice
+          (const :tag "All windows on the current frame" t)
+          (const :tag "All windows on all frames" all-frames)))
+
 (defmacro avy-dowindows (flip &rest body)
   "Depending on FLIP and `avy-all-windows' run BODY in each or selected window."
   (declare (indent 1)
            (debug (form body)))
   `(let ((avy-all-windows (if ,flip
-                              (not avy-all-windows)
+                              avy-all-windows-alt
                             avy-all-windows)))
      (dolist (wnd (avy-window-list))
        (with-selected-window wnd
@@ -592,7 +598,7 @@ When GROUP is non-nil, (BEG . END) should delimit that regex group."
   (let ((case-fold-search (or avy-case-fold-search
                               (not (string= regex (upcase regex)))))
         candidates)
-    (avy-dowindows nil
+    (avy-dowindows current-prefix-arg
       (dolist (pair (avy--find-visible-regions
                      (or beg (window-start))
                      (or end (window-end (selected-window) t))))
@@ -950,6 +956,11 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
 (declare-function subword-backward "subword")
 (defvar subword-backward-regexp)
 
+(defcustom avy-subword-extra-word-chars '(?{ ?= ?} ?* ?: ?> ?<)
+  "A list of characters that should temporarily match \"\\w\".
+This variable is used by `avy-goto-subword-0' and `avy-goto-subword-1'."
+  :type '(repeat character))
+
 ;;;###autoload
 (defun avy-goto-subword-0 (&optional arg predicate)
   "Jump to a word or subword start.
@@ -966,18 +977,22 @@ should return true."
            "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([!-/:@`~[:upper:]]+\\W*\\)\\|\\W\\w+\\)")
           candidates)
       (avy-dowindows arg
-        (let ((ws (window-start))
-              window-cands)
-          (save-excursion
-            (goto-char (window-end (selected-window) t))
-            (subword-backward)
-            (while (> (point) ws)
-              (when (or (null predicate)
-                        (and predicate (funcall predicate)))
-                (unless (get-char-property (point) 'invisible)
-                  (push (cons (point) (selected-window)) window-cands)))
-              (subword-backward)))
-          (setq candidates (nconc candidates window-cands))))
+        (let ((syn-tbl (copy-syntax-table)))
+          (dolist (char avy-subword-extra-word-chars)
+            (modify-syntax-entry char "w" syn-tbl))
+          (with-syntax-table syn-tbl
+            (let ((ws (window-start))
+                  window-cands)
+              (save-excursion
+                (goto-char (window-end (selected-window) t))
+                (subword-backward)
+                (while (> (point) ws)
+                  (when (or (null predicate)
+                            (and predicate (funcall predicate)))
+                    (unless (get-char-property (point) 'invisible)
+                      (push (cons (point) (selected-window)) window-cands)))
+                  (subword-backward)))
+              (setq candidates (nconc candidates window-cands))))))
       (avy--process candidates (avy--style-fn avy-style)))))
 
 ;;;###autoload
@@ -1067,7 +1082,9 @@ Otherwise, forward to `goto-line' with ARG."
 (defun avy-goto-line-above ()
   "Goto visible line above the cursor."
   (interactive)
-  (let ((r (avy--line nil (window-start) (point))))
+  (let* ((avy-all-windows nil)
+         (r (avy--line nil (window-start)
+                       (line-beginning-position))))
     (unless (eq r t)
       (avy-action-goto r))))
 
@@ -1075,11 +1092,18 @@ Otherwise, forward to `goto-line' with ARG."
 (defun avy-goto-line-below ()
   "Goto visible line below the cursor."
   (interactive)
-  (let ((r (avy--line
-            nil (point)
-            (window-end (selected-window) t))))
+  (let* ((avy-all-windows nil)
+         (r (avy--line
+             nil (line-beginning-position 2)
+             (window-end (selected-window) t))))
     (unless (eq r t)
       (avy-action-goto r))))
+
+(defcustom avy-line-insert-style 'above
+  "How to insert the newly copied/cut line."
+  :type '(choice
+          (const :tag "Above" above)
+          (const :tag "Below" below)))
 
 ;;;###autoload
 (defun avy-copy-line (arg)
@@ -1087,17 +1111,23 @@ Otherwise, forward to `goto-line' with ARG."
 ARG lines can be used."
   (interactive "p")
   (avy-with avy-copy-line
-    (let ((start (avy--line)))
-      (move-beginning-of-line nil)
-      (save-excursion
-        (insert
-         (buffer-substring-no-properties
-          start
-          (save-excursion
-            (goto-char start)
-            (move-end-of-line arg)
-            (point)))
-         "\n")))))
+    (let* ((start (avy--line))
+           (str (buffer-substring-no-properties
+                 start
+                 (save-excursion
+                   (goto-char start)
+                   (move-end-of-line arg)
+                   (point)))))
+      (cond ((eq avy-line-insert-style 'above)
+             (beginning-of-line)
+             (save-excursion
+               (insert str "\n")))
+            ((eq avy-line-insert-style 'below)
+             (end-of-line)
+             (insert "\n" str)
+             (beginning-of-line))
+            (t
+             (user-error "Unexpected `avy-line-insert-style'"))))))
 
 ;;;###autoload
 (defun avy-move-line (arg)
@@ -1106,31 +1136,50 @@ ARG lines can be used."
   (interactive "p")
   (avy-with avy-move-line
     (let ((start (avy--line)))
-      (move-beginning-of-line nil)
       (save-excursion
-        (save-excursion
-          (goto-char start)
-          (kill-whole-line arg))
-        (insert
-         (current-kill 0))))))
+        (goto-char start)
+        (kill-whole-line arg))
+      (cond ((eq avy-line-insert-style 'above)
+             (beginning-of-line)
+             (save-excursion
+               (insert
+                (current-kill 0))))
+            ((eq avy-line-insert-style 'below)
+             (end-of-line)
+             (newline)
+             (save-excursion
+               (insert (substring (current-kill 0) 0 -1))))
+            (t
+             (user-error "Unexpected `avy-line-insert-style'"))))))
 
 ;;;###autoload
-(defun avy-copy-region ()
-  "Select two lines and copy the text between them here."
-  (interactive)
-  (avy-with avy-copy-region
-    (let ((beg (avy--line))
-          (end (avy--line))
-          (pad (if (bolp) "" "\n")))
-      (move-beginning-of-line nil)
-      (save-excursion
-        (insert
-         (buffer-substring-no-properties
-          beg
-          (save-excursion
-            (goto-char end)
-            (line-end-position)))
-         pad)))))
+(defun avy-copy-region (arg)
+  "Select two lines and copy the text between them to point.
+
+The window scope is determined by `avy-all-windows' or
+`avy-all-windows-alt' when ARG is non-nil."
+  (interactive "P")
+  (let ((initial-window (selected-window)))
+    (avy-with avy-copy-region
+      (let* ((beg (avy--line arg))
+             (end (avy--line arg))
+             (str (buffer-substring-no-properties
+                   beg
+                   (save-excursion
+                     (goto-char end)
+                     (line-end-position)))))
+        (select-window initial-window)
+        (cond ((eq avy-line-insert-style 'above)
+               (beginning-of-line)
+               (save-excursion
+                 (insert str "\n")))
+              ((eq avy-line-insert-style 'below)
+               (end-of-line)
+               (newline)
+               (save-excursion
+                 (insert str)))
+              (t
+               (user-error "Unexpected `avy-line-insert-style'")))))))
 
 ;;;###autoload
 (defun avy-setup-default ()
@@ -1180,7 +1229,7 @@ This function obeys `avy-all-windows' setting."
              ;; Highlight
              (when (>= (length str) 1)
                (let (found)
-                 (avy-dowindows nil
+                 (avy-dowindows current-prefix-arg
                    (dolist (pair (avy--find-visible-regions
                                   (window-start)
                                   (window-end (selected-window) t)))
