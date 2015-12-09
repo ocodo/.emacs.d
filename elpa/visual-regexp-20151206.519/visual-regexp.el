@@ -4,7 +4,7 @@
 
 ;; Author: Marko Bencun <mbencun@gmail.com>
 ;; URL: https://github.com/benma/visual-regexp.el/
-;; Package-Version: 20151125.1129
+;; Package-Version: 20151206.519
 ;; Version: 0.8
 ;; Package-Requires: ((cl-lib "0.2"))
 ;; Keywords: regexp, replace, visual, feedback
@@ -824,10 +824,14 @@ E [not supported in visual-regexp]"
          (cumulative-offset 0)
          (recenter-last-op nil) ; Start cycling order with initial position.
          (message
-          (apply 'propertize
-                 (substitute-command-keys
-                  "Query replacing %s with %s: (\\<vr--query-replace-map>\\[help] for help) ")
-                 minibuffer-prompt-properties)))
+          (concat
+           (propertize "Replacing " 'read-only t)
+           (propertize "%s" 'read-only t 'face 'font-lock-keyword-face)
+           (propertize " with " 'read-only t)
+           (propertize "%s" 'read-only t 'face 'font-lock-keyword-face)
+           (propertize (substitute-command-keys
+                        " (\\<vr--query-replace-map>\\[help] for help) ")
+                       'read-only t))))
 
     ;; show visual feedback for all matches
     (mapc (lambda (replacement-info)
