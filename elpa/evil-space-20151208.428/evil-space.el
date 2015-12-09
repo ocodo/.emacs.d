@@ -4,8 +4,8 @@
 
 ;; Author: Quang Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/evil-space
-;; Package-Version: 20150617.534
-;; Version: 0.0.6
+;; Package-Version: 20151208.428
+;; Version: 1.0.0
 ;; Keywords: space repeat motion
 ;; Package-Requires: ((evil "1.0.0"))
 
@@ -61,17 +61,17 @@
     :group 'evil-space)
   (defcustom evil-space-prev-key (kbd "S-SPC")
     "Key that triggers the repeat motion in reverse direction."
-    :group 'evil-space))
+    :group 'evil-space)
 
-(defun evil-space-lookup-key (key &optional keymap)
-  "Normalize KEY into a function."
-  (cond ((eq (car-safe key) 'quote) (cadr key))
-        ((symbolp key) (symbol-value key))
-        ((stringp key)
-         (if keymap
-             (lookup-key (symbol-value keymap) (kbd key))
-           (lookup-key evil-motion-state-map (kbd key))))
-        (t (user-error "Not a valid key: %s" key))))
+  (defun evil-space-lookup-key (key &optional keymap)
+    "Normalize KEY into a function."
+    (cond ((eq (car-safe key) 'quote) (cadr key))
+          ((symbolp key) (symbol-value key))
+          ((stringp key)
+           (if keymap
+               (lookup-key (symbol-value keymap) (kbd key))
+             (lookup-key evil-motion-state-map (kbd key))))
+          (t (user-error "Not a valid key: %s" key)))))
 
 ;;;###autoload
 (defmacro evil-space-setup (key next prev &optional keymap)

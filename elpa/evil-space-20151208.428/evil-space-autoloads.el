@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-space" "evil-space.el" (21893 22989 307401
-;;;;;;  0))
+;;;### (autoloads nil "evil-space" "evil-space.el" (22120 11747 937373
+;;;;;;  562000))
 ;;; Generated autoloads from evil-space.el
 
 (autoload 'evil-space-setup "evil-space" "\
