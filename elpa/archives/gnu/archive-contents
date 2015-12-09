@@ -350,7 +350,7 @@
 	((:url . "http://www.dr-qubit.org/emacs.php")
 	 (:keywords "extensions" "data structures" "heap" "priority queue"))])
  (hydra .
-	[(0 13 3)
+	[(0 13 4)
 	 ((cl-lib
 	   (0 5)))
 	 "Make bindings that stick around." tar
@@ -673,7 +673,7 @@
 	     ((:url . "http://elpa.gnu.org/packages/svg-clock.html")
 	      (:keywords "demo" "svg" "clock"))])
  (swiper .
-	 [(0 5 1)
+	 [(0 7 0)
 	  ((emacs
 	    (24 1)))
 	  "Isearch with an overview. Oh, man!" tar
@@ -706,13 +706,13 @@
 		  ((:url . "http://elpa.gnu.org/packages/timerfunctions.html")
 		   (:keywords))])
  (tiny .
-       [(0 1)
+       [(0 1 1)
 	nil "Quickly generate linear ranges in Emacs" tar
 	((:keywords "convenience")
 	 (:url . "https://github.com/abo-abo/tiny"))])
  (transcribe .
-	     [(0 5 0)
-	      nil "package for audio transcriptions" single
+	     [(1 0 1)
+	      nil "Package for audio transcriptions" single
 	      ((:url . "http://elpa.gnu.org/packages/transcribe.html")
 	       (:keywords))])
  (trie .
