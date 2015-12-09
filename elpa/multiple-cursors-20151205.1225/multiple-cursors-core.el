@@ -596,6 +596,8 @@ for running commands with multiple cursors.")
                                      mc/edit-ends-of-lines
                                      mc/edit-beginnings-of-lines
                                      mc/mark-next-like-this
+				     mc/mark-next-like-this-word
+				     mc/mark-next-like-this-symbol
                                      mc/mark-next-word-like-this
                                      mc/mark-next-symbol-like-this
                                      mc/mark-previous-like-this
@@ -612,6 +614,7 @@ for running commands with multiple cursors.")
                                      mc/mark-all-dwim
                                      mc/mark-sgml-tag-pair
                                      mc/insert-numbers
+				     mc/insert-letters
                                      mc/sort-regions
                                      mc/reverse-regions
                                      mc/cycle-forward
