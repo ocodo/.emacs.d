@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "git-gutter+" "git-gutter+.el" (22021 61703
-;;;;;;  217140 0))
+;;;### (autoloads nil "git-gutter+" "git-gutter+.el" (22120 11736
+;;;;;;  729269 219000))
 ;;; Generated autoloads from git-gutter+.el
 
 (autoload 'git-gutter+-mode "git-gutter+" "\

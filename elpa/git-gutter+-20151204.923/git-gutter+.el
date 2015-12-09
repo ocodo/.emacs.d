@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com> and contributors
 ;; URL: https://github.com/nonsequitur/git-gutter-plus
-;; Package-Version: 20150925.231
+;; Package-Version: 20151204.923
 ;; Version: 0.4
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -572,7 +572,7 @@ Returns t on zero exit code, nil otherwise."
         (forward-line (1- (plist-get diffinfo :start-line)))
         (when (buffer-live-p (get-buffer git-gutter+-popup-buffer))
           (save-window-excursion
-            (git-gutter+-show-hunk)))))))
+            (git-gutter+-show-hunk diffinfo)))))))
 
 (defun git-gutter+-previous-hunk (arg)
   "Move to previous diff hunk"
@@ -1169,8 +1169,11 @@ set remove it."
 (defvar git-gutter+-previously-staged-files nil)
 (defvar git-gutter+-staged-files nil)
 
-(eval-after-load 'magit
-  '(add-hook 'magit-refresh-status-hook 'git-gutter+-on-magit-refresh-status))
+(with-eval-after-load 'magit
+  ;; Old Magit versions
+  (add-hook 'magit-refresh-status-hook 'git-gutter+-on-magit-refresh-status)
+  ;; New Magit versions
+  (add-hook 'magit-status-refresh-hook 'git-gutter+-on-magit-refresh-status))
 
 (defun git-gutter+-on-magit-refresh-status ()
   (let ((head (git-gutter+-get-magit-head)))
@@ -1192,9 +1195,9 @@ set remove it."
 (defun git-gutter+-get-magit-staged-files ()
   (save-excursion
     (goto-char (point-min))
-    (when (re-search-forward "^Staged changes:$" nil t)
+    (when (re-search-forward "^Staged changes" nil t)
       (let (staged-files)
-        (while (re-search-forward "^\\s-*Modified\\s-+\\(.+\\)$" nil t)
+        (while (re-search-forward "^\\s-*[Mm]odified\\s-+\\(.+\\)$" nil t)
           (push (match-string-no-properties 1) staged-files))
         staged-files))))
 
