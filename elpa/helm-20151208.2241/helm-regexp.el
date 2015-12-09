@@ -163,10 +163,6 @@ i.e Don't replace inside a word, regexp is surrounded with \\bregexp\\b."
   (kill-new input)
   (message "Killed: %s" input))
 
-(defun helm-quote-whitespace (candidate)
-  "Quote whitespace, if some, in string CANDIDATE."
-  (replace-regexp-in-string " " "\\\\ " candidate))
-
 
 ;;; Occur
 ;;
@@ -599,25 +595,6 @@ Special commands:
           :history 'helm-occur-history
           :input input
           :truncate-lines t)))
-
-;;;###autoload
-(defun helm-multi-occur (buffers)
-  "Preconfigured helm for multi occur.
-
-  BUFFERS is a list of buffers to search through.
-With a prefix arg, reverse the behavior of
-`helm-moccur-always-search-in-current'.
-The prefix arg can be set before calling `helm-multi-occur'
-or during the buffer selection."
-  (interactive (list (helm-comp-read
-                      "Buffers: " (helm-buffer-list)
-                      :marked-candidates t)))
-  (let ((helm-moccur-always-search-in-current
-         (if (or current-prefix-arg
-                 helm-current-prefix-arg)
-             (not helm-moccur-always-search-in-current)
-           helm-moccur-always-search-in-current)))
-    (helm-multi-occur-1 buffers)))
 
 ;;;###autoload
 (defun helm-multi-occur-from-isearch (&optional _arg)

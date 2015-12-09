@@ -28,15 +28,16 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-lib)
 (require 'helm-help)
 (require 'helm-elisp)
-(require 'helm-regexp)
 
 (declare-function eshell-read-aliases-list "em-alias")
 (declare-function eshell-send-input "esh-mode" (&optional use-region queue-p no-newline))
 (declare-function eshell-bol "esh-mode")
 (declare-function eshell-parse-arguments "esh-arg" (beg end))
 (declare-function eshell-backward-argument "esh-mode" (&optional arg))
+(declare-function helm-quote-whitespace "helm-lib")
 
 
 (defgroup helm-eshell nil
@@ -230,7 +231,8 @@ The function that call this should set `helm-ec-target' to thing at point."
                          :resume 'noresume
                          :input (and (stringp last)
                                      (helm-ff-set-pattern last)))
-                   (and del-space (delete-char -1))))))))
+                   (and del-space (looking-back "\\s-" (1- (point)))
+                        (delete-char -1))))))))
 
 ;;;###autoload
 (defun helm-eshell-history ()
