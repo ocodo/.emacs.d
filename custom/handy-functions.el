@@ -730,6 +730,17 @@ Use negative prefix P to go backward."
 
 (global-set-key (kbd "<f12>") 'switch-to-minibuffer-window)
 
+(defun replace-regexp-and-return (from to)
+  "Replace regexp FROM to TO and return cursor to point."
+  (save-excursion
+    (while (re-search-forward from nil t)
+      (replace-match to))))
+
+(defun replace-pretty-quotes ()
+  "Replace pretty quotes with standard quotes."
+  (interactive)
+  (replace-regexp-and-return "[”“]" "\""))
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
