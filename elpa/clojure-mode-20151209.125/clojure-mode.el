@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20151127.516
+;; Package-Version: 20151209.125
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.0.1
 ;; Package-Requires: ((emacs "24.3"))
@@ -328,7 +328,49 @@ If JUSTIFY is non-nil, justify as well as fill the paragraph."
         (do-auto-fill)))))
 
 
+;;; #_ comments font-locking
+;; Code heavily borrowed from Slime.
+;; https://github.com/slime/slime/blob/master/contrib/slime-fontifying-fu.el#L186
+(defvar clojure--comment-macro-regexp
+  (rx "#_" (* " ") (group-n 1 (not (any " "))))
+  "Regexp matching the start of a comment sexp.
+The beginning of match-group 1 should be before the sexp to be
+marked as a comment.  The end of sexp is found with
+`clojure-forward-logical-sexp'.
 
+By default, this only applies to code after the `#_' reader
+macro.  In order to also font-lock the `(comment ...)' macro as a
+comment, you can set the value to:
+    \"#_ *\\\\(?1:[^ ]\\\\)\\\\|\\\\(?1:(comment\\\\_>\\\\)\"")
+
+(defun clojure--search-comment-macro-internal (limit)
+  (when (search-forward-regexp clojure--comment-macro-regexp limit t)
+    (let* ((md (match-data))
+           (start (match-beginning 1))
+           (state (syntax-ppss start)))
+      ;; inside string or comment?
+      (if (or (nth 3 state)
+              (nth 4 state))
+          (clojure--search-comment-macro-internal limit)
+        (goto-char start)
+        (clojure-forward-logical-sexp 1)
+        ;; Data for (match-end 1).
+        (setf (elt md 3) (point))
+        (set-match-data md)
+        t))))
+
+(defun clojure--search-comment-macro (limit)
+  "Find comment macros and set the match data."
+  (let ((result 'retry))
+    (while (and (eq result 'retry) (<= (point) limit))
+      (condition-case nil
+          (setq result (clojure--search-comment-macro-internal limit))
+        (end-of-file (setq result nil))
+        (scan-error  (setq result 'retry))))
+    result))
+
+
+;;; General font-locking
 (defun clojure-match-next-def ()
   "Scans the buffer backwards for the next \"top-level\" definition.
 Called by `imenu--generic-function'."
@@ -352,6 +394,21 @@ Called by `imenu--generic-function'."
               (setq found? t)
               (set-match-data (list def-beg def-end)))))
         (goto-char start)))))
+
+(eval-and-compile
+  (defconst clojure--sym-forbidden-rest-chars "][\";\'@\\^`~\(\)\{\}\\,\s\t\n\r"
+    "A list of chars that a Clojure symbol cannot contain.
+See definiton of 'macros': URL `http://git.io/vRGLD'.")
+  (defconst clojure--sym-forbidden-1st-chars (concat clojure--sym-forbidden-rest-chars "0-9")
+    "A list of chars that a Clojure symbol cannot start with.
+See the for-loop: URL `http://git.io/vRGTj' lines: URL
+`http://git.io/vRGIh', URL `http://git.io/vRGLE' and value
+definition of 'macros': URL `http://git.io/vRGLD'.")
+  (defconst clojure--sym-regexp
+    (concat "[^" clojure--sym-forbidden-1st-chars "][^" clojure--sym-forbidden-rest-chars "]+")
+    "A regexp matching a Clojure symbol or namespace alias.
+Matches the rule `clojure--sym-forbidden-1st-chars' followed by
+any number of matches of `clojure--sym-forbidden-rest-chars'."))
 
 (defconst clojure-font-lock-keywords
   (eval-when-compile
@@ -382,7 +439,8 @@ Called by `imenu--generic-function'."
        (2 font-lock-type-face nil t))
       ;; Function definition (anything that starts with def and is not
       ;; listed above)
-      (,(concat "(\\(?:[a-z\.-]+/\\)?\\(def[^ \r\n\t]*\\)"
+      (,(concat "(\\(?:" clojure--sym-regexp "/\\)?"
+                "\\(def[^ \r\n\t]*\\)"
                 ;; Function declarations
                 "\\>"
                 ;; Any whitespace
@@ -462,7 +520,8 @@ Called by `imenu--generic-function'."
       ;; Character literals - \1, \a, \newline, \u0000
       ("\\\\\\([[:punct:]]\\|[a-z0-9]+\\>\\)" 0 'clojure-character-face)
       ;; foo/ Foo/ @Foo/ /FooBar
-      ("\\(?:\\<:?\\|\\.\\)@?\\([a-zA-Z][.a-zA-Z0-9$_-]*\\)\\(/\\)" (1 font-lock-type-face) (2 'default))
+      (,(concat "\\(?:\\<:?\\|\\.\\)@?\\(" clojure--sym-regexp "\\)\\(/\\)")
+       (1 font-lock-type-face) (2 'default))
       ;; Constant values (keywords), including as metadata e.g. ^:static
       ("\\<^?\\(:\\(\\sw\\|\\s_\\)+\\(\\>\\|\\_>\\)\\)" 1 'clojure-keyword-face append)
       ;; Java interop highlighting
@@ -483,6 +542,8 @@ Called by `imenu--generic-function'."
        (1 font-lock-type-face nil t))
       ;; fooBar
       ("\\(?:\\<\\|/\\)\\([a-z]+[A-Z]+[a-zA-Z0-9$]*\\>\\)" 1 'clojure-interop-method-face)
+      ;; #_ and (comment ...) macros.
+      (clojure--search-comment-macro 1 font-lock-comment-face t)
       ;; Highlight `code` marks, just like `elisp'.
       (,(rx "`" (group-n 1 (optional "#'")
                          (+ (or (syntax symbol) (syntax word)))) "`")
@@ -1017,32 +1078,8 @@ nil."
                         (zero-or-more "^:"
                                       (one-or-more (not (any whitespace)))))
                     (one-or-more (any whitespace "\n")))
-      ;; why is this here? oh (in-ns 'foo) or (ns+ :user)
-      (zero-or-one (any ":'"))
-      (group (one-or-more (not (any "()\"" whitespace))) word-end)))
-
-;; for testing clojure-namespace-name-regex, you can evaluate this code and make
-;; sure foo (or whatever the namespace name is) shows up in results. some of
-;; these currently fail.
-;; (mapcar (lambda (s) (let ((n (string-match clojure-namespace-name-regex s)))
-;;                       (if n (match-string 4 s))))
-;;         '("(ns foo)"
-;;           "(ns
-;; foo)"
-;;           "(ns foo.baz)"
-;;           "(ns ^:bar foo)"
-;;           "(ns ^:bar ^:baz foo)"
-;;           "(ns ^{:bar true} foo)"
-;;           "(ns #^{:bar true} foo)"
-;;           "(ns #^{:fail {}} foo)"
-;;           "(ns ^{:fail2 {}} foo.baz)"
-;;           "(ns ^{} foo)"
-;;           "(ns ^{:skip-wiki true}
-;;   aleph.netty
-;; "
-;;           "(ns
-;;  foo)"
-;;     "foo"))
+      (zero-or-one (any ":'")) ;; (in-ns 'foo) or (ns+ :user)
+      (group (one-or-more (not (any "()\"" whitespace))) symbol-end)))
 
 
 
