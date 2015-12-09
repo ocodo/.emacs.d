@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'eieio)
+(require 'multi-line-respace)
 (require 'multi-line-shared)
 
 (put 'multi-line-pre-decorator 'lisp-indent-function 'defun)
@@ -40,13 +41,21 @@
       (quote arg)
     `(funcall ,(car funcs) (multi-line-compose-helper ,(cdr funcs)))))
 
-(defclass multi-line-decorator ()
+(defclass multi-line-each-decorator (multi-line-respacer)
   ((respacer :initarg :respacer)
    (decorator :initarg :decorator)))
 
-(defmethod multi-line-respace ((decorator multi-line-decorator)
+(defmethod multi-line-respace-one ((decorator multi-line-each-decorator)
                                index markers)
   (funcall (oref decorator :decorator) (oref decorator :respacer) index markers))
+
+(defclass multi-line-decorator (multi-line-respacer)
+  ((respacer :initarg :respacer)
+   (decorator :initarg :decorator)))
+
+(defmethod multi-line-respace ((decorator multi-line-decorator) markers)
+  (funcall
+   (oref decorator :decorator) (oref decorator :respacer) markers))
 
 (defmacro multi-line-pre-decorator (name &rest forms)
   "Build a constructor with name NAME that builds respacers that
@@ -55,23 +64,23 @@ and markers which will be appropriately populated by the
 executor."
   `(defun ,name (respacer)
      (make-instance
-      multi-line-decorator
+      multi-line-each-decorator
       :respacer respacer
       :decorator (lambda (respacer index markers)
                    ,@forms
-                   (multi-line-respace respacer index markers)))))
+                   (multi-line-respace-one respacer index markers)))))
 
 (defmacro multi-line-post-decorator (name &rest forms)
   "Build a constructor with name NAME that builds respacers that
-execute FORMS after respacing.  FORMS can use the variables index
+qexecute FORMS after respacing.  FORMS can use the variables index
 and markers which will be appropriately populated by the
 executor."
   `(defun ,name (respacer)
      (make-instance
-      multi-line-decorator
+      multi-line-each-decorator
       :respacer respacer
       :decorator (lambda (respacer index markers)
-                   (multi-line-respace respacer index markers)
+                   (multi-line-respace-one respacer index markers)
                    ,@forms))))
 
 (defmacro multi-line-post-all-decorator (name &rest forms)
@@ -94,8 +103,11 @@ by the executor."
                  (marker-position (nth index markers))))
 
 (multi-line-compose multi-line-clearing-reindenting-respacer
-                    'multi-line-space-clearing-respacer
-                    'multi-line-reindenting-respacer)
+                    'multi-line-reindenting-respacer
+                    'multi-line-space-clearing-respacer)
+
+(defclass multi-line-cycle-respacers ()
+  ((respacers :initarg :respacers)))
 
 (provide 'multi-line-decorator)
 ;;; multi-line-decorator.el ends here

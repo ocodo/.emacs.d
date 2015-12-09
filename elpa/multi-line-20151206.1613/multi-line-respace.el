@@ -24,10 +24,17 @@
 
 (require 'eieio)
 
-(defclass multi-line-never-newline ()
+(defclass multi-line-respacer () nil)
+
+(defmethod multi-line-respace ((respacer multi-line-respacer) markers)
+  (cl-loop for marker being the elements of markers using (index i) do
+           (goto-char (marker-position marker))
+           (multi-line-respace-one respacer i markers)))
+
+(defclass multi-line-never-newline (multi-line-respacer)
   ((spacer :initarg :spacer :initform " ")))
 
-(defmethod multi-line-respace ((respacer multi-line-never-newline) index markers)
+(defmethod multi-line-respace-one ((respacer multi-line-never-newline) index markers)
   (when (not (or (equal 0 index)
                  (equal index (- (length markers) 1))
                  (multi-line-spacer-at-point respacer)))
@@ -38,7 +45,7 @@
                   (forward-char)
                   (looking-at (oref respacer :spacer))))
 
-(defclass multi-line-always-newline ()
+(defclass multi-line-always-newline (multi-line-respacer)
   ((always-first :initarg :skip-first :initform nil)
    (always-last :initarg :skip-last :initform nil)))
 
@@ -49,11 +56,11 @@
              (and (equal 0 index) (oref respacer :skip-first))
              (and (equal index (- marker-length 1)) (oref respacer :skip-last))))))
 
-(defmethod multi-line-respace ((respacer multi-line-always-newline) index markers)
+(defmethod multi-line-respace-one ((respacer multi-line-always-newline) index markers)
   (when (multi-line-should-newline respacer index markers)
     (newline-and-indent)))
 
-(defclass multi-line-fill-respacer ()
+(defclass multi-line-fill-respacer (multi-line-respacer)
   ((newline-respacer :initarg :newline-respacer :initform
                        (make-instance multi-line-always-newline))
    (default-respacer :initarg :default-respacer :initform
@@ -69,8 +76,8 @@
                (goto-char (marker-position (nth (+ index 1) markers )))
                (> (current-column) (multi-line-get-fill-column respacer)))))))
 
-(defmethod multi-line-respace ((respacer multi-line-fill-respacer) index markers)
-  (multi-line-respace
+(defmethod multi-line-respace-one ((respacer multi-line-fill-respacer) index markers)
+  (multi-line-respace-one
    (if (multi-line-should-newline respacer index markers)
        (oref respacer :newline-respacer)
      (oref respacer :default-respacer)) index markers))

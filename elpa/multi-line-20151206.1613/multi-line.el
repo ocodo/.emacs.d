@@ -34,72 +34,10 @@
 
 (require 'eieio)
 (require 'multi-line-decorator)
+(require 'multi-line-enter)
+(require 'multi-line-find)
 (require 'multi-line-respace)
 (require 'multi-line-shared)
-
-(defun multi-line-lparenthesis-advance ()
-  "Advance to the beginning of a statement that can be multi-lined."
-  (re-search-forward "[[{(]"))
-
-(defun multi-line-up-list-back ()
-  "Go to the beginning of a statement from inside the statement."
-  (interactive)
-  (let ((string-start (nth 8 (syntax-ppss))))
-    (when string-start
-      (goto-char string-start)))
-  (up-list) (backward-sexp))
-
-(defclass multi-line-up-list-enter-strategy () nil)
-
-(defmethod multi-line-enter ((enter multi-line-up-list-enter-strategy))
-  (multi-line-up-list-back)
-  (forward-char))
-
-(defclass multi-line-forward-sexp-enter-strategy ()
-  ((done-regex :initarg :done-regex :initform "[[:space:]]*[[({]")
-   (advance-fn :initarg :advance-fn :initform 'multi-line-lparenthesis-advance)
-   (inside-fn :initarg :inside-fn :initform 'multi-line-up-list-back)))
-
-(defmethod multi-line-enter ((enter multi-line-forward-sexp-enter-strategy))
-  (condition-case nil
-      (let (last-point)
-        (while (not (or (looking-at (oref enter :done-regex))
-                        (equal last-point (point))))
-          (setq last-point (point))
-          (forward-sexp)))
-    ('scan-error
-     (funcall (oref enter :inside-fn))))
-  (funcall (oref enter :advance-fn)))
-
-(defun multi-line-comma-advance ()
-  "Advance to the next comma."
-  (re-search-forward ","))
-
-(defclass multi-line-forward-sexp-find-strategy ()
-  ((split-regex :initarg :split-regex :initform "[[:space:]]*,")
-   (done-regex :initarg :done-regex :initform "[[:space:]]*[})]")
-   (split-advance-fn :initarg :split-advance-fn :initform
-                     'multi-line-comma-advance)))
-
-(defmethod multi-line-should-stop ((strategy multi-line-forward-sexp-find-strategy))
-  (cond
-   ((looking-at (oref strategy :done-regex)) :done)
-   ((looking-at (oref strategy :split-regex)) :candidate)
-   (t nil)))
-
-(defmethod multi-line-find-next ((strategy multi-line-forward-sexp-find-strategy))
-  (let (last last-point this-point)
-    (setq this-point (point))
-    (condition-case nil
-        (while (and (not (equal this-point last-point))
-                           (not (setq last (multi-line-should-stop strategy))))
-                 (forward-sexp)
-                 (setq last-point this-point)
-                 (setq this-point (point)))
-      ('error (setq last :done))
-      nil)
-    (when (equal last :candidate) (funcall (oref strategy :split-advance-fn)))
-    last))
 
 (defun multi-line-get-markers (enter-strategy find-strategy)
   "Get the markers for multi-line candidates for the statement at point.
@@ -134,13 +72,12 @@ FIND-STRATEGY is a class with the method multi-line-find-next."
     (let ((markers (multi-line-markers strategy))
           (respacer (if for-single-line (oref strategy :sl-respace)
                       (oref strategy :respace))))
-      (cl-loop for marker being the elements of markers using (index i) do
-               (multi-line-execute-one strategy marker i markers respacer)))))
+      (multi-line-respace respacer markers))))
 
 (defmethod multi-line-execute-one ((strategy multi-line-strategy)
                                    marker i markers respacer)
   (goto-char (marker-position marker))
-  (multi-line-respace respacer i markers))
+  (multi-line-respace-one respacer i markers))
 
 (defclass multi-line-major-mode-strategy-selector ()
   ((default-strategy :initarg :default-strategy :initform
@@ -194,6 +131,7 @@ FIND-STRATEGY is a class with the method multi-line-find-next."
   (make-instance multi-line-strategy
                  :respace (multi-line-clearing-reindenting-respacer
                            (make-instance multi-line-fill-column-respacer))))
+
 (defun multi-line-set-per-major-mode-strategies ()
   "Set language specific strategies."
   (interactive)

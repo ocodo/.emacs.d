@@ -44,5 +44,21 @@ were generated for the statement."
       (forward-char)
       (insert ","))))
 
+(defun multi-line-lparenthesis-advance ()
+  "Advance to the beginning of a statement that can be multi-lined."
+  (re-search-forward "[[{(]"))
+
+(defun multi-line-up-list-back ()
+  "Go to the beginning of a statement from inside the statement."
+  (interactive)
+  (let ((string-start (nth 8 (syntax-ppss))))
+    (when string-start
+      (goto-char string-start)))
+  (up-list) (backward-sexp))
+
+(defun multi-line-comma-advance ()
+  "Advance to the next comma."
+  (re-search-forward ","))
+
 (provide 'multi-line-shared)
 ;;; multi-line-shared.el ends here
