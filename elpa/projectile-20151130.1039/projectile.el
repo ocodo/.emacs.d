@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20151111.2318
+;; Package-Version: 20151130.1039
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -564,7 +564,6 @@ to invalidate."
   "Cache PROJECTs FILES.
 The cache is created both in memory and on the hard drive."
   (when projectile-enable-caching
-    (message "Empty cache. Projectile is initializing cache...")
     (puthash project files projectile-projects-cache)
     (projectile-serialize-cache)))
 
@@ -1186,6 +1185,8 @@ https://github.com/abo-abo/swiper")))
                     (gethash (projectile-project-root) projectile-projects-cache))))
     ;; nothing is cached
     (unless files
+      (when projectile-enable-caching
+        (message "Empty cache. Projectile is initializing cache..."))
       (setq files (-mapcat #'projectile-dir-files
                            (projectile-get-project-directories)))
       ;; cache the resulting list of files
