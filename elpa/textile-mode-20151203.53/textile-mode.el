@@ -1,4 +1,5 @@
 ;;; textile-mode.el --- Textile markup editing major mode
+;; Package-Version: 20151203.53
 
 ;; Copyright (C) 2006 Free Software Foundation, Inc.
 
@@ -22,7 +23,7 @@
 
 ;;; Commentary:
 
-;; 
+;;
 
 
 ;; Known bugs or limitations:
@@ -35,7 +36,7 @@
 ;;   not well-rendered (for example, *strong *{something}notstrong*)
 ;;
 
-					
+
 
 ;;; Code:
 
@@ -51,38 +52,39 @@
 (defun textile-re-concat (l)
   "Concatenate the elements of a list with a \\| separator and
 non-matching parentheses"
-  (concat 
+  (concat
    "\\(?:"
    (mapconcat 'identity l "\\|")
    "\\)"))
 
 
-(setq textile-attributes 
+(defvar textile-attributes
       '("{[^}]*}" "([^)]*)" "\\[[^]]*\\]"))
 
-(setq textile-blocks 
+(defvar textile-blocks
       '("^h1" "^h2" "^h3" "^h4" "^h5" "^h6" "^p" "^bq" "^fn[0-9]+" "^#+ " "^\\*+ " "^table"))
 
-(setq textile-inline-markup
+(defvar textile-inline-markup
       '("\\*" "\\*\\*" "_" "__" "\\?\\?" "@" "-" "\\+" "^" "~" "%"))
 
-(setq textile-alignments
+(defvar textile-alignments
       '( "<>" "<" ">" "=" "(+" ")+"))
 
-(setq textile-table-alignments
+(defvar textile-table-alignments
       '( "<>" "<" ">" "=" "_" "\\^" "~" "\\\\[0-9]+" "/[0-9]+"))
 
 ; from gnus-button-url-regexp
-(setq textile-url-regexp "\\b\\(\\(www\\.\\|\\(s?https?\\|ftp\\|file\\|gopher\\|nntp\\|news\\|telnet\\|wais\\|mailto\\|info\\):\\)\\(//[-a-z0-9_.]+:[0-9]*\\)?[-a-z0-9_=!?#$@~%&*+\\/:;.,[:word:]]+[-a-z0-9_=#$@~%&*+\\/[:word:]]\\)")
+(defvar textile-url-regexp "\\(?:\\b\\(?:\\(?:www\\.\\|\\(?:s?https?\\|ftp\\|file\\|gopher\\|nntp\\|news\\|telnet\\|wais\\|mailto\\|info\\):\\)\\(?://[-a-z0-9_.]+:[0-9]*\\)?[-a-z0-9_=!?#$@~%&*+\\/:;.,[:word:]]+[-a-z0-9_=#$@~%&*+\\/[:word:]]\\)\\)"
+  "Regexp matching a URL.")
 
 
 (defun textile-block-matcher (bloc)
   "Return the matcher regexp for a block element"
-  (concat 
+  (concat
    "^"
-   bloc 
-   (textile-re-concat textile-alignments) "?" 
-   (textile-re-concat textile-attributes) "*" 
+   bloc
+   (textile-re-concat textile-alignments) "?"
+   (textile-re-concat textile-attributes) "*"
    "\\. "
    "\\(\\(?:.\\|\n\\)*?\\)\n\n"))
 
@@ -91,26 +93,28 @@ non-matching parentheses"
   (concat
    (textile-re-concat (append textile-blocks textile-inline-markup))
    (textile-re-concat textile-alignments) "*"
-   (textile-re-concat textile-attributes) "*" 
-   "\\(" attr-start "[^" 
+   (textile-re-concat textile-attributes) "*"
+   "\\(" attr-start "[^"
    (if (string-equal attr-end "\\]") "]" attr-end)
    "]*" attr-end "\\)"))
 
 (defun textile-inline-markup-matcher (markup)
   "Return the matcher regexp for an inline markup"
   (concat
-   "\\W\\(" 
+   "\\W\\("
    markup
    "\\(?:\\w\\|\\w.*?\\w\\|[[{(].*?\\w\\)"
-   markup 
+   markup
    "\\)\\W"))
 
 (defun textile-list-bullet-matcher (bullet)
   "Return the matcher regexp for a list bullet"
   (concat
    "^\\(" bullet "\\)"
-   (textile-re-concat textile-alignments) "*" 
-   (textile-re-concat textile-attributes) "*"))
+   (textile-re-concat textile-alignments) "*"
+   (textile-re-concat textile-attributes) "*"
+   ;; list items must be preceeded by a space
+   " "))
 
 (defun textile-alignments-matcher ()
   "Return the matcher regexp for an alignments or indentation"
@@ -121,8 +125,8 @@ non-matching parentheses"
 (defun textile-table-matcher ()
   "Return the matcher regexp for a table row or header"
   (concat
-   "\\(?:" 
-   "^table" (textile-re-concat textile-table-alignments) "*" (textile-re-concat textile-attributes) "*" "\\. *$" 
+   "\\(?:"
+   "^table" (textile-re-concat textile-table-alignments) "*" (textile-re-concat textile-attributes) "*" "\\. *$"
    "\\|"
    "^" (textile-re-concat textile-table-alignments) "*" (textile-re-concat textile-attributes) "*" "\\(?:\\. *|\\)"
    "\\|"
@@ -134,12 +138,14 @@ non-matching parentheses"
 (defun textile-link-matcher ()
   "Return the matcher regexp for a link"
   (concat
-   "\\(?:"
-   "\\(?:" "\".*?\"" "\\|" "\\[.*?\\]" "\\)?"
-   textile-url-regexp
-   "\\|"
-   "\".*?\":[^ \n\t]+"
-   "\\)"))
+   "\\(\".*?\"\\):"
+   "\\(?:" "\\(" textile-url-regexp "\\)" "\\|" "\\([^ \n\t]+\\)" "\\)"))
+
+(defun textile-link-alias-matcher ()
+  "Return the matcher regexp for a link ali"
+  (concat
+   "\\(\\[.*?\\]\\)"
+   "\\(" textile-url-regexp "\\)"))
 
 (defun textile-image-matcher ()
   "Return the matcher regexp for an image link"
@@ -160,7 +166,7 @@ non-matching parentheses"
        `(,(textile-block-matcher "h1") 1 'textile-h1-face t t)
        `(,(textile-block-matcher "h2") 1 'textile-h2-face t t)
        `(,(textile-block-matcher "h3") 1 'textile-h3-face t t)
-       `(,(textile-block-matcher "h4") 1 'textile-h4-face t t) 
+       `(,(textile-block-matcher "h4") 1 'textile-h4-face t t)
        `(,(textile-block-matcher "h5") 1 'textile-h5-face t t)
        `(,(textile-block-matcher "h6") 1 'textile-h6-face t t)
        ;; blockquotes
@@ -168,22 +174,22 @@ non-matching parentheses"
        ;; footnotes
        `(,(textile-block-matcher "fn[0-9]+") 1 'textile-footnote-face t t)
        ;; footnote marks
-       '("\\w\\([[0-9]+]\\)" 1 'textile-footnotemark-face prepend t)
+       '("\\(?:\\w\\|\\s.\\)\\(\\[[0-9]+\\]\\)" 1 'textile-footnotemark-face prepend t)
        ;; acronyms
        `(,(textile-acronym-matcher) 0 'textile-acronym-face t t)
 
        ;; emphasis
        `(,(textile-inline-markup-matcher "__") 1 'textile-emph-face prepend t)
        `(,(textile-inline-markup-matcher "_") 1 'textile-emph-face prepend t)
-       '("<em>\\(.\\|\n\\)*?</em>" 0 'textile-emph-face prepend t) 
+       '("<em>\\(.\\|\n\\)*?</em>" 0 'textile-emph-face prepend t)
        ;; strength
        `(,(textile-inline-markup-matcher "\\*\\*") 1 'textile-strong-face prepend t)
        `(,(textile-inline-markup-matcher "\\*") 1 'textile-strong-face prepend t)
-       '("<strong>\\(.\\|\n\\)*?</strong>" 0 'textile-strong-face prepend t) 
+       '("<strong>\\(.\\|\n\\)*?</strong>" 0 'textile-strong-face prepend t)
        ;; citation
        `(,(textile-inline-markup-matcher "\\?\\?") 1 'textile-citation-face prepend t)
        ;; code
-       `(,(textile-inline-markup-matcher "@") 1 'textile-code-face prepend t)
+       `(,(textile-inline-markup-matcher "@") 1 'textile-inline-code-face prepend t)
        ;; deletion
        `(,(textile-inline-markup-matcher "-") 1 'textile-deleted-face prepend t)
        ;; insertion
@@ -199,9 +205,9 @@ non-matching parentheses"
        `(,(textile-image-matcher) 0 'textile-image-face t t)
 
        ;; ordered list bullet
-       `(,(textile-list-bullet-matcher "#+") 1 'textile-ol-bullet-face)       
+       `(,(textile-list-bullet-matcher "#+") 1 'textile-ol-bullet-face)
        ;; unordered list bullet
-       `(,(textile-list-bullet-matcher "\\*+") 1 'textile-ul-bullet-face) 
+       `(,(textile-list-bullet-matcher "\\*+") 1 'textile-ul-bullet-face)
 
        ;; style
        `(,(textile-attribute-matcher "{" "}") 1 'textile-style-face t t)
@@ -217,26 +223,36 @@ non-matching parentheses"
        `(,(textile-table-matcher) 0 'textile-table-face t t)
 
        ;; links
-       `(,(textile-link-matcher) 0 'textile-link-face t t)
+       `(,(textile-link-matcher)
+         (1 'textile-link-face)
+         (2 'textile-url-face t t)
+         (3 'textile-lang-face t t))
+       `(,(textile-link-alias-matcher)
+         (1 'textile-lang-face)
+         (2 'textile-url-face))
+       `(,textile-url-regexp 0 'textile-link-face)
 
         ;; <pre> blocks
-       '("<pre>\\(.\\|\n\\)*?</pre>" 0 'textile-pre-face t t) 
+       '("<pre>\\(.\\|\n\\)*?</pre>\n?" 0 'textile-pre-face t t)
        ;; <code> blocks
        '("<code>\\(.\\|\n\\)*?</code>" 0 'textile-code-face t t))
       "Keywords/Regexp for fontlocking of textile-mode")
 
 
-;; (defvar textile-imenu-generic-expression
-;; ...)
+(defvar textile-imenu-generic-expression
+  `(("Headings" "^h[[:digit:]]\\..*?\\([[:ascii:]].*?\\)$" 1))
+  "Expressions for generating imenu entries.")
 
 ;; (defvar textile-outline-regexp
 ;;   ...)
 
 
+;;;###autoload
 (define-derived-mode textile-mode text-mode "Textile"
   "A major mode for editing textile files."
   (set (make-local-variable 'font-lock-defaults) '(textile-font-lock-keywords t))
-  (set (make-local-variable 'font-lock-multiline) 'undecided))
+  (set (make-local-variable 'font-lock-multiline) 'undecided)
+  (set (make-local-variable 'imenu-generic-expression) textile-imenu-generic-expression))
 
 
 
@@ -377,6 +393,11 @@ non-matching parentheses"
   "Face used to highlight <code> blocks."
   :group 'textile-faces)
 
+(defface textile-inline-code-face
+  '((t (:inherit textile-code-face)))
+  "Face used to highlight inline code blocks."
+  :group 'textile-faces)
+
 (defface textile-table-face
   '((t (:foreground "red")))
   "Face used to highlight tables."
@@ -384,6 +405,11 @@ non-matching parentheses"
 
 (defface textile-link-face
   '((t (:foreground "blue")))
+  "Face used to highlight links."
+  :group 'textile-faces)
+
+(defface textile-url-face
+  '((t (:inherit textile-link-face)))
   "Face used to highlight links."
   :group 'textile-faces)
 
