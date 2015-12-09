@@ -4,8 +4,8 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/xbm-life
-;; Package-Version: 20151012.1241
-;; Version: 0.1.1
+;; Package-Version: 20151209.20
+;; Version: 0.1.2
 ;; Package-Requires:
 ;; Keywords: games
 
@@ -39,19 +39,12 @@
   :group 'games
   :prefix "xbm-life-")
 
-(defcustom xbm-life-default-foreground (face-foreground 'default)
-  "Default foreground color of the grid."
-  :type 'string
-  :group 'xbm-life)
+(defface xbm-life '((t :inherit default))
+  "Used to determine the fore- and background color of the grid.")
 
 (defvar xbm-life-foreground nil
   "Current foreground color of the grid.")
 (make-variable-buffer-local 'xbm-life-foreground)
-
-(defcustom xbm-life-default-background (face-background 'default)
-  "Default background color of the grid."
-  :type 'string
-  :group 'xbm-life)
 
 (defvar xbm-life-background nil
   "Current background color of the grid.")
@@ -385,8 +378,8 @@ values like 0.01s."
   "Initialize demo."
   (interactive)
   (buffer-disable-undo)
-  (setq xbm-life-foreground xbm-life-default-foreground
-        xbm-life-background xbm-life-default-background
+  (setq xbm-life-foreground (face-foreground 'xbm-life nil t)
+        xbm-life-background (face-background 'xbm-life nil t)
         xbm-life-grid (xbm-life-create-empty-grid xbm-life-default-grid-size)
         xbm-life-grid-size (length xbm-life-grid)
         xbm-life-tile-size xbm-life-default-tile-size
