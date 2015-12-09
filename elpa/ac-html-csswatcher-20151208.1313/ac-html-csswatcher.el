@@ -4,7 +4,7 @@
 
 ;; Author: Olexandr Sydorchuck  <olexandr.syd@gmail.com>
 ;; Version: 0.1.7
-;; Package-Version: 20150930.37
+;; Package-Version: 20151208.1313
 ;; Keywords: html, css, less, auto-complete
 ;; Package-Requires: ((web-completion-data "0.1"))
 ;; URL: https://github.com/osv/ac-html-csswatcher
@@ -41,7 +41,7 @@
 ;; Note:
 ;;
 ;; Please, keep CSS::Watcher up-to-date.
-;; Recommended version of csswatcher is 0.4.0 (run `csswatcher -v'). Update:
+;; Recommended version of csswatcher is 0.4.7 (run `csswatcher -v'). Update:
 ;;
 ;;   sudo cpan i CSS::Watcher
 ;; 
@@ -63,6 +63,8 @@
 ;;   ignore: \.css$
 ;;   # except app.css
 ;;   use: app\.css
+;;   # and skip recursive scanning node_modules, it may be slow!
+;;   skip: node_modules
 ;;
 ;; Otherwise projectile way used for root directory.
 ;;
