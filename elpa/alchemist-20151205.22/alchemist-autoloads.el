@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (22108 42487 585145
-;;;;;;  414000))
+;;;### (autoloads nil "alchemist" "alchemist.el" (22120 11788 221731
+;;;;;;  852000))
 ;;; Generated autoloads from alchemist.el
 
 (autoload 'alchemist-mode "alchemist" "\
@@ -17,8 +17,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22108 42487
-;;;;;;  613145 411000))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22120 11788
+;;;;;;  285732 401000))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -39,7 +39,7 @@ Show the IEx buffer if an IEx process is already run.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-phoenix" "alchemist-phoenix.el"
-;;;;;;  (22108 42487 609145 411000))
+;;;;;;  (22120 11788 277732 333000))
 ;;; Generated autoloads from alchemist-phoenix.el
 
 (autoload 'alchemist-phoenix-project-p "alchemist-phoenix" "\
@@ -66,7 +66,7 @@ The following commands are available:
 ;;;***
 
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (22108 42487 593145 413000))
+;;;;;;  (22120 11788 237731 989000))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -77,7 +77,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (22108 42487 621145 410000))
+;;;;;;  (22120 11788 305732 572000))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -105,7 +105,7 @@ The following commands are available:
 ;;;;;;  "alchemist-macroexpand.el" "alchemist-message.el" "alchemist-mix.el"
 ;;;;;;  "alchemist-pkg.el" "alchemist-project.el" "alchemist-report.el"
 ;;;;;;  "alchemist-scope.el" "alchemist-server.el" "alchemist-utils.el")
-;;;;;;  (22108 42487 629577 346000))
+;;;;;;  (22120 11788 320914 399000))
 
 ;;;***
 
