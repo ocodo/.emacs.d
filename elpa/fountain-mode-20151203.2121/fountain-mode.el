@@ -4,9 +4,9 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20150618.116
+;; Package-Version: 20151203.2121
 ;; Version: 1.5.0
-;; Package-Requires: ((s "1.9.0"))
+;; Package-Requires: ((emacs "24.4.0") (s "1.9.0"))
 ;; URL: https://github.com/rnkn/fountain-mode
 
 ;; This file is not part of GNU Emacs.
