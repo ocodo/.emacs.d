@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-gtags" "helm-gtags.el" (22084 1925 912922
-;;;;;;  336000))
+;;;### (autoloads nil "helm-gtags" "helm-gtags.el" (22120 11699 528907
+;;;;;;  543000))
 ;;; Generated autoloads from helm-gtags.el
 
 (autoload 'helm-gtags-clear-all-cache "helm-gtags" "\
