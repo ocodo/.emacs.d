@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "which-key" "which-key.el" (22095 53443 761777
-;;;;;;  986000))
+;;;### (autoloads nil "which-key" "which-key.el" (22120 11592 227717
+;;;;;;  533000))
 ;;; Generated autoloads from which-key.el
 
 (defvar which-key-mode nil "\
@@ -100,8 +100,50 @@ addition KEY-SEQUENCE NAME pairs) to apply.
 
 \(fn MODE KEY-SEQUENCE NAME &rest MORE)" nil nil)
 
+(autoload 'which-key-show-standard-help "which-key" "\
+Call the command in `which-key--prefix-help-cmd-backup'.
+Usually this is `describe-prefix-bindings'.
+
+\(fn)" t nil)
+
+(autoload 'which-key-show-next-page-no-cycle "which-key" "\
+Show next page of keys unless on the last page, in which case
+call `which-key-show-standard-help'.
+
+\(fn)" t nil)
+
+(autoload 'which-key-show-previous-page-no-cycle "which-key" "\
+Show previous page of keys unless on the first page, in which
+case do nothing.
+
+\(fn)" t nil)
+
+(autoload 'which-key-show-next-page-cycle "which-key" "\
+Show the next page of keys, cycling from end to beginning
+after last page.
+
+\(fn)" t nil)
+
+(autoload 'which-key-show-previous-page-cycle "which-key" "\
+Show the previous page of keys, cycling from beginning to end
+after first page.
+
+\(fn)" t nil)
+
 (autoload 'which-key-show-top-level "which-key" "\
 Show top-level bindings.
+
+\(fn)" t nil)
+
+(autoload 'which-key-undo-key "which-key" "\
+Undo last keypress and force which-key update.
+
+\(fn)" t nil)
+
+(autoload 'which-key-C-h-dispatch "which-key" "\
+Dispatch C-h commands by looking up key in
+`which-key-C-h-map'. This command is always accessible (from any
+prefix) if `which-key-use-C-h-commands' is non nil.
 
 \(fn)" t nil)
 
