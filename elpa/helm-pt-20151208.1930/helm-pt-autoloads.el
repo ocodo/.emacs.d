@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-pt" "helm-pt.el" (21783 34339 707401
-;;;;;;  0))
+;;;### (autoloads nil "helm-pt" "helm-pt.el" (22120 11697 444886
+;;;;;;  556000))
 ;;; Generated autoloads from helm-pt.el
 
 (autoload 'helm-do-pt "helm-pt" "\
@@ -19,8 +19,8 @@ Helm version of projectile-pt.
 
 ;;;***
 
-;;;### (autoloads nil nil ("helm-pt-pkg.el") (21783 34339 721259
-;;;;;;  433000))
+;;;### (autoloads nil nil ("helm-pt-pkg.el") (22120 11697 466193
+;;;;;;  451000))
 
 ;;;***
 

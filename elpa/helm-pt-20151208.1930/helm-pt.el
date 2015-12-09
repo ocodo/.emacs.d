@@ -5,7 +5,7 @@
 ;; Author: Rich Alesi
 ;; URL: https://github.com/ralesi/helm-pt
 ;; Version: 20150307.141210
-;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5"))
+;; Package-Requires: ((helm "1.5.6") (cl-lib "0.5") (emacs "24.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,6 +32,9 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-utils)
+(require 'helm-files)
+(require 'subr-x)
 
 (defgroup helm-pt nil
   "the platinum searcher interface for helm."
@@ -89,7 +92,7 @@ You can set value same as `thing-at-point'."
          (mapcar (lambda (val) (concat "--ignore=" val))
                  helm-pt-ignore-arguments))
         (default-directory (or helm-pt-default-directory
-                               helm-default-directory)))
+                               (helm-default-directory))))
     (mapconcat 'identity
                (append (list  helm-pt-command)
                        helm-pt-args
@@ -145,7 +148,7 @@ You can set value same as `thing-at-point'."
      (string-join (cl-loop for paths in
                            butl
                            collect
-                           (downcase (subseq paths 0 1))
+                           (downcase (cl-subseq paths 0 1))
                            ) "/")
      "/"
      lastl)))
@@ -172,7 +175,7 @@ You can set value same as `thing-at-point'."
 
 (defun helm-pt--candidate-transformer (candidate)
   (let* ((root   (lambda () (or helm-ff-default-directory
-                                helm-default-directory
+                                (helm-default-directory)
                                 default-directory)))
          (split (helm-pt-split-line candidate))
          (fname  (if (and root split)
@@ -199,7 +202,7 @@ You can set value same as `thing-at-point'."
   "`filter-one-by-one' transformer function for `helm-do-pt'."
   (let* ((root (or helm-pt-default-directory
                    helm-ff-default-directory
-                   helm-default-directory
+                   (helm-default-directory)
                    default-directory
                    ))
          (split (helm-pt-split-line candidate))
