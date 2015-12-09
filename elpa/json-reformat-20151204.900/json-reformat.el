@@ -2,8 +2,8 @@
 
 ;; Author: Wataru MIYAGUNI <gonngo@gmail.com>
 ;; URL: https://github.com/gongo/json-reformat
-;; Package-Version: 20151007.1728
-;; Version: 0.0.5
+;; Package-Version: 20151204.900
+;; Version: 0.0.6
 ;; Keywords: json
 
 ;; Copyright (c) 2012 Wataru MIYAGUNI
@@ -57,6 +57,9 @@
     (let ((keys '()))
       (maphash (lambda (k _v) (push k keys)) hash-table)
       keys)))
+
+(put 'json-reformat-error 'error-message "JSON Reformat error")
+(put 'json-reformat-error 'error-conditions '(json-reformat-error error))
 
 (defconst json-reformat:special-chars-as-pretty-string
   '((?\" . ?\")
@@ -163,6 +166,22 @@ Else t:
           (json-reformat:indent level)
           "}"))
 
+(defun json-reformat-from-string (string)
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (condition-case errvar
+        (let ((json-key-type 'string)
+              (json-object-type 'hash-table)
+              json-tree)
+          (setq json-tree (json-read))
+          (json-reformat:print-node json-tree 0))
+      (json-error
+       (signal 'json-reformat-error
+               (list (error-message-string errvar)
+                     (line-number-at-pos (point))
+                     (point)))))))
+
 ;;;###autoload
 (defun json-reformat-region (begin end)
   "Reformat the JSON in the specified region.
@@ -172,25 +191,28 @@ please see the documentation of `json-reformat:indent-width'
 and `json-reformat:pretty-string?'."
   (interactive "*r")
   (let ((start-line (line-number-at-pos begin))
-        (json-key-type 'string)
-        (json-object-type 'hash-table))
+        (start-pos  begin))
     (save-excursion
       (save-restriction
         (narrow-to-region begin end)
         (goto-char (point-min))
-        (let (json-tree reformatted)
+        (let (reformatted)
           (condition-case errvar
               (progn
-                (setq json-tree (json-read))
-                (setq reformatted (json-reformat:print-node json-tree 0))
+                (setq reformatted
+                      (json-reformat-from-string
+                       (buffer-substring-no-properties (point-min) (point-max))))
                 (delete-region (point-min) (point-max))
                 (insert reformatted))
-            (error
-             (message
-              "JSON parse error [Reason] %s [Position] In buffer, line %d (char %d)"
-              (error-message-string errvar)
-              (+ start-line (line-number-at-pos (point)) -1)
-              (point)))))))))
+            (json-reformat-error
+             (let ((reason   (nth 1 errvar))
+                   (line     (nth 2 errvar))
+                   (position (nth 3 errvar)))
+               (message
+                "JSON parse error [Reason] %s [Position] In buffer, line %d (char %d)"
+                reason
+                (+ start-line line -1)
+                (+ start-pos position -1))))))))))
 
 (provide 'json-reformat)
 
