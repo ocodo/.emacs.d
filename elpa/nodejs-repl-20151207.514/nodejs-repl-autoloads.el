@@ -1,10 +1,10 @@
 ;;; nodejs-repl-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (nodejs-repl) "nodejs-repl" "nodejs-repl.el" (21011
-;;;;;;  19935 0 0))
+;;;### (autoloads nil "nodejs-repl" "nodejs-repl.el" (22120 11643
+;;;;;;  324313 85000))
 ;;; Generated autoloads from nodejs-repl.el
 
 (autoload 'nodejs-repl "nodejs-repl" "\
@@ -14,16 +14,9 @@ Run Node.js REPL.
 
 ;;;***
 
-;;;### (autoloads nil nil ("nodejs-repl-pkg.el") (21011 19935 691263
-;;;;;;  0))
-
-;;;***
-
-(provide 'nodejs-repl-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; nodejs-repl-autoloads.el ends here
