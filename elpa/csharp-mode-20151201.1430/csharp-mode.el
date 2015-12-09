@@ -7,7 +7,7 @@
 ;; Modified   : November 2015
 ;; Version    : 0.8.11
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20151129.1451
+;; Package-Version: 20151201.1430
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2015-Nov-21 14:23:00>
 
@@ -4043,14 +4043,14 @@ The return value is meaningless, and is ignored by cc-mode.
   (concat
    "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-   "error [[:alnum:]]+: [^[\r\n]+\\[\\([^]\r\n]+\\)\\]$")
+   "error [[:alnum:]]+: [^\r\n]+\\[\\([^]\r\n]+\\)\\]$")
   "Regexp to match compilation error from msbuild.")
 
 (defconst csharp-compilation-re-msbuild-warning
   (concat
    "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-   "warning [[:alnum:]]+: [^[\r\n]+\\[\\([^]\r\n]+\\)\\]$")
+   "warning [[:alnum:]]+: [^\r\n]+\\[\\([^]\r\n]+\\)\\]$")
   "Regexp to match compilation warning from msbuild.")
 
 ;; Notes on xbuild and devenv commonalities
