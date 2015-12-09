@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "persp-mode" "persp-mode.el" (22108 42309 853172
-;;;;;;  322000))
+;;;### (autoloads nil "persp-mode" "persp-mode.el" (22120 11637 528248
+;;;;;;  274000))
 ;;; Generated autoloads from persp-mode.el
 
 (defvar persp-mode nil "\
