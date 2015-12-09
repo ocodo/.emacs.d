@@ -1,14 +1,14 @@
-;;; find-file-in-project.el --- Find files in a project quickly, on any OS
+;;; find-file-in-project.el --- Find files in a project quickly, on any OS -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2009, 2011-2012, 2015
 ;;   Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;;
-;; Version: 4.0
-;; Package-Version: 20151113.242
+;; Version: 4.4
+;; Package-Version: 20151208.2241
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
-;; Package-Requires: ((swiper "0.6.0") (emacs "24.3"))
+;; Package-Requires: ((swiper "0.7.0") (emacs "24.3"))
 ;; Created: 2008-03-18
 ;; Keywords: project, convenience
 ;; EmacsWiki: FindFileInProject
@@ -70,6 +70,8 @@
 ;; In ivy-mode, SPACE is translated to regex ".*".
 ;; For example, the search string "dec fun pro" is transformed into
 ;; a regex "\\(dec\\).*\\(fun\\).*\\(pro\\)"
+;; `C-h i g (ivy)' for more key-binding tips.
+;;
 ;; You switch to ido-mode by `(setq ffip-prefer-ido-mode t)'
 
 ;; GNU Find can be installed,
@@ -92,8 +94,7 @@
 ;;;###autoload
 (defvar ffip-filename-rules
   '(ffip-filename-identity
-    ffip-filename-dashes-to-camelcase
-    ffip-filename-camelcase-to-dashes))
+    (ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes)))
 
 ;;;###autoload
 (defvar ffip-find-executable nil "Path of GNU find.  If nil, we will find `find' path automatically.")
@@ -112,8 +113,13 @@ May be set using .dir-locals.el.  Checks each entry if set to a list.")
   "List of patterns to look for with `find-file-in-project'.")
 
 ;;;###autoload
+(defvar ffip-match-path-instead-of-filename nil
+  "Match full path instead of file name when calling `find-file-in-project-by-selected'")
+
+;;;###autoload
 (defvar ffip-prune-patterns
   '(;; VCS
+    "*/.idea/*"
     "*/.git/*"
     "*/.svn/*"
     "*/.cvs/*"
@@ -212,39 +218,72 @@ This overrides variable `ffip-project-root' when set.")
         (progn (message "No project was defined for the current file.")
                nil))))
 
+(defun ffip--find-rule-to-execute (keyword f)
+  "If F is a function, return it.
+
+If F is a list, assume each element is a function.
+Run each element with keyword as 1st parameter as KEYWORD and 2nd parameter as t.
+If the result is true, return the function."
+  (let (rlt found fn)
+    (cond
+     ((functionp f) (setq rlt f))
+
+     ((listp f)
+      (while (and f (not found))
+        (setq fn (car f))
+        (if (funcall fn keyword t)
+            (setq found t)
+          (setq f (cdr f))))
+      (setq rlt (if found fn 'identity)))
+
+     (t (setq rlt 'identity)))
+
+    rlt))
+
+
 ;;;###autoload
 (defun ffip-filename-identity (keyword)
   "Return identical KEYWORD."
   keyword)
 
 ;;;###autoload
-(defun ffip-filename-camelcase-to-dashes (keyword)
-  "HelloWorld => hello-world."
+(defun ffip-filename-camelcase-to-dashes (keyword &optional check-only)
+  "Convert KEYWORD from camel cased to dash seperated.
+If CHECK-ONLY is true, only do the check."
   (let (rlt
         (old-flag case-fold-search))
-    (setq case-fold-search nil)
-    ;; case sensitive replace
-    (setq rlt (downcase (replace-regexp-in-string "\\([a-z]\\)\\([A-Z]\\)" "\\1-\\2" keyword)))
-    (setq case-fold-search old-flag)
+    (cond
+     (check-only
+      (setq rlt (string-match "^[a-z0-9]+[A-Z][A-Za-z0-9]+$" keyword))
+      (if ffip-debug (message "ffip-filename-camelcase-to-dashes called. check-only keyword=%s rlt=%s" keyword rlt)))
+     (t
+      (setq case-fold-search nil)
+      ;; case sensitive replace
+      (setq rlt (downcase (replace-regexp-in-string "\\([a-z]\\)\\([A-Z]\\)" "\\1-\\2" keyword)))
+      (setq case-fold-search old-flag)
 
-    (if (string= rlt (downcase keyword)) (setq rlt nil))
+      (if (string= rlt (downcase keyword)) (setq rlt nil))
 
-    (if (and rlt ffip-debug)
-        (message "ffip-filename-camelcase-to-dashes called. rlt=%s" rlt))
+      (if (and rlt ffip-debug)
+          (message "ffip-filename-camelcase-to-dashes called. rlt=%s" rlt))))
     rlt))
 
 ;;;###autoload
-(defun ffip-filename-dashes-to-camelcase (keyword)
-  "hello-world => HelloWorld."
+(defun ffip-filename-dashes-to-camelcase (keyword &optional check-only)
+  "Convert KEYWORD from dash seperated to camel cased.
+If CHECK-ONLY is true, only do the check."
   (let (rlt)
-    (setq rlt (mapconcat (lambda (s) (capitalize s)) (split-string keyword "-") ""))
+    (cond
+     (check-only
+        (setq rlt (string-match "^[A-Za-z0-9]+\\(-[A-Za-z0-9]+\\)+$" keyword))
+        (if ffip-debug (message "ffip-filename-dashes-to-camelcase called. check-only keyword=%s rlt=%s" keyword rlt)))
+     (t
+      (setq rlt (mapconcat (lambda (s) (capitalize s)) (split-string keyword "-") ""))
 
-    (if (string= rlt (capitalize keyword)) (setq rlt nil)
-      (setq rlt (ffip-filename-identity rlt)))
-
-    (if (and rlt ffip-debug)
-        (message "ffip-filename-dashes-to-camelcase called. rlt=%s" rlt))
-
+      (let ((first-char (substring rlt 0 1)))
+       (setq rlt (concat "[" first-char (downcase first-char) "]" (substring rlt 1))))
+      (if (and rlt ffip-debug)
+          (message "ffip-filename-dashes-to-camelcase called. rlt=%s" rlt))))
     rlt))
 
 (defun ffip--create-filename-pattern-for-gnufind (keyword)
@@ -253,13 +292,22 @@ This overrides variable `ffip-project-root' when set.")
      ((not keyword)
       (setq rlt ""))
      ((not ffip-filename-rules)
-      (setq rlt (concat "-name \"*" keyword "*\"" )))
+      (setq rlt (concat (if ffip-match-path-instead-of-filename "-iwholename" "-name")
+                        " \"*"
+                        keyword
+                        "*\"" )))
      (t
       (dolist (f ffip-filename-rules rlt)
-        (let (tmp)
-          (setq tmp (funcall f keyword))
+        (let (tmp fn)
+          (setq fn (ffip--find-rule-to-execute keyword f))
+          (setq tmp (funcall fn keyword))
           (when tmp
-            (setq rlt (concat rlt (unless (string= rlt "") " -o") " -name \"*" tmp "*\"")))))
+            (setq rlt (concat rlt (unless (string= rlt "") " -o")
+                              " "
+                              (if ffip-match-path-instead-of-filename "-iwholename" "-name")
+                              " \"*"
+                              tmp
+                              "*\"")))))
       (unless (string= "" rlt)
         (setq rlt (concat "\\(" rlt " \\)")))
       ))
@@ -296,18 +344,17 @@ This overrides variable `ffip-project-root' when set.")
   (mapconcat (lambda (pat) (format "-iwholename \"%s\"" pat))
              ffip-prune-patterns " -or "))
 
-(defun ffip-completing-read (prompt collection)
-  (let (rlt)
-    (cond
-     ((= 1 (length collection))
-       ;; open file directly
-       (setq rlt (car collection)))
-     ;; support ido-mode
-     ((and ffip-prefer-ido-mode (boundp 'ido-mode) ido-mode)
-      (setq rlt (ido-completing-read prompt collection)))
-     (t
-      (setq rlt (ivy-read prompt collection))))
-    rlt))
+(defun ffip-completing-read (prompt collection action)
+  (cond
+    ((= 1 (length collection))
+     ;; open file directly
+     (funcall action (car collection)))
+    ;; support ido-mode
+    ((and ffip-prefer-ido-mode (boundp 'ido-mode) ido-mode)
+     (funcall action (ido-completing-read prompt collection)))
+    (t
+     (ivy-read prompt collection
+               :action action))))
 
 (defun ffip-project-search (keyword find-directory)
   "Return an alist of all filenames in the project and their path.
@@ -353,20 +400,27 @@ directory they are found in so that they are unique."
 (defun ffip-find-files (keyword open-another-window &optional find-directory)
   (let* ((project-files (ffip-project-search keyword find-directory))
          (files (mapcar 'car project-files))
-         file root
-         rlt)
-    (cond
-     ((and files (> (length files) 0))
-      (setq root (file-name-nondirectory (directory-file-name (or ffip-project-root (ffip-project-root)))))
-      (setq file (ffip-completing-read (format "Find in %s/: " root)  files))
-      (setq rlt (cdr (assoc file project-files)))
-      (if find-directory
-          ;; open dired because this rlt is a directory
-          (if open-another-window (dired-other-window rlt)
-            (switch-to-buffer (dired rlt)))
-        (if open-another-window (find-file-other-window rlt)
-            (find-file rlt))))
-     (t (message "Nothing found!")))))
+         file root)
+    (if (> (length files) 0)
+        (progn
+          (setq root (file-name-nondirectory
+                      (directory-file-name
+                       (or ffip-project-root (ffip-project-root)))))
+          (ffip-completing-read
+           (format "Find in %s/: " root)
+           files
+           (lambda (file)
+             (let ((rlt (cdr (assoc file project-files))))
+               (with-ivy-window
+                 (if find-directory
+                     ;; open dired because this rlt is a directory
+                     (if open-another-window
+                         (dired-other-window rlt)
+                       (switch-to-buffer (dired rlt)))
+                   (if open-another-window
+                       (find-file-other-window rlt)
+                     (find-file rlt))))))))
+      (message "Nothing found!"))))
 
 ;;;###autoload
 (defun ffip-current-full-filename-match-pattern-p (regex)
@@ -441,6 +495,7 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
   (put 'ffip-patterns 'safe-local-variable 'listp)
   (put 'ffip-prune-patterns 'safe-local-variable 'listp)
   (put 'ffip-filename-rules 'safe-local-variable 'listp)
+  (put 'ffip-match-path-instead-of-filename 'safe-local-variable 'booleanp)
   (put 'ffip-project-file 'safe-local-variable 'stringp)
   (put 'ffip-project-root 'safe-local-variable 'stringp))
 

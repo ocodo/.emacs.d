@@ -4,10 +4,10 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22095 53621 113804 115000))
+;;;;;;  (22120 11746 329358 717000))
 ;;; Generated autoloads from find-file-in-project.el
 
-(defvar ffip-filename-rules '(ffip-filename-identity ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes))
+(defvar ffip-filename-rules '(ffip-filename-identity (ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes)))
 
 (defvar ffip-find-executable nil "\
 Path of GNU find.  If nil, we will find `find' path automatically.")
@@ -22,7 +22,10 @@ Use `ido-mode' instead of `ivy-mode' for displaying candidates.")
 (defvar ffip-patterns nil "\
 List of patterns to look for with `find-file-in-project'.")
 
-(defvar ffip-prune-patterns '("*/.git/*" "*/.svn/*" "*/.cvs/*" "*/.bzr/*" "*/.hg/*" "*.log" "*/bin/*" "*/.DS_Store/*" "*/tags" "*/TAGS" "*/GTAGS" "*/GPATH" "*/GRTAGS" "*/cscope.files" "*min.js" "*min.css" "*/node_modules/*" "*/bower_components/*" "*.png" "*.jpg" "*.jpeg" "*.gif" "*.bmp" "*.tiff" "*.doc" "*.docx" "*.pdf" "*.obj" "*.o" "*.a" "*.dylib" "*.lib" "*.d" "*.dll" "*.exe" "*/.metadata*" "*/.gradle/*" "*.class" "*.war" "*.jar" "*flymake" "*/#*#" ".#*" "*.swp" "*~" "*.elc" "*/.cask/*" "*.pyc") "\
+(defvar ffip-match-path-instead-of-filename nil "\
+Match full path instead of file name when calling `find-file-in-project-by-selected'")
+
+(defvar ffip-prune-patterns '("*/.idea/*" "*/.git/*" "*/.svn/*" "*/.cvs/*" "*/.bzr/*" "*/.hg/*" "*.log" "*/bin/*" "*/.DS_Store/*" "*/tags" "*/TAGS" "*/GTAGS" "*/GPATH" "*/GRTAGS" "*/cscope.files" "*min.js" "*min.css" "*/node_modules/*" "*/bower_components/*" "*.png" "*.jpg" "*.jpeg" "*.gif" "*.bmp" "*.tiff" "*.doc" "*.docx" "*.pdf" "*.obj" "*.o" "*.a" "*.dylib" "*.lib" "*.d" "*.dll" "*.exe" "*/.metadata*" "*/.gradle/*" "*.class" "*.war" "*.jar" "*flymake" "*/#*#" ".#*" "*.swp" "*~" "*.elc" "*/.cask/*" "*.pyc") "\
 List of directory/file patterns to not descend into when listing files in `find-file-in-project'.")
 
 (defvar ffip-find-options "" "\
@@ -49,14 +52,16 @@ Return identical KEYWORD.
 \(fn KEYWORD)" nil nil)
 
 (autoload 'ffip-filename-camelcase-to-dashes "find-file-in-project" "\
-HelloWorld => hello-world.
+Convert KEYWORD from camel cased to dash seperated.
+If CHECK-ONLY is true, only do the check.
 
-\(fn KEYWORD)" nil nil)
+\(fn KEYWORD &optional CHECK-ONLY)" nil nil)
 
 (autoload 'ffip-filename-dashes-to-camelcase "find-file-in-project" "\
-hello-world => HelloWorld.
+Convert KEYWORD from dash seperated to camel cased.
+If CHECK-ONLY is true, only do the check.
 
-\(fn KEYWORD)" nil nil)
+\(fn KEYWORD &optional CHECK-ONLY)" nil nil)
 
 (autoload 'ffip-current-full-filename-match-pattern-p "find-file-in-project" "\
 Is current full file name (including directory) match the REGEX?
@@ -117,6 +122,8 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 (put 'ffip-prune-patterns 'safe-local-variable 'listp)
 
 (put 'ffip-filename-rules 'safe-local-variable 'listp)
+
+(put 'ffip-match-path-instead-of-filename 'safe-local-variable 'booleanp)
 
 (put 'ffip-project-file 'safe-local-variable 'stringp)
 
