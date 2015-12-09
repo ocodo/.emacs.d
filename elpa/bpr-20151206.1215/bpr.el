@@ -11,7 +11,6 @@
 ;; For detailed instructions see https://github.com/ilya-babanov/emacs-bpr.
 
 ;;; Code:
-
 (require 'shell)
 
 (defgroup bpr nil
@@ -144,9 +143,9 @@ For this operation `ansi-color-apply-on-region' is used."
 
 (defun bpr-handle-progress (process)
   (when (process-live-p process)
-      (let* ((show-progress (process-get process 'show-progress)))
-        (when show-progress (bpr-show-progress-message process))
-        (bpr-delay-progress-handler process))))
+    (let* ((show-progress (process-get process 'show-progress)))
+      (when show-progress (bpr-show-progress-message process))
+      (bpr-delay-progress-handler process))))
 
 (defun bpr-delay-progress-handler (process)
   (let* ((poll-timeout (process-get process 'poll-timeout)))
@@ -221,8 +220,7 @@ For this operation `ansi-color-apply-on-region' is used."
         (ansi-color-apply-on-region (point-min) (point-max))))))
 
 (defun bpr-get-remaining-lines-count (direction)
-    (count-lines (point) (buffer-end direction)))
+  (count-lines (point) (buffer-end direction)))
 
 (provide 'bpr)
-
 ;;; bpr.el ends here
