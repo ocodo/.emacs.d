@@ -4,7 +4,7 @@
 
 ;; Authors: Andrew J Vargo <ajvargo@gmail.com>, Jeff Morgan <jeff.morgan@leandog.com>
 ;; Keywords: refactor ruby
-;; Package-Version: 20151026.1347
+;; Package-Version: 20151208.1007
 ;; Version: 0.1
 ;; URL: https://github.com/ajvargo/ruby-refactor
 ;; Package-Requires: ((ruby-mode "1.2"))
@@ -52,7 +52,7 @@
 ;; will be replaced with the variable.
 
 ;; ## Extract Constant:
-;; Select a region of text and invoke `ruby-refactor-extract-contant`.
+;; Select a region of text and invoke `ruby-refactor-extract-constant`.
 ;; You'll be prompted for a constant name.  The new constant will
 ;; be created at the top of the enclosing class or module directly
 ;; after any include or extend statements and the regions will be
