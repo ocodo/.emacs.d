@@ -39,7 +39,12 @@ Here are the possible value of this symbol and their meaning:
 - multi2: Same but with partial match.
 - multi3: The best, multiple regexp match, allow negation.
 - multi3p: Same but prefix must match.
-Default is multi3."
+
+Default is multi3, you should keep this for a better experience.
+
+Note that multi1 and multi3p are incompatible with fuzzy matching
+in file completion and by the way fuzzy matching will be disabled there
+when these options are used."
   :type  '(radio :tag "Matching methods for helm"
            (const :tag "Multiple regexp 1 ordered with prefix match"         multi1)
            (const :tag "Multiple regexp 2 ordered with partial match"        multi2)
@@ -120,7 +125,10 @@ but \"foo\ bar\"=> (\"foobar\")."
   helm-mm-prefix-pattern-real)
 
 (defun helm-mm-prefix-match (str &optional pattern)
-  (setq pattern (or pattern helm-pattern))
+  ;; In filename completion basename and basedir may be
+  ;; quoted, unquote them for string comparison (Issue #1283).
+  (setq pattern (replace-regexp-in-string
+                 "\\\\" "" (or pattern helm-pattern)))
   (let ((len (length pattern)))
     (and (<= len (length str))
          (string= (substring str 0 len) pattern ))))
