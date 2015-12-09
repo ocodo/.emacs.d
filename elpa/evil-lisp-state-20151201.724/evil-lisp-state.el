@@ -4,7 +4,7 @@
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; Keywords: convenience editing evil smartparens lisp mnemonic
-;; Package-Version: 20151126.1206
+;; Package-Version: 20151201.724
 ;; Created: 9 Oct 2014
 ;; Version: 8.0
 ;; Package-Requires: ((evil "1.0.9") (bind-map "0") (smartparens "1.6.1"))
@@ -34,15 +34,15 @@
 ;; ----------
 
 ;; To execute a command while in normal state, a leader is used.
-;; By default, the leader for each command is `SPC l`.
+;; The leader has to be defined with the function `evil-lisp-state-leader'.
 ;; By default, any command when executed sets the current state to
 ;; `lisp state`.
-
-;; By example, to slurp three times while in normal state:
+;;
+;; For example, to slurp three times while in normal state:
 ;;     <leader> 3 s
 ;; Or to wrap a symbol in parenthesis then slurping two times:
 ;;     <leader> w 2 s
-
+;;
 ;; Key Binding  | Function
 ;; -------------|------------------------------------------------------------
 ;; `leader .'   | switch to `lisp state'
@@ -93,6 +93,10 @@
 ;; Configuration:
 ;; --------------
 
+;; No default binding comes with the package, you have to explicitly
+;; bind the lisp state to a key with the function `evil-lisp-state-leader'
+;; For instance: `(evil-lisp-state-leader ", l")'
+
 ;; Key bindings are set only for `emacs-lisp-mode' by default.
 ;; It is possible to add major modes with the variable
 ;; `evil-lisp-state-major-modes'.
@@ -100,9 +104,6 @@
 ;; It is also possible to define the key bindings globally by
 ;; setting `evil-lisp-state-global' to t. In this case
 ;; `evil-lisp-state-major-modes' has no effect.
-
-;; The leader key is `SPC l' by default, it is possible to
-;; change it with the function `evil-lisp-state-leader'.
 
 ;; If you don't want commands to enter in `lisp state' by default
 ;; set the variable `evil-lisp-state-enter-lisp-state-on-command'
@@ -171,6 +172,7 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
 (defun evil-lisp-state-leader (leader)
   "Set LEADER."
   (bind-map evil-lisp-state-map
+    :evil-use-local t
     :evil-keys (leader)
     :evil-states (normal))
   (eval
@@ -178,7 +180,6 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
       :evil-keys (,leader)
       :evil-states (normal)
       :major-modes ,evil-lisp-state-major-modes)))
-(evil-lisp-state-leader "SPC l")
 
 ;; escape
 (define-key evil-lisp-state-map [escape] 'evil-normal-state)
