@@ -4,8 +4,8 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/zone-nyan
-;; Package-Version: 20151124.1240
-;; Version: 0.2.1
+;; Package-Version: 20151208.1314
+;; Version: 0.2.2
 ;; Package-Requires: ((esxml "0.3.1"))
 ;; Keywords: zone
 
@@ -580,8 +580,9 @@ component, width, height and fill color which is looked up in
 
 (defun zone-nyan-svg-image (time)
   "Return a SVG string for a point in TIME."
-  (let* ((width (window-body-width nil t))
-         (height (window-body-height nil t))
+  (let* ((edges (window-inside-pixel-edges))
+         (width (- (nth 2 edges) (car edges)))
+         (height (- (nth 3 edges) (cadr edges)))
          (scale (zone-nyan-svg-scale width height))
          (x-offset (floor (/ (- width (* zone-nyan-svg-size scale)) 2.0)))
          (y-offset (floor (/ (- height (* zone-nyan-svg-size scale)) 2.0))))
