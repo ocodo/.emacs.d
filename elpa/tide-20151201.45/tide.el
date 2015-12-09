@@ -4,7 +4,7 @@
 
 ;; Author: Anantha kumaran <ananthakumaran@gmail.com>
 ;; URL: http://github.com/ananthakumaran/tide
-;; Version: 1.6.2
+;; Version: 1.7.3
 ;; Keywords: typescript
 ;; Package-Requires: ((dash "2.10.0") (flycheck "0.23") (emacs "24.1") (typescript-mode "0.1"))
 
@@ -119,6 +119,14 @@
 
 (defun tide-response-success-p (response)
   (and response (equal (plist-get response :success) t)))
+
+(defmacro tide-on-response-success (response &rest body)
+  (declare (indent 1))
+  `(if (tide-response-success-p ,response)
+       ,@body
+     (-when-let (msg (plist-get response :message))
+       (message "%s" msg))
+     nil))
 
 (defun tide-join (list)
   (mapconcat 'identity list ""))
@@ -324,7 +332,7 @@ LINE is one based, OFFSET is one based and column is zero based"
 With a prefix arg, Jump to the type definition."
   (interactive "P")
   (let ((cb (lambda (response)
-              (when (tide-response-success-p response)
+              (tide-on-response-success response
                 (let ((filespan (car (plist-get response :body))))
                   (tide-jump-to-filespan filespan t))))))
     (if arg
@@ -744,7 +752,7 @@ number."
 
 (defun tide-read-new-symbol (old-symbol)
   (let ((new-symbol (read-from-minibuffer (format "Rename %s to " old-symbol))))
-    (if (string-blank-p new-symbol)
+    (if (string-match-p "\\`[ \t\n\r]*\\'" new-symbol)
         (error "Invalid name")
       new-symbol)))
 
@@ -752,7 +760,7 @@ number."
   "Rename symbol at point."
   (interactive)
   (let ((response (tide-command:rename)))
-    (when (tide-response-success-p response)
+    (tide-on-response-success response
       (if (eq (tide-plist-get response :body :info :canRename) :json-false)
           (message "%s" (tide-plist-get response :body :info :localizedErrorMessage))
         (let* ((old-symbol (tide-plist-get response :body :info :fullDisplayName))
