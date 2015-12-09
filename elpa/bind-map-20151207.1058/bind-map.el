@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-bind-map
-;; Package-Version: 20151130.749
+;; Package-Version: 20151207.1058
 ;; Version: 0.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -24,60 +24,83 @@
 
 ;;; Commentary:
 
-;; bind-map is an Emacs package providing the macro `bind-map' which can be used
+;; bind-map is an Emacs package providing the macro bind-map which can be used
 ;; to make a keymap available across different "leader keys" including ones tied
 ;; to evil states. It is essentially a generalization of the idea of a leader
 ;; key as used in vim or the Emacs https://github.com/cofi/evil-leader package,
 ;; and allows for an arbitrary number of "leader keys". This is probably best
 ;; explained with an example.
 
-;; (bind-map my-lisp-map
+;; (bind-map my-base-leader-map
 ;;   :keys ("M-m")
 ;;   :evil-keys ("SPC")
-;;   :evil-states (normal visual)
-;;   :major-modes (emacs-lisp-mode
-;;                 lisp-interaction-mode
-;;                 lisp-mode))
+;;   :evil-states (normal motion visual))
 
-;; This will take my-lisp-map and make it available under the prefixes (or
-;; leaders) M-m and SPC, where the latter is only bound in evil's normal or
-;; visual state (defaults in `bind-map-default-evil-states') when one of the
-;; specified major mode is active (there is no need to make sure the respective
-;; modes' packages are loaded before this declaration). It is also possible to
-;; make the bindings conditional on minor modes being loaded, or a mix of major
-;; and minor modes. If no modes are specified, the relevant global maps are
-;; used. See the docstring of `bind-map' for more options.
+;; (bind-map my-elisp-map
+;;   :keys ("M-m m" "M-RET")
+;;   :evil-keys ("SPC m" ",")
+;;   :major-modes (emacs-lisp-mode
+;;                 lisp-interaction-mode))
+
+;; This will make my-base-leader-map (automatically creating the map if it's not
+;; defined yet) available under the prefixes (or leaders) M-m and SPC, where the
+;; latter is only bound in evil's normal, motion or visual states. The second
+;; declaration makes my-elisp-map available under the specified keys when one of
+;; the specified major modes is active. In the second case, the evil states used
+;; are also normal motion and visual because this is the default as specified in
+;; bind-map-default-evil-states. It is possible to make the bindings conditional
+;; on minor modes being loaded, or a mix of major and minor modes. Since the
+;; symbols of the modes are used, it is not necessary to ensure that any of the
+;; mode's packages are loaded prior to this declaration. See the docstring of
+;; bind-map for more options.
+
+;; This package will only make use of evil if one of the evil related keywords
+;; is specified. This declaration, for example, makes no use of the evil
+;; package.
+
+;; (bind-map my-elisp-map
+;;   :keys ("M-m m" "M-RET")
+;;   :major-modes (emacs-lisp-mode
+;;                 lisp-interaction-mode))
 
 ;; The idea behind this package is that you want to organize your personal
 ;; bindings in a series of keymaps separate from built-in mode maps. You can
-;; simply add keys using the built-in `define-key' to my-lisp-map for example,
+;; simply add keys using the built-in define-key to my-elisp-map for example,
 ;; and a declaration like the one above will take care of ensuring that these
 ;; bindings are available in the correct places.
 
 ;; Binding keys in the maps
 
-;; You may use the built-in `define-key' which will function as intended.
-;; `bind-key' (part of https://github.com/jwiegley/use-package) is another
-;; option. For those who want a different interface, the following functions are
-;; also provided, which both just use `define-key' internally, but allow for
-;; multiple bindings without much syntax.
+;; You may use the built-in define-key which will function as intended. bind-key
+;; (part of https://github.com/jwiegley/use-package) is another option. For
+;; those who want a different interface, the following functions are also
+;; provided, which both just use define-key internally, but allow for multiple
+;; bindings without much syntax.
 
-;; (bind-map-set-keys my-lisp-map
-;;   "c" 'compile
-;;   "C" 'check
+;;   (bind-map-set-keys my-base-leader-map
+;;     "c" 'compile
+;;     "C" 'check
+;;     ;; ...
+;;     )
+;;   ;; is the same as
+;;   ;; (define-key my-base-leader-map (kbd "c") 'compile)
+;;   ;; (define-key my-base-leader-map (kbd "C") 'check)
 ;;   ;; ...
-;;   )
-;; (bind-map-set-key-defaults my-lisp-map
-;;   "c" 'compile
-;;   "C" 'check
+
+;;   (bind-map-set-key-defaults my-base-leader-map
+;;     "c" 'compile
+;;     ;; ...
+;;     )
+;;   ;; is the same as
+;;   ;; (unless (lookup-key my-base-leader-map (kbd "c"))
+;;   ;;   (define-key my-base-leader-map (kbd "c") 'compile))
 ;;   ;; ...
-;;   )
 
 ;; The second function only adds the bindings if there is no existing binding
 ;; for that key. It is probably only useful for shared configurations, where you
 ;; want to provide a default binding but don't want that binding to overwrite
 ;; one made by the user. Note the keys in both functions are strings that are
-;; passed to `kbd' before binding them.
+;; passed to kbd before binding them.
 
 ;;; Code:
 
@@ -94,6 +117,15 @@
 `bind-map-for-minor-mode'."
   :group 'bind-map)
 
+(defvar bind-map-evil-local-bindings '()
+  "Each element of this list takes the form (OVERRIDE-MODE STATE
+KEY DEF) and corresponds to a binding for an evil local state
+map. OVERRIDE-MODE is the minor mode that must be enabled for
+these to be activated.")
+(defvaralias 'bind-map-local-bindings 'bind-map-evil-local-bindings)
+(make-obsolete-variable 'bind-map-local-bindings
+                        'bind-map-evil-local-bindings "2015-12-2")
+
 ;;;###autoload
 (defmacro bind-map (map &rest args)
   "Bind keymap MAP in multiple locations.
@@ -103,7 +135,10 @@ the bindings on major and/or minor modes being active. The
 options are controlled through the keyword arguments ARGS, all of
 which are optional.
 
-:keys (KEY1 KEY2 ...)
+The package evil is only required if one of the :evil-keys is
+specified.
+
+:keys \(KEY1 KEY2 ...\)
 
 The keys to use for the leader binding. These are strings
 suitable for use in `kbd'.
@@ -111,34 +146,46 @@ suitable for use in `kbd'.
 :override-minor-modes BOOL
 
 If non nil, make keys in :keys override the minor-mode maps, by
-using `emulation-mode-map-alists' instead of `global-map'. If
+using `emulation-mode-map-alists' instead of the `global-map'.
+This is done for the :evil-keys using evil local state maps. If
 either :major-modes or :minor-modes is specified, this setting
 has no effect.
 
-:evil-keys (KEY1 KEY2 ...)
+The overriding behavior can be toggled using the minor mode
+MAP-overriding-mode (the name of the minor mode can be customized
+in the next keyword). It is enabled by default when you specify
+this keyword.
+
+:override-mode-name SYMBOL
+
+The name to use for the minor mode described for the previous
+keyword (a default name will be given if this is left
+unspecificied). This setting as no effect
+if :override-minor-modes is nil or unspecified.
+
+:evil-keys \(KEY1 KEY2 ...\)
 
 Like :keys but these bindings are only active in certain evil
 states.
 
-:evil-states (STATE1 STATE2 ...)
+:evil-states \(STATE1 STATE2 ...\)
 
 Symbols representing the states to use for :evil-keys. If nil,
 use `bind-map-default-evil-states'.
 
 :evil-use-local BOOL
 
-This places all evil bindings in the local state maps for evil.
-These maps have high precedence and will mask most other evil
-bindings. If either :major-modes or :minor-modes is specified,
-this setting has no effect.
+\(Deprecated\) This is now equivalent to setting
+`:override-minor-modes' to t, which handles evil and non-evil
+keys now.
 
-:major-modes (MODE1 MODE2 ...)
+:major-modes \(MODE1 MODE2 ...\)
 
 If specified, the keys will only be bound when these major modes
 are active. If both :major-modes and :minor-modes are nil or
 unspecified the bindings are global.
 
-:minor-modes (MODE1 MODE2 ...)
+:minor-modes \(MODE1 MODE2 ...\)
 
 If specified, the keys will only be bound when these minor modes
 are active. If both :major-modes and :minor-modes are nil or
@@ -154,14 +201,25 @@ Declare a prefix command for MAP named COMMAND-NAME."
          (prefix-cmd (or (plist-get args :prefix-cmd)
                          (intern (format "%s-prefix" map))))
          (keys (plist-get args :keys))
-         (override-minor-modes (plist-get args :override-minor-modes))
+         (override-minor-modes (or (plist-get args :override-minor-modes)
+                                   (plist-get args :evil-use-local)))
+         (override-mode (if (plist-get args :override-mode-name)
+                            (plist-get args :override-mode-name)
+                          (intern (format "%s-override-mode" map))))
+         (override-mode-doc (format "Minor mode that makes %s override minor \
+mode maps. Set up by bind-map.el." map))
+         (global-override-mode (intern (format "global-%s" override-mode)))
+         (turn-on-override-mode (intern (format "turn-on-%s" override-mode)))
+         (turn-on-override-mode-doc (format "Enable `%s' except in minibuffer"
+                                            override-mode))
          (evil-keys (plist-get args :evil-keys))
          (evil-states (or (plist-get args :evil-states)
                           bind-map-default-evil-states))
-         (evil-use-local (plist-get args :evil-use-local))
          (minor-modes (plist-get args :minor-modes))
          (major-modes (plist-get args :major-modes)))
     `(progn
+       (when ',evil-keys (require 'evil))
+
        (defvar ,map (make-sparse-keymap))
        (unless (keymapp ,map)
          (error "bind-map: %s is not a keymap" ',map))
@@ -189,24 +247,36 @@ Declare a prefix command for MAP named COMMAND-NAME."
        (when (and ,override-minor-modes
                   (null ',major-modes)
                   (null ',minor-modes))
-         (add-to-list 'emulation-mode-map-alists (list (cons t ,root-map))))
+         (defun ,turn-on-override-mode ()
+           ,turn-on-override-mode-doc
+           (unless (minibufferp) (,override-mode 1)))
+         (define-globalized-minor-mode ,global-override-mode
+           ,override-mode ,turn-on-override-mode)
+         (define-minor-mode ,override-mode
+           ,override-mode-doc)
+         (add-to-list 'emulation-mode-map-alists
+                      (list (cons ',override-mode ,root-map)))
+         (,global-override-mode 1))
 
        (if (or ',minor-modes ',major-modes)
            ;;bind keys in root-map
            (progn
              (dolist (key (list ,@keys))
                (define-key ,root-map (kbd key) ',prefix-cmd))
-             (when ',evil-keys
-               (bind-map-evil-define-key
-                ',evil-states ,root-map (list ,@evil-keys) ',prefix-cmd)))
+             (dolist (key (list ,@evil-keys))
+               (dolist (state ',evil-states)
+                 (evil-define-key state ,root-map (kbd key) ',prefix-cmd))))
          ;;bind in global maps
          (dolist (key (list ,@keys))
-           (if ,override-minor-modes
-               (define-key ,root-map (kbd key) ',prefix-cmd)
-             (global-set-key (kbd key) ',prefix-cmd)))
-         (when ',evil-keys
-           (bind-map-evil-global-define-key
-            ',evil-states (list ,@evil-keys) ',prefix-cmd ,evil-use-local))))))
+           (when ,override-minor-modes
+             (define-key ,root-map (kbd key) ',prefix-cmd))
+           (global-set-key (kbd key) ',prefix-cmd))
+         (dolist (key (list ,@evil-keys))
+           (dolist (state ',evil-states)
+             (when ,override-minor-modes
+               (push (list ',override-mode state (kbd key) ',prefix-cmd)
+                     bind-map-evil-local-bindings))
+             (evil-global-set-key state (kbd key) ',prefix-cmd)))))))
 (put 'bind-map 'lisp-indent-function 'defun)
 
 ;;;###autoload
@@ -253,36 +323,15 @@ concatenated with `bind-map-default-map-suffix'."
        ',map-name)))
 (put 'bind-map-for-minor-mode 'lisp-indent-function 'defun)
 
-(defun bind-map-evil-define-key (states map keys def)
-  "Version of `evil-define-key' that binds DEF across multiple
-STATES and KEYS."
-  (require 'evil)
-  (dolist (state states)
-    (dolist (key keys)
-      (eval `(evil-define-key ',state ',map (kbd ,key) ',def)))))
-
-(defvar bind-map-local-bindings '()
-  "Elements are (STATE KEY DEF) each corresponding to a binding
-to place in a local state map.")
-
-(defun bind-map-local-mode-hook ()
-  (dolist (entry bind-map-local-bindings)
-    (let ((map (intern (format "evil-%s-state-local-map" (car entry)))))
-      (when (and (boundp map) (keymapp (symbol-value map)))
-        (define-key (symbol-value map) (cadr entry) (caddr entry))))))
-(add-hook 'evil-local-mode-hook 'bind-map-local-mode-hook)
-
-(defun bind-map-evil-global-define-key
-    (states keys def &optional use-local)
-  "Version of `evil-define-key' that binds DEF across multiple
-STATES and KEYS. USE-LOCAL will bind the keys in the local state
-maps which have higher precedence than most evil maps."
-  (require 'evil)
-  (dolist (key keys)
-    (dolist (state states)
-      (if use-local
-          (push (list state (kbd key) def) bind-map-local-bindings)
-        (eval `(evil-global-set-key ',state (kbd ,key) ',def))))))
+(defun bind-map-evil-local-mode-hook ()
+  ;; format is (OVERRIDE-MODE STATE KEY DEF)
+  (dolist (entry bind-map-evil-local-bindings)
+    (let ((map (intern (format "evil-%s-state-local-map" (nth 1 entry)))))
+      (when (and (nth 0 entry)
+                 (boundp map)
+                 (keymapp (symbol-value map)))
+        (define-key (symbol-value map) (nth 2 entry) (nth 3 entry))))))
+(add-hook 'evil-local-mode-hook 'bind-map-evil-local-mode-hook)
 
 ;;;###autoload
 (defun bind-map-set-keys (map key def &rest bindings)

@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "bind-map" "bind-map.el" (22108 42475 25146
-;;;;;;  985000))
+;;;### (autoloads nil "bind-map" "bind-map.el" (22120 11782 629683
+;;;;;;  632000))
 ;;; Generated autoloads from bind-map.el
 
 (autoload 'bind-map "bind-map" "\
@@ -15,6 +15,9 @@ the bindings on major and/or minor modes being active. The
 options are controlled through the keyword arguments ARGS, all of
 which are optional.
 
+The package evil is only required if one of the :evil-keys is
+specified.
+
 :keys (KEY1 KEY2 ...)
 
 The keys to use for the leader binding. These are strings
@@ -23,9 +26,22 @@ suitable for use in `kbd'.
 :override-minor-modes BOOL
 
 If non nil, make keys in :keys override the minor-mode maps, by
-using `emulation-mode-map-alists' instead of `global-map'. If
+using `emulation-mode-map-alists' instead of the `global-map'.
+This is done for the :evil-keys using evil local state maps. If
 either :major-modes or :minor-modes is specified, this setting
 has no effect.
+
+The overriding behavior can be toggled using the minor mode
+MAP-overriding-mode (the name of the minor mode can be customized
+in the next keyword). It is enabled by default when you specify
+this keyword.
+
+:override-mode-name SYMBOL
+
+The name to use for the minor mode described for the previous
+keyword (a default name will be given if this is left
+unspecificied). This setting as no effect
+if :override-minor-modes is nil or unspecified.
 
 :evil-keys (KEY1 KEY2 ...)
 
@@ -39,10 +55,9 @@ use `bind-map-default-evil-states'.
 
 :evil-use-local BOOL
 
-This places all evil bindings in the local state maps for evil.
-These maps have high precedence and will mask most other evil
-bindings. If either :major-modes or :minor-modes is specified,
-this setting has no effect.
+\(Deprecated) This is now equivalent to setting
+`:override-minor-modes' to t, which handles evil and non-evil
+keys now.
 
 :major-modes (MODE1 MODE2 ...)
 
