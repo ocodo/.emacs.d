@@ -4,8 +4,8 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/company-restclient
-;; Package-Version: 20150127.647
-;; Version:   0.1.0
+;; Package-Version: 20151202.401
+;; Version:   0.2.0
 ;; Package-Requires: ((cl-lib "0.5") (company "0.8.0") (emacs "24") (know-your-http-well "0.2.0") (restclient "0.0.0"))
 
 ;;; Commentary:
@@ -21,6 +21,16 @@
 (require 'company)
 (require 'know-your-http-well)
 (require 'restclient)
+
+(defcustom company-restclient-header-values
+  '(("content-type" . ("application/json"
+                       "application/xml"
+                       "application/x-www-form-urlencoded"
+                       "text/csv"
+                       "text/html"
+                       "text/plain")))
+  "Association list of completion candidates for HTTP header values.
+The key is header name and the value is list of header values.")
 
 (defvar company-restclient--current-context nil)
 
@@ -55,8 +65,8 @@
     (method (or (let ((case-fold-search nil)) (company-grab "^[[:upper:]]*"))
                 (company-restclient--grab-var)))
     (header (or (company-grab "^[-[:alpha:]]*")
-                (and (not (looking-back "^[-[:alpha:]]+:"))
-                     (company-restclient--grab-var))))
+                (company-restclient--grab-var)
+                (company-grab-symbol)))
     (vardecl nil)
     (comment nil)
     (t (company-restclient--grab-var))))
@@ -79,7 +89,16 @@
       (method
        (all-completions prefix http-methods))
       (header
-       (all-completions (downcase prefix) http-headers))))))
+       (cond
+        ((looking-back "^\\([-[:alpha:]]+\\): .*")
+         (setq company-restclient--current-context 'header-value)
+         (all-completions prefix
+                          (cdr
+                           (assoc
+                            (downcase (match-string-no-properties 1))
+                            company-restclient-header-values))))
+        (t
+         (all-completions (downcase prefix) http-headers))))))))
 
 (defun company-restclient-meta (candidate)
   "Return description of CANDIDATE to display as meta information."
