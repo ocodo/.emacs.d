@@ -1,10 +1,14 @@
 ;;; groovy-electric.el --- Electric mode for Groovy
-;; -*-Emacs-Lisp-*-
+
+;; Copyright (C) 2009 Jim Morris
 
 ;; Author:  Jim Morris <morris@wolfman.com>
 ;; Created: 2009-12-11
+;; Maintainer: Russel Winder <russel@winder.org.uk>
+;; Version: 201512060737
+;; Keywords: languages
 
-;; Copyright (C) 2009 Jim Morris
+;;;; NB Version number is date and time yyyymmddhhMM in GMT (aka UTC).
 
 ;;  This program is free software; you can redistribute it and/or modify it under the terms of the GNU
 ;;  General Public License as published by the Free Software Foundation; either version 2 of the License, or
@@ -21,15 +25,7 @@
 ;; Due credit: original work was inspired by a code snippet posted by
 ;; Frederick Ros at http://rubygarden.org/ruby?EmacsExtensions.
 
-;;; Commentary:
-;;
-;; By default automatically inserts closing delimiter for {[('"
-;; Additionally when in a GString typing a $ will insert { } and place
-;; cursor between the braces.  All these can be turned on or off
-;; individually in the customization window for groovy-electric
-;;
-;;
-;; Usage:
+;;; Usage:
 ;;
 ;;    0) copy groovy-electric.el into directory where emacs can find it.
 ;;
@@ -49,9 +45,33 @@
 ;;
 ;;    2) toggle Groovy Electric Mode on/off with groovy-electric-mode.
 
-;;; History:
+;;; Commentary:
+;; By default automatically inserts closing delimiter for {[('"
+;; Additionally when in a GString typing a $ will insert { } and place
+;; cursor between the braces.  All these can be turned on or off
+;; individually in the customization window for groovy-electric
 
+;;; Bugs:
+;;  Bug tracking is currently handled using the GitHub issue tracker at
+;;  https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes/issues
+
+;;; Versions:
+;;  This mode is available on MELPA which tracks the mainline Git repository on GitHub, so there is a rolling release
+;;  system based on commits to the mainline.
+
+;;; Notes:
+
+;;; TODO:
+;;   Issues with this code are managed via the project issue management
+;;   on GitHub: https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes/issues?state=open
+
+;;; History:
+;;   History is tracked in the Git repository rather than in this file.
+;;   See https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes/commits/master
+
+;;----------------------------------------------------------------------------
 ;;; Code:
+
 (require 'groovy-mode)
 (defgroup groovy-electric nil
   "Minor mode providing electric editing commands for groovy files"
@@ -161,6 +181,8 @@ have Font Lock enabled. ${ } is expanded when in a GString"
 	(insert "{}")
 	(backward-char 1)))
 
+
+;;----------------------------------------------------------------------------
 
 (provide 'groovy-electric)
 

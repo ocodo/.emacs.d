@@ -1,15 +1,15 @@
 ;;; groovy-mode.el --- Major mode for Groovy source files
 
+;;  Copyright © 2006, 2009–2010, 2012–2015  Russel Winder
+
 ;;  Author: Russel Winder <russel@winder.org.uk>, 2006–
 ;;	Jim Morris <morris@wolfman.com>, 2009–
 ;;  Maintainer:  Russel Winder <russel@winder.org.uk>
 ;;  Created: 2006-08-01
-;;  Version: 201507251705
+;;  Version: 201512060745
 ;;  Keywords: languages
 
 ;;;; NB Version number is date and time yyyymmddhhMM in GMT (aka UTC).
-
-;;  Copyright © 2006, 2009–2010, 2012–2015  Russel Winder
 
 ;;  This program is free software; you can redistribute it and/or modify it under the terms of the GNU
 ;;  General Public License as published by the Free Software Foundation; either version 2 of the License, or
@@ -44,7 +44,7 @@
 
 ;;; Versions:
 ;;  This mode is available on MELPA which tracks the mainline Git repository on GitHub, so there is a rolling release
-;;  system based on commits to the mainline. There is unlikely to be a "formal release".
+;;  system based on commits to the mainline.
 
 ;;; Notes:
 ;;  Need to think about the `*.', `?.', `.&' and `.@' operators.  Also, `..' and `..<'.  This probably means

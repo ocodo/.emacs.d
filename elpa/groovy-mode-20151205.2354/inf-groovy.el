@@ -1,48 +1,89 @@
-;;; -*-Emacs-Lisp-*-
-;;;
-;;; Stuart Clayman   sclayman@ee.ucl.ac.uk
-;;; 2006-08-01       v1
-;;; 2010-04-07       v2 fixes for new groovy-mode
-;;;
-;;; Updated by Russel Winder <russel@winder.org.uk>
-;;;
-;;; Version: 201507251706
-;;;
+;;; inf-groovy.el --- inferior Groovy mode -- groovy process in a buffer
+
 ;;; Inferior Groovy Mode - groovy process in a buffer.
 ;;;                      adapted from cmuscheme.el and inf-haskell.el
-;;;
+
+;; Copyright (c) 2006, 2010 Stuart Clayman
+;; Copyright (c) 2015 Russel WInder
+
+;; Author: Stuart Clayman  <sclayman@ee.ucl.ac.uk>
+;;; 2006-08-01       v1
+;;; 2010-04-07       v2 fixes for new groovy-mode
+;; Maintainer: Russel Winder <russel@winder.org.uk>
+;; Version: 201512060751
+;; Keywords: languages
+
+;;;; NB Version number is date and time yyyymmddhhMM in GMT (aka UTC).
+
+;; This file is not currently part of GNU Emacs.
+
+;;  This program is free software; you can redistribute it and/or modify it under the terms of the GNU
+;;  General Public License as published by the Free Software Foundation; either version 2 of the License, or
+;;  (at your option) any later version.
+;;
+;;  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+;;  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+;;  License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License along with this program; if not, write
+;;  to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+;;; depends on
+;; groovy-mode
+
 ;;; Usage:
-;;;
-;;; (1) modify .emacs to use groovy-mode
-;;;     for example :
-;;;
-;;;    (autoload 'groovy-mode "groovy-mode"
-;;;      "Mode for editing groovy source files" t)
-;;;    (setq auto-mode-alist
-;;;          (append '(("\\.groovy\\'" . groovy-mode)) auto-mode-alist))
-;;;    (setq interpreter-mode-alist (append '(("groovy" . groovy-mode))
-;;;    				     interpreter-mode-alist))
-;;;
-;;; (2) set to load inf-groovy and set inf-groovy key definition in groovy-mode.
-;;;
-;;;    (autoload 'groovy-mode "groovy-mode" "Groovy mode." t)
-;;;    (autoload 'run-groovy "inf-groovy" "Run an inferior Groovy process")
-;;;    (autoload 'inf-groovy-keys "inf-groovy" "Set local key defs for inf-groovy in groovy-mode")
-;;;
-;;;    (add-hook 'groovy-mode-hook
-;;;          '(lambda ()
-;;;             (inf-groovy-keys)
-;;;    ))
-;;;
-;;;    ;; can set groovy-home here, if not in environment
-;;;    (setq inferior-groovy-mode-hook
-;;;        '(lambda()
-;;;           (setq groovy-home "/Users/sclayman/Downloads/groovy-1.7.1/")
-;;;           ))
-;;;
-;;; (3) execute
-;;;      M-x run-groovy
-;;;
+;; (1) modify .emacs to use groovy-mode
+;;     for example :
+;;
+;;    (autoload 'groovy-mode "groovy-mode"
+;;      "Mode for editing groovy source files" t)
+;;    (setq auto-mode-alist
+;;          (append '(("\\.groovy\\'" . groovy-mode)) auto-mode-alist))
+;;    (setq interpreter-mode-alist (append '(("groovy" . groovy-mode))
+;;    				     interpreter-mode-alist))
+;;
+;; (2) set to load inf-groovy and set inf-groovy key definition in groovy-mode.
+;;
+;;    (autoload 'groovy-mode "groovy-mode" "Groovy mode." t)
+;;    (autoload 'run-groovy "inf-groovy" "Run an inferior Groovy process")
+;;    (autoload 'inf-groovy-keys "inf-groovy" "Set local key defs for inf-groovy in groovy-mode")
+;;
+;;    (add-hook 'groovy-mode-hook
+;;          '(lambda ()
+;;             (inf-groovy-keys)
+;;    ))
+;;
+;;    ;; can set groovy-home here, if not in environment
+;;    (setq inferior-groovy-mode-hook
+;;        '(lambda()
+;;           (setq groovy-home "/Users/sclayman/Downloads/groovy-1.7.1/")
+;;           ))
+;;
+;; (3) execute
+;;      M-x run-groovy
+
+;;; Commentary
+
+;;; Bugs:
+;;  Bug tracking is currently handled using the GitHub issue tracker at
+;;  https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes/issues
+
+;;; Versions:
+;;  This mode is available on MELPA which tracks the mainline Git repository on GitHub, so there is a rolling release
+;;  system based on commits to the mainline.
+
+;;; Notes:
+
+;;; TODO:
+;;   Issues with this code are managed via the project issue management
+;;   on GitHub: https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes/issues?state=open
+
+;;; History
+;;   History is tracked in the Git repository rather than in this file.
+;;   See https://github.com/Groovy-Emacs-Modes/groovy-emacs-modes/commits/master
+
+;;----------------------------------------------------------------------------
+;;; Code:
 
 (require 'comint)
 (require 'compile)
@@ -388,6 +429,8 @@ This is a good place to put keybindings.")
   (lambda ()
     (add-hook 'groovy-mode-hook 'inf-groovy-keys)
     ))
+
+;;----------------------------------------------------------------------------
 
 (provide 'inf-groovy)
 
