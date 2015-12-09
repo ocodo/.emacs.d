@@ -3,8 +3,8 @@
 ;; Copyright (C) 2014-2015  Mark Oteiza <mvoteiza@udel.edu>
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
-;; Version: 0.6
-;; Package-Version: 20151126.2223
+;; Version: 0.7
+;; Package-Version: 20151206.900
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -360,24 +360,25 @@ TORRENT is the \"torrents\" vector returned by `transmission-torrents'."
 
 ;; Timer management
 
-(defun transmission-timer-check ()
-  "Check if current buffer should run a refresh timer."
-  (let ((buffer (get-buffer "*transmission*")))
-    (when (and buffer (eq buffer (current-buffer)))
-      (transmission-timer-run))))
-
-(defun transmission-timer-run ()
-  (when transmission-timer-p
-    (when transmission-timer (cancel-timer transmission-timer))
-    (setq
-     transmission-timer
-     (run-at-time t transmission-timer-interval #'transmission-timer-revert))))
-
 (defun transmission-timer-revert ()
+  "Revert the buffer or cancel `transmission-timer'."
   (let ((buffer (get-buffer "*transmission*")))
     (if (and buffer (eq buffer (current-buffer)))
         (revert-buffer)
       (cancel-timer transmission-timer))))
+
+(defun transmission-timer-run ()
+  "Run the timer `transmission-timer'."
+  (when transmission-timer (cancel-timer transmission-timer))
+  (setq
+   transmission-timer
+   (run-at-time t transmission-timer-interval #'transmission-timer-revert)))
+
+(defun transmission-timer-check ()
+  "Check if current buffer should run a refresh timer."
+  (let ((buffer (and transmission-timer-p (get-buffer "*transmission*"))))
+    (when (and buffer (eq buffer (current-buffer)))
+      (transmission-timer-run))))
 
 
 ;; Other
@@ -526,7 +527,7 @@ Returns a list of non-blank inputs."
                                    (cdr (assq 'announce alist)))
                                  vector))
                        trackers)))
-    (delete-dups (apply #'append urls))))
+    (delete-dups (apply #'append (delq nil urls)))))
 
 (defun transmission-files-do (action)
   "Apply ACTION to files in `transmission-files-mode' buffers."
@@ -591,8 +592,9 @@ The two are spliced together with indices for each file, sorted by file name."
          (string (math-format-binary byte)))
     (concat (make-string (- 8 (length string)) ?0) string)))
 
-(defun transmission-torrent-seed-ratio (tlimit mode)
-  "String showing a torrent's seed ratio limit."
+(defun transmission-torrent-seed-ratio (mode tlimit)
+  "String showing a torrent's seed ratio limit.
+MODE is which seed ratio to use; TLIMIT is the torrent-level limit."
   (pcase mode
     (0 "Session limit")
     (1 (format "%.2f (torrent-specific limit)" tlimit))
@@ -602,7 +604,7 @@ The two are spliced together with indices for each file, sorted by file name."
   "Group digits of natural number N with delimiter \",\"."
   (if (< n 1000)
       (format "%s" n)
-    (let ((regexp (eval-when-compile (rx (group (= 3 digit))))))
+    (let ((regexp (eval-when-compile (rx (= 3 digit)))))
       ;; Good place for `thread-last' and `reverse'
       ;; (thread-last (reverse (number-to-string n))
       ;;     (replace-regexp-in-string regexp "\\1,")
@@ -614,7 +616,7 @@ The two are spliced together with indices for each file, sorted by file name."
          (string-remove-suffix
           ","
           (replace-regexp-in-string
-           regexp "\\1," (reverse-string (number-to-string n)))))))))
+           regexp "\\&," (reverse-string (number-to-string n)))))))))
 
 (defmacro transmission-tabulated-list-pred (key)
   "Return a sorting predicate comparing values of KEY.
@@ -935,6 +937,7 @@ CONNECTED, SENDING, RECEIVING are numbers."
          ", "))))))
 
 (defun transmission-format-tracker (tracker)
+  "Format alist TRACKER into a string of tracker info."
   (let-alist tracker
     (let* ((label (format "Tracker %d" .id))
            (col (length label))
@@ -1023,7 +1026,7 @@ Each form in BODY is a column descriptor."
       (format "Bandwidth priority: %s"
               (car (rassoc .bandwidthPriority transmission-priority-alist)))
       (concat "Ratio limit: "
-              (transmission-torrent-seed-ratio .seedRatioLimit .seedRatioMode))
+              (transmission-torrent-seed-ratio .seedRatioMode .seedRatioLimit))
       (unless (zerop .error)
         (format "Error: %d %s\n" .error
                 (propertize .errorString 'font-lock-face 'error)))
@@ -1076,7 +1079,7 @@ Also run the timer for timer object `transmission-timer'."
     (move-to-column old-column)
     (setf (window-start) old-window-start)
     (and old-mark (set-mark old-mark)))
-  (transmission-timer-run))
+  (transmission-timer-check))
 
 (defmacro transmission-context (mode)
   "Switch to a context buffer of mode MODE."
