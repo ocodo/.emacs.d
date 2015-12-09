@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ivy" "ivy.el" (22108 42294 201175 228000))
+;;;### (autoloads nil "ivy" "ivy.el" (22120 11617 380017 609000))
 ;;; Generated autoloads from ivy.el
 
 (autoload 'ivy-resume "ivy" "\
@@ -24,7 +24,7 @@ REQUIRE-MATCH is specified with a boolean value.  See `completing-read'.
 INITIAL-INPUT is a string that can be inserted into the minibuffer initially.
 HISTORY is a list of previously selected inputs.
 DEF is the default value.
-_INHERIT-INPUT-METHOD is currently ignored.
+INHERIT-INPUT-METHOD is currently ignored.
 
 \(fn PROMPT COLLECTION &optional PREDICATE REQUIRE-MATCH INITIAL-INPUT HISTORY DEF INHERIT-INPUT-METHOD)" nil nil)
 
@@ -63,7 +63,7 @@ Find a file on `recentf-list'.
 
 ;;;***
 
-;;;### (autoloads nil "swiper" "swiper.el" (22108 42294 189175 231000))
+;;;### (autoloads nil "swiper" "swiper.el" (22120 11617 368017 469000))
 ;;; Generated autoloads from swiper.el
 
 (autoload 'swiper-avy "swiper" "\
@@ -85,7 +85,7 @@ When non-nil, INITIAL-INPUT is the initial search pattern.
 ;;;***
 
 ;;;### (autoloads nil nil ("colir.el" "ivy-hydra.el" "swiper-pkg.el")
-;;;;;;  (22108 42294 211755 325000))
+;;;;;;  (22120 11617 391579 233000))
 
 ;;;***
 
