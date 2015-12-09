@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "highlight" "highlight.el" (21975 62485 799401
-;;;;;;  0))
+;;;### (autoloads nil "highlight" "highlight.el" (22120 11692 232833
+;;;;;;  735000))
 ;;; Generated autoloads from highlight.el
 
 (defvar hlt-auto-face-foreground nil "\
@@ -459,6 +459,11 @@ this: if the option value is \"\" then whitespace defined by
 \"[   ]*\" is ignored, and otherwise whitespace is not ignored.
 
 \(fn &optional START END MSGP FLIP)" t nil)
+
+(autoload 'hlt-highlight-lines "highlight" "\
+Highlight full lines in region, window-wide.
+
+\(fn START END FACE MSGP)" t nil)
 
 (autoload 'hlt-mouse-face-each-line "highlight" "\
 Put `mouse-face' on each line of buffer in region.
