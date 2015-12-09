@@ -3,9 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-dash" "helm-dash.el" (22108 42398 613157
-;;;;;;  578000))
+;;;### (autoloads nil "helm-dash" "helm-dash.el" (22120 11701 728929
+;;;;;;  611000))
 ;;; Generated autoloads from helm-dash.el
+
+(autoload 'helm-dash-activate-docset "helm-dash" "\
+Activate DOCSET.  If called interactively prompts for the docset name.
+
+\(fn DOCSET)" t nil)
 
 (autoload 'helm-dash-install-user-docset "helm-dash" "\
 

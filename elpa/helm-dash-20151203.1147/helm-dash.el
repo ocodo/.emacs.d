@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20151127.1339
+;; Package-Version: 20151203.1147
 ;; Version: 1.2.1
 ;; Package-Requires: ((helm "0.0.0") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -257,6 +257,7 @@ Report an error unless a valid docset is selected."
     (completing-read (format "%s (%s): " prompt (car choices))
                      choices nil t nil nil choices)))
 
+;;;###autoload
 (defun helm-dash-activate-docset (docset)
   "Activate DOCSET.  If called interactively prompts for the docset name."
   (interactive (list (helm-dash-read-docset
