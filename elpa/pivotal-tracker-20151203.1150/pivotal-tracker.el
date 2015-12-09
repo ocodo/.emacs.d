@@ -2,7 +2,7 @@
 
 ;; Author: John Andrews
 ;; URL: http://github.com/jxa/pivotal-tracker
-;; Package-Version: 20150901.1221
+;; Package-Version: 20151203.1150
 ;; Created: 2010.11.14
 ;; Version: 1.3.0
 
@@ -38,6 +38,7 @@
 (require 'xml)
 (require 'url)
 (require 'json)
+(require 'magit-popup)
 
 ;;;###autoload
 (progn
@@ -49,12 +50,6 @@
     "API key found on the /profile page of pivotal tracker"
     :group 'pivotal
     :type 'string))
-
-(defmacro namespace (ns-name symbols-to-namespace &rest body)
-  "Provide convenient local aliases symbols which will expand to namespace-prefixed symbols"
-  `(let) body)
-
-(macroexpand `(namespace foo (fu bar) (quote fu bar baz)))
 
 (defconst pivotal-base-url "https://www.pivotaltracker.com/services/v3"
   "format string to use when creating endpoint urls")
@@ -119,6 +114,7 @@
   "set the current project, and load the current iteration for that project"
   (interactive)
   (setq *pivotal-current-project* (pivotal-project-id-at-point))
+  (setq *pivotal-iteration* pivotal-current-iteration-number)
   (pivotal-get-current))
 
 (defun pivotal-get-story (id)
@@ -313,30 +309,56 @@
     ("^-.*-$" . 'pivotal-title-face)
     ("^--- [a-zA-Z]+$" . 'pivotal-section-face)))
 
+
+(magit-define-popup pivotal-link-popup
+  "Popup for opening stories in a web browser"
+  :actions '((?o "Current story" pivotal-open-story-in-browser)
+             (?p "Current project" pivotal-open-current-project-in-browser)
+             (?l "Copy current story URL" pivotal-kill-ring-save-story-url)))
+
+(magit-define-popup pivotal-story-popup
+  "Popup for interacting with stories"
+  :actions '((?e "Estimate" pivotal-estimate-story)
+             (?c "Comment" pivotal-add-comment)
+             (?s "Set status" pivotal-set-status)
+             (?o "Set owner" pivotal-set-owner)
+             (?t "Add task" pivotal-add-task)
+             (?v "Check task" pivotal-check-task)))
+
+(magit-define-popup pivotal-dispatch-popup
+  "Popup console for dispatching other popups"
+  :actions '("Popup commands"
+             (?o "Openening in a browser" pivotal-link-popup)
+             (?s "Modifying stories" pivotal-story-popup)
+             "\
+g      refresh current buffer
+TAB    toggle story details
++      add new story
+N      next iteration
+P      previous iteration
+^      list all pivotal projects
+
+C-h m  show all keybindings"))
+
+
+
 (define-derived-mode pivotal-mode fundamental-mode "Pivotal"
   (suppress-keymap pivotal-mode-map)
-  (define-key pivotal-mode-map (kbd "t") 'pivotal-toggle-visibility)
-  (define-key pivotal-mode-map (kbd "C-m") 'pivotal-toggle-visibility)
-  (define-key pivotal-mode-map (kbd "R") 'pivotal-get-current)
   (define-key pivotal-mode-map (kbd "n") 'next-line)
   (define-key pivotal-mode-map (kbd "p") 'previous-line)
-  ;; add some bindings for my vim friends
-  (define-key pivotal-mode-map (kbd "j") 'next-line)
-  (define-key pivotal-mode-map (kbd "k") 'previous-line)
+  (define-key pivotal-mode-map (kbd "?") 'pivotal-dispatch-popup)
 
+  (define-key pivotal-mode-map (kbd "<tab>") 'pivotal-toggle-visibility)
+  (define-key pivotal-mode-map (kbd "g") 'pivotal-get-current)
+  (define-key pivotal-mode-map (kbd "^") 'pivotal)
+  (define-key pivotal-mode-map (kbd "+") 'pivotal-add-story)
   (define-key pivotal-mode-map (kbd "N") 'pivotal-next-iteration)
   (define-key pivotal-mode-map (kbd "P") 'pivotal-previous-iteration)
-  (define-key pivotal-mode-map (kbd "E") 'pivotal-estimate-story)
-  (define-key pivotal-mode-map (kbd "C") 'pivotal-add-comment)
-  (define-key pivotal-mode-map (kbd "S") 'pivotal-set-status)
-  (define-key pivotal-mode-map (kbd "O") 'pivotal-set-owner)
-  (define-key pivotal-mode-map (kbd "L") 'pivotal)
-  (define-key pivotal-mode-map (kbd "T") 'pivotal-add-task)
-  (define-key pivotal-mode-map (kbd "+") 'pivotal-add-story)
-  (define-key pivotal-mode-map (kbd "F") 'pivotal-check-task)
-  (define-key pivotal-mode-map (kbd "l") 'pivotal-kill-ring-save-story-url)
-  (define-key pivotal-mode-map (kbd "o") 'pivotal-open-story-in-browser)
-  (define-key pivotal-mode-map (kbd "C-o") 'pivotal-open-current-project-in-browser)
+
+  ;; SubMenus
+  (define-key pivotal-mode-map (kbd "o") 'pivotal-link-popup)
+  (define-key pivotal-mode-map (kbd "s") 'pivotal-story-popup)
+
   (setq font-lock-defaults '(pivotal-font-lock-keywords))
   (font-lock-mode))
 
