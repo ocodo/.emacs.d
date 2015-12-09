@@ -4,7 +4,7 @@
 
 ;; Author: Takashi Masuda <masutaka.net@gmail.com>
 ;; URL: https://github.com/masutaka/emacs-helm-bundle-show
-;; Package-Version: 20151116.431
+;; Package-Version: 20151207.41
 ;; Version: 1.1.3
 ;; Package-Requires: ((helm "1.7.6"))
 
@@ -51,7 +51,7 @@
   (with-temp-buffer
     (unless (zerop (apply #'call-process
 			  helm-bundle-show-command-bundle nil t nil
-			  "show"))
+			  (list "show")))
       (error "Failed: bundle show'"))
     (let ((gems))
       (goto-char (point-min))
@@ -90,7 +90,7 @@
   (with-temp-buffer
     (unless (zerop (apply #'call-process
 			  helm-bundle-show-command-bundle nil t nil
-			  "show" gem))
+			  (list "show" gem)))
       (error (format "Failed: bundle show %s" gem)))
     (goto-char (point-min))
     (helm-bundle-show--line-string)))
