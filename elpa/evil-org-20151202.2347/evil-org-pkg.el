@@ -1,0 +1,1 @@
+(define-package "evil-org" "20151202.2347" "evil keybindings for org-mode" '((evil "0") (org "0") (evil-leader "0")) :url "https://github.com/edwtjo/evil-org-mode.git" :keywords '("evil" "vim-emulation" "org-mode" "key-bindings" "presets"))

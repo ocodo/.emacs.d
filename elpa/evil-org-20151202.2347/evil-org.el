@@ -1,13 +1,13 @@
 ;;; evil-org.el --- evil keybindings for org-mode
 
-;; Copyright (C) 2012-2014 by Edward Tjörnhammar
+;; Copyright (C) 2012-2015 by Edward Tjörnhammar
 ;; Author: Edward Tjörnhammar
 ;; URL: https://github.com/edwtjo/evil-org-mode.git
-;; Package-Version: 20150513.1610
+;; Package-Version: 20151202.2347
 ;; Git-Repository; git://github.com/edwtjo/evil-org-mode.git
 ;; Created: 2012-06-14
-;; Version: 0.1.1
-;; Package-Requires: ((evil "0") (org "0"))
+;; Version: 0.1.2
+;; Package-Requires: ((evil "0") (org "0") (evil-leader "0"))
 ;; Keywords: evil vim-emulation org-mode key-bindings presets
 
 ;; This file is not part of GNU Emacs
@@ -133,8 +133,10 @@ FUN function callback"
   "gl" 'outline-next-visible-heading
   "t" 'org-todo
   "T" '(lambda () (interactive) (evil-org-eol-call (lambda() (org-insert-todo-heading nil))))
-  "H" 'org-beginning-of-line
-  "L" 'org-end-of-line
+  "H" 'org-shiftleft
+  "J" 'org-shiftdown
+  "K" 'org-shiftup
+  "L" 'org-shiftright
   "o" '(lambda () (interactive) (evil-org-eol-call 'clever-insert-item))
   "O" '(lambda () (interactive) (evil-org-eol-call 'org-insert-heading))
   "$" 'org-end-of-line
@@ -142,7 +144,7 @@ FUN function callback"
   "<" 'org-metaleft
   ">" 'org-metaright
   "-" 'org-cycle-list-bullet
-  (kbd "TAB") 'org-cycle)
+  (kbd "<tab>") 'org-cycle)
 
 ;; leader maps
 (evil-leader/set-key-for-mode 'org-mode
