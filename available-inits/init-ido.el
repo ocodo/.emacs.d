@@ -23,11 +23,7 @@
     (setq ido-everywhere t)
     (setq ido-auto-merge-work-directories-length -1)
     (setq gc-cons-threshold 30000000)
-
-    (bind-keys :map ido-completion-map        ("TAB" . ido-tab-do-nothing))
-    (bind-keys :map ido-common-completion-map ("TAB" . ido-tab-do-nothing))
-    (bind-keys :map ido-file-completion-map   ("TAB" . ido-tab-do-nothing))
-    (bind-keys :map ido-buffer-completion-map ("TAB" . ido-tab-do-nothing)))
+    )
 
   :bind
   (("M-x" . smex)
