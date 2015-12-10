@@ -9,14 +9,10 @@
   (progn
     (use-package jasmine-coffee)
 
-    (defface hacks/coffee-at-mark
-      '((t (:foreground "green")))
-      "my at mark")
-
     (font-lock-add-keywords
      'coffee-mode
      '(("\\(@\\)\\([_[:word:]]+\\|\\<this\\)\\>"
-        (1 'hacks/coffee-at-mark)
+        (1 font-lock-string-face)
         (2 font-lock-variable-name-face))))
 
     (defun coffee-flip-fatness ()
@@ -30,6 +26,9 @@
 
     (bind-keys :map coffee-mode-map
                ("C-c C-\\" . coffee-flip-fatness)
+               ;; when coffee-mode is upgraded we can remove flip-fatness
+               ;; and enable this...:
+               ;; ("C-c C-\\" . coffee-toggle-fatness)
                ("C-c C-n"  . flymake-goto-next-error)
                ("C-c C-p"  . flymake-goto-prev-error)
                ("C-c C-r"  . coffee-compile-region)
