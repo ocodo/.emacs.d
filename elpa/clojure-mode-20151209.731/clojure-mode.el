@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20151209.125
+;; Package-Version: 20151209.731
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.0.1
 ;; Package-Requires: ((emacs "24.3"))
@@ -360,7 +360,10 @@ comment, you can set the value to:
         t))))
 
 (defun clojure--search-comment-macro (limit)
-  "Find comment macros and set the match data."
+  "Find comment macros and set the match data.
+Search from point up to LIMIT.  The region that should be
+considered a comment is between `(match-beginning 1)'
+and `(match-end 1)'."
   (let ((result 'retry))
     (while (and (eq result 'retry) (<= (point) limit))
       (condition-case nil
