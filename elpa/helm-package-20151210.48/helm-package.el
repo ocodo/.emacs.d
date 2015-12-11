@@ -1,12 +1,12 @@
-;;; helm-package.el --- Listing ELPA packages with helm interface
+;;; helm-package.el --- Listing ELPA packages with helm interface -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014 by Syohei YOSHIDA
+;; Copyright (C) 2015 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-package
-;; Version: 20140108.2223
-;; X-Original-Version: 0.02
-;; Package-Requires: ((helm "1.0") (cl-lib "0.3"))
+;; Package-Version: 20151210.48
+;; Version: 0.03
+;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@
                            (truncate-string-to-width desc (- (frame-width) 32)))
                    package))))
 
-(defun helm-package--install (candidate)
+(defun helm-package--install (_candidate)
   (cl-loop for package in (helm-marked-candidates)
            do
            (package-install (intern package))))
@@ -70,24 +70,22 @@
     (princ (describe-package package))))
 
 (defvar helm-package--available-source
-  '((name . "Available Packages")
-    (init . helm-package--initialize)
-    (candidates . (lambda ()
-                    (helm-package--collect-packages 'identity)))
-    (candidate-number-limit . 9999)
-    (persistent-action . helm-package--persistent-show-detail)
-    (action . helm-package--install)
-    (volatile)))
+  (helm-build-sync-source "Available Packages"
+    :init #'helm-package--initialize
+    :candidates (lambda ()
+                  (helm-package--collect-packages 'identity))
+    :candidate-number-limit 9999
+    :persistent-action #'helm-package--persistent-show-detail
+    :action #'helm-package--install))
 
 (defvar helm-package--installed-source
-  '((name . "Installed Packages")
-    (init . helm-package--initialize)
-    (candidates . (lambda ()
-                    (helm-package--collect-packages 'package-installed-p)))
-    (candidate-number-limit . 9999)
-    (persistent-action . helm-package--persistent-show-detail)
-    (action . helm-package--install)
-    (volatile)))
+  (helm-build-sync-source "Installed Packages"
+    :init #'helm-package--initialize
+    :candidates (lambda ()
+                  (helm-package--collect-packages 'package-installed-p))
+    :candidate-number-limit 9999
+    :persistent-action #'helm-package--persistent-show-detail
+    :action #'helm-package--install))
 
 ;;;###autoload
 (defun helm-package ()
