@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-bind-map
-;; Package-Version: 20151207.1058
+;; Package-Version: 20151210.1000
 ;; Version: 0.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -242,6 +242,8 @@ mode maps. Set up by bind-map.el." map))
            (add-to-list ',major-mode-list mode))
          (defun ,activate-func ()
            (setq ,activate (not (null (member major-mode ,major-mode-list)))))
+         ;; call once in case we are already in the relevant major mode
+         (,activate-func)
          (add-hook 'change-major-mode-after-body-hook ',activate-func))
 
        (when (and ,override-minor-modes
@@ -265,7 +267,8 @@ mode maps. Set up by bind-map.el." map))
                (define-key ,root-map (kbd key) ',prefix-cmd))
              (dolist (key (list ,@evil-keys))
                (dolist (state ',evil-states)
-                 (evil-define-key state ,root-map (kbd key) ',prefix-cmd))))
+                 (define-key (evil-get-auxiliary-keymap ,root-map state t)
+                   (kbd key) ',prefix-cmd))))
          ;;bind in global maps
          (dolist (key (list ,@keys))
            (when ,override-minor-modes
