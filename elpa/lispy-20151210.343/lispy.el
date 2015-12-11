@@ -1975,7 +1975,8 @@ Return the amount of successful grow steps, nil instead of zero."
           (cond ((or (looking-at "\\s_")
                      (save-excursion
                        (goto-char (region-beginning))
-                       (lispy-looking-back "\\s_")))
+                       (and (not (lispy-left-p))
+                            (lispy-looking-back "\\s_"))))
                  (lispy--sub-slurp-forward arg))
                 ((looking-at "[\n ]+;")
                  (goto-char (match-end 0))
@@ -1983,7 +1984,8 @@ Return the amount of successful grow steps, nil instead of zero."
                 (t
                  (lispy-dotimes arg
                    (forward-sexp 1))))
-        (cond ((or (lispy-looking-back "\\s_")
+        (cond ((or (and (not (lispy-left-p))
+                        (lispy-looking-back "\\s_"))
                    (save-excursion
                      (goto-char (region-end))
                      (looking-at "\\s_")))
@@ -2010,6 +2012,7 @@ Return the amount of successful grow steps, nil instead of zero."
   (let ((bnd (lispy--bounds-dwim))
         (leftp (lispy--leftp))
         (regionp (region-active-p))
+        (bolp (bolp))
         deactivate-mark)
     (when (lispy-left-p)
       (forward-sexp))
@@ -2019,7 +2022,15 @@ Return the amount of successful grow steps, nil instead of zero."
                   (point)))))
       (when pt
         (goto-char pt)
-        (lispy--teleport (car bnd) (cdr bnd) (not leftp) regionp)))))
+        (lispy--teleport (car bnd) (cdr bnd) (not leftp) regionp)
+        (save-excursion
+          (backward-char 1)
+          (when (looking-back (concat lispy-right " +"))
+            (just-one-space))
+          (when (and bolp (looking-back "^ +"))
+            (delete-region (match-beginning 0)
+                           (match-end 0)))
+          (indent-sexp))))))
 
 (defun lispy-up-slurp ()
   "Move current sexp or region into the previous sexp."
@@ -2049,7 +2060,7 @@ Return the amount of successful grow steps, nil instead of zero."
       (setq bsize (buffer-size))
       (lispy-save-excursion
         (goto-char (cdr bnd))
-        (insert ")")
+        (insert (char-before p-end))
         (goto-char p-end)
         (backward-delete-char 1)
         (goto-char p-beg)
@@ -6421,10 +6432,10 @@ Make text marked if REGIONP is t."
       (when (> beg1 beg)
         (decf beg1 (- size (buffer-size))))
       (goto-char beg1)
-      (when (looking-at "(")
+      (when (looking-at lispy-left)
         (save-excursion
           (newline-and-indent)))
-      (unless (lispy-looking-back "[ (]")
+      (unless (lispy-looking-back "[ ([{]")
         (insert " ")
         (incf beg1))
       (insert str)
