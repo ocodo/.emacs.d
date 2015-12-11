@@ -61,6 +61,7 @@
 (require 'easymenu)
 (require 'company)
 (require 'elixir-mode)
+(require 'alchemist-utils)
 (require 'alchemist-key)
 (require 'alchemist-eval)
 (require 'alchemist-goto)
@@ -97,6 +98,11 @@ just return nil."
     (when show-version
       (message "Alchemist version: %s" version))
     version))
+
+(defun alchemist-elixir-version ()
+  "Display the current Elixir version on the system."
+  (interactive)
+  (message "Elixir %s" (alchemist-utils-elixir-version)))
 
 (define-prefix-command 'alchemist-mode-keymap)
 
@@ -155,6 +161,7 @@ Key bindings:
   (define-key map (kbd "i r") 'alchemist-iex-send-region)
   (define-key map (kbd "i m") 'alchemist-iex-send-region-and-go)
   (define-key map (kbd "i b") 'alchemist-iex-compile-this-buffer)
+  (define-key map (kbd "i R") 'alchemist-iex-reload-module)
 
   (define-key map (kbd "v l") 'alchemist-eval-current-line)
   (define-key map (kbd "v k") 'alchemist-eval-print-current-line)
@@ -178,9 +185,7 @@ Key bindings:
   (define-key map (kbd "o I") 'alchemist-macroexpand-once-print-region)
   (define-key map (kbd "o r") 'alchemist-macroexpand-region)
   (define-key map (kbd "o R") 'alchemist-macroexpand-print-region)
-  (define-key map (kbd "o !") 'alchemist-macroexpand-close-popup)
-
-  )
+  (define-key map (kbd "o !") 'alchemist-macroexpand-close-popup))
 
 (define-key alchemist-mode-map (kbd "M-.") 'alchemist-goto-definition-at-point)
 (define-key alchemist-mode-map (kbd "M-,") 'alchemist-goto-jump-back)
