@@ -1199,15 +1199,15 @@ is set in `magit-mode-setup'."
   (let ((map (make-sparse-keymap)))
     (define-key map [C-return] 'magit-diff-visit-file-worktree)
     (define-key map "\C-j"     'magit-diff-visit-file-worktree)
-    (define-key map [remap magit-visit-thing]  'magit-diff-visit-file)
-    (define-key map [remap magit-delete-thing] 'magit-discard)
+    (define-key map [remap magit-visit-thing]      'magit-diff-visit-file)
+    (define-key map [remap magit-delete-thing]     'magit-discard)
+    (define-key map [remap magit-revert-no-commit] 'magit-reverse)
     (define-key map "a"  'magit-apply)
     (define-key map "C"  'magit-commit-add-log)
     (define-key map "K"  'magit-file-untrack)
     (define-key map "R"  'magit-file-rename)
     (define-key map "s"  'magit-stage)
     (define-key map "u"  'magit-unstage)
-    (define-key map "v"  'magit-reverse)
     map)
   "Keymap for `file' sections.")
 
@@ -1215,13 +1215,13 @@ is set in `magit-mode-setup'."
   (let ((map (make-sparse-keymap)))
     (define-key map [C-return] 'magit-diff-visit-file-worktree)
     (define-key map "\C-j"     'magit-diff-visit-file-worktree)
-    (define-key map [remap magit-visit-thing]  'magit-diff-visit-file)
-    (define-key map [remap magit-delete-thing] 'magit-discard)
+    (define-key map [remap magit-visit-thing]      'magit-diff-visit-file)
+    (define-key map [remap magit-delete-thing]     'magit-discard)
+    (define-key map [remap magit-revert-no-commit] 'magit-reverse)
     (define-key map "a"  'magit-apply)
     (define-key map "C"  'magit-commit-add-log)
     (define-key map "s"  'magit-stage)
     (define-key map "u"  'magit-unstage)
-    (define-key map "v"  'magit-reverse)
     map)
   "Keymap for `hunk' sections.")
 
@@ -1493,8 +1493,13 @@ Staging and applying changes is documented in info node
 
 (defun magit-insert-revision-diff (rev)
   "Insert the diff into this `magit-revision-mode' buffer."
-  (magit-git-wash #'magit-diff-wash-diffs
-    "show" "-p" "--cc" "--format=" "--no-prefix"
+  ;; Before v2.2.0, "--format=" did not mean "no output".
+  ;; Instead the default format was used.  So use "--format=%n"
+  ;; and then delete the empty lines.
+  (magit-git-wash (lambda (args)
+                    (delete-region (point) (progn (forward-line 3) (point)))
+                    (magit-diff-wash-diffs args))
+    "show" "-p" "--cc" "--format=%n" "--no-prefix"
     (and (member "--stat" (nth 2 magit-refresh-args)) "--numstat")
     (nth 2 magit-refresh-args) (concat rev "^{commit}") "--"
     (nth 3 magit-refresh-args)))
@@ -1552,8 +1557,9 @@ or a ref which is not a branch, then it inserts nothing."
 (defun magit-insert-revision-headers (rev)
   "Insert headers about the commit into a revision buffer."
   (magit-insert-section (headers)
-    (--when-let (magit-rev-format "%D" rev "--decorate=full")
-      (insert (magit-format-ref-labels it) ?\s))
+    ;; Before v2.2.0, "%D" was not supported.
+    (--when-let (magit-rev-format "%d" rev "--decorate=full")
+      (insert (magit-format-ref-labels (substring it 2 -1)) ?\s))
     (insert (propertize (magit-rev-parse (concat rev "^{commit}"))
                         'face 'magit-hash))
     (magit-insert-heading)
@@ -1678,11 +1684,11 @@ or a ref which is not a branch, then it inserts nothing."
 
 (defvar magit-staged-section-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap magit-visit-thing]  'magit-diff-staged)
-    (define-key map [remap magit-delete-thing] 'magit-discard)
+    (define-key map [remap magit-visit-thing]      'magit-diff-staged)
+    (define-key map [remap magit-delete-thing]     'magit-discard)
+    (define-key map [remap magit-revert-no-commit] 'magit-reverse)
     (define-key map "s" 'magit-stage)
     (define-key map "u" 'magit-unstage)
-    (define-key map "v" 'magit-reverse)
     map)
   "Keymap for the `staged' section.")
 
