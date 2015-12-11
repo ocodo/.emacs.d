@@ -7,7 +7,7 @@
 ;; Maintainer: Please send bug reports to the mailing list (below).
 ;; Created: July 23 2011
 ;; Version: 0.1
-;; Package-Version: 20150605.2306
+;; Package-Version: 20151210.1218
 ;; Keywords: emulation, vi, evil
 ;; Mailing list: <implementations-list at lists.ourproject.org>
 ;;      Subscribe: http://tinyurl.com/implementations-list
@@ -218,21 +218,20 @@ overlays OUTER and INNER, which are passed to `evil-surround-delete'."
   (define-key evil-operator-shortcut-map "s" 'evil-surround-line)
   (define-key evil-operator-shortcut-map "S" 'evil-surround-line))
 
+(defun evil-surround-column-at (pos)
+  (save-excursion (goto-char pos) (current-column)))
+
 (defun evil-surround-block (beg end char)
-  "Split a block into regions per line and surround each of them individually."
-  (save-excursion
-    (goto-char beg)
-    (let ((lines (- (1+ (line-number-at-pos end)) (line-number-at-pos beg)))
-          (start-col (current-column))
-          (end-col (save-excursion (goto-char end) (current-column))))
-      (while (> lines 0)
-        (move-to-column start-col)
-        ;; skip lines that are empty at this column
-        (unless (/= start-col (current-column))
-          (evil-surround-region (point) (save-excursion (move-to-column end-col) (point))
-                                'inclusive char))
-        (setq lines (1- lines))
-        (next-line)))))
+  "Surrounds a block selection with a character, as if `evil-surround-region'
+were called on each segment in each line. This skips lines where EOL < BEG's
+column."
+  (let ((beg-col (evil-surround-column-at beg))
+        (end-col (evil-surround-column-at end)))
+    (evil-apply-on-block
+     (lambda (ibeg iend)
+       (unless (< (evil-surround-column-at ibeg) (min beg-col end-col))
+         (evil-surround-region ibeg iend t char)))
+     beg end nil)))
 
 ;; Dispatcher function in Operator-Pending state.
 ;; "cs" calls `evil-surround-change', "ds" calls `evil-surround-delete',
@@ -240,7 +239,7 @@ overlays OUTER and INNER, which are passed to `evil-surround-delete'."
 (evil-define-command evil-surround-edit (operation)
   "Edit the surrounding delimiters represented by CHAR.
 If OPERATION is `change', call `evil-surround-change'.
-if OPERATION is `deliete', call `evil-surround-delete'.
+if OPERATION is `delete', call `evil-surround-delete'.
 Otherwise call `evil-surround-region'."
   (interactive (evil-surround-interactive-setup))
   (message "%s" operation)
@@ -295,8 +294,8 @@ Becomes this:
 
                   ((eq type 'line)
                    (insert open)
-                   (indent-according-to-mode)
                    (newline-and-indent)
+                   (indent-region (overlay-start overlay) (overlay-end overlay))
                    (goto-char (overlay-end overlay))
                    (insert close)
                    (indent-according-to-mode)
