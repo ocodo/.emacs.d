@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "kill-or-bury-alive" "kill-or-bury-alive.el"
-;;;;;;  (22089 54944 0 0))
+;;;;;;  (22122 19319 903608 526000))
 ;;; Generated autoloads from kill-or-bury-alive.el
 
 (defvar kill-or-bury-alive-must-die-list nil "\
