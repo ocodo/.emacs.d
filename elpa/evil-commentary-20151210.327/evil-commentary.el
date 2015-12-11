@@ -4,8 +4,8 @@
 
 ;; Author: Quang Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/evil-commentary
-;; Package-Version: 20151027.936
-;; Version: 1.2.0
+;; Package-Version: 20151210.327
+;; Version: 1.2.1
 ;; Keywords: evil comment commentary evil-commentary
 ;; Package-Requires: ((evil "1.0.0"))
 
@@ -115,14 +115,14 @@ parameter."
             (define-key map (kbd "s-/") 'evil-commentary-line)
             map))
 
-;;;###autoload
 (defmacro evil-commentary/org-babel-do-in-edit-buffer (beg end &rest body)
   "Do `org-babel-do-in-edit-buffer' and restore view.
 
 Return the same value as `org-babel-do-in-edit-buffer'. Save top
 line of current window and restore it if sucess."
   (declare (indent defun))
-  `(when (fboundp 'org-babel-do-in-edit-buffer)
+  `(when (and (fboundp 'org-babel-do-in-edit-buffer)
+              (org-in-src-block-p t))
      (let ((top-line (line-number-at-pos (window-start)))
            (current-point (point))
            found)
