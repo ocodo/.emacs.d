@@ -4,7 +4,7 @@
 ;; Copyright 2011-2015 François-Xavier Bois
 
 ;; Version: 13.0.8
-;; Package-Version: 20151208.1412
+;; Package-Version: 20151210.1113
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: July 2011
@@ -1825,9 +1825,9 @@ Must be used in conjunction with web-mode-enable-block-face."
   (list
    '("[^:]\\(:[[:alnum:]_]+\\)" 1 'web-mode-symbol-face)
    '("\\([[:alnum:]_]+:\\)[ ]+" 1 'web-mode-symbol-face)
-   (cons (concat "\\<\\(" web-mode-erb-builtins "\\)\\>") '(0 'web-mode-builtin-face))
-   (cons (concat "\\<\\(" web-mode-erb-keywords "\\)\\>") '(0 'web-mode-keyword-face))
-   '("\\<\\(self\\|true\\|false\\|nil\\)\\>" 0 'web-mode-variable-name-face)
+   (cons (concat "\\_<\\(" web-mode-erb-builtins "\\)\\_>") '(0 'web-mode-builtin-face))
+   (cons (concat "\\_<\\(" web-mode-erb-keywords "\\)\\_>") '(0 'web-mode-keyword-face))
+   '("\\_<\\(self\\|true\\|false\\|nil\\)\\_>" 0 'web-mode-variable-name-face)
    '("[@$]@?\\([[:alnum:]_]+\\)" 0 'web-mode-variable-name-face)
    '("class[ ]+\\([[:alnum:]_]+\\)" 1 'web-mode-type-face)
    '("def[ ]+\\([[:alnum:]_]+\\)" 1 'web-mode-function-name-face)
