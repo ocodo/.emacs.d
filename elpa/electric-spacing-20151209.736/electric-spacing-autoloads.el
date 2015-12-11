@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "electric-spacing" "electric-spacing.el" (21998
-;;;;;;  34861 567401 0))
+;;;### (autoloads nil "electric-spacing" "electric-spacing.el" (22122
+;;;;;;  19341 603520 150000))
 ;;; Generated autoloads from electric-spacing.el
 
 (autoload 'electric-spacing-mode "electric-spacing" "\
