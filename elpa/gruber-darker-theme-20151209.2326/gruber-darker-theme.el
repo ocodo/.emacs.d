@@ -4,7 +4,7 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20151018.2310
+;; Package-Version: 20151209.2326
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -318,6 +318,9 @@
    `(speedbar-highlight-face ((t (:background ,gruber-darker-bg+1))))
    `(speedbar-selected-face ((t (:foreground ,gruber-darker-red))))
    `(speedbar-tag-face ((t (:foreground ,gruber-darker-yellow))))
+
+   ;; Which Function
+   `(which-func ((t (:foreground ,gruber-darker-wisteria))))
 
    ;; Whitespace
    `(whitespace-space ((t ,(list :background gruber-darker-bg
