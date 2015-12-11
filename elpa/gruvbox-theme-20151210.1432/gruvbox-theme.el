@@ -7,7 +7,7 @@
 ;;          Greduan <me@greduan.com>
 ;; Maintainer: jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Package-Version: 20150729.341
+;; Package-Version: 20151210.1432
 ;; Version: 0.15.1
 
 ;;; Commentary:
@@ -100,10 +100,10 @@
     ;; UI
     `(default                           ((t (:background ,gruvbox-dark0 :foreground ,gruvbox-light0))))
     `(cursor                            ((t (:background ,gruvbox-light0))))
-    `(mode-line                         ((t (:box nil :background ,gruvbox-dark4 :foreground ,gruvbox-dark0))))
-    `(mode-line-inactive                ((t (:box nil :background ,gruvbox-dark2 :foreground ,gruvbox-light4))))
+    `(mode-line                         ((t (:box nil :background ,gruvbox-dark2 :foreground ,gruvbox-light2))))
+    `(mode-line-inactive                ((t (:box nil :background ,gruvbox-dark1 :foreground ,gruvbox-light4))))
     `(fringe                            ((t (:background ,gruvbox-dark0))))
-    `(linum                             ((t (:foreground ,gruvbox-dark4))))
+    `(linum                             ((t (:background ,gruvbox-dark0 :foreground ,gruvbox-dark4))))
     `(hl-line                           ((t (:background ,gruvbox-dark1))))
     `(region                            ((t (:background ,gruvbox-dark2)))) ;;selection
     `(secondary-selection               ((t (:background ,gruvbox-dark1))))
@@ -260,7 +260,16 @@
     `(term-color-white                  ((t (:foreground ,gruvbox-light1))))
     `(term-color-yellow                 ((t (:foreground ,gruvbox-neutral_yellow))))
     `(term-default-fg-color             ((t (:foreground ,gruvbox-light0))))
-    `(term-default-bg-color             ((t (:background ,gruvbox-dark0)))))
+    `(term-default-bg-color             ((t (:background ,gruvbox-dark0))))
+
+    ;; Smart-mode-line
+    `(sml/global            ((t (:foreground ,gruvbox-burlywood4 :inverse-video nil))))
+    `(sml/modes             ((t (:foreground ,gruvbox-bright_green))))
+    `(sml/filename          ((t (:foreground ,gruvbox-bright_red :weight bold))))
+    `(sml/prefix            ((t (:foreground ,gruvbox-light1))))
+    `(sml/read-only         ((t (:foreground ,gruvbox-neutral_blue))))
+    `(persp-selected-face   ((t (:foreground ,gruvbox-neutral_orange)))))
+
 
 (custom-theme-set-variables
   'gruvbox
