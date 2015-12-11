@@ -65,7 +65,8 @@
 
 (defun ruby-tools-symbol-at-point-p ()
   "Check if cursor is at a symbol or not."
-  (ruby-tools-looking-around ":[A-Za-z0-9_]*" "[A-Za-z0-9_]*"))
+  (or (ruby-tools-looking-around ":[A-Za-z0-9_]*" "[A-Za-z0-9_]*")
+      (ruby-tools-looking-around "[^A-Za-z0-9_]+" ":[A-Za-z0-9_]*")))
 
 (defun ruby-tools-string-at-point-p ()
   "Check if cursor is at a string or not."
@@ -75,8 +76,12 @@
   "Return region for symbol at point."
   (list
    (save-excursion
-     (search-backward ":" (line-beginning-position) t))
+     (if (looking-at-p ":")
+	 (point)
+       (search-backward ":" (line-beginning-position) t)))
    (save-excursion
+     (when (and (looking-at-p ":") (not (eolp)))
+       (forward-char))
      (if (re-search-forward "[^A-Za-z0-9_]" (line-end-position) t)
          (1- (point))
        (line-end-position)))))
@@ -89,8 +94,8 @@
       (while (and (re-search-forward regex (line-end-position) t) (not (and beg end)))
         (let ((match-beg (match-beginning 0)) (match-end (match-end 0)))
           (when (and
-                 (> orig-point match-beg)
-                 (< orig-point match-end))
+                 (>= orig-point match-beg)
+                 (<= orig-point match-end))
             (setq beg match-beg)
             (setq end match-end))))
       (and beg end (list beg end)))))
@@ -123,10 +128,11 @@
              (max (nth 1 region))
              (content (buffer-substring-no-properties (1+ min) (1- max))))
         (when (string-match-p "^\\([a-ZA-Z_][a-ZA-Z0-9_]*\\)?$" content)
-          (let ((orig-point (point)))
+	  ;; prevent insert from pushing point to the next line
+          (let ((new-point (if (eolp) (1- (point)) (point))))
             (delete-region min max)
             (insert (concat ":" content))
-            (goto-char orig-point))))))
+            (goto-char new-point))))))
 
 (defun ruby-tools-to-single-quote-string ()
   (interactive)
