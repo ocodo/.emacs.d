@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2010 Chris Wanstrath
 
-;; Version: 0.6.1
-;; Package-Version: 20151019.2009
+;; Version: 0.6.2
+;; Package-Version: 20151210.628
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
 ;; URL: http://github.com/defunkt/coffee-mode
@@ -43,7 +43,7 @@
 ;; Customizable Variables
 ;;
 
-(defconst coffee-mode-version "0.6.1"
+(defconst coffee-mode-version "0.6.2"
   "The version of `coffee-mode'.")
 
 (defgroup coffee nil
@@ -529,6 +529,14 @@ output in a compilation buffer."
          (lambda (_this-mode)
            (generate-new-buffer-name coffee-compiled-buffer-name))))
     (compile (concat coffee-command " " args))))
+
+(defun coffee-toggle-fatness ()
+  "Toggle fatness of a coffee function arrow."
+  (interactive)
+  (save-excursion
+    (when (re-search-backward "[-=]>" nil t)
+      (cond ((looking-at "=") (replace-match "-"))
+            ((looking-at "-") (replace-match "="))))))
 
 ;;
 ;; imenu support
