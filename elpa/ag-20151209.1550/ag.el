@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.47
-;; Package-Version: 20151102.1429
+;; Package-Version: 20151209.1550
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -52,7 +52,7 @@
 Ag.el requires --nogroup and --column, so we recommend you add any
 additional arguments to the start of this list.
 
---line-number is required on Window, as otherwise ag will not
+--line-number is required on Windows, as otherwise ag will not
 print line numbers when the input is a stream."
   :type '(repeat (string))
   :group 'ag)
