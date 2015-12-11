@@ -16,7 +16,7 @@
          "\\.rabl\\'"
          "\\.gemspec\\'"
          "^\\.pryrc\\'"
-         "^\\.irbrc$"
+         "^\\.irbrc\\'"
          "^Rakefile\\'"
          "^Guardfile\\'"
          "^Gemfile\\'"
@@ -65,10 +65,10 @@
             (rvm-activate-corresponding-ruby))
 
           (bind-keys :map ruby-mode-map
-                 ("C-c #" . ruby-make-interpolated-string-at-point-or-region)
-                 ("C-c :" . ruby-toggle-symbol-at-point)
-                 ("C-c {" . ruby-toggle-block)
-                 ("C-c +" . ruby-toggle-hash-syntax)))
+                     ("C-c #" . ruby-make-interpolated-string-at-point-or-region)
+                     ("C-c :" . ruby-toggle-symbol-at-point)
+                     ("C-c {" . ruby-toggle-block)
+                     ("C-c +" . ruby-toggle-hash-syntax)))
 
   :config (progn (flymake-ruby-load)
                  (ruby-end-mode)
