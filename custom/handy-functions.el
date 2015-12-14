@@ -741,6 +741,26 @@ Use negative prefix P to go backward."
   (interactive)
   (replace-regexp-and-return "[”“]" "\""))
 
+(defun kilobyte (n)
+  "N kilobytes to bytes."
+  (* n 1024))
+(defalias 'kb 'kilobyte)
+
+(defun megabyte (n)
+  "N megabytes to bytes."
+  (* (kilobyte n) 1024))
+(defalias 'mb 'megabyte)
+
+(defun gigabyte (n)
+  "N gigabytes to bytes."
+  (* (megabyte n) 1024))
+(defalias 'gb 'gigabyte)
+
+(defun terabyte (n)
+  "N terabytes to bytes."
+  (* (gigabyte n) 1024))
+(defalias 'tb 'terabyte)
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)

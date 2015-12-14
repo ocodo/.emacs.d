@@ -7,8 +7,10 @@
 ;;   \___/ \___\___/ \__,_|\___/   \___|_| |_| |_|\__,_|\___|___/  \__,_|\___/ \__|
 ;;
 ;;; Code:
-
 ;; (package-initialize)
+
+;; 300mb garbage collection limit
+(setq gc-cons-threshold (* (* 1024 1024) 300))
 
 (let ((default-directory user-emacs-directory))
   (add-to-list 'load-path (expand-file-name "init-helpers")))
