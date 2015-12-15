@@ -618,6 +618,8 @@ If no DWIM context is found, nil is returned."
     (cons 'commit magit-buffer-refname))
    ((derived-mode-p 'magit-revision-mode)
     (cons 'commit (car magit-refresh-args)))
+   ((derived-mode-p 'magit-diff-mode)
+    (nth 0 magit-refresh-args))
    (t
     (magit-section-case
       ([* unstaged] 'unstaged)
@@ -723,7 +725,7 @@ a commit read from the minibuffer."
   "While committing, show the changes that are about to be committed.
 While amending, invoking the command again toggles between
 showing just the new changes or all the changes that will
-be commited."
+be committed."
   (interactive (magit-diff-arguments))
   (let ((toplevel (magit-toplevel))
         (diff-buf (magit-mode-get-buffer 'magit-diff-mode)))

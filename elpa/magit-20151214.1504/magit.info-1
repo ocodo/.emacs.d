@@ -232,7 +232,7 @@ FAQ
 * I changed several thousand files at once and now Magit is unusable::
 * I am having problems committing::
 * I don't like how branching and pushing works::
-* I cannot install the pre-requisits for Magit v2::
+* I cannot install the pre-requisites for Magit v2::
 * I am using an Emacs release older than v24.4: I am using an Emacs release older than v244. 
 * I am using a Git release older than v1.9.4: I am using a Git release older than v194. 
 * I am using MS Windows and cannot push with Magit::
@@ -398,19 +398,19 @@ yourself with it by reading the documentation in the Emacs manual, see
 
      (require 'package)
      (add-to-list 'package-archives
-                  '("melpa" . "http://melpa.org/packages/") t)
+     	     '("melpa" . "http://melpa.org/packages/") t)
 
    • To use Melpa-Stable:
 
      (require 'package)
      (add-to-list 'package-archives
-                  '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+     	     '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 
    • To use Marmalade:
 
      (require 'package)
      (add-to-list 'package-archives
-                  '("marmalade" . "http://marmalade-repo.org/packages/") t)
+     	     '("marmalade" . "http://marmalade-repo.org/packages/") t)
 
    Once you have added your preferred archive, you need to update the
 local package list using:
@@ -463,7 +463,7 @@ before running ‘make’:
      (with-eval-after-load 'info
        (info-initialize)
        (add-to-list 'Info-directory-list
-                    "~/.emacs.d/site-lisp/magit/Documentation/"))
+     	       "~/.emacs.d/site-lisp/magit/Documentation/"))
 
    Note that you have to add the ‘lisp/’ subdirectory to the
 ‘load-path’, not the top-level of the repository.
@@ -1689,9 +1689,9 @@ that it should be bound globally.  We recommend using ‘C-x g’:
      To make this command available, use something like:
 
           (add-hook 'ido-setup-hook
-                    (lambda ()
-                      (define-key ido-completion-map
-                        (kbd \"C-x g\") 'ido-enter-magit-status)))
+          	  (lambda ()
+          	    (define-key ido-completion-map
+          	      (kbd \"C-x g\") 'ido-enter-magit-status)))
 
      Starting with Emacs 25.1 the Ido keymaps are defined just once
      instead of every time Ido is invoked, so now you can modify it like
@@ -1878,7 +1878,7 @@ variable.
  -- Function: magit-insert-error-header
 
      Insert a header line showing the message about the Git error that
-     just occured.
+     just occurred.
 
      This function is only aware of the last error that occur when Git
      was run for side-effects.  If, for example, an error occurs while
@@ -3608,19 +3608,6 @@ set at this time.
 
         • When ‘never’ (the default) then the variable is never set.
 
- -- Variable: branch.autoSetupPush
-
-     This variable specifies whether creating a branch NAME should
-     result in the variable ‘branch.NAME.pushRemote’ being set to what
-     value.
-
-     This variable should either be undefined, or it should be the name
-     of an existing branch, in which case ‘branch.NAME.pushRemote’ is
-     set to the same value.  Any other value, i.e.  a non-existend
-     remote, is ignored.
-
-     This variable is only used by Magit, Git knows nothing about it.
-
    Note that the respective commands always change the repository-local
 values.  If you want to change the global value which is used when the
 local value is undefined, then you have to do so on the command line,
@@ -5048,12 +5035,12 @@ example:
    • ‘/path/to/huge/repo/.git/config’
 
           [include]
-                  path = /path/to/huge-gitconfig
+          	path = /path/to/huge-gitconfig
 
    • ‘/path/to/huge-gitconfig’
 
           [status]
-                  showUntrackedFiles = no
+          	showUntrackedFiles = no
 
    • ‘$HOME/.emacs.d/init.el’
 
@@ -6096,7 +6083,7 @@ made it into the manual yet, see
 * I changed several thousand files at once and now Magit is unusable::
 * I am having problems committing::
 * I don't like how branching and pushing works::
-* I cannot install the pre-requisits for Magit v2::
+* I cannot install the pre-requisites for Magit v2::
 * I am using an Emacs release older than v24.4: I am using an Emacs release older than v244. 
 * I am using a Git release older than v1.9.4: I am using a Git release older than v194. 
 * I am using MS Windows and cannot push with Magit::
@@ -6141,7 +6128,7 @@ emacsclient executable.  See *note (with-editor)Configuring
 With-Editor:: and *note (with-editor)Debugging::.
 
 
-File: magit.info,  Node: I don't like how branching and pushing works,  Next: I cannot install the pre-requisits for Magit v2,  Prev: I am having problems committing,  Up: FAQ
+File: magit.info,  Node: I don't like how branching and pushing works,  Next: I cannot install the pre-requisites for Magit v2,  Prev: I am having problems committing,  Up: FAQ
 
 A.4 I don’t like how branching and pushing works
 ================================================
@@ -6151,17 +6138,17 @@ which has taken a few users by surprise and left more unsatisfied.  The
 next release, v2.4, will try to address these concerns.
 
 
-File: magit.info,  Node: I cannot install the pre-requisits for Magit v2,  Next: I am using an Emacs release older than v244,  Prev: I don't like how branching and pushing works,  Up: FAQ
+File: magit.info,  Node: I cannot install the pre-requisites for Magit v2,  Next: I am using an Emacs release older than v244,  Prev: I don't like how branching and pushing works,  Up: FAQ
 
-A.5 I cannot install the pre-requisits for Magit v2
-===================================================
+A.5 I cannot install the pre-requisites for Magit v2
+====================================================
 
 An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies is
 available from <http://magit.vc/elpa/v1>.  But note that v1.4.2 is
 obsolete and no longer maintained.
 
 
-File: magit.info,  Node: I am using an Emacs release older than v244,  Next: I am using a Git release older than v194,  Prev: I cannot install the pre-requisits for Magit v2,  Up: FAQ
+File: magit.info,  Node: I am using an Emacs release older than v244,  Next: I am using a Git release older than v194,  Prev: I cannot install the pre-requisites for Magit v2,  Up: FAQ
 
 A.6 I am using an Emacs release older than v24.4
 ================================================
@@ -6257,11 +6244,11 @@ Git release you have installed, and follow the instructions in
      manual, then instead of following that cross reference show
      the actual manpage using the function `man'."
        (let ((node (Info-get-token
-                    (point) "\\*note[ \n\t]+"
-                    "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?")))
+     	       (point) "\\*note[ \n\t]+"
+     	       "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?")))
          (if (and node (string-match "^(gitman)\\(.+\\)" node))
-             (progn (require 'man)
-                    (man (match-string 1 node)))
+     	(progn (require 'man)
+     	       (man (match-string 1 node)))
            ad-do-it)))
 
    Or if you are using MS Windows and ‘man’ is not available, use this
@@ -6273,11 +6260,11 @@ variation with used the Emacs Lisp implementation provided by the
      manual, then instead of following that cross reference show
      the actual manpage using the function `woman'."
        (let ((node (Info-get-token
-                    (point) "\\*note[ \n\t]+"
-                    "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?")))
+     	       (point) "\\*note[ \n\t]+"
+     	       "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?")))
          (if (and node (string-match "^(gitman)\\(.+\\)" node))
-             (progn (require 'woman)
-                    (woman (match-string 1 node)))
+     	(progn (require 'woman)
+     	       (woman (match-string 1 node)))
            ad-do-it)))
 
    Did I mention that texinfo cross reference are just awful?  (This is
@@ -6443,18 +6430,18 @@ Appendix B Keystroke Index
 * B:                                     Bisecting.           (line   8)
 * b:                                     Branching.           (line  46)
 * B b:                                   Bisecting.           (line  31)
-* b b:                                   Branching.           (line 185)
-* b c:                                   Branching.           (line 201)
-* b d:                                   Branching.           (line 233)
+* b b:                                   Branching.           (line 172)
+* b c:                                   Branching.           (line 188)
+* b d:                                   Branching.           (line 220)
 * B g:                                   Bisecting.           (line  36)
 * B k:                                   Bisecting.           (line  41)
-* b n:                                   Branching.           (line 193)
+* b n:                                   Branching.           (line 180)
 * B r:                                   Bisecting.           (line  47)
-* b r:                                   Branching.           (line 239)
+* b r:                                   Branching.           (line 226)
 * B s:                                   Bisecting.           (line  16)
-* b s:                                   Branching.           (line 206)
+* b s:                                   Branching.           (line 193)
 * B u:                                   Bisecting.           (line  24)
-* b x:                                   Branching.           (line 217)
+* b x:                                   Branching.           (line 204)
 * c:                                     Initiating a commit. (line   8)
 * c <1>:                                 Editing rebase sequences.
                                                               (line  72)
@@ -6867,14 +6854,14 @@ Appendix C Command Index
                                                               (line  45)
 * magit-blob-previous <1>:               Minor mode for buffers visiting blobs.
                                                               (line  12)
-* magit-branch:                          Branching.           (line 193)
-* magit-branch-and-checkout:             Branching.           (line 201)
-* magit-branch-delete:                   Branching.           (line 233)
+* magit-branch:                          Branching.           (line 180)
+* magit-branch-and-checkout:             Branching.           (line 188)
+* magit-branch-delete:                   Branching.           (line 220)
 * magit-branch-popup:                    Branching.           (line  46)
-* magit-branch-rename:                   Branching.           (line 239)
-* magit-branch-reset:                    Branching.           (line 217)
-* magit-branch-spinoff:                  Branching.           (line 206)
-* magit-checkout:                        Branching.           (line 185)
+* magit-branch-rename:                   Branching.           (line 226)
+* magit-branch-reset:                    Branching.           (line 204)
+* magit-branch-spinoff:                  Branching.           (line 193)
+* magit-checkout:                        Branching.           (line 172)
 * magit-checkout-file:                   Resetting.           (line  37)
 * magit-cherry:                          Logging.             (line  60)
 * magit-cherry-apply:                    Cherry picking.      (line  22)
