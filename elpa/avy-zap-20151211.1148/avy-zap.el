@@ -4,7 +4,7 @@
 
 ;; Author: Junpeng Qiu <qjpchmail@gmail.com>
 ;; URL: https://github.com/cute-jumper/avy-zap
-;; Package-Version: 20151029.741
+;; Package-Version: 20151211.1148
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: extensions
 
@@ -46,6 +46,11 @@
 ;; Note: The behaviors of the *dwim* function when called with prefix and
 ;; without prefix are inverted now! By default(i.e. when the *dwim*
 ;; function is called without prefix), the avy version will be used now!
+;; For those who want the old behavior, set the following variable to
+;; `nil':
+;; ,----
+;; | (setq avy-zap-dwim-prefer-avy)
+;; `----
 
 ;; This package is basically a fork of the functionality of [ace-jump-zap],
 ;; but using [avy] instead of [ace-jump-mode] as the jumping method.
@@ -99,6 +104,10 @@
 ;;     zapping from the current point. The default value is `nil'.
 ;;   - `avy-zap-function': Choose between `kill-region' and
 ;;     `delete-region'. The default value is `kill-region'.
+;;   - `avy-zap-dwim-prefer-avy': Whether the default dwim behavior(when
+;;     called without prefix) of `avy-zap' should use `avy' or not. The
+;;     default value is `t'. You can set this variable to `nil' if you prefer
+;;     using plain zap when calling the dwim commands without prefix.
 
 
 ;; 4 Compared to ace-jump-zap
@@ -134,6 +143,9 @@
 
 (defvar avy-zap-function 'kill-region
   "The function used for zapping to char.")
+
+(defvar avy-zap-dwim-prefer-avy t
+  "Whether the default dwim behavior of `avy-zap' should use `avy' or not.")
 
 (defmacro avy-zap--flet-if (rebind-p binding &rest body)
   "If REBIND-P, temporarily override BINDING and execute BODY.
@@ -185,9 +197,10 @@ Otherwise, don't rebind."
   "Without PREFIX, call `avy-zap-to-char'.
 With PREFIX, call `zap-to-char'."
   (interactive "P")
-  (if (or prefix defining-kbd-macro executing-kbd-macro)
-      (progn (setq current-prefix-arg)
-             (call-interactively 'zap-to-char))
+  (if (or defining-kbd-macro executing-kbd-macro
+          (not (avy-zap--xor prefix avy-zap-dwim-prefer-avy)))
+      (let (current-prefix-arg)
+        (call-interactively 'zap-to-char))
     (avy-zap-to-char)))
 
 ;;;###autoload
@@ -201,9 +214,10 @@ With PREFIX, call `zap-to-char'."
   "Without PREFIX, call `avy-zap-up-to-char'.
 With PREFIX, call `zap-up-to-char'."
   (interactive "P")
-  (if (or prefix defining-kbd-macro executing-kbd-macro)
-      (progn (setq current-prefix-arg)
-             (call-interactively 'zap-up-to-char))
+  (if (or defining-kbd-macro executing-kbd-macro
+          (not (avy-zap--xor prefix avy-zap-dwim-prefer-avy)))
+      (let (current-prefix-arg)
+        (call-interactively 'zap-up-to-char))
     (avy-zap-up-to-char)))
 
 (provide 'avy-zap)
