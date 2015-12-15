@@ -367,15 +367,21 @@ BUFFER may be a buffer or a buffer name which contains mail message."
 		  (error "`smtp-server' not defined"))))
 	   (package
 	    (smtp-make-package sender recipients buffer)))
-      (with-current-buffer (get-buffer-create
-			    (format "*trace of SMTP session to %s*" server))
+      (with-current-buffer
+	  (setq buffer (get-buffer-create
+			(format "*trace of SMTP session to %s*" server)))
 	(erase-buffer)
 	(buffer-disable-undo)
-	(unless (smtp-find-connection (current-buffer))
-	  (smtp-open-connection (current-buffer) server smtp-service))
+	(unless (smtp-find-connection buffer)
+	  (smtp-open-connection buffer server smtp-service))
 	(make-local-variable 'smtp-read-point)
 	(setq smtp-read-point (point-min))
-	(funcall smtp-submit-package-function package)))))
+	(funcall smtp-submit-package-function package)
+	(unless (or smtp-debug (smtp-find-connection buffer))
+	  (setq smtp-connection-alist
+		(delq (assq buffer smtp-connection-alist)
+		      smtp-connection-alist))
+	  (kill-buffer))))))
 
 (defun smtp-submit-package (package)
   (unwind-protect
@@ -423,17 +429,23 @@ BUFFER may be a buffer or a buffer name which contains mail message."
 			   (mapconcat 'concat recipients ">,<"))))
 	(setq package
 	      (smtp-make-package sender recipients buffer))
-	(with-current-buffer (get-buffer-create
-			      (format "*trace of SMTP session to %s*" server))
+	(with-current-buffer
+	    (setq buffer (get-buffer-create
+			  (format "*trace of SMTP session to %s*" server)))
 	  (erase-buffer)
 	  (buffer-disable-undo)
-	  (unless (smtp-find-connection (current-buffer))
-	    (smtp-open-connection (current-buffer) server smtp-service))
+	  (unless (smtp-find-connection buffer)
+	    (smtp-open-connection buffer server smtp-service))
 	  (make-local-variable 'smtp-read-point)
 	  (setq smtp-read-point (point-min))
 	  (let ((smtp-use-sasl nil)
 		(smtp-use-starttls-ignore-error t))
-	    (funcall smtp-submit-package-function package)))
+	    (funcall smtp-submit-package-function package))
+	  (unless (or smtp-debug (smtp-find-connection buffer))
+	    (setq smtp-connection-alist
+		  (delq (assq buffer smtp-connection-alist)
+			smtp-connection-alist))
+	    (kill-buffer)))
 	(setq servers (cdr servers)))))
 
 ;;; @ hook methods for `smtp-submit-package'
