@@ -1,4 +1,4 @@
-(define-package "auto-complete" "20151112.2030" "Auto Completion for GNU Emacs"
+(define-package "auto-complete" "20151211.227" "Auto Completion for GNU Emacs"
   '((popup "0.5.0")
     (cl-lib "0.5")))
 ;; Local Variables:
