@@ -4,7 +4,7 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20151208.1029
+;; Package-Version: 20151214.2117
 ;; Keywords: project, convenience
 ;; Version: 0.1.0
 ;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0"))
@@ -77,7 +77,7 @@ current GOPATH, or 'never to leave GOPATH untouched."
   "Load go-oracle."
   (require 'go-oracle (concat go-projectile-tools-path "/src/"
                               (cdr (assq 'oracle go-projectile-tools))
-                              "/oracle.el")) t)
+                              "/oracle.el") t))
 
 (defun go-projectile-tools-add-path ()
   "Add go-projectile-tools-path to `exec-path' and friends."
