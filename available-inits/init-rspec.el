@@ -33,6 +33,12 @@
   "Run spec on SPEC-FILE with the specified options OPTS."
   (rspec-compile-iterm (rspec-runner-target spec-file) opts))
 
+(defun rspec-fail-remove-trailing-comment (&optional arg)
+  (interactive "p")
+  (kmacro-exec-ring-item
+   '([?\C-s ?# left left ?\C-k ?\C-a])
+   arg))
+
 (defun rspec-compile-iterm (target &optional opts)
   "Exectute TARGET with the specified options OPTS in iTerm."
   (setq rspec-last-directory default-directory

@@ -53,9 +53,11 @@
                 (s-replace ":" "" s)
               (ruby-prepend-colon s)))
 
-          ;; Saved macro to replace selection with try(:selection)
-          (fset 'ruby-selected-to-try-call
-                [?\C-w ?t ?r ?y ?\( ?: ?\C-y right])
+          (defun ruby-selected-to-try-call (&optional arg)
+            (interactive "p")
+            (kmacro-exec-ring-item
+             '([?\C-w ?t ?r ?y ?\( ?: ?\C-y right])
+             arg))
 
           ;; Saved macro to replace var assignment with a let (rspec)
           (fset 'rspec-var-to-let
