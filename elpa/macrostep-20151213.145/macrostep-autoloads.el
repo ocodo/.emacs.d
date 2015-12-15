@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "macrostep" "macrostep.el" (22120 11668 352585
-;;;;;;  256000))
+;;;### (autoloads nil "macrostep" "macrostep.el" (22127 57027 42904
+;;;;;;  68000))
 ;;; Generated autoloads from macrostep.el
 
 (autoload 'macrostep-mode "macrostep" "\
@@ -20,7 +20,7 @@ quit and return to normal editing.
 \(fn &optional ARG)" t nil)
 
 (autoload 'macrostep-expand "macrostep" "\
-Expand the Elisp macro form following point by one step.
+Expand the macro form following point by one step.
 
 Enters `macrostep-mode' if it is not already active, making the
 buffer temporarily read-only. If macrostep-mode is active and the
@@ -36,8 +36,8 @@ behaviors.
 
 ;;;***
 
-;;;### (autoloads nil "macrostep-c" "macrostep-c.el" (22120 11668
-;;;;;;  348585 214000))
+;;;### (autoloads nil "macrostep-c" "macrostep-c.el" (22127 57027
+;;;;;;  38904 72000))
 ;;; Generated autoloads from macrostep-c.el
 
 (autoload 'macrostep-c-mode-hook "macrostep-c" "\
@@ -49,8 +49,8 @@ behaviors.
 
 ;;;***
 
-;;;### (autoloads nil nil ("macrostep-pkg.el") (22120 11668 365961
-;;;;;;  146000))
+;;;### (autoloads nil nil ("macrostep-pkg.el") (22127 57027 59307
+;;;;;;  762000))
 
 ;;;***
 
