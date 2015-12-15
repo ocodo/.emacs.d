@@ -322,7 +322,12 @@ backward through lists, which is useful to move into special.
         (setq lispy-old-outline-settings
               (cons outline-regexp outline-level))
         (setq-local outline-level 'lispy-outline-level)
-        (setq-local outline-regexp (substring lispy-outline 1))
+        (if (eq major-mode 'latex-mode)
+            (progn
+              (setq-local lispy-outline "^\\(?:%\\*+\\|\\\\\\(?:sub\\)?section{\\)")
+              (setq lispy-outline-header "%")
+              (setq-local outline-regexp "\\(?:%\\*+\\|\\\\\\(?:sub\\)?section{\\)"))
+          (setq-local outline-regexp (substring lispy-outline 1)))
         (when (called-interactively-p 'any)
           (mapc #'lispy-raise-minor-mode
                 (cons 'lispy-mode lispy-known-verbs))))
@@ -1692,6 +1697,9 @@ When ARG is nagative, add them above instead"
       (newline (- arg))
       (indent-for-tab-command))))
 
+(defvar-local lispy-outline-header ";;"
+  "Store the buffer-local outline start.")
+
 (defun lispy-meta-return ()
   "Insert a new heading."
   (interactive)
@@ -1714,7 +1722,7 @@ When ARG is nagative, add them above instead"
                  (newline))
              (newline)
              (backward-char 1)))))
-  (insert ";;"
+  (insert lispy-outline-header
           (make-string (max (lispy-outline-level) 1)
                        ?\*)
           " ")
@@ -3348,7 +3356,7 @@ SYMBOL is a string."
                          (lispy--fetch-this-file-tags)))
                   (goto-char (aref (nth 4 rsymbol) 0)))
                  (t
-                  (error "Couldn't fild definition of %s"
+                  (error "Couldn't find definition of %s"
                          symbol))))
           ((eq major-mode 'clojure-mode)
            (require 'le-clojure)
@@ -6614,7 +6622,8 @@ PLIST currently accepts:
              ((or (lispy-left-p)
                   (lispy-right-p)
                   (and (lispy-bolp)
-                       (looking-at ";")))
+                       (or (looking-at ";")
+                           (looking-at lispy-outline))))
               (call-interactively ',def))
 
              (t
@@ -6897,6 +6906,7 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
           (number-sequence 0 9))
     map))
 (eldoc-remove-command 'special-lispy-eval)
+(eldoc-remove-command 'special-lispy-x)
 
 ;;* Paredit compat
 (defun lispy-close-round-and-newline (arg)
