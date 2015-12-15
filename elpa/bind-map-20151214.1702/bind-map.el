@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-bind-map
-;; Package-Version: 20151210.1000
+;; Package-Version: 20151214.1702
 ;; Version: 0.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -118,13 +118,41 @@
   :group 'bind-map)
 
 (defvar bind-map-evil-local-bindings '()
-  "Each element of this list takes the form (OVERRIDE-MODE STATE
-KEY DEF) and corresponds to a binding for an evil local state
-map. OVERRIDE-MODE is the minor mode that must be enabled for
-these to be activated.")
+  "Each element takes the form (OVERRIDE-MODE STATE KEY DEF) and
+corresponds to a binding for an evil local state map.
+OVERRIDE-MODE is the minor mode that must be enabled for these to
+be activated.")
 (defvaralias 'bind-map-local-bindings 'bind-map-evil-local-bindings)
 (make-obsolete-variable 'bind-map-local-bindings
                         'bind-map-evil-local-bindings "2015-12-2")
+
+(defun bind-map-evil-local-mode-hook ()
+  "Called to activate local state maps in a buffer."
+  ;; format is (OVERRIDE-MODE STATE KEY DEF)
+  (dolist (entry bind-map-evil-local-bindings)
+    (let ((map (intern (format "evil-%s-state-local-map" (nth 1 entry)))))
+      (when (and (nth 0 entry)
+                 (boundp map)
+                 (keymapp (symbol-value map)))
+        (define-key (symbol-value map) (nth 2 entry) (nth 3 entry))))))
+(add-hook 'evil-local-mode-hook 'bind-map-evil-local-mode-hook)
+
+(defvar bind-map-major-modes-alist '()
+  "Each element takes the form (MAP-ACTIVE (MAJOR-MODE1
+MAJOR-MODE2 ...)). The car is the variable used to activate a map
+when the major mode is an element of the cdr. See
+`bind-map-change-major-mode-after-body-hook'.")
+
+(defun bind-map-change-major-mode-after-body-hook ()
+  "Called to activate major mode maps in a buffer."
+  ;; format is (ACTIVATE-VAR MAJOR-MODES-LIST)
+  (dolist (entry bind-map-major-modes-alist)
+    (if (boundp (car entry))
+      (setf (symbol-value (car entry))
+            (not (null (member major-mode (cdr entry)))))
+      (message "bind-map: %s is void in change major mode hook" (car entry)))))
+(add-hook 'change-major-mode-after-body-hook
+          'bind-map-change-major-mode-after-body-hook)
 
 ;;;###autoload
 (defmacro bind-map (map &rest args)
@@ -195,9 +223,7 @@ unspecified the bindings are global.
 
 Declare a prefix command for MAP named COMMAND-NAME."
   (let* ((root-map (intern (format "%s-root-map" map)))
-         (major-mode-list (intern (format "%s-major-modes" map)))
-         (activate (intern (format "%s-activate" map)))
-         (activate-func (intern (format "%s-activate-function" map)))
+         (active-var (intern (format "%s-active" map)))
          (prefix-cmd (or (plist-get args :prefix-cmd)
                          (intern (format "%s-prefix" map))))
          (keys (plist-get args :keys))
@@ -217,60 +243,56 @@ mode maps. Set up by bind-map.el." map))
                           bind-map-default-evil-states))
          (minor-modes (plist-get args :minor-modes))
          (major-modes (plist-get args :major-modes)))
-    `(progn
-       (when ',evil-keys (require 'evil))
+    (append
+     '(progn)
 
-       (defvar ,map (make-sparse-keymap))
+     (when evil-keys '((require 'evil)))
+
+     `((defvar ,map (make-sparse-keymap))
        (unless (keymapp ,map)
          (error "bind-map: %s is not a keymap" ',map))
        (defvar ,prefix-cmd nil)
        (setq ,prefix-cmd ,map)
        (setf (symbol-function ',prefix-cmd) ,map)
-       (defvar ,root-map (make-sparse-keymap))
+       (defvar ,root-map (make-sparse-keymap)))
 
-       (when ',minor-modes
-         (dolist (mode ',minor-modes)
-           (push (cons mode ,root-map) minor-mode-map-alist)))
+     (when minor-modes
+       `((dolist (mode ',minor-modes)
+           (push (cons mode ,root-map) minor-mode-map-alist))))
 
-       (when ',major-modes
-         (defvar ,major-mode-list '())
-         ;; compiler warns about making a local var below the top-level
-         (with-no-warnings
-           (defvar-local ,activate nil))
-         (push (cons ',activate ,root-map) minor-mode-map-alist)
-         (dolist (mode ',major-modes)
-           (add-to-list ',major-mode-list mode))
-         (defun ,activate-func ()
-           (setq ,activate (not (null (member major-mode ,major-mode-list)))))
+     (when major-modes
+       ;; compiler warns about making a local var below the top-level
+       `((with-no-warnings (defvar-local ,active-var nil))
+         (push (cons ',active-var ,root-map) minor-mode-map-alist)
+         (push (cons ',active-var ',major-modes) bind-map-major-modes-alist)
          ;; call once in case we are already in the relevant major mode
-         (,activate-func)
-         (add-hook 'change-major-mode-after-body-hook ',activate-func))
+         (bind-map-change-major-mode-after-body-hook)))
 
-       (when (and ,override-minor-modes
-                  (null ',major-modes)
-                  (null ',minor-modes))
-         (defun ,turn-on-override-mode ()
-           ,turn-on-override-mode-doc
-           (unless (minibufferp) (,override-mode 1)))
-         (define-globalized-minor-mode ,global-override-mode
-           ,override-mode ,turn-on-override-mode)
-         (define-minor-mode ,override-mode
-           ,override-mode-doc)
+     (when (and override-minor-modes
+                (null major-modes)
+                (null minor-modes))
+       `((with-no-warnings
+           (defun ,turn-on-override-mode ()
+             ,turn-on-override-mode-doc
+             (unless (minibufferp) (,override-mode 1)))
+           (define-globalized-minor-mode ,global-override-mode
+             ,override-mode ,turn-on-override-mode)
+           (define-minor-mode ,override-mode
+             ,override-mode-doc)
+           (,global-override-mode 1))
          (add-to-list 'emulation-mode-map-alists
-                      (list (cons ',override-mode ,root-map)))
-         (,global-override-mode 1))
+                      (list (cons ',override-mode ,root-map)))))
 
-       (if (or ',minor-modes ',major-modes)
-           ;;bind keys in root-map
-           (progn
-             (dolist (key (list ,@keys))
-               (define-key ,root-map (kbd key) ',prefix-cmd))
-             (dolist (key (list ,@evil-keys))
-               (dolist (state ',evil-states)
-                 (define-key (evil-get-auxiliary-keymap ,root-map state t)
-                   (kbd key) ',prefix-cmd))))
-         ;;bind in global maps
-         (dolist (key (list ,@keys))
+     (if (or minor-modes major-modes)
+         ;; only bind keys in root-map
+         `((dolist (key (list ,@keys))
+             (define-key ,root-map (kbd key) ',prefix-cmd))
+           (dolist (key (list ,@evil-keys))
+             (dolist (state ',evil-states)
+               (define-key (evil-get-auxiliary-keymap ,root-map state t)
+                 (kbd key) ',prefix-cmd))))
+       ;; bind in global maps and possibly root-map
+       `((dolist (key (list ,@keys))
            (when ,override-minor-modes
              (define-key ,root-map (kbd key) ',prefix-cmd))
            (global-set-key (kbd key) ',prefix-cmd))
@@ -279,7 +301,9 @@ mode maps. Set up by bind-map.el." map))
              (when ,override-minor-modes
                (push (list ',override-mode state (kbd key) ',prefix-cmd)
                      bind-map-evil-local-bindings))
-             (evil-global-set-key state (kbd key) ',prefix-cmd)))))))
+             (evil-global-set-key state (kbd key) ',prefix-cmd)))))
+
+     (when evil-keys `((evil-normalize-keymaps))))))
 (put 'bind-map 'lisp-indent-function 'defun)
 
 ;;;###autoload
@@ -325,16 +349,6 @@ concatenated with `bind-map-default-map-suffix'."
          ,@args)
        ',map-name)))
 (put 'bind-map-for-minor-mode 'lisp-indent-function 'defun)
-
-(defun bind-map-evil-local-mode-hook ()
-  ;; format is (OVERRIDE-MODE STATE KEY DEF)
-  (dolist (entry bind-map-evil-local-bindings)
-    (let ((map (intern (format "evil-%s-state-local-map" (nth 1 entry)))))
-      (when (and (nth 0 entry)
-                 (boundp map)
-                 (keymapp (symbol-value map)))
-        (define-key (symbol-value map) (nth 2 entry) (nth 3 entry))))))
-(add-hook 'evil-local-mode-hook 'bind-map-evil-local-mode-hook)
 
 ;;;###autoload
 (defun bind-map-set-keys (map key def &rest bindings)
