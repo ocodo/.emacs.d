@@ -4035,7 +4035,9 @@ Key arg DIRECTION can be one of:
     (if (and arg (> arg 1))
         (cl-loop with pos = (helm-candidate-number-at-point)
                  with cand-num = (helm-get-candidate-number t)
-                 with iter = (min arg (- cand-num pos))
+                 with iter = (min arg (if (eq direction 'next)
+                                          (- cand-num pos)
+                                          (min arg (1- pos))))
                  for count from 1
                  while (<= count iter)
                  do
@@ -4096,8 +4098,8 @@ current source (i.e don't move to next source if some)."
               (eq last-command 'helm-follow-action-backward)
               (eq last-command 'helm-execute-persistent-action))
       (if (> arg 0)
-          (helm-next-line)
-        (helm-previous-line)))
+          (helm-next-line 1)
+        (helm-previous-line 1)))
     (helm-execute-persistent-action)))
 
 (defun helm-follow-action-forward ()
