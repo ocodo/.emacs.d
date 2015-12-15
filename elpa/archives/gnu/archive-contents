@@ -318,7 +318,7 @@
        ((:url . "http://elpa.gnu.org/packages/fsm.html")
 	(:keywords "extensions"))])
  (ggtags .
-	 [(0 8 10)
+	 [(0 8 11)
 	  ((emacs
 	    (24))
 	   (cl-lib
@@ -530,7 +530,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20151123)
+      [(20151214)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -711,7 +711,7 @@
 	((:keywords "convenience")
 	 (:url . "https://github.com/abo-abo/tiny"))])
  (transcribe .
-	     [(1 0 1)
+	     [(1 0 2)
 	      nil "Package for audio transcriptions" single
 	      ((:url . "http://elpa.gnu.org/packages/transcribe.html")
 	       (:keywords))])
