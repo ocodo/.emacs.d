@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-descbinds" "helm-descbinds.el" (22056
-;;;;;;  24046 762811 0))
+;;;### (autoloads nil "helm-descbinds" "helm-descbinds.el" (22127
+;;;;;;  58963 811869 689000))
 ;;; Generated autoloads from helm-descbinds.el
 
 (defvar helm-descbinds-mode nil "\
@@ -17,7 +17,7 @@ or call the function `helm-descbinds-mode'.")
 (custom-autoload 'helm-descbinds-mode "helm-descbinds" nil)
 
 (autoload 'helm-descbinds-mode "helm-descbinds" "\
-Use `helm' for `describe-bindings'
+Use `helm' for `describe-bindings'.
 
 \(fn &optional ARG)" t nil)
 
@@ -32,7 +32,7 @@ Restore original `describe-bindings'.
 \(fn)" t nil)
 
 (autoload 'helm-descbinds "helm-descbinds" "\
-Yet Another `describe-bindings' with `helm'.
+A convenient `describe-bindings' with `helm'.
 
 \(fn &optional PREFIX BUFFER)" t nil)
 

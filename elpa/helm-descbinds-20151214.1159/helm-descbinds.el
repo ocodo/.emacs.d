@@ -1,14 +1,15 @@
-;;; helm-descbinds.el --- Yet Another `describe-bindings' with `helm'.
+;;; helm-descbinds.el --- A convenient `describe-bindings' with `helm'   -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008, 2009, 2010  Taiki SUGAWARA <buzz.taiki@gmail.com>
 ;; Copyright (C) 2012, 2013  Michael Markert <markert.michael@googlemail.com>
 ;; Copyright (C) 2013 Daniel Hackney <dan@haxney.org>
+;; Copyright (C) 2015 Michael Heerdegen <michael_heerdegen@web.de>
 
 ;; Author: Taiki SUGAWARA <buzz.taiki@gmail.com>
 ;; URL: https://github.com/emacs-helm/helm-descbinds
-;; Package-Version: 20151019.230
+;; Package-Version: 20151214.1159
 ;; Keywords: helm, help
-;; Version: 1.08
+;; Version: 1.10
 ;; Package-Requires: ((helm "1.5"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -26,10 +27,11 @@
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Commentary:
-;; This package is a replacement of `describe-bindings'.
 
-;;; Usage:
+;;; Commentary:
+;; This package is a replacement of `describe-bindings' for Helm.
+
+;; Usage:
 ;; Add followings on your .emacs.
 ;;
 ;;   (require 'helm-descbinds)
@@ -40,63 +42,26 @@
 ;; Now, `describe-bindings' is replaced to `helm-descbinds'. Type
 ;; `C-h b', `C-x C-h' these run `helm-descbinds'.
 ;;
-;; In the Helm buffer, you can select key-binds with helm interface.
+;; In the Helm buffer, you can select key-binds with Helm interface.
 ;;
 ;;  - When type RET, selected candidate command is executed.
 ;;
-;;  - When type TAB, You can "Execute", "Describe Function" or "Find
+;;  - When type TAB, you can "Execute", "Describe Function" or "Find
 ;;    Function" by the menu.
 ;;
-;;  - When type C-z, selected command is described without quiting.
+;;  - When type C-z, selected command is described without quitting.
+;;
+;; On a prefix command, hitting RET will restart the session using
+;; this prefix.
 
-;;; History:
-;; 2013-02-23 Michael Markert <markert.michael@googlemail.com>
-;;   * helm-descbinds.el: Version 1.08
-;;   Merge Daniel Hackney's helm-descbinds minor mode.
-;;   Several bugfixes.
-;;
-;; 2012-03-18 Michael Markert <markert.michael@googlemail.com>
-;;   * helm-descbinds.el: Version 1.07
-;;   make strings bound to keys insertable
-;;
-;; 2012-03-18 Michael Markert <markert.michael@googlemail.com>
-;;   * helm-descbinds.el: Version 1.06
-;;   port to helm
-;;
-;; 2010-02-05   Taiki SUGAWARA  <sugawara_t@ariel-networks.com>
-;;
-;;   * descbinds-anything.el: Version 1.05
-;;   bug fix.
-;;
-;; 2010-02-02 UTC  Taiki SUGAWARA  <buzz.taiki@gmail.com>
-;;
-;;   * descbinds-anything.el: Version 1.04
-;;   add sorting feature.
-;;   separete sorce creation function.
-;;   add persistent action.
-;;
-;; 2009-03-29 UTC  Taiki SUGAWARA  <buzz.taiki@gmail.com>
-;;
-;;   * descbinds-anything.el: Version 1.03
-;;   fix typo.
-;;
-;; 2008-11-16 UTC  Taiki SUGAWARA  <buzz.taiki@gmail.com>
-;;
-;;   * descbinds-anything.el: Version 1.02
-;;   bound `indent-tabs-mode` to t for nil environment.
-;;
-;; 2008-11-16 UTC  Taiki SUGAWARA  <buzz.taiki@gmail.com>
-;;
-;;   * descbinds-anything.el: fix infinitive-loop when binding-line
-;;   has not tab.
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile (require 'cl-lib)) ;cl-loop
 (require 'helm)
 
 (defgroup helm-descbinds nil
-  "Yet Another `describe-bindings' with `helm'."
+  "A convenient `describe-bindings' with `helm'."
   :prefix "helm-descbinds-"
   :group 'helm)
 
@@ -109,54 +74,50 @@
 	  (cons
 	   :tag "Action"
 	   (string :tag "Name")
-	   (function :tag "Function")))
-  :group 'helm-descbinds)
+	   (function :tag "Function"))))
 
 (defcustom helm-descbinds-strings-to-ignore
-  '("Keyboard Macro" "Prefix Command")
+  '("Keyboard Macro")
   "Strings to ignore as a possible string candidate."
   :type '(repeat string))
 
 (defcustom helm-descbinds-candidate-formatter
-  'helm-descbinds-default-candidate-formatter
+  #'helm-descbinds-default-candidate-formatter
   "Candidate formatter function.
-This function called two argument KEY and BINDING."
-  :type 'function
-  :group 'helm-descbinds)
+This function will be called with two arguments KEY and BINDING."
+  :type 'function)
 
 (defcustom helm-descbinds-window-style 'one-window
   "Window splitting style."
   :type '(choice
 	  (const :tag "One Window" one-window)
 	  (const :tag "Same Window" same-window)
-	  (const :tag "Split Window" split-window))
-  :group 'helm-descbinds)
+	  (const :tag "Split Window" split-window)))
 
 (defcustom helm-descbinds-section-order
   '("Major Mode Bindings" "Minor Mode Bindings" "Global Bindings")
   "A list of section order by name regexp."
-  :type '(repeat (regexp :tag "Regexp"))
-  :group 'helm-descbinds)
+  :type '(repeat (regexp :tag "Regexp")))
 
 (defcustom helm-descbinds-source-template
   `((candidate-transformer . helm-descbinds-transform-candidates)
     (filtered-candidate-transformer . helm-fuzzy-highlight-matches)
     (persistent-action . helm-descbinds-action:describe)
+    (action-transformer . helm-descbinds-action-transformer)
     (action . ,helm-descbinds-actions))
   "A template of `helm-descbinds' source."
-  :type 'sexp
-  :group 'helm-descbinds)
+  :type 'sexp)
 
 (defvar helm-descbinds-Orig-describe-bindings (symbol-function 'describe-bindings))
 (defvar helm-descbind--initial-full-frame helm-full-frame)
 
 ;;;###autoload
 (define-minor-mode helm-descbinds-mode
-  "Use `helm' for `describe-bindings'"
+  "Use `helm' for `describe-bindings'."
   :group 'helm-descbinds
   :global t
   (if helm-descbinds-mode
-      (fset 'describe-bindings #'helm-descbinds)
+      (fset 'describe-bindings #'helm-descbinds) ;FIXME: why don't we just use an :override advice?
     (fset 'describe-bindings helm-descbinds-Orig-describe-bindings)))
 
 ;;;###autoload
@@ -255,6 +216,16 @@ This function called two argument KEY and BINDING."
                              command))))))
    candidates))
 
+(defun helm-descbinds-action-transformer (actions cand)
+  "Default action transformer for `helm-descbinds'.
+Provide a useful behavior for prefix commands."
+  (if (equal (cdr-safe cand) "Prefix Command")
+      `(("helm-descbinds this prefix" . ,(lambda (cand) (interactive)
+                                           (run-with-idle-timer
+                                            0 nil
+                                            #'describe-bindings (kbd (car cand))))))
+    actions))
+
 (defun helm-descbinds-sources (buffer &optional prefix menus)
   (mapcar
    (lambda (section)
@@ -272,7 +243,7 @@ This function called two argument KEY and BINDING."
 
 ;;;###autoload
 (defun helm-descbinds (&optional prefix buffer)
-  "Yet Another `describe-bindings' with `helm'."
+  "A convenient `describe-bindings' with `helm'."
   (interactive)
   (let ((old-helm-full-frame helm-full-frame)
         (helm-full-frame (and (not (minibufferp))
