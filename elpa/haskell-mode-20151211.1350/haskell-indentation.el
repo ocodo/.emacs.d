@@ -519,6 +519,7 @@ indentation points to the right, we switch going to the left."
     ("type"    . haskell-indentation-data)
     ("newtype" . haskell-indentation-data)
     ("if"      . haskell-indentation-if)
+    ("case"    . haskell-indentation-case)
     ("let"     .
      ,(apply-partially 'haskell-indentation-phrase
                        '(haskell-indentation-declaration-layout
@@ -532,10 +533,6 @@ indentation points to the right, we switch going to the left."
     ("rec"     .
      ,(apply-partially 'haskell-indentation-with-starter
                        'haskell-indentation-expression-layout))
-    ("case"    .
-     ,(apply-partially 'haskell-indentation-phrase
-                       '(haskell-indentation-expression
-                         "of" haskell-indentation-case-layout)))
     ("\\"      .
      ,(apply-partially 'haskell-indentation-with-starter
                        'haskell-indentation-lambda-maybe-lambdacase))
@@ -576,7 +573,7 @@ indentation points to the right, we switch going to the left."
 
 (defun haskell-indentation-case-layout ()
   "Parse layout list with case expressions."
-  (haskell-indentation-layout #'haskell-indentation-case))
+  (haskell-indentation-layout #'haskell-indentation-case-item))
 
 (defun haskell-indentation-lambda-maybe-lambdacase ()
   "Parse lambda or lambda-case expression.
@@ -759,7 +756,7 @@ Skip the keyword or parenthesis." ; FIXME: better description needed
             ((equal current-token end)
              (haskell-indentation-read-next-token))))))
 
-(defun haskell-indentation-case-alternative ()
+(defun haskell-indentation-case-item-alternative ()
   "" ; FIXME
   (setq left-indent (current-column))
   (haskell-indentation-separated #'haskell-indentation-expression "," nil)
@@ -770,7 +767,7 @@ Skip the keyword or parenthesis." ; FIXME: better description needed
         ;; otherwise fallthrough
         ))
 
-(defun haskell-indentation-case ()
+(defun haskell-indentation-case-item ()
   "" ; FIXME
   (haskell-indentation-expression)
   (cond ((eq current-token 'end-tokens)
@@ -778,7 +775,7 @@ Skip the keyword or parenthesis." ; FIXME: better description needed
         ((string= current-token "|")
          (haskell-indentation-with-starter
           (apply-partially #'haskell-indentation-separated
-                           #'haskell-indentation-case-alternative "|" nil)
+                           #'haskell-indentation-case-item-alternative "|" nil)
           nil))
         ((string= current-token "->")
          (haskell-indentation-statement-right #'haskell-indentation-expression))
@@ -794,11 +791,10 @@ parser.  If parsing ends here, set indentation to left-indent."
     (haskell-indentation-add-left-indent)
     (haskell-indentation-add-indentation current-indent)
     (throw 'parse-end nil))
-  (let ((current-indent (current-column)))
-    (funcall parser)
-    (when (equal current-token "where")
-      (haskell-indentation-with-starter
-       #'haskell-indentation-expression-layout nil))))
+  (funcall parser)
+  (when (equal current-token "where")
+    (haskell-indentation-with-starter
+     #'haskell-indentation-expression-layout nil)))
 
 (defun haskell-indentation-guard ()
   "Parse \"guard\" statement."
@@ -833,35 +829,34 @@ parser.  If parsing ends here, set indentation to left-indent."
 
 (defun haskell-indentation-expression ()
   "Parse an expression until an unknown token is encountered."
-  (let ((current-indent (current-column)))
-    (catch 'return
-      (while t
-        (cond
-         ((memq current-token '(value operator))
-          (haskell-indentation-read-next-token))
-         ((eq current-token 'end-tokens)
-          (cond ((string= following-token "where")
-                 (haskell-indentation-add-where-pre-indent)) ; before a where
-                ((haskell-indentation-expression-token-p following-token)
-                 (haskell-indentation-add-indentation
-                  current-indent))) ; a normal expression
-          (throw 'return nil))
-         (t (let ((parser (assoc current-token
-                                 haskell-indentation-expression-list)))
-              (when (null parser)
-                (throw 'return nil)) ; not expression token, so exit
-              (funcall (cdr parser)) ; run parser
-              (when (and (eq current-token 'end-tokens)
-                         (string= (car parser) "let")
-                         (= haskell-indentation-layout-offset current-indent)
-                         (haskell-indentation-expression-token-p following-token))
-                ;; inside a layout, after a let construct
-                ;; for example: "do let a = 20"
-                (haskell-indentation-add-layout-indent)
-                (throw 'parse-end nil))
-              ;; after an 'open' expression such as 'if', exit
-              (unless (member (car parser) '("(" "[" "{" "case"))
-                (throw 'return nil)))))))))
+  (catch 'return
+    (while t
+      (cond
+       ((memq current-token '(value operator))
+        (haskell-indentation-read-next-token))
+       ((eq current-token 'end-tokens)
+        (cond ((string= following-token "where")
+               (haskell-indentation-add-where-pre-indent)) ; before a where
+              ((haskell-indentation-expression-token-p following-token)
+               (haskell-indentation-add-indentation
+                current-indent))) ; a normal expression
+        (throw 'return nil))
+       (t (let ((parser (assoc current-token
+                               haskell-indentation-expression-list)))
+            (when (null parser)
+              (throw 'return nil)) ; not expression token, so exit
+            (funcall (cdr parser)) ; run parser
+            (when (and (eq current-token 'end-tokens)
+                       (string= (car parser) "let")
+                       (= haskell-indentation-layout-offset current-indent)
+                       (haskell-indentation-expression-token-p following-token))
+              ;; inside a layout, after a let construct
+              ;; for example: "do let a = 20"
+              (haskell-indentation-add-layout-indent)
+              (throw 'parse-end nil))
+            ;; after an 'open' expression such as 'if', exit
+            (unless (member (car parser) '("(" "[" "{" "case"))
+              (throw 'return nil))))))))
 
 (defun haskell-indentation-separated (parser separator &optional stmt-separator)
   "Evaluate PARSER separated by SEPARATOR and STMT-SEPARATOR.
@@ -955,12 +950,22 @@ layout starts."
          (haskell-indentation-with-starter
           (lambda ()
             (haskell-indentation-separated
-             #'haskell-indentation-case-alternative "|" nil))
+             #'haskell-indentation-case-item-alternative "|" nil))
           nil)
        (haskell-indentation-phrase-rest
         '(haskell-indentation-expression
           "then" haskell-indentation-expression
           "else" haskell-indentation-expression))))
+   nil))
+
+(defun haskell-indentation-case ()
+  "" ; FIXME
+  (haskell-indentation-with-starter
+   (lambda ()
+     (haskell-indentation-expression)
+     (when (string= current-token "of")
+       (haskell-indentation-with-starter
+        #'haskell-indentation-case-layout)))
    nil))
 
 (defun haskell-indentation-phrase (phrase)
