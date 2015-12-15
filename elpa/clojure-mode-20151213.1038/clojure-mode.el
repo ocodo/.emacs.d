@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20151209.731
+;; Package-Version: 20151213.1038
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.0.1
 ;; Package-Requires: ((emacs "24.3"))
@@ -408,7 +408,7 @@ See the for-loop: URL `http://git.io/vRGTj' lines: URL
 `http://git.io/vRGIh', URL `http://git.io/vRGLE' and value
 definition of 'macros': URL `http://git.io/vRGLD'.")
   (defconst clojure--sym-regexp
-    (concat "[^" clojure--sym-forbidden-1st-chars "][^" clojure--sym-forbidden-rest-chars "]+")
+    (concat "[^" clojure--sym-forbidden-1st-chars "][^" clojure--sym-forbidden-rest-chars "]*")
     "A regexp matching a Clojure symbol or namespace alias.
 Matches the rule `clojure--sym-forbidden-1st-chars' followed by
 any number of matches of `clojure--sym-forbidden-rest-chars'."))
