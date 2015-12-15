@@ -6,7 +6,7 @@
 ;; Copyright (C) 2009-2012 Chris Done
 
 ;; Version: 1.0.10
-;; Package-Version: 20151005.1850
+;; Package-Version: 20151213.738
 ;; Author: Shin Aoyama <smihica@gmail.com>
 ;; URL: https://github.com/smihica/emmet-mode
 ;; Last-Updated: 2014-08-11 Mon
@@ -639,7 +639,6 @@ accept it or skip it."
 
 (provide 'emmet-mode)
 
-;;; emmet-mode.el ends here
 ;; src/snippets.el
 ;; This file is generated from conf/snippets.json
 ;; Don't edit.
@@ -4001,3 +4000,5 @@ tbl))
 
 (defun emmet-css-transform (input)
   (emmet-css-transform-exprs (emmet-css-expr input)))
+
+;;; emmet-mode.el ends here
