@@ -216,6 +216,7 @@ attention to case differences."
     php
     php-phpmd
     php-phpcs
+    processing
     puppet-parser
     puppet-lint
     python-flake8
@@ -7249,6 +7250,23 @@ See URL `http://pear.php.net/package/PHP_CodeSniffer/'."
      (flycheck-remove-error-file-names "STDIN" errors)))
   :modes (php-mode php+-mode))
 
+(flycheck-define-checker processing
+  "Processing command line tool.
+
+See https://github.com/processing/processing/wiki/Command-Line"
+  :command ("processing-java" "--force"
+            ;; Don't change the order of these arguments, processing is pretty
+            ;; picky
+            (eval (concat "--sketch=" (file-name-directory (buffer-file-name))))
+            (eval (concat "--output=" (flycheck-temp-dir-system)))
+            "--build")
+  :error-patterns
+  ((error line-start (file-name) ":" line ":" column
+          (zero-or-more (or digit ":")) (message) line-end))
+  :modes processing-mode
+  ;; This syntax checker needs a file name
+  :predicate (lambda () (buffer-file-name)))
+
 (flycheck-define-checker puppet-parser
   "A Puppet DSL syntax checker using puppet's own parser.
 
@@ -7792,7 +7810,7 @@ See URL `http://www.rust-lang.org'."
          (message) line-end))
   :modes rust-mode
   :predicate (lambda ()
-               (or (not flycheck-rust-crate-root) (flycheck-buffer-saved-p))))
+               (and (not flycheck-rust-crate-root) (flycheck-buffer-saved-p))))
 
 (defvar flycheck-sass-scss-cache-directory nil
   "The cache directory for `sass' and `scss'.")
