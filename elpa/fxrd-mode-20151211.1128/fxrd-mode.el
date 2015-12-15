@@ -4,6 +4,7 @@
 
 ;; Author: Marc Sherry (msherry@gmail.com)
 ;; URL: https://github.com/msherry/fxrd-mode
+;; Package-Requires: ((s "1.2"))
 ;; Keywords: convenience
 
 
@@ -16,6 +17,7 @@
 ;; - `nacha-mode': a mode for editing NACHA (ACH transaction) files
 ;; - `rm37-mode': a mode for editing RM37 (Mastercard rebate transaction) files
 ;; - `tso6-mode': a mode for editing TSO6 (Mastercard rebate confirmation) files
+;; - `cbnot-mode': a mode for editing CBNOT (Amex chargeback notification) files
 
 ;; In each mode, the current field is highlighted with
 ;; `fxrd-current-field-face', and the field's name is shown in the
@@ -29,7 +31,7 @@
 ;;   the next and previous fields, respectively.
 ;; - C-. (`fxrd-next-error') moves to the next invalid field.
 
-;;; Installation:
+;; Installation:
 
 ;; Installation via MELPA is easiest.
 
@@ -108,6 +110,12 @@
 ;;; Utility functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; save-mark-and-excursion in Emacs 25 works like save-excursion did before
+(eval-when-compile
+  (when (not (fboundp 'save-mark-and-excursion))
+    (defmacro save-mark-and-excursion (&rest body)
+      `(save-excursion ,@body))))
+
 (defun current-line-pos ()
   "Yields the current position within the line"
   ;; TODO: find a better way to find position within a line
@@ -172,11 +180,14 @@ buffer-substring, etc.) handle ranges."
 
 (defun fxrd-current-field-value ()
   "Find the contents of the current field"
-  (let* ((field-boundaries (current-field-boundaries))
-         (start (nth 0 field-boundaries))
-         (end (nth 1 field-boundaries)))
-    (when (and start end)
-      (buffer-substring start end))))
+  (let ((field-boundaries (current-field-boundaries)))
+    (when field-boundaries
+      (let ((start (nth 0 field-boundaries))
+            (end (nth 1 field-boundaries)))
+        (when (and start end
+                   (<= start (point-max))
+                   (<= end (point-max)))
+          (buffer-substring start end))))))
 
 (defun fxrd-current-field-valid-p ()
   "Returns t if the current field is valid, or nil otherwise."
@@ -293,6 +304,7 @@ buffer-substring, etc.) handle ranges."
 (make-variable-buffer-local 'fxrd-point-old)
 
 (define-minor-mode fxrd-field-name-mode
+  ;; TODO: this probably shouldn't be a minor mode
   "Toggle FXRD-field-name mode.
 When enabled, the name of the current field appears in the mode line."
   :group 'fxrd
@@ -307,7 +319,8 @@ When enabled, the name of the current field appears in the mode line."
   (if fxrd-field-name-mode
       (if (memq t (mapcar (lambda (buffer)
                             (with-current-buffer buffer
-                              (when (derived-mode-p'fxrd-mode)
+                              (when (derived-mode-p 'fxrd-mode)
+                                ;; TODO: should we be setting these in the map fn?
                                 (setq fxrd-field-name-string nil
                                       fxrd-field-name-string-old nil)
                                 t)))
@@ -339,33 +352,35 @@ When enabled, the name of the current field appears in the mode line."
   "Construct `fxrd-field-name-string' to display in mode line.
 Called by `fxrd-field-name-idle-timer'."
   (when (derived-mode-p 'fxrd-mode)
-    (let ((field-name (current-field-name))
-          (field-boundaries (current-field-boundaries))
-          (field-value (fxrd-current-field-value)))
-      (fxrd-maybe-set-modeline field-name)
-      ;; Highlight current field, update modeline with error text if necessary
+    (let ((field-boundaries (current-field-boundaries)))
       (if field-boundaries
-          (let ((validation-error (fxrd-current-field-error)))
-            (when validation-error
-              ;; If not t, it's a validation error message
-              (fxrd-maybe-set-modeline (format "%s:%s" field-name validation-error)))
-            (when (not (and (string= fxrd-field-value-old
-                                     field-value)
-                            (equal fxrd-field-boundaries-old
-                                   field-boundaries)))
-              (setq fxrd-field-value-old field-value
-                    fxrd-field-boundaries-old field-boundaries)
-              (remove-overlays nil nil 'fxrd-current-overlay t)
-              (let* ((begin (nth 0 field-boundaries))
-                     (end (nth 1 field-boundaries))
-                     (overlay (make-overlay begin end)))
-                (overlay-put overlay 'fxrd-current-overlay t)
-                (overlay-put overlay 'face
-                             (cond ((not validation-error) fxrd-current-field-face)
-                                   (t fxrd-invalid-field-face))))))
-        ;; Not in a field, clear the overlay
+          (let ((field-name (current-field-name))
+                (field-value (fxrd-current-field-value)))
+            (fxrd-maybe-set-modeline field-name)
+            ;; Highlight current field, update modeline with error text if necessary
+            (let ((validation-error (fxrd-current-field-error)))
+              (when validation-error
+                ;; If not t, it's a validation error message
+                (fxrd-maybe-set-modeline (format "%s:%s" field-name validation-error)))
+              (when (not (and (string= fxrd-field-value-old
+                                       field-value)
+                              (equal fxrd-field-boundaries-old
+                                     field-boundaries)))
+                (setq fxrd-field-value-old field-value
+                      fxrd-field-boundaries-old field-boundaries)
+                (remove-overlays nil nil 'fxrd-current-overlay t)
+                (let* ((begin (nth 0 field-boundaries))
+                       (end (nth 1 field-boundaries))
+                       (overlay (make-overlay begin end)))
+                  (overlay-put overlay 'fxrd-current-overlay t)
+                  (overlay-put overlay 'face
+                               (cond ((not validation-error) fxrd-current-field-face)
+                                     (t fxrd-invalid-field-face)))))))
+        ;; Not in a field, clear the overlay and modeline
         (progn
-          (setq fxrd-field-value-old nil)
+          (setq fxrd-field-value-old nil
+                fxrd-field-boundaries-old nil)
+          (fxrd-maybe-set-modeline nil)
           (remove-overlays nil nil 'fxrd-current-overlay t))))
     (fxrd-highlight-invalid-fields)))
 

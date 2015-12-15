@@ -2,6 +2,7 @@
 ;;; We need lexical-binding so we can create closures.
 
 (require 'eieio-base)
+(require 's)
 
 (defclass fxrd-validator (eieio-named)
   (;; Public slots
@@ -35,6 +36,11 @@
         :type (or null integer)
         :custom (or null integer)
         :documentation "Maximum value for this field")
+   (reserved :initarg :reserved
+             :initform nil
+             :type boolean
+             :custom boolean
+             :documentation "Indicates that the field is reserved")
    ;; Private slots
    (comp-transform :initform #'identity
                    :documentation "Transform to be used when comparing fields")
@@ -57,12 +63,17 @@ appropriate message in the DATA field on errors.
 
 This is the base validator for all fields. It may be further
 specialized if necessary."
+  (unless field-value
+    (signal 'validation-error (format "nil value for field")))
   (let* ((comp-transform (slot-value val 'comp-transform))
          (val-for-comparison (funcall comp-transform field-value))
+         (align (slot-value val 'align))
+         (trimmed-val (cond ((string= align "RIGHT")
+                             (s-trim-left field-value))
+                            (t (s-trim-right field-value))))
          (const (slot-value val 'const))
          (enum (slot-value val 'enum))
          (const-eq (slot-value val 'const-eq))
-         (align (slot-value val 'align))
          (pad (slot-value val 'pad))
          (regex (slot-value val 'regex))
          (regex-w-pad (cond ((string= align "RIGHT") (concat "^" pad "*" regex "$"))
@@ -70,7 +81,9 @@ specialized if necessary."
     (unless (string-match regex-w-pad field-value)
       (signal 'validation-error (format "Failed to match regex %s" regex-w-pad)))
     (when enum
-      (unless (member val-for-comparison enum)
+      (unless (or (member val-for-comparison enum)
+                  ;; Only works/necessary for strings
+                  (member trimmed-val enum))
         (signal 'validation-error (format "%s not one of enum values %s" val-for-comparison enum))))
     (when const
       (unless (funcall const-eq const val-for-comparison)
@@ -85,6 +98,8 @@ specialized if necessary."
    (regex :initform "[[:digit:]]*"))
   "Integer fields")
 (defmethod fxrd-validate ((val fxrd-numeric-v) field-value)
+  (unless field-value
+    (signal 'validation-error (format "nil value for numeric field")))
   (let ((value (funcall (slot-value val 'comp-transform) field-value))
         (min (slot-value val 'min))
         (max (slot-value val 'max)))
@@ -98,7 +113,7 @@ specialized if necessary."
 
 (defclass fxrd-decimal-v (fxrd-numeric-v)
   ((comp-transform :initform #'string-to-number)
-   (regex :initform "[[:digit:]]*\\(\\.[[:digit:]]+\\)"))
+   (regex :initform "-?[[:digit:]]*\\(\\.[[:digit:]]+\\)"))
   "Numeric fields with a decimal point (floating-point values)")
 
 (defclass fxrd-alphanumeric-v (fxrd-validator)
