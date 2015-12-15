@@ -204,26 +204,25 @@ current directory (see `cider-find-connection-buffer-for-project-directory').
 If there is ambiguity, it is resolved by matching TYPE with the REPL
 type (Clojure or ClojureScript).  TYPE is a string, which when nil is derived
 from the file extension."
-  (cider-connections) ; Cleanup the connections list.
-  (if (eq cider-request-dispatch 'dynamic)
-      (cond
-       ((and (not type) (cider--in-connection-buffer-p)) (current-buffer))
-       ((= 1 (length cider-connections)) (car cider-connections))
-       (t (let ((project-connections
-                 (cider-find-connection-buffer-for-project-directory
-                  nil :all-connections)))
-            (if (= 1 (length project-connections))
-                ;; Only one match, just return it.
-                (car project-connections)
-              ;; OW, find one matching the extension of current file.
-              (let ((type (or type (file-name-extension (or (buffer-file-name) "")))))
-                (or (seq-find (lambda (conn)
-                                (equal (cider--connection-type conn) type))
-                              project-connections)
-                    (car project-connections)
-                    (car cider-connections)))))))
-    ;; TODO: Add logic to dispatch to a matching Clojure/ClojureScript REPL based on file type
-    (car cider-connections)))
+  (let ((connections (cider-connections)))
+    (cond
+     ((eq cider-request-dispatch 'static) (car connections))
+     ((= 1 (length connections)) (car connections))
+     (t (let ((project-connections
+               (cider-find-connection-buffer-for-project-directory
+                nil :all-connections)))
+          (if (= 1 (length project-connections))
+              ;; Only one match, just return it.
+              (car project-connections)
+            ;; OW, find one matching the language of the current buffer.
+            (let ((type (or type cider-repl-type
+                            (if (derived-mode-p 'clojurescript-mode)
+                                "cljs" "clj"))))
+              (or (seq-find (lambda (conn)
+                              (equal (cider--connection-type conn) type))
+                            project-connections)
+                  (car project-connections)
+                  (car connections)))))))))
 
 (defun cider-other-connection (&optional connection)
   "Return the first connection of another type than CONNECTION
@@ -483,23 +482,59 @@ If NS is non-nil, include it in the request."
    (cider-current-session)
    ns))
 
-(defun cider--nrepl-pprint-eval-request (input session &optional ns right-margin)
+(defcustom cider-pprint-fn 'fipp
+  "Sets the function to use when pretty-printing evaluation results.
+
+Possible values are:
+
+  'fipp - to use the Fast Idiomatic Pretty Printer, approximately 5-10x
+          faster than `clojure.core/pprint` (this is the default)
+
+  'puget - to use Puget, which provides canonical serialization of data on
+           top of fipp, but at a slight performance cost
+
+  'pprint - to use `clojure.pprint/pprint`
+
+Alternatively, can be the namespace-qualified name of a Clojure function of
+one argument.  If the function cannot be resolved, an exception will be
+thrown.
+
+The function is assumed to respect the contract of `clojure.pprint/pprint`
+with respect to the bound values of `*print-length*`, `*print-level*`,
+`*print-meta*`, and `clojure.pprint/*print-right-margin*`."
+  :type '(choice (const pprint)
+                 (const fipp)
+                 (const puget)
+                 string)
+  :group 'cider
+  :package-version '(cider . "0.11.0"))
+
+(defun cider--pprint-fn ()
+  "Return the value to send in the pprint-fn slot of messages."
+  (pcase cider-pprint-fn
+    (`pprint "clojure.pprint/pprint")
+    (`fipp "cider.nrepl.middleware.pprint/fipp-pprint")
+    (`puget "cider.nrepl.middleware.pprint/puget-pprint")
+    (_ cider-pprint-fn)))
+
+(defun cider--nrepl-pprint-eval-request (input session &optional ns right-margin pprint-fn)
   "Prepare :pprint-eval request message for INPUT.
 SESSION and NS are used for the context of the evaluation.
 RIGHT-MARGIN specifies the maximum column-width of the pretty-printed
 result, and is included in the request if non-nil."
   (append (list "pprint" "true")
-          (and right-margin (list "right-margin" right-margin))
+          (and pprint-fn (list "pprint-fn" pprint-fn))
+          (and right-margin (list "print-right-margin" right-margin))
           (nrepl--eval-request input session ns)))
 
-(defun cider-nrepl-request:pprint-eval (input callback &optional ns right-margin)
+(defun cider-nrepl-request:pprint-eval (input callback &optional ns right-margin pprint-fn)
   "Send the request INPUT and register the CALLBACK as the response handler.
 The request is dispatched via CONNECTION and SESSION.
 If NS is non-nil, include it in the request.
 RIGHT-MARGIN specifies the maximum column width of the
 pretty-printed result, and is included in the request if non-nil."
   (cider-nrepl-send-request
-   (cider--nrepl-pprint-eval-request input (cider-current-session) ns right-margin)
+   (cider--nrepl-pprint-eval-request input (cider-current-session) ns right-margin pprint-fn)
    callback))
 
 
@@ -736,7 +771,7 @@ If CALLBACK is nil, use `cider-load-file-handler'."
   (let* ((response (thread-first (list "op" "format-edn"
                                        "session" (cider-current-session)
                                        "edn" edn)
-                     (append (and right-margin (list "right-margin" right-margin)))
+                     (append (and right-margin (list "print-right-margin" right-margin)))
                      (cider-nrepl-send-sync-request)))
          (err (nrepl-dict-get response "err")))
     (when err
