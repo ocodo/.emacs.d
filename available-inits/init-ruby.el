@@ -2,6 +2,7 @@
 ;;; Commentary:
 ;;; Code:
 (require 'use-package)
+(require 's)
 
 (use-package ruby-mode
 
@@ -28,6 +29,20 @@
           (use-package handy-functions)
 
           (inf-ruby-switch-setup)
+
+          (defun string-as-ruby-hash-key-symbol (s)
+            "Convert S to a hash key (symbol)."
+            (format "[:%s]" (s-snake-case s)))
+
+          (defun string-as-ruby-hash-key-string (s)
+            "Convert S to a hash key (string)."
+            (format "['%s']" s))
+
+          (defun ruby-make-hash-access (arg)
+            (interactive "P")
+            (if (not current-prefix-arg)
+                (operate-on-point-or-region 'string-as-ruby-hash-key-symbol)
+              (operate-on-point-or-region 'string-as-ruby-hash-key-string)))
 
           (defun ruby-toggle-symbol-at-point ()
             "Dirt simple, just prefix current word with a colon."
