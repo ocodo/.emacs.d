@@ -600,9 +600,6 @@ Indentation modes:
     `haskell-indent-mode', Guy Lapalme
       Intelligent semi-automatic indentation.
 
-    `haskell-simple-indent-mode', Graeme E Moss and Heribert Schuetz
-      Simple indentation.
-
 Interaction modes:
 
     `interactive-haskell-mode'
@@ -647,7 +644,7 @@ Minor modes that work well with `haskell-mode':
   (set (make-local-variable 'paragraph-start)
        (concat " *{-\\| *-- |\\|" page-delimiter))
   (set (make-local-variable 'paragraph-separate)
-       (concat " *$\\| *-- |\\| *\\({-\\|-}\\) *$\\|" page-delimiter))
+       (concat " *$\\| *\\({-\\|-}\\) *$\\|" page-delimiter))
   (set (make-local-variable 'fill-paragraph-function) 'haskell-fill-paragraph)
   ;; (set (make-local-variable 'adaptive-fill-function) 'haskell-adaptive-fill)
   (set (make-local-variable 'adaptive-fill-mode) nil)
