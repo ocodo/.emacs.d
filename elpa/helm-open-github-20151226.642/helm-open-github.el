@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-open-github
-;; Package-Version: 20151009.2331
+;; Package-Version: 20151226.642
 ;; Version: 0.14
 ;; Package-Requires: ((helm-core "1.7.7") (gh "0.8.2") (cl-lib "0.5"))
 
@@ -65,6 +65,15 @@ Either \"asc\" or \"desc\"."
   :type '(radio :tag "Preferred direction of the sort"
           (const :tag "Ascendent" "asc")
           (const :tag "Descendent" "desc"))
+  :group 'helm-open-github)
+
+(defcustom helm-open-github-requires-pattern nil
+  "Minimal length to search. As fetching data is an expensive
+operation with potentially many results, higher number is
+recomended for bigger projects or slower connections.
+If this value is non-nil, delayed search is disabled."
+  :type '(choice (integer :tag "Minimal length")
+                 (boolean :tag "Disable delayed search" nil))
   :group 'helm-open-github)
 
 (defun helm-open-github--collect-commit-id ()
@@ -156,18 +165,19 @@ Either \"asc\" or \"desc\"."
      (helm-open-github--full-commit-id commit-id))))
 
 (defvar helm-open-github--from-commit-source
-  '((name . "Open Github From Commit")
-    (init . helm-open-github--collect-commit-id)
-    (candidates-in-buffer)
-    (persistent-action . helm-open-github--from-commit-id-persistent-action)
-    (action . (("Open Commit Page" . helm-open-github--from-commit-open-url)
-               ("Show Detail" . helm-open-github--show-commit-id)))))
+  (helm-build-in-buffer-source "Open Github From Commit"
+    :init #'helm-open-github--collect-commit-id
+    :persistent-action #'helm-open-github--from-commit-id-persistent-action
+    :action (helm-make-actions
+             "Open Commit Page" #'helm-open-github--from-commit-open-url
+             "Show Detail" #'helm-open-github--show-commit-id)))
 
 (defvar helm-open-github--from-commit-direct-input-source
-  '((name . "Open Github From Commit Direct Input")
-    (candidates . ("Input Commit ID"))
-    (action . (("Open Commit Page" . helm-open-github--from-commit-open-url-with-input)
-               ("Show Detail" . helm-open-github--show-commit-id-with-input)))))
+  (helm-build-sync-source "Open Github From Commit Direct Input"
+   :candidates '("Input Commit ID")
+   :action (helm-make-actions
+            "Open Commit Page" #'helm-open-github--from-commit-open-url-with-input
+            "Show Detail" #'helm-open-github--show-commit-id-with-input)))
 
 ;;;###autoload
 (defun helm-open-github-from-commit ()
@@ -219,17 +229,14 @@ Either \"asc\" or \"desc\"."
     (helm-open-github--from-file-action file start-line)))
 
 (defvar helm-open-github--from-file-source
-  '((name . "Open Github From File")
-    (init . helm-open-github--collect-files)
-    (candidates-in-buffer)
-    (action . (("Open File" .
-                (lambda (cand)
-                  (dolist (file (helm-marked-candidates))
-                    (helm-open-github--from-file-action file))))
-               ("Open File and Highlight Line"
-                . helm-open-github--from-file-highlight-line-action)
-               ("Open File and Highlight Region"
-                . helm-open-github--from-file-highlight-region-action)))))
+  (helm-build-in-buffer-source "Open Github From File"
+    :init #'helm-open-github--collect-files
+    :action (helm-make-actions
+             "Open File" (lambda (_cand)
+                           (dolist (file (helm-marked-candidates))
+                             (helm-open-github--from-file-action file)))
+             "Open File and Highlight Line" #'helm-open-github--from-file-highlight-line-action
+             "Open File and Highlight Region" #'helm-open-github--from-file-highlight-region-action)))
 
 (defun helm-open-github--from-file-direct (file start end)
   (let* ((root (helm-open-github--root-directory))
@@ -305,8 +312,11 @@ Either \"asc\" or \"desc\"."
               (helm-init-candidates-in-buffer 'global
                 (cl-loop for c in issues
                          collect (helm-open-github--from-issues-format-candidate c)))))
+    :delayed (not (null helm-open-github-requires-pattern))
+    :requires-pattern helm-open-github-requires-pattern
     :get-line 'buffer-substring
-    :action '(("Open issue page with browser" . helm-open-github--open-issue-url))))
+    :action (helm-make-actions
+             "Open issue page with browser" #'helm-open-github--open-issue-url)))
 
 (defvar helm-open-github--closed-issues-cache (make-hash-table :test 'equal))
 (defvar helm-open-github--from-closed-issues-source
@@ -321,8 +331,11 @@ Either \"asc\" or \"desc\"."
               (helm-init-candidates-in-buffer 'global
                 (cl-loop for c in issues
                          collect (helm-open-github--from-issues-format-candidate c)))))
+    :delayed (not (null helm-open-github-requires-pattern))
+    :requires-pattern helm-open-github-requires-pattern
     :get-line 'buffer-substring
-    :action '(("Open issue page with browser" . helm-open-github--open-issue-url))))
+    :action (helm-make-actions
+             "Open issue page with browser" #'helm-open-github--open-issue-url)))
 
 (defun helm-open-github--construct-issue-url (host remote-url issue-id)
   (cl-multiple-value-bind (user repo) (helm-open-github--extract-user-host remote-url)
@@ -349,14 +362,16 @@ Either \"asc\" or \"desc\"."
                        helm-open-github--from-closed-issues-source)
             :buffer  "*helm open github*"))))
 
+(defvar helm-open-github--pull-requests nil)
 (defun helm-open-github--collect-pullreqs ()
   (let ((remote-url (helm-open-github--remote-url)))
     (cl-multiple-value-bind (user repo) (helm-open-github--extract-user-host remote-url)
-      (let ((issues (gh-pulls-list helm-open-github-pulls-api user repo)))
-        (if (null issues)
-            (error "This repository has no issues!!")
-          (sort (oref issues data)
-                (lambda (a b) (< (oref a number) (oref b number)))))))))
+      (let ((pullreqs (gh-pulls-list helm-open-github-pulls-api user repo)))
+        (if (null pullreqs)
+            (error "This repository has no pull requests!!")
+          (setq helm-open-github--pull-requests
+                (sort (oref pullreqs data)
+                      (lambda (a b) (< (oref a number) (oref b number))))))))))
 
 (defun helm-open-github--pulls-view-common (url)
   (with-current-buffer (get-buffer-create "*open-github-diff*")
@@ -377,12 +392,16 @@ Either \"asc\" or \"desc\"."
 
 (defvar helm-open-github--from-pulls-source
   (helm-build-sync-source "Open Github From Issues"
-    :candidates 'helm-open-github--collect-pullreqs
+    :init #'helm-open-github--collect-pullreqs
+    :candidates 'helm-open-github--pull-requests
     :volatile t
+    :delayed (not (null helm-open-github-requires-pattern))
+    :requires-pattern helm-open-github-requires-pattern
     :real-to-display 'helm-open-github--from-issues-format-candidate
-    :action '(("Open issue page with browser" . helm-open-github--open-issue-url)
-              ("View Diff" . helm-open-github--pulls-view-diff)
-              ("View Patch" . helm-open-github--pulls-view-patch))))
+    :action (helm-make-actions
+             "Open issue page with browser" #'helm-open-github--open-issue-url
+             "View Diff" #'helm-open-github--pulls-view-diff
+             "View Patch" #'helm-open-github--pulls-view-patch)))
 
 ;;;###autoload
 (defun helm-open-github-from-pull-requests ()

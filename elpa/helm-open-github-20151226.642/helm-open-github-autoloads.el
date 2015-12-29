@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-open-github" "helm-open-github.el" (22045
-;;;;;;  47995 53140 0))
+;;;### (autoloads nil "helm-open-github" "helm-open-github.el" (22145
+;;;;;;  57558 94759 477000))
 ;;; Generated autoloads from helm-open-github.el
 
 (autoload 'helm-open-github-from-commit "helm-open-github" "\
