@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "diminish" "diminish.el" (21975 62922 159401
-;;;;;;  0))
+;;;### (autoloads nil "diminish" "diminish.el" (22145 57622 714823
+;;;;;;  902000))
 ;;; Generated autoloads from diminish.el
 
 (autoload 'diminish "diminish" "\
@@ -31,7 +31,7 @@ Restore mode-line display of diminished mode MODE to its minor-mode value.
 Do nothing if the arg is a minor mode that hasn't been diminished.
 
 Interactively, enter (with completion) the name of any diminished mode (a
-mode that was formerly a minor mode on which you invoked M-x diminish).
+mode that was formerly a minor mode on which you invoked \\[diminish]).
 To restore all diminished modes to minor status, answer `diminished-modes'.
 The response to the prompt shouldn't be quoted.  However, in Lisp code,
 the arg must be quoted as a symbol, as in (diminish-undo 'diminished-modes).
