@@ -530,7 +530,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20151214)
+      [(20151228)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
