@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-bind-map
-;; Package-Version: 20151214.1702
+;; Package-Version: 20151217.829
 ;; Version: 0.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -154,6 +154,14 @@ when the major mode is an element of the cdr. See
 (add-hook 'change-major-mode-after-body-hook
           'bind-map-change-major-mode-after-body-hook)
 
+(defun bind-map-kbd-keys (keys)
+  "Apply `kbd' to KEYS filtering out nil and empty strings."
+  (let (res)
+    (dolist (key keys (nreverse res))
+      (when (and (stringp key)
+                 (not (string= "" key)))
+        (push (kbd key) res)))))
+
 ;;;###autoload
 (defmacro bind-map (map &rest args)
   "Bind keymap MAP in multiple locations.
@@ -285,23 +293,23 @@ mode maps. Set up by bind-map.el." map))
 
      (if (or minor-modes major-modes)
          ;; only bind keys in root-map
-         `((dolist (key (list ,@keys))
-             (define-key ,root-map (kbd key) ',prefix-cmd))
-           (dolist (key (list ,@evil-keys))
+         `((dolist (key (bind-map-kbd-keys (list ,@keys)))
+             (define-key ,root-map key ',prefix-cmd))
+           (dolist (key (bind-map-kbd-keys (list ,@evil-keys)))
              (dolist (state ',evil-states)
                (define-key (evil-get-auxiliary-keymap ,root-map state t)
-                 (kbd key) ',prefix-cmd))))
+                 key ',prefix-cmd))))
        ;; bind in global maps and possibly root-map
-       `((dolist (key (list ,@keys))
+       `((dolist (key (bind-map-kbd-keys (list ,@keys)))
            (when ,override-minor-modes
-             (define-key ,root-map (kbd key) ',prefix-cmd))
-           (global-set-key (kbd key) ',prefix-cmd))
-         (dolist (key (list ,@evil-keys))
+             (define-key ,root-map key ',prefix-cmd))
+           (global-set-key key ',prefix-cmd))
+         (dolist (key (bind-map-kbd-keys (list ,@evil-keys)))
            (dolist (state ',evil-states)
              (when ,override-minor-modes
-               (push (list ',override-mode state (kbd key) ',prefix-cmd)
+               (push (list ',override-mode state key ',prefix-cmd)
                      bind-map-evil-local-bindings))
-             (evil-global-set-key state (kbd key) ',prefix-cmd)))))
+             (evil-global-set-key state key ',prefix-cmd)))))
 
      (when evil-keys `((evil-normalize-keymaps))))))
 (put 'bind-map 'lisp-indent-function 'defun)
