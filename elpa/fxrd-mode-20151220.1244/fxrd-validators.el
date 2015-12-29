@@ -97,19 +97,16 @@ specialized if necessary."
    (comp-transform :initform #'string-to-int)
    (regex :initform "[[:digit:]]*"))
   "Integer fields")
-(defmethod fxrd-validate ((val fxrd-numeric-v) field-value)
-  (unless field-value
-    (signal 'validation-error (format "nil value for numeric field")))
+(defmethod fxrd-validate :after ((val fxrd-numeric-v) field-value)
   (let ((value (funcall (slot-value val 'comp-transform) field-value))
         (min (slot-value val 'min))
         (max (slot-value val 'max)))
-    (and (fxrd-general-validator val field-value)
-         (or (cond ((and min max) (<= min value max))
-                (min (<= min value))
-                (max (<= value max))
-                (t t))
-             (signal 'validation-error (format "Value %s is outside of range %s - %s"
-                                               value min max))))))
+    (or (cond ((and min max) (<= min value max))
+              (min (<= min value))
+              (max (<= value max))
+              (t t))
+        (signal 'validation-error (format "Value %s is outside of range %s - %s"
+                                          value min max)))))
 
 (defclass fxrd-decimal-v (fxrd-numeric-v)
   ((comp-transform :initform #'string-to-number)
