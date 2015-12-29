@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.47
-;; Package-Version: 20151209.1550
+;; Package-Version: 20151226.1605
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -183,8 +183,15 @@ If REGEXP is non-nil, treat STRING as a regular expression."
     (unless regexp
       (setq arguments (cons "--literal" arguments)))
     (if ag-highlight-search
+        ;; We're highlighting, so pass additional arguments for
+        ;; highlighting the current search term using shell escape
+        ;; sequences.
         (setq arguments (append '("--color" "--color-match" "30;43") arguments))
-      (setq arguments (append '("--nocolor") arguments)))
+      ;; We're not highlighting.
+      (if (eq system-type 'windows-nt)
+          ;; Use --vimgrep to work around issue #97 on Windows.
+          (setq arguments (append '("--vimgrep") arguments))
+        (setq arguments (append '("--nocolor") arguments))))
     (when (char-or-string-p file-regex)
       (setq arguments (append `("--file-search-regex" ,file-regex) arguments)))
     (when file-type
