@@ -6,7 +6,7 @@
 ;;	Jim Morris <morris@wolfman.com>, 2009–
 ;;  Maintainer:  Russel Winder <russel@winder.org.uk>
 ;;  Created: 2006-08-01
-;;  Version: 201512060745
+;;  Version: 201512281749
 ;;  Keywords: languages
 
 ;;;; NB Version number is date and time yyyymmddhhMM in GMT (aka UTC).
@@ -86,11 +86,13 @@
     (require 'cc-langs)
     (require 'cc-bytecomp)
 
-    ; There seems to be a problem in Emacs 24.3 and 24.4 when batch-byte-compiling this file. It's to do
-    ; with one of the symbols c-lang-defconst and c-identifier-ops. These stem from CC Mode. From
+    ; There seems to be a problem in Emacs 24.3, 24.4 and 24.5 when batch-byte-compiling this file. It's to
+    ; do with one of the symbols c-lang-defconst and c-identifier-ops. These stem from CC Mode. From
     ; http://debbugs.gnu.org/db/18/18845.html it seems there is a bug that should be fixed in 24.5.
+    ; Whatever the claim, pragmatically it seems the bug remains. As a hack simply raise the version
+    ; of the fix to 6.
 
-    (if (and (= emacs-major-version 24) (< emacs-minor-version 5))
+    (if (and (= emacs-major-version 24) (< emacs-minor-version 6))
         (require 'cl))
 )
 
