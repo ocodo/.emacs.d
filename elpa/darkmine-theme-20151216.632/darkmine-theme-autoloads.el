@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "darkmine-theme" "darkmine-theme.el" (22045
-;;;;;;  48086 65140 0))
+;;;### (autoloads nil "darkmine-theme" "darkmine-theme.el" (22145
+;;;;;;  57626 38827 155000))
 ;;; Generated autoloads from darkmine-theme.el
 
 (when load-file-name (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))

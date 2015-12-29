@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 Pierre Lecocq
 ;; Author: Pierre Lecocq <pierre.lecocq@gmail.com>
 ;; URL: https://github.com/pierre-lecocq/darkmine-theme
-;; Package-Version: 20151005.115
+;; Package-Version: 20151216.632
 ;; Version: 0.5
 
 ;; Permission is hereby granted, free of charge, to any person obtaining
@@ -113,8 +113,11 @@
 
    ;; org-mode
    `(org-block-background ((t (:background ,grey-3))))
-  )
-)
+
+   ;; gnus
+   `(gnus-group-mail-3 ((t (:foreground ,red-2))))
+   `(gnus-group-mail-3-empty ((t (:foreground ,grey-9))))
+  ))
 
 ;;;###autoload
 (when load-file-name
