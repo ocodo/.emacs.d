@@ -6,7 +6,7 @@
 ;; Author:     Chris Corbyn <chris@w3style.co.uk>
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL:        https://github.com/grizzl/grizzl
-;; Package-Version: 20150711.2230
+;; Package-Version: 20151223.1158
 ;; Version:    0.1.2
 ;; Keywords:   convenience, usability
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24.3"))
@@ -63,6 +63,8 @@
 ;;
 ;; The arrow keys can be used to navigate within the results.
 
+
+;;; Code:
 
 (eval-when-compile
   (require 'cl-lib))
