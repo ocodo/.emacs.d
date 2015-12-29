@@ -6,7 +6,7 @@
 ;; Maintainer: John Wiegley <jwiegley@gmail.com>
 ;; Created: 16 Jun 2012
 ;; Version: 1.0
-;; Package-Version: 20150321.213
+;; Package-Version: 20151220.1439
 ;; Keywords: keys keybinding config dotemacs
 ;; URL: https://github.com/jwiegley/use-package
 
@@ -221,17 +221,15 @@ function symbol (unquoted)."
                  #'(lambda (m)
                      `(bind-key ,prefix ',prefix-map ,m)) maps)
               `((bind-key ,prefix ',prefix-map)))))
-      (apply
-       #'nconc
-       (mapcar (lambda (form)
-                 (if prefix-map
-                     `((bind-key ,(car form) ',(cdr form) ,prefix-map))
-                   (if maps
-                       (mapcar
-                        #'(lambda (m)
-                            `(bind-key ,(car form) ',(cdr form) ,m)) maps)
-                     `((bind-key ,(car form) ',(cdr form))))))
-               key-bindings))))))
+      (cl-mapcan (lambda (form)
+                   (if prefix-map
+                       `((bind-key ,(car form) ',(cdr form) ,prefix-map))
+                     (if maps
+                         (mapcar
+                          #'(lambda (m)
+                              `(bind-key ,(car form) ',(cdr form) ,m)) maps)
+                       `((bind-key ,(car form) ',(cdr form))))))
+                 key-bindings)))))
 
 ;;;###autoload
 (defmacro bind-keys* (&rest args)
