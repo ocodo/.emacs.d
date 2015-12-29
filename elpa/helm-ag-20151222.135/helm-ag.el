@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20151210.18
+;; Package-Version: 20151222.135
 ;; Version: 0.48
 ;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
 
@@ -387,13 +387,14 @@ They are specified to `--ignore' options."
 (defun helm-ag--action-find-file (candidate)
   (helm-ag--find-file-action candidate 'find-file (helm-ag--search-this-file-p)))
 
-(defun helm-ag--action--find-file-other-window (candidate)
+(defun helm-ag--action-find-file-other-window (candidate)
   (helm-ag--find-file-action candidate 'find-file-other-window (helm-ag--search-this-file-p)))
 
 (defvar helm-ag--actions
-  '(("Open file" . helm-ag--action-find-file)
-    ("Open file other window" . helm-ag--action--find-file-other-window)
-    ("Save results in buffer" . helm-ag--action-save-buffer)))
+  (helm-make-actions
+   "Open file"              #'helm-ag--action-find-file
+   "Open file other window" #'helm-ag--action-find-file-other-window
+   "Save results in buffer" #'helm-ag--action-save-buffer))
 
 (defvar helm-ag-source
   (helm-build-in-buffer-source "The Silver Searcher"
@@ -468,7 +469,7 @@ They are specified to `--ignore' options."
 (defun helm-ag--run-other-window-action ()
   (interactive)
   (with-helm-alive-p
-    (helm-exit-and-execute-action 'helm-ag--action--find-file-other-window)))
+    (helm-exit-and-execute-action #'helm-ag--action-find-file-other-window)))
 
 (defsubst helm-ag--kill-edit-buffer ()
   (kill-buffer (get-buffer "*helm-ag-edit*")))
