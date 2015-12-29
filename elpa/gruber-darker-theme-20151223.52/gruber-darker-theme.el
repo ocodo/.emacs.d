@@ -4,7 +4,7 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20151209.2326
+;; Package-Version: 20151223.52
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -272,6 +272,8 @@
    `(magit-item-highlight ((t (:background ,gruber-darker-bg+1))))
    `(magit-tag ((t ,(list :foreground gruber-darker-yellow
                           :background gruber-darker-bg))))
+   `(magit-blame-heading ((t ,(list :background gruber-darker-bg+1
+                                    :foreground gruber-darker-fg))))
 
    ;; Message
    `(message-header-name ((t (:foreground ,gruber-darker-green))))
