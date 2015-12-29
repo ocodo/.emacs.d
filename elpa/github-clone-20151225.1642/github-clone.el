@@ -1,11 +1,11 @@
 ;;; github-clone.el --- Fork and clone github repos  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014  Charles L.G. Comstock
+;; Copyright (C) 2015-2016  Charles L.G. Comstock
 
 ;; Author: Charles L.G. Comstock <dgtized@gmail.com>
 ;; Created: 2 Aug 2014
 ;; Version: 0.2
-;; Package-Version: 20150705.1705
+;; Package-Version: 20151225.1642
 ;; URL: https://github.com/dgtized/github-clone.el
 ;; Keywords: vc, tools
 ;; Package-Requires: ((gh "0.7.2") (magit "2.1.0") (emacs "24.4"))
@@ -93,7 +93,7 @@
       (error "Unable to fork %s" (eieio-oref repo github-clone-url-slot)))))
 
 (defun github-clone-repo-name (url)
-  (cond ((string-match "\.git$" url)
+  (cond ((string-match "\\.git$" url)
          (github-clone-repo-name (replace-match "" nil nil url)))
         ((string-match "\\([[:alnum:]\-_.]+\\)/\\([[:alnum:]\-_.]+\\)$" url)
          (cons (match-string 1 url) (match-string 2 url)))
