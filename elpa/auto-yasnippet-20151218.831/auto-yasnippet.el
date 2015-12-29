@@ -2,7 +2,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/auto-yasnippet
-;; Package-Version: 20151109.410
+;; Package-Version: 20151218.831
 ;; Version: 0.3
 ;; Package-Requires: ((yasnippet "0.8.0"))
 
@@ -215,6 +215,7 @@ with words prefixed by `aya-marker' as fields, and mirrors properly set up."
         (and (functionp aya-default-function)
              (funcall aya-default-function))))))
 
+;;;###autoload
 (defun aya-expand ()
   "Insert the last yasnippet created by `aya-create'."
   (interactive)

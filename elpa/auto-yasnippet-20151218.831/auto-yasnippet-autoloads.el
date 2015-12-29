@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "auto-yasnippet" "auto-yasnippet.el" (22084
-;;;;;;  2019 512928 505000))
+;;;### (autoloads nil "auto-yasnippet" "auto-yasnippet.el" (22145
+;;;;;;  57661 414861 436000))
 ;;; Generated autoloads from auto-yasnippet.el
 
 (autoload 'aya-create-one-line "auto-yasnippet" "\
@@ -22,6 +22,11 @@ Works on either the current line, or, if `mark-active', the current region.
 Removes `aya-marker' prefixes,
 writes the corresponding snippet to `aya-current',
 with words prefixed by `aya-marker' as fields, and mirrors properly set up.
+
+\(fn)" t nil)
+
+(autoload 'aya-expand "auto-yasnippet" "\
+Insert the last yasnippet created by `aya-create'.
 
 \(fn)" t nil)
 
