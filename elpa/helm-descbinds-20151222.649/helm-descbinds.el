@@ -7,7 +7,7 @@
 
 ;; Author: Taiki SUGAWARA <buzz.taiki@gmail.com>
 ;; URL: https://github.com/emacs-helm/helm-descbinds
-;; Package-Version: 20151214.1159
+;; Package-Version: 20151222.649
 ;; Keywords: helm, help
 ;; Version: 1.10
 ;; Package-Requires: ((helm "1.5"))
@@ -67,7 +67,7 @@
 
 (defcustom helm-descbinds-actions
   '(("Execute" . helm-descbinds-action:execute)
-    ("Describe Function" . helm-descbinds-action:describe)
+    ("Describe" . helm-descbinds-action:describe)
     ("Find Function" . helm-descbinds-action:find-func))
   "Actions of selected candidate."
   :type '(repeat
@@ -75,11 +75,6 @@
 	   :tag "Action"
 	   (string :tag "Name")
 	   (function :tag "Function"))))
-
-(defcustom helm-descbinds-strings-to-ignore
-  '("Keyboard Macro")
-  "Strings to ignore as a possible string candidate."
-  :type '(repeat string))
 
 (defcustom helm-descbinds-candidate-formatter
   #'helm-descbinds-default-candidate-formatter
@@ -180,6 +175,8 @@ This function will be called with two arguments KEY and BINDING."
   (let ((x (cdr candidate))
         (helm-full-frame helm-descbind--initial-full-frame))
     (cond
+     ((equal x "Keyboard Macro")
+      (command-execute (kbd (car candidate))))
      ((stringp x)
       (insert x))
      ((commandp x)
@@ -187,7 +184,10 @@ This function will be called with two arguments KEY and BINDING."
 
 (defun helm-descbinds-action:describe (candidate)
   "An action that describe selected CANDIDATE function."
-  (describe-function (cdr candidate)))
+  (let ((name (cdr candidate)))
+    (if (equal name "Keyboard Macro")
+        (describe-key (kbd (car candidate)))
+      (describe-function name))))
 
 (defun helm-descbinds-action:find-func (candidate)
   "An action that find selected CANDIDATE function."
@@ -211,9 +211,7 @@ This function will be called with two arguments KEY and BINDING."
      (let ((key (car pair))
            (command (cdr pair)))
        (cons (funcall helm-descbinds-candidate-formatter key command)
-             (cons key (or (intern-soft command)
-                           (unless (member command helm-descbinds-strings-to-ignore)
-                             command))))))
+             (cons key (or (intern-soft command) command)))))
    candidates))
 
 (defun helm-descbinds-action-transformer (actions cand)
@@ -221,7 +219,7 @@ This function will be called with two arguments KEY and BINDING."
 Provide a useful behavior for prefix commands."
   (if (equal (cdr-safe cand) "Prefix Command")
       `(("helm-descbinds this prefix" . ,(lambda (cand) (interactive)
-                                           (run-with-idle-timer
+                                           (run-with-timer
                                             0 nil
                                             #'describe-bindings (kbd (car cand))))))
     actions))
