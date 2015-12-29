@@ -197,6 +197,14 @@ such a link cannot be established automatically."
   (cider-ensure-connected)
   (kill-local-variable 'cider-connections))
 
+(defun cider-connection-type-for-buffer ()
+  "Return the matching connection type (clj or cljs) for the current buffer."
+  (cond
+   ((derived-mode-p 'clojurescript-mode) "cljs")
+   ((derived-mode-p 'clojure-mode) "clj")
+   (cider-repl-type)
+   (t "clj")))
+
 (defun cider-current-connection (&optional type)
   "Return the REPL buffer relevant for the current Clojure source buffer.
 A REPL is relevant if its `nrepl-project-dir' is compatible with the
@@ -204,28 +212,29 @@ current directory (see `cider-find-connection-buffer-for-project-directory').
 If there is ambiguity, it is resolved by matching TYPE with the REPL
 type (Clojure or ClojureScript).  TYPE is a string, which when nil is derived
 from the file extension."
-  (let ((connections (cider-connections)))
-    (cond
-     ((eq cider-request-dispatch 'static) (car connections))
-     ((= 1 (length connections)) (car connections))
-     (t (let ((project-connections
-               (cider-find-connection-buffer-for-project-directory
-                nil :all-connections)))
-          (if (= 1 (length project-connections))
-              ;; Only one match, just return it.
-              (car project-connections)
-            ;; OW, find one matching the language of the current buffer.
-            (let ((type (or type cider-repl-type
-                            (if (derived-mode-p 'clojurescript-mode)
-                                "cljs" "clj"))))
-              (or (seq-find (lambda (conn)
-                              (equal (cider--connection-type conn) type))
-                            project-connections)
-                  (car project-connections)
-                  (car connections)))))))))
+  ;; if you're in a REPL buffer, it's the connection buffer
+  (if (derived-mode-p 'cider-repl-mode)
+      (current-buffer)
+    (let ((connections (cider-connections)))
+      (cond
+       ((eq cider-request-dispatch 'static) (car connections))
+       ((= 1 (length connections)) (car connections))
+       (t (let ((project-connections
+                 (cider-find-connection-buffer-for-project-directory
+                  nil :all-connections)))
+            (if (= 1 (length project-connections))
+                ;; Only one match, just return it.
+                (car project-connections)
+              ;; OW, find one matching the language of the current buffer.
+              (let ((type (or type (cider-connection-type-for-buffer))))
+                (or (seq-find (lambda (conn)
+                                (equal (cider--connection-type conn) type))
+                              project-connections)
+                    (car project-connections)
+                    (car connections))))))))))
 
 (defun cider-other-connection (&optional connection)
-  "Return the first connection of another type than CONNECTION
+  "Return the first connection of another type than CONNECTION.
 Only return connections in the same project or nil.
 CONNECTION defaults to `cider-current-connection'."
   (let* ((connection (or connection (cider-current-connection)))
@@ -302,7 +311,7 @@ The connections buffer is determined by
   (with-current-buffer (get-buffer-create cider--connection-browser-buffer-name)
     (let ((ewoc (ewoc-create
                  'cider--connection-pp
-                 "  REPL                           Host             Port    Project\n")))
+                 "  REPL                           Host             Port    Project          Type\n")))
       (setq-local cider--connection-ewoc ewoc)
       (cider--update-connections-display ewoc cider-connections)
       (setq buffer-read-only t)
@@ -317,21 +326,27 @@ TYPE can be any of the possible values of `cider-repl-type'."
     ("cljs" "ClojureScript")
     (_ "Unknown")))
 
+(defun cider-project-name (project-dir)
+  "Extract the project name from PROJECT-DIR."
+  (if (and project-dir (not (equal project-dir "")))
+      (file-name-nondirectory (directory-file-name project-dir))
+    "-"))
+
 (defun cider--connection-pp (connection)
   "Print an nREPL CONNECTION to the current buffer."
   (let* ((buffer-read-only nil)
          (buffer (get-buffer connection))
+         (project-name (cider-project-name (buffer-local-value 'nrepl-project-dir buffer)))
+         (repl-type (cider-client-name-repl-type (buffer-local-value 'cider-repl-type buffer)))
          (endpoint (buffer-local-value 'nrepl-endpoint buffer)))
     (insert
-     (format "%s %-30s %-16s %5s   %s"
+     (format "%s %-30s %-16s %5s   %-16s %s"
              (if (equal connection (car cider-connections)) "*" " ")
              (buffer-name connection)
              (car endpoint)
              (prin1-to-string (cadr endpoint))
-             (with-current-buffer buffer
-               (if-let ((name (cider--project-name nrepl-project-dir)))
-                   (concat name " " (cider-client-name-repl-type cider-repl-type))
-                 (cider-client-name-repl-type cider-repl-type)))))))
+             project-name
+             repl-type))))
 
 (defun cider--update-connections-display (ewoc connections)
   "Update the connections EWOC to show CONNECTIONS."
@@ -416,8 +431,6 @@ REPL's ns, otherwise fall back to \"user\"."
       (when-let ((repl-buf (cider-current-connection)))
         (buffer-local-value 'cider-buffer-ns repl-buf))
       "user"))
-
-(define-obsolete-function-alias 'cider-eval 'nrepl-request:eval "0.9")
 
 (defun cider-nrepl-op-supported-p (op)
   "Check whether the current connection supports the nREPL middleware OP."
@@ -771,7 +784,8 @@ If CALLBACK is nil, use `cider-load-file-handler'."
   (let* ((response (thread-first (list "op" "format-edn"
                                        "session" (cider-current-session)
                                        "edn" edn)
-                     (append (and right-margin (list "print-right-margin" right-margin)))
+                     (append (and right-margin (list "print-right-margin" right-margin))
+                             (and (cider--pprint-fn) (list "pprint-fn" (cider--pprint-fn))))
                      (cider-nrepl-send-sync-request)))
          (err (nrepl-dict-get response "err")))
     (when err
