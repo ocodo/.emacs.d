@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20151030.737
+;; Package-Version: 20151223.301
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,62 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;; A simple Emacs interface for the Mercurial (Hg) Distributed SCM.
-;;; Installation: put this file where Emacs can find it, and then add the line
-;;; (require 'ahg)
-;;; to your .emacs
 
-;;; Code goes here.
+;; A simple Emacs interface for the Mercurial (Hg) Distributed SCM.
+;;
+;; Quick Guide
+;; -----------
+;; 
+;; After the installation, an ``aHg`` menu appears as a child of the standard
+;; ``Tools`` menu of Emacs. The available commands are:
+;; 
+;; Status:
+;;    Shows the status of the current working directory, much like the
+;;    ``cvs-examine`` command of PCL-CVS.
+;; 
+;; Log Summary:
+;;    Shows a table with a short change history of the current working
+;;    directory.
+;; 
+;; Detailed Log:
+;;    Shows a more detailed change history of the current working directory.
+;; 
+;; Commit Current File:
+;;    Commits the file you are currently visiting.
+;; 
+;; View Changes of Current File:
+;;    Displays changes of current file wrt. the tip of the repository.
+;; 
+;; Mercurial Queues:
+;;    Support for basic commands of the mq extension.
+;; 
+;; Execute Hg Command:
+;;    Lets you execute an arbitrary hg command. The focus goes to the
+;;    minibuffer, where you can enter the command to execute. You don't have
+;;    to type ``hg``, as this is implicit. For example, to execute ``hg
+;;    outgoing``, simply enter ``outgoing``. Pressing ``TAB`` completes the
+;;    current command or file name.
+;; 
+;; Help on Hg Command:
+;;    Shows help on a given hg command (again, use ``TAB`` to complete partial
+;;    command names).
+;;    
+;; 
+;; aHg buffers
+;; ~~~~~~~~~~~
+;; 
+;; The ``Status``, ``Log Summary``, ``Detailed Log`` and the ``List of MQ
+;; Patches`` commands display their results on special buffers. Each of these
+;; has its own menu, with further available commands.
+;; 
+;; 
+;; Customization
+;; ~~~~~~~~~~~~~
+;; 
+;; There are some options that you can customize (e.g. global keybindings or
+;; fonts). To do so, use ``M-x customize-group RET ahg``.
+ 
+;;; Code:
 
 (require 'diff-mode)
 (require 'easymenu)
@@ -2669,6 +2719,7 @@ Commands:
   (define-key ahg-annotate-mode-map "a" 'ahg-annotate-annotate)
   (define-key ahg-annotate-mode-map "u" 'ahg-annotate-uncover)
   (define-key ahg-annotate-mode-map "q" 'ahg-buffer-quit)
+  (define-key ahg-annotate-mode-map (kbd "RET") 'ahg-annotate-goto-line)
   (easy-menu-add ahg-annotate-mode-menu ahg-annotate-mode-map))
 
 (easy-menu-define ahg-annotate-mode-menu ahg-annotate-mode-map "aHg Annotate"
@@ -2677,6 +2728,7 @@ Commands:
     ["Log Line's Revision" ahg-annotate-log [:keys "l" :active t]]
     ["Annotate Line's Revision" ahg-annotate-annotate [:keys "a" :active t]]
     ["Uncover Line" ahg-annotate-uncover [:keys "u" :active t]]
+    ["Go To Line" ahg-annotate-goto-line [:keys "\r" :active t]]
     ["Quit" ahg-buffer-quit [:keys "q" :active t]]))
 
 ;; Adapted from vc-annotate-font-lock-keywords
@@ -2788,6 +2840,28 @@ Lets you step back in time for that line."
    ahg-annotate-current-file 
    (ahg-annotate-revision-at-line)
    (ahg-annotate-line-at-line)))
+
+(defun ahg-annotate-goto-line ()
+  "Go to the line corresponding to the current aHg Annotate line."
+  (interactive)
+  (unless (eq major-mode 'ahg-annotate-mode)
+    (error "Not in a VC-Annotate buffer"))
+  (let ((line (ahg-annotate-line-at-line)))
+    (pop-to-buffer
+     (or (and (file-exists-p ahg-annotate-current-file)
+	      (find-file-noselect ahg-annotate-current-file))
+	 (error "File not found: %s" ahg-annotate-current-file)))
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      (forward-line (1- line))
+      (recenter))
+    ;; Issue a warning if the lines might be incorrect.
+    (cond
+     ((buffer-modified-p)
+      (message "Buffer modified; annotated line numbers may be incorrect"))
+     ((not (string= (ahg-file-status buffer-file-name) "C"))
+      (message "File is not up-to-date; annotated line numbers may be incorrect")))))
 
 ;;-----------------------------------------------------------------------------
 ;; hg heads, bookmarks and tags
@@ -4964,6 +5038,17 @@ Commands:
     (when (and (or (not root) (ahg-cd root))
                (= (ahg-call-process "id" (list "-n")) 0))
       (= (char-before (1- (point-max))) ?+))))
+
+(defun ahg-file-status (filename)
+  (let ((dir (file-name-directory filename))
+        (name (file-name-nondirectory filename)))
+    (with-temp-buffer
+      (if (and (ahg-cd dir)
+               (= (ahg-call-process "status" (list "-A" name)) 0)
+               (goto-char (point-min))
+               (search-forward name nil t))
+          (buffer-substring-no-properties (point-at-bol) (1+ (point-at-bol)))
+        (error "Impossible to obtain hg status for file: %s" filename)))))
 
 (defun ahg-line-point-pos ()
   (cons (line-number-at-pos) (- (point) (point-at-bol))))
