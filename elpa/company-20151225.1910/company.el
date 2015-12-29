@@ -1199,7 +1199,7 @@ can retrieve meta-data for them."
   (unless (company-call-backend 'sorted)
     (setq candidates (sort candidates 'string<)))
   (when (company-call-backend 'duplicates)
-    (company--strip-duplicates candidates))
+    (setq candidates (company--strip-duplicates candidates)))
   candidates)
 
 (defun company--postprocess-candidates (candidates)
@@ -1210,27 +1210,37 @@ can retrieve meta-data for them."
   (company--transform-candidates candidates))
 
 (defun company--strip-duplicates (candidates)
-  (let ((c2 candidates)
-        (annos 'unk))
-    (while c2
-      (setcdr c2
-              (let ((str (pop c2)))
-                (while (let ((str2 (car c2)))
-                         (if (not (equal str str2))
-                             (progn
-                               (setq annos 'unk)
-                               nil)
-                           (when (eq annos 'unk)
-                             (setq annos (list (company-call-backend
-                                                'annotation str))))
-                           (let ((anno2 (company-call-backend
-                                         'annotation str2)))
-                             (if (member anno2 annos)
-                                 t
-                               (push anno2 annos)
-                               nil))))
-                  (pop c2))
-                c2)))))
+  (let* ((annos 'unk)
+         (str (car candidates))
+         (ref (cdr candidates))
+         res str2 anno2)
+    (while ref
+      (setq str2 (pop ref))
+      (if (not (equal str str2))
+          (progn
+            (push str res)
+            (setq str str2)
+            (setq annos 'unk))
+        (setq anno2 (company-call-backend
+                     'annotation str2))
+        (cond
+         ((null anno2))             ; Skip it.
+         ((when (eq annos 'unk)
+            (let ((ann1 (company-call-backend 'annotation str)))
+              (if (null ann1)
+                  ;; No annotation on the earlier element, drop it.
+                  t
+                (setq annos (list ann1))
+                nil)))
+          (setq annos (list anno2))
+          (setq str str2))
+         ((member anno2 annos))     ; Also skip.
+         (t
+          (push anno2 annos)
+          (push str res)            ; Maintain ordering.
+          (setq str str2)))))
+    (when str (push str res))
+    (nreverse res)))
 
 (defun company--transform-candidates (candidates)
   (let ((c candidates))
@@ -2395,6 +2405,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
                              '(face company-tooltip-common-selection
                                mouse-face company-tooltip-selection)
                              line)))
+    (company--apply-company-face line)
     line))
 
 (defun company--search-chunks ()
@@ -2406,6 +2417,21 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
         (when (car md)
           (push (cons (car md) (cadr md)) res))))
     res))
+
+(defun company--apply-company-face (str)
+  (let ((start (if (get-text-property 0 'company-face str)
+                   0
+                 (next-single-property-change 0 'company-face str)))
+        end value)
+    (while start
+      (setq end (or (next-single-property-change start 'company-face str)
+                    (length str)))
+      (setq value (get-text-property start 'company-face str))
+      (font-lock-prepend-text-property start end 'face value str)
+      (font-lock-prepend-text-property start end 'mouse-face value str)
+      (setq start (next-single-property-change end 'company-face str)))
+    (when end
+      (remove-text-properties 0 end '(company-face) str))))
 
 (defun company--clean-string (str)
   (replace-regexp-in-string

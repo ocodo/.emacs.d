@@ -92,10 +92,10 @@ This variable affects both `company-dabbrev' and `company-dabbrev-code'."
               (throw 'done 'company-time-out))))))
 
 (defun company-dabbrev--make-regexp (prefix)
-  (concat "\\<" (if (equal prefix "")
-              company-dabbrev-char-regexp
+  (concat (if (equal prefix "")
+              (concat "\\(?:" company-dabbrev-char-regexp "\\)")
             (regexp-quote prefix))
-          "\\(" company-dabbrev-char-regexp "\\)*\\>"))
+          "\\(?:" company-dabbrev-char-regexp "\\)*"))
 
 (defun company-dabbrev--search-buffer (regexp pos symbols start limit
                                        ignore-comments)
@@ -108,14 +108,24 @@ This variable affects both `company-dabbrev' and `company-dabbrev-code'."
                                         (invisible-p (match-beginning 0)))))
                      (push match symbols)))))
       (goto-char (if pos (1- pos) (point-min)))
-      ;; search before pos
-      (company-dabrev--time-limit-while (re-search-backward regexp nil t)
-          start limit
-        (if (and ignore-comments (save-match-data (company-in-string-or-comment)))
-            (goto-char (nth 8 (syntax-ppss)))
-          (maybe-collect-match)))
+      ;; Search before pos.
+      (let ((tmp-end (point)))
+        (company-dabrev--time-limit-while (not (bobp))
+            start limit
+          (ignore-errors
+            (forward-char -10000))
+          (forward-line 0)
+          (save-excursion
+            ;; Before, we used backward search, but it matches non-greedily, and
+            ;; that forced us to use the "beginning/end of word" anchors in
+            ;; `company-dabbrev--make-regexp'.
+            (while (re-search-forward regexp tmp-end t)
+              (if (and ignore-comments (save-match-data (company-in-string-or-comment)))
+                  (re-search-forward "\\s>\\|\\s!\\|\\s\"" tmp-end t)
+                (maybe-collect-match))))
+          (setq tmp-end (point))))
       (goto-char (or pos (point-min)))
-      ;; search after pos
+      ;; Search after pos.
       (company-dabrev--time-limit-while (re-search-forward regexp nil t)
           start limit
         (if (and ignore-comments (save-match-data (company-in-string-or-comment)))
@@ -143,13 +153,21 @@ This variable affects both `company-dabbrev' and `company-dabbrev-code'."
              (cl-return))))
     symbols))
 
+(defun company-dabbrev--prefix ()
+  ;; Not in the middle of a word.
+  (unless (looking-at company-dabbrev-char-regexp)
+    ;; Emacs can't do greedy backward-search.
+    (company-grab-line (format "\\(?:^\\| \\)[^ ]*?\\(\\(?:%s\\)*\\)"
+                               company-dabbrev-char-regexp)
+                       1)))
+
 ;;;###autoload
 (defun company-dabbrev (command &optional arg &rest ignored)
   "dabbrev-like `company-mode' completion backend."
   (interactive (list 'interactive))
   (cl-case command
     (interactive (company-begin-backend 'company-dabbrev))
-    (prefix (company-grab-word))
+    (prefix (company-dabbrev--prefix))
     (candidates
      (let* ((case-fold-search company-dabbrev-ignore-case)
             (words (company-dabbrev--search (company-dabbrev--make-regexp arg)
