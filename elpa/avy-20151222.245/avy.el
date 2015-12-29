@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20151207.556
+;; Package-Version: 20151222.245
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -635,22 +635,26 @@ When GROUP is non-nil, (BEG . END) should delimit that regex group."
 (defun avy--overlay (str beg end wnd &optional compose-fn)
   "Create an overlay with STR from BEG to END in WND.
 COMPOSE-FN is a lambda that concatenates the old string at BEG with STR."
-  (when (<= (1+ beg) (with-selected-window wnd (point-max)))
-    (let* ((beg (+ beg avy--overlay-offset))
-           (ol (make-overlay beg (or end (1+ beg)) (window-buffer wnd)))
-           (old-str (avy--old-str beg wnd))
-           (os-line-prefix (get-text-property 0 'line-prefix old-str))
-           (os-wrap-prefix (get-text-property 0 'wrap-prefix old-str)))
-      (when os-line-prefix
-        (add-text-properties 0 1 `(line-prefix ,os-line-prefix) str))
-      (when os-wrap-prefix
-        (add-text-properties 0 1 `(wrap-prefix ,os-wrap-prefix) str))
-      (overlay-put ol 'window wnd)
-      (overlay-put ol 'category 'avy)
-      (overlay-put ol 'display (funcall
-                                (or compose-fn #'concat)
-                                str old-str))
-      (push ol avy--overlays-lead))))
+  (let ((eob (with-selected-window wnd (point-max))))
+    (when (<= beg eob)
+      (let* ((beg (+ beg avy--overlay-offset))
+             (ol (make-overlay beg (or end (1+ beg)) (window-buffer wnd)))
+             (old-str (if (eq beg eob) "" (avy--old-str beg wnd)))
+             (os-line-prefix (get-text-property 0 'line-prefix old-str))
+             (os-wrap-prefix (get-text-property 0 'wrap-prefix old-str)))
+        (when os-line-prefix
+          (add-text-properties 0 1 `(line-prefix ,os-line-prefix) str))
+        (when os-wrap-prefix
+          (add-text-properties 0 1 `(wrap-prefix ,os-wrap-prefix) str))
+        (overlay-put ol 'window wnd)
+        (overlay-put ol 'category 'avy)
+        (overlay-put ol (if (eq beg eob)
+                            'after-string
+                          'display)
+                     (funcall
+                      (or compose-fn #'concat)
+                      str old-str))
+        (push ol avy--overlays-lead)))))
 
 (defcustom avy-highlight-first nil
   "When non-nil highlight the first decision char with `avy-lead-face-0'.
@@ -1042,8 +1046,8 @@ Narrow the scope to BEG END."
                     (setq temporary-goal-column 0)
                     (line-move-visual 1 t))
                 (forward-line 1)))))))
-    (setq avy-action #'identity)
-    (avy--process (nreverse candidates) (avy--style-fn avy-style))))
+    (let ((avy-action #'identity))
+      (avy--process (nreverse candidates) (avy--style-fn avy-style)))))
 
 ;;;###autoload
 (defun avy-goto-line (&optional arg)
@@ -1057,6 +1061,7 @@ When ARG is 4, negate the window scope determined by
 
 Otherwise, forward to `goto-line' with ARG."
   (interactive "p")
+  (setq arg (or arg 1))
   (if (not (memq arg '(1 4)))
       (progn
         (goto-char (point-min))
@@ -1071,8 +1076,10 @@ Otherwise, forward to `goto-line' with ARG."
                                "Goto line: " (string char))))
                     (when line
                       (avy-push-mark)
-                      (goto-char (point-min))
-                      (forward-line (1- (string-to-number line)))
+                      (save-restriction
+                        (widen)
+                        (goto-char (point-min))
+                        (forward-line (1- (string-to-number line))))
                       (throw 'done 'exit))))))
              (r (avy--line (eq arg 4))))
         (unless (eq r t)
