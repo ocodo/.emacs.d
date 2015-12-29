@@ -4,7 +4,7 @@
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/flycheck/flycheck-rust
-;; Package-Version: 20150609.1248
+;; Package-Version: 20151225.713
 ;; Keywords: tools, convenience
 ;; Version: 0.1-cvs
 ;; Package-Requires: ((emacs "24.1") (flycheck "0.20") (dash "2.4.0"))
@@ -86,6 +86,15 @@ relative to the current file."
     (-when-let (exe-crate-dir (locate-dominating-file (buffer-file-name) "main.rs"))
       (expand-file-name "main.rs" exe-crate-dir))))
 
+(defun flycheck-rust-binary-crate-p (project-root)
+  "Determine whether PROJECT-ROOT is a binary crate.
+
+PROJECT-ROOT is the path to the root directory of the project.
+
+Return non-nil if PROJECT-ROOT is a binary crate, nil otherwise."
+  (let ((root-dir (file-name-directory project-root)))
+    (file-exists-p (expand-file-name "src/main.rs" root-dir))))
+
 ;;;###autoload
 (defun flycheck-rust-setup ()
   "Setup Rust in Flycheck.
@@ -97,20 +106,21 @@ Flycheck according to the Cargo project layout."
     (-when-let (root (flycheck-rust-project-root))
       (let ((rel-name (file-relative-name (buffer-file-name) root)))
         ;; These are valid crate roots as by Cargo's layout
-        (unless (or (flycheck-rust-executable-p rel-name)
-                    (flycheck-rust-test-p rel-name)
-                    (flycheck-rust-bench-p rel-name)
-                    (flycheck-rust-example-p rel-name)
-                    (string= "src/lib.rs" rel-name))
+        (if (or (flycheck-rust-executable-p rel-name)
+                (flycheck-rust-test-p rel-name)
+                (flycheck-rust-bench-p rel-name)
+                (flycheck-rust-example-p rel-name)
+                (string= "src/lib.rs" rel-name))
+            (setq-local flycheck-rust-crate-root rel-name)
           ;; For other files, the library is either the default library or the
           ;; executable
           (setq-local flycheck-rust-crate-root (flycheck-rust-find-crate-root)))
         ;; Check tests in libraries and integration tests
         (setq-local flycheck-rust-check-tests
                     (not (flycheck-rust-executable-p rel-name)))
-        ;; Set the crate type
         (setq-local flycheck-rust-crate-type
-                    (if (flycheck-rust-executable-p rel-name) "bin" "lib"))
+                    (if (flycheck-rust-binary-crate-p root)
+                        "bin" "lib"))        ;; Set the crate type
         ;; Find build libraries
         (setq-local flycheck-rust-library-path
                     (list (expand-file-name "target/debug" root)
