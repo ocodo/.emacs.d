@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20151205.620
+;; Package-Version: 20151222.719
 ;; Version: 1.5.1
 ;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
 
@@ -685,8 +685,9 @@ Always update if value of this variable is nil."
     (helm-highlight-current-line)))
 
 (defvar helm-gtags--find-file-action
-  '(("Open file" . helm-gtags--action-openfile)
-    ("Open file other window" . helm-gtags--action-openfile-other-window)))
+  (helm-make-actions
+   "Open file" #'helm-gtags--action-openfile
+   "Open file other window" #'helm-gtags--action-openfile-other-window))
 
 (defvar helm-source-gtags-tags
   (helm-build-in-buffer-source "Jump to definitions"
@@ -929,12 +930,13 @@ Always update if value of this variable is nil."
     :candidate-number-limit helm-gtags-maximum-candidates
     :persistent-action 'helm-gtags--persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action '(("Goto the location" . helm-gtags--select-tag-action)
-              ("Goto the location(other buffer)" .
-               (lambda (c)
-                 (setq helm-gtags--use-otherwin t)
-                 (helm-gtags--select-tag-action c)))
-              ("Move to the referenced point" . helm-gtags--select-rtag-action))))
+    :action (helm-make-actions
+             "Goto the location" #'helm-gtags--select-tag-action
+             "Goto the location(other buffer)"
+             (lambda (c)
+               (setq helm-gtags--use-otherwin t)
+               (helm-gtags--select-tag-action c))
+             "Move to the referenced point" #'helm-gtags--select-rtag-action)))
 
 (defun helm-gtags--select-path-init ()
   (with-current-buffer (helm-candidate-buffer 'global)
