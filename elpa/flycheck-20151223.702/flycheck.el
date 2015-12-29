@@ -1987,7 +1987,7 @@ is applicable from Emacs Lisp code.  Use
 `flycheck-may-use-checker' instead."
   (interactive (list (read-flycheck-checker "Checker to verify: ")))
   (unless (flycheck-valid-checker-p checker)
-    (user-error "%s is not a syntax checker"))
+    (user-error "%s is not a syntax checker" checker))
 
   ;; Save the buffer to make sure that all predicates are good
   (when (and (buffer-file-name) (buffer-modified-p))
@@ -4135,7 +4135,8 @@ In the latter case, show messages in
   (when (and errors (flycheck-may-use-echo-area-p))
     (let ((messages (seq-map #'flycheck-error-format-message-and-id errors)))
       (display-message-or-buffer (string-join messages "\n\n")
-                                 flycheck-error-message-buffer))))
+                                 flycheck-error-message-buffer
+                                 'not-this-window))))
 
 (defun flycheck-display-error-messages-unless-error-list (errors)
   "Show messages of ERRORS unless the error list is visible.
@@ -4153,7 +4154,10 @@ Hide the error buffer if there is no error under point."
   (-when-let* ((buffer (flycheck-error-message-buffer))
                (window (get-buffer-window buffer)))
     (unless (flycheck-overlays-at (point))
-      (quit-window nil window))))
+      ;; save-selected-window prevents `quit-window' from changing the current
+      ;; buffer (see https://github.com/flycheck/flycheck/issues/648).
+      (save-selected-window
+        (quit-window nil window)))))
 
 
 ;;; Working with errors
