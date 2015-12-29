@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "async" "async.el" (22108 42476 997146 737000))
+;;;### (autoloads nil "async" "async.el" (22145 57666 746866 547000))
 ;;; Generated autoloads from async.el
 
 (autoload 'async-start-process "async" "\
@@ -64,12 +64,12 @@ passed to FINISH-FUNC).  Call `async-get' on such a future always
 returns nil.  It can still be useful, however, as an argument to
 `async-ready' or `async-wait'.
 
-\(fn START-FUNC &optional FINISH-FUNC)" nil t)
+\(fn START-FUNC &optional FINISH-FUNC)" nil nil)
 
 ;;;***
 
-;;;### (autoloads nil "async-bytecomp" "async-bytecomp.el" (22108
-;;;;;;  42476 973146 742000))
+;;;### (autoloads nil "async-bytecomp" "async-bytecomp.el" (22145
+;;;;;;  57666 742866 544000))
 ;;; Generated autoloads from async-bytecomp.el
 
 (autoload 'async-byte-recompile-directory "async-bytecomp" "\
@@ -96,8 +96,8 @@ Async compilation of packages can be controlled by
 
 ;;;***
 
-;;;### (autoloads nil "dired-async" "dired-async.el" (22108 42476
-;;;;;;  965146 743000))
+;;;### (autoloads nil "dired-async" "dired-async.el" (22145 57666
+;;;;;;  726866 528000))
 ;;; Generated autoloads from dired-async.el
 
 (defvar dired-async-mode nil "\
@@ -116,8 +116,8 @@ Do dired actions asynchronously.
 
 ;;;***
 
-;;;### (autoloads nil nil ("async-pkg.el" "smtpmail-async.el") (22108
-;;;;;;  42477 38605 781000))
+;;;### (autoloads nil nil ("async-pkg.el" "smtpmail-async.el") (22145
+;;;;;;  57666 758951 170000))
 
 ;;;***
 
