@@ -1,0 +1,5 @@
+Load the content of a `<script>` element into `$templateCache`, so that the
+template can be used by `ngInclude`,
+`ngView`, or directives. The type of the
+`<script>` element must be specified as `text/ng-template`, and a cache name for the template must be
+assigned through the element's `id`, which can then be used as a directive's `templateUrl`.

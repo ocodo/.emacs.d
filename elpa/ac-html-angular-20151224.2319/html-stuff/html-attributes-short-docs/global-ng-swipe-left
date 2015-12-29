@@ -1,0 +1,7 @@
+Specify custom behavior when an element is swiped to the left on a touchscreen device.
+A leftward swipe is a quick, right-to-left slide of the finger.
+Though ngSwipeLeft is designed for touch-based devices, it will work with a mouse click and drag
+too.
+To disable the mouse click and drag functionality, add `ng-swipe-disable-mouse` to
+the `ng-swipe-left` or `ng-swipe-right` DOM Element.
+Requires the `ngTouch` module to be installed.

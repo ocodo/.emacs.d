@@ -1,0 +1,2 @@
+Sets `minlength` validation error key if the value is shorter than
+   minlength.

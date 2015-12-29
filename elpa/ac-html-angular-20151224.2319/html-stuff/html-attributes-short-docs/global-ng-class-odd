@@ -1,0 +1,5 @@
+The `ngClassOdd` and `ngClassEven` directives work exactly as
+ngClass, except they work in
+conjunction with `ngRepeat` and take effect only on odd (even) rows.
+This directive can be applied only within the scope of an
+ngRepeat.

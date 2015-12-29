@@ -1,0 +1,3 @@
+Sets `maxlength` validation error key if the value is longer than
+   maxlength. Setting the attribute to a negative or non-numeric value, allows view values of any
+   length.

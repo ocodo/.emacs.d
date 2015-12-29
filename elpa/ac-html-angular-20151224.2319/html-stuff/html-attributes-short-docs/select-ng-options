@@ -1,0 +1,2 @@
+sets the options that the select is populated with and defines what is
+set on the model on selection. See `ngOptions`.

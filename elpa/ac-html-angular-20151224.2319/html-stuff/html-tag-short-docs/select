@@ -1,0 +1,26 @@
+HTML `SELECT` element with angular data-binding.
+The `select` directive is used together with `ngModel` to provide data-binding
+between the scope and the `<select>` control (including setting default values).
+It also handles dynamic `<option>` elements, which can be added using the `ngRepeat` or
+`ngOptions` directives.
+When an item in the `<select>` menu is selected, the value of the selected option will be bound
+to the model identified by the `ngModel` directive. With static or repeated options, this is
+the content of the `value` attribute or the textContent of the `<option>`, if the value attribute is missing.
+If you want dynamic value attributes, you can use interpolation inside the value attribute.
+<div class="alert alert-warning">
+Note that the value of a `select` directive used without `ngOptions` is always a string.
+When the model needs to be bound to a non-string value, you must either explictly convert it
+using a directive (see example below) or use `ngOptions` to specify the set of options.
+This is because an option element can only be bound to string values at present.
+</div>
+If the viewValue of `ngModel` does not match any of the options, then the control
+will automatically add an "unknown" option, which it then removes when the mismatch is resolved.
+Optionally, a single hard-coded `<option>` element, with the value set to an empty string, can
+be nested into the `<select>` element. This element will then represent the `null` or "not selected"
+option. See example below for demonstration.
+<div class="alert alert-info">
+In many cases, `ngRepeat` can be used on `<option>` elements instead of ngOptions to achieve a similar result. However, `ngOptions` provides some benefits, such as
+more flexibility in how the `<select>`'s model is assigned via the `select` **`as`** part of the
+comprehension expression, and additionally in reducing memory and increasing speed by not creating
+a new scope for each repeated instance.
+</div>

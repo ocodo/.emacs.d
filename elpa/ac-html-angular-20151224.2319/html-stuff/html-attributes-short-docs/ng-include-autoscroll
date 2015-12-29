@@ -1,0 +1,4 @@
+Whether `ngInclude` should call $anchorScroll to scroll the viewport after the content is loaded.
+                 - If the attribute is not set, disable scrolling.
+                 - If the attribute is set without value, enable scrolling.
+                 - Otherwise enable scrolling only if the expression evaluates to truthy value.

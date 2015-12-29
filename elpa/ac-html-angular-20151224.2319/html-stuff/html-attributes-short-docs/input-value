@@ -1,0 +1,3 @@
+The value to which the `ngModel` expression should be set when selected.
+   Note that `value` only supports `string` values, i.e. the scope model needs to be a string,
+   too. Use `ngValue` if you need complex models (`number`, `object`, ...).

@@ -1,0 +1,2 @@
+Sets the `min` validation constraint to the Date / ISO week string
+  the `ngMin` expression evaluates to. Note that it does not set the `min` attribute.

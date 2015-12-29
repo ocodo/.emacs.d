@@ -1,0 +1,7 @@
+HTML input element control. When used together with `ngModel`, it provides data-binding,
+input state control, and validation.
+Input control follows HTML5 input types and polyfills the HTML5 validation behavior for older browsers.
+<div class="alert alert-warning">
+**Note:** Not every feature offered is available for all input types.
+Specifically, data binding and event handling via `ng-model` is unsupported for `input[file]`.
+</div>

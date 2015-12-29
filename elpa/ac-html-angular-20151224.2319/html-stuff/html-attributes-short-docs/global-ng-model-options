@@ -1,0 +1,15 @@
+Allows tuning how model updates are done. Using `ngModelOptions` you can specify a custom list of
+events that will trigger a model update and/or a debouncing delay so that the actual update only
+takes place when a timer expires; this timer will be reset after another change takes place.
+Given the nature of `ngModelOptions`, the value displayed inside input fields in the view might
+be different from the value in the actual model. This means that if you update the model you
+should also invoke `$rollbackViewValue` on the relevant input field in
+order to make sure it is synchronized with the model and that any debounced action is canceled.
+The easiest way to reference the control's `$rollbackViewValue`
+method is by making sure the input is placed inside a form that has a `name` attribute. This is
+important because `form` controllers are published to the related scope under the name in their
+`name` attribute.
+Any pending changes will take place immediately when an enclosing form is submitted via the
+`submit` event. Note that `ngClick` events will occur before the model is updated. Use `ngSubmit`
+to have access to the updated model.
+`ngModelOptions` has an effect on the element it's declared on and its descendants.

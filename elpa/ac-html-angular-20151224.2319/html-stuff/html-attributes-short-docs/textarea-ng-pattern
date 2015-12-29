@@ -1,0 +1,9 @@
+Sets `pattern` validation error key if the ngModel $viewValue
+   does not match a RegExp found by evaluating the Angular expression given in the attribute value.
+   If the expression evaluates to a RegExp object, then this is used directly.
+   If the expression evaluates to a string, then it will be converted to a RegExp
+   after wrapping it in `^` and `$` characters. For instance, `"abc"` will be converted to
+   `new RegExp('^abc$')`.<br />
+   **Note:** Avoid using the `g` flag on the RegExp, as it will cause each successive search to
+   start at the index of the last search's match, thus not taking the whole input value into
+   account.

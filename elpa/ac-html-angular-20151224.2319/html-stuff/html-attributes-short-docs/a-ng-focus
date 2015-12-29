@@ -1,0 +1,4 @@
+Specify custom behavior on focus event.
+Note: As the `focus` event is executed synchronously when calling `input.focus()`
+AngularJS executes the expression using `scope.$evalAsync` if the event is fired
+during an `$apply` to ensure a consistent state.

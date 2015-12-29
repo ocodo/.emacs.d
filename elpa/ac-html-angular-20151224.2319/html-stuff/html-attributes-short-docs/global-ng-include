@@ -1,0 +1,11 @@
+Fetches, compiles and includes an external HTML fragment.
+By default, the template URL is restricted to the same domain and protocol as the
+application document. This is done by calling $sce.getTrustedResourceUrl on it. To load templates from other domains or protocols
+you may either whitelist them or
+wrap them as trusted values. Refer to Angular's Strict Contextual Escaping.
+In addition, the browser's
+[Same Origin Policy](https://code.google.com/p/browsersec/wiki/Part2#Same-origin_policy_for_XMLHttpRequest)
+and [Cross-Origin Resource Sharing (CORS)](http://www.w3.org/TR/cors/)
+policy may further restrict whether the template is successfully loaded.
+For example, `ngInclude` won't work for cross-domain requests on all browsers and for `file://`
+access on some browsers.

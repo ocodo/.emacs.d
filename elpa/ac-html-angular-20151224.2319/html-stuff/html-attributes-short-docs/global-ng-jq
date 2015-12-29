@@ -1,0 +1,7 @@
+Use this directive to force the angular.element library.  This should be
+used to force either jqLite by leaving ng-jq blank or setting the name of
+the jquery variable under window (eg. jQuery).
+Since angular looks for this directive when it is loaded (doesn't wait for the
+DOMContentLoaded event), it must be placed on an element that comes before the script
+which loads angular. Also, only the first instance of `ng-jq` will be used and all
+others ignored.
