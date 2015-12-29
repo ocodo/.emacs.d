@@ -1,6 +1,6 @@
 ;;; evil-search-highlight-persist.el --- Persistent highlights after search
 ;; Version: 20150107.4
-;; Package-Version: 20151214.2349
+;; Package-Version: 20151215.238
 ;; X-Original-Version: 20140918
 
 ;; Author: Juanjo Alvarez <juanjo@juanjoalvarez.net>
@@ -50,7 +50,7 @@
 (require 'advice)
 (require 'highlight)
 
-(setq evil-search-highlight-regex-flag t)
+(defvar evil-search-highlight-regex-flag t)
 (defun hlt-+/--highlight-regexp-region (unhighlightp start end regexp face msgp mousep nth &optional buffers)
   "Helper for `hlt-(un)highlight-regexp-region'.
 Non-nil UNHIGHLIGHTP means unhighlight.  Otherwise, highlight.
@@ -155,8 +155,8 @@ really want to highlight up to %d chars?  "
 (defvar evil-search-highlight-string-min-len 1 "min legth")
 (defun evil-search-highlight-persist-mark ()
   (let ((hlt-use-overlays-flag t)
-        (hlt-last-face 'evil-search-highlight-persist-highlight-face))
-    (setq tmp nil)
+        (hlt-last-face 'evil-search-highlight-persist-highlight-face)
+        tmp)
     (if isearch-regexp
         (progn
           (setq tmp (car-safe regexp-search-ring))
