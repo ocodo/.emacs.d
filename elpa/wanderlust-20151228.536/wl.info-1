@@ -3149,6 +3149,11 @@ Key bindings of the summary mode are shown below.
      Put target mark '*' on the messages in the current thread.
      ('wl-summary-target-mark-thread')
 
+'m T'
+     Put target mark '*' on all the messages of the threads which
+     contain already target marked message.
+     ('wl-summary-target-mark-threads')
+
 'm r'
      Put target mark '*' on the messages in the specified region.
      ('wl-summary-target-mark-region')
@@ -7823,7 +7828,7 @@ Key Index
                                                               (line  55)
 * C-c C-o (Folder):                      Selecting Folder.    (line  83)
 * C-c C-o (Summary):                     Key Bindings of Summary.
-                                                              (line 557)
+                                                              (line 562)
 * C-c C-p (Draft):                       Key Bindings of Draft.
                                                               (line  15)
 * C-c C-p (Score Mode):                  Score Commands.      (line 157)
@@ -7843,17 +7848,17 @@ Key Index
                                                               (line 311)
 * C-t (Folder):                          Selecting Folder.    (line 185)
 * C-t (Summary):                         Key Bindings of Summary.
-                                                              (line 554)
+                                                              (line 559)
 * C-w (Folder):                          Folder Manager.      (line 171)
 * C-x C-s (Draft):                       Key Bindings of Draft.
                                                               (line  28)
 * C-x C-s (Summary):                     Key Bindings of Summary.
-                                                              (line 572)
+                                                              (line 577)
 * C-x k (Draft):                         Key Bindings of Draft.
                                                               (line  34)
 * C-y (Folder):                          Folder Manager.      (line 175)
 * C-y (Summary):                         Key Bindings of Summary.
-                                                              (line 567)
+                                                              (line 572)
 * d (Address Manager):                   Address Manager.     (line  39)
 * D (Message):                           Message.             (line  35)
 * d (Summary):                           Key Bindings of Summary.
@@ -7919,19 +7924,19 @@ Key Index
 * m ! (Summary):                         Key Bindings of Summary.
                                                               (line 483)
 * m # (Summary):                         Key Bindings of Summary.
-                                                              (line 543)
+                                                              (line 548)
 * m $ (Summary):                         Key Bindings of Summary.
                                                               (line 474)
 * M (Summary):                           Key Bindings of Summary.
                                                               (line 155)
 * m ? (Summary):                         Key Bindings of Summary.
-                                                              (line 538)
+                                                              (line 543)
 * m a (Folder):                          Folder Manager.      (line 125)
 * m A (Folder):                          Folder Manager.      (line 134)
 * m a (Summary):                         Key Bindings of Summary.
                                                               (line 514)
 * m A (Summary):                         Key Bindings of Summary.
-                                                              (line 526)
+                                                              (line 531)
 * m c (Folder):                          Folder Manager.      (line 158)
 * m C-s (Folder):                        Folder Manager.      (line 189)
 * m C-w (Folder):                        Folder Manager.      (line 171)
@@ -7944,7 +7949,7 @@ Key Index
 * m F (Summary):                         Key Bindings of Summary.
                                                               (line 479)
 * m f (Summary):                         Key Bindings of Summary.
-                                                              (line 530)
+                                                              (line 535)
 * m g (Folder):                          Folder Manager.      (line 131)
 * m i (Summary):                         Key Bindings of Summary.
                                                               (line 503)
@@ -7966,23 +7971,25 @@ Key Index
 * m R (Summary):                         Key Bindings of Summary.
                                                               (line 470)
 * m r (Summary):                         Key Bindings of Summary.
-                                                              (line 522)
+                                                              (line 527)
 * m s (Folder):                          Folder Manager.      (line 186)
 * m s (Summary):                         Usage of Spam Filter.
                                                               (line 180)
 * m t (Summary):                         Key Bindings of Summary.
                                                               (line 518)
+* m T (Summary):                         Key Bindings of Summary.
+                                                              (line 522)
 * m u (Folder):                          Folder Manager.      (line 196)
 * m u (Summary):                         Key Bindings of Summary.
                                                               (line 511)
 * m U (Summary):                         Key Bindings of Summary.
-                                                              (line 534)
+                                                              (line 539)
 * m W (Folder):                          Folder Manager.      (line 163)
 * m y (Folder):                          Folder Manager.      (line 175)
 * m y (Summary):                         Key Bindings of Summary.
                                                               (line 507)
 * m | (Summary):                         Key Bindings of Summary.
-                                                              (line 547)
+                                                              (line 552)
 * M-c (Folder):                          Folder Manager.      (line 158)
 * M-E (Summary):                         Key Bindings of Summary.
                                                               (line  83)
@@ -7998,10 +8005,10 @@ Key Index
                                                               (line  51)
 * M-t (Folder):                          Selecting Folder.    (line 182)
 * M-t (Summary):                         Key Bindings of Summary.
-                                                              (line 551)
+                                                              (line 556)
 * M-w (Folder):                          Folder Manager.      (line 163)
 * M-w (Summary):                         Key Bindings of Summary.
-                                                              (line 563)
+                                                              (line 568)
 * N (Folder):                            Selecting Folder.    (line 113)
 * n (Folder):                            Selecting Folder.    (line 121)
 * n (Summary):                           Key Bindings of Summary.

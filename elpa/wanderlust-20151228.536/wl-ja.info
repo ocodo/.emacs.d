@@ -3131,6 +3131,10 @@ File: wl-ja.info,  Node: Key Bindings of Summary,  Next: Variables of Summary,  
      まとめ処理用マーク '*' を現在のスレッドにつけます。
      ('wl-summary-target-mark-thread')
 
+'m T'
+     まとめ処理用マーク '*' を、現在マークされたメッセージを含むスレッド
+     全体に拡大します。 ('wl-summary-target-mark-threads')
+
 'm r'
      指定されたリージョンにまとめ処理用マーク '*' をつけます。
      ('wl-summary-target-mark-region')
@@ -7741,7 +7745,7 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
                                                               (line  56)
 * C-c C-o (Folder):                      Selecting Folder.    (line  83)
 * C-c C-o (Summary):                     Key Bindings of Summary.
-                                                              (line 558)
+                                                              (line 562)
 * C-c C-p (Draft):                       Key Bindings of Draft.
                                                               (line  15)
 * C-c C-p (Score Mode):                  Score Commands.      (line 156)
@@ -7761,18 +7765,18 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
                                                               (line 304)
 * C-t (Folder):                          Selecting Folder.    (line 186)
 * C-t (Summary):                         Key Bindings of Summary.
-                                                              (line 554)
+                                                              (line 558)
 * C-w (Folder):                          Folder Manager.      (line 171)
 * C-x C-s (Draft):                       Key Bindings of Draft.
                                                               (line  28)
 * C-x C-s (Folder):                      Selecting Folder.    (line 179)
 * C-x C-s (Summary):                     Key Bindings of Summary.
-                                                              (line 573)
+                                                              (line 577)
 * C-x k (Draft):                         Key Bindings of Draft.
                                                               (line  35)
 * C-y (Folder):                          Folder Manager.      (line 175)
 * C-y (Summary):                         Key Bindings of Summary.
-                                                              (line 568)
+                                                              (line 572)
 * d (Address Manager):                   Address Manager.     (line  38)
 * D (Message):                           Message.             (line  38)
 * d (Summary):                           Key Bindings of Summary.
@@ -7838,19 +7842,19 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
 * m ! (Summary):                         Key Bindings of Summary.
                                                               (line 480)
 * m # (Summary):                         Key Bindings of Summary.
-                                                              (line 541)
+                                                              (line 545)
 * m $ (Summary):                         Key Bindings of Summary.
                                                               (line 470)
 * M (Summary):                           Key Bindings of Summary.
                                                               (line 150)
 * m ? (Summary):                         Key Bindings of Summary.
-                                                              (line 536)
+                                                              (line 540)
 * m a (Folder):                          Folder Manager.      (line 127)
 * m A (Folder):                          Folder Manager.      (line 135)
 * m a (Summary):                         Key Bindings of Summary.
                                                               (line 512)
 * m A (Summary):                         Key Bindings of Summary.
-                                                              (line 524)
+                                                              (line 528)
 * m c (Folder):                          Folder Manager.      (line 158)
 * m C-s (Folder):                        Folder Manager.      (line 190)
 * m C-w (Folder):                        Folder Manager.      (line 171)
@@ -7863,7 +7867,7 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
 * m F (Summary):                         Key Bindings of Summary.
                                                               (line 475)
 * m f (Summary):                         Key Bindings of Summary.
-                                                              (line 528)
+                                                              (line 532)
 * m g (Folder):                          Folder Manager.      (line 132)
 * m i (Summary):                         Key Bindings of Summary.
                                                               (line 500)
@@ -7885,23 +7889,25 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
 * m R (Summary):                         Key Bindings of Summary.
                                                               (line 466)
 * m r (Summary):                         Key Bindings of Summary.
-                                                              (line 520)
+                                                              (line 524)
 * m s (Folder):                          Folder Manager.      (line 186)
 * m s (Summary):                         Usage of Spam Filter.
                                                               (line 184)
 * m t (Summary):                         Key Bindings of Summary.
                                                               (line 516)
+* m T (Summary):                         Key Bindings of Summary.
+                                                              (line 520)
 * m u (Folder):                          Folder Manager.      (line 196)
 * m u (Summary):                         Key Bindings of Summary.
                                                               (line 509)
 * m U (Summary):                         Key Bindings of Summary.
-                                                              (line 532)
+                                                              (line 536)
 * m W (Folder):                          Folder Manager.      (line 162)
 * m y (Folder):                          Folder Manager.      (line 175)
 * m y (Summary):                         Key Bindings of Summary.
                                                               (line 505)
 * m | (Summary):                         Key Bindings of Summary.
-                                                              (line 545)
+                                                              (line 549)
 * M-c (Folder):                          Folder Manager.      (line 158)
 * M-E (Summary):                         Key Bindings of Summary.
                                                               (line  80)
@@ -7917,10 +7923,10 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
                                                               (line  52)
 * M-t (Folder):                          Selecting Folder.    (line 182)
 * M-t (Summary):                         Key Bindings of Summary.
-                                                              (line 550)
+                                                              (line 554)
 * M-w (Folder):                          Folder Manager.      (line 162)
 * M-w (Summary):                         Key Bindings of Summary.
-                                                              (line 564)
+                                                              (line 568)
 * N (Folder):                            Selecting Folder.    (line 113)
 * n (Folder):                            Selecting Folder.    (line 120)
 * n (Summary):                           Key Bindings of Summary.
@@ -8592,7 +8598,7 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-folder-write-current-folder:        Selecting Folder.    (line  76)
 * wl-jump-to-draft-buffer:               Selecting Folder.    (line  83)
 * wl-jump-to-draft-buffer <1>:           Key Bindings of Summary.
-                                                              (line 558)
+                                                              (line 562)
 * wl-jump-to-draft-buffer <2>:           Key Bindings of Draft.
                                                               (line  56)
 * wl-message-button-refer-article:       Message.             (line  23)
@@ -8745,11 +8751,11 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-summary-save:                       Key Bindings of Summary.
                                                               (line 102)
 * wl-summary-save-current-message:       Key Bindings of Summary.
-                                                              (line 564)
+                                                              (line 568)
 * wl-summary-save-region:                Key Bindings of Summary.
                                                               (line 391)
 * wl-summary-save-status:                Key Bindings of Summary.
-                                                              (line 573)
+                                                              (line 577)
 * wl-summary-set-flags:                  Key Bindings of Summary.
                                                               (line  95)
 * wl-summary-set-flags-region:           Key Bindings of Summary.
@@ -8771,7 +8777,7 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-summary-target-mark-dispose:        Key Bindings of Summary.
                                                               (line 492)
 * wl-summary-target-mark-forward:        Key Bindings of Summary.
-                                                              (line 528)
+                                                              (line 532)
 * wl-summary-target-mark-line:           Key Bindings of Summary.
                                                               (line 296)
 * wl-summary-target-mark-mark-as-important: Key Bindings of Summary.
@@ -8781,25 +8787,25 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-summary-target-mark-mark-as-unread: Key Bindings of Summary.
                                                               (line 480)
 * wl-summary-target-mark-pick:           Key Bindings of Summary.
-                                                              (line 536)
+                                                              (line 540)
 * wl-summary-target-mark-pipe:           Key Bindings of Summary.
-                                                              (line 545)
+                                                              (line 549)
 * wl-summary-target-mark-prefetch:       Key Bindings of Summary.
                                                               (line 500)
 * wl-summary-target-mark-print:          Key Bindings of Summary.
-                                                              (line 541)
+                                                              (line 545)
 * wl-summary-target-mark-refile:         Key Bindings of Summary.
                                                               (line 484)
 * wl-summary-target-mark-region:         Key Bindings of Summary.
                                                               (line 363)
 * wl-summary-target-mark-region <1>:     Key Bindings of Summary.
-                                                              (line 520)
+                                                              (line 524)
 * wl-summary-target-mark-register-as-good: Usage of Spam Filter.
                                                               (line 188)
 * wl-summary-target-mark-register-as-spam: Usage of Spam Filter.
                                                               (line 184)
 * wl-summary-target-mark-reply-with-citation: Key Bindings of Summary.
-                                                              (line 524)
+                                                              (line 528)
 * wl-summary-target-mark-save:           Key Bindings of Summary.
                                                               (line 505)
 * wl-summary-target-mark-set-flags:      Key Bindings of Summary.
@@ -8808,8 +8814,10 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
                                                               (line 180)
 * wl-summary-target-mark-thread:         Key Bindings of Summary.
                                                               (line 516)
+* wl-summary-target-mark-threads:        Key Bindings of Summary.
+                                                              (line 521)
 * wl-summary-target-mark-uudecode:       Key Bindings of Summary.
-                                                              (line 532)
+                                                              (line 536)
 * wl-summary-test-spam:                  Usage of Spam Filter.
                                                               (line 117)
 * wl-summary-test-spam-region:           Usage of Spam Filter.
@@ -8841,7 +8849,7 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-summary-write-current-folder:       Key Bindings of Summary.
                                                               (line 136)
 * wl-summary-yank-saved-message:         Key Bindings of Summary.
-                                                              (line 568)
+                                                              (line 572)
 * wl-template-select:                    Key Bindings of Draft.
                                                               (line  64)
 * wl-thread-close-all:                   Key Bindings of Summary.
@@ -8886,7 +8894,7 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
                                                               (line 456)
 * wl-toggle-plugged:                     Selecting Folder.    (line 182)
 * wl-toggle-plugged <1>:                 Key Bindings of Summary.
-                                                              (line 550)
+                                                              (line 554)
 * wl-toggle-plugged <2>:                 Key Bindings of Draft.
                                                               (line  52)
 
@@ -8941,85 +8949,85 @@ Node: Sticky Summary61430
 Node: Summary View62233
 Node: Mark and Action64336
 Node: Key Bindings of Summary65368
-Node: Variables of Summary79945
-Node: Message87332
-Node: Draft89597
-Node: Usage of Draft Mode89977
-Node: Parameters for Sending90465
-Node: Editing Header91558
-Node: Editing Message Body and Sending92460
-Node: Dynamical Message Re-arrangement93137
-Node: Template97247
-Node: POP-before-SMTP98759
-Node: Key Bindings of Draft100106
-Node: Variables of Draft Mode101951
-Node: Disconnected Operations111024
-Node: Off-line State111426
-Node: Enable Operations111986
-Node: Send Messages off-line112769
-Node: Re-file and Copy queue113198
-Node: Creation of Folders113707
-Node: Marking114025
-Node: Pre-fetching Reservations114284
-Node: Plugged Mode114559
-Node: Off-line State settings116472
-Node: Variables of Plugged Mode117398
-Node: Expire and Archive119710
-Node: Expire119944
-Node: Archive131334
-Node: Scoring133164
-Node: Score Commands133653
-Node: Score File Format139655
-Node: Address Book143690
-Node: Mail Addresses143933
-Node: Address Manager145051
-Node: Quick Search145687
-Node: Setup146239
-Node: Searching146658
-Node: Spam Filter148068
-Node: Usage of Spam Filter148408
-Node: Spam Filter Processors153751
-Node: bogofilter154265
-Node: spamfilter155258
-Node: bsfilter155894
-Node: SpamAssassin157070
-Node: SpamOracle158442
-Node: Regular Expressions Header Matching159534
-Node: Advanced Issues160366
-Node: Living with other packages160878
-Node: imput161551
-Node: BBDB161871
-Node: LSDB162992
-Node: supercite163461
-Node: mu-cite163782
-Node: X-Face164274
-Node: x-face-xmas164749
-Node: x-face-mule165130
-Node: dired-dd165868
-Node: MHC166601
-Node: Addrbook167126
-Node: mime-w3m167491
-Node: Highlights167794
-Node: Biff173642
-Node: Password Management174495
-Node: Split messages175366
-Node: Batch Processing178294
-Node: Advanced Settings178793
-Node: Draft for Reply179109
-Node: Thread Format181572
-Node: User-Agent Field183041
-Node: Customizable Valiables183663
-Node: Hooks189168
-Node: Migration189296
-Node: Before 2.12.0189543
-Node: Terminology190976
-Node: Mailing List191687
-Ref: Mailing List-Footnote-1192803
-Node: Addition192874
-Node: Index195564
-Node: Concept Index195796
-Node: Key Index210867
-Node: Variable Index239061
-Node: Function Index268972
+Node: Variables of Summary80044
+Node: Message87431
+Node: Draft89696
+Node: Usage of Draft Mode90076
+Node: Parameters for Sending90564
+Node: Editing Header91657
+Node: Editing Message Body and Sending92559
+Node: Dynamical Message Re-arrangement93236
+Node: Template97346
+Node: POP-before-SMTP98858
+Node: Key Bindings of Draft100205
+Node: Variables of Draft Mode102050
+Node: Disconnected Operations111123
+Node: Off-line State111525
+Node: Enable Operations112085
+Node: Send Messages off-line112868
+Node: Re-file and Copy queue113297
+Node: Creation of Folders113806
+Node: Marking114124
+Node: Pre-fetching Reservations114383
+Node: Plugged Mode114658
+Node: Off-line State settings116571
+Node: Variables of Plugged Mode117497
+Node: Expire and Archive119809
+Node: Expire120043
+Node: Archive131433
+Node: Scoring133263
+Node: Score Commands133752
+Node: Score File Format139754
+Node: Address Book143789
+Node: Mail Addresses144032
+Node: Address Manager145150
+Node: Quick Search145786
+Node: Setup146338
+Node: Searching146757
+Node: Spam Filter148167
+Node: Usage of Spam Filter148507
+Node: Spam Filter Processors153850
+Node: bogofilter154364
+Node: spamfilter155357
+Node: bsfilter155993
+Node: SpamAssassin157169
+Node: SpamOracle158541
+Node: Regular Expressions Header Matching159633
+Node: Advanced Issues160465
+Node: Living with other packages160977
+Node: imput161650
+Node: BBDB161970
+Node: LSDB163091
+Node: supercite163560
+Node: mu-cite163881
+Node: X-Face164373
+Node: x-face-xmas164848
+Node: x-face-mule165229
+Node: dired-dd165967
+Node: MHC166700
+Node: Addrbook167225
+Node: mime-w3m167590
+Node: Highlights167893
+Node: Biff173741
+Node: Password Management174594
+Node: Split messages175465
+Node: Batch Processing178393
+Node: Advanced Settings178892
+Node: Draft for Reply179208
+Node: Thread Format181671
+Node: User-Agent Field183140
+Node: Customizable Valiables183762
+Node: Hooks189267
+Node: Migration189395
+Node: Before 2.12.0189642
+Node: Terminology191075
+Node: Mailing List191786
+Ref: Mailing List-Footnote-1192902
+Node: Addition192973
+Node: Index195663
+Node: Concept Index195895
+Node: Key Index210966
+Node: Variable Index239299
+Node: Function Index269210
 
 End Tag Table

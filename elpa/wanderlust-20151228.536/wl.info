@@ -30,7 +30,7 @@ versions.
 
 Indirect:
 wl.info-1: 1118
-wl.info-2: 312512
+wl.info-2: 312808
 
 Tag Table:
 (Indirect)
@@ -82,85 +82,85 @@ Node: Sticky Summary83838
 Node: Summary View84867
 Node: Mark and Action88084
 Node: Key Bindings of Summary89468
-Node: Variables of Summary109709
-Node: Message120317
-Node: Draft123028
-Node: Usage of Draft Mode123524
-Node: Parameters for Sending123850
-Node: Editing Header125357
-Node: Editing Message Body and Sending126762
-Node: Dynamical Message Re-arrangement127702
-Node: Template133659
-Node: POP-before-SMTP135604
-Node: Key Bindings of Draft137243
-Node: Variables of Draft Mode139668
-Node: Disconnected Operations153185
-Node: Off-line State153727
-Node: Enable Operations154430
-Node: Send Messages off-line155407
-Node: Re-file and Copy queue156124
-Node: Creation of Folders156911
-Node: Marking157378
-Node: Pre-fetching Reservations157678
-Node: Plugged Mode158040
-Node: Off-line State settings160473
-Node: Variables of Plugged Mode161688
-Node: Expire and Archive164869
-Node: Expire165160
-Node: Archive181999
-Node: Scoring184612
-Node: Score Commands185326
-Node: Score File Format194244
-Node: Address Book199719
-Node: Mail Addresses200035
-Node: Address Manager202001
-Node: Quick Search202717
-Node: Setup203266
-Node: Searching203682
-Node: Spam Filter205089
-Node: Usage of Spam Filter205512
-Node: Spam Filter Processors212856
-Node: bogofilter213386
-Node: spamfilter214750
-Node: bsfilter215564
-Node: SpamAssassin217223
-Node: SpamOracle219150
-Node: Regular Expressions Header Matching220509
-Node: Advanced Issues221710
-Node: Living with other packages222303
-Node: imput223005
-Node: BBDB223341
-Node: LSDB224619
-Node: supercite225150
-Node: mu-cite225525
-Node: X-Face226068
-Node: x-face-xmas226632
-Node: x-face-mule227020
-Node: dired-dd227793
-Node: MHC228547
-Node: Addrbook229098
-Node: mime-w3m229442
-Node: Highlights229805
-Node: Biff238227
-Node: Password Management239335
-Node: Split messages240617
-Node: Batch Processing244822
-Node: Advanced Settings245468
-Node: Draft for Reply245806
-Node: Thread Format248810
-Node: User-Agent Field250420
-Node: Customizable Variables251143
-Node: Hooks259590
-Node: Migration259716
-Node: Before 2.12.0260115
-Node: Terminology262242
-Node: Mailing List263229
-Ref: Mailing List-Footnote-1264757
-Node: Addition264835
-Node: Index268434
-Node: Concept Index268697
-Node: Key Index283282
-Node: Variable Index312512
-Node: Function Index342144
+Node: Variables of Summary109866
+Node: Message120474
+Node: Draft123185
+Node: Usage of Draft Mode123681
+Node: Parameters for Sending124007
+Node: Editing Header125514
+Node: Editing Message Body and Sending126919
+Node: Dynamical Message Re-arrangement127859
+Node: Template133816
+Node: POP-before-SMTP135761
+Node: Key Bindings of Draft137400
+Node: Variables of Draft Mode139825
+Node: Disconnected Operations153342
+Node: Off-line State153884
+Node: Enable Operations154587
+Node: Send Messages off-line155564
+Node: Re-file and Copy queue156281
+Node: Creation of Folders157068
+Node: Marking157535
+Node: Pre-fetching Reservations157835
+Node: Plugged Mode158197
+Node: Off-line State settings160630
+Node: Variables of Plugged Mode161845
+Node: Expire and Archive165026
+Node: Expire165317
+Node: Archive182156
+Node: Scoring184769
+Node: Score Commands185483
+Node: Score File Format194401
+Node: Address Book199876
+Node: Mail Addresses200192
+Node: Address Manager202158
+Node: Quick Search202874
+Node: Setup203423
+Node: Searching203839
+Node: Spam Filter205246
+Node: Usage of Spam Filter205669
+Node: Spam Filter Processors213013
+Node: bogofilter213543
+Node: spamfilter214907
+Node: bsfilter215721
+Node: SpamAssassin217380
+Node: SpamOracle219307
+Node: Regular Expressions Header Matching220666
+Node: Advanced Issues221867
+Node: Living with other packages222460
+Node: imput223162
+Node: BBDB223498
+Node: LSDB224776
+Node: supercite225307
+Node: mu-cite225682
+Node: X-Face226225
+Node: x-face-xmas226789
+Node: x-face-mule227177
+Node: dired-dd227950
+Node: MHC228704
+Node: Addrbook229255
+Node: mime-w3m229599
+Node: Highlights229962
+Node: Biff238384
+Node: Password Management239492
+Node: Split messages240774
+Node: Batch Processing244979
+Node: Advanced Settings245625
+Node: Draft for Reply245963
+Node: Thread Format248967
+Node: User-Agent Field250577
+Node: Customizable Variables251300
+Node: Hooks259747
+Node: Migration259873
+Node: Before 2.12.0260272
+Node: Terminology262399
+Node: Mailing List263386
+Ref: Mailing List-Footnote-1264914
+Node: Addition264992
+Node: Index268591
+Node: Concept Index268854
+Node: Key Index283439
+Node: Variable Index312808
+Node: Function Index342440
 
 End Tag Table
