@@ -4,7 +4,7 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20151214.2117
+;; Package-Version: 20151215.858
 ;; Keywords: project, convenience
 ;; Version: 0.1.0
 ;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0"))
@@ -132,7 +132,7 @@ current GOPATH, or 'never to leave GOPATH untouched."
         (with-temp-buffer
           (when (zerop (call-process "make" nil (current-buffer) nil "-s" "-C" dir "gopath"))
             (let ((path (buffer-string)))
-              (unless (string-empty-p path)
+              (unless (string= path "")
                 path))))))))
 
 (defun go-projectile-derive-gopath (&optional path)
