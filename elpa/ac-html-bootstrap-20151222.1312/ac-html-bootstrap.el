@@ -68,7 +68,7 @@
   (interactive)
   (make-local-variable 'web-completion-data-sources)
   (unless (assoc "Bootstrap" web-completion-data-sources)
-    (setq web-completion-data-sources (cons (cons "Bootstrap" 'ac-html-bootstrap-source-dir) web-completion-data-sources))))
+    (push (cons "Bootstrap" 'ac-html-bootstrap-source-dir) web-completion-data-sources)))
 
 ;;;###autoload
 (defalias 'company-web-bootstrap+ 'ac-html-bootstrap+)

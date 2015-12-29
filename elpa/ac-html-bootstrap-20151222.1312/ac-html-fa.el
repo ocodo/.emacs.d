@@ -40,7 +40,7 @@
   (interactive)
   (make-local-variable 'web-completion-data-sources)
   (unless (assoc "Font Aws" web-completion-data-sources)
-    (setq web-completion-data-sources (cons (cons "Font Aws" 'ac-html-fa-source-dir) web-completion-data-sources))))
+    (push (cons "Font Aws" 'ac-html-fa-source-dir) web-completion-data-sources)))
 
 ;;;###autoload
 (defalias 'company-web-fa+ 'ac-html-fa+)
