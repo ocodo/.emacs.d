@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/evil-jumper
-;; Package-Version: 20151025.802
+;; Package-Version: 20151228.1146
 ;; Filename: evil-jumper.el
 ;; Description: Jump like vimmers do!
 ;; Created: 2014-07-01
@@ -201,7 +201,7 @@
       (evil-jumper--jump-to-index (- idx 1)))))
 
 (defun evil-jumper--window-configuration-hook (&rest args)
-  (let* ((window-list (window-list))
+  (let* ((window-list (window-list-1 nil nil t))
          (existing-window (selected-window))
          (new-window (previous-window)))
     (when (and (not (eq existing-window new-window))
