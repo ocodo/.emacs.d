@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Chris Wanstrath
 
 ;; Version: 0.6.2
-;; Package-Version: 20151210.628
+;; Package-Version: 20151227.2126
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
 ;; URL: http://github.com/defunkt/coffee-mode
@@ -79,7 +79,7 @@ be compiled."
   :type 'list
   :group 'coffee)
 
-(defcustom coffee-args-compile '("-c")
+(defcustom coffee-args-compile '("-c" "--no-header")
   "The arguments to pass to `coffee-command' to compile a file."
   :type 'list
   :group 'coffee)
@@ -129,6 +129,12 @@ with CoffeeScript."
 
 (defcustom coffee-indent-like-python-mode nil
   "Indent like python-mode."
+  :type 'boolean
+  :group 'coffee)
+
+(defcustom coffee-switch-to-compile-buffer nil
+  "Switch to compilation buffer `coffee-compiled-buffer-name' after compiling
+a buffer or region."
   :type 'boolean
   :group 'coffee)
 
@@ -204,6 +210,22 @@ with CoffeeScript."
       (with-current-buffer buffer
         (revert-buffer nil t)))))
 
+(defun coffee-parse-error-output (compiler-errstr)
+  (let* ((msg (car (split-string compiler-errstr "[\n\r]+")))
+         line column)
+    (message msg)
+    (when (or (string-match "on line \\([0-9]+\\)" msg)
+              (string-match ":\\([0-9]+\\):\\([0-9]+\\): error:" msg))
+      (setq line (string-to-number (match-string 1 msg)))
+      (when (match-string 2 msg)
+        (setq column (string-to-number (match-string 2 msg))))
+
+      (when coffee-compile-jump-to-error
+        (goto-char (point-min))
+        (forward-line (1- line))
+        (when column
+          (move-to-column (1- column)))))))
+
 (defun coffee-compile-file ()
   "Compiles and saves the current file to disk in a file of the same
 base name, with extension `.js'.  Subsequent runs will overwrite the
@@ -222,20 +244,7 @@ See `coffee-compile-jump-to-error'."
         (let ((file-name (coffee-compiled-file-name (buffer-file-name))))
           (message "Compiled and saved %s" (or output (concat basename ".js")))
           (coffee-revert-buffer-compiled-file file-name))
-      (let* ((msg (car (split-string compiler-output "[\n\r]+")))
-             line column)
-        (message msg)
-        (when (or (string-match "on line \\([0-9]+\\)" msg)
-                  (string-match ":\\([0-9]+\\):\\([0-9]+\\): error:" msg))
-          (setq line (string-to-number (match-string 1 msg)))
-          (when (match-string 2 msg)
-            (setq column (string-to-number (match-string 2 msg))))
-
-          (when coffee-compile-jump-to-error
-            (goto-char (point-min))
-            (forward-line (1- line))
-            (when column
-              (move-to-column (1- column)))))))))
+      (coffee-parse-error-output compiler-output))))
 
 (defun coffee-compile-buffer ()
   "Compiles the current buffer and displays the JavaScript in a buffer
@@ -261,21 +270,26 @@ called `coffee-compiled-buffer-name'."
     ;; foo.js: foo.js.map(>= 1.8), foo.map(< 1.8)
     (concat (file-name-sans-extension coffee-file) extension)))
 
-(defun coffee-compile-sentinel (file line column)
+(defmacro coffee-save-window-if (bool &rest body)
+  `(if ,bool (save-selected-window ,@body) ,@body))
+(put 'coffee-save-window-if 'lisp-indent-function 1)
+
+(defun coffee-compile-sentinel (buffer file line column)
   (lambda (proc _event)
     (when (eq (process-status proc) 'exit)
-      (save-selected-window
+      (coffee-save-window-if (not coffee-switch-to-compile-buffer)
         (pop-to-buffer (get-buffer coffee-compiled-buffer-name))
         (ansi-color-apply-on-region (point-min) (point-max))
         (goto-char (point-min))
         (if (not (= (process-exit-status proc) 0))
-            (message "Failed: compiling to JavaScript")
+            (let ((compile-output (buffer-string)))
+              (with-current-buffer buffer
+                (coffee-parse-error-output compile-output)))
           (let ((props (list :sourcemap (coffee--map-file-name file)
                              :line line :column column :source file)))
             (let ((buffer-file-name "tmp.js"))
               (setq buffer-read-only t)
               (set-auto-mode)
-              (forward-line 1) ;; 1st line is comment
               (run-hook-with-args 'coffee-after-compile-hook props))))))))
 
 (defun coffee-start-compile-process (curbuf line column)
@@ -285,12 +299,15 @@ called `coffee-compiled-buffer-name'."
                        coffee-command (append coffee-args-compile '("-s" "-p"))))
           (curfile (buffer-file-name curbuf)))
       (set-process-query-on-exit-flag proc nil)
-      (set-process-sentinel proc (coffee-compile-sentinel curfile line column))
+      (set-process-sentinel
+       proc (coffee-compile-sentinel curbuf curfile line column))
       (with-current-buffer curbuf
         (process-send-region proc start end))
       (process-send-eof proc))))
 
 (defun coffee-start-generate-sourcemap-process (start end)
+  ;; so that sourcemap generation reads from the current buffer
+  (save-buffer)
   (let* ((file (buffer-file-name))
          (sourcemap-buf (get-buffer-create "*coffee-sourcemap*"))
          (proc (start-file-process "coffee-sourcemap" sourcemap-buf
@@ -304,7 +321,10 @@ called `coffee-compiled-buffer-name'."
      (lambda (proc _event)
        (when (eq (process-status proc) 'exit)
          (if (not (= (process-exit-status proc) 0))
-             (message "Error: generating sourcemap file")
+             (let ((sourcemap-output
+                    (with-current-buffer sourcemap-buf (buffer-string))))
+               (with-current-buffer curbuf
+                 (coffee-parse-error-output sourcemap-output)))
            (kill-buffer sourcemap-buf)
            (funcall (coffee-start-compile-process curbuf line column) start end)))))))
 
@@ -328,7 +348,9 @@ called `coffee-compiled-buffer-name'."
 
 (defun coffee-get-repl-proc ()
   (unless (comint-check-proc coffee-repl-buffer)
-    (coffee-repl))
+    (coffee-repl)
+    ;; see issue #332
+    (sleep-for 0 100))
   (get-buffer-process coffee-repl-buffer))
 
 (defun coffee-send-line ()
@@ -407,7 +429,7 @@ called `coffee-compiled-buffer-name'."
 (defvar coffee-local-assign-regexp "\\s-*\\([_[:word:].$]+\\)\\s-*\\??=\\(?:[^>=]\\|$\\)")
 
 ;; Lambda
-(defvar coffee-lambda-regexp "\\(?:(.*)\\)?\\s-*\\(->\\|=>\\)")
+(defvar coffee-lambda-regexp "\\(?:([^)]*)\\)?\\s-*\\(->\\|=>\\)")
 
 ;; Namespaces
 (defvar coffee-namespace-regexp "\\b\\(?:class\\s-+\\(\\S-+\\)\\)\\b")
@@ -754,17 +776,19 @@ called from first non-blank char of line.
 
 Delete ARG spaces if ARG!=1."
   (interactive "*p")
-  (if (and (= 1 arg)
-           (= (point) (save-excursion
-                        (back-to-indentation)
-                        (point)))
-           (not (bolp)))
-      (let* ((extra-space-count (% (current-column) coffee-tab-width))
-             (deleted-chars (if (zerop extra-space-count)
-                                coffee-tab-width
-                              extra-space-count)))
-        (backward-delete-char-untabify deleted-chars))
-    (backward-delete-char-untabify arg)))
+  (if (use-region-p)
+      (delete-region (region-beginning) (region-end))
+    (if (and (= 1 arg)
+             (= (point) (save-excursion
+                          (back-to-indentation)
+                          (point)))
+             (not (bolp)))
+        (let* ((extra-space-count (% (current-column) coffee-tab-width))
+               (deleted-chars (if (zerop extra-space-count)
+                                  coffee-tab-width
+                                extra-space-count)))
+          (backward-delete-char-untabify deleted-chars))
+      (backward-delete-char-untabify arg))))
 
 ;; Indenters help determine whether the current line should be
 ;; indented further based on the content of the previous line. If a
@@ -832,10 +856,10 @@ shifted. The shifted region includes the lines in which START and
 END lie. An error is signaled if any lines in the region are
 indented less than COUNT columns."
   (interactive
-   (if mark-active
+   (if (use-region-p)
        (list (region-beginning) (region-end) current-prefix-arg)
      (list (line-beginning-position) (line-end-position) current-prefix-arg)))
-  (let ((amount (if count (prefix-numeric-value count)
+  (let ((amount (if count (* coffee-tab-width (prefix-numeric-value count))
                   (coffee-indent-shift-amount start end 'left))))
     (when (> amount 0)
       (let (deactivate-mark)
@@ -858,11 +882,11 @@ if COUNT is not given, indents to the closest increment of
 shifted. The shifted region includes the lines in which START and
 END lie."
   (interactive
-   (if mark-active
+   (if (use-region-p)
        (list (region-beginning) (region-end) current-prefix-arg)
      (list (line-beginning-position) (line-end-position) current-prefix-arg)))
   (let (deactivate-mark
-        (amount (if count (prefix-numeric-value count)
+        (amount (if count (* coffee-tab-width (prefix-numeric-value count))
                   (coffee-indent-shift-amount start end 'right))))
     (indent-rigidly start end amount)))
 
