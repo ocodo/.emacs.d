@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22120 11760 129484
-;;;;;;  720000))
+;;;### (autoloads nil "counsel" "counsel.el" (22145 57631 182832
+;;;;;;  179000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -113,6 +113,11 @@ Grep for a string in the current file.
 
 (autoload 'counsel-yank-pop "counsel" "\
 Ivy replacement for `yank-pop'.
+
+\(fn)" t nil)
+
+(autoload 'counsel-imenu "counsel" "\
+Jump to a buffer position indexed by imenu.
 
 \(fn)" t nil)
 

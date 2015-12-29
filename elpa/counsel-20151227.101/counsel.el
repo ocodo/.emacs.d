@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20151207.319
+;; Package-Version: 20151227.101
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -893,7 +893,8 @@ Optional INITIAL-INPUT is the initial input in the minibuffer."
                 (when (featurep 'smex)
                   (smex-rank (intern cmd)))
                 (let ((prefix-arg current-prefix-arg)
-                      (ivy-format-function store))
+                      (ivy-format-function store)
+                      (this-command (intern cmd)))
                   (command-execute (intern cmd) 'record)))
               :sort sort
               :keymap counsel-describe-map
@@ -1296,6 +1297,40 @@ INITIAL-INPUT can be given as the initial minibuffer input."
                    counsel-completion-end)
     (insert (substring-no-properties s))
     (setq counsel-completion-end (point))))
+
+(defvar imenu-auto-rescan)
+(declare-function imenu--subalist-p "imenu")
+(declare-function imenu--make-index-alist "imenu")
+
+(defun counsel-imenu-get-candidates-from (alist &optional prefix)
+  "Create a list of (key . value) from ALIST.
+PREFIX is used to create the key."
+  (cl-mapcan (lambda (elm)
+               (if (imenu--subalist-p elm)
+                   (counsel-imenu-get-candidates-from
+                    (cl-loop for (e . v) in (cdr elm) collect
+                         (cons e (if (integerp v) (copy-marker v) v)))
+                    (concat prefix (if prefix ".") (car elm)))
+                 (list
+                  (cons (concat prefix (if prefix ".") (car elm))
+                        (if (overlayp (cdr elm))
+                            (overlay-start (cdr elm))
+                          (cdr elm))))))
+             alist))
+
+;;;###autoload
+(defun counsel-imenu ()
+  "Jump to a buffer position indexed by imenu."
+  (interactive)
+  (unless (featurep 'imenu)
+    (require 'imenu nil t))
+  (let* ((imenu-auto-rescan t)
+         (items (imenu--make-index-alist t))
+         (items (delete (assoc "*Rescan*" items) items)))
+    (ivy-read "imenu items:" (counsel-imenu-get-candidates-from items)
+              :action (lambda (pos)
+                        (with-ivy-window
+                          (goto-char pos))))))
 
 (provide 'counsel)
 
