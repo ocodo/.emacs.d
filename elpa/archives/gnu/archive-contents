@@ -252,7 +252,7 @@
 	     ((:url . "http://elpa.gnu.org/packages/ediprolog.html")
 	      (:keywords "languages" "processes"))])
  (el-search .
-	    [(0 1 1)
+	    [(0 1 2)
 	     ((emacs
 	       (25)))
 	     "Expression based incremental search for emacs-lisp-mode" single
