@@ -99,10 +99,63 @@ File: haskell-mode.info,  Node: Getting Started,  Next: Editing Haskell Code,  P
 3 Getting Started
 *****************
 
-If you are reading this, you have most likely already managed to install
-Haskell Mode in one way or another.
+3.1 Quick Installation
+======================
 
-   Most of Haskell Mode’s settings are configurable via customizable
+Make sure you have this in your init file
+(http://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html)
+(usually ‘~/.emacs‘).  If you already have ‘custom-set-variables’, merge
+its contents:
+
+     (require 'package)
+     (custom-set-variables
+      ;; custom-set-variables was added by Custom.
+      ;; If you edit it by hand, you could mess it up, so be careful.
+      ;; Your init file should contain only one such instance.
+      ;; If there is more than one, they won't work right.
+      '(package-archives
+        (quote
+         (("gnu" . "http://elpa.gnu.org/packages/")
+          ("melpa-stable" . "http://stable.melpa.org/packages/")))))
+
+   Then run emacs, and evaluate:
+
+   ‘M-x package-refresh-contents’
+
+   and then follow by
+
+   ‘M-x package-install RET haskell-mode’
+
+   Voila!  ‘haskell-mode’ is installed!  You should be able to edit
+Haskell source code in color now.
+
+3.2 Installation - more information
+===================================
+
+‘haskell-mode’ supports GNU Emacs versions 23, 24 and upcoming 25
+(snapshot).
+
+   ‘haskell-mode’ is available from melpa-stable (releases)
+(http://stable.melpa.org) and melpa (git snapshots) (http://melpa.org).
+
+   Other means of obtaining ‘haskell-mode‘ include el-get
+(https://github.com/dimitri/el-get), Emacs Prelude
+(https://github.com/bbatsov/prelude)) and Debian package
+(https://packages.debian.org/search?keywords=haskell-mode).
+
+   Emacs23 requires an the use of ‘cl-lib’.  cl-lib.el can be found in
+the tests/compat directory.  Copy cl-lib.el to your emacs directory,
+e.g.  ~/.emacs.d directory and put
+
+     (add-to-list 'load-path "~/.emacs.d/")
+     (require 'cl-lib)
+
+   in your .emacs file.
+
+3.3 Customizing
+===============
+
+Most of Haskell Mode’s settings are configurable via customizable
 variables (*note (emacs)Easy Customization::, for details).  You can use
 
    ‘M-x customize-group <RET> haskell’ to browse the ‘haskell’
@@ -112,9 +165,7 @@ customization sub-tree.
 ‘haskell-mode-hook’ variable (*note (emacs)Hooks::) which gets run right
 after the ‘haskell-mode’ major mode is initialized for a buffer.  You
 can customize ‘haskell-mode-hook’ by ‘M-x customize-variable <RET>
-haskell-mode-hook’.  It’s highly recommended you set up indentation to
-match your preferences; *Note Indentation::, for more details about the
-indentation modes included with Haskell Mode.
+haskell-mode-hook’.
 
 
 File: haskell-mode.info,  Node: Editing Haskell Code,  Next: Unicode support,  Prev: Getting Started,  Up: Top
@@ -217,6 +268,17 @@ which will prompt a list of all modules, either installed modules or
 local project directory files.  Then it’ll insert it and then format
 that module section.
 
+4.2.6 stylish-haskell
+---------------------
+
+As an alternative to the elisp functions described above, haskell-mode
+can use the program stylish-haskell
+(http://hackage.haskell.org/package/stylish-haskell) to format imports.
+You can set this behavior by typing: ‘M-x customize-variable <RET>
+haskell-stylish-on-save’.  You can install ‘stylish-haskell’ by running
+‘stack install stylish-haskell’, or if you have not installed ‘stack’,
+‘cabal install stylish-haskell’.
+
 4.3 Completion support
 ======================
 
@@ -299,58 +361,32 @@ block structure(1).
 
    As GNU Emacs’ default indentation function (i.e.  ‘indent-relative’)
 is not designed for use with Haskell’s layout rule, Haskell mode
-includes three different indentation minor modes with different
-trade-offs:
+includes indentation rules adapted to Haskell.
+‘haskell-indentation-mode’ binds <TAB> to cycle through possible
+indentation points based on some clever heuristics.  <SHIFT-TAB> cycles
+in the reverse direction, and <RET> moves to a new line and indents to
+the first possible indentation level.
 
-‘haskell-indent-mode’
+6.1 haskell-indent-mode
+=======================
 
-     Intelligent semi-automatic indentation for Haskell’s layout rule.
-     The basic idea is to have <TAB> cycle through possibilities
-     indentation points based on some clever heuristics.
-
-     The rationale and the implementation principles are described in
-     more detail in the article ‘Dynamic tabbing for automatic
-     indentation with the layout rule’ published in the Journal of
-     Functional Programming 8.5 (1998).
-
-‘haskell-indentation-mode’
-
-     Improved variation of ‘haskell-indent-mode’ indentation mode.
-     Rebinds <RET> and <DEL>, so that indentations can be set and
-     deleted as if they were real tabs.
-
-   To enable one of these three mutually exclusive indentation schemes,
-you just need call one (and only one!)  of the ‘*-mode’ commands while
-in the buffer you want the indentation scheme to be activated for.
-
-   The recommended way is to add one of ‘*-mode’ commands to
-‘haskell-mode-hook’.  This can be done either by using ‘M-x
-customize-variable <RET> haskell-mode-hook’ which provides a convenient
-user interface or by adding _one_ of the following three lines to your
+If you want to use the obsolete ‘haskell-indent-mode’, the recommended
+way is to load it in ‘haskell-mode-hook’.  This can be done either by
+using ‘M-x customize-variable <RET> haskell-mode-hook’ which provides a
+convenient user interface or by adding the following line to your
 ‘.emacs’ file:
 
      (add-hook 'haskell-mode-hook 'haskell-indent-mode)
-     (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
 
-6.1 Interactive Block Indentation
+   This will turn off ‘haskell-indentation-mode’.
+
+6.2 Interactive Block Indentation
 =================================
 
-By inserting the key bindings for ‘C-,’ and ‘C-.’ (these bindings are
-convenient on keyboard layouts where <,> and <.> are adjacent keys) as
-shown below you can interactively de/indent either the following nested
-block or, if a region is active while in Transient Mark Mode (*note
-(emacs)Disabled Transient Mark::), de/indent the active region.
+‘haskell-indentation’ can move whole blocks to the left or to the right.
+Just mark a block and then use <TAB> or <S-TAB>.
 
-   By using a numeric prefix argument (*note (elisp)Prefix Command
-Arguments::) you can modify the shift-amount; for instance, ‘C-u C-,’
-increases indentation by 4 characters at once.
-
-     (eval-after-load "haskell-mode"
-       '(progn
-          (define-key haskell-mode-map (kbd "C-,") 'haskell-move-nested-left)
-          (define-key haskell-mode-map (kbd "C-.") 'haskell-move-nested-right)))
-
-6.2 Rectangle Commands
+6.3 Rectangle Commands
 ======================
 
 GNU Emacs provides so-called "rectangle commands" which operate on
@@ -682,14 +718,14 @@ Concept index
 * Menu:
 
 * benchmarking:                          Changing REPL target. (line 15)
-* CUA mode:                              Indentation.          (line 68)
-* customizing:                           Getting Started.      (line  9)
+* CUA mode:                              Indentation.          (line 42)
+* customizing:                           Getting Started.      (line 62)
 * ‘haskell-mode’:                        Editing Haskell Code. (line  6)
 * indentation:                           Indentation.          (line  6)
 * layout rule:                           Indentation.          (line  6)
 * literate programming:                  Editing Haskell Code. (line 27)
 * off-side rule:                         Indentation.          (line  6)
-* rectangle:                             Indentation.          (line 68)
+* rectangle:                             Indentation.          (line 42)
 * testing:                               Changing REPL target. (line 13)
 * Unicode:                               Unicode support.      (line  6)
 
@@ -706,11 +742,7 @@ Function index
 * haskell-cabal-visit-file:              Editing Cabal files.  (line 11)
 * haskell-compile:                       Compilation.          (line  6)
 * haskell-decl-scan-mode:                Declaration scanning. (line  6)
-* haskell-indent-mode:                   Indentation.          (line 17)
-* haskell-indentation-mode:              Indentation.          (line 28)
 * haskell-mode:                          Editing Haskell Code. (line  6)
-* haskell-move-nested-left:              Indentation.          (line 60)
-* haskell-move-nested-right:             Indentation.          (line 60)
 * haskell-session-change-target:         Changing REPL target. (line  6)
 * inferior-haskell-find-definition:      Inferior Haskell interpreter.
                                                                (line  6)
@@ -747,7 +779,7 @@ Variable index
 * haskell-compile-command:               Compilation.          (line 35)
 * haskell-decl-scan-mode-hook:           Declaration scanning. (line  6)
 * haskell-interactive-mode-hook:         Changing REPL target. (line  6)
-* haskell-mode-hook:                     Getting Started.      (line 15)
+* haskell-mode-hook:                     Getting Started.      (line 68)
 * haskell-program-name:                  Inferior Haskell interpreter.
                                                                (line  6)
 * inferior-haskell-mode-hook:            Inferior Haskell interpreter.
@@ -760,22 +792,22 @@ Node: Top679
 Node: Introduction1948
 Node: Getting Help and Reporting Bugs2465
 Node: Getting Started3927
-Node: Editing Haskell Code4923
-Ref: Editing Haskell Code-Footnote-19016
-Ref: Editing Haskell Code-Footnote-29107
-Ref: Editing Haskell Code-Footnote-39166
-Node: Unicode support9250
-Node: Indentation10940
-Ref: Indentation-Footnote-114503
-Node: Declaration scanning14688
-Node: Compilation17967
-Node: Inferior Haskell interpreter20978
-Node: Interactive Haskell21908
-Node: Editing Cabal files24177
-Node: Changing REPL target25063
-Node: Concept index25639
-Node: Function index26608
-Node: Variable index28865
+Node: Editing Haskell Code6434
+Ref: Editing Haskell Code-Footnote-111015
+Ref: Editing Haskell Code-Footnote-211106
+Ref: Editing Haskell Code-Footnote-311165
+Node: Unicode support11249
+Node: Indentation12939
+Ref: Indentation-Footnote-115260
+Node: Declaration scanning15445
+Node: Compilation18724
+Node: Inferior Haskell interpreter21735
+Node: Interactive Haskell22665
+Node: Editing Cabal files24934
+Node: Changing REPL target25820
+Node: Concept index26396
+Node: Function index27365
+Node: Variable index29330
 
 End Tag Table
 

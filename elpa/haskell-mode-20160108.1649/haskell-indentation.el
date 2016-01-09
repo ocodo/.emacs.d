@@ -49,7 +49,6 @@
   :group 'haskell
   :prefix "haskell-indentation-")
 
-;;;###autoload
 (defcustom haskell-indentation-indent-leftmost t
   "Indent to the left margin after certain keywords.
 For example after \"let .. in\", \"case .. of\").  If set to t it
@@ -59,37 +58,31 @@ positions are allowed."
   :type 'symbol
   :group 'haskell-indentation)
 
-;;;###autoload
 (defcustom haskell-indentation-layout-offset 2
   "Extra indentation to add before expressions in a Haskell layout list."
   :type 'integer
   :group 'haskell-indentation)
 
-;;;###autoload
 (defcustom haskell-indentation-starter-offset 2
   "Extra indentation after an opening keyword (e.g. \"let\")."
   :type 'integer
   :group 'haskell-indentation)
 
-;;;###autoload
 (defcustom haskell-indentation-left-offset 2
   "Extra indentation after an indentation to the left (e.g. after \"do\")."
   :type 'integer
   :group 'haskell-indentation)
 
-;;;###autoload
 (defcustom  haskell-indentation-ifte-offset 2
   "Extra indentation after the keywords \"if\", \"then\", or \"else\"."
   :type 'integer
   :group 'haskell-indentation)
 
-;;;###autoload
 (defcustom haskell-indentation-where-pre-offset 2
   "Extra indentation before the keyword \"where\"."
   :type 'integer
   :group 'haskell-indentation)
 
-;;;###autoload
 (defcustom haskell-indentation-where-post-offset 2
   "Extra indentation after the keyword \"where\"."
   :type 'integer
@@ -646,18 +639,16 @@ For example
 
 (defun haskell-indentation-data ()
   "Parse data or type declaration."
-  (haskell-indentation-with-starter
-   (lambda ()
-     (when (string= current-token "instance")
-       (haskell-indentation-read-next-token))
-     (haskell-indentation-type)
-     (cond ((string= current-token "=")
-            (haskell-indentation-with-starter
-             (apply-partially #'haskell-indentation-separated
-                              #'haskell-indentation-type "|" "deriving")))
-           ((string= current-token "where")
-            (haskell-indentation-with-starter
-             #'haskell-indentation-expression-layout nil))))))
+  (haskell-indentation-read-next-token)
+  (when (string= current-token "instance")
+    (haskell-indentation-read-next-token))
+  (haskell-indentation-type)
+  (cond ((string= current-token "=")
+         (haskell-indentation-separated
+          #'haskell-indentation-expression "|" "deriving"))
+        ((string= current-token "where")
+         (haskell-indentation-with-starter
+          #'haskell-indentation-expression-layout nil))))
 
 (defun haskell-indentation-import ()
   "Parse import declaration."
@@ -927,7 +918,9 @@ layout starts."
         (cond ((member current-token '(layout-item ";"))
                (haskell-indentation-read-next-token))
               ((eq current-token 'end-tokens)
-               (when (or (haskell-indentation-expression-token-p following-token)
+               (when (or (and
+                          (not (string= following-token "{"))
+                          (haskell-indentation-expression-token-p following-token))
                          (string= following-token ";")
                          (and (equal layout-indent 0)
                               (member following-token (mapcar #'car haskell-indentation-toplevel-list))))
