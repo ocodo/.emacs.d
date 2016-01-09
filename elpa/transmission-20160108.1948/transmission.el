@@ -1,10 +1,10 @@
 ;;; transmission.el --- Interface to a Transmission session -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2015  Mark Oteiza <mvoteiza@udel.edu>
+;; Copyright (C) 2014-2016  Mark Oteiza <mvoteiza@udel.edu>
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.7
-;; Package-Version: 20151220.1247
+;; Package-Version: 20160108.1948
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -94,6 +94,13 @@
                                   (:password string))))
   :group 'transmission)
 
+(defcustom transmission-pieces-display t
+  "How to show pieces of incomplete torrents."
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "Brief" brief)
+                 (const :tag "Full" t))
+  :group 'transmission)
+
 (defcustom transmission-trackers '()
   "List of tracker URLs."
   :type '(repeat (string :tag "URL"))
@@ -104,8 +111,8 @@
 
 See `file-size-human-readable'."
   :type '(choice (const :tag "Default" nil)
-                 (symbol :tag "SI" si)
-                 (symbol :tag "IEC" iec))
+                 (const :tag "SI" si)
+                 (const :tag "IEC" iec))
   :link '(function-link file-size-human-readable)
   :group 'transmission)
 
@@ -421,6 +428,26 @@ transmission rates."
   (not (cl-loop for string in list
                 if (not (string-prefix-p prefix string)) return t)))
 
+(defun transmission-slice (list k)
+  "Slice LIST into K lists of somewhat equal size.
+The result can have no more elements than LIST."
+  (let* ((size (length list))
+         (quotient (/ size k))
+         (remainder (% size k)))
+    (cl-flet ((take (list n)
+                (let (result)
+                  (while (and list (>= (cl-decf n) 0))
+                    (push (pop list) result))
+                  (nreverse result))))
+      (let ((i 0)
+            slice result)
+        (while (and list (< i k))
+          (setq slice (if (< i remainder) (1+ quotient) quotient))
+          (push (take list slice) result)
+          (setq list (nthcdr slice list))
+          (cl-incf i))
+        (nreverse result)))))
+
 (defun transmission-prop-values-in-region (prop)
   "Return a list of truthy values of text property PROP in region or at point.
 If none are found, return nil."
@@ -529,6 +556,17 @@ Returns a list of non-blank inputs."
                        trackers)))
     (delete-dups (apply #'append (delq nil urls)))))
 
+(defun transmission-ffap ()
+  "Return a file name, URL, or info hash at point, otherwise nil."
+  (or (get-text-property (point) 'shr-url)
+      (get-text-property (point) :nt-link)
+      (ffap-guess-file-name-at-point)
+      (if (fboundp 'dired-file-name-at-point)
+          (dired-file-name-at-point))
+      (let ((word (thing-at-point 'word)))
+        (if (string-match-p "\\`[[:xdigit:]]\\{40\\}\\'" word)
+            word))))
+
 (defun transmission-files-do (action)
   "Apply ACTION to files in `transmission-files-mode' buffers."
   (unless (memq action (list :files-wanted :files-unwanted
@@ -592,6 +630,16 @@ The two are spliced together with indices for each file, sorted by file name."
          (string (math-format-binary byte)))
     (concat (make-string (- 8 (length string)) ?0) string)))
 
+(defun transmission-ratio->glyph (ratio)
+  "Return a single-char string representing RATIO."
+  (string
+   (cond
+    ((= 0 ratio) #x20)
+    ((< ratio 33) #x2591)
+    ((< ratio 66) #x2592)
+    ((< ratio 100) #x2593)
+    ((= 100 ratio) #x2588))))
+
 (defun transmission-torrent-seed-ratio (mode tlimit)
   "String showing a torrent's seed ratio limit.
 MODE is which seed ratio to use; TLIMIT is the torrent-level limit."
@@ -645,9 +693,13 @@ Execute BODY, binding list `ids' of torrent IDs at point or in region."
 (defun transmission-add (torrent &optional directory)
   "Add TORRENT by filename, URL, magnet link, or info hash.
 When called with a prefix, prompt for DIRECTORY."
-  (interactive (list (read-file-name "Add torrent: ")
-                     (if current-prefix-arg
-                         (read-directory-name "Target directory: "))))
+  (interactive
+   (let* ((fap (transmission-ffap))
+          (prompt (concat "Add torrent" (if fap (format " [%s]" fap)) ": "))
+          (input (read-file-name prompt)))
+     (list (if (string-empty-p input) fap input)
+           (if current-prefix-arg
+               (read-directory-name "Target directory: ")))))
   (let ((arguments
          (append (if (file-readable-p torrent)
                      `(:metainfo ,(with-temp-buffer
@@ -911,15 +963,26 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
                   (nreverse res))))
       (string-join (string-partition (substring bits 0 count) 72) "\n"))))
 
+(defun transmission-format-pieces-brief (pieces count)
+  "Format pieces into a one-line representation.
+PIECES and COUNT are the same as in `transmission-format-pieces'."
+  (let* ((bytes (base64-decode-string pieces))
+         (slices
+          (transmission-slice (mapcar #'transmission-hamming-weight bytes) 72))
+         (ratios
+          (cl-loop for slice in slices with n = count and m = nil
+                   do (cl-decf n (setq m (min n (* 8 (length slice)))))
+                   collect (/ (* 100 (apply #'+ slice)) m))))
+    (mapconcat #'transmission-ratio->glyph ratios "")))
+
 (defun transmission-format-peers (peers origins connected sending receiving)
   "Format peer information into a string.
 PEERS is an array of peer-specific data.
 ORIGINS is an alist giving counts of peers from different swarms.
 CONNECTED, SENDING, RECEIVING are numbers."
   (cl-macrolet ((accumulate (array key)
-                  `(cl-loop for alist across ,array with x = 0
-                            if (eq t (cdr (assq ,key alist))) do (cl-incf x)
-                            finally return x)))
+                  `(cl-loop for alist across ,array
+                            if (eq t (cdr (assq ,key alist))) sum 1)))
     (if (zerop connected) "Peers: none\n"
       (concat
        (format "Peers: %d connected, uploading to %d, downloading from %d"
@@ -1037,9 +1100,8 @@ Each form in BODY is a column descriptor."
       (concat "Date finished:   " (transmission-time .doneDate))
       (concat "Latest Activity: " (transmission-time .activityDate) "\n")
       (transmission-format-trackers .trackerStats)
-      (let ((wanted (cl-loop for w across .wanted for f across .files with x = 0
-                             if (not (zerop w)) do (cl-incf x (cdr (assq 'length f)))
-                             finally return x)))
+      (let ((wanted (cl-loop for w across .wanted for f across .files
+                             if (not (zerop w)) sum (cdr (assq 'length f)))))
         (concat "Wanted: " (transmission-format-size wanted)))
       (concat "Downloaded: " (transmission-format-size .downloadedEver))
       (concat "Verified: " (transmission-format-size .haveValid))
@@ -1052,9 +1114,11 @@ Each form in BODY is a column descriptor."
         (concat
          (format "Piece count: %d / %d (%d%%)" have .pieceCount
                  (transmission-percent have .pieceCount))
-         (when (and (/= have 0) (< have .pieceCount))
+         (when (and transmission-pieces-display (/= have 0) (< have .pieceCount))
            (format "\nPieces:\n\n%s"
-                   (transmission-format-pieces .pieces .pieceCount)))))))))
+                   (if (eq transmission-pieces-display 'brief)
+                       (transmission-format-pieces-brief .pieces .pieceCount)
+                     (transmission-format-pieces .pieces .pieceCount))))))))))
 
 (defun transmission-draw ()
   "Draw the buffer with new contents via `transmission-refresh-function'."
