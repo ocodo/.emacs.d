@@ -3,13 +3,18 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "emamux" "emamux.el" (22060 27442 200199 623000))
+;;;### (autoloads nil "emamux" "emamux.el" (22160 39022 733588 762000))
 ;;; Generated autoloads from emamux.el
 
 (autoload 'emamux:send-command "emamux" "\
 Send command to target-session of tmux
 
 \(fn)" t nil)
+
+(autoload 'emamux:send-region "emamux" "\
+Send region to target-session of tmux
+
+\(fn BEG END)" t nil)
 
 (autoload 'emamux:copy-kill-ring "emamux" "\
 Set (car kill-ring) to tmux buffer

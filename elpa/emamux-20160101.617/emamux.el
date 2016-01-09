@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-emamux
-;; Package-Version: 20151021.2102
+;; Package-Version: 20160101.617
 ;; Version: 0.13
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
@@ -223,6 +223,22 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
           (emamux:reset-prompt target)
           (emamux:send-keys input)))
       (quit (emamux:unset-parameters))))
+
+;;;###autoload
+(defun emamux:send-region (beg end)
+  "Send region to target-session of tmux"
+  (interactive "r")
+  (emamux:check-tmux-running)
+  (condition-case nil
+      (progn
+        (if (or current-prefix-arg (not (emamux:set-parameters-p)))
+            (emamux:set-parameters))
+        (let ((target (emamux:target-session))
+              (input (buffer-substring-no-properties beg end)))
+          (setq emamux:last-command input)
+          (emamux:reset-prompt target)
+          (emamux:send-keys input)))
+    (quit (emamux:unset-parameters))))
 
 ;;;###autoload
 (defun emamux:copy-kill-ring (arg)
