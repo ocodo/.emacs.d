@@ -1,6 +1,6 @@
 ;;; git-commit.el --- Edit Git commit messages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2015  The Magit Project Contributors
+;; Copyright (C) 2010-2016  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -13,7 +13,7 @@
 
 ;; Package-Requires: ((emacs "24.4") (dash "20151021.113") (with-editor "20151111"))
 ;; Keywords: git tools vc
-;; Package-Version: 20151111.418
+;; Package-Version: 20160101.32
 ;; Homepage: https://github.com/magit/magit
 
 ;; This file is not part of GNU Emacs.
