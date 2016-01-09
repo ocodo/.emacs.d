@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20151222.245
+;; Package-Version: 20160106.723
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -596,7 +596,7 @@ When PRED is non-nil, it's a filter for matching point positions.
 When GROUP is non-nil, (BEG . END) should delimit that regex group."
   (setq group (or group 0))
   (let ((case-fold-search (or avy-case-fold-search
-                              (not (string= regex (upcase regex)))))
+                              (string= regex (downcase regex))))
         candidates)
     (avy-dowindows current-prefix-arg
       (dolist (pair (avy--find-visible-regions
@@ -772,7 +772,8 @@ LEAF is normally ((BEG . END) . WND)."
                                 len))
                            lep)))
           (when (and (bound-and-true-p visual-line-mode)
-                     (> len (- end beg)))
+                     (> len (- end beg))
+                     (not (eq lep beg)))
             (setq len (- end beg))
             (let ((old-str (apply #'string (reverse path))))
               (setq str
@@ -1117,47 +1118,51 @@ Otherwise, forward to `goto-line' with ARG."
   "Copy a selected line above the current line.
 ARG lines can be used."
   (interactive "p")
-  (avy-with avy-copy-line
-    (let* ((start (avy--line))
-           (str (buffer-substring-no-properties
-                 start
-                 (save-excursion
-                   (goto-char start)
-                   (move-end-of-line arg)
-                   (point)))))
-      (cond ((eq avy-line-insert-style 'above)
-             (beginning-of-line)
-             (save-excursion
-               (insert str "\n")))
-            ((eq avy-line-insert-style 'below)
-             (end-of-line)
-             (insert "\n" str)
-             (beginning-of-line))
-            (t
-             (user-error "Unexpected `avy-line-insert-style'"))))))
+  (let ((initial-window (selected-window)))
+    (avy-with avy-copy-line
+      (let* ((start (avy--line))
+             (str (buffer-substring-no-properties
+                   start
+                   (save-excursion
+                     (goto-char start)
+                     (move-end-of-line arg)
+                     (point)))))
+        (select-window initial-window)
+        (cond ((eq avy-line-insert-style 'above)
+               (beginning-of-line)
+               (save-excursion
+                 (insert str "\n")))
+              ((eq avy-line-insert-style 'below)
+               (end-of-line)
+               (insert "\n" str)
+               (beginning-of-line))
+              (t
+               (user-error "Unexpected `avy-line-insert-style'")))))))
 
 ;;;###autoload
 (defun avy-move-line (arg)
   "Move a selected line above the current line.
 ARG lines can be used."
   (interactive "p")
-  (avy-with avy-move-line
-    (let ((start (avy--line)))
-      (save-excursion
-        (goto-char start)
-        (kill-whole-line arg))
-      (cond ((eq avy-line-insert-style 'above)
-             (beginning-of-line)
-             (save-excursion
-               (insert
-                (current-kill 0))))
-            ((eq avy-line-insert-style 'below)
-             (end-of-line)
-             (newline)
-             (save-excursion
-               (insert (substring (current-kill 0) 0 -1))))
-            (t
-             (user-error "Unexpected `avy-line-insert-style'"))))))
+  (let ((initial-window (selected-window)))
+    (avy-with avy-move-line
+      (let ((start (avy--line)))
+        (save-excursion
+          (goto-char start)
+          (kill-whole-line arg))
+        (select-window initial-window)
+        (cond ((eq avy-line-insert-style 'above)
+               (beginning-of-line)
+               (save-excursion
+                 (insert
+                  (current-kill 0))))
+              ((eq avy-line-insert-style 'below)
+               (end-of-line)
+               (newline)
+               (save-excursion
+                 (insert (substring (current-kill 0) 0 -1))))
+              (t
+               (user-error "Unexpected `avy-line-insert-style'")))))))
 
 ;;;###autoload
 (defun avy-copy-region (arg)
@@ -1168,7 +1173,8 @@ The window scope is determined by `avy-all-windows' or
   (interactive "P")
   (let ((initial-window (selected-window)))
     (avy-with avy-copy-region
-      (let* ((beg (avy--line arg))
+      (let* ((beg (save-selected-window
+                    (avy--line arg)))
              (end (avy--line arg))
              (str (buffer-substring-no-properties
                    beg
@@ -1235,7 +1241,9 @@ This function obeys `avy-all-windows' setting."
                 (setq str (concat str (list char)))))
              ;; Highlight
              (when (>= (length str) 1)
-               (let (found)
+               (let ((case-fold-search
+                      (or avy-case-fold-search (string= str (downcase str))))
+                     found)
                  (avy-dowindows current-prefix-arg
                    (dolist (pair (avy--find-visible-regions
                                   (window-start)
