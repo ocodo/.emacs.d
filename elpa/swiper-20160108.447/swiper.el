@@ -225,6 +225,8 @@
                                  occur-mode
                                  occur-edit-mode
                                  bongo-mode
+                                 bongo-library-mode
+                                 bongo-playlist-mode
                                  eww-mode
                                  twittering-mode
                                  vc-dir-mode
