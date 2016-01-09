@@ -4,7 +4,7 @@
 ;;
 ;; Author: Austin Bingham <austin.bingham@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20151022.1010
+;; Package-Version: 20160106.634
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((ycmd "0.1") (company "0.8.3") (deferred "0.2.0") (s "1.9.0") (dash "1.2.0"))
 ;;
@@ -112,6 +112,10 @@ feature."
   "Check whether candidate's EXTRA-INFO indicates a filename completion."
   (-contains? '("[File]" "[Dir]" "[File&Dir]") extra-info))
 
+(defun company-ycmd--identifier-completer-p (extra-info)
+  "Check if candidate's EXTRA-INFO indicates a identifier completion."
+  (s-equals? "[ID]" extra-info))
+
 (defmacro company-ycmd--with-destructured-candidate (candidate body)
   "Destructure CANDIDATE and evaluate BODY."
   (declare (indent 1) (debug t))
@@ -121,7 +125,8 @@ feature."
          (extra-menu-info (assoc-default 'extra_menu_info candidate))
          (menu-text (assoc-default 'menu_text candidate))
          (extra-data (assoc-default 'extra_data candidate)))
-     (if (company-ycmd--filename-completer-p extra-menu-info)
+     (if (or (company-ycmd--identifier-completer-p extra-menu-info)
+             (company-ycmd--filename-completer-p extra-menu-info))
          (propertize insertion-text 'return_type extra-menu-info)
        ,body)))
 
@@ -202,9 +207,8 @@ overloaded functions."
 (defun company-ycmd--construct-candidate-python (candidate)
   "Construct completion string from a CANDIDATE for python file-types."
   (company-ycmd--with-destructured-candidate candidate
-    (let* ((kind (and extra-menu-info (substring extra-menu-info 0 1)))
-           (meta (and detailed-info extra-menu-info
-                      (string-prefix-p "function" extra-menu-info)
+    (let* ((kind extra-menu-info)
+           (meta (and detailed-info
                       (or (and (string-match "\n" detailed-info)
                                (substring detailed-info 0 (match-beginning 0)))
                           detailed-info)))
