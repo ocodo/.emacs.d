@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20151203.1147
+;; Package-Version: 20160103.534
 ;; Version: 1.2.1
 ;; Package-Requires: ((helm "0.0.0") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -294,7 +294,9 @@ Report an error unless a valid docset is selected."
   (let ((docset-folder
          (helm-dash-docset-folder-name
           (shell-command-to-string
-           (format "tar xvf %s -C %s" (shell-quote-argument docset-tmp-path) (shell-quote-argument (helm-dash-docsets-path)))))))
+           (format "tar xvf %s -C %s"
+                   (shell-quote-argument (expand-file-name docset-tmp-path))
+                   (shell-quote-argument (helm-dash-docsets-path)))))))
     (helm-dash-activate-docset docset-folder)
     (message (format
               "Docset installed. Add \"%s\" to helm-dash-common-docsets or helm-dash-docsets."
