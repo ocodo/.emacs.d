@@ -1,11 +1,11 @@
 ;;; helm-ag.el --- the silver searcher with helm interface -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 by Syohei YOSHIDA
+;; Copyright (C) 2016 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20151222.135
-;; Version: 0.48
+;; Package-Version: 20160108.956
+;; Version: 0.49
 ;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -258,12 +258,14 @@ They are specified to `--ignore' options."
               helm-ag--last-command cmds)
         (let ((ret (apply 'process-file (car cmds) nil t nil (cdr cmds))))
           (if (zerop (length (buffer-string)))
-              (error "No output: '%s'" helm-ag--last-query)
+              (error "No ag output: '%s'" helm-ag--last-query)
             (unless (zerop ret)
               (unless (executable-find (car cmds))
                 (error "'ag' is not installed."))
               (error "Failed: '%s'" helm-ag--last-query))))
         (helm-ag--save-current-context)))))
+
+(add-to-list 'debug-ignored-errors "^No ag output: ")
 
 (defun helm-ag--search-only-one-file-p ()
   (when (and helm-ag--default-target (= (length helm-ag--default-target) 1))
@@ -676,6 +678,30 @@ Special commands:
        (lambda (_arg)
          (helm-ag--save-results use-other-buf-p))))))
 
+(defun helm-ag--file-of-current-file ()
+  (let ((line (helm-current-line-contents)))
+    (when (string-match helm-grep-split-line-regexp line)
+      (match-string-no-properties 1 line))))
+
+(defun helm-ag--move-file-common (pred move-fn wrap-fn)
+  (with-helm-window
+    (let ((file (helm-ag--file-of-current-file)))
+      (funcall move-fn)
+      (while (and (not (funcall pred)) (string= file (helm-ag--file-of-current-file)))
+        (funcall move-fn))
+      (when (funcall pred)
+        (funcall wrap-fn)))))
+
+(defun helm-ag--previous-file ()
+  (interactive)
+  (helm-ag--move-file-common
+   #'helm-beginning-of-source-p #'helm-previous-line #'helm-end-of-buffer))
+
+(defun helm-ag--next-file ()
+  (interactive)
+  (helm-ag--move-file-common
+   #'helm-end-of-source-p #'helm-next-line #'helm-beginning-of-buffer))
+
 (defvar helm-ag-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
@@ -684,6 +710,10 @@ Special commands:
     (define-key map (kbd "C-c C-e") 'helm-ag-edit)
     (define-key map (kbd "C-x C-s") 'helm-ag--run-save-buffer)
     (define-key map (kbd "C-c ?") 'helm-ag-help)
+    (define-key map (kbd "C-c >") 'helm-ag--next-file)
+    (define-key map (kbd "<right>") 'helm-ag--next-file)
+    (define-key map (kbd "C-c <") 'helm-ag--previous-file)
+    (define-key map (kbd "<left>") 'helm-ag--previous-file)
     map)
   "Keymap for `helm-ag'.")
 
@@ -812,11 +842,15 @@ Continue searching the parent directory? "))
                          (replace-regexp-in-string "\\." "\\\\." ext)))))
 
 (defun helm-ag--construct-do-ag-command (pattern)
-  (let ((opt-query (helm-ag--parse-options-and-query pattern)))
-    (unless (string= (cdr opt-query) "")
+  (let* ((opt-query (helm-ag--parse-options-and-query pattern))
+         (options (car opt-query))
+         (query (cdr opt-query)))
+    (when helm-ag-use-emacs-lisp-regexp
+      (setq query (helm-ag--elisp-regexp-to-pcre query)))
+    (unless (string= query "")
       (append (car helm-do-ag--commands)
-              (cl-remove-if (lambda (x) (string= "--" x)) (car opt-query))
-              (list "--" (helm-ag--join-patterns (cdr opt-query)))
+              (cl-remove-if (lambda (x) (string= "--" x)) options)
+              (list "--" (helm-ag--join-patterns query))
               (cdr helm-do-ag--commands)))))
 
 (defun helm-ag--do-ag-set-command ()
