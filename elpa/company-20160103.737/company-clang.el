@@ -1,6 +1,6 @@
 ;;; company-clang.el --- company-mode completion backend for Clang  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009, 2011, 2013-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2011, 2013-2016  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -323,7 +323,7 @@ passed via standard input."
                        (when (and company-clang-insert-arguments anno)
                          (insert anno)
                          (if (string-match "\\`:[^:]" anno)
-                             (company-clang-objc-templatify anno)
+                             (company-template-objc-templatify anno)
                            (company-template-c-like-templatify
                             (concat arg anno))))))))
 
