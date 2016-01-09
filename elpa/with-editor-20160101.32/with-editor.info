@@ -16,7 +16,7 @@ library is made available as a separate package.  It also defines some
 additional functionality which makes it useful even for end-users, who
 don’t use Magit or another package which uses it internally.
 
-     Copyright (C) 2015 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2016 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -53,7 +53,7 @@ library is made available as a separate package.  It also defines some
 additional functionality which makes it useful even for end-users, who
 don’t use Magit or another package which uses it internally.
 
-     Copyright (C) 2015 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2016 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -308,12 +308,12 @@ what is the output of ‘M-x with-editor-debug’?
 
 
 Tag Table:
-Node: Top1540
-Node: Using the With-Editor package3227
-Node: Configuring With-Editor3843
-Node: Using With-Editor commands7450
-Node: Using With-Editor as a library10613
-Node: Debugging12285
+Node: Top1545
+Node: Using the With-Editor package3237
+Node: Configuring With-Editor3853
+Node: Using With-Editor commands7460
+Node: Using With-Editor as a library10623
+Node: Debugging12295
 
 End Tag Table
 
