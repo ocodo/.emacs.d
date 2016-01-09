@@ -3,9 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("m-buffer-at.el" "m-buffer-benchmark.el"
-;;;;;;  "m-buffer-macro.el" "m-buffer-pkg.el" "m-buffer.el") (22066
-;;;;;;  4134 65154 310000))
+;;;### (autoloads nil nil ("m-buffer-at.el" "m-buffer-macro.el" "m-buffer-pkg.el"
+;;;;;;  "m-buffer.el") (22160 38857 435118 736000))
 
 ;;;***
 
