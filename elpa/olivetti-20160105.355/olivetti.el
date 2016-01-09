@@ -1,10 +1,10 @@
 ;;; olivetti.el --- Minor mode for a nice writing environment
 
-;; Copyright (C) 2014 Paul Rankin
+;; Copyright (c) 2014-2016 Paul Rankin
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20151117.1929
+;; Package-Version: 20160105.355
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
