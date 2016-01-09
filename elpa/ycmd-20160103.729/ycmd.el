@@ -567,6 +567,14 @@ _LEN is ununsed."
     (setq ycmd--on-focus-timer
           (run-at-time 1.0 nil #'ycmd--on-unparsed-buffer-focus))))
 
+(defmacro ycmd--with-all-ycmd-buffers (&rest body)
+  "Execute BODY with each `ycmd-mode' enabled buffer."
+  (declare (indent 0) (debug t))
+  `(dolist (buffer (buffer-list))
+     (with-current-buffer buffer
+       (when ycmd-mode
+         ,@body))))
+
 (defun ycmd--teardown ()
   "Teardown ycmd in current buffer."
   (ycmd--kill-timer ycmd--notification-timer)
@@ -575,10 +583,7 @@ _LEN is ununsed."
 (defun ycmd--global-teardown ()
   "Teardown ycmd in all buffers."
   (ycmd--kill-timer ycmd--on-focus-timer)
-  (dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when ycmd-mode
-        (ycmd--teardown)))))
+  (ycmd--with-all-ycmd-buffers (ycmd--teardown)))
 
 (defun ycmd-diagnostic-file-types (mode)
   "Find the ycmd file types for MODE which support semantic completion.
@@ -629,9 +634,8 @@ This does nothing if no server is running."
   (ycmd--kill-timer ycmd--keepalive-timer))
 
 (defun ycmd-running? ()
-  "Tells you if a ycmd server is already running."
-  (interactive)
-  (if (get-process ycmd--server-process) 't nil))
+  "Return t if a ycmd server is already running."
+  (and (get-process ycmd--server-process) t))
 
 (defun ycmd--keepalive ()
   "Sends an unspecified message to the server.
@@ -1110,23 +1114,21 @@ This is suitable as an entry in `ycmd-file-parse-result-hook'."
 
 Handle configuration file according the value of
 `ycmd-extra-conf-handler'."
-  (deferred:$
-    (let ((conf-file (assoc-default 'extra_conf_file
-                                    (assoc-default 'exception result))))
-      (cond ((not conf-file)
-             (warn "No extra_conf_file included in UnknownExtraConf exception. Consider reporting this."))
-
-            ((or (eq ycmd-extra-conf-handler 'load)
-                 (and (eq ycmd-extra-conf-handler 'ask)
-                      (y-or-n-p (format "Load YCMD extra conf %s? " conf-file))))
-             (ycmd--request "/load_extra_conf_file"
-                            `((filepath . ,conf-file))))
-
-            (t
-             (ycmd--request "/ignore_extra_conf_file"
-                            `((filepath . ,conf-file))))))
-    (ycmd--report-status 'unparsed)
-    (ycmd-notify-file-ready-to-parse)))
+  (let* ((exception (assoc-default 'exception result))
+         (conf-file (assoc-default 'extra_conf_file exception))
+         location)
+    (if (not conf-file)
+        (warn "No extra_conf_file included in UnknownExtraConf exception. \
+Consider reporting this.")
+      (if (or (eq ycmd-extra-conf-handler 'load)
+              (and (eq ycmd-extra-conf-handler 'ask)
+                   (y-or-n-p (format "Load YCMD extra conf %s? " conf-file))))
+          (setq location "/load_extra_conf_file")
+        (setq location "/ignore_extra_conf_file"))
+      (deferred:sync!
+        (ycmd--request location `((filepath . ,conf-file))))
+      (ycmd--report-status 'unparsed)
+      (ycmd-notify-file-ready-to-parse))))
 
 (defun ycmd--handle-error-exception (results)
   "Handle exception and print message from RESULTS."
@@ -1138,7 +1140,8 @@ Handle configuration file according the value of
                           (pred (string-prefix-p "Gocode binary not found."))
                           "Gocode binary not found."
                           "Gocode returned invalid JSON response."
-                          (pred (string-prefix-p "Gocode panicked")))
+                          (pred (string-prefix-p "Gocode panicked"))
+                          "Received invalid HMAC for response!")
                       t))))
     (when is-error
       (ycmd--report-status 'errored))
@@ -1319,13 +1322,14 @@ the name of the newly created file."
               (progn
                 (set-variable 'ycmd--server-actual-port
                               (string-to-number (match-string 1 proc-output)))
-                (setq cont nil)))
+                (setq cont nil)
+                (ycmd--with-all-ycmd-buffers (ycmd--report-status 'unparsed))))
              (t
               ;; timeout after specified period
               (when (< (/ ycmd-startup-timeout 1000) (- (float-time) start-time))
-                (set-window-buffer nil proc-buff)
-                (error "Server timeout")
-                (ycmd--report-status 'errored))))))))))
+                (ycmd--with-all-ycmd-buffers (ycmd--report-status 'errored))
+                (when (ycmd-running?) (ycmd-close))
+                (error "ERROR: Ycmd server timeout"))))))))))
 
 (defun ycmd--column-in-bytes ()
   "Calculate column offset in bytes for the current position and buffer."
