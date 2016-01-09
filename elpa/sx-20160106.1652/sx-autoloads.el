@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "sx" "sx.el" (22095 53477 121781 694000))
+;;;### (autoloads nil "sx" "sx.el" (22160 38758 364141 588000))
 ;;; Generated autoloads from sx.el
 
 (autoload 'sx-bug-report "sx" "\
@@ -13,7 +13,8 @@ File a bug report about the `sx' package.
 
 ;;;***
 
-;;;### (autoloads nil "sx-auth" "sx-auth.el" (22095 53477 93781 691000))
+;;;### (autoloads nil "sx-auth" "sx-auth.el" (22160 38758 324141
+;;;;;;  318000))
 ;;; Generated autoloads from sx-auth.el
 
 (autoload 'sx-authenticate "sx-auth" "\
@@ -45,8 +46,8 @@ parsed and displayed prominently on the page).
 
 ;;;***
 
-;;;### (autoloads nil "sx-inbox" "sx-inbox.el" (22095 53477 157781
-;;;;;;  698000))
+;;;### (autoloads nil "sx-inbox" "sx-inbox.el" (22160 38758 424141
+;;;;;;  993000))
 ;;; Generated autoloads from sx-inbox.el
 
 (autoload 'sx-inbox "sx-inbox" "\
@@ -62,9 +63,14 @@ Display a buffer listing notification items.
 
 ;;;***
 
-;;;### (autoloads nil "sx-interaction" "sx-interaction.el" (22095
-;;;;;;  53477 101781 692000))
+;;;### (autoloads nil "sx-interaction" "sx-interaction.el" (22160
+;;;;;;  38758 344141 453000))
 ;;; Generated autoloads from sx-interaction.el
+
+(autoload 'sx-org-get-link "sx-interaction" "\
+Add a link to this post to Org's memory.
+
+\(fn)" nil nil)
 
 (autoload 'sx-ask "sx-interaction" "\
 Start composing a question for SITE.
@@ -74,8 +80,8 @@ SITE is a string, indicating where the question will be posted.
 
 ;;;***
 
-;;;### (autoloads nil "sx-search" "sx-search.el" (22095 53477 153781
-;;;;;;  698000))
+;;;### (autoloads nil "sx-search" "sx-search.el" (22160 38758 424141
+;;;;;;  993000))
 ;;; Generated autoloads from sx-search.el
 
 (autoload 'sx-search "sx-search" "\
@@ -96,15 +102,15 @@ Follow tag under position POS or point.
 
 ;;;***
 
-;;;### (autoloads nil "sx-switchto" "sx-switchto.el" (22095 53477
-;;;;;;  105781 692000))
+;;;### (autoloads nil "sx-switchto" "sx-switchto.el" (22160 38758
+;;;;;;  348141 480000))
 ;;; Generated autoloads from sx-switchto.el
 
 (define-prefix-command 'sx-switchto-map)
 
 ;;;***
 
-;;;### (autoloads nil "sx-tab" "sx-tab.el" (22095 53477 125781 694000))
+;;;### (autoloads nil "sx-tab" "sx-tab.el" (22160 38758 376141 669000))
 ;;; Generated autoloads from sx-tab.el
 
 (autoload 'sx-tab-all-questions "sx-tab" nil t)
@@ -136,7 +142,7 @@ Follow tag under position POS or point.
 ;;;;;;  "sx-load.el" "sx-method.el" "sx-networks.el" "sx-notify.el"
 ;;;;;;  "sx-pkg.el" "sx-question-list.el" "sx-question-mode.el" "sx-question-print.el"
 ;;;;;;  "sx-question.el" "sx-request.el" "sx-site.el" "sx-tag.el"
-;;;;;;  "sx-time.el" "sx-user.el") (22095 53477 180619 540000))
+;;;;;;  "sx-time.el" "sx-user.el") (22160 38758 473156 442000))
 
 ;;;***
 
