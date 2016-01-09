@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "jist" "jist.el" (22145 57153 818285 655000))
+;;;### (autoloads nil "jist" "jist.el" (22160 38896 604975 191000))
 ;;; Generated autoloads from jist.el
 
 (autoload 'jist-dired "jist" "\
