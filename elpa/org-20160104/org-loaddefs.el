@@ -264,7 +264,7 @@ Return a Library of Babel function call as a string.
 ;;;***
 
 ;;;### (autoloads (org-babel-tangle org-babel-tangle-file) "ob-tangle"
-;;;;;;  "ob-tangle.el" "de166d480742043922d5039659b8b444")
+;;;;;;  "ob-tangle.el" "bbdbf9322d0ab7e977944af2e50bfa5f")
 ;;; Generated autoloads from ob-tangle.el
 
 (autoload 'org-babel-tangle-file "ob-tangle" "\
@@ -700,7 +700,7 @@ Set `org-capture-templates' to be similar to `org-remember-templates'.
 ;;;;;;  org-clock-remove-overlays org-clock-display org-clock-sum
 ;;;;;;  org-clock-goto org-clock-cancel org-clock-out org-clock-in-last
 ;;;;;;  org-clock-in org-resolve-clocks) "org-clock" "org-clock.el"
-;;;;;;  "d44773c1d6b8411db2dafddd0cdc7cd1")
+;;;;;;  "e6d87792d62998c4d6764d868a348c7e")
 ;;; Generated autoloads from org-clock.el
 
 (autoload 'org-resolve-clocks "org-clock" "\
@@ -769,10 +769,11 @@ PROPNAME lets you set a custom text property instead of :org-clock-minutes.
 (autoload 'org-clock-display "org-clock" "\
 Show subtree times in the entire buffer.
 
-With one universal prefix argument, show the total time for
-today.  With two universal prefix arguments, show the total time
-for a custom range, entered at the prompt.  With three universal
-prefix arguments, show the total time in the echo area.
+By default, show the total time for the range defined in
+`org-clock-display-default-range'.  With \\[universal-argument] prefix, show
+the total time for today instead.  With \\[universal-argument] \\[universal-argument] prefix, use
+a custom range, entered at the prompt.  With \\[universal-argument] \\[universal-argument] \\[universal-argument]
+prefix, display the total time in the echo area.
 
 Use \\[org-clock-remove-overlays] to remove the subtree times.
 
@@ -1152,7 +1153,7 @@ Store a link to the current entry, using its ID.
 ;;;***
 
 ;;;### (autoloads (org-indent-mode) "org-indent" "org-indent.el"
-;;;;;;  "0a614b4056871d7fd7a5f3b89cbf801c")
+;;;;;;  "da988e2c3b7826ad167376bcfd481df9")
 ;;; Generated autoloads from org-indent.el
 
 (autoload 'org-indent-mode "org-indent" "\
@@ -2001,7 +2002,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22144 53221))
+;;;;;;  (22154 2662))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -3161,7 +3162,7 @@ Return output file name.
 
 ;;;### (autoloads (org-publish-current-project org-publish-current-file
 ;;;;;;  org-publish-all org-publish) "ox-publish" "ox-publish.el"
-;;;;;;  "0b371db7e1d8713f5e0c509e46baf337")
+;;;;;;  "fdfce4591b6fa2152faae1cba2401706")
 ;;; Generated autoloads from ox-publish.el
 
 (defalias 'org-publish-project 'org-publish)
