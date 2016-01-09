@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/company-tern
-;; Package-Version: 20150525.216
+;; Package-Version: 20151230.1100
 ;; Version: 0.2.0
 ;; Package-Requires: ((company "0.8.0") (tern "0.0.1") (dash "2.8.0") (dash-functional "2.8.0") (s "1.9.0") (cl-lib "0.5.0"))
 
@@ -142,7 +142,7 @@ Use CALLBACK function to display candidates."
     (format annot type)))
 
 ;;;###autoload
-(defun company-tern (command &optional arg)
+(defun company-tern (command &optional arg &rest _args)
   "Tern backend for company-mode.
 See `company-backends' for more info about COMMAND and ARG."
   (interactive (list 'interactive))
