@@ -3,7 +3,7 @@ flycheck.texi.
 
 Modern on-the-fly syntax checking for GNU Emacs 24.
 
-   Copyright © 2014–2015 Sebastian Wiesner
+   Copyright © 2014-2016 Sebastian Wiesner
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -33,7 +33,7 @@ Flycheck
 
 Modern on-the-fly syntax checking for GNU Emacs 24.
 
-   Copyright © 2014–2015 Sebastian Wiesner
+   Copyright © 2014-2016 Sebastian Wiesner
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License,
@@ -70,7 +70,7 @@ guide.
 * Flycheck hooks::              How to hook into Flycheck
 * Flycheck API::                API documentation
 * Supported languages::         A list of supported languages
-* Issues::                      How to report issues in Flycheck
+* Getting Help::                How to obtain help about Flycheck
 * GNU Free Documentation License::  How to copy this manual
 * Main Index::                  Index of Flycheck concepts
 * Key Index::                   Index of all keybindings
@@ -118,12 +118,12 @@ flavours of Emacs (e.g.  XEmacs, Aquamacs, etc.)  are _not_ supported.
    Flycheck works best on Unix-like operating systems.  It is
 extensively tested on Linux and OS X.
 
-   *Warning:* Flycheck tries to maintain compatibility with Windows as
-well, and generally works well on Windows.  Pull requests which fix or
-improve Windows compatibility are _very_ welcome.  However, Flycheck
-does not explicitly support Windows.  If there are issues or problems on
-Windows, _you are on your own_.  The Flycheck developers cannot answer
-questions about Windows, or fix Windows-specific issues.
+   Flycheck does not explicitly support Windows, but tries to maintain
+Windows compatibility and should generally work fine on Windows, too.
+However, we can neither answer questions about Windows nor fix bugs that
+only occur on Windows without the help of active Windows users.  Please
+watch out for known Windows issues
+(https://github.com/flycheck/flycheck/labels/B-Windows%20only)!
 
 2.2 Syntax checking tools
 =========================
@@ -595,15 +595,22 @@ File: flycheck.info,  Node: Displaying errors,  Next: Killing errors,  Prev: Nav
 4.5 Displaying errors
 =====================
 
-If the point is on a Flycheck error, Flycheck will display the message
-and ID of the error at point in the echo area after a short delay.
+When the point moves to an error location Flycheck automatically
+displays the error at point after a short delay:
 
  -- User Option: flycheck-display-errors-delay
      The number of seconds to wait before displaying the error at point.
      Floating point numbers can express fractions of seconds.
 
-   You can set ‘flycheck-display-errors-function’ to change how Flycheck
-displays errors, and what information it displays:
+   You can also display errors at point explicitly with ‘C-c ! h’:
+
+‘C-c ! h’
+‘M-x flycheck-display-error-at-point’
+     Show the error(s) at point.
+
+   By default Flycheck shows the error message and the error ID in the
+echo area, but you can customise how Flycheck displays errors with
+‘flycheck-display-errors-function’:
 
  -- User Option: flycheck-display-errors-function
      A function to display errors.  The function is called with a list
@@ -620,21 +627,23 @@ displays errors, and what information it displays:
      if the error list is visible.  *Note Listing errors::, for more
      information about the error list.
 
-   The flycheck-pos-tip (https://github.com/flycheck/flycheck-pos-tip)
-extension provides an alternative display function, which shows error
-messages in a graphical popup.
+   Alternatively the flycheck-pos-tip
+(https://github.com/flycheck/flycheck-pos-tip) extension provides an
+display function which shows error messages in a graphical popup.
 
    In addition to this display mechanism, Flycheck adds a tooltip to
-each error.  Its contents are computed by ‘flycheck-help-echo-function’:
+each error which appears when you hover the error location with the
+mouse pointer.  You can force Emacs to show the contents of the tooltip
+in the echo area with ‘C-h .’ (‘display-local-help’).
+
+   The contents of this tooltip are created with
+‘flycheck-help-echo-function’:
 
  -- User Option: flycheck-help-echo-function
-     A function to compute the contents of the error tooltips.  The
-     function is called with the list of errors to display as single
-     argument.  It should return a string, which is displayed when the
-     user hovers over an error.
+     A function to compute the contents of the error tooltips.
 
-   The default is ‘flycheck-make-help-echo’, which displays contents
-similar to those produced by ‘flycheck-display-error-messages’.
+     By default Flycheck adds the error message and the error ID of all
+     errors at point to the tooltip contents.
 
 
 File: flycheck.info,  Node: Killing errors,  Next: Listing errors,  Prev: Displaying errors,  Up: Usage
@@ -1423,7 +1432,7 @@ File: flycheck.info,  Node: Errors,  Prev: Command syntax checkers,  Up: Flychec
 ==========
 
 
-File: flycheck.info,  Node: Supported languages,  Next: Issues,  Prev: Flycheck API,  Up: Top
+File: flycheck.info,  Node: Supported languages,  Next: Getting Help,  Prev: Flycheck API,  Up: Top
 
 Appendix A Supported languages
 ******************************
@@ -2131,32 +2140,40 @@ YAML
    • ‘yaml-ruby’ (using Ruby’s YAML parser)
 
 
-File: flycheck.info,  Node: Issues,  Next: GNU Free Documentation License,  Prev: Supported languages,  Up: Top
+File: flycheck.info,  Node: Getting Help,  Next: GNU Free Documentation License,  Prev: Supported languages,  Up: Top
 
-Appendix B Issues
-*****************
+Appendix B Getting Help
+***********************
 
-Please report any bugs or issues to the issue tracker
-(https://github.com/flycheck/flycheck/issues).  If you report a bug,
-please include the following information to help us identify and fix the
-culprit:
+B.1 Asking questions
+====================
 
-   • The output of ‘M-x flycheck-verify-setup’ in affected buffers
-   • The version of Emacs, as reported by ‘M-x emacs-version’
-   • The version of Flycheck, as reported by ‘M-x flycheck-version’
-   • A complete and precise description of the issue, including a
-     description of the expected _and_ the observed behaviour.
+Please ask questions about Flycheck on Stack Exchange
+(https://emacs.stackexchange.com/questions/tagged/flycheck) or in our
+Gitter channel (https://gitter.im/flycheck/flycheck).  We try to answer
+all questions as fast and as precise as possible.
 
-   Please also tell us your ideas for improvements or new features.
+B.2 Reporting issues
+====================
 
-   Patches are _very_ welcome as well.  If you have code to contribute,
-please do not hesitate to open a pull request.  We would like to ask you
-to obey a few Guidelines
-(https://github.com/flycheck/flycheck/blob/master/CONTRIBUTING.md),
-though.
+To report problems or bugs, please use our issue tracker
+(https://github.com/flycheck/flycheck/issues).  Our Contribution
+Guidelines
+(https://github.com/flycheck/flycheck/blob/master/CONTRIBUTING.md) help
+you to create good bug reports; please take a look.
+
+   We welcome patches and pull requests that fix bugs or provide new
+features.  Please read our Contribution Guidelines for help and
+guidelines before submitting pull requests.  When making larger changes
+to Flycheck or implementing new features we recommend that you first
+open a separate issue or ask in our Gitter channel to discuss you
+intended changes.
+
+   Please follow our <http://www.flycheck.org/conduct.html> in all our
+communication channels.
 
 
-File: flycheck.info,  Node: GNU Free Documentation License,  Next: Main Index,  Prev: Issues,  Up: Top
+File: flycheck.info,  Node: GNU Free Documentation License,  Next: Main Index,  Prev: Getting Help,  Up: Top
 
 Appendix C GNU Free Documentation License
 *****************************************
@@ -2662,12 +2679,15 @@ Main Index
 * D language:                            Supported languages. (line 155)
 * Emacs Lisp language:                   Supported languages. (line 169)
 * Erlang language:                       Supported languages. (line 197)
+* error display function:                Displaying errors.   (line  28)
+* error tooltip:                         Displaying errors.   (line  42)
 * ERuby language:                        Supported languages. (line 208)
 * executables of syntax checkers:        Configuring checkers.
                                                               (line 110)
 * features:                              Introduction.        (line  16)
 * flycheck mode:                         Checking buffers.    (line   6)
 * Fortran language:                      Supported languages. (line 213)
+* functions for error display:           Displaying errors.   (line  28)
 * Go language:                           Supported languages. (line 239)
 * Groovy language:                       Supported languages. (line 264)
 * Haml language:                         Supported languages. (line 270)
@@ -2778,12 +2798,14 @@ Key Index
 * C-c ! C-w:                             Killing errors.      (line   8)
 * C-c ! e:                               Configuring checkers.
                                                               (line 125)
+* C-c ! h:                               Displaying errors.   (line  15)
 * C-c ! l:                               Listing errors.      (line   9)
 * C-c ! n:                               Navigating errors.   (line  22)
 * C-c ! p:                               Navigating errors.   (line  32)
 * C-c ! s:                               Syntax checkers.     (line  43)
 * C-c ! v:                               Checking buffers.    (line  63)
 * C-c ! x:                               Syntax checkers.     (line  85)
+* C-h .:                                 Displaying errors.   (line  42)
 * C-u C-c ! C-w:                         Killing errors.      (line  16)
 * C-u C-c ! e:                           Configuring checkers.
                                                               (line 130)
@@ -2800,6 +2822,7 @@ Function and variable index
  [index ]
 * Menu:
 
+* display-local-help:                    Displaying errors.   (line  42)
 * flycheck-buffer:                       Checking buffers.    (line  57)
 * flycheck-check-syntax-automatically:   Checking buffers.    (line  33)
 * flycheck-checker:                      Syntax checkers.     (line  58)
@@ -2831,11 +2854,12 @@ Function and variable index
 * flycheck-describe-checker:             Syntax checkers.     (line  31)
 * flycheck-disable-checker:              Syntax checkers.     (line  85)
 * flycheck-disabled-checkers:            Syntax checkers.     (line 102)
-* flycheck-display-error-messages:       Displaying errors.   (line  23)
+* flycheck-display-error-at-point:       Displaying errors.   (line  15)
+* flycheck-display-error-messages:       Displaying errors.   (line  30)
 * flycheck-display-error-messages-unless-error-list: Displaying errors.
-                                                              (line  26)
+                                                              (line  33)
 * flycheck-display-errors-delay:         Displaying errors.   (line   9)
-* flycheck-display-errors-function:      Displaying errors.   (line  16)
+* flycheck-display-errors-function:      Displaying errors.   (line  23)
 * flycheck-dmd-args:                     Supported languages. (line 160)
 * flycheck-dmd-include-path:             Supported languages. (line 158)
 * flycheck-emacs-lisp-initialize-packages: Supported languages.
@@ -2886,7 +2910,7 @@ Function and variable index
 * flycheck-go-build-install-deps:        Supported languages. (line 252)
 * flycheck-go-build-tags:                Supported languages. (line 255)
 * flycheck-go-vet-print-functions:       Supported languages. (line 258)
-* flycheck-help-echo-function:           Displaying errors.   (line  38)
+* flycheck-help-echo-function:           Displaying errors.   (line  50)
 * flycheck-highlighting-mode:            Reporting results.   (line  15)
 * flycheck-hlint-args:                   Supported languages. (line 290)
 * flycheck-hlint-hint-packages:          Supported languages. (line 299)
@@ -2945,91 +2969,92 @@ Function and variable index
 
 
 Tag Table:
-Node: Top1137
-Node: Introduction3358
-Node: Installation4451
-Ref: windows-support4853
-Node: Quickstart6584
-Node: Usage9120
-Node: Checking buffers10120
-Node: Syntax checkers12944
-Node: Reporting results18343
-Node: Navigating errors20748
-Node: Displaying errors23304
-Node: Killing errors25289
-Node: Listing errors26076
-Node: Mode line display28246
-Node: Configuring checkers29559
-Ref: Syntax checker options30275
-Ref: Syntax checker configuration files31293
-Ref: Syntax checker executables34180
-Node: Syntax checker definitions35384
-Node: Defining syntax checkers36565
-Node: Finding error patterns41854
-Node: Trying new checkers43398
-Node: Registering new checkers44083
-Node: Parsing structured output45631
-Node: Passing configuration to checkers46874
-Node: Controlling use of checkers50497
-Node: Applying multiple checkers51599
-Node: Flycheck hooks54870
-Node: Flycheck API56926
-Node: Command syntax checkers57264
-Node: Argument Substitution57634
-Node: Checker configuration57804
-Node: Error parsers58016
-Node: Errors58162
-Node: Supported languages58274
-Ref: language-Ada59483
-Ref: language-AsciiDoc60107
-Ref: language-C/C++60190
-Ref: language-CFEngine62791
-Ref: language-Chef62859
-Ref: language-Coffeescript63104
-Ref: language-Coq63504
-Ref: language-CSS63560
-Ref: language-D63670
-Ref: language-Emacs Lisp64115
-Ref: language-Erlang65243
-Ref: language-ERuby65497
-Ref: language-Fortran65592
-Ref: language-Go66485
-Ref: language-Groovy67420
-Ref: language-Haml67530
-Ref: language-Handlebars67599
-Ref: language-Haskell67681
-Ref: language-HTML69609
-Ref: language-Jade69906
-Ref: language-Javascript69985
-Ref: language-JSON71347
-Ref: language-Less71545
-Ref: language-Lua71602
-Ref: language-Perl71960
-Ref: language-PHP72495
-Ref: language-Processing73207
-Ref: language-Puppet73319
-Ref: language-Python73501
-Ref: language-R75018
-Ref: language-RPM Spec75478
-Ref: language-reStructuredText75592
-Ref: language-Ruby75986
-Ref: language-Rust77000
-Ref: language-Sass78120
-Ref: language-Scala78373
-Ref: language-SCSS78939
-Ref: language-Shell scripting languages79499
-Ref: language-Slim80235
-Ref: language-SQL80300
-Ref: language-TeX/LaTeX80397
-Ref: language-Texinfo80809
-Ref: language-Verilog80904
-Ref: language-XML81219
-Ref: language-YAML81387
-Node: Issues81526
-Node: GNU Free Documentation License82547
-Node: Main Index107894
-Node: Key Index116384
-Node: Function and Variable Index117892
+Node: Top1135
+Node: Introduction3355
+Node: Installation4448
+Ref: windows-support4850
+Node: Quickstart6554
+Node: Usage9090
+Node: Checking buffers10090
+Node: Syntax checkers12914
+Node: Reporting results18313
+Node: Navigating errors20718
+Node: Displaying errors23274
+Node: Killing errors25458
+Node: Listing errors26245
+Node: Mode line display28415
+Node: Configuring checkers29728
+Ref: Syntax checker options30444
+Ref: Syntax checker configuration files31462
+Ref: Syntax checker executables34349
+Node: Syntax checker definitions35553
+Node: Defining syntax checkers36734
+Node: Finding error patterns42023
+Node: Trying new checkers43567
+Node: Registering new checkers44252
+Node: Parsing structured output45800
+Node: Passing configuration to checkers47043
+Node: Controlling use of checkers50666
+Node: Applying multiple checkers51768
+Node: Flycheck hooks55039
+Node: Flycheck API57095
+Node: Command syntax checkers57433
+Node: Argument Substitution57803
+Node: Checker configuration57973
+Node: Error parsers58185
+Node: Errors58331
+Node: Supported languages58443
+Ref: language-Ada59658
+Ref: language-AsciiDoc60282
+Ref: language-C/C++60365
+Ref: language-CFEngine62966
+Ref: language-Chef63034
+Ref: language-Coffeescript63279
+Ref: language-Coq63679
+Ref: language-CSS63735
+Ref: language-D63845
+Ref: language-Emacs Lisp64290
+Ref: language-Erlang65418
+Ref: language-ERuby65672
+Ref: language-Fortran65767
+Ref: language-Go66660
+Ref: language-Groovy67595
+Ref: language-Haml67705
+Ref: language-Handlebars67774
+Ref: language-Haskell67856
+Ref: language-HTML69784
+Ref: language-Jade70081
+Ref: language-Javascript70160
+Ref: language-JSON71522
+Ref: language-Less71720
+Ref: language-Lua71777
+Ref: language-Perl72135
+Ref: language-PHP72670
+Ref: language-Processing73382
+Ref: language-Puppet73494
+Ref: language-Python73676
+Ref: language-R75193
+Ref: language-RPM Spec75653
+Ref: language-reStructuredText75767
+Ref: language-Ruby76161
+Ref: language-Rust77175
+Ref: language-Sass78295
+Ref: language-Scala78548
+Ref: language-SCSS79114
+Ref: language-Shell scripting languages79674
+Ref: language-Slim80410
+Ref: language-SQL80475
+Ref: language-TeX/LaTeX80572
+Ref: language-Texinfo80984
+Ref: language-Verilog81079
+Ref: language-XML81394
+Ref: language-YAML81562
+Node: Getting Help81701
+Ref: Issues82204
+Node: GNU Free Documentation License82917
+Node: Main Index108270
+Node: Key Index116979
+Node: Function and Variable Index118633
 
 End Tag Table
 

@@ -1,6 +1,6 @@
 ;;; flycheck.el --- On-the-fly syntax checking -*- lexical-binding: t; -*-
 
-;; Copyright (c) 2012-2015 Sebastian Wiesner and Flycheck contributors
+;; Copyright (c) 2012-2016 Sebastian Wiesner and Flycheck contributors
 ;; Copyright (C) 2013, 2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
@@ -98,7 +98,7 @@
 ;;; Compatibility
 (eval-and-compile
   (unless (fboundp 'string-suffix-p)
-    ;; `string-suffix-p' for Emacs 24.3 and below
+    ;; TODO: Remove when dropping support for Emacs 24.3 and earlier
     (defun string-suffix-p (suffix string  &optional ignore-case)
       "Return non-nil if SUFFIX is a suffix of STRING.
 If IGNORE-CASE is non-nil, the comparison is done without paying
@@ -108,6 +108,7 @@ attention to case differences."
              (eq t (compare-strings suffix nil nil
                                     string start-pos nil ignore-case))))))
 
+  ;; TODO: Remove when dropping support for Emacs 24.3 and earlier
   (unless (featurep 'subr-x)
     ;; `subr-x' function for Emacs 24.3 and below
     (defsubst string-join (strings &optional separator)
@@ -847,6 +848,8 @@ This variable is a normal hook.  See Info node `(elisp)Hooks'."
     (define-key map "s"         #'flycheck-select-checker)
     (define-key map "e"         #'flycheck-set-checker-executable)
     (define-key map "?"         #'flycheck-describe-checker)
+    (define-key map "h"         #'flycheck-display-error-at-point)
+    (define-key map "H"         #'display-local-help)
     (define-key map "i"         #'flycheck-info)
     (define-key map "V"         #'flycheck-version)
     (define-key map "v"         #'flycheck-verify-setup)
@@ -4087,6 +4090,7 @@ non-nil."
 
 (defun flycheck-display-error-at-point ()
   "Display the all error messages at point in minibuffer."
+  (interactive)
   ;; This function runs from a timer, so we must take care to not ignore any
   ;; errors
   (with-demoted-errors "Flycheck error display error: %s"
@@ -6220,6 +6224,9 @@ See Info Node `(elisp)Byte Compilation'."
 
 (defconst flycheck-emacs-lisp-checkdoc-form
   (flycheck-prepare-emacs-lisp-form
+    (unless (require 'elisp-mode nil 'no-error)
+      ;; TODO: Fallback for Emacs 24, remove when dropping support for 24
+      (require 'lisp-mode))
     (require 'checkdoc)
 
     (let ((source (car command-line-args-left))
@@ -6236,7 +6243,10 @@ See Info Node `(elisp)Byte Compilation'."
         ;; back-substutition work
         (setq default-directory process-default-directory)
         (with-demoted-errors "Error in checkdoc: %S"
-          (checkdoc-current-buffer t)
+          ;; Checkdoc needs the Emacs Lisp syntax table to parse sexps
+          ;; correctly, see https://github.com/flycheck/flycheck/issues/833
+          (with-syntax-table emacs-lisp-mode-syntax-table
+            (checkdoc-current-buffer t))
           (with-current-buffer checkdoc-diagnostic-buffer
             (princ (buffer-substring-no-properties (point-min) (point-max)))
             (kill-buffer)))))))
@@ -7618,6 +7628,12 @@ You need at least RuboCop 0.34 for this syntax checker.
 
 See URL `http://batsov.com/rubocop/'."
   :command ("rubocop" "--display-cop-names" "--format" "emacs"
+            ;; Explicitly disable caching to prevent Rubocop 0.35.1 and earlier
+            ;; from caching standard input.  Later versions of Rubocop
+            ;; automatically disable caching with --stdin, see
+            ;; https://github.com/flycheck/flycheck/issues/844 and
+            ;; https://github.com/bbatsov/rubocop/issues/2576
+            "--cache" "false"
             (config-file "--config" flycheck-rubocoprc)
             (option-flag "--lint" flycheck-rubocop-lint-only)
             ;; Rubocop takes the original file name as argument when reading
