@@ -1,8 +1,8 @@
 ;;; popup-imenu.el --- imenu index popup
 
 ;; Author: Igor Shymko <igor.shimko@gmail.com>
-;; Version: 0.1
-;; Package-Version: 20151219.1709
+;; Version: 0.3
+;; Package-Version: 20160108.723
 ;; Package-Requires: ((dash "2.12.1") (popup "0.5.3") (flx-ido "0.6.1"))
 ;; Keywords: popup, imenu
 ;; URL: https://github.com/ancane/popup-imenu.el
@@ -26,7 +26,7 @@
 ;;
 ;;; Commentary:
 ;;
-;; Displays imenu index in a popup window. Fuzzy matching supported.
+;; Shows imenu index in a popup window. Fuzzy matching supported.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -37,7 +37,6 @@
 (require 'dash)
 (require 'popup)
 (require 'imenu)
-(require 'artist)
 (require 'flx-ido)
 
 (defvar popup-imenu-fuzzy-match t
@@ -46,11 +45,17 @@
 (defvar popup-imenu-hide-rescan t
   "Hide *Rescan* menu item.")
 
-(defvar popup-imenu-position 'fill-column
+(defvar popup-imenu-position 'point
   "Defines popup position.  Possible values are one of:
+'point - open popup at point. (default option)
 'center - opens popup at window center
-'fill-column - center relative to `fill-column'
-'point - open popup at point.")
+'fill-column - center relative to `fill-column'")
+
+(defvar popup-imenu-force-position nil
+  "When popup position, as calculated according to 'center or 'fill-column settings,
+points to a line that is not long enough, then popup will not be open at
+'center or 'fill-column position.
+Setting this var to `t' will add whitespaces at the end of the line to reach the column.")
 
 (defun popup-imenu--filter ()
   "Function that return either flx or a regular filtering function."
@@ -122,17 +127,22 @@ POPUP-ITEMS - items to be shown in the popup."
   (if (eq popup-imenu-position 'point)
       (point)
     (let* ((line-number (save-excursion
-                         (goto-char (window-start))
-                         (line-number-at-pos)))
-          (x (+ (/ (- (if (eq popup-imenu-position 'center) (window-width) fill-column)
-                      (apply 'max (mapcar (lambda (z) (length (car z))) popup-items)))
-                   2)
-                (window-hscroll)))
-          (y (+ (- line-number 2)
-                (/ (- (window-height) menu-height) 2))))
-      (save-excursion
-        (artist-move-to-xy x y)
-        (point)))))
+                          (goto-char (window-start))
+                          (line-number-at-pos)))
+           (x (+ (/ (- (if (eq popup-imenu-position 'center) (window-width) fill-column)
+                       (apply 'max (mapcar (lambda (z) (length (car z))) popup-items)))
+                    2)
+                 (window-hscroll)))
+           (y (+ (- line-number 2)
+                 (/ (- (window-height) menu-height) 2))))
+      (popup-imenu--point-at-col-row x y)
+      )))
+
+(defun popup-imenu--point-at-col-row (column row)
+  (save-excursion
+    (forward-line row)
+    (move-to-column column popup-imenu-force-position)
+    (point)))
 
 ;;;###autoload
 (defun popup-imenu ()
@@ -153,8 +163,7 @@ POPUP-ITEMS - items to be shown in the popup."
                     :margin-left 1
                     :margin-right 1
                     )))
-    (goto-char (cdr selected))
-    (beginning-of-line-text)))
+    (goto-char (cdr selected))))
 
 (provide 'popup-imenu)
 

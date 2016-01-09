@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "popup-imenu" "popup-imenu.el" (22145 57678
-;;;;;;  266877 547000))
+;;;### (autoloads nil "popup-imenu" "popup-imenu.el" (22160 38789
+;;;;;;  900348 949000))
 ;;; Generated autoloads from popup-imenu.el
 
 (autoload 'popup-imenu "popup-imenu" "\
