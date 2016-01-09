@@ -5,7 +5,7 @@
 
 ;; Author: Kenji.I (Kenji Imakado) <ken.imakaado@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20150213.1942
+;; Package-Version: 20151230.124
 ;; Package-X-Original-Version: 0.0.1
 ;; Package-Requires: ((helm "20120811")(color-moccur "2.71"))
 ;; Keywords: convenience, emulation
@@ -91,6 +91,9 @@
 ;; resume
 
 ;;;code:
+
+(eval-when-compile
+  (require 'cl))
 
 (require 'helm)
 (require 'cl-lib)
@@ -213,7 +216,7 @@ nilなら使用しない"
         (when (save-excursion
                 (beginning-of-line)
                 (looking-at re))
-          (case direction
+          (cl-case direction
             (next (helm-next-line))
             (previous (helm-previous-line)))))
       (helm-mark-current-line))))
@@ -244,8 +247,8 @@ nilなら使用しない"
     (save-selected-window
       (select-window (get-buffer-window helm-buffer 'visible))
 
-      (case unit
-        (file (let ((search-fn (case direction
+      (cl-case unit
+        (file (let ((search-fn (cl-case direction
                                  (next 're-search-forward)
                                  (previous (prog1 're-search-backward
                                              (re-search-backward helm-c-moccur-info-line-re nil t)))
@@ -517,12 +520,12 @@ nilなら使用しない"
 
 (defun helm-c-moccur-dmoccur-higligt-info-line ()
   (let ((re helm-c-moccur-info-line-re))
-    (loop initially (goto-char (point-min))
-          while (re-search-forward re nil t)
-          do (put-text-property (line-beginning-position)
-                                (line-end-position)
-                                'face
-                                'helm-header))))
+    (cl-loop initially (goto-char (point-min))
+             while (re-search-forward re nil t)
+             do (put-text-property (line-beginning-position)
+                                   (line-end-position)
+                                   'face
+                                   'helm-header))))
 
 (defun helm-c-moccur-dmoccur-scraper ()
   (when (buffer-live-p moccur-mocur-buffer)
@@ -534,10 +537,10 @@ nilなら使用しない"
         (when helm-c-moccur-higligt-info-line-flag
           (helm-c-moccur-dmoccur-higligt-info-line))
         
-        (loop initially (progn (goto-char (point-min))
-                               (forward-line 1))
-              while (re-search-forward re nil t)
-              do (push (match-string 0) lines))
+        (cl-loop initially (progn (goto-char (point-min))
+                                  (forward-line 1))
+                 while (re-search-forward re nil t)
+                 do (push (match-string 0) lines))
         (nreverse lines)))))
 
 (defun helm-c-moccur-dmoccur-get-candidates ()
@@ -651,10 +654,10 @@ nilなら使用しない"
 
 (defun helm-c-moccur-last-sources-is-moccur-p ()
   (and (equal helm-c-moccur-last-buffer (current-buffer))
-       (every (lambda (source)
-                (let ((source (if (listp source) source (symbol-value source))))
-                  (string-match "moccur" (assoc-default 'name source))))
-              helm-last-sources)))
+       (cl-every (lambda (source)
+                   (let ((source (if (listp source) source (symbol-value source))))
+                     (string-match "moccur" (assoc-default 'name source))))
+                 helm-last-sources)))
 
 (defun helm-c-moccur-resume ()
   (interactive)
