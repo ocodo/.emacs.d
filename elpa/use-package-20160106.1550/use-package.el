@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 26 Sep 2015
 ;; Version: 2.1
-;; Package-Version: 20151112.1439
+;; Package-Version: 20160106.1550
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -563,7 +563,7 @@ manually updated package."
 (defun use-package-normalize-paths (label arg &optional recursed)
   "Normalize a list of filesystem paths."
   (cond
-   ((or (symbolp arg) (functionp arg))
+   ((and arg (or (symbolp arg) (functionp arg)))
     (let ((value (use-package-normalize-value label arg)))
       (use-package-normalize-paths label (eval value))))
    ((stringp arg)
