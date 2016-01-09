@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-ispell" "helm-ispell.el" (22148 36030
-;;;;;;  517126 780000))
+;;;### (autoloads nil "helm-ispell" "helm-ispell.el" (22160 38947
+;;;;;;  1235 167000))
 ;;; Generated autoloads from helm-ispell.el
 
 (autoload 'helm-ispell "helm-ispell" "\
