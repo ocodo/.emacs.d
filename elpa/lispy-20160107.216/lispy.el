@@ -51,7 +51,7 @@
 ;; `lispy' commands accept a numeric argument.  For instance, "3c" is
 ;; equivalent to "ccc" (clone sexp 3 times), and "4j" is equivalent to
 ;; "jjjj" (move point 4 sexps down).  Some useful applications are
-;; "9l" and "9a" - they exit list forwards and backwards respectively
+;; "9l" and "9h" - they exit list forwards and backwards respectively
 ;; at most 9 times which makes them effectively equivalent to
 ;; `end-of-defun' and `beginning-of-defun'.
 ;;
@@ -921,7 +921,8 @@ If position isn't special, move to previous or error."
                             (cdr bnd))
              (narrow-to-region (car bnd) (line-end-position))
              (let ((pt (point)))
-               (while (and (lispy-forward 1)
+               (while (and (ignore-errors
+                             (forward-list))
                            (> (point) pt))
                  (setq pt (point)))
                (when (looking-at "[\t ]*;[^\n]*$")
@@ -1427,8 +1428,9 @@ When this function is called:
      (interactive "p")
      (cond ((region-active-p)
             (lispy--surround-region ,left ,right)
-            (when (and (lispy-left-p)
-                       (lispy-looking-back lispy-left))
+            (when (and (lispy-looking-back lispy-left)
+                       (or (lispy-left-p)
+                           (> arg 1)))
               (insert " "))
             (backward-char 1))
            ((and (lispy--in-string-p)
@@ -1478,7 +1480,7 @@ When this function is called:
               (forward-char 1))))))
 
 (defalias 'lispy-parens
-    (lispy-pair "(" ")" "^\\|\\(?:> \\)\\|\\s-\\|\\[\\|[{(`'#@~_%,]")
+    (lispy-pair "(" ")" "^\\|\\(?:> \\|#\\?\\)\\|\\s-\\|\\[\\|[{(`'#@~_%,]")
   "`lispy-pair' with ().")
 
 (defalias 'lispy-brackets
@@ -2727,38 +2729,48 @@ Instead keep them, with a newline after each comment."
   "Squeeze current sexp into one line.
 Comments will be moved ahead of sexp."
   (interactive)
-  (unless (or (lispy-left-p)
-              (lispy-right-p))
-    (lispy--out-backward 1))
-  (let* ((bnd (lispy--bounds-dwim))
-         (str (lispy--string-dwim bnd))
-         (from-left (lispy-left-p))
-         expr)
-    (delete-region (car bnd) (cdr bnd))
-    (when (region-active-p)
-      (deactivate-mark))
-    (setq lispy--oneline-comments nil)
-    (if (setq expr (ignore-errors
-                     (lispy--oneline
-                      (lispy--read str))))
-        (progn
-          (mapc (lambda (x)
-                  (lispy--insert x)
-                  (newline))
-                (nreverse lispy--oneline-comments))
-          (lispy--insert expr))
-      (let ((no-comment "")
-            comments)
-        (loop for s in (split-string str "\n" t)
-           do (if (string-match "^ *\\(;\\)" s)
-                  (push (substring s (match-beginning 1)) comments)
-                (setq no-comment (concat no-comment "\n" s))))
-        (when comments
-          (insert (mapconcat #'identity comments "\n") "\n"))
-        (insert (substring
-                 (replace-regexp-in-string "\n *" " " no-comment) 1))))
-    (when from-left
-      (backward-list))))
+  (if (lispy--in-comment-p)
+      (let* ((bnd (lispy--bounds-comment))
+             (str (lispy--string-dwim bnd)))
+        (delete-region (car bnd) (cdr bnd))
+        (insert ";; "
+                (mapconcat #'identity
+                           (split-string str "[ \n]*;;[ \n]*" t)
+                           " "))
+        (beginning-of-line)
+        (back-to-indentation))
+    (unless (or (lispy-left-p)
+                (lispy-right-p))
+      (lispy--out-backward 1))
+    (let* ((bnd (lispy--bounds-dwim))
+           (str (lispy--string-dwim bnd))
+           (from-left (lispy-left-p))
+           expr)
+      (delete-region (car bnd) (cdr bnd))
+      (when (region-active-p)
+        (deactivate-mark))
+      (setq lispy--oneline-comments nil)
+      (if (setq expr (ignore-errors
+                       (lispy--oneline
+                        (lispy--read str))))
+          (progn
+            (mapc (lambda (x)
+                    (lispy--insert x)
+                    (newline))
+                  lispy--oneline-comments)
+            (lispy--insert expr))
+        (let ((no-comment "")
+              comments)
+          (loop for s in (split-string str "\n" t)
+             do (if (string-match "^ *\\(;\\)" s)
+                    (push (substring s (match-beginning 1)) comments)
+                  (setq no-comment (concat no-comment "\n" s))))
+          (when comments
+            (insert (mapconcat #'identity comments "\n") "\n"))
+          (insert (substring
+                   (replace-regexp-in-string "\n *" " " no-comment) 1))))
+      (when from-left
+        (backward-list)))))
 
 (defun lispy-multiline (&optional arg)
   "Spread current sexp over multiple lines.
@@ -4189,7 +4201,7 @@ Second region and buffer are the current ones."
                  nil ediff-regions-linewise nil nil))
       (add-hook 'ediff-after-quit-hook-internal
                 `(lambda ()
-                   (setq ediff-after-quit-hook-internal)
+                   (setq ediff-after-quit-hook-internal nil)
                    (set-window-configuration ,wnd))))))
 
 ;;* Locals: marking
@@ -4925,6 +4937,8 @@ Otherwise return cons of current string, symbol or list bounds."
                 (or (eq (point) (car bnd))
                     (eq (point) (1- (cdr bnd)))))
            bnd)
+          ((looking-at ";;")
+           (lispy--bounds-comment))
           (t
            (let ((res (ignore-errors
                         (bounds-of-thing-at-point
@@ -5579,7 +5593,7 @@ Ignore the matches in strings and comments."
                     (replace-match "(ly-raw function ")))
                 ;; ——— #{ or { or #( ——————————
                 (goto-char (point-min))
-                (while (re-search-forward "#(\\|{\\|#{" nil t)
+                (while (re-search-forward "#(\\|{\\|#{\\|#\\?(" nil t)
                   (let ((class
                          (cond ((string= (match-string 0) "#{")
                                 "clojure-set")
@@ -5587,6 +5601,8 @@ Ignore the matches in strings and comments."
                                 "clojure-map")
                                ((string= (match-string 0) "#(")
                                 "clojure-lambda")
+                               ((string= (match-string 0) "#?(")
+                                "clojure-reader-conditional")
                                (t
                                 (error "Expected set or map or lambda")))))
                     (unless (lispy--in-string-or-comment-p)
@@ -6286,6 +6302,10 @@ The outer delimiters are stripped."
            (delete-region beg (point))
            (insert (format "{%s}" (lispy--splice-to-str (cl-caddr sxp))))
            (goto-char beg))
+          (clojure-reader-conditional
+           (delete-region beg (point))
+           (insert (format "#?(%s)" (lispy--splice-to-str (cl-caddr sxp))))
+           (goto-char beg))
           (clojure-comma
            (delete-region beg (point))
            (delete-horizontal-space)
@@ -6360,24 +6380,26 @@ The outer delimiters are stripped."
                    (goto-char (car bnd))
                    (current-column)))
          (was-left (lispy-left-p)))
-    (if (or (and (memq major-mode lispy-clojure-modes)
-                 (or (string-match "\\^" str)
-                     (string-match "~" str)))
-            (> (length str) 10000))
+    (cond ((or (and (memq major-mode lispy-clojure-modes)
+                    (or (string-match "\\^" str)
+                        (string-match "~" str)))
+               (> (length str) 10000))
 
-        (lispy-from-left
-         (indent-sexp))
-      (let* ((max-lisp-eval-depth 10000)
-             (max-specpdl-size 10000)
-             (res (lispy--sexp-normalize
-                   (lispy--read str)))
-             (new-str (lispy--prin1-to-string res offset major-mode)))
-        (unless (string= str new-str)
-          (delete-region (car bnd)
-                         (cdr bnd))
-          (insert new-str)
-          (when was-left
-            (backward-list)))))))
+           (lispy-from-left
+            (indent-sexp)))
+          ((looking-at ";;"))
+          (t
+           (let* ((max-lisp-eval-depth 10000)
+                  (max-specpdl-size 10000)
+                  (res (lispy--sexp-normalize
+                        (lispy--read str)))
+                  (new-str (lispy--prin1-to-string res offset major-mode)))
+             (unless (string= str new-str)
+               (delete-region (car bnd)
+                              (cdr bnd))
+               (insert new-str)
+               (when was-left
+                 (backward-list))))))))
 
 (defun lispy--sexp-trim-leading-newlines (expr comment)
   "Trim leading (ly-raw newline) from EXPR.
@@ -7174,6 +7196,43 @@ When ARG is non-nil, unquote the current string."
     (define-key map (kbd "C-M-n") 'lispy-right)
     map))
 
+(defvar lispy-mode-map-evilcp
+  (let ((map (copy-keymap lispy-mode-map-base)))
+    (define-key map (kbd "M-)") 'lispy-close-round-and-newline)
+    (define-key map (kbd "[") 'lispy-open-square)
+    (define-key map (kbd "]") 'lispy-close-square)
+    (define-key map (kbd "{") 'lispy-open-curly)
+    (define-key map (kbd "}") 'lispy-close-curly)
+    (define-key map (kbd ")") 'lispy-right-nostring)
+    (define-key map (kbd "\"") 'lispy-doublequote)
+    (define-key map (kbd "M-\"") 'lispy-meta-doublequote)
+    (define-key map (kbd "DEL") 'lispy-backward-delete)
+    (define-key map (kbd "M-s") 'lispy-splice)
+    (define-key map (kbd "M-<up>") 'lispy-splice-sexp-killing-backward)
+    (define-key map (kbd "M-<down>") 'lispy-splice-sexp-killing-backward)
+    (define-key map (kbd "M-r") 'lispy-raise-sexp)
+    (define-key map (kbd "M-?") 'lispy-convolute-sexp)
+    (define-key map (kbd "M-S") 'lispy-split)
+    (define-key map (kbd "M-J") 'lispy-join)
+    (define-key map (kbd "{") 'lispy-braces)
+    (define-key map (kbd "}") 'lispy-brackets)
+    (define-key map (kbd "]") 'lispy-forward)
+    (define-key map (kbd "[") 'lispy-backward)
+    (define-key map (kbd "M-(") 'evil-cp-wrap-next-round)
+    (define-key map (kbd "M-{") 'evil-cp-wrap-next-curly)
+    (define-key map (kbd "M-}") 'evil-cp-wrap-next-square)
+    (define-key map (kbd "<") 'evil-cp-<)
+    (define-key map (kbd ">") 'evil-cp->)
+    (define-key map (kbd "y") 'lispy-new-copy)
+    (define-key map (kbd "<C-return>") 'lispy-open-line)
+    (define-key map (kbd "<M-return>") 'lispy-meta-return)
+    (define-key map (kbd "M-k") 'lispy-move-up)
+    (define-key map (kbd "M-j") 'lispy-move-down)
+    (define-key map (kbd "M-o") 'lispy-string-oneline)
+    (define-key map (kbd "M-p") 'lispy-clone)
+    (define-key map (kbd "M-\"") 'paredit-meta-doublequote)
+    map))
+
 (defvar lispy-mode-map-c-digits
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-1") 'lispy-describe-inline)
@@ -7240,7 +7299,7 @@ When ARG is non-nil, unquote the current string."
 
 (defun lispy-set-key-theme (theme)
   "Set `lispy-mode-map' for according to THEME.
-THEME is a list of choices: 'special, 'lispy, 'paredit, 'c-digits."
+THEME is a list of choices: 'special, 'lispy, 'paredit, 'evilcp, 'c-digits."
   (setq lispy-mode-map
         (make-composed-keymap
          (delq nil
@@ -7248,6 +7307,7 @@ THEME is a list of choices: 'special, 'lispy, 'paredit, 'c-digits."
                 (when (memq 'special theme) lispy-mode-map-special)
                 (when (memq 'lispy theme) lispy-mode-map-lispy)
                 (when (memq 'paredit theme) lispy-mode-map-paredit)
+                (when (memq 'evilcp theme) lispy-mode-map-evilcp)
                 (when (memq 'c-digits theme) lispy-mode-map-c-digits)
                 (when (memq 'oleh theme) lispy-mode-map-oleh)))))
   (setcdr
