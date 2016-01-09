@@ -1,9 +1,9 @@
 ;;; ido-occur.el --- Yet another `occur' with `ido'.
 
-;; Copyright (C) 2015 Danil <danil@kutkevich.org>.
-;; Author: Danil <danil@kutkevich.org>
-;; Version: 0.1.1
-;; Package-Version: 20151228.837
+;; Copyright (C) 2016 Danil <danil@kutkevich.org>.
+;; Author: Danil <danil@kutkevich.org>, Josuah Demangeon <sshbio>
+;; Version: 0.1.2
+;; Package-Version: 20160105.234
 ;; Package-Requires: ((dash "2.11.0"))
 ;; Keywords: inner buffer search
 ;; URL: https://github.com/danil/ido-occur
@@ -47,7 +47,7 @@
   :type 'string
   :group 'ido-occur)
 
-(defcustom ido-occur-decorations
+(defcustom ido-occur--decorations
   '("\n-> " "" "\n   " "\n   ..." "[" "]"
     " [No match]" " [Matched]" " [Not readable]"
     " [Too big]" " [Confirm]")
@@ -127,17 +127,17 @@ This fuction makes the most of the work."
   (interactive)
 
   (cond ((bound-and-true-p ido-vertical-mode)
-	 (ido-occur--run))
+         (ido-occur--run))
 
-	((bound-and-true-p ido-grid-mode)
-	 (let ((ido-grid-mode-max-columns 1)
-	       (ido-grid-mode-max-rows 8)
-	       (ido-grid-mode-prefix-scrolls t))
-	   (ido-occur--run)))
+        ((bound-and-true-p ido-grid-mode)
+         (let ((ido-grid-mode-max-columns 1)
+               (ido-grid-mode-max-rows 8)
+               (ido-grid-mode-prefix-scrolls t))
+           (ido-occur--run)))
 
-	(t
-	 (let ((ido-decorations ido-occur-decorations))
-	   (ido-occur--run)))))
+        (t
+         (let ((ido-decorations ido-occur--decorations))
+           (ido-occur--run)))))
 
 (provide 'ido-occur)
 
