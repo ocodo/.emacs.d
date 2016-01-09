@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "header2" "header2.el" (21868 31950 0 0))
+;;;### (autoloads nil "header2" "header2.el" (22160 38969 833346
+;;;;;;  237000))
 ;;; Generated autoloads from header2.el
 
 (autoload 'make-header "header2" "\
