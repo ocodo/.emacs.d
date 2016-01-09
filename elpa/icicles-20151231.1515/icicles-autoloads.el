@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "icicles" "icicles.el" (22145 57164 838300
-;;;;;;  740000))
+;;;### (autoloads nil "icicles" "icicles.el" (22160 38909 537043
+;;;;;;  925000))
 ;;; Generated autoloads from icicles.el
  (autoload 'icy-mode    "icicles" "Toggle Icicle mode - see `icicle-mode'." t nil)
  (autoload 'icicle-mode "icicles"
@@ -29,7 +29,7 @@
 ;;;### (autoloads nil nil ("icicles-chg.el" "icicles-cmd1.el" "icicles-cmd2.el"
 ;;;;;;  "icicles-doc1.el" "icicles-doc2.el" "icicles-face.el" "icicles-fn.el"
 ;;;;;;  "icicles-mac.el" "icicles-mcmd.el" "icicles-mode.el" "icicles-opt.el"
-;;;;;;  "icicles-pkg.el" "icicles-var.el") (22145 57164 881769 980000))
+;;;;;;  "icicles-pkg.el" "icicles-var.el") (22160 38909 586240 963000))
 
 ;;;***
 

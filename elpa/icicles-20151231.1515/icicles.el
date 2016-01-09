@@ -4,13 +4,13 @@
 ;; Description: Minibuffer completion and cycling.
 ;; Author: Drew Adams
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
-;; Copyright (C) 1996-2015, Drew Adams, all rights reserved.
+;; Copyright (C) 1996-2016, Drew Adams, all rights reserved.
 ;; Created: Tue Aug  1 14:21:16 1995
 ;; Version: 2015.07.05
 ;; Package-Requires: ()
-;; Last-Updated: Sun Sep 20 10:52:29 2015 (-0700)
+;; Last-Updated: Thu Dec 31 14:54:27 2015 (-0800)
 ;;           By: dradams
-;;     Update #: 23672
+;;     Update #: 23675
 ;; URL: http://www.emacswiki.org/icicles.el
 ;; Doc URL: http://emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer, projects,
@@ -25,7 +25,7 @@
 ;;   `bookmark+-lit', `cl', `cmds-menu', `cus-edit', `cus-face',
 ;;   `cus-load', `cus-start', `cus-theme', `dired', `dired+',
 ;;   `dired-aux', `dired-x', `doremi', `easymenu', `el-swank-fuzzy',
-;;   `ffap', `ffap-', `fit-frame', `frame-cmds', `frame-fns',
+;;   `ffap', `ffap-', `fit-frame', `flx', `frame-cmds', `frame-fns',
 ;;   `fuzzy', `fuzzy-match', `help+20', `hexrgb', `highlight',
 ;;   `icicles-cmd1', `icicles-cmd2', `icicles-face', `icicles-fn',
 ;;   `icicles-mcmd', `icicles-mode', `icicles-opt', `icicles-var',
@@ -1022,8 +1022,8 @@
 ;;    `icicle-case-string-less-p', `icicle-cdr-lessp',
 ;;    `icicle-char-cands-from-charlist',
 ;;    `icicle-char-properties-in-buffer',
-;;    `icicle-char-properties-in-buffers', `icicle-chars-after',
-;;    `icicle-chars-before', `icicle-choose-anything-candidate',
+;;    `icicle-char-properties-in-buffers',
+;;    `icicle-choose-anything-candidate',
 ;;    `icicle-choose-candidate-of-type',
 ;;    `icicle-choose-completion-string', `icicle-clear-history-1',
 ;;    `icicle-clear-history-entry', `icicle-clear-lighter',
@@ -1361,6 +1361,7 @@
 ;;    `icicle-special-candidates-first-p', `icicle-special-display-p',
 ;;    `icicle-special-variable-p', `icicle-split-input',
 ;;    `icicle-start-of-candidates-in-Completions',
+;;    `icicle-string-after-p', `icicle-string-before-p',
 ;;    `icicle-string-match-p', `icicle-strip-ignored-files-and-sort',
 ;;    `icicle-subst-envvar-in-file-name',
 ;;    `icicle-substring-no-properties', `icicle-substrings-of-length',
