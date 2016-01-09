@@ -1,0 +1,1 @@
+(define-package "hl-spotlight" "20151231.1340" "Extension of hl-line.el to spotlight current few lines." 'nil :url "http://www.emacswiki.org/hl-spotlight.el" :keywords '("highlight" "cursor" "accessibility"))

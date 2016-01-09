@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "hl-spotlight" "hl-spotlight.el" (21679 6811
-;;;;;;  655401 0))
+;;;### (autoloads nil "hl-spotlight" "hl-spotlight.el" (22160 38937
+;;;;;;  345186 967000))
 ;;; Generated autoloads from hl-spotlight.el
 
 (defface hl-spotlight '((t :inherit highlight)) "\
