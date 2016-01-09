@@ -8,7 +8,7 @@
 ;;               Phil Hagelberg
 ;;               Dan McKinley
 ;; Version: 1.3.1
-;; Package-Version: 20150906.954
+;; Package-Version: 20151228.1941
 ;; Package-Requires: ((emacs "24.1") (gh "0.9.2"))
 ;; Keywords: tools
 ;; Homepage: https://github.com/defunkt/gist.el
@@ -461,7 +461,6 @@ for the gist."
     (let* ((old-descr (oref gist :description))
            (new-descr (read-from-minibuffer "Description: " old-descr))
            (g (clone gist
-                     :files nil
                      :description new-descr))
            (resp (gh-gist-edit api g)))
       (gh-url-add-response-callback resp
