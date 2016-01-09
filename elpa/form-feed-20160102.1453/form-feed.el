@@ -1,10 +1,10 @@
 ;;; form-feed.el --- Display ^L glyphs as horizontal lines
 
-;; Copyright (C) 2014-2015 Vasilij Schneidermann <v.schneidermann@gmail.com>
+;; Copyright (C) 2014-2016 Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/form-feed
-;; Package-Version: 20150926.556
+;; Package-Version: 20160102.1453
 ;; Keywords: faces
 ;; Version: 0.2.2
 
@@ -12,7 +12,7 @@
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
@@ -39,6 +39,9 @@
 ;; https://github.com/wasamasa/form-feed
 
 ;;; Code:
+
+
+;;; variables
 
 (defgroup form-feed nil
   "Turn ^L glyphs into horizontal lines."
@@ -106,8 +109,7 @@ columns.  A value of -1 would leave the last column empty."
   :risky t)
 
 
-
-;; Functions
+;;; Functions
 
 (defun form-feed--add-font-lock-keywords ()
   "Add buffer-local keywords to display page delimiter lines.
