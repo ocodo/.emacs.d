@@ -6,7 +6,7 @@ this library implements a similar abstraction; a new kind of prefix
 command that is associated with a specific set of infix arguments and
 suffix commands.
 
-     Copyright (C) 2015 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2016 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -33,7 +33,7 @@ this library implements a similar abstraction; a new kind of prefix
 command that is associated with a specific set of infix arguments and
 suffix commands.
 
-     Copyright (C) 2015 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2016 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -422,6 +422,13 @@ File: magit-popup.info,  Node: Other options,  Prev: Customizing existing popups
      The Emacs package used to display man-pages, one of ‘man’ or
      ‘woman’.
 
+ -- User Option: magit-popup-display-buffer-action
+
+     The option controls how the window used to display a popup buffer
+     is created.  Popup buffers are displayed using ‘display-buffer’
+     with the value of this option as ACTION argument.  You can also set
+     this to nil and instead add an entry to ‘display-buffer-alist’.
+
    To emphasize the default action by making it bold use this:
 
      (button-type-put 'magit-popup-action-button 'format " %k %D")
@@ -686,14 +693,14 @@ directly.
 
 
 Tag Table:
-Node: Top989
-Node: Introduction2158
-Node: Usage4735
-Node: Customizing existing popups9392
-Node: Other options14920
-Node: Defining prefix and suffix commands16626
-Node: Defining prefix commands18722
-Node: Defining suffix commands25402
+Node: Top994
+Node: Introduction2168
+Node: Usage4745
+Node: Customizing existing popups9402
+Node: Other options14930
+Node: Defining prefix and suffix commands16979
+Node: Defining prefix commands19075
+Node: Defining suffix commands25755
 
 End Tag Table
 

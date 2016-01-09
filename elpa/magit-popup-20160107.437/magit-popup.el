@@ -1,6 +1,6 @@
 ;;; magit-popup.el --- Define prefix-infix-suffix command combos  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2015  The Magit Project Contributors
+;; Copyright (C) 2010-2016  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -84,6 +84,16 @@
   :group 'magit-popup)
 
 ;;;; Custom Options
+
+(defcustom magit-popup-display-buffer-action '((display-buffer-below-selected))
+  "The action used to display a popup buffer.
+
+Popup buffers are displayed using `display-buffer' with the value
+of this option as ACTION argument.  You can also set this to nil
+and instead add an entry to `display-buffer-alist'."
+  :package-version '(magit-popup . "2.4.0")
+  :group 'magit-popup
+  :type 'sexp)
 
 (defcustom magit-popup-manpage-package
   (if (memq system-type '(windows-nt ms-dos)) 'woman 'man)
@@ -1018,9 +1028,7 @@ restored."
 
 (defun magit-popup-mode-display-buffer (buffer mode)
   (let ((winconf (current-window-configuration)))
-    (split-window-vertically)
-    (other-window 1)
-    (switch-to-buffer buffer)
+    (select-window (display-buffer buffer magit-popup-display-buffer-action))
     (funcall mode)
     (setq magit-popup-previous-winconf winconf)))
 
