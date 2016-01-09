@@ -2304,12 +2304,26 @@ It is intended to use this only in `helm-initial-setup'."
     (window-buffer (with-selected-window (minibuffer-window)
                      (minibuffer-selected-window)))))
 
+(defun helm--run-init-hooks (hook)
+  "Run after and before init hooks local to source.
+See :after-init-hook and :before-init-hook in `helm-source'."
+  (cl-loop with sname = (cl-ecase hook
+                          (before-init-hook "h-before-init-hook")
+                          (after-init-hook "h-after-init-hook"))
+           with h = (cl-gensym sname)
+           for s in (helm-get-sources)
+           for hv = (assoc-default hook s)
+           if (and hv (not (symbolp hv)))
+           do (set h hv)
+           and do (helm-log-run-hook h)
+           else do (helm-log-run-hook hv)))
+
 (defun helm-initial-setup (any-default)
   "Initialize helm settings and set up the helm buffer."
+  ;; Run global hook.
   (helm-log-run-hook 'helm-before-initialize-hook)
-  (cl-loop for s in (helm-get-sources)
-           for hook = (assoc-default 'before-init-hook s)
-           when hook do (helm-log-run-hook hook))
+  ;; Run local source hook.
+  (helm--run-init-hooks 'before-init-hook)
   ;; For initialization of helm locals vars that need
   ;; a value from current buffer, it is here.
   (helm-set-local-variable 'current-input-method current-input-method)
@@ -2349,10 +2363,10 @@ It is intended to use this only in `helm-initial-setup'."
   (clrhash helm-candidate-cache)
   (helm-create-helm-buffer)
   (helm-clear-visible-mark)
+  ;; Run global hook.
   (helm-log-run-hook 'helm-after-initialize-hook)
-  (cl-loop for s in (helm-get-sources)
-           for hook = (assoc-default 'after-init-hook s)
-           when hook do (helm-log-run-hook hook)))
+  ;; Run local source hook.
+  (helm--run-init-hooks 'after-init-hook))
 
 (defun helm-create-helm-buffer ()
   "Create and setup `helm-buffer'."
@@ -3058,11 +3072,19 @@ It is meant to use with `filter-one-by-one' slot."
                                (assoc helm-pattern
                                       helm-mm--previous-migemo-info))
                     (cdr it)
-                  helm-pattern)))
+                  helm-pattern))
+         ;; FIXME This is called at each turn, cache it to optimize.
+         (mp (helm-aif (helm-attr 'match-part (helm-get-current-source))
+                 (funcall it display))))
     (with-temp-buffer
       (insert (propertize display 'read-only nil)) ; Fix (#1176)
       (goto-char (point-min))
-      (if (re-search-forward regex nil t)
+      (when mp
+        ;; FIXME the first part of display may contain an occurence of mp.
+        ;; e.g "helm-adaptive.el:27:(defgroup helm-adapt" 
+        (search-forward mp nil t)
+        (goto-char (match-beginning 0)))
+      (if (re-search-forward regex (and mp (+ (point) (length mp))) t)
           (add-text-properties
            (match-beginning 0) (match-end 0) '(face helm-match))
           (cl-loop with multi-match
@@ -4697,7 +4719,7 @@ this function is always called."
                 ;; Fuzzy regexp have already been
                 ;; computed with substring 1.
                 (not (string-match fuzzy-regexp part))
-                (not (funcall matchfn (substring 1 pattern) part)))
+                (not (funcall matchfn (substring pattern 1) part)))
             (funcall matchfn (if helm--in-fuzzy fuzzy-regexp pattern) part)))))
 
 (defun helm-initial-candidates-from-candidate-buffer (get-line-fn limit)
@@ -5261,8 +5283,9 @@ visible or invisible in all sources of current helm session"
     ;; return nil when coerced is "/tmp/*.el".
     (unless (or wilds (null wildcard)
                 (string-match-p helm--url-regexp coerced)
+                (file-exists-p coerced)
                 (and (stringp coerced)
-                      (null (string-match-p "[[*?]" coerced))))
+                     (null (string-match-p "[[*?]" coerced))))
       (setq coerced nil))
     (or wilds (and coerced (list coerced)))))
 
