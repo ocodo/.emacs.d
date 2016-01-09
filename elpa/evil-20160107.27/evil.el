@@ -16,6 +16,7 @@
 ;;      Jonas Bernoulli <jonas at bernoul.li>
 ;;      Jonathan Claggett <jclaggett at lonocloud.com>
 ;;      José A. Romero L. <escherdragon at gmail.com>
+;;      Justin Burkett <justin@burkett.cc>
 ;;      Lars Andersen <expez at expez.com>
 ;;      Lintaro Ina <tarao.gnn at gmail.com>
 ;;      Lukasz Wrzosek <wrzoski at mail.com>
@@ -47,7 +48,7 @@
 ;;      To get in touch, please use the bug tracker or the
 ;;      mailing list (see below).
 ;; Created: 2011-03-01
-;; Version: 1.2.7
+;; Version: 1.2.8
 ;; Keywords: emulation, vim
 ;; URL: http://gitorious.org/evil
 ;;      Repository: git://gitorious.org/evil/evil.git

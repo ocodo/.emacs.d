@@ -3,7 +3,7 @@
 ;; Author: Vegard Øye <vegard_oye at hotmail.com>
 ;; Maintainer: Vegard Øye <vegard_oye at hotmail.com>
 
-;; Version: 1.2.7
+;; Version: 1.2.8
 
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -29,6 +29,8 @@
 
 (declare-function evil-add-command-properties "evil-common"
                   (command &rest properties))
+(declare-function evil-update-insert-state-bindings "evil-maps"
+                  (&optional _option-name remove force))
 
 ;;; Hooks
 
@@ -445,6 +447,14 @@ The default behavior is to yank the whole line."
            (evil-add-command-properties
             'evil-yank-line
             :motion (if value 'evil-end-of-line 'evil-line))))
+
+(defcustom evil-disable-insert-state-bindings nil
+  "Whether insert state bindings should be used. Excludes
+bindings for escape, delete and `evil-toggle-key'."
+  :group 'evil
+  :type 'boolean
+  :initialize #'evil-custom-initialize-pending-reset
+  :set #'evil-update-insert-state-bindings)
 
 (defcustom evil-echo-state t
   "Whether to signal the current state in the echo area."
@@ -912,6 +922,15 @@ that line."
   :type 'boolean
   :group 'evil)
 
+(defcustom evil-text-object-change-visual-type t
+  "Text objects change the current visual state type.
+If non-nil then a text-object changes the type of the visual state to
+its default selection type (e.g. a word object always changes to
+charwise visual state). Otherwise the current visual state type is
+preserved."
+  :type 'boolean
+  :group 'evil)
+
 (defgroup evil-cjk nil
   "CJK support"
   :prefix "evil-cjk-"
@@ -1211,6 +1230,11 @@ describing it, etc.")
 (evil-define-local-var evil-this-type nil
   "Current motion type.")
 
+(evil-define-local-var evil-this-type-modified nil
+  "Non-nil iff current motion type has been modified by the user.
+If the type has been modified, this variable contains the new
+type.")
+
 (evil-define-local-var evil-this-register nil
   "Current register.")
 
@@ -1343,7 +1367,7 @@ has been repeated.")
   "The information about the number of following lines the
 insertion should be repeated. This is list (LINE COLUMN COUNT)
 where LINE is the line-number where the original insertion
-started and COLUMN is either a number of function determining the
+started and COLUMN is either a number or function determining the
 column where the repeated insertions should take place. COUNT is
 number of repeats (including the original insertion).")
 
@@ -1732,7 +1756,7 @@ Otherwise the previous command is assumed as substitute.")
           (goto-char (point-min))
           (buffer-substring (point-min) (line-end-position)))
          ;; no repo, use plain version
-         (t "1.2.7")))))
+         (t "1.2.8")))))
   "The current version of Evil")
 
 (defun evil-version ()
