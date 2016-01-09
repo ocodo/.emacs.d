@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "flx-isearch" "flx-isearch.el" (22052 19067
-;;;;;;  862811 0))
+;;;### (autoloads nil "flx-isearch" "flx-isearch.el" (22160 39007
+;;;;;;  697521 851000))
 ;;; Generated autoloads from flx-isearch.el
 
 (autoload 'flx-isearch-mode "flx-isearch" "\
