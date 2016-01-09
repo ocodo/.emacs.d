@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2015 François-Xavier Bois
 
-;; Version: 13.0.15
-;; Package-Version: 20151218.1400
+;; Version: 13.0.16
+;; Package-Version: 20160103.1115
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: July 2011
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "13.0.15"
+(defconst web-mode-version "13.0.16"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -4138,9 +4138,9 @@ another auto-completion with different ac-sources (e.g. ac-php)")
        ((member content-type '("jsx"))
         (setq token-re "/\\|\"\\|'\\|`\\|</?[[:alpha:]]"))
        ((string= web-mode-content-type "css")
-        (setq token-re "/\\*\\|//"))
+        (setq token-re "\"\\|'\\|/\\*\\|//"))
        ((string= content-type "css")
-        (setq token-re "/\\*"))
+        (setq token-re "\"\\|'\\|/\\*"))
        (t
         (setq token-re "/\\*\\|\"\\|'"))
        )
