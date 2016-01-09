@@ -4,7 +4,7 @@
 ;;
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20151115.2045
+;; Package-Version: 20160105.748
 ;; Version: 0.3.1
 ;;
 ;;; Commentary:
@@ -103,6 +103,8 @@
    `(company-tooltip-mouse ((t (:background ,atom-one-dark-gray))))
    `(company-tooltip-common ((t (:foreground ,atom-one-dark-orange-2 :background ,atom-one-dark-bg-1))))
    `(company-tooltip-common-selection ((t (:foreground ,atom-one-dark-orange-2 :background ,atom-one-dark-gray))))
+   `(company-preview ((t (:background ,atom-one-dark-bg))))
+   `(company-preview-common ((t (:foreground ,atom-one-dark-orange-2 :background ,atom-one-dark-bg))))
    `(company-scrollbar-fg ((t (:background ,atom-one-dark-mono-1))))
    `(company-scrollbar-bg ((t (:background ,atom-one-dark-bg-1))))
 
