@@ -1,10 +1,10 @@
 ;;; xbm-life.el --- A XBM version of Conway's Game of Life
 
-;; Copyright (C) 2015 Vasilij Schneidermann <v.schneidermann@gmail.com>
+;; Copyright (C) 2015-2016 Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/xbm-life
-;; Package-Version: 20151217.15
+;; Package-Version: 20160103.217
 ;; Version: 0.1.3
 ;; Package-Requires:
 ;; Keywords: games
@@ -13,7 +13,7 @@
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
@@ -413,7 +413,7 @@ When supplying SIZE, make it of that size instead
                              :height (* xbm-life-grid-size xbm-life-tile-size)
                              :foreground xbm-life-foreground
                              :background xbm-life-background)
-               'point-entered (lambda (_ _) (goto-char (point-max)))))
+               'point-entered (lambda (_old _new) (goto-char (point-max)))))
   (insert "\n")
   (deactivate-mark)
   (setq buffer-read-only t))

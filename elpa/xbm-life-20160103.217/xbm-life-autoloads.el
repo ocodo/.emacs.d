@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "xbm-life" "xbm-life.el" (22145 57043 406125
-;;;;;;  263000))
+;;;### (autoloads nil "xbm-life" "xbm-life.el" (22160 38742 704034
+;;;;;;  450000))
 ;;; Generated autoloads from xbm-life.el
 
 (autoload 'xbm-life "xbm-life" "\
