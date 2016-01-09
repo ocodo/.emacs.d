@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "lentic" "lentic.el" (22084 1897 956921 125000))
+;;;### (autoloads nil "lentic" "lentic.el" (22160 38876 72863 60000))
 ;;; Generated autoloads from lentic.el
 
 (autoload 'lentic-default-init "lentic" "\
@@ -14,8 +14,8 @@ see `lentic-init' for details.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-asciidoc" "lentic-asciidoc.el" (22084
-;;;;;;  1897 940921 125000))
+;;;### (autoloads nil "lentic-asciidoc" "lentic-asciidoc.el" (22160
+;;;;;;  38876 48862 926000))
 ;;; Generated autoloads from lentic-asciidoc.el
 
 (autoload 'lentic-clojure-asciidoc-init "lentic-asciidoc" "\
@@ -30,8 +30,8 @@ see `lentic-init' for details.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-dev" "lentic-dev.el" (22084 1897 932921
-;;;;;;  124000))
+;;;### (autoloads nil "lentic-dev" "lentic-dev.el" (22160 38876 36862
+;;;;;;  860000))
 ;;; Generated autoloads from lentic-dev.el
 
 (autoload 'lentic-dev-after-change-function "lentic-dev" "\
@@ -97,7 +97,7 @@ Enable font locking properties for inserted text.
 ;;;***
 
 ;;;### (autoloads nil "lentic-latex-code" "lentic-latex-code.el"
-;;;;;;  (22084 1897 952921 125000))
+;;;;;;  (22160 38876 68863 37000))
 ;;; Generated autoloads from lentic-latex-code.el
 
 (autoload 'lentic-clojure-latex-init "lentic-latex-code" "\
@@ -122,8 +122,8 @@ Enable font locking properties for inserted text.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-mode" "lentic-mode.el" (22084 1897
-;;;;;;  948921 125000))
+;;;### (autoloads nil "lentic-mode" "lentic-mode.el" (22160 38876
+;;;;;;  60862 993000))
 ;;; Generated autoloads from lentic-mode.el
 
 (autoload 'lentic-mode-create-from-init "lentic-mode" "\
@@ -192,7 +192,7 @@ Documentation
 
 \(fn &optional ARG)" t nil)
 
-(easy-menu-change '("Edit") "Lentic" '(["Create All" lentic-mode-create-from-init :active (not lentic-config)] ["Create View" lentic-mode-create-new-view-in-selected-window] ["Next" lentic-mode-next-lentic-buffer :active lentic-config] ["Split Below" lentic-mode-split-window-below :active lentic-config] ["Split Right" lentic-mode-split-window-right :active lentic-config] ["Show All" lentic-mode-show-all-lentic :active lentic-config] ["Swap" lentic-mode-swap-lentic-window :active lentic-config] ["Insert File Local" lentic-mode-insert-file-local] ["Read Doc (eww)" lentic-mode-doc-eww-view] ["Read Doc (external)" lentic-mode-doc-external-view]))
+(easy-menu-change '("Edit") "Lentic" '(["Create All" lentic-mode-create-from-init :active (not lentic-config)] ["Create View" lentic-mode-create-new-view-in-selected-window] ["Next" lentic-mode-next-lentic-buffer :active lentic-config] ["Split Below" lentic-mode-split-window-below :active lentic-config] ["Split Right" lentic-mode-split-window-right :active lentic-config] ["Show All" lentic-mode-show-all-lentic :active lentic-config] ["Swap" lentic-mode-swap-lentic-window :active lentic-config] ["Force Clone" lentic-mode-force-clone :active lentic-config] ["Insert File Local" lentic-mode-insert-file-local] ["Read Doc (eww)" lentic-mode-doc-eww-view] ["Read Doc (external)" lentic-mode-doc-external-view]))
 
 (autoload 'lentic-mode-insert-file-local "lentic-mode" "\
 
@@ -222,8 +222,8 @@ See `lentic-mode' for more information on Lentic mode.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-org" "lentic-org.el" (22084 1897 936921
-;;;;;;  125000))
+;;;### (autoloads nil "lentic-org" "lentic-org.el" (22160 38876 40862
+;;;;;;  882000))
 ;;; Generated autoloads from lentic-org.el
 
 (autoload 'lentic-org-el-init "lentic-org" "\
@@ -269,7 +269,7 @@ See `lentic-mode' for more information on Lentic mode.
 ;;;***
 
 ;;;### (autoloads nil nil ("lentic-chunk.el" "lentic-doc.el" "lentic-pkg.el"
-;;;;;;  "lentic-rot13.el") (22084 1897 964685 528000))
+;;;;;;  "lentic-rot13.el") (22160 38876 85558 470000))
 
 ;;;***
 

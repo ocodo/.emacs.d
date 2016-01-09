@@ -11,7 +11,7 @@
 
 ;; The contents of this file are subject to the GPL License, Version 3.0.
 
-;; Copyright (C) 2014, 2015, Phillip Lord, Newcastle University
+;; Copyright (C) 2014, 2015, 2016, Phillip Lord, Newcastle University
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -155,9 +155,9 @@
 (require 'm-buffer)
 (require 'm-buffer-at)
 (require 'f)
-;; #+end_src
 
 (defvar lentic-doc "lenticular.org")
+;; #+end_src
 
 ;; ** State
 
@@ -621,7 +621,7 @@ see `lentic-init' for details."
   `(lentic-when-buffer
     ,buffer
     (with-current-buffer
-        buffer
+        ,buffer
       ,@body)))
 
 (defmacro lentic-with-lentic-buffer (buffer &rest body)
@@ -788,7 +788,6 @@ SEEN-BUFFER is a list of buffers to ignore."
             (get-buffer-create "*lentic-log*")
           (goto-char (point-max))
           (insert msg))))))
-
 ;; #+end_src
 
 ;; An emergency detection system. Several of the hooks in use (post-command-hook,
@@ -834,12 +833,14 @@ repeated errors.")
 (defun lentic-emergency ()
   "Stop lentic from working due to code problem."
   (interactive)
-  (setq lentic-emergency t))
+  (setq lentic-emergency t)
+  (lentic-update-all-display))
 
 (defun lentic-unemergency ()
   "Start lentic working after stop due to code problem."
   (interactive)
-  (setq lentic-emergency nil))
+  (setq lentic-emergency nil)
+  (lentic-update-all-display))
 
 (defun lentic-hook-fail (err hook)
   "Give an informative message when we have to fail.
@@ -1081,9 +1082,6 @@ the change."
             (nth 2 updates)
             seen-buffer))))
      lentic-config)))
-
-
-
 ;; #+end_src
 
 ;; We also need to store the location of the area to be changed before the change
@@ -1266,6 +1264,10 @@ same top-left location. Update details depend on CONF."
   "Update the display with information about lentic's state."
   (when (fboundp 'lentic-mode-update-mode-line)
     (lentic-mode-update-mode-line)))
+
+(defun lentic-update-all-display ()
+  (when (fboundp 'lentic-mode-update-all-display)
+    (lentic-mode-update-all-display)))
 ;; #+end_src
 
 
