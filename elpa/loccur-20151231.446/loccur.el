@@ -5,7 +5,7 @@
 ;; Author: Alexey Veretennikov <alexey dot veretennikov at gmail dot com>
 ;; Created: 2009-09-08
 ;; Version: 1.2.2
-;; Package-Version: 20151227.2013
+;; Package-Version: 20151231.446
 ;; Keywords: matching
 ;; URL: https://github.com/fourier/loccur
 ;; Compatibility: GNU Emacs 23.x, GNU Emacs 24.x
@@ -155,6 +155,16 @@ REGEX is regexp to search"
   (let ((loccur-highlight-matching-regexp nil))
     (loccur regex)))
 
+(defun loccur-toggle-highlight (&optional arg)
+  "Toggle the highlighting of the match.
+Optional argument ARG if t turn highlight on, off otherwise."
+  (interactive)
+  (setq loccur-highlight-matching-regexp (not loccur-highlight-matching-regexp))
+  (when loccur-mode
+    (dolist (ovl loccur-overlay-list)
+      (when (overlay-get ovl loccur-overlay-visible-property-name)
+        (overlay-put ovl 'face (if loccur-highlight-matching-regexp 'loccur-face nil))))))
+
 (defun loccur (regex)
   "Perform a simple grep in current buffer.
 
@@ -180,7 +190,6 @@ unhides lines again"
       (loccur-mode)
       (when loccur-jump-beginning-of-line
         (beginning-of-line))))) ; optionally jump to the beginning of line
-
 
 
 (defun loccur-prompt ()
@@ -266,9 +275,8 @@ REGEX is an argument to `loccur'."
       (mapcar (lambda (line)
                 (let ((beginning (car line)))
                   (unless ( = (- beginning prev-end) 1)
-                    (let ((ovl-start (if (= prev-end 1) 1 prev-end))
-                          (ovl-end  (1- beginning)))
-                      (push (list ovl-start ovl-end) overlays)))
+                    (let ((ovl-end  (1- beginning)))
+                      (push (list prev-end ovl-end) overlays)))
                   (setq prev-end (nth 3 line))))
               buffer-matches)
       (push (list (1+ prev-end) (point-max)) overlays)
@@ -311,15 +319,6 @@ containing match"
         (forward-line 1))
       (setq lines (nreverse lines)))))
 
-(defun loccur-toggle-highlight (&optional arg)
-  "Toggle the highlighting of the match.
-Optional argument ARG if t turn highlight on, off otherwise."
-  (interactive)
-  (setq loccur-highlight-matching-regexp (not loccur-highlight-matching-regexp))
-  (when loccur-mode
-    (dolist (ovl loccur-overlay-list)
-      (when (overlay-get ovl loccur-overlay-visible-property-name)
-        (overlay-put ovl 'face (if loccur-highlight-matching-regexp 'loccur-face nil))))))
         
     
 
