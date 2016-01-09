@@ -2,7 +2,7 @@
 
 ;; Author: <e.enoson@gmail.com>
 ;; URL: http://github.com/enoson/eno.el
-;; Package-Version: 20150722.526
+;; Package-Version: 20151229.212
 ;; Version: 1.1
 ;; Package-requires: ((dash "2.9.0") (edit-at-point "1.0"))
 
@@ -184,7 +184,7 @@
 (defun eno-make-overlay-regexp (re beg end)
   (save-excursion
     (goto-char beg)
-    (setq ovs)
+    (setq ovs nil)
     (while (re-search-forward re end t)
       (unless (get-char-property (point) 'invisible)
         (push (make-overlay (match-beginning 0)

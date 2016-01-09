@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "eno" "eno.el" (21937 40088 171401 0))
+;;;### (autoloads nil "eno" "eno.el" (22160 39020 241577 781000))
 ;;; Generated autoloads from eno.el
 
 (autoload 'eno "eno" "\
