@@ -1,7 +1,6 @@
 ;;; async-bytecomp.el --- Async functions to compile elisp files async
 
-;; Copyright (C) 2014 John Wiegley
-;; Copyright (C) 2014 Thierry Volpiatto
+;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
 
 ;; Authors: John Wiegley <jwiegley@gmail.com>
 ;;          Thierry Volpiatto <thierry.volpiatto@gmail.com>
@@ -106,15 +105,21 @@ All *.elc files are systematically deleted before proceeding."
     (unless quiet (message "Started compiling asynchronously directory %s" directory))))
 
 (defvar package-archive-contents)
+(defvar package-alist)
 (declare-function package-desc-reqs "package.el" (cl-x))
 
 (defun async-bytecomp--get-package-deps (pkg &optional only)
   ;; Same as `package--get-deps' but parse instead `package-archive-contents'
   ;; because PKG is not already installed and not present in `package-alist'.
-  (let* ((pkg-desc (cadr (assq pkg package-archive-contents)))
+  ;; However fallback to `package-alist' in case PKG no more present
+  ;; in `package-archive-contents' due to modification to `package-archives'.
+  ;; See issue #58.
+  (let* ((pkg-desc (cadr (or (assq pkg package-archive-contents)
+                             (assq pkg package-alist))))
          (direct-deps (cl-loop for p in (package-desc-reqs pkg-desc)
                                for name = (car p)
-                               when (assq name package-archive-contents)
+                               when (or (assq name package-archive-contents)
+                                        (assq name package-alist))
                                collect name))
          (indirect-deps (unless (eq only 'direct)
                           (delete-dups
