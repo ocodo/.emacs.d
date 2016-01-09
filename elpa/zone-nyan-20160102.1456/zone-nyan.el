@@ -1,10 +1,10 @@
 ;;; zone-nyan.el --- Zone out with nyan cat
 
-;; Copyright (C) 2015 Vasilij Schneidermann <v.schneidermann@gmail.com>
+;; Copyright (C) 2015-2016 Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/zone-nyan
-;; Package-Version: 20151208.1314
+;; Package-Version: 20160102.1456
 ;; Version: 0.2.2
 ;; Package-Requires: ((esxml "0.3.1"))
 ;; Keywords: zone
@@ -13,7 +13,7 @@
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
