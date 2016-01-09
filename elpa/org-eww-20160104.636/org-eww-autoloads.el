@@ -3,21 +3,21 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "org-eww" "org-eww.el" (22148 36026 277137
-;;;;;;  581000))
+;;;### (autoloads nil "org-eww" "org-eww.el" (22160 38795 504384
+;;;;;;  667000))
 ;;; Generated autoloads from org-eww.el
 
 (autoload 'org-eww "org-eww" "\
-Export current org-mode buffer to `org-eww-output-file-name', and call `eww-open-file' to preview it
+Export current org-mode buffer to a temp file and call `eww-open-file' to preview it
 
 \(fn)" t nil)
 
-(autoload 'org-eww-turn-on-preview-at-save "org-eww" "\
+(autoload 'org-eww/turn-on-preview-at-save "org-eww" "\
 turn on automatically preview current org-file when save
 
 \(fn)" t nil)
 
-(autoload 'org-eww-turn-off-preview-at-save "org-eww" "\
+(autoload 'org-eww/turn-off-preview-at-save "org-eww" "\
 turn off automatically preview current org-file when save
 
 \(fn)" t nil)

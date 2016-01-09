@@ -5,7 +5,7 @@
 ;; Author: DarkSun <lujun9972@gmail.com>
 ;; Created: 2015-12-27
 ;; Version: 0.1
-;; Package-Version: 20151228.1458
+;; Package-Version: 20160104.636
 ;; Keywords: convenience, eww, org
 ;; Package-Requires: ((org "8.0") (emacs "24.4"))
 ;; URL: https://github.com/lujun9972/org-eww
@@ -37,57 +37,38 @@
 ;; Quick start:
 
 ;; execute the following commands:
-;; `org-eww-turn-on-preview-at-save'
+;; `org-eww/turn-on-preview-at-save'
 
 ;;; Code:
 (require 'org)
 (require 'eww)
 
-(defvar org-eww-output-file-name "preview-result.html"
-  "temporary file generated when preview")
-
-(defun org-eww--select-or-create-buffer-window (buffer-or-name)
-  "If any window in currect frame displaying BUFFER-OR-NAME ,then select the window, otherwise,create a new window to display it"
-  (let ((buf (get-buffer-create buffer-or-name)))
-	(unless (get-buffer-window buf)
-	  (split-window)
-	  (switch-to-buffer buf))
-	(select-window (get-buffer-window buf))))
-
-(defun org-eww--buffer-point(buffer-or-name &optional default-point)
-  "Get the point position in specify buffer
-
-If BUFFER-OR-NAME did not exist, return DEFAULT-POINT"
-  (if (get-buffer buffer-or-name)
-	  (with-current-buffer buffer-or-name
-		(point))
-	default-point))
-
-(defun org-eww-convert (output-file-name)
+(defun org-eww/convert (output-file-name)
   "Export current org-mode buffer to OUTPUT-FILE-NAME, and call `eww-open-file' to preview it"
-  (let ((cb (current-buffer))
-		(eww-point (org-eww--buffer-point "*eww*" 1)))
+  (let ((cb (current-buffer)))
     (save-excursion
-	  (org-eww--select-or-create-buffer-window "*eww*")
-	  (with-current-buffer cb
-		(org-export-to-file 'html output-file-name nil nil nil nil nil #'eww-open-file))
-	  (goto-char eww-point))
-    (org-eww--select-or-create-buffer-window cb)))
+      (with-selected-window (display-buffer (get-buffer-create "*eww*"))
+        (let ((eww-point (point))
+              (eww-window-start (window-start)))
+          (with-current-buffer cb
+            (org-export-to-file 'html output-file-name nil nil nil nil nil #'eww-open-file))
+          (goto-char eww-point)
+          (set-window-start nil eww-window-start))))))
 
 ;;;###autoload
 (defun org-eww ()
-  "Export current org-mode buffer to `org-eww-output-file-name', and call `eww-open-file' to preview it"
+  "Export current org-mode buffer to a temp file and call `eww-open-file' to preview it"
   (interactive)
-  (org-eww-convert org-eww-output-file-name))
+  (org-eww/convert (make-temp-file (file-name-base buffer-file-name) nil ".html")))
 
 ;;;###autoload
-(defun org-eww-turn-on-preview-at-save ()
+(defun org-eww/turn-on-preview-at-save ()
   "turn on automatically preview current org-file when save"
   (interactive)
   (add-hook 'after-save-hook #'org-eww nil t))
 
 ;;;###autoload
-(defun org-eww-turn-off-preview-at-save ()
+(defun org-eww/turn-off-preview-at-save ()
   "turn off automatically preview current org-file when save"
   (interactive)
   (remove-hook 'after-save-hook #'org-eww t))
