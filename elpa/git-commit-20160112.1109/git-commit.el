@@ -13,7 +13,7 @@
 
 ;; Package-Requires: ((emacs "24.4") (dash "20151021.113") (with-editor "20151111"))
 ;; Keywords: git tools vc
-;; Package-Version: 20160101.32
+;; Package-Version: 20160112.1109
 ;; Homepage: https://github.com/magit/magit
 
 ;; This file is not part of GNU Emacs.
@@ -177,7 +177,7 @@ The major mode configured here is turned on by the minor mode
   "Hook run at the end of `git-commit-setup'."
   :group 'git-commit
   :type 'hook
-  :options '(magit-revert-buffers
+  :options '(
              git-commit-save-message
              git-commit-setup-changelog-support
              git-commit-turn-on-auto-fill
