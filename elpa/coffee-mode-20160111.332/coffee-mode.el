@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Chris Wanstrath
 
 ;; Version: 0.6.2
-;; Package-Version: 20151227.2126
+;; Package-Version: 20160111.332
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
 ;; URL: http://github.com/defunkt/coffee-mode
@@ -1198,6 +1198,43 @@ comments such as the following:
      (0 (ignore (coffee-syntax-propertize-block-comment)))))
    (point) end))
 
+(defun coffee-get-comment-info ()
+  (let* ((syntax (syntax-ppss))
+         (commentp (nth 4 syntax))
+         (comment-start-kinda (nth 8 syntax)))
+    (when commentp
+      (save-excursion
+        (if (and
+             (> comment-start-kinda 2) (< comment-start-kinda (point-max))
+             (string=
+              "###" (buffer-substring
+                     (- comment-start-kinda 2) (1+ comment-start-kinda))))
+            'multiple-line
+          'single-line)))))
+
+(defun coffee-comment-line-break-fn (&optional _)
+  (let ((comment-type (coffee-get-comment-info))
+        (coffee-indent-like-python-mode t))
+    (comment-indent-new-line)
+    (cond ((eq comment-type 'multiple-line)
+           (save-excursion
+             (beginning-of-line)
+             (when (looking-at "[[:space:]]*\\(#\\)")
+               (replace-match "" nil nil nil 1))))
+          ((eq comment-type 'single-line)
+           (coffee-indent-line)))))
+
+(defun coffee-auto-fill-fn ()
+  (let ((comment-type (coffee-get-comment-info))
+        (fill-result (do-auto-fill))
+        (coffee-indent-like-python-mode t))
+    (when (and fill-result (eq comment-type 'single-line))
+      (save-excursion
+        (beginning-of-line)
+        (when (looking-at "[[:space:]]*#")
+          (replace-match "#")))
+      (coffee-indent-line))))
+
 ;;
 ;; Define Major Mode
 ;;
@@ -1209,6 +1246,10 @@ comments such as the following:
   ;; code for syntax highlighting
   (setq font-lock-defaults '((coffee-font-lock-keywords)))
 
+  ;; fix comment filling function
+  (set (make-local-variable 'comment-line-break-function)
+        #'coffee-comment-line-break-fn)
+  (set (make-local-variable 'auto-fill-function) #'coffee-auto-fill-fn)
   ;; perl style comment: "# ..."
   (modify-syntax-entry ?# "< b" coffee-mode-syntax-table)
   (modify-syntax-entry ?\n "> b" coffee-mode-syntax-table)
