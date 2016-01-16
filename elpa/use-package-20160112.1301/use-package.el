@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 26 Sep 2015
 ;; Version: 2.1
-;; Package-Version: 20160106.1550
+;; Package-Version: 20160112.1301
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -420,23 +420,22 @@ manually updated package."
   (let ((archive-symbol (if (symbolp archive) archive (intern archive)))
         (archive-name   (if (stringp archive) archive (symbol-name archive))))
     (if (use-package--archive-exists-p archive-symbol)
-        (push (cons package archive-name) package-pinned-packages)
+        (add-to-list 'package-pinned-packages (cons package archive-name))
       (error "Archive '%s' requested for package '%s' is not available."
              archive-name package))
     (package-initialize t)))
 
 (defun use-package-handler/:pin (name keyword archive-name rest state)
-  (let ((body (use-package-process-keywords name rest state)))
-    ;; This happens at macro expansion time, not when the expanded code is
-    ;; compiled or evaluated.
-    (if (null archive-name)
-        body
-      (use-package-pin-package name archive-name)
-      (use-package-concat
-       body
-       `((push '(,(use-package-as-symbol name) . ,archive-name)
-               package-pinned-packages)
-         t)))))
+  (let ((body (use-package-process-keywords name rest state))
+        (pin-form (if archive-name
+                      `(use-package-pin-package ',(use-package-as-symbol name)
+                                                ,archive-name))))
+    ;; Pinning should occur just before ensuring
+    ;; See `use-package-handler/:ensure'.
+    (if (bound-and-true-p byte-compile-current-file)
+        (eval pin-form)              ; Eval when byte-compiling,
+      (push pin-form body))          ; or else wait until runtime.
+    body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
