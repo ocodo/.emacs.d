@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2016 Danil <danil@kutkevich.org>.
 ;; Author: Danil <danil@kutkevich.org>, Josuah Demangeon <sshbio>
-;; Version: 0.1.2
-;; Package-Version: 20160105.234
+;; Version: 0.1.3
+;; Package-Version: 20160114.1113
 ;; Package-Requires: ((dash "2.11.0"))
 ;; Keywords: inner buffer search
 ;; URL: https://github.com/danil/ido-occur
@@ -102,6 +102,8 @@ and from end of `BUFFER' to beginning of `BUFFER'."
   "Actually `ido-occur' function)
 This fuction makes the most of the work."
 
+  (interactive)
+
   (let* ((initial-column (current-column))
 
          (line (ido-occur--strip-text-properties
@@ -116,7 +118,7 @@ This fuction makes the most of the work."
 
          (line-number (string-to-number (car (split-string line)))))
 
-    (goto-line line-number)
+    (goto-line line-number) ;ido-occur.el:119:16:Warning: `goto-line' is for interactive use only; use `forward-line' instead.
     (beginning-of-line)
     (move-to-column new-column)))
 
@@ -125,6 +127,9 @@ This fuction makes the most of the work."
   "Yet another `occur' with `ido'."
 
   (interactive)
+
+  ;; Because in original "Ido" matcher preserves candidates sort order.
+  (when (fboundp 'ido-clever-match-disable) (ido-clever-match-disable))
 
   (cond ((bound-and-true-p ido-vertical-mode)
          (ido-occur--run))
@@ -137,7 +142,9 @@ This fuction makes the most of the work."
 
         (t
          (let ((ido-decorations ido-occur--decorations))
-           (ido-occur--run)))))
+           (ido-occur--run))))
+
+  (when (fboundp 'ido-clever-match-enable) (ido-clever-match-enable)))
 
 (provide 'ido-occur)
 
