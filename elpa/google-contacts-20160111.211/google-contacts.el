@@ -82,10 +82,12 @@ I AM SERIOUS!")
           ;; `google-contacts-resource-url' to store the cache file as the
           ;; current URL, rathen than the URL with the access token.
           (with-current-buffer buf
-            (let ((fname (url-cache-create-filename url)))
-              (if (url-cache-prepare fname)
-                  (let ((coding-system-for-write 'binary))
-                    (write-region (point-min) (point-max) fname nil 5)))))
+            (goto-char (point-min))
+            (when (looking-at "^HTTP/1.1 200 OK")
+              (let ((fname (url-cache-create-filename url)))
+                (if (url-cache-prepare fname)
+                    (let ((coding-system-for-write 'binary))
+                      (write-region (point-min) (point-max) fname nil 5))))))
           buf)
       (url-fetch-from-cache url))))
 

@@ -1,11 +1,10 @@
 ;;; google-contacts-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (google-contacts-async-api google-contacts-async
-;;;;;;  google-contacts) "google-contacts" "google-contacts.el" (21390
-;;;;;;  37416 0 0))
+;;;### (autoloads nil "google-contacts" "google-contacts.el" (22168
+;;;;;;  61953 399509 406000))
 ;;; Generated autoloads from google-contacts.el
 
 (autoload 'google-contacts "google-contacts" "\
@@ -26,8 +25,8 @@ CBARGS are passed to CALLBACK.
 
 ;;;***
 
-;;;### (autoloads (google-oauth-auth-and-store google-oauth-auth)
-;;;;;;  "google-oauth" "google-oauth.el" (21390 37416 0 0))
+;;;### (autoloads nil "google-oauth" "google-oauth.el" (22168 61953
+;;;;;;  403509 408000))
 ;;; Generated autoloads from google-oauth.el
 
 (autoload 'google-oauth-auth "google-oauth" "\
@@ -42,8 +41,8 @@ Request access to a Google resource and store it using `auth-source'.
 
 ;;;***
 
-;;;### (autoloads (google-contacts-to-org-contacts) "google-org-contacts"
-;;;;;;  "google-org-contacts.el" (21390 37416 0 0))
+;;;### (autoloads nil "google-org-contacts" "google-org-contacts.el"
+;;;;;;  (22168 61953 403509 408000))
 ;;; Generated autoloads from google-org-contacts.el
 
 (autoload 'google-contacts-to-org-contacts "google-org-contacts" "\
@@ -55,15 +54,13 @@ If QUERY-STRING is nil insert all contacts.
 ;;;***
 
 ;;;### (autoloads nil nil ("google-contacts-gnus.el" "google-contacts-message.el"
-;;;;;;  "google-contacts-pkg.el") (21390 37416 956062 0))
+;;;;;;  "google-contacts-pkg.el") (22168 61953 432799 599000))
 
 ;;;***
 
-(provide 'google-contacts-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; google-contacts-autoloads.el ends here
