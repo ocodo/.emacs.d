@@ -200,7 +200,9 @@
 		 (:keywords "comm" "dbus" "convenience"))])
  (debbugs .
 	  [(0 8)
-	   nil "SOAP library to access debbugs servers" tar
+	   ((async
+	     (1 6)))
+	   "SOAP library to access debbugs servers" tar
 	   ((:keywords "comm" "hypermedia")
 	    (:url . "http://elpa.gnu.org/packages/debbugs.html"))])
  (dict-tree .
@@ -215,10 +217,10 @@
 	     ((:url . "http://www.dr-qubit.org/emacs.php")
 	      (:keywords "extensions" "matching" "data structures trie" "tree" "dictionary" "completion" "regexp"))])
  (diff-hl .
-	  [(1 8 1)
+	  [(1 8 2)
 	   ((cl-lib
 	     (0 2)))
-	   "Highlight uncommitted changes" tar
+	   "Highlight uncommitted changes using VC" tar
 	   ((:keywords "vc" "diff")
 	    (:url . "https://github.com/dgutov/diff-hl"))])
  (dismal .
@@ -354,6 +356,11 @@
 	nil "Heap (a.k.a. priority queue) data structure" single
 	((:url . "http://www.dr-qubit.org/emacs.php")
 	 (:keywords "extensions" "data structures" "heap" "priority queue"))])
+ (html5-schema .
+	       [(0 1)
+		nil "Add HTML5 schemas for use by nXML" tar
+		((:keywords "html" "xml")
+		 (:url . "https://github.com/validator/validator"))])
  (hydra .
 	[(0 13 4)
 	 ((cl-lib
@@ -540,7 +547,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160104)
+      [(20160111)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
