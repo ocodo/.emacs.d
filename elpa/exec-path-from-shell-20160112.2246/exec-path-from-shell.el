@@ -4,9 +4,9 @@
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: environment
-;; Package-Version: 20151125.1133
 ;; URL: https://github.com/purcell/exec-path-from-shell
-;; Version: DEV
+;; Package-Version: 20160112.2246
+;; Package-X-Original-Version: 0
 
 ;; This file is not part of GNU Emacs.
 
