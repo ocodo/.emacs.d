@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "projectile" "projectile.el" (22160 38787 552333
-;;;;;;  887000))
+;;;### (autoloads nil "projectile" "projectile.el" (22168 61843 423465
+;;;;;;  369000))
 ;;; Generated autoloads from projectile.el
 
 (autoload 'projectile-cache-current-file "projectile" "\
