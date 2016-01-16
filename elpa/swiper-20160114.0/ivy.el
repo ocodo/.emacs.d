@@ -372,7 +372,9 @@ When non-nil, it should contain at least one %d.")
   (interactive)
   (let ((actions (ivy-state-action ivy-last)))
     (unless (null (ivy--actionp actions))
-      (let* ((hint (concat ivy--current
+      (let* ((hint (concat (if (eq this-command 'ivy-read-action)
+                               "Select action: "
+                             ivy--current)
                            "\n"
                            (mapconcat
                             (lambda (x)
@@ -500,7 +502,7 @@ When ARG is t, exit with current text, ignoring the candidates."
          (setq res (cl-delete-duplicates res :test #'equal))
          (let* ((old-ivy-last ivy-last)
                 (enable-recursive-minibuffers t)
-                (host (ivy-read "Find File: "
+                (host (ivy-read "user@host: "
                                 (mapcar #'ivy-build-tramp-name res)
                                 :initial-input rest)))
            (setq ivy-last old-ivy-last)
@@ -1522,7 +1524,7 @@ When GREEDY is non-nil, join words in a greedy way."
                             ".*?")))))
                     ivy--regex-hash)))))
 
-(defun ivy--regex-ignore-order (str)
+(defun ivy--regex-ignore-order--part (str &optional discard)
   "Re-build regex from STR by splitting at spaces.
 Ignore the order of each group."
   (let* ((subs (split-string str " +" t))
@@ -1531,8 +1533,27 @@ Ignore the order of each group."
       (0
        "")
       (t
-       (mapcar (lambda (x) (cons x t))
+       (mapcar (lambda (x) (cons x (not discard)))
                subs)))))
+
+(defun ivy--regex-ignore-order (str)
+  "Re-build regex from STR by splitting at spaces.
+Ignore the order of each group. Everything before \"!\" should
+match. Everything after \"!\" should not match."
+  (let ((parts (split-string str "!" t)))
+    (cl-case (length parts)
+      (0
+       "")
+      (1
+       (if (string= (substring str 0 1) "!")
+           (list (cons "" t)
+                 (ivy--regex-ignore-order--part (car parts) t))
+         (ivy--regex-ignore-order--part (car parts))))
+      (2
+       (append
+        (ivy--regex-ignore-order--part (car parts))
+        (ivy--regex-ignore-order--part (cadr parts) t)))
+      (t (error "Unexpected: use only one !")))))
 
 (defun ivy--regex-plus (str)
   "Build a regex sequence from STR.
@@ -1543,17 +1564,14 @@ match. Everything after \"!\" should not match."
       (0
        "")
       (1
-       (if (string-equal (substring str 0 1) "!")
-           (list
-            (cons "" t)
-            (list (ivy--regex (car parts))))
+       (if (string= (substring str 0 1) "!")
+           (list (cons "" t)
+                 (list (ivy--regex (car parts))))
          (ivy--regex (car parts))))
       (2
-       (let ((res
-              (mapcar #'list
-                      (split-string (cadr parts) " " t))))
-         (cons (cons (ivy--regex (car parts)) t)
-               res)))
+       (cons
+        (cons (ivy--regex (car parts)) t)
+        (mapcar #'list (split-string (cadr parts) " " t))))
       (t (error "Unexpected: use only one !")))))
 
 (defun ivy--regex-fuzzy (str)
@@ -1708,10 +1726,10 @@ Should be run via minibuffer `post-command-hook'."
              (if (string-match "/\\'" ivy-text)
                  (if (member ivy-text ivy--all-candidates)
                      (ivy--cd (expand-file-name ivy-text ivy--directory))
-                     (when (string-match "//\\'" ivy-text)
-                       (if (and default-directory
-                                (string-match "\\`[[:alpha:]]:/" default-directory))
-                           (ivy--cd (match-string 0 default-directory))
+                   (when (string-match "//\\'" ivy-text)
+                     (if (and default-directory
+                              (string-match "\\`[[:alpha:]]:/" default-directory))
+                         (ivy--cd (match-string 0 default-directory))
                        (ivy--cd "/")))
                    (when (string-match "[[:alpha:]]:/$" ivy-text)
                      (let ((drive-root (match-string 0 ivy-text)))
