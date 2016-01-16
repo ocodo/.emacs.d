@@ -1,4 +1,4 @@
-(define-package "evil" "20160107.27" "Extensible Vi layer for Emacs."
+(define-package "evil" "20160110.1655" "Extensible Vi layer for Emacs."
   '((undo-tree "0.6.3")
     (goto-chg "1.6")))
 ;; Local Variables:
