@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.7
-;; Package-Version: 20160108.1948
+;; Package-Version: 20160114.1301
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -135,6 +135,14 @@ See `file-size-human-readable'."
 See `format-time-string'."
   :type 'string
   :link '(function-link format-time-string)
+  :group 'transmission)
+
+(defcustom transmission-torrent-functions '(transmission-ffap)
+  "List of functions to use for guessing torrents for `transmission-add'.
+Each function should accept no arguments, and return a string or nil.
+One example of such a function is `transmission-ffap-last-killed'."
+  :type 'hook
+  :options '(transmission-ffap transmission-ffap-last-killed)
   :group 'transmission)
 
 (defconst transmission-priority-alist
@@ -471,10 +479,10 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
   (if (<= seconds 0)
       (pcase percent
         (1 "Done")
-        (_ (if (char-displayable-p ?∞) (string ?∞) "Inf")))
-    (let* ((minute (float 60))
-           (hour (float 3600))
-           (day (float 86400))
+        (_ (if (char-displayable-p ?∞) (eval-when-compile (string ?∞)) "Inf")))
+    (let* ((minute 60.0)
+           (hour 3600.0)
+           (day 86400.0)
            (month (* 29.53 day))
            (year (* 365.25 day)))
       (apply #'format "%.0f%s"
@@ -556,16 +564,37 @@ Returns a list of non-blank inputs."
                        trackers)))
     (delete-dups (apply #'append (delq nil urls)))))
 
+(defun transmission-btih-p (string)
+  "Return non-nil if STRING is a BitTorrent info hash, otherwise nil."
+  (if (and string (string-match-p "\\`[[:xdigit:]]\\{40\\}\\'" string)) string))
+
 (defun transmission-ffap ()
   "Return a file name, URL, or info hash at point, otherwise nil."
   (or (get-text-property (point) 'shr-url)
       (get-text-property (point) :nt-link)
-      (ffap-guess-file-name-at-point)
-      (if (fboundp 'dired-file-name-at-point)
-          (dired-file-name-at-point))
-      (let ((word (thing-at-point 'word)))
-        (if (string-match-p "\\`[[:xdigit:]]\\{40\\}\\'" word)
-            word))))
+      (let ((fn (or (ffap-guess-file-name-at-point)
+                    (if (fboundp 'dired-file-name-at-point)
+                        (dired-file-name-at-point)))))
+        (unless (directory-name-p fn) fn))
+      (transmission-btih-p (thing-at-point 'word))))
+
+(defun transmission-ffap-last-killed ()
+  "Apply `transmission-ffap' to the most recent `kill-ring' entry."
+  (let ((text (car kill-ring)))
+    (when text
+      (with-temp-buffer
+        (insert text)
+        (goto-char (point-min))
+        (transmission-ffap)))))
+
+(defun transmission-default-torrent (functions)
+  "Return the first non-nil evaluation of a function in FUNCTIONS."
+  (catch :result
+    (mapc (lambda (fun)
+            (let ((res (funcall fun)))
+              (if res (throw :result res))))
+          functions)
+    nil))
 
 (defun transmission-files-do (action)
   "Apply ACTION to files in `transmission-files-mode' buffers."
@@ -694,32 +723,31 @@ Execute BODY, binding list `ids' of torrent IDs at point or in region."
   "Add TORRENT by filename, URL, magnet link, or info hash.
 When called with a prefix, prompt for DIRECTORY."
   (interactive
-   (let* ((fap (transmission-ffap))
-          (prompt (concat "Add torrent" (if fap (format " [%s]" fap)) ": "))
+   (let* ((def (transmission-default-torrent transmission-torrent-functions))
+          (prompt (concat "Add torrent" (if def (format " [%s]" def)) ": "))
           (input (read-file-name prompt)))
-     (list (if (string-empty-p input) fap input)
+     (list (if (string-empty-p input) def input)
            (if current-prefix-arg
                (read-directory-name "Target directory: ")))))
-  (let ((arguments
-         (append (if (file-readable-p torrent)
-                     `(:metainfo ,(with-temp-buffer
-                                    (insert-file-contents torrent)
-                                    (base64-encode-string (buffer-string))))
-                   `(:filename ,(if (string-match "\\`[[:xdigit:]]\\{40\\}\\'" torrent)
-                                    (format "magnet:?xt=urn:btih:%s" torrent)
-                                  torrent)))
-                 (list :download-dir directory))))
-    (transmission-request-async
-     (lambda (content)
-       (let-alist (json-read-from-string content)
-         (pcase .result
-           ("success"
-            (or (and .arguments.torrent-added.name
-                     (message "Added %s" .arguments.torrent-added.name))
-                (and .arguments.torrent-duplicate.name
-                     (message "Already added %s" .arguments.torrent-duplicate.name))))
-           (_ (message .result)))))
-     "torrent-add" arguments)))
+  (transmission-request-async
+   (lambda (content)
+     (let-alist (json-read-from-string content)
+       (pcase .result
+         ("success"
+          (or (and .arguments.torrent-added.name
+                   (message "Added %s" .arguments.torrent-added.name))
+              (and .arguments.torrent-duplicate.name
+                   (message "Already added %s" .arguments.torrent-duplicate.name))))
+         (_ (message .result)))))
+   "torrent-add"
+   (append (if (file-readable-p torrent)
+               `(:metainfo ,(with-temp-buffer
+                              (insert-file-contents torrent)
+                              (base64-encode-string (buffer-string))))
+             `(:filename ,(if (transmission-btih-p torrent)
+                              (format "magnet:?xt=urn:btih:%s" torrent)
+                            torrent)))
+           (list :download-dir directory))))
 
 (defun transmission-move (location)
   "Move torrent at point or in region to a new LOCATION."
