@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "kill-or-bury-alive" "kill-or-bury-alive.el"
-;;;;;;  (22122 19319 903608 526000))
+;;;;;;  (22168 61912 523492 780000))
 ;;; Generated autoloads from kill-or-bury-alive.el
 
 (defvar kill-or-bury-alive-must-die-list nil "\
@@ -30,7 +30,7 @@ You can use `kill-or-bury-alive-kill-with' to add elements to this alist.")
 
 (custom-autoload 'kill-or-bury-alive-killing-function-alist "kill-or-bury-alive" t)
 
-(defvar kill-or-bury-alive-long-lasting-list '("^\\*scratch\\*$" "^\\*Messages\\*$" erc-mode) "\
+(defvar kill-or-bury-alive-long-lasting-list '("^\\*scratch\\*$" "^\\*Messages\\*$" "^\\*git-credential-cache--daemon\\*$" erc-mode) "\
 List of buffer designators for buffers that should not be purged.
 
 See description of `kill-or-bury-alive--buffer-match' for

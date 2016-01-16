@@ -4,7 +4,7 @@
 ;;
 ;; Author: Mark Karpov <markkarpov@openmailbox.org>
 ;; URL: https://github.com/mrkkrp/kill-or-bury-alive
-;; Package-Version: 20151209.2300
+;; Package-Version: 20160114.145
 ;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
 ;; Keywords: buffer, killing, convenience
@@ -88,6 +88,7 @@ You can use `kill-or-bury-alive-kill-with' to add elements to this alist."
 (defcustom kill-or-bury-alive-long-lasting-list
   '("^\\*scratch\\*$"
     "^\\*Messages\\*$"
+    "^\\*git-credential-cache--daemon\\*$"
     erc-mode)
   "List of buffer designators for buffers that should not be purged.
 
