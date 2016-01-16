@@ -3,8 +3,8 @@
 ;; Copyrigth (C) 2011  Glen Stampoultzis
 
 ;; Authors: Glen Stampoultzis <gstamp(at)gmail.com>, Reid D McKenzie <https://github.com/arrdem>
-;; Version: 0.5
-;; Package-Version: 20160103.1324
+;; Version: 0.6
+;; Package-Version: 20160112.1301
 ;; Package-Requires: ((clojure-mode "1.11.5"))
 ;; Keywords; clojure, align, let
 ;; URL: https://github.com/gstamp/align-cljlet
@@ -50,6 +50,7 @@
 ;; 04-Nov-2015 - Support for metadata when calculating widths
 ;; 04-Nov-2015 - Support for aligning for
 ;; 01-Jan-2016 - Support for reader macros
+;; 11-Jan-2016 - Better handle ignore form reader macro
 ;;
 ;;; Known limitations:
 ;;
@@ -127,8 +128,29 @@
         ))
   t)
 
-(defun acl-forward-sexp ()
-  (call-interactively 'clojure-forward-logical-sexp))
+(defun acl-skip-commented ()
+  (while (acl-is-commented?)
+    (call-interactively 'clojure-forward-logical-sexp)))
+
+(defun acl-is-commented? ()
+  (or (looking-at "#_")
+      (looking-back "#_")
+      (and (looking-at "\\s-")
+           (save-excursion
+             (call-interactively 'clojure-backward-logical-sexp)
+             (or (looking-back "#_")
+                 (looking-at "#_"))))))
+
+(defun acl-forward-sexp (&optional dont-skip-comments)
+  "Jumps the cursor forward to the end of the current sexp or to
+the end of the next sexp if already positioned at the
+end. Commented forms are skipped by default unless
+dont-skip-comments is true."
+  (if (and (not dont-skip-comments) (looking-at "#_("))
+      (acl-skip-commented)
+    (call-interactively 'clojure-forward-logical-sexp))
+  (unless dont-skip-comments (acl-skip-commented))
+  )
 
 (defun acl-goto-next-pair ()
   "Skip ahead to the next definition"
@@ -136,8 +158,8 @@
       (progn
         (acl-forward-sexp)
         (acl-forward-sexp)
-        (forward-sexp)
-        (backward-sexp)
+        (acl-forward-sexp)
+        (call-interactively 'clojure-backward-logical-sexp)
         t)
     (error nil)))
 
@@ -159,12 +181,11 @@
 
 (defun acl-next-sexp ()
   "Goes to the next sexp, returning true or false if there is no next"
-
   (condition-case nil
       (progn
         (acl-forward-sexp)
-        (acl-forward-sexp)
-        (backward-sexp)
+        (acl-forward-sexp t)
+        (call-interactively 'clojure-backward-logical-sexp)
         't)
     ('error nil)))
 
@@ -226,7 +247,7 @@
   (acl-respace-subform (list max-width)))
 
 (defun acl-respace-subform (widths)
-  "Respace a defroute subform using the widths given. Point must
+  "Respace a subform using the widths given. Point must
 be positioned on the first s-exp in the subform."
   (save-excursion
     (while widths
