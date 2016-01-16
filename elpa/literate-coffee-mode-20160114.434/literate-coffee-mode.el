@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-literate-coffee-mode
-;; Version: 20141216.1519
-;; X-Original-Version: 0.04
+;; Package-Version: 20160114.434
+;; Version: 0.04
 ;; Package-Requires: ((coffee-mode "0.5.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -67,8 +67,11 @@
        (goto-char (match-end 1))
        (not (get-text-property (point) 'litcoffee-not-highlight))))
 
+(defvar litcoffee--string-interpolation-regexp
+  "#{[^}\n\\\\]*\\(?:\\\\.[^}\n\\\\]*\\)*}")
+
 (defun litcoffee--font-lock-string-interpolation (limit)
-  (and (re-search-forward coffee-string-interpolation-regexp limit t)
+  (and (re-search-forward litcoffee--string-interpolation-regexp limit t)
        (goto-char (match-end 0))
        (not (get-text-property (point) 'litcoffee-not-highlight))))
 

@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "literate-coffee-mode" "literate-coffee-mode.el"
-;;;;;;  (21664 42472 419401 0))
+;;;;;;  (22168 61897 79486 575000))
 ;;; Generated autoloads from literate-coffee-mode.el
 
 (autoload 'litcoffee-mode "literate-coffee-mode" "\
