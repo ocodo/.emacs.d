@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160107.833
+;; Package-Version: 20160112.727
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -149,28 +149,29 @@
 
 (defun counsel--find-symbol (x)
   "Find symbol definition that corresponds to string X."
-  (with-no-warnings
-    (ring-insert find-tag-marker-ring (point-marker)))
-  (let ((full-name (get-text-property 0 'full-name x)))
-    (if full-name
-        (find-library full-name)
-      (let ((sym (read x)))
-        (cond ((and (eq (ivy-state-caller ivy-last)
-                        'counsel-describe-variable)
-                    (boundp sym))
-               (find-variable sym))
-              ((fboundp sym)
-               (find-function sym))
-              ((boundp sym)
-               (find-variable sym))
-              ((or (featurep sym)
-                   (locate-library
-                    (prin1-to-string sym)))
-               (find-library
-                (prin1-to-string sym)))
-              (t
-               (error "Couldn't fild definition of %s"
-                      sym)))))))
+  (with-ivy-window
+    (with-no-warnings
+      (ring-insert find-tag-marker-ring (point-marker)))
+    (let ((full-name (get-text-property 0 'full-name x)))
+      (if full-name
+          (find-library full-name)
+        (let ((sym (read x)))
+          (cond ((and (eq (ivy-state-caller ivy-last)
+                          'counsel-describe-variable)
+                      (boundp sym))
+                 (find-variable sym))
+                ((fboundp sym)
+                 (find-function sym))
+                ((boundp sym)
+                 (find-variable sym))
+                ((or (featurep sym)
+                     (locate-library
+                      (prin1-to-string sym)))
+                 (find-library
+                  (prin1-to-string sym)))
+                (t
+                 (error "Couldn't fild definition of %s"
+                        sym))))))))
 
 (defvar counsel-describe-symbol-history nil
   "History for `counsel-describe-variable' and `counsel-describe-function'.")
@@ -458,7 +459,20 @@ INITIAL-INPUT can be given as the initial minibuffer input."
 
 (declare-function ffap-guesser "ffap")
 
-(defvar counsel-find-file-map (make-sparse-keymap))
+(defvar counsel-find-file-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-DEL") 'counsel-up-directory)
+    (define-key map (kbd "C-<backspace>") 'counsel-up-directory)
+    map))
+
+(defun counsel-up-directory ()
+  "Go to the parent directory preselecting the current one."
+  (interactive)
+  (let ((dir-file-name
+         (directory-file-name (expand-file-name ivy--directory))))
+    (ivy--cd (file-name-directory dir-file-name))
+    (setf (ivy-state-preselect ivy-last)
+          (file-name-as-directory (file-name-nondirectory dir-file-name)))))
 
 ;;;###autoload
 (defun counsel-find-file (&optional initial-input)
@@ -555,12 +569,15 @@ Or the time of the last minibuffer update.")
                          (ivy-state-preselect ivy-last)
                          ivy--all-candidates)
                         0))
-            (ivy--recompute-index
-             ivy-text
-             (funcall ivy--regex-function ivy-text)
-             ivy--all-candidates))
+            (let ((re (funcall ivy--regex-function ivy-text)))
+              (unless (stringp re)
+                (setq re (caar re)))
+              (ivy--recompute-index
+               ivy-text re ivy--all-candidates)))
           (setq ivy--old-cands ivy--all-candidates))
-        (ivy--exhibit))
+        (if (null ivy--all-candidates)
+            (ivy--insert-minibuffer "")
+          (ivy--exhibit)))
     (if (string= event "exited abnormally with code 1\n")
         (progn
           (setq ivy--all-candidates '("Error"))
@@ -580,9 +597,14 @@ Update the minibuffer with the amount of lines collected every
            (time-since counsel--async-time))
       (with-current-buffer (process-buffer process)
         (goto-char (point-min))
-        (setq size (- (buffer-size) (forward-line (buffer-size)))))
-      (ivy--insert-minibuffer
-       (format "\ncollected: %d" size))
+        (setq size (- (buffer-size) (forward-line (buffer-size))))
+        (setq ivy--all-candidates
+              (split-string (buffer-string) "\n" t)))
+      (let ((ivy--prompt (format
+                          (concat "%d++ " (ivy-state-prompt ivy-last))
+                          size)))
+        (ivy--insert-minibuffer
+         (ivy--format ivy--all-candidates)))
       (setq counsel--async-time (current-time)))))
 
 (defun counsel-locate-action-extern (x)
@@ -1324,6 +1346,70 @@ PREFIX is used to create the key."
               :action (lambda (pos)
                         (with-ivy-window
                           (goto-char pos))))))
+
+(defun counsel--descbinds-cands ()
+  (let ((buffer (current-buffer))
+        (re-exclude (regexp-opt
+                     '("<vertical-line>" "<bottom-divider>" "<right-divider>"
+                       "<mode-line>" "<C-down-mouse-2>" "<left-fringe>"
+                       "<right-fringe>" "<header-line>"
+                       "<vertical-scroll-bar>" "<horizontal-scroll-bar>")))
+        res)
+    (with-temp-buffer
+      (let ((indent-tabs-mode t))
+        (describe-buffer-bindings buffer))
+      (goto-char (point-min))
+      ;; Skip the "Key translations" section
+      (re-search-forward "")
+      (forward-char 1)
+      (while (not (eobp))
+        (when (looking-at "^\\([^\t\n]+\\)\t+\\(.*\\)$")
+          (let ((key (match-string 1))
+                (fun (match-string 2))
+                cmd)
+            (unless (or (member fun '("??" "self-insert-command"))
+                        (string-match re-exclude key)
+                        (not (or (commandp (setq cmd (intern-soft fun)))
+                                 (member fun '("Prefix Command")))))
+              (push
+               (cons (format
+                      "%-15s %s"
+                      (propertize key 'face 'font-lock-builtin-face)
+                      fun)
+                     (cons key cmd))
+               res))))
+        (forward-line 1)))
+    (nreverse res)))
+
+(defvar counsel-descbinds-history nil
+  "History for `counsel-descbinds'.")
+
+(defun counsel-descbinds-action-describe (x)
+  (let ((cmd (cdr x)))
+    (describe-function cmd)))
+
+(defun counsel-descbinds-action-find (x)
+  (let ((cmd (cdr x)))
+    (counsel--find-symbol (symbol-name cmd))))
+
+(defun counsel-descbinds-action-info (x)
+  (let ((cmd (cdr x)))
+    (counsel-info-lookup-symbol (symbol-name cmd))))
+
+;;;###autoload
+(defun counsel-descbinds ()
+  "Show a list of all defined keys, and their definitions.
+Describe the selected candidate."
+  (interactive)
+  (ivy-read "Bindings: " (counsel--descbinds-cands)
+            :action #'counsel-descbinds-action-describe
+            :caller 'counsel-descbinds
+            :history 'counsel-descbinds-history))
+
+(ivy-set-actions
+ 'counsel-descbinds
+ '(("d" counsel-descbinds-action-find "definition")
+   ("i" counsel-descbinds-action-info "info")))
 
 (provide 'counsel)
 
