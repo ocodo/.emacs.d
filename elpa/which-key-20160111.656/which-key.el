@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20151221.912
+;; Package-Version: 20160111.656
 ;; Version: 0.8
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -1020,7 +1020,8 @@ width) in lines and characters respectively."
         (- (if (member which-key-side-window-location '(left right))
                (which-key--total-width-to-text (which-key--width-or-percentage-to-width
                                                 which-key-side-window-max-width))
-             (frame-width))
+             (which-key--total-width-to-text (which-key--width-or-percentage-to-width
+                                              1.0)))
            which-key-unicode-correction))))
 
 (defun which-key--frame-max-dimensions ()
