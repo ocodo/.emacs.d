@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-ag" "helm-ag.el" (22160 38962 129309
-;;;;;;  207000))
+;;;### (autoloads nil "helm-ag" "helm-ag.el" (22168 61930 787500
+;;;;;;  173000))
 ;;; Generated autoloads from helm-ag.el
 
 (autoload 'helm-ag-pop-stack "helm-ag" "\

@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160108.956
-;; Version: 0.49
+;; Package-Version: 20160109.2301
+;; Version: 0.50
 ;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -277,7 +277,7 @@ They are specified to `--ignore' options."
   (let* ((file-line (helm-grep-split-line candidate))
          (filename (or this-file (cl-first file-line)))
          (line (if this-file
-                   (cl-first file-line)
+                   (cl-first (split-string candidate ":"))
                  (cl-second file-line)))
          (default-directory (or helm-ag--default-directory
                                 helm-ag--last-default-directory
