@@ -261,15 +261,15 @@ in the current buffer using the command `magit-toggle-margin'."
 (defcustom magit-log-section-commit-count 10
   "How many recent commits to show in certain log sections.
 How many recent commits `magit-insert-recent-commits' and
-`magit-insert-unpulled-or-recent-commits' (provided there
-are no unpulled commits) show."
+`magit-insert-unpulled-from-upstream-or-recent' (provided
+the upstream isn't ahead of the current branch) show."
   :package-version '(magit . "2.1.0")
   :group 'magit-status
   :type 'number)
 
-(defcustom magit-log-section-arguments '("--decorate")
+(defcustom magit-log-section-arguments '("-n256" "--decorate")
   "The log arguments used in buffers that show other things besides logs."
-  :package-version '(magit . "2.2.0")
+  :package-version '(magit . "2.4.0")
   :group 'magit-log
   :group 'magit-status
   :type '(repeat (string :tag "Argument")))
@@ -345,6 +345,7 @@ are no unpulled commits) show."
     :switches ((?g "Show graph"          "--graph")
                (?c "Show graph in color" "--color")
                (?d "Show refnames"       "--decorate"))
+    :options  ((?n "Limit number of commits" "-n"))
     :actions  ((?g "Refresh"       magit-log-refresh)
                (?t "Toggle margin" magit-toggle-margin)
                (?s "Set defaults"  magit-log-set-default-arguments) nil
@@ -514,6 +515,7 @@ representation of the commit at point, are available as
 completion candidates."
   (interactive (cons (magit-log-read-revs)
                      (magit-log-arguments)))
+  (require 'magit)
   (magit-mode-setup #'magit-log-mode revs args files)
   (magit-log-goto-same-commit))
 
@@ -1323,8 +1325,6 @@ Type \\[magit-reset] to reset HEAD to the commit at point.
         (magit-insert-log (concat it "..") magit-log-section-arguments)
         (magit-section-cache-visibility)))))
 
-;;;; Auxiliary Log Sections
-
 (defun magit-insert-recent-commits (&optional collapse)
   "Insert section showing recent commits.
 Show the last `magit-log-section-commit-count' commits."
@@ -1337,16 +1337,19 @@ Show the last `magit-log-section-commit-count' commits."
                         (cons (format "-%d" magit-log-section-commit-count)
                               magit-log-section-arguments)))))
 
-(defun magit-insert-unpulled-or-recent-commits ()
+(defun magit-insert-unpulled-from-upstream-or-recent ()
   "Insert section showing unpulled or recent commits.
 If an upstream is configured for the current branch and it is
-ahead of the current branch, then show the missing commits,
-otherwise show the last `magit-log-section-commit-count'
-commits."
+ahead of the current branch, then show the commits that have
+not yet been pulled into the current branch.  If no upstream is
+configured or if the upstream is not ahead of the current branch,
+then show the last `magit-log-section-commit-count' commits."
   (if (equal (magit-rev-parse "HEAD")
              (magit-rev-parse "@{upstream}"))
       (magit-insert-recent-commits t)
     (magit-insert-unpulled-from-upstream)))
+
+;;;; Auxiliary Log Sections
 
 (defun magit-insert-unpulled-cherries ()
   "Insert section showing unpulled commits.
@@ -1482,6 +1485,10 @@ and the respective options are `magit-log-show-margin' and
                                    (apply #'concat strings))))))
 
 ;;; magit-log.el ends soon
+
+(define-obsolete-function-alias 'magit-insert-unpulled-or-recent-commits
+  'magit-insert-unpulled-from-upstream-or-recent "Magit 2.4.0")
+
 (provide 'magit-log)
 ;; Local Variables:
 ;; coding: utf-8

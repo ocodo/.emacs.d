@@ -80,8 +80,6 @@ Installation
 Interface concepts
 
 * Modes and Buffers::
-* Automatic save::
-* Automatic refresh and revert::
 * Sections::
 * Popup buffers and prefix commands::
 * Completion and confirmation::
@@ -92,6 +90,9 @@ Modes and Buffers
 * Switching Buffers::
 * Naming Buffers::
 * Quitting Windows::
+* Automatic Refreshing of Magit Buffers::
+* Automatic Saving of File-Visiting Buffers::
+* Automatic Reverting of File-Visiting Buffers::
 
 Sections
 
@@ -243,6 +244,8 @@ FAQ
 * Can Magit be used as ediff-version-control-package?::
 * How to show diffs for gpg-encrypted files?::
 * Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
+* Symbol's value as function is void --some::
+* Where is the branch manager::
 
 
 
@@ -441,7 +444,7 @@ manually from its development repository, but I won’t cover that here.
 
    Then clone the Magit repository:
 
-     $ git clone git://github.com/magit/magit.git ~/.emacs.d/site-lisp/magit
+     $ git clone https://github.com/magit/magit.git ~/.emacs.d/site-lisp/magit
      $ cd ~/.emacs.d/site-lisp/magit
 
    Then compile the libraries and generate the info manuals:
@@ -644,15 +647,13 @@ File: magit.info,  Node: Interface concepts,  Next: Inspecting,  Prev: Getting s
 * Menu:
 
 * Modes and Buffers::
-* Automatic save::
-* Automatic refresh and revert::
 * Sections::
 * Popup buffers and prefix commands::
 * Completion and confirmation::
 * Running Git::
 
 
-File: magit.info,  Node: Modes and Buffers,  Next: Automatic save,  Up: Interface concepts
+File: magit.info,  Node: Modes and Buffers,  Next: Sections,  Up: Interface concepts
 
 4.1 Modes and Buffers
 =====================
@@ -692,6 +693,9 @@ buffers whose major-modes derive from ‘magit-mode’.
 * Switching Buffers::
 * Naming Buffers::
 * Quitting Windows::
+* Automatic Refreshing of Magit Buffers::
+* Automatic Saving of File-Visiting Buffers::
+* Automatic Reverting of File-Visiting Buffers::
 
 
 File: magit.info,  Node: Switching Buffers,  Next: Naming Buffers,  Up: Modes and Buffers
@@ -842,7 +846,7 @@ File: magit.info,  Node: Naming Buffers,  Next: Quitting Windows,  Prev: Switchi
      control how buffer names are uniquified.
 
 
-File: magit.info,  Node: Quitting Windows,  Prev: Naming Buffers,  Up: Modes and Buffers
+File: magit.info,  Node: Quitting Windows,  Next: Automatic Refreshing of Magit Buffers,  Prev: Naming Buffers,  Up: Modes and Buffers
 
 4.1.3 Quitting Windows
 ----------------------
@@ -883,102 +887,22 @@ File: magit.info,  Node: Quitting Windows,  Prev: Naming Buffers,  Up: Modes and
      that was ever displayed in the window, then that is deleted.
 
 
-File: magit.info,  Node: Automatic save,  Next: Automatic refresh and revert,  Prev: Modes and Buffers,  Up: Interface concepts
+File: magit.info,  Node: Automatic Refreshing of Magit Buffers,  Next: Automatic Saving of File-Visiting Buffers,  Prev: Quitting Windows,  Up: Modes and Buffers
 
-4.2 Automatic save
-==================
-
-File-visiting buffers are by default saved at certain points in time.
-This doesn’t guarantee that Magit buffers are always up-to-date, but,
-provided one only edits files by editing them in Emacs and uses only
-Magit to interact with Git, one can be fairly confident.  When in doubt
-or after outside changes, type ‘g’ (‘magit-refresh’) to save and refresh
-explicitly.
-
- -- User Option: magit-save-repository-buffers
-
-     This option controls whether file-visiting buffers are saved before
-     certain events.
-
-     If this is non-nil then all modified file-visiting buffers
-     belonging to the current repository may be saved before running
-     commands, before creating new Magit buffers, and before explicitly
-     refreshing such buffers.  If this is ‘dontask’ then this is done
-     without user intervention.  If it is ‘t’ then the user has to
-     confirm each save.
-
-
-File: magit.info,  Node: Automatic refresh and revert,  Next: Sections,  Prev: Automatic save,  Up: Interface concepts
-
-4.3 Automatic refresh and revert
-================================
+4.1.4 Automatic Refreshing of Magit Buffers
+-------------------------------------------
 
 After running a command which may change the state of the current
 repository, the current Magit buffer and the corresponding status buffer
-are refreshed.  Status buffer may optionally be automatically refreshed
-whenever a buffer is saved to a file inside the respective repository.
+are refreshed.  The status buffer may optionally be automatically
+refreshed whenever a buffer is saved to a file inside the respective
+repository.
 
    Automatically refreshing Magit buffers ensures that the displayed
 information is up-to-date most of the time but can lead to a noticeable
 delay in big repositories.  Other Magit buffers are not refreshed to
 keep the delay to a minimum and also because doing so can sometimes be
 undesirable.
-
- -- User Option: magit-revert-buffers
-
-     This option controls if and how file-visiting buffers in the
-     current repository are reverted.
-
-     Unmodified buffers visiting files belonging to the current
-     repository may be reverted after refreshing the current Magit
-     buffer and after running certain other commands.
-
-        • ‘nil’
-
-          Don’t revert any buffers.
-
-        • ‘ask’
-
-          List the buffers which might potentially have to be reverted
-          and ask the user whether she wants to revert them.  If so,
-          then do it synchronously.
-
-        • ‘t’
-
-          Revert the buffers synchronously, mentioning each one as it is
-          being reverted and then also show a summary in the echo area.
-
-        • ‘usage’
-
-          Like ‘t’ but include usage information in the summary.  This
-          is the default so that users come here and pick what is right
-          for them.
-
-        • ‘silent’
-
-          Revert the buffers synchronously and be quiet about it.
-
-          This (or a negative number) is the recommended setting,
-          because for the other values the revert messages might prevent
-          you from seeing other, more important, messages in the echo
-          area.
-
-        • NUMBER
-
-          An integer or float.  Revert the buffers asynchronously.  If
-          NUMBER is positive, then mention each buffer as it is being
-          reverted.  If it is negative, then be quiet about it.  If user
-          input arrives, then stop reverting.  After (the absolute value
-          of) NUMBER seconds resume reverting.
-
- -- User Option: magit-revert-buffers-only-for-tracked-files
-
-     This option controls whether only buffers that visit tracked files
-
-     If non-nil, then only tracked files may be reverted.  If nil, then
-     all files in the current repository may potentially be reverted.
-     Reverting untracked files should be safe and limiting to only
-     tracked files has the potential of causing very noticable delays.
 
    Buffers can also be refreshed explicitly, which is useful in buffers
 that weren’t current during the last refresh and after changes were made
@@ -1002,6 +926,22 @@ to the repository outside of Magit.
      The file-visiting buffers are always reverted, even if
      ‘magit-revert-buffers’ is nil.
 
+ -- User Option: magit-refresh-buffer-hook
+
+     This hook is run in each Magit buffer that was refreshed during the
+     current refresh - normally the current buffer and the status
+     buffer.
+
+ -- User Option: magit-refresh-status-buffer
+
+     When this option is non-nil, then the status buffer is
+     automatically refreshed after running git for side-effects, in
+     addition to the current Magit buffer, which is always refreshed
+     automatically.
+
+     Only set this to nil after exhausting all other options to improve
+     performance.
+
  -- Function: magit-after-save-refresh-status
 
      This function is intended to be added to ‘after-save-hook’.  After
@@ -1013,34 +953,172 @@ to the repository outside of Magit.
      you are not satisfied with Magit’s performance, then you should
      obviously not add this function to that hook.
 
- -- User Option: magit-refresh-buffer-hook
+
+File: magit.info,  Node: Automatic Saving of File-Visiting Buffers,  Next: Automatic Reverting of File-Visiting Buffers,  Prev: Automatic Refreshing of Magit Buffers,  Up: Modes and Buffers
 
-     This hook is run in each Magit buffer that was refreshed during the
-     current refresh - normally the current buffer and the status
-     buffer.
+4.1.5 Automatic Saving of File-Visiting Buffers
+-----------------------------------------------
 
- -- User Option: magit-after-revert-hook
+File-visiting buffers are by default saved at certain points in time.
+This doesn’t guarantee that Magit buffers are always up-to-date, but,
+provided one only edits files by editing them in Emacs and uses only
+Magit to interact with Git, one can be fairly confident.  When in doubt
+or after outside changes, type ‘g’ (‘magit-refresh’) to save and refresh
+explicitly.
 
-     This hook is run in each file-visiting buffer belonging to the
-     current repository that was actually reverted during a refresh.
+ -- User Option: magit-save-repository-buffers
 
-     Note that adding something here is very expensive.  If you
-     experience performance issues, you might want to check this hook,
-     as well as ‘magit-not-reverted-hook’ and, if possible, remove some
-     of the functions added by third-party packages.
+     This option controls whether file-visiting buffers are saved before
+     certain events.
 
- -- User Option: magit-not-reverted-hook
-
-     This hook is run in each file-visiting buffer belonging to the
-     current repository that was reverted during a refresh.  The file
-     was not reverted because it did not change, and so Magit does not
-     have to do anything.  This hook is intended for third-party
-     extensions that need to run some functions even on such files.
+     If this is non-nil then all modified file-visiting buffers
+     belonging to the current repository may be saved before running
+     commands, before creating new Magit buffers, and before explicitly
+     refreshing such buffers.  If this is ‘dontask’ then this is done
+     without user intervention.  If it is ‘t’ then the user has to
+     confirm each save.
 
 
-File: magit.info,  Node: Sections,  Next: Popup buffers and prefix commands,  Prev: Automatic refresh and revert,  Up: Interface concepts
+File: magit.info,  Node: Automatic Reverting of File-Visiting Buffers,  Prev: Automatic Saving of File-Visiting Buffers,  Up: Modes and Buffers
 
-4.4 Sections
+4.1.6 Automatic Reverting of File-Visiting Buffers
+--------------------------------------------------
+
+By default Magit automatically reverts buffers that are visiting files
+that are being tracked in a Git repository, after they have changed on
+disk.  When using Magit one often changes files on disk by running git,
+i.e.  "outside Emacs", making this a rather important feature.
+
+   For example, if you discard a change in the status buffer, then that
+is done by running ‘git apply --reverse ...’, and Emacs considers the
+file to have "change on disk".  If Magit did not automaticallyrevert the
+buffer, then you would have to type ‘M-x revert-buffer RET RET’ in the
+visiting buffer before you could continue making changes.
+
+ -- User Option: magit-auto-revert-mode
+
+     When this mode is enabled, then buffers that visit tracked files,
+     are automatically reverted after the visited files changed on disk.
+
+ -- User Option: global-auto-revert-mode
+
+     When this mode is enabled, then any file-visiting buffer is
+     automatically reverted after the visited file changed on disk.
+
+     If you like buffers that visit tracked files to be automatically
+     reverted, then you might also like any buffer to be reverted, not
+     just those visiting tracked files.  If that is the case, then
+     enable this mode _instead of_ ‘magit-auto-revert-mode’.
+
+ -- User Option: magit-auto-revert-immediately
+
+     This option controls whether Magit reverts buffers immediately.
+
+     If this is non-nil and either ‘global-auto-revert-mode’ or
+     ‘magit-auto-revert-mode’ is enabled, then Magit immediately reverts
+     buffers by explicitly calling ‘auto-revert-buffers’ after running
+     git for side-effects.
+
+     If ‘auto-revert-use-notify’ is non-nil (and file notifications are
+     actually supported), then ‘magit-auto-revert-immediately’ should be
+     set to nil, because the reverts happen immediately anyway.
+
+     If ‘magit-auto-revert-immediately’ and ‘auto-revert-use-notify’ are
+     both nil, then reverts happen after ‘auto-revert-interval’ seconds
+     of user inactivity.  That is not desirable.
+
+ -- User Option: auto-revert-use-notify
+
+     This option controls whether file notification functions should be
+     used.  Note that this variable unfortunately defaults to ‘t’ even
+     on systems on which file notifications cannot be used.
+
+ -- User Option: magit-auto-revert-tracked-only
+
+     This option controls whether ‘magit-auto-revert-mode’ only reverts
+     tracked files or all files that are located inside Git
+     repositories, including untracked files and files located inside
+     Git’s control directory.
+
+ -- Command: auto-revert-mode
+
+     The global mode ‘magit-auto-revert-mode’ works by turning on this
+     local mode in the appropriate buffers.  You can also turn it on or
+     off manually, which might be necessary if Magit does not notice
+     that a previously untracked file now is being tracked or
+     vice-versa.
+
+ -- User Option: auto-revert-stop-on-user-input
+
+     This option controls whether the arrival of user input suspends the
+     automatic reverts for ‘auto-revert-interval’ seconds.
+
+ -- User Option: auto-revert-interval
+
+     This option controls for how many seconds Emacs waits before
+     resuming suspended reverts.
+
+ -- User Option: auto-revert-verbose
+
+     This option controls whether Emacs reports when a buffer has been
+     reverted.
+
+   The options with the ‘auto-revert-’ prefix are located in the Custom
+group named ‘auto-revert’.  The other, magit-specific, options are
+located in the ‘magit’ group.
+
+* Menu:
+
+* Risk of Reverting Automatically::
+
+
+File: magit.info,  Node: Risk of Reverting Automatically,  Up: Automatic Reverting of File-Visiting Buffers
+
+Risk of Reverting Automatically
+...............................
+
+For the vast majority users automatically reverting file-visiting
+buffers after they have changed on disk is harmless.
+
+   If a buffer is modified (i.e.  it contains changes that haven’t been
+saved yet), then Emacs would refuse to automatically revert it.  If you
+safe a previously modified buffer, then that results in what is seen by
+Git as an uncommitted change.  Git would then refuse to carry out any
+commands that would cause these changes to be lost.  In other words, if
+there is anything that could be lost, then either Git or Emacs would
+refuse to discard the changes.
+
+   However if you do use file-visiting buffers as a sort of ad hoc
+"staging area", then the automatic reverts could potentially cause data
+loss.  So far I have only heard from one user who uses such a workflow.
+
+   An example: You visit some file in a buffer, edit it, and save the
+changes.  Then, outside of Emacs (or at least not using Magit or by
+saving the buffer) you change the file on disk again.  At this point the
+buffer is the only place where the intermediate version still exists.
+You have saved the changes to disk, but that has since been overwritten.
+Meanwhile Emacs considers the buffer to be unmodified (because you have
+not made any changes to it since you last saved it to the visited file)
+and therefore would not object to it being automatically reverted.  At
+this point an Auto-Revert mode would kick in.  It would check whether
+the buffer is modified and since that is not the case it would revert
+it.  The intermediate version would be lost.  (Actually you could still
+get it back using the ‘undo’ command.)
+
+   If your work flow depends on Emacs preserving the intermediate
+version in the buffer, then you have to disable all Auto-Revert modes.
+But please consider that such a work flow would be dangerous even
+without using an Auto-Revert mode, and should therefore be avoided.  If
+Emacs crashed or if you quit Emacs by mistake, then you would also lose
+the buffer content.  There would be no autosave file still containing
+the intermediate version (because that was deleted when you saved the
+buffer) and you would not be asked whether you want to safe the buffer
+(because it isn’t modified).
+
+
+File: magit.info,  Node: Sections,  Next: Popup buffers and prefix commands,  Prev: Modes and Buffers,  Up: Interface concepts
+
+4.2 Sections
 ============
 
 Magit buffers are organized into nested sections, which can be collapsed
@@ -1067,7 +1145,7 @@ type keymaps.
 
 File: magit.info,  Node: Section movement,  Next: Section visibility,  Up: Sections
 
-4.4.1 Section movement
+4.2.1 Section movement
 ----------------------
 
 To move within a section use the usual keys (‘C-p’, ‘C-n’, ‘C-b’, ‘C-f’
@@ -1169,7 +1247,7 @@ hook’s default value.
 
 File: magit.info,  Node: Section visibility,  Next: Section hooks,  Prev: Section movement,  Up: Sections
 
-4.4.2 Section visibility
+4.2.2 Section visibility
 ------------------------
 
 Magit provides many commands for changing the visibility of sections,
@@ -1267,7 +1345,7 @@ certain sections can also be overwritten using the hook
 
 File: magit.info,  Node: Section hooks,  Next: Section types and values,  Prev: Section visibility,  Up: Sections
 
-4.4.3 Section hooks
+4.2.3 Section hooks
 -------------------
 
 Which sections are inserted into certain buffers is controlled with
@@ -1315,7 +1393,7 @@ this manual along with the appropriate "section inserter functions".
 
 File: magit.info,  Node: Section types and values,  Next: Section options,  Prev: Section hooks,  Up: Sections
 
-4.4.4 Section types and values
+4.2.4 Section types and values
 ------------------------------
 
 Each section has a type, for example ‘hunk’, ‘file’, and ‘commit’.
@@ -1344,7 +1422,7 @@ and it will automatically be used.
 
 File: magit.info,  Node: Section options,  Prev: Section types and values,  Up: Sections
 
-4.4.5 Section options
+4.2.5 Section options
 ---------------------
 
 This section describes options that have an effect on more than just a
@@ -1358,7 +1436,7 @@ certain type of sections.  As you can see there are not many of those.
 
 File: magit.info,  Node: Popup buffers and prefix commands,  Next: Completion and confirmation,  Prev: Sections,  Up: Interface concepts
 
-4.5 Popup buffers and prefix commands
+4.3 Popup buffers and prefix commands
 =====================================
 
 Many Magit commands are implemented using *popup buffers*.  First the
@@ -1389,7 +1467,7 @@ you should setup a global binding:
 
 File: magit.info,  Node: Completion and confirmation,  Next: Running Git,  Prev: Popup buffers and prefix commands,  Up: Interface concepts
 
-4.6 Completion and confirmation
+4.4 Completion and confirmation
 ===============================
 
 Many commands read a value from the user.  By default this is done using
@@ -1454,7 +1532,7 @@ option when acting on a single section.
 
 File: magit.info,  Node: Running Git,  Prev: Completion and confirmation,  Up: Interface concepts
 
-4.7 Running Git
+4.5 Running Git
 ===============
 
 * Menu:
@@ -1467,7 +1545,7 @@ File: magit.info,  Node: Running Git,  Prev: Completion and confirmation,  Up: I
 
 File: magit.info,  Node: Viewing Git output,  Next: Running Git manually,  Up: Running Git
 
-4.7.1 Viewing Git output
+4.5.1 Viewing Git output
 ------------------------
 
 Magit runs Git either for side-effects (e.g.  when pushing) or to get
@@ -1496,7 +1574,7 @@ sections are available.  There is one additional command.
 
 File: magit.info,  Node: Running Git manually,  Next: Git executable,  Prev: Viewing Git output,  Up: Running Git
 
-4.7.2 Running Git manually
+4.5.2 Running Git manually
 --------------------------
 
 While Magit provides many Emacs commands to interact with Git, it does
@@ -1559,7 +1637,7 @@ begin with the subcommand, "git" is assumed.
 
 File: magit.info,  Node: Git executable,  Next: Global Git arguments,  Prev: Running Git manually,  Up: Running Git
 
-4.7.3 Git executable
+4.5.3 Git executable
 --------------------
 
 Except on MS Windows, Magit defaults to running Git without specifying
@@ -1601,7 +1679,7 @@ a non-Windows machine, then you must change the value to "git".
 
 File: magit.info,  Node: Global Git arguments,  Prev: Git executable,  Up: Running Git
 
-4.7.4 Global Git arguments
+4.5.4 Global Git arguments
 --------------------------
 
  -- User Option: magit-git-global-arguments
@@ -4026,7 +4104,7 @@ either because the user has to deal with a conflict or explicitly
 requested that rebase stops at that commit, then point is placed on the
 commit that separates the two groups, i.e.  on ‘HEAD’.  The commits
 above it have not been applied yet, while it and the commits below it
-have already been applied.  In between these two groups or applied and
+have already been applied.  In between these two groups of applied and
 yet-to-be applied commits, there sometimes is a commit which has been
 dropped.
 
@@ -4139,7 +4217,7 @@ you will acquire a good enough understanding through practice.
 
    For other sequence operations such as cherry-picking, a similar
 section is displayed, but they lack some of the features described
-below, due to limitations in the git commands used to implement them.
+above, due to limitations in the git commands used to implement them.
 Most importantly these sequences only support "picking" a commit but not
 other actions such as "rewording", and they do not keep track of the
 commits which have already been applied.
@@ -5217,13 +5295,13 @@ This section discusses various variables that you might want to change
 (or *not* change) for safety reasons.
 
    Git keeps *committed* changes around long enough for users to recover
-changes they have accidentally deleted.  It does not do the same for
-*uncommitted* changes in the working tree and not even the index (the
-staging area).  Because Magit makes it so easy to modify uncommitted
-changes, it also makes it easy to shoot yourself in the foot in the
-process.  For that reason Magit provides three global modes that save
-*tracked* files to work-in-progress references after or before certain
-actions.  See *note Wip modes: Wip modes.
+changes they have accidentally been deleted.  It does not do the same
+for *uncommitted* changes in the working tree and not even the index
+(the staging area).  Because Magit makes it so easy to modify
+uncommitted changes, it also makes it easy to shoot yourself in the foot
+in the process.  For that reason Magit provides three global modes that
+save *tracked* files to work-in-progress references after or before
+certain actions.  See *note Wip modes: Wip modes.
 
    These modes are not enabled by default because of performance
 concerns.  Instead a lot of potentially destructive commands require
@@ -5239,32 +5317,10 @@ controls whether the system trash is used, which is the case by default.
 Nevertheless, ‘trash’ isn’t a member of ‘magit-no-confirm’ - you might
 want to change that.
 
-   Buffers visiting files tracked in the current repository are being
-refreshed before certain actions.  See *note Automatic refresh and
-revert: Automatic refresh and revert.  This isn’t as risky as it might
-seem.  If a buffer is modified (i.e.  it contains changes that haven’t
-been saved yet), then Emacs/Magit would refuse to revert it.  If the
-buffer has been saved resulting in what is seen by Git as an uncommitted
-change, then Git in turn would refuse to carry out the action that would
-cause these changes to be lost.  Since Git doesn’t do anything, the file
-doesn’t change on disk, and Emacs/Magit has nothing to revert.
-
-   However if you do modify some files, visit the respective files in
-Emacs, somehow discard the changes (not using Magit and probably even
-outside Emacs), and then expect the respective file-visiting buffers to
-retain the uncommitted changes, then the automatic reverting would
-actually be harmful.  In other words if you use file-visiting buffers as
-a sort of "staging area", then you should set ‘magit-revert-buffers’ to
-‘nil’.
-
-   So far I have only heard from one user who uses such a workflow.  But
-because there might be some other users doing such things, and I don’t
-want to be responsible for data loss, these reverts by default happen
-quite verbosely, allowing these few users to undo the reverts using the
-‘undo’ command and then disabling the automatic reverts for the future.
-Most users should however keep automatic reverts turned on and instead
-configure it to be less verbose by setting ‘magit-revert-buffers’ to ‘t’
-or even ‘silent’.  This option is mentioned again in the next section.
+   By default buffers visiting files are automatically reverted when the
+visited file changes on disk.  This isn’t as risky as it might seem, but
+to make an informed decision you should see *note Risk of Reverting
+Automatically: Risk of Reverting Automatically.
 
 
 File: magit.info,  Node: Performance,  Prev: Safety,  Up: Essential settings
@@ -5272,148 +5328,121 @@ File: magit.info,  Node: Performance,  Prev: Safety,  Up: Essential settings
 9.2.2 Performance
 -----------------
 
-Magit is slower than raw Git because it does more.  For example ‘git
-commit’ creates a commit and that’s it.  ‘magit-commit’ also updates the
-current Magit buffer to make sure you are not looking at outdated
-information without noticing it.  To refresh the status buffer, Magit
-has to run Git a dozen times or more, making it slower than ‘git
-status’, but also much more informative.  Magit also optionally reverts
-file-visiting buffers, creates backups, runs hooks where third-party
-extensions can do their slow thing, etc.
+After Magit has run ‘git’ for side-effects, it also refreshes the
+current Magit buffer and the respective status buffer.  This is
+necessary because otherwise outdated information might be displayed
+without the user noticing.  Magit buffers are updated by recreating
+their content from scratch, which makes updating simpler and less
+error-prone, but also more costly.  Keeping it simple and just
+re-creating everything from scratch is an old design decision and
+departing from that will require major refactoring.
 
-   I do care about performance and try to optimize for it as much as
-possible, but many features simply come with an inherent performance
-penalty.  When a feature is just too slow given certain usage and
-repository characteristics, then it often can be disabled, globally or
-on a per-repository basis.
+   I plan to do that in time for the next major release.  I also intend
+to create logs and diffs asynchronously, which should also help a lot
+but also requires major refactoring.
 
-   But first a short list of performance issues that cannot easily be
-worked around:
+   Meanwhile you can tell Magit to only automatically refresh the
+current Magit buffer, but not the status buffer.  If you do that, then
+the status buffer is only refreshed automatically if it itself is the
+current buffer.
 
-   • Creating a new process on MS Windows is much slower than on
-     POSIX-compatible systems.  This is a problem because Magit creates
-     a lot of child processes to retrieve information from Git.  In the
-     short run, only switching to a POSIX system can fix this.  Of
-     course this could also be fixed in Windows itself, but I am just
-     one unpaid person while Microsoft is a billion dollar company, so I
-     will leave it to them to fix this grave flaw in their OS.
+     (setq magit-refresh-status-buffer nil)
 
-   • When showing logs, Magit limits the number of commits initially
-     shown in the hope that this avoids unnecessary work.  When using
-     ‘--graph’ this unfortunately does not have the desired effect for
-     large histories.  Junio said on the git mailing list
-     (<http://www.spinics.net/lists/git/msg232230.html>): "‘--graph’
-     wants to compute the whole history and the max-count only affects
-     the output phase after ‘--graph’ does its computation".
+   You should also check whether any third-party packages have added
+anything to ‘magit-refresh-buffer-hook’ and ‘magit-status-refresh-hook’,
+and if so whether those additions impacts performance significantly.
 
-     In other words, it’s not that Git is slow at outputting the
-     differences, or that Magit is slow at parsing the output - the
-     problem is that Git first goes outside and has a smoke.
+   If you have enabled any features that are disabled by default, then
+you should check whether they impact performance significantly.  It’s
+likely that they were not enabled by default because it is known that
+they reduce performance at least in large repositories.
 
-     We actually work around this issue by limiting the commit not only
-     using ‘-<N>’ but also using a range.  But unfortunately that’s not
-     always possible.
+   If performance is only slow inside certain unusually large
+repositories, then you might want to disable certain features on a
+per-repository or per-repository-class basis only.  See *note
+Per-repository configuration: Per-repository configuration.
 
-   • Whenever "something changes", Magit "refreshes" the status buffer
-     and the current Magit buffer by recreating them from scratch.  This
-     is an old design decision that we couldn’t depart from easily.  And
-     it has its benefits too - most importantly it’s much simpler and
-     less error prone to do it this way than to only refreshing "what
-     actually has changed" (that would basically be a huge collection of
-     special cases).  So for now at least, we don’t avoid recreating the
-     buffer content and instead focus on making doing so faster.
+Microsoft Windows Performance
+.............................
 
-   Now for the things that you can do to improve performance:
+In order to update the status buffer, ‘git’ has to be run a few dozen
+times.  That is only problematic on Microsoft Windows, because that
+operating system is exceptionally slow at starting processes.  Sadly
+this is an issue that can only be fixed by Microsoft itself, and they
+don’t appear to particularly interested in doing so.
 
-   Most optional features which can have a negative effect on
-performance are disabled by default.  So start by checking the options
-you have explicitly enabled.  Even the potentially slow features are
-expected to only lead to barely noticeable delays, but your mileage may
-vary.  Also note that it is now possible to set options on a
-per-repository or per-repository-class basis.  See *note Per-repository
-configuration: Per-repository configuration.
+   Beside the subprocess issue, there also exist other Window-specific
+performance issues, some of which can be worked around.  The maintainers
+of "Git for Windows" try to reduce their effect, and in order to benefit
+from the latest performance tweaks, should always use the latest
+release.  Magit too tries to work around some Windows-specific issues.
 
-   You should check the values of at least the following variables:
+   But all these efforts might not be enough, forcing users to make some
+changes themselves.  For example, according to
+<http://stackoverflow.com/questions/4485059>, setting the following Git
+variables might also help:
 
-   • ‘magit-after-revert-hook’
+     git config --global core.preloadindex true
+     git config --global core.fscache true
+     git config --global gc.auto 256
 
-   • ‘magit-diff-auto-show’
+   You should also check whether an anti-virus program is slowing things
+down.
 
-   • ‘magit-diff-highlight-hunk-body’
+Log Performance
+...............
 
-   • ‘magit-diff-highlight-indentation’
+When showing logs, Magit limits the number of commits initially shown in
+the hope that this avoids unnecessary work.  When using ‘--graph’ is
+used, then this unfortunately does not have the desired effect for large
+histories.  Junio, Git’s maintainer, said on the git mailing list
+(<http://www.spinics.net/lists/git/msg232230.html>): "‘--graph’ wants to
+compute the whole history and the max-count only affects the output
+phase after ‘--graph’ does its computation".
 
-   • ‘magit-diff-highlight-trailing’
+   In other words, it’s not that Git is slow at outputting the
+differences, or that Magit is slow at parsing the output - the problem
+is that Git first goes outside and has a smoke.
 
-   • ‘magit-diff-paint-whitespace’
+   We actually work around this issue by limiting the number of commits
+not only by using ‘-<N>’ but by also using a range.  But unfortunately
+that’s not always possible.
+
+   In repositories with more than a few thousand commits ‘--graph’
+should never be a member of ‘magit-log-section-arguments’.  That
+variable is used in the status buffer which is refreshed every time you
+run any Magit command.
+
+   Using ‘--color --graph’ is even slower.  Magit uses code that is part
+of Emacs to turn control characters into faces.  That code is pretty
+slow and this is quite noticeable when showing a log with many branches
+and merges.  For that reason ‘--color’ is not enabled by default
+anymore.  Consider leaving it at that.
+
+Diff Performance
+................
+
+   • ‘magit-diff-highlight-hunk-body’,
+     ‘magit-diff-highlight-indentation’,
+     ‘magit-diff-highlight-trailing’, and ‘magit-diff-paint-whitespace’
 
    • ‘magit-diff-refine-hunk’
 
-   • ‘magit-log-arguments’, ‘magit-log-select-arguments’, and
-     ‘magit-log-section-arguments’
+Refs Buffer Performance
+.......................
 
-     In repositories with more than a few thousand commits ‘--graph’
-     should never be a member of ‘magit-log-section-arguments’.  That
-     variable is in the status buffer which is refreshed every time you
-     run any Magit command.
+When refreshing the "references buffer" is slow, then that’s usually
+because several hundred refs are being displayed.  The best way to
+address that is to display fewer refs, obviously.
 
-     Using ‘--color --graph’ is even slower.  Magit uses code that is
-     part of Emacs to turn control characters into faces.  That code is
-     pretty slow and this is quite noticeable when showing a log with
-     many branches and merges.  For that reason ‘--color’ is not enabled
-     by default anymore.  Consider leaving it at that.
+   If you are not, or only mildly, interested in seeing the list of
+tags, then start by not displaying them:
 
-   • ‘magit-revert-buffers’
+     (remove-hook 'magit-refs-sections-hook 'magit-insert-tags)
 
-     After running certain commands, after refreshing the current Magit
-     buffer, unmodified buffers visiting files belonging to the current
-     repository are reverted.  By default that happens synchronously,
-     which can be an issue if you visit many buffers.  Set this variable
-     to a number to revert asynchronously.  It’s best to use a negative
-     number because that causes the reverts to happen silently (which is
-     desirable because the revert messages would otherwise shadow other,
-     more important messages).
-
-   • ‘magit-not-reverted-hook’
-
-   • ‘magit-refresh-buffer-hook’
-
-     If third-party packages add functions to these hooks, then you
-     might want to consider removing them again.
-
-   • ‘magit-refs-sections-hook’
-
-     When refreshing the "references buffer" is slow, then that’s
-     usually because several hundred refs are being displayed.  The best
-     way to address that is to display fewer refs, obviously.
-
-     If you are not, or only mildly, interested in seeing the list of
-     tags, then start by not displaying them:
-
-          (remove-hook 'magit-refs-sections-hook 'magit-insert-tags)
-
-     Then you should also make sure that the listed remote branches
-     actually all exist.  You can do so by pruning branches which no
-     longer exist using ‘f-pa’.
-
-   • ‘magit-status-refresh-hook’
-
-   • ‘magit-wip-after-apply-mode’
-
-   • ‘magit-wip-after-save-mode’
-
-   • ‘magit-wip-before-change-mode’
-
-   Also note that everything involving "cherry commits" is slow.
-
-   If, after actually trying the above suggestions, performance is still
-bad, and the above does not contain a statement explaining why that is
-so in that particular case and that there is nothing that we can
-currently do about it, then comment on the appropriate existing issue
-(see <https://github.com/magit/magit/labels/performance>), or if
-necessary open a new issue.  Note that "something is slow, I am using
-v2.2" is not helpful, you have to be a bit more specific.  Benchmarks
-are a start.
+   Then you should also make sure that the listed remote branches
+actually all exist.  You can do so by pruning branches which no longer
+exist using ‘f-pa’.
 
 
 File: magit.info,  Node: Plumbing,  Next: FAQ,  Prev: Customizing,  Up: Top
@@ -6237,6 +6266,8 @@ made it into the manual yet, see
 * Can Magit be used as ediff-version-control-package?::
 * How to show diffs for gpg-encrypted files?::
 * Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
+* Symbol's value as function is void --some::
+* Where is the branch manager::
 
 
 File: magit.info,  Node: Magit is slow,  Next: I changed several thousand files at once and now Magit is unusable,  Up: FAQ
@@ -6513,7 +6544,7 @@ affects the diffs displayed inside Magit.
      echo "*.gpg filter=gpg diff=gpg" > .gitattributes
 
 
-File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
+File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: Symbol's value as function is void --some,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
 
 A.15 Emacs 24.5 hangs when loading Magit
 ========================================
@@ -6523,6 +6554,23 @@ This is actually triggered by loading Tramp.  See
 can work around the problem by setting
 ‘tramp-ssh-controlmaster-options’.  Changing your DNS server (e.g.  to
 Google’s ‘8.8.8.8’) may also be sufficient to work around the issue.
+
+
+File: magit.info,  Node: Symbol's value as function is void --some,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
+
+A.16 Symbol’s value as function is void –some
+=============================================
+
+Update ‘dash’, restart Emacs, and then it will be defined.
+
+
+File: magit.info,  Node: Where is the branch manager,  Prev: Symbol's value as function is void --some,  Up: FAQ
+
+A.17 Where is the branch manager
+================================
+
+‘y’ is bound to the command that shows the "refs buffer", the successor
+of the "branch manager".
 
 
 File: magit.info,  Node: Keystroke Index,  Next: Command Index,  Prev: FAQ,  Up: Top
@@ -6698,10 +6746,10 @@ Appendix B Keystroke Index
 * F p:                                   Pulling.             (line  13)
 * f u:                                   Fetching.            (line  17)
 * F u:                                   Pulling.             (line  17)
-* g:                                     Automatic refresh and revert.
-                                                              (line  77)
-* G:                                     Automatic refresh and revert.
-                                                              (line  86)
+* g:                                     Automatic Refreshing of Magit Buffers.
+                                                              (line  22)
+* G:                                     Automatic Refreshing of Magit Buffers.
+                                                              (line  31)
 * j:                                     Diff buffer.         (line  38)
 * k:                                     Viewing Git output.  (line  19)
 * k <1>:                                 Applying.            (line  37)
@@ -6917,6 +6965,8 @@ Appendix C Command Index
  [index ]
 * Menu:
 
+* auto-revert-mode:                      Automatic Reverting of File-Visiting Buffers.
+                                                              (line  62)
 * forward-line:                          Editing rebase sequences.
                                                               (line  39)
 * git-commit-ack:                        Editing commit messages.
@@ -7167,10 +7217,10 @@ Appendix C Command Index
 * magit-reflog-current:                  Reflog.              (line  11)
 * magit-reflog-head:                     Reflog.              (line  19)
 * magit-reflog-other:                    Reflog.              (line  15)
-* magit-refresh:                         Automatic refresh and revert.
-                                                              (line  77)
-* magit-refresh-all:                     Automatic refresh and revert.
-                                                              (line  86)
+* magit-refresh:                         Automatic Refreshing of Magit Buffers.
+                                                              (line  22)
+* magit-refresh-all:                     Automatic Refreshing of Magit Buffers.
+                                                              (line  31)
 * magit-remote-add:                      Remotes.             (line  13)
 * magit-remote-popup:                    Remotes.             (line   8)
 * magit-remote-remove:                   Remotes.             (line  28)
