@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 1.1.8
-;; Package-Version: 20151222.459
+;; Version: 1.1.9
+;; Package-Version: 20160114.37
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -617,41 +617,26 @@ to a wrong one.")
       (let* ((curbuf (current-buffer))
              (curwin (get-buffer-window curbuf nil))
              (prompt (format "You are going to kill a buffer(%s) which is not in the current perspective. \
-It will be removed from every perspective and then killed.\nWhat do you really want to do(k - kill/K - kill and close window/c - close window/s - switch to another buffer/q - do nothing)? "
-                             curbuf))
-             ans)
+It will be removed from every perspective and then killed.\nWhat do you really want to do\
+(k - kill/K - kill and close window/c - close window/s - switch to another buffer/q - do nothing)? "
+                             (buffer-name curbuf))))
+        (set (make-local-variable 'persp-ask-to-kill-buffer-not-in-persp) nil)
         (macrolet
             ((clwin (w)
-                    `(run-at-time 1 nil
-                                  #'(lambda (ww) (delete-window ww))
-                                  ,w))
+                    `(run-at-time 1 nil #'(lambda (ww) (delete-window ww)) ,w))
              (swb (b w)
                   `(run-at-time 1 nil
                                 #'(lambda (bb ww)
                                     (with-selected-window ww
                                       (set-window-buffer ww (persp-get-another-buffer-for-window bb ww))))
                                 ,b ,w)))
-          (while (eq
-                  (setq ans
-                        (case (let ((cursor-in-echo-area t))
-                                (when minibuffer-auto-raise
-                                  (raise-frame (window-frame (minibuffer-window))))
-                                (read-key (propertize
-                                           (if ans
-                                               (concat prompt
-                                                       "\nPlease answer k/K/c/s/q. ")
-                                             prompt)
-                                           'face 'minibuffer-prompt)))
-                          ((or ?q ?\C-g ?\C-\[) nil)
-                          (?k t)
-                          (?K (clwin curwin) t)
-                          (?c (clwin curwin) nil)
-                          (?s (swb curbuf curwin) nil)
-                          (t 'ask-again)))
-                  'ask-again)
-            (ding)
-            (discard-input)))
-        ans)
+          (case (read-char-choice prompt '(?k ?K ?c ?s ?q ?\C-g ?\C-\[))
+            ((or ?q ?\C-g ?\C-\[) nil)
+            (?k t)
+            (?K (clwin curwin) t)
+            (?c (clwin curwin) nil)
+            (?s (swb curbuf curwin) nil)
+            (t t))))
     t))
 
 ;; Mode itself:
@@ -1312,14 +1297,12 @@ Return `NAME'."
         (if multiple
             (let ((done_str "[>done<]")
                   cp)
+              (while (member done_str persps)
+                (setq done_str (concat ">" done_str)))
               (push done_str persps)
               (block 'multi-ret
                 (while (setq cp (call-pif))
-                  (when default
-                    (setq persps (cdr persps)
-                          persps (cons default persps)
-                          persps (cons done_str persps))
-                    (setq default nil))
+                  (when default (setq default nil))
                   (if (string= cp done_str)
                       (return-from 'multi-ret retlst)
                     (setq persps (delete cp persps))
@@ -1703,16 +1686,19 @@ does not exist or not a directory %S." p-save-dir)
                                (file-name-nondirectory fname))))
       (if (not (file-exists-p p-save-file))
           (message "[persp-mode] Error: No such file -- %S." p-save-file)
-        (with-current-buffer (find-file-noselect p-save-file)
-          (goto-char (point-min))
-          (persps-from-savelist (if names-regexp
-                                    (delete-if-not #'(lambda (pd)
-                                                       (string-match-p names-regexp (or (cadr pd)
-                                                                                        persp-nil-name)))
-                                                   (read (current-buffer)))
-                                  (read (current-buffer)))
-                                phash (and set-persp-file p-save-file))
-          (kill-buffer))))
+        (let (readed-list)
+          (with-current-buffer (find-file-noselect p-save-file)
+            (goto-char (point-min))
+            (setq readed-list (read (current-buffer)))
+            (kill-buffer))
+          (persps-from-savelist
+           (if names-regexp
+               (delete-if-not #'(lambda (pd)
+                                  (string-match-p names-regexp (or (cadr pd)
+                                                                   persp-nil-name)))
+                              readed-list)
+             readed-list)
+           phash (and set-persp-file p-save-file)))))
     (when (eq phash *persp-hash*)
       (persp-update-frames-window-confs names-regexp))))
 
