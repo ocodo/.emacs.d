@@ -5,7 +5,7 @@
 ;; Author: Charles L.G. Comstock <dgtized@gmail.com>
 ;; Created: 2 Aug 2014
 ;; Version: 0.2
-;; Package-Version: 20151225.1642
+;; Package-Version: 20160114.653
 ;; URL: https://github.com/dgtized/github-clone.el
 ;; Keywords: vc, tools
 ;; Package-Requires: ((gh "0.7.2") (magit "2.1.0") (emacs "24.4"))
@@ -93,13 +93,14 @@
       (error "Unable to fork %s" (eieio-oref repo github-clone-url-slot)))))
 
 (defun github-clone-repo-name (url)
-  (cond ((string-match "\\.git$" url)
-         (github-clone-repo-name (replace-match "" nil nil url)))
-        ((string-match "\\([[:alnum:]\-_.]+\\)/\\([[:alnum:]\-_.]+\\)$" url)
-         (cons (match-string 1 url) (match-string 2 url)))
-        ((string-match "^\\([[:alnum:]\-_.]+\\)$" url)
-         (cons (github-clone-user-name) (match-string 1 url)))
-        (t (error "Cannot parse repo name %s" url))))
+  (let ((url1 (replace-regexp-in-string "/$" "" url)))
+    (cond ((string-match "\\.git$" url1)
+           (github-clone-repo-name (replace-match "" nil nil url1)))
+          ((string-match "\\([[:alnum:]\-_.]+\\)/\\([[:alnum:]\-_.]+\\)$" url1)
+           (cons (match-string 1 url) (match-string 2 url1)))
+          ((string-match "^\\([[:alnum:]\-_.]+\\)$" url1)
+           (cons (github-clone-user-name) (match-string 1 url1)))
+          (t (error "Cannot parse repo name %s" url1)))))
 
 (defvar github-clone--user nil "Cache for current github login.")
 (defun github-clone-user-name ()
