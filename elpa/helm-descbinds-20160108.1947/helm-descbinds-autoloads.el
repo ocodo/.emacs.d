@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-descbinds" "helm-descbinds.el" (22145
-;;;;;;  57562 750764 198000))
+;;;### (autoloads nil "helm-descbinds" "helm-descbinds.el" (22168
+;;;;;;  61925 827498 160000))
 ;;; Generated autoloads from helm-descbinds.el
 
 (defvar helm-descbinds-mode nil "\
@@ -32,7 +32,25 @@ Restore original `describe-bindings'.
 \(fn)" t nil)
 
 (autoload 'helm-descbinds "helm-descbinds" "\
-A convenient `describe-bindings' with `helm'.
+A convenient helm version of `describe-bindings'.
+
+Turning on `helm-descbinds-mode' is the recommended way to
+install this command to replace `describe-bindings'.
+
+You complete against a list of keys + command pairs presented in
+a similar way as `describe-bindings' does, split into sections
+defined by the types of the key bindings (minor and major modes,
+global bindings, etc).
+
+The default action executes a command as if the binding had been
+entered, or narrows the commands according to a prefix key,
+respectively.
+
+The persistent action pops up a help buffer for the selected
+command without quitting.
+
+For key translation maps, the default actions are not very
+useful, yet they are listed for completeness.
 
 \(fn &optional PREFIX BUFFER)" t nil)
 
