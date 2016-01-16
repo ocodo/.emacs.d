@@ -1,12 +1,12 @@
 ;;; concurrent.el --- Concurrent utility functions for emacs lisp
 
-;; Copyright (C) 2010, 2011, 2012  SAKURAI Masashi
+;; Copyright (C) 2010-2016  SAKURAI Masashi
 
 ;; Author: SAKURAI Masashi <m.sakurai at kiwanami.net>
-;; Version: 0.3.1
-;; Package-Version: 20150309.2052
+;; Version: 0.4.0
+;; Package-Version: 20160109.2046
 ;; Keywords: deferred, async, concurrent
-;; Package-Requires: ((deferred "0.3.1"))
+;; Package-Requires: ((deferred "0.4.0"))
 ;; URL: https://github.com/kiwanami/emacs-deferred/blob/master/README-concurrent.markdown
 
 ;; This program is free software; you can redistribute it and/or modify
