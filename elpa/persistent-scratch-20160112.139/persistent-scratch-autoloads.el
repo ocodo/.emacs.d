@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "persistent-scratch" "persistent-scratch.el"
-;;;;;;  (21713 57841 211401 0))
+;;;;;;  (22168 61847 331466 895000))
 ;;; Generated autoloads from persistent-scratch.el
 
 (autoload 'persistent-scratch-save "persistent-scratch" "\
@@ -47,7 +47,7 @@ Restore the scratch buffers from a file.
 FILE is a file storing saved scratch buffer state.
 
 When called interactively, prompt for the file name, which is the only
-differente between this function and `persistent-scratch-restore'.
+difference between this function and `persistent-scratch-restore'.
 
 See `persistent-scratch-restore'.
 
@@ -89,11 +89,6 @@ When an error occurs while restoring the scratch buffers, it's demoted to a
 message.
 
 \(fn)" nil nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("persistent-scratch-pkg.el") (21713 57841
-;;;;;;  217372 63000))
 
 ;;;***
 

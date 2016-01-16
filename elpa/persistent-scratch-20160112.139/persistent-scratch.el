@@ -1,14 +1,14 @@
 ;;; persistent-scratch.el --- Preserve the scratch buffer across Emacs sessions -*- lexical-binding: t -*-
-;; Version: 20150202.943
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/persistent-scratch
-;; Package-Version: 0.2.2
+;; Package-Version: 20160112.139
+;; Package-X-Original-Version: 0.2.3
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is NOT part of GNU Emacs.
 
-;; Copyright (c) 2015, Fanael Linithien
+;; Copyright (c) 2015-2016, Fanael Linithien
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -192,7 +192,7 @@ same name as a saved buffer, the contents of that buffer will be overwritten."
 FILE is a file storing saved scratch buffer state.
 
 When called interactively, prompt for the file name, which is the only
-differente between this function and `persistent-scratch-restore'.
+difference between this function and `persistent-scratch-restore'.
 
 See `persistent-scratch-restore'."
   (interactive "f")
@@ -234,8 +234,11 @@ file and use that file from now on."
 When an error occurs while restoring the scratch buffers, it's demoted to a
 message."
   (persistent-scratch-autosave-mode)
-  (with-demoted-errors "Failed to restore scratch buffers: %S"
-    (persistent-scratch-restore)))
+  (condition-case err
+      (persistent-scratch-restore)
+    (error
+     (message "Failed to restore scratch buffers: %S" err)
+     nil)))
 
 (defun persistent-scratch-default-scratch-buffer-p ()
   "Return non-nil iff the current buffer's name is *scratch*."
