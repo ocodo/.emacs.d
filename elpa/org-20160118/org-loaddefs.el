@@ -298,7 +298,7 @@ used to limit the exported source code blocks by language.
 ;;;;;;  org-search-view org-agenda-list org-batch-store-agenda-views
 ;;;;;;  org-store-agenda-views org-batch-agenda-csv org-batch-agenda
 ;;;;;;  org-agenda org-toggle-sticky-agenda) "org-agenda" "org-agenda.el"
-;;;;;;  (22161 62906))
+;;;;;;  (22164 39098))
 ;;; Generated autoloads from org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -700,7 +700,7 @@ Set `org-capture-templates' to be similar to `org-remember-templates'.
 ;;;;;;  org-clock-remove-overlays org-clock-display org-clock-sum
 ;;;;;;  org-clock-goto org-clock-cancel org-clock-out org-clock-in-last
 ;;;;;;  org-clock-in org-resolve-clocks) "org-clock" "org-clock.el"
-;;;;;;  "807cf01072d18f7a934c080fbe84a48d")
+;;;;;;  "f557d04e2f6eafbcd8dc48202306196d")
 ;;; Generated autoloads from org-clock.el
 
 (autoload 'org-resolve-clocks "org-clock" "\
@@ -923,7 +923,7 @@ tree can be found.
 
 ;;;### (autoloads (org-element-context org-element-at-point org-element-cache-refresh
 ;;;;;;  org-element-cache-reset org-element-interpret-data org-element-update-syntax)
-;;;;;;  "org-element" "org-element.el" "a2b064bb9e1a143a70c279191eea9806")
+;;;;;;  "org-element" "org-element.el" "360b97efb68af5557afe67090bb1052e")
 ;;; Generated autoloads from org-element.el
 
 (autoload 'org-element-update-syntax "org-element" "\
@@ -1260,7 +1260,7 @@ line directly before or after the table.
 ;;;;;;  org-table-begin org-table-align org-table-export org-table-import
 ;;;;;;  org-table-convert-region org-table-create org-table-create-or-convert-from-region
 ;;;;;;  org-table-create-with-table\.el) "org-table" "org-table.el"
-;;;;;;  "a4a11f0171efe188331bde12df034e11")
+;;;;;;  "9eb480271b60d96743834b9132a5ab0f")
 ;;; Generated autoloads from org-table.el
 
 (autoload 'org-table-create-with-table\.el "org-table" "\
@@ -1603,8 +1603,11 @@ If NLAST is a number, only the NLAST fields will actually be summed.
 
 (autoload 'org-table-get-stored-formulas "org-table" "\
 Return an alist with the stored formulas directly after current table.
+By default, only return active formulas, i.e., formulas located
+on the first line after the table.  However, if optional argument
+LOCATION is a buffer position, consider the formulas there.
 
-\(fn &optional NOERROR)" nil nil)
+\(fn &optional NOERROR LOCATION)" nil nil)
 
 (autoload 'org-table-maybe-eval-formula "org-table" "\
 Check if the current field starts with \"=\" or \":=\".
@@ -2002,7 +2005,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22163 17639))
+;;;;;;  (22172 32613))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2028,7 +2031,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (22161 62906))
+;;;;;;  "org" "org.el" (22171 12346))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\

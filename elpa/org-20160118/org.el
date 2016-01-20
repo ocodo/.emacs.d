@@ -2293,17 +2293,17 @@ For more examples, see the system specific constants
   :group 'org)
 
 (defcustom org-directory "~/org"
-  "Directory with org files.
+  "Directory with Org files.
 This is just a default location to look for Org files.  There is no need
-at all to put your files into this directory.  It is only used in the
+at all to put your files into this directory.  It is used in the
 following situations:
 
 1. When a capture template specifies a target file that is not an
    absolute path.  The path will then be interpreted relative to
    `org-directory'
-2. When a capture note is filed away in an interactive way (when exiting the
-   note buffer with `C-1 C-c C-c'.  The user is prompted for an org file,
-   with `org-directory' as the default path."
+2. When the value of variable `org-agenda-files' is a single file, any
+   relative paths in this file will be taken as relative to
+   `org-directory'."
   :group 'org-refile
   :group 'org-capture
   :type 'directory)
@@ -6240,14 +6240,14 @@ done, nil otherwise."
     (font-lock-mode 1)))
 
 (defun org-activate-tags (limit)
-  (if (re-search-forward (org-re "^\\*+.*[ \t]\\(:[[:alnum:]_@#%:]+:\\)[ \r\n]") limit t)
-      (progn
-	(org-remove-flyspell-overlays-in (match-beginning 1) (match-end 1))
-	(add-text-properties (match-beginning 1) (match-end 1)
-			     (list 'mouse-face 'highlight
-				   'keymap org-mouse-map))
-	(org-rear-nonsticky-at (match-end 1))
-	t)))
+  (when (re-search-forward
+	 (org-re "^\\*+.*[ \t]\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$") limit t)
+    (org-remove-flyspell-overlays-in (match-beginning 1) (match-end 1))
+    (add-text-properties (match-beginning 1) (match-end 1)
+			 (list 'mouse-face 'highlight
+			       'keymap org-mouse-map))
+    (org-rear-nonsticky-at (match-end 1))
+    t))
 
 (defun org-outline-level ()
   "Compute the outline level of the heading at point.
@@ -18755,10 +18755,14 @@ When a buffer is unmodified, it is just killed.  When modified, it is saved
 		   (append org-tag-alist-for-agenda
 			   org-tag-alist
 			   org-tag-persistent-alist)))
-	    (if org-group-tags
-		(setq org-tag-groups-alist-for-agenda
-		      (org-uniquify-alist
-		       (append org-tag-groups-alist-for-agenda org-tag-groups-alist))))
+	    ;; Merge current file's tag groups into global
+	    ;; `org-tag-groups-alist-for-agenda'.
+	    (when org-group-tags
+	      (dolist (alist org-tag-groups-alist)
+		(let ((old (assoc (car alist) org-tag-groups-alist-for-agenda)))
+		  (if old
+		      (setcdr old (org-uniquify (append (cdr old) (cdr alist))))
+		    (push alist org-tag-groups-alist-for-agenda)))))
 	    (org-with-silent-modifications
 	     (save-excursion
 	       (remove-text-properties (point-min) (point-max) pall)
