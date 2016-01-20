@@ -1,13 +1,13 @@
 ;;; evil-jumper.el --- Jump like vimmers do!
 
-;; Copyright (C) 2014 by Bailey Ling
+;; Copyright (C) 2014-2016 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/evil-jumper
-;; Package-Version: 20160114.1229
+;; Package-Version: 20160119.1609
 ;; Filename: evil-jumper.el
 ;; Description: Jump like vimmers do!
 ;; Created: 2014-07-01
-;; Version: 0.3.0
+;; Version: 0.3.1
 ;; Keywords: evil vim jumplist jump list
 ;; Package-Requires: ((evil "0") (cl-lib "0.5"))
 ;;
@@ -62,9 +62,14 @@
   :type 'integer
   :group 'evil-jumper)
 
-(defcustom evil-jumper-auto-center nil
-  "Auto-center the line after jumping."
-  :type 'boolean
+(defcustom evil-jumper-pre-jump-hook nil
+  "Hooks to run just before jumping to a location in the jump list."
+  :type 'hook
+  :group 'evil-jumper)
+
+(defcustom evil-jumper-post-jump-hook nil
+  "Hooks to run just after jumping to a location in the jump list."
+  :type 'hook
   :group 'evil-jumper)
 
 (defcustom evil-jumper-ignored-file-patterns '("COMMIT_EDITMSG$" "TAGS$")
@@ -131,6 +136,7 @@
   (let ((target-list (evil-jumper--get-window-jump-list)))
     (when (and (< idx (length target-list))
                (>= idx 0))
+      (run-hooks 'evil-jumper-pre-jump-hook)
       (setf (evil-jumper-jump-idx (evil-jumper--get-current)) idx)
       (let* ((place (nth idx target-list))
              (pos (car place))
@@ -141,8 +147,7 @@
           (find-file file-name))
         (setq evil-jumper--jumping nil)
         (goto-char pos)
-        (when evil-jumper-auto-center
-          (recenter))))))
+        (run-hooks 'evil-jumper-post-jump-hook)))))
 
 (defun evil-jumper--push ()
   "Pushes the current cursor/file position to the jump list."
@@ -238,13 +243,14 @@
   :global t
   :keymap (let ((map (make-sparse-keymap)))
             (evil-define-key 'normal map [remap evil-jump-backward] #'evil-jumper/backward)
-            (when evil-want-C-i-jump
-              (evil-define-key 'normal map [remap evil-jump-forward] #'evil-jumper/forward))
+            (evil-define-key 'normal map [remap evil-jump-forward] #'evil-jumper/forward)
             map)
   (if evil-jumper-mode
       (progn
         (if (boundp 'evil-jumper-file)
-            (message "The variable 'evil-jumper-file' is obsolete.  Persistence is done with 'savehist' now."))
+            (message "The variable `evil-jumper-file' is obsolete.  Persistence is done with `savehist' now."))
+        (if (boundp 'evil-jumper-auto-center)
+            (message "The variable `evil-jumper-auto-center' is obsolete. It has been replaced with `evil-jumper-post-jump-hook'."))
         (evil-jumper--savehist-init)
         (add-hook 'next-error-hook #'evil-jumper--set-jump)
         (add-hook 'window-configuration-change-hook #'evil-jumper--window-configuration-hook)
