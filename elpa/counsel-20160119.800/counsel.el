@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160112.727
+;; Package-Version: 20160119.800
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
@@ -1258,11 +1258,13 @@ INITIAL-INPUT can be given as the initial minibuffer input."
            (setq last-command-event chosen-string)
            (call-interactively choice)))))
 
+(defvar tmm-table-undef)
 (defun counsel-tmm ()
   "Text-mode emulation of looking and choosing from a menubar."
   (interactive)
   (require 'tmm)
   (run-hooks 'menu-bar-update-hook)
+  (setq tmm-table-undef nil)
   (counsel-tmm-prompt (tmm-get-keybind [menu-bar])))
 
 (defcustom counsel-yank-pop-truncate nil
