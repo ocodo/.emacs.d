@@ -3,7 +3,7 @@
 ;; Author: Vegard Øye <vegard_oye at hotmail.com>
 ;; Maintainer: Vegard Øye <vegard_oye at hotmail.com>
 
-;; Version: 1.2.8
+;; Version: 1.2.10
 
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -1189,6 +1189,12 @@ reinitialized in each buffer. Entries have the form
 \(MODE . KEYMAP), where KEYMAP is the variable containing
 the keymap for MODE.")
 
+(defvar evil-minor-mode-keymaps-alist nil
+  "Association list of evil states to minor-mode keymap alists.
+Entries have the form (STATE . MODE-MAP-ALIST), where
+MODE-MAP-ALIST is an alist taking the form of
+`minor-mode-map-alist'.")
+
 (defvar evil-state-properties nil
   "Specifications made by `evil-define-state'.
 Entries have the form (STATE . PLIST), where PLIST is a property
@@ -1756,7 +1762,7 @@ Otherwise the previous command is assumed as substitute.")
           (goto-char (point-min))
           (buffer-substring (point-min) (line-end-position)))
          ;; no repo, use plain version
-         (t "1.2.8")))))
+         (t "1.2.10")))))
   "The current version of Evil")
 
 (defun evil-version ()
