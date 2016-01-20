@@ -4,9 +4,9 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160109.2301
+;; Package-Version: 20160119.454
 ;; Version: 0.50
-;; Package-Requires: ((helm "1.7.7") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -50,73 +50,58 @@
 (defsubst helm-ag--windows-p ()
   (memq system-type '(ms-dos windows-nt)))
 
-(defsubst helm-ag--has-drive-letter-p (path)
-  (string-match-p "\\`[a-zA-Z]:" path))
-
 (defcustom helm-ag-base-command
   (if (helm-ag--windows-p)
       "ag --vimgrep"
     "ag --nocolor --nogroup")
   "Base command of `ag'"
-  :type 'string
-  :group 'helm-ag)
+  :type 'string)
 
 (defcustom helm-ag-command-option nil
   "Command line option of `ag'. This is appended after `helm-ag-base-command'"
-  :type 'string
-  :group 'helm-ag)
+  :type 'string)
 
 (defcustom helm-ag-insert-at-point nil
   "Insert thing at point as search pattern.
    You can set value same as `thing-at-point'"
-  :type 'symbol
-  :group 'helm-ag)
+  :type 'symbol)
 
 (defcustom helm-ag-ignore-patterns nil
   "Ignore patterns for `ag'. This parameters are specified as --ignore"
-  :type '(repeat string)
-  :group 'helm-ag)
+  :type '(repeat string))
 
 (defcustom helm-ag-use-grep-ignore-list nil
   "Use `grep-find-ignored-files' and `grep-find-ignored-directories' as ignore pattern.
 They are specified to `--ignore' options."
-  :type 'boolean
-  :group 'helm-ag)
+  :type 'boolean)
 
 (defcustom helm-ag-always-set-extra-option nil
   "Always set `ag' options of `helm-do-ag'."
-  :type 'boolean
-  :group 'helm-ag)
+  :type 'boolean)
 
 (defcustom helm-ag-fuzzy-match nil
   "Enable fuzzy match"
-  :type 'boolean
-  :group 'helm-ag)
+  :type 'boolean)
 
 (defcustom helm-ag-edit-save t
   "Save buffers you edit at completed."
-  :type 'boolean
-  :group 'helm-ag)
+  :type 'boolean)
 
 (defcustom helm-ag-use-emacs-lisp-regexp nil
   "[Experimental] Use Emacs Lisp regexp instead of PCRE."
-  :type 'boolean
-  :group 'helm-ag)
+  :type 'boolean)
 
 (defcustom helm-ag-use-agignore nil
   "Use .agignore where is at project root if it exists."
-  :type 'boolean
-  :group 'helm-ag)
+  :type 'boolean)
 
 (defcustom helm-ag-use-temp-buffer nil
   "Use temporary buffer for persistent action."
-  :type 'boolean
-  :group 'helm-ag)
+  :type 'boolean)
 
 (defface helm-ag-edit-deleted-line
   '((t (:inherit font-lock-comment-face :strike-through t)))
-  "Face of deleted line in edit mode."
-  :group 'helm-ag)
+  "Face of deleted line in edit mode.")
 
 (defvar helm-ag--command-history '())
 (defvar helm-ag--context-stack nil)
@@ -256,7 +241,7 @@ They are specified to `--ignore' options."
              (coding-system-for-write buf-coding))
         (setq helm-ag--ignore-case (helm-ag--ignore-case-p cmds helm-ag--last-query)
               helm-ag--last-command cmds)
-        (let ((ret (apply 'process-file (car cmds) nil t nil (cdr cmds))))
+        (let ((ret (apply #'process-file (car cmds) nil t nil (cdr cmds))))
           (if (zerop (length (buffer-string)))
               (error "No ag output: '%s'" helm-ag--last-query)
             (unless (zerop ret)
@@ -274,6 +259,9 @@ They are specified to `--ignore' options."
         target))))
 
 (defun helm-ag--find-file-action (candidate find-func this-file &optional persistent)
+  (when helm-ag--command-feature
+    ;; 'pt' always show filename if matched file is only one.
+    (setq this-file nil))
   (let* ((file-line (helm-grep-split-line candidate))
          (filename (or this-file (cl-first file-line)))
          (line (if this-file
@@ -300,8 +288,8 @@ They are specified to `--ignore' options."
 
 (defun helm-ag--persistent-action (candidate)
   (let ((find-func (if helm-ag-use-temp-buffer
-                       'helm-ag--open-file-with-temp-buffer
-                     'find-file)))
+                       #'helm-ag--open-file-with-temp-buffer
+                     #'find-file)))
     (helm-ag--find-file-action candidate find-func (helm-attr 'search-this-file) t)
     (helm-highlight-current-line)))
 
@@ -405,7 +393,8 @@ They are specified to `--ignore' options."
     :persistent-action 'helm-ag--persistent-action
     :fuzzy-match helm-ag-fuzzy-match
     :action helm-ag--actions
-    :candidate-number-limit 9999))
+    :candidate-number-limit 9999
+    :follow (and helm-follow-mode-persistent 1)))
 
 ;;;###autoload
 (defun helm-ag-pop-stack ()
@@ -447,7 +436,9 @@ They are specified to `--ignore' options."
   (helm-ag--clear-variables)
   (let ((filename (file-name-nondirectory (buffer-file-name))))
     (helm-ag--query)
-    (helm-attrset 'search-this-file (buffer-file-name) helm-ag-source)
+    (helm-ag--set-command-feature)
+    (helm-attrset 'search-this-file (file-relative-name (buffer-file-name))
+                  helm-ag-source)
     (helm-attrset 'name (format "Search at %s" filename) helm-ag-source)
     (helm :sources '(helm-ag-source) :buffer "*helm-ag*")))
 
@@ -801,6 +792,7 @@ Continue searching the parent directory? "))
 
 (defun helm-ag--propertize-candidates (input)
   (goto-char (point-min))
+  (forward-line 1)
   (let ((patterns (helm-ag--do-ag-highlight-patterns input)))
     (cl-loop with one-file-p = (helm-ag--search-only-one-file-p)
              while (not (eobp))
@@ -880,7 +872,7 @@ Continue searching the parent directory? "))
                                 default-directory))
          (cmd-args (helm-ag--construct-do-ag-command helm-pattern)))
     (when cmd-args
-      (let ((proc (apply 'start-file-process "helm-do-ag" nil cmd-args)))
+      (let ((proc (apply #'start-file-process "helm-do-ag" nil cmd-args)))
         (setq helm-ag--last-query helm-pattern
               helm-ag--last-command cmd-args
               helm-ag--ignore-case (helm-ag--ignore-case-p cmd-args helm-pattern)
@@ -927,7 +919,8 @@ Continue searching the parent directory? "))
     :action helm-ag--actions
     :nohighlight t
     :requires-pattern 3
-    :candidate-number-limit 9999))
+    :candidate-number-limit 9999
+    :follow (and helm-follow-mode-persistent 1)))
 
 (defun helm-ag--do-ag-up-one-level ()
   (interactive)
