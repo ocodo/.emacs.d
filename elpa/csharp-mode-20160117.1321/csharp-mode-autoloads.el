@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "csharp-mode" "csharp-mode.el" (22160 39038
-;;;;;;  397656 834000))
+;;;### (autoloads nil "csharp-mode" "csharp-mode.el" (22175 12910
+;;;;;;  596939 668000))
 ;;; Generated autoloads from csharp-mode.el
 
 (defvar csharp-mode-hook nil "\
