@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-exchange" "evil-exchange.el" (22168 61973
-;;;;;;  379517 635000))
+;;;### (autoloads nil "evil-exchange" "evil-exchange.el" (22175 12900
+;;;;;;  96957 399000))
 ;;; Generated autoloads from evil-exchange.el
 
 (autoload 'evil-exchange "evil-exchange" "\
@@ -19,6 +19,11 @@ Cancel current pending exchange.
 Setting evil-exchange key bindings.
 
 \(fn)" nil nil)
+
+(autoload 'evil-exchange-cx-install "evil-exchange" "\
+Setting evil-exchange key bindings in a vim-compatible way
+
+\(fn)" t nil)
 
 ;;;***
 

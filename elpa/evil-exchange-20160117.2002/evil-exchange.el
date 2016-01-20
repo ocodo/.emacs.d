@@ -1,13 +1,13 @@
 ;;; evil-exchange.el --- Exchange text more easily within Evil
 
-;; Copyright (C) 2013-2014 by Dewdrops
+;; Copyright (C) 2013-2016 by Dewdrops
 
 ;; Author: Dewdrops <v_v_4474@126.com>
 ;; URL: http://github.com/Dewdrops/evil-exchange
-;; Package-Version: 20160114.1918
-;; Version: 0.22
+;; Package-Version: 20160117.2002
+;; Version: 0.30
 ;; Keywords: evil, plugin
-;; Package-Requires: ((evil "1.0.7") (cl-lib "0.3"))
+;; Package-Requires: ((evil "1.2.8") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -107,7 +107,8 @@
          ((and (eq orig-type 'block) (eq type 'block))
           (evil-exchange--do-swap beg-marker end-marker
                                   orig-beg orig-end
-                                  #'delete-extract-rectangle #'insert-rectangle))
+                                  #'delete-extract-rectangle #'insert-rectangle
+                                  nil))
          ;; signal error if regions incompatible
          ((or (eq orig-type 'block) (eq type 'block))
           (user-error "Can't exchange block region with non-block region"))
@@ -115,19 +116,37 @@
          (t
           (evil-exchange--do-swap beg-marker end-marker
                                   orig-beg orig-end
-                                  #'delete-and-extract-region #'insert))))))
+                                  #'delete-and-extract-region #'insert
+                                  t))))))
   ;; place cursor on beginning of line
   (when (and (evil-called-interactively-p) (eq type 'line))
     (evil-first-non-blank)))
 
-(defun evil-exchange--do-swap (curr-beg curr-end orig-beg orig-end extract-fn insert-fn)
-  (let ((orig-text (funcall extract-fn orig-beg orig-end))
+(defun evil-exchange--do-swap (curr-beg curr-end orig-beg orig-end extract-fn insert-fn not-block)
+  ;; This function does the real exchange work. Here's the detailed steps:
+  ;; 1. call extract-fn with orig-beg and orig-end to extract orig-text.
+  ;; 2. call extract-fn with curr-beg and curr-end to extract curr-text.
+  ;; 3. go to orig-beg and then call insert-fn with curr-text.
+  ;; 4. go to curr-beg and then call insert-fn with orig-text.
+  ;; After step 2, the two markers of the same beg/end pair (curr or orig)
+  ;; will point to the same position. So if orig-beg points to the same position
+  ;; of curr-end initially, orig-beg and curr-beg will point to the same position
+  ;; before step 3. Because curr-beg is a marker which moves after insertion, the
+  ;; insertion in step 3 will push it to the end of the newly inserted text,
+  ;; thus resulting incorrect behaviour.
+  ;; To fix this edge case, we swap two extracted texts before step 3 to
+  ;; effectively reverse the (problematic) order of two `evil-exchange' calls.
+  (let ((adjacent (and not-block (equal (marker-position orig-beg) (marker-position curr-end))))
+        (orig-text (funcall extract-fn orig-beg orig-end))
         (curr-text (funcall extract-fn curr-beg curr-end)))
-    (save-excursion
-      (goto-char orig-beg)
-      (funcall insert-fn curr-text)
-      (goto-char curr-beg)
-      (funcall insert-fn orig-text)))
+    ;; swaps two texts if adjacent is set
+    (let ((orig-text (if adjacent curr-text orig-text))
+          (curr-text (if adjacent orig-text curr-text)))
+      (save-excursion
+        (goto-char orig-beg)
+        (funcall insert-fn curr-text)
+        (goto-char curr-beg)
+        (funcall insert-fn orig-text))))
   (setq evil-exchange--position nil)
   (evil-exchange--remove-overlays))
 
@@ -148,6 +167,22 @@
   (define-key evil-visual-state-map evil-exchange-key 'evil-exchange)
   (define-key evil-normal-state-map evil-exchange-cancel-key 'evil-exchange-cancel)
   (define-key evil-visual-state-map evil-exchange-cancel-key 'evil-exchange-cancel))
+
+
+(defun evil-exchange/cx ()
+  (interactive)
+  (when (memq evil-this-operator '(evil-change evil-cp-change))
+    (setq evil-inhibit-operator t)
+    (define-key evil-operator-shortcut-map "c" 'evil-exchange-cancel)
+    (call-interactively #'evil-exchange)
+    (define-key evil-operator-shortcut-map "c" nil)))
+
+;;;###autoload
+(defun evil-exchange-cx-install ()
+  "Setting evil-exchange key bindings in a vim-compatible way"
+  (interactive)
+  (define-key evil-operator-state-map "x" 'evil-exchange/cx)
+  (define-key evil-visual-state-map "X" 'evil-exchange))
 
 
 (provide 'evil-exchange)
