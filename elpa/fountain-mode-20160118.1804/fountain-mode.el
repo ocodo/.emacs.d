@@ -4,7 +4,7 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20160105.1811
+;; Package-Version: 20160118.1804
 ;; Version: 1.5.0
 ;; Package-Requires: ((emacs "24.4.0") (s "1.9.0"))
 ;; URL: https://github.com/rnkn/fountain-mode
@@ -2093,7 +2093,7 @@ created HTML element to DESTBUF."
       (while (looking-at "\n*\s*\n")
         (goto-char (match-end 0)))
       (let* ((limit (save-excursion
-                     (re-search-forward "\n\s*\n\\|\\'" nil t)
+                     (re-search-forward "\n\s?\n\\|\\'" nil t)
                      (match-beginning 0)))
              (element (fountain-export-create-html-element limit)))
         (when element

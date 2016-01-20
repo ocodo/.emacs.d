@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "fountain-mode" "fountain-mode.el" (22160 38997
-;;;;;;  997477 849000))
+;;;### (autoloads nil "fountain-mode" "fountain-mode.el" (22175 12890
+;;;;;;  496973 792000))
 ;;; Generated autoloads from fountain-mode.el
 
 (autoload 'fountain-mode "fountain-mode" "\
