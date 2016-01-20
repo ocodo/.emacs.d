@@ -245,16 +245,48 @@ CONNECTION defaults to `cider-current-connection'."
     (unless (equal connection-type (cider--connection-type other))
       other)))
 
-(defun cider-map-connections (function)
+(defun cider-map-connections (function which &optional any-mode)
   "Call FUNCTION once for each appropriate connection.
 The function is called with one argument, the connection buffer.
 The appropriate connections are found by inspecting the current buffer.  If
 the buffer is associated with a .cljc or .cljx file, BODY will be executed
-multiple times."
-  (if-let ((is-cljc (cider--cljc-or-cljx-buffer-p))
-           (other-connection (cider-other-connection)))
-      (mapc function (list (cider-current-connection) other-connection))
-    (funcall function (cider-current-connection))))
+multiple times.
+
+WHICH is one of the following keywords identifying which connections to map
+over.
+ :any - Act on the connection returned by `cider-current-connection'.
+ :clj - Like :any, but signal a `user-error' in `clojurescript-mode' or if
+        there is no Clojure connection (use this for commands only
+        supported in Clojure).
+ :cljs - Like :clj, but demands a ClojureScript connection instead.
+ :both - In `clojurec-mode' or `clojurex-mode' act on both connections,
+         otherwise function like :any. Obviously, this option might run
+         FUNCTION twice.
+
+If ANY-MODE is non-nil, :clj and :cljs don't signal errors due to being in
+the wrong major-mode (they still signal if the desired connection type
+doesn't exist). Use this for commands that only apply to a specific
+connection but can be invoked from any buffer (like `cider-refresh')."
+  (cl-labels ((err (msg) (user-error (concat "`%s' " msg) this-command)))
+    (let* ((curr
+            (pcase which
+              ((or `:any `:both) (or (cider-current-connection)
+                                     (err "needs an active REPL connection")))
+              (`:clj (cond ((and (not any-mode)
+                                 (derived-mode-p 'clojurescript-mode))
+                            (err "doesn't support ClojureScript"))
+                           ((cider-current-connection "clj"))
+                           ((err "needs a Clojure REPL"))))
+              (`:cljs (cond ((and (not any-mode)
+                                  (eq major-mode 'clojure-mode))
+                             (err "doesn't support Clojure"))
+                            ((cider-current-connection "cljs"))
+                            ((err "needs a ClojureScript REPL")))))))
+      (funcall function curr)
+      (when (and (eq which :both)
+                 (cider--cljc-or-cljx-buffer-p))
+        (when-let ((other-connection (cider-other-connection curr)))
+          (funcall function other-connection))))))
 
 
 ;;; Connection Browser
@@ -498,23 +530,23 @@ If NS is non-nil, include it in the request."
 (defcustom cider-pprint-fn 'fipp
   "Sets the function to use when pretty-printing evaluation results.
 
-Possible values are:
+The value must be one of the following symbols:
 
-  'fipp - to use the Fast Idiomatic Pretty Printer, approximately 5-10x
-          faster than `clojure.core/pprint` (this is the default)
+  `fipp' - to use the Fast Idiomatic Pretty Printer, approximately 5-10x
+          faster than \\=`clojure.core/pprint\\=` (this is the default)
 
-  'puget - to use Puget, which provides canonical serialization of data on
+  `puget' - to use Puget, which provides canonical serialization of data on
            top of fipp, but at a slight performance cost
 
-  'pprint - to use `clojure.pprint/pprint`
+  `pprint' - to use \\=`clojure.pprint/pprint\\=`
 
 Alternatively, can be the namespace-qualified name of a Clojure function of
 one argument.  If the function cannot be resolved, an exception will be
 thrown.
 
-The function is assumed to respect the contract of `clojure.pprint/pprint`
-with respect to the bound values of `*print-length*`, `*print-level*`,
-`*print-meta*`, and `clojure.pprint/*print-right-margin*`."
+The function is assumed to respect the contract of \\=`clojure.pprint/pprint\\=`
+with respect to the bound values of \\=`*print-length*\\=`, \\=`*print-level*\\=`,
+\\=`*print-meta*\\=`, and \\=`clojure.pprint/*print-right-margin*\\=`."
   :type '(choice (const pprint)
                  (const fipp)
                  (const puget)

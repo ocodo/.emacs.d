@@ -50,7 +50,7 @@ Info contains project name and host:port endpoint."
   (if-let ((current-connection (ignore-errors (cider-current-connection))))
       (with-current-buffer current-connection
         (concat
-         (concat cider-repl-type ":")
+         cider-repl-type ":"
          (when cider-mode-line-show-connection
            (format "%s@%s:%s"
                    (or (cider--project-name nrepl-project-dir) "<no project>")
@@ -278,11 +278,23 @@ Returns to the buffer in which the command was invoked."
     map))
 
 ;;; Dynamic indentation
+(defcustom cider-dynamic-indentation t
+  "Whether CIDER should aid Clojure(Script) indentation.
+If non-nil, CIDER uses runtime information (such as the \":style/indent\"
+metadata) to improve standard `clojure-mode' indentation.
+If nil, CIDER won't interfere with `clojure-mode's indentation.
+
+Toggling this variable only takes effect after a file is closed and
+re-visited."
+  :type 'boolean
+  :package-version '(cider . "0.11.0")
+  :group 'cider)
+
 (defun cider--get-symbol-indent (symbol-name)
   "Return the indent metadata for SYMBOL-NAME in the current namespace."
-  (let* ((ns (cider-current-ns))
-         (meta (cider-resolve-var ns symbol-name)))
-    (if-let ((indent (or (nrepl-dict-get meta "style/indent")
+  (let* ((ns (cider-current-ns)))
+    (if-let ((meta (cider-resolve-var ns symbol-name))
+             (indent (or (nrepl-dict-get meta "style/indent")
                          (nrepl-dict-get meta "indent"))))
         (let ((format (format ":indent metadata on ‘%s’ is unreadable! \nERROR: %%s"
                               symbol-name)))
@@ -390,13 +402,13 @@ The value can also be t, which means to font-lock as much as possible."
       ,@(when macros
           `((,(concat (rx (or "(" "#'")) ; Can't take the value of macros.
                       "\\(" (regexp-opt macros 'symbols) "\\)")
-             1 (cider--unless-local-match font-lock-keyword-face) append)))
+             1 (cider--unless-local-match font-lock-keyword-face))))
       ,@(when functions
           `((,(regexp-opt functions 'symbols) 0
-             (cider--unless-local-match font-lock-function-name-face) append)))
+             (cider--unless-local-match font-lock-function-name-face))))
       ,@(when vars
           `((,(regexp-opt vars 'symbols) 0
-             (cider--unless-local-match font-lock-variable-name-face) append)))
+             (cider--unless-local-match font-lock-variable-name-face))))
       ,@(when deprecated
           `((,(regexp-opt deprecated 'symbols) 0
              (cider--unless-local-match cider-deprecated-properties) append)))
@@ -419,7 +431,8 @@ The value can also be t, which means to font-lock as much as possible."
 NS defaults to `cider-current-ns', and it can also be a dict describing the
 namespace itself."
   (interactive)
-  (when cider-font-lock-dynamically
+  (when (and cider-font-lock-dynamically
+             font-lock-mode)
     (font-lock-remove-keywords nil cider--dynamic-font-lock-keywords)
     (when-let ((ns (or ns (cider-current-ns)))
                (symbols (cider-resolve-ns-symbols ns)))
@@ -578,7 +591,8 @@ property."
   (cider-refresh-dynamic-font-lock)
   (setq-local font-lock-fontify-region-function
               (cider--wrap-fontify-locals font-lock-fontify-region-function))
-  (setq-local clojure-get-indent-function #'cider--get-symbol-indent)
+  (when cider-dynamic-indentation
+    (setq-local clojure-get-indent-function #'cider--get-symbol-indent))
   (setq next-error-function #'cider-jump-to-compilation-error))
 
 (defun cider-set-buffer-ns (ns)
