@@ -238,7 +238,7 @@ Only \"./\" and \"../\" apply here. They appear in reverse order."
   dynamic-collection
   caller)
 
-(defvar ivy-last nil
+(defvar ivy-last (make-ivy-state)
   "The last parameters passed to `ivy-read'.
 
 This should eventually become a stack so that you could use
@@ -1406,16 +1406,21 @@ The previous string is between `ivy-completion-beg' and `ivy-completion-end'."
       (setq ivy-completion-beg (- end (ivy-completion-common-length (car comps))))
       (setq ivy-completion-end end)
       (if (null (cdr comps))
-          (progn
+          (if (string= str (car comps))
+              (message "Sole match")
             (setf (ivy-state-window ivy-last) (selected-window))
             (ivy-completion-in-region-action
              (substring-no-properties
               (car comps))))
         (let* ((w (1+ (floor (log (length comps) 10))))
-               (ivy-count-format (and ivy-count-format
-                                      (format "%%-%dd " w))))
+               (ivy-count-format (if (string= ivy-count-format "")
+                                     ivy-count-format
+                                   (format "%%-%dd " w)))
+               (prompt (format "(%s): " str)))
           (and
-           (ivy-read (format "(%s): " str)
+           (ivy-read (if (string= ivy-count-format "")
+                         prompt
+                       (replace-regexp-in-string "%" "%%" prompt))
                      ;; remove 'completions-first-difference face
                      (mapcar #'substring-no-properties comps)
                      :predicate predicate
@@ -1959,10 +1964,10 @@ Prefix matches to NAME are put ahead of the list."
     (unless (eq this-command 'ivy-resume)
       (setq ivy--index
             (or
-             (cl-position (if (and (> (length re-str) 0)
-                                   (eq ?^ (aref re-str 0)))
-                              (substring re-str 1)
-                            re-str) cands
+             (cl-position (if (and (> (length name) 0)
+                                   (eq ?^ (aref name 0)))
+                              (substring name 1)
+                            name) cands
                             :test #'equal)
              (and ivy--directory
                   (cl-position
@@ -1993,7 +1998,9 @@ Prefix matches to NAME are put ahead of the list."
           (while (and tail (null idx))
             ;; Compare with eq to handle equal duplicates in cands
             (setq idx (cl-position (pop tail) cands)))
-          (or idx 0))
+          (or
+           idx
+           (1- (length cands))))
       (if ivy--old-cands
           ivy--index
         ;; already in ivy-state-buffer
@@ -2028,11 +2035,16 @@ Prefix matches to NAME are put ahead of the list."
     ivy-minibuffer-match-face-4)
   "List of `ivy' faces for minibuffer group matches.")
 
+(defvar ivy-flx-limit 200
+  "Used to conditionally turn off flx sorting.
+When the amount of matching candidates is larger than this
+number, no sorting will be done.")
+
 (defun ivy--flx-sort (name cands)
   "Sort according to closeness to string NAME the string list CANDS."
   (condition-case nil
       (if (and cands
-               (< (length cands) 200))
+               (< (length cands) ivy-flx-limit))
           (let* ((flx-name (if (string-match "^\\^" name)
                                (substring name 1)
                              name))
