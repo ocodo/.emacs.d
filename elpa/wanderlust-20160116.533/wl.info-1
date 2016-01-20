@@ -5667,11 +5667,11 @@ results.
 
 * Menu:
 
-* Setup::                       Setup
-* Searching::                   Searching
+* Setup of Quick Search::       Setup
+* Usage of Quick Search::       Searching
 
 
-File: wl.info,  Node: Setup,  Next: Searching,  Up: Quick Search
+File: wl.info,  Node: Setup of Quick Search,  Next: Usage of Quick Search,  Up: Quick Search
 
 12.1 Setup of 'wl-qs'
 =====================
@@ -5683,7 +5683,7 @@ latter is advised if you use a mail index, such as mu, notmuch or
 namazu, as it is quite fast.
 
 
-File: wl.info,  Node: Searching,  Prev: Setup,  Up: Quick Search
+File: wl.info,  Node: Usage of Quick Search,  Prev: Setup of Quick Search,  Up: Quick Search
 
 12.2 Searching
 ==============

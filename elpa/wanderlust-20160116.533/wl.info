@@ -30,7 +30,7 @@ versions.
 
 Indirect:
 wl.info-1: 1118
-wl.info-2: 312808
+wl.info-2: 312864
 
 Tag Table:
 (Indirect)
@@ -115,52 +115,52 @@ Node: Address Book199876
 Node: Mail Addresses200192
 Node: Address Manager202158
 Node: Quick Search202874
-Node: Setup203423
-Node: Searching203839
-Node: Spam Filter205246
-Node: Usage of Spam Filter205669
-Node: Spam Filter Processors213013
-Node: bogofilter213543
-Node: spamfilter214907
-Node: bsfilter215721
-Node: SpamAssassin217380
-Node: SpamOracle219307
-Node: Regular Expressions Header Matching220666
-Node: Advanced Issues221867
-Node: Living with other packages222460
-Node: imput223162
-Node: BBDB223498
-Node: LSDB224776
-Node: supercite225307
-Node: mu-cite225682
-Node: X-Face226225
-Node: x-face-xmas226789
-Node: x-face-mule227177
-Node: dired-dd227950
-Node: MHC228704
-Node: Addrbook229255
-Node: mime-w3m229599
-Node: Highlights229962
-Node: Biff238384
-Node: Password Management239492
-Node: Split messages240774
-Node: Batch Processing244979
-Node: Advanced Settings245625
-Node: Draft for Reply245963
-Node: Thread Format248967
-Node: User-Agent Field250577
-Node: Customizable Variables251300
-Node: Hooks259747
-Node: Migration259873
-Node: Before 2.12.0260272
-Node: Terminology262399
-Node: Mailing List263386
-Ref: Mailing List-Footnote-1264914
-Node: Addition264992
-Node: Index268591
-Node: Concept Index268854
-Node: Key Index283439
-Node: Variable Index312808
-Node: Function Index342440
+Node: Setup of Quick Search203423
+Node: Usage of Quick Search203867
+Node: Spam Filter205302
+Node: Usage of Spam Filter205725
+Node: Spam Filter Processors213069
+Node: bogofilter213599
+Node: spamfilter214963
+Node: bsfilter215777
+Node: SpamAssassin217436
+Node: SpamOracle219363
+Node: Regular Expressions Header Matching220722
+Node: Advanced Issues221923
+Node: Living with other packages222516
+Node: imput223218
+Node: BBDB223554
+Node: LSDB224832
+Node: supercite225363
+Node: mu-cite225738
+Node: X-Face226281
+Node: x-face-xmas226845
+Node: x-face-mule227233
+Node: dired-dd228006
+Node: MHC228760
+Node: Addrbook229311
+Node: mime-w3m229655
+Node: Highlights230018
+Node: Biff238440
+Node: Password Management239548
+Node: Split messages240830
+Node: Batch Processing245035
+Node: Advanced Settings245681
+Node: Draft for Reply246019
+Node: Thread Format249023
+Node: User-Agent Field250633
+Node: Customizable Variables251356
+Node: Hooks259803
+Node: Migration259929
+Node: Before 2.12.0260328
+Node: Terminology262455
+Node: Mailing List263442
+Ref: Mailing List-Footnote-1264970
+Node: Addition265048
+Node: Index268647
+Node: Concept Index268910
+Node: Key Index283495
+Node: Variable Index312864
+Node: Function Index342496
 
 End Tag Table

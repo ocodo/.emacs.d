@@ -5596,11 +5596,11 @@ results.
 
 * Menu:
 
-* Setup::                       Setup
-* Searching::                   Searching
+* Setup of Quick Search::       Setup
+* Usage of Quick Search::       Searching
 
 
-File: wl-ja.info,  Node: Setup,  Next: Searching,  Up: Quick Search
+File: wl-ja.info,  Node: Setup of Quick Search,  Next: Usage of Quick Search,  Up: Quick Search
 
 12.1 Setup of 'wl-qs'
 =====================
@@ -5612,7 +5612,7 @@ latter is advised if you use a mail index, such as mu, notmuch or
 namazu, as it is quite fast.
 
 
-File: wl-ja.info,  Node: Searching,  Prev: Setup,  Up: Quick Search
+File: wl-ja.info,  Node: Usage of Quick Search,  Prev: Setup of Quick Search,  Up: Quick Search
 
 12.2 Searching
 ==============
@@ -8982,52 +8982,52 @@ Node: Address Book143789
 Node: Mail Addresses144032
 Node: Address Manager145150
 Node: Quick Search145786
-Node: Setup146338
-Node: Searching146757
-Node: Spam Filter148167
-Node: Usage of Spam Filter148507
-Node: Spam Filter Processors153850
-Node: bogofilter154364
-Node: spamfilter155357
-Node: bsfilter155993
-Node: SpamAssassin157169
-Node: SpamOracle158541
-Node: Regular Expressions Header Matching159633
-Node: Advanced Issues160465
-Node: Living with other packages160977
-Node: imput161650
-Node: BBDB161970
-Node: LSDB163091
-Node: supercite163560
-Node: mu-cite163881
-Node: X-Face164373
-Node: x-face-xmas164848
-Node: x-face-mule165229
-Node: dired-dd165967
-Node: MHC166700
-Node: Addrbook167225
-Node: mime-w3m167590
-Node: Highlights167893
-Node: Biff173741
-Node: Password Management174594
-Node: Split messages175465
-Node: Batch Processing178393
-Node: Advanced Settings178892
-Node: Draft for Reply179208
-Node: Thread Format181671
-Node: User-Agent Field183140
-Node: Customizable Valiables183762
-Node: Hooks189267
-Node: Migration189395
-Node: Before 2.12.0189642
-Node: Terminology191075
-Node: Mailing List191786
-Ref: Mailing List-Footnote-1192902
-Node: Addition192973
-Node: Index195663
-Node: Concept Index195895
-Node: Key Index210966
-Node: Variable Index239299
-Node: Function Index269210
+Node: Setup of Quick Search146338
+Node: Usage of Quick Search146785
+Node: Spam Filter148223
+Node: Usage of Spam Filter148563
+Node: Spam Filter Processors153906
+Node: bogofilter154420
+Node: spamfilter155413
+Node: bsfilter156049
+Node: SpamAssassin157225
+Node: SpamOracle158597
+Node: Regular Expressions Header Matching159689
+Node: Advanced Issues160521
+Node: Living with other packages161033
+Node: imput161706
+Node: BBDB162026
+Node: LSDB163147
+Node: supercite163616
+Node: mu-cite163937
+Node: X-Face164429
+Node: x-face-xmas164904
+Node: x-face-mule165285
+Node: dired-dd166023
+Node: MHC166756
+Node: Addrbook167281
+Node: mime-w3m167646
+Node: Highlights167949
+Node: Biff173797
+Node: Password Management174650
+Node: Split messages175521
+Node: Batch Processing178449
+Node: Advanced Settings178948
+Node: Draft for Reply179264
+Node: Thread Format181727
+Node: User-Agent Field183196
+Node: Customizable Valiables183818
+Node: Hooks189323
+Node: Migration189451
+Node: Before 2.12.0189698
+Node: Terminology191131
+Node: Mailing List191842
+Ref: Mailing List-Footnote-1192958
+Node: Addition193029
+Node: Index195719
+Node: Concept Index195951
+Node: Key Index211022
+Node: Variable Index239355
+Node: Function Index269266
 
 End Tag Table
