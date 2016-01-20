@@ -66,6 +66,33 @@
   :options '(magit-maybe-save-repository-buffers
              magit-maybe-show-margin))
 
+(defcustom magit-pre-refresh-hook '(magit-maybe-save-repository-buffers)
+  "Hook run before refreshing in `magit-refresh'.
+
+This hook, or `magit-post-refresh-hook', should be used
+for functions that are not tied to a particular buffer.
+
+To run a function with a particular buffer current, use
+`magit-refresh-buffer-hook' and use `derived-mode-p'
+inside your function."
+  :package-version '(magit . "2.4.0")
+  :group 'magit-modes
+  :type 'hook
+  :options '(magit-maybe-save-repository-buffers))
+
+(defcustom magit-post-refresh-hook nil
+  "Hook run after refreshing in `magit-refresh'.
+
+This hook, or `magit-pre-refresh-hook', should be used
+for functions that are not tied to a particular buffer.
+
+To run a function with a particular buffer current, use
+`magit-refresh-buffer-hook' and use `derived-mode-p'
+inside your function."
+  :package-version '(magit . "2.4.0")
+  :group 'magit-modes
+  :type 'hook)
+
 (defcustom magit-display-buffer-function 'magit-display-buffer-traditional
   "The function used display a Magit buffer.
 
@@ -654,8 +681,6 @@ window."
 
 (defvar inhibit-magit-refresh nil)
 
-(defvar magit-pre-refresh-hook nil)
-
 (defun magit-refresh ()
   "Refresh some buffers belonging to the current repository.
 
@@ -663,7 +688,7 @@ Refresh the current buffer if its major mode derives from
 `magit-mode', and refresh the corresponding status buffer."
   (interactive)
   (unless inhibit-magit-refresh
-    (run-hooks 'magit-pre-refresh-hook)
+    (magit-run-hook-with-benchmark 'magit-pre-refresh-hook)
     (when (derived-mode-p 'magit-mode)
       (magit-refresh-buffer))
     (--when-let (and magit-refresh-status-buffer
@@ -671,7 +696,8 @@ Refresh the current buffer if its major mode derives from
                      (magit-mode-get-buffer 'magit-status-mode))
       (with-current-buffer it
         (magit-refresh-buffer)))
-    (magit-auto-revert-buffers)))
+    (magit-auto-revert-buffers)
+    (magit-run-hook-with-benchmark 'magit-post-refresh-hook)))
 
 (defun magit-refresh-all ()
   "Refresh all buffers belonging to the current repository.
@@ -783,7 +809,9 @@ should obviously not add this function to that hook."
 
 (defun magit-maybe-save-repository-buffers ()
   "Maybe save file-visiting buffers belonging to the current repository.
-Do so if `magit-save-repository-buffers' is non-nil."
+Do so if `magit-save-repository-buffers' is non-nil.  You should
+not remove this from any hooks, instead set that variable to nil
+if you so desire."
   (when (and magit-save-repository-buffers
              (not disable-magit-save-buffers))
     (setq disable-magit-save-buffers t)
@@ -908,6 +936,18 @@ Currently `magit-log-mode', `magit-reflog-mode',
   (setq default-directory  (car args))
   (setq magit-refresh-args (cdr args))
   (magit-refresh-buffer))
+
+;;; Utilities
+
+(defun magit-run-hook-with-benchmark (hook)
+  (when hook
+    (if magit-refresh-verbose
+        (let ((start (current-time)))
+          (message "Running %s..." hook)
+          (run-hooks hook)
+          (message "Running %s...done (%.3fs)" hook
+                   (float-time (time-subtract (current-time) start))))
+      (run-hooks hook))))
 
 ;;; magit-mode.el ends soon
 (provide 'magit-mode)

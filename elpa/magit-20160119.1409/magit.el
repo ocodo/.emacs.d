@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20151111") (git-commit "20151111") (magit-popup "20151221"))
+;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160119") (git-commit "20160119") (magit-popup "20160119"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -129,15 +129,42 @@ at all."
   :group 'magit-status
   :type 'hook)
 
-(defcustom magit-status-refresh-hook nil
-  "Hook run after a status buffer has been refreshed."
-  :package-version '(magit . "2.1.0")
-  :group 'magit-status
-  :type 'hook)
+(defvar magit-status-refresh-hook nil
+  "Hook run after a status buffer has been refreshed.")
+
+(make-obsolete-variable 'magit-status-refresh-hook "\
+use `magit-pre-refresh-hook', `magit-post-refresh-hook',
+  `magit-refresh-buffer-hook', or `magit-status-mode-hook' instead.
+
+  If you want to run a function every time the status buffer is
+  refreshed, in order to do something with that buffer, then use:
+
+    (add-hook 'magit-refresh-buffer-hook
+              (lambda ()
+                (when (derived-mode-p 'magit-status-mode)
+                  ...)))
+
+  If your hook function should run regardless of whether the
+  status buffer exists or not, then use `magit-pre-refresh-hook'
+  or `magit-post-refresh-hook'.
+
+  If your hook function only has to be run once, when the buffer
+  is first created, then `magit-status-mode-hook' instead.
+" "Magit 2.4.0")
 
 (defcustom magit-status-expand-stashes t
   "Whether the list of stashes is expanded initially."
   :package-version '(magit . "2.3.0")
+  :group 'magit-status
+  :type 'boolean)
+
+(defcustom magit-status-show-hashes-in-headers nil
+  "Whether headers in the status buffer show hashes.
+The functions which respect this option are
+`magit-insert-head-branch-header',
+`magit-insert-upstream-branch-header', and
+`magit-insert-push-branch-header'."
+  :package-version '(magit . "2.4.0")
   :group 'magit-status
   :type 'boolean)
 
@@ -496,6 +523,8 @@ detached `HEAD'."
       (if branch
           (magit-insert-section (branch branch)
             (insert (format "%-10s" "Head: "))
+            (when magit-status-show-hashes-in-headers
+              (insert (propertize commit 'face 'magit-hash) ?\s))
             (insert (propertize branch 'face 'magit-branch-local))
             (insert ?\s summary ?\n))
         (magit-insert-section (commit commit)
@@ -515,6 +544,9 @@ detached `HEAD'."
                           (if (magit-get-boolean "branch" branch "rebase")
                               "Rebase: "
                             "Merge: "))))
+      (--when-let (and magit-status-show-hashes-in-headers
+                       (magit-rev-format "%h" pull))
+        (insert (propertize it 'face 'magit-hash) ?\s))
       (insert (propertize pull 'face
                           (if (string= (magit-get "branch" branch "remote") ".")
                               'magit-branch-local
@@ -532,6 +564,9 @@ detached `HEAD'."
   (when push
     (magit-insert-section (branch push)
       (insert (format "%-10s" "Push: "))
+      (--when-let (and magit-status-show-hashes-in-headers
+                       (magit-rev-format "%h" push))
+        (insert (propertize it 'face 'magit-hash) ?\s))
       (insert (propertize push 'face 'magit-branch-remote) ?\s)
       (if (magit-rev-verify push)
           (insert (or (magit-rev-format "%s" push) ""))
@@ -1369,7 +1404,7 @@ of the new branch, instead of the starting-point itself."
           (magit-call-git "branch" "--set-upstream-to" it branch))
         (when (and (setq tracked (magit-get-upstream-branch current))
                    (setq base (magit-git-string "merge-base" current tracked))
-                   (not (magit-rev-equal base current)))
+                   (not (magit-rev-eq base current)))
           (magit-call-git "update-ref" "-m"
                           (format "reset: moving to %s" base)
                           (concat "refs/heads/" current) base))

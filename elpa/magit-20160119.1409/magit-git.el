@@ -62,20 +62,24 @@
   ;; than using "bin/git.exe" directly.
   (or (and (eq system-type 'windows-nt)
            (--when-let (executable-find "git.exe")
-             (or (with-temp-buffer
-                   (when (save-excursion
-                           (= (call-process
-                              it nil '(t t) nil "-c"
-                              "alias.exe=!which git | cygpath -wf -" "exe") 0))
-                     (prog1 (delete-and-extract-region 1 (line-end-position))
-                       (save-excursion
-                         (insert "PATH=")
-                         (call-process
-                          it nil '(t t) nil "-c"
-                          "alias.path=!cygpath -wp \"$PATH\"" "path"))
-                       (setq magit-git-environment
-                             (list (buffer-substring-no-properties
-                                    (point) (line-end-position)))))))
+             (or (ignore-errors
+                   ;; Git for Windows 2.x provides cygpath so we can
+                   ;; ask it for native paths.  Using an upper case
+                   ;; alias makes this fail on 1.x (which is good,
+                   ;; because we would not want to end up using some
+                   ;; other cygpath).
+                   (prog1 (car
+                           (process-lines
+                            it "-c"
+                            "alias.X=!x() { which \"$1\" | cygpath -mf -; }; x"
+                            "X" "git"))
+                     (setq magit-git-environment
+                           (list (concat "PATH="
+                                         (car (process-lines
+                                               it "-c"
+                                               "alias.P=!cygpath -wp \"$PATH\""
+                                               "P")))))))
+                 ;; For 1.x, we search for bin/ next to cmd/.
                  (let ((alt (directory-file-name (file-name-directory it))))
                    (if (and (equal (file-name-nondirectory alt) "cmd")
                             (setq alt (expand-file-name
@@ -642,6 +646,10 @@ string \"true\", otherwise return nil."
 (defun magit-rev-equal (a b)
   (magit-git-success "diff" "--quiet" a b))
 
+(defun magit-rev-eq (a b)
+  (equal (magit-rev-verify a)
+         (magit-rev-verify b)))
+
 (defun magit-rev-ancestor-p (a b)
   "Return non-nil if commit A is an ancestor of commit B."
   (magit-git-success "merge-base" "--is-ancestor" a b))
@@ -964,18 +972,25 @@ where COMMITS is the number of commits in TAG but not in REV."
                  (list (match-string 1 it)))
             (magit-git-items "ls-files" "-z" "--stage")))
 
-(defun magit-branch-p (string)
-  (or (car (member string (magit-list-branches)))
-      (car (member string (magit-list-branch-names)))))
+(defun magit-ref-p (rev)
+  (or (car (member rev (magit-list-refs)))
+      (car (member rev (magit-list-refnames)))))
 
-(defun magit-local-branch-p (string)
-  (or (car (member string (magit-list-local-branches)))
-      (car (member string (magit-list-local-branch-names)))))
+(defun magit-branch-p (rev)
+  (or (car (member rev (magit-list-branches)))
+      (car (member rev (magit-list-branch-names)))))
+
+(defun magit-local-branch-p (rev)
+  (or (car (member rev (magit-list-local-branches)))
+      (car (member rev (magit-list-local-branch-names)))))
 
 (defun magit-branch-set-face (branch)
   (propertize branch 'face (if (magit-local-branch-p branch)
                                'magit-branch-local
                              'magit-branch-remote)))
+
+(defun magit-tag-p (rev)
+  (car (member rev (magit-list-tags))))
 
 (defun magit-remote-p (string)
   (car (member string (magit-list-remotes))))
@@ -992,8 +1007,11 @@ Return a list of two integers: (A>B B>A)."
 (defun magit-abbrev-length ()
   (string-to-number (or (magit-get "core.abbrev") "7")))
 
-(defun magit-abbrev-arg ()
-  (format "--abbrev=%d" (magit-abbrev-length)))
+(defun magit-abbrev-arg (&optional arg)
+  (format "--%s=%d" (or arg "abbrev") (magit-abbrev-length)))
+
+(defun magit-rev-abbrev (rev)
+  (magit-rev-parse (magit-abbrev-arg "short") rev))
 
 (defun magit-commit-children (commit &optional args)
   (-map #'car

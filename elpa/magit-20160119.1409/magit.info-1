@@ -232,7 +232,8 @@ FAQ
 * Magit is slow::
 * I changed several thousand files at once and now Magit is unusable::
 * I am having problems committing::
-* I don't like how branching and pushing works::
+* I don't understand how branching and pushing work::
+* I don’t like the key binding in v2.4: I don't like the key binding in v24. 
 * I cannot install the pre-requisites for Magit v2::
 * I am using an Emacs release older than v24.4: I am using an Emacs release older than v244. 
 * I am using a Git release older than v1.9.4: I am using a Git release older than v194. 
@@ -504,7 +505,7 @@ outdated value for ‘load-path’.
 
    should display something like
 
-     Magit 2.2.0, Git 2.4.2, Emacs 24.5.1
+     Magit 2.4.0, Git 2.7.0, Emacs 24.5.1
 
    Then you might also want to read about options that many users likely
 want to customize.  See *note Essential settings: Essential settings.
@@ -519,10 +520,7 @@ install the gitman info manual?.
 Getting started.
 
    If you have used an older Magit release before, then you should have
-a look at the release notes
-<https://raw.githubusercontent.com/magit/magit/master/Documentation/RelNotes/2.1.0.txt>
-and
-<https://raw.githubusercontent.com/magit/magit/master/Documentation/RelNotes/2.2.0.txt>
+a look at the release notes <https://github.com/magit/magit/releases>.
 
    And last but not least please consider making a donation, to ensure
 that I can keep working on Magit.  See <http://magit.vc/donations.html>
@@ -1082,7 +1080,7 @@ buffers after they have changed on disk is harmless.
 
    If a buffer is modified (i.e.  it contains changes that haven’t been
 saved yet), then Emacs would refuse to automatically revert it.  If you
-safe a previously modified buffer, then that results in what is seen by
+save a previously modified buffer, then that results in what is seen by
 Git as an uncommitted change.  Git would then refuse to carry out any
 commands that would cause these changes to be lost.  In other words, if
 there is anything that could be lost, then either Git or Emacs would
@@ -1105,13 +1103,13 @@ the buffer is modified and since that is not the case it would revert
 it.  The intermediate version would be lost.  (Actually you could still
 get it back using the ‘undo’ command.)
 
-   If your work flow depends on Emacs preserving the intermediate
-version in the buffer, then you have to disable all Auto-Revert modes.
-But please consider that such a work flow would be dangerous even
-without using an Auto-Revert mode, and should therefore be avoided.  If
-Emacs crashed or if you quit Emacs by mistake, then you would also lose
-the buffer content.  There would be no autosave file still containing
-the intermediate version (because that was deleted when you saved the
+   If your workflow depends on Emacs preserving the intermediate version
+in the buffer, then you have to disable all Auto-Revert modes.  But
+please consider that such a workflow would be dangerous even without
+using an Auto-Revert mode, and should therefore be avoided.  If Emacs
+crashed or if you quit Emacs by mistake, then you would also lose the
+buffer content.  There would be no autosave file still containing the
+intermediate version (because that was deleted when you saved the
 buffer) and you would not be asked whether you want to safe the buffer
 (because it isn’t modified).
 
@@ -6254,7 +6252,8 @@ made it into the manual yet, see
 * Magit is slow::
 * I changed several thousand files at once and now Magit is unusable::
 * I am having problems committing::
-* I don't like how branching and pushing works::
+* I don't understand how branching and pushing work::
+* I don’t like the key binding in v2.4: I don't like the key binding in v24. 
 * I cannot install the pre-requisites for Magit v2::
 * I am using an Emacs release older than v24.4: I am using an Emacs release older than v244. 
 * I am using a Git release older than v1.9.4: I am using a Git release older than v194. 
@@ -6292,7 +6291,7 @@ satisfactory performance, because that requires some heavy refactoring.
 one commit.  Also see *note Performance: Performance.
 
 
-File: magit.info,  Node: I am having problems committing,  Next: I don't like how branching and pushing works,  Prev: I changed several thousand files at once and now Magit is unusable,  Up: FAQ
+File: magit.info,  Node: I am having problems committing,  Next: I don't understand how branching and pushing work,  Prev: I changed several thousand files at once and now Magit is unusable,  Up: FAQ
 
 A.3 I am having problems committing
 ===================================
@@ -6302,19 +6301,26 @@ emacsclient executable.  See *note (with-editor)Configuring
 With-Editor:: and *note (with-editor)Debugging::.
 
 
-File: magit.info,  Node: I don't like how branching and pushing works,  Next: I cannot install the pre-requisites for Magit v2,  Prev: I am having problems committing,  Up: FAQ
+File: magit.info,  Node: I don't understand how branching and pushing work,  Next: I don't like the key binding in v24,  Prev: I am having problems committing,  Up: FAQ
 
-A.4 I don’t like how branching and pushing works
-================================================
+A.4 I don’t understand how branching and pushing work
+=====================================================
 
-In v2.1 the default behavior of the branch and push commands changed,
-which has taken a few users by surprise and left more unsatisfied.  The
-next release, v2.4, will try to address these concerns.
+Please see *note Branching: Branching. and
+<http://emacsair.me/2016/01/18/magit-2.4>
 
 
-File: magit.info,  Node: I cannot install the pre-requisites for Magit v2,  Next: I am using an Emacs release older than v244,  Prev: I don't like how branching and pushing works,  Up: FAQ
+File: magit.info,  Node: I don't like the key binding in v24,  Next: I cannot install the pre-requisites for Magit v2,  Prev: I don't understand how branching and pushing work,  Up: FAQ
 
-A.5 I cannot install the pre-requisites for Magit v2
+A.5 I don’t like the key binding in v2.4
+========================================
+
+Please see <http://emacsair.me/2016/01/1/restore-old-bindings>.
+
+
+File: magit.info,  Node: I cannot install the pre-requisites for Magit v2,  Next: I am using an Emacs release older than v244,  Prev: I don't like the key binding in v24,  Up: FAQ
+
+A.6 I cannot install the pre-requisites for Magit v2
 ====================================================
 
 An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies is
@@ -6324,7 +6330,7 @@ obsolete and no longer maintained.
 
 File: magit.info,  Node: I am using an Emacs release older than v244,  Next: I am using a Git release older than v194,  Prev: I cannot install the pre-requisites for Magit v2,  Up: FAQ
 
-A.6 I am using an Emacs release older than v24.4
+A.7 I am using an Emacs release older than v24.4
 ================================================
 
 At least Emacs v24.4 is required.  There is no way around it, if you
@@ -6357,7 +6363,7 @@ is available from <http://magit.vc/elpa/v1>.
 
 File: magit.info,  Node: I am using a Git release older than v194,  Next: I am using MS Windows and cannot push with Magit,  Prev: I am using an Emacs release older than v244,  Up: FAQ
 
-A.7 I am using a Git release older than v1.9.4
+A.8 I am using a Git release older than v1.9.4
 ==============================================
 
 At least Git v1.9.4 is required.  There is no way around it, if you want
@@ -6379,7 +6385,7 @@ is available from <http://magit.vc/elpa/v1>.
 
 File: magit.info,  Node: I am using MS Windows and cannot push with Magit,  Next: How to install the gitman info manual?,  Prev: I am using a Git release older than v194,  Up: FAQ
 
-A.8 I am using MS Windows and cannot push with Magit
+A.9 I am using MS Windows and cannot push with Magit
 ====================================================
 
 It’s almost certain that Magit is only incidental to this issue.  It is
@@ -6392,8 +6398,8 @@ push on the command line.
 
 File: magit.info,  Node: How to install the gitman info manual?,  Next: How can I show Git's output?,  Prev: I am using MS Windows and cannot push with Magit,  Up: FAQ
 
-A.9 How to install the gitman info manual?
-==========================================
+A.10 How to install the gitman info manual?
+===========================================
 
 Git’s manpages can be exported as an info manual called ‘gitman’.
 Magit’s own info manual links to nodes in that manual instead of the
@@ -6447,7 +6453,7 @@ just one of many issues.)
 
 File: magit.info,  Node: How can I show Git's output?,  Next: Expanding a file to show the diff causes it to disappear,  Prev: How to install the gitman info manual?,  Up: FAQ
 
-A.10 How can I show Git’s output?
+A.11 How can I show Git’s output?
 =================================
 
 To show the output of recently run git commands, press ‘$’ (or, if that
@@ -6464,7 +6470,7 @@ For debugging purposes it’s possible to do so anyway by setting
 
 File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the COMMIT_EDITMSG buffer,  Prev: How can I show Git's output?,  Up: FAQ
 
-A.11 Expanding a file to show the diff causes it to disappear
+A.12 Expanding a file to show the diff causes it to disappear
 =============================================================
 
 This is probably caused by a change of a ‘diff.*’ Git variable.  You
@@ -6474,7 +6480,7 @@ that setting in Magit by customizing ‘magit-git-global-arguments’.
 
 File: magit.info,  Node: Point is wrong in the COMMIT_EDITMSG buffer,  Next: Can Magit be used as ediff-version-control-package?,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ
 
-A.12 Point is wrong in the COMMIT_EDITMSG buffer
+A.13 Point is wrong in the COMMIT_EDITMSG buffer
 ================================================
 
 Neither Magit nor ‘git-commit‘ fiddle with point in the buffer used to
@@ -6498,7 +6504,7 @@ help:
 
 File: magit.info,  Node: Can Magit be used as ediff-version-control-package?,  Next: How to show diffs for gpg-encrypted files?,  Prev: Point is wrong in the COMMIT_EDITMSG buffer,  Up: FAQ
 
-A.13 Can Magit be used as ediff-version-control-package?
+A.14 Can Magit be used as ediff-version-control-package?
 ========================================================
 
 No, it cannot.  For that to work the functions ‘ediff-magit-internal’
@@ -6533,7 +6539,7 @@ only shows yet-to-be resolved conflicts.
 
 File: magit.info,  Node: How to show diffs for gpg-encrypted files?,  Next: Emacs 245 hangs when loading Magit,  Prev: Can Magit be used as ediff-version-control-package?,  Up: FAQ
 
-A.14 How to show diffs for gpg-encrypted files?
+A.15 How to show diffs for gpg-encrypted files?
 ===============================================
 
 Git supports showing diffs for encrypted files, but has to be told to do
@@ -6546,7 +6552,7 @@ affects the diffs displayed inside Magit.
 
 File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: Symbol's value as function is void --some,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
 
-A.15 Emacs 24.5 hangs when loading Magit
+A.16 Emacs 24.5 hangs when loading Magit
 ========================================
 
 This is actually triggered by loading Tramp.  See
@@ -6558,7 +6564,7 @@ Google’s ‘8.8.8.8’) may also be sufficient to work around the issue.
 
 File: magit.info,  Node: Symbol's value as function is void --some,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
 
-A.16 Symbol’s value as function is void –some
+A.17 Symbol’s value as function is void –some
 =============================================
 
 Update ‘dash’, restart Emacs, and then it will be defined.
@@ -6566,7 +6572,7 @@ Update ‘dash’, restart Emacs, and then it will be defined.
 
 File: magit.info,  Node: Where is the branch manager,  Prev: Symbol's value as function is void --some,  Up: FAQ
 
-A.17 Where is the branch manager
+A.18 Where is the branch manager
 ================================
 
 ‘y’ is bound to the command that shows the "refs buffer", the successor
