@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.2.0
-;; Package-Version: 20160106.642
+;; Package-Version: 20160116.1155
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -374,7 +374,7 @@ function or trait.  When nil, where will be aligned with fn or trait."
                      (+ baseline rust-indent-offset))))
 
               ;; A closing brace is 1 level unindented
-              ((looking-at "}") (- baseline rust-indent-offset))
+              ((looking-at "[]})]") (- baseline rust-indent-offset))
 
               ;; Doc comments in /** style with leading * indent to line up the *s
               ((and (nth 4 (syntax-ppss)) (looking-at "*"))
