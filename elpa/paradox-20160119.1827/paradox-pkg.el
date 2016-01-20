@@ -1,8 +1,6 @@
-(define-package "paradox" "20151211.1317" "A modern Packages Menu. Colored, with package ratings, and customizable."
+(define-package "paradox" "20160119.1827" "A modern Packages Menu. Colored, with package ratings, and customizable."
   '((emacs "24.4")
     (seq "1.7")
-    (cl-lib "0.5")
-    (json "1.3")
     (let-alist "1.0.3")
     (spinner "1.4")
     (hydra "0.13.2"))
