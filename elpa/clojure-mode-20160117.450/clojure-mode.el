@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160104.521
+;; Package-Version: 20160117.450
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.1.0
 ;; Package-Requires: ((emacs "24.3"))
@@ -709,11 +709,11 @@ point) to check."
 ;;; Vertical alignment
 (defcustom clojure-align-forms-automatically nil
   "If non-nil, vertically align some forms automatically.
-Automatically means it is done as part of indenting code. This
+Automatically means it is done as part of indenting code.  This
 applies to binding forms (`clojure-align-binding-forms'), to cond
-forms (`clojure-align-cond-forms') and to map literals. For
-instance, selecting a map a hitting \\<clojure-mode-map>`\\[indent-for-tab-command]' will align the values
-like this:
+forms (`clojure-align-cond-forms') and to map literals.  For
+instance, selecting a map a hitting \\<clojure-mode-map>`\\[indent-for-tab-command]'
+will align the values like this:
     {:some-key 10
      :key2     20}"
   :package-version '(clojure-mode . "5.1")
@@ -737,8 +737,8 @@ This function expects to be called immediately after an
 open-brace or after the function symbol in a function call.
 
 First check if the sexp around point is a map literal, or is a
-call to one of the vars listed in `clojure-align-cond-forms'. If
-it isn't, return nil. If it is, return non-nil and place point
+call to one of the vars listed in `clojure-align-cond-forms'.  If
+it isn't, return nil.  If it is, return non-nil and place point
 immediately before the forms that should be aligned.
 
 For instance, in a map literal point is left immediately before
@@ -823,19 +823,22 @@ When called from lisp code align everything between BEG and END."
                                      (point))))
                      (clojure-backward-logical-sexp)
                      (list (point) end)))))
+  (setq end (copy-marker end))
   (save-excursion
     (goto-char beg)
     (while (clojure--find-sexp-to-align end)
-      (align-region (point)
-                    (save-excursion
-                      (backward-up-list)
-                      (forward-sexp 1)
-                      (point))
-                    nil
-                    '((clojure-align (regexp . clojure--search-whitespace-after-next-sexp)
-                                     (group . 1)
-                                     (repeat . t)))
-                    nil))))
+      (let ((sexp-end (save-excursion
+                        (backward-up-list)
+                        (forward-sexp 1)
+                        (point-marker)))
+            (clojure-align-forms-automatically nil))
+        (align-region (point) sexp-end nil
+                      '((clojure-align (regexp . clojure--search-whitespace-after-next-sexp)
+                                       (group . 1)
+                                       (repeat . t)))
+                      nil)
+        ;; Reindent after aligning because of #360.
+        (indent-region (point) sexp-end)))))
 
 ;;; Indentation
 (defun clojure-indent-region (beg end)
@@ -1215,27 +1218,6 @@ nil."
 
 
 
-(defconst clojure-namespace-name-regex
-  (rx line-start
-      (zero-or-more whitespace)
-      "("
-      (zero-or-one (group (regexp "clojure.core/")))
-      (zero-or-one (submatch "in-"))
-      "ns"
-      (zero-or-one "+")
-      (one-or-more (any whitespace "\n"))
-      (zero-or-more (or (submatch (zero-or-one "#")
-                                  "^{"
-                                  (zero-or-more (not (any "}")))
-                                  "}")
-                        (zero-or-more "^:"
-                                      (one-or-more (not (any whitespace)))))
-                    (one-or-more (any whitespace "\n")))
-      (zero-or-one (any ":'")) ;; (in-ns 'foo) or (ns+ :user)
-      (group (one-or-more (not (any "()\"" whitespace))) symbol-end)))
-
-
-
 (defun clojure-project-dir (&optional dir-name)
   "Return the absolute path to the project's root directory.
 
@@ -1291,6 +1273,24 @@ Useful if a file has been renamed."
               (replace-match nsname nil nil nil 4)
             (error "Namespace not found")))))))
 
+(defconst clojure-namespace-name-regex
+  (rx line-start
+      "("
+      (zero-or-one (group (regexp "clojure.core/")))
+      (zero-or-one (submatch "in-"))
+      "ns"
+      (zero-or-one "+")
+      (one-or-more (any whitespace "\n"))
+      (zero-or-more (or (submatch (zero-or-one "#")
+                                  "^{"
+                                  (zero-or-more (not (any "}")))
+                                  "}")
+                        (zero-or-more "^:"
+                                      (one-or-more (not (any whitespace)))))
+                    (one-or-more (any whitespace "\n")))
+      (zero-or-one (any ":'")) ;; (in-ns 'foo) or (ns+ :user)
+      (group (one-or-more (not (any "()\"" whitespace))) symbol-end)))
+
 (defun clojure-find-ns ()
   "Return the namespace of the current Clojure buffer.
 Return the namespace closest to point and above it.  If there are
@@ -1305,24 +1305,26 @@ no namespaces above point, return the first one in the buffer."
                      (re-search-forward clojure-namespace-name-regex nil t)))
         (match-string-no-properties 4)))))
 
+(defconst clojure-def-type-and-name-regex
+  (concat "(\\(?:\\(?:\\sw\\|\\s_\\)+/\\)?"
+          ;; Declaration
+          "\\(def\\(?:\\sw\\|\\s_\\)*\\)\\>"
+          ;; Any whitespace
+          "[ \r\n\t]*"
+          ;; Possibly type or metadata
+          "\\(?:#?^\\(?:{[^}]*}\\|\\(?:\\sw\\|\\s_\\)+\\)[ \r\n\t]*\\)*"
+          ;; Symbol name
+          "\\(\\(?:\\sw\\|\\s_\\)+\\)"))
+
 (defun clojure-find-def ()
   "Find the var declaration macro and symbol name of the current form.
 Returns a list pair, e.g. (\"defn\" \"abc\") or (\"deftest\" \"some-test\")."
-  (let ((re (concat "(\\(?:\\(?:\\sw\\|\\s_\\)+/\\)?"
-                    ;; Declaration
-                    "\\(def\\(?:\\sw\\|\\s_\\)*\\)\\>"
-                    ;; Any whitespace
-                    "[ \r\n\t]*"
-                    ;; Possibly type or metadata
-                    "\\(?:#?^\\(?:{[^}]*}\\|\\(?:\\sw\\|\\s_\\)+\\)[ \r\n\t]*\\)*"
-                    ;; Symbol name
-                    "\\(\\(?:\\sw\\|\\s_\\)+\\)")))
-    (save-excursion
-      (unless (looking-at re)
-        (beginning-of-defun))
-      (when (search-forward-regexp re nil t)
-        (list (match-string-no-properties 1)
-              (match-string-no-properties 2))))))
+  (save-excursion
+    (unless (looking-at clojure-def-type-and-name-regex)
+      (beginning-of-defun))
+    (when (search-forward-regexp clojure-def-type-and-name-regex nil t)
+      (list (match-string-no-properties 1)
+            (match-string-no-properties 2)))))
 
 
 ;;; Sexp navigation
@@ -1418,7 +1420,6 @@ This will skip over sexps that don't represent objects, so that ^hints and
 
 ;; Local Variables:
 ;; coding: utf-8
-;; indent-tabs-mode: nil
 ;; End:
 
 ;;; clojure-mode.el ends here
