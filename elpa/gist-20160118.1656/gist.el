@@ -8,7 +8,7 @@
 ;;               Phil Hagelberg
 ;;               Dan McKinley
 ;; Version: 1.3.1
-;; Package-Version: 20151228.1941
+;; Package-Version: 20160118.1656
 ;; Package-Requires: ((emacs "24.1") (gh "0.9.2"))
 ;; Keywords: tools
 ;; Homepage: https://github.com/defunkt/gist.el
@@ -254,9 +254,9 @@ Copies the URL into the kill ring.
 
 With a prefix argument, makes a private paste."
   (interactive "P")
-  (condition-case nil
+  (if (region-active-p)
       (gist-region (point) (mark) private)
-    (mark-inactive (gist-buffer private))))
+    (gist-buffer private)))
 
 ;;;###autoload
 (defun gist-region-or-buffer-private ()
@@ -265,9 +265,9 @@ With a prefix argument, makes a private paste."
 
 Copies the URL into the kill ring."
   (interactive)
-  (condition-case nil
+  (if (region-active-p)
       (gist-region-private (point) (mark))
-    (mark-inactive (gist-buffer-private))))
+    (gist-buffer-private)))
 
 ;;;###autoload
 (defun gist-list-user (username &optional force-reload background)
