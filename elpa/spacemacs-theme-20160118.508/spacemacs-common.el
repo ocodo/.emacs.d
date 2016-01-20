@@ -97,7 +97,7 @@
         (head3-bg      (if (eq variant 'dark) (if (display-graphic-p) "#293235" "#262626") (if (display-graphic-p) "#edf2e9" "#ffffff")))
         (head4         (if (eq variant 'dark) (if (display-graphic-p) "#b1951d" "#875f00") (if (display-graphic-p) "#b1951d" "#875f00")))
         (head4-bg      (if (eq variant 'dark) (if (display-graphic-p) "#32322c" "#262626") (if (display-graphic-p) "#f6f1e1" "#ffffff")))
-        (highlight     (if (eq variant 'dark) (if (display-graphic-p) "#333c45" "#444444") (if (display-graphic-p) "#d3d3e7" "#d7d7ff")))
+        (highlight     (if (eq variant 'dark) (if (display-graphic-p) "#3f4953" "#444444") (if (display-graphic-p) "#d3d3e7" "#d7d7ff")))
         (keyword       (if (eq variant 'dark) (if (display-graphic-p) "#4f97d7" "#268bd2") (if (display-graphic-p) "#3a81c3" "#268bd2")))
         (lnum          (if (eq variant 'dark) (if (display-graphic-p) "#44505c" "#444444") (if (display-graphic-p) "#a8a8bf" "#af87af")))
         (mat           (if (eq variant 'dark) (if (display-graphic-p) "#86dc2f" "#86dc2f") (if (display-graphic-p) "#ba2f59" "#af005f")))
@@ -105,7 +105,7 @@
         (str           (if (eq variant 'dark) (if (display-graphic-p) "#2d9574" "#2aa198") (if (display-graphic-p) "#2d9574" "#2aa198")))
         (suc           (if (eq variant 'dark) (if (display-graphic-p) "#86dc2f" "#86dc2f") (if (display-graphic-p) "#42ae2c" "#00af00")))
         (ttip          (if (eq variant 'dark) (if (display-graphic-p) "#9a9aba" "#888888") (if (display-graphic-p) "#8c799f" "#5f5f87")))
-        (ttip-sl       (if (eq variant 'dark) (if (display-graphic-p) "#6b5d85" "#333333") (if (display-graphic-p) "#c8c6dd" "#afafff")))
+        (ttip-sl       (if (eq variant 'dark) (if (display-graphic-p) "#5e5079" "#333333") (if (display-graphic-p) "#c8c6dd" "#afafff")))
         (ttip-bg       (if (eq variant 'dark) (if (display-graphic-p) "#34323e" "#444444") (if (display-graphic-p) "#e2e0ea" "#dfdfff")))
         (type          (if (eq variant 'dark) (if (display-graphic-p) "#ce537a" "#df005f") (if (display-graphic-p) "#ba2f59" "#af005f")))
         (var           (if (eq variant 'dark) (if (display-graphic-p) "#7590db" "#8787d7") (if (display-graphic-p) "#715ab1" "#af5fd7")))
@@ -155,13 +155,13 @@
      `(font-lock-variable-name-face ((,class (:foreground ,var))))
      `(font-lock-warning-face ((,class (:foreground ,war :background ,bg1))))
      `(fringe ((,class (:background ,bg1 :foreground ,base))))
-     `(highlight ((,class (:foreground ,base :background ,bg3))))
+     `(highlight ((,class (:foreground ,base :background ,highlight))))
      `(hl-line ((,class (:background ,bg2))))
-     `(isearch ((,class (:bold t :foreground ,bg1 :background ,keyword))))
-     `(lazy-highlight ((,class (:foreground ,bg1 :background ,keyword :weight normal))))
+     `(isearch ((,class (:foreground ,bg1 :background ,mat))))
+     `(lazy-highlight ((,class (:background ,highlight :weight normal))))
      `(link ((,class (:foreground ,comment :underline t))))
      `(link-visited ((,class (:foreground ,comp :underline t))))
-     `(match ((,class (:background ,bg1 :foreground ,keyword :weight bold))))
+     `(match ((,class (:background ,highlight :foreground ,mat))))
      `(minibuffer-prompt ((,class (:bold t :foreground ,keyword))))
      `(page-break-lines ((,class (:foreground ,act2))))
      `(popup-tip-face ((,class (:background ,ttip-sl :foreground ,base :bold nil :italic nil :underline nil))))
@@ -172,6 +172,10 @@
      `(tooltip ((,class (:background ,ttip-sl :foreground ,base :bold nil :italic nil :underline nil))))
      `(vertical-border ((,class (:foreground ,bg4))))
      `(warning ((,class (:foreground ,war ))))
+
+;;;;; ahs
+     `(ahs-face ((,class (:background ,highlight))))
+     `(ahs-plugin-whole-buffer-face ((,class (:background ,mat :foreground ,bg1))))
 
 ;;;;; anzu-mode
      `(anzu-mode-line ((,class (:foreground ,yellow :weight bold))))
@@ -185,7 +189,7 @@
      `(company-scrollbar-fg ((,class (:background ,act2))))
      `(company-template-field ((,class (:inherit region))))
      `(company-tooltip ((,class (:background ,ttip-bg :foreground ,ttip))))
-     `(company-tooltip-annotation ((,class (:background ,ttip-bg :foreground ,keyword))))
+     `(company-tooltip-annotation ((,class (:foreground ,keyword))))
      `(company-tooltip-common ((,class (:background ,ttip-bg :foreground ,base))))
      `(company-tooltip-common-selection ((,class (:foreground ,base))))
      `(company-tooltip-mouse ((,class (:inherit highlight))))
@@ -341,8 +345,8 @@
      `(helm-grep-match ((,class (:foreground nil :background nil :inherit helm-match))))
      `(helm-header ((,class (:foreground ,base :background ,bg1 :underline nil :box nil))))
      `(helm-header-line-left-margin ((,class (:foreground ,keyword :background ,nil))))
-     `(helm-match ((,class (:inherit match))))
-     `(helm-match-item ((,class (:inherit match))))
+     `(helm-match ((,class (:background ,head1-bg :foreground ,head1))))
+     `(helm-match-item ((,class (:background ,head1-bg :foreground ,head1))))
      `(helm-moccur-buffer ((,class (:foreground ,func :background ,bg1))))
      `(helm-selection ((,class (:background ,highlight))))
      `(helm-selection-line ((,class (:background ,bg2))))
@@ -354,8 +358,8 @@
 
 ;;;;; helm-swoop
      `(helm-swoop-target-line-block-face ((,class (:foreground ,base :background ,highlight))))
-     `(helm-swoop-target-line-face ((,class (:foreground ,base :background ,highlight))))
-     `(helm-swoop-target-word-face ((,class (:foreground ,bg1 :background ,suc))))
+     `(helm-swoop-target-line-face ((,class (:background ,highlight))))
+     `(helm-swoop-target-word-face ((,class (:background ,highlight :foreground ,mat))))
 
 ;;;;; highlight-indentation
      `(highlight-indentation-face ((,class (:background ,comment-bg))))
@@ -379,11 +383,11 @@
      `(info-title-4 ((,class (:height 1.2))))
 
 ;;;;; ivy
-     `(ivy-current-match ((,class (:foreground ,mat :background ,nil :bold t))))
-     `(ivy-minibuffer-match-face-1 ((,class (:foreground ,head2 :background nil))))
-     `(ivy-minibuffer-match-face-2 ((,class (:foreground ,head1 :background nil))))
-     `(ivy-minibuffer-match-face-3 ((,class (:foreground ,head3 :background nil))))
-     `(ivy-minibuffer-match-face-4 ((,class (:foreground ,head4 :background nil))))
+     `(ivy-current-match ((,class (:foreground ,mat :background ,highlight :bold t))))
+     `(ivy-minibuffer-match-face-1 ((,class (:bold t))))
+     `(ivy-minibuffer-match-face-2 ((,class (:foreground ,head1 :background ,head1-bg :bold t))))
+     `(ivy-minibuffer-match-face-3 ((,class (:foreground ,head4 :background ,head4-bg :bold t))))
+     `(ivy-minibuffer-match-face-4 ((,class (:foreground ,head3 :background ,head3-bg :bold t))))
      `(ivy-remote ((,class (:foreground ,cyan))))
 
 ;;;;; linum-mode
@@ -524,6 +528,13 @@
 ;;;;; smartparens
      `(sp-pair-overlay-face ((,class (:background ,highlight :foreground nil))))
      `(sp-show-pair-match-face ((,class (:foreground ,mat :weight bold :underline t))))
+
+;;;;; swiper
+     `(swiper-line-face ((,class (:foreground ,mat :background ,highlight :bold t))))
+     `(swiper-match-face-1 ((,class (:bold t))))
+     `(swiper-match-face-2 ((,class (:foreground ,head1 :background ,head1-bg :bold t))))
+     `(swiper-match-face-3 ((,class (:foreground ,head4 :background ,head4-bg :bold t))))
+     `(swiper-match-face-4 ((,class (:foreground ,head3 :background ,head3-bg :bold t))))
 
 ;;;;; spaceline
      `(spaceline-python-venv ((,class (:foreground ,comp))))
