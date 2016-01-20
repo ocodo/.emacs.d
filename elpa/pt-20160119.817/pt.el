@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/pt.el
-;; Package-Version: 20151024.851
+;; Package-Version: 20160119.817
 ;; Filename: pt.el
 ;; Description: A front-end for pt, the Platinum Searcher
 ;; Created: 2014-04-27
@@ -112,7 +112,7 @@ This function is called from `compilation-filter-hook'."
   "Run a pt search with REGEXP rooted at DIRECTORY."
   (interactive (list (read-from-minibuffer "Pt search for: " (thing-at-point 'symbol))
                      (read-directory-name "Directory: ")))
-  (let ((default-directory directory))
+  (let ((default-directory (file-name-as-directory directory)))
     (compilation-start
      (mapconcat 'identity
                 (append (list pt-executable)
