@@ -1,14 +1,14 @@
 ;;; inf-clojure.el --- Run an external Clojure process in an Emacs buffer -*- lexical-binding: t; -*-
 
-;; Copyright © 2014-2015 Bozhidar Batsov
+;; Copyright © 2014-2016 Bozhidar Batsov
 
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20151224.1207
+;; Package-Version: 20160117.1057
 ;; Keywords: processes, clojure
-;; Version: 1.3.0
-;; Package-Requires: ((emacs "24.1") (clojure-mode "5.0"))
+;; Version: 1.5.0-cvs
+;; Package-Requires: ((emacs "24.1") (clojure-mode "5.1"))
 
 ;; This file is part of GNU Emacs.
 
@@ -505,7 +505,7 @@ Used by this command to determine defaults."
 
 ;;; Adapted from function-called-at-point in help.el.
 (defun inf-clojure-fn-called-at-pt ()
-  "Returns the name of the function called in the current call.
+  "Return the name of the function called in the current call.
 The value is nil if it can't find one."
   (condition-case nil
       (save-excursion
@@ -605,9 +605,9 @@ With a prefix arg MACRO-1 uses `inf-clojure-macroexpand-1-command'."
              last-sexp))))
 
 
-;;  "Returns the current inferior Clojure process.
-;; See variable `inf-clojure-buffer'."
 (defun inf-clojure-proc ()
+  "Return the current inferior Clojure process.
+See variable `inf-clojure-buffer'."
   (let ((proc (get-buffer-process (if (derived-mode-p 'inf-clojure-mode)
                                       (current-buffer)
                                     inf-clojure-buffer))))
@@ -677,7 +677,7 @@ Returns the selected completion or nil."
 (defun inf-clojure-eldoc-beginning-of-sexp ()
   "Move to the beginning of current sexp.
 
-Return the number of nested sexp the point was over or after. "
+Return the number of nested sexp the point was over or after."
   (let ((parse-sexp-ignore-comments t)
         (num-skipped-sexps 0))
     (condition-case _
