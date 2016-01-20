@@ -91,7 +91,7 @@
        ((:keywords "point" "location")
 	(:url . "https://github.com/abo-abo/avy"))])
  (beacon .
-	 [(0 5 1)
+	 [(0 6 1)
 	  ((seq
 	    (1 11)))
 	  "Highlight the cursor whenever the window scrolls" single
@@ -547,7 +547,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160111)
+      [(20160118)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
