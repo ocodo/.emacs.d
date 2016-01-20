@@ -322,12 +322,17 @@ backward through lists, which is useful to move into special.
         (setq lispy-old-outline-settings
               (cons outline-regexp outline-level))
         (setq-local outline-level 'lispy-outline-level)
-        (if (eq major-mode 'latex-mode)
-            (progn
-              (setq-local lispy-outline "^\\(?:%\\*+\\|\\\\\\(?:sub\\)?section{\\)")
-              (setq lispy-outline-header "%")
-              (setq-local outline-regexp "\\(?:%\\*+\\|\\\\\\(?:sub\\)?section{\\)"))
-          (setq-local outline-regexp (substring lispy-outline 1)))
+        (cond ((eq major-mode 'latex-mode)
+               (setq-local lispy-outline "^\\(?:%\\*+\\|\\\\\\(?:sub\\)?section{\\)")
+               (setq lispy-outline-header "%")
+               (setq-local outline-regexp "\\(?:%\\*+\\|\\\\\\(?:sub\\)?section{\\)"))
+              ((eq major-mode 'python-mode)
+               (setq-local lispy-outline "^#\\*+")
+               (setq lispy-outline-header "#")
+               (setq-local outline-regexp "#\\*+")
+               (setq-local outline-heading-end-regexp "\n"))
+              (t
+               (setq-local outline-regexp (substring lispy-outline 1))))
         (when (called-interactively-p 'any)
           (mapc #'lispy-raise-minor-mode
                 (cons 'lispy-mode lispy-known-verbs))))
@@ -699,7 +704,8 @@ Return nil if can't move."
 
         ((lispy-left-p)
          (lispy-forward arg)
-         (let ((pt (point)))
+         (let ((pt (point))
+               (lispy-ignore-whitespace t))
            (if (lispy-forward 1)
                (lispy-backward 1)
              (goto-char pt)
@@ -3366,7 +3372,7 @@ Sexp is obtained by exiting list ARG times."
 (defun lispy-goto-symbol (symbol)
   "Go to definition of SYMBOL.
 SYMBOL is a string."
-  (interactive (list (or (thing-at-point 'symbol)
+  (interactive (list (or (thing-at-point 'symbol t)
                          (lispy--current-function))))
   (let (rsymbol)
     (deactivate-mark)
@@ -6859,19 +6865,6 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
   ("l" lispy-move-right)
   ("SPC" lispy-other-space)
   ("g" lispy-goto-mode)))
-
-(unless (package-installed-p 'hydra)
-  (defmacro defhydra (name &rest _)
-    "This is a stub for uninstalled `hydra' package."
-    `(defun ,(intern (format "%S/body" name)) ()
-       (interactive)
-       (if (yes-or-no-p "Package `hydra' not installed. Install?")
-           (progn
-             (package-install 'hydra)
-             (save-window-excursion
-               (find-library "lispy")
-               (byte-compile-file (buffer-file-name) t)))
-         (error "Please install `hydra' and recompile/reinstall `lispy'")))))
 
 (defhydra lh-knight ()
   "knight"
