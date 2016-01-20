@@ -454,19 +454,22 @@
    `(org-todo ((,class (:background ,"#ffcdd2" :bold t :foreground ,"#c62828"))))
    `(org-upcoming-deadline ((,class (:foreground ,orange))))
    `(org-warning ((,class (:weight bold :foreground ,red))))
-   `(org-block-begin-line ((,class (:foreground ,"#4e342e" :background "#efebe9" :underline ,"#a1887f"))))
-   `(org-block-end-line ((,class (:foreground ,"#4e342e" :background "#efebe9" :overline ,"#a1887f"))))
+   `(org-block-begin-line ((,class (:foreground ,"#4e342e" :background "#efebe9" 
+                                                :box (:style released-button)
+                                                ))))
+   `(org-block-end-line ((,class (:foreground ,"#4e342e" :background "#efebe9"
+                                              :box (:style released-button)))))
    `(org-kbd ((,class (:background ,inactive-gray :foreground ,foreground
                                    :box (:line-width 1 :color nil :style pressed-button)))))
 
    `(org-level-1 ((,class (:inherit outline-1
-                         :overline ,"#b0bec5"
                          :background ,inactive-gray
                          :weight bold
+                         :box (:style released-button)
                          :height 1.3))))
    `(org-level-2 ((,class (:inherit outline-2
                                   :background ,"#C8E6C9"
-                                  :overline ,"#E8F5E9"
+                                  :box (:style released-button)
                          :height 1.2))))
    `(org-level-3 ((,class (:inherit outline-3  :height 1.1))))
    `(org-level-4 ((,class (:inherit outline-4  :height 1.0))))
@@ -595,7 +598,7 @@
    ;; `(company-preview-search ((,class ())))
    `(company-scrollbar-bg ((,class (:background "#F0F0F0"))))
    `(company-scrollbar-fg ((,class (:background "#C0C0C0"))))
-   ;; `(company-template-field ((,class ())))
+   `(company-template-field ((,class (:background ,inactive-gray))))
    `(company-tooltip ((,class (:weight bold :foreground, comment :background ,inactive-gray))))
    `(company-tooltip-annotation ((,class (:weight normal :foreground ,comment :background ,inactive-gray))))
    `(company-tooltip-common ((,class (:weight normal :inherit company-tooltip))))
@@ -610,8 +613,16 @@
    `(powerline-inactive1 ((t (:foreground ,comment :background ,selection))))
    `(powerline-inactive2 ((t (:foreground ,comment :background ,selection))))
 
-   ;; spaceline
+   ;; Spaceline
    `(spaceline-python-venv ((t (:foreground ,aqua))))
+   `(spaceline-evil-normal ((t (:foreground ,background :background ,yellow :inherit mode-line))))
+   `(spaceline-evil-insert ((t (:foreground ,background :background ,green :inherit mode-line))))
+   `(spaceline-evil-visual ((t (:foreground ,background :background ,selection :inherit mode-line))))
+
+   ;; Spacemacs
+   `(spacemacs-normal-face ((t (:inherit spaceline-evil-normal))))
+   `(spacemacs-insert-face ((t (:inherit spaceline-evil-insert))))
+   `(spacemacs-visual-face ((t (:inherit spaceline-evil-visual))))
 
    ;; Outline
    `(outline-1 ((,class (:inherit nil :foreground ,"#424242"))))
