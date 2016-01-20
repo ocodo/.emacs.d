@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "linum-relative" "linum-relative.el" (22120
-;;;;;;  11683 28739 220000))
+;;;### (autoloads nil "linum-relative" "linum-relative.el" (22175
+;;;;;;  12808 197122 6000))
 ;;; Generated autoloads from linum-relative.el
 
 (autoload 'linum-relative-toggle "linum-relative" "\
@@ -35,6 +35,11 @@ ARG is omitted or nil.
 Linum-Relative mode is enabled in all buffers where
 `(lambda nil (linum-relative-mode 1))' would do it.
 See `linum-relative-mode' for more information on Linum-Relative mode.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'helm-linum-relative-mode "linum-relative" "\
+Turn on `linum-relative-mode' in helm.
 
 \(fn &optional ARG)" t nil)
 

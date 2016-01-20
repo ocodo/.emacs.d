@@ -1,12 +1,12 @@
 ;;; linum-relative.el --- display relative line number in emacs.
 
-;; Copyright (c) 2013 Yen-Chin, Lee.
+;; Copyright (c) 2013 - 2016 Yen-Chin, Lee.
 ;;
 ;; Author: coldnew <coldnew.tw@gmail.com>
 ;; Keywords: converience
-;; Package-Version: 20151205.1756
+;; Package-Version: 20160117.2200
 ;; X-URL: http://github.com/coldnew/linum-relative
-;; Version: 0.4
+;; Version: 0.5
 
 ;; This file is not part of GNU Emacs.
 
@@ -196,6 +196,25 @@ linum-releative will show the real line number at current line."
 ;;;###autoload
 (define-global-minor-mode linum-relative-global-mode
     linum-relative-mode (lambda () (linum-relative-mode 1)))
+
+;;;; Interaction of helm with linum-relative
+
+(defun helm--turn-on-linum-relative ()
+  (with-helm-buffer (linum-relative-mode 1)))
+
+;;;###autoload
+(define-minor-mode helm-linum-relative-mode
+    "Turn on `linum-relative-mode' in helm."
+  :group 'helm
+  (if helm-linum-relative-mode
+      (progn
+        (add-hook 'helm-move-selection-after-hook 'linum-relative-for-helm)
+        (add-hook 'helm-after-initialize-hook 'helm--turn-on-linum-relative)
+        (add-hook 'helm-after-preselection-hook 'linum-relative-for-helm))
+      (remove-hook 'helm-move-selection-after-hook 'linum-relative-for-helm)
+      (remove-hook 'helm-after-initialize-hook 'helm--turn-on-linum-relative)
+      (remove-hook 'helm-after-preselection-hook 'linum-relative-for-helm)))
+
 
 (provide 'linum-relative)
 ;;; linum-relative.el ends here.
