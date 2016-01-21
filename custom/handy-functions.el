@@ -34,6 +34,15 @@
 (require 'find-func)
 (require 'popup)
 
+(defun clear-buffer-text-properties ()
+    "Clear all text face properties in the buffer.
+This is somewhat useful when dealing with text pasted from a
+propertied buffer.
+
+Note: this won't turn off face properties in a font-locked buffer."
+    (interactive)
+    (remove-text-properties 1 (point-max) '(face nil)))
+
 (defun nuke-all-buffers ()
   "Kill all buffers, leaving *scratch* only."
   (interactive)
