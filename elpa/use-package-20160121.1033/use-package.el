@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 26 Sep 2015
 ;; Version: 2.1
-;; Package-Version: 20160112.1301
+;; Package-Version: 20160121.1033
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -70,6 +70,11 @@ then the expanded macros do their job silently."
 (defcustom use-package-always-ensure nil
   "Treat every package as though it had specified `:ensure SEXP`."
   :type 'sexp
+  :group 'use-package)
+
+(defcustom use-package-always-pin nil
+  "Treat every package as though it had specified `:pin SYM."
+  :type 'symbol
   :group 'use-package)
 
 (defcustom use-package-minimum-reported-time 0.1
@@ -1076,7 +1081,12 @@ this file.  Usage:
                    (if use-package-always-ensure
                        (use-package-plist-maybe-put
                         args0 :ensure use-package-always-ensure)
-                     args0))))
+                     args0)))
+           (args* (use-package-sort-keywords
+                   (if use-package-always-pin
+                       (use-package-plist-maybe-put
+                        args* :pin use-package-always-pin)
+                     args*))))
 
       ;; When byte-compiling, pre-load the package so all its symbols are in
       ;; scope.
