@@ -1,10 +1,10 @@
 ;;; git-messenger.el --- Pop up last commit information of current line
 
-;; Copyright (C) 2015 by Syohei YOSHIDA
+;; Copyright (C) 2016 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-git-messenger
-;; Package-Version: 20150314.602
+;; Package-Version: 20160121.1842
 ;; Version: 0.16
 ;; Package-Requires: ((popup "0.5.0") (cl-lib "0.5"))
 
@@ -43,30 +43,25 @@
 
 (defcustom git-messenger:show-detail nil
   "Pop up commit ID and author name too"
-  :type 'boolean
-  :group 'git-messenger)
+  :type 'boolean)
 
 (defcustom git-messenger:before-popup-hook nil
   "Hook run before popup commit message. This hook is taken popup-ed message"
-  :type 'hook
-  :group 'git-messenger)
+  :type 'hook)
 
 (defcustom git-messenger:after-popup-hook nil
   "Hook run after popup commit message. This hook is taken popup-ed message"
-  :type 'hook
-  :group 'git-messenger)
+  :type 'hook)
 
 (defcustom git-messenger:popup-buffer-hook nil
   "Hook run after popup buffer(popup diff, popup show etc)"
-  :type 'hook
-  :group 'git-messenger)
+  :type 'hook)
 
 (defcustom git-messenger:handled-backends '(git svn)
   "List of version control backends for which `git-messenger' will be used.
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control."
-  :type '(repeat symbol)
-  :group 'git-messenger)
+  :type '(repeat symbol))
 
 (defvar git-messenger:last-message nil
   "Last message displayed by git-messenger.
