@@ -1,4 +1,4 @@
-(define-package "fxrd-mode" "20151220.1244" "Major mode for editing fixed field width files"
+(define-package "fxrd-mode" "20160121.1053" "Major mode for editing fixed field width files"
   '((s "1.2"))
   :url "https://github.com/msherry/fxrd-mode" :keywords
   '("convenience"))

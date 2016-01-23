@@ -173,7 +173,7 @@
           (113 119 "FILE CREATION DATE (CCYYDD)" ,(fxrd-alphanumeric-v))
           (120 126 "FILE CREATION TIME (0HHMMSS)" ,(fxrd-alphanumeric-v))
           (127 129 "STARS FILESEQ NB" ,(fxrd-numeric-v :const 1))
-          (130 2202 "FILLER")))))))
+          (130 2202 "FILLER")))))
 
 
 ;;;###autoload
