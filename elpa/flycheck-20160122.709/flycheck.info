@@ -1022,9 +1022,9 @@ to run it, and how to parse its output:
      Refer to the function ‘flycheck-rx-to-string’ for a complete list
      of supported forms.
 
-   • The ‘:modes’ property denotes the major modes, in which Flycheck
-     may use this syntax checker.  ‘pylint’ checks Javascript, so the
-     ‘:modes’ of our example specify ‘python-mode’.
+   • The ‘:modes’ property denotes the major modes in which Flycheck may
+     use this syntax checker.  ‘rubocop’ checks Ruby code, so the
+     ‘:modes’ of our example specify ‘ruby-mode’ and ‘enh-ruby-mode’.
 
 
 File: flycheck.info,  Node: Finding error patterns,  Next: Trying new checkers,  Prev: Defining syntax checkers,  Up: Syntax checker definitions
@@ -3039,72 +3039,72 @@ Ref: Syntax checker configuration files31394
 Ref: Syntax checker executables34281
 Node: Syntax checker definitions35485
 Node: Defining syntax checkers36666
-Node: Finding error patterns41955
-Node: Trying new checkers43499
-Node: Registering new checkers44184
-Node: Parsing structured output45732
-Node: Passing configuration to checkers46975
-Node: Controlling use of checkers50598
-Node: Applying multiple checkers51700
-Node: Flycheck hooks54971
-Node: Flycheck API57027
-Node: Command syntax checkers57365
-Node: Argument Substitution57735
-Node: Checker configuration57905
-Node: Error parsers58117
-Node: Errors58263
-Node: Supported languages58375
-Ref: Ada60281
-Ref: AsciiDoc60895
-Ref: C/C++60984
-Ref: CFEngine63579
-Ref: Chef63655
-Ref: Coffeescript63884
-Ref: Coq64302
-Ref: CSS64358
-Ref: D64472
-Ref: Emacs Lisp64899
-Ref: Erlang66035
-Ref: ERuby66291
-Ref: Fortran66382
-Ref: Go67285
-Ref: Groovy68212
-Ref: Haml68326
-Ref: Handlebars68383
-Ref: Haskell68471
-Ref: HTML70405
-Ref: Jade70702
-Ref: Javascript70769
-Ref: JSON72143
-Ref: Less72341
-Ref: Lua72400
-Ref: Perl72756
-Ref: PHP73466
-Ref: Processing74164
-Ref: Puppet74284
-Ref: Python74783
-Ref: R76310
-Ref: RPM Spec76756
-Ref: reStructuredText76854
-Ref: Ruby77272
-Ref: Rust78286
-Ref: Sass79406
-Ref: Scala79657
-Ref: SCSS80225
-Ref: Shell scripting languages80743
-Ref: Slim81521
-Ref: SQL81588
-Ref: TeX/LaTeX81673
-Ref: Texinfo82089
-Ref: Verilog82184
-Ref: XML82507
-Ref: YAML82673
-Node: Getting Help82823
-Ref: Issues83326
-Node: GNU Free Documentation License84077
-Node: Main Index109430
-Node: Key Index118066
-Node: Function and Variable Index119720
+Node: Finding error patterns41976
+Node: Trying new checkers43520
+Node: Registering new checkers44205
+Node: Parsing structured output45753
+Node: Passing configuration to checkers46996
+Node: Controlling use of checkers50619
+Node: Applying multiple checkers51721
+Node: Flycheck hooks54992
+Node: Flycheck API57048
+Node: Command syntax checkers57386
+Node: Argument Substitution57756
+Node: Checker configuration57926
+Node: Error parsers58138
+Node: Errors58284
+Node: Supported languages58396
+Ref: Ada60302
+Ref: AsciiDoc60916
+Ref: C/C++61005
+Ref: CFEngine63600
+Ref: Chef63676
+Ref: Coffeescript63905
+Ref: Coq64323
+Ref: CSS64379
+Ref: D64493
+Ref: Emacs Lisp64920
+Ref: Erlang66056
+Ref: ERuby66312
+Ref: Fortran66403
+Ref: Go67306
+Ref: Groovy68233
+Ref: Haml68347
+Ref: Handlebars68404
+Ref: Haskell68492
+Ref: HTML70426
+Ref: Jade70723
+Ref: Javascript70790
+Ref: JSON72164
+Ref: Less72362
+Ref: Lua72421
+Ref: Perl72777
+Ref: PHP73487
+Ref: Processing74185
+Ref: Puppet74305
+Ref: Python74804
+Ref: R76331
+Ref: RPM Spec76777
+Ref: reStructuredText76875
+Ref: Ruby77293
+Ref: Rust78307
+Ref: Sass79427
+Ref: Scala79678
+Ref: SCSS80246
+Ref: Shell scripting languages80764
+Ref: Slim81542
+Ref: SQL81609
+Ref: TeX/LaTeX81694
+Ref: Texinfo82110
+Ref: Verilog82205
+Ref: XML82528
+Ref: YAML82694
+Node: Getting Help82844
+Ref: Issues83347
+Node: GNU Free Documentation License84098
+Node: Main Index109451
+Node: Key Index118087
+Node: Function and Variable Index119741
 
 End Tag Table
 
