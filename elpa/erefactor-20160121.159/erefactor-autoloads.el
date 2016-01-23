@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "erefactor" "erefactor.el" (21906 2348 423401
-;;;;;;  0))
+;;;### (autoloads nil "erefactor" "erefactor.el" (22179 13049 810819
+;;;;;;  783000))
 ;;; Generated autoloads from erefactor.el
 
 (autoload 'erefactor-lazy-highlight-turn-on "erefactor" "\
