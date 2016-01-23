@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.7
-;; Package-Version: 20160114.1301
+;; Package-Version: 20160121.1729
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -57,6 +57,7 @@
 (require 'calc-bin)
 (require 'json)
 (require 'tabulated-list)
+(require 'url-util)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -491,13 +492,12 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
                ((pred (> hour)) (list (/ seconds minute) "m"))
                ((pred (> day)) (list (/ seconds hour) "h"))
                ((pred (> month)) (list (/ seconds day) "d"))
-               ((pred (> year)) (list (/ seconds month) "M"))
+               ((pred (> year)) (list (/ seconds month) "mo"))
                (_ (list (/ seconds year) "y")))))))
 
 (defun transmission-when (seconds)
   "The `transmission-eta' of time between `current-time' and SECONDS."
-  (if (<= seconds 0)
-      "never"
+  (if (<= seconds 0) "never"
     (let ((secs (- seconds (time-to-seconds (current-time)))))
       (format (if (< secs 0) "%s ago" "in %s")
               (transmission-eta (abs secs) nil)))))
@@ -505,8 +505,7 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
 (defun transmission-rate (bytes)
   "Return a rate in units kilobytes per second.
 The rate is calculated from BYTES according to `transmission-units'."
-  (/ bytes
-     (if (eq 'iec transmission-units) 1024 1000)))
+  (/ bytes (if (eq 'iec transmission-units) 1024 1000)))
 
 (defun transmission-prompt-speed-limit (upload)
   "Make a prompt to set transfer speed limit.
@@ -568,6 +567,15 @@ Returns a list of non-blank inputs."
   "Return non-nil if STRING is a BitTorrent info hash, otherwise nil."
   (if (and string (string-match-p "\\`[[:xdigit:]]\\{40\\}\\'" string)) string))
 
+(defun transmission-directory-name-p (name)
+  "Return non-nil if NAME ends with a directory separator character."
+  (let ((len (length name))
+        (last ?.))
+    (if (> len 0) (setq last (aref name (1- len))))
+    (or (= last ?/)
+        (and (memq system-type '(windows-nt ms-dos))
+             (= last ?\\)))))
+
 (defun transmission-ffap ()
   "Return a file name, URL, or info hash at point, otherwise nil."
   (or (get-text-property (point) 'shr-url)
@@ -575,7 +583,8 @@ Returns a list of non-blank inputs."
       (let ((fn (or (ffap-guess-file-name-at-point)
                     (if (fboundp 'dired-file-name-at-point)
                         (dired-file-name-at-point)))))
-        (unless (directory-name-p fn) fn))
+        (unless (transmission-directory-name-p fn) fn))
+      (url-get-url-at-point)
       (transmission-btih-p (thing-at-point 'word))))
 
 (defun transmission-ffap-last-killed ()
@@ -638,8 +647,7 @@ The two are spliced together with indices for each file, sorted by file name."
 
 (defun transmission-time (seconds)
   "Format a time string, given SECONDS from the epoch."
-  (if (= 0 seconds)
-      (format "Never")
+  (if (= 0 seconds) "Never"
     (format-time-string transmission-time-format (seconds-to-time seconds))))
 
 (defun transmission-hamming-weight (x)
@@ -796,7 +804,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-set-upload (limit)
   "Set global upload speed LIMIT in KB/s."
   (interactive (transmission-prompt-speed-limit t))
-  (let ((arguments (if (<= limit 0) '(:speed-limit-up-enabled :json-false)
+  (let ((arguments (if (< limit 0) '(:speed-limit-up-enabled :json-false)
                      `(:speed-limit-up-enabled t :speed-limit-up ,limit))))
     (transmission-request-async nil "session-set" arguments)))
 
@@ -1148,6 +1156,20 @@ Each form in BODY is a column descriptor."
                        (transmission-format-pieces-brief .pieces .pieceCount)
                      (transmission-format-pieces .pieces .pieceCount))))))))))
 
+(defun transmission-draw-peers (id)
+  (setq transmission-torrent-vector
+        (transmission-torrents `(:ids ,id :fields ("peers"))))
+  (setq tabulated-list-entries nil)
+  (transmission-do-entries (cdr (assq 'peers (elt transmission-torrent-vector 0)))
+    .address
+    .flagStr
+    (format "%d%%" (transmission-percent .progress 1.0))
+    (format "%d" (transmission-rate .rateToClient))
+    (format "%d" (transmission-rate .rateToPeer))
+    .clientName)
+  (setq tabulated-list-entries (reverse tabulated-list-entries))
+  (tabulated-list-print))
+
 (defun transmission-draw ()
   "Draw the buffer with new contents via `transmission-refresh-function'."
   (with-silent-modifications
@@ -1197,6 +1219,49 @@ Also run the timer for timer object `transmission-timer'."
 
 ;; Major mode definitions
 
+(defvar transmission-peers-mode-map
+  (let ((map (copy-keymap tabulated-list-mode-map)))
+    (define-key map "i" 'transmission-info)
+    map)
+  "Keymap used in `transmission-peers-mode' buffers.")
+
+(easy-menu-define transmission-peers-mode-menu transmission-peers-mode-map
+  "Menu used in `transmission-peers-mode' buffers."
+  '("Transmission-Peers"
+    ["View Torrent Files" transmission-files]
+    ["View Torrent Info" transmission-info]
+    "--"
+    ["Refresh" revert-buffer]
+    ["Quit" quit-window]))
+
+(define-derived-mode transmission-peers-mode tabulated-list-mode "Transmission-Peers"
+  "Major mode for viewing peer information in Transmission.
+
+In addition to any hooks its parent mode might have run, this
+mode runs the hook `transmission-peers-mode-hook' at mode
+initialization.
+
+Key bindings:
+\\{transmission-peer-mode-map}"
+  :group 'transmission
+  (setq-local line-move-visual nil)
+  (setq tabulated-list-format
+        `[("Address" 15 nil)
+          ("Flags" 6 t)
+          ("Has" 4 nil :right-align t)
+          ("Down" 4 nil :right-align t)
+          ("Up" 3 nil :right-align t :pad-right 2)
+          ("Client" 20 t)])
+  (tabulated-list-init-header)
+  (setq transmission-refresh-function
+        (lambda () (transmission-draw-peers transmission-torrent-id)))
+  (setq-local revert-buffer-function #'transmission-refresh))
+
+(defun transmission-peers ()
+  "Open a `transmission-info-mode' buffer for torrent at point."
+  (interactive)
+  (transmission-context transmission-peers-mode))
+
 (defvar transmission-info-font-lock-keywords
   `(("^\\(.*?:\\)[[:blank:]]*\\(.*\\)$"
      (1 'font-lock-type-face)
@@ -1207,6 +1272,7 @@ Also run the timer for timer object `transmission-timer'."
   (let ((map (copy-keymap special-mode-map)))
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
+    (define-key map "e" 'transmission-peers)
     (define-key map "m" 'transmission-move)
     (define-key map "t" 'transmission-trackers-add)
     (define-key map "T" 'transmission-trackers-remove)
@@ -1224,6 +1290,9 @@ Also run the timer for timer object `transmission-timer'."
     ["Reannounce Torrent" transmission-reannounce]
     ["Set Bandwidth Priority" transmission-set-bandwidth-priority]
     ["Verify Torrent" transmission-verify]
+    "--"
+    ["View Torrent Files" transmission-files]
+    ["View Torrent Peers" transmission-peers]
     "--"
     ["Refresh" revert-buffer]
     ["Quit" quit-window]))
@@ -1253,6 +1322,7 @@ Key bindings:
   (let ((map (copy-keymap tabulated-list-mode-map)))
     (define-key map (kbd "RET") 'transmission-find-file)
     (define-key map "!" 'transmission-files-command)
+    (define-key map "e" 'transmission-peers)
     (define-key map "i" 'transmission-info)
     (define-key map "m" 'transmission-move)
     (define-key map "u" 'transmission-files-unwant)
@@ -1270,7 +1340,9 @@ Key bindings:
     ["Mark Files Unwanted" transmission-files-unwant]
     ["Mark Files Wanted" transmission-files-want]
     ["Set Files' Bandwidth Priority" transmission-files-priority]
+    "--"
     ["View Torrent Info" transmission-info]
+    ["View Torrent Peers" transmission-peers]
     "--"
     ["Refresh" revert-buffer]
     ["Quit" quit-window]))
@@ -1310,6 +1382,7 @@ Key bindings:
     (define-key map (kbd "RET") 'transmission-files)
     (define-key map "a" 'transmission-add)
     (define-key map "d" 'transmission-set-download)
+    (define-key map "e" 'transmission-peers)
     (define-key map "i" 'transmission-info)
     (define-key map "l" 'transmission-set-ratio)
     (define-key map "m" 'transmission-move)
@@ -1340,6 +1413,7 @@ Key bindings:
     "--"
     ["View Torrent Files" transmission-files]
     ["View Torrent Info" transmission-info]
+    ["View Torrent Peers" transmission-peers]
     "--"
     ["Refresh" revert-buffer]
     ["Quit" transmission-quit]))
