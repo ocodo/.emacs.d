@@ -4,7 +4,7 @@
 
 ;; Author: Tobias Svensson <tob@tobiassvensson.co.uk>
 ;; URL: http://github.com/tobiassvn/
-;; Package-Version: 20151111.712
+;; Package-Version: 20160121.324
 ;; Keywords: bundler ruby
 ;; Created: 31 Dec 2011
 ;; Version: 1.1.1
@@ -234,6 +234,12 @@ found."
           nil)))
 
       (remq nil (mapcar 'parse-bundle-list-line bundle-lines)))))
+
+(defun bundle-list-gem-paths ()
+  (save-excursion
+    (let* ((cmd "bundle list --paths")
+           (bundle-out (shell-command-to-string cmd)))
+      (split-string bundle-out "\n"))))
 
 (provide 'bundler)
 ;;; bundler.el ends here.
