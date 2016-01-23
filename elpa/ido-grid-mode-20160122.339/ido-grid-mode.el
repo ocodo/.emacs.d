@@ -5,7 +5,7 @@
 ;; Author: Tom Hinton
 ;; Maintainer: Tom Hinton <t@larkery.com>
 ;; Version: 1.0.1
-;; Package-Version: 20151127.935
+;; Package-Version: 20160122.339
 ;; Keywords: convenience
 ;; URL: https://github.com/larkery/ido-grid-mode.el
 ;; Package-Requires: ((emacs "24.4"))
@@ -254,14 +254,12 @@ around. Scrolling always happens at the top left or bottom right."
       (goto-char (point-max))
       (insert (apply #'format (cons
                                (concat
-                                "%d %d %d %d %s %s :: "
+                                "%dx%d @ %d of %d :: "
                                 fs)
                                (append (list ido-grid-mode-rows
                                              ido-grid-mode-columns
                                              ido-grid-mode-offset
-                                             (length ido-grid-mode-rotated-matches)
-                                             (car ido-matches)
-                                             (car ido-grid-mode-rotated-matches))
+                                             (length ido-grid-mode-rotated-matches))
                                        args))) "\n"))))
 
 ;; offset into the match list. need to reset this when match list is
@@ -727,9 +725,9 @@ Counts matches, and tells you how many you can see in the grid."
 
          (row   (if (ido-grid-mode-row-major)
                     (/ ido-grid-mode-offset ido-grid-mode-columns)
-                  (% ido-grid-mode-offset ido-grid-mode-rows)))
+                  (% ido-grid-mode-offset (max 1 ido-grid-mode-rows))))
          (col   (if (ido-grid-mode-row-major)
-                    (% ido-grid-mode-offset ido-grid-mode-columns)
+                    (% ido-grid-mode-offset (max 1 ido-grid-mode-columns))
                   (/ ido-grid-mode-offset ido-grid-mode-rows)))
 
          new-offset)
@@ -743,7 +741,7 @@ Counts matches, and tells you how many you can see in the grid."
           (% (if (ido-grid-mode-row-major)
                  (+ col (* row ncols))
                (+ row (* col nrows)))
-             match-count))
+             (max 1 match-count)))
 
     (cond ((< new-offset 0)
            (cl-incf new-offset match-count)
@@ -866,14 +864,19 @@ It may not be possible to do this unless there is only 1 column."
 match list changes, and will update
 `ido-grid-mode-rotated-matches' if the new `ido-matches' is
 different, ignoring rotations."
-  (let* ((did-something ido-rescan)
+  (let* ((did-something (or ido-rescan ido-use-merged-list))
          (result (apply o rest)))
-    (ido-grid-mode-debug "setting matches")
-    (when (and did-something (not (ido-grid-mode-equal-but-rotated
+    (ido-grid-mode-debug "setting matches, rescan=%s, merged=%s" ido-rescan ido-use-merged-list)
+    (if (and did-something (not (ido-grid-mode-equal-but-rotated
                                    ido-matches
                                    ido-grid-mode-rotated-matches)))
-      (ido-grid-mode-debug "matches changed")
-      (setq ido-grid-mode-rotated-matches (copy-sequence ido-matches)))
+        (progn (ido-grid-mode-debug "matches changed")
+               (setq ido-grid-mode-rotated-matches (copy-sequence ido-matches)))
+      ;; if nothing changed, we are going to do a horrendous thing instead
+      (unless (eq (car ido-matches) (nth ido-grid-mode-offset ido-grid-mode-rotated-matches))
+        (let ((ido-grid-mode-rotated-matches (copy-sequence ido-grid-mode-rotated-matches)))
+          (ido-grid-mode-rotate-matches-to (nth ido-grid-mode-offset ido-grid-mode-rotated-matches))
+          (setq ido-matches ido-grid-mode-rotated-matches))))
 
     result))
 
