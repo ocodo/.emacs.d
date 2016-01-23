@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20160117.1855
+;; Package-Version: 20160121.1757
 ;; Version: 1.5.2
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -915,7 +915,7 @@ Always update if value of this variable is nil."
   (helm-build-in-buffer-source "Find tag from here"
     :init 'helm-gtags--source-select-init
     :candidate-number-limit helm-gtags-maximum-candidates
-    :persistent-action 'helm-gtags--persistent-action
+    :persistent-action #'ignore
     :fuzzy-match helm-gtags-fuzzy-match
     :action (helm-make-actions
              "Goto the location" #'helm-gtags--select-tag-action
