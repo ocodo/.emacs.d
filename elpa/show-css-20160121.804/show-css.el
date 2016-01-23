@@ -7,7 +7,7 @@
 ;; Created: 1st February 2013
 ;; Keywords: hypermedia
 ;; URL: https://github.com/smmcg/showcss-mode
-;; Package-Requires: ((dom "1.0.1"))
+;; Package-Requires: ((doom "1.3"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -92,7 +92,8 @@
 
 
 (require 'buffer-combine)
-(require 'dom)
+(require 'doom)
+(require 's)
 
 
 (defgroup showcss nil
@@ -259,29 +260,29 @@ Eg:
 
 
 (defun showcss/parse-html()
-  "Parse the html file with dom.el"
+  "Parse the html file with doom.el"
   (setq showcss/parents nil)
   (save-excursion
     (re-search-backward "\\(<\\|>\\)" nil t)
     (forward-char)
     ;; if not looking at a / or ! (comment or closing tag)
     (if (not (or (looking-at "\\(/\\|!\\)")
-                 (looking-back ">")))
+                 (looking-back ">" nil)))
         (progn
           (backward-char)
           (let ((bookmark-tag "<showcss />"))
             (insert bookmark-tag)  ;TODO: this needs to not affect undo
 
-            (let* ((dom-doc nil)
+            (let* ((doc nil)
                    (node nil)
                    (not-tag t))
 
               (condition-case nil
                   (progn
-                    (setq dom-doc (dom-make-document-from-xml
-                                   (libxml-parse-html-region (point-min) (point-max))))
-                    (setq node (car (dom-document-get-elements-by-tag-name
-                                     dom-doc 'showcss))))
+                    (setq doc (doom-make-document-from-xml
+                               (libxml-parse-html-region (point-min) (point-max))))
+                    (setq node (car (doom-document-get-elements-by-tag-name
+                                     doc 'showcss))))
                 (error (message "Malformed document")))
 
               (search-backward bookmark-tag)
@@ -291,9 +292,9 @@ Eg:
               ;; one we really want, skipping text tags.
               (while not-tag
                 (condition-case nil
-                    (setq node (dom-node-next-sibling node))
+                    (setq node (doom-node-next-sibling node))
                   (error nil))
-                (if (= (dom-node-type node) 1)
+                (if (= (doom-node-type node) 1)
                     (progn
                       (setq not-tag nil)
                       (showcss/up-walk node)
@@ -306,16 +307,16 @@ Eg:
 
 (defun showcss/up-walk(node)
   "Walk up the parse tree and collect information about each tag"
-  (if (dom-node-p node)
-      (let* ((node-name (dom-node-name node))
+  (if (doom-node-p node)
+      (let* ((node-name (doom-node-name node))
              (node-list (list node-name))
              (attr-list '()))
 
-        (if (dom-node-has-attributes node)
+        (if (doom-node-has-attributes node)
             (progn
-              (dolist (attr (dom-node-attributes node))
-                (let ((attr-name (dom-node-name attr))
-                      (attr-val (dom-node-value attr)))
+              (dolist (attr (doom-node-attributes node))
+                (let ((attr-name (doom-node-name attr))
+                      (attr-val (doom-node-value attr)))
                   (if (string= attr-name "class")
                       (setq node-list
                             (cons (cons attr-name
@@ -326,7 +327,7 @@ Eg:
         (let ((rev-list (reverse node-list)))
           (setq showcss/parents (cons rev-list showcss/parents)))
 
-        (showcss/up-walk (dom-node-parent-node node))
+        (showcss/up-walk (doom-node-parent-node node))
         )))
 
 
@@ -542,5 +543,7 @@ git repository"
 
 
 (provide 'show-css)
-
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; show-css.el ends here

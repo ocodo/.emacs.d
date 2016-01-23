@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "show-css" "show-css.el" (21833 28628 687401
-;;;;;;  0))
+;;;### (autoloads nil "show-css" "show-css.el" (22179 12985 919440
+;;;;;;  817000))
 ;;; Generated autoloads from show-css.el
 
 (autoload 'showcss-mode "show-css" "\
@@ -17,7 +17,7 @@ git repository
 ;;;***
 
 ;;;### (autoloads nil nil ("buffer-combine.el" "show-css-pkg.el")
-;;;;;;  (21833 28628 707255 321000))
+;;;;;;  (22179 12985 943842 338000))
 
 ;;;***
 
