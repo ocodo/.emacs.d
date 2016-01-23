@@ -1805,16 +1805,18 @@ With prefix argument USE-JIT do jit-loading of snippets."
   "Reload the directories listed in `yas-snippet-dirs' or
 prompt the user to select one."
   (let (errors)
-    (if yas-snippet-dirs
-        (dolist (directory (reverse (yas-snippet-dirs)))
-          (cond ((file-directory-p directory)
-                 (yas-load-directory directory (not nojit))
-                 (if nojit
-                     (yas--message 3 "Loaded %s" directory)
-                   (yas--message 3 "Prepared just-in-time loading for %s" directory)))
-                (t
-                 (push (yas--message 0 "Check your `yas-snippet-dirs': %s is not a directory" directory) errors))))
-      (call-interactively 'yas-load-directory))
+    (if (null yas-snippet-dirs)
+        (call-interactively 'yas-load-directory)
+      (when (member yas--default-user-snippets-dir yas-snippet-dirs)
+        (make-directory yas--default-user-snippets-dir t))
+      (dolist (directory (reverse (yas-snippet-dirs)))
+        (cond ((file-directory-p directory)
+               (yas-load-directory directory (not nojit))
+               (if nojit
+                   (yas--message 3 "Loaded %s" directory)
+                 (yas--message 3 "Prepared just-in-time loading for %s" directory)))
+              (t
+               (push (yas--message 0 "Check your `yas-snippet-dirs': %s is not a directory" directory) errors)))))
     errors))
 
 (defun yas-reload-all (&optional no-jit interactive)
@@ -3383,7 +3385,22 @@ Move the overlay, or create it if it does not exit."
     (overlay-put yas--active-field-overlay 'insert-behind-hooks
                  '(yas--on-field-overlay-modification))))
 
-(defun yas--on-field-overlay-modification (overlay after? _beg _end &optional _length)
+(defun yas--skip-and-clear-field-p (field _beg _end &optional _length)
+  "Tell if newly modified FIELD should be cleared and skipped.
+BEG, END and LENGTH like overlay modification hooks."
+  (and (not (yas--field-modified-p field))
+       (= (point) (yas--field-start field))
+       (require 'delsel)
+       ;; `yank' sets `this-command' to t during execution.
+       (let ((clearp (get (if (commandp this-command) this-command
+                            this-original-command)
+                          'delete-selection)))
+         (when (and (not (memq clearp '(yank supersede kill)))
+                    (functionp clearp))
+           (setq clearp (funcall clearp)))
+         clearp)))
+
+(defun yas--on-field-overlay-modification (overlay after? beg end &optional length)
   "Clears the field and updates mirrors, conditionally.
 
 Only clears the field if it hasn't been modified and point is at
@@ -3399,9 +3416,7 @@ field start.  This hook does nothing if an undo is in progress."
                (yas--field-update-display field))
              (yas--update-mirrors snippet))
             (field
-             (when (and (eq this-command 'self-insert-command)
-                        (not (yas--field-modified-p field))
-                        (= (point) (yas--field-start field)))
+             (when (yas--skip-and-clear-field-p field beg end)
                (yas--skip-and-clear field))
              (setf (yas--field-modified-p field) t))))))
 
