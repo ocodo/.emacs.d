@@ -45,8 +45,7 @@
 ;;
 ;; (defun company-my-backend (command &optional arg &rest ignored)
 ;;   (pcase command
-;;     (`prefix (when (looking-back "foo\\>")
-;;               (match-string 0)))
+;;     (`prefix (company-grab-symbol))
 ;;     (`candidates (list "foobar" "foobaz" "foobarbaz"))
 ;;     (`meta (format "This value is named %s" arg))))
 ;;
@@ -334,10 +333,10 @@ of the following:
 text immediately before point.  Returning nil from this command passes
 control to the next backend.  The function should return `stop' if it
 should complete but cannot (e.g. if it is in the middle of a string).
-Instead of a string, the backend may return a cons where car is the prefix
-and cdr is used instead of the actual prefix length in the comparison
-against `company-minimum-prefix-length'.  It must be either number or t,
-and in the latter case the test automatically succeeds.
+Instead of a string, the backend may return a cons (PREFIX . LENGTH)
+where LENGTH is a number used in place of PREFIX's length when
+comparing against `company-minimum-prefix-length'.  LENGTH can also
+be just t, and in the latter case the test automatically succeeds.
 
 `candidates': The second argument is the prefix to be completed.  The
 return value should be a list of candidates that match the prefix.
@@ -1642,7 +1641,9 @@ each one wraps a part of the input string."
           (const :tag "Exact match" regexp-quote)
           (const :tag "Words separated with spaces" company-search-words-regexp)
           (const :tag "Words separated with spaces, in any order"
-                 company-search-words-in-any-order-regexp)))
+                 company-search-words-in-any-order-regexp)
+          (const :tag "All characters in given order, with anything in between"
+                 company-search-flex-regexp)))
 
 (defvar-local company-search-string "")
 
@@ -1671,6 +1672,15 @@ each one wraps a part of the input string."
                  (mapconcat #'identity words ".*"))
                permutations
                "\\|")))
+
+(defun company-search-flex-regexp (input)
+  (if (zerop (length input))
+      ""
+    (concat (regexp-quote (string (aref input 0)))
+            (mapconcat (lambda (c)
+                         (concat "[^" (string c) "]*"
+                                 (regexp-quote (string c))))
+                       (substring input 1) ""))))
 
 (defun company--permutations (lst)
   (if (not lst)
