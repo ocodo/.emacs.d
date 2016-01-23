@@ -12,9 +12,9 @@
        ((:keywords "tools" "processes" "convenience")
 	(:url . "https://github.com/leoliu/ack-el"))])
  (ada-mode .
-	   [(5 1 8)
+	   [(5 1 9)
 	    ((wisi
-	      (1 1 1))
+	      (1 1 2))
 	     (cl-lib
 	      (0 4))
 	     (emacs
@@ -199,7 +199,7 @@
 		((:url . "http://elpa.gnu.org/packages/dbus-codegen.html")
 		 (:keywords "comm" "dbus" "convenience"))])
  (debbugs .
-	  [(0 8)
+	  [(0 9)
 	   ((async
 	     (1 6)))
 	   "SOAP library to access debbugs servers" tar
@@ -333,6 +333,11 @@
 	  "emacs frontend to GNU Global source code tagging system" single
 	  ((:url . "https://github.com/leoliu/ggtags")
 	   (:keywords "tools" "convenience"))])
+ (gnome-c-style .
+		[(0 1)
+		 nil "minor mode for editing GNOME-style C source code" tar
+		 ((:keywords "gnome" "c" "coding style")
+		  (:url . "http://elpa.gnu.org/packages/gnome-c-style.html"))])
  (gnorb .
 	[(1 1 2)
 	 ((cl-lib
@@ -480,9 +485,9 @@
 	   ((:url . "http://elpa.gnu.org/packages/minimap.html")
 	    (:keywords))])
  (multishell .
-	     [(1 0 4)
-	      nil "manage interaction with multiple local and remote shells" single
-	      ((:url . "https://github.com/kenmanheimer/EmacsUtils")
+	     [(1 0 5)
+	      nil "facilitate multiple local and remote shell buffers" single
+	      ((:url . "https://github.com/kenmanheimer/EmacsMultishell")
 	       (:keywords "processes"))])
  (muse .
        [(3 20)
@@ -790,7 +795,7 @@
 	      ((:url . "http://elpa.gnu.org/packages/windresize.html")
 	       (:keywords "window"))])
  (wisi .
-       [(1 1 1)
+       [(1 1 2)
 	((cl-lib
 	  (0 4))
 	 (emacs
