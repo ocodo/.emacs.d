@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160115.23
+;; Package-Version: 20160119.2336
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -2641,6 +2641,41 @@ is chosen."
 
 (projectile-commander-bindings)
 
+(defun projectile-read-variable ()
+  "Prompt for a variable and return its name."
+  (completing-read "Variable: "
+                   obarray
+                   '(lambda (v)
+                      (and (boundp v) (not (keywordp v))))
+                   t))
+
+(define-skeleton projectile-skel-variable-cons
+  "Insert a variable-name and a value in a cons-cell."
+  "Value: "
+  "("
+  (projectile-read-variable)
+  " . "
+  str
+  ")")
+
+(define-skeleton projectile-skel-dir-locals
+  "Insert a .dir-locals.el template."
+  nil
+  "((nil . (("
+  ("" '(projectile-skel-variable-cons) \n)
+  resume:
+  "))))")
+
+(defun projectile-edit-dir-locals ()
+  "Edit or create a .dir-locals.el file of the project."
+  (interactive)
+  (let ((file (expand-file-name ".dir-locals.el" (projectile-project-root))))
+    (find-file file)
+    (when (not (file-exists-p file))
+      (unwind-protect
+          (projectile-skel-dir-locals)
+        (save-buffer)))))
+
 ;;; Minor mode
 (defvar projectile-command-map
   (let ((map (make-sparse-keymap)))
@@ -2659,6 +2694,7 @@ is chosen."
     (define-key map (kbd "d") #'projectile-find-dir)
     (define-key map (kbd "D") #'projectile-dired)
     (define-key map (kbd "e") #'projectile-recentf)
+    (define-key map (kbd "E") #'projectile-edit-dir-locals)
     (define-key map (kbd "f") #'projectile-find-file)
     (define-key map (kbd "g") #'projectile-find-file-dwim)
     (define-key map (kbd "F") #'projectile-find-file-in-known-projects)
@@ -2705,6 +2741,7 @@ is chosen."
    ["Jump between implementation file and test file" projectile-toggle-between-implementation-and-test]
    ["Kill project buffers" projectile-kill-buffers]
    ["Recent files" projectile-recentf]
+   ["Edit .dir-locals.el" projectile-edit-dir-locals]
    "--"
    ["Open project in dired" projectile-dired]
    ["Switch to project" projectile-switch-project]
