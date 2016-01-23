@@ -309,14 +309,6 @@ OTHER-WINDOW use `find-file-other-window'."
   :group 'haskell
 )
 
-(defcustom haskell-cabal-list-comma-position
-  'before
-  "Where to put the comma in lists"
-  :safe t
-  :group 'haskell-cabal
-  :type '(choice (const before)
-                 (const after)))
-
 (defconst haskell-cabal-section-header-regexp "^[[:alnum:]]" )
 (defconst haskell-cabal-subsection-header-regexp "^[ \t]*[[:alnum:]]\\w*:")
 (defconst haskell-cabal-comment-regexp "^[ \t]*--")
@@ -569,25 +561,69 @@ resulting buffer-content"
              (haskell-cabal-add-indentation (- ,old-l1-indent
                                            ,new-l1-indent))))))))
 
-(defun haskell-cabal-strip-list ()
-  "strip commas from comma-seperated list"
-  (goto-char (point-min))
-;; split list items on single line
-  (while (re-search-forward
-          "\\([^ \t,\n]\\)[ \t]*,[ \t]*\\([^ \t,\n]\\)"  nil t)
-    (replace-match "\\1\n\\2" nil nil))
-  (goto-char (point-min))
-  (while (re-search-forward "^\\([ \t]*\\),\\([ \t]*\\)" nil t)
-    (replace-match "" nil nil))
-  (goto-char (point-min))
-  (while (re-search-forward ",[ \t]*$" nil t)
-    (replace-match "" nil nil))
-  (goto-char (point-min))
-  (haskell-cabal-each-line (haskell-cabal-chomp-line)))
+(defun haskell-cabal-comma-separatorp (pos)
+  "Return non-nil when the char at POS is a comma separator.
+Characters that are not a comma, or commas inside a commment or
+string, are not comma separators."
+  (when (eq (char-after pos) ?,)
+    (let ((ss (syntax-ppss pos)))
+      (not
+       (or
+        ;; inside a string
+        (nth 3 ss)
+        ;; inside a comment
+        (nth 4 ss))))))
 
-(defun haskell-cabal-listify ()
-  "Add commas so that buffer contains a comma-seperated list"
-  (cl-case haskell-cabal-list-comma-position
+(defun haskell-cabal-strip-list-and-detect-style ()
+  "Strip commas from a comma-separated list.
+Detect and return the comma style.  The possible options are:
+
+before: a comma at the start of each line (except the first), e.g.
+    Foo
+  , Bar
+
+after: a comma at the end of each line (except the last), e.g.
+    Foo,
+    Bar
+
+single: everything on a single line, but comma-separated, e.g.
+    Foo, Bar
+
+nil: no commas, e.g.
+    Foo Bar
+
+If the styles are mixed, the position of the first comma
+determines the style."
+  (let (comma-style)
+    ;; split list items on single line
+    (goto-char (point-min))
+    (while (re-search-forward
+            "\\([^ \t,\n]\\)[ \t]*\\(,\\)[ \t]*\\([^ \t,\n]\\)"  nil t)
+      (when (haskell-cabal-comma-separatorp (match-beginning 2))
+        (setq comma-style 'single)
+        (replace-match "\\1\n\\3" nil nil)))
+    ;; remove commas before
+    (goto-char (point-min))
+    (while (re-search-forward "^\\([ \t]*\\),\\([ \t]*\\)" nil t)
+      (setq comma-style 'before)
+      (replace-match "" nil nil))
+    ;; remove trailing commas
+    (goto-char (point-min))
+    (while (re-search-forward ",[ \t]*$" nil t)
+      (unless (eq comma-style 'before)
+        (setq comma-style 'after))
+      (replace-match "" nil nil))
+    (goto-char (point-min))
+
+    (haskell-cabal-each-line (haskell-cabal-chomp-line))
+    comma-style))
+
+(defun haskell-cabal-listify (comma-style)
+  "Add commas so that the buffer contains a comma-separated list.
+Respect the COMMA-STYLE, see
+`haskell-cabal-strip-list-and-detect-style' for the possible
+styles."
+  (cl-case comma-style
     ('before
      (goto-char (point-min))
      (while (haskell-cabal-ignore-line-p) (forward-line))
@@ -603,16 +639,25 @@ resulting buffer-content"
          (forward-line -1)
          (end-of-line)
          (insert ",")
-         (beginning-of-line))))))
-
-
+         (beginning-of-line))))
+    ('single
+     (goto-char (point-min))
+     (while (not (eobp))
+       (end-of-line)
+       (unless (eobp)
+         (insert ", ")
+         (delete-char 1)
+         (just-one-space))))))
 
 (defmacro haskell-cabal-with-cs-list (&rest funs)
-  "format buffer so that each line contains a list element "
-  `(progn
-    (save-excursion (haskell-cabal-strip-list))
-    (unwind-protect (progn ,@funs)
-      (haskell-cabal-listify))))
+  "Format the buffer so that each line contains a list element.
+Respect the comma style."
+  (let ((comma-style (make-symbol "comma-style")))
+    `(let ((,comma-style
+            (save-excursion
+              (haskell-cabal-strip-list-and-detect-style))))
+       (unwind-protect (progn ,@funs)
+         (haskell-cabal-listify ,comma-style)))))
 
 
 (defun haskell-cabal-sort-lines-key-fun ()

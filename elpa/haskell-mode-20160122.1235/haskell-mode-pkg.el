@@ -1,5 +1,6 @@
-(define-package "haskell-mode" "20160117.1345" "A Haskell editing mode"
-  '((cl-lib "0.5"))
+(define-package "haskell-mode" "20160122.1235" "A Haskell editing mode"
+  '((emacs "24.1")
+    (cl-lib "0.5"))
   :keywords
   '("haskell" "cabal" "ghc" "repl")
   :url "https://github.com/haskell/haskell-mode")

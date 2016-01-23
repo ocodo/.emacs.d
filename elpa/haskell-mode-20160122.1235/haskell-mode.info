@@ -1,9 +1,9 @@
 This is haskell-mode.info, produced by makeinfo version 5.2 from
 haskell-mode.texi.
 
-This manual is for Haskell mode, version 13.17-git
+This manual is for Haskell mode, version 16.1-git
 
-   Copyright © 2013 Haskell Mode contributors.
+   Copyright © 2013-2016 Haskell Mode contributors.
 
      Permission is granted to copy, distribute and/or modify this
      document under the terms of the GNU Free Documentation License
@@ -22,7 +22,7 @@ Haskell Mode
 ************
 
 Haskell Mode is an Haskell development Environment for GNU Emacs version
-23 or later.  It provides syntax-based indentation, font locking,
+24 or later.  It provides syntax-based indentation, font locking,
 editing cabal files, and supports running an inferior Haskell
 interpreter (e.g.  GHCi).
 
@@ -132,7 +132,7 @@ Haskell source code in color now.
 3.2 Installation - more information
 ===================================
 
-‘haskell-mode’ supports GNU Emacs versions 23, 24 and upcoming 25
+‘haskell-mode’ supports GNU Emacs versions 24 and upcoming 25
 (snapshot).
 
    ‘haskell-mode’ is available from melpa-stable (releases)
@@ -143,14 +143,9 @@ Haskell source code in color now.
 (https://github.com/bbatsov/prelude)) and Debian package
 (https://packages.debian.org/search?keywords=haskell-mode).
 
-   Emacs23 requires an the use of ‘cl-lib’.  cl-lib.el can be found in
-the tests/compat directory.  Copy cl-lib.el to your emacs directory,
-e.g.  ~/.emacs.d directory and put
-
-     (add-to-list 'load-path "~/.emacs.d/")
-     (require 'cl-lib)
-
-   in your .emacs file.
+   Last version of haskell-mode that supported Emacs 23 is haskell-mode
+13.18 available at
+<https://github.com/haskell/haskell-mode/releases/tag/v13.18>.
 
 3.3 Customizing
 ===============
@@ -716,7 +711,7 @@ Concept index
 
 * benchmarking:                          Changing REPL target. (line 15)
 * CUA mode:                              Indentation.          (line 42)
-* customizing:                           Getting Started.      (line 62)
+* customizing:                           Getting Started.      (line 57)
 * ‘haskell-mode’:                        Editing Haskell Code. (line  6)
 * indentation:                           Indentation.          (line  6)
 * layout rule:                           Indentation.          (line  6)
@@ -776,7 +771,7 @@ Variable index
 * haskell-compile-command:               Compilation.          (line 35)
 * haskell-decl-scan-mode-hook:           Declaration scanning. (line  6)
 * haskell-interactive-mode-hook:         Changing REPL target. (line  6)
-* haskell-mode-hook:                     Getting Started.      (line 68)
+* haskell-mode-hook:                     Getting Started.      (line 63)
 * haskell-program-name:                  Inferior Haskell interpreter.
                                                                (line  6)
 * inferior-haskell-mode-hook:            Inferior Haskell interpreter.
@@ -785,26 +780,26 @@ Variable index
 
 
 Tag Table:
-Node: Top679
-Node: Introduction1948
-Node: Getting Help and Reporting Bugs2465
-Node: Getting Started3927
-Node: Editing Haskell Code6434
-Ref: Editing Haskell Code-Footnote-111015
-Ref: Editing Haskell Code-Footnote-211106
-Ref: Editing Haskell Code-Footnote-311165
-Node: Unicode support11249
-Node: Indentation12939
-Ref: Indentation-Footnote-115260
-Node: Declaration scanning15445
-Node: Compilation18724
-Node: Inferior Haskell interpreter21735
-Node: Interactive Haskell22665
-Node: Editing Cabal files24934
-Node: Changing REPL target25684
-Node: Concept index26260
-Node: Function index27229
-Node: Variable index29194
+Node: Top683
+Node: Introduction1952
+Node: Getting Help and Reporting Bugs2469
+Node: Getting Started3931
+Node: Editing Haskell Code6316
+Ref: Editing Haskell Code-Footnote-110897
+Ref: Editing Haskell Code-Footnote-210988
+Ref: Editing Haskell Code-Footnote-311047
+Node: Unicode support11131
+Node: Indentation12821
+Ref: Indentation-Footnote-115142
+Node: Declaration scanning15327
+Node: Compilation18606
+Node: Inferior Haskell interpreter21617
+Node: Interactive Haskell22547
+Node: Editing Cabal files24816
+Node: Changing REPL target25566
+Node: Concept index26142
+Node: Function index27111
+Node: Variable index29076
 
 End Tag Table
 
