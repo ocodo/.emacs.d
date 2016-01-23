@@ -1,11 +1,11 @@
 ;;; zzz-to-char.el --- Fancy version of `zap-to-char' command -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2015 Mark Karpov <markkarpov@openmailbox.org>
+;; Copyright © 2015–2016 Mark Karpov <markkarpov@openmailbox.org>
 ;;
 ;; Author: Mark Karpov <markkarpov@openmailbox.org>
 ;; URL: https://github.com/mrkkrp/zzz-to-char
-;; Package-Version: 20151030.32
-;; Version: 0.1.0
+;; Package-Version: 20160122.440
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5")(avy "0.3.0"))
 ;; Keywords: convenience
 ;;
