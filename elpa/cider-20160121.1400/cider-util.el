@@ -383,7 +383,7 @@ Any other value is just returned."
     "The true delight is in the finding out rather than in the knowing.  -Isaac Asimov"
     "If paredit is not for you, then you need to become the sort of person that paredit is for. -Phil Hagelberg"
     "Express Yourself. -Madonna"
-    "Put On Your Red Shoes and Dance. -David Bowie"
+    "Put on your red shoes and dance the blues. -David Bowie"
     "Do. Or do not. There is no try. -Yoda"
     "The enjoyment of one's tools is an essential ingredient of successful work. -Donald E. Knuth"
     "Not all those who wander are lost. -J.R.R. Tolkien"
@@ -409,6 +409,9 @@ Any other value is just returned."
     "Keep on codin' in the free world!"
     "What we do in the REPL echoes in eternity!"
     "Evaluating is believing."
+    "To infinity... and beyond."
+    ,(format "%s, I've a feeling we're not in Kansas anymore."
+             (cider-user-first-name))
     ,(format "%s, this could be the start of a beautiful program."
              (cider-user-first-name)))
   "Scientifically-proven optimal words of hackerish encouragement.")
