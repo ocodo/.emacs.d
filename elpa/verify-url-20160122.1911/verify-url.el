@@ -5,9 +5,9 @@
 ;; Author: DarkSun <lujun9972@gmail.com>
 ;; Created: 2015-12-21
 ;; Version: 0.1
-;; Package-Version: 20151227.452
+;; Package-Version: 20160122.1911
 ;; Keywords: convenience, usability, url
-;; Package-Requires: ((cl-lib "0.5") (url) )
+;; Package-Requires: ((cl-lib "0.5"))
 ;; URL: https://github.com/lujun9972/verify-url
 
 ;; This file is NOT part of GNU Emacs.
