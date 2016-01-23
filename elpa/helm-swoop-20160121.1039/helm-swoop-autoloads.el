@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-swoop" "helm-swoop.el" (22060 27373 920219
-;;;;;;  894000))
+;;;### (autoloads nil "helm-swoop" "helm-swoop.el" (22179 13013 511071
+;;;;;;  576000))
 ;;; Generated autoloads from helm-swoop.el
 
 (autoload 'helm-swoop-back-to-last-point "helm-swoop" "\
@@ -17,7 +17,7 @@ List the all lines to another buffer, which is able to squeeze by
  any words you input. At the same time, the original buffer's cursor
  is jumping line to line according to moving up and down the list.
 
-\(fn &key $QUERY $SOURCE ($MULTILINE current-prefix-arg))" t nil)
+\(fn &key $QUERY $SOURCE ($multiline current-prefix-arg))" t nil)
 
 (autoload 'helm-swoop-from-isearch "helm-swoop" "\
 Invoke `helm-swoop' from isearch.
