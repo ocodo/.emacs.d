@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22175 12914 304933
-;;;;;;  456000))
+;;;### (autoloads nil "counsel" "counsel.el" (22179 13052 158807
+;;;;;;  847000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -125,6 +125,13 @@ Jump to a buffer position indexed by imenu.
 (autoload 'counsel-descbinds "counsel" "\
 Show a list of all defined keys, and their definitions.
 Describe the selected candidate.
+
+\(fn)" t nil)
+
+(autoload 'counsel-list-processes "counsel" "\
+Offer completion for `process-list'
+The default action deletes the selected process.
+An extra action allows to switch to the process buffer.
 
 \(fn)" t nil)
 
