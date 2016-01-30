@@ -304,6 +304,19 @@ and it doesn't seem to work wth key bindings."
     (error (message "Invalid expression")
            (insert (current-kill 0)))))
 
+(defmacro *-and-replace (function-name evaluator)
+  "Build FUNCTION-NAME to use EVALUATOR on the current region, and replace it with the result."
+  `(defun ,function-name ()
+     (interactive)
+     (when (region-active-p)
+       (let* ((input (buffer-substring-no-properties (region-beginning) (region-end)))
+              (output (funcall ,evaluator input)))
+         (delete-region (region-beginning) (region-end))
+         (insert (if (stringp output) output
+                   (format "%S" output)))))))
+
+(*-and-replace calc-eval-region #'calc-eval)
+
 (require 'magit)
 (defun magit-just-amend ()
   "Just git commit --amend."
