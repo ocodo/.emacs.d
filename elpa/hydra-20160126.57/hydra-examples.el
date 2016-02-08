@@ -260,6 +260,7 @@ _v_ariable       _u_ser-option
 ;; (global-set-key (kbd "C-c h") 'hydra-apropos/body)
 
 ;;** Example 11: rectangle-mark-mode
+(require 'rect)
 (defhydra hydra-rectangle (:body-pre (rectangle-mark-mode 1)
                            :color pink
                            :post (deactivate-mark))
@@ -270,10 +271,10 @@ _h_   _l_   _o_k        _y_ank
 ^^^^        _e_xchange  _u_ndo
 ^^^^        ^ ^         _p_aste
 "
-  ("h" backward-char nil)
-  ("l" forward-char nil)
-  ("k" previous-line nil)
-  ("j" next-line nil)
+  ("h" rectangle-backward-char nil)
+  ("l" rectangle-forward-char nil)
+  ("k" rectangle-previous-line nil)
+  ("j" rectangle-next-line nil)
   ("e" hydra-ex-point-mark nil)
   ("n" copy-rectangle-as-kill nil)
   ("d" delete-rectangle nil)
@@ -329,7 +330,7 @@ _h_   _l_   _o_k        _y_ank
   "Exchange point and mark."
   (interactive)
   (if rectangle-mark-mode
-      (exchange-point-and-mark)
+      (rectangle-exchange-point-and-mark)
     (let ((mk (mark)))
       (rectangle-mark-mode 1)
       (goto-char mk))))
