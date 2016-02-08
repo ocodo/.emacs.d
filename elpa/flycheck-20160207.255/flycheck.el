@@ -618,37 +618,17 @@ using \\[flycheck-error-list-reset-filter]."
   :safe #'flycheck-error-level-p
   :package-version '(flycheck . "0.24"))
 
-(defcustom flycheck-completion-system nil
-  "The completion system to use.
+(defcustom flycheck-completing-read-function #'completing-read
+  "Function to read from minibuffer with completion.
 
-`ido'
-     Use IDO.
-
-     IDO is a built-in alternative completion system, without
-     good flex matching and a powerful UI.  You may want to
-     install flx-ido (see URL `https://github.com/lewang/flx') to
-     improve the flex matching in IDO.
-
-`grizzl'
-     Use Grizzl.
-
-     Grizzl is an alternative completion system with powerful
-     flex matching, but a very limited UI.  See URL
-     `https://github.com/d11wtq/grizzl'.
-
-nil
-     Use the standard unfancy `completing-read'.
-
-     `completing-read' has a very simple and primitive UI, and
-     does not offer flex matching.  This is the default setting,
-     though, to match Emacs' defaults.  With this system, you may
-     want enable option `icomplete-mode' to improve the display
-     of completion candidates at least."
+The function must be compatible to the built-in `completing-read'
+function."
   :group 'flycheck
-  :type '(choice (const :tag "IDO" ido)
-                 (const :tag "Grizzl" grizzl)
-                 (const :tag "Completing read" nil))
-  :package-version '(flycheck . "0.17"))
+  :type '(choice (const :tag "Default" completing-read)
+                 (const :tag "IDO" ido-completing-read)
+                 (function :tag "Custom function"))
+  :risky t
+  :package-version '(flycheck . "0.26"))
 
 (defcustom flycheck-temp-prefix "flycheck"
   "Prefix for temporary files created by Flycheck."
@@ -1229,24 +1209,23 @@ Safely delete all files and directories listed in
   (seq-do #'flycheck-safe-delete flycheck-temporaries)
   (setq flycheck-temporaries nil))
 
-(eval-and-compile
-  (defun flycheck-rx-file-name (form)
-    "Translate the `(file-name)' FORM into a regular expression."
-    (let ((body (or (cdr form) '((minimal-match
-                                  (one-or-more not-newline))))))
-      (rx-submatch-n `(group-n 1 ,@body))))
+(defun flycheck-rx-file-name (form)
+  "Translate the `(file-name)' FORM into a regular expression."
+  (let ((body (or (cdr form) '((minimal-match
+                                (one-or-more not-newline))))))
+    (rx-submatch-n `(group-n 1 ,@body))))
 
-  (defun flycheck-rx-message (form)
-    "Translate the `(message)' FORM into a regular expression."
-    (let ((body (or (cdr form) '((one-or-more not-newline)))))
-      (rx-submatch-n `(group-n 4 ,@body))))
+(defun flycheck-rx-message (form)
+  "Translate the `(message)' FORM into a regular expression."
+  (let ((body (or (cdr form) '((one-or-more not-newline)))))
+    (rx-submatch-n `(group-n 4 ,@body))))
 
-  (defun flycheck-rx-id (form)
-    "Translate the `(id)' FORM into a regular expression."
-    (rx-submatch-n `(group-n 5 ,@(cdr form))))
+(defun flycheck-rx-id (form)
+  "Translate the `(id)' FORM into a regular expression."
+  (rx-submatch-n `(group-n 5 ,@(cdr form))))
 
-  (defun flycheck-rx-to-string (form &optional no-group)
-    "Like `rx-to-string' for FORM, but with special keywords:
+(defun flycheck-rx-to-string (form &optional no-group)
+  "Like `rx-to-string' for FORM, but with special keywords:
 
 `line'
      matches the line number.
@@ -1260,22 +1239,25 @@ Safely delete all files and directories listed in
      (one-or-more not-newline))'.
 
 `(message SEXP ...)'
-     matches the message. SEXP constitutes the body of the message.  If no SEXP
-     is given, use a default body of `(one-or-more not-newline)'.
+     matches the message.  SEXP constitutes the body of the
+     message.  If no SEXP is given, use a default body
+     of `(one-or-more not-newline)'.
 
 `(id SEXP ...)'
      matches an error ID.  SEXP describes the ID.
 
-NO-GROUP is passed to `rx-to-string'."
-    (let ((rx-constituents
-           (append
-            `((line . ,(rx (group-n 2 (one-or-more digit))))
-              (column . ,(rx (group-n 3 (one-or-more digit))))
-              (file-name flycheck-rx-file-name 0 nil)
-              (message flycheck-rx-message 0 nil)
-              (id flycheck-rx-id 0 nil))
-            rx-constituents nil)))
-      (rx-to-string form no-group))))
+NO-GROUP is passed to `rx-to-string'.
+
+See `rx' for a complete list of all built-in `rx' forms."
+  (let ((rx-constituents
+         (append
+          `((line . ,(rx (group-n 2 (one-or-more digit))))
+            (column . ,(rx (group-n 3 (one-or-more digit))))
+            (file-name flycheck-rx-file-name 0 nil)
+            (message flycheck-rx-message 0 nil)
+            (id flycheck-rx-id 0 nil))
+          rx-constituents nil)))
+    (rx-to-string form no-group)))
 
 (defun flycheck-current-load-file ()
   "Get the source file currently being loaded.
@@ -1336,25 +1318,15 @@ FILE-NAME is nil, return `default-directory'."
   "`completing-read' history of `read-flycheck-checker'.")
 
 (defun flycheck-completing-read (prompt candidates default &optional history)
-  "Read a value from the minibuffer using `flycheck-completion-system`.
+  "Read a value from the minibuffer.
+
+Use `flycheck-completing-read-function' to read input from the
+minibuffer with completion.
 
 Show PROMPT and read one of CANDIDATES, defaulting to DEFAULT.
-HISTORY is passed to `ido-completing-read' or `completing-read'."
-  ;; TODO: Could use a small cleanup
-  (pcase flycheck-completion-system
-    (`ido (ido-completing-read prompt candidates nil
-                               'require-match nil
-                               history
-                               default))
-    (`grizzl (if (and (fboundp 'grizzl-make-index)
-                      (fboundp 'grizzl-completing-read))
-                 (grizzl-completing-read
-                  prompt (grizzl-make-index candidates))
-               (user-error "Please install Grizzl from \
-https://github.com/d11wtq/grizzl")))
-    (_ (completing-read prompt candidates nil 'require-match
-                        nil history
-                        default))))
+HISTORY is passed to `flycheck-completing-read-function'."
+  (funcall flycheck-completing-read-function
+           prompt candidates nil 'require-match nil history default))
 
 (defun read-flycheck-checker (prompt &optional default property candidates)
   "Read a flycheck checker from minibuffer with PROMPT and DEFAULT.
@@ -1933,6 +1905,8 @@ into the verification results."
   (insert-button (symbol-name checker)
                  'type 'help-flycheck-checker-doc
                  'help-args (list checker))
+  (when (with-current-buffer buffer (flycheck-disabled-checker-p checker))
+    (insert (propertize " (disabled)" 'face '(bold error))))
   (princ "\n")
   (let ((results (with-current-buffer buffer
                    (flycheck-verify-generic-checker checker))))
@@ -1986,6 +1960,24 @@ buffer."
                    'help-args (list mode)))
   (princ ":\n\n"))
 
+(defun flycheck--verify-print-footer (buffer)
+  "Print a footer for BUFFER in the current buffer.
+
+BUFFER is the buffer being verified."
+  (princ "Flycheck Mode is ")
+  (let ((enabled (buffer-local-value 'flycheck-mode buffer)))
+    (insert (propertize (if enabled "enabled" "disabled")
+                        'face (if enabled 'success '(warning bold)))))
+  (princ
+   (with-current-buffer buffer
+     ;; Use key binding state in the verified buffer to print the help.
+     (substitute-command-keys
+      ".  Use \\[universal-argument] \\[flycheck-disable-checker] to enable disabled checkers.")))
+  (save-excursion
+    (let ((end (point)))
+      (backward-paragraph)
+      (fill-region-as-paragraph (point) end))))
+
 (defun flycheck-verify-checker (checker)
   "Check whether a CHECKER can be used in this buffer.
 
@@ -2009,10 +2001,12 @@ is applicable from Emacs Lisp code.  Use
         (flycheck--verify-print-header "Syntax checker in buffer " buffer)
         (flycheck--verify-princ-checker checker buffer 'with-mm)
         (if (with-current-buffer buffer (flycheck-may-use-checker checker))
-            (insert (propertize "Flycheck can use this syntax checker for this buffer."
+            (insert (propertize "Flycheck can use this syntax checker for this buffer.\n"
                                 'face 'success))
-          (insert (propertize "Flycheck cannot use this syntax checker for this buffer."
-                              'face 'error)))))))
+          (insert (propertize "Flycheck cannot use this syntax checker for this buffer.\n"
+                              'face 'error)))
+        (insert "\n")
+        (flycheck--verify-print-footer buffer)))))
 
 (defun flycheck-verify-setup ()
   "Check whether Flycheck can be used in this buffer.
@@ -2037,14 +2031,8 @@ possible problems are shown."
                               'face '(bold error))))
         (dolist (checker checkers)
           (flycheck--verify-princ-checker checker buffer))
-        (princ "Flycheck Mode is ")
-        (let ((enabled (buffer-local-value 'flycheck-mode buffer)))
-          (insert (propertize (if enabled "enabled" "disabled")
-                              'face (if enabled 'success '(warning bold)))))
-        (princ ".\n")
 
         (-when-let (selected-checker (buffer-local-value 'flycheck-checker buffer))
-          (princ "\n")
           (insert (propertize "The following checker is explicitly selected for this buffer:\n\n"
                               'face 'bold))
           (flycheck--verify-princ-checker selected-checker buffer 'with-mm))
@@ -2058,7 +2046,9 @@ possible problems are shown."
               (princ "  - ")
               (princ checker)
               (princ "\n"))
-            (princ "\nTry adding these syntax checkers to `flycheck-checkers'.")))))))
+            (princ "\nTry adding these syntax checkers to `flycheck-checkers'.\n")))
+
+        (flycheck--verify-print-footer buffer)))))
 
 
 ;;; Predicates for generic syntax checkers
@@ -5915,6 +5905,18 @@ including a list of supported checks."
   :safe #'flycheck-string-list-p
   :package-version '(flycheck . "0.14"))
 
+(flycheck-def-option-var flycheck-cppcheck-language-standard nil c/c++-cppcheck
+  "The language standard to use in cppcheck.
+
+The value of this variable is either a string denoting a language
+standard, or nil, to use the default standard.  When non-nil,
+pass the language standard via the `-std' option."
+  :type '(choice (const :tag "Default standard" nil)
+                 (string :tag "Language standard"))
+  :safe #'stringp
+  :package-version '(flycheck . "0.26"))
+(make-variable-buffer-local 'flycheck-cppcheck-language-standard)
+
 (flycheck-def-option-var flycheck-cppcheck-inconclusive nil c/c++-cppcheck
   "Whether to enable Cppcheck inconclusive checks.
 
@@ -5945,6 +5947,7 @@ See URL `http://cppcheck.sourceforge.net/'."
                     flycheck-option-comma-separated-list)
             (option-flag "--inconclusive" flycheck-cppcheck-inconclusive)
             (option-list "-I" flycheck-cppcheck-include-path)
+            (option "--std=" flycheck-cppcheck-language-standard concat)
             source)
   :error-parser flycheck-parse-cppcheck
   :modes (c-mode c++-mode))
@@ -6595,6 +6598,9 @@ See URL `http://golang.org/cmd/go'."
             (option-flag "-i" flycheck-go-build-install-deps)
             ;; multiple tags are listed as "dev debug ..."
             (option-list "-tags=" flycheck-go-build-tags concat)
+            ;; TODO: Use `null-device' instead.  Go 1.6 can write to /dev/null
+            ;; (and NUL on Windows) now, see
+            ;; https://github.com/flycheck/flycheck/issues/838.
             "-o" temporary-file-name)
   :error-patterns
   ((error line-start (file-name) ":" line ":"
@@ -6986,13 +6992,34 @@ See URL `http://jade-lang.com'."
 (flycheck-def-config-file-var flycheck-jshintrc javascript-jshint ".jshintrc"
   :safe #'stringp)
 
+(flycheck-def-option-var flycheck-jshint-extract-javascript nil
+                         javascript-jshint
+  "Whether jshint should extract Javascript from HTML.
+
+If nil no extract rule is given to jshint.  If `auto' only
+extract Javascript if a HTML file is detected.  If `always' or
+`never' extract Javascript always or never respectively.
+
+Refer to the jshint manual at the URL
+`http://jshint.com/docs/cli/#flags' for more information."
+  :type
+  '(choice (const :tag "No extraction rule" nil)
+           (const :tag "Try to extract Javascript when detecting HTML files"
+                  auto)
+           (const :tag "Always try to extract Javascript" always)
+           (const :tag "Never try to extract Javascript" never))
+  :safe #'symbolp
+  :package-version '(flycheck . "0.26"))
+
 (flycheck-define-checker javascript-jshint
   "A Javascript syntax and style checker using jshint.
 
 See URL `http://www.jshint.com'."
-  :command ("jshint" "--checkstyle-reporter"
+  :command ("jshint" "--reporter=checkstyle"
             "--filename" source-original
             (config-file "--config" flycheck-jshintrc)
+            (option "--extract" flycheck-jshint-extract-javascript
+                    concat symbol-name)
             "-")
   :standard-input t
   :error-parser flycheck-parse-checkstyle
@@ -7164,16 +7191,12 @@ At least version 1.4 of lessc is required.
 
 See URL `http://lesscss.org'."
   :command ("lessc" "--lint" "--no-color"
-            ;; We need `source-inplace' to resolve relative `data-uri' paths,
-            ;; see https://github.com/flycheck/flycheck/issues/471
-            source-inplace)
+            "-")
+  :standard-input t
   :error-patterns
   ((error line-start (one-or-more word) ":"
           (message)
-          " in "
-          (file-name)
-
-          " on line " line
+          " in - on line " line
           ", column " column ":"
           line-end))
   :modes less-css-mode)

@@ -40,6 +40,9 @@
 (require 'flycheck)
 (require 'seq)
 
+
+;;; Buttercup helpers
+
 (defun flycheck-buttercup-format-error-list (errors)
   "Format ERRORS into a human-readable string."
   (mapconcat (lambda (e) (flycheck-error-format e 'with-file-name))
