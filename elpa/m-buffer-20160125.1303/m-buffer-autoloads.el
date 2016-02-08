@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil nil ("m-buffer-at.el" "m-buffer-macro.el" "m-buffer-pkg.el"
-;;;;;;  "m-buffer.el") (22160 38857 435118 736000))
+;;;;;;  "m-buffer.el") (22200 34409 799684 666000))
 
 ;;;***
 

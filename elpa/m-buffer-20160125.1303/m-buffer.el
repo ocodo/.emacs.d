@@ -6,7 +6,7 @@
 
 ;; Author: Phillip Lord <phillip.lord@newcastle.ac.uk>
 ;; Maintainer: Phillip Lord <phillip.lord@newcastle.ac.uk>
-;; Version: 0.13
+;; Version: 0.14
 ;; Package-Requires: ((dash "2.8.0")(emacs "24.3"))
 
 ;; The contents of this file are subject to the GPL License, Version 3.0.
@@ -622,7 +622,6 @@ See also `replace-match'."
   ;; we have match-data
   (m-buffer-match-nth-group (or subexp 0) match-data))
 
-
 (defun m-buffer-delete-match (match-data &optional subexp)
   "Delete all MATCH-DATA.
 SUBEXP should be a number indicating the regexp group to delete.
@@ -746,15 +745,43 @@ MATCH is of form BUFFER-OR-WINDOW MATCH-OPTIONS.  See
 ;; first match by simply returning nil.
 
 ;; #+begin_src emacs-lisp
+(defun m-buffer-match-first (&rest match)
+  "Return the first match to MATCH.
+This matches more efficiently than matching all matches and
+taking the car. See `m-buffer-match' for further details of
+MATCH."
+  (m-buffer-apply-join
+   #'m-buffer-match match
+   :post-match (lambda () nil)))
+
 (defun m-buffer-match-first-line (&rest match)
   "Return a match to the first line of MATCH.
 This matches more efficiently than matching all lines and taking
 the car.  See `m-buffer-match' for further details of MATCH."
   (m-buffer-apply-join
-   'm-buffer-match match
-   :regexp m-buffer--line-regexp
-   :post-match (lambda () nil)))
+   'm-buffer-match-first match
+   :regexp m-buffer--line-regexp))
 
+(defun m-buffer-match-multi (regexps &rest match)
+  "Incrementally find matches to REGEXPS in MATCH.
+Finds the first match to the first element of regexps, then
+starting from the end of this match, the first match to the
+second element of regexps and so forth. See `m-buffer-match' for
+futher details of MATCH."
+  (when regexps
+      (let ((first-match
+             (m-buffer-apply-join
+              #'m-buffer-match-first
+              match
+              :regexp (car regexps))))
+        (append
+         first-match
+         (apply
+          #'m-buffer-match-multi
+          (cdr regexps)
+          (plist-put
+           match
+           :begin (car (m-buffer-match-end first-match))))))))
 ;; #+end_src
 
 ;; Emacs has a rather inconsistent interface here -- suddenly, we have a function
