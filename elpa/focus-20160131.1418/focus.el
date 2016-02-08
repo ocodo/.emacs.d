@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito <larstvei@ifi.uio.no>
 ;; URL: http://github.com/larstvei/Focus
-;; Package-Version: 20160111.522
+;; Package-Version: 20160131.1418
 ;; Created: 11th May 2015
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
@@ -139,14 +139,18 @@ argument."
                    (make-list foregrounds foreground)))))
 
 (defun focus-move-focus ()
-  "Move `focus-pre-overlay' and `focus-post-overlay'.
+  "Moves the focused section according to `focus-bounds'.
 
-If function `focus-mode' is enabled, this command fires after
-each command."
+If `focus-mode' is enabled, this command fires after each
+command."
   (let* ((bounds (focus-bounds)))
     (when bounds
-      (move-overlay focus-pre-overlay  (point-min) (car bounds))
-      (move-overlay focus-post-overlay (cdr bounds) (point-max)))))
+      (focus-move-overlays (car bounds) (cdr bounds)))))
+
+(defun focus-move-overlays (low high)
+  "Move `focus-pre-overlay' and `focus-post-overlay'."
+  (move-overlay focus-pre-overlay  (point-min) low)
+  (move-overlay focus-post-overlay high (point-max)))
 
 (defun focus-init ()
   "This function is run when command `focus-mode' is enabled.
@@ -192,6 +196,21 @@ default is overwritten. This function simply helps set the
                       sentence whitespace line page))
          (thing (completing-read "Thing: " candidates)))
     (setq focus-current-thing (intern thing))))
+
+(defun focus-pin ()
+  "Pin the focused section to its current location or the region,
+if active."
+  (interactive)
+  (when focus-mode
+    (when (region-active-p)
+      (focus-move-overlays (region-beginning) (region-end)))
+   (remove-hook 'post-command-hook 'focus-move-focus t)))
+
+(defun focus-unpin ()
+  "Unpin the focused section."
+  (interactive)
+  (when focus-mode
+    (add-hook 'post-command-hook 'focus-move-focus nil t)))
 
 (defun focus-next-thing (&optional n)
   "Moves the point to the middle of the Nth next thing."
