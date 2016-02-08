@@ -7,7 +7,7 @@
 ;; Version: 0.2.0
 ;; Keywords: nim languages
 ;; Compatibility: GNU Emacs 24.4
-;; Package-Requires: ((emacs "24.4") (epc "0.1.1") (let-alist "1.0.1"))
+;; Package-Requires: ((emacs "24.4") (epc "0.1.1") (let-alist "1.0.1") (commenter "0.5.1"))
 ;;
 ;; Taken over from James H. Fisher <jameshfisher@gmail.com>
 ;;
@@ -56,6 +56,7 @@
 (require 'nim-fill)
 (require 'nim-suggest)
 (require 'nim-compile)
+(require 'commenter)
 
 (put 'nim-mode 'font-lock-defaults '(nim-font-lock-keywords nil t))
 
@@ -79,14 +80,19 @@
                  . nim-font-lock-syntactic-face-function)))
 
   ;; Comment
-  (setq-local comment-start "# ")
-  (setq-local comment-start-skip (rx (1+ "#") (? "[") (0+ " ")))
+  (setq-local comment-use-syntax t)
+  ;; Those start and end comment variables are for initial value.
+  (setq-local comment-start "#")
+  (setq-local comment-end "")
+  ;; actual comment values are defined here
+  (setq-local commenter-config nim-comment)
+  (commenter-setup)
 
   ;; SMIE
   (smie-setup nim-mode-smie-grammar 'nim-mode-smie-rules
               :forward-token 'nim-mode-forward-token
               :backward-token 'nim-mode-backward-token)
-  (setq-local indent-line-function #'nim-indent-line-function)
+  (setq-local indent-line-function #'nim-indent-line)
   ;; FIXME: due to uncompleted Nim’s smie grammar,
   ;; ‘smie--matching-block-data’ function gets stop when
   ;; the cursor is at proc/template/macro to find terminator
@@ -102,9 +108,6 @@
   ;; Syntax highlight for strings
   (setq-local syntax-propertize-function nim-syntax-propertize-function)
 
-  ;; Because indentation is not redundant, we cannot safely reindent code.
-  (setq-local electric-indent-inhibit t)
-  (setq-local electric-indent-chars (cons ?: electric-indent-chars))
   ;; Paragraph
   (setq-local paragraph-start "\\s-*$")
   ;; Navigation
@@ -121,7 +124,15 @@
             #'nim-electric-pair-string-delimiter 'append t)
   (add-hook 'post-self-insert-hook
             #'nim-indent-post-self-insert-function 'append 'local)
-  (add-hook 'which-func-functions #'nim-info-current-defun nil t))
+  (add-hook 'which-func-functions #'nim-info-current-defun nil t)
+
+  ;; Because indentation is not redundant, we cannot safely reindent code.
+  (setq-local electric-indent-inhibit t)
+  (setq-local electric-indent-chars (cons ?: electric-indent-chars)))
+
+;; add ‘nim-indent-function’ to electric-indent’s
+;; blocklist. ‘electric-indent-inhibit’ isn’t enough for old emacs.
+(add-to-list 'electric-indent-functions-without-reindent 'nim-indent-line)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.nim\\(ble\\|s\\)?\\'" . nim-mode))
@@ -170,7 +181,7 @@ the line will be re-indented automatically if needed."
         (when dedenter-pos
           (save-excursion
             (goto-char dedenter-pos)
-            (nim-indent-line)
+            (nim--indent-line-core)
             (unless (= (line-number-at-pos dedenter-pos)
                        (line-number-at-pos current-pos))
               ;; Reindent region if this is a multiline statement
