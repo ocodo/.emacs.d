@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015  Jorgen Schaefer <contact@jorgenschaefer.de>
 
-;; Version: 1.2
+;; Version: 1.4
 ;; Author: Jorgen Schaefer <contact@jorgenschaefer.de>
 
 ;; This program is free software; you can redistribute it and/or
@@ -634,7 +634,6 @@ current directory."
   (let ((dirs nil)
         (patterns nil)
         (args command-line-args-left))
-    (message "c-l-a-l: %S" args)
     (while args
       (cond
        ((member (car args) '("-p" "--pattern"))
