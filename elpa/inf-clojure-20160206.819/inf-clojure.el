@@ -5,7 +5,7 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20160117.1057
+;; Package-Version: 20160206.819
 ;; Keywords: processes, clojure
 ;; Version: 1.5.0-cvs
 ;; Package-Requires: ((emacs "24.1") (clojure-mode "5.1"))
@@ -451,45 +451,65 @@ Used by this command to determine defaults."
 ;;; Command strings
 ;;; ===============
 
-(defvar inf-clojure-var-doc-command
+(defcustom inf-clojure-var-doc-command
   "(clojure.repl/doc %s)\n"
-  "Command to query inferior Clojure for a var's documentation.")
+  "Command to query inferior Clojure for a var's documentation."
+  :type 'string
+  :group 'inf-clojure)
 
-(defvar inf-clojure-var-source-command
+(defcustom inf-clojure-var-source-command
   "(clojure.repl/source %s)\n"
-  "Command to query inferior Clojure for a var's source.")
+  "Command to query inferior Clojure for a var's source."
+  :type 'string
+  :group 'inf-clojure)
 
-(defvar inf-clojure-arglist-command
+(defcustom inf-clojure-arglist-command
   "(try
      (:arglists
       (clojure.core/meta
        (clojure.core/resolve
         (clojure.core/read-string \"%s\"))))
      (catch Throwable t nil))\n"
-  "Command to query inferior Clojure for a function's arglist.")
+  "Command to query inferior Clojure for a function's arglist."
+  :type 'string
+  :group 'inf-clojure)
 
-(defvar inf-clojure-completion-command
+(defcustom inf-clojure-completion-command
   "(complete.core/completions \"%s\")\n"
-  "Command to query inferior Clojure for completion candidates.")
+  "Command to query inferior Clojure for completion candidates."
+  :type 'string
+  :group 'inf-clojure)
 
-(defvar inf-clojure-ns-vars-command
+(defcustom inf-clojure-ns-vars-command
   "(clojure.repl/dir %s)\n"
-  "Command to show the public vars in a namespace.")
+  "Command to show the public vars in a namespace."
+  :type 'string
+  :group 'inf-clojure)
 
-(defvar inf-clojure-set-ns-command
+(defcustom inf-clojure-set-ns-command
   "(clojure.core/in-ns '%s)\n"
-  "Command to set the namespace of the inferior Clojure process.")
+  "Command to set the namespace of the inferior Clojure process."
+  :type 'string
+  :group 'inf-clojure)
 
-(defvar inf-clojure-apropos-command
+(defcustom inf-clojure-apropos-command
   "(doseq [var (sort (clojure.repl/apropos \"%s\"))]
      (println (str var)))\n"
-  "Command to invoke apropos.")
+  "Command to invoke apropos."
+  :type 'string
+  :group 'inf-clojure)
 
-(defvar inf-clojure-macroexpand-command
-  "(clojure.core/macroexpand '%s)\n")
+(defcustom inf-clojure-macroexpand-command
+  "(clojure.core/macroexpand '%s)\n"
+  "Command to invoke macroexpand."
+  :type 'string
+  :group 'inf-clojure)
 
-(defvar inf-clojure-macroexpand-1-command
-  "(clojure.core/macroexpand-1 '%s)\n")
+(defcustom inf-clojure-macroexpand-1-command
+  "(clojure.core/macroexpand-1 '%s)\n"
+  "Command to invoke macroexpand-1."
+  :type 'string
+  :group 'inf-clojure)
 
 ;;; Ancillary functions
 ;;; ===================
