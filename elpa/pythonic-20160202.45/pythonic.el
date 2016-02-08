@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/pythonic
-;; Package-Version: 20150730.216
+;; Package-Version: 20160202.45
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5") (dash "2.11") (s "1.9") (f "0.17.2"))
 
@@ -199,7 +199,8 @@ necessary.  SENTINEL must be a symbol of process sentinel
 function if necessary.  QUERY-ON-EXIT will be corresponding
 process flag."
   (let ((default-directory (pythonic-default-directory cwd))
-        (process-environment (copy-sequence process-environment)))
+        (process-environment (copy-sequence process-environment))
+        (buffer (and buffer (get-buffer-create buffer))))
     (pythonic-set-process-environment)
     (let ((process (apply 'start-file-process process buffer (pythonic-executable) args)))
       (when filter
