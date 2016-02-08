@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "scad-preview" "scad-preview.el" (22069 45700
-;;;;;;  0 0))
+;;;### (autoloads nil "scad-preview" "scad-preview.el" (22200 34349
+;;;;;;  552737 745000))
 ;;; Generated autoloads from scad-preview.el
 
 (autoload 'scad-preview-mode "scad-preview" "\

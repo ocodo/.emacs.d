@@ -18,7 +18,7 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20150818.624
+;; Package-Version: 20160206.536
 ;; Package-Requires: ((scad-mode "91.0"))
 ;; Version: 0.1.1
 
@@ -57,7 +57,7 @@
 
 (require 'image-mode)
 (require 'compile)
-(require 'scad "scad-mode")
+(require 'scad-mode)
 
 (defconst scad-preview-version "0.1.1")
 
