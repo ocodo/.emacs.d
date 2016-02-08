@@ -1,10 +1,11 @@
 ;;; company-ycmd.el --- company-mode backend for ycmd -*- lexical-binding: t -*-
 ;;
-;; Copyright (c) 2014 Austin Bingham
+;; Copyright (c) 2014-2016 Austin Bingham, Peter Vasil
 ;;
-;; Author: Austin Bingham <austin.bingham@gmail.com>
-;; Version: 0.1
-;; Package-Version: 20160106.634
+;; Authors: Austin Bingham <austin.bingham@gmail.com>
+;;          Peter Vasil <mail@petervasil.net>
+;; version: 0.1
+;; Package-Version: 20160205.2350
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((ycmd "0.1") (company "0.8.3") (deferred "0.2.0") (s "1.9.0") (dash "1.2.0"))
 ;;
@@ -96,7 +97,7 @@ feature."
   :group 'company-ycmd)
 
 (defconst company-ycmd--extended-features-modes
-  '(c++-mode c-mode go-mode)
+  '(c++-mode c-mode go-mode objc-mode rust-mode)
   "Major modes which have extended features in `company-ycmd'.")
 
 (defun company-ycmd--extended-features-p ()
@@ -130,15 +131,24 @@ feature."
          (propertize insertion-text 'return_type extra-menu-info)
        ,body)))
 
-(defun company-ycmd--extract-params-cpp (function-signature)
+(defun company-ycmd--extract-params-clang (function-signature)
   "Extract parameters from FUNCTION-SIGNATURE if possible."
-  (cond ((null function-signature) nil)
+  (cond
+   ((null function-signature) nil)
    ((string-match "[^:]:[^:]" function-signature)
     (substring function-signature (1+ (match-beginning 0))))
    ((string-match "\\((.*)[ a-z]*\\'\\)" function-signature)
-    (match-string 1 function-signature))))
+    (let ((paren (match-beginning 1)))
+      (if (not (and (eq (aref function-signature (1- paren)) ?>)
+                    (s-contains?
+                     "<" (substring function-signature 0 (1- paren)))))
+          (match-string 1 function-signature)
+        (with-temp-buffer
+          (insert function-signature)
+          (goto-char paren)
+          (substring function-signature (1- (search-backward "<")))))))))
 
-(defun company-ycmd--convert-kind-cpp (kind)
+(defun company-ycmd--convert-kind-clang (kind)
   "Convert KIND string for display."
   (pcase kind
     ("STRUCT" "struct")
@@ -152,7 +162,7 @@ feature."
     ("PARAMETER" "parameter")
     ("NAMESPACE" "namespace")))
 
-(defun company-ycmd--construct-candidate-cpp (candidate)
+(defun company-ycmd--construct-candidate-clang (candidate)
   "Construct a completion string(s) from a CANDIDATE for cpp file-types.
 
 Returns a list with one candidate or multiple candidates for
@@ -164,9 +174,11 @@ overloaded functions."
                                       (s-split "\n" detailed-info t)))
            (items (or overloaded-functions (list menu-text)))
            candidates)
+      (when (eq major-mode 'objc-mode)
+        (setq insertion-text (s-chop-suffix ":" insertion-text)))
       (dolist (it (delete-dups items) candidates)
         (let* ((meta (if overloaded-functions it detailed-info))
-               (params (company-ycmd--extract-params-cpp it))
+               (params (company-ycmd--extract-params-clang it))
                (return-type (or (and overloaded-functions
                                      (string-match
                                       (concat "\\(.*\\) "
@@ -174,7 +186,7 @@ overloaded functions."
                                       it)
                                      (match-string 1 it))
                                 extra-menu-info))
-               (kind (company-ycmd--convert-kind-cpp kind))
+               (kind (company-ycmd--convert-kind-clang kind))
                (doc (cdr (assoc 'doc_string extra-data))))
           (setq candidates
                 (cons (propertize insertion-text 'return_type return-type
@@ -218,6 +230,39 @@ overloaded functions."
       (propertize insertion-text 'meta meta 'doc detailed-info 'kind kind
                   'filepath filepath 'line_num line-num))))
 
+(defun company-ycmd--construct-candidate-rust (candidate)
+  "Construct completion string from CANDIDATE for rust file-types."
+  (company-ycmd--with-destructured-candidate candidate
+    (let* ((meta extra-menu-info)
+           (params (and extra-menu-info
+                        (string-match
+                         (concat "^fn " (regexp-quote insertion-text)
+                                 "(\\(.*\\)).*")
+                         extra-menu-info)
+                        (->>
+                         (s-split "," (match-string 1 extra-menu-info) t)
+                         (cl-remove-if (lambda (it)
+                                         (string-match-p "self" it)))
+                         (s-join ",")
+                         (s-trim-left)
+                         (format "(%s)"))))
+           (return-type (and extra-menu-info
+                             (if (string-match
+                                  (concat "^fn " (regexp-quote insertion-text)
+                                          "(.*) -> \\(.*\\)")
+                                  extra-menu-info)
+                                 (match-string 1 extra-menu-info)
+                               (and (string-prefix-p "fn" extra-menu-info)
+                                    "void"))))
+           (location (assoc-default 'location extra-data))
+           (filepath (assoc-default 'filepath location))
+           (line-num (assoc-default 'line_num location))
+           (column-num (assoc-default 'column_num location)))
+      (propertize insertion-text 'meta meta 'kind kind
+                  'params params 'return_type return-type
+                  'filepath filepath 'line_num line-num
+                  'column_num column-num))))
+
 (defun company-ycmd--construct-candidate-generic (candidate)
   "Generic function to construct completion string from a CANDIDATE."
   (company-ycmd--with-destructured-candidate candidate insertion-text))
@@ -257,10 +302,11 @@ candidates list."
 
 (defun company-ycmd--get-construct-candidate-fn ()
   "Return function to construct candidate(s) for current `major-mode'."
-  (pcase (ycmd-major-mode-to-file-types major-mode)
-    (`("cpp") 'company-ycmd--construct-candidate-cpp)
-    (`("go") 'company-ycmd--construct-candidate-go)
-    (`("python") 'company-ycmd--construct-candidate-python)
+  (pcase (car-safe (ycmd-major-mode-to-file-types major-mode))
+    ((or "cpp" "c" "objc") 'company-ycmd--construct-candidate-clang)
+    ("go" 'company-ycmd--construct-candidate-go)
+    ("python" 'company-ycmd--construct-candidate-python)
+    ("rust" 'company-ycmd--construct-candidate-rust)
     (_ 'company-ycmd--construct-candidate-generic)))
 
 (defun company-ycmd--get-candidates (cb prefix)
@@ -347,8 +393,16 @@ candidates list."
                    company-ycmd-insert-arguments
                    (get-text-property 0 'params candidate))
     (insert it)
-    (company-template-c-like-templatify
-     (concat candidate it))))
+    (if (string-match "\\`:[^:]" it)
+        ;; The function `company-clang-objc-templatify' has been renamed to
+        ;; `company-template-objc-templatify' in company-mode commit
+        ;; 6bf24912a8a3c2cfc5e72073b8eb0f1137ab7728. Remove check once a new
+        ;; stable version is released.
+        (if (fboundp 'company-template-objc-templatify)
+            (company-template-objc-templatify it)
+          (company-clang-objc-templatify it))
+      (company-template-c-like-templatify
+       (concat candidate it)))))
 
 (defun company-ycmd--doc-buffer (candidate)
   "Return buffer with docstring for CANDIDATE if it is available."
