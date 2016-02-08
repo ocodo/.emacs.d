@@ -1,11 +1,10 @@
 ;;; websocket.el --- Emacs WebSocket client and server
 
-;; Copyright (c) 2013  Free Software Foundation, Inc.
+;; Copyright (c) 2013, 2016  Free Software Foundation, Inc.
 
-;; Author: Andrew Hyatt <ahyatt at gmail dot com>
-;; Maintainer: Andrew Hyatt <ahyatt at gmail dot com>
+;; Author: Andrew Hyatt <ahyatt@gmail.com>
 ;; Keywords: Communication, Websocket, Server
-;; Package-Version: 20150719.1048
+;; Package-Version: 20160124.2020
 ;; Version: 1.5
 ;;
 ;; This program is free software; you can redistribute it and/or
