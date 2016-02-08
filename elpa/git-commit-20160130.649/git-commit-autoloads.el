@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "git-commit" "git-commit.el" (22175 12882 596987
-;;;;;;  416000))
+;;;### (autoloads nil "git-commit" "git-commit.el" (22200 34499 461267
+;;;;;;  850000))
 ;;; Generated autoloads from git-commit.el
 
 (defvar global-git-commit-mode t "\
@@ -24,11 +24,6 @@ when Git uses the Emacsclient as $GIT_EDITOR to have the user
 provide such a commit message.
 
 \(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("git-commit-pkg.el") (22175 12882 609220
-;;;;;;  414000))
 
 ;;;***
 
