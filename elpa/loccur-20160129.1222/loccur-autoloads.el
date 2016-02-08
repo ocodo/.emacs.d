@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "loccur" "loccur.el" (22160 38860 100773 199000))
+;;;### (autoloads nil "loccur" "loccur.el" (22200 34411 700959 83000))
 ;;; Generated autoloads from loccur.el
 
 (autoload 'loccur-mode "loccur" "\
