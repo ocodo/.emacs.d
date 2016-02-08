@@ -6,7 +6,7 @@
 ;; Author:     Chris Corbyn <chris@w3style.co.uk>
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL:        https://github.com/grizzl/grizzl
-;; Package-Version: 20151223.1158
+;; Package-Version: 20160130.2351
 ;; Version:    0.1.2
 ;; Keywords:   convenience, usability
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24.3"))
@@ -95,7 +95,7 @@ will be created case-sensitive, otherwise it will be case-insensitive."
                  (1+ list-offset))
                strings
                :initial-value 0)
-    (maphash (lambda (char str-map)
+    (maphash (lambda (_char str-map)
                (maphash (lambda (list-offset locations)
                           (puthash list-offset (reverse locations) str-map))
                         str-map)) lookup-table)
@@ -140,7 +140,7 @@ If the :END option is specified, up to :END results are returned."
   (let* ((matches (grizzl-result-matches result))
          (strings (grizzl-index-strings index))
          (loaded '()))
-    (maphash (lambda (string-offset char-offset)
+    (maphash (lambda (string-offset _char-offset)
                (push string-offset loaded))
              matches)
     (let* ((ordered (sort loaded
