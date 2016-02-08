@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.7
-;; Package-Version: 20160121.1729
+;; Package-Version: 20160207.1505
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -25,32 +25,35 @@
 
 ;; Interface to a Transmission session.
 
-;; Based on the JSON RPC library written by Christopher Wellons,
-;; available online here: <https://github.com/skeeto/elisp-json-rpc>
+;; Originally based on the JSON RPC library written by Christopher
+;; Wellons, available online at
+;; <https://github.com/skeeto/elisp-json-rpc>
 
 ;; Entry points are the `transmission' and `transmission-add'
 ;; commands.  A variety of commands are available for manipulating
 ;; torrents and their contents, some of which can be applied over
-;; multiple items by selecting them within a region.
+;; multiple items by selecting them within a region.  The menus for
+;; each context provide good exposure.
 
 ;; "M-x transmission RET" pops up a torrent list.  One can add,
 ;; start/stop, verify, remove torrents, set speed limits, ratio
 ;; limits, bandwidth priorities, trackers, etc.  Also, one can
-;; navigate to either a file list or torrent info context.  In the
-;; file list, individual files can be toggled for download, and their
-;; priorities set.
+;; navigate to the corresponding file list, torrent info, or peer info
+;; contexts.  In the file list, individual files can be toggled for
+;; download, and their priorities set.
 
-;; Customize-able are the session address components, RPC credentials,
-;; the display of dates, file sizes and transfer rates, and the
-;; refreshing of the torrent list.  See the `transmission'
-;; customization group.
+;; Customize-able are: the session address components, RPC
+;; credentials, the display format of dates, file sizes and transfer
+;; rates, pieces display, automatic refreshing of the torrent
+;; list, etc.  See the `transmission' customization group.
 
-;; The design draws from a number of sources, including the
-;; "transmission-remote" command line utility and the
-;; "transmission-remote-cli" ncurses interface.  These can be found
-;; respectively at the following:
+;; The design draws from a number of sources, including the command
+;; line utility transmission-remote(1), the ncurses interface
+;; transmission-remote-cli(1), and the rtorrent(1) client.  These can
+;; be found respectively at the following:
 ;; <https://trac.transmissionbt.com/browser/trunk/daemon/remote.c>
 ;; <https://github.com/fagga/transmission-remote-cli>
+;; <https://rakshasa.github.io/rtorrent/>
 
 ;;; Code:
 
@@ -152,15 +155,15 @@ One example of such a function is `transmission-ffap-last-killed'."
     (high . 1))
   "Alist of names to priority values.")
 
-(defconst transmission-status-plist
-  '(0 "stopped"
-    1 "verifywait"
-    2 "verifying"
-    3 "downwait"
-    4 "downloading"
-    5 "seedwait"
-    6 "seeding")
-  "Plist of possible Transmission torrent statuses.")
+(defconst transmission-status-alist
+  '((0 . "stopped")
+    (1 . "verifywait")
+    (2 . "verifying")
+    (3 . "downwait")
+    (4 . "downloading")
+    (5 . "seedwait")
+    (6 . "seeding"))
+  "Alist of possible Transmission torrent statuses.")
 
 (defconst transmission-torrent-get-fields
   '("id" "name" "status" "eta"
@@ -401,9 +404,9 @@ TORRENT is the \"torrents\" vector returned by `transmission-torrents'."
 
 (defun transmission-status (status up down)
   "Return a propertized string describing torrent status.
-STATUS is a key of `transmission-status-plist'.  UP and DOWN are
+STATUS is a key of `transmission-status-alist'.  UP and DOWN are
 transmission rates."
-  (let ((state (plist-get transmission-status-plist status))
+  (let ((state (cdr (assq status transmission-status-alist)))
         (idle (propertize "idle" 'font-lock-face 'shadow))
         (uploading
          (propertize "uploading" 'font-lock-face 'font-lock-constant-face)))
@@ -544,7 +547,7 @@ Returns a list of non-blank inputs."
                 (not (string-blank-p entry)))
            (progn (push entry list)
                   (setq collection (delete entry collection)))
-         (throw :finished list))))))
+         (throw :finished (nreverse list)))))))
 
 (defun transmission-list-trackers (id)
   "Return the \"trackers\" array for torrent id ID."
@@ -587,14 +590,17 @@ Returns a list of non-blank inputs."
       (url-get-url-at-point)
       (transmission-btih-p (thing-at-point 'word))))
 
+(defun transmission-ffap-string (string)
+  "Apply `transmission-ffap' to the beginning of STRING."
+  (when string
+    (with-temp-buffer
+      (insert string)
+      (goto-char (point-min))
+      (transmission-ffap))))
+
 (defun transmission-ffap-last-killed ()
   "Apply `transmission-ffap' to the most recent `kill-ring' entry."
-  (let ((text (car kill-ring)))
-    (when text
-      (with-temp-buffer
-        (insert text)
-        (goto-char (point-min))
-        (transmission-ffap)))))
+  (transmission-ffap-string (car kill-ring)))
 
 (defun transmission-default-torrent (functions)
   "Return the first non-nil evaluation of a function in FUNCTIONS."
@@ -967,6 +973,15 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
         (find-file-read-only file)
       (user-error "File does not exist"))))
 
+(defun transmission-copy-magnet ()
+  "Copy magnet link of current torrent."
+  (interactive)
+  (let ((magnet
+         (transmission-torrent-value transmission-torrent-vector 'magnetLink)))
+    (when magnet
+      (kill-new magnet)
+      (message "Copied %s" magnet))))
+
 
 ;; Drawing
 
@@ -1019,7 +1034,7 @@ CONNECTED, SENDING, RECEIVING are numbers."
   (cl-macrolet ((accumulate (array key)
                   `(cl-loop for alist across ,array
                             if (eq t (cdr (assq ,key alist))) sum 1)))
-    (if (zerop connected) "Peers: none\n"
+    (if (zerop connected) "Peers: none connected\n"
       (concat
        (format "Peers: %d connected, uploading to %d, downloading from %d"
                connected sending receiving)
@@ -1236,21 +1251,25 @@ Also run the timer for timer object `transmission-timer'."
 
 (define-derived-mode transmission-peers-mode tabulated-list-mode "Transmission-Peers"
   "Major mode for viewing peer information in Transmission.
+See https://trac.transmissionbt.com/wiki/PeerStatusText
+for explanation of the peer flags.
 
 In addition to any hooks its parent mode might have run, this
 mode runs the hook `transmission-peers-mode-hook' at mode
 initialization.
 
 Key bindings:
-\\{transmission-peer-mode-map}"
+\\{transmission-peers-mode-map}"
   :group 'transmission
   (setq-local line-move-visual nil)
   (setq tabulated-list-format
         `[("Address" 15 nil)
           ("Flags" 6 t)
           ("Has" 4 nil :right-align t)
-          ("Down" 4 nil :right-align t)
-          ("Up" 3 nil :right-align t :pad-right 2)
+          ("Down" 4 ,(transmission-tabulated-list-pred 'rateToClient)
+           :right-align t)
+          ("Up" 3 ,(transmission-tabulated-list-pred 'rateToPeer)
+           :right-align t :pad-right 2)
           ("Client" 20 t)])
   (tabulated-list-init-header)
   (setq transmission-refresh-function
@@ -1272,6 +1291,7 @@ Key bindings:
   (let ((map (copy-keymap special-mode-map)))
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
+    (define-key map "c" 'transmission-copy-magnet)
     (define-key map "e" 'transmission-peers)
     (define-key map "m" 'transmission-move)
     (define-key map "t" 'transmission-trackers-add)
@@ -1286,6 +1306,7 @@ Key bindings:
     ["Add Tracker URLs" transmission-trackers-add]
     ["Remove Trackers" transmission-trackers-remove]
     ["Replace Tracker" transmission-trackers-replace]
+    ["Copy Magnet Link" transmission-copy-magnet]
     ["Move Torrent" transmission-move]
     ["Reannounce Torrent" transmission-reannounce]
     ["Set Bandwidth Priority" transmission-set-bandwidth-priority]
@@ -1419,8 +1440,8 @@ Key bindings:
     ["Quit" transmission-quit]))
 
 (define-derived-mode transmission-mode tabulated-list-mode "Transmission"
-  "Major mode for interfacing with a Transmission daemon. See
-https://trac.transmissionbt.com/ for more information about
+  "Major mode for interfacing with a Transmission daemon.
+See https://trac.transmissionbt.com/ for more information about
 Transmission.
 
 In addition to any hooks its parent mode might have run, this
