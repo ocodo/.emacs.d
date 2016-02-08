@@ -12,8 +12,8 @@
 ;;	Xavier Maillard <xavier@maillard.im>
 ;; Created: Sep 4, 2007
 ;; Version: HEAD
-;; Package-Version: 20150906.1003
-;; Identity: $Id: f2419deb29a5b68c79cb4c512ea044257f334bbd $
+;; Package-Version: 20160207.156
+;; Identity: $Id: b20989c3ab709b4b7b7542df70801828f9b346d1 $
 ;; Keywords: twitter web
 ;; URL: http://twmode.sf.net/
 
@@ -96,7 +96,7 @@
   :group 'hypermedia)
 
 (defconst twittering-mode-version "HEAD")
-(defconst twittering-mode-identity "$Id: f2419deb29a5b68c79cb4c512ea044257f334bbd $")
+(defconst twittering-mode-identity "$Id: b20989c3ab709b4b7b7542df70801828f9b346d1 $")
 (defvar twittering-api-host "api.twitter.com")
 (defvar twittering-api-search-host "search.twitter.com")
 (defvar twittering-web-host "twitter.com")
@@ -593,6 +593,9 @@ SSL connections use an external command as a backend."
 DO NOT SET VALUE MANUALLY.")
 (defvar twittering-curl-program-https-capability nil
   "Cache a result of `twittering-start-http-session-curl-https-p'.
+DO NOT SET VALUE MANUALLY.")
+(defvar twittering-curl-program-http2-capability nil
+  "Cache a result of `twittering-start-http-session-curl-http2-p'.
 DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-wget-program nil
@@ -2054,7 +2057,7 @@ The alist consists of pairs of field-name and field-value, such as
 	 (status-line (car lines))
 	 (header-lines (cdr lines)))
     (when (string-match
-	   "^\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*\\)$"
+	   "^\\(HTTP/[12]\.[01]\\) \\([0-9][0-9][0-9]\\)\\(.*\\)$"
 	   status-line)
       (append `((status-line . ,status-line)
 		(http-version . ,(match-string 1 status-line))
@@ -2448,6 +2451,27 @@ The method to perform the request is determined from
 		  'incapable)))))
     (eq twittering-curl-program-https-capability 'capable)))
 
+(defun twittering-start-http-session-curl-http2-p ()
+  "Return t if the curl support HTTP2, otherwise nil."
+  (when (twittering-start-http-session-curl-p)
+    (unless twittering-curl-program-http2-capability
+      (with-temp-buffer
+	(let ((coding-system-for-read 'iso-safe)
+	      (coding-system-for-write 'iso-safe)
+	      ;; Bind `default-directory' to the temporary directory
+	      ;; because it is possible that the directory pointed by
+	      ;; `default-directory' has been already removed.
+	      (default-directory temporary-file-directory))
+	  (call-process twittering-curl-program
+			nil (current-buffer) nil
+			"--version")
+	  (goto-char (point-min))
+	  (setq twittering-curl-program-http2-capability
+		(if (search-forward-regexp "^Features:.* HTTP2" nil t)
+		    'capable
+		  'incapable)))))
+    (eq twittering-curl-program-http2-capability 'capable)))
+
 (defun twittering-send-http-request-curl (name buffer connection-info sentinel)
   (let* ((request (cdr (assq 'request connection-info)))
 	 (method (cdr (assq 'method request)))
@@ -2460,6 +2484,7 @@ The method to perform the request is determined from
 	 (proxy-user (cdr (assq 'proxy-user connection-info)))
 	 (proxy-password (cdr (assq 'proxy-password connection-info)))
 	 (use-ssl (cdr (assq 'use-ssl connection-info)))
+	 (use-http2 (twittering-start-http-session-curl-http2-p))
 	 (allow-insecure-server-cert
 	  (cdr (assq 'allow-insecure-server-cert connection-info)))
 	 (cacert-file-fullpath
@@ -2481,6 +2506,7 @@ The method to perform the request is determined from
 	    ("Expect" . "")))
 	 (curl-args
 	  `("--include" "--silent" "--compressed"
+	    ,@(when use-http2 `("--http2"))
 	    ,@(apply 'append
 		     (mapcar
 		      (lambda (pair)
@@ -2531,10 +2557,10 @@ The method to perform the request is determined from
 	  (goto-char (point-min))
 	  (let ((first-regexp
 		 ;; successful HTTP response
-		 "\\`HTTP/1\.[01] 2[0-9][0-9] .*?\r?\n")
+		 "\\`HTTP/[12]\.[01] 2[0-9][0-9].*?\r?\n")
 		(next-regexp
 		 ;; following HTTP response
-		 "^\\(\r?\n\\)HTTP/1\.[01] [0-9][0-9][0-9] .*?\r?\n"))
+		 "^\\(\r?\n\\)HTTP/[12]\.[01] [0-9][0-9][0-9].*?\r?\n"))
 	    (when (and (search-forward-regexp first-regexp nil t)
 		       (search-forward-regexp next-regexp nil t))
 	      (let ((beg (point-min))
@@ -3581,7 +3607,7 @@ function."
   (with-current-buffer buffer
     (goto-char (point-min))
     (when (search-forward-regexp
-	   "\\`\\(\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*?\\)\\)\r?\n"
+	   "\\`\\(\\(HTTP/[12]\.[01]\\) \\([0-9][0-9][0-9]\\)\\(.*?\\)\\)\r?\n"
 	   nil t)
       (let ((status-line (match-string 1))
 	    (http-version (match-string 2))
@@ -6336,7 +6362,7 @@ get-service-configuration -- Get the configuration of the server.
 	    (cond
 	     ((eq spec-type 'user)
 	      (let ((username (elt spec 1)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/statuses/user_timeline"
 		  ("count" . ,number-str)
 		  ("include_entities" . "true")
@@ -6348,7 +6374,7 @@ get-service-configuration -- Get the configuration of the server.
 	     ((eq spec-type 'list)
 	      (let ((username (elt spec 1))
 		    (list-name (elt spec 2)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/lists/statuses"
 		  ("count" . ,number-str)
 		  ("include_entities" . "true")
@@ -6358,14 +6384,14 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when since_id `(("since_id" . ,since_id)))
 		  ("slug" . ,list-name))))
 	     ((eq spec-type 'direct_messages)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/direct_messages"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when since_id `(("since_id" . ,since_id)))))
 	     ((eq spec-type 'direct_messages_sent)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/direct_messages/sent"
 		("count" . ,number-str)
 		("include_entities" . "true")
@@ -6373,7 +6399,7 @@ get-service-configuration -- Get the configuration of the server.
 		,@(when since_id `(("since_id" . ,since_id)))))
 	     ((eq spec-type 'favorites)
 	      (let ((user (elt spec 1)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/favorites/list"
 		  ("count" . ,number-str)
 		  ("include_entities" . "true")
@@ -6381,14 +6407,14 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when user `(("screen_name" . ,user)))
 		  ,@(when since_id `(("since_id" . ,since_id))))))
 	     ((eq spec-type 'home)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/statuses/home_timeline"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when since_id `(("since_id" . ,since_id)))))
 	     ((eq spec-type 'mentions)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/statuses/mentions_timeline"
 		("count" . ,number-str)
 		("include_entities" . "true")
@@ -6408,7 +6434,7 @@ get-service-configuration -- Get the configuration of the server.
 	       spec)
 	      nil)
 	     ((eq spec-type 'retweets_of_me)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/statuses/retweets_of_me"
 		("count" . ,number-str)
 		("include_entities" . "true")
@@ -6416,13 +6442,13 @@ get-service-configuration -- Get the configuration of the server.
 		,@(when since_id `(("since_id" . ,since_id)))))
 	     ((eq spec-type 'single)
 	      (let ((id (elt spec 1)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/statuses/show"
 		  ("id" . ,id)
 		  ("include_entities" . "true"))))
 	     ((eq spec-type 'search)
 	      (let ((word (elt spec 1)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/search/tweets"
 		  ("count" . ,number-str)
 		  ("include_entities" . "true")
@@ -6494,7 +6520,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Get list names.
     (let* ((username (cdr (assq 'username args-alist)))
 	   (sentinel (cdr (assq 'sentinel args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/lists/list")
 	   (http-parameters `(("screen_name" . ,username)))
 	   (format-str "json")
@@ -6505,7 +6531,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'get-list-subscriptions)
     (let* ((username (cdr (assq 'username args-alist)))
 	   (sentinel (cdr (assq 'sentinel args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/lists/subscriptions")
 	   (http-parameters
 	    `(("count" . "20")
@@ -6518,7 +6544,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'create-friendships)
     ;; Create a friendship.
     (let* ((username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/friendships/create")
 	   (http-parameters
 	    `(("screen_name" . ,username)))
@@ -6528,7 +6554,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'destroy-friendships)
     ;; Destroy a friendship
     (let* ((username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/friendships/destroy")
 	   (http-parameters
 	    `(("screen_name" . ,username)))
@@ -6538,7 +6564,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'create-favorites)
     ;; Create a favorite.
     (let* ((id (cdr (assq 'id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/favorites/create")
 	   (http-parameters `(("id" . ,id)))
 	   (format-str "json"))
@@ -6547,7 +6573,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'destroy-favorites)
     ;; Destroy a favorite.
     (let* ((id (cdr (assq 'id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/favorites/destroy")
 	   (http-parameters `(("id" . ,id)))
 	   (format-str "json"))
@@ -6557,7 +6583,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Post a tweet.
     (let* ((status (cdr (assq 'status args-alist)))
 	   (id (cdr (assq 'in-reply-to-status-id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/statuses/update")
 	   (http-parameters
 	    `(("status" . ,status)
@@ -6568,7 +6594,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'destroy-status)
     ;; Destroy a status.
     (let* ((id (cdr (assq 'id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method (format "1.1/statuses/destroy/%s" id))
 	   (http-parameters nil)
 	   (format-str "json"))
@@ -6578,7 +6604,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'retweet)
     ;; Post a retweet.
     (let* ((id (cdr (assq 'id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method (format "1.1/statuses/retweet/%s" id))
 	   (http-parameters nil)
 	   (format-str "json"))
@@ -6586,7 +6612,7 @@ get-service-configuration -- Get the configuration of the server.
 			    format-str additional-info)))
    ((eq command 'verify-credentials)
     ;; Verify the account.
-    (let* ((host "api.twitter.com")
+    (let* ((host twittering-api-host)
 	   (method "1.1/account/verify_credentials")
 	   (http-parameters nil)
 	   (format-str "json")
@@ -6597,7 +6623,7 @@ get-service-configuration -- Get the configuration of the server.
 			   sentinel clean-up-sentinel)))
    ((eq command 'send-direct-message)
     ;; Send a direct message.
-    (let* ((host "api.twitter.com")
+    (let* ((host twittering-api-host)
 	   (method "1.1/direct_messages/new")
 	   (http-parameters
 	    `(("screen_name" . ,(cdr (assq 'username args-alist)))
@@ -6609,7 +6635,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Mute a user.
     (let* ((user-id (cdr (assq 'user-id args-alist)))
 	   (username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method
 	    (cdr (assq command '((mute . "1.1/mutes/users/create")
 				 (unmute . "1.1/mutes/users/destroy")))))
@@ -6623,7 +6649,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Block a user.
     (let* ((user-id (cdr (assq 'user-id args-alist)))
 	   (username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/blocks/create")
 	   (http-parameters (if user-id
 				`(("user_id" . ,user-id))
@@ -6635,7 +6661,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Report a user as a spammer and block him or her.
     (let* ((user-id (cdr (assq 'user-id args-alist)))
 	   (username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/users/report_spam")
 	   (http-parameters (if user-id
 				`(("user_id" . ,user-id))
@@ -6644,7 +6670,7 @@ get-service-configuration -- Get the configuration of the server.
       (twittering-http-post account-info-alist host method http-parameters
 			    format-str additional-info)))
    ((eq command 'get-service-configuration)
-    (let* ((host "api.twitter.com")
+    (let* ((host twittering-api-host)
 	   (method "1.1/help/configuration")
 	   (http-parameters nil)
 	   (format-str "json")
@@ -10329,6 +10355,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
     (let ((km twittering-mode-map))
       (define-key km (kbd "C-c C-f") 'twittering-friends-timeline)
       (define-key km (kbd "C-c C-r") 'twittering-replies-timeline)
+      (define-key km (kbd "C-c C-n") 'twittering-mentions-timeline)
       (define-key km (kbd "C-c C-u") 'twittering-user-timeline)
       (define-key km (kbd "C-c C-d") 'twittering-direct-messages-timeline)
       (define-key km (kbd "C-c C-s") 'twittering-update-status-interactive)
@@ -10396,6 +10423,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
   (let ((important-commands
 	 '(("Timeline" . twittering-friends-timeline)
 	   ("Replies" . twittering-replies-timeline)
+	   ("Mentions" . twittering-mentions-timeline)
 	   ("Update status" . twittering-update-status-interactive)
 	   ("Next" . twittering-goto-next-status)
 	   ("Prev" . twittering-goto-previous-status))))
@@ -11447,6 +11475,10 @@ Pairs of a key symbol and an associated value are following:
 (defun twittering-replies-timeline ()
   (interactive)
   (twittering-visit-timeline '(replies)))
+
+(defun twittering-mentions-timeline ()
+  (interactive)
+  (twittering-visit-timeline '(mentions)))
 
 (defun twittering-public-timeline ()
   (interactive)
