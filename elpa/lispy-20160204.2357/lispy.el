@@ -1170,7 +1170,7 @@ Otherwise (`backward-delete-char-untabify' ARG)."
                (progn
                  (delete-region (1- (match-beginning 0))
                                 (match-end 0))
-                 (indent-for-tab-command))
+                 (lispy--indent-for-tab))
              (backward-delete-char-untabify arg)))
 
           ((lispy-looking-back "\\\\.")
@@ -1204,7 +1204,7 @@ Otherwise (`backward-delete-char-untabify' ARG)."
                     (lispy-right-p)))
                  (delete-region (point) pt)
                (goto-char pt)
-               (indent-for-tab-command))))
+               (lispy--indent-for-tab))))
 
           ((and (lispy-looking-back lispy-left)
                 (not (lispy-looking-back "[\\?].")))
@@ -1219,7 +1219,7 @@ Otherwise (`backward-delete-char-untabify' ARG)."
              (lispy--delete-whitespace-backward)
              (unless (looking-at " ")
                (insert " "))
-             (indent-for-tab-command)))
+             (lispy--indent-for-tab)))
 
           ((and (lispy-after-string-p "\" ")
                 (not (looking-at lispy-right)))
@@ -1229,7 +1229,7 @@ Otherwise (`backward-delete-char-untabify' ARG)."
            (lispy--delete-whitespace-backward)
            (unless (lispy-looking-back lispy-left)
              (just-one-space))
-           (indent-for-tab-command))
+           (lispy--indent-for-tab))
 
           ((lispy-bolp)
            (delete-region
@@ -1250,7 +1250,7 @@ Otherwise (`backward-delete-char-untabify' ARG)."
                            (looking-at lispy-right)
                            (lispy-looking-back lispy-left))
                  (just-one-space)))
-             (indent-for-tab-command)))
+             (lispy--indent-for-tab)))
 
           ((lispy-looking-back "[^ ]  +")
            (delete-region (+ (match-beginning 0) 2) (point)))
@@ -1465,7 +1465,7 @@ When this function is called:
               (backward-char))
             (backward-char))
            ((lispy-bolp)
-            (indent-for-tab-command)
+            (lispy--indent-for-tab)
             (insert ,left)
             (unless (eolp)
               (just-one-space))
@@ -1729,7 +1729,7 @@ When ARG is nagative, add them above instead"
         (newline arg)
       (forward-list -1)
       (newline (- arg))
-      (indent-for-tab-command))))
+      (lispy--indent-for-tab))))
 
 (defvar-local lispy-outline-header ";;"
   "Store the buffer-local outline start.")
@@ -1818,14 +1818,16 @@ to all the functions, while maintaining the parens in a pretty state."
     (delete-region (car bnd) (cdr bnd))
     (insert (replace-regexp-in-string "\n" "\\\\n" str))))
 
-(defun lispy-iedit ()
+(defun lispy-iedit (&optional arg)
   "Wrap around `iedit'."
-  (interactive)
+  (interactive "P")
   (if iedit-mode
       (iedit-mode nil)
     (when (lispy-left-p)
       (forward-char 1))
-    (iedit-mode 0)))
+    (if arg
+        (iedit-mode 0)
+      (iedit-mode))))
 
 ;;* Locals: navigation
 ;;** Occur
@@ -2654,7 +2656,7 @@ When the sexp is top level, insert an additional newline."
                       (save-excursion
                         (newline)
                         (insert str)
-                        (indent-for-tab-command)))))
+                        (lispy--indent-for-tab)))))
                (if (= (point) (region-end))
                    (doit)
                  (exchange-point-and-mark)
@@ -3116,10 +3118,13 @@ When SILENT is non-nil, don't issue messages."
                (insert " "))
               ((lispy-bolp)
                (let ((bnd (lispy--bounds-list)))
-                 (if (<= (cdr bnd) (line-end-position))
-                     (comment-region (point)
-                                     (1- (cdr bnd)))
-                   (comment-region (point) (line-end-position)))
+                 (cond ((null bnd)
+                        (comment-region (point) (line-end-position)))
+                       ((<= (cdr bnd) (line-end-position))
+                        (comment-region (point)
+                                        (1- (cdr bnd))))
+                       (t
+                        (comment-region (point) (line-end-position))))
                  (skip-chars-forward " ")))
               ((setq bnd (save-excursion
                            (and (lispy--out-forward 1)
@@ -4625,7 +4630,7 @@ When ARG is given, paste at that place in the current list."
         ((lispy-left-p)
          (newline-and-indent)
          (forward-line -1)
-         (indent-for-tab-command)
+         (lispy--indent-for-tab)
          (yank))
         (t
          (yank))))
@@ -6158,7 +6163,7 @@ ACTION is called for the selected candidate."
     (cond ((eq lispy-completion-method 'helm)
            (require 'helm-help)
            ;; allows restriction with space
-           (require 'helm-match-plugin)
+           (require 'helm-multi-match)
            (let (helm-update-blacklist-regexps
                  helm-candidate-number-limit)
              (helm :sources
