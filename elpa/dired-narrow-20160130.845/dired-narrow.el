@@ -5,7 +5,7 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20160103.422
+;; Package-Version: 20160130.845
 ;; Created: 14th February 2014
 ;; Package-requires: ((dash "2.7.0") (dired-hacks-utils "0.0.1"))
 ;; Keywords: files
@@ -68,6 +68,8 @@
 
 (require 'dash)
 (require 'dired-hacks-utils)
+
+(require 'delsel)
 
 (defgroup dired-narrow ()
   "Live-narrowing of search results for dired."
