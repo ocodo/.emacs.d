@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22160 39034 517640 126000))
+;;;### (autoloads nil "dired+" "dired+.el" (22200 34524 861356 478000))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -1051,6 +1051,21 @@ You need library `bookmark+.el' to use this command.
 
 \(fn EVENT)" t nil)
 
+(autoload 'diredp-mark-autofiles "dired+" "\
+Mark all autofiles, that is, files that have an autofile bookmark.
+
+\(fn)" t nil)
+
+(autoload 'diredp-unmark-autofiles "dired+" "\
+Unmark all autofiles, that is, files that have an autofile bookmark.
+
+\(fn)" t nil)
+
+(autoload 'diredp-mark/unmark-autofiles "dired+" "\
+Mark all autofiles, or unmark if UNMARKP is non-nil.
+
+\(fn &optional UNMARKP)" nil nil)
+
 (autoload 'diredp-do-bookmark "dired+" "\
 Bookmark the marked (or the next prefix argument) files.
 Each bookmark name is the non-directory portion of the file name,
@@ -1122,7 +1137,7 @@ See also command `diredp-do-bookmark-in-bookmark-file'.
 \(fn BOOKMARK-FILE &optional PREFIX ARG)" t nil)
 
 (autoload 'diredp-do-bookmark-in-bookmark-file "dired+" "\
-Bookmark files in BOOKMARK-FILE and save BOOKMARK-FILE.
+Bookmark marked files in BOOKMARK-FILE and save BOOKMARK-FILE.
 The files bookmarked are the marked files, by default.
 The bookmarked position is the beginning of the file.
 You are prompted for BOOKMARK-FILE.  The default is `.emacs.bmk' in
@@ -1606,23 +1621,29 @@ You need library `bookmark+.el' to use this command.
 
 \(fn EVENT)" t nil)
 
-(autoload 'diredp-describe-file "dired+" "\
-In Dired, describe this file or directory.
-You need library `help-fns+.el' to use this command.
-If the file has an autofile bookmark and you use library `Bookmark+',
-then show also the bookmark information (tags etc.).  In this case, a
-prefix arg shows the internal form of the bookmark.
+(defalias 'diredp-show-metadata 'diredp-describe-autofile)
+
+(autoload 'diredp-describe-autofile "dired+" "\
+Show the metadata for the file of the current line.
+The file must name an autofile bookmark.  The metadata is the bookmark
+information.
+
+With a prefix argument, show the internal definition of the bookmark.
+
+You need library `bookmark+.el' for this command.
 
 \(fn &optional INTERNAL-FORM-P)" t nil)
 
-(autoload 'diredp-mouse-describe-file "dired+" "\
-Describe the clicked file.
-You need library `help-fns+.el' to use this command.
-If the file has an autofile bookmark and you use library `Bookmark+',
-then show also the bookmark information (tags etc.).  In this case, a
-prefix arg shows the internal form of the bookmark.
+(defalias 'diredp-show-metadata-for-marked 'diredp-describe-marked-autofiles)
 
-\(fn EVENT &optional INTERNAL-FORM-P)" t nil)
+(autoload 'diredp-describe-marked-autofiles "dired+" "\
+Show metadata for the marked files.
+If no file is marked, describe ALL autofiles in this directory.
+With a prefix argument, show the internal (Lisp) form of the metadata.
+
+You need library `bookmark+.el' for this command.
+
+\(fn &optional INTERNAL-FORM-P)" t nil)
 
 (autoload 'diredp-byte-compile-this-file "dired+" "\
 In Dired, byte compile the (Lisp source) file on the cursor line.
