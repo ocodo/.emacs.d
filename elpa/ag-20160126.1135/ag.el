@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.47
-;; Package-Version: 20151226.1605
+;; Package-Version: 20160126.1135
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -267,6 +267,8 @@ Returns an empty string otherwise."
 
 (autoload 'vc-hg-root "vc-hg")
 
+(autoload 'vc-bzr-root "vc-bzr")
+
 (defun ag/project-root (file-path)
   "Guess the project root of the given FILE-PATH.
 
@@ -277,7 +279,8 @@ roots."
     (or (ag/longest-string
        (vc-git-root file-path)
        (vc-svn-root file-path)
-       (vc-hg-root file-path))
+       (vc-hg-root file-path)
+       (vc-bzr-root file-path))
       file-path)))
 
 (defun ag/dired-align-size-column ()
