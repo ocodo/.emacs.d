@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20160115.2238
-;; Version: 0.59
+;; Package-Version: 20160130.1855
+;; Version: 0.60
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -73,7 +73,7 @@
   :type 'boolean)
 
 (defcustom anzu-mode-line-update-function #'anzu--update-mode-line-default
-  "Function which return mode-line string"
+  "Function which return mode-line string. This must be non-nil."
   :type 'function)
 
 (defcustom anzu-regexp-search-commands '(isearch-forward-regexp
@@ -295,12 +295,12 @@
   (if anzu-mode
       (progn
         (set (make-local-variable 'anzu--state) nil)
-        (add-hook 'isearch-update-post-hook 'anzu--update-post-hook nil t)
-        (add-hook 'isearch-mode-hook 'anzu--cons-mode-line-search nil t)
-        (add-hook 'isearch-mode-end-hook 'anzu--reset-mode-line nil t))
-    (remove-hook 'isearch-update-post-hook 'anzu--update-post-hook t)
-    (remove-hook 'isearch-mode-hook 'anzu--cons-mode-line-search t)
-    (remove-hook 'isearch-mode-end-hook 'anzu--reset-mode-line t)
+        (add-hook 'isearch-update-post-hook #'anzu--update-post-hook nil t)
+        (add-hook 'isearch-mode-hook #'anzu--cons-mode-line-search nil t)
+        (add-hook 'isearch-mode-end-hook #'anzu--reset-mode-line nil t))
+    (remove-hook 'isearch-update-post-hook #'anzu--update-post-hook t)
+    (remove-hook 'isearch-mode-hook #'anzu--cons-mode-line-search t)
+    (remove-hook 'isearch-mode-end-hook #'anzu--reset-mode-line t)
     (anzu--reset-mode-line)))
 
 (defun anzu--turn-on ()
