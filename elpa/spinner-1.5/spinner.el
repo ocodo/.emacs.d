@@ -3,7 +3,7 @@
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
-;; Version: 1.4
+;; Version: 1.5
 ;; URL: https://github.com/Malabarba/spinner.el
 ;; Keywords: processes mode-line
 
@@ -312,10 +312,15 @@ this time, in which case it won't display at all."
          (timer (spinner--timer spinner)))
     (when (timerp timer)
       (cancel-timer timer))
-    (setf (spinner--active-p spinner) nil)))
+    (setf (spinner--active-p spinner) nil)
+    (force-mode-line-update)))
 
 ;;;; ChangeLog:
 
+;; 2016-02-07  Artur Malabarba  <bruce.connor.am@gmail.com>
+;; 
+;; 	Update the mode-line after spinner-stop
+;; 
 ;; 2015-08-11  Artur Malabarba  <bruce.connor.am@gmail.com>
 ;; 
 ;; 	Merge commit '8d8c459d7757cf5774f11be9147d7a54f5f9bbd7'
