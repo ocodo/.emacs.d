@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160119.454
-;; Version: 0.50
+;; Package-Version: 20160126.2147
+;; Version: 0.51
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -471,9 +471,10 @@ They are specified to `--ignore' options."
   (interactive)
   (goto-char (point-min))
   (let ((read-only-files 0)
+        (saved-buffers nil)
         (default-directory helm-ag--default-directory)
         (line-deletes (make-hash-table :test #'equal)))
-    (while (re-search-forward "^\\([^:]+\\):\\([1-9][0-9]*\\):\\(.*\\)$" nil t)
+    (while (re-search-forward "^\\([^:]+\\):\\([1-9][0-9]*\\)[:-]\\(.*\\)$" nil t)
       (let* ((file (match-string-no-properties 1))
              (line (string-to-number (match-string-no-properties 2)))
              (body (match-string-no-properties 3))
@@ -492,8 +493,11 @@ They are specified to `--ignore' options."
                   (forward-line 1)
                   (delete-region beg (point))
                   (puthash file (1+ deleted-lines) line-deletes)))
-              (when helm-ag-edit-save
-                (save-buffer)))))))
+              (cl-pushnew (current-buffer) saved-buffers))))))
+    (when helm-ag-edit-save
+      (dolist (buf saved-buffers)
+        (with-current-buffer buf
+          (save-buffer))))
     (select-window helm-ag--original-window)
     (helm-ag--kill-edit-buffer)
     (if (not (zerop read-only-files))
@@ -554,7 +558,7 @@ They are specified to `--ignore' options."
                 (format "[%s] C-c C-c: Commit, C-c C-k: Abort"
                         (abbreviate-file-name helm-ag--default-directory)))
           (goto-char (point-min))
-          (while (re-search-forward "^\\(\\(?:[^:]+:\\)\\{1,2\\}\\)\\(.*\\)$" nil t)
+          (while (re-search-forward "^\\(\\(?:[^:]+:\\)?[^:-]+[:-]\\)\\(.*\\)$" nil t)
             (let ((file-line-begin (match-beginning 1))
                   (file-line-end (match-end 1))
                   (body-begin (match-beginning 2))
