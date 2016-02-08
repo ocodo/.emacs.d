@@ -5,7 +5,7 @@
 ;; Created:    March 2010
 ;; Modified:   28 Mar 2015
 ;; Keywords:   languages
-;; Package-Version: 20150330.2029
+;; Package-Version: 20160205.1043
 ;; URL:        https://raw.github.com/openscad/openscad/master/contrib/scad-mode.el
 ;; Version:    91.0
 
@@ -214,5 +214,5 @@ Key bindings:
   (interactive)
   (call-process scad-command nil 0 nil (buffer-file-name)))
 
-(provide 'scad)
+(provide 'scad-mode)
 ;;; scad-mode.el ends here

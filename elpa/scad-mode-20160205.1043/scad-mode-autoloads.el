@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "scad-mode" "scad-mode.el" (22069 45701 0 0))
+;;;### (autoloads nil "scad-mode" "scad-mode.el" (22200 34350 952742
+;;;;;;  756000))
 ;;; Generated autoloads from scad-mode.el
 
 (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode))
@@ -20,11 +21,6 @@ Key bindings:
 \\{scad-mode-map}
 
 \(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("scad-mode-pkg.el") (22069 45701 417738
-;;;;;;  0))
 
 ;;;***
 
