@@ -1,6 +1,7 @@
-(define-package "helm" "20160121.2157" "Helm is an Emacs incremental and narrowing framework"
+(define-package "helm" "20160207.2135" "Helm is an Emacs incremental and narrowing framework"
   '((emacs "24.3")
     (async "1.6")
+    (popup "0.5.3")
     (helm-core "1.9.1"))
   :url "https://emacs-helm.github.io/helm/")
 ;; Local Variables:

@@ -24,6 +24,7 @@
 (require 'dired)
 
 (declare-function helm-find-files-1 "helm-files.el" (fname &optional preselect))
+(declare-function popup-tip "ext:popup")
 (defvar winner-boring-buffers)
 
 
@@ -61,6 +62,12 @@ It is a float, usually 1024.0 but could be 1000.0 on some systems."
   "The size of the helm-window when resizing on persistent action."
   :group 'helm-utils
   :type 'integer)
+
+(defcustom helm-sources-using-help-echo-popup '("Moccur" "Imenu in all buffers"
+                                                "Ack-Grep" "AG" "Gid" "Git-Grep")
+  "Show the buffer name or the filename in a popup at selection."
+  :group 'helm-utils
+  :type '(repeat (choice string)))
 
 
 (defvar helm-goto-line-before-hook '(helm-save-current-pos-to-mark-ring)
@@ -529,6 +536,47 @@ If STRING is non--nil return instead a space separated string."
 (add-hook 'helm-after-persistent-action-hook 'helm-persistent-autoresize-hook)
 (add-hook 'helm-cleanup-hook 'helm-match-line-cleanup)
 (add-hook 'helm-after-persistent-action-hook 'helm-match-line-update)
+
+;;; Popup buffer-name or filename in grep/moccur/imenu-all.
+;;
+(defvar helm--show-help-echo-timer nil)
+
+(defun helm-cancel-help-echo-timer ()
+  (when helm--show-help-echo-timer
+    (cancel-timer helm--show-help-echo-timer)
+    (setq helm--show-help-echo-timer nil)))
+
+(defun helm-show-help-echo ()
+  (when helm--show-help-echo-timer
+    (cancel-timer helm--show-help-echo-timer)
+    (setq helm--show-help-echo-timer nil))
+  (when (and helm-alive-p
+             (member (assoc-default 'name (helm-get-current-source))
+                     helm-sources-using-help-echo-popup))
+    (setq helm--show-help-echo-timer
+          (run-with-idle-timer
+           1 nil
+           (lambda ()
+             (with-helm-window
+               (helm-aif (get-text-property (point-at-bol) 'help-echo)
+                   (popup-tip (concat " " (abbreviate-file-name it))
+                              :around nil
+                              :point (save-excursion
+                                       (end-of-visual-line) (point))))))))))
+
+;;;###autoload
+(define-minor-mode helm-popup-tip-mode
+    "Show help-echo informations in a popup tip at end of line."
+  :global t
+  (require 'popup)
+  (if helm-popup-tip-mode
+      (progn
+        (add-hook 'helm-update-hook 'helm-show-help-echo) ; Needed for async sources.
+        (add-hook 'helm-move-selection-after-hook 'helm-show-help-echo)
+        (add-hook 'helm-cleanup-hook 'helm-cancel-help-echo-timer))
+      (remove-hook 'helm-update-hook 'helm-show-help-echo)
+      (remove-hook 'helm-move-selection-after-hook 'helm-show-help-echo)
+      (remove-hook 'helm-cleanup-hook 'helm-cancel-help-echo-timer)))
 
 (defun helm-open-file-with-default-tool (file)
   "Open FILE with the default tool on this platform."
