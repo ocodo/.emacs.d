@@ -5,7 +5,7 @@
 ;; Author: DarkSun <lujun9972@gmail.com>
 ;; Created: 2015-12-21
 ;; Version: 0.1
-;; Package-Version: 20160122.1911
+;; Package-Version: 20160202.2359
 ;; Keywords: convenience, usability, url
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; URL: https://github.com/lujun9972/verify-url
@@ -65,7 +65,7 @@
   "If non-nil, automatically jump to the first invalid url")
 
 (defface verify-url/invalid-url-face '((t :underline t
-                                          :foreground "red"))
+                                          :inherit 'font-lock-warning-face))
          "Face for the invalid url."
          :group 'verify-url)
 
