@@ -616,21 +616,15 @@ it will create the neotree window and return it."
           (neo-global--create-window)))
   neo-global--window)
 
-(defun neo-global--get-position-window (position)
-  "Return the window by top and POSITION."
-  (or (window-at (if (eq position 'left) 0 (frame-width)) 0)
-      (selected-window)))
-
 (defun neo-global--create-window ()
   "Create global neotree window."
   (let ((window nil)
-        (buffer (neo-global--get-buffer t)))
-    (split-window (neo-global--get-position-window neo-window-position)
-                  nil
-                  (if (eq neo-window-position 'left) 'right 'left))
+        (buffer (neo-global--get-buffer t))
+        (window-pos (if (eq neo-window-position 'left) 'left 'right)))
     (setq window
           (select-window
-           (neo-global--get-position-window neo-window-position)))
+           (split-window
+            (frame-root-window (window-frame)) nil window-pos)))
     (neo-window--init window buffer)
     (neo-global--attach)
     (neo-global--reset-width)
@@ -1250,28 +1244,23 @@ PATH is value."
     (neo-buffer--newline-and-begin)))
 
 (defun neo-vc-for-node (node)
-  (let ((backend (vc-backend node)))
-    (let* ((vc-state (if backend
-                         (vc-state-refresh node backend)
-                       (vc-state node)))
-           (vc-state (if (stringp vc-state)
-                         'user
-                       vc-state)))
-      (cons (cdr (assoc vc-state neo-vc-state-char-alist))
-            (cl-case vc-state
-              (up-to-date       neo-vc-up-to-date-face)
-              (edited           neo-vc-edited-face)
-              (needs-update     neo-vc-needs-update-face)
-              (needs-merge      neo-vc-needs-merge-face)
-              (unlocked-changes neo-vc-unlocked-changes-face)
-              (added            neo-vc-added-face)
-              (removed          neo-vc-removed-face)
-              (conflict         neo-vc-conflict-face)
-              (missing          neo-vc-missing-face)
-              (ignored          neo-vc-ignored-face)
-              (unregistered     neo-vc-unregistered-face)
-              (user             neo-vc-user-face)
-              (otherwise        neo-vc-default-face))))))
+  (let* ((backend (vc-responsible-backend node))
+         (vc-state (when backend (vc-state node backend))))
+    (cons (cdr (assoc vc-state neo-vc-state-char-alist))
+          (cl-case vc-state
+            (up-to-date       neo-vc-up-to-date-face)
+            (edited           neo-vc-edited-face)
+            (needs-update     neo-vc-needs-update-face)
+            (needs-merge      neo-vc-needs-merge-face)
+            (unlocked-changes neo-vc-unlocked-changes-face)
+            (added            neo-vc-added-face)
+            (removed          neo-vc-removed-face)
+            (conflict         neo-vc-conflict-face)
+            (missing          neo-vc-missing-face)
+            (ignored          neo-vc-ignored-face)
+            (unregistered     neo-vc-unregistered-face)
+            (user             neo-vc-user-face)
+            (otherwise        neo-vc-default-face)))))
 
 (defun neo-buffer--get-nodes (path)
   (let* ((nodes (neo-util--walk-dir path))
@@ -1414,7 +1403,7 @@ If there is no button in current line, then return DEFAULT."
       (if buffer
           (with-current-buffer buffer
             (set-visited-file-name to-path nil t)))
-      (rename-file current-path to-path)
+      (rename-file current-path to-path 1)
       (neo-buffer--refresh t)
       (message "Rename successful."))))
 
