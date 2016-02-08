@@ -6,7 +6,7 @@
 ;; Maintainer: browse-kill-ring <browse-kill-ring@tonotdo.com>
 ;; Created: 7 Apr 2001
 ;; Version: 2.0.0
-;; Package-Version: 20150829.632
+;; Package-Version: 20160125.9
 ;; URL: https://github.com/browse-kill-ring/browse-kill-ring
 ;; Keywords: convenience
 
@@ -50,6 +50,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'cl)
 (require 'derived)
 
 (defgroup browse-kill-ring nil
