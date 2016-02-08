@@ -410,6 +410,22 @@ before point."
                     (not (lookup-key evil-motion-state-map (kbd "C-u"))))
                (define-key evil-motion-state-map (kbd "C-u") 'evil-scroll-up))))))
 
+(defcustom evil-want-C-d-scroll t
+  "Whether \"C-d\" scrolls like in Vim."
+  :type 'boolean
+  :group 'evil
+  :set #'(lambda (sym value)
+           (set-default sym value)
+           (when (boundp 'evil-motion-state-map)
+             (cond
+              ((and (not value)
+                    (eq (lookup-key evil-motion-state-map (kbd "C-d"))
+                        'evil-scroll-down))
+               (define-key evil-motion-state-map (kbd "C-d") nil))
+              ((and value
+                    (not (lookup-key evil-motion-state-map (kbd "C-d"))))
+               (define-key evil-motion-state-map (kbd "C-d") 'evil-scroll-down))))))
+
 (defcustom evil-want-C-w-delete t
   "Whether \"C-w\" deletes a word in Insert state."
   :type 'boolean
@@ -423,9 +439,9 @@ before point."
                         'evil-delete-backward-word))
                (define-key evil-motion-state-map (kbd "C-w") 'evil-window-map))
               ((and value
-                    (eq (lookup-key evil-motion-state-map (kbd "C-u"))
+                    (eq (lookup-key evil-motion-state-map (kbd "C-w"))
                         'evil-window-map))
-               (define-key evil-motion-state-map (kbd "C-u") 'evil-delete-backward-word))))))
+               (define-key evil-motion-state-map (kbd "C-w") 'evil-delete-backward-word))))))
 
 (defcustom evil-want-C-w-in-emacs-state nil
   "Whether \"C-w\" prefixes windows commands in Emacs state."
@@ -1035,8 +1051,8 @@ only has influence if the evil search module is chosen in
   "If non-nil Vim-style backslash codes are supported in search patterns.
 See `evil-transform-vim-style-regexp' for the supported backslash
 codes.  Note that this only affects the search command if
-`evil-search-module' is set to 'evil. The isearch module always
-uses plain Emacs regular expressions."
+`evil-search-module' is set to 'evil-search. The isearch module
+always uses plain Emacs regular expressions."
   :type 'boolean
   :group 'evil)
 
@@ -1152,6 +1168,12 @@ SYMBOL is made permanent buffer local."
      (defvar ,symbol ,initvalue ,docstring)
      (make-variable-buffer-local ',symbol)
      (put ',symbol 'permanent-local t)))
+
+(evil-define-local-var evil-ud-scroll-count 0
+  "Holds last used prefix for `evil-scroll-up'
+and `evil-scroll-down'.
+Determines how many lines should be scrolled. 
+Default value is 0 - scroll half the screen.")
 
 (evil-define-local-var evil-state nil
   "The current Evil state.

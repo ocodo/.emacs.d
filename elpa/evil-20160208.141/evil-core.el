@@ -46,8 +46,8 @@
 ;;
 ;;     * Intercept keymaps...
 ;;     * Local state keymap
-;;     * Auxiliary keymaps...
 ;;     * Minor-mode keymaps...
+;;     * Auxiliary keymaps...
 ;;     * Overriding keymaps...
 ;;     * Global state keymap
 ;;     * Keymaps for other states...
@@ -654,8 +654,8 @@ infinite recursion, keeping track of processed states.)"
          (local-map (cons
                      (evil-state-property state :local)
                      (evil-state-property state :local-keymap t)))
-         (aux-maps (evil-state-auxiliary-keymaps state))
          (minor-mode-maps (evil-state-minor-mode-keymaps state))
+         (aux-maps (evil-state-auxiliary-keymaps state))
          (overriding-maps
           (evil-state-overriding-keymaps state))
          (intercept-maps
@@ -672,8 +672,8 @@ infinite recursion, keeping track of processed states.)"
        ((eq entry state)
         (setq result `(,@result
                        (,local-map)
-                       ,aux-maps
                        ,minor-mode-maps
+                       ,aux-maps
                        ,overriding-maps
                        (,map)))
         (push state excluded))
@@ -726,7 +726,10 @@ This is a keymap alist, determined by the current state
       (dolist (entry temp)
         (setq mode (car entry)
               map (cdr entry))
-        (unless (and (boundp mode) (symbol-value mode))
+        (unless (or (and (boundp mode) (symbol-value mode))
+                    ;; the minor-mode keymaps include modes that are not
+                    ;; necessarily active
+                    (evil-minor-mode-keymap-p map))
           (when (fboundp mode)
             (funcall mode 1))
           (set mode t))

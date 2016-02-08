@@ -840,36 +840,62 @@ on the first non-blank character."
   (interactive "p")
   (scroll-up count))
 
+(evil-define-command evil-ud-scroll-count-reset ()
+  "Sets `evil-ud-scroll-count' to 0.
+`evil-scroll-up' and `evil-scroll-down' will scroll
+for a half of the screen(default)."
+  :repeat nil
+  :keep-visual t
+  (interactive)
+  (setq evil-ud-scroll-count 0))
+
 (evil-define-command evil-scroll-up (count)
-  "Scrolls the window and the cursor COUNT lines upwards.
-The default is half the screen."
+  "Scrolls the window and the cursor COUNT lines upwards
+and sets `evil-ud-scroll-count'
+Uses `evil-ud-scroll-count' instead If COUNT not specified.
+Scrolls half the screen if `evil-ud-scroll-count' equals 0."
   :repeat nil
   :keep-visual t
   (interactive "P")
   (evil-save-column
-    (let ((p (point))
-          (c (or count (/ (evil-num-visible-lines) 2))))
+    (let* ((p (point))
+           (cv (if count count (max 0 evil-ud-scroll-count)))
+           (c (if (= cv 0) (/ (evil-num-visible-lines) 2) cv))
+           (scrollable (max 0
+                            (+ c (save-excursion
+                                   (goto-char (window-start))
+                                   (forward-line (- c)))))))
+      (setq evil-ud-scroll-count cv)
       (save-excursion
-        (scroll-down (min (evil-max-scroll-up) c)))
+        (scroll-down scrollable))
       (forward-line (- c))
-      (when (= (line-number-at-pos p)
-               (line-number-at-pos (point)))
+      (when (= 0 (count-lines p (point)))
         (signal 'beginning-of-buffer nil)))))
 
 (evil-define-command evil-scroll-down (count)
-  "Scrolls the window and the cursor COUNT lines downwards.
-The default is half the screen."
+  "Scrolls the window and the cursor COUNT lines downwards
+and sets `evil-ud-scroll-count'
+Uses `evil-ud-scroll-count' instead If COUNT not specified.
+Scrolls half the screen if `evil-ud-scroll-count' equals 0."
   :repeat nil
   :keep-visual t
   (interactive "P")
   (evil-save-column
-    (let ((p (point))
-          (c (or count (/ (evil-num-visible-lines) 2))))
+    (let* ((p (point))
+           (cv (if count count (max 0 evil-ud-scroll-count)))
+           (c (if (= cv 0) (/ (evil-num-visible-lines) 2) cv))
+           (scrollable (- c (save-excursion (forward-line c)))))
+      (setq evil-ud-scroll-count cv)
       (save-excursion
-        (scroll-up (min (evil-max-scroll-down) c)))
+        (scroll-up scrollable))
       (forward-line c)
-      (when (= (line-number-at-pos p)
-               (line-number-at-pos (point)))
+      ;; If we're at end of buffer, let the last line be at the bottom:
+      (let ((win-beg (window-start))
+            (win-end (window-end nil 'update)))
+        (when (= win-end (point-max))
+          (scroll-down (- (evil-num-visible-lines)
+                          (count-lines win-beg win-end)))))
+      (when (= 0 (count-lines p (point)))
         (signal 'end-of-buffer nil)))))
 
 (evil-define-command evil-scroll-page-up (count)
@@ -1348,8 +1374,7 @@ If TYPE is `block', the inserted text in inserted at each line
 of the block."
   (interactive "<R><x><y>")
   (let ((delete-func (or delete-func #'evil-delete))
-        (nlines (1+ (- (line-number-at-pos end)
-                       (line-number-at-pos beg))))
+        (nlines (1+ (count-lines beg end)))
         (opoint (save-excursion
                   (goto-char beg)
                   (line-beginning-position))))
@@ -3625,32 +3650,34 @@ top-left."
 and opens a new buffer or edits a certain FILE."
   :repeat nil
   (interactive "P<f>")
-  (split-window (selected-window) count
-                (if evil-split-window-below 'above 'below))
-  (when (and (not count) evil-auto-balance-windows)
-    (balance-windows (window-parent)))
-  (if file
-      (evil-edit file)
-    (let ((buffer (generate-new-buffer "*new*")))
-      (set-window-buffer (selected-window) buffer)
-      (with-current-buffer buffer
-        (funcall (default-value 'major-mode))))))
+  (let ((new-window (split-window (selected-window) count
+                                  (if evil-split-window-below 'below 'above))))
+    (when (and (not count) evil-auto-balance-windows)
+      (balance-windows (window-parent)))
+    (if file
+        (evil-edit file)
+      (let ((buffer (generate-new-buffer "*new*")))
+        (set-window-buffer new-window buffer)
+        (select-window new-window)
+        (with-current-buffer buffer
+          (funcall (default-value 'major-mode)))))))
 
 (evil-define-command evil-window-vnew (count file)
   "Splits the current window vertically
 and opens a new buffer name or edits a certain FILE."
   :repeat nil
   (interactive "P<f>")
-  (split-window (selected-window) count
-                (if evil-vsplit-window-right 'left 'right))
-  (when (and (not count) evil-auto-balance-windows)
-    (balance-windows (window-parent)))
-  (if file
-      (evil-edit file)
-    (let ((buffer (generate-new-buffer "*new*")))
-      (set-window-buffer (selected-window) buffer)
-      (with-current-buffer buffer
-        (funcall (default-value 'major-mode))))))
+  (let ((new-window (split-window (selected-window) count
+                                  (if evil-vsplit-window-right 'right 'left))))
+    (when (and (not count) evil-auto-balance-windows)
+      (balance-windows (window-parent)))
+    (if file
+        (evil-edit file)
+      (let ((buffer (generate-new-buffer "*new*")))
+        (set-window-buffer new-window buffer)
+        (select-window new-window)
+        (with-current-buffer buffer
+          (funcall (default-value 'major-mode)))))))
 
 (evil-define-command evil-window-increase-height (count)
   "Increase current window height by COUNT."

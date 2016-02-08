@@ -3,12 +3,14 @@
 ;; Authors:
 ;;      Alessandro Piras <laynor at gmail.com>
 ;;      Antono Vasiljev <antono.vasiljev at gmail.com>
+;;      Bailey Ling <bling@live.ca>
 ;;      Barry O'Reilly <gundaetiapo at gmail.com>
 ;;      Christoph Lange <langec at web.de>
 ;;      Daniel Reiter <danieltreiter@gmail.com>
 ;;      Eivind Fonn <evfonn@gmail.com>
 ;;      Emanuel Evans <emanuel.evans at gmail.com>
 ;;      Eric Siegel <siegel.eric at gmail.com>
+;;      Eugene Yaremenko <w3techplayground@gmail.com>
 ;;      Frank Fischer <frank-fischer at shadow-soft.de>
 ;;      Frank Terbeck <ft at bewatermyfriend.org>
 ;;      Gordon Gustafson <gordon3.14 at gmail.com>
