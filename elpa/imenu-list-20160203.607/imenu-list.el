@@ -4,7 +4,7 @@
 
 ;; Author: Bar Magal (2015)
 ;; Version: 0.4
-;; Package-Version: 20150911.246
+;; Package-Version: 20160203.607
 ;; Homepage: https://github.com/bmag/imenu-list
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -221,9 +221,9 @@ See `hs-minor-mode' for information on what is hide/show."
   "Insert a line for ENTRY with DEPTH."
   (if (imenu--subalist-p entry)
       (progn
-        ;; should insert a button to do hide/show instead of "+"
-        (insert (imenu-list--depth-string depth) "+ ")
-        (insert-button (format "%s" (car entry))
+        (insert-button (format "%s+ %s"
+                               (imenu-list--depth-string depth)
+                               (car entry))
                        'face (imenu-list--get-face depth t)
                        'follow-link t
                        'action ;; #'imenu-list--action-goto-entry
@@ -474,7 +474,12 @@ If the imenu-list buffer doesn't exist, create it."
     (define-key map (kbd "SPC") #'imenu-list-display-entry)
     (define-key map (kbd "n") #'next-line)
     (define-key map (kbd "p") #'previous-line)
-    (define-key map (kbd "<tab>") #'next-line)
+    ;; not sure if "TAB" is better than "<tab>". "TAB" and "C-i" are the same,
+    ;; but we don't want to prevent users from accessing C-i if they want to
+    ;; (specifically relevant to evil-jumper, which uses C-i)
+    (define-key map (kbd "TAB") #'next-line)
+    (define-key map (kbd "<S-iso-lefttab>") #'previous-line)
+    (define-key map (kbd "<S-tab>") #'previous-line)
     (define-key map (kbd "<backtab>") #'previous-line)
     (define-key map (kbd "f") #'hs-toggle-hiding)
     map))
