@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20160121.1757
-;; Version: 1.5.2
+;; Package-Version: 20160202.503
+;; Version: 1.5.4
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -1021,7 +1021,7 @@ Always update if value of this variable is nil."
       (setq helm-gtags--query tagname))
     (let ((tagroot (helm-gtags--find-tag-simple)))
       (helm-attrset 'helm-gtags-base-directory dir src)
-      (helm-attrset 'name (concat "GNU Global at " (or dir tagroot)) src)
+      (helm-attrset 'name (format "%s in %s" tagname (or dir tagroot)) src)
       (helm :sources srcs :buffer helm-gtags--buffer
             :preselect preselect-regexp))))
 
