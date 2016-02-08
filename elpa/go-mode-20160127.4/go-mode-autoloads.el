@@ -3,8 +3,7 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "go-mode" "go-mode.el" (22145 57596 462798
-;;;;;;  7000))
+;;;### (autoloads nil "go-mode" "go-mode.el" (22200 34495 97252 592000))
 ;;; Generated autoloads from go-mode.el
 
 (autoload 'go-mode "go-mode" "\
@@ -29,7 +28,13 @@ The following extra functions are defined:
 - `godoc'
 - `go-import-add'
 - `go-remove-unused-imports'
+- `go-goto-arguments'
+- `go-goto-docstring'
+- `go-goto-function'
+- `go-goto-function-name'
 - `go-goto-imports'
+- `go-goto-return-values'
+- `go-goto-method-receiver'
 - `go-play-buffer' and `go-play-region'
 - `go-download-play'
 - `godef-describe' and `godef-jump'
@@ -88,8 +93,8 @@ Tries to look for a URL at point.
 
 ;;;***
 
-;;;### (autoloads nil nil ("go-mode-pkg.el") (22145 57596 476417
-;;;;;;  214000))
+;;;### (autoloads nil nil ("go-mode-pkg.el") (22200 34495 103629
+;;;;;;  84000))
 
 ;;;***
 
