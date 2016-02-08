@@ -91,6 +91,7 @@ For this operation `ansi-color-apply-on-region' is used."
           (bpr-try-refresh-process-window process))
       (bpr-run-process cmd))))
 
+;;;###autoload
 (defun bpr-open-last-buffer ()
   "Opens the buffer of the last spawned process."
   (interactive)
