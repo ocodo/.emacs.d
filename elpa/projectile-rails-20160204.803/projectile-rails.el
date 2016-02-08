@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20151126.945
+;; Package-Version: 20160204.803
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -207,6 +207,21 @@
 
 (defcustom projectile-rails-discover-bind "s-r"
   "The :bind option that will be passed `discover-add-context-menu' if available")
+
+(defcustom projectile-rails-vanilla-command "bundle exec rails"
+  "The command for rails"
+  :group 'projectile-rails
+  :type 'string)
+
+(defcustom projectile-rails-spring-command "bundle exec spring"
+  "The command for spring"
+  :group 'projectile-rails
+  :type 'string)
+
+(defcustom projectile-rails-zeus-command "zeus"
+  "The command for zeus"
+  :group 'projectile-rails
+  :type 'string)
 
 (defvar projectile-rails-extracted-region-snippet
   '(("erb"  . "<%%= render '%s' %%>")
@@ -629,9 +644,9 @@ The bound variable is \"filename\"."
   (projectile-rails-with-root
    (with-current-buffer (run-ruby
                          (projectile-rails-with-preloader
-                          :spring "bundle exec spring rails console"
+                          :spring (concat projectile-rails-spring-command " rails console")
                           :zeus "zeus console"
-                          :vanilla "bundle exec rails console"))
+                          :vanilla (concat projectile-rails-vanilla-command " console")))
      (projectile-rails-mode +1))))
 
 (defun projectile-rails-expand-snippet-maybe ()
@@ -703,9 +718,9 @@ The bound variable is \"filename\"."
   (if (member projectile-rails-server-buffer-name (mapcar 'buffer-name (buffer-list)))
       (switch-to-buffer projectile-rails-server-buffer-name)
     (projectile-rails-with-root
-     (compile (projectile-rails-with-preloader :spring "bundle exec spring rails server"
-                                               :zeus "zeus server"
-                                               :vanilla "bundle exec rails server")
+     (compile (projectile-rails-with-preloader :spring (concat projectile-rails-spring-command " rails server")
+                                               :zeus (concat projectile-rails-zeus-command " server")
+                                               :vanilla (concat projectile-rails-vanilla-command " server"))
               'projectile-rails-server-mode))))
 
 (defun projectile-rails--completion-in-region ()
@@ -725,9 +740,9 @@ The bound variable is \"filename\"."
   (interactive)
   (projectile-rails-with-root
    (let ((command-prefix (projectile-rails-with-preloader
-                          :spring "bundle exec spring rails generate "
-                          :zeus "zeus generate "
-                          :vanilla "bundle exec rails generate ")))
+                          :spring (concat projectile-rails-spring-command " rails generate ")
+                          :zeus (concat projectile-rails-zeus-command " generate ")
+                          :vanilla (concat projectile-rails-vanilla-command " generate "))))
      (compile
       (projectile-rails--generate-with-completion command-prefix)
       'projectile-rails-generate-mode))))
@@ -756,9 +771,9 @@ The bound variable is \"filename\"."
   (interactive)
   (projectile-rails-with-root
    (let ((command-prefix (projectile-rails-with-preloader
-                          :spring "bundle exec spring rails destroy "
-                          :zeus "zeus destroy "
-                          :vanilla "bundle exec rails destroy ")))
+                          :spring (concat projectile-rails-spring-command " rails destroy ")
+                          :zeus (concat projectile-rails-zeus-command " destroy ")
+                          :vanilla (concat projectile-rails-vanilla-command " destroy "))))
      (compile
       (projectile-rails--destroy-with-completion command-prefix)
       'projectile-rails-compilation-mode))))
