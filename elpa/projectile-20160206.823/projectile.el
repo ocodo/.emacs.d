@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160119.2336
+;; Package-Version: 20160206.823
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -81,6 +81,35 @@ attention to case differences."
         (and (>= start-pos 0)
              (eq t (compare-strings suffix nil nil
                                     string start-pos nil ignore-case))))))
+
+  ;; Improved (no more stack overflows) in Emacs 24.5
+  (eval-after-load 'etags
+    '(when (< emacs-major-version 25)
+       (defvar etags--table-line-limit 500)
+       (defun etags-tags-completion-table ()
+         (let (table
+               (progress-reporter
+                (make-progress-reporter
+                 (format "Making tags completion table for %s..." buffer-file-name)
+                 (point-min) (point-max))))
+           (save-excursion
+             (goto-char (point-min))
+             (while (not (eobp))
+               (if (not (re-search-forward
+                         "[\f\t\n\r()=,; ]?\177\\\(?:\\([^\n\001]+\\)\001\\)?"
+                         (+ (point) etags--table-line-limit) t))
+                   (forward-line 1)
+                 (push (prog1 (if (match-beginning 1)
+                                  (buffer-substring (match-beginning 1) (match-end 1))
+                                (goto-char (match-beginning 0))
+                                (skip-chars-backward "^\f\t\n\r()=,; ")
+                                (prog1
+                                    (buffer-substring (point) (match-beginning 0))
+                                  (goto-char (match-end 0))))
+                         (progress-reporter-update progress-reporter (point)))
+                       table))))
+           table))))
+
   )
 
 (defun projectile-trim-string (string)
@@ -279,7 +308,8 @@ containing a root file."
   :type '(repeat string))
 
 (defcustom projectile-project-root-files-functions
-  '(projectile-root-bottom-up
+  '(projectile-root-local
+    projectile-root-bottom-up
     projectile-root-top-down
     projectile-root-top-down-recurring)
   "A list of functions for finding project roots."
@@ -362,6 +392,12 @@ Any function that does not take arguments will do."
   "If true, use `vc-git-grep' in git projects."
   :group 'projectile
   :type 'boolean)
+
+(defcustom projectile-grep-finished-hook nil
+  "Hooks run when `projectile-grep' finishes."
+  :group 'projectile
+  :type 'hook
+  :package-version '(projectile . "0.14.0"))
 
 (defcustom projectile-test-prefix-function 'projectile-test-prefix
   "Function to find test files prefix based on PROJECT-TYPE."
@@ -697,6 +733,14 @@ which we're looking."
              (setq file nil))))
     (and root (expand-file-name (file-name-as-directory root)))))
 
+(defvar-local projectile-project-root nil
+  "Defines a custom Projectile project root.
+This is intended to be used as a file local variable.")
+
+(defun projectile-root-local (_dir)
+  "A simple wrapper around `projectile-project-root'."
+  projectile-project-root)
+
 (defun projectile-root-top-down (dir &optional list)
   "Identify a project root in DIR by top-down search for files in LIST.
 If LIST is nil, use `projectile-project-root-files' instead.
@@ -825,7 +869,7 @@ Files are returned as relative paths to the project root."
   :group 'projectile
   :type 'string)
 
-(defcustom projectile-fossil-command "fossil ls"
+(defcustom projectile-fossil-command "fossil ls | tr '\\n' '\\0'"
   "Command used by projectile to get the files in a fossil project."
   :group 'projectile
   :type 'string)
@@ -1767,8 +1811,8 @@ It assumes the test/ folder is at the same level as src/."
 (defun projectile-find-matching-test (file)
   "Compute the name of the test matching FILE."
   (let* ((basename (file-name-nondirectory (file-name-sans-extension file)))
-         (test-prefix (projectile-test-prefix (projectile-project-type)))
-         (test-suffix (projectile-test-suffix (projectile-project-type)))
+         (test-prefix (funcall projectile-test-prefix-function (projectile-project-type)))
+         (test-suffix (funcall projectile-test-suffix-function (projectile-project-type)))
          (candidates
           (-filter (lambda (current-file)
                      (let ((name (file-name-nondirectory
@@ -1789,8 +1833,8 @@ It assumes the test/ folder is at the same level as src/."
 (defun projectile-find-matching-file (test-file)
   "Compute the name of a file matching TEST-FILE."
   (let* ((basename (file-name-nondirectory (file-name-sans-extension test-file)))
-         (test-prefix (projectile-test-prefix (projectile-project-type)))
-         (test-suffix (projectile-test-suffix (projectile-project-type)))
+         (test-prefix (funcall projectile-test-prefix-function (projectile-project-type)))
+         (test-suffix (funcall projectile-test-suffix-function (projectile-project-type)))
          (candidates
           (-filter (lambda (current-file)
                      (let ((name (file-name-nondirectory
@@ -1870,7 +1914,8 @@ With REGEXP given, don't query the user for a regexp."
                              (projectile-ignored-files))
                        grep-find-ignored-files)))
           (grep-compute-defaults)
-          (rgrep search-regexp (or files "* .*") root-dir))))))
+          (rgrep search-regexp (or files "* .*") root-dir))))
+    (run-hooks 'projectile-grep-finished-hook)))
 
 (defun projectile-ag (search-term &optional arg)
   "Run an ag search with SEARCH-TERM in the project.
