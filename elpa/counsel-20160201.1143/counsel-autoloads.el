@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22179 13052 158807
-;;;;;;  847000))
+;;;### (autoloads nil "counsel" "counsel.el" (22200 34529 61371 103000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -132,6 +131,11 @@ Describe the selected candidate.
 Offer completion for `process-list'
 The default action deletes the selected process.
 An extra action allows to switch to the process buffer.
+
+\(fn)" t nil)
+
+(autoload 'counsel-git-stash "counsel" "\
+Search through all available git stashes.
 
 \(fn)" t nil)
 
