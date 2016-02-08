@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (22168 62014 151534
-;;;;;;  621000))
+;;;### (autoloads nil "alchemist" "alchemist.el" (22200 34571 373517
+;;;;;;  997000))
 ;;; Generated autoloads from alchemist.el
 
 (autoload 'alchemist-mode "alchemist" "\
@@ -17,8 +17,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22168 62014
-;;;;;;  211534 647000))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22200 34571
+;;;;;;  405518 108000))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -39,7 +39,7 @@ Show the IEx buffer if an IEx process is already run.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-phoenix" "alchemist-phoenix.el"
-;;;;;;  (22168 62014 203534 643000))
+;;;;;;  (22200 34571 397518 80000))
 ;;; Generated autoloads from alchemist-phoenix.el
 
 (autoload 'alchemist-phoenix-project-p "alchemist-phoenix" "\
@@ -66,7 +66,7 @@ The following commands are available:
 ;;;***
 
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (22168 62014 163534 627000))
+;;;;;;  (22200 34571 377518 11000))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -77,7 +77,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (22168 62014 227534 653000))
+;;;;;;  (22200 34571 413518 135000))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -105,7 +105,7 @@ The following commands are available:
 ;;;;;;  "alchemist-key.el" "alchemist-macroexpand.el" "alchemist-message.el"
 ;;;;;;  "alchemist-mix.el" "alchemist-pkg.el" "alchemist-project.el"
 ;;;;;;  "alchemist-report.el" "alchemist-scope.el" "alchemist-server.el"
-;;;;;;  "alchemist-utils.el") (22168 62014 240623 341000))
+;;;;;;  "alchemist-utils.el") (22200 34571 422092 409000))
 
 ;;;***
 
