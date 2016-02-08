@@ -153,17 +153,17 @@
                                 (forward-line))
                               cands)))))
            (candidate (unwind-protect
-                          (prog2
-                              (avy--make-backgrounds
-                               (append (avy-window-list)
-                                       (list  (ivy-state-window ivy-last))))
-                              (if (eq avy-style 'de-bruijn)
-                                  (avy-read-de-bruijn
-                                   candidates avy-keys)
-                                (avy-read (avy-tree candidates avy-keys)
-                                          #'avy--overlay-post
-                                          #'avy--remove-leading-chars))
-                            (avy-push-mark))
+                           (prog2
+                               (avy--make-backgrounds
+                                (append (avy-window-list)
+                                        (list (ivy-state-window ivy-last))))
+                               (if (eq avy-style 'de-bruijn)
+                                   (avy-read-de-bruijn
+                                    candidates avy-keys)
+                                 (avy-read (avy-tree candidates avy-keys)
+                                           #'avy--overlay-post
+                                           #'avy--remove-leading-chars))
+                             (avy-push-mark))
                         (avy--done))))
       (if (window-minibuffer-p (cdr candidate))
           (progn
@@ -381,20 +381,22 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
         (minibuffer-allow-text-properties t)
         res)
     (unwind-protect
-         (setq res
-               (ivy-read
-                "Swiper: "
-                candidates
-                :initial-input initial-input
-                :keymap swiper-map
-                :preselect preselect
-                :require-match t
-                :update-fn #'swiper--update-input-ivy
-                :unwind #'swiper--cleanup
-                :action #'swiper--action
-                :re-builder #'swiper--re-builder
-                :history 'swiper-history
-                :caller 'swiper))
+         (and
+          (setq res
+                (ivy-read
+                 "Swiper: "
+                 candidates
+                 :initial-input initial-input
+                 :keymap swiper-map
+                 :preselect preselect
+                 :require-match t
+                 :update-fn #'swiper--update-input-ivy
+                 :unwind #'swiper--cleanup
+                 :action #'swiper--action
+                 :re-builder #'swiper--re-builder
+                 :history 'swiper-history
+                 :caller 'swiper))
+          (point))
       (unless res
         (goto-char swiper--opoint)))))
 
