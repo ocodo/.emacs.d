@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 26 Sep 2015
 ;; Version: 2.1
-;; Package-Version: 20160121.1033
+;; Package-Version: 20160206.1156
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -428,7 +428,8 @@ manually updated package."
         (add-to-list 'package-pinned-packages (cons package archive-name))
       (error "Archive '%s' requested for package '%s' is not available."
              archive-name package))
-    (package-initialize t)))
+    (unless (bound-and-true-p package--initialized)
+      (package-initialize t))))
 
 (defun use-package-handler/:pin (name keyword archive-name rest state)
   (let ((body (use-package-process-keywords name rest state))
@@ -446,7 +447,7 @@ manually updated package."
 ;;
 ;; :ensure
 ;;
-
+(defvar package-archive-contents)
 (defun use-package-normalize/:ensure (name keyword args)
   (if (null args)
       t
@@ -462,7 +463,9 @@ manually updated package."
   (if (package-installed-p package)
       t
     (if (or (assoc package package-archive-contents) no-refresh)
-        (package-install package)
+        (if (boundp 'package-selected-packages)
+            (package-install package t)
+            (package-install package))
       (progn
         (package-refresh-contents)
         (use-package-ensure-elpa package t)))))
@@ -1021,6 +1024,7 @@ deferred until the prefix key sequence is pressed."
 ;; The main macro
 ;;
 
+;;;###autoload
 (defmacro use-package (name &rest args)
   "Declare an Emacs package by specifying a group of configuration options.
 
