@@ -1,16 +1,13 @@
 ;;; with-editor.el --- Use the Emacsclient as $EDITOR -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014-2016  The Magit Project Contributors
-;;
-;; You should have received a copy of the AUTHORS.md file which
-;; lists all contributors.  If not, see http://magit.vc/authors.
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113"))
+;; Package-Requires: ((emacs "24.4") (async "1.5") (dash "2.12.1"))
 ;; Keywords: tools
-;; Homepage: https://github.com/magit/magit
+;; Homepage: https://github.com/magit/with-editor
 
 ;; This file is not part of GNU Emacs.
 
@@ -29,13 +26,14 @@
 
 ;;; Commentary:
 
-;; Use the Emacsclient as `$EDITOR' of child processes, making sure
-;; they know how to call home.  For remote processes a substitute is
-;; provided, which communicates with Emacs on stdout instead of using
-;; a socket as the Emacsclient does.
+;; This library makes it possible to reliably use the Emacsclient as
+;; the `$EDITOR' of child processes.  It makes sure that they know how
+;; to call home.  For remote processes a substitute is provided, which
+;; communicates with Emacs on standard output/input instead of using a
+;; socket as the Emacsclient does.
 
-;; The commands `with-editor-async-shell-command' and
-;; `with-editor-shell-command' are intended as drop in replacements
+;; It provides the commands `with-editor-async-shell-command' and
+;; `with-editor-shell-command', which are intended as replacements
 ;; for `async-shell-command' and `shell-command'.  They automatically
 ;; export `$EDITOR' making sure the executed command uses the current
 ;; Emacs instance as "the editor".  With a prefix argument these
