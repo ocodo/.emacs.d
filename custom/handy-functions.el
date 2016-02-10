@@ -766,22 +766,27 @@ Use negative prefix P to go backward."
 (defun kilobyte (n)
   "N kilobytes to bytes."
   (* n 1024))
-(defalias 'kb 'kilobyte)
+(defalias 'Kb 'kilobyte)
 
 (defun megabyte (n)
   "N megabytes to bytes."
   (* (kilobyte n) 1024))
-(defalias 'mb 'megabyte)
+(defalias 'Mb 'megabyte)
 
 (defun gigabyte (n)
   "N gigabytes to bytes."
   (* (megabyte n) 1024))
-(defalias 'gb 'gigabyte)
+(defalias 'Gb 'gigabyte)
 
 (defun terabyte (n)
   "N terabytes to bytes."
   (* (gigabyte n) 1024))
-(defalias 'tb 'terabyte)
+(defalias 'Tb 'terabyte)
+
+(defun github-browse-repo (repo)
+  "Browse a github REPO by supplying the user/reponame."
+  (interactive "sGithub Repo [format: user/repo]: ")
+  (browse-url (format "https://github.com/%s" repo)))
 
 ;; Key bindings
 
