@@ -1,4 +1,4 @@
-;;; remember-theme.el --- Remembers the last theme in use and re-loads for the next session.
+;;; remember-themes.el --- Remembers the last theme in use and re-loads for the next session.
 
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; Url: https://github.com/jasonm23/emacs-remember-theme
@@ -26,9 +26,11 @@
 ;; (remember-theme-load)
 ;; (add-hook 'kill-emacs-hook 'remember-theme-save)
 ;;
-;; Install with: `M-x package-install remember-theme`
+;; Install with: `M-x package-install remember-themes`
 
 ;;; Changelog:
+;; 20160210.1644
+;; * Rename to remember-themes to stop custom-available-themes listing this package as a theme
 ;; 20150308.1931
 ;; * Stop forcing load at after-init, update instructions.
 ;; 20140122.1500
@@ -118,10 +120,10 @@ If no `remember-theme-emacs-dot-file' file exists the operation is skipped."
       (let* ((theme-name (remember-theme-read))
              (theme-symbol (intern theme-name)))
         (unless (member theme-symbol custom-enabled-themes)
-          (require (intern (format "%s-theme" theme-name))))       
+          (require (intern (format "%s-theme" theme-name))))
         (load-theme theme-symbol))
     (run-hooks 'remember-theme-after-load-hook)))
 
-(provide 'remember-theme)
+(provide 'remember-themes)
 
-;;; remember-theme.el ends here
+;;; remember-themes.el ends here
