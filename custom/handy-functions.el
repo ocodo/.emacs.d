@@ -788,18 +788,6 @@ Use negative prefix P to go backward."
   (interactive "sGithub Repo [format: user/repo]: ")
   (browse-url (format "https://github.com/%s" repo)))
 
-(defun select-themes ()
-  "Select a theme, first disabling any other loaded theme.
-
-This is because multiple enabled themes cause Emacs to slow down."
-  (interactive)
-  (let ((theme (completing-read
-                "Select theme: "
-                `("default" ,@(custom-available-themes)))))
-    (mapc 'disable-theme custom-enabled-themes)
-    (unless (string= theme "default")
-      (load-theme (intern-soft theme)))))
-
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
