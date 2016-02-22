@@ -37,16 +37,16 @@
 		 nil "Indent and dedent Lisp code, automatically adjust close parens" tar
 		 ((:url . "http://elpa.gnu.org/packages/adjust-parens.html"))])
  (aggressive-indent .
-		    [(1 4)
+		    [(1 5)
 		     ((emacs
 		       (24 1))
 		      (cl-lib
 		       (0 5)))
 		     "Minor mode to aggressively keep your code always indented" single
-		     ((:url . "http://github.com/Malabarba/aggressive-indent-mode")
+		     ((:url . "https://github.com/Malabarba/aggressive-indent-mode")
 		      (:keywords "indent" "lisp" "maint" "tools"))])
  (ahungry-theme .
-		[(1 0 12)
+		[(1 1 0)
 		 ((emacs
 		   (24)))
 		 "Ahungry color theme for Emacs.  Make sure to (load-theme 'ahungry)." tar
@@ -57,6 +57,11 @@
        nil "Edit all lines matching a given regexp" single
        ((:url . "http://elpa.gnu.org/packages/all.html")
 	(:keywords "matching"))])
+ (ampc .
+       [(0 2)
+	nil "Asynchronous Music Player Controller" single
+	((:url . "http://elpa.gnu.org/packages/ampc.html")
+	 (:keywords "ampc" "mpc" "mpd"))])
  (ascii-art-to-unicode .
 		       [(1 9)
 			nil "a small artist adjunct" single
@@ -98,7 +103,7 @@
 	  ((:url . "https://github.com/Malabarba/beacon")
 	   (:keywords "convenience"))])
  (bug-hunter .
-	     [(1 0 1)
+	     [(1 1)
 	      ((seq
 		(1 3))
 	       (cl-lib
@@ -295,9 +300,9 @@
 		  ((:keywords "convenience")
 		   (:url . "https://github.com/ergoemacs/ergoemacs-mode"))])
  (exwm .
-       [(0 1)
+       [(0 2)
 	((xelb
-	  (0 3)))
+	  (0 5)))
 	"Emacs X Window Manager" tar
 	((:keywords "unix")
 	 (:url . "https://github.com/ch11ng/exwm"))])
@@ -492,8 +497,8 @@
 	   ((:url . "http://elpa.gnu.org/packages/minimap.html")
 	    (:keywords))])
  (multishell .
-	     [(1 1 2)
-	      nil "facilitate multiple local and remote shell buffers" tar
+	     [(1 1 5)
+	      nil "Easily use multiple shell buffers, local and remote." tar
 	      ((:keywords "processes")
 	       (:url . "https://github.com/kenmanheimer/EmacsMultishell"))])
  (muse .
@@ -559,7 +564,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160208)
+      [(20160215)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -679,7 +684,7 @@
 	   ((:url . "https://github.com/Malabarba/speed-of-thought-lisp")
 	    (:keywords "convenience" "lisp"))])
  (spinner .
-	  [(1 5)
+	  [(1 7)
 	   nil "Add spinners and progress-bars to the mode-line for ongoing operations" single
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
@@ -744,6 +749,13 @@
 	nil "Quickly generate linear ranges in Emacs" tar
 	((:keywords "convenience")
 	 (:url . "https://github.com/abo-abo/tiny"))])
+ (tramp-theme .
+	      [(0 1 1)
+	       ((emacs
+		 (24 1)))
+	       "Custom theme for remote buffers" single
+	       ((:url . "http://elpa.gnu.org/packages/tramp-theme.html")
+		(:keywords "convenience" "faces"))])
  (transcribe .
 	     [(1 0 2)
 	      nil "Package for audio transcriptions" single
@@ -767,6 +779,15 @@
 		  [(0 1)
 		   nil "Unicode confusables table" tar
 		   ((:url . "http://elpa.gnu.org/packages/uni-confusables.html"))])
+ (url-http-ntlm .
+		[(2 0 1)
+		 ((cl-lib
+		   (0 5))
+		  (ntlm
+		   (2 0 0)))
+		 "NTLM authentication for the url library" tar
+		 ((:keywords "comm" "data" "processes" "hypermedia")
+		  (:url . "http://elpa.gnu.org/packages/url-http-ntlm.html"))])
  (vlf .
       [(1 7)
        nil "View Large Files" tar
@@ -826,7 +847,7 @@
 	 ((:url . "http://elpa.gnu.org/packages/xclip.html")
 	  (:keywords "convenience" "tools"))])
  (xelb .
-       [(0 4)
+       [(0 5)
 	((emacs
 	  (24 4))
 	 (cl-generic
