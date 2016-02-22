@@ -53,6 +53,18 @@
 (--each '(python-mode inferior-python-mode)
   (add-to-list 'sp-sexp-suffix (list it 'regexp "")))
 
+(defun sp-python-in-string-p (id action context)
+  "Return non-nil if point is in a string, taking
+care not to be confused by an unclosed ' that's just been typed."
+  (and (eq context 'string)
+       (save-excursion
+         (backward-char 1)
+         (nth 3 (syntax-ppss)))))
+
+(sp-local-pair 'python-mode
+               "'" "'"
+               :unless '(sp-in-comment-p sp-python-in-string-p))
+
 (sp-local-pair 'python-mode
                "(" nil
                :pre-handlers '(sp-python-pre-slurp-handler))
@@ -72,5 +84,15 @@
         (goto-char (sp-get ok :end))
         (when (looking-back " ")
           (delete-char -1))))))
+
+(defadvice python-indent-dedent-line-backspace
+    (around sp-backward-delete-char-advice activate)
+  (if smartparens-strict-mode
+      (cl-letf (((symbol-function 'delete-backward-char)
+                 (lambda (arg &optional killp)
+                   (sp-backward-delete-char arg))))
+        ad-do-it)
+    ad-do-it))
+
 (provide 'smartparens-python)
 ;;; smartparens-python.el ends here
