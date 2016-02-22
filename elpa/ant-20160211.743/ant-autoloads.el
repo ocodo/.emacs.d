@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ant" "ant.el" (21528 65013 907797 0))
+;;;### (autoloads nil "ant" "ant.el" (22218 26532 38369 133000))
 ;;; Generated autoloads from ant.el
 
 (autoload 'ant-kill-cache "ant" "\

@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2010 Andrew Gwozdziewycz <git@apgwoz.com>
 
-;; Version: 20131227.2307
-;; X-Original-Version: 0.1
+;; Version: 0.1
+;; Package-Version: 20160211.743
 ;; Keywords: compilation, ant, java
 
 ;; This file is NOT part of GNU Emacs
@@ -38,7 +38,7 @@
                                                  ant-build-file-name))))
     (message output)
     (if (> (length output) 0)
-        (mapcar '(lambda (x) (replace-regexp-in-string ".*<target.*name=\"\\([^\-][^\"]*\\).*" "\\1" x)) 
+        (mapcar (lambda (x) (replace-regexp-in-string ".*<target.*name=\"\\([^\-][^\"]*\\).*" "\\1" x)) 
                 (split-string output "[\n]"))
       nil)))
 
