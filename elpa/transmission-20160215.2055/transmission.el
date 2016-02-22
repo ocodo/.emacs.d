@@ -3,8 +3,8 @@
 ;; Copyright (C) 2014-2016  Mark Oteiza <mvoteiza@udel.edu>
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
-;; Version: 0.7
-;; Package-Version: 20160207.1505
+;; Version: 0.8
+;; Package-Version: 20160215.2055
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -98,11 +98,14 @@
                                   (:password string))))
   :group 'transmission)
 
-(defcustom transmission-pieces-display t
-  "How to show pieces of incomplete torrents."
-  :type '(choice (const :tag "Never" nil)
-                 (const :tag "Brief" brief)
-                 (const :tag "Full" t))
+(defcustom transmission-pieces-function #'transmission-format-pieces
+  "Function used to show pieces of incomplete torrents.
+The function takes a string (bitfield) representing the torrent
+pieces and the number of pieces as arguments, and should return a string."
+  :type '(radio (const :tag "None" nil)
+                (function-item transmission-format-pieces)
+                (function-item transmission-format-pieces-brief)
+                (function :tag "Function"))
   :group 'transmission)
 
 (defcustom transmission-trackers '()
@@ -143,10 +146,11 @@ See `format-time-string'."
 
 (defcustom transmission-torrent-functions '(transmission-ffap)
   "List of functions to use for guessing torrents for `transmission-add'.
-Each function should accept no arguments, and return a string or nil.
-One example of such a function is `transmission-ffap-last-killed'."
+Each function should accept no arguments, and return a string or nil."
   :type 'hook
-  :options '(transmission-ffap transmission-ffap-last-killed)
+  :options '(transmission-ffap
+             transmission-ffap-selection
+             transmission-ffap-last-killed)
   :group 'transmission)
 
 (defconst transmission-priority-alist
@@ -432,7 +436,7 @@ transmission rates."
 (defun transmission-files-directory-base (filename)
   "Return the top-most parent directory in string FILENAME."
   (let ((index (and (stringp filename)
-                    (string-match "/" filename))))
+                    (string-match-p "/" filename))))
     (if index (substring filename 0 (1+ index)))))
 
 (defun transmission-every-prefix-p (prefix list)
@@ -602,6 +606,10 @@ Returns a list of non-blank inputs."
   "Apply `transmission-ffap' to the most recent `kill-ring' entry."
   (transmission-ffap-string (car kill-ring)))
 
+(defun transmission-ffap-selection ()
+  "Apply `transmission-ffap' to the graphical selection."
+  (transmission-ffap-string (with-no-warnings (x-get-selection))))
+
 (defun transmission-default-torrent (functions)
   "Return the first non-nil evaluation of a function in FUNCTIONS."
   (catch :result
@@ -678,10 +686,22 @@ The two are spliced together with indices for each file, sorted by file name."
   (string
    (cond
     ((= 0 ratio) #x20)
-    ((< ratio 33) #x2591)
-    ((< ratio 66) #x2592)
-    ((< ratio 100) #x2593)
-    ((= 100 ratio) #x2588))))
+    ((< ratio 0.333) #x2591)
+    ((< ratio 0.667) #x2592)
+    ((< ratio 1) #x2593)
+    ((= 1 ratio) #x2588))))
+
+(defun transmission-ratio->256 (ratio)
+  "Return a grey font-locked single-space string according to RATIO.
+Uses color names for the 256 color palette."
+  (let* ((n (if (= 1 ratio) 231 (+ 236 (* 19 ratio)))))
+    (propertize " " 'font-lock-face `(:background ,(format "color-%d" n)))))
+
+(defun transmission-ratio->grey (ratio)
+  "Return a grey font-locked single-space string according to RATIO."
+  (let* ((lightness (+ 0.2 (* 0.8 ratio)))
+         (n (* 100 lightness)))
+    (propertize " " 'font-lock-face `(:background ,(format "grey%d" n)))))
 
 (defun transmission-torrent-seed-ratio (mode tlimit)
   "String showing a torrent's seed ratio limit.
@@ -1015,7 +1035,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
       (string-join (string-partition (substring bits 0 count) 72) "\n"))))
 
 (defun transmission-format-pieces-brief (pieces count)
-  "Format pieces into a one-line representation.
+  "Format pieces into a one-line greyscale representation.
 PIECES and COUNT are the same as in `transmission-format-pieces'."
   (let* ((bytes (base64-decode-string pieces))
          (slices
@@ -1023,8 +1043,12 @@ PIECES and COUNT are the same as in `transmission-format-pieces'."
          (ratios
           (cl-loop for slice in slices with n = count and m = nil
                    do (cl-decf n (setq m (min n (* 8 (length slice)))))
-                   collect (/ (* 100 (apply #'+ slice)) m))))
-    (mapconcat #'transmission-ratio->glyph ratios "")))
+                   collect (/ (apply #'+ slice) (float m)))))
+    (mapconcat (pcase (display-color-cells)
+                 ((pred (< 256)) #'transmission-ratio->grey)
+                 (256 #'transmission-ratio->256)
+                 (_ #'transmission-ratio->glyph))
+               ratios "")))
 
 (defun transmission-format-peers (peers origins connected sending receiving)
   "Format peer information into a string.
@@ -1165,11 +1189,10 @@ Each form in BODY is a column descriptor."
         (concat
          (format "Piece count: %d / %d (%d%%)" have .pieceCount
                  (transmission-percent have .pieceCount))
-         (when (and transmission-pieces-display (/= have 0) (< have .pieceCount))
+         (when (and (functionp transmission-pieces-function)
+                    (/= have 0) (< have .pieceCount))
            (format "\nPieces:\n\n%s"
-                   (if (eq transmission-pieces-display 'brief)
-                       (transmission-format-pieces-brief .pieces .pieceCount)
-                     (transmission-format-pieces .pieces .pieceCount))))))))))
+                   (funcall transmission-pieces-function .pieces .pieceCount)))))))))
 
 (defun transmission-draw-peers (id)
   (setq transmission-torrent-vector
@@ -1229,7 +1252,7 @@ Also run the timer for timer object `transmission-timer'."
                (setq transmission-torrent-id id)
                (transmission-draw)
                (goto-char (point-min)))))
-         (switch-to-buffer buffer)))))
+         (pop-to-buffer-same-window buffer)))))
 
 
 ;; Major mode definitions
