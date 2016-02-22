@@ -4,7 +4,7 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20151223.52
+;; Package-Version: 20160209.216
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -345,6 +345,19 @@
                                            :foreground gruber-darker-yellow))))
    `(whitespace-space-before-tab ((t ,(list :background gruber-darker-brown
                                             :foreground gruber-darker-brown))))
+
+   ;;;;; company-mode
+   `(company-tooltip ((t (:foreground ,gruber-darker-fg :background ,gruber-darker-bg+1))))
+   `(company-tooltip-annotation ((t (:foreground ,gruber-darker-brown :background ,gruber-darker-bg+1))))
+   `(company-tooltip-annotation-selection ((t (:foreground ,gruber-darker-brown :background ,gruber-darker-bg-1))))
+   `(company-tooltip-selection ((t (:foreground ,gruber-darker-fg :background ,gruber-darker-bg-1))))
+   `(company-tooltip-mouse ((t (:background ,gruber-darker-bg-1))))
+   `(company-tooltip-common ((t (:foreground ,gruber-darker-green))))
+   `(company-tooltip-common-selection ((t (:foreground ,gruber-darker-green))))
+   `(company-scrollbar-fg ((t (:background ,gruber-darker-bg-1))))
+   `(company-scrollbar-bg ((t (:background ,gruber-darker-bg+2))))
+   `(company-preview ((t (:background ,gruber-darker-green))))
+   `(company-preview-common ((t (:foreground ,gruber-darker-green :background ,gruber-darker-bg-1))))
    ))
 
 ;;;###autoload
