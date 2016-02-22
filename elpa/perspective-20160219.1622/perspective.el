@@ -1,12 +1,12 @@
 ;;; perspective.el --- switch between named "perspectives" of the editor
 
-;; Copyright (C) 2008-2012 Nathan Weizenbaum <nex342@gmail.com>
+;; Copyright (C) 2008-2015 Natalie Weizenbaum <nex342@gmail.com>
 ;;
-;; Licensed under the same terms as Emacs.
+;; Licensed under the same terms as Emacs and under the MIT license.
 
 ;; Author: Natalie Weizenbaum <nex342@gmail.com>
 ;; URL: http://github.com/nex3/perspective-el
-;; Package-Version: 20151211.1454
+;; Package-Version: 20160219.1622
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 1.12
 ;; Created: 2008-03-05
