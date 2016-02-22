@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "poly-R" "poly-R.el" (22145 57078 726178 506000))
+;;;### (autoloads nil "poly-R" "poly-R.el" (22218 26272 946998 455000))
 ;;; Generated autoloads from poly-R.el
  (autoload 'poly-noweb+r-mode "poly-R")
  (autoload 'poly-markdown+r-mode "poly-R")
@@ -17,42 +17,42 @@
 
 ;;;***
 
-;;;### (autoloads nil "poly-markdown" "poly-markdown.el" (22145 57078
-;;;;;;  714178 488000))
+;;;### (autoloads nil "poly-markdown" "poly-markdown.el" (22218 26272
+;;;;;;  938998 475000))
 ;;; Generated autoloads from poly-markdown.el
  (autoload 'poly-markdown-mode "poly-markdown")
 
 ;;;***
 
-;;;### (autoloads nil "poly-noweb" "poly-noweb.el" (22145 57078 682178
-;;;;;;  442000))
+;;;### (autoloads nil "poly-noweb" "poly-noweb.el" (22218 26272 902998
+;;;;;;  565000))
 ;;; Generated autoloads from poly-noweb.el
  (autoload 'poly-noweb-mode "poly-noweb")
 
 ;;;***
 
-;;;### (autoloads nil "poly-org" "poly-org.el" (22145 57078 718178
-;;;;;;  495000))
+;;;### (autoloads nil "poly-org" "poly-org.el" (22218 26272 938998
+;;;;;;  475000))
 ;;; Generated autoloads from poly-org.el
  (autoload 'poly-org-mode "poly-org")
 
 ;;;***
 
-;;;### (autoloads nil "polymode" "polymode.el" (22145 57078 702178
-;;;;;;  471000))
+;;;### (autoloads nil "polymode" "polymode.el" (22218 26272 926998
+;;;;;;  505000))
 ;;; Generated autoloads from polymode.el
 
 (autoload 'define-polymode "polymode" "\
 Define a new polymode MODE.
 This macro defines command MODE and an indicator variable MODE
-that is t when MODE is active and nil othervise.
+which becomes t when MODE is active and nil otherwise.
 
 MODE command is similar to standard emacs major modes and it can
 be used in `auto-mode-alist'. Standard hook MODE-hook is run at
-the end of the initialization of each polymode buffer, indirect
-and base alike. Additionally MODE-map is created based on the
-CONFIG's :map slot and the value of the :keymap argument; see
-below.
+the end of the initialization of each polymode buffer (both
+indirect and base buffers). Additionally MODE-map is created
+based on the CONFIG's :map slot and the value of the :keymap
+argument; see below.
 
 CONFIG is a name of a config object representing the mode.
 
@@ -62,13 +62,14 @@ CONFIG object or if the :mode slot is nil.
 
 BODY contains code to be executed after the complete
   initialization of the polymode (`pm-initialize') and before
-  running MODE-hook. Before the actual body code, you can write
-  keyword arguments, i.e. alternating keywords and values.  The
-  following special keywords are supported:
+  running MODE-hook. Before the BODY code, you can write keyword
+  arguments, i.e. alternating keywords and values.  The following
+  special keywords are supported:
 
 :lighter SPEC   Optional LIGHTER is displayed in the mode line when
-                the mode is on. If omitted, it defaults to
+                the mode is on.  If omitted, it defaults to
                 the :lighter slot of CONFIG object.
+
 :keymap MAP Same as the KEYMAP argument.
 
                 If nil, a new MODE-map keymap is created what
@@ -92,11 +93,11 @@ BODY contains code to be executed after the complete
 
 ;;;***
 
-;;;### (autoloads nil nil ("poly-base.el" "poly-erb.el" "poly-slim.el"
-;;;;;;  "poly-verilog.el" "polymode-classes.el" "polymode-common.el"
-;;;;;;  "polymode-configuration.el" "polymode-export.el" "polymode-methods.el"
-;;;;;;  "polymode-pkg.el" "polymode-tangle.el" "polymode-weave.el")
-;;;;;;  (22145 57078 753735 452000))
+;;;### (autoloads nil nil ("poly-base.el" "poly-c.el" "poly-erb.el"
+;;;;;;  "poly-lock.el" "poly-slim.el" "polymode-classes.el" "polymode-common.el"
+;;;;;;  "polymode-compat.el" "polymode-configuration.el" "polymode-export.el"
+;;;;;;  "polymode-methods.el" "polymode-pkg.el" "polymode-tangle.el"
+;;;;;;  "polymode-weave.el") (22218 26272 965425 473000))
 
 ;;;***
 

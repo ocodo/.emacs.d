@@ -15,10 +15,8 @@
 (defcustom pm-inner/erb
   (pm-hbtchunkmode "erb"
                    :mode 'ruby-mode
-                   :head-mode 'fundamental-mode
-                   :tail-mode 'fundamental-mode
-                   :head-reg  "\<\% *[-=]?"
-                   :tail-reg  "\%\>")
+                   :head-reg  "\"?\<\% *[-=]?"
+                   :tail-reg  "\%\>\"?")
   "erb typical chunk."
   :group 'innermodes
   :type 'object)
@@ -30,7 +28,9 @@
   "coffee-erb typical polymode."
   :group 'polymodes
   :type 'object)
-(define-polymode poly-coffee-erb-mode pm-poly/coffee-erb)
+
+(define-polymode poly-coffee+erb-mode pm-poly/coffee-erb)
+(define-obsolete-function-alias 'poly-coffee-erb-mode 'poly-coffee+erb-mode)
 
 (defcustom pm-poly/javascript-erb
   (pm-polymode-one "javascript-erb"
@@ -39,7 +39,9 @@
   "javascript-erb typical polymode."
   :group 'polymodes
   :type 'object)
-(define-polymode poly-javascript-erb-mode pm-poly/javascript-erb)
+
+(define-polymode poly-javascript+erb-mode pm-poly/javascript-erb)
+(define-obsolete-function-alias 'poly-javascript-erb-mode 'poly-javascript+erb-mode)
 
 (defcustom pm-poly/html-erb
   (pm-polymode-one "html-erb"
@@ -48,6 +50,8 @@
   "html-erb typical polymode."
   :group 'polymodes
   :type 'object)
-(define-polymode poly-html-erb-mode pm-poly/html-erb)
+
+(define-polymode poly-html+erb-mode pm-poly/html-erb)
+(define-obsolete-function-alias 'poly-html-erb-mode 'poly-html+erb-mode)
 
 (provide 'poly-erb)
