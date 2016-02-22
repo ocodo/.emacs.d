@@ -35,7 +35,6 @@
 ;;
 ;; Todo:
 ;;
-;; -- Make things non-case-sensitive and ignore underscores
 ;; -- Treat parameter lists separately
 ;; -- Treat pragmas inside "{." and ".}" separately
 ;;
@@ -72,9 +71,22 @@
 (define-derived-mode nim-mode prog-mode "Nim"
   "A major mode for the Nim programming language."
   :group 'nim
+
+  ;; init hook
+  (run-hooks nim-mode-init-hook)
+
+  (setq-local nim-inside-compiler-dir-p
+              (when (and buffer-file-name
+                         (string-match
+                          nim-suggest-ignore-dir-regex buffer-file-name))
+                t))
+
   ;; Font lock
   (setq-local font-lock-defaults
-              '(nim-font-lock-keywords
+              `(,(append nim-font-lock-keywords
+                         nim-font-lock-keywords-extra
+                         nim-font-lock-keywords-2
+                         nim-font-lock-keywords-3)
                 nil nil nil nil
                 (font-lock-syntactic-face-function
                  . nim-font-lock-syntactic-face-function)))
@@ -135,7 +147,7 @@
 (add-to-list 'electric-indent-functions-without-reindent 'nim-indent-line)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.nim\\(ble\\|s\\)?\\'" . nim-mode))
+(add-to-list 'auto-mode-alist '("\\.nim\\'" . nim-mode))
 
 (defun nim-indent-post-self-insert-function ()
   "Adjust indentation after insertion of some characters.
