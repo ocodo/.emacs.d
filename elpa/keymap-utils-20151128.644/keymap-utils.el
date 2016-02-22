@@ -6,7 +6,7 @@
 ;; Package-Requires: ((cl-lib "0.3"))
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
-;; Package-Version: 20151030.326
+;; Package-Version: 20151128.644
 
 ;; This file is not part of GNU Emacs.
 
@@ -427,7 +427,7 @@ Otherwise it is modified immediately after FEATURE is loaded.
 FEATURE may actually be a string, see `eval-after-load', though
 normally it is a symbol.
 
-Arguments aren't evaluated and therefor don't have to be quoted.
+Arguments aren't evaluated and therefore don't have to be quoted.
 Also see `kmu-define-keys-1' which does evaluate it's arguments."
   (declare (indent 2))
   (if feature
@@ -506,14 +506,15 @@ Also see `kmu-define-keys'."
 
 (defun kmu-map-keymap (function keymap)
   "Call FUNCTION once for each event sequence binding in KEYMAP.
+
 FUNCTION is called with two arguments: the event sequence that is
 bound (a vector), and the definition it is bound to.
 
 When the definition of an event is another keymap list then
-recursively build up a event sequence and instead of calling
+recursively build up an event sequence and instead of calling
 FUNCTION with the initial event and it's definition once, call
 FUNCTION once for each event sequence and the definition it is
-bound to .
+bound to.
 
 The last event in an event sequence may be a character range."
   (mapc (lambda (e) (apply function e)) (kmu-keymap-bindings keymap)))
