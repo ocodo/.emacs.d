@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 26 Sep 2015
 ;; Version: 2.1
-;; Package-Version: 20160206.1156
+;; Package-Version: 20160209.1633
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -652,9 +652,20 @@ manually updated package."
            (and allow-vector (vectorp (car x))))
        (symbolp (cdr x))))
 
+(defsubst use-package-is-string-pair (x)
+  "Return t if X has the type (STRING . STRING)."
+  (and (consp x)
+       (stringp (car x))
+       (stringp (cdr x))))
+
 (defun use-package-normalize-pairs
-    (name label arg &optional recursed allow-vector)
-  "Normalize a list of string/symbol pairs."
+    (name label arg &optional recursed allow-vector allow-string-cdrs)
+  "Normalize a list of string/symbol pairs.
+If RECURSED is non-nil, recurse into sublists.
+If ALLOW-VECTOR is non-nil, then the key to bind may specify a
+vector of keys, as accepted by `define-key'.
+If ALLOW-STRING-CDRS is non-nil, then the command name to bind to
+may also be a string, as accepted by `define-key'."
   (cond
    ((or (stringp arg) (and allow-vector (vectorp arg)))
     (list (cons arg (use-package-as-symbol name))))
@@ -663,16 +674,18 @@ manually updated package."
    ((and (not recursed) (listp arg) (listp (cdr arg)))
     (mapcar #'(lambda (x)
                 (let ((ret (use-package-normalize-pairs
-                            name label x t allow-vector)))
+                            name label x t allow-vector allow-string-cdrs)))
                   (if (listp ret)
                       (car ret)
                     ret))) arg))
+   ((and allow-string-cdrs (use-package-is-string-pair arg))
+    (list arg))
    (t arg)))
 
 (defun use-package-normalize-binder (name keyword args)
   (use-package-as-one (symbol-name keyword) args
     (lambda (label arg)
-      (use-package-normalize-pairs name label arg nil t))))
+      (use-package-normalize-pairs name label arg nil t t))))
 
 (defalias 'use-package-normalize/:bind 'use-package-normalize-binder)
 (defalias 'use-package-normalize/:bind* 'use-package-normalize-binder)
@@ -858,12 +871,13 @@ deferred until the prefix key sequence is pressed."
      (apply
       #'nconc
       (mapcar #'(lambda (command)
-                  (append
-                   `((unless (fboundp ',command)
-                       (autoload #',command ,name-string nil t)))
-                   (when (bound-and-true-p byte-compile-current-file)
-                     `((eval-when-compile
-                         (declare-function ,command ,name-string))))))
+                  (when (not (stringp command))
+                    (append
+                     `((unless (fboundp ',command)
+                         (autoload #',command ,name-string nil t)))
+                     (when (bound-and-true-p byte-compile-current-file)
+                       `((eval-when-compile
+                           (declare-function ,command ,name-string)))))))
               (delete-dups (plist-get state :commands))))
 
      body)))
