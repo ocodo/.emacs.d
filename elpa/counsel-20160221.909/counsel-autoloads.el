@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22200 34529 61371 103000))
+;;;### (autoloads nil "counsel" "counsel.el" (22218 26488 142474
+;;;;;;  99000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -13,6 +14,16 @@ Elisp completion at point.
 
 (autoload 'counsel-cl "counsel" "\
 Common Lisp completion at point.
+
+\(fn)" t nil)
+
+(autoload 'counsel-clj "counsel" "\
+Clojure completion at point.
+
+\(fn)" t nil)
+
+(autoload 'counsel-unicode-char "counsel" "\
+Insert a Unicode character at point.
 
 \(fn)" t nil)
 
@@ -31,13 +42,28 @@ Forward to (`info-describe-symbol' SYMBOL MODE) with ivy completion.
 
 \(fn SYMBOL &optional MODE)" t nil)
 
-(autoload 'counsel-unicode-char "counsel" "\
-Insert a Unicode character at point.
+(autoload 'counsel-M-x "counsel" "\
+Ivy version of `execute-extended-command'.
+Optional INITIAL-INPUT is the initial input in the minibuffer.
+
+\(fn &optional INITIAL-INPUT)" t nil)
+
+(autoload 'counsel-load-library "counsel" "\
+Load a selected the Emacs Lisp library.
+The libraries are offered from `load-path'.
 
 \(fn)" t nil)
 
-(autoload 'counsel-clj "counsel" "\
-Clojure completion at point.
+(autoload 'counsel-load-theme "counsel" "\
+Forward to `load-theme'.
+Usable with `ivy-resume', `ivy-next-line-and-call' and
+`ivy-previous-line-and-call'.
+
+\(fn)" t nil)
+
+(autoload 'counsel-descbinds "counsel" "\
+Show a list of all defined keys, and their definitions.
+Describe the selected candidate.
 
 \(fn)" t nil)
 
@@ -54,6 +80,11 @@ INITIAL-INPUT can be given as the initial minibuffer input.
 
 \(fn &optional CMD INITIAL-INPUT)" t nil)
 
+(autoload 'counsel-git-stash "counsel" "\
+Search through all available git stashes.
+
+\(fn)" t nil)
+
 (autoload 'counsel-find-file "counsel" "\
 Forward to `find-file'.
 When INITIAL-INPUT is non-nil, use it in the minibuffer during completion.
@@ -66,27 +97,14 @@ INITIAL-INPUT can be given as the initial minibuffer input.
 
 \(fn &optional INITIAL-INPUT)" t nil)
 
-(autoload 'counsel-load-library "counsel" "\
-Load a selected the Emacs Lisp library.
-The libraries are offered from `load-path'.
+(autoload 'counsel-ag "counsel" "\
+Grep for a string in the current directory using ag.
+INITIAL-INPUT can be given as the initial minibuffer input.
 
-\(fn)" t nil)
+\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
 
-(autoload 'counsel-M-x "counsel" "\
-Ivy version of `execute-extended-command'.
-Optional INITIAL-INPUT is the initial input in the minibuffer.
-
-\(fn &optional INITIAL-INPUT)" t nil)
-
-(autoload 'counsel-load-theme "counsel" "\
-Forward to `load-theme'.
-Usable with `ivy-resume', `ivy-next-line-and-call' and
-`ivy-previous-line-and-call'.
-
-\(fn)" t nil)
-
-(autoload 'counsel-rhythmbox "counsel" "\
-Choose a song from the Rhythmbox library to play or enqueue.
+(autoload 'counsel-grep "counsel" "\
+Grep for a string in the current file.
 
 \(fn)" t nil)
 
@@ -100,14 +118,8 @@ Set tags for the current agenda item.
 
 \(fn)" t nil)
 
-(autoload 'counsel-ag "counsel" "\
-Grep for a string in the current directory using ag.
-INITIAL-INPUT can be given as the initial minibuffer input.
-
-\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
-
-(autoload 'counsel-grep "counsel" "\
-Grep for a string in the current file.
+(autoload 'counsel-tmm "counsel" "\
+Text-mode emulation of looking and choosing from a menubar.
 
 \(fn)" t nil)
 
@@ -121,12 +133,6 @@ Jump to a buffer position indexed by imenu.
 
 \(fn)" t nil)
 
-(autoload 'counsel-descbinds "counsel" "\
-Show a list of all defined keys, and their definitions.
-Describe the selected candidate.
-
-\(fn)" t nil)
-
 (autoload 'counsel-list-processes "counsel" "\
 Offer completion for `process-list'
 The default action deletes the selected process.
@@ -134,8 +140,8 @@ An extra action allows to switch to the process buffer.
 
 \(fn)" t nil)
 
-(autoload 'counsel-git-stash "counsel" "\
-Search through all available git stashes.
+(autoload 'counsel-rhythmbox "counsel" "\
+Choose a song from the Rhythmbox library to play or enqueue.
 
 \(fn)" t nil)
 
