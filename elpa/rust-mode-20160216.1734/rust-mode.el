@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.2.0
-;; Package-Version: 20160116.1155
+;; Package-Version: 20160216.1734
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -29,6 +29,8 @@
       (list 'set (list 'make-local-variable (list 'quote var)) val))))
 
 (defconst rust-re-ident "[[:word:][:multibyte:]_][[:word:][:multibyte:]_[:digit:]]*")
+(defconst rust-re-lc-ident "[[:lower:][:multibyte:]_][[:word:][:multibyte:]_[:digit:]]*")
+(defconst rust-re-uc-ident "[[:upper:]][[:word:][:multibyte:]_[:digit:]]*")
 
 (defconst rust-re-non-standard-string
   (rx
@@ -181,6 +183,15 @@ function or trait.  When nil, where will be aligned with fn or trait."
   :type 'boolean
   :safe #'booleanp
   :group 'rust-mode)
+
+(defcustom rust-format-on-save nil
+  "Format future rust buffers before saving using rustfmt."
+  :type 'boolean
+  :safe #'booleanp)
+
+(defcustom rust-rustfmt-bin "rustfmt"
+  "Path to rustfmt executable."
+  :type 'string)
 
 (defface rust-unsafe-face
   '((t :inherit font-lock-warning-face))
@@ -528,19 +539,21 @@ function or trait.  When nil, where will be aligned with fn or trait."
 (defconst rust-re-special-types (regexp-opt-symbols rust-special-types))
 
 
-(defun rust-module-font-lock-matcher (limit)
-  "Matches module names \"foo::\" but does not match type annotations \"foo::<\"."
-  (block nil
-    (while t
-      (let* ((symbol-then-colons (rx-to-string `(seq (group (regexp ,rust-re-ident)) "::")))
-             (match (re-search-forward symbol-then-colons limit t)))
-        (cond
-         ;; If we didn't find a match, there are no more occurrences
-         ;; of foo::, so return.
-         ((null match) (return nil))
-         ;; If this isn't a type annotation foo::<, we've found a
-         ;; match, so a return it!
-         ((not (looking-at (rx (0+ space) "<"))) (return match)))))))
+(defun rust-path-font-lock-matcher (re-ident)
+  "Matches names like \"foo::\" or \"Foo::\" (depending on RE-IDENT, which should match
+the desired identifiers), but does not match type annotations \"foo::<\"."
+  `(lambda (limit)
+     (block nil
+       (while t
+         (let* ((symbol-then-colons (rx-to-string '(seq (group (regexp ,re-ident)) "::")))
+                (match (re-search-forward symbol-then-colons limit t)))
+           (cond
+            ;; If we didn't find a match, there are no more occurrences
+            ;; of foo::, so return.
+            ((null match) (return nil))
+            ;; If this isn't a type annotation foo::<, we've found a
+            ;; match, so a return it!
+            ((not (looking-at (rx (0+ space) "<"))) (return match))))))))
 
 (defvar rust-mode-font-lock-keywords
   (append
@@ -565,8 +578,11 @@ function or trait.  When nil, where will be aligned with fn or trait."
      ;; Field names like `foo:`, highlight excluding the :
      (,(concat (rust-re-grab rust-re-ident) ":[^:]") 1 font-lock-variable-name-face)
 
+     ;; Type names like `Foo::`, highlight excluding the ::
+     (,(rust-path-font-lock-matcher rust-re-uc-ident) 1 font-lock-type-face)
+
      ;; Module names like `foo::`, highlight excluding the ::
-     (rust-module-font-lock-matcher 1 font-lock-type-face)
+     (,(rust-path-font-lock-matcher rust-re-lc-ident) 1 font-lock-constant-face)
 
      ;; Lifetimes like `'foo`
      (,(concat "'" (rust-re-grab rust-re-ident) "[^']") 1 font-lock-variable-name-face)
@@ -582,10 +598,9 @@ function or trait.  When nil, where will be aligned with fn or trait."
            '(("enum" . font-lock-type-face)
              ("struct" . font-lock-type-face)
              ("type" . font-lock-type-face)
-             ("mod" . font-lock-type-face)
-             ("use" . font-lock-type-face)
-             ("fn" . font-lock-function-name-face)
-             ("static" . font-lock-constant-face)))))
+             ("mod" . font-lock-constant-face)
+             ("use" . font-lock-constant-face)
+             ("fn" . font-lock-function-name-face)))))
 
 (defvar font-lock-beg)
 (defvar font-lock-end)
@@ -1212,13 +1227,55 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
     ;; There is no opening brace, so consider the whole buffer to be one "defun"
     (goto-char (point-max))))
 
+;; Formatting using rustfmt
+(defun rust--format-call (buf)
+  "Format BUF using rustfmt."
+  (with-current-buffer (get-buffer-create "*rustfmt*")
+    (erase-buffer)
+    (insert-buffer-substring buf)
+    (if (zerop (call-process-region (point-min) (point-max) rust-rustfmt-bin t t nil))
+        (progn (copy-to-buffer buf (point-min) (point-max))
+               (kill-buffer))
+      (error "Rustfmt failed, see *rustfmt* buffer for details"))))
+
+(defun rust-format-buffer ()
+  "Format the current buffer using rustfmt."
+  (interactive)
+  (unless (executable-find rust-rustfmt-bin)
+    (error "Could not locate executable \"%s\"" rust-rustfmt-bin))
+
+  (let ((cur-point (point))
+        (cur-win-start (window-start)))
+    (rust--format-call (current-buffer))
+    (goto-char cur-point)
+    (set-window-start (selected-window) cur-win-start))
+  (message "Formatted buffer with rustfmt."))
+
+(defun rust-enable-format-on-save ()
+  "Enable formatting using rustfmt when saving buffer."
+  (interactive)
+  (add-hook 'before-save-hook #'rust-format-buffer nil t))
+
+(defun rust-disable-format-on-save ()
+  "Disable formatting using rustfmt when saving buffer."
+  (interactive)
+  (remove-hook 'before-save-hook #'rust-format-buffer t))
+
 ;; For compatibility with Emacs < 24, derive conditionally
 (defalias 'rust-parent-mode
   (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
 
+(defvar rust-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-f") 'rust-format-buffer)
+    map)
+  "Keymap for Rust major mode.")
+
 ;;;###autoload
 (define-derived-mode rust-mode rust-parent-mode "Rust"
-  "Major mode for Rust code."
+  "Major mode for Rust code.
+
+\\{rust-mode-map}"
   :group 'rust-mode
   :syntax-table rust-mode-syntax-table
 
@@ -1256,7 +1313,9 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
   (setq-local parse-sexp-lookup-properties t)
   (setq-local electric-pair-inhibit-predicate 'rust-electric-pair-inhibit-predicate-wrap)
   (add-hook 'after-revert-hook 'rust--after-revert-hook 'LOCAL)
-  )
+
+  (when rust-format-on-save
+    (rust-enable-format-on-save)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
