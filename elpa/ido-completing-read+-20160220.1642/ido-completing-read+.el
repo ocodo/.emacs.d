@@ -5,8 +5,8 @@
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 3.10
-;; Package-Version: 20151219.836
+;; Version: 3.12
+;; Package-Version: 20160220.1642
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
@@ -42,7 +42,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-completing-read+-version "3.10"
+(defconst ido-completing-read+-version "3.12"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-completing-read+, this variable may
@@ -87,6 +87,8 @@ Debug info is printed to the *Messages* buffer."
   (if (memq completing-read-function
             '(ido-completing-read+
               ido-completing-read
+              ;; Current ido-ubiquitous function
+              completing-read-ido-ubiquitous
               ;; Old ido-ubiquitous functions that shouldn't be used
               completing-read-ido
               ido-ubiquitous-completing-read))
@@ -289,12 +291,14 @@ match is equivalent to TAB, and C-j selects the first match.
 Since RET in ido already selects the first match, this advice
 sets up C-j to be equivalent to TAB in the same situation."
   (if (and
-       ;; Only if using ico-cr+
+       ;; Only override C-j behavior if...
+       ;; We're using ico-cr+
        ido-cr+-enable-this-call
-       ;; Only if require-match is non-nil
+       ;; Require-match is non-nil
        (with-no-warnings ido-require-match)
-       ;; Only if current text is non-empty
-       (not (string= ido-text ""))
+       ;; A default was provided, or ido-text is non-empty
+       (or (with-no-warnings ido-default-item)
+           (not (string= ido-text "")))
        ;; Only if current text is not a complete choice
        (not (member ido-text (with-no-warnings ido-cur-list))))
       (progn

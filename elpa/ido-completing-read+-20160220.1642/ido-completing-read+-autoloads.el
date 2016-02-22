@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "ido-completing-read+" "ido-completing-read+.el"
-;;;;;;  (22145 57161 46295 567000))
+;;;;;;  (22218 26400 234686 168000))
 ;;; Generated autoloads from ido-completing-read+.el
 
 (defvar ido-cr+-enable-next-call nil "\
