@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "mime-edit" "mime-edit.el" (21861 59942 743401
-;;;;;;  0))
+;;;### (autoloads nil "mime-edit" "mime-edit.el" (22218 26249 507056
+;;;;;;  744000))
 ;;; Generated autoloads from mime-edit.el
 
 (autoload 'mime-edit-mode "mime-edit" "\
@@ -13,7 +13,7 @@ MIME minor mode for editing the tagged MIME message.
 In this mode, basically, the message is composed in the tagged MIME
 format. The message tag looks like:
 
-	--[[text/plain; charset=ISO-2022-JP][7bit]]
+  --[[text/plain; charset=ISO-2022-JP][7bit]]
 
 The tag specifies the MIME content type, subtype, optional parameters
 and transfer encoding of the message following the tag.  Messages
@@ -26,10 +26,10 @@ translated into a MIME compliant message when exiting this mode.
 Available charsets depend on Emacs version being used.  The following
 lists the available charsets of each emacs.
 
-Without mule:	US-ASCII and ISO-8859-1 (or other charset) are available.
-With mule:	US-ASCII, ISO-8859-* (except for ISO-8859-5), KOI8-R,
-		ISO-2022-JP, ISO-2022-JP-2, EUC-KR, CN-GB-2312,
-		CN-BIG5 and ISO-2022-INT-1 are available.
+Without mule: US-ASCII and ISO-8859-1 (or other charset) are available.
+With mule:  US-ASCII, ISO-8859-* (except for ISO-8859-5), KOI8-R,
+    ISO-2022-JP, ISO-2022-JP-2, EUC-KR, CN-GB-2312,
+    CN-BIG5 and ISO-2022-INT-1 are available.
 
 ISO-2022-JP-2 and ISO-2022-INT-1 charsets used in mule is expected to
 be used to represent multilingual text in intermixed manner.  Any
@@ -50,61 +50,61 @@ which key is MIME charset and value is coding-system.
 Following commands are available in addition to major mode commands:
 
 \[make single part]
-\\[mime-edit-insert-text]	insert a text message.
-\\[mime-edit-insert-file]	insert a (binary) file.
+\\[mime-edit-insert-text] insert a text message.
+\\[mime-edit-insert-file] insert a (binary) file.
 \\[mime-eidt-insert-file-as-text] insert a text file.
-\\[mime-edit-insert-external]	insert a reference to external body.
-\\[mime-edit-insert-voice]	insert a voice message.
-\\[mime-edit-insert-message]	insert a mail or news message.
-\\[mime-edit-insert-mail]	insert a mail message.
-\\[mime-edit-insert-signature]	insert a signature file at end.
-\\[mime-edit-insert-key]	insert PGP public key.
-\\[mime-edit-insert-tag]	insert a new MIME tag.
+\\[mime-edit-insert-external] insert a reference to external body.
+\\[mime-edit-insert-voice]  insert a voice message.
+\\[mime-edit-insert-message]  insert a mail or news message.
+\\[mime-edit-insert-mail] insert a mail message.
+\\[mime-edit-insert-signature]  insert a signature file at end.
+\\[mime-edit-insert-key]  insert PGP public key.
+\\[mime-edit-insert-tag]  insert a new MIME tag.
 
 \[make enclosure (maybe multipart)]
 \\[mime-edit-enclose-alternative-region]   enclose as multipart/alternative.
-\\[mime-edit-enclose-parallel-region]	   enclose as multipart/parallel.
-\\[mime-edit-enclose-mixed-region]	   enclose as multipart/mixed.
-\\[mime-edit-enclose-digest-region]	   enclose as multipart/digest.
-\\[mime-edit-enclose-pgp-signed-region]	   enclose as PGP signed.
+\\[mime-edit-enclose-parallel-region]    enclose as multipart/parallel.
+\\[mime-edit-enclose-mixed-region]     enclose as multipart/mixed.
+\\[mime-edit-enclose-digest-region]    enclose as multipart/digest.
+\\[mime-edit-enclose-pgp-signed-region]    enclose as PGP signed.
 \\[mime-edit-enclose-pgp-encrypted-region] enclose as PGP encrypted.
-\\[mime-edit-enclose-quote-region]	   enclose as verbose mode
-					   (to avoid to expand tags)
+\\[mime-edit-enclose-quote-region]     enclose as verbose mode
+             (to avoid to expand tags)
 
 \[other commands]
-\\[mime-edit-set-transfer-level-7bit]	set transfer-level as 7.
-\\[mime-edit-set-transfer-level-8bit]	set transfer-level as 8.
-\\[mime-edit-set-split]			set message splitting mode.
-\\[mime-edit-set-sign]			set PGP-sign mode.
-\\[mime-edit-set-encrypt]		set PGP-encryption mode.
-\\[mime-edit-preview-message]		preview editing MIME message.
-\\[mime-edit-exit]			exit and translate into a MIME
-					compliant message.
-\\[mime-edit-help]			show this help.
-\\[mime-edit-maybe-translate]		exit and translate if in MIME mode,
-					then split.
+\\[mime-edit-set-transfer-level-7bit] set transfer-level as 7.
+\\[mime-edit-set-transfer-level-8bit] set transfer-level as 8.
+\\[mime-edit-set-split]     set message splitting mode.
+\\[mime-edit-set-sign]      set PGP-sign mode.
+\\[mime-edit-set-encrypt]   set PGP-encryption mode.
+\\[mime-edit-preview-message]   preview editing MIME message.
+\\[mime-edit-exit]      exit and translate into a MIME
+          compliant message.
+\\[mime-edit-help]      show this help.
+\\[mime-edit-maybe-translate]   exit and translate if in MIME mode,
+          then split.
 
 Additional commands are available in some major modes:
-C-c C-c		exit, translate and run the original command.
-C-c C-s		exit, translate and run the original command.
+C-c C-c   exit, translate and run the original command.
+C-c C-s   exit, translate and run the original command.
 
 The following is a message example written in the tagged MIME format.
 TABs at the beginning of the line are not a part of the message:
 
-	This is a conventional plain text.  It should be translated
-	into text/plain.
-	--[[text/plain]]
-	This is also a plain text.  But, it is explicitly specified as
-	is.
-	--[[text/plain; charset=ISO-8859-1]]
-	This is also a plain text.  But charset is specified as
-	iso-8859-1.
+  This is a conventional plain text.  It should be translated
+  into text/plain.
+  --[[text/plain]]
+  This is also a plain text.  But, it is explicitly specified as
+  is.
+  --[[text/plain; charset=ISO-8859-1]]
+  This is also a plain text.  But charset is specified as
+  iso-8859-1.
 
-	¡Hola!  Buenos días.  ¿Cómo está usted?
-	--[[text/enriched]]
-	This is a <bold>enriched text</bold>.
-	--[[image/gif][base64]]...image encoded in base64 here...
-	--[[audio/basic][base64]]...audio encoded in base64 here...
+  ¡Hola!  Buenos días.  ¿Cómo está usted?
+  --[[text/enriched]]
+  This is a <bold>enriched text</bold>.
+  --[[image/gif][base64]]...image encoded in base64 here...
+  --[[audio/basic][base64]]...audio encoded in base64 here...
 
 User customizable variables (not documented all of them):
  mime-edit-prefix
@@ -166,8 +166,8 @@ converted to MIME-Edit tags.
 
 ;;;***
 
-;;;### (autoloads nil "mime-play" "mime-play.el" (21861 59942 747401
-;;;;;;  0))
+;;;### (autoloads nil "mime-play" "mime-play.el" (22218 26249 511056
+;;;;;;  734000))
 ;;; Generated autoloads from mime-play.el
 
 (autoload 'mime-preview-play-current-entity "mime-play" "\
@@ -190,8 +190,8 @@ specified, play as it.  Default MODE is \"play\".
 
 ;;;***
 
-;;;### (autoloads nil "mime-view" "mime-view.el" (21861 59942 727401
-;;;;;;  0))
+;;;### (autoloads nil "mime-view" "mime-view.el" (22218 26249 491056
+;;;;;;  784000))
 ;;; Generated autoloads from mime-view.el
 
 (autoload 'mime-display-message "mime-view" "\
@@ -232,8 +232,8 @@ message.  It must be nil, `binary' or `cooked'.  If it is nil,
 
 ;;;***
 
-;;;### (autoloads nil "postpet" "postpet.el" (21861 59942 767401
-;;;;;;  0))
+;;;### (autoloads nil "postpet" "postpet.el" (22218 26249 531056
+;;;;;;  684000))
 ;;; Generated autoloads from postpet.el
 
 (autoload 'postpet-decode "postpet" "\
@@ -252,7 +252,7 @@ message.  It must be nil, `binary' or `cooked'.  If it is nil,
 ;;;;;;  "mime-mac.el" "mime-partial.el" "mime-pgp.el" "mime-setup.el"
 ;;;;;;  "mime-shr.el" "mime-signature.el" "mime-tnef.el" "mime-vcard.el"
 ;;;;;;  "mime-w3.el" "semi-def.el" "semi-pkg.el" "semi-setup.el"
-;;;;;;  "signature.el") (21861 59942 808427 136000))
+;;;;;;  "signature.el") (22218 26249 584264 670000))
 
 ;;;***
 

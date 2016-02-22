@@ -2399,7 +2399,8 @@ If no one is selected, symmetric encryption will be performed.  ")
 (defvar mime-edit-encrypt-recipient-fields-list '("From" "To" "cc"))
 
 (defun mime-edit-make-encrypt-recipient-header ()
-  (let ((field-names (mapcar 'downcase
+  (let ((config (epg-configuration))
+	(field-names (mapcar 'downcase
 			     mime-edit-encrypt-recipient-fields-list))
 	header recipients name value)
     (save-excursion
@@ -2429,11 +2430,42 @@ If no one is selected, symmetric encryption will be performed.  ")
 	  (apply #'concat (nreverse header)))
     ))
 
+(defcustom mime-edit-encrypt-pgp-ignore-missing-keys 'ask
+  "Define the behavior when no available key for recipient was found.
+When value is ask, you are prompted whether proceed.
+When value is nil, quit encryption and an an error is signaled.
+When value is other non-nil, show only message and proceed."
+  :group 'mime-edit-pgp
+  :type '(choice
+	  (const :tag "Ask user" ask)
+	  (const :tag "Show message and proceed" t)
+	  (const :tag "Stop encryption and raise error" nil)))
+
+(defun mime-edit-encrypt-pgp-recipients-keys (recipients)
+  (delq
+   nil
+   (mapcar
+    (lambda (name)
+      (or (mime-edit-pgp-keys-valid-key
+	   (epg-list-keys context name) 'encrypt)
+	  (cond
+	   ((eq mime-edit-encrypt-pgp-ignore-missing-keys 'ask)
+	    (unless (y-or-n-p
+		     (format
+		      "No available encryption key for %s, proceed? " name))
+	      (signal 'epg-error '(quit))))
+	   (mime-edit-encrypt-pgp-ignore-missing-keys
+	    (message "No available encryption key for %s" name)
+	    (sit-for 1)
+	    nil)
+	   (t
+	    (error "No available encryption key for %s" name)))))
+    recipients)))
+
 (defun mime-edit-encrypt-pgp-mime (beg end boundary)
   (save-excursion
     (save-restriction
-      (let* ((config (epg-configuration))
-	     (ret (mime-edit-make-encrypt-recipient-header))
+      (let* ((ret (mime-edit-make-encrypt-recipient-header))
 	     (recipients (car ret))
 	     (header (cdr ret)))
         (narrow-to-region beg end)
@@ -2453,17 +2485,13 @@ If no one is selected, symmetric encryption will be performed.  ")
           (insert "\n")
 	  (mime-encode-header-in-buffer)
 	  (epg-context-set-armor context t)
-	  (if mime-edit-pgp-verbose
-	      (setq recipients
+	  (setq recipients
+		(if mime-edit-pgp-verbose
 		    (epa-select-keys context "\
 Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "
-				     recipients))
-	    (setq recipients
-		  (delq nil (mapcar (lambda (name)
-				      (mime-edit-pgp-keys-valid-key
-				       (epg-list-keys context name) 'encrypt))
-				    recipients))))
+				     recipients)
+		  (mime-edit-encrypt-pgp-recipients-keys recipients)))
 	  (setq cipher
 		(epg-encrypt-string
 		 context
