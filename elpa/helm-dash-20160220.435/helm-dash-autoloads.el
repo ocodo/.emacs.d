@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-dash" "helm-dash.el" (22160 38949 701248
-;;;;;;  511000))
+;;;### (autoloads nil "helm-dash" "helm-dash.el" (22218 26409 926662
+;;;;;;  655000))
 ;;; Generated autoloads from helm-dash.el
 
 (autoload 'helm-dash-activate-docset "helm-dash" "\
@@ -28,13 +28,12 @@ Download docset with specified DOCSET-NAME and move its stuff to docsets-path.
 \(fn DOCSET-NAME)" t nil)
 
 (autoload 'helm-dash "helm-dash" "\
-Bring up a Dash search interface in helm.
+Bring up a `helm-dash' search interface.
 
 \(fn)" t nil)
 
 (autoload 'helm-dash-at-point "helm-dash" "\
-Bring up a Dash search interface in helm using the symbol at
-point as prefilled search.
+Bring up a `helm-dash' search interface with symbol at point.
 
 \(fn)" t nil)
 
