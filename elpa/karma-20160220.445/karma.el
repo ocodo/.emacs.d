@@ -5,7 +5,7 @@
 ;; Author: Samuel Tonini
 ;; Maintainer: Samuel Tonini
 ;; URL: http://github.com/tonini/karma.el
-;; Package-Version: 20150120.2158
+;; Package-Version: 20160220.445
 ;; Version: 0.2.0-cvs
 ;; Package-Requires: ((pkg-info "0.4") (emacs "24"))
 ;; Keywords: language, javascript, js, karma, testing
@@ -120,7 +120,7 @@
   (let ((project-root (karma-project-root)))
     (if (not project-root)
         (error "Couldn't find any project root")
-      (setq default-directory project-root))))
+      (setq default-directory (file-name-as-directory project-root)))))
 
 (defvar karma-buffer--buffer-name nil
   "Used to store compilation name so recompilation works as expected.")

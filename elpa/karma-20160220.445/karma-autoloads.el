@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "karma" "karma.el" (22089 54963 0 0))
+;;;### (autoloads nil "karma" "karma.el" (22218 26380 134735 42000))
 ;;; Generated autoloads from karma.el
 
 (autoload 'karma-version "karma" "\
