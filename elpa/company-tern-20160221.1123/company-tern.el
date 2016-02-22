@@ -1,10 +1,10 @@
 ;;; company-tern.el --- Tern backend for company-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2015 by Artem Malyshev
+;; Copyright (C) 2013-2016 by Artem Malyshev
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/company-tern
-;; Package-Version: 20151230.1100
+;; Package-Version: 20160221.1123
 ;; Version: 0.2.0
 ;; Package-Requires: ((company "0.8.0") (tern "0.0.1") (dash "2.8.0") (dash-functional "2.8.0") (s "1.9.0") (cl-lib "0.5.0"))
 
