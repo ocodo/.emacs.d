@@ -6,8 +6,8 @@
 ;;; Author: Paul Huff <paul.huff@gmail.com>, Stefano Mazzucco <MY FIRST NAME - AT - CURSO - DOT - RE>
 ;;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;;; Created: 15 Feb 2014
-;;; Version: 0.0.3
-;; Package-Version: 20151126.1838
+;;; Version: 0.0.4
+;; Package-Version: 20160220.350
 ;;; URL: https://github.com/redguardtoo/js-comint
 ;;; Package-Requires: ((nvm "0.2.0"))
 ;;; Keywords: javascript, node, inferior-mode, convenience
@@ -181,9 +181,10 @@ is run).
       (when js-use-nvm
         (unless js-nvm-current-version
           (js-select-node-version)))
-      (setenv "NODE_NO_READLINE" "1")
       (setq inferior-js-program-arguments (split-string cmd))
       (setq inferior-js-program-command (pop inferior-js-program-arguments)))))
+
+  (setenv "NODE_NO_READLINE" "1")
   (if (not (comint-check-proc "*js*"))
       (with-current-buffer
           (apply 'make-comint "js" inferior-js-program-command
