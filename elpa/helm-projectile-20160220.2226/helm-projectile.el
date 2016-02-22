@@ -3,8 +3,8 @@
 ;; Copyright (C) 2011-2015 Bozhidar Batsov
 
 ;; Author: Bozhidar Batsov
-;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20151220.221
+;; URL: https://github.com/bbatsov/helm-projectile
+;; Package-Version: 20160220.2226
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
@@ -673,10 +673,11 @@ If it is nil, or ack/ack-grep not found then use default grep command."
          (helm-grep-default-command (if use-ack-p
                                         (concat ack-executable " -H --no-group --no-color " ack-ignored-pattern " %p %f")
                                       (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
-                                          "git --no-pager grep --no-color -n -e %p -- %f"
+                                          "git --no-pager grep --no-color -n%c -e %p -- %f"
                                         "grep -a -r %e -n%cH -e %p %f .")))
-         (helm-grep-default-recurse-command helm-grep-default-command)
-         (helm-source-grep
+         (helm-grep-default-recurse-command helm-grep-default-command))
+
+    (setq helm-source-grep
           (helm-build-async-source
               (capitalize (helm-grep-command t))
             :header-name (lambda (name)
@@ -702,7 +703,7 @@ If it is nil, or ack/ack-grep not found then use default grep command."
                      "Find file other window" 'helm-grep-other-window)
             :persistent-action 'helm-grep-persistent-action
             :persistent-help "Jump to line (`C-u' Record in mark ring)"
-            :requires-pattern 2)))
+            :requires-pattern 2))
     (helm
      :sources 'helm-source-grep
      :input (if (region-active-p)
