@@ -122,16 +122,19 @@ You can set value same as `thing-at-point'."
        #'(lambda (process event)
            ;; need to FIX this and actually recognize exit-code
            (let ((noresult (= (process-exit-status process) 2)))
-             (unless noresult
-               (helm-process-deferred-sentinel-hook
-                process event helm-ff-default-directory))
+             (helm-process-deferred-sentinel-hook
+              process event
+              (or helm-ff-default-directory
+                  (helm-default-directory)
+                  default-directory)
+              )
              ;; error handling
              (cond ((and noresult
                          (with-current-buffer helm-buffer
                            (insert (concat "* Exit with code 2, no result found,"
                                            " command line was:\n\n "
-                                           (helm-pt--command helm-pattern)
-                                           )))))
+                                           (format "%s" 
+                                                   (helm-pt--command helm-pattern)))))))
                    ((string= event "finished\n")
                     (with-helm-window
                       (force-mode-line-update)))
