@@ -1,4 +1,4 @@
-(define-package "tide" "20160130.43" "Typescript Interactive Development Environment"
+(define-package "tide" "20160220.2342" "Typescript Interactive Development Environment"
   '((typescript-mode "0.1")
     (emacs "24.1")
     (flycheck "0.23")
