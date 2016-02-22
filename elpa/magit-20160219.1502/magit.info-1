@@ -4610,7 +4610,7 @@ _push-remote_, see *note Branching: Branching.
 
 ‘f u’     (‘magit-fetch-from-upstream’)
 
-     Fetch from the push-remote of the current branch.
+     Fetch from the upstream of the current branch.
 
 ‘f e’     (‘magit-fetch’)
 

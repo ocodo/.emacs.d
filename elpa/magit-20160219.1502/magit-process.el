@@ -337,11 +337,17 @@ flattened before use."
         (while (and magit-this-process
                     (eq (process-status magit-this-process) 'run))
           (sleep-for 0.005)))
-    (let ((process-environment (append (magit-cygwin-env-vars)
-                                       process-environment)))
-      (apply #'call-process-region (point-min) (point-max)
-             magit-git-executable nil nil nil
-             (magit-process-git-arguments args)))))
+    (run-hooks 'magit-pre-call-git-hook)
+    (-let* ((process-environment (append (magit-cygwin-env-vars)
+                                         process-environment))
+            (flat-args (magit-process-git-arguments args))
+            ((process-buf . section)
+             (magit-process-setup magit-git-executable flat-args))
+            (inhibit-read-only t))
+      (magit-process-finish
+       (apply #'call-process-region (point-min) (point-max)
+              magit-git-executable nil process-buf nil flat-args)
+       process-buf nil default-directory section))))
 
 (defun magit-run-git-with-logfile (file &rest args)
   "Call Git in a separate process and log its output to FILE.
@@ -790,7 +796,7 @@ as argument."
                                 (match-string 1))))))
                    "Git failed")))
       (if magit-process-raise-error
-          (signal 'magit-git-error msg)
+          (signal 'magit-git-error (format "%s (in %s)" msg default-dir))
         (--when-let (magit-mode-get-buffer 'magit-status-mode)
           (setq magit-this-error msg))
         (message "%s ... [%s buffer %s for details]" msg

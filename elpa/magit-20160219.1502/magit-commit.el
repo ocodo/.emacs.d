@@ -116,7 +116,7 @@ an error while using those is harder to recover from."
                (?a "Amend"          magit-commit-amend)
                (?A "Augment"        magit-commit-augment))
     :max-action-columns 4
-    :default-action 'magit-commit))
+    :default-action magit-commit))
 
 (magit-define-popup-keys-deferred 'magit-commit-popup)
 
@@ -303,9 +303,13 @@ depending on the value of option `magit-commit-squash-confirm'."
                       (apply-partially 'magit-diff-staged nil))
                      (`magit-commit-amend  'magit-diff-while-amending)
                      (`magit-commit-reword 'magit-diff-while-amending)))
-    (let ((magit-inhibit-save-previous-winconf 'unset)
-          (magit-display-buffer-noselect t))
-      (funcall it (car (magit-diff-arguments))))))
+    (condition-case nil
+        (let ((magit-inhibit-save-previous-winconf 'unset)
+              (magit-display-buffer-noselect t)
+              (inhibit-quit nil))
+          (message "Diffing changes to be committed (C-g to abort diffing)")
+          (funcall it (car (magit-diff-arguments))))
+      (quit))))
 
 (add-hook 'server-switch-hook 'magit-commit-diff)
 
