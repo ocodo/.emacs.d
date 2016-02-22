@@ -888,6 +888,18 @@ Set this variable to nil to disable the mode line completely."
   :risky t
   :package-version '(flycheck . "0.20"))
 
+(defcustom flycheck-mode-line-prefix "FlyC"
+  "Base mode line lighter for Flycheck.
+
+This will have an effect only with the default
+`flycheck-mode-line'.
+
+If you've customized `flycheck-mode-line' then the customized
+function must be updated to use this variable."
+  :group 'flycheck
+  :type 'string
+  :package-version '(flycheck . "0.26"))
+
 (defcustom flycheck-error-list-mode-line
   `(,(propertized-buffer-identification "%12b")
     " for buffer "
@@ -3072,7 +3084,7 @@ nil."
                      "")))
                 (`interrupted "-")
                 (`suspicious "?"))))
-    (concat " FlyC" text)))
+    (concat " " flycheck-mode-line-prefix text)))
 
 
 ;;; Error levels
@@ -5032,8 +5044,14 @@ This variable is an option for the following syntax checkers:
 
 If VALUE is nil, return nil.  Otherwise return VALUE converted to
 a string."
-  (when value
-    (number-to-string value)))
+  (and value (number-to-string value)))
+
+(defun flycheck-option-symbol (value)
+  "Convert a symbol option VALUE to string.
+
+If VALUE is nil return nil.  Otherwise return VALUE converted to
+a string."
+  (and value (symbol-name value)))
 
 (defun flycheck-option-comma-separated-list (value &optional separator filter)
   "Convert VALUE into a list separated by SEPARATOR.
@@ -6943,7 +6961,12 @@ See URL `https://github.com/ndmitchell/hlint'."
             (eval flycheck-hlint-args)
             source-inplace)
   :error-patterns
-  ((warning line-start
+  ((info line-start
+         (file-name) ":" line ":" column
+         ": Suggestion: "
+         (message (one-or-more (and (one-or-more (not (any ?\n))) ?\n)))
+         line-end)
+   (warning line-start
             (file-name) ":" line ":" column
             ": Warning: "
             (message (one-or-more (and (one-or-more (not (any ?\n))) ?\n)))
@@ -7018,8 +7041,8 @@ See URL `http://www.jshint.com'."
   :command ("jshint" "--reporter=checkstyle"
             "--filename" source-original
             (config-file "--config" flycheck-jshintrc)
-            (option "--extract" flycheck-jshint-extract-javascript
-                    concat symbol-name)
+            (option "--extract=" flycheck-jshint-extract-javascript
+                    concat flycheck-option-symbol)
             "-")
   :standard-input t
   :error-parser flycheck-parse-checkstyle
@@ -7157,12 +7180,7 @@ See URL `https://github.com/zaach/jsonlint'."
   :error-filter
   (lambda (errors)
     (flycheck-sanitize-errors (flycheck-increment-error-columns errors)))
-  :predicate
-  (lambda ()
-    (or
-     (eq major-mode 'json-mode)
-     (and (buffer-file-name)
-          (string= (file-name-extension (buffer-file-name)) "json")))))
+  :modes json-mode)
 
 (flycheck-define-checker json-python-json
   "A JSON syntax checker using Python json.tool module.
@@ -7177,12 +7195,7 @@ See URL `https://docs.python.org/3.5/library/json.html#command-line-interface'."
           ;; Ignore the rest of the line which shows the char position.
           (one-or-more not-newline)
           line-end))
-  :predicate
-  (lambda ()
-    (or
-     (eq major-mode 'json-mode)
-     (and (buffer-file-name)
-          (string= (file-name-extension (buffer-file-name)) "json")))))
+  :modes json-mode)
 
 (flycheck-define-checker less
   "A LESS syntax checker using lessc.
