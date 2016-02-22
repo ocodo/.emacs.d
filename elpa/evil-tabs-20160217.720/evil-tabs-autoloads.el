@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil-tabs" "evil-tabs.el" (21818 58363 127401
-;;;;;;  0))
+;;;### (autoloads nil "evil-tabs" "evil-tabs.el" (22218 26459 330543
+;;;;;;  319000))
 ;;; Generated autoloads from evil-tabs.el
 
 (defvar evil-tabs-mode nil "\

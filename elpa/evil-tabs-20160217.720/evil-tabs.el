@@ -4,7 +4,7 @@
 ;; Author: Kris Jenkins <krisajenkins@gmail.com>
 ;; Maintainer: Kris Jenkins <krisajenkins@gmail.com>
 ;; Keywords: evil tab tabs vim
-;; Package-Version: 20150127.1346
+;; Package-Version: 20160217.720
 ;; URL: https://github.com/krisajenkins/evil-tabs
 ;; Created: 30th September 2013
 ;; Version: 0.1.0
@@ -24,8 +24,7 @@
 
 (evil-define-command evil-tabs-tabedit (file)
   (interactive "<f>")
-  (elscreen-create)
-  (find-file file))
+  (elscreen-find-file file))
 
 (evil-define-command evil-tab-sensitive-quit (&optional bang)
   :repeat nil
