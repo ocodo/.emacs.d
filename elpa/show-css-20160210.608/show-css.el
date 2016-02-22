@@ -7,7 +7,7 @@
 ;; Created: 1st February 2013
 ;; Keywords: hypermedia
 ;; URL: https://github.com/smmcg/showcss-mode
-;; Package-Requires: ((doom "1.3"))
+;; Package-Requires: ((doom "1.3") (s "1.10.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -212,50 +212,46 @@ Eg:
 
   (let ((csslist nil))
 
-    (if showcss/use-html-tags
-        (save-excursion
-          ;; get the <link> css
-          (goto-char (point-min))
-          (while (re-search-forward "<link\\(.\\|\n\\)*?>" nil t)
-            (let ((tag-start (match-beginning 0))
-                  (tag-end (match-end 0)))
-              (goto-char tag-start)
-              (if (re-search-forward
+    (when showcss/use-html-tags
+      (save-excursion
+        ;; get the <link> css
+        (goto-char (point-min))
+        (while (re-search-forward "<link\\(.\\|\n\\)*?>" nil t)
+          (let ((tag-start (match-beginning 0))
+                (tag-end (match-end 0)))
+            (goto-char tag-start)
+            (when (re-search-forward
                    "\\(type=\"text/css\"\\|rel=\"stylesheet\"\\)" tag-end t)
-                  (progn
-                    (goto-char tag-start)
-                    (if (re-search-forward "href=\"\\([^:]*?\\)\"" tag-end t)
-                        (let ((css-file
-                               (file-truename (substring-no-properties
-                                               (match-string 1)))))
-                          (if (file-exists-p css-file)
-                              (setq csslist (cons css-file csslist)))))))
-              (goto-char tag-end)))
+              (goto-char tag-start)
+              (when (re-search-forward "href=\"\\([^:]*?\\)\"" tag-end t)
+                (let ((css-file (file-truename (substring-no-properties
+                                                (match-string 1)))))
+                  (when (file-exists-p css-file)
+                    (setq csslist (cons css-file csslist))))))
+            (goto-char tag-end)))
 
-          ;; get @imports
-          ;; todo: make sure this is in a <style> tag and not
-          ;; part of some example code
-          (goto-char (point-min))
-          (while (re-search-forward "@import .*?\"\\(.*?\\)\"" nil t)
-            (setq csslist (cons (substring-no-properties
-                                 (match-string 1)) csslist)))
-          ))
+        ;; get @imports
+        ;; todo: make sure this is in a <style> tag and not
+        ;; part of some example code
+        (goto-char (point-min))
+        (while (re-search-forward "@import .*?\"\\(.*?\\)\"" nil t)
+          (setq csslist (cons (substring-no-properties
+                               (match-string 1)) csslist)))))
 
     ;; get the <!-- showcss ... --> comment if any
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward "<!-- showcss: \\(.*?\\) -->" nil t)
-        (if (file-exists-p (match-string 1))
-            (setq csslist
-                  (cons (substring-no-properties
-                         (match-string 1)) csslist)))))
+        (when (file-exists-p (match-string 1))
+          (setq csslist
+                (cons (substring-no-properties (match-string 1))
+                      csslist)))))
 
     ;; load the css files into buffers
     (mapc (lambda (css-file)
             (setq showcss/css-buffer
-                  (cons
-                   (find-file-noselect css-file)
-                   showcss/css-buffer)))
+                  (cons (find-file-noselect css-file)
+                        showcss/css-buffer)))
           csslist)))
 
 
@@ -266,69 +262,61 @@ Eg:
     (re-search-backward "\\(<\\|>\\)" nil t)
     (forward-char)
     ;; if not looking at a / or ! (comment or closing tag)
-    (if (not (or (looking-at "\\(/\\|!\\)")
-                 (looking-back ">" nil)))
-        (progn
-          (backward-char)
-          (let ((bookmark-tag "<showcss />"))
-            (insert bookmark-tag)  ;TODO: this needs to not affect undo
+    (unless (or (looking-at "\\(/\\|!\\)")
+                (looking-back ">"))
+      (backward-char)
+      (let ((bookmark-tag "<showcss />"))
+        (insert bookmark-tag)  ;TODO: this needs to not affect undo
 
-            (let* ((doc nil)
-                   (node nil)
-                   (not-tag t))
+        (let ((doc nil)
+              (node nil)
+              (not-tag t))
 
-              (condition-case nil
-                  (progn
-                    (setq doc (doom-make-document-from-xml
-                               (libxml-parse-html-region (point-min) (point-max))))
-                    (setq node (car (doom-document-get-elements-by-tag-name
-                                     doc 'showcss))))
-                (error (message "Malformed document")))
+          (condition-case nil
+              (progn
+                (setq doc (doom-make-document-from-xml
+                           (libxml-parse-html-region (point-min) (point-max))))
+                (setq node (car (doom-document-get-elements-by-tag-name
+                                 doc 'showcss))))
+            (error (message "Malformed document")))
 
-              (search-backward bookmark-tag)
-              (delete-char (length bookmark-tag))
-              ;; Find the next sibling tag from the inserted
-              ;; <showcss-... /> bookmark-tag, since that is the
-              ;; one we really want, skipping text tags.
-              (while not-tag
-                (condition-case nil
-                    (setq node (doom-node-next-sibling node))
-                  (error nil))
-                (if (= (doom-node-type node) 1)
-                    (progn
-                      (setq not-tag nil)
-                      (showcss/up-walk node)
-
-                      (showcss/find-selectors)
-                      )))))
-          t)
-      nil)))
+          (search-backward bookmark-tag)
+          (delete-char (length bookmark-tag))
+          ;; Find the next sibling tag from the inserted
+          ;; <showcss-... /> bookmark-tag, since that is the
+          ;; one we really want, skipping text tags.
+          (while not-tag
+            (condition-case nil
+                (setq node (doom-node-next-sibling node))
+              (error nil))
+            (when (= (doom-node-type node) 1)
+              (setq not-tag nil)
+              (showcss/up-walk node)
+              (showcss/find-selectors)))))
+      t)))
 
 
 (defun showcss/up-walk(node)
   "Walk up the parse tree and collect information about each tag"
-  (if (doom-node-p node)
-      (let* ((node-name (doom-node-name node))
-             (node-list (list node-name))
-             (attr-list '()))
+  (when (doom-node-p node)
+    (let* ((node-name (doom-node-name node))
+           (node-list (list node-name))
+           (attr-list '()))
 
-        (if (doom-node-has-attributes node)
-            (progn
-              (dolist (attr (doom-node-attributes node))
-                (let ((attr-name (doom-node-name attr))
-                      (attr-val (doom-node-value attr)))
-                  (if (string= attr-name "class")
-                      (setq node-list
-                            (cons (cons attr-name
-                                        (s-split " " attr-val t))
-                                  node-list))
-                    (setq node-list (cons (list attr-name attr-val) node-list)))))))
+      (when (doom-node-has-attributes node)
+        (dolist (attr (doom-node-attributes node))
+          (let ((attr-name (doom-node-name attr))
+                (attr-val (doom-node-value attr)))
+            (if (string= attr-name "class")
+                (setq node-list
+                      (cons (cons attr-name
+                                  (s-split " " attr-val t))
+                            node-list))
+              (setq node-list (cons (list attr-name attr-val) node-list))))))
 
-        (let ((rev-list (reverse node-list)))
-          (setq showcss/parents (cons rev-list showcss/parents)))
+      (setq showcss/parents (cons (reverse node-list) showcss/parents))
 
-        (showcss/up-walk (doom-node-parent-node node))
-        )))
+      (showcss/up-walk (doom-node-parent-node node)))))
 
 
 (defun showcss/find-selectors ()
@@ -354,28 +342,23 @@ of positions of matched selectors"
                     ((string= (car attribs) "class")
                      (setq tag-class (cdr attribs)))))
 
-            (if tag-name
-                (setq buffer-and-fragments
-                      (append
-                       (showcss/get-points source-buffer 'tag tag-name)
-                       buffer-and-fragments)))
-            (if tag-class
-                (setq buffer-and-fragments
-                      (append
-                       (showcss/get-points source-buffer 'class tag-class)
-                       buffer-and-fragments)))
-            (if tag-id
-                (setq buffer-and-fragments
-                      (append
-                       (showcss/get-points source-buffer 'id tag-id)
-                       buffer-and-fragments)))))
+            (when tag-name
+              (setq buffer-and-fragments
+                    (append (showcss/get-points source-buffer 'tag tag-name)
+                            buffer-and-fragments)))
+            (when tag-class
+              (setq buffer-and-fragments
+                    (append (showcss/get-points source-buffer 'class tag-class)
+                            buffer-and-fragments)))
+            (when tag-id
+              (setq buffer-and-fragments
+                    (append (showcss/get-points source-buffer 'id tag-id)
+                            buffer-and-fragments)))))
         (setq all-elements
-              (cons
-               (reverse
-                (delete-dups buffer-and-fragments)) all-elements))))
+              (cons (reverse (delete-dups buffer-and-fragments))
+                    all-elements))))
 
-    (showcss/display-info all-elements html-buffer)
-    ))
+    (showcss/display-info all-elements html-buffer)))
 
 
 (defun showcss/get-points(source-buffer type value)
@@ -385,8 +368,8 @@ matching selector (and its declarations)"
         (locations ())
         (start-point nil)
         (end-point nil)
-        ;;so this can be passed on to showcss/test-selector:
-        ;(origin-tag (car (reverse showcss/parents)))
+        ;; so this can be passed on to showcss/test-selector:
+        ;; (origin-tag (car (reverse showcss/parents)))
         (parents showcss/parents))
     (save-excursion
       (with-current-buffer source-buffer
@@ -394,16 +377,15 @@ matching selector (and its declarations)"
         (while (showcss/search search-string)
           (if (showcss/search "}" 'backwards)
               (progn
-                (if (looking-at "}") (forward-char))     ; forwards over }
-                (while (looking-at "\n") (forward-char))); and skip over blank lines
+                (when  (looking-at "}")  (forward-char))  ; forwards over }
+                (while (looking-at "\n") (forward-char))) ; and skip over blank lines
             (goto-char (point-min)))    ; if on first line of file
           (setq start-point (point))    ; set point
           (showcss/search "{")
           (showcss/search "}")
-          (if (looking-at "\n")
-              (forward-char))
+          (when (looking-at "\n")
+            (forward-char))
           (setq end-point (point))
-
           (setq locations (cons (list start-point end-point) locations)))))
     locations))
 
@@ -413,16 +395,11 @@ matching selector (and its declarations)"
 regexp not inside a comment or string."
   (let ((start (point)))
     (if backwards
-        (while
-            (and
-             (re-search-backward regexp nil t 1)
-             (nth 8 (syntax-ppss))))
-      (while
-          (and
-           (re-search-forward regexp nil t 1)
-           (nth 8 (syntax-ppss)))))
-    (unless (= start (point))
-      t)))
+        (while (and (re-search-backward regexp nil t 1)
+                    (nth 8 (syntax-ppss))))
+      (while (and (re-search-forward regexp nil t 1)
+                  (nth 8 (syntax-ppss)))))
+    (not (= start (point)))))
 
 
 (defun showcss/build-selector (type value)
@@ -431,17 +408,15 @@ and create a regex to be used for searching in the css files.
 eg: \"\\\\(\\\\.some_class\\\\)[ ,\\n{]\""
   (let ((full-selector nil))
     (cond ((eq type 'class)
-           (setq full-selector (concat "\\(\\." (s-join "\\>\\|\\." value) "\\)[^-_[:alpha:]]")))
+           (setq full-selector (concat "\\(\\." (s-join "\\>\\|\\." value)
+                                       "\\)[^-_[:alpha:]]")))
           ((eq type 'id)
            (setq full-selector (format "#%s\\>[^-_[:alpha:]]" value)))
           ((eq type 'tag)
            (setq full-selector (format "\\b%s\\b" value)))
           (t
            (error (format "Wrong type of selector: %s" type))))
-    (if full-selector
-        (progn
-          full-selector)
-      nil)))
+    full-selector))
 
 
 (defun showcss/build-breadcrumb(parents)
@@ -462,23 +437,22 @@ html > body > div#id.class > div.class.class > ul > li"
             (section nil))
         (dolist (attribs (cdr full-tag))
           (cond ((string= (car attribs) "id")
-                 (setq tag-id (propertize (concat "#" (nth 1 attribs))
-                                          'face 'showcss/breadcrumb-id-and-class-face)))
+                 (setq tag-id
+                       (propertize (concat "#" (nth 1 attribs))
+                                   'face 'showcss/breadcrumb-id-and-class-face)))
                 ((string= (car attribs) "class")
-                 (setq tag-class (propertize (concat "." (s-join "." (cdr attribs)))
-                                             'face 'showcss/breadcrumb-id-and-class-face)))))
-        ;;(setq section (nconc (list tag-name tag-id) tag-class))
+                 (setq tag-class
+                       (propertize (concat "." (s-join "." (cdr attribs)))
+                                   'face 'showcss/breadcrumb-id-and-class-face)))))
+        ;; (setq section (nconc (list tag-name tag-id) tag-class))
         (setq tag-name (propertize tag-name 'face 'showcss/breadcrumb-tag-face))
         (setq breadcrumb
-              (cons
-               (concat tag-name tag-id tag-class)
-               breadcrumb))
-        ;(concat tag-name tag-id tag-class)
-        ;(message full-tag)
-        )
-      )
-    (s-join separator breadcrumb)
-    ))
+              (cons (concat tag-name tag-id tag-class)
+                    breadcrumb))
+        ;; (concat tag-name tag-id tag-class)
+        ;; (message full-tag)
+        ))
+    (s-join separator breadcrumb)))
 
 
 (defun showcss/display-info(data html-buffer)
@@ -487,7 +461,7 @@ html > body > div#id.class > div.class.class > ul > li"
         (parents showcss/parents))
     (set-buffer display-buffer)
     (switch-to-buffer-other-window display-buffer)
-    ;(css-mode)             ;should this be called each time?
+    ;; (css-mode) ; should this be called each time?
     (bc/start data parents :hidden showcss/hide-source-buffers)
     (switch-to-buffer-other-window html-buffer)))
 
@@ -499,19 +473,17 @@ html > body > div#id.class > div.class.class > ul > li"
 
 
 (defun showcss/timerfunc()
-  ""
-  (if (and showcss/html-buffer
-           (and (string= (buffer-name) (buffer-name showcss/html-buffer))
-                (memq last-command
-                 '(next-line
-                   previous-line
-                   right-char
-                   left-char
-                   forward-word
-                   backward-word
-                   forward-sexp
-                  backward-sexp))))
-        (showcss/main)))
+  (when (and showcss/html-buffer
+             (string= (buffer-name) (buffer-name showcss/html-buffer))
+             (memq last-command '(next-line
+                                  previous-line
+                                  right-char
+                                  left-char
+                                  forward-word
+                                  backward-word
+                                  forward-sexp
+                                  backward-sexp)))
+    (showcss/main)))
 
 
 ;;;###autoload
@@ -524,22 +496,21 @@ git repository"
   :lighter " ShowCSS"
   :keymap '(([C-c C-u] . showcss/parse-html))
 
-  (if showcss-mode
-      (progn
-        (showcss/set-css-buffer)
-        (setq showcss/html-buffer (current-buffer))
-        (if (not showcss/timer)
-            (setq showcss/timer
-                  (run-with-idle-timer
-                   showcss/update-delay t 'showcss/timerfunc)))
-        ;(add-hook 'after-save-hook 'showcss/parse-html nil t)
-        )
-
-    ;; else
-    (setq showcss/html-buffer nil)
-    (bc/remove-source-overlays)
-    ;;(cancel-timer showcss/timer) ; TODO: cancel-timer only after all showcss-modes have been turned off.
-    ))
+  (cond (showcss-mode
+         (showcss/set-css-buffer)
+         (setq showcss/html-buffer (current-buffer))
+         (unless showcss/timer
+           (setq showcss/timer
+                 (run-with-idle-timer showcss/update-delay
+                                      t 'showcss/timerfunc)))
+         ;; (add-hook 'after-save-hook 'showcss/parse-html nil t)
+         )
+        (t
+         (setq showcss/html-buffer nil)
+         (bc/remove-source-overlays)
+         ;; TODO: cancel-timer only after all showcss-modes have been turned off.
+         ;; (cancel-timer showcss/timer)
+         )))
 
 
 (provide 'show-css)

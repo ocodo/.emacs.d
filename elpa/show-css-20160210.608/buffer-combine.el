@@ -54,13 +54,13 @@
   "data format:
 '((filename overlay1 overlay2 overlay3)
   (anotherfile overlay1 overlay2))")
-;(make-local-variable bc/buffers-data)
+;; (make-local-variable bc/buffers-data)
 
 (defvar bc/this-buffer nil)
-;(make-local-variable bc/this-buffer)
+;; (make-local-variable bc/this-buffer)
 
 
-(defun* bc/start (data parents &key (readonly nil) (hidden nil))
+(cl-defun bc/start (data parents &key (readonly nil) (hidden nil))
   "Recieve and parse the data
 two optional flags readonly and hidden"
   (set-buffer (get-buffer-create "Show CSS"))
@@ -70,10 +70,9 @@ two optional flags readonly and hidden"
   (bc/remove-source-overlays)
   (let ((buffers-data '()))
     (dolist (filelist data)
-      ;;for each file and its fragment positions:
+      ;; for each file and its fragment positions:
       (let ((buffer (bc/load-file (car filelist) hidden)))
-
-        ;;for each fragment position:
+        ;; for each fragment position:
         (setq buffers-data
               (cons (bc/mark-fragments-in-source buffer (cdr filelist))
                     buffers-data))));)
@@ -95,20 +94,20 @@ rename them with a space in front of the buffer title"
       ;; since file is a string, see if its
       ;; already loaded in a buffer
       (dolist (b (buffer-list))
-        (if (string= (buffer-file-name b) (file-truename file))
-            (setq return-buffer b))))
+        (when (string= (buffer-file-name b) (file-truename file))
+          (setq return-buffer b))))
     ;; since file is not a buffer and its not
     ;; already loaded, load it now
-    (if (not return-buffer)
-        (setq return-buffer (find-file-noselect file)))
+    (unless return-buffer
+      (setq return-buffer (find-file-noselect file)))
 
     (set-buffer return-buffer)
-    (if hidden
-        (rename-buffer (concat " " (s-trim-left (buffer-name))))
-      ;; if file is *not* to be hidden but it is already,
-      ;; unhide it by removing the space at the begining.
-      (if (s-starts-with? " " (buffer-name))
-          (rename-buffer (s-trim-left (buffer-name)))))
+    (cond (hidden
+           (rename-buffer (concat " " (s-trim-left (buffer-name)))))
+          ;; if file is *not* to be hidden but it is already,
+          ;; unhide it by removing the space at the begining.
+          ((s-starts-with? " " (buffer-name))
+           (rename-buffer (s-trim-left (buffer-name)))))
 
     ;;return: <buffer handle>
     return-buffer))
@@ -141,18 +140,16 @@ rename them with a space in front of the buffer title"
 
 (defun bc/change-modification-flag(state &optional bname)
   "Set a modification flag if the source buffer has changed"
-  ;(save-excursion
-    (let ((source-buffer (if bname bname (buffer-name))))
-      (set-buffer bc/this-buffer)
-      (dolist (ov (overlays-in (point-min) (point-max)))
-        (if (string= (overlay-get ov 'filename) source-buffer)
-          (progn
-            (goto-char (overlay-start ov))
-            (if (eq state 'on)
-                (if (not (looking-at "*"))
-                    (insert "*"))
-              (if (looking-at "*")
-                  (delete-char 1))))))));)
+  (let ((source-buffer (or bname (buffer-name))))
+    (set-buffer bc/this-buffer)
+    (dolist (ov (overlays-in (point-min) (point-max)))
+      (when (string= (overlay-get ov 'filename) source-buffer)
+        (goto-char (overlay-start ov))
+        (if (eq state 'on)
+            (unless (looking-at "*")
+              (insert "*"))
+          (when (looking-at "*")
+            (delete-char 1)))))))
 
 
 (defun bc/mark-fragment-in-source (buffer start end)
@@ -265,29 +262,25 @@ rename them with a space in front of the buffer title"
 (defun bc/send-back-to-source(ov &optional flag &rest rv)
   "Any edits made in the display buffer are sent back to the
 linked overlay in the source buffer"
-  (if flag
-      (progn
-        (let ((here (point)))
-          (bc/change-modification-flag
-           'on
-           (buffer-name (overlay-buffer (overlay-get ov 'source-overlay))))
-          (goto-char here))
-        (let*
-            ((source-ov (overlay-get ov 'source-overlay))
-             (source-start (overlay-start source-ov))
-             (source-end (overlay-end source-ov))
-             (display-start (overlay-start ov))
-             (display-end (overlay-end ov))
-                  (content (buffer-substring-no-properties
-                            display-start display-end)))
-          (set-buffer (overlay-buffer source-ov))
-          (goto-char source-start)
-          (insert content)
-          (delete-region (point) (overlay-end source-ov))
-
-         ;; set modification flag
-
-         ))))
+  (when flag
+    (let ((here (point)))
+      (bc/change-modification-flag
+       'on
+       (buffer-name (overlay-buffer (overlay-get ov 'source-overlay))))
+      (goto-char here))
+    (let* ((source-ov (overlay-get ov 'source-overlay))
+           (source-start (overlay-start source-ov))
+           (source-end (overlay-end source-ov))
+           (display-start (overlay-start ov))
+           (display-end (overlay-end ov))
+           (content (buffer-substring-no-properties
+                     display-start display-end)))
+      (set-buffer (overlay-buffer source-ov))
+      (goto-char source-start)
+      (insert content)
+      (delete-region (point) (overlay-end source-ov))
+      ;; set modification flag
+      )))
 
 
 (defun bc/save-source-buffers()
@@ -297,28 +290,24 @@ linked overlay in the source buffer"
   (dolist (buffer-and-fragments bc/buffers-data)
     (let ((buffer (car buffer-and-fragments)))
       (set-buffer buffer)
-      (save-buffer)
-  )))
+      (save-buffer))))
 
 
 (defun bc/remove-source-overlays()
   "Remove all the overlays from the source buffers"
   (dolist (buffer-and-fragments bc/buffers-data)
     (let ((buffer (car buffer-and-fragments)))
-      (if buffer
-          (progn
-            (set-buffer buffer)
-            (remove-hook 'first-change-hook 'bc/set-modification-flag)
-            (remove-hook 'after-save-hook 'bc/unset-modification-flag)
-            (dolist (ov (cdr buffer-and-fragments))
-              (delete-overlay ov))
+      (when buffer
+	(set-buffer buffer)
+	(remove-hook 'first-change-hook 'bc/set-modification-flag)
+	(remove-hook 'after-save-hook 'bc/unset-modification-flag)
+	(dolist (ov (cdr buffer-and-fragments))
+	  (delete-overlay ov))
 
-            ;; temporary only.  This will delete ALL overlays
-            ;; even if set from another mode.
-            (dolist (ov (overlays-in (point-min) (point-max)))
-              (delete-overlay ov))
-
-            )))))
+	;; temporary only.  This will delete ALL overlays
+	;; even if set from another mode.
+	(dolist (ov (overlays-in (point-min) (point-max)))
+	  (delete-overlay ov))))))
 
 
 (defvar buffer-combine-mode-map
@@ -329,22 +318,22 @@ linked overlay in the source buffer"
 
 
 ;; derive from css-mode, sass-mode?
-;;;;(define-derived-mode buffer-combine-mode css-mode "Combine"
-;;;;  "Display fragments from other buffers
-;;;;\\{buffer-combine-mode-map}"
-;;;;
-;;;;  (setq bc/this-buffer (current-buffer))
-;;;;  (add-hook 'kill-buffer-hook 'bc/remove-source-overlays nil t))
-
-
-;  (if buffer-combine-mode
-;      (progn
-;        (setq bc/this-buffer (current-buffer))
-;        (add-hook 'kill-buffer-hook 'bc/remove-source-overlays nil t))
-;    (bc/remove-source-overlays))
-;)
+;; (define-derived-mode buffer-combine-mode css-mode "Combine"
+;;  "Display fragments from other buffers
+;; \\{buffer-combine-mode-map}"
+;;
+;;  (setq bc/this-buffer (current-buffer))
+;;  (add-hook 'kill-buffer-hook 'bc/remove-source-overlays nil t))
+;;
+;; (if buffer-combine-mode
+;;     (progn
+;;       (setq bc/this-buffer (current-buffer))
+;;       (add-hook 'kill-buffer-hook 'bc/remove-source-overlays nil t))
+;;   (bc/remove-source-overlays))
 
 
 (provide 'buffer-combine)
-
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; buffer-combine.el ends here
