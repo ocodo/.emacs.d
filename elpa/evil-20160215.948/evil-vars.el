@@ -1172,7 +1172,7 @@ SYMBOL is made permanent buffer local."
 (evil-define-local-var evil-ud-scroll-count 0
   "Holds last used prefix for `evil-scroll-up'
 and `evil-scroll-down'.
-Determines how many lines should be scrolled. 
+Determines how many lines should be scrolled.
 Default value is 0 - scroll half the screen.")
 
 (evil-define-local-var evil-state nil
@@ -1328,9 +1328,6 @@ where STRING is a file path and NUMBER is a buffer position.
 The global value of this variable holds markers available from
 every buffer, while the buffer-local value holds markers available
 only in the current buffer.")
-
-(evil-define-local-var evil-jump-list nil
-  "Jump list.")
 
 (defconst evil-suppress-map (make-keymap)
   "Full keymap disabling default bindings to `self-insert-command'.")
