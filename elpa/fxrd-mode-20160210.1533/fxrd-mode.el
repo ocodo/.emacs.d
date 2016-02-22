@@ -426,6 +426,7 @@ Called by `fxrd-field-name-idle-timer'."
   (set (make-local-variable 'font-lock-defaults) '(fxrd-font-lock-keywords))
   (set (make-local-variable 'mode-line-format) fxrd-mode-line-format)
   (set (make-local-variable 'show-trailing-whitespace) nil)
+  (set (make-local-variable 'require-final-newline) nil)
   (fxrd-field-name-mode 1)
   (overwrite-mode)
   (remove-hook 'before-save-hook 'delete-trailing-whitespace)
