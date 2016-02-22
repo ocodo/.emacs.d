@@ -195,6 +195,17 @@ from https://github.com/bradfitz/goimports."
   :type 'string
   :group 'go)
 
+(defcustom gofmt-is-goimports nil
+  "Set to t if you use goimports. This is required to enable
+support for vendored packages."
+  :type 'boolean
+  :group 'go)
+
+(defcustom gofmt-args nil
+  "Additional arguments to pass to gofmt."
+  :type '(repeat string)
+  :group 'go)
+
 (defcustom gofmt-show-errors 'buffer
   "Where to display gofmt error output.
 It can either be displayed in its own buffer, in the echo area, or not at all.
@@ -218,6 +229,20 @@ a `before-save-hook'."
     ("\\.go\\'" ("_test.go")))
   "See the documentation of `ff-other-file-alist' for details."
   :type '(repeat (list regexp (choice (repeat string) function)))
+  :group 'go)
+
+(defcustom go-packages-function 'go-packages-native
+  "Function called by `go-packages' to determine the list of
+available packages. This is used in e.g. tab completion in
+`go-import-add'.
+
+This package provides two functions: `go-packages-native' uses
+elisp to find all .a files in all /pkg/ directories.
+`go-packages-go-list' uses 'go list all' to determine all Go
+packages. `go-packages-go-list' generally produces more accurate
+results, but can be slower than `go-packages-native'."
+  :type 'function
+  :package-version '(go-mode . 1.4.0)
   :group 'go)
 
 (defun go--kill-new-message (url)
@@ -996,7 +1021,8 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
         (patchbuf (get-buffer-create "*Gofmt patch*"))
         (errbuf (if gofmt-show-errors (get-buffer-create "*Gofmt Errors*")))
         (coding-system-for-read 'utf-8)
-        (coding-system-for-write 'utf-8))
+        (coding-system-for-write 'utf-8)
+        our-gofmt-args)
 
     (unwind-protect
         (save-restriction
@@ -1010,10 +1036,18 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
 
           (write-region nil nil tmpfile)
 
+          (when (and gofmt-is-goimports buffer-file-name)
+            (setq our-gofmt-args
+                  (append our-gofmt-args
+                          (list "-srcdir" (file-name-directory (file-truename buffer-file-name))))))
+          (setq our-gofmt-args (append our-gofmt-args
+                                       gofmt-args
+                                       (list "-w" tmpfile)))
+          (message "Calling gofmt: %s %s" gofmt-command our-gofmt-args)
           ;; We're using errbuf for the mixed stdout and stderr output. This
           ;; is not an issue because gofmt -w does not produce any stdout
           ;; output in case of success.
-          (if (zerop (call-process gofmt-command nil errbuf nil "-w" tmpfile))
+          (if (zerop (apply #'call-process gofmt-command nil errbuf nil our-gofmt-args))
               (progn
                 (if (zerop (call-process-region (point-min) (point-max) "diff" nil patchbuf nil "-n" "-" tmpfile))
                     (message "Buffer is already gofmted")
@@ -1305,6 +1339,11 @@ If IGNORE-CASE is non-nil, the comparison is case-insensitive."
 
 
 (defun go-packages ()
+  (funcall go-packages-function))
+
+(defun go-packages-native ()
+  "Return a list of all installed Go packages. It looks for
+archive files in /pkg/"
   (sort
    (delete-dups
     (mapcan
@@ -1321,6 +1360,12 @@ If IGNORE-CASE is non-nil, the comparison is case-insensitive."
                      (go--directory-dirs pkgdir)))))
      (go-root-and-paths)))
    #'string<))
+
+(defun go-packages-go-list ()
+  "Return a list of all Go packages, using `go list'"
+  (with-temp-buffer
+    (call-process go-command nil (current-buffer) nil "list" "-e" "all")
+    (split-string (buffer-string) "\n" t)))
 
 (defun go-unused-imports-lines ()
   ;; FIXME Technically, -o /dev/null fails in quite some cases (on
