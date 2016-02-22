@@ -3,37 +3,39 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ace-jump-buffer" "ace-jump-buffer.el" (21729
-;;;;;;  61920 271401 0))
+;;;### (autoloads nil "ace-jump-buffer" "ace-jump-buffer.el" (22218
+;;;;;;  26545 338337 441000))
 ;;; Generated autoloads from ace-jump-buffer.el
 
 (autoload 'ace-jump-buffer "ace-jump-buffer" "\
-Quickly hop to buffer with `ace-jump-mode'.
+Quickly hop to buffer with `avy'.
 
 \(fn)" t nil)
 
 (autoload 'ace-jump-buffer-other-window "ace-jump-buffer" "\
-Quickly hop to buffer with `ace-jump-mode' in other window.
+Quickly hop to buffer with `avy' in other window.
 
 \(fn)" t nil)
 
 (autoload 'ace-jump-buffer-in-one-window "ace-jump-buffer" "\
-Quickly hop to buffer with `ace-jump-mode' in one window.
+Quickly hop to buffer with `avy' in one window.
 
 \(fn)" t nil)
 
 (autoload 'ace-jump-buffer-with-configuration "ace-jump-buffer" "\
-Quickly hop to buffer with `ace-jump-mode' with selected configuration.
+Quickly hop to buffer with `avy' with selected configuration.
 
 \(fn)" t nil)
 
 (autoload 'make-ace-jump-buffer-function "ace-jump-buffer" "\
-Create a `bs-configuration' and interactive defun using NAME that displays buffers
-that don't get rejected by the body of BUFFER-LIST-REJECT-FILTER.
+Create a `bs-configuration' and interactive defun using `NAME'.
+
+It will displays buffers that don't get rejected by the body of
+`BUFFER-LIST-REJECT-FILTER'.
 
 \(fn NAME &rest BUFFER-LIST-REJECT-FILTER)" nil t)
 
-(function-put 'make-ace-jump-buffer-function 'lisp-indent-function '1)
+(put 'make-ace-jump-buffer-function 'lisp-indent-function '1)
 
 ;;;***
 
