@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "bind-map" "bind-map.el" (22200 34561 865485
-;;;;;;  57000))
+;;;### (autoloads nil "bind-map" "bind-map.el" (22218 26529 942374
+;;;;;;  132000))
 ;;; Generated autoloads from bind-map.el
 
 (autoload 'bind-map "bind-map" "\

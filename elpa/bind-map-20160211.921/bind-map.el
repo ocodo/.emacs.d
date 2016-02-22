@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-bind-map
-;; Package-Version: 20160206.1655
-;; Version: 0.1
+;; Package-Version: 20160211.921
+;; Version: 1.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
