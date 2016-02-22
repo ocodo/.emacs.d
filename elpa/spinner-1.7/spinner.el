@@ -3,7 +3,7 @@
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
-;; Version: 1.5
+;; Version: 1.7
 ;; URL: https://github.com/Malabarba/spinner.el
 ;; Keywords: processes mode-line
 
@@ -122,6 +122,18 @@
   "Predefined alist of spinners.
 Each car is a symbol identifying the spinner, and each cdr is a
 vector, the spinner itself.")
+
+(defun spinner-make-progress-bar (width &optional char)
+  "Return a vector of strings of the given WIDTH.
+The vector is a valid spinner type and is similar to the
+`progress-bar' spinner, except without the sorrounding brackets.
+CHAR is the character to use for the moving bar (defaults to =)."
+  (let ((whole-string (concat (make-string (1- width) ?\s)
+                              (make-string 4 (or char ?=))
+                              (make-string width ?\s))))
+    (thread-last (mapcar (lambda (n) (substring whole-string n (+ n width)))
+                         (number-sequence (+ width 3) 0 -1))
+      (apply #'vector))))
 
 (defvar spinner-current nil
   "Spinner curently being displayed on the `mode-line-process'.")
@@ -243,8 +255,8 @@ stop the SPINNER's timer."
 
     (unless (ignore-errors (> (spinner--fps spinner) 0))
       (error "A spinner's FPS must be a positive number"))
-    (setf (spinner--counter spinner) (- (* (or (spinner--delay spinner) 0)
-                                    (spinner--fps spinner))))
+    (setf (spinner--counter spinner) (round (- (* (or (spinner--delay spinner) 0)
+                                           (spinner--fps spinner)))))
     ;; Create timer.
     (let* ((repeat (/ 1.0 (spinner--fps spinner)))
            (time (timer-next-integral-multiple-of-time (current-time) repeat))
@@ -307,16 +319,26 @@ this time, in which case it won't display at all."
   (spinner-print spinner))
 
 (defun spinner-stop (&optional spinner)
-  "Stop the current buffer's spinner."
-  (let* ((spinner (or spinner spinner-current))
-         (timer (spinner--timer spinner)))
-    (when (timerp timer)
-      (cancel-timer timer))
-    (setf (spinner--active-p spinner) nil)
-    (force-mode-line-update)))
+  "Stop SPINNER, defaulting to the current buffer's spinner.
+It is always safe to call this function, even if there is no
+active spinner."
+  (let ((spinner (or spinner spinner-current)))
+    (when (spinner-p spinner)
+      (let ((timer (spinner--timer spinner)))
+        (when (timerp timer)
+          (cancel-timer timer)))
+      (setf (spinner--active-p spinner) nil)
+      (force-mode-line-update))))
 
 ;;;; ChangeLog:
 
+;; 2016-02-08  Artur Malabarba  <bruce.connor.am@gmail.com>
+;; 
+;; 	Spinner version 1.7
+;; 
+;; 	Offer a spinner-make-progress-bar function. Make spinner-stop never
+;; 	signal. Allow floating-point delays.
+;; 
 ;; 2016-02-07  Artur Malabarba  <bruce.connor.am@gmail.com>
 ;; 
 ;; 	Update the mode-line after spinner-stop
