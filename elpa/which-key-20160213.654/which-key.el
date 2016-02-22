@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20160206.1716
+;; Package-Version: 20160213.654
 ;; Version: 0.8
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -536,6 +536,7 @@ alongside the actual current key sequence when
       (setq-local cursor-in-non-selected-windows nil)
       (setq-local mode-line-format nil)
       (setq-local word-wrap nil)
+      (setq-local show-trailing-whitespace nil)
       (run-hooks 'which-key-init-buffer-hook))))
 
 (defun which-key--setup ()
@@ -1703,7 +1704,8 @@ including prefix arguments."
        (cons page
              (concat full-prefix (when prefix-keys " ")
                      status-line (when status-line " ")
-                     nxt-pg-hint))))))
+                     nxt-pg-hint)))
+      (_ (cons page nil)))))
 
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
