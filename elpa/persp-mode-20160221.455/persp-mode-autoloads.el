@@ -3,9 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "persp-mode" "persp-mode.el" (22200 34360 800777
-;;;;;;  981000))
+;;;### (autoloads nil "persp-mode" "persp-mode.el" (22218 26279 738981
+;;;;;;  612000))
 ;;; Generated autoloads from persp-mode.el
+
+(autoload 'def-auto-persp "persp-mode" "\
+
+
+\(fn NAME &key BUFFER-NAME FILE-NAME MODE MODE-NAME PREDICATE ON-MATCH AFTER-MATCH HOOKS DYN-ENV GET-BUFFER-EXPR GET-PERSP-EXPR PARAMETERS NOAUTO)" nil (quote macro))
 
 (defvar persp-mode nil "\
 Non-nil if Persp mode is enabled.
