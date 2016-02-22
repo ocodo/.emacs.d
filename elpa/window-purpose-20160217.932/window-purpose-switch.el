@@ -1,8 +1,8 @@
 ;;; window-purpose-switch.el --- Purpose-aware display handling -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Bar Magal
+;; Copyright (C) 2015, 2016 Bar Magal
 
-;; Author: Bar Magal (2015)
+;; Author: Bar Magal
 ;; Package: purpose
 
 ;; This file is not part of GNU Emacs.
@@ -768,7 +768,7 @@ If ALIST is nil, it is ignored and `purpose--alist' is used instead."
               ;; succeeds, and return the window used for display (action's
               ;; return value)
               (cl-do ((action-sequence action-sequence (cdr action-sequence))
-                      (window nil 
+                      (window nil
                               (progn
                                 (purpose-message "trying: %S"
                                                  (car action-sequence))
@@ -800,7 +800,10 @@ If ALIST is nil, it is ignored and `purpose--alist' is used instead."
                           (purpose-message
                            "falling back to regular display-buffer")
                           nil)))))
-          (when window
+          ;; window can be a non-nil non-window object. e.g.
+          ;; `display-buffer-no-window' returns 'fail (`display-buffer' treats
+          ;; 'fail specially)
+          (when (windowp window)
             (prog1 window
               (run-hook-with-args 'purpose-display-buffer-functions
                                   window))))))))
@@ -833,12 +836,13 @@ This function runs hook `purpose-select-buffer-hook' when its done."
                               &optional norecord force-same-window)
   "Select buffer BUFFER-OR-NAME, preferably in the selected window.
 If FORCE-SAME-WINDOW is non-nil, don't select a different window if the
-currently selected window is not available."
+currently selected window is not available.
+If BUFFER-OR-NAME is nil, select the buffer returned by `other-buffer'."
   (interactive (list (read-buffer-to-switch "[PU] Switch to buffer: ")))
   ;; `display-buffer' should call `purpose--action-function', and
   ;; `purpose--action-function' should try to switch buffer in current window,
   ;; and if that's impossible - display buffer in another window.
-  (purpose-select-buffer buffer-or-name
+  (purpose-select-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
                          (if force-same-window
                              'force-same-window
                            'switch-to-buffer)
@@ -846,34 +850,44 @@ currently selected window is not available."
 
 (defun purpose-switch-buffer-other-window (buffer-or-name &optional norecord)
   "Select buffer BUFFER-OR-NAME in another window.
-Never selects the currently selected window."
+Never selects the currently selected window.
+If BUFFER-OR-NAME is nil, select the buffer returned by `other-buffer'."
   (interactive (list (read-buffer-to-switch "[PU] Switch to buffer: ")))
   (let ((pop-up-windows t)
         (purpose--alist (purpose-alist-set 'inhibit-same-window
                                            t
                                            purpose--alist)))
-    (purpose-select-buffer buffer-or-name
+    (purpose-select-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
                            'prefer-other-window
                            norecord)))
 
 (defun purpose-switch-buffer-other-frame (buffer-or-name &optional norecord)
-  "Select buffer BUFFER-OR-NAME, preferably in another frame."
+  "Select buffer BUFFER-OR-NAME, preferably in another frame.
+If BUFFER-OR-NAME is nil, select the buffer returned by `other-buffer'."
   (interactive (list (read-buffer-to-switch "[PU] Switch to buffer: ")))
   (let ((pop-up-frames t)
         (purpose--alist (purpose-alist-set 'inhibit-same-window
                                            t
                                            purpose--alist)))
-    (purpose-select-buffer buffer-or-name 'prefer-other-frame norecord)))
+    (purpose-select-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
+                           'prefer-other-frame
+                           norecord)))
 
 (defun purpose-pop-buffer (buffer-or-name &optional norecord)
-  "Select buffer BUFFER-OR-NAME, preferably in another window."
+  "Select buffer BUFFER-OR-NAME, preferably in another window.
+If BUFFER-OR-NAME is nil, select the buffer returned by `other-buffer'."
   (interactive (list (read-buffer-to-switch "[PU] Switch to buffer: ")))
-  (purpose-select-buffer buffer-or-name 'prefer-other-window norecord))
+  (purpose-select-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
+                         'prefer-other-window
+                         norecord))
 
 (defun purpose-pop-buffer-same-window (buffer-or-name &optional norecord)
-  "Select buffer BUFFER-OR-NAME, preferably in the selected window."
+  "Select buffer BUFFER-OR-NAME, preferably in the selected window.
+If BUFFER-OR-NAME is nil, select the buffer returned by `other-buffer'."
   (interactive (list (read-buffer-to-switch "[PU] Switch to buffer: ")))
-  (purpose-select-buffer buffer-or-name 'prefer-same-window norecord))
+  (purpose-select-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
+                         'prefer-same-window
+                         norecord))
 
 
 
@@ -881,7 +895,7 @@ Never selects the currently selected window."
 
 (defun purpose-display--action-to-order (action)
   "Return appropriate `action-order' value for ACTION."
-  (when (not (listp action))            ; non-nil, non-list
+  (unless (listp action)            ; non-nil, non-list
     'prefer-other-window))
 
 (defun purpose-display--action-to-sequence (action)
