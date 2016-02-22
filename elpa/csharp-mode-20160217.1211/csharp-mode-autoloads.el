@@ -3,19 +3,9 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "csharp-mode" "csharp-mode.el" (22175 12910
-;;;;;;  596939 668000))
+;;;### (autoloads nil "csharp-mode" "csharp-mode.el" (22218 26485
+;;;;;;  346480 805000))
 ;;; Generated autoloads from csharp-mode.el
-
-(defvar csharp-mode-hook nil "\
-*Hook called by `csharp-mode'.")
-
-(custom-autoload 'csharp-mode-hook "csharp-mode" t)
-
-(defvar csharp-want-imenu t "\
-*Whether to generate a buffer index via imenu for C# buffers.")
-
-(custom-autoload 'csharp-want-imenu "csharp-mode" t)
 
 (add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
 

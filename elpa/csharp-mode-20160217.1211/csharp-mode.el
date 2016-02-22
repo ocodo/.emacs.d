@@ -4,12 +4,12 @@
 ;; Author     : Dylan R. E. Moonfire (original)
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
-;; Modified   : November 2015
-;; Version    : 0.8.12
+;; Modified   : 2016
+;; Version    : 0.8.13
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20160117.1321
+;; Package-Version: 20160217.1211
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : 2016-Jan-06
+;; Last-saved : 2016-Feb-17
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -285,9 +285,13 @@
 ;;          - Fix all runtime warnings
 ;;          - Fix error with string-values in #region directives.
 ;;
-;;    0.8.12 2015 November 29nth
+;;    0.8.12 2016 January 6th
 ;;          - Various fixes and improvements for imenu indexing.
+;;
+;;    0.8.13 2016 ...
 ;;          - Fix issues with compilation-mode and lines with arrays.
+;;          - Fontification of compiler directives.
+;;
 
 (require 'cc-mode)
 (require 'cl-lib)
@@ -1133,7 +1137,14 @@ a square parentasis block [ ... ]."
 
            ))
 
-
+(defun csharp-mode-syntax-propertize-function (beg end)
+  "Highlight text after #region or #pragma as comment."
+  (save-excursion
+    (goto-char beg)
+    (while (re-search-forward "^\\s-*#\\(region\\|pragma\\) " end t)
+      (when (looking-at "\\w")
+        (put-text-property (point) (1+ (point))
+                           'syntax-table (string-to-syntax "< b"))))))
 
 ;; C# does generics.  Setting this to t tells the parser to put
 ;; parenthesis syntax on angle braces that surround a comma-separated
@@ -1386,7 +1397,6 @@ This regexp is assumed to not match any non-operator identifier."
 
 
 ;; Custom variables
-;;;###autoload
 (defcustom csharp-mode-hook nil
   "*Hook called by `csharp-mode'."
   :type 'hook
@@ -1406,7 +1416,6 @@ Most other csharp functions are not instrumented.
   :group 'csharp)
 
 
-;;;###autoload
 (defcustom csharp-want-imenu t
   "*Whether to generate a buffer index via imenu for C# buffers."
   :type 'boolean :group 'csharp)
@@ -4242,12 +4251,6 @@ Key bindings:
   ;; define underscore as part of a word in the Csharp syntax table
   (modify-syntax-entry ?_ "w" csharp-mode-syntax-table)
 
-  ;; ensure #region and #pragma directives are not treated as computational
-  ;; expressions and thus wont have string and character rules applied to
-  ;; them.
-  (modify-syntax-entry ?# "< b" csharp-mode-syntax-table)
-  (modify-syntax-entry ?\n "> b" csharp-mode-syntax-table)
-
   ;; define @ as an expression prefix in Csharp syntax table
   (modify-syntax-entry ?@ "'" csharp-mode-syntax-table)
 
@@ -4316,7 +4319,10 @@ Key bindings:
   (setq beginning-of-defun-function 'csharp-move-back-to-beginning-of-defun)
   ;; `end-of-defun-function' can remain forward-sexp !!
 
-  (set (make-local-variable 'comment-auto-fill-only-comments) t))
+  (set (make-local-variable 'comment-auto-fill-only-comments) t)
+
+  (set (make-local-variable 'syntax-propertize-function)
+       'csharp-mode-syntax-propertize-function))
 
 (provide 'csharp-mode)
 
