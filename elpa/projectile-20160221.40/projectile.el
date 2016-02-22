@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160206.823
+;; Package-Version: 20160221.40
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -476,7 +476,10 @@ The saved data can be restored with `projectile-unserialize'."
 
 (defvar projectile-known-projects nil
   "List of locations where we have previously seen projects.
-The list of projects is ordered by the time they have been accessed.")
+The list of projects is ordered by the time they have been accessed.
+
+See also `projectile-remove-known-project',
+`projectile-cleanup-known-projects' and `projectile-clear-known-projects'.")
 
 (defvar projectile-known-projects-on-file nil
   "List of known projects reference point.
@@ -913,15 +916,10 @@ Files are returned as relative paths to the project root."
      (t ""))))
 
 (defun projectile-get-all-sub-projects (project)
-  "Get all sub-projects for a given projects.
-PROJECT is base directory to start search recursively."
-  (let* ((default-directory project)
-         ;; search for sub-projects under current project `project'
-         (submodules (mapcar
-                      (lambda (s)
-                        (file-name-as-directory (expand-file-name s default-directory)))
-                      (projectile-files-via-ext-command (projectile-get-sub-projects-command)))))
+  "Get all sub-projects for a given project.
 
+PROJECT is base directory to start search recursively."
+  (let ((submodules (projectile-get-immediate-sub-projects project)))
     (cond
      ((null submodules)
       nil)
@@ -930,6 +928,33 @@ PROJECT is base directory to start search recursively."
                          ;; recursively get sub-projects of each sub-project
                          (mapcar (lambda (s)
                                    (projectile-get-all-sub-projects s)) submodules)))))))
+
+(defun projectile-get-immediate-sub-projects (path)
+  "Get immediate sub-projects for a given project without recursing.
+
+PATH is the vcs root or project root from which to start
+searching, and should end with an appropriate path delimiter, such as
+'/' or a '\\'.
+
+If the vcs get-sub-projects query returns results outside of path,
+they are excluded from the results of this function."
+  (let* ((default-directory path)
+         ;; search for sub-projects under current project `project'
+         (submodules (mapcar
+                      (lambda (s)
+                        (file-name-as-directory (expand-file-name s default-directory)))
+                      (projectile-files-via-ext-command (projectile-get-sub-projects-command))))
+         (project-child-folder-regex
+          (concat "\\`"
+                  (regexp-quote path))))
+
+    ;; If project root is inside of an VCS folder, but not actually an
+    ;; VCS root itself, submodules external to the project will be
+    ;; included in the VCS get sub-projects result. Let's remove them.
+    (-filter (lambda (submodule)
+               (string-match-p project-child-folder-regex
+                               submodule))
+             submodules)))
 
 (defun projectile-get-sub-projects-files ()
   "Get files from sub-projects recursively."
@@ -1796,8 +1821,8 @@ It assumes the test/ folder is at the same level as src/."
 
 (defun projectile-dirname-matching-count (a b)
   "Count matching dirnames ascending file paths."
-  (setq a (reverse (split-string (file-name-directory a) "/" t))
-        b (reverse (split-string (file-name-directory b) "/" t)))
+  (setq a (reverse (split-string (or (file-name-directory a) "") "/" t))
+        b (reverse (split-string (or (file-name-directory b) "") "/" t)))
   (let ((common 0))
     (while (and a b (string-equal (pop a) (pop b)))
       (setq common (1+ common)))
