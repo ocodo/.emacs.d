@@ -1,11 +1,9 @@
 ;;; rotate-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (rotate:tiled rotate:main-vertical rotate:main-horizontal
-;;;;;;  rotate:even-vertical rotate:even-horizontal rotate-window
-;;;;;;  rotate-layout) "rotate" "rotate.el" (21223 17008 0 0))
+;;;### (autoloads nil "rotate" "rotate.el" (22218 26260 587029 163000))
 ;;; Generated autoloads from rotate.el
 
 (autoload 'rotate-layout "rotate" "\
@@ -45,15 +43,9 @@
 
 ;;;***
 
-;;;### (autoloads nil nil ("rotate-pkg.el") (21223 17008 988788 0))
-
-;;;***
-
-(provide 'rotate-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; rotate-autoloads.el ends here
