@@ -2,7 +2,7 @@
 
 ;; Author: Wataru MIYAGUNI <gonngo@gmail.com>
 ;; URL: https://github.com/gongo/json-reformat
-;; Package-Version: 20151204.900
+;; Package-Version: 20160212.53
 ;; Version: 0.0.6
 ;; Keywords: json
 
@@ -68,6 +68,7 @@
 (defcustom json-reformat:indent-width 4
   "How much indentation `json-reformat-region' should do at each level."
   :type 'integer
+  :safe #'integerp
   :group 'json-reformat)
 
 (defcustom json-reformat:pretty-string? nil
@@ -95,6 +96,7 @@ Else t:
     </pre>\"
     }"
   :type 'boolean
+  :safe #'booleanp
   :group 'json-reformat)
 
 (defun json-reformat:indent (level)
