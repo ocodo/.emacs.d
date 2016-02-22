@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "figlet" "figlet.el" (21594 56996 41235 56000))
+;;;### (autoloads nil "figlet" "figlet.el" (22218 26455 738551 967000))
 ;;; Generated autoloads from figlet.el
 
 (autoload 'figlet "figlet" "\
