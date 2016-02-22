@@ -6,9 +6,9 @@
 ;; Extracted from basic-toolkit.el by Andy Stewart.
 ;; Copyright (C) 2009, Andy Stewart, all rights reserved.
 ;; Keywords: edit
+;; Package-Version: 20160211.1847
 ;; Compatibility: GNU Emacs 23.0.60.1
-;; Version: 20140307.1644
-;; X-Original-Version: 1.0
+;; Version: 1.0
 ;;
 ;;; This file is NOT part of GNU Emacs
 
@@ -51,7 +51,7 @@
 
 ;;; Acknowledgements:
 ;;
-;;  Feature extracted from basid-edit-toolkit.el - by Andy Stewart. (LazyCat)
+;;  Feature extracted from basic-edit-toolkit.el - by Andy Stewart (LazyCat)
 ;;
 
 ;;; Code:
