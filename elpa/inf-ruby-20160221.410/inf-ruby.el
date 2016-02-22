@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20151104.1237
+;; Package-Version: 20160221.410
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.4.0
@@ -475,6 +475,13 @@ Then switch to the process buffer."
   (comint-send-string (inf-ruby-proc) (concat "(load \""
                                               file-name
                                               "\"\)\n")))
+
+(defun ruby-send-buffer ()
+  "Send the current buffer to the inferior Ruby process."
+  (interactive)
+  (save-restriction
+    (widen)
+    (ruby-send-region (point-min) (point-max))))
 
 (defun ruby-escape-single-quoted (str)
   "Escape single quotes, double quotes and newlines in STR."
