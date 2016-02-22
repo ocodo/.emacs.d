@@ -71,6 +71,8 @@ buffer-local wherever it is set."
       (list 'progn (list 'defvar var val docstring)
             (list 'make-variable-buffer-local (list 'quote var))))))
 
+;; Add autoload function for vc (#153).
+(autoload 'vc-responsible-backend "vc.el")
 
 ;;
 ;; Macros
@@ -1244,7 +1246,8 @@ PATH is value."
     (neo-buffer--newline-and-begin)))
 
 (defun neo-vc-for-node (node)
-  (let* ((backend (vc-responsible-backend node))
+  (let* ((backend (ignore-errors
+                    (vc-responsible-backend node)))
          (vc-state (when backend (vc-state node backend))))
     (cons (cdr (assoc vc-state neo-vc-state-char-alist))
           (cl-case vc-state
