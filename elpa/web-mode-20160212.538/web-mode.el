@@ -4,7 +4,7 @@
 ;; Copyright 2011-2016 François-Xavier Bois
 
 ;; Version: 13.1.4
-;; Package-Version: 20160201.2317
+;; Package-Version: 20160212.538
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: July 2011
@@ -64,29 +64,34 @@
 (defcustom web-mode-attr-indent-offset nil
   "Html attribute indentation level."
   :type 'integer
+  :safe #'integerp
   :group 'web-mode)
 
 (defcustom web-mode-markup-indent-offset
   (if (and (boundp 'standard-indent) standard-indent) standard-indent 2)
   "Html indentation level."
   :type 'integer
+  :safe #'integerp
   :group 'web-mode)
 
 (defcustom web-mode-css-indent-offset
   (if (and (boundp 'standard-indent) standard-indent) standard-indent 2)
   "CSS indentation level."
   :type 'integer
+  :safe #'integerp
   :group 'web-mode)
 
 (defcustom web-mode-code-indent-offset
   (if (and (boundp 'standard-indent) standard-indent) standard-indent 2)
   "Code (javascript, php, etc.) indentation level."
   :type 'integer
+  :safe #'integerp
   :group 'web-mode)
 
 (defcustom web-mode-sql-indent-offset 4
   "Sql (inside strings) indentation level."
   :type 'integer
+  :safe #'integerp
   :group 'web-mode)
 
 (defcustom web-mode-enable-css-colorization (display-graphic-p)
@@ -8342,6 +8347,8 @@ Prompt user if TAG-NAME isn't provided."
             (setq content (concat "{* " sel " *}")))
            ((and (= web-mode-comment-style 2) (string= web-mode-engine "blade"))
             (setq content (concat "{{-- " sel " --}}")))
+           ((and (= web-mode-comment-style 2) (string= web-mode-engine "ctemplate"))
+            (setq content (concat "{{!-- " sel " --}}")))
            ((and (= web-mode-comment-style 2) (string= web-mode-engine "razor"))
             (setq content (concat "@* " sel " *@")))
            (t
@@ -8547,6 +8554,13 @@ Prompt user if TAG-NAME isn't provided."
           end (web-mode-block-end-position pos))
     (web-mode-remove-text-at-pos 2 (1- end))
     (web-mode-remove-text-at-pos 2 beg)))
+
+(defun web-mode-uncomment-ctemplate-block (pos)
+  (let (beg end)
+    (setq beg (web-mode-block-beginning-position pos)
+          end (web-mode-block-end-position pos))
+    (web-mode-remove-text-at-pos 5 (- end 4))
+    (web-mode-remove-text-at-pos 5 beg)))
 
 (defun web-mode-uncomment-dust-block (pos)
   (let (beg end)
