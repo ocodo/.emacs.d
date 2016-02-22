@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Chris Wanstrath
 
 ;; Version: 0.6.2
-;; Package-Version: 20160111.332
+;; Package-Version: 20160208.1902
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
 ;; URL: http://github.com/defunkt/coffee-mode
@@ -796,7 +796,7 @@ Delete ARG spaces if ARG!=1."
 ;; want to indent the next line.
 
 (defvar coffee-indenters-bol '("class" "for" "if" "else" "unless" "while" "until"
-                               "try" "catch" "finally" "switch")
+                               "try" "catch" "finally" "switch" "when")
   "Keywords or syntax whose presence at the start of a line means the
 next line should probably be indented.")
 
@@ -804,7 +804,7 @@ next line should probably be indented.")
   "Builds a regexp out of `coffee-indenters-bol' words."
   (regexp-opt coffee-indenters-bol 'words))
 
-(defvar coffee-indenters-eol '(?> ?{ ?\[)
+(defvar coffee-indenters-eol '(?> ?{ ?\[ ?:)
   "Single characters at the end of a line that mean the next line
 should probably be indented.")
 
