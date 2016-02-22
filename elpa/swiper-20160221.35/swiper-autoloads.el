@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ivy" "ivy.el" (22200 34340 380704 868000))
+;;;### (autoloads nil "ivy" "ivy.el" (22218 26224 811118 454000))
 ;;; Generated autoloads from ivy.el
 
 (autoload 'ivy-resume "ivy" "\
@@ -17,11 +17,11 @@ Read a string in the minibuffer, with completion.
 This interface conforms to `completing-read' and can be used for
 `completing-read-function'.
 
-PROMPT is a string to prompt with; normally it ends in a colon and a space.
-COLLECTION can be a list of strings, an alist, an obarray or a hash table.
+PROMPT is a string that normally ends in a colon and a space.
+COLLECTION is either a list of strings, an alist, an obarray, or a hash table.
 PREDICATE limits completion to a subset of COLLECTION.
-REQUIRE-MATCH is specified with a boolean value.  See `completing-read'.
-INITIAL-INPUT is a string that can be inserted into the minibuffer initially.
+REQUIRE-MATCH is a boolean value.  See `completing-read'.
+INITIAL-INPUT is a string inserted into the minibuffer initially.
 HISTORY is a list of previously selected inputs.
 DEF is the default value.
 INHERIT-INPUT-METHOD is currently ignored.
@@ -68,7 +68,7 @@ Find a file on `recentf-list'.
 
 ;;;***
 
-;;;### (autoloads nil "swiper" "swiper.el" (22200 34340 372704 840000))
+;;;### (autoloads nil "swiper" "swiper.el" (22218 26224 799118 484000))
 ;;; Generated autoloads from swiper.el
 
 (autoload 'swiper-avy "swiper" "\
@@ -90,7 +90,7 @@ When non-nil, INITIAL-INPUT is the initial search pattern.
 ;;;***
 
 ;;;### (autoloads nil nil ("colir.el" "ivy-hydra.el" "swiper-pkg.el")
-;;;;;;  (22200 34340 386450 676000))
+;;;;;;  (22218 26224 822630 84000))
 
 ;;;***
 
