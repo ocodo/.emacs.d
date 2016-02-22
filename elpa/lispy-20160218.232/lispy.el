@@ -1786,26 +1786,33 @@ to all the functions, while maintaining the parens in a pretty state."
   (setq N (or N 1))
   (when (bound-and-true-p abbrev-mode)
     (expand-abbrev))
-  (lispy-dotimes N
-    (cond ((> (minibuffer-depth) 0)
-           (exit-minibuffer))
-          ((lispy--in-string-p)
-           (goto-char (cdr (lispy--bounds-string))))
-          ((lispy-right-p))
-          ((looking-at lispy-right)
-           (when (eq (char-before) ?\ )
-             (lispy-right 1)))
-          ((lispy-left-p)
-           (lispy-different))
-          ((lispy-looking-back "^ +")
-           (if (re-search-forward lispy-right (line-end-position) t)
-               (backward-char 1)
-             (move-end-of-line 1)))
-          ((re-search-forward lispy-right (line-end-position) t)
-           (backward-char 1))
-          (t
-           (move-end-of-line 1)))
-    (newline-and-indent)))
+  (let (bnd)
+    (lispy-dotimes N
+      (cond ((> (minibuffer-depth) 0)
+             (exit-minibuffer))
+            ((when (setq bnd (lispy--bounds-string))
+               (if (> (cdr bnd) (line-end-position))
+                   (goto-char (cdr bnd))
+                 (goto-char (cdr bnd))
+                 nil)))
+            ((lispy-right-p))
+            ((looking-at lispy-right)
+             (when (eq (char-before) ?\ )
+               (lispy-right 1)))
+            ((lispy-left-p)
+             (lispy-different))
+            ((lispy-looking-back "^ +")
+             (if (re-search-forward lispy-right (line-end-position) t)
+                 (backward-char 1)
+               (move-end-of-line 1)))
+            (t
+             (when bnd
+               (goto-char (cdr bnd)))
+             (let ((end (min (line-end-position)
+                             (cdr (lispy--bounds-list)))))
+               (while (< (point) (1- end))
+                 (forward-sexp)))))
+      (newline-and-indent))))
 
 ;;* Globals: miscellanea
 (defun lispy-string-oneline ()
@@ -2469,7 +2476,8 @@ Also works from inside the list."
 (defun lispy--move-up-special (arg)
   "Move current expression up ARG times.  Don't exit parent list."
   (let ((at-start (lispy--leftp)))
-    (unless at-start (lispy-different))
+    (unless (or at-start (looking-at lispy-outline))
+      (lispy-different))
     (cond ((region-active-p)
            (if (= arg 1)
                (let ((pt (point))
@@ -2507,8 +2515,19 @@ Also works from inside the list."
                   bnd1 (lispy--bounds-dwim))))
                (exchange-point-and-mark))))
           ((looking-at lispy-outline)
-           (let ((org-outline-regexp outline-regexp))
-             (org-metaup arg)))
+           (lispy-dotimes arg
+             (let ((bnd1 (lispy--bounds-outline))
+                   (bnd2 (progn
+                           (backward-char)
+                           (lispy--bounds-outline))))
+               (if (or (equal bnd1 bnd2)
+                       (and (eq (car bnd2) (point-min))
+                            (not (save-excursion
+                                   (goto-char (point-min))
+                                   (looking-at lispy-outline)))))
+                   (goto-char (car bnd1))
+                 (lispy--swap-regions bnd1 bnd2)
+                 (goto-char (car bnd2))))))
           (t
            (lispy--mark (lispy--bounds-dwim))
            (lispy-move-up arg)
@@ -2519,7 +2538,8 @@ Also works from inside the list."
 (defun lispy--move-down-special (arg)
   "Move current expression down ARG times.  Don't exit parent list."
   (let ((at-start (lispy--leftp)))
-    (unless at-start (lispy-different))
+    (unless (or at-start (looking-at lispy-outline))
+      (lispy-different))
     (cond ((region-active-p)
            (if (= arg 1)
                (let ((pt (point))
@@ -2554,14 +2574,16 @@ Also works from inside the list."
                   bnd1 (lispy--bounds-dwim))))
                (lispy-different))))
           ((looking-at lispy-outline)
-           (save-restriction
-             (narrow-to-region (point) (point-max))
-             (let ((org-outline-regexp outline-regexp))
-               (org-metadown arg))
-             (save-excursion
-               (goto-char (point-min))
-               (when (looking-at "\n")
-                 (delete-char 1)))))
+           (lispy-dotimes arg
+             (let ((bnd1 (lispy--bounds-outline))
+                   bnd2)
+               (goto-char (1+ (cdr bnd1)))
+               (if (and (setq bnd2 (lispy--bounds-outline))
+                        (not (equal bnd1 bnd2)))
+                   (progn
+                     (lispy--swap-regions bnd1 bnd2)
+                     (forward-char (1+ (- (cdr bnd2) (car bnd2)))))
+                 (goto-char (car bnd1))))))
           (t
            (lispy--mark (lispy--bounds-dwim))
            (lispy-move-down arg)
@@ -3124,7 +3146,14 @@ When SILENT is non-nil, don't issue messages."
                         (comment-region (point)
                                         (1- (cdr bnd))))
                        (t
-                        (comment-region (point) (line-end-position))))
+                        (let ((beg (point))
+                              (ln-start (line-number-at-pos)))
+                          (forward-sexp)
+                          (while (and (= (line-number-at-pos) ln-start)
+                                      (not (eolp)))
+                            (forward-sexp))
+                          (comment-region beg (point))
+                          (goto-char beg))))
                  (skip-chars-forward " ")))
               ((setq bnd (save-excursion
                            (and (lispy--out-forward 1)
@@ -5042,6 +5071,27 @@ First, try to return `lispy--bounds-string'."
                (end-of-line)
                (cons beg (point))))))))
 
+(defun lispy--bounds-outline ()
+  "Return bounds of current outline."
+  (cons (lispy--outline-beg)
+        (lispy--outline-end)))
+
+(defun lispy--outline-beg ()
+  "Return the current outline start."
+  (save-excursion
+    (condition-case nil
+        (progn
+          (outline-back-to-heading)
+          (point))
+      (error (point-min)))))
+
+(defun lispy--outline-end ()
+  "Return the current outline end."
+  (save-excursion
+    (if (outline-next-heading)
+        (1- (point))
+      (point-max))))
+
 (defun lispy--string-dwim (&optional bounds)
   "Return the string that corresponds to BOUNDS.
 `lispy--bounds-dwim' is used if BOUNDS is nil."
@@ -5705,14 +5755,15 @@ Ignore the matches in strings and comments."
                     (insert "\")")))
                 ;; ——— cons cell syntax ———————
                 (lispy--replace-regexp-in-code " \\. " " (ly-raw dot) ")
-                ;; Clojure # in the middle of the symbol
+                ;; Clojure # in a symbol
                 (goto-char (point-min))
-                (while (re-search-forward "\\(?:\\sw\\|\\s_\\)#" nil t)
+                (while (re-search-forward "\\_<\\(?:\\sw\\|\\s_\\)+\\_>" nil t)
                   (unless (lispy--in-string-p)
-                    (let* ((bnd (lispy--bounds-dwim))
-                           (str (lispy--string-dwim bnd)))
-                      (delete-region (car bnd) (cdr bnd))
-                      (insert (format "(ly-raw symbol %S)" str)))))
+                    (when (cl-position ?# (match-string 0))
+                      (let* ((bnd (lispy--bounds-dwim))
+                             (str (lispy--string-dwim bnd)))
+                        (delete-region (car bnd) (cdr bnd))
+                        (insert (format "(ly-raw symbol %S)" str))))))
                 ;; ———  ———————————————————————
                 (buffer-substring-no-properties
                  (point-min)
@@ -6873,6 +6924,7 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
   ("SPC" lispy-other-space)
   ("g" lispy-goto-mode)))
 
+(require 'hydra)
 (defhydra lh-knight ()
   "knight"
   ("j" lispy-knight-down)
@@ -7080,6 +7132,16 @@ When ARG is non-nil, unquote the current string."
   (interactive)
   (lispy-parens 2))
 
+(defun lispy-wrap-brackets ()
+  "Forward to `lispy-brackets'"
+  (interactive)
+  (lispy-brackets 2))
+
+(defun lispy-wrap-braces ()
+  "Forward to `lispy-braces'"
+  (interactive)
+  (lispy-braces 2))
+
 (defun lispy-splice-sexp-killing-backward ()
   "Forward to `lispy-raise'."
   (interactive)
@@ -7093,7 +7155,8 @@ When ARG is non-nil, unquote the current string."
 (defun lispy-raise-sexp ()
   "Forward to `lispy-raise'."
   (interactive)
-  (if (lispy-left-p)
+  (if (or (lispy-left-p)
+          (lispy-right-p))
       (lispy-raise 1)
     (lispy-mark-symbol)
     (lispy-different)
