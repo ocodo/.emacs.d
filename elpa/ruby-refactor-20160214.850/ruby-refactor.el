@@ -4,7 +4,7 @@
 
 ;; Authors: Andrew J Vargo <ajvargo@gmail.com>, Jeff Morgan <jeff.morgan@leandog.com>
 ;; Keywords: refactor ruby
-;; Package-Version: 20151208.1007
+;; Package-Version: 20160214.850
 ;; Version: 0.1
 ;; URL: https://github.com/ajvargo/ruby-refactor
 ;; Package-Requires: ((ruby-mode "1.2"))
@@ -432,8 +432,8 @@ If a region is not selected, the transformation uses the current line."
   (save-restriction
     (save-match-data
       (widen)
-      (let* ((text-begin (region-beginning))
-             (text-end (region-end))
+      (let* ((text-begin (line-beginning-position))
+             (text-end (line-end-position))
              (text (ruby-refactor-trim-newline-endings (buffer-substring-no-properties text-begin text-end)))
              (conditional
               (cond ((string-match-p "if" text) "if")
@@ -441,9 +441,9 @@ If a region is not selected, the transformation uses the current line."
                     (t (error "You need an `if' or `unless' on the target line"))))
              (line-components (ruby-refactor-trim-list (split-string text (format " %s " conditional)))))
         (delete-region text-begin text-end)
-        (insert (format "%s %s" conditional (car line-components)))
+        (insert (format "%s %s" conditional (cadr line-components)))
         (newline-and-indent)
-        (insert (format "%s" (cadr line-components)))
+        (insert (format "%s" (car line-components)))
         (newline-and-indent)
         (insert "end")
         (ruby-indent-line)
