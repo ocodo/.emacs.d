@@ -1,10 +1,10 @@
 ;;; pythonic.el --- Utility functions for writing pythonic emacs package.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 by Artem Malyshev
+;; Copyright (C) 2015-2016 by Artem Malyshev
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/pythonic
-;; Package-Version: 20160202.45
+;; Package-Version: 20160221.1123
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5") (dash "2.11") (s "1.9") (f "0.17.2"))
 
@@ -211,6 +211,7 @@ process flag."
       (process-put process
                    'pythonic
                    (list
+                    :executable (pythonic-executable)
                     :connection (pythonic-tramp-connection)
                     :pythonpath (pythonic-get-pythonpath)
                     :path (pythonic-get-path)
@@ -221,7 +222,7 @@ process flag."
   "Determine if python environment has been changed since PROCESS was started."
   (--if-let (process-get process 'pythonic)
       (and
-       (equal (car (process-command process)) (pythonic-executable))
+       (equal (plist-get it :executable) (pythonic-executable))
        (equal (plist-get it :connection) (pythonic-tramp-connection))
        (equal (plist-get it :pythonpath) (pythonic-get-pythonpath))
        (equal (plist-get it :path) (pythonic-get-path))
