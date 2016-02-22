@@ -2,10 +2,10 @@
 
 ;; Author: Igor Shymko <igor.shimko@gmail.com>
 ;; Version: 0.3
-;; Package-Version: 20160108.723
+;; Package-Version: 20160214.904
 ;; Package-Requires: ((dash "2.12.1") (popup "0.5.3") (flx-ido "0.6.1"))
 ;; Keywords: popup, imenu
-;; URL: https://github.com/ancane/popup-imenu.el
+;; URL: https://github.com/ancane/popup-imenu
 
 ;; This file is NOT part of GNU Emacs.
 
