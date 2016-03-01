@@ -6,6 +6,7 @@
 (use-package ag
   :init
   (progn
+    (add-to-list 'ag-arguments "--hidden")
     (bind-keys :prefix-map ag-global-prefix-map
                :prefix "C-x g"
                ("g" . ag)

@@ -170,9 +170,9 @@ and it doesn't seem to work wth key bindings."
 (defun open-line-below ()
   "Open a newline below the current point."
   (interactive)
-  (save-excursion
-    (end-of-line)
-    (newline)))
+  (end-of-line)
+  (newline)
+  (back-to-indentation))
 
 (defun open-line-above ()
   "Open a newline above the current point."
