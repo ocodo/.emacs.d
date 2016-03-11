@@ -788,14 +788,16 @@ Use negative prefix P to go backward."
   (interactive "sGithub Repo [format: user/repo]: ")
   (browse-url (format "https://github.com/%s" repo)))
 
-(defun open-this-in-intellij-idea ()
-  "Open the current file in intellij IDEA."
+(defun open-this-in-intellij-idea-15-osx ()
+  "Open the current file in intellij IDEA 15 (OS X specific)."
   (interactive)
-  (if (file-exists-p (buffer-file-name))
+  (when (file-exists-p (buffer-file-name))
       (start-process-shell-command "intellij-idea" nil
                                    (format "idea --line %s %s"
                                            (line-number-at-pos)
-                                           (buffer-file-name)))))
+                                           (buffer-file-name)))
+      (start-process-shell-command "switch-to-intellij" nil
+                                   "osascript -e 'activate application \"IntelliJ IDEA 15\"'")))
 
 ;; Key bindings
 
