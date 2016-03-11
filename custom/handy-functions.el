@@ -788,6 +788,15 @@ Use negative prefix P to go backward."
   (interactive "sGithub Repo [format: user/repo]: ")
   (browse-url (format "https://github.com/%s" repo)))
 
+(defun open-this-in-intellij-idea ()
+  "Open the current file in intellij IDEA."
+  (interactive)
+  (if (file-exists-p (buffer-file-name))
+      (start-process-shell-command "intellij-idea" nil
+                                   (format "idea --line %s %s"
+                                           (line-number-at-pos)
+                                           (buffer-file-name)))))
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
