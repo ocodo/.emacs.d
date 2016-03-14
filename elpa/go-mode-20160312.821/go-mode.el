@@ -13,7 +13,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (require 'etags)
 (require 'ffap)
 (require 'find-file)
@@ -44,7 +44,10 @@
 ;;
 ;; - Use go--position-bytes instead of position-bytes
 (defmacro go--xemacs-p ()
-  `(featurep 'xemacs))
+  (featurep 'xemacs))
+
+(defmacro go--has-syntax-propertize-p ()
+  (boundp 'syntax-propertize-function))
 
 (defun go--delete-whole-line (&optional arg)
   "Delete the current line without putting it in the `kill-ring'.
@@ -169,6 +172,10 @@ won't."
   "Options specific to `cover`."
   :group 'go)
 
+(defgroup godoc nil
+  "Options specific to `godoc'."
+  :group 'go)
+
 (defcustom go-fontify-function-calls t
   "Fontify function and method calls if this is non-nil."
   :type 'boolean
@@ -193,12 +200,6 @@ point to the wrapper script."
 Some users may replace this with 'goimports'
 from https://github.com/bradfitz/goimports."
   :type 'string
-  :group 'go)
-
-(defcustom gofmt-is-goimports nil
-  "Set to t if you use goimports. This is required to enable
-support for vendored packages."
-  :type 'boolean
   :group 'go)
 
 (defcustom gofmt-args nil
@@ -244,6 +245,33 @@ results, but can be slower than `go-packages-native'."
   :type 'function
   :package-version '(go-mode . 1.4.0)
   :group 'go)
+
+(defcustom go-guess-gopath-functions (list #'go-godep-gopath
+                                           #'go-wgo-gopath
+                                           #'go-gb-gopath
+                                           #'go-plain-gopath)
+  "Functions to run in sequence to detect a project's GOPATH.
+
+The functions in this list will be called one after another,
+until a function returns non-nil. The order of the functions in
+this list is important, as some project layouts may superficially
+look like others. For example, a subset of wgo projects look like
+gb projects. That's why we need to detect wgo first, to avoid
+mis-identifying them as gb projects."
+  :type '(repeat function)
+  :group 'go)
+
+(defcustom godoc-command "go doc"
+  "Choose between using `godoc' and `go doc' for M-x godoc."
+  :type '(choice
+          (const :tag "godoc" "godoc")
+          (const :tag "go doc" "go doc"))
+  :group 'godoc)
+
+(defcustom godoc-use-completing-read nil
+  "Provide auto-completion for godoc. Only really desirable when using `godoc' instead of `go doc'."
+  :type 'boolean
+  :group 'godoc)
 
 (defun go--kill-new-message (url)
   "Make URL the latest kill and print a message."
@@ -366,7 +394,7 @@ For mode=set, all covered lines will have this weight."
 
    `(
      ("\\(`[^`]*`\\)" 1 font-lock-multiline) ;; raw string literal, needed for font-lock-syntactic-keywords
-     (,(concat (go--regexp-enclose-in-symbol "type") "[[:space:]]+\\([^[:space:]]+\\)") 1 font-lock-type-face) ;; types
+     (,(concat (go--regexp-enclose-in-symbol "type") "[[:space:]]+\\([^[:space:](]+\\)") 1 font-lock-type-face) ;; types
      (,(concat (go--regexp-enclose-in-symbol "type") "[[:space:]]+" go-identifier-regexp "[[:space:]]*" go-type-name-regexp) 1 font-lock-type-face) ;; types
      (,(concat "[^[:word:][:multibyte:]]\\[\\([[:digit:]]+\\|\\.\\.\\.\\)?\\]" go-type-name-regexp) 2 font-lock-type-face) ;; Arrays/slices
      (,(concat "\\(" go-identifier-regexp "\\)" "{") 1 font-lock-type-face)
@@ -401,18 +429,16 @@ For mode=set, all covered lines will have this weight."
 
 (defvar go-mode-map
   (let ((m (make-sparse-keymap)))
-    (define-key m "}" #'go-mode-insert-and-indent)
-    (define-key m ")" #'go-mode-insert-and-indent)
-    (define-key m "," #'go-mode-insert-and-indent)
-    (define-key m ":" #'go-mode-insert-and-indent)
-    (define-key m "=" #'go-mode-insert-and-indent)
+    (unless (boundp 'electric-indent-chars)
+        (define-key m "}" #'go-mode-insert-and-indent)
+        (define-key m ")" #'go-mode-insert-and-indent))
     (define-key m (kbd "C-c C-a") #'go-import-add)
     (define-key m (kbd "C-c C-j") #'godef-jump)
     (define-key m (kbd "C-x 4 C-c C-j") #'godef-jump-other-window)
     (define-key m (kbd "C-c C-d") #'godef-describe)
-    (define-key m (kbd "C-c C-g") 'go-goto-map)
+    (define-key m (kbd "C-c C-f") 'go-goto-map)
     m)
-  "Keymap used by Go mode to implement electric keys.")
+  "Keymap used by go-mode.")
 
 (easy-menu-define go-mode-menu go-mode-map
   "Menu for Go mode."
@@ -591,7 +617,7 @@ current line will be returned."
         (goto-char point)
       (setq indent (go-indentation-at-point))
       (if (looking-at (concat go-label-regexp ":\\([[:space:]]*/.+\\)?$\\|case .+:\\|default:"))
-          (decf indent tab-width))
+          (cl-decf indent tab-width))
       (setq shift-amt (- indent (current-column)))
       (if (zerop shift-amt)
           nil
@@ -936,11 +962,14 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
   (set (make-local-variable 'end-of-defun-function) #'go-end-of-defun)
 
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (if (boundp 'syntax-propertize-function)
+  (if (go--has-syntax-propertize-p)
       (set (make-local-variable 'syntax-propertize-function) #'go-propertize-syntax)
     (set (make-local-variable 'font-lock-syntactic-keywords)
          go--font-lock-syntactic-keywords)
     (set (make-local-variable 'font-lock-multiline) t))
+
+  (if (boundp 'electric-indent-chars)
+      (set (make-local-variable 'electric-indent-chars) '(?\n ?} ?\))))
 
   (set (make-local-variable 'go-dangling-cache) (make-hash-table :test 'eql))
   (add-hook 'before-change-functions (lambda (x y) (setq go-dangling-cache (make-hash-table :test 'eql))) t t)
@@ -958,14 +987,19 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
 
   ;; Handle unit test failure output in compilation-mode
   ;;
-  ;; Note the final t argument to add-to-list for append, ie put these at the
-  ;; *ends* of compilation-error-regexp-alist[-alist]. We want go-test to be
-  ;; handled first, otherwise other elements will match that don't work, and
-  ;; those alists are traversed in *reverse* order:
+  ;; Note that we add our entry to the beginning of
+  ;; compilation-error-regexp-alist. In older versions of Emacs, the
+  ;; list was processed from the end, and we would've wanted to add
+  ;; ours last. But at some point this changed, and now the list is
+  ;; processed from the beginning. It's important that our entry comes
+  ;; before gnu, because gnu matches go test output, but includes the
+  ;; leading whitespace in the file name.
+  ;;
   ;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2001-12/msg00674.html
+  ;; documents the old, reverseed order.
   (when (and (boundp 'compilation-error-regexp-alist)
              (boundp 'compilation-error-regexp-alist-alist))
-    (add-to-list 'compilation-error-regexp-alist 'go-test t)
+    (add-to-list 'compilation-error-regexp-alist 'go-test)
     (add-to-list 'compilation-error-regexp-alist-alist
                  '(go-test . ("^\t+\\([^()\t\n]+\\):\\([0-9]+\\):? .*$" 1 2)) t)))
 
@@ -1002,17 +1036,20 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
                 (forward-line len)
                 (let ((text (buffer-substring start (point))))
                   (with-current-buffer target-buffer
-                    (decf line-offset len)
+                    (cl-decf line-offset len)
                     (goto-char (point-min))
                     (forward-line (- from len line-offset))
                     (insert text)))))
              ((equal action "d")
               (with-current-buffer target-buffer
                 (go--goto-line (- from line-offset))
-                (incf line-offset len)
+                (cl-incf line-offset len)
                 (go--delete-whole-line len)))
              (t
               (error "invalid rcs patch or internal error in go--apply-rcs-patch")))))))))
+
+(defun gofmt--is-goimports-p ()
+  (string-equal (file-name-base gofmt-command) "goimports"))
 
 (defun gofmt ()
   "Format the current buffer according to the gofmt tool."
@@ -1036,7 +1073,7 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
 
           (write-region nil nil tmpfile)
 
-          (when (and gofmt-is-goimports buffer-file-name)
+          (when (and (gofmt--is-goimports-p) buffer-file-name)
             (setq our-gofmt-args
                   (append our-gofmt-args
                           (list "-srcdir" (file-name-directory (file-truename buffer-file-name))))))
@@ -1069,6 +1106,10 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
           (gofmt--kill-error-buffer errbuf))
       ;; Convert the gofmt stderr to something understood by the compilation mode.
       (goto-char (point-min))
+      (if (save-excursion
+            (save-match-data
+              (search-forward "flag provided but not defined: -srcdir" nil t)))
+          (insert "Your version of goimports is too old and doesn't support vendoring. Please update goimports!\n\n"))
       (insert "gofmt errors:\n")
       (while (search-forward-regexp (concat "^\\(" (regexp-quote tmpfile) "\\):") nil t)
         (replace-match (file-name-nondirectory filename) t t nil 1))
@@ -1100,11 +1141,14 @@ you save any file, kind of defeating the point of autoloading."
   (let* ((bounds (bounds-of-thing-at-point 'symbol))
          (symbol (if bounds
                      (buffer-substring-no-properties (car bounds)
-                                                     (cdr bounds)))))
-    (completing-read (if symbol
-                         (format "godoc (default %s): " symbol)
-                       "godoc: ")
-                     (go--old-completion-list-style (go-packages)) nil nil nil 'go-godoc-history symbol)))
+                                                     (cdr bounds))))
+         (prompt (if symbol
+                     (format "godoc (default %s): " symbol)
+                   "godoc: ")))
+    (if godoc-use-completing-read
+        (completing-read prompt
+                         (go--old-completion-list-style (go-packages)) nil nil nil 'go-godoc-history symbol)
+      (read-from-minibuffer prompt symbol nil nil 'go-godoc-history))))
 
 (defun godoc--get-buffer (query)
   "Get an empty buffer for a godoc query."
@@ -1137,7 +1181,7 @@ you save any file, kind of defeating the point of autoloading."
   (unless (string= query "")
     (set-process-sentinel
      (start-process-shell-command "godoc" (godoc--get-buffer query)
-                                  (concat "godoc " query))
+                                  (concat godoc-command " " query))
      'godoc--buffer-sentinel)
     nil))
 
@@ -1294,7 +1338,7 @@ uncommented, otherwise a new import will be added."
       (goto-char (point-min))
       (if (re-search-forward (concat "^[[:space:]]*//[[:space:]]*import " line "$") nil t)
           (uncomment-region (line-beginning-position) (line-end-position))
-        (case (go-goto-imports)
+        (cl-case (go-goto-imports)
           ('fail (message "Could not find a place to add import."))
           ('block-empty
            (insert "\n\t" line "\n"))
@@ -1346,10 +1390,10 @@ If IGNORE-CASE is non-nil, the comparison is case-insensitive."
 archive files in /pkg/"
   (sort
    (delete-dups
-    (mapcan
+    (cl-mapcan
      (lambda (topdir)
        (let ((pkgdir (concat topdir "/pkg/")))
-         (mapcan (lambda (dir)
+         (cl-mapcan (lambda (dir)
                    (mapcar (lambda (file)
                              (let ((sub (substring file (length pkgdir) -2)))
                                (unless (or (go--string-prefix-p "obj/" sub) (go--string-prefix-p "tool/" sub))
@@ -1507,7 +1551,7 @@ description at POINT."
     (forward-char (1- column))
     (point)))
 
-(defstruct go--covered
+(cl-defstruct go--covered
   start-line start-column end-line end-column covered count)
 
 (defun go--coverage-file ()
@@ -1571,7 +1615,7 @@ divisor for FILE-NAME."
                (file (car parts))
                (rest (split-string (nth 1 parts) "[., ]")))
 
-          (destructuring-bind
+          (cl-destructuring-bind
               (start-line start-column end-line end-column num count)
               (mapcar #'string-to-number rest)
 
@@ -1853,6 +1897,103 @@ returned."
   (save-excursion
     (go-goto-function)
     (looking-at "\\<func(")))
+
+(defun go-guess-gopath (&optional buffer)
+  "Determine a suitable GOPATH for BUFFER, or the current buffer if BUFFER is nil.
+
+This function supports gb-based projects as well as Godep, in
+addition to ordinary uses of GOPATH."
+  (with-current-buffer (or buffer (current-buffer))
+    (let ((gopath (cl-some (lambda (el) (funcall el))
+                           go-guess-gopath-functions)))
+      (if gopath
+          (mapconcat
+           (lambda (el) (file-truename el))
+           gopath
+           path-separator)))))
+
+(defun go-plain-gopath ()
+  "Detect a normal GOPATH, by looking for the first `src'
+directory up the directory tree."
+  (let ((d (locate-dominating-file buffer-file-name "src")))
+    (if d
+        (list d))))
+
+(defun go-godep-gopath ()
+  "Detect a Godeps workspace by looking for Godeps/_workspace up
+the directory tree. The result is combined with that of
+`go-plain-gopath'."
+  (let* ((d (locate-dominating-file buffer-file-name "Godeps"))
+         (workspace (concat d
+                            (file-name-as-directory "Godeps")
+                            (file-name-as-directory "_workspace"))))
+    (if (and d
+             (file-exists-p workspace))
+        (list workspace
+              (locate-dominating-file buffer-file-name "src")))))
+
+(defun go-gb-gopath ()
+  "Detect a gb project."
+  (or (go--gb-vendor-gopath)
+      (go--gb-vendor-gopath-reverse)))
+
+(defun go--gb-vendor-gopath ()
+  (let* ((d (locate-dominating-file buffer-file-name "src"))
+         (vendor (concat d (file-name-as-directory "vendor"))))
+    (if (and d
+             (file-exists-p vendor))
+        (list d vendor))))
+
+(defun go--gb-vendor-gopath-reverse ()
+  (let* ((d (locate-dominating-file buffer-file-name "vendor"))
+         (src (concat d (file-name-as-directory "src"))))
+    (if (and d
+             (file-exists-p src))
+        (list d (concat d
+                        (file-name-as-directory "vendor"))))))
+
+(defun go-wgo-gopath ()
+  "Detect a wgo project."
+  (or (go--wgo-gocfg "src")
+      (go--wgo-gocfg "vendor")))
+
+(defun go--wgo-gocfg (needle)
+  (let* ((d (locate-dominating-file buffer-file-name needle))
+         (gocfg (concat d (file-name-as-directory ".gocfg"))))
+    (if (and d
+             (file-exists-p gocfg))
+        (with-temp-buffer
+          (insert-file-contents (concat gocfg "gopaths"))
+          (append
+           (mapcar (lambda (el) (concat d (file-name-as-directory el))) (split-string (buffer-string) "\n" t))
+           (list (go-original-gopath)))))))
+
+(defun go-set-project (&optional buffer)
+  "Set GOPATH based on `go-guess-gopath' for BUFFER, or the current buffer if BUFFER is nil.
+
+If go-guess-gopath returns nil, that is if it couldn't determine
+a valid value for GOPATH, GOPATH will be set to the initial value
+of when Emacs was started.
+
+This function can for example be used as a
+projectile-switch-project-hook, or simply be called manually when
+switching projects."
+  (interactive)
+  (let ((gopath (or (go-guess-gopath buffer)
+                    (go-original-gopath))))
+    (setenv "GOPATH" gopath)
+    (message "Set GOPATH to %s" gopath)))
+
+(defun go-reset-gopath ()
+  "Reset GOPATH to the value it had when Emacs started."
+  (interactive)
+  (let ((gopath (go-original-gopath)))
+    (setenv "GOPATH" gopath)
+    (message "Set GOPATH to %s" gopath)))
+
+(defun go-original-gopath ()
+  "Return the original value of GOPATH from when Emacs was started."
+  (let ((process-environment initial-environment)) (getenv "GOPATH")))
 
 (provide 'go-mode)
 
