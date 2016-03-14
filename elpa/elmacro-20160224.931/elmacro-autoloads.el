@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "elmacro" "elmacro.el" (22010 16145 497140
-;;;;;;  0))
+;;;### (autoloads nil "elmacro" "elmacro.el" (22246 12453 97645 379000))
 ;;; Generated autoloads from elmacro.el
 
 (autoload 'elmacro-show-last-macro "elmacro" "\
