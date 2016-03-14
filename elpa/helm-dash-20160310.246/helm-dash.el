@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20160220.435
+;; Package-Version: 20160310.246
 ;; Version: 1.3.0
 ;; Package-Requires: ((helm "1.9.2") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -468,13 +468,16 @@ Get required params to call `helm-dash-result-url' from SEARCH-RESULT."
 
 (defun helm-dash-build-source (docset)
   "Build a Helm source for DOCSET."
-  (helm-build-async-source (car docset)
-    :action-transformer #'helm-dash-actions
-    :candidates-process (cl-loop for row in (helm-dash--run-query docset)
-				 collect (helm-dash--candidate docset row))
-    :delayed t
-    :persistent-help "View doc"
-    :requires-pattern helm-dash-min-length))
+  (lexical-let ((docset docset))
+    (helm-build-sync-source (car docset)
+      :action-transformer #'helm-dash-actions
+      :candidates (lambda ()
+		    (cl-loop for row in (helm-dash--run-query docset)
+			     collect (helm-dash--candidate docset row)))
+      :delayed t
+      :volatile t
+      :persistent-help "View doc"
+      :requires-pattern helm-dash-min-length)))
 
 (defun helm-dash-sources--narrowed-docsets ()
   "Return a list of Helm sources for narrowed docsets.
