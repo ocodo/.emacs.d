@@ -1482,7 +1482,7 @@ does not trigger `post-self-insert-hook'."
 
 (cl-eval-when (compile eval load)
   (defun sp--get-substitute (struct list)
-    "Only ever call this from sp-get!  This function do the
+    "Only ever call this from sp-get!  This function does the
 replacement of all the keywords with actual calls to sp-get."
     (if (listp list)
         (if (eq (car list) 'sp-get)
@@ -1846,7 +1846,7 @@ If PROP is non-nil, return the value of that property instead."
 (defun sp-wrap-with-pair (pair)
   "Wrap the following expression with PAIR.
 
-This function is non-interactive helper.  To use this function
+This function is a non-interactive helper.  To use this function
 interactively, bind the following lambda to a key:
 
  (lambda (&optional arg) (interactive \"P\") (sp-wrap-with-pair \"(\"))
@@ -5519,7 +5519,7 @@ Note: prefix argument is shown after the example in
          (n (abs arg))
          (ok t)
          (b (point-max))
-         (e (point-min))
+         (e (point))
          (kill-fn (if dont-kill 'copy-region-as-kill 'kill-region)))
     (cond
      ;; kill to the end or beginning of list
