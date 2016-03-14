@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "haskell-emacs" "haskell-emacs.el" (22176 24854
-;;;;;;  0 0))
+;;;### (autoloads nil "haskell-emacs" "haskell-emacs.el" (22246 12373
+;;;;;;  421990 213000))
 ;;; Generated autoloads from haskell-emacs.el
 
 (autoload 'haskell-emacs-help "haskell-emacs" "\
@@ -22,8 +22,8 @@ Call `haskell-emacs-help' to read the documentation.
 
 ;;;***
 
-;;;### (autoloads nil nil ("haskell-emacs-pkg.el") (22176 24854 294757
-;;;;;;  0))
+;;;### (autoloads nil nil ("haskell-emacs-pkg.el") (22246 12373 431805
+;;;;;;  522000))
 
 ;;;***
 
