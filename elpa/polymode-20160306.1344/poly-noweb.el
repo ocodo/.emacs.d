@@ -72,9 +72,10 @@ closing \"@\" and a newline if necessary."
 (defcustom pm-exporter/pdflatex
   (pm-shell-exporter "pdflatex"
                      :from
-                     '(("latex" "\\.tex\\'" "LaTeX" "latexmk -jobname %O %t %i"))
+                     '(("latex" "\\.tex\\'" "LaTeX" "pdflatex -jobname %b %t %i"))
                      :to
-                     '(("pdf"  	"pdf"  "PDF" "")))
+                     '(("pdf"   "pdf"  "PDF" ""))
+                     :quote t)
   "Shell pdflatex exporter."
   :group 'polymode-export
   :type 'object)
@@ -82,11 +83,12 @@ closing \"@\" and a newline if necessary."
 (defcustom pm-exporter/latexmk
   (pm-shell-exporter "latexmk"
                      :from
-                     '(("latex" "\\.tex\\'" "LaTeX" "latexmk -jobname=%O %t %i"))
+                     '(("latex" "\\.tex\\'" "LaTeX" "latexmk -jobname=%b %t %i"))
                      :to
-                     '(("dvi"  	"dvi"  "DVI" "-dvi")
-                       ("pdf"  	"pdf"  "PDF" "-pdf")
-                       ("ps"  	"ps"  "PS" "-ps")))
+                     '(("pdf"   "pdf"  "PDF" "-pdf")
+                       ("ps"    "ps"  "PS" "-ps")
+                       ("dvi"   "dvi"  "DVI" "-dvi"))
+                     :quote t)
   "Shell latexmk dvi, ps and pdf exporter."
   :group 'polymode-export
   :type 'object)
