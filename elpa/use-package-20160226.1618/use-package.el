@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 26 Sep 2015
 ;; Version: 2.1
-;; Package-Version: 20160209.1633
+;; Package-Version: 20160226.1618
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -59,11 +59,23 @@ If you customize this, then you should require the `use-package'
 feature in files that use `use-package', even if these files only
 contain compiled expansions of the macros.  If you don't do so,
 then the expanded macros do their job silently."
-  :type 'boolean
+  :type '(choice (const :tag "Quiet" nil) (const :tag "Verbose" t)
+                 (const :tag "Debug" debug))
   :group 'use-package)
 
 (defcustom use-package-debug nil
   "Whether to display use-package expansions in a *use-package* buffer."
+  :type 'boolean
+  :group 'use-package)
+
+(defcustom use-package-check-before-init nil
+  "If non-nil, check that package exists before executing its `:init' block.
+The check is performed by looking for the module using `locate-library'."
+  :type 'boolean
+  :group 'use-package)
+
+(defcustom use-package-always-defer nil
+  "If non-nil, assume `:defer t` unless `:demand t` is given."
   :type 'boolean
   :group 'use-package)
 
@@ -176,7 +188,9 @@ convert it to a string and return that."
 (defun use-package-load-name (name &optional noerror)
   "Return a form which will load or require NAME depending on
 whether it's a string or symbol."
-  (if (stringp name) `(load ,name 'noerror) `(require ',name nil 'noerror)))
+  (if (stringp name)
+      `(load ,name 'noerror)
+    `(require ',name nil 'noerror)))
 
 (defun use-package-expand (name label form)
   "FORM is a list of forms, so `((foo))' if only `foo' is being called."
@@ -358,6 +372,7 @@ Unless the KEYWORD being processed intends to ignore remaining
 keywords, it must call this function recursively, passing in the
 plist with its keyword and argument removed, and passing in the
 next value for the STATE."
+  (declare (indent 1))
   (unless (null plist)
     (let* ((keyword (car plist))
            (arg (cadr plist))
@@ -504,10 +519,7 @@ manually updated package."
 
 (defalias 'use-package-normalize/:if 'use-package-normalize-test)
 (defalias 'use-package-normalize/:when 'use-package-normalize-test)
-
-(defun use-package-normalize/:unless (name keyword args)
-  (not (use-package-only-one (symbol-name keyword) args
-         #'use-package-normalize-value)))
+(defalias 'use-package-normalize/:unless 'use-package-normalize-test)
 
 (defun use-package-handler/:if (name keyword pred rest state)
   (let ((body (use-package-process-keywords name rest state)))
@@ -593,7 +605,7 @@ manually updated package."
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      (mapcar #'(lambda (path)
-                 `(eval-and-compile (push ,path load-path))) arg)
+                 `(eval-and-compile (add-to-list 'load-path ,path))) arg)
      body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -701,7 +713,10 @@ may also be a string, as accepted by `define-key'."
        (use-package-sort-keywords
         (use-package-plist-maybe-put rest :defer t))
        (use-package-plist-append state :commands commands))
-     `((ignore (,(if bind-macro bind-macro 'bind-keys) ,@arg))))))
+     `((ignore
+        ,(macroexpand
+          `(,(if bind-macro bind-macro 'bind-keys)
+            :package ,name ,@arg)))))))
 
 (defun use-package-handler/:bind* (name keyword arg rest state)
   (use-package-handler/:bind name keyword arg rest state 'bind-keys*))
@@ -726,7 +741,7 @@ function for a particular keymap.  The keymap is expected to be
 defined by the package.  In this way, loading the package is
 deferred until the prefix key sequence is pressed."
   (if (not (require package nil t))
-      (use-package-error (format "Could not load package.el: %s" package))
+      (use-package-error (format "Cannot load package.el: %s" package))
     (if (and (boundp keymap-symbol)
              (keymapp (symbol-value keymap-symbol)))
         (let* ((kv (this-command-keys-vector))
@@ -778,7 +793,7 @@ deferred until the prefix key sequence is pressed."
   (let* (commands
          (form (mapcar #'(lambda (interpreter)
                            (push (cdr interpreter) commands)
-                           `(push ',interpreter interpreter-mode-alist)) arg)))
+                           `(add-to-list 'interpreter-mode-alist ',interpreter)) arg)))
     (use-package-concat
      (use-package-process-keywords name
        (use-package-sort-keywords
@@ -797,7 +812,7 @@ deferred until the prefix key sequence is pressed."
   (let* (commands
          (form (mapcar #'(lambda (mode)
                            (push (cdr mode) commands)
-                           `(push ',mode auto-mode-alist)) arg)))
+                           `(add-to-list 'auto-mode-alist ',mode)) arg)))
     (use-package-concat
      (use-package-process-keywords name
        (use-package-sort-keywords
@@ -931,7 +946,13 @@ deferred until the prefix key sequence is pressed."
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      ;; The user's initializations
-     (use-package-hook-injector (use-package-as-string name) :init arg)
+     (let ((init-body
+            (use-package-hook-injector (use-package-as-string name)
+                                       :init arg)))
+       (if use-package-check-before-init
+           `((if (locate-library ,(use-package-as-string name))
+                 ,(macroexp-progn init-body)))
+         init-body))
      body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -966,7 +987,7 @@ deferred until the prefix key sequence is pressed."
              config-body)
           `((if (not ,(use-package-load-name name t))
                 (ignore
-                 (message (format "Could not load %s" ',name)))
+                 (message (format "Cannot load %s" ',name)))
               ,@config-body)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1117,14 +1138,15 @@ this file.  Usage:
                               (plist-get args* :defines))
                     (with-demoted-errors
                         ,(format "Cannot load %s: %%S" name)
-                      ,(if use-package-verbose
+                      ,(if (eq use-package-verbose 'debug)
                            `(message "Compiling package %s" ',name-symbol))
                       ,(unless (plist-get args* :no-require)
                          (use-package-load-name name)))))))
 
       (let ((body
              (macroexp-progn
-              (use-package-process-keywords name args*))))
+              (use-package-process-keywords name args*
+                (and use-package-always-defer '(:deferred t))))))
         (if use-package-debug
             (display-buffer
              (save-current-buffer
