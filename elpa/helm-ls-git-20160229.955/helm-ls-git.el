@@ -1,5 +1,5 @@
 ;;; helm-ls-git.el --- list git files. -*- lexical-binding: t -*-
-;; Package-Version: 20151031.2256
+;; Package-Version: 20160229.955
 
 ;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
@@ -76,6 +76,12 @@ Valid values are symbol 'abs (default) or 'relative."
   "Default sources for `helm-ls-git-ls'."
   :group 'helm-ls-git
   :type '(repeat symbol))
+
+(defcustom helm-ls-git-format-glob-string "'%s'"
+  "String to format globs in `helm-grep-get-file-extensions'.
+Glob are enclosed in single quotes by default."
+  :group 'helm-ls-git
+  :type 'string)
 
 
 (defface helm-ls-git-modified-not-staged-face
@@ -321,11 +327,12 @@ and launch git-grep from there.
   (let* ((helm-grep-default-command helm-ls-git-grep-command)
          helm-grep-default-recurse-command
          (files (cond ((equal helm-current-prefix-arg '(4))
-                       (list (format "'%s'" (mapconcat
-                                             'identity
-                                             (helm-grep-get-file-extensions
-                                              (helm-marked-candidates))
-                                             " "))))
+                       (list (format helm-ls-git-format-glob-string
+                                     (mapconcat
+                                      'identity
+                                      (helm-grep-get-file-extensions
+                                       (helm-marked-candidates))
+                                      " "))))
                       ((equal helm-current-prefix-arg '(16))
                        '(""))
                       (t (helm-marked-candidates))))
