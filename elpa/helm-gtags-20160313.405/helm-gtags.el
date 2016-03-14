@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20160202.503
-;; Version: 1.5.4
+;; Package-Version: 20160313.405
+;; Version: 1.5.5
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -933,7 +933,7 @@ Always update if value of this variable is nil."
           (progn
             (process-file "global" nil t nil options)
             (helm-gtags--remove-carrige-returns))
-        (helm-gtags--select-cache-init-common options "GPATH")))))
+        (helm-gtags--select-cache-init-common (list options) "GPATH")))))
 
 (defvar helm-source-gtags-select-path
   (helm-build-in-buffer-source "Select path"
@@ -1021,7 +1021,8 @@ Always update if value of this variable is nil."
       (setq helm-gtags--query tagname))
     (let ((tagroot (helm-gtags--find-tag-simple)))
       (helm-attrset 'helm-gtags-base-directory dir src)
-      (helm-attrset 'name (format "%s in %s" tagname (or dir tagroot)) src)
+      (when tagname
+        (helm-attrset 'name (format "%s in %s" tagname (or dir tagroot)) src))
       (helm :sources srcs :buffer helm-gtags--buffer
             :preselect preselect-regexp))))
 
