@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "which-key" "which-key.el" (22218 26174 987243
-;;;;;;  938000))
+;;;### (autoloads nil "which-key" "which-key.el" (22246 12109 994625
+;;;;;;  504000))
 ;;; Generated autoloads from which-key.el
 
 (defvar which-key-mode nil "\
@@ -99,6 +99,14 @@ be active for KEY-SEQUENCE and NAME (MORE contains
 addition KEY-SEQUENCE NAME pairs) to apply.
 
 \(fn MODE KEY-SEQUENCE NAME &rest MORE)" nil nil)
+
+(autoload 'which-key-reload-key-sequence "which-key" "\
+Simulate entering the key sequence KEY-SEQ.
+KEY-SEQ should be a list of events as produced by
+`listify-key-sequence'. Any prefix arguments that were used are
+reapplied to the new key sequence.
+
+\(fn KEY-SEQ)" nil nil)
 
 (autoload 'which-key-show-standard-help "which-key" "\
 Call the command in `which-key--prefix-help-cmd-backup'.

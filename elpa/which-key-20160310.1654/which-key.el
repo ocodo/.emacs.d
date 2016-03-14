@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20160213.654
-;; Version: 0.8
+;; Package-Version: 20160310.1654
+;; Version: 0.9
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -42,8 +42,12 @@
 (require 'cl-lib)
 (require 'button)
 
-(eval-when-compile
-  (defvar golden-ratio-mode))
+;; For compiler
+(defvar evil-operator-shortcut-map)
+(defvar evil-operator-state-map)
+(defvar evil-motion-state-map)
+(defvar golden-ratio-mode)
+(declare-function evil-get-command-property "ext:evil-common.el")
 
 (defgroup which-key nil
   "Customization options for which-key-mode"
@@ -147,9 +151,12 @@ the element is a cons cell, it should take the form (regexp .
 face to apply)."
   :group 'which-key)
 
-(defcustom which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
+(defcustom which-key-special-keys '()
   "These keys will automatically be truncated to one character
-and have `which-key-special-key-face' applied to them."
+and have `which-key-special-key-face' applied to them. This is
+disabled by default. Try this to see the effect.
+
+\(setq which-key-special-keys '(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
   :group 'which-key
   :type '(repeat string))
 
@@ -1678,7 +1685,7 @@ including prefix arguments."
                           (make-string first-col-width 32)))
               lines first-line new-end)
          (if (= 1 height)
-             (concat prefix page)
+             (cons (concat prefix page) nil)
            (setq lines (split-string page "\n")
                  first-line (concat prefix (car lines) "\n" page-cnt)
                  new-end (concat "\n" (make-string first-col-width 32)))
@@ -1740,7 +1747,12 @@ enough space based on your settings and frame size." prefix-keys)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; paging functions
 
-(defun which-key--reload-key-sequence (key-seq)
+;;;###autoload
+(defun which-key-reload-key-sequence (key-seq)
+  "Simulate entering the key sequence KEY-SEQ.
+KEY-SEQ should be a list of events as produced by
+`listify-key-sequence'. Any prefix arguments that were used are
+reapplied to the new key sequence."
   (let ((next-event (mapcar (lambda (ev) (cons t ev)) key-seq)))
     (setq prefix-arg current-prefix-arg
           unread-command-events next-event)))
@@ -1749,7 +1761,7 @@ enough space based on your settings and frame size." prefix-keys)
   "Show the next page of keys."
   (let ((next-page (if which-key--current-page-n
                        (+ which-key--current-page-n delta) 0)))
-    (which-key--reload-key-sequence (which-key--current-key-list))
+    (which-key-reload-key-sequence (which-key--current-key-list))
     (if which-key--last-try-2-loc
         (let ((which-key-side-window-location which-key--last-try-2-loc)
               (which-key--multiple-locations t))
@@ -1826,7 +1838,7 @@ after first page."
                  (which-key--show-keymap (car args) (cdr args)))
              (which-key--hide-popup)))
           (key-lst
-           (which-key--reload-key-sequence key-lst)
+           (which-key-reload-key-sequence key-lst)
            (which-key--create-buffer-and-show (apply #'vector key-lst)))
           (t (which-key-show-top-level)))))
 (defalias 'which-key-undo 'which-key-undo-key)
