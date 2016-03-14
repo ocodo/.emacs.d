@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160213.1437
+;; Package-Version: 20160311.417
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.2.0
 ;; Package-Requires: ((emacs "24.3"))
@@ -138,6 +138,7 @@ to indent function forms.
         (reduce
           merge
           some-coll)"
+  :safe #'keywordp
   :type '(choice (const :tag "Same as `lisp-mode'" :always-align)
                  (const :tag "Indent like a macro body" :always-indent)
                  (const :tag "Indent like a macro body unless first arg is on the same line"
@@ -328,6 +329,42 @@ instead of to `clojure-mode-map'."
   (clojure-mode-variables)
   (clojure-font-lock-setup)
   (add-hook 'paredit-mode-hook #'clojure-paredit-setup))
+
+(defcustom clojure-verify-major-mode t
+  "If non-nil, warn when activating the wrong major-mode."
+  :type 'boolean
+  :package-version '(clojure-mode "5.3.0"))
+
+(defun clojure--check-wrong-major-mode ()
+  "Check if the current major-mode matches the file extension.
+If it doesn't, issue a warning if `clojure-verify-major-mode' is
+non-nil."
+  (when (and clojure-verify-major-mode
+             (stringp (buffer-file-name)))
+    (let* ((case-fold-search t)
+           (problem (cond ((and (string-match "\\.clj\\'" (buffer-file-name))
+                                (not (eq major-mode 'clojure-mode)))
+                           'clojure-mode)
+                          ((and (string-match "\\.cljs\\'" (buffer-file-name))
+                                (not (eq major-mode 'clojurescript-mode)))
+                           'clojurescript-mode)
+                          ((and (string-match "\\.cljc\\'" (buffer-file-name))
+                                (not (eq major-mode 'clojurec-mode)))
+                           'clojurec-mode)
+                          ((and (string-match "\\.cljx\\'" (buffer-file-name))
+                                (not (eq major-mode 'clojurex-mode)))
+                           'clojurex-mode))))
+      (when problem
+        (message "[WARNING] %s activated `%s' instead of `%s' in this buffer.
+This could cause problems.
+\(See `clojure-verify-major-mode' to disable this message.)"
+                 (if (eq major-mode real-this-command)
+                     "You have"
+                   "Something in your configuration")
+                 major-mode
+                 problem)))))
+
+(add-hook 'clojure-mode-hook #'clojure--check-wrong-major-mode)
 
 (defsubst clojure-in-docstring-p ()
   "Check whether point is in a docstring."
@@ -1183,7 +1220,7 @@ it from Lisp code, use (put-clojure-indent 'some-symbol :defn)."
   (comment 0)
   (doto 1)
   (locking 1)
-  (proxy '(2 nil nil (1)))
+  (proxy '(2 nil nil (:defn)))
   (as-> 2)
 
   (reify '(:defn (1)))
