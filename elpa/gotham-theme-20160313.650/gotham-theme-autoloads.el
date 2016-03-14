@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "gotham-theme" "gotham-theme.el" (22160 38985
-;;;;;;  797421 551000))
+;;;### (autoloads nil "gotham-theme" "gotham-theme.el" (22246 12378
+;;;;;;  133968 869000))
 ;;; Generated autoloads from gotham-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
