@@ -36,12 +36,6 @@
 (require 'haskell-utils)
 (require 'haskell-customize)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Basic configuration hooks
-
-(add-hook 'haskell-process-ended-hook 'haskell-process-prompt-restart)
-(add-hook 'kill-buffer-hook 'haskell-interactive-kill)
-
 (defvar interactive-haskell-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-l") 'haskell-process-load-file)
@@ -67,15 +61,16 @@
   :lighter " Interactive"
   :keymap interactive-haskell-mode-map
   (add-hook 'completion-at-point-functions
-            #'haskell-completions-sync-completions-at-point
+            #'haskell-completions-sync-repl-completion-at-point
             nil
             t))
 
 (make-obsolete 'haskell-process-completions-at-point
-               'haskell-completions-sync-completions-at-point
+               'haskell-completions-sync-repl-completion-at-point
                "June 19, 2015")
+
 (defun haskell-process-completions-at-point ()
-  "A completion-at-point function using the current haskell process."
+  "A `completion-at-point' function using the current haskell process."
   (when (haskell-session-maybe)
     (let ((process (haskell-process))
 	  symbol-bounds)
@@ -125,10 +120,17 @@
   "Handle the return key."
   (interactive)
   (cond
+   ;; At a compile message, jump to the location of the error in the
+   ;; source.
    ((haskell-interactive-at-compile-message)
     (next-error-internal))
+   ;; At the input prompt, handle the expression in the usual way.
+   ((haskell-interactive-at-prompt)
+    (haskell-interactive-handle-expr))
+   ;; At any other location in the buffer, copy the line to the
+   ;; current prompt.
    (t
-    (haskell-interactive-handle-expr))))
+    (haskell-interactive-copy-to-prompt))))
 
 ;;;###autoload
 (defun haskell-session-kill (&optional leave-interactive-buffer)
@@ -333,33 +335,6 @@ If `haskell-process-load-or-reload-prompt' is nil, accept `default'."
              (haskell-interactive-mode-error-backward)
              (haskell-interactive-jump-to-error-line)))))
 
-;;;###autoload
-(defun haskell-mode-contextual-space ()
-  "Contextually do clever stuff when hitting space."
-  (interactive)
-  (if (or (not (bound-and-true-p interactive-haskell-mode))
-          (not (haskell-session-maybe)))
-      (self-insert-command 1)
-    (cond ((and haskell-mode-contextual-import-completion
-                (save-excursion (forward-word -1)
-                                (looking-at "^import$")))
-           (insert " ")
-           (let ((module (haskell-complete-module-read
-                          "Module: "
-                          (haskell-session-all-modules (haskell-session)))))
-             (let ((mapping (assoc module haskell-import-mapping)))
-               (if mapping
-                   (progn (delete-region (line-beginning-position)
-                                         (line-end-position))
-                          (insert (cdr mapping)))
-                 (insert module)))
-             (haskell-mode-format-imports)))
-          (t
-           (let ((ident (save-excursion (forward-char -1) (haskell-ident-at-point))))
-             (insert " ")
-             (when ident
-               (haskell-process-do-try-info ident)))))))
-
 (defvar xref-prompt-for-identifier nil)
 
 ;;;###autoload
@@ -481,9 +456,9 @@ If `haskell-process-load-or-reload-prompt' is nil, accept `default'."
                       (list "build --ghc-options=-fforce-recomp"))))))
 
 (defun haskell-process-file-loadish (command reload-p module-buffer)
-  "Run a loading-ish COMMAND that wants to pick up type errors
-and things like that. RELOAD-P indicates whether the notification
-should say 'reloaded' or 'loaded'. MODULE-BUFFER may be used
+  "Run a loading-ish COMMAND that wants to pick up type errors\
+and things like that.  RELOAD-P indicates whether the notification
+should say 'reloaded' or 'loaded'.  MODULE-BUFFER may be used
 for various things, but is optional."
   (let ((session (haskell-session)))
     (haskell-session-current-dir session)

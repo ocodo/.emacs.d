@@ -129,8 +129,7 @@ set and deleted as if they were real tabs."
 (defvar haskell-literate) ; defined in haskell-mode.el
 
 (defun haskell-indentation-bird-p ()
-  "Return t if this is a literate Haskell buffer in bird style,
-NIL otherwise."
+  "Return t if this is a literate Haskell buffer in bird style, NIL otherwise."
   (eq haskell-literate 'bird))
 
 ;;----------------------------------------------------------------------------
@@ -211,7 +210,7 @@ negative ARG.  Handles bird style literate Haskell too."
 (defun haskell-indentation-next-indentation (col indentations &optional nofail)
   "Find the leftmost indentation which is greater than COL.
 Indentations are taken from INDENTATIONS, which should be a
-list. Return the last indentation if there are no bigger ones and
+list.  Return the last indentation if there are no bigger ones and
 NOFAIL is non-NIL."
   (when (null indentations)
     (error "haskell-indentation-next-indentation called with empty list"))
@@ -220,7 +219,9 @@ NOFAIL is non-NIL."
         (car (last indentations)))))
 
 (defun haskell-indentation-previous-indentation (col indentations &optional nofail)
-  "Find the rightmost indentation which is less than COL."
+  "Find the rightmost indentation less than COL from INDENTATIONS.
+When no indentations are less than COL, return the rightmost indentation
+if NOFAIL is non-nil, or nil otherwise."
   (when (null indentations)
     (error "haskell-indentation-previous-indentation called with empty list"))
   (let ((rev (reverse indentations)))
@@ -296,11 +297,18 @@ indentation points to the right, we switch going to the left."
       t))
    (t nil)))
 
-(defun haskell-indentation-indent-region (start end)
-  "Indent region from START to END."
-  (setq haskell-indentation-dyn-last-direction 'region)
-  (haskell-indentation-indent-rigidly start end 1)
-  (message "Press TAB or S-TAB again to indent the region more"))
+(defun haskell-indentation-indent-region (_start _end)
+  "This function does nothing.
+
+It is better to do nothing to indent region in Haskell than to
+break the semantics of indentation.  This function is used for
+`indent-region-function' because the default is to call
+`indent-line-function' on every line from START to END and that
+also produces catastrophic results.
+
+Someday we will have indent region that preserves semantics and
+fixes up only indentation."
+  nil)
 
 (defun haskell-indentation-indent-backwards ()
   "Indent the current line to the previous indentation point."

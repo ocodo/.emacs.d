@@ -40,6 +40,7 @@ interpreter (e.g.  GHCi).
 * Interactive Haskell::             How to interact with GHCi (2)
 * Editing Cabal files::             Cabal support
 * Changing REPL target::            Start REPL with selected target (i.e. test,bench,etc.)
+* Using with flyspell-prog-mode::   Spell check comments and strings
 * Concept index::                   Index of Haskell Mode concepts
 * Function index::                  index of commands
 * Variable index::                  Index of options and types
@@ -253,20 +254,7 @@ To just align imports, jump to an import section and run
 
    ‘M-x haskell-align-imports’
 
-4.2.5 Entering imports
-----------------------
-
-If you have Haskell Interactive Mode enabled and a session open, you can
-write
-
-   ‘import’
-
-   And then hit ‘SPC’ (running ‘M-x haskell-mode-contextual-space’)
-which will prompt a list of all modules, either installed modules or
-local project directory files.  Then it’ll insert it and then format
-that module section.
-
-4.2.6 stylish-haskell
+4.2.5 stylish-haskell
 ---------------------
 
 As an alternative to the elisp functions described above, haskell-mode
@@ -716,7 +704,7 @@ sequence ‘C-c v c’.
    TODO/WRITEME
 
 
-File: haskell-mode.info,  Node: Changing REPL target,  Next: Concept index,  Prev: Editing Cabal files,  Up: Top
+File: haskell-mode.info,  Node: Changing REPL target,  Next: Using with flyspell-prog-mode,  Prev: Editing Cabal files,  Up: Top
 
 12 Changing REPL target
 ***********************
@@ -742,7 +730,36 @@ executables.
    TODO/WRITEME
 
 
-File: haskell-mode.info,  Node: Concept index,  Next: Function index,  Prev: Changing REPL target,  Up: Top
+File: haskell-mode.info,  Node: Using with flyspell-prog-mode,  Next: Concept index,  Prev: Changing REPL target,  Up: Top
+
+13 Using with ‘flyspell-prog-mode’
+**********************************
+
+Strings and comments can be checked for spelling mistakes.  There is a
+standard Emacs mode for this purpose, ‘flyspell-prog-mode’, that can be
+enabled in Haskell buffers.  Spelling errors are underlined using
+squiggly red lines.
+
+   Documentation for ‘flyspell-prog-mode’ can be found in *Note
+(emacs)Spelling::.  Here we point to a couple of useful keybindings:
+
+   • ‘M-$’ - Check and correct spelling of the word at point
+     (‘ispell-word’).
+
+   • ‘digit’ - Replace the word, just this time, with one of the
+     displayed near-misses.  Each near-miss is listed with a digit; type
+     that digit to select it.
+
+   • ‘SPC’ - Skip this word—continue to consider it incorrect, but don’t
+     change it here.
+
+   To enable spell checking of strings and comments add this line to
+your ‘~/.emacs’ file:
+
+   ‘(add-hook 'haskell-mode-hook 'flyspell-prog-mode)’
+
+
+File: haskell-mode.info,  Node: Concept index,  Next: Function index,  Prev: Using with flyspell-prog-mode,  Up: Top
 
 Concept index
 *************
@@ -830,25 +847,26 @@ Variable index
 
 Tag Table:
 Node: Top683
-Node: Introduction1952
-Node: Getting Help and Reporting Bugs2469
-Node: Getting Started3931
-Node: Editing Haskell Code6333
-Ref: Editing Haskell Code-Footnote-111050
-Ref: Editing Haskell Code-Footnote-211141
-Ref: Editing Haskell Code-Footnote-311200
-Node: Unicode support11284
-Node: Indentation12974
-Ref: Indentation-Footnote-115295
-Node: Declaration scanning15480
-Node: Compilation18759
-Node: Inferior Haskell interpreter21770
-Node: Interactive Haskell22700
-Node: Editing Cabal files26593
-Node: Changing REPL target27343
-Node: Concept index27919
-Node: Function index28961
-Node: Variable index30926
+Node: Introduction2021
+Node: Getting Help and Reporting Bugs2538
+Node: Getting Started4000
+Node: Editing Haskell Code6402
+Ref: Editing Haskell Code-Footnote-110737
+Ref: Editing Haskell Code-Footnote-210828
+Ref: Editing Haskell Code-Footnote-310887
+Node: Unicode support10971
+Node: Indentation12661
+Ref: Indentation-Footnote-114982
+Node: Declaration scanning15167
+Node: Compilation18446
+Node: Inferior Haskell interpreter21457
+Node: Interactive Haskell22387
+Node: Editing Cabal files26280
+Node: Changing REPL target27030
+Node: Using with flyspell-prog-mode27622
+Node: Concept index28725
+Node: Function index29776
+Node: Variable index31741
 
 End Tag Table
 
