@@ -4,9 +4,9 @@
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; Keywords: convenience editing evil smartparens lisp mnemonic
-;; Package-Version: 20151201.724
+;; Package-Version: 20160313.1159
 ;; Created: 9 Oct 2014
-;; Version: 8.0
+;; Version: 8.1
 ;; Package-Requires: ((evil "1.0.9") (bind-map "0") (smartparens "1.6.1"))
 ;; URL: https://github.com/syl20bnr/evil-lisp-state
 
@@ -146,6 +146,9 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
     :type 'sexp
     :group 'evil-lisp-state))
 
+(defvar evil-lisp-state-default-state 'normal
+  "The state to activate when exiting lisp state")
+
 (defmacro evil-lisp-state-enter-command (command)
   "Wrap COMMAND to call evil-lisp-state before executing COMMAND."
   (let ((funcname (if (string-match "lisp-state-"
@@ -181,8 +184,13 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
       :evil-states (normal)
       :major-modes ,evil-lisp-state-major-modes)))
 
+(defun evil-lisp-state/quit ()
+  "Quit lisp state and set state `evil-lisp-state-default-state'."
+  (interactive)
+  (funcall (intern (format "evil-%S-state" evil-lisp-state-default-state))))
+
 ;; escape
-(define-key evil-lisp-state-map [escape] 'evil-normal-state)
+(define-key evil-lisp-state-map [escape] 'evil-lisp-state/quit)
 ;; toggle lisp state
 (define-key evil-lisp-state-map "." 'lisp-state-toggle-lisp-state)
 ;; hjkl
