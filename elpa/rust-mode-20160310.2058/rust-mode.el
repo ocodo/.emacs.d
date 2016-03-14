@@ -1,10 +1,11 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.2.0
-;; Package-Version: 20160216.1734
+;; Package-Version: 20160310.2058
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
+;; Package-Requires: ((emacs "24.0"))
 
 ;; This file is distributed under the terms of both the MIT license and the
 ;; Apache License (version 2.0).
@@ -15,11 +16,11 @@
 ;;; Code:
 
 (eval-when-compile (require 'rx)
-                   (require 'cl)
                    (require 'compile)
                    (require 'url-vars))
 
 (defvar electric-pair-inhibit-predicate)
+(defvar electric-indent-chars)
 
 ;; for GNU Emacs < 24.3
 (eval-when-compile
@@ -84,8 +85,7 @@
       (seq
        "\\"
        (or
-        (: "U" (= 8 xdigit))
-        (: "u" (= 4 xdigit))
+        (: "u{" (** 1 6 xdigit) "}")
         (: "x" (= 2 xdigit))
         (any "'nrt0\"\\")))
       (not (any "'\\"))
@@ -532,37 +532,34 @@ function or trait.  When nil, where will be aligned with fn or trait."
 (defun rust-re-item-def (itype)
   (concat (rust-re-word itype) "[[:space:]]+" (rust-re-grab rust-re-ident)))
 
-;; (See PR #42 -- this is just like `(regexp-opt words 'symbols)` from
-;; newer Emacs versions, but will work on Emacs 23.)
-(defun regexp-opt-symbols (words)
-  (concat "\\_<" (regexp-opt words t) "\\_>"))
-(defconst rust-re-special-types (regexp-opt-symbols rust-special-types))
+(defconst rust-re-special-types (regexp-opt rust-special-types 'symbols))
 
 
 (defun rust-path-font-lock-matcher (re-ident)
   "Matches names like \"foo::\" or \"Foo::\" (depending on RE-IDENT, which should match
 the desired identifiers), but does not match type annotations \"foo::<\"."
   `(lambda (limit)
-     (block nil
+     (catch 'rust-path-font-lock-matcher
        (while t
          (let* ((symbol-then-colons (rx-to-string '(seq (group (regexp ,re-ident)) "::")))
                 (match (re-search-forward symbol-then-colons limit t)))
            (cond
             ;; If we didn't find a match, there are no more occurrences
             ;; of foo::, so return.
-            ((null match) (return nil))
+            ((null match) (throw 'rust-path-font-lock-matcher nil))
             ;; If this isn't a type annotation foo::<, we've found a
             ;; match, so a return it!
-            ((not (looking-at (rx (0+ space) "<"))) (return match))))))))
+            ((not (looking-at (rx (0+ space) "<")))
+	     (throw 'rust-path-font-lock-matcher match))))))))
 
 (defvar rust-mode-font-lock-keywords
   (append
    `(
      ;; Keywords proper
-     (,(regexp-opt-symbols rust-mode-keywords) . font-lock-keyword-face)
+     (,(regexp-opt rust-mode-keywords 'symbols) . font-lock-keyword-face)
 
      ;; Special types
-     (,(regexp-opt-symbols rust-special-types) . font-lock-type-face)
+     (,(regexp-opt rust-special-types 'symbols) . font-lock-type-face)
 
      ;; The unsafe keyword
      ("\\_<unsafe\\_>" . 'rust-unsafe-face)
@@ -1188,7 +1185,7 @@ idomenu (imenu with `ido-mode') for best mileage.")
   (concat "^\\s-*\\(?:priv\\|pub\\)?\\s-*"
           (regexp-opt
            '("enum" "struct" "type" "mod" "use" "fn" "static" "impl"
-             "extern" "impl" "static" "trait"))))
+             "extern" "trait"))))
 
 (defun rust-beginning-of-defun (&optional arg)
   "Move backward to the beginning of the current defun.
@@ -1249,21 +1246,23 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
     (rust--format-call (current-buffer))
     (goto-char cur-point)
     (set-window-start (selected-window) cur-win-start))
+
+  ;; Issue #127: Running this on a buffer acts like a revert, and could cause
+  ;; the fontification to get out of sync.  Call the same hook to ensure it is
+  ;; restored.
+  (rust--after-revert-hook)
+
   (message "Formatted buffer with rustfmt."))
 
 (defun rust-enable-format-on-save ()
   "Enable formatting using rustfmt when saving buffer."
   (interactive)
-  (add-hook 'before-save-hook #'rust-format-buffer nil t))
+  (setq-local rust-format-on-save t))
 
 (defun rust-disable-format-on-save ()
   "Disable formatting using rustfmt when saving buffer."
   (interactive)
-  (remove-hook 'before-save-hook #'rust-format-buffer t))
-
-;; For compatibility with Emacs < 24, derive conditionally
-(defalias 'rust-parent-mode
-  (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
+  (setq-local rust-format-on-save nil))
 
 (defvar rust-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1272,7 +1271,7 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
   "Keymap for Rust major mode.")
 
 ;;;###autoload
-(define-derived-mode rust-mode rust-parent-mode "Rust"
+(define-derived-mode rust-mode prog-mode "Rust"
   "Major mode for Rust code.
 
 \\{rust-mode-map}"
@@ -1295,6 +1294,11 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
   (setq-local comment-end   "")
   (setq-local indent-tabs-mode nil)
 
+  ;; Auto indent on }
+  (setq-local
+   electric-indent-chars (cons ?} (and (boundp 'electric-indent-chars)
+                                       electric-indent-chars)))
+
   ;; Allow paragraph fills for comments
   (setq-local comment-start-skip "\\(?://[/!]*\\|/\\*[*!]?\\)[[:space:]]*")
   (setq-local paragraph-start
@@ -1312,10 +1316,8 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
   (setq-local end-of-defun-function 'rust-end-of-defun)
   (setq-local parse-sexp-lookup-properties t)
   (setq-local electric-pair-inhibit-predicate 'rust-electric-pair-inhibit-predicate-wrap)
-  (add-hook 'after-revert-hook 'rust--after-revert-hook 'LOCAL)
-
-  (when rust-format-on-save
-    (rust-enable-format-on-save)))
+  (add-hook 'after-revert-hook 'rust--after-revert-hook nil t)
+  (add-hook 'before-save-hook 'rust--before-save-hook nil t))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
@@ -1336,6 +1338,9 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
       ((font-lock-ensure-fn (if (fboundp 'font-lock-ensure) 'font-lock-ensure 'font-lock-fontify-buffer)))
     (funcall font-lock-ensure-fn))
   )
+
+(defun rust--before-save-hook ()
+  (when rust-format-on-save (rust-format-buffer)))
 
 ;; Issue #6887: Rather than inheriting the 'gnu compilation error
 ;; regexp (which is broken on a few edge cases), add our own 'rust
@@ -1403,6 +1408,28 @@ See `compilation-error-regexp-alist' for help on their format.")
    on the Rust playpen."
   (interactive)
   (rust-playpen-region (point-min) (point-max)))
+
+(defun rust-promote-module-into-dir ()
+  "Promote the module file visited by the current buffer into its own directory.
+
+For example, if the current buffer is visiting the file `foo.rs',
+then this function creates the directory `foo' and renames the
+file to `foo/mod.rs'.  The current buffer will be updated to
+visit the new file."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (if (not filename)
+        (message "Buffer is not visiting a file.")
+      (if (string-equal (file-name-nondirectory filename) "mod.rs")
+          (message "Won't promote a module file already named mod.rs.")
+        (let* ((basename (file-name-sans-extension
+                          (file-name-nondirectory filename)))
+               (mod-dir (file-name-as-directory
+                         (concat (file-name-directory filename) basename)))
+               (new-name (concat mod-dir "mod.rs")))
+          (mkdir mod-dir t)
+          (rename-file filename new-name 1)
+          (set-visited-file-name new-name))))))
 
 (provide 'rust-mode)
 
