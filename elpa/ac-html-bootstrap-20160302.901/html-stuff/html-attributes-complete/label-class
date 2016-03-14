@@ -1,0 +1,32 @@
+active Pressed button
+btn Highly recommend using the <button> element whenever possible to ensure matching cross-browser rendering.
+btn-block Create block level buttons—those that span the full width of a parent
+btn-danger
+btn-default
+btn-info
+btn-lg Button sizing
+btn-link Deemphasize a button by making it look like a link while maintaining button behavior
+btn-primary
+btn-sm Button sizing
+btn-success
+btn-warning
+btn-xs Button sizing
+carousel-control <a class="left carousel-control" href="#example" role="button" data-slide="prev">\n  <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>\n  <span class="sr-only">Previous</span>\n</a>
+checkbox
+checkbox-inline
+control-label <div class="form-group">\n  <label class="control-label" for="myInput">Input with success</label>\n  <input type="text" class="form-control" id="myInput">\n</div>
+disabled Disabled state.\n\nFor <a>  Opera <18, IE11 use JS to disable such link.
+dropdown-toggle
+fieldset
+label
+label-danger
+label-default
+label-info
+label-primary
+label-success
+label-warning
+left See .carousel-control\n <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+radio
+radio-inline
+right See .carousel-control\n <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+sr-only Screen readers will have trouble with your forms if you don't include a label for every input.\nFor these inline forms, you can hide the labels using the .sr-only class. \n  <div class="form-group">\n    <label class="sr-only" for="pwf">Password</label>\n    <input type="password" class="form-control" id="pwd" placeholder="Password">\n  </div>

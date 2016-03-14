@@ -1,0 +1,23 @@
+active Pressed button
+btn Highly recommend using the <button> element whenever possible to ensure matching cross-browser rendering.
+btn-block Create block level buttons—those that span the full width of a parent
+btn-danger
+btn-default
+btn-info
+btn-lg Button sizing
+btn-link Deemphasize a button by making it look like a link while maintaining button behavior
+btn-primary
+btn-sm Button sizing
+btn-success
+btn-warning
+btn-xs Button sizing
+carousel-control <a class="left carousel-control" href="#example" role="button" data-slide="prev">\n  <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>\n  <span class="sr-only">Previous</span>\n</a>
+close Generic close icon for dismissing content like modals and alerts.
+disabled Disabled state.\n\nFor <a>  Opera <18, IE11 use JS to disable such link.
+dropdown-toggle
+left See .carousel-control\n <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+navbar-brand Replace the navbar brand with your own image by swapping the text for an <img>.\nSince the .navbar-brand has its own padding and height, you may need to override some CSS depending on your image.\n<div class="navbar-header">\n <a class="navbar-brand"..
+navbar-btn Add the .navbar-btn class to <button> elements not residing in a <form> to vertically center them in the navbar
+navbar-left These classes are mixin-ed version of .pull-left
+navbar-right These classes are mixin-ed version of .pull-right
+right See .carousel-control\n <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">

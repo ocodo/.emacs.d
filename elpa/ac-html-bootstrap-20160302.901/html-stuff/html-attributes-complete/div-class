@@ -1,0 +1,115 @@
+active Animate progress-bar
+alert
+alert-danger
+alert-dismissible Build on any alert by adding an optional .alert-dismissible and close button.\nBe sure to use the <button> element with the data attribut\n\ndata-dismiss="alert"\n\n<div class="alert alert-warning alert-dismissible" role="alert">\n  <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n    <span aria-hidden="true">&times;</span>\n  </button>\n  <strong>Warning!</strong> Better check yourself, you're not looking too good.\n</div>
+alert-info
+alert-success
+alert-warning
+bg-danger Contextual backgrounds
+bg-info Contextual backgrounds
+bg-primary Contextual backgrounds
+bg-success Contextual backgrounds
+bg-warning Contextual backgrounds
+btn-group Group a series of buttons together on a single line with the button group.\nPlace a .btn-group within another .btn-group when you want dropdown menus mixed with a series of buttons.\n\n<div class="btn-group" role="group" aria-label="...">\n  <button type="button" class="btn btn-default">Left</button>\n  <button type="button" class="btn btn-default">Middle</button>\n  <button type="button" class="btn btn-default">Right</button>\n</div>
+btn-group-justified Make a group of buttons stretch at equal sizes to span the entire width of its parent. Also works with button dropdowns within the button group.\n  <div class="btn-group btn-group-justified" role="group"..
+btn-group-lg
+btn-group-sm
+btn-group-vertical Make a set of buttons appear vertically stacked rather than horizontally
+btn-group-xs
+btn-toolbar <div class="btn-toolbar">\n  <div class="btn-group">
+caption caption of thumb
+carousel Ensure for JS: $('.carousel').carousel()\nEx.\n<div id="example" class="carousel slide" data-ride="carousel">\n <!-- Indicators -->\n <ol class="carousel-indicators">\n  <li data-target="#example" data-slide-to="0" class="active"></li>\n  <li data-target="#example" data-slide-to="1"></li>\n  ..\n <!-- Wrapper for slides -->\n <div class="carousel-inner" role="listbox">\n  <div class="item active">\n   <img src="..." alt="...">\n   <div class="carousel-caption">\n   ..\n   </div>\n   .. more wrappers\n </div>\n <!-- Controls -->\n <a class="left carousel-control" href="#example" role="button" data-slide="prev">\n   <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>\n   <span class="sr-only">Previous</span>\n </a>\n .. <a> next ..\n</div>
+carousel-caption Add captions to your slides. Within any .item\n<div class="item">\n  <img src="..." alt="...">\n  <div class="carousel-caption">\n    <h3>...</h3>\n    <p>...</p>\n  </div>\n</div>
+carousel-inner <!-- Wrapper for slides -->\n <div class="carousel-inner" role="listbox">\n  <div class="item active">\n   <img src="..." alt="...">\n   <div class="carousel-caption">\n   ..\n   </div>\n   .. more wrappers\n </div>
+center-block Center content blocks
+checkbox
+checkbox-inline
+clearfix Add the extra clearfix for only the required viewport\n“micro clearfix” generates pseudo-elements and sets their display to table. This creates an anonymous table-cell and a new block formatting context that means the :before pseudo-element prevents top-margin collapse. The :after pseudo-element is used to clear the floats. As a result, there is no need to hide any generated content and the total amount of code needed is reduced.
+collapse Ex. opened collapsable panel.\n.panel-collapse .collapse .in
+container Fixed-width layout
+container-fluid Create the fluid layouts in order to utilize the 100% width of the viewport.
+disabled To have the <label> for the checkbox or radio also display a "not-allowed" cursor when the user hovers over the label, add the .disabled class to your:\n.radio, .radio-inline, .checkbox, .checkbox-inline, or <fieldset>.\n\nFor <a>  Opera <18, IE11 use JS to disable such link.
+dropdown <div class="dropdown">\n    <button class="btn btn-default dropdown-toggle"\n    data-toggle="dropdown" aria-expanded="true" id="drMenu1">\n      Dropdown\n        <span class="caret"></span>\n    </button>\n    <ul class="dropdown-menu" role="menu" aria-labelledby="drMenu1">\n      <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Something else here</a></li>\n      <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Separated link</a></li>\n    </ul>\n</div>
+dropup <div class="btn-group dropup">
+embed-responsive Allow browsers to determine video or slideshow dimensions based on the width of their containing block by creating an intrinsic ratio that will properly scale on any device.
+embed-responsive-16by9
+embed-responsive-4by3
+fade 1. Modal animation. Slide it down.\n2. Fade effect for .tab-pane
+fieldset
+form-group Wrap labels and controls in .form-group for optimum spacing.\nDon't mix form groups with input groups
+form-group-lg Styles to the inputs and labels within a .form-group.
+form-group-sm Styles to the inputs and labels within a .form-group.
+has-error Any .control-label, .form-control, and .help-block within that element will receive the validation styles.
+has-feedback Add right feedback icon.\nFeedback icons only work with textual <input class="form-control"> elements\n (error)\nEx.\n <div class="form-group has-success has-feedback">\n  <label class="control-label" for="success">Input with success</label>\n  <input type="text" class="form-control" id="success" aria-describedby="successStatus">\n  <span class="glyphicon glyphicon-ok form-control-feedback" aria-hidden="true"></span>\n  <span id="successStatus" class="sr-only">(success)</span>\n </div>
+has-success Any .control-label, .form-control, and .help-block within that element will receive the validation styles.
+has-warning Any .control-label, .form-control, and .help-block within that element will receive the validation styles.
+hidden Force an element to be hidden including for screen readers
+in 1. .fade .in animation for modal, (first .tab-pane .fade), etc\n2. .panel-collapse .collapse .in - default open panel
+input-group Place one add-on or button on either side of an input\n <div class="input-group">\n   <span class="input-group-addon">@</span>\n   <input type="text" class="form-control" placeholder="Username">\n </div>
+input-group-btn Segmented buttons\n <div class="input-group">\n  <div class="input-group-btn">\n     Button and dropdown menu here\n  </div>\n  <input type="text" class="form-control">\n</div>
+input-group-lg
+input-group-sm
+jumbotron A lightweight, flexible component that can optionally extend the entire viewport to showcase key content on your site.\nTo make the jumbotron full width, and without rounded corners,\nplace it outside all .containers and instead add a .container within
+list-group <div class="list-group">\n <a href="#" class="list-group-item active">\n  <h4 class="list-group-item-heading">List group item heading</h4>\n  <p class="list-group-item-text">...</p>\n </a>\n</div>\n\nor\n\n<ul class="list-group">\n  <li class="list-group-item"...
+media Abstract object styles for building various types of components.\n(like blog comments, Tweets, etc)\nthat feature a left- or right-aligned image alongside textual content.
+media-body
+media-bottom
+media-left
+media-middle
+media-right
+modal <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">\n<div class="modal-dialog">\n <div class="modal-content">\n  <div class="modal-header">\n  ..\n  <div class="modal-body">\n  ..\n  <div class="modal-footer">\n  
+modal-body Where all modal content resides (sibling of .modal-header and .modal-footer)
+modal-content
+modal-dialog
+modal-footer Footer (for actions)\n<div class="modal-footer">\n <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\n <button type="button" class="btn btn-primary">Save changes</button>\n</div>
+modal-header Top section of the modal w/ title and dismiss
+navbar <nav class="navbar navbar-default"
+navbar-brand Replace the navbar brand with your own image by swapping the text for an <img>.\nSince the .navbar-brand has its own padding and height, you may need to override some CSS depending on your image.\n<div class="navbar-header">\n <a class="navbar-brand"..
+navbar-collapse <div class="navbar-header">\n <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#FOO"
+navbar-default Opposite to .navbar-inverse
+navbar-fixed-bottom Fixed bottom.\nAlso add padding! "body { padding-bottom: 70px; }" (after bs css)
+navbar-fixed-top Fixed to top.\nInclude a .container or .container-fluid to center and pad navbar content.\nAlso add padding! "body { padding-top: 70px; }" (after bs css)
+navbar-header Header of navbar
+navbar-inverse Modify the look of the navbar Opposite to .navbar-default
+navbar-left These classes are mixin-ed version of .pull-left
+navbar-right These classes are mixin-ed version of .pull-right
+navbar-static-top Create a full-width navbar that scrolls away with the page by adding
+page-header A simple shell for an h1.
+panel While not always necessary, sometimes you need to put your DOM in a box.\nFor those situations, try the panel component.\n\n<div class="panel panel-default">\n <div class="panel-body">\n  Basic panel example\n </div>\n</div>
+panel-body
+panel-collapse Be sure to add the class collapse to the collapsible element. If you'd like it to default open, add the additional class in.
+panel-danger
+panel-default
+panel-footer Wrap buttons or secondary text in .panel-footer.\nNote that panel footers do not inherit colors and borders when using contextual variations as they are not meant to be in the foreground.
+panel-group <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">\n <div class="panel panel-default">\n   <div class="panel-heading" role="tab" id="headingOne">
+panel-heading Container for heading and h1-h6 .panel-title
+panel-info
+panel-primary Opposite to .panel-default
+panel-success
+panel-warning
+progress
+progress-bar Show filled bar\n<div class="progress">\n  <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">\n    60%\n  </div>\n</div>
+progress-bar-danger
+progress-bar-info
+progress-bar-striped
+progress-bar-success
+progress-bar-warning
+pull-left Float an element to the left with a class
+pull-right Float an element to the right with a class
+radio
+radio-inline
+row Predefined grid class
+show Force an element to be shown including for screen readers
+slide Slide carousel
+tab-content <div class="tab-content">\n<div role="tabpanel" class="tab-pane fade in active" id="home">...</div>\n<div role="tabpanel" class="tab-pane fade" id="profile">...</div>
+tab-pane <div role="tabpanel" class="tab-pane fade in active" id="home">...</div>
+text-danger Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-info Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-muted Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-primary Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-success Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-warning Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+thumbnail
+well Use the well as a simple effect on an element to give it an inset effect.
+well-lg
+well-sm

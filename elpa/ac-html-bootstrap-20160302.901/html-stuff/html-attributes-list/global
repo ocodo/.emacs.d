@@ -1,0 +1,14 @@
+data-animation Animation for tooltip/popover.
+data-container
+data-content Content of popover.
+data-delay Delay, Number or Object '{ "show": 500, "hide": 100 }'\nNote, use data-delay='{"..' \n  not data-delay="{.."
+data-html Insert HTML into the tooltip/popover. If false, jQuery's TEXT method will be used to insert content into the DOM. Use text if you're worried about XSS attacks.
+data-offset Pixels to offset from top when calculating position of scroll.
+data-placement How to position the tooltip/popover.\nWhen "auto" is specified, it will dynamically reorient the tooltip/popover.\n"auto left" - left if possible
+data-selector String\nIf a selector is provided, tooltip/popover objects will be delegated to the specified targets.\nIn practice, this is used to enable dynamic HTML content to have tooltips/popover added.
+data-spy
+data-target For scrollspy.\n<body data-spy="scroll" data-target=".navbar-example">\n..\n  <div class="navbar-example">\n   <ul class="nav nav-tabs" role="tablist">\n..\n   </ul>\n  </div>\n..\n</body>
+data-template For tooltip/popover, base html
+data-title Default title value if not present "title" attribute
+data-trigger How tooltip/popover is triggered - click | hover | focus | manual.\nYou may pass multiple triggers; separate them with a space.
+data-viewport String or object.\nKeeps the tooltip/popover within the bounds of this element.\nExample: viewport: '#viewport' or { "selector": "#viewport", "padding": 0 }

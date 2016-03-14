@@ -1,0 +1,2 @@
+alert
+modal <button type="button" class="close" data-dismiss="modal" aria-label="Close">\n  <span aria-hidden="true">&times;</span></button>

@@ -1,0 +1,4 @@
+img-circle Makes the entire image round by adding border-radius:500px.
+img-responsive This applies\n { max-width: 100%; height: auto; }\nto the image so that it scales nicely to the parent element.
+img-rounded Adds border-radius:6px to give the image rounded corners.
+img-thumbnail Adds a bit of padding and a gray border

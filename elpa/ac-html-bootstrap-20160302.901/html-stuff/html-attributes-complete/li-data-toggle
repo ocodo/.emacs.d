@@ -1,0 +1,2 @@
+pill <ul class="nav nav-pills">\n <li class="active"><a href="#tab_a" data-toggle="pill">Pill A</a></li>\n <li><a href="#tab_b" data-toggle="pill">Pill B</a></li>\n <li><a href="#tab_c" data-toggle="pill">Pill C</a></li>\n <li><a href="#tab_d" data-toggle="pill">Pill D</a></li>\n</ul>\n<div class="tab-content">\n  <div class="tab-pane active" id="tab_a">...</div>
+tab <ul class="nav nav-tabs">\n <li class="active"><a href="#home" data-toggle="tab">Home</a></li>\n..\n<div class="tab-content">\n  <div class="tab-pane active" id="home">...</div>

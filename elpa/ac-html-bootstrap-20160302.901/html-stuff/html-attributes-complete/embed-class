@@ -1,0 +1,1 @@
+embed-responsive-item Pro-Tip! You don't need to include frameborder="0" in your <iframe>s as we override that for you.

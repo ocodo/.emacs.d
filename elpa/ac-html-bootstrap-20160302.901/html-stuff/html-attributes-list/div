@@ -1,0 +1,9 @@
+data-backdrop Includes a modal-backdrop element.\nDefault true\nAlternatively, specify static for a backdrop which doesn't close the modal on click.\n<div id="myModal" class="modal fade" role="dialog" data-backdrop="true">
+data-interval The amount of time to delay between automatically cycling an item. If false, carousel will not automatically cycle.
+data-keyboard Closes the modal when escape key is pressed. Default true. Carousel - react for keyboard
+data-offset-bottom
+data-offset-top
+data-pause Pauses the cycling of the carousel on mouseenter and resumes the cycling of the carousel on mouseleave.
+data-ride
+data-show Shows the modal when initialized. Default true
+data-wrap Whether the carousel should cycle continuously or have hard stops.\nDefault true.

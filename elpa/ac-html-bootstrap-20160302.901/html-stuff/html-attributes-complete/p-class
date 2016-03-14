@@ -1,0 +1,23 @@
+bg-danger Contextual backgrounds
+bg-info Contextual backgrounds
+bg-primary Contextual backgrounds
+bg-success Contextual backgrounds
+bg-warning Contextual backgrounds
+center-block Center content blocks
+form-control-static Place plain text next to a form label within a form\n <form class="form-horizontal" role="form">\n   <div class="form-group">\n   <label class="col-sm-2 control-label">Email</label>\n    <div class="col-sm-10">\n      <p class="form-control-static">email@example.com</p>\n    </div>\n  </div>
+hidden Force an element to be hidden including for screen readers
+input-group Place one add-on or button on either side of an input\n <div class="input-group">\n   <span class="input-group-addon">@</span>\n   <input type="text" class="form-control" placeholder="Username">\n </div>
+input-group-btn Segmented buttons\n <div class="input-group">\n  <div class="input-group-btn">\n     Button and dropdown menu here\n  </div>\n  <input type="text" class="form-control">\n</div>
+input-group-lg
+input-group-sm
+list-group-item-text <div class="list-group">\n <a href="#" class="list-group-item active">\n  <h4 class="list-group-item-heading">List group item heading</h4>\n  <p class="list-group-item-text">...</p>\n </a>\n</div>\n\nor\n\n<ul class="list-group">\n  <li class="list-group-item"...
+navbar-text Text inside navbad
+pull-left Float an element to the left with a class
+pull-right Float an element to the right with a class
+show Force an element to be shown including for screen readers
+text-danger Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-info Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-muted Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-primary Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-success Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-warning Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.

@@ -1,0 +1,47 @@
+active Pressed button
+alert-link Use the .alert-link utility class to quickly provide matching colored links within any alert.
+bg-danger Contextual backgrounds
+bg-info Contextual backgrounds
+bg-primary Contextual backgrounds
+bg-success Contextual backgrounds
+bg-warning Contextual backgrounds
+btn Highly recommend using the <button> element whenever possible to ensure matching cross-browser rendering.
+btn-block Create block level buttons—those that span the full width of a parent
+btn-danger
+btn-default
+btn-info
+btn-lg Button sizing
+btn-link Deemphasize a button by making it look like a link while maintaining button behavior
+btn-primary
+btn-sm Button sizing
+btn-success
+btn-warning
+btn-xs Button sizing
+caption caption of thumb
+carousel-control <a class="left carousel-control" href="#example" role="button" data-slide="prev">\n  <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>\n  <span class="sr-only">Previous</span>\n</a>
+center-block Center content blocks
+close Generic close icon for dismissing content like modals and alerts.
+disabled Disabled state.\n\nFor <a>  Opera <18, IE11 use JS to disable such link.
+dropdown-toggle
+hidden Force an element to be hidden including for screen readers
+left See .carousel-control\n <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+list-group-item <div class="list-group">\n <a href="#" class="list-group-item active">\n  <h4 class="list-group-item-heading">List group item heading</h4>\n  <p class="list-group-item-text">...</p>\n </a>\n</div>\n\nor\n\n<ul class="list-group">\n  <li class="list-group-item"...
+media-bottom
+media-left
+media-middle
+media-right
+navbar-brand Replace the navbar brand with your own image by swapping the text for an <img>.\nSince the .navbar-brand has its own padding and height, you may need to override some CSS depending on your image.\n<div class="navbar-header">\n <a class="navbar-brand"..
+navbar-left These classes are mixin-ed version of .pull-left
+navbar-link Links that are not within the regular navbar navigation component,\nuse the .navbar-link class to add the proper colors for the default and inverse navbar options.
+navbar-right These classes are mixin-ed version of .pull-right
+pull-left Float an element to the left with a class
+pull-right Float an element to the right with a class
+right See .carousel-control\n <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+show Force an element to be shown including for screen readers
+text-danger Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-info Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-muted Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-primary Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-success Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-warning Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+thumbnail

@@ -1,0 +1,8 @@
+navbar <nav class="navbar navbar-default"
+navbar-default Opposite to .navbar-inverse
+navbar-fixed-bottom Fixed bottom.\nAlso add padding! "body { padding-bottom: 70px; }" (after bs css)
+navbar-fixed-top Fixed to top.\nInclude a .container or .container-fluid to center and pad navbar content.\nAlso add padding! "body { padding-top: 70px; }" (after bs css)
+navbar-inverse Modify the look of the navbar Opposite to .navbar-default
+navbar-left These classes are mixin-ed version of .pull-left
+navbar-right These classes are mixin-ed version of .pull-right
+navbar-static-top Create a full-width navbar that scrolls away with the page by adding

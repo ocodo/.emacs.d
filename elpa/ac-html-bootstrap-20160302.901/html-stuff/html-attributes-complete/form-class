@@ -1,0 +1,5 @@
+form-horizontal Predefined grid classes to align labels and groups of form controls in a horizontal layout.\nNO NEED FOR .row
+form-inline Left-aligned and inline-block controls.\nThis only applies to forms within viewports that are at least 768px wide.
+navbar-form Use the alignment options to decide where it resides within the navbar content.\n\n<form class="navbar-form navbar-left" role="search">\n<div class="form-group">\n  <input type="text" class="form-control" placeholder="Search">\n</div>
+navbar-left These classes are mixin-ed version of .pull-left
+navbar-right These classes are mixin-ed version of .pull-right

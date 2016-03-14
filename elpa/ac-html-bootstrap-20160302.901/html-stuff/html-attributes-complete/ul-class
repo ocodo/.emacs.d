@@ -1,0 +1,18 @@
+breadcrumb Indicate the current page's location within a navigational hierarchy.\nSeparators are automatically added in CSS through :before and content.\n\nHome / Links / Data\n<ol class="breadcrumb">\n  <li><a href="#">Home</a></li>\n  <li><a href="#">Library</a></li>\n  <li class="active">Data</li>\n</ol>
+carousel-indicators <ol class="carousel-indicators">\n  <li data-target="#carousel-example" data-slide-to="0" class="active"></li>\n  <li data-target="#carousel-example" data-slide-to="1"></li>\n  <li data-target="#carousel-example" data-slide-to="2"></li>\n</ol>
+dropdown-menu <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu3">\n <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Regular link</a></li>\n <li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">Disabled link</a></li>\n <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Another link</a></li>\n</ul>
+dropdown-menu-left
+dropdown-menu-right
+list-group <div class="list-group">\n <a href="#" class="list-group-item active">\n  <h4 class="list-group-item-heading">List group item heading</h4>\n  <p class="list-group-item-text">...</p>\n </a>\n</div>\n\nor\n\n<ul class="list-group">\n  <li class="list-group-item"...
+list-inline Place all list items on a single line with display: inline-block; and some light padding.
+list-unstyled Remove the default list-style and left margin on list items (immediate children only).\nThis only applies to immediate children list items, meaning you will need to add the class for any nested lists as well.
+nav
+nav-justified
+nav-pills
+nav-stacked Vertically stackable pills\n<ul class="nav nav-pills nav-stacked">\n  ..\n</ul>
+nav-tabs Example with data-toggle\n<div role="tabpanel">\n\n<!-- Nav tabs -->\n<ul class="nav nav-tabs" role="tablist">\n <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Home</a></li>\n <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Profile</a></li>\n</ul>\n<!-- Tab panes -->\n<div class="tab-content">\n <div role="tabpanel" class="tab-pane active" id="home">...</div>\n <div role="tabpanel" class="tab-pane" id="profile">...</div>\n</div>\n\n</div>
+navbar-nav
+pager By default, the pager centers links.\n <nav>\n   <ul class="pager">\n     <li><a href="#">Previous</a></li>\n     <li><a href="#">Next</a></li>\n   </ul>\n </nav>
+pagination Provide pagination links\n\n <nav>\n   <ul class="pagination">\n     <li>\n       <a href="#" aria-label="Previous">\n         <span aria-hidden="true">&laquo;</span>\n       </a>\n     </li>\n     <li><a href="#">1</a></li>\n     <li><a href="#">2</a></li>\n     ..etc..
+pagination-lg
+pagination-sm

@@ -1,0 +1,2 @@
+affix <ul class="nav nav-tabs nav-stacked" data-spy="affix" data-offset-top="125">\n  <li class="active"><a href="#one">Section One</a></li>\n  <li><a href="#two">Section Two</a></li>\n  <li><a href="#three">Section Three</a></li>\n</ul>\nThe affix plugin toggles between three classes,\neach representing a particular state: .affix, .affix-top, and .affix-bottom.\nYou must provide the styles for these classes yourself (independent of this plugin) to handle the actual positions.
+scroll

@@ -1,0 +1,7 @@
+active <ul class="nav nav-tabs">\n  <li class="active"><a href=..\n  <li>..
+disabled This class will only change the <a>'s appearance, not its functionality.\nUse custom JavaScript to disable links here.
+divider Add a divider to separate series of links in a dropdown menu.
+dropdown-header Add a header to label sections of actions in any dropdown menu.
+list-group-item <div class="list-group">\n <a href="#" class="list-group-item active">\n  <h4 class="list-group-item-heading">List group item heading</h4>\n  <p class="list-group-item-text">...</p>\n </a>\n</div>\n\nor\n\n<ul class="list-group">\n  <li class="list-group-item"...
+next You can align each link to the sides .pager\n<nav>\n  <ul class="pager">\n    <li class="previous"><a href="#">Older</a></li>\n    <li class="next"><a href="#">Newer</a></li>\n  </ul>\n</nav>
+previous You can align each link to the sides .pager\n<nav>\n  <ul class="pager">\n    <li class="previous"><a href="#">Older</a></li>\n    <li class="next"><a href="#">Newer</a></li>\n  </ul>\n</nav>

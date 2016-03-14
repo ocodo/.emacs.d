@@ -1,5 +1,0 @@
-data-target 1. Link to collected nav links, forms, and other content for toggling\n2. Activate a modal \n<button type="button" data-toggle="modal" data-target="#myModal">Launch modal</button>\n
-data-loading-text A loading state on a button\ndata-loading-text="Loading..."\n
-data-slide Carousel controll, next, prev.
-data-dismiss .alert-dismissible. Close alert
-data-toggle Toggle facility

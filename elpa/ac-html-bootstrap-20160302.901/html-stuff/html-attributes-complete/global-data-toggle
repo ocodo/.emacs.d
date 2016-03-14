@@ -1,0 +1,2 @@
+popover Popover.\nFor performance reasons, the Tooltip and Popover data-apis are opt-in,\nmeaning YOU MUST INITIALIZE THEM YOURSELF.\n\n$(function () {\n  $('[data-toggle="popover"]').popover({placement: 'bottom'})\n})
+tooltip Tooltip.\nFor performance reasons, the Tooltip and Popover data-apis are opt-in,\nmeaning YOU MUST INITIALIZE THEM YOURSELF.\n\n$(function () {\n  $('[data-toggle="tooltip"]').tooltip({placement: 'bottom'})\n})

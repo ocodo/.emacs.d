@@ -1,0 +1,45 @@
+alert
+alert-danger
+alert-dismissible Build on any alert by adding an optional .alert-dismissible and close button.\nBe sure to use the <button> element with the data attribut\n\ndata-dismiss="alert"\n\n<div class="alert alert-warning alert-dismissible" role="alert">\n  <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n    <span aria-hidden="true">&times;</span>\n  </button>\n  <strong>Warning!</strong> Better check yourself, you're not looking too good.\n</div>
+alert-info
+alert-success
+alert-warning
+badge Easily highlight new or unread items by adding a <span class="badge"> to links, Bootstrap navs, and more.
+bg-danger Contextual backgrounds
+bg-info Contextual backgrounds
+bg-primary Contextual backgrounds
+bg-success Contextual backgrounds
+bg-warning Contextual backgrounds
+caption caption of thumb
+caret Use carets to indicate dropdown functionality and direction
+center-block Center content blocks
+hidden Force an element to be hidden including for screen readers
+icon-bar May be used in ".navbar-toggle .collapsed" as collapse toggle button\n<span class="icon-bar"></span>\n<span class="icon-bar"></span>\n<span class="icon-bar"></span>      
+input-group Place one add-on or button on either side of an input\n <div class="input-group">\n   <span class="input-group-addon">@</span>\n   <input type="text" class="form-control" placeholder="Username">\n </div>
+input-group-addon <div class="input-group">\n   <span class="input-group-addon">@</span>\n   <input type="text" class="form-control" placeholder="Username">
+input-group-btn Segmented buttons\n <div class="input-group">\n  <div class="input-group-btn">\n     Button and dropdown menu here\n  </div>\n  <input type="text" class="form-control">\n</div>
+input-group-lg
+input-group-sm
+label
+label-danger
+label-default
+label-info
+label-primary
+label-success
+label-warning
+media-bottom
+media-left
+media-middle
+media-right
+navbar-text Text inside navbad
+pull-left Float an element to the left with a class
+pull-right Float an element to the right with a class
+show Force an element to be shown including for screen readers
+sr-only Screen readers\n<span id="err" class="sr-only">(error)</span>          
+text-danger Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-info Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-muted Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-primary Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-success Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+text-warning Contextual colors\nConvey meaning through color with a handful of emphasis utility classes.\nThese may also be applied to links and will darken on hover just like our default link styles.
+thumbnail

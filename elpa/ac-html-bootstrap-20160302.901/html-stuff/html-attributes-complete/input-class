@@ -1,0 +1,22 @@
+active Pressed button
+btn Highly recommend using the <button> element whenever possible to ensure matching cross-browser rendering.
+btn-block Create block level buttons—those that span the full width of a parent
+btn-danger
+btn-default
+btn-info
+btn-lg Button sizing
+btn-link Deemphasize a button by making it look like a link while maintaining button behavior
+btn-primary
+btn-sm Button sizing
+btn-success
+btn-warning
+btn-xs Button sizing
+carousel-control <a class="left carousel-control" href="#example" role="button" data-slide="prev">\n  <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>\n  <span class="sr-only">Previous</span>\n</a>
+disabled Disabled state.\n\nFor <a>  Opera <18, IE11 use JS to disable such link.
+dropdown-toggle
+form-control Set to width: 100%; by default. Wrap labels and controls in .form-group for optimum spacing.
+input-lg modifier classes to decrease or increase the height and font-size of form controls
+input-sm modifier classes to decrease or increase the height and font-size of form controls
+left See .carousel-control\n <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+navbar-btn Add the .navbar-btn class to <button> elements not residing in a <form> to vertically center them in the navbar
+right See .carousel-control\n <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">

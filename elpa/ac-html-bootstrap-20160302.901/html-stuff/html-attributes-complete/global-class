@@ -1,0 +1,224 @@
+col-lg-1 1170px.\nColumn width ~97px
+col-lg-10 1170px.\nColumn width ~97px
+col-lg-11 1170px.\nColumn width ~97px
+col-lg-12 1170px.\nColumn width ~97px
+col-lg-2 1170px.\nColumn width ~97px
+col-lg-3 1170px.\nColumn width ~97px
+col-lg-4 1170px.\nColumn width ~97px
+col-lg-5 1170px.\nColumn width ~97px
+col-lg-6 1170px.\nColumn width ~97px
+col-lg-7 1170px.\nColumn width ~97px
+col-lg-8 1170px.\nColumn width ~97px
+col-lg-9 1170px.\nColumn width ~97px
+col-lg-offset-1 Increase the left margin of a column
+col-lg-offset-10 Increase the left margin of a column
+col-lg-offset-11 Increase the left margin of a column
+col-lg-offset-12 Increase the left margin of a column
+col-lg-offset-2 Increase the left margin of a column
+col-lg-offset-3 Increase the left margin of a column
+col-lg-offset-4 Increase the left margin of a column
+col-lg-offset-5 Increase the left margin of a column
+col-lg-offset-6 Increase the left margin of a column
+col-lg-offset-7 Increase the left margin of a column
+col-lg-offset-8 Increase the left margin of a column
+col-lg-offset-9 Increase the left margin of a column
+col-lg-pull-1
+col-lg-pull-10
+col-lg-pull-11
+col-lg-pull-12
+col-lg-pull-2
+col-lg-pull-3
+col-lg-pull-4
+col-lg-pull-5
+col-lg-pull-6
+col-lg-pull-7
+col-lg-pull-8
+col-lg-pull-9
+col-lg-push-1
+col-lg-push-10
+col-lg-push-11
+col-lg-push-12
+col-lg-push-2
+col-lg-push-3
+col-lg-push-4
+col-lg-push-5
+col-lg-push-6
+col-lg-push-7
+col-lg-push-8
+col-lg-push-9
+col-md-1 970px.\nColumn width ~81px
+col-md-10 970px.\nColumn width ~81px
+col-md-11 970px.\nColumn width ~81px
+col-md-12 970px.\nColumn width ~81px
+col-md-2 970px.\nColumn width ~81px
+col-md-3 970px.\nColumn width ~81px
+col-md-4 970px.\nColumn width ~81px
+col-md-5 970px.\nColumn width ~81px
+col-md-6 970px.\nColumn width ~81px
+col-md-7 970px.\nColumn width ~81px
+col-md-8 970px.\nColumn width ~81px
+col-md-9 970px.\nColumn width ~81px
+col-md-offset-1 Increase the left margin of a column
+col-md-offset-10 Increase the left margin of a column
+col-md-offset-11 Increase the left margin of a column
+col-md-offset-12 Increase the left margin of a column
+col-md-offset-2 Increase the left margin of a column
+col-md-offset-3 Increase the left margin of a column
+col-md-offset-4 Increase the left margin of a column
+col-md-offset-5 Increase the left margin of a column
+col-md-offset-6 Increase the left margin of a column
+col-md-offset-7 Increase the left margin of a column
+col-md-offset-8 Increase the left margin of a column
+col-md-offset-9 Increase the left margin of a column
+col-md-pull-1
+col-md-pull-10
+col-md-pull-11
+col-md-pull-12
+col-md-pull-2
+col-md-pull-3
+col-md-pull-4
+col-md-pull-5
+col-md-pull-6
+col-md-pull-7
+col-md-pull-8
+col-md-pull-9
+col-md-push-1
+col-md-push-10
+col-md-push-11
+col-md-push-12
+col-md-push-2
+col-md-push-3
+col-md-push-4
+col-md-push-5
+col-md-push-6
+col-md-push-7
+col-md-push-8
+col-md-push-9
+col-sm-1 750px.\nColumn width ~62px
+col-sm-10 750px.\nColumn width ~62px
+col-sm-11 750px.\nColumn width ~62px
+col-sm-12 750px.\nColumn width ~62px
+col-sm-2 750px.\nColumn width ~62px
+col-sm-3 750px.\nColumn width ~62px
+col-sm-4 750px.\nColumn width ~62px
+col-sm-5 750px.\nColumn width ~62px
+col-sm-6 750px.\nColumn width ~62px
+col-sm-7 750px.\nColumn width ~62px
+col-sm-8 750px.\nColumn width ~62px
+col-sm-9 750px.\nColumn width ~62px
+col-sm-offset-1 Increase the left margin of a column
+col-sm-offset-10 Increase the left margin of a column
+col-sm-offset-11 Increase the left margin of a column
+col-sm-offset-12 Increase the left margin of a column
+col-sm-offset-2 Increase the left margin of a column
+col-sm-offset-3 Increase the left margin of a column
+col-sm-offset-4 Increase the left margin of a column
+col-sm-offset-5 Increase the left margin of a column
+col-sm-offset-6 Increase the left margin of a column
+col-sm-offset-7 Increase the left margin of a column
+col-sm-offset-8 Increase the left margin of a column
+col-sm-offset-9 Increase the left margin of a column
+col-sm-pull-1
+col-sm-pull-10
+col-sm-pull-11
+col-sm-pull-12
+col-sm-pull-2
+col-sm-pull-3
+col-sm-pull-4
+col-sm-pull-5
+col-sm-pull-6
+col-sm-pull-7
+col-sm-pull-8
+col-sm-pull-9
+col-sm-push-1
+col-sm-push-10
+col-sm-push-11
+col-sm-push-12
+col-sm-push-2
+col-sm-push-3
+col-sm-push-4
+col-sm-push-5
+col-sm-push-6
+col-sm-push-7
+col-sm-push-8
+col-sm-push-9
+col-xs-1 Horizontal at all times
+col-xs-10 Horizontal at all times
+col-xs-11 Horizontal at all times
+col-xs-12 Horizontal at all times
+col-xs-2 Horizontal at all times
+col-xs-3 Horizontal at all times
+col-xs-4 Horizontal at all times
+col-xs-5 Horizontal at all times
+col-xs-6 Horizontal at all times
+col-xs-7 Horizontal at all times
+col-xs-8 Horizontal at all times
+col-xs-9 Horizontal at all times
+col-xs-offset-1 Increase the left margin of a column
+col-xs-offset-10 Increase the left margin of a column
+col-xs-offset-11 Increase the left margin of a column
+col-xs-offset-12 Increase the left margin of a column
+col-xs-offset-2 Increase the left margin of a column
+col-xs-offset-3 Increase the left margin of a column
+col-xs-offset-4 Increase the left margin of a column
+col-xs-offset-5 Increase the left margin of a column
+col-xs-offset-6 Increase the left margin of a column
+col-xs-offset-7 Increase the left margin of a column
+col-xs-offset-8 Increase the left margin of a column
+col-xs-offset-9 Increase the left margin of a column
+col-xs-pull-1
+col-xs-pull-10
+col-xs-pull-11
+col-xs-pull-12
+col-xs-pull-2
+col-xs-pull-3
+col-xs-pull-4
+col-xs-pull-5
+col-xs-pull-6
+col-xs-pull-7
+col-xs-pull-8
+col-xs-pull-9
+col-xs-push-1
+col-xs-push-10
+col-xs-push-11
+col-xs-push-12
+col-xs-push-2
+col-xs-push-3
+col-xs-push-4
+col-xs-push-5
+col-xs-push-6
+col-xs-push-7
+col-xs-push-8
+col-xs-push-9
+hidden-lg Hidden for large devices (>1200px)
+hidden-md Hidden for medium devices (>992px)
+hidden-print Toggling content for print
+hidden-sm Hidden for small devices (>768px)
+hidden-xs Hidden for extra small devices (<768px)
+small For de-emphasizing inline or blocks of text, use the <small> tag to set text at 85% the size of the parent.\nHeading elements receive their own font-size for nested <small> elements.
+sr-only Hides an element to all devices except screen readers
+sr-only-focusable Combine with .sr-only to show the element again when it is focused e.g. by a keyboard-only user
+text-capitalize Capitalized text.
+text-center Center aligned text.
+text-hide Replace an element's text content with a background image.
+text-justify Justified text.
+text-left Left aligned text.
+text-lowercase Lowercased text.
+text-nowrap No wrap text.
+text-right Right aligned text.
+text-uppercase Uppercased text.
+visible-lg-block Large devices (>1200px).\nSet Visible of component
+visible-lg-inline Large devices (>1200px).\nSet Visible of component
+visible-lg-inline-block Large devices (>1200px).\nSet Visible of component
+visible-md-block Medium devices (>992px).\nSet Visible of component
+visible-md-inline Medium devices (>992px).\nSet Visible of component
+visible-md-inline-block Medium devices (>992px).\nSet Visible of component
+visible-print-block Toggling content for print
+visible-print-inline Toggling content for print
+visible-print-inline-block Toggling content for print
+visible-sm-block Small devices (>768px).\nSet Visible of component
+visible-sm-inline Small devices (>768px).\nSet Visible of component
+visible-sm-inline-block Small devices (>768px).\nSet Visible of component
+visible-xs-block Extra small devices (<768px).\nSet Visible of component
+visible-xs-inline Extra small devices (<768px).\nSet Visible of component
+visible-xs-inline-block Extra small devices (<768px).\nSet Visible of component

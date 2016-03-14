@@ -1,0 +1,5 @@
+button Single toggle button\nPre-toggled buttons need .active and aria-pressed="true"\n<button type="button" class="btn btn-primary" data-toggle="button"\n        aria-pressed="false" autocomplete="off">\n  Single toggle\n</button>
+buttons Togglable Checkbox or radio buttons.\n<div class="btn-group" data-toggle="buttons">\n  <label class="btn btn-primary active">\n    <input type="checkbox" autocomplete="off" checked> Checkbox 1 (pre-checked)\n  </label>\n  <label class="btn btn-primary">\n    <input type="checkbox" autocomplete="off"> Checkbox 2\n  </label>\n  <label class="btn btn-primary">\n    <input type="checkbox" autocomplete="off"> Checkbox 3\n </label>\n</div>
+collapse
+dropdown <button id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">
+modal Activate a modal without writing JavaScript. Set data-toggle="modal" on a controller element, like a button, along with a data-target="#foo" or href="#foo" to target a specific modal to toggle.\n\n<button type="button" data-toggle="modal" data-target="#myModal">Launch modal</button>
