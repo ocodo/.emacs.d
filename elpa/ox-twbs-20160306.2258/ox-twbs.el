@@ -7,9 +7,9 @@
 ;;         Jambunathan K <kjambunathan at gmail dot com>
 ;;         Brandon van Beekum <marsmining at gmail dot com>
 ;; URL: https://github.com/marsmining/ox-twbs
-;; Package-Version: 20160221.634
+;; Package-Version: 20160306.2258
 ;; Keywords: org, html, publish, twitter, bootstrap
-;; Version: 1.0.7
+;; Version: 1.0.8
 
 ;; This file is not part of GNU Emacs.
 
@@ -777,7 +777,7 @@ See `format-time-string' for more information on its components."
 ;;;; Template :: Mathjax
 
 (defcustom org-twbs-mathjax-options
-  '((path  "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML")
+  '((path  "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_SVG")
     (scale "100")
     (dscale "100")
     (align "center")
@@ -824,6 +824,15 @@ MathJax.Hub.Config({
     styles: {
       \".MathJax_Display\": {
         \"font-size\": \"%DSCALE%\"
+      }
+    }
+  },
+  \"SVG\": {
+    scale: %SCALE,
+    styles: {
+      \".MathJax_SVG_Display\": {
+        \"font-size\": \"%DSCALE%\",
+        \"margin-left\": \"-2.281em\"
       }
     }
   }
@@ -1760,7 +1769,7 @@ INFO is a plist used as a communication channel."
                 ;; footnote-reference, link, radio-target and target
                 ;; in table of contents.
                 (org-export-create-backend
-                 :parent 'html
+                 :parent 'twbs
                  :transcoders '((footnote-reference . ignore)
                                 (link . (lambda (object c i) c))
                                 (radio-target . (lambda (object c i) c))
