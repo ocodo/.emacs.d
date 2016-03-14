@@ -333,8 +333,28 @@ describe them to ycmd."
   :group 'ycmd
   :type 'symbol)
 
-(defcustom ycmd-gocode-binary-path (executable-find "gocode")
+(defcustom ycmd-gocode-binary-path nil
   "Gocode binary path."
+  :group 'ycmd
+  :type 'string)
+
+(defcustom ycmd-godef-binary-path nil
+  "Godef binary path."
+  :group 'ycmd
+  :type 'string)
+
+(defcustom ycmd-rust-src-path nil
+  "Rust source path."
+  :group 'ycmd
+  :type 'string)
+
+(defcustom ycmd-racerd-binary-path nil
+  "Racerd binary path."
+  :group 'ycmd
+  :type 'string)
+
+(defcustom ycmd-python-binary-path nil
+  "Python binary path."
   :group 'ycmd
   :type 'string)
 
@@ -488,6 +508,9 @@ and `delete-process'.")
 
 (defvar-local ycmd--last-status-change 'unparsed
   "The last status of the current buffer.")
+
+(defvar ycmd--mode-keywords-loaded nil
+  "List of modes for which keywords have been loaded.")
 
 (defconst ycmd-hooks-alist
   '((after-save-hook                  . ycmd--on-save)
@@ -765,7 +788,7 @@ This is really a utility/debugging function for developers, but
 it might be interesting for some users."
   (interactive)
   (deferred:$
-    (ycmd-get-completions (current-buffer) (point))
+    (ycmd-get-completions)
     (deferred:nextc it
       (lambda (completions)
         (pop-to-buffer "*ycmd-completions*")
@@ -805,8 +828,6 @@ Returns the new value of `ycmd-force-semantic-completion'."
       (setq it (list it)))
     (mapcar 'expand-file-name it)))
 
-(defvar ycmd--mode-keywords-loaded nil)
-
 (defun ycmd--get-keywords (buffer)
   "Get syntax keywords for BUFFER."
   (with-current-buffer buffer
@@ -825,8 +846,8 @@ Returns the new value of `ycmd-force-semantic-completion'."
         symbols
       (cdr (assq symbols ycmd-keywords-alist)))))
 
-(defun ycmd-get-completions (buffer pos &optional sync)
-  "Get completions in BUFFER for position POS from the ycmd server.
+(defun ycmd-get-completions (&optional sync)
+  "Get completions in current buffer from the ycmd server.
 
 Returns a deferred object which yields the HTTP message
 content.  If completions are available, the structure looks like
@@ -850,19 +871,21 @@ structure looks like this:
     (TYPE . \"RuntimeError\")))
 
 To see what the returned structure looks like, you can use
-`ycmd-display-completions'."
-  (with-current-buffer buffer
-    (goto-char pos)
-    (when ycmd-mode
-      (let* ((extra-content (and ycmd-force-semantic-completion
-                                 'force-semantic))
-             (content (ycmd--standard-content-with-extras
-                       buffer extra-content)))
-        (ycmd--request
-         "/completions"
-         content
-         :parser 'json-read
-         :sync sync)))))
+`ycmd-display-completions'.
+
+If SYNC is non-nil the function does not return a deferred object
+and blocks until the request has finished."
+  (when ycmd-mode
+    (let* ((buffer (current-buffer))
+           (extra-content (and ycmd-force-semantic-completion
+                               'force-semantic))
+           (content (ycmd--standard-content-with-extras
+                     buffer extra-content)))
+      (ycmd--request
+       "/completions"
+       content
+       :parser 'json-read
+       :sync sync))))
 
 (defun ycmd--handle-exception (results)
   "Handle exception in completion RESULTS.
@@ -885,8 +908,7 @@ SUCCESS-HANDLER is called when for a successful response."
   (when ycmd-mode
     (deferred:$
 
-      (ycmd--send-completer-command-request
-       type (current-buffer) (point))
+      (ycmd--send-completer-command-request type)
 
       (deferred:nextc it
         (lambda (result)
@@ -897,16 +919,15 @@ SUCCESS-HANDLER is called when for a successful response."
               (when success-handler
                 (funcall success-handler result)))))))))
 
-(defun ycmd--send-completer-command-request (type buffer pos)
+(defun ycmd--send-completer-command-request (type)
   "Send Go To request of TYPE to BUFFER at POS."
-  (with-current-buffer buffer
-    (goto-char pos)
-    (let ((content (cons (list "command_arguments" type)
-                         (ycmd--standard-content buffer))))
-      (ycmd--request
-       "/run_completer_command"
-       content
-       :parser 'json-read))))
+  (let* ((buffer (current-buffer))
+         (content (cons (list "command_arguments" type)
+                        (ycmd--standard-content buffer))))
+    (ycmd--request
+     "/run_completer_command"
+     content
+     :parser 'json-read)))
 
 (defun ycmd-goto ()
   "Go to the definition or declaration of the symbol at current position."
@@ -1436,13 +1457,13 @@ functions in `ycmd-file-parse-result-hook'."
 
 This is primarily a debug/developer tool."
   (interactive)
-  (deferred:$
-    (ycmd-notify-file-ready-to-parse)
-    (deferred:nextc it
-      (lambda (content)
-        (pop-to-buffer "*ycmd-file-ready*")
-        (erase-buffer)
-        (insert (pp-to-string content))))))
+  (let ((ycmd-file-parse-result-hook
+         `(lambda (content)
+            (pop-to-buffer "*ycmd-file-ready*")
+            (erase-buffer)
+            (insert (pp-to-string content)))))
+    (deferred:sync!
+      (ycmd-notify-file-ready-to-parse))))
 
 (defun ycmd-major-mode-to-file-types (mode)
   "Map a major mode MODE to a list of file-types suitable for ycmd.
@@ -1496,33 +1517,35 @@ file."
   (let ((hmac-secret (base64-encode-string hmac-secret))
         (global-config (or ycmd-global-config ""))
         (extra-conf-whitelist (or ycmd-extra-conf-whitelist []))
-        (max-num-identifier-candidates ycmd-max-num-identifier-candidates)
-        (gocode-binary-path (or ycmd-gocode-binary-path "")))
-    `((filetype_blacklist (vimwiki . 1) (mail . 1) (qf . 1) (tagbar . 1) (unite . 1) (infolog . 1) (notes . 1) (text . 1) (pandoc . 1) (markdown . 1))
-      (auto_start_csharp_server . 1)
-      (filetype_whitelist (* . 1))
-      (csharp_server_port . 2000)
-      (seed_identifiers_with_syntax . 0)
-      (auto_stop_csharp_server . 1)
-      (max_diagnostics_to_display . 30)
+        (confirm-extra-conf (if (eq ycmd-extra-conf-handler 'load) 0 1))
+        (gocode-binary-path (or ycmd-gocode-binary-path ""))
+        (godef-binary-path (or ycmd-godef-binary-path ""))
+        (rust-src-path (or ycmd-rust-src-path ""))
+        (racerd-binary-path (or ycmd-racerd-binary-path ""))
+        (python-binary-path (or ycmd-python-binary-path "")))
+    `((filepath_completion_use_working_dir . 0)
+      (auto_trigger . 1)
+      (min_num_of_chars_for_completion . 2)
       (min_num_identifier_candidate_chars . 0)
-      (max_num_identifier_candidates . ,max-num-identifier-candidates)
-      (use_ultisnips_completer . 1)
-      (complete_in_strings . 1)
-      (complete_in_comments . 0)
-      (confirm_extra_conf . ,(if (eq ycmd-extra-conf-handler 'load) 0 1))
-      (server_keep_logfiles . 1)
-      (global_ycm_extra_conf . ,global-config)
-      (extra_conf_globlist . ,extra-conf-whitelist)
-      (hmac_secret . ,hmac-secret)
-      (collect_identifiers_from_tags_files . ,(if ycmd-tag-files 1 0))
+      (semantic_triggers . ())
       (filetype_specific_completion_to_disable (gitcommit . 1))
       (collect_identifiers_from_comments_and_strings . 0)
-      (min_num_of_chars_for_completion . 2)
-      (filepath_completion_use_working_dir . 0)
-      (semantic_triggers . ())
-      (auto_trigger . 1)
-      (gocode_binary_path . ,gocode-binary-path))))
+      (max_num_identifier_candidates . ,ycmd-max-num-identifier-candidates)
+      (extra_conf_globlist . ,extra-conf-whitelist)
+      (global_ycm_extra_conf . ,global-config)
+      (confirm_extra_conf . ,confirm-extra-conf)
+      (max_diagnostics_to_display . 30)
+      (auto_start_csharp_server . 1)
+      (auto_stop_csharp_server . 1)
+      (use_ultisnips_completer . 1)
+      (csharp_server_port . 0)
+      (hmac_secret . ,hmac-secret)
+      (server_keep_logfiles . 1)
+      (gocode_binary_path . ,gocode-binary-path)
+      (godef_binary_path . ,godef-binary-path)
+      (rust_src_path . ,rust-src-path)
+      (racerd_binary_path . ,racerd-binary-path)
+      (python_binary_path . ,python-binary-path))))
 
 (defun ycmd--create-options-file (hmac-secret)
   "Create a new options file for a ycmd server with HMAC-SECRET.
@@ -1607,7 +1630,7 @@ nil, this uses the current buffer."
     (dolist (extra extras standard-content)
       (--when-let (pcase extra
                     (`force-semantic
-                     (cons "force_semantic" "true"))
+                     (cons "force_semantic" t))
                     (`tags
                      (--when-let (ycmd--get-tag-files buffer)
                        (cons "tag_files" it)))
@@ -1746,4 +1769,5 @@ anything like that.)
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
+;; byte-compile-warnings: (not mapcar)
 ;; End:
