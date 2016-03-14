@@ -1,11 +1,11 @@
 ;;; helm-google.el --- Emacs Helm Interface for quick Google searches
-;; Version: 20141228.340
 
 ;; Copyright (C) 2014, Steckerhalter
 
 ;; Author: steckerhalter
 ;; Package-Requires: ((helm "0") (google "0"))
 ;; URL: https://github.com/steckerhalter/helm-google
+;; Package-Version: 20160226.1220
 ;; Keywords: helm google search browse
 
 ;; This file is not part of GNU Emacs.
@@ -54,6 +54,16 @@ Available functions are currently `helm-google-api-search' and
   "Force use of regexp html parsing even if libxml is available."
   :type 'boolean
   :group 'helm-google)
+
+(defcustom helm-google-actions
+  '(("Browse URL" . browse-url)
+    ("Browse URL with EWW" . (lambda (candidate)
+                               (eww-browse-url
+                                (helm-google-display-to-real candidate)))))
+  "List of actions for helm-google sources."
+  :group 'helm-google
+  :type '(alist :key-type string :value-type function))
+
 
 (defvar helm-google-input-history nil)
 (defvar helm-google-pending-query nil)
@@ -208,7 +218,7 @@ Since the API this library uses is deprecated it is not very reliable."
 (defvar helm-source-google
   `((name . "Google")
     (init . (lambda () (require 'google)))
-    (action ("Browse URL" . browse-url))
+    (action . helm-google-actions)
     (display-to-real . helm-google-display-to-real)
     (candidates . helm-google-search)
     (requires-pattern)
@@ -217,20 +227,27 @@ Since the API this library uses is deprecated it is not very reliable."
     (volatile)))
 
 ;;;###autoload
-(defun helm-google ()
+(defun helm-google ( &optional arg)
   "Preconfigured `helm' : Google search."
   (interactive)
   (let ((google-referer "https://github.com/steckerhalter/helm-google")
-        (region (when (use-region-p)
-                  (buffer-substring-no-properties
-                   (region-beginning)
-                   (region-end))))
+        (region
+         (if (not arg)
+             (when (use-region-p)
+               (buffer-substring-no-properties
+                (region-beginning)
+                (region-end)))
+           arg))
         (helm-input-idle-delay 0.3))
     (helm :sources 'helm-source-google
           :prompt "Google: "
           :input region
           :buffer "*helm google*"
           :history 'helm-google-input-history)))
+
+(add-to-list 'helm-google-suggest-actions
+             '("Helm-Google" . (lambda (candidate)
+                                 (helm-google candidate))))
 
 (provide 'helm-google)
 
