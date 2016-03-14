@@ -3,9 +3,9 @@
 ;; Copyright (C) 2014-2016 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/evil-jumper
-;; Package-Version: 20160214.1315
+;; Package-Version: 20160227.1234
 ;; Filename: evil-jumper.el
-;; Description: Jump like vimmers do!
+;; Description: Jump like vimmers do! (for older versions of evil-mode)
 ;; Created: 2014-07-01
 ;; Version: 0.3.1
 ;; Keywords: evil vim jumplist jump list
@@ -32,11 +32,12 @@
 
 ;;; Commentary:
 ;;
-;; evil-jumper is an add-on for evil-mode which replaces the
-;; implementation of the jump list such that it mimics more closely
-;; with Vim's behavior. Specifically, it will jump across buffer
-;; boundaries and revive dead buffers if necessary. The jump list can
-;; also be persisted to history file using `savehist' and restored
+;; evil-jumper is an add-on for older versions of evil-mode (prior
+;; to Feb 2016) which replaces the implementation the jump list such
+;; that it mimics more closely with Vim's behavior. Specifically, it
+;; will jump across buffer boundaries and revive dead buffers if
+;; necessary. The jump list can also be persisted to history file
+;; using `savehist' and restored
 ;; between sessions.
 ;;
 ;; Install:
