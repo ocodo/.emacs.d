@@ -22,8 +22,7 @@
 
 ;;; Code:
 
-(setq clojure-snippets-dir (file-name-directory (or (buffer-file-name)
-                                                    load-file-name)))
+(setq clojure-snippets-dir (file-name-directory load-file-name))
 
 ;;;###autoload
 (defun clojure-snippets-initialize ()
