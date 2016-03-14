@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20150803.837
+;; Package-Version: 20160225.819
 ;; Version: 0.9.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: window, location
@@ -76,6 +76,7 @@
 (defcustom aw-scope 'global
   "The scope used by `ace-window'."
   :type '(choice
+          (const :tag "visible frames" visible)
           (const :tag "global" global)
           (const :tag "frame" frame)))
 
@@ -143,6 +144,8 @@ This will make `ace-window' act different from `other-window' for
             (string= "initial_terminal" (terminal-name f))
             (aw-ignored-p w))))
     (cl-case aw-scope
+      (visible
+       (cl-mapcan #'window-list (visible-frame-list)))
       (global
        (cl-mapcan #'window-list (frame-list)))
       (frame
@@ -279,6 +282,7 @@ Amend MODE-LINE to the mode line for the duration of the selection."
   (setq aw-action action)
   (let ((start-window (selected-window))
         (next-window-scope (cl-case aw-scope
+                             ('visible 'visible)
                              ('global 'visible)
                              ('frame 'frame)))
         (wnd-list (aw-window-list))
@@ -298,7 +302,8 @@ Amend MODE-LINE to the mode line for the duration of the selection."
                       (not aw-dispatch-always)
                       (not aw-ignore-current))
                  (let ((wnd (next-window nil nil next-window-scope)))
-                   (while (and (aw-ignored-p wnd)
+                   (while (and (or (not (memq wnd wnd-list))
+                                   (aw-ignored-p wnd))
                                (not (equal wnd start-window)))
                      (setq wnd (next-window wnd nil next-window-scope)))
                    wnd))
