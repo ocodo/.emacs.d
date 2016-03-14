@@ -4,9 +4,9 @@
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; Keywords: convenience editing evil iedit mnemonic
-;; Package-Version: 20141217.1734
+;; Package-Version: 20160313.1156
 ;; Created: 12 Dec 2014
-;; Version: 1.0
+;; Version: 1.1
 ;; Package-Requires: ((evil "1.0.9") (iedit "0.97"))
 ;; URL: https://github.com/syl20bnr/evil-iedit-state
 
@@ -35,6 +35,9 @@
 (require 'evil)
 (require 'iedit)
 
+(defvar evil-iedit-state-default-state 'normal
+  "The state to activate when exiting iedit state")
+
 (evil-define-state iedit
   "`iedit state' interfacing iedit mode."
   :tag " <E> "
@@ -59,12 +62,13 @@
   (evil-iedit-state))
 
 (defun evil-iedit-state/quit-iedit-mode ()
-  "Quit iedit-mode and return to `normal state'."
+  "Quit iedit-mode and return set state `evil-iedit-state-default-state'."
   (interactive)
   (iedit-done)
-  (evil-normal-state))
+  (funcall (intern (format "evil-%S-state" evil-iedit-state-default-state))))
 
-(defmacro evil-iedit-state||swith-to-insert-state-after-command (command &optional interactive)
+(defmacro evil-iedit-state||swith-to-insert-state-after-command
+    (command &optional interactive)
   "Call COMMAND and switch to iedit-insert state.
 If INTERACTIVE is non-nil then COMMAND is called interactively."
   `(progn
