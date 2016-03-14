@@ -1,4 +1,4 @@
-(define-package "paradox" "20160119.1827" "A modern Packages Menu. Colored, with package ratings, and customizable."
+(define-package "paradox" "20160303.1018" "A modern Packages Menu. Colored, with package ratings, and customizable."
   '((emacs "24.4")
     (seq "1.7")
     (let-alist "1.0.3")
