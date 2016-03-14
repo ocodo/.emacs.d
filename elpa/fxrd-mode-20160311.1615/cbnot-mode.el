@@ -58,7 +58,7 @@
           (158 169 "CB REFERENCE CODE" ,(fxrd-alphanumeric-v))
           (170 182 "FILLER")
           (183 199 "BILLED AMOUNT" ,(fxrd-decimal-v :pad " "))
-          (200 216 "SOC AMOUNT" ,(fxrd-decimal-v))
+          (200 216 "SOC AMOUNT" ,(fxrd-decimal-v :pad " "))
           (217 222 "SOC INVOICE NUMBER" ,(fxrd-alphanumeric-v))
           (223 228 "ROC INVOICE NUMBER" ,(fxrd-alphanumeric-v))
           (229 243 "FOREIGN AMT" ,(fxrd-alphanumeric-v))
