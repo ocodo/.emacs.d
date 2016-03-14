@@ -1,6 +1,6 @@
-(define-package "helm-core" "20160217.958" "Development files for Helm"
+(define-package "helm-core" "20160311.2126" "Development files for Helm"
   '((emacs "24.3")
-    (async "1.6"))
+    (async "1.7"))
   :url "https://emacs-helm.github.io/helm/")
 ;; Local Variables:
 ;; no-byte-compile: t

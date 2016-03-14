@@ -1,6 +1,6 @@
 ;;; helm-lib.el --- Helm routines. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015  Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Copyright (C) 2015 ~ 2016  Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Author: Thierry Volpiatto <thierry.volpiatto@gmail.com>
 ;; URL: http://github.com/emacs-helm/helm
@@ -282,9 +282,7 @@ Default is `eq'."
   (cl-loop with cont = (make-hash-table :test test)
         for elm in seq
         unless (gethash elm cont)
-        do (puthash elm elm cont)
-        finally return
-        (cl-loop for i being the hash-values in cont collect i)))
+        collect (puthash elm elm cont)))
 
 (defun helm-skip-entries (seq black-regexp-list &optional white-regexp-list)
   "Remove entries which matches one of REGEXP-LIST from SEQ."
@@ -348,11 +346,13 @@ ARGS is (cand1 cand2 ...) or ((disp1 . real1) (disp2 . real2) ...)
 
 ;;; Strings processing.
 ;;
-(defun helm-stringify (str-or-sym)
-  "Get string of STR-OR-SYM."
-  (if (stringp str-or-sym)
-      str-or-sym
-    (symbol-name str-or-sym)))
+(defun helm-stringify (elm)
+  "Return the representation of ELM as a string.
+ELM can be a string, a number or a symbol."
+  (cl-typecase elm
+    (stringp elm)
+    (numberp (number-to-string elm))
+    (symbolp (symbol-name elm))))
 
 (defun helm-substring (str width)
   "Return the substring of string STR from 0 to WIDTH.
@@ -415,7 +415,8 @@ Add spaces at end if needed to reach WIDTH when STR is shorter than WIDTH."
     (intern str-or-sym)))
 
 (defun helm-symbol-name (obj)
-  (if (or (consp obj) (byte-code-function-p obj))
+  (if (or (and (consp obj) (functionp obj))
+          (byte-code-function-p obj))
       "Anonymous"
       (symbol-name obj)))
 
@@ -562,7 +563,8 @@ instead of `helm-walk-ignore-directories'."
   "Same as `file-expand-wildcards' but allow recursion.
 Recursion happen when PATTERN starts with two stars.
 Directories expansion is not supported."
-  (let ((bn (helm-basename pattern)))
+  (let ((bn (helm-basename pattern))
+        (case-fold-search nil))
     (if (and helm-file-globstar
              (string-match "\\`\\*\\{2\\}\\(.*\\)" bn))
         (helm-walk-directory (helm-basedir pattern)

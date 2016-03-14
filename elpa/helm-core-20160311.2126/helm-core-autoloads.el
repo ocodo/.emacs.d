@@ -3,15 +3,15 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm" "helm.el" (22218 26413 58655 64000))
+;;;### (autoloads nil "helm" "helm.el" (22246 12344 766122 783000))
 ;;; Generated autoloads from helm.el
 
 (autoload 'helm-define-multi-key "helm" "\
 In KEYMAP, define key sequence KEY for function list FUNCTIONS.
-Each function run sequentially each time the key KEY is pressed.
-If DELAY is specified switch back to initial function of FUNCTIONS list
+Each function runs sequentially for each KEY press.
+If DELAY is specified, switch back to initial function of FUNCTIONS list
 after DELAY seconds.
-The functions in FUNCTIONS list are functions with no args.
+The functions in FUNCTIONS list take no args.
 e.g
   (defun foo ()
     (message \"Run foo\"))
@@ -22,14 +22,15 @@ e.g
 
 \(helm-define-multi-key global-map \"<f5> q\" '(foo bar baz) 2)
 
-Each time \"<f5> q\" is pressed the next function is executed, if you wait
-More than 2 seconds, next hit will run again the first function and so on.
+Each time \"<f5> q\" is pressed, the next function is executed. Waiting
+more than 2 seconds between key presses switches back to executing the first
+function on the next hit.
 
 \(fn KEYMAP KEY FUNCTIONS &optional DELAY)" nil nil)
 
 (autoload 'helm-multi-key-defun "helm" "\
 Define NAME as a multi-key command running FUNS.
-After DELAY seconds the FUNS list is reinitialised.
+After DELAY seconds, the FUNS list is reinitialized.
 See `helm-define-multi-key'.
 
 \(fn NAME DOCSTRING FUNS &optional DELAY)" nil t)
@@ -37,15 +38,15 @@ See `helm-define-multi-key'.
 (put 'helm-multi-key-defun 'lisp-indent-function '2)
 
 (autoload 'helm-define-key-with-subkeys "helm" "\
-Allow defining in MAP a KEY and SUBKEY to COMMAND.
+Defines in MAP a KEY and SUBKEY to COMMAND.
 
-This allow typing KEY to call COMMAND the first time and
+This allows typing KEY to call COMMAND the first time and
 type only SUBKEY on subsequent calls.
 
-Arg MAP is the keymap to use, SUBKEY is the initial short keybinding to
+Arg MAP is the keymap to use, SUBKEY is the initial short key-binding to
 call COMMAND.
 
-Arg OTHER-SUBKEYS is an alist specifying other short keybindings
+Arg OTHER-SUBKEYS is an alist specifying other short key-bindings
 to use once started.
 e.g:
 
@@ -54,19 +55,18 @@ e.g:
 
 
 In this example, `C-x v n' will run `git-gutter:next-hunk'
-subsequent hits on \"n\" will run this command again
-and subsequent hits on \"p\" will run `git-gutter:previous-hunk'.
+subsequent \"n\"'s run this command again
+and subsequent \"p\"'s run `git-gutter:previous-hunk'.
 
-Arg MENU is a string to display in minibuffer
-to describe SUBKEY and OTHER-SUBKEYS.
-Arg EXIT-FN specify a function to run on exit.
+Arg MENU is a string displayed in minibuffer that
+describes SUBKEY and OTHER-SUBKEYS.
+Arg EXIT-FN specifies a function to run on exit.
 
-Any other keys pressed run their assigned command defined in MAP
-and exit the loop running EXIT-FN if specified.
+For any other keys pressed, run their assigned command as defined
+in MAP and then exit the loop running EXIT-FN, if specified.
 
-NOTE: SUBKEY and OTHER-SUBKEYS bindings support
-only char syntax actually (e.g ?n)
-so don't use strings, vectors or whatever to define them.
+NOTE: SUBKEY and OTHER-SUBKEYS bindings support char syntax only
+\(e.g ?n), so don't use strings or vectors to define them.
 
 \(fn MAP KEY SUBKEY COMMAND &optional OTHER-SUBKEYS MENU EXIT-FN)" nil nil)
 
@@ -131,26 +131,27 @@ Initially selected candidate.  Specified by exact candidate or a regexp.
 
 :default
 
-A default argument that will be inserted in minibuffer with \\<minibuffer-local-map>\\[next-history-element].
-When nil or not present `thing-at-point' will be used instead.
-If `helm--maybe-use-default-as-input' is non--nil display will be
+A default argument that will be inserted in minibuffer with
+\\<minibuffer-local-map>\\[next-history-element]. When nil or not
+present `thing-at-point' will be used instead. If
+`helm--maybe-use-default-as-input' is non-`nil' display will be
 updated using :default arg as input unless :input is specified,
-which in this case will take precedence on :default
-This is a string or a list, in this case the car of the list will
-be used as initial default input, but you will be able to cycle in this
-list with \\<minibuffer-local-map>\\[next-history-element].
+which in this case will take precedence over :default. This is a
+string or a list. If list, car of the list becomes initial
+default input. \\<minibuffer-local-map>\\[next-history-element]
+cycles through the list items.
 
 :history
 
-By default all minibuffer input is pushed to `minibuffer-history',
-if an argument HISTORY is provided, input will be pushed to HISTORY.
-History element should be a symbol.
+Minibuffer input, by default, is pushed to `minibuffer-history'.
+When an argument HISTORY is provided, input is pushed to
+HISTORY. The HISTORY element should be a valid symbol.
 
 :allow-nest
 
-Allow running this helm command within a running helm session.
+Allow running this helm command in a running helm session.
 
-Of course, conventional arguments are supported, the two are same.
+Standard arguments are supported. These two are the same:
 
 \(helm :sources sources :input input :prompt prompt :resume resume
        :preselect preselect :buffer buffer :keymap keymap :default default
@@ -160,37 +161,36 @@ and
 
 \(helm sources input prompt resume preselect buffer keymap default history)
 
-are the same.
+are the same for now. However, the use of non-keyword args is
+deprecated and should not be used.
 
-However the use of non keyword args is deprecated and should not be used.
-
-Other keywords are interpreted as local variables of this helm session.
-The `helm-' prefix can be omitted.  For example,
+Other keywords are interpreted as local variables of this helm
+session. The `helm-' prefix can be omitted. For example,
 
 \(helm :sources 'helm-source-buffers-list
        :buffer \"*buffers*\" :candidate-number-limit 10)
 
-means starting helm session with `helm-source-buffers'
-source in *buffers* buffer and set variable `helm-candidate-number-limit'
-to 10 as session local variable.
+starts helm session with `helm-source-buffers' source in
+*buffers* buffer and sets variable `helm-candidate-number-limit'
+to 10 as a session local variable.
 
 \(fn &key SOURCES INPUT PROMPT RESUME PRESELECT BUFFER KEYMAP DEFAULT HISTORY ALLOW-NEST OTHER-LOCAL-VARS)" nil nil)
 
 (autoload 'helm-other-buffer "helm" "\
-Simplified interface of `helm' with other `helm-buffer'.
-Call `helm' with only ANY-SOURCES and ANY-BUFFER as args.
+Simplified `helm' interface with other `helm-buffer'.
+Call `helm' only with ANY-SOURCES and ANY-BUFFER as args.
 
 \(fn ANY-SOURCES ANY-BUFFER)" nil nil)
 
 (autoload 'helm-debug-toggle "helm" "\
-Enable/disable helm debug from outside of helm session.
+Enable/disable helm debugging from outside of helm session.
 
 \(fn)" t nil)
 
 ;;;***
 
 ;;;### (autoloads nil nil ("helm-core-pkg.el" "helm-lib.el" "helm-multi-match.el"
-;;;;;;  "helm-source.el") (22218 26413 106145 726000))
+;;;;;;  "helm-source.el") (22246 12344 783303 49000))
 
 ;;;***
 
