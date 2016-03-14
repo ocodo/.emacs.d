@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "package-utils" "package-utils.el" (21708 61968
-;;;;;;  887401 0))
+;;;### (autoloads nil "package-utils" "package-utils.el" (22246 12204
+;;;;;;  446549 345000))
 ;;; Generated autoloads from package-utils.el
 
 (autoload 'package-utils-list-upgrades "package-utils" "\
@@ -49,6 +49,16 @@ Uninstall the package NAME.
 NAME can be a string or a symbol.
 
 \(fn NAME)" t nil)
+
+(autoload 'package-utils-list-packages-async "package-utils" "\
+Like `package-list-packages', but works asynchronously.
+
+\(fn)" t nil)
+
+(autoload 'package-utils-install-async "package-utils" "\
+Like `package-install', but works asynchronously.
+
+\(fn PACKAGE)" t nil)
 
 ;;;***
 
