@@ -4,7 +4,7 @@
 
 ;; Author: Andrew Hyatt <ahyatt@gmail.com>
 ;; Keywords: Communication, Websocket, Server
-;; Package-Version: 20160124.2020
+;; Package-Version: 20160227.2122
 ;; Version: 1.5
 ;;
 ;; This program is free software; you can redistribute it and/or
@@ -451,10 +451,11 @@ ERR should be a cons of error symbol and error data."
 The only acceptable one to websocket is responce code 101.
 A t value will be returned on success, and an error thrown
 if not."
-  (string-match "HTTP/1.1 \\([[:digit:]]+\\)" output)
+  (unless (string-match "^HTTP/1.1 \\([[:digit:]]+\\)" output)
+    (signal 'websocket-invalid-header "Invalid HTTP status line"))
   (unless (equal "101" (match-string 1 output))
-       (signal 'websocket-received-error-http-response
-               (string-to-number (match-string 1 output))))
+    (signal 'websocket-received-error-http-response
+	    (string-to-number (match-string 1 output))))
   t)
 
 (defun websocket-parse-repeated-field (output field)
@@ -747,19 +748,21 @@ connection is invalid, the connection will be closed."
     (setf (websocket-inflight-input websocket) nil)
     ;; If we've received the complete header, check to see if we've
     ;; received the desired handshake.
-    (when (and (eq 'connecting (websocket-ready-state websocket))
-               (setq header-end-pos (string-match "\r\n\r\n" text))
+    (when (and (eq 'connecting (websocket-ready-state websocket)))
+      (if (and (setq header-end-pos (string-match "\r\n\r\n" text))
                (setq start-point (+ 4 header-end-pos)))
-      (condition-case err
-          (progn
-            (websocket-verify-response-code text)
-            (websocket-verify-headers websocket text)
-            (websocket-process-headers (websocket-url websocket) text))
-        (error
-         (websocket-close websocket)
-         (signal (car err) (cdr err))))
-      (setf (websocket-ready-state websocket) 'open)
-      (websocket-try-callback 'websocket-on-open 'on-open websocket))
+	  (progn
+	    (condition-case err
+		(progn
+		  (websocket-verify-response-code text)
+		  (websocket-verify-headers websocket text)
+		  (websocket-process-headers (websocket-url websocket) text))
+	      (error
+	       (websocket-close websocket)
+	       (signal (car err) (cdr err))))
+	    (setf (websocket-ready-state websocket) 'open)
+	    (websocket-try-callback 'websocket-on-open 'on-open websocket))
+	(setf (websocket-inflight-input websocket) text)))
     (when (eq 'open (websocket-ready-state websocket))
       (websocket-process-input-on-open-ws
        websocket (substring text (or start-point 0))))))
@@ -821,6 +824,11 @@ of populating the list of server extensions to WEBSOCKET."
 
 (defun* websocket-server (port &rest plist)
   "Open a websocket server on PORT.
+If the plist contains a `:host' HOST pair, this value will be
+used to configure the addresses the socket listens on. The symbol
+`local' specifies the local host. If unspecified or nil, the
+socket will listen on all addresses.
+
 This also takes a plist of callbacks: `:on-open', `:on-message',
 `:on-close' and `:on-error', which operate exactly as documented
 in the websocket client function `websocket-open'.  Returns the
@@ -834,6 +842,7 @@ connection, which should be kept in order to pass to
                 :log 'websocket-server-accept
                 :filter-multibyte nil
                 :plist plist
+                :host (plist-get plist :host)
                 :service port)))
     conn))
 
