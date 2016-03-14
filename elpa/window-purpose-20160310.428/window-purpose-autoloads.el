@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "window-purpose" "window-purpose.el" (22218
-;;;;;;  26169 167258 686000))
+;;;### (autoloads nil "window-purpose" "window-purpose.el" (22246
+;;;;;;  12103 842630 224000))
 ;;; Generated autoloads from window-purpose.el
 
 (defvar purpose-mode nil "\
@@ -24,30 +24,31 @@ Toggle Purpose mode on or off according to the regular rules.
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-configuration" "window-purpose-configuration.el"
-;;;;;;  (22218 26169 207258 586000))
+;;;;;;  (22246 12103 858630 212000))
 ;;; Generated autoloads from window-purpose-configuration.el
 
 (autoload 'purpose-set-extension-configuration "window-purpose-configuration" "\
 Set an extension's entry in `purpose-extended-configuration'.
-KEYWORD should be a keyword used to identify the extension.
+EXT-KEYWORD should be a keyword used to identify the extension.
 CONFIG is a `purpose-conf' object containing the extension's purpose
 configuration.
 Example:
  (purpose-set-extension-configuration
      :python
-     (purpose-conf :mode-purposes
+     (purpose-conf \"py\"
+                   :mode-purposes
                    '((python-mode . python)
-                     (python-inferior-mode . interpreter))))
+                     (inferior-python-mode . interpreter))))
 
 This function calls `purpose-compile-extended-configuration' when its
 done.
 
-\(fn KEYWORD CONFIG)" nil nil)
+\(fn EXT-KEYWORD CONFIG)" nil nil)
 
 ;;;***
 
-;;;### (autoloads nil "window-purpose-x" "window-purpose-x.el" (22218
-;;;;;;  26169 163258 697000))
+;;;### (autoloads nil "window-purpose-x" "window-purpose-x.el" (22246
+;;;;;;  12103 838630 227000))
 ;;; Generated autoloads from window-purpose-x.el
 
 (autoload 'purpose-x-code1-setup "window-purpose-x" "\
@@ -134,8 +135,8 @@ The relation between `purpose-x-persp-switch-buffer-other-frame' and
 
 ;;;### (autoloads nil nil ("window-purpose-core.el" "window-purpose-fixes.el"
 ;;;;;;  "window-purpose-layout.el" "window-purpose-pkg.el" "window-purpose-prefix-overload.el"
-;;;;;;  "window-purpose-switch.el" "window-purpose-utils.el") (22218
-;;;;;;  26169 228230 379000))
+;;;;;;  "window-purpose-switch.el" "window-purpose-utils.el") (22246
+;;;;;;  12103 884044 565000))
 
 ;;;***
 
