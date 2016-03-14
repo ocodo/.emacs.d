@@ -1,9 +1,9 @@
 ;;; async-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "async" "async.el" (22160 39069 617787 731000))
+;;;### (autoloads nil "async" "async.el" (22246 12516 61395 2000))
 ;;; Generated autoloads from async.el
 
 (autoload 'async-start-process "async" "\
@@ -49,7 +49,7 @@ ready.  Example:
                  (async-get proc)))
 
 If you don't want to use a callback, and you don't care about any
-return value form the child process, pass the `ignore' symbol as
+return value from the child process, pass the `ignore' symbol as
 the second argument (if you don't, and never call `async-get', it
 will leave *emacs* process buffers hanging around):
 
@@ -68,8 +68,8 @@ returns nil.  It can still be useful, however, as an argument to
 
 ;;;***
 
-;;;### (autoloads nil "async-bytecomp" "async-bytecomp.el" (22160
-;;;;;;  39069 617787 731000))
+;;;### (autoloads nil "async-bytecomp" "async-bytecomp.el" (22246
+;;;;;;  12516 53395 32000))
 ;;; Generated autoloads from async-bytecomp.el
 
 (autoload 'async-byte-recompile-directory "async-bytecomp" "\
@@ -96,8 +96,8 @@ Async compilation of packages can be controlled by
 
 ;;;***
 
-;;;### (autoloads nil "dired-async" "dired-async.el" (22160 39069
-;;;;;;  605787 682000))
+;;;### (autoloads nil "dired-async" "dired-async.el" (22246 12516
+;;;;;;  29395 124000))
 ;;; Generated autoloads from dired-async.el
 
 (defvar dired-async-mode nil "\
@@ -116,8 +116,8 @@ Do dired actions asynchronously.
 
 ;;;***
 
-;;;### (autoloads nil nil ("async-pkg.el" "smtpmail-async.el") (22160
-;;;;;;  39069 628083 838000))
+;;;### (autoloads nil nil ("async-pkg.el" "smtpmail-async.el") (22246
+;;;;;;  12516 81085 661000))
 
 ;;;***
 
