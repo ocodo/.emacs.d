@@ -69,7 +69,9 @@
                           swiper-match-face-2
                           swiper-match-face-3
                           swiper-match-face-4)
-  "List of `swiper' faces for group matches.")
+  "List of `swiper' faces for group matches."
+  :group 'ivy-faces
+  :type 'list)
 
 (defcustom swiper-min-highlight 2
   "Only highlight matches for regexps at least this long."
@@ -229,7 +231,7 @@
 (defun swiper-font-lock-ensure ()
   "Ensure the entired buffer is highlighted."
   (unless (swiper-font-lock-ensure-p)
-    (unless (> (buffer-size) 100000)
+    (unless (or (> (buffer-size) 100000) (null font-lock-mode))
       (if (fboundp 'font-lock-ensure)
           (font-lock-ensure)
         (with-no-warnings (font-lock-fontify-buffer))))))
@@ -310,16 +312,20 @@ numbers; replaces calculating the width from buffer line count."
   "`isearch' with an overview.
 When non-nil, INITIAL-INPUT is the initial search pattern."
   (interactive)
-  (swiper--ivy initial-input))
+  (swiper--ivy (swiper--candidates) initial-input))
 
-(defun swiper-occur ()
-  "Generate a custom occur buffer for `swiper'."
-  (ivy-occur-grep-mode)
-  (font-lock-mode -1)
-  (let* ((fname (propertize
+(declare-function string-trim-right "subr-x")
+
+(defun swiper-occur (&optional revert)
+  "Generate a custom occur buffer for `swiper'.
+When REVERT is non-nil, regenerate the current *ivy-occur* buffer."
+  (let* ((buffer (ivy-state-buffer ivy-last))
+         (fname (propertize
                  (with-ivy-window
-                   (file-name-nondirectory
-                    (buffer-file-name)))
+                   (if (buffer-file-name buffer)
+                       (file-name-nondirectory
+                        (buffer-file-name buffer))
+                     (buffer-name buffer)))
                  'face
                  'compilation-info))
          (cands (mapcar
@@ -331,14 +337,27 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
                              (get-text-property 0 'display s))
                             'face 'compilation-line-number)
                            (substring s 1)))
-                 ivy--old-cands)))
+                 (if (null revert)
+                     ivy--old-cands
+                   (setq ivy--old-re nil)
+                   (let ((ivy--regex-function 'swiper--re-builder))
+                     (ivy--filter
+                      (progn (string-match "\"\\(.*\\)\"" (buffer-name))
+                             (match-string 1 (buffer-name)))
+                      (with-current-buffer buffer
+                        (swiper--candidates))))))))
+    (unless (eq major-mode 'ivy-occur-grep-mode)
+      (ivy-occur-grep-mode)
+      (font-lock-mode -1))
     (insert (format "-*- mode:grep; default-directory: %S -*-\n\n\n"
                     default-directory))
     (insert (format "%d candidates:\n" (length cands)))
     (ivy--occur-insert-lines
      (mapcar
       (lambda (cand) (concat "./" cand))
-      cands))))
+      cands))
+    (goto-char (point-min))
+    (forward-line 4)))
 
 (ivy-set-occur 'swiper 'swiper-occur)
 
@@ -383,15 +402,14 @@ line numbers. For the buffer, use `ivy--regex' instead."
 (defvar swiper-invocation-face nil
   "The face at the point of invocation of `swiper'.")
 
-(defun swiper--ivy (&optional initial-input)
-  "`isearch' with an overview using `ivy'.
+(defun swiper--ivy (candidates &optional initial-input)
+  "Select one of CANDIDATES and move there.
 When non-nil, INITIAL-INPUT is the initial search pattern."
   (interactive)
   (swiper--init)
   (setq swiper-invocation-face
         (plist-get (text-properties-at (point)) 'face))
-  (let ((candidates (swiper--candidates))
-        (preselect
+  (let ((preselect
          (if swiper-use-visual-line
              (count-screen-lines
               (point-min)
@@ -448,7 +466,7 @@ Matched candidates should have `swiper-invocation-face'."
 
 (defun swiper--ensure-visible ()
   "Remove overlays hiding point."
-  (let ((overlays (overlays-at (point)))
+  (let ((overlays (overlays-at (1- (point))))
         ov expose)
     (while (setq ov (pop overlays))
       (if (and (invisible-p (overlay-get ov 'invisible))
@@ -471,7 +489,9 @@ Matched candidates should have `swiper-invocation-face'."
   (with-ivy-window
     (swiper--cleanup)
     (when (> (length ivy--current) 0)
-      (let* ((re (funcall ivy--regex-function ivy-text))
+      (let* ((re (replace-regexp-in-string
+                  "    " "\t"
+                  (funcall ivy--regex-function ivy-text)))
              (re (if (stringp re) re (caar re)))
              (str (get-text-property 0 'display ivy--current))
              (num (if (string-match "^[0-9]+" str)
@@ -556,10 +576,9 @@ WND, when specified is the window."
 
 (defun swiper--action (x)
   "Goto line X."
-  (let ((ln (1- (read (if (memq this-command '(ivy-occur-press))
-                          (when (string-match ":\\([0-9]+\\):.*\\'" x)
-                            (match-string-no-properties 1 x))
-                        (get-text-property 0 'display x)))))
+  (let ((ln (1- (read (or (get-text-property 0 'display x)
+                          (and (string-match ":\\([0-9]+\\):.*\\'" x)
+                               (match-string-no-properties 1 x))))))
         (re (ivy--regex ivy-text)))
     (if (null x)
         (user-error "No candidates")
@@ -626,6 +645,8 @@ Run `swiper' for those buffers."
                          (buffer-list)))
             :action 'swiper-multi-action-2
             :unwind #'swiper--cleanup
+            :update-fn (lambda ()
+                         (swiper-multi-action-2 ivy--current))
             :caller 'swiper-multi))
 
 (defun swiper--multi-candidates (buffers)

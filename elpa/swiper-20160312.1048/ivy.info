@@ -90,8 +90,8 @@ Key bindings
 Minibuffer key bindings
 
 * Key bindings for navigation::
-* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer. 
-* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open. 
+* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer.
+* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open.
 * Key bindings that alter the minibuffer input::
 * Other key bindings::
 * Hydra in the minibuffer::
@@ -157,7 +157,7 @@ Minimalism
 
      Uncluttered minibuffer is minimalism.  Ivy shows the completion
      defaults, the number of matches, and 10 candidate matches below the
-     input line.  Customize ‘ivy-length’ to adjust the number of
+     input line.  Customize ‘ivy-height’ to adjust the number of
      candidate matches displayed in the minibuffer.
 
 Simplicity
@@ -255,18 +255,18 @@ Configuration steps
 
      First clone the Swiper repository with:
 
-          cd ~/git && git clone https://github.com/abo-abo/swiper
-          cd swiper && make compile
+               cd ~/git && git clone https://github.com/abo-abo/swiper
+               cd swiper && make compile
 
      Second, add these lines to the Emacs init file:
 
-          (add-to-list 'load-path "~/git/swiper/")
-          (require 'ivy)
+               (add-to-list 'load-path "~/git/swiper/")
+               (require 'ivy)
 
      Then, update the code with:
 
-          git pull
-          make
+               git pull
+               make
 
 
 File: ivy.info,  Node: Getting started,  Next: Key bindings,  Prev: Installation,  Up: Top
@@ -325,30 +325,30 @@ The recommended key bindings are:
 Ivy-based interface to standard commands
 ........................................
 
-          (global-set-key (kbd "C-s") 'swiper)
-          (global-set-key (kbd "M-x") 'counsel-M-x)
-          (global-set-key (kbd "C-x C-f") 'counsel-find-file)
-          (global-set-key (kbd "<f1> f") 'counsel-describe-function)
-          (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-          (global-set-key (kbd "<f1> l") 'counsel-load-library)
-          (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-          (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+               (global-set-key (kbd "C-s") 'swiper)
+               (global-set-key (kbd "M-x") 'counsel-M-x)
+               (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+               (global-set-key (kbd "<f1> f") 'counsel-describe-function)
+               (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+               (global-set-key (kbd "<f1> l") 'counsel-load-library)
+               (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+               (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
 
 Ivy-based interface to shell and system tools
 .............................................
 
-          (global-set-key (kbd "C-c g") 'counsel-git)
-          (global-set-key (kbd "C-c j") 'counsel-git-grep)
-          (global-set-key (kbd "C-c k") 'counsel-ag)
-          (global-set-key (kbd "C-x l") 'counsel-locate)
-          (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+               (global-set-key (kbd "C-c g") 'counsel-git)
+               (global-set-key (kbd "C-c j") 'counsel-git-grep)
+               (global-set-key (kbd "C-c k") 'counsel-ag)
+               (global-set-key (kbd "C-x l") 'counsel-locate)
+               (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
 
 Ivy-resume and other commands
 .............................
 
      ‘ivy-resume’ resumes the last Ivy-based completion.
 
-          (global-set-key (kbd "C-c C-r") 'ivy-resume)
+               (global-set-key (kbd "C-c C-r") 'ivy-resume)
 
 
 File: ivy.info,  Node: Minibuffer key bindings,  Prev: Global key bindings,  Up: Key bindings
@@ -370,8 +370,8 @@ where the familiar ‘C-a’, ‘C-f’, ‘M-d’, ‘M-DEL’, ‘M-b’, ‘M
 * Menu:
 
 * Key bindings for navigation::
-* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer. 
-* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open. 
+* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer.
+* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open.
 * Key bindings that alter the minibuffer input::
 * Other key bindings::
 * Hydra in the minibuffer::
@@ -446,13 +446,13 @@ extends usability of lists in Emacs.
 
      Example ERT test:
 
-          (should
-           (equal (ivy-with
-                   '(progn
-                     (ivy-read "Test: " '("can do" "can't, sorry" "other"))
-                     ivy-text)
-                   "c <tab>")
-                  "can"))
+               (should
+                (equal (ivy-with
+                        '(progn
+                          (ivy-read "Test: " '("can do" "can't, sorry" "other"))
+                          ivy-text)
+                        "c <tab>")
+                       "can"))
 
 ‘C-M-j’ (‘ivy-immediate-done’)
 ..............................
@@ -895,7 +895,7 @@ File: ivy.info,  Node: Faces,  Next: Defcustoms,  Up: Customization
 
      For example:
 
-          (setq confirm-nonexistent-file-or-buffer t)
+               (setq confirm-nonexistent-file-or-buffer t)
 
      Then call ‘find-file’, enter "eldorado" and press ‘RET’ - the
      prompt will be appended with "(confirm)".  Press ‘RET’ once more to
@@ -934,7 +934,7 @@ File: ivy.info,  Node: Faces,  Next: Defcustoms,  Up: Customization
 
      Enable virtual buffers with:
 
-          (setq ivy-use-virtual-buffers t)
+               (setq ivy-use-virtual-buffers t)
 
 
 File: ivy.info,  Node: Defcustoms,  Next: Actions,  Prev: Faces,  Up: Customization
@@ -951,11 +951,11 @@ File: ivy.info,  Node: Defcustoms,  Next: Actions,  Prev: Faces,  Up: Customizat
 
      To disable showing the number of candidates:
 
-          (setq ivy-count-format "")
+               (setq ivy-count-format "")
 
      To also display the current candidate:
 
-          (setq ivy-count-format "(%d/%d) ")
+               (setq ivy-count-format "(%d/%d) ")
 
      The ‘format’-style switches this variable uses are described in the
      ‘format’ documentation.
@@ -1008,9 +1008,9 @@ Window context when calling an action
      If you want to execute the action in the initial window from which
      the completion started, use the ‘with-ivy-window’ wrapper macro.
 
-          (defun ivy-insert-action (x)
-            (with-ivy-window
-              (insert x)))
+               (defun ivy-insert-action (x)
+                 (with-ivy-window
+                   (insert x)))
 
 
 File: ivy.info,  Node: How can different actions be called?,  Next: How to modify the actions list?,  Prev: What are actions?,  Up: Actions
@@ -1161,7 +1161,7 @@ File: ivy.info,  Node: Packages,  Prev: Actions,  Up: Customization
 
      Magit requries this setting for ivy completion:
 
-          (setq magit-completing-read-function 'ivy-completing-read)
+               (setq magit-completing-read-function 'ivy-completing-read)
 
 ‘find-file-in-project’
 ......................
@@ -1173,14 +1173,14 @@ File: ivy.info,  Node: Packages,  Prev: Actions,  Up: Customization
 
      Projectile requires this seeting for ivy completion:
 
-          (setq projectile-completion-system 'ivy)
+               (setq projectile-completion-system 'ivy)
 
 ‘helm-make’
 ...........
 
      Helm-make requires this seeting for ivy completion.
 
-          (setq helm-make-completion-method 'ivy)
+               (setq helm-make-completion-method 'ivy)
 
 
 File: ivy.info,  Node: Commands,  Next: API,  Prev: Customization,  Up: Top
@@ -1280,7 +1280,7 @@ File: ivy.info,  Node: Buffer Name Completion,  Next: Counsel commands,  Prev: F
 
      Adding this to Emacs init file:
 
-          (setq ivy-use-virtual-buffers t)
+               (setq ivy-use-virtual-buffers t)
      will add additional virual buffers to the buffers list for recent
      files.  Selecting such virtual buffers, which are highlighted with
      ‘ivy-virtual’ face, will open the corresponding file.
@@ -1308,10 +1308,10 @@ File: ivy.info,  Node: API,  Next: Variable Index,  Prev: Commands,  Up: Top
 8 API
 *****
 
-The main (and only) entry point is ‘ivy-read’ function.  It takes two
-required arguments and many optional arguments that can be passed by
-key.  The optional ‘:action’ argument is highly recommended for features
-such as multi-actions, non-exiting actions, ‘ivy-occur’ and
+The main (and only) entry point is the ‘ivy-read’ function.  It takes
+two required arguments and many optional arguments that can be passed by
+a key.  The optional ‘:action’ argument is highly recommended for
+features such as multi-actions, non-exiting actions, ‘ivy-occur’ and
 ‘ivy-resume’.
 * Menu:
 
@@ -1453,7 +1453,7 @@ File: ivy.info,  Node: Example - ‘counsel-describe-function’,  Next: Example
 =========================================
 
 This is a typical example of a function with a non-async collection,
-which is a collection where the strings in the collection are known
+which is a collection where all the strings in the collection are known
 prior to any input from the user.
 
    Only the first two arguments (along with ‘action’) are essential -
@@ -1781,50 +1781,50 @@ Keystroke Index
 
 Tag Table:
 Node: Top1355
-Node: Introduction4386
-Node: Installation6866
-Node: Installing from Emacs Package Manager7319
-Node: Installing from the Git repository8277
-Node: Getting started9097
-Node: Basic customization9403
-Node: Key bindings10024
-Node: Global key bindings10216
-Node: Minibuffer key bindings11534
-Node: Key bindings for navigation12767
-Node: Key bindings for single selection action then exit minibuffer13974
-Node: Key bindings for multiple selections and actions keep minibuffer open16656
-Node: Key bindings that alter the minibuffer input19030
-Node: Other key bindings20918
-Node: Hydra in the minibuffer21296
-Node: Saving the current completion session to a buffer23373
-Node: Completion Styles24785
-Node: ivy--regex-plus26542
-Node: ivy--regex-ignore-order28028
-Node: ivy--regex-fuzzy28396
-Node: Customization28893
-Node: Faces29079
-Node: Defcustoms31206
-Node: Actions32373
-Node: What are actions?32699
-Node: How can different actions be called?33517
-Node: How to modify the actions list?34088
-Node: Example - add two actions to each command34748
-Node: How to undo adding the two actions35706
-Node: How to add actions to a specific command36158
-Node: Example - define a new command with several actions36574
-Node: Test the above function with ‘ivy-occur’37516
-Node: Packages38364
-Node: Commands39207
-Node: File Name Completion39392
-Node: Buffer Name Completion41493
-Node: Counsel commands42107
-Node: API42754
-Node: Required arguments for ‘ivy-read’43324
-Node: Optional arguments for ‘ivy-read’43989
-Node: Example - ‘counsel-describe-function’47053
-Node: Example - ‘counsel-locate’50453
-Node: Variable Index54301
-Node: Keystroke Index61202
+Node: Introduction4384
+Node: Installation6864
+Node: Installing from Emacs Package Manager7317
+Node: Installing from the Git repository8275
+Node: Getting started9125
+Node: Basic customization9431
+Node: Key bindings10052
+Node: Global key bindings10244
+Node: Minibuffer key bindings11632
+Node: Key bindings for navigation12863
+Node: Key bindings for single selection action then exit minibuffer14070
+Node: Key bindings for multiple selections and actions keep minibuffer open16787
+Node: Key bindings that alter the minibuffer input19161
+Node: Other key bindings21049
+Node: Hydra in the minibuffer21427
+Node: Saving the current completion session to a buffer23504
+Node: Completion Styles24916
+Node: ivy--regex-plus26673
+Node: ivy--regex-ignore-order28159
+Node: ivy--regex-fuzzy28527
+Node: Customization29024
+Node: Faces29210
+Node: Defcustoms31347
+Node: Actions32524
+Node: What are actions?32850
+Node: How can different actions be called?33683
+Node: How to modify the actions list?34254
+Node: Example - add two actions to each command34914
+Node: How to undo adding the two actions35872
+Node: How to add actions to a specific command36324
+Node: Example - define a new command with several actions36740
+Node: Test the above function with ‘ivy-occur’37682
+Node: Packages38530
+Node: Commands39388
+Node: File Name Completion39573
+Node: Buffer Name Completion41674
+Node: Counsel commands42293
+Node: API42940
+Node: Required arguments for ‘ivy-read’43516
+Node: Optional arguments for ‘ivy-read’44181
+Node: Example - ‘counsel-describe-function’47245
+Node: Example - ‘counsel-locate’50649
+Node: Variable Index54497
+Node: Keystroke Index61398
 
 End Tag Table
 
