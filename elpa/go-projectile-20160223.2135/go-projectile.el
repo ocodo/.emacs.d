@@ -4,7 +4,7 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20151215.858
+;; Package-Version: 20160223.2135
 ;; Keywords: project, convenience
 ;; Version: 0.1.0
 ;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0"))
@@ -238,6 +238,7 @@ DIR is the directory to use for GOPATH when running go get."
          (url (go-projectile-import-url url)))
     (if (file-exists-p default-directory)
         (error "%s already exists" default-directory))
+    (make-directory default-directory t)
     (setenv "GOPATH" default-directory)
     (let ((result (shell-command-to-string (concat "go get " url))))
       (unless (string= "" result)
