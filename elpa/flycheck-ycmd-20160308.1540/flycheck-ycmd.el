@@ -3,7 +3,7 @@
 ;;
 ;; Author: Austin Bingham <austin.bingham@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20160205.2350
+;; Package-Version: 20160308.1540
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((emacs "24") (dash "1.2.0") (flycheck "0.22") (ycmd "0.9"))
 ;;
@@ -58,6 +58,9 @@
   '(("ERROR" . error)
     ("WARNING" . warning)))
 
+(defvar flycheck-ycmd--cache nil
+  "Cache for parse results.")
+
 (defun flycheck-ycmd--result-to-error (result checker)
   "Convert ycmd parse RESULT for CHECKER into a flycheck error object."
   (ycmd--with-destructured-parse-result result
@@ -82,8 +85,6 @@
 
   ;; OR call (callback 'errored some-message)
   )
-
-(defvar flycheck-ycmd--cache '())
 
 (defun flycheck-ycmd--cache-parse-results (results)
   "Cache ycmd output RESULTS for error display.
