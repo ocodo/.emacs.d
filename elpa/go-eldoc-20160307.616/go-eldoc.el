@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-eldoc
-;; Package-Version: 20160217.1931
-;; Version: 0.26
+;; Package-Version: 20160307.616
+;; Version: 0.27
 ;; Package-Requires: ((go-mode "1.0.0") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -267,7 +267,7 @@
             (forward-list)
             (cond ((looking-at (concat "\\s-*" go-eldoc--argument-type-regexp))
                    (goto-char (match-end 0)))
-                  ((looking-at "\\s-*(")
+                  ((looking-at-p "\\s-*(")
                    (skip-chars-forward " \t")
                    (forward-list)))
             (setq name-type (concat name-type
@@ -362,13 +362,13 @@
 (defun go-eldoc--retrieve-type (typeinfo symbol)
   (let ((case-fold-search nil))
     (cond ((string-match (format "^%s,,var \\(.+\\)$" symbol) typeinfo)
-           (match-string 1 typeinfo))
+           (match-string-no-properties 1 typeinfo))
           ((string-match-p (format "\\`%s,,package\\s-*$" symbol) typeinfo)
            "package")
           ((string-match (format "^%s,,\\(func.+\\)$" symbol) typeinfo)
-           (match-string 1 typeinfo))
+           (match-string-no-properties 1 typeinfo))
           ((string-match (format "^%s,,\\(.+\\)$" symbol) typeinfo)
-           (match-string 1 typeinfo)))))
+           (match-string-no-properties 1 typeinfo)))))
 
 (defun go-eldoc--get-cursor-info (bounds)
   (save-excursion
