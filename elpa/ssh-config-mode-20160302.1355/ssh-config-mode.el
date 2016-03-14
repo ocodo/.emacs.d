@@ -7,21 +7,21 @@
 
 ;; Author:    Harley Gorrell <harley@panix.com>
 ;; URL:       http://www.mahalito.net/~harley/elisp/ssh-config-mode.el
+;; Package-Version: 20160302.1355
 ;; Github:    https://raw.github.com/jhgorrell/ssh-config-mode-el/master/ssh-config-mode.el
 ;; License:   GPL v2
 ;; Keywords:  ssh, config, emacs
-;; Version: 20141219.846
-;; X-Original-Version:   $Revision: 1.14 $
+;; Version:   $Revision: 1.14 $
 
 ;;; Commentary:
 ;; * Fontifys the ssh config keywords.
 ;; * keys for skipping from host section to host section.
 ;; * Add the following to your startup file.
 ;;   (autoload 'ssh-config-mode "ssh-config-mode" t)
-;;   (add-to-list 'auto-mode-alist '(".ssh/config\\'"       . ssh-config-mode))
-;;   (add-to-list 'auto-mode-alist '("sshd?_config\\'"      . ssh-config-mode))
-;;   (add-to-list 'auto-mode-alist '("known_hosts\\'"       . ssh-known-hosts-mode))
-;;   (add-to-list 'auto-mode-alist '("authorized_keys2?\\'" . ssh-authorized-keys-mode))
+;;   (add-to-list 'auto-mode-alist '("/\\.ssh/config\\'"     . ssh-config-mode))
+;;   (add-to-list 'auto-mode-alist '("/sshd?_config\\'"      . ssh-config-mode))
+;;   (add-to-list 'auto-mode-alist '("/known_hosts\\'"       . ssh-known-hosts-mode))
+;;   (add-to-list 'auto-mode-alist '("/authorized_keys2?\\'" . ssh-authorized-keys-mode))
 ;;   (add-hook 'ssh-config-mode-hook 'turn-on-font-lock)
 
 ;;; History:
@@ -156,6 +156,13 @@
   ;;
   (run-hooks 'ssh-config-mode-hook)
   nil)
+
+;;;###autoload
+(progn
+  (add-to-list 'auto-mode-alist '("/\\.ssh/config\\'" . ssh-config-mode))
+  (add-to-list 'auto-mode-alist '("/sshd?_config\\'" . ssh-config-mode))
+  (add-to-list 'auto-mode-alist '("/known_hosts\\'" . ssh-known-hosts-mode))
+  (add-to-list 'auto-mode-alist '("/authorized_keys\\'" . ssh-authorized-keys-mode)))
 
 ;;;;;
 
