@@ -2,16 +2,17 @@
 
 ;; Copyright (C) 1999, 2000, 2001, 2003, 2004 Turadg Aleahmad
 ;;               2008 Aaron S. Hawley
-;;               2011, 2012, 2013, 2014, 2015 Eric James Michael Ritz
+;;               2011, 2012, 2013, 2014, 2015, 2016 Eric James Michael Ritz
 
-;;; Author: Eric James Michael Ritz
-;;; URL: https://github.com/ejmr/php-mode
-;;; Version: 1.17.0
+;; Author: Eric James Michael Ritz
+;; URL: https://github.com/ejmr/php-mode
+;; Version: 1.17.0
+;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
 (defconst php-mode-version-number "1.17.0"
   "PHP Mode version number.")
 
-(defconst php-mode-modified "2015-10-02"
+(defconst php-mode-modified "2016-03-06"
   "PHP Mode build date.")
 
 ;;; License
@@ -78,9 +79,10 @@
 (require 'flymake)
 (require 'etags)
 (require 'speedbar)
+
+(require 'cl-lib)
+
 (eval-when-compile
-  (unless (require 'cl-lib nil t)
-    (require 'cl))
   (require 'regexp-opt)
   (defvar c-vsemi-status-unknown-p)
   (defvar syntax-propertize-via-font-lock))
@@ -90,12 +92,6 @@
 (eval-and-compile
   (if (and (= emacs-major-version 24) (>= emacs-minor-version 4))
     (require 'cl)))
-
-;; Use the recommended cl functions in php-mode but alias them to the
-;; old names when we detect emacs < 24.3
-(if (and (= emacs-major-version 24) (< emacs-minor-version 3))
-    (unless (fboundp 'cl-set-difference)
-      (defalias 'cl-set-difference 'set-difference)))
 
 
 ;; Local variables
@@ -110,13 +106,11 @@
 (defcustom php-executable (or (executable-find "php")
                               "/usr/bin/php")
   "The location of the PHP executable."
-  :type 'string
-  :group 'php)
+  :type 'string)
 
 (defcustom php-default-face 'default
   "Default face in `php-mode' buffers."
-  :type 'face
-  :group 'php)
+  :type 'face)
 
 (defcustom php-speedbar-config t
   "When set to true automatically configures Speedbar to observe PHP files.
@@ -126,8 +120,7 @@ Ignores php-file patterns option; fixed to expression \"\\.\\(inc\\|php[s345]?\\
          (set-default sym val)
          (when val
              (speedbar-add-supported-extension
-              "\\.\\(inc\\|php[s345]?\\|phtml\\)")))
-  :group 'php)
+              "\\.\\(inc\\|php[s345]?\\|phtml\\)"))))
 
 (defcustom php-mode-speedbar-open nil
   "Normally `php-mode' starts with the speedbar closed.
@@ -136,13 +129,20 @@ Turning this on will open it whenever `php-mode' is loaded."
   :set (lambda (sym val)
          (set-default sym val)
          (when val
-             (speedbar 1)))
-  :group 'php)
+             (speedbar 1))))
 
 (defcustom php-template-compatibility t
   "Should detect presence of html tags."
-  :type 'boolean
-  :group 'php)
+  :type 'boolean)
+
+(defsubst php-in-string-p ()
+  (nth 3 (syntax-ppss)))
+
+(defsubst php-in-comment-p ()
+  (nth 4 (syntax-ppss)))
+
+(defsubst php-in-string-or-comment-p ()
+  (nth 8 (syntax-ppss)))
 
 (defun php-mode-extra-constants-create-regexp(kwds)
   "Create regexp for the list of extra constant keywords KWDS."
@@ -170,15 +170,13 @@ of constants when set."
 
 (defcustom php-lineup-cascaded-calls nil
   "Indent chained method calls to the previous line"
-  :type 'boolean
-  :group 'php)
+  :type 'boolean)
 
 ;;;###autoload
 (defcustom php-extra-constants '()
   "A list of additional strings to treat as PHP constants."
   :type 'list
-  :set 'php-mode-extra-constants-set
-  :group 'php)
+  :set 'php-mode-extra-constants-set)
 
 (defun php-create-regexp-for-method (visibility)
   "Make a regular expression for methods with the given VISIBILITY.
@@ -244,70 +242,58 @@ can be used to match against definitions for that classlike."
 (defcustom php-manual-url "http://www.php.net/manual/en/"
   "URL at which to find PHP manual.
 You can replace \"en\" with your ISO language code."
-  :type 'string
-  :group 'php)
+  :type 'string)
 
 (defcustom php-search-url "http://www.php.net/"
   "URL at which to search for documentation on a word."
-  :type 'string
-  :group 'php)
+  :type 'string)
 
 (defcustom php-completion-file ""
   "Path to the file which contains the function names known to PHP."
-  :type 'string
-  :group 'php)
+  :type 'string)
 
 (defcustom php-manual-path ""
   "Path to the directory which contains the PHP manual."
-  :type 'string
-  :group 'php)
+  :type 'string)
 
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist (cons "php" 'php-mode))
 
 (defcustom php-mode-hook nil
   "List of functions to be executed on entry to `php-mode'."
-  :type 'hook
-  :group 'php)
+  :type 'hook)
 
 (defcustom php-mode-pear-hook nil
   "Hook called when a PHP PEAR file is opened with `php-mode'."
-  :type 'hook
-  :group 'php)
+  :type 'hook)
 
 (defcustom php-mode-drupal-hook nil
   "Hook called when a Drupal file is opened with `php-mode'."
-  :type 'hook
-  :group 'php)
+  :type 'hook)
 
 (defcustom php-mode-wordpress-hook nil
   "Hook called when a WordPress file is opened with `php-mode'."
-  :type 'hook
-  :group 'php)
+  :type 'hook)
 
 (defcustom php-mode-symfony2-hook nil
   "Hook called when a Symfony2 file is opened with `php-mode'."
-  :type 'hook
-  :group 'php)
+  :type 'hook)
 
 (defcustom php-mode-psr2-hook nil
   "Hook called when a PSR-2 file is opened with `php-mode'."
-  :type 'hook
-  :group 'php)
+  :type 'hook)
 
 (defcustom php-mode-force-pear nil
   "Normally PEAR coding rules are enforced only when the filename contains \"PEAR.\"
 Turning this on will force PEAR rules on all PHP files."
-  :type 'boolean
-  :group 'php)
+  :type 'boolean)
 
 (defcustom php-mode-warn-if-mumamo-off t
   "Warn once per buffer if you try to indent a buffer without
 mumamo-mode turned on. Detects if there are any HTML tags in the
 buffer before warning, but this is is not very smart; e.g. if you
 have any tags inside a PHP string, it will be fooled."
-  :type '(choice (const :tag "Warg" t) (const "Don't warn" nil))
-  :group 'php)
+  :type '(choice (const :tag "Warg" t) (const "Don't warn" nil)))
 
 (defcustom php-mode-coding-style 'pear
   "Select default coding style to use with php-mode.
@@ -330,7 +316,6 @@ This variable can take one of the following symbol values:
                  (const :tag "WordPress" wordpress)
                  (const :tag "Symfony2" symfony2)
                  (const :tag "PSR-2" psr2))
-  :group 'php
   :set 'php-mode-custom-coding-style-set
   :initialize 'custom-initialize-default)
 
@@ -808,7 +793,7 @@ example `html-mode'.  Known such libraries are:\n\t"
                                            '(available-names . 1)
                                            )))
                        (mode (when name
-                               (caddr (assoc name available-multi-libs)))))
+                               (cl-caddr (assoc name available-multi-libs)))))
                   (when mode
                     ;; Minibuffer window is more than one line, fix that first:
                     (message "")
@@ -874,15 +859,6 @@ This is was done due to the problem reported here:
   "See `php-c-at-vsemi-p'."
   )
 
-(defsubst php-in-string-p ()
-  (nth 3 (syntax-ppss)))
-
-(defsubst php-in-comment-p ()
-  (nth 4 (syntax-ppss)))
-
-(defsubst php-in-string-or-comment-p ()
-  (nth 8 (syntax-ppss)))
-
 (defun php-lineup-string-cont (langelem)
   "Line up string toward equal sign or dot
 e.g.
@@ -908,12 +884,12 @@ this ^ lineup"
     (goto-char (cdr langelem))
     (vector (current-column))))
 
-(defun php-lineup-arglist (langelem)
+(defun php-lineup-arglist (_langelem)
   (save-excursion
     (beginning-of-line)
     (if (looking-at-p "\\s-*->") '+ 0)))
 
-(defun php-lineup-hanging-semicolon (langelem)
+(defun php-lineup-hanging-semicolon (_langelem)
   (save-excursion
     (beginning-of-line)
     (if (looking-at-p "\\s-*;\\s-*$") 0 '+)))
@@ -999,11 +975,10 @@ PHP heredoc."
        '(("\\(\"\\)\\(\\\\.\\|[^\"\n\\]\\)*\\(\"\\)" (1 "\"") (3 "\""))
          ("\\(\'\\)\\(\\\\.\\|[^\'\n\\]\\)*\\(\'\\)" (1 "\"") (3 "\""))))
 
-  (when (boundp 'syntax-propertize-function)
-    (add-to-list (make-local-variable 'syntax-propertize-extend-region-functions)
-                 #'php-syntax-propertize-extend-region)
-    (set (make-local-variable 'syntax-propertize-function)
-         #'php-syntax-propertize-function))
+  (add-to-list (make-local-variable 'syntax-propertize-extend-region-functions)
+               #'php-syntax-propertize-extend-region)
+  (set (make-local-variable 'syntax-propertize-function)
+       #'php-syntax-propertize-function)
 
   (setq imenu-generic-expression php-imenu-generic-expression)
 
@@ -1083,7 +1058,11 @@ PHP heredoc."
   (set (make-local-variable 'defun-prompt-regexp)
        "^\\s-*function\\s-+&?\\s-*\\(\\(\\sw\\|\\s_\\)+\\)\\s-*")
   (set (make-local-variable 'add-log-current-defun-header-regexp)
-       php-beginning-of-defun-regexp))
+       php-beginning-of-defun-regexp)
+
+  (when (>= emacs-major-version 25)
+    (php-syntax-propertize-function (point-min) (point-max))))
+
 
 ;; Define function name completion function
 (defvar php-completion-table nil
@@ -1219,8 +1198,7 @@ current `tags-file-name'."
 If non-nil, this shadows the value of `browse-url-browser-function' when
 calling `php-search-documentation' or `php-search-local-documentation'."
   :type '(choice (const :tag "default" nil) function)
-  :link '(variable-link browse-url-browser-function)
-  :group 'php)
+  :link '(variable-link browse-url-browser-function))
 
 (defun php-browse-documentation-url (url)
   "Browse a documentation URL using the configured browser function.
@@ -1289,14 +1267,14 @@ exists, and nil otherwise.
 With a prefix argument, prompt (with completion) for a word to search for."
   (interactive (php--search-documentation-read-arg))
   (let ((file (catch 'found
-                (loop for type in php-search-local-documentation-types do
-                      (let* ((doc-html (format "%s.%s.html"
-                                               type
-                                               (replace-regexp-in-string
-                                                "_" "-" (downcase word))))
-                             (file (expand-file-name doc-html  php-manual-path)))
-                        (when (file-exists-p file)
-                          (throw 'found file)))))))
+                (cl-loop for type in php-search-local-documentation-types do
+                         (let* ((doc-html (format "%s.%s.html"
+                                                  type
+                                                  (replace-regexp-in-string
+                                                   "_" "-" (downcase word))))
+                                (file (expand-file-name doc-html  php-manual-path)))
+                           (when (file-exists-p file)
+                             (throw 'found file)))))))
     (when file
       (let ((file-url (if (string-prefix-p "file://" file)
                           file
@@ -1462,7 +1440,7 @@ The output will appear in the buffer *PHP*."
 (defface php-annotations-annotation-face '((t . (:inherit font-lock-constant-face)))
   "Face used to highlight annotations.")
 
-(defconst php-annotations-re "\\(\\s-\\|{\\)\\(@[[:alpha:]]+\\)")
+(defconst php-annotations-re "\\(\\s-\\|{\\)\\(@[-\\[:alpha:]]+\\)")
 
 (defmacro php-annotations-inside-comment-p (pos)
   "Return non-nil if POS is inside a comment."
