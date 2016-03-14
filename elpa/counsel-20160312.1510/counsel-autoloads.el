@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22218 26488 142474
-;;;;;;  99000))
+;;;### (autoloads nil "counsel" "counsel.el" (22246 12457 761626
+;;;;;;  199000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -85,6 +85,11 @@ Search through all available git stashes.
 
 \(fn)" t nil)
 
+(autoload 'counsel-git-log "counsel" "\
+Call the \"git log --grep\" shell command.
+
+\(fn)" t nil)
+
 (autoload 'counsel-find-file "counsel" "\
 Forward to `find-file'.
 When INITIAL-INPUT is non-nil, use it in the minibuffer during completion.
@@ -144,6 +149,20 @@ An extra action allows to switch to the process buffer.
 Choose a song from the Rhythmbox library to play or enqueue.
 
 \(fn)" t nil)
+
+(defvar counsel-mode nil "\
+Non-nil if Counsel mode is enabled.
+See the command `counsel-mode' for a description of this minor mode.")
+
+(custom-autoload 'counsel-mode "counsel" nil)
+
+(autoload 'counsel-mode "counsel" "\
+Toggle Counsel mode on or off.
+Turn Counsel mode on if ARG is positive, off otherwise. Counsel
+mode remaps built-in emacs functions that have counsel
+replacements.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
