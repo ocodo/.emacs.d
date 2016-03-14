@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "mc-edit-lines" "mc-edit-lines.el" (22218 26331
-;;;;;;  90854 957000))
+;;;### (autoloads nil "mc-edit-lines" "mc-edit-lines.el" (22246 12252
+;;;;;;  270508 393000))
 ;;; Generated autoloads from mc-edit-lines.el
 
 (autoload 'mc/edit-lines "mc-edit-lines" "\
@@ -34,7 +34,7 @@ Add one cursor to the beginning of each line in the active region.
 ;;;***
 
 ;;;### (autoloads nil "mc-hide-unmatched-lines-mode" "mc-hide-unmatched-lines-mode.el"
-;;;;;;  (22218 26331 102854 929000))
+;;;;;;  (22246 12252 290508 376000))
 ;;; Generated autoloads from mc-hide-unmatched-lines-mode.el
 
 (autoload 'mc-hide-unmatched-lines-mode "mc-hide-unmatched-lines-mode" "\
@@ -48,8 +48,8 @@ mode. To leave this mode press <return> or \"C-g\"
 
 ;;;***
 
-;;;### (autoloads nil "mc-mark-more" "mc-mark-more.el" (22218 26331
-;;;;;;  110854 908000))
+;;;### (autoloads nil "mc-mark-more" "mc-mark-more.el" (22246 12252
+;;;;;;  298508 369000))
 ;;; Generated autoloads from mc-mark-more.el
 
 (autoload 'mc/mark-next-like-this "mc-mark-more" "\
@@ -146,7 +146,7 @@ Find and mark all the parts in the region matching the given search
 \(fn BEG END &optional SEARCH)" t nil)
 
 (autoload 'mc/mark-all-in-region-regexp "mc-mark-more" "\
-Find and mark all the parts in the region matching the given regexp
+Find and mark all the parts in the region matching the given regexp.
 
 \(fn BEG END)" t nil)
 
@@ -206,10 +206,13 @@ Mark all symbols like this in defun.
 
 \(fn)" t nil)
 
-(autoload 'mc/add-cursor-on-click "mc-mark-more" "\
-Add a cursor where you click.
+(autoload 'mc/toggle-cursor-on-click "mc-mark-more" "\
+Add a cursor where you click, or remove a fake cursor that is
+already there.
 
 \(fn EVENT)" t nil)
+
+(defalias 'mc/add-cursor-on-click 'mc/toggle-cursor-on-click)
 
 (autoload 'mc/mark-sgml-tag-pair "mc-mark-more" "\
 Mark the tag we're in and its pair for renaming.
@@ -218,8 +221,8 @@ Mark the tag we're in and its pair for renaming.
 
 ;;;***
 
-;;;### (autoloads nil "mc-mark-pop" "mc-mark-pop.el" (22218 26331
-;;;;;;  102854 929000))
+;;;### (autoloads nil "mc-mark-pop" "mc-mark-pop.el" (22246 12252
+;;;;;;  286508 379000))
 ;;; Generated autoloads from mc-mark-pop.el
 
 (autoload 'mc/mark-pop "mc-mark-pop" "\
@@ -231,7 +234,7 @@ to the popped mark.
 ;;;***
 
 ;;;### (autoloads nil "mc-separate-operations" "mc-separate-operations.el"
-;;;;;;  (22218 26331 106854 919000))
+;;;;;;  (22246 12252 294508 372000))
 ;;; Generated autoloads from mc-separate-operations.el
 
 (autoload 'mc/insert-numbers "mc-separate-operations" "\
@@ -270,7 +273,7 @@ Aligns all cursors with whitespace like `mc/vertical-align' does
 ;;;***
 
 ;;;### (autoloads nil "multiple-cursors-core" "multiple-cursors-core.el"
-;;;;;;  (22218 26331 82854 978000))
+;;;;;;  (22246 12252 262508 400000))
 ;;; Generated autoloads from multiple-cursors-core.el
 
 (autoload 'multiple-cursors-mode "multiple-cursors-core" "\
@@ -281,7 +284,7 @@ Mode while multiple cursors are active.
 ;;;***
 
 ;;;### (autoloads nil "rectangular-region-mode" "rectangular-region-mode.el"
-;;;;;;  (22218 26331 98854 938000))
+;;;;;;  (22246 12252 274508 389000))
 ;;; Generated autoloads from rectangular-region-mode.el
 
 (autoload 'set-rectangular-region-anchor "rectangular-region-mode" "\
@@ -300,7 +303,7 @@ A mode for creating a rectangular region to edit
 ;;;***
 
 ;;;### (autoloads nil nil ("mc-cycle-cursors.el" "multiple-cursors-pkg.el"
-;;;;;;  "multiple-cursors.el") (22218 26331 125554 365000))
+;;;;;;  "multiple-cursors.el") (22246 12252 311336 17000))
 
 ;;;***
 
