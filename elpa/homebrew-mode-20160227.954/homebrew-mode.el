@@ -1,11 +1,11 @@
 ;;; homebrew-mode.el --- minor mode for editing Homebrew formulae
 
-;; Copyright (C) 2015 Alex Dunn
+;; Copyright (C) 2015, 2016 Alex Dunn
 
 ;; Author: Alex Dunn <dunn.alex@gmail.com>
 ;; URL: https://github.com/dunn/homebrew-mode
-;; Package-Version: 20151030.651
-;; Version: 1.3.2
+;; Package-Version: 20160227.954
+;; Version: 1.3.4
 ;; Package-Requires: ((emacs "24.4") (inf-ruby "2.4.0") (dash "1.2.0"))
 ;; Keywords: homebrew brew ruby
 ;; Prefix: homebrew
@@ -100,7 +100,7 @@
 
 ;; Version string
 
-(defconst homebrew-mode-version "1.3.2")
+(defconst homebrew-mode-version "1.3.4")
 
 ;; Custom variables
 
@@ -277,7 +277,11 @@ The primary subcommand (e.g., 'install') must be the first
 element of ARGS.
 
 Return the process."
-  (let ((command-string (homebrew--short-command args)))
+  (let ((command-string (homebrew--short-command args))
+        ;; Use pipe instead of tty; significantly increases
+        ;; performance, especially for processes with verbose output.
+        ;; See `magit-process-connection-type' for more information.
+        (process-connection-type nil))
     (apply 'start-process
       ;; Process name:
       command-string
