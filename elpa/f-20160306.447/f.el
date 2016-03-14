@@ -4,8 +4,8 @@
 
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
-;; Version: 0.17.3
-;; Package-Version: 20151113.123
+;; Version: 0.18.1
+;; Package-Version: 20160306.447
 ;; Keywords: files, directories
 ;; URL: http://github.com/rejeep/f.el
 ;; Package-Requires: ((s "1.7.0") (dash "2.2.0"))
