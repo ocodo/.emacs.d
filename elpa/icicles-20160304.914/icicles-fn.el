@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2016, Drew Adams, all rights reserved.
 ;; Created: Mon Feb 27 09:25:53 2006
-;; Last-Updated: Thu Dec 31 13:58:36 2015 (-0800)
+;; Last-Updated: Tue Mar  1 08:40:36 2016 (-0800)
 ;;           By: dradams
-;;     Update #: 15127
+;;     Update #: 15145
 ;; URL: http://www.emacswiki.org/icicles-fn.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: internal, extensions, help, abbrev, local, minibuffer,
@@ -1388,16 +1388,20 @@ COLL is an Icicles collection argument acceptable to
 PRED is a predicate.
 
 Returns a new two-element list of the new collection and predicate:
-\(MCT NEWPRED), where MCT is COLL transformed and NEWPRED is PRED
-transformed.  MCT is a collection suitable for vanilla
-`completing-read'.
+
+ * If COLL is not a list other than a lambda form then the new list
+   returned is just (COLL PRED).
+
+ * Otherwise, it is (MCT NEWPRED), where MCT is COLL transformed and
+   NEWPRED is PRED transformed.  MCT is a collection suitable for
+   vanilla `completing-read'.
 
 COLL is transformed to MCT by applying `icicle-mctized-full-candidate'
 to each of its elements.
 
 If PRED is non-nil, then NEWPRED is a predicate that applies PRED to
 the cdr of an MCT entry.  If PRED is nil, so is NEWPRED."
-  (when (consp coll)
+  (when (and (consp coll)  (not (functionp coll))) ; Exclude lambda form.
     ;; Copy alist collection COLL, so we don't change the original alist in any way.
     ;; Change each entry in COLL using `icicle-mctized-full-candidate'.
     (setq coll  (mapcar #'icicle-mctized-full-candidate coll))
@@ -2348,8 +2352,8 @@ Non-nil optional arg NAMES is an alist of names to use in place of the
 value returned by `icicle-ucs-names'.  It must have the same form as
 such a return value: (CHAR-NAME . CHAR-CODE)."
     (unless names  (setq names  (icicle-ucs-names)))
-    (setq names  (delq nil (mapcar #'icicle-make-char-candidate names)))
-    (let* ((new-prompt                             (copy-sequence prompt))
+    (let* ((cands                                  (delq nil (mapcar #'icicle-make-char-candidate names)))
+           (new-prompt                             (copy-sequence prompt))
            (enable-recursive-minibuffers           t)
            (completion-ignore-case                 t)
            (icicle-multi-completing-p              (and icicle-read-char-by-name-multi-completion-flag
@@ -2359,7 +2363,7 @@ such a return value: (CHAR-NAME . CHAR-CODE)."
            (icicle-list-join-string                "\t")
            (icicle-candidate-properties-alist      '((3 (face icicle-candidate-part))))
            (icicle-whole-candidate-as-text-prop-p  icicle-multi-completing-p)
-           (mctized-cands                          (car (icicle-mctize-all names nil)))
+           (mctized-cands                          (car (icicle-mctize-all cands nil)))
            (collection-fn                          `(lambda (string pred action)
                                                      (if (eq action 'metadata)
                                                          '(metadata (category . unicode-name))
@@ -2370,12 +2374,15 @@ such a return value: (CHAR-NAME . CHAR-CODE)."
       (setq chr  (cond ((string-match-p "\\`[0-9a-fA-F]+\\'" input)  (string-to-number input 16))
                        ((string-match-p "^#" input)                  (read input))
                        ((if icicle-multi-completing-p
-                            (cddr (assoc-string input mctized-cands t)) ; INPUT is one of the multi-completions.
+                            ;; Either user completed and INPUT is a multi-completion or user did not complete
+                            ;; and INPUT is a character name.
+                            (or (cddr (assoc-string input mctized-cands t))
+                                (cdr (assoc-string input names t)))
                           (cdr (assoc-string input mctized-cands t)))) ; INPUT is a character name.
                        (icicle-multi-completing-p
                         (let ((completion  (try-completion input collection-fn)))
                           (and (stringp completion)
-                               ;; INPUT is not a multi-completion, but it may match a single sulti-completion.
+                               ;; INPUT is not a multi-completion, but it may match a single multi-completion.
                                ;; In particular, it might match just the NAME or CODE part of it.
                                (let* ((name                       (icicle-transform-multi-completion
                                                                    completion))
@@ -4433,7 +4440,9 @@ REGEXP-P non-nil means use regexp matching to highlight root."
         indx)
     (unless (and regexp-p  (not icicle-regexp-quote-flag)) (setq inp  (regexp-quote inp)))
     (save-match-data
-      (setq indx  (string-match inp icicle-last-completion-candidate))
+      (setq indx  (condition-case nil   ; Ignore errors, in case INP is, say, "\".
+                      (string-match inp icicle-last-completion-candidate)
+                    (error nil)))
       (when indx
         ;; Should not need to ignore errors, but `*-last-completion-candidate' has been a read-only object (?)
         (condition-case nil
@@ -7253,7 +7262,7 @@ followed by non-prefix keys.  Letter case is ignored.
 
 The special key representation \"..\" is, however, less than all other
 keys, including prefix keys."
-  (let* ((prefix-string           "  =  \\.\\.\\.$")
+  (let* ((prefix-string           (concat icicle-complete-keys-separator "\\.\\.\\.$"))
          (parent-string           "..")
          (s1-prefix-p             (save-match-data (string-match prefix-string s1)))
          (s2-prefix-p             (save-match-data (string-match prefix-string s2)))
@@ -7285,8 +7294,9 @@ keys, including local keys."
   "Non-nil if command name of S1 `icicle-case-string-less-p' that of S2.
 When used as a comparison function for completion candidates, this
 assumes that each candidate, S1 and S2, is composed of a key name
-followed by \"  =  \", followed by the corresponding command name."
-  (let ((icicle-list-join-string  "  =  ")) ; Fake a multi-completion.  Candidate is key  =  cmd.
+followed by the value of `icicle-complete-keys-separator', followed by
+the corresponding command name."
+  (let ((icicle-list-join-string  icicle-complete-keys-separator)) ; Fake a multi-completion.
     (icicle-part-2-lessp s1 s2)))
 
 (defun icicle-special-candidates-first-p (s1 s2)

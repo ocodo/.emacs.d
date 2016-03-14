@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 2007-2016, Drew Adams, all rights reserved.
 ;; Created: Tue Nov 27 07:47:53 2007
-;; Last-Updated: Sun Jan 24 09:30:01 2016 (-0800)
+;; Last-Updated: Fri Mar  4 09:19:25 2016 (-0800)
 ;;           By: dradams
-;;     Update #: 11569
+;;     Update #: 11595
 ;; URL: http://www.emacswiki.org/icicles-chg.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -1164,6 +1164,17 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-cmd2.el'")
 ;;
+;; 2016/03/03 dadams
+;;     icicle-search-read-context-regexp: Bind icicle-regexp-quote-flag to nil when reading regexp.
+;; 2016/03/01 dadams
+;;     icicle-search-action: Corrected doc string: If icicle-search-highlight-threshold is NOT zero.
+;;     icicle-search-highlight-input-matches-here: Wrap re-search-forward in condition-case.
+;; 2016/02/28 dadams
+;;     icicle-complete-keys: Mention icicle-complete-keys-separator in doc string.
+;;     icicle-complete-keys-action, icicle-add-key+cmd, icicle-complete-keys-help:
+;;       Use new option icicle-complete-keys-separator.
+;; 2016/02/?? dadams
+;;     icicle-search-replace-match: Corrected (swapped) calls to replace-match-maybe-edit.
 ;; 2016/01/24 dadams
 ;;     icicle-where-is: Added format string as first arg to message, to protect % in message text.
 ;; 2015/09/19 dadams
@@ -2225,6 +2236,15 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-fn.el'")
 ;;
+;; 2016/03/01 dadams
+;;     icicle-insert-cand-in-minibuffer: Wrap string-match in condition-case, to ignore errors.
+;; 2016/02/28 dadams
+;;     icicle-prefix-keys-first-p, icicle-command-names-alphabetic-p:
+;;       Use new option icicle-complete-keys-separator, not its default value.
+;; 2016/02/26 dadams
+;;     icicle-read-char-by-name:
+;;       Handle case where multi-completing-p but user enters whole name without completing.
+;;     icicle-mctize-all: Do not mctize a list that is a lambda form.
 ;; 2015/10/15 dadams
 ;;     icicle-(lru|mru)-window-for-buffer: Convert times to lists (needed for Emacs 24, not for 25+).
 ;; 2015/09/20 dadams
@@ -4554,6 +4574,8 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-mcmd.el'")
 ;;
+;; 2016/02/28 dadams
+;;     icicle-help-on-candidate: Use new option icicle-complete-keys-separator, not its default value.
 ;; 2015/12/31 dadams
 ;;     Renamed: icicle-chars-(after|before) to icicle-string-(after|before)-p.
 ;;     icicle-string-(after|before)-p: Use code suggested by Martin Rudalics in Emacs bug #17284.
@@ -6338,6 +6360,8 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-mode.el'")
 ;;
+;; 2016/02/28 dadams
+;;     icicle-show-help-in-mode-line: Use new option icicle-complete-keys-separator.
 ;; 2015/08/20 dadams
 ;;     Applied renaming of icicle-region-face-remapping to icicle-face-remapping-region.
 ;; 2015/08/19 dadams
@@ -7649,6 +7673,10 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-opt.el'")
 ;;
+;; 2016/03/01 dadams
+;;     icicle-search-replace-common-match-flag: Qualify toggle keys as being for Icicles search.
+;; 2016/02/28 dadams
+;;     Added: icicle-complete-keys-separator.
 ;; 2015/08/01 dadams
 ;;     Added: icicle-hide-whitespace-before-comment-flag.
 ;; 2015/07/05 dadams
@@ -8590,6 +8618,8 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-var.el'")
 ;;
+;; 2016/02/28 dadams
+;;     icicle-complete-keys-alist: Refer to new option icicle-complete-keys-separator.
 ;; 2015/08/22 dadams
 ;;     Added: icicle-izones-var.
 ;; 2015/08/20 dadams
@@ -9055,6 +9085,9 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles.el'")
 ;;
+;; 2016/03/04 dadams
+;;     Version 2016.03.04.
+;;     font-lock-add-keywords: Use index 7 for old Emacs versions.
 ;; 2015/07/05 dadams
 ;;     Version 2015.07.05.
 ;; 2015/01/04 dadams

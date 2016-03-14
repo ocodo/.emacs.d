@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2016, Drew Adams, all rights reserved.
 ;; Created: Thu May 21 13:31:43 2009 (-0700)
-;; Last-Updated: Sun Jan 24 09:26:18 2016 (-0800)
+;; Last-Updated: Thu Mar  3 09:36:50 2016 (-0800)
 ;;           By: dradams
-;;     Update #: 7283
+;;     Update #: 7303
 ;; URL: http://www.emacswiki.org/icicles-cmd2.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -4573,6 +4573,7 @@ The arguments are for use by `completing-read' to read the regexp.
          def     (or def   (icicle-defaults-at-point)))
   (let* ((icicle-candidate-action-fn  nil)
          (icicle-candidate-help-fn    nil)
+         (icicle-regexp-quote-flag    nil) ; Disable quoting of regexp special chars.
          (regexp                      (icicle-completing-read-history
                                        prompt 'regexp-history pred init def i-i-m)))
     (while (string= "" regexp)
@@ -4973,8 +4974,8 @@ STRING is a search-hit string.  It is matched by the initial regexp
 \(context regexp).
 
 1. Move to the STRING occurrence in original buffer.  Highlight it.
-2. If `icicle-search-highlight-threshold' is zero, highlight what the
-   current input matches, inside the STRING occurrence.
+2. If `icicle-search-highlight-threshold' is not zero, highlight what
+   the current input matches, inside the STRING occurrence.
 3. If REPLACEMENT is non-nil, use it to replace the current match.
    If `icicle-search-replace-whole-candidate-flag' is non-nil, replace
    the entire STRING occurrence.  Otherwise, replace only the part
@@ -5212,7 +5213,8 @@ FIXEDCASE is as for `replace-match'.  Non-nil means do not alter case."
                      ;; `replace-count' is free here, bound in `icicle-search'.
                      (funcall (car compiled) (cdr compiled) (setq replace-count  (1+ replace-count)))
                    compiled)
-                 fixedcase icicle-search-replace-literally-flag nil (match-data)))
+                 fixedcase icicle-search-replace-literally-flag nil (match-data)
+                 nil))                  ; BACKWARD parameter for Emacs 24.4+ - see bug #18388
             ;; @@@@@@ Hopefully this is only a temporary hack, until Emacs bug #18388 is fixed.
             (wrong-number-of-arguments
              (condition-case icicle-search-replace-match3
@@ -5221,8 +5223,7 @@ FIXEDCASE is as for `replace-match'.  Non-nil means do not alter case."
                       ;; `replace-count' is free here, bound in `icicle-search'.
                       (funcall (car compiled) (cdr compiled) (setq replace-count  (1+ replace-count)))
                     compiled)
-                  fixedcase icicle-search-replace-literally-flag nil (match-data)
-                  nil)                  ; BACKWARD parameter for Emacs 24.4+ - see bug #18388
+                  fixedcase icicle-search-replace-literally-flag nil (match-data))
                (buffer-read-only (ding) (icicle-user-error "Buffer is read-only"))
                (error (icicle-remove-Completions-window) (icicle-user-error "No match for `%s'" replacement))))
             (buffer-read-only (ding) (icicle-user-error "Buffer is read-only"))
@@ -5275,8 +5276,10 @@ No such highlighting is done if any of these conditions holds:
         (setq icicle-search-refined-overlays  (cdr icicle-search-refined-overlays))))
     (let ((ov  nil))
       (save-match-data
-        (while (and (not (eobp))  (re-search-forward (or icicle-search-ecm  icicle-current-input)
-                                                     nil 'move-to-end))
+        (while (and (not (eobp))
+                    (condition-case nil ; Ignore errors, in case input is, say, "\".
+                        (re-search-forward (or icicle-search-ecm  icicle-current-input) nil 'move-to-end)
+                      (error nil)))
           (if (equal (match-beginning 0) (match-end 0))
               (forward-char 1)
             (setq ov  (make-overlay (match-beginning 0) (match-end 0)))
@@ -8722,10 +8725,12 @@ and file names) or a menu hierarchy (to complete submenu and menu-item
 names).
 
 Completion candidates generally have the form `KEY  =  COMMAND'.
+\(Use option `icicle-complete-keys-separator' to change the separator
+from the default value of \"  =  \".)
 
 If COMMAND is `...', then KEY is a prefix key; choosing it updates the
 completion candidates list to the keys under that prefix.  For
-example, choosing `C-x = ...' changes the candidates to those with
+example, choosing `C-x  =  ...' changes the candidates to those with
 prefix `C-x'.
 
 The special candidate `..' means to go up one level of the key-binding
@@ -8757,7 +8762,7 @@ candidates.
 Most of the thousands of self-inserting characters for Emacs 23+ are
 Unicode characters.  For a self-inserting character CHAR, the
 completion candidate is generally `CHAR  =  self-insert-command', but
-if CHAR is a Unicode character then it is `CHAR = UNICODE-NAME',
+if CHAR is a Unicode character then it is `CHAR  =  UNICODE-NAME',
 where UNICODE-NAME is the name of the Unicode character.  This is so
 that you can complete against the name.
 
@@ -8919,7 +8924,9 @@ Each is a vector."
              ;; $$$$$$$$ (select-window icicle-orig-window)
              (if (string= ".." candidate)
                  (setq cmd-name  "..")
-               (unless (and (string-match "\\(.+\\)  =  \\(.+\\)" candidate)  (match-beginning 2))
+               (unless (and (string-match (concat "\\(.+\\)" icicle-complete-keys-separator"\\(.+\\)")
+                                          candidate)
+                            (match-beginning 2))
                  (icicle-user-error "No match"))
                (setq cmd-name  (substring candidate (match-beginning 2) (match-end 2))))
              (cond ((string= ".." cmd-name) ; Go back up to parent prefix.
@@ -9030,9 +9037,10 @@ Each is a vector."
                                                    ;;                    "\\`VARIATION SELECTOR"
                                                    ;;                    (car name.char)))))
                                                    (intern (concat key-desc
+                                                                   icicle-complete-keys-separator
                                                                    (if name.char
-                                                                       (concat "  =  " (car name.char))
-                                                                     "  =  self-insert-command"))))))
+                                                                       (car name.char)
+                                                                     "self-insert-command"))))))
                              (when candidate
                                (push (cons candidate (cons (vector char) 'self-insert-command))
                                      icicle-complete-keys-alist)
@@ -9067,9 +9075,9 @@ Each is a vector."
                                                (if (stringp mitem) mitem event)
                                                (not icicle-key-descriptions-use-<>-flag))
                                               'face 'icicle-candidate-part)))
-                    (candidate  (intern (concat key-desc "  =  " (if (keymapp bndg)
-                                                                     "..."
-                                                                   (prin1-to-string bndg))))))
+                    (candidate  (intern (concat key-desc
+                                                icicle-complete-keys-separator
+                                                (if (keymapp bndg) "..." (prin1-to-string bndg))))))
                ;; Skip keys bound to `undefined'.
                (unless (string= "undefined" (prin1-to-string bndg))
                  (push (cons candidate (cons (vector event) bndg)) icicle-complete-keys-alist))
@@ -9097,7 +9105,7 @@ Each is a vector."
     "Describe the command associated with the current completion candidate."
     (interactive)                       ; Interactively, just describes itself.
     (when (interactive-p) (icicle-barf-if-outside-Completions-and-minibuffer))
-    (string-match "\\(.+\\)  =  \\(.+\\)" candidate)
+    (string-match (concat "\\(.+\\)" icicle-complete-keys-separator "\\(.+\\)") candidate)
     (let ((frame-with-focus  (selected-frame))
           (cmd               (intern-soft (substring candidate (match-beginning 2) (match-end 2)))))
       (if (not (fboundp cmd))
