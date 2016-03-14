@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "go-rename" "go-rename.el" (22066 4197 221190
-;;;;;;  112000))
+;;;### (autoloads nil "go-rename" "go-rename.el" (22246 12379 525962
+;;;;;;  587000))
 ;;; Generated autoloads from go-rename.el
 
 (autoload 'go-rename "go-rename" "\

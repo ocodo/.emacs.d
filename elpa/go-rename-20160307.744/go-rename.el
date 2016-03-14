@@ -5,7 +5,7 @@
 ;; license that can be found in the LICENSE file.
 
 ;; Version: 0.1
-;; Package-Version: 20151027.638
+;; Package-Version: 20160307.744
 ;; Package-Requires: ((go-mode "1.3.1"))
 ;; Keywords: tools
 
@@ -83,7 +83,6 @@ the `gorename' tool. With FORCE, call `gorename' with the
         ;; failure
         (let ((w (display-buffer (current-buffer))))
           (message "gorename exited")
-          (shrink-window-if-larger-than-buffer w)
           (set-window-point w (point-min)))))))
 
   ;; Reload the modified files, saving line/col.
