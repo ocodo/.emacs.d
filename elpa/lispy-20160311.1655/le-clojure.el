@@ -23,13 +23,8 @@
 ;;; Code:
 
 (require 'lispy)
-(declare-function nrepl-sync-request:eval "nrepl-client")
-(declare-function nrepl-dict-get "nrepl-client")
-(declare-function nrepl-send-sync-request "nrepl-client")
-(declare-function nrepl-current-session "nrepl-client")
-(declare-function nrepl-current-connection-buffer "nrepl-client")
-(declare-function cider-current-ns "cider-interaction")
-(declare-function cider-find-file "cider-interaction")
+(require 'cider-client)
+(require 'cider-interaction)
 
 (defun lispy--clojure-lax (str)
   "Possibly transform STR into a more convenient Clojure expression."
@@ -70,7 +65,7 @@ When LAX is non-nil, expect STR to be two sexps from a let binding.
 Generate an appropriate def from for that let binding and eval it."
   (require 'cider)
   (let (deactivate-mark)
-    (if (null (nrepl-current-connection-buffer t))
+    (if (null (cider-default-connection t))
         (progn
           (setq lispy--clojure-hook-lambda
                 `(lambda ()
@@ -270,7 +265,7 @@ Besides functions, handles specials, keywords, maps, vectors and sets."
   (let* ((dict (nrepl-send-sync-request
                 (list
                  "op" "info"
-                 "session" (nrepl-current-session)
+                 "session" (cider-current-session)
                  "ns" (cider-current-ns)
                  "symbol" symbol)
                 (cider-current-connection)))
@@ -357,6 +352,22 @@ Besides functions, handles specials, keywords, maps, vectors and sets."
         (lispy-down 1)
         (lispy-flow 1))
       (lispy-down 1))))
+
+(defun lispy-goto-symbol-clojure (symbol)
+  "Goto SYMBOL."
+  (let ((rsymbol (lispy--clojure-resolve symbol)))
+    (cond ((stringp rsymbol)
+           (lispy--clojure-jump rsymbol))
+          ((eq rsymbol 'special)
+           (error "Can't jump to '%s because it's special" symbol))
+          ((eq rsymbol 'keyword)
+           (error "Can't jump to keywords"))
+          ((and (listp rsymbol)
+                (eq (car rsymbol) 'variable))
+           (error "Can't jump to Java variables"))
+          (t
+           (error "Could't resolve '%s" symbol))))
+  (lispy--back-to-paren))
 
 (provide 'le-clojure)
 
