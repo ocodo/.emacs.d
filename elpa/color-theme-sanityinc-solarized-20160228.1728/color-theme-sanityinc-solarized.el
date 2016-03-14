@@ -417,7 +417,7 @@ names to which it refers are bound."
       (helm-source-header (:weight bold :foreground ,yellow :height 1.44))
 
       ;; company
-      (company-preview (:foreground ,faint))
+      (company-preview (:foreground ,faint :background ,contrast-background))
       (company-preview-common (:inherit company-preview :foreground ,yellow))
       (company-preview-search (:inherit company-preview :foreground ,blue))
       (company-tooltip (:background ,contrast-background))
