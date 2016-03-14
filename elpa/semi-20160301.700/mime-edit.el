@@ -1526,10 +1526,11 @@ If optional argument SUBTYPE is not nil, text/SUBTYPE tag is inserted."
     (when verbose
       (setq charset
 	    (completing-read
-	     "What charset: "
+	     (apply 'concat "What charset: "
+		    (when charset `("(default " ,charset ") ")))
 	     (mapcar (lambda (elt) (cons (symbol-name elt) nil))
 		     (mime-charset-list))
-	     nil nil charset nil nil nil)))
+	     nil nil nil nil charset)))
     (unless (string= charset "") charset)))
 
 (defun mime-edit-insert-file-parameters (parameters file &optional verbose)
@@ -1627,10 +1628,7 @@ If optional argument SUBTYPE is not nil, text/SUBTYPE tag is inserted."
 (defun mime-edit-insert-voice ()
   "Insert a voice message."
   (interactive)
-  (let ((encoding
-	 (completing-read
-	  "What transfer encoding: "
-	  (mime-encoding-alist) nil t nil)))
+  (let ((encoding (mime-prompt-for-encoding)))
     (mime-edit-insert-tag "audio" "basic" nil)
     (mime-edit-define-encoding encoding)
     (save-restriction
@@ -1964,23 +1962,20 @@ Nil if no such parameter."
 
 (defun mime-prompt-for-type (&optional default)
   "Ask for Content-type."
-  (let ((type ""))
+  (let (type)
     ;; Repeat until primary content type is specified.
-    (while (string-equal type "")
-      (setq type
-	    (completing-read "What content type: "
-			     mime-content-types
-			     nil
-			     'require-match ;Type must be specified.
-			     default
-			     ))
-      (if (string-equal type "")
-	  (progn
-	    (message "Content type is required.")
-	    (beep)
-	    (sit-for 1)
-	    ))
-      )
+    (while (string=
+	    (setq type
+		  (completing-read
+		   (apply 'concat "What content type: "
+			  (when default `("(default " ,default ") ")))
+		   mime-content-types
+		   nil
+		   'require-match ;Type must be specified.
+		   nil
+		   nil
+		   default))
+	    ""))
     type))
 
 (defun mime-prompt-for-subtype (type &optional default)
@@ -1988,20 +1983,17 @@ Nil if no such parameter."
   (let ((subtypes (cdr (assoc type mime-content-types))))
     (or (and default
 	     (assoc default subtypes))
-	(setq default (car (car subtypes)))
-	))
-  (let* ((answer
-	  (completing-read
-	   (if default
-	       (concat
-		"What content subtype: (default " default ") ")
-	     "What content subtype: ")
-	   (cdr (assoc type mime-content-types))
-	   nil
-	   'require-match		;Subtype must be specified.
-	   nil
-	   )))
-    (if (string-equal answer "") default answer)))
+	(setq default (car (car subtypes))))
+    ;; default must be non-empty string.
+    (completing-read
+     (apply 'concat "What content subtype: "
+	    (when default `("(default " ,default ") ")))
+     subtypes
+     nil
+     'require-match		;Subtype must be specified.
+     nil
+     nil
+     default)))
 
 (defun mime-prompt-for-parameters (pritype subtype &optional delimiter)
   "Ask for Content-type parameters of Content-Type PRITYPE and SUBTYPE.
@@ -2036,19 +2028,13 @@ Parameter must be '(PROMPT CHOICE1 (CHOICE2...))."
 			  (cdr parameter)))
 	 (default (car (car choices)))
 	 (answer nil))
-    (if choices
-	(progn
-	  (setq answer
-		(completing-read
-		 (concat "What " prompt
-			 ": (default "
-			 (if (string-equal default "") "\"\"" default)
-			 ") ")
-		 choices nil nil ""))
-	  ;; If nothing is selected, use default.
-	  (if (string-equal answer "")
-	      (setq answer default)))
-      (setq answer
+    (setq answer
+	  (if choices
+	      (completing-read
+	       (apply 'concat "What " prompt ": "
+		      (unless (string-equal default "")
+			`("(default " ,default ") ")))
+	       choices nil nil nil nil default)
 	    (read-string (concat "What " prompt ": "))))
     (cons (if (and answer
 		   (not (string-equal answer "")))
@@ -2059,15 +2045,20 @@ Parameter must be '(PROMPT CHOICE1 (CHOICE2...))."
 	  (mime-prompt-for-parameters-1 (cdr (assoc answer (cdr parameter)))))
     ))
 
-(defun mime-prompt-for-encoding (default)
+(defun mime-prompt-for-encoding (&optional default)
   "Ask for Content-Transfer-Encoding."
   (let (encoding)
     (while (string=
 	    (setq encoding
 		  (completing-read
-		   "What transfer encoding: "
-		   (mime-encoding-alist) nil t default)
-		  )
+		   (apply 'concat "What transfer encoding: "
+			  (when default `("(default " ,default ") ")))
+		   (mime-encoding-alist)
+		   nil
+		   t
+		   nil
+		   nil
+		   default))
 	    ""))
     encoding))
 
