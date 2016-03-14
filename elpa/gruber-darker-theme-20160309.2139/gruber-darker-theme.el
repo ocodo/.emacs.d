@@ -4,7 +4,7 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20160209.216
+;; Package-Version: 20160309.2139
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -290,6 +290,7 @@
    `(org-agenda-structure ((t (:foreground ,gruber-darker-niagara))))
    `(org-done ((t (:foreground ,gruber-darker-green))))
    `(org-todo ((t (:foreground ,gruber-darker-red-1))))
+   `(org-upcoming-deadline ((t (:foreground ,gruber-darker-yellow))))
 
    ;; Search
    `(isearch ((t ,(list :foreground gruber-darker-black
