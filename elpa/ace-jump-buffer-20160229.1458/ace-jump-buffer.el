@@ -4,7 +4,7 @@
 ;;
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; URL: https://github.com/waymondo/ace-jump-buffer
-;; Package-Version: 20160219.1556
+;; Package-Version: 20160229.1458
 ;; Version: 0.4.0
 ;; Package-Requires: ((avy "0.4.0") (dash "2.4.0"))
 ;;
@@ -88,7 +88,7 @@
   (interactive)
   (let ((avy-all-windows nil)
         (r (avy--line
-            nil (line-beginning-position 2)
+            nil (line-beginning-position 1)
             (window-end (selected-window) t))))
     (if (or (stringp r) (not r))
         (ajb/kill-bs-menu)
