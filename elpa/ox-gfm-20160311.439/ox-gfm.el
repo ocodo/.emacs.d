@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito
 ;; Keywords: org, wp, markdown, github
-;; Package-Version: 20150604.26
+;; Package-Version: 20160311.439
 
 ;; This file is not part of GNU Emacs.
 
@@ -57,12 +57,32 @@
               (if a (org-gfm-export-to-markdown t s v)
                 (org-open-file (org-gfm-export-to-markdown nil s v)))))))
   :translate-alist '((inner-template . org-gfm-inner-template)
+		     (paragraph . org-gfm-paragraph)
                      (strike-through . org-gfm-strike-through)
-                     (src-block . org-gfm-src-block)))
+                     (src-block . org-gfm-src-block)
+                     (table-cell . org-gfm-table-cell)
+                     (table-row . org-gfm-table-row)
+                     (table . org-gfm-table)))
 
 
 
 ;;; Transcode Functions
+
+;;;; Paragraph
+
+(defun org-gfm-paragraph (paragraph contents _info)
+  "Transcode PARAGRAPH element into Github Flavoured Markdown format.
+CONTENTS is the paragraph contents.  INFO is a plist used as a
+communication channel."
+  (let ((contents
+         (concat (replace-regexp-in-string "\\\n" "" contents nil t)
+                 "\n")))
+    (let ((first-object (car (org-element-contents paragraph))))
+      ;; If paragraph starts with a #, protect it.
+      (if (and (stringp first-object) (string-match "\\`#" first-object))
+          (replace-regexp-in-string "\\`#" "\\#" contents nil t)
+        contents))))
+
 
 ;;;; Src Block
 
@@ -84,6 +104,132 @@ channel."
 CONTENTS is the text with strike-through markup.  INFO is a plist
 holding contextual information."
   (format "~~%s~~" contents))
+
+
+;;;; Table-Common
+
+(defvar width-cookies nil)
+(defvar width-cookies-table nil)
+
+(defconst gfm-table-left-border "|")
+(defconst gfm-table-right-border " |")
+(defconst gfm-table-separator " |")
+
+(defun org-gfm-table-col-width (table column info)
+  "Return width of TABLE at given COLUMN. INFO is a plist used as
+communication channel. Width of a column is determined either by
+inquerying `width-cookies' in the column, or by the maximum cell with in
+the column."
+  (let ((cookie (when (hash-table-p width-cookies)
+                  (gethash column width-cookies))))
+    (if (and (eq table width-cookies-table)
+             (not (eq nil cookie)))
+        cookie
+      (progn
+        (unless (and (eq table width-cookies-table)
+                     (hash-table-p width-cookies))
+          (setq width-cookies (make-hash-table))
+          (setq width-cookies-table table))
+        (let ((max-width 0)
+              (specialp (org-export-table-has-special-column-p table)))
+          (org-element-map
+              table
+              'table-row
+            (lambda (row)
+              (setq max-width
+                    (max (length
+                          (org-export-data
+                           (org-element-contents
+                            (elt (if specialp (car (org-element-contents row))
+                                   (org-element-contents row))
+                                 column))
+                           info))
+                         max-width)))
+            info)
+          (puthash column max-width width-cookies))))))
+
+
+(defun org-gfm-make-hline-builder (table info char)
+  "Return a function to build horizontal line in TABLE with given
+CHAR. INFO is a plist used as a communication channel."
+  `(lambda (col)
+     (let ((max-width (max 3 (org-gfm-table-col-width table col info))))
+       (when (< max-width 1)
+         (setq max-width 1))
+       (make-string max-width ,char))))
+
+
+;;;; Table-Cell
+
+(defun org-gfm-table-cell (table-cell contents info)
+  "Transcode TABLE-CELL element from Org into GFM. CONTENTS is content
+of the cell. INFO is a plist used as a communication channel."
+  (let* ((table (org-export-get-parent-table table-cell))
+         (column (cdr (org-export-table-cell-address table-cell info)))
+         (width (org-gfm-table-col-width table column info))
+         (left-border (if (org-export-table-cell-starts-colgroup-p table-cell info) "| " " "))
+         (right-border " |")
+         (data (or contents "")))
+    (setq contents
+          (concat data
+                  (make-string (max 0 (- width (string-width data)))
+                               ?\s)))
+    (concat left-border contents right-border)))
+
+
+;;;; Table-Row
+
+(defun org-gfm-table-row (table-row contents info)
+  "Transcode TABLE-ROW element from Org into GFM. CONTENTS is cell
+contents of TABLE-ROW. INFO is a plist used as a communication
+channel."
+  (let ((table (org-export-get-parent-table table-row)))
+    (when (and (eq 'rule (org-element-property :type table-row))
+               ;; In GFM, rule is valid only at second row.
+               (eq 1 (cl-position
+                      table-row
+                      (org-element-map table 'table-row 'identity info))))
+      (let* ((table (org-export-get-parent-table table-row))
+             (header-p (org-export-table-row-starts-header-p table-row info))
+             (build-rule (org-gfm-make-hline-builder table info ?-))
+             (cols (cdr (org-export-table-dimensions table info))))
+        (setq contents
+              (concat gfm-table-left-border
+                      (mapconcat (lambda (col) (funcall build-rule col))
+                                 (number-sequence 0 (- cols 1))
+                                 gfm-table-separator)
+                      gfm-table-right-border))))
+    contents))
+
+
+
+;;;; Table
+
+(defun org-gfm-table (table contents info)
+  "Transcode TABLE element into Github Flavored Markdown table.
+CONTENTS is the contents of the table. INFO is a plist holding
+contextual information."
+  (let* ((rows (org-element-map table 'table-row 'identity info))
+         (no-header (or (<= (length rows) 1)))
+         (cols (cdr (org-export-table-dimensions table info)))
+         (build-dummy-header
+          (function
+           (lambda ()
+             (let ((build-empty-cell (org-gfm-make-hline-builder table info ?\s))
+                   (build-rule (org-gfm-make-hline-builder table info ?-))
+                   (columns (number-sequence 0 (- cols 1))))
+               (concat gfm-table-left-border
+                       (mapconcat (lambda (col) (funcall build-empty-cell col))
+                                  columns
+                                  gfm-table-separator)
+                       gfm-table-right-border "\n" gfm-table-left-border
+                       (mapconcat (lambda (col) (funcall build-rule col))
+                                  columns
+                                  gfm-table-separator)
+                       gfm-table-right-border "\n"))))))
+  (concat (when no-header (funcall build-dummy-header))
+          (replace-regexp-in-string "\n\n" "\n" contents))))
+
 
 ;;;; Table of contents
 
