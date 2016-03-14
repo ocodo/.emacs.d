@@ -113,9 +113,8 @@ buffer-local wherever it is set."
   "Execute BODY in neotree buffer without read-only restriction."
   `(let (rlt)
      (neo-global--with-buffer
-       (setq buffer-read-only nil))
-     (setq rlt (progn ,@body))
-     (neo-global--with-buffer
+       (setq buffer-read-only nil)
+       (setq rlt (progn ,@body))
        (setq buffer-read-only t))
      rlt))
 
@@ -626,7 +625,8 @@ it will create the neotree window and return it."
     (setq window
           (select-window
            (split-window
-            (frame-root-window (window-frame)) nil window-pos)))
+            (frame-root-window (window-frame (selected-window)))
+            nil window-pos)))
     (neo-window--init window buffer)
     (neo-global--attach)
     (neo-global--reset-width)
