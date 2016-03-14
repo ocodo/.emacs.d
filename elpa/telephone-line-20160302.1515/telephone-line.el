@@ -1,12 +1,12 @@
-;;; telephone-line.el --- Rewrite of Powerline
+;;; telephone-line.el --- Rewrite of Powerline -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Daniel Bordak
+;; Copyright (C) 2015-2016 Daniel Bordak
 
 ;; Author: Daniel Bordak <dbordak@fastmail.fm>
 ;; URL: https://github.com/dbordak/telephone-line
 ;; Version: 0.3
 ;; Keywords: mode-line
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5") (eieio "1.4") (s "1.9.0") (seq "1.8"))
+;; Package-Requires: ((emacs "24.4") (cl-lib "0.5") (cl-generic "0.2") (seq "1.8"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 ;;; Commentary:
 ;;
 ;; Telephone Line is a library for customizing the mode-line that is
-;; based on the Vim Powerline. Themes can be created by customizing
+;; based on the Vim Powerline.  Themes can be created by customizing
 ;; the telephone-line-lhs and telephone-line-rhs variables.
 ;;
 
@@ -34,7 +34,6 @@
 (require 'telephone-line-segments)
 
 (require 'seq)
-(require 's)
 (require 'cl-lib)
 
 (defgroup telephone-line nil
@@ -128,6 +127,7 @@ Secondary separators do not incur a background color change."
     (setq telephone-line-selected-window (frame-selected-window))))
 
 (add-hook 'window-configuration-change-hook #'telephone-line--set-selected-window)
+(add-hook 'focus-in-hook #'telephone-line--set-selected-window)
 (defadvice select-window (after telephone-line-select-window activate)
   "Set telephone-line's selected window value for use in determining the active mode-line."
   (telephone-line--set-selected-window))
@@ -185,7 +185,7 @@ Secondary separators do not incur a background color change."
        cur-color-sym))))
 
 (defun telephone-line-propertize-segment (pred face segment)
-  (unless (s-blank? (s-trim (format-mode-line segment)))
+  (unless (seq-empty-p (telephone-line-trim (format-mode-line segment)))
     (if pred
         `(:propertize (" " ,segment " ") face ,face)
       `(" " ,segment " "))))
