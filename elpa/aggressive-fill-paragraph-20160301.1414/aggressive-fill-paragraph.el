@@ -3,7 +3,7 @@
 
 ;; Author: David Shepherd <davidshepherd7@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20151111.2341
+;; Package-Version: 20160301.1414
 ;; Package-Requires: ((dash "2.10.0"))
 ;; URL: https://github.com/davidshepherd7/aggressive-fill-paragraph-mode
 ;; Keywords: fill-paragraph, automatic, comments
@@ -72,7 +72,7 @@ by *, + or -."
   :group 'aggressive-fill-paragraph)
 
 (defcustom afp-fill-comments-only-mode-list
-  (list 'emacs-lisp-mode 'sh-mode 'python-mode)
+  (list 'emacs-lisp-mode 'sh-mode 'python-mode 'js-mode)
   "List of major modes in which only comments should be filled."
   :group 'aggressive-fill-paragraph)
 
