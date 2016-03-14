@@ -88,15 +88,9 @@
     (vector (concat "(" (mapconcat #'emacsql-escape-scalar vector ", ") ")"))
     (otherwise (emacsql-error "Invalid vector %S" vector))))
 
-(defun emacsql-escape-format (thing &optional kind)
-  "Escape THING for use as a `format' spec, pre-escaping for KIND.
-KIND should be :scalar or :identifier."
-  (replace-regexp-in-string
-   "%" "%%" (cl-case kind
-              (:scalar (emacsql-escape-scalar thing))
-              (:identifier (emacsql-escape-identifier thing))
-              (:vector (emacsql-escape-vector thing))
-              (otherwise thing))))
+(defun emacsql-escape-format (thing)
+  "Escape THING for use as a `format' spec."
+  (replace-regexp-in-string "%" "%%" thing))
 
 ;;; Schema compiler
 
@@ -167,7 +161,7 @@ KIND should be :scalar or :identifier."
   "Cache used to memoize `emacsql-prepare'.")
 
 (defvar emacsql--vars ()
-  "For use with `emacsql-with-vars'.")
+  "Used within `emacsql-with-params' to collect parameters.")
 
 (defun emacsql-sql-p (thing)
   "Return non-nil if THING looks like a prepared statement."
@@ -189,7 +183,7 @@ vector (v), schema (S)."
                 (?S :schema)))))))
 
 (defmacro emacsql-with-params (prefix &rest body)
-  "Evaluate BODY, collecting patameters.
+  "Evaluate BODY, collecting parameters.
 Provided local functions: `param', `identifier', `scalar',
 `svector', `expr', `subsql', and `combine'. BODY should return a string,
 which will be combined with variable definitions."
@@ -206,7 +200,9 @@ which will be combined with variable definitions."
        (cons (concat ,prefix (progn ,@body)) emacsql--vars))))
 
 (defun emacsql--!param (thing &optional kind)
-  "Only use within `emacsql-with-params'!"
+  "Parse, escape, and store THING.
+If optional KIND is not specified, then try to guess it.
+Only use within `emacsql-with-params'!"
   (cl-flet ((check (param)
                    (when (and kind (not (eq kind (cdr param))))
                      (emacsql-error
@@ -268,6 +264,10 @@ which will be combined with variable definitions."
             ;; Unary
             ((not)
              (format "NOT %s" (recur 0)))
+            ((notnull)
+             (format "%s NOTNULL" (recur 0)))
+            ((isnull)
+             (format "%s ISNULL" (recur 0)))
             ;; Ordering
             ((asc desc)
              (format "%s %s" (recur 0) (upcase (symbol-name op))))
@@ -295,7 +295,8 @@ which will be combined with variable definitions."
     (mapconcat #'expr idents ", ")))
 
 (defun emacsql--*combine (prepared)
-  "Only use within `emacsql-with-vars'!"
+  "Append parameters from PREPARED to `emacsql--vars', return the string.
+Only use within `emacsql-with-params'!"
   (cl-destructuring-bind (string . vars) prepared
     (setf emacsql--vars (nconc emacsql--vars vars))
     string))
