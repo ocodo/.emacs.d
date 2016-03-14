@@ -202,8 +202,8 @@ attention to case differences."
     haskell-hlint
     html-tidy
     jade
-    javascript-jshint
     javascript-eslint
+    javascript-jshint
     javascript-gjslint
     javascript-jscs
     javascript-standard
@@ -224,6 +224,7 @@ attention to case differences."
     python-pylint
     python-pycompile
     r-lintr
+    racket
     rpm-rpmlint
     rst-sphinx
     rst
@@ -2665,6 +2666,7 @@ Return t if so, or nil otherwise."
 Flycheck mode is not enabled for
 
 - the minibuffer,
+- `fundamental-mode'
 - major modes whose `mode-class' property is `special',
 - ephemeral buffers (see `flycheck-ephemeral-buffer-p'),
 - encrypted buffers (see `flycheck-encrypted-buffer-p'),
@@ -2679,6 +2681,7 @@ otherwise."
          (`(not . ,modes) (not (memq major-mode modes)))
          (modes (memq major-mode modes)))
        (not (or (minibufferp)
+                (eq major-mode 'fundamental-mode)
                 (eq (get major-mode 'mode-class) 'special)
                 (flycheck-ephemeral-buffer-p)
                 (flycheck-encrypted-buffer-p)
@@ -6338,7 +6341,7 @@ See Info Node `(elisp)Byte Compilation'."
           (process-default-directory default-directory))
       ;; Note that we deliberately use our custom approach even despite of
       ;; `checkdoc-file' which was added to Emacs 25.1.  While it's conceptually
-      ;; the better thing, it's implementation has too many flaws to be of use
+      ;; the better thing, its implementation has too many flaws to be of use
       ;; for us.
       (with-temp-buffer
         (insert-file-contents source 'visit)
@@ -6347,10 +6350,12 @@ See Info Node `(elisp)Byte Compilation'."
         ;; back-substutition work
         (setq default-directory process-default-directory)
         (with-demoted-errors "Error in checkdoc: %S"
-          ;; Checkdoc needs the Emacs Lisp syntax table to parse sexps
-          ;; correctly, see https://github.com/flycheck/flycheck/issues/833
-          (with-syntax-table emacs-lisp-mode-syntax-table
-            (checkdoc-current-buffer t))
+          ;; Checkdoc needs the Emacs Lisp syntax table and comment syntax to
+          ;; parse sexps and identify docstrings correctly; see
+          ;; https://github.com/flycheck/flycheck/issues/833
+          (delay-mode-hooks (emacs-lisp-mode))
+          (setq delayed-mode-hooks nil)
+          (checkdoc-current-buffer t)
           (with-current-buffer checkdoc-diagnostic-buffer
             (princ (buffer-substring-no-properties (point-min) (point-max)))
             (kill-buffer)))))))
@@ -6559,14 +6564,28 @@ take an io.Writer as their first argument, like Fprintf,
                  (string :tag "function"))
   :safe #'flycheck-string-list-p)
 
+(flycheck-def-option-var flycheck-go-vet-shadow nil go-vet
+  "Whether to check for shadowed variables with `go tool vet'.
+
+When non-nil check for shadowed variables.  When `strict' check
+more strictly, which can very noisy.  When nil do not check for
+shadowed variables.
+
+This option requires Go 1.6 or newer."
+  :type '(choice (const :tag "Do not check for shadowed variables" nil)
+                 (const :tag "Check for shadowed variables" t)
+                 (const :tag "Strictly check for shadowed variables" strict)))
+
 (flycheck-define-checker go-vet
   "A Go syntax checker using the `go tool vet' command.
 
 See URL `http://golang.org/cmd/go/' and URL
 `http://godoc.org/golang.org/x/tools/cmd/vet'."
-  :command ("go" "tool" "vet"
+  :command ("go" "tool" "vet" "-all"
             (option "-printfuncs=" flycheck-go-vet-print-functions concat
                     flycheck-option-comma-separated-list)
+            (option-flag "-shadow" flycheck-go-vet-shadow)
+            (eval (when (eq flycheck-go-vet-shadow 'strict) "-shadowstrict"))
             source)
   :error-patterns
   ((warning line-start (file-name) ":" line ": " (message) line-end))
@@ -6636,9 +6655,11 @@ See URL `http://golang.org/cmd/go'."
   "A Go syntax and type checker using the `go test' command.
 
 See URL `http://golang.org/cmd/go'."
-  ;; This command builds the test executable and leaves it in the current
-  ;; directory.  Unfortunately 'go test -c' does not have the '-o' option.
-  :command ("go" "test" "-c")
+  ;; This command builds the test executable and writes it to
+  ;; `temporary-file-name'.
+  ;; TODO: Switch to `null-device'` when < Go 1.6 support is removed.
+  ;; See: https://github.com/flycheck/flycheck/issues/838
+  :command ("go" "test" "-c" "-o" temporary-file-name)
   :error-patterns
   ((error line-start (file-name) ":" line ": "
           (message (one-or-more not-newline)
@@ -7669,6 +7690,42 @@ See URL `https://github.com/jimhester/lintr'."
   ;; Don't check ESS files which do not contain R
   :predicate (lambda () (equal ess-language "S")))
 
+(defun flycheck-racket-has-expand-p (raco)
+  "Whether a RACO executable provides the `expand' command."
+  (with-temp-buffer
+    (call-process raco nil t nil "expand")
+    (goto-char (point-min))
+    (not (looking-at-p (rx bol (1+ not-newline)
+                           "Unrecognized command: expand"
+                           eol)))))
+
+(flycheck-define-checker racket
+  "A Racket syntax checker with `raco expand'.
+
+The `compiler-lib' racket package is required for this syntax
+checker.
+
+See URL `https://racket-lang.org/'."
+  :command ("raco" "expand" source-inplace)
+  :predicate
+  (lambda ()
+    (flycheck-racket-has-expand-p (flycheck-checker-executable 'racket)))
+  :verify
+  (lambda (checker)
+    (let ((has-expand (flycheck-racket-has-expand-p
+                       (flycheck-checker-executable checker))))
+      (list
+       (flycheck-verification-result-new
+        :label "compiler-lib package"
+        :message (if has-expand "present" "missing")
+        :face (if has-expand 'success '(bold error))))))
+  :error-filter
+  (lambda (errors)
+    (flycheck-sanitize-errors (flycheck-increment-error-columns errors)))
+  :error-patterns
+  ((error line-start (file-name) ":" line ":" column ":" (message) line-end))
+  :modes racket-mode)
+
 (flycheck-define-checker rpm-rpmlint
   "A RPM SPEC file syntax checker using rpmlint.
 
@@ -8040,8 +8097,7 @@ See URL `http://www.scala-lang.org/'."
   "A Scala style checker using scalastyle.
 
 Note that this syntax checker is not used if
-`flycheck-scalastyle-jar' or `flycheck-scalastylerc' are nil or
-point to non-existing files.
+`flycheck-scalastylerc' is nil or refers to a non-existing file.
 
 See URL `http://www.scalastyle.org'."
   :command ("scalastyle"
@@ -8063,22 +8119,22 @@ See URL `http://www.scalastyle.org'."
                   (flycheck-locate-config-file flycheck-scalastylerc
                                                'scala-scalastyle)))
   :verify (lambda (checker)
-            (list
-             (flycheck-verification-result-new
-              :label "Configuration file"
-              :message (cond
-                        ((not flycheck-scalastylerc)
-                         "`flycheck-scalastyletrc' not set")
-                        ((not (flycheck-locate-config-file flycheck-scalastylerc
-                                                           checker))
-                         (format "file %s not found" flycheck-scalastylerc))
-                        (t "found"))
-              :face (cond
-                     ((not flycheck-scalastylerc) '(bold warning))
-                     ((not (flycheck-locate-config-file flycheck-scalastylerc
-                                                        checker))
-                      '(bold error))
-                     (t 'success))))))
+            (let ((config-file (and flycheck-scalastylerc
+                                    (flycheck-locate-config-file
+                                     flycheck-scalastylerc checker))))
+              (list
+               (flycheck-verification-result-new
+                :label "Configuration file"
+                :message (cond
+                          ((not flycheck-scalastylerc)
+                           "`flycheck-scalastyletrc' not set")
+                          ((not config-file)
+                           (format "file %s not found" flycheck-scalastylerc))
+                          (t (format "found at %s" config-file)))
+                :face (cond
+                       ((not flycheck-scalastylerc) '(bold warning))
+                       ((not config-file) '(bold error))
+                       (t 'success)))))))
 
 (defconst flycheck-scss-lint-checkstyle-re
   (rx "cannot load such file" (1+ not-newline) "scss_lint_reporter_checkstyle")
