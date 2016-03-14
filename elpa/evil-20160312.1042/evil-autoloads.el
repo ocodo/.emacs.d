@@ -3,8 +3,9 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "evil" "evil.el" (22218 26475 198505 163000))
-;;; Generated autoloads from evil.el
+;;;### (autoloads nil "evil-core" "evil-core.el" (22246 12444 789679
+;;;;;;  807000))
+;;; Generated autoloads from evil-core.el
 
 (defvar evil-mode nil "\
 Non-nil if Evil mode is enabled.
@@ -13,9 +14,9 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `evil-mode'.")
 
-(custom-autoload 'evil-mode "evil" nil)
+(custom-autoload 'evil-mode "evil-core" nil)
 
-(autoload 'evil-mode "evil" "\
+(autoload 'evil-mode "evil-core" "\
 Toggle Evil-Local mode in all buffers.
 With prefix ARG, enable Evil mode if ARG is positive;
 otherwise, disable it.  If called from Lisp, enable the mode if
@@ -30,10 +31,10 @@ See `evil-local-mode' for more information on Evil-Local mode.
 ;;;***
 
 ;;;### (autoloads nil nil ("evil-command-window.el" "evil-commands.el"
-;;;;;;  "evil-common.el" "evil-core.el" "evil-digraphs.el" "evil-ex.el"
-;;;;;;  "evil-integration.el" "evil-jumps.el" "evil-macros.el" "evil-maps.el"
-;;;;;;  "evil-pkg.el" "evil-repeat.el" "evil-search.el" "evil-states.el"
-;;;;;;  "evil-types.el" "evil-vars.el") (22218 26475 264057 310000))
+;;;;;;  "evil-common.el" "evil-digraphs.el" "evil-ex.el" "evil-integration.el"
+;;;;;;  "evil-jumps.el" "evil-macros.el" "evil-maps.el" "evil-pkg.el"
+;;;;;;  "evil-repeat.el" "evil-search.el" "evil-states.el" "evil-types.el"
+;;;;;;  "evil-vars.el" "evil.el") (22246 12444 807267 539000))
 
 ;;;***
 

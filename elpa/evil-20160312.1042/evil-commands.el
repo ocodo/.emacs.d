@@ -2,7 +2,7 @@
 ;; Author: Vegard Øye <vegard_oye at hotmail.com>
 ;; Maintainer: Vegard Øye <vegard_oye at hotmail.com>
 
-;; Version: 1.2.10
+;; Version: 1.2.11
 
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -270,7 +270,7 @@ By default the last line."
   :jump t
   :type line
   (if (null count)
-      (goto-char (point-max))
+      (with-no-warnings (end-of-buffer))
     (goto-char (point-min))
     (forward-line (1- count)))
   (evil-first-non-blank))
@@ -706,6 +706,13 @@ To go the other way, press \
 \\<evil-motion-state-map>\\[evil-jump-backward]."
   (evil--jump-forward count))
 
+(evil-define-motion evil-jump-backward-swap (count)
+  "Go to the previous position in jump list.
+The current position is placed in the jump list."
+  (let ((pnt (point)))
+    (evil--jump-backward 1)
+    (evil-set-jump pnt)))
+
 (evil-define-motion evil-jump-to-tag (arg)
   "Jump to tag under point.
 If called with a prefix argument, provide a prompt
@@ -869,6 +876,7 @@ Scrolls half the screen if `evil-ud-scroll-count' equals 0."
             (win-end (window-end nil 'update)))
         (when (= win-end (point-max))
           (scroll-down (- (evil-num-visible-lines)
+                          scroll-margin
                           (evil-count-lines win-beg win-end)))))
       (when (= 0 (count-lines p (point)))
         (signal 'end-of-buffer nil)))))
@@ -880,7 +888,12 @@ Scrolls half the screen if `evil-ud-scroll-count' equals 0."
   (interactive "p")
   (evil-save-column
     (dotimes (i count)
-      (scroll-down nil))))
+      (condition-case err
+          (scroll-down nil)
+        (beginning-of-buffer
+         (if (and (bobp) (zerop i))
+             (signal (car err) (cdr err))
+           (goto-char (point-min))))))))
 
 (evil-define-command evil-scroll-page-down (count)
   "Scrolls the window COUNT pages downwards."
@@ -889,7 +902,12 @@ Scrolls half the screen if `evil-ud-scroll-count' equals 0."
   (interactive "p")
   (evil-save-column
     (dotimes (i count)
-      (scroll-up nil))))
+      (condition-case err
+          (scroll-up nil)
+        (end-of-buffer
+         (if (and (eobp) (zerop i))
+             (signal (car err) (cdr err))
+           (goto-char (point-max))))))))
 
 (evil-define-command evil-scroll-line-to-top (count)
   "Scrolls line number COUNT (or the cursor line) to the top of the window."
@@ -1408,8 +1426,12 @@ of the block."
     (when (or (zerop len) (/= (aref txt (1- len)) ?\n))
       (setq txt (concat txt "\n")))
     (when (and (eobp) (not (bolp))) (newline)) ; incomplete last line
+    (when (evil-visual-state-p)
+      (move-marker evil-visual-mark (point)))
     (insert txt)
-    (forward-line -1)))
+    (forward-line -1)
+    (when (evil-visual-state-p)
+      (move-marker evil-visual-point (point)))))
 
 (evil-define-operator evil-substitute (beg end type register)
   "Change a character."
@@ -2144,10 +2166,13 @@ the lines."
 
 (defun evil-insert-resume (count)
   "Switch to Insert state at previous insertion point.
-The insertion will be repeated COUNT times."
+The insertion will be repeated COUNT times. If called from visual
+state, only place point at the previous insertion position but do not
+switch to insert state."
   (interactive "p")
   (evil-goto-mark ?^ t)
-  (evil-insert count))
+  (unless (evil-visual-state-p)
+    (evil-insert count)))
 
 (defun evil-maybe-remove-spaces ()
   "Remove space from newly opened empty line.
@@ -2952,7 +2977,7 @@ corresponding to the characters of this string are shown."
 
 (defun evil--show-marks-select-action (entry)
   (kill-buffer)
-  (switch-to-buffer (elt entry 3))
+  (switch-to-buffer (car (elt entry 3)))
   (evil-goto-mark (string-to-char (elt entry 0))))
 
 (eval-when-compile (require 'ffap))
@@ -3685,6 +3710,18 @@ and opens a new buffer name or edits a certain FILE."
         (select-window new-window)
         (with-current-buffer buffer
           (funcall (default-value 'major-mode)))))))
+
+(evil-define-command evil-buffer-new (count file)
+  "Creates a new buffer replacing the current window, optionaly
+   editing a certain FILE"
+  :repeat nil
+  (interactive "P<f>")
+  (if file
+      (evil-edit file)
+    (let ((buffer (generate-new-buffer "*new*")))
+      (set-window-buffer nil buffer)
+      (with-current-buffer buffer
+        (funcall (default-value 'major-mode))))))
 
 (evil-define-command evil-window-increase-height (count)
   "Increase current window height by COUNT."

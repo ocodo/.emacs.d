@@ -3,7 +3,7 @@
 ;; Author: Vegard Øye <vegard_oye at hotmail.com>
 ;; Maintainer: Vegard Øye <vegard_oye at hotmail.com>
 
-;; Version: 1.2.10
+;; Version: 1.2.11
 
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -433,9 +433,6 @@ if COUNT is positive, and to the left of it if negative.
                (if extend
                    (setq range (evil-range-union range selection))
                  (evil-set-type range (evil-type range type)))
-               ;; ensure the range is properly expanded
-               (evil-contract-range range)
-               (evil-expand-range range)
                ;; possibly convert to linewise
                (when (eq evil-this-type-modified 'line)
                  (setq range (evil-text-object-make-linewise range)))

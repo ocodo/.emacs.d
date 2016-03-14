@@ -2,7 +2,7 @@
 ;; Author: Vegard Øye <vegard_oye at hotmail.com>
 ;; Maintainer: Vegard Øye <vegard_oye at hotmail.com>
 
-;; Version: 1.2.10
+;; Version: 1.2.11
 
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -174,6 +174,10 @@ To enable Evil globally, do (evil-mode 1)."
   (unless (minibufferp)
     (evil-local-mode 1)
     (evil-initialize-state)))
+
+;;;###autoload
+(define-globalized-minor-mode evil-mode
+  evil-local-mode evil-initialize)
 
 ;; No hooks are run in Fundamental buffers, so other measures are
 ;; necessary to initialize Evil in these buffers. When Evil is
@@ -964,7 +968,7 @@ to `after-load-functions', delaying execution as necessary."
              ',(if (symbolp keymap) keymap 'keymap))))
 (defalias 'evil-declare-key 'evil-define-key)
 
-(defun evil-define-minor-mode-key (state mode key def &optional bindings)
+(defun evil-define-minor-mode-key (state mode key def &rest bindings)
   "Similar to `evil-define-key' but the bindings are associated
 with the minor-mode symbol MODE instead of a particular map.
 Associating bindings with a mode symbol instead of a map allows
