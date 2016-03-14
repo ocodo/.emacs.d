@@ -7,7 +7,7 @@
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; Maintainer: Peter Fraenkel <pnf@podsnap.com>
 ;; URL: https://github.com/clojure-emacs/squiggly-clojure
-;; Package-Version: 20150831.631
+;; Package-Version: 20160224.1154
 ;; Version: 1.1.0
 ;; Package-Requires: ((cider "0.8.1") (flycheck "0.22-cvs1") (let-alist "1.0.1") (emacs "24"))
 
@@ -43,6 +43,14 @@
 (require 'json)
 (require 'url-parse)
 (eval-when-compile (require 'let-alist))
+
+(defcustom flycheck-clojure-inject-dependencies-at-jack-in t
+  "When nil, do not inject repl dependencies (i.e. the linters/checkers) at `cider-jack-in' time."
+  :group 'flycheck-clojure
+  :type 'boolean)
+
+(defvar flycheck-clojure-dep-version "0.1.5"
+  "Version of `acyclic/squiggly-clojure' compatible with this version of flycheck-clojure.")
 
 ;;;###autoload
 (defun flycheck-clojure-parse-cider-errors (value checker)
@@ -186,6 +194,13 @@ See URL `https://github.com/clojure-emacs/cider/' and URL
            "(do (require 'squiggly-clojure.core) (squiggly-clojure.core/check-tc '%s))"
            ns)))
 
+(defun flycheck-clojure-inject-jack-in-dependencies ()
+  "Inject the REPL dependencies of flycheck-clojure at `cider-jack-in'.
+If injecting the dependencies is not preferred set `flycheck-clojure-inject-dependencies-at-jack-in' to nil."
+  (when (and flycheck-clojure-inject-dependencies-at-jack-in
+             (boundp 'cider-jack-in-dependencies))
+    (add-to-list 'cider-jack-in-dependencies `("acyclic/squiggly-clojure" ,flycheck-clojure-dep-version))))
+
 ;;;###autoload
 (defun flycheck-clojure-setup ()
   "Setup Flycheck for Clojure."
@@ -194,7 +209,8 @@ See URL `https://github.com/clojure-emacs/cider/' and URL
   (dolist (checker '(clojure-cider-typed
                      clojure-cider-kibit
                      clojure-cider-eastwood))
-    (add-to-list 'flycheck-checkers checker)))
+    (add-to-list 'flycheck-checkers checker))
+  (flycheck-clojure-inject-jack-in-dependencies))
 
 (provide 'flycheck-clojure)
 
