@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "bind-map" "bind-map.el" (22218 26529 942374
-;;;;;;  132000))
+;;;### (autoloads nil "bind-map" "bind-map.el" (22246 12501 529451
+;;;;;;  198000))
 ;;; Generated autoloads from bind-map.el
 
 (autoload 'bind-map "bind-map" "\
@@ -15,8 +15,8 @@ the bindings on major and/or minor modes being active. The
 options are controlled through the keyword arguments ARGS, all of
 which are optional.
 
-The package evil is only required if one of the :evil-keys is
-specified.
+Keys for evil-mode are bound using `eval-after-load', so they
+will only take effect after evil is loaded.
 
 :keys (KEY1 KEY2 ...)
 
