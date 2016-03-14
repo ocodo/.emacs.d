@@ -4,9 +4,9 @@
 ;;
 ;; Author: Florian Kaufmann <sensorflo@gmail.com>
 ;; URL: https://github.com/sensorflo/adoc-mode/wiki
-;; Package-Version: 20151119.914
+;; Package-Version: 20160313.1357
 ;; Created: 2009
-;; Version: 0.6.4
+;; Version: 0.6.6
 ;; Package-Requires: ((markup-faces "1.0.0"))
 ;; Keywords: wp AsciiDoc
 ;; 
@@ -115,7 +115,7 @@
 ;; 
 ;; - sophisticated highlighting
 ;; 
-;; - promote / denote title
+;; - promote / demote title
 ;; 
 ;; - toggle title type between one line title and two line title
 ;; 
@@ -130,7 +130,7 @@
 ;; 
 ;; The next features I plan to implement
 ;; 
-;; - Denote / promote for list items
+;; - Demote / promote for list items
 ;; - Outline support also for two line titles
 ;; - Correctly highlighting backslash escapes
 ;; 
@@ -154,7 +154,7 @@
 ;;     line spawns should be covered - replace all .*? by .*?\\(?:\n.*?\\)??
 ;;   - backslash escapes are seldom highlighted correctly
 ;; - Other common Emacs functionality/features
-;;   - denote/promote/create/delete titles/list-items. Also put emphasis on a
+;;   - demote/promote/create/delete titles/list-items. Also put emphasis on a
 ;;     convenient simple user interface.
 ;;   - imenu / hideshow
 ;;   - outline mode shall support two line titles
@@ -179,7 +179,7 @@
 ;; tempo or tempo-snippet is required later below
 
 
-(defconst adoc-mode-version "0.6.4" 
+(defconst adoc-mode-version "0.6.6"
   "adoc mode version number.
 
 Based upon AsciiDoc version 8.5.2. I.e. regexeps and rules are
@@ -464,7 +464,8 @@ To become a customizable variable when regexps for list items become customizabl
     ("alt" . markup-secondary-text-face)
     ("title" . markup-secondary-text-face)
     ("attribution" . markup-secondary-text-face)
-    ("citetitle" . markup-secondary-text-face))
+    ("citetitle" . markup-secondary-text-face)
+    ("text" . markup-secondary-text-face))
   "An alist, key=attribute id, value=face.")
 
 (defvar adoc-mode-abbrev-table nil
@@ -479,7 +480,7 @@ To become a customizable variable when regexps for list items become customizabl
 
 (defvar adoc-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-d" 'adoc-denote)
+    (define-key map "\C-c\C-d" 'adoc-demote)
     (define-key map "\C-c\C-p" 'adoc-promote)
     (define-key map "\C-c\C-t" 'adoc-toggle-title-type)
     (define-key map "\C-c\C-g" 'adoc-goto-ref-label)
@@ -677,14 +678,18 @@ To become a customizable variable when regexps for list items become customizabl
 
 ;;; Code:
 
+;;;; regexps
+;; from AsciiDoc manual: The attribute name/value syntax is a single line ...
 ;; from asciidoc.conf:
 ;; ^:(?P<attrname>\w[^.]*?)(\.(?P<attrname2>.*?))?:(\s+(?P<attrvalue>.*))?$
-;;;; regexps
+;; asciidoc src code: AttributeEntry.isnext shows that above regexp is matched
+;; against single line.
 (defun adoc-re-attribute-entry ()
   (concat "^\\(:[a-zA-Z0-9_][^.\n]*?\\(?:\\..*?\\)?:[ \t]*\\)\\(.*?\\)$"))
 
-;; from asciidoc.conf:
-;; ^= +(?P<title>[\S].*?)( +=)?$
+;; from asciidoc.conf: ^= +(?P<title>[\S].*?)( +=)?$
+;; asciidoc src code: Title.isnext reads two lines, which are then parsed by
+;; Title.parse. The second line is only for the underline of two line titles.
 (defun adoc-re-one-line-title (level)
   "Returns a regex matching a one line title of the given LEVEL.
 When LEVEL is nil, a one line title of any level is matched.
@@ -703,8 +708,8 @@ match-data has these sub groups:
                  (make-string (+ level 1) ?=)
                (concat "=\\{1," (+ adoc-title-max-level 1) "\\}"))))
     (concat
-     "^\\("  del "[ \t]+\\)"		      ; 1
-     "\\([^ \t\n].*?\\)"		      ; 2
+     "^\\(" del "[ \t]+\\)"		      ; 1
+     "\\([^ \t\n].*?\\)"                          ; 2
      ;; using \n instad $ is important so group 3 is guaranteed to be at least 1
      ;; char long (except when at the end of the buffer()). That is important to
      ;; to have a place to put the text property adoc-reserved on.
@@ -715,7 +720,8 @@ match-data has these sub groups:
   (let ((del (make-string (+ level 1) ?=)))
     (concat del " " text (when (eq sub-type 2) (concat " " del)))))   
 
-;; AsciiDoc handles that by source code, there is no regexp in AsciiDoc
+;; AsciiDoc handles that by source code, there is no regexp in AsciiDoc.  See
+;; also adoc-re-one-line-title.
 (defun adoc-re-two-line-title-undlerline (&optional del)
   "Returns a regexp matching the underline of a two line title.
 
@@ -738,8 +744,8 @@ a two line title underline, see also `adoc-re-two-line-title'."
    ;; also here use \n instead $
    "\\)[ \t]*\\(?:\n\\|\\'\\)"))
 
-;; asciidoc.conf regexps for _first_ line
-;; ^(?P<title>.*?)$   
+;; asciidoc.conf: regexp for _first_ line
+;; ^(?P<title>.*?)$  additionally, must contain (?u)\w, see Title.parse
 (defun adoc-re-two-line-title (del)
   "Returns a regexps that matches a two line title.
 
@@ -756,9 +762,9 @@ match-data has these sub groups:
   (when (not (eq (length del) 2))
     (error "two line title delimiters must be 2 chars long"))
   (concat
-   ;; 1st line: title text must contain at least one \w character. You don't see
-   ;; that in asciidoc.conf, only in asciidoc source code.
-   "\\(^.*?[a-zA-Z0-9_].*?\\)[ \t]*\n" 
+   ;; 1st line: title text must contain at least one \w character, see
+   ;; asciidoc src, Title.parse,
+   "\\(^.*?[a-zA-Z0-9_].*?\\)[ \t]*\n"
    ;; 2nd line: underline
    (adoc-re-two-line-title-undlerline del)))
 
@@ -956,7 +962,8 @@ Subgroups:
 
 ;; ^\.(?P<title>([^.\s].*)|(\.[^.\s].*))$
 ;; Isn't that asciidoc.conf regexp the same as: ^\.(?P<title>(.?[^.\s].*))$
-;; insertion: so that this whole regex doesn't mistake a line starting with a cell specifier like .2+| as a block title 
+;; insertion: so that this whole regex doesn't mistake a line starting with a
+;; cell specifier like .2+| as a block title
 (defun adoc-re-block-title ()
   "Returns a regexp matching an block title
 
@@ -974,15 +981,22 @@ Subgroups:
    "\\|[^. \t\n]\\).*\\)"
    "\\(\n\\|\\'\\)"))
 
-;; (?u)^(?P<name>image|unfloat)::(?P<target>\S*?)(\[(?P<attrlist>.*?)\])$
+;; (?u)^(?P<name>image|unfloat|toc)::(?P<target>\S*?)(\[(?P<attrlist>.*?)\])$
+;; note that altough it hasn't got the s Python regular expression flag, it
+;; still can spawn multiple lines. Probably asciidoc removes newlines before
+;; it applies the regexp above
 (defun adoc-re-block-macro (&optional cmd-name)
   "Returns a regexp matching an attribute list elment.
 Subgroups:
 1 cmd name
 2 target
 3 attribute list, exclusive brackets []"
-  (concat "^\\(" (or cmd-name "[a-zA-Z0-9_]+") "\\)::\\([^ \t\n]*?\\)\\[\\(.*?\\)\\][ \t]*$"))
-
+  (concat
+   "^\\(" (or cmd-name "[a-zA-Z0-9_]+") "\\)::"
+   "\\([^ \t\n]*?\\)"
+   "\\["
+   "\\(" (adoc-re-content) "\\)"
+   "\\][ \t]*$"))
 
 ;; ?P<id>[\w\-_]+
 (defun adoc-re-id ()
@@ -1122,7 +1136,7 @@ NOT-ALLOWED-CHARS are chars not allowed before the quote."
      (adoc-re-quote-precondition "")
      "\\(\\[[^][]+?\\]\\)?"
      "\\(" qldel "\\)"
-     "\\(.+?\\(?:\n.*?\\)\\{,1\\}?\\)"
+     "\\(" (adoc-re-content "+") "\\)"
      "\\(" qrdel "\\)")))
 
 ;; AsciiDoc src for constrained quotes
@@ -1149,7 +1163,7 @@ subgroups:
      (adoc-re-quote-precondition "A-Za-z0-9;:}&<>")  
      "\\(\\[[^][]+?\\]\\)?"
      "\\(" qldel "\\)"
-     "\\([^ \t\n]\\|[^ \t\n].*?\\(?:\n.*?\\)\\{,1\\}?[^ \t\n]\\)"
+     "\\([^ \t\n]\\|[^ \t\n]" (adoc-re-content) "[^ \t\n]\\)"
      "\\(" qrdel "\\)"
      ;; BUG: now that Emacs doesn't has look-ahead, the match is too long, and
      ;; adjancted quotes of the same type wouldn't be recognized.
@@ -1164,34 +1178,44 @@ subgroups:
    (t
     (error "Invalid type"))))
 
-;; asciidoc.conf:
-;; # Macros using default syntax.
-;; (?<!\w)[\\]?(?P<name>http|https|ftp|file|irc|mailto|callto|image|link|anchor|xref|indexterm):(?P<target>\S*?)\[(?P<attrlist>.*?)\]
-;; # Default (catchall) inline macro is not implemented
-;; # [\\]?(?P<name>\w(\w|-)*?):(?P<target>\S*?)\[(?P<passtext>.*?)(?<!\\)\]
-;; Asciidocbug: At least with http, an attriblist only with whites lets AsciiDoc
-;; crash
-(defun adoc-re-inline-macro (&optional cmd-name target only-empty-attriblist)
+;; Macros using default syntax. From asciidoc.conf:
+;; (?su)(?<!\w)[\\]?(?P<name>http|https|ftp|file|irc|mailto|callto|image|link|anchor|xref|indexterm):(?P<target>\S*?)\[(?P<attrlist>.*?)\]
+;;
+;; asciidoc.conf itself says: Default (catchall) inline macro is not
+;; implemented. It _would_ be
+;; (?su)[\\]?(?P<name>\w(\w|-)*?):(?P<target>\S*?)\[(?P<passtext>.*?)(?<!\\)\]=
+(defun adoc-re-inline-macro (&optional cmd-name target unconstrained attribute-list-constraints)
   "Returns regex matching an inline macro.
 
 Id CMD-NAME is nil, any command is matched. It maybe a regexp
 itself in order to match multiple commands. If TARGET is nil, any
-target is matched. When ONLY-EMPTY-ATTRIBLIST is non-nil, only an
-empty attribut list is matched.
+target is matched. When UNCONSTRAINED is nil, the returned regexp
+begins with '\<', i.e. it will _not_ match when CMD-NAME is part
+of a previous word. When ATTRIBUTE-LIST-CONSTRAINTS is 'empty,
+only an empty attribut list is matched, if it's
+'single-attribute, only an attribute list with exactly one
+attribute is matched.
 
 Subgroups of returned regexp:
 1 cmd name
 2 :
 3 target
 4 [
-5 attribute list, exclusive brackets [], also when only-empty-attriblist is non-nil
+5 attribute list, exclusive brackets [], also when
+  attribute-list-constraints is non-nil
 6 ]"
   ;; !!! \< is not exactly what AsciiDoc does, see regex above
   (concat
-   "\\(\\<" (if cmd-name (concat "\\(?:" cmd-name "\\)") "\\w+") "\\)"
+   (unless unconstrained "\\<")
+   "\\(" (if cmd-name (concat "\\(?:" cmd-name "\\)") "\\w+") "\\)"
    "\\(:\\)"
    "\\(" (if target (regexp-quote target) "[^ \t\n]*?") "\\)"
-   "\\(\\[\\)\\(" (unless only-empty-attriblist ".*?\\(?:\n.*?\\)??") "\\)\\(\\]\\)" ))
+   "\\(\\[\\)\\("
+   (cond
+    ((eq attribute-list-constraints 'empty) "")
+    ((eq attribute-list-constraints 'single-attribute) "[^\n,]*?\\(?:\n[^\n,]*?\\)??")
+    (t (adoc-re-content)))
+   "\\)\\(\\]\\)" ))
 
 ;; todo: use same regexps as for font lock
 (defun adoc-re-paragraph-separate ()
@@ -1263,6 +1287,28 @@ Subgroups of returned regexp:
          (style "[demshalv]"))
     (concat "\\(?:" fullspan "\\)?\\(?:" align "\\)?\\(?:" style "\\)?")))
 
+;; bug: if qualifier is "+", and the thing to match starts at the end of a
+;;      line (i.e. the first char is newline), then wrongly this regexp does
+;;      never match.
+;; Note: asciidoc uses Python's \s to determine blank lines, while _not_
+;;       setting either the LOCALE or UNICODE flag, see
+;;       Reader.skip_blank_lines. Python uses [ \t\n\r\f\v] for it's \s . So
+;;       the horizontal spaces are [ \t].
+(defun adoc-re-content (&optional qualifier) 
+  "Matches content, possibly spawning multiple non-blank lines"
+  (concat
+   "\\(?:"
+   ;; content on initial line
+   "." (or qualifier "*") "?" 
+   ;; if content spawns multiple lines
+   "\\(?:\n"
+     ;; complete non blank lines
+     "\\(?:[ \t]*\\S-.*\n\\)*?"
+     ;; leading content on last line
+     ".*?"
+   "\\)??"
+   "\\)"))
+
 
 ;;;; font lock keywords 
 (defun adoc-kwf-std (end regexp &optional must-free-groups no-block-del-groups)
@@ -1297,26 +1343,50 @@ text having adoc-reserved set to 'block-del."
 	(goto-char (1+ saved-point))))
     (and found (not prevented))))
 
-(defun adoc-kwf-attriblist (end)
+(defun adoc-kwf-attribute-list (end)
   ;; for each attribute list before END
   (while (< (point) end)
     (goto-char (or (text-property-not-all (point) end 'adoc-attribute-list nil)
                    end))
     (when (< (point) end)
-      (let ((attribute-list-end
-             (or (text-property-any (point) end 'adoc-attribute-list nil)
-                 end))
-            (pos-or-id 0))
+      (let* ((attribute-list-end
+              (or (text-property-any (point) end 'adoc-attribute-list nil)
+                  end))
+             (prop-of-attribute-list
+              (get-text-property (point) 'adoc-attribute-list))
+             ;; position (number) or name (string) of current
+             ;; attribute. Attribute list start with positional attributes, as
+             ;; opposed to named attributes, thus init with 0.
+             (pos-or-name-of-attribute 0))
 
-        ;; for each attribute in current attribute list
-        (while (re-search-forward (adoc-re-attribute-list-elt) attribute-list-end t)
-          (when (match-beginning 1)
-            (setq pos-or-id (buffer-substring-no-properties (match-beginning 1) (match-end 1)))
-            (put-text-property (match-beginning 1) (match-end 1) 'face markup-attribute-face))
-          (let ((group (if (match-beginning 2) 2 3))
-                (face (adoc-attribute-elt-face pos-or-id (get-text-property (match-beginning 0) 'adoc-attribute-list))))
-            (put-text-property (match-beginning group) (match-end group) 'face face))
-          (when (numberp pos-or-id) (setq pos-or-id (1+ pos-or-id))))
+        (if (facep prop-of-attribute-list)
+            ;; The attribute list is not really an attribute list. As a whole
+            ;; it counts as text.
+            (put-text-property
+             (point) attribute-list-end
+             'face prop-of-attribute-list)
+
+          ;; for each attribute in current attribute list
+          (while (re-search-forward (adoc-re-attribute-list-elt) attribute-list-end t)
+            (when (match-beginning 1); i.e. when it'a named attribute
+              ;; get attribute's name
+              (setq pos-or-name-of-attribute
+                    (buffer-substring-no-properties (match-beginning 1) (match-end 1)))
+              ;; fontify the attribute's name with markup-attribute-face
+              (put-text-property
+               (match-beginning 1) (match-end 1) 'face markup-attribute-face))
+
+            ;; fontify the attribute's value
+            (let ((match-group-of-attribute-value (if (match-beginning 2) 2 3))
+                  (attribute-value-face
+                   (adoc-face-for-attribute pos-or-name-of-attribute prop-of-attribute-list)))
+              (put-text-property
+               (match-beginning match-group-of-attribute-value)
+               (match-end match-group-of-attribute-value)
+               'face attribute-value-face))
+
+            (when (numberp pos-or-name-of-attribute)
+              (setq pos-or-name-of-attribute (1+ pos-or-name-of-attribute)))))
 
         (goto-char attribute-list-end))))
   nil)
@@ -1478,17 +1548,19 @@ When LITERAL-P is non-nil, the contained text is literal text."
       '(3 nil)) ; grumbl, I dont know how to get rid of it
    `(4 '(face ,(or del-face markup-meta-hide-face) adoc-reserved t) t))); close del
 
-(defun adoc-kw-inline-macro (&optional cmd-name cmd-face target-faces target-meta-p attribute-list)
+(defun adoc-kw-inline-macro (&optional cmd-name unconstrained attribute-list-constraints cmd-face target-faces target-meta-p attribute-list)
   "Returns a kewyword which highlights an inline macro.
-For CMD-NAME see `adoc-re-inline-macro'. CMD-FACE determines face
-for the command text. If nil, `markup-command-face' is used.
-TARGET-FACES determines face for the target text. If nil
-`markup-meta-face' is used. If a list, the first is used if the
-attribute list is the empty string, the second is used if its not
-the empty string. If TARGET-META-P is non-nil, the target text is
-considered to be meta characters."
+
+For CMD-NAME and UNCONSTRAINED see
+`adoc-re-inline-macro'. CMD-FACE determines face for the command
+text. If nil, `markup-command-face' is used.  TARGET-FACES
+determines face for the target text. If nil `markup-meta-face' is
+used. If a list, the first is used if the attribute list is the
+empty string, the second is used if its not the empty string. If
+TARGET-META-P is non-nil, the target text is considered to be
+meta characters."
   (list
-   `(lambda (end) (adoc-kwf-std end ,(adoc-re-inline-macro cmd-name) '(1 2 4 5) '(0)))
+   `(lambda (end) (adoc-kwf-std end ,(adoc-re-inline-macro cmd-name nil unconstrained attribute-list-constraints) '(1 2 4 5) '(0)))
    `(1 '(face ,(or cmd-face markup-command-face) adoc-reserved t) t) ; cmd-name
    '(2 '(face markup-meta-face adoc-reserved t) t)		     ; :
    `(3 ,(cond ((not target-faces) markup-meta-face)		     ; target
@@ -1503,23 +1575,21 @@ considered to be meta characters."
 
 ;; largely copied from adoc-kw-inline-macro
 ;; todo: output text should be affected by quotes & co, e.g. bold, emph, ...
-;; todo: for simplicity maybe split up in one for url[] and url[caption]
-(defun adoc-kw-inline-macro-urls-attriblist ()
-  (let ((cmd-name (regexp-opt '("http" "https" "ftp" "file" "irc" "mailto" "callto" "link")))
-	(attribute-list '(("caption") (("caption" . markup-reference-face)))))
+(defun adoc-kw-inline-macro-urls-attribute-list ()
+  (let ((cmd-name (regexp-opt '("http" "https" "ftp" "file" "irc" "mailto" "callto" "link"))))
     (list
      `(lambda (end) (adoc-kwf-std end ,(adoc-re-inline-macro cmd-name) '(0) '(0)))
      `(1 '(face markup-internal-reference-face adoc-reserved t) t) ; cmd-name
      `(2 '(face markup-internal-reference-face adoc-reserved t) t) ; :
      `(3 '(face markup-internal-reference-face adoc-reserved t) t) ; target
      '(4 '(face markup-meta-face adoc-reserved t) t)		   ; [
-     `(5 '(face markup-reference-face adoc-attribute-list ,attribute-list) append)
+     `(5 '(face markup-reference-face adoc-attribute-list markup-reference-face) append)
      '(6 '(face markup-meta-face adoc-reserved t) t))))            ; ]
 
-(defun adoc-kw-inline-macro-urls-no-attriblist ()
+(defun adoc-kw-inline-macro-urls-no-attribute-list ()
   (let ((cmd-name (regexp-opt '("http" "https" "ftp" "file" "irc" "mailto" "callto" "link"))))
     (list
-     `(lambda (end) (adoc-kwf-std end ,(adoc-re-inline-macro cmd-name nil t) '(0) '(0)))
+     `(lambda (end) (adoc-kwf-std end ,(adoc-re-inline-macro cmd-name nil nil 'empty) '(0) '(0)))
      '(1 '(face markup-reference-face adoc-reserved t) append) ; cmd-name
      '(2 '(face markup-reference-face adoc-reserved t) append)		     ; :
      '(3 '(face markup-reference-face adoc-reserved t) append)		     ; target
@@ -1748,7 +1818,8 @@ considered to be meta characters."
    ;; I don't know what the [\\]? should mean
    (list "^\\(//\\(?:[^/].*\\|\\)\\(?:\n\\|\\'\\)\\)"
          '(1 '(face markup-comment-face adoc-reserved block-del)))    
-   ;; image
+   ;; image. The first positional attribute is per definition 'alt', see
+   ;; asciidoc manual, sub chapter 'Image macro attributes'.
    (list `(lambda (end) (adoc-kwf-std end ,(adoc-re-block-macro "image") '(0)))
          '(0 '(face markup-meta-face adoc-reserved block-del) t) ; whole match
          '(1 markup-complex-replacement-face t)	; 'image'  
@@ -1986,43 +2057,23 @@ considered to be meta characters."
    ;; - currently escpapes are not looked at
    ;; - adapt to the adoc-reserved scheme
    ;; - same order as in asciidoc.conf (is that in 'reverse'? cause 'default syntax' comes first)
-   ;; 
-   ;; 
 
    ;; Macros using default syntax, but having special highlighting in adoc-mode
-   (adoc-kw-inline-macro-urls-no-attriblist)
-   (adoc-kw-inline-macro-urls-attriblist)
-   (adoc-kw-inline-macro "anchor" nil markup-anchor-face t '("xreflabel"))
-   (adoc-kw-inline-macro "image" markup-complex-replacement-face markup-internal-reference-face t
+   (adoc-kw-inline-macro-urls-no-attribute-list)
+   (adoc-kw-inline-macro-urls-attribute-list)
+   (adoc-kw-inline-macro "anchor" nil nil nil markup-anchor-face t '("xreflabel"))
+   (adoc-kw-inline-macro "image" nil nil markup-complex-replacement-face markup-internal-reference-face t
      '("alt"))
-   (adoc-kw-inline-macro "xref" nil '(markup-reference-face markup-internal-reference-face) t
+   (adoc-kw-inline-macro "xref" nil nil nil '(markup-reference-face markup-internal-reference-face) t
      '(("caption") (("caption" . markup-reference-face))))
-   
-   ;; Macros using default syntax and having default highlighting in adoc-mod
-   (adoc-kw-inline-macro)  
-   
-   ;; URLs & Email addresses
+   (adoc-kw-inline-macro "footnote" t nil nil nil nil markup-secondary-text-face)
+   (adoc-kw-inline-macro "footnoteref" t 'single-attribute nil nil nil
+    '(("id") (("id" . markup-internal-reference-face))))
+   (adoc-kw-inline-macro "footnoteref" t nil nil nil nil '("id" "text"))
    (adoc-kw-standalone-urls)
 
-   (list "\\(\\bfootnote:\\)\\(\\[\\)\\(.*?\\(?:\n.*?\\)?\\)\\(\\]\\)"
-         '(1 adoc-delimiter)            ; name
-         '(2 adoc-hide-delimiter)       ; [
-         '(3 adoc-secondary-text)       ; footnote text
-         '(4 adoc-hide-delimiter))      ; ]
-   (list "\\(\\bfootnoteref:\\)\\(\\[\\)\\(.*?\\)\\(,\\)\\(.*?\\(?:\n.*?\\)?\\)\\(\\]\\)"
-         '(1 adoc-delimiter)            ; name
-         '(2 adoc-hide-delimiter)       ; [
-         '(3 adoc-anchor)               ; anchor-id
-         '(4 adoc-hide-delimiter)       ; ,
-         '(5 adoc-secondary-text)       ; footnote text
-         '(6 adoc-hide-delimiter))      ; ]
-   (list "\\(\\bfootnoteref:\\)\\(\\[\\)\\([^,\n].*?\\(?:\n.*?\\)?\\)\\(\\]\\)"
-         '(1 adoc-delimiter)            ; name
-         '(2 adoc-hide-delimiter)       ; [
-         '(3 adoc-reference)            ; reference-id to footnote
-         ;; '(3 (adoc-facespec-superscript)) bug: does also fontify the version having anchor-id
-         '(4 adoc-hide-delimiter))      ; ]
-
+   ;; Macros using default syntax and having default highlighting in adoc-mod
+   (adoc-kw-inline-macro)
 
    ;; bibliographic anchor ala [[[id]]]
    ;; actually in AsciiDoc the part between the innermost brackets is an
@@ -2109,7 +2160,7 @@ considered to be meta characters."
    (list "^\\(\\+[ \t]*\\)\n\\([ \t]+\\)[^ \t\n]" '(1 adoc-warning t) '(2 adoc-warning t)) 
 
    ;; content of attribute lists
-   (list 'adoc-kwf-attriblist)
+   (list 'adoc-kwf-attribute-list)
 
    ;; cleanup
    (list 'adoc-flf-meta-face-cleanup)
@@ -2146,7 +2197,7 @@ considered to be meta characters."
   "Promotes the structure at point ARG levels.
 
 When ARG is nil (i.e. when no prefix arg is given), it defaults
-to 1. When ARG is negative, level is denoted that many levels.
+to 1. When ARG is negative, level is demoted that many levels.
 
 The intention is that the structure can be a title or a list
 element or anything else which has a 'level'. However currently
@@ -2154,23 +2205,23 @@ it works only for titles."
   (interactive "p")
   (adoc-promote-title arg))
 
-(defun adoc-denote (&optional arg)
-  "Denotes the structure at point ARG levels.
+(defun adoc-demote (&optional arg)
+  "Demotes the structure at point ARG levels.
 
 Analogous to `adoc-promote', see there."
   (interactive "p")
-  (adoc-denote-title arg))
+  (adoc-demote-title arg))
 
 (defun adoc-promote-title (&optional arg)
   "Promotes the title at point ARG levels.
 
 When ARG is nil (i.e. when no prefix arg is given), it defaults
-to 1. When ARG is negative, level is denoted that many levels. If
+to 1. When ARG is negative, level is demoted that many levels. If
 ARG is 0, see `adoc-adjust-title-del'."
   (interactive "p")
   (adoc-modify-title arg))
 
-(defun adoc-denote-title (&optional arg)
+(defun adoc-demote-title (&optional arg)
   "Completely analgous to `adoc-promote-title'."
   (interactive "p")
   (adoc-promote-title (- arg)))
@@ -2223,7 +2274,7 @@ new customization demands."
     adoc-mode-menu adoc-mode-map "Menu for adoc mode"
     `("AsciiDoc"
       ["Promote" adoc-promote]
-      ["Denote" adoc-denote]
+      ["Demote" adoc-demote]
       ["Toggle title type" adoc-toggle-title-type]
       ["Adjust title underline" adoc-adjust-title-del]
       ["Goto anchor" adoc-goto-ref-label]
@@ -2714,7 +2765,7 @@ NEW-LEVEL-REL and NEW-LEVEL-ABS are non-nil, NEW-LEVEL-REL takes
 precedence. When both are nil, level is not affected.
 
 When ARG is nil, it defaults to 1. When ARG is negative, level is
-denoted that many levels. If ARG is 0, see `adoc-adjust-title-del'.
+demoted that many levels. If ARG is 0, see `adoc-adjust-title-del'.
 
 When NEW-TYPE is nil, the title type is unaffected. If NEW-TYPE
 is t, the type is toggled. If it's 1 or 2, the new type is one
@@ -2837,18 +2888,47 @@ knowing it. E.g. when `adoc-unichar-name-resolver' is nil."
                    (match-string 1 entity)))))
       (when (characterp ch) (make-string 1 ch)))))
 
-(defun adoc-attribute-elt-face (pos-or-id &optional attribute-list-prop-val)
-  "Returns the face to be used for the given id or position"
-  (let* ((has-pos-to-id (listp attribute-list-prop-val))
-	 (has-local-alist (and has-pos-to-id (listp (car-safe attribute-list-prop-val))))
-	 (pos-to-id (cond ((not has-pos-to-id) nil)
+(defun adoc-face-for-attribute (pos-or-name &optional attribute-list-prop-val)
+  "Returns the face to be used for the given attribute.
+
+The face to be used is looked up in `adoc-attribute-face-alist',
+unless that alist is overwritten by the content of
+ATTRIBUTE-LIST-PROP-VAL.
+
+POS-OR-NAME identifies the attribute for which the face is
+returned. When POS-OR-NAME satifies numberp, it is the number of
+the positional attribute, where as the first positinal attribute
+has position 0. Otherwise POS-OR-NAME is the name of the named
+attribute.
+
+The value of ATTRIBUTE-LIST-PROP-VAL is one of the following:
+- nil
+- FACE
+- POS-TO-NAME
+- (POS-TO-NAME LOCAL-ATTRIBUTE-FACE-ALIST)
+
+POS-TO-NAME is a list of strings mapping positions to attribute
+names. E.g. (\"foo\" \"bar\") means that the first positional
+attribute corresponds to the named attribute foo, and the 2nd
+positional attribute corresponds to the named attribute bar.
+
+FACE is something that satisfies facep; in that case the whole
+attribute list is fontified with that face. However that case is
+handled outside this function.
+
+An attribute name is first looked up in
+LOCAL-ATTRIBUTE-FACE-ALIST before it is looked up in
+`adoc-attribute-face-alist'."
+  (let* ((has-pos-to-name (listp attribute-list-prop-val))
+	 (has-local-alist (and has-pos-to-name (listp (car-safe attribute-list-prop-val))))
+	 (pos-to-name (cond ((not has-pos-to-name) nil)
 			  (has-local-alist (car attribute-list-prop-val))
 			  (t attribute-list-prop-val)))
 	 (local-attribute-face-alist (when has-local-alist (cadr attribute-list-prop-val)))
-	 (id (cond ((stringp pos-or-id) pos-or-id)
-		   ((numberp pos-or-id) (nth pos-or-id pos-to-id)))))
-    (or (when id (or (cdr (assoc id local-attribute-face-alist))
-		     (cdr (assoc id adoc-attribute-face-alist))))
+	 (name (cond ((stringp pos-or-name) pos-or-name)
+		   ((numberp pos-or-name) (nth pos-or-name pos-to-name)))))
+    (or (when name (or (cdr (assoc name local-attribute-face-alist))
+		     (cdr (assoc name adoc-attribute-face-alist))))
 	markup-value-face)))
 
 
