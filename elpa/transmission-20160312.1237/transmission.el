@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.8
-;; Package-Version: 20160215.2055
+;; Package-Version: 20160312.1237
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -58,6 +58,8 @@
 ;;; Code:
 
 (require 'calc-bin)
+(require 'calc-ext)
+(require 'color)
 (require 'json)
 (require 'tabulated-list)
 (require 'url-util)
@@ -74,29 +76,35 @@
 
 (defcustom transmission-host "localhost"
   "Host name or IP address of the Transmission session."
-  :type 'string
-  :group 'transmission)
+  :type 'string)
 
 (defcustom transmission-service 9091
   "Port or name of the service for the Transmission session."
   :type '(choice (const :tag "Default" 9091)
                  (string :tag "Service")
-                 (integer :tag "Port"))
-  :group 'transmission)
+                 (integer :tag "Port")))
 
 (defcustom transmission-rpc-path "/transmission/rpc"
   "Path to the Transmission session RPC interface."
   :type '(choice (const :tag "Default" "/transmission/rpc")
-                 (string :tag "Other path"))
-  :group 'transmission)
+                 (string :tag "Other path")))
 
 (defcustom transmission-rpc-auth nil
   "Authorization (username, password) for using the RPC interface."
   :type '(choice (const :tag "None" nil)
                  (plist :tag "Username/password"
                         :options ((:username string)
-                                  (:password string))))
-  :group 'transmission)
+                                  (:password string)))))
+
+(defcustom transmission-digit-delimiter ","
+  "String used to delimit digits in numbers.
+The variable `calc-group-char' is bound to this in `transmission-group-digits'."
+  :type '(choice (const :tag "Comma" ",")
+                 (const :tag "Full Stop" ".")
+                 (const :tag "None" nil)
+                 (string :tag "Other char"))
+  :link '(variable-link calc-group-char)
+  :link '(function-link transmission-group-digits))
 
 (defcustom transmission-pieces-function #'transmission-format-pieces
   "Function used to show pieces of incomplete torrents.
@@ -105,44 +113,49 @@ pieces and the number of pieces as arguments, and should return a string."
   :type '(radio (const :tag "None" nil)
                 (function-item transmission-format-pieces)
                 (function-item transmission-format-pieces-brief)
-                (function :tag "Function"))
-  :group 'transmission)
+                (function :tag "Function")))
 
 (defcustom transmission-trackers '()
   "List of tracker URLs."
-  :type '(repeat (string :tag "URL"))
-  :group 'transmission)
+  :type '(repeat (string :tag "URL")))
 
 (defcustom transmission-units nil
   "The flavor of units used to display file sizes.
-
 See `file-size-human-readable'."
   :type '(choice (const :tag "Default" nil)
                  (const :tag "SI" si)
                  (const :tag "IEC" iec))
-  :link '(function-link file-size-human-readable)
-  :group 'transmission)
+  :link '(function-link file-size-human-readable))
 
-(defcustom transmission-timer-p nil
-  "Transmission buffer refreshes automatically?"
-  :type 'boolean
-  :group 'transmission)
+(defcustom transmission-refresh-modes '()
+  "List of major modes in which to refresh the buffer automatically."
+  :type 'hook
+  :options '(transmission-mode
+             transmission-files-mode
+             transmission-info-mode
+             transmission-peers-mode))
 
-(defcustom transmission-timer-interval 2
+(defcustom transmission-refresh-interval 2
   "Period in seconds of the refresh timer."
   :type '(number :validate (lambda (w)
                              (unless (> (widget-value w) 0)
                                (widget-put w :error "Value must be positive")
-                               w)))
-  :group 'transmission)
+                               w))))
 
-(defcustom transmission-time-format "%a %b %e %T %Y"
+(defcustom transmission-time-format "%a %b %e %T %Y %z"
   "Format string used to display dates.
-
 See `format-time-string'."
   :type 'string
-  :link '(function-link format-time-string)
-  :group 'transmission)
+  :link '(function-link format-time-string))
+
+(defcustom transmission-time-zone nil
+  "Time zone of formatted dates.
+See `format-time-string'."
+  :type '(choice (const :tag "Local time" nil)
+                 (const :tag "Universal Time (UTC)" t)
+                 (const :tag "System Wall Clock" wall)
+                 (string :tag "Time Zone Identifier"))
+  :link '(function-link format-time-string))
 
 (defcustom transmission-torrent-functions '(transmission-ffap)
   "List of functions to use for guessing torrents for `transmission-add'.
@@ -150,8 +163,14 @@ Each function should accept no arguments, and return a string or nil."
   :type 'hook
   :options '(transmission-ffap
              transmission-ffap-selection
-             transmission-ffap-last-killed)
-  :group 'transmission)
+             transmission-ffap-last-killed))
+
+(defcustom transmission-geoip-function nil
+  "Function used to translate an IP address into a location name.
+The function should accept an IP address and return a string or nil."
+  :type '(radio (const :tag "None" nil)
+                (function-item transmission-geoiplookup)
+                (function :tag "Function")))
 
 (defconst transmission-priority-alist
   '((low . -1)
@@ -184,7 +203,7 @@ Each function should accept no arguments, and return a string or nil."
     "pieceSize" "trackerStats" "peersConnected" "peersGettingFromUs" "peersFrom"
     "peersSendingToUs" "sizeWhenDone" "error" "errorString" "wanted" "files"
     "downloadedEver" "corruptEver" "haveValid" "totalSize" "percentDone"
-    "seedRatioLimit" "seedRatioMode" "bandwidthPriority"))
+    "seedRatioLimit" "seedRatioMode" "bandwidthPriority" "downloadDir"))
 
 (defconst transmission-session-header "X-Transmission-Session-Id"
   "The \"X-Transmission-Session-Id\" header key.")
@@ -199,7 +218,8 @@ Each function should accept no arguments, and return a string or nil."
   "The Transmission torrent ID integer.")
 
 (defvar-local transmission-refresh-function nil
-  "The name of the function applied to `transmission-draw'.")
+  "The name of the function used to redraw a buffer.
+Should accept the torrent ID as an argument, e.g. `transmission-torrent-id'.")
 
 (define-error 'transmission-conflict
   "Wrong or missing header \"X-Transmission-Session-Id\"" 'error)
@@ -385,23 +405,22 @@ TORRENT is the \"torrents\" vector returned by `transmission-torrents'."
 
 (defun transmission-timer-revert ()
   "Revert the buffer or cancel `transmission-timer'."
-  (let ((buffer (get-buffer "*transmission*")))
-    (if (and buffer (eq buffer (current-buffer)))
-        (revert-buffer)
-      (cancel-timer transmission-timer))))
+  (if (and (memq major-mode transmission-refresh-modes)
+           (not (or isearch-mode (use-region-p))))
+      (revert-buffer)
+    (cancel-timer transmission-timer)))
 
 (defun transmission-timer-run ()
   "Run the timer `transmission-timer'."
   (when transmission-timer (cancel-timer transmission-timer))
   (setq
    transmission-timer
-   (run-at-time t transmission-timer-interval #'transmission-timer-revert)))
+   (run-at-time t transmission-refresh-interval #'transmission-timer-revert)))
 
 (defun transmission-timer-check ()
   "Check if current buffer should run a refresh timer."
-  (let ((buffer (and transmission-timer-p (get-buffer "*transmission*"))))
-    (when (and buffer (eq buffer (current-buffer)))
-      (transmission-timer-run))))
+  (when (memq major-mode transmission-refresh-modes)
+    (transmission-timer-run)))
 
 
 ;; Other
@@ -541,17 +560,16 @@ for download rate."
 PROMPT is a string to prompt with.
 COLLECTION can be a list among other things.  See `completing-read'.
 Returns a list of non-blank inputs."
-  (let ((list '())
-        entry)
-   (catch :finished
-     (while t
-       (setq entry (if (not collection) (read-string prompt)
-                     (completing-read prompt collection nil)))
-       (if (and (not (string-empty-p entry))
-                (not (string-blank-p entry)))
-           (progn (push entry list)
-                  (setq collection (delete entry collection)))
-         (throw :finished (nreverse list)))))))
+  (let (res entry)
+    (catch :finished
+      (while t
+        (setq entry (if (not collection) (read-string prompt)
+                      (completing-read prompt collection nil)))
+        (if (and (not (string-empty-p entry))
+                 (not (string-blank-p entry)))
+            (progn (push entry res)
+                   (setq collection (delete entry collection)))
+          (throw :finished (nreverse res)))))))
 
 (defun transmission-list-trackers (id)
   "Return the \"trackers\" array for torrent id ID."
@@ -659,10 +677,19 @@ The two are spliced together with indices for each file, sorted by file name."
             (string< (cdr (assq 'name a))
                      (cdr (assq 'name b)))))))
 
+(defun transmission-geoiplookup (ip)
+  "Return country name associated with IP using geoiplookup(1)."
+  (let ((program (if (string-match-p ":" ip) "geoiplookup6" "geoiplookup")))
+    (when (executable-find program)
+      (with-temp-buffer
+        (call-process program nil t nil ip)
+        (car (last (split-string (buffer-string) ": " t "[ \t\r\n]*")))))))
+
 (defun transmission-time (seconds)
   "Format a time string, given SECONDS from the epoch."
   (if (= 0 seconds) "Never"
-    (format-time-string transmission-time-format (seconds-to-time seconds))))
+    (format-time-string transmission-time-format (seconds-to-time seconds)
+                        transmission-time-zone)))
 
 (defun transmission-hamming-weight (x)
   "Calculate the Hamming weight of X."
@@ -694,14 +721,14 @@ The two are spliced together with indices for each file, sorted by file name."
 (defun transmission-ratio->256 (ratio)
   "Return a grey font-locked single-space string according to RATIO.
 Uses color names for the 256 color palette."
-  (let* ((n (if (= 1 ratio) 231 (+ 236 (* 19 ratio)))))
+  (let ((n (if (= 1 ratio) 231 (+ 236 (* 19 ratio)))))
     (propertize " " 'font-lock-face `(:background ,(format "color-%d" n)))))
 
 (defun transmission-ratio->grey (ratio)
   "Return a grey font-locked single-space string according to RATIO."
-  (let* ((lightness (+ 0.2 (* 0.8 ratio)))
-         (n (* 100 lightness)))
-    (propertize " " 'font-lock-face `(:background ,(format "grey%d" n)))))
+  (let ((l (+ 0.2 (* 0.8 ratio))))
+    (propertize " " 'font-lock-face `(:background ,(color-rgb-to-hex l l l))
+                'help-echo (format "%.2f" ratio))))
 
 (defun transmission-torrent-seed-ratio (mode tlimit)
   "String showing a torrent's seed ratio limit.
@@ -712,22 +739,16 @@ MODE is which seed ratio to use; TLIMIT is the torrent-level limit."
     (2 "Unlimited")))
 
 (defun transmission-group-digits (n)
-  "Group digits of natural number N with delimiter \",\"."
-  (if (< n 1000)
-      (format "%s" n)
-    (let ((regexp (eval-when-compile (rx (= 3 digit)))))
-      ;; Good place for `thread-last' and `reverse'
-      ;; (thread-last (reverse (number-to-string n))
-      ;;     (replace-regexp-in-string regexp "\\&,")
-      ;;     (string-remove-suffix ",")
-      ;;     (reverse))
-      (cl-macrolet ((reverse-string (str)
-                      `(apply #'string (nreverse (string-to-list ,str)))))
-        (reverse-string
-         (string-remove-suffix
-          ","
-          (replace-regexp-in-string
-           regexp "\\&," (reverse-string (number-to-string n)))))))))
+  "Group digits of natural number N with `transmission-digit-delimiter''"
+  (if (< n 10000) (number-to-string n)
+    (let ((calc-group-char transmission-digit-delimiter))
+      (math-group-float (number-to-string n)))))
+
+(defun transmission-plural (n s)
+  "Return a pluralized string expressing quantity N of thing S.
+Done in the spirit of `dired-plural-s'."
+  (let ((m (if (= -1 n) 0 n)))
+    (concat (transmission-group-digits m) " " s (unless (= m 1) "s"))))
 
 (defmacro transmission-tabulated-list-pred (key)
   "Return a sorting predicate comparing values of KEY.
@@ -781,16 +802,15 @@ When called with a prefix, prompt for DIRECTORY."
              `(:filename ,(if (transmission-btih-p torrent)
                               (format "magnet:?xt=urn:btih:%s" torrent)
                             torrent)))
-           (list :download-dir directory))))
+           (if directory (list :download-dir (expand-file-name directory))))))
 
 (defun transmission-move (location)
   "Move torrent at point or in region to a new LOCATION."
   (interactive (list (read-directory-name "New directory: ")))
-  (transmission-let-ids ((arguments (list :ids ids :move t
-                                          :location (expand-file-name location))))
-    (when (y-or-n-p (format "Move torrent%s to %s? "
-                            (if (cdr ids) "s" "")
-                            location))
+  (transmission-let-ids
+      ((arguments (list :ids ids :move t :location (expand-file-name location)))
+       (prompt (format "Move torrent%s to %s? " (if (cdr ids) "s" "") location)))
+    (when (y-or-n-p prompt)
       (transmission-request-async nil "torrent-set-location" arguments))))
 
 (defun transmission-reannounce ()
@@ -1085,25 +1105,23 @@ CONNECTED, SENDING, RECEIVING are numbers."
                      (_ (concat "\n" fill
                                 (propertize .lastAnnounceResult
                                             'font-lock-face 'warning))))))
-      (format (concat label ": %s (Tier %d)\n"
-                      fill "%d peers %s. Announcing %s\n"
-                      fill "%d seeders, %d leechers, %d downloads %s. Scraping %s"
-                      result)
-              .announce .tier
-              (if (= -1 .lastAnnouncePeerCount) 0 .lastAnnouncePeerCount)
-              (transmission-when .lastAnnounceTime)
-              (transmission-when .nextAnnounceTime)
-              (if (= -1 .seederCount) 0 .seederCount)
-              (if (= -1 .leecherCount) 0 .leecherCount)
-              (if (= -1 .downloadCount) 0 .downloadCount)
-              (transmission-when .lastScrapeTime)
-              (transmission-when .nextScrapeTime)))))
+      (format
+       (concat label ": %s (Tier %d)\n"
+               fill "%s %s. Announcing %s\n"
+               fill "%s, %s, %s %s. Scraping %s"
+               result)
+       .announce .tier
+       (transmission-plural .lastAnnouncePeerCount "peer")
+       (transmission-when .lastAnnounceTime) (transmission-when .nextAnnounceTime)
+       (transmission-plural .seederCount "seeder")
+       (transmission-plural .leecherCount "leecher")
+       (transmission-plural .downloadCount "download")
+       (transmission-when .lastScrapeTime) (transmission-when .nextScrapeTime)))))
 
 (defun transmission-format-trackers (trackers)
   "Format tracker information into a string.
 TRACKERS should be the \"trackerStats\" array."
-  (if (zerop (length trackers))
-      "Trackers: none\n"
+  (if (zerop (length trackers)) "Trackers: none\n"
     (concat (mapconcat #'transmission-format-tracker trackers "\n") "\n")))
 
 (defmacro transmission-do-entries (seq &rest body)
@@ -1115,7 +1133,7 @@ Each form in BODY is a column descriptor."
              (push (list x (vector ,@body)) tabulated-list-entries)))
          ,seq))
 
-(defun transmission-draw-torrents ()
+(defun transmission-draw-torrents (_id)
   (setq transmission-torrent-vector
         (transmission-torrents `(:fields ,transmission-torrent-get-fields)))
   (setq tabulated-list-entries nil)
@@ -1160,6 +1178,7 @@ Each form in BODY is a column descriptor."
       (concat "Name: " .name)
       (concat "Hash: " .hashString)
       (concat "Magnet: " (propertize .magnetLink 'font-lock-face 'link) "\n")
+      (format "Location: %s" (abbreviate-file-name .downloadDir))
       (format "Percent done: %d%%" (* 100 .percentDone))
       (format "Bandwidth priority: %s"
               (car (rassoc .bandwidthPriority transmission-priority-alist)))
@@ -1187,7 +1206,9 @@ Each form in BODY is a column descriptor."
       (let ((have (apply #'+ (mapcar #'transmission-hamming-weight
                                      (base64-decode-string .pieces)))))
         (concat
-         (format "Piece count: %d / %d (%d%%)" have .pieceCount
+         (format "Piece count: %s / %s (%d%%)"
+                 (transmission-group-digits have)
+                 (transmission-group-digits .pieceCount)
                  (transmission-percent have .pieceCount))
          (when (and (functionp transmission-pieces-function)
                     (/= have 0) (< have .pieceCount))
@@ -1204,14 +1225,16 @@ Each form in BODY is a column descriptor."
     (format "%d%%" (transmission-percent .progress 1.0))
     (format "%d" (transmission-rate .rateToClient))
     (format "%d" (transmission-rate .rateToPeer))
-    .clientName)
+    .clientName
+    (or (and (functionp transmission-geoip-function)
+             (funcall transmission-geoip-function .address)) ""))
   (setq tabulated-list-entries (reverse tabulated-list-entries))
   (tabulated-list-print))
 
 (defun transmission-draw ()
   "Draw the buffer with new contents via `transmission-refresh-function'."
   (with-silent-modifications
-    (funcall transmission-refresh-function)))
+    (funcall transmission-refresh-function transmission-torrent-id)))
 
 (defun transmission-refresh (&optional _arg _noconfirm)
   "Refresh the current buffer, restoring window position, point, and mark.
@@ -1273,7 +1296,7 @@ Also run the timer for timer object `transmission-timer'."
     ["Quit" quit-window]))
 
 (define-derived-mode transmission-peers-mode tabulated-list-mode "Transmission-Peers"
-  "Major mode for viewing peer information in Transmission.
+  "Major mode for viewing peer information.
 See https://trac.transmissionbt.com/wiki/PeerStatusText
 for explanation of the peer flags.
 
@@ -1293,14 +1316,15 @@ Key bindings:
            :right-align t)
           ("Up" 3 ,(transmission-tabulated-list-pred 'rateToPeer)
            :right-align t :pad-right 2)
-          ("Client" 20 t)])
+          ("Client" 20 t)
+          ("Location" 0 t)])
   (tabulated-list-init-header)
-  (setq transmission-refresh-function
-        (lambda () (transmission-draw-peers transmission-torrent-id)))
+  (setq transmission-refresh-function #'transmission-draw-peers)
+  (add-hook 'post-command-hook #'transmission-timer-check nil t)
   (setq-local revert-buffer-function #'transmission-refresh))
 
 (defun transmission-peers ()
-  "Open a `transmission-info-mode' buffer for torrent at point."
+  "Open a `transmission-peers-mode' buffer for torrent at point."
   (interactive)
   (transmission-context transmission-peers-mode))
 
@@ -1342,7 +1366,7 @@ Key bindings:
     ["Quit" quit-window]))
 
 (define-derived-mode transmission-info-mode special-mode "Transmission-Info"
-  "Major mode for viewing and manipulating torrent attributes in Transmission.
+  "Major mode for viewing and manipulating torrent attributes.
 
 In addition to any hooks its parent mode might have run, this
 mode runs the hook `transmission-info-mode-hook' at mode
@@ -1353,8 +1377,8 @@ Key bindings:
   :group 'transmission
   (setq buffer-undo-list t)
   (setq font-lock-defaults '(transmission-info-font-lock-keywords))
-  (setq transmission-refresh-function
-        (lambda () (transmission-draw-info transmission-torrent-id)))
+  (setq transmission-refresh-function #'transmission-draw-info)
+  (add-hook 'post-command-hook #'transmission-timer-check nil t)
   (setq-local revert-buffer-function #'transmission-refresh))
 
 (defun transmission-info ()
@@ -1392,7 +1416,7 @@ Key bindings:
     ["Quit" quit-window]))
 
 (define-derived-mode transmission-files-mode tabulated-list-mode "Transmission-Files"
-  "Major mode for interacting with torrent files in Transmission.
+  "Major mode for a torrent's file list.
 
 In addition to any hooks its parent mode might have run, this
 mode runs the hook `transmission-files-mode-hook' at mode
@@ -1410,9 +1434,9 @@ Key bindings:
            :right-align t :transmission-size t)
           ("Name" 0 t)])
   (transmission-tabulated-list-format)
-  (setq transmission-refresh-function
-        (lambda () (transmission-draw-files transmission-torrent-id)))
+  (setq transmission-refresh-function #'transmission-draw-files)
   (setq-local revert-buffer-function #'transmission-refresh)
+  (add-hook 'post-command-hook #'transmission-timer-check nil t)
   (add-function :before (local 'revert-buffer-function)
                 #'transmission-tabulated-list-format))
 
@@ -1463,7 +1487,7 @@ Key bindings:
     ["Quit" transmission-quit]))
 
 (define-derived-mode transmission-mode tabulated-list-mode "Transmission"
-  "Major mode for interfacing with a Transmission daemon.
+  "Major mode for the list of torrents in a Transmission session.
 See https://trac.transmissionbt.com/ for more information about
 Transmission.
 
@@ -1504,8 +1528,7 @@ Key bindings:
                      (generate-new-buffer name))))
     (unless (eq buffer (current-buffer))
       (with-current-buffer buffer
-        (if (eq major-mode 'transmission-mode)
-            (transmission-refresh)
+        (unless (eq major-mode 'transmission-mode)
           (transmission-mode)
           (transmission-draw)
           (goto-char (point-min))))
