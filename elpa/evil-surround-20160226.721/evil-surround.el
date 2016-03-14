@@ -10,7 +10,7 @@
 ;; Maintainer: Please send bug reports to the mailing list (below).
 ;; Created: July 23 2011
 ;; Version: 0.1
-;; Package-Version: 20160128.1028
+;; Package-Version: 20160226.721
 ;; Keywords: emulation, vi, evil
 ;; Mailing list: <implementations-list at lists.ourproject.org>
 ;;      Subscribe: http://tinyurl.com/implementations-list
@@ -285,38 +285,48 @@ Becomes this:
   (interactive "<R>c")
   (when (evil-surround-valid-char-p char)
     (let* ((overlay (make-overlay beg end nil nil t))
-           (pair (evil-surround-pair char))
+           (pair (or (and (boundp 'pair) pair) (evil-surround-pair char)))
            (open (car pair))
-           (close (cdr pair)))
+           (close (cdr pair))
+           (beg-pos (overlay-start overlay)))
       (unwind-protect
           (progn
-            (goto-char (overlay-start overlay))
-
+            (goto-char beg-pos)
             (cond ((eq type 'block)
                    (evil-surround-block beg end char))
 
                   ((eq type 'line)
+                   (back-to-indentation)
+                   (setq beg-pos (point))
                    (insert open)
-                   (newline-and-indent)
-                   (indent-region (overlay-start overlay) (overlay-end overlay))
+                   (when force-new-line (newline-and-indent))
                    (goto-char (overlay-end overlay))
+                   (if force-new-line
+                       (when (eobp)
+                         (newline-and-indent))
+                     (backward-char)
+                     (evil-last-non-blank)
+                     (forward-char))
                    (insert close)
-                   (indent-according-to-mode)
-                   (newline))
+                   (when (or force-new-line
+                             (/= (line-number-at-pos) (line-number-at-pos beg-pos)))
+                     (indent-region beg-pos (point))
+                     (newline-and-indent)))
 
                   (force-new-line
                    (insert open)
-                   (indent-according-to-mode)
                    (newline-and-indent)
-                   (goto-char (overlay-end overlay))
-                   (newline-and-indent)
-                   (insert close))
+                   (let ((pt (point)))
+                     (goto-char (overlay-end overlay))
+                     (newline-and-indent)
+                     (insert close)
+                     (indent-region pt (point))))
 
                   (t
                    (insert open)
                    (goto-char (overlay-end overlay))
                    (insert close)))
-            (goto-char (overlay-start overlay)))
+            (goto-char beg-pos))
         (delete-overlay overlay)))))
 
 (evil-define-operator evil-Surround-region (beg end type char)
