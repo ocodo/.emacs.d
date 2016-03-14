@@ -451,7 +451,7 @@ names to which it refers are bound."
       (helm-source-header (:weight bold :foreground ,orange :height 1.44))
 
       ;; company
-      (company-preview (:foreground ,comment))
+      (company-preview (:foreground ,comment :background ,contrast-bg))
       (company-preview-common (:inherit company-preview :foreground ,red))
       (company-preview-search (:inherit company-preview :foreground ,blue))
       (company-tooltip (:background ,contrast-bg))
@@ -518,6 +518,16 @@ names to which it refers are bound."
       (js2-function-param (:foreground ,blue))
       (js2-instance-member (:foreground ,blue))
       (js2-private-function-call (:foreground ,red))
+      ;; js2-mode additional attributes for better syntax highlight in javascript
+      (js2-jsdoc-tag (:foreground ,aqua))
+      (js2-jsdoc-type (:foreground ,orange))
+      (js2-jsdoc-value (:foreground ,orange))
+      (js2-function-call (:foreground ,green))
+      (js2-object-property (:foreground ,orange))
+      (js2-private-member (:foreground ,purple))
+      (js2-jsdoc-html-tag-name (:foreground ,orange))
+      (js2-jsdoc-html-tag-delimiter (:foreground ,orange))
+
 
       ;; js3-mode
       (js3-warning-face (:underline ,orange))
