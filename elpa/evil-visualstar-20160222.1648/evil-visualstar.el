@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/evil-visualstar
-;; Package-Version: 20150514.1410
+;; Package-Version: 20160222.1648
 ;; Filename: evil-visualstar.el
 ;; Description: Starts a * or # search from the visual selection
 ;; Created: 2013-09-24
@@ -49,11 +49,18 @@
 
 (require 'evil)
 
-(defvar evil-visualstar/persistent nil
+(defgroup evil-visualstar nil
+  "evil-visualstar configuration options."
+  :prefix "evil-visualstar"
+  :group 'evil)
+
+(defcustom evil-visualstar/persistent nil
   "Set to `t` if `*` and `#` should keep visual-mode.
 That would visually-select the found occurrence, allowing for
 repeated searches.
-You will need to hit escape to leave visual-mode.")
+You will need to hit escape to leave visual-mode."
+  :group 'evil-visualstar
+  :type 'boolean)
 
 (defun evil-visualstar/begin-search (beg end direction)
   (when (evil-visual-state-p)
@@ -78,14 +85,18 @@ You will need to hit escape to leave visual-mode.")
       (when (and evil-visualstar/persistent found)
         (push-mark (+ (point) (- end beg)) nil t)))))
 
-(defun evil-visualstar/begin-search-forward (beg end)
+(evil-define-motion evil-visualstar/begin-search-forward (beg end)
   "Search for the visual selection forwards."
-  (interactive "r")
+  :jump t
+  :repeat nil
+  (interactive "<r>")
   (evil-visualstar/begin-search beg end t))
 
-(defun evil-visualstar/begin-search-backward (beg end)
+(evil-define-motion evil-visualstar/begin-search-backward (beg end)
   "Search for the visual selection backwards."
-  (interactive "r")
+  :jump t
+  :repeat nil
+  (interactive "<r>")
   (evil-visualstar/begin-search beg end nil))
 
 ;;;###autoload
