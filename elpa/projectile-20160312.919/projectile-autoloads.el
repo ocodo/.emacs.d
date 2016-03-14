@@ -3,9 +3,42 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "projectile" "projectile.el" (22218 26267 955010
-;;;;;;  845000))
+;;;### (autoloads nil "projectile" "projectile.el" (22246 12182 790567
+;;;;;;  391000))
 ;;; Generated autoloads from projectile.el
+
+(autoload 'projectile-version "projectile" "\
+Get the Projectile version as string.
+
+If called interactively or if SHOW-VERSION is non-nil, show the
+version in the echo area and the messages buffer.
+
+The returned string includes both, the version from package.el
+and the library version, if both a present and different.
+
+If the version number could not be determined, signal an error,
+if called interactively, or if SHOW-VERSION is non-nil, otherwise
+just return nil.
+
+\(fn &optional SHOW-VERSION)" t nil)
+
+(autoload 'projectile-invalidate-cache "projectile" "\
+Remove the current project's files from `projectile-projects-cache'.
+
+With a prefix argument ARG prompts for the name of the project whose cache
+to invalidate.
+
+\(fn ARG)" t nil)
+
+(autoload 'projectile-purge-file-from-cache "projectile" "\
+Purge FILE from the cache of the current project.
+
+\(fn FILE)" t nil)
+
+(autoload 'projectile-purge-dir-from-cache "projectile" "\
+Purge DIR from the cache of the current project.
+
+\(fn DIR)" t nil)
 
 (autoload 'projectile-cache-current-file "projectile" "\
 Add the currently visited file to the cache.
@@ -37,6 +70,20 @@ Only buffers not visible in windows are returned.
 Do a `multi-occur' in the project's buffers.
 
 \(fn)" t nil)
+
+(autoload 'projectile-find-other-file "projectile" "\
+Switch between files with the same name but different extensions.
+With FLEX-MATCHING, match any file that contains the base name of current file.
+Other file extensions can be customized with the variable `projectile-other-file-alist'.
+
+\(fn &optional FLEX-MATCHING)" t nil)
+
+(autoload 'projectile-find-other-file-other-window "projectile" "\
+Switch between files with the same name but different extensions in other window.
+With FLEX-MATCHING, match any file that contains the base name of current file.
+Other file extensions can be customized with the variable `projectile-other-file-alist'.
+
+\(fn &optional FLEX-MATCHING)" t nil)
 
 (autoload 'projectile-find-file-dwim "projectile" "\
 Jump to a project's files using completion based on context.
@@ -104,6 +151,32 @@ With a prefix ARG invalidates the cache first.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'projectile-find-dir "projectile" "\
+Jump to a project's directory using completion.
+
+With a prefix ARG invalidates the cache first.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'projectile-find-dir-other-window "projectile" "\
+Jump to a project's directory in other window using completion.
+
+With a prefix ARG invalidates the cache first.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'projectile-find-test-file "projectile" "\
+Jump to a project's test file using completion.
+
+With a prefix ARG invalidates the cache first.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'projectile-project-info "projectile" "\
+Display info for current project.
+
+\(fn)" t nil)
+
 (autoload 'projectile-find-implementation-or-test-other-window "projectile" "\
 Open matching implementation or test file in other window.
 
@@ -113,6 +186,25 @@ Open matching implementation or test file in other window.
 Toggle between an implementation file and its test file.
 
 \(fn)" t nil)
+
+(autoload 'projectile-grep "projectile" "\
+Perform rgrep in the project.
+
+With a prefix ARG asks for files (globbing-aware) which to grep in.
+With prefix ARG of `-' (such as `M--'), default the files (without prompt),
+to `projectile-grep-default-files'.
+
+With REGEXP given, don't query the user for a regexp.
+
+\(fn &optional REGEXP ARG)" t nil)
+
+(autoload 'projectile-ag "projectile" "\
+Run an ag search with SEARCH-TERM in the project.
+
+With an optional prefix argument ARG SEARCH-TERM is interpreted as a
+regular expression.
+
+\(fn SEARCH-TERM &optional ARG)" t nil)
 
 (autoload 'projectile-regenerate-tags "projectile" "\
 Regenerate the project's [e|g]tags.
@@ -138,6 +230,22 @@ Invoke `shell-command' in the project's root.
 Invoke `async-shell-command' in the project's root.
 
 \(fn)" t nil)
+
+(autoload 'projectile-replace "projectile" "\
+Replace literal string in project using non-regexp `tags-query-replace'.
+
+With a prefix argument ARG prompts you for a directory on which
+to run the replacement.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'projectile-replace-regexp "projectile" "\
+Replace a regexp in the project using `tags-query-replace'.
+
+With a prefix argument ARG prompts you for a directory on which
+to run the replacement.
+
+\(fn &optional ARG)" t nil)
 
 (autoload 'projectile-kill-buffers "projectile" "\
 Kill all project buffers.
@@ -167,6 +275,56 @@ Show a list of recently visited files in a project.
 
 \(fn)" t nil)
 
+(autoload 'projectile-compile-project "projectile" "\
+Run project compilation command.
+
+Normally you'll be prompted for a compilation command, unless
+variable `compilation-read-command'.  You can force the prompt
+with a prefix ARG.
+
+\(fn ARG &optional DIR)" t nil)
+
+(autoload 'projectile-test-project "projectile" "\
+Run project test command.
+
+Normally you'll be prompted for a compilation command, unless
+variable `compilation-read-command'.  You can force the prompt
+with a prefix ARG.
+
+\(fn ARG)" t nil)
+
+(autoload 'projectile-run-project "projectile" "\
+Run project run command.
+
+Normally you'll be prompted for a compilation command, unless
+variable `compilation-read-command'.  You can force the prompt
+with a prefix ARG.
+
+\(fn ARG)" t nil)
+
+(autoload 'projectile-switch-project "projectile" "\
+Switch to a project we have visited before.
+Invokes the command referenced by `projectile-switch-project-action' on switch.
+With a prefix ARG invokes `projectile-commander' instead of
+`projectile-switch-project-action.'
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'projectile-switch-open-project "projectile" "\
+Switch to a project we have currently opened.
+Invokes the command referenced by `projectile-switch-project-action' on switch.
+With a prefix ARG invokes `projectile-commander' instead of
+`projectile-switch-project-action.'
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'projectile-find-file-in-directory "projectile" "\
+Jump to a file in a (maybe regular) DIRECTORY.
+
+This command will first prompt for the directory the file is in.
+
+\(fn &optional DIRECTORY)" t nil)
+
 (autoload 'projectile-find-file-in-known-projects "projectile" "\
 Jump to a file in any of the known projects.
 
@@ -182,10 +340,22 @@ Clear both `projectile-known-projects' and `projectile-known-projects-file'.
 
 \(fn)" t nil)
 
+(autoload 'projectile-remove-known-project "projectile" "\
+Remove PROJECT from the list of known projects.
+
+\(fn &optional PROJECT)" t nil)
+
 (autoload 'projectile-remove-current-project-from-known-projects "projectile" "\
 Remove the current project from the list of known projects.
 
 \(fn)" t nil)
+
+(autoload 'projectile-ibuffer "projectile" "\
+Open an IBuffer window showing all buffers in the current project.
+
+Let user choose another project when PREFIX is supplied.
+
+\(fn PREFIX)" t nil)
 
 (autoload 'projectile-commander "projectile" "\
 Execute a Projectile command with a single letter.
@@ -194,6 +364,11 @@ The `?' character describes then
 available actions.
 
 See `def-projectile-commander-method' for defining new methods.
+
+\(fn)" t nil)
+
+(autoload 'projectile-edit-dir-locals "projectile" "\
+Edit or create a .dir-locals.el file of the project.
 
 \(fn)" t nil)
 
