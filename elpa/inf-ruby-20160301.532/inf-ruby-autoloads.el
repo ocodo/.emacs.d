@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (22218 26388 782713
-;;;;;;  995000))
+;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (22246 12298 966345
+;;;;;;  42000))
 ;;; Generated autoloads from inf-ruby.el
 
 (defvar ruby-source-modes '(ruby-mode enh-ruby-mode) "\
@@ -71,6 +71,16 @@ The main module should be loaded automatically.  If DIR contains a
 Gemfile, it should use the `gemspec' instruction.
 
 \(fn DIR)" t nil)
+
+(autoload 'inf-ruby-auto-enter "inf-ruby" "\
+Switch to `inf-ruby-mode' if the breakpoint pattern matches the current line.
+
+\(fn)" nil nil)
+
+(autoload 'inf-ruby-auto-exit "inf-ruby" "\
+Return to the previous compilation mode if INPUT is a debugger exit command.
+
+\(fn INPUT)" nil nil)
 
 (autoload 'inf-ruby-console-default "inf-ruby" "\
 Run custom console.rb, Pry, or bundle console, in DIR.

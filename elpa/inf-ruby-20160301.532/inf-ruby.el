@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20160221.410
+;; Package-Version: 20160301.532
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.4.0
@@ -48,9 +48,9 @@
 ;;
 ;; Additionally, consider adding
 ;;
-;;    (add-hook 'after-init-hook 'inf-ruby-switch-setup)
+;;    (add-hook 'compilation-filter-hook 'inf-ruby-auto-enter)
 ;;
-;; to your init file to easily switch from common Ruby compilation
+;; to your init file to automatically switch from common Ruby compilation
 ;; modes to interact with a debugger.
 ;;
 ;; To call `inf-ruby-console-auto' more easily, you can, for example,
@@ -635,6 +635,10 @@ keymaps to bind `inf-ruby-switch-from-compilation' to `С-x C-q'."
 one of the predicates matches, then calls `inf-ruby-console-NAME',
 passing it the found directory.")
 
+(defvar inf-ruby-breakpoint-pattern "\\(\\[1\\] pry(\\)\\|\\((rdb:1)\\)"
+  "Pattern found when a breakpoint is triggered in a compilation session.
+This checks if the current line is a pry or ruby-debug prompt.")
+
 (defun inf-ruby-console-match (dir)
   "Find matching console command for DIR, if any."
   (catch 'type
@@ -731,6 +735,40 @@ Gemfile, it should use the `gemspec' instruction."
   (interactive "D")
   (let ((default-directory (file-name-as-directory dir)))
     (run-ruby "bundle exec racksh" "racksh")))
+
+(defun inf-ruby-in-ruby-compilation-modes (mode)
+  "Check if MODE is a Ruby compilation mode."
+  (member mode '(rspec-compilation-mode
+                 ruby-compilation-mode
+                 projectile-rails-server-mode)))
+
+;;;###autoload
+(defun inf-ruby-auto-enter ()
+  "Switch to `inf-ruby-mode' if the breakpoint pattern matches the current line."
+  (when (and (inf-ruby-in-ruby-compilation-modes major-mode)
+             (save-excursion
+               (beginning-of-line)
+               (re-search-forward inf-ruby-breakpoint-pattern nil t)))
+    ;; Exiting excursion before this call to get the prompt fontified.
+    (inf-ruby-switch-from-compilation)
+    (add-hook 'comint-input-filter-functions 'inf-ruby-auto-exit nil t)))
+
+;;;###autoload
+(defun inf-ruby-auto-exit (input)
+  "Return to the previous compilation mode if INPUT is a debugger exit command."
+  (when (inf-ruby-in-ruby-compilation-modes inf-ruby-orig-compilation-mode)
+    (if (member input '("quit\n" "exit\n" ""))
+        ;; After the current command completes, otherwise we get a
+        ;; marker error.
+        (run-with-idle-timer 0 nil #'inf-ruby-maybe-switch-to-compilation))))
+
+(defun inf-ruby-enable-auto-breakpoint ()
+  (interactive)
+  (add-hook 'compilation-filter-hook 'inf-ruby-auto-enter))
+
+(defun inf-ruby-disable-auto-breakpoint ()
+  (interactive)
+  (remove-hook 'compilation-filter-hook 'inf-ruby-auto-enter))
 
 ;;;###autoload
 (defun inf-ruby-console-default (dir)
