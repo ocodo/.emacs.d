@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160211.1440
+;; Package-Version: 20160303.1450
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -639,15 +639,18 @@ The bound variable is \"filename\"."
   "Like `projectile-expand-root' but consider `projectile-rails-root'."
   (projectile-expand-root (concat (projectile-rails-root) dir)))
 
-(defun projectile-rails-console ()
-  (interactive)
+(defun projectile-rails-console (arg)
+  (interactive "P")
   (projectile-rails-with-root
-   (with-current-buffer (run-ruby
-                         (projectile-rails-with-preloader
-                          :spring (concat projectile-rails-spring-command " rails console")
-                          :zeus "zeus console"
-                          :vanilla (concat projectile-rails-vanilla-command " console")))
-     (projectile-rails-mode +1))))
+   (let ((rails-console-command (projectile-rails-with-preloader
+                                 :spring (concat projectile-rails-spring-command " rails console")
+                                 :zeus "zeus console"
+                                 :vanilla (concat projectile-rails-vanilla-command " console"))))
+     (with-current-buffer (run-ruby
+                           (if (>= (or (car arg) 0) 4)
+                               (read-string "rails console: " rails-console-command)
+                             rails-console-command))
+       (projectile-rails-mode +1)))))
 
 (defun projectile-rails-expand-snippet-maybe ()
   (when (and (fboundp 'yas-expand-snippet)
