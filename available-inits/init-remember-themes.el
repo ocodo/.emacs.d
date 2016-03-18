@@ -3,6 +3,7 @@
 ;;           (lambda ()
 ;;             (amitp-mode-line)))
 
+(require 'remember-themes)
 (remember-theme-load)
 (add-hook 'kill-emacs-hook 'remember-theme-save)
 

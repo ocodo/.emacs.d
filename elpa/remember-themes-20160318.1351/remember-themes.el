@@ -2,12 +2,12 @@
 
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; Url: https://github.com/jasonm23/emacs-remember-theme
-;; Version: 20150308.1931
+;; Version: 20160318.1351
 
 ;;; Commentary:
 
 ;; I keep my `.emacs` in source control, and use the same defaults on all
-;; the machines I use. However, I like to have different themes on
+;; the machines I use. However, I do like to have different themes on
 ;; different machines.
 ;;
 ;; To help me do this automatically, I've created this little feature that
@@ -26,11 +26,11 @@
 ;; (remember-theme-load)
 ;; (add-hook 'kill-emacs-hook 'remember-theme-save)
 ;;
-;; Install with: `M-x package-install remember-themes`
+;; Install with: `M-x package-install remember-theme`
 
 ;;; Changelog:
 ;; 20160210.1644
-;; * Rename to remember-themes to stop custom-available-themes listing this package as a theme
+;; * Rename to avoid inclusion in custom-available-themes
 ;; 20150308.1931
 ;; * Stop forcing load at after-init, update instructions.
 ;; 20140122.1500
@@ -83,7 +83,7 @@
 
 ;;;###autoload
 (defun remember-theme-read ()
-"Return first line from `remember-theme-emacs-dot-file'."
+  "Return first line from `remember-theme-emacs-dot-file'."
   (with-temp-buffer
     (insert-file-contents remember-theme-emacs-dot-file)
     (car (split-string (buffer-string) "\n" t))))
@@ -113,15 +113,13 @@ Any currently loaded themes will be disabled and the theme named in
 `remember-theme-emacs-dot-file' will be loaded.
 
 If no `remember-theme-emacs-dot-file' file exists the operation is skipped."
-    (when (file-exists-p remember-theme-emacs-dot-file)
-      (loop for theme
-            in custom-enabled-themes
-            do (disable-theme theme))
-      (let* ((theme-name (remember-theme-read))
-             (theme-symbol (intern theme-name)))
-        (unless (member theme-symbol custom-enabled-themes)
-          (require (intern (format "%s-theme" theme-name))))
-        (load-theme theme-symbol))
+  (when (file-exists-p remember-theme-emacs-dot-file)
+    (mapc 'disable-theme custom-enabled-themes)
+    (let* ((theme-name (remember-theme-read))
+           (theme-symbol (intern theme-name)))
+      (unless (member theme-symbol custom-enabled-themes)
+        (require (intern (format "%s-theme" theme-name))))
+      (load-theme theme-symbol))
     (run-hooks 'remember-theme-after-load-hook)))
 
 (provide 'remember-themes)

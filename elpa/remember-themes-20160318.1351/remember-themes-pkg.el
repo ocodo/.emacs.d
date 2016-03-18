@@ -1,0 +1,1 @@
+(define-package #("remember-themes" 0 15 (face font-lock-constant-face fontified t)) "20160318.1351" "Remembers the last theme in use and re-loads for the next session." '((emacs "24.1")) :url "https://github.com/jasonm23/emacs-remember-theme")

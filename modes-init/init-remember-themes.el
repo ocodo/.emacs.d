@@ -1,1 +1,1 @@
-../available-inits/init-remember-theme.el
+../available-inits/init-remember-themes.el
