@@ -492,9 +492,12 @@ STOP-AT-STRING is not true, over strings."
 
   (let (pos (start-pos (point)))
     (skip-chars-backward "\n\s\t")
-    (if (and (save-excursion (beginning-of-line) (go-in-string-p)) (looking-back "`") (not stop-at-string))
+    (if (and (save-excursion (beginning-of-line) (go-in-string-p))
+             (looking-back "`")
+             (not stop-at-string))
         (backward-char))
-    (if (and (go-in-string-p) (not stop-at-string))
+    (if (and (go-in-string-p)
+             (not stop-at-string))
         (go-goto-beginning-of-string-or-comment))
     (if (looking-back "\\*/")
         (backward-char))
@@ -502,7 +505,8 @@ STOP-AT-STRING is not true, over strings."
         (go-goto-beginning-of-string-or-comment))
     (setq pos (point))
     (beginning-of-line)
-    (if (or (looking-at (concat "^" go-label-regexp ":")) (looking-at "^[[:space:]]*\\(case .+\\|default\\):"))
+    (if (or (looking-at (concat "^" go-label-regexp ":"))
+            (looking-at "^[[:space:]]*\\(case .+\\|default\\):"))
         (end-of-line 0)
       (goto-char pos))
     (if (/= start-pos (point))
@@ -903,7 +907,7 @@ Playground (uploading and downloading pastes).
 The following extra functions are defined:
 
 - `gofmt'
-- `godoc'
+- `godoc' and `godoc-at-point'
 - `go-import-add'
 - `go-remove-unused-imports'
 - `go-goto-arguments'
@@ -917,6 +921,8 @@ The following extra functions are defined:
 - `go-download-play'
 - `godef-describe' and `godef-jump'
 - `go-coverage'
+- `go-set-project'
+- `go-reset-gopath'
 
 If you want to automatically run `gofmt' before saving a file,
 add the following hook to your emacs configuration:
@@ -1353,11 +1359,10 @@ uncommented, otherwise a new import will be added."
           ('none (insert "\nimport (\n\t" line "\n)\n")))))))
 
 (defun go-root-and-paths ()
-  (let* ((output (split-string (shell-command-to-string (concat go-command " env GOROOT GOPATH"))
-                               "\n"))
+  (let* ((output (process-lines go-command "env" "GOROOT" "GOPATH"))
          (root (car output))
          (paths (split-string (cadr output) path-separator)))
-    (append (list root) paths)))
+    (cons root paths)))
 
 (defun go--string-prefix-p (s1 s2 &optional ignore-case)
   "Return non-nil if S1 is a prefix of S2.
@@ -1407,16 +1412,9 @@ archive files in /pkg/"
 
 (defun go-packages-go-list ()
   "Return a list of all Go packages, using `go list'"
-  (with-temp-buffer
-    (call-process go-command nil (current-buffer) nil "list" "-e" "all")
-    (split-string (buffer-string) "\n" t)))
+  (process-lines go-command "list" "-e" "all"))
 
 (defun go-unused-imports-lines ()
-  ;; FIXME Technically, -o /dev/null fails in quite some cases (on
-  ;; Windows, when compiling from within GOPATH). Practically,
-  ;; however, it has the same end result: There won't be a
-  ;; compiled binary/archive, and we'll get our import errors when
-  ;; there are any.
   (reverse (remove nil
                    (mapcar
                     (lambda (line)
@@ -1429,7 +1427,7 @@ archive files in /pkg/"
                                    (concat go-command
                                            (if (string-match "_test\\.go$" buffer-file-truename)
                                                " test -c"
-                                             " build -o /dev/null")
+                                             (concat " build -o " null-device))
                                            " -gcflags=-e"
                                            " "
                                            (shell-quote-argument (file-truename buffer-file-name)))) "\n")))))
