@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "grails" "grails.el" (22246 12071 902654 215000))
+;;;### (autoloads nil "grails" "grails.el" (22253 5331 51290 605000))
 ;;; Generated autoloads from grails.el
 
 (autoload 'grails "grails" "\
