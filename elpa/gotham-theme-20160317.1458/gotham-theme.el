@@ -4,8 +4,8 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20160313.650
-;; Version: 1.1.5
+;; Package-Version: 20160317.1458
+;; Version: 1.1.6
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -226,6 +226,9 @@ depending on DISPLAY for keys which are either :foreground or
    (ediff-odd-diff-C :background base2)
    ;(ediff-odd-diff-Ancestor)
 
+   ;; eldoc
+   (eldoc-highlight-function-argument :foreground orange :weight bold)
+
    ;; eshell
    (eshell-prompt :foreground yellow :weight bold)
    (eshell-ls-archive :foreground magenta)
@@ -254,6 +257,71 @@ depending on DISPLAY for keys which are either :foreground or
    ;; flyspell
    (flyspell-duplicate :underline (:style wave :color orange))
    (flyspell-incorrect :underline (:style wave :color red))
+
+   ;; gnus
+   (gnus-emphasis-highlight-words :foreground orange)
+   (gnus-header-content :inherit italic :foreground green)
+   (gnus-header-from :foreground base4)
+   (gnus-header-name :foreground magenta)
+   (gnus-header-newsgroups :inherit italic :foreground yellow)
+   (gnus-header-subject :foreground base5)
+   (gnus-x-face :foreground base0 :background base6)
+   (gnus-signature :inherit italic :foreground blue)
+   (mm-uu-extract :foreground base6 :background red)
+   (gnus-cite-1 :foreground base4)
+   (gnus-cite-2 :foreground base5)
+   (gnus-cite-3 :foreground base6)
+   (gnus-cite-4 :foreground base7)
+   (gnus-cite-5 :foreground green)
+   (gnus-cite-6 :foreground yellow)
+   (gnus-cite-7 :foreground orange)
+   (gnus-cite-8 :foreground red)
+   (gnus-cite-9 :foreground cyan)
+   (gnus-cite-10 :foreground magenta)
+   (gnus-cite-11 :foreground blue)
+   (gnus-group-mail-1 :foreground green :weight bold)
+   (gnus-group-mail-1-empty :foreground green)
+   (gnus-group-mail-2 :foreground cyan :weight bold)
+   (gnus-group-mail-2-empty :foreground cyan)
+   (gnus-group-mail-3 :foreground violet :weight bold)
+   (gnus-group-mail-3-empty :foreground violet)
+   (gnus-group-mail-low :foreground base5 :weight bold)
+   (gnus-group-mail-low-empty :foreground base5)
+   (gnus-group-news-1 :foreground base4 :weight bold)
+   (gnus-group-news-1-empty :foreground base4)
+   (gnus-group-news-2 :foreground magenta :weight bold)
+   (gnus-group-news-2-empty :foreground magenta)
+   (gnus-group-news-3 :foreground base7 :weight bold)
+   (gnus-group-news-3-empty :foreground base7)
+   (gnus-group-news-4 :foreground violet :weight bold)
+   (gnus-group-news-empty :foreground violet)
+   (gnus-group-news-5 :foreground cyan :weight bold)
+   (gnus-group-news-5-empty :foreground cyan)
+   (gnus-group-news-6 :foreground green :weight bold)
+   (gnus-group-news-6-empty :foreground green)
+   (gnus-group-news-low :foreground blue :weight bold)
+   (gnus-group-news-low-empty :foreground blue)
+   (gnus-splash :foreground base6)
+   (gnus-summary-cancelled :foreground yellow)
+   (gnus-summary-high-ancient :foreground blue :weight bold)
+   (gnus-summary-high-read :foreground green :weight bold)
+   (gnus-summary-high-ticked :foreground base7 :weight bold)
+   (gnus-summary-high-undownloaded :foreground base5 :weight bold)
+   (gnus-summary-low-ancient :inherit italic :foreground blue)
+   (gnus-summary-low-read :inherit italic :foreground green)
+   (gnus-summary-low-ticked :inherit italic :foreground base7)
+   (gnus-summary-low-undownloaded :inherit italic :foreground base4)
+   (gnus-summary-normal-ancient :foreground blue)
+   (gnus-summary-normal-read :foreground green)
+   (gnus-summary-normal-ticked :foreground base7)
+   (gnus-summary-normal-undownloaded :foreground base5)
+   (gnus-summary-normal-unread :foreground base4)
+   (gnus-server-agent :foreground base6 :weight bold)
+   (gnus-server-closed :inherit italic :foreground base4)
+   (gnus-server-cloud :foreground green :weight bold)
+   (gnus-server-denied :foreground magenta :weight bold)
+   (gnus-server-offline :foreground yellow :weight bold)
+   (gnus-server-opened :foreground base5 :weight bold)
 
    ;; ido
    (ido-first-match :foreground yellow :weight bold)
@@ -363,6 +431,10 @@ depending on DISPLAY for keys which are either :foreground or
    (ace-jump-face-foreground :foreground red :background unspecified)
    (ace-jump-face-background :foreground base4 :background unspecified)
 
+   ;; ace-window
+   (aw-background-face :foreground base3)
+   (aw-leading-char-face :foreground base7 :background base3)
+
    ;; anzu
    (anzu-mode-line :foreground orange :weight bold)
    (anzu-replace-highlight :foreground base6 :background red)
@@ -392,6 +464,13 @@ depending on DISPLAY for keys which are either :foreground or
    ;; auto-complete
    (ac-completion-face :foreground base7 :background base4)
 
+   ;; avy
+   (avy-background-face :foreground base3)
+   (avy-lead-face :foreground base7 :background base3)
+   (avy-lead-face-0 :foreground base0 :background base4)
+   (avy-lead-face-1 :foreground base0 :background magenta)
+   (avy-lead-face-2 :foreground base0 :background green)
+
    ;; circe
    (circe-fool-face :inherit shadow)
    (circe-highlight-nick-face :foreground base5 :weight bold)
@@ -414,6 +493,11 @@ depending on DISPLAY for keys which are either :foreground or
    (company-tooltip-mouse :foreground base7 :background base4)
    (company-tooltip-selection :foreground base7 :background base4)
 
+   ;; diff-hl
+   (diff-hl-change :foreground cyan)
+   (diff-hl-delete :foreground red)
+   (diff-hl-insert :foreground green)
+
    ;; ecb
    (ecb-default-highlight-face :background violet)
    (ecb-method-non-semantic-face :foreground orange)
@@ -435,6 +519,13 @@ depending on DISPLAY for keys which are either :foreground or
    (enh-ruby-string-delimiter-face :foreground green)
    (erm-syn-errline :foreground red)
    (erm-syn-warnline :foreground orange)
+
+   ;; geiser
+   (geiser-font-lock-autodoc-current-arg :foreground orange)
+   (geiser-font-lock-autodoc-identifier :foreground magenta)
+   (geiser-font-lock-doc-link :foreground blue :underline t)
+   (geiser-font-lock-error-link :foreground cyan :underline t)
+   (geiser-font-lock-xref-link :foreground green :underline t)
 
    ;; helm
    (helm-bookmark-addressbook :foreground orange)
@@ -479,6 +570,19 @@ depending on DISPLAY for keys which are either :foreground or
    (hydra-face-teal :foreground green :bold t)
    (hydra-face-pink :foreground orange :bold t)
    (hydra-face-amaranth :foreground magenta :bold t)
+
+   ;; ivy
+   (ivy-confirm-face :foreground cyan)
+   (ivy-current-match :foreground base7 :background base3)
+   (ivy-match-required :foreground red)
+   (ivy-minibuffer-match-face-1 :foreground base0 :background base4)
+   (ivy-minibuffer-match-face-2 :foreground base0 :background magenta)
+   (ivy-minibuffer-match-face-3 :foreground base0 :background green)
+   (ivy-minibuffer-match-face-4 :foreground base0 :background base5)
+   (ivy-modified-buffer :foreground yellow)
+   (ivy-remote :foreground violet)
+   (ivy-subdir :foreground red)
+   (ivy-virtual :foreground green)
 
    ;; jabber
    (jabber-activity-face :foreground green)
@@ -601,6 +705,14 @@ depending on DISPLAY for keys which are either :foreground or
    (markdown-header-face-5 :background base3)
    (markdown-header-face-6 :background base4)
 
+   ;; macrostep
+   (macrostep-expansion-highlight-face :inherit highlight)
+   (macrostep-gensym-1 :foreground blue :weight bold :box t)
+   (macrostep-gensym-2 :foreground green :weight bold :box t)
+   (macrostep-gensym-3 :foreground yellow :weight bold :box t)
+   (macrostep-gensym-4 :foreground red :weight bold :box t)
+   (macrostep-gensym-5 :foreground magenta :weight bold :box t)
+
    ;; mu4e
    (mu4e-header-highlight-face :inherit hl-line)
    (mu4e-region-code :inherit region)
@@ -678,6 +790,14 @@ depending on DISPLAY for keys which are either :foreground or
    (rst-level-5 :background base3)
    (rst-level-6 :background base4)
 
+   ;; slime
+   (slime-error-face :underline (:style wave :color red))
+   (slime-note-face :underline (:style wave :color magenta))
+   (slime-style-warning-face :underline (:style wave :color green))
+   (slime-warning-face :underline (:style wave :color orange))
+   (sldb-restartable-frame-line-face :foreground green)
+   (slime-repl-inputed-output-face :foreground red)
+
    ;; smartparens
    (sp-show-pair-match-face :inherit show-paren-match)
    (sp-show-pair-mismatch-face :inherit show-paren-mismatch)
@@ -695,7 +815,7 @@ depending on DISPLAY for keys which are either :foreground or
    (sml/read-only :foreground yellow)
 
    ;; volatile-highlights
-   (vhl/default-face :background base2)
+   (vhl/default-face :inherit highlight)
 
    ;; web-mode
    (web-mode-block-attr-name-face :foreground green)
