@@ -1,10 +1,10 @@
 ;;; google.el --- Emacs interface to the Google API
-;; Version: 20140330.856
 
 ;; Copyright (C) 2002, 2008  Edward O'Connor <ted@oconnor.cx>
 
 ;; Author: Edward O'Connor <ted@oconnor.cx>
 ;; Keywords: comm, processes, tools
+;; Package-Version: 20140416.1048
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
