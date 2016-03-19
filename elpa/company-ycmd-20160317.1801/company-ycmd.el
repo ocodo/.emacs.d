@@ -5,7 +5,7 @@
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
 ;; version: 0.1
-;; Package-Version: 20160310.105
+;; Package-Version: 20160317.1801
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((ycmd "0.1") (company "0.8.3") (deferred "0.2.0") (s "1.9.0") (dash "1.2.0"))
 ;;
@@ -254,7 +254,7 @@ Replace any newline characters with spaces."
                       ;; Regex to match everything between parentheses, including
                       ;; newline.
                       ;; https://www.emacswiki.org/emacs/MultilineRegexp
-                      "(\\([\0-\377[:nonascii:]]*\\)).*")
+                      "(\\([\0-\377[:nonascii:]]*?\\)).*")
               function-sig))
     (company-ycmd--remove-self-from-function-args
      (s-replace "\n" " " (match-string 1 function-sig)))))
@@ -357,7 +357,7 @@ candidates list."
 (defun company-ycmd--get-construct-candidate-fn ()
   "Return function to construct candidate(s) for current `major-mode'."
   (pcase (car-safe (ycmd-major-mode-to-file-types major-mode))
-    ((or "cpp" "c" "objc") 'company-ycmd--construct-candidate-clang)
+    ((or `"cpp" `"c" `"objc") 'company-ycmd--construct-candidate-clang)
     ("go" 'company-ycmd--construct-candidate-go)
     ("python" 'company-ycmd--construct-candidate-python)
     ("rust" 'company-ycmd--construct-candidate-rust)
@@ -437,7 +437,7 @@ If CB is non-nil, call it with candidates."
        (ycmd-running?)
        (or (not (company-in-string-or-comment))
            (company-ycmd--in-include))
-       (or (company-grab-symbol-cons "\\.\\|->\\|::" 2)
+       (or (company-grab-symbol-cons "\\.\\|->\\|::\\|/" 2)
            'stop)))
 
 (defun company-ycmd--candidates (prefix)
@@ -502,6 +502,14 @@ If CB is non-nil, call it with candidates."
 (defun company-ycmd-setup ()
   "Add company-ycmd to the front of company-backends."
   (add-to-list 'company-backends 'company-ycmd))
+
+(defun company-ycmd--init ()
+  (unless (eq company-minimum-prefix-length
+              ycmd-min-num-chars-for-completion)
+    (setq-local company-minimum-prefix-length
+                ycmd-min-num-chars-for-completion)))
+
+(add-hook 'ycmd-mode-hook #'company-ycmd--init)
 
 (provide 'company-ycmd)
 
