@@ -1,0 +1,3 @@
+mozbrowser [!] [Only available on Firefox OS]
+
+Indicates that the frame is to appear like a top-level browser window to the embedded content. This means that window.top, window.parent, window.frameElement, etc. will not reflect the frame hierarchy. This allows for a web browser UI to be implemented entirely with web technology, given the right permissions. See Using the Browser API for details. Available in Gecko 13.0 and later.

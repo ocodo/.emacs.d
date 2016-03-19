@@ -1,0 +1,4 @@
+sizes [Experimental]
+
+Is a list of source sizes that describes the final rendered width of the image represented by the source. Each source size consists of a comma-separated list of media condition-length pairs. This information is used by the browser to determine, before laying the page out, which image defined in srcset to use.
+The sizes attribute has an effect only when the <source> element is the direct child of a <picture> element.

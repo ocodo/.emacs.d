@@ -1,0 +1,3 @@
+declare [HTML4 only] [Obsolete since HTML5]
+
+The presence of this Boolean attribute makes this element a declaration only. The object must be instantiated by a subsequent <object> element. In HTML5, repeat the <object> element completely each that that the resource is reused.

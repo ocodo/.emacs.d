@@ -1,0 +1,10 @@
+accept accept [HTML4] [Trash]\n\nA comma-separated list of content types that the server accepts.\n\nUsage note: \nThis attribute has been removed in HTML5 and should no longer be used. Instead, use the accept attribute of the specific <input> element.
+accept-charset
+action action\n\nThe URI of a program that processes the form information. This value can be overridden by a formaction attribute on a <button> or <input> element.
+autocapitalize
+autocomplete
+enctype
+method
+name name\n\nThe name of the form. In HTML 4,its use is deprecated (id should be used instead). It must be unique among the forms in a document and not just an empty string in HTML 5.
+novalidate
+target

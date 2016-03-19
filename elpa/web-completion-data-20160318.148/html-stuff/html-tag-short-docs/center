@@ -1,0 +1,6 @@
+!DEPRECATED!
+
+The HTML Center Element (<center>) is a block-level element that can contain paragraphs and other block-level and inline elements. The entire content of this element is centered horizontally within its containing element (typically, the <body>). This tag has been deprecated in HTML 4 (and XHTML 1) in favor of the CSS text-align property, which can be applied to the <div> element or to an individual <p>.
+
+DOM Interface:
+This element implements the HTMLElement interface.

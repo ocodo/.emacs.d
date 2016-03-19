@@ -1,0 +1,22 @@
+Text to be displayed in a tooltip when hovering over the element.
+
+This attribute contains a text representing advisory information related to the element it belongs to. Such information can typically, but not necessarily, be presented to the user as a tooltip. Here are some typical uses of this attribute:
+
+Link: the title or a description of the linked document
+Media element like an image: a description or associated credits
+Paragraph: a footnote or a commentary about it
+Quotation: some information about the author, and so on.
+
+If this attribute is omitted, it means that the title of the nearest ancestor of this element is still relevant for it (and can legitimately be used as the tooltip for that element. If this attribute is set to the empty string, it explicitly means that its nearest ancestor's title is not relevant for this element (and shouldn't be used in the tooltip for that element).
+
+Additional semantics are attached to the title attributes of the <link>, <abbr>, <input> and <menuitem> elements.
+
+Usage note:
+The title attribute may contains several lines. Each U+000A LINE FEED (LF) inserted represents such a newline. Some caution must be taken though, as that means that:
+
+<p>Newlines in title should be taken into account,like this <abbr title="This is a
+multiline title">example</abbr>.</p>
+
+defines a two-line title.
+
+Support for multi-line titles was added to Gecko in Gecko 12.0 (Firefox 12.0 / Thunderbird 12.0 / SeaMonkey 2.9).

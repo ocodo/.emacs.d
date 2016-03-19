@@ -1,0 +1,21 @@
+The HTML <address> Element may be used by authors to supply contact information for its nearest <article> or <body> ancestor; in the latter case, it applies to the whole document.
+
+Usage note:
+To represent an arbitrary address, one that is not related to the contact information, use a <p> element rather than the <address> element.
+This element should not contain more information than the contact information, like a publication date (which belongs in a <time> element).
+Typically an <address> element can be placed inside the <footer> element of the current section, if any.
+
+Content categories:
+Flow content, palpable content.
+
+Permitted content:
+Flow content, but with no nested <address> element, no heading content (<hgroup>, <h1>, <h2>, <h3>, <h4>, <h5>, <h6>), no sectioning content (<article>, <aside>, <section>, <nav>), and no <header> or <footer> element.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content.
+
+DOM interface:
+HTMLElement Prior to Gecko 2.0 (Firefox 4), Gecko implemented this element using the HTMLSpanElement interface.

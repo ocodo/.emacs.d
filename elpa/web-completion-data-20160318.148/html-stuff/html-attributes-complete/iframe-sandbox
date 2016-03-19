@@ -1,0 +1,4 @@
+allow-forms Allows form submission
+allow-same-origin Allows the iframe content to be treated as being from the same origin as the containing document
+allow-scripts Allows script execution
+allow-top-navigation Allows the iframe content to navigate (load) content from the containing document

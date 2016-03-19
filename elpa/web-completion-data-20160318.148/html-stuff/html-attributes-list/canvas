@@ -1,0 +1,3 @@
+height height\n\nThe height of the coordinate space in CSS pixels. Defaults to 150.
+moz-opaque moz-opaque\n\nLets the canvas know whether or not translucency will be a factor. If the canvas knows there's no translucency, painting performance can be optimized.
+width width\n\nThe width of the coordinate space in CSS pixels. Defaults to 300.

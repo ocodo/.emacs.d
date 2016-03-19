@@ -1,0 +1,13 @@
+charset
+crossorigin
+disabled
+href href\n\nThis attribute specifies the URL of the linked resource. A URL might be absolute or relative.
+hreflang hreflang\n\nThis attribute indicates the language of the linked resource. It is purely advisory. Allowed values are determined by BCP47 for HTML5 and by RFC1766 for HTML 4. Use this attribute only if the href attribute is present.
+media
+methods
+rel
+rev
+sizes
+target target [!]\n\nDefines the frame or window name that has the defined linking relationship or that will show the rendering of any linked resource.
+type
+use-credentials

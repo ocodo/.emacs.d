@@ -1,0 +1,25 @@
+The HTML <menu> element represents a group of commands that a user can perform or activate. This includes both toolbar menus, which might appear across the top of a screen, as well as popup menus, such as those that might appear underneath a button after it has been clicked.
+
+This is an experimental technology.
+
+Browser compatibility:
+Unknown
+
+Usage note: 
+The <menu> and <ul> elements both represent an unordered list of items. The key difference is that <ul> primarily contains items for display, whilst <menu> is intended for interactive items, to act on.
+
+Content categories:
+Flow content. Additionally, if in the toolbar menu state, palpable content. (Toolbar menu is the default state, unless the parent element is a <menu> in the popup menu state.)
+
+Permitted content:
+If the element is in the toolbar menu state: flow content, or alternatively, zero or more occurences of <li>, <script> and <template>.
+If the element is in the popup menu state: zero or more occurences, in any order, of <menu> (popup menu state only), <menuitem>, <hr>, <script>, and <template>.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content.
+
+DOM interface:
+HTMLMenuElement

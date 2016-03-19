@@ -1,0 +1,16 @@
+The HTML <col> Element (or HTML Table Column Element) defines a column within a table and is used for defining common semantics on all common cells. It is generally found within a <colgroup> element.
+
+Content categories:
+None.
+
+Permitted content:
+None, it is an empty element.
+
+Tag omission:
+The start tag is mandatory, but, as it is a void element, the use of an end tag is forbidden.
+
+Permitted parent elements:
+<colgroup> only, though it can be implicitly defined as its start tag is not mandatory. The <colgroup> must not have a span attribute.
+
+DOM interface:
+HTMLTableColElement

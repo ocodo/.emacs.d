@@ -1,0 +1,7 @@
+autofocus
+disabled
+form
+multiple multiple\n\nThis Boolean attribute indicates that multiple options can be selected in the list. If it is not specified, then only one option can be selected at a time.
+name name\n\nThe name of the control.
+required required [HTML5]\n\nA Boolean attribute indicating that an option with a non-empty string value must be selected.
+size

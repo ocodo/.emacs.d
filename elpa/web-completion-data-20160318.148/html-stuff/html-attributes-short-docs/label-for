@@ -1,0 +1,6 @@
+for
+
+The ID of a labelable form-related element in the same document as the label element. The first such element in the document with an ID matching the value of the for attribute is the labeled control for this label element.
+
+Note: 
+A label element can have both a for attribute and a contained control element, as long as the for attribute points to the contained control element.

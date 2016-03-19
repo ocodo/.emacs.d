@@ -1,0 +1,20 @@
+The HTML <figure> Element represents self-contained content, frequently with a caption (<figcaption>), and is typically referenced as a single unit. While it is related to the main flow, its position is independent of the main flow. Usually this is an image, an illustration, a diagram, a code snippet, or a schema that is referenced in the main text, but that can be moved to another page or to an appendix without affecting the main flow.
+
+Usage notes:
+Being a sectioning root, the outline of the content of the <figure> element is excluded from the main outline of the document.
+A caption can be associated with the <figure> element by inserting a <figcaption> inside it (as the first or the last child).
+
+Content categories:
+Flow content, sectioning root, palpable content.
+
+Permitted content:
+A <figcaption> element, followed by flow content; or flow content followed by a <figcaption> element; or flow content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts Flow content.
+
+DOM interface:
+HTMLElement

@@ -1,0 +1,35 @@
+autobuffer
+autoplay autoplay\n\nA Boolean attribute; if specified (even if the value is "false"!), the audio will automatically begin to play back as soon as it can do so without stopping to finish loading the data.
+buffered An attribute you can read to determine which time ranges of the media have been buffered. This attribute contains a TimeRanges object.
+controls controls\n\nIf this attribute is present, the browser will offer controls to allow the user to control audio playback, including volume, seeking, and pause/resume playback.
+loop loop\n\nA Boolean attribute; if specified, we will, upon reaching the end of the audio, automatically seek back to the start.
+mosCurrentSampleOffset
+mozCurrentSampleOffset mozCurrentSampleOffset\n\nThe offset, specified as the number of samples since the beginning of the audio stream, at which the audio is currently playing.
+muted A Boolean attribute which indicates whether the audio will be initially silenced. Its default value is false, meaning that the audio will be played.
+onabort Script to be run on abort
+oncanplay [HTML5]\n\nScript to be run when a file is ready to start playing (when it has buffered enough to begin)
+oncanplaythrough [HTML5]\n\nScript to be run when a file can be played all the way to the end without pausing for buffering
+oncuechange [HTML5]\n\nScript to be run when the cue changes in a <track> element
+ondurationchange [HTML5]\n\nScript to be run when the length of the media changes
+onemptied [HTML5]\n\nScript to be run when something bad happens and the file is suddenly unavailable (like unexpectedly disconnects)
+onended [HTML5]\n\nScript to be run when the media has reach the end (a useful event for messages like "thanks for listening")
+onerror [HTML5]\n\nScript to be run when an error occurs when the file is being loaded
+onloadeddata [HTML5]\n\nScript to be run when media data is loaded
+onloadedmetadata [HTML5]\n\nScript to be run when meta data (like dimensions and duration) are loaded
+onloadstart [HTML5]\n\nScript to be run just as the file begins to load before anything is actually loaded
+onpause [HTML5]\n\nScript to be run when the media is paused either by the user or programmatically
+onplay [HTML5]\n\nScript to be run when the media is ready to start playing
+onplaying [HTML5]\n\nScript to be run when the media actually has started playing
+onprogress [HTML5]\n\nScript to be run when the browser is in the process of getting the media data
+onratechange [HTML5]\n\nScript to be run each time the playback rate changes (like when a user switches to a slow motion or fast forward mode)
+onseeked [HTML5]\n\nScript to be run when the seeking attribute is set to false indicating that seeking has ended
+onseeking [HTML5]\n\nScript to be run when the seeking attribute is set to true indicating that seeking is active
+onstalled [HTML5]\n\nScript to be run when the browser is unable to fetch the media data for whatever reason
+onsuspend [HTML5]\n\nScript to be run when fetching the media data is stopped before it is completely loaded for whatever reason
+ontimeupdate [HTML5]\n\nScript to be run when the playing position has changed (like when the user fast forwards to a different point in the media)
+onvolumechange [HTML5]\n\nScript to be run each time the volume is changed which (includes setting the volume to "mute")
+onwaiting [HTML5]\n\nScript to be run when the media has paused but is expected to resume (like when the media pauses to buffer more data)
+played A TimeRanges object indicating all the ranges of the audio that have been played.
+preload
+src src\n\nThe URL of the audio to embed. This is subject to HTTP access controls. This is optional; you may instead use the <source> element within the audio block to specify the audio to embed.
+volume volume\n\nThe playback volume of any audio portions, in the range 0.0 (silent) to 1.0 (loudest).

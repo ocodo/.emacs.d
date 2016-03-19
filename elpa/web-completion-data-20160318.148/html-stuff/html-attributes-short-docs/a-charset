@@ -1,0 +1,7 @@
+charset [Obsolete since HTML5]
+
+This attribute defines the character encoding of the linked resource. The value is a space- and/or comma-delimited list of character sets as defined in RFC 2045. The default value is ISO-8859-1.
+
+Usage note: 
+
+This attribute is obsolete in HTML5 and should not be used by authors. To achieve its effect, use the HTTP Content-Type header on the linked resource.

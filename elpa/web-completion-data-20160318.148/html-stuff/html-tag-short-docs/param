@@ -1,0 +1,16 @@
+The HTML <param> Element (or HTML Parameter Element) defines parameters for <object>.
+
+Content categories:
+None.
+
+Permitted content:
+None, it is an empty element.
+
+Tag omission:
+As it is a void element, the start tag must be present and the end tag must not be present.
+
+Permitted parent elements:
+An <object> before any flow content.
+
+DOM interface:
+HTMLParamElement

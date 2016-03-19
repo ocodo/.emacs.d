@@ -1,0 +1,19 @@
+The HTML <hr> element represents a thematic break between paragraph-level elements (for example, a change of scene in a story, or a shift of topic with a section). In previous versions of HTML, it represented a horizontal rule. It may still be displayed as a horizontal rule in visual browsers, but is now defined in semantic terms, rather than presentational terms.
+
+Content categories:
+Flow content.
+
+Permitted content:
+None, it is an empty element.
+
+Tag omission:
+It must have start tag, but must not have an end tag.
+
+Permitted parent elements:
+Any element that accepts flow content.
+
+DOM interface:
+HTMLHRElement
+
+Notes:
+To change look of rule or gaps between it and paragraphs, use cascading style sheets.

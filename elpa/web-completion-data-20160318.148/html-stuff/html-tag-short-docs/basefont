@@ -1,0 +1,15 @@
+OBSOLETE
+The HTML basefont element (<basefont>) establishes a default font size for a document. Font size then can be varied relative to the base font size using the <font> element.
+
+Usage note:
+
+Do not use this element! Though once (imprecisely) normalized in HTML 3.2, it wasn't supported in all major browsers. Further, browsers, and even successive versions of browsers, never implemented it in the same way: practically, using it has always brought indeterminate results.
+
+The <basefont> element was deprecated in the standard at the same time as all elements related to styling only. Starting with HTML 4, HTML does not convey styling information anymore (outside the <style> element or the style attribute of each element). In HTML5, this element has been removed completely. For any new web development, styling should be written using CSS only.
+
+The former behavior of the <font> element can be achieved, and even better controlled using the font, font-family, font-size, font-size-adjust, font-stretch, font-style, font-variant, font-weight, @font-face properties.
+
+DOM interface:
+This element implements the HTMLBaseFontElement interface.
+
+Only IE supports this.

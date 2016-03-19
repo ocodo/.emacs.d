@@ -1,0 +1,7 @@
+async
+crossorigin
+defer
+language language [Deprecated]\n\nLike the type attribute, this attribute identifies the scripting language in use. Unlike the type attribute, however, this attribute’s possible values were never standardized. The type attribute should be used instead.
+onerror [HTML5]\n\nFires when an error occurs while loading an external file
+src src\n\nThis attribute specifies the URI of an external script; this can be used as an alternative to embedding a script directly within a document. script elements with an src attribute specified should not have a script embedded within its tags.
+type

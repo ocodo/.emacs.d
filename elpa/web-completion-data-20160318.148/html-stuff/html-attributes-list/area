@@ -1,0 +1,14 @@
+alt
+coords
+download download [HTML5]\n\nThis attribute, if present, indicates that the author intends the hyperlink to be used for downloading a resource. See <a> for a full description of the download attribute.
+href
+hreflang hreflang [HTML5]\n\nIndicates the language of the linked resource. Allowed values are determined by BCP47. Use this attribute only if the href attribute is present.
+media media [HTML5]\n\nA hint of the media for which the linked resource was designed, for example print and screen. If omitted, it defaults to all. Use this attribute only if the href attribute is present.
+name name [HTML4 only] [Obsolete since Gecko 5.0]\n\nDefine a names for the clickable area so that it can be scripted by older browsers.
+nohref
+ref
+rel
+shape
+tabindex tabindex [HTML4 only] [Obsolete since Gecko 5.0]\n\nA numeric value specifying the position of the defined area in the browser tabbing order. This attribute is global in HTML5.
+target
+type

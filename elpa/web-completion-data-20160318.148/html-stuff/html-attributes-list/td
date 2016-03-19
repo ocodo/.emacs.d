@@ -1,0 +1,3 @@
+colspan
+headers headers\n\nThis attribute contains a list of space-separated strings, each corresponding to the id attribute of the <th> elements that apply to this element.
+rowspan

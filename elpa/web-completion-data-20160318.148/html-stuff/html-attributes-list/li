@@ -1,0 +1,2 @@
+type type [Deprecated]\n\nThis type overrides the one used by its parent <ol> element, if any.\n\nUsage note: \nThis attribute has been deprecated: use the CSS list-style-type property instead.
+value

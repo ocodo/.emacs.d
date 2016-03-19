@@ -1,0 +1,7 @@
+sizes [HTML5]
+
+A list of one or more strings separated by commas indicating a set of source sizes. Each source size consists of:
+  1.an optional media condition,
+  2.a source size value. The default, if missing, is 100vw.
+  
+Source sizes values are used to specify the intended size of the image, for the purpose of selecting a source from the list supplied by the srcset attribute. The selected size becomes the intrinsic size of the image (images inherent size if no explicit CSS styling is applied). If the srcset attribute is absent, or contains no values with a width descriptor, then the sizes attribute has no effect.

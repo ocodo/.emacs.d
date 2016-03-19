@@ -1,0 +1,5 @@
+media media [Experimental]\n\nMedia query of the resource's intended media; this should be used only in a <picture> element.
+sizes
+src src\n\nRequired, address of the media resource. The value of this attribute is ignored when the <source> element is placed inside a <picture> element.
+srcset
+type type\n\nThe MIME-type of the resource, optionally with a codecs parameter. See RFC 4281 for information about how to specify codecs.
