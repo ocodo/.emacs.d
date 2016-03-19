@@ -323,19 +323,15 @@ Return nil on valid file name remote or not."
   "Return a string showing SIZE of a file in human readable form.
 SIZE can be an integer or a float depending it's value.
 `file-attributes' will take care of that to avoid overflow error.
-KBSIZE if a floating point number, defaulting to `helm-default-kbsize'."
-  (let ((M (cons "M" (/ size (expt kbsize 2))))
-        (G (cons "G" (/ size (expt kbsize 3))))
-        (K (cons "K" (/ size kbsize)))
-        (B (cons "B" size)))
-    (cl-loop with result = B
-          for (a . b) in
-          (cl-loop for (x . y) in (list M G K B)
-                unless (< y 1) collect (cons x y))
-          when (< b (cdr result)) do (setq result (cons a b))
-          finally return (if (string= (car result) "B")
-                             (format "%s" size)
-                           (format "%.1f%s" (cdr result) (car result))))))
+KBSIZE is a floating point number, defaulting to `helm-default-kbsize'."
+  (cl-loop with result = (cons "B" size)
+           for i in '("k" "M" "G" "T" "P" "E" "Z" "Y")
+           while (>= (cdr result) kbsize)
+           do (setq result (cons i (/ (cdr result) kbsize)))
+           finally return
+           (pcase (car result)
+             (`"B" (format "%s" size))
+             (suffix (format "%.1f%s" (cdr result) suffix)))))
 
 (cl-defun helm-file-attributes
     (file &key type links uid gid access-time modif-time

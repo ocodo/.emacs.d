@@ -338,7 +338,7 @@ in other window according to the value of `helm-elisp-help-function'."
            ;; When there is no way to know what to describe
            ;; prefer describe-function.
            (helm-describe-function sym)))
-      (fboundp  (helm-describe-function sym))
+      (fbound  (helm-describe-function sym))
       (bound    (helm-describe-variable sym))
       (face     (helm-describe-face sym)))))
 
@@ -880,10 +880,14 @@ Filename completion happen if string start after or between a double quote."
              "Eval" (lambda (candidate)
                       (and (boundp 'helm-sexp--last-sexp)
                            (setq helm-sexp--last-sexp candidate))
+                      (let ((command (read candidate)))
+                        (unless (equal command (car command-history))
+                          (setq command-history (cons command command-history))))
                       (run-with-timer 0.1 nil #'helm-sexp-eval candidate))
              "Edit and eval" (lambda (candidate)
                                (edit-and-eval-command "Eval: " (read candidate))))
-    :persistent-action #'helm-sexp-eval))
+    :persistent-action #'helm-sexp-eval
+    :multiline t))
 
 ;;;###autoload
 (defun helm-complex-command-history ()
