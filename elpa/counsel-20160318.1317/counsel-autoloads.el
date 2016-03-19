@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22246 12457 761626
-;;;;;;  199000))
+;;;### (autoloads nil "counsel" "counsel.el" (22253 5362 155306 713000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -65,7 +64,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 Show a list of all defined keys, and their definitions.
 Describe the selected candidate.
 
-\(fn)" t nil)
+\(fn &optional PREFIX BUFFER)" t nil)
 
 (autoload 'counsel-git "counsel" "\
 Find file in the current Git repository.
@@ -107,6 +106,13 @@ Grep for a string in the current directory using ag.
 INITIAL-INPUT can be given as the initial minibuffer input.
 
 \(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
+
+(autoload 'counsel-pt "counsel" "\
+Grep for a string in the current directory using pt.
+This uses `counsel-ag' with `counsel-pt-base-command' replacing
+`counsel-ag-base-command'.
+
+\(fn)" t nil)
 
 (autoload 'counsel-grep "counsel" "\
 Grep for a string in the current file.
@@ -150,9 +156,17 @@ Choose a song from the Rhythmbox library to play or enqueue.
 
 \(fn)" t nil)
 
+(autoload 'counsel-linux-app "counsel" "\
+Launch a Linux desktop application, similar to Alt-<F2>.
+
+\(fn)" t nil)
+
 (defvar counsel-mode nil "\
 Non-nil if Counsel mode is enabled.
-See the command `counsel-mode' for a description of this minor mode.")
+See the command `counsel-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `counsel-mode'.")
 
 (custom-autoload 'counsel-mode "counsel" nil)
 
@@ -160,7 +174,7 @@ See the command `counsel-mode' for a description of this minor mode.")
 Toggle Counsel mode on or off.
 Turn Counsel mode on if ARG is positive, off otherwise. Counsel
 mode remaps built-in emacs functions that have counsel
-replacements.
+replacements. 
 
 \(fn &optional ARG)" t nil)
 
