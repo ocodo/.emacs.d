@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22145 57611 282812 669000))
+;;;;;;  (22253 5348 731299 922000))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-project-root "find-file-in-project" "\
@@ -58,6 +58,11 @@ Get the full path of project root directory.
 
 \(fn)" nil nil)
 
+(autoload 'find-file-in-current-directory "find-file-in-project" "\
+Like `find-file-in-project'.  But search only in current directory.
+
+\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+
 (autoload 'find-file-in-project-by-selected "find-file-in-project" "\
 Similar to `find-file-in-project'.
 But use string from selected region to search files in the project.
@@ -70,6 +75,11 @@ For example, to find /home/john/proj1/test.js, below keywords are valid:
 - john*test
 
 If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
+
+\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+
+(autoload 'find-file-in-current-directory-by-selected "find-file-in-project" "\
+Like `find-file-in-project-by-selected'.  But search only in current directory.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
