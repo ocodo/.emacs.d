@@ -96,7 +96,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(font-lock-builtin-face                           ((t (:foreground ,color-13 :weight bold))))
    `(font-lock-comment-face                           ((t (:foreground ,color-7 :weight bold))))
    `(font-lock-comment-delimiter-face                 ((t (:foreground ,color-8))))
-   `(font-lock-constant-face                          ((t (:foreground ,color-13 :weight bold))))
+   `(font-lock-constant-face                          ((t (:foreground ,color-8 :weight bold))))
    `(font-lock-doc-face                               ((t (:foreground ,color-7))))
    `(font-lock-function-name-face                     ((t (:foreground ,color-12))))
    `(font-lock-keyword-face                           ((t (:foreground ,color-13 :weight bold))))
@@ -257,9 +257,9 @@ Also bind `class' to ((class color) (min-colors 89))."
    ;; flx
    `(flx-highlight-face                               ((t (:foreground ,color-11 :weight bold))))
    ;; flycheck
-   `(flycheck-error                                   ((((supports :underline (:style wave))) (:underline (:style wave :color ,color-1) :inherit unspecified)) (t (:foreground ,color-9 :weight bold :underline t))))
-   `(flycheck-warning                                 ((((supports :underline (:style wave))) (:underline (:style wave :color ,color-4) :inherit unspecified)) (t (:foreground ,color-13 :weight bold :underline t))))
-   `(flycheck-info                                    ((((supports :underline (:style wave))) (:underline (:style wave :color ,color-4) :inherit unspecified)) (t (:foreground ,color-12 :weight bold :underline t))))
+   `(flycheck-error                                   ((((supports :underline (:style wave))) (:underline (:style wave :color ,color-7) :inherit unspecified)) (t (:foreground ,color-13 :weight bold :underline t))))
+   `(flycheck-warning                                 ((((supports :underline (:style wave))) (:underline (:style wave :color ,color-6) :inherit unspecified)) (t (:foreground ,color-11 :weight bold :underline t))))
+   `(flycheck-info                                    ((((supports :underline (:style wave))) (:underline (:style wave :color ,color-5) :inherit unspecified)) (t (:foreground ,color-10 :weight bold :underline t))))
    `(flycheck-fringe-error                            ((t (:foreground ,color-1 :weight bold))))
    `(flycheck-fringe-warning                          ((t (:foreground ,color-4 :weight bold))))
    `(flycheck-fringe-info                             ((t (:foreground ,color-4 :weight bold))))
@@ -874,6 +874,8 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(geiser-font-lock-error-link                        ((t (:foreground ,color-11 :underline t))))
    `(geiser-font-lock-autodoc-identifier              ((t (:foreground ,color-8 :bold t))))
    `(compilation-error                                ((t (:foreground ,color-12 :underline t :bold t))))
+   ;; elixir
+   `(elixir-atom-face                                 ((t (:foreground ,color-12 :bold t))))
    )
 
   ;; Theme Variables
