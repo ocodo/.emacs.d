@@ -4,7 +4,7 @@
 ;;
 ;; Author: Florian Kaufmann <sensorflo@gmail.com>
 ;; URL: https://github.com/sensorflo/adoc-mode/wiki
-;; Package-Version: 20160313.1357
+;; Package-Version: 20160314.1430
 ;; Created: 2009
 ;; Version: 0.6.6
 ;; Package-Requires: ((markup-faces "1.0.0"))
@@ -156,7 +156,7 @@
 ;; - Other common Emacs functionality/features
 ;;   - demote/promote/create/delete titles/list-items. Also put emphasis on a
 ;;     convenient simple user interface.
-;;   - imenu / hideshow
+;;   - hideshow
 ;;   - outline mode shall support two line titles
 ;;   - tags tables for anchors, indixes, bibliography items, titles, ...
 ;;   - spell check shall ignore meta characters
@@ -756,15 +756,18 @@ has the correct length.
 DEL is described in `adoc-re-two-line-title-undlerline'.
 
 match-data has these sub groups:
-1 title's text
-2 delimiter
+
+1 dummy, so that group 2 is the title's text as in
+  adoc-re-one-line-title
+2 title's text
+3 delimiter
 0 only chars that belong to the title block element"
   (when (not (eq (length del) 2))
     (error "two line title delimiters must be 2 chars long"))
   (concat
    ;; 1st line: title text must contain at least one \w character, see
    ;; asciidoc src, Title.parse,
-   "\\(^.*?[a-zA-Z0-9_].*?\\)[ \t]*\n"
+   "\\(\\)\\(^.*?[a-zA-Z0-9_].*?\\)[ \t]*\n"
    ;; 2nd line: underline
    (adoc-re-two-line-title-undlerline del)))
 
@@ -1436,13 +1439,13 @@ text having adoc-reserved set to 'block-del."
    `(lambda (end)
       (and adoc-enable-two-line-title
            (re-search-forward ,(adoc-re-two-line-title del) end t)
-           (< (abs (- (length (match-string 1)) (length (match-string 2)))) 3)
+           (< (abs (- (length (match-string 2)) (length (match-string 3)))) 3)
 	   (or (not (numberp adoc-enable-two-line-title))
 	       (not (equal adoc-enable-two-line-title (length (match-string 2)))))
            (not (text-property-not-all (match-beginning 0) (match-end 0) 'adoc-reserved nil))))
    ;; highlighers
-   `(1 ,text-face t)
-   `(2 '(face markup-meta-hide-face adoc-reserved block-del) t)))
+   `(2 ,text-face t)
+   `(3 '(face markup-meta-hide-face adoc-reserved block-del) t)))
 
 ;; (defun adoc-?????-attributes (endpos enddelchar)
 ;;   (list
@@ -2739,7 +2742,7 @@ trailing delimiter ('== my title ==').
 		(beginning-of-line)
 		(looking-at (adoc-re-two-line-title (nth level adoc-two-line-title-del)))))
           (setq type 2)
-          (setq text (match-string 1))
+          (setq text (match-string 2))
           (setq found t))
          (t
           (setq level (+ level 1)))))        
@@ -2931,6 +2934,31 @@ LOCAL-ATTRIBUTE-FACE-ALIST before it is looked up in
 		     (cdr (assoc name adoc-attribute-face-alist))))
 	markup-value-face)))
 
+(defun adoc-imenu-create-index ()
+  (let* ((index-alist)
+         (re-all-titles-core
+          (mapconcat
+           (lambda (level)
+             (concat
+              (adoc-re-one-line-title level)
+              "\\|"
+              (adoc-re-two-line-title (nth level adoc-two-line-title-del))))
+           '(0 1 2 3 4)
+           "\\)\\|\\(?:"))
+         (re-all-titles
+          (concat "\\(?:" re-all-titles-core "\\)")))
+    (save-restriction
+      (widen)
+      (goto-char 0)
+      (while (re-search-forward re-all-titles nil t)
+        (backward-char) ; skip backwards the trailing \n of a title
+        (let* ((descriptor (adoc-title-descriptor))
+               (title-text (nth 3 descriptor))
+               (title-pos (nth 4 descriptor)))
+          (setq
+           index-alist
+           (cons (cons title-text title-pos) index-alist)))))
+    (nreverse index-alist)))
 
 
 ;;;###autoload
@@ -2992,6 +3020,11 @@ Turning on Adoc mode runs the normal hook `adoc-mode-hook'."
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   
+  ;; it's the user's decision whether he wants to set imenu-sort-function to
+  ;; nil, or even something else. See also similar comment in sgml-mode.
+  (set (make-local-variable 'imenu-create-index-function)
+       'adoc-imenu-create-index)
+
   ;; compilation
   (when (boundp 'compilation-error-regexp-alist-alist)
     (add-to-list 'compilation-error-regexp-alist-alist
