@@ -1,4 +1,4 @@
-(define-package "emacsql" "20160311.256" "high-level SQL database front-end"
+(define-package "emacsql" "20160312.146" "high-level SQL database front-end"
   '((emacs "24.3")
     (cl-lib "0.3")
     (finalize "1.0.0"))
