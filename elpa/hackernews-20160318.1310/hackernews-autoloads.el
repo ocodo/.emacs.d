@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "hackernews" "hackernews.el" (21998 34804 891401
-;;;;;;  0))
+;;;### (autoloads nil "hackernews" "hackernews.el" (22253 5328 955289
+;;;;;;  472000))
 ;;; Generated autoloads from hackernews.el
 
 (autoload 'hackernews "hackernews" "\
@@ -14,8 +14,8 @@ The entry point of our client
 
 ;;;***
 
-;;;### (autoloads nil nil ("hackernews-pkg.el") (21998 34804 906477
-;;;;;;  732000))
+;;;### (autoloads nil nil ("hackernews-pkg.el") (22253 5328 958927
+;;;;;;  89000))
 
 ;;;***
 
