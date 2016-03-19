@@ -1,7 +1,7 @@
 # -*- mode: snippet -*-
-# name: data-role 
+# name: data-role
 # group: kendo
 # key: kdr
-# contributor: Jason Milkins
+# contributor: Jason Milkins <jasonm23@gmail.com>
 # --
 data-role="${1:$$(yas/choose-value '("actionsheet" "button" "buttongroup" "footer" "header" "layout" "listview" "modalview" "navbar" "switch" "tabstrip" "touch" "view"))}"$0

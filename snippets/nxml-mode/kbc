@@ -2,6 +2,6 @@
 # name: data-bind currency
 # group: kendo
 # key: kbc
-# contributor: Jason Milkins
+# contributor: Jason Milkins <jasonm23@gmail.com>
 # --
 data-bind="currency: $0"

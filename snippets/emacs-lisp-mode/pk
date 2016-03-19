@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# name: Title / Summary
+# group: Package headers
+# --
+;;; `(file-name-base (buffer-file-name))` -- ${1:description}

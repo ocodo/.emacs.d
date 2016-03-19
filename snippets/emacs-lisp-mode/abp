@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# name: symbol boundp and non-nil
+# group: predicates
+# --
+(and (boundp '${1:symbol}) $1)

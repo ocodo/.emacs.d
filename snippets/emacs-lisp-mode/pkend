@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# name: Package ends here
+# group: Package headers
+# --
+;;; `(file-name-nondirectory (buffer-file-name))` ends here

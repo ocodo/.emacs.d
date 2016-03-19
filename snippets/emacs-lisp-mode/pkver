@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# name: Version
+# group: Package headers
+# --
+;;; Version: ${1:major-version}.${2:minor-version}.${3:patch}

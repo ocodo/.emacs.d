@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# name: Package dependency entry
+# group: Package headers
+# --
+(${1:package-name} "${2:version}")

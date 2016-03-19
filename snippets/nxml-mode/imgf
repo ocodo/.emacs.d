@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: img with helper
 # key: imgf
-# contributor: Jason Milkins
+# contributor: Jason Milkins <jasonm23@gmail.com>
 # --
 <img src="${1:$$(yas/choose-value '((process-lines "find_images")))}" alt="$2"/>$0

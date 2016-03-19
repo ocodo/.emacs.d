@@ -1,7 +1,6 @@
 # -*- mode: snippet -*-
-# name: data-bind currency
-# group: kendo
-# key: kbc
 # contributor: Jason Milkins <jasonm23@gmail.com>
+# name: Package Requires
+# group: Package headers
 # --
-data-bind="currency: $0"
+;;; Package-Requires: $0

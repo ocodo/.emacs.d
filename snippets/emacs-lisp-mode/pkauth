@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# contributor: Jason Milkins <jasonm23@gmail.com>
+# name: Author
+# group: Package headers
+# --
+;;; Author: `(or aya-contributor-name user-full-name)`
