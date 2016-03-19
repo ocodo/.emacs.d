@@ -8,7 +8,7 @@
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160311.417
+;; Package-Version: 20160314.2147
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.2.0
 ;; Package-Requires: ((emacs "24.3"))
@@ -490,7 +490,7 @@ Called by `imenu--generic-function'."
   (defconst clojure--sym-forbidden-rest-chars "][\";\'@\\^`~\(\)\{\}\\,\s\t\n\r"
     "A list of chars that a Clojure symbol cannot contain.
 See definition of 'macros': URL `http://git.io/vRGLD'.")
-  (defconst clojure--sym-forbidden-1st-chars (concat clojure--sym-forbidden-rest-chars "0-9")
+  (defconst clojure--sym-forbidden-1st-chars (concat clojure--sym-forbidden-rest-chars "0-9:")
     "A list of chars that a Clojure symbol cannot start with.
 See the for-loop: URL `http://git.io/vRGTj' lines: URL
 `http://git.io/vRGIh', URL `http://git.io/vRGLE' and value
