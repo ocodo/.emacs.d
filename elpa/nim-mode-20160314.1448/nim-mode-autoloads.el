@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "company-nim" "company-nim.el" (22246 12241
-;;;;;;  942517 363000))
+;;;### (autoloads nil "company-nim" "company-nim.el" (22253 5255
+;;;;;;  355245 534000))
 ;;; Generated autoloads from company-nim.el
 
 (autoload 'company-nim "company-nim" "\
@@ -19,8 +19,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22246 12241 934517
-;;;;;;  369000))
+;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22253 5255 351245
+;;;;;;  531000))
 ;;; Generated autoloads from nim-eldoc.el
 
 (autoload 'nim-eldoc-setup "nim-eldoc" "\
@@ -32,8 +32,8 @@ Setup eldoc configuration for nim-mode.
 
 ;;;***
 
-;;;### (autoloads nil "nim-mode" "nim-mode.el" (22246 12241 954517
-;;;;;;  352000))
+;;;### (autoloads nil "nim-mode" "nim-mode.el" (22253 5255 359245
+;;;;;;  536000))
 ;;; Generated autoloads from nim-mode.el
 
 (autoload 'nim-mode "nim-mode" "\
@@ -45,8 +45,8 @@ A major mode for the Nim programming language.
 
 ;;;***
 
-;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22246
-;;;;;;  12241 930517 373000))
+;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22253
+;;;;;;  5255 351245 531000))
 ;;; Generated autoloads from nimscript-mode.el
 
 (autoload 'nimscript-mode "nimscript-mode" "\
@@ -72,7 +72,7 @@ instead.  The default regex’s matching word is [Package].
 ;;;### (autoloads nil nil ("nim-compile.el" "nim-fill.el" "nim-helper.el"
 ;;;;;;  "nim-mode-pkg.el" "nim-rx.el" "nim-smie.el" "nim-suggest.el"
 ;;;;;;  "nim-syntax.el" "nim-thing-at-point.el" "nim-util.el" "nim-vars.el")
-;;;;;;  (22246 12241 964655 35000))
+;;;;;;  (22253 5255 362596 566000))
 
 ;;;***
 
