@@ -5969,6 +5969,10 @@ See URL `http://cppcheck.sourceforge.net/'."
             (option-flag "--inconclusive" flycheck-cppcheck-inconclusive)
             (option-list "-I" flycheck-cppcheck-include-path)
             (option "--std=" flycheck-cppcheck-language-standard concat)
+            "-x" (eval
+                  (pcase major-mode
+                    (`c++-mode "c++")
+                    (`c-mode "c")))
             source)
   :error-parser flycheck-parse-cppcheck
   :modes (c-mode c++-mode))
@@ -6644,7 +6648,24 @@ See URL `http://golang.org/cmd/go'."
           (optional column ":") " "
           (message (one-or-more not-newline)
                    (zero-or-more "\n\t" (one-or-more not-newline)))
-          line-end))
+          line-end)
+   ;; Catch error message about multiple packages in a directory, which doesn't
+   ;; follow the standard error message format.
+   (info line-start
+         (message "can't load package: package "
+                  (one-or-more (not (any ?: ?\n)))
+                  ": found packages "
+                  (one-or-more not-newline))
+         line-end))
+  :error-filter
+  (lambda (errors)
+    (dolist (error errors)
+      (unless (flycheck-error-line error)
+        ;; Flycheck ignores errors without line numbers, but the error
+        ;; message about multiple packages in a directory doesn't come with a
+        ;; line number, so inject a fake one.
+        (setf (flycheck-error-line error) 1)))
+    errors)
   :modes go-mode
   :predicate (lambda ()
                (and (flycheck-buffer-saved-p)
@@ -6671,29 +6692,14 @@ See URL `http://golang.org/cmd/go'."
                   (string-suffix-p "_test.go" (buffer-file-name))))
   :next-checkers ((warning . go-errcheck)))
 
-(defun flycheck-go-package-name (&optional file-name gopath)
-  "Determine the package name for FILE-NAME and GOPATH.
-
-FILE-NAME defaults to function `buffer-file-name'.  GOPATH
-defaults to $GOPATH.
-
-Return the package name for FILE-NAME, or nil if FILE-NAME is not
-part of any package or if GOPATH is nil."
-  (-when-let* ((gopath (or gopath (getenv "GOPATH")))
-               (file-name (or file-name (buffer-file-name))))
-    (let ((gosrc (file-name-as-directory (expand-file-name "src/" gopath)))
-          (file-name (expand-file-name file-name)))
-      (when (string-prefix-p gosrc file-name)
-        ;; The file is part of a package, so determine the package name, as
-        ;; relative file name to the GO source directory
-        (directory-file-name            ; Remove trailing /
-         (file-relative-name (file-name-directory file-name) gosrc))))))
-
 (flycheck-define-checker go-errcheck
   "A Go checker for unchecked errors.
 
+Requires an errcheck version from commit 8515d34 (Aug 28th, 2015)
+or newer.
+
 See URL `https://github.com/kisielk/errcheck'."
-  :command ("errcheck" (eval (flycheck-go-package-name)))
+  :command ("errcheck" "-abspath" ".")
   :error-patterns
   ((warning line-start
             (file-name) ":" line ":" column (or (one-or-more "\t") ": ")
@@ -6701,18 +6707,8 @@ See URL `https://github.com/kisielk/errcheck'."
             line-end))
   :error-filter
   (lambda (errors)
-    (let ((errors (flycheck-sanitize-errors errors))
-          (gosrc (expand-file-name "src/" (getenv "GOPATH"))))
+    (let ((errors (flycheck-sanitize-errors errors)))
       (dolist (err errors)
-        ;; File names are relative to the Go source directory, so we need to
-        ;; unexpand and re-expand them
-        (setf (flycheck-error-filename err)
-              (expand-file-name
-               ;; Get the relative name back, since Flycheck has already
-               ;; expanded the name for us
-               (file-relative-name (flycheck-error-filename err))
-               ;; And expand it against the Go source directory
-               gosrc))
         (-when-let (message (flycheck-error-message err))
           ;; Improve the messages reported by errcheck to make them more clear.
           (setf (flycheck-error-message err)
@@ -6723,7 +6719,7 @@ See URL `https://github.com/kisielk/errcheck'."
   (lambda ()
     ;; We need a valid package name, since errcheck only works on entire
     ;; packages, and can't check individual Go files.
-    (and (flycheck-buffer-saved-p) (flycheck-go-package-name))))
+    (and (flycheck-buffer-saved-p))))
 
 (flycheck-define-checker groovy
   "A groovy syntax checker using groovy compiler API.
