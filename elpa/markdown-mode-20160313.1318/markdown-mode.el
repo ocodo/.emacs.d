@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160312.2335
+;; Package-Version: 20160313.1318
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -6634,8 +6634,6 @@ BEG and END are the limits of scanned region."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
