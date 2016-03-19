@@ -301,6 +301,7 @@ This should eventually become a stack so that you could use
   "Return a string that corresponds to the current thing at point."
   (or
    (thing-at-point 'url)
+   (ffap-file-at-point)
    (let (s)
      (cond ((stringp (setq s (thing-at-point 'symbol)))
             (if (string-match "\\`[`']?\\(.*?\\)'?\\'" s)
@@ -1334,8 +1335,6 @@ customizations apply to the current completion session."
             (when recursive-ivy-last
               (ivy--reset-state (setq ivy-last recursive-ivy-last)))))
       (ivy-call)
-      (when (numberp (car-safe (ivy-state-action ivy-last)))
-        (setcar (ivy-state-action ivy-last) 1))
       (when (and recursive-ivy-last
                  ivy-recursive-restore)
         (ivy--reset-state (setq ivy-last recursive-ivy-last))))))
@@ -2582,6 +2581,13 @@ Skip buffers that match `ivy-ignore-buffers'."
         (propertize str 'face 'ivy-modified-buffer)
       str)))
 
+(defun ivy-switch-buffer-occur ()
+  "Occur function for `ivy-switch-buffer' that uses `ibuffer'."
+  (let* ((cand-regexp
+          (concat "\\(" (mapconcat #'regexp-quote ivy--old-cands "\\|") "\\)"))
+         (new-qualifier `((name . ,cand-regexp))))
+    (ibuffer nil (buffer-name) new-qualifier)))
+
 ;;;###autoload
 (defun ivy-switch-buffer ()
   "Switch to another buffer."
@@ -2756,6 +2762,9 @@ When `ivy-calling' isn't nil, call `ivy-occur-press'."
   (setq ivy--occurs-list
         (plist-put ivy--occurs-list cmd occur)))
 
+(ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur)
+(ivy-set-occur 'ivy-switch-buffer-other-window 'ivy-switch-buffer-occur)
+
 (defun ivy--occur-insert-lines (cands)
   (dolist (str cands)
     (add-text-properties
@@ -2872,7 +2881,8 @@ EVENT gives the mouse position."
           (beginning-of-line)
           (looking-at "\\(?:./\\|    \\)\\(.*\\)$"))
     (when (memq (ivy-state-caller ivy-occur-last)
-                '(swiper counsel-git-grep counsel-grep counsel-ag))
+                '(swiper counsel-git-grep counsel-grep counsel-ag
+                  counsel-describe-function counsel-describe-variable))
       (let ((window (ivy-state-window ivy-occur-last)))
         (when (or (null (window-live-p window))
                   (equal window (selected-window)))
