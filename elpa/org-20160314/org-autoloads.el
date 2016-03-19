@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "org" "org.el" (22246 12218 962537 75000))
+;;;### (autoloads nil "org" "org.el" (22253 5226 687226 89000))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -224,8 +224,8 @@ Call the customize function with org as argument.
 
 ;;;***
 
-;;;### (autoloads nil "org-agenda" "org-agenda.el" (22246 12218 810537
-;;;;;;  204000))
+;;;### (autoloads nil "org-agenda" "org-agenda.el" (22253 5226 627226
+;;;;;;  47000))
 ;;; Generated autoloads from org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -498,8 +498,8 @@ to override `appt-message-warning-time'.
 
 ;;;***
 
-;;;### (autoloads nil "org-capture" "org-capture.el" (22246 12218
-;;;;;;  914537 117000))
+;;;### (autoloads nil "org-capture" "org-capture.el" (22253 5226
+;;;;;;  671226 78000))
 ;;; Generated autoloads from org-capture.el
 
 (autoload 'org-capture-string "org-capture" "\
@@ -541,8 +541,8 @@ Set `org-capture-templates' to be similar to `org-remember-templates'.
 
 ;;;***
 
-;;;### (autoloads nil "org-colview" "org-colview.el" (22246 12218
-;;;;;;  770537 238000))
+;;;### (autoloads nil "org-colview" "org-colview.el" (22253 5226
+;;;;;;  611226 36000))
 ;;; Generated autoloads from org-colview.el
 
 (autoload 'org-columns-remove-overlays "org-colview" "\
@@ -577,18 +577,18 @@ PARAMS is a property list of parameters:
 
 :width    enforce same column widths with <N> specifiers.
 :id       the :ID: property of the entry where the columns view
-    should be built.  When the symbol `local', call locally.
-    When `global' call column view with the cursor at the beginning
-    of the buffer (usually this means that the whole buffer switches
-    to column view).  When \"file:path/to/file.org\", invoke column
-    view at the start of that file.  Otherwise, the ID is located
-    using `org-id-find'.
+	  should be built.  When the symbol `local', call locally.
+	  When `global' call column view with the cursor at the beginning
+	  of the buffer (usually this means that the whole buffer switches
+	  to column view).  When \"file:path/to/file.org\", invoke column
+	  view at the start of that file.  Otherwise, the ID is located
+	  using `org-id-find'.
 :hlines   When t, insert a hline before each item.  When a number, insert
-    a hline before each level <= that number.
+	  a hline before each level <= that number.
 :vlines   When t, make each column a colgroup to enforce vertical lines.
 :maxlevel When set to a number, don't capture headlines below this level.
 :skip-empty-rows
-    When t, skip rows where all specifiers other than ITEM are empty.
+	  When t, skip rows where all specifiers other than ITEM are empty.
 :format   When non-nil, specify the column view format to use.
 
 \(fn PARAMS)" nil nil)
@@ -605,8 +605,8 @@ Turn on or update column view in the agenda.
 
 ;;;***
 
-;;;### (autoloads nil "org-compat" "org-compat.el" (22246 12218 690537
-;;;;;;  306000))
+;;;### (autoloads nil "org-compat" "org-compat.el" (22253 5226 591226
+;;;;;;  21000))
 ;;; Generated autoloads from org-compat.el
 
 (autoload 'org-check-version "org-compat" "\
@@ -616,8 +616,8 @@ Try very hard to provide sensible version strings.
 
 ;;;***
 
-;;;### (autoloads nil "org-lint" "org-lint.el" (22246 12218 818537
-;;;;;;  198000))
+;;;### (autoloads nil "org-lint" "org-lint.el" (22253 5226 635226
+;;;;;;  52000))
 ;;; Generated autoloads from org-lint.el
 
 (autoload 'org-lint "org-lint" "\
@@ -633,8 +633,8 @@ ARG can also be a list of checker names, as symbols, to run.
 
 ;;;***
 
-;;;### (autoloads nil "org-macs" "org-macs.el" (22246 12218 842537
-;;;;;;  177000))
+;;;### (autoloads nil "org-macs" "org-macs.el" (22253 5226 643226
+;;;;;;  58000))
 ;;; Generated autoloads from org-macs.el
 
 (autoload 'org-load-noerror-mustsuffix "org-macs" "\
@@ -644,8 +644,8 @@ Load FILE with optional arguments NOERROR and MUSTSUFFIX.  Drop the MUSTSUFFIX a
 
 ;;;***
 
-;;;### (autoloads nil "org-version" "org-version.el" (22246 12218
-;;;;;;  926537 106000))
+;;;### (autoloads nil "org-version" "org-version.el" (22253 5226
+;;;;;;  671226 78000))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -690,8 +690,8 @@ The location of ODT styles.")
 ;;;;;;  "org-rmail.el" "org-src.el" "org-table.el" "org-timer.el"
 ;;;;;;  "org-w3m.el" "ox-ascii.el" "ox-beamer.el" "ox-html.el" "ox-icalendar.el"
 ;;;;;;  "ox-latex.el" "ox-man.el" "ox-md.el" "ox-odt.el" "ox-org.el"
-;;;;;;  "ox-publish.el" "ox-texinfo.el" "ox.el") (22246 12219 82613
-;;;;;;  548000))
+;;;;;;  "ox-publish.el" "ox-texinfo.el" "ox.el") (22253 5226 730568
+;;;;;;  178000))
 
 ;;;***
 
