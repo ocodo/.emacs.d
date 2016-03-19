@@ -1,0 +1,1 @@
+(define-package "insert-shebang" "20160317.2246" "Insert shebang line automatically." 'nil :stars '(#("10" 0 2 (font-lock-face paradox-star-face))) :url "http://github.com/psachin/insert-shebang" :keywords '("shebang" "tool" "convenience"))
