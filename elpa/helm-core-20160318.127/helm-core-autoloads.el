@@ -3,12 +3,12 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm" "helm.el" (22246 12344 766122 783000))
+;;;### (autoloads nil "helm" "helm.el" (22253 5302 355274 535000))
 ;;; Generated autoloads from helm.el
 
 (autoload 'helm-define-multi-key "helm" "\
 In KEYMAP, define key sequence KEY for function list FUNCTIONS.
-Each function runs sequentially for each KEY press.
+Each function runs sequentially for each KEY press. 
 If DELAY is specified, switch back to initial function of FUNCTIONS list
 after DELAY seconds.
 The functions in FUNCTIONS list take no args.
@@ -22,8 +22,8 @@ e.g
 
 \(helm-define-multi-key global-map \"<f5> q\" '(foo bar baz) 2)
 
-Each time \"<f5> q\" is pressed, the next function is executed. Waiting
-more than 2 seconds between key presses switches back to executing the first
+Each time \"<f5> q\" is pressed, the next function is executed. Waiting 
+more than 2 seconds between key presses switches back to executing the first 
 function on the next hit.
 
 \(fn KEYMAP KEY FUNCTIONS &optional DELAY)" nil nil)
@@ -58,14 +58,14 @@ In this example, `C-x v n' will run `git-gutter:next-hunk'
 subsequent \"n\"'s run this command again
 and subsequent \"p\"'s run `git-gutter:previous-hunk'.
 
-Arg MENU is a string displayed in minibuffer that
+Arg MENU is a string displayed in minibuffer that 
 describes SUBKEY and OTHER-SUBKEYS.
 Arg EXIT-FN specifies a function to run on exit.
 
 For any other keys pressed, run their assigned command as defined
 in MAP and then exit the loop running EXIT-FN, if specified.
 
-NOTE: SUBKEY and OTHER-SUBKEYS bindings support char syntax only
+NOTE: SUBKEY and OTHER-SUBKEYS bindings support char syntax only 
 \(e.g ?n), so don't use strings or vectors to define them.
 
 \(fn MAP KEY SUBKEY COMMAND &optional OTHER-SUBKEYS MENU EXIT-FN)" nil nil)
@@ -168,10 +168,10 @@ Other keywords are interpreted as local variables of this helm
 session. The `helm-' prefix can be omitted. For example,
 
 \(helm :sources 'helm-source-buffers-list
-       :buffer \"*buffers*\" :candidate-number-limit 10)
+       :buffer \"*helm buffers*\" :candidate-number-limit 10)
 
 starts helm session with `helm-source-buffers' source in
-*buffers* buffer and sets variable `helm-candidate-number-limit'
+*helm buffers* buffer and sets variable `helm-candidate-number-limit'
 to 10 as a session local variable.
 
 \(fn &key SOURCES INPUT PROMPT RESUME PRESELECT BUFFER KEYMAP DEFAULT HISTORY ALLOW-NEST OTHER-LOCAL-VARS)" nil nil)
@@ -190,7 +190,7 @@ Enable/disable helm debugging from outside of helm session.
 ;;;***
 
 ;;;### (autoloads nil nil ("helm-core-pkg.el" "helm-lib.el" "helm-multi-match.el"
-;;;;;;  "helm-source.el") (22246 12344 783303 49000))
+;;;;;;  "helm-source.el") (22253 5302 362288 949000))
 
 ;;;***
 

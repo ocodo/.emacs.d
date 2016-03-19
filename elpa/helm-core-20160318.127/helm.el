@@ -585,6 +585,19 @@ The default is to enable this by default and then toggle
   :group 'helm
   :type 'boolean)
 
+(defcustom helm-tramp-connection-min-time-diff 5
+  "Value of `tramp-connection-min-time-diff' for helm remote processes.
+If set to zero helm remote processes are not delayed.
+Setting this to a value less than 5 or disabling it with a zero value
+is risky, however on emacs versions starting at 24.5 it seems
+it is now possible to disable it.
+Anyway at any time in helm you can suspend your processes while typing
+by hitting \\<helm-map> `\\[helm-toggle-suspend-update]'.
+Only async sources than use a sentinel calling
+`helm-process-deferred-sentinel-hook' are affected by this."
+  :type 'integer
+  :group 'helm)
+
 
 ;;; Faces
 ;;
@@ -1365,9 +1378,9 @@ existing Helm function names."
 (defun helm--normalize-filter-sources (sources)
   (cl-loop for s in sources collect
            (cl-typecase s
-             (symbolp (assoc-default 'name (symbol-value s)))
-             (listp   (assoc-default 'name s))
-             (stringp s))))
+             (symbol (assoc-default 'name (symbol-value s)))
+             (list   (assoc-default 'name s))
+             (string s))))
 
 (defun helm-set-sources (sources &optional no-init no-update)
   "Set SOURCES during `helm' invocation.
@@ -1780,10 +1793,10 @@ Other keywords are interpreted as local variables of this helm
 session. The `helm-' prefix can be omitted. For example,
 
 \(helm :sources 'helm-source-buffers-list
-       :buffer \"*buffers*\" :candidate-number-limit 10\)
+       :buffer \"*helm buffers*\" :candidate-number-limit 10\)
 
 starts helm session with `helm-source-buffers' source in
-*buffers* buffer and sets variable `helm-candidate-number-limit'
+*helm buffers* buffer and sets variable `helm-candidate-number-limit'
 to 10 as a session local variable.
 
 \(fn &key SOURCES INPUT PROMPT RESUME PRESELECT BUFFER KEYMAP DEFAULT HISTORY ALLOW-NEST OTHER-LOCAL-VARS)"
@@ -3604,7 +3617,8 @@ this additional info after the source name by overlay."
   "Defer remote processes in sentinels.
 Meant to be called at the beginning of a sentinel process
 function."
-  (when (and (string= event "finished\n")
+  (when (and (not (zerop helm-tramp-connection-min-time-diff))
+             (string= event "finished\n")
              (or (file-remote-p file)
                  ;; `helm-suspend-update-flag'
                  ;; is non-`nil' here only during a
@@ -3622,9 +3636,7 @@ function."
     ;; recent Emacs versions, this has been fixed so tramp returns nil
     ;; in such conditions. Note: `tramp-connection-min-time-diff' cannot
     ;; have values less than 5 seconds otherwise the process dies.
-    (run-at-time (or (and (boundp 'tramp-connection-min-time-diff)
-                          tramp-connection-min-time-diff)
-                     5)
+    (run-at-time helm-tramp-connection-min-time-diff
                  nil (lambda ()
                        (when helm-alive-p ; Don't run timer fn after quit.
                          (setq helm-suspend-update-flag nil)
@@ -4347,6 +4359,7 @@ to a list of forms.\n\n")
         (helm-run-after-exit
          #'helm-debug-open-last-log)
         (setq helm-debug t)
+        (with-helm-buffer (setq truncate-lines nil))
         (message "Debugging enabled"))))
 (put 'helm-enable-or-switch-to-debug 'helm-only t)
 
