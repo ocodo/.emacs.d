@@ -7,7 +7,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/git-modes
 ;; Keywords: convenience vc git
-;; Package-Version: 20160229.615
+;; Package-Version: 20160318.1959
 
 ;; This file is not part of GNU Emacs.
 
@@ -78,6 +78,8 @@
   (let ((table (make-syntax-table conf-unix-mode-syntax-table)))
     ;; ; is a comment in .gitconfig
     (modify-syntax-entry ?\; "<" table)
+    ;; ' is not used for string quoting
+    (modify-syntax-entry ?\' "." table)
     table)
   "Syntax table to use in .gitconfig buffers.")
 
