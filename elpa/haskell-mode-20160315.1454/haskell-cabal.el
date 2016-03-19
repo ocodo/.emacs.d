@@ -51,6 +51,7 @@
 
 (require 'cl-lib)
 (require 'haskell-utils)
+(require 'haskell-mode)
 
 (defconst haskell-cabal-general-fields
   ;; Extracted with (haskell-cabal-extract-fields-from-doc "general-fields")
@@ -159,6 +160,14 @@ it from list if one of the following conditions are hold:
   (setq indent-tabs-mode nil)
   )
 
+(make-obsolete 'haskell-cabal-get-setting
+               'haskell-cabal--get-field
+               "March 14, 2016")
+(defalias 'haskell-cabal-get-setting 'haskell-cabal--get-field
+  "Try to read value of field with NAME from current buffer.
+Obsolete function.  Defined for backward compatibility.  Use
+`haskell-cabal--get-field' instead.")
+
 (defun haskell-cabal--get-field (name)
   "Try to read value of field with NAME from current buffer."
   (save-excursion
@@ -183,6 +192,15 @@ it from list if one of the following conditions are hold:
               (setq val (replace-match "" t t val))))
           val)))))
 
+
+(make-obsolete 'haskell-cabal-guess-setting
+               'haskell-cabal-get-field
+               "March 14, 2016")
+(defalias 'haskell-cabal-guess-setting 'haskell-cabal-get-field
+  "Read the value of field with NAME from project's cabal file.
+Obsolete function.  Defined for backward compatibility.  Use
+`haskell-cabal-get-field' instead.")
+
 ;;;###autoload
 (defun haskell-cabal-get-field (name)
   "Read the value of field with NAME from project's cabal file.
@@ -204,10 +222,10 @@ file), then this function returns nil."
   (let* ((file (haskell-cabal-find-file))
          (dir (if file (file-name-directory file) default-directory)))
     (if use-defaults
-	dir
-	(haskell-utils-read-directory-name
-	 (format "Cabal dir%s: " (if file (format " (guessed from %s)" (file-relative-name file)) ""))
-	 dir))))
+        dir
+        (haskell-utils-read-directory-name
+         (format "Cabal dir%s: " (if file (format " (guessed from %s)" (file-relative-name file)) ""))
+         dir))))
 
 (defun haskell-cabal-compute-checksum (dir)
   "Compute MD5 checksum of package description file in DIR.

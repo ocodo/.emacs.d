@@ -86,7 +86,7 @@ HPTYPE is the result of calling `'haskell-process-type`' function."
                (apply haskell-process-wrapper-function
                       (list
                        (append (haskell-process-path-to-list haskell-process-path-ghci)
-			       haskell-process-args-ghci)))))
+                               haskell-process-args-ghci)))))
       ('cabal-repl
        (append (list (format "Starting inferior `cabal repl' process using %s ..."
                              haskell-process-path-cabal)
@@ -95,7 +95,7 @@ HPTYPE is the result of calling `'haskell-process-type`' function."
                (apply haskell-process-wrapper-function
                       (list
                        (append
-			(haskell-process-path-to-list haskell-process-path-cabal)
+                        (haskell-process-path-to-list haskell-process-path-cabal)
                         (list "repl")
                         haskell-process-args-cabal-repl
                         (let ((target (haskell-session-target session)))
@@ -107,7 +107,7 @@ HPTYPE is the result of calling `'haskell-process-type`' function."
                (apply haskell-process-wrapper-function
                       (list
                        (append
-			(haskell-process-path-to-list haskell-process-path-stack)
+                        (haskell-process-path-to-list haskell-process-path-stack)
                         (list "ghci")
                         (let ((target (haskell-session-target session)))
                           (if target (list target) nil))
@@ -296,7 +296,7 @@ This uses `accept-process-output' internally."
     (car-safe (haskell-command-state cmd))))
 
 (defun haskell-process-get-repl-completions (process inputstr &optional limit)
-  "Perform `:complete repl ...' query for INPUTSTR using PROCESS.
+  "Query PROCESS with `:complete repl ...' for INPUTSTR.
 Give optional LIMIT arg to limit completion candidates count,
 zero, negative values, and nil means all possible completions.
 Returns NIL when no completions found."
@@ -311,16 +311,20 @@ Returns NIL when no completions found."
     (if (eq 'unknown-command response-status)
         (error
          "GHCi lacks `:complete' support (try installing GHC 7.8+ or ghci-ng)")
-      (let* ((s1 (split-string rawstr "\r?\n" t))
-             (cs (mapcar #'haskell-string-literal-decode (cdr s1)))
-             (h0 (car s1))) ;; "<limit count> <all count> <unused string>"
-        (unless (string-match "\\`\\([0-9]+\\) \\([0-9]+\\) \\(\".*\"\\)\\'" h0)
-          (error "Invalid `:complete' response"))
-        (let ((cnt1 (match-string 1 h0))
-              (h1 (haskell-string-literal-decode (match-string 3 h0))))
-          (unless (= (string-to-number cnt1) (length cs))
-            (error "Lengths inconsistent in `:complete' reponse"))
-          (cons h1 cs))))))
+      (when rawstr
+        ;; parse REPL response if any
+        (let* ((s1 (split-string rawstr "\r?\n" t))
+               (cs (mapcar #'haskell-string-literal-decode (cdr s1)))
+               (h0 (car s1))) ;; "<limit count> <all count> <unused string>"
+          (unless (string-match
+                   "\\`\\([0-9]+\\) \\([0-9]+\\) \\(\".*\"\\)\\'"
+                   h0)
+            (error "Invalid `:complete' response"))
+          (let ((cnt1 (match-string 1 h0))
+                (h1 (haskell-string-literal-decode (match-string 3 h0))))
+            (unless (= (string-to-number cnt1) (length cs))
+              (error "Lengths inconsistent in `:complete' reponse"))
+            (cons h1 cs)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Accessing the process

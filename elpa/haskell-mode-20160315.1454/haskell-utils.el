@@ -39,6 +39,8 @@
 ;;       require/depend-on any other haskell-mode modules in order to
 ;;       stay at the bottom of the module dependency graph.
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'haskell-customize)
 
 (defvar haskell-utils-async-post-command-flag nil
@@ -127,18 +129,21 @@ Returns one of the following symbols:
   (:type-at and maybe some other commands error)
 * *all other reposnses* are treated as success reposneses and
   'no-error is returned."
-  (let ((first-line (car (split-string response "\n" t))))
-    (cond
-     ((null first-line) 'no-error)
-     ((string-match-p "^unknown command" first-line)
-      'unknown-command)
-     ((string-match-p
-       "^Couldn't guess that module name. Does it exist?"
-       first-line)
-      'option-missing)
-     ((string-match-p "^<interactive>:" first-line)
-      'interactive-error)
-     (t 'no-error))))
+  (if response
+      (let ((first-line (car (split-string response "\n" t))))
+        (cond
+         ((null first-line) 'no-error)
+         ((string-match-p "^unknown command" first-line)
+          'unknown-command)
+         ((string-match-p
+           "^Couldn't guess that module name. Does it exist?"
+           first-line)
+          'option-missing)
+         ((string-match-p "^<interactive>:" first-line)
+          'interactive-error)
+         (t 'no-error)))
+    ;; in case of nil-ish reponse it's not clear is it error response or not
+    'no-error))
 
 (defun haskell-utils-compose-type-at-command (pos)
   "Prepare :type-at command to be send to haskell process.
