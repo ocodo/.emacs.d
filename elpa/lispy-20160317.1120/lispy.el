@@ -2254,6 +2254,42 @@ Otherwise, move to the next sexp."
          (lispy-dotimes arg
            (lispy--barf-forward)))))
 
+(defun lispy-slurp-or-barf-right (arg)
+  "Barfs or slurps current sexp so that visually, the delimiter at point moves to the right.
+When cursor is at lispy-right, will slurp ARG sexps forwards.
+
+  ((a)| b c) -> ((a b)| c)
+
+When lispy-left, will barf ARG sexps forwards.
+
+  (|(a b) c) -> (a |(b) c)"
+  (interactive "p")
+  (if (region-active-p)
+      (if (= (point) (region-end))
+          (lispy-slurp arg)
+        (lispy-barf arg))
+    (if (lispy-right-p)
+        (lispy-slurp arg)
+      (lispy-barf arg))))
+
+(defun lispy-slurp-or-barf-left (arg)
+  "Barfs or slurps current sexp so that visually, the delimiter at point moves to the left.
+When cursor is at lispy-right, will barf ARG sexps backwards.
+
+  (a (b c)|) -> (a (b)| c)
+
+When lispy-left, will slurp ARG sexps forwards.
+
+  (a |(b) c) -> (|(a b) c)"
+  (interactive "p")
+  (if (region-active-p)
+      (if (= (point) (region-beginning))
+          (lispy-slurp arg)
+        (lispy-barf arg))
+    (if (lispy-left-p)
+        (lispy-slurp arg)
+      (lispy-barf arg))))
+
 (defun lispy-splice (arg)
   "Splice ARG sexps into containing list."
   (interactive "p")
@@ -4633,45 +4669,43 @@ An equivalent of `cl-destructuring-bind'."
 
 (defvar lispy-mode-map-x
   (let ((map (make-sparse-keymap)))
-    (define-key map "a" nil)
-    (define-key map "b" 'lispy-bind-variable)
-    (define-key map "c" 'lispy-to-cond)
-    (define-key map "d" 'lispy-to-defun)
-    (define-key map "e" 'lispy-edebug)
-    (define-key map "f" 'lispy-flatten)
-    (define-key map "g" nil)
-    (define-key map "h" 'lispy-describe)
-    (define-key map "i" 'lispy-to-ifs)
-    (define-key map "j" 'lispy-debug-step-in)
-    (define-key map "k" 'lispy-extract-block)
-    (define-key map "l" 'lispy-to-lambda)
-    (define-key map "m" 'lispy-cursor-ace)
-    (define-key map "n" nil)
-    (define-key map "o" nil)
-    (define-key map "p" nil)
-    (define-key map "q" nil)
-    (define-key map "r" 'lispy-eval-and-replace)
-    (define-key map "s" 'save-buffer)
-    (define-key map "t" nil)
-    (define-key map "u" 'lispy-unbind-variable)
-    (define-key map "v" 'lispy-view-test)
-    (define-key map "w" nil)
-    (define-key map "x" nil)
-    (define-key map "y" nil)
-    (define-key map "z" nil)
-    (define-key map "B" 'lispy-store-region-and-buffer)
-    (define-key map "R" 'lispy-reverse)
-    (define-key map (char-to-string help-char) 'lispy-describe-bindings-C-4)
+    (define-key map "xa" nil)
+    (define-key map "xb" 'lispy-bind-variable)
+    (define-key map "xc" 'lispy-to-cond)
+    (define-key map "xd" 'lispy-to-defun)
+    (define-key map "xe" 'lispy-edebug)
+    (define-key map "xf" 'lispy-flatten)
+    (define-key map "xg" nil)
+    (define-key map "xh" 'lispy-describe)
+    (define-key map "xi" 'lispy-to-ifs)
+    (define-key map "xj" 'lispy-debug-step-in)
+    (define-key map "xk" 'lispy-extract-block)
+    (define-key map "xl" 'lispy-to-lambda)
+    (define-key map "xm" 'lispy-cursor-ace)
+    (define-key map "xn" nil)
+    (define-key map "xo" nil)
+    (define-key map "xp" nil)
+    (define-key map "xq" nil)
+    (define-key map "xr" 'lispy-eval-and-replace)
+    (define-key map "xs" 'save-buffer)
+    (define-key map "xt" nil)
+    (define-key map "xu" 'lispy-unbind-variable)
+    (define-key map "xv" 'lispy-view-test)
+    (define-key map "xw" nil)
+    (define-key map "xx" nil)
+    (define-key map "xy" nil)
+    (define-key map "xz" nil)
+    (define-key map "xB" 'lispy-store-region-and-buffer)
+    (define-key map "xR" 'lispy-reverse)
+    (define-key map (concat "x" (char-to-string help-char))
+      'lispy-describe-bindings-C-4)
     map))
 
 (defun lispy-x ()
   "Forward to `lispy-mode-map-x'."
   (interactive)
-  (let ((char (read-char))
-        fun)
-    (if (setq fun (cdr (assoc char lispy-mode-map-x)))
-        (call-interactively fun)
-      (error "Nothing bound to %c" char))))
+  (set-transient-map lispy-mode-map-x)
+  (setq unread-command-events (list (cons t ?x))))
 
 (defun lispy-ert ()
   "Call (`ert' t)."
