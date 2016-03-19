@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.10.0
-;; Package-Version: 20160115.58
+;; Package-Version: 20160313.2240
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -454,13 +454,14 @@ When START is non-nil the search will start at that index."
 
 (defun s-slice-at (regexp s)
   "Slices S up at every index matching REGEXP."
-  (save-match-data
-    (let (i)
-      (setq i (string-match regexp s 1))
-      (if i
-          (cons (substring s 0 i)
-                (s-slice-at regexp (substring s i)))
-        (list s)))))
+  (if (= 0 (length s)) (list "")
+    (save-match-data
+      (let (i)
+        (setq i (string-match regexp s 1))
+        (if i
+            (cons (substring s 0 i)
+                  (s-slice-at regexp (substring s i)))
+          (list s))))))
 
 (defun s-split-words (s)
   "Split S into list of words."
