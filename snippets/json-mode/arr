@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+# name: Array
+# --
+"${1:key}": [ $0 ]${2:,}

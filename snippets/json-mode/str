@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+# name: String
+# --
+"${1:key}": "${2:value}"${3:,}$0
