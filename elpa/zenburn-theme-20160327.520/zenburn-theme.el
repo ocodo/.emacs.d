@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/bbatsov/zenburn-emacs
-;; Package-Version: 20160316.2239
+;; Package-Version: 20160327.520
 ;; Version: 2.3-cvs
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -255,7 +255,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(avy-lead-face-2
      ((t (:foreground ,zenburn-red+1 :background ,zenburn-bg :inverse-video nil :weight bold))))
    `(avy-lead-face
-     ((t (:foreground ,zenburn-green+2 :background ,zenburn-bg :inverse-video nil :weight bold))))
+     ((t (:foreground ,zenburn-cyan :background ,zenburn-bg :inverse-video nil :weight bold))))
 ;;;;; company-mode
    `(company-tooltip ((t (:foreground ,zenburn-fg :background ,zenburn-bg+1))))
    `(company-tooltip-annotation ((t (:foreground ,zenburn-orange :background ,zenburn-bg+1))))
@@ -662,8 +662,18 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(js2-jsdoc-tag ((t (:foreground ,zenburn-green-1))))
    `(js2-jsdoc-type ((t (:foreground ,zenburn-green+2))))
    `(js2-jsdoc-value ((t (:foreground ,zenburn-green+3))))
-   `(js2-function-param ((t (:foreground, zenburn-green+3))))
+   `(js2-function-param ((t (:foreground, zenburn-orange))))
    `(js2-external-variable ((t (:foreground ,zenburn-orange))))
+;;;;; additional js2 mode attributes for better syntax highlighting
+   `(js2-instance-member ((t (:foreground ,zenburn-green-1))))
+   `(js2-jsdoc-html-tag-delimiter ((t (:foreground ,zenburn-orange))))
+   `(js2-jsdoc-html-tag-name ((t (:foreground ,zenburn-red-1))))
+   `(js2-object-property ((t (:foreground ,zenburn-blue+1))))
+   `(js2-magic-paren ((t (:foreground ,zenburn-blue-5))))
+   `(js2-private-function-call ((t (:foreground ,zenburn-cyan))))
+   `(js2-function-call ((t (:foreground ,zenburn-cyan))))
+   `(js2-private-member ((t (:foreground ,zenburn-blue-1))))
+   `(js2-keywords ((t (:foreground ,zenburn-magenta))))
 ;;;;; ledger-mode
    `(ledger-font-payee-uncleared-face ((t (:foreground ,zenburn-red-1 :weight bold))))
    `(ledger-font-payee-cleared-face ((t (:foreground ,zenburn-fg :weight normal))))
