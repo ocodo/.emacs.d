@@ -1,0 +1,1 @@
+(define-package "coffee-mode" "20160328.2356" "Major mode for CoffeeScript code" '((emacs "24.1") (cl-lib "0.5")) :stars '(#("550" 0 3 (font-lock-face paradox-star-face))) :url "http://github.com/defunkt/coffee-mode" :keywords '("coffeescript" "major" "mode"))
