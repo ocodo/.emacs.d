@@ -3,8 +3,8 @@
 ;; Copyright (C) 2014 Peter Stiernström
 
 ;; Author: Peter Stiernström <peter@stiernstrom.se>
-;; Version: 3.0
-;; Package-Version: 20160120.416
+;; Version: 3.1
+;; Package-Version: 20160323.1240
 ;; URL: https://github.com/pidu/git-timemachine
 ;; Keywords: git
 
@@ -167,7 +167,8 @@ When passed a GIT-BRANCH, lists revisions from that branch."
         (subject (nth 5 revision)))
    (setq buffer-read-only nil)
    (erase-buffer)
-   (let ((default-directory git-timemachine-directory))
+   (let ((default-directory git-timemachine-directory)
+         (process-coding-system-alist (list (cons "" (cons buffer-file-coding-system default-process-coding-system)))))
     (process-file vc-git-program nil t nil "--no-pager" "show"
      (concat commit ":" revision-file-name)))
    (setq buffer-read-only t)
@@ -244,10 +245,12 @@ Call with the value of 'buffer-file-name."
        (file-name (buffer-file-name))
        (timemachine-buffer (format "timemachine:%s" (buffer-name)))
        (cur-line (line-number-at-pos))
-       (mode major-mode))
+       (mode major-mode)
+       (coding-system buffer-file-coding-system))
   (with-current-buffer (get-buffer-create timemachine-buffer)
    (switch-to-buffer timemachine-buffer)
    (setq buffer-file-name file-name)
+   (setq buffer-file-coding-system coding-system)
    (funcall mode)
    (setq git-timemachine-directory git-directory
          git-timemachine-file (file-relative-name file-name git-directory)

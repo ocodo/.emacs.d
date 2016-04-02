@@ -1,0 +1,1 @@
+(define-package "git-timemachine" "20160323.1240" "Walk through git revisions of a file" 'nil :stars '(#("298" 0 3 (font-lock-face paradox-star-face))) :url "https://github.com/pidu/git-timemachine" :keywords '("git"))
