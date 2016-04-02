@@ -6,7 +6,7 @@
 ;;          Peter Vasil <mail@petervasil.net>
 ;; Version: 0.9.1
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((emacs "24") (f "0.17.1") (dash "1.2.0") (deferred "0.3.2") (popup "0.5.0") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24") (f "0.17.1") (dash "1.2.0") (deferred "0.3.2") (popup "0.5.0") (cl-lib "0.5") (let-alist "1.0.4"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -104,7 +104,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'let-alist))
 (require 'dash)
 (require 'deferred)
 (require 'f)
@@ -162,7 +163,7 @@ Options are:
   :type '(string)
   :group 'ycmd)
 
-; TODO: Figure out the best default value for this.
+;; TODO: Figure out the best default value for this.
 (defcustom ycmd-server-command '("python" "/path/to/ycmd/package/")
   "The ycmd server program command.
 
@@ -184,8 +185,7 @@ system installation."
 
 Each function will be called with with the results returned from
 ycmd when it parses a file in response to
-/event_notification.  See `ycmd--with-destructured-parse-result'
-for some insight into what this structure is shaped like."
+/event_notification."
   :group 'ycmd
   :type 'hook
   :risky t)
@@ -202,8 +202,13 @@ re-parsing the contents."
   :group 'ycmd
   :type '(number))
 
-(defcustom ycmd-startup-timeout 3000
-  "Number of milliseconds to wait for the server to start."
+(defcustom ycmd-startup-timeout 3
+  "Number of seconds to wait for the server to start."
+  :group 'ycmd
+  :type '(number))
+
+(defcustom ycmd-delete-process-delay 3
+  "Seconds to wait for the server to finish before killing the process."
   :group 'ycmd
   :type '(number))
 
@@ -317,6 +322,20 @@ Used to determine a) which major modes we support and b) how to
 describe them to ycmd."
   :group 'ycmd
   :type '(alist :key-type symbol :value-type (repeat string)))
+
+(defcustom ycmd-min-num-chars-for-completion 2
+  "The minimum number of characters for identifier completion.
+
+It controls the number of characters the user needs to type
+before identifier-based completion suggestions are triggered.
+
+This option is NOT used for semantic completion.
+
+Setting this it to a high number like 99 effectively turns off
+the identifier completion engine and just leaves the semantic
+engine."
+  :group 'ycmd
+  :type 'integer)
 
 (defcustom ycmd-max-num-identifier-candidates 10
   "The maximum number of identifier completion results."
@@ -489,7 +508,7 @@ Users should never need to modify this, hence the defconst.  It is
 not, however, treated as a constant by this code.  This value
 gets set in ycmd-open.")
 
-(defconst ycmd--server-process "ycmd-server"
+(defconst ycmd--server-process-name "ycmd-server"
   "The Emacs name of the server process.
 This is used by functions like `start-process', `get-process'
 and `delete-process'.")
@@ -572,10 +591,10 @@ explicitly re-define the prefix key:
   "Keymap for `ycmd-mode'.")
 
 (defmacro ycmd--kill-timer (timer)
-   "Cancel TIMER."
-   `(when ,timer
-      (cancel-timer ,timer)
-      (setq ,timer nil)))
+  "Cancel TIMER."
+  `(when ,timer
+     (cancel-timer ,timer)
+     (setq ,timer nil)))
 
 (defun ycmd-parsing-in-progress-p ()
   "Return t if parsing is in progress."
@@ -730,7 +749,7 @@ This kills any ycmd server already running (under ycmd.el's
 control.) The newly started server will have a new HMAC secret."
   (interactive)
 
-  (ycmd-close 0.5)
+  (ycmd-close)
 
   (let ((hmac-secret (ycmd--generate-hmac-secret)))
     (ycmd--start-server hmac-secret)
@@ -738,32 +757,37 @@ control.) The newly started server will have a new HMAC secret."
 
   (ycmd--start-keepalive-timer))
 
-(defun ycmd-close (&optional time-out-secs)
+(defun ycmd-close ()
   "Shutdown any running ycmd server.
-
-Wait TIME-OUT-SECS seconds after `interrupt-process' call for the
-ycmd server to end before killing the process with
-`delete-process'.
 
 This does nothing if no server is running."
   (interactive)
-
-  (unwind-protect
-      (when (ycmd-running?)
-        (condition-case nil
-            (progn
-              (interrupt-process ycmd--server-process)
-              (when time-out-secs
-                (sit-for time-out-secs)
-                (delete-process ycmd--server-process)))
-          (error nil)))
-    (ycmd--global-teardown))
-
+  (when (ycmd-running?)
+    (ycmd--stop-server))
+  (ycmd--global-teardown)
   (ycmd--kill-timer ycmd--keepalive-timer))
+
+(defun ycmd--stop-server ()
+  "Stop the ycmd server process.
+
+Call `interrupt-process' for the ycmd server and wait for the
+ycmd server to stop.  If the ycmd server is still running after a
+timeout specified by `ycmd-delete-process-delay', then kill the
+process with `delete-process'."
+  (condition-case nil
+      (let ((start-time (float-time)))
+        (interrupt-process ycmd--server-process-name)
+        (while (and (ycmd-running?)
+                    (> ycmd-delete-process-delay
+                       (- (float-time) start-time)))
+          (sit-for 0.05))
+        (delete-process ycmd--server-process-name))
+    (error nil)))
 
 (defun ycmd-running? ()
   "Return t if a ycmd server is already running."
-  (and (get-process ycmd--server-process) t))
+  (--when-let (get-process ycmd--server-process-name)
+    (and (processp it) (process-live-p it) t)))
 
 (defun ycmd--keepalive ()
   "Sends an unspecified message to the server.
@@ -890,34 +914,33 @@ and blocks until the request has finished."
 (defun ycmd--handle-exception (results)
   "Handle exception in completion RESULTS.
 
-This function handles 'UnknownExtraConf' exceptions or exceptions
-handled by a DEFAULT-HANDLER, which must be a function that takes
-a results vector as argument."
-  (let* ((exception (assoc-default 'exception results))
-         (exception-type (assoc-default 'TYPE exception)))
-    (pcase exception-type
+This function handles `UnknownExtraConf', `ValueError' and
+`RuntimeError' exceptions."
+  (let-alist results
+    (pcase .exception.TYPE
       ("UnknownExtraConf"
-       (ycmd--handle-extra-conf-exception results))
+       (ycmd--handle-extra-conf-exception .exception.extra_conf_file))
       ((or "ValueError" "RuntimeError")
-       (ycmd--handle-error-exception results)))))
+       (ycmd--handle-error-exception .message)))))
 
 (defun ycmd--send-request (type success-handler)
   "Send a request of TYPE to the `ycmd' server.
 
 SUCCESS-HANDLER is called when for a successful response."
   (when ycmd-mode
-    (deferred:$
-
-      (ycmd--send-completer-command-request type)
-
-      (deferred:nextc it
-        (lambda (result)
-          (when result
-            (if (and (not (vectorp result))
-                     (assoc-default 'exception result))
-                (ycmd--handle-exception result)
-              (when success-handler
-                (funcall success-handler result)))))))))
+    (if (ycmd-parsing-in-progress-p)
+        (message "Can't send \"%s\" request while parsing is in progress!"
+                 type)
+      (deferred:$
+        (ycmd--send-completer-command-request type)
+        (deferred:nextc it
+          (lambda (result)
+            (when result
+              (if (and (not (vectorp result))
+                       (assq 'exception result))
+                  (ycmd--handle-exception result)
+                (when success-handler
+                  (funcall success-handler result))))))))))
 
 (defun ycmd--send-completer-command-request (type)
   "Send Go To request of TYPE to BUFFER at POS."
@@ -993,11 +1016,11 @@ Useful in case compile-time is considerable."
 
 LOCATION is a structure as returned from e.g. the various GoTo
 commands."
-  (--when-let (assoc-default 'filepath location)
-    (funcall find-function it)
-    (goto-char (ycmd--col-line-to-position
-                (assoc-default 'column_num location)
-                (assoc-default 'line_num location)))))
+  (let-alist location
+    (--when-let .filepath
+      (funcall find-function it)
+      (goto-char (ycmd--col-line-to-position
+                  .column_num .line_num)))))
 
 (defun ycmd--goto-line (line)
   "Go to LINE."
@@ -1041,14 +1064,14 @@ Use BUFFER if non-nil or `current-buffer'."
       (buffer-string))))
 
 (defun ycmd--handle-get-parent-or-type-success (result)
-  "Handle a successful GetParent or GetType resonse for RESULT."
-  (-when-let (msg (assoc-default 'message result))
-    (message "%s" (pcase msg
-                    ((or "Unknown semantic parent"
-                         "Unknown type"
-                         "Internal error: cursor not valid"
-                         "Internal error: no translation unit") msg)
-                    (_ (ycmd--fontify-code msg))))))
+  "Handle a successful GetParent or GetType response for RESULT."
+  (--when-let (cdr (assq 'message result))
+    (message "%s" (pcase it
+                    ((or `"Unknown semantic parent"
+                         `"Unknown type"
+                         `"Internal error: cursor not valid"
+                         `"Internal error: no translation unit") it)
+                    (_ (ycmd--fontify-code it))))))
 
 (defun ycmd-get-parent ()
   "Get semantic parent for symbol at point."
@@ -1065,8 +1088,10 @@ Use BUFFER if non-nil or `current-buffer'."
 (defun ycmd--replace-chunk (start end replacement-text line-delta char-delta buffer)
   "Replace text between START and END with REPLACEMENT-TEXT.
 
-LINE-DELTA and CHAR-DELTA are offset from former replacements on
-the current line.  BUFFER is the current working buffer."
+START and END are cons cells representing a line and column
+pair (car and cdr).  LINE-DELTA and CHAR-DELTA are offset from
+former replacements on the current line.  BUFFER is the current
+working buffer."
   (let* ((start-line (+ (car start) line-delta))
          (end-line (+ (car end) line-delta))
          (source-line-count (1+ (- end-line start-line)))
@@ -1090,22 +1115,22 @@ the current line.  BUFFER is the current working buffer."
         (insert replacement-text)
         (cons new-line-delta new-char-delta)))))
 
-(defun ycmd--get-chunk-line-and-column (chunk start-or-end)
-  "Get a cons cell with line and column of CHUNK.
+(defun ycmd--get-chunk-start-line-and-column (chunk)
+  "Get a cons cell with the start line and start column of CHUNK."
+  (let-alist chunk
+    (cons .range.start.line_num .range.start.column_num)))
 
-START-OR-END specifies whether to get the range start or end."
-  (let* ((range (assoc-default 'range chunk))
-         (pos (assoc-default start-or-end range))
-         (line-num (assoc-default 'line_num pos))
-         (column-num (assoc-default 'column_num pos)))
-    (cons line-num column-num)))
+(defun ycmd--get-chunk-end-line-and-column (chunk)
+  "Get a cons cell with the end line and end column of CHUNK."
+  (let-alist chunk
+    (cons .range.end.line_num .range.end.column_num)))
 
 (defun ycmd--chunk-< (c1 c2)
   "Return t if C1 should go before C2."
-  (let* ((start-c1 (ycmd--get-chunk-line-and-column c1 'start))
+  (let* ((start-c1 (ycmd--get-chunk-start-line-and-column c1))
          (line-num-1 (car start-c1))
          (column-num-1 (cdr start-c1))
-         (start-c2 (ycmd--get-chunk-line-and-column c2 'start))
+         (start-c2 (ycmd--get-chunk-start-line-and-column c2))
          (line-num-2 (car start-c2))
          (column-num-2 (cdr start-c2)))
     (or (< line-num-1 line-num-2)
@@ -1123,9 +1148,9 @@ buffer."
         (line-delta 0)
         (char-delta 0))
     (dolist (c chunks-sorted)
-      (-when-let* ((chunk-start (ycmd--get-chunk-line-and-column c 'start))
-                   (chunk-end (ycmd--get-chunk-line-and-column c 'end))
-                   (replacement-text (assoc-default 'replacement_text c)))
+      (-when-let* ((chunk-start (ycmd--get-chunk-start-line-and-column c))
+                   (chunk-end (ycmd--get-chunk-end-line-and-column c))
+                   (replacement-text (cdr (assq 'replacement_text c))))
         (unless (= (car chunk-start) last-line)
           (setq last-line (car chunk-end))
           (setq char-delta 0))
@@ -1137,13 +1162,13 @@ buffer."
 
 (defun ycmd--handle-fixit-success (result)
   "Handle a successful FixIt response for RESULT."
-  (-if-let* ((fixits (assoc-default 'fixits result))
+  (-if-let* ((fixits (cdr (assq 'fixits result)))
              (fixits (append fixits nil)))
       (let ((use-dialog-box nil))
         (when (or (not ycmd-confirm-fixit)
                   (y-or-n-p "Apply FixIts on current line? "))
           (dolist (fixit fixits)
-            (-when-let (chunks (assoc-default 'chunks fixit))
+            (-when-let (chunks (cdr (assq 'chunks fixit)))
               (ycmd--replace-chunk-list (append chunks nil))))))
     (message "No FixIts available")))
 
@@ -1164,7 +1189,7 @@ the documentation."
 
 (defun ycmd--handle-get-doc-success (result)
   "Handle successful GetDoc response for RESULT."
-  (let ((documentation (assoc-default 'detailed_info result)))
+  (let ((documentation (cdr (assq 'detailed_info result))))
     (if (not (s-blank? documentation))
         (with-help-window (get-buffer-create " *ycmd-documentation*")
           (with-current-buffer standard-output
@@ -1188,7 +1213,7 @@ MODE is a major mode for fontifaction."
   (pop-to-buffer
    (ycmd--with-view-buffer
     (->>
-     (--group-by (cdr (assoc 'filepath it)) result)
+     (--group-by (cdr (assq 'filepath it)) result)
      (--map (ycmd--view-insert-location it mode))))))
 
 (define-button-type 'ycmd--location-button
@@ -1212,31 +1237,32 @@ MODE is a major mode for fontifaction."
    'type 'ycmd--location-button
    'location location))
 
-(defun ycmd--view-insert-location (location mode)
-  "Insert LOCATION into buffer and fontify according MODE."
-  (let* ((max-line-num (cdr (assoc 'line_num
-                                   (-max-by
-                                    (lambda (a b)
-                                      (let ((a (cdr (assoc 'line_num a)))
-                                            (b (cdr (assoc 'line_num b))))
-                                        (when (and (numberp a) (numberp b))
-                                          (> a b))))
-                                    (cdr location)))))
+(defun ycmd--view-insert-location (location-group mode)
+  "Insert LOCATION-GROUP into `current-buffer' and fontify according MODE.
+LOCATION-GROUP is a cons cell whose car is the filepath and the whose
+cdr is a list of location objects."
+  (let* ((max-line-num (cdr (assq 'line_num
+                                  (-max-by
+                                   (lambda (a b)
+                                     (let ((a (cdr (assq 'line_num a)))
+                                           (b (cdr (assq 'line_num b))))
+                                       (when (and (numberp a) (numberp b))
+                                         (> a b))))
+                                   (cdr location-group)))))
          (max-line-num-width (and max-line-num
                                   (length (format "%d" max-line-num))))
          (line-num-format (and max-line-num-width
                                (format "%%%dd:" max-line-num-width))))
-    (insert (propertize (concat (car location) "\n") 'face 'bold))
+    (insert (propertize (concat (car location-group) "\n") 'face 'bold))
     (--map
-     (progn
+     (let-alist it
        (when line-num-format
-         (insert (format line-num-format (cdr (assoc 'line_num it)))))
+         (insert (format line-num-format .line_num)))
        (insert "    ")
        (ycmd--view-insert-button
-        (ycmd--fontify-code (cdr (assoc 'description it)) mode)
-        it)
+        (ycmd--fontify-code .description mode) it)
        (insert "\n"))
-     (cdr location))))
+     (cdr location-group))))
 
 (defvar ycmd-view-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1295,45 +1321,22 @@ When clicked, this will popup MESSAGE."
     (end-of-line)
     (point)))
 
-(defmacro ycmd--with-destructured-parse-result (result body)
-  "Destructure parse RESULT and evaluate BODY."
-  (declare (indent 1) (debug t))
-  `(let* ((location_extent  (assoc-default 'location_extent ,result))
-          (le_end           (assoc-default 'end location_extent))
-          (end-line-num     (assoc-default 'line_num le_end))
-          (end-column-num   (assoc-default 'column_num le_end))
-          (end-filepath     (assoc-default 'filepath le_end))
-          (le_start         (assoc-default 'start location_extent))
-          (start-line-num   (assoc-default 'line_num le_start))
-          (start-column-num (assoc-default 'column_num le_start))
-          (start-filepath   (assoc-default 'filepath le_start))
-          (location         (assoc-default 'location ,result))
-          (line-num         (assoc-default 'line_num location))
-          (column-num       (assoc-default 'column_num location))
-          (filepath         (assoc-default 'filepath location))
-          (kind             (assoc-default 'kind ,result))
-          (text             (assoc-default 'text ,result))
-          (ranges           (assoc-default 'ranges ,result))
-          (fixit-available  (assoc-default 'fixit_available ,result)))
-     ,body))
-
-(defun ycmd--decorate-single-parse-result (r)
-  "Decorates a buffer based on the contents of a single parse result struct R.
+(defun ycmd--decorate-single-parse-result (result)
+  "Decorates a buffer based on the contents of a single parse RESULT.
 
 This is a fairly crude form of decoration, but it does give
 reasonable visual feedback on the problems found by ycmd."
-  (ycmd--with-destructured-parse-result r
-    (--when-let (find-buffer-visiting filepath)
+  (let-alist result
+    (--when-let (find-buffer-visiting .location.filepath)
       (with-current-buffer it
-        (let* ((start-pos (ycmd--line-start-position line-num))
-               (end-pos (ycmd--line-end-position line-num))
-               (btype (assoc-default kind ycmd--file-ready-buttons)))
+        (let* ((start-pos (ycmd--line-start-position .location.line_num))
+               (end-pos (ycmd--line-end-position .location.line_num))
+               (btype (cdr (assoc .kind ycmd--file-ready-buttons))))
           (when btype
             (with-silent-modifications
               (ycmd--make-button
                start-pos end-pos
-               btype
-               (concat kind ": " text)))))))))
+               btype (concat .kind ": " .text)))))))))
 
 (defun ycmd-decorate-with-parse-results (results)
   "Decorates a buffer using the RESULTS of a file-ready parse list.
@@ -1346,8 +1349,10 @@ This is suitable as an entry in `ycmd-file-parse-result-hook'."
 
 (defun ycmd--display-single-file-parse-result (result)
   "Insert a single file parse RESULT."
-  (ycmd--with-destructured-parse-result result
-    (insert (format "%s:%s - %s - %s\n" filepath line-num kind text))))
+  (let-alist result
+    (insert (format "%s:%s - %s - %s\n"
+                    .location.filepath .location.line_num
+                    .kind .text))))
 
 (defun ycmd-display-file-parse-results (results)
   "Display parse RESULTS in a buffer."
@@ -1364,17 +1369,14 @@ This is suitable as an entry in `ycmd-file-parse-result-hook'."
   (ycmd--report-status 'unparsed)
   (ycmd--conditional-parse))
 
-(defun ycmd--handle-extra-conf-exception (result)
-  "Handle an exception of type `UnknownExtraConf' in RESULT.
+(defun ycmd--handle-extra-conf-exception (conf-file)
+  "Handle an exception of type `UnknownExtraConf'.
 
-Handle configuration file according the value of
-`ycmd-extra-conf-handler'."
-  (let* ((exception (assoc-default 'exception result))
-         (conf-file (assoc-default 'extra_conf_file exception))
-         location)
-    (if (not conf-file)
-        (warn "No extra_conf_file included in UnknownExtraConf exception. \
+Handle CONF-FILE according the value of `ycmd-extra-conf-handler'."
+  (if (not conf-file)
+      (warn "No extra_conf_file included in UnknownExtraConf exception. \
 Consider reporting this.")
+    (let (location)
       (if (and (not (eq ycmd-extra-conf-handler 'ignore))
                (y-or-n-p (format "Load YCMD extra conf %s? " conf-file)))
           (setq location "/load_extra_conf_file")
@@ -1384,19 +1386,18 @@ Consider reporting this.")
       (ycmd--report-status 'unparsed)
       (ycmd-notify-file-ready-to-parse))))
 
-(defun ycmd--handle-error-exception (results)
-  "Handle exception and print message from RESULTS."
-  (let* ((msg (assoc-default 'message results))
-         (is-error (pcase msg
-                     ((or "Still no compile flags, no completions yet."
-                          "File is invalid."
-                          "No completions found; errors in the file?"
-                          (pred (string-prefix-p "Gocode binary not found."))
-                          "Gocode binary not found."
-                          "Gocode returned invalid JSON response."
-                          (pred (string-prefix-p "Gocode panicked"))
-                          "Received invalid HMAC for response!")
-                      t))))
+(defun ycmd--handle-error-exception (msg)
+  "Handle exception and print MSG."
+  (let ((is-error (pcase msg
+                    ((or "Still no compile flags, no completions yet."
+                         "File is invalid."
+                         "No completions found; errors in the file?"
+                         (pred (string-prefix-p "Gocode binary not found."))
+                         "Gocode binary not found."
+                         "Gocode returned invalid JSON response."
+                         (pred (string-prefix-p "Gocode panicked"))
+                         "Received invalid HMAC for response!")
+                     t))))
     (when is-error
       (ycmd--report-status 'errored))
     (message "%s" (concat (when is-error "ERROR: ")
@@ -1405,13 +1406,11 @@ Consider reporting this.")
 (defun ycmd--handle-notify-response (results)
   "If RESULTS is a vector or nil, the response is an acual parse result.
 Otherwise the response is probably an exception."
-  (if (or (not results)
-          (vectorp results))
-      (progn
-        (run-hook-with-args 'ycmd-file-parse-result-hook results)
-        (ycmd--report-status 'parsed))
-    (when (assoc 'exception results)
-      (ycmd--handle-exception results))))
+  (if (and (not (vectorp results))
+           (assq 'exception results))
+      (ycmd--handle-exception results)
+    (ycmd--report-status 'parsed)
+    (run-hook-with-args 'ycmd-file-parse-result-hook results)))
 
 (defun ycmd-notify-file-ready-to-parse ()
   "Send a notification to ycmd that the buffer is ready to be parsed.
@@ -1469,7 +1468,7 @@ This is primarily a debug/developer tool."
   "Map a major mode MODE to a list of file-types suitable for ycmd.
 
 If there is no established mapping, return nil."
-  (cdr (assoc mode ycmd-file-type-map)))
+  (cdr (assq mode ycmd-file-type-map)))
 
 (defun ycmd--start-keepalive-timer ()
   "Kill any existing keepalive timer and start a new one."
@@ -1525,7 +1524,7 @@ file."
         (python-binary-path (or ycmd-python-binary-path "")))
     `((filepath_completion_use_working_dir . 0)
       (auto_trigger . 1)
-      (min_num_of_chars_for_completion . 2)
+      (min_num_of_chars_for_completion . ,ycmd-min-num-chars-for-completion)
       (min_num_identifier_candidate_chars . 0)
       (semantic_triggers . ())
       (filetype_specific_completion_to_disable (gitcommit . 1))
@@ -1562,13 +1561,16 @@ the name of the newly created file."
   "Start a new server using HMAC-SECRET as its hmac secret."
   (let ((proc-buff (get-buffer-create ycmd--server-buffer-name)))
     (with-current-buffer proc-buff
+      (buffer-disable-undo proc-buff)
       (erase-buffer)
 
       (let* ((options-file (ycmd--create-options-file hmac-secret))
              (server-command ycmd-server-command)
-             (args (apply 'list (concat "--options_file=" options-file) ycmd-server-args))
+             (args (apply 'list (concat "--options_file=" options-file)
+                          ycmd-server-args))
              (server-program+args (append server-command args))
-             (proc (apply #'start-process ycmd--server-process proc-buff server-program+args))
+             (proc (apply #'start-process ycmd--server-process-name proc-buff
+                          server-program+args))
              (cont t)
              (start-time (float-time)))
         (while cont
@@ -1585,7 +1587,7 @@ the name of the newly created file."
                 (ycmd--with-all-ycmd-buffers (ycmd--report-status 'unparsed))))
              (t
               ;; timeout after specified period
-              (when (< (/ ycmd-startup-timeout 1000) (- (float-time) start-time))
+              (when (< ycmd-startup-timeout (- (float-time) start-time))
                 (ycmd--with-all-ycmd-buffers (ycmd--report-status 'errored))
                 (when (ycmd-running?) (ycmd-close))
                 (error "ERROR: Ycmd server timeout"))))))))))
@@ -1738,11 +1740,7 @@ anything like that.)
     (if sync
         (let (result)
           (ycmd-request
-           url
-           :headers headers
-           :parser parser
-           :data content
-           :type type
+           url :headers headers :parser parser :data content :type type
            :sync t
            :success
            (cl-function
@@ -1752,11 +1750,7 @@ anything like that.)
           result)
       (deferred:$
         (ycmd-request-deferred
-         url
-         :headers headers
-         :parser parser
-         :data content
-         :type type)
+         url :headers headers :parser parser :data content :type type)
         (deferred:nextc it
           (lambda (req)
             (let ((content (ycmd-request-response-data req)))
