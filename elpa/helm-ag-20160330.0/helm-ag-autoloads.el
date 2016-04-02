@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-ag" "helm-ag.el" (22253 5305 451276 326000))
+;;;### (autoloads nil "helm-ag" "helm-ag.el" (22271 10543 58766 162000))
 ;;; Generated autoloads from helm-ag.el
 
 (autoload 'helm-ag-pop-stack "helm-ag" "\
@@ -16,16 +16,16 @@
 
 \(fn)" t nil)
 
-(autoload 'helm-ag-this-file "helm-ag" "\
-
-
-\(fn)" t nil)
-
 (autoload 'helm-ag-mode "helm-ag" "\
 Major mode to provide actions in helm grep saved buffer.
 
 Special commands:
 \\{helm-ag-mode-map}
+
+\(fn)" t nil)
+
+(autoload 'helm-ag-this-file "helm-ag" "\
+
 
 \(fn)" t nil)
 
