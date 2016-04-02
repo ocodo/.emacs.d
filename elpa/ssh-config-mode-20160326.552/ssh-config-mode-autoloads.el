@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ssh-config-mode" "ssh-config-mode.el" (22246
-;;;;;;  12162 838583 715000))
+;;;### (autoloads nil "ssh-config-mode" "ssh-config-mode.el" (22271
+;;;;;;  10385 849870 200000))
 ;;; Generated autoloads from ssh-config-mode.el
 
 (autoload 'ssh-config-mode "ssh-config-mode" "\
