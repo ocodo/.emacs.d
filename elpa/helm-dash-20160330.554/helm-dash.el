@@ -1,4 +1,4 @@
-;;; helm-dash.el --- Offline documentation browser for +150 APIs using Dash docsets.
+;;; helm-dash.el --- Offline documentation browser for +150 APIs using Dash docsets.  -*- lexical-binding: t; -*-
 ;; Copyright (C) 2013-2014  Raimon Grau
 ;; Copyright (C) 2013-2014  Toni Reina
 
@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20160310.246
+;; Package-Version: 20160330.554
 ;; Version: 1.3.0
 ;; Package-Requires: ((helm "1.9.2") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -270,6 +270,14 @@ Report an error unless a valid docset is selected."
 		      (helm-dash-installed-docsets))))
   (add-to-list 'helm-dash-common-docsets docset)
   (helm-dash-reset-connections))
+  
+;;;###autoload
+(defun helm-dash-deactivate-docset(docset)
+  "Deactivate DOCSET.  If called interactively prompts for the docset name."
+  (interactive (list (helm-dash-read-docset
+		      "Deactivate docset"
+		      helm-dash-common-docsets)))
+  (setq helm-dash-common-docsets (delete docset helm-dash-common-docsets)))
 
 (defun helm-dash--install-docset (url docset-name)
   (let ((docset-tmp-path (format "%s%s-docset.tgz" temporary-file-directory docset-name)))
