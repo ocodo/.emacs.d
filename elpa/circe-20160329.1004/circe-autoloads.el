@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "circe" "circe.el" (22258 7006 0 0))
+;;;### (autoloads nil "circe" "circe.el" (22271 10643 391234 337000))
 ;;; Generated autoloads from circe.el
 
 (autoload 'circe-version "circe" "\
@@ -36,7 +36,7 @@ See `circe-network-options' for a list of common options.
 ;;;***
 
 ;;;### (autoloads nil "circe-color-nicks" "circe-color-nicks.el"
-;;;;;;  (22258 7006 0 0))
+;;;;;;  (22271 10643 383234 303000))
 ;;; Generated autoloads from circe-color-nicks.el
 
 (autoload 'enable-circe-color-nicks "circe-color-nicks" "\
@@ -48,7 +48,7 @@ This module colors all encountered nicks in a cross-server fashion.
 ;;;***
 
 ;;;### (autoloads nil "circe-highlight-all-nicks" "circe-highlight-all-nicks.el"
-;;;;;;  (22258 7006 0 0))
+;;;;;;  (22271 10643 403234 390000))
 ;;; Generated autoloads from circe-highlight-all-nicks.el
 
 (autoload 'enable-circe-highlight-all-nicks "circe-highlight-all-nicks" "\
@@ -60,8 +60,8 @@ channel in messages of other people.
 
 ;;;***
 
-;;;### (autoloads nil "circe-lagmon" "circe-lagmon.el" (22258 7006
-;;;;;;  0 0))
+;;;### (autoloads nil "circe-lagmon" "circe-lagmon.el" (22271 10643
+;;;;;;  391234 337000))
 ;;; Generated autoloads from circe-lagmon.el
 
 (defvar circe-lagmon-mode nil "\
@@ -83,7 +83,7 @@ in the mode-line.
 ;;;***
 
 ;;;### (autoloads nil "circe-new-day-notifier" "circe-new-day-notifier.el"
-;;;;;;  (22258 7006 0 0))
+;;;;;;  (22271 10643 435234 529000))
 ;;; Generated autoloads from circe-new-day-notifier.el
 
 (autoload 'enable-circe-new-day-notifier "circe-new-day-notifier" "\
@@ -98,8 +98,8 @@ in the mode-line.
 
 ;;;***
 
-;;;### (autoloads nil "lui-autopaste" "lui-autopaste.el" (22258 7006
-;;;;;;  0 0))
+;;;### (autoloads nil "lui-autopaste" "lui-autopaste.el" (22271 10643
+;;;;;;  399234 372000))
 ;;; Generated autoloads from lui-autopaste.el
 
 (autoload 'enable-lui-autopaste "lui-autopaste" "\
@@ -119,8 +119,8 @@ Disable the lui autopaste feature.
 
 ;;;***
 
-;;;### (autoloads nil "lui-irc-colors" "lui-irc-colors.el" (22258
-;;;;;;  7006 0 0))
+;;;### (autoloads nil "lui-irc-colors" "lui-irc-colors.el" (22271
+;;;;;;  10643 443234 563000))
 ;;; Generated autoloads from lui-irc-colors.el
 
 (autoload 'enable-lui-irc-colors "lui-irc-colors" "\
@@ -130,7 +130,19 @@ Enable IRC color interpretation for Lui.
 
 ;;;***
 
-;;;### (autoloads nil "shorten" "shorten.el" (22258 7006 0 0))
+;;;### (autoloads nil "lui-track-bar" "lui-track-bar.el" (22271 10643
+;;;;;;  387234 320000))
+;;; Generated autoloads from lui-track-bar.el
+
+(autoload 'enable-lui-track-bar "lui-track-bar" "\
+Enable a bar in Lui buffers that shows where you stopped reading.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "shorten" "shorten.el" (22271 10643 427234
+;;;;;;  495000))
 ;;; Generated autoloads from shorten.el
 
 (autoload 'shorten-strings "shorten" "\
@@ -144,7 +156,8 @@ components back together into SHORTENED-STRING.  See also
 
 ;;;***
 
-;;;### (autoloads nil "tracking" "tracking.el" (22258 7006 0 0))
+;;;### (autoloads nil "tracking" "tracking.el" (22271 10643 375234
+;;;;;;  268000))
 ;;; Generated autoloads from tracking.el
 
 (defvar tracking-mode nil "\
@@ -198,7 +211,7 @@ Switch to the last active buffer.
 
 ;;;### (autoloads nil nil ("circe-chanop.el" "circe-compat.el" "circe-pkg.el"
 ;;;;;;  "irc.el" "lcs.el" "lui-format.el" "lui-logging.el" "lui.el"
-;;;;;;  "make-tls-process.el") (22258 7006 514766 0))
+;;;;;;  "make-tls-process.el") (22271 10643 455185 697000))
 
 ;;;***
 
