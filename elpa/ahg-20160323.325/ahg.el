@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20151223.301
+;; Package-Version: 20160323.325
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -2918,8 +2918,8 @@ Lets you step back in time for that line."
          (cmd (if idx (substring command idx) ""))
          (matches
           (cond ((string-match "^-.*$" cmd) (list cmd))
-                ((= idx 0) (ahg-complete-command-name command))
-                ((and (= idx 5) (string= (substring command 0 idx) "help "))
+                ((and idx (= idx 0)) (ahg-complete-command-name command))
+                ((and idx (= idx 5) (string= (substring command 0 idx) "help "))
                  (ahg-complete-command-name cmd))
                 (t
                  (let ((default-directory
