@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20160317.1458
+;; Package-Version: 20160331.1145
 ;; Version: 1.1.6
 
 ;; This file is NOT part of GNU Emacs.
@@ -190,6 +190,10 @@ depending on DISPLAY for keys which are either :foreground or
    (diff-refine-removed :weight bold)
    (diff-removed :foreground red)
 
+   ;; dired-async
+   (dired-async-message :foreground yellow)
+   (dired-async-mode-message :foreground orange)
+
    ;; erc
    (erc-current-nick-face :foreground base5)
    (erc-dangerous-host-face :foreground red)
@@ -315,7 +319,7 @@ depending on DISPLAY for keys which are either :foreground or
    (gnus-summary-normal-read :foreground green)
    (gnus-summary-normal-ticked :foreground base7)
    (gnus-summary-normal-undownloaded :foreground base5)
-   (gnus-summary-normal-unread :foreground base4)
+   (gnus-summary-normal-unread :foreground cyan)
    (gnus-server-agent :foreground base6 :weight bold)
    (gnus-server-closed :inherit italic :foreground base4)
    (gnus-server-cloud :foreground green :weight bold)
@@ -328,6 +332,16 @@ depending on DISPLAY for keys which are either :foreground or
    (ido-indicator :foreground red)
    (ido-only-match :foreground green)
    (ido-subdir :foreground red)
+
+   ;; info
+   (Info-quoted :inherit italic :foreground orange :weight bold)
+   (info-menu-header :foreground green :weight bold :height 1.4 )
+   (info-menu-star :foreground red)
+   (info-node :inherit italic :foreground base6 :weight bold)
+   (info-title-1 :weight bold :height 1.6)
+   (info-title-2 :weight bold :height 1.4)
+   (info-title-3 :weight bold :height 1.2)
+   (info-title-4 :weight bold)
 
    ;; makefile
    (makefile-space :background magenta)
@@ -366,6 +380,17 @@ depending on DISPLAY for keys which are either :foreground or
    (rcirc-prompt :foreground orange)
    (rcirc-server :foreground cyan)
    (rcirc-url :inherit link)
+
+   ;; ruler
+   (ruler-mode-column-number :foreground base6)
+   (ruler-mode-comment-column :foreground base4)
+   (ruler-mode-current-column :foreground yellow)
+   (ruler-mode-default :foreground base5 :background base2)
+   (ruler-mode-fill-column :foreground red)
+   (ruler-mode-fringes :foreground green)
+   (ruler-mode-goal-column :foreground orange)
+   (ruler-mode-pad :foreground cyan)
+   (ruler-mode-tab-stop :foreground magenta)
 
    ;; semantic
    (semantic-complete-inline-face :underline base5)
@@ -482,7 +507,7 @@ depending on DISPLAY for keys which are either :foreground or
    ;; company
    (company-echo-common :foreground red)
    (company-preview :inherit company-tooltip-selection)
-   (company-preview-common :inherit company-preview :foreground orange)
+   (company-preview-common :inherit company-preview :foreground yellow)
    (company-preview-search :inherit company-preview)
    (company-scrollbar-bg :background base2)
    (company-scrollbar-fg :background base4)
@@ -617,6 +642,11 @@ depending on DISPLAY for keys which are either :foreground or
    ;; linum-relative
    (linum-relative-current-face :background base3 :foreground cyan :weight bold)
 
+   ;; lispy
+   (lispy-command-name-face :inherit font-lock-function-name-face :background base2)
+   (lispy-cursor-face :foreground base0 :background base6)
+   (lispy-face-hint :inherit highlight :foreground green)
+
    ;; lui
    (lui-button-face :inherit link)
    (lui-highlight-face :foreground base7 :weight bold)
@@ -716,6 +746,25 @@ depending on DISPLAY for keys which are either :foreground or
    ;; mu4e
    (mu4e-header-highlight-face :inherit hl-line)
    (mu4e-region-code :inherit region)
+
+   ;; neotree
+   (neo-banner-face :foreground orange :weight bold)
+   (neo-button-face :foreground blue)
+   (neo-dir-link-face :foreground magenta :weight bold)
+   (neo-expand-btn-face :foreground yellow)
+   (neo-file-link-face :foreground green)
+   (neo-header-face :foreground yellow)
+   (neo-root-dir-face :foreground red :weight bold)
+   (neo-vc-added-face :foreground yellow)
+   (neo-vc-conflict-face :foreground red)
+   (neo-vc-default-face :foreground base6)
+   (neo-vc-edited-face :foreground cyan)
+   (neo-vc-ignored-face :foreground blue)
+   (neo-vc-missing-face :foreground red)
+   (neo-vc-needs-merge-face :foreground red)
+   (neo-vc-unlocked-changes-face :foreground base7 :background blue)
+   (neo-vc-up-to-date-face :foreground green)
+   (neo-vc-user-face :inherit italic :foreground red)
 
    ;; org-mode
    (org-agenda-dimmed-todo-face :inherit shadow)
