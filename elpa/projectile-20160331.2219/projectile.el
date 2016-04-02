@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160318.1049
+;; Package-Version: 20160331.2219
 ;; Keywords: project, convenience
 ;; Version: 0.14.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -49,12 +49,17 @@
   (defvar ggtags-completion-table)
   (defvar tags-completion-table)
   (defvar tags-loop-scan)
-  (defvar tags-loop-operate))
+  (defvar tags-loop-operate)
+  (defvar eshell-buffer-name)
+  (defvar explicit-shell-file-name))
 
 (declare-function ggtags-ensure-project "ggtags")
 (declare-function ggtags-update-tags "ggtags")
 (declare-function pkg-info-version-info "pkg-info")
 (declare-function tags-completion-table "etags")
+(declare-function make-term "term")
+(declare-function term-mode "term")
+(declare-function term-char-mode "term")
 
 (defvar grep-files-aliases)
 (defvar grep-find-ignored-directories)
@@ -89,7 +94,7 @@ attention to case differences."
     '(when (< emacs-major-version 25)
        (defvar etags--table-line-limit 500)
        (defun etags-tags-completion-table ()
-         (let (table
+         (let ((table (make-vector 511 0))
                (progress-reporter
                 (make-progress-reporter
                  (format "Making tags completion table for %s..." buffer-file-name)
@@ -101,15 +106,15 @@ attention to case differences."
                          "[\f\t\n\r()=,; ]?\177\\\(?:\\([^\n\001]+\\)\001\\)?"
                          (+ (point) etags--table-line-limit) t))
                    (forward-line 1)
-                 (push (prog1 (if (match-beginning 1)
-                                  (buffer-substring (match-beginning 1) (match-end 1))
-                                (goto-char (match-beginning 0))
-                                (skip-chars-backward "^\f\t\n\r()=,; ")
-                                (prog1
-                                    (buffer-substring (point) (match-beginning 0))
-                                  (goto-char (match-end 0))))
-                         (progress-reporter-update progress-reporter (point)))
-                       table))))
+                 (intern (prog1 (if (match-beginning 1)
+                                    (buffer-substring (match-beginning 1) (match-end 1))
+                                  (goto-char (match-beginning 0))
+                                  (skip-chars-backward "^\f\t\n\r()=,; ")
+                                  (prog1
+                                      (buffer-substring (point) (match-beginning 0))
+                                    (goto-char (match-end 0))))
+                           (progress-reporter-update progress-reporter (point)))
+                         table))))
            table))))
 
   )
@@ -786,7 +791,7 @@ The current directory is assumed to be the project's root otherwise."
   (let ((dir default-directory))
     (or (--some (let* ((cache-key (format "%s-%s" it dir))
                        (cache-value (gethash cache-key projectile-project-root-cache)))
-                  (if cache-value
+                  (if (and cache-value (file-exists-p cache-value))
                       cache-value
                     (let ((value (funcall it (file-truename dir))))
                       (puthash cache-key value projectile-project-root-cache)
@@ -1272,8 +1277,10 @@ https://github.com/emacs-helm/helm")))
         (user-error "Please install grizzl from \
 https://github.com/d11wtq/grizzl")))
      ((eq projectile-completion-system 'ivy)
-      (if (fboundp 'ivy-completing-read)
-          (ivy-completing-read prompt choices nil nil initial-input)
+      (if (fboundp 'ivy-read)
+          (ivy-read prompt choices
+                    :initial-input initial-input
+                    :caller 'projectile-completing-read)
         (user-error "Please install ivy from \
 https://github.com/abo-abo/swiper")))
      (t (funcall projectile-completion-system prompt choices)))))
@@ -2067,6 +2074,41 @@ regular expression."
   (projectile-with-default-dir (projectile-project-root)
     (call-interactively 'async-shell-command)))
 
+;;;###autoload
+(defun projectile-run-shell ()
+  "Invoke `shell' in the project's root."
+  (interactive)
+  (projectile-with-default-dir (projectile-project-root)
+    (shell (concat "*shell " (projectile-project-name) "*"))))
+
+;;;###autoload
+(defun projectile-run-eshell ()
+  "Invoke `eshell' in the project's root."
+  (interactive)
+  (let ((eshell-buffer-name (concat "*eshell " (projectile-project-name) "*")))
+     (projectile-with-default-dir (projectile-project-root)
+       (eshell))))
+
+;;;###autoload
+(defun projectile-run-term (program)
+  "Invoke `term' in the project's root."
+  (interactive (list nil))
+  (let* ((term (concat "term " (projectile-project-name)))
+         (buffer (concat "*" term "*")))
+    (unless (get-buffer buffer)
+      (require 'term)
+      (let ((program (or program
+                         (read-from-minibuffer "Run program: "
+                                               (or explicit-shell-file-name
+                                                   (getenv "ESHELL")
+                                                   (getenv "SHELL")
+                                                   "/bin/sh")))))
+        (projectile-with-default-dir (projectile-project-root)
+          (set-buffer (make-term term program))
+          (term-mode)
+          (term-char-mode))))
+    (switch-to-buffer buffer)))
+
 (defun projectile-files-in-project-directory (directory)
   "Return a list of files in DIRECTORY."
   (let ((dir (file-relative-name (expand-file-name directory)
@@ -2798,10 +2840,10 @@ is chosen."
 (define-skeleton projectile-skel-dir-locals
   "Insert a .dir-locals.el template."
   nil
-  "((nil . (("
+  "((nil . ("
   ("" '(projectile-skel-variable-cons) \n)
   resume:
-  "))))")
+  ")))")
 
 ;;;###autoload
 (defun projectile-edit-dir-locals ()
@@ -2855,6 +2897,9 @@ is chosen."
     (define-key map (kbd "T") #'projectile-find-test-file)
     (define-key map (kbd "u") #'projectile-run-project)
     (define-key map (kbd "v") #'projectile-vc)
+    (define-key map (kbd "x e") #'projectile-run-eshell)
+    (define-key map (kbd "x t") #'projectile-run-term)
+    (define-key map (kbd "x s") #'projectile-run-shell)
     (define-key map (kbd "z") #'projectile-cache-current-file)
     (define-key map (kbd "ESC") #'projectile-project-buffers-other-buffer)
     map)
@@ -2888,6 +2933,10 @@ is chosen."
    ["Search in project (ag)" projectile-ag]
    ["Replace in project" projectile-replace]
    ["Multi-occur in project" projectile-multi-occur]
+   "--"
+   ["Run shell" projectile-run-shell]
+   ["Run eshell" projectile-run-eshell]
+   ["Run term" projectile-run-term]
    "--"
    ["Cache current file" projectile-cache-current-file]
    ["Invalidate cache" projectile-invalidate-cache]

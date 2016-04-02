@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "projectile" "projectile.el" (22253 5206 255211
-;;;;;;  370000))
+;;;### (autoloads nil "projectile" "projectile.el" (22271 10402 293974
+;;;;;;  749000))
 ;;; Generated autoloads from projectile.el
 
 (autoload 'projectile-version "projectile" "\
@@ -230,6 +230,21 @@ Invoke `shell-command' in the project's root.
 Invoke `async-shell-command' in the project's root.
 
 \(fn)" t nil)
+
+(autoload 'projectile-run-shell "projectile" "\
+Invoke `shell' in the project's root.
+
+\(fn)" t nil)
+
+(autoload 'projectile-run-eshell "projectile" "\
+Invoke `eshell' in the project's root.
+
+\(fn)" t nil)
+
+(autoload 'projectile-run-term "projectile" "\
+Invoke `term' in the project's root.
+
+\(fn PROGRAM)" t nil)
 
 (autoload 'projectile-replace "projectile" "\
 Replace literal string in project using non-regexp `tags-query-replace'.
