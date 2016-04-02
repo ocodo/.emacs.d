@@ -497,6 +497,8 @@ Symbol is defined as a chunk of text recognized by
                                              python-mode
                                              coffee-mode
                                              js2-mode
+                                             asm-mode
+                                             makefile-gmake-mode
                                              )
   "List of modes that should not reindent after kill."
   :type '(repeat symbol)
