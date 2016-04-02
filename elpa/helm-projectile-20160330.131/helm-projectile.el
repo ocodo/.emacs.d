@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/helm-projectile
-;; Package-Version: 20160220.2226
+;; Package-Version: 20160330.131
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
@@ -752,7 +752,7 @@ DIR is the project root, if not set then current directory is used"
                                       (projectile-ignored-directories))
                                 (-map (lambda (path)
                                         (concat "--ignore-file=match:" (shell-quote-argument path)))
-                                      (projectile-ignored-files))) " "))
+                                      (append (projectile-ignored-files) (projectile-patterns-to-ignore)))) " "))
           (helm-ack-grep-executable (cond
                                      ((executable-find "ack") "ack")
                                      ((executable-find "ack-grep") "ack-grep")
@@ -775,7 +775,7 @@ DIR is the project root, if not set then current directory is used"
                  (helm-ag-command-option options)
                  (helm-ag-base-command (concat helm-ag-base-command " " ignored))
                  (current-prefix-arg nil))
-            (helm-do-ag (projectile-project-root)))
+            (helm-do-ag (projectile-project-root) (car (projectile-parse-dirconfig-file))))
         (error "You're not in a project"))
     (error "helm-ag not available")))
 
