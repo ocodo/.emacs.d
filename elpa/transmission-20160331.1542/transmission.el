@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.8
-;; Package-Version: 20160312.1237
+;; Package-Version: 20160331.1542
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -75,7 +75,7 @@
   :group 'external)
 
 (defcustom transmission-host "localhost"
-  "Host name or IP address of the Transmission session."
+  "Host name, IP address, or socket address of the Transmission session."
   :type 'string)
 
 (defcustom transmission-service 9091
@@ -116,7 +116,9 @@ pieces and the number of pieces as arguments, and should return a string."
                 (function :tag "Function")))
 
 (defcustom transmission-trackers '()
-  "List of tracker URLs."
+  "List of tracker URLs.
+These are used for completion in `transmission-trackers-add' and
+`transmission-trackers-replace'."
   :type '(repeat (string :tag "URL")))
 
 (defcustom transmission-units nil
@@ -172,6 +174,12 @@ The function should accept an IP address and return a string or nil."
                 (function-item transmission-geoiplookup)
                 (function :tag "Function")))
 
+(defconst transmission-mode-alist
+  '((session . 0)
+    (torrent . 1)
+    (unlimited . 2))
+  "Alist of threshold mode enumerations.")
+
 (defconst transmission-priority-alist
   '((low . -1)
     (normal . 0)
@@ -203,7 +211,13 @@ The function should accept an IP address and return a string or nil."
     "pieceSize" "trackerStats" "peersConnected" "peersGettingFromUs" "peersFrom"
     "peersSendingToUs" "sizeWhenDone" "error" "errorString" "wanted" "files"
     "downloadedEver" "corruptEver" "haveValid" "totalSize" "percentDone"
-    "seedRatioLimit" "seedRatioMode" "bandwidthPriority" "downloadDir"))
+    "seedRatioLimit" "seedRatioMode" "bandwidthPriority" "downloadDir"
+    "uploadLimit" "uploadLimited" "downloadLimit" "downloadLimited"
+    "honorsSessionLimits"))
+
+(defconst transmission-file-symbols
+  '(:files-wanted :files-unwanted :priority-high :priority-low :priority-normal)
+  "List of \"torrent-set\" request arguments for operating on files.")
 
 (defconst transmission-session-header "X-Transmission-Session-Id"
   "The \"X-Transmission-Session-Id\" header key.")
@@ -311,15 +325,13 @@ Return JSON object parsed from content."
   "Return a network client process connected to a transmission daemon.
 When creating a new connection, the address is determined by the
 custom variables `transmission-host' and `transmission-service'."
-  (let ((buffer (generate-new-buffer " *transmission*"))
-        (local (string-prefix-p "/" transmission-host)))
-    ;; I believe
-    ;; https://trac.transmissionbt.com/ticket/5265
+  (let ((socket (if (file-name-absolute-p transmission-host)
+                    (expand-file-name transmission-host))))
     (make-network-process
-     :name "transmission" :buffer buffer
-     :host transmission-host
-     :service (if local transmission-host transmission-service)
-     :family (if local 'local))))
+     :name "transmission" :buffer (generate-new-buffer " *transmission*")
+     :host (unless socket transmission-host)
+     :service (or socket transmission-service)
+     :family (if socket 'local))))
 
 (defun transmission-request (method &optional arguments tag)
   "Send a request to Transmission.
@@ -506,7 +518,7 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
   (if (<= seconds 0)
       (pcase percent
         (1 "Done")
-        (_ (if (char-displayable-p ?∞) (eval-when-compile (string ?∞)) "Inf")))
+        (_ (if (char-displayable-p ?∞) (eval-when-compile (char-to-string ?∞)) "Inf")))
     (let* ((minute 60.0)
            (hour 3600.0)
            (day 86400.0)
@@ -532,6 +544,17 @@ otherwise some other estimate indicated by SECONDS and PERCENT."
   "Return a rate in units kilobytes per second.
 The rate is calculated from BYTES according to `transmission-units'."
   (/ bytes (if (eq 'iec transmission-units) 1024 1000)))
+
+(defun transmission-set-torrent-speed-limit (ids limit n)
+  "Set transfer speed limit for IDS.
+LIMIT is a symbol; either uploadLimit or downloadLimit.
+N is the desired threshold. A negative value of N means to disable the limit."
+  (cl-assert (memq limit '(uploadLimit downloadLimit)))
+  (let* ((limit (intern (concat ":" (symbol-name limit))))
+         (limited (intern (concat (symbol-name limit) "ed")))
+         (arguments `(:ids ,ids ,@(if (< n 0) `(,limited :json-false)
+                                    `(,limited t ,limit ,n)))))
+    (transmission-request-async nil "torrent-set" arguments)))
 
 (defun transmission-prompt-speed-limit (upload)
   "Make a prompt to set transfer speed limit.
@@ -639,10 +662,7 @@ Returns a list of non-blank inputs."
 
 (defun transmission-files-do (action)
   "Apply ACTION to files in `transmission-files-mode' buffers."
-  (unless (memq action (list :files-wanted :files-unwanted
-                             :priority-high :priority-low
-                             :priority-normal))
-    (error "Invalid field %s" action))
+  (cl-assert (memq action transmission-file-symbols))
   (let ((id transmission-torrent-id)
         (indices (mapcar (lambda (id) (cdr (assq 'index id)))
                          (transmission-prop-values-in-region 'tabulated-list-id))))
@@ -710,7 +730,7 @@ The two are spliced together with indices for each file, sorted by file name."
 
 (defun transmission-ratio->glyph (ratio)
   "Return a single-char string representing RATIO."
-  (string
+  (char-to-string
    (cond
     ((= 0 ratio) #x20)
     ((< ratio 0.333) #x2591)
@@ -739,7 +759,7 @@ MODE is which seed ratio to use; TLIMIT is the torrent-level limit."
     (2 "Unlimited")))
 
 (defun transmission-group-digits (n)
-  "Group digits of natural number N with `transmission-digit-delimiter''"
+  "Group digits of positive number N with `transmission-digit-delimiter''"
   (if (< n 10000) (number-to-string n)
     (let ((calc-group-char transmission-digit-delimiter))
       (math-group-float (number-to-string n)))))
@@ -749,6 +769,11 @@ MODE is which seed ratio to use; TLIMIT is the torrent-level limit."
 Done in the spirit of `dired-plural-s'."
   (let ((m (if (= -1 n) 0 n)))
     (concat (transmission-group-digits m) " " s (unless (= m 1) "s"))))
+
+(defun transmission-format-rate (bytes throttled)
+  "Format BYTES per second into a string with units."
+  (if (not (eq t throttled)) "unlimited"
+    (concat (transmission-group-digits bytes) " KB/s")))
 
 (defmacro transmission-tabulated-list-pred (key)
   "Return a sorting predicate comparing values of KEY.
@@ -799,6 +824,7 @@ When called with a prefix, prompt for DIRECTORY."
                `(:metainfo ,(with-temp-buffer
                               (insert-file-contents torrent)
                               (base64-encode-string (buffer-string))))
+             (setq torrent (string-trim torrent))
              `(:filename ,(if (transmission-btih-p torrent)
                               (format "magnet:?xt=urn:btih:%s" torrent)
                             torrent)))
@@ -860,6 +886,49 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   (let ((arguments (if (< limit 0) '(:seedRatioLimited :json-false)
                      `(:seedRatioLimited t :seedRatioLimit ,limit))))
     (transmission-request-async nil "session-set" arguments)))
+
+(defun transmission-set-torrent-download ()
+  "Set download limit of torrent(s) at point in KB/s."
+  (interactive)
+  (transmission-let-ids
+      ((prompt (concat "Set torrent" (if (cdr ids) "s'" "'s") " download limit: "))
+       (limit (read-number prompt)))
+    (transmission-set-torrent-speed-limit ids 'downloadLimit limit)))
+
+(defun transmission-set-torrent-upload ()
+  "Set upload limit of torrent(s) at point in KB/s."
+  (interactive)
+  (transmission-let-ids
+      ((prompt (concat "Set torrent" (if (cdr ids) "s'" "'s") " upload limit: "))
+       (limit (read-number prompt)))
+    (transmission-set-torrent-speed-limit ids 'uploadLimit limit)))
+
+(defun transmission-set-torrent-ratio ()
+  "Set seed ratio limit of torrent(s) at point."
+  (interactive)
+  (transmission-let-ids
+      ((prompt (concat "Set torrent" (if (cdr ids) "s'" "'s") " ratio mode: "))
+       (mode (completing-read prompt transmission-mode-alist nil t))
+       (n (cdr (assoc-string mode transmission-mode-alist)))
+       (arguments `(:ids ,ids :seedRatioMode ,n)))
+    (when (= n 1)
+      (let ((limit (read-number "Set torrent ratio limit: ")))
+        (setq arguments (append arguments `(:seedRatioLimit ,limit)))))
+    (transmission-request-async nil "torrent-set" arguments)))
+
+(defun transmission-toggle-limits ()
+  "Toggle whether torrent(s) at point honor session speed limits."
+  (interactive)
+  (transmission-let-ids nil
+    (transmission-request-async
+     (lambda (content)
+       (let* ((response (json-read-from-string content))
+              (torrents (cdr (cadr (assq 'arguments response))))
+              (honor (pcase (cdr (assq 'honorsSessionLimits (elt torrents 0)))
+                       (:json-false t) (_ :json-false))))
+         (transmission-request-async nil "torrent-set"
+                                     `(:ids ,ids :honorsSessionLimits ,honor))))
+     "torrent-get" `(:ids ,ids :fields ("honorsSessionLimits")))))
 
 (defun transmission-toggle ()
   "Toggle torrent between started and stopped."
@@ -1182,6 +1251,13 @@ Each form in BODY is a column descriptor."
       (format "Percent done: %d%%" (* 100 .percentDone))
       (format "Bandwidth priority: %s"
               (car (rassoc .bandwidthPriority transmission-priority-alist)))
+      (concat "Speed limits: "
+              (pcase .honorsSessionLimits
+                (:json-false
+                 (format "%s download, %s upload"
+                         (transmission-format-rate .downloadLimit .downloadLimited)
+                         (transmission-format-rate .uploadLimit .uploadLimited)))
+                (_ "session limits")))
       (concat "Ratio limit: "
               (transmission-torrent-seed-ratio .seedRatioMode .seedRatioLimit))
       (unless (zerop .error)
@@ -1357,6 +1433,12 @@ Key bindings:
     ["Move Torrent" transmission-move]
     ["Reannounce Torrent" transmission-reannounce]
     ["Set Bandwidth Priority" transmission-set-bandwidth-priority]
+    ("Set Torrent Limits"
+     ["Set Torrent Download Limit" transmission-set-torrent-download]
+     ["Set Torrent Upload Limit" transmission-set-torrent-upload]
+     ["Toggle Torrent Speed Limits" transmission-toggle-limits
+      :help "Toggle whether torrent honors session limits."]
+     ["Set Torrent Seed Ratio Limit" transmission-set-torrent-ratio])
     ["Verify Torrent" transmission-verify]
     "--"
     ["View Torrent Files" transmission-files]
@@ -1471,10 +1553,16 @@ Key bindings:
     ["Start/Stop Torrent" transmission-toggle
      :help "Toggle pause on torrents at point or in region"]
     ["Set Bandwidth Priority" transmission-set-bandwidth-priority]
-    ("Set Limits"
+    ("Set Global/Session Limits"
      ["Set Global Download Limit" transmission-set-download]
      ["Set Global Upload Limit" transmission-set-upload]
      ["Set Global Seed Ratio Limit" transmission-set-ratio])
+    ("Set Torrent Limits"
+     ["Set Torrent Download Limit" transmission-set-torrent-download]
+     ["Set Torrent Upload Limit" transmission-set-torrent-upload]
+     ["Toggle Torrent Speed Limits" transmission-toggle-limits
+      :help "Toggle whether torrent honors session limits."]
+     ["Set Torrent Seed Ratio Limit" transmission-set-torrent-ratio])
     ["Move Torrent" transmission-move]
     ["Reannounce Torrent" transmission-reannounce]
     ["Verify Torrent" transmission-verify]
