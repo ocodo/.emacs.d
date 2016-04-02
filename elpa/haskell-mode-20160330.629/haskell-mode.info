@@ -88,10 +88,10 @@ gmane.comp.lang.haskell.emacs
 can file a new issue
 (https://github.com/haskell/haskell-mode/issues/new) with Haskell Mode’s
 issue tracker.  When filing a bug, please state your currently used
-software version (‘M-x haskell-version’, ‘M-x version’) and what steps
-to perform in order to reproduce the bug you’re experiencing.  Finally,
-if you happen to be proficient in *note Emacs Lisp: (elisp)Top. you are
-welcome to submit patches via GitHub Pull Requests
+software version (‘M-x’ ‘haskell-version’, ‘M-x’ ‘version’) and what
+steps to perform in order to reproduce the bug you’re experiencing.
+Finally, if you happen to be proficient in *note Emacs Lisp: (elisp)Top.
+you are welcome to submit patches via GitHub Pull Requests
 (https://help.github.com/articles/using-pull-requests).
 
 
@@ -121,11 +121,11 @@ its contents:
 
    Then run Emacs, and evaluate:
 
-   ‘M-x package-refresh-contents’
+   ‘M-x’ ‘package-refresh-contents’
 
    and then follow by
 
-   ‘M-x package-install RET haskell-mode’
+   ‘M-x’ ‘package-install’ ‘RET’ ‘haskell-mode’
 
    Voila!  ‘haskell-mode’ is installed!  You should be able to edit
 Haskell source code in color now.
@@ -222,7 +222,7 @@ There are a few functions for managing imports.
 
 To jump to your import list, run
 
-   ‘M-x haskell-navigate-imports’
+   ‘M-x’ ‘haskell-navigate-imports’
 
    It’s nicer to have a keybinding to do this, for example:
 
@@ -236,7 +236,7 @@ cycle.
 
 To generally format (sort, align) your imports, you can run
 
-   ‘M-x haskell-mode-format-imports’
+   ‘M-x’ ‘haskell-mode-format-imports’
 
    Or ‘C-c C-.’.
 
@@ -245,14 +245,14 @@ To generally format (sort, align) your imports, you can run
 
 To just sort imports, jump to an import section and run
 
-   ‘M-x haskell-sort-imports’
+   ‘M-x’ ‘haskell-sort-imports’
 
 4.2.4 Align imports
 -------------------
 
 To just align imports, jump to an import section and run
 
-   ‘M-x haskell-align-imports’
+   ‘M-x’ ‘haskell-align-imports’
 
 4.2.5 stylish-haskell
 ---------------------
@@ -260,22 +260,56 @@ To just align imports, jump to an import section and run
 As an alternative to the elisp functions described above, haskell-mode
 can use the program stylish-haskell
 (http://hackage.haskell.org/package/stylish-haskell) to format imports.
-You can set this behavior by typing: ‘M-x customize-variable <RET>
-haskell-stylish-on-save’.  You can install ‘stylish-haskell’ by running
+You can set this behavior by typing: ‘M-x’ ‘customize-variable’ ‘RET’
+‘haskell-stylish-on-save’.  You can install ‘stylish-haskell’ by running
 ‘stack install stylish-haskell’, or if you have not installed ‘stack’,
 ‘cabal install stylish-haskell’.
 
-4.3 Completion support
+4.3 Haskell Tags
+================
+
+‘haskell-mode’ can generate tags when saving source files.  To generate
+tags ‘haskell-mode’ uses external program — Hasktags
+(https://github.com/MarcWeber/hasktags) (wiki-article
+(https://wiki.haskell.org/Tags)).  To turn on tags generatation
+customize or set to ‘t’ ‘haskell-tags-on-save’ variable.  Also, you may
+find useful to revert tags tables automatically, this can be done by
+customizing ‘tags-revert-without-query’ variable (either globally or for
+Haskell buffers only).
+
+4.4 Completion support
 ======================
 
-‘haskell-mode’ can complete symbols, pragma directives and language
-extensions.  This is part of ‘haskell-interactive-mode’.
+‘haskell-mode’ can complete symbols, pragma directives, language
+extensions, and language keywords out-of-box.  ‘haskell-mode’ completes
+identifiers (symbols) using tags (see “Tags”), however you can get more
+precise completions with ‘haskell-interactive-mode’.  In interactive
+mode completion candidates are produced by querying GHCi REPL.
 
-   If haskell-interactive-mode is enabled and working haskell mode
+   If ‘haskell-interactive-mode’ is enabled and working Haskell mode
 provides completions for import statements taking into account currently
-loaded and available packages.
+loaded and available packages.  Also it completes symbols querying REPL
+with ‘:complete’ command, hence completion candidate list also includes
+symbols from imported modules.
 
-4.4 Profiling and Debugging support
+   Unfortunatelly, it is not possible to provide candidates for
+identifiers defined locally in ‘let’ and ‘where’ blocks even in
+interactive mode.  But if you’re using company-mode
+(http://company-mode.github.io/) you can override ‘company-backends’
+variable for Haskell buffers to combine completion candidates from
+completion-at-point function (‘company-capf’ backend) and dynamic
+abbrevs.  ‘company-mode’ provides special backend for dabbrev code
+completions, namely ‘company-dabbrev-code’.  To combine completions from
+diffrent backends you can create grouped backends, it is very easy — a
+grouped backend is just a list of backends, for example:
+
+     (add-hook 'haskell-mode-hook
+               (lambda ()
+                 (set (make-local-variable 'company-backends)
+                      (append '((company-capf company-dabbrev-code))
+                              company-backends))))
+
+4.5 Profiling and Debugging support
 ===================================
 
 When profiling code with GHC, it is often useful to add cost centres
@@ -849,24 +883,24 @@ Tag Table:
 Node: Top683
 Node: Introduction2021
 Node: Getting Help and Reporting Bugs2538
-Node: Getting Started4000
-Node: Editing Haskell Code6402
-Ref: Editing Haskell Code-Footnote-110737
-Ref: Editing Haskell Code-Footnote-210828
-Ref: Editing Haskell Code-Footnote-310887
-Node: Unicode support10971
-Node: Indentation12661
-Ref: Indentation-Footnote-114982
-Node: Declaration scanning15167
-Node: Compilation18446
-Node: Inferior Haskell interpreter21457
-Node: Interactive Haskell22387
-Node: Editing Cabal files26280
-Node: Changing REPL target27030
-Node: Using with flyspell-prog-mode27622
-Node: Concept index28725
-Node: Function index29776
-Node: Variable index31741
+Node: Getting Started4011
+Node: Editing Haskell Code6437
+Ref: Editing Haskell Code-Footnote-112650
+Ref: Editing Haskell Code-Footnote-212741
+Ref: Editing Haskell Code-Footnote-312800
+Node: Unicode support12884
+Node: Indentation14574
+Ref: Indentation-Footnote-116895
+Node: Declaration scanning17080
+Node: Compilation20359
+Node: Inferior Haskell interpreter23370
+Node: Interactive Haskell24300
+Node: Editing Cabal files28193
+Node: Changing REPL target28943
+Node: Using with flyspell-prog-mode29535
+Node: Concept index30638
+Node: Function index31689
+Node: Variable index33654
 
 End Tag Table
 
