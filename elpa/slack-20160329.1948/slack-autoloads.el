@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "slack" "slack.el" (22258 7009 0 0))
+;;;### (autoloads nil "slack" "slack.el" (22271 10394 393924 868000))
 ;;; Generated autoloads from slack.el
 
 (autoload 'slack-start "slack" "\
@@ -18,9 +18,9 @@
 ;;;;;;  "slack-message-editor.el" "slack-message-formatter.el" "slack-message-notification.el"
 ;;;;;;  "slack-message-reaction.el" "slack-message-sender.el" "slack-message.el"
 ;;;;;;  "slack-pkg.el" "slack-reaction.el" "slack-reply.el" "slack-request.el"
-;;;;;;  "slack-room.el" "slack-team.el" "slack-user-message.el" "slack-user.el"
-;;;;;;  "slack-util.el" "slack-websocket.el") (22258 7009 706553
-;;;;;;  0))
+;;;;;;  "slack-room.el" "slack-search.el" "slack-team.el" "slack-user-message.el"
+;;;;;;  "slack-user.el" "slack-util.el" "slack-websocket.el") (22271
+;;;;;;  10394 429654 548000))
 
 ;;;***
 

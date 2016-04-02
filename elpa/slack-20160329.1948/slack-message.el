@@ -26,13 +26,13 @@
 
 (require 'eieio)
 (require 'slack-util)
-(require 'slack-buffer)
 (require 'slack-reaction)
 
 (defvar slack-current-room-id)
 (defvar slack-current-team-id)
 (defconst slack-message-pins-add-url "https://slack.com/api/pins.add")
 (defconst slack-message-pins-remove-url "https://slack.com/api/pins.remove")
+(defconst slack-message-delete-url "https://slack.com/api/chat.delete")
 
 (defclass slack-message ()
   ((type :initarg :type :type string)
@@ -45,7 +45,8 @@
    (reactions :initarg :reactions :type (or null list))
    (is-starred :initarg :is_starred :type boolean)
    (pinned-to :initarg :pinned_to :type (or null list))
-   (edited-at :initarg :edited-at :initform nil)))
+   (edited-at :initarg :edited-at :initform nil)
+   (deleted-at :initarg :deleted-at :initform nil)))
 
 (defclass slack-file-message (slack-message)
   ((file :initarg :file)
@@ -89,20 +90,22 @@
 (defgeneric slack-message-to-alert (slack-message))
 
 (defgeneric slack-room-buffer-name (room))
-(defgeneric slack-room-update-message (room))
+(defgeneric slack-room-update-message (room messages))
 
 (defun slack-room-find (id team)
-  (if id
-      (if (string= "slack-file" id)
-          (slack-file-room-obj team)
-        (cl-labels ((find-room (room)
-                               (string= id (oref room id))))
-          (if team
-              (with-slots (channels groups ims) team
-                (cond
-                 ((string-prefix-p "C" id) (cl-find-if #'find-room channels))
-                 ((string-prefix-p "G" id) (cl-find-if #'find-room groups))
-                 ((string-prefix-p "D" id) (cl-find-if #'find-room ims)))))))))
+  (if (and id team)
+      (cl-labels ((find-room (room)
+                             (string= id (oref room id))))
+        (cond
+         ((string-prefix-p "F" id) (slack-file-room-obj team))
+         ((string-prefix-p "C" id) (cl-find-if #'find-room
+                                               (oref team channels)))
+         ((string-prefix-p "G" id) (cl-find-if #'find-room
+                                               (oref team groups)))
+         ((string-prefix-p "D" id) (cl-find-if #'find-room
+                                               (oref team ims)))
+         ((string-prefix-p "Q" id) (cl-find-if #'find-room
+                                               (oref team search-results)))))))
 
 (defun slack-reaction-create (payload)
   (apply #'slack-reaction "reaction"
@@ -164,15 +167,12 @@
     (let ((room (slack-room-find channel team)))
       (when room
         (slack-room-update-message room m)
-        (slack-buffer-update room
-                             m
-                             :replace replace
-                             :team team)
+        (slack-buffer-update room m team :replace replace)
         (unless no-notify
           (slack-message-notify-alert m room team))))))
 
 (defun slack-message-edited (payload team)
-  (let* ((edited-message (plist-get payload :message))
+  (let* ((edited-message (slack-decode (plist-get payload :message)))
          (room (slack-room-find (plist-get payload :channel) team))
          (message (slack-room-find-message room
                                            (plist-get edited-message :ts)))
@@ -224,6 +224,49 @@
 
 (defun slack-message-time-stamp (message)
   (seconds-to-time (string-to-number (oref message ts))))
+
+(defun slack-message-delete ()
+  (interactive)
+  (unless (and (boundp 'slack-current-team-id)
+               (boundp 'slack-current-room-id))
+    (error "Call From Slack Room Buffer"))
+  (let* ((team (slack-team-find slack-current-team-id))
+         (channel (slack-room-find slack-current-room-id
+                                   team))
+         (ts (ignore-errors (get-text-property (point) 'ts))))
+    (unless ts
+      (error "Call With Cursor On Message"))
+    (let ((message (slack-room-find-message channel ts)))
+      (when message
+        (cl-labels
+            ((on-delete
+              (&key data &allow-other-keys)
+              (slack-request-handle-error
+               (data "slack-message-delete"))))
+          (if (yes-or-no-p "Are you sure you want to delete this message?")
+              (slack-request
+               slack-message-delete-url
+               team
+               :type "POST"
+               :params (list (cons "ts" (oref message ts))
+                             (cons "channel" (oref channel id)))
+               :success #'on-delete
+               :sync nil)
+            (message "Canceled")))))))
+
+(defun slack-message-deleted (payload team)
+  (let* ((channel-id (plist-get payload :channel))
+         (ts (plist-get payload :deleted_ts))
+         (deleted-ts (plist-get payload :ts))
+         (channel (slack-room-find channel-id team))
+         (message (slack-room-find-message channel ts)))
+    (oset message deleted-at deleted-ts)
+    (alert "message deleted"
+           :title (format "\\[%s] from %s"
+                          (slack-room-name-with-team-name channel)
+                          (slack-message-sender-name message team))
+           :category 'slack)
+    (slack-buffer-update channel message team :replace t)))
 
 (provide 'slack-message)
 ;;; slack-message.el ends here
