@@ -7,7 +7,7 @@
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; Maintainer: Peter Fraenkel <pnf@podsnap.com>
 ;; URL: https://github.com/clojure-emacs/squiggly-clojure
-;; Package-Version: 20160224.1154
+;; Package-Version: 20160319.758
 ;; Version: 1.1.0
 ;; Package-Requires: ((cider "0.8.1") (flycheck "0.22-cvs1") (let-alist "1.0.1") (emacs "24"))
 
@@ -82,7 +82,7 @@ Return a list of parsed `flycheck-error' objects."
 (defun cider-flycheck-eval (input callback)
   "Send the request INPUT and register the CALLBACK as the response handler.
 Uses the tooling session, with no specified namespace."
-  (cider-nrepl-request:eval input callback))
+  (cider-tooling-eval input callback))
 
 (defun flycheck-clojure-may-use-cider-checker ()
   "Determine whether a cider checker may be used.
