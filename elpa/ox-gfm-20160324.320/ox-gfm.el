@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito
 ;; Keywords: org, wp, markdown, github
-;; Package-Version: 20160311.439
+;; Package-Version: 20160324.320
 
 ;; This file is not part of GNU Emacs.
 
@@ -75,7 +75,7 @@
 CONTENTS is the paragraph contents.  INFO is a plist used as a
 communication channel."
   (let ((contents
-         (concat (replace-regexp-in-string "\\\n" "" contents nil t)
+         (concat (mapconcat 'identity (split-string contents) " ")
                  "\n")))
     (let ((first-object (car (org-element-contents paragraph))))
       ;; If paragraph starts with a #, protect it.
