@@ -4,12 +4,12 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Package-Version: 20160220.1642
-;; Version: 3.12
+;; Package-Version: 20160319.2338
+;; Version: 3.13
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
-;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.12") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.13") (cl-lib "0.5"))
 ;; Filename: ido-ubiquitous.el
 
 ;; This file is NOT part of GNU Emacs.
@@ -40,9 +40,8 @@
 ;; functions will not have ido completion even when this mode is
 ;; enabled. Some other functions have ido disabled in them because
 ;; their packages already provide support for ido via other means (for
-;; example, org-mode and magit). See `M-x customize-group
-;; ido-ubiquitous' and read about the override variables for more
-;; information.
+;; example, magit). See `M-x customize-group ido-ubiquitous' and read
+;; about the override variables for more information.
 
 ;; ido-ubiquitous version 3.0 is a major update, including a split
 ;; into two packages, and some of the configuration options have
@@ -71,7 +70,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-ubiquitous-version "3.12"
+(defconst ido-ubiquitous-version "3.13"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-ubiquitous, this variable may not
@@ -318,9 +317,6 @@ using overrides and disable it for everything else."
     (enable exact "webjump")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/28
     (enable regexp "\\`\\(find\\|load\\|locate\\)-library\\'")
-    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
-    ;; Org already supports ido natively
-    (disable prefix "org-")
     ;; https://github.com/bbatsov/prelude/issues/488
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/44
     ;; tmm implements its own non-standard completion mechanics
@@ -358,11 +354,6 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     (enable-old exact "webjump-read-url-choice")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/9
     (disable exact "isearchp-read-unicode-char")
-    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/37
-    (disable exact "org-completing-read")
-    (disable exact "org-completing-read-no-i")
-    (disable exact "org-iswitchb-completing-read")
-    (disable exact "org-icompleting-read")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/38
     (enable exact "read-char-by-name")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/39
