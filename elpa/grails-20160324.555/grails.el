@@ -3,8 +3,8 @@
 ;; Copyright (c) 2016 Alessandro Miliucci
 ;;
 ;; Authors: Alessandro Miliucci <lifeisfoo@gmail.com>
-;; Version: 0.2.2
-;; Package-Version: 20160318.1007
+;; Version: 0.4.0
+;; Package-Version: 20160324.555
 ;; URL: https://github.com/lifeisfoo/emacs-grails
 ;; Package-Requires: ((emacs "24"))
 
@@ -30,48 +30,62 @@
 ;; Grails.el is a minor mode that allows an easy
 ;; navigation of Gails projects.  It allows jump to a model, to a view,
 ;; to a controller or to a service.
-;;
-;; For more details, see the project page at
+
+;; Features:
+;;  - Jump to the related Domain (from the current buffer)
+;;  - Jump to the related Controller (from the current buffer)
+;;  - Jump to the related Service (from the current buffer)
+;;  - Jump to the related view(s) (from the current buffer)
+;;  - Open the Bootstrap file
+;;  - Open the UrlMappings file
+;;  - Find file prompt for domain classes
+;;  - Find file prompt for controller classes
+;;  - Find file prompt for service classes
+;;  - Find file prompt for views
+
+;; For the complete documentation, see the project page at
+
 ;; https://github.com/lifeisfoo/emacs-grails
-;;
+
 ;; Installation:
-;;
+
 ;; Copy this file to to some location in your Emacs load path.  Then add
 ;; "(require 'grails)" to your Emacs initialization (.emacs,
 ;; init.el, or something).
-;;
+
 ;; Example config:
-;;
+
 ;;   (require 'grails)
 
-;; Then, to auto enable grails mode, create a .dir-locals.el file
+;; To auto enable grails minor mode, create a .dir-locals.el file
 ;; in the root of the grails project with this configuration:
 
-;; ((groovy-mode (grails . 1))
-;;  (html-mode (grails . 1))
-;;  (java-mode (grails . 1)))
+;;    ((nil . ((grails . 1))))
+
+;; In this way, the grails minor mode will be always active inside your project tree.
+;; The first time that this code is executed, Emacs will show a security
+;; prompt: answer "!" to mark code secure and save your decision (a configuration
+;; line is automatically added to your .emacs file).
+
+;; Otherwise, if you want to have grails mode auto enabled only
+;; when using certain major modes, place this inside your `.dir-locals.el`:
+
+;;     ((groovy-mode (grails . 1))
+;;     (html-mode (grails . 1))
+;;     (java-mode (grails . 1)))
 
 ;; In this way, the grails mode will be auto enabled when any of
-;; these major modes are loaded (only in this directory tree - the project tree)
+;; these modes are loaded (only in this directory tree - the project tree)
 ;; (you can attach it to other modes if you want).
-
-;; The first time that this code is executed, Emacs will show a security
-;; prompt: answer "!" to mark code secure and save your decision.
-;; (a configuration line is automatically added to your .emacs file)
-
-;; In order to have grails minor mode always enabled inside your project tree,
-;; place inside your `.dir-locals.el`:
-
-;;   ((nil . ((grails . 1))))
-;;
 
 ;;; Code:
 
-(defvar grails-dir-name-by-type
-  '((controller "controllers")
-    (domain "domain")
-    (service "services")
-    (view "views")))
+(eval-and-compile
+  (defvar grails-dir-name-by-type
+    '((controller "controllers")
+      (domain "domain")
+      (service "services")
+      (view "views"))))
 
 (defvar grails-postfix-by-type
   '((controller "Controller.groovy")
@@ -82,6 +96,14 @@
 (defvar grails-properties-by-version
   '((2 "application.properties" "^app.grails.version=")
     (3 "gradle.properties" "^grailsVersion=")))
+
+(defvar grails-urlmappings-by-version
+  '((2 "conf/Urlmappings.groovy")
+    (3 "controllers/UrlMappings.groovy")))
+;; TODO: refactor using only one list
+(defvar grails-bootstrap-by-version
+  '((2 "conf/Bootstrap.groovy")
+    (3 "init/Bootstrap.groovy")))
 
 ;;
 ;;
@@ -119,16 +141,12 @@
   "
   (let (version)
     (dolist (elt grails-properties-by-version version)
-      (let ((inside-path
-             (concat (grails-app-base file-path) "../" (car (cdr elt))))
-            (outside-path
-             (concat (file-name-directory file-path) "/" (car (cdr elt)))))
-        (cond ((file-readable-p inside-path)
-               (setq version (grails-grep-version
-                (util-string-from-file inside-path))))
-              ((file-readable-p outside-path)
-               (setq version (grails-grep-version
-                (util-string-from-file outside-path)))))))))
+      (let ((prop-file
+             (concat (grails-project-root file-path) (car (cdr elt)))))
+        (if (file-readable-p prop-file)
+            (setq version
+                  (grails-grep-version
+                   (util-string-from-file prop-file))))))))
 
 (defun grails-dir-by-type-and-name (type class-name base-path)
   "Return the file path (string) for the type and the class-name.
@@ -160,6 +178,13 @@
            (substring file-path 0 end)))
         (t (error "Grails type not recognized"))))
 
+;;TODO - remove duplicated code
+(defun grails-type-by-dir (file)
+  "Detect current file type using its path"
+  (string-match "\\(^.*/grails-app/\\)\\([a-zA-Z]+\\)/\\(.*\\)" file)
+  (let ((dir-type (match-string 2 file)))
+    (car (rassoc (cons dir-type '()) grails-dir-name-by-type))))
+
 (defun grails-clean-name (file)
   "Detect current file type and extract it's clean class-name.
 
@@ -176,15 +201,32 @@
     (let ((grails-type (car (rassoc (cons dir-type '()) grails-dir-name-by-type))))
       (if grails-type
           (grails-extract-name file-path grails-type)
-        (error "Type not recognized")))))
+        (error "Current Grails filetype not recognized")))))
+
+(defun grails-clean-name-no-pkg (file)
+  "Same as grails-clean-name but without package prefix"
+  (let ((clean-name (grails-clean-name file)))
+    (string-match "\\([a-zA-Z0-9]+\\)$" clean-name)
+    (match-string 1 clean-name)))
 
 (defun grails-app-base (path)
-  "Get the current grails app base path /my/abs/path/grails-app/ if exist, else nil"
-  (let ((start (string-match "^.*/grails-app/" path)))
-    (if start
-	(substring path 0 (match-end 0))
-      () ;; if this is not a grails app return nil
-      )))
+  "Get the current grails app base path /my/abs/path/grails-app/.
+
+  If exists return the app base path, else return nil.
+
+  path must be a file or must end with / - see file-name-directory doc
+  "
+  (let ((project-root (grails-project-root path)))
+    (if project-root
+        (concat project-root "grails-app/")
+      (error "Grails app not found"))))
+
+(defun grails-project-root (path)
+  "Find project root for dir.
+
+  path must be a file or must end with / - see file-name-directory doc.
+  "
+  (locate-dominating-file (file-name-directory path) "grails-app"))
 
 (defun grails-find-file-auto (grails-type current-file)
   "Generate the corresponding file path for the current-file and grails-type.
@@ -202,6 +244,50 @@
 	(class-name (grails-clean-name current-file)))
     (grails-dir-by-type-and-name grails-type class-name base-path)))
 
+(defun grails-string-is-action (line)
+  "Detect if line contains a controller action name"
+  (if (string-match "^.*def[[:blank:]]+\\([a-zA-Z0-9]+\\)[[:blank:]]*(.*).*{" line)
+      (match-string 1 line)
+    nil))
+
+(defun grails-current-line-number ()
+  "Return the current buffer line (cursor)"
+  (1+ (count-lines 1 (point))))
+
+(defun grails-find-current-controller-action ()
+  "Loop from the current line backwards, looking for a controller action definition."
+  (let ((continue 'true)
+        (action-name nil))
+;;  (setq continue 'true)
+;;  (setq action-name nil)
+    (save-excursion
+      (while continue
+        (if (> (grails-current-line-number) 1)
+            (let ((cur-line
+                   (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+              (if (grails-string-is-action cur-line)
+                  (progn (setq continue nil) ;;break
+                         (setq action-name (grails-string-is-action cur-line))))
+              (forward-line -1))
+          (setq continue nil)))
+      (if action-name
+          action-name
+        (error "Action name not found")))))
+
+(defun grails-view-from-string (view-name)
+  "Open a view for the current controller and the view-name."
+  (if (eq 'controller (grails-type-by-dir (buffer-file-name)))
+      (switch-to-buffer
+       (find-file-noselect
+        (concat
+         (grails-app-base (buffer-file-name))
+         "views/"
+         (downcase (grails-clean-name-no-pkg (buffer-file-name)))
+         "/"
+         view-name
+         ".gsp")))
+    (error "This is not a controller class")))
+
 ;;
 ;;
 ;; INTERACTIVE FUNCTIONS
@@ -215,6 +301,40 @@
     (if version
         (message (concat "Grails " (number-to-string version)))
       (error "Grails version not found"))))
+
+;; TODO: refactor using a macro
+(defun grails-urlmappings-file ()
+  "Open the UrlMappings file"
+  (interactive)
+  (let ((version (grails-version-detect (buffer-file-name))))
+    (if version
+        (switch-to-buffer
+         (find-file-noselect
+          (concat (grails-app-base (buffer-file-name))
+                  (car (cdr (assoc version grails-urlmappings-by-version))))))
+      (error "Grails version not found"))))
+
+;; TODO: refactor using a macro
+(defun grails-bootstrap-file ()
+  "Open the Bootstrap file"
+  (interactive)
+  (let ((version (grails-version-detect (buffer-file-name))))
+    (if version
+        (switch-to-buffer
+         (find-file-noselect
+          (concat (grails-app-base (buffer-file-name))
+                  (car (cdr (assoc version grails-bootstrap-by-version))))))
+      (error "Grails version not found"))))
+
+(defun grails-view-from-cursor ()
+  "Open a view from the current cursor."
+  (interactive)
+  (grails-view-from-string (thing-at-point 'word)))
+
+(defun grails-view-from-context ()
+  "Open a view for the current controller action."
+  (interactive)
+  (grails-view-from-string (grails-find-current-controller-action)))
 
 (defmacro grails-fun-gen-from-file (grails-type)
   (let ((funsymbol (intern (concat "grails-" (symbol-name grails-type) "-from-file"))))
@@ -235,16 +355,23 @@
 	      (switch-to-buffer
 	       (find-file-noselect x))))))
 
-(defun grails-key-map ()
+(defvar grails-key-map
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap (kbd "C-c - d") (grails-fun-gen-from-file domain))
     (define-key keymap (kbd "C-c - c") (grails-fun-gen-from-file controller))
     (define-key keymap (kbd "C-c - s") (grails-fun-gen-from-file service))
+    (define-key keymap (kbd "C-c - v v") 'grails-view-from-context)
+    (define-key keymap (kbd "C-c - v w") 'grails-view-from-cursor)
     (define-key keymap (kbd "C-c - n d") (grails-fun-gen-from-name domain))
     (define-key keymap (kbd "C-c - n c") (grails-fun-gen-from-name controller))
     (define-key keymap (kbd "C-c - n s") (grails-fun-gen-from-name service))
     (define-key keymap (kbd "C-c - n v") (grails-fun-gen-from-name view))
-    keymap))
+    ;; p for project properties - TODO: show more information
+    (define-key keymap (kbd "C-c - p") 'grails-version)
+    (define-key keymap (kbd "C-c - u") 'grails-urlmappings-file)
+    (define-key keymap (kbd "C-c - b") 'grails-bootstrap-file)
+    keymap)
+  "Keymap for `grails` mode.")
 
 ;;;###autoload
 (define-minor-mode grails
@@ -256,7 +383,7 @@
      shortcut to fast navigate a Grails project."
   :init-value nil
   :lighter " Grails"
-  :keymap (grails-key-map)
+  :keymap grails-key-map
   :group 'grails)
 
 (provide 'grails)
