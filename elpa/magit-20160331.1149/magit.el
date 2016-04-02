@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160128.1201") (git-commit "20160119.1409") (magit-popup "20160119.1409"))
+;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160223.115") (git-commit "20160130.64") (magit-popup "20160302.322"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -927,14 +927,14 @@ reference, but it is not checked out."
           (branches (magit-list-local-branch-names)))
       (dolist (line (magit-git-lines "branch" "-vv"
                                      (cadr magit-refresh-args)))
-        (string-match magit-refs-branch-line-re line)
-        (magit-bind-match-strings
-            (branch hash message upstream ahead behind gone) line
-          (when (string-match-p "(HEAD detached" branch)
-            (setq branch nil))
-          (magit-insert-branch
-           branch magit-refs-local-branch-format current branches
-           'magit-branch-local hash message upstream ahead behind gone))))
+        (when (string-match magit-refs-branch-line-re line)
+          (magit-bind-match-strings
+              (branch hash message upstream ahead behind gone) line
+            (when (string-match-p "(HEAD detached" branch)
+              (setq branch nil))
+            (magit-insert-branch
+             branch magit-refs-local-branch-format current branches
+             'magit-branch-local hash message upstream ahead behind gone)))))
     (insert ?\n)))
 
 (defun magit-insert-remote-branches ()
@@ -2543,7 +2543,7 @@ With prefix argument simply read a directory name using
 (defun magit-list-repos-1 (directory depth)
   (cond ((file-readable-p (expand-file-name ".git" directory))
          (list directory))
-        ((and (> depth 0) (file-accessible-directory-p directory))
+        ((and (> depth 0) (magit-file-accessible-directory-p directory))
          (--mapcat (when (file-directory-p it)
                      (magit-list-repos-1 it (1- depth)))
                    (directory-files directory t "^[^.]" t)))))
@@ -2852,10 +2852,11 @@ Git, and Emacs in the echo area."
                               (package-desc-version (cadr it)))))))))))
     (if (stringp magit-version)
         (when (called-interactively-p 'any)
-          (message "Magit %s, Git %s, Emacs %s"
+          (message "Magit %s, Git %s, Emacs %s, %s"
                    (or magit-version "(unknown)")
                    (or (magit-git-version t) "(unknown)")
-                   emacs-version))
+                   emacs-version
+                   system-type))
       (setq debug (reverse debug))
       (setq magit-version 'error)
       (when magit-version

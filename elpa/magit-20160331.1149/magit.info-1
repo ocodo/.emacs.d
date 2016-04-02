@@ -240,6 +240,7 @@ FAQ
 * I am using MS Windows and cannot push with Magit::
 * How to install the gitman info manual?::
 * How can I show Git's output?::
+* Diffs contain control sequences::
 * Expanding a file to show the diff causes it to disappear::
 * Point is wrong in the COMMIT_EDITMSG buffer::
 * Can Magit be used as ediff-version-control-package?::
@@ -2592,6 +2593,10 @@ File: magit.info,  Node: Diff options,  Next: Revision buffer,  Prev: Diff buffe
      If the value is ‘tabs’, highlight indentation with tabs.  If the
      value is an integer, highlight indentation with at least that many
      spaces.  Otherwise, highlight neither.
+
+ -- User Option: magit-diff-hide-trailing-cr-characters
+
+     Whether to hide ^M characters at the end of a line in diffs.
 
 
 File: magit.info,  Node: Revision buffer,  Prev: Diff options,  Up: Diffing
@@ -5949,7 +5954,8 @@ File: magit.info,  Node: Creating sections,  Next: Section selection,  Up: Secti
      current section behave differently depending on that type.  Also if
      a variable ‘magit-TYPE-section-map’ exists, then use that as the
      text-property ‘keymap’ of all text belonging to the section (but
-     this may be overwritten in subsections).
+     this may be overwritten in subsections).  TYPE can also have the
+     form ‘(eval FORM)’ in which case FORM is evaluated at runtime.
 
      Optional VALUE is the value of the section, usually a string that
      is required when acting on the section.
@@ -6447,6 +6453,7 @@ made it into the manual yet, see
 * I am using MS Windows and cannot push with Magit::
 * How to install the gitman info manual?::
 * How can I show Git's output?::
+* Diffs contain control sequences::
 * Expanding a file to show the diff causes it to disappear::
 * Point is wrong in the COMMIT_EDITMSG buffer::
 * Can Magit be used as ediff-version-control-package?::
@@ -6638,7 +6645,7 @@ variation with used the Emacs Lisp implementation provided by the
 just one of many issues.)
 
 
-File: magit.info,  Node: How can I show Git's output?,  Next: Expanding a file to show the diff causes it to disappear,  Prev: How to install the gitman info manual?,  Up: FAQ
+File: magit.info,  Node: How can I show Git's output?,  Next: Diffs contain control sequences,  Prev: How to install the gitman info manual?,  Up: FAQ
 
 A.11 How can I show Git’s output?
 =================================
@@ -6655,9 +6662,31 @@ For debugging purposes it’s possible to do so anyway by setting
 ‘magit-git-debug’ to ‘t’.
 
 
-File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the COMMIT_EDITMSG buffer,  Prev: How can I show Git's output?,  Up: FAQ
+File: magit.info,  Node: Diffs contain control sequences,  Next: Expanding a file to show the diff causes it to disappear,  Prev: How can I show Git's output?,  Up: FAQ
 
-A.12 Expanding a file to show the diff causes it to disappear
+A.12 Diffs contain control sequences
+====================================
+
+This happens when you configure Git to always color diffs and/or all of
+its output.  The valid values for relevant Git variables ‘color.ui’ and
+‘color.diff’ are ‘false’, ‘true’ and ‘always’, and the default is
+‘true’.  You should leave it that because then you get colorful output
+in terminals but git’s output is consumed by something else, then no
+colors are used.
+
+   If you actually use some other tool which expects that requires that
+you force git to output control sequences (which is highly unlikely),
+then you can override these settings just for Magit by using:
+
+     (setq magit-git-global-arguments
+           (nconc magit-git-global-arguments
+     	     '("-c" "color.ui=false"
+     	       "-c" "color.diff=false")))
+
+
+File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the COMMIT_EDITMSG buffer,  Prev: Diffs contain control sequences,  Up: FAQ
+
+A.13 Expanding a file to show the diff causes it to disappear
 =============================================================
 
 This is probably caused by a change of a ‘diff.*’ Git variable.  You
@@ -6667,7 +6696,7 @@ that setting in Magit by customizing ‘magit-git-global-arguments’.
 
 File: magit.info,  Node: Point is wrong in the COMMIT_EDITMSG buffer,  Next: Can Magit be used as ediff-version-control-package?,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ
 
-A.13 Point is wrong in the COMMIT_EDITMSG buffer
+A.14 Point is wrong in the COMMIT_EDITMSG buffer
 ================================================
 
 Neither Magit nor ‘git-commit‘ fiddle with point in the buffer used to
@@ -6691,7 +6720,7 @@ help:
 
 File: magit.info,  Node: Can Magit be used as ediff-version-control-package?,  Next: How to show diffs for gpg-encrypted files?,  Prev: Point is wrong in the COMMIT_EDITMSG buffer,  Up: FAQ
 
-A.14 Can Magit be used as ediff-version-control-package?
+A.15 Can Magit be used as ediff-version-control-package?
 ========================================================
 
 No, it cannot.  For that to work the functions ‘ediff-magit-internal’
@@ -6726,7 +6755,7 @@ only shows yet-to-be resolved conflicts.
 
 File: magit.info,  Node: How to show diffs for gpg-encrypted files?,  Next: Emacs 245 hangs when loading Magit,  Prev: Can Magit be used as ediff-version-control-package?,  Up: FAQ
 
-A.15 How to show diffs for gpg-encrypted files?
+A.16 How to show diffs for gpg-encrypted files?
 ===============================================
 
 Git supports showing diffs for encrypted files, but has to be told to do
@@ -6739,7 +6768,7 @@ affects the diffs displayed inside Magit.
 
 File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: Symbol's value as function is void --some,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
 
-A.16 Emacs 24.5 hangs when loading Magit
+A.17 Emacs 24.5 hangs when loading Magit
 ========================================
 
 This is actually triggered by loading Tramp.  See
@@ -6751,7 +6780,7 @@ Google’s ‘8.8.8.8’) may also be sufficient to work around the issue.
 
 File: magit.info,  Node: Symbol's value as function is void --some,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
 
-A.17 Symbol’s value as function is void –some
+A.18 Symbol’s value as function is void –some
 =============================================
 
 Update ‘dash’, restart Emacs, and then it will be defined.
@@ -6759,7 +6788,7 @@ Update ‘dash’, restart Emacs, and then it will be defined.
 
 File: magit.info,  Node: Where is the branch manager,  Prev: Symbol's value as function is void --some,  Up: FAQ
 
-A.18 Where is the branch manager
+A.19 Where is the branch manager
 ================================
 
 ‘y’ is bound to the command that shows the "refs buffer", the successor
