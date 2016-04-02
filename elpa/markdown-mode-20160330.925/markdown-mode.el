@@ -1,4 +1,4 @@
-;;; markdown-mode.el --- Emacs Major mode for Markdown-formatted text files -*- lexical-binding: t; -*-
+;;; markdown-mode.el --- Major mode for Markdown-formatted text -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2016 Jason R. Blevins <jrblevin@sdf.org>
 ;; Copyright (C) 2007, 2009 Edward O'Connor <ted@oconnor.cx>
@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160313.1318
+;; Package-Version: 20160330.925
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -58,7 +58,7 @@
 ;;; Commentary:
 
 ;; markdown-mode is a major mode for editing [Markdown][]-formatted
-;; text files in GNU Emacs.  markdown-mode is free software, licensed
+;; text.  markdown-mode is free software, licensed
 ;; under the GNU GPL.
 ;;
 ;;  [Markdown]: http://daringfireball.net/projects/markdown/
@@ -1471,11 +1471,15 @@ Function is called repeatedly until it returns nil. For details, see
   (save-match-data
     (save-excursion
       (let* ((new-start (progn (goto-char start)
+                               (skip-chars-forward "\n")
                                (if (re-search-backward "\n\n" nil t)
-                                   (match-end 0) (point-min))))
+                                   (min start (match-end 0))
+                                 (point-min))))
              (new-end (progn (goto-char end)
+                             (skip-chars-backward "\n")
                              (if (re-search-forward "\n\n" nil t)
-                                 (match-beginning 0) (point-max))))
+                                 (max end (match-beginning 0))
+                               (point-max))))
              (code-match (markdown-code-block-at-pos new-start))
              (new-start (or (and code-match (cl-first code-match)) new-start))
              (code-match (markdown-code-block-at-pos end))
@@ -2832,11 +2836,19 @@ Return nil otherwise."
 (defun markdown-match-bold (last)
   "Match inline bold from the point to LAST."
   (when (markdown-match-inline-generic markdown-regex-bold last)
-    (set-match-data (list (match-beginning 2) (match-end 2)
+    (let ((begin (match-beginning 2)) (end (match-end 2)))
+      (cond
+       ((markdown-range-property-any
+         begin end 'face (list markdown-inline-code-face
+                               markdown-math-face))
+        (goto-char (1+ (match-end 0)))
+        (markdown-match-bold last))
+       (t
+        (set-match-data (list (match-beginning 2) (match-end 2)
                           (match-beginning 3) (match-end 3)
                           (match-beginning 4) (match-end 4)
                           (match-beginning 5) (match-end 5)))
-    (goto-char (1+ (match-end 0)))))
+        (goto-char (1+ (match-end 0))))))))
 
 (defun markdown-match-italic (last)
   "Match inline italics from the point to LAST."
@@ -4162,12 +4174,19 @@ these cases, indent to the default position.
 Positions are calculated by `markdown-calc-indents'."
   (interactive)
   (let ((positions (markdown-calc-indents))
+        (cursor-pos (current-column))
+        (_ (back-to-indentation))
         (cur-pos (current-column)))
     (if (not (equal this-command 'markdown-cycle))
         (indent-line-to (car positions))
       (setq positions (sort (delete-dups positions) '<))
-      (indent-line-to
-       (markdown-indent-find-next-position cur-pos positions)))))
+      (let* ((next-pos (markdown-indent-find-next-position cur-pos positions))
+             (new-cursor-pos
+              (if (< cur-pos next-pos)
+                  (+ cursor-pos (- next-pos cur-pos))
+                (- cursor-pos cur-pos))))
+        (indent-line-to next-pos)
+        (move-to-column new-cursor-pos)))))
 
 (defun markdown-calc-indents ()
   "Return a list of indentation columns to cycle through.
@@ -6633,9 +6652,9 @@ BEG and END are the limits of scanned region."
   (add-hook 'kill-buffer-hook #'markdown-live-preview-remove-on-kill t t))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode) t)
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode) t)
 
 
 ;;; GitHub Flavored Markdown Mode  ============================================

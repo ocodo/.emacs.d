@@ -1,0 +1,1 @@
+(define-package "markdown-mode" "20160330.925" "Major mode for Markdown-formatted text" '((emacs "24") (cl-lib "0.5")) :stars '(#("66" 0 2 (font-lock-face paradox-star-face))) :url "http://jblevins.org/projects/markdown-mode/" :keywords '("markdown" "github flavored markdown" "itex"))
