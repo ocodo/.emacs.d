@@ -1,16 +1,17 @@
 ;;; clojure-mode.el --- Major mode for Clojure code -*- lexical-binding: t; -*-
 
 ;; Copyright © 2007-2016 Jeffrey Chu, Lennart Staflin, Phil Hagelberg
-;; Copyright © 2013-2016 Bozhidar Batsov
+;; Copyright © 2013-2016 Bozhidar Batsov, Artur Malabarba
 ;;
 ;; Authors: Jeffrey Chu <jochu0@gmail.com>
 ;;       Lennart Staflin <lenst@lysator.liu.se>
 ;;       Phil Hagelberg <technomancy@gmail.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
+;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160314.2147
+;; Package-Version: 20160327.2121
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 5.2.0
+;; Version: 5.3.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -203,6 +204,8 @@ Out-of-the box clojure-mode understands lein, boot and gradle."
         ["Insert ns form at beginning" clojure-insert-ns-form]
         ["Update ns form" clojure-update-ns]
         "--"
+        ["Align expression" clojure-align]
+        "--"
         ["Version" clojure-mode-display-version]))
     map)
   "Keymap for Clojure mode.")
@@ -224,6 +227,12 @@ Inherits from `emacs-lisp-mode-syntax-table'.")
 
 (defconst clojure--prettify-symbols-alist
   '(("fn"  . ?λ)))
+
+(defvar-local clojure-expected-ns-function nil
+  "The function used to determine the expected namespace of a file.
+`clojure-mode' ships a basic function named `clojure-expected-ns'
+that does basic heuristics to figure this out.
+CIDER provides a more complex version which does classpath analysis.")
 
 (defun clojure-mode-display-version ()
   "Display the current `clojure-mode-version' in the minibuffer."
@@ -317,6 +326,7 @@ instead of to `clojure-mode-map'."
   (setq-local indent-region-function #'clojure-indent-region)
   (setq-local lisp-indent-function #'clojure-indent-function)
   (setq-local lisp-doc-string-elt-property 'clojure-doc-string-elt)
+  (setq-local clojure-expected-ns-function #'clojure-expected-ns)
   (setq-local parse-sexp-ignore-comments t)
   (setq-local prettify-symbols-alist clojure--prettify-symbols-alist)
   (setq-local open-paren-in-column-0-is-defun-start nil))
@@ -882,7 +892,7 @@ return point."
   (unwind-protect
       (ignore-errors
         (clojure-forward-logical-sexp 1)
-        (search-forward-regexp "\\( *\\)" bound)
+        (search-forward-regexp "\\([,\s\t]*\\)" bound)
         (pcase (syntax-after (point))
           ;; End-of-line, try again on next line.
           (`(12) (clojure--search-whitespace-after-next-sexp bound))
@@ -1325,8 +1335,7 @@ nil."
     (goto-char original-point)))
 
 (defun clojure-delete-and-extract-sexp ()
-  "Delete the sexp and return it."
-  (interactive)
+  "Delete the surrounding sexp and return it."
   (let ((begin (point)))
     (forward-sexp)
     (let ((result (buffer-substring-no-properties begin (point))))
@@ -1369,7 +1378,7 @@ If PATH is nil, use the path to the file backing the current buffer."
 (defun clojure-insert-ns-form-at-point ()
   "Insert a namespace form at point."
   (interactive)
-  (insert (format "(ns %s)" (clojure-expected-ns))))
+  (insert (format "(ns %s)" (funcall clojure-expected-ns-function))))
 
 (defun clojure-insert-ns-form ()
   "Insert a namespace form at the beginning of the buffer."
@@ -1382,7 +1391,7 @@ If PATH is nil, use the path to the file backing the current buffer."
   "Update the namespace of the current buffer.
 Useful if a file has been renamed."
   (interactive)
-  (let ((nsname (clojure-expected-ns)))
+  (let ((nsname (funcall clojure-expected-ns-function)))
     (when nsname
       (save-excursion
         (save-match-data
@@ -1466,6 +1475,7 @@ This will skip over sexps that don't represent objects, so that ^hints and
           (forward-sexp 1))
         ;; The actual sexp
         (forward-sexp 1)
+        (skip-chars-forward ",")
         (setq n (1- n))))))
 
 (defun clojure-backward-logical-sexp (&optional n)
