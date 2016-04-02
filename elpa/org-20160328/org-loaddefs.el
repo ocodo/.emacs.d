@@ -298,7 +298,7 @@ used to limit the exported source code blocks by language.
 ;;;;;;  org-search-view org-agenda-list org-batch-store-agenda-views
 ;;;;;;  org-store-agenda-views org-batch-agenda-csv org-batch-agenda
 ;;;;;;  org-agenda org-toggle-sticky-agenda) "org-agenda" "org-agenda.el"
-;;;;;;  (22243 45754))
+;;;;;;  (22250 15402))
 ;;; Generated autoloads from org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -868,18 +868,18 @@ PARAMS is a property list of parameters:
 
 :width    enforce same column widths with <N> specifiers.
 :id       the :ID: property of the entry where the columns view
-	  should be built.  When the symbol `local', call locally.
-	  When `global' call column view with the cursor at the beginning
-	  of the buffer (usually this means that the whole buffer switches
-	  to column view).  When \"file:path/to/file.org\", invoke column
-	  view at the start of that file.  Otherwise, the ID is located
-	  using `org-id-find'.
+    should be built.  When the symbol `local', call locally.
+    When `global' call column view with the cursor at the beginning
+    of the buffer (usually this means that the whole buffer switches
+    to column view).  When \"file:path/to/file.org\", invoke column
+    view at the start of that file.  Otherwise, the ID is located
+    using `org-id-find'.
 :hlines   When t, insert a hline before each item.  When a number, insert
-	  a hline before each level <= that number.
+    a hline before each level <= that number.
 :vlines   When t, make each column a colgroup to enforce vertical lines.
 :maxlevel When set to a number, don't capture headlines below this level.
 :skip-empty-rows
-	  When t, skip rows where all specifiers other than ITEM are empty.
+    When t, skip rows where all specifiers other than ITEM are empty.
 :format   When non-nil, specify the column view format to use.
 
 \(fn PARAMS)" nil nil)
@@ -1260,7 +1260,7 @@ line directly before or after the table.
 ;;;;;;  org-table-begin org-table-align org-table-export org-table-import
 ;;;;;;  org-table-convert-region org-table-create org-table-create-or-convert-from-region
 ;;;;;;  org-table-create-with-table\.el) "org-table" "org-table.el"
-;;;;;;  "69133b6755f093c9a485af24640426b1")
+;;;;;;  "78c8482f6800eba041e8d28acab96787")
 ;;; Generated autoloads from org-table.el
 
 (autoload 'org-table-create-with-table\.el "org-table" "\
@@ -1651,20 +1651,14 @@ Recompute the current line if marked for it, and if we haven't just done it.
 (autoload 'org-table-eval-formula "org-table" "\
 Replace the table field value at the cursor by the result of a calculation.
 
-This function makes use of Dave Gillespie's Calc package, in my view the
-most exciting program ever written for GNU Emacs.  So you need to have Calc
-installed in order to use this function.
-
 In a table, this command replaces the value in the current field with the
 result of a formula.  It also installs the formula as the \"current\" column
 formula, by storing it in a special line below the table.  When called
-with a `C-u' prefix, the current field must be a named field, and the
-formula is installed as valid in only this specific field.
+with a `\\[universal-argument]' prefix the formula is installed as a field formula.
 
-When called with two `C-u' prefixes, insert the active equation
-for the field back into the current field, so that it can be
-edited there.  This is useful in order to use \\[org-table-show-reference]
-to check the referenced fields.
+When called with a `\\[universal-argument] \\[universal-argument]' prefix, insert the active equation for the field
+back into the current field, so that it can be edited there.  This is useful
+in order to use \\<org-table-fedit-map>`\\[org-table-show-reference]' to check the referenced fields.
 
 When called, the command first prompts for a formula, which is read in
 the minibuffer.  Previously entered formulas are available through the
@@ -1673,7 +1667,7 @@ These stored formulas are adapted correctly when moving, inserting, or
 deleting columns with the corresponding commands.
 
 The formula can be any algebraic expression understood by the Calc package.
-For details, see the Org-mode manual.
+For details, see the Org mode manual.
 
 This function can also be called from Lisp programs and offers
 additional arguments: EQUATION can be the formula to apply.  If this
@@ -1683,15 +1677,19 @@ SUPPRESS-CONST suppresses the interpretation of constants in the
 formula, assuming that this has been done already outside the function.
 SUPPRESS-STORE means the formula should not be stored, either because
 it is already stored, or because it is a modified equation that should
-not overwrite the stored one.
+not overwrite the stored one.  SUPPRESS-ANALYSIS prevents any call to
+`org-table-analyze'.
 
 \(fn &optional ARG EQUATION SUPPRESS-ALIGN SUPPRESS-CONST SUPPRESS-STORE SUPPRESS-ANALYSIS)" t nil)
 
 (autoload 'org-table-recalculate "org-table" "\
 Recalculate the current table line by applying all stored formulas.
+
 With prefix arg ALL, do this for all lines in the table.
-With the prefix argument ALL is `(16)' (a double \\[universal-prefix] \\[universal-prefix] prefix), or if
-it is the symbol `iterate', recompute the table until it no longer changes.
+
+When called with a `\\[universal-argument] \\[universal-argument]' prefix, or if ALL is the symbol `iterate',
+recompute the table until it no longer changes.
+
 If NOALIGN is not nil, do not re-align the table after the computations
 are done.  This is typically used internally to save time, if it is
 known that the table will be realigned a little later anyway.
@@ -2005,7 +2003,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22246 17749))
+;;;;;;  (22264 47701))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2031,7 +2029,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (22245 1082))
+;;;;;;  "org" "org.el" (22251 36266))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -2249,6 +2247,174 @@ With prefix arg UNCOMPILED, load the uncompiled versions.
 Call the customize function with org as argument.
 
 \(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "ox" "ox.el" "b179c517456780a4806f9b43dc76c0dd")
+;;; Generated autoloads from ox.el
+
+(autoload 'org-export-as "ox" "\
+Transcode current Org buffer into BACKEND code.
+
+BACKEND is either an export back-end, as returned by, e.g.,
+`org-export-create-backend', or a symbol referring to
+a registered back-end.
+
+If narrowing is active in the current buffer, only transcode its
+narrowed part.
+
+If a region is active, transcode that region.
+
+When optional argument SUBTREEP is non-nil, transcode the
+sub-tree at point, extracting information from the headline
+properties first.
+
+When optional argument VISIBLE-ONLY is non-nil, don't export
+contents of hidden elements.
+
+When optional argument BODY-ONLY is non-nil, only return body
+code, without surrounding template.
+
+Optional argument EXT-PLIST, when provided, is a property list
+with external parameters overriding Org default settings, but
+still inferior to file-local settings.
+
+Return code as a string.
+
+\(fn BACKEND &optional SUBTREEP VISIBLE-ONLY BODY-ONLY EXT-PLIST)" nil nil)
+
+(autoload 'org-export-string-as "ox" "\
+Transcode STRING into BACKEND code.
+
+BACKEND is either an export back-end, as returned by, e.g.,
+`org-export-create-backend', or a symbol referring to
+a registered back-end.
+
+When optional argument BODY-ONLY is non-nil, only return body
+code, without preamble nor postamble.
+
+Optional argument EXT-PLIST, when provided, is a property list
+with external parameters overriding Org default settings, but
+still inferior to file-local settings.
+
+Return code as a string.
+
+\(fn STRING BACKEND &optional BODY-ONLY EXT-PLIST)" nil nil)
+
+(autoload 'org-export-replace-region-by "ox" "\
+Replace the active region by its export to BACKEND.
+BACKEND is either an export back-end, as returned by, e.g.,
+`org-export-create-backend', or a symbol referring to
+a registered back-end.
+
+\(fn BACKEND)" nil nil)
+
+(autoload 'org-export-insert-default-template "ox" "\
+Insert all export keywords with default values at beginning of line.
+
+BACKEND is a symbol referring to the name of a registered export
+back-end, for which specific export options should be added to
+the template, or `default' for default template.  When it is nil,
+the user will be prompted for a category.
+
+If SUBTREEP is non-nil, export configuration will be set up
+locally for the subtree through node properties.
+
+\(fn &optional BACKEND SUBTREEP)" t nil)
+
+(autoload 'org-export-to-buffer "ox" "\
+Call `org-export-as' with output to a specified buffer.
+
+BACKEND is either an export back-end, as returned by, e.g.,
+`org-export-create-backend', or a symbol referring to
+a registered back-end.
+
+BUFFER is the name of the output buffer.  If it already exists,
+it will be erased first, otherwise, it will be created.
+
+A non-nil optional argument ASYNC means the process should happen
+asynchronously.  The resulting buffer should then be accessible
+through the `org-export-stack' interface.  When ASYNC is nil, the
+buffer is displayed if `org-export-show-temporary-export-buffer'
+is non-nil.
+
+Optional arguments SUBTREEP, VISIBLE-ONLY, BODY-ONLY and
+EXT-PLIST are similar to those used in `org-export-as', which
+see.
+
+Optional argument POST-PROCESS is a function which should accept
+no argument.  It is always called within the current process,
+from BUFFER, with point at its beginning.  Export back-ends can
+use it to set a major mode there, e.g,
+
+  (defun org-latex-export-as-latex
+    (&optional async subtreep visible-only body-only ext-plist)
+    (interactive)
+    (org-export-to-buffer \\='latex \"*Org LATEX Export*\"
+      async subtreep visible-only body-only ext-plist (lambda () (LaTeX-mode))))
+
+This function returns BUFFER.
+
+\(fn BACKEND BUFFER &optional ASYNC SUBTREEP VISIBLE-ONLY BODY-ONLY EXT-PLIST POST-PROCESS)" nil nil)
+
+(put 'org-export-to-buffer 'lisp-indent-function '2)
+
+(autoload 'org-export-to-file "ox" "\
+Call `org-export-as' with output to a specified file.
+
+BACKEND is either an export back-end, as returned by, e.g.,
+`org-export-create-backend', or a symbol referring to
+a registered back-end.  FILE is the name of the output file, as
+a string.
+
+A non-nil optional argument ASYNC means the process should happen
+asynchronously.  The resulting buffer will then be accessible
+through the `org-export-stack' interface.
+
+Optional arguments SUBTREEP, VISIBLE-ONLY, BODY-ONLY and
+EXT-PLIST are similar to those used in `org-export-as', which
+see.
+
+Optional argument POST-PROCESS is called with FILE as its
+argument and happens asynchronously when ASYNC is non-nil.  It
+has to return a file name, or nil.  Export back-ends can use this
+to send the output file through additional processing, e.g,
+
+  (defun org-latex-export-to-latex
+    (&optional async subtreep visible-only body-only ext-plist)
+    (interactive)
+    (let ((outfile (org-export-output-file-name \".tex\" subtreep)))
+      (org-export-to-file \\='latex outfile
+        async subtreep visible-only body-only ext-plist
+        (lambda (file) (org-latex-compile file)))
+
+The function returns either a file name returned by POST-PROCESS,
+or FILE.
+
+\(fn BACKEND FILE &optional ASYNC SUBTREEP VISIBLE-ONLY BODY-ONLY EXT-PLIST POST-PROCESS)" nil nil)
+
+(put 'org-export-to-file 'lisp-indent-function '2)
+
+(autoload 'org-export-dispatch "ox" "\
+Export dispatcher for Org mode.
+
+It provides an access to common export related tasks in a buffer.
+Its interface comes in two flavors: standard and expert.
+
+While both share the same set of bindings, only the former
+displays the valid keys associations in a dedicated buffer.
+Scrolling (resp. line-wise motion) in this buffer is done with
+SPC and DEL (resp. C-n and C-p) keys.
+
+Set variable `org-export-dispatch-use-expert-ui' to switch to one
+flavor or the other.
+
+When ARG is \\[universal-argument], repeat the last export action, with the same set
+of options used back then, on the current buffer.
+
+When ARG is \\[universal-argument] \\[universal-argument], display the asynchronous export stack.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
