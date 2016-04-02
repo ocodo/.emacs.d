@@ -73,6 +73,9 @@ Content-Transfer-Encoding for it."
   (mel-find-function-from-obarray
    (symbol-value (intern (format "%s-obarray" service))) encoding))
 
+(defun mel-prompt-for-encoding (&optional service)
+  (completing-read "Encoding: (default base64) "
+		   (mime-encoding-alist service) nil t nil nil "base64"))
 
 ;;; @ setting for modules
 ;;;
@@ -289,9 +292,7 @@ Read text is decoded as CODING-SYSTEM."
 ENCODING must be string."
   (interactive
    (list (region-beginning)(region-end)
-	 (completing-read "Encoding: "
-			  (mime-encoding-alist)
-			  nil t "base64")))
+	 (mel-prompt-for-encoding)))
   (funcall (mel-find-function 'mime-encode-region encoding) start end))
 
 
@@ -301,9 +302,7 @@ ENCODING must be string."
 ENCODING must be string."
   (interactive
    (list (region-beginning)(region-end)
-	 (completing-read "Encoding: "
-			  (mime-encoding-alist 'mime-decode-region)
-			  nil t "base64")))
+	 (mel-prompt-for-encoding 'mime-decode-region)))
   (funcall (mel-find-function 'mime-decode-region encoding)
 	   start end))
 
@@ -371,9 +370,7 @@ Default value is `phrase'."
   "Insert file FILENAME encoded by ENCODING format."
   (interactive
    (list (read-file-name "Insert encoded file: ")
-	 (completing-read "Encoding: "
-			  (mime-encoding-alist)
-			  nil t "base64")))
+	 (mel-prompt-for-encoding)))
   (funcall (mel-find-function 'mime-insert-encoded-file encoding)
 	   filename))
 
@@ -385,9 +382,7 @@ START and END are buffer positions."
   (interactive
    (list (region-beginning)(region-end)
 	 (read-file-name "Write decoded region to file: ")
-	 (completing-read "Encoding: "
-			  (mime-encoding-alist 'mime-write-decoded-region)
-			  nil t "base64")))
+	 (mel-prompt-for-encoding 'mime-write-decoded-region)))
   (funcall (mel-find-function 'mime-write-decoded-region encoding)
 	   start end filename))
 
