@@ -5,9 +5,9 @@
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
 ;; version: 0.1
-;; Package-Version: 20160317.1801
+;; Package-Version: 20160328.2338
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((ycmd "0.1") (company "0.8.3") (deferred "0.2.0") (s "1.9.0") (dash "1.2.0"))
+;; Package-Requires: ((ycmd "0.1") (company "0.8.3") (deferred "0.2.0") (s "1.9.0") (dash "1.2.0") (let-alist "1.0.4"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -56,7 +56,8 @@
 
 ;;; Code:
 
-(require 'cc-cmds)
+(eval-when-compile
+  (require 'let-alist))
 (require 'cl-lib)
 (require 'company)
 (require 'company-template)
@@ -112,7 +113,7 @@ When 0, do not use synchronous completion request at all."
 
 (defun company-ycmd--prefix-candidate-p (candidate prefix)
   "Return t if CANDIDATE string begins with PREFIX."
-  (let ((insertion-text (assoc-default 'insertion_text candidate)))
+  (let ((insertion-text (cdr (assq 'insertion_text candidate))))
     (s-starts-with? prefix insertion-text t)))
 
 (defun company-ycmd--filename-completer-p (extra-info)
@@ -124,17 +125,11 @@ When 0, do not use synchronous completion request at all."
   (s-equals? "[ID]" extra-info))
 
 (defmacro company-ycmd--with-destructured-candidate (candidate body)
-  "Destructure CANDIDATE and evaluate BODY."
-  (declare (indent 1) (debug t))
-  `(let ((insertion-text (assoc-default 'insertion_text candidate))
-         (detailed-info (assoc-default 'detailed_info candidate))
-         (kind (assoc-default 'kind candidate))
-         (extra-menu-info (assoc-default 'extra_menu_info candidate))
-         (menu-text (assoc-default 'menu_text candidate))
-         (extra-data (assoc-default 'extra_data candidate)))
-     (if (or (company-ycmd--identifier-completer-p extra-menu-info)
-             (company-ycmd--filename-completer-p extra-menu-info))
-         (propertize insertion-text 'return_type extra-menu-info)
+  (declare (indent 1))
+  `(let-alist ,candidate
+     (if (or (company-ycmd--identifier-completer-p .extra_menu_info)
+             (company-ycmd--filename-completer-p .extra_menu_info))
+         (propertize .insertion_text 'return_type .extra_menu_info)
        ,body)))
 
 (defun company-ycmd--extract-params-clang (function-signature)
@@ -190,50 +185,50 @@ overloaded functions."
   (company-ycmd--with-destructured-candidate candidate
     (let* ((overloaded-functions (and (company-ycmd--extended-features-p)
                                       company-ycmd-insert-arguments
-                                      (stringp detailed-info)
-                                      (s-split "\n" detailed-info t)))
-           (items (or overloaded-functions (list menu-text)))
+                                      (stringp .detailed_info)
+                                      (s-split "\n" .detailed_info t)))
+           (items (or overloaded-functions (list .menu_text)))
            candidates)
       (when (eq major-mode 'objc-mode)
-        (setq insertion-text (s-chop-suffix ":" insertion-text)))
+        (setq .insertion_text (s-chop-suffix ":" .insertion_text)))
       (dolist (it (delete-dups items) candidates)
-        (let* ((meta (if overloaded-functions it detailed-info))
+        (let* ((meta (if overloaded-functions it .detailed_info))
                (params (company-ycmd--extract-params-clang it))
                (return-type (or (and overloaded-functions
                                      (string-match
                                       (concat "\\(.*\\) "
-                                              (regexp-quote insertion-text))
+                                              (regexp-quote .insertion_text))
                                       it)
                                      (match-string 1 it))
-                                extra-menu-info))
-               (kind (company-ycmd--convert-kind-clang kind))
-               (doc (cdr (assoc 'doc_string extra-data))))
+                                .extra_menu_info))
+               (kind (company-ycmd--convert-kind-clang .kind))
+               (doc .extra_data.doc_string))
           (setq candidates
-                (cons (propertize insertion-text 'return_type return-type
+                (cons (propertize .insertion_text 'return_type return-type
                                   'meta meta 'kind kind 'doc doc 'params params)
                       candidates)))))))
 
 (defun company-ycmd--construct-candidate-go (candidate)
   "Construct completion string from a CANDIDATE for go file-types."
   (company-ycmd--with-destructured-candidate candidate
-    (let* ((is-func (and extra-menu-info
-                         (string-prefix-p "func" extra-menu-info)))
-           (meta (and kind menu-text extra-menu-info
-                      (concat kind " " menu-text
+    (let* ((is-func (and .extra_menu_info
+                         (string-prefix-p "func" .extra_menu_info)))
+           (meta (and .kind .menu_text .extra_menu_info
+                      (concat .kind " " .menu_text
                               (if is-func
-                                  (substring extra-menu-info 4 nil)
-                                (concat " " extra-menu-info)))))
-           (return-type (and extra-menu-info
-                             (string-match "^func(.*) \\(.*\\)" extra-menu-info)
-                             (match-string 1 extra-menu-info)))
-           (params (and extra-menu-info
-                        (or (string-match "^func\\((.*)\\) .*" extra-menu-info)
-                            (string-match "^func\\((.*)\\)\\'" extra-menu-info))
-                        (match-string 1 extra-menu-info)))
-           (kind (if (and extra-menu-info (not is-func))
-                     (concat kind ": " extra-menu-info)
-                   kind)))
-      (propertize insertion-text 'return_type return-type
+                                  (substring .extra_menu_info 4 nil)
+                                (concat " " .extra_menu_info)))))
+           (return-type (and .extra_menu_info
+                             (string-match "^func(.*) \\(.*\\)" .extra_menu_info)
+                             (match-string 1 .extra_menu_info)))
+           (params (and .extra_menu_info
+                        (or (string-match "^func\\((.*)\\) .*" .extra_menu_info)
+                            (string-match "^func\\((.*)\\)\\'" .extra_menu_info))
+                        (match-string 1 .extra_menu_info)))
+           (kind (if (and .extra_menu_info (not is-func))
+                     (concat .kind ": " .extra_menu_info)
+                   .kind)))
+      (propertize .insertion_text 'return_type return-type
                   'meta meta 'kind kind 'params params))))
 
 (defun company-ycmd--remove-self-from-function-args (args)
@@ -278,48 +273,46 @@ with spaces."
 (defun company-ycmd--construct-candidate-python (candidate)
   "Construct completion string from a CANDIDATE for python file-types."
   (company-ycmd--with-destructured-candidate candidate
-    (let* ((kind extra-menu-info)
+    (let* ((kind (s-replace "\n" " " .extra_menu_info))
            (params (and (s-prefix-p "function" kind)
                         (company-ycmd--extract-params-python
-                         detailed-info insertion-text)))
-           (meta (company-ycmd--extract-meta-python detailed-info))
-           (location (assoc-default 'location extra-data))
-           (filepath (assoc-default 'filepath location))
-           (line-num (assoc-default 'line_num location)))
-      (propertize insertion-text 'meta meta 'doc detailed-info 'kind kind
+                         .detailed_info .insertion_text)))
+           (meta (company-ycmd--extract-meta-python .detailed_info))
+           (filepath .extra_data.location.filepath)
+           (line-num .extra_data.location.line_num))
+      (propertize .insertion_text 'meta meta 'doc .detailed_info 'kind kind
                   'params params 'filepath filepath 'line_num line-num))))
 
 (defun company-ycmd--construct-candidate-rust (candidate)
   "Construct completion string from CANDIDATE for rust file-types."
   (company-ycmd--with-destructured-candidate candidate
-    (let* ((meta extra-menu-info)
-           (params (and extra-menu-info
+    (let* ((meta .extra_menu_info)
+           (params (and .extra_menu_info
                         (string-match
-                         (concat "^fn " (regexp-quote insertion-text)
+                         (concat "^fn " (regexp-quote .insertion_text)
                                  "(\\(.*\\)).*")
-                         extra-menu-info)
+                         .extra_menu_info)
                         (company-ycmd--remove-self-from-function-args
-                         (match-string 1 extra-menu-info))))
-           (return-type (and extra-menu-info
+                         (match-string 1 .extra_menu_info))))
+           (return-type (and .extra_menu_info
                              (if (string-match
-                                  (concat "^fn " (regexp-quote insertion-text)
+                                  (concat "^fn " (regexp-quote .insertion_text)
                                           "(.*) -> \\(.*\\)")
-                                  extra-menu-info)
-                                 (match-string 1 extra-menu-info)
-                               (and (string-prefix-p "fn" extra-menu-info)
+                                  .extra_menu_info)
+                                 (match-string 1 .extra_menu_info)
+                               (and (string-prefix-p "fn" .extra_menu_info)
                                     "void"))))
-           (location (assoc-default 'location extra-data))
-           (filepath (assoc-default 'filepath location))
-           (line-num (assoc-default 'line_num location))
-           (column-num (assoc-default 'column_num location)))
-      (propertize insertion-text 'meta meta 'kind kind
+           (filepath .extra_data.location.filepath)
+           (line-num .extra_data.location.line_num)
+           (column-num .extra_data.location.column_num))
+      (propertize .insertion_text 'meta meta 'kind .kind
                   'params params 'return_type return-type
                   'filepath filepath 'line_num line-num
                   'column_num column-num))))
 
 (defun company-ycmd--construct-candidate-generic (candidate)
   "Generic function to construct completion string from a CANDIDATE."
-  (company-ycmd--with-destructured-candidate candidate insertion-text))
+  (company-ycmd--with-destructured-candidate candidate .insertion_text))
 
 (defun company-ycmd--construct-candidates (completion-vector
                                            prefix
@@ -344,7 +337,7 @@ candidates list."
          candidates)
     (dolist (candidate (append completion-vector nil) (nreverse candidates))
       (when (s-present? prefix-diff)
-        (let ((it (assoc 'insertion_text candidate)))
+        (let ((it (assq 'insertion_text candidate)))
           (setcdr it (concat prefix-diff
                              (substring-no-properties (cdr it))))))
       (when (or company-ycmd-enable-fuzzy-matching
@@ -367,17 +360,17 @@ candidates list."
   "Get candidates for COMPLETIONS and PREFIX.
 
 If CB is non-nil, call it with candidates."
-  (if (assoc-default 'exception completions)
-      (let ((msg (assoc-default 'message completions nil "unknown error")))
-        (message "Exception while fetching candidates: %s" msg)
-        '())
-    (funcall
-     (or cb 'identity)
-     (company-ycmd--construct-candidates
-      (assoc-default 'completions completions)
-      prefix
-      (assoc-default 'completion_start_column completions)
-      (company-ycmd--get-construct-candidate-fn)))))
+  (let-alist completions
+    (if .exception
+        (progn
+          (message "Exception while fetching candidates: %s"
+                   (or .message "unknown error"))
+          nil)
+      (funcall
+       (or cb 'identity)
+       (company-ycmd--construct-candidates
+        .completions prefix .completion_start_column
+        (company-ycmd--get-construct-candidate-fn))))))
 
 (defun company-ycmd--get-candidates-synchronously (prefix)
   "Get completion candidates with PREFIX synchronously."
@@ -387,15 +380,25 @@ If CB is non-nil, call it with candidates."
 
 (defun company-ycmd--get-candidates-deferred (prefix cb)
   "Get completion candidates with PREFIX and call CB deferred."
-  (deferred:$
-    (deferred:try
-      (deferred:$
-        (when (ycmd-running?)
-          (ycmd-get-completions)))
-      :catch (lambda (err) nil))
-    (deferred:nextc it
-      (lambda (c)
-        (company-ycmd--get-candidates c prefix cb)))))
+  (let ((request-buffer (current-buffer))
+        (request-window (selected-window))
+        (request-point (point))
+        (request-tick (buffer-chars-modified-tick)))
+    (deferred:$
+      (deferred:try
+        (deferred:$
+          (when (ycmd-running?)
+            (ycmd-get-completions)))
+        :catch (lambda (_err) nil))
+      (deferred:nextc it
+        (lambda (c)
+          (if (or (not (equal request-window (selected-window)))
+                  (with-current-buffer (window-buffer request-window)
+                    (or (not (equal request-buffer (current-buffer)))
+                        (not (equal request-point (point)))
+                        (not (equal request-tick (buffer-chars-modified-tick))))))
+              (message "Skip ycmd completion response")
+            (company-ycmd--get-candidates c prefix cb)))))))
 
 (defun company-ycmd--meta (candidate)
   "Fetch the metadata text-property from a CANDIDATE string."
