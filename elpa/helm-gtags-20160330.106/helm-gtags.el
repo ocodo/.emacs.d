@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20160313.405
+;; Package-Version: 20160330.106
 ;; Version: 1.5.5
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -1264,19 +1264,24 @@ Generate new TAG file in selected directory with `C-u C-u'"
 ;; Key mapping of gtags-mode.
 (when helm-gtags-suggested-key-mapping
   ;; Current key mapping.
-  (let ((prefix helm-gtags-prefix-key))
-    (define-key helm-gtags-mode-map (concat prefix "h") 'helm-gtags-display-browser)
-    (define-key helm-gtags-mode-map "\C-]" 'helm-gtags-find-tag-from-here)
-    (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
-    (define-key helm-gtags-mode-map (concat prefix "P") 'helm-gtags-find-files)
-    (define-key helm-gtags-mode-map (concat prefix "f") 'helm-gtags-parse-file)
-    (define-key helm-gtags-mode-map (concat prefix "g") 'helm-gtags-find-pattern)
-    (define-key helm-gtags-mode-map (concat prefix "s") 'helm-gtags-find-symbol)
-    (define-key helm-gtags-mode-map (concat prefix "r") 'helm-gtags-find-rtag)
-    (define-key helm-gtags-mode-map (concat prefix "t") 'helm-gtags-find-tag)
-    (define-key helm-gtags-mode-map (concat prefix "d") 'helm-gtags-find-tag)
+  (let ((command-table '(("h" . helm-gtags-display-browser)
+                         ("P" . helm-gtags-find-files)
+                         ("f" . helm-gtags-parse-file)
+                         ("g" . helm-gtags-find-pattern)
+                         ("s" . helm-gtags-find-symbol)
+                         ("r" . helm-gtags-find-rtag)
+                         ("t" . helm-gtags-find-tag)
+                         ("d" . helm-gtags-find-tag)))
+        (key-func (if (string-prefix-p "\\" helm-gtags-prefix-key)
+                      #'concat
+                    (lambda (prefix key) (kbd (concat prefix " " key))))))
+    (cl-loop for (key . command) in command-table
+             do
+             (define-key helm-gtags-mode-map (funcall key-func helm-gtags-prefix-key key) command))
 
     ;; common
+    (define-key helm-gtags-mode-map "\C-]" 'helm-gtags-find-tag-from-here)
+    (define-key helm-gtags-mode-map "\C-t" 'helm-gtags-pop-stack)
     (define-key helm-gtags-mode-map "\e*" 'helm-gtags-pop-stack)
     (define-key helm-gtags-mode-map "\e." 'helm-gtags-find-tag)
     (define-key helm-gtags-mode-map "\C-x4." 'helm-gtags-find-tag-other-window)))
