@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20160316.548
+;; Package-Version: 20160326.146
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -64,7 +64,8 @@ non-printing key like an arrow key (left, right, up, down).  For
 non-printing keys, a corresponding entry in
 `avy-key-to-char-alist' must exist in order to visualize the key
 in the avy overlays."
-  :type '(repeat :tag "Keys" (choice (character :tag "char")
+  :type '(repeat :tag "Keys" (choice
+                              (character :tag "char")
                               (symbol :tag "non-printing key"))))
 
 (defcustom avy-keys-alist nil
@@ -81,7 +82,8 @@ in the avy overlays."
                      (const avy-goto-word-1)
                      (const avy-copy-line)
                      (const avy-copy-region)
-                     (const avy-move-line))
+                     (const avy-move-line)
+                     (function :tag "Other command"))
           :value-type (repeat :tag "Keys" character)))
 
 (defcustom avy-style 'at-full
@@ -109,7 +111,8 @@ If the commands isn't on the list, `avy-style' is used."
                      (const avy-goto-word-1)
                      (const avy-copy-line)
                      (const avy-copy-region)
-                     (const avy-move-line))
+                     (const avy-move-line)
+                     (function :tag "Other command"))
           :value-type (choice
                        (const :tag "Pre" pre)
                        (const :tag "At" at)
