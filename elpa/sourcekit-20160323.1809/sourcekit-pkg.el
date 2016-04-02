@@ -1,0 +1,1 @@
+(define-package "sourcekit" "20160323.1809" "Library to interact with sourcekittendaemon" '((emacs "24.3") (dash "2.12.1") (dash-functional "1.2.0")) :stars '(#("136" 0 3 (font-lock-face paradox-star-face))) :url "https://github.com/nathankot/company-sourcekit" :keywords '("tools" "processes"))
