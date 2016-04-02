@@ -127,9 +127,10 @@
     nil))
 
 (defun ansible::vault-buffer (mode)
-  (let ((str (buffer-substring-no-properties (point-min) (point-max))))
+  (let* ((input (buffer-substring-no-properties (point-min) (point-max)))
+         (output (ansible::vault mode input)))
     (delete-region (point-min) (point-max))
-    (insert (ansible::vault mode str))))
+    (insert output)))
 
 (defun ansible::get-string-from-file (file-path)
   "Return FILE-PATH's file content."
@@ -158,6 +159,21 @@
 
 (defconst ansible::dir (file-name-directory (or load-file-name
 						buffer-file-name)))
+
+(defun ansible::auto-decrypt-encrypt ()
+  "Decrypt current buffer if it is a vault encrypted file.
+Also, automatically encrypts the file before saving the buffer."
+  (let ((vault-file? (string-match-p "\$ANSIBLE_VAULT;[0-9]+\.[0-9]+"
+                                     (buffer-substring-no-properties (point-min)
+                                                                     (point-max)))))
+    (when vault-file?
+      (condition-case ex
+          (progn
+            (ansible::decrypt-buffer)
+            (add-hook 'before-save-hook 'ansible::encrypt-buffer nil t)
+            (add-hook 'after-save-hook  'ansible::decrypt-buffer nil t))
+        ('error
+         (message "Could not decrypt file. Make sure `ansible::vault-password-file' is correctly set"))))))
 
 ;;;###autoload
 (defun ansible::snippets-initialize ()
