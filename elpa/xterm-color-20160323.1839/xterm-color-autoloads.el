@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("xterm-color.el") (21998 34582 561350
-;;;;;;  629000))
+;;;### (autoloads nil nil ("xterm-color.el") (22271 10347 170138
+;;;;;;  682000))
 
 ;;;***
 

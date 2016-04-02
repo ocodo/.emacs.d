@@ -4,7 +4,7 @@
 ;; All rights reserved
 
 ;; Version: 1.0 - 2012-07-07
-;; Package-Version: 20150823.646
+;; Package-Version: 20160323.1839
 ;; Author: xristos@sdf.lonestar.org
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -198,7 +198,7 @@ Once that happens, we generate a single text property for the entire string.")
 ;; Functions
 ;;
 
-(defun* xterm-color--string-properties (string)
+(cl-defun xterm-color--string-properties (string)
   (loop with res = '()
         with pos = 0 do
         (let ((next-pos (next-property-change pos string)))
