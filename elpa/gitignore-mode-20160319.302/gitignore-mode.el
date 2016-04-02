@@ -7,7 +7,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/git-modes
 ;; Keywords: convenience vc git
-;; Package-Version: 20160229.615
+;; Package-Version: 20160319.302
 
 ;; This file is not part of GNU Emacs.
 
@@ -50,7 +50,7 @@
 
 ;;;###autoload
 (dolist (pattern (list "/\\.gitignore\\'"
-                       "/\\.git/info/exclude\\'"
+                       "/info/exclude\\'"
                        "/git/ignore\\'"))
   (add-to-list 'auto-mode-alist (cons pattern 'gitignore-mode)))
 
