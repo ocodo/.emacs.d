@@ -379,12 +379,22 @@
       ((and (smie-rule-parent-p "after")
             (smie-rule-hanging-p))
        (smie-rule-parent elixir-smie-indent-basic))
+      ;; Correct indentation after a one-line fn definition
+      ;; Example:
+      ;;
+      ;;  sum = Enum.reduce(dbms, fn(x, sum) -> x + sum end)
+      ;;  average_dbm = sum / length(addresses)
+      ((smie-rule-parent-p "fn")
+       (smie-rule-parent elixir-smie-indent-basic))
       (t
        (smie-rule-parent))))
     (`(:before . "fn")
      (smie-rule-parent))
     (`(:before . "for")
-     (smie-rule-parent))
+     (cond
+      ((elixir-smie-last-line-end-with-block-operator-p)
+       (smie-rule-parent elixir-smie-indent-basic))
+      (t (smie-rule-parent))))
     (`(:before . "do:")
      (cond
       ((smie-rule-parent-p "def" "if" "defp" "defmacro" "defmacrop")
@@ -505,8 +515,16 @@
       ;;   ....
       ((elixir-smie-last-line-end-with-block-operator-p)
        (smie-rule-parent elixir-smie-indent-basic))
-      (t
-       (smie-rule-parent))))
+      ;; Indent if inside else
+      ;;
+      ;; Example:
+      ;;
+      ;; else
+      ;;   if condition, do: :bar <-
+      ;; end
+      ((smie-rule-parent-p "else")
+       (smie-rule-parent elixir-smie-indent-basic))
+      (t (smie-rule-parent))))
     (`(:before . "->")
      (cond
       ;; Example
