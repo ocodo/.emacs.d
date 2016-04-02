@@ -94,7 +94,13 @@
       (user-error "Should only be called in the minibuffer through `swiper-map'")
     (let* ((enable-recursive-minibuffers t)
            (from (ivy--regex ivy-text))
-           (to (query-replace-read-to from "Query replace" t)))
+           (to (minibuffer-with-setup-hook
+                   (lambda ()
+                     (setq minibuffer-default
+                           (if (string-match "\\`\\\\_<\\(.*\\)\\\\_>\\'" ivy-text)
+                               (match-string 1 ivy-text)
+                             ivy-text)))
+                 (read-from-minibuffer (format "Query replace %s with: " from)))))
       (swiper--cleanup)
       (ivy-exit-with-action
        (lambda (_)
@@ -294,8 +300,7 @@ numbers; replaces calculating the width from buffer line count."
                            (buffer-substring
                             (point)
                             (line-end-position)))))))
-              (when (eq major-mode 'twittering-mode)
-                (remove-text-properties 0 (length str) '(field) str))
+              (remove-text-properties 0 (length str) '(field) str)
               (put-text-property 0 1 'display
                                  (format swiper--format-spec
                                          (cl-incf line-number))

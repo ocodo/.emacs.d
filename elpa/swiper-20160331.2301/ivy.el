@@ -124,6 +124,10 @@ Set this to \"(%d/%d) \" to display both the index and the count."
           (const :tag "Count matches and show current match" "(%d/%d) ")
           string))
 
+(defcustom ivy-add-newline-after-prompt nil
+  "When non-nil, add a newline after the `ivy-read' prompt."
+  :type 'boolean)
+
 (defcustom ivy-wrap nil
   "When non-nil, wrap around after the first and the last candidate."
   :type 'boolean)
@@ -552,14 +556,10 @@ When ARG is t, exit with current text, ignoring the candidates."
        (setq dir (concat ivy-text ivy--directory))
        (ivy--cd dir)
        (ivy--exhibit))
-      ((or
-        (and
-         (not (string= ivy-text ""))
-         (setq dir (ivy-expand-file-if-directory ivy-text)))
-        (and
-         (> ivy--length 0)
-         (not (string= ivy--current "./"))
-         (setq dir (ivy-expand-file-if-directory ivy--current))))
+      ((and
+        (> ivy--length 0)
+        (not (string= ivy--current "./"))
+        (setq dir (ivy-expand-file-if-directory ivy--current)))
        (ivy--cd dir)
        (ivy--exhibit))
       ((or (and (equal ivy--directory "/")
@@ -911,7 +911,9 @@ Call the permanent action if possible."
       (progn
         (insert ivy--default)
         (when (and (with-ivy-window (derived-mode-p 'prog-mode))
+                   (eq (ivy-state-caller ivy-last) 'swiper)
                    (not (file-exists-p ivy--default))
+                   (not (ffap-url-p ivy--default))
                    (not (ivy-state-dynamic-collection ivy-last))
                    (> (point) (minibuffer-prompt-end)))
           (undo-boundary)
@@ -1083,9 +1085,10 @@ On error (read-only), call `ivy-on-del-error-function'."
             (avy--process
              (nreverse candidates)
              (avy--style-fn avy-style)))))
-    (ivy-set-index (- (line-number-at-pos candidate) 2))
-    (ivy--exhibit)
-    (ivy-done)))
+    (when (numberp candidate)
+      (ivy-set-index (- (line-number-at-pos candidate) 2))
+      (ivy--exhibit)
+      (ivy-done))))
 
 (defun ivy-sort-file-function-default (x y)
   "Compare two files X and Y.
@@ -1123,7 +1126,8 @@ See also `ivy-sort-max-size'."
     :value-type (choice
                  (const :tag "Plain sort" string-lessp)
                  (const :tag "File sort" ivy-sort-file-function-default)
-                 (const :tag "No sort" nil)))
+                 (const :tag "No sort" nil)
+                 (function :tag "Custom function")))
   :group 'ivy)
 
 (defvar ivy-index-functions-alist
@@ -1427,6 +1431,7 @@ This is useful for recursive `ivy-read'."
             (if (and (setq sort-fn (cdr (assoc t ivy-sort-functions-alist)))
                      (<= (length coll) ivy-sort-max-size))
                 (setq coll (cl-sort (copy-sequence coll) sort-fn))))))
+      (setq coll (ivy--set-candidates coll))
       (when preselect
         (unless (or (and require-match
                          (not (eq collection 'internal-complete-buffer)))
@@ -1531,7 +1536,8 @@ INHERIT-INPUT-METHOD is currently ignored."
               :history history
               :keymap nil
               :sort
-              (let ((sort (assoc this-command ivy-sort-functions-alist)))
+              (let ((sort (or (assoc this-command ivy-sort-functions-alist)
+                              (assoc t ivy-sort-functions-alist))))
                 (if sort
                     (cdr sort)
                   t)))))
@@ -1857,6 +1863,8 @@ depending on the number of candidates."
                  (window-width))
               (setq n-str (concat n-str "\n" d-str))
             (setq n-str (concat n-str d-str)))
+          (when ivy-add-newline-after-prompt
+            (setq n-str (concat n-str "\n")))
           (let ((regex (format "\\([^\n]\\{%d\\}\\)[^\n]" (window-width))))
             (while (string-match regex n-str)
               (setq n-str (replace-match (concat (match-string 1 n-str) "\n") nil t n-str 1))))
@@ -2192,7 +2200,7 @@ Prefix matches to NAME are put ahead of the list."
                   (not (and (require 'flx nil 'noerror)
                             (eq ivy--regex-function 'ivy--regex-fuzzy)
                             (< (length cands) 200)))
-
+                  ivy--old-cands
                   (cl-position (nth ivy--index ivy--old-cands)
                                cands))
              (funcall func re-str cands))))
@@ -2229,16 +2237,23 @@ Prefix matches to NAME are put ahead of the list."
           res)))))
 
 (defun ivy-recompute-index-swiper-async (_re-str cands)
-  (let ((tail (nthcdr ivy--index ivy--old-cands))
-        idx)
-    (if (and tail ivy--old-cands (not (equal "^" ivy--old-re)))
-        (progn
-          (while (and tail (null idx))
-            ;; Compare with `equal', since the collection is re-created
-            ;; each time with `split-string'
-            (setq idx (cl-position (pop tail) cands :test #'equal)))
-          (or idx 0))
-      ivy--index)))
+  (if (null ivy--old-cands)
+      (let ((ln (with-ivy-window
+                  (line-number-at-pos))))
+        (or (cl-position-if (lambda (x)
+                              (>= (string-to-number x) ln))
+                            cands)
+            0))
+    (let ((tail (nthcdr ivy--index ivy--old-cands))
+          idx)
+      (if (and tail ivy--old-cands (not (equal "^" ivy--old-re)))
+          (progn
+            (while (and tail (null idx))
+              ;; Compare with `equal', since the collection is re-created
+              ;; each time with `split-string'
+              (setq idx (cl-position (pop tail) cands :test #'equal)))
+            (or idx 0))
+        ivy--index))))
 
 (defun ivy-recompute-index-zero (_re-str _cands)
   0)
@@ -2319,7 +2334,7 @@ This string is inserted into the minibuffer."
 
 (defun ivy--format-function-generic (selected-fn other-fn strs separator)
   "Transform CAND-PAIRS into a string for minibuffer.
-SELECTED-FN and OTHER-FN each take two string arguments.
+SELECTED-FN and OTHER-FN each take one string argument.
 SEPARATOR is used to join the candidates."
   (let ((i -1))
     (mapconcat
@@ -2405,6 +2420,8 @@ SEPARATOR is used to join the candidates."
     str))
 
 (ivy-set-display-transformer
+ 'counsel-find-file 'ivy-read-file-transformer)
+(ivy-set-display-transformer
  'read-file-name-internal 'ivy-read-file-transformer)
 
 (defun ivy-read-file-transformer (str)
@@ -2485,9 +2502,9 @@ CANDS is a list of strings."
       (setq ivy--virtual-buffers (nreverse virtual-buffers))
       (mapcar #'car ivy--virtual-buffers))))
 
-(defcustom ivy-ignore-buffers nil
-  "List of regexps matching buffer names to ignore."
-  :type '(repeat regexp))
+(defcustom ivy-ignore-buffers '("\\` ")
+  "List of regexps or functions matching buffer names to ignore."
+  :type '(repeat (choice regexp function)))
 
 (defun ivy--buffer-list (str &optional virtual)
   "Return the buffers that match STR.
@@ -2562,8 +2579,10 @@ Skip buffers that match `ivy-ignore-buffers'."
       (or (cl-remove-if
            (lambda (buf)
              (cl-find-if
-              (lambda (regexp)
-                (string-match regexp buf))
+              (lambda (f-or-r)
+                (if (functionp f-or-r)
+                    (funcall f-or-r buf)
+                  (string-match-p f-or-r buf)))
               ivy-ignore-buffers))
            res)
           res))))
