@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (22246 12518 793384
-;;;;;;  543000))
+;;;### (autoloads nil "alchemist" "alchemist.el" (22271 10673 779362
+;;;;;;  981000))
 ;;; Generated autoloads from alchemist.el
 
 (autoload 'alchemist-mode "alchemist" "\
@@ -17,8 +17,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22246 12518
-;;;;;;  829384 405000))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22271 10673
+;;;;;;  827363 180000))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -39,7 +39,7 @@ Show the IEx buffer if an IEx process is already run.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-phoenix" "alchemist-phoenix.el"
-;;;;;;  (22246 12518 821384 436000))
+;;;;;;  (22271 10673 819363 147000))
 ;;; Generated autoloads from alchemist-phoenix.el
 
 (autoload 'alchemist-phoenix-project-p "alchemist-phoenix" "\
@@ -66,7 +66,7 @@ The following commands are available:
 ;;;***
 
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (22246 12518 801384 512000))
+;;;;;;  (22271 10673 787363 15000))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -77,7 +77,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (22246 12518 841384 359000))
+;;;;;;  (22271 10673 835363 214000))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -105,7 +105,7 @@ The following commands are available:
 ;;;;;;  "alchemist-key.el" "alchemist-macroexpand.el" "alchemist-message.el"
 ;;;;;;  "alchemist-mix.el" "alchemist-pkg.el" "alchemist-project.el"
 ;;;;;;  "alchemist-report.el" "alchemist-scope.el" "alchemist-server.el"
-;;;;;;  "alchemist-utils.el") (22246 12518 848873 678000))
+;;;;;;  "alchemist-utils.el") (22271 10673 846278 136000))
 
 ;;;***
 
