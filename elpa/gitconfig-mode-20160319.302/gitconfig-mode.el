@@ -7,7 +7,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/git-modes
 ;; Keywords: convenience vc git
-;; Package-Version: 20160318.1959
+;; Package-Version: 20160319.302
 
 ;; This file is not part of GNU Emacs.
 
@@ -125,8 +125,9 @@
        'gitconfig-indent-line))
 
 ;;;###autoload
-(dolist (pattern '("/\\.gitconfig\\'" "/\\.git/config\\'"
-                   "/git/config\\'"   "/\\.gitmodules\\'"))
+(dolist (pattern '("/\\.gitconfig\\'"      "/\\.git/config\\'"
+                   "/modules/.*/config\\'" "/git/config\\'"
+                   "/\\.gitmodules\\'"     "/etc/gitconfig\\'"))
   (add-to-list 'auto-mode-alist (cons pattern 'gitconfig-mode)))
 
 (provide 'gitconfig-mode)
