@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015  Jorgen Schaefer <contact@jorgenschaefer.de>
 
-;; Version: 1.4
+;; Version: 1.5
 ;; Author: Jorgen Schaefer <contact@jorgenschaefer.de>
 
 ;; This program is free software; you can redistribute it and/or
@@ -163,9 +163,9 @@ MATCHER is either a matcher defined with
 
 (buttercup-define-matcher :to-match (text regexp)
   (if (string-match regexp text)
-      (cons t (format "Expected %S to match the regexp %S"
+      (cons t (format "Expected %S not to match the regexp %S"
                       text regexp))
-    (cons nil (format "Expected %S not to match the regexp %S"
+    (cons nil (format "Expected %S to match the regexp %S"
                       text regexp))))
 
 (buttercup-define-matcher :to-be-truthy (arg)
@@ -775,13 +775,17 @@ Do not change the global value.")
                description pending-description))))
     (cond
      ((buttercup-suite-p suite-or-spec)
-      (setf (buttercup-suite-status suite-or-spec) status)
-      (setf (buttercup-suite-failure-description suite-or-spec) description)
-      (setf (buttercup-suite-failure-stack suite-or-spec) stack))
+      (when (eq (buttercup-suite-status suite-or-spec)
+                'passed)
+        (setf (buttercup-suite-status suite-or-spec) status)
+        (setf (buttercup-suite-failure-description suite-or-spec) description)
+        (setf (buttercup-suite-failure-stack suite-or-spec) stack)))
      (t
-      (setf (buttercup-spec-status suite-or-spec) status)
-      (setf (buttercup-spec-failure-description suite-or-spec) description)
-      (setf (buttercup-spec-failure-stack suite-or-spec) stack)))))
+      (when (eq (buttercup-spec-status suite-or-spec)
+                'passed)
+        (setf (buttercup-spec-status suite-or-spec) status)
+        (setf (buttercup-spec-failure-description suite-or-spec) description)
+        (setf (buttercup-spec-failure-stack suite-or-spec) stack))))))
 
 ;;;;;;;;;;;;;
 ;;; Reporters
