@@ -6,7 +6,7 @@
 ;; Maintainer: Kosta Harlan <kosta@kostaharlan.net>
 ;; Homepage: https://github.com/kostajh/harvest.el
 ;; Keywords: harvest
-;; Package-Version: 20160304.1100
+;; Package-Version: 20160331.1231
 ;; Package-Requires: ((swiper "0.7.0") (hydra "0.13.0") (s "1.11.0"))
 ;;
 ;; This file is not part of GNU Emacs.
@@ -149,11 +149,10 @@ Format is PROJECT (CLIENT) \n TASK - NOTES"
 
 (defun harvest-get-cached-daily-entries ()
   "Get daily entries from the variable, or query Harvest if not set."
-  ;; '(harvest-cached-daily-entries))
   (if (boundp 'harvest-cached-daily-entries)
-      '(harvest-cached-daily-entries)
+      harvest-cached-daily-entries
     (harvest-refresh-entries))
-  '(harvest-cached-daily-entries))
+  harvest-cached-daily-entries)
 
 (defun harvest-edit-description (entry)
   "Edit the description for a Harvest day ENTRY."

@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "harvest" "harvest.el" (22246 12068 510656
-;;;;;;  711000))
+;;;### (autoloads nil "harvest" "harvest.el" (22271 10566 2879 528000))
 ;;; Generated autoloads from harvest.el
 
 (autoload 'harvest "harvest" "\
