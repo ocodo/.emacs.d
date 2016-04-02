@@ -4,7 +4,7 @@
 
 ;; Author: Ivan Malison <IvanMalison@gmail.com>
 ;; Keywords: org projectile todo
-;; Package-Version: 20160316.852
+;; Package-Version: 20160324.759
 ;; URL: https://github.com/IvanMalison/org-projectile
 ;; Version: 0.2.0
 ;; Package-Requires: ((projectile "0.11.0") (dash "2.10.0"))
@@ -458,6 +458,7 @@
 
 ;;;###autoload
 (defun org-projectile:capture-for-current-project (&optional capture-template)
+  (interactive)
   (let ((project-name (projectile-project-name)))
     (if (projectile-project-p)
         (org-projectile:capture-for-project project-name capture-template)

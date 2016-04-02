@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "org-projectile" "org-projectile.el" (22253
-;;;;;;  5217 951219 886000))
+;;;### (autoloads nil "org-projectile" "org-projectile.el" (22271
+;;;;;;  10418 994078 124000))
 ;;; Generated autoloads from org-projectile.el
 
 (autoload 'org-projectile:toggle-subheading "org-projectile" "\
@@ -25,7 +25,7 @@
 (autoload 'org-projectile:capture-for-current-project "org-projectile" "\
 
 
-\(fn &optional CAPTURE-TEMPLATE)" nil nil)
+\(fn &optional CAPTURE-TEMPLATE)" t nil)
 
 ;;;***
 
