@@ -6,8 +6,8 @@
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
 ;; Version    : 0.8.13
+;; Package-Version: 20160326.1409
 ;; Keywords   : c# languages oop mode
-;; Package-Version: 20160217.1211
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2016-Feb-17
 
@@ -296,6 +296,10 @@
 (require 'cc-mode)
 (require 'cl-lib)
 
+;; Work around emacs bug#23053
+(eval-when-compile
+  (require 'cc-langs))
+
 ;; Work around emacs bug#18845
 (eval-when-compile
   (when (and (= emacs-major-version 24) (>= emacs-minor-version 4))
@@ -443,7 +447,7 @@ to work properly with code that includes attributes.
        ((and (looking-back
               (concat "\\<new[ \t\n\f\v\r]+"
                       "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
-                      "[A-Za-z_][[:alnum:]]*[\ t\n\f\v\r]*"))
+                      "[A-Za-z_][[:alnum:]]*[\ t\n\f\v\r]*") nil)
              (looking-at "[ \t\n\f\v\r]*{"))
         t)
 
@@ -1724,9 +1728,9 @@ This is a helper fn for `csharp-move-back-to-beginning-of-defun' and
       (if need-to-backup
           (setq found (csharp-move-back-to-beginning-of-block)))
       (if found
-          (setq done (and (looking-back must-match)
+          (setq done (and (looking-back must-match nil)
                           (or (not must-not-match)
-                              (not (looking-back must-not-match))))
+                              (not (looking-back must-not-match nil))))
                 need-to-backup t)
         (setq done t)))
     found))
@@ -1752,8 +1756,8 @@ See also, `csharp-move-fwd-to-end-of-defun'.
         ;; if the user is asking to move back, then obviously
         ;; he wants to move back to a *prior* defun.
         (if (and (looking-at "{")
-                 (looking-back (csharp--regexp 'func-start))
-                 (not (looking-back (csharp--regexp 'namespace-start))))
+                 (looking-back (csharp--regexp 'func-start) nil)
+                 (not (looking-back (csharp--regexp 'namespace-start) nil)))
             (forward-char -1))
 
         ;; now do the real work
@@ -1770,9 +1774,9 @@ See also, `csharp-move-fwd-to-end-of-defun'.
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (not (looking-back (csharp--regexp 'class-start)))
-          (not (looking-back (csharp--regexp 'namespace-start)))
-          (looking-back (csharp--regexp 'func-start))))))
+          (not (looking-back (csharp--regexp 'class-start) nil))
+          (not (looking-back (csharp--regexp 'namespace-start) nil))
+          (looking-back (csharp--regexp 'func-start) nil)))))
 
 (defun csharp--on-ctor-close-curly-p ()
   "return t when point is on the close-curly of a constructor."
@@ -1780,7 +1784,7 @@ See also, `csharp-move-fwd-to-end-of-defun'.
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'ctor-start))))))
+          (looking-back (csharp--regexp 'ctor-start) nil)))))
 
 (defun csharp--on-class-close-curly-p ()
   "return t when point is on the close-curly of a class or struct."
@@ -1788,8 +1792,8 @@ See also, `csharp-move-fwd-to-end-of-defun'.
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (not (looking-back (csharp--regexp 'namespace-start)))
-          (looking-back (csharp--regexp 'class-start))))))
+          (not (looking-back (csharp--regexp 'namespace-start) nil))
+          (looking-back (csharp--regexp 'class-start) nil)))))
 
 (defun csharp--on-intf-close-curly-p ()
   "return t when point is on the close-curly of an interface."
@@ -1797,7 +1801,7 @@ See also, `csharp-move-fwd-to-end-of-defun'.
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'intf-start))))))
+          (looking-back (csharp--regexp 'intf-start) nil)))))
 
 (defun csharp--on-enum-close-curly-p ()
   "return t when point is on the close-curly of an enum."
@@ -1805,7 +1809,7 @@ See also, `csharp-move-fwd-to-end-of-defun'.
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'enum-start))))))
+          (looking-back (csharp--regexp 'enum-start) nil)))))
 
 (defun csharp--on-namespace-close-curly-p ()
   "return t when point is on the close-curly of a namespace."
@@ -1813,56 +1817,56 @@ See also, `csharp-move-fwd-to-end-of-defun'.
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'namespace-start))))))
+          (looking-back (csharp--regexp 'namespace-start) nil)))))
 
 (defun csharp--on-defun-open-curly-p ()
   "return t when point is on the open-curly of a method."
   (and (looking-at "{")
-       (not (looking-back (csharp--regexp 'class-start)))
-       (not (looking-back (csharp--regexp 'namespace-start)))
-       (looking-back (csharp--regexp 'func-start))))
+       (not (looking-back (csharp--regexp 'class-start) nil))
+       (not (looking-back (csharp--regexp 'namespace-start) nil))
+       (looking-back (csharp--regexp 'func-start) nil)))
 
 (defun csharp--on-class-open-curly-p ()
   "return t when point is on the open-curly of a class."
   (and (looking-at "{")
-       (not (looking-back (csharp--regexp 'namespace-start)))
-       (looking-back (csharp--regexp 'class-start))))
+       (not (looking-back (csharp--regexp 'namespace-start) nil))
+       (looking-back (csharp--regexp 'class-start) nil)))
 
 (defun csharp--on-genclass-open-curly-p ()
   "return t when point is on the open-curly of a generic class."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'genclass-start))))
+       (looking-back (csharp--regexp 'genclass-start) nil)))
 
 (defun csharp--on-namespace-open-curly-p ()
   "return t when point is on the open-curly of a namespace."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'namespace-start))))
+       (looking-back (csharp--regexp 'namespace-start) nil)))
 
 (defun csharp--on-ctor-open-curly-p ()
   "return t when point is on the open-curly of a ctor."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'ctor-start))))
+       (looking-back (csharp--regexp 'ctor-start) nil)))
 
 (defun csharp--on-intf-open-curly-p ()
   "return t when point is on the open-curly of a interface."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'intf-start))))
+       (looking-back (csharp--regexp 'intf-start) nil)))
 
 (defun csharp--on-prop-open-curly-p ()
   "return t when point is on the open-curly of a property."
   (and (looking-at "{")
-       (not (looking-back (csharp--regexp 'class-start)))
-       (looking-back (csharp--regexp 'prop-start))))
+       (not (looking-back (csharp--regexp 'class-start) nil))
+       (looking-back (csharp--regexp 'prop-start) nil)))
 
 (defun csharp--on-indexer-open-curly-p ()
   "return t when point is on the open-curly of a C# indexer."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'indexer-start))))
+       (looking-back (csharp--regexp 'indexer-start) nil)))
 
 (defun csharp--on-enum-open-curly-p ()
   "return t when point is on the open-curly of a interface."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'enum-start))))
+       (looking-back (csharp--regexp 'enum-start) nil)))
 
 
 
@@ -1912,7 +1916,7 @@ See also, `csharp-move-back-to-beginning-of-defun'.
 
      ;; case 4: we're at the bottom of a fn now (possibly
      ;; after just calling csharp-move-fwd-to-end-of-defun.
-     ((and (looking-back "}")
+     ((and (looking-back "}" nil)
            (save-excursion
              (forward-sexp -1)
              (csharp--on-defun-open-curly-p)))
@@ -1952,8 +1956,8 @@ See also, `csharp-move-fwd-to-end-of-defun'.
         ;; if the user is asking to move back, then obviously
         ;; he wants to move back to a *prior* defun.
         (if (and (looking-at "{")
-                 (looking-back (csharp--regexp 'class-start))
-                 (not (looking-back (csharp--regexp 'namespace-start))))
+                 (looking-back (csharp--regexp 'class-start) nil)
+                 (not (looking-back (csharp--regexp 'namespace-start) nil)))
             (forward-char -1))
 
         ;; now do the real work
@@ -2004,7 +2008,7 @@ to the beginning of the prior namespace.
         ;; if the user is asking to move back, then obviously
         ;; he wants to move back to a *prior* defun.
         (if (and (looking-at "{")
-                 (looking-back (csharp--regexp 'namespace-start)))
+                 (looking-back (csharp--regexp 'namespace-start) nil))
             (forward-char -1))
 
         ;; now do the real work
@@ -2425,11 +2429,11 @@ more open-curlies are found.
           (cond
 
            ;; case 1: open curly for an array initializer
-           ((looking-back "\\[\\][ \t\n\r]*")
+           ((looking-back "\\[\\][ \t\n\r]*" nil)
             (forward-sexp 1))
 
            ;; case 2: just jumped over a string
-           ((looking-back "\"")
+           ((looking-back "\"" nil)
             (forward-char 1))
 
            ;; case 3: at the head of a block of using statements
