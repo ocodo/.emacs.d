@@ -1,12 +1,12 @@
 ;;; helm-flycheck.el --- Show flycheck errors with helm
 
-;; Copyright (C) 2013 Yasuyuki Oka <yasuyk@gmail.com>
+;; Copyright (C) 2013-2016 Yasuyuki Oka <yasuyk@gmail.com>
 
 ;; Author: Yasuyuki Oka <yasuyk@gmail.com>
-;; Version: 20140915.752
-;; X-Original-Version: 0.2
+;; Version: 0.3
+;; Package-Version: 20160318.2317
 ;; URL: https://github.com/yasuyk/helm-flycheck
-;; Package-Requires: ((dash "2.4.0") (flycheck "0.20-cvs") (helm "1.5.7"))
+;; Package-Requires: ((dash "2.12.1") (flycheck "0.25.1") (helm "1.9.3"))
 ;; Keywords: helm, flycheck
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -108,7 +108,7 @@ Inspect the *Messages* buffer for details.")
 (defun helm-flycheck-action-transformer (actions candidate)
   "Return modified ACTIONS if CANDIDATE is status message."
   (if (stringp candidate)
-      (cond ((string= candidate helm-flycheck-status-message-no-errors))
+      (cond ((string= candidate helm-flycheck-status-message-no-errors) nil)
             ((string= candidate helm-flycheck-status-message-syntax-checking)
              '(("Reexecute helm-flycheck" . helm-flycheck-action-reexecute)))
             ((string= candidate helm-flycheck-status-message-checker-not-found)
@@ -141,7 +141,7 @@ Inspect the *Messages* buffer for details.")
 
 (defun helm-flycheck-action-reexecute (candidate)
   "Reexecute `helm-flycheck' without CANDIDATE."
-  (helm-run-after-quit 'helm-flycheck))
+  (helm-run-after-exit 'helm-flycheck))
 
 (defun helm-flycheck-action-switch-to-messages-buffer (candidate)
   "Switch to *Messages* buffer without CANDIDATE."
