@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160318.1317
+;; Package-Version: 20160329.2147
 ;; Package-Requires: ((emacs "24.1") (swiper "0.4.0"))
 ;; Keywords: completion, matching
 
@@ -119,15 +119,15 @@ Or the time of the last minibuffer update.")
            (ivy--set-candidates
             (ivy--sort-maybe
              cands))
-           (if (null ivy--old-cands)
-               (setq ivy--index
-                     (or (ivy--preselect-index
-                          (ivy-state-preselect ivy-last)
-                          ivy--all-candidates)
-                         0))
-             (let ((re (funcall ivy--regex-function ivy-text)))
-               (unless (stringp re)
-                 (setq re (caar re)))
+           (let ((re (funcall ivy--regex-function ivy-text)))
+             (unless (stringp re)
+               (setq re (caar re)))
+             (if (null ivy--old-cands)
+                 (unless (setq ivy--index (ivy--preselect-index
+                                           (ivy-state-preselect ivy-last)
+                                           ivy--all-candidates))
+                   (ivy--recompute-index
+                    ivy-text re ivy--all-candidates))
                (ivy--recompute-index
                 ivy-text re ivy--all-candidates)))
            (setq ivy--old-cands ivy--all-candidates)
@@ -479,7 +479,8 @@ Update the minibuffer with the amount of lines collected every
 ;;** `counsel-M-x'
 (ivy-set-actions
  'counsel-M-x
- '(("d" counsel--find-symbol "definition")))
+ '(("d" counsel--find-symbol "definition")
+   ("h" (lambda (x) (describe-function (intern x))) "help")))
 
 (ivy-set-display-transformer
  'counsel-M-x
@@ -1120,7 +1121,8 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
                            (when f (expand-file-name f))))
             :require-match 'confirm-after-completion
             :history 'file-name-history
-            :keymap counsel-find-file-map))
+            :keymap counsel-find-file-map
+            :caller 'counsel-find-file))
 
 (defun counsel-up-directory ()
   "Go to the parent directory preselecting the current one."
@@ -1352,8 +1354,8 @@ This uses `counsel-ag' with `counsel-pt-base-command' replacing
 ;;** `counsel-grep'
 (defun counsel-grep-function (string)
   "Grep in the current directory for STRING."
-  (if (< (length string) 3)
-      (counsel-more-chars 3)
+  (if (< (length string) 2)
+      (counsel-more-chars 2)
     (let ((regex (counsel-unquote-regex-parens
                   (setq ivy--old-re
                         (ivy--regex string)))))
@@ -1362,38 +1364,48 @@ This uses `counsel-ag' with `counsel-pt-base-command' replacing
       nil)))
 
 (defun counsel-grep-action (x)
-  (when (string-match "\\`\\([0-9]+\\):\\(.*\\)\\'" x)
-    (with-ivy-window
+  (with-ivy-window
+    (swiper--cleanup)
+    (when (string-match "\\`\\([0-9]+\\):\\(.*\\)\\'" x)
       (let ((file-name counsel--git-grep-dir)
             (line-number (match-string-no-properties 1 x)))
         (find-file file-name)
         (goto-char (point-min))
         (forward-line (1- (string-to-number line-number)))
         (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
-        (unless (eq ivy-exit 'done)
-          (swiper--cleanup)
-          (swiper--add-overlays (ivy--regex ivy-text)))))))
+        (if (eq ivy-exit 'done)
+            (swiper--ensure-visible)
+          (unless (eq ivy-exit 'done)
+            (isearch-range-invisible (line-beginning-position)
+                                     (line-end-position))
+            (swiper--add-overlays (ivy--regex ivy-text))))))))
 
 ;;;###autoload
 (defun counsel-grep ()
   "Grep for a string in the current file."
   (interactive)
   (setq counsel--git-grep-dir (buffer-file-name))
-  (ivy-read "grep: " 'counsel-grep-function
-            :dynamic-collection t
-            :preselect (format "%d:%s"
-                               (line-number-at-pos)
-                               (buffer-substring-no-properties
-                                (line-beginning-position)
-                                (line-end-position)))
-            :history 'counsel-git-grep-history
-            :update-fn (lambda ()
-                         (counsel-grep-action ivy--current))
-            :action #'counsel-grep-action
-            :unwind (lambda ()
-                      (counsel-delete-process)
-                      (swiper--cleanup))
-            :caller 'counsel-grep))
+  (let ((init-point (point))
+        res)
+    (unwind-protect
+         (setq res (ivy-read "grep: " 'counsel-grep-function
+                             :dynamic-collection t
+                             :preselect (format "%d:%s"
+                                                (line-number-at-pos)
+                                                (buffer-substring-no-properties
+                                                 (line-beginning-position)
+                                                 (line-end-position)))
+                             :history 'counsel-git-grep-history
+                             :update-fn (lambda ()
+                                          (counsel-grep-action ivy--current))
+                             :action #'counsel-grep-action
+                             :unwind (lambda ()
+                                       (counsel-delete-process)
+                                       (swiper--cleanup))
+                             :caller 'counsel-grep))
+      (unless res
+        (goto-char init-point)))))
+
 ;;** `counsel-recoll'
 (defun counsel-recoll-function (string)
   "Grep in the current directory for STRING."
@@ -1763,13 +1775,43 @@ An extra action allows to switch to the process buffer."
               ("s" counsel-list-processes-action-switch "switch"))
             :caller 'counsel-list-processes))
 
+;;** `counsel-ace-link'
+(defun counsel-ace-link ()
+  "Use Ivy completion for `ace-link'."
+  (interactive)
+  (let (collection action)
+    (cond ((eq major-mode 'Info-mode)
+           (setq collection 'ace-link--info-collect)
+           (setq action 'ace-link--info-action))
+          ((eq major-mode 'help-mode)
+           (setq collection 'ace-link--help-collect)
+           (setq action 'ace-link--help-action))
+          ((eq major-mode 'woman-mode)
+           (setq collection 'ace-link--woman-collect)
+           (setq action 'ace-link--woman-action))
+          ((eq major-mode 'eww-mode)
+           (setq collection 'ace-link--eww-collect)
+           (setq action 'ace-link--eww-action))
+          ((eq major-mode 'compilation-mode)
+           (setq collection 'ace-link--eww-collect)
+           (setq action 'ace-link--compilation-action))
+          ((eq major-mode 'org-mode)
+           (setq collection 'ace-link--org-collect)
+           (setq action 'ace-link--org-action)))
+    (if (null collection)
+        (error "%S is not supported" major-mode)
+      (ivy-read "Ace-Link: " (funcall collection)
+                :action action
+                :require-match t
+                :caller 'counsel-ace-link))))
+
 ;;* Misc OS
 ;;** `counsel-rhythmbox'
-(defvar rhythmbox-library)
-(declare-function rhythmbox-load-library "ext:helm-rhythmbox")
+(defvar helm-rhythmbox-library)
+(declare-function helm-rhythmbox-load-library "ext:helm-rhythmbox")
 (declare-function dbus-call-method "dbus")
 (declare-function dbus-get-property "dbus")
-(declare-function rhythmbox-song-uri "ext:helm-rhythmbox")
+(declare-function helm-rhythmbox-song-uri "ext:helm-rhythmbox")
 (declare-function helm-rhythmbox-candidates "ext:helm-rhythmbox")
 
 (defun counsel-rhythmbox-enqueue-song (song)
@@ -1778,7 +1820,7 @@ An extra action allows to switch to the process buffer."
         (path "/org/gnome/Rhythmbox3/PlayQueue")
         (interface "org.gnome.Rhythmbox3.PlayQueue"))
     (dbus-call-method :session service path interface
-                      "AddToQueue" (rhythmbox-song-uri song))))
+                      "AddToQueue" (helm-rhythmbox-song-uri song))))
 
 (defvar counsel-rhythmbox-history nil
   "History for `counsel-rhythmbox'.")
@@ -1803,9 +1845,9 @@ An extra action allows to switch to the process buffer."
   (interactive)
   (unless (require 'helm-rhythmbox nil t)
     (error "Please install `helm-rhythmbox'"))
-  (unless rhythmbox-library
-    (rhythmbox-load-library)
-    (while (null rhythmbox-library)
+  (unless helm-rhythmbox-library
+    (helm-rhythmbox-load-library)
+    (while (null helm-rhythmbox-library)
       (sit-for 0.1)))
   (ivy-read "Rhythmbox: "
             (helm-rhythmbox-candidates)
@@ -1857,18 +1899,39 @@ An extra action allows to switch to the process buffer."
             (add-to-list 'counsel-linux-apps-faulty file))))))
   counsel-linux-apps-alist)
 
-(defun counsel-linux-app-action (desktop-shortcut)
+(defun counsel-linux-app-action-default (desktop-shortcut)
   "Launch DESKTOP-SHORTCUT."
   (call-process-shell-command
    (format "gtk-launch %s" (file-name-nondirectory desktop-shortcut))))
+
+(defun counsel-linux-app-action-file (desktop-shortcut)
+  "Launch DESKTOP-SHORTCUT with a selected file."
+  (let* ((entry (rassoc desktop-shortcut counsel-linux-apps-alist))
+         (short-name (and entry
+                          (string-match "\\([^ ]*\\) " (car entry))
+                          (match-string 1 (car entry))))
+         (file (and short-name
+                    (read-file-name
+                     (format "Run %s on: " short-name)))))
+    (if file
+        (call-process-shell-command
+         (format "gtk-launch %s %s"
+                 (file-name-nondirectory desktop-shortcut)
+                 file))
+      (user-error "cancelled"))))
+
+(ivy-set-actions
+ 'counsel-linux-app
+ '(("f" counsel-linux-app-action-file "run on a file")))
 
 ;;;###autoload
 (defun counsel-linux-app ()
   "Launch a Linux desktop application, similar to Alt-<F2>."
   (interactive)
   (ivy-read "Run a command: " (counsel-linux-apps-list)
-            :action #'counsel-linux-app-action
+            :action #'counsel-linux-app-action-default
             :caller 'counsel-linux-app))
+
 ;;** `counsel-mode'
 (defvar counsel-mode-map
   (let ((map (make-sparse-keymap)))
