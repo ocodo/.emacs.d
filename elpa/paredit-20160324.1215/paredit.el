@@ -1,10 +1,10 @@
 ;;; paredit.el --- minor mode for editing parentheses  -*- Mode: Emacs-Lisp -*-
 
-;; Copyright (C) 2005--2015 Taylor R. Campbell
+;; Copyright (C) 2005--2016 Taylor R. Campbell
 
-;; Author: Taylor R. Campbell
-;; Version: 20150217.713
-;; X-Original-Version: 25beta
+;; Author: Taylor R. Campbell <campbell+paredit@mumble.net>
+;; Version: 25beta
+;; Package-Version: 20160324.1215
 ;; Created: 2005-07-31
 ;; Keywords: lisp
 
