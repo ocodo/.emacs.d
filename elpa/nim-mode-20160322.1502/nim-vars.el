@@ -135,6 +135,14 @@ other tokens like ’:’ or ’=’."
   :type 'hook
   :group 'nim)
 
+(defcustom nim-pretty-triple-double-quotes
+  ;; What character should be default? („…“, “…”, ‘…’, or etc.?)
+  (cons ?“ ?”)
+  "Change triple double quotes to another quote form.
+This configuration is enabled only in ‘prettify-symbols-mode’."
+  :type 'cons
+  :group 'nim)
+
 (defcustom nim-suggest-options '("--v2")
   "Options for Nimsuggest.
 Note that ‘--verbosity:0’ and ‘--epc’ are automatically passed nim-mode’s
@@ -358,6 +366,18 @@ But all those functions can not use in NimScript.")
     "srcDir" "binDir" "backend" "mode" "skipDirs" "skipFiles"
     "skipExt" "installDirs" "installFiles" "installExt" "bin"
     "requiresData"))
+
+(defvar nimsuggest-check-vervosity "--verbosity:1"
+  "Verbosity for chk option.  Current no meaning though.")
+
+;; obsolete
+(defvar nimsuggest-vervosity "--verbosity:0"
+  "This variable will not be needed for latest nimsuggest.
+Please set this value to nil if you have latest nimsuggest,
+which supports ‘chk’ option for EPC.")
+
+(make-obsolete-variable
+ 'nimsuggest-vervosity 'nimsuggest-check-vervosity "0.1.0")
 
 (provide 'nim-vars)
 ;;; nim-vars.el ends here
