@@ -4,10 +4,10 @@
 
 ;; Author: Nathan Kot <nk@nathankot.com>
 ;; URL: https://github.com/nathankot/company-sourcekit
-;; Package-Version: 20151209.514
+;; Package-Version: 20160323.1809
 ;; Keywords: abbrev
-;; Version: 0.1.4
-;; Package-Requires: ((emacs "24.3") (company "0.8.12") (dash "2.12.1") (dash-functional "1.2.0") (sourcekit "0.1.4"))
+;; Version: 0.1.5
+;; Package-Requires: ((emacs "24.3") (company "0.8.12") (dash "2.12.1") (dash-functional "1.2.0") (sourcekit "0.1.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -71,6 +71,12 @@
 
 ;;; Private:
 
+(defvar-local company-sourcekit--tmp-file 'unknown)
+(defun company-sourcekit--tmp-file ()
+  (when (eq company-sourcekit--tmp-file 'unknown)
+    (setq company-sourcekit--tmp-file (make-temp-file "sourcekitten")))
+  company-sourcekit--tmp-file)
+
 (defun company-sourcekit--prefix ()
   "In our case, the prefix acts as a cache key for company-mode.
 It never actually gets sent to the completion engine."
@@ -95,9 +101,8 @@ It never actually gets sent to the completion engine."
   (sourcekit-with-daemon-for-project (sourcekit-project)
     (lambda (port)
       (if (not port) (funcall callback nil)
-        (let* (
-                (tmpfile (make-temp-file "sourcekitten"))
-                (offset (- (point) (length prefix))))
+        (let* ((tmpfile (company-sourcekit--tmp-file))
+                (offset (- (point) (length prefix) (point-min))))
           (write-region (point-min) (point-max) tmpfile)
           (when company-sourcekit-verbose
             (message "[company-sourcekit] prefix: `%s`, file: %s, offset: %d" prefix tmpfile offset))
