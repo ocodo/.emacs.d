@@ -2,7 +2,7 @@
 
 ;; Author: Marijn Haverbeke
 ;; URL: http://ternjs.net/
-;; Package-Version: 20151228.511
+;; Package-Version: 20160331.36
 ;; Version: 0.0.1
 ;; Package-Requires: ((json "1.2") (cl-lib "0.5") (emacs "24"))
 
@@ -54,7 +54,7 @@
   (or tern-project-dir
       (and (not (buffer-file-name)) (setf tern-project-dir ""))
       (let ((project-dir (file-name-directory (buffer-file-name))))
-        (cl-loop for cur = project-dir then (let ((shorter (file-name-directory (substring cur 0 (1- (length cur))))))
+        (cl-loop for cur = project-dir then (let ((shorter (file-name-directory (directory-file-name cur))))
                                               (and (< (length shorter) (length cur)) shorter))
                  while cur do
                  (when (file-exists-p (expand-file-name ".tern-project" cur))
