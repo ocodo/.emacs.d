@@ -4,7 +4,7 @@
 
 ;; Author: Lincoln de Sousa <lincoln@comum.org>
 ;; Keywords: hackernews
-;; Version: 0.3.0
+;; Version: 0.3.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,8 +32,6 @@
 (require 'eww nil :noerror)
 (eval-when-compile (require 'cl))
 
-;; "http://apihackernews.herokuapp.com/"
-
 (defgroup hackernews nil
   "Simple hackernews emacs client"
   :group 'external
@@ -54,11 +52,14 @@
   "Face used for the score of an article"
   :group 'hackernews)
 
+(defvar hackernews-top-story-list nil
+  "The list of stories to display")
+
 (defvar hackernews-top-story-limit 20
   "Retrieve details for at most this many stories. This should not exceed 100.")
 
 (defvar hackernews-top-stories-url "https://hacker-news.firebaseio.com/v0/topstories.json"
-  "The url to grab the top 100 story ids")
+  "The url to grab the top story ids")
 
 (defvar hackernews-item-url "https://hacker-news.firebaseio.com/v0/item/%s.json"
   "The url to grab an item's details")
@@ -100,6 +101,7 @@
     (progn
       (define-key hackernews-map (kbd "g") 'hackernews)
       (define-key hackernews-map (kbd "q") 'bury-buffer)
+      (define-key hackernews-map (kbd "m") 'hackernews-load-more-stories)
       (define-key hackernews-map (kbd "n") 'hackernews-next-item)
       (define-key hackernews-map (kbd "p") 'hackernews-previous-item)
       (define-key hackernews-map (kbd "<tab>") 'hackernews-next-comment)
@@ -111,6 +113,7 @@
 (defun hackernews ()
   "The entry point of our client"
   (interactive)
+  (setq hackernews-top-story-list nil)
   (condition-case ex
       (hackernews-format-results
        (mapcar 'hackernews-get-item
@@ -118,6 +121,19 @@
     ('error
      (message (format "hackernewsclient error: %s" (car (cdr ex))))))
   (hackernews-first-item))
+
+(defun hackernews-load-more-stories ()
+  "Load more stories into the buffer"
+  (interactive)
+  (let ((stories (hackernews-top-stories
+                  hackernews-top-story-limit
+                  (count-lines (point-min) (point-max)))))
+    (hackernews-format-results
+     (mapcar 'hackernews-get-item stories)
+     t)
+    (forward-line (* (length stories) -1))
+    (beginning-of-line)
+    (hackernews-next-item)))
 
 ;;; UI Functions
 
@@ -149,7 +165,6 @@
       'face face
       'keymap map
       'mouse-face 'highlight))))
-
 
 (defun hackernews-space-fill (string n)
   "Makes sure that string is at least n characters long, and
@@ -187,29 +202,44 @@
      (format " (%d comments)" (length kids))
      (hackernews-comment-url id)
      'hackernews-comment-count-face)
-    (princ "\n")))
+    (insert "\n")))
 
-(defun hackernews-format-results (results)
-  "Create the buffer to render all the info"
-  (with-output-to-temp-buffer "*hackernews*"
-    (switch-to-buffer "*hackernews*")
-    (setq font-lock-mode nil)
-    (use-local-map hackernews-map)
-    (mapcar 'hackernews-render-post results)))
+(defun hackernews-format-results (results &optional append)
+  "Create the buffer to render all the info.
+When APPEND is non-nil, the results are appended to the
+existing buffer if available."
+  (let* ((buf-name "*hackernews*")
+         (buf (get-buffer buf-name)))
+    (if (and append buf)
+        (with-current-buffer buf
+          (let ((inhibit-read-only t))
+            (end-of-buffer)
+            (mapcar 'hackernews-render-post results)))
+      (with-output-to-temp-buffer buf-name
+        (switch-to-buffer buf-name)
+        (setq font-lock-mode nil)
+        (use-local-map hackernews-map)
+        (mapcar 'hackernews-render-post results)))))
 
 ;;; Retrieving and parsing
 
-(defun hackernews-top-stories (&optional limit)
-  (reverse (last (reverse (append (hackernews-retrieve-and-parse hackernews-top-stories-url) nil)) limit))
-  )
+(defun hackernews-top-stories (&optional limit offset)
+  "Get a list of stories.
+When LIMIT is given, ignore all list entries past the limit.
+When OFFSET is given, ignore all list entries before the offset."
+  (if (null hackernews-top-story-list)
+      (setq hackernews-top-story-list
+            (append (hackernews-retrieve-and-parse hackernews-top-stories-url) nil)))
+  (let ((reverse-offset (- (length hackernews-top-story-list) (or offset 0))))
+    (if (<= reverse-offset 0)
+        (error "No more stories available"))
+    (reverse (last (reverse (last hackernews-top-story-list reverse-offset)) limit))))
 
 (defun hackernews-get-item (id)
-  (hackernews-retrieve-and-parse (format hackernews-item-url id))
-  )
+  (hackernews-retrieve-and-parse (format hackernews-item-url id)))
 
 (defun hackernews-retrieve-and-parse (url)
-  (hackernews-parse (hackernews-retrieve url))
-  )
+  (hackernews-parse (hackernews-retrieve url)))
 
 (defun hackernews-retrieve (url)
   (let (json)
