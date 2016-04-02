@@ -63,8 +63,10 @@
 	((:url . "http://elpa.gnu.org/packages/ampc.html")
 	 (:keywords "ampc" "mpc" "mpd"))])
  (arbitools .
-	    [(0 51)
-	     nil "Package for chess tournaments administration" single
+	    [(0 53)
+	     ((cl-lib
+	       (0 5)))
+	     "Package for chess tournaments administration" single
 	     ((:url . "http://elpa.gnu.org/packages/arbitools.html")
 	      (:keywords))])
  (ascii-art-to-unicode .
@@ -78,7 +80,7 @@
 	 ((:keywords "async")
 	  (:url . "http://elpa.gnu.org/packages/async.html"))])
  (auctex .
-	 [(11 89 1)
+	 [(11 89 3)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -584,7 +586,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160321)
+      [(20160328)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -670,10 +672,10 @@
 	    ((:url . "http://elpa.gnu.org/packages/sed-mode.html")
 	     (:keywords))])
  (seq .
-      [(1 11)
-       nil "Sequence manipulation functions" single
-       ((:url . "http://elpa.gnu.org/packages/seq.html")
-	(:keywords "sequences"))])
+      [(2 15)
+       nil "Sequence manipulation functions" tar
+       ((:keywords "sequences")
+	(:url . "http://elpa.gnu.org/packages/seq.html"))])
  (shen-mode .
 	    [(0 1)
 	     nil "A major mode for editing shen source code" tar
