@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2016, Drew Adams, all rights reserved.
 ;; Created: Tue Aug  1 14:21:16 1995
-;; Last-Updated: Sun Feb 28 15:46:53 2016 (-0800)
+;; Last-Updated: Sun Mar 27 21:03:02 2016 (-0700)
 ;;           By: dradams
-;;     Update #: 28486
+;;     Update #: 28499
 ;; URL: http://www.emacswiki.org/icicles-doc1.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: internal, extensions, help, abbrev, local, minibuffer,
@@ -1257,6 +1257,19 @@
 ;;  shows you the new option value.  So as an alternative to using
 ;;  `M-?' to see the current value of an option, you can just toggle
 ;;  it twice.
+;;
+;;  In addition, all of the Icicles toggle commands, besides generally
+;;  having their own minibuffer key bindings also have bindings on
+;;  prefix key `M-i' during completion.  You can use `M-i S-TAB' to
+;;  complete them, or you can use `M-i C-h' to see a list of them.
+;;  For example, besides using `C-A', you can use `M-i A' to toggle
+;;  case-sensitivity.
+;;
+;;  Finally, `M-i M-i' during completion invokes the general command
+;;  `icicle-toggle-option', which prompts you for a user option (any
+;;  option, Icicles or not), and toggles it.  With a prefix argument
+;;  you can toggle options and other variables whose values are
+;;  generalized Booleans: `nil' or non-`nil' (not just `t').
 ;;
 ;;(@* "Cycle Completion Candidates")
 ;;  ** Cycle Completion Candidates **
@@ -6061,9 +6074,10 @@
 ;;  highlighted, then set option `icicle-dot-show-regexp-flag' to
 ;;  non-`nil'.  (In Emacs 20, the newline-matching dot is always shown
 ;;  as that full regexp.)  And remember that you can use multi-command
-;;  `icicle-toggle-option' anytime to toggle the option.  If you
-;;  prefer to turn on newline matching by default, then just customize
-;;  option `icicle-dot-string'.
+;;  `icicle-toggle-option' anytime (bound to `M-i M-i' during
+;;  completion) to toggle the option.  If you prefer to turn on
+;;  newline matching by default, then just customize option
+;;  `icicle-dot-string'. 
 ;;
 ;;  This match-anything dot is handy, but sometimes you might want to
 ;;  match anything except a newline, perhaps in the same input pattern
@@ -9457,7 +9471,7 @@
 ;;     and `regexp-search-ring'.
 ;;
 ;;  8. Commands `icicle-clear-history' and
-;;     `icicle-clear-current-history' (`M-i' in the minibuffer)
+;;     `icicle-clear-current-history' (`M-K' in the minibuffer)
 ;;     provide a general way to clean up histories.
 ;;
 ;;  9. When you cycle among previously entered inputs using `M-p' and
@@ -9794,7 +9808,7 @@
 ;;  you can use commands `icicle-clear-history' and
 ;;  `icicle-clear-current-history' to clean minibuffer histories
 ;;  entirely of selected entries.  Command
-;;  `icicle-clear-current-history' is bound to `M-i' in the
+;;  `icicle-clear-current-history' is bound to `M-K' in the
 ;;  minibuffer.  It is `icicle-clear-history' specialized to work on
 ;;  just the current history list.
 ;;
