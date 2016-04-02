@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160303.1450
+;; Package-Version: 20160401.342
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -668,7 +668,7 @@ The bound variable is \"filename\"."
      (-last-item parts))))
 
 (defun projectile-rails--expand-snippet (snippet)
-  (yas-minor-mode-on)
+  (yas-minor-mode +1)
   (yas-expand-snippet snippet))
 
 (defun projectile-rails-expand-corresponding-snippet ()
@@ -686,7 +686,7 @@ The bound variable is \"filename\"."
           ((string-match "spec/[^/]+/\\(.+\\)_spec\\.rb$" name)
            (projectile-rails--expand-snippet
             (format
-             "require \"${1:rails_helper}\"\n\nRSpec.describe %s do\n$1\nend"
+             "require \"${1:rails_helper}\"\n\nRSpec.describe %s do\n  $0\nend"
              (s-join "::" (projectile-rails-classify (match-string 1 name))))))
           ((string-match "app/models/\\(.+\\)\\.rb$" name)
            (projectile-rails--expand-snippet
