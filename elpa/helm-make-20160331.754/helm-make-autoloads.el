@@ -3,14 +3,19 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-make" "helm-make.el" (22095 53576 837796
-;;;;;;  204000))
+;;;### (autoloads nil "helm-make" "helm-make.el" (22271 10528 946694
+;;;;;;  435000))
 ;;; Generated autoloads from helm-make.el
 
 (autoload 'helm-make "helm-make" "\
 Call \"make -j ARG target\". Target is selected with completion.
 
 \(fn &optional ARG)" t nil)
+
+(autoload 'helm-make-reset-cache "helm-make" "\
+Reset cache, see `helm-make-cache-targets'.
+
+\(fn)" t nil)
 
 (autoload 'helm-make-projectile "helm-make" "\
 Call `helm-make' for `projectile-project-root'.
