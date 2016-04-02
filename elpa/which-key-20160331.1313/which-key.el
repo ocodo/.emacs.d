@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20160317.1006
-;; Version: 0.9
+;; Package-Version: 20160331.1313
+;; Version: 1.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -1011,20 +1011,6 @@ call signature in different emacs versions"
       (set-frame-size (window-frame window) frame-width frame-height)
       window)))
 
-;; Keep for popwin maybe (Used to work)
-;; (defun which-key-show-buffer-popwin (height width)
-;;   "Using popwin popup buffer with dimensions HEIGHT and WIDTH."
-;;   (popwin:popup-buffer which-key-buffer-name
-;;                        :height height
-;;                        :width width
-;;                        :noselect t
-;;                        :position which-key-side-window-location))
-
-;; (defun which-key-hide-buffer-popwin ()
-;;   "Hide popwin buffer."
-;;   (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
-;;     (popwin:close-popup-window)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Max dimension of available window functions
 
@@ -1534,7 +1520,7 @@ metadata."
 
 (defun which-key--create-pages-1
     (keys available-lines available-width &optional min-lines vertical)
-  "Create page strings using `popalist-list-to-page'.
+  "Create page strings using `which-key--list-to-pages'.
 Will try to find the best number of rows and columns using the
 given dimensions and the length and widths of ITEMS. Use VERTICAL
 if the ITEMS are laid out vertically and the number of columns
@@ -2036,6 +2022,23 @@ Finally, show the buffer."
     ;;  (message "key: %s" (key-description prefix-keys)))
     ;; (when (> (length prefix-keys) 0)
     ;;  (message "key binding: %s" (key-binding prefix-keys)))
+    ;; Taken from guide-key
+    (when (and (equal prefix-keys [key-chord])
+               (bound-and-true-p key-chord-mode))
+      (setq prefix-keys
+            (condition-case nil
+                (let ((rkeys (recent-keys)))
+                  (vector 'key-chord
+                          ;; Take the two preceding the last one, because the
+                          ;; read-event call in key-chord seems to add a
+                          ;; spurious key press to this list. Note this is
+                          ;; different from guide-key's method which didn't work
+                          ;; for me.
+                          (aref rkeys (- (length rkeys) 3))
+                          (aref rkeys (- (length rkeys) 2))))
+              (error (progn
+                       (message "which-key error in key-chord handling")
+                       [key-chord])))))
     (cond ((and (> (length prefix-keys) 0)
                 (or (keymapp (key-binding prefix-keys))
                     ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
