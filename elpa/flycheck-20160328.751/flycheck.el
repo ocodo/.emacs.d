@@ -530,7 +530,8 @@ The following events are known:
      the buffer.
 
 `mode-enabled'
-     Check syntax immediately when `flycheck-mode' is enabled.
+     Check syntax immediately when variable `flycheck-mode' is
+     non-nil.
 
 Flycheck performs a syntax checks only on events, which are
 contained in this list.  For instance, if the value of this
@@ -574,9 +575,9 @@ Flycheck error navigation with `flycheck-next-error',
 `flycheck-previous-error' and `flycheck-first-error' is always
 enabled, regardless of the value of this variable.
 
-Note that this setting only takes effect when `flycheck-mode' is
-enabled.  Changing it will not affect buffers which already have
-`flycheck-mode' enabled."
+Note that this setting only takes effect when variable
+`flycheck-mode' is non-nil.  Changing it will not affect buffers
+where variable `flycheck-mode' is already non-nil."
   :group 'flycheck
   :type 'boolean
   :package-version '(flycheck . "0.15")
@@ -639,7 +640,7 @@ function."
   :risky t)
 
 (defcustom flycheck-mode-hook nil
-  "Hooks to run after `flycheck-mode'."
+  "Hooks to run after command `flycheck-mode' is toggled."
   :group 'flycheck
   :type 'hook
   :risky t)
@@ -923,17 +924,20 @@ currently listed."
   :package-version '(flycheck . "0.20"))
 
 (defcustom flycheck-global-modes t
-  "Modes for which `flycheck-mode' is turned on by `global-flycheck-mode'.
+  "Modes for which option `flycheck-mode' is turned on.
 
 If t, Flycheck Mode is turned on for all major modes.  If a list,
 Flycheck Mode is turned on for all `major-mode' symbols in that
 list.  If the `car' of the list is `not', Flycheck Mode is turned
 on for all `major-mode' symbols _not_ in that list.  If nil,
-Flycheck Mode is never turned on by `global-flycheck-mode'.
+Flycheck Mode is never turned on by command
+`global-flycheck-mode'.
 
 Note that Flycheck is never turned on for modes whose
 `mode-class' property is `special' (see Info node `(elisp)Major
-Mode Conventions'), regardless of the value of this option."
+Mode Conventions'), regardless of the value of this option.
+
+Only has effect when variable `global-flycheck-mode' is non-nil."
   :group 'flycheck
   :type '(choice (const :tag "none" nil)
                  (const :tag "all" t)
@@ -986,7 +990,7 @@ Mode Conventions'), regardless of the value of this option."
      ["Describe syntax checker" flycheck-describe-checker t]
      ["Show Flycheck version" flycheck-version t]
      ["Read the Flycheck manual" flycheck-info t]))
-  "Menu of `flycheck-mode'.")
+  "Menu of command `flycheck-mode'.")
 
 (easy-menu-add-item nil '("Tools") flycheck-mode-menu-map "Spell Checking")
 
@@ -2160,7 +2164,7 @@ Slots:
     ;; lighter.
     (define-key map [menu-bar flycheck] flycheck-mode-menu-map)
     map)
-  "Keymap of `flycheck-mode'.")
+  "Keymap of command `flycheck-mode'.")
 
 (defvar-local flycheck-old-next-error-function nil
   "Remember the old `next-error-function'.")
@@ -2689,10 +2693,10 @@ otherwise."
                      (file-remote-p (buffer-file-name) 'method))))))
 
 (defun flycheck-mode-on-safe ()
-  "Enable `flycheck-mode' if it is safe to do so.
+  "Enable command `flycheck-mode' if it is safe to do so.
 
-`flycheck-mode' is only enabled if `flycheck-may-enable-mode'
-returns t."
+Command `flycheck-mode' is only enabled if
+`flycheck-may-enable-mode' returns a non-nil result."
   (when (flycheck-may-enable-mode)
     (flycheck-mode)))
 
@@ -4170,8 +4174,8 @@ shows the messages either in the echo area or in a separate
 buffer, depending on the number of lines.  See Info
 node `(elisp)Displaying Messages' for more information.
 
-In the latter case, show messages in
-`flycheck-error-message-buffer'."
+In the latter case, show messages in the buffer denoted by
+variable `flycheck-error-message-buffer'."
   (when (and errors (flycheck-may-use-echo-area-p))
     (let ((messages (seq-map #'flycheck-error-format-message-and-id errors)))
       (display-message-or-buffer (string-join messages "\n\n")
@@ -5506,7 +5510,7 @@ more information about GNAT warnings."
   "An Ada syntax checker using GNAT.
 
 Uses the GNAT compiler from GCC.  See URL
-`https://gcc.gnu.org/onlinedocs/gnat_ugn_unw/'."
+`http://libre.adacore.com/tools/gnat-gpl-edition/'."
   :command ("gnatmake"
             "-c"                        ; Just compile, don't bind
             "-f"                        ; Force re-compilation
@@ -5980,7 +5984,7 @@ See URL `http://cppcheck.sourceforge.net/'."
 (flycheck-define-checker cfengine
   "A CFEngine syntax checker using cf-promises.
 
-See URL `http://cfengine.com/'."
+See URL `https://cfengine.com/'."
   :command ("cf-promises" "-Wall" "-f"
             ;; We must stay in the same directory to resolve @include
             source-inplace)
@@ -6005,7 +6009,7 @@ with `~'."
 (flycheck-define-checker chef-foodcritic
   "A Chef cookbooks syntax checker using Foodcritic.
 
-See URL `http://acrmp.github.io/foodcritic/'."
+See URL `http://www.foodcritic.io'."
   ;; Use `source-inplace' to allow resource discovery with relative paths.
   ;; foodcritic interprets these as relative to the source file, so we need to
   ;; stay within the source tree.  See
@@ -6067,7 +6071,7 @@ See URL `http://www.coffeelint.org/'."
 (flycheck-define-checker coq
   "A Coq syntax checker using the Coq compiler.
 
-See URL `http://coq.inria.fr/'."
+See URL `https://coq.inria.fr/'."
   ;; We use coqtop in batch mode, because coqc is picky about file names.
   :command ("coqtop" "-batch" "-load-vernac-source" source)
   :error-patterns
@@ -6526,7 +6530,7 @@ Uses GCC's Fortran compiler gfortran.  See URL
 (flycheck-define-checker go-gofmt
   "A Go syntax and style checker using the gofmt utility.
 
-See URL `http://golang.org/cmd/gofmt/'."
+See URL `https://golang.org/cmd/gofmt/'."
   :command ("gofmt")
   :standard-input t
   :error-patterns
@@ -6583,8 +6587,8 @@ This option requires Go 1.6 or newer."
 (flycheck-define-checker go-vet
   "A Go syntax checker using the `go tool vet' command.
 
-See URL `http://golang.org/cmd/go/' and URL
-`http://godoc.org/golang.org/x/tools/cmd/vet'."
+See URL `https://golang.org/cmd/go/' and URL
+`https://godoc.org/golang.org/x/tools/cmd/vet'."
   :command ("go" "tool" "vet" "-all"
             (option "-printfuncs=" flycheck-go-vet-print-functions concat
                     flycheck-option-comma-separated-list)
@@ -6631,7 +6635,7 @@ Each item is a string with a tag to be given to `go build'."
 (flycheck-define-checker go-build
   "A Go syntax and type checker using the `go build' command.
 
-See URL `http://golang.org/cmd/go'."
+See URL `https://golang.org/cmd/go'."
   ;; We need to use `temporary-file-name' instead of `null-device',
   ;; because Go can't write to the null device.
   ;; See https://github.com/golang/go/issues/4851
@@ -6884,7 +6888,7 @@ See URL `https://github.com/commercialhaskell/stack'."
 (flycheck-define-checker haskell-ghc
   "A Haskell syntax and type checker using ghc.
 
-See URL `http://www.haskell.org/ghc/'."
+See URL `https://www.haskell.org/ghc/'."
   :command ("ghc" "-Wall" "-no-link"
             "-outputdir" (eval (flycheck-haskell-ghc-cache-directory))
             (option-flag "-no-user-package-db"
@@ -7001,7 +7005,7 @@ See URL `https://github.com/ndmitchell/hlint'."
 (flycheck-define-checker html-tidy
   "A HTML syntax and style checker using Tidy.
 
-See URL `https://github.com/w3c/tidy-html5'."
+See URL `https://github.com/htacg/tidy-html5'."
   :command ("tidy" (config-file "-config" flycheck-tidyrc) "-e" "-q")
   :standard-input t
   :error-patterns
@@ -7284,7 +7288,7 @@ Relative paths are relative to the file being checked."
 (flycheck-define-checker perl
   "A Perl syntax checker using the Perl interpreter.
 
-See URL `http://www.perl.org'."
+See URL `https://www.perl.org'."
   :command ("perl" "-w" "-c"
             (option-list "-I" flycheck-perl-include-path))
   :standard-input t
@@ -7355,7 +7359,7 @@ See URL `http://php.net/manual/en/features.commandline.php'."
 Set default rule sets and custom rule set files.
 
 See section \"Using multiple rule sets\" in the PHP Mess Detector
-manual at URL `http://phpmd.org/documentation/index.html'."
+manual at URL `https://phpmd.org/documentation/index.html'."
   :type '(repeat :tag "rule sets"
                  (string :tag "A filename or rule set"))
   :safe #'flycheck-string-list-p)
@@ -7363,7 +7367,7 @@ manual at URL `http://phpmd.org/documentation/index.html'."
 (flycheck-define-checker php-phpmd
   "A PHP style checker using PHP Mess Detector.
 
-See URL `http://phpmd.org/'."
+See URL `https://phpmd.org/'."
   :command ("phpmd" source "xml"
             (eval (flycheck-option-comma-separated-list
                    flycheck-phpmd-rulesets)))
@@ -7394,7 +7398,10 @@ See URL `http://pear.php.net/package/PHP_CodeSniffer/'."
   (lambda (errors)
     (flycheck-sanitize-errors
      (flycheck-remove-error-file-names "STDIN" errors)))
-  :modes (php-mode php+-mode))
+  :modes (php-mode php+-mode)
+  ;; phpcs seems to choke on empty standard input, hence skip phpcs if the
+  ;; buffer is empty, see https://github.com/flycheck/flycheck/issues/907
+  :predicate (lambda () (> (buffer-size) 0)))
 
 (flycheck-define-checker processing
   "Processing command line tool.
@@ -7416,7 +7423,7 @@ See https://github.com/processing/processing/wiki/Command-Line"
 (flycheck-define-checker puppet-parser
   "A Puppet DSL syntax checker using puppet's own parser.
 
-See URL `http://puppetlabs.com/'."
+See URL `https://puppetlabs.com/'."
   :command ("puppet" "parser" "validate" "--color=false")
   :standard-input t
   :error-patterns
@@ -7556,7 +7563,7 @@ Update the error level of ERR according to
   "A Python syntax and style checker using Flake8.
 
 Requires Flake8 2.0 or newer. See URL
-`https://pypi.python.org/pypi/flake8'."
+`https://flake8.readthedocs.org/'."
   :command ("flake8"
             "--format=default"
             (config-file "--config" flycheck-flake8rc)
@@ -7597,7 +7604,7 @@ which should be used and reported to the user."
 
 This syntax checker requires Pylint 1.0 or newer.
 
-See URL `http://www.pylint.org/'."
+See URL `https://www.pylint.org/'."
   ;; -r n disables the scoring report
   :command ("pylint" "-r" "n"
             "--msg-template"
@@ -7663,6 +7670,16 @@ expression, which selects linters for lintr."
   :risky t
   :package-version '(flycheck . "0.23"))
 
+(defun flycheck-r-has-lintr (R)
+  "Whether R has installed the `lintr' library."
+  (with-temp-buffer
+    (let ((process-environment (append '("LC_ALL=C") process-environment)))
+      (call-process R nil t nil
+                    "--slave" "--restore" "--no-save" "-e"
+                    "library('lintr')")
+      (goto-char (point-min))
+      (not (re-search-forward "there is no package called 'lintr'" nil 'no-error)))))
+
 (flycheck-define-checker r-lintr
   "An R style and syntax checker using the lintr package.
 
@@ -7683,8 +7700,20 @@ See URL `https://github.com/jimhester/lintr'."
    (error line-start (file-name) ":" line ":" column ": error: " (message)
           line-end))
   :modes ess-mode
-  ;; Don't check ESS files which do not contain R
-  :predicate (lambda () (equal ess-language "S")))
+  :predicate
+  ;; Don't check ESS files which do not contain R, and make sure that lintr is
+  ;; actually available
+  (lambda ()
+    (and (equal ess-language "S")
+         (flycheck-r-has-lintr (flycheck-checker-executable 'r-lintr))))
+  :verify (lambda (checker)
+            (let ((has-lintr (flycheck-r-has-lintr
+                              (flycheck-checker-executable checker))))
+              (list
+               (flycheck-verification-result-new
+                :label "lintr library"
+                :message (if has-lintr "present" "missing")
+                :face (if has-lintr 'success '(bold error)))))))
 
 (defun flycheck-racket-has-expand-p (raco)
   "Whether a RACO executable provides the `expand' command."
@@ -7725,7 +7754,7 @@ See URL `https://racket-lang.org/'."
 (flycheck-define-checker rpm-rpmlint
   "A RPM SPEC file syntax checker using rpmlint.
 
-See URL `http://sourceforge.net/projects/rpmlint/'."
+See URL `https://sourceforge.net/projects/rpmlint/'."
   :command ("rpmlint" source)
   :error-patterns
   ((error line-start
@@ -7998,7 +8027,7 @@ This syntax checker needs Cargo with rustc subcommand."
 
 This syntax checker needs Rust 1.0.0 alpha or newer.
 
-See URL `http://www.rust-lang.org'."
+See URL `https://www.rust-lang.org'."
   :command ("rustc" "-Z" "no-trans"
             (option "--crate-type" flycheck-rust-crate-type)
             (option-flag "--test" flycheck-rust-check-tests)
