@@ -250,7 +250,7 @@ results, but can be slower than `go-packages-native'."
                                            #'go-wgo-gopath
                                            #'go-gb-gopath
                                            #'go-plain-gopath)
-  "Functions to run in sequence to detect a project's GOPATH.
+  "Functions to call in sequence to detect a project's GOPATH.
 
 The functions in this list will be called one after another,
 until a function returns non-nil. The order of the functions in
@@ -262,16 +262,83 @@ mis-identifying them as gb projects."
   :group 'go)
 
 (defcustom godoc-command "go doc"
-  "Choose between using `godoc' and `go doc' for M-x godoc."
-  :type '(choice
-          (const :tag "godoc" "godoc")
-          (const :tag "go doc" "go doc"))
-  :group 'godoc)
+  "Which executable to use for `godoc'. This can either be
+'godoc' or 'go doc', both as an absolute path or an executable in
+PATH."
+  :type 'string
+  :group 'go)
+
+(defcustom godoc-and-godef-command "godoc"
+  "Which executable to use for `godoc' in
+`godoc-and-godef-command'. Must be 'godoc' and not 'go doc' and
+can be an absolute path or an executable in PATH."
+  :type 'string
+  :group 'go)
 
 (defcustom godoc-use-completing-read nil
   "Provide auto-completion for godoc. Only really desirable when using `godoc' instead of `go doc'."
   :type 'boolean
   :group 'godoc)
+
+(defcustom godoc-at-point-function #'godoc-and-godef
+  "Function to call to display the documentation for an
+identifier at a given position.
+
+This package provides two functions: `godoc-and-godef' uses a
+combination of godef and godoc to find the documentation. This
+approach has several caveats. See its documentation for more
+information. The second function, `godoc-gogetdoc' uses an
+additional tool that correctly determines the documentation for
+any identifier. It provides better results than
+`godoc-and-godef'. "
+  :type 'function
+  :group 'godoc)
+
+(defun godoc-and-godef (point)
+  "Use a combination of godef and godoc to guess the documentation.
+
+Due to a limitation in godoc, it is not possible to differentiate
+between functions and methods, which may cause `godoc-at-point'
+to display more documentation than desired. Furthermore, it
+doesn't work on package names or variables.
+
+Consider using godoc-gogetdoc instead for more accurate results."
+  (condition-case nil
+      (let* ((output (godef--call point))
+             (file (car output))
+             (name-parts (split-string (cadr output) " "))
+             (first (car name-parts)))
+        (if (not (godef--successful-p file))
+            (message "%s" (godef--error file))
+          (go--godoc (format "%s %s"
+                         (file-name-directory file)
+                         (if (or (string= first "type") (string= first "const"))
+                             (cadr name-parts)
+                           (car name-parts)))
+                    godoc-and-godef-command)))
+    (file-error (message "Could not run godef binary"))))
+
+(defun godoc-gogetdoc (point)
+  "Use the gogetdoc tool to find the documentation for an identifier.
+
+You can install gogetdoc with 'go get -u github.com/zmb3/gogetdoc'."
+  (if (not (buffer-file-name (go--coverage-origin-buffer)))
+      ;; TODO: gogetdoc supports unsaved files, but not introducing
+      ;; new artifical files, so this limitation will stay for now.
+      (error "Cannot use gogetdoc on a buffer without a file name"))
+  (let ((posn (format "%s:#%d" (shell-quote-argument (file-truename buffer-file-name)) (1- (go--position-bytes point))))
+        (out (godoc--get-buffer "<at point>")))
+  (with-current-buffer (get-buffer-create "*go-gogetdoc-input*")
+    (setq buffer-read-only nil)
+    (erase-buffer)
+    (go--insert-modified-files)
+    (call-process-region (point-min) (point-max) "gogetdoc" nil out nil
+                         "-modified"
+                         (format "-pos=%s" posn)))
+  (with-current-buffer out
+    (goto-char (point-min))
+    (godoc-mode)
+    (display-buffer (current-buffer) t))))
 
 (defun go--kill-new-message (url)
   "Make URL the latest kill and print a message."
@@ -1145,20 +1212,10 @@ you save any file, kind of defeating the point of autoloading."
 
 (defun godoc--read-query ()
   "Read a godoc query from the minibuffer."
-  ;; Compute the default query as the symbol under the cursor.
-  ;; TODO: This does the wrong thing for e.g. multipart.NewReader (it only grabs
-  ;; half) but I see no way to disambiguate that from e.g. foobar.SomeMethod.
-  (let* ((bounds (bounds-of-thing-at-point 'symbol))
-         (symbol (if bounds
-                     (buffer-substring-no-properties (car bounds)
-                                                     (cdr bounds))))
-         (prompt (if symbol
-                     (format "godoc (default %s): " symbol)
-                   "godoc: ")))
-    (if godoc-use-completing-read
-        (completing-read prompt
-                         (go--old-completion-list-style (go-packages)) nil nil nil 'go-godoc-history symbol)
-      (read-from-minibuffer prompt symbol nil nil 'go-godoc-history))))
+  (if godoc-use-completing-read
+      (completing-read "godoc; "
+                       (go--old-completion-list-style (go-packages)) nil nil nil 'go-godoc-history)
+    (read-from-minibuffer "godoc: " nil nil nil 'go-godoc-history)))
 
 (defun godoc--get-buffer (query)
   "Get an empty buffer for a godoc query."
@@ -1188,37 +1245,22 @@ you save any file, kind of defeating the point of autoloading."
 (defun godoc (query)
   "Show Go documentation for QUERY, much like M-x man."
   (interactive (list (godoc--read-query)))
+  (go--godoc query godoc-command))
+
+(defun go--godoc (query command)
   (unless (string= query "")
     (set-process-sentinel
      (start-process-shell-command "godoc" (godoc--get-buffer query)
-                                  (concat godoc-command " " query))
+                                  (concat command " " query))
      'godoc--buffer-sentinel)
     nil))
 
 (defun godoc-at-point (point)
   "Show Go documentation for the identifier at POINT.
 
-`godoc-at-point' requires godef to work.
-
-Due to a limitation in godoc, it is not possible to differentiate
-between functions and methods, which may cause `godoc-at-point'
-to display more documentation than desired."
-  ;; TODO(dominikh): Support executing godoc-at-point on a package
-  ;; name.
+It uses `godoc-at-point-function' to look up the documentation."
   (interactive "d")
-  (condition-case nil
-      (let* ((output (godef--call point))
-             (file (car output))
-             (name-parts (split-string (cadr output) " "))
-             (first (car name-parts)))
-        (if (not (godef--successful-p file))
-            (message "%s" (godef--error file))
-          (godoc (format "%s %s"
-                         (file-name-directory file)
-                         (if (or (string= first "type") (string= first "const"))
-                             (cadr name-parts)
-                           (car name-parts))))))
-    (file-error (message "Could not run godef binary"))))
+  (funcall godoc-at-point-function point))
 
 (defun go-goto-imports ()
   "Move point to the block of imports.
@@ -1996,6 +2038,28 @@ switching projects."
 (defun go-original-gopath ()
   "Return the original value of GOPATH from when Emacs was started."
   (let ((process-environment initial-environment)) (getenv "GOPATH")))
+
+(defun go--insert-modified-files ()
+  "Insert the contents of each modified Go buffer into the
+current buffer in the format specified by guru's -modified flag."
+  (mapc #'(lambda (b)
+            (and (buffer-modified-p b)
+                 (buffer-file-name b)
+                 (string= (file-name-extension (buffer-file-name b)) "go")
+                 (go--insert-modified-file (buffer-file-name b) b)))
+        (buffer-list)))
+
+(defun go--insert-modified-file (name buffer)
+  (insert (format "%s\n%d\n" name (go--buffer-size-bytes buffer)))
+  (insert-buffer-substring buffer))
+
+(defun go--buffer-size-bytes (&optional buffer)
+  (message "buffer; %s" buffer)
+  "Return the number of bytes in the current buffer.
+If BUFFER, return the number of characters in that buffer instead."
+  (with-current-buffer (or buffer (current-buffer))
+    (1- (position-bytes (point-max)))))
+
 
 (provide 'go-mode)
 
