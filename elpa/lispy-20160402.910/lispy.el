@@ -124,7 +124,7 @@
 ;;
 ;; Some Clojure support depends on `cider'.
 ;; Some Scheme support depends on `geiser'.
-;; Some Common Lisp support depends on `slime'.
+;; Some Common Lisp support depends on `slime' or `sly'.
 ;; You can get them from MELPA.
 ;;
 ;; See http://abo-abo.github.io/lispy/ for a detailed documentation.
@@ -1773,6 +1773,7 @@ When the region is active, toggle a ~ at the start of the region."
 
 (declare-function cider-repl-return "ext:cider-repl")
 (declare-function slime-repl-return "ext:slime-repl")
+(declare-function sly-mrepl-return "ext:sly-mrepl")
 (defun lispy-newline-and-indent-plain ()
   "When in minibuffer, exit it.  Otherwise forward to `newline-and-indent'."
   (interactive)
@@ -1783,6 +1784,8 @@ When the region is active, toggle a ~ at the start of the region."
      (cider-repl-return))
     (slime-repl-mode
      (slime-repl-return))
+    (sly-mrepl-mode
+     (sly-mrepl-return))
     (python-mode
      (newline-and-indent))
     (t
@@ -3659,7 +3662,7 @@ Sexp is obtained by exiting list ARG times."
 (defvar lispy-goto-symbol-alist
   '((clojure-mode lispy-goto-symbol-clojure le-clojure)
     (scheme-mode lispy-goto-symbol-scheme le-scheme)
-    (lisp-mode slime-edit-definition slime)
+    (lisp-mode lispy-goto-symbol-lisp le-lisp)
     (python-mode lispy-goto-symbol-python le-python))
   "An alist of `major-mode' to function for jumping to symbol.
 
@@ -4005,13 +4008,15 @@ When ARG is non-nil, force select the window."
               (setq lispy-eval-other--cfg nil)
               (selected-window))))
          res)
-    (with-selected-window target-window
-      (setq res (lispy--eval-elisp-form expr lexical-binding))
-      (if (equal res lispy--eval-cond-msg)
-          (message res)
-        (if (and (fboundp 'object-p) (object-p res))
-            (message "(eieio object length %d)" (length res))
-          (message "%S" res))))))
+    (if (eq major-mode 'lisp-mode)
+        (message (lispy--eval (prin1-to-string expr)))
+      (with-selected-window target-window
+        (setq res (lispy--eval-elisp-form expr lexical-binding))
+        (if (equal res lispy--eval-cond-msg)
+            (message res)
+          (if (and (fboundp 'object-p) (object-p res))
+              (message "(eieio object length %d)" (length res))
+            (message "%S" res)))))))
 
 (defun lispy-follow ()
   "Follow to `lispy--current-function'."
@@ -4359,6 +4364,7 @@ When ARG isn't nil, show table of contents."
            (lispy-extract-block)))))
 
 (declare-function lispy-flatten--clojure "le-clojure")
+(declare-function lispy-flatten--lisp "le-lisp")
 (defun lispy-flatten (arg)
   "Inline a function at the point of its call.
 Pass the ARG along."
@@ -4371,6 +4377,9 @@ Pass the ARG along."
                                 cider-clojure-interaction-mode)))
          (require 'le-clojure)
          (lispy-flatten--clojure arg))
+
+        ((eq major-mode 'lisp-mode)
+         (lispy-flatten--lisp))
 
         (t
          (lispy-complain
@@ -5711,13 +5720,14 @@ so that no other packages disturb the match data."
      (in-package . 1)
      (load . 1)
      (setq . 2)
-     ;; SLIME specific
+     ;; SLIME/SLY specific
      (definterface . 1)
      (defimplementation . 1)
      (define-caller-pattern . 1)
      (define-variable-pattern . 1)
      (define-pattern-substitution . 1)
-     (defslimefun . 1))
+     (defslimefun . 1)
+     (defslyfun . 1))
     (emacs-lisp-mode
      (setq . 2)
      (csetq . 2)
@@ -5758,7 +5768,8 @@ so that no other packages disturb the match data."
      ;; misc
      (defhydra . 1)
      (ivy-set-actions . 1)
-     (ivy-set-sources . 1)))
+     (ivy-set-sources . 1)
+     (ivy-set-occur . 1)))
   "Alist of tag arities for supported modes.")
 
 (defun lispy--tag-regexp (&optional mode)
