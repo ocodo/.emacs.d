@@ -2660,7 +2660,7 @@ and `kill-buffer' instead."
       (setq buffer-read-only nil)
       (erase-buffer)
       (cond ((not by-name-hash)
-             (insert "YASnippet tables: \n")
+             (insert "YASnippet tables:\n")
              (while (and table-lists
                          continue)
                (dolist (table (car table-lists))
@@ -2716,31 +2716,32 @@ and `kill-buffer' instead."
          (setq group (truncate-string-to-width group 25 0 ?  "..."))
          (insert (make-string 100 ?-) "\n")
          (dolist (p templates)
-           (let ((name (truncate-string-to-width (propertize (format "\\\\snippet `%s'" (yas--template-name p))
-                                                             'yasnippet p)
-                                                 50 0 ? "..."))
-                 (group (prog1 group
-                          (setq group (make-string (length group) ? ))))
-                 (condition-string (let ((condition (yas--template-condition p)))
-                                     (if (and condition
-                                              original-buffer)
-                                         (with-current-buffer original-buffer
-                                           (if (yas--eval-condition condition)
-                                               "(y)"
-                                             "(s)"))
-                                       "(a)"))))
-             (insert group " ")
-             (insert condition-string " ")
-             (insert name
-                     (if (string-match "\\.\\.\\.$" name)
-                         "'"
-                       " ")
-                     " ")
-             (insert (truncate-string-to-width (or (yas--template-key p) "")
-                                               15 0 ?  "...") " ")
-             (insert (truncate-string-to-width (key-description (yas--template-keybinding p))
-                                               15 0 ?  "...") " ")
-             (insert "\n"))))
+           (let* ((name (truncate-string-to-width (propertize (format "\\\\snippet `%s'" (yas--template-name p))
+                                                              'yasnippet p)
+                                                  50 0 ? "..."))
+                  (group (prog1 group
+                           (setq group (make-string (length group) ? ))))
+                  (condition-string (let ((condition (yas--template-condition p)))
+                                      (if (and condition
+                                               original-buffer)
+                                          (with-current-buffer original-buffer
+                                            (if (yas--eval-condition condition)
+                                                "(y)"
+                                              "(s)"))
+                                        "(a)")))
+                  (key-description-string (key-description (yas--template-keybinding p)))
+                  (template-key-padding (if (string= key-description-string "") nil ? )))
+             (insert group " "
+                     condition-string " "
+                     name (if (string-match "\\.\\.\\.$" name)
+                              "'" " ")
+                     " "
+                     (truncate-string-to-width (or (yas--template-key p) "")
+                                               15 0 template-key-padding "...")
+                     (or template-key-padding "")
+                     (truncate-string-to-width key-description-string
+                                               15 0 nil "...")
+                     "\n"))))
      groups-hash)))
 
 
