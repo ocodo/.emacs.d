@@ -1,8 +1,8 @@
 ;;; git-link.el --- Get the GitHub/Bitbucket/GitLab URL for a buffer location
 
 ;; Author: Skye Shaw <skye.shaw@gmail.com>
-;; Version: 0.4.0
-;; Package-Version: 20160223.1521
+;; Version: 0.4.1
+;; Package-Version: 20160401.1850
 ;; Keywords: git
 ;; URL: http://github.com/sshaw/git-link
 
@@ -34,6 +34,10 @@
 
 ;;; Change Log:
 
+;; 2016-04-01 - v0.4.1
+;; * Better handling for branches that have no explicit remote
+;; * Better error messages
+;;
 ;; 2016-02-16 - v0.4.0
 ;; * Try branch's tracking remote when other branch settings are not specified
 ;; * git-link-default-remote now defaults to nil
@@ -125,16 +129,30 @@
 (defun git-link--remote-url (name)
   (git-link--get-config (format "remote.%s.url" name)))
 
+(defun git-link--branch-remote (branch)
+  (git-link--get-config (format "branch.%s.remote" branch)))
+
 (defun git-link--branch ()
   (or (git-link--get-config "git-link.branch")
       git-link-default-branch
       (git-link--current-branch)))
 
 (defun git-link--remote ()
-  (or (git-link--get-config "git-link.remote")
-      git-link-default-remote
-      (git-link--get-config (format "branch.%s.remote" (git-link--current-branch)))
-      "origin"))
+  (let* ((branch (git-link--current-branch))
+	 (remote (or (git-link--get-config "git-link.remote")
+		     git-link-default-remote
+		     (git-link--branch-remote branch))))
+
+    ;; Git defaults to "." if the branch has no remote.
+    ;; If we branch has no remote we try master's, which may be set.
+    (if (or (null remote)
+	    (and (string= remote ".")
+		 (not (string= branch "master"))))
+	(setq remote (git-link--branch-remote "master")))
+
+    (if (or (null remote) (string= remote "."))
+	"origin"
+      remote)))
 
 (defun git-link--relative-filename ()
   (let* ((filename (buffer-file-name))
@@ -156,17 +174,15 @@
 (defun git-link--read-remote ()
   (let ((remotes (git-link--remotes))
 	(current (git-link--remote)))
-    (if remotes
-        (completing-read "Remote: "
-                         remotes
-                         nil
-                         t
-                         ""
-                         nil
-                         (if (member current remotes)
-                             current
-                         (car remotes)))
-     current)))
+    (completing-read "Remote: "
+		     remotes
+		     nil
+		     t
+		     ""
+		     nil
+		     (if (member current remotes)
+			 current
+		       (car remotes)))))
 
 (defun git-link--get-region ()
   (save-restriction
@@ -278,14 +294,12 @@ Defaults to \"origin\"."
 	 (handler     (cadr (assoc remote-host git-link-remote-alist))))
 
     (cond ((null filename)
-	   (message "Buffer has no file"))
+	   (message "Not in a git repository with a working tree"))
 	  ((null remote-host)
-	   (message "Unknown remote '%s'" remote))
-	  ((and (null commit) (null branch))
-	   (message "Not on a branch, and repo does not have commits"))
+	   (message "Remote '%s' is unknown or contains an unsupported URL" remote))
 	  ((not (functionp handler))
 	   (message "No handler for %s" remote-host))
-	  ;; null ret val
+	  ;; TODO: null ret val
 	  ((git-link--new
 	    (funcall handler
 		     remote-host
@@ -312,7 +326,7 @@ Defaults to \"origin\"."
 	 (commit      (word-at-point))
 	 (handler     (cadr (assoc remote-host git-link-commit-remote-alist))))
     (cond ((null remote-host)
-	   (message "Unknown remote '%s'" remote))
+	   (message "Remote '%s' is unknown or contains an unsupported URL" remote))
 	  ((not (string-match "[a-z0-9]\\{7,40\\}" (or commit "")))
 	   (message "Point is not on a commit hash"))
 	  ((not (functionp handler))
