@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, evil
-;; Package-Version: 20160310.1922
+;; Package-Version: 20160402.1123
 ;; Version: 20160228
 ;; URL: https://github.com/pythonnut/evil-easymotion
 ;; Package-Requires: ((emacs "24") (avy "0.3.0") (cl-lib "0.5"))
@@ -201,7 +201,10 @@
 (cl-defmacro evilem-define (key motion &key pre-hook post-hook bind scope
                                 all-windows)
   "Automatically create and bind an evil motion"
-  `(define-key evil-motion-state-map ,key
+  `(define-key ,(if all-windows
+                    'evil-normal-state-map
+                  'evil-motion-state-map)
+     ,key
      (evilem-create ,motion
                     :pre-hook ,pre-hook
                     :post-hook ,post-hook
