@@ -1235,7 +1235,7 @@ If a prefix arg is given run grep on all buffers ignoring non--file-buffers."
      (format-spec helm-pdfgrep-default-read-command
                   (list (cons ?f fname) (cons ?p pageno))))))
 
-;;; AG - AT
+;;; AG - PT
 ;;
 ;;  https://github.com/ggreer/the_silver_searcher
 ;;  https://github.com/monochromegane/the_platinum_searcher
@@ -1340,6 +1340,8 @@ if available with current AG version."
         :buffer (format "*helm %s*" (helm-grep--ag-command))))
 
 (defun helm-grep-ag (directory with-types)
+  "Start grep AG in DIRECTORY.
+When WITH-TYPES is non-nil provide completion on AG types."
   (helm-grep-ag-1 directory
                   (helm-aif (and with-types
                                  (helm-grep-ag-get-types))
