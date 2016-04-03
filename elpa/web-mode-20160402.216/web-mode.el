@@ -4,7 +4,7 @@
 ;; Copyright 2011-2016 François-Xavier Bois
 
 ;; Version: 13.1.15
-;; Package-Version: 20160401.439
+;; Package-Version: 20160402.216
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; Created: July 2011
@@ -6714,8 +6714,9 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                            'block-token)
                          pos))))
           (setq offset (current-column))
-          ;;(message "%S %S" (point) offset)
           (cond
+           ((string= web-mode-engine "freemarker")
+            (setq offset (+ (current-indentation) 2)))
            ((member (buffer-substring-no-properties (point) (+ (point) 2)) '("/*" "{*" "@*"))
             (cond
              ((eq ?\* curr-char)
