@@ -2,7 +2,7 @@
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/tabulated-list-extensions
-;; Package-Version: 20160316.208
+;; Package-Version: 20160402.1348
 ;; Keywords: tabulated-list, extension
 ;; Version: 0.1.0
 ;; Package-Requires: ((dash "1.5.0"))
@@ -38,6 +38,16 @@
   "Tabulated list extensions."
   :group 'tabulated-list
   :group 'convenience)
+
+(defgroup tle-faces nil
+  "Faces used by tabulated list extensions."
+  :group 'tle
+  :group 'faces)
+
+(defface tle-marked
+  '((t (:inherit dired-marked)))
+  "Face used for marked files."
+  :group 'tle-faces)
 
 (defcustom tle-marker-string (string dired-marker-char)
   "Default string used for marking."
@@ -115,6 +125,11 @@
         (forward-line))
       selection)))
 
+(defun tle-selection-empty-p ()
+  "Return t if the selection is empty."
+  (save-excursion
+    (null (tle-selection-ids))))
+
 (defvar tle-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "m" 'tle-mark)
@@ -131,7 +146,8 @@ positive, and disable it otherwise. If called from Lisp, enable
 the mode if ARG is omitted or nil."
   nil
   " tle"
-  tle-mode-map)
+  tle-mode-map
+  (font-lock-add-keywords nil `((,(format "^%s.*" tle-marker-string) . 'tle-marked))))
 
 (provide 'tle)
 
