@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160401.342
+;; Package-Version: 20160402.200
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -676,7 +676,7 @@ The bound variable is \"filename\"."
     (cond ((string-match "app/[^/]+/concerns/\\(.+\\)\\.rb$" name)
            (projectile-rails--expand-snippet
             (format
-             "module %s\n  extend ActiveSupport::Concern\n$1\nend"
+             "module %s\n  extend ActiveSupport::Concern\n  $0\nend"
              (s-join "::" (projectile-rails-classify (match-string 1 name))))))
           ((string-match "app/controllers/\\(.+\\)\\.rb$" name)
            (projectile-rails--expand-snippet
