@@ -1,1 +1,0 @@
-../available-inits/init-git-gutter.el

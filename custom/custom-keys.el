@@ -18,55 +18,58 @@
 (require 'custom-mac-fn-keys)
 (require 'misc)
 
-(global-set-key (kbd "s-g") 'minibuffer-keyboard-quit)
+(global-set-key (kbd "s-g")          'minibuffer-keyboard-quit)
 
-(global-set-key (kbd "<home>") 'beginning-of-line)
-(global-set-key (kbd "<end>") 'end-of-line)
+(global-set-key (kbd "<home>")       'beginning-of-line)
+(global-set-key (kbd "<end>")        'end-of-line)
 
-(global-set-key (kbd "C-x /")               'align-regexp)
+(global-set-key (kbd "C-x /")        'align-regexp)
 
-(global-set-key (kbd "C-^")                 'join-line-from-below)
+(global-set-key (kbd "C-^")          'join-line-from-below)
 
-(global-set-key (kbd "C-x r u")             'cua-set-rectangle-mark)
-(global-set-key (kbd "M-Z")                 'zap-to-char)
-(global-set-key (kbd "M-z")                 'zap-up-to-char)
+(global-set-key (kbd "C-x r u")      'cua-set-rectangle-mark)
+(global-set-key (kbd "M-Z")          'zap-to-char)
+(global-set-key (kbd "M-z")          'zap-up-to-char)
 
-(global-set-key (kbd "M-i")                 'evil-mode) ;; Toggle
+(global-set-key (kbd "M-i")          'evil-mode) ;; Toggle
 
-(global-set-key (kbd "C-c C-w")             'rotate-window)
-(global-set-key (kbd "C-c C-l")             'rotate-layout)
+(global-set-key (kbd "M-;")          'comment-dwim-2)
 
-(global-set-key (kbd "C-c SPC")             'ace-jump-mode)
-(global-set-key (kbd "C-c ;")               'iedit-mode)
+;; Migrate to init-rotate
+(global-set-key (kbd "C-c C-w")      'rotate-window)
+(global-set-key (kbd "C-c C-l")      'rotate-layout)
+
+(global-set-key (kbd "C-c SPC")      'ace-jump-mode)
+(global-set-key (kbd "C-c ;")        'iedit-mode)
 
 ;; Return and indent binding
-(global-set-key (kbd "RET")                 'newline-and-indent)
+(global-set-key (kbd "RET")          'newline-and-indent)
 
 ;; turn off M-` menu shortcut, and use it for getting magit-status instead
-(global-set-key (kbd "M-`")                 'magit-status)
+(global-set-key (kbd "M-`")          'magit-status)
 
 ;; append region to file
-(global-set-key (kbd "C-x C-a")             'append-to-file)
+(global-set-key (kbd "C-x C-a")      'append-to-file)
 
 ;; Resize window horizontally
-(global-set-key (kbd "C-M-,")               'shrink-window-horizontally) ;; Ctrl-Alt-<
-(global-set-key (kbd "C-M-.")               'enlarge-window-horizontally) ;; Ctrl-Alt->
+(global-set-key (kbd "C-M-,")        'shrink-window-horizontally) ;; Ctrl-Alt-<
+(global-set-key (kbd "C-M-.")        'enlarge-window-horizontally) ;; Ctrl-Alt->
 
 ;; Completion / Abbreviation
-(global-set-key [(control tab)]             'completion-at-point)
+(global-set-key [(control tab)]      'completion-at-point)
 
 ;; Move line / region
-(global-set-key [M-up]                      'move-text-up)
-(global-set-key [M-down]                    'move-text-down)
-(global-set-key (kbd "<ESC> <up>")          'move-text-up)
-(global-set-key (kbd "<ESC> <down>")        'move-text-down)
+(global-set-key [M-up]               'move-text-up)
+(global-set-key [M-down]             'move-text-down)
+(global-set-key (kbd "<ESC> <up>")   'move-text-up)
+(global-set-key (kbd "<ESC> <down>") 'move-text-down)
 
 ;; Eval
-(global-set-key (kbd "C-x <ESC> e")        'eval-buffer)
-(global-set-key (kbd "M-<ESC> e")          'eval-buffer)
+(global-set-key (kbd "C-x <ESC> e")  'eval-buffer)
+(global-set-key (kbd "M-<ESC> e")    'eval-buffer)
 
 ;; Auto fill mode toggle (tidy up text line length automatically.)
-(global-set-key (kbd "C-c q")               'auto-fill-mode)
+(global-set-key (kbd "C-c q")        'auto-fill-mode)
 
 ;; unset some annoying things in the OS X build, no dialogs, also add
 ;; a few osx centric bindings.  If you like dialogs, you probably
@@ -150,10 +153,6 @@
 
   ;; "contextual" completion
   (global-set-key (kbd "<s-return>" )       'completion-at-point)
-
-  ;; narrow / widen region
-  (global-set-key (kbd "C-M-`")             'narrow-to-region)
-  (global-set-key (kbd "s-M-`")             'widen )
 
   )
 

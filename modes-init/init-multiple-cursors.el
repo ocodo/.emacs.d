@@ -1,1 +1,0 @@
-../available-inits/init-multiple-cursors.el

@@ -53,10 +53,9 @@
                super-num-zero-map))
   (load-library (symbol-name lib)))
 
-(dolist (init-file
-         (directory-files
-          (concat user-emacs-directory "modes-init")))
-  (load-mode-init-file init-file))
+(dolist (use-file
+         (directory-files (ocodo-active-config-directory)))
+  (load-use-file use-file))
 
 ;; ;; When GUI (hopefully svg is available!)
 ;; ;; Load an SVG Modeline
@@ -78,6 +77,6 @@
 ;; Optional init modes (for example those which contain security
 ;; keys/tokens) - These files are added to .gitignore and only loaded
 ;; when present.
-;; (mapcar 'load-optional-mode-init '( ... list of optionals ... ))
+;; (mapcar 'load-optional-use-file '( ... list of optionals ... ))
 
 ;;; init.el ends here

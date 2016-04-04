@@ -1,4 +1,10 @@
+;;; Code:
+
 (require 'quick-init-helpers)
+
+(defun ocodo-active-config-directory ()
+  "Where active package configurations are kept."
+  (format "%s_active-configs/" user-emacs-directory))
 
 (defun load-local-init ()
   "Load local init if found."
@@ -6,34 +12,26 @@
     (when (file-readable-p local-init)
       (load-file local-init))))
 
-(defun load-mode-init (name)
-  "Load a mode-init file NAME expect an error if it doesn't map to an existing file."
+(defun load-use-file (name)
+  "Load a use file NAME expect an error if it doesn't map to an existing file."
   (let (file)
-    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory name))
-    (if (file-exists-p file)
-        (load-file file)
-      (message "Warning: %s doesn't exist" file))))
-
-(defun load-mode-init-file (name)
-  "Load a mode-init file NAME expect an error if it doesn't map to an existing file."
-  (let (file)
-    (setq file (concat user-emacs-directory "modes-init/" name))
+    (setq file (concat (ocodo-active-config-directory) name))
     (unless (or (equal name ".") (equal name ".."))
-      (message "Loading Initializer: %s" file)
+      (message "Using config: %s" file)
       (if (file-exists-p file)
           (load-file file)
         (message "Warning: %s doesn't exist" file)))))
 
-;; Optional modes-init handling
-(defun load-optional-mode-init (name)
-  "Check for existence of a mode init script NAME, and load if found."
+;; Optional use file handling
+(defun load-optional-use-file (name)
+  "Check for existence of a use script NAME, and load if found."
   (let (file)
-    (setq file (format "%smodes-init/init-%s.el" user-emacs-directory (symbol-name name)))
+    (setq file (format "%suse-%s.el" (ocodo-active-config-directory) (symbol-name name)))
     (if (file-readable-p file)
         (progn
           (load-file file)
-          (message "Optional mode init: %s, was loaded" name))
-      (message "Optional mode init: %s, not found" name))))
+          (message "Optional use-file: %s, was loaded" name))
+      (message "Optional use-file: %s, not found" name))))
 
 (defun set-window-system-font ()
   "Set the window system font."
