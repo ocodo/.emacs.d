@@ -1,12 +1,12 @@
 ;;; keymap-utils.el --- keymap utilities
 
-;; Copyright (C) 2008-2015  Jonas Bernoulli
+;; Copyright (C) 2008-2016  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Package-Requires: ((cl-lib "0.3"))
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
-;; Package-Version: 20151128.644
+;; Package-Version: 20160212.1529
 
 ;; This file is not part of GNU Emacs.
 
@@ -408,19 +408,25 @@ being undefined is being bound to nil like B above."
       (when (= (length submap) 1)
         (kmu-remove-key keymap prefix)))))
 
-(defmacro kmu-define-keys (mapvar feature &rest plist)
-  "Define all keys in PLIST in the keymap stored in MAPVAR.
+(defmacro kmu-define-keys (mapvar feature &rest args)
+  "Define all keys in ARGS in the keymap stored in MAPVAR.
 
 MAPVAR is a variable whose value is (or will be) a keymap.
-FEATURE, if non-nil, is the feature provided by the library
-that defines MAPVAR.  PLIST is a property list of the form
-\(KEY DEF ...).
+FEATURE, if non-nil, is the feature provided by the library that
+defines MAPVAR.
+
+ARGS basically has the form (KEY DEF ...), but in place of a KEY
+the symbol `_' can appear in which case the folloing element has
+to be a KEY.  This is useful for alignment.
 
 Each KEY is a either an event sequence vector or a string as
 returned by `key-description'.  Each DEF can be anything that can
-be a key's definition (see `define-key').  Additionally it can be
-the keyword `:remove' in which case the existing definition (if
+be a key's definition (see `define-key').  Alternatively a DEF
+can be `:remove' or `>' in which case the existing definition (if
 any) is removed from KEYMAP using `kmu-remove-key' (which see).
+Finally a DEF can be `=' or `~' in which case it and the
+preceding KEY are ignored.  This is useful for documentation
+purposes.
 
 When FEATURE is nil MAPVAR's value is modified right away.
 Otherwise it is modified immediately after FEATURE is loaded.
@@ -437,25 +443,25 @@ Also see `kmu-define-keys-1' which does evaluate it's arguments."
               ;; `kmu-save-vanilla-keymaps' comes later in
               ;; `after-load-functions'.
               (kmu-save-vanilla-keymap ',mapvar))
-            (kmu-define-keys-1 ',mapvar ',plist)))
-    `(kmu-define-keys-1 ',mapvar ',plist)))
+            (kmu-define-keys-1 ',mapvar ',args)))
+    `(kmu-define-keys-1 ',mapvar ',args)))
 
-(defun kmu-define-keys-1 (keymap plist)
-  "Define all keys in PLIST in the keymap KEYMAP.
+(defun kmu-define-keys-1 (keymap args)
+  "Define all keys in ARGS in the keymap KEYMAP.
 KEYMAP may also be a variable whose value is a keymap.
 Also see `kmu-define-keys'."
   (when (symbolp keymap)
     (setq keymap (symbol-value keymap)))
   (unless (keymapp keymap)
     (error "Not a keymap"))
-  (while plist
-    (unless (cdr plist)
-      (error "Odd number of elements in PLIST"))
-    (let ((key (pop plist))
-          (def (pop plist)))
-      (if (memq def '(:remove -> >))
-          (kmu-remove-key keymap key)
-        (kmu-define-key keymap key def)))))
+  (while args
+    (let ((key (pop args)))
+      (unless (eq key '_)
+        (let ((def (pop args)))
+          (pcase def
+            ((or '= '~))
+            ((or '> :remove) (kmu-remove-key keymap key))
+            (_               (kmu-define-key keymap key def))))))))
 
 ;;; Keymap Mapping
 
