@@ -4,7 +4,7 @@
 
 ;; Author: Yuta Yamada <cokesboy"at"gmail.com>
 ;; URL: https://github.com/yuutayamada/commenter
-;; Package-Version: 0.5.2
+;; Package-Version: 20160219.827
 ;; Version: 0.5.2
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.4"))
 ;; Keywords: comment

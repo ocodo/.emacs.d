@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "commenter" "commenter.el" (22272 30045 248522
-;;;;;;  691000))
+;;;### (autoloads nil "commenter" "commenter.el" (22291 19268 144780
+;;;;;;  449000))
 ;;; Generated autoloads from commenter.el
 
 (autoload 'commenter-setup "commenter" "\
