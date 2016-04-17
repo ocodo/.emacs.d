@@ -1,0 +1,1 @@
+(define-package "counsel-projectile" "20160414.331" "Ivy integration for Projectile" '((counsel "0.7.0") (projectile "0.13.0")) :stars '("") :url "https://github.com/ericdanan/counsel-projectile" :keywords '("project" "convenience"))
