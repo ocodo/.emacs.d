@@ -28,6 +28,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'tabulated-list)
+(require 'alchemist-phoenix)
 
 ;; Tell the byte compiler about autoloaded functions from packages
 (eval-when-compile
@@ -76,6 +77,13 @@
                     (alchemist-refcard--build-tabulated-row "alchemist-mix")
                     (alchemist-refcard--build-tabulated-row "alchemist-mix-compile")
                     (alchemist-refcard--build-tabulated-row "alchemist-mix-run")
+                    (alchemist-refcard--build-empty-tabulated-row)
+                    (alchemist-refcard--build-tabulated-title-row "Hex")
+                    (alchemist-refcard--build-tabulated-row "alchemist-hex-info-at-point")
+                    (alchemist-refcard--build-tabulated-row "alchemist-hex-releases-at-point")
+                    (alchemist-refcard--build-tabulated-row "alchemist-hex-releases")
+                    (alchemist-refcard--build-tabulated-row "alchemist-hex-info")
+                    (alchemist-refcard--build-tabulated-row "alchemist-hex-search")
                     (alchemist-refcard--build-empty-tabulated-row)
                     (alchemist-refcard--build-tabulated-title-row "Testing")
                     (alchemist-refcard--build-tabulated-row "alchemist-mix-test")
@@ -147,8 +155,22 @@
                     (alchemist-refcard--build-tabulated-row "alchemist-macroexpand-once-print-region")
                     (alchemist-refcard--build-tabulated-row "alchemist-macroexpand-region")
                     (alchemist-refcard--build-tabulated-row "alchemist-macroexpand-print-region")
-                    (alchemist-refcard--build-tabulated-row "alchemist-macroexpand-close-popup"))))
-    (alchemist-mode -1) ;; disable it after getting the current keybindings
+                    (alchemist-refcard--build-tabulated-row "alchemist-macroexpand-close-popup")
+                    (alchemist-phoenix-mode) ;; needs to be enabled for fetching current keybindings
+                    (alchemist-refcard--build-tabulated-title-row "Phoenix-Mode")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-web")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-views")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-controllers")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-channels")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-templates")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-models")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-static")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-router")
+                    (alchemist-refcard--build-tabulated-row "alchemist-phoenix-find-routes")
+                    (alchemist-refcard--build-empty-tabulated-row))))
+    ;; disable it after getting the current keybindings
+    (alchemist-phoenix-mode -1)
+    (alchemist-mode -1)
     rows))
 
 (defun alchemist-refcard--build-empty-tabulated-row ()

@@ -5,7 +5,7 @@
 ;; Author: Samuel Tonini <tonini.samuel@gmail.com>
 ;; Maintainer: Samuel Tonini <tonini.samuel@gmail.com>
 ;; URL: http://www.github.com/tonini/alchemist.el
-;; Version: 1.7.0
+;; Version: 1.8.0
 ;; Package-Requires: ((elixir-mode "2.2.5") (dash "2.11.0") (emacs "24.4") (company "0.8.0") (pkg-info "0.4"))
 ;; Keywords: languages, elixir, elixirc, mix, hex, alchemist
 
@@ -68,6 +68,7 @@
 (require 'alchemist-info)
 (require 'alchemist-report)
 (require 'alchemist-mix)
+(require 'alchemist-hex)
 (require 'alchemist-hooks)
 (require 'alchemist-message)
 (require 'alchemist-iex)
@@ -188,8 +189,15 @@ Key bindings:
   (define-key map (kbd "o R") 'alchemist-macroexpand-print-region)
   (define-key map (kbd "o !") 'alchemist-macroexpand-close-popup)
 
-  (define-key map (kbd "n i") 'alchemist-info-datatype-at-point)
-  (define-key map (kbd "n t") 'alchemist-info-types-at-point))
+  (define-key map (kbd "f i") 'alchemist-info-datatype-at-point)
+  (define-key map (kbd "f t") 'alchemist-info-types-at-point)
+
+  (define-key map (kbd "X i") 'alchemist-hex-info-at-point)
+  (define-key map (kbd "X r") 'alchemist-hex-releases-at-point)
+  (define-key map (kbd "X R") 'alchemist-hex-releases)
+  (define-key map (kbd "X s") 'alchemist-hex-search)
+  (define-key map (kbd "X I") 'alchemist-hex-info)
+  (define-key map (kbd "X d") 'alchemist-hex-all-dependencies))
 
 (define-key alchemist-mode-map (kbd "M-.") 'alchemist-goto-definition-at-point)
 (define-key alchemist-mode-map (kbd "M-,") 'alchemist-goto-jump-back)
@@ -241,6 +249,7 @@ Key bindings:
      ["Mix compile..." alchemist-mix-compile]
      ["Mix run..." alchemist-mix-run]
      "---"
+     ["Mix run whole test suite." alchemist-mix-test]
      ["Mix test this buffer" alchemist-mix-test-this-buffer]
      ["Mix test file..." alchemist-mix-test-file]
      ["Mix test at point" alchemist-mix-test-at-point]
