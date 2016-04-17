@@ -4,7 +4,7 @@
 
 ;; Author: Roman Parykin <donderom@ymail.com>
 ;; URL: https://github.com/donderom/jazz-theme
-;; Package-Version: 20150910.844
+;; Package-Version: 20160412.1036
 ;; Version: 1.0
 
 ;; Based on zenburn-theme.el
@@ -366,8 +366,8 @@
                            :background ,jazz-bg-1
                            :weight bold
                            :box (:line-width -1 :style released-button)))))
-   `(helm-selection ((,class (:background ,jazz-bg-1))))
-   `(helm-selection-line ((,class (:background ,jazz-bg-1))))
+   `(helm-selection ((,class (:background ,jazz-bg+1))))
+   `(helm-selection-line ((,class (:background ,jazz-bg+1))))
    `(helm-visible-mark ((,class (:foreground ,jazz-bg :background ,jazz-yellow-2))))
    `(helm-candidate-number ((,class (:foreground ,jazz-green+4 :background ,jazz-bg-1))))
 
