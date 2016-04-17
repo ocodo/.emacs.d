@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20160402.1049
+;; Package-Version: 20160414.415
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -124,7 +124,8 @@ If the commands isn't on the list, `avy-style' is used."
   '((?x . avy-action-kill-move)
     (?X . avy-action-kill-stay)
     (?m . avy-action-mark)
-    (?n . avy-action-copy))
+    (?n . avy-action-copy)
+    (?i . avy-action-ispell))
   "List of actions for `avy-handler-default'.
 
 Each item is (KEY . ACTION).  When KEY not on `avy-keys' is
@@ -523,6 +524,17 @@ Set `avy-style' according to COMMMAND as well."
    (kill-region pt (point))
    (just-one-space))
   (message "Killed: %s" (current-kill 0)))
+
+(defun avy-action-ispell (pt)
+  "Auto correct word at PT."
+  (save-excursion
+    (goto-char pt)
+    (if (looking-at-p "\\b")
+        (ispell-word)
+      (progn
+        (backward-word)
+        (when (looking-at-p "\\b")
+          (ispell-word))))))
 
 (defun avy--process (candidates overlay-fn)
   "Select one of CANDIDATES using `avy-read'.
