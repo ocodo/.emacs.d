@@ -8,7 +8,7 @@
 ;;             Clément Pit--Claudel <clement.pitclaudel@live.com>
 ;; URL: https://www.flycheck.org
 ;; Keywords: convenience, languages, tools
-;; Version: 0.26-cvs
+;; Version: 26-cvs
 ;; Package-Requires: ((dash "2.12.1") (pkg-info "0.4") (let-alist "1.0.4") (seq "1.11") (emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -630,7 +630,7 @@ function."
                  (const :tag "IDO" ido-completing-read)
                  (function :tag "Custom function"))
   :risky t
-  :package-version '(flycheck . "0.26"))
+  :package-version '(flycheck . "26"))
 
 (defcustom flycheck-temp-prefix "flycheck"
   "Prefix for temporary files created by Flycheck."
@@ -832,7 +832,7 @@ This variable is a normal hook.  See Info node `(elisp)Hooks'."
     (define-key map "?"         #'flycheck-describe-checker)
     (define-key map "h"         #'flycheck-display-error-at-point)
     (define-key map "H"         #'display-local-help)
-    (define-key map "i"         #'flycheck-info)
+    (define-key map "i"         #'flycheck-manual)
     (define-key map "V"         #'flycheck-version)
     (define-key map "v"         #'flycheck-verify-setup)
     (define-key map "x"         #'flycheck-disable-checker)
@@ -900,7 +900,7 @@ If you've customized `flycheck-mode-line' then the customized
 function must be updated to use this variable."
   :group 'flycheck
   :type 'string
-  :package-version '(flycheck . "0.26"))
+  :package-version '(flycheck . "26"))
 
 (defcustom flycheck-error-list-mode-line
   `(,(propertized-buffer-identification "%12b")
@@ -1023,10 +1023,13 @@ just return nil."
         (assq-delete-all 'flycheck-checker find-function-regexp-alist)))
 
 ;;;###autoload
-(defun flycheck-info ()
+(defun flycheck-manual ()
   "Open the Flycheck manual."
   (interactive)
-  (info "flycheck"))
+  (browse-url "http://www.flycheck.org"))
+
+(define-obsolete-function-alias 'flycheck-info
+  'flycheck-manual "26" "Open the Flycheck manual.")
 
 
 ;;; Utility functions
@@ -5939,7 +5942,7 @@ pass the language standard via the `-std' option."
   :type '(choice (const :tag "Default standard" nil)
                  (string :tag "Language standard"))
   :safe #'stringp
-  :package-version '(flycheck . "0.26"))
+  :package-version '(flycheck . "26"))
 (make-variable-buffer-local 'flycheck-cppcheck-language-standard)
 
 (flycheck-def-option-var flycheck-cppcheck-inconclusive nil c/c++-cppcheck
@@ -6588,7 +6591,7 @@ This option requires Go 1.6 or newer."
   "A Go syntax checker using the `go tool vet' command.
 
 See URL `https://golang.org/cmd/go/' and URL
-`https://godoc.org/golang.org/x/tools/cmd/vet'."
+`https://golang.org/cmd/vet/'."
   :command ("go" "tool" "vet" "-all"
             (option "-printfuncs=" flycheck-go-vet-print-functions concat
                     flycheck-option-comma-separated-list)
@@ -6606,14 +6609,15 @@ See URL `https://golang.org/cmd/go/' and URL
                   go-test
                   ;; Fall back if `go build' or `go test' can be used
                   go-errcheck)
-  :verify-fn (lambda (_)
-               (let ((have-vet (member "vet" (ignore-errors
-                                               (process-lines go "tool")))))
-                 (list
-                  (flycheck-verification-result-new
-                   :label "go tool vet"
-                   :message (if have-vet "present" "missing")
-                   :face (if have-vet 'success '(bold error)))))))
+  :verify (lambda (_)
+            (let* ((go (flycheck-checker-executable 'go-vet))
+                   (have-vet (member "vet" (ignore-errors
+                                             (process-lines go "tool")))))
+              (list
+               (flycheck-verification-result-new
+                :label "go tool vet"
+                :message (if have-vet "present" "missing")
+                :face (if have-vet 'success '(bold error)))))))
 
 (flycheck-def-option-var flycheck-go-build-install-deps nil go-build
   "Whether to install dependencies in `go build'.
@@ -6790,6 +6794,14 @@ See URL `http://handlebarsjs.com/'."
 (flycheck-def-args-var flycheck-ghc-args (haskell-stack-ghc haskell-ghc)
   :package-version '(flycheck . "0.22"))
 
+(flycheck-def-option-var flycheck-ghc-stack-use-nix nil haskell-stack-ghc
+  "Whether to enable nix support in stack.
+
+When non-nil, stack will append '--nix' flag to any call."
+  :type 'boolean
+  :safe #'booleanp
+  :package-version '(flycheck . "26"))
+
 (flycheck-def-option-var flycheck-ghc-no-user-package-database nil haskell-ghc
   "Whether to disable the user package database in GHC.
 
@@ -6847,7 +6859,9 @@ Otherwise return the previously used cache directory."
   "A Haskell syntax and type checker using `stack ghc'.
 
 See URL `https://github.com/commercialhaskell/stack'."
-  :command ("stack" "ghc" "--" "-Wall" "-no-link"
+  :command ("stack"
+            (option-flag "--nix" flycheck-ghc-stack-use-nix)
+            "ghc" "--" "-Wall" "-no-link"
             "-outputdir" (eval (flycheck-haskell-ghc-cache-directory))
             (option-list "-X" flycheck-ghc-language-extensions concat)
             (option-list "-i" flycheck-ghc-search-path concat)
@@ -7053,7 +7067,7 @@ Refer to the jshint manual at the URL
            (const :tag "Always try to extract Javascript" always)
            (const :tag "Never try to extract Javascript" never))
   :safe #'symbolp
-  :package-version '(flycheck . "0.26"))
+  :package-version '(flycheck . "26"))
 
 (flycheck-define-checker javascript-jshint
   "A Javascript syntax and style checker using jshint.
@@ -7311,7 +7325,7 @@ the `--severity' option to Perl Critic."
 (flycheck-def-config-file-var flycheck-perlcriticrc perl-perlcritic
                               ".perlcriticrc"
   :safe #'stringp
-  :package-version '(flycheck . "0.26"))
+  :package-version '(flycheck . "26"))
 
 (flycheck-define-checker perl-perlcritic
   "A Perl syntax checker using Perl::Critic.
@@ -7445,7 +7459,7 @@ See URL `https://puppetlabs.com/'."
 (flycheck-def-config-file-var flycheck-puppet-lint-rc puppet-lint
                               ".puppet-lint.rc"
   :safe #'stringp
-  :package-version '(flycheck . "0.26"))
+  :package-version '(flycheck . "26"))
 
 (flycheck-def-option-var flycheck-puppet-lint-disabled-checks nil puppet-lint
   "Disabled checkers for `puppet-lint'.
@@ -7457,7 +7471,7 @@ string is the name of a check to disable (e.g. \"80chars\" or
 See URL `http://puppet-lint.com/checks/' for a list of all checks
 and their names."
   :type '(repeat (string :tag "Check Name"))
-  :package-version '(flycheck . "0.26"))
+  :package-version '(flycheck . "26"))
 
 (defun flycheck-puppet-lint-disabled-arg-name (check)
   "Create an argument to disable a puppetlint CHECK."
