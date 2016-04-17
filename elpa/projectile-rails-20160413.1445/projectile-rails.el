@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160402.200
+;; Package-Version: 20160413.1445
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -604,17 +604,24 @@ The bound variable is \"filename\"."
 
 (defun projectile-rails-find-log ()
   (interactive)
-  ;;logs tend to not be under scm so do not resort to projectile-dir-files
-  (find-file (projectile-rails-expand-root
-              (concat
-               "log/"
-               (projectile-completing-read
-                "log: "
-                (projectile-rails-list-entries 'f-files "log/")))))
-  (auto-revert-tail-mode +1)
-  (setq-local auto-revert-verbose nil)
-  (buffer-disable-undo)
-  (projectile-rails-on))
+  (let ((logs-dir (loop for dir in '("log/" "spec/dummy/log/" "test/dummy/log/")
+                       until (projectile-rails--file-exists-p dir)
+                       finally return dir)))
+
+        (unless logs-dir
+          (user-error "No log directory found"))
+
+        ;;logs tend to not be under scm so do not resort to projectile-dir-files
+        (find-file (projectile-rails-expand-root
+                    (concat
+                     logs-dir
+                     (projectile-completing-read
+                      "log: "
+                      (projectile-rails-list-entries 'f-files logs-dir)))))
+        (auto-revert-tail-mode +1)
+        (setq-local auto-revert-verbose nil)
+        (buffer-disable-undo)
+        (projectile-rails-on)))
 
 (defun projectile-rails-rake (arg)
   (interactive "P")
@@ -624,12 +631,12 @@ The bound variable is \"filename\"."
   "Returns rails root directory if this file is a part of a Rails application else nil"
   (ignore-errors
     (let ((root (projectile-locate-dominating-file default-directory "Gemfile")))
-      (when (file-exists-p (expand-file-name "config/environment.rb" root))
+      (when (file-exists-p (expand-file-name "config/routes.rb" root))
         root))))
 
 (defun projectile-rails-root-relative-to-project-root ()
   "Return the location of the rails root relative to `projectile-project-root'."
-  (let ((rails-root (projectile-rails-root))
+  (let ((rails-root (file-truename (projectile-rails-root)))
         (project-root (projectile-project-root)))
     (if (string-equal rails-root project-root)
         ""
@@ -638,6 +645,9 @@ The bound variable is \"filename\"."
 (defun projectile-rails-expand-root (dir)
   "Like `projectile-expand-root' but consider `projectile-rails-root'."
   (projectile-expand-root (concat (projectile-rails-root) dir)))
+
+(defun projectile-rails--file-exists-p (filepath)
+  (file-exists-p (projectile-expand-root filepath)))
 
 (defun projectile-rails-console (arg)
   (interactive "P")
@@ -718,6 +728,8 @@ The bound variable is \"filename\"."
 (defun projectile-rails-server ()
   "Runs rails server command"
   (interactive)
+  (when (not (projectile-rails--file-exists-p "config/environment.rb"))
+    (user-error "You're not running it from a rails application."))
   (if (member projectile-rails-server-buffer-name (mapcar 'buffer-name (buffer-list)))
       (switch-to-buffer projectile-rails-server-buffer-name)
     (projectile-rails-with-root
@@ -1035,10 +1047,10 @@ If file does not exist and ASK in not nil it will ask user to proceed."
 (defun projectile-rails-set-assets-dirs ()
   (setq-local
    projectile-rails-javascript-dirs
-   (--filter (file-exists-p (projectile-rails-expand-root it)) projectile-rails-javascript-dirs))
+   (--filter (projectile-rails--file-exists-p it) projectile-rails-javascript-dirs))
   (setq-local
    projectile-rails-stylesheet-dirs
-   (--filter (file-exists-p (projectile-rails-expand-root it)) projectile-rails-stylesheet-dirs)))
+   (--filter (projectile-rails--file-exists-p it) projectile-rails-stylesheet-dirs)))
 
 
 (defun projectile-rails-set-fixture-dirs ()
@@ -1203,6 +1215,7 @@ If file does not exist and ASK in not nil it will ask user to proceed."
 (defun projectile-rails-on ()
   "Enable `projectile-rails-mode' minor mode if this is a rails project."
   (when (and
+         (projectile-project-p)
          (not (projectile-rails--ignore-buffer-p))
          (projectile-rails-root))
     (projectile-rails-mode +1)))
