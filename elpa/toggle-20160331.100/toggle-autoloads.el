@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "toggle" "toggle.el" (22127 55783 622790 535000))
+;;;### (autoloads nil "toggle" "toggle.el" (22291 19049 448156 91000))
 ;;; Generated autoloads from toggle.el
 
 (autoload 'toggle-style "toggle" "\
