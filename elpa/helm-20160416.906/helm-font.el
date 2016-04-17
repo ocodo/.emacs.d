@@ -73,6 +73,7 @@
 ;;
 (defvar helm-ucs--max-len nil)
 (defvar helm-ucs--names nil)
+(defvar helm-ucs-history nil)
 
 (defun helm-calculate-ucs-max-len ()
   "Calculate the length of longest `ucs-names' candidate."
@@ -185,7 +186,9 @@ Only math* symbols are collected."
   (let ((char (helm-aif (char-after) (string it))))
     (helm :sources 'helm-source-ucs
           :keymap  helm-ucs-map
-          :input (and char (multibyte-string-p char) char))))
+          :history 'helm-ucs-history
+          :input (and char (multibyte-string-p char) char)
+          :buffer "*helm ucs*")))
 
 (provide 'helm-font)
 

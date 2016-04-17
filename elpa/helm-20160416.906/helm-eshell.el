@@ -44,11 +44,6 @@
   "Helm eshell completion and history."
   :group 'helm)
 
-(defcustom helm-eshell-hist-ignoredups nil
-  "Same as `eshell-hist-ignoredups' which see but for helm."
-  :group 'helm-eshell
-  :type 'boolean)
-
 
 (defvar helm-eshell-history-map
   (let ((map (make-sparse-keymap)))
@@ -75,6 +70,7 @@
    (candidates :initform 'helm-esh-get-candidates)
    (nomark :initform t)
    (persistent-action :initform 'ignore)
+   (nohighlight :initform t)
    (filtered-candidate-transformer
     :initform
     (lambda (candidates _sources)
@@ -166,19 +162,20 @@ The function that call this should set `helm-ec-target' to thing at point."
 ;;; Eshell history.
 ;;
 ;;
-(defclass helm-eshell-history-source (helm-source-in-buffer)
+(defclass helm-eshell-history-source (helm-source-sync)
   ((init :initform
          (lambda ()
-           (let ((eshell-hist-ignoredups helm-eshell-hist-ignoredups))
-             (eshell-write-history eshell-history-file-name t)
-             (with-current-buffer (helm-candidate-buffer 'global)
-               (insert-file-contents eshell-history-file-name)))
-           ;; Same comment as in `helm-source-esh'
+           ;; Same comment as in `helm-source-esh'.
            (remove-hook 'minibuffer-setup-hook 'eshell-mode)))
+   (candidates
+    :initform
+    (lambda ()
+      (with-helm-current-buffer
+        (cl-loop for c from 0 to (ring-length eshell-history-ring)
+                 collect (eshell-get-history c)))))
    (nomark :initform t)
+   (multiline :initform t)
    (keymap :initform helm-eshell-history-map)
-   (filtered-candidate-transformer :initform (lambda (candidates sources)
-                                               (reverse candidates)))
    (candidate-number-limit :initform 9999)
    (action :initform (lambda (candidate)
                        (eshell-kill-input)

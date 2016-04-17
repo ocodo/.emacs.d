@@ -263,12 +263,17 @@ If you are already in `default-directory' this will move cursor on top.
 
 **** Enter `../' at end of pattern will reach upper directory, moving cursor on top
 
-NOTE: This is different to using `C-l' in that `C-l' don't move cursor on top but stay on previous
+NOTE: This is different from using `C-l' in that `C-l' doesn't move cursor on top but stays on previous
 subdir name.
 
 **** Enter any environment var (e.g. `$HOME') at end of pattern, it will be expanded
 
 **** You can yank any valid filename after pattern, it will be expanded
+
+**** Special case with url's at point
+
+This have no effect at end of an url, you have first to kill pattern (`C-k')
+before entering one of these quick expansions patterns.
 
 *** Helm find files is fuzzy matching (start on third char entered)
 
@@ -589,6 +594,8 @@ than 1 megabyte:
 ** Tips
 
 *** You can start grep with a prefix arg to recurse in subdirectories
+However now that helm support git-grep and AG, you have better time
+using one of those for your recursives search.
 
 *** You can use wild card when selecting files (e.g. *.el)
 
@@ -644,6 +651,13 @@ Helm provide completion on these TYPES arguments when available with your AG ver
 Use a prefix argument when starting helm ag session to get this completion.
 NOTE: You can mark several types to match in your ag query, however on the first versions of
 AG providing this, only one type was allowed, so in this case the last marked will take effect.
+
+* Helm git-grep
+
+Helm git-grep is searching from current directory
+(i.e default-directory or the directory currently browsed by helm-find-files).
+If this current directory is a subdirectory of project and you want to match
+also upper directories (i.e the whole project) use a prefix arg.
 
 ** Commands
 \\<helm-grep-map>

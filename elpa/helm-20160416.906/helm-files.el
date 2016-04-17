@@ -1352,35 +1352,23 @@ The checksum is copied to kill-ring."
       (helm-ff-toggle-basename nil))))
 (put 'helm-ff-run-toggle-basename 'helm-only t)
 
-(cl-defun helm-reduce-file-name (fname level &key unix-close expand)
-  "Reduce FNAME by LEVEL from end or beginning depending LEVEL value.
-If LEVEL is positive reduce from end else from beginning.
-If UNIX-CLOSE is non--nil close filename with /.
-If EXPAND is non--nil expand-file-name."
-  (let* ((exp-fname  (expand-file-name fname))
-         (fname-list (split-string
-		      (if (or (string= fname "~/") expand)
-			  exp-fname fname)
-		      "/" t))
-         (len        (length fname-list))
-         (pop-list   (if (< level 0)
-                         (cl-subseq fname-list (* level -1))
-                       (cl-subseq fname-list 0 (- len level))))
-         (result     (mapconcat 'identity pop-list "/"))
-	 (abbrev-fname  (string-match "^~" result))
-         (empty      (string= result "")))
-    (when unix-close (setq result (concat result "/")))
-    (cond ((and abbrev-fname (string= result "~/")) "~/")
-	  (abbrev-fname result)
-	  ((and (< level 0) empty) "../")
-	  ((< level 0) (concat "../" result))
-	  ((and (eq system-type 'windows-nt)
-                (not (file-remote-p fname)))
-           ;; Result is starting by a volume name i.e "c:/".
-           result)
-          ;; Expand to "/" or "c:/".
-	  (empty (expand-file-name "/"))
-	  (t (concat "/" result)))))
+(defun helm-reduce-file-name (fname level)
+  "Reduce FNAME by number LEVEL from end."
+  (cl-loop with result
+           with iter = (helm-iter-reduce-fname (expand-file-name fname))
+           repeat level do (setq result (helm-iter-next iter))
+           finally return (or result (expand-file-name "/"))))
+
+(defun helm-iter-reduce-fname (fname)
+  "Yield FNAME reduced by one level at each call."
+  (let ((split (split-string fname "/" t)))
+    (unless (or (null split)
+                (string-match "\\`\\(~\\|[[:alpha:]]:\\)" (car split)))
+      (setq split (cons "/" split)))
+    (lambda ()
+      (when (and split (cdr split))
+        (cl-loop for i in (setq split (butlast split))
+                 concat (if (string= i "/") i (concat i "/")))))))
 
 (defvar helm-find-files--level-tree nil)
 (defvar helm-find-files--level-tree-iterator nil)
@@ -1398,8 +1386,7 @@ If prefix numeric arg is given go ARG level up."
       ;; corresponding to actual directory, so store this info
       ;; in `helm-ff-last-expanded'.
       (let ((cur-cand (helm-get-selection))
-            (new-pattern (helm-reduce-file-name
-                          helm-pattern arg :unix-close t :expand t)))
+            (new-pattern (helm-reduce-file-name helm-pattern arg)))
         (cond ((file-directory-p helm-pattern)
                (setq helm-ff-last-expanded helm-ff-default-directory))
               ((file-exists-p helm-pattern)
@@ -2516,11 +2503,11 @@ Use it for non--interactive calls of `helm-find-files'."
 (defun helm-find-files-input (file-at-pt thing-at-pt)
   "Try to guess a default input for `helm-find-files'."
   (let* ((non-essential t)
-         (remp (or (and file-at-pt (file-remote-p file-at-pt))
-                   (and thing-at-pt (file-remote-p thing-at-pt))))
+         (remp    (or (and file-at-pt (file-remote-p file-at-pt))
+                      (and thing-at-pt (file-remote-p thing-at-pt))))
          (def-dir (helm-current-directory))
-         (urlp (and file-at-pt ffap-url-regexp
-                    (string-match ffap-url-regexp file-at-pt)))
+         (urlp    (and file-at-pt ffap-url-regexp
+                       (string-match ffap-url-regexp file-at-pt)))
          (lib     (when helm-ff-search-library-in-sexp
                     (helm-find-library-at-point)))
          (hlink   (helm-ff-find-url-at-point))
@@ -2541,7 +2528,7 @@ Use it for non--interactive calls of `helm-find-files'."
           ((and file-at-pt
                 (not remp)
                 (file-exists-p file-at-pt))
-           file-at-pt))))
+           (expand-file-name file-at-pt)))))
 
 (defun helm-ff-find-url-at-point ()
   "Try to find link to an url in text-property at point."
@@ -3045,13 +3032,12 @@ Don't use it in your own code unless you know what you are doing.")
    (persistent-action :initform 'helm-ff-kill-or-find-buffer-fname)))
 
 (defmethod helm--setup-source :after ((source helm-recentf-source))
-  (set-slot-value
-   source 'action
-   (append (symbol-value (helm-actions-from-type-file))
-           '(("Delete file(s) from recentf" .
-              (lambda (_candidate)
-                (cl-loop for file in (helm-marked-candidates)
-                         do (setq recentf-list (delq file recentf-list)))))))))
+  (setf (slot-value source 'action)
+        (append (symbol-value (helm-actions-from-type-file))
+                '(("Delete file(s) from recentf" .
+                   (lambda (_candidate)
+                     (cl-loop for file in (helm-marked-candidates)
+                              do (setq recentf-list (delq file recentf-list)))))))))
 
 (defvar helm-source-recentf nil 
   "See (info \"(emacs)File Conveniences\").
