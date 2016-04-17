@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160330.925
+;; Package-Version: 20160409.650
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -196,6 +196,11 @@
 ;;     active region or the word at point, if any, as the alt text.
 ;;     `C-c C-i I` behaves similarly and inserts a reference-style
 ;;     image.
+;;
+;;     Local images associated with image links may be displayed
+;;     inline in the buffer by pressing `C-c C-i C-t`
+;;     (`markdown-toggle-inline-images'). This is a toggle command, so
+;;     pressing this once again will remove inline images.
 ;;
 ;;   * Styles: `C-c C-s`
 ;;
@@ -2858,6 +2863,11 @@ Return nil otherwise."
       (let ((begin (match-beginning 1)) (end (match-end 1)))
         (cond
          ((markdown-range-property-any
+           begin begin 'face (list markdown-url-face))
+          ;; Italics shouldn't begin inside a URL due to an underscore
+          (goto-char (min (1+ (match-end 0)) last))
+          (markdown-match-italic last))
+         ((markdown-range-property-any
            begin end 'face (list markdown-inline-code-face
                                  markdown-bold-face
                                  markdown-list-face
@@ -4525,6 +4535,7 @@ Assumes match data is available for `markdown-regex-italic'."
     (define-key map "\C-c\C-aw" 'markdown-insert-wiki-link)
     (define-key map "\C-c\C-ii" 'markdown-insert-image)
     (define-key map "\C-c\C-iI" 'markdown-insert-reference-image)
+    (define-key map "\C-c\C-i\C-t" 'markdown-toggle-inline-images)
     (define-key map "\C-c\C-th" 'markdown-insert-header-dwim)
     (define-key map "\C-c\C-tH" 'markdown-insert-header-setext-dwim)
     (define-key map "\C-c\C-t1" 'markdown-insert-header-atx-1)
@@ -4690,6 +4701,7 @@ See also `markdown-mode-map'.")
      ["Indent region" markdown-indent-region]
      ["Exdent region" markdown-exdent-region])
     "---"
+    ["Toggle inline images" markdown-toggle-inline-images]
     ["Check references" markdown-check-refs]
     ["Clean up list numbering" markdown-cleanup-list-numbers]
     ["Complete markup" markdown-complete-buffer]
@@ -6526,6 +6538,53 @@ BEG and END are the limits of scanned region."
       (markdown-make-gfm-checkboxes-buttons
        (progn (goto-char beg) (beginning-of-line) (point))
        (progn (goto-char end) (forward-line 1) (point))))))
+
+
+;;; Display inline image =================================================
+
+(defvar markdown-inline-image-overlays nil)
+(make-variable-buffer-local 'markdown-inline-image-overlays)
+
+(defun markdown-remove-inline-images ()
+  "Remove inline image overlays from image links in the buffer.
+This can be toggled with `markdown-toggle-inline-images'
+or \\[markdown-toggle-inline-images]."
+  (interactive)
+  (mapc 'delete-overlay markdown-inline-image-overlays)
+  (setq markdown-inline-image-overlays nil))
+
+(defun markdown-display-inline-images ()
+  "Add inline image overlays to image links in the buffer.
+This can be toggled with `markdown-toggle-inline-images'
+or \\[markdown-toggle-inline-images]."
+  (interactive)
+  (unless (display-graphic-p)
+    (error "Cannot show images"))
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      (while (re-search-forward markdown-regex-link-inline nil t)
+        (let ((start (match-beginning 0))
+              (end (match-end 0))
+              (file (match-string-no-properties 6)))
+          (when (file-exists-p file)
+            (let* ((abspath (if (file-name-absolute-p file)
+                                file
+                              (concat default-directory file)))
+                   (image (create-image abspath)))
+              (when image
+                (let ((ov (make-overlay start end)))
+                  (overlay-put ov 'display image)
+                  (overlay-put ov 'face 'default)
+                  (push ov markdown-inline-image-overlays))))))))))
+
+(defun markdown-toggle-inline-images ()
+  "Toggle inline image overlays in the buffer."
+  (interactive)
+  (if markdown-inline-image-overlays
+      (markdown-remove-inline-images)
+    (markdown-display-inline-images)))
 
 
 ;;; Mode Definition  ==========================================================
