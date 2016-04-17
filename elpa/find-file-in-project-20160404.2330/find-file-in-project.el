@@ -4,7 +4,7 @@
 ;;   Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;;
 ;; Version: 4.8
-;; Package-Version: 20160326.1651
+;; Package-Version: 20160404.2330
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -100,8 +100,6 @@
 
 ;;; Code:
 
-(require 'ivy)
-
 (defvar ffip-filename-rules
   '(ffip-filename-identity
     (ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes)))
@@ -112,7 +110,7 @@
   "The file that should be used to define a project root.
 May be set using .dir-locals.el.  Checks each entry if set to a list.")
 
-(defvar ffip-prefer-ido-mode nil
+(defvar ffip-prefer-ido-mode (not (require 'ivy nil t))
   "Use `ido-mode' instead of `ivy-mode' for displaying candidates.")
 
 (defvar ffip-patterns nil
