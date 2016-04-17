@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160223.115") (git-commit "20160130.64") (magit-popup "20160302.322"))
+;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160408.201") (git-commit "20160412.130") (magit-popup "20160408.156"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -1143,7 +1143,10 @@ FILE must be relative to the top directory of the repository."
           (setq magit-buffer-revision  (magit-rev-format "%H" rev)
                 magit-buffer-refname   rev
                 magit-buffer-file-name (expand-file-name file topdir))
-          (let ((buffer-file-name magit-buffer-file-name))
+          (let ((buffer-file-name magit-buffer-file-name)
+                (after-change-major-mode-hook
+                 (remq 'global-diff-hl-mode-enable-in-buffers
+                       after-change-major-mode-hook)))
             (normal-mode t))
           (setq buffer-read-only t)
           (set-buffer-modified-p nil)
@@ -1792,10 +1795,11 @@ merge.
   "Merge commit REV into the current branch; and edit message.
 Perform the merge and prepare a commit message but let the user
 edit it.
-\n(git merge --edit [ARGS] rev)"
+\n(git merge --edit --no-ff [ARGS] rev)"
   (interactive (list (magit-read-other-branch-or-commit "Merge")
                      (magit-merge-arguments)))
   (magit-merge-assert)
+  (cl-pushnew "--no-ff" args :test #'equal)
   (with-editor "GIT_EDITOR"
     (let ((magit-process-popup-time -1))
       (magit-run-git-async "merge" "--edit" args rev))))
@@ -1805,10 +1809,11 @@ edit it.
   "Merge commit REV into the current branch; pretending it failed.
 Pretend the merge failed to give the user the opportunity to
 inspect the merge and change the commit message.
-\n(git merge --no-commit [ARGS] rev)"
+\n(git merge --no-commit --no-ff [ARGS] rev)"
   (interactive (list (magit-read-other-branch-or-commit "Merge")
                      (magit-merge-arguments)))
   (magit-merge-assert)
+  (cl-pushnew "--no-ff" args :test #'equal)
   (magit-run-git "merge" "--no-commit" args rev))
 
 ;;;###autoload

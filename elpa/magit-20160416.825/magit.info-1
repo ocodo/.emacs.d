@@ -70,12 +70,16 @@ itself deserve to be called porcelains.
 
 — The Detailed Node Listing —
 
+
 Installation
 
 * Updating from an older release::
 * Installing from an Elpa archive::
 * Installing from the Git repository::
 * Post-installation tasks::
+
+
+
 
 Interface concepts
 
@@ -94,6 +98,7 @@ Modes and Buffers
 * Automatic Saving of File-Visiting Buffers::
 * Automatic Reverting of File-Visiting Buffers::
 
+
 Sections
 
 * Section movement::
@@ -101,6 +106,9 @@ Sections
 * Section hooks::
 * Section types and values::
 * Section options::
+
+
+
 
 Running Git
 
@@ -126,6 +134,7 @@ Status buffer
 * Status header sections::
 * Status options::
 
+
 Logging
 
 * Refreshing logs::
@@ -133,12 +142,15 @@ Logging
 * Select from log::
 * Reflog::
 
+
 Diffing
 
 * Refreshing diffs::
 * Diff buffer::
 * Diff options::
 * Revision buffer::
+
+
 
 References buffer
 
@@ -157,19 +169,26 @@ Manipulating
 * Resetting::
 * Stashing::
 
+
 Staging and unstaging
 
 * Staging from file-visiting buffers::
+
+
 
 Committing
 
 * Initiating a commit::
 * Editing commit messages::
 
+
+
+
 Rebasing
 
 * Editing rebase sequences::
 * Rebase sequence log::
+
 
 Cherry picking
 
@@ -184,6 +203,8 @@ Transferring
 * Creating and sending patches::
 * Applying patches::
 
+
+
 Miscellaneous
 
 * Tagging::
@@ -194,10 +215,13 @@ Miscellaneous
 * Minor mode for buffers visiting files::
 * Minor mode for buffers visiting blobs::
 
+
+
 Customizing
 
 * Per-repository configuration::
 * Essential settings::
+
 
 Essential settings
 
@@ -216,11 +240,14 @@ Calling Git
 * Getting a value from Git::
 * Calling Git for effect::
 
+
 Section plumbing
 
 * Creating sections::
 * Section selection::
 * Matching sections::
+
+
 
 Conventions
 
@@ -232,6 +259,7 @@ FAQ
 * Magit is slow::
 * I changed several thousand files at once and now Magit is unusable::
 * I am having problems committing::
+* Diffs are collapsed after un-/staging::
 * I don't understand how branching and pushing work::
 * I don’t like the key binding in v2.4: I don't like the key binding in v24. 
 * I cannot install the pre-requisites for Magit v2::
@@ -248,7 +276,6 @@ FAQ
 * Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
 * Symbol's value as function is void --some::
 * Where is the branch manager::
-
 
 
 File: magit.info,  Node: Introduction,  Next: Installation,  Prev: Top,  Up: Top
@@ -4491,10 +4518,10 @@ Also see *note (gitman)git-stash:: .
 
 ‘z w’     (‘magit-stash-worktree’)
 
-     Create a stash of the working tree only.  Untracked files are
-     included according to popup arguments.  One prefix argument is
-     equivalent to ‘--include-untracked’ while two prefix arguments are
-     equivalent to ‘--all’.
+     Create a stash of unstaged changes in the working tree.  Untracked
+     files are included according to popup arguments.  One prefix
+     argument is equivalent to ‘--include-untracked’ while two prefix
+     arguments are equivalent to ‘--all’.
 
 ‘z x’     (‘magit-stash-keep-index’)
 
@@ -4517,10 +4544,10 @@ Also see *note (gitman)git-stash:: .
 
 ‘z W’     (‘magit-snapshot-worktree’)
 
-     Create a snapshot of the working tree only.  Untracked files are
-     included according to popup arguments.  One prefix argument is
-     equivalent to ‘--include-untracked’ while two prefix arguments are
-     equivalent to ‘--all’-.
+     Create a snapshot of unstaged changes in the working tree.
+     Untracked files are included according to popup arguments.  One
+     prefix argument is equivalent to ‘--include-untracked’ while two
+     prefix arguments are equivalent to ‘--all’-.
 
 ‘z a’     (‘magit-stash-apply’)
 
@@ -6445,6 +6472,7 @@ made it into the manual yet, see
 * Magit is slow::
 * I changed several thousand files at once and now Magit is unusable::
 * I am having problems committing::
+* Diffs are collapsed after un-/staging::
 * I don't understand how branching and pushing work::
 * I don’t like the key binding in v2.4: I don't like the key binding in v24. 
 * I cannot install the pre-requisites for Magit v2::
@@ -6485,7 +6513,7 @@ satisfactory performance, because that requires some heavy refactoring.
 one commit.  Also see *note Performance: Performance.
 
 
-File: magit.info,  Node: I am having problems committing,  Next: I don't understand how branching and pushing work,  Prev: I changed several thousand files at once and now Magit is unusable,  Up: FAQ
+File: magit.info,  Node: I am having problems committing,  Next: Diffs are collapsed after un-/staging,  Prev: I changed several thousand files at once and now Magit is unusable,  Up: FAQ
 
 A.3 I am having problems committing
 ===================================
@@ -6495,9 +6523,34 @@ emacsclient executable.  See *note (with-editor)Configuring
 With-Editor:: and *note (with-editor)Debugging::.
 
 
-File: magit.info,  Node: I don't understand how branching and pushing work,  Next: I don't like the key binding in v24,  Prev: I am having problems committing,  Up: FAQ
+File: magit.info,  Node: Diffs are collapsed after un-/staging,  Next: I don't understand how branching and pushing work,  Prev: I am having problems committing,  Up: FAQ
 
-A.4 I don’t understand how branching and pushing work
+A.4 Diffs are collapsed after un-/staging
+=========================================
+
+Currently when one part of a Magit buffer has to be updated the whole
+buffer is recreated from scratch.  That obviously isn’t good for
+performance and will be fixed eventually.  Meanwhile we need a kludge
+that prevents the update from taking very long under certain
+circumstances, e.g.  when showing the difference for hundrets of changes
+files.
+
+   For that reason the variable ‘magit-diff-expansion-treshhold’ was
+added, defaulting to one second.  If it takes longer than that to
+recreate a Magit buffer, then no further diff sections are expanded
+because that’s one of the steps that take the longest.  If a diff is not
+expanded, then some work can be delayed until it actually is.
+
+   You can then still expand sections manually, but when you refresh the
+complete buffer explicitly using ‘g’ or by performing an action which
+triggers a refresh, then previously expanded diffs could be collapsed.
+You can set ‘magit-diff-expansion-treshhold’ to a higher value to
+prevent that from happening.
+
+
+File: magit.info,  Node: I don't understand how branching and pushing work,  Next: I don't like the key binding in v24,  Prev: Diffs are collapsed after un-/staging,  Up: FAQ
+
+A.5 I don’t understand how branching and pushing work
 =====================================================
 
 Please see *note Branching: Branching. and
@@ -6506,7 +6559,7 @@ Please see *note Branching: Branching. and
 
 File: magit.info,  Node: I don't like the key binding in v24,  Next: I cannot install the pre-requisites for Magit v2,  Prev: I don't understand how branching and pushing work,  Up: FAQ
 
-A.5 I don’t like the key binding in v2.4
+A.6 I don’t like the key binding in v2.4
 ========================================
 
 Please see <http://emacsair.me/2016/01/1/restore-old-bindings>.
@@ -6514,7 +6567,7 @@ Please see <http://emacsair.me/2016/01/1/restore-old-bindings>.
 
 File: magit.info,  Node: I cannot install the pre-requisites for Magit v2,  Next: I am using an Emacs release older than v244,  Prev: I don't like the key binding in v24,  Up: FAQ
 
-A.6 I cannot install the pre-requisites for Magit v2
+A.7 I cannot install the pre-requisites for Magit v2
 ====================================================
 
 An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies is
@@ -6524,7 +6577,7 @@ obsolete and no longer maintained.
 
 File: magit.info,  Node: I am using an Emacs release older than v244,  Next: I am using a Git release older than v194,  Prev: I cannot install the pre-requisites for Magit v2,  Up: FAQ
 
-A.7 I am using an Emacs release older than v24.4
+A.8 I am using an Emacs release older than v24.4
 ================================================
 
 At least Emacs v24.4 is required.  There is no way around it, if you
@@ -6557,7 +6610,7 @@ is available from <http://magit.vc/elpa/v1>.
 
 File: magit.info,  Node: I am using a Git release older than v194,  Next: I am using MS Windows and cannot push with Magit,  Prev: I am using an Emacs release older than v244,  Up: FAQ
 
-A.8 I am using a Git release older than v1.9.4
+A.9 I am using a Git release older than v1.9.4
 ==============================================
 
 At least Git v1.9.4 is required.  There is no way around it, if you want
@@ -6579,8 +6632,8 @@ is available from <http://magit.vc/elpa/v1>.
 
 File: magit.info,  Node: I am using MS Windows and cannot push with Magit,  Next: How to install the gitman info manual?,  Prev: I am using a Git release older than v194,  Up: FAQ
 
-A.9 I am using MS Windows and cannot push with Magit
-====================================================
+A.10 I am using MS Windows and cannot push with Magit
+=====================================================
 
 It’s almost certain that Magit is only incidental to this issue.  It is
 much more likely that this is a configuration issue, even if you can
@@ -6592,7 +6645,7 @@ push on the command line.
 
 File: magit.info,  Node: How to install the gitman info manual?,  Next: How can I show Git's output?,  Prev: I am using MS Windows and cannot push with Magit,  Up: FAQ
 
-A.10 How to install the gitman info manual?
+A.11 How to install the gitman info manual?
 ===========================================
 
 Git’s manpages can be exported as an info manual called ‘gitman’.
@@ -6647,7 +6700,7 @@ just one of many issues.)
 
 File: magit.info,  Node: How can I show Git's output?,  Next: Diffs contain control sequences,  Prev: How to install the gitman info manual?,  Up: FAQ
 
-A.11 How can I show Git’s output?
+A.12 How can I show Git’s output?
 =================================
 
 To show the output of recently run git commands, press ‘$’ (or, if that
@@ -6664,7 +6717,7 @@ For debugging purposes it’s possible to do so anyway by setting
 
 File: magit.info,  Node: Diffs contain control sequences,  Next: Expanding a file to show the diff causes it to disappear,  Prev: How can I show Git's output?,  Up: FAQ
 
-A.12 Diffs contain control sequences
+A.13 Diffs contain control sequences
 ====================================
 
 This happens when you configure Git to always color diffs and/or all of
@@ -6686,7 +6739,7 @@ then you can override these settings just for Magit by using:
 
 File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the COMMIT_EDITMSG buffer,  Prev: Diffs contain control sequences,  Up: FAQ
 
-A.13 Expanding a file to show the diff causes it to disappear
+A.14 Expanding a file to show the diff causes it to disappear
 =============================================================
 
 This is probably caused by a change of a ‘diff.*’ Git variable.  You
@@ -6696,7 +6749,7 @@ that setting in Magit by customizing ‘magit-git-global-arguments’.
 
 File: magit.info,  Node: Point is wrong in the COMMIT_EDITMSG buffer,  Next: Can Magit be used as ediff-version-control-package?,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ
 
-A.14 Point is wrong in the COMMIT_EDITMSG buffer
+A.15 Point is wrong in the COMMIT_EDITMSG buffer
 ================================================
 
 Neither Magit nor ‘git-commit‘ fiddle with point in the buffer used to
@@ -6720,7 +6773,7 @@ help:
 
 File: magit.info,  Node: Can Magit be used as ediff-version-control-package?,  Next: How to show diffs for gpg-encrypted files?,  Prev: Point is wrong in the COMMIT_EDITMSG buffer,  Up: FAQ
 
-A.15 Can Magit be used as ediff-version-control-package?
+A.16 Can Magit be used as ediff-version-control-package?
 ========================================================
 
 No, it cannot.  For that to work the functions ‘ediff-magit-internal’
@@ -6755,7 +6808,7 @@ only shows yet-to-be resolved conflicts.
 
 File: magit.info,  Node: How to show diffs for gpg-encrypted files?,  Next: Emacs 245 hangs when loading Magit,  Prev: Can Magit be used as ediff-version-control-package?,  Up: FAQ
 
-A.16 How to show diffs for gpg-encrypted files?
+A.17 How to show diffs for gpg-encrypted files?
 ===============================================
 
 Git supports showing diffs for encrypted files, but has to be told to do
@@ -6768,7 +6821,7 @@ affects the diffs displayed inside Magit.
 
 File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: Symbol's value as function is void --some,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
 
-A.17 Emacs 24.5 hangs when loading Magit
+A.18 Emacs 24.5 hangs when loading Magit
 ========================================
 
 This is actually triggered by loading Tramp.  See
@@ -6780,7 +6833,7 @@ Google’s ‘8.8.8.8’) may also be sufficient to work around the issue.
 
 File: magit.info,  Node: Symbol's value as function is void --some,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
 
-A.18 Symbol’s value as function is void –some
+A.19 Symbol’s value as function is void –some
 =============================================
 
 Update ‘dash’, restart Emacs, and then it will be defined.
@@ -6788,7 +6841,7 @@ Update ‘dash’, restart Emacs, and then it will be defined.
 
 File: magit.info,  Node: Where is the branch manager,  Prev: Symbol's value as function is void --some,  Up: FAQ
 
-A.19 Where is the branch manager
+A.20 Where is the branch manager
 ================================
 
 ‘y’ is bound to the command that shows the "refs buffer", the successor

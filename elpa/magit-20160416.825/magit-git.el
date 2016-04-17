@@ -1179,7 +1179,7 @@ Return a list of two integers: (A>B B>A)."
            (delete-file (concat (file-remote-p default-directory) ,file)))))))
 
 (defun magit-commit-tree (message &optional tree &rest parents)
-  (magit-git-string "commit-tree" "-m" message
+  (magit-git-string "commit-tree" "--no-gpg-sign" "-m" message
                     (--mapcat (list "-p" it) (delq nil parents))
                     (or tree (magit-git-string "write-tree"))))
 
@@ -1265,12 +1265,12 @@ Return a list of two integers: (A>B B>A)."
     (prompt &optional remote default local-branch require-match)
   (let ((choice (magit-completing-read
                  prompt
-                 (nconc (and local-branch
-                             (if remote
-                                 (concat remote "/" local-branch)
-                               (--map (concat it "/" local-branch)
-                                      (magit-list-remotes))))
-                        (magit-list-remote-branch-names remote t))
+                 (-union (and local-branch
+                              (if remote
+                                  (concat remote "/" local-branch)
+                                (--map (concat it "/" local-branch)
+                                       (magit-list-remotes))))
+                         (magit-list-remote-branch-names remote t))
                  nil require-match nil 'magit-revision-history default)))
     (if (or remote (string-match "\\`\\([^/]+\\)/\\(.+\\)" choice))
         choice
@@ -1336,9 +1336,9 @@ Return a list of two integers: (A>B B>A)."
     (&optional (branch (magit-get-current-branch)) prompt)
   (magit-completing-read
    (or prompt (format "Change upstream of %s to" branch))
-   (nconc (--map (concat it "/" branch)
-                 (magit-list-remotes))
-          (delete branch (magit-list-branch-names)))
+   (-union (--map (concat it "/" branch)
+                  (magit-list-remotes))
+           (delete branch (magit-list-branch-names)))
    nil nil nil 'magit-revision-history
    (or (let ((r (magit-remote-branch-at-point))
              (l (magit-branch-at-point)))
