@@ -10,9 +10,9 @@
 ;; Author: Arthur Danskin <arthurdanskin@gmail.com>
 ;; Maintainer: Dmitri Akatov <akatov@gmail.com>
 ;; URL: https://github.com/akatov/pretty-mode
+;; Package-Version: 20160416.734
 ;; Keywords: pretty, unicode, symbols
-;; Version: 20141207.1152
-;; X-Original-Version: 2.0.3
+;; Version: 2.0.3
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -865,6 +865,7 @@ Should be a list of the form ((MODE ((REGEXP . GLYPH) ...)) ...)"
                 (:\'\(\) "'()" scheme)
                 (:empty "empty" scheme)
                 (:NULL "NULL" c c++ ess)
+                (:nullptr "nullptr" c++)
                 (:None "None" python)
                 (:\(\) "()" ,@mley)
                 (:\[\] "[]" ,@mley))
@@ -891,6 +892,10 @@ Should be a list of the form ((MODE ((REGEXP . GLYPH) ...)) ...)"
        ;; 29FB ⧻ TRIPLE PLUS
        (?\u29FB :+++ (:arithmetic :arithmetic-triple)
                 (:+++ "+++" haskell))        ; Control.Arrow
+
+       ;; 254C ╌ DOUBLE DASH (MINUS)
+       (?\u254C :-- (:arithmetic :arithmetic-double)
+                (:-- "--" haskell c c++ java javascript coffee))
 
        ;;; Undefined
 
