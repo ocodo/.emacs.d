@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20160221.1123
+;; Package-Version: 20160411.650
 ;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
@@ -633,10 +633,14 @@ PRESENTER is the function used to format buffer content."
   "Find DEFINITION file other window, go to DEFINITION point."
   (anaconda-mode-find-file-generic definition 'find-file-other-window))
 
-(defvar-local anaconda-mode-go-back-definition nil
+(defun anaconda-mode-find-file-no-record-definition (definition)
+  "Find DEFINITION file, go to DEFINITION point (without recording in the go-back stack)"
+  (anaconda-mode-find-file-generic definition 'find-file t))
+
+(defvar-local anaconda-mode-go-back-definitions nil
   "Previous definition from which current buffer was navigated.")
 
-(defun anaconda-mode-find-file-generic (definition find-function)
+(defun anaconda-mode-find-file-generic (definition find-function &optional no-record)
   "Find DEFINITION with FIND-FUNCTION."
   (let ((backward-navigation (when (buffer-file-name)
                                `((module-path . ,(buffer-file-name))
@@ -648,7 +652,8 @@ PRESENTER is the function used to format buffer content."
           (goto-char (point-min))
           (forward-line (1- (cdr (assoc 'line definition))))
           (forward-char (cdr (assoc 'column definition)))
-          (setq anaconda-mode-go-back-definition backward-navigation))
+          (when (and (not no-record) backward-navigation)
+            (push backward-navigation anaconda-mode-go-back-definitions)))
       (message "Can't open %s module" (cdr (assoc 'module-name definition))))))
 
 (defun anaconda-mode-view-insert-button (name definition)
@@ -708,8 +713,8 @@ to the beginning of buffer before definitions navigation."
 (defun anaconda-mode-go-back ()
   "Jump backward if buffer was navigated from `anaconda-mode' command."
   (interactive)
-  (if anaconda-mode-go-back-definition
-      (anaconda-mode-find-file anaconda-mode-go-back-definition)
+  (if anaconda-mode-go-back-definitions
+      (anaconda-mode-find-file-no-record-definition (pop anaconda-mode-go-back-definitions))
     (message "No previous buffer")))
 
 
