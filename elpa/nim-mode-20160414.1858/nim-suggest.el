@@ -1,47 +1,14 @@
-;;; nim-suggest.el --- -*- lexical-binding: t -*-
+;;; nim-suggest.el --- a plugin to use nimsuggest from Emacs -*- lexical-binding: t -*-
 ;;; Commentary:
 
 ;;
 
 ;;; Code:
 
-;;; Completion
-
 (require 'nim-vars)
 (require 'epc)
 (require 'cl-lib)
-
-(defcustom nim-nimsuggest-path (executable-find "nimsuggest")
-  "Path to the nimsuggest binary."
-  :type 'string
-  :group 'nim)
-
-(defcustom nim-project-root-regex "\\(\.git\\|\.nim\.cfg\\|\.nimble\\)$"
-  "Regex to find project root directory."
-  :type 'string
-  :group 'nim)
-
-(defun nim-find-file-in-heirarchy (current-dir pattern)
-  "Search for a file matching PATTERN upwards through the directory
-hierarchy, starting from CURRENT-DIR"
-  (catch 'found
-    (locate-dominating-file
-     current-dir
-     (lambda (dir)
-       (let ((file (cl-first (directory-files dir t pattern nil))))
-         (when file (throw 'found file)))))))
-
-(defun nim-find-cfg-file ()
-  "Get the nim.cfg file from current directory hierarchy."
-  (nim-find-file-in-heirarchy
-   (file-name-directory (buffer-file-name))
-   ".*\.nim\.cfg"))
-
-(defun nim-get-project-root ()
-  "Return project directory."
-  (file-name-directory
-   (nim-find-file-in-heirarchy
-    (file-name-directory (buffer-file-name)) nim-project-root-regex)))
+(require 'nim-compile)
 
 ;;; If you change the order here, make sure to change it over in
 ;;; nimsuggest.nim too.
@@ -67,16 +34,17 @@ hierarchy, starting from CURRENT-DIR"
   "Function to get options for nimsuggest.")
 
 (defun nimsuggest-get-options (main-file)
-  (append nim-suggest-options nim-suggest-local-options
-          (when (eq 'nimscript-mode major-mode)
-            '("--define:nimscript" "--define:nimconfig"))
-          (list (or (with-no-warnings nimsuggest-vervosity) "")
-                "--epc" main-file)))
+  (delq nil
+        (append nim-suggest-options nim-suggest-local-options
+                (when (eq 'nimscript-mode major-mode)
+                  '("--define:nimscript" "--define:nimconfig"))
+                (list (with-no-warnings nimsuggest-vervosity)
+                      "--epc" main-file))))
 
 (defun nim-find-project-main-file ()
   (or (and (eq 'nimscript-mode major-mode)
            buffer-file-name)
-      (nim-find-cfg-file)
+      (nim-find-config-file)
       buffer-file-name))
 
 (defun nim-find-or-create-epc ()
@@ -107,21 +75,30 @@ def: where the symbol is defined
 use: where the symbol is used
 dus: def + use
 
-The callback is called with a list of nim-epc structs."
+The CALLBACK is called with a list of ‘nim-epc’ structs."
   (unless nim-inside-compiler-dir-p
-    (let ((tempfile (nim-save-buffer-temporarly)))
+    (let ((tempfile (nim-save-buffer-temporarly))
+          (buf (current-buffer)))
       (deferred:$
         (epc:call-deferred
          (nim-find-or-create-epc)
          method
-         (list (buffer-file-name)
-               (line-number-at-pos)
-               (current-column)
-               tempfile))
+         (cl-case method
+           (chk
+            (list (buffer-file-name)
+                  -1 -1
+                  tempfile))
+           (t
+            (list (buffer-file-name)
+                  (line-number-at-pos)
+                  (current-column)
+                  tempfile))))
         (deferred:nextc it
           (lambda (x) (funcall callback (nim-parse-epc x method))))
         (deferred:watch it
-          (lambda (_) (delete-directory (file-name-directory tempfile) t)))))))
+          (lambda (_)
+            (unless (get-buffer buf)
+              (delete-file tempfile))))))))
 
 (defvar nim-dirty-directory
   ;; Even users changed the temp directory name,
@@ -131,15 +108,23 @@ The callback is called with a list of nim-epc structs."
   "Directory name, which nimsuggest uses temporarily.
 Note that this directory is removed when you exit from Emacs.")
 
+
+(defun nim-suggest-get-temp-file-name ()
+  (mapconcat 'directory-file-name
+             `(,nim-dirty-directory ,buffer-file-name)
+             ""))
+
+(defun nim-make-tempdir (tempfile)
+  (let* ((tempdir (file-name-directory tempfile)))
+    (unless (file-exists-p tempdir)
+      (make-directory tempdir t))))
+
 (defun nim-save-buffer-temporarly ()
   "Save the current buffer and return the location, so we
 can pass it to epc."
-  (unless (file-exists-p nim-dirty-directory)
-    (make-directory nim-dirty-directory))
   (let* ((temporary-file-directory nim-dirty-directory)
-         (dirname (make-temp-file "nim-dirty" t))
-         (filename (expand-file-name (file-name-nondirectory (buffer-file-name))
-                                     (file-name-as-directory dirname))))
+         (filename (nim-suggest-get-temp-file-name)))
+    (nim-make-tempdir filename)
     (save-restriction
       (widen)
       (write-region (point-min) (point-max) filename nil 1))

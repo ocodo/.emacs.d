@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "company-nim" "company-nim.el" (22271 10450
-;;;;;;  990268 622000))
+;;;### (autoloads nil "company-nim" "company-nim.el" (22291 19126
+;;;;;;  604407 41000))
 ;;; Generated autoloads from company-nim.el
 
 (autoload 'company-nim "company-nim" "\
@@ -19,8 +19,19 @@
 
 ;;;***
 
-;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22271 10450 978268
-;;;;;;  553000))
+;;;### (autoloads nil "nim-compile" "nim-compile.el" (22291 19126
+;;;;;;  604407 41000))
+;;; Generated autoloads from nim-compile.el
+
+(autoload 'nim-compile "nim-compile" "\
+
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22291 19126 604407
+;;;;;;  41000))
 ;;; Generated autoloads from nim-eldoc.el
 
 (autoload 'nim-eldoc-setup "nim-eldoc" "\
@@ -32,8 +43,8 @@ Setup eldoc configuration for nim-mode.
 
 ;;;***
 
-;;;### (autoloads nil "nim-mode" "nim-mode.el" (22271 10451 10268
-;;;;;;  738000))
+;;;### (autoloads nil "nim-mode" "nim-mode.el" (22291 19126 612407
+;;;;;;  65000))
 ;;; Generated autoloads from nim-mode.el
 
 (autoload 'nim-mode "nim-mode" "\
@@ -45,8 +56,8 @@ A major mode for the Nim programming language.
 
 ;;;***
 
-;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22271
-;;;;;;  10450 974268 529000))
+;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22291
+;;;;;;  19126 604407 41000))
 ;;; Generated autoloads from nimscript-mode.el
 
 (autoload 'nimscript-mode "nimscript-mode" "\
@@ -69,10 +80,10 @@ instead.  The default regex’s matching word is [Package].
 
 ;;;***
 
-;;;### (autoloads nil nil ("flycheck-nim-async.el" "nim-compile.el"
-;;;;;;  "nim-fill.el" "nim-helper.el" "nim-mode-pkg.el" "nim-rx.el"
-;;;;;;  "nim-smie.el" "nim-suggest.el" "nim-syntax.el" "nim-thing-at-point.el"
-;;;;;;  "nim-util.el" "nim-vars.el") (22271 10451 19917 567000))
+;;;### (autoloads nil nil ("flycheck-nim-async.el" "nim-fill.el"
+;;;;;;  "nim-helper.el" "nim-mode-pkg.el" "nim-rx.el" "nim-smie.el"
+;;;;;;  "nim-suggest.el" "nim-syntax.el" "nim-thing-at-point.el"
+;;;;;;  "nim-util.el" "nim-vars.el") (22291 19126 614941 252000))
 
 ;;;***
 
