@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20160330.554
+;; Package-Version: 20160416.1708
 ;; Version: 1.3.0
 ;; Package-Requires: ((helm "1.9.2") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -36,6 +36,7 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'cl-lib)
 (require 'helm)
 (require 'helm-plugin)
@@ -166,9 +167,8 @@ Suggested values are:
 
 (defun helm-dash-buffer-local-docsets ()
   "Get the docsets configured for the current buffer."
-  (with-helm-current-buffer
-    (or (and (boundp 'helm-dash-docsets) helm-dash-docsets)
-	'())))
+  (or (and (boundp 'helm-dash-docsets) helm-dash-docsets)
+      '()))
 
 (defun helm-dash-create-common-connections ()
   "Create connections to sqlite docsets for common docsets."
@@ -482,7 +482,6 @@ Get required params to call `helm-dash-result-url' from SEARCH-RESULT."
       :candidates (lambda ()
 		    (cl-loop for row in (helm-dash--run-query docset)
 			     collect (helm-dash--candidate docset row)))
-      :delayed t
       :volatile t
       :persistent-help "View doc"
       :requires-pattern helm-dash-min-length)))
