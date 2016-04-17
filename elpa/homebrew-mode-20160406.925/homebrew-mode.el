@@ -4,8 +4,8 @@
 
 ;; Author: Alex Dunn <dunn.alex@gmail.com>
 ;; URL: https://github.com/dunn/homebrew-mode
-;; Package-Version: 20160227.954
-;; Version: 1.3.4
+;; Package-Version: 20160406.925
+;; Version: 1.3.5
 ;; Package-Requires: ((emacs "24.4") (inf-ruby "2.4.0") (dash "1.2.0"))
 ;; Keywords: homebrew brew ruby
 ;; Prefix: homebrew
@@ -100,7 +100,7 @@
 
 ;; Version string
 
-(defconst homebrew-mode-version "1.3.4")
+(defconst homebrew-mode-version "1.3.5")
 
 ;; Custom variables
 
@@ -207,30 +207,28 @@ Ignore the CHANGE of state argument passed by `set-process-sentinel'."
 Unpack and enter the source dir.
 Ignore the CHANGE of state argument passed by `set-process-sentinel'."
   (when (eq 'exit (process-status process))
-    (let* ( (exit-code (process-exit-status process))
-            (proc-name (process-name process))
-            ;; is there no replace-in-string?
-            (unpack-cmd (replace-regexp-in-string "fetch" "unpack" proc-name)))
+    (let* ((exit-code (process-exit-status process))
+           (proc-name (process-name process)))
       (if (= 0 exit-code)
-        ;; * Temporarily set default-directory to the Homebrew cache,
-        ;;   so we unpack in the right place.
-        ;;
-        ;; * Extract the formula name from the name of PROCESS.
-        ;;
-        ;; * We do the actual unpacking during the let* assignment;
-        ;;   'result' is the output of `brew unpack`.
-        (let* ( (default-directory homebrew-cache-dir)
-                (formula (replace-regexp-in-string ".*\\ " "" proc-name))
-                (result (shell-command-to-string unpack-cmd))
-                ;; * dest-dir will be the location of the unpacked source.
-                (dest-dir))
-          ;; capture the unpack directory whether it's already been created or not:
-          (string-match "^Error: Destination \\(.*\\) already exists\\!*" result)
-          (string-match "^==> Unpacking.*to: \\(.*\\)$" result)
-          (setq dest-dir (match-string 1 result))
-          ;; Add a slash to the end so dired enters the directory
-          ;; instead of starting with it under point:
-          (dired-jump t (concat dest-dir "/")))
+          ;; * Use `process-command' instead of `process-name' to get
+          ;;   the full path to the formula (see GH-4).
+          ;;
+          ;; * Temporarily set default-directory to the Homebrew cache,
+          ;;   so we unpack in the right place.
+          ;;
+          ;; * We do the actual unpacking during the let* assignment;
+          ;;   'result' is the output of `brew unpack`.
+          (let* ( (cmd-string (mapconcat 'identity (process-command process) " "))
+                  (default-directory homebrew-cache-dir)
+                  (unpack-cmd (replace-regexp-in-string "brew fetch" "brew unpack" cmd-string))
+                  (result (shell-command-to-string (concat unpack-cmd " --force")))
+                  ;; * dest-dir will be the location of the unpacked source.
+                  (dest-dir))
+            (string-match "^==> Unpacking.*to: \\(.*\\)$" result)
+            (setq dest-dir (match-string 1 result))
+            ;; Add a slash to the end so dired enters the directory
+            ;; instead of starting with it under point:
+            (dired-jump t (concat dest-dir "/")))
         (progn
           (message "%s failed with %d" proc-name exit-code)
           (pop-to-buffer (concat "*" proc-name "*")))))))

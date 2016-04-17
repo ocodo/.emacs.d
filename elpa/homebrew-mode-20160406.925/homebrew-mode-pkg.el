@@ -1,0 +1,1 @@
+(define-package "homebrew-mode" "20160406.925" "minor mode for editing Homebrew formulae" '((emacs "24.4") (inf-ruby "2.4.0") (dash "1.2.0")) :stars '(#("8" 0 1 (font-lock-face paradox-star-face))) :url "https://github.com/dunn/homebrew-mode" :keywords '("homebrew" "brew" "ruby"))
