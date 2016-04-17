@@ -211,6 +211,9 @@ the body or the head."
   "Default `format'-style specifier for _a_  syntax in docstrings.
 When nil, you can specify your own at each location like this: _ 5a_.")
 
+(defcustom hydra-doc-format-spec "%s"
+  "Default `format'-style specifier for ?a?  syntax in docstrings.")
+
 (make-obsolete-variable
  'hydra-key-format-spec
  "Since the docstrings are aligned by hand anyway, this isn't very useful."
@@ -579,6 +582,21 @@ HEAD's binding is returned as a string wrapped with [] or {}."
         (setq str (replace-match "" nil nil str))))
     str))
 
+(defvar hydra-docstring-keys-translate-alist
+  '(("↑" . "<up>")
+    ("↓" . "<down>")
+    ("→" . "<right>")
+    ("←" . "<left>")
+    ("⌫" . "DEL")
+    ("⌦" . "<deletechar>")
+    ("⏎" . "RET")))
+
+(defconst hydra-width-spec-regex " ?-?[0-9]*?"
+  "Regex for the width spec in keys and %` quoted sexps.")
+
+(defvar hydra-key-regex "\\[\\|]\\|[-[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"]+?"
+  "Regex for the key quoted in the docstring.")
+
 (defun hydra--format (_name body docstring heads)
   "Generate a `format' statement from STR.
 \"%`...\" expressions are extracted into \"%S\".
@@ -586,27 +604,56 @@ _NAME, BODY, DOCSTRING and HEADS are parameters of `defhydra'.
 The expressions can be auto-expanded according to NAME."
   (setq docstring (hydra--strip-align-markers docstring))
   (setq docstring (replace-regexp-in-string "___" "_β_" docstring))
-  (let ((rest (hydra--hint body heads))
+  (let ((rest (if (eq (plist-get (cddr body) :hint) 'none)
+                  ""
+                (hydra--hint body heads)))
         (start 0)
         varlist
         offset)
     (while (setq start
                  (string-match
-                  "\\(?:%\\( ?-?[0-9]*s?\\)\\(`[a-z-A-Z/0-9]+\\|(\\)\\)\\|\\(?:_\\( ?-?[0-9]*?\\)\\(\\[\\|]\\|[-[:alnum:] ~.,;:/|?<>={}*+#%@!&^]+?\\)_\\)"
+                  (format
+                   "\\(?:%%\\( ?-?[0-9]*s?\\)\\(`[a-z-A-Z/0-9]+\\|(\\)\\)\\|\\(?:[_?]\\(%s\\)\\(%s\\)[_?]\\)"
+                   hydra-width-spec-regex
+                   hydra-key-regex)
                   docstring start))
-      (cond ((eq ?_ (aref (match-string 0 docstring) 0))
+      (cond ((eq ?? (aref (match-string 0 docstring) 0))
              (let* ((key (match-string 4 docstring))
-                    (key (if (equal key "β") "_" key))
                     (head (assoc key heads)))
                (if head
                    (progn
-                     (push (hydra-fontify-head head body) varlist)
+                     (push (nth 2 head) varlist)
+                     (setq docstring
+                           (replace-match
+                            (or
+                             hydra-doc-format-spec
+                             (concat "%" (match-string 3 docstring) "s"))
+                            t nil docstring)))
+                 (setq start (match-end 0))
+                 (warn "Unrecognized key: ?%s?" key))))
+            ((eq ?_ (aref (match-string 0 docstring) 0))
+             (let* ((key (match-string 4 docstring))
+                    (key (if (equal key "β") "_" key))
+                    normal-key
+                    (head (or (assoc key heads)
+                              (when (setq normal-key
+                                          (cdr (assoc
+                                                key hydra-docstring-keys-translate-alist)))
+                                (assoc normal-key heads)))))
+               (if head
+                   (progn
+                     (push (hydra-fontify-head (if normal-key
+                                                   (cons key (cdr head))
+                                                 head)
+                                               body)
+                           varlist)
                      (setq docstring
                            (replace-match
                             (or
                              hydra-key-format-spec
                              (concat "%" (match-string 3 docstring) "s"))
                             t nil docstring)))
+                 (setq start (match-end 0))
                  (warn "Unrecognized key: _%s_" key))))
 
             (t
@@ -721,11 +768,8 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
                      (unless hydra-lv
                        (sit-for 0.8)))))
               ,(if (and body-idle (eq (cadr head) 'body))
-                   `(hydra-idle-message ,body-idle ,hint)
-                 `(when hydra-is-helpful
-                    (if hydra-lv
-                        (lv-message (eval ,hint))
-                      (message (eval ,hint)))))
+                   `(hydra-idle-message ,body-idle ,hint ',name)
+                 `(hydra-show-hint ,hint ',name))
               (hydra-set-transient-map
                ,keymap
                (lambda () (hydra-keyboard-quit) ,body-before-exit)
@@ -734,6 +778,29 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
               ,body-after-exit
               ,(when body-timeout
                  `(hydra-timeout ,body-timeout))))))))
+
+(defvar hydra-props-alist nil)
+
+(defun hydra-set-property (name key val)
+  (let ((entry (assoc name hydra-props-alist))
+        plist)
+    (when (null entry)
+      (add-to-list 'hydra-props-alist (list name))
+      (setq entry (assoc name hydra-props-alist)))
+    (setq plist (cdr entry))
+    (setcdr entry (plist-put plist key val))))
+
+(defun hydra-show-hint (hint caller)
+  (let ((verbosity (plist-get (cdr (assoc caller hydra-props-alist))
+                              :verbosity)))
+    (cond ((eq verbosity 0))
+          ((eq verbosity 1)
+           (message (eval hint)))
+          (t
+           (when hydra-is-helpful
+             (if hydra-lv
+                 (lv-message (eval hint))
+               (message (eval hint))))))))
 
 (defmacro hydra--make-funcall (sym)
   "Transform SYM into a `funcall' to call it."
@@ -864,7 +931,7 @@ NAMES should be defined by `defhydradio' or similar."
   (dolist (n names)
     (set n (aref (get n 'range) 0))))
 
-(defun hydra-idle-message (secs hint)
+(defun hydra-idle-message (secs hint name)
   "In SECS seconds display HINT."
   (cancel-timer hydra-message-timer)
   (setq hydra-message-timer (timer-create))
@@ -873,10 +940,7 @@ NAMES should be defined by `defhydradio' or similar."
   (timer-set-function
    hydra-message-timer
    (lambda ()
-     (when hydra-is-helpful
-       (if hydra-lv
-           (lv-message (eval hint))
-         (message (eval hint))))
+     (hydra-show-hint hint name)
      (cancel-timer hydra-message-timer)))
   (timer-activate hydra-message-timer))
 
@@ -988,11 +1052,15 @@ result of `defhydra'."
                    (let ((hint (cl-caddr h)))
                      (unless (or (null hint)
                                  (stringp hint)
-                                 (stringp (eval hint)))
-                       (setcdr (cdr h) (cons
-                                        (hydra-plist-get-default
-                                         body-plist :hint hydra-default-hint)
-                                        (cddr h)))))
+                                 (consp hint))
+                       (let ((inherited-hint
+                              (hydra-plist-get-default
+                               body-plist :hint hydra-default-hint)))
+                         (setcdr (cdr h) (cons
+                                          (if (eq 'none inherited-hint)
+                                              nil
+                                            inherited-hint)
+                                          (cddr h))))))
                    (let ((hint-and-plist (cddr h)))
                      (if (null (cdr hint-and-plist))
                          (setcdr hint-and-plist (list :exit body-exit))
