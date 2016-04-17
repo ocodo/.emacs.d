@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("flycheck-elixir.el") (22271 10201 90295
-;;;;;;  683000))
+;;;### (autoloads nil nil ("flycheck-elixir.el") (22291 19228 397083
+;;;;;;  183000))
 
 ;;;***
 

@@ -5,13 +5,16 @@
 ;; Author: Lorenzo Bolla <lbolla@gmail.com>
 ;; Created: 26 March 2016
 ;; Version: 1.0
-;; Package-Version: 20160326.1400
+;; Package-Version: 20160404.31
 ;; Package-Requires: ((flycheck "0.25"))
 
 ;;; Commentary:
 
 ;; This package adds support for elixir to flycheck.  It requires
 ;; elixir>=1.2.3.
+;; Warning: running the checker will effectively execute the buffer,
+;; therefore it may be unsafe to run.  See
+;; https://github.com/flycheck/flycheck/issues/630
 
 ;; To use it, add to your init.el:
 
@@ -44,7 +47,9 @@
 
 (flycheck-define-checker elixir
   "Elixir checker."
-  :command ("elixirc" "--ignore-module-conflict" source-original)
+  :command ("elixirc"
+            "--ignore-module-conflict"  ; Avoid module conflict warnings
+            source-original)
   :error-patterns
   ((warning line-start
             (file-name)
