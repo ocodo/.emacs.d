@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20160331.1145
+;; Package-Version: 20160414.1135
 ;; Version: 1.1.6
 
 ;; This file is NOT part of GNU Emacs.
@@ -190,10 +190,6 @@ depending on DISPLAY for keys which are either :foreground or
    (diff-refine-removed :weight bold)
    (diff-removed :foreground red)
 
-   ;; dired-async
-   (dired-async-message :foreground yellow)
-   (dired-async-mode-message :foreground orange)
-
    ;; erc
    (erc-current-nick-face :foreground base5)
    (erc-dangerous-host-face :foreground red)
@@ -334,7 +330,7 @@ depending on DISPLAY for keys which are either :foreground or
    (ido-subdir :foreground red)
 
    ;; info
-   (Info-quoted :inherit italic :foreground orange :weight bold)
+   (Info-quoted :inherit font-lock-constant-face)
    (info-menu-header :foreground green :weight bold :height 1.4 )
    (info-menu-star :foreground red)
    (info-node :inherit italic :foreground base6 :weight bold)
@@ -518,10 +514,22 @@ depending on DISPLAY for keys which are either :foreground or
    (company-tooltip-mouse :foreground base7 :background base4)
    (company-tooltip-selection :foreground base7 :background base4)
 
+   ;; debbugs
+   (debbugs-gnu-done :foreground green)
+   (debbugs-gnu-handled :foreground yellow)
+   (debbugs-gnu-new :foreground red)
+   (debbugs-gnu-pending :foreground orange)
+   (debbugs-gnu-stale :foreground blue)
+   (debbugs-gnu-tagged :foreground red)
+
    ;; diff-hl
    (diff-hl-change :foreground cyan)
    (diff-hl-delete :foreground red)
    (diff-hl-insert :foreground green)
+
+   ;; dired-async
+   (dired-async-message :foreground yellow)
+   (dired-async-mode-message :foreground orange)
 
    ;; ecb
    (ecb-default-highlight-face :background violet)
