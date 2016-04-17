@@ -10,7 +10,7 @@
 ;; URL: https://github.com/elixir-lang/emacs-elixir
 ;; Created: Mon Nov 7 2011
 ;; Keywords: languages elixir
-;; Version: 2.2.8
+;; Version: 2.3.0
 ;; Package-Requires: ((emacs "24") (pkg-info "0.4"))
 
 ;; This file is not a part of GNU Emacs.
@@ -424,7 +424,7 @@ is used to limit the scan."
      1 elixir-ignored-var-face)
 
     ;; Map keys
-    (,(elixir-rx (group (and (one-or-more identifiers) ":")))
+    (,(elixir-rx (group (and (one-or-more identifiers) ":")) space)
      1 elixir-atom-face)
 
     ;; Pseudovariables
@@ -509,7 +509,6 @@ just return nil."
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "#+ *")
   (set (make-local-variable 'comment-use-syntax) t)
-  (set (make-local-variable 'tab-width) elixir-basic-offset)
   (set (make-local-variable 'syntax-propertize-function)
        #'elixir-syntax-propertize-function)
   (set (make-local-variable 'imenu-generic-expression)
