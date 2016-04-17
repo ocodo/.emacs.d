@@ -4,7 +4,7 @@
 
 ;; Author: Josh Moller-Mara <jmm@cns.nyu.edu>
 ;; Version: 1.0
-;; Package-Version: 20160229.1001
+;; Package-Version: 20160408.1737
 ;; Package-Requires: ((ace-jump-mode "1.0") (multiple-cursors "1.0") (dash "2.10.0"))
 ;; Keywords: motion, location, cursor
 ;; URL: https://github.com/mm--/ace-mc
@@ -76,7 +76,7 @@
 	  ace-mc-keyboard-reset nil)))
 
 (defun ace-mc-maybe-jump-end ()
-  "Zap after marking with `ace-jump-char-mode.'."
+  "Add/remove cursor jumping with `ace-jump-char-mode.'."
   (if (not ace-mc-marking)
       (ace-mc-reset)
     (let ((ace-mc-fake-cursor-at-point (-filter 'mc/fake-cursor-p (overlays-at (point)))))
@@ -102,7 +102,7 @@
 (add-hook 'ace-jump-mode-end-hook #'ace-mc-maybe-jump-end)
 
 (defun ace-mc-reset ()
-  "Reset the internal zapping variable flags."
+  "Reset the internal jumping flags."
   (setq ace-mc-marking nil))
 
 (defun ace-mc-do-keyboard-reset ()
@@ -141,7 +141,7 @@ When the region is active, prompt for AceJump matches based on matching strings.
     (if (< index 0)
         (setq index 0))
     (if (>= index submode-list-length)
-        (setq index submode-list-length))
+        (setq index (- submode-list-length 1)))
     (setq ace-mc-ace-mode-function (if (use-region-p)
 				     'ace-mc-regexp-mode
 				   (nth index ace-jump-mode-submode-list)))
