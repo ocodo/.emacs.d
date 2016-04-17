@@ -288,7 +288,7 @@
 
 ;;
 ;; TODO: Fix yas/env when they are transformations...
-(require 'yasnippet nil 't)
+(require 'yasnippet nil t)
 (require 'url)
 (provide 'texmate-import)
 (provide 'textmate-import)

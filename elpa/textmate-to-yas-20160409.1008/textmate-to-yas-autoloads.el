@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "textmate-to-yas" "textmate-to-yas.el" (22010
-;;;;;;  15968 425140 0))
+;;;### (autoloads nil "textmate-to-yas" "textmate-to-yas.el" (22291
+;;;;;;  19058 692188 168000))
 ;;; Generated autoloads from textmate-to-yas.el
 
 (autoload 'textmate-regexp-to-emacs-regexp "textmate-to-yas" "\
@@ -55,8 +55,8 @@ Imports textmate bundle to new-dir.  Mode may be a string or a function determin
 
 ;;;***
 
-;;;### (autoloads nil nil ("textmate-to-yas-pkg.el") (22010 15968
-;;;;;;  440308 627000))
+;;;### (autoloads nil nil ("textmate-to-yas-pkg.el") (22291 19058
+;;;;;;  700997 371000))
 
 ;;;***
 
