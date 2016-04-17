@@ -1389,14 +1389,13 @@ Attributes:
                 helm-sources helm-compile-source-functions))
        (helm-log "helm-compiled-sources = %S" helm-compiled-sources)))))
 
-(cl-defun helm-get-selection (&optional (buffer nil buffer-s)
-                                force-display-part)
+(defun helm-get-selection (&optional buffer force-display-part)
   "Return the currently selected item or nil.
 if BUFFER is nil or unspecified, use helm-buffer as default value.
 If FORCE-DISPLAY-PART is non-`nil', return the display string.
 If FORCE-DISPLAY-PART value is 'withprop the display string is returned
 with its properties."
-  (setq buffer (if (and buffer buffer-s) buffer helm-buffer))
+  (setq buffer (or buffer helm-buffer))
   (unless (helm-empty-buffer-p buffer)
     (with-current-buffer buffer
       (let* ((disp-fn (if (eq force-display-part 'withprop)
@@ -2704,10 +2703,15 @@ Helm plug-ins are realized by this function."
   (let* (inhibit-quit
          (candidate-fn (assoc-default 'candidates source))
          (candidate-proc (assoc-default 'candidates-process source))
-         (type-error (lambda ()
-                       (error
-                        "`%s' must either be a function, a variable or a list"
-                        (or candidate-fn candidate-proc))))
+         cfn-error
+         (notify-error
+          (lambda (&optional e)
+            (error
+             "In `%s' source: `%s' %s %S"
+             (assoc-default 'name source)
+             (or candidate-fn candidate-proc)
+             (if e "\n" "must either be a function, a variable or a list")
+             (or e ""))))
          (candidates (condition-case-unless-debug err
                          ;; Process candidates-(process) function
                          ;; It may return a process or a list of candidates.
@@ -2717,13 +2721,16 @@ Helm plug-ins are realized by this function."
                              ;; and not `helm-funcall-with-source'.
                              (helm-interpret-value candidate-proc)
                            (helm-interpret-value candidate-fn source))
-                       (error (helm-log "Error: %S" err) nil))))
+                       (error (helm-log "Error: %S" (setq cfn-error err)) nil))))
     (when (and (processp candidates) (not candidate-proc))
       (warn "Candidates function `%s' should be called in a `candidates-process' attribute"
             candidate-fn))
     (cond ((processp candidates)
            ;; Candidates will be filtered later in process filter.
            candidates)
+          ;; An error occured in candidates function.
+          (cfn-error (funcall notify-error cfn-error))
+          ;; Candidates function returns no candidates.
           ((or (null candidates)
                ;; Can happen when the output of a process
                ;; is empty, and the candidates function call
@@ -2736,7 +2743,7 @@ Helm plug-ins are realized by this function."
            ;; Transform candidates with `candidate-transformer' functions if
            ;; some, otherwise return candidates.
            (helm-transform-candidates candidates source))
-          (t (funcall type-error)))))
+          (t (funcall notify-error)))))
 
 (defmacro helm-while-no-input (&rest body)
   "Same as `while-no-input' but without the `input-pending-p' test."
@@ -3017,49 +3024,72 @@ real part."
                        (< len1 len2))
                       ((> scr1 scr2)))))))))
 
+(defun helm--maybe-get-migemo-pattern (pattern)
+  (or (and helm-migemo-mode
+           (assoc-default pattern helm-mm--previous-migemo-info))
+      pattern))
+
 (defun helm-fuzzy-default-highlight-match (candidate)
   "The default function to highlight matches in fuzzy matching.
-It is meant to use with `filter-one-by-one' slot."
-  (let* ((pair (and (consp candidate) candidate))
-         (display (helm-stringify (if pair (car pair) candidate)))
-         (real (cdr pair))
-         (regex (helm-aif (and helm-migemo-mode
-                               (assoc helm-pattern
-                                      helm-mm--previous-migemo-info))
-                    (cdr it)
-                  helm-pattern))
-         ;; FIXME This is called at each turn, cache it to optimize.
-         (mp (helm-aif (helm-attr 'match-part (helm-get-current-source))
-                 (funcall it display))))
-    (with-temp-buffer
-      (insert (propertize display 'read-only nil)) ; Fix (#1176)
-      (goto-char (point-min))
-      (when mp
-        ;; FIXME the first part of display may contain an occurrence of mp.
-        ;; e.g "helm-adaptive.el:27:(defgroup helm-adapt"
-        (search-forward mp nil t)
-        (goto-char (match-beginning 0)))
-      (if (re-search-forward regex (and mp (+ (point) (length mp))) t)
-          (add-text-properties
-           (match-beginning 0) (match-end 0) '(face helm-match))
-          (cl-loop with multi-match
-                   with patterns = (if (string-match-p " " helm-pattern)
-                                       (prog1 (split-string helm-pattern)
-                                         (setq multi-match t))
-                                       (split-string helm-pattern "" t))
-                   for p in patterns
-                   for re = (or (and helm-migemo-mode
-                                     (assoc-default
-                                      p helm-mm--previous-migemo-info))
-                                p)
-                   do
-                   (when (re-search-forward re nil t)
-                     (add-text-properties
-                      (match-beginning 0) (match-end 0)
-                      '(face helm-match)))
-                   (when multi-match (goto-char (point-min)))))
-      (setq display (buffer-string)))
-    (if real (cons display real) display)))
+Highlight elements in CANDIDATE matching `helm-pattern' according
+to the matching method in use."
+  (if (string= helm-pattern "")
+      ;; Empty pattern, do nothing.
+      candidate
+    ;; Else start highlighting.
+    (let* ((pair    (and (consp candidate) candidate))
+           (display (helm-stringify (if pair (car pair) candidate)))
+           (real    (cdr pair))
+           (regex   (helm--maybe-get-migemo-pattern helm-pattern))
+           (mp      (pcase (get-text-property 0 'match-part display)
+                      ((pred (string= display)) nil)
+                      (str str)))
+           (count   0)
+           beg-str end-str)
+      ;; Extract all parts of display keeping original properties.
+      (when (and mp (string-match (regexp-quote mp) display))
+        (setq beg-str (substring display 0 (match-beginning 0))
+              end-str (substring display (match-end 0) (length display))
+              mp (substring display (match-beginning 0) (match-end 0))))
+      (with-temp-buffer
+        ;; Insert the whole display part and remove non--match-part
+        ;; to keep their original face properties.
+        (insert (propertize (or mp display) 'read-only nil)) ; Fix (#1176)
+        (goto-char (point-min))
+        (condition-case nil
+            (progn
+              ;; Try first matching against whole pattern.
+              (while (re-search-forward regex nil t)
+                (cl-incf count)
+                (add-text-properties
+                 (match-beginning 0) (match-end 0) '(face helm-match)))
+              ;; If no matches start matching against multiples or fuzzy matches.
+              (when (zerop count)
+                (cl-loop with multi-match = (string-match-p " " helm-pattern)
+                         with patterns = (if multi-match
+                                             (split-string helm-pattern)
+                                             (split-string helm-pattern "" t))
+                         for p in patterns
+                         for re = (helm--maybe-get-migemo-pattern p)
+                         ;; Multi matches (regexps patterns).
+                         if multi-match do
+                         (progn
+                           (while (re-search-forward re nil t)
+                             (add-text-properties
+                              (match-beginning 0) (match-end 0)
+                              '(face helm-match)))
+                           (goto-char (point-min)))
+                         ;; Fuzzy matches (literal patterns).
+                         else do
+                         (when (search-forward re nil t)
+                           (add-text-properties
+                            (match-beginning 0) (match-end 0)
+                            '(face helm-match))))))
+          (invalid-regexp nil))
+        ;; Now replace the original match-part with the part
+        ;; with face properties added.
+        (setq display (if mp (concat beg-str (buffer-string) end-str) (buffer-string))))
+      (if real (cons display real) display))))
 
 (defun helm-fuzzy-highlight-matches (candidates _source)
   "The filtered-candidate-transformer function to highlight fuzzy matches.
@@ -3121,15 +3151,18 @@ and `helm-pattern'."
                         for dup = (gethash c hash)
                         while (< count limit)
                         for target = (helm-candidate-get-display c)
-                        for part = (if match-part-fn
-                                       (funcall match-part-fn target)
-                                       target)
+                        for prop-part = (get-text-property 0 'match-part target)
+                        for part = (and match-part-fn
+                                        (or prop-part
+                                            (funcall match-part-fn target)))
                         ;; When allowing dups check if DUP
                         ;; have been already found in previous loop
                         ;; by comparing its value with ITER.
                         when (and (or (and allow-dups dup (= dup iter))
                                       (null dup))
-                                  (funcall fn part))
+                                  (condition-case nil
+                                      (funcall fn (or part target))
+                                    (invalid-regexp nil)))
                         do
                         (progn
                           ;; Give as value the iteration number of
@@ -3140,7 +3173,12 @@ and `helm-pattern'."
                           (cl-incf count))
                         ;; Filter out nil candidates maybe returned by
                         ;; `helm--maybe-process-filter-one-by-one-candidate'.
-                        and when c collect c))
+                        and when c collect
+                        (if (and part (not prop-part))
+                            (if (consp c)
+                                (cons (propertize target 'match-part part) (cdr c))
+                              (propertize c 'match-part part))
+                          c)))
     (error (unless (eq (car err) 'invalid-regexp) ; Always ignore regexps errors.
              (helm-log-error "helm-match-from-candidates in source `%s': %s %s"
                              (assoc-default 'name source) (car err) (cdr err)))
@@ -3218,9 +3256,7 @@ and `helm-pattern'."
 (defun helm-update (&optional preselect source)
   "Update candidates list in `helm-buffer' based on `helm-pattern'.
 Argument PRESELECT is a string or regexp used to move selection
-to a particular place after finishing update. Used only for
-single source because search is done on whole `helm-buffer' and
-not on current source."
+to a particular place after finishing update."
   (helm-log "Start updating")
   (helm-kill-async-processes)
   ;; When persistent action have been called
@@ -3231,44 +3267,38 @@ not on current source."
     (when helm-onewindow-p (delete-other-windows)))
   (with-current-buffer (helm-buffer-get)
     (set (make-local-variable 'helm-input-local) helm-pattern)
-    (let (all-sources matches)
-      (unwind-protect
-          (progn
-            ;; Iterate over all the sources
-            (cl-loop for src in
-                     (cl-remove-if-not 'helm-update-source-p (helm-get-sources))
-                     collect src into sources
-                     ;; Export the variables from cl-loop
-                     finally (setq all-sources sources))
-            ;; When no normal-sources erase buffer
-            ;; for the already computed normal-source
-            ;; that is no more "updatable" (requires-pattern).
-            (unless all-sources (erase-buffer))
-            ;; Compute matches without rendering the sources.
-            (helm-log "Matches: %S"
-                      (setq matches (helm--collect-matches all-sources)))
-            ;; If computing matches finished and is not interrupted
-            ;; erase the helm-buffer and render results (Fix #1157).
-            (when matches
-              (erase-buffer)
-              (cl-loop for src in all-sources
-                       for mtc in matches
-                       do (helm-render-source src mtc))))
-        (helm-update-move-first-line)
-        (unless (assoc 'candidates-process source)
-          (helm-display-mode-line (helm-get-current-source))
-          (helm-log-run-hook 'helm-after-update-hook))
-        (when preselect
-          (helm-log "Update preselect candidate %s" preselect)
-          (helm-preselect preselect source))
-        (setq helm-force-updating-p nil)))
-        (helm-log "end update")))
-
-;; Update keymap after updating.
-;; Now we run this in post-command-hook, it is
-;; probably no more needed in helm-after-update-hook.
-;; Leave it commented as a reminder for now.
-;; (add-hook 'helm-after-update-hook 'helm--maybe-update-keymap)
+    (unwind-protect
+         (let (sources matches)
+           ;; Collect sources ready to be updated.
+           (setq sources
+                 (cl-loop for src in (helm-get-sources)
+                          when (helm-update-source-p src)
+                          collect src))
+           ;; When no sources to update erase buffer
+           ;; to avoid duplication of header and candidates
+           ;; when next chunk of update will arrive,
+           ;; otherwise the buffer is erased AFTER [1] the results
+           ;; are computed.
+           (unless sources (erase-buffer))
+           ;; Compute matches without rendering the sources.
+           (helm-log "Matches: %S"
+                     (setq matches (helm--collect-matches sources)))
+           ;; If computing matches finished and is not interrupted
+           ;; erase the helm-buffer and render results (Fix #1157).
+           (when matches
+             (erase-buffer)             ; [1]
+             (cl-loop for src in sources
+                      for mtc in matches
+                      do (helm-render-source src mtc))))
+      (helm-update-move-first-line)
+      (unless (assoc 'candidates-process source)
+        (helm-display-mode-line (helm-get-current-source))
+        (helm-log-run-hook 'helm-after-update-hook))
+      (when preselect
+        (helm-log "Update preselect candidate %s" preselect)
+        (helm-preselect preselect source))
+      (setq helm-force-updating-p nil))
+    (helm-log "end update")))
 
 (defun helm-update-source-p (source)
   "Whether SOURCE need updating or not."
@@ -4591,6 +4621,10 @@ To customize `helm-candidates-in-buffer' behavior, use `search',
                                            (if (and pos-lst (listp pos-lst))
                                                pos-lst
                                                (list (point-at-bol) (point-at-eol))))
+                         when (and match-part-fn
+                                   (not (get-text-property 0 'match-part cand)))
+                         do (setq cand
+                                  (propertize cand 'match-part (funcall match-part-fn cand)))
                          for dup = (gethash cand hash)
                          when (and (or (and allow-dups dup (= dup iter))
                                        (null dup))
@@ -4604,22 +4638,21 @@ To customize `helm-candidates-in-buffer' behavior, use `search',
                                     ;; returns a cons cell, collect PATTERN only if it
                                     ;; match the part of CAND specified by
                                     ;; the match-part func.
-                                    (helm-search-match-part
-                                     cand pattern (or match-part-fn #'identity))))
+                                    (helm-search-match-part cand pattern)))
                          do (progn
                               (puthash cand iter hash)
                               (helm--maybe-process-filter-one-by-one-candidate cand source)
                               (cl-incf count))
                          and collect cand))))))
 
-(defun helm-search-match-part (candidate pattern match-part-fn)
+(defun helm-search-match-part (candidate pattern)
   "Match PATTERN only on part of CANDIDATE returned by MATCH-PART-FN.
 Because `helm-search-match-part' maybe called even if unspecified
 in source (negation), MATCH-PART-FN default to `identity'
 to match whole candidate.
 When using fuzzy matching and negation (i.e \"!\"),
 this function is always called."
-  (let ((part (funcall match-part-fn candidate))
+  (let ((part (get-text-property 0 'match-part candidate))
         (fuzzy-regexp (cadr (gethash 'helm-pattern helm--fuzzy-regexp-cache)))
         (matchfn (if helm-migemo-mode
                      'helm-mm-migemo-string-match 'string-match)))
@@ -5326,7 +5359,7 @@ If PREV is non-`nil' move to precedent."
 With a prefix arg set to real value of current selection."
   (interactive "P")
   (with-helm-alive-p
-    (let ((str (helm-get-selection nil (not arg))))
+    (let ((str (format "%s" (helm-get-selection nil (not arg)))))
       (kill-new str)
       (helm-set-pattern str))))
 (put 'helm-yank-selection 'helm-only t)
@@ -5345,7 +5378,7 @@ is used to perform actions."
        ;; in `helm-comp-read' otherwise the value "Saved to kill-ring: foo"
        ;; is used as exit value for `helm-comp-read'.
        (prog1 nil (message "Saved to kill-ring: %s" sel) (sit-for 1)))
-     (helm-get-selection nil (not arg)))))
+     (format "%s" (helm-get-selection nil (not arg))))))
 (put 'helm-kill-selection-and-quit 'helm-only t)
 
 (defun helm-copy-to-buffer ()
@@ -5382,7 +5415,7 @@ If the source is defined with its own class,
 you can use `helm-setup-user-source' e.g:
 
     (defmethod helm-setup-user-source ((source helm-grep-class))
-      (set-slot-value source 'follow 1))
+      (setf (slot-value source 'follow) 1))
 
 Otherwise, use `helm-attrset' to setup the `follow' attribute of the existing source,
 which see.
