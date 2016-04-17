@@ -1,11 +1,11 @@
 ;;; darktooth-theme.el --- Color theme for Emacs, when soothe and gruvbox collide
 
-;; Copyright (c) 2015 Jasonm23 (GPL)
+;; Copyright (c) 2015-2016 Jasonm23 (GPL)
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20151121.1722
-;; Version: 0.1.37
+;; Package-Version: 20160406.824
+;; Version: 0.1.40
 
 ;;; Commentary:
 ;;  Color theme for Emacs, when soothe and gruvbox collide.
@@ -130,6 +130,13 @@
    `(header-line                               ((t (:foreground ,darktooth-turquoise4 :background ,darktooth-dark0 :bold nil))))
    `(minibuffer-prompt                         ((t (:foreground ,darktooth-turquoise4 :background ,darktooth-dark0 :bold nil))))
 
+   ;; compilation messages
+   `(compilation-info                          ((t (:foreground ,darktooth-neutral_green))))
+   `(compilation-mode-line-fail                ((t (:foreground ,darktooth-neutral_red))))
+   `(error                                     ((t (:foreground ,darktooth-bright_orange :bold t))))
+   `(success                                   ((t (:foreground ,darktooth-neutral_green :bold t))))
+   `(warning                                   ((t (:foreground ,darktooth-bright_red :bold t))))
+
    ;; Built-in syntax
    `(font-lock-builtin-face                    ((t (:foreground ,darktooth-bright_orange))))
    `(font-lock-constant-face                   ((t (:foreground ,darktooth-burlywood4))))
@@ -208,6 +215,12 @@
    ;;`(sp-wrap-tag-overlay-face                ((t (:inherit sp-wrap-overlay-face))))
    `(sp-show-pair-match-face                   ((t (:background ,darktooth-dark2)))) ;; Pair tags highlight
    `(sp-show-pair-mismatch-face                ((t (:background ,darktooth-neutral_red)))) ;; Highlight for bracket without pair
+
+   ;; AucTeX
+   `(font-latex-math-face                      ((t (:foreground ,darktooth-lightblue4))))
+   `(font-latex-sectioning-5-face              ((t (:foreground ,darktooth-neutral_green))))
+   `(font-latex-string-face                    ((t (:inherit font-lock-string-face))))
+   `(font-latex-warning-face                   ((t (:inherit warning))))
 
    ;; elscreen
    `(elscreen-tab-background-face              ((t (:background ,darktooth-dark0 :box nil)))) ;; Tab bar, not the tabs
@@ -412,6 +425,16 @@
    `(helm-separator                            ((t (:foreground ,darktooth-faded_red))))
    `(helm-source-header                        ((t (:foreground ,darktooth-light2 :background ,darktooth-dark1))))
    `(helm-visible-mark                         ((t (:foreground ,darktooth-black :background ,darktooth-light3))))
+
+   ;; ivy/swiper
+   `(ivy-current-match                         ((t (:foreground ,darktooth-light0 :background ,darktooth-faded_blue))))
+   `(ivy-minibuffer-match-face-1               ((t (:background ,darktooth-dark1))))
+   `(ivy-minibuffer-match-face-2               ((t (:background ,darktooth-dark2))))
+   `(ivy-minibuffer-match-face-3               ((t (:background ,darktooth-faded_aqua))))
+   `(ivy-minibuffer-match-face-4               ((t (:background ,darktooth-faded_purple))))
+   `(ivy-confirm-face                          ((t (:foreground ,darktooth-bright_green))))
+   `(ivy-match-required-face                   ((t (:foreground ,darktooth-bright_red))))
+   `(ivy-remote                                ((t (:foreground ,darktooth-neutral_blue))))
 
    ;;Smerge
    ;; TODO: smerge-base, smerge-refined-changed
