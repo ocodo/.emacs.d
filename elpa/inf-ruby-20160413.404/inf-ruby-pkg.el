@@ -1,0 +1,1 @@
+(define-package "inf-ruby" "20160413.404" "Run a Ruby process in a buffer" 'nil :stars '(#("109" 0 3 (font-lock-face paradox-star-face))) :url "http://github.com/nonsequitur/inf-ruby" :keywords '("languages" "ruby"))

@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20160301.532
+;; Package-Version: 20160413.404
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.4.0
@@ -394,7 +394,7 @@ Must not contain ruby meta characters.")
   "Send the current definition to the inferior Ruby process."
   (interactive)
   (save-excursion
-    (ruby-end-of-defun)
+    (end-of-defun)
     (let ((end (point)))
       (ruby-beginning-of-defun)
       (ruby-send-region (point) end))))
