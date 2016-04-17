@@ -53,16 +53,18 @@ suffix commands.
 
 — The Detailed Node Listing —
 
+
 Usage
 
 * Customizing existing popups::
 * Other options::
 
+
+
 Defining prefix and suffix commands
 
 * Defining prefix commands::
 * Defining suffix commands::
-
 
 
 File: magit-popup.info,  Node: Introduction,  Next: Usage,  Prev: Top,  Up: Top
@@ -694,13 +696,13 @@ directly.
 
 Tag Table:
 Node: Top994
-Node: Introduction2168
-Node: Usage4745
-Node: Customizing existing popups9402
-Node: Other options14930
-Node: Defining prefix and suffix commands16979
-Node: Defining prefix commands19075
-Node: Defining suffix commands25755
+Node: Introduction2170
+Node: Usage4747
+Node: Customizing existing popups9404
+Node: Other options14932
+Node: Defining prefix and suffix commands16981
+Node: Defining prefix commands19077
+Node: Defining suffix commands25757
 
 End Tag Table
 
