@@ -2,7 +2,7 @@
 ;; Author: Vegard Øye <vegard_oye at hotmail.com>
 ;; Maintainer: Vegard Øye <vegard_oye at hotmail.com>
 
-;; Version: 1.2.11
+;; Version: 1.2.12
 
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -577,7 +577,6 @@ and jump to the corresponding one."
 
 (evil-define-motion evil-find-char (count char)
   "Move to the next COUNT'th occurrence of CHAR."
-  :jump t
   :type inclusive
   (interactive "<c><C>")
   (setq count (or count 1))
@@ -597,14 +596,12 @@ and jump to the corresponding one."
 
 (evil-define-motion evil-find-char-backward (count char)
   "Move to the previous COUNT'th occurrence of CHAR."
-  :jump t
   :type exclusive
   (interactive "<c><C>")
   (evil-find-char (- (or count 1)) char))
 
 (evil-define-motion evil-find-char-to (count char)
   "Move before the next COUNT'th occurrence of CHAR."
-  :jump t
   :type inclusive
   (interactive "<c><C>")
   (unwind-protect
@@ -617,14 +614,12 @@ and jump to the corresponding one."
 
 (evil-define-motion evil-find-char-to-backward (count char)
   "Move before the previous COUNT'th occurrence of CHAR."
-  :jump t
   :type exclusive
   (interactive "<c><C>")
   (evil-find-char-to (- (or count 1)) char))
 
 (evil-define-motion evil-repeat-find-char (count)
   "Repeat the last find COUNT times."
-  :jump t
   :type inclusive
   (setq count (or count 1))
   (if evil-last-find
@@ -650,7 +645,6 @@ and jump to the corresponding one."
 
 (evil-define-motion evil-repeat-find-char-reverse (count)
   "Repeat the last find COUNT times in the opposite direction."
-  :jump t
   :type inclusive
   (evil-repeat-find-char (- (or count 1))))
 
@@ -809,39 +803,49 @@ on the first non-blank character."
 
 ;; scrolling
 (evil-define-command evil-scroll-line-up (count)
-  "Scrolls the window COUNT lines upwards."
+  "Scrolls the window COUNT lines upwards.
+If COUNT is not specified the function uses
+`evil-scroll-line-count', which is the last used count."
   :repeat nil
   :keep-visual t
-  (interactive "p")
-  (scroll-down count))
+  (interactive "P")
+  (progn
+    (setq count (or count evil-scroll-line-count))
+    (setq evil-scroll-line-count count)
+    (scroll-down count)))
 
 (evil-define-command evil-scroll-line-down (count)
-  "Scrolls the window COUNT lines downwards."
+  "Scrolls the window COUNT lines downwards.
+If COUNT is not specified the function uses
+`evil-scroll-line-count', which is the last used count."
   :repeat nil
   :keep-visual t
-  (interactive "p")
-  (scroll-up count))
+  (interactive "P")
+  (progn
+    (setq count (or count evil-scroll-line-count))
+    (setq evil-scroll-line-count count)
+    (scroll-up count)))
 
-(evil-define-command evil-ud-scroll-count-reset ()
-  "Sets `evil-ud-scroll-count' to 0.
+(evil-define-command evil-scroll-count-reset ()
+  "Sets `evil-scroll-count' to 0.
 `evil-scroll-up' and `evil-scroll-down' will scroll
 for a half of the screen(default)."
   :repeat nil
   :keep-visual t
   (interactive)
-  (setq evil-ud-scroll-count 0))
+  (setq evil-scroll-count 0))
 
 (evil-define-command evil-scroll-up (count)
   "Scrolls the window and the cursor COUNT lines upwards.
 If COUNT is not specified the function scrolls down
-`evil-ud-scroll-count', which is the last used count.
+`evil-scroll-count', which is the last used count.
 If the scroll count is zero the command scrolls half the screen."
   :repeat nil
   :keep-visual t
   (interactive "P")
   (evil-save-column
-    (setq count (or count (max 0 evil-ud-scroll-count)))
-    (setq evil-ud-scroll-count count)
+    (setq count (or count (max 0 evil-scroll-count)))
+    (setq evil-scroll-count count)
     (when (= (point-min) (line-beginning-position))
       (signal 'beginning-of-buffer nil))
     (when (zerop count)
@@ -859,14 +863,14 @@ If the scroll count is zero the command scrolls half the screen."
 (evil-define-command evil-scroll-down (count)
   "Scrolls the window and the cursor COUNT lines downwards.
 If COUNT is not specified the function scrolls down
-`evil-ud-scroll-count', which is the last used count.
+`evil-scroll-count', which is the last used count.
 If the scroll count is zero the command scrolls half the screen."
   :repeat nil
   :keep-visual t
   (interactive "P")
   (evil-save-column
-    (setq count (or count (max 0 evil-ud-scroll-count)))
-    (setq evil-ud-scroll-count count)
+    (setq count (or count (max 0 evil-scroll-count)))
+    (setq evil-scroll-count count)
     (when (eobp) (signal 'end-of-buffer nil))
     (when (zerop count)
       (setq count (/ (1- (window-height)) 2)))
@@ -3003,6 +3007,57 @@ corresponding to the characters of this string are shown."
   (kill-buffer)
   (switch-to-buffer (car (elt entry 3)))
   (evil-goto-mark (string-to-char (elt entry 0))))
+
+(evil-define-command evil-delete-marks (marks &optional force)
+  "Delete all marks.
+MARKS is a string denoting all marks to be deleted. Mark names are
+either single characters or a range of characters in the form A-Z.
+
+If FORCE is non-nil all local marks except 0-9 are removed.
+"
+  (interactive "<a><!>")
+  (cond
+   ;; delete local marks except 0-9
+   (force
+    (setq evil-markers-alist
+          (cl-delete-if (lambda (m)
+                          (not (and (>= (car m) ?0) (<= (car m) ?9))))
+                        evil-markers-alist)))
+   (t
+    (let ((i 0)
+          (n (length marks))
+          delmarks)
+      (while (< i n)
+        (cond
+         ;; skip spaces
+         ((= (aref i ?\ )) (cl-incf i))
+         ;; ranges of marks
+         ((and (< (+ i 2) n)
+               (= (aref marks (1+ i)) ?-)
+               (or (and (>= (aref marks i) ?a)
+                        (<= (aref marks i) ?z)
+                        (>= (aref marks (+ 2 i)) ?a)
+                        (<= (aref marks (+ 2 i)) ?z))
+                   (and (>= (aref marks i) ?A)
+                        (<= (aref marks i) ?Z)
+                        (>= (aref marks (+ 2 i)) ?A)
+                        (<= (aref marks (+ 2 i)) ?Z))))
+          (let ((m (aref marks i)))
+            (while (<= m (aref marks (+ 2 i)))
+              (push m delmarks)
+              (cl-incf m)))
+          (cl-incf i 2))
+         ;; single marks
+         (t
+          (push (aref marks i) delmarks)
+          (cl-incf i))))
+      ;; now remove all marks
+      (setq evil-markers-alist
+            (cl-delete-if (lambda (m) (member (car m) delmarks))
+                          evil-markers-alist))
+      (set-default 'evil-markers-alist
+                   (cl-delete-if (lambda (m) (member (car m) delmarks))
+                                 (default-value 'evil-markers-alist)))))))
 
 (eval-when-compile (require 'ffap))
 (evil-define-command evil-find-file-at-point-with-line ()
