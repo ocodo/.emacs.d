@@ -974,7 +974,7 @@ start of list item (unary) OR emphatic text (binary)."
   :type '(repeat symbol)
   :group 'smartparens)
 
-(defcustom sp-nagivate-use-textmode-stringlike-parser '((derived . text-mode))
+(defcustom sp-navigate-use-textmode-stringlike-parser '((derived . text-mode))
   "List of modes where textmode stringlike parser is used.
 
 See `sp-get-textmode-stringlike-expression'.
@@ -988,6 +988,9 @@ where PARENT-MODE is checked using `derived-mode-p'."
                     (const derived)
                     (symbol :tag "Parent major mode name"))))
   :group 'smartparens)
+
+(defvaralias 'sp-nagivate-use-textmode-stringlike-parser 'sp-navigate-use-textmode-stringlike-parser)
+;; For backward compatibility?
 
 (defcustom sp-navigate-consider-symbols t
   "If non-nil, consider symbols outside balanced expressions as such.
@@ -2978,6 +2981,7 @@ overlay."
         (overlay-put oright 'priority 100)
         (overlay-put oleft 'keymap sp-wrap-overlay-keymap)
         (overlay-put oleft 'type 'wrap)
+        (setq sp-previous-point (point))
         (goto-char (1+ (overlay-start oleft)))))))
 
 (defun sp-wrap--finalize (wrapping-end open close)
@@ -4091,8 +4095,8 @@ counting (stack) algorithm."
 
 (defun sp-use-textmode-stringlike-parser-p ()
   "Test if we should use textmode stringlike parser or not."
-  (let ((modes (-filter 'symbolp sp-nagivate-use-textmode-stringlike-parser))
-        (derived (-map 'cdr (-remove 'symbolp sp-nagivate-use-textmode-stringlike-parser))))
+  (let ((modes (-filter 'symbolp sp-navigate-use-textmode-stringlike-parser))
+        (derived (-map 'cdr (-remove 'symbolp sp-navigate-use-textmode-stringlike-parser))))
     (or (--any? (eq major-mode it) modes)
         (apply 'derived-mode-p derived))))
 
@@ -7425,6 +7429,10 @@ considered balanced expressions."
          (b (sp-get selection :beg))
          (e (sp-get selection :end))
          contracted)
+    ;; Show a helpful error if we're trying to move beyond the
+    ;; beginning or end of the buffer.
+    (when (or (null b) (null e))
+      (user-error (if (bobp) "At beginning of buffer" "At end of buffer")))
     ;; if region is active and ready to use, check if this selection
     ;; == old selection.  If so, reselect the insides
     (when (region-active-p)
