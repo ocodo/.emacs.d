@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "persistent-scratch" "persistent-scratch.el"
-;;;;;;  (22168 61847 331466 895000))
+;;;;;;  (22291 19100 492326 272000))
 ;;; Generated autoloads from persistent-scratch.el
 
 (autoload 'persistent-scratch-save "persistent-scratch" "\
@@ -89,6 +89,28 @@ When an error occurs while restoring the scratch buffers, it's demoted to a
 message.
 
 \(fn)" nil nil)
+
+(autoload 'persistent-scratch-keep-n-newest-backups "persistent-scratch" "\
+Return a backup filter that keeps N newest backups.
+The returned function is suitable for `persistent-scratch-backup-filter'.
+
+Note: this function assumes that increasing time values result in
+lexicographically increasing file names when formatted using
+`persistent-scratch-backup-file-name-format'.
+
+\(fn N)" nil nil)
+
+(autoload 'persistent-scratch-keep-backups-not-older-than "persistent-scratch" "\
+Return a backup filter that keeps backups newer than DIFF.
+DIFF may be either a number representing the number of second, or a time value
+in the format returned by `current-time' or `seconds-to-time'.
+The returned function is suitable for `persistent-scratch-backup-filter'.
+
+Note: this function assumes that increasing time values result in
+lexicographically increasing file names when formatted using
+`persistent-scratch-backup-file-name-format'.
+
+\(fn DIFF)" nil nil)
 
 ;;;***
 

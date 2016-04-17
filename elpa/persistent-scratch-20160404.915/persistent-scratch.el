@@ -2,8 +2,8 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/persistent-scratch
-;; Package-Version: 20160112.139
-;; Package-X-Original-Version: 0.2.3
+;; Package-Version: 20160404.915
+;; Package-X-Original-Version: 0.2.5
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -122,6 +122,19 @@ When nil, backups are disabled."
                  (const :tag "Disabled" nil))
   :group 'persistent-scratch)
 
+(defcustom persistent-scratch-backup-filter #'ignore
+  "Function returning the list of file names of old backups to delete.
+By default, no backups are deleted.
+This function is called with one argument, a list of file names in
+`persistent-scratch-backup-directory'; this list is *not* sorted in any way."
+  :type 'function
+  :group 'persistent-scratch)
+
+(defcustom persistent-scratch-backup-file-name-format "%Y-%m-%d--%H-%M-%S-%N"
+  "Format of backup file names, for `format-time-string'."
+  :type 'string
+  :group 'persistent-scratch)
+
 ;;;###autoload
 (defun persistent-scratch-save (&optional file)
   "Save the current state of scratch buffers.
@@ -143,7 +156,8 @@ representing the time of the last `persistent-scratch-new-backup' call."
         (set-default-file-modes old-umask)))
     (rename-file tmp-file actual-file t))
   (unless file
-    (persistent-scratch--update-backup)))
+    (persistent-scratch--update-backup)
+    (persistent-scratch--cleanup-backups)))
 
 ;;;###autoload
 (defun persistent-scratch-save-to-file (file)
@@ -244,6 +258,37 @@ message."
   "Return non-nil iff the current buffer's name is *scratch*."
   (string= (buffer-name) "*scratch*"))
 
+;;;###autoload
+(defun persistent-scratch-keep-n-newest-backups (n)
+  "Return a backup filter that keeps N newest backups.
+The returned function is suitable for `persistent-scratch-backup-filter'.
+
+Note: this function assumes that increasing time values result in
+lexicographically increasing file names when formatted using
+`persistent-scratch-backup-file-name-format'."
+  (lambda (files)
+    (nthcdr n (sort files (lambda (a b) (string-lessp b a))))))
+
+;;;###autoload
+(defun persistent-scratch-keep-backups-not-older-than (diff)
+  "Return a backup filter that keeps backups newer than DIFF.
+DIFF may be either a number representing the number of second, or a time value
+in the format returned by `current-time' or `seconds-to-time'.
+The returned function is suitable for `persistent-scratch-backup-filter'.
+
+Note: this function assumes that increasing time values result in
+lexicographically increasing file names when formatted using
+`persistent-scratch-backup-file-name-format'."
+  (when (numberp diff)
+    (setq diff (seconds-to-time diff)))
+  (lambda (files)
+    (let ((limit (format-time-string persistent-scratch-backup-file-name-format
+                                     (time-subtract (current-time) diff))))
+      (delq nil (mapcar (lambda (file)
+                          (when (string-lessp file limit)
+                            file))
+                        files)))))
+
 (defun persistent-scratch--save-state-to-string ()
   "Save the current state of scratch buffers to a string."
   (let ((save-data '()))
@@ -285,11 +330,27 @@ The exact format is undocumented, but must be kept in sync with what
           (new-name
            (let ((file-name
                   (format-time-string
-                   "%Y-%m-%d--%H-%M-%S-%N"
+                   persistent-scratch-backup-file-name-format
                    persistent-scratch--current-backup-time)))
              (expand-file-name file-name persistent-scratch-backup-directory))))
       (make-directory persistent-scratch-backup-directory t)
       (copy-file original-name new-name t nil t t))))
+
+(defun persistent-scratch--cleanup-backups ()
+  "Clean up old backups.
+It's done by calling `persistent-scratch-backup-filter' on a list of all files
+in the backup directory and deleting all returned file names."
+  (when persistent-scratch-backup-directory
+    (let* ((directory
+            (file-name-as-directory persistent-scratch-backup-directory))
+           (file-names (directory-files directory nil nil t)))
+      (setq file-names (delq nil (mapcar (lambda (name)
+                                           (unless (member name '("." ".."))
+                                             name))
+                                         file-names)))
+      (dolist (file-to-delete
+               (funcall persistent-scratch-backup-filter file-names))
+        (delete-file (concat directory file-to-delete))))))
 
 (defvar persistent-scratch--autosave-timer nil)
 
