@@ -4,7 +4,7 @@
 
 ;; Author: Tomohiro Matsuyama <m2ym.pub@gmail.com>
 ;; Keywords: lisp
-;; Package-Version: 20151222.1339
+;; Package-Version: 20160409.2133
 ;; Version: 0.5.3
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -1251,7 +1251,7 @@ PROMPT is a prompt string when reading events during event loop."
         (popup-menu-show-help menu))
        ((eq binding 'popup-isearch)
         (popup-isearch menu
-                       :filter 'isearch-filter
+                       :filter isearch-filter
                        :cursor-color isearch-cursor-color
                        :keymap isearch-keymap
                        :callback isearch-callback
