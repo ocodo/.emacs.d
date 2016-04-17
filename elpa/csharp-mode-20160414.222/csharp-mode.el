@@ -6,7 +6,7 @@
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
 ;; Version    : 0.8.13
-;; Package-Version: 20160326.1409
+;; Package-Version: 20160414.222
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2016-Feb-17
@@ -295,6 +295,11 @@
 
 (require 'cc-mode)
 (require 'cl-lib)
+
+;; prevent warnings like
+;; csharp-mode.el:4134:21:Warning: reference to free variable
+;; `compilation-error-regexp-alist-alist'
+(require 'compile)
 
 ;; Work around emacs bug#23053
 (eval-when-compile
