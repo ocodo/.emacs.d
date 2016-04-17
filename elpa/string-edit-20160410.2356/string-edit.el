@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 0.1.0
-;; Package-Version: 20151213.930
+;; Package-Version: 20160410.2356
 ;; Package-Requires: ((dash "1.2.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,6 +38,8 @@ before the minor mode is enabled.")
 
 ;;;###autoload
 (defun string-edit-at-point ()
+  "Pop up a buffer to edit the string at point.
+This saves you from needing to manually escape characters."
   (interactive)
   (when (se/point-inside-string-p)
     (let* ((p (point))
