@@ -1,0 +1,1 @@
+(define-package "vagrant" "20160411.18" "Manage a vagrant box from emacs" 'nil :stars '(#("31" 0 2 (font-lock-face paradox-star-face))) :url "https://github.com/ottbot/vagrant.el" :keywords '("vagrant" "chef"))

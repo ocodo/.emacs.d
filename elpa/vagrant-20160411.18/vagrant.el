@@ -1,7 +1,7 @@
 ;;; vagrant.el --- Manage a vagrant box from emacs
 
-;; Version: 20141125.1959
-;;; X-Original-Version: 0.5.2
+;;; Version: 0.6.0
+;; Package-Version: 20160411.18
 ;;; Author: Robert Crim <rob@servermilk.com>
 ;;; Url: https://github.com/ottbot/vagrant.el
 ;;; Keywords: vagrant chef
@@ -23,12 +23,24 @@
 ;; open the Vagrantfile for editing.
 
 ;;; Code:
+(defgroup vagrant nil
+  "Customization group for `vagrant.el'."
+  :group 'tools)
+
+(defcustom vagrant-up-options ""
+  "Options to run vagrant up command"
+  :group 'vagrant)
+
+(defcustom vagrant-project-directory "~/vagrant"
+  "The path to a Vagrant sandbox."
+  :group 'vagrant
+  :type 'string)
 
 ;;;###autoload
 (defun vagrant-up ()
   "Bring up the vagrant box."
   (interactive)
-  (vagrant-command "vagrant up"))
+  (vagrant-command (concat "vagrant up " vagrant-up-options)))
 
 ;;;###autoload
 (defun vagrant-provision ()
@@ -95,7 +107,7 @@
 
 (defun vagrant-command (cmd)
   "Run the vagrant command CMD in an async buffer."
-  (let* ((default-directory (file-name-directory (vagrant-locate-vagrantfile)))
+  (let* ((default-directory (file-name-directory (vagrant-locate-vagrantfile vagrant-project-directory)))
          (name (if current-prefix-arg
                    (completing-read "Vagrant box: " (vagrant-box-list)))))
     (async-shell-command (if name (concat cmd " " name) cmd) "*Vagrant*")))
