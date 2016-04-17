@@ -173,11 +173,13 @@
 (declare-function mc/create-fake-cursor-at-point "ext:multiple-cursors-core")
 (declare-function multiple-cursors-mode "ext:multiple-cursors-core")
 
-;;;###autoload
 (defun swiper-mc ()
+  "Create a fake cursor for each `swiper' candidate."
   (interactive)
   (unless (require 'multiple-cursors nil t)
     (error "multiple-cursors isn't installed"))
+  (unless (window-minibuffer-p)
+    (error "Call me only from `swiper'"))
   (let ((cands (nreverse ivy--old-cands)))
     (unless (string= ivy-text "")
       (ivy-exit-with-action
