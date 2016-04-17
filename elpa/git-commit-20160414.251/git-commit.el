@@ -11,9 +11,9 @@
 ;;	Marius Vollmer <marius.vollmer@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (dash "20151021.113") (with-editor "20160223.115"))
+;; Package-Requires: ((emacs "24.4") (dash "20151021.113") (with-editor "20160408.201"))
 ;; Keywords: git tools vc
-;; Package-Version: 20160329.858
+;; Package-Version: 20160414.251
 ;; Homepage: https://github.com/magit/magit
 
 ;; This file is not part of GNU Emacs.
@@ -466,7 +466,7 @@ second line is empty."
             t ; Just try; we don't know whether --allow-empty-message was used.
           (and (or (equal (match-string 2) "")
                    (y-or-n-p "Summary line is too long.  Commit anyway? "))
-               (or (equal (match-string 3) "")
+               (or (not (match-string 3))
                    (y-or-n-p "Second line is not empty.  Commit anyway? ")))))))
 
 (defun git-commit-cancel-message ()
@@ -511,6 +511,9 @@ With a numeric prefix ARG, go forward ARG comments."
         (str (buffer-substring-no-properties (point-min) (point-max))))
     (with-temp-buffer
       (insert str)
+      (goto-char (point-min))
+      (when (re-search-forward (concat flush " -+ >8 -+$") nil t)
+        (delete-region (point-at-bol) (point-max)))
       (goto-char (point-min))
       (flush-lines flush)
       (goto-char (point-max))
@@ -610,7 +613,7 @@ With a numeric prefix ARG, go forward ARG comments."
    ;; Summary line
    (format "\\(.\\{0,%d\\}\\)\\(.*\\)" git-commit-summary-max-length)
    ;; Non-empty non-comment second line
-   (format "\\(?:\n%s\\|\n\\(.*\\)\\)?" comment-start)))
+   (format "\\(?:\n%s\\|\n\\(.+\\)\\)?" comment-start)))
 
 (defun git-commit-mode-font-lock-keywords ()
   `(;; Comments
@@ -648,6 +651,7 @@ With a numeric prefix ARG, go forward ARG comments."
   (save-excursion
     (goto-char (point-min))
     (when (re-search-forward "^diff --git" nil t)
+      (beginning-of-line)
       (let ((buffer (current-buffer)))
         (insert
          (with-temp-buffer
@@ -657,15 +661,17 @@ With a numeric prefix ARG, go forward ARG comments."
                 (delete-region (point) (point-max)))))
            (diff-mode)
            (let (font-lock-verbose font-lock-support-mode)
-             (if (fboundp 'font-lock-flush)
-                 (font-lock-flush)
+             (if (fboundp 'font-lock-ensure)
+                 (font-lock-ensure)
                (with-no-warnings
                  (font-lock-fontify-buffer))))
            (let (next (pos (point-min)))
              (while (setq next (next-single-property-change pos 'face))
                (put-text-property pos next 'font-lock-face
                                   (get-text-property pos 'face))
-               (setq pos next)))
+               (setq pos next))
+             (put-text-property pos (point-max) 'font-lock-face
+                                (get-text-property pos 'face)))
            (buffer-string)))))))
 
 ;;; git-commit.el ends soon
