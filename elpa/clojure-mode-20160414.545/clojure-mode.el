@@ -9,9 +9,9 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160327.2121
+;; Package-Version: 20160414.545
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 5.3.0-cvs
+;; Version: 5.3.0
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -79,7 +79,7 @@
   :link '(url-link :tag "Github" "https://github.com/clojure-emacs/clojure-mode")
   :link '(emacs-commentary-link :tag "Commentary" "clojure-mode"))
 
-(defconst clojure-mode-version "5.2.0"
+(defconst clojure-mode-version "5.3.0"
   "The current version of `clojure-mode'.")
 
 (defface clojure-keyword-face
@@ -343,6 +343,7 @@ instead of to `clojure-mode-map'."
 (defcustom clojure-verify-major-mode t
   "If non-nil, warn when activating the wrong major-mode."
   :type 'boolean
+  :safe #'booleanp
   :package-version '(clojure-mode "5.3.0"))
 
 (defun clojure--check-wrong-major-mode ()
@@ -809,6 +810,7 @@ will align the values like this:
     {:some-key 10
      :key2     20}"
   :package-version '(clojure-mode . "5.1")
+  :safe #'booleanp
   :type 'boolean)
 
 (defcustom clojure-align-binding-forms
@@ -816,11 +818,13 @@ will align the values like this:
     "doseq" "for" "with-open" "with-local-vars" "with-redefs")
   "List of strings matching forms that have binding forms."
   :package-version '(clojure-mode . "5.1")
+  :safe #'listp
   :type '(repeat string))
 
 (defcustom clojure-align-cond-forms '("condp" "cond" "cond->" "cond->>" "case" "are")
   "List of strings identifying cond-like forms."
   :package-version '(clojure-mode . "5.1")
+  :safe #'listp
   :type '(repeat string))
 
 (defun clojure--position-for-alignment ()
@@ -846,8 +850,9 @@ construct."
              ;; The number of special arguments in the cond form is
              ;; the number of sexps we skip before aligning.
              (skip   (cond ((numberp method) method)
+                           ((null method) 0)
                            ((sequencep method) (elt method 0)))))
-        (when (numberp skip)
+        (when (and fun (numberp skip))
           (clojure-forward-logical-sexp skip)
           (comment-forward (point-max))
           fun)) ; Return non-nil (the var name).
@@ -923,12 +928,20 @@ When called from lisp code align everything between BEG and END."
                         (backward-up-list)
                         (forward-sexp 1)
                         (point-marker)))
-            (clojure-align-forms-automatically nil))
-        (align-region (point) sexp-end nil
-                      '((clojure-align (regexp . clojure--search-whitespace-after-next-sexp)
-                                       (group . 1)
-                                       (repeat . t)))
-                      nil)
+            (clojure-align-forms-automatically nil)
+            (count 1))
+        ;; For some bizarre reason, we need to `align-region' once for each
+        ;; group.
+        (save-excursion
+          (while (search-forward-regexp "^ *\n" sexp-end 'noerror)
+            (cl-incf count)))
+        (dotimes (_ count)
+          (align-region (point) sexp-end nil
+                        '((clojure-align (regexp . clojure--search-whitespace-after-next-sexp)
+                                  (group . 1)
+                                  (separate . "^ *$")
+                                  (repeat . t)))
+                        nil))
         ;; Reindent after aligning because of #360.
         (indent-region (point) sexp-end)))))
 
@@ -1205,6 +1218,7 @@ You can use this to let Emacs indent your own macros the same way
 that it indents built-in macros like with-open.  To manually set
 it from Lisp code, use (put-clojure-indent 'some-symbol :defn)."
   :type '(repeat symbol)
+  :safe #'listp
   :set 'add-custom-clojure-indents)
 
 (define-clojure-indent
