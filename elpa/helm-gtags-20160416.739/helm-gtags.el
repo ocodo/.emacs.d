@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20160330.106
+;; Package-Version: 20160416.739
 ;; Version: 1.5.5
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -666,11 +666,6 @@ Always update if value of this variable is nil."
     (forward-line (1- line))
     (helm-highlight-current-line)))
 
-(defun helm-gtags--file-persistent-action (cand)
-  (let ((default-directory (with-helm-current-buffer
-                             default-directory)))
-    (helm-ff-kill-or-find-buffer-fname cand)))
-
 (defvar helm-gtags--find-file-action
   (helm-make-actions
    "Open file" #'helm-gtags--action-openfile
@@ -747,15 +742,6 @@ Always update if value of this variable is nil."
               (match-string-no-properties 1 removed-file)
               (match-string-no-properties 2 removed-file)
               (match-string-no-properties 3 removed-file)))))
-
-(defvar helm-source-gtags-files
-  (helm-build-in-buffer-source "Find files"
-    :init 'helm-gtags--files-init
-    :candidate-number-limit helm-gtags-maximum-candidates
-    :real-to-display 'helm-gtags--files-candidate-transformer
-    :persistent-action 'helm-gtags--persistent-action
-    :fuzzy-match helm-gtags-fuzzy-match
-    :action (helm-actions-from-type-file)))
 
 (defvar helm-source-gtags-find-tag-from-here
   (helm-build-in-buffer-source "Find tag from here"
@@ -935,6 +921,34 @@ Always update if value of this variable is nil."
             (helm-gtags--remove-carrige-returns))
         (helm-gtags--select-cache-init-common (list options) "GPATH")))))
 
+(defun helm-gtags--file-name (name)
+  (let ((remote (file-remote-p default-directory)))
+    (if (not remote)
+        name
+      (cl-case helm-gtags-path-style
+        (relative name)
+        (otherwise (concat remote name))))))
+
+(defun helm-gtags--find-file-common (open-fn cand)
+  (let ((default-directory (helm-gtags--base-directory)))
+    (funcall open-fn (helm-gtags--file-name cand))))
+
+(defun helm-gtags--find-file (cand)
+  (helm-gtags--find-file-common #'find-file cand))
+
+(defun helm-gtags--find-file-other-window (cand)
+  (helm-gtags--find-file-common #'find-file-other-window cand))
+
+(defvar helm-gtags--file-util-action
+  (helm-make-actions
+   "Open file" #'helm-gtags--find-file
+   "Open file other window" #'helm-gtags--find-file-other-window))
+
+(defun helm-gtags--file-persistent-action (cand)
+  (let ((default-directory (with-helm-current-buffer
+                             default-directory)))
+    (helm-ff-kill-or-find-buffer-fname (helm-gtags--file-name cand))))
+
 (defvar helm-source-gtags-select-path
   (helm-build-in-buffer-source "Select path"
     :init 'helm-gtags--select-path-init
@@ -942,7 +956,7 @@ Always update if value of this variable is nil."
     :real-to-display 'helm-gtags--files-candidate-transformer
     :persistent-action #'helm-gtags--file-persistent-action
     :fuzzy-match helm-gtags-fuzzy-match
-    :action (helm-actions-from-type-file)))
+    :action helm-gtags--file-util-action))
 
 (defun helm-gtags--searched-directory ()
   (cl-case (prefix-numeric-value current-prefix-arg)
@@ -1064,6 +1078,15 @@ Always update if value of this variable is nil."
 
 (defun helm-gtags--find-file-after-hook ()
   (helm-gtags--push-context helm-gtags--saved-context))
+
+(defvar helm-source-gtags-files
+  (helm-build-in-buffer-source "Find files"
+    :init #'helm-gtags--files-init
+    :candidate-number-limit helm-gtags-maximum-candidates
+    :real-to-display #'helm-gtags--files-candidate-transformer
+    :persistent-action #'helm-gtags--file-persistent-action
+    :fuzzy-match helm-gtags-fuzzy-match
+    :action helm-gtags--file-util-action))
 
 ;;;###autoload
 (defun helm-gtags-find-files (file)

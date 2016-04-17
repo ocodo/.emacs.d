@@ -1,0 +1,1 @@
+(define-package "helm-gtags" "20160416.739" "GNU GLOBAL helm interface" '((emacs "24.3") (helm "1.7.7")) :stars '(#("122" 0 3 (font-lock-face paradox-star-face))) :url "https://github.com/syohex/emacs-helm-gtags")
