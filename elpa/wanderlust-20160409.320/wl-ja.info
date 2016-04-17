@@ -419,7 +419,7 @@ Wanderlust に固有の設定は '~/.wl' に記述しておくと整理しやす
 よって Wanderlust のドラフトモードを起動する ようになります。Wanderlust
 を Emacs 上の標準メーラとして使いたい場合は設 定しておくと良いでしょう。
 ただし、これは 'mail-user-agent' の定義が 可能な Emacsen の場合のみ有効
-です。 *Note (emacs-ja)Mail Methods::.
+です。 *Note Mail-Composition Methods: (emacs-ja)Mail Methods.
 
      (autoload 'wl-user-agent-compose "wl-draft" nil t)
      (if (boundp 'mail-user-agent)
@@ -3710,7 +3710,8 @@ File: wl-ja.info,  Node: Editing Message Body and Sending,  Next: Dynamical Mess
    編集中のドラフトをセーブすると、'wl-draft-folder' で設定したドラフ ト
 フォルダに追加されます。'C-c C-z' ('wl-draft-save-and-exit') により、後
 から編集できるようにそれをセーブした上でドラフトバッファを離脱 できます
-。
+。ドラフトフォルダに入って 'E' ('wl-summary-reedit') を 押せば、編集を再
+開できます (*note Key Bindings of Summary::)。
 
    メッセージの編集が完了したら、'C-c C-c' で送信できます。
 
@@ -3977,9 +3978,7 @@ File: wl-ja.info,  Node: Key Bindings of Draft,  Next: Variables of Draft Mode, 
 
 'C-c C-z'
      現在のドラフトをセーブし、ドラフトバッファを消去します。 ドラフトの
-     編集を中断したいときに便利です。 '+draft' フォルダに入って 'E'
-     ('wl-summary-reedit' を押せば、 編集を再開できます。
-     ('wl-draft-save-and-exit')
+     編集を中断したいときに便利です。 ('wl-draft-save-and-exit')
 
 'C-c C-r'
      指定されたリージョンをシーザ暗号でエンコード/デコードします。
@@ -7724,25 +7723,25 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
 * C (Summary):                           Key Bindings of Summary.
                                                               (line  70)
 * C-c C-a (Draft):                       Key Bindings of Draft.
-                                                              (line  67)
+                                                              (line  65)
 * C-c C-c (Draft):                       Key Bindings of Draft.
                                                               (line  24)
 * C-c C-c (Score Mode):                  Score Commands.      (line 153)
 * C-c C-d (Draft):                       Key Bindings of Draft.
-                                                              (line  71)
+                                                              (line  69)
 * C-c C-d (Score Mode):                  Score Commands.      (line 159)
 * C-c C-e (Draft):                       Key Bindings of Draft.
-                                                              (line  61)
+                                                              (line  59)
 * C-c C-e (Score Mode):                  Score Commands.      (line 166)
 * C-c C-f (Summary):                     Key Bindings of Summary.
                                                               (line 163)
 * C-c C-j (Draft):                       Key Bindings of Draft.
-                                                              (line  64)
+                                                              (line  62)
 * C-c C-k (Draft):                       Key Bindings of Draft.
                                                               (line  31)
 * C-c C-k (Score Mode):                  Score Commands.      (line 150)
 * C-c C-o (Draft):                       Key Bindings of Draft.
-                                                              (line  56)
+                                                              (line  54)
 * C-c C-o (Folder):                      Selecting Folder.    (line  83)
 * C-c C-o (Summary):                     Key Bindings of Summary.
                                                               (line 562)
@@ -7750,7 +7749,7 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
                                                               (line  15)
 * C-c C-p (Score Mode):                  Score Commands.      (line 156)
 * C-c C-r (Draft):                       Key Bindings of Draft.
-                                                              (line  44)
+                                                              (line  42)
 * C-c C-s (Draft):                       Key Bindings of Draft.
                                                               (line  19)
 * C-c C-s (Score Mode):                  Score Commands.      (line 163)
@@ -7760,7 +7759,7 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
                                                               (line  38)
 * C-k (Folder):                          Folder Manager.      (line 166)
 * C-l (Draft):                           Key Bindings of Draft.
-                                                              (line  48)
+                                                              (line  46)
 * C-o (Summary):                         Key Bindings of Summary.
                                                               (line 304)
 * C-t (Folder):                          Selecting Folder.    (line 186)
@@ -7920,7 +7919,7 @@ File: wl-ja.info,  Node: Key Index,  Next: Variable Index,  Prev: Concept Index,
                                                               (line  40)
 * M-s (Folder):                          Selecting Folder.    (line 179)
 * M-t (Draft):                           Key Bindings of Draft.
-                                                              (line  52)
+                                                              (line  50)
 * M-t (Folder):                          Selecting Folder.    (line 182)
 * M-t (Summary):                         Key Bindings of Summary.
                                                               (line 554)
@@ -8513,7 +8512,7 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 
 * compose-mail:                          Minimal Settings.    (line  46)
 * wl-addrmgr:                            Key Bindings of Draft.
-                                                              (line  67)
+                                                              (line  65)
 * wl-addrmgr-add:                        Address Manager.     (line  35)
 * wl-addrmgr-apply:                      Address Manager.     (line  26)
 * wl-addrmgr-delete:                     Address Manager.     (line  38)
@@ -8524,14 +8523,14 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-addrmgr-set-to:                     Address Manager.     (line  14)
 * wl-addrmgr-unmark:                     Address Manager.     (line  23)
 * wl-caesar-region:                      Key Bindings of Draft.
-                                                              (line  44)
+                                                              (line  42)
 * wl-draft:                              Selecting Folder.    (line  73)
 * wl-draft-config-exec:                  Key Bindings of Draft.
-                                                              (line  61)
+                                                              (line  59)
 * wl-draft-elide-region:                 Key Bindings of Draft.
-                                                              (line  71)
+                                                              (line  69)
 * wl-draft-highlight-and-recenter:       Key Bindings of Draft.
-                                                              (line  48)
+                                                              (line  46)
 * wl-draft-kill:                         Key Bindings of Draft.
                                                               (line  31)
 * wl-draft-mimic-kill-buffer:            Key Bindings of Draft.
@@ -8600,7 +8599,7 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-jump-to-draft-buffer <1>:           Key Bindings of Summary.
                                                               (line 562)
 * wl-jump-to-draft-buffer <2>:           Key Bindings of Draft.
-                                                              (line  56)
+                                                              (line  54)
 * wl-message-button-refer-article:       Message.             (line  23)
 * wl-message-delete-current-part:        Message.             (line  38)
 * wl-message-header-narrowing:           Message.             (line  23)
@@ -8851,7 +8850,7 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-summary-yank-saved-message:         Key Bindings of Summary.
                                                               (line 572)
 * wl-template-select:                    Key Bindings of Draft.
-                                                              (line  64)
+                                                              (line  62)
 * wl-thread-close-all:                   Key Bindings of Summary.
                                                               (line  52)
 * wl-thread-copy:                        Key Bindings of Summary.
@@ -8896,7 +8895,7 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * wl-toggle-plugged <1>:                 Key Bindings of Summary.
                                                               (line 554)
 * wl-toggle-plugged <2>:                 Key Bindings of Draft.
-                                                              (line  52)
+                                                              (line  50)
 
 
 
@@ -8909,125 +8908,125 @@ Ref: MIME Modules-Footnote-16016
 Node: Download6126
 Node: Install7351
 Node: Minimal Settings9948
-Node: Folder Definition11826
-Node: Start Wanderlust13446
-Node: Overview13744
-Node: Folders14269
-Node: IMAP Folder15412
-Node: NNTP Folder17938
-Node: MH Folder18787
-Node: Maildir Folder19261
-Node: News Spool Folder20081
-Node: Archive Folder20594
-Node: Archiver21905
-Node: Archive Tips23796
-Node: Archive Vars24467
-Node: POP Folder26107
-Node: Shimbun Folder27562
-Node: RSS Folder28464
-Node: Search Folder29083
-Node: namazu29572
-Node: grep31126
-Node: mu31543
-Node: notmuch32364
-Node: Multi Folder32759
-Node: Filter Folder33293
-Node: Pipe Folder37167
-Node: Internal Folder38232
-Node: File Folder39248
-Node: Access Folder39546
-Node: Folder39860
-Node: Selecting Folder40118
-Node: Folder Manager46735
-Ref: Folder Manager-Footnote-153050
-Node: Summary53103
-Node: Usage of Summary Mode53647
-Node: Thread Operations57046
-Node: Cache57850
-Node: Auto Refile59330
-Node: Sticky Summary61430
-Node: Summary View62233
-Node: Mark and Action64336
-Node: Key Bindings of Summary65368
-Node: Variables of Summary80044
-Node: Message87431
-Node: Draft89696
-Node: Usage of Draft Mode90076
-Node: Parameters for Sending90564
-Node: Editing Header91657
-Node: Editing Message Body and Sending92559
-Node: Dynamical Message Re-arrangement93236
-Node: Template97346
-Node: POP-before-SMTP98858
-Node: Key Bindings of Draft100205
-Node: Variables of Draft Mode102050
-Node: Disconnected Operations111123
-Node: Off-line State111525
-Node: Enable Operations112085
-Node: Send Messages off-line112868
-Node: Re-file and Copy queue113297
-Node: Creation of Folders113806
-Node: Marking114124
-Node: Pre-fetching Reservations114383
-Node: Plugged Mode114658
-Node: Off-line State settings116571
-Node: Variables of Plugged Mode117497
-Node: Expire and Archive119809
-Node: Expire120043
-Node: Archive131433
-Node: Scoring133263
-Node: Score Commands133752
-Node: Score File Format139754
-Node: Address Book143789
-Node: Mail Addresses144032
-Node: Address Manager145150
-Node: Quick Search145786
-Node: Setup of Quick Search146338
-Node: Usage of Quick Search146785
-Node: Spam Filter148223
-Node: Usage of Spam Filter148563
-Node: Spam Filter Processors153906
-Node: bogofilter154420
-Node: spamfilter155413
-Node: bsfilter156049
-Node: SpamAssassin157225
-Node: SpamOracle158597
-Node: Regular Expressions Header Matching159689
-Node: Advanced Issues160521
-Node: Living with other packages161033
-Node: imput161706
-Node: BBDB162026
-Node: LSDB163147
-Node: supercite163616
-Node: mu-cite163937
-Node: X-Face164429
-Node: x-face-xmas164904
-Node: x-face-mule165285
-Node: dired-dd166023
-Node: MHC166756
-Node: Addrbook167281
-Node: mime-w3m167646
-Node: Highlights167949
-Node: Biff173797
-Node: Password Management174650
-Node: Split messages175521
-Node: Batch Processing178449
-Node: Advanced Settings178948
-Node: Draft for Reply179264
-Node: Thread Format181727
-Node: User-Agent Field183196
-Node: Customizable Valiables183818
-Node: Hooks189323
-Node: Migration189451
-Node: Before 2.12.0189698
-Node: Terminology191131
-Node: Mailing List191842
-Ref: Mailing List-Footnote-1192958
-Node: Addition193029
-Node: Index195719
-Node: Concept Index195951
-Node: Key Index211022
-Node: Variable Index239355
-Node: Function Index269266
+Node: Folder Definition11850
+Node: Start Wanderlust13470
+Node: Overview13768
+Node: Folders14293
+Node: IMAP Folder15436
+Node: NNTP Folder17962
+Node: MH Folder18811
+Node: Maildir Folder19285
+Node: News Spool Folder20105
+Node: Archive Folder20618
+Node: Archiver21929
+Node: Archive Tips23820
+Node: Archive Vars24491
+Node: POP Folder26131
+Node: Shimbun Folder27586
+Node: RSS Folder28488
+Node: Search Folder29107
+Node: namazu29596
+Node: grep31150
+Node: mu31567
+Node: notmuch32388
+Node: Multi Folder32783
+Node: Filter Folder33317
+Node: Pipe Folder37191
+Node: Internal Folder38256
+Node: File Folder39272
+Node: Access Folder39570
+Node: Folder39884
+Node: Selecting Folder40142
+Node: Folder Manager46759
+Ref: Folder Manager-Footnote-153074
+Node: Summary53127
+Node: Usage of Summary Mode53671
+Node: Thread Operations57070
+Node: Cache57874
+Node: Auto Refile59354
+Node: Sticky Summary61454
+Node: Summary View62257
+Node: Mark and Action64360
+Node: Key Bindings of Summary65392
+Node: Variables of Summary80068
+Node: Message87455
+Node: Draft89720
+Node: Usage of Draft Mode90100
+Node: Parameters for Sending90588
+Node: Editing Header91681
+Node: Editing Message Body and Sending92583
+Node: Dynamical Message Re-arrangement93350
+Node: Template97460
+Node: POP-before-SMTP98972
+Node: Key Bindings of Draft100319
+Node: Variables of Draft Mode102094
+Node: Disconnected Operations111167
+Node: Off-line State111569
+Node: Enable Operations112129
+Node: Send Messages off-line112912
+Node: Re-file and Copy queue113341
+Node: Creation of Folders113850
+Node: Marking114168
+Node: Pre-fetching Reservations114427
+Node: Plugged Mode114702
+Node: Off-line State settings116615
+Node: Variables of Plugged Mode117541
+Node: Expire and Archive119853
+Node: Expire120087
+Node: Archive131477
+Node: Scoring133307
+Node: Score Commands133796
+Node: Score File Format139798
+Node: Address Book143833
+Node: Mail Addresses144076
+Node: Address Manager145194
+Node: Quick Search145830
+Node: Setup of Quick Search146382
+Node: Usage of Quick Search146829
+Node: Spam Filter148267
+Node: Usage of Spam Filter148607
+Node: Spam Filter Processors153950
+Node: bogofilter154464
+Node: spamfilter155457
+Node: bsfilter156093
+Node: SpamAssassin157269
+Node: SpamOracle158641
+Node: Regular Expressions Header Matching159733
+Node: Advanced Issues160565
+Node: Living with other packages161077
+Node: imput161750
+Node: BBDB162070
+Node: LSDB163191
+Node: supercite163660
+Node: mu-cite163981
+Node: X-Face164473
+Node: x-face-xmas164948
+Node: x-face-mule165329
+Node: dired-dd166067
+Node: MHC166800
+Node: Addrbook167325
+Node: mime-w3m167690
+Node: Highlights167993
+Node: Biff173841
+Node: Password Management174694
+Node: Split messages175565
+Node: Batch Processing178493
+Node: Advanced Settings178992
+Node: Draft for Reply179308
+Node: Thread Format181771
+Node: User-Agent Field183240
+Node: Customizable Valiables183862
+Node: Hooks189367
+Node: Migration189495
+Node: Before 2.12.0189742
+Node: Terminology191175
+Node: Mailing List191886
+Ref: Mailing List-Footnote-1193002
+Node: Addition193073
+Node: Index195763
+Node: Concept Index195995
+Node: Key Index211066
+Node: Variable Index239399
+Node: Function Index269310
 
 End Tag Table

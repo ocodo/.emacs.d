@@ -406,7 +406,7 @@ Wanderlust draft mode by typing 'C-x m' ('compose-mail').  This means it
 enables you to run Wanderlust as a default mail composer of Emacsen.
 
    It is effective only when your Emacs can define 'mail-user-agent'.
-*Note (emacs)Mail Methods::.
+*Note Mail-Composition Methods: (emacs)Mail Methods.
 
      (autoload 'wl-user-agent-compose "wl-draft" nil t)
      (if (boundp 'mail-user-agent)
@@ -3710,8 +3710,11 @@ editing, refer to respective documents.  *Note (mime-ui-en)MIME-Edit::.
 You can also see help by 'C-c C-x ?' in draft buffer.
 
    If you save the draft buffer you are editing, it is appended to the
-folder specified by 'wl-draft-folder'.  You can leave draft buffer after
-storing it for future editing by 'C-c C-z' ('wl-draft-save-and-exit').
+draft folder specified by 'wl-draft-folder'.  You can leave draft buffer
+after storing it for future editing by 'C-c C-z'
+('wl-draft-save-and-exit') and resume editing by pressing 'E'
+('wl-summary-reedit') in the draft folder (*note Key Bindings of
+Summary::).
 
    If you have finished editing, you can send message by 'C-c C-c'.
 
@@ -3983,9 +3986,8 @@ File: wl.info,  Node: Key Bindings of Draft,  Next: Variables of Draft Mode,  Pr
 
 'C-c C-z'
      Saves the current draft, and erases the draft buffer.  This is
-     useful if you want to suspend editing of the draft.  You can resume
-     editing by pressing 'E' ('wl-summary-reedit') in the '+draft'
-     folder.  ('wl-draft-save-and-exit')
+     useful if you want to suspend editing of the draft.
+     ('wl-draft-save-and-exit')
 
 'C-c C-r'
      Encodes or decodes the specified region in Caesar cipher.
@@ -7807,25 +7809,25 @@ Key Index
 * C (Summary):                           Key Bindings of Summary.
                                                               (line  73)
 * C-c C-a (Draft):                       Key Bindings of Draft.
-                                                              (line  66)
+                                                              (line  65)
 * C-c C-c (Draft):                       Key Bindings of Draft.
                                                               (line  24)
 * C-c C-c (Score Mode):                  Score Commands.      (line 154)
 * C-c C-d (Draft):                       Key Bindings of Draft.
-                                                              (line  69)
+                                                              (line  68)
 * C-c C-d (Score Mode):                  Score Commands.      (line 160)
 * C-c C-e (Draft):                       Key Bindings of Draft.
-                                                              (line  60)
+                                                              (line  59)
 * C-c C-e (Score Mode):                  Score Commands.      (line 167)
 * C-c C-f (Summary):                     Key Bindings of Summary.
                                                               (line 169)
 * C-c C-j (Draft):                       Key Bindings of Draft.
-                                                              (line  63)
+                                                              (line  62)
 * C-c C-k (Draft):                       Key Bindings of Draft.
                                                               (line  31)
 * C-c C-k (Score Mode):                  Score Commands.      (line 151)
 * C-c C-o (Draft):                       Key Bindings of Draft.
-                                                              (line  55)
+                                                              (line  54)
 * C-c C-o (Folder):                      Selecting Folder.    (line  83)
 * C-c C-o (Summary):                     Key Bindings of Summary.
                                                               (line 562)
@@ -7833,7 +7835,7 @@ Key Index
                                                               (line  15)
 * C-c C-p (Score Mode):                  Score Commands.      (line 157)
 * C-c C-r (Draft):                       Key Bindings of Draft.
-                                                              (line  43)
+                                                              (line  42)
 * C-c C-s (Draft):                       Key Bindings of Draft.
                                                               (line  19)
 * C-c C-s (Score Mode):                  Score Commands.      (line 164)
@@ -7843,7 +7845,7 @@ Key Index
                                                               (line  37)
 * C-k (Folder):                          Folder Manager.      (line 167)
 * C-l (Draft):                           Key Bindings of Draft.
-                                                              (line  47)
+                                                              (line  46)
 * C-o (Summary):                         Key Bindings of Summary.
                                                               (line 311)
 * C-t (Folder):                          Selecting Folder.    (line 185)
@@ -8002,7 +8004,7 @@ Key Index
                                                               (line  42)
 * M-s (Folder):                          Selecting Folder.    (line 179)
 * M-t (Draft):                           Key Bindings of Draft.
-                                                              (line  51)
+                                                              (line  50)
 * M-t (Folder):                          Selecting Folder.    (line 182)
 * M-t (Summary):                         Key Bindings of Summary.
                                                               (line 556)
