@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.10.0
-;; Package-Version: 20160313.2240
+;; Package-Version: 20160405.920
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -552,6 +552,8 @@ transformation."
                           (funcall 's--aget extra var))
                          ((eq replacer 'elt)
                           (funcall replacer extra var))
+                         ((eq replacer 'oref)
+                          (funcall #'slot-value extra (intern var)))
                          (t
                           (set-match-data saved-match-data)
                           (if extra
