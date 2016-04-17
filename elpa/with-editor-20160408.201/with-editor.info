@@ -78,7 +78,6 @@ Using the With-Editor package
 * Configuring With-Editor::
 * Using With-Editor commands::
 
-
 
 File: with-editor.info,  Node: Using the With-Editor package,  Next: Using With-Editor as a library,  Prev: Top,  Up: Top
 
@@ -309,11 +308,11 @@ what is the output of ‘M-x with-editor-debug’?
 
 Tag Table:
 Node: Top1545
-Node: Using the With-Editor package3237
-Node: Configuring With-Editor3853
-Node: Using With-Editor commands7460
-Node: Using With-Editor as a library10623
-Node: Debugging12295
+Node: Using the With-Editor package3236
+Node: Configuring With-Editor3852
+Node: Using With-Editor commands7459
+Node: Using With-Editor as a library10622
+Node: Debugging12294
 
 End Tag Table
 
