@@ -253,20 +253,18 @@ names to which it refers are bound."
 
       ;; Emacs interface
       (cursor (:background ,red))
-      (fringe (:background ,contrast-bg :foreground ,foreground))
-      (linum (:background ,contrast-bg :foreground ,green :italic nil))
-      (vertical-border (:foreground ,highlight))
+      (fringe (:background ,background :foreground ,comment))
+      (linum (:background ,background :foreground ,comment :italic nil))
+      (vertical-border (:foreground ,contrast-bg))
       (border (:background ,contrast-bg :foreground ,highlight))
       (border-glyph (nil))
       (highlight (:inverse-video nil :background ,highlight))
       (gui-element (:background ,contrast-bg :foreground ,foreground))
-      (mode-line (:foreground nil :background ,contrast-bg :weight normal
-                              :box (:line-width 1 :color ,comment)))
+      (mode-line (:foreground ,foreground :background ,contrast-bg :weight normal))
       (mode-line-buffer-id (:foreground ,purple :background nil))
       (mode-line-inactive (:inherit mode-line
                                     :foreground ,comment
-                                    :background ,contrast-bg :weight normal
-                                    :box (:line-width 1 :color ,contrast-bg)))
+                                    :background ,highlight :weight normal))
       (mode-line-emphasis (:foreground ,foreground :slant italic))
       (mode-line-highlight (:foreground ,purple :box nil :weight bold))
       (minibuffer-prompt (:foreground ,blue))
@@ -769,6 +767,12 @@ names to which it refers are bound."
       (rpm-spec-section-face (:foreground ,yellow))
       (rpm-spec-tag-face (:foreground ,blue))
       (rpm-spec-var-face (:foreground ,red))
+
+      ;; sx
+      (sx-question-mode-content-face (:background ,highlight))
+      (sx-question-list-answers (:height 1.0 :inherit sx-question-list-parent :foreground ,green))
+      (sx-question-mode-accepted (:height 1.5 :inherit sx-question-mode-title :foreground ,green))
+      (sx-question-mode-kbd-tag (:height 0.9 :weight semi-bold :box (:line-width 3 :style released-button :color ,contrast-bg)))
       ))))
 
 (defmacro color-theme-sanityinc-tomorrow--frame-parameter-specs ()
