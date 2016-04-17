@@ -1,0 +1,1 @@
+(define-package "inf-clojure" "20160404.2138" "Run an external Clojure process in an Emacs buffer" '((emacs "24.3") (clojure-mode "5.3")) :stars '(#("45" 0 2 (font-lock-face paradox-star-face))) :url "http://github.com/clojure-emacs/inf-clojure" :keywords '("processes" "clojure"))
