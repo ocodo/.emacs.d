@@ -6,7 +6,7 @@
 ;; Maintainer: Kosta Harlan <kosta@kostaharlan.net>
 ;; Homepage: https://github.com/kostajh/harvest.el
 ;; Keywords: harvest
-;; Package-Version: 20160331.1231
+;; Package-Version: 20160405.943
 ;; Package-Requires: ((swiper "0.7.0") (hydra "0.13.0") (s "1.11.0"))
 ;;
 ;; This file is not part of GNU Emacs.
@@ -95,6 +95,7 @@
             (mapcar (lambda (entry)
                       (cons (harvest-format-entry entry) entry))
                     (harvest-alist-get '(day_entries) harvest-cached-daily-entries))
+            :require-match t
             :action (lambda (x)
                       (setq harvest-selected-entry x)
                       (hydra-harvest-day-entry/body)))
@@ -107,10 +108,12 @@
             (mapcar (lambda (entry)
                       (cons (harvest-format-project-entry entry) entry))
                     (harvest-alist-get '(projects) harvest-cached-daily-entries))
+            :require-match t
             :action (lambda (x)
                       (setq harvest-selected-entry x)
                       (ivy-read "Task: "
                                 (harvest-get-tasks-for-project harvest-selected-entry)
+                                :require-match t
                                 :action (lambda (selection)
                                           (harvest-clock-in-project-task-entry nil selection))))
             ))
@@ -163,7 +166,7 @@ Format is PROJECT (CLIENT) \n TASK - NOTES"
     (puthash "project_id" (harvest-alist-get '(project_id) entry) harvest-payload)
     (puthash "task_id" (harvest-alist-get '(task_id) entry) harvest-payload)
     (puthash "notes" (read-string "Notes: " (harvest-alist-get '(notes) entry)) harvest-payload)
-    (harvest-api "POST" (format "daily/update/%s" (harvest-alist-get '(id) entry)) harvest-payload (format "Updated hours for task %s in %s for %s" (harvest-alist-get '(task) entry) (harvest-alist-get '(project) entry) (harvest-alist-get '(client) entry))))
+    (harvest-api "POST" (format "daily/update/%s" (harvest-alist-get '(id) entry)) harvest-payload (format "Updated notes for task %s in %s for %s" (harvest-alist-get '(task) entry) (harvest-alist-get '(project) entry) (harvest-alist-get '(client) entry))))
   (harvest-refresh-entries))
 
 (defun harvest-edit-hours (entry)
@@ -174,7 +177,7 @@ Format is PROJECT (CLIENT) \n TASK - NOTES"
     (puthash "hours" (read-number "Hours spent: " (harvest-alist-get '(hours) entry)) harvest-payload)
     (puthash "project_id" (harvest-alist-get '(project_id) entry) harvest-payload)
     (puthash "task_id" (harvest-alist-get '(task_id) entry) harvest-payload)
-    (harvest-api "POST" (format "daily/update/%s" (harvest-alist-get '(id) entry)) harvest-payload (format "Updated notes for task %s in %s for %s" (harvest-alist-get '(task) entry) (harvest-alist-get '(project) entry) (harvest-alist-get '(client) entry))))
+    (harvest-api "POST" (format "daily/update/%s" (harvest-alist-get '(id) entry)) harvest-payload (format "Updated hours for task %s in %s for %s" (harvest-alist-get '(task) entry) (harvest-alist-get '(project) entry) (harvest-alist-get '(client) entry))))
   (harvest-refresh-entries))
 
 ;;;###autoload

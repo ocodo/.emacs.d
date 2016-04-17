@@ -1,0 +1,1 @@
+(define-package "harvest" "20160405.943" "Harvest integration" '((swiper "0.7.0") (hydra "0.13.0") (s "1.11.0")) :stars '(#("0" 0 1 (font-lock-face paradox-star-face))) :url "https://github.com/kostajh/harvest.el" :keywords '("harvest"))
