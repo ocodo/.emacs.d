@@ -1970,7 +1970,7 @@ to all the functions, while maintaining the parens in a pretty state."
 (defvar helm-input)
 (declare-function helm "ext:helm")
 
-(defun lispy--occur-action (x)
+(defun lispy-occur-action-goto-paren (x)
   "Goto line X for `lispy-occur'."
   (setq x (read x))
   (goto-char lispy--occur-beg)
@@ -2001,6 +2001,36 @@ to all the functions, while maintaining the parens in a pretty state."
           (t
            (back-to-indentation)))))
 
+(defun lispy-occur-action-goto-end (x)
+  "Goto line X for `lispy-occur'."
+  (setq x (read x))
+  (goto-char lispy--occur-beg)
+  (forward-line x)
+  (re-search-forward (ivy--regex ivy-text) (line-end-position) t))
+
+(defun lispy-occur-action-goto-beg (x)
+  "Goto line X for `lispy-occur'."
+  (when (lispy-occur-action-goto-end x)
+    (goto-char (match-beginning 0))))
+
+(defun lispy-occur-action-mc (_x)
+  "Make a fake cursor for each `lispy-occur' candidate."
+  (let ((cands (nreverse ivy--old-cands))
+        cand)
+    (while (setq cand (pop cands))
+      (goto-char lispy--occur-beg)
+      (forward-line (read cand))
+      (re-search-forward (ivy--regex ivy-text) (line-end-position) t)
+      (when cands
+        (mc/create-fake-cursor-at-point))))
+  (multiple-cursors-mode 1))
+
+(ivy-set-actions
+ 'lispy-occur
+ '(("m" lispy-occur-action-mc "multiple-cursors")
+   ("j" lispy-occur-action-goto-beg "goto start")
+   ("k" lispy-occur-action-goto-end "goto end")))
+
 (defun lispy-occur ()
   "Select a line within current top level sexp.
 See `lispy-occur-backend' for the selection back end."
@@ -2016,7 +2046,7 @@ See `lispy-occur-backend' for the selection back end."
               (helm :sources
                     `((name . "this defun")
                       (candidates . ,(lispy--occur-candidates))
-                      (action . lispy--occur-action)
+                      (action . lispy-occur-action-goto-paren)
                       (match-strict .
                                     (lambda (x)
                                       (ignore-errors
@@ -2038,7 +2068,8 @@ See `lispy-occur-backend' for the selection back end."
                         :update-fn (lambda ()
                                      (lispy--occur-update-input
                                       ivy-text ivy--current))
-                        :action #'lispy--occur-action)
+                        :action #'lispy-occur-action-goto-paren
+                        :caller 'lispy-occur)
            (swiper--cleanup)
            (when (null ivy-exit)
              (goto-char swiper--opoint))))
@@ -3812,7 +3843,7 @@ When ARG is 2, insert the result as a comment."
 (defun lispy-message (str)
   "Display STR in the echo area.
 If STR is too large, pop it to a buffer instead."
-  (if (> (cl-count ?\n str) 20)
+  (if (> (cl-count ?\n str) 15)
       (progn
         (pop-to-buffer "*lispy-message*")
         (special-mode)
@@ -4023,7 +4054,7 @@ When ARG is non-nil, force select the window."
   (interactive)
   (lispy-goto-symbol (lispy--current-function)))
 
-(declare-function cider-doc-lookup "ext:cider-interaction")
+(declare-function cider-doc-lookup "ext:cider-doc")
 
 (defun lispy-describe ()
   "Display documentation for `lispy--current-function'."
@@ -4035,6 +4066,7 @@ When ARG is non-nil, force select the window."
                  ((boundp symbol)
                   (describe-variable symbol)))))
         ((memq major-mode lispy-clojure-modes)
+         (require 'cider-doc)
          (cider-doc-lookup (lispy--current-function)))
 
         (t
@@ -4064,13 +4096,15 @@ When ARG is non-nil, force select the window."
   "Forward to `beginning-of-defun' with ARG.  Deactivate region.
 When called twice in a row, restore point and mark."
   (interactive "p")
-  (cond ((and (looking-at "^(")
-              (memq last-command
-                    '(lispy-beginning-of-defun
-                      special-lispy-beginning-of-defun)))
+  (cond ((and (called-interactively-p 'any)
+              (looking-at "^(")
+              (let ((pt (if (consp lispy-bof-last-point)
+                            (car lispy-bof-last-point)
+                          lispy-bof-last-point)))
+                (> pt (point))
+                (<= pt (save-excursion (forward-list) (point)))))
          (lispy-pam-restore 'lispy-bof-last-point))
-        ((looking-at "^(")
-         (setq lispy-bof-last-point (point)))
+        ((looking-at "^("))
         (t
          (lispy-pam-store 'lispy-bof-last-point)
          (beginning-of-defun arg))))
@@ -4766,6 +4800,9 @@ ARG is 4: `eval-defun' on the function from this sexp."
                   (lispy-flow 2))))
              ((or (functionp ldsi-fun)
                   (macrop ldsi-fun))
+              (when (eq ldsi-fun 'funcall)
+                (setq ldsi-fun (eval (cadr ldsi-sxp)))
+                (setq ldsi-sxp (cons ldsi-fun (cddr ldsi-sxp))))
               (let ((ldsi-args
                      (copy-seq
                       (help-function-arglist
@@ -6102,9 +6139,9 @@ Ignore the matches in strings and comments."
                     (forward-sexp)
                     (insert ")")
                     (replace-match "(ly-raw function ")))
-                ;; ——— #{ or { or #( ——————————
+                ;; ——— #{ or { or #( or @( or #?( or #?@( ——————————
                 (goto-char (point-min))
-                (while (re-search-forward "#(\\|{\\|#{\\|#\\?(" nil t)
+                (while (re-search-forward "#\\?@(\\|@(\\|#(\\|{\\|#{\\|#\\?(" nil t)
                   (let ((class
                          (cond ((string= (match-string 0) "#{")
                                 "clojure-set")
@@ -6112,6 +6149,10 @@ Ignore the matches in strings and comments."
                                 "clojure-map")
                                ((string= (match-string 0) "#(")
                                 "clojure-lambda")
+                               ((string= (match-string 0) "@(")
+                                "clojure-deref-list")
+                               ((string= (match-string 0) "#?@(")
+                                "clojure-reader-conditional-splice")
                                ((string= (match-string 0) "#?(")
                                 "clojure-reader-conditional")
                                (t
@@ -6655,6 +6696,11 @@ Try to refresh if nil is returned."
 (defvar lispy-tag-history nil
   "History for tags.")
 
+(defvar lispy-select-candidate-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-.") 'ivy-done)
+    map))
+
 (defun lispy--select-candidate (candidates action)
   "Select from CANDIDATES list with `helm'.
 ACTION is called for the selected candidate."
@@ -6675,6 +6721,7 @@ ACTION is called for the selected candidate."
              (setq strs (mapcar #'car candidates))
              (eq lispy-completion-method 'ivy))
            (ivy-read "tag: " strs
+                     :keymap lispy-select-candidate-mode-map
                      :require-match t
                      :preselect (lispy--current-tag)
                      :action (lambda (x)
@@ -6814,6 +6861,14 @@ The outer delimiters are stripped."
            (delete-region beg (point))
            (insert (format "{%s}" (lispy--splice-to-str (cl-caddr sxp))))
            (goto-char beg))
+	      (clojure-deref-list
+            (delete-region beg (point))
+            (insert (format "@(%s)" (lispy--splice-to-str (cl-caddr sxp))))
+            (goto-char beg))
+          (clojure-reader-conditional-splice
+            (delete-region beg (point))
+            (insert (format "#?@(%s)" (lispy--splice-to-str (cl-caddr sxp))))
+            (goto-char beg))
           (clojure-reader-conditional
            (delete-region beg (point))
            (insert (format "#?(%s)" (lispy--splice-to-str (cl-caddr sxp))))
@@ -7464,8 +7519,7 @@ If `lispy-safe-paste' is non-nil, any unmatched delimiters will be added to it."
 
 ;;* Key definitions
 (defvar ac-trigger-commands '(self-insert-command))
-(defvar company-begin-commands '(self-insert-command))
-(defvar company-no-begin-commands nil)
+
 (defvar mc/cmds-to-run-for-all nil)
 (defvar mc/cmds-to-run-once nil)
 (mapc (lambda (x) (add-to-list 'mc/cmds-to-run-once x))
@@ -7488,8 +7542,6 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
     (add-to-list 'ac-trigger-commands func)
     (unless (memq func mc/cmds-to-run-once)
       (add-to-list 'mc/cmds-to-run-for-all func))
-    (unless (memq func company-no-begin-commands)
-      (add-to-list 'company-begin-commands func))
     (eldoc-add-command func)
     (define-key keymap (kbd key) func)))
 
