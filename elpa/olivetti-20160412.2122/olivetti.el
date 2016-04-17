@@ -4,7 +4,7 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20160105.355
+;; Package-Version: 20160412.2122
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -254,7 +254,11 @@ If prefixed with ARG, incrementally decrease."
                    (+ olivetti-body-width (* 0.01 p))))))
     (setq olivetti-body-width (olivetti-safe-width n)))
   (olivetti-set-environment)
-  (message "Text body width set to %s" olivetti-body-width))
+  (message "Text body width set to %s" olivetti-body-width)
+  (set-temporary-overlay-map
+   (let ((map (make-sparse-keymap)))
+     (define-key map "]" 'olivetti-expand)
+     (define-key map "[" 'olivetti-shrink) map)))
 
 (defun olivetti-shrink (&optional arg)
   "incrementally decrease the value of `olivetti-body-width'.
