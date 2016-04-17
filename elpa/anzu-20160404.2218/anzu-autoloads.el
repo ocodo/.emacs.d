@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "anzu" "anzu.el" (22200 34568 561508 259000))
+;;;### (autoloads nil "anzu" "anzu.el" (22291 19294 552839 514000))
 ;;; Generated autoloads from anzu.el
 
 (autoload 'anzu-mode "anzu" "\
@@ -56,6 +56,16 @@ See `anzu-mode' for more information on Anzu mode.
 
 
 \(fn)" t nil)
+
+(autoload 'anzu-isearch-query-replace "anzu" "\
+
+
+\(fn ARG)" t nil)
+
+(autoload 'anzu-isearch-query-replace-regexp "anzu" "\
+
+
+\(fn ARG)" t nil)
 
 ;;;***
 
