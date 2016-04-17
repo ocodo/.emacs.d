@@ -1,1 +1,0 @@
-../_available-configs/use-persistent-scratch.el

@@ -1,1 +1,0 @@
-../_available-configs/use-git-gutter.el

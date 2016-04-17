@@ -1,1 +1,0 @@
-../_available-configs/use-multiple-cursors.el

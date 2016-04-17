@@ -4,7 +4,7 @@
 
 (defun ocodo-active-config-directory ()
   "Where active package configurations are kept."
-  (format "%s_active-configs/" user-emacs-directory))
+  (format "%s_activated/" user-emacs-directory))
 
 (defun load-local-init ()
   "Load local init if found."

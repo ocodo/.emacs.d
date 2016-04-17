@@ -1,1 +1,0 @@
-../_available-configs/use-smooth-scroll.el
