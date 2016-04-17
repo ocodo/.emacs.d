@@ -5,8 +5,8 @@
 ;; Author: R.W. van 't Veer
 ;; Created: 20 Feb 2009
 ;; Keywords: tools processes
-;; Version: 20150106.544
-;; X-Original-Version: 0.4.0
+;; Package-Version: 20160408.523
+;; Version: 0.4.0
 ;; URL: https://github.com/remvee/android-mode
 
 ;; Contributors:
@@ -163,9 +163,10 @@ way.")
 ``default-directory''.  The form is not executed when no project
 root directory can be found."
   `(let ((android-root-dir (android-root)))
-     (when android-root-dir
+     (if android-root-dir
        (let ((default-directory android-root-dir))
-         ,body))))
+         ,body)
+       (error "can't find project root"))))
 
 (defun android-local-sdk-dir ()
   "Try to find android sdk directory through the local.properties
