@@ -1,13 +1,13 @@
 ;;; list-utils.el --- List-manipulation utility functions
 ;;
-;; Copyright (c) 2012-13 Roland Walker
+;; Copyright (c) 2012-2015 Roland Walker
 ;;
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/list-utils
 ;; URL: http://raw.githubusercontent.com/rolandwalker/list-utils/master/list-utils.el
-;; Version: 20140508.1341
-;; X-Original-Version: 0.4.2
-;; Last-Updated: 22 Oct 2013
+;; Package-Version: 20160414.702
+;; Version: 0.4.4
+;; Last-Updated: 14 Apr 2016
 ;; EmacsWiki: ListUtils
 ;; Keywords: extensions
 ;;
@@ -103,7 +103,9 @@
 ;;
 ;; Compatibility and Requirements
 ;;
-;;     GNU Emacs version 24.4-devel     : yes, at the time of writing
+;;     GNU Emacs version 25.1-devel     : not tested
+;;     GNU Emacs version 24.5           : not tested
+;;     GNU Emacs version 24.4           : yes
 ;;     GNU Emacs version 24.3           : yes
 ;;     GNU Emacs version 23.3           : yes
 ;;     GNU Emacs version 22.2           : yes, with some limitations
@@ -137,14 +139,14 @@
 ;; without modification, are permitted provided that the following
 ;; conditions are met:
 ;;
-;;    1. Redistributions of source code must retain the above
-;;       copyright notice, this list of conditions and the following
-;;       disclaimer.
+;;   1. Redistributions of source code must retain the above
+;;      copyright notice, this list of conditions and the following
+;;      disclaimer.
 ;;
-;;    2. Redistributions in binary form must reproduce the above
-;;       copyright notice, this list of conditions and the following
-;;       disclaimer in the documentation and/or other materials
-;;       provided with the distribution.
+;;   2. Redistributions in binary form must reproduce the above
+;;      copyright notice, this list of conditions and the following
+;;      disclaimer in the documentation and/or other materials
+;;      provided with the distribution.
 ;;
 ;; This software is provided by Roland Walker "AS IS" and any express
 ;; or implied warranties, including, but not limited to, the implied
@@ -180,7 +182,7 @@
 ;;;###autoload
 (defgroup list-utils nil
   "List-manipulation utility functions."
-  :version "0.4.2"
+  :version "0.4.4"
   :link '(emacs-commentary-link :tag "Commentary" "list-utils")
   :link '(url-link :tag "GitHub" "http://github.com/rolandwalker/list-utils")
   :link '(url-link :tag "EmacsWiki" "http://emacswiki.org/emacs/ListUtils")
@@ -235,9 +237,9 @@ Non-string arguments are permitted, and will be compared after
 stringification by `format'.
 
 A hash-table-test is defined with the same name."
-  (compare-strings (if x (format "%s" x) "") nil nil
-                   (if y (format "%s" y) "") nil nil
-                   'ignore-case))
+  (eq t (compare-strings (if x (format "%s" x) "") nil nil
+                         (if y (format "%s" y) "") nil nil
+                         'ignore-case)))
 
 (define-hash-table-test 'list-utils-htt-case-fold-equal
                         'list-utils-htt-case-fold-equal

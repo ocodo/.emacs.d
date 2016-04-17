@@ -1,22 +1,10 @@
 ;;; list-utils-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (list-utils-plist-del list-utils-plist-reverse
-;;;;;;  list-utils-alist-flatten list-utils-alist-or-flat-length
-;;;;;;  list-utils-partition-dupes list-utils-singlets list-utils-dupes
-;;;;;;  list-utils-uniq list-utils-xor list-utils-not list-utils-and
-;;;;;;  list-utils-insert-after-pos list-utils-insert-before-pos
-;;;;;;  list-utils-insert-after list-utils-insert-before list-utils-flatten
-;;;;;;  list-utils-depth list-utils-safe-equal list-utils-make-linear-inplace
-;;;;;;  list-utils-make-linear-copy list-utils-flat-length list-utils-safe-length
-;;;;;;  list-utils-linear-p list-utils-cyclic-p list-utils-cyclic-length
-;;;;;;  list-utils-cyclic-subseq list-utils-linear-subseq list-utils-make-improper-inplace
-;;;;;;  list-utils-make-improper-copy list-utils-make-proper-inplace
-;;;;;;  list-utils-make-proper-copy list-utils-cons-cell-p tconc
-;;;;;;  tconc-list list-utils) "list-utils" "list-utils.el" (21356
-;;;;;;  52945 0 0))
+;;;### (autoloads nil "list-utils" "list-utils.el" (22291 19146 192465
+;;;;;;  5000))
 ;;; Generated autoloads from list-utils.el
 
 (let ((loads (get 'list-utils 'custom-loads))) (if (member '"list-utils" loads) nil (put 'list-utils 'custom-loads (cons '"list-utils" loads))))
@@ -494,16 +482,9 @@ This functionality overlaps with the undocumented `cl-do-remf'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("list-utils-pkg.el") (21356 52945 650925
-;;;;;;  0))
-
-;;;***
-
-(provide 'list-utils-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; list-utils-autoloads.el ends here
