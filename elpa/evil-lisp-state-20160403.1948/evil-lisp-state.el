@@ -4,9 +4,9 @@
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; Keywords: convenience editing evil smartparens lisp mnemonic
-;; Package-Version: 20160313.1159
+;; Package-Version: 20160403.1948
 ;; Created: 9 Oct 2014
-;; Version: 8.1
+;; Version: 8.2
 ;; Package-Requires: ((evil "1.0.9") (bind-map "0") (smartparens "1.6.1"))
 ;; URL: https://github.com/syl20bnr/evil-lisp-state
 
@@ -69,9 +69,9 @@
 ;; `leader H'   | go to previous sexp
 ;; `leader i'   | switch to `insert state`
 ;; `leader I'   | go to beginning of current expression and switch to `insert state`
-;; `leader j'   | next closing parenthesis
+;; `leader j'   | next closing parenthesis/bracket/brace
 ;; `leader J'   | join expression
-;; `leader k'   | previous opening parenthesis
+;; `leader k'   | previous opening parenthesis/bracket/brace
 ;; `leader l'   | next symbol
 ;; `leader L'   | go to next sexp
 ;; `leader p'   | paste after
@@ -257,6 +257,9 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
     ("W"   . sp-unwrap-sexp)
     ("y"   . sp-copy-sexp))
   "alist of keys and commands in lisp state.")
+
+(defvar evil-lisp-state-major-mode-map (make-sparse-keymap))
+
 (dolist (x evil-lisp-state-commands)
   (let ((key (car x))
         (cmd (cdr x)))
@@ -283,13 +286,13 @@ If `evil-lisp-state-global' is non nil then this variable has no effect."
   (sp-wrap-with-pair "("))
 
 (defun evil-lisp-state-next-paren (&optional closing)
-  "Go to the next/previous closing/opening parenthesis."
+  "Go to the next/previous closing/opening parenthesis/bracket/brace."
   (if closing
       (let ((curr (point)))
         (forward-char)
-        (unless (eq curr (search-forward ")"))
+        (unless (eq curr (search-forward-regexp "[])}]"))
           (backward-char)))
-    (search-backward "(")))
+    (search-backward-regexp "[[({]")))
 
 (defun lisp-state-prev-opening-paren ()
   "Go to the next closing parenthesis."
