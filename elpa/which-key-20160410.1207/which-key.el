@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20160331.1313
-;; Version: 1.0
+;; Package-Version: 20160410.1207
+;; Version: 1.1.4
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -748,40 +748,43 @@ MORE allows you to specifcy additional KEY-SEQUENCE NAME pairs.
 All names are added to `which-key-prefix-names-alist' and titles
 to `which-key-prefix-title-alist'."
   (while key-sequence
-    (let ((-name (if (consp name) (car name) name))
-          (-title (if (consp name) (cdr name) name)))
+    (let ((name (if (consp name) (car name) name))
+          (title (if (consp name) (cdr name) name)))
         (setq which-key-prefix-name-alist
               (which-key--add-key-val-to-alist
-               which-key-prefix-name-alist key-sequence -name "prefix-name")
+               which-key-prefix-name-alist key-sequence name "prefix-name")
               which-key-prefix-title-alist
               (which-key--add-key-val-to-alist
-               which-key-prefix-title-alist key-sequence -title "prefix-title")))
+               which-key-prefix-title-alist key-sequence title "prefix-title")))
     (setq key-sequence (pop more) name (pop more))))
 (put 'which-key-declare-prefixes 'lisp-indent-function 'defun)
 
 ;;;###autoload
 (defun which-key-declare-prefixes-for-mode (mode key-sequence name &rest more)
-  "Functions like `which-key-declare-prefix-names'.
+  "Functions like `which-key-declare-prefixes'.
 The difference is that MODE specifies the `major-mode' that must
 be active for KEY-SEQUENCE and NAME (MORE contains
 addition KEY-SEQUENCE NAME pairs) to apply."
   (when (not (symbolp mode))
     (error "MODE should be a symbol corresponding to a value of major-mode"))
   (let ((mode-name-alist (cdr (assq mode which-key-prefix-name-alist)))
-        (mode-title-alist (cdr (assq mode which-key-prefix-title-alist)))
-        (-name (if (consp name) (car name) name))
-        (-title (if (consp name) (cdr name) name)))
+        (mode-title-alist (cdr (assq mode which-key-prefix-title-alist))))
     (while key-sequence
-      (setq mode-name-alist (which-key--add-key-val-to-alist
-                             mode-name-alist key-sequence -name
-                             (format "prefix-name-%s" mode))
-            mode-title-alist (which-key--add-key-val-to-alist
-                              mode-title-alist key-sequence -title
-                              (format "prefix-name-%s" mode)))
+      (let ((name (if (consp name) (car name) name))
+            (title (if (consp name) (cdr name) name)))
+        (setq mode-name-alist (which-key--add-key-val-to-alist
+                               mode-name-alist key-sequence name
+                               (format "prefix-name-%s" mode))
+              mode-title-alist (which-key--add-key-val-to-alist
+                                mode-title-alist key-sequence title
+                                (format "prefix-name-%s" mode))))
       (setq key-sequence (pop more) name (pop more)))
     (if (assq mode which-key-prefix-name-alist)
         (setcdr (assq mode which-key-prefix-name-alist) mode-name-alist)
-      (push (cons mode mode-name-alist) which-key-prefix-name-alist))))
+      (push (cons mode mode-name-alist) which-key-prefix-name-alist))
+    (if (assq mode which-key-prefix-title-alist)
+        (setcdr (assq mode which-key-prefix-title-alist) mode-title-alist)
+      (push (cons mode mode-title-alist) which-key-prefix-title-alist))))
 (put 'which-key-declare-prefixes-for-mode 'lisp-indent-function 'defun)
 
 (defun which-key-define-key-recursively (map key def &optional recursing)
@@ -1418,6 +1421,15 @@ alists. Returns a list (key separator description)."
                          (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$" key-str-qt) key))
                     (unless (assoc-string (match-string 1 key) bindings)
                       (push (cons (match-string 1 key) binding) bindings)))
+                   ((and which-key--current-prefix
+                         (string-match
+                          (format
+                           "^%s[ \t]\\([^ \t]+\\) \\.\\. %s[ \t]\\([^ \t]+\\)[ \t]+$"
+                           key-str-qt key-str-qt) key))
+                    (let ((stripped-key
+                           (concat (match-string 1 key) " \.\. " (match-string 2 key))))
+                      (unless (assoc-string stripped-key bindings)
+                        (push (cons stripped-key binding) bindings))))
                    ((string-match "^\\([^ \t]+\\|[^ \t]+ \\.\\. [^ \t]+\\)[ \t]+$" key)
                     (unless (assoc-string (match-string 1 key) bindings)
                       (push (cons (match-string 1 key) binding) bindings)))))))))
