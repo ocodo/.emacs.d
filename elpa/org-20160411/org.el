@@ -23004,12 +23004,15 @@ ELEMENT."
 	  ;;
 	  ;; As a special case, if point is at the end of a footnote
 	  ;; definition or an item, indent like the very last element
-	  ;; within.
+	  ;; within.  If that last element is an item, indent like its
+	  ;; contents.
 	  ((and (not (eq type 'paragraph))
 		(let ((cend (org-element-property :contents-end element)))
 		  (and cend (<= cend pos))))
 	   (if (memq type '(footnote-definition item plain-list))
-	       (org--get-expected-indentation (org-element-at-point) nil)
+	       (let ((last (org-element-at-point)))
+		 (org--get-expected-indentation
+		  last (eq (org-element-type last) 'item)))
 	     (goto-char start)
 	     (org-get-indentation)))
 	  ;; In any other case, indent like the current line.
@@ -23810,7 +23813,8 @@ time-range, if possible.
 When optional argument UTC is non-nil, time will be expressed as
 Universal Time."
   (format-time-string
-   format (org-timestamp--to-internal-time timestamp end) utc))
+   format (org-timestamp--to-internal-time timestamp end)
+   (and utc t)))
 
 (defun org-timestamp-split-range (timestamp &optional end)
   "Extract a TIMESTAMP object from a date or time range.

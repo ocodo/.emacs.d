@@ -868,18 +868,18 @@ PARAMS is a property list of parameters:
 
 :width    enforce same column widths with <N> specifiers.
 :id       the :ID: property of the entry where the columns view
-    should be built.  When the symbol `local', call locally.
-    When `global' call column view with the cursor at the beginning
-    of the buffer (usually this means that the whole buffer switches
-    to column view).  When \"file:path/to/file.org\", invoke column
-    view at the start of that file.  Otherwise, the ID is located
-    using `org-id-find'.
+	  should be built.  When the symbol `local', call locally.
+	  When `global' call column view with the cursor at the beginning
+	  of the buffer (usually this means that the whole buffer switches
+	  to column view).  When \"file:path/to/file.org\", invoke column
+	  view at the start of that file.  Otherwise, the ID is located
+	  using `org-id-find'.
 :hlines   When t, insert a hline before each item.  When a number, insert
-    a hline before each level <= that number.
+	  a hline before each level <= that number.
 :vlines   When t, make each column a colgroup to enforce vertical lines.
 :maxlevel When set to a number, don't capture headlines below this level.
 :skip-empty-rows
-    When t, skip rows where all specifiers other than ITEM are empty.
+	  When t, skip rows where all specifiers other than ITEM are empty.
 :format   When non-nil, specify the column view format to use.
 
 \(fn PARAMS)" nil nil)
@@ -2003,7 +2003,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22264 47701))
+;;;;;;  (22283 12118))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2029,7 +2029,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (22251 36266))
+;;;;;;  "org" "org.el" (22283 12114))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -2660,7 +2660,7 @@ Return output file name.
 
 ;;;### (autoloads (org-html-publish-to-html org-html-export-to-html
 ;;;;;;  org-html-convert-region-to-html org-html-export-as-html org-html-htmlize-generate-css)
-;;;;;;  "ox-html" "ox-html.el" "8a71c624b1d1c388ab0adfe0baf74040")
+;;;;;;  "ox-html" "ox-html.el" "9fdb85e79abb14cefd5dd6de2fb0b77f")
 ;;; Generated autoloads from ox-html.el
 
 (put 'org-html-head-include-default-style 'safe-local-variable 'booleanp)
@@ -2768,7 +2768,7 @@ Return output file name.
 
 ;;;### (autoloads (org-icalendar-combine-agenda-files org-icalendar-export-agenda-files
 ;;;;;;  org-icalendar-export-to-ics) "ox-icalendar" "ox-icalendar.el"
-;;;;;;  "0420c450f1da4a87e24a8afbc23f75f3")
+;;;;;;  "1b39db5795af4356d4b383ec0219ddf8")
 ;;; Generated autoloads from ox-icalendar.el
 
 (autoload 'org-icalendar-export-to-ics "ox-icalendar" "\
@@ -3207,7 +3207,7 @@ the project.
 ;;;***
 
 ;;;### (autoloads (org-texinfo-convert-region-to-texinfo org-texinfo-publish-to-texinfo)
-;;;;;;  "ox-texinfo" "ox-texinfo.el" "78e9355de19d5650647109cc50825a58")
+;;;;;;  "ox-texinfo" "ox-texinfo.el" "08ecda1fb3c8057babfe32ad3477300c")
 ;;; Generated autoloads from ox-texinfo.el
 
 (autoload 'org-texinfo-publish-to-texinfo "ox-texinfo" "\
