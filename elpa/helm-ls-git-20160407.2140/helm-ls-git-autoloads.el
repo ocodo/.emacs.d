@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-ls-git" "helm-ls-git.el" (22246 12329
-;;;;;;  586194 994000))
+;;;### (autoloads nil "helm-ls-git" "helm-ls-git.el" (22291 19186
+;;;;;;  444577 440000))
 ;;; Generated autoloads from helm-ls-git.el
 
 (eieio-defclass-autoload 'helm-ls-git-source '(helm-source-in-buffer) "helm-ls-git" nil)

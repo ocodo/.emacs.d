@@ -1,5 +1,5 @@
 ;;; helm-ls-git.el --- list git files. -*- lexical-binding: t -*-
-;; Package-Version: 20160229.955
+;; Package-Version: 20160407.2140
 
 ;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
@@ -474,17 +474,16 @@ and launch git-grep from there.
 
 ;; Overhide the actions of helm-type-buffer.
 (defmethod helm--setup-source :after ((source helm-source-buffers))
-  (let ((name (oref source :name)))
+  (let ((name (slot-value source 'name)))
     (when (string= name "Buffers in git project")
-      (set-slot-value
-       source 'action
-       (helm-append-at-nth
-        helm-type-buffer-actions
-        (helm-make-actions "Git status"
-                           (lambda (_candidate)
-                             (funcall helm-ls-git-status-command
-                                      (helm-default-directory))))
-        1)))))
+      (setf (slot-value source 'action)
+            (helm-append-at-nth
+             helm-type-buffer-actions
+             (helm-make-actions "Git status"
+                                (lambda (_candidate)
+                                  (funcall helm-ls-git-status-command
+                                           (helm-default-directory))))
+             1)))))
 
 ;;;###autoload
 (defun helm-ls-git-ls (&optional arg)
