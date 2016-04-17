@@ -1,1 +1,0 @@
-(define-package "tle" "20160402.1348" "Tabulated List Extensions" '((dash "1.5.0")) :stars '(#("2" 0 1 (font-lock-face paradox-star-face))) :url "https://github.com/Silex/tabulated-list-extensions" :keywords '("tabulated-list" "extension"))

@@ -2,9 +2,9 @@
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/tabulated-list-extensions
-;; Package-Version: 20160402.1348
+;; Package-Version: 20160403.532
 ;; Keywords: tabulated-list, extension
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Package-Requires: ((dash "1.5.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -63,6 +63,8 @@
 (defun tle-mark (&optional count)
   "Mark the next COUNT lines (default 1)."
   (interactive "p")
+  (when (null count)
+    (setq count 1))
   (--dotimes count (tabulated-list-put-tag tle-marker-string t)))
 
 (defun tle-mark-all ()
@@ -76,6 +78,8 @@
 (defun tle-unmark (&optional count)
   "Unmark the next COUNT lines (default 1)."
   (interactive "p")
+  (when (null count)
+    (setq count 1))
   (--dotimes count (tabulated-list-put-tag "" t)))
 
 (defun tle-unmark-all ()
@@ -147,7 +151,7 @@ the mode if ARG is omitted or nil."
   nil
   " tle"
   tle-mode-map
-  (font-lock-add-keywords nil `((,(format "^%s.*" tle-marker-string) . 'tle-marked))))
+  (font-lock-add-keywords nil `((,(format "^[%s].*" tle-marker-string) 0 'tle-marked prepend))))
 
 (provide 'tle)
 
