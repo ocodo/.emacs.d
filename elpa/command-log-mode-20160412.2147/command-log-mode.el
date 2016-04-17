@@ -8,7 +8,7 @@
 
 ;; Author: Michael Weber <michaelw@foldr.org>
 ;; Keywords: help
-;; Package-Version: 20150615.716
+;; Package-Version: 20160412.2147
 ;; Initial-version: <2004-10-07 11:41:28 michaelw>
 ;; Time-stamp: <2004-11-06 17:08:11 michaelw>
 
@@ -51,6 +51,9 @@
 
 (defvar clm/log-text t
   "A non-nil setting means text will be saved to the command log.")
+
+(defvar clm/log-repeat nil
+  "A nil setting means repetitions of the same command are merged into the single log line.")
 
 (defvar clm/recent-history-string ""
   "This string will hold recently typed text.")
@@ -249,7 +252,7 @@ Scrolling up can be accomplished with:
       (clm/with-command-log-buffer
         (let ((current (current-buffer)))
           (goto-char (point-max))
-          (cond ((eq cmd clm/last-keyboard-command)
+          (cond ((and (not clm/log-repeat) (eq cmd clm/last-keyboard-command))
                  (incf clm/command-repetitions)
                  (save-match-data
                    (when (and (> clm/command-repetitions 1)
@@ -260,7 +263,8 @@ Scrolling up can be accomplished with:
                  (princ (1+ clm/command-repetitions) current)
                  (insert " times]"))
                 (t ;; (message "last cmd: %s cur: %s" last-command cmd)
-		 (when clm/log-text
+                 ;; showing accumulated text with interleaved key presses isn't very useful
+		 (when (and clm/log-text (not clm/log-repeat))
 		   (if (eq clm/last-keyboard-command 'self-insert-command)
 		       (insert "[text: " clm/recent-history-string "]\n")))
                  (setq clm/command-repetitions 0)
@@ -271,7 +275,7 @@ Scrolling up can be accomplished with:
                  (when (>= (current-column) clm/log-command-indentation)
                    (newline))
                  (move-to-column clm/log-command-indentation t)
-                 (princ cmd current)
+                 (princ (if (byte-code-function-p cmd) "<bytecode>" cmd) current)
                  (newline)
                  (setq clm/last-keyboard-command cmd)))
           (clm/scroll-buffer-window current))))))
