@@ -52,6 +52,22 @@ it before startup.
 Copy `./custom/custom.el` to `./local/custom.el` if you want to start
 from the same state as the general config.
 
+# Package/Feature configuration
+
+The biggest feature of this config is the use of Nginx / Apache Server
+style split configuration.
+
+Feature/Package configuration is set in `/_configs` and enabled by
+symlinking to `_activated`.
+
+Currently this is only supported for the centralized repo, so changes
+are propagated unless you fork.
+
+Using a git rebase / upstream style of updating would be ok, but you
+will risk clobbering your own changes.
+
+I am planning to add the ability to apply similar configuration via a local/init
+
 # Local Color Theme Persistence
 
 You color-theme selection is always stored locally, in
@@ -144,7 +160,7 @@ e.g. `README.md:130` would open **README.md** at line 130.
 
 I've included a utility to assist with keeping my elpa packages committed individually when they're updated.
 
-I keep versioned copies of elpa packages for several reasons. 
+I keep versioned copies of elpa packages for several reasons.
 
 - If a package suddenly disappears, I don't lose it.
 - If gnu elpa or melpa are down for any reason, I have multiple locations from which I can clone a full install of my .emacs.d.
@@ -158,26 +174,23 @@ I keep versioned copies of elpa packages for several reasons.
 After doing a package install / upgrade from within Emacs, `git-elpa` (`~/.emacs.d/bin/git-elpa`) will be able to list and commit the newly added/upgraded packages.
 
 - List all new / upgraded packages
- 
-        git elpa -l 
-    
+
+        git elpa -l
+
 - Commit a single package addition / upgrade
 
         git elpa -c PACKAGENAME
-        
+
     `PACKAGENAME` would be the name of the package without version info or `.el` file extension etc.
-    
-    e.g. 
-    
+
+    e.g.
+
         git elpa -c magit
-        
+
     To perform the commit of the last magit version upgrade, add new files and remove old ones (from the git index)     and commit them with an auto-generated commit message
-    
+
 - Commit all new / upgraded packages
 
         git elpa -a
-        
-    All packages will be commited in individual git commits, using auto-generated commit messages.
 
-    
-    
+    All packages will be commited in individual git commits, using auto-generated commit messages.
