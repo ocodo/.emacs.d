@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "verify-url" "verify-url.el" (22200 34319 900631
-;;;;;;  258000))
+;;;### (autoloads nil "verify-url" "verify-url.el" (22309 38817 579792
+;;;;;;  39000))
 ;;; Generated autoloads from verify-url.el
 
 (autoload 'verify-url "verify-url" "\

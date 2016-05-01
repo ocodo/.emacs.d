@@ -1,11 +1,11 @@
 ;;; verify-url.el --- find out invalid urls in the buffer or region
 
-;; Copyright (C) 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2015 DarkSun <lujun9972@gmail.com>.
 
 ;; Author: DarkSun <lujun9972@gmail.com>
 ;; Created: 2015-12-21
 ;; Version: 0.1
-;; Package-Version: 20160202.2359
+;; Package-Version: 20160426.528
 ;; Keywords: convenience, usability, url
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; URL: https://github.com/lujun9972/verify-url
