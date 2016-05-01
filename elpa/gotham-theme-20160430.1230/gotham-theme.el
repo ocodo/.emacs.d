@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20160414.1135
+;; Package-Version: 20160430.1230
 ;; Version: 1.1.6
 
 ;; This file is NOT part of GNU Emacs.
@@ -528,6 +528,7 @@ depending on DISPLAY for keys which are either :foreground or
    (diff-hl-insert :foreground green)
 
    ;; dired-async
+   (dired-async-failures :foreground red)
    (dired-async-message :foreground yellow)
    (dired-async-mode-message :foreground orange)
 
