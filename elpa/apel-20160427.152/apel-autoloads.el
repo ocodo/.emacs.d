@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alist" "alist.el" (21594 57032 701235 56000))
+;;;### (autoloads nil "alist" "alist.el" (22309 39063 808179 570000))
 ;;; Generated autoloads from alist.el
 
 (autoload 'put-alist "alist" "\
@@ -50,8 +50,8 @@ See also `assoc'.
 
 ;;;***
 
-;;;### (autoloads nil "path-util" "path-util.el" (21594 57032 673235
-;;;;;;  56000))
+;;;### (autoloads nil "path-util" "path-util.el" (22309 39063 796179
+;;;;;;  552000))
 ;;; Generated autoloads from path-util.el
 
 (autoload 'add-path "path-util" "\
@@ -113,8 +113,8 @@ If PATHS is omitted, `load-path' is used.
 
 ;;;***
 
-;;;### (autoloads nil "richtext" "richtext.el" (21594 57032 597235
-;;;;;;  56000))
+;;;### (autoloads nil "richtext" "richtext.el" (22309 39063 772179
+;;;;;;  518000))
 ;;; Generated autoloads from richtext.el
 
 (autoload 'richtext-encode "richtext" "\
@@ -134,7 +134,7 @@ If PATHS is omitted, `load-path' is used.
 ;;;;;;  "invisible.el" "mcharset.el" "mcs-20.el" "mcs-e20.el" "mule-caesar.el"
 ;;;;;;  "pccl-20.el" "pccl.el" "pces-20.el" "pces-e20.el" "pces.el"
 ;;;;;;  "pcustom.el" "poe.el" "poem-e20.el" "poem-e20_3.el" "poem.el"
-;;;;;;  "product.el" "pym.el" "static.el") (21594 57032 719984 597000))
+;;;;;;  "product.el" "pym.el" "static.el") (22309 39063 814454 439000))
 
 ;;;***
 

@@ -110,7 +110,7 @@ Normally the return value is FEATURE."
 	  "\
 Extract a value from a property list.
 PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2...\).  This function returns the value
+(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
 corresponding to the given PROP, or nil if PROP is not
 one of the properties on the list."
 	  (setplist 'plist-get-internal-symbol plist)
@@ -145,10 +145,10 @@ one of the properties on the list."
 	  "\
 Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2 ...\).  PROP is a symbol and VAL is any object.
+(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
 If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
-use `\(setq x \(plist-put x prop val\)\)' to be sure to use the new value.
+use `(setq x (plist-put x prop val))' to be sure to use the new value.
 The PLIST is modified by side effects."
 	  (setplist 'plist-put-internal-symbol plist)
 	  (put 'plist-put-internal-symbol prop val)
@@ -1079,11 +1079,11 @@ If the replaced text has at least one word starting with a capital letter,
 then capitalize each word in NEWTEXT.
 
 If third arg LITERAL is non-nil, insert NEWTEXT literally.
-Otherwise treat `\' as special:
-  `\&' in NEWTEXT means substitute original matched text.
-  `\N' means substitute what matched the Nth `\(...\)'.
+Otherwise treat `\\' as special:
+  `\\&' in NEWTEXT means substitute original matched text.
+  `\\N' means substitute what matched the Nth `\\(...\\)'.
        If Nth parens didn't match, substitute nothing.
-  `\\' means insert one `\'.
+  `\\\\' means insert one `\\'.
 FIXEDCASE and LITERAL are optional arguments.
 Leaves point at end of replacement text.
 
@@ -1131,11 +1131,11 @@ If the replaced text has at least one word starting with a capital letter,
 then capitalize each word in NEWTEXT.
 
 If third arg LITERAL is non-nil, insert NEWTEXT literally.
-Otherwise treat `\' as special:
-  `\&' in NEWTEXT means substitute original matched text.
-  `\N' means substitute what matched the Nth `\(...\)'.
+Otherwise treat `\\' as special:
+  `\\&' in NEWTEXT means substitute original matched text.
+  `\\N' means substitute what matched the Nth `\\(...\\)'.
        If Nth parens didn't match, substitute nothing.
-  `\\' means insert one `\'.
+  `\\\\' means insert one `\\'.
 FIXEDCASE and LITERAL are optional arguments.
 Leaves point at end of replacement text.
 
@@ -1528,7 +1528,7 @@ Not fully compatible especially when invalid format is specified."
   "The default value of separators for `split-string'.
 
 A regexp matching strings of whitespace.  May be locale-dependent
-\(as yet unimplemented).  Should not match non-breaking spaces.
+(as yet unimplemented).  Should not match non-breaking spaces.
 
 Warning: binding this to a different value and using it as default is
 likely to have undesired semantics.")
@@ -1547,7 +1547,7 @@ which separates, but is not part of, the substrings.  If nil it defaults to
 `split-string-default-separators', normally \"[ \\f\\t\\n\\r\\v]+\", and
 OMIT-NULLS is forced to t.
 
-If OMIT-NULLS is t, zero-length substrings are omitted from the list \(so
+If OMIT-NULLS is t, zero-length substrings are omitted from the list (so
 that for the default value of SEPARATORS leading and trailing whitespace
 are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.
