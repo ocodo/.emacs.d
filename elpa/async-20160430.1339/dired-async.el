@@ -1,4 +1,4 @@
-;;; dired-async.el --- Copy/move/delete asynchronously in dired.
+;;; dired-async.el --- Asynchronous dired actions -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2016 Free Software Foundation, Inc.
 
@@ -44,7 +44,7 @@
 
 (eval-when-compile
   (defvar async-callback))
-(defvar dired-async-operation nil)
+;; (defvar dired-async-operation nil)
 
 (defgroup dired-async nil
   "Copy rename files asynchronously from dired."
@@ -72,6 +72,11 @@ Should take same args as `message'."
   "Face used for mode-line message."
   :group 'dired-async)
 
+(defface dired-async-failures
+    '((t (:foreground "red")))
+  "Face used for mode-line message."
+  :group 'dired-async)
+
 (defface dired-async-mode-message
     '((t (:foreground "Gold")))
   "Face used for `dired-async--modeline-mode' lighter."
@@ -87,7 +92,7 @@ Should take same args as `message'."
   (unless dired-async--modeline-mode
     (let ((visible-bell t)) (ding))))
 
-(defun dired-async-mode-line-message (text &rest args)
+(defun dired-async-mode-line-message (text face &rest args)
   "Notify end of operation in `mode-line'."
   (message nil)
   (let ((mode-line-format (concat
@@ -95,7 +100,7 @@ Should take same args as `message'."
                                 (if args
                                     (apply #'format text args)
                                     text)
-                                'face 'dired-async-message))))
+                                'face face))))
     (force-mode-line-update)
     (sit-for 3)
     (force-mode-line-update)))
@@ -110,17 +115,17 @@ Should take same args as `message'."
   (interactive)
   (let* ((processes (dired-async-processes))
          (proc (car (last processes))))
-    (delete-process proc)
+    (and proc (delete-process proc))
     (unless (> (length processes) 1)
       (dired-async--modeline-mode -1))))
 
-(defun dired-async-after-file-create (len-flist)
+(defun dired-async-after-file-create (total operation failures skipped)
   "Callback function used for operation handled by `dired-create-file'."
   (unless (dired-async-processes)
     ;; Turn off mode-line notification
     ;; only when last process end.
     (dired-async--modeline-mode -1))
-  (when dired-async-operation
+  (when operation
     (if (file-exists-p dired-async-log-file)
         (progn
           (pop-to-buffer (get-buffer-create "*dired async*"))
@@ -130,8 +135,25 @@ Should take same args as `message'."
           (delete-file dired-async-log-file))
         (run-with-timer
          0.1 nil
-         dired-async-message-function "Asynchronous %s of %s file(s) on %s file(s) done"
-         (car dired-async-operation) (cadr dired-async-operation) len-flist))))
+         (lambda ()
+           ;; First send error messages.
+           (cond (failures
+                  (funcall dired-async-message-function
+                           "%s failed for %d of %d file%s"
+                           'dired-async-failures
+                           (car operation) (length failures)
+                           total (dired-plural-s total)))
+                 (skipped
+                  (funcall dired-async-message-function
+                           "%s: %d of %d file%s skipped"
+                           'dired-async-failures
+                           (car operation) (length skipped) total
+                           (dired-plural-s total))))
+           ;; Finally send the success message.
+           (funcall dired-async-message-function
+                    "Asynchronous %s of %s file(s) on %s file(s) done"
+                    'dired-async-message
+                    (car operation) (cadr operation) total))))))
 
 (defun dired-async-maybe-kill-ftp ()
   "Return a form to kill ftp process in child emacs."
@@ -144,19 +166,16 @@ Should take same args as `message'."
                                        (buffer-name b)) b))))
        (when buf (kill-buffer buf))))))
 
+(defvar overwrite-query)
 (defun dired-async-create-files (file-creator operation fn-list name-constructor
-                                 &optional marker-char)
+                                 &optional _marker-char)
   "Same as `dired-create-files' but asynchronous.
 
 See `dired-create-files' for the behavior of arguments."
-  (setq dired-async-operation nil)
-  (let (dired-create-files-failures
-        failures async-fn-list
-        skipped (success-count 0)
-        (total (length fn-list))
-        callback)
-    (let (to overwrite-query
-             overwrite-backup-query)    ; for dired-handle-overwrite
+  (setq overwrite-query nil)
+  (let ((total (length fn-list))
+        failures async-fn-list skipped callback)
+    (let (to)
       (dolist (from fn-list)
         (setq to (funcall name-constructor from))
         (if (equal to from)
@@ -166,22 +185,16 @@ See `dired-create-files' for the behavior of arguments."
                          (downcase operation) from)))
         (if (not to)
             (setq skipped (cons (dired-make-relative from) skipped))
-            (let* ((overwrite (file-exists-p to))
+            (let* ((overwrite (and (null (eq file-creator 'backup-file))
+                                   (file-exists-p to)))
                    (dired-overwrite-confirmed ; for dired-handle-overwrite
                     (and overwrite
-                         (let ((help-form '(format "\
+                         (let ((help-form `(format "\
 Type SPC or `y' to overwrite file `%s',
 DEL or `n' to skip to next,
 ESC or `q' to not overwrite any of the remaining files,
-`!' to overwrite all remaining files with no more questions." to)))
-                           (dired-query 'overwrite-query
-                                        "Overwrite `%s'?" to))))
-                   ;; must determine if FROM is marked before file-creator
-                   ;; gets a chance to delete it (in case of a move).
-                   (actual-marker-char
-                    (cond  ((integerp marker-char) marker-char)
-                           (marker-char (dired-file-marker from)) ; slow
-                           (t nil))))
+`!' to overwrite all remaining files with no more questions." ,to)))
+                           (dired-query 'overwrite-query "Overwrite `%s'?" to)))))
               ;; Handle the `dired-copy-file' file-creator specially
               ;; When copying a directory to another directory or
               ;; possibly to itself or one of its subdirectories.
@@ -216,47 +229,68 @@ ESC or `q' to not overwrite any of the remaining files,
                         (dired-log "%s `%s' to `%s' failed"
                                    operation from to)))
                   (push (cons from to) async-fn-list)))))
+      ;; When async-fn-list is empty that's mean only one file
+      ;; had to be copied and user finally answer NO.
+      ;; In this case async process will never start and callback
+      ;; will have no chance to run, so notify failures here.
+      (unless async-fn-list
+        (cond (failures
+               (funcall dired-async-message-function
+                        "%s failed for %d of %d file%s"
+                        'dired-async-failures
+                        operation (length failures)
+                        total (dired-plural-s total)))
+              (skipped
+               (funcall dired-async-message-function
+                        "%s: %d of %d file%s skipped"
+                        'dired-async-failures
+                        operation (length skipped) total
+                        (dired-plural-s total)))))
+      ;; Setup callback.
       (setq callback
-            `(lambda (&optional ignore)
-               (dired-async-after-file-create ,total)
-               (when (string= ,(downcase operation) "rename")
-                 (cl-loop for (file . to) in ',async-fn-list
-                          do (and (get-file-buffer file)
-                                  (with-current-buffer (get-file-buffer file)
-                                    (set-visited-file-name to nil t))))))))
-    ;; Handle error happening in host emacs.
-    (cond
-      (dired-create-files-failures
-       (setq failures (nconc failures dired-create-files-failures))
-       (dired-log-summary
-        (format "%s failed for %d file%s in %d requests"
-                operation (length failures)
-                (dired-plural-s (length failures))
-                total)
-        failures))
-      (failures
-       (dired-log-summary
-        (format "%s failed for %d of %d file%s"
-                operation (length failures)
-                total (dired-plural-s total))
-        failures))
-      (skipped
-       (dired-log-summary
-        (format "%s: %d of %d file%s skipped"
-                operation (length skipped) total
-                (dired-plural-s total))
-        skipped))
-      (t (message "%s: %s file%s"
-                  operation success-count (dired-plural-s success-count))))
+            (lambda (&optional _ignore)
+               (dired-async-after-file-create
+                total (list operation (length async-fn-list)) failures skipped)
+               (when (string= (downcase operation) "rename")
+                 (cl-loop for (file . to) in async-fn-list
+                          for bf = (get-file-buffer file)
+                          do (and bf (with-current-buffer bf
+                                       (set-visited-file-name to nil t))))))))
     ;; Start async process.
     (when async-fn-list
       (async-start `(lambda ()
                       (require 'cl-lib) (require 'dired-aux) (require 'dired-x)
                       ,(async-inject-variables dired-async-env-variables-regexp)
                       (condition-case err
-                          (let ((dired-recursive-copies (quote always)))
-                            (cl-loop for (f . d) in (quote ,async-fn-list)
-                                     do (funcall (quote ,file-creator) f d t)))
+                          (let ((dired-recursive-copies (quote always))
+                                (dired-copy-preserve-time
+                                 ,dired-copy-preserve-time))
+                            (setq overwrite-backup-query nil)
+                            ;; Inline `backup-file' as long as it is not
+                            ;; available in emacs.
+                            (defalias 'backup-file
+                                ;; Same feature as "cp --backup=numbered from to"
+                                ;; Symlinks are copied as file from source unlike
+                                ;; `dired-copy-file' which is same as cp -d.
+                                ;; Directories are omitted.
+                                (lambda (from to ok)
+                                  (cond ((file-directory-p from) (ignore))
+                                        (t (let ((count 0))
+                                             (while (let ((attrs (file-attributes to)))
+                                                      (and attrs (null (nth 0 attrs))))
+                                               (cl-incf count)
+                                               (setq to (concat (file-name-sans-versions to)
+                                                                (format ".~%s~" count)))))
+                                           (condition-case err
+                                               (copy-file from to ok dired-copy-preserve-time)
+                                             (file-date-error
+                                              (push (dired-make-relative from)
+                                                    dired-create-files-failures)
+                                              (dired-log "Can't set date on %s:\n%s\n" from err)))))))
+                            ;; Now run the FILE-CREATOR function on files.
+                            (cl-loop with fn = (quote ,file-creator)
+                                     for (from . dest) in (quote ,async-fn-list)
+                                     do (funcall fn from dest t)))
                         (file-error
                          (with-temp-file ,dired-async-log-file
                            (insert (format "%S" err)))))
@@ -264,7 +298,6 @@ ESC or `q' to not overwrite any of the remaining files,
                    callback)
       ;; Run mode-line notifications while process running.
       (dired-async--modeline-mode 1)
-      (setq dired-async-operation (list operation (length async-fn-list)))
       (message "%s proceeding asynchronously..." operation))))
 
 (defadvice dired-create-files (around dired-async)

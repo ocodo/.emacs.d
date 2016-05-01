@@ -1,4 +1,4 @@
-;;; async-bytecomp.el --- Async functions to compile elisp files async
+;;; async-bytecomp.el --- Compile elisp files asynchronously -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
 
@@ -65,27 +65,27 @@ All *.elc files are systematically deleted before proceeding."
   ;; This happen when recompiling its own directory.
   (load "async")
   (let ((call-back
-         `(lambda (&optional ignore)
-            (if (file-exists-p async-byte-compile-log-file)
-                (let ((buf (get-buffer-create byte-compile-log-buffer))
-                      (n 0))
-                  (with-current-buffer buf
-                    (goto-char (point-max))
-                    (let ((inhibit-read-only t))
-                      (insert-file-contents async-byte-compile-log-file)
-                      (compilation-mode))
-                    (display-buffer buf)
-                    (delete-file async-byte-compile-log-file)
-                    (unless ,quiet
-                      (save-excursion
-                        (goto-char (point-min))
-                        (while (re-search-forward "^.*:Error:" nil t)
-                          (cl-incf n)))
-                      (if (> n 0)
-                          (message "Failed to compile %d files in directory `%s'" n ,directory)
-                          (message "Directory `%s' compiled asynchronously with warnings" ,directory)))))
-                (unless ,quiet
-                  (message "Directory `%s' compiled asynchronously with success" ,directory))))))
+         (lambda (&optional _ignore)
+           (if (file-exists-p async-byte-compile-log-file)
+               (let ((buf (get-buffer-create byte-compile-log-buffer))
+                     (n 0))
+                 (with-current-buffer buf
+                   (goto-char (point-max))
+                   (let ((inhibit-read-only t))
+                     (insert-file-contents async-byte-compile-log-file)
+                     (compilation-mode))
+                   (display-buffer buf)
+                   (delete-file async-byte-compile-log-file)
+                   (unless quiet
+                     (save-excursion
+                       (goto-char (point-min))
+                       (while (re-search-forward "^.*:Error:" nil t)
+                         (cl-incf n)))
+                     (if (> n 0)
+                         (message "Failed to compile %d files in directory `%s'" n directory)
+                         (message "Directory `%s' compiled asynchronously with warnings" directory)))))
+               (unless quiet
+                 (message "Directory `%s' compiled asynchronously with success" directory))))))
     (async-start
      `(lambda ()
         (require 'bytecomp)
