@@ -808,7 +808,7 @@ If COUNT is not specified the function uses
 `evil-scroll-line-count', which is the last used count."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (progn
     (setq count (or count evil-scroll-line-count))
     (setq evil-scroll-line-count count)
@@ -820,7 +820,7 @@ If COUNT is not specified the function uses
 `evil-scroll-line-count', which is the last used count."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (progn
     (setq count (or count evil-scroll-line-count))
     (setq evil-scroll-line-count count)
@@ -842,7 +842,7 @@ If COUNT is not specified the function scrolls down
 If the scroll count is zero the command scrolls half the screen."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (evil-save-column
     (setq count (or count (max 0 evil-scroll-count)))
     (setq evil-scroll-count count)
@@ -867,33 +867,37 @@ If COUNT is not specified the function scrolls down
 If the scroll count is zero the command scrolls half the screen."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (evil-save-column
     (setq count (or count (max 0 evil-scroll-count)))
     (setq evil-scroll-count count)
     (when (eobp) (signal 'end-of-buffer nil))
     (when (zerop count)
       (setq count (/ (1- (window-height)) 2)))
-    (let ((xy (posn-x-y (posn-at-point))))
-      (condition-case nil
-          (progn
-            (scroll-up count)
-            (let* ((wend (window-end nil t))
-                   (p (posn-at-x-y (car xy) (cdr xy)))
-                   (margin (max 0 (- scroll-margin
-                                     (cdr (posn-col-row p))))))
-              (goto-char (posn-point p))
-              ;; ensure point is not within the scroll-margin
-              (when (> margin 0)
-                (with-no-warnings (next-line margin))
-                (recenter scroll-margin))
-              (when (<= (point-max) wend)
-                (save-excursion
-                  (goto-char (point-max))
-                  (recenter (- (max 1 scroll-margin)))))))
-        (end-of-buffer
-         (goto-char (point-max))
-         (recenter (- (max 1 scroll-margin))))))))
+    ;; BUG #660: First check whether the eob is visible.
+    ;; In that case we do not scroll but merely move point.
+    (if (<= (point-max) (window-end))
+        (with-no-warnings (next-line count nil))
+      (let ((xy (posn-x-y (posn-at-point))))
+        (condition-case nil
+            (progn
+              (scroll-up count)
+              (let* ((wend (window-end nil t))
+                     (p (posn-at-x-y (car xy) (cdr xy)))
+                     (margin (max 0 (- scroll-margin
+                                       (cdr (posn-col-row p))))))
+                (goto-char (posn-point p))
+                ;; ensure point is not within the scroll-margin
+                (when (> margin 0)
+                  (with-no-warnings (next-line margin))
+                  (recenter scroll-margin))
+                (when (<= (point-max) wend)
+                  (save-excursion
+                    (goto-char (point-max))
+                    (recenter (- (max 1 scroll-margin)))))))
+          (end-of-buffer
+           (goto-char (point-max))
+           (recenter (- (max 1 scroll-margin)))))))))
 
 (evil-define-command evil-scroll-page-up (count)
   "Scrolls the window COUNT pages upwards."
@@ -927,7 +931,7 @@ If the scroll count is zero the command scrolls half the screen."
   "Scrolls line number COUNT (or the cursor line) to the top of the window."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (evil-save-column
     (let ((line (or count (line-number-at-pos (point)))))
       (goto-char (point-min))
@@ -938,7 +942,7 @@ If the scroll count is zero the command scrolls half the screen."
   "Scrolls line number COUNT (or the cursor line) to the center of the window."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (evil-save-column
     (when count
       (goto-char (point-min))
@@ -949,7 +953,7 @@ If the scroll count is zero the command scrolls half the screen."
   "Scrolls line number COUNT (or the cursor line) to the bottom of the window."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (evil-save-column
     (let ((line (or count (line-number-at-pos (point)))))
       (goto-char (point-min))
@@ -961,7 +965,7 @@ If the scroll count is zero the command scrolls half the screen."
 or line COUNT to the top of the window."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (if count
       (progn
         (goto-char (point-min))
@@ -976,7 +980,7 @@ or line COUNT to the top of the window."
 or line COUNT to the top of the window."
   :repeat nil
   :keep-visual t
-  (interactive "P")
+  (interactive "<c>")
   (if count
       (progn
         (goto-char (point-min))
@@ -2730,7 +2734,7 @@ Acts like `first-error' other than when given no counts, goes
 to the current error instead of the first, like in Vim's :cc
 command."
   :repeat nil
-  (interactive "P")
+  (interactive "<c>")
   (if count
       (first-error (if (eql 0 count) 1 count))
     (next-error 0)))
@@ -3739,7 +3743,7 @@ is different from the current one."
 With COUNT go to the count-th window in the order starting from
 top-left."
   :repeat nil
-  (interactive "P")
+  (interactive "<c>")
   (if (not count)
       (select-window (next-window))
     (evil-window-top-left)
@@ -3750,7 +3754,7 @@ top-left."
 With COUNT go to the count-th window in the order starting from
 top-left."
   :repeat nil
-  (interactive "P")
+  (interactive "<c>")
   (if (not count)
       (select-window (previous-window))
     (evil-window-top-left)
@@ -3829,13 +3833,13 @@ and opens a new buffer name or edits a certain FILE."
 (evil-define-command evil-window-set-height (count)
   "Sets the height of the current window to COUNT."
   :repeat nil
-  (interactive "P")
+  (interactive "<c>")
   (evil-resize-window (or count (frame-height)) nil))
 
 (evil-define-command evil-window-set-width (count)
   "Sets the width of the current window to COUNT."
   :repeat nil
-  (interactive "P")
+  (interactive "<c>")
   (evil-resize-window (or count (frame-width)) t))
 
 (evil-define-command evil-ex-resize (arg)

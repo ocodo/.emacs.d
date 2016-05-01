@@ -432,21 +432,32 @@ before point."
   :group 'evil
   :set #'(lambda (sym value)
            (set-default sym value)
-           (when (boundp 'evil-motion-state-map)
+           (when (boundp 'evil-insert-state-map)
              (cond
               ((and (not value)
-                    (eq (lookup-key evil-motion-state-map (kbd "C-w"))
+                    (eq (lookup-key evil-insert-state-map (kbd "C-w"))
                         'evil-delete-backward-word))
-               (define-key evil-motion-state-map (kbd "C-w") 'evil-window-map))
+               (define-key evil-insert-state-map (kbd "C-w") 'evil-window-map))
               ((and value
-                    (eq (lookup-key evil-motion-state-map (kbd "C-w"))
+                    (eq (lookup-key evil-insert-state-map (kbd "C-w"))
                         'evil-window-map))
-               (define-key evil-motion-state-map (kbd "C-w") 'evil-delete-backward-word))))))
+               (define-key evil-insert-state-map (kbd "C-w") 'evil-delete-backward-word))))))
 
 (defcustom evil-want-C-w-in-emacs-state nil
   "Whether \"C-w\" prefixes windows commands in Emacs state."
   :type 'boolean
-  :group 'evil)
+  :group 'evil
+  :set #'(lambda (sym value)
+           (set-default sym value)
+           (when (boundp 'evil-emacs-state-map)
+             (cond
+              ((and (not value)
+                    (eq (lookup-key evil-emacs-state-map (kbd "C-w"))
+                        'evil-window-map))
+               (define-key evil-emacs-state-map (kbd "C-w") nil))
+              ((and value
+                    (not (lookup-key evil-emacs-state-map (kbd "C-w"))))
+               (define-key evil-emacs-state-map (kbd "C-w") 'evil-window-map))))))
 
 (defcustom evil-want-change-word-to-end t
   "Whether \"cw\" behaves like \"ce\"."
