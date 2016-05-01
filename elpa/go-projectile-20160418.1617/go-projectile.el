@@ -4,10 +4,10 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20160223.2135
+;; Package-Version: 20160418.1617
 ;; Keywords: project, convenience
-;; Version: 0.1.0
-;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0"))
+;; Version: 0.1.1
+;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0") (go-guru "0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -48,8 +48,8 @@
 Choices are 'always, 'maybe to update only if buffer is not in the
 current GOPATH, or 'never to leave GOPATH untouched."
   :type '(choice (const always)
-		 (const maybe)
-		 (const never))
+                 (const maybe)
+                 (const never))
   :group 'projectile)
 
 (defvar go-projectile-files-ignore
@@ -70,14 +70,8 @@ current GOPATH, or 'never to leave GOPATH untouched."
     (goimports . "golang.org/x/tools/cmd/goimports")
     (gorename  . "golang.org/x/tools/cmd/gorename")
     (gomvpkg   . "golang.org/x/tools/cmd/gomvpkg")
-    (oracle    . "golang.org/x/tools/cmd/oracle"))
+    (guru      . "golang.org/x/tools/cmd/guru"))
   "Import paths for Go tools.")
-
-(defun go-projectile-tools-load-oracle ()
-  "Load go-oracle."
-  (require 'go-oracle (concat go-projectile-tools-path "/src/"
-                              (cdr (assq 'oracle go-projectile-tools))
-                              "/oracle.el") t))
 
 (defun go-projectile-tools-add-path ()
   "Add go-projectile-tools-path to `exec-path' and friends."
@@ -85,8 +79,7 @@ current GOPATH, or 'never to leave GOPATH untouched."
     (unless (member path exec-path)
       (add-to-list 'exec-path path)
       (setenv "PATH" (concat (getenv "PATH") path-separator path))
-      (setq go-oracle-command (concat path "/oracle"))
-      (add-hook 'go-mode-hook 'go-projectile-tools-load-oracle)
+      (setq go-guru-command (concat path "/guru"))
       (setq go-rename-command (concat path "/gorename")))))
 
 (defun go-projectile-get-tools (&optional flag)
@@ -176,6 +169,7 @@ PATH defaults to GOPATH via getenv, used to determine if buffer is in current GO
 
 (defun go-projectile-mode ()
   "Hook for `go-mode-hook' to set Go projectile related key bindings."
+  (require 'go-guru)
   (go-projectile-set-local-keys))
 
 (defun go-projectile-switch-project ()
