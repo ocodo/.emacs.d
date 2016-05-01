@@ -1,13 +1,13 @@
 ;;; gruvbox-theme.el --- A retro-groove colour theme for Emacs
 
 ;; Copyright (c) 2013 Lee Machin
-;; Copyright (c) 2013-2015 Greduan
+;; Copyright (c) 2013-2016 Greduan
 
 ;; Authors: Lee Machin <ljmachin@gmail.com>
 ;;          Greduan <me@greduan.com>
 ;; Maintainer: jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Package-Version: 20151227.113
+;; Package-Version: 20160429.1551
 ;; Version: 0.16
 
 ;;; Commentary:
