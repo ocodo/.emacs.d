@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22200 34524 861356 478000))
+;;;### (autoloads nil "dired+" "dired+.el" (22309 39015 860108 634000))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -244,9 +244,13 @@ buffer, then its `default-directory' is the same as the
 
 If you use a non-positive prefix arg, then you can next choose
 additional file and directory names to add to the listing.  Use `C-g'
-when done choosing them.  Any directory names you choose this way are
-included as single entries in the listing - the directory contents are
-not included (these directories are not unioned).
+when done choosing them.
+
+Any directory names you choose this way are included as single entries
+in the listing - the directory contents are not included (these
+directories are not unioned).  To instead include the contents of a
+directory chosen this way, use a glob pattern: `/*' after the
+directory name.
 
 You are then prompted for the Dired buffers to union.  Use `C-g' when
 done choosing them.  These Dired listings to union are included in the
@@ -259,6 +263,8 @@ case of conflict between marked or unmarked status for the same entry,
 the entry is marked.  Similarly, in case of conflict over an included
 subdirectory between it being hidden or shown, it is hidden, but its
 contained files are also listed.
+
+See also command `diredp-add-to-dired-buffer'.
 
 From Lisp:
  DIRED-NAME is the name of the resulting Dired union buffer.
@@ -277,9 +283,13 @@ The buffer must either not exist yet or must list arbitrary file and
 directory names.  That is, it cannot be an ordinary Dired directory
 listing - those cannot be modified.
 
-If you want to include a directory listing (ordinary or of arbitrary
-file names), and not just add a line for a directory name, then use
-command `diredp-dired-union' instead.
+Any directory names you choose this way are included as single entries
+in the listing - the directory contents are not included (these
+directories are not unioned).  To instead include the contents of a
+directory chosen this way, use a glob pattern: `/*' after the
+directory name.
+
+See also command `diredp-dired-union'.
 
 From Lisp:
  DIRED-NAME is the name of the Dired buffer to modify.
@@ -1391,7 +1401,8 @@ in this case there is no buffer reuse.
 \(fn &optional OTHER-WINDOW)" t nil)
 
 (autoload 'diredp-next-line "dired+" "\
-Move down lines then position at filename.
+Move down lines then position cursor at filename.
+If `goal-column' is non-nil then put the cursor at that column.
 Optional prefix ARG says how many lines to move; default is one line.
 
 If `diredp-wrap-around-flag' is non-nil then wrap around if none is
@@ -1401,7 +1412,8 @@ Otherwise, just move to the buffer limit.
 \(fn ARG)" t nil)
 
 (autoload 'diredp-previous-line "dired+" "\
-Move up lines then position at filename.
+Move up lines then position cursor at filename.
+If `goal-column' is non-nil then put the cursor at that column.
 Optional prefix ARG says how many lines to move; default is one line.
 
 If `diredp-wrap-around-flag' is non-nil then wrap around if none is
