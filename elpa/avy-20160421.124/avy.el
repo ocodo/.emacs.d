@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20160414.415
+;; Package-Version: 20160421.124
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -454,9 +454,10 @@ multiple DISPLAY-FN invokations."
         (t
          (error "Unrecognized option: %S" avy-all-windows))))
 
-(defcustom avy-all-windows-alt t
+(defcustom avy-all-windows-alt nil
   "The alternative `avy-all-windows' for use with \\[universal-argument]."
   :type '(choice
+          (const :tag "Current window" nil)
           (const :tag "All windows on the current frame" t)
           (const :tag "All windows on all frames" all-frames)))
 
