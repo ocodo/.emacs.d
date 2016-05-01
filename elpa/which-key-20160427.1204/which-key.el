@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20160410.1207
-;; Version: 1.1.4
+;; Package-Version: 20160427.1204
+;; Version: 1.1.7
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -68,7 +68,11 @@ this behavior."
   :group 'which-key
   :type 'float)
 
-(defcustom which-key-echo-keystrokes 0
+(defcustom which-key-echo-keystrokes (if (and echo-keystrokes
+                                              (> echo-keystrokes
+                                                 which-key-idle-delay))
+                                         (/ (float which-key-idle-delay) 4)
+                                       echo-keystrokes)
   "Value to use for `echo-keystrokes'.
 This only applies if `which-key-popup-type' is minibuffer or
 `which-key-show-prefix' is echo. It needs to be less than
@@ -327,21 +331,6 @@ prefixes in `which-key-paging-prefixes'"
                         "No longer applies. See `which-key-C-h-dispatch'"
                         "2015-12-2")
 
-(defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
-  "Allow popup to show for evil operators. The popup is normally
-  inhibited in the middle of commands, but setting this to
-  non-nil will override this behavior for evil operators."
-  :group 'which-key
-  :type 'boolean)
-
-(defcustom which-key-show-operator-state-maps nil
-  "Experimental: Try to show the right keys following an evil
-command that reads a motion, such as \"y\", \"d\" and \"c\" from
-normal state. This is experimental, because there might be some
-valid keys missing and it might be showing some invalid keys."
-  :group 'which-key
-  :type 'boolean)
-
 (defcustom which-key-hide-alt-key-translations t
   "Hide key translations using Alt key if non nil.
 These translations are not relevant most of the times since a lot
@@ -437,6 +426,10 @@ to a non-nil value for the execution of a command. Like this
 \(let \(\(which-key-inhibit t\)\)
 ...\)")
 
+(defvar which-key-keymap-history nil
+  "History of keymap selections in functions like
+`which-key-show-keymap'.")
+
 ;; Internal Vars
 (defvar which-key--buffer nil
   "Internal: Holds reference to which-key buffer.")
@@ -498,6 +491,57 @@ sequence. prefix-title is a string. The title is displayed
 alongside the actual current key sequence when
 `which-key-show-prefix' is set to either top or echo.")
 
+
+;; Third-party library support
+
+;; Evil
+(defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
+  "Allow popup to show for evil operators. The popup is normally
+  inhibited in the middle of commands, but setting this to
+  non-nil will override this behavior for evil operators."
+  :group 'which-key
+  :type 'boolean)
+
+(defcustom which-key-show-operator-state-maps nil
+  "Experimental: Try to show the right keys following an evil
+command that reads a motion, such as \"y\", \"d\" and \"c\" from
+normal state. This is experimental, because there might be some
+valid keys missing and it might be showing some invalid keys."
+  :group 'which-key
+  :type 'boolean)
+
+;; God-mode
+(defvar which-key--god-mode-support-enabled nil
+  "Support god-mode if non-nil. This is experimental,
+so you need to explicitly opt-in for now. Please report any
+problems at github.")
+
+(defvar which-key--god-mode-key-string nil
+  "Holds key string to use for god-mode support.")
+
+(defadvice god-mode-lookup-command
+    (around which-key--god-mode-lookup-command-advice disable)
+  (setq which-key--god-mode-key-string (ad-get-arg 0))
+  (unwind-protect
+      ad-do-it
+    (when (bound-and-true-p which-key-mode)
+      (which-key--hide-popup))))
+
+(defun which-key-enable-god-mode-support (&optional disable)
+  "Enable support for god-mode if non-nil. This is experimental,
+so you need to explicitly opt-in for now. Please report any
+problems at github. If DISABLE is non-nil disable support."
+  (interactive "P")
+  (setq which-key--god-mode-support-enabled (null disable))
+  (if disable
+      (ad-disable-advice
+       'god-mode-lookup-command
+       'around 'which-key--god-mode-lookup-command-advice)
+    (ad-enable-advice
+     'god-mode-lookup-command
+     'around 'which-key--god-mode-lookup-command-advice))
+  (ad-activate 'god-mode-lookup-command))
+
 ;;;###autoload
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
@@ -553,7 +597,7 @@ alongside the actual current key sequence when
 
 (defun which-key--setup ()
   "Initial setup for which-key.
-Reduce `echo-keystrokes' if necessary (it will interfer if it's
+Reduce `echo-keystrokes' if necessary (it will interfere if it's
 set too high) and setup which-key buffer."
   (when (or (eq which-key-show-prefix 'echo)
             (eq which-key-popup-type 'minibuffer))
@@ -564,7 +608,7 @@ set too high) and setup which-key buffer."
   (setq which-key--is-setup t))
 
 (defun which-key--setup-echo-keystrokes ()
-  "Reduce `echo-keystrokes' if necessary (it will interfer if
+  "Reduce `echo-keystrokes' if necessary (it will interfere if
 it's set too high)."
   (let (;(previous echo-keystrokes)
         )
@@ -1922,7 +1966,7 @@ is selected interactively from all available keymaps."
                         (and (boundp m)
                              (keymapp (symbol-value m))
                              (not (equal (symbol-value m) (make-sparse-keymap)))))
-                      t nil 'variable-name-history))))
+                      t nil 'which-key-keymap-history))))
     (which-key--show-keymap (symbol-name keymap-sym) (symbol-value keymap-sym))))
 
 (defun which-key-show-minor-mode-keymap ()
@@ -1939,7 +1983,7 @@ is selected interactively by mode in `minor-mode-map-alist'."
                       (and (symbol-value (car entry))
                            (not (equal (cdr entry) (make-sparse-keymap)))))
                     minor-mode-map-alist))
-           nil t nil 'variable-name-history))))
+           nil t nil 'which-key-keymap-history))))
     (which-key--show-keymap (symbol-name mode-sym)
                             (cdr (assq mode-sym minor-mode-map-alist)))))
 
@@ -2051,6 +2095,11 @@ Finally, show the buffer."
               (error (progn
                        (message "which-key error in key-chord handling")
                        [key-chord])))))
+    (when (and which-key--god-mode-support-enabled
+               (bound-and-true-p god-local-mode)
+               (eq this-command 'god-mode-self-insert))
+      (setq prefix-keys (when which-key--god-mode-key-string
+                          (kbd which-key--god-mode-key-string))))
     (cond ((and (> (length prefix-keys) 0)
                 (or (keymapp (key-binding prefix-keys))
                     ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
@@ -2064,6 +2113,9 @@ Finally, show the buffer."
                 ;; executed
                 (or (and which-key-allow-evil-operators
                          (bound-and-true-p evil-this-operator))
+                    (and which-key--god-mode-support-enabled
+                         (bound-and-true-p god-local-mode)
+                         (eq this-command 'god-mode-self-insert))
                     (null this-command)))
            (which-key--create-buffer-and-show prefix-keys)
            (when which-key-idle-secondary-delay
