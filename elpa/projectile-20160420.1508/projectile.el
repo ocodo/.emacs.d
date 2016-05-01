@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160404.2251
+;; Package-Version: 20160420.1508
 ;; Keywords: project, convenience
 ;; Version: 0.14.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -353,6 +353,7 @@ containing a root file."
     ".svn"
     ".stack-work")
   "A list of directories globally ignored by projectile."
+  :safe (lambda (x) (not (remq t (mapcar #'stringp x))))
   :group 'projectile
   :type '(repeat string))
 
