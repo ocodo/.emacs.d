@@ -6,7 +6,7 @@
 ;;          Peter Vasil <mail@petervasil.net>
 ;; Version: 0.9.1
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((emacs "24") (f "0.17.1") (dash "1.2.0") (deferred "0.3.2") (popup "0.5.0") (cl-lib "0.5") (let-alist "1.0.4"))
+;; Package-Requires: ((emacs "24.3") (dash "2.12.0") (deferred "0.3.2") (popup "0.5.0") (cl-lib "0.5") (let-alist "1.0.4") (request "0.2.0") (request-deferred "0.2.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -112,15 +112,10 @@
 (require 'hmac-def)
 (require 'json)
 (require 'popup)
-;; (require 'request)
-;; (require 'request-deferred)
+(require 'request)
+(require 'request-deferred)
 (require 'etags)
 
-;; Allow loading of our bundled third-party modules
-(add-to-list 'load-path (f-join (f-dirname (f-this-file)) "third-party"))
-
-(require 'ycmd-request)
-(require 'ycmd-request-deferred)
 
 (defgroup ycmd nil
   "a ycmd emacs client"
@@ -1381,8 +1376,7 @@ Consider reporting this.")
                (y-or-n-p (format "Load YCMD extra conf %s? " conf-file)))
           (setq location "/load_extra_conf_file")
         (setq location "/ignore_extra_conf_file"))
-      (deferred:sync!
-        (ycmd--request location `((filepath . ,conf-file))))
+      (ycmd--request location `((filepath . ,conf-file)) :sync t)
       (ycmd--report-status 'unparsed)
       (ycmd-notify-file-ready-to-parse))))
 
@@ -1450,19 +1444,6 @@ functions in `ycmd-file-parse-result-hook'."
           (lambda (err)
             (message "Error sending notification request: %s" err)
             (ycmd--report-status 'errored)))))))
-
-(defun ycmd-display-raw-file-parse-results ()
-  "Request file-parse results and display them in a buffer in raw form.
-
-This is primarily a debug/developer tool."
-  (interactive)
-  (let ((ycmd-file-parse-result-hook
-         `(lambda (content)
-            (pop-to-buffer "*ycmd-file-ready*")
-            (erase-buffer)
-            (insert (pp-to-string content)))))
-    (deferred:sync!
-      (ycmd-notify-file-ready-to-parse))))
 
 (defun ycmd-major-mode-to-file-types (mode)
   "Map a major mode MODE to a list of file-types suitable for ycmd.
@@ -1646,6 +1627,13 @@ nil, this uses the current buffer."
   "If non-nil, http content will be logged.
 This is useful for debugging.")
 
+(defun ycmd-toggle-log-enabled ()
+  "Toggle `ycmd--log-enabled' variable."
+  (interactive)
+  (let ((log-enabled (not ycmd--log-enabled)))
+    (message "Ycmd Log %s" (if log-enabled "enabled" "disabled"))
+    (setq ycmd--log-enabled log-enabled)))
+
 (defun ycmd--log-content (header content)
   "Insert log with HEADER and CONTENT in a buffer."
   (when ycmd--log-enabled
@@ -1727,35 +1715,34 @@ anything like that.)
   (let* ((url-show-status (not ycmd-hide-url-status))
          (url-proxy-services (unless ycmd-bypass-url-proxy-services
                                url-proxy-services))
-         (ycmd-request-backend 'url-retrieve)
+         (request-backend 'url-retrieve)
          (content (json-encode content))
          (hmac (ycmd--get-request-hmac type location content))
          (encoded-hmac (base64-encode-string hmac 't))
          (url (format "http://%s:%s%s"
                       ycmd-host ycmd--server-actual-port location))
          (headers `(("Content-Type" . "application/json")
-                    ("X-Ycm-Hmac" . ,encoded-hmac))))
+                    ("X-Ycm-Hmac" . ,encoded-hmac)))
+         (response-fn (lambda (response)
+                        (let ((data (request-response-data response)))
+                          (ycmd--log-content "HTTP RESPONSE CONTENT" data)
+                          data))))
     (ycmd--log-content "HTTP REQUEST CONTENT" content)
 
     (if sync
         (let (result)
-          (ycmd-request
+          (request
            url :headers headers :parser parser :data content :type type
            :sync t
-           :success
-           (cl-function
-            (lambda (&key data &allow-other-keys)
-              (ycmd--log-content "HTTP RESPONSE CONTENT" data)
-              (setq result data))))
+           :complete
+           (lambda (&rest args)
+             (setq result (funcall response-fn (plist-get args :response)))))
           result)
       (deferred:$
-        (ycmd-request-deferred
+        (request-deferred
          url :headers headers :parser parser :data content :type type)
         (deferred:nextc it
-          (lambda (req)
-            (let ((content (ycmd-request-response-data req)))
-              (ycmd--log-content "HTTP RESPONSE CONTENT" content)
-              content)))))))
+          response-fn)))))
 
 (provide 'ycmd)
 
