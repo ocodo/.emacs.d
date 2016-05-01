@@ -4,8 +4,9 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Version: 0.7.0
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Version: 20160428.848
+;; Version: 0.8.0
+;; Package-Requires: ((emacs "24.1") (ivy "0.8.0"))
 ;; Keywords: matching
 
 ;; This file is part of GNU Emacs.
@@ -412,7 +413,6 @@ line numbers. For the buffer, use `ivy--regex' instead."
 (defun swiper--ivy (candidates &optional initial-input)
   "Select one of CANDIDATES and move there.
 When non-nil, INITIAL-INPUT is the initial search pattern."
-  (interactive)
   (swiper--init)
   (setq swiper-invocation-face
         (plist-get (text-properties-at (point)) 'face))
@@ -677,7 +677,8 @@ Run `swiper' for those buffers."
                      (1- len) len 'display
                      (concat
                       (make-string
-                       (- ww (string-width s) (length (buffer-name)) 3)
+                       (max 0
+                            (- ww (string-width s) (length (buffer-name)) 3))
                        ?\ )
                       (buffer-name))
                      s)
