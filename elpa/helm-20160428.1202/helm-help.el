@@ -355,6 +355,15 @@ and then run your copy action.
 You can do the same but with \"**.el\" (note the two stars),
 this will select recursively all \".el\" files under current directory.
 
+Note that when copying recursively files, you may have files with same name
+dispatched in the different subdirectories, so when copying them in the same directory
+they would be overwrited. To avoid this helm have a special action called \"backup files\"
+that have the same behavior as the command line \"cp --backup=numbered\", it allows you
+copying for example many *.jpg files with the same name from different
+subdirectories in one directory.
+Files with same name are renamed like this: \"foo.txt.~1~\".
+NOTE: This command is available only when `dired-async-mode' is used.
+
 NOTE: When using an action that involve an external backend (e.g. grep), using \"**\"
 is not advised (even if it works fine) because it will be slower to select all your files,
 you have better time letting the backend doing it, it will be faster.
@@ -362,9 +371,12 @@ However, if you know you have not many files it is reasonable to use this,
 also using not recursive wilcard (e.g. \"*.el\") is perfectly fine for this.
 
 This feature (\"**\") is activated by default with the option `helm-file-globstar'.
-The directory selection with \"**foo/\" like bash shopt globstar option is not supported yet.
+It is different than the bash shopt globstar feature in that to list files with a named extension
+recursively you just have to specify e.g \"**.el\" whereas in bash you have to specify \"**/*.el\"
+which is not convenient as \"**.el\".
+The directory selection with \"**/\" like bash shopt globstar option is not supported yet.
 
-*** Query replace on filenames
+*** Query replace regexp on filenames
 
 You can rename your files by replacing only part of filenames matching
 a regexp.
@@ -373,6 +385,36 @@ e.g Rename recursively all files with \".JPG\" extension to \".jpg\":
 Use the helm-file-globstar feature described in previous section by
 entering at end of helm-find-files pattern \"**.JPG\", then hit `M-%`,
 at first prompt enter \"JPG\", at second \"jpg\" and hit `RET`.
+
+Shortcut for basename without extension, only extension or all are available:
+
+- Basename without extension => \"%.\"
+- Only extension             => \".%\"
+- All                        => \"%\"
+
+So in the example above you could do instead:
+At first prompt enter \".%\", at second \"jpg\" and hit `RET`.
+Note that when using this instead of using \"JPG\" at first prompt, all extensions
+will be renamed to \"jpg\" even if the extension of one of the files is e.g \"png\".
+
+If you want to rename a serie of files from number 001 to 00x use \\# inside the replacement
+string when you will be prompted for it.
+
+e.g To rename the files \"foo.jpg\" \"bar.jpg\" and \"baz.jpg\"
+    to \"foo-001.jpg\" \"foo-002.jpg\" \"foo-003.jpg\"
+
+Use as replace regexp \"%.\" and as replacement string \"foo-\\#\".
+Where \"%.\" is same as regexp \".*\\.jpg\".
+
+Note: You can do this with the serial renames actions you will find in the action menu
+      for more sophisticated renaming, but using query replace regexp on filenames
+      is a fast way for most common serial replacements.
+
+Note also that unlike the serial rename actions the renamed files stay in their initial directory
+and are not renamed to current directory, IOW use this (\\#) to rename files inside current directory.
+
+In the second prompt (replace regexp with) shortcut for `upcase', `downcase' and `capitalize'
+are available, respectively `%u', `%d' and `%c'.
 
 *** Copying renaming asynchronously
 
