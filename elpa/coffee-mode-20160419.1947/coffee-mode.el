@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Chris Wanstrath
 
 ;; Version: 0.6.3
-;; Package-Version: 20160328.2356
+;; Package-Version: 20160419.1947
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
 ;; URL: http://github.com/defunkt/coffee-mode
@@ -38,6 +38,9 @@
 (require 'rx)
 
 (require 'cl-lib)
+
+(declare-function tramp-file-name-localname "tramp")
+(declare-function tramp-dissect-file-name "tramp")
 
 ;;
 ;; Customizable Variables
@@ -148,6 +151,8 @@ a buffer or region."
     map)
   "Keymap for CoffeeScript major mode.")
 
+(defvar coffee--process nil)
+
 ;;
 ;; Commands
 ;;
@@ -223,8 +228,11 @@ See `coffee-compile-jump-to-error'."
          (basename (file-name-sans-extension input))
          (output (when (string-match-p "\\.js\\'" basename) ;; for Rails '.js.coffee' file
                    basename))
-         (compile-cmd (coffee-command-compile input output))
-         (compiler-output (shell-command-to-string compile-cmd)))
+         (compile-args (coffee-command-compile input output))
+         (compiler-output (with-temp-buffer
+                            (unless (zerop (apply #'process-file coffee-command nil t nil compile-args))
+                              (error "Failed: %s %s" coffee-command compile-args))
+                            (buffer-substring-no-properties (point-min) (point-max)))))
     (if (string= compiler-output "")
         (let ((file-name (coffee-compiled-file-name (buffer-file-name))))
           (message "Compiled and saved %s" (or output (concat basename ".js")))
@@ -262,6 +270,7 @@ called `coffee-compiled-buffer-name'."
 (defun coffee-compile-sentinel (buffer file line column)
   (lambda (proc _event)
     (when (eq (process-status proc) 'exit)
+      (setq coffee--process nil)
       (coffee-save-window-if (not coffee-switch-to-compile-buffer)
         (pop-to-buffer (get-buffer coffee-compiled-buffer-name))
         (ansi-color-apply-on-region (point-min) (point-max))
@@ -289,7 +298,8 @@ called `coffee-compiled-buffer-name'."
       (with-current-buffer curbuf
         (process-send-region proc start end))
       (process-send-string proc "\n")
-      (process-send-eof proc))))
+      (process-send-eof proc)
+      (setq coffee--process proc))))
 
 (defun coffee-start-generate-sourcemap-process (start end)
   ;; so that sourcemap generation reads from the current buffer
@@ -301,11 +311,13 @@ called `coffee-compiled-buffer-name'."
          (curbuf (current-buffer))
          (line (line-number-at-pos))
          (column (current-column)))
+    (setq coffee--process proc)
     (set-process-query-on-exit-flag proc nil)
     (set-process-sentinel
      proc
      (lambda (proc _event)
        (when (eq (process-status proc) 'exit)
+         (setq coffee--process nil)
          (if (not (= (process-exit-status proc) 0))
              (let ((sourcemap-output
                     (with-current-buffer sourcemap-buf (buffer-string))))
@@ -509,25 +521,24 @@ For details, see `comment-dwim'."
     (comment-dwim arg)
     (deactivate-mark t)))
 
-(defsubst coffee-command-compile-arg-as-string (output)
-  (mapconcat 'identity
-             (or (and output (append coffee-args-compile (list "-j" output)))
-                 coffee-args-compile)
-             " "))
+(defsubst coffee-command-compile-options (output)
+  (if output
+      (append coffee-args-compile (list "-j" output))
+    coffee-args-compile))
 
-(defun coffee-command-compile (input &optional output)
+(defun coffee-command-compile (input output)
   "Run `coffee-command' to compile FILE-NAME to file with default
 .js output file, or optionally to OUTPUT-FILE-NAME."
-  (let* ((full-file-name (expand-file-name input))
-         (output-file (coffee-compiled-file-name full-file-name))
+  (let* ((expanded (expand-file-name input))
+         (filename (if (file-remote-p expanded)
+                       (tramp-file-name-localname (tramp-dissect-file-name expanded))
+                     (file-truename expanded)))
+         (output-file (coffee-compiled-file-name filename))
          (output-dir (file-name-directory output-file)))
     (unless (file-directory-p output-dir)
       (make-directory output-dir t))
-    (format "%s %s -o %s %s"
-            (shell-quote-argument coffee-command)
-            (coffee-command-compile-arg-as-string output)
-            (shell-quote-argument output-dir)
-            (shell-quote-argument full-file-name))))
+    (append (coffee-command-compile-options output)
+            (list "-o" output-dir filename))))
 
 (defun coffee-run-cmd (args)
   "Run `coffee-command' with the given arguments, and display the
@@ -1295,6 +1306,26 @@ it on by default."
   (if coffee-cos-mode
       (add-hook 'after-save-hook 'coffee-compile-file nil t)
     (remove-hook 'after-save-hook 'coffee-compile-file t)))
+
+;;
+;; Live compile minor mode
+;;
+
+(defun coffee--live-compile (&rest _unused)
+  (when (or (not coffee--process)
+            (not (eq (process-status coffee--process) 'run)))
+    (coffee-compile-buffer)))
+
+(defcustom coffee-live-compile-mode-line " LiveCS"
+  "Lighter of `coffee-live-compile-mode'"
+  :type 'string)
+
+(define-minor-mode coffee-live-compile-mode
+  "Compile current buffer in real time"
+  :lighter coffee-live-comp-mode-line
+  (if coffee-live-compile-mode
+      (add-hook 'after-change-functions 'coffee--live-compile nil t)
+    (remove-hook 'after-change-functions 'coffee--live-compile t)))
 
 (provide 'coffee-mode)
 
