@@ -31,7 +31,7 @@
                                                             "Others"
                                                             "Invalid Account Country")))
           (137 144 "Rebate File Sent Date" ,(fxrd-numeric-v)) ;TODO: date
-          (145 157 "Transaction Sequence Number" ,(fxrd-numeric-v))
+          (145 157 "Transaction Sequence Number" ,(fxrd-numeric-v :pad " "))
           (158 201 "Filler" ,(fxrd-alphanumeric-v))))
     ;; Trailer Record
     ("T" (

@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "cbnot-mode" "cbnot-mode.el" (22246 12408 29836
-;;;;;;  312000))
+;;;### (autoloads nil "cbnot-mode" "cbnot-mode.el" (22309 38984 176060
+;;;;;;  687000))
 ;;; Generated autoloads from cbnot-mode.el
 
 (autoload 'cbnot-mode "cbnot-mode" "\
@@ -17,8 +17,8 @@ Major mode for editing CBNOT fixed field width files.
 
 ;;;***
 
-;;;### (autoloads nil "nacha-mode" "nacha-mode.el" (22246 12408 21836
-;;;;;;  347000))
+;;;### (autoloads nil "nacha-mode" "nacha-mode.el" (22309 38984 168060
+;;;;;;  675000))
 ;;; Generated autoloads from nacha-mode.el
 
 (autoload 'nacha-mode "nacha-mode" "\
@@ -31,8 +31,8 @@ Major mode for editing NACHA fixed field width files.
 
 ;;;***
 
-;;;### (autoloads nil "rm37-mode" "rm37-mode.el" (22246 12408 9836
-;;;;;;  399000))
+;;;### (autoloads nil "rm37-mode" "rm37-mode.el" (22309 38984 164060
+;;;;;;  669000))
 ;;; Generated autoloads from rm37-mode.el
 
 (autoload 'rm37-mode "rm37-mode" "\
@@ -46,8 +46,8 @@ Major mode for editing RM37 fixed field width files.
 
 ;;;***
 
-;;;### (autoloads nil "sample-mode" "sample-mode.el" (22246 12408
-;;;;;;  33836 295000))
+;;;### (autoloads nil "sample-mode" "sample-mode.el" (22309 38984
+;;;;;;  180060 694000))
 ;;; Generated autoloads from sample-mode.el
 
 (autoload 'sample-mode "sample-mode" "\
@@ -60,8 +60,8 @@ Major mode for editing SAMPLE fixed field width files.
 
 ;;;***
 
-;;;### (autoloads nil "tso6-mode" "tso6-mode.el" (22246 12408 13836
-;;;;;;  381000))
+;;;### (autoloads nil "tso6-mode" "tso6-mode.el" (22309 38984 164060
+;;;;;;  669000))
 ;;; Generated autoloads from tso6-mode.el
 
 (autoload 'tso6-mode "tso6-mode" "\
@@ -76,7 +76,7 @@ Major mode for editing TSO6 fixed field width files.
 ;;;***
 
 ;;;### (autoloads nil nil ("fxrd-mode-pkg.el" "fxrd-mode.el" "fxrd-validators.el")
-;;;;;;  (22246 12408 40224 394000))
+;;;;;;  (22309 38984 190058 808000))
 
 ;;;***
 

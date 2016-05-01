@@ -12,10 +12,10 @@
         :custom string
         :documentation "The value to pad with")
    (align :initarg :align
-          :initform "RIGHT"
-          :type string
-          :custom string
-          :documentation "The alignment of the field")
+          :initform :right
+          :type symbol
+          :custom symbol
+          :documentation "The alignment of the field. One of :right or :left")
    (const :initarg :const
           :initform nil
           :type (or null integer string)
@@ -65,32 +65,30 @@ This is the base validator for all fields. It may be further
 specialized if necessary."
   (unless field-value
     (signal 'validation-error (format "nil value for field")))
-  (let* ((align (slot-value val 'align))
-         (regex (slot-value val 'regex))
-         (pad (slot-value val 'pad))
-         (regex-w-pad (cond ((string= align "RIGHT") (concat "^" pad "*" regex "$"))
+  (with-slots (comp-transform
+               align
+               const
+               enum
+               const-eq
+               pad
+               regex) val
+    (let ((regex-w-pad (cond ((eq align :right) (concat "^" pad "*" regex "$"))
                               (t (concat "^" regex pad "*$" )))))
-    (unless (string-match regex-w-pad field-value)
+      (unless (string-match regex-w-pad field-value)
         (signal 'validation-error (format "Failed to match regex %s" regex-w-pad)))
-    (let* ((comp-transform (slot-value val 'comp-transform))
-           (val-for-comparison (funcall comp-transform field-value))
-           (const (slot-value val 'const))
-           (enum (slot-value val 'enum))
-           (const-eq (slot-value val 'const-eq)))
-      (when enum
-        (let ((trimmed-val (cond ((string= align "RIGHT")
-                                  (s-trim-left field-value))
-                                 (t (s-trim-right field-value)))))
+      (let* ((val-for-comparison (funcall comp-transform field-value))
+             (trimmed-val (cond ((eq align :right) (s-trim-left field-value))
+                                (t (s-trim-right field-value)))))
+        (when enum
           (unless (or (member val-for-comparison enum)
                       ;; Only works/necessary for strings
                       (member trimmed-val enum))
-            (signal 'validation-error (format "%s not one of enum values %s"
-                                              val-for-comparison enum)))))
-      (when const
-        (unless (funcall const-eq const val-for-comparison)
-          (signal 'validation-error (format "%s not equal to const %s" const val-for-comparison))))
-      ;; All done
-      t)))
+            (signal 'validation-error (format "%s not one of enum values %s" val-for-comparison enum))))
+        (when const
+          (unless (funcall const-eq const val-for-comparison)
+            (signal 'validation-error (format "%s not equal to const %s" const val-for-comparison))))
+        ;; All done
+        t))))
 
 
 (defclass fxrd-numeric-v (fxrd-validator)
@@ -116,7 +114,7 @@ specialized if necessary."
 
 (defclass fxrd-alphanumeric-v (fxrd-validator)
   ((pad :initform " ")
-   (align :initform "LEFT")
+   (align :initform :left)
    (const-eq :initform #'string=)
    (regex :initform "[[:print:]]*" field-value))
   "Any printable characters")
