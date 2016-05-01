@@ -6,9 +6,9 @@
 ;; Extracted from basic-toolkit.el by Andy Stewart.
 ;; Copyright (C) 2009, Andy Stewart, all rights reserved.
 ;; Keywords: edit
-;; Package-Version: 20160211.1847
+;; Package-Version: 20160430.1730
 ;; Compatibility: GNU Emacs 23.0.60.1
-;; Version: 1.0
+;; Version: 1.0.1
 ;;
 ;;; This file is NOT part of GNU Emacs
 
@@ -88,15 +88,13 @@
 
 ;;;###autoload
 (defun move-text-down (arg)
-  "Move region (transient-mark-mode active) or current line
-  arg lines down."
+  "Move region (transient-mark-mode active) or current line ARG lines down."
   (interactive "*p")
   (move-text-internal arg))
 
 ;;;###autoload
 (defun move-text-up (arg)
-  "Move region (transient-mark-mode active) or current line
-  arg lines up."
+  "Move region (transient-mark-mode active) or current line ARG lines up."
   (interactive "*p")
   (move-text-internal (- arg)))
 

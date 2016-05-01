@@ -3,19 +3,17 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "move-text" "move-text.el" (22218 26334 58847
-;;;;;;  672000))
+;;;### (autoloads nil "move-text" "move-text.el" (22309 38894 235919
+;;;;;;  384000))
 ;;; Generated autoloads from move-text.el
 
 (autoload 'move-text-down "move-text" "\
-Move region (transient-mark-mode active) or current line
-  arg lines down.
+Move region (transient-mark-mode active) or current line ARG lines down.
 
 \(fn ARG)" t nil)
 
 (autoload 'move-text-up "move-text" "\
-Move region (transient-mark-mode active) or current line
-  arg lines up.
+Move region (transient-mark-mode active) or current line ARG lines up.
 
 \(fn ARG)" t nil)
 
