@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.9
-;; Package-Version: 20160410.1452
+;; Package-Version: 20160427.724
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -57,6 +57,7 @@
 
 ;;; Code:
 
+(require 'auth-source)
 (require 'calc-bin)
 (require 'calc-ext)
 (require 'color)
@@ -90,7 +91,9 @@
                  (string :tag "Other path")))
 
 (defcustom transmission-rpc-auth nil
-  "Authorization (username, password) for using the RPC interface."
+  "Authorization (username, password) for using the RPC interface.
+If no password is set, `auth-sources' is searched using the
+username, `transmission-host', and `transmission-service'."
   :type '(choice (const :tag "None" nil)
                  (plist :tag "Username/password"
                         :options ((:username string)
@@ -174,6 +177,13 @@ The function should accept an IP address and return a string or nil."
                 (function-item transmission-geoiplookup)
                 (function :tag "Function")))
 
+(defcustom transmission-geoip-use-cache nil
+  "Whether to cache IP address/location name associations.
+If non-nil, associations are stored in `transmission-geoip-hash'.
+Useful if `transmission-geoip-function' does not have its own
+caching built in or is otherwise slow."
+  :type 'boolean)
+
 (defconst transmission-mode-alist
   '((session . 0)
     (torrent . 1)
@@ -247,6 +257,12 @@ Should accept the torrent ID as an argument, e.g. `transmission-torrent-id'.")
 (defvar transmission-timer nil
   "Timer for repeating `revert-buffer' in a visible Transmission buffer.")
 
+(defconst transmission-hash-table (make-hash-table :test 'equal)
+  "Hash table used as initial value of `transmission-geoip-hash'.")
+
+(defvar transmission-geoip-hash (copy-hash-table transmission-hash-table)
+  "Hash table storing associations between IP addresses and location names.")
+
 
 ;; JSON RPC
 
@@ -282,12 +298,18 @@ update `transmission-session-id' and signal the error."
                (setq transmission-session-id (read buffer))
                (signal 'transmission-conflict status)))))))
 
+(defun transmission--auth-source-secret (user)
+  "Return the secret for USER at `transmission-host' found in `auth-sources'."
+  (auth-source-pick-first-password :host transmission-host :user user
+                                   :port transmission-service))
+
 (defun transmission--auth-string ()
   "HTTP \"Authorization\" header value if `transmission-rpc-auth' is populated."
   (when transmission-rpc-auth
-    (let ((auth (concat (plist-get transmission-rpc-auth :username) ":"
-                        (plist-get transmission-rpc-auth :password))))
-      (concat "Basic " (base64-encode-string auth)))))
+    (let* ((user (plist-get transmission-rpc-auth :username))
+           (pass (and user (or (plist-get transmission-rpc-auth :password)
+                               (transmission--auth-source-secret user)))))
+      (concat "Basic " (base64-encode-string (concat user ":" pass))))))
 
 (defun transmission-http-post (process content)
   "Send to PROCESS an HTTP POST request containing CONTENT."
@@ -722,6 +744,25 @@ The two are spliced together with indices for each file, sorted by file name."
       (with-temp-buffer
         (call-process program nil t nil ip)
         (car (last (split-string (buffer-string) ": " t "[ \t\r\n]*")))))))
+
+(defun transmission-geoip-retrieve (ip)
+  "Retrieve value of IP in `transmission-geoip-hash'.
+If IP is not a key, add it with the value from `transmission-geoip-function'.
+If `transmission-geoip-function' has changed, reset `transmission-geoip-hash'
+from `transmission-hash-table'."
+  (when (functionp transmission-geoip-function)
+    (if (not transmission-geoip-use-cache)
+        (funcall transmission-geoip-function ip)
+      (let ((fn (get 'transmission-geoip-hash :fn)))
+        (if (eq fn transmission-geoip-function)
+            (or (gethash ip transmission-geoip-hash)
+                (setf (gethash ip transmission-geoip-hash)
+                      (funcall transmission-geoip-function ip)))
+          (setq transmission-geoip-hash
+                (copy-hash-table transmission-hash-table))
+          (put 'transmission-geoip-hash :fn transmission-geoip-function)
+          (setf (gethash ip transmission-geoip-hash)
+                (funcall transmission-geoip-function ip)))))))
 
 (defun transmission-time (seconds)
   "Format a time string, given SECONDS from the epoch."
@@ -1302,8 +1343,7 @@ Each form in BODY is a column descriptor."
     (format "%d" (transmission-rate .rateToClient))
     (format "%d" (transmission-rate .rateToPeer))
     .clientName
-    (or (and (functionp transmission-geoip-function)
-             (funcall transmission-geoip-function .address)) ""))
+    (or (transmission-geoip-retrieve .address) ""))
   (setq tabulated-list-entries (reverse tabulated-list-entries))
   (tabulated-list-print))
 
