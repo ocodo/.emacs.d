@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20160413.404
+;; Package-Version: 20160423.837
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.4.0
@@ -238,6 +238,11 @@ The following commands are available:
       (setq mode-line-process orig-mode-line-process)))
   (setq comint-prompt-regexp inf-ruby-prompt-pattern)
   (ruby-mode-variables)
+  (when (bound-and-true-p ruby-use-smie)
+    (set (make-local-variable 'smie-forward-token-function)
+         #'inf-ruby-smie--forward-token)
+    (set (make-local-variable 'smie-backward-token-function)
+         #'inf-ruby-smie--backward-token))
   (setq major-mode 'inf-ruby-mode)
   (setq mode-name "Inf-Ruby")
   (use-local-map inf-ruby-mode-map)
@@ -635,7 +640,7 @@ keymaps to bind `inf-ruby-switch-from-compilation' to `С-x C-q'."
 one of the predicates matches, then calls `inf-ruby-console-NAME',
 passing it the found directory.")
 
-(defvar inf-ruby-breakpoint-pattern "\\(\\[1\\] pry(\\)\\|\\((rdb:1)\\)"
+(defvar inf-ruby-breakpoint-pattern "\\(\\[1\\] pry(\\)\\|\\((rdb:1)\\)\\|\\((byebug)\\)"
   "Pattern found when a breakpoint is triggered in a compilation session.
 This checks if the current line is a pry or ruby-debug prompt.")
 
@@ -793,6 +798,14 @@ Gemfile, it should use the `gemspec' instruction."
       (if match-group
           (match-string match-group)
         t))))
+
+(defun inf-ruby-smie--forward-token ()
+  (let ((inhibit-field-text-motion t))
+    (ruby-smie--forward-token)))
+
+(defun inf-ruby-smie--backward-token ()
+  (let ((inhibit-field-text-motion t))
+    (ruby-smie--backward-token)))
 
 ;;;###autoload (dolist (mode ruby-source-modes) (add-hook (intern (format "%s-hook" mode)) 'inf-ruby-minor-mode))
 
