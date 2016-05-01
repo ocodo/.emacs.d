@@ -3063,38 +3063,43 @@ Otherwise delegate to `yas-next-field'."
             (yas-next-field))))
     (yas-next-field)))
 
+(defun yas-next-field-will-exit-p (&optional arg)
+  "Return non-nil if (yas-next-field ARG) would exit the current snippet."
+  (let ((snippet (car (yas--snippets-at-point)))
+        (active (overlay-get yas--active-field-overlay 'yas--field)))
+    (when snippet
+      (not (yas--find-next-field arg snippet active)))))
+
+(defun yas--find-next-field (n snippet active)
+  "Return the Nth field after the ACTIVE one in SNIPPET."
+  (let ((live-fields (cl-remove-if
+                      (lambda (field)
+                        (and (not (eq field active))
+                             (yas--field-probably-deleted-p snippet field)))
+                      (yas--snippet-fields snippet))))
+    (if (>= n 0) (nth n (memq active live-fields))
+      (car (last (memq active (reverse live-fields)) (- n))))))
+
 (defun yas-next-field (&optional arg)
   "Navigate to the ARGth next field.
 
 If there's none, exit the snippet."
   (interactive)
-  (let* ((arg (or arg
-                  1))
-         (snippet (first (yas--snippets-at-point)))
+  (unless arg (setq arg 1))
+  (let* ((snippet (car (yas--snippets-at-point)))
          (active-field (overlay-get yas--active-field-overlay 'yas--field))
-         (live-fields (remove-if #'(lambda (field)
-                                     (and (not (eq field active-field))
-                                          (yas--field-probably-deleted-p snippet field)))
-                                 (yas--snippet-fields snippet)))
-         (active-field-pos (position active-field live-fields))
-         (target-pos (and active-field-pos (+ arg active-field-pos)))
-         (target-field (and target-pos (nth target-pos live-fields))))
-    ;; First check if we're moving out of a field with a transform
-    ;;
-    (when (and active-field
-               (yas--field-transform active-field))
+         (target-field (yas--find-next-field arg snippet active-field)))
+    ;; First check if we're moving out of a field with a transform.
+    (when (and active-field (yas--field-transform active-field))
       (let* ((yas-moving-away-p t)
              (yas-text (yas--field-text-for-display active-field))
              (yas-modified-p (yas--field-modified-p active-field)))
         ;; primary field transform: exit call to field-transform
         (yas--eval-lisp (yas--field-transform active-field))))
     ;; Now actually move...
-    (cond ((and target-pos (>= target-pos (length live-fields)))
-           (yas-exit-snippet snippet))
-          (target-field
-           (yas--move-to-field snippet target-field))
-          (t
-           nil))))
+    (if target-field
+        (yas--move-to-field snippet target-field)
+      (yas-exit-snippet snippet))))
 
 (defun yas--place-overlays (snippet field)
   "Correctly place overlays for SNIPPET's FIELD."
@@ -3348,15 +3353,17 @@ Otherwise deletes a character normally by calling `delete-char'."
           (t
            (call-interactively 'delete-char)))))
 
-(defun yas--skip-and-clear (field)
-  "Deletes the region of FIELD and sets it's modified state to t."
+(defun yas--skip-and-clear (field &optional from)
+  "Deletes the region of FIELD and sets it's modified state to t.
+If given, FROM indicates position to start at instead of FIELD's beginning."
   ;; Just before skipping-and-clearing the field, mark its children
   ;; fields as modified, too. If the children have mirrors-in-fields
   ;; this prevents them from updating erroneously (we're skipping and
   ;; deleting!).
   ;;
   (yas--mark-this-and-children-modified field)
-  (delete-region (yas--field-start field) (yas--field-end field)))
+  (unless (= (yas--field-start field) (yas--field-end field))
+    (delete-region (or from (yas--field-start field)) (yas--field-end field))))
 
 (defun yas--mark-this-and-children-modified (field)
   (setf (yas--field-modified-p field) t)
@@ -3390,40 +3397,33 @@ Move the overlay, or create it if it does not exit."
     (overlay-put yas--active-field-overlay 'insert-behind-hooks
                  '(yas--on-field-overlay-modification))))
 
-(defun yas--skip-and-clear-field-p (field _beg _end &optional _length)
+(defun yas--skip-and-clear-field-p (field beg _end length)
   "Tell if newly modified FIELD should be cleared and skipped.
 BEG, END and LENGTH like overlay modification hooks."
-  (and (not (yas--field-modified-p field))
-       (= (point) (yas--field-start field))
-       (require 'delsel)
-       ;; `yank' sets `this-command' to t during execution.
-       (let* ((command (if (commandp this-command) this-command
-                         this-original-command))
-              (clearp (if (symbolp command) (get command 'delete-selection))))
-         (when (and (not (memq clearp '(yank supersede kill)))
-                    (functionp clearp))
-           (setq clearp (funcall clearp)))
-         clearp)))
+  (and (= length 0) ; A 0 pre-change length indicates insertion.
+       (= beg (yas--field-start field)) ; Insertion at field start?
+       (not (yas--field-modified-p field))))
 
-(defun yas--on-field-overlay-modification (overlay after? beg end &optional _length)
+(defun yas--on-field-overlay-modification (overlay after? beg end &optional length)
   "Clears the field and updates mirrors, conditionally.
 
 Only clears the field if it hasn't been modified and point is at
 field start.  This hook does nothing if an undo is in progress."
-  (unless (or yas--inhibit-overlay-hooks
+  (unless (or (not after?)
+              yas--inhibit-overlay-hooks
               (not (overlayp yas--active-field-overlay)) ; Avoid Emacs bug #21824.
               (yas--undo-in-progress))
-    (let* ((field (overlay-get overlay 'yas--field))
+    (let* ((inhibit-modification-hooks t)
+           (field (overlay-get overlay 'yas--field))
            (snippet (overlay-get yas--active-field-overlay 'yas--snippet)))
-      (cond (after?
-             (yas--advance-end-maybe field (overlay-end overlay))
-             (save-excursion
-               (yas--field-update-display field))
-             (yas--update-mirrors snippet))
-            (field
-             (when (yas--skip-and-clear-field-p field beg end)
-               (yas--skip-and-clear field))
-             (setf (yas--field-modified-p field) t))))))
+      (when (yas--skip-and-clear-field-p field beg end length)
+        ;; We delete text starting from the END of insertion.
+        (yas--skip-and-clear field end))
+      (setf (yas--field-modified-p field) t)
+      (yas--advance-end-maybe field (overlay-end overlay))
+      (save-excursion
+        (yas--field-update-display field))
+      (yas--update-mirrors snippet))))
 
 ;;; Apropos protection overlays:
 ;;
@@ -4197,42 +4197,44 @@ When multiple expressions are found, only the last one counts."
 
 (defun yas--update-mirrors (snippet)
   "Update all the mirrors of SNIPPET."
-  (save-excursion
-    (dolist (field-and-mirror
-             (sort
-              ;; make a list of ((F1 . M1) (F1 . M2) (F2 . M3) (F2 . M4) ...)
-              ;; where F is the field that M is mirroring
-              ;;
-              (cl-mapcan #'(lambda (field)
-                             (mapcar #'(lambda (mirror)
-                                         (cons field mirror))
-                                     (yas--field-mirrors field)))
-                         (yas--snippet-fields snippet))
-              ;; then sort this list so that entries with mirrors with parent
-              ;; fields appear before. This was important for fixing #290, and
-              ;; luckily also handles the case where a mirror in a field causes
-              ;; another mirror to need reupdating
-              ;;
-              #'(lambda (field-and-mirror1 field-and-mirror2)
-                  (> (yas--calculate-mirror-depth (cdr field-and-mirror1))
-                     (yas--calculate-mirror-depth (cdr field-and-mirror2))))))
-      (let* ((field (car field-and-mirror))
-             (mirror (cdr field-and-mirror))
-             (parent-field (yas--mirror-parent-field mirror)))
-        ;; before updating a mirror with a parent-field, maybe advance
-        ;; its start (#290)
-        ;;
-        (when parent-field
-          (yas--advance-start-maybe mirror (yas--fom-start parent-field)))
-        ;; update this mirror
-        ;;
-        (yas--mirror-update-display mirror field)
-        ;; `yas--place-overlays' is needed if the active field and
-        ;; protected overlays have been changed because of insertions
-        ;; in `yas--mirror-update-display'
-        ;;
-        (when (eq field (yas--snippet-active-field snippet))
-          (yas--place-overlays snippet field))))))
+  (save-restriction
+    (widen)
+    (save-excursion
+     (dolist (field-and-mirror
+              (sort
+               ;; make a list of ((F1 . M1) (F1 . M2) (F2 . M3) (F2 . M4) ...)
+               ;; where F is the field that M is mirroring
+               ;;
+               (cl-mapcan #'(lambda (field)
+                              (mapcar #'(lambda (mirror)
+                                          (cons field mirror))
+                                      (yas--field-mirrors field)))
+                          (yas--snippet-fields snippet))
+               ;; then sort this list so that entries with mirrors with parent
+               ;; fields appear before. This was important for fixing #290, and
+               ;; luckily also handles the case where a mirror in a field causes
+               ;; another mirror to need reupdating
+               ;;
+               #'(lambda (field-and-mirror1 field-and-mirror2)
+                   (> (yas--calculate-mirror-depth (cdr field-and-mirror1))
+                      (yas--calculate-mirror-depth (cdr field-and-mirror2))))))
+       (let* ((field (car field-and-mirror))
+              (mirror (cdr field-and-mirror))
+              (parent-field (yas--mirror-parent-field mirror)))
+         ;; before updating a mirror with a parent-field, maybe advance
+         ;; its start (#290)
+         ;;
+         (when parent-field
+           (yas--advance-start-maybe mirror (yas--fom-start parent-field)))
+         ;; update this mirror
+         ;;
+         (yas--mirror-update-display mirror field)
+         ;; `yas--place-overlays' is needed if the active field and
+         ;; protected overlays have been changed because of insertions
+         ;; in `yas--mirror-update-display'
+         ;;
+         (when (eq field (yas--snippet-active-field snippet))
+           (yas--place-overlays snippet field)))))))
 
 (defun yas--mirror-update-display (mirror field)
   "Update MIRROR according to FIELD (and mirror transform)."
