@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/helm-projectile
-;; Package-Version: 20160330.131
+;; Package-Version: 20160429.1849
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
@@ -812,6 +812,7 @@ DIR is the project root, if not set then current directory is used"
     "Find recently visited file in project."
     (helm-projectile-recentf)))
 
+;;;###autoload
 (defun helm-projectile-toggle (toggle)
   "Toggle Helm version of Projectile commands."
   (if (> toggle 0)
