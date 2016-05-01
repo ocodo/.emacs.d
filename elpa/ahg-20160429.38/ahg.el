@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20160323.325
+;; Package-Version: 20160429.38
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -4916,7 +4916,7 @@ destination buffer. If nil, a new buffer will be used.
         retprocess
         (process-connection-type use-shell)
         (process-adaptive-read-buffering nil))
-    (unless no-hgplain (setenv "HGPLAIN" "1"))
+    (unless no-hgplain (setenv "HGPLAINEXCEPT" "alias,revsetalias"))
     (unless ahg-i18n (setenv "LANG"))
     ;; (when (and (not use-shell) use-temp-file)
     ;;   (setq args (mapcar 'shell-quote-argument args)))
