@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20160326.620
+;; Package-Version: 20160430.135
 ;; Version: 0.3.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: convenience, links
@@ -48,13 +48,13 @@
   (cl-case major-mode
     (Info-mode
      (ace-link-info))
-    (help-mode
+    ((help-mode package-menu-mode)
      (ace-link-help))
     (woman-mode
      (ace-link-woman))
     (eww-mode
      (ace-link-eww))
-    (compilation-mode
+    ((compilation-mode grep-mode)
      (ace-link-compilation))
     (gnus-mode
      (ace-link-gnus))
