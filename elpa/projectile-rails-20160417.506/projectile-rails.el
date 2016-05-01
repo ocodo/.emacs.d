@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160413.1445
+;; Package-Version: 20160417.506
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -662,6 +662,76 @@ The bound variable is \"filename\"."
                              rails-console-command))
        (projectile-rails-mode +1)))))
 
+;; Shamelessly stolen from rinari.el
+(defun projectile-rails--db-config ()
+  (json-read-from-string
+   (shell-command-to-string
+    (format
+     "ruby -ryaml -rjson -e 'JSON.dump(YAML.load(ARGF.read), STDOUT)' \"%s\""
+     (projectile-rails-expand-root "config/database.yml")))))
+
+(defvar projectile-rails--sql-adapters->products
+  '(("mysql2"         "mysql")
+    ("mysql"          "mysql")
+    ("jdbcmysql"      "mysql")
+
+    ("postgres"       "postgres")
+    ("postgresql"     "postgres")
+    ("jdbcpostgresql" "postgres")
+
+    ("sqlite"         "sqlite")
+    ("sqlite3"        "sqlite")
+    ("jdbcsqlite3"    "sqlite")
+
+    ("informix"       "informix")
+    ("ingres"         "ingres")
+    ("interbase"      "interbase")
+    ("linter"         "linter")
+    ("ms"             "ms")
+    ("oracle"         "oracle")
+    ("solid"          "solid")
+    ("sybase"         "sybase")
+    ("vertica"        "vertica")))
+
+(defun projectile-rails--determine-sql-product (env)
+  (intern
+   (car
+    (cdr
+     (assoc-string (cdr (assoc-string "adapter" (cdr (assoc-string env (projectile-rails--db-config)))))
+                   projectile-rails--sql-adapters->products)))))
+
+(defun projectile-rails--choose-env ()
+  (projectile-completing-read
+   "Choose env: "
+   (--map (substring it 0 -3)
+    (projectile-rails-list-entries 'f-files "config/environments/"))))
+
+(defun projectile-rails-dbconsole (env)
+  (interactive (list (projectile-rails--choose-env)))
+  (require 'sql)
+  (projectile-rails-with-root
+   (let* ((product (projectile-rails--determine-sql-product env))
+          (sqli-login      (sql-get-product-feature product :sqli-login))
+          (sqli-options    (sql-get-product-feature product :sqli-options))
+          (sqli-program    (sql-get-product-feature product :sqli-program))
+          (sql-comint-func (sql-get-product-feature product :sqli-comint-func))
+          (commands (s-split " " (projectile-rails-with-preloader
+                                  :spring (concat projectile-rails-spring-command " dbconsole")
+                                  :zeus (concat projectile-rails-zeus-command " dbconsole")
+                                  :vanilla (concat projectile-rails-vanilla-command " dbconsole")))))
+     (sql-set-product-feature product :sqli-login '())
+     (sql-set-product-feature product :sqli-options '())
+     (sql-set-product-feature product :sqli-program (car commands))
+     (sql-set-product-feature product :sqli-comint-func (lambda (_ __)
+                                                          (sql-comint product (cdr commands))))
+
+     (sql-product-interactive product)
+
+     (sql-set-product-feature product :sqli-comint-func sql-comint-func)
+     (sql-set-product-feature product :sqli-program sqli-program)
+     (sql-set-product-feature product :sqli-options sqli-options)
+     (sql-set-product-feature product :sqli-login sqli-login))))
+
 (defun projectile-rails-expand-snippet-maybe ()
   (when (and (fboundp 'yas-expand-snippet)
              (and (buffer-file-name) (not (file-exists-p (buffer-file-name))))
@@ -1077,6 +1147,7 @@ If file does not exist and ASK in not nil it will ask user to proceed."
     (define-key map (kbd "r") 'projectile-rails-rake)
     (define-key map (kbd "g") 'projectile-rails-generate)
     (define-key map (kbd "d") 'projectile-rails-destroy)
+    (define-key map (kbd "b") 'projectile-rails-dbconsole)
     map)
   "A run map for `projectile-rails-mode'.")
 (fset 'projectile-rails-mode-run-map projectile-rails-mode-run-map)
@@ -1195,6 +1266,7 @@ If file does not exist and ASK in not nil it will ask user to proceed."
     ["Extract to partial"       projectile-rails-extract-region]
     "--"
     ["Run console"              projectile-rails-console]
+    ["Run dbconsole"            projectile-rails-dbconsole]
     ["Run server"               projectile-rails-server]
     ["Run rake"                 projectile-rails-rake]
     ["Run rails generate"       projectile-rails-generate]
@@ -1336,6 +1408,7 @@ Killing the buffer will terminate to server's process."
                     ("Run external command"
                      ("r" "rake"           projectile-rails-rake)
                      ("c" "console"        projectile-rails-console)
+                     ("b" "dbconsole"      projectile-rails-dbconsole)
                      ("s" "server"         projectile-rails-server)
                      ("g" "generate"       projectile-rails-generate)
                      ("d" "destroy"        projectile-rails-destroy))
@@ -1390,11 +1463,12 @@ Killing the buffer will terminate to server's process."
 
   (defhydra hydra-projectile-rails-run (:color blue :columns 8)
     "Run external command & interact"
-    ("r" projectile-rails-rake     "rake")
-    ("c" projectile-rails-console  "console")
-    ("s" projectile-rails-server   "server")
-    ("g" projectile-rails-generate "generate")
-    ("d" projectile-rails-destroy  "destroy")
+    ("r" projectile-rails-rake       "rake")
+    ("c" projectile-rails-console    "console")
+    ("b" projectile-rails-dbconsole  "dbconsole")
+    ("s" projectile-rails-server     "server")
+    ("g" projectile-rails-generate   "generate")
+    ("d" projectile-rails-destroy    "destroy")
     ("x" projectile-rails-extract-region "extract region"))
 
   (defhydra hydra-projectile-rails (:color blue :columns 8)
