@@ -2707,11 +2707,11 @@ Helm plug-ins are realized by this function."
          (notify-error
           (lambda (&optional e)
             (error
-             "In `%s' source: `%s' %s %S"
+             "In `%s' source: `%s' %s %s"
              (assoc-default 'name source)
              (or candidate-fn candidate-proc)
-             (if e "\n" "must either be a function, a variable or a list")
-             (or e ""))))
+             (if e "\n" "must be a list, a symbol bound to a list, or a function returning a list")
+             (if e (prin1-to-string e) ""))))
          (candidates (condition-case-unless-debug err
                          ;; Process candidates-(process) function
                          ;; It may return a process or a list of candidates.
@@ -3067,21 +3067,21 @@ to the matching method in use."
               (when (zerop count)
                 (cl-loop with multi-match = (string-match-p " " helm-pattern)
                          with patterns = (if multi-match
-                                             (split-string helm-pattern)
+                                             (mapcar #'helm--maybe-get-migemo-pattern
+                                                     (split-string helm-pattern))
                                              (split-string helm-pattern "" t))
                          for p in patterns
-                         for re = (helm--maybe-get-migemo-pattern p)
                          ;; Multi matches (regexps patterns).
                          if multi-match do
                          (progn
-                           (while (re-search-forward re nil t)
+                           (while (re-search-forward p nil t)
                              (add-text-properties
                               (match-beginning 0) (match-end 0)
                               '(face helm-match)))
                            (goto-char (point-min)))
                          ;; Fuzzy matches (literal patterns).
                          else do
-                         (when (search-forward re nil t)
+                         (when (search-forward p nil t)
                            (add-text-properties
                             (match-beginning 0) (match-end 0)
                             '(face helm-match))))))
