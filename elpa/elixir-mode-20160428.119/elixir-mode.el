@@ -10,7 +10,7 @@
 ;; URL: https://github.com/elixir-lang/emacs-elixir
 ;; Created: Mon Nov 7 2011
 ;; Keywords: languages elixir
-;; Version: 2.3.0
+;; Version: 2.3.1
 ;; Package-Requires: ((emacs "24") (pkg-info "0.4"))
 
 ;; This file is not a part of GNU Emacs.
@@ -302,6 +302,14 @@ is used to limit the scan."
     (goto-char start)
     (funcall
      (syntax-propertize-rules
+      ("\\(\\?\\)[\"']"
+       (1 (if (save-excursion (nth 3 (syntax-ppss (match-beginning 0))))
+              ;; Within a string, skip.
+              (ignore
+               (goto-char (match-end 1)))
+            (put-text-property (match-end 1) (match-end 0)
+                               'syntax-table (string-to-syntax "_"))
+            (string-to-syntax "'"))))
       ((elixir-rx string-delimiter)
        (0 (ignore (elixir-syntax-stringify))))
       ((elixir-rx sigils)
