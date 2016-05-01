@@ -4,7 +4,7 @@
 
 ;; Author: Christopher Wellons <wellons@nullprogram.com>
 ;; URL: https://github.com/skeeto/elisp-json-rpc
-;; Package-Version: 20150830.1401
+;; Package-Version: 20160427.807
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -28,8 +28,9 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(require 'url)
 (require 'json)
+(require 'cl-lib)
 
 (cl-defstruct (json-rpc (:constructor json-rpc--create))
   "A connection to a remote JSON-RPC server."
@@ -75,23 +76,44 @@
   "Return non-nil if CONNECTION is still connected."
   (process-live-p (json-rpc-process connection)))
 
-(defun json-rpc (connection method &rest params)
-  "Send request of METHOD to CONNECTION, returning result or signalling error."
+(defun json-rpc--request (connection version endpoint method params)
   (let* ((id (cl-incf (json-rpc-id-counter connection)))
-         (vparams (vconcat params))
-         (request `(:jsonrpc "2.0" :method ,method :params ,vparams :id ,id))
+         (request `(:method ,method :params ,params :id ,id))
          (auth (json-rpc-auth connection))
          (process (json-rpc-process (json-rpc-ensure connection)))
-         (encoded (json-encode request)))
+         (encoded (if version
+                      (json-encode (nconc (list :jsonrpc version) request))
+                    (json-encode request))))
     (with-current-buffer (process-buffer (json-rpc-process connection))
       (erase-buffer))
     (with-temp-buffer
-      (insert "POST / HTTP/1.1\r\n")
+      (insert (format "POST %s HTTP/1.1\r\n" (url-encode-url endpoint)))
       (when auth (insert "Authorization: Basic " auth "\r\n"))
       (insert (format "Content-Length: %d\r\n\r\n" (string-bytes encoded))
               encoded)
       (process-send-region process (point-min) (point-max)))
     (json-rpc-wait connection)))
+
+(defun json-rpc-1.0 (connection endpoint method &rest params)
+  "Via JSON-RPC 1.0, call METHOD with PARAMS to CONNECTION at ENDPOINT.
+Returns the result or signals the error."
+  (json-rpc--request connection nil endpoint method (vconcat params)))
+
+(defun json-rpc-2.0 (connection endpoint method &optional params)
+  "Via JSON-RPC 2.0, call METHOD with PARAMS to CONNECTION at ENDPOINT.
+Returns the result or signals the error. PARAMS is passed
+directly to `json-encode' and will be interpreted by the server
+as either a JSON array of positional arguments or a JSON object
+of named arguments."
+  (unless (or (vectorp params)
+              (listp params))
+    (signal 'wrong-type-argument params))
+  (json-rpc--request connection "2.0" endpoint method (or params [])))
+
+(defun json-rpc (connection method &rest params)
+  "Via JSON-RPC 2.0, call METHOD with PARAMS to CONNECTION at endpoint /.
+Returns the result or signals the error."
+  (json-rpc--request connection "2.0" "/" method (vconcat params)))
 
 (defun json-rpc--move-to-content ()
   "Move the point to after the headers."
