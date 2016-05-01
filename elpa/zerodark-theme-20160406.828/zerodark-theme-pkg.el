@@ -1,1 +1,0 @@
-(define-package "zerodark-theme" "20160406.828" "A dark, medium contrast theme for Emacs" 'nil :stars '(#("19" 0 2 (font-lock-face paradox-star-face))) :url "https://github.com/NicolasPetton/zerodark-theme" :keywords '("themes"))

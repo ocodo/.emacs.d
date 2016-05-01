@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "zerodark-theme" "zerodark-theme.el" (22291
-;;;;;;  18993 991951 89000))
+;;;### (autoloads nil "zerodark-theme" "zerodark-theme.el" (22309
+;;;;;;  38793 879751 211000))
 ;;; Generated autoloads from zerodark-theme.el
 
 (when (and (boundp 'custom-theme-load-path) load-file-name) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
