@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22291 19261 748765
-;;;;;;  686000))
+;;;### (autoloads nil "counsel" "counsel.el" (22309 39020 36114 888000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -197,7 +196,7 @@ or call the function `counsel-mode'.")
 Toggle Counsel mode on or off.
 Turn Counsel mode on if ARG is positive, off otherwise. Counsel
 mode remaps built-in emacs functions that have counsel
-replacements. 
+replacements.
 
 \(fn &optional ARG)" t nil)
 
