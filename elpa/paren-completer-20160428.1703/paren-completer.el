@@ -5,7 +5,8 @@
 ;; Author: Matthew Bregg
 ;; Mantainer: Matthew Bregg
 ;; Keywords: convenience
-;; Package-Version: 20150711.1523
+;; Package-Version: 20160428.1703
+;; Package-X-Original-Version: 20150711.1523
 ;; URL: https://github.com/MatthewBregg/paren-completer
 ;; Version: 1.3.4
 ;; Package-Requires: ((emacs "24.3"))
@@ -35,7 +36,7 @@
   "A package to automatically, language agnostically, fill in delimiters"
   :group 'convenience
   :link '(url-link "https://github.com/MatthewBregg/paren-completer")
-  :version '1
+  :version '2
   )
 
 
@@ -47,6 +48,12 @@
 (defcustom paren-completer-complete-stringsp? t "If true, will attempt to close strings as well.")
 (defcustom paren-completer-ignore-commentsp? t "If true, don't check comments for delimiters.")
 (defcustom paren-completer-ignore-stringsp? t "If true, don't check strings for delimiters.")
+(defcustom paren-completer-default-delimiter nil
+  "The default to add if there are no delimiters on the stack.
+Defaults to nothing.
+Set to a character, for example, ?)")
+(defcustom paren-completer-print-message-if-emptyp? t
+  "If one attempts to add a delimiter but no delimiters are on the stack, then print an error to the minibuffer.")
 
 (defun paren-completer--is-opening-charp? (char)
   "Checks if CHAR is an opening delimiter."
@@ -131,9 +138,11 @@ a list of open/closing delimiters."
   (cond ((and paren-completer-complete-stringsp? string?)
                                                (insert-char string?))
         (t
-         (if (eq delimiter-stack nil) (message "No delimiters to add?!")
-            (insert-char (paren-completer--get-matching (car delimiter-stack)))
-           (setq delimiter-stack (cdr delimiter-stack))))))
+         (if (and paren-completer-print-message-if-emptyp? (eq delimiter-stack nil)) (message "No delimiters to add?!"))
+         (if (eq delimiter-stack nil)
+             (if (not (eq paren-completer-default-delimiter nil)) (insert-char paren-completer-default-delimiter))
+           (insert-char (paren-completer--get-matching (car delimiter-stack))))
+           (setq delimiter-stack (cdr delimiter-stack)))))
   delimiter-stack)
 
 (defun paren-completer--add-delimiter-with-newline (delimiter-stack)
@@ -146,17 +155,21 @@ DELIMITER-STACK : The delimiters found so far"
 (defun paren-completer--add-all-delimiters-with-newline (delimiter-stack)
   "Add all delimiters with newline.
 DELIMITER-STACK : The delimiters found so far"
-  (let ((delimiter-stack (paren-completer--add-delimiter-with-newline delimiter-stack)))
-  (if (eq delimiter-stack nil) (message "Done")
-    (paren-completer--add-all-delimiters-with-newline delimiter-stack))
-  delimiter-stack))
+  (if (eq delimiter-stack nil) (message "No delimiters to add?!")
+    (progn
+     (let ((delimiter-stack (paren-completer--add-delimiter-with-newline delimiter-stack)))
+       (if (eq delimiter-stack nil) (message "Done")
+         (paren-completer--add-all-delimiters-with-newline delimiter-stack))
+       delimiter-stack))))
 (defun paren-completer--add-all-delimiters (delimiter-stack)
   "Add all delimiters.
 DELIMITER-STACK : The delimiters found so far"
-  (let ((delimiter-stack (paren-completer--add-delimiter delimiter-stack)))
-  (if (eq delimiter-stack nil) (message "Done")
-    (paren-completer--add-all-delimiters delimiter-stack))
-  delimiter-stack))
+  (if (eq delimiter-stack nil) (message "No delimiters to add?!")
+    (progn
+     (let ((delimiter-stack (paren-completer--add-delimiter delimiter-stack)))
+       (if (eq delimiter-stack nil) (message "Done")
+         (paren-completer--add-all-delimiters delimiter-stack))
+       delimiter-stack))))
     
 ;;;###autoload
 (defun paren-completer-add-single-delimiter ()
