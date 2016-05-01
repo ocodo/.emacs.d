@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "company-ycmd" "company-ycmd.el" (22271 10627
-;;;;;;  351164 103000))
+;;;### (autoloads nil "company-ycmd" "company-ycmd.el" (22309 39022
+;;;;;;  232118 171000))
 ;;; Generated autoloads from company-ycmd.el
 
 (autoload 'company-ycmd-setup "company-ycmd" "\
