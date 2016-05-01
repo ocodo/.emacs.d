@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.10.0
-;; Package-Version: 20160405.920
+;; Package-Version: 20160429.727
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -334,7 +334,9 @@ This is a simple wrapper around the built-in `string-match-p'."
   (replace-regexp-in-string (regexp-quote old) new s t t))
 
 (defun s--aget (alist key)
-  (cdr (assoc key alist)))
+  (let ((result (cdr (assoc-string key alist))))
+    (when result
+      (format "%s" result))))
 
 (defun s-replace-all (replacements s)
   "REPLACEMENTS is a list of cons-cells. Each `car` is replaced with `cdr` in S."
