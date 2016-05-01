@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160411.417
+;; Package-Version: 20160424.546
 ;; Version: 0.53
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -288,7 +288,10 @@ Default behaviour shows finish and result in mode-line."
     (funcall find-func filename)
     (goto-char (point-min))
     (when line
-      (forward-line (1- (string-to-number line))))))
+      (forward-line (1- (string-to-number line))))
+    (ignore-errors
+      (and (re-search-forward helm-ag--last-query (line-end-position) t)
+           (goto-char (match-beginning 0))))))
 
 (defun helm-ag--open-file-with-temp-buffer (filename)
   (switch-to-buffer (get-buffer-create " *helm-ag persistent*"))
