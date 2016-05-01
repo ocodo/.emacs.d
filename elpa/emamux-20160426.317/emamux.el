@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-emamux
-;; Package-Version: 20160101.617
+;; Package-Version: 20160426.317
 ;; Version: 0.13
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
@@ -424,6 +424,35 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
   (interactive)
   (emamux:check-runner-alive)
   (emamux:tmux-run-command nil "resize-pane" "-Z" "-t" emamux:runner-pane-id))
+
+(defvar emamux:keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-s" #'emamux:send-command)
+    (define-key map "\C-y" #'emamux:yank-from-list-buffers)
+    (when (emamux:in-tmux-p)
+      (define-key map "\M-!" #'emamux:run-command)
+      (define-key map "\M-r" #'emamux:run-last-command)
+      (define-key map "\C-i" #'emamux:inspect-runner)
+      (define-key map "\C-k" #'emamux:close-panes)
+      (define-key map "\C-c" #'emamux:interrupt-runner)
+      (define-key map "\M-k" #'emamux:clear-runner-history))
+    map)
+  "Default keymap for emamux commands. Use like
+\(global-set-key (kbd \"M-g\") emamux:keymap\)
+
+Keymap:
+
+| Key | Command                       |
+|-----+-------------------------------|
+| C-s | emamux:send-command           |
+| C-y | emamux:yank-from-list-buffers |
+| M-! | emamux:run-command            |
+| M-r | emamux:run-last-command       |
+| C-i | emamux:inspect-runner         |
+| C-k | emamux:close-panes            |
+| C-c | emamux:interrupt-runner       |
+| M-k | emamux:clear-runner-history   |
+")
 
 (provide 'emamux)
 

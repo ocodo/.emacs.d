@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "emamux" "emamux.el" (22160 39022 733588 762000))
+;;;### (autoloads nil "emamux" "emamux.el" (22309 39007 232095 665000))
 ;;; Generated autoloads from emamux.el
 
 (autoload 'emamux:send-command "emamux" "\
