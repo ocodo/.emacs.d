@@ -70,23 +70,29 @@ conn.disconnected conn -- A previously established connection was lost
 
 NNN conn sender args... -- A numeric reply from IRC was received
 COMMAND conn sender args... -- An IRC command message was received"
-  (funcall (if (plist-get keywords :tls)
-               #'make-tls-process
-             #'make-network-process)
-           :name (or (plist-get keywords :name)
-                     (plist-get keywords :host))
-           :host (or (plist-get keywords :host)
-                     (error "Must specify a :host to connect to"))
-           :service (or (plist-get keywords :service)
-                        (error "Must specify a :service to connect to"))
-           :family (plist-get keywords :family)
-           :coding 'no-conversion
-           :nowait (featurep 'make-network-process '(:nowait t))
-           :noquery t
-           :filter #'irc--filter
-           :sentinel #'irc--sentinel
-           :plist keywords
-           :keepalive t))
+  (let ((proc (funcall (if (plist-get keywords :tls)
+                           #'make-tls-process
+                         #'make-network-process)
+                       :name (or (plist-get keywords :name)
+                                 (plist-get keywords :host))
+                       :host (or (plist-get keywords :host)
+                                 (error "Must specify a :host to connect to"))
+                       :service (or (plist-get keywords :service)
+                                    (error "Must specify a :service to connect to"))
+                       :family (plist-get keywords :family)
+                       :coding 'no-conversion
+                       :nowait (featurep 'make-network-process '(:nowait t))
+                       :noquery t
+                       :filter #'irc--filter
+                       :sentinel #'irc--sentinel
+                       :plist keywords
+                       :keepalive t)))
+    ;; When we used `make-network-process' without :nowait, the
+    ;; sentinel is not called with the open event, so we do this
+    ;; manually.
+    (when (eq (process-status proc) 'open)
+      (irc--sentinel proc "open manually"))
+    proc))
 
 (defun irc-connection-get (conn propname)
   "Return the value of CONN's PROPNAME property."
@@ -176,17 +182,28 @@ COMMAND arg1 arg2 :arg3 still arg3
     (goto-char (point-min))
     (let ((sender nil)
           (args nil))
-      (when (looking-at ":\\([^ ]*\\) +")
+      ;; Optional sender.
+      (when (looking-at ":\\([^ ]+\\) ")
         (setq sender (decode-coding-string
                       (match-string 1)
                       'undecided))
         (goto-char (match-end 0)))
-      (while (re-search-forward ":\\(.*\\)\\|\\([^ ]+\\)" nil t)
+
+      ;; COMMAND.
+      (unless (looking-at "\\([^ ]+\\)")
+        (error "Invalid message: %s" line))
+      (push (decode-coding-string (match-string 1) 'undecided)
+            args)
+      (goto-char (match-end 0))
+
+      ;; Arguments.
+      (while (re-search-forward " :\\(.*\\)\\| \\([^ ]*\\)" nil t)
         (push (decode-coding-string
                (or (match-string 1)
                    (match-string 2))
                'undecided)
               args))
+
       (cons sender (nreverse args)))))
 
 (defun irc-userstring-nick (userstring)
