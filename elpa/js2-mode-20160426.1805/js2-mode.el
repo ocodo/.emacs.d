@@ -8599,7 +8599,7 @@ imports or a namespace import that follows it.
               (js2-define-symbol
                js2-LET (js2-name-node-name name-node) name-node t))))))
      ((= (js2-peek-token) js2-NAME)
-      (let ((binding (js2-maybe-parse-export-binding)))
+      (let ((binding (js2-maybe-parse-export-binding t)))
         (let ((node-name (js2-export-binding-node-local-name binding)))
           (js2-define-symbol js2-LET (js2-name-node-name node-name) node-name t))
         (setf (js2-import-clause-node-default-binding clause) binding)
@@ -8632,50 +8632,47 @@ imports or a namespace import that follows it.
   "Parse a namespace import expression such as  '* as bar'.
 The current token must be js2-MUL."
   (let ((beg (js2-current-token-beg)))
-    (when (js2-must-match js2-NAME "msg.syntax")
-        (if (equal "as" (js2-current-token-string))
-            (when (js2-must-match-prop-name "msg.syntax")
-              (let ((node (make-js2-namespace-import-node
-                           :pos beg
-                           :len (- (js2-current-token-end) beg)
-                           :name (make-js2-name-node
-                                  :pos (js2-current-token-beg)
-                                  :len (js2-current-token-end)
-                                  :name (js2-current-token-string)))))
-                (js2-node-add-children node (js2-namespace-import-node-name node))
-                node))
-          (js2-unget-token)
-          (js2-report-error "msg.syntax")))))
+    (if (js2-match-contextual-kwd "as")
+        (when (js2-must-match-prop-name "msg.syntax")
+          (let ((node (make-js2-namespace-import-node
+                       :pos beg
+                       :len (- (js2-current-token-end) beg)
+                       :name (make-js2-name-node
+                              :pos (js2-current-token-beg)
+                              :len (js2-current-token-end)
+                              :name (js2-current-token-string)))))
+            (js2-node-add-children node (js2-namespace-import-node-name node))
+            node))
+      (js2-unget-token)
+      (js2-report-error "msg.syntax"))))
 
 
 (defun js2-parse-from-clause ()
   "Parse the from clause in an import or export statement. E.g. from 'src/lib'"
-  (when (js2-must-match-name "msg.mod.from.after.import.spec.set")
-    (let ((beg (js2-current-token-beg)))
-      (if (equal "from" (js2-current-token-string))
-          (cond
-           ((js2-match-token js2-STRING)
-            (make-js2-from-clause-node
-             :pos beg
-             :len (- (js2-current-token-end) beg)
-             :module-id (js2-current-token-string)
-             :metadata-p nil))
-           ((js2-match-token js2-THIS)
-            (when (js2-must-match-name "msg.mod.spec.after.from")
-              (if (equal "module" (js2-current-token-string))
-                  (make-js2-from-clause-node
-                   :pos beg
-                   :len (- (js2-current-token-end) beg)
-                   :module-id "this"
-                   :metadata-p t)
-                (js2-unget-token)
-                (js2-unget-token)
-                (js2-report-error "msg.mod.spec.after.from")
-                nil)))
-           (t (js2-report-error "msg.mod.spec.after.from") nil))
-        (js2-unget-token)
-        (js2-report-error "msg.mod.from.after.import.spec.set")
-        nil))))
+  (if (js2-match-contextual-kwd "from")
+      (let ((beg (js2-current-token-beg)))
+        (cond
+         ((js2-match-token js2-STRING)
+          (make-js2-from-clause-node
+           :pos beg
+           :len (- (js2-current-token-end) beg)
+           :module-id (js2-current-token-string)
+           :metadata-p nil))
+         ((js2-match-token js2-THIS)
+          (when (js2-must-match-name "msg.mod.spec.after.from")
+            (if (equal "module" (js2-current-token-string))
+                (make-js2-from-clause-node
+                 :pos beg
+                 :len (- (js2-current-token-end) beg)
+                 :module-id "this"
+                 :metadata-p t)
+              (js2-unget-token)
+              (js2-unget-token)
+              (js2-report-error "msg.mod.spec.after.from")
+              nil)))
+         (t (js2-report-error "msg.mod.spec.after.from") nil)))
+    (js2-report-error "msg.mod.from.after.import.spec.set")
+    nil))
 
 (defun js2-parse-export-bindings (&optional import-p)
   "Parse a list of export binding expressions such as {}, {foo, bar}, and
@@ -8683,7 +8680,7 @@ The current token must be js2-MUL."
 js2-LC. Return a lisp list of js2-export-binding-node"
   (let ((bindings (list)))
     (while
-        (let ((binding (js2-maybe-parse-export-binding)))
+        (let ((binding (js2-maybe-parse-export-binding import-p)))
           (when binding
             (push binding bindings))
           (js2-match-token js2-COMMA)))
@@ -8692,7 +8689,7 @@ js2-LC. Return a lisp list of js2-export-binding-node"
                                    "msg.mod.rc.after.export.spec.list"))
       (reverse bindings))))
 
-(defun js2-maybe-parse-export-binding ()
+(defun js2-maybe-parse-export-binding (&optional import-p)
   "Attempt to parse a binding expression found inside an import/export statement.
 This can take the form of either as single js2-NAME token as in 'foo' or as in a
 rebinding expression 'bar as foo'. If it matches, it will return an instance of
@@ -8704,45 +8701,49 @@ consumes no tokens."
         (is-reserved-name (or (= (js2-current-token-type) js2-RESERVED)
                               (aref js2-kwd-tokens (js2-current-token-type)))))
     (if extern-name
-        (let ((as (and (js2-match-token js2-NAME) (js2-current-token-string))))
-          (if (and as (equal "as" (js2-current-token-string)))
-              (let ((name
-                     (or
-                      (and (js2-match-token js2-DEFAULT) "default")
-                      (and (js2-match-token js2-NAME) (js2-current-token-string)))))
-                (if name
-                    (let ((node (make-js2-export-binding-node
-                                 :pos beg
-                                 :len (- (js2-current-token-end) beg)
-                                 :local-name (make-js2-name-node
-                                              :name name
-                                              :pos (js2-current-token-beg)
-                                              :len (js2-current-token-len))
-                                 :extern-name (make-js2-name-node
-                                               :name extern-name
-                                               :pos beg
-                                               :len extern-name-len))))
-                      (js2-node-add-children
-                       node
-                       (js2-export-binding-node-local-name node)
-                       (js2-export-binding-node-extern-name node))
-                      node)
-                  (js2-unget-token)
-                  nil))
-            (when as (js2-unget-token))
-            (let* ((name-node (make-js2-name-node
-                              :name (js2-current-token-string)
-                              :pos (js2-current-token-beg)
-                              :len (js2-current-token-len)))
-                  (node (make-js2-export-binding-node
-                         :pos (js2-current-token-beg)
-                         :len (js2-current-token-len)
-                         :local-name name-node
-                         :extern-name name-node)))
-              (when is-reserved-name
-                (js2-report-error "msg.mod.as.after.reserved.word" extern-name))
-              (js2-node-add-children node name-node)
-              node)))
+        (if (js2-match-contextual-kwd "as")
+            (let ((name
+                   (or
+                    (and (js2-match-token js2-DEFAULT) "default")
+                    (and (js2-match-token js2-NAME) (js2-current-token-string)))))
+              (if name
+                  (let ((node (make-js2-export-binding-node
+                               :pos beg
+                               :len (- (js2-current-token-end) beg)
+                               :local-name (make-js2-name-node
+                                            :name name
+                                            :pos (js2-current-token-beg)
+                                            :len (js2-current-token-len))
+                               :extern-name (make-js2-name-node
+                                             :name extern-name
+                                             :pos beg
+                                             :len extern-name-len))))
+                    (js2-node-add-children
+                     node
+                     (js2-export-binding-node-local-name node)
+                     (js2-export-binding-node-extern-name node))
+                    (if import-p
+                        (js2-set-face (js2-current-token-beg) (js2-current-token-end)
+                                      'font-lock-variable-name-face 'record))
+                    node)
+                (js2-unget-token)
+                nil))
+          (let* ((name-node (make-js2-name-node
+                             :name (js2-current-token-string)
+                             :pos (js2-current-token-beg)
+                             :len (js2-current-token-len)))
+                 (node (make-js2-export-binding-node
+                        :pos (js2-current-token-beg)
+                        :len (js2-current-token-len)
+                        :local-name name-node
+                        :extern-name name-node)))
+            (when is-reserved-name
+              (js2-report-error "msg.mod.as.after.reserved.word" extern-name))
+            (js2-node-add-children node name-node)
+            (if import-p
+                (js2-set-face (js2-current-token-beg) (js2-current-token-end)
+                              'font-lock-variable-name-face 'record))
+            node))
       nil)))
 
 (defun js2-parse-switch ()
@@ -8870,12 +8871,9 @@ invalid export statements."
       (when exports-list
         (dolist (export exports-list)
           (push export children)))
-      (when (js2-match-token js2-NAME)
-        (if (equal "from" (js2-current-token-string))
-            (progn
-              (js2-unget-token)
-              (setq from-clause (js2-parse-from-clause)))
-          (js2-unget-token))))
+      (when (js2-match-contextual-kwd "from")
+        (js2-unget-token)
+        (setq from-clause (js2-parse-from-clause))))
      ((js2-match-token js2-DEFAULT)
       (setq default (cond ((js2-match-token js2-CLASS)
                            (js2-parse-class-stmt))
