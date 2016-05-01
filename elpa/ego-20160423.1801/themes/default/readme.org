@@ -1,0 +1,12 @@
+
+* About
+The theme is created for a static sate generator: ego --- which is served for [[http://emacs-china.github.io][emacs-china]].
+
+* Introduction
+
+
+* If there is problem:
+Open an issue.
+
+Here is the issues solved:
+https://github.com/emacs-china/EGO/issues/9
