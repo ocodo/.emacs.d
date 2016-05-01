@@ -4,7 +4,7 @@
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
 ;; Version: 1.2.9
-;; Package-Version: 20160228.2149
+;; Package-Version: 20160425.2309
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -1884,25 +1884,27 @@ Return `NAME'."
    (if opt
        `(function
          (lambda (b)
-           ,(typecase opt
-              (function
-               `(funcall ,opt b))
-              (number
-               `(let ((*persp-restrict-buffers-to* ,opt))
-                  (memq b (persp-buffer-list-restricted
-                           (selected-frame) ,opt
-                           persp-restrict-buffers-to-if-foreign-buffer t))))
-              (symbol
-               (case opt
-                 ('nil t)
-                 ('restricted-buffer-list
-                  '(memq b (persp-buffer-list-restricted
-                            (selected-frame)
-                            *persp-restrict-buffers-to*
-                            persp-restrict-buffers-to-if-foreign-buffer
-                            t)))
-                 (t '(memq b (safe-persp-buffers (get-current-persp))))))
-              (t t))))
+           (if (string-prefix-p " " (buffer-name (current-buffer)))
+               t
+             ,(typecase opt
+                (function
+                 `(funcall ,opt b))
+                (number
+                 `(let ((*persp-restrict-buffers-to* ,opt))
+                    (memq b (persp-buffer-list-restricted
+                             (selected-frame) ,opt
+                             persp-restrict-buffers-to-if-foreign-buffer t))))
+                (symbol
+                 (case opt
+                   ('nil t)
+                   ('restricted-buffer-list
+                    '(memq b (persp-buffer-list-restricted
+                              (selected-frame)
+                              *persp-restrict-buffers-to*
+                              persp-restrict-buffers-to-if-foreign-buffer
+                              t)))
+                   (t '(memq b (safe-persp-buffers (get-current-persp))))))
+                (t t)))))
      nil)))
 
 (defun persp-set-frame-buffer-predicate (frame &optional off)
