@@ -31,7 +31,7 @@ interpreter (e.g.  GHCi).
 * Introduction::                         An introduction to Haskell Mode
 * Installation::                         How to get started
 * Editing Haskell Code::                 How to edit code
-* Font Lock Support::                    Haskell Mode has colors
+* Syntax highlighting::                  Haskell Mode has colors
 * Completion support::                   Autocomplete
 * Unicode support::                      How to use Unicode
 * Indentation::                          Notes about indentation
@@ -64,21 +64,19 @@ editing Haskell (http://www.haskell.org) programs.
    Some of its major features are:
 
    • Syntax highlighting (font lock),
-   • automatic indentation,
+   • automatic semi-intelligent indentation,
    • on-the-fly documentation,
-   • interaction with inferior GHCi/Hugs instance, and
+   • interaction with inferior GHCi/Hugs instance,
+   • project building with cabal and stack
    • scanning declarations and placing them in a menu.
 
-1.1 Naming
-==========
+   The name Haskell Mode refers to the whole collection of modules in
+this package.  There is specifically a file ‘haskell-mode.el’ which
+defines a major mode called ‘haskell-mode’.  Generally, in this
+documentation they will be distinguished by normal font and title case
+(Haskell Mode) and code font (‘haskell-mode’).
 
-The name haskell-mode refers to the whole collection of modules in this
-package.  There is specifically a file ‘haskell-mode.el‘ which defines a
-major mode called ‘haskell-mode‘.  Generally, in this documentation they
-will be distinguished by normal font (haskell-mode) and code font
-(‘haskell-mode‘).
-
-1.2 History
+1.1 History
 ===========
 
 ‘haskell-mode’ has a long history.  It goes all the way back to 1992.
@@ -104,13 +102,15 @@ Haskell Mode is distributed as a package in MELPA repository
 (https://melpa.org).  To use MELPA as Emacs package archive do the
 following:
 
-  1. Customize ‘package-archives’ using ‘M-x’ ‘customize-option’ ‘RET’
-     ‘package-archives’ ‘RET’.
-  2. Use ‘INS’ to add new archive, use ‘Archive name: melpa-stable’ and
-     ‘URL or directory name: http://stable.melpa.org/packages/’.
-  3. Fetch new packages using ‘M-x’ ‘package-refresh-contents’.
-  4. Install ‘haskell-mode’ using ‘M-x’ ‘package-install’ ‘RET’
-     ‘haskell-mode’ ‘RET’.
+  1. Customize ‘package-archives’ using
+          M-x customize-option RET package-archives
+  2. Use ‘INS’ to add new archive, use:
+          Archive name:          melpa-stable
+          URL or directory name: http://stable.melpa.org/packages
+  3. Fetch new packages using:
+          M-x package-refresh-contents
+  4. Install Haskell Mode using:
+          M-x package-install RET haskell-mode RET
 
    Voila!  ‘haskell-mode’ is installed!  You should be able to edit
 Haskell source code in color now.
@@ -129,13 +129,10 @@ Haskell source code in color now.
          (("gnu" . "http://elpa.gnu.org/packages/")
           ("melpa-stable" . "http://stable.melpa.org/packages/")))))
 
-2.1 Installation - more information
-===================================
-
-‘haskell-mode’ supports GNU Emacs versions 24.3+, including 25
+   Haskell Mode supports GNU Emacs versions 24.3+, including 25
 (snapshot).
 
-   ‘haskell-mode’ is available from melpa-stable (releases)
+   Haskell Mode is available from melpa-stable (releases)
 (http://stable.melpa.org) and melpa (git snapshots) (http://melpa.org).
 
    Other means of obtaining ‘haskell-mode’ include el-get
@@ -147,58 +144,57 @@ Haskell source code in color now.
 24.2 is ‘haskell-mode’ 13.16 available at
 <https://github.com/haskell/haskell-mode/releases/tag/v13.16>.
 
-2.2 Customizing
+2.1 Customizing
 ===============
 
-Most of ‘haskell-mode’’s settings are configurable via customizable
+Most of Haskell Mode’s settings are configurable via customizable
 variables (*note (emacs)Easy Customization::, for details).  You can use
-
-   ‘M-x customize-group <RET> haskell’ to browse the ‘haskell’
+‘M-x customize-group <RET> haskell’ to browse the ‘haskell’
 customization sub-tree.
 
    One of the important setting you should customize is the
 ‘haskell-mode-hook’ variable (*note (emacs)Hooks::) which gets run right
 after the ‘haskell-mode’ major mode is initialized for a buffer.  You
-can customize ‘haskell-mode-hook’ by ‘M-x customize-variable <RET>
-haskell-mode-hook’.
+can customize ‘haskell-mode-hook’ by
+
+     M-x customize-variable RET haskell-mode-hook
+
+   There you can enable or disable a couple of predefined options or add
+any function to the list.
 
 
-File: haskell-mode.info,  Node: Editing Haskell Code,  Next: Font Lock Support,  Prev: Installation,  Up: Top
+File: haskell-mode.info,  Node: Editing Haskell Code,  Next: Syntax highlighting,  Prev: Installation,  Up: Top
 
 3 Editing Haskell Code
 **********************
 
-"Haskell Mode" is actually a collection of so-called major modes(1) one
-of which is called ‘haskell-mode’.  To avoid confusion, when referring
-to this package the name “Haskell mode” is written in a normal font,
-whereas when referring the major mode of the same name ‘haskell-mode’
-written with a dash in-between in a typewriter font is used.
+Haskell Mode as one of its components provides a major mode for editing
+Haskell source code called ‘haskell-mode’, which gave the name to the
+whole project.  There is a derived mode provided called
+‘literate-haskell-mode’ that support Literate Haskell source code both
+in Bird and in Latex forms.
 
-   As one might guess, ‘haskell-mode’ is the (programming language(2))
-major mode for editing (non-literate) Haskell source code.
-‘haskell-mode’ is associated with the file extensions listed below by
-default(3).
+   Haskell Mode supports files with the following extensions:
 
 ‘.hs’
-     official file extension for (non-literate) Haskell 98/2010 files
+     official file extension for Haskell files.  Haskell Mode out of the
+     box supports most of GHC extensions.
+‘.lhs’
+     official file extension for Literate Haskell files.  Both Bird and
+     Latex styles are supported.
 ‘.hsc’
-     “almost-Haskell” input file for the hsc2hs
+     Haskell interfaces to C code used by hsc2hs
      (http://www.haskell.org/ghc/docs/latest/html/users_guide/hsc2hs.html)
-     pre-processor
+     pre-processor.
 ‘.cpphs’
-     input file for the cpphs (http://projects.haskell.org/cpphs/)
-     pre-processor
+     Haskell source with CPP pragmas used with cpphs
+     (http://projects.haskell.org/cpphs) pre-processor.
+‘.c2hs’
+     Haskell FFI bindings to C libraries used with c2hs
+     (https://github.com/haskell/c2hs) pre-processor.
 
-The major mode ‘literate-haskell-mode’ (which is derived from
-‘haskell-mode’ and thus transitively from ‘prog-mode’) provides support
-for literate Haskell programs
-(http://www.haskell.org/haskellwiki/Literate_programming) and is
-associated with the ‘.lhs’ file extension by default.
-
-   ‘literate-haskell-mode’ supports Bird-style as well as TeX-style
-literate Haskell files.  The currently detected literate Haskell variant
-is shown in the mode line (*note (emacs)Mode Line::) as either
-‘LitHaskell/bird’ or ‘LitHaskell/tex’.
+   Haskell Mode offers many productivity tools described in following
+chapters in this manual.
 
 3.1 Managing imports
 ====================
@@ -276,21 +272,11 @@ to make this more convenient.  It will remove an SCC annotation at point
 if one is present, or add one if point is over whitespace.  By default
 it is bound to ‘C-c C-s’.
 
-   ---------- Footnotes ----------
-
-   (1) for more information about the concept of "major modes" *note
-(emacs)Major Modes::
-
-   (2) ‘haskell-mode’ is derived from ‘prog-mode’
-
-   (3) for more information about file associations, *note
-(emacs)Choosing Modes::
-
 
-File: haskell-mode.info,  Node: Font Lock Support,  Next: Completion support,  Prev: Editing Haskell Code,  Up: Top
+File: haskell-mode.info,  Node: Syntax highlighting,  Next: Completion support,  Prev: Editing Haskell Code,  Up: Top
 
-4 Font Lock Support
-*******************
+4 Syntax highlighting
+*********************
 
 ‘haskell-mode’ supports "syntax highlighting" via Emacs’ Font Lock minor
 mode which should be enabled by default in current Emacsen.  *Note
@@ -304,11 +290,48 @@ sequences and are able to highlight unrecognized constructs.
 types in different colors.
 
    There is also support to use mode-specific syntax highlighing for
-quasiquotes.  Customize ‘haskell-font-lock-quasi-quote-modes’ to make
-sure your quoters are supported.
+quasiquotes.
+
+   At this point quasi quotes for HTML, XML, shell scripts, Hamlet
+templates and SQL are supported out of the box.  Customize
+‘haskell-font-lock-quasi-quote-modes’ to make sure your quoters are
+supported.
+
+   The following customization variables are responsible for faces
+applied:
+
+   ‘’ ‘haskell-keyword-face’: for keywords
+   ‘’ ‘haskell-type-face’: for type names and type class names
+   ‘’ ‘haskell-constructor-face’: for constructors
+   ‘’ ‘haskell-definition-face’: function and operator name at the
+     definition place
+   ‘’ ‘haskell-operator-face’: operators
+   ‘’ ‘haskell-pragma-face’: GHC pragmas
+   ‘’ ‘haskell-literate-comment-face’: literate comments
+   ‘’ ‘haskell-quasi-quote-face’: quasi quotes unless using mode
+     specific highlighting
+   ‘’ ‘haskell-c2hs-hook-pair-face’: c2hs hooks
+   ‘’ ‘haskell-c2hs-hook-name-face’: c2hs hook names
+
+   All the above are available for customization.
+
+   GHC quasi quote syntax is ambiguous with list comprehension therefore
+syntax highlighting might get confused with situations like these:
+
+     result = [html| html <- htmlList]
+     result = [html| <html><body>...</body></html> |]
+
+   Please use spaces around a list comprehension variable to make this
+unambiguous.  Any of the following will work:
+
+     result = [ html| html <- htmlList]
+     result = [html | html <- htmlList]
+
+   GHC’s ambiguity is an accident of the past but it is unlikely to be
+fixed due to backward compatibility baggage.
 
 
-File: haskell-mode.info,  Node: Completion support,  Next: Unicode support,  Prev: Font Lock Support,  Up: Top
+File: haskell-mode.info,  Node: Completion support,  Next: Unicode support,  Prev: Syntax highlighting,  Up: Top
 
 5 Completion support
 ********************
@@ -374,6 +397,49 @@ describe-input-method <RET> haskell-unicode’.  A sequence like ‘<=’ is
 ambiguous and can mean either ‘⇐’ or ‘≤’.  Typing it presents you with a
 choice.  Type ‘1’ or ‘2’ to select an option or keep typing to use the
 default option.
+
+   Currently defined sequences are listed in the following table:
+
+SequenceUnicode    SequenceUnicode    SequenceUnicode    SequenceUnicode
+----------------------------------------------------------------------------
+alpha  α           Alpha  Α           beta   β           Beta   Β
+gamma  γ           Gamma  Γ           delta  δ           Delta  Δ
+epsilonε           EpsilonΕ           zeta   ζ           Zeta   Ζ
+eta    η           Eta    Η           theta  θ           Theta  Θ
+iota   ι           Iota   Ι           kappa  κ           Kappa  Κ
+lambda λ           Lambda Λ           lamda  λ           Lamda  Λ
+mu     μ           Mu     Μ           nu     ν           Nu     Ν
+xi     ξ           Xi     Ξ           omicronο           OmicronΟ
+pi     π           Pi     Π           rho    ρ           Rho    Ρ
+sigma  σ           Sigma  Σ           tau    τ           Tau    Τ
+upsilonυ           UpsilonΥ           phi    φ           Phi    Φ
+chi    χ           Chi    Χ           psi    ψ           Psi    Ψ
+omega  ω           Omega  Ω           digammaϝ           DigammaϜ
+san    ϻ           San    Ϻ           qoppa  ϙ           Qoppa  Ϙ
+sampi  ϡ           Sampi  Ϡ           stigma ϛ           Stigma Ϛ
+heta   ͱ           Heta   Ͱ           sho    ϸ           Sho    Ϸ
+|A|    𝔸           |B|    𝔹           |C|    ℂ           |D|    𝔻
+|E|    𝔼           |F|    𝔽           |G|    𝔾           |H|    ℍ
+|I|    𝕀           |J|    𝕁           |K|    𝕂           |L|    𝕃
+|M|    𝕄           |N|    ℕ           |O|    𝕆           |P|    ℙ
+|Q|    ℚ           |R|    ℝ           |S|    𝕊           |T|    𝕋
+|U|    𝕌           |V|    𝕍           |W|    𝕎           |X|    𝕏
+|Y|    𝕐           |Z|    ℤ           |gamma|ℽ           |Gamma|ℾ
+|pi|   ℼ           |Pi|   ℿ           ::     ∷           forall ∀
+exists ∃           ->     →           <-     ←           =>     ⇒
+~>     ⇝           <~     ⇜           &&     ∧           ||     ∨
+==     ≡           /=     ≢, ≠        <=     ≤           >=     ≥
+/<     ≮           />     ≯           *      ⋅           elem   ∈
+notElem∉           member ∈           notMember∉         union  ∪
+intersection∩      isSubsetOf⊆        isProperSubsetOf⊂  <<<    ⋘
+>>>    ⋙           <|     ⊲           |>     ⊳           ><     ⋈
+mappend⊕           .      ∘           undefined⊥         :=     ≔
+=:     ≕           =def   ≝           =?     ≟           ...    …
+_0     ₀           _1     ₁           _2     ₂           _3     ₃
+_4     ₄           _5     ₅           _6     ₆           _7     ₇
+_8     ₈           _9     ₉           ^0     ⁰           ^1     ¹
+^2     ²           ^3     ³           ^4     ⁴           ^5     ⁵
+^6     ⁶           ^7     ⁷           ^8     ⁸           ^9     ⁹
 
    If you don’t like the highlighting of partially matching tokens you
 can turn it off by setting ‘input-method-highlight-flag’ to ‘nil’ via
@@ -731,22 +797,6 @@ features:
    • A new inferior Haskell process handling code ‘haskell-process.el’.
    • New REPL implementation similiar to SLIME/IELM
    • Navigatable error overlays ‘haskell-interactive-mode.el’.
-
-   In order to use ‘haskell-interactive-mode’ instead of the default
-‘inferior-haskell-mode’, you need to replace some of the default
-keybindings in the ‘haskell-mode-map’ keymap with the respective
-‘haskell-interactive-mode’ counterparts:
-
-     (eval-after-load "haskell-mode"
-       '(progn
-         (define-key haskell-mode-map (kbd "C-x C-d") nil)
-         (define-key haskell-mode-map (kbd "C-c C-z") 'haskell-interactive-switch)
-         (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
-         (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
-         (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
-         (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
-         (define-key haskell-mode-map (kbd "C-c M-.") nil)
-         (define-key haskell-mode-map (kbd "C-c C-d") nil)))
 
    With ‘haskell-interactive-mode’, each Haskell source buffer is
 associated with at most one GHCi session, so when you call
@@ -1945,31 +1995,25 @@ File: haskell-mode.info,  Node: Getting Help and Reporting Bugs,  Next: Concept 
 20 Getting Help and Reporting Bugs
 **********************************
 
-This Info manual is work in progress and incomplete.  However, you can
-find more information at these locations in the meantime:
+Work on Haskell Mode is organized with Github ‘haskell-mode’ project.
+To understand how the project is run please read the information in the
+project wiki pages (https://github.com/haskell/haskell-mode/wiki).
 
-   • Haskell Mode’s GitHub Home
-     (https://github.com/haskell/haskell-mode)
-   • Haskell Wiki Emacs Page
-     (http://www.haskell.org/haskellwiki/Haskell_mode_for_Emacs)
+   To report any issues please use the Github’s issue mechanism
+available from Haskell Mode’s GitHub Home
+(https://github.com/haskell/haskell-mode).
 
-   If you have any questions or like to discuss something regarding
-Haskell Mode, please consider sending an email to the Haskellmode-emacs
-mailing list
-(http://projects.haskell.org/cgi-bin/mailman/listinfo/haskellmode-emacs).
-The mailing list is also available on Gmane (http://gmane.org/) via the
+   For a quick question visit ‘#haskell-emacs’ channel on IRC
+‘irc.freenode.net’.
+
+   There is also a (now defunct) Haskellmode-emacs mailing list
+(http://projects.haskell.org/cgi-bin/mailman/listinfo/haskellmode-emacs),
+also available on Gmane (http://gmane.org/) via the
 gmane.comp.lang.haskell.emacs
 (http://dir.gmane.org/gmane.comp.lang.haskell.emacs) newsgroup.
 
-   If you have discovered a bug or wish to request a new feature, you
-can file a new issue
-(https://github.com/haskell/haskell-mode/issues/new) with Haskell Mode’s
-issue tracker.  When filing a bug, please state your currently used
-software version (‘M-x’ ‘haskell-version’, ‘M-x’ ‘version’) and what
-steps to perform in order to reproduce the bug you’re experiencing.
-Finally, if you happen to be proficient in *note Emacs Lisp: (elisp)Top.
-you are welcome to submit patches via GitHub Pull Requests
-(https://help.github.com/articles/using-pull-requests).
+   We welcome code and non-code contributions so that we can all enjoy
+coding Haskell even more.
 
 
 File: haskell-mode.info,  Node: Concept index,  Next: Function index,  Prev: Getting Help and Reporting Bugs,  Up: Top
@@ -1980,19 +2024,17 @@ Concept index
  [index ]
 * Menu:
 
-* benchmarking:                          Interactive Haskell. (line 483)
+* benchmarking:                          Interactive Haskell. (line 467)
 * CUA mode:                              Indentation.         (line  43)
-* customizing:                           Installation.        (line  56)
-* customizing <1>:                       Interactive Haskell. (line  67)
+* customizing:                           Installation.        (line  55)
+* customizing <1>:                       Interactive Haskell. (line  51)
 * ‘haskell-mode’:                        Editing Haskell Code.
                                                               (line   6)
 * indentation:                           Indentation.         (line   6)
 * layout rule:                           Indentation.         (line   6)
-* literate programming:                  Editing Haskell Code.
-                                                              (line  27)
 * off-side rule:                         Indentation.         (line   6)
 * rectangle:                             Indentation.         (line  43)
-* testing:                               Interactive Haskell. (line 481)
+* testing:                               Interactive Haskell. (line 465)
 * Unicode:                               Unicode support.     (line   6)
 
 
@@ -2011,7 +2053,7 @@ Function index
                                                               (line   6)
 * haskell-mode:                          Editing Haskell Code.
                                                               (line   6)
-* haskell-session-change-target:         Interactive Haskell. (line 474)
+* haskell-session-change-target:         Interactive Haskell. (line 458)
 * inferior-haskell-find-definition:      Inferior Haskell interpreter.
                                                               (line   6)
 * inferior-haskell-find-haddock:         Inferior Haskell interpreter.
@@ -2030,8 +2072,6 @@ Function index
                                                               (line   6)
 * inferior-haskell-type:                 Inferior Haskell interpreter.
                                                               (line   6)
-* literate-haskell-mode:                 Editing Haskell Code.
-                                                              (line  27)
 
 
 File: haskell-mode.info,  Node: Variable index,  Prev: Function index,  Up: Top
@@ -2042,23 +2082,33 @@ Variable index
  [index ]
 * Menu:
 
+* haskell-c2hs-hook-name-face:           Syntax highlighting. (line  39)
+* haskell-c2hs-hook-pair-face:           Syntax highlighting. (line  38)
 * haskell-cabal-mode-hook:               Editing Cabal files. (line   6)
 * haskell-compile-cabal-build-command:   Compilation.         (line  35)
 * haskell-compile-cabal-build-command-alt: Compilation.       (line  35)
 * haskell-compile-command:               Compilation.         (line  35)
+* haskell-constructor-face:              Syntax highlighting. (line  30)
 * haskell-decl-scan-mode-hook:           Declaration scanning.
                                                               (line   6)
-* haskell-interactive-mode-hook:         Interactive Haskell. (line 474)
-* haskell-mode-hook:                     Installation.        (line  62)
-* haskell-process-args-cabal-repl:       Interactive Haskell. (line  88)
-* haskell-process-args-ghci:             Interactive Haskell. (line  88)
-* haskell-process-args-stack-ghci:       Interactive Haskell. (line  87)
-* haskell-process-path-cabal:            Interactive Haskell. (line  88)
-* haskell-process-path-ghci:             Interactive Haskell. (line  88)
-* haskell-process-path-stack:            Interactive Haskell. (line  88)
-* haskell-process-type:                  Interactive Haskell. (line  88)
+* haskell-definition-face:               Syntax highlighting. (line  31)
+* haskell-interactive-mode-hook:         Interactive Haskell. (line 458)
+* haskell-keyword-face:                  Syntax highlighting. (line  28)
+* haskell-literate-comment-face:         Syntax highlighting. (line  35)
+* haskell-mode-hook:                     Installation.        (line  60)
+* haskell-operator-face:                 Syntax highlighting. (line  33)
+* haskell-pragma-face:                   Syntax highlighting. (line  34)
+* haskell-process-args-cabal-repl:       Interactive Haskell. (line  72)
+* haskell-process-args-ghci:             Interactive Haskell. (line  72)
+* haskell-process-args-stack-ghci:       Interactive Haskell. (line  71)
+* haskell-process-path-cabal:            Interactive Haskell. (line  72)
+* haskell-process-path-ghci:             Interactive Haskell. (line  72)
+* haskell-process-path-stack:            Interactive Haskell. (line  72)
+* haskell-process-type:                  Interactive Haskell. (line  72)
 * haskell-program-name:                  Inferior Haskell interpreter.
                                                               (line   6)
+* haskell-quasi-quote-face:              Syntax highlighting. (line  36)
+* haskell-type-face:                     Syntax highlighting. (line  29)
 * inferior-haskell-mode-hook:            Inferior Haskell interpreter.
                                                               (line   6)
 
@@ -2067,31 +2117,28 @@ Variable index
 Tag Table:
 Node: Top683
 Node: Introduction2546
-Node: Installation4074
-Node: Editing Haskell Code6747
-Ref: Editing Haskell Code-Footnote-110905
-Ref: Editing Haskell Code-Footnote-210996
-Ref: Editing Haskell Code-Footnote-311055
-Node: Font Lock Support11139
-Node: Completion support11933
-Node: Unicode support13696
-Node: Indentation15384
-Node: External indentation18478
-Node: Autoformating19206
-Node: Module templates19834
-Node: Declaration scanning20264
-Node: Compilation23552
-Node: Inferior Haskell interpreter26565
-Node: Interactive Haskell27497
-Node: Editing Cabal files58064
-Node: Browsing Haddocks58811
-Node: Spell checking strings and comments61636
-Node: Aligning code62742
-Node: Rectangular commands64487
-Node: Getting Help and Reporting Bugs66034
-Node: Concept index67515
-Node: Function index68694
-Node: Variable index70848
+Node: Installation4127
+Node: Editing Haskell Code6749
+Node: Syntax highlighting10509
+Node: Completion support12765
+Node: Unicode support14530
+Node: Indentation19202
+Node: External indentation22296
+Node: Autoformating23024
+Node: Module templates23652
+Node: Declaration scanning24082
+Node: Compilation27370
+Node: Inferior Haskell interpreter30383
+Node: Interactive Haskell31315
+Node: Editing Cabal files60985
+Node: Browsing Haddocks61732
+Node: Spell checking strings and comments64557
+Node: Aligning code65663
+Node: Rectangular commands67408
+Node: Getting Help and Reporting Bugs68955
+Node: Concept index69996
+Node: Function index71039
+Node: Variable index73057
 
 End Tag Table
 
