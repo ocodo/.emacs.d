@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "yagist" "yagist.el" (21820 50926 19401 0))
+;;;### (autoloads nil "yagist" "yagist.el" (22309 38810 435779 809000))
 ;;; Generated autoloads from yagist.el
 
 (autoload 'yagist-region "yagist" "\

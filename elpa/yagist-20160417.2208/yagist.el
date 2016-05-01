@@ -6,8 +6,8 @@
 ;;               Michael Ivey
 ;;               Phil Hagelberg
 ;;               Dan McKinley
-;; Version: 0.8.12
-;; Package-Version: 20150425.551
+;; Version: 0.8.13
+;; Package-Version: 20160417.2208
 ;; Created: 21 Jul 2008
 ;; Keywords: tools
 ;; Package-Requires: ((cl-lib "0.3"))
@@ -623,7 +623,7 @@ for the gist."
     (cond
      ;; check redirected location indicate public/private gist url
      ((and (stringp location)
-           (string-match "\\([0-9]+\\|[0-9a-zA-Z]\\{20\\}\\)$" location))
+           (string-match "\\([0-9]+\\|[0-9a-zA-Z]\\{32\\}\\)$" location))
       (let ((id (match-string 1 location)))
         (setq http-url (format "https://gist.github.com/%s" id))
         (message "Paste created: %s" http-url)
