@@ -46,28 +46,34 @@
 
 Optional PATH is the path to the submodule relative to the root
 of the superproject.  If it is nil, then the path is determined
-based on URL.
+based on the URL.
 
 Optional NAME is the name of the submodule.  If it is nil, then
 PATH also becomes the name."
   (interactive
    (magit-with-toplevel
-     (let ((path (read-file-name
-                  "Add submodule: " nil nil nil
-                  (magit-section-when [file untracked]
-                    (directory-file-name (magit-section-value it))))))
-       (when path
-         (setq path (file-name-as-directory (expand-file-name path)))
-         (when (member path (list "" default-directory))
-           (setq path nil)))
+     (let ((path (magit-completing-read "Add submodules at path"
+                                        (magit-untracked-files)
+                                        #'magit-git-repo-p nil nil nil
+                                        (magit-section-when [file untracked]
+                                          (file-relative-name
+                                           (magit-section-value it)
+                                           default-directory)))))
+       (unless path
+         (user-error "No path selected"))
        (list (magit-read-string-ns
               "Remote url"
-              (and path (magit-git-repo-p path t)
-                   (let ((default-directory path))
-                     (magit-get "remote" (or (magit-get-remote) "origin")
-                                "url"))))
-             (and path (directory-file-name (file-relative-name path)))
-             (magit-read-string-ns "Name submodule" path)))))
+              (let ((default-directory (file-name-as-directory
+                                        (expand-file-name path))))
+                (magit-get "remote" (or (magit-get-remote) "origin") "url")))
+             (directory-file-name path)
+             (magit-read-string-ns
+              "Name submodule" nil nil
+              (or (--keep (-let [(var val) (split-string it "=")]
+                            (and (equal val path)
+                                 (cadr (split-string var "\\."))))
+                          (magit-git-lines "config" "--list" "-f" ".gitmodules"))
+                  (directory-file-name path)))))))
   (magit-run-git "submodule" "add" (and name (list "--name" name)) url path))
 
 ;;;###autoload
@@ -119,42 +125,61 @@ With a prefix argument fetch all remotes."
 ;;; Sections
 
 ;;;###autoload
+(defun magit-insert-submodules ()
+  "Insert sections for all modules.
+For each section insert the path and the output of `git describe --tags'."
+  (-when-let (modules (magit-get-submodules))
+    (magit-insert-section (modules nil t)
+      (magit-insert-heading "Modules:")
+      (magit-with-toplevel
+        (dolist (module modules)
+          (let ((default-directory
+                  (expand-file-name (file-name-as-directory module))))
+            (magit-insert-section (file module t)
+              (insert (format "%-25s " module))
+              (--when-let (magit-git-string "describe" "--tags")
+                (when (string-match-p "\\`[0-9]" it)
+                  (insert ?\s))
+                (insert it))
+              (insert ?\n))))))))
+
+;;;###autoload
 (defun magit-insert-modules-unpulled-from-upstream ()
   "Insert sections for modules that haven't been pulled from the upstream.
 These sections can be expanded to show the respective commits."
-  (magit-insert-submodules "Modules unpulled from @{upstream}"
-                           'modules-unpulled-from-upstream
-                           'magit-get-upstream-ref
-                           "HEAD..%s"))
+  (magit--insert-modules-logs "Modules unpulled from @{upstream}"
+                              'modules-unpulled-from-upstream
+                              'magit-get-upstream-ref
+                              "HEAD..%s"))
 
 ;;;###autoload
 (defun magit-insert-modules-unpulled-from-pushremote ()
   "Insert sections for modules that haven't been pulled from the push-remote.
 These sections can be expanded to show the respective commits."
-  (magit-insert-submodules "Modules unpulled from <push-remote>"
-                           'modules-unpulled-from-pushremote
-                           'magit-get-push-branch
-                           "HEAD..%s"))
+  (magit--insert-modules-logs "Modules unpulled from <push-remote>"
+                              'modules-unpulled-from-pushremote
+                              'magit-get-push-branch
+                              "HEAD..%s"))
 
 ;;;###autoload
 (defun magit-insert-modules-unpushed-to-upstream ()
   "Insert sections for modules that haven't been pushed to the upstream.
 These sections can be expanded to show the respective commits."
-  (magit-insert-submodules "Modules unmerged into @{upstream}"
-                           'modules-unpushed-to-upstream
-                           'magit-get-upstream-ref
-                           "%s..HEAD"))
+  (magit--insert-modules-logs "Modules unmerged into @{upstream}"
+                              'modules-unpushed-to-upstream
+                              'magit-get-upstream-ref
+                              "%s..HEAD"))
 
 ;;;###autoload
 (defun magit-insert-modules-unpushed-to-pushremote ()
   "Insert sections for modules that haven't been pushed to the push-remote.
 These sections can be expanded to show the respective commits."
-  (magit-insert-submodules "Modules unpushed to <push-remote>"
-                           'modules-unpushed-to-pushremote
-                           'magit-get-push-branch
-                           "%s..HEAD"))
+  (magit--insert-modules-logs "Modules unpushed to <push-remote>"
+                              'modules-unpushed-to-pushremote
+                              'magit-get-push-branch
+                              "%s..HEAD"))
 
-(defun magit-insert-submodules (heading type fn format)
+(defun magit--insert-modules-logs (heading type fn format)
   "For internal use, don't add to a hook."
   (-when-let (modules (magit-get-submodules))
     (magit-insert-section section ((eval type) nil t)

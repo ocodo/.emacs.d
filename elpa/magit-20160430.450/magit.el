@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160408.201") (git-commit "20160412.130") (magit-popup "20160408.156"))
+;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160408.201") (git-commit "20160414.251") (magit-popup "20160414.251"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -2276,6 +2276,7 @@ the current repository."
     map)
   "Keymap for `magit-file-mode'.")
 
+;;;###autoload (autoload 'magit-file-popup "magit" nil t)
 (magit-define-popup magit-file-popup
   "Popup console for Magit commands in file-visiting buffers."
   :actions '((?s "Stage"     magit-stage-file)

@@ -266,15 +266,16 @@ FAQ
 * I am using an Emacs release older than v24.4: I am using an Emacs release older than v244. 
 * I am using a Git release older than v1.9.4: I am using a Git release older than v194. 
 * I am using MS Windows and cannot push with Magit::
+* I am using OS X and SOMETHING works in shell, but not in Magit: I am using OS X and SOMETHING works in shell but not in Magit. 
 * How to install the gitman info manual?::
 * How can I show Git's output?::
 * Diffs contain control sequences::
 * Expanding a file to show the diff causes it to disappear::
-* Point is wrong in the COMMIT_EDITMSG buffer::
-* Can Magit be used as ediff-version-control-package?::
+* Point is wrong in the ‘COMMIT_EDITMSG’ buffer::
+* Can Magit be used as ‘ediff-version-control-package’?::
 * How to show diffs for gpg-encrypted files?::
 * Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
-* Symbol's value as function is void --some::
+* ‘Symbol's value as function is void --some’::
 * Where is the branch manager::
 
 
@@ -1985,6 +1986,11 @@ default the following functions are also members of that hook:
      Insert sections for modules that haven’t been pushed to the
      push-remote yet.  These sections can be expanded to show the
      respective commits.
+
+ -- Function: magit-insert-submodules
+
+     Insert sections for all modules.  For each section insert the path
+     and the output of ‘git describe --tags’.
 
  -- Function: magit-insert-unpulled-cherries
 
@@ -5545,10 +5551,6 @@ repositories, then you might want to disable certain features on a
 per-repository or per-repository-class basis only.  See *note
 Per-repository configuration: Per-repository configuration.
 
-* Menu:
-
-* Committing Performance::
-
 Microsoft Windows Performance
 .............................
 
@@ -5564,13 +5566,11 @@ of "Git for Windows" try to reduce their effect, and in order to benefit
 from the latest performance tweaks, should always use the latest
 release.  Magit too tries to work around some Windows-specific issues.
 
-   But all these efforts might not be enough, forcing users to make some
-changes themselves.  For example, according to
-<http://stackoverflow.com/questions/4485059>, setting the following Git
-variables might also help:
+   According to some sources setting the following Git variables can
+also help.
 
-     git config --global core.preloadindex true
-     git config --global core.fscache true
+     git config --global core.preloadindex true   # default since v2.1
+     git config --global core.fscache true        # default since v2.8
      git config --global gc.auto 256
 
    You should also check whether an anti-virus program is slowing things
@@ -5637,9 +5637,6 @@ tags, then start by not displaying them:
    Then you should also make sure that the listed remote branches
 actually all exist.  You can do so by pruning branches which no longer
 exist using ‘f-pa’.
-
-
-File: magit.info,  Node: Committing Performance,  Up: Performance
 
 Committing Performance
 ......................
@@ -6479,15 +6476,16 @@ made it into the manual yet, see
 * I am using an Emacs release older than v24.4: I am using an Emacs release older than v244. 
 * I am using a Git release older than v1.9.4: I am using a Git release older than v194. 
 * I am using MS Windows and cannot push with Magit::
+* I am using OS X and SOMETHING works in shell, but not in Magit: I am using OS X and SOMETHING works in shell but not in Magit. 
 * How to install the gitman info manual?::
 * How can I show Git's output?::
 * Diffs contain control sequences::
 * Expanding a file to show the diff causes it to disappear::
-* Point is wrong in the COMMIT_EDITMSG buffer::
-* Can Magit be used as ediff-version-control-package?::
+* Point is wrong in the ‘COMMIT_EDITMSG’ buffer::
+* Can Magit be used as ‘ediff-version-control-package’?::
 * How to show diffs for gpg-encrypted files?::
 * Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
-* Symbol's value as function is void --some::
+* ‘Symbol's value as function is void --some’::
 * Where is the branch manager::
 
 
@@ -6528,7 +6526,11 @@ File: magit.info,  Node: Diffs are collapsed after un-/staging,  Next: I don't u
 A.4 Diffs are collapsed after un-/staging
 =========================================
 
-Currently when one part of a Magit buffer has to be updated the whole
+This typically happens on Windows and/or large repositories where
+preparing diffs takes longer than ‘magit-diff-expansion-threshold’.  The
+default is one second, try increasing it to a larger value.
+
+   Currently when one part of a Magit buffer has to be updated the whole
 buffer is recreated from scratch.  That obviously isn’t good for
 performance and will be fixed eventually.  Meanwhile we need a kludge
 that prevents the update from taking very long under certain
@@ -6630,7 +6632,7 @@ instructions for the release you are actually installing.
 is available from <http://magit.vc/elpa/v1>.
 
 
-File: magit.info,  Node: I am using MS Windows and cannot push with Magit,  Next: How to install the gitman info manual?,  Prev: I am using a Git release older than v194,  Up: FAQ
+File: magit.info,  Node: I am using MS Windows and cannot push with Magit,  Next: I am using OS X and SOMETHING works in shell but not in Magit,  Prev: I am using a Git release older than v194,  Up: FAQ
 
 A.10 I am using MS Windows and cannot push with Magit
 =====================================================
@@ -6643,9 +6645,24 @@ push on the command line.
 <https://github.com/magit/magit/wiki/Pushing-with-Magit-from-Windows>.
 
 
-File: magit.info,  Node: How to install the gitman info manual?,  Next: How can I show Git's output?,  Prev: I am using MS Windows and cannot push with Magit,  Up: FAQ
+File: magit.info,  Node: I am using OS X and SOMETHING works in shell but not in Magit,  Next: How to install the gitman info manual?,  Prev: I am using MS Windows and cannot push with Magit,  Up: FAQ
 
-A.11 How to install the gitman info manual?
+A.11 I am using OS X and SOMETHING works in shell, but not in Magit
+===================================================================
+
+This usually occurs because Emacs doesn’t have the same environment
+variables as your shell.  Try installing and configuring
+<https://github.com/purcell/exec-path-from-shell>.  By default it
+synchronizes ‘$PATH’, which helps Magit find the same ‘git’ as the one
+you are using on the shell.
+
+   If SOMETHING is "passphrase caching with gpg-agent for commit and/or
+tag signing", then you’ll also need to synchronize ‘$GPG_AGENT_INFO’.
+
+
+File: magit.info,  Node: How to install the gitman info manual?,  Next: How can I show Git's output?,  Prev: I am using OS X and SOMETHING works in shell but not in Magit,  Up: FAQ
+
+A.12 How to install the gitman info manual?
 ===========================================
 
 Git’s manpages can be exported as an info manual called ‘gitman’.
@@ -6700,7 +6717,7 @@ just one of many issues.)
 
 File: magit.info,  Node: How can I show Git's output?,  Next: Diffs contain control sequences,  Prev: How to install the gitman info manual?,  Up: FAQ
 
-A.12 How can I show Git’s output?
+A.13 How can I show Git’s output?
 =================================
 
 To show the output of recently run git commands, press ‘$’ (or, if that
@@ -6717,7 +6734,7 @@ For debugging purposes it’s possible to do so anyway by setting
 
 File: magit.info,  Node: Diffs contain control sequences,  Next: Expanding a file to show the diff causes it to disappear,  Prev: How can I show Git's output?,  Up: FAQ
 
-A.13 Diffs contain control sequences
+A.14 Diffs contain control sequences
 ====================================
 
 This happens when you configure Git to always color diffs and/or all of
@@ -6737,9 +6754,9 @@ then you can override these settings just for Magit by using:
      	       "-c" "color.diff=false")))
 
 
-File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the COMMIT_EDITMSG buffer,  Prev: Diffs contain control sequences,  Up: FAQ
+File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Prev: Diffs contain control sequences,  Up: FAQ
 
-A.14 Expanding a file to show the diff causes it to disappear
+A.15 Expanding a file to show the diff causes it to disappear
 =============================================================
 
 This is probably caused by a change of a ‘diff.*’ Git variable.  You
@@ -6747,10 +6764,10 @@ probably set that variable for a reason, and should therefore only undo
 that setting in Magit by customizing ‘magit-git-global-arguments’.
 
 
-File: magit.info,  Node: Point is wrong in the COMMIT_EDITMSG buffer,  Next: Can Magit be used as ediff-version-control-package?,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ
+File: magit.info,  Node: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Next: Can Magit be used as ‘ediff-version-control-package’?,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ
 
-A.15 Point is wrong in the COMMIT_EDITMSG buffer
-================================================
+A.16 Point is wrong in the ‘COMMIT_EDITMSG’ buffer
+==================================================
 
 Neither Magit nor ‘git-commit‘ fiddle with point in the buffer used to
 write commit messages, so something else must be doing it.
@@ -6771,10 +6788,10 @@ help:
            (pointback-mode -1))))
 
 
-File: magit.info,  Node: Can Magit be used as ediff-version-control-package?,  Next: How to show diffs for gpg-encrypted files?,  Prev: Point is wrong in the COMMIT_EDITMSG buffer,  Up: FAQ
+File: magit.info,  Node: Can Magit be used as ‘ediff-version-control-package’?,  Next: How to show diffs for gpg-encrypted files?,  Prev: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Up: FAQ
 
-A.16 Can Magit be used as ediff-version-control-package?
-========================================================
+A.17 Can Magit be used as ‘ediff-version-control-package’?
+==========================================================
 
 No, it cannot.  For that to work the functions ‘ediff-magit-internal’
 and ‘ediff-magit-merge-internal’ would have to be implemented, and they
@@ -6806,9 +6823,9 @@ Instead we provide the more useful command ‘magit-ediff-resolve’ which
 only shows yet-to-be resolved conflicts.
 
 
-File: magit.info,  Node: How to show diffs for gpg-encrypted files?,  Next: Emacs 245 hangs when loading Magit,  Prev: Can Magit be used as ediff-version-control-package?,  Up: FAQ
+File: magit.info,  Node: How to show diffs for gpg-encrypted files?,  Next: Emacs 245 hangs when loading Magit,  Prev: Can Magit be used as ‘ediff-version-control-package’?,  Up: FAQ
 
-A.17 How to show diffs for gpg-encrypted files?
+A.18 How to show diffs for gpg-encrypted files?
 ===============================================
 
 Git supports showing diffs for encrypted files, but has to be told to do
@@ -6819,9 +6836,9 @@ affects the diffs displayed inside Magit.
      echo "*.gpg filter=gpg diff=gpg" > .gitattributes
 
 
-File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: Symbol's value as function is void --some,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
+File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: ‘Symbol's value as function is void --some’,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
 
-A.18 Emacs 24.5 hangs when loading Magit
+A.19 Emacs 24.5 hangs when loading Magit
 ========================================
 
 This is actually triggered by loading Tramp.  See
@@ -6831,17 +6848,17 @@ can work around the problem by setting
 Google’s ‘8.8.8.8’) may also be sufficient to work around the issue.
 
 
-File: magit.info,  Node: Symbol's value as function is void --some,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
+File: magit.info,  Node: ‘Symbol's value as function is void --some’,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
 
-A.19 Symbol’s value as function is void –some
-=============================================
+A.20 ‘Symbol's value as function is void --some’
+================================================
 
 Update ‘dash’, restart Emacs, and then it will be defined.
 
 
-File: magit.info,  Node: Where is the branch manager,  Prev: Symbol's value as function is void --some,  Up: FAQ
+File: magit.info,  Node: Where is the branch manager,  Prev: ‘Symbol's value as function is void --some’,  Up: FAQ
 
-A.20 Where is the branch manager
+A.21 Where is the branch manager
 ================================
 
 ‘y’ is bound to the command that shows the "refs buffer", the successor
