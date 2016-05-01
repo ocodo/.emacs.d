@@ -15025,13 +15025,14 @@ When JUST-ALIGN is non-nil, only align tags."
 		    (let* ((table
 			    (setq
 			     org-last-tags-completion-table
-			     (append
-			      org-tag-persistent-alist
-			      (or org-tag-alist (org-get-buffer-tags))
-			      (and
-			       org-complete-tags-always-offer-all-agenda-tags
-			       (org-global-tags-completion-table
-				(org-agenda-files))))))
+			     (delete-dups
+			      (append
+			       org-tag-persistent-alist
+			       (or org-tag-alist (org-get-buffer-tags))
+			       (and
+				org-complete-tags-always-offer-all-agenda-tags
+				(org-global-tags-completion-table
+				 (org-agenda-files)))))))
 			   (current-tags (org-split-string current ":"))
 			   (inherited-tags
 			    (nreverse (nthcdr (length current-tags)
@@ -15907,7 +15908,7 @@ strings."
 
 (defun org-property--local-values (property literal-nil)
   "Return value for PROPERTY in current entry.
-Value is a list whose care is the base value for PROPERTY and cdr
+Value is a list whose car is the base value for PROPERTY and cdr
 a list of accumulated values.  Return nil if neither is found in
 the entry.  Also return nil when PROPERTY is set to \"nil\",
 unless LITERAL-NIL is non-nil."
@@ -18034,13 +18035,14 @@ When SUPPRESS-TMP-DELAY is non-nil, suppress delays like \"--2d\"."
 	  (setcar (cdr time0) (+ (nth 1 time0)
 				 (if (> n 0) (- rem) (- dm rem))))))
       (setq time
-	    (encode-time (or (car time0) 0)
-			 (+ (if (eq org-ts-what 'minute) n 0) (nth 1 time0))
-			 (+ (if (eq org-ts-what 'hour) n 0)   (nth 2 time0))
-			 (+ (if (eq org-ts-what 'day) n 0)    (nth 3 time0))
-			 (+ (if (eq org-ts-what 'month) n 0)  (nth 4 time0))
-			 (+ (if (eq org-ts-what 'year) n 0)   (nth 5 time0))
-			 (nthcdr 6 time0)))
+	    (apply #'encode-time
+		   (or (car time0) 0)
+		   (+ (if (eq org-ts-what 'minute) n 0) (nth 1 time0))
+		   (+ (if (eq org-ts-what 'hour) n 0)   (nth 2 time0))
+		   (+ (if (eq org-ts-what 'day) n 0)    (nth 3 time0))
+		   (+ (if (eq org-ts-what 'month) n 0)  (nth 4 time0))
+		   (+ (if (eq org-ts-what 'year) n 0)   (nth 5 time0))
+		   (nthcdr 6 time0)))
       (when (and (member org-ts-what '(hour minute))
 		 extra
 		 (string-match "-\\([012][0-9]\\):\\([0-5][0-9]\\)" extra))
@@ -24096,17 +24098,18 @@ This command will look at the current kill and check if is a single
 subtree, or a series of subtrees[1].  If it passes the test, and if the
 cursor is at the beginning of a line or after the stars of a currently
 empty headline, then the yank is handled specially.  How exactly depends
-on the value of the following variables, both set by default.
+on the value of the following variables.
 
 `org-yank-folded-subtrees'
-    When set, the subtree(s) will be folded after insertion, but only
-    if doing so would now swallow text after the yanked text.
+    By default, this variable is non-nil, which results in subtree(s)
+    being folded after insertion, but only if doing so would now
+    swallow text after the yanked text.
 
 `org-yank-adjusted-subtrees'
-    When set, the subtree will be promoted or demoted in order to
-    fit into the local outline tree structure, which means that the
-    level will be adjusted so that it becomes the smaller one of the
-    two *visible* surrounding headings.
+    When non-nil (the default value is nil), the subtree will be
+    promoted or demoted in order to fit into the local outline tree
+    structure, which means that the level will be adjusted so that it
+    becomes the smaller one of the two *visible* surrounding headings.
 
 Any prefix to this command will cause `yank' to be called directly with
 no special treatment.  In particular, a simple \\[universal-argument] prefix \

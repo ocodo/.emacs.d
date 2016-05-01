@@ -652,8 +652,8 @@ Extract anniversaries from BBDB for display in the agenda.
 ;;;***
 
 ;;;### (autoloads (org-capture-import-remember-templates org-capture
-;;;;;;  org-capture-string) "org-capture" "org-capture.el" (22200
-;;;;;;  12002))
+;;;;;;  org-capture-string) "org-capture" "org-capture.el" (22287
+;;;;;;  9770))
 ;;; Generated autoloads from org-capture.el
 
 (autoload 'org-capture-string "org-capture" "\
@@ -868,18 +868,18 @@ PARAMS is a property list of parameters:
 
 :width    enforce same column widths with <N> specifiers.
 :id       the :ID: property of the entry where the columns view
-	  should be built.  When the symbol `local', call locally.
-	  When `global' call column view with the cursor at the beginning
-	  of the buffer (usually this means that the whole buffer switches
-	  to column view).  When \"file:path/to/file.org\", invoke column
-	  view at the start of that file.  Otherwise, the ID is located
-	  using `org-id-find'.
+    should be built.  When the symbol `local', call locally.
+    When `global' call column view with the cursor at the beginning
+    of the buffer (usually this means that the whole buffer switches
+    to column view).  When \"file:path/to/file.org\", invoke column
+    view at the start of that file.  Otherwise, the ID is located
+    using `org-id-find'.
 :hlines   When t, insert a hline before each item.  When a number, insert
-	  a hline before each level <= that number.
+    a hline before each level <= that number.
 :vlines   When t, make each column a colgroup to enforce vertical lines.
 :maxlevel When set to a number, don't capture headlines below this level.
 :skip-empty-rows
-	  When t, skip rows where all specifiers other than ITEM are empty.
+    When t, skip rows where all specifiers other than ITEM are empty.
 :format   When non-nil, specify the column view format to use.
 
 \(fn PARAMS)" nil nil)
@@ -2003,7 +2003,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22283 12118))
+;;;;;;  (22301 42068))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2029,7 +2029,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (22283 12114))
+;;;;;;  "org" "org.el" (22300 21802))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -2420,7 +2420,7 @@ When ARG is \\[universal-argument] \\[universal-argument], display the asynchron
 
 ;;;### (autoloads (org-ascii-publish-to-utf8 org-ascii-publish-to-latin1
 ;;;;;;  org-ascii-publish-to-ascii org-ascii-export-to-ascii org-ascii-export-as-ascii)
-;;;;;;  "ox-ascii" "ox-ascii.el" "8b996711b8e315a0dd406d54c0854eaa")
+;;;;;;  "ox-ascii" "ox-ascii.el" "21f6b831d93842294a7e7f6995a200d2")
 ;;; Generated autoloads from ox-ascii.el
 
 (autoload 'org-ascii-export-as-ascii "ox-ascii" "\
@@ -3020,7 +3020,7 @@ Return output file name.
 ;;;***
 
 ;;;### (autoloads (org-odt-convert org-odt-export-to-odt org-odt-export-as-odf-and-open
-;;;;;;  org-odt-export-as-odf) "ox-odt" "ox-odt.el" "e3a936f4f3bbe947f4d4b75ce359538f")
+;;;;;;  org-odt-export-as-odf) "ox-odt" "ox-odt.el" "40e36a40e3f6385fa77160d3139b7217")
 ;;; Generated autoloads from ox-odt.el
 
 (put 'org-odt-preferred-output-format 'safe-local-variable 'stringp)
