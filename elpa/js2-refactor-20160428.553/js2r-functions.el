@@ -104,10 +104,10 @@
       (delete-char -2))))
 
 (defun js2r--choose-one (prompt options)
-  (when examples
-    (if (cdr examples)
-        (completing-read prompt examples)
-      (car examples))))
+  (when options
+    (if (cdr options)
+        (completing-read prompt options)
+      (car options))))
 
 (defun js2r-introduce-parameter ()
   "Introduce a parameter in a local function."
@@ -262,7 +262,7 @@
                             (js2-name-node-name it)
                           "key"))
                 args)))
-    (yas/expand-snippet (js2r--create-object-with-arguments names args)
+    (yas-expand-snippet (js2r--create-object-with-arguments names args)
                         (point)
                         (save-excursion (forward-list) (point)))))
 
