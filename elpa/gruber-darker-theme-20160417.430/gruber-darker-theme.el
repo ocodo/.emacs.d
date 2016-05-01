@@ -4,7 +4,7 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20160309.2139
+;; Package-Version: 20160417.430
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -327,9 +327,9 @@
 
    ;; Whitespace
    `(whitespace-space ((t ,(list :background gruber-darker-bg
-                                 :foreground gruber-darker-bg+2))))
+                                 :foreground gruber-darker-bg+1))))
    `(whitespace-tab ((t ,(list :background gruber-darker-bg
-                               :foreground gruber-darker-bg+2))))
+                               :foreground gruber-darker-bg+1))))
    `(whitespace-hspace ((t ,(list :background gruber-darker-bg
                                   :foreground gruber-darker-bg+2))))
    `(whitespace-line ((t ,(list :background gruber-darker-bg+2
