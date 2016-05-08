@@ -44,7 +44,6 @@
 
 (eval-when-compile
   (defvar async-callback))
-;; (defvar dired-async-operation nil)
 
 (defgroup dired-async nil
   "Copy rename files asynchronously from dired."
@@ -128,10 +127,13 @@ Should take same args as `message'."
   (when operation
     (if (file-exists-p dired-async-log-file)
         (progn
-          (pop-to-buffer (get-buffer-create "*dired async*"))
-          (erase-buffer)
+          (pop-to-buffer (get-buffer-create dired-log-buffer))
+          (goto-char (point-max))
+          (setq inhibit-read-only t)
           (insert "Error: ")
           (insert-file-contents dired-async-log-file)
+          (special-mode)
+          (shrink-window-if-larger-than-buffer)
           (delete-file dired-async-log-file))
         (run-with-timer
          0.1 nil
@@ -139,21 +141,22 @@ Should take same args as `message'."
            ;; First send error messages.
            (cond (failures
                   (funcall dired-async-message-function
-                           "%s failed for %d of %d file%s"
+                           "%s failed for %d of %d file%s -- See *Dired log* buffer"
                            'dired-async-failures
                            (car operation) (length failures)
                            total (dired-plural-s total)))
                  (skipped
                   (funcall dired-async-message-function
-                           "%s: %d of %d file%s skipped"
+                           "%s: %d of %d file%s skipped -- See *Dired log* buffer"
                            'dired-async-failures
                            (car operation) (length skipped) total
                            (dired-plural-s total))))
            ;; Finally send the success message.
            (funcall dired-async-message-function
-                    "Asynchronous %s of %s file(s) on %s file(s) done"
+                    "Asynchronous %s of %s on %s file%s done"
                     'dired-async-message
-                    (car operation) (cadr operation) total))))))
+                    (car operation) (cadr operation)
+                    total (dired-plural-s total)))))))
 
 (defun dired-async-maybe-kill-ftp ()
   "Return a form to kill ftp process in child emacs."
@@ -226,9 +229,11 @@ ESC or `q' to not overwrite any of the remaining files,
                            (push (cons from to) async-fn-list))
                       (progn
                         (push (dired-make-relative from) failures)
-                        (dired-log "%s `%s' to `%s' failed"
+                        (dired-log "%s `%s' to `%s' failed\n"
                                    operation from to)))
                   (push (cons from to) async-fn-list)))))
+      ;; When failures have been printed to dired log add the date at bob.
+      (when (or failures skipped) (dired-log t))
       ;; When async-fn-list is empty that's mean only one file
       ;; had to be copied and user finally answer NO.
       ;; In this case async process will never start and callback
@@ -236,13 +241,13 @@ ESC or `q' to not overwrite any of the remaining files,
       (unless async-fn-list
         (cond (failures
                (funcall dired-async-message-function
-                        "%s failed for %d of %d file%s"
+                        "%s failed for %d of %d file%s -- See *Dired log* buffer"
                         'dired-async-failures
                         operation (length failures)
                         total (dired-plural-s total)))
               (skipped
                (funcall dired-async-message-function
-                        "%s: %d of %d file%s skipped"
+                        "%s: %d of %d file%s skipped -- See *Dired log* buffer"
                         'dired-async-failures
                         operation (length skipped) total
                         (dired-plural-s total)))))
@@ -254,14 +259,15 @@ ESC or `q' to not overwrite any of the remaining files,
                (when (string= (downcase operation) "rename")
                  (cl-loop for (file . to) in async-fn-list
                           for bf = (get-file-buffer file)
-                          do (and bf (with-current-buffer bf
-                                       (set-visited-file-name to nil t))))))))
+                          for destp = (file-exists-p to)
+                          do (and bf destp
+                                  (with-current-buffer bf
+                                    (set-visited-file-name to nil t))))))))
     ;; Start async process.
     (when async-fn-list
       (async-start `(lambda ()
                       (require 'cl-lib) (require 'dired-aux) (require 'dired-x)
                       ,(async-inject-variables dired-async-env-variables-regexp)
-                      (condition-case err
                           (let ((dired-recursive-copies (quote always))
                                 (dired-copy-preserve-time
                                  ,dired-copy-preserve-time))
@@ -284,16 +290,20 @@ ESC or `q' to not overwrite any of the remaining files,
                                            (condition-case err
                                                (copy-file from to ok dired-copy-preserve-time)
                                              (file-date-error
-                                              (push (dired-make-relative from)
-                                                    dired-create-files-failures)
                                               (dired-log "Can't set date on %s:\n%s\n" from err)))))))
                             ;; Now run the FILE-CREATOR function on files.
                             (cl-loop with fn = (quote ,file-creator)
                                      for (from . dest) in (quote ,async-fn-list)
-                                     do (funcall fn from dest t)))
-                        (file-error
-                         (with-temp-file ,dired-async-log-file
-                           (insert (format "%S" err)))))
+                                     do (condition-case err
+                                            (funcall fn from dest t)
+                                          (file-error
+                                           (dired-log "%s: %s\n" (car err) (cdr err)))
+                                          nil))
+                        (when (get-buffer dired-log-buffer)
+                          (dired-log t)
+                          (with-current-buffer dired-log-buffer
+                           (write-region (point-min) (point-max)
+                                         ,dired-async-log-file))))
                       ,(dired-async-maybe-kill-ftp))
                    callback)
       ;; Run mode-line notifications while process running.
