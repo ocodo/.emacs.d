@@ -4,8 +4,8 @@
 
 ;; Author: Andrew Hyatt <ahyatt@gmail.com>
 ;; Keywords: Communication, Websocket, Server
-;; Package-Version: 20160227.2122
-;; Version: 1.5
+;; Package-Version: 20160503.2208
+;; Version: 1.6
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
