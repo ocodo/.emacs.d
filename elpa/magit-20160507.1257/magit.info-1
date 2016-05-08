@@ -210,6 +210,7 @@ Miscellaneous
 * Tagging::
 * Notes::
 * Submodules::
+* Subtree::
 * Common commands::
 * Wip modes::
 * Minor mode for buffers visiting files::
@@ -272,10 +273,11 @@ FAQ
 * Diffs contain control sequences::
 * Expanding a file to show the diff causes it to disappear::
 * Point is wrong in the ‘COMMIT_EDITMSG’ buffer::
+* The mode-line information isn't always up-to-date::
 * Can Magit be used as ‘ediff-version-control-package’?::
 * How to show diffs for gpg-encrypted files?::
 * Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
-* ‘Symbol's value as function is void --some’::
+* Symbol's value as function is void ‘--some’::
 * Where is the branch manager::
 
 
@@ -2032,7 +2034,7 @@ variable.
      Hook run to insert headers sections into the status buffer.
 
      This hook is run by ‘magit-insert-status-headers’, which in turn
-     has to be a member of ‘magit-insert-status-sections’ to be used at
+     has to be a member of ‘magit-status-sections-hook’ to be used at
      all.
 
    By default the following functions are members of the above hook:
@@ -3164,6 +3166,10 @@ Ediffing.
 
      Add the change at point to the staging area.
 
+     With a prefix argument and an untracked file (or files) at point,
+     stage the file but not its content.  This makes it possible to
+     stage only a subset of the new file’s changes.
+
 ‘S’     (‘magit-stage-modified’)
 
      Stage all changes to files modified in the worktree.  Stage all new
@@ -4102,6 +4108,9 @@ commands instead.
 
      Restart the current rebasing operation.
 
+     In some cases this pops up a commit message buffer for you do edit.
+     With a prefix argument the old message is reused as-is.
+
 ‘r s’     (‘magit-rebase-skip’)
 
      Skip the current commit and restart the current rebase operation.
@@ -4920,6 +4929,7 @@ File: magit.info,  Node: Miscellaneous,  Next: Customizing,  Prev: Transferring,
 * Tagging::
 * Notes::
 * Submodules::
+* Subtree::
 * Common commands::
 * Wip modes::
 * Minor mode for buffers visiting files::
@@ -5028,7 +5038,7 @@ following suffix commands, instead of those listed above.
      Abort the current notes ref merge.
 
 
-File: magit.info,  Node: Submodules,  Next: Common commands,  Prev: Notes,  Up: Miscellaneous
+File: magit.info,  Node: Submodules,  Next: Subtree,  Prev: Notes,  Up: Miscellaneous
 
 8.3 Submodules
 ==============
@@ -5073,9 +5083,54 @@ Also see *note (gitman)git-submodule:: .
      Unregister the submodule at PATH.
 
 
-File: magit.info,  Node: Common commands,  Next: Wip modes,  Prev: Submodules,  Up: Miscellaneous
+File: magit.info,  Node: Subtree,  Next: Common commands,  Prev: Submodules,  Up: Miscellaneous
 
-8.4 Common commands
+8.4 Subtree
+===========
+
+Also see *note (gitman)git-subtree:: .
+
+‘O’     (‘magit-tree-popup’)
+
+     This prefix command shows the following suffix commands along with
+     the appropriate infix arguments in a popup buffer.
+
+   Most infix arguments only apply to some of the ‘git subtree’
+subcommands.  When an argument that does not apply to the invoked
+command is set, then it is silently ignored.
+
+   When the ‘--prefix’ argument is set in the popup buffer, then that is
+used.  Otherwise the prefix is read in the minibuffer.
+
+‘O a’     (‘magit-subtree-add’)
+
+     Add COMMIT from REPOSITORY as a new subtree at PREFIX.
+
+‘O c’     (‘magit-subtree-add-commit’)
+
+     Add COMMIT as a new subtree at PREFIX.
+
+‘O m’     (‘magit-subtree-merge’)
+
+     Merge COMMIT into the PREFIX subtree.
+
+‘O f’     (‘magit-subtree-pull’)
+
+     Pull COMMIT from REPOSITORY into the PREFIX subtree.
+
+‘O p’     (‘magit-subtree-push’)
+
+     Extract the history of the subtree PREFIX and push it to REF on
+     REPOSITORY.
+
+‘O s’     (‘magit-subtree-split’)
+
+     Extract the history of the subtree PREFIX.
+
+
+File: magit.info,  Node: Common commands,  Next: Wip modes,  Prev: Subtree,  Up: Miscellaneous
+
+8.5 Common commands
 ===================
 
 These are some of the commands that can be used in all buffers whose
@@ -5115,7 +5170,7 @@ above.
 
 File: magit.info,  Node: Wip modes,  Next: Minor mode for buffers visiting files,  Prev: Common commands,  Up: Miscellaneous
 
-8.5 Wip modes
+8.6 Wip modes
 =============
 
 Git keeps *committed* changes around long enough for users to recover
@@ -5272,7 +5327,7 @@ files are being committed.
 
 File: magit.info,  Node: Minor mode for buffers visiting files,  Next: Minor mode for buffers visiting blobs,  Prev: Wip modes,  Up: Miscellaneous
 
-8.6 Minor mode for buffers visiting files
+8.7 Minor mode for buffers visiting files
 =========================================
 
 The ‘magit-file-mode’ enables certain Magit features in file-visiting
@@ -5335,7 +5390,7 @@ few key bindings, but this might be extended in the future.
 
 File: magit.info,  Node: Minor mode for buffers visiting blobs,  Prev: Minor mode for buffers visiting files,  Up: Miscellaneous
 
-8.7 Minor mode for buffers visiting blobs
+8.8 Minor mode for buffers visiting blobs
 =========================================
 
 The ‘magit-blob-mode’ enables certain Magit features in blob-visiting
@@ -5657,6 +5712,21 @@ diff.  If you do that, then you will end up with a broken diff buffer,
 but doing it this way has the advantage that you usually get to see the
 diff, which is useful because it increases the odds that you spot
 potential issues.
+
+The built-in VC Package
+.......................
+
+Emacs comes with a version control interface called "VC", see *note
+(emacs)Version Control::.  It is enabled be default and if you don’t use
+it in addition to Magit, then you should disable it to keep it from
+performing unnecessary work:
+
+     (setq vc-handled-backends nil)
+
+   You can also disable its use only for Git but keep using it when
+using another version control system:
+
+     (setq vc-handled-backends (delq 'Git vc-handled-backends))
 
 
 File: magit.info,  Node: Plumbing,  Next: FAQ,  Prev: Customizing,  Up: Top
@@ -6482,10 +6552,11 @@ made it into the manual yet, see
 * Diffs contain control sequences::
 * Expanding a file to show the diff causes it to disappear::
 * Point is wrong in the ‘COMMIT_EDITMSG’ buffer::
+* The mode-line information isn't always up-to-date::
 * Can Magit be used as ‘ediff-version-control-package’?::
 * How to show diffs for gpg-encrypted files?::
 * Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
-* ‘Symbol's value as function is void --some’::
+* Symbol's value as function is void ‘--some’::
 * Where is the branch manager::
 
 
@@ -6537,7 +6608,7 @@ that prevents the update from taking very long under certain
 circumstances, e.g.  when showing the difference for hundrets of changes
 files.
 
-   For that reason the variable ‘magit-diff-expansion-treshhold’ was
+   For that reason the variable ‘magit-diff-expansion-threshold’ was
 added, defaulting to one second.  If it takes longer than that to
 recreate a Magit buffer, then no further diff sections are expanded
 because that’s one of the steps that take the longest.  If a diff is not
@@ -6546,7 +6617,7 @@ expanded, then some work can be delayed until it actually is.
    You can then still expand sections manually, but when you refresh the
 complete buffer explicitly using ‘g’ or by performing an action which
 triggers a refresh, then previously expanded diffs could be collapsed.
-You can set ‘magit-diff-expansion-treshhold’ to a higher value to
+You can set ‘magit-diff-expansion-threshold’ to a higher value to
 prevent that from happening.
 
 
@@ -6764,7 +6835,7 @@ probably set that variable for a reason, and should therefore only undo
 that setting in Magit by customizing ‘magit-git-global-arguments’.
 
 
-File: magit.info,  Node: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Next: Can Magit be used as ‘ediff-version-control-package’?,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ
+File: magit.info,  Node: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Next: The mode-line information isn't always up-to-date,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ
 
 A.16 Point is wrong in the ‘COMMIT_EDITMSG’ buffer
 ==================================================
@@ -6788,9 +6859,35 @@ help:
            (pointback-mode -1))))
 
 
-File: magit.info,  Node: Can Magit be used as ‘ediff-version-control-package’?,  Next: How to show diffs for gpg-encrypted files?,  Prev: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Up: FAQ
+File: magit.info,  Node: The mode-line information isn't always up-to-date,  Next: Can Magit be used as ‘ediff-version-control-package’?,  Prev: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Up: FAQ
 
-A.17 Can Magit be used as ‘ediff-version-control-package’?
+A.17 The mode-line information isn’t always up-to-date
+======================================================
+
+Magit is not responsible for the version control information that is
+being displayed in the mode-line and looks something like ‘Git-master’.
+The built-in "Version Control" package, also known as "VC", updates that
+information, and can be told to do so more often:
+
+     (setq auto-revert-check-vc-info t)
+
+   But doing so isn’t good for performance.  For more (overly
+optimistic) information see *note (emacs)VC Mode Line::.
+
+   If you don’t really care about seeing that information in the
+mode-line, but just don’t want to see _incorrect_ information, then
+consider disabling VC when using Git:
+
+     (setq vc-handled-backends (delq 'Git vc-handled-backends))
+
+   Or to disable it completely:
+
+     (setq vc-handled-backends nil)
+
+
+File: magit.info,  Node: Can Magit be used as ‘ediff-version-control-package’?,  Next: How to show diffs for gpg-encrypted files?,  Prev: The mode-line information isn't always up-to-date,  Up: FAQ
+
+A.18 Can Magit be used as ‘ediff-version-control-package’?
 ==========================================================
 
 No, it cannot.  For that to work the functions ‘ediff-magit-internal’
@@ -6825,7 +6922,7 @@ only shows yet-to-be resolved conflicts.
 
 File: magit.info,  Node: How to show diffs for gpg-encrypted files?,  Next: Emacs 245 hangs when loading Magit,  Prev: Can Magit be used as ‘ediff-version-control-package’?,  Up: FAQ
 
-A.18 How to show diffs for gpg-encrypted files?
+A.19 How to show diffs for gpg-encrypted files?
 ===============================================
 
 Git supports showing diffs for encrypted files, but has to be told to do
@@ -6836,9 +6933,9 @@ affects the diffs displayed inside Magit.
      echo "*.gpg filter=gpg diff=gpg" > .gitattributes
 
 
-File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: ‘Symbol's value as function is void --some’,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
+File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: Symbol's value as function is void ‘--some’,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
 
-A.19 Emacs 24.5 hangs when loading Magit
+A.20 Emacs 24.5 hangs when loading Magit
 ========================================
 
 This is actually triggered by loading Tramp.  See
@@ -6848,17 +6945,17 @@ can work around the problem by setting
 Google’s ‘8.8.8.8’) may also be sufficient to work around the issue.
 
 
-File: magit.info,  Node: ‘Symbol's value as function is void --some’,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
+File: magit.info,  Node: Symbol's value as function is void ‘--some’,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
 
-A.20 ‘Symbol's value as function is void --some’
+A.21 Symbol’s value as function is void ‘--some’
 ================================================
 
 Update ‘dash’, restart Emacs, and then it will be defined.
 
 
-File: magit.info,  Node: Where is the branch manager,  Prev: ‘Symbol's value as function is void --some’,  Up: FAQ
+File: magit.info,  Node: Where is the branch manager,  Prev: Symbol's value as function is void ‘--some’,  Up: FAQ
 
-A.21 Where is the branch manager
+A.22 Where is the branch manager
 ================================
 
 ‘y’ is bound to the command that shows the "refs buffer", the successor
@@ -7112,11 +7209,11 @@ Appendix B Keystroke Index
 * M-x magit-reset-hard:                  Resetting.           (line  32)
 * M-x magit-reset-head:                  Resetting.           (line  21)
 * M-x magit-reset-index:                 Staging and unstaging.
-                                                              (line  84)
+                                                              (line  88)
 * M-x magit-reset-index <1>:             Resetting.           (line  14)
 * M-x magit-reset-soft:                  Resetting.           (line  26)
 * M-x magit-reverse-in-index:            Staging and unstaging.
-                                                              (line  59)
+                                                              (line  63)
 * M-x magit-stage-file:                  Staging from file-visiting buffers.
                                                               (line  10)
 * M-x magit-toggle-buffer-lock:          Modes and Buffers.   (line  17)
@@ -7132,12 +7229,19 @@ Appendix B Keystroke Index
 * n <3>:                                 Minor mode for buffers visiting blobs.
                                                               (line  16)
 * o:                                     Submodules.          (line   8)
+* O:                                     Subtree.             (line   8)
 * o a:                                   Submodules.          (line  13)
+* O a:                                   Subtree.             (line  20)
 * o b:                                   Submodules.          (line  19)
+* O c:                                   Subtree.             (line  24)
 * o f:                                   Submodules.          (line  37)
+* O f:                                   Subtree.             (line  32)
 * o i:                                   Submodules.          (line  24)
 * o i <1>:                               Submodules.          (line  41)
+* O m:                                   Subtree.             (line  28)
+* O p:                                   Subtree.             (line  36)
 * o s:                                   Submodules.          (line  33)
+* O s:                                   Subtree.             (line  41)
 * o u:                                   Submodules.          (line  28)
 * p:                                     Section movement.    (line  10)
 * p <1>:                                 Blaming.             (line  62)
@@ -7163,16 +7267,16 @@ Appendix B Keystroke Index
 * r:                                     Rebasing.            (line   8)
 * r <1>:                                 Editing rebase sequences.
                                                               (line  51)
-* r a:                                   Rebasing.            (line  84)
+* r a:                                   Rebasing.            (line  87)
 * r e:                                   Rebasing.            (line  25)
-* r e <1>:                               Rebasing.            (line  80)
+* r e <1>:                               Rebasing.            (line  83)
 * r f:                                   Rebasing.            (line  57)
 * r i:                                   Rebasing.            (line  53)
 * r m:                                   Rebasing.            (line  61)
 * r o:                                   Rebasing.            (line  31)
 * r p:                                   Rebasing.            (line  16)
 * r r:                                   Rebasing.            (line  72)
-* r s:                                   Rebasing.            (line  76)
+* r s:                                   Rebasing.            (line  79)
 * r u:                                   Rebasing.            (line  21)
 * r w:                                   Rebasing.            (line  65)
 * RET:                                   Diff buffer.         (line   6)
@@ -7183,7 +7287,7 @@ Appendix B Keystroke Index
 * s:                                     Staging and unstaging.
                                                               (line  29)
 * S:                                     Staging and unstaging.
-                                                              (line  33)
+                                                              (line  37)
 * s <1>:                                 Editing rebase sequences.
                                                               (line  59)
 * s-<tab>:                               Section visibility.  (line  22)
@@ -7208,9 +7312,9 @@ Appendix B Keystroke Index
 * T T:                                   Notes.               (line  13)
 * TAB:                                   Section visibility.  (line   9)
 * u:                                     Staging and unstaging.
-                                                              (line  40)
+                                                              (line  44)
 * U:                                     Staging and unstaging.
-                                                              (line  49)
+                                                              (line  53)
 * v:                                     Applying.            (line  41)
 * V:                                     Reverting.           (line   6)
 * V A:                                   Reverting.           (line  30)
@@ -7508,17 +7612,17 @@ Appendix C Command Index
 * magit-push-tags:                       Pushing.             (line  59)
 * magit-push-to-remote remote args:      Pushing.             (line  84)
 * magit-rebase:                          Rebasing.            (line  25)
-* magit-rebase-abort:                    Rebasing.            (line  84)
+* magit-rebase-abort:                    Rebasing.            (line  87)
 * magit-rebase-autosquash:               Rebasing.            (line  57)
 * magit-rebase-continue:                 Rebasing.            (line  72)
-* magit-rebase-edit:                     Rebasing.            (line  80)
+* magit-rebase-edit:                     Rebasing.            (line  83)
 * magit-rebase-edit-commit:              Rebasing.            (line  61)
 * magit-rebase-interactive:              Rebasing.            (line  53)
 * magit-rebase-onto-pushremote:          Rebasing.            (line  16)
 * magit-rebase-onto-upstream:            Rebasing.            (line  21)
 * magit-rebase-popup:                    Rebasing.            (line   8)
 * magit-rebase-reword-commit:            Rebasing.            (line  65)
-* magit-rebase-skip:                     Rebasing.            (line  76)
+* magit-rebase-skip:                     Rebasing.            (line  79)
 * magit-rebase-subset:                   Rebasing.            (line  31)
 * magit-reflog-current:                  Reflog.              (line  11)
 * magit-reflog-head:                     Reflog.              (line  19)
@@ -7538,12 +7642,12 @@ Appendix C Command Index
 * magit-reset-hard:                      Resetting.           (line  32)
 * magit-reset-head:                      Resetting.           (line  21)
 * magit-reset-index:                     Staging and unstaging.
-                                                              (line  84)
+                                                              (line  88)
 * magit-reset-index <1>:                 Resetting.           (line  14)
 * magit-reset-soft:                      Resetting.           (line  26)
 * magit-reverse:                         Applying.            (line  41)
 * magit-reverse-in-index:                Staging and unstaging.
-                                                              (line  59)
+                                                              (line  63)
 * magit-revert:                          Reverting.           (line  14)
 * magit-revert-no-commit:                Reverting.           (line  20)
 * magit-revert-popup:                    Reverting.           (line   6)
@@ -7606,7 +7710,7 @@ Appendix C Command Index
 * magit-stage-file <1>:                  Minor mode for buffers visiting files.
                                                               (line  24)
 * magit-stage-modified:                  Staging and unstaging.
-                                                              (line  33)
+                                                              (line  37)
 * magit-stash:                           Stashing.            (line  13)
 * magit-stash-apply:                     Stashing.            (line  58)
 * magit-stash-branch:                    Stashing.            (line  84)
@@ -7631,16 +7735,23 @@ Appendix C Command Index
 * magit-submodule-setup:                 Submodules.          (line  19)
 * magit-submodule-sync:                  Submodules.          (line  33)
 * magit-submodule-update:                Submodules.          (line  28)
+* magit-subtree-add:                     Subtree.             (line  20)
+* magit-subtree-add-commit:              Subtree.             (line  24)
+* magit-subtree-merge:                   Subtree.             (line  28)
+* magit-subtree-pull:                    Subtree.             (line  32)
+* magit-subtree-push:                    Subtree.             (line  36)
+* magit-subtree-split:                   Subtree.             (line  41)
 * magit-tag:                             Tagging.             (line  13)
 * magit-tag-delete:                      Tagging.             (line  18)
 * magit-tag-popup:                       Tagging.             (line   8)
 * magit-tag-prune:                       Tagging.             (line  24)
 * magit-toggle-buffer-lock:              Modes and Buffers.   (line  17)
 * magit-toggle-margin:                   Refreshing logs.     (line  36)
+* magit-tree-popup:                      Subtree.             (line   8)
 * magit-unstage:                         Staging and unstaging.
-                                                              (line  40)
+                                                              (line  44)
 * magit-unstage-all:                     Staging and unstaging.
-                                                              (line  49)
+                                                              (line  53)
 * magit-unstage-file:                    Staging from file-visiting buffers.
                                                               (line  18)
 * magit-unstage-file <1>:                Minor mode for buffers visiting files.
