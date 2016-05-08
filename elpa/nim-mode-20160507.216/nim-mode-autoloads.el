@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "company-nim" "company-nim.el" (22309 38883
-;;;;;;  871902 564000))
+;;;### (autoloads nil "company-nim" "company-nim.el" (22318 43518
+;;;;;;  849113 879000))
 ;;; Generated autoloads from company-nim.el
 
 (autoload 'company-nim "company-nim" "\
@@ -19,8 +19,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "nim-compile" "nim-compile.el" (22309 38883
-;;;;;;  863902 550000))
+;;;### (autoloads nil "nim-compile" "nim-compile.el" (22318 43518
+;;;;;;  841113 918000))
 ;;; Generated autoloads from nim-compile.el
 
 (autoload 'nim-compile "nim-compile" "\
@@ -30,8 +30,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22309 38883 863902
-;;;;;;  550000))
+;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22318 43518 837113
+;;;;;;  937000))
 ;;; Generated autoloads from nim-eldoc.el
 
 (autoload 'nim-eldoc-setup "nim-eldoc" "\
@@ -43,8 +43,8 @@ Setup eldoc configuration for nim-mode.
 
 ;;;***
 
-;;;### (autoloads nil "nim-mode" "nim-mode.el" (22309 38883 887902
-;;;;;;  589000))
+;;;### (autoloads nil "nim-mode" "nim-mode.el" (22318 43518 857113
+;;;;;;  839000))
 ;;; Generated autoloads from nim-mode.el
 
 (autoload 'nim-mode "nim-mode" "\
@@ -56,8 +56,8 @@ A major mode for the Nim programming language.
 
 ;;;***
 
-;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22309
-;;;;;;  38883 859902 544000))
+;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22318
+;;;;;;  43518 833113 957000))
 ;;; Generated autoloads from nimscript-mode.el
 
 (autoload 'nimscript-mode "nimscript-mode" "\
@@ -80,10 +80,21 @@ instead.  The default regex’s matching word is [Package].
 
 ;;;***
 
+;;;### (autoloads nil "ob-nim" "ob-nim.el" (22318 43518 817114 36000))
+;;; Generated autoloads from ob-nim.el
+
+(autoload 'org-babel-execute:nim "ob-nim" "\
+Execute a block of nim code with org-babel.
+This function is called by `org-babel-execute-src-block'.
+
+\(fn BODY PARAMS)" nil nil)
+
+;;;***
+
 ;;;### (autoloads nil nil ("flycheck-nim-async.el" "nim-fill.el"
 ;;;;;;  "nim-helper.el" "nim-mode-pkg.el" "nim-rx.el" "nim-smie.el"
 ;;;;;;  "nim-suggest.el" "nim-syntax.el" "nim-thing-at-point.el"
-;;;;;;  "nim-util.el" "nim-vars.el") (22309 38883 896206 506000))
+;;;;;;  "nim-util.el" "nim-vars.el") (22318 43518 867754 696000))
 
 ;;;***
 
