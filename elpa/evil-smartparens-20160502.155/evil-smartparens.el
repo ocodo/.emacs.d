@@ -4,7 +4,7 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/evil-smartparens
-;; Package-Version: 20151126.124
+;; Package-Version: 20160502.155
 ;; Keywords: evil smartparens
 ;; Version: 0.3.0
 ;; Package-Requires: ((evil "1.0") (emacs "24.4") (smartparens "1.6.3"))
@@ -183,11 +183,11 @@ list of (fn args) to pass to `apply''"
           (if (and (= new-end end)
                    (= new-beg beg))
               (evil-delete beg end type register yank-handler)
-            (evil-delete new-beg new-end 'inclusive register yank-handler)))
+            (evil-delete (evil-sp--safe-beginning new-beg)
+                         new-end 'inclusive register yank-handler)))
       (error (let* ((beg (evil-sp--new-beginning beg end :shrink))
                     (end (evil-sp--new-ending beg end)))
-               (evil-delete beg end type register yank-handler)))))
-  (indent-according-to-mode))
+               (evil-delete beg end type register yank-handler))))))
 
 (evil-define-operator evil-sp-change (beg end type register yank-handler)
   "Call `evil-change' with a balanced region"
@@ -206,11 +206,11 @@ list of (fn args) to pass to `apply''"
           (if (and (= new-end end)
                    (= new-beg beg))
               (evil-change beg end type register yank-handler)
-            (evil-change new-beg new-end 'inclusive register yank-handler)))
+            (evil-change (evil-sp--safe-beginning new-beg)
+                         new-end 'inclusive register yank-handler)))
       (error (let* ((beg (evil-sp--new-beginning beg end :shrink))
                     (end (evil-sp--new-ending beg end)))
-               (evil-change beg end type register yank-handler)))))
-  (indent-according-to-mode))
+               (evil-change beg end type register yank-handler))))))
 
 (evil-define-operator evil-sp-yank (beg end type register yank-handler)
   :move-point nil
@@ -374,6 +374,14 @@ by decrementing BEG."
       (when (= beg end)
         (evil-sp--fail)))
     beg))
+
+(defun evil-sp--safe-beginning (beg)
+  "Return a new value for BEG that does not include indentation."
+  (max beg
+       (save-excursion
+         (goto-char beg)
+         (back-to-indentation)
+         (point))))
 
 (defun evil-sp--fail ()
   "Error out with a friendly message."
