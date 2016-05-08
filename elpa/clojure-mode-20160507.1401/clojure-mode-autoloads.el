@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (22309 39037
-;;;;;;  140140 350000))
+;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (22318 43630
+;;;;;;  944581 528000))
 ;;; Generated autoloads from clojure-mode.el
 
 (autoload 'clojure-mode "clojure-mode" "\
@@ -13,6 +13,34 @@ Major mode for editing Clojure code.
 \\{clojure-mode-map}
 
 \(fn)" t nil)
+
+(autoload 'clojure-unwind "clojure-mode" "\
+Unwind thread at point or above point by one level.
+Return nil if there are no more levels to unwind.
+
+\(fn)" t nil)
+
+(autoload 'clojure-unwind-all "clojure-mode" "\
+Fully unwind thread at point or above point.
+
+\(fn)" t nil)
+
+(autoload 'clojure-thread "clojure-mode" "\
+Thread by one more level an existing threading macro.
+
+\(fn)" t nil)
+
+(autoload 'clojure-thread-first-all "clojure-mode" "\
+Fully thread the form at point using ->.
+When BUT-LAST is passed the last expression is not threaded.
+
+\(fn BUT-LAST)" t nil)
+
+(autoload 'clojure-thread-last-all "clojure-mode" "\
+Fully thread the form at point using ->>.
+When BUT-LAST is passed the last expression is not threaded.
+
+\(fn BUT-LAST)" t nil)
 
 (autoload 'clojurescript-mode "clojure-mode" "\
 Major mode for editing ClojureScript code.
