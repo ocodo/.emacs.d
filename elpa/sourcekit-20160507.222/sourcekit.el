@@ -4,9 +4,9 @@
 
 ;; Author: Nathan Kot <nk@nathankot.com>
 ;; URL: https://github.com/nathankot/company-sourcekit
-;; Package-Version: 20160323.1809
+;; Package-Version: 20160507.222
 ;; Keywords: tools, processes
-;; Version: 0.1.5
+;; Version: 0.1.6
 ;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (dash-functional "1.2.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -208,6 +208,7 @@ This function will clean the buffer before returning it."
     (get-buffer-create "*sourcekit-output*")
     (with-current-buffer (get-buffer "*sourcekit-output*")
       (erase-buffer)
+      (linum-mode -1)
       (buffer-disable-undo)
       (current-buffer))))
 
