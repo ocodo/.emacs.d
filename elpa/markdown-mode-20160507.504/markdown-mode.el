@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160428.827
+;; Package-Version: 20160507.504
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -58,35 +58,93 @@
 ;;; Commentary:
 
 ;; markdown-mode is a major mode for editing [Markdown][]-formatted
-;; text.  markdown-mode is free software, licensed
-;; under the GNU GPL.
+;; text. The latest stable version is markdown-mode 2.1, released on
+;; January 9, 2016. See the [release notes][] for details.
+;; markdown-mode is free software, licensed under the GNU GPL.
+
+;; ![Markdown Mode Screenshot](http://jblevins.org/projects/markdown-mode/screenshots/20160108-001.png)
+
+;; [Markdown]: http://daringfireball.net/projects/markdown/
+;; [release notes]: http://jblevins.org/projects/markdown-mode/rev-2-1
+
+;;; Installation:
+
+;; The recommended way to install markdown-mode is to install the package
+;; from [MELPA Stable](https://stable.melpa.org/#/markdown-mode)
+;; using `package.el'. First, configure `package.el' and the MELPA Stable
+;; repository by adding the following to your `.emacs', `init.el',
+;; or equivalent startup file:
+
+;;     (require 'package)
+;;     (add-to-list 'package-archives
+;;                  '("melpa-stable" . "https://stable.melpa.org/packages/"))
+;;     (package-initialize)
+
+;; Then, after restarting Emacs or evaluating the above statements, issue
+;; the following command: `M-x package-install RET markdown-mode RET`.
+;; When installed this way, the major modes `markdown-mode' and `gfm-mode'
+;; will be autoloaded and `markdown-mode' will be used for file names
+;; ending in either `.md` or `.markdown`.
 ;;
-;;  [Markdown]: http://daringfireball.net/projects/markdown/
+;; Alternatively, if you manage loading packages with [use-package][]
+;; then you can automatically install and configure `markdown-mode' by
+;; adding a declaration such as this one to your init file (as an
+;; example; adjust settings as desired):
 ;;
-;; The latest stable version is markdown-mode 2.1, released on January 9, 2016:
+;;     (use-package markdown-mode
+;;       :ensure t
+;;       :commands (markdown-mode gfm-mode)
+;;       :mode (("README\\.md\\'" . gfm-mode)
+;;              ("\\.md\\'" . markdown-mode)
+;;              ("\\.markdown\\'" . markdown-mode))
+;;       :init (setq markdown-command "multimarkdown"))
+
+;; [MELPA Stable]: http://stable.melpa.org/
+;; [use-package]: https://github.com/jwiegley/use-package
+
+;; **Direct Download**
+
+;; Alternatively you can manually download and install markdown-mode.
+;; First, download the [latest stable version][markdown-mode.el] and
+;; save the file where Emacs can find it (i.e., a directory in your
+;; `load-path'). You can then configure `markdown-mode' and `gfm-mode'
+;; to load automatically by adding the following to your init file:
+
+;;     (autoload 'markdown-mode "markdown-mode"
+;;        "Major mode for editing Markdown files" t)
+;;     (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+;;     (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 ;;
-;;    * [markdown-mode.el][]
-;;    * [Screenshot][][^theme]
-;;    * [Release notes][]
-;;
-;;  [markdown-mode.el]: http://jblevins.org/projects/markdown-mode/markdown-mode.el
-;;  [Screenshot]: http://jblevins.org/projects/markdown-mode/screenshots/20160108-001.png
-;;  [Release notes]: http://jblevins.org/projects/markdown-mode/rev-2-1
-;;
-;; [^theme]: The theme used in the screenshot is
-;;     [color-theme-twilight](https://github.com/crafterm/twilight-emacs).
-;;
-;; The latest development version can be obtained from the Git
-;; repository at <http://jblevins.org/git/markdown-mode.git> or from
-;; [GitHub][]:
-;;
-;;     git clone git://jblevins.org/git/markdown-mode.git
+;;     (autoload 'gfm-mode "gfm-mode"
+;;        "Major mode for editing GitHub Flavored Markdown files" t)
+;;     (add-to-list 'auto-mode-alist '("README\\.md\\'" . gfm-mode))
+
+;; [markdown-mode.el]: http://jblevins.org/projects/markdown-mode/markdown-mode.el
+
+;; **Development Version**
+
+;; To follow or contribute to markdown-mode development, you can
+;; browse or clone the Git repository
+;; [on GitHub](https://github.com/jrblevin/markdown-mode):
+
 ;;     git clone https://github.com/jrblevin/markdown-mode.git
+
+;; If you prefer to install and use the development version, which may
+;; become unstable at some times, you can either clone the Git
+;; repository as above or install markdown-mode from
+;; [MELPA](https://melpa.org/#/markdown-mode).
 ;;
-;;  [devel.el]: http://jblevins.org/git/markdown-mode.git/plain/markdown-mode.el
-;;  [GitHub]: https://github.com/jrblevin/markdown-mode/
+;; If you clone the repository directly, then make sure that Emacs can
+;; find it by adding the following line to your startup file:
 ;;
-;; markdown-mode is also available in several package managers, including:
+;;     (add-to-list 'load-path "/path/to/markdown-mode/repository")
+
+;; **Packaged Installation**
+
+;; markdown-mode is also available in several package managers. You
+;; may want to confirm that the package you install contains the
+;; latest stable version first (and please notify the package
+;; maintainer if not).
 ;;
 ;;    * Debian Linux: [elpa-markdown-mode][] and [emacs-goodies-el][]
 ;;    * Ubuntu Linux: [elpa-markdown-mode][elpa-ubuntu] and [emacs-goodies-el][emacs-goodies-el-ubuntu]
@@ -105,22 +163,8 @@
 ;;  [macports-ticket]: http://trac.macports.org/ticket/35716
 ;;  [freebsd-port]: http://svnweb.freebsd.org/ports/head/textproc/markdown-mode.el
 
-;;; Installation:
+;; **Dependencies**
 
-;; Make sure to place `markdown-mode.el` somewhere in the load-path and add
-;; the following lines to your `.emacs` file to associate markdown-mode
-;; with `.text`, `.markdown`, and `.md` files:
-;;
-;;     (autoload 'markdown-mode "markdown-mode"
-;;        "Major mode for editing Markdown files" t)
-;;     (add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
-;;     (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
-;;     (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
-;;
-;; There is no official Markdown file extension, nor is there even a
-;; _de facto_ standard, so you can easily add, change, or remove any
-;; of the file extensions above as needed.
-;;
 ;; `markdown-mode' depends on `cl-lib', which has been bundled with
 ;; GNU Emacs since 24.3.  Users of GNU Emacs 24.1 and 24.2 can install
 ;; `cl-lib' with `package.el'.
@@ -899,11 +943,13 @@
 (require 'outline)
 (require 'thingatpt)
 (require 'cl-lib)
+(require 'url-parse)
 
 (defvar jit-lock-start)
 (defvar jit-lock-end)
 
 (declare-function eww-open-file "eww")
+(declare-function url-path-and-query "url-parse")
 
 
 ;;; Constants =================================================================
@@ -1445,9 +1491,17 @@ missing."
    3 "[ ]?\\([^[:space:]]+\\|{[^}]*}\\)?\\([[:space:]]*?\\)$")
   "Regular expression for matching Pandoc tildes.")
 
-(defconst markdown-regex-multimarkdown-metadata
-  "^\\([[:alpha:]][[:alpha:] _-]*?\\)\\(:[ \t]*\\)\\(.*\\)$"
-  "Regular expression for matching MultiMarkdown metadata.")
+(defconst markdown-regex-declarative-metadata
+  "^\\([[:alpha:]][[:alpha:] _-]*?\\)\\([:=][ \t]*\\)\\(.*\\)$"
+  "Regular expression for matching declarative metadata statements.
+This matches MultiMarkdown metadata as well as YAML and TOML
+assignments such as the following:
+
+    variable: value
+
+or
+
+    variable = value")
 
 (defconst markdown-regex-pandoc-metadata
   "^\\(%\\)\\([ \t]*\\)\\(.*\\(?:\n[ \t]+.*\\)*\\)"
@@ -1893,7 +1947,7 @@ start which was previously propertized."
   (save-excursion
     (goto-char start)
     (cl-loop
-     while (re-search-forward markdown-regex-multimarkdown-metadata end t)
+     while (re-search-forward markdown-regex-declarative-metadata end t)
      do (when (get-text-property (match-beginning 0)
                                  'markdown-yaml-metadata-section)
           (put-text-property (match-beginning 1) (match-end 1)
@@ -2312,7 +2366,7 @@ See `font-lock-syntactic-face-function' for details."
     (markdown-match-heading-1-atx . ((4 markdown-header-delimiter-face)
                                      (5 markdown-header-face-1)
                                      (6 markdown-header-delimiter-face)))
-    (markdown-match-multimarkdown-metadata . ((1 markdown-metadata-key-face)
+    (markdown-match-declarative-metadata . ((1 markdown-metadata-key-face)
                                               (2 markdown-markup-face)
                                               (3 markdown-metadata-value-face)))
     (markdown-match-pandoc-metadata . ((1 markdown-markup-face)
@@ -3107,9 +3161,9 @@ is \"\n\n\""
              t))
           (t nil))))
 
-(defun markdown-match-multimarkdown-metadata (last)
-  "Match MultiMarkdown metadata from the point to LAST."
-  (markdown-match-generic-metadata markdown-regex-multimarkdown-metadata last))
+(defun markdown-match-declarative-metadata (last)
+  "Match declarative metadata from the point to LAST."
+  (markdown-match-generic-metadata markdown-regex-declarative-metadata last))
 
 (defun markdown-match-pandoc-metadata (last)
   "Match Pandoc metadata from the point to LAST."
@@ -3813,17 +3867,11 @@ if three backquotes inserted at the beginning of line."
     "Web-Ontology-Language" "WebIDL" "X10" "XC" "XML" "XPages" "XProc" "XQuery"
     "XS" "XSLT" "Xojo" "Xtend" "YAML" "Yacc" "Zephir" "Zimpl" "desktop" "eC" "edn"
     "fish" "mupad" "nesC" "ooc" "reStructuredText" "wisp" "xBase")
-  "Language specifiers recognized by github's syntax highlighting features.")
+  "Language specifiers recognized by GitHub's syntax highlighting features.")
 
 (defvar markdown-gfm-used-languages nil
-  "Languages in GFM code blocks which are not explicitly declared.
-Known language are declared in
-`markdown-gfm-recognized-languages' and
-`markdown-gfm-additional-languages'.")
+  "Language names used in GFM code blocks.")
 (make-variable-buffer-local 'markdown-gfm-used-languages)
-(defvar markdown-gfm-last-used-language nil
-  "Last language used in the current buffer in GFM code blocks.")
-(make-variable-buffer-local 'markdown-gfm-last-used-language)
 
 (defun markdown-trim-whitespace (str)
   (markdown-replace-regexp-in-string
@@ -3848,13 +3896,10 @@ Known language are declared in
      (if markdown-gfm-downcase-languages (cl-mapcar #'downcase given-corpus)
        given-corpus))))
 
-(defun markdown-add-language-if-new (lang)
-  (let* ((cleaned-lang (markdown-clean-language-string lang))
-         (find-result
-          (cl-find cleaned-lang (markdown-gfm-get-corpus)
-                   :test #'equal)))
-    (setq markdown-gfm-last-used-language cleaned-lang)
-    (unless find-result (push cleaned-lang markdown-gfm-used-languages))))
+(defun markdown-gfm-add-used-language (lang)
+  "Clean LANG and add to list of used languages."
+  (add-to-list 'markdown-gfm-used-languages
+               (markdown-clean-language-string lang)))
 
 (defun markdown-insert-gfm-code-block (&optional lang)
   "Insert GFM code block for language LANG.
@@ -3868,12 +3913,12 @@ automatically in order to have the correct markup."
                (markdown-clean-language-string
                 (completing-read
                  (format "Programming language [%s]: "
-                         (or markdown-gfm-last-used-language "none"))
+                         (or (car markdown-gfm-used-languages) "none"))
                  (markdown-gfm-get-corpus)
                  nil 'confirm nil
                  'markdown-gfm-language-history))
              (quit "")))))
-  (unless (string= lang "") (markdown-add-language-if-new lang))
+  (unless (string= lang "") (markdown-gfm-add-used-language lang))
   (when (> (length lang) 0) (setq lang (concat " " lang)))
   (if (markdown-use-region-p)
       (let ((b (region-beginning)) (e (region-end)))
@@ -3912,7 +3957,7 @@ automatically in order to have the correct markup."
                       (when (and (match-beginning 2) (match-end 2))
                         (buffer-substring-no-properties
                          (match-beginning 2) (match-end 2)))))
-       do (progn (when lang (markdown-add-language-if-new lang))
+       do (progn (when lang (markdown-gfm-add-used-language lang))
                  (goto-char (next-single-property-change (point) prop)))))))
 
 
@@ -5521,9 +5566,21 @@ Derived from `org-end-of-subtree'."
 (defun markdown-outline-fix-visibility ()
   "Hide any false positive headings that should not be shown.
 For example, headings inside preformatted code blocks may match
-`outline-regexp' but should not be shown as headings when cycling."
+`outline-regexp' but should not be shown as headings when cycling.
+Also, the ending --- line in metadata blocks appears to be a
+setext header, but should not be folded."
   (save-excursion
     (goto-char (point-min))
+    ;; Unhide any false positives in metadata blocks
+    (when (markdown-text-property-at-point 'markdown-yaml-metadata-begin)
+      (let* ((body (progn (forward-line)
+                          (markdown-text-property-at-point
+                           'markdown-yaml-metadata-section)))
+             (end (progn (goto-char (cl-second body))
+                         (markdown-text-property-at-point
+                          'markdown-yaml-metadata-end))))
+        (outline-flag-region (point-min) (1+ (cl-second end)) nil)))
+    ;; Hide any false positives in code blocks
     (unless (outline-on-heading-p)
       (outline-next-visible-heading 1))
     (while (< (point) (point-max))
@@ -6137,9 +6194,25 @@ not at a link or the link reference is not defined returns nil."
    (t nil)))
 
 (defun markdown-follow-link-at-point ()
-  "Open the current non-wiki link in a browser."
+  "Open the current non-wiki link.
+If the link is a complete URL, open in browser with `browse-url'.
+Otherwise, open with `find-file' after stripping anchor and/or query string."
   (interactive)
-  (if (markdown-link-p) (browse-url (markdown-link-link))
+  (if (markdown-link-p)
+      (let* ((link (markdown-link-link))
+             (struct (url-generic-parse-url link))
+             (full (url-fullness struct))
+             (file link))
+        ;; Parse URL, determine fullness, strip query string
+        (if (fboundp 'url-path-and-query)
+            (setq file (car (url-path-and-query struct)))
+          (when (and (setq file (url-filename struct))
+                     (string-match "\\?" file))
+            (setq file (substring file 0 (match-beginning 0)))))
+        ;; Open full URLs in browser, files in Emacs
+        (if full
+            (browse-url link)
+          (when (and file (> (length file) 0)) (find-file file))))
     (error "Point is not at a Markdown link or URI")))
 
 
