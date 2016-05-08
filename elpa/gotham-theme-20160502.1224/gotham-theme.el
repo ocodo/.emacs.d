@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20160430.1230
+;; Package-Version: 20160502.1224
 ;; Version: 1.1.6
 
 ;; This file is NOT part of GNU Emacs.
@@ -244,6 +244,9 @@ depending on DISPLAY for keys which are either :foreground or
    (eshell-ls-unreadable :foreground red)
 
    ;; elfeed
+   (elfeed-log-error-level-face :inherit error)
+   (elfeed-log-info-level-face :inherit success)
+   (elfeed-log-warn-level-face :inherit warning)
    (elfeed-search-feed-face :foreground orange)
    (elfeed-search-tag-face :foreground green)
    (elfeed-search-title-face :foreground base6)
@@ -528,9 +531,9 @@ depending on DISPLAY for keys which are either :foreground or
    (diff-hl-insert :foreground green)
 
    ;; dired-async
-   (dired-async-failures :foreground red)
-   (dired-async-message :foreground yellow)
-   (dired-async-mode-message :foreground orange)
+   (dired-async-failures :inherit error)
+   (dired-async-message :inherit warning)
+   (dired-async-mode-message :inherit success)
 
    ;; ecb
    (ecb-default-highlight-face :background violet)
