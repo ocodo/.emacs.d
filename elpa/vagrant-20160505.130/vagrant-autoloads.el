@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "vagrant" "vagrant.el" (22291 19038 492117
-;;;;;;  318000))
+;;;### (autoloads nil "vagrant" "vagrant.el" (22318 43463 501359
+;;;;;;  753000))
 ;;; Generated autoloads from vagrant.el
 
 (autoload 'vagrant-up "vagrant" "\

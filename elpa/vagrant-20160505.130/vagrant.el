@@ -1,7 +1,7 @@
 ;;; vagrant.el --- Manage a vagrant box from emacs
 
-;;; Version: 0.6.0
-;; Package-Version: 20160411.18
+;;; Version: 0.6.1
+;; Package-Version: 20160505.130
 ;;; Author: Robert Crim <rob@servermilk.com>
 ;;; Url: https://github.com/ottbot/vagrant.el
 ;;; Keywords: vagrant chef
@@ -107,7 +107,7 @@
 
 (defun vagrant-command (cmd)
   "Run the vagrant command CMD in an async buffer."
-  (let* ((default-directory (file-name-directory (vagrant-locate-vagrantfile vagrant-project-directory)))
+  (let* ((default-directory (file-name-directory (vagrant-locate-vagrantfile)))
          (name (if current-prefix-arg
                    (completing-read "Vagrant box: " (vagrant-box-list)))))
     (async-shell-command (if name (concat cmd " " name) cmd) "*Vagrant*")))
