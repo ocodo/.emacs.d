@@ -1456,7 +1456,7 @@ the correct number of ARGS must be provided."
          "Compilation produced %s syntax errors.")
 
 (js2-msg "msg.var.redecl"
-         "TypeError: redeclaration of var %s.")
+         "Redeclaration of var %s.")
 
 (js2-msg "msg.const.redecl"
          "TypeError: redeclaration of const %s.")
@@ -7264,7 +7264,7 @@ are ignored."
            when (and (eq 'block (js2-comment-node-format node))
                      (save-excursion
                        (goto-char (js2-node-abs-pos node))
-                       (looking-at "/\\*global ")))
+                       (looking-at "/\\* *global ")))
            append (js2-get-jslint-globals-in
                    (match-end 0)
                    (js2-node-abs-end node))))
@@ -8100,11 +8100,19 @@ declared; probably to check them for errors."
       (dolist (elem (js2-object-node-elems node))
         ;; js2-infix-node-p catches both object prop node and initialized
         ;; binding element (which is directly an infix node).
-        (when (js2-infix-node-p elem)
+        (cond
+         ((js2-object-prop-node-p elem)
+          (push (js2-define-destruct-symbols
+                 ;; In abbreviated destructuring {a, b}, right == left.
+                 (js2-object-prop-node-right elem)
+                 decl-type face ignore-not-in-block)
+                name-nodes))
+         ;; Destructuring with default argument.
+         ((js2-infix-node-p elem)
           (push (js2-define-destruct-symbols
                  (js2-infix-node-left elem)
                  decl-type face ignore-not-in-block)
-                name-nodes)))
+                name-nodes))))
       (apply #'append (nreverse name-nodes)))
      ((js2-array-node-p node)
       (dolist (elem (js2-array-node-elems node))
