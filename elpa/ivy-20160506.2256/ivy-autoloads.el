@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ivy" "ivy.el" (22309 39081 836205 767000))
+;;;### (autoloads nil "ivy" "ivy.el" (22318 43563 516897 235000))
 ;;; Generated autoloads from ivy.el
 
 (autoload 'ivy-resume "ivy" "\
@@ -111,7 +111,7 @@ Find a file on `recentf-list'.
 ;;;***
 
 ;;;### (autoloads nil nil ("colir.el" "ivy-hydra.el" "ivy-pkg.el")
-;;;;;;  (22309 39081 842705 206000))
+;;;;;;  (22318 43563 524897 351000))
 
 ;;;***
 

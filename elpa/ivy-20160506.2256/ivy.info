@@ -1,6 +1,6 @@
 This is ivy.info, produced by makeinfo version 5.2 from ivy.texi.
 
-Ivy manual, version 0.7.0
+Ivy manual, version 0.8.0
 
    Ivy is an interactive interface for completion in Emacs.  Emacs uses
 completion mechanism in a variety of contexts: code, menus, commands,
@@ -34,7 +34,7 @@ File: ivy.info,  Node: Top,  Next: Introduction,  Up: (dir)
 Ivy User Manual
 ***************
 
-Ivy manual, version 0.7.0
+Ivy manual, version 0.8.0
 
    Ivy is an interactive interface for completion in Emacs.  Emacs uses
 completion mechanism in a variety of contexts: code, menus, commands,
@@ -73,34 +73,42 @@ through powerful regular expressions.
 
 — The Detailed Node Listing —
 
+
 Installation
 
 * Installing from Emacs Package Manager::
 * Installing from the Git repository::
 
+
+
 Getting started
 
 * Basic customization::
+
 
 Key bindings
 
 * Global key bindings::
 * Minibuffer key bindings::
 
+
 Minibuffer key bindings
 
 * Key bindings for navigation::
-* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer.
-* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open.
+* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer. 
+* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open. 
 * Key bindings that alter the minibuffer input::
 * Other key bindings::
 * Hydra in the minibuffer::
 * Saving the current completion session to a buffer::
+
 Completion Styles
 
 * ivy--regex-plus::
 * ivy--regex-ignore-order::
 * ivy--regex-fuzzy::
+
+
 
 Customization
 
@@ -108,6 +116,8 @@ Customization
 * Defcustoms::
 * Actions::
 * Packages::
+
+
 
 Actions
 
@@ -117,19 +127,27 @@ Actions
 * Example - add two actions to each command::
 * Example - define a new command with several actions::
 
+
+
+
 Example - add two actions to each command
 
 * How to undo adding the two actions::
 * How to add actions to a specific command::
 
+
+
 Example - define a new command with several actions
 
 * Test the above function with ‘ivy-occur’::
+
 Commands
 
 * File Name Completion::
 * Buffer Name Completion::
 * Counsel commands::
+
+
 
 API
 
@@ -208,6 +226,7 @@ from Ivy’s development repository.
 
    Emacs 24.3.1 is the oldest version to run Ivy.  Emacs 24.5.1 is the
 oldest version that runs Ivy with fancy faces display.
+
 * Menu:
 
 * Installing from Emacs Package Manager::
@@ -279,6 +298,7 @@ First enable Ivy completion everywhere:
      (ivy-mode 1)
 
    Note: ‘ivy-mode’ can be toggled on and off with ‘M-x’ ‘ivy-mode’.
+
 * Menu:
 
 * Basic customization::
@@ -367,11 +387,12 @@ described under their respective commands.
    A key feature of ‘ivy-minibuffer-map’ is its full editing capability
 where the familiar ‘C-a’, ‘C-f’, ‘M-d’, ‘M-DEL’, ‘M-b’, ‘M-w’, ‘C-k’,
 ‘C-y’ key bindings work the same as in ‘fundamental-mode’.
+
 * Menu:
 
 * Key bindings for navigation::
-* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer.
-* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open.
+* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer. 
+* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open. 
 * Key bindings that alter the minibuffer input::
 * Other key bindings::
 * Hydra in the minibuffer::
@@ -772,6 +793,7 @@ second argument to ‘completing-read’ for file name completion.
   4. ‘this-command’ has an entry on ‘ivy-re-builders-alist’.
   5. ‘t’ has an entry on ‘ivy-re-builders-alist’.
   6. ‘ivy--regex’.
+
 * Menu:
 
 * ivy--regex-plus::
@@ -1064,6 +1086,7 @@ window from which ‘ivy-read’ was called.
 
    Then in any completion session, ‘M-o y’ invokes ‘ivy-yank-action’,
 and ‘M-o i’ invokes ‘ivy-copy-to-buffer-action’.
+
 * Menu:
 
 * How to undo adding the two actions::
@@ -1119,6 +1142,7 @@ File: ivy.info,  Node: Example - define a new command with several actions,  Pre
 
    The number 1 above is the index of the default action.  Each action
 has its own string description for easy selection.
+
 * Menu:
 
 * Test the above function with ‘ivy-occur’::
@@ -1159,7 +1183,7 @@ File: ivy.info,  Node: Packages,  Prev: Actions,  Up: Customization
 ‘magit’
 .......
 
-     Magit requries this setting for ivy completion:
+     Magit requires this setting for ivy completion:
 
                (setq magit-completing-read-function 'ivy-completing-read)
 
@@ -1171,14 +1195,14 @@ File: ivy.info,  Node: Packages,  Prev: Actions,  Up: Customization
 ‘projectile’
 ............
 
-     Projectile requires this seeting for ivy completion:
+     Projectile requires this setting for ivy completion:
 
                (setq projectile-completion-system 'ivy)
 
 ‘helm-make’
 ...........
 
-     Helm-make requires this seeting for ivy completion.
+     Helm-make requires this setting for ivy completion.
 
                (setq helm-make-completion-method 'ivy)
 
@@ -1200,7 +1224,7 @@ File: ivy.info,  Node: File Name Completion,  Next: Buffer Name Completion,  Up:
 7.1 File Name Completion
 ========================
 
-Since file name completion is ubiquitious, Ivy provides extra bindings
+Since file name completion is ubiquitous, Ivy provides extra bindings
 that work here:
 
 ‘C-j’ (‘ivy-alt-done’)
@@ -1261,6 +1285,10 @@ Using TRAMP
 
      ‘C-i’ works in a similar way to the default completion.
 
+     You can also get sudo access for the current directory by inputting
+     ‘/sudo::’ ‘RET’.  Using ‘/sudo:’ (i.e.  single colon instead of
+     double) will result in a completion session for the desired user.
+
 History
 .......
 
@@ -1281,7 +1309,7 @@ File: ivy.info,  Node: Buffer Name Completion,  Next: Counsel commands,  Prev: F
      Adding this to Emacs init file:
 
                (setq ivy-use-virtual-buffers t)
-     will add additional virual buffers to the buffers list for recent
+     will add additional virtual buffers to the buffers list for recent
      files.  Selecting such virtual buffers, which are highlighted with
      ‘ivy-virtual’ face, will open the corresponding file.
 
@@ -1313,6 +1341,7 @@ two required arguments and many optional arguments that can be passed by
 a key.  The optional ‘:action’ argument is highly recommended for
 features such as multi-actions, non-exiting actions, ‘ivy-occur’ and
 ‘ivy-resume’.
+
 * Menu:
 
 * Required arguments for ‘ivy-read’::
@@ -1431,7 +1460,7 @@ File: ivy.info,  Node: Optional arguments for ‘ivy-read’,  Next: Example - �
 
      Is a function that takes a regex string and a list of strings and
      returns a list of strings matching the regex.  Any ordinary Emacs
-     matching function will suffice, yet finely tuned mathing functions
+     matching function will suffice, yet finely tuned matching functions
      can be used.  See ‘counsel-find-file’ for an example usage.
 
 ‘dynamic-collection’
@@ -1783,50 +1812,50 @@ Keystroke Index
 
 Tag Table:
 Node: Top1355
-Node: Introduction4384
-Node: Installation6864
-Node: Installing from Emacs Package Manager7317
-Node: Installing from the Git repository8275
-Node: Getting started9125
-Node: Basic customization9431
-Node: Key bindings10052
-Node: Global key bindings10244
-Node: Minibuffer key bindings11632
-Node: Key bindings for navigation12863
-Node: Key bindings for single selection action then exit minibuffer14070
-Node: Key bindings for multiple selections and actions keep minibuffer open16787
-Node: Key bindings that alter the minibuffer input19161
-Node: Other key bindings21049
-Node: Hydra in the minibuffer21427
-Node: Saving the current completion session to a buffer23504
-Node: Completion Styles24916
-Node: ivy--regex-plus26673
-Node: ivy--regex-ignore-order28159
-Node: ivy--regex-fuzzy28527
-Node: Customization29024
-Node: Faces29210
-Node: Defcustoms31347
-Node: Actions32524
-Node: What are actions?32850
-Node: How can different actions be called?33683
-Node: How to modify the actions list?34254
-Node: Example - add two actions to each command34914
-Node: How to undo adding the two actions35872
-Node: How to add actions to a specific command36324
-Node: Example - define a new command with several actions36740
-Node: Test the above function with ‘ivy-occur’37682
-Node: Packages38530
-Node: Commands39388
-Node: File Name Completion39573
-Node: Buffer Name Completion41674
-Node: Counsel commands42293
-Node: API42940
-Node: Required arguments for ‘ivy-read’43516
-Node: Optional arguments for ‘ivy-read’44181
-Node: Example - ‘counsel-describe-function’47414
-Node: Example - ‘counsel-locate’50818
-Node: Variable Index54666
-Node: Keystroke Index61567
+Node: Introduction4404
+Node: Installation6884
+Node: Installing from Emacs Package Manager7338
+Node: Installing from the Git repository8296
+Node: Getting started9146
+Node: Basic customization9453
+Node: Key bindings10074
+Node: Global key bindings10266
+Node: Minibuffer key bindings11654
+Node: Key bindings for navigation12888
+Node: Key bindings for single selection action then exit minibuffer14095
+Node: Key bindings for multiple selections and actions keep minibuffer open16812
+Node: Key bindings that alter the minibuffer input19186
+Node: Other key bindings21074
+Node: Hydra in the minibuffer21452
+Node: Saving the current completion session to a buffer23529
+Node: Completion Styles24941
+Node: ivy--regex-plus26699
+Node: ivy--regex-ignore-order28185
+Node: ivy--regex-fuzzy28553
+Node: Customization29050
+Node: Faces29236
+Node: Defcustoms31373
+Node: Actions32550
+Node: What are actions?32876
+Node: How can different actions be called?33709
+Node: How to modify the actions list?34280
+Node: Example - add two actions to each command34940
+Node: How to undo adding the two actions35899
+Node: How to add actions to a specific command36351
+Node: Example - define a new command with several actions36767
+Node: Test the above function with ‘ivy-occur’37710
+Node: Packages38558
+Node: Commands39416
+Node: File Name Completion39601
+Node: Buffer Name Completion41927
+Node: Counsel commands42547
+Node: API43194
+Node: Required arguments for ‘ivy-read’43771
+Node: Optional arguments for ‘ivy-read’44436
+Node: Example - ‘counsel-describe-function’47670
+Node: Example - ‘counsel-locate’51074
+Node: Variable Index54922
+Node: Keystroke Index61823
 
 End Tag Table
 
