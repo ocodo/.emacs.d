@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20160430.135
+;; Package-Version: 20160505.2336
 ;; Version: 0.3.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: convenience, links
@@ -134,14 +134,14 @@
 (defun ace-link--help-collect ()
   "Collect the positions of visible links in the current `help-mode' buffer."
   (let ((skip (text-property-any
-               (point-min) (point-max) 'button nil))
+               (window-start) (window-end) 'button nil))
         candidates)
     (save-excursion
       (while (setq skip (text-property-not-all
-                         skip (point-max) 'button nil))
+                         skip (window-end) 'button nil))
         (goto-char skip)
         (push (cons (button-label (button-at skip)) skip) candidates)
-        (setq skip (text-property-any (point) (point-max)
+        (setq skip (text-property-any (point) (window-end)
                                       'button nil))))
     (nreverse candidates)))
 
@@ -201,8 +201,11 @@
        (window-end))
       (goto-char (point-min))
       (let (beg end candidates)
-        (setq end (text-property-any
-                   (point) (point-max) 'help-echo nil))
+        (setq end
+              (if (get-text-property (point) 'help-echo)
+                  (point)
+                (text-property-any
+                 (point) (point-max) 'help-echo nil)))
         (while (setq beg (text-property-not-all
                           end (point-max) 'help-echo nil))
           (goto-char beg)
