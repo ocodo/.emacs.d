@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-emamux
-;; Package-Version: 20160426.317
+;; Package-Version: 20160506.132
 ;; Version: 0.13
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
@@ -425,6 +425,30 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
   (emamux:check-runner-alive)
   (emamux:tmux-run-command nil "resize-pane" "-Z" "-t" emamux:runner-pane-id))
 
+;;;###autoload
+(defun emamux:new-window ()
+  "Create new window by cd-ing to current directory."
+  (interactive)
+  (emamux:tmux-run-command nil "new-window")
+  (let ((new-window-id (emamux:current-active-window-id))
+        (chdir-cmd (format " cd %s" default-directory)))
+    (emamux:send-keys chdir-cmd new-window-id)))
+
+(defun emamux:list-windows ()
+  (with-temp-buffer
+    (emamux:tmux-run-command t "list-windows")
+    (cl-loop initially (goto-char (point-min))
+             while (re-search-forward "^\\(.+\\)$" nil t)
+             collect (match-string-no-properties 1))))
+
+(defun emamux:active-window-id (windows)
+  (cl-loop for window in windows
+           when (string-match "\\([^ ]+\\) (active)\\'" window)
+           return (match-string-no-properties 1 window)))
+
+(defun emamux:current-active-window-id ()
+  (emamux:active-window-id (emamux:list-windows)))
+
 (defvar emamux:keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-s" #'emamux:send-command)
@@ -435,7 +459,8 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
       (define-key map "\C-i" #'emamux:inspect-runner)
       (define-key map "\C-k" #'emamux:close-panes)
       (define-key map "\C-c" #'emamux:interrupt-runner)
-      (define-key map "\M-k" #'emamux:clear-runner-history))
+      (define-key map "\M-k" #'emamux:clear-runner-history)
+      (define-key map "c"    #'emamux:new-window))
     map)
   "Default keymap for emamux commands. Use like
 \(global-set-key (kbd \"M-g\") emamux:keymap\)
@@ -452,6 +477,7 @@ Keymap:
 | C-k | emamux:close-panes            |
 | C-c | emamux:interrupt-runner       |
 | M-k | emamux:clear-runner-history   |
+| c   | emamux:new-window             |
 ")
 
 (provide 'emamux)
