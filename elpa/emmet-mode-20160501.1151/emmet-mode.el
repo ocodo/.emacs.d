@@ -6,7 +6,7 @@
 ;; Copyright (C) 2009-2012 Chris Done
 
 ;; Version: 1.0.10
-;; Package-Version: 20151213.738
+;; Package-Version: 20160501.1151
 ;; Author: Shin Aoyama <smihica@gmail.com>
 ;; URL: https://github.com/smihica/emmet-mode
 ;; Last-Updated: 2014-08-11 Mon
@@ -206,6 +206,25 @@ and leaving the point in place."
   "When true, enables detection of style tags and attributes in HTML
 to provide proper CSS abbreviations completion."
   :type 'boolean
+  :group 'emmet)
+
+(defcustom emmet-self-closing-tag-style "/"
+  "Self-closing tags style.
+
+This determines how Emmet expands self-closing tags.
+
+E.g., FOO is a self-closing tag.  When expanding \"FOO\":
+
+When \" /\", the expansion is \"<FOO />\".
+When \"/\", the expansion is \"<FOO/>\".
+When \"\", the expansion is \"<FOO>\".
+
+Default value is \"/\".
+
+NOTE: only \" /\", \"/\" and \"\" are valid."
+  :type '(choice (const :tag " />" " /")
+                 (const :tag "/>" "/")
+                 (const :tag ">" ""))
   :group 'emmet)
 
 (defvar emmet-use-css-transform nil
@@ -3468,7 +3487,8 @@ tbl))
 	  (block-indentation? (or content-multiline? (and block-tag? content)))
           (lf                 (if block-indentation? "\n")))
      (concat "<" tag-name id classes props
-             (if self-closing? "/>"
+             (if self-closing?
+                 (concat emmet-self-closing-tag-style ">")
                (concat ">"
                        (if tag-txt
                            (if block-indentation?
