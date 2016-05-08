@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20160429.38
+;; Package-Version: 20160505.124
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -2606,14 +2606,16 @@ The line parameter specifies where to position the point in the annotated file.
 If line is not specified, the current line number in the current buffer is
 used.
 "
-  (lexical-let ((file (or file (buffer-file-name)))
+  (lexical-let ((root (ahg-root))
+                (file (or file (buffer-file-name)))
                 (rev rev)
                 (line (or line (line-number-at-pos))))
     (when file
       (lexical-let ((buffer (get-buffer-create
                              (concat "*hg annotate: " 
                                      (when rev (concat "-r " rev " ") ) 
-                                     file "*" ))))
+                                     file "*" )))
+                    (relfile (file-relative-name file root)))
         (with-current-buffer buffer
           (unless (equal major-mode 'fundamental-mode)
             (fundamental-mode))
@@ -2636,11 +2638,9 @@ used.
         (ahg-generic-command
          "log" 
          (append
-          (list  "--template" "{rev} {desc|firstline))}\\n" file)
-          (when rev (list "-r" (concat rev ":0" )))
-          )
+          (list "--template" "{rev} {desc|firstline))}\\n" relfile)
+          (when rev (list "-r" (concat rev ":0" ))))
          (lambda (process status)
-           
            (if (string= status "finished\n")
                (with-current-buffer buffer
                  (goto-char (point-min))
@@ -2665,10 +2665,11 @@ used.
                                 ahg-changeset-descriptions))
                      (forward-line)))
                  (erase-buffer)
+                 (ahg-cd root)
                  (ahg-generic-command
                   "annotate" 
                   (append 
-                   (list "-undql" file)
+                   (list "-undql" relfile)
                    (when rev (list "-r" rev)))
                   
                   (lambda (process status)
