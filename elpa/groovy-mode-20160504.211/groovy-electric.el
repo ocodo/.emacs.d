@@ -5,27 +5,31 @@
 ;; Author:  Jim Morris <morris@wolfman.com>
 ;; Created: 2009-12-11
 ;; Maintainer: Russel Winder <russel@winder.org.uk>
-;; Version: 201512060737
+;; Version: 201605040906
 ;; Keywords: languages
 
-;;;; NB Version number is date and time yyyymmddhhMM in GMT (aka UTC).
+;;;; NB Version number is date and time yyyymmddhhMM UTC.
 
-;;  This program is free software; you can redistribute it and/or modify it under the terms of the GNU
-;;  General Public License as published by the Free Software Foundation; either version 2 of the License, or
+;;  This program is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
 ;;  (at your option) any later version.
 ;;
-;;  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-;;  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-;;  License for more details.
+;;  This program is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
 ;;
-;;  You should have received a copy of the GNU General Public License along with this program; if not, write
-;;  to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;; Based on ruby-electric.el Copyright (C) 2005 by Dee Zsombor <dee dot zsombor at gmail dot com>.
 ;; Due credit: original work was inspired by a code snippet posted by
 ;; Frederick Ros at http://rubygarden.org/ruby?EmacsExtensions.
 
 ;;; Usage:
+;; If you install using the packaging system no further set up should be needed. If you install this mode
+;; manually then you will likely need to add some extra lines to your init file:
 ;;
 ;;    0) copy groovy-electric.el into directory where emacs can find it.
 ;;

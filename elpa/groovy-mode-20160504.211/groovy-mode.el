@@ -1,29 +1,33 @@
 ;;; groovy-mode.el --- Major mode for Groovy source files
 
-;;  Copyright © 2006, 2009–2010, 2012–2015  Russel Winder
+;;  Copyright © 2006, 2009–2010, 2012–2016  Russel Winder
 
 ;;  Author: Russel Winder <russel@winder.org.uk>, 2006–
 ;;	Jim Morris <morris@wolfman.com>, 2009–
 ;;  Maintainer:  Russel Winder <russel@winder.org.uk>
 ;;  Created: 2006-08-01
-;;  Version: 201512281749
+;;  Version: 201605040859
 ;;  Keywords: languages
 
-;;;; NB Version number is date and time yyyymmddhhMM in GMT (aka UTC).
+;;;; NB Version number is date and time yyyymmddhhMM UTC.
 
-;;  This program is free software; you can redistribute it and/or modify it under the terms of the GNU
-;;  General Public License as published by the Free Software Foundation; either version 2 of the License, or
+;;  This program is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
 ;;  (at your option) any later version.
 ;;
-;;  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-;;  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-;;  License for more details.
+;;  This program is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
 ;;
-;;  You should have received a copy of the GNU General Public License along with this program; if not, write
-;;  to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+;;  You should have received a copy of the GNU General Public License
+;;  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Usage:
-;; Put these lines in your init file.
+;; If you install using the packaging system no further set up should be needed. If you install this mode
+;; manually then you will likely need to put these lines in your init file:
+;;
 ;;   (autoload 'groovy-mode "groovy-mode" "Major mode for editing Groovy code." t)
 ;;   (add-to-list 'auto-mode-alist '("\\.groovy\\'" . groovy-mode))
 
