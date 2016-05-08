@@ -5,7 +5,7 @@
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
 ;; version: 0.1
-;; Package-Version: 20160417.1513
+;; Package-Version: 20160503.2302
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((ycmd "0.1") (company "0.8.3") (deferred "0.2.0") (s "1.9.0") (dash "1.2.0") (let-alist "1.0.4"))
 ;;
@@ -187,7 +187,9 @@ overloaded functions."
         (setq .insertion_text (s-chop-suffix ":" .insertion_text)))
       (dolist (it (delete-dups items) candidates)
         (let* ((meta (if overloaded-functions it .detailed_info))
-               (params (company-ycmd--extract-params-clang it))
+               (kind (company-ycmd--convert-kind-clang .kind))
+               (params (and (string= kind "fn")
+                            (company-ycmd--extract-params-clang it)))
                (return-type (or (and overloaded-functions
                                      (string-match
                                       (concat "\\(.*\\) "
@@ -195,7 +197,6 @@ overloaded functions."
                                       it)
                                      (match-string 1 it))
                                 .extra_menu_info))
-               (kind (company-ycmd--convert-kind-clang .kind))
                (doc .extra_data.doc_string))
           (setq candidates
                 (cons (propertize .insertion_text 'return_type return-type
