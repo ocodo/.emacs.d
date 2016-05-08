@@ -71,6 +71,7 @@
 (require 'seq)
 (require 'cider-compat)
 (require 'cl-lib)
+(require 'nrepl-dict)
 (require 'queue)
 (require 'tramp)
 
@@ -977,6 +978,7 @@ the port, and the client buffer."
           (save-excursion
             (goto-char (process-mark process))
             (insert output)
+            (ansi-color-apply-on-region (process-mark process) (point))
             (set-marker (process-mark process) (point)))
           (when moving
             (goto-char (process-mark process))
