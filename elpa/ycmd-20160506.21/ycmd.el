@@ -6,7 +6,7 @@
 ;;          Peter Vasil <mail@petervasil.net>
 ;; Version: 0.9.1
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((emacs "24.3") (dash "2.12.0") (deferred "0.3.2") (popup "0.5.0") (cl-lib "0.5") (let-alist "1.0.4") (request "0.2.0") (request-deferred "0.2.0"))
+;; Package-Requires: ((emacs "24.3") (dash "2.12.0") (s "1.10.0") (deferred "0.3.2") (popup "0.5.0") (cl-lib "0.5") (let-alist "1.0.4") (request "0.2.0") (request-deferred "0.2.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -107,8 +107,8 @@
   (require 'cl-lib)
   (require 'let-alist))
 (require 'dash)
+(require 's)
 (require 'deferred)
-(require 'f)
 (require 'hmac-def)
 (require 'json)
 (require 'popup)
@@ -813,6 +813,29 @@ it might be interesting for some users."
         (pop-to-buffer "*ycmd-completions*")
         (erase-buffer)
         (insert (pp-to-string completions))))))
+
+(defun ycmd-complete (&optional _ignored)
+  "Completion candidates at point."
+  (-when-let* ((completions (ycmd-get-completions :sync))
+               (candidates (cdr (assq 'completions completions))))
+    (--map (let* ((text (cdr (assq 'insertion_text it)))
+                  (anno (cdr (assq 'menu_text it))))
+             (when (and anno (string-match (regexp-quote text) anno))
+               (put-text-property
+                0 1 'anno (substring anno (match-end 0)) text))
+             text)
+           (append candidates nil))))
+
+(defun ycmd-complete-at-point ()
+  "Complete symnbol at point."
+  (unless (nth 3 (syntax-ppss)) ;; not in string
+    (let* ((bounds (bounds-of-thing-at-point 'symbol))
+           (beg (or (car bounds) (point)))
+           (end (or (cdr bounds) (point))))
+      (list beg end
+            (completion-table-dynamic #'ycmd-complete)
+            :annotation-function
+            (lambda (arg) (get-text-property 0 'anno arg))))))
 
 (defun ycmd-toggle-force-semantic-completion ()
   "Toggle whether to use always semantic completion.
