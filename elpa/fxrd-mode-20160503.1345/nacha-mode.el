@@ -5,7 +5,7 @@
 (defconst nacha-spec
   ;; File Header Record
   `(("1" (
-          (1 1 "Record Type (1)" ,(fxrd-numeric-v :const 1))
+          (1 1 "Record Type 1 (File header)" ,(fxrd-numeric-v :const 1))
           (2 3 "Priority Code" ,(fxrd-numeric-v :const 1))
           (4 13 "Immediate Destination" ,(fxrd-numeric-v :pad " "))
           (14 23 "Immediate Origin" ,(fxrd-numeric-v))
@@ -20,7 +20,7 @@
           (87 94 "Reference Code" ,(fxrd-alphanumeric-v))))
     ;; Batch Header Record
     ("5" (
-          (1 1 "Record Type (5)" ,(fxrd-numeric-v :const 5))
+          (1 1 "Record Type 5 (Company/batch header)" ,(fxrd-numeric-v :const 5))
           (2 4 "Service Class Code" ,(fxrd-numeric-v :enum '(200 220 225)))
           (5 20 "Company Name" ,(fxrd-alphanumeric-v))
           (21 40 "Company Discretionary Data" ,(fxrd-alphanumeric-v))
@@ -36,7 +36,7 @@
           (88 94 "Batch Number" ,(fxrd-numeric-v))))
     ;; Entry Detail Record/Report
     ("6" (
-          (1 1 "Record Type (6)" ,(fxrd-numeric-v :const 6))
+          (1 1 "Record Type 6 (Entry detail)" ,(fxrd-numeric-v :const 6))
           ;; TODO: transaction code parsing/descriptions
           (2 3 "Transaction Code" ,(fxrd-numeric-v :enum '(22 23 27 28 32 33 37 38)))
           (4 11 "Receiving DFI Identification" ,(fxrd-numeric-v))
@@ -50,14 +50,14 @@
           (80 94 "Trace Number" ,(fxrd-numeric-v))))
     ;; CCD Addenda Record
     ("7" (
-          (1 1 "Record Type (7)" ,(fxrd-numeric-v :const 7))
+          (1 1 "Record Type 7 (Addenda)" ,(fxrd-numeric-v :const 7))
           (2 3 "Addenda Type Code" ,(fxrd-numeric-v :const 5))
           (4 83 "Payment Related Information" ,(fxrd-alphanumeric-v))
           (84 87 "Addenda Sequence Number" ,(fxrd-numeric-v))
           (88 94 "Entry Detail Sequence Number" ,(fxrd-numeric-v))))
     ;; Batch Control Record
     ("8" (
-          (1 1 "Record Type (8)" ,(fxrd-numeric-v :const 8))
+          (1 1 "Record Type 8 (Company/batch control)" ,(fxrd-numeric-v :const 8))
           (2 4 "Service Class Code" ,(fxrd-numeric-v))
           (5 10 "Entry/Addenda Count" ,(fxrd-numeric-v))
           (11 20 "Entry Hash" ,(fxrd-numeric-v))
@@ -70,7 +70,7 @@
           (88 94 "Batch Number" ,(fxrd-numeric-v))))
     ;; File Control Record
     ("9" (
-          (1 1 "Record Type (9)" ,(fxrd-numeric-v :const 9))
+          (1 1 "Record Type 9 (File control)" ,(fxrd-numeric-v :const 9))
           (2 7 "Batch Count" ,(fxrd-numeric-v))
           (8 13 "Block Count" ,(fxrd-numeric-v))
           (14 21 "Entry/Addenda Count" ,(fxrd-numeric-v))
