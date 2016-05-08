@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160430.131
+;; Package-Version: 20160506.2256
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -1098,7 +1098,7 @@ done") "\n" t)))
 (add-to-list 'ivy-ffap-url-functions 'counsel-emacs-url-p)
 (ivy-set-actions
  'counsel-find-file
- '(("f" find-file-other-window "other window")))
+ '(("j" find-file-other-window "other window")))
 
 (defcustom counsel-find-file-at-point nil
   "When non-nil, add file-at-point to the list of candidates."
