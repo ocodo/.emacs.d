@@ -6,7 +6,7 @@
 ;; Created: 24 Aug 2011
 ;; Updated: 16 Mar 2015
 ;; Version: 1.2
-;; Package-Version: 20151123.759
+;; Package-Version: 20160506.1821
 ;; Package-Requires: ((gntp "0.1") (log4e "0.3.0"))
 ;; Keywords: notification emacs message
 ;; X-URL: https://github.com/jwiegley/alert
@@ -132,6 +132,7 @@
 ;;   message       - Uses the Emacs `message' facility
 ;;   notifications - Uses notifications library via D-Bus
 ;;   notifier      - Uses terminal-notifier on OS X, if it is on the PATH
+;;   osx-notifier  - Native OSX notifier using AppleScript
 ;;   toaster       - Use the toast notification system
 ;;
 ;; * Defining new styles
@@ -175,6 +176,8 @@
 ;;                        ;; It is the same property list that was passed to
 ;;                        ;; the notifier function.
 ;;                        ))
+
+;;; Code:
 
 (eval-when-compile
   (require 'cl))
@@ -776,7 +779,15 @@ From https://github.com/alloy/terminal-notifier."
 
 (alert-define-style 'notifier :title "Notify using terminal-notifier"
                     :notifier #'alert-notifier-notify)
-
+
+(defun alert-osx-notifier-notify (info)
+  (apply #'call-process (format "osascript -e 'display notification %S with title %S'"
+				(alert-encode-string (plist-get info :message))
+				(alert-encode-string (plist-get info :title))))
+  (alert-message-notify info))
+
+(alert-define-style 'osx-notifier :title "Notify using native OSX notification" :notifier #'alert-osx-notifier-notify)
+
 (defun alert-frame-notify (info)
   (let ((buf (plist-get info :buffer)))
     (if (eq (alert-buffer-status buf) 'buried)
