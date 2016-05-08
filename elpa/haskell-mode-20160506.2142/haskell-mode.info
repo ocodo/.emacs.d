@@ -467,6 +467,12 @@ written by humans use indentation for block structuring.
      is selected you can use ‘TAB’ to indent the block more and ‘S-TAB’
      to indent the block less.
 
+     When ‘electric-indent-mode’ is enabled or the variable
+     ‘haskell-indentation-electric-flag’ is non-nil, the insertion of
+     some characters (by default ‘,’ ‘;’ ‘)’ ‘}’ ‘]’) may trigger auto
+     reindentation under appropriate conditions.  See the documentation
+     of ‘haskell-indentation-common-electric-command’ for more details.
+
    • ‘haskell-indent-mode’ (optional).
 
      This is a semi-intelligent indentation mode doing a decent job at
@@ -2025,7 +2031,7 @@ Concept index
 * Menu:
 
 * benchmarking:                          Interactive Haskell. (line 467)
-* CUA mode:                              Indentation.         (line  43)
+* CUA mode:                              Indentation.         (line  49)
 * customizing:                           Installation.        (line  55)
 * customizing <1>:                       Interactive Haskell. (line  51)
 * ‘haskell-mode’:                        Editing Haskell Code.
@@ -2033,7 +2039,7 @@ Concept index
 * indentation:                           Indentation.         (line   6)
 * layout rule:                           Indentation.         (line   6)
 * off-side rule:                         Indentation.         (line   6)
-* rectangle:                             Indentation.         (line  43)
+* rectangle:                             Indentation.         (line  49)
 * testing:                               Interactive Haskell. (line 465)
 * Unicode:                               Unicode support.     (line   6)
 
@@ -2123,22 +2129,22 @@ Node: Syntax highlighting10509
 Node: Completion support12765
 Node: Unicode support14530
 Node: Indentation19202
-Node: External indentation22296
-Node: Autoformating23024
-Node: Module templates23652
-Node: Declaration scanning24082
-Node: Compilation27370
-Node: Inferior Haskell interpreter30383
-Node: Interactive Haskell31315
-Node: Editing Cabal files60985
-Node: Browsing Haddocks61732
-Node: Spell checking strings and comments64557
-Node: Aligning code65663
-Node: Rectangular commands67408
-Node: Getting Help and Reporting Bugs68955
-Node: Concept index69996
-Node: Function index71039
-Node: Variable index73057
+Node: External indentation22674
+Node: Autoformating23402
+Node: Module templates24030
+Node: Declaration scanning24460
+Node: Compilation27748
+Node: Inferior Haskell interpreter30761
+Node: Interactive Haskell31693
+Node: Editing Cabal files61363
+Node: Browsing Haddocks62110
+Node: Spell checking strings and comments64935
+Node: Aligning code66041
+Node: Rectangular commands67786
+Node: Getting Help and Reporting Bugs69333
+Node: Concept index70374
+Node: Function index71417
+Node: Variable index73435
 
 End Tag Table
 
