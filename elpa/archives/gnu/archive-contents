@@ -37,7 +37,7 @@
 		 nil "Indent and dedent Lisp code, automatically adjust close parens" tar
 		 ((:url . "http://elpa.gnu.org/packages/adjust-parens.html"))])
  (aggressive-indent .
-		    [(1 6)
+		    [(1 7)
 		     ((emacs
 		       (24 1))
 		      (cl-lib
@@ -63,7 +63,7 @@
 	((:url . "http://elpa.gnu.org/packages/ampc.html")
 	 (:keywords "ampc" "mpc" "mpd"))])
  (arbitools .
-	    [(0 70)
+	    [(0 71)
 	     ((cl-lib
 	       (0 5)))
 	     "Package for chess tournaments administration" single
@@ -595,7 +595,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160425)
+      [(20160502)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -817,6 +817,15 @@
 		 "NTLM authentication for the url library" single
 		 ((:url . "http://elpa.gnu.org/packages/url-http-ntlm.html")
 		  (:keywords "comm" "data" "processes" "hypermedia"))])
+ (validate .
+	   [(0 3)
+	    ((emacs
+	      (24 1))
+	     (cl-lib
+	      (0 5)))
+	    "Schema validation for Emacs-lisp" single
+	    ((:url . "http://elpa.gnu.org/packages/validate.html")
+	     (:keywords "lisp"))])
  (vlf .
       [(1 7)
        nil "View Large Files" tar
