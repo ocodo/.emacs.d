@@ -4,7 +4,7 @@
 
 ;; Author: Natalie Weizenbaum
 ;; URL: http://github.com/nex3/haml/tree/master
-;; Package-Version: 20150508.2012
+;; Package-Version: 20160506.2045
 ;; Version: 3.0.16
 ;; Created: 2007-03-15
 ;; By: Natalie Weizenbaum
@@ -214,6 +214,16 @@ LIMIT is the limit of the search."
            if (looking-at opener) return nil
            finally return t))
 
+(defun sass--remove-leading-indent ()
+  "Reindent buffer so that the first line content begins in the first column.
+This assumes that the buffer is valid SASS source, such that no
+subsequent line has a lesser indent."
+  (let ((min-indent nil))
+    (goto-char (point-min))
+    (back-to-indentation)
+    (setq min-indent (1- (point)))
+    (indent-rigidly (point-min) (point-max) (- min-indent))))
+
 ;; Command
 
 (defun sass-output-region (start end)
@@ -221,15 +231,27 @@ LIMIT is the limit of the search."
 Called from a program, START and END specify the region to indent."
   (interactive "r")
   (let ((output-buffer "*sass-output*")
-        (errors-buffer "*sass-errors*"))
-    (shell-command-on-region start end "sass --stdin"
-                             output-buffer
-                             nil
-                             errors-buffer)
-    (when (fboundp 'css-mode)
-      (with-current-buffer output-buffer
-        (css-mode)))
-    (switch-to-buffer-other-window output-buffer)))
+        (errors-buffer "*sass-errors*")
+        (region-contents (buffer-substring start end)))
+    (let ((exit-code
+           (with-temp-buffer
+             (insert region-contents)
+             (newline-and-indent)
+             (sass--remove-leading-indent)
+             (shell-command-on-region (point-min) (point-max) "sass --stdin"
+                                      output-buffer
+                                      nil
+                                      errors-buffer
+                                      t))))
+
+      (if (zerop exit-code)
+          (progn
+            (when (fboundp 'css-mode)
+              (with-current-buffer output-buffer
+                (css-mode)))
+            (switch-to-buffer-other-window output-buffer))
+        (with-current-buffer errors-buffer
+          (view-mode))))))
 
 (defun sass-output-buffer ()
   "Displays the CSS output for entire buffer."
