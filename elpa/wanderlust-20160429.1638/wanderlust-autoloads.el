@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "elmo" "elmo.el" (22291 19016 860038 302000))
+;;;### (autoloads nil "elmo" "elmo.el" (22318 43445 945413 25000))
 ;;; Generated autoloads from elmo.el
 
 (autoload 'elmo-make-folder "elmo" "\
@@ -16,8 +16,8 @@ encode and decode a multibyte string.
 
 ;;;***
 
-;;;### (autoloads nil "elmo-split" "elmo-split.el" (22291 19016 848038
-;;;;;;  257000))
+;;;### (autoloads nil "elmo-split" "elmo-split.el" (22318 43445 917413
+;;;;;;  109000))
 ;;; Generated autoloads from elmo-split.el
 
 (autoload 'elmo-split "elmo-split" "\
@@ -28,7 +28,7 @@ If prefix argument ARG is specified, do a reharsal (no harm).
 
 ;;;***
 
-;;;### (autoloads nil "wl" "wl.el" (22291 19016 772037 973000))
+;;;### (autoloads nil "wl" "wl.el" (22318 43445 681413 826000))
 ;;; Generated autoloads from wl.el
 
 (autoload 'wl "wl" "\
@@ -44,8 +44,8 @@ Pop up a frame to read messages via Wanderlust.
 
 ;;;***
 
-;;;### (autoloads nil "wl-addrmgr" "wl-addrmgr.el" (22291 19016 836038
-;;;;;;  212000))
+;;;### (autoloads nil "wl-addrmgr" "wl-addrmgr.el" (22318 43445 885413
+;;;;;;  207000))
 ;;; Generated autoloads from wl-addrmgr.el
 
 (autoload 'wl-addrmgr "wl-addrmgr" "\
@@ -55,8 +55,8 @@ Start an Address manager.
 
 ;;;***
 
-;;;### (autoloads nil "wl-draft" "wl-draft.el" (22291 19016 820038
-;;;;;;  153000))
+;;;### (autoloads nil "wl-draft" "wl-draft.el" (22318 43445 853413
+;;;;;;  304000))
 ;;; Generated autoloads from wl-draft.el
 
 (autoload 'wl-draft "wl-draft" "\
@@ -74,7 +74,7 @@ been implemented yet.  Partial support for SWITCH-FUNCTION now supported.
 
 ;;;***
 
-;;;### (autoloads nil "wl-qs" "wl-qs.el" (22291 19016 824038 167000))
+;;;### (autoloads nil "wl-qs" "wl-qs.el" (22318 43445 857413 292000))
 ;;; Generated autoloads from wl-qs.el
 
 (autoload 'wl-quicksearch-goto-search-folder-wrapper "wl-qs" "\
@@ -100,7 +100,7 @@ Call `wl-quicksearch-goto-search-folder' on a folder built from `wl-quicksearch-
 ;;;;;;  "wl-fldmgr.el" "wl-folder.el" "wl-highlight.el" "wl-message.el"
 ;;;;;;  "wl-mime.el" "wl-refile.el" "wl-score.el" "wl-spam.el" "wl-summary.el"
 ;;;;;;  "wl-template.el" "wl-thread.el" "wl-util.el" "wl-vars.el"
-;;;;;;  "wl-version.el") (22291 19016 871990 442000))
+;;;;;;  "wl-version.el") (22318 43445 965392 454000))
 
 ;;;***
 
