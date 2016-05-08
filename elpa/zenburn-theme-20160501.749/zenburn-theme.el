@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/bbatsov/zenburn-emacs
-;; Package-Version: 20160430.1224
+;; Package-Version: 20160501.749
 ;; Version: 2.4
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -394,6 +394,9 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(egg-section-title ((t (:foreground ,zenburn-yellow))))
    `(egg-stash-mono ((t (:foreground ,zenburn-green+4))))
 ;;;;; elfeed
+   `(elfeed-log-error-level-face ((t (:foreground ,zenburn-red))))
+   `(elfeed-log-info-level-face ((t (:foreground ,zenburn-blue))))
+   `(elfeed-log-warn-level-face ((t (:foreground ,zenburn-yellow))))
    `(elfeed-search-date-face ((t (:foreground ,zenburn-yellow-1 :underline t
                                               :weight bold))))
    `(elfeed-search-tag-face ((t (:foreground ,zenburn-green))))
