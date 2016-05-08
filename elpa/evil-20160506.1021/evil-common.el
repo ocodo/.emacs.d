@@ -1918,25 +1918,29 @@ POS defaults to the current position of point.
 If ADVANCE is t, the marker advances when inserting text at it;
 otherwise, it stays behind."
   (interactive (list (read-char)))
-  (let ((marker (evil-get-marker char t)) alist)
-    (unless (markerp marker)
-      (cond
-       ((and marker (symbolp marker) (boundp marker))
-        (set marker (or (symbol-value marker) (make-marker)))
-        (setq marker (symbol-value marker)))
-       ((functionp marker)
-        (user-error "Cannot set special marker `%c'" char))
-       ((evil-global-marker-p char)
-        (setq alist (default-value 'evil-markers-alist)
-              marker (make-marker))
-        (evil-add-to-alist 'alist char marker)
-        (setq-default evil-markers-alist alist))
-       (t
-        (setq marker (make-marker))
-        (evil-add-to-alist 'evil-markers-alist char marker))))
-    (add-hook 'kill-buffer-hook #'evil-swap-out-markers nil t)
-    (set-marker-insertion-type marker advance)
-    (set-marker marker (or pos (point)))))
+  (catch 'done
+    (let ((marker (evil-get-marker char t)) alist)
+      (unless (markerp marker)
+        (cond
+         ((and marker (symbolp marker) (boundp marker))
+          (set marker (or (symbol-value marker) (make-marker)))
+          (setq marker (symbol-value marker)))
+         ((eq marker 'evil-jump-backward-swap)
+          (evil-set-jump)
+          (throw 'done nil))
+         ((functionp marker)
+          (user-error "Cannot set special marker `%c'" char))
+         ((evil-global-marker-p char)
+          (setq alist (default-value 'evil-markers-alist)
+                marker (make-marker))
+          (evil-add-to-alist 'alist char marker)
+          (setq-default evil-markers-alist alist))
+         (t
+          (setq marker (make-marker))
+          (evil-add-to-alist 'evil-markers-alist char marker))))
+      (add-hook 'kill-buffer-hook #'evil-swap-out-markers nil t)
+      (set-marker-insertion-type marker advance)
+      (set-marker marker (or pos (point))))))
 
 (defun evil-get-marker (char &optional raw)
   "Return the marker denoted by CHAR.
@@ -3367,7 +3371,7 @@ preceeding (or following) whitespace is added to the range. "
 
 (defun evil-select-xml-tag (beg end type &optional count inclusive)
   "Return a range (BEG END) of COUNT matching XML tags.
-If EXCLUSIVE is non-nil, the tags themselves are excluded
+If INCLUSIVE is non-nil, the tags themselves are included
 from the range."
   (cond
    ((and (not inclusive) (= (abs (or count 1)) 1))
