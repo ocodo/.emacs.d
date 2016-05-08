@@ -4,7 +4,7 @@
 
 ;; Author: Eric Danan
 ;; URL: https://github.com/ericdanan/counsel-projectile
-;; Package-Version: 20160414.331
+;; Package-Version: 20160507.1022
 ;; Created: 2016-04-11
 ;; Keywords: project, convenience
 ;; Version: 0.1
@@ -63,7 +63,7 @@ With a prefix ARG invalidates the cache first."
 
 (ivy-set-actions
  'counsel-projectile-find-file
- '(("w" (lambda (x)
+ '(("j" (lambda (x)
           (with-ivy-window
             (find-file-other-window
              (projectile-expand-root x))))
@@ -93,7 +93,7 @@ With a prefix ARG invalidates the cache first."
 
 (ivy-set-actions
  'counsel-projectile-find-dir
- '(("w" (lambda (x)
+ '(("j" (lambda (x)
           (with-ivy-window
             (dired-other-window
              (projectile-expand-root x))))
@@ -117,7 +117,7 @@ With a prefix ARG invalidates the cache first."
 
 (ivy-set-actions
  'counsel-projectile-switch-to-buffer
- '(("w" (lambda (x)
+ '(("j" (lambda (x)
           (with-ivy-window
             (switch-to-buffer-other-window x)))
     "other window")))
