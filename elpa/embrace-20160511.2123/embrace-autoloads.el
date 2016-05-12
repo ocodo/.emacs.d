@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "embrace" "embrace.el" (22318 43612 396667
-;;;;;;  95000))
+;;;### (autoloads nil "embrace" "embrace.el" (22325 5492 175603 770000))
 ;;; Generated autoloads from embrace.el
 
 (autoload 'embrace-delete "embrace" "\
