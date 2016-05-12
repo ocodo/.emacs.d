@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.9
-;; Package-Version: 20160427.724
+;; Package-Version: 20160511.1856
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -91,13 +91,16 @@
                  (string :tag "Other path")))
 
 (defcustom transmission-rpc-auth nil
-  "Authorization (username, password) for using the RPC interface.
+  "Authentication (username, password, etc.) for the RPC interface.
+Its value is a specification of the type used in `auth-source-search'.
 If no password is set, `auth-sources' is searched using the
 username, `transmission-host', and `transmission-service'."
   :type '(choice (const :tag "None" nil)
                  (plist :tag "Username/password"
                         :options ((:username string)
-                                  (:password string)))))
+                                  (:password string))))
+  :link '(info-link "(auth) Help for users")
+  :link '(function-link auth-source-search))
 
 (defcustom transmission-digit-delimiter ","
   "String used to delimit digits in numbers.
@@ -299,9 +302,14 @@ update `transmission-session-id' and signal the error."
                (signal 'transmission-conflict status)))))))
 
 (defun transmission--auth-source-secret (user)
-  "Return the secret for USER at `transmission-host' found in `auth-sources'."
-  (auth-source-pick-first-password :host transmission-host :user user
-                                   :port transmission-service))
+  "Return the secret for USER at found in `auth-sources'.
+Unless otherwise specified in `transmission-rpc-auth', the host
+and port default to `transmission-host' and
+`transmission-service', respectively."
+  (let ((spec (copy-sequence transmission-rpc-auth)))
+    (unless (plist-get spec :host) (plist-put spec :host transmission-host))
+    (unless (plist-get spec :port) (plist-put spec :port transmission-service))
+    (apply #'auth-source-pick-first-password (nconc `(:user ,user) spec))))
 
 (defun transmission--auth-string ()
   "HTTP \"Authorization\" header value if `transmission-rpc-auth' is populated."
@@ -1372,26 +1380,26 @@ Also run the timer for timer object `transmission-timer'."
   (transmission-timer-check))
 
 (defmacro transmission-context (mode)
-  "Switch to a context buffer of mode MODE."
-  (let ((name (format "*%s*" (replace-regexp-in-string "-mode\\'" ""
-                                                       (symbol-name mode)))))
+  "Switch to a context buffer of major mode MODE."
+  (cl-assert (string-suffix-p "-mode" (symbol-name mode)))
+  (let ((name (make-symbol "name")))
     `(let ((id (or transmission-torrent-id
                    (cdr (assq 'id (tabulated-list-get-id)))))
-           (buffer (or (get-buffer ,name)
-                       (generate-new-buffer ,name))))
-       (if (not id)
-           (user-error "No torrent selected")
-         (with-current-buffer buffer
-           (let ((old-id (or transmission-torrent-id
-                             (cdr (assq 'id (tabulated-list-get-id))))))
-             (unless (eq major-mode ',mode)
-               (funcall #',mode))
-             (if (and old-id (eq old-id id))
-                 (revert-buffer)
-               (setq transmission-torrent-id id)
-               (transmission-draw)
-               (goto-char (point-min)))))
-         (pop-to-buffer-same-window buffer)))))
+           (,name ,(format "*%s*" (string-remove-suffix "-mode" (symbol-name mode)))))
+       (if (not id) (user-error "No torrent selected")
+         (let ((buffer (or (get-buffer ,name)
+                           (generate-new-buffer ,name))))
+           (with-current-buffer buffer
+             (let ((old-id (or transmission-torrent-id
+                               (cdr (assq 'id (tabulated-list-get-id))))))
+               (unless (eq major-mode ',mode)
+                 (funcall #',mode))
+               (if (and old-id (eq old-id id))
+                   (revert-buffer)
+                 (setq transmission-torrent-id id)
+                 (transmission-draw)
+                 (goto-char (point-min)))))
+           (pop-to-buffer-same-window buffer))))))
 
 
 ;; Major mode definitions
@@ -1445,9 +1453,10 @@ Key bindings:
   (transmission-context transmission-peers-mode))
 
 (defvar transmission-info-font-lock-keywords
-  `(("^\\(.*?:\\)[[:blank:]]*\\(.*\\)$"
-     (1 'font-lock-type-face)
-     (2 'font-lock-keyword-face)))
+  (eval-when-compile
+    `((,(rx bol (group (*? nonl) ":") (* blank) (group (* nonl)) eol)
+       (1 font-lock-type-face)
+       (2 font-lock-keyword-face))))
   "Default expressions to highlight in `transmission-info-mode' buffers.")
 
 (defvar transmission-info-mode-map
@@ -1455,10 +1464,13 @@ Key bindings:
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
     (define-key map "c" 'transmission-copy-magnet)
+    (define-key map "d" 'transmission-set-torrent-download)
     (define-key map "e" 'transmission-peers)
+    (define-key map "l" 'transmission-set-torrent-ratio)
     (define-key map "m" 'transmission-move)
     (define-key map "t" 'transmission-trackers-add)
     (define-key map "T" 'transmission-trackers-remove)
+    (define-key map "u" 'transmission-set-torrent-upload)
     (define-key map "y" 'transmission-set-bandwidth-priority)
     map)
   "Keymap used in `transmission-info-mode' buffers.")
