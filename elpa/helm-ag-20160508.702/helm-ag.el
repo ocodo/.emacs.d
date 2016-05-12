@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160505.1848
+;; Package-Version: 20160508.702
 ;; Version: 0.54
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -1035,7 +1035,8 @@ Continue searching the parent directory? "))
     (helm-attrset 'name (helm-ag--helm-header search-dir)
                   helm-source-do-ag)
     (helm :sources '(helm-source-do-ag) :buffer "*helm-ag*"
-          :input (helm-ag--insert-thing-at-point helm-ag-insert-at-point)
+          :input (or (helm-ag--marked-input)
+                     (helm-ag--insert-thing-at-point helm-ag-insert-at-point))
           :keymap helm-do-ag-map)))
 
 ;;;###autoload
