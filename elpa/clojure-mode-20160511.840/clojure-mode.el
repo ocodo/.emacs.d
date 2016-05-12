@@ -9,7 +9,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160507.1401
+;; Package-Version: 20160511.840
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.3.0
 ;; Package-Requires: ((emacs "24.3"))
@@ -196,26 +196,24 @@ Out-of-the box clojure-mode understands lein, boot and gradle."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-:") #'clojure-toggle-keyword-string)
     (define-key map (kbd "C-c SPC") #'clojure-align)
-    (define-key map (kbd "C-c C-r t") #'clojure-thread)
     (define-key map (kbd "C-c C-r C-t") #'clojure-thread)
-    (define-key map (kbd "C-c C-r u") #'clojure-unwind)
+    (define-key map (kbd "C-c C-r t") #'clojure-thread)
     (define-key map (kbd "C-c C-r C-u") #'clojure-unwind)
-    (define-key map (kbd "C-c C-r f") #'clojure-thread-first-all)
+    (define-key map (kbd "C-c C-r u") #'clojure-unwind)
     (define-key map (kbd "C-c C-r C-f") #'clojure-thread-first-all)
-    (define-key map (kbd "C-c C-r l") #'clojure-thread-last-all)
+    (define-key map (kbd "C-c C-r f") #'clojure-thread-first-all)
     (define-key map (kbd "C-c C-r C-l") #'clojure-thread-last-all)
-    (define-key map (kbd "C-c C-r a") #'clojure-unwind-all)
+    (define-key map (kbd "C-c C-r l") #'clojure-thread-last-all)
     (define-key map (kbd "C-c C-r C-a") #'clojure-unwind-all)
+    (define-key map (kbd "C-c C-r a") #'clojure-unwind-all)
     (easy-menu-define clojure-mode-menu map "Clojure Mode Menu"
       '("Clojure"
         ["Toggle between string & keyword" clojure-toggle-keyword-string]
-        "--"
-        ["Insert ns form at point" clojure-insert-ns-form-at-point]
-        ["Insert ns form at beginning" clojure-insert-ns-form]
-        ["Update ns form" clojure-update-ns]
-        "--"
         ["Align expression" clojure-align]
-        "--"
+        ("ns forms"
+         ["Insert ns form at point" clojure-insert-ns-form-at-point]
+         ["Insert ns form at beginning" clojure-insert-ns-form]
+         ["Update ns form" clojure-update-ns])
         ("Refactor -> and ->>"
          ["Thread once more" clojure-thread]
          ["Fully thread a form with ->" clojure-thread-first-all]
@@ -224,7 +222,7 @@ Out-of-the box clojure-mode understands lein, boot and gradle."
          ["Unwind once" clojure-unwind]
          ["Fully unwind a threading macro" clojure-unwind-all])
         "--"
-        ["Version" clojure-mode-display-version]))
+        ["Clojure-mode version" clojure-mode-display-version]))
     map)
   "Keymap for Clojure mode.")
 
@@ -1559,7 +1557,10 @@ This will skip over sexps that don't represent objects, so that ^hints and
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defcustom clojure-thread-all-but-last nil
-  "When true `cljr-thread-first-all' and `cljr-thread-last-all' don't thread the last expression."
+  "Non-nil means do not thread the last expression.
+This means that `clojure-thread-first-all' and
+`clojure-thread-last-all' not thread the deepest sexp inside the
+current sexp."
   :package-version '(clojure-mode . "5.4.0")
   :safe #'booleanp
   :type 'boolean)
@@ -1620,8 +1621,8 @@ Point must be between the opening paren and the -> symbol."
       (forward-sexp)
       (down-list -1)
       (backward-sexp 2) ;; the last sexp, the threading macro
-      (when (looking-back "(\\s-*")
-          (backward-up-list)) ;; and the paren
+      (when (looking-back "(\\s-*" (line-beginning-position))
+        (backward-up-list)) ;; and the paren
       (= beg (point)))))
 
 ;;;###autoload
@@ -1629,19 +1630,23 @@ Point must be between the opening paren and the -> symbol."
   "Unwind thread at point or above point by one level.
 Return nil if there are no more levels to unwind."
   (interactive)
-  (ignore-errors
-    (when (looking-at "(")
-      (forward-char 1)
-      (forward-sexp 1)))
-  (search-backward-regexp "([^-]*->")
-  (if (clojure--nothing-more-to-unwind)
-      (progn (clojure--pop-out-of-threading)
-             nil)
-    (down-list)
-    (cond
-     ((looking-at "[^-]*->\\_>")  (clojure--unwind-first))
-     ((looking-at "[^-]*->>\\_>") (clojure--unwind-last)))
-    t))
+  (save-excursion
+    (let ((limit (save-excursion
+                   (beginning-of-defun)
+                   (point))))
+      (ignore-errors
+        (when (looking-at "(")
+          (forward-char 1)
+          (forward-sexp 1)))
+      (search-backward-regexp "([^-]*->" limit)
+      (if (clojure--nothing-more-to-unwind)
+          (progn (clojure--pop-out-of-threading)
+                 nil)
+        (down-list)
+        (cond
+         ((looking-at "[^-]*->\\_>")  (clojure--unwind-first))
+         ((looking-at "[^-]*->>\\_>") (clojure--unwind-last)))
+        t))))
 
 ;;;###autoload
 (defun clojure-unwind-all ()
@@ -1669,7 +1674,7 @@ Return nil if there are no more levels to unwind."
   (forward-sexp 2)
   (down-list -1)
   (backward-sexp)
-  (unless (looking-back "(")
+  (unless (eq (char-before) ?\()
     (let ((contents (clojure-delete-and-extract-sexp)))
       (just-one-space 0)
       (backward-up-list)
@@ -1677,9 +1682,8 @@ Return nil if there are no more levels to unwind."
       (newline-and-indent)
       (clojure--remove-superfluous-parens)
       ;; cljr #255 Fix dangling parens
-      (backward-up-list)
       (forward-sexp)
-      (when (looking-back "^\\s-*)+\\s-*")
+      (when (looking-back "^\\s-*)+\\s-*" (line-beginning-position))
         (join-line))
       t)))
 
