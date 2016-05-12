@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-emamux
-;; Package-Version: 20160506.132
+;; Package-Version: 20160510.2001
 ;; Version: 0.13
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
@@ -449,6 +449,20 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
 (defun emamux:current-active-window-id ()
   (emamux:active-window-id (emamux:list-windows)))
 
+(defvar emamux:cloning-window-state nil)
+
+;;;###autoload
+(defun emamux:clone-current-frame ()
+  "Clones current frame into a new tmux window."
+  (interactive)
+  (setq emamux:cloning-window-state (window-state-get (frame-root-window)))
+  (emamux:tmux-run-command nil "new-window")
+  (let ((new-window-id (emamux:current-active-window-id))
+        (chdir-cmd (format " cd %s" default-directory))
+        (emacsclient-cmd " emacsclient -nw -e '(window-state-put emamux:cloning-window-state)'"))
+    (emamux:send-keys chdir-cmd new-window-id)
+    (emamux:send-keys emacsclient-cmd new-window-id)))
+
 (defvar emamux:keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-s" #'emamux:send-command)
@@ -460,7 +474,8 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
       (define-key map "\C-k" #'emamux:close-panes)
       (define-key map "\C-c" #'emamux:interrupt-runner)
       (define-key map "\M-k" #'emamux:clear-runner-history)
-      (define-key map "c"    #'emamux:new-window))
+      (define-key map "c"    #'emamux:new-window)
+      (define-key map "C"    #'emamux:clone-current-frame))
     map)
   "Default keymap for emamux commands. Use like
 \(global-set-key (kbd \"M-g\") emamux:keymap\)
@@ -478,6 +493,7 @@ Keymap:
 | C-c | emamux:interrupt-runner       |
 | M-k | emamux:clear-runner-history   |
 | c   | emamux:new-window             |
+| C   | emamux:clone-current-frame    |
 ")
 
 (provide 'emamux)

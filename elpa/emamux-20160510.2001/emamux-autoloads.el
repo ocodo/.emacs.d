@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "emamux" "emamux.el" (22318 43614 596656 896000))
+;;;### (autoloads nil "emamux" "emamux.el" (22323 65251 563342 57000))
 ;;; Generated autoloads from emamux.el
 
 (autoload 'emamux:send-command "emamux" "\
@@ -73,6 +73,11 @@ Zoom runner pane. This feature requires tmux 1.8 or higher
 
 (autoload 'emamux:new-window "emamux" "\
 Create new window by cd-ing to current directory.
+
+\(fn)" t nil)
+
+(autoload 'emamux:clone-current-frame "emamux" "\
+Clones current frame into a new tmux window.
 
 \(fn)" t nil)
 
