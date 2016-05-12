@@ -98,29 +98,39 @@
     (when (and (eq extension? :json-false) (not (string-equal "" url)))
       (add-to-list 'kite-mini-rpc-scripts (list :id id :url url)))))
 
+(defun kite-mini-on-script-failed-to-parse (data)
+  (kite-mini-console-append (format "%s" data)))
+
 (defun kite-mini-on-message-added (data)
-  "We got `source', `level', `text' and the possition that trigger it."
   (let* ((message (plist-get data :message))
+         (url (plist-get message :url))
+         (column (plist-get message :column))
+         (line (plist-get message :line))
          (type (plist-get message :type))
+         (level (plist-get message :level))
          (text (plist-get message :text)))
-    (message "Kite: [%s] %s" type text)))
+    ;; TODO: add colors based on level
+    (kite-mini-console-append (propertize
+                               (format "%s: %s\t%s (line: %s column: %s)"
+                                       level text url line column)
+                               'font-lock-face (intern (format "kite-mini-log-%s" level))))))
 
 (defun kite-mini-on-message (socket data)
   (let* ((data (kite-mini-decode (websocket-frame-payload data)))
          (method (plist-get data :method))
          (params (plist-get data :params)))
-    (cond
-     ((string-equal method "Debugger.scriptParsed")
-      (kite-mini-on-script-parsed params))
-     ((string-equal method "Console.messageAdded")
-      (kite-mini-on-message-added params))
-     ;; TODO: do something usefull here, possibly great for REPL
-     ((string-equal method "Console.messageRepeatCountUpdated"))
-     ;; These are return messages from RPC calls, not notification
-     ((not method)
-      (kite-mini-dispatch-callback (plist-get data :id) (plist-get data :result)))
-     ;; Generic fallback, only used in development
-     (t (message "Kite: %s" data)))))
+    (pcase method
+      ("Debugger.scriptParsed" (kite-mini-on-script-parsed params))
+      ;; we are getting an error in Console.messageAdded
+      ;; ("Debugger.scriptFailedToParse" (kite-mini-on-script-failed-to-parse params))
+      ("Console.messageAdded" (kite-mini-on-message-added params))
+      ;; ;; TODO: do something usefull here, possibly great for REPL
+      ("Console.messageRepeatCountUpdated")
+      ;; nil -> These are return messages from RPC calls, not notification
+      (_ (if method
+             (message "Kite: %s" data) ; Generic fallback, only used in development
+           (kite-mini-dispatch-callback (plist-get data :id)
+                                        (plist-get data :result)))))))
 
 (defun kite-mini-call-rpc (method &optional params callback)
   (let ((id (kite-mini-next-rpc-id)))

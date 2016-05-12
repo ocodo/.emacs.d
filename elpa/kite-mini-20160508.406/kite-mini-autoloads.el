@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "kite-mini" "kite-mini.el" (22318 43543 820991
-;;;;;;  983000))
+;;;### (autoloads nil "kite-mini" "kite-mini.el" (22323 65212 619393
+;;;;;;  19000))
 ;;; Generated autoloads from kite-mini.el
 
 (autoload 'turn-on-kite-mini-mode "kite-mini" "\
@@ -25,7 +25,7 @@ Minor mode for interact with WebKit remote debugging API.
 ;;;***
 
 ;;;### (autoloads nil nil ("kite-mini-console.el" "kite-mini-pkg.el")
-;;;;;;  (22318 43543 836412 632000))
+;;;;;;  (22323 65212 630769 924000))
 
 ;;;***
 

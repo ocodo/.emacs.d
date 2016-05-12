@@ -2,9 +2,35 @@
 (require 'comint)
 (require 'kite-mini)
 
+(require 'js) ; for syntax highlighting
+
+(defface kite-mini-log-warning
+  '((t :inherit warning))
+  "Basic face used to highlight warnings."
+  :version "24.1"
+  :group 'kite-mini-faces)
+
+(defface kite-mini-log-error
+  '((t :inherit error))
+  "Basic face used to highlight errors."
+  :version "24.1"
+  :group 'kite-mini-faces)
+
+(defface kite-mini-log-debug
+  '((t :inherit font-lock-comment))
+  "Basic face used to highlight debug-level messages."
+  :version "24.1"
+  :group 'kite-mini-faces)
+
+(defface kite-mini-log-log
+  '((t :inherit default))
+  "Basic face used to highlight regular messages."
+  :version "24.1"
+  :group 'kite-mini-faces)
+
 (defcustom kite-mini-console-prompt "JS> "
   "Prompt used in kite-mini-console."
-  :group 'kite)
+  :group 'kite-mini)
 
 (defvar kite-mini-console-mode-map
   (let ((map (copy-keymap widget-keymap))
@@ -26,19 +52,40 @@
   :group 'kite-mini
   :syntax-table emacs-lisp-mode-syntax-table
   (setq comint-prompt-regexp (concat "^" (regexp-quote kite-mini-console-prompt))
+        comint-get-old-input 'kite-mini-console-get-old-input ;; TODO: why?
         comint-input-sender 'kite-mini-console-input-sender
         comint-process-echoes nil)
+  ;; (set (make-local-variable 'comint-prompt-read-only) t)
   (unless (comint-check-proc (current-buffer))
     (start-process "kite-mini-console" (current-buffer) nil)
     (set-process-query-on-exit-flag (kite-mini-console-process) nil)
+
+    (set (make-local-variable 'font-lock-defaults)
+         (list js--font-lock-keywords))
+
     (goto-char (point-max))
     (set (make-local-variable 'comint-inhibit-carriage-motion) t)
     (comint-output-filter (kite-mini-console-process) kite-mini-console-prompt)
     (set-process-filter (kite-mini-console-process) 'comint-output-filter)))
 
+(defun kite-mini-console-append (data)
+  (let ((buffer (get-buffer "*kite-mini-console*")))
+    (when buffer
+      (with-current-buffer buffer
+        (comint-output-filter (kite-mini-console-process) (concat data "\n"))))))
+
 (defun kite-mini-console-process ()
   ;; Return the current buffer's process.
   (get-buffer-process (current-buffer)))
+
+(defun kite-mini-console-get-old-input nil
+  ;; Return the previous input surrounding point
+  (save-excursion
+    (beginning-of-line)
+    (unless (looking-at-p comint-prompt-regexp)
+      (re-search-backward comint-prompt-regexp))
+    (comint-skip-prompt)
+    (buffer-substring (point) (progn (forward-sexp 1) (point)))))
 
 (defun kite-mini-console-input-sender (_proc input)
   ;; Just sets the variable kite-mini-console-input, which is in the scope
