@@ -69,10 +69,14 @@
 ;; you can nest Hydras if you wish, with `hydra-toggle/body' possibly
 ;; becoming a blue head of another Hydra.
 ;;
-;; Initially, Hydra shipped with a simplified `hydra-create' macro, to
-;; which you could hook up the examples from hydra-examples.el.  It's
-;; better to take the examples simply as templates and use `defhydra'
-;; instead of `hydra-create', since it's more flexible.
+;; If you want to learn all intricacies of using `defhydra' without
+;; having to figure it all out from this source code, check out the
+;; wiki: https://github.com/abo-abo/hydra/wiki. There's a wealth of
+;; information there. Everyone is welcome to bring the existing pages
+;; up to date and add new ones.
+;;
+;; Additionally, the file hydra-examples.el serves to demo most of the
+;; functionality.
 
 ;;; Code:
 ;;* Requires
@@ -782,6 +786,9 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
 (defvar hydra-props-alist nil)
 
 (defun hydra-set-property (name key val)
+  "Set hydra property.
+NAME is the symbolic name of the hydra.
+KEY and VAL are forwarded to `plist-put'."
   (let ((entry (assoc name hydra-props-alist))
         plist)
     (when (null entry)
@@ -789,6 +796,14 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
       (setq entry (assoc name hydra-props-alist)))
     (setq plist (cdr entry))
     (setcdr entry (plist-put plist key val))))
+
+(defun hydra-get-property (name key)
+  "Get hydra property.
+NAME is the symbolic name of the hydra.
+KEY is forwarded to `plist-get'."
+  (let ((entry (assoc name hydra-props-alist)))
+    (when entry
+      (plist-get (cdr entry) key))))
 
 (defun hydra-show-hint (hint caller)
   (let ((verbosity (plist-get (cdr (assoc caller hydra-props-alist))
