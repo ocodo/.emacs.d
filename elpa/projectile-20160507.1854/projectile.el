@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160420.1508
+;; Package-Version: 20160507.1854
 ;; Keywords: project, convenience
 ;; Version: 0.14.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -1830,7 +1830,7 @@ a COMPILE-CMD, a TEST-CMD, and a RUN-CMD."
 (projectile-register-project-type 'haskell-stack '("stack.yaml") "stack build" "stack build --test")
 (projectile-register-project-type 'haskell-cabal #'projectile-cabal "cabal build" "cabal test")
 (projectile-register-project-type 'rust-cargo '("Cargo.toml") "cargo build" "cargo test")
-(projectile-register-project-type 'r '("DESCRIPTION") "R CMD INSTALL ." (concat "R CMD check -o " temporary-file-directory " ."))
+(projectile-register-project-type 'r '("DESCRIPTION") "R CMD INSTALL --with-keep.source ." (concat "R CMD check -o " temporary-file-directory " ."))
 (projectile-register-project-type 'go #'projectile-go "go build ./..." "go test ./...")
 
 (defun projectile-cabal ()
