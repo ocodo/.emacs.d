@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 2.12.1
-;; Package-Version: 20160507.1405
+;; Package-Version: 20160510.1127
 ;; Keywords: lists
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -71,6 +71,21 @@ special values."
            ,@body)
          (setq it-index (1+ it-index))
          (!cdr ,l)))))
+
+(defmacro -doto (eval-initial-value &rest forms)
+  "Eval a form, then insert that form as the 2nd argument to other forms.
+The EVAL-INITIAL-VALUE form is evaluated once. Its result is
+passed to FORMS, which are then evaluated sequentially. Returns
+the target form."
+  (declare (indent 1))
+  (let ((retval (make-symbol "value")))
+    `(let ((,retval ,eval-initial-value))
+       ,@(mapcar (lambda (form)
+                   (if (sequencep form)
+                       `(,(-first-item form) ,retval ,@(cdr form))
+                     `(funcall form ,retval)))
+                 forms)
+       ,retval)))
 
 (defun -each (list fn)
   "Call FN with every item in LIST. Return nil, used for side-effects only."
