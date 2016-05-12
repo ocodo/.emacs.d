@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20160507.507
+;; Package-Version: 20160512.539
 ;; Version: 1.1.9
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -69,7 +69,7 @@ this behavior."
   :type 'float)
 
 (defcustom which-key-echo-keystrokes (if (and echo-keystrokes
-                                              (> echo-keystrokes
+                                              (> (+ echo-keystrokes 0.01)
                                                  which-key-idle-delay))
                                          (/ (float which-key-idle-delay) 4)
                                        echo-keystrokes)
