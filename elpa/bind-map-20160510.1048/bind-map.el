@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-bind-map
-;; Package-Version: 20160309.525
+;; Package-Version: 20160510.1048
 ;; Version: 1.0.4
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -126,6 +126,13 @@ be activated.")
 (make-obsolete-variable 'bind-map-local-bindings
                         'bind-map-evil-local-bindings "2015-12-2")
 
+(defun bind-map-put-map-properties (map-sym &rest properties)
+  "Use put to add symbol properties to MAP-SYM."
+  (declare (indent 1))
+  (while properties
+    (put map-sym (pop properties)
+         (when properties (pop properties)))))
+
 (defun bind-map-evil-local-mode-hook ()
   "Called to activate local state maps in a buffer."
   ;; format is (OVERRIDE-MODE STATE KEY DEF)
@@ -246,7 +253,12 @@ unspecified the bindings are global.
 
 :prefix-cmd COMMAND-NAME
 
-Declare a prefix command for MAP named COMMAND-NAME."
+Declare a prefix command for MAP named COMMAND-NAME.
+
+:bindings \(KEY1 BINDING1 KEY2 BINDING2 ...\)
+
+Bind keys when declaring the map. This is optional, but added as
+a convenience."
   (let* ((root-map (intern (format "%s-root-map" map)))
          (active-var (intern (format "%s-active" map)))
          (prefix-cmd (or (plist-get args :prefix-cmd)
@@ -267,7 +279,8 @@ mode maps. Set up by bind-map.el." map))
          (evil-states (or (plist-get args :evil-states)
                           bind-map-default-evil-states))
          (minor-modes (plist-get args :minor-modes))
-         (major-modes (plist-get args :major-modes)))
+         (major-modes (plist-get args :major-modes))
+         (bindings (plist-get args :bindings)))
     (append
      '(progn)
 
@@ -277,7 +290,18 @@ mode maps. Set up by bind-map.el." map))
        (defvar ,prefix-cmd nil)
        (setq ,prefix-cmd ,map)
        (setf (symbol-function ',prefix-cmd) ,map)
-       (defvar ,root-map (make-sparse-keymap)))
+       (defvar ,root-map (make-sparse-keymap))
+       (bind-map-put-map-properties ',map
+                                    :root-map ',root-map
+                                    :active-var ',active-var
+                                    :prefix-cmd ',prefix-cmd
+                                    :override-minor-modes ',override-minor-modes
+                                    :override-mode-name ',override-mode
+                                    :keys ',keys
+                                    :evil-keys ',evil-keys
+                                    :evil-states ',evil-states
+                                    :minor-modes ',minor-modes
+                                    :major-modes ',major-modes))
 
      (when minor-modes
        `((dolist (mode ',minor-modes)
@@ -339,8 +363,49 @@ mode maps. Set up by bind-map.el." map))
 		      (push (list ',override-mode state key ',prefix-cmd)
 			    bind-map-evil-local-bindings))
 		    (evil-global-set-key state key ',prefix-cmd)))
-		(evil-normalize-keymaps)))))))))
+		(evil-normalize-keymaps))))))
+
+     (when bindings
+       `((bind-map-set-keys ,map
+           ,@bindings)))
+
+     `(',map))))
 (put 'bind-map 'lisp-indent-function 'defun)
+
+(defun bind-map--get-prop (keyword args parent-args)
+  (list keyword
+        (or (plist-get args keyword)
+            (plist-get parent-args keyword))))
+
+;;;###autoload
+(defmacro bind-map-for-mode-inherit (map parent &rest args)
+  "Same as `bind-map' for MAP, except use some arguments from
+PARENT as defaults, which must be another map declared with
+`bind-map'. This is intended to be used with :major-modes
+or :minor-modes and will throw an error if not.
+
+The arguments that get recycled from PARENT (unless a new value
+is provided) are :override-minor-modes, :keys, :evil-keys,
+and :evil-states. All others must be declared explicitly."
+  (declare (indent 2))
+  (let* ((parent-args (symbol-plist parent))
+         (minor-modes (plist-get args :minor-modes))
+         (major-modes (plist-get args :major-modes))
+         (bindings (plist-get args :bindings)))
+    (when (and (null minor-modes)
+               (null major-modes))
+      (user-error "bind-map-for-modes-derived called without \
+reference to :major-modes or :minor-modes"))
+    `(bind-map ,map
+       :prefix-cmd ,(plist-get args :prefix-cmd)
+       :override-mode-name ,(plist-get args :override-mode-name)
+       :minor-modes ,minor-modes
+       :major-modes ,major-modes
+       :bindings ,bindings
+       ,@(bind-map--get-prop :override-minor-modes args parent-args)
+       ,@(bind-map--get-prop :keys args parent-args)
+       ,@(bind-map--get-prop :evil-keys args parent-args)
+       ,@(bind-map--get-prop :evil-states args parent-args))))
 
 ;;;###autoload
 (defmacro bind-map-for-major-mode (major-mode-sym &rest args)
@@ -357,11 +422,9 @@ generated keymap is returned, which is MAJOR-MODE-SYM concatenated
 with `bind-map-default-map-suffix'."
   (let ((map-name (intern (concat (symbol-name major-mode-sym)
                                   bind-map-default-map-suffix))))
-    `(progn
-       (bind-map ,map-name
-         :major-modes (,major-mode-sym)
-         ,@args)
-       ',map-name)))
+    `(bind-map ,map-name
+       :major-modes (,major-mode-sym)
+       ,@args)))
 (put 'bind-map-for-major-mode 'lisp-indent-function 'defun)
 
 ;;;###autoload
@@ -379,11 +442,9 @@ generated keymap is returned, which is MINOR-MODE-SYM
 concatenated with `bind-map-default-map-suffix'."
   (let ((map-name (intern (concat (symbol-name minor-mode-sym)
                                   bind-map-default-map-suffix))))
-    `(progn
-       (bind-map ,map-name
-         :minor-modes (,minor-mode-sym)
-         ,@args)
-       ',map-name)))
+    `(bind-map ,map-name
+       :minor-modes (,minor-mode-sym)
+       ,@args)))
 (put 'bind-map-for-minor-mode 'lisp-indent-function 'defun)
 
 ;;;###autoload

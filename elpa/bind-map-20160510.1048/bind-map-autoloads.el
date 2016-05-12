@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "bind-map" "bind-map.el" (22246 12501 529451
-;;;;;;  198000))
+;;;### (autoloads nil "bind-map" "bind-map.el" (22323 65291 103291
+;;;;;;  655000))
 ;;; Generated autoloads from bind-map.el
 
 (autoload 'bind-map "bind-map" "\
@@ -75,7 +75,26 @@ unspecified the bindings are global.
 
 Declare a prefix command for MAP named COMMAND-NAME.
 
+:bindings (KEY1 BINDING1 KEY2 BINDING2 ...)
+
+Bind keys when declaring the map. This is optional, but added as
+a convenience.
+
 \(fn MAP &rest ARGS)" nil t)
+
+(autoload 'bind-map-for-mode-inherit "bind-map" "\
+Same as `bind-map' for MAP, except use some arguments from
+PARENT as defaults, which must be another map declared with
+`bind-map'. This is intended to be used with :major-modes
+or :minor-modes and will throw an error if not.
+
+The arguments that get recycled from PARENT (unless a new value
+is provided) are :override-minor-modes, :keys, :evil-keys,
+and :evil-states. All others must be declared explicitly.
+
+\(fn MAP PARENT &rest ARGS)" nil t)
+
+(put 'bind-map-for-mode-inherit 'lisp-indent-function '2)
 
 (autoload 'bind-map-for-major-mode "bind-map" "\
 Short version of `bind-map' if you want to bind a map for a
