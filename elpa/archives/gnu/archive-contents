@@ -595,7 +595,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160502)
+      [(20160509)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -818,7 +818,7 @@
 		 ((:url . "http://elpa.gnu.org/packages/url-http-ntlm.html")
 		  (:keywords "comm" "data" "processes" "hypermedia"))])
  (validate .
-	   [(0 3)
+	   [(0 4)
 	    ((emacs
 	      (24 1))
 	     (cl-lib
@@ -856,7 +856,7 @@
 	      ((:keywords "http" "server" "network")
 	       (:url . "https://github.com/eschulte/emacs-web-server"))])
  (websocket .
-	    [(1 5)
+	    [(1 6)
 	     nil "Emacs WebSocket client and server" tar
 	     ((:keywords "communication" "websocket" "server")
 	      (:url . "http://elpa.gnu.org/packages/websocket.html"))])
