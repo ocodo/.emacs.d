@@ -4,7 +4,7 @@
 ;;
 ;; Author: coldnew <coldnew.tw@gmail.com>
 ;; Keywords: converience
-;; Package-Version: 20160117.2200
+;; Package-Version: 20160510.118
 ;; X-URL: http://github.com/coldnew/linum-relative
 ;; Version: 0.5
 
@@ -126,8 +126,6 @@ linum-releative will show the real line number at current line."
     (make-local-variable 'linum-relative-last-pos))
   (linum-update helm-buffer))
 
-(add-hook 'helm-move-selection-after-hook 'linum-relative-for-helm)
-
 ;;;; Advices
 (defadvice linum-update (before relative-linum-update activate)
   "This advice get the last position of linum."
@@ -195,7 +193,8 @@ linum-releative will show the real line number at current line."
 
 ;;;###autoload
 (define-global-minor-mode linum-relative-global-mode
-    linum-relative-mode (lambda () (linum-relative-mode 1)))
+    linum-relative-mode (lambda () (unless (linum-relative-in-helm-p)
+                                     (linum-relative-mode 1))))
 
 ;;;; Interaction of helm with linum-relative
 
