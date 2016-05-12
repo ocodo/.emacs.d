@@ -61,11 +61,11 @@
   "Face used to highlight current word.")
 
 (defface typit-correct-char
-  '((t (:foreground "spring green")))
+  '((t (:inherit success)))
   "Face used to color correctly typed characters.")
 
 (defface typit-wrong-char
-  '((t (:foreground "firebrick")))
+  '((t (:inherit error)))
   "Face used to color incorrectly typed characters.")
 
 (defface typit-statistic
@@ -292,7 +292,12 @@ use as argument of ‘typit-test’ if user chooses to play again."
      (propertize (format "%4d" good-words) 'face 'typit-correct-char)
      " | "
      (propertize (format "%d" bad-words) 'face 'typit-wrong-char)
-     ")\n")))
+     ")\n"
+     (propertize "Accuracy" 'face 'typit-statistic)
+     "              "
+     (propertize (format "%6.2f %%" (* 100 (/ (float good-strokes) (+ good-strokes bad-strokes))))
+                 'face 'typit-value)
+     "\n")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -321,7 +326,7 @@ least 1000 words so ‘typit-advanced-test’ could work properly."
         (current-word nil))
     (typit--with-buffer
       (lambda (window _value)
-        (message "Timer will start when you start tying…")
+        (message "Timer will start when you start typing…")
         (typit--report-results
          (catch 'total-time
            (cl-do

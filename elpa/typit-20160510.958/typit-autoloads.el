@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "typit" "typit.el" (22291 18943 167742 821000))
+;;;### (autoloads nil "typit" "typit.el" (22323 65126 763510 532000))
 ;;; Generated autoloads from typit.el
 
 (autoload 'typit-test "typit" "\
@@ -30,7 +30,7 @@ Advanced typing test (top 1000 words).
 
 ;;;***
 
-;;;### (autoloads nil nil ("typit-pkg.el") (22291 18943 174137 655000))
+;;;### (autoloads nil nil ("typit-pkg.el") (22323 65126 774515 840000))
 
 ;;;***
 
