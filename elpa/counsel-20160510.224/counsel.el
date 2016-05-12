@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160506.2256
+;; Package-Version: 20160510.224
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -638,7 +638,7 @@ The libraries are offered from `load-path'."
   (condition-case nil
       (progn
         (mapc #'disable-theme custom-enabled-themes)
-        (load-theme (intern x))
+        (load-theme (intern x) t)
         (when (fboundp 'powerline-reset)
           (powerline-reset)))
     (error "Problem loading theme %s" x)))
