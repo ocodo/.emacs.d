@@ -4,7 +4,7 @@
 ;;   Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;;
 ;; Version: 4.8
-;; Package-Version: 20160404.2330
+;; Package-Version: 20160511.322
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -153,6 +153,7 @@ May be set using .dir-locals.el.  Checks each entry if set to a list.")
     "*.gif"
     "*.bmp"
     "*.tiff"
+    "*.ico"
     ;; documents
     "*.doc"
     "*.docx"
@@ -407,9 +408,19 @@ directory they are found in so that they are unique."
     rlt))
 
 (defun ffip-find-files (keyword open-another-window &optional find-directory)
-  (let* ((project-files (ffip-project-search keyword find-directory))
-         (files (mapcar 'car project-files))
-         file root)
+  (let* (project-files
+         files
+         lnum
+         file
+         root)
+
+    ;; extract line num if exists
+    (when (string-match "^\\(.*\\):\\([0-9]+\\):?$" keyword)
+      (setq lnum (string-to-number (match-string 2 keyword)))
+      (setq keyword (match-string 1 keyword)))
+
+    (setq project-files (ffip-project-search keyword find-directory))
+    (setq files (mapcar 'car project-files))
     (if (> (length files) 0)
         (progn
           (setq root (file-name-nondirectory
@@ -425,9 +436,14 @@ directory they are found in so that they are unique."
                    (if open-another-window
                        (dired-other-window rlt)
                      (switch-to-buffer (dired rlt)))
+                 ;; open file
                  (if open-another-window
                      (find-file-other-window rlt)
-                   (find-file rlt)))))))
+                   (find-file rlt))
+                 ;; goto line if needed
+                 (when (and lnum (> lnum 0))
+                   (goto-char (point-min))
+                   (forward-line (1- lnum))))))))
       (message "Nothing found!"))))
 
 ;;;###autoload
@@ -493,6 +509,9 @@ For example, to find /home/john/proj1/test.js, below keywords are valid:
 - test.js
 - roj1/tes
 - john*test
+
+If keyword contains line number like \"hello.txt:32\" or \"hello.txt:32:\",
+we will move to that line in opened file.
 
 If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
   (interactive "P")

@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22291 19234 992701 916000))
+;;;;;;  (22323 65246 711348 333000))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-project-root "find-file-in-project" "\
@@ -73,6 +73,9 @@ For example, to find /home/john/proj1/test.js, below keywords are valid:
 - test.js
 - roj1/tes
 - john*test
+
+If keyword contains line number like \"hello.txt:32\" or \"hello.txt:32:\",
+we will move to that line in opened file.
 
 If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
