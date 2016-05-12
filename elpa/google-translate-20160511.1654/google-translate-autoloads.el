@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "google-translate-default-ui" "google-translate-default-ui.el"
-;;;;;;  (22318 43584 912795 643000))
+;;;;;;  (22323 65237 899359 783000))
 ;;; Generated autoloads from google-translate-default-ui.el
 
 (autoload 'google-translate-query-translate "google-translate-default-ui" "\
@@ -64,7 +64,7 @@ reverse direction.
 ;;;***
 
 ;;;### (autoloads nil "google-translate-smooth-ui" "google-translate-smooth-ui.el"
-;;;;;;  (22318 43584 920795 606000))
+;;;;;;  (22323 65237 911359 768000))
 ;;; Generated autoloads from google-translate-smooth-ui.el
 
 (autoload 'google-translate-smooth-translate "google-translate-smooth-ui" "\
@@ -93,7 +93,7 @@ one respectively.
 
 ;;;### (autoloads nil nil ("google-translate-core-ui.el" "google-translate-core.el"
 ;;;;;;  "google-translate-pkg.el" "google-translate-tk.el" "google-translate.el")
-;;;;;;  (22318 43584 938732 614000))
+;;;;;;  (22323 65237 924973 502000))
 
 ;;;***
 
