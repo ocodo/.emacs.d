@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22323 65246 711348 333000))
+;;;;;;  (22325 5490 711587 634000))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-project-root "find-file-in-project" "\
@@ -30,8 +30,8 @@ If CHECK-ONLY is true, only do the check.
 \(fn KEYWORD &optional CHECK-ONLY)" nil nil)
 
 (autoload 'ffip-create-project-file "find-file-in-project" "\
-Create .dir-locals.el to setup find-file-in-project per directory.
-Modify and place .dir-locals.el to your project root.
+Create or Append .dir-locals.el to set up per directory.
+You can move .dir-locals.el to root directory.
 See (info \"(Emacs) Directory Variables\") for details.
 
 \(fn)" t nil)
