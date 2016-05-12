@@ -8,7 +8,7 @@
 ;;             Clément Pit--Claudel <clement.pitclaudel@live.com>
 ;; URL: http://www.flycheck.org
 ;; Keywords: convenience, languages, tools
-;; Version: 27-cvs
+;; Version: 28-cvs
 ;; Package-Requires: ((dash "2.12.1") (pkg-info "0.4") (let-alist "1.0.4") (seq "1.11") (emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -8109,8 +8109,22 @@ The value of this variable is a string denoting the crate type,
 for the `--crate-type' flag."
   :type 'string
   :safe #'stringp
-  :package-version '("flycheck" . "0.20"))
+  :package-version '(flycheck . "0.20"))
 (make-variable-buffer-local 'flycheck-rust-crate-type)
+
+(flycheck-def-option-var flycheck-rust-binary-name nil rust-cargo
+  "The name of the binary to pass to `cargo rustc --bin'.
+
+The value of this variable is a string denoting the name of the
+binary to build: Either the name of the crate, or the name of one
+of the files under `src/bin'.
+
+This variable is used only when `flycheck-rust-crate-type' is
+`bin', and is only useful for crates with multiple targets."
+  :type 'string
+  :safe #'stringp
+  :package-version '(flycheck . "28"))
+(make-variable-buffer-local 'flycheck-rust-binary-name)
 
 (flycheck-def-option-var flycheck-rust-library-path nil (rust-cargo rust)
   "A list of library directories for Rust.
@@ -8127,7 +8141,10 @@ Relative paths are relative to the file being checked."
 
 This syntax checker needs Cargo with rustc subcommand."
   :command ("cargo" "rustc"
-            (eval (if (string= flycheck-rust-crate-type "lib") "--lib" nil))
+            (eval (cond
+                   ((string= flycheck-rust-crate-type "lib") "--lib")
+                   (flycheck-rust-binary-name
+                    (list "--bin" flycheck-rust-binary-name))))
             "--" "-Z" "no-trans"
             (option-flag "--test" flycheck-rust-check-tests)
             (option-list "-L" flycheck-rust-library-path concat)
