@@ -4,7 +4,7 @@
 
 ;; Author: Andrew Hyatt <ahyatt@gmail.com>
 ;; Keywords: Communication, Websocket, Server
-;; Package-Version: 20160503.2208
+;; Package-Version: 20160510.2001
 ;; Version: 1.6
 ;;
 ;; This program is free software; you can redistribute it and/or
@@ -751,18 +751,18 @@ connection is invalid, the connection will be closed."
     (when (and (eq 'connecting (websocket-ready-state websocket)))
       (if (and (setq header-end-pos (string-match "\r\n\r\n" text))
                (setq start-point (+ 4 header-end-pos)))
-	  (progn
-	    (condition-case err
-		(progn
-		  (websocket-verify-response-code text)
-		  (websocket-verify-headers websocket text)
-		  (websocket-process-headers (websocket-url websocket) text))
-	      (error
-	       (websocket-close websocket)
-	       (signal (car err) (cdr err))))
-	    (setf (websocket-ready-state websocket) 'open)
-	    (websocket-try-callback 'websocket-on-open 'on-open websocket))
-	(setf (websocket-inflight-input websocket) text)))
+          (progn
+            (condition-case err
+                (progn
+                  (websocket-verify-response-code text)
+                  (websocket-verify-headers websocket text)
+                  (websocket-process-headers (websocket-url websocket) text))
+              (error
+               (websocket-close websocket)
+               (signal (car err) (cdr err))))
+            (setf (websocket-ready-state websocket) 'open)
+            (websocket-try-callback 'websocket-on-open 'on-open websocket))
+        (setf (websocket-inflight-input websocket) text)))
     (when (eq 'open (websocket-ready-state websocket))
       (websocket-process-input-on-open-ws
        websocket (substring text (or start-point 0))))))
@@ -859,7 +859,7 @@ connection, which should be kept in order to pass to
       (setq websocket-server-websockets (remove ws websocket-server-websockets))))
   (delete-process conn))
 
-(defun websocket-server-accept (server client message)
+(defun websocket-server-accept (server client _message)
   "Accept a new websocket connection from a client."
   (let ((ws (websocket-inner-create
              :server-conn server
