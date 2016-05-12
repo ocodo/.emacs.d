@@ -5,7 +5,7 @@
 ;; license that can be found in the LICENSE file.
 
 ;; Author: The go-mode Authors
-;; Version: 1.3.1
+;; Version: 1.4.0
 ;; Keywords: languages go
 ;; URL: https://github.com/dominikh/go-mode.el
 ;;
@@ -1336,7 +1336,7 @@ Playground URL."
                            (signal 'go-play-error (cdr arg)))
                           (t
                            (re-search-forward "\n\n")
-                           (let ((url (format "http://play.golang.org/p/%s"
+                           (let ((url (format "https://play.golang.org/p/%s"
                                               (buffer-substring (point) (point-max)))))
                              (when go-play-browse-function
                                (funcall go-play-browse-function url)))))))))))
