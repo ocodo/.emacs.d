@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160417.506
+;; Package-Version: 20160509.251
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -647,7 +647,7 @@ The bound variable is \"filename\"."
   (projectile-expand-root (concat (projectile-rails-root) dir)))
 
 (defun projectile-rails--file-exists-p (filepath)
-  (file-exists-p (projectile-expand-root filepath)))
+  (file-exists-p (projectile-rails-expand-root filepath)))
 
 (defun projectile-rails-console (arg)
   (interactive "P")
@@ -706,11 +706,13 @@ The bound variable is \"filename\"."
    (--map (substring it 0 -3)
     (projectile-rails-list-entries 'f-files "config/environments/"))))
 
-(defun projectile-rails-dbconsole (env)
-  (interactive (list (projectile-rails--choose-env)))
+(defun projectile-rails-dbconsole ()
+  (interactive)
   (require 'sql)
+
   (projectile-rails-with-root
-   (let* ((product (projectile-rails--determine-sql-product env))
+   (let* ((env (projectile-rails--choose-env))
+          (product (projectile-rails--determine-sql-product env))
           (sqli-login      (sql-get-product-feature product :sqli-login))
           (sqli-options    (sql-get-product-feature product :sqli-options))
           (sqli-program    (sql-get-product-feature product :sqli-program))
