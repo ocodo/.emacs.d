@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, evil
-;; Package-Version: 20160425.2137
+;; Package-Version: 20160510.1009
 ;; Version: 20160228
 ;; URL: https://github.com/pythonnut/evil-easymotion
 ;; Package-Requires: ((emacs "24") (avy "0.3.0") (cl-lib "0.5"))
@@ -110,6 +110,7 @@
 
 (defun evilem--collect (func &optional scope all-windows initial-point)
   "Repeatedly execute func, and collect the cursor positions into a list"
+  (require 'avy)
   (if (functionp func)
       (cl-letf ((points nil)
                 (point nil)
