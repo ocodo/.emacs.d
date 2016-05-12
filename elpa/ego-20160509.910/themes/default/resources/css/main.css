@@ -399,7 +399,7 @@ table th.right, table td.right {
     /* ensure doesn't flow off the screen when expanded */
     max-height: 80%;
     overflow: auto; 
-    z-index: 200;
+    z-index: 100;
 }
 
 #table-of-contents h2 {

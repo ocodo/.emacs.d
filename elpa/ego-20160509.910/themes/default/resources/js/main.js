@@ -1,19 +1,5 @@
 //(require 'jquery)
 
-/* comments */
-var ego_disqus_thread=$('#disqus_thread');
-var ego_ds_label=$('.ds-thread');
-
-$('.disqus_label').click(function(){
-    ego_disqus_thread.show();
-    ego_ds_label.hide();
-});
-
-$('.ds-label').click(function(){
-    ego_disqus_thread.hide();
-    ego_ds_label.show();
-});
-
 /* table-of-contents */
 window.ego_toc = $('#text-table-of-contents ul li');
 if(0 != window.ego_toc.length){
@@ -21,7 +7,7 @@ if(0 != window.ego_toc.length){
     window.ego_toc_h_text = $('#table-of-contents h2').text();
     window.ego_n = 0;
     window.ego_tmp = ego_n;
-    window.ego_head = $(':header').filter('[id*=headline]');
+    window.ego_head = $(':header:gt(2)');
     $(window).scroll(function () {
         var startPoint=0;
         var endPoint=ego_head.length-1;
