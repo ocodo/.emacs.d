@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22309 39015 860108 634000))
+;;;### (autoloads nil "dired+" "dired+.el" (22323 65260 203330 932000))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -1210,6 +1210,17 @@ To set the behavior as a preference (default behavior), put this in
 your ~/.emacs, where VALUE is 1 to reuse or -1 to not reuse:
 
  (diredp-toggle-find-file-reuse-dir VALUE)
+
+Note: This affects only these commands:
+
+  `dired-find-file'
+  `diredp-mouse-find-file'
+
+It does not affect the corresponding `-other-window' commands.  Note
+too that, by default, mouse clicks to open files or directories open
+in another window: command `diredp-mouse-find-file-other-window', not
+`diredp-mouse-find-file'.  If you want a mouse click to reuse a
+directory then bind `mouse-2' to `diredp-mouse-find-file' instead.
 
 \(fn FORCE-P)" t nil)
 
