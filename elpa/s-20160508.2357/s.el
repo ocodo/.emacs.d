@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.10.0
-;; Package-Version: 20160429.727
+;; Package-Version: 20160508.2357
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -334,15 +334,13 @@ This is a simple wrapper around the built-in `string-match-p'."
   (replace-regexp-in-string (regexp-quote old) new s t t))
 
 (defun s--aget (alist key)
-  (let ((result (cdr (assoc-string key alist))))
-    (when result
-      (format "%s" result))))
+  (cdr (assoc-string key alist)))
 
 (defun s-replace-all (replacements s)
   "REPLACEMENTS is a list of cons-cells. Each `car` is replaced with `cdr` in S."
   (replace-regexp-in-string (regexp-opt (mapcar 'car replacements))
                             (lambda (it) (s--aget replacements it))
-                            s))
+                            s t t))
 
 (defun s-downcase (s)
   "Convert S to lower case.
@@ -432,7 +430,7 @@ SUBEXP-DEPTH is 0 by default."
                 (< pos (length string)))
       (let ((m (match-end subexp-depth)))
         (push (cons (match-beginning subexp-depth) (match-end subexp-depth)) result)
-        (setq pos m)))
+        (setq pos (match-end 0))))
     (nreverse result)))
 
 (defun s-match (regexp s &optional start)
@@ -561,7 +559,7 @@ transformation."
                           (if extra
                               (funcall replacer var extra)
                             (funcall replacer var))))))
-                   (if v v (signal 's-format-resolve md)))
+                   (if v (format "%s" v) (signal 's-format-resolve md)))
                (set-match-data replacer-match-data)))) template
                ;; Need literal to make sure it works
                t t)
