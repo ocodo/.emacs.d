@@ -469,6 +469,8 @@ It can be customized for an application by specifying a
   (lui-time-stamp-enable-filtering)
   (tracking-mode 1)
   (auto-fill-mode 0)
+  (when (fboundp 'cursor-intangible-mode)
+    (cursor-intangible-mode 1))
   (when lui-flyspell-p
     (require 'flyspell)
     (lui-flyspell-change-dictionary)))
@@ -862,19 +864,14 @@ If it is \"\", disable flyspell."
                       (and (fboundp 'ispell-valid-dictionary-list)
                            (mapcar 'list (ispell-valid-dictionary-list)))
                       nil t)))
-  (cond
-   ((not (fboundp 'flyspell-mode))
-    (error "Flyspell mode is not loaded"))
-   ((string= dictionary "")
-    (flyspell-mode 0))
-   (t
-    (let ((dictionary (or dictionary
-                          (lui-find-dictionary (buffer-name)))))
-      (when dictionary
-        (when (or (not (boundp 'flyspell-mode))
-                  (not flyspell-mode))
-          (flyspell-mode 1))
-        (ispell-change-dictionary dictionary))))))
+  (let ((dictionary (or dictionary
+                        (lui-find-dictionary (buffer-name)))))
+    (when flyspell-mode
+      (flyspell-mode 0))
+    (when (and dictionary
+               (not (equal dictionary "")))
+      (ispell-change-dictionary dictionary))
+    (flyspell-mode 1)))
 
 
 (defun lui-find-dictionary (buffer-name)
@@ -1228,7 +1225,8 @@ information.")
                            'lui-time-stamp t))
                (start (point)))
           (insert ts-string)
-          (add-text-properties start (1+ (point)) '(intangible t)))))
+          (add-text-properties start (1+ (point)) '(intangible t))
+          (add-text-properties (1+ start) (point) '(cursor-intangible t)))))
      ;; Time stamps left
      ((eq lui-time-stamp-position 'left)
       (let ((indent-string (propertize (make-string (length ts) ?\s)
