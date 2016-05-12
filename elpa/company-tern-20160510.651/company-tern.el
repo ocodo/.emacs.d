@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/company-tern
-;; Package-Version: 20160221.1123
+;; Package-Version: 20160510.651
 ;; Version: 0.2.0
 ;; Package-Requires: ((company "0.8.0") (tern "0.0.1") (dash "2.8.0") (dash-functional "2.8.0") (s "1.9.0") (cl-lib "0.5.0"))
 
@@ -110,11 +110,9 @@ Use CALLBACK function to display candidates."
 
 (defun company-tern-annotation (candidate)
   "Return type annotation for chosen CANDIDATE."
-  (concat
-   (company-tern-get-type candidate)
-   (if (company-tern-property-p candidate)
-       company-tern-property-marker
-     "")))
+  (--when-let (company-tern-get-type candidate)
+    (concat it (and (company-tern-property-p candidate)
+                    company-tern-property-marker))))
 
 (defun company-tern-get-type (candidate)
   "Analyze CANDIDATE type."
