@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20160414.1524
+;; Package-Version: 20160510.138
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -144,7 +144,7 @@
   "^\\(:[^: ]+\\)[ \t]*:?=[ \t]*\\(<<\\)[ \t]*$")
 
 (defconst restclient-file-regexp
-  "^\\s-*<[ \t]*\\(.*\\)")
+  "^<[ \t]*\\([^<>]+\\)[ \t]*$")
 
 (defconst restclient-content-type-regexp
   "^Content-[Tt]ype: \\(\\w+\\)/\\(?:[^\\+\r\n]*\\+\\)*\\([^;\r\n]+\\)")
