@@ -4,10 +4,10 @@
 
 ;; Author: Nathan Kot <nk@nathankot.com>
 ;; URL: https://github.com/nathankot/company-sourcekit
-;; Package-Version: 20160507.210
+;; Package-Version: 20160510.2017
 ;; Keywords: abbrev
-;; Version: 0.1.6
-;; Package-Requires: ((emacs "24.3") (company "0.8.12") (dash "2.12.1") (dash-functional "1.2.0") (sourcekit "0.1.6"))
+;; Version: 0.1.7
+;; Package-Requires: ((emacs "24.3") (company "0.8.12") (dash "2.12.1") (dash-functional "1.2.0") (sourcekit "0.1.7"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -145,7 +145,7 @@ It never actually gets sent to the completion engine."
     (lambda (port)
       (if (not port) (funcall callback nil)
         (let* ((tmpfile (company-sourcekit--tmp-file))
-                (offset (- (point) (length prefix) (point-min))))
+                (offset (- (position-bytes (point)) (length prefix) (point-min))))
           (write-region (point-min) (point-max) tmpfile)
           (when company-sourcekit-verbose
             (message "[company-sourcekit] prefix: `%s`, file: %s, offset: %d" prefix tmpfile offset))
