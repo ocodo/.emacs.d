@@ -799,6 +799,44 @@ Use negative prefix P to go backward."
       (start-process-shell-command "switch-to-intellij" nil
                                    "osascript -e 'activate application \"IntelliJ IDEA 15\"'")))
 
+(defun csv--to-lists (string)
+  (mapcar (lambda (line) (split-string line ","))
+          (split-string (s-chomp string) "\n")))
+
+(defun markdown--csv-to-table (csv)
+  "Turn a CSV into a markdown table."
+  (string-join (mapcar
+                (lambda (line)
+                  (setq line (format "| %s |" line))
+                  (s-replace "," " | " line))
+                (split-string (s-chomp csv) "\n")) "\n"))
+
+(defun markdown-csv-to-table (begin end)
+  (interactive "r")
+  (unless (region-active-p)
+    (error "csv text region must be selected"))
+  (let ((table (markdown--csv-to-table (buffer-substring begin end))))
+    (delete-region begin end)
+    (goto-char begin)
+    (insert table)))
+
+(defun markdown--table-header (table)
+  "Make the first row of a markdown table a header."
+  (let* ((rows (split-string table "\n"))
+         (head (car rows))
+         (sep (replace-regexp-in-string "[^\|]" "-" head))
+         (tail (cdr rows)))
+    (string-join (-flatten (list  head sep tail)) "\n")))
+
+(defun markdown-table-header (begin end)
+  (interactive "r")
+  (unless (region-active-p)
+    (error "markdown table text region must be selected"))
+  (let ((table (markdown--table-header (buffer-substring begin end))))
+    (delete-region begin end)
+    (goto-char begin)
+    (insert table)))
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
