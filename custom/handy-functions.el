@@ -824,9 +824,9 @@ Use negative prefix P to go backward."
   "Make the first row of a markdown table a header."
   (let* ((rows (split-string table "\n"))
          (head (car rows))
-         (sep (replace-regexp-in-string "[^\|]" "-" head))
+         (separator (replace-regexp-in-string "[^\|]" "-" head))
          (tail (cdr rows)))
-    (string-join (-flatten (list  head sep tail)) "\n")))
+    (string-join (-flatten (list  head separator tail)) "\n")))
 
 (defun markdown-table-header (begin end)
   (interactive "r")
