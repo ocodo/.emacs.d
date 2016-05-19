@@ -1,0 +1,149 @@
+assert.fail(${1:actual}, ${2:expected}, ${3:message-optional}, ${4:operator-optional})
+
+assert.isOk(${1:object}, ${2:message-optional})
+
+assert.isNotOk(${1:object}, ${2:message-optional})
+
+assert.equal(${1:actual}, ${2:expected}, ${3:message-optional})
+
+assert.notEqual(${1:actual}, ${2:expected}, ${3:message-optional})
+
+assert.strictEqual(${1:actual}, ${2:expected}, ${3:message})
+
+assert.notStrictEqual(${1:actual}, ${2:expected}, ${3:message})
+
+assert.deepEqual(${1:actual}, ${2:expected}, ${3:message})
+
+assert.notDeepEqual(${1:actual}, ${2:expected}, ${3:message})
+
+assert.isAbove(valueToCheck, valueToBeAbove, ${3:message})
+
+assert.isAtLeast(valueToCheck, valueToBeAtLeast, ${3:message})
+
+assert.isBelow(valueToCheck, valueToBeBelow, ${3:message})
+
+assert.isAtMost(valueToCheck, valueToBeAtMost, ${3:message})
+
+assert.isTrue(value, ${2:message})
+
+assert.isNotTrue(value, ${2:message})
+
+assert.isFalse(value, ${2:message})
+
+assert.isNotFalse(value, ${2:message})
+
+assert.isNull(value, ${2:message})
+
+assert.isNotNull(value, ${2:message})
+
+assert.isNaN
+
+assert.isNotNaN
+
+assert.isUndefined(value, ${2:message})
+
+assert.isDefined(value, ${2:message})
+
+assert.isFunction(value, ${2:message})
+
+assert.isNotFunction(value, ${2:message})
+
+assert.isObject(value, ${2:message})
+
+assert.isNotObject(value, ${2:message})
+
+assert.isArray(value, ${2:message})
+
+assert.isNotArray(value, ${2:message})
+
+assert.isString(value, ${2:message})
+
+assert.isNotString(value, ${2:message})
+
+assert.isNumber(value, ${2:message})
+
+assert.isNotNumber(value, ${2:message})
+
+assert.isBoolean(value, ${2:message})
+
+assert.isNotBoolean(value, ${2:message})
+
+assert.typeOf(value, name, ${3:message})
+
+assert.notTypeOf(value, name, ${3:message})
+
+assert.instanceOf(object, constructor, ${3:message})
+
+assert.notInstanceOf(object, constructor, ${3:message})
+
+assert.include(haystack, needle, ${3:message})
+
+assert.notInclude(haystack, needle, ${3:message})
+
+assert.match(value, regexp, ${3:message})
+
+assert.notMatch(value, regexp, ${3:message})
+
+assert.property(object, property, ${3:message})
+
+assert.notProperty(object, property, ${3:message})
+
+assert.deepProperty(object, property, ${3:message})
+
+assert.notDeepProperty(object, property, ${3:message})
+
+assert.propertyVal(object, property, value, ${3:message})
+
+assert.propertyNotVal(object, property, value, ${3:message})
+
+assert.deepPropertyVal(object, property, value, ${3:message})
+
+assert.deepPropertyNotVal(object, property, value, ${3:message})
+
+assert.lengthOf(object, length, ${3:message})
+
+assert.throws(function, [constructor/string/regexp], [string/regexp], [message])
+
+assert.doesNotThrow(function, [constructor/regexp], [message])
+
+assert.operator(val1, operator, val2, [message])
+
+assert.closeTo(${1:actual}, ${2:expected}, delta, [message])
+
+assert.approximately(${1:actual}, ${2:expected}, delta, [message])
+
+assert.sameMembers(set1, set2, [message])
+
+assert.sameDeepMembers(set1, set2, [message])
+
+assert.includeMembers(superset, subset, [message])
+
+assert.includeDeepMembers(superset, subset, [message])
+
+assert.oneOf(inList, list, [message])
+
+assert.changes(function, object, property)
+
+assert.doesNotChange(function, object, property)
+
+assert.increases(function, object, property)
+
+assert.doesNotIncrease(function, object, property)
+
+assert.decreases(function, object, property)
+
+assert.doesNotDecrease(function, object, property)
+
+assert.ifError(object)
+
+assert.isExtensible(object)
+
+assert.isNotExtensible(object)
+
+assert.isSealed(object)
+
+assert.isNotSealed(object)
+
+assert.isFrozen(object)
+
+assert.isNotFrozen(object)
