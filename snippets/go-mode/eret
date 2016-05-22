@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Early return
+# key: eret
+# --
+if ${1:clause} {
+   log.Print("${2:message}: ", ${3:object})
+   return
+}
