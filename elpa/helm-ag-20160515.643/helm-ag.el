@@ -4,8 +4,8 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160508.702
-;; Version: 0.54
+;; Package-Version: 20160515.643
+;; Version: 0.55
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -406,6 +406,21 @@ Default behaviour shows finish and result in mode-line."
    "Open file other window" #'helm-ag--action-find-file-other-window
    "Save results in buffer" #'helm-ag--action-save-buffer))
 
+(defvar helm-ag-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map helm-map)
+    (define-key map (kbd "C-c o") 'helm-ag--run-other-window-action)
+    (define-key map (kbd "C-l") 'helm-ag--up-one-level)
+    (define-key map (kbd "C-c C-e") 'helm-ag-edit)
+    (define-key map (kbd "C-x C-s") 'helm-ag--run-save-buffer)
+    (define-key map (kbd "C-c ?") 'helm-ag-help)
+    (define-key map (kbd "C-c >") 'helm-ag--next-file)
+    (define-key map (kbd "<right>") 'helm-ag--next-file)
+    (define-key map (kbd "C-c <") 'helm-ag--previous-file)
+    (define-key map (kbd "<left>") 'helm-ag--previous-file)
+    map)
+  "Keymap for `helm-ag'.")
+
 (defvar helm-ag-source
   (helm-build-in-buffer-source "The Silver Searcher"
     :init 'helm-ag--init
@@ -414,6 +429,7 @@ Default behaviour shows finish and result in mode-line."
     :fuzzy-match helm-ag-fuzzy-match
     :action helm-ag--actions
     :candidate-number-limit 9999
+    :keymap helm-ag-map
     :follow (and helm-follow-mode-persistent 1)))
 
 ;;;###autoload
@@ -556,10 +572,13 @@ Default behaviour shows finish and result in mode-line."
     map))
 
 (defun helm-ag--edit (_candidate)
-  (let ((default-directory helm-ag--default-directory))
+  (let* ((helm-buf-dir (or helm-ag--default-directory
+                           helm-ag--last-default-directory
+                           default-directory))
+         (default-directory helm-buf-dir))
     (with-current-buffer (get-buffer-create "*helm-ag-edit*")
       (erase-buffer)
-      (setq-local helm-ag--default-directory helm-ag--default-directory)
+      (setq-local helm-ag--default-directory helm-buf-dir)
       (unless (helm-ag--vimgrep-option)
         (setq-local helm-ag--search-this-file-p
                     (assoc-default 'search-this-file (helm-get-current-source))))
@@ -725,21 +744,6 @@ Special commands:
   (helm-ag--move-file-common
    #'helm-end-of-source-p #'helm-next-line #'helm-beginning-of-buffer))
 
-(defvar helm-ag-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c o") 'helm-ag--run-other-window-action)
-    (define-key map (kbd "C-l") 'helm-ag--up-one-level)
-    (define-key map (kbd "C-c C-e") 'helm-ag-edit)
-    (define-key map (kbd "C-x C-s") 'helm-ag--run-save-buffer)
-    (define-key map (kbd "C-c ?") 'helm-ag-help)
-    (define-key map (kbd "C-c >") 'helm-ag--next-file)
-    (define-key map (kbd "<right>") 'helm-ag--next-file)
-    (define-key map (kbd "C-c <") 'helm-ag--previous-file)
-    (define-key map (kbd "<left>") 'helm-ag--previous-file)
-    map)
-  "Keymap for `helm-ag'.")
-
 (defsubst helm-ag--root-directory-p ()
   (cl-loop for dir in '(".git/" ".hg/")
            thereis (file-directory-p dir)))
@@ -756,7 +760,7 @@ Continue searching the parent directory? "))
                   (helm-ag--default-directory parent))
              (setq helm-ag--last-default-directory default-directory)
              (helm-attrset 'name (helm-ag--helm-header default-directory) helm-ag-source)
-             (helm :sources '(helm-ag-source) :buffer "*helm-ag*" :keymap helm-ag-map)))))
+             (helm :sources '(helm-ag-source) :buffer "*helm-ag*")))))
     (message nil)))
 
 ;;;###autoload
@@ -770,7 +774,7 @@ Continue searching the parent directory? "))
     (helm-attrset 'search-this-file (file-relative-name (buffer-file-name))
                   helm-ag-source)
     (helm-attrset 'name (format "Search at %s" filename) helm-ag-source)
-    (helm :sources '(helm-ag-source) :buffer "*helm-ag*" :keymap helm-ag-map)))
+    (helm :sources '(helm-ag-source) :buffer "*helm-ag*")))
 
 ;;;###autoload
 (defun helm-ag (&optional basedir)
@@ -786,7 +790,7 @@ Continue searching the parent directory? "))
       (helm-ag--query)
       (helm-attrset 'search-this-file nil helm-ag-source)
       (helm-attrset 'name (helm-ag--helm-header helm-ag--default-directory) helm-ag-source)
-      (helm :sources '(helm-ag-source) :buffer "*helm-ag*" :keymap helm-ag-map))))
+      (helm :sources '(helm-ag-source) :buffer "*helm-ag*"))))
 
 (defun helm-ag--split-string (str)
   (with-temp-buffer
@@ -985,7 +989,8 @@ Continue searching the parent directory? "))
     :nohighlight t
     :requires-pattern 3
     :candidate-number-limit 9999
-    :follow (and helm-follow-mode-persistent 1)))
+    :follow (and helm-follow-mode-persistent 1)
+    :keymap helm-do-ag-map))
 
 (defun helm-ag--do-ag-up-one-level ()
   (interactive)
@@ -1002,7 +1007,7 @@ Continue searching the parent directory? "))
              (helm-attrset 'name (helm-ag--helm-header parent)
                            helm-source-do-ag)
              (helm :sources '(helm-source-do-ag) :buffer "*helm-ag*"
-                   :input initial-input :keymap helm-do-ag-map)))))
+                   :input initial-input)))))
     (message nil)))
 
 (defun helm-ag--set-do-ag-option ()
@@ -1036,8 +1041,7 @@ Continue searching the parent directory? "))
                   helm-source-do-ag)
     (helm :sources '(helm-source-do-ag) :buffer "*helm-ag*"
           :input (or (helm-ag--marked-input)
-                     (helm-ag--insert-thing-at-point helm-ag-insert-at-point))
-          :keymap helm-do-ag-map)))
+                     (helm-ag--insert-thing-at-point helm-ag-insert-at-point)))))
 
 ;;;###autoload
 (defun helm-do-ag-this-file ()
