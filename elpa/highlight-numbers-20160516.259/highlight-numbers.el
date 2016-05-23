@@ -2,13 +2,13 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/highlight-numbers
-;; Package-Version: 20150531.607
-;; Version: 0.2.1
+;; Package-Version: 20160516.259
+;; Version: 0.2.2
 ;; Package-Requires: ((emacs "24") (parent-mode "2.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
-;; Copyright (c) 2013-2014, Fanael Linithien
+;; Copyright (c) 2013-2016, Fanael Linithien
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -71,39 +71,38 @@ It is used when no mode-specific one is available.")
   (copy-hash-table
    (eval-when-compile
      (let ((table (make-hash-table :test 'eq)))
-       (puthash 'fasm-mode 'do-not-use table)
        (puthash 'c-mode
                 (rx (and
                      symbol-start
                      (or (and (+ digit)
-                              (opt (and (any "eE")
-                                        (opt (any "-+"))
-                                        (+ digit))))
+                              (? (and (any "eE")
+                                      (? (any "-+"))
+                                      (+ digit))))
                          (and "0"
                               (any "xX")
                               (+ hex-digit)))
-                     (opt (or "f" "F"
-                              "u" "U"
-                              "l" "L"
-                              "ll" "lL" "Ll" "LL"
-                              "ul" "uL" "Ul" "UL"
-                              "lu" "lU" "Lu" "LU"
-                              "ull" "ulL" "uLl" "uLL" "Ull" "UlL" "ULl" "ULL"
-                              "llu" "llU" "lLu" "lLU" "Llu" "LlU" "LLu" "LLU"))
+                     (? (or "f" "F"
+                            "u" "U"
+                            "l" "L"
+                            "ll" "lL" "Ll" "LL"
+                            "ul" "uL" "Ul" "UL"
+                            "lu" "lU" "Lu" "LU"
+                            "ull" "ulL" "uLl" "uLL" "Ull" "UlL" "ULl" "ULL"
+                            "llu" "llU" "lLu" "lLU" "Llu" "LlU" "LLu" "LLU"))
                      symbol-end))
                 table)
        (puthash 'c++-mode
                 (rx (and
                      symbol-start
                      (or (and (+ digit)
-                              (opt (and (any "eE")
-                                        (opt (any "-+"))
-                                        (+ digit))))
+                              (? (and (any "eE")
+                                      (? (any "-+"))
+                                      (+ digit))))
                          (and "0"
                               (any "xX")
                               (+ hex-digit)))
-                     (opt (and (any "_" "A-Z" "a-z")
-                               (* (any "_" "A-Z" "a-z" "0-9"))))
+                     (? (and (any "_" "A-Z" "a-z")
+                             (* (any "_" "A-Z" "a-z" "0-9"))))
                      symbol-end))
                 table)
        (puthash 'emacs-lisp-mode
@@ -112,36 +111,43 @@ It is used when no mode-specific one is available.")
                           symbol-start
                           (or
                            (and
-                            (opt (any "-+"))
+                            (? (any "-+"))
                             (+ digit)
-                            (opt (or (and (any "eE")
-                                          (opt (any "-+"))
-                                          (+ digit))
-                                     (and "."
-                                          (opt (and (+ digit)
-                                                    (opt (and
-                                                          (any "eE")
-                                                          (opt (any "-+"))
-                                                          (+ digit)))))))))
+                            (? (or (and (any "eE")
+                                        (? (any "-+"))
+                                        (+ digit))
+                                   (and "."
+                                        (? (and (+ digit)
+                                                (? (and
+                                                    (any "eE")
+                                                    (? (any "-+"))
+                                                    (+ digit)))))))))
                            (and
                             "."
                             (+ digit)
-                            (opt (and
-                                  (any "eE")
-                                  (opt (any "-+"))
-                                  (+ digit))))))
+                            (? (and
+                                (any "eE")
+                                (? (any "-+"))
+                                (+ digit))))))
                          (and "#"
                               symbol-start
                               (or (and (any "bB")
-                                       (opt (any "-+"))
+                                       (? (any "-+"))
                                        (+ (any "01")))
                                   (and (any "oO")
-                                       (opt (any "-+"))
+                                       (? (any "-+"))
                                        (+ (any "0-7")))
                                   (and (any "xX")
-                                       (opt (any "-+"))
+                                       (? (any "-+"))
                                        (+ hex-digit)))))
                      symbol-end))
+                table)
+       (puthash 'clojure-mode
+                (rx (and symbol-start
+                         (? "-")
+                         digit
+                         (*? any)
+                         symbol-end))
                 table)
        table)))
   "Hash table storing the mode-specific number highlighting regexps.
