@@ -444,26 +444,30 @@ Tables are marked to be ignored by line wrap."
                                         (browse-url (button-get x 'url))))
           (insert ".\n"))
         (insert "\n")
-        (insert-text-button "[source]"
-                            'follow-link t
-                            'action (lambda (_x)
-                                      (cider-docview-source)))
+        (if cider-docview-file
+            (progn
+              (insert (propertize (if class java-name clj-name) 'font-lock-face 'font-lock-function-name-face) " is defined in ")
+              (insert-text-button cider-docview-file
+                                  'follow-link t
+                                  'action (lambda (_x)
+                                            (cider-docview-source)))
+              (insert "."))
+          (insert "No definition location information available."))
         (when see-also
           (insert "\n\n Also see: ")
           (mapc (lambda (ns-sym)
-
                   (let* ((ns-sym-split (split-string ns-sym "/"))
                          (see-also-ns (car ns-sym-split))
                          (see-also-sym (cadr ns-sym-split))
-                         ;; if the fn belongs to the same ns,
-                         ;; don't display the namespace prefixed name
+                         ;; if the var belongs to the same namespace,
+                         ;; we omit the namespace to save some screen space
                          (symbol (if (equal ns see-also-ns) see-also-sym ns-sym)))
                     (insert-button symbol
                                    'type 'help-xref
                                    'help-function (apply-partially #'cider-doc-lookup symbol)))
                   (insert " "))
                 see-also))
-        (help-make-xrefs)
+        (cider--help-make-xrefs)
         (let ((beg (point-min))
               (end (point-max)))
           (nrepl-dict-map (lambda (k v)
