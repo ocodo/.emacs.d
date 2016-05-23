@@ -1,11 +1,11 @@
 ;;; atom-one-dark-theme.el --- Atom One Dark color theme
 ;;
-;; Copyright 2015 Jonathan Chu
+;; Copyright 2016 Jonathan Chu
 ;;
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20160105.748
-;; Version: 0.3.1
+;; Package-Version: 20160521.1206
+;; Version: 0.4.0
 ;;
 ;;; Commentary:
 ;;
@@ -85,8 +85,8 @@
    `(mode-line-buffer-id ((t (:weight bold))))
    `(mode-line-emphasis ((t (:weight bold))))
    `(mode-line-inactive ((t (:background ,atom-one-dark-gray))))
-   
-    ;; ido
+
+   ;; ido
    `(ido-first-match ((t (:foreground ,atom-one-dark-purple :weight bold))))
    `(ido-only-match ((t (:foreground ,atom-one-dark-red-1 :weight bold))))
    `(ido-subdir ((t (:foreground ,atom-one-dark-blue))))
@@ -260,7 +260,17 @@
    `(web-mode-symbol-face ((t (:foreground ,atom-one-dark-orange-1))))
 
    ;; flx-ido
-   '(flx-highlight-face ((t (:inherit (link) :weight bold))))
+   `(flx-highlight-face ((t (:inherit (link) :weight bold))))
+
+   ;; term
+   `(term-color-black ((t :foreground ,atom-one-dark-mono-1)))
+   `(term-color-blue ((t (:foreground ,atom-one-dark-blue))))
+   `(term-color-cyan ((t :foreground ,atom-one-dark-cyan)))
+   `(term-color-green ((t (:foreground ,atom-one-dark-green))))
+   `(term-color-magenta ((t :foreground ,atom-one-dark-purple)))
+   `(term-color-red ((t :foreground ,atom-one-dark-red-1)))
+   `(term-color-white ((t :foreground ,atom-one-dark-fg)))
+   `(term-color-yellow ((t (:foreground ,atom-one-dark-orange-1))))
    ))
 
 ;;;###autoload
