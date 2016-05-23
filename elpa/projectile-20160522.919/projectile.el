@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160507.1854
+;; Package-Version: 20160522.919
 ;; Keywords: project, convenience
 ;; Version: 0.14.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -2536,7 +2536,7 @@ Should be set via .dir-locals.el.")
   "Run external or Elisp compilation command CMD."
   (if (functionp cmd)
       (funcall cmd)
-    (compilation-start cmd)))
+    (compile cmd)))
 
 ;;;###autoload
 (defun projectile-compile-project (arg &optional dir)
