@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "google-this" "google-this.el" (22325 5487
-;;;;;;  227549 111000))
+;;;### (autoloads nil "google-this" "google-this.el" (22338 19877
+;;;;;;  95318 448000))
 ;;; Generated autoloads from google-this.el
 
 (autoload 'google-this-search "google-this" "\
@@ -52,6 +52,15 @@ PREFIX determines quoting.
 NOCONFIRM goes without asking for confirmation.
 
 \(fn PREFIX &optional NOCONFIRM)" t nil)
+
+(autoload 'google-this-ray "google-this" "\
+Google text between the point and end of the line.
+If there is a selected region, googles the region.
+PREFIX determines quoting. Negative arguments invert the line segment.
+NOCONFIRM goes without asking for confirmation.
+NOREGION ignores the region.
+
+\(fn PREFIX &optional NOCONFIRM NOREGION)" t nil)
 
 (autoload 'google-this-word "google-this" "\
 Google the current word.

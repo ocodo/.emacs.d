@@ -1,1 +1,0 @@
-(define-package "google-this" "20160512.736" "A set of functions and bindings to google under point." '((emacs "24.1")) :url "http://github.com/Malabarba/emacs-google-this" :keywords '("convenience" "hypermedia"))
