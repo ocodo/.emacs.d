@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160509.1244
+;; Package-Version: 20160513.618
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -115,7 +115,7 @@
 ;;     (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 ;;     (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 ;;
-;;     (autoload 'gfm-mode "gfm-mode"
+;;     (autoload 'gfm-mode "markdown-mode"
 ;;        "Major mode for editing GitHub Flavored Markdown files" t)
 ;;     (add-to-list 'auto-mode-alist '("README\\.md\\'" . gfm-mode))
 
