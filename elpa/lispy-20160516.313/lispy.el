@@ -1144,7 +1144,7 @@ If position isn't special, move to previous or error."
            (lispy-left 1))
 
           ((lispy-left-p)
-           (lispy--delete-quote-garbage)
+           (lispy--delete-leading-garbage)
            (lispy-dotimes arg
              (lispy--delete)))
 
@@ -1162,20 +1162,15 @@ If position isn't special, move to previous or error."
           (t
            (delete-char arg)))))
 
-(defvar lispy-quote-regexp-alist
-  '((emacs-lisp-mode . "`',@")
-    (t . "`',@"))
-  "An alist of `major-mode' to a string.
-The regexp describes the possible quoting characters in front of
-the list.  When the list is deleted, these quotes, that are
-assumed to belong to the list are also deleted.")
-
-(defun lispy--delete-quote-garbage ()
-  "Delete any combination of `',@ preceeding point."
-  (let ((str (or (cdr (assoc major-mode lispy-quote-regexp-alist))
-                 (cdr (assoc t lispy-quote-regexp-alist))))
-        (pt (point)))
-    (skip-chars-backward str)
+(defun lispy--delete-leading-garbage ()
+  "Delete any syntax before an opening delimiter such as '.
+Delete backwards to the closest whitespace char or opening delimiter or to the
+beginning of the line."
+  (let ((pt (point)))
+    (re-search-backward (concat "[[:space:]]" "\\|"
+                                lispy-left "\\|"
+                                "^"))
+    (goto-char (match-end 0))
     (delete-region (point) pt)))
 
 (defun lispy--delete-whitespace-backward ()
@@ -1487,8 +1482,10 @@ When ARG is more than 1, mark ARGth element."
       (kill-new str))))
 
 ;;* Globals: pairs
-(defun lispy-pair (left right space-unless)
-  "Return (lambda (arg)(interactive \"P\")...) using LEFT RIGHT SPACE-UNLESS.
+(defun lispy-pair (left right preceding-syntax-alist)
+  "Return (lambda (arg)(interactive \"P\")...) using LEFT RIGHT.
+PRECEDING-SYNTAX-ALIST should be an alist of `major-mode' to a list of regexps.
+The regexps correspond to valid syntax that can precede LEFT in each major mode.
 When this function is called:
 - with region active:
   Wrap region with LEFT RIGHT.
@@ -1532,7 +1529,7 @@ When this function is called:
             (self-insert-command 1))
            ((not arg)
             (lispy--indent-for-tab)
-            (lispy--space-unless ,space-unless)
+            (lispy--delimiter-space-unless ,preceding-syntax-alist)
             (insert ,left ,right)
             (unless (or (eolp)
                         (lispy--in-string-p)
@@ -1544,8 +1541,8 @@ When this function is called:
               (backward-char))
             (backward-char))
            (t
-            ;; don't jump out of a list when not at a sexp
-            (unless (lispy--not-at-sexp-p)
+            ;; don't jump backwards or out of a list when not at a sexp
+            (unless (lispy--not-at-sexp-p ,preceding-syntax-alist)
               (goto-char (car (lispy--bounds-dwim))))
             (lispy--indent-for-tab)
             (insert ,left ,right)
@@ -1562,16 +1559,42 @@ When this function is called:
               (just-one-space)
               (backward-char))))))
 
+(defvar lispy-parens-preceding-syntax-alist
+  '((lisp-mode . ("[#`',.@]+" "#[0-9]*" "#[.,Ss+-]" "#[0-9]+[=Aa]"))
+    (emacs-lisp-mode . ("[#`',@]+" "#s" "#[0-9]+="))
+    (clojure-mode . ("[`'~@]+" "#" "#\\?@?"))
+    (t . ("[`',@]+")))
+  "An alist of `major-mode' to a list of regexps.
+Each regexp describes valid syntax that can precede an opening paren in that
+major mode. These regexps are used to determine whether to insert a space for
+`lispy-parens'.")
+
+(defvar lispy-brackets-preceding-syntax-alist
+  '((clojure-mode . ("[`']" "#[A-z.]*"))
+    (t . nil))
+  "An alist of `major-mode' to a list of regexps.
+Each regexp describes valid syntax that can precede an opening bracket in that
+major mode. These regexps are used to determine whether to insert a space for
+`lispy-brackets'.")
+
+(defvar lispy-braces-preceding-syntax-alist
+  '((clojure-mode . ("[`'^]" "#[A-z.]*"))
+    (t . nil))
+  "An alist of `major-mode' to a list of regexps.
+Each regexp describes valid syntax that can precede an opening brace in that
+major mode. These regexps are used to determine whether to insert a space for
+`lispy-braces'.")
+
 (defalias 'lispy-parens
-    (lispy-pair "(" ")" "^\\|\\(?:> \\|#\\?\\)\\|\\s-\\|\\[\\|[{(`'#@~_%,]")
+    (lispy-pair "(" ")" 'lispy-parens-preceding-syntax-alist)
   "`lispy-pair' with ().")
 
 (defalias 'lispy-brackets
-    (lispy-pair "[" "]" "^\\|\\s-\\|\\s(\\|[`']")
+    (lispy-pair "[" "]" 'lispy-brackets-preceding-syntax-alist)
   "`lispy-pair' with [].")
 
 (defalias 'lispy-braces
-    (lispy-pair "{" "}" "^\\|\\s-\\|\\s(\\|[{#^`']")
+    (lispy-pair "{" "}" 'lispy-braces-preceding-syntax-alist)
   "`lispy-pair' with {}.")
 
 (defun lispy-quotes (arg)
@@ -1657,10 +1680,10 @@ If jammed between parens, \"(|(\" unjam: \"(| (\"."
            (backward-char)
            (just-one-space)))
         ((lispy-looking-back lispy-left)
-         (insert " ")
+         (call-interactively 'self-insert-command)
          (backward-char))
         (t
-         (insert " ")
+         (call-interactively 'self-insert-command)
          (when (and (lispy-left-p)
                     (lispy-looking-back "[[({] "))
            (backward-char)))))
@@ -2315,14 +2338,18 @@ to the next level and adjusting the parentheses accordingly."
 
 (defun lispy-indent-adjust-parens (arg)
   "Indent the line if it is incorrectly indented or act as `lispy-up-slurp'.
-If the region is indented properly, call `lispy-up-slurp' ARG times."
+If indenting does not adjust indentation or move the point, call
+`lispy-up-slurp' ARG times."
   (interactive "p")
   (let ((tick (buffer-chars-modified-tick))
+        (pt (point))
         (bnd (when (region-active-p)
                (cons (region-beginning)
-                     (region-end)))))
+                     (region-end))))
+        up-slurp-success)
     (indent-for-tab-command)
-    (when (= tick (buffer-chars-modified-tick))
+    (when (and (= tick (buffer-chars-modified-tick))
+               (= pt (point)))
       (if bnd
           (lispy--mark bnd)
         (unless (lispy--empty-line-p)
@@ -2332,7 +2359,7 @@ If the region is indented properly, call `lispy-up-slurp' ARG times."
         (lispy-up-slurp))
       (when (and (not bnd)
                  (region-active-p))
-        (lispy-different)
+        (ignore-errors (lispy-different))
         (deactivate-mark)))))
 
 (defun lispy--backward-sexp-or-comment ()
@@ -2467,7 +2494,7 @@ When lispy-left, will slurp ARG sexps forwards.
              (save-excursion
                (goto-char (cdr bnd))
                (delete-char -1))
-             (lispy--delete-quote-garbage)
+             (lispy--delete-leading-garbage)
              (delete-char 1)
              (lispy-forward 1)
              (lispy-backward 1))
@@ -3698,6 +3725,7 @@ Sexp is obtained by exiting list ARG times."
 
 (defvar lispy-goto-symbol-alist
   '((clojure-mode lispy-goto-symbol-clojure le-clojure)
+    (clojurescript-mode lispy-goto-symbol-clojurescript le-clojure)
     (scheme-mode lispy-goto-symbol-scheme le-scheme)
     (lisp-mode lispy-goto-symbol-lisp le-lisp)
     (python-mode lispy-goto-symbol-python le-python))
@@ -5426,10 +5454,20 @@ whitespace."
   (and (looking-at (concat "[[:space:]]*" lispy-right))
        (lispy-looking-back (concat "[[:space:]]*" lispy-left))))
 
-(defun lispy--not-at-sexp-p ()
-  "Test whether the point is at a \"free\" spot and not at a wrappable sexp."
+(defun lispy--not-at-sexp-p (preceding-syntax-alist)
+  "Test whether the point is at a \"free\" spot and not at a wrappable sexp.
+PRECEDING-SYNTAX-ALIST should be an alist of `major-mode' to a list of regexps.
+The regexps correspond to valid syntax that can precede an opening delimiter in
+each major mode."
   (let ((space "[[:space:]]")
-        (special-syntax "[`'#@~_%,]"))
+        (special-syntax
+         (concat "\\(?:"
+                 (apply #'concat
+                        (lispy-interleave
+                         "\\|"
+                         (or (cdr (assoc major-mode preceding-syntax-alist))
+                             (cdr (assoc t preceding-syntax-alist)))))
+                 "\\)")))
     (or (lispy--in-empty-list-p)
         ;; empty line
         (and (looking-at (concat space "*$"))
@@ -5473,9 +5511,13 @@ Otherwise return cons of current string, symbol or list bounds."
                 (when (setq bnd (lispy--bounds-comment))
                   (goto-char (1- (car bnd))))
                 (point)))))
-          ((or (looking-at (format "[`'#]*%s" lispy-left))
-               (looking-at "[`'#]"))
-           (bounds-of-thing-at-point 'sexp))
+          ((and (or (looking-at (concat "[^[:space:]\n]*" lispy-left))
+                    (looking-at "[`'#]"))
+                (setq bnd (bounds-of-thing-at-point 'sexp)))
+           (save-excursion
+             (goto-char (car bnd))
+             (lispy--skip-delimiter-preceding-syntax-backward)
+             (cons (point) (cdr bnd))))
           ((looking-at ";;")
            (lispy--bounds-comment))
           ((and (eq major-mode 'python-mode)
@@ -5685,6 +5727,15 @@ Move to the end of line."
   (while (not (lispy--in-comment-p))
     (forward-line dir)
     (end-of-line)))
+
+(defun lispy--skip-delimiter-preceding-syntax-backward ()
+  "Move backwards past syntax that could precede an opening delimiter such as '.
+Specifically, move backwards to the closest whitespace char or opening delimiter
+or to the beginning of the line."
+  (re-search-backward (concat "[[:space:]]" "\\|"
+                              lispy-left "\\|"
+                              "^"))
+  (goto-char (match-end 0)))
 
 ;;* Utilities: evaluation
 (declare-function lispy--eval-clojure "le-clojure")
@@ -6632,6 +6683,18 @@ Unless inside string or comment, or `looking-back' at CONTEXT."
                 (lispy--in-string-or-comment-p)
                 (lispy-looking-back context))
       (insert " "))))
+
+(defun lispy--delimiter-space-unless (preceding-syntax-alist)
+  "Like `lispy--space-unless' but use PRECEDING-SYNTAX-ALIST for decision.
+PRECEDING-SYNTAX-ALIST should be an alist of `major-mode' to a list of regexps.
+When `looking-back' at any of these regexps, whitespace, or a delimiter, do not
+insert a space."
+  (lispy--space-unless
+   (apply #'concat "^\\|\\s-\\|" lispy-left "\\|"
+          (lispy-interleave
+           "\\|"
+           (or (cdr (assoc major-mode preceding-syntax-alist))
+               (cdr (assoc t preceding-syntax-alist)))))))
 
 (defun lispy--reindent (&optional arg)
   "Reindent current sexp.  Up-list ARG times before that."
@@ -7688,7 +7751,7 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
 (eldoc-remove-command 'special-lispy-x)
 
 ;;* Parinfer compat
-(defun lispy--auto-wrap (func arg)
+(defun lispy--auto-wrap (func arg preceding-syntax-alist)
   "Helper to create versions of the `lispy-pair' commands that wrap by default."
   (cond ((not arg)
          (setq arg -1))
@@ -7701,26 +7764,26 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
                (= arg -1)
                (setq bounds (lispy--bounds-dwim))
                (= (point) (cdr bounds)))
-      (insert " ")))
+      (lispy--delimiter-space-unless preceding-syntax-alist)))
   (funcall func arg))
 
 (defun lispy-parens-auto-wrap (arg)
   "Like `lispy-parens' but wrap to the end of the line by default.
 With an arg of -1, never wrap."
   (interactive "P")
-  (lispy--auto-wrap #'lispy-parens arg))
+  (lispy--auto-wrap #'lispy-parens arg lispy-parens-preceding-syntax-alist))
 
 (defun lispy-brackets-auto-wrap (arg)
   "Like `lispy-brackets' but wrap to the end of the line by default.
 With an arg of -1, never wrap."
   (interactive "P")
-  (lispy--auto-wrap #'lispy-brackets arg))
+  (lispy--auto-wrap #'lispy-brackets arg lispy-brackets-preceding-syntax-alist))
 
 (defun lispy-braces-auto-wrap (arg)
   "Like `lispy-braces' but wrap to the end of the line by default.
 With an arg of -1, never wrap."
   (interactive "P")
-  (lispy--auto-wrap #'lispy-braces arg))
+  (lispy--auto-wrap #'lispy-braces arg lispy-braces-preceding-syntax-alist))
 
 (defun lispy-barf-to-point-nostring (arg)
   "Call `lispy-barf-to-point' with ARG unless in string or comment.
@@ -7809,7 +7872,7 @@ quote of a string, move backward."
            (save-excursion
              (lispy-different)
              (delete-char -1))
-           (lispy--delete-quote-garbage)
+           (lispy--delete-leading-garbage)
            (delete-char 1))
           ((looking-back lispy-right (1- (point)))
            (let ((tick (buffer-chars-modified-tick)))
@@ -7842,7 +7905,7 @@ quote of a string, move forward."
            (save-excursion
              (lispy-different)
              (delete-char -1))
-           (lispy--delete-quote-garbage)
+           (lispy--delete-leading-garbage)
            (delete-char 1))
           ((looking-at lispy-right)
            (let ((tick (buffer-chars-modified-tick)))
