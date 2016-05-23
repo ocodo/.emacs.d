@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160510.224
+;; Package-Version: 20160519.744
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -763,7 +763,10 @@ Describe the selected candidate."
 (ivy-set-occur 'counsel-git-grep 'counsel-git-grep-occur)
 (ivy-set-display-transformer 'counsel-git-grep 'counsel-git-grep-transformer)
 
-(defvar counsel-git-grep-cmd "git --no-pager grep --full-name -n --no-color -i -e %S"
+(defvar counsel-git-grep-cmd-default "git --no-pager grep --full-name -n --no-color -i -e %S"
+  "Initial command for `counsel-git-grep'.")
+
+(defvar counsel-git-grep-cmd nil
   "Store the command for `counsel-git-grep'.")
 
 (defvar counsel--git-grep-dir nil
@@ -871,7 +874,7 @@ INITIAL-INPUT can be given as the initial minibuffer input."
      (setq counsel-git-grep-cmd-history
            (delete-dups counsel-git-grep-cmd-history)))
     (t
-     (setq counsel-git-grep-cmd "git --no-pager grep --full-name -n --no-color -i -e %S")))
+     (setq counsel-git-grep-cmd counsel-git-grep-cmd-default)))
   (setq counsel--git-grep-dir
         (locate-dominating-file default-directory ".git"))
   (if (null counsel--git-grep-dir)
@@ -927,7 +930,8 @@ INITIAL-INPUT can be given as the initial minibuffer input."
      #'counsel--gg-sentinel)))
 
 (defun counsel--gg-sentinel (process event)
-  (if (string= event "finished\n")
+  (if (member event '("finished\n"
+                      "exited abnormally with code 141\n"))
       (progn
         (with-current-buffer (process-buffer process)
           (setq ivy--all-candidates
