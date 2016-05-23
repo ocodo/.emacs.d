@@ -1,6 +1,6 @@
 ;; gitlab-mode.el --- Mode for Gitlab
 
-;; Copyright (C) 2014 Nicolas Lamirault <nicolas.lamirault@gmail.com>
+;; Copyright (C) 2014, 2015, 2016 Nicolas Lamirault <nicolas.lamirault@gmail.com>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -61,11 +61,10 @@
 (defun gitlab-project-clone-button-action (button)
   "Action for BUTTON."
   (interactive)
-
   (let* ((project (gitlab-get-project (button-get button 'project-id)))
          (name (assoc-default 'path project))
          (repo (assoc-default 'ssh_url_to_repo project))
-         (target-dir (read-directory-name "Clone to directory:" (first query-replace-defaults))))
+         (target-dir (read-directory-name "Clone to directory:" (car query-replace-defaults))))
 
     (if (file-directory-p (expand-file-name name target-dir))
         (progn

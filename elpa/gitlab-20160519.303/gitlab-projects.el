@@ -1,6 +1,6 @@
 ;;; gitlab-projects.el --- Projects API
 
-;; Copyright (C) 2014, 2015 Nicolas Lamirault <nicolas.lamirault@gmail.com>
+;; Copyright (C) 2014, 2015, 2016 Nicolas Lamirault <nicolas.lamirault@gmail.com>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -25,9 +25,10 @@
 
 ;;; Code:
 
+(require 'dash)
 (require 's)
 
-(require 'gitlab-utils)
+(require 'gitlab-http)
 
 
 (defun gitlab-list-projects (&optional page per-page)
@@ -111,6 +112,19 @@ Sorted from newest to latest."
                                    (format "%s" project-id)))
                           nil
                           200))
+
+(defun gitlab-projects--get-issue-link (project-id issue-id)
+  "Create the URL to show a project's issue.
+`PROJECT-ID' is the project ID
+`ISSUE-ID' is the issue ID."
+  (-when-let (project (gitlab-get-project project-id))
+    (s-concat (gitlab--get-host)
+              "/"
+              (assoc-default 'path_with_namespace project)
+              "/issues/"
+              (number-to-string issue-id))))
+
+
 
 (provide 'gitlab-projects)
 ;;; gitlab-projects.el ends here

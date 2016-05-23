@@ -1,6 +1,6 @@
 ;;; gitlab-notes.el --- Gitlab Notes API
 
-;; Copyright (C) 2015 Marcin Antczak <marcin.antczak@neutrico.eu>
+;; Copyright (C) 2015, 2016 Marcin Antczak <marcin.antczak@neutrico.eu>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -26,7 +26,8 @@
 
 (require 's)
 
-(require 'gitlab-utils)
+(require 'gitlab-http)
+
 
 (defun gitlab--get-notes-uri (project-id issue-id)
   "Compose notes URI for PROJECT-ID with ISSUE-ID."

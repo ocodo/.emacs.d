@@ -1,6 +1,6 @@
 ;;; gitlab-users.el --- Gitlab Users API
 
-;; Copyright (C) 2015 Marcin Antczak <marcin.antczak@neutrico.eu>
+;; Copyright (C) 2015, 2016 Marcin Antczak <marcin.antczak@neutrico.eu>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -26,26 +26,20 @@
 
 (require 's)
 
-(require 'gitlab-utils)
+(require 'gitlab-http)
+
+
 
 (defun gitlab-list-users ()
   "Get a list of users."
-  (perform-gitlab-request "GET"
-                          "users"
-                          nil
-                          200))
+  (perform-gitlab-request "GET" "users" nil 200))
 
 
 (defun gitlab-get-user (user-id)
   "Gets a single user data.
 
-USER-ID : The ID of a project user"
-  (perform-gitlab-request  "GET"
-                           (format "%s" user-id)
-                           nil
-                           200))
-
-;; @todo user create/edit/delete
+`USER-ID' : The ID of a project user."
+  (perform-gitlab-request  "GET" (format "%s" user-id) nil 200))
 
 
 (provide 'gitlab-users)

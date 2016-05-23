@@ -1,4 +1,4 @@
-(define-package "gitlab" "20151202.38" "Emacs client for Gitlab"
+(define-package "gitlab" "20160519.303" "Emacs client for Gitlab"
   '((s "1.9.0")
     (dash "2.9.0")
     (pkg-info "0.5.0")
