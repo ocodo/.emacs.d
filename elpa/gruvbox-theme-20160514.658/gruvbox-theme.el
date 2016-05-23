@@ -7,7 +7,7 @@
 ;;          Greduan <me@greduan.com>
 ;; Maintainer: jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Package-Version: 20160429.1551
+;; Package-Version: 20160514.658
 ;; Version: 0.16
 
 ;;; Commentary:
@@ -108,6 +108,7 @@
     `(region                            ((t (:background ,gruvbox-dark2)))) ;;selection
     `(secondary-selection               ((t (:background ,gruvbox-dark1))))
     `(minibuffer-prompt                 ((t (:background ,gruvbox-dark0 :foreground ,gruvbox-neutral_green :bold t))))
+    `(vertical-border                   ((t (:foreground ,gruvbox-dark2))))
 
     ;; Built-in syntax
     `(font-lock-builtin-face            ((t (:foreground ,gruvbox-neutral_orange))))
