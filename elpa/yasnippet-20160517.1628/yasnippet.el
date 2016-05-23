@@ -202,8 +202,6 @@ created with `yas-new-snippet'. "
                  (t
                   (error "[yas] invalid element %s in `yas-snippet-dirs'" e)))))
 
-(defvaralias 'yas/root-directory 'yas-snippet-dirs)
-
 (defcustom yas-new-snippet-default "\
 # -*- mode: snippet -*-
 # name: $1
@@ -384,6 +382,12 @@ you to wish restrict expansion to only happen when the last
 letter of the snippet tab trigger was typed immediately before
 the trigger key itself."
   :type '(repeat function)
+  :group 'yasnippet)
+
+(defcustom yas-alias-to-yas/prefix-p t
+  "If non-nil make aliases for the old style yas/ prefixed symbols.
+It must be set to nil before loading yasnippet to take effect."
+  :type 'boolean
   :group 'yasnippet)
 
 ;; Only two faces, and one of them shouldn't even be used...
@@ -776,7 +780,7 @@ Key bindings:
   ;; The indicator for the mode line.
   " yas"
   :group 'yasnippet
-  (cond (yas-minor-mode
+  (cond ((and yas-minor-mode (featurep 'yasnippet))
          ;; Install the direct keymaps in `emulation-mode-map-alists'
          ;; (we use `add-hook' even though it's not technically a hook,
          ;; but it works). Then define variables named after modes to
@@ -884,7 +888,9 @@ Honour `yas-dont-activate-functions', which see."
 (defvar yas--font-lock-keywords
   (append '(("^#.*$" . font-lock-comment-face))
           (with-temp-buffer
-            (ignore-errors (emacs-lisp-mode))
+            (let ((prog-mode-hook nil)
+                  (emacs-lisp-mode-hook nil))
+              (ignore-errors (emacs-lisp-mode)))
             (font-lock-set-defaults)
             (if (eq t (car-safe font-lock-keywords))
                 ;; They're "compiled", so extract the source.
@@ -3566,14 +3572,21 @@ considered when expanding the snippet."
              ;; them mostly to make the undo information
              ;;
              (setq yas--start-column (current-column))
-             (let ((yas--inhibit-overlay-hooks t))
+             (let ((yas--inhibit-overlay-hooks t)
+                   ;; Avoid major-mode's syntax propertizing function,
+                   ;; since we mess with the syntax-table and also
+                   ;; insert things that are not valid in the
+                   ;; major-mode language syntax anyway.
+                   (syntax-propertize-function nil))
                (setq snippet
                      (if expand-env
                          (eval `(let* ,expand-env
                                   (insert content)
                                   (yas--snippet-create start (point))))
                        (insert content)
-                       (yas--snippet-create start (point))))))
+                       (yas--snippet-create start (point)))))
+             ;; Invalidate any syntax-propertizing done while `syntax-propertize-function' was nil
+             (syntax-ppss-flush-cache start))
 
            ;; stacked-expansion: This checks for stacked expansion, save the
            ;; `yas--previous-active-field' and advance its boundary.
@@ -4589,14 +4602,17 @@ and return the directory.  Return nil if not found."
 
 They are mapped to \"yas/*\" variants.")
 
-(dolist (sym yas--backported-syms)
-  (let ((backported (intern (replace-regexp-in-string "\\`yas-" "yas/" (symbol-name sym)))))
-    (when (boundp sym)
-      (make-obsolete-variable backported sym "yasnippet 0.8")
-      (defvaralias backported sym))
-    (when (fboundp sym)
-      (make-obsolete backported sym "yasnippet 0.8")
-      (defalias backported sym))))
+(when yas-alias-to-yas/prefix-p
+  (dolist (sym yas--backported-syms)
+    (let ((backported (intern (replace-regexp-in-string "\\`yas-" "yas/" (symbol-name sym)))))
+      (when (boundp sym)
+        (make-obsolete-variable backported sym "yasnippet 0.8")
+        (defvaralias backported sym))
+      (when (fboundp sym)
+        (make-obsolete backported sym "yasnippet 0.8")
+        (defalias backported sym))))
+  (make-obsolete 'yas/root-directory 'yas-snippet-dirs "yasnippet 0.8")
+  (defvaralias 'yas/root-directory 'yas-snippet-dirs))
 
 (defvar yas--exported-syms
   (let (exported)
