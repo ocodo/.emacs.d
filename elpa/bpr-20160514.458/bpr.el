@@ -76,13 +76,34 @@ For this operation `ansi-color-apply-on-region' is used."
   :group 'bpr
   :type 'boolean)
 
+(defcustom bpr-on-success '(lambda (process))
+  "Function, which is called in case of success.
+If function is interactive, it's called interactively;
+if not, it's called in normal way with one argument - process."
+  :group 'bpr
+  :type 'function)
+
+(defcustom bpr-on-error '(lambda (process))
+  "Function, which is called in case of error
+If function is interactive, it's called interactively;
+if not, it's called in normal way with one argument - process."
+  :group 'bpr
+  :type 'function)
+
+(defcustom bpr-on-completion '(lambda (process))
+  "Function, which is always called when process is completed
+If function is interactive, it's called interactively;
+if not, it's called in normal way with one argument - process."
+  :group 'bpr
+  :type 'function)
+
 (defvar bpr-last-buffer nil
   "Buffer for the last spawned process.")
 
 ;;;###autoload
 (defun bpr-spawn (cmd)
   "Executes string CMD asynchronously in background."
-  (interactive "sCommand:")
+  (interactive "sCommand: ")
   (let* ((proc-name (bpr-create-process-name cmd))
          (process (get-process proc-name)))
     (if process
@@ -133,6 +154,9 @@ For this operation `ansi-color-apply-on-region' is used."
         'window-creator bpr-window-creator
         'colorize-output bpr-colorize-output
         'scroll-direction bpr-scroll-direction
+        'on-success bpr-on-success
+        'on-error bpr-on-error
+        'on-completion bpr-on-completion
         'start-time (float-time)))
 
 (defun bpr-config-process-buffer (buffer)
@@ -155,12 +179,14 @@ For this operation `ansi-color-apply-on-region' is used."
 (defun bpr-handle-result (process &optional event)
   (bpr-colorize-process-buffer process)
   (unless (process-live-p process)
+    (bpr-funcall (process-get process 'on-completion) process)
     (let* ((exit-code (process-exit-status process)))
       (if (= exit-code 0)
           (bpr-handle-success process)
         (bpr-handle-error process exit-code)))))
 
 (defun bpr-handle-success (process)
+  (bpr-funcall (process-get process 'on-success) process)
   (bpr-show-success-message process)
   (let* ((buffer-window (bpr-get-process-window process))
          (close-after-success (process-get process 'close-after-success)))
@@ -168,6 +194,7 @@ For this operation `ansi-color-apply-on-region' is used."
       (delete-window buffer-window))))
 
 (defun bpr-handle-error (process exit-code)
+  (bpr-funcall (process-get process 'on-error) process)
   (bpr-show-error-message process exit-code)
   (let* ((buffer (process-buffer process))
          (buffer-window (get-buffer-window buffer))
@@ -222,6 +249,11 @@ For this operation `ansi-color-apply-on-region' is used."
 
 (defun bpr-get-remaining-lines-count (direction)
   (count-lines (point) (buffer-end direction)))
+
+(defun bpr-funcall (fn &rest args)
+  (if (commandp fn t)
+      (call-interactively fn)
+    (apply fn args)))
 
 (provide 'bpr)
 ;;; bpr.el ends here

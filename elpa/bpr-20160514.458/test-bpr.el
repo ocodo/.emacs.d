@@ -217,7 +217,64 @@
           (with-current-buffer fake-buffer
             (let* ((buffer-read-only t))
               (funcall test-sentiel-handler fake-process)))
-          (expect 'ansi-color-apply-on-region :not :to-have-been-called))))
+          (expect 'ansi-color-apply-on-region :not :to-have-been-called)))
+
+      (it "should call bpr-on-completion function in case of error and success"
+          (let* ((completion-flag nil)
+                 (bpr-on-completion (lambda (p) (setq completion-flag t)))
+                 (test-sentiel-handler nil))
+            (fset 'set-process-sentinel (lambda (process handler)
+                                          (when (eq process fake-process)
+                                            (setq test-sentiel-handler handler))))
+            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
+            (bpr-spawn "make build")
+            (funcall test-sentiel-handler fake-process)
+            (expect completion-flag :to-be t)
+
+            (setq completion-flag nil)
+            (setq test-sentiel-handler nil)
+            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
+            (bpr-spawn "make build")
+            (funcall test-sentiel-handler fake-process)
+            (expect completion-flag :to-be t)))
+
+      (it "should call bpr-on-success function in case of success and not call in case of error"
+          (let* ((success-flag nil)
+                 (bpr-on-success (lambda (p) (setq success-flag t)))
+                 (test-sentiel-handler nil))
+            (fset 'set-process-sentinel (lambda (process handler)
+                                          (when (eq process fake-process)
+                                            (setq test-sentiel-handler handler))))
+            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
+            (bpr-spawn "make build")
+            (funcall test-sentiel-handler fake-process)
+            (expect success-flag :to-be t)
+
+            (setq success-flag nil)
+            (setq test-sentiel-handler nil)
+            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
+            (bpr-spawn "make build")
+            (funcall test-sentiel-handler fake-process)
+            (expect success-flag :to-be nil)))
+
+      (it "should not call bpr-on-error function in case of success and call in case of error"
+          (let* ((error-flag nil)
+                 (bpr-on-error (lambda (p) (setq error-flag t)))
+                 (test-sentiel-handler nil))
+            (fset 'set-process-sentinel (lambda (process handler)
+                                          (when (eq process fake-process)
+                                            (setq test-sentiel-handler handler))))
+            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
+            (bpr-spawn "make build")
+            (funcall test-sentiel-handler fake-process)
+            (expect error-flag :to-be nil)
+
+            (setq test-sentiel-handler nil)
+            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
+            (bpr-spawn "make build")
+            (funcall test-sentiel-handler fake-process)
+            (expect error-flag :to-be t))))
+
 
     (describe "bpr-open-last-buffer"
       (it "should open last used buffer"
