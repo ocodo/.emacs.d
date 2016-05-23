@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20160427.709
+;; Package-Version: 20160518.627
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 1.0
 
@@ -231,7 +231,7 @@
    `(company-preview-search ((,class (:background ,blue :foreground ,default))))
    `(company-tooltip ((,class (:background ,background-darker :foreground ,default))))
    `(company-scrollbar-bg ((,class (:background ,background-darker))))
-   `(company-scrollbar-fg ((,class (:background ,default))))
+   `(company-scrollbar-fg ((,class (:background ,background-blue))))
    `(company-tooltip-common ((,class (:foreground ,purple :weight bold :background ,background-darker))))
    `(company-tooltip-annotation ((,class (:foreground ,blue :weight bold :background ,background-blue))))
    `(company-tooltip-common-selection ((,class (:foreground ,purple :background ,background-lighter :weight bold))))
