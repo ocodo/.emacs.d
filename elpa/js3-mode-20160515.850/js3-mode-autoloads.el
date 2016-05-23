@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "js3" "js3.el" (21998 34717 431401 0))
+;;;### (autoloads nil "js3" "js3.el" (22338 19797 467451 89000))
 ;;; Generated autoloads from js3.el
  (add-to-list 'auto-mode-alist '("\\.js$" . js3-mode))
 
@@ -16,8 +16,8 @@ Major mode for editing JavaScript code.
 
 ;;;***
 
-;;;### (autoloads nil "js3-mode" "js3-mode.el" (21998 34717 423401
-;;;;;;  0))
+;;;### (autoloads nil "js3-mode" "js3-mode.el" (22338 19797 459451
+;;;;;;  102000))
 ;;; Generated autoloads from js3-mode.el
  (add-to-list 'auto-mode-alist '("\\.js$" . js3-mode))
 
@@ -30,8 +30,8 @@ Major mode for editing JavaScript code.
 
 ;;;***
 
-;;;### (autoloads nil nil ("js3-mode-pkg.el") (21998 34717 454144
-;;;;;;  365000))
+;;;### (autoloads nil nil ("js3-mode-pkg.el") (22338 19797 484498
+;;;;;;  196000))
 
 ;;;***
 
