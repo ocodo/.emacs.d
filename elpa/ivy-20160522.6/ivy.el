@@ -1232,7 +1232,10 @@ like.")
   "Return the list of files in DIR.
 Directories come first."
   (let* ((default-directory dir)
-         (seq (all-completions "" 'read-file-name-internal))
+         (seq (condition-case nil
+                  (all-completions "" 'read-file-name-internal)
+                (error
+                 (directory-files dir))))
          sort-fn)
     (if (equal dir "/")
         seq
@@ -1443,7 +1446,12 @@ This is useful for recursive `ivy-read'."
                       (file-directory-p initial-input))
                  (progn
                    (setq ivy--directory initial-input)
-                   (setq initial-input nil))
+                   (setq initial-input nil)
+                   (when preselect
+                     (let ((preselect-directory (file-name-directory preselect)))
+                       (when (not (equal (expand-file-name preselect-directory)
+                                         (expand-file-name ivy--directory)))
+                         (setf (ivy-state-preselect state) (setq preselect nil))))))
                (setq ivy--directory default-directory))
              (require 'dired)
              (when preselect
@@ -1615,7 +1623,7 @@ The previous string is between `ivy-completion-beg' and `ivy-completion-end'."
          ivy-completion-end))
       (setq ivy-completion-beg
             (move-marker (make-marker) (point)))
-      (insert str)
+      (insert (substring-no-properties str))
       (setq ivy-completion-end
             (move-marker (make-marker) (point))))))
 
