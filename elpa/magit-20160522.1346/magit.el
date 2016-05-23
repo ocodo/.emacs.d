@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160408.201") (git-commit "20160414.251") (magit-popup "20160414.251"))
+;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160408.201") (git-commit "20160425.430") (magit-popup "20160512.328"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -1325,8 +1325,9 @@ Non-interactively DIRECTORY is (re-)initialized unconditionally."
 
 (defun magit-branch-popup-setup (val def)
   (magit-popup-default-setup val def)
-  (magit-popup-put :variables (magit-popup-convert-variables
-                               val magit-branch-config-variables)))
+  (when magit-branch-popup-show-variables
+    (magit-popup-put :variables (magit-popup-convert-variables
+                                 val magit-branch-config-variables))))
 
 ;;;###autoload
 (defun magit-checkout (revision)
@@ -2428,13 +2429,15 @@ the current repository."
 (magit-define-popup magit-file-popup
   "Popup console for Magit commands in file-visiting buffers."
   :actions '((?s "Stage"     magit-stage-file)
-             (?d "Diff"      magit-diff-buffer-file-popup)
+             (?d "Diff"      magit-diff-buffer-file)
+             (?l "Log"       magit-log-buffer-file)
              (?b "Blame"     magit-blame-popup)
              (?u "Unstage"   magit-unstage-file)
-             (?l "Log"       magit-log-buffer-file)
+             (?D "Diff..."   magit-diff-buffer-file-popup)
+             (?L "Log..."    magit-log-buffer-file-popup)
              (?p "Find blob" magit-blob-previous)
              (?c "Commit"    magit-commit-popup))
-  :max-action-columns 3)
+  :max-action-columns 4)
 
 (defvar magit-file-mode-lighter "")
 
