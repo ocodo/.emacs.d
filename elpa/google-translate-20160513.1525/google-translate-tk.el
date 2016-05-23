@@ -6,7 +6,7 @@
 ;; Author: Oleksandr Manzyuk <manzyuk@gmail.com>
 ;; Maintainer: Andrey Tykhonov <atykhonov@gmail.com>
 ;; URL: https://github.com/atykhonov/google-translate
-;; Version: 0.11.9
+;; Version: 0.11.11
 ;; Keywords: convenience
 
 ;; Contributors:
@@ -131,8 +131,9 @@ D is an integer."
 
 (defun google-translate--get-b-d1 ()
   "Return a list of b and d1 for `google-translate--gen-tk'."
-  (let ((buf (url-retrieve-synchronously google-translate--tkk-url))
-        tkk-ls)
+  (let* ((url-request-extra-headers '(("Connection" . "close")))
+         (buf (url-retrieve-synchronously google-translate--tkk-url))
+         tkk-ls)
     (with-current-buffer buf
       (setq tkk-ls (google-translate--search-tkk)))
     (when (buffer-live-p buf) (kill-buffer buf))
