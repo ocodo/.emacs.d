@@ -101,7 +101,7 @@ See the {topic-diff} parameter to `circe-format-server-topic'."
 
 (defface circe-fool-face
   '((((type tty)) (:foreground "grey40" :bold t))
-    (((type x)) (:foreground "grey40")))
+    (t (:foreground "grey40")))
   "The face used for fools.
 See `circe-fool-list'."
   :group 'circe)
@@ -375,8 +375,8 @@ This can be one of the following values:
 This can be one of the following values:
   ask - Ask the user for confirmation
   nil - Don't ask, just kill"
-  :type '(choid (const :tag "Ask before killing" ask)
-                (const :tag "Don't ask" nil))
+  :type '(choice (const :tag "Ask before killing" ask)
+                 (const :tag "Don't ask" nil))
   :group 'circe)
 
 (defcustom circe-track-faces-priorities '(circe-highlight-nick-face
@@ -1468,7 +1468,7 @@ or if it matches the first word in BODY.
 PATTERNS should be the list of regular expressions."
   (let ((string (format "%s!%s" nick userhost))
         (target (when (and body
-                           (string-match "^\\([^ ]*\\)[:, ]" body))
+                           (string-match "^\\([^ ]*\\)[:,]" body))
                   (match-string 1 body))))
     (catch 'return
       (dolist (regex patterns)
@@ -2494,9 +2494,7 @@ If ARGUMENT is nil, it is interpreted as no argument."
   (interactive "sReason: ")
   (dolist (buf (circe-server-buffers))
     (with-current-buffer buf
-      (when (eq (process-status circe-server-process)
-                'open)
-        (irc-send-AWAY circe-server-process reason)))))
+      (irc-send-AWAY circe-server-process reason))))
 
 (defun circe-command-GQUIT (reason)
   "Quit all servers with reason REASON."
