@@ -9,9 +9,9 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160512.722
+;; Package-Version: 20160521.1109
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 5.3.0
+;; Version: 5.5.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -79,7 +79,7 @@
   :link '(url-link :tag "Github" "https://github.com/clojure-emacs/clojure-mode")
   :link '(emacs-commentary-link :tag "Commentary" "clojure-mode"))
 
-(defconst clojure-mode-version "5.3.0"
+(defconst clojure-mode-version "5.5.0-snapshot"
   "The current version of `clojure-mode'.")
 
 (defface clojure-keyword-face
@@ -1485,13 +1485,17 @@ content) are considered part of the preceding sexp."
                ;; Move to start of ns name.
                (lambda ()
                  (comment-forward)
-                 (skip-chars-forward "[(")
+                 (skip-chars-forward "[:blank:]\n\r[(")
                  (clojure-forward-logical-sexp)
                  (forward-sexp -1)
                  nil)
                ;; Move to end of ns name.
                (lambda ()
-                 (clojure-forward-logical-sexp)))))
+                 (clojure-forward-logical-sexp)))
+    (goto-char (point-max))
+    ;; Does the last line now end in a comment?
+    (when (nth 4 (parse-partial-sexp (point-min) (point)))
+      (insert "\n"))))
 
 (defun clojure-sort-ns ()
   "Internally sort each sexp inside the ns form."
