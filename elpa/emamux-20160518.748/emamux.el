@@ -1,10 +1,10 @@
 ;;; emamux.el --- Interact with tmux -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 by Syohei YOSHIDA
+;; Copyright (C) 2016 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-emamux
-;; Package-Version: 20160510.2001
+;; Package-Version: 20160518.748
 ;; Version: 0.13
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
@@ -40,6 +40,8 @@
 
 (require 'cl-lib)
 
+(declare-function with-parsed-tramp-file-name "tramp")
+
 (defgroup emamux nil
   "tmux manipulation from Emacs"
   :prefix "emamux:"
@@ -48,18 +50,15 @@
 (defcustom emamux:default-orientation 'vertical
   "Orientation of spliting runner pane"
   :type '(choice (const :tag "Split pane vertial" vertical)
-                 (const :tag "Split pane horizonal" horizonal))
-  :group 'emamux)
+                 (const :tag "Split pane horizonal" horizonal)))
 
 (defcustom emamux:runner-pane-height 20
   "Orientation of spliting runner pane"
-  :type  'integer
-  :group 'emamux)
+  :type  'integer)
 
 (defcustom emamux:use-nearest-pane nil
   "Use nearest pane for runner pane"
-  :type  'boolean
-  :group 'emamux)
+  :type  'boolean)
 
 (defsubst emamux:helm-mode-enabled-p ()
   (and (featurep 'helm) helm-mode))
@@ -73,8 +72,7 @@
 For helm completion use either `normal' or `helm' and turn on `helm-mode'."
   :type '(choice (const :tag "Using completing-read" 'normal)
                  (const :tag "Using ido-completing-read" 'ido)
-                 (const :tag "Using helm completion" 'helm))
-  :group 'emamux)
+                 (const :tag "Using helm completion" 'helm)))
 
 (defvar emamux:last-command nil
   "Last emit command")
@@ -290,7 +288,15 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
   (and (not (display-graphic-p))
        (getenv "TMUX")))
 
-(defvar emamux:runner-pane-id nil)
+(defvar emamux:runner-pane-id-map nil)
+
+(defun emamux:gc-runner-pane-map ()
+  (let ((alive-window-ids (emamux:window-ids))
+        ret)
+    (dolist (entry emamux:runner-pane-id-map)
+      (if (and (member (car entry) alive-window-ids))
+          (setq ret (cons entry ret))))
+    (setq emamux:runner-pane-id-map ret)))
 
 ;;;###autoload
 (defun emamux:run-command (cmd &optional cmddir)
@@ -300,11 +306,12 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
   (emamux:check-tmux-running)
   (unless (emamux:in-tmux-p)
     (error "You are not in 'tmux'"))
+  (emamux:gc-runner-pane-map)
   (let ((current-pane (emamux:current-active-pane-id)))
     (unless (emamux:runner-alive-p)
       (emamux:setup-runner-pane)
       (emamux:chdir-pane cmddir))
-    (emamux:send-keys cmd emamux:runner-pane-id)
+    (emamux:send-keys cmd (emamux:get-runner-pane-id))
     (emamux:select-pane current-pane)))
 
 ;;;###autoload
@@ -319,7 +326,17 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
 
 (defun emamux:chdir-pane (dir)
   (let ((chdir-cmd (format " cd %s" (or dir default-directory))))
-    (emamux:send-keys chdir-cmd emamux:runner-pane-id)))
+    (emamux:send-keys chdir-cmd (emamux:get-runner-pane-id))))
+
+(defun emamux:get-runner-pane-id ()
+  (assoc-default (emamux:current-active-window-id) emamux:runner-pane-id-map))
+
+(defun emamux:add-to-assoc (key value alist-variable)
+  (let* ((alist (symbol-value alist-variable))
+         (entry (assoc key alist)))
+    (if entry (setcdr entry value)
+      (set alist-variable
+           (cons (cons key value) alist)))))
 
 (defun emamux:setup-runner-pane ()
   (let ((nearest-pane-id (emamux:nearest-inactive-pane-id (emamux:list-panes))))
@@ -328,7 +345,10 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
           (emamux:select-pane nearest-pane-id)
           (emamux:reset-prompt nearest-pane-id))
       (emamux:split-runner-pane))
-    (setq emamux:runner-pane-id (emamux:current-active-pane-id))))
+    (emamux:add-to-assoc
+     (emamux:current-active-window-id)
+     (emamux:current-active-pane-id)
+     'emamux:runner-pane-id-map)))
 
 (defun emamux:select-pane (target)
   (emamux:tmux-run-command nil "select-pane" "-t" target))
@@ -369,9 +389,9 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
 (defun emamux:close-runner-pane ()
   "Close runner pane"
   (interactive)
-  (emamux:runner-alive-p)
-  (emamux:kill-pane emamux:runner-pane-id)
-  (setq emamux:runner-pane-id nil))
+  (let ((window-id (emamux:current-active-window-id)))
+    (emamux:kill-pane window-id)
+    (delete (assoc window-id emamux:runner-pane-id-map) emamux:runner-pane-id-map)))
 
 ;;;###autoload
 (defun emamux:close-panes ()
@@ -390,7 +410,11 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
   (zerop (process-file "tmux" nil nil nil "list-panes" "-t" target)))
 
 (defun emamux:runner-alive-p ()
-  (and emamux:runner-pane-id (emamux:pane-alive-p emamux:runner-pane-id)))
+  (let ((pane-id
+         (assoc-default
+          (emamux:current-active-window-id)
+          emamux:runner-pane-id-map)))
+    (and pane-id (emamux:pane-alive-p pane-id))))
 
 (defun emamux:check-runner-alive ()
   (unless (emamux:runner-alive-p)
@@ -401,7 +425,7 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
   "Enter copy-mode in runner pane"
   (interactive)
   (emamux:check-runner-alive)
-  (emamux:select-pane emamux:runner-pane-id)
+  (emamux:select-pane (emamux:get-runner-pane-id))
   (emamux:tmux-run-command nil "copy-mode"))
 
 ;;;###autoload
@@ -409,30 +433,43 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
   "Send SIGINT to runner pane"
   (interactive)
   (emamux:check-runner-alive)
-  (emamux:tmux-run-command nil "send-keys" "-t" emamux:runner-pane-id "^c"))
+  (emamux:tmux-run-command nil "send-keys" "-t" (emamux:get-runner-pane-id) "^c"))
 
 ;;;###autoload
 (defun emamux:clear-runner-history ()
   "Clear history of runner pane"
   (interactive)
   (emamux:check-runner-alive)
-  (emamux:tmux-run-command nil "clear-history" emamux:runner-pane-id))
+  (emamux:tmux-run-command nil "clear-history" (emamux:get-runner-pane-id)))
 
 ;;;###autoload
 (defun emamux:zoom-runner ()
   "Zoom runner pane. This feature requires tmux 1.8 or higher"
   (interactive)
   (emamux:check-runner-alive)
-  (emamux:tmux-run-command nil "resize-pane" "-Z" "-t" emamux:runner-pane-id))
+  (emamux:tmux-run-command nil "resize-pane" "-Z" "-t" (emamux:get-runner-pane-id)))
 
 ;;;###autoload
 (defun emamux:new-window ()
-  "Create new window by cd-ing to current directory."
+  "Create new window by cd-ing to current directory.
+With prefix-arg, use '-a' option to insert the new window next to current index."
   (interactive)
-  (emamux:tmux-run-command nil "new-window")
-  (let ((new-window-id (emamux:current-active-window-id))
-        (chdir-cmd (format " cd %s" default-directory)))
-    (emamux:send-keys chdir-cmd new-window-id)))
+  (let (cd-to ssh-to)
+    (if (file-remote-p default-directory)
+        (with-parsed-tramp-file-name
+            default-directory nil
+          (setq cd-to localname)
+          (unless (string-match tramp-local-host-regexp host)
+            (setq ssh-to host)))
+      (setq cd-to default-directory))
+    (let ((default-directory (expand-file-name "~")))
+      (apply 'emamux:tmux-run-command nil "new-window"
+             (and current-prefix-arg '("-a")))
+      (let ((new-window-id (emamux:current-active-window-id))
+            (chdir-cmd (format " cd %s" cd-to)))
+        (if ssh-to
+            (emamux:send-keys (format " ssh %s" ssh-to) new-window-id))
+        (emamux:send-keys chdir-cmd new-window-id)))))
 
 (defun emamux:list-windows ()
   (with-temp-buffer
@@ -440,6 +477,11 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
     (cl-loop initially (goto-char (point-min))
              while (re-search-forward "^\\(.+\\)$" nil t)
              collect (match-string-no-properties 1))))
+
+(defun emamux:window-ids ()
+  (with-temp-buffer
+    (emamux:tmux-run-command t "list-windows" "-F" "#{window_id}")
+    (split-string (buffer-string))))
 
 (defun emamux:active-window-id (windows)
   (cl-loop for window in windows
@@ -453,13 +495,15 @@ For helm completion use either `normal' or `helm' and turn on `helm-mode'."
 
 ;;;###autoload
 (defun emamux:clone-current-frame ()
-  "Clones current frame into a new tmux window."
+  "Clones current frame into a new tmux window.
+With prefix-arg, use '-a' option to insert the new window next to current index."
   (interactive)
   (setq emamux:cloning-window-state (window-state-get (frame-root-window)))
-  (emamux:tmux-run-command nil "new-window")
+  (apply 'emamux:tmux-run-command nil
+         "new-window" (and current-prefix-arg '("-a")))
   (let ((new-window-id (emamux:current-active-window-id))
         (chdir-cmd (format " cd %s" default-directory))
-        (emacsclient-cmd " emacsclient -nw -e '(window-state-put emamux:cloning-window-state)'"))
+        (emacsclient-cmd " emacsclient -t -e '(run-with-timer 0.01 nil (lambda () (window-state-put emamux:cloning-window-state nil (quote safe))))'"))
     (emamux:send-keys chdir-cmd new-window-id)
     (emamux:send-keys emacsclient-cmd new-window-id)))
 
