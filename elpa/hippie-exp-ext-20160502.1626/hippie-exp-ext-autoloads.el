@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("hippie-exp-ext.el") (22176 24842 797832
-;;;;;;  0))
+;;;### (autoloads nil nil ("hippie-exp-ext.el") (22338 19840 261923
+;;;;;;  174000))
 
 ;;;***
 

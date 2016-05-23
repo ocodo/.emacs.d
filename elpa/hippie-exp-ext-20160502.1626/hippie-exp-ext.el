@@ -4,11 +4,11 @@
 ;; Description: Extension of hippie-expand
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Maintainer: rubikitch <rubikitch@ruby-lang.org>
-;; Copyright (C) 2012, rubikitch, all rights reserved.
-;; Time-stamp: <2015-10-11 17:50:45 rubikitch>
+;; Copyright (C) 2012,2015,2016 rubikitch, all rights reserved.
+;; Time-stamp: <2016-05-03 08:26:13 rubikitch>
 ;; Created: 2012-09-08 12:56:37
 ;; Version: 0.1
-;; Package-Version: 20151011.145
+;; Package-Version: 20160502.1626
 ;;           By: rubikitch
 ;; URL: http://www.emacswiki.org/emacs/download/hippie-exp-ext.el
 ;; Keywords: abbrev, convenience, completions, hippie-expand
@@ -117,7 +117,7 @@
   "Generalized version of `try-expand-dabbrev'."
   (let (expansion)
     (unless old
-      (he-init-string (he-dabbrev-beg) (point))
+      (he-init-string (he-dabbrev-beg--limited-chars) (point))
       (set-marker he-search-loc he-string-beg)
       (setq he-search-bw t))
 
@@ -149,7 +149,7 @@
 (defun he-dabbrev-substring-search (pattern &optional reverse limit)
   (when (string-match he-dabbrev-substring-start-pattern pattern)
     (let* ((result ())
-           (regpat (concat (regexp-quote pattern) "\\([" he-dabbrev-chars "]+\\)")))
+           (regpat (concat (regexp-quote pattern) "\\([" he-dabbrev-chars "]*\\)")))
       (while (and (not result)
                   (if reverse
                       (re-search-backward regpat limit t)
@@ -169,6 +169,12 @@
   (cl-letf (((symbol-function 'he-dabbrev-search)
              (symbol-function 'he-dabbrev-substring-search)))
     (try-expand-dabbrev-visible old)))
+(defun try-expand-dabbrev-substring-visible-windows (old)
+  (cl-letf (((symbol-function 'he-dabbrev-search)
+             (symbol-function 'he-dabbrev-substring-search))
+            ((symbol-function 'buffer-list)
+             (lambda () (mapcar 'window-buffer (window-list)))))
+    (try-expand-dabbrev-all-buffers old)))
 (defun try-expand-dabbrev-substring-visible-in-current-buffer (old)
   (try-expand-dabbrev-0 old 'he-dabbrev-substring-search (window-start) (window-end)))
 
@@ -195,9 +201,9 @@
 
 (defun he-limited-chars-replace-functions (func old)
   (cl-letf (((symbol-function 'he-dabbrev-search)
-          (symbol-function 'he-dabbrev-search--limited-chars))
-         ((symbol-function 'he-dabbrev-beg)
-          (symbol-function 'he-dabbrev-beg--limited-chars)))
+             (symbol-function 'he-dabbrev-search--limited-chars))
+            ((symbol-function 'he-dabbrev-beg)
+             (symbol-function 'he-dabbrev-beg--limited-chars)))
     (funcall func old)))
 
 (defun try-expand-dabbrev-limited-chars (old)
@@ -206,7 +212,9 @@
   (he-limited-chars-replace-functions 'try-expand-dabbrev-visible old))
 (defun try-expand-dabbrev-limited-chars-all-buffers (old)
   (he-limited-chars-replace-functions 'try-expand-dabbrev-all-buffers old))
-
+(defun try-expand-dabbrev-limited-chars-visible-in-current-buffer (old)
+  (try-expand-dabbrev-0 old 'he-dabbrev-search--limited-chars
+                        (window-start) (window-end)))
 (defun hippie-expand-with-function-list (funcs)
   "Do `hippie-expand' with `hippie-expand-try-functions-list' = FUNC."
   (let ((hippie-expand-try-functions-list funcs))
@@ -217,8 +225,10 @@
   (interactive)
   (hippie-expand-with-function-list
    '(try-expand-dabbrev-substring-visible-in-current-buffer
-     try-expand-dabbrev-substring
      try-expand-dabbrev-substring-visible
+     try-expand-dabbrev-substring
+     try-expand-dabbrev-substring-visible-windows
+     try-expand-dabbrev-limited-chars-visible-in-current-buffer
      try-expand-dabbrev-limited-chars
      try-expand-dabbrev-limited-chars-visible
      try-expand-dabbrev-limited-chars-all-buffers)))
