@@ -1,10 +1,10 @@
 ;;; ahg.el --- Alberto's Emacs interface for Mercurial (Hg)
 
-;; Copyright (C) 2008-2015 Alberto Griggio
+;; Copyright (C) 2008-2016 Alberto Griggio
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20160505.124
+;; Package-Version: 20160513.136
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
