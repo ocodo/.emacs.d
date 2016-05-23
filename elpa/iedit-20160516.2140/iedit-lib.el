@@ -3,7 +3,7 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2015-04-13 12:16:14 Victor Ren>
+;; Time-stamp: <2016-05-17 12:40:05 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
 ;; Version: 0.97
@@ -235,25 +235,29 @@ Return the number of occurrences."
   (iedit-add-occurrence-overlay occurrence-exp point nil))
 
 (defun iedit-add-occurrence-overlay (occurrence-exp point forward)
-  "Create next or previous occurrence overlay for `occurrence-exp'."
+  "Create next or previous occurrence overlay for `occurrence-exp'.
+Return the start position of the new occurrence if successful."
   (or point
       (setq point (point)))
-  (let ((case-fold-search (not iedit-case-sensitive)))
+  (let ((case-fold-search (not iedit-case-sensitive))
+        (pos nil))
     (save-excursion
       (goto-char point)
       (if (not (if forward
                    (re-search-forward occurrence-exp nil t)
                  (re-search-backward occurrence-exp nil t)))
-          (message "No match")
+          (message "No more match.")
+        (setq pos (match-beginning 0))
         (if (or (iedit-find-overlay-at-point (match-beginning 0) 'iedit-occurrence-overlay-name)
                 (iedit-find-overlay-at-point (match-end 0) 'iedit-occurrence-overlay-name))
             (error "Conflict region"))
         (push (iedit-make-occurrence-overlay (match-beginning 0)
                                              (match-end 0))
               iedit-occurrences-overlays)
-        (message "Add one match for \"%s\"" (iedit-printable occurrence-exp))
+        (message "Add one match for \"%s\"." (iedit-printable occurrence-exp))
         (if iedit-unmatched-lines-invisible
-            (iedit-hide-unmatched-lines iedit-occurrence-context-lines))))))
+            (iedit-hide-unmatched-lines iedit-occurrence-context-lines))))
+    pos))
 
 (defun iedit-add-region-as-occurrence (beg end)
   "Add region as an occurrence.
@@ -582,26 +586,29 @@ value of `iedit-occurrence-context-lines' is used for this time."
   (iedit-barf-if-buffering)
   (iedit-apply-on-occurrences 'downcase-region))
 
-(defun iedit-replace-occurrences()
+(defun iedit-replace-occurrences(&optional to-string)
   "Replace occurrences with STRING.
 This function preserves case."
   (interactive "*")
   (iedit-barf-if-buffering)
   (let* ((ov (iedit-find-current-occurrence-overlay))
          (offset (- (point) (overlay-start ov)))
-         (from-string (downcase (buffer-substring-no-properties
-                                 (overlay-start ov)
-                                 (overlay-end ov))))
-         (to-string (read-string "Replace with: "
+         (from-string (buffer-substring-no-properties
+                       (overlay-start ov)
+                       (overlay-end ov)))
+         (from-string-lowercase (downcase from-string))
+         (to-string (if (not to-string)
+                      (read-string "Replace with: "
                                  nil nil
                                  from-string
-                                 nil)))
+                                 nil)
+                      to-string)))
     (iedit-apply-on-occurrences
-     (lambda (beg end from-string to-string)
+     (lambda (beg end from-string-lowercase to-string)
        (goto-char beg)
-       (search-forward from-string end)
+       (search-forward from-string-lowercase end)
        (replace-match to-string nil))
-     from-string to-string)
+     from-string-lowercase to-string)
     (goto-char (+ (overlay-start ov) offset))))
 
 (defun iedit-blank-occurrences()
