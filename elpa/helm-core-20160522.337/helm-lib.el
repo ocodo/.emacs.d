@@ -131,13 +131,19 @@ THEN-FORM and ELSE-FORMS are then excuted just like in `if'."
      (if it ,then-form ,@else-forms)))
 
 (defmacro helm-awhile (sexp &rest body)
-  "Anaphoric version of `while'."
+  "Anaphoric version of `while'.
+Same usage as `while' except that SEXP is bound to
+a temporary variable called `it' at each turn.
+An implicit nil block is bound to the loop so usage
+of `cl-return' is possible to exit the loop."
+  (declare (indent 1) (debug t))
   (helm-with-gensyms (flag)
     `(let ((,flag t))
-       (while ,flag
-         (helm-aif ,sexp
-             (progn ,@body)
-           (setq ,flag nil))))))
+       (cl-block nil
+         (while ,flag
+           (helm-aif ,sexp
+               (progn ,@body)
+             (setq ,flag nil)))))))
 
 (defmacro helm-acond (&rest clauses)
   "Anaphoric version of `cond'."
@@ -239,28 +245,28 @@ text to be displayed in BUFNAME."
                  "[SPC,C-v,down,next:NextPage  b,M-v,up,prior:PrevPage C-s/r:Isearch q:Quit]"
                  'face 'helm-helper))
         scroll-error-top-bottom)
-    (cl-loop for event = (read-key prompt) do
-             (cl-case event
-               ((?\C-v ? down next) (helm-help-scroll-up helm-scroll-amount))
-               ((?\M-v ?b up prior) (helm-help-scroll-down helm-scroll-amount))
-               (?\C-s (isearch-forward))
-               (?\C-r (isearch-backward))
-               (?\C-a (call-interactively #'move-beginning-of-line))
-               (?\C-e (call-interactively #'move-end-of-line))
-               (?\C-f (call-interactively #'forward-char))
-               (?\C-b (call-interactively #'backward-char))
-               (?\C-n (helm-help-next-line))
-               (?\C-p (helm-help-previous-line))
-               (?\M-a (call-interactively #'backward-sentence))
-               (?\M-e (call-interactively #'forward-sentence))
-               (?\M-f (call-interactively #'forward-word))
-               (?\M-b (call-interactively #'backward-word))
-               (?\C-  (helm-help-toggle-mark))
-               (?\M-w (copy-region-as-kill
-                       (region-beginning) (region-end))
-                      (deactivate-mark))
-               (?q    (cl-return))
-               (t     (ignore))))))
+    (helm-awhile (read-key prompt)
+      (cl-case it
+        ((?\C-v ? down next) (helm-help-scroll-up helm-scroll-amount))
+        ((?\M-v ?b up prior) (helm-help-scroll-down helm-scroll-amount))
+        (?\C-s (isearch-forward))
+        (?\C-r (isearch-backward))
+        (?\C-a (call-interactively #'move-beginning-of-line))
+        (?\C-e (call-interactively #'move-end-of-line))
+        (?\C-f (call-interactively #'forward-char))
+        (?\C-b (call-interactively #'backward-char))
+        (?\C-n (helm-help-next-line))
+        (?\C-p (helm-help-previous-line))
+        (?\M-a (call-interactively #'backward-sentence))
+        (?\M-e (call-interactively #'forward-sentence))
+        (?\M-f (call-interactively #'forward-word))
+        (?\M-b (call-interactively #'backward-word))
+        (?\C-  (helm-help-toggle-mark))
+        (?\M-w (copy-region-as-kill
+                (region-beginning) (region-end))
+               (deactivate-mark))
+        (?q    (cl-return))
+        (t     (ignore))))))
 
 
 ;;; List processing
@@ -482,6 +488,48 @@ Add spaces at end if needed to reach WIDTH when STR is shorter than WIDTH."
   "CANDIDATE is symbol or string.
 See `kill-new' for argument REPLACE."
   (kill-new (helm-stringify candidate) replace))
+
+
+;;; Modes
+;;
+(defun helm-same-major-mode-p (start-buffer alist)
+  "Decide if current-buffer is related to START-BUFFER.
+Argument ALIST is an alist of associated major modes."
+  ;; START-BUFFER is the current-buffer where we start searching.
+  ;; Determine the major-mode of START-BUFFER as `cur-maj-mode'.
+  ;; Each time the loop go in another buffer we try from this buffer
+  ;; to determine if its `major-mode' is:
+  ;; - same as the `cur-maj-mode'
+  ;; - derived from `cur-maj-mode' and from
+  ;;   START-BUFFER if its mode is derived from the one in START-BUFFER. 
+  ;; - have an assoc entry (major-mode . cur-maj-mode)
+  ;; - have an rassoc entry (cur-maj-mode . major-mode)
+  ;; - check if one of these entries inherit from another one in
+  ;;   `alist'.
+  (let* ((cur-maj-mode  (with-current-buffer start-buffer major-mode))
+         (maj-mode      major-mode)
+         (c-assoc-mode  (assq cur-maj-mode alist))
+         (c-rassoc-mode (rassq cur-maj-mode alist))
+         (o-assoc-mode  (assq major-mode alist))
+         (o-rassoc-mode (rassq major-mode alist))
+         (cdr-c-assoc-mode (cdr c-assoc-mode))
+         (cdr-o-assoc-mode (cdr o-assoc-mode)))
+    (or (eq major-mode cur-maj-mode)
+        (derived-mode-p cur-maj-mode)
+        (with-current-buffer start-buffer
+          (derived-mode-p maj-mode))
+        (or (eq cdr-c-assoc-mode major-mode)
+            (eq (car c-rassoc-mode) major-mode)
+            (eq (cdr (assq cdr-c-assoc-mode alist))
+                major-mode)
+            (eq (car (rassq cdr-c-assoc-mode alist))
+                major-mode))
+        (or (eq cdr-o-assoc-mode cur-maj-mode)
+            (eq (car o-rassoc-mode) cur-maj-mode)
+            (eq (cdr (assq cdr-o-assoc-mode alist))
+                cur-maj-mode)
+            (eq (car (rassq cdr-o-assoc-mode alist))
+                cur-maj-mode)))))
 
 ;;; Files routines
 ;;
@@ -542,8 +590,8 @@ Useful in dired buffers when there is inserted subdirs."
     "_MTN" "_darcs" "{arch}" ".gvfs"))
 
 (cl-defun helm-walk-directory (directory &key (path 'basename)
-                                           (directories t)
-                                           match skip-subdirs)
+                                         directories
+                                         match skip-subdirs)
   "Walk through DIRECTORY tree.
 Argument PATH can be one of basename, relative, full, or a function
 called on file name, default to basename.
@@ -553,8 +601,7 @@ Argument MATCH can be a predicate or a regexp.
 Argument SKIP-SUBDIRS when non--nil will skip `helm-walk-ignore-directories'
 unless it is given as a list of directories, in this case this list will be used
 instead of `helm-walk-ignore-directories'."
-  (let* ((result '())
-         (fn (cl-case path
+  (let ((fn (cl-case path
                (basename 'file-name-nondirectory)
                (relative 'file-relative-name)
                (full     'identity)
@@ -567,33 +614,30 @@ instead of `helm-walk-ignore-directories'."
                                          helm-walk-ignore-directories)))
                     (cl-loop with ls = (sort (file-name-all-completions "" dir)
                                              'string-lessp)
-                          for f in ls
-                          ;; Use `directory-file-name' to remove the final slash.
-                          ;; Needed to avoid infloop on symlinks symlinking
-                          ;; a directory inside it [1].
-                          for file = (directory-file-name
-                                      (expand-file-name f dir))
-                          unless (member f '("./" "../"))
-                          ;; A directory.
-                          if (char-equal (aref f (1- (length f))) ?/)
-                          do (progn (when directories
-                                      (push (funcall fn file) result))
-                                    ;; Don't recurse in symlinks.
-                                    ;; `file-symlink-p' have to be called
-                                    ;; on the directory with its final
-                                    ;; slash removed [1].
-                                    (and (not (file-symlink-p file))
-                                         (ls-rec file)))
-                          else do
-                          (if match
-                              (and (if (functionp match)
-                                       (funcall match f)
-                                     (and (stringp match)
-                                          (string-match match f)))
-                                   (push (funcall fn file) result))
-                            (push (funcall fn file) result))))))
-      (ls-rec directory)
-      (nreverse result))))
+                             
+                             for f in ls
+                             ;; Use `directory-file-name' to remove the final slash.
+                             ;; Needed to avoid infloop on symlinks symlinking
+                             ;; a directory inside it [1].
+                             for file = (directory-file-name
+                                         (expand-file-name f dir))
+                             unless (member f '("./" "../"))
+                             ;; A directory (ignore symlinked dirs).
+                             if (char-equal (aref f (1- (length f))) ?/)
+                             nconc (and (not (file-symlink-p file))
+                                        (if directories
+                                            (nconc (list (funcall fn file))
+                                                   (ls-rec file))
+                                            (ls-rec file)))
+                             ;; A regular file.
+                             else nconc
+                             (when (or (null match)
+                                       (and (functionp match)
+                                            (funcall match f))
+                                       (and (stringp match)
+                                            (string-match match f)))
+                               (list (funcall fn file)))))))
+      (ls-rec directory))))
 
 (defun helm-file-expand-wildcards (pattern &optional full)
   "Same as `file-expand-wildcards' but allow recursion.

@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm" "helm.el" (22325 5477 295438 323000))
+;;;### (autoloads nil "helm" "helm.el" (22338 19849 163365 142000))
 ;;; Generated autoloads from helm.el
 
 (autoload 'helm-define-multi-key "helm" "\
@@ -47,11 +47,10 @@ Arg MAP is the keymap to use, SUBKEY is the initial short key-binding to
 call COMMAND.
 
 Arg OTHER-SUBKEYS is an alist specifying other short key-bindings
-to use once started.
-e.g:
+to use once started e.g:
 
-\(helm-define-key-with-subkeys global-map
-   (kbd \"C-x v n\") ?n 'git-gutter:next-hunk '((?p . git-gutter:previous-hunk)))
+    (helm-define-key-with-subkeys global-map
+       (kbd \"C-x v n\") ?n 'git-gutter:next-hunk '((?p . git-gutter:previous-hunk)))
 
 
 In this example, `C-x v n' will run `git-gutter:next-hunk'
@@ -73,8 +72,7 @@ NOTE: SUBKEY and OTHER-SUBKEYS bindings support char syntax only
 (put 'helm-define-key-with-subkeys 'lisp-indent-function '1)
 
 (autoload 'helm-debug-open-last-log "helm" "\
-Open helm log file of last helm session.
-If `helm-last-log-file' is nil, switch to `helm-debug-buffer' .
+Open helm log file or buffer of last helm session.
 
 \(fn)" t nil)
 
@@ -190,7 +188,7 @@ Enable/disable helm debugging from outside of helm session.
 ;;;***
 
 ;;;### (autoloads nil nil ("helm-core-pkg.el" "helm-lib.el" "helm-multi-match.el"
-;;;;;;  "helm-source.el") (22325 5477 306120 949000))
+;;;;;;  "helm-source.el") (22338 19849 174926 754000))
 
 ;;;***
 
