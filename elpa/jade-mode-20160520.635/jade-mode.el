@@ -1,7 +1,7 @@
 ;;; jade-mode.el --- Major mode for editing .jade files
 ;;;
 ;;; URL: https://github.com/brianc/jade-mode
-;; Package-Version: 20150801.944
+;; Package-Version: 20160520.635
 ;;; Author: Brian M. Carlson and other contributors
 ;;; inspired by http://xahlee.org/emacs/elisp_syntax_coloring.html
 (require 'font-lock)
@@ -394,6 +394,7 @@ region defined by BEG and END."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.jade\\'" . jade-mode))
+(add-to-list 'auto-mode-alist '("\\.pug\\'" . jade-mode))
 
 (provide 'jade-mode)
 ;;; jade-mode.el ends here
