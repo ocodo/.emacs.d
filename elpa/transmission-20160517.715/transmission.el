@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.9
-;; Package-Version: 20160511.1856
+;; Package-Version: 20160517.715
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -222,7 +222,7 @@ caching built in or is otherwise slow."
   '("name" "hashString" "magnetLink" "activityDate" "addedDate"
     "dateCreated" "doneDate" "startDate" "peers" "pieces" "pieceCount"
     "pieceSize" "trackerStats" "peersConnected" "peersGettingFromUs" "peersFrom"
-    "peersSendingToUs" "sizeWhenDone" "error" "errorString" "wanted" "files"
+    "peersSendingToUs" "sizeWhenDone" "error" "errorString" "uploadRatio"
     "downloadedEver" "corruptEver" "haveValid" "totalSize" "percentDone"
     "seedRatioLimit" "seedRatioMode" "bandwidthPriority" "downloadDir"
     "uploadLimit" "uploadLimited" "downloadLimit" "downloadLimited"
@@ -1081,7 +1081,8 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   "Verify torrent at point or in region."
   (interactive)
   (transmission-let-ids nil
-    (transmission-request-async nil "torrent-verify" (list :ids ids))))
+    (when (y-or-n-p (concat "Verify torrent" (if (cdr ids) "s") "? "))
+      (transmission-request-async nil "torrent-verify" (list :ids ids)))))
 
 (defun transmission-quit ()
   "Quit and bury the buffer."
@@ -1183,6 +1184,20 @@ PIECES and COUNT are the same as in `transmission-format-pieces'."
                  (256 #'transmission-ratio->256)
                  (_ #'transmission-ratio->glyph))
                ratios "")))
+
+(defun transmission-format-pieces-internal (pieces count)
+  "Format piece data into a string.
+PIECES and COUNT are the same as in `transmission-format-pieces'."
+  (let ((have (apply #'+ (mapcar #'transmission-hamming-weight
+                                 (base64-decode-string pieces)))))
+    (concat
+     "Piece count: " (transmission-group-digits have)
+     " / " (transmission-group-digits count)
+     " (" (number-to-string (transmission-percent have count)) "%)"
+     (when (and (functionp transmission-pieces-function)
+                (/= have 0) (< have count))
+       (let ((str (funcall transmission-pieces-function pieces count)))
+         (concat "\nPieces:\n\n" str))))))
 
 (defun transmission-format-peers (peers origins connected sending receiving)
   "Format peer information into a string.
@@ -1307,7 +1322,7 @@ Each form in BODY is a column descriptor."
                          (transmission-format-rate .downloadLimit .downloadLimited)
                          (transmission-format-rate .uploadLimit .uploadLimited)))
                 (_ "session limits")))
-      (concat "Ratio limit: "
+      (format "Ratio: %.3f / %s" (if (= .uploadRatio -1) 0 .uploadRatio)
               (transmission-torrent-seed-ratio .seedRatioMode .seedRatioLimit))
       (unless (zerop .error)
         (concat "Error: " (propertize .errorString 'font-lock-face 'error)))
@@ -1318,26 +1333,14 @@ Each form in BODY is a column descriptor."
       (concat "Date finished:   " (transmission-time .doneDate))
       (concat "Latest Activity: " (transmission-time .activityDate) "\n")
       (transmission-format-trackers .trackerStats)
-      (let ((wanted (cl-loop for w across .wanted for f across .files
-                             if (not (zerop w)) sum (cdr (assq 'length f)))))
-        (concat "Wanted: " (transmission-format-size wanted)))
+      (concat "Wanted: " (transmission-format-size .sizeWhenDone))
       (concat "Downloaded: " (transmission-format-size .downloadedEver))
       (concat "Verified: " (transmission-format-size .haveValid))
       (unless (zerop .corruptEver)
         (concat "Corrupt: " (transmission-format-size .corruptEver)))
       (concat "Total size: " (transmission-format-size .totalSize))
       (format "Piece size: %s each" (transmission-format-size .pieceSize))
-      (let ((have (apply #'+ (mapcar #'transmission-hamming-weight
-                                     (base64-decode-string .pieces)))))
-        (concat
-         (format "Piece count: %s / %s (%d%%)"
-                 (transmission-group-digits have)
-                 (transmission-group-digits .pieceCount)
-                 (transmission-percent have .pieceCount))
-         (when (and (functionp transmission-pieces-function)
-                    (/= have 0) (< have .pieceCount))
-           (format "\nPieces:\n\n%s"
-                   (funcall transmission-pieces-function .pieces .pieceCount)))))))))
+      (transmission-format-pieces-internal .pieces .pieceCount)))))
 
 (defun transmission-draw-peers (id)
   (let* ((arguments `(:ids ,id :fields ("peers")))
