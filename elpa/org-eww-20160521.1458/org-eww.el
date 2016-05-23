@@ -1,11 +1,11 @@
 ;;; org-eww.el --- automatically use eww to preview current org-file when save
 
-;; Copyright (C) 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2015 DarkSun <lujun9972@gmail.com>
 
 ;; Author: DarkSun <lujun9972@gmail.com>
 ;; Created: 2015-12-27
 ;; Version: 0.1
-;; Package-Version: 20160104.636
+;; Package-Version: 20160521.1458
 ;; Keywords: convenience, eww, org
 ;; Package-Requires: ((org "8.0") (emacs "24.4"))
 ;; URL: https://github.com/lujun9972/org-eww
@@ -36,8 +36,9 @@
 
 ;; Quick start:
 
-;; execute the following commands:
-;; `org-eww/turn-on-preview-at-save'
+;; Put this file under your load-path.
+;; Insert the following line in your `.emacs':
+;; (add-hook 'org-mode-hook 'org-eww-mode)
 
 ;;; Code:
 (require 'org)
@@ -65,13 +66,26 @@
 (defun org-eww/turn-on-preview-at-save ()
   "turn on automatically preview current org-file when save"
   (interactive)
-  (add-hook 'after-save-hook #'org-eww nil t))
+  (progn
+    (add-hook 'after-save-hook #'org-eww nil t)
+    (message "Preview is on.")))
 
 ;;;###autoload
 (defun org-eww/turn-off-preview-at-save ()
   "turn off automatically preview current org-file when save"
   (interactive)
-  (remove-hook 'after-save-hook #'org-eww t))
+  (progn
+    (remove-hook 'after-save-hook #'org-eww t)
+    (message "Preview is off.")))
+
+;;;###autoload
+(define-minor-mode org-eww-mode
+  "Preview current org file in eww whenever you save it."
+  :lighter " preview"
+  :keymap (let ((map (make-sparse-keymap)))
+	    (define-key map (kbd "C-c M-p") 'org-eww/turn-on-preview-at-save)
+	    (define-key map (kbd "C-c M-P") 'org-eww/turn-off-preview-at-save)
+	    map))
 
 (provide 'org-eww)
 

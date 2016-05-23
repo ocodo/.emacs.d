@@ -1,1 +1,0 @@
-(define-package "org-eww" "20160104.636" "automatically use eww to preview current org-file when save" '((org "8.0") (emacs "24.4")) :url "https://github.com/lujun9972/org-eww" :keywords '("convenience" "eww" "org"))
