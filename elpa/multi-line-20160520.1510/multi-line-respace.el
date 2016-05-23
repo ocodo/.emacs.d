@@ -1,6 +1,6 @@
 ;;; multi-line-respace.el --- multi-line statements -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 Ivan Malison
+;; Copyright (C) 2015-2016 Ivan Malison
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@
 
 (defclass multi-line-fill-respacer (multi-line-respacer)
   ((newline-respacer :initarg :newline-respacer :initform
-                       (make-instance multi-line-always-newline))
+                     (make-instance multi-line-always-newline))
    (default-respacer :initarg :default-respacer :initform
      (make-instance multi-line-never-newline))))
 
@@ -73,7 +73,7 @@
         (and (equal index (- marker-length 1)))
         (and (< (+ index 1) marker-length)
              (save-excursion
-               (goto-char (marker-position (nth (+ index 1) markers )))
+               (goto-char (marker-position (nth (+ index 1) markers)))
                (> (current-column) (multi-line-get-fill-column respacer)))))))
 
 (defmethod multi-line-respace-one ((respacer multi-line-fill-respacer) index markers)
@@ -90,7 +90,7 @@
 
 (defclass multi-line-fill-column-respacer (multi-line-fill-respacer) nil)
 
-(defmethod multi-line-get-fill-column ((respacer multi-line-fill-column-respacer))
+(defmethod multi-line-get-fill-column ((_respacer multi-line-fill-column-respacer))
   fill-column)
 
 (provide 'multi-line-respace)

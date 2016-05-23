@@ -1,6 +1,6 @@
 ;;; multi-line-decorator.el --- multi-line statements -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 Ivan Malison
+;; Copyright (C) 2015-2016 Ivan Malison
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
    (decorator :initarg :decorator)))
 
 (defmethod multi-line-respace-one ((decorator multi-line-each-decorator)
-                               index markers)
+                                   index markers)
   (funcall (oref decorator :decorator) (oref decorator :respacer) index markers))
 
 (defclass multi-line-decorator (multi-line-respacer)

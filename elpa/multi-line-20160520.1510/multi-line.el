@@ -1,6 +1,6 @@
 ;;; multi-line.el --- multi-line statements -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 Ivan Malison
+;; Copyright (C) 2015-2016 Ivan Malison
 
 ;; Author: Ivan Malison <IvanMalison@gmail.com>
 ;; Keywords: multi line length whitespace programming
@@ -109,13 +109,13 @@ FIND-STRATEGY is a class with the method multi-line-find-next."
   (re-search-forward "[^[:space:]\n]")
   (backward-char))
 
-(defvar multi-line-skip-respacer
+(defvar multi-line-skip-first-and-last-respacer
   (make-instance multi-line-always-newline
                  :skip-first t :skip-last t))
 
 (defvar multi-line-skip-fill-respacer
   (make-instance multi-line-fixed-fill-respacer
-                 :newline-respacer multi-line-skip-respacer))
+                 :newline-respacer multi-line-skip-first-and-last-respacer))
 
 (defvar multi-line-skip-fill-stragety
   (make-instance multi-line-strategy
