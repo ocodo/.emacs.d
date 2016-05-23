@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "mc-edit-lines" "mc-edit-lines.el" (22309 38891
-;;;;;;  771915 396000))
+;;;### (autoloads nil "mc-edit-lines" "mc-edit-lines.el" (22338 19767
+;;;;;;  295500 946000))
 ;;; Generated autoloads from mc-edit-lines.el
 
 (autoload 'mc/edit-lines "mc-edit-lines" "\
@@ -34,7 +34,7 @@ Add one cursor to the beginning of each line in the active region.
 ;;;***
 
 ;;;### (autoloads nil "mc-hide-unmatched-lines-mode" "mc-hide-unmatched-lines-mode.el"
-;;;;;;  (22309 38891 787915 422000))
+;;;;;;  (22338 19767 303500 932000))
 ;;; Generated autoloads from mc-hide-unmatched-lines-mode.el
 
 (autoload 'mc-hide-unmatched-lines-mode "mc-hide-unmatched-lines-mode" "\
@@ -48,8 +48,8 @@ mode. To leave this mode press <return> or \"C-g\"
 
 ;;;***
 
-;;;### (autoloads nil "mc-mark-more" "mc-mark-more.el" (22309 38891
-;;;;;;  799915 441000))
+;;;### (autoloads nil "mc-mark-more" "mc-mark-more.el" (22338 19767
+;;;;;;  307500 925000))
 ;;; Generated autoloads from mc-mark-more.el
 
 (autoload 'mc/mark-next-like-this "mc-mark-more" "\
@@ -69,29 +69,46 @@ With zero ARG, skip the last one and mark next.
 \(fn ARG)" t nil)
 
 (autoload 'mc/mark-next-word-like-this "mc-mark-more" "\
-
+Find and mark the next word of the buffer matching the currently active region
+The matching region must be a whole word to be a match
+If no region is active, mark the symbol at the point and find the next match
+With negative ARG, delete the last one instead.
+With zero ARG, skip the last one and mark next.
 
 \(fn ARG)" t nil)
 
 (autoload 'mc/mark-next-symbol-like-this "mc-mark-more" "\
-
+Find and mark the next symbol of the buffer matching the currently active region
+The matching region must be a whole symbol to be a match
+If no region is active, mark the symbol at the point and find the next match
+With negative ARG, delete the last one instead.
+With zero ARG, skip the last one and mark next.
 
 \(fn ARG)" t nil)
 
 (autoload 'mc/mark-previous-like-this "mc-mark-more" "\
 Find and mark the previous part of the buffer matching the currently active region
+If no region is active add a cursor on the previous line
 With negative ARG, delete the last one instead.
 With zero ARG, skip the last one and mark next.
 
 \(fn ARG)" t nil)
 
 (autoload 'mc/mark-previous-word-like-this "mc-mark-more" "\
-
+Find and mark the previous part of the buffer matching the currently active region
+The matching region must be a whole word to be a match
+If no region is active add a cursor on the previous line
+With negative ARG, delete the last one instead.
+With zero ARG, skip the last one and mark next.
 
 \(fn ARG)" t nil)
 
 (autoload 'mc/mark-previous-symbol-like-this "mc-mark-more" "\
-
+Find and mark the previous part of the buffer matching the currently active region
+The matching region must be a whole symbol to be a match
+If no region is active add a cursor on the previous line
+With negative ARG, delete the last one instead.
+With zero ARG, skip the last one and mark next.
 
 \(fn ARG)" t nil)
 
@@ -221,8 +238,8 @@ Mark the tag we're in and its pair for renaming.
 
 ;;;***
 
-;;;### (autoloads nil "mc-mark-pop" "mc-mark-pop.el" (22309 38891
-;;;;;;  783915 415000))
+;;;### (autoloads nil "mc-mark-pop" "mc-mark-pop.el" (22338 19767
+;;;;;;  299500 939000))
 ;;; Generated autoloads from mc-mark-pop.el
 
 (autoload 'mc/mark-pop "mc-mark-pop" "\
@@ -234,7 +251,7 @@ to the popped mark.
 ;;;***
 
 ;;;### (autoloads nil "mc-separate-operations" "mc-separate-operations.el"
-;;;;;;  (22309 38891 791915 429000))
+;;;;;;  (22338 19767 303500 932000))
 ;;; Generated autoloads from mc-separate-operations.el
 
 (autoload 'mc/insert-numbers "mc-separate-operations" "\
@@ -273,7 +290,7 @@ Aligns all cursors with whitespace like `mc/vertical-align' does
 ;;;***
 
 ;;;### (autoloads nil "multiple-cursors-core" "multiple-cursors-core.el"
-;;;;;;  (22309 38891 767915 389000))
+;;;;;;  (22338 19767 279500 972000))
 ;;; Generated autoloads from multiple-cursors-core.el
 
 (autoload 'multiple-cursors-mode "multiple-cursors-core" "\
@@ -284,7 +301,7 @@ Mode while multiple cursors are active.
 ;;;***
 
 ;;;### (autoloads nil "rectangular-region-mode" "rectangular-region-mode.el"
-;;;;;;  (22309 38891 779915 409000))
+;;;;;;  (22338 19767 299500 939000))
 ;;; Generated autoloads from rectangular-region-mode.el
 
 (autoload 'set-rectangular-region-anchor "rectangular-region-mode" "\
@@ -303,7 +320,7 @@ A mode for creating a rectangular region to edit
 ;;;***
 
 ;;;### (autoloads nil nil ("mc-cycle-cursors.el" "multiple-cursors-pkg.el"
-;;;;;;  "multiple-cursors.el") (22309 38891 810342 667000))
+;;;;;;  "multiple-cursors.el") (22338 19767 318106 876000))
 
 ;;;***
 
