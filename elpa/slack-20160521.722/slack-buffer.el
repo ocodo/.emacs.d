@@ -170,6 +170,17 @@
         (let ((latest-message (car (last sorted))))
           (slack-room-update-mark room team latest-message))))))
 
+(defun slack-buffer-show-typing-p (buffer)
+  (cl-case slack-typing-visibility
+    ('frame (slack-buffer-in-current-frame buffer))
+    ('buffer (slack-buffer-current-p buffer))
+    ('never nil)))
+
+(defun slack-buffer-current-p (buffer)
+  (if buffer
+      (string= (buffer-name buffer)
+               (buffer-name (current-buffer)))))
+
 (defun slack-buffer-in-current-frame (buffer)
   (if buffer
       (cl-member (buffer-name buffer)
@@ -191,6 +202,55 @@
               (slack-room-update-last-read room msg)
               (slack-buffer-insert msg team))))
       (slack-room-inc-unread-count room))))
+
+(defmacro slack-buffer-goto-char (find-point &rest else)
+  `(let* ((cur-point (point))
+          (ts (get-text-property cur-point 'ts)))
+     (let ((next-point ,find-point))
+       (if next-point
+           (goto-char next-point)
+         (if (< 0 (length ',else))
+             ,@else)))))
+
+(defun slack-buffer-goto-next-message ()
+  (interactive)
+  (slack-buffer-goto-char
+   (slack-buffer-next-point cur-point (point-max) ts)
+   (slack-buffer-goto-first-message)))
+
+(defun slack-buffer-goto-prev-message ()
+  (interactive)
+  (slack-buffer-goto-char
+   (slack-buffer-prev-point cur-point (point-min) ts)
+   (slack-buffer-goto-last-message)))
+
+(defun slack-buffer-goto-first-message ()
+  (interactive)
+  (goto-char
+   (slack-buffer-next-point (point-min) (point-max) "0")))
+
+(defun slack-buffer-goto-last-message ()
+  (interactive)
+  (goto-char
+   (slack-buffer-prev-point (point-max) (point-min) (format-time-string "%s"))))
+
+(defun slack-buffer-header-p (point)
+  (let ((face (get-text-property point 'face)))
+    (string= (format "%s" face) "slack-message-output-header")))
+
+(defun slack-buffer-next-point (start end ts)
+  (cl-loop for i from start to end
+           if (and (string< ts
+                            (get-text-property i 'ts))
+                   (slack-buffer-header-p i))
+           return i))
+
+(defun slack-buffer-prev-point (start end ts)
+  (cl-loop for i from start downto end
+           if (and (string< (get-text-property i 'ts)
+                            ts)
+                   (slack-buffer-header-p i))
+           return i))
 
 (defun slack-buffer-ts-eq (start end ts)
   (cl-loop for i from start to end

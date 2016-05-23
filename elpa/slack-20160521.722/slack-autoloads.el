@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "slack" "slack.el" (22309 38830 951814 759000))
+;;;### (autoloads nil "slack" "slack.el" (22338 19716 871583 719000))
 ;;; Generated autoloads from slack.el
 
 (autoload 'slack-start "slack" "\
@@ -13,8 +13,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "slack-team" "slack-team.el" (22309 38830 959814
-;;;;;;  773000))
+;;;### (autoloads nil "slack-team" "slack-team.el" (22338 19716 875583
+;;;;;;  712000))
 ;;; Generated autoloads from slack-team.el
 
 (autoload 'slack-register-team "slack-team" "\
@@ -34,8 +34,8 @@ you can change current-team with `slack-change-current-team'
 ;;;;;;  "slack-message-reaction.el" "slack-message-sender.el" "slack-message.el"
 ;;;;;;  "slack-pkg.el" "slack-reaction.el" "slack-reply.el" "slack-request.el"
 ;;;;;;  "slack-room.el" "slack-search.el" "slack-user-message.el"
-;;;;;;  "slack-user.el" "slack-util.el" "slack-websocket.el") (22309
-;;;;;;  38830 988424 813000))
+;;;;;;  "slack-user.el" "slack-util.el" "slack-websocket.el") (22338
+;;;;;;  19716 889491 136000))
 
 ;;;***
 
