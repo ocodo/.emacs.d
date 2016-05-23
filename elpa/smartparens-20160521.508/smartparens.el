@@ -3274,9 +3274,11 @@ default."
         ;; again with this pair removed from sp-pair-list to give
         ;; chance to other pairs sharing a common suffix (for
         ;; example \[ and [)
-        (let ((new-sp-pair-list (--remove (equal (car it) open-pair) sp-pair-list)))
+        (let ((new-sp-pair-list (--remove (equal (car it) open-pair) sp-pair-list))
+              (new-sp-local-pairs (--remove (equal (plist-get it :open) open-pair) sp-local-pairs)))
           (when (> (length sp-pair-list) (length new-sp-pair-list))
-            (let ((sp-pair-list new-sp-pair-list))
+            (let ((sp-pair-list new-sp-pair-list)
+                  (sp-local-pairs new-sp-local-pairs))
               (sp-insert-pair))))
       ;; setup the delayed insertion here.
       (if (sp-get-pair open-pair :when-cond)
@@ -3551,8 +3553,9 @@ is remove the just added wrapping."
                         (search-forward (cdr inside-pair))))
                  (cs (sp--get-context p))
                  (ce (sp--get-context end)))
-            (when (or (not (eq cs 'comment)) ;; a => b <=> ~a v b
-                      (eq ce 'comment))
+            (when (and (or (not (eq cs 'comment)) ;; a => b <=> ~a v b
+                           (eq ce 'comment))
+                       (eq end (sp-get (sp-get-sexp) :end)))
               (delete-char (- end p))
               (delete-char (- (1- (length (car inside-pair)))))
               (setq sp-last-operation 'sp-delete-pair))))
@@ -4128,15 +4131,21 @@ counting (stack) algorithm."
     (or (--any? (eq major-mode it) modes)
         (apply 'derived-mode-p derived))))
 
-(defun sp-get-stringlike-or-textmode-expression (&optional back)
-  "Return a stringlike expression using stringlike or textmode parser."
+(defun sp-get-stringlike-or-textmode-expression (&optional back delimiter)
+  "Return a stringlike expression using stringlike or textmode parser.
+
+DELIMITER is a candidate in case we performed a search before
+calling this function and we know it's the closest string
+delimiter to try.  This is purely a performance hack, do not rely
+on it when calling directly."
   (if (sp-use-textmode-stringlike-parser-p)
       (sp-get-textmode-stringlike-expression back)
     ;; performance hack. If the delimiter is a character in
     ;; syntax class 34, grab the string-like expression using
     ;; `sp-get-string'
-    (if (and (= (length (match-string 0)) 1)
-             (eq (char-syntax (string-to-char (match-string 0))) 34))
+    (if (and delimiter
+             (= (length delimiter) 1)
+             (eq (char-syntax (string-to-char delimiter)) 34))
         (sp-get-string back)
       (sp-get-stringlike-expression back))))
 
@@ -4155,9 +4164,11 @@ By default, this is enabled in all modes derived from
             (sre (sp--get-stringlike-regexp))
             (search-fn (if (not back) 'sp--search-forward-regexp 'sp--search-backward-regexp))
             (ps (if back (1- (point-min)) (1+ (point-max))))
-            (ss (if back (1- (point-min)) (1+ (point-max)))))
+            (ss (if back (1- (point-min)) (1+ (point-max))))
+            (string-delim nil))
         (setq ps (or (save-excursion (funcall search-fn pre nil t)) ps))
         (setq ss (or (save-excursion (funcall search-fn sre nil t)) ss))
+        (setq string-delim (match-string 0))
         ;; TODO: simplify this logic somehow... (this really depends
         ;; on a rewrite of the core parser logic: separation of "find
         ;; the valid opening" and "parse it")
@@ -4176,25 +4187,25 @@ By default, this is enabled in all modes derived from
         (-let (((type . re) (if (or (and (not back) (< ps ss))
                                     (and back (> ps ss)))
                                 (cons :regular (sp-get-paired-expression back))
-                              (cons :string (sp-get-stringlike-or-textmode-expression back)))))
+                              (cons :string (sp-get-stringlike-or-textmode-expression back string-delim)))))
           (if re
-            (sp-get re
-              (cond
-               ;; If the returned sexp is regular, but the
-               ;; to-be-tried-string-expression is before it, we try
-               ;; to parse it as well, it might be a complete sexp in
-               ;; which case it should be returned.
-               ((and (eq type :regular)
-                     (or (and (not back) (< ss :beg))
-                         (and back (> ss :end))))
-                (or (sp-get-stringlike-or-textmode-expression back) re))
-               ((and (eq type :string)
-                     (or (and (not back) (< ps :beg))
-                         (and back (> ps :end))))
-                (or (sp-get-paired-expression back) re))
-               (t re)))
+              (sp-get re
+                (cond
+                 ;; If the returned sexp is regular, but the
+                 ;; to-be-tried-string-expression is before it, we try
+                 ;; to parse it as well, it might be a complete sexp in
+                 ;; which case it should be returned.
+                 ((and (eq type :regular)
+                       (or (and (not back) (< ss :beg))
+                           (and back (> ss :end))))
+                  (or (sp-get-stringlike-or-textmode-expression back string-delim) re))
+                 ((and (eq type :string)
+                       (or (and (not back) (< ps :beg))
+                           (and back (> ps :end))))
+                  (or (sp-get-paired-expression back) re))
+                 (t re)))
             (if (eq type :regular)
-                (sp-get-stringlike-or-textmode-expression back)
+                (sp-get-stringlike-or-textmode-expression back string-delim)
               (sp-get-paired-expression back)))))
     (sp-get-paired-expression back)))
 
@@ -4405,13 +4416,12 @@ argument."
             (while (and ok (>= (sp-get ok :beg) p))
               (setq ok (sp-get-sexp))
               (when ok (goto-char (sp-get ok :end)))))))
-        ;; if the pair expression is completely enclosed inside a
-        ;; string, return the pair expression, otherwise return the
-        ;; string expression
+        ;; if the pair expression is enclosed inside a string, return
+        ;; the pair expression, otherwise return the string expression
         (when okr
           (unless (and ok
-                       (sp-compare-sexps ok okr >)
-                       (sp-compare-sexps ok okr < :end))
+                       (sp-compare-sexps ok okr >=)
+                       (sp-compare-sexps ok okr <= :end))
             (setq ok okr)
             (goto-char (sp-get ok :end))))
         (setq n (1- n)))
