@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-gitlab" "helm-gitlab.el" (21879 1246
-;;;;;;  287401 0))
+;;;### (autoloads nil "helm-gitlab" "helm-gitlab.el" (22338 19845
+;;;;;;  27372 42000))
 ;;; Generated autoloads from helm-gitlab.el
 
 (autoload 'helm-gitlab-projects "helm-gitlab" "\

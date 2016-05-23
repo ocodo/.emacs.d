@@ -2,13 +2,13 @@
 
 ;; Author: Nicolas Lamirault <nicolas.lamirault@gmail.com>
 ;; URL: https://github.com/nlamirault/emacs-gitlab
-;; Package-Version: 20150604.616
+;; Package-Version: 20160519.303
 ;; Version: 0.1.0
 ;; Keywords: gitlab, helm
 
-;; Package-Requires: ((s "1.9.0") (dash "2.9.0") (helm "1.0") (gitlab "0"))
+;; Package-Requires: ((s "1.9.0") (dash "2.9.0") (helm "1.0") (gitlab "0.8.0"))
 
-;; Copyright (C) 2014, 2015 Nicolas Lamirault <nicolas.lamirault@gmail.com>
+;; Copyright (C) 2014, 2015, 2016 Nicolas Lamirault <nicolas.lamirault@gmail.com>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -54,6 +54,7 @@
 (require 'gitlab-issues)
 (require 'gitlab-ui)
 
+
 ;; UI
 ;; ----
 
@@ -63,20 +64,6 @@
   "face of Gitlab information"
   :group 'helm-gitlab)
 
-
-;; Tools
-;; -------
-
-(defun helm-gitlab--get-issue-link (project-id issue-id)
-  "Create the URL to show a project's issue.
-`PROJECT-ID' is the project ID
-`ISSUE-ID' is the issue ID."
-  (-when-let (project (gitlab-get-project project-id))
-    (s-concat (gitlab--get-host)
-              "/"
-              (assoc-default 'path_with_namespace project)
-              "/issues/"
-              (number-to-string issue-id))))
 
 ;; Core
 ;; ------
@@ -163,8 +150,8 @@
 
 (defun helm-gitlab--issue-browse-link (cand)
   (browse-url
-   (helm-gitlab--get-issue-link (plist-get cand :project-id)
-                                (plist-get cand :issue-id))))
+   (gitlab-projects--get-issue-link (plist-get cand :project-id)
+                                 (plist-get cand :issue-id))))
 
 
 (defvar helm-gitlab--issues-source
