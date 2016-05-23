@@ -174,9 +174,9 @@ names to which it refers are bound."
       (flycheck-error (:underline (:style wave :color ,red)))
       (flycheck-info (:underline (:style wave :color ,aqua)))
       (flycheck-warning (:underline (:style wave :color ,orange)))
-      (flycheck-fringe-error (:foreground ,background :background ,red))
-      (flycheck-fringe-info (:foreground ,background :background ,aqua))
-      (flycheck-fringe-warning (:foreground ,background :background ,orange))
+      (flycheck-fringe-error (:foreground ,red))
+      (flycheck-fringe-info (:foreground ,aqua))
+      (flycheck-fringe-warning (:foreground ,orange))
 
       ;; Flymake
       (flymake-warnline (:underline (:style wave :color ,orange) :background ,background))
@@ -254,7 +254,7 @@ names to which it refers are bound."
       ;; Emacs interface
       (cursor (:background ,red))
       (fringe (:background ,background :foreground ,comment))
-      (linum (:background ,background :foreground ,comment :italic nil))
+      (linum (:background ,background :foreground ,comment :italic nil :underline nil))
       (vertical-border (:foreground ,contrast-bg))
       (border (:background ,contrast-bg :foreground ,highlight))
       (border-glyph (nil))
@@ -271,7 +271,7 @@ names to which it refers are bound."
       (region (:background ,contrast-bg :inverse-video nil))
       (secondary-selection (:background ,highlight))
 
-      (header-line (:inherit mode-line :foreground ,purple :background nil))
+      (header-line (:inherit mode-line-inactive :foreground ,aqua :background nil))
 
       (trailing-whitespace (:background ,orange :foreground ,yellow))
       (whitespace-empty (:foreground ,orange :background ,yellow))
