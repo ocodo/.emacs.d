@@ -4,8 +4,8 @@
 
 ;; Author: Marko Bencun <mbencun@gmail.com>
 ;; URL: https://github.com/benma/visual-regexp.el/
-;; Package-Version: 20160409.241
-;; Version: 0.9
+;; Package-Version: 20160520.400
+;; Version: 1.0
 ;; Package-Requires: ((cl-lib "0.2"))
 ;; Keywords: regexp, replace, visual, feedback
 
@@ -25,6 +25,11 @@
 ;; along with visual-regexp.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; WHAT'S NEW
+;; 1.0: Add support for one prompt for search/replace, using query-replace-from-to-separator
+;;      (query-replace history like in Emacs 25).
+;;      Breaking changes:
+;;       - vr/minibuffer-(regexp|replace)-keymap have been collapsed to vr/minibuffer-keymap
+;;       - vr/minibuffer-help-(regexp|replace) have been replaced by vr--minibuffer-help-text
 ;; 0.9: Fix warnings regarding free variables.
 ;; 0.8: Error handling for vr--get-regexp-string. Bug-fixes regarding error display.
 ;; 0.7: Customizable separator (arrow) string and face.
@@ -84,7 +89,6 @@
   :type 'boolean
   :group 'visual-regexp)
 
-
 (defface vr/match-separator-face
   '((((class color))
      :foreground "red"
@@ -94,9 +98,25 @@
   "Face for the arrow between match and replacement. To use this, you must activate vr/match-separator-use-custom-face"
   :group 'visual-regexp)
 
-(defcustom vr/match-separator-string " => "
+;; For Emacs < 25.0, this variable is not yet defined.
+;; Copy pasted from Emacs 25.0 replace.el.
+(unless (boundp 'query-replace-from-to-separator)
+  (defcustom query-replace-from-to-separator
+    (propertize (if (char-displayable-p ?→) " → " " -> ")
+		'face 'minibuffer-prompt)
+    "String that separates FROM and TO in the history of replacement pairs."
+    ;; Avoids error when attempt to autoload char-displayable-p fails
+    ;; while preparing to dump, also stops customize-rogue listing this.
+    :initialize 'custom-initialize-delay
+    :type 'sexp))
+
+(defcustom vr/match-separator-string
+  (progn
+    (custom-reevaluate-setting 'query-replace-from-to-separator)
+    (substring-no-properties query-replace-from-to-separator))
   "This string is used to separate a match from the replacement during feedback."
-  :type 'string
+  :type 'sexp
+  :initialize 'custom-initialize-delay
   :group 'visual-regexp)
 
 (defface vr/match-0
@@ -179,6 +199,11 @@ If nil, don't limit the number of matches shown in visual feedback."
   :type 'symbol
   :group 'visual-regexp)
 
+(defcustom vr/query-replace-defaults-variable 'query-replace-defaults
+  "History of search/replace pairs"
+  :type 'symbol
+  :group 'visual-regexp)
+
 (defvar vr/initialize-hook nil
   "Hook called before vr/replace and vr/query-replace")
 
@@ -235,38 +260,22 @@ If nil, don't limit the number of matches shown in visual feedback."
 
 ;;; keymap
 
-(defvar vr/minibuffer-regexp-keymap
+(defvar vr/minibuffer-keymap
   (let ((map (copy-keymap minibuffer-local-map)))
     (define-key map (kbd "C-c ?") 'vr--minibuffer-help)
-
     (define-key map (kbd "C-c a") 'vr--shortcut-toggle-limit)
-    map)
-  "Keymap used while using visual-regexp,")
-
-(defvar vr/minibuffer-replace-keymap
-  (let ((map (copy-keymap minibuffer-local-map)))
-    (define-key map (kbd "C-c ?") 'vr--minibuffer-help)
-    (define-key map (kbd "C-c m") 'vr--shortcut-show-matches)
     (define-key map (kbd "C-c p") 'vr--shortcut-toggle-preview)
-
-    (define-key map (kbd "C-c a") 'vr--shortcut-toggle-limit)
     map)
   "Keymap used while using visual-regexp,")
 
 ;;; helper functions
 
-(defun vr--shortcut-show-matches ()
-  (interactive)
-  (vr--delete-overlay-displays)
-  ;; wait for any input to redisplay replacements
-  (sit-for 100000000 t)
-  (vr--do-replace-feedback))
-
 (defun vr--shortcut-toggle-preview ()
   (interactive)
-  (setq vr--replace-preview (not vr--replace-preview))
-  (vr--update-minibuffer-prompt)
-  (vr--do-replace-feedback))
+  (when (vr--in-replace)
+    (setq vr--replace-preview (not vr--replace-preview))
+    (vr--update-minibuffer-prompt)
+    (vr--do-replace-feedback)))
 
 (defun vr--shortcut-toggle-limit ()
   "Toggle the limit of overlays shown (default limit / no limit)"
@@ -274,16 +283,40 @@ If nil, don't limit the number of matches shown in visual feedback."
   (if vr--feedback-limit
       (setq vr--feedback-limit nil)
     (setq vr--feedback-limit vr/default-feedback-limit))
-  (cond ((equal vr--in-minibuffer 'vr--minibuffer-regexp)
-         (vr--feedback))
-        ((equal vr--in-minibuffer 'vr--minibuffer-replace)
-         (vr--feedback t) ;; update overlays
-         (vr--do-replace-feedback))))
+  (vr--show-feedback))
+
+(defun vr--get-regexp-string-full ()
+  (if (equal vr--in-minibuffer 'vr--minibuffer-regexp)
+      (minibuffer-contents)
+    vr--regexp-string))
+
+(defun vr--query-replace--split-string (string)
+  "Copy/paste of query-replace--split-string, removing the assertion."
+  (let* ((length (length string))
+         (split-pos (text-property-any 0 length 'separator t string)))
+    (if (not split-pos)
+        (substring-no-properties string)
+      (cons (substring-no-properties string 0 split-pos)
+            (substring-no-properties string (1+ split-pos) length)))))
+
+(defun vr--in-from ()
+  "Returns t if the we are in the regexp prompt. Returns nil if we are in the replace prompt. Call only if (and vr--in-minibuffer (minibufferp))"
+  (equal vr--in-minibuffer 'vr--minibuffer-regexp))
+
+(defun vr--in-replace ()
+  "Returns t if we are either in the replace prompt, or in the regexp prompt containing a replacement (separated by query-replace-from-to-separator)"
+  (or (not (vr--in-from))
+      (consp (vr--query-replace--split-string (vr--get-regexp-string-full)))))
 
 (defun vr--get-regexp-string (&optional for-display)
-  (concat (if (equal vr--in-minibuffer 'vr--minibuffer-regexp)
-              (minibuffer-contents-no-properties)
-            vr--regexp-string)))
+  (let ((split (vr--query-replace--split-string (vr--get-regexp-string-full))))
+    (if (consp split) (car split) split)))
+
+(defun vr--get-replace-string ()
+  (if (equal vr--in-minibuffer 'vr--minibuffer-replace)
+      (minibuffer-contents-no-properties)
+    (let ((split (vr--query-replace--split-string (vr--get-regexp-string-full))))
+      (if (consp split) (cdr split) vr--replace-string))))
 
 (defun vr--format-error (err)
   (if (eq (car err) 'error)
@@ -292,42 +325,25 @@ If nil, don't limit the number of matches shown in visual feedback."
 
 ;;; minibuffer functions
 
-(defun vr--minibuffer-set-prompt (prompt)
-  "Updates minibuffer prompt. Call when minibuffer is active."
-  (let ((inhibit-read-only t))
-    (put-text-property (point-min) (minibuffer-prompt-end) 'display prompt)))
-
-(defun vr--set-minibuffer-prompt-regexp ()
-  (cond ((equal vr--calling-func 'vr--calling-func-query-replace)
-         "Query regexp: ")
-        ((equal vr--calling-func 'vr--calling-func-mc-mark)
-         "Mark regexp: ")
-        (t
-         "Regexp: ")))
-
-(defun vr--set-minibuffer-prompt-replace ()
-  (let (prefix)
-    (setq prefix (cond ((equal vr--calling-func 'vr--calling-func-query-replace)
-                        "Query replace")
-                       (t
-                        "Replace")))
-
-    (concat prefix
-            (let ((flag-infos (mapconcat 'identity
-                                         (delq nil (list (when vr--replace-preview "preview")))
-                                         ", ")))
-              (when (not (string= "" flag-infos ))
-                (format " (%s)" flag-infos)))
-            (format " %s" (vr--get-regexp-string t))
-            " with: ")))
+(defun vr--set-minibuffer-prompt ()
+  (let ((prompt (cond ((equal vr--calling-func 'vr--calling-func-query-replace)
+                       "Query replace")
+                      ((equal vr--calling-func 'vr--calling-func-mc-mark)
+                       "Mark")
+                      (t
+                       "Replace"))))
+    (when (and (vr--in-replace) vr--replace-preview)
+      (setq prompt (concat prompt " (preview)")))
+    (when (not (vr--in-from))
+      (setq prompt (concat prompt " " (vr--get-regexp-string t))))
+    (setq prompt (concat prompt (if (vr--in-from) ": " " with: ")))
+    prompt))
 
 (defun vr--update-minibuffer-prompt ()
   (when (and vr--in-minibuffer (minibufferp))
-    (vr--minibuffer-set-prompt
-     (cond ((equal vr--in-minibuffer 'vr--minibuffer-regexp)
-            (vr--set-minibuffer-prompt-regexp))
-           ((equal vr--in-minibuffer 'vr--minibuffer-replace)
-            (vr--set-minibuffer-prompt-replace))))))
+    (let ((inhibit-read-only t)
+          (prompt (vr--set-minibuffer-prompt)))
+      (put-text-property (point-min) (minibuffer-prompt-end) 'display prompt))))
 
 
 (defun vr--minibuffer-message (message &rest args)
@@ -353,18 +369,17 @@ visible all the time in the minibuffer."
     (move-overlay vr--minibuffer-message-overlay (point-max) (point-max))
     (overlay-put vr--minibuffer-message-overlay 'after-string message)))
 
-(defun vr/minibuffer-help-regexp ()
-  (vr--minibuffer-message (format (substitute-command-keys "\\<vr/minibuffer-regexp-keymap>\\[vr--minibuffer-help]: helps \\[vr--shortcut-toggle-limit]: toggle show all"))))
-
-(defun vr/minibuffer-help-replace ()
-  (vr--minibuffer-message (format (substitute-command-keys "\\<vr/minibuffer-replace-keymap>\\[vr--minibuffer-help]: help \\[vr--shortcut-show-matches]: show matches/groups, \\[vr--shortcut-toggle-preview]: toggle preview, \\[vr--shortcut-toggle-limit]: toggle show all"))))
+(defun vr--minibuffer-help-text ()
+  (let ((help ""))
+    (setq help (concat help (substitute-command-keys "\\<vr/minibuffer-keymap>\\[vr--minibuffer-help]: help, \\[vr--shortcut-toggle-limit]: toggle show all")))
+    (when (vr--in-replace)
+      (setq help (concat help (substitute-command-keys ", \\[vr--shortcut-toggle-preview]: toggle preview"))))
+    help
+    ))
 
 (defun vr--minibuffer-help ()
   (interactive)
-  (cond ((equal vr--in-minibuffer 'vr--minibuffer-regexp)
-         (vr/minibuffer-help-regexp))
-        ((equal vr--in-minibuffer 'vr--minibuffer-replace)
-         (vr/minibuffer-help-replace))))
+  (vr--minibuffer-message (vr--minibuffer-help-text)))
 
 ;;; overlay functions
 
@@ -404,7 +419,12 @@ visible all the time in the minibuffer."
 
 ;;; hooks
 
-(defun vr--update (beg end len)
+(defun vr--show-feedback ()
+  (if (vr--in-replace)
+      (vr--do-replace-feedback)
+    (vr--feedback)))
+
+(defun vr--after-change (beg end len)
   (when (and vr--in-minibuffer (minibufferp))
     ;; minibuffer-up temporarily deletes minibuffer contents before inserting new one.
     ;; don't do anything then as the messages shown by visual-regexp are irritating while browsing the history.
@@ -416,11 +436,9 @@ visible all the time in the minibuffer."
         ;; minibuffer contents has changed, update visual feedback.
         ;; not using after-change-hook because this hook applies to the whole minibuffer, including minibuffer-messages
         ;; that disappear after a while.
-        (cond ((equal vr--in-minibuffer 'vr--minibuffer-regexp)
-               (vr--feedback))
-              ((equal vr--in-minibuffer 'vr--minibuffer-replace)
-               (vr--do-replace-feedback)))))))
-(add-hook 'after-change-functions 'vr--update)
+        (vr--update-minibuffer-prompt)
+        (vr--show-feedback)))))
+(add-hook 'after-change-functions 'vr--after-change)
 
 (defun vr--minibuffer-setup ()
   "Setup prompt and help when entering minibuffer."
@@ -540,10 +558,11 @@ visible all the time in the minibuffer."
                                  (propertize replacement 'face current-face)))
             (overlay-put overlay 'priority (+ vr--overlay-priority 0))))))))
 
-(defun vr--get-replacements (replace-string feedback feedback-limit)
+(defun vr--get-replacements (feedback feedback-limit)
   "Get replacements using emacs-style regexp."
   (setq vr--limit-reached nil)
   (let ((regexp-string)
+        (replace-string (vr--get-replace-string))
         (message-line "")
         (i 0)
         (replacements (list))
@@ -592,7 +611,8 @@ visible all the time in the minibuffer."
 (defun vr--do-replace-feedback ()
   "Show visual feedback for replacements."
   (vr--feedback t) ;; only really needed when regexp has not been changed from default (=> no overlays have been created)
-  (cl-multiple-value-bind (replacements message-line) (vr--get-replacements (minibuffer-contents-no-properties) t vr--feedback-limit)
+  (custom-reevaluate-setting 'vr/match-separator-string)
+  (cl-multiple-value-bind (replacements message-line) (vr--get-replacements t vr--feedback-limit)
     ;; visual feedback for matches
     (condition-case err
         (mapc (lambda (replacement-info) (apply 'vr--do-replace-feedback-match-callback replacement-info)) replacements)
@@ -606,7 +626,7 @@ visible all the time in the minibuffer."
   "Replace matches."
   (vr--delete-overlay-displays)
   (vr--delete-overlays)
-  (cl-multiple-value-bind (replacements message-line) (vr--get-replacements vr--replace-string nil nil)
+  (cl-multiple-value-bind (replacements message-line) (vr--get-replacements nil nil)
     (let ((replace-count 0)
           (cumulative-offset 0)
           last-match-data)
@@ -649,23 +669,55 @@ visible all the time in the minibuffer."
     (deactivate-mark)
     (setq vr--in-minibuffer 'vr--minibuffer-regexp)
     (setq vr--last-minibuffer-contents "")
-    (setq vr--regexp-string
-          (read-from-minibuffer
-           " " ;; prompt will be  set in vr--minibuffer-setup
-           nil vr/minibuffer-regexp-keymap
-           nil vr/query-replace-from-history-variable))))
+    (custom-reevaluate-setting 'query-replace-from-to-separator)
+    (let* ((minibuffer-allow-text-properties t)
+           (history-add-new-input nil)
+           (text-property-default-nonsticky
+            (cons '(separator . t) text-property-default-nonsticky))
+           ;; seperator and query-replace-from-to-history copy/pasted from replace.el
+           (separator
+            (when query-replace-from-to-separator
+              (propertize "\0"
+                          'display query-replace-from-to-separator
+                          'separator t)))
+           (query-replace-from-to-history
+            (append
+             (when separator
+               (mapcar (lambda (from-to)
+                         (concat (query-replace-descr (car from-to))
+                                 separator
+                                 (query-replace-descr (cdr from-to))))
+                       (symbol-value vr/query-replace-defaults-variable)))
+             (symbol-value vr/query-replace-from-history-variable))))
+      (setq vr--regexp-string
+            (read-from-minibuffer
+             " " ;; prompt will be set in vr--minibuffer-setup
+             nil vr/minibuffer-keymap
+             nil 'query-replace-from-to-history))
+      (let ((split (vr--query-replace--split-string vr--regexp-string)))
+        (if (not (consp split))
+            (add-to-history vr/query-replace-from-history-variable vr--regexp-string nil t)
+          (add-to-history vr/query-replace-from-history-variable (car split) nil t)
+          (add-to-history vr/query-replace-to-history-variable (cdr split) nil t)
+          (add-to-history vr/query-replace-defaults-variable split nil t))))))
 
 (defun vr--set-replace-string ()
   (save-excursion
     ;; deactivate mark so that we can see our faces instead of region-face.
     (deactivate-mark)
-    (setq vr--in-minibuffer 'vr--minibuffer-replace)
-    (setq vr--last-minibuffer-contents "")
-    (setq vr--replace-string
-          (read-from-minibuffer
-           " " ;; prompt will be  set in vr--minibuffer-setup
-           nil vr/minibuffer-replace-keymap
-           nil vr/query-replace-to-history-variable))))
+    (let ((split (vr--query-replace--split-string vr--regexp-string)))
+      (unless (consp split)
+        (setq vr--in-minibuffer 'vr--minibuffer-replace)
+        (setq vr--last-minibuffer-contents "")
+        (let ((history-add-new-input nil))
+          (setq vr--replace-string
+                (read-from-minibuffer
+                 " " ;; prompt will be set in vr--minibuffer-setup
+                 nil vr/minibuffer-keymap
+                 nil vr/query-replace-to-history-variable))
+          (add-to-history vr/query-replace-to-history-variable vr--replace-string nil t)
+          (add-to-history vr/query-replace-defaults-variable (cons vr--regexp-string vr--replace-string))
+          )))))
 
 (defun vr--interactive-get-args (mode calling-func)
   "Get interactive args for the vr/replace and vr/query-replace functions."
@@ -802,19 +854,20 @@ E [not supported in visual-regexp]"
               vr--target-buffer-start start
               vr--target-buffer-end end
               vr--regexp-string regexp
-              vr--replace-string replace
-              vr--query-replacements (nreverse (car (vr--get-replacements replace nil nil))))
-        (vr--perform-query-replace regexp nil))
+              vr--replace-string replace)
+        (vr--perform-query-replace))
     ;; execute on finish
     (setq vr--in-minibuffer nil)))
 
-(defun vr--perform-query-replace (from-string &optional map)
+(defun vr--perform-query-replace ()
   ;; This function is a heavily modified version of (perform-replace) from replace.el.
   ;; The original plan was to use the original perform-replace, but various issues stood in the way.
-  (or map (setq map vr--query-replace-map))
   (and minibuffer-auto-raise
        (raise-frame (window-frame (minibuffer-window))))
-  (let* ((next-replacement nil) ;; replacement string for current match
+  (let* ((from-string (vr--get-regexp-string))
+         (map vr--query-replace-map)
+         (vr--query-replacements (nreverse (car (vr--get-replacements nil nil))))
+         (next-replacement nil) ;; replacement string for current match
          (keep-going t)
          (replace-count 0)
          ;; a match can be replaced by a longer/shorter replacement. cumulate the difference
