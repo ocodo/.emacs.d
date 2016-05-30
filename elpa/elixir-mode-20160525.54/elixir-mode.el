@@ -72,16 +72,6 @@
 (defvar elixir-key-label-offset 0)
 (defvar elixir-match-label-offset 2)
 
-(defvar elixir-negation-face 'elixir-negation-face)
-(defface elixir-negation-face
-  '((((class color) (min-colors 88) (background light))
-     :foreground "#ff4500")
-    (((class color) (background dark))
-     (:foreground "#ff4500"))
-    (t nil))
-  "For use with standalone \"?\" to indicate code point."
-  :group 'font-lock-faces)
-
 (defvar elixir-attribute-face 'elixir-attribute-face)
 (defface elixir-attribute-face
   '((((class color) (min-colors 88) (background light))
@@ -100,16 +90,6 @@
      (:foreground "light sky blue"))
     (t nil))
   "For use with atoms & map keys."
-  :group 'font-lock-faces)
-
-(defvar elixir-ignored-var-face 'elixir-ignored-var-face)
-(defface elixir-ignored-var-face
-  '((((class color) (min-colors 88) (background light))
-     :foreground "#424242")
-    (((class color) (background dark))
-     (:foreground "#616161"))
-    (t nil))
-  "For use with ignored variables (starting with underscore)."
   :group 'font-lock-faces)
 
 (eval-when-compile
@@ -145,7 +125,7 @@
       (builtin-namespace . ,(rx symbol-start
                                 (or "import" "require" "use" "alias")
                                 symbol-end))
-      ;; Set aside code point syntax for `elixir-negation-face'.
+      ;; Set aside code point syntax for negation face.
       (code-point . ,(rx symbol-start
                          "?"
                          anything
@@ -419,7 +399,7 @@ is used to limit the scan."
                              (any "A-Z" "a-z" "0-9"))
                         (zero-or-more (any "A-Z" "a-z" "0-9" "_"))
                         (optional (or "?" "!"))))
-     1 elixir-ignored-var-face)
+     1 font-lock-comment-face)
 
     ;; Map keys
     (,(elixir-rx (group (and (one-or-more identifiers) ":")) space)
@@ -431,7 +411,7 @@ is used to limit the scan."
 
     ;; Code points
     (,(elixir-rx (group code-point))
-     1 elixir-negation-face)))
+     1 font-lock-negation-char-face)))
 
 ;;;###autoload
 (defun elixir-mode-open-modegithub ()
