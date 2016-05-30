@@ -2,13 +2,13 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/edit-indirect
-;; Version: 20141213.1005
-;; X-Original-Version: 0.1.2
+;; Package-Version: 20160528.651
+;; Version: 0.1.4
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
-;; Copyright (c) 2014, Fanael Linithien
+;; Copyright (c) 2014-2016, Fanael Linithien
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -107,6 +107,7 @@ end of the changed region."
            "This is not an edit-indirect buffer"))
 
 (defvar edit-indirect--overlay)
+(defvar edit-indirect--should-quit-window nil)
 
 ;;;###autoload
 (defun edit-indirect-region (beg end &optional display-buffer)
@@ -144,6 +145,8 @@ In any case, return the edit-indirect buffer."
      (user-error "No region")))
   (let ((buffer (edit-indirect--get-edit-indirect-buffer beg end)))
     (when display-buffer
+      (with-current-buffer buffer
+        (setq-local edit-indirect--should-quit-window t))
       (select-window (display-buffer buffer)))
     buffer))
 
@@ -339,7 +342,9 @@ called with updated positions."
   ;; won't try to call us again.
   (setq edit-indirect--overlay nil)
   ;; If we created a window, get rid of it. Kill the buffer we created.
-  (quit-window t))
+  (if edit-indirect--should-quit-window
+      (quit-window t)
+    (kill-buffer)))
 
 (defun edit-indirect--abort-on-kill-buffer ()
   "Abort indirect edit.
