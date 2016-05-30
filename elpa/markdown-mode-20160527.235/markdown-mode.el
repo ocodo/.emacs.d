@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160513.618
+;; Package-Version: 20160527.235
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -1521,7 +1521,7 @@ Function is called repeatedly until it returns nil. For details, see
              (code-match (markdown-code-block-at-pos end))
              (new-end (or (and code-match (cl-second code-match)) new-end)))
         (unless (and (eq new-start start) (eq new-end end))
-          (cons new-start new-end))))))
+          (cons new-start (min new-end (point-max))))))))
 
 (defun markdown-font-lock-extend-region-function (start end _)
   "Used in `jit-lock-after-change-extend-region-functions'.
