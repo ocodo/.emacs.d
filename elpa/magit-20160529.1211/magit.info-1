@@ -767,6 +767,13 @@ File: magit.info,  Node: Switching Buffers,  Next: Naming Buffers,  Up: Modes an
      function should call ‘display-buffer’ with that buffer as first and
      a list of display actions as second argument.
 
+     Magit provides several functions, listed below, that are suitable
+     values for this option.  If you want to use different rules, then a
+     good way of doing that is to start with a copy of one of these
+     functions and then adjust it to your needs.  More functions to
+     choose from will likely be added in the future, and eventually the
+     default will change.
+
      Instead of using a wrapper around ‘display-buffer’, that function
      itself can be used here, in which case the display actions have to
      be specified by adding them to ‘display-buffer-alist’ instead.
@@ -782,10 +789,36 @@ File: magit.info,  Node: Switching Buffers,  Next: Naming Buffers,  Up: Modes an
      over the code base but now all the rules are contained in this one
      function (except for the "noselect" special case mentioned above).
 
-     If you want to use different rules, then a good way of doing that
-     is to start with a copy of this function and then adjust it to your
-     needs.  More functions to choose from will be added in the future,
-     and eventually the default will change.
+ -- Function: magit-display-buffer-same-window-except-diff-v1
+
+     This function displays most buffers in the currently selected
+     window.  If a buffer’s mode derives from ‘magit-diff-mode’ or
+     ‘magit-process-mode’, it is displayed in another window.
+
+ -- Function: magit-display-buffer-fullframe-status-v1
+
+     This function fills the entire frame when displaying a status
+     buffer.  Otherwise, it behaves like
+     ‘magit-display-buffer-traditional’.
+
+ -- Function: magit-display-buffer-fullframe-status-topleft-v1
+
+     This function fills the entire frame when displaying a status
+     buffer.  It behaves like ‘magit-display-buffer-fullframe-status-v1’
+     except that it displays buffers that derive from ‘magit-diff-mode’
+     or ‘magit-process-mode’ to the top or left of the current buffer
+     rather than to the bottom or right.  As a result, Magit buffers
+     tend to pop up on the same side as they would if
+     ‘magit-display-buffer-traditional’ were in use.
+
+ -- Function: magit-display-buffer-fullcolumn-most-v1
+
+     This function displays most buffers so that they fill the entire
+     height of the frame.  However, the buffer is displayed in another
+     window if 1) the buffer’s mode derives from ‘magit-process-mode’,
+     or 2) the buffer’s mode derives from ‘magit-diff-mode’, provided
+     that the mode of the current buffer derives from ‘magit-log-mode’
+     or ‘magit-cherry-mode’.
 
  -- User Option: magit-pre-display-buffer-hook
 
@@ -3849,7 +3882,7 @@ features are available from separate popups.
      then the target branch is set as the upstream of the branch that is
      being reset.
 
-‘b d’     (‘magit-branch-delete’)
+‘b k’     (‘magit-branch-delete’)
 
      Delete one or multiple branches.  If the region marks multiple
      branches, then offer to delete those.  Otherwise, prompt for a
@@ -7248,9 +7281,9 @@ Appendix B Keystroke Index
 * B b:                                   Bisecting.           (line  31)
 * b b:                                   The branch popup.    (line  29)
 * b c:                                   The branch popup.    (line  47)
-* b d:                                   The branch popup.    (line  88)
 * B g:                                   Bisecting.           (line  36)
 * B k:                                   Bisecting.           (line  41)
+* b k:                                   The branch popup.    (line  88)
 * b n:                                   The branch popup.    (line  37)
 * B r:                                   Bisecting.           (line  47)
 * b r:                                   The branch popup.    (line  94)

@@ -1,0 +1,174 @@
+This is magit.info, produced by makeinfo version 5.2 from magit.texi.
+
+Magit is an interface to the version control system Git, implemented as
+an Emacs package.  Magit aspires to be a complete Git porcelain.  While
+we cannot (yet) claim that Magit wraps and improves upon each and every
+Git command, it is complete enough to allow even experienced Git users
+to perform almost all of their daily version control tasks directly from
+within Emacs.  While many fine Git clients exist, only Magit and Git
+itself deserve to be called porcelains.
+
+     Copyright (C) 2015-2016 Jonas Bernoulli <jonas@bernoul.li>
+
+     You can redistribute this document and/or modify it under the terms
+     of the GNU General Public License as published by the Free Software
+     Foundation, either version 3 of the License, or (at your option)
+     any later version.
+
+     This document is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+     General Public License for more details.
+INFO-DIR-SECTION Emacs
+START-INFO-DIR-ENTRY
+* Magit: (magit).       Using Git from Emacs with Magit.
+END-INFO-DIR-ENTRY
+
+
+Indirect:
+magit.info-1: 1222
+magit.info-2: 310059
+
+Tag Table:
+(Indirect)
+Node: Top1222
+Node: Introduction6369
+Node: Installation11062
+Node: Updating from an older release11437
+Node: Installing from an Elpa archive13032
+Node: Installing from the Git repository14371
+Node: Post-installation tasks17167
+Node: Getting started18556
+Node: Interface concepts24291
+Node: Modes and Buffers24565
+Node: Switching Buffers26311
+Node: Naming Buffers30969
+Node: Quitting Windows33804
+Node: Automatic Refreshing of Magit Buffers35436
+Node: Automatic Saving of File-Visiting Buffers38204
+Node: Automatic Reverting of File-Visiting Buffers39389
+Node: Risk of Reverting Automatically44385
+Node: Sections46768
+Node: Section movement47709
+Node: Section visibility51636
+Node: Section hooks55227
+Node: Section types and values57508
+Node: Section options58778
+Node: Popup buffers and prefix commands59250
+Node: Completion and confirmation60564
+Node: Running Git63470
+Node: Viewing Git output63706
+Node: Running Git manually64706
+Node: Git executable66832
+Node: Global Git arguments68839
+Node: Inspecting69646
+Node: Status buffer70773
+Node: Status sections73296
+Node: Status header sections78705
+Node: Status options81262
+Node: Logging81986
+Node: Refreshing logs84722
+Node: Log Buffer86107
+Node: Select from log89196
+Node: Reflog90136
+Node: Diffing90614
+Node: Refreshing diffs93634
+Node: Diff buffer96615
+Node: Diff options98517
+Node: Revision buffer100273
+Node: Ediffing101228
+Node: References buffer104818
+Node: References sections109528
+Node: Bisecting110403
+Node: Visiting blobs111899
+Node: Blaming112408
+Node: Manipulating115728
+Node: Repository setup116044
+Node: Staging and unstaging117084
+Node: Staging from file-visiting buffers121173
+Node: Applying122341
+Node: Committing124234
+Node: Initiating a commit124817
+Node: Editing commit messages128129
+Node: Branching138525
+Node: The two remotes138725
+Node: The branch popup141269
+Node: The branch config popup147358
+Node: Merging153264
+Node: Resolving conflicts155432
+Ref: orgradiotarget1156517
+Node: Rebasing160389
+Node: Editing rebase sequences164030
+Node: Information about in-progress rebase167060
+Ref: Information about in-progress rebase-Footnote-1173896
+Node: Cherry picking174482
+Node: Reverting176088
+Node: Resetting177451
+Node: Stashing178963
+Node: Transferring182137
+Node: Remotes182375
+Node: Fetching183661
+Node: Pulling185027
+Node: Pushing185873
+Node: Creating and sending patches190617
+Node: Applying patches191312
+Node: Miscellaneous192310
+Node: Tagging192613
+Node: Notes193398
+Node: Submodules195923
+Node: Subtree197235
+Node: Common commands198483
+Node: Wip modes200228
+Node: Minor mode for buffers visiting files206964
+Node: Minor mode for buffers visiting blobs210438
+Node: Customizing211243
+Node: Per-repository configuration212915
+Node: Essential settings214549
+Node: Safety214873
+Node: Performance216706
+Node: Plumbing224665
+Node: Calling Git225293
+Node: Getting a value from Git226816
+Node: Calling Git for effect229920
+Node: Section plumbing236424
+Node: Creating sections236652
+Node: Section selection240551
+Node: Matching sections242231
+Node: Refreshing buffers247433
+Node: Conventions250568
+Node: Confirmation and completion250745
+Node: Theming Faces251643
+Node: FAQ259794
+Node: Magit is slow261407
+Node: I changed several thousand files at once and now Magit is unusable261608
+Node: I am having problems committing262324
+Node: Diffs are collapsed after un-/staging262770
+Node: I don't understand how branching and pushing work264248
+Node: I don't like the key binding in v24264623
+Node: I cannot install the pre-requisites for Magit v2264962
+Node: I am using an Emacs release older than v244265427
+Node: I am using a Git release older than v194267040
+Node: I am using MS Windows and cannot push with Magit268027
+Node: I am using OS X and SOMETHING works in shell but not in Magit268631
+Node: How to install the gitman info manual?269422
+Node: How can I show Git's output?271963
+Node: Diffs contain control sequences272750
+Node: Expanding a file to show the diff causes it to disappear273755
+Node: Point is wrong in the ‘COMMIT_EDITMSG’ buffer274290
+Node: The mode-line information isn't always up-to-date275320
+Node: Can Magit be used as ‘ediff-version-control-package’?276388
+Node: How to show diffs for gpg-encrypted files?278432
+Node: Emacs 245 hangs when loading Magit279029
+Node: Symbol's value as function is void ‘--some’279604
+Node: Where is the branch manager279938
+Node: Keystroke Index280229
+Node: Command Index310059
+Node: Function Index339776
+Node: Variable Index352607
+
+End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

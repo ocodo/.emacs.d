@@ -1370,10 +1370,12 @@ changes.
            (setq start  (magit-read-starting-point prompt))
            (setq branch (magit-read-string-ns
                          "Branch name"
-                         (and (member start (magit-list-remote-branch-names))
-                              (mapconcat #'identity
-                                         (cdr (split-string start "/"))
-                                         "/")))))
+                         (let ((def (mapconcat #'identity
+                                               (cdr (split-string start "/"))
+                                               "/")))
+                           (and (member start (magit-list-remote-branch-names))
+                                (not (member def (magit-list-local-branch-names)))
+                                def)))))
           (t
            (setq branch (magit-read-string-ns "Branch name"))
            (setq start  (magit-read-starting-point prompt))))
@@ -1531,7 +1533,8 @@ With prefix, forces the rename even if NEW already exists.
   (interactive
    (let ((branch (magit-read-local-branch "Rename branch")))
      (list branch
-           (magit-read-string-ns (format "Rename branch '%s' to" branch))
+           (magit-read-string-ns (format "Rename branch '%s' to" branch)
+                                 nil 'magit-revision-history)
            current-prefix-arg)))
   (unless (string= old new)
     (magit-run-git "branch" (if force "-M" "-m") old new)))
@@ -2194,16 +2197,25 @@ If there is only one worktree, then insert nothing."
     (when (> (length worktrees) 1)
       (magit-insert-section (worktrees)
         (magit-insert-heading "Worktrees:")
-        (dolist (worktree worktrees)
-          (-let [(path barep commit branch) worktree]
+        (let* ((cols
+                (mapcar (-lambda ((path barep commit branch))
+                          (cons (cond
+                                 (branch (propertize branch
+                                                     'face 'magit-branch-local))
+                                 (commit (propertize (magit-rev-abbrev commit)
+                                                     'face 'magit-hash))
+                                 (barep  "(bare)"))
+                                path))
+                        worktrees))
+               (align (1+ (-max (--map (string-width (car it)) cols)))))
+          (pcase-dolist (`(,head . ,path) cols)
             (magit-insert-section (worktree path)
-              (insert (cond (branch (propertize branch
-                                                'face 'magit-branch-local))
-                            (commit (propertize (magit-rev-abbrev commit)
-                                                'face 'magit-hash))
-                            (barep  "(bare)")
-                            (t      "(detached)")))
-              (insert ?\s path ?\n))))
+              (insert head)
+              (indent-to align)
+              (insert (let ((r (file-relative-name path))
+                            (a (abbreviate-file-name path)))
+                        (if (< (string-width r) (string-width a)) r a)))
+              (insert ?\n))))
         (insert ?\n)))))
 
 ;;;; Tag
@@ -2869,7 +2881,7 @@ When the region is active, then save that to the `kill-ring',
 like `kill-ring-save' would, instead of behaving as described
 above."
   (interactive)
-  (if (region-active-p)
+  (if (use-region-p)
       (copy-region-as-kill (mark) (point) 'region)
     (-when-let* ((section (magit-current-section))
                  (value (magit-section-value section)))
@@ -2912,7 +2924,7 @@ When the region is active, then save that to the `kill-ring',
 like `kill-ring-save' would, instead of behaving as described
 above."
   (interactive)
-  (if (region-active-p)
+  (if (use-region-p)
       (copy-region-as-kill (mark) (point) 'region)
     (-when-let (rev (cond ((memq major-mode '(magit-cherry-mode
                                               magit-log-select-mode
