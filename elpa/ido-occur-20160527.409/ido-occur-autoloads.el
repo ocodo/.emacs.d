@@ -3,14 +3,15 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ido-occur" "ido-occur.el" (22168 61920 431495
-;;;;;;  974000))
+;;;### (autoloads nil "ido-occur" "ido-occur.el" (22347 49579 977195
+;;;;;;  680000))
 ;;; Generated autoloads from ido-occur.el
 
 (autoload 'ido-occur "ido-occur" "\
 Yet another `occur' with `ido'.
+When non-nil, QUERY is the initial search pattern.
 
-\(fn)" t nil)
+\(fn &optional QUERY)" t nil)
 
 ;;;***
 
