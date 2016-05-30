@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160519.744
+;; Package-Version: 20160524.1242
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -515,6 +515,19 @@ Update the minibuffer with the amount of lines collected every
 (ivy-set-display-transformer
  'counsel-M-x
  'counsel-M-x-transformer)
+
+;;;###autoload
+(defun counsel-bookmark ()
+  "Forward to `bookmark-jump'."
+  (interactive)
+  (require 'bookmark)
+  (ivy-read "Jump to bookmark: "
+            (bookmark-all-names)
+            :action (lambda (x)
+                      (with-ivy-window
+                        (bookmark-jump x)))
+            :require-match t
+            :caller 'counsel-bookmark))
 
 (defun counsel-M-x-transformer (cmd)
   "Return CMD appended with the corresponding binding in the current window."
@@ -2089,6 +2102,20 @@ And insert it into the minibuffer. Useful during
   (ivy-read "Run a command: " (counsel-linux-apps-list)
             :action #'counsel-linux-app-action-default
             :caller 'counsel-linux-app))
+
+;;;###autoload
+(defun counsel-company ()
+  "Complete using `company-candidates'."
+  (interactive)
+  (unless company-candidates
+    (company-complete))
+  (when company-point
+    (company-complete-common)
+    (when (looking-back company-common (line-beginning-position))
+      (setq ivy-completion-beg (match-beginning 0))
+      (setq ivy-completion-end (match-end 0)))
+    (ivy-read "company cand: " company-candidates
+              :action #'ivy-completion-in-region-action)))
 
 ;;** `counsel-mode'
 (defvar counsel-mode-map

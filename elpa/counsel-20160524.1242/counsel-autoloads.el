@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22338 19909 111653
-;;;;;;  41000))
+;;;### (autoloads nil "counsel" "counsel.el" (22347 49636 81247 67000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -41,6 +40,11 @@ Forward to `describe-function'.
 Forward to (`info-describe-symbol' SYMBOL MODE) with ivy completion.
 
 \(fn SYMBOL &optional MODE)" t nil)
+
+(autoload 'counsel-bookmark "counsel" "\
+Forward to `bookmark-jump'.
+
+\(fn)" t nil)
 
 (autoload 'counsel-M-x "counsel" "\
 Ivy version of `execute-extended-command'.
@@ -181,6 +185,11 @@ Choose a song from the Rhythmbox library to play or enqueue.
 
 (autoload 'counsel-linux-app "counsel" "\
 Launch a Linux desktop application, similar to Alt-<F2>.
+
+\(fn)" t nil)
+
+(autoload 'counsel-company "counsel" "\
+Complete using `company-candidates'.
 
 \(fn)" t nil)
 
