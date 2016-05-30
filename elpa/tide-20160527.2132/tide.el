@@ -86,7 +86,7 @@
      (make-variable-buffer-local ',name)
      (put ',name 'permanent-local t)))
 
-(defvar tide-supported-modes '(typescript-mode web-mode))
+(defvar tide-supported-modes '(typescript-mode web-mode javascript-mode js2-mode))
 
 (defvar tide-server-buffer-name "*tide-server*")
 (defvar tide-request-counter 0)
@@ -344,14 +344,19 @@ LINE is one based, OFFSET is one based and column is zero based"
 
 (defun tide-file-format-options ()
   (tide-combine-plists
-   `(:tabSize ,tab-width :indentSize ,typescript-indent-level :convertTabToSpaces ,(not indent-tabs-mode))
+   `(:tabSize ,tab-width :indentSize ,typescript-indent-level)
    tide-format-options))
 
 (defun tide-command:configure ()
   (tide-send-command "configure" `(:hostInfo ,(emacs-version) :file ,buffer-file-name :formatOptions ,(tide-file-format-options))))
 
 (defun tide-command:openfile ()
-  (tide-send-command "open" `(:file ,buffer-file-name)))
+  (tide-send-command "open"
+                     (append `(:file ,buffer-file-name)
+                             (let ((extension (upcase (file-name-extension buffer-file-name))))
+                               (if (member extension '("TS" "JS" "TSX" "JSX"))
+                                   `(:scriptKindName ,extension)
+                                 nil)))))
 
 (defun tide-command:closefile ()
   (tide-send-command "close" `(:file ,buffer-file-name)))
@@ -633,6 +638,7 @@ With a prefix arg, Jump to the type definition."
   (cl-case command
     (interactive (company-begin-backend 'company-tide))
     (prefix (and
+             (bound-and-true-p tide-mode)
              (-any-p #'derived-mode-p tide-supported-modes)
              (tide-current-server)
              (not (company-in-string-or-comment))
@@ -880,8 +886,8 @@ number."
     map))
 
 (defun tide-configure-buffer ()
-  (tide-command:configure)
-  (tide-command:openfile))
+  (tide-command:openfile)
+  (tide-command:configure))
 
 (defun tide-cleanup-buffer ()
   (tide-command:closefile)
@@ -966,15 +972,15 @@ number."
     :face (if (tide-current-server) 'success '(bold error)))
    (flycheck-verification-result-new
     :label "Tide mode"
-    :message (if tide-mode "enabled" "disabled")
-    :face (if tide-mode 'success '(bold warning)))))
+    :message (if (bound-and-true-p tide-mode) "enabled" "disabled")
+    :face (if (bound-and-true-p tide-mode) 'success '(bold warning)))))
 
 (flycheck-define-generic-checker 'typescript-tide
   "A syntax checker for Typescript using Tide Mode."
   :start #'tide-flycheck-start
   :verify #'tide-flycheck-verify
   :modes tide-supported-modes
-  :predicate (lambda () (and tide-mode (tide-current-server) (not (file-equal-p (tide-project-root) tide-tsserver-directory)))))
+  :predicate (lambda () (and (bound-and-true-p tide-mode) (tide-current-server) (not (file-equal-p (tide-project-root) tide-tsserver-directory)))))
 
 (add-to-list 'flycheck-checkers 'typescript-tide)
 (flycheck-add-next-checker 'typescript-tide '(warning . typescript-tslint) 'append)
