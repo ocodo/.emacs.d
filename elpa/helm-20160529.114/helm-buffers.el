@@ -30,6 +30,7 @@
 (declare-function ido-make-buffer-list "ido" (default))
 (declare-function ido-add-virtual-buffers-to-list "ido")
 (declare-function helm-comp-read "helm-mode")
+(declare-function helm-browse-project "helm-files")
 
 
 (defgroup helm-buffers nil
@@ -153,6 +154,7 @@ Only buffer names are fuzzy matched when this is enabled,
     ;; So use zgrep for both as it is capable to handle non--compressed files.
     (define-key map (kbd "M-g s")     'helm-buffer-run-zgrep)
     (define-key map (kbd "C-s")       'helm-buffers-run-multi-occur)
+    (define-key map (kbd "C-x C-d")   'helm-buffers-run-browse-project)
     (define-key map (kbd "C-c o")     'helm-buffer-switch-other-window)
     (define-key map (kbd "C-c C-o")   'helm-buffer-switch-other-frame)
     (define-key map (kbd "C-c =")     'helm-buffer-run-ediff)
@@ -186,6 +188,7 @@ Only buffer names are fuzzy matched when this is enabled,
 
 (defvar helm-buffers-list-cache nil)
 (defvar helm-buffer-max-len-mode nil)
+(defvar helm-buffers-in-project-p nil)
 
 (defun helm-buffers-list--init ()
   ;; Issue #51 Create the list before `helm-buffer' creation.
@@ -842,6 +845,18 @@ Can be used by any source that list buffers."
       (helm-force-update))))
 (put 'helm-buffers-toggle-show-hidden-buffers 'helm-only t)
 
+(defun helm-buffers-browse-project (buf)
+  "Browse project from buffer."
+  (with-current-buffer buf
+    (helm-browse-project helm-current-prefix-arg)))
+
+(defun helm-buffers-run-browse-project ()
+  "Run `helm-buffers-browse-project' from key."
+  (interactive)
+  (with-helm-alive-p
+      (if helm-buffers-in-project-p
+          (user-error "You are already browsing this project")
+          (helm-exit-and-execute-action 'helm-buffers-browse-project))))
 
 ;;; Candidate Transformers
 ;;
