@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("dired-hacks-utils.el") (21975 62541 461970
-;;;;;;  790000))
+;;;### (autoloads nil nil ("dired-hacks-utils.el") (22347 49621 701984
+;;;;;;  539000))
 
 ;;;***
 

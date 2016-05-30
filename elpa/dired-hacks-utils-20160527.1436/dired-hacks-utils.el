@@ -5,7 +5,7 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Keywords: files
-;; Package-Version: 20150819.948
+;; Package-Version: 20160527.1436
 ;; Version: 0.0.1
 ;; Created: 14th February 2014
 ;; Package-requires: ((dash "2.5.0"))
@@ -46,7 +46,10 @@
   :prefix "dired-hacks-")
 
 (defun dired-utils-get-filename (&optional localp)
-  "Like `dired-get-filename' but never signal an error."
+  "Like `dired-get-filename' but never signal an error.
+
+Optional arg LOCALP with value `no-dir' means don't include
+directory name in result."
   (dired-get-filename localp t))
 
 (defun dired-utils-get-all-files (&optional localp)
@@ -70,6 +73,7 @@ LOCALP has same semantics as in `dired-get-filename'."
   "List of keywords available for `dired-utils-get-info'.")
 
 (defun dired-utils--get-keyword-info (keyword)
+  "Get file information about KEYWORD."
   (let ((filename (dired-utils-get-filename)))
     (cl-case keyword
       (:name filename)
@@ -83,10 +87,12 @@ LOCALP has same semantics as in `dired-get-filename'."
 (defun dired-utils-get-info (&rest keywords)
   "Query for info about the file at point.
 
+KEYWORDS is a list of attributes to query.
+
 When querying for one attribute, its value is returned.  When
 querying for more than one, a list of results is returned.
 
-The available attributes are listed in
+The available keywords are listed in
 `dired-utils-info-keywords'."
   (let ((attributes (mapcar 'dired-utils--get-keyword-info keywords)))
     (if (> (length attributes) 1)
@@ -126,7 +132,7 @@ Each car in ALIST is a string representing file extension
 *without* the delimiting dot."
   (let (done)
     (--each-while alist (not done)
-      (when (string-match-p (concat "\\." (regexp-quote (car it)) "\\'") file)
+      (when (string-match-p (concat "\\." (regexp-quote (car it)) "\\'") filename)
         (setq done it)))
     done))
 
