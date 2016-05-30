@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/helm-projectile
-;; Package-Version: 20160429.1849
+;; Package-Version: 20160529.523
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
@@ -167,7 +167,7 @@ DIR is the project root."
     (projectile-run-project helm-current-prefix-arg)))
 
 (defun helm-projectile-remove-known-project (_ignore)
-  "Delete selected projects.
+  "Remove selected projects from projectile project list.
 _IGNORE means the argument does not matter.
 It is there because Helm requires it."
   (let* ((projects (helm-marked-candidates :with-wildcard t))
@@ -175,14 +175,14 @@ It is there because Helm requires it."
     (with-helm-display-marked-candidates
       helm-marked-buffer-name
       projects
-      (if (not (y-or-n-p (format "Delete *%s projects(s)? " len)))
-          (message "(No deletion performed)")
+      (if (not (y-or-n-p (format "Remove *%s projects(s)? " len)))
+          (message "(No removal performed)")
         (progn
           (mapc (lambda (p)
                   (delete p projectile-known-projects))
                 projects)
           (projectile-save-known-projects))
-        (message "%s projects(s) deleted" len)))))
+        (message "%s projects(s) removed" len)))))
 
 (defvar helm-projectile-projects-map
   (let ((map (make-sparse-keymap)))
@@ -219,7 +219,7 @@ It is there because Helm requires it."
               ("Grep in projects `C-s'" . helm-projectile-grep)
               ("Compile project `M-c'. With C-u, new compile command"
                . helm-projectile-compile-project)
-              ("Remove project(s) `M-D'" . helm-projectile-remove-known-project)))
+              ("Remove project(s) from project list `M-D'" . helm-projectile-remove-known-project)))
   "Helm source for known projectile projects.")
 
 (define-key helm-etags-map (kbd "C-c p f")
