@@ -26,33 +26,11 @@
 (require 's)
 (require 'dash)
 (require 'json)
+(require 'request)
 
 (defcustom docker-api-connection-url "unix:///var/run/docker.sock"
   "Docker connection url."
   :group 'docker-api)
-
-(defcustom docker-api-connection-process-name "docker-http"
-  "Docker connection process name."
-  :group 'docker-api)
-
-(defcustom docker-api-connection-process-buffer "*docker-http*"
-  "Docker connection process buffer name."
-  :group 'docker-api)
-
-(defvar docker-api-connection--http-data nil
-  "Temporary buffer holding HTTP data.")
-
-(defvar docker-api-connection--request-finished nil
-  "Temporary boolean flag holding wether the request is finished or not.")
-
-(defun docker-api-connection-process-filter(process string)
-  "Append received data to `docker-api-connection--http-data'."
-  (setq docker-api-connection--http-data (concat docker-api-connection--http-data string)))
-
-(defun docker-api-connection-process-sentinel (process event)
-  "Notify that all data was received with `docker-api-connection--request-finished'."
-  (when (memq (process-status process) '(closed exit signal))
-    (setq docker-api-connection--request-finished t)))
 
 (defun docker-api-connection-process-components (url)
   "Parse URL and extract `make-network-process' family, host & service components."
@@ -62,31 +40,26 @@
         (list 'local nil (url-filename components))
       (list 'ipv4 (url-host components) (url-port components)))))
 
-(defun docker-api-make-connection-process ()
-  "Create the docker connection process."
-  (-let [(family host service) (docker-api-connection-process-components docker-api-connection-url)]
-    (make-network-process
-     :name     docker-api-connection-process-name
-     :buffer   docker-api-connection-process-buffer
-     :family   family
-     :host     host
-     :service  service
-     :filter   #'docker-api-connection-process-filter
-     :sentinel #'docker-api-connection-process-sentinel)))
+(defun docker-api-handle-response (&rest data)
+  "Helper that checks if DATA contains errors for `docker-api-http-request'."
+  (let* ((response (plist-get data :response))
+         (data (request-response-data response)))
+    (when (request-response-error-thrown response)
+      (error data))
+    data))
 
 (defun docker-api-http-request (method path)
   "Make a docker HTTP request using METHOD at PATH."
-  (let ((request (format "%s %s HTTP/1.0\r\n\r\n" (upcase (symbol-name method)) path))
-        (docker-api-connection--http-data nil)
-        (docker-api-connection--request-finished nil)
-        (process (docker-api-make-connection-process)))
-    (process-send-string process request)
-    (while (not docker-api-connection--request-finished)
-      (accept-process-output process 1))
-    (let* ((index (s-index-of "\r\n\r\n" docker-api-connection--http-data))
-           (headers (substring docker-api-connection--http-data 0 index))
-           (data (substring docker-api-connection--http-data (+ index 4))))
-      data)))
+  (let* ((components (url-generic-parse-url docker-api-connection-url))
+         (is-local (string-equal "unix" (url-type components)))
+         (http-data))
+    (request (if is-local (format "http:%s" path) docker-api-connection-url)
+             :unix-socket (when is-local (url-filename components))
+             :type (upcase (symbol-name method))
+             :parser 'buffer-string
+             :sync t
+             :complete (lambda (&rest data) (setq http-data (apply #'docker-api-handle-response data))))
+    http-data))
 
 (defun docker-api-json-request (method path)
   "Make a docker HTTP request using METHOD at PATH, with results parsed as json.

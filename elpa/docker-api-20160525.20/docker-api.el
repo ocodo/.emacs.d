@@ -3,7 +3,7 @@
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/docker-api.el
 ;; Version: 0.0.1
-;; Package-Requires: ((dash "2.12.1") (s "1.11.0"))
+;; Package-Requires: ((dash "2.12.1") (request "0.2.0") (s "1.11.0"))
 
 ;; This file is NOT part of GNU Emacs.
 

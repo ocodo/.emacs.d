@@ -5,8 +5,8 @@
 
 ;;;### (autoloads nil nil ("docker-api-connection.el" "docker-api-containers.el"
 ;;;;;;  "docker-api-images.el" "docker-api-networks.el" "docker-api-pkg.el"
-;;;;;;  "docker-api-volumes.el" "docker-api.el") (22309 38739 321063
-;;;;;;  456000))
+;;;;;;  "docker-api-volumes.el" "docker-api.el") (22347 49619 771722
+;;;;;;  557000))
 
 ;;;***
 
