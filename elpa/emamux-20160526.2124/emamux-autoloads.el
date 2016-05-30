@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "emamux" "emamux.el" (22338 19901 911468 167000))
+;;;### (autoloads nil "emamux" "emamux.el" (22347 49611 149225 147000))
 ;;; Generated autoloads from emamux.el
 
 (autoload 'emamux:send-command "emamux" "\
@@ -80,6 +80,16 @@ With prefix-arg, use '-a' option to insert the new window next to current index.
 (autoload 'emamux:clone-current-frame "emamux" "\
 Clones current frame into a new tmux window.
 With prefix-arg, use '-a' option to insert the new window next to current index.
+
+\(fn)" t nil)
+
+(autoload 'emamux:split-window "emamux" "\
+
+
+\(fn)" t nil)
+
+(autoload 'emamux:split-window-horizontally "emamux" "\
+
 
 \(fn)" t nil)
 
