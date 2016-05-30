@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20160510.138
+;; Package-Version: 20160525.505
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -356,7 +356,8 @@ The buffer contains the raw HTTP response sent by the server."
   (save-excursion
     (if (re-search-forward restclient-comment-start-regexp (point-max) t)
         (max (- (point-at-bol) 1) 1)
-      (point-max))))
+      (progn (goto-char (point-max))
+             (if (looking-at "^$") (- (point) 1) (point))))))
 
 (defun restclient-replace-all-in-string (replacements string)
   (if replacements
