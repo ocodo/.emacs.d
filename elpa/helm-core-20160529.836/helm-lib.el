@@ -593,51 +593,58 @@ Useful in dired buffers when there is inserted subdirs."
                                          directories
                                          match skip-subdirs)
   "Walk through DIRECTORY tree.
+
 Argument PATH can be one of basename, relative, full, or a function
 called on file name, default to basename.
+
 Argument DIRECTORIES when non--nil (default) return also directories names,
-otherwise skip directories names.
-Argument MATCH can be a predicate or a regexp.
-Argument SKIP-SUBDIRS when non--nil will skip `helm-walk-ignore-directories'
-unless it is given as a list of directories, in this case this list will be used
+otherwise skip directories names, with a value of 'only returns
+only subdirectories, i.e files are skipped.
+
+Argument MATCH is a regexp matching files or directories.
+
+Argument SKIP-SUBDIRS when `t' will skip `helm-walk-ignore-directories'
+otherwise if it is given as a list of directories, this list will be used
 instead of `helm-walk-ignore-directories'."
   (let ((fn (cl-case path
                (basename 'file-name-nondirectory)
                (relative 'file-relative-name)
                (full     'identity)
-               (t        path))))
+               (t        path)))) ; A function.
+    (setq skip-subdirs (if (listp skip-subdirs)
+                           skip-subdirs
+                           helm-walk-ignore-directories))
     (cl-labels ((ls-rec (dir)
-                  (unless (and skip-subdirs
-                               (member (helm-basename dir)
-                                       (if (listp skip-subdirs)
-                                           skip-subdirs
-                                         helm-walk-ignore-directories)))
-                    (cl-loop with ls = (sort (file-name-all-completions "" dir)
-                                             'string-lessp)
-                             
-                             for f in ls
-                             ;; Use `directory-file-name' to remove the final slash.
-                             ;; Needed to avoid infloop on symlinks symlinking
-                             ;; a directory inside it [1].
-                             for file = (directory-file-name
-                                         (expand-file-name f dir))
+                  (unless (file-symlink-p dir)
+                    (cl-loop for f in (sort (file-name-all-completions "" dir)
+                                            'string-lessp)
                              unless (member f '("./" "../"))
-                             ;; A directory (ignore symlinked dirs).
-                             if (char-equal (aref f (1- (length f))) ?/)
-                             nconc (and (not (file-symlink-p file))
-                                        (if directories
-                                            (nconc (list (funcall fn file))
-                                                   (ls-rec file))
-                                            (ls-rec file)))
+                             ;; A directory.
+                             ;; Use `helm--dir-file-name' to remove the final slash.
+                             ;; Needed to avoid infloop on directory symlinks.
+                             if (and (helm--dir-name-p f)
+                                     (helm--dir-file-name f dir))
+                             nconc
+                             (unless (member (helm-basename it) skip-subdirs)
+                               (if directories
+                                   (nconc (and (or (null match)
+                                                   (string-match match f))
+                                               (list (concat (funcall fn it) "/")))
+                                          (ls-rec it))
+                                   (ls-rec it)))
                              ;; A regular file.
                              else nconc
-                             (when (or (null match)
-                                       (and (functionp match)
-                                            (funcall match f))
-                                       (and (stringp match)
-                                            (string-match match f)))
-                               (list (funcall fn file)))))))
+                             (when (and (null (eq directories 'only))
+                                        (or (null match) (string-match match f)))
+                               (list (funcall fn (expand-file-name f dir))))))))
       (ls-rec directory))))
+
+(defsubst helm--dir-file-name (file dir)
+  (expand-file-name
+   (substring file 0 (1- (length file))) dir))
+
+(defsubst helm--dir-name-p (str)
+  (char-equal (aref str (1- (length str))) ?/))
 
 (defun helm-file-expand-wildcards (pattern &optional full)
   "Same as `file-expand-wildcards' but allow recursion.
