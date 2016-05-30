@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (22291 19198
-;;;;;;  92608 380000))
+;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (22347 49585
+;;;;;;  297200 876000))
 ;;; Generated autoloads from helm-git-grep.el
 
 (autoload 'helm-git-grep-run-persistent-action "helm-git-grep" "\
@@ -65,12 +65,12 @@ if submodules exists, grep submodules too.
 (autoload 'helm-git-grep-at-point "helm-git-grep" "\
 Helm git grep with symbol at point.
 
-Use region which defined by BEG and END as input instead of the thing at point
+Use region as input instead of the thing at point
 if region exists.
 
 if submodules exists, grep submodules too.
 
-\(fn BEG END)" t nil)
+\(fn)" t nil)
 
 (autoload 'helm-git-grep-with-exclude-file-pattern "helm-git-grep" "\
 Helm git grep with exclude file pattern.

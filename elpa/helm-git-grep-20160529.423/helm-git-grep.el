@@ -8,7 +8,7 @@
 ;; Author: mechairoi
 ;; Maintainer: Yasuyuki Oka <yasuyk@gmail.com>
 ;; Version: 0.7.0
-;; Package-Version: 20160408.1952
+;; Package-Version: 20160529.423
 ;; URL: https://github.com/yasuyk/helm-git-grep
 ;; Package-Requires: ((helm "1.9.3"))
 ;; Keywords: helm, git
@@ -546,16 +546,16 @@ if submodules exists, grep submodules too."
   (helm-git-grep-1))
 
 ;;;###autoload
-(defun helm-git-grep-at-point (beg end)
+(defun helm-git-grep-at-point ()
   "Helm git grep with symbol at point.
 
-Use region which defined by BEG and END as input instead of the thing at point
+Use region as input instead of the thing at point
 if region exists.
 
 if submodules exists, grep submodules too."
-  (interactive "r")
+  (interactive)
   (let* ((symbol (if (not mark-active) (thing-at-point 'symbol)
-                   (when (and beg end)(buffer-substring beg end))))
+                   (when (use-region-p) (buffer-substring (region-beginning) (region-end)))))
          (input (if symbol (concat symbol " ") nil)))
     (when (and helm-git-grep-at-point-deactivate-mark mark-active)
       (deactivate-mark)) ;; remove any active regions
