@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2016-05-17 12:25:04 Victor Ren>
+;; Time-stamp: <2016-05-30 09:51:08 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous refactoring
 ;; Version: 0.97
@@ -33,7 +33,7 @@
 ;;
 ;; Normal scenario of iedit-mode is like:
 ;;
-;; - Highlight certain contents - by press C-; (The default binding)
+;; - Highlight certain contents - by press C-; (The default key binding)
 ;;   All occurrences of a symbol, string in the buffer or a region may be
 ;;   highlighted corresponding to current mark, point and prefix argument.
 ;;   Refer to the document of `iedit-mode' for details.
@@ -220,7 +220,7 @@ This is like `describe-bindings', but displays only Iedit keys."
 ;;; Default key bindings:
 (when iedit-toggle-key-default
   (let ((key-def (lookup-key (current-global-map) iedit-toggle-key-default)))
-    (if key-def
+    (if (and key-def (not (eq key-def 'iedit-mode)))
         (display-warning 'iedit (format "Iedit default key %S is occupied by %s."
                                         (key-description iedit-toggle-key-default)
                                         key-def)
@@ -245,8 +245,8 @@ This is like `describe-bindings', but displays only Iedit keys."
     (define-key map (kbd "M-I") 'iedit-restrict-current-line)
     (define-key map (kbd "M-{") 'iedit-expand-up-a-line)
     (define-key map (kbd "M-}") 'iedit-expand-down-a-line)
-    (define-key map (kbd "M-[") 'iedit-expand-up-to-occurrence)
-    (define-key map (kbd "M-]") 'iedit-expand-down-to-occurrence)
+    (define-key map (kbd "M-p") 'iedit-expand-up-to-occurrence)
+    (define-key map (kbd "M-n") 'iedit-expand-down-to-occurrence)
     (define-key map (kbd "M-G") 'iedit-apply-global-modification)
     (define-key map (kbd "M-C") 'iedit-toggle-case-sensitive)
     map)
@@ -460,12 +460,7 @@ the initial string globally."
 (defun iedit-mode-on-action (&optional arg)
   "Turn off Iedit mode or restrict it in a region if region is active."
   (if (iedit-region-active)
-      ;; Restrict iedit-mode
-      (let ((beg (region-beginning))
-            (end (region-end)))
-        (if (null (iedit-find-overlay beg end 'iedit-occurrence-overlay-name arg))
-            (iedit-done)
-          (iedit-restrict-region beg end arg)))
+      (iedit-restrict-region (region-beginning) (region-end) arg)
     (iedit-done)))
 
 
@@ -553,23 +548,16 @@ lines. The region being acted upon is controlled with
 bottom). With a prefix, collapses the top or bottom of the search
 region by `amount' lines."
   (interactive "P")
-  ;; Since iedit-done resets iedit-num-lines-to-expand-{down,up}, we
-  ;; have to hang on to them in tmp variables
-  (let ((tmp-up iedit-num-lines-to-expand-up)
-        (tmp-down iedit-num-lines-to-expand-down)
-        ;; we want to call iedit-mode with a universal prefix arg
-        (current-prefix-arg '(4)))
-    (iedit-done)
-    (call-interactively 'iedit-mode)
-    (setq iedit-num-lines-to-expand-up tmp-up)
-    (setq iedit-num-lines-to-expand-down tmp-down)
+  (let ((occurrence (iedit-current-occurrence-string)))
+    (iedit-cleanup)
     (if (eq where 'top)
-        (setq iedit-num-lines-to-expand-up (max 0
-                                                (+ amount iedit-num-lines-to-expand-up)))
-      (setq iedit-num-lines-to-expand-down (max 0
-                                                (+ amount iedit-num-lines-to-expand-down))))
-    (iedit-restrict-region (iedit-char-at-bol (- iedit-num-lines-to-expand-up))
-                           (iedit-char-at-eol iedit-num-lines-to-expand-down))
+        (setq iedit-num-lines-to-expand-up
+              (max 0 (+ amount iedit-num-lines-to-expand-up)))
+      (setq iedit-num-lines-to-expand-down
+            (max 0 (+ amount iedit-num-lines-to-expand-down))))
+    (iedit-start (iedit-regexp-quote occurrence)
+                 (iedit-char-at-bol (- iedit-num-lines-to-expand-up))
+                 (iedit-char-at-eol iedit-num-lines-to-expand-down))
     (message "Now looking -%d/+%d lines around current line, %d match%s."
              iedit-num-lines-to-expand-up
              iedit-num-lines-to-expand-down
@@ -579,7 +567,7 @@ region by `amount' lines."
 (defun iedit-expand-up-a-line (&optional arg)
   "After restricting iedit to the current line with
 `iedit-restrict-current-line', this function expands the search
-region upwards by one line. With a prefix, bring the top of the
+region upwards by one line.  With a prefix, bring the top of the
 region back down one line."
   (interactive "P")
   (iedit-expand-by-a-line 'top
@@ -588,23 +576,35 @@ region back down one line."
 (defun iedit-expand-down-a-line (&optional arg)
   "After restricting iedit to the current line with
 `iedit-restrict-current-line', this function expands the search
-region downwards by one line. With a prefix, bring the bottom of
+region downwards by one line.  With a prefix, bring the bottom of
 the region back up one line."
   (interactive "P")
   (iedit-expand-by-a-line 'bottom
                           (if arg -1 1)))
 
-(defun iedit-expand-down-to-occurrence ()
+(defun iedit-expand-down-to-occurrence (&optional arg)
   "Expand the search region downwards until reaching a new occurrence.
-If no such occurrence can be found, throw an error."
-  (interactive)
-  (iedit-expand-to-occurrence t))
+If no such occurrence can be found, throw an error.  With a
+prefix, bring the bottom of the region back up one occurrence."
+  (interactive "P")
+  (if arg
+      (progn (iedit-restrict-region
+              (iedit-first-occurrence)
+              (1- (iedit-last-occurrence)))
+             (goto-char (iedit-last-occurrence)))
+  (iedit-expand-to-occurrence t)))
 
-(defun iedit-expand-up-to-occurrence ()
+(defun iedit-expand-up-to-occurrence (&optional arg)
   "Expand the search region upwards until reaching a new occurrence.
-If no such occurrence can be found, throw an error."
-  (interactive)
-  (iedit-expand-to-occurrence nil))
+If no such occurrence can be found, throw an error.  With a
+prefix, bring the top of the region back down one occurrence."
+  (interactive "P")
+  (if arg
+      (progn (iedit-restrict-region
+              (1+ (iedit-first-occurrence))
+              (+ (iedit-occurrence-string-length) (iedit-last-occurrence)))
+             (goto-char (iedit-first-occurrence)))
+    (iedit-expand-to-occurrence nil)))
 
 (defun iedit-expand-to-occurrence (forward)
   "Expand to next or previous occurrence."
@@ -624,20 +624,23 @@ If no such occurrence can be found, throw an error."
 
 (defun iedit-restrict-region (beg end &optional inclusive)
   "Restricting Iedit mode in a region."
-  (when iedit-buffering
-    (iedit-stop-buffering))
-  (setq iedit-last-occurrence-local (iedit-current-occurrence-string))
-  (setq mark-active nil)
-  (run-hooks 'deactivate-mark-hook)
-  (iedit-show-all)
-  (iedit-cleanup-occurrences-overlays beg end inclusive)
-  (if iedit-unmatched-lines-invisible
-      (iedit-hide-unmatched-lines iedit-occurrence-context-lines))
-  (setq iedit-mode (propertize
-                    (concat " Iedit:" (number-to-string
-                                       (length iedit-occurrences-overlays)))
-                    'face 'font-lock-warning-face))
-  (force-mode-line-update))
+  (if (null (iedit-find-overlay beg end 'iedit-occurrence-overlay-name inclusive))
+      (iedit-done)
+    (when iedit-buffering
+      (iedit-stop-buffering))
+    (setq iedit-last-occurrence-local (iedit-current-occurrence-string))
+    (setq mark-active nil)
+    (run-hooks 'deactivate-mark-hook)
+    (iedit-show-all)
+    (iedit-cleanup-occurrences-overlays beg end inclusive)
+    (if iedit-unmatched-lines-invisible
+        (iedit-hide-unmatched-lines iedit-occurrence-context-lines))
+    (setq iedit-mode (propertize
+                      (concat " Iedit:" (number-to-string
+                                         (length iedit-occurrences-overlays)))
+                      'face 'font-lock-warning-face))
+    (force-mode-line-update)))
+
 
 (defun iedit-toggle-case-sensitive ()
   "Toggle case-sensitive matching occurrences. "

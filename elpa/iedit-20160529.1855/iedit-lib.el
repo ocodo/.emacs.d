@@ -3,7 +3,7 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2016-05-17 12:40:05 Victor Ren>
+;; Time-stamp: <2016-05-24 10:36:51 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
 ;; Version: 0.97
@@ -234,7 +234,7 @@ Return the number of occurrences."
   "Create previous occurrence overlay for `occurrence-exp'."
   (iedit-add-occurrence-overlay occurrence-exp point nil))
 
-(defun iedit-add-occurrence-overlay (occurrence-exp point forward)
+(defun iedit-add-occurrence-overlay (occurrence-exp point forward &optional bound)
   "Create next or previous occurrence overlay for `occurrence-exp'.
 Return the start position of the new occurrence if successful."
   (or point
@@ -244,9 +244,9 @@ Return the start position of the new occurrence if successful."
     (save-excursion
       (goto-char point)
       (if (not (if forward
-                   (re-search-forward occurrence-exp nil t)
-                 (re-search-backward occurrence-exp nil t)))
-          (message "No more match.")
+                   (re-search-forward occurrence-exp bound t)
+                 (re-search-backward occurrence-exp bound t)))
+          (message "No more matches.")
         (setq pos (match-beginning 0))
         (if (or (iedit-find-overlay-at-point (match-beginning 0) 'iedit-occurrence-overlay-name)
                 (iedit-find-overlay-at-point (match-end 0) 'iedit-occurrence-overlay-name))
