@@ -223,8 +223,7 @@ Example:
     (ivy-set-sources
      'counsel-locate
      '((small-recentf)
-       (original-source)))
-"
+       (original-source)))"
   (setq ivy--sources-list
         (plist-put ivy--sources-list cmd sources)))
 
@@ -311,6 +310,7 @@ This should eventually become a stack so that you could use
 `ivy-read' recursively.")
 
 (defsubst ivy-set-action (action)
+  "Set the current `ivy-last' field to ACTION."
   (setf (ivy-state-action ivy-last) action))
 
 (defun ivy-thing-at-point ()
@@ -360,12 +360,12 @@ Otherwise, store nil.")
 (defvar ivy--extra-candidates '((original-source))
   "Store candidates added by the extra sources.
 
-This is an internal-use alist. Each key is a function name, or
+This is an internal-use alist.  Each key is a function name, or
 original-source (which represents where the current dynamic
 candidates should go).
 
 Each value is an evaluation of the function, in case of static
-sources. These values will subsequently be filtered on `ivy-text'.
+sources.  These values will subsequently be filtered on `ivy-text'.
 
 This variable is set by `ivy-read' and used by `ivy--set-candidates'.")
 
@@ -494,7 +494,7 @@ When non-nil, it should contain at least one %d.")
 (defun ivy-read-action-format-default (actions)
   "Create a docstring from ACTIONS.
 
-ACTIONS is a list. Each list item is a list of 3 items:
+ACTIONS is a list.  Each list item is a list of 3 items:
 key (a string), cmd and doc (a string)."
   (format "%s\n%s\n"
           (if (eq this-command 'ivy-read-action)
@@ -860,20 +860,30 @@ If the input is empty, select the previous history element instead."
   "Return non-nil when X is a list of actions."
   (and x (listp x) (not (eq (car x) 'closure))))
 
+(defcustom ivy-action-wrap nil
+  "When non-nil, `ivy-next-action' and `ivy-prev-action' wrap."
+  :type 'boolean)
+
 (defun ivy-next-action ()
   "When the current action is a list, scroll it forwards."
   (interactive)
   (let ((action (ivy-state-action ivy-last)))
     (when (ivy--actionp action)
-      (unless (>= (car action) (1- (length action)))
-        (cl-incf (car action))))))
+      (let ((len (1- (length action)))
+            (idx (car action)))
+        (if (>= idx len)
+            (when ivy-action-wrap
+              (setf (car action) 1))
+          (cl-incf (car action)))))))
 
 (defun ivy-prev-action ()
   "When the current action is a list, scroll it backwards."
   (interactive)
   (let ((action (ivy-state-action ivy-last)))
     (when (ivy--actionp action)
-      (unless (<= (car action) 1)
+      (if (<= (car action) 1)
+          (when ivy-action-wrap
+            (setf (car action) (1- (length action))))
         (cl-decf (car action))))))
 
 (defun ivy-action-name ()
@@ -1142,7 +1152,7 @@ Prioritize directories."
 (declare-function ido-file-extension-lessp "ido")
 
 (defun ivy-sort-file-function-using-ido (x y)
-  "Compare two files X and Y using `ido-file-extensions-order'
+  "Compare two files X and Y using `ido-file-extensions-order'.
 
 This function is suitable as a replacement for
 `ivy-sort-file-function-default' in `ivy-sort-functions-alist'."
@@ -1445,12 +1455,16 @@ This is useful for recursive `ivy-read'."
                       (not (equal initial-input ""))
                       (file-directory-p initial-input))
                  (progn
+                   (when (and (eq this-command 'dired-do-copy)
+                              (equal (file-name-nondirectory initial-input) ""))
+                     (setf (ivy-state-preselect state) (setq preselect nil)))
                    (setq ivy--directory initial-input)
                    (setq initial-input nil)
                    (when preselect
                      (let ((preselect-directory (file-name-directory preselect)))
-                       (when (not (equal (expand-file-name preselect-directory)
-                                         (expand-file-name ivy--directory)))
+                       (when (and preselect-directory
+                                  (not (equal (expand-file-name preselect-directory)
+                                              (expand-file-name ivy--directory))))
                          (setf (ivy-state-preselect state) (setq preselect nil))))))
                (setq ivy--directory default-directory))
              (require 'dired)
