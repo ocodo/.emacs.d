@@ -4,8 +4,8 @@
 
 ;; Authors: Jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20160406.824
-;; Version: 0.1.40
+;; Package-Version: 20160524.2250
+;; Version: 0.1.41
 
 ;;; Commentary:
 ;;  Color theme for Emacs, when soothe and gruvbox collide.
@@ -123,7 +123,7 @@
    `(mode-line-inactive                        ((t (:foreground ,darktooth-light4 :background ,darktooth-dark2 :box nil))))
    `(fringe                                    ((t (:background ,darktooth-dark0))))
    `(linum                                     ((t (:foreground ,darktooth-dark4))))
-   `(hl-line                                   ((t (:background ,darktooth-dark_blue))))
+   `(hl-line                                   ((t (:background ,darktooth-dark_purple))))
    `(region                                    ((t (:background ,darktooth-mid_blue :distant-foreground ,darktooth-light0))))
    `(secondary-selection                       ((t (:background ,darktooth-dark_blue))))
    `(cua-rectangle                             ((t (:background ,darktooth-mid_blue))))
