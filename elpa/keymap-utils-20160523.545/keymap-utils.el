@@ -4,9 +4,9 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Package-Requires: ((cl-lib "0.3"))
+;; Package-Version: 20160523.545
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
-;; Package-Version: 20160212.1529
 
 ;; This file is not part of GNU Emacs.
 
@@ -368,7 +368,7 @@ string like \"?\C-a\"."
   "In KEYMAP, remove key sequence KEY.
 Make the event KEY truely undefined in KEYMAP by removing the
 respective element of KEYMAP (or a sub-keymap) as opposed to
-merely setting it's binding to nil.
+merely setting its binding to nil.
 
 There are several ways in which a key can be \"undefined\":
 
@@ -434,7 +434,7 @@ FEATURE may actually be a string, see `eval-after-load', though
 normally it is a symbol.
 
 Arguments aren't evaluated and therefore don't have to be quoted.
-Also see `kmu-define-keys-1' which does evaluate it's arguments."
+Also see `kmu-define-keys-1' which does evaluate its arguments."
   (declare (indent 2))
   (if feature
       `(eval-after-load ',feature
@@ -518,7 +518,7 @@ bound (a vector), and the definition it is bound to.
 
 When the definition of an event is another keymap list then
 recursively build up an event sequence and instead of calling
-FUNCTION with the initial event and it's definition once, call
+FUNCTION with the initial event and its definition once, call
 FUNCTION once for each event sequence and the definition it is
 bound to.
 

@@ -1,1 +1,0 @@
-(define-package "keymap-utils" "20160212.1529" "keymap utilities" '((cl-lib "0.3")) :stars '(#("1" 0 1 (font-lock-face paradox-star-face))) :url "https://github.com/tarsius/keymap-utils" :keywords '("convenience" "extensions"))
