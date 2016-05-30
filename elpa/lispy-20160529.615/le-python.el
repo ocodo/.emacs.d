@@ -49,6 +49,20 @@
                    (string-trim-right
                     (lispy--string-dwim
                      (lispy--bounds-dwim))))
+                  ((save-excursion
+                     (when (looking-at " ")
+                       (forward-char))
+                     (python-info-beginning-of-block-p))
+                   (concat
+                    (string-trim-right
+                     (buffer-substring-no-properties
+                      (point)
+                      (save-excursion
+                        (python-nav-end-of-block)
+                        (while (looking-at "[\n ]*\\(except\\)")
+                          (goto-char (match-beginning 1))
+                          (python-nav-end-of-block)))))
+                    "\n"))
                   ((lispy-bolp)
                    (lispy--string-dwim
                     (lispy--bounds-c-toplevel)))
@@ -60,7 +74,8 @@
                           (error "Unexpected")))
                    (setq bnd (lispy--bounds-dwim))
                    (ignore-errors (backward-sexp))
-                   (while (eq (char-before) ?.)
+                   (while (or (eq (char-before) ?.)
+                              (eq (char-after) ?\())
                      (backward-sexp))
                    (setcar bnd (point))
                    (lispy--string-dwim bnd)))))
