@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "auto-yasnippet" "auto-yasnippet.el" (22246
-;;;;;;  12511 105414 66000))
+;;;### (autoloads nil "auto-yasnippet" "auto-yasnippet.el" (22347
+;;;;;;  49649 765258 501000))
 ;;; Generated autoloads from auto-yasnippet.el
 
 (autoload 'aya-create-one-line "auto-yasnippet" "\
