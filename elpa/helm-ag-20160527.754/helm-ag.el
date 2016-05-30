@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160515.643
+;; Package-Version: 20160527.754
 ;; Version: 0.55
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -839,37 +839,38 @@ Continue searching the parent directory? "))
              collect pattern)))
 
 (defun helm-ag--propertize-candidates (input)
-  (goto-char (point-min))
-  (forward-line 1)
-  (let ((patterns (helm-ag--do-ag-highlight-patterns input)))
-    (cl-loop with one-file-p = (and (not (helm-ag--vimgrep-option))
-                                    (helm-ag--search-only-one-file-p))
-             while (not (eobp))
-             for num = 1 then (1+ num)
-             do
-             (progn
-               (let ((start (point))
-                     (bound (line-end-position)))
-                 (if (and one-file-p (search-forward ":" bound t))
-                     (set-text-properties (line-beginning-position) (1- (point))
-                                          '(face helm-grep-lineno))
-                   (when (re-search-forward helm-grep-split-line-regexp bound t)
-                     (set-text-properties (match-beginning 1) (match-end 1) '(face helm-moccur-buffer))
-                     (set-text-properties (match-beginning 2) (match-end 2) '(face helm-grep-lineno))
-                     (goto-char (match-beginning 3))))
-                 (let ((curpoint (point))
-                       (case-fold-search helm-ag--ignore-case))
-                   (dolist (pattern patterns)
-                     (let ((last-point (point)))
-                       (while (re-search-forward pattern bound t)
-                         (set-text-properties (match-beginning 0) (match-end 0)
-                                              '(face helm-match))
-                         (when (= last-point (point))
-                           (forward-char 1))
-                         (setq last-point (point)))
-                       (goto-char curpoint))))
-                 (put-text-property start bound 'helm-cand-num num))
-               (forward-line 1)))))
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line 1)
+    (let ((patterns (helm-ag--do-ag-highlight-patterns input)))
+      (cl-loop with one-file-p = (and (not (helm-ag--vimgrep-option))
+                                      (helm-ag--search-only-one-file-p))
+               while (not (eobp))
+               for num = 1 then (1+ num)
+               do
+               (progn
+                 (let ((start (point))
+                       (bound (line-end-position)))
+                   (if (and one-file-p (search-forward ":" bound t))
+                       (set-text-properties (line-beginning-position) (1- (point))
+                                            '(face helm-grep-lineno))
+                     (when (re-search-forward helm-grep-split-line-regexp bound t)
+                       (set-text-properties (match-beginning 1) (match-end 1) '(face helm-moccur-buffer))
+                       (set-text-properties (match-beginning 2) (match-end 2) '(face helm-grep-lineno))
+                       (goto-char (match-beginning 3))))
+                   (let ((curpoint (point))
+                         (case-fold-search helm-ag--ignore-case))
+                     (dolist (pattern patterns)
+                       (let ((last-point (point)))
+                         (while (re-search-forward pattern bound t)
+                           (set-text-properties (match-beginning 0) (match-end 0)
+                                                '(face helm-match))
+                           (when (= last-point (point))
+                             (forward-char 1))
+                           (setq last-point (point)))
+                         (goto-char curpoint))))
+                   (put-text-property start bound 'helm-cand-num num))
+                 (forward-line 1))))))
 
 (defun helm-ag-show-status-default-mode-line ()
   (setq mode-line-format
@@ -884,7 +885,6 @@ Continue searching the parent directory? "))
   (with-helm-window
     (helm-ag--remove-carrige-returns)
     (helm-ag--propertize-candidates input)
-    (goto-char (point-min))
     (when helm-ag-show-status-function
       (funcall helm-ag-show-status-function)
       (force-mode-line-update))))
