@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.9
-;; Package-Version: 20160517.715
+;; Package-Version: 20160527.2056
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -466,23 +466,6 @@ of \"fields\" in the arguments of the \"torrent-get\" request."
   "Make a list of the values of KEY in each element of SEQUENCE."
   (mapcar (lambda (x) (cdr (assq key x))) sequence))
 
-(defun transmission-format-status (status up down)
-  "Return a propertized string describing torrent status.
-STATUS is a value in `transmission-status-alist'.  UP and DOWN are
-transmission rates."
-  (let ((state (symbol-name (car (rassq status transmission-status-alist))))
-        (idle (propertize "idle" 'font-lock-face 'shadow))
-        (uploading
-         (propertize "uploading" 'font-lock-face 'font-lock-constant-face)))
-    (pcase status
-      (0 (propertize state 'font-lock-face 'warning))
-      ((or 1 3 5) (propertize state 'font-lock-face '(bold shadow)))
-      (2 (propertize state 'font-lock-face 'font-lock-function-name-face))
-      (4 (if (> down 0) (propertize state 'font-lock-face 'highlight)
-           (if (> up 0) uploading idle)))
-      (6 (if (> up 0) (propertize state 'font-lock-face 'success) idle))
-      (_ state))))
-
 (defun transmission-size (bytes)
   "Return string showing size BYTES in human-readable form."
   (file-size-human-readable bytes transmission-units))
@@ -504,25 +487,20 @@ transmission rates."
   (not (cl-loop for string in list
                 if (not (string-prefix-p prefix string)) return t)))
 
-(defun transmission-slice (list k)
-  "Slice LIST into K lists of somewhat equal size.
-The result can have no more elements than LIST."
-  (let* ((size (length list))
-         (quotient (/ size k))
-         (remainder (% size k)))
-    (cl-flet ((take (list n)
-                (let (result)
-                  (while (and list (>= (cl-decf n) 0))
-                    (push (pop list) result))
-                  (nreverse result))))
-      (let ((i 0)
-            slice result)
-        (while (and list (< i k))
-          (setq slice (if (< i remainder) (1+ quotient) quotient))
-          (push (take list slice) result)
-          (setq list (nthcdr slice list))
-          (cl-incf i))
-        (nreverse result)))))
+(defun transmission-slice (str k)
+  "Slice STRING into K strings of somewhat equal size.
+The result can have no more elements than STRING."
+  (let ((len (length str)))
+    (let ((quotient (/ len k))
+          (remainder (% len k))
+          (i 0)
+          slice result)
+      (while (and (/= 0 (setq len (length str))) (< i k))
+        (setq slice (if (< i remainder) (1+ quotient) quotient))
+        (push (substring str 0 (min slice len)) result)
+        (setq str (substring str (min slice len) len))
+        (cl-incf i))
+      (nreverse result))))
 
 (defun transmission-prop-values-in-region (prop)
   "Return a list of truthy values of text property PROP in region or at point.
@@ -698,15 +676,6 @@ Returns a list of non-blank inputs."
   "Apply `transmission-ffap' to the graphical selection."
   (transmission-ffap-string (with-no-warnings (x-get-selection))))
 
-(defun transmission-default-torrent (functions)
-  "Return the first non-nil evaluation of a function in FUNCTIONS."
-  (catch :result
-    (mapc (lambda (fun)
-            (let ((res (funcall fun)))
-              (if res (throw :result res))))
-          functions)
-    nil))
-
 (defun transmission-files-do (action)
   "Apply ACTION to files in `transmission-files-mode' buffers."
   (cl-assert (memq action transmission-file-symbols))
@@ -789,6 +758,10 @@ from `transmission-hash-table'."
     (setq x (logand (+ x (lsh x -4)) m4))
     (lsh (* x h01) -56)))
 
+(defun transmission-count-bits (bytearray)
+  "Calculate sum of Hamming weight of each byte in BYTEARRAY."
+  (cl-loop for x across bytearray sum (transmission-hamming-weight x)))
+
 (defun transmission-byte->string (byte)
   "Format integer BYTE into a string."
   (let* ((calc-number-radix 2)
@@ -842,6 +815,11 @@ Done in the spirit of `dired-plural-s'."
   (if (not (eq t throttled)) "unlimited"
     (concat (transmission-group-digits bytes) " kB/s")))
 
+(defun transmission-format-size (bytes)
+  "Format size BYTES into a more readable string."
+  (format "%s (%s bytes)" (transmission-size bytes)
+          (transmission-group-digits bytes)))
+
 (defmacro transmission-tabulated-list-pred (key)
   "Return a sorting predicate comparing values of KEY.
 KEY should be a key in an element of `tabulated-list-entries'."
@@ -870,7 +848,7 @@ Execute BODY, binding list `ids' of torrent IDs at point or in region."
   "Add TORRENT by filename, URL, magnet link, or info hash.
 When called with a prefix, prompt for DIRECTORY."
   (interactive
-   (let* ((def (transmission-default-torrent transmission-torrent-functions))
+   (let* ((def (run-hook-with-args-until-success 'transmission-torrent-functions))
           (prompt (concat "Add torrent" (if def (format " [%s]" def)) ": ")))
      (list (read-file-name prompt nil def)
            (if current-prefix-arg
@@ -1138,22 +1116,24 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
       (message "Copied %s" magnet))))
 
 
-;; Drawing
+;; Formatting
 
-(defun transmission-tabulated-list-format (&optional _arg _noconfirm)
-  "Initialize tabulated-list header or update `tabulated-list-format'."
-  (let ((idx (cl-loop for format across tabulated-list-format
-                      if (plist-get (cdr format) :transmission-size)
-                      return format)))
-    (if (eq (cadr idx) (if (eq 'iec transmission-units) 9 7))
-        (or header-line-format (tabulated-list-init-header))
-      (setf (cadr idx) (if (eq 'iec transmission-units) 9 7))
-      (tabulated-list-init-header))))
-
-(defun transmission-format-size (bytes)
-  "Format size BYTES into a more readable string."
-  (format "%s (%s bytes)" (transmission-size bytes)
-          (transmission-group-digits bytes)))
+(defun transmission-format-status (status up down)
+  "Return a propertized string describing torrent status.
+STATUS is a value in `transmission-status-alist'.  UP and DOWN are
+transmission rates."
+  (let ((state (symbol-name (car (rassq status transmission-status-alist))))
+        (idle (propertize "idle" 'font-lock-face 'shadow))
+        (uploading
+         (propertize "uploading" 'font-lock-face 'font-lock-constant-face)))
+    (pcase status
+      (0 (propertize state 'font-lock-face 'warning))
+      ((or 1 3 5) (propertize state 'font-lock-face '(bold shadow)))
+      (2 (propertize state 'font-lock-face 'font-lock-function-name-face))
+      (4 (if (> down 0) (propertize state 'font-lock-face 'highlight)
+           (if (> up 0) uploading idle)))
+      (6 (if (> up 0) (propertize state 'font-lock-face 'success) idle))
+      (_ state))))
 
 (defun transmission-format-pieces (pieces count)
   "Format into a string the bitfield PIECES holding COUNT boolean flags."
@@ -1173,12 +1153,11 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   "Format pieces into a one-line greyscale representation.
 PIECES and COUNT are the same as in `transmission-format-pieces'."
   (let* ((bytes (base64-decode-string pieces))
-         (slices
-          (transmission-slice (mapcar #'transmission-hamming-weight bytes) 72))
+         (slices (transmission-slice bytes 72))
          (ratios
-          (cl-loop for slice in slices with n = count and m = nil
-                   do (cl-decf n (setq m (min n (* 8 (length slice)))))
-                   collect (/ (apply #'+ slice) (float m)))))
+          (cl-loop for bv in slices with div = nil
+                   do (cl-decf count (setq div (min count (* 8 (length bv)))))
+                   collect (/ (transmission-count-bits bv) (float div)))))
     (mapconcat (pcase (display-color-cells)
                  ((pred (< 256)) #'transmission-ratio->grey)
                  (256 #'transmission-ratio->256)
@@ -1252,6 +1231,19 @@ CONNECTED, SENDING, RECEIVING are numbers."
 TRACKERS should be the \"trackerStats\" array."
   (if (zerop (length trackers)) "Trackers: none\n"
     (concat (mapconcat #'transmission-format-tracker trackers "\n") "\n")))
+
+
+;; Drawing
+
+(defun transmission-tabulated-list-format (&optional _arg _noconfirm)
+  "Initialize tabulated-list header or update `tabulated-list-format'."
+  (let ((idx (cl-loop for format across tabulated-list-format
+                      if (plist-get (cdr format) :transmission-size)
+                      return format)))
+    (if (eq (cadr idx) (if (eq 'iec transmission-units) 9 7))
+        (or header-line-format (tabulated-list-init-header))
+      (setf (cadr idx) (if (eq 'iec transmission-units) 9 7))
+      (tabulated-list-init-header))))
 
 (defmacro transmission-do-entries (seq &rest body)
   "Map over SEQ, pushing each element to `tabulated-list-entries'.
@@ -1372,6 +1364,7 @@ Also run the timer for timer object `transmission-timer'."
          (old-mark (when (region-active-p)
                      (let ((beg (region-beginning)))
                        (if (= (window-point) beg) (region-end) beg)))))
+    (run-hooks 'before-revert-hook)
     (transmission-draw)
     (goto-char (save-excursion
                  (goto-char (point-min))
@@ -1513,7 +1506,7 @@ Key bindings:
 \\{transmission-info-mode-map}"
   :group 'transmission
   (setq buffer-undo-list t)
-  (setq font-lock-defaults '(transmission-info-font-lock-keywords))
+  (setq font-lock-defaults '(transmission-info-font-lock-keywords t))
   (setq transmission-refresh-function #'transmission-draw-info)
   (add-hook 'post-command-hook #'transmission-timer-check nil t)
   (setq-local revert-buffer-function #'transmission-refresh))
@@ -1574,8 +1567,7 @@ Key bindings:
   (setq transmission-refresh-function #'transmission-draw-files)
   (setq-local revert-buffer-function #'transmission-refresh)
   (add-hook 'post-command-hook #'transmission-timer-check nil t)
-  (add-function :before (local 'revert-buffer-function)
-                #'transmission-tabulated-list-format))
+  (add-hook 'before-revert-hook #'transmission-tabulated-list-format nil t))
 
 (defun transmission-files ()
   "Open a `transmission-files-mode' buffer for torrent at point."
@@ -1659,8 +1651,7 @@ Key bindings:
   (setq transmission-refresh-function #'transmission-draw-torrents)
   (setq-local revert-buffer-function #'transmission-refresh)
   (add-hook 'post-command-hook #'transmission-timer-check nil t)
-  (add-function :before (local 'revert-buffer-function)
-                #'transmission-tabulated-list-format))
+  (add-hook 'before-revert-hook #'transmission-tabulated-list-format nil t))
 
 ;;;###autoload
 (defun transmission ()
@@ -1672,9 +1663,14 @@ Key bindings:
     (unless (eq buffer (current-buffer))
       (with-current-buffer buffer
         (unless (eq major-mode 'transmission-mode)
-          (transmission-mode)
-          (transmission-draw)
-          (goto-char (point-min))))
+          (condition-case e
+              (progn
+                (transmission-mode)
+                (transmission-draw)
+                (goto-char (point-min)))
+            (error
+             (kill-buffer buffer)
+             (signal (car e) (cdr e))))))
       (switch-to-buffer-other-window buffer))))
 
 (provide 'transmission)
