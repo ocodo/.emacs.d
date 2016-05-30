@@ -298,6 +298,7 @@ list
     (csharp-mode . ("cs"))
     (d-mode . ("d"))
     (erlang-mode . ("erlang"))
+    (emacs-lisp-mode . ("elisp"))
     (go-mode . ("go"))
     (js-mode . ("javascript"))
     (js2-mode . ("javascript"))
@@ -395,6 +396,25 @@ in that list.  If nil, ycmd mode is never turned on by
   "Whether to confirm when applying fixit on line."
   :group 'ycmd
   :type 'boolean)
+
+(defcustom ycmd-after-exception-hook nil
+  "Function to run if server request resulted in exception.
+
+This hook is run whenever an exception is thrown after a ycmd
+server request.  Four arguments are passed to the function, a
+string with the type of request that triggerd the exception, the
+buffer and the point at the time of the request and the server
+response structure which looks like this:
+
+  ((exception
+    (TYPE . \"RuntimeError\"))
+   (traceback . \"long traceback string\")
+   (message . \"Can't jump to definition.\"))
+
+This variable is a normal hook.  See Info node `(elisp)Hooks'."
+  :group 'ycmd
+  :type 'hook
+  :risky t)
 
 (defconst ycmd--diagnostic-file-types
   '("c"
@@ -827,7 +847,7 @@ it might be interesting for some users."
            (append candidates nil))))
 
 (defun ycmd-complete-at-point ()
-  "Complete symnbol at point."
+  "Complete symbol at point."
   (unless (nth 3 (syntax-ppss)) ;; not in string
     (let* ((bounds (bounds-of-thing-at-point 'symbol))
            (beg (or (car bounds) (point)))
@@ -929,12 +949,12 @@ and blocks until the request has finished."
        :parser 'json-read
        :sync sync))))
 
-(defun ycmd--handle-exception (results)
-  "Handle exception in completion RESULTS.
+(defun ycmd--handle-exception (result)
+  "Handle exception in completion RESULT.
 
 This function handles `UnknownExtraConf', `ValueError' and
 `RuntimeError' exceptions."
-  (let-alist results
+  (let-alist result
     (pcase .exception.TYPE
       ("UnknownExtraConf"
        (ycmd--handle-extra-conf-exception .exception.extra_conf_file))
@@ -949,16 +969,22 @@ SUCCESS-HANDLER is called when for a successful response."
     (if (ycmd-parsing-in-progress-p)
         (message "Can't send \"%s\" request while parsing is in progress!"
                  type)
-      (deferred:$
-        (ycmd--send-completer-command-request type)
-        (deferred:nextc it
-          (lambda (result)
-            (when result
-              (if (and (not (vectorp result))
-                       (assq 'exception result))
-                  (ycmd--handle-exception result)
-                (when success-handler
-                  (funcall success-handler result))))))))))
+      (let ((request-buffer (current-buffer))
+            (request-point (point)))
+        (deferred:$
+          (ycmd--send-completer-command-request type)
+          (deferred:nextc it
+            (lambda (result)
+              (when result
+                (if (and (not (vectorp result))
+                         (assq 'exception result))
+                    (progn
+                      (ycmd--handle-exception result)
+                      (run-hook-with-args
+                       'ycmd-after-exception-hook
+                       type request-buffer request-point result))
+                  (when success-handler
+                    (funcall success-handler result)))))))))))
 
 (defun ycmd--send-completer-command-request (type)
   "Send Go To request of TYPE to BUFFER at POS."
