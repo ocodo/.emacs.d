@@ -4388,21 +4388,21 @@ to execute outside of tables."
 	    cmd (orgtbl-make-binding fun nfunc key))
       (org-defkey orgtbl-mode-map key cmd))
 
-    ;; Special treatment needed for TAB and RET
+    ;; Special treatment needed for TAB, RET and DEL
     (org-defkey orgtbl-mode-map [(return)]
 		(orgtbl-make-binding 'orgtbl-ret 100 [(return)] "\C-m"))
     (org-defkey orgtbl-mode-map "\C-m"
 		(orgtbl-make-binding 'orgtbl-ret 101 "\C-m" [(return)]))
-
     (org-defkey orgtbl-mode-map [(tab)]
 		(orgtbl-make-binding 'orgtbl-tab 102 [(tab)] "\C-i"))
     (org-defkey orgtbl-mode-map "\C-i"
 		(orgtbl-make-binding 'orgtbl-tab 103 "\C-i" [(tab)]))
-
     (org-defkey orgtbl-mode-map [(shift tab)]
 		(orgtbl-make-binding 'org-table-previous-field 104
 				     [(shift tab)] [(tab)] "\C-i"))
-
+    (org-defkey orgtbl-mode-map [backspace]
+		(orgtbl-make-binding 'org-delete-backward-char 109
+				     [backspace] (kbd "DEL")))
 
     (unless (featurep 'xemacs)
       (org-defkey orgtbl-mode-map [S-iso-lefttab]
@@ -4571,11 +4571,9 @@ overwritten, and the table is not marked as requiring realignment."
 		 (org-table-blank-field))
 	    t)
 	   (eq N 1)
-	   (looking-at "[^|\n]*  +|"))
+	   (looking-at "[^|\n]* \\( \\)|"))
       (let (org-table-may-need-update)
-	(goto-char (1- (match-end 0)))
-	(org-delete-backward-char 1)
-	(goto-char (match-beginning 0))
+	(delete-region (match-beginning 1) (match-end 1))
 	(self-insert-command N))
     (setq org-table-may-need-update t)
     (let* (orgtbl-mode
