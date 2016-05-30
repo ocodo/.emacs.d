@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "jade-mode" "jade-mode.el" (22338 19809 627430
-;;;;;;  930000))
+;;;### (autoloads nil "jade-mode" "jade-mode.el" (22347 49572 345188
+;;;;;;  101000))
 ;;; Generated autoloads from jade-mode.el
 
 (autoload 'jade-mode "jade-mode" "\
@@ -13,6 +13,8 @@ Major mode for editing jade node.js templates
 \(fn)" t nil)
 
 (add-to-list 'auto-mode-alist '("\\.jade\\'" . jade-mode))
+
+(add-to-list 'auto-mode-alist '("\\.pug\\'" . jade-mode))
 
 ;;;***
 
