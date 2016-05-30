@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.0
-;; Package-Version: 20160505.910
+;; Version: 14.0.4
+;; Package-Version: 20160529.1148
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.0"
+(defconst web-mode-version "14.0.4"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -1631,10 +1631,10 @@ Must be used in conjunction with web-mode-enable-block-face."
      (2 'web-mode-html-attr-value-face))
    ))
 
+;; voir https://www.gnu.org/software/emacs/manual/html_node/elisp/Search_002dbased-Fontification.html
 (defvar web-mode-javascript-font-lock-keywords
   (list
    '("@\\([[:alnum:]_]+\\)\\_>" 0 'web-mode-keyword-face)
-   ;;(cons (concat "\\_<\\(" web-mode-javascript-keywords "\\)\\_>") '(0 'web-mode-keyword-face))
    (cons (concat "\\([ \t}{(]\\|^\\)\\(" web-mode-javascript-keywords "\\)\\_>") '(0 'web-mode-keyword-face))
    (cons (concat "\\_<\\(" web-mode-javascript-constants "\\)\\_>") '(0 'web-mode-constant-face))
    '("\\_<\\(new\\|instanceof\\|class\\|extends\\) \\([[:alnum:]_.]+\\)\\_>" 2 'web-mode-type-face)
@@ -1645,6 +1645,7 @@ Must be used in conjunction with web-mode-enable-block-face."
    '("([ ]*\\([[:alnum:]_]+\\)[ ]*=>" 1 'web-mode-function-name-face)
    '("[ ]*\\([[:alnum:]_]+\\)[ ]*=[ ]*([^)]*)[ ]*=>[ ]*{" 1 'web-mode-function-name-face)
    '("\\_<\\(var\\|let\\|const\\)[ ]+\\([[:alnum:]_]+\\)" 2 'web-mode-variable-name-face)
+   '("({" "\\([[:alnum:]_]+\\)[, }]+" nil nil (1 'web-mode-variable-name-face)) ;#738
    '("\\([[:alnum:]_]+\\)[ ]*=> [{(]" 1 'web-mode-variable-name-face)
    '("\\(function\\|[,=]\\|^\\)[ ]*("
      ("\\([[:alnum:]_]+\\)\\([ ]*=[^,)]*\\)?[,)]" nil nil (1 'web-mode-variable-name-face)))
@@ -6540,9 +6541,13 @@ another auto-completion with different ac-sources (e.g. ac-php)")
               )
              ((looking-at-p "[ ]*\\[[ ]*$") ;; #0659
               (setq reg-col (current-indentation))
-             )
+              )
+             ((and (looking-back "=[ ]*{") ;; #0739
+                   (looking-at-p "{[ ]*"))
+              (setq reg-col (current-indentation))
+              )
              (t
-              ;;(message "%S %S : %S %S" (point) (current-indentation) web-mode-code-indent-offset)
+              ;;(message "%S : %S %S" (point) (current-indentation) web-mode-code-indent-offset)
               ;;(setq reg-col (+ (current-indentation) web-mode-code-indent-offset web-mode-jsx-expression-padding)))
               (setq reg-col (+ (current-indentation) web-mode-code-indent-offset)))
              )
@@ -7163,6 +7168,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
          ((member ?\, chars)
           (cond
            ((not (web-mode-block-args-beginning pos reg-beg))
+            ;;(message "ici")
             )
            ((cdr (assoc "lineup-args" web-mode-indentation-params))
             (setq offset (current-column))
@@ -7216,6 +7222,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
       ) ;save-excursion
 
     (when offset
+      ;;(message "offset=%S" offset)
       (let ((diff (- (current-column) (current-indentation))))
         (when (not (= offset (current-indentation)))
           (setq web-mode-change-beg (line-beginning-position)
@@ -7263,7 +7270,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
     ))
 
 (defun web-mode-javascript-indentation (pos initial-column language-offset language &optional limit)
-  (let ((open-ctx (web-mode-bracket-up pos language limit)) indentation offset sub)
+  (let (open-ctx indentation offset sub)
+    (setq open-ctx (web-mode-bracket-up pos language limit))
     ;;(message "pos(%S) initial-column(%S) language-offset(%S) language(%S) limit(%S)" pos initial-column language-offset language limit)
     ;;(message "javascript-indentation: %S\nchar=%c" open-ctx (plist-get open-ctx :char))
     (setq indentation (plist-get open-ctx :indentation))
@@ -10719,6 +10727,10 @@ Prompt user if TAG-NAME isn't provided."
        ((web-mode-looking-back "\\_<\\(return\\)[ \n\t]*" pos)
         (setq continue nil)
         (web-mode-looking-at "[ \t\n]*" pos)
+        (setq pos (+ pos (length (match-string-no-properties 0)))))
+       ((web-mode-looking-back "[{,][ \t\n]*[[:alnum:]_]+[ ]*:[ ]*" pos)
+        (setq continue nil)
+        (web-mode-looking-at "[ ]*" pos)
         (setq pos (+ pos (length (match-string-no-properties 0)))))
        (t
         (setq pos (1- pos)))
