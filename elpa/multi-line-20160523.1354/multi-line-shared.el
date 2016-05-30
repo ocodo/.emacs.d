@@ -22,6 +22,8 @@
 
 ;;; Code:
 
+(require 's)
+
 (defun multi-line-clear-whitespace-at-point ()
   "Erase any surrounding whitespace."
   (interactive)
@@ -59,6 +61,9 @@ were generated for the statement."
 (defun multi-line-comma-advance ()
   "Advance to the next comma."
   (re-search-forward ","))
+
+(defun multi-line-is-newline-between-markers (first second)
+  (s-contains? "\n" (buffer-substring (marker-position first) (marker-position second))))
 
 (provide 'multi-line-shared)
 ;;; multi-line-shared.el ends here
