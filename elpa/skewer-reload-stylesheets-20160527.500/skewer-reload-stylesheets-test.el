@@ -13,6 +13,8 @@
 
 ;;; Code:
 
+(require 'scss-mode)
+
 (defvar skewer-reload-stylesheets-test-file load-file-name)
 
 (defun skewer-reload-stylesheets-test-setup ()
