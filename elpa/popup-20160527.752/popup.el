@@ -4,7 +4,7 @@
 
 ;; Author: Tomohiro Matsuyama <m2ym.pub@gmail.com>
 ;; Keywords: lisp
-;; Package-Version: 20160409.2133
+;; Package-Version: 20160527.752
 ;; Version: 0.5.3
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -180,7 +180,7 @@ buffer."
   :prefix "popup-")
 
 (defface popup-face
-  '((t (:background "lightgray" :foreground "black")))
+  '((t (:inherit default :background "lightgray" :foreground "black")))
   "Face for popup."
   :group 'popup)
 
