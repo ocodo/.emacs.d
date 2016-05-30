@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2005 - 2015  Jorgen Schaefer
 
-;; Version: 2.2
+;; Version: 2.3
 ;; Keywords: IRC, chat
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; URL: https://github.com/jorgenschaefer/circe
@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(defvar circe-version "2.2"
+(defvar circe-version "2.3"
   "Circe version string.")
 
 (require 'circe-compat)
@@ -45,6 +45,9 @@
 
 ;; Used to be optional. But sorry, we're in the 21st century already.
 (require 'lui-irc-colors)
+
+;; necessary for inheriting from diff-added and diff-removed faces
+(require 'diff-mode)
 
 (defgroup circe nil
   "Yet Another Emacs IRC Client."
@@ -89,12 +92,12 @@
   "The face used to highlight the originator of a message."
   :group 'circe)
 
-(defface circe-topic-diff-new-face '((t (:background "DarkGreen")))
+(defface circe-topic-diff-new-face '((t (:inherit diff-added)))
   "The face used for text added to a topic.
 See the {topic-diff} parameter to `circe-format-server-topic'."
   :group 'circe)
 
-(defface circe-topic-diff-removed-face '((t (:background "DarkRed")))
+(defface circe-topic-diff-removed-face '((t (:inherit diff-removed)))
   "The face used for text removed from a topic.
 See the {topic-diff} parameter to `circe-format-server-topic'."
   :group 'circe)
