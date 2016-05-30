@@ -4,7 +4,7 @@
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
 ;; Version: 1.2.9
-;; Package-Version: 20160521.942
+;; Package-Version: 20160528.938
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -485,13 +485,7 @@ after the `after-change-major-mode-hook' is fired."
             (when (persp-buffer-filtered-out-p
                    b persp-filter-save-buffers-functions)
               'skip))
-        #'(lambda (b)
-            (if (or (featurep 'tramp) (require 'tramp nil t))
-                (when (tramp-tramp-file-p (buffer-file-name b))
-                  `(def-buffer ,(buffer-name b)
-                     ,(persp-tramp-save-buffer-file-name b)
-                     ,(buffer-local-value 'major-mode b)))
-              nil))
+        #'persp-tramp-save-buffer
         #'(lambda (b)
             (when (eq 'dired-mode (buffer-local-value 'major-mode b))
               `(def-buffer ,(buffer-name b)
@@ -1190,7 +1184,7 @@ but just removed from a perspective."
                                 `(run-at-time 1 nil
                                               #'(lambda (bb ww)
                                                   (with-selected-window ww
-                                                    (set-window-buffer ww (persp-get-another-buffer-for-window bb ww))))
+                                                    (persp-set-another-buffer-for-window bb ww)))
                                               ,b ,w)))
                         (case (read-char-choice prompt '(?k ?K ?c ?s ?q ?\C-g ?\C-\[))
                           ((or ?q ?\C-g ?\C-\[) nil)
@@ -1237,7 +1231,9 @@ but just removed from a perspective."
   (let* ((frame (selected-frame))
          (persp-server-switch-hook (frame-parameter frame 'persp-server-switch-hook)))
     (when persp-server-switch-hook
-      (funcall persp-server-switch-hook frame))))
+      (unless (string-match-p "^.*magit.*$" (symbol-name last-command))
+        (funcall persp-server-switch-hook frame))
+      (set-frame-parameter frame 'persp-server-switch-hook nil))))
 
 
 ;; Misc funcs:
@@ -1649,23 +1645,27 @@ perspective buffers or nil."
       t)))
 
 
-(defun* persp-get-another-buffer-for-window
+(defun* persp-set-another-buffer-for-window
     (old-buff-or-name window
                       &optional
                       (persp (get-current-persp nil window)))
-  (if persp-set-frame-buffer-predicate
-      (switch-to-prev-buffer window)
-    (let* ((old-buf (persp-get-buffer-or-null old-buff-or-name))
-           (p-bs (safe-persp-buffers persp))
-           (buffers (delete-if #'(lambda (bc)
-                                   (or
-                                    (eq (car bc) old-buf)
-                                    (not (find (car bc) p-bs))))
-                               (append (window-prev-buffers window)
-                                       (window-next-buffers window)))))
-      (or (persp-get-buffer (and buffers (car (first buffers))) persp)
-          (car (persp-buffer-list-restricted (window-frame window) 2.5))
-          (car (buffer-list))))))
+  (let ((new-buf (when persp-set-frame-buffer-predicate
+                   (switch-to-prev-buffer window))))
+    (if new-buf
+        new-buf
+      (let* ((old-buf (persp-get-buffer-or-null old-buff-or-name))
+             (p-bs (safe-persp-buffers persp))
+             (buffers (delete-if #'(lambda (bc)
+                                     (or
+                                      (and (bufferp bc) (eq bc old-buf))
+                                      (eq (car bc) old-buf)
+                                      (not (find (car bc) p-bs))))
+                                 (append (window-prev-buffers window)
+                                         (window-next-buffers window)))))
+        (set-window-buffer window
+                           (or (persp-get-buffer (and buffers (car (first buffers))) persp)
+                               (car (persp-buffer-list-restricted (window-frame window) 2.5))
+                               (car (buffer-list))))))))
 
 (defun* persp-switchto-prev-buf (old-buff-or-name
                                  &optional (persp (get-current-persp)))
@@ -1677,14 +1677,10 @@ Return that old buffer."
            (frames (car frames-windows))
            (windows (cdr frames-windows)))
       (dolist (w windows)
-        (set-window-buffer
-         w
-         (persp-get-another-buffer-for-window old-buf w)))
+        (persp-set-another-buffer-for-window old-buf w))
       (dolist (f frames)
         (dolist (w (get-buffer-window-list old-buf 'no-minibuf f))
-          (set-window-buffer
-           w
-           (persp-get-another-buffer-for-window old-buf w)))))
+          (persp-set-another-buffer-for-window old-buf w))))
     old-buf))
 
 (defsubst* persp-filter-out-bad-buffers (&optional (persp (get-current-persp)))
@@ -1882,17 +1878,14 @@ Return `NAME'."
            (set-window-persp persp frame-or-window)
            (let ((cbuf (window-buffer frame-or-window)))
              (unless (persp-contain-buffer-p cbuf persp)
-               (set-window-buffer
-                frame-or-window
-                (persp-get-another-buffer-for-window
-                 cbuf frame-or-window persp))))
+               (persp-set-another-buffer-for-window cbuf frame-or-window persp)))
            (with-selected-window frame-or-window
              (run-hook-with-args 'persp-activated-functions 'window))))))))
 
 (defun persp-init-new-frame (frame)
   (persp-init-frame
    frame t
-   (not (null (funcall persp-backtrace-frame-function 0 'server-create-window-system-frame)))))
+   (not (null (frame-parameter frame 'client)))))
 (defun* persp-init-frame (frame &optional new-frame client)
   (let ((persp-init-frame-behaviour
          (cond
@@ -2122,14 +2115,13 @@ Return `NAME'."
      nil)))
 
 (defun persp-set-frame-server-switch-hook (frame)
-  (set-frame-parameter frame 'persp-server-switch-hook persp-frame-server-switch-hook))
+  (when (frame-parameter frame 'client)
+    (set-frame-parameter frame 'persp-server-switch-hook persp-frame-server-switch-hook)))
 
 (defun persp-update-frame-server-switch-hook ()
   (setq persp-frame-server-switch-hook
         (persp-generate-frame-server-switch-hook persp-server-switch-behaviour))
-  (mapc #'(lambda (f)
-            (when (frame-parameter f 'persp-server-switch-hook)
-              (persp-set-frame-server-switch-hook f)))
+  (mapc #'(lambda (f) (persp-set-frame-server-switch-hook f))
         (persp-frame-list-without-daemon)))
 
 
@@ -2451,24 +2443,41 @@ does not exists or not a directory %S." p-save-dir)
       (persp-save-state-to-file fname temphash nil)
       (mapc #'kill-buffer bufferlist-diff))))
 
-(defun persp-tramp-save-buffer-file-name (b)
-  (let ((persp-tramp-file-name tramp-prefix-format)
-        (tmh (tramp-compute-multi-hops (tramp-dissect-file-name (buffer-file-name b)))))
-    (while tmh
-      (let* ((hop (car tmh))
-             (method   (tramp-file-name-method hop))
-             (user     (tramp-file-name-user hop))
-             (host     (tramp-file-name-host hop))
-             (filename (tramp-file-name-localname hop)))
-        (setq persp-tramp-file-name (concat
-                                     persp-tramp-file-name
-                                     method tramp-postfix-method-format
-                                     user tramp-postfix-user-format
-                                     host (if (= (string-width filename) 0)
-                                              tramp-postfix-hop-format
-                                            (concat tramp-postfix-host-format filename)))
-              tmh (cdr tmh))))
-    persp-tramp-file-name))
+(defun persp-tramp-save-buffer (b)
+  (let* ((buf-f-name (buffer-file-name b))
+         (persp-tramp-file-name
+          (when (and (or (featurep 'tramp) (require 'tramp nil t))
+                     (tramp-tramp-file-p buf-f-name))
+            (let ((dissected-f-name (tramp-dissect-file-name buf-f-name))
+                  tmh)
+              (if (tramp-file-name-hop dissected-f-name)
+                  (when (and
+                         (or (featurep 'tramp-sh) (require 'tramp-sh nil t))
+                         (fboundp 'tramp-compute-multi-hops)
+                         (setq tmh (condition-case err
+                                       (tramp-compute-multi-hops dissected-f-name)
+                                     (error nil))))
+                    (let ((persp-tramp-file-name tramp-prefix-format))
+                      (while tmh
+                        (let* ((hop (car tmh))
+                               (method   (tramp-file-name-method hop))
+                               (user     (tramp-file-name-user hop))
+                               (host     (tramp-file-name-host hop))
+                               (filename (tramp-file-name-localname hop)))
+                          (setq persp-tramp-file-name (concat
+                                                       persp-tramp-file-name
+                                                       method tramp-postfix-method-format
+                                                       user (when user tramp-postfix-user-format)
+                                                       host (if (= (string-width filename) 0)
+                                                                tramp-postfix-hop-format
+                                                              (concat tramp-postfix-host-format filename)))
+                                tmh (cdr tmh))))
+                      persp-tramp-file-name))
+                buf-f-name)))))
+    (when persp-tramp-file-name
+      `(def-buffer ,(buffer-name b)
+         ,persp-tramp-file-name
+         ,(buffer-local-value 'major-mode b)))))
 
 ;; Load funcs
 
