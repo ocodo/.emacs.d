@@ -40,16 +40,12 @@
 
 (defvar gomarsok-websocket)
 
-(defvar gomarsok-module-path (file-name-directory load-file-name))
-
 (defun gomarsok-init-websocket (port)
-  (let ((url (format "ws://0.0.0.0:%d/echo" port)))
+  (let ((url (format "ws://localhost:%d/ws" port)))
     (message "Connect to %s" url)
     (setq gomarsok-websocket
           (websocket-open
            url
-           :on-message (lambda (websocket frame)
-                         (message "%s" (websocket-frame-payload frame)))
            :on-error (lambda (ws type err)
                        (message "error connecting"))
            :on-close (lambda (websocket)
@@ -60,41 +56,14 @@
     (let ((str (buffer-substring-no-properties (point-min) (point-max))))
       (websocket-send-text gomarsok-websocket str))))
 
-;; (defvar gomarsok-webapp-process nil)
-
-;; (defun gomarsok-webapp-launch-command (port)
-;;   (let ((ruby "bundle exec ruby"))
-;;     (with-demoted-errors "RVM not available: %S"
-;;       (when (and (boundp 'rvm--current-ruby-binary-path) (not (eq nil rvm--current-ruby-binary-path)))
-;;         (setq ruby (format "bundle exec %sruby" (car rvm--current-ruby-binary-path)))))
-;;     (format "%s gomarsok.rb -p %d" ruby port)))
-
-;; (defun gomarsok-webapp-launch (port)
-;;   (when (not gomarsok-webapp-process)
-;;     (let ((cmd (gomarsok-webapp-launch-command port))
-;;           (default-directory gomarsok-module-path))
-;;       (setq gomarsok-webapp-process
-;;             (start-process-shell-command "gomarsok" "*gomarsok realtime markdown*" cmd)))))
-
-;; (defun gomarsok-kill-process ()
-;;   (when gomarsok-webapp-process
-;;     (with-demoted-errors "Inactive remv process (%s)"
-;;       (kill-process gomarsok-webapp-process))
-;;     (setq gomarsok-webapp-process nil)))
-
 (defun gomarsok-init ()
   (let ((port gomarsok-port))
-    ; (gomarsok-webapp-launch port)
-    (sleep-for 5)
     (gomarsok-init-websocket port)
-    ; (add-hook 'kill-emacs-hook 'gomarsok-kill-process)
     (add-hook 'post-command-hook 'gomarsok-send-to-server nil t)))
 
 (defun gomarsok-finalize ()
   (websocket-close gomarsok-websocket)
-  (remove-hook 'post-command-hook 'gomarsok-send-to-server t)
-  ;(gomarsok-kill-process)
-  )
+  (remove-hook 'post-command-hook 'gomarsok-send-to-server t))
 
 (define-minor-mode gomarsok-mode
   "Realtime Emacs Markdown via Gomarsok"
@@ -106,5 +75,4 @@
     (gomarsok-finalize)))
 
 (provide 'gomarsok)
-
 ;;; gomarsok.el ends here
