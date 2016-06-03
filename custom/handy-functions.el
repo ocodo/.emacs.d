@@ -844,6 +844,17 @@ Use negative prefix P to go backward."
 
 (global-set-key (kbd "M-s-/") 'my-multi-occur-in-matching-buffers)
 
+(defun my-isearch-buffers ()
+  "isearch multiple buffers."
+  (interactive)
+  (multi-isearch-buffers
+   (delq nil (mapcar (lambda (buf)
+                       (set-buffer buf)
+                       (and (not (equal major-mode 'dired-mode))
+                            (not (string-match "^[ *]" (buffer-name buf)))
+                            buf))
+                     (buffer-list)))))
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
