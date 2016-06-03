@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# contributor: Jasonm23
+# name: react-prop-types
+# key: props
+# group: React ES6
+# --
+${1:Component Name}.propTypes = {
+  $0
+};

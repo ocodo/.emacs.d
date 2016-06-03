@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# contributor: jasonm23
+# name: react-let-from-destructure
+# group: React ES6
+# key: lprops
+# --
+let {
+  ${1:namesOfLocalPropsCSV}
+} = this.props;
+$0

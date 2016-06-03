@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# contributor: Jasonm23
+# name: react-component-class
+# group: React ES6
+# key: rcom
+# --
+export default class ${1:ComponentName} extends Component {
+  $0
+}

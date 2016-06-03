@@ -1,0 +1,17 @@
+# -*- mode: snippet -*-
+# contributor: Jasonm23
+# name: react-render-method
+# group: React ES6
+# key: rend
+# --
+render() {
+  let {
+    ${1:List of properties to use}
+  } = this.props;
+
+  return (
+    <${2:element}>
+      $0
+    </$2>
+  );
+}
