@@ -1,7 +1,7 @@
 (defun init-set-custom ()
   "Custom set and loaded from local (non-git) or regular (git-shared)"
   (let ((default-directory user-emacs-directory)
-        (local-custom (expand-file-name "local/custom.el")))
+        (local-custom (expand-file-name "local/custom.el" user-emacs-directory)))
     (if (file-readable-p local-custom)
         (setq custom-file local-custom)
       (setq custom-file (expand-file-name "custom/custom.el")))
