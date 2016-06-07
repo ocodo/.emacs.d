@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: no-pt-story
+# key: nost
+# group: git commit - pivotal
+# --
+[no-pt-story]
