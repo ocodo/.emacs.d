@@ -1,5 +1,5 @@
 ;; use-js-mode
-(dolist (pattern '("\\.jsx\\'"))
+(dolist (pattern '("\\.jsx?\\'"))
   (add-to-list 'auto-mode-alist (cons pattern 'js2-jsx-mode)))
 
 ;; js2-jsx mode + eslint
