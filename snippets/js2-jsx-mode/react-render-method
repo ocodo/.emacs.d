@@ -5,7 +5,7 @@
 # key: rend
 # --
 render() {
-  let {
+  const {
     ${1:List of properties to use}
   } = this.props;
 
