@@ -1,9 +1,9 @@
 # -*- mode: snippet -*-
 # contributor: jasonm23
-# name: it
+# name: describe
 # group: mocha
-# key: it
+# key: des
 # --
-it('${1:does something}', (${2:done}) => {
+describe('${1:what?}', () => {
   $0
 });

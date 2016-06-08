@@ -1,9 +1,9 @@
 # -*- mode: snippet -*-
 # contributor: jasonm23
-# name: it
+# name: before
 # group: mocha
-# key: it
+# key: befr
 # --
-it('${1:does something}', (${2:done}) => {
+before${1:Each}((${2:done}) => {
   $0
 });

@@ -3,6 +3,16 @@
   (add-to-list 'auto-mode-alist (cons pattern 'js2-jsx-mode)))
 ;; js2-jsx mode + eslint
 
+(defun insert-semi-colon-at-eol ()
+  "Insert semi-colon at end of line and return cursor to current
+    point."
+  (interactive)
+  (save-excursion
+    (end-of-line)
+    (insert ";")))
+
+(bind-key "C-c C-c" 'insert-semi-colon-at-eol js2-mode-map)
+
 (defun use-eslint-js2 ()
   (interactive)
   ;; disable jshint since we prefer eslint checking

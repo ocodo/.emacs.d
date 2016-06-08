@@ -1,9 +1,9 @@
 # -*- mode: snippet -*-
 # contributor: jasonm23
-# name: it
+# name: after
 # group: mocha
-# key: it
+# key: aftr
 # --
-it('${1:does something}', (${2:done}) => {
+after${1:Each}((${2:done}) => {
   $0
 });

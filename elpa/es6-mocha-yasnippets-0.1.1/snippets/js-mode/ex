@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# contributor: jasonm23
+# name: expect
+# group: mocha
+# key: ex
+# --
+expect(${1:object_under_test})

@@ -855,6 +855,18 @@ Use negative prefix P to go backward."
                             buf))
                      (buffer-list)))))
 
+;; Kbd Macroland
+
+;; Pad a single space inside a braced expression,
+;;
+;; ie. {test} becomes { test }
+;;
+;; NOTE: cursor must start ahead of the target expression
+
+(fset 'pad-inside-braces
+   [?\C-s ?\{ return ?  ?\C-s ?\} return left ?  right])
+
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)

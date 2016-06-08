@@ -4,6 +4,6 @@
 # group: mocha
 # key: it
 # --
-it('${1:does something}', (${2:done}) => {
+it('${1:should do what...}', (${2:done}) => {
   $0
 });

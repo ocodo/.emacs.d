@@ -1,0 +1,17 @@
+# -*- mode: snippet -*-
+# contributor: jasonm23
+# name: suite
+# group: mocha
+# key: suite
+# --
+suite('${1:suiteName}', () =>  {
+  ${2:setup(() => {
+    $3
+  \});}
+
+  ${4:teardown(() => {
+    $5
+  \});}
+
+  $0
+});
