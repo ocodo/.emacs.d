@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# contributor: jasonm23
+# name: expect-to-include
+# group: mocha
+# key: eti
+# --
+expect(${1:body}).to.include('$0');

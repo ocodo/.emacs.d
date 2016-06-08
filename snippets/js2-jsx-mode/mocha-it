@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# contributor: jasonm23
+# name: mocha-it
+# group: mocha
+# key: it
+# --
+it('${1:does something}', (${2:done}) => {
+  $0
+});
