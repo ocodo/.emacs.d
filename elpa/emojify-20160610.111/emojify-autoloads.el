@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "emojify" "emojify.el" (22258 7001 0 0))
+;;;### (autoloads nil "emojify" "emojify.el" (22366 21678 192892
+;;;;;;  199000))
 ;;; Generated autoloads from emojify.el
 
 (autoload 'emojify-set-emoji-styles "emojify" "\
@@ -41,7 +42,8 @@ See `emojify-mode' for more information on Emojify mode.
 
 ;;;***
 
-;;;### (autoloads nil nil ("emojify-pkg.el") (22258 7002 13905 0))
+;;;### (autoloads nil nil ("emojify-pkg.el") (22366 21678 204958
+;;;;;;  575000))
 
 ;;;***
 
