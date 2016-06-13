@@ -1389,6 +1389,8 @@ of the block."
         (opoint (save-excursion
                   (goto-char beg)
                   (line-beginning-position))))
+    (unless (eq evil-want-fine-undo t)
+      (evil-start-undo-step))
     (funcall delete-func beg end type register yank-handler)
     (cond
      ((eq type 'line)
@@ -1692,9 +1694,11 @@ The default for width is the value of `fill-column'."
   "Replace text from BEG to END with CHAR."
   :motion evil-forward-char
   (interactive "<R>"
-               (evil-save-cursor
-                 (evil-refresh-cursor 'replace)
-                 (list (evil-read-key))))
+               (unwind-protect
+                   (let ((evil-force-cursor 'replace))
+                     (evil-refresh-cursor)
+                     (list (evil-read-key)))
+                 (evil-refresh-cursor)))
   (when char
     (if (eq type 'block)
         (save-excursion
@@ -2195,44 +2199,17 @@ switch to insert state."
   (unless (evil-visual-state-p)
     (evil-insert count)))
 
-(defun evil-maybe-remove-spaces ()
-  "Remove space from newly opened empty line.
-This function should be called from `post-command-hook' after
-`evil-open-above' or `evil-open-below'.  If the last command
-finished insert state and if the current line consists of
-whitespaces only, then those spaces have been inserted because of
-the indentation.  In this case those spaces are removed leaving a
-completely empty line."
-  (cond
-   ((memq this-command
-          '(evil-open-above
-            evil-open-below
-            evil-append
-            evil-append-line
-            newline
-            newline-and-indent
-            indent-and-newline)))
-   ((not (evil-insert-state-p))
-    (when (save-excursion
-            (beginning-of-line)
-            (looking-at "^\\s-*$"))
-      (delete-region (line-beginning-position)
-                     (line-end-position)))
-    (unless (evil-insert-state-p)
-      (remove-hook 'post-command-hook #'evil-maybe-remove-spaces)))
-   (t
-    (remove-hook 'post-command-hook #'evil-maybe-remove-spaces))))
-
 (defun evil-open-above (count)
   "Insert a new line above point and switch to Insert state.
 The insertion will be repeated COUNT times."
   (interactive "p")
+  (unless (eq evil-want-fine-undo t)
+    (evil-start-undo-step))
   (evil-insert-newline-above)
   (setq evil-insert-count count
         evil-insert-lines t
         evil-insert-vcount nil)
   (evil-insert-state 1)
-  (add-hook 'post-command-hook #'evil-maybe-remove-spaces)
   (when evil-auto-indent
     (indent-according-to-mode)))
 
@@ -2240,13 +2217,14 @@ The insertion will be repeated COUNT times."
   "Insert a new line below point and switch to Insert state.
 The insertion will be repeated COUNT times."
   (interactive "p")
+  (unless (eq evil-want-fine-undo t)
+    (evil-start-undo-step))
   (push (point) buffer-undo-list)
   (evil-insert-newline-below)
   (setq evil-insert-count count
         evil-insert-lines t
         evil-insert-vcount nil)
   (evil-insert-state 1)
-  (add-hook 'post-command-hook #'evil-maybe-remove-spaces)
   (when evil-auto-indent
     (indent-according-to-mode)))
 
@@ -2284,8 +2262,7 @@ next VCOUNT - 1 lines below the current one."
              (list (line-number-at-pos)
                    #'end-of-line
                    vcount)))
-  (evil-insert-state 1)
-  (add-hook 'post-command-hook #'evil-maybe-remove-spaces))
+  (evil-insert-state 1))
 
 (evil-define-command evil-insert-digraph (count)
   "Insert COUNT digraphs."
