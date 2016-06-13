@@ -5,7 +5,7 @@
 ;; Authors: Matus Goljer <matus.goljer@gmail.com>
 ;;          Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.2.0
-;; Package-Version: 20150828.413
+;; Package-Version: 20160601.1018
 ;; Package-Requires: ((dash "2.0.0") (emacs "24"))
 ;; Keywords: lisp functions combinators
 
@@ -100,13 +100,13 @@ See SRFI-26 for detailed description."
        ,(--map (if (eq it '<>) (pop args) it) params))))
 
 (defun -not (pred)
-  "Take an unary predicates PRED and return an unary predicate
+  "Take a unary predicate PRED and return a unary predicate
 that returns t if PRED returns nil and nil if PRED returns
 non-nil."
   (lambda (x) (not (funcall pred x))))
 
 (defun -orfn (&rest preds)
-  "Take list of unary predicates PREDS and return an unary
+  "Take list of unary predicates PREDS and return a unary
 predicate with argument x that returns non-nil if at least one of
 the PREDS returns non-nil on x.
 
@@ -114,7 +114,7 @@ In types: [a -> Bool] -> a -> Bool"
   (lambda (x) (-any? (-cut funcall <> x) preds)))
 
 (defun -andfn (&rest preds)
-  "Take list of unary predicates PREDS and return an unary
+  "Take list of unary predicates PREDS and return a unary
 predicate with argument x that returns non-nil if all of the
 PREDS returns non-nil on x.
 
@@ -125,7 +125,7 @@ In types: [a -> Bool] -> a -> Bool"
   "Return a function FN composed N times with itself.
 
 FN is a unary function.  If you need to use a function of higher
-arity, use `-applify' first to turn it into an unary function.
+arity, use `-applify' first to turn it into a unary function.
 
 With n = 0, this acts as identity function.
 
