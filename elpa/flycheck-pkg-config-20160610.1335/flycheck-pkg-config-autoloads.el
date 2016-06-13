@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "flycheck-pkg-config" "flycheck-pkg-config.el"
-;;;;;;  (22309 38987 336065 509000))
+;;;;;;  (22366 21661 836985 311000))
 ;;; Generated autoloads from flycheck-pkg-config.el
 
 (autoload 'flycheck-pkg-config "flycheck-pkg-config" "\
