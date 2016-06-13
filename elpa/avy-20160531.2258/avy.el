@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20160519.536
+;; Package-Version: 20160531.2258
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -971,6 +971,10 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                      (read-char "char 2: " t)
                      current-prefix-arg
                      nil nil))
+  (when (eq char1 ?)
+    (setq char1 ?\n))
+  (when (eq char2 ?)
+    (setq char2 ?\n))
   (avy-with avy-goto-char-2
     (avy--generic-jump
      (regexp-quote (string char1 char2))
