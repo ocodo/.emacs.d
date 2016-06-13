@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160527.754
+;; Package-Version: 20160610.1553
 ;; Version: 0.55
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -453,7 +453,8 @@ Default behaviour shows finish and result in mode-line."
 
 (defsubst helm-ag--marked-input ()
   (when (use-region-p)
-    (buffer-substring-no-properties (region-beginning) (region-end))))
+    (prog1 (buffer-substring-no-properties (region-beginning) (region-end))
+      (deactivate-mark))))
 
 (defun helm-ag--query ()
   (let* ((searched-word (helm-ag--searched-word))
