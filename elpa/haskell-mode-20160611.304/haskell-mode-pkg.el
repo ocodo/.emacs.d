@@ -1,4 +1,4 @@
-(define-package "haskell-mode" "20160520.541" "A Haskell editing mode"
+(define-package "haskell-mode" "20160611.304" "A Haskell editing mode"
   '((emacs "24.3"))
   :keywords
   '("haskell" "cabal" "ghc" "repl")

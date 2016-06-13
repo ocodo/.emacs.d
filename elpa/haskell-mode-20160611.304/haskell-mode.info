@@ -365,6 +365,11 @@ grouped backend is just a list of backends, for example:
                       (append '((company-capf company-dabbrev-code))
                               company-backends))))
 
+   If you use a GHCi version prior to 8.0.1 you might want to set
+‘haskell-completions-complete-operators’ to ‘nil’, if you experience
+major slowdown while trying to complete after an Haskell operator (See
+GHC-Bug 10576 (https://ghc.haskell.org/trac/ghc/ticket/10576)).
+
 
 File: haskell-mode.info,  Node: Unicode support,  Next: Indentation,  Prev: Completion support,  Up: Top
 
@@ -824,11 +829,10 @@ You can move between these error lines with
 ‘C-c M-p’
      is bound to ‘haskell-goto-first-error’
 
-14.2 Using GHCi-ng
-==================
+14.2 Using GHCi 8+ or GHCi-ng
+=============================
 
-Put ‘:set +c’ in your ‘.ghci’ or run it in the REPL. Then use these
-keybindings:
+If you use either of the above, then you can use these functions:
 
      (define-key interactive-haskell-mode-map (kbd "M-.") 'haskell-mode-goto-loc)
      (define-key interactive-haskell-mode-map (kbd "C-c C-t") 'haskell-mode-show-type-at)
@@ -1284,7 +1288,38 @@ To evaluate expressions, simply type one out and hit ‘RET‘.
          λ> 123
          123
 
-14.8.4 Type of expressions
+14.8.4 Evaluating multiline expressions
+---------------------------------------
+
+GHCi features two ways to evaluate multiline expressions.  You can use
+‘:set +m’ to enable multiline input
+(https://www.haskell.org/ghc/docs/latest/html/users_guide/ghci.html#multiline-input)
+for all expressions, or you can wrap your expression in ‘:{’ and ‘:}’
+(they have to be on their own lines).
+
+   The prompt will change to indicate that you’re inputting a multiline
+expression:
+
+     λ> :{
+     λ| let a = 10
+     λ|     b = 20
+     λ|     c = 30
+     λ| :}
+
+   You can also simulate multiline mode by having your input contain
+newline characters.  You can input a literal newline character with ‘C-q
+C-j’, or you can use:
+
+         M-x haskell-interactive-mode-newline-indent
+
+   which is bound to ‘C-j’.  This command indents after the newline.
+You can simulate the above example like so:
+
+     λ> let a = 10
+            b = 20
+            c = 30
+
+14.8.5 Type of expressions
 --------------------------
 
 You can use normal ‘:type’ which is part of GHCi to get the type of
@@ -1327,7 +1362,7 @@ The same is true for ambiguous things:
      (custom-set-variables
        '(haskell-interactive-types-for-show-ambiguous nil))
 
-14.8.5 Printing mode
+14.8.6 Printing mode
 --------------------
 
 You can choose between printing modes used for the results of evaluating
@@ -1363,7 +1398,7 @@ expressions.  To do that, configure the variable
    There you can choose ‘haskell-mode‘, for example, to pretty print the
 output as Haskell.
 
-14.8.6 Presentations
+14.8.7 Presentations
 --------------------
 
 If you have the ‘present’ package installed, you can use the following
@@ -1388,23 +1423,23 @@ You can click the ‘[Integer]’ or press ‘RET’ on it to expand further:
 
    Etc.  Remember: this only works for instances of ‘Data.Data.Data’.
 
-14.8.7 History
+14.8.8 History
 --------------
 
 A history is maintained for the duration of the REPL buffer.  To go up
 and down in the history, run ‘M-p’ for previous and ‘M-n’ for next.
 
-14.8.8 Cancelling commands
+14.8.9 Cancelling commands
 --------------------------
 
 To cancel a running REPL command, run ‘C-c C-c’.
 
-14.8.9 Clear the REPL
----------------------
+14.8.10 Clear the REPL
+----------------------
 
 Run ‘C-c C-k’ to clear the REPL.
 
-14.8.10 Trick: Put Interactive REPL in Separate Frame
+14.8.11 Trick: Put Interactive REPL in Separate Frame
 -----------------------------------------------------
 
 The following ‘create-haskell-interactive-frame’ is a quick hack to move
@@ -1424,7 +1459,7 @@ layout of windows in Emacs.
        (delete-window))
 
 
-14.8.11 Troubleshooting
+14.8.12 Troubleshooting
 -----------------------
 
 If the REPL ever goes funny, you can clear the command queue via:
@@ -2030,17 +2065,17 @@ Concept index
  [index ]
 * Menu:
 
-* benchmarking:                          Interactive Haskell. (line 467)
+* benchmarking:                          Interactive Haskell. (line 466)
 * CUA mode:                              Indentation.         (line  49)
 * customizing:                           Installation.        (line  55)
-* customizing <1>:                       Interactive Haskell. (line  51)
+* customizing <1>:                       Interactive Haskell. (line  50)
 * ‘haskell-mode’:                        Editing Haskell Code.
                                                               (line   6)
 * indentation:                           Indentation.         (line   6)
 * layout rule:                           Indentation.         (line   6)
 * off-side rule:                         Indentation.         (line   6)
 * rectangle:                             Indentation.         (line  49)
-* testing:                               Interactive Haskell. (line 465)
+* testing:                               Interactive Haskell. (line 464)
 * Unicode:                               Unicode support.     (line   6)
 
 
@@ -2059,7 +2094,7 @@ Function index
                                                               (line   6)
 * haskell-mode:                          Editing Haskell Code.
                                                               (line   6)
-* haskell-session-change-target:         Interactive Haskell. (line 458)
+* haskell-session-change-target:         Interactive Haskell. (line 457)
 * inferior-haskell-find-definition:      Inferior Haskell interpreter.
                                                               (line   6)
 * inferior-haskell-find-haddock:         Inferior Haskell interpreter.
@@ -2098,19 +2133,19 @@ Variable index
 * haskell-decl-scan-mode-hook:           Declaration scanning.
                                                               (line   6)
 * haskell-definition-face:               Syntax highlighting. (line  31)
-* haskell-interactive-mode-hook:         Interactive Haskell. (line 458)
+* haskell-interactive-mode-hook:         Interactive Haskell. (line 457)
 * haskell-keyword-face:                  Syntax highlighting. (line  28)
 * haskell-literate-comment-face:         Syntax highlighting. (line  35)
 * haskell-mode-hook:                     Installation.        (line  60)
 * haskell-operator-face:                 Syntax highlighting. (line  33)
 * haskell-pragma-face:                   Syntax highlighting. (line  34)
-* haskell-process-args-cabal-repl:       Interactive Haskell. (line  72)
-* haskell-process-args-ghci:             Interactive Haskell. (line  72)
-* haskell-process-args-stack-ghci:       Interactive Haskell. (line  71)
-* haskell-process-path-cabal:            Interactive Haskell. (line  72)
-* haskell-process-path-ghci:             Interactive Haskell. (line  72)
-* haskell-process-path-stack:            Interactive Haskell. (line  72)
-* haskell-process-type:                  Interactive Haskell. (line  72)
+* haskell-process-args-cabal-repl:       Interactive Haskell. (line  71)
+* haskell-process-args-ghci:             Interactive Haskell. (line  71)
+* haskell-process-args-stack-ghci:       Interactive Haskell. (line  70)
+* haskell-process-path-cabal:            Interactive Haskell. (line  71)
+* haskell-process-path-ghci:             Interactive Haskell. (line  71)
+* haskell-process-path-stack:            Interactive Haskell. (line  71)
+* haskell-process-type:                  Interactive Haskell. (line  71)
 * haskell-program-name:                  Inferior Haskell interpreter.
                                                               (line   6)
 * haskell-quasi-quote-face:              Syntax highlighting. (line  36)
@@ -2127,24 +2162,24 @@ Node: Installation4127
 Node: Editing Haskell Code6749
 Node: Syntax highlighting10509
 Node: Completion support12765
-Node: Unicode support14530
-Node: Indentation19202
-Node: External indentation22674
-Node: Autoformating23402
-Node: Module templates24030
-Node: Declaration scanning24460
-Node: Compilation27748
-Node: Inferior Haskell interpreter30761
-Node: Interactive Haskell31693
-Node: Editing Cabal files61363
-Node: Browsing Haddocks62110
-Node: Spell checking strings and comments64935
-Node: Aligning code66041
-Node: Rectangular commands67786
-Node: Getting Help and Reporting Bugs69333
-Node: Concept index70374
-Node: Function index71417
-Node: Variable index73435
+Node: Unicode support14809
+Node: Indentation19481
+Node: External indentation22953
+Node: Autoformating23681
+Node: Module templates24309
+Node: Declaration scanning24739
+Node: Compilation28027
+Node: Inferior Haskell interpreter31040
+Node: Interactive Haskell31972
+Node: Editing Cabal files62609
+Node: Browsing Haddocks63356
+Node: Spell checking strings and comments66181
+Node: Aligning code67287
+Node: Rectangular commands69032
+Node: Getting Help and Reporting Bugs70579
+Node: Concept index71620
+Node: Function index72663
+Node: Variable index74681
 
 End Tag Table
 
