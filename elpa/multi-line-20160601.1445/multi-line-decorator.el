@@ -106,8 +106,5 @@ by the executor."
                     'multi-line-reindenting-respacer
                     'multi-line-space-clearing-respacer)
 
-(defclass multi-line-cycle-respacers ()
-  ((respacers :initarg :respacers)))
-
 (provide 'multi-line-decorator)
 ;;; multi-line-decorator.el ends here

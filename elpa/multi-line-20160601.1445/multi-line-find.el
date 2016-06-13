@@ -42,7 +42,7 @@
     (setq this-point (point))
     (condition-case nil
         (while (and (not (equal this-point last-point))
-                           (not (setq last (multi-line-should-stop strategy))))
+                    (not (setq last (multi-line-should-stop strategy))))
                  (forward-sexp)
                  (setq last-point this-point)
                  (setq this-point (point)))

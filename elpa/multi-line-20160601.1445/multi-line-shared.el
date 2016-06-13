@@ -63,7 +63,32 @@ were generated for the statement."
   (re-search-forward ","))
 
 (defun multi-line-is-newline-between-markers (first second)
-  (s-contains? "\n" (buffer-substring (marker-position first) (marker-position second))))
+  (s-contains? "\n"
+               (buffer-substring (marker-position first)
+                                 (marker-position second))))
+
+(defmacro multi-line-predicate-or (&rest predicates)
+  `(lambda (&rest args)
+       (or ,@(cl-loop for predicate in predicates
+                      collect `(apply ,predicate args)))))
+
+(defmacro multi-line-predicate-and (&rest predicates)
+  `(lambda (&rest args)
+       (and ,@(cl-loop for predicate in predicates
+                      collect (quote (apply predicate args))))))
+
+(defun multi-line-last-predicate (index markers)
+  (equal index (- (length markers) 1)))
+
+(defun multi-line-first-predicate (index markers)
+  (equal index 0))
+
+(defalias 'multi-line-first-or-last-predicate
+  (multi-line-predicate-or 'multi-line-first-predicate
+                           'multi-line-last-predicate))
+
+(defun multi-line-is-last-index (index alist)
+  (equal index (- (length markers) 1)))
 
 (provide 'multi-line-shared)
 ;;; multi-line-shared.el ends here

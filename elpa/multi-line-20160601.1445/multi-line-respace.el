@@ -69,8 +69,11 @@
 (defmethod multi-line-should-newline ((respacer multi-line-fill-respacer)
                                       index markers)
   (let ((marker-length (length markers)))
-    (or (and (equal 0 index))
-        (and (equal index (- marker-length 1)))
+    ;; Always newline when we are at the first or last marker so that
+    ;; the newline-respacer can decide about whether or not the
+    ;; respace should happen.
+    (or (equal 0 index)
+        (equal index (- marker-length 1))
         (and (< (+ index 1) marker-length)
              (save-excursion
                (goto-char (marker-position (nth (+ index 1) markers)))

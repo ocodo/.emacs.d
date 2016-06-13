@@ -25,7 +25,7 @@
 
 ;; multi-line aims to provide a flexible framework for automatically
 ;; multi-lining and single-lining function invocations and
-;; definitions, array and map literals and more. It relies on
+;; definitions, array and map literals and more.  It relies on
 ;; functions that are defined on a per major mode basis wherever it
 ;; can so that it functions correctly across many different
 ;; programming languages.
@@ -102,7 +102,7 @@ FIND-STRATEGY is a class with the method multi-line-find-next."
   (oset selector :default-strategy strategy))
 
 (defvar multi-line-master-strategy
-      (make-instance multi-line-major-mode-strategy-selector))
+  (make-instance multi-line-major-mode-strategy-selector))
 
 (defun multi-line-lisp-advance-fn ()
   "Advance to the start of the next multi-line split for Lisp."
