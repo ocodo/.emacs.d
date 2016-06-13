@@ -5,7 +5,7 @@
 ;;          João Távora <joaotavora@gmail.com>,
 ;;          Noam Postavsky <npostavs@gmail.com>
 ;; Maintainer: Noam Postavsky <npostavs@gmail.com>
-;; Version: 0.9.1
+;; Version: 0.10.0
 ;; X-URL: http://github.com/capitaomorte/yasnippet
 ;; Keywords: convenience, emulation
 ;; URL: http://github.com/capitaomorte/yasnippet
@@ -207,7 +207,7 @@ created with `yas-new-snippet'. "
 # name: $1
 # key: ${2:${1:$(yas--key-from-desc yas-text)}}
 # --
-$0"
+$0`yas-selected-text`"
   "Default snippet to use when creating a new snippet.
 If nil, don't use any snippet."
   :type 'string
@@ -534,7 +534,7 @@ snippet itself contains a condition that returns the symbol
 
 ;;; Internal variables
 
-(defvar yas--version "0.9.1")
+(defconst yas--version "0.10.0")
 
 (defvar yas--menu-table (make-hash-table)
   "A hash table of MAJOR-MODE symbols to menu keymaps.")
@@ -1805,7 +1805,10 @@ With prefix argument USE-JIT do jit-loading of snippets."
     (with-temp-buffer
       (dolist (file (yas--subdirs directory 'no-subdirs-just-files))
         (when (file-readable-p file)
-          (insert-file-contents file nil nil nil t)
+          ;; Erase the buffer instead of passing non-nil REPLACE to
+          ;; `insert-file-contents' (avoids Emacs bug #23659).
+          (erase-buffer)
+          (insert-file-contents file)
           (push (yas--parse-template file)
                 snippet-defs))))
     (when snippet-defs
@@ -2473,7 +2476,11 @@ where snippets of table might exist."
 Expands a snippet-writing snippet, unless the optional prefix arg
 NO-TEMPLATE is non-nil."
   (interactive "P")
-  (let ((guessed-directories (yas--guess-snippet-directories)))
+  (let ((guessed-directories (yas--guess-snippet-directories))
+        (yas-selected-text (or yas-selected-text
+                               (and (region-active-p)
+                                    (buffer-substring-no-properties
+                                     (region-beginning) (region-end))))))
 
     (switch-to-buffer "*new snippet*")
     (erase-buffer)
@@ -2657,58 +2664,49 @@ and `kill-buffer' instead."
   (car (last (or (yas--template-group template)
                  (yas--template-perm-group template)))))
 
-(defun yas-describe-tables (&optional choose)
+(defun yas-describe-table-by-namehash ()
+  "Display snippet tables by NAMEHASH."
+  (interactive)
+  (with-current-buffer (get-buffer-create "*YASnippet Tables by NAMEHASH*")
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert "YASnippet tables by NAMEHASH: \n")
+      (maphash
+       (lambda (_mode table)
+         (insert (format "\nSnippet table `%s':\n\n" (yas--table-name table)))
+         (maphash
+          (lambda (key _v)
+            (insert (format "   key %s maps snippets: %s\n" key
+                            (let ((names))
+                              (maphash #'(lambda (k _v)
+                                           (push k names))
+                                       (gethash key (yas--table-hash table)))
+                              names))))
+          (yas--table-hash table)))
+       yas--tables))
+    (view-mode +1)
+    (goto-char 1)
+    (display-buffer (current-buffer))))
+
+(defun yas-describe-tables (&optional with-nonactive)
   "Display snippets for each table."
   (interactive "P")
-  (let* ((by-name-hash (and choose
-                            (y-or-n-p "Show by namehash? ")))
-         (buffer (get-buffer-create "*YASnippet tables*"))
-         (active-tables (yas--get-snippet-tables))
-         (remain-tables (let ((all))
-                          (maphash #'(lambda (_k v)
-                                       (unless (find v active-tables)
-                                         (push v all)))
-                                   yas--tables)
-                          all))
-         (table-lists (list active-tables remain-tables))
-         (original-buffer (current-buffer))
-         (continue t)
-         (yas--condition-cache-timestamp (current-time)))
-    (with-current-buffer buffer
-      (setq buffer-read-only nil)
-      (erase-buffer)
-      (cond ((not by-name-hash)
-             (insert "YASnippet tables:\n")
-             (while (and table-lists
-                         continue)
-               (dolist (table (car table-lists))
-                 (yas--describe-pretty-table table original-buffer))
-               (setq table-lists (cdr table-lists))
-               (when table-lists
-                 (yas--create-snippet-xrefs)
-                 (display-buffer buffer)
-                 (setq continue (and choose (y-or-n-p "Show also non-active tables? ")))))
-             (yas--create-snippet-xrefs)
-             (help-mode)
-             (goto-char 1))
-            (t
-             (insert "\n\nYASnippet tables by NAMEHASH: \n")
-             (dolist (table (append active-tables remain-tables))
-               (insert (format "\nSnippet table `%s':\n\n" (yas--table-name table)))
-               (let ((keys))
-                 (maphash #'(lambda (k _v)
-                              (push k keys))
-                          (yas--table-hash table))
-                 (dolist (key keys)
-                   (insert (format "   key %s maps snippets: %s\n" key
-                                   (let ((names))
-                                     (maphash #'(lambda (k _v)
-                                                  (push k names))
-                                              (gethash key (yas--table-hash table)))
-                                     names))))))))
-      (goto-char 1)
-      (setq buffer-read-only t))
-    (display-buffer buffer)))
+  (let ((original-buffer (current-buffer))
+        (tables (yas--get-snippet-tables)))
+   (with-current-buffer (get-buffer-create "*YASnippet Tables*")
+     (let ((inhibit-read-only t))
+       (when with-nonactive
+         (maphash #'(lambda (_k v)
+                      (cl-pushnew v tables))
+                  yas--tables))
+       (erase-buffer)
+       (insert "YASnippet tables:\n")
+       (dolist (table tables)
+         (yas--describe-pretty-table table original-buffer))
+       (yas--create-snippet-xrefs))
+     (help-mode)
+     (goto-char 1)
+     (display-buffer (current-buffer)))))
 
 (defun yas--describe-pretty-table (table &optional original-buffer)
   (insert (format "\nSnippet table `%s'"
@@ -4019,20 +4017,34 @@ With optional string TEXT do it in string instead of the buffer."
 (defun yas--save-backquotes ()
   "Save all the \"`(lisp-expression)`\"-style expressions
 with their evaluated value into `yas--backquote-markers-and-strings'."
-  (while (re-search-forward yas--backquote-lisp-expression-regexp nil t)
-    (let ((current-string (match-string-no-properties 1)) transformed)
-      (save-restriction (widen)
-                        (delete-region (match-beginning 0) (match-end 0)))
-      (setq transformed (yas--eval-lisp (yas--read-lisp (yas--restore-escapes current-string '(?`)))))
-      (goto-char (match-beginning 0))
-      (when transformed
-        (let ((marker (make-marker)))
-          (save-restriction
-            (widen)
-            (insert "Y") ;; quite horrendous, I love it :)
-            (set-marker marker (point))
-            (insert "Y"))
-          (push (cons marker transformed) yas--backquote-markers-and-strings))))))
+  ;; Gather `(lisp-expression)`s.
+  (let ((end (point-max)))
+    (save-restriction
+      (widen)
+      (while (re-search-forward yas--backquote-lisp-expression-regexp end t)
+        (let ((expr (yas--read-lisp (yas--restore-escapes
+                                     (match-string-no-properties 1))))
+              (marker (make-marker)))
+          (delete-region (match-beginning 0) (match-end 0))
+          (insert "Y") ;; quite horrendous, I love it :)
+          (set-marker marker (point))
+          (insert "Y")
+          (push (cons marker expr) yas--backquote-markers-and-strings)))))
+  ;; Evaluate them.
+  (dolist (m-e yas--backquote-markers-and-strings)
+    (let* ((marker (car m-e))
+           (expr (cdr m-e))
+           (result (save-excursion
+                     (goto-char marker)
+                     (yas--eval-lisp expr))))
+      (setcdr m-e result)
+      (unless result
+        (save-restriction (widen)
+                          (delete-region (1- marker) (1+ marker)))
+        (set-marker marker nil))))
+  ;; Drop the nil results.
+  (setq yas--backquote-markers-and-strings
+        (cl-delete-if-not #'cdr yas--backquote-markers-and-strings)))
 
 (defun yas--restore-backquotes ()
   "Replace markers in `yas--backquote-markers-and-strings' with their values."
