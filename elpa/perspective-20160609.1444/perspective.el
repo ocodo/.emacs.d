@@ -6,7 +6,7 @@
 
 ;; Author: Natalie Weizenbaum <nex342@gmail.com>
 ;; URL: http://github.com/nex3/perspective-el
-;; Package-Version: 20160219.1622
+;; Package-Version: 20160609.1444
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 1.12
 ;; Created: 2008-03-05
@@ -888,12 +888,12 @@ it. In addition, if one exists already, runs BODY in it immediately."
         (indices (make-hash-table :test 'equal)))
     (cl-loop for elt in ido-temp-list
              for i upfrom 0
-             do (puthash (copy-sequence elt) i indices))
+             do (puthash elt i indices))
     (setq ido-temp-list
-          (let ((length (length ido-temp-list)))
-            (sort persp-names (lambda (a b)
-                                (< (gethash (copy-sequence a) indices length)
-                                   (gethash (copy-sequence b) indices length))))))))
+          (sort (intersection persp-names ido-temp-list)
+                (lambda (a b)
+                  (< (gethash a indices)
+                     (gethash b indices)))))))
 
 (defun quick-perspective-keys ()
   "Bind quick key commands to switch to perspectives.

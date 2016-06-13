@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "perspective" "perspective.el" (22218 26277
-;;;;;;  146988 36000))
+;;;### (autoloads nil "perspective" "perspective.el" (22366 21516
+;;;;;;  361937 645000))
 ;;; Generated autoloads from perspective.el
 
 (defvar persp-mode nil "\
