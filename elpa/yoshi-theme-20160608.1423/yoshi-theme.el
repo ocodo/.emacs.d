@@ -4,7 +4,7 @@
 
 ;; Author: Tom Willemse <tom@ryuslash.org>
 ;; Keywords: faces
-;; Package-Version: 20160304.1518
+;; Package-Version: 20160608.1423
 ;; Version: 6.1.0
 ;; URL: http://projects.ryuslash.org/yoshi-theme/
 
@@ -373,12 +373,17 @@
    `(outline-7 ((t (:inherit org-level-7))))
    `(outline-8 ((t (:inherit org-level-8))))
 
+   ;;; Package
+   `(package-status-avail-obso ((t (:foreground ,bggreen))))
+   `(package-status-available ((t (:foreground ,fggreen))))
+   `(package-status-dependency ((t (:foreground ,fgdim))))
+   `(package-status-installed ((t (:foreground ,fgdefault))))
+
    ;;; Pretty-print ^L highlight
    `(pp^L-highlight ((t (:box unspecified :foreground ,fgbright))))
 
    ;;; Rainbow delimiters
    `(rainbow-delimiters-depth-1-face ((t (:foreground ,fgred))))
-   `(rainbow-delimiters-depth-10-face ((t (:foreground ,fgpink))))
    `(rainbow-delimiters-depth-2-face ((t (:foreground ,fgorange))))
    `(rainbow-delimiters-depth-3-face ((t (:foreground ,fgyellow))))
    `(rainbow-delimiters-depth-4-face ((t (:foreground ,fggreen))))
@@ -462,7 +467,6 @@
 
   (custom-theme-set-variables
    'yoshi
-   '(rainbow-delimiters-max-face-count 10)
    `(fci-rule-color ,bgred)
    `(ansi-color-names-vector [,bgdim ,fgred ,fggreen ,fgyellow
                               ,fgblue ,fgmagenta ,fgcyan ,fgdim])))
