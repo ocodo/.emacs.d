@@ -7918,20 +7918,21 @@ When NO-TAGS is non-nil, don't include tags.
 When NO-TODO is non-nil, don't include TODO keywords."
   (save-excursion
     (org-back-to-heading t)
-    (cond
-     ((and no-tags no-todo)
-      (looking-at org-complex-heading-regexp)
-      (match-string 4))
-     (no-tags
-      (looking-at (concat org-outline-regexp
-			  "\\(.*?\\)"
-			  "\\(?:[ \t]+:[[:alnum:]:_@#%]+:\\)?[ \t]*$"))
-      (match-string 1))
-     (no-todo
-      (looking-at org-todo-line-regexp)
-      (match-string 3))
-     (t (looking-at org-heading-regexp)
-	(match-string 2)))))
+    (let ((case-fold-search nil))
+      (cond
+       ((and no-tags no-todo)
+	(looking-at org-complex-heading-regexp)
+	(match-string 4))
+       (no-tags
+	(looking-at (concat org-outline-regexp
+			    "\\(.*?\\)"
+			    "\\(?:[ \t]+:[[:alnum:]:_@#%]+:\\)?[ \t]*$"))
+	(match-string 1))
+       (no-todo
+	(looking-at org-todo-line-regexp)
+	(match-string 3))
+       (t (looking-at org-heading-regexp)
+	  (match-string 2))))))
 
 (defvar orgstruct-mode)   ; defined below
 
@@ -10707,7 +10708,8 @@ link in a property drawer line."
 	 ((memq type '(comment comment-block keyword node-property))
 	  (cond ((org-in-regexp org-any-link-re)
 		 (org-open-link-from-string (match-string-no-properties 0)))
-		((or (org-at-timestamp-p t) (org-at-date-range-p t))
+		((or (org-in-regexp org-ts-regexp-both nil t)
+		     (org-in-regexp org-tsr-regexp-both nil t))
 		 (org-follow-timestamp-link))
 		(t (user-error "No link found"))))
 	 ;; On a headline or an inlinetask, but not on a timestamp,
@@ -10735,13 +10737,12 @@ link in a property drawer line."
 	       (>= (point) (org-element-property :begin value))
 	       (<= (point) (org-element-property :end value)))
 	  (org-follow-timestamp-link))
-	 ;; Do nothing on white spaces after an object, unless point
-	 ;; is right after it.
-	 ((> (point)
-	     (save-excursion
-	       (goto-char (org-element-property :end context))
-	       (skip-chars-backward " \t")
-	       (point)))
+	 ;; Do nothing on white spaces after an object.
+	 ((>= (point)
+	      (save-excursion
+		(goto-char (org-element-property :end context))
+		(skip-chars-backward " \t")
+		(point)))
 	  (user-error "No link found"))
 	 ((eq type 'timestamp) (org-follow-timestamp-link))
 	 ;; On tags within a headline or an inlinetask.
@@ -14922,7 +14923,7 @@ If ONOFF is `on' or `off', don't toggle but set to this state."
     (if	(and (looking-at (org-re ".*?\\([ \t]+\\)\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$"))
 	     (< pos (match-beginning 2)))
 	(progn
-	  (setq tags-l (- (match-end 2) (match-beginning 2)))
+	  (setq tags-l (string-width (match-string 2)))
 	  (goto-char (match-beginning 1))
 	  (insert " ")
 	  (delete-region (point) (1+ (match-beginning 2)))
@@ -17461,7 +17462,7 @@ If SECONDS is non-nil, return the difference in seconds."
 (defun org-deadline-close (timestamp-string &optional ndays)
   "Is the time in TIMESTAMP-STRING close to the current date?"
   (setq ndays (or ndays (org-get-wdays timestamp-string)))
-  (and (< (org-time-stamp-to-now timestamp-string) ndays)
+  (and (<= (org-time-stamp-to-now timestamp-string) ndays)
        (not (org-entry-is-done-p))))
 
 (defun org-get-wdays (ts &optional delay zero-delay)
@@ -21380,13 +21381,13 @@ object (e.g., within a comment).  In these case, you need to use
 	  (org-element-lineage context '(table-row table-cell) t))
       (org-table-justify-field-maybe)
       (call-interactively #'org-table-next-row))
-     ;; On a link or a timestamp, call `org-open-line' if
+     ;; On a link or a timestamp, call `org-open-at-point' if
      ;; `org-return-follows-link' allows it.  Tolerate fuzzy
-     ;; locations, e.g., in a comment, as `org-open-line'.
+     ;; locations, e.g., in a comment, as `org-open-at-point'.
      ((and org-return-follows-link
-	   (or (org-at-timestamp-p t)
-	       (org-at-date-range-p t)
-	       (org-in-regexp org-any-link-re)))
+	   (or (org-in-regexp org-ts-regexp-both nil t)
+	       (org-in-regexp org-tsr-regexp-both nil  t)
+	       (org-in-regexp org-any-link-re nil t)))
       (call-interactively #'org-open-at-point))
      ;; Insert newline in heading, but preserve tags.
      ((and (not (bolp))
@@ -22557,23 +22558,27 @@ and :keyword."
     (setq clist (nreverse (delq nil clist)))
     clist))
 
-(defun org-in-regexp (re &optional nlines visually)
-  "Check if point is inside a match of RE.
+(defun org-in-regexp (regexp &optional nlines visually)
+  "Check if point is inside a match of REGEXP.
 
 Normally only the current line is checked, but you can include
-NLINES extra lines after point into the search.  If VISUALLY is
+NLINES extra lines around point into the search.  If VISUALLY is
 set, require that the cursor is not after the match but really
-on, so that the block visually is on the match."
-  (catch 'exit
+on, so that the block visually is on the match.
+
+Return nil or a cons cell (BEG . END) where BEG and END are,
+respectively, the positions at the beginning and the end of the
+match."
+  (catch :exit
     (let ((pos (point))
-          (eol (point-at-eol (+ 1 (or nlines 0))))
-	  (inc (if visually 1 0)))
+          (eol (line-end-position (if nlines (1+ nlines) 1))))
       (save-excursion
 	(beginning-of-line (- 1 (or nlines 0)))
-	(while (re-search-forward re eol t)
-	  (if (and (<= (match-beginning 0) pos)
-		   (>= (+ inc (match-end 0)) pos))
-	      (throw 'exit (cons (match-beginning 0) (match-end 0)))))))))
+	(while (and (re-search-forward regexp eol t)
+		    (<= (match-beginning 0) pos))
+	  (let ((end (match-end 0)))
+	    (when (or (> end pos) (and (= end pos) (not visually)))
+	      (throw :exit (cons (match-beginning 0) (match-end 0))))))))))
 (define-obsolete-function-alias 'org-at-regexp-p 'org-in-regexp
   "Org mode 8.3")
 
@@ -25048,7 +25053,8 @@ when non-nil, is a regexp matching keywords names."
   "Produce the index for Imenu."
   (mapc (lambda (x) (move-marker x nil)) org-imenu-markers)
   (setq org-imenu-markers nil)
-  (let* ((n org-imenu-depth)
+  (let* ((case-fold-search nil)
+	 (n org-imenu-depth)
 	 (re (concat "^" (org-get-limited-outline-regexp)))
 	 (subs (make-vector (1+ n) nil))
 	 (last-level 0)

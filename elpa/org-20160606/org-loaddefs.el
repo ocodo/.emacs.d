@@ -298,7 +298,7 @@ used to limit the exported source code blocks by language.
 ;;;;;;  org-search-view org-agenda-list org-batch-store-agenda-views
 ;;;;;;  org-store-agenda-views org-batch-agenda-csv org-batch-agenda
 ;;;;;;  org-agenda org-toggle-sticky-agenda) "org-agenda" "org-agenda.el"
-;;;;;;  (22334 39979))
+;;;;;;  (22343 54955))
 ;;; Generated autoloads from org-agenda.el
 
 (autoload 'org-toggle-sticky-agenda "org-agenda" "\
@@ -2003,7 +2003,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22338 36437))
+;;;;;;  (22357 853))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2029,7 +2029,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (22329 21459))
+;;;;;;  "org" "org.el" (22355 46122))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -2820,7 +2820,7 @@ The file is stored under the name chosen in
 
 ;;;### (autoloads (org-latex-publish-to-pdf org-latex-publish-to-latex
 ;;;;;;  org-latex-export-to-pdf org-latex-export-to-latex org-latex-convert-region-to-latex
-;;;;;;  org-latex-export-as-latex) "ox-latex" "ox-latex.el" "7b5829b80b0d74d7c8163b36302543cf")
+;;;;;;  org-latex-export-as-latex) "ox-latex" "ox-latex.el" "b65e51719959691b182b1cd6079f2462")
 ;;; Generated autoloads from ox-latex.el
 
 (autoload 'org-latex-export-as-latex "ox-latex" "\
