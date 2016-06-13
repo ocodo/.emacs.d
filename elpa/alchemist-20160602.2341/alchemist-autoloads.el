@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (22347 49654 877262
-;;;;;;  668000))
+;;;### (autoloads nil "alchemist" "alchemist.el" (22366 21745 344535
+;;;;;;  345000))
 ;;; Generated autoloads from alchemist.el
 
 (autoload 'alchemist-mode "alchemist" "\
@@ -17,8 +17,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22347 49654
-;;;;;;  913262 697000))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (22366 21745
+;;;;;;  380535 164000))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -39,7 +39,7 @@ Show the IEx buffer if an IEx process is already run.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-phoenix" "alchemist-phoenix.el"
-;;;;;;  (22347 49654 905262 691000))
+;;;;;;  (22366 21745 372535 204000))
 ;;; Generated autoloads from alchemist-phoenix.el
 
 (autoload 'alchemist-phoenix-project-p "alchemist-phoenix" "\
@@ -66,7 +66,7 @@ The following commands are available:
 ;;;***
 
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (22347 49654 881262 672000))
+;;;;;;  (22366 21745 352535 304000))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -77,7 +77,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (22347 49654 921262 704000))
+;;;;;;  (22366 21745 388535 123000))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -105,8 +105,8 @@ The following commands are available:
 ;;;;;;  "alchemist-interact.el" "alchemist-key.el" "alchemist-macroexpand.el"
 ;;;;;;  "alchemist-message.el" "alchemist-mix.el" "alchemist-pkg.el"
 ;;;;;;  "alchemist-project.el" "alchemist-report.el" "alchemist-scope.el"
-;;;;;;  "alchemist-server.el" "alchemist-utils.el") (22347 49654
-;;;;;;  930471 456000))
+;;;;;;  "alchemist-server.el" "alchemist-utils.el") (22366 21745
+;;;;;;  397357 679000))
 
 ;;;***
 
