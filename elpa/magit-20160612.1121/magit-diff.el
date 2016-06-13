@@ -990,6 +990,15 @@ which, as the name suggests always visits the actual file."
           (rev (cond (force-worktree nil)
                      ((derived-mode-p 'magit-revision-mode)
                       (car magit-refresh-args))
+                     ((derived-mode-p 'magit-stash-mode)
+                      (magit-section-case
+                        (file (-> it
+                                  magit-section-parent
+                                  magit-section-value))
+                        (hunk (-> it
+                                  magit-section-parent
+                                  magit-section-parent
+                                  magit-section-value))))
                      ((derived-mode-p 'magit-diff-mode)
                       (--when-let (car magit-refresh-args)
                         (and (string-match "\\.\\.\\([^.].*\\)?[ \t]*\\'" it)
@@ -1135,7 +1144,8 @@ commit or stash at point, then prompt for a commit."
      ((derived-mode-p 'git-rebase-mode)
       (save-excursion
         (goto-char (line-beginning-position))
-        (--if-let (and (looking-at git-rebase-line)
+        (--if-let (and git-rebase-line
+                       (looking-at git-rebase-line)
                        (match-string 2))
             (setq rev it
                   cmd 'magit-show-commit

@@ -1,6 +1,6 @@
 ;;; magit-submodule.el --- submodule support for Magit  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2015  The Magit Project Contributors
+;; Copyright (C) 2011-2016  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -52,35 +52,39 @@ Optional NAME is the name of the submodule.  If it is nil, then
 PATH also becomes the name."
   (interactive
    (magit-with-toplevel
-     (let ((path (magit-completing-read "Add submodules at path"
-                                        (magit-untracked-files)
-                                        #'magit-git-repo-p nil nil nil
-                                        (magit-section-when [file untracked]
-                                          (file-relative-name
-                                           (magit-section-value it)
-                                           default-directory)))))
-       (unless path
-         (user-error "No path selected"))
-       (list (magit-read-string-ns
-              "Remote url"
-              (let ((default-directory (file-name-as-directory
-                                        (expand-file-name path))))
-                (magit-get "remote" (or (magit-get-remote) "origin") "url")))
+     (let* ((url (magit-read-string-ns "Add submodule (remote url)"))
+            (path (let ((read-file-name-function #'read-file-name-default))
+                    (directory-file-name
+                     (file-relative-name
+                      (read-directory-name
+                       "Add submodules at path: " nil nil nil
+                       (and (string-match "\\([^./]+\\)\\(\\.git\\)?$" url)
+                            (match-string 1 url))))))))
+       (list url
              (directory-file-name path)
-             (magit-read-string-ns
-              "Name submodule" nil nil
-              (or (--keep (-let [(var val) (split-string it "=")]
-                            (and (equal val path)
-                                 (cadr (split-string var "\\."))))
-                          (magit-git-lines "config" "--list" "-f" ".gitmodules"))
-                  (directory-file-name path)))))))
+             (magit-submodule-read-name path)))))
   (magit-run-git "submodule" "add" (and name (list "--name" name)) url path))
+
+(defun magit-submodule-read-name (path)
+  (setq path (directory-file-name (file-relative-name path)))
+  (push (file-name-nondirectory path) minibuffer-history)
+  (magit-read-string-ns
+   "Submodule name" nil (cons 'minibuffer-history 2)
+   (or (--keep (-let [(var val) (split-string it "=")]
+                 (and (equal val path)
+                      (cadr (split-string var "\\."))))
+               (magit-git-lines "config" "--list" "-f" ".gitmodules"))
+       path)))
 
 ;;;###autoload
 (defun magit-submodule-setup ()
   "Clone and register missing submodules and checkout appropriate commits."
   (interactive)
-  (magit-submodule-update t))
+  (magit-with-toplevel
+    (--if-let (--filter (not (file-exists-p (expand-file-name ".git" it)))
+                        (magit-get-submodules))
+        (magit-run-git-async "submodule" "update" "--init" "--" it)
+      (message "All submodules already setup"))))
 
 ;;;###autoload
 (defun magit-submodule-init ()
