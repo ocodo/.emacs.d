@@ -1530,7 +1530,7 @@ Use this on commands invoked from key-bindings, but not
 on action functions invoked as action from the action menu,
 i.e functions called with RET."
   (setq helm-saved-action action)
-  (setq helm-saved-selection (helm-get-selection))
+  (setq helm-saved-selection (or (helm-get-selection) ""))
   (helm-exit-minibuffer))
 
 (defalias 'helm-run-after-quit 'helm-run-after-exit)
@@ -1592,15 +1592,16 @@ Default value for BUFFER is `helm-buffer'."
   "Check if current source contains candidates.
 This could happen when for example the last element of a source
 was deleted and the candidates list not updated."
-  (with-helm-window
-    (or (helm-empty-buffer-p)
-        (and (helm-end-of-source-p)
-             (eq (point-at-bol) (point-at-eol))
-             (or
-              (save-excursion
-                (forward-line -1)
-                (helm-pos-header-line-p))
-              (bobp))))))
+  (when (helm-window)
+    (with-helm-window
+      (or (helm-empty-buffer-p)
+          (and (helm-end-of-source-p)
+               (eq (point-at-bol) (point-at-eol))
+               (or
+                (save-excursion
+                  (forward-line -1)
+                  (helm-pos-header-line-p))
+                (bobp)))))))
 
 
 ;; Core: tools
@@ -2770,8 +2771,7 @@ Helm plug-ins are realized by this function."
 (defmacro helm-while-no-input (&rest body)
   "Same as `while-no-input' but without the `input-pending-p' test."
   (declare (debug t) (indent 0))
-  (let ((catch-sym (make-symbol "input"))
-        inhibit-quit)
+  (let ((catch-sym (make-symbol "input")))
     `(with-local-quit
        (catch ',catch-sym
          (let ((throw-on-input ',catch-sym))
@@ -3083,8 +3083,8 @@ to the matching method in use."
               ;; Try first matching against whole pattern.
               (while (re-search-forward regex nil t)
                 (cl-incf count)
-                (add-text-properties
-                 (match-beginning 0) (match-end 0) '(face helm-match)))
+                (helm-add-face-text-properties
+                 (match-beginning 0) (match-end 0) 'helm-match))
               ;; If no matches start matching against multiples or fuzzy matches.
               (when (zerop count)
                 (cl-loop with multi-match = (string-match-p " " helm-pattern)
@@ -3097,16 +3097,16 @@ to the matching method in use."
                          if multi-match do
                          (progn
                            (while (re-search-forward p nil t)
-                             (add-text-properties
+                             (helm-add-face-text-properties
                               (match-beginning 0) (match-end 0)
-                              '(face helm-match)))
+                              'helm-match))
                            (goto-char (point-min)))
                          ;; Fuzzy matches (literal patterns).
                          else do
                          (when (search-forward p nil t)
-                           (add-text-properties
+                           (helm-add-face-text-properties
                             (match-beginning 0) (match-end 0)
-                            '(face helm-match))))))
+                            'helm-match)))))
           (invalid-regexp nil))
         ;; Now replace the original match-part with the part
         ;; with face properties added.
@@ -4303,15 +4303,17 @@ want to preselect."
           (helm-goto-source source)
           (goto-char (point-min))
           (forward-line 1))
-      (let ((start (point)) mp)
-        (helm-awhile (if (consp candidate-or-regexp)
-                         (and (re-search-forward (car candidate-or-regexp) nil t)
-                              (re-search-forward (cdr candidate-or-regexp) nil t))
-                         (re-search-forward candidate-or-regexp nil t))
-          ;; If search fall on an header line continue loop
-          ;; until it match or fail (Issue #1509).
-          (unless (helm-pos-header-line-p) (cl-return (setq mp it))))
-        (goto-char (or mp start))))
+      (if (functionp candidate-or-regexp)
+          (funcall candidate-or-regexp)
+          (let ((start (point)) mp)
+            (helm-awhile (if (consp candidate-or-regexp)
+                             (and (re-search-forward (car candidate-or-regexp) nil t)
+                                  (re-search-forward (cdr candidate-or-regexp) nil t))
+                             (re-search-forward candidate-or-regexp nil t))
+              ;; If search fall on an header line continue loop
+              ;; until it match or fail (Issue #1509).
+              (unless (helm-pos-header-line-p) (cl-return (setq mp it))))
+            (goto-char (or mp start)))))
     (forward-line 0) ; Avoid scrolling right on long lines.
     (when (helm-pos-multiline-p)
       (helm-move--beginning-of-multiline-candidate))

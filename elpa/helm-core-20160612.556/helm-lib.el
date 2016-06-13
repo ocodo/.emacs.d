@@ -76,6 +76,18 @@ much more convenient to use a simple boolean value here."
 (defvar helm-suspend-update-flag nil)
 (defvar helm-action-buffer "*helm action*"
   "Buffer showing actions.")
+
+
+;;; Compatibility
+;;
+(defun helm-add-face-text-properties (beg end face &optional append object)
+  "Add the face property to the text from START to END.
+It is a compatibility function which behave exactly like
+`add-face-text-property' is available otherwise like `add-text-properties'.
+When only `add-text-properties' is available APPEND is ignored."
+  (if (fboundp 'add-face-text-property)
+      (add-face-text-property beg end face append object)
+      (add-text-properties beg end `(face ,face) object)))
 
 ;;; Macros helper.
 ;;
@@ -333,6 +345,17 @@ Default is `eq'."
                                              (string-match-p re i)))))
            collect i))
 
+(defun helm-boring-directory-p (directory black-list)
+  "Check if one regexp in BLACK-LIST match DIRECTORY."
+  (helm-awhile (helm-basedir (directory-file-name
+                              (expand-file-name directory)))
+    (when (string= it "/") (cl-return nil))
+    (when (cl-loop for r in black-list
+                   thereis (string-match-p
+                            r (directory-file-name directory)))
+      (cl-return t))
+    (setq directory it)))
+
 (defun helm-shadow-entries (seq regexp-list)
   "Put shadow property on entries in SEQ matching a regexp in REGEXP-LIST."
   (let ((face 'italic))
@@ -586,8 +609,15 @@ Useful in dired buffers when there is inserted subdirs."
 
 ;; Same as `vc-directory-exclusion-list'.
 (defvar helm-walk-ignore-directories
-  '("SCCS" "RCS" "CVS" "MCVS" ".svn" ".git" ".hg" ".bzr"
-    "_MTN" "_darcs" "{arch}" ".gvfs"))
+  '("SCCS/" "RCS/" "CVS/" "MCVS/" ".svn/" ".git/" ".hg/" ".bzr/"
+    "_MTN/" "_darcs/" "{arch}/" ".gvfs/"))
+
+(defsubst helm--dir-file-name (file dir)
+  (expand-file-name
+   (substring file 0 (1- (length file))) dir))
+
+(defsubst helm--dir-name-p (str)
+  (char-equal (aref str (1- (length str))) ?/))
 
 (cl-defun helm-walk-directory (directory &key (path 'basename)
                                          directories
@@ -625,11 +655,11 @@ instead of `helm-walk-ignore-directories'."
                              if (and (helm--dir-name-p f)
                                      (helm--dir-file-name f dir))
                              nconc
-                             (unless (member (helm-basename it) skip-subdirs)
-                               (if directories
-                                   (nconc (and (or (null match)
-                                                   (string-match match f))
-                                               (list (concat (funcall fn it) "/")))
+                             (unless (member f skip-subdirs)
+                               (if (and directories
+                                        (or (null match)
+                                            (string-match match f)))
+                                   (nconc (list (concat (funcall fn it) "/"))
                                           (ls-rec it))
                                    (ls-rec it)))
                              ;; A regular file.
@@ -638,13 +668,6 @@ instead of `helm-walk-ignore-directories'."
                                         (or (null match) (string-match match f)))
                                (list (funcall fn (expand-file-name f dir))))))))
       (ls-rec directory))))
-
-(defsubst helm--dir-file-name (file dir)
-  (expand-file-name
-   (substring file 0 (1- (length file))) dir))
-
-(defsubst helm--dir-name-p (str)
-  (char-equal (aref str (1- (length str))) ?/))
 
 (defun helm-file-expand-wildcards (pattern &optional full)
   "Same as `file-expand-wildcards' but allow recursion.
