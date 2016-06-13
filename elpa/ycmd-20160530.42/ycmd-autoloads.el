@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ycmd" "ycmd.el" (22347 49457 61054 341000))
+;;;### (autoloads nil "ycmd" "ycmd.el" (22366 21468 274308 781000))
 ;;; Generated autoloads from ycmd.el
 
 (autoload 'ycmd-mode "ycmd" "\
@@ -50,8 +50,8 @@ See `ycmd-mode' for more information on Ycmd mode.
 
 ;;;***
 
-;;;### (autoloads nil "ycmd-eldoc" "ycmd-eldoc.el" (22347 49457 69054
-;;;;;;  352000))
+;;;### (autoloads nil "ycmd-eldoc" "ycmd-eldoc.el" (22366 21468 282308
+;;;;;;  716000))
 ;;; Generated autoloads from ycmd-eldoc.el
 
 (autoload 'ycmd-eldoc-setup "ycmd-eldoc" "\
@@ -61,8 +61,8 @@ Setup eldoc for `ycmd-mode'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ycmd-next-error.el" "ycmd-pkg.el") (22347
-;;;;;;  49457 270507 822000))
+;;;### (autoloads nil nil ("ycmd-next-error.el" "ycmd-pkg.el") (22366
+;;;;;;  21468 292914 456000))
 
 ;;;***
 
