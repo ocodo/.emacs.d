@@ -251,8 +251,8 @@ Example:
     (define-key map (kbd "M-n") 'ivy-next-history-element)
     (define-key map (kbd "M-p") 'ivy-previous-history-element)
     (define-key map (kbd "C-g") 'minibuffer-keyboard-quit)
-    (define-key map [remap scroll-up-command] 'ivy-scroll-up-command)
-    (define-key map [remap scroll-down-command] 'ivy-scroll-down-command)
+    (define-key map (kbd "C-v") 'ivy-scroll-up-command)
+    (define-key map (kbd "M-v") 'ivy-scroll-down-command)
     (define-key map (kbd "C-M-n") 'ivy-next-line-and-call)
     (define-key map (kbd "C-M-p") 'ivy-previous-line-and-call)
     (define-key map (kbd "M-q") 'ivy-toggle-regexp-quote)
@@ -698,7 +698,7 @@ If the text hasn't changed as a result, forward to `ivy-alt-done'."
            t))))
 
 (defun ivy-immediate-done ()
-  "Exit the minibuffer with the current input."
+  "Exit the minibuffer with current input instead of current candidate."
   (interactive)
   (delete-minibuffer-contents)
   (insert (setq ivy--current
@@ -1284,8 +1284,17 @@ escape it with %%. See also `ivy-count-format'.
 COLLECTION is either a list of strings, a function, an alist, or
 a hash table.
 
+PREDICATE is applied to filter out the COLLECTION immediately.
+This argument is for `completing-read' compat.
+
+When REQUIRE-MATCH is non-nil, only memebers of COLLECTION can be
+selected, i.e. custom text.
+
 If INITIAL-INPUT is not nil, then insert that input in the
 minibuffer initially.
+
+HISTORY is a name of a variable to hold the completion session
+history.
 
 KEYMAP is composed with `ivy-minibuffer-map'.
 
@@ -1626,32 +1635,53 @@ INHERIT-INPUT-METHOD is currently ignored."
 (defvar ivy-completion-end nil
   "Completion bounds end.")
 
+(declare-function mc/all-fake-cursors "ext:multiple-cursors-core")
+
 (defun ivy-completion-in-region-action (str)
   "Insert STR, erasing the previous one.
 The previous string is between `ivy-completion-beg' and `ivy-completion-end'."
   (when (stringp str)
     (with-ivy-window
-      (when ivy-completion-beg
-        (delete-region
-         ivy-completion-beg
-         ivy-completion-end))
-      (setq ivy-completion-beg
-            (move-marker (make-marker) (point)))
-      (insert (substring-no-properties str))
-      (setq ivy-completion-end
-            (move-marker (make-marker) (point))))))
+      (let ((fake-cursors (and (featurep 'multiple-cursors)
+                               (mc/all-fake-cursors)))
+            (pt (point))
+            (beg ivy-completion-beg)
+            (end ivy-completion-end))
+        (when ivy-completion-beg
+          (delete-region
+           ivy-completion-beg
+           ivy-completion-end))
+        (setq ivy-completion-beg
+              (move-marker (make-marker) (point)))
+        (insert (substring-no-properties str))
+        (setq ivy-completion-end
+              (move-marker (make-marker) (point)))
+        (save-excursion
+          (dolist (cursor fake-cursors)
+            (goto-char (overlay-start cursor))
+            (delete-region (+ (point) (- beg pt))
+                           (+ (point) (- end pt)))
+            (insert (substring-no-properties str))
+            ;; manually move the fake cursor
+            (move-overlay cursor (point) (1+ (point)))
+            (move-marker (overlay-get cursor 'point) (point))
+            (move-marker (overlay-get cursor 'mark) (point))))))))
 
 (defun ivy-completion-common-length (str)
   "Return the length of the first 'completions-common-part face in STR."
   (let ((pos 0)
-        (len (length str)))
+        (len (length str))
+        face-sym)
     (while (and (<= pos len)
-                (let ((prop (get-text-property pos 'face str)))
+                (let ((prop (or (prog1 (get-text-property pos 'face str)
+                                  (setq face-sym 'face))
+                                (prog1 (get-text-property pos 'font-lock-face str)
+                                  (setq face-sym 'font-lock-face)))))
                   (not (eq 'completions-common-part
                            (if (listp prop) (car prop) prop)))))
       (setq pos (1+ pos)))
     (if (< pos len)
-        (or (next-single-property-change pos 'face str) len)
+        (or (next-single-property-change pos face-sym str) len)
       0)))
 
 (defun ivy-completion-in-region (start end collection &optional predicate)
@@ -1660,11 +1690,13 @@ The previous string is between `ivy-completion-beg' and `ivy-completion-end'."
          (str (buffer-substring-no-properties start end))
          (completion-ignore-case case-fold-search)
          (comps
-          (completion-all-completions str collection predicate (- end start))))
+          (completion-all-completions str collection predicate (- end start)))
+         (len (min (ivy-completion-common-length (car comps))
+                   (length str))))
     (if (null comps)
         (message "No matches")
       (nconc comps nil)
-      (setq ivy-completion-beg (- end (ivy-completion-common-length (car comps))))
+      (setq ivy-completion-beg (- end len))
       (setq ivy-completion-end end)
       (if (null (cdr comps))
           (if (string= str (car comps))
@@ -1905,6 +1937,19 @@ depending on the number of candidates."
     (goto-char (minibuffer-prompt-end))
     (delete-region (line-end-position) (point-max))))
 
+(defvar ivy-set-prompt-text-properties-function
+  'ivy-set-prompt-text-properties-default
+  "Function to set the text properties of the default ivy prompt.
+Called with two arguments, PROMPT and STD-PROPS.
+The returned value should be the updated PROMPT.")
+
+(defun ivy-set-prompt-text-properties-default (prompt std-props)
+  (ivy--set-match-props prompt "confirm"
+                        `(face ivy-confirm-face ,@std-props))
+  (ivy--set-match-props prompt "match required"
+                        `(face ivy-match-required-face ,@std-props))
+  prompt)
+
 (defun ivy--insert-prompt ()
   "Update the prompt according to `ivy--prompt'."
   (when ivy--prompt
@@ -1958,20 +2003,21 @@ depending on the number of candidates."
           (set-text-properties 0 (length n-str)
                                `(face minibuffer-prompt ,@std-props)
                                n-str)
-          (ivy--set-match-props n-str "confirm"
-                                `(face ivy-confirm-face ,@std-props))
-          (ivy--set-match-props n-str "match required"
-                                `(face ivy-match-required-face ,@std-props))
+          (setq n-str (funcall ivy-set-prompt-text-properties-function
+                               n-str std-props))
           (insert n-str))
         ;; get out of the prompt area
         (constrain-to-field nil (point-max))))))
 
-(defun ivy--set-match-props (str match props)
-  "Set STR text properties that match MATCH to PROPS."
+(defun ivy--set-match-props (str match props &optional subexp)
+  "Set STR text properties for regexp group SUBEXP that match MATCH to PROPS.
+If SUBEXP is nil, the text properties are applied to the whole match."
+  (when (null subexp)
+    (setq subexp 0))
   (when (string-match match str)
     (set-text-properties
-     (match-beginning 0)
-     (match-end 0)
+     (match-beginning subexp)
+     (match-end subexp)
      props
      str)))
 
