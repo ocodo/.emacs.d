@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20160525.505
+;; Package-Version: 20160608.156
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -370,7 +370,7 @@ The buffer contains the raw HTTP response sent by the server."
                                                   (lambda (key)
                                                     (setq continue t)
                                                     (cdr (assoc key replacements)))
-                                                  current nil t)))
+                                                  current t t)))
         current)
     string))
 
