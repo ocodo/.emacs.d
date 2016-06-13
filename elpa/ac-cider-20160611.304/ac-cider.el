@@ -7,9 +7,9 @@
 ;;         Sam Aaron <samaaron@gmail.com>
 ;;
 ;; URL: https://github.com/clojure-emacs/ac-cider
-;; Package-Version: 20160305.724
+;; Package-Version: 20160611.304
 ;; Keywords: languages, clojure, nrepl, cider, compliment
-;; Version: 0.2.2
+;; Version: 0.2.3
 ;; Package-Requires: ((cider "0.8.0") (auto-complete "1.4") (cl-lib "0.3"))
 
 ;; This program is free software; you can redistribute it and/or
@@ -72,7 +72,8 @@
 (defun ac-cider-candidates-everything ()
   "Return all candidates for a symbol at point."
   (setq ac-cider-documentation-cache nil)
-  (cider-complete ac-prefix))
+  (when (cider-connected-p)
+    (cider-complete ac-prefix)))
 
 (defun ac-cider-documentation (symbol)
   "Return documentation for the given SYMBOL, if available.
