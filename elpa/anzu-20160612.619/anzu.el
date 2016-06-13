@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20160404.2218
+;; Package-Version: 20160612.619
 ;; Version: 0.60
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
@@ -162,8 +162,9 @@
   (list :count count :overflow overflow :positions positions))
 
 (defsubst anzu--case-fold-search (input)
-  (let ((case-fold-search nil))
-    (not (string-match-p "[A-Z]" input))))
+  (when case-fold-search
+    (let ((case-fold-search nil))
+      (not (string-match-p "[A-Z]" input)))))
 
 (defsubst anzu--word-search-p ()
   (and (not (memq anzu--last-command anzu-regexp-search-commands))
@@ -764,7 +765,7 @@
           (setq anzu--state 'replace anzu--current-position 0
                 anzu--replaced-markers (reverse anzu--replaced-markers)
                 clear-overlay t)
-          (let ((case-fold-search (not at-cursor)))
+          (let ((case-fold-search (and case-fold-search (not at-cursor))))
             (if use-regexp
                 (apply #'perform-replace (anzu--construct-perform-replace-arguments
                                           from to delimited beg end backward query))
