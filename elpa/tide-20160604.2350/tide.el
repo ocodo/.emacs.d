@@ -6,7 +6,7 @@
 ;; URL: http://github.com/ananthakumaran/tide
 ;; Version: 1.8.10
 ;; Keywords: typescript
-;; Package-Requires: ((dash "2.10.0") (flycheck "27") (emacs "24.1") (typescript-mode "0.1"))
+;; Package-Requires: ((dash "2.10.0") (flycheck "27") (emacs "24.1") (typescript-mode "0.1") (cl-lib "0.5"))
 
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 (require 'typescript-mode)
 (require 'etags)
 (require 'json)
-(require 'cl)
+(require 'cl-lib)
 (require 'eldoc)
 (require 'dash)
 (require 'flycheck)
@@ -86,7 +86,7 @@
      (make-variable-buffer-local ',name)
      (put ',name 'permanent-local t)))
 
-(defvar tide-supported-modes '(typescript-mode web-mode javascript-mode js2-mode))
+(defvar tide-supported-modes '(typescript-mode web-mode js-mode js2-mode js2-jsx-mode js3-mode))
 
 (defvar tide-server-buffer-name "*tide-server*")
 (defvar tide-request-counter 0)
@@ -105,9 +105,10 @@
   "Project root folder determined based on the presence of tsconfig.json."
   (or
    tide-project-root
-   (let ((root (locate-dominating-file default-directory "tsconfig.json")))
+   (let ((root (or (locate-dominating-file default-directory "tsconfig.json")
+                   (locate-dominating-file default-directory "jsconfig.json"))))
      (unless root
-       (message (tide-join (list "Couldn't locate project root folder with a tsconfig.json file. Using '" default-directory "' as project root.")))
+       (message (tide-join (list "Couldn't locate project root folder with a tsconfig.json or jsconfig.json file. Using '" default-directory "' as project root.")))
        (setq root default-directory))
      (let ((full-path (expand-file-name root)))
        (setq tide-project-root full-path)
@@ -119,7 +120,7 @@
 ;;; Helpers
 
 (defun tide-plist-get (list &rest args)
-  (reduce
+  (cl-reduce
    (lambda (object key)
      (when object
        (plist-get object key)))
@@ -197,7 +198,7 @@ LINE is one based, OFFSET is one based and column is zero based"
       (beginning-of-line)
       (while (> offset 1)
         (forward-char)
-        (decf offset))
+        (cl-decf offset))
       (1+ (current-column)))))
 
 (defun tide-span-to-position (span)
@@ -224,7 +225,7 @@ LINE is one based, OFFSET is one based and column is zero based"
   (gethash (tide-project-name) tide-servers))
 
 (defun tide-next-request-id ()
-  (number-to-string (incf tide-request-counter)))
+  (number-to-string (cl-incf tide-request-counter)))
 
 (defun tide-dispatch-response (response)
   (let* ((request-id (plist-get response :request_seq))
@@ -235,7 +236,7 @@ LINE is one based, OFFSET is one based and column is zero based"
       (remhash request-id tide-response-callbacks))))
 
 (defun tide-dispatch (response)
-  (case (intern (plist-get response :type))
+  (cl-case (intern (plist-get response :type))
     ('response (tide-dispatch-response response))))
 
 (defun tide-send-command (name args &optional callback)
@@ -344,7 +345,7 @@ LINE is one based, OFFSET is one based and column is zero based"
 
 (defun tide-file-format-options ()
   (tide-combine-plists
-   `(:tabSize ,tab-width :indentSize ,typescript-indent-level)
+   `(:tabSize ,tab-width)
    tide-format-options))
 
 (defun tide-command:configure ()
@@ -653,7 +654,7 @@ With a prefix arg, Jump to the type definition."
 
 (eval-after-load 'company
   '(progn
-     (pushnew 'company-tide company-backends)))
+     (cl-pushnew 'company-tide company-backends)))
 
 ;;; References
 
@@ -835,7 +836,7 @@ number."
             (-each (nconc (-reject #'current-file-p locs)
                           (-select #'current-file-p locs))
               (lambda (loc)
-                (incf count (tide-rename-symbol-at-location loc new-symbol))))
+                (cl-incf count (tide-rename-symbol-at-location loc new-symbol))))
 
             (message "Renamed %d occurrences." count)))))))
 
@@ -975,15 +976,45 @@ number."
     :message (if (bound-and-true-p tide-mode) "enabled" "disabled")
     :face (if (bound-and-true-p tide-mode) 'success '(bold warning)))))
 
+(defun tide-flycheck-predicate ()
+  (and (bound-and-true-p tide-mode) (tide-current-server) (not (file-equal-p (tide-project-root) tide-tsserver-directory))))
+
 (flycheck-define-generic-checker 'typescript-tide
-  "A syntax checker for Typescript using Tide Mode."
+  "A TypeScript syntax checker using tsserver."
   :start #'tide-flycheck-start
   :verify #'tide-flycheck-verify
-  :modes tide-supported-modes
-  :predicate (lambda () (and (bound-and-true-p tide-mode) (tide-current-server) (not (file-equal-p (tide-project-root) tide-tsserver-directory)))))
+  :modes '(typescript-mode)
+  :predicate #'tide-flycheck-predicate)
 
 (add-to-list 'flycheck-checkers 'typescript-tide)
 (flycheck-add-next-checker 'typescript-tide '(warning . typescript-tslint) 'append)
+
+(flycheck-define-generic-checker 'javascript-tide
+  "A Javascript syntax checker using tsserver."
+  :start #'tide-flycheck-start
+  :verify #'tide-flycheck-verify
+  :modes '(js-mode js2-mode js3-mode)
+  :predicate #'tide-flycheck-predicate)
+
+(add-to-list 'flycheck-checkers 'javascript-tide t)
+
+(flycheck-define-generic-checker 'jsx-tide
+  "A JSX syntax checker using tsserver."
+  :start #'tide-flycheck-start
+  :verify #'tide-flycheck-verify
+  :modes '(web-mode js2-jsx-mode)
+  :predicate #'tide-flycheck-predicate)
+
+(add-to-list 'flycheck-checkers 'jsx-tide t)
+
+(flycheck-define-generic-checker 'tsx-tide
+  "A TSX syntax checker using tsserver."
+  :start #'tide-flycheck-start
+  :verify #'tide-flycheck-verify
+  :modes '(web-mode)
+  :predicate #'tide-flycheck-predicate)
+
+(add-to-list 'flycheck-checkers 'tsx-tide)
 
 ;;; Utility commands
 
@@ -996,9 +1027,5 @@ number."
   (tide-each-buffer (tide-project-name) #'tide-configure-buffer))
 
 (provide 'tide)
-
-;; Local Variables:
-;; byte-compile-warnings: (not cl-functions)
-;; End:
 
 ;;; tide.el ends here
