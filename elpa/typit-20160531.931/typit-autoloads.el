@@ -3,34 +3,36 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "typit" "typit.el" (22323 65126 763510 532000))
+;;;### (autoloads nil "typit" "typit.el" (22366 21484 274181 819000))
 ;;; Generated autoloads from typit.el
 
 (autoload 'typit-test "typit" "\
 Run typing test with using NUM most common words from dictionary.
 
-Dictionary is an array of words in ‘typit-dict’.  By default it's
+Dictionary is an array of words in `typit-dict'.  By default it's
 English words ordered from most common to least common.  You can
 let-bind the variable and change it, it's recommended to use at
-least 1000 words so ‘typit-advanced-test’ could work properly.
+least 1000 words so `typit-advanced-test' could work properly.
 
 \(fn NUM)" t nil)
 
 (autoload 'typit-basic-test "typit" "\
 Basic typing test (top 200 words).
 
-See ‘typit-test’ for more information.
+See `typit-test' for more information.
 
 \(fn)" t nil)
 
 (autoload 'typit-advanced-test "typit" "\
 Advanced typing test (top 1000 words).
 
+See `typit-test' for more information.
+
 \(fn)" t nil)
 
 ;;;***
 
-;;;### (autoloads nil nil ("typit-pkg.el") (22323 65126 774515 840000))
+;;;### (autoloads nil nil ("typit-pkg.el") (22366 21484 285700 755000))
 
 ;;;***
 

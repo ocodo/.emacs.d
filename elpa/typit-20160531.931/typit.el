@@ -4,7 +4,7 @@
 ;;
 ;; Author: Mark Karpov <markkarpov@openmailbox.org>
 ;; URL: https://github.com/mrkkrp/typit
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "24.4") (f "0.18") (mmt "0.1.1"))
 ;; Keywords: games
 ;;
@@ -114,7 +114,7 @@ If no dictionary is loaded, it's NIL.")
 ;; Low-level functions
 
 (defun typit--prepare-dict ()
-  "Make sure that ‘typit--dict’ and ‘typit--dict-file’ are set."
+  "Make sure that `typit--dict' and `typit--dict-file' are set."
   (let ((dict-file (f-expand typit-dict typit-dict-dir)))
     (when (or (not typit--dict-file)
               (not (f-same? typit--dict-file dict-file)))
@@ -130,11 +130,11 @@ If no dictionary is loaded, it's NIL.")
                 "\n" t "[[:space:]]*")))))))
 
 (defun typit--pick-word (num)
-  "Pick a word from ‘typit--dict’.
+  "Pick a word from `typit--dict'.
 
 Use first NUM words from loaded dictionary (if NUM is bigger than
 length of the dictionary, use all words).  All words in
-‘typit--dict’ have approximately the same probability."
+`typit--dict' have approximately the same probability."
   (elt typit--dict (random (min num (length typit--dict)))))
 
 (defun typit--generate-line (num)
@@ -143,11 +143,11 @@ length of the dictionary, use all words).  All words in
 NUM is the number of words to use from loaded dictionary (if NUM
 is bigger than length of the dictionary, use all words).
 
-This uses words from ‘typit--dict’, which should be initialized
+This uses words from `typit--dict', which should be initialized
 by the time the function is called.  Result is returned as a list
 of strings with assumption that only one space is inserted
 between each word (then total length should be close to
-‘typit-line-length’)."
+`typit-line-length')."
   (let ((words nil)
         (acc   0))
     (while (< acc typit-line-length)
@@ -168,7 +168,7 @@ between each word (then total length should be close to
 
 The lines are placed beginning from OFFSET (text from OFFSET to
 end of buffer is deleted).  FIRST-LINE and SECOND-LINE are
-rendered with ‘typit--render-line’."
+rendered with `typit--render-line'."
   (let ((inhibit-read-only t))
     (delete-region offset (point-max))
     (goto-char offset)
@@ -232,7 +232,7 @@ The window is guaranteed to be killed at the end of the day."
          (with-current-buffer-window
           ;; buffer or name
           ,buffer
-          ;; action (for ‘display-buffer’)
+          ;; action (for `display-buffer')
           (cons 'display-buffer-below-selected
                 '((window-height . fit-window-to-buffer)
                   (preserve-size . (nil . t))))
@@ -257,7 +257,7 @@ The window is guaranteed to be killed at the end of the day."
 
 TOTAL-TIME, GOOD-STROKES, BAD-STROKES, GOOD-WORDS, and BAD-WORDS
 are used to calculate statistics.  NUM is the number of words to
-use as argument of ‘typit-test’ if user chooses to play again."
+use as argument of `typit-test' if user chooses to play again."
   (typit--with-buffer
     ;; quit-function
     (lambda (_window _buffer)
@@ -307,10 +307,10 @@ use as argument of ‘typit-test’ if user chooses to play again."
 (defun typit-test (num)
   "Run typing test with using NUM most common words from dictionary.
 
-Dictionary is an array of words in ‘typit-dict’.  By default it's
+Dictionary is an array of words in `typit-dict'.  By default it's
 English words ordered from most common to least common.  You can
 let-bind the variable and change it, it's recommended to use at
-least 1000 words so ‘typit-advanced-test’ could work properly."
+least 1000 words so `typit-advanced-test' could work properly."
   (interactive "p")
   (typit--prepare-dict)
   (let ((first-line   (typit--generate-line num))
@@ -400,13 +400,15 @@ least 1000 words so ‘typit-advanced-test’ could work properly."
 (defun typit-basic-test ()
   "Basic typing test (top 200 words).
 
-See ‘typit-test’ for more information."
+See `typit-test' for more information."
   (interactive)
   (typit-test 200))
 
 ;;;###autoload
 (defun typit-advanced-test ()
-  "Advanced typing test (top 1000 words)."
+  "Advanced typing test (top 1000 words).
+
+See `typit-test' for more information."
   (interactive)
   (typit-test 1000))
 
