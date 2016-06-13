@@ -4,7 +4,7 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22338 19889 399297 826000))
+;;;;;;  (22366 21667 960950 149000))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-project-root "find-file-in-project" "\
@@ -47,7 +47,7 @@ Prompt with a completing list of all files in the project to find one.
 If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
 The project's scope is defined as the first directory containing
-a `ffip-project-file' (It's value is \".git\" by default.
+a `ffip-project-file' whose value is \".git\" by default.
 
 You can override this by setting the variable `ffip-project-root'.
 
@@ -102,6 +102,22 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
 (defalias 'ffip 'find-file-in-project)
+
+(autoload 'ffip-diff-quit "find-file-in-project" "\
+
+
+\(fn)" t nil)
+
+(autoload 'ffip-diff-find-file "find-file-in-project" "\
+File file(s) in current hunk.
+
+\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+
+(autoload 'ffip-show-diff "find-file-in-project" "\
+Show the diff output by excuting selected `ffip-diff-backends'.
+NUM is the index selected backend from `ffip-diff-backends'.  NUM is 1 based
+
+\(fn &optional NUM)" t nil)
 
 ;;;***
 
