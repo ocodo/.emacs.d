@@ -4,9 +4,10 @@
 
 ;; Author: Peter Stiernström <peter@stiernstrom.se>
 ;; Version: 3.1
-;; Package-Version: 20160323.1240
+;; Package-Version: 20160607.1228
 ;; URL: https://github.com/pidu/git-timemachine
 ;; Keywords: git
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs
 
