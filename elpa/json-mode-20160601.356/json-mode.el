@@ -4,7 +4,7 @@
 
 ;; Author: Josh Johnston
 ;; URL: https://github.com/joshwnj/json-mode
-;; Package-Version: 20151116.2000
+;; Package-Version: 20160601.356
 ;; Version: 1.6.0
 ;; Package-Requires: ((json-reformat "0.0.5") (json-snatcher "1.0.0"))
 
@@ -92,7 +92,8 @@
 (defun json-mode-beautify ()
   "Beautify / pretty-print the active region (or the entire buffer if no active region)."
   (interactive)
-  (let ((json-reformat:indent-width js-indent-level))
+  (let ((json-reformat:indent-width js-indent-level)
+        (json-reformat:pretty-string? t))
     (if (use-region-p)
         (json-reformat-region (region-beginning) (region-end))
       (json-reformat-region (buffer-end -1) (buffer-end 1)))))
