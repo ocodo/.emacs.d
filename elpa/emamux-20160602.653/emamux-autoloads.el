@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "emamux" "emamux.el" (22347 49611 149225 147000))
+;;;### (autoloads nil "emamux" "emamux.el" (22366 21680 248880 675000))
 ;;; Generated autoloads from emamux.el
 
 (autoload 'emamux:send-command "emamux" "\
@@ -92,6 +92,11 @@ With prefix-arg, use '-a' option to insert the new window next to current index.
 
 
 \(fn)" t nil)
+
+(autoload 'emamux:run-region "emamux" "\
+Send region to runner pane.
+
+\(fn BEG END)" t nil)
 
 ;;;***
 

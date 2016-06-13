@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-emamux
-;; Package-Version: 20160526.2124
+;; Package-Version: 20160602.653
 ;; Version: 0.13
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
@@ -524,6 +524,14 @@ With prefix-arg, use '-a' option to insert the new window next to current index.
   (emamux:ensure-ssh-and-cd
    (emamux:tmux-run-command nil "split-window" "-h")))
 
+;;;###autoload
+(defun emamux:run-region (beg end)
+  "Send region to runner pane."
+  (interactive "r")
+  (let ((input (buffer-substring-no-properties beg end)))
+    (emamux:run-command input)))
+
+
 (defvar emamux:keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-s" #'emamux:send-command)
@@ -531,6 +539,7 @@ With prefix-arg, use '-a' option to insert the new window next to current index.
     (when (emamux:in-tmux-p)
       (define-key map "\M-!" #'emamux:run-command)
       (define-key map "\M-r" #'emamux:run-last-command)
+      (define-key map "\M-s" #'emamux:run-region)
       (define-key map "\C-i" #'emamux:inspect-runner)
       (define-key map "\C-k" #'emamux:close-panes)
       (define-key map "\C-c" #'emamux:interrupt-runner)
@@ -551,6 +560,7 @@ Keymap:
 | C-y | emamux:yank-from-list-buffers    |
 | M-! | emamux:run-command               |
 | M-r | emamux:run-last-command          |
+| M-s | emamux:region                    |
 | C-i | emamux:inspect-runner            |
 | C-k | emamux:close-panes               |
 | C-c | emamux:interrupt-runner          |
