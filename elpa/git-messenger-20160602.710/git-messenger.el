@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-git-messenger
-;; Package-Version: 20160121.1842
+;; Package-Version: 20160602.710
 ;; Version: 0.16
 ;; Package-Requires: ((popup "0.5.0") (cl-lib "0.5"))
 
@@ -211,7 +211,7 @@ and menus.")
 
 (defun git-messenger:popup-common (vcs args &optional mode)
   (with-current-buffer (get-buffer-create "*git-messenger*")
-    (setq buffer-read-only nil)
+    (view-mode -1)
     (fundamental-mode)
     (erase-buffer)
     (unless (zerop (git-messenger:execute-command vcs args t))
@@ -220,7 +220,7 @@ and menus.")
     (when mode
       (funcall mode))
     (run-hooks 'git-messenger:popup-buffer-hook)
-    (setq buffer-read-only t)
+    (view-mode +1)
     (goto-char (point-min)))
   (git-messenger:popup-close))
 
