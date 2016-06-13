@@ -315,6 +315,11 @@ see `helm-ff-guess-ffap-filenames' for this."
   "Face used for file names in `helm-find-files'."
   :group 'helm-files-faces)
 
+(defface helm-ff-dirs
+    '((t (:inherit font-lock-function-name-face)))
+  "Face used for file names in recursive dirs completion in `helm-find-files'."
+  :group 'helm-files-faces)
+
 (defface helm-history-deleted
     '((t (:inherit helm-ff-invalid-symlink)))
   "Face used for deleted files in `file-name-history'."
@@ -1587,35 +1592,42 @@ or when `helm-pattern' is equal to \"~/\"."
 
 (defun helm-ff-auto-expand-to-home-or-root ()
   "Allow expanding to home/user directory or root or text yanked after pattern."
-  (when (and (helm-file-completion-source-p)
-             (string-match
-              "/?\\$.*/\\|/\\./\\|/\\.\\./\\|/~.*/\\|//\\|\\(/[[:alpha:]]:/\\|\\s\\+\\)"
-              helm-pattern)
-             (with-current-buffer (window-buffer (minibuffer-window)) (eolp))
-             (not (string-match helm-ff-url-regexp helm-pattern)))
-    (let* ((match (match-string 0 helm-pattern))
-           (input (cond ((string= match "/./")
-                         (expand-file-name default-directory))
-                        ((string= helm-pattern "/../") "/")
-                        ((string-match-p "\\`/\\$" match)
-                         (let ((sub (substitute-in-file-name match)))
-                           (if (file-directory-p sub)
-                               sub (replace-regexp-in-string "/\\'" "" sub))))
-                        (t (expand-file-name
-                            (helm-substitute-in-filename helm-pattern)
-                            ;; [Windows] On UNC paths "/" expand to current machine,
-                            ;; so use the root of current Drive. (i.e "C:/")
-                            (and (memq system-type '(windows-nt ms-dos))
-                                 (getenv "SystemDrive")) ; nil on Unix.
-                            )))))
-      (if (file-directory-p input)
-          (setq helm-ff-default-directory
-                (setq input (file-name-as-directory input)))
-        (setq helm-ff-default-directory (file-name-as-directory
-                                         (file-name-directory input))))
-      (with-helm-window
-        (helm-set-pattern input)
-        (helm-check-minibuffer-input)))))
+  (when (helm-file-completion-source-p)
+    (cond ((and (null (file-exists-p helm-pattern))
+                (string-match-p
+                 "\\`\\([.]\\|\\s-\\)\\{2\\}[^/]+"
+                 (helm-basename helm-pattern))
+                (string-match-p "/\\'" helm-pattern))
+           (helm-ff-recursive-dirs helm-pattern)
+           (with-helm-window (helm-check-minibuffer-input)))
+          ((and (string-match
+                 "/?\\$.*/\\|/\\./\\|/\\.\\./\\|/~.*/\\|//\\|\\(/[[:alpha:]]:/\\|\\s\\+\\)"
+                 helm-pattern)
+                (with-current-buffer (window-buffer (minibuffer-window)) (eolp))
+                (not (string-match helm-ff-url-regexp helm-pattern)))
+           (let* ((match (match-string 0 helm-pattern))
+                  (input (cond ((string= match "/./")
+                                (expand-file-name default-directory))
+                               ((string= helm-pattern "/../") "/")
+                               ((string-match-p "\\`/\\$" match)
+                                (let ((sub (substitute-in-file-name match)))
+                                  (if (file-directory-p sub)
+                                      sub (replace-regexp-in-string "/\\'" "" sub))))
+                               (t (expand-file-name
+                                   (helm-substitute-in-filename helm-pattern)
+                                   ;; [Windows] On UNC paths "/" expand to current machine,
+                                   ;; so use the root of current Drive. (i.e "C:/")
+                                   (and (memq system-type '(windows-nt ms-dos))
+                                        (getenv "SystemDrive")) ; nil on Unix.
+                                   )))))
+             (if (file-directory-p input)
+                 (setq helm-ff-default-directory
+                       (setq input (file-name-as-directory input)))
+                 (setq helm-ff-default-directory (file-name-as-directory
+                                                  (file-name-directory input))))
+             (with-helm-window
+               (helm-set-pattern input)
+               (helm-check-minibuffer-input)))))))
 
 (defun helm-substitute-in-filename (fname)
   "Substitute all parts of FNAME from start up to \"~/\" or \"/\".
@@ -2230,12 +2242,10 @@ Return candidates prefixed with basename of `helm-input' first."
              (eq major-mode 'message-mode))
            (append actions
                    '(("Gnus attach file(s)" . helm-ff-gnus-attach-files))))
-          ((save-match-data
-             (and ffap-url-regexp
-                  (not (string-match-p ffap-url-regexp str-at-point))
-                  (not (with-helm-current-buffer (eq major-mode 'dired-mode)))
-                  (string-match ":\\([0-9]+:?\\)" str-at-point)
-                  ))
+          ((and ffap-url-regexp
+                (not (string-match-p ffap-url-regexp str-at-point))
+                (not (with-helm-current-buffer (eq major-mode 'dired-mode)))
+                (string-match-p ":\\([0-9]+:?\\)" str-at-point))
            (append '(("Find file to line number" . helm-ff-goto-linum))
                    actions))
           ((string-match (image-file-name-regexp) candidate)
@@ -2405,10 +2415,61 @@ If a prefix arg is given or `helm-follow-mode' is on open file."
                  (file-name-directory candidate))
                 (helm-ff-file-compressed-p candidate))
            (funcall insert-in-minibuffer (concat candidate "#")))
+          ;; File doesn't exists and basename starts with ".." or "  ",
+          ;; Start a recursive search for directories.
+          ((and (not (file-exists-p candidate))
+                (not (file-remote-p candidate))
+                (string-match-p "\\`\\([.]\\|\\s-\\)\\{2\\}[^/]+"
+                                (helm-basename candidate)))
+           ;; As soon as the final "/" is added the job is passed
+           ;; to `helm-ff-auto-expand-to-home-or-root'.
+           (funcall insert-in-minibuffer (concat candidate "/")))
           ;; On second hit we open file.
           ;; On Third hit we kill it's buffer maybe.
           (t
            (helm-ff-kill-or-find-buffer-fname candidate)))))
+
+
+;;; Recursive dirs completion
+;;
+(defun helm-find-files-recursive-dirs (directory &optional input)
+  (when (string-match "\\(\\s-+\\|[.]\\)\\{2\\}" input)
+    (setq input (replace-match "" nil t input)))
+  (message "Recursively searching %s from %s ..."
+           input (abbreviate-file-name directory))
+  (helm :sources
+        (helm-make-source
+            "Recursive directories" 'helm-locate-subdirs-source
+          :basedir (if (string-match-p "\\`es" helm-locate-recursive-dirs-command)
+		       directory
+                       (shell-quote-argument directory))
+          :subdir (shell-quote-argument input)
+          :candidate-transformer
+          `((lambda (candidates)
+              (cl-loop for c in candidates
+                       when (and (file-directory-p c)
+                                 (null (helm-boring-directory-p
+                                        c helm-boring-file-regexp-list))
+                                 (string-match-p ,(regexp-quote input)
+                                                 (helm-basename c)))
+                       collect (propertize c 'face 'helm-ff-dirs)))
+            helm-w32-pathname-transformer)
+          :persistent-action 'ignore
+          :action (lambda (c)
+                    (helm-set-pattern
+                     (file-name-as-directory (expand-file-name c)))))
+        :candidate-number-limit 999999
+        :allow-nest t
+        :resume 'noresume
+        :ff-transformer-show-only-basename nil
+        :buffer "*helm recursive dirs*"))
+
+(defun helm-ff-recursive-dirs (_candidate)
+  "Launch a recursive search in `helm-ff-default-directory'."
+  (with-helm-default-directory helm-ff-default-directory
+      (helm-find-files-recursive-dirs
+       (helm-current-directory)
+       (helm-basename (helm-get-selection)))))
 
 (defun helm-ff-file-compressed-p (candidate)
   "Whether CANDIDATE is a compressed file or not."

@@ -267,6 +267,9 @@ If you are already in `default-directory' this will move cursor on top.
 NOTE: This is different from using `C-l' in that `C-l' doesn't move cursor on top but stays on previous
 subdir name.
 
+**** Enter `..name/' at end of pattern start a recursive search of directories matching name under
+your current directory, see below the \"Recursive completion on subdirectories\" section for more infos.
+
 **** Enter any environment var (e.g. `$HOME') at end of pattern, it will be expanded
 
 **** You can yank any valid filename after pattern, it will be expanded
@@ -326,11 +329,31 @@ e.g. You can create \"~/new/newnew/newnewnew/my_newfile.txt\".
 - With two prefix args
   same but the cache will be refreshed.
 
-**** You can start a recursive search with Locate of Find (See commands below)
+**** You can start a recursive search with Locate or Find (See commands below)
 
 With Locate you can use a local db with a prefix arg. If the localdb doesn't already
 exists, you will be prompted for its creation, if it exists and you want to refresh it,
 give two prefix args.
+
+Note that when using locate the helm-buffer is empty until you type something,
+but helm use by default the basename of pattern entered in your helm-find-files session,
+hitting M-n should just kick in the locate search with this pattern.
+If you want to automatically do this add the `helm-source-locate'
+to `helm-sources-using-default-as-input'.
+
+**** Recursive completion on subdirectories
+
+Starting from the current directory you are browsing, it is possible
+to have completion of all directories under here.
+So if you are at \"/home/you/foo/\" and you want to go to \"/home/you/foo/bar/baz/somewhere/else\"
+just type \"/home/you/foo/..else\" and hit `C-j' or enter the final \"/\", helm will show you all
+possibles directories under \"foo\" matching \"else\".
+\(Note that entering two spaces before \"else\" instead of two dots works also).
+
+NOTE: Completion on subdirectories use locate as backend, you can configure
+the command with `helm-locate-recursive-dirs-command'.
+Because this completion use an index, you may not have all the recent additions
+of directories until you update your index (with `updatedb' for locate).
 
 *** Insert filename at point or complete filename at point
 

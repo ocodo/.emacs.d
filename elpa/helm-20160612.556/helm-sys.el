@@ -33,13 +33,10 @@
   :group 'helm-sys)
 
 
-(defun helm-top-command-set-fn (var _value)
-  (set var
-       (cl-case system-type
-         (darwin "env COLUMNS=%s ps -axo pid,user,pri,nice,ucomm,tty,start,vsz,%%cpu,%%mem,etime,command")
-         (t      "env COLUMNS=%s top -b -n 1"))))
-
-(defcustom helm-top-command "env COLUMNS=%s top -b -n 1"
+(defcustom helm-top-command
+  (cl-case system-type
+    (darwin "env COLUMNS=%s ps -axo pid,user,pri,nice,ucomm,tty,start,vsz,%%cpu,%%mem,etime,command")
+    (t      "env COLUMNS=%s top -b -n 1"))
   "Top command used to display output of top.
 To use top command, a version supporting batch mode (-b option) is needed.
 On Mac OSX top command doesn't support this, so ps command
@@ -50,8 +47,7 @@ working properly, that is 12 elements with the 2 first being
 PID and USER and the last 4 being %CPU, %MEM, TIME and COMMAND.
 A format string where %s will be replaced with `frame-width'."
   :group 'helm-sys
-  :type 'string
-  :set  'helm-top-command-set-fn)
+  :type 'string)
 
 (defcustom helm-top-poll-delay 1.5
   "Helm top poll after this dealy when `helm-top-poll-mode' is enabled.
@@ -65,6 +61,14 @@ This delay is additioned to `helm-top-poll-delay' after emacs stop
 being idle."
   :group 'helm-sys
   :type 'float)
+
+(defcustom helm-top-poll-preselection 'linum
+  "Stay on same line or follow candidate when `helm-top-poll' update display.
+Possible values are 'candidate or 'linum."
+  :group'helm-sys
+  :type '(radio :tag "Preferred preselection action for helm-top"
+          (const :tag "Follow candidate" candidate)
+          (const :tag "Stay on same line" linum)))
 
 ;;; Top (process)
 ;;
@@ -94,13 +98,13 @@ being idle."
           ;; by binding `with-local-quit' in init function
           ;; Issue #1521.
           (helm-force-update
-           ;; FIXME It is fine to preselect candidate
-           ;; but htop is just staying at the same line
-           ;; without taking care of the current candidate at point.
-           ;; Dunno what's the best.
-           (replace-regexp-in-string
-            "[0-9]+" "[0-9]+"
-            (regexp-quote (helm-get-selection nil t)))))
+           (cl-ecase helm-top-poll-preselection
+             (candidate (replace-regexp-in-string
+                         "[0-9]+" "[0-9]+"
+                         (regexp-quote (helm-get-selection nil t))))
+             (linum `(lambda ()
+                       (goto-char (point-min))
+                       (forward-line ,(helm-candidate-number-at-point)))))))
         (setq helm-top--poll-timer
               (run-with-idle-timer
                (helm-aif (current-idle-time)
@@ -134,15 +138,20 @@ being idle."
 (define-minor-mode helm-top-poll-mode
     "Refresh automatically helm top buffer once enabled."
   :group 'helm-top
+  :global t
   (if helm-top-poll-mode
       (progn
         (add-hook 'helm-top-after-init-hook 'helm-top-poll-no-update)
         (add-hook 'helm-top-after-init-hook 'helm-top-initialize-poll-hooks))
-      (remove-hook 'helm-top-after-init-hook 'helm-top-poll-no-update)))
+      (remove-hook 'helm-top-after-init-hook 'helm-top-poll-no-update)
+      (remove-hook 'helm-top-after-init-hook 'helm-top-initialize-poll-hooks)))
 
 (defvar helm-source-top
   (helm-build-in-buffer-source "Top"
-    :header-name (lambda (name) (concat name " (Press C-c C-u to refresh)"))
+    :header-name (lambda (name)
+                   (concat name (if helm-top-poll-mode
+                                    " (auto updating)"
+                                    " (Press C-c C-u to refresh)")))
     :init #'helm-top-init
     :after-init-hook 'helm-top-after-init-hook
     :cleanup (lambda ()

@@ -242,9 +242,9 @@ If COLLECTION is an `obarray', a TEST should be needed. See `obarray'."
                                             (helm-basedir helm-pattern)) f)))
                  ((functionp collection)
                   (funcall collection input test t))
-                 ((and alistp test)
-                  (cl-loop for i in collection when (funcall test i) collect i))
-                 (alistp collection)
+                 ((and alistp (null test)) collection)
+                 ;; Next test ensure circular objects are removed
+                 ;; with `all-completions' (Issue #1530).
                  (t (all-completions input collection test)))))
       (if sort-fn (sort cands sort-fn) cands))))
 
@@ -619,11 +619,11 @@ It should be used when candidate list don't need to rebuild dynamically."
       (setq collection
             ;; COLLECTION is maybe a function or a table.
             (append default
-                    (helm-comp-read-get-candidates
-                     collection test nil (listp collection))))
+                    (helm-comp-read-get-candidates collection test)))
       ;; Ensure `all-completions' will not be used
       ;; a second time to recompute COLLECTION [1].
-      (setq alistp t)
+      (setq alistp t
+            test nil)
       (setq default (car default)))
     (helm-comp-read
      prompt collection
@@ -632,7 +632,7 @@ It should be used when candidate list don't need to rebuild dynamically."
      :reverse-history helm-mode-reverse-history
      :input-history history
      :must-match require-match
-     :alistp alistp ; Ensure `all-completions' is used when non-nil [1].
+     :alistp alistp ; Ensure `all-completions' is not used when non-nil [1].
      :name name
      :requires-pattern (if (and (string= default "")
                                 (or (eq require-match 'confirm)
@@ -1076,7 +1076,8 @@ Can be used as value for `completion-in-region-function'."
                                 (setcdr last-data nil))
                             0))
                (init-space-suffix (unless (or helm-completion-in-region-fuzzy-match
-                                              (string-suffix-p " " input))
+                                              (string-suffix-p " " input)
+                                              (string= input ""))
                                     " "))
                (file-comp-p (or (eq (completion-metadata-get metadata 'category) 'file)
                                 (helm-mode--in-file-completion-p)
@@ -1115,8 +1116,7 @@ Can be used as value for `completion-in-region-function'."
                           (cond ((and file-comp-p
                                       (not (string-match "/\\'" input)))
                                  (concat (helm-basename input)
-                                         (unless (string= input "")
-                                           init-space-suffix)))
+                                         init-space-suffix))
                                 ((string-match "/\\'" input) nil)
                                 ((or (null require-match)
                                      (stringp require-match))
