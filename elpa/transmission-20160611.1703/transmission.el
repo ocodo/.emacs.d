@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.9
-;; Package-Version: 20160527.2056
+;; Package-Version: 20160611.1703
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -471,9 +471,9 @@ of \"fields\" in the arguments of the \"torrent-get\" request."
   (file-size-human-readable bytes transmission-units))
 
 (defun transmission-percent (have total)
-  "Return floor of the percentage of HAVE by TOTAL."
+  "Return the percentage of HAVE by TOTAL."
   (condition-case nil
-      (/ (* 100 have) total)
+      (/ (* 100.0 have) total)
     (arith-error 0)))
 
 (defun transmission-files-directory-base (filename)
@@ -828,16 +828,18 @@ KEY should be a key in an element of `tabulated-list-entries'."
      (> (cdr (assq ,key (car a)))
         (cdr (assq ,key (car b))))))
 
-(defmacro transmission-let-ids (bindings &rest body)
-  "Like `when-let', except call `user-error' if BINDINGS are not truthy.
-Execute BODY, binding list `ids' of torrent IDs at point or in region."
+(defmacro transmission-let*-ids (bindings &rest body)
+  "Conditionally bind variables according to BINDINGS and eval BODY.
+If anaphoric binding of \"ids\"--to the list of torrent IDs at
+point or in region--is non-nil, then BINDINGS and BODY are fed to
+`let*'.  Else, a `user-error' is signalled."
   (declare (indent 1) (debug t))
-  `(let* ((ids (or (and transmission-torrent-id (list transmission-torrent-id))
-                   (mapcar (lambda (id) (cdr (assq 'id id)))
-                           (transmission-prop-values-in-region 'tabulated-list-id))))
-          ,@bindings)
+  `(let ((ids (or (and transmission-torrent-id (list transmission-torrent-id))
+                  (mapcar (lambda (id) (cdr (assq 'id id)))
+                          (transmission-prop-values-in-region 'tabulated-list-id)))))
      (if ids
-         (progn ,@body)
+         (let* (,@bindings)
+           ,@body)
        (user-error "No torrent selected"))))
 
 
@@ -877,7 +879,7 @@ When called with a prefix, prompt for DIRECTORY."
 (defun transmission-move (location)
   "Move torrent at point or in region to a new LOCATION."
   (interactive (list (read-directory-name "New directory: ")))
-  (transmission-let-ids
+  (transmission-let*-ids
       ((arguments (list :ids ids :move t :location (expand-file-name location)))
        (prompt (format "Move torrent%s to %s? " (if (cdr ids) "s" "") location)))
     (when (y-or-n-p prompt)
@@ -886,14 +888,14 @@ When called with a prefix, prompt for DIRECTORY."
 (defun transmission-reannounce ()
   "Reannounce torrent at point or in region."
   (interactive)
-  (transmission-let-ids nil
+  (transmission-let*-ids nil
     (transmission-request-async nil "torrent-reannounce" (list :ids ids))))
 
 (defun transmission-remove (&optional unlink)
   "Prompt to remove torrent at point or torrents in region.
 When called with a prefix UNLINK, also unlink torrent data on disk."
   (interactive "P")
-  (transmission-let-ids ((arguments `(:ids ,ids :delete-local-data ,(and unlink t))))
+  (transmission-let*-ids ((arguments `(:ids ,ids :delete-local-data ,(and unlink t))))
     (when (yes-or-no-p (concat "Remove " (and unlink "and unlink ")
                                "torrent" (and (< 1 (length ids)) "s") "? "))
       (transmission-request-async nil "torrent-remove" arguments))))
@@ -901,7 +903,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-set-bandwidth-priority ()
   "Set bandwidth priority of torrent(s) at point or in region."
   (interactive)
-  (transmission-let-ids
+  (transmission-let*-ids
       ((prompt "Set bandwidth priority: ")
        (priority (completing-read prompt transmission-priority-alist nil t))
        (number (cdr (assoc-string priority transmission-priority-alist)))
@@ -932,19 +934,19 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-set-torrent-download ()
   "Set download limit of torrent(s) at point in kB/s."
   (interactive)
-  (transmission-let-ids nil
+  (transmission-let*-ids nil
     (transmission-set-torrent-speed-limit ids 'down)))
 
 (defun transmission-set-torrent-upload ()
   "Set upload limit of torrent(s) at point in kB/s."
   (interactive)
-  (transmission-let-ids nil
+  (transmission-let*-ids nil
     (transmission-set-torrent-speed-limit ids 'up)))
 
 (defun transmission-set-torrent-ratio ()
   "Set seed ratio limit of torrent(s) at point."
   (interactive)
-  (transmission-let-ids
+  (transmission-let*-ids
       ((prompt (concat "Set torrent" (if (cdr ids) "s'" "'s") " ratio mode: "))
        (mode (completing-read prompt transmission-mode-alist nil t))
        (n (cdr (assoc-string mode transmission-mode-alist)))
@@ -957,7 +959,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-toggle-limits ()
   "Toggle whether torrent(s) at point honor session speed limits."
   (interactive)
-  (transmission-let-ids nil
+  (transmission-let*-ids nil
     (transmission-request-async
      (lambda (content)
        (let* ((torrents (transmission-torrents (json-read-from-string content)))
@@ -970,7 +972,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-toggle ()
   "Toggle torrent between started and stopped."
   (interactive)
-  (transmission-let-ids nil
+  (transmission-let*-ids nil
     (transmission-request-async
      (lambda (content)
        (let* ((torrents (transmission-torrents (json-read-from-string content)))
@@ -982,7 +984,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-trackers-add ()
   "Add announce URLs to torrent or torrents."
   (interactive)
-  (transmission-let-ids
+  (transmission-let*-ids
       ((trackers (transmission-refs (transmission-list-trackers ids) 'announce))
        (urls (or (transmission-read-strings
                   "Add announce URLs: "
@@ -1058,7 +1060,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-verify ()
   "Verify torrent at point or in region."
   (interactive)
-  (transmission-let-ids nil
+  (transmission-let*-ids nil
     (when (y-or-n-p (concat "Verify torrent" (if (cdr ids) "s") "? "))
       (transmission-request-async nil "torrent-verify" (list :ids ids)))))
 
@@ -1172,7 +1174,7 @@ PIECES and COUNT are the same as in `transmission-format-pieces'."
     (concat
      "Piece count: " (transmission-group-digits have)
      " / " (transmission-group-digits count)
-     " (" (number-to-string (transmission-percent have count)) "%)"
+     " (" (format "%.1f" (transmission-percent have count)) "%)"
      (when (and (functionp transmission-pieces-function)
                 (/= have 0) (< have count))
        (let ((str (funcall transmission-pieces-function pieces count)))
@@ -1207,16 +1209,16 @@ CONNECTED, SENDING, RECEIVING are numbers."
   (let-alist tracker
     (let* ((label (format "Tracker %d" .id))
            (col (length label))
-           (fill (concat (make-string col ? ) ": "))
+           (fill (propertize (make-string col ?\s) 'display `(space :align-to ,col)))
            (result (pcase .lastAnnounceResult
                      ((or "Success" (pred string-empty-p)) nil)
-                     (_ (concat "\n" fill
+                     (_ (concat "\n" fill ": "
                                 (propertize .lastAnnounceResult
                                             'font-lock-face 'warning))))))
       (format
        (concat label ": %s (Tier %d)\n"
-               fill "%s %s. Announcing %s\n"
-               fill "%s, %s, %s %s. Scraping %s"
+               fill ": %s %s. Announcing %s\n"
+               fill ": %s, %s, %s %s. Scraping %s"
                result)
        .announce .tier
        (transmission-plural .lastAnnouncePeerCount "peer")
@@ -1238,7 +1240,7 @@ TRACKERS should be the \"trackerStats\" array."
 (defun transmission-tabulated-list-format (&optional _arg _noconfirm)
   "Initialize tabulated-list header or update `tabulated-list-format'."
   (let ((idx (cl-loop for format across tabulated-list-format
-                      if (plist-get (cdr format) :transmission-size)
+                      if (plist-get (nthcdr 3 format) :transmission-size)
                       return format)))
     (if (eq (cadr idx) (if (eq 'iec transmission-units) 9 7))
         (or header-line-format (tabulated-list-init-header))
@@ -1304,7 +1306,7 @@ Each form in BODY is a column descriptor."
       (concat "Hash: " .hashString)
       (concat "Magnet: " (propertize .magnetLink 'font-lock-face 'link) "\n")
       (format "Location: %s" (abbreviate-file-name .downloadDir))
-      (format "Percent done: %d%%" (* 100 .percentDone))
+      (format "Percent done: %.1f%%" (* 100 .percentDone))
       (format "Bandwidth priority: %s"
               (car (rassoc .bandwidthPriority transmission-priority-alist)))
       (concat "Speed limits: "
