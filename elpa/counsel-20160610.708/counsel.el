@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160524.1242
+;; Package-Version: 20160610.708
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -475,6 +475,86 @@ Update the minibuffer with the amount of lines collected every
                          (intern x)))
               :caller 'counsel-describe-function)))
 
+;;** `counsel-set-variable'
+(defvar counsel-set-variable-history nil
+  "Store history for `counsel-set-variable'.")
+
+(defun counsel-read-setq-expression (sym)
+  "Read and eval a setq expression for SYM."
+  (setq this-command 'eval-expression)
+  (let* ((minibuffer-completing-symbol t)
+         (sym-value (symbol-value sym))
+         (expr (minibuffer-with-setup-hook
+                   (lambda ()
+                     (add-function :before-until (local 'eldoc-documentation-function)
+                                   #'elisp-eldoc-documentation-function)
+                     (add-hook 'completion-at-point-functions #'elisp-completion-at-point nil t)
+                     (run-hooks 'eval-expression-minibuffer-setup-hook)
+                     (goto-char (minibuffer-prompt-end))
+                     (forward-char 6)
+                     (insert (format "%S " sym)))
+                 (read-from-minibuffer "Eval: "
+                                       (format
+                                        (if (and sym-value (consp sym-value))
+                                            "(setq '%S)"
+                                          "(setq %S)")
+                                        sym-value)
+                                       read-expression-map t
+                                       'read-expression-history))))
+    (eval-expression expr)))
+
+(defun counsel--setq-doconst (x)
+  "Return a cons of description and value for X.
+X is an item of a radio- or choice-type defcustom."
+  (let (y)
+    (when (and (listp x)
+               (consp (setq y (last x))))
+      (setq x (car y))
+      (cons (prin1-to-string x)
+            (if (symbolp x)
+                (list 'quote x)
+              x)))))
+
+;;;###autoload
+(defun counsel-set-variable ()
+  "Set a variable, with completion.
+
+When the selected variable is a `defcustom' with the type boolean
+or radio, offer completion of all possible values.
+
+Otherwise, offer a variant of `eval-expression', with the initial
+input corresponding to the chosen variable."
+  (interactive)
+  (let ((sym (intern
+              (ivy-read "Variable: "
+                        (counsel-variable-list)
+                        :preselect (ivy-thing-at-point)
+                        :history 'counsel-set-variable-history)))
+        sym-type
+        cands)
+    (if (and (boundp sym)
+             (setq sym-type (get sym 'custom-type))
+             (cond
+               ((and (consp sym-type)
+                     (memq (car sym-type) '(choice radio)))
+                (setq cands (delq nil (mapcar #'counsel--setq-doconst (cdr sym-type)))))
+               ((eq sym-type 'boolean)
+                (setq cands '(("nil" . nil) ("t" . t))))
+               (t nil)))
+        (let* ((sym-val (symbol-value sym))
+               ;; Escape '%' chars if present
+               (sym-val-str (replace-regexp-in-string "%" "%%" (format "%s" sym-val)))
+               (res (ivy-read (format "Set (%S <%s>): " sym sym-val-str)
+                              cands
+                              :preselect (prin1-to-string sym-val))))
+          (when res
+            (setq res
+                  (if (assoc res cands)
+                      (cdr (assoc res cands))
+                    (read res)))
+            (eval `(setq ,sym ,res))))
+      (counsel-read-setq-expression sym))))
+
 ;;** `counsel-info-lookup-symbol'
 (defvar info-lookup-mode)
 (declare-function info-lookup->completions "info-look")
@@ -515,6 +595,8 @@ Update the minibuffer with the amount of lines collected every
 (ivy-set-display-transformer
  'counsel-M-x
  'counsel-M-x-transformer)
+
+(declare-function bookmark-all-names "bookmark")
 
 ;;;###autoload
 (defun counsel-bookmark ()
@@ -747,18 +829,21 @@ Describe the selected candidate."
 (defun counsel-git ()
   "Find file in the current Git repository."
   (interactive)
-  (setq counsel--git-dir (expand-file-name
-                          (locate-dominating-file
-                           default-directory ".git")))
-  (let* ((default-directory counsel--git-dir)
-         (cands (split-string
-                 (shell-command-to-string
-                  "git ls-files --full-name --")
-                 "\n"
-                 t)))
-    (ivy-read (funcall counsel-prompt-function "Find file")
-              cands
-              :action #'counsel-git-action)))
+  (setq counsel--git-dir (locate-dominating-file
+                          default-directory ".git"))
+  (if (null counsel--git-dir)
+      (error "Not in a git repository")
+    (setq counsel--git-dir (expand-file-name
+                            counsel--git-dir))
+    (let* ((default-directory counsel--git-dir)
+           (cands (split-string
+                   (shell-command-to-string
+                    "git ls-files --full-name --")
+                   "\n"
+                   t)))
+      (ivy-read (funcall counsel-prompt-function "Find file")
+                cands
+                :action #'counsel-git-action))))
 
 (defun counsel-git-action (x)
   (with-ivy-window
@@ -1522,6 +1607,12 @@ the command."
   :type 'integer
   :group 'ivy)
 
+(defvar counsel-compressed-file-regex
+  (progn
+    (require 'jka-compr nil t)
+    (jka-compr-build-file-regexp))
+  "Store the regex for compressed file names.")
+
 ;;;###autoload
 (defun counsel-grep-or-swiper ()
   "Call `swiper' for small buffers and `counsel-grep' for large ones."
@@ -1530,6 +1621,9 @@ the command."
            (not (buffer-narrowed-p))
            (not (ignore-errors
                   (file-remote-p (buffer-file-name))))
+           (not (string-match
+                 counsel-compressed-file-regex
+                 (buffer-file-name)))
            (> (buffer-size)
               (if (eq major-mode 'org-mode)
                   (/ counsel-grep-swiper-limit 4)
@@ -1976,6 +2070,27 @@ And insert it into the minibuffer. Useful during
   (require 'comint)
   (counsel--browse-history comint-input-ring))
 
+;;** `counsel-hydra-heads'
+(defun counsel-hydra-heads ()
+  "Call a head of the current/last hydra."
+  (interactive)
+  (let* ((base (substring
+                (prin1-to-string hydra-curr-body-fn)
+                0 -4))
+         (heads (eval (intern (concat base "heads"))))
+         (keymap (eval (intern (concat base "keymap"))))
+         (head-names
+          (mapcar (lambda (x)
+                    (cons
+                     (if (nth 2 x)
+                         (format "[%s] %S (%s)" (nth 0 x) (nth 1 x) (nth 2 x))
+                       (format "[%s] %S" (nth 0 x) (nth 1 x)))
+                     (lookup-key keymap (kbd (nth 0 x)))))
+                  heads)))
+    (ivy-read "head: " head-names
+              :action #'call-interactively)
+    (hydra-keyboard-quit)))
+
 ;;* Misc OS
 ;;** `counsel-rhythmbox'
 (defvar helm-rhythmbox-library)
@@ -2102,6 +2217,12 @@ And insert it into the minibuffer. Useful during
   (ivy-read "Run a command: " (counsel-linux-apps-list)
             :action #'counsel-linux-app-action-default
             :caller 'counsel-linux-app))
+
+(defvar company-candidates)
+(defvar company-point)
+(defvar company-common)
+(declare-function company-complete "ext:company")
+(declare-function company-complete-common "ext:company")
 
 ;;;###autoload
 (defun counsel-company ()

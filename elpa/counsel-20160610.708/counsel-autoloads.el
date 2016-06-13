@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22347 49636 81247 67000))
+;;;### (autoloads nil "counsel" "counsel.el" (22366 21702 732757
+;;;;;;  175000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -33,6 +34,17 @@ Forward to `describe-variable'.
 
 (autoload 'counsel-describe-function "counsel" "\
 Forward to `describe-function'.
+
+\(fn)" t nil)
+
+(autoload 'counsel-set-variable "counsel" "\
+Set a variable, with completion.
+
+When the selected variable is a `defcustom' with the type boolean
+or radio, offer completion of all possible values.
+
+Otherwise, offer a variant of `eval-expression', with the initial
+input corresponding to the chosen variable.
 
 \(fn)" t nil)
 
