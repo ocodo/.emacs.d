@@ -208,14 +208,18 @@ PROP is the name of a text property."
 (defalias 'cider--font-lock-ensure
   (if (fboundp 'font-lock-ensure)
       #'font-lock-ensure
-    #'font-lock-fontify-buffer))
+    (with-no-warnings
+      (lambda (&optional _beg _end)
+        (when font-lock-mode
+          (font-lock-fontify-buffer))))))
 
 (defalias 'cider--font-lock-flush
   (if (fboundp 'font-lock-flush)
       #'font-lock-flush
     (with-no-warnings
       (lambda (&optional _beg _end)
-        (font-lock-fontify-buffer)))))
+        (when font-lock-mode
+          (font-lock-fontify-buffer))))))
 
 (defvar cider--mode-buffers nil
   "A list of buffers for different major modes.")
@@ -588,6 +592,7 @@ through a stack of help buffers.  Variables `help-back-label' and
     "Write you some Clojure for Great Good!"
     "Oh, what a day... what a lovely day!"
     "What a day! What cannot be accomplished on such a splendid day!"
+    "Home is where your REPL is."
     ,(format "%s, I've a feeling we're not in Kansas anymore."
              (cider-user-first-name))
     ,(format "%s, this could be the start of a beautiful program."
