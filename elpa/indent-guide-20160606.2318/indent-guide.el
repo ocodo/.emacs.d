@@ -18,7 +18,7 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20151119.717
+;; Package-Version: 20160606.2318
 ;; Version: 2.3.0
 
 ;;; Commentary:
@@ -81,7 +81,7 @@
 
 (defgroup indent-guide nil
   "Show vertical lines to guide indentation."
-  :group 'emacs)
+  :group 'environment)
 
 (defcustom indent-guide-char "|"
   "Character used as vertical line."
