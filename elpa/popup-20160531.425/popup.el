@@ -4,7 +4,7 @@
 
 ;; Author: Tomohiro Matsuyama <m2ym.pub@gmail.com>
 ;; Keywords: lisp
-;; Package-Version: 20160527.752
+;; Package-Version: 20160531.425
 ;; Version: 0.5.3
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -869,7 +869,7 @@ Pages up through POPUP."
 ;;; Popup Incremental Search
 
 (defface popup-isearch-match
-  '((t (:background "sky blue")))
+  '((t (:inherit default :background "sky blue")))
   "Popup isearch match face."
   :group 'popup)
 
@@ -1101,7 +1101,7 @@ PROMPT is a prompt string when reading events during event loop."
   :group 'popup)
 
 (defface popup-menu-selection-face
-  '((t (:background "steelblue" :foreground "white")))
+  '((t (:inherit default :background "steelblue" :foreground "white")))
   "Face for popup menu selection."
   :group 'popup)
 
