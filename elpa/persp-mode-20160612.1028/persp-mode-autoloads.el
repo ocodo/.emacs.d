@@ -3,14 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "persp-mode" "persp-mode.el" (22347 49494 801102
-;;;;;;  337000))
+;;;### (autoloads nil "persp-mode" "persp-mode.el" (22366 21518 761919
+;;;;;;  928000))
 ;;; Generated autoloads from persp-mode.el
 
 (autoload 'def-auto-persp "persp-mode" "\
 
 
-\(fn NAME &key BUFFER-NAME FILE-NAME MODE MODE-NAME PREDICATE ON-MATCH AFTER-MATCH HOOKS DYN-ENV GET-BUFFER-EXPR GET-PERSP-EXPR PARAMETERS NOAUTO)" nil (quote macro))
+\(fn NAME &rest KEYARGS &key BUFFER-NAME FILE-NAME MODE MODE-NAME MINOR-MODE MINOR-MODE-NAME PREDICATE HOOKS DYN-ENV GET-NAME-EXPR GET-BUFFER-EXPR GET-PERSP-EXPR SWITCH PARAMETERS NOAUTO ON-MATCH AFTER-MATCH DONT-PICK-UP-BUFFERS DELETE)" nil nil)
 
 (defvar persp-mode nil "\
 Non-nil if Persp mode is enabled.
