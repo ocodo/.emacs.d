@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "devdocs" "devdocs.el" (22309 46708 0 0))
+;;;### (autoloads nil "devdocs" "devdocs.el" (22366 21693 856805
+;;;;;;  378000))
 ;;; Generated autoloads from devdocs.el
 
 (autoload 'devdocs-search "devdocs" "\

@@ -4,7 +4,7 @@
 
 ;; Author: Chunyang Xu <xuchunyang.me@gmail.com>
 ;; URL: https://github.com/xuchunyang/DevDocs.el
-;; Package-Version: 20160412.1208
+;; Package-Version: 20160607.540
 ;; Version: 0.02
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -86,7 +86,7 @@ It builds search pattern base on some context."
 
 (defun devdocs-build-search-pattern-function ()
   "Build search pattern base on region/symbol-at-point and major-mode."
-  (let ((documentation (alist-get major-mode devdocs-alist))
+  (let ((documentation (cdr (assoc major-mode devdocs-alist)))
         (query (if (use-region-p)
                    (buffer-substring (region-beginning) (region-end))
                  (thing-at-point 'symbol))))
