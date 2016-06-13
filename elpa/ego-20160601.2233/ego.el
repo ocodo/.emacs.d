@@ -39,7 +39,6 @@
 (require 'ego-git)
 (require 'ego-resource)
 (require 'ego-export)
-(require 'browse-url)
 (require 'simple-httpd)
 (require 'cl-lib)
 

@@ -7,7 +7,7 @@ if(0 != window.ego_toc.length){
     window.ego_toc_h_text = $('#table-of-contents h2').text();
     window.ego_n = 0;
     window.ego_tmp = ego_n;
-    window.ego_head = $(':header:gt(2)');
+    window.ego_head = $(':header').filter('[id*=org]');
     $(window).scroll(function () {
         var startPoint=0;
         var endPoint=ego_head.length-1;
