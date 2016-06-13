@@ -347,8 +347,9 @@ names to which it refers are bound."
       (diredp-deletion-file-name (:inherit error))
       (diredp-date-time (:foreground ,blue))
       (diredp-dir-heading (:foreground ,green :weight bold))
+      (diredp-dir-name (:foreground ,aqua))
       (diredp-dir-priv (:foreground ,aqua :background nil))
-      (diredp-exec-priv (:foreground ,blue :background nil))
+      (diredp-exec-priv (:foreground ,orange :background nil))
       (diredp-executable-tag (:foreground ,red :background nil))
       (diredp-file-name (:foreground ,yellow))
       (diredp-file-suffix (:foreground ,green))
@@ -367,6 +368,8 @@ names to which it refers are bound."
       (diredp-write-priv (:foreground ,yellow :background nil))
 
       ;; Magit
+      (magit-blame-heading (:background ,highlight :foreground ,orange))
+      (magit-blame-date (:foreground ,red))
       (magit-header-line (:inherit nil :weight bold))
       (magit-dimmed (:foreground ,comment))
       (magit-hash (:foreground ,comment))
