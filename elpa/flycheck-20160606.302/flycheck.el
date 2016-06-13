@@ -8,7 +8,7 @@
 ;;             Clément Pit--Claudel <clement.pitclaudel@live.com>
 ;; URL: http://www.flycheck.org
 ;; Keywords: convenience, languages, tools
-;; Version: 28-cvs
+;; Version: 29-cvs
 ;; Package-Requires: ((dash "2.12.1") (pkg-info "0.4") (let-alist "1.0.4") (seq "1.11") (emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -30,17 +30,20 @@
 
 ;; On-the-fly syntax checking for GNU Emacs 24.
 ;;
-;; This package provides on-the-fly syntax checking for GNU Emacs 24.  It is a
-;; replacement for the older Flymake extension which is part of GNU Emacs, with
-;; many improvements and additional features.
+;; Flycheck is a modern on-the-fly syntax checking extension for GNU Emacs,
+;; intended as replacement for the older Flymake extension which is part of GNU
+;; Emacs.
 ;;
-;; Flycheck provides fully-automatic, fail-safe, on-the-fly background syntax
-;; checking for over 30 programming and markup languages with more than 70
-;; different tools.  It highlights errors and warnings inline in the buffer, and
-;; provides an optional IDE-like error list.
+;; Flycheck automatically checks buffers for errors while you type, and reports
+;; warnings and errors directly in the buffer and in an optional IDE-like error
+;; list.
 ;;
 ;; It comes with a rich interface for custom syntax checkers and other
 ;; extensions, and has already many 3rd party extensions adding new features.
+;;
+;; Please read the online manual at http://www.flycheck.org for more
+;; information.  You can open the manual directly from Emacs with `M-x
+;; flycheck-manual'.
 ;;
 ;; # Setup
 ;;
@@ -53,17 +56,8 @@
 ;;    (add-hook 'after-init-hook #'global-flycheck-mode)
 ;;
 ;; Flycheck will then automatically check buffers in supported languages, as
-;; long as all necessary tools are present.
-;;
-;; # Documentation
-;;
-;; Flycheck comes with a rich manual, which you can read in Emacs with `M-x
-;; flycheck-info' after installing this package.  It is also available online at
-;; URL `http://www.flycheck.org/manual/latest/index.html'.
-;;
-;; The manual has a Quickstart section which gives you a short and comprehensive
-;; introduction into Flycheck's features and usage, and a complete list of all
-;; supported languages and tools.
+;; long as all necessary tools are present.  Use `flycheck-verify-setup' to
+;; troubleshoot your Flycheck setup.
 
 ;;; Code:
 
@@ -1104,12 +1098,11 @@ is added to `flycheck-temporaries'.
 Add the path of the file to `flycheck-temporaries'.
 
 Return the path of the file."
-  (let (tempfile)
-    (if filename
-        (let ((directory (flycheck-temp-dir-system)))
-          (setq tempfile (expand-file-name (file-name-nondirectory filename)
-                                           directory)))
-      (setq tempfile (make-temp-file flycheck-temp-prefix)))
+  (let ((tempfile (convert-standard-filename
+                   (if filename
+                       (expand-file-name (file-name-nondirectory filename)
+                                         (flycheck-temp-dir-system))
+                     (make-temp-file flycheck-temp-prefix)))))
     (push tempfile flycheck-temporaries)
     tempfile))
 
@@ -1126,8 +1119,9 @@ Return the path of the file."
       (let* ((tempname (format "%s_%s"
                                flycheck-temp-prefix
                                (file-name-nondirectory filename)))
-             (tempfile (expand-file-name tempname
-                                         (file-name-directory filename))))
+             (tempfile (convert-standard-filename
+                        (expand-file-name tempname
+                                          (file-name-directory filename)))))
         (push tempfile flycheck-temporaries)
         tempfile)
     (flycheck-temp-file-system filename)))
@@ -3714,7 +3708,7 @@ the beginning of the buffer."
   "The keymap of `flycheck-error-list-mode'.")
 
 (defconst flycheck-error-list-format
-  [("Line" 4 flycheck-error-list-entry-< :right-align t)
+  [("Line" 5 flycheck-error-list-entry-< :right-align t)
    ("Col" 3 nil :right-align t)
    ("Level" 8 flycheck-error-list-entry-level-<)
    ("ID" 6 t)
@@ -5360,21 +5354,20 @@ the BUFFER that was checked respectively.
 
 See URL `https://palantir.github.io/tslint/' for more information
 about TSLint."
-  (let* ((json-array-type 'list)
-         (tslint-json-output (json-read-from-string output))
-         errors)
-    (dolist (emessage tslint-json-output)
-      (let-alist emessage
-        (push (flycheck-error-new-at
-               (+ 1 .startPosition.line)
-               (+ 1 .startPosition.character)
-               'warning .failure
-               :id .ruleName
-               :checker checker
-               :buffer buffer
-               :filename .name)
-              errors)))
-    (nreverse errors)))
+  (let ((json-array-type 'list))
+    (seq-map (lambda (message)
+               (let-alist message
+                 (flycheck-error-new-at
+                  (+ 1 .startPosition.line)
+                  (+ 1 .startPosition.character)
+                  'warning .failure
+                  :id .ruleName
+                  :checker checker
+                  :buffer buffer
+                  :filename .name)))
+             ;; Don't try to parse empty output as JSON
+             (and (not (string-empty-p output))
+                  (json-read-from-string output)))))
 
 
 ;;; Error parsing with regular expressions
@@ -6956,7 +6949,7 @@ See URL `https://github.com/commercialhaskell/stack'."
                            (one-or-more " ")
                            (one-or-more not-newline)))
             line-end)
-   (error line-start (file-name) ":" line ":" column ":"
+   (error line-start (file-name) ":" line ":" column ":" (optional " error:")
           (or (message (one-or-more not-newline))
               (and "\n"
                    (message
@@ -7003,7 +6996,7 @@ See URL `https://www.haskell.org/ghc/'."
                            (one-or-more " ")
                            (one-or-more not-newline)))
             line-end)
-   (error line-start (file-name) ":" line ":" column ":"
+   (error line-start (file-name) ":" line ":" column ":" (optional " error:")
           (or (message (one-or-more not-newline))
               (and "\n"
                    (message
@@ -7827,7 +7820,12 @@ See URL `https://racket-lang.org/'."
   :command ("raco" "expand" source-inplace)
   :predicate
   (lambda ()
-    (flycheck-racket-has-expand-p (flycheck-checker-executable 'racket)))
+    (and (or (not (eq major-mode 'scheme-mode))
+             ;; In `scheme-mode' we must check the current Scheme implementation
+             ;; being used
+             (and (boundp 'geiser-impl--implementation)
+                  (eq geiser-impl--implementation 'racket)))
+         (flycheck-racket-has-expand-p (flycheck-checker-executable 'racket))))
   :verify
   (lambda (checker)
     (let ((has-expand (flycheck-racket-has-expand-p
@@ -7842,7 +7840,7 @@ See URL `https://racket-lang.org/'."
     (flycheck-sanitize-errors (flycheck-increment-error-columns errors)))
   :error-patterns
   ((error line-start (file-name) ":" line ":" column ":" (message) line-end))
-  :modes racket-mode)
+  :modes (racket-mode scheme-mode))
 
 (flycheck-define-checker rpm-rpmlint
   "A RPM SPEC file syntax checker using rpmlint.
