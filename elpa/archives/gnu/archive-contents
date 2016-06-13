@@ -173,14 +173,12 @@
 		      ((:keywords "abbrev" "convenience" "matching")
 		       (:url . "https://github.com/company-mode/company-statistics"))])
  (context-coloring .
-		   [(7 2 1)
+		   [(8 0 1)
 		    ((emacs
-		      (24 3))
-		     (js2-mode
-		      (20150713)))
-		    "Highlight by scope" single
-		    ((:url . "https://github.com/jacksonrayhamilton/context-coloring")
-		     (:keywords "convenience" "faces" "tools"))])
+		      (24 3)))
+		    "Highlight by scope" tar
+		    ((:keywords "convenience" "faces" "tools")
+		     (:url . "https://github.com/jacksonrayhamilton/context-coloring"))])
  (crisp .
 	[(1 3 4)
 	 nil "CRiSP/Brief Emacs emulator" single
@@ -191,6 +189,11 @@
 	    nil "Major mode for editing comma/char separated values" single
 	    ((:url . "http://elpa.gnu.org/packages/csv-mode.html")
 	     (:keywords "convenience"))])
+ (cycle-quotes .
+	       [(0 1)
+		nil "Cycle between quote styles" tar
+		((:keywords "convenience")
+		 (:url . "http://elpa.gnu.org/packages/cycle-quotes.html"))])
  (darkroom .
 	   [(0 1)
 	    ((cl-lib
@@ -537,6 +540,13 @@
 	nil "Authoring and publishing tool for Emacs" tar
 	((:keywords "hypermedia")
 	 (:url . "http://mwolson.org/projects/EmacsMuse.html"))])
+ (myers .
+	[(0 1)
+	 ((emacs
+	   (25)))
+	 "Random-access singly-linked lists" single
+	 ((:url . "http://elpa.gnu.org/packages/myers.html")
+	  (:keywords "list" "containers"))])
  (nameless .
 	   [(1 0 1)
 	    ((emacs
@@ -595,7 +605,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160523)
+      [(20160606)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -681,7 +691,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/sed-mode.html")
 	     (:keywords))])
  (seq .
-      [(2 15)
+      [(2 16)
        nil "Sequence manipulation functions" tar
        ((:keywords "sequences")
 	(:url . "http://elpa.gnu.org/packages/seq.html"))])
@@ -906,7 +916,7 @@
        ((:keywords "multimedia" "xpm")
 	(:url . "http://www.gnuvola.org/software/xpm/"))])
  (yasnippet .
-	    [(0 9 1)
+	    [(0 10 0)
 	     ((cl-lib
 	       (0 5)))
 	     "Yet another snippet extension for Emacs." tar
