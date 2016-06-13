@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "iedit" "iedit.el" (22347 49577 733193 466000))
+;;;### (autoloads nil "iedit" "iedit.el" (22366 21596 121386 370000))
 ;;; Generated autoloads from iedit.el
 
 (autoload 'iedit-mode "iedit" "\
@@ -19,7 +19,7 @@ highlighted.  If one occurrence is modified, the change are
 propagated to all other occurrences simultaneously.
 
 If region is not active, the current symbol (returns from
-`iedit-current-symbol') is used as the occurrence by default.
+`iedit-default-occurrence') is used as the occurrence by default.
 The occurrences of the current symbol, but not include
 occurrences that are part of other symbols, are highlighted.  If
 you still want to match all the occurrences, even though they are
@@ -43,6 +43,11 @@ With repeated universal prefix argument, the occurrence when
 Iedit mode is turned off last time (might be in other buffer) is
 used as occurrence.  If region active, Iedit mode is limited
 within the current region.
+
+With digital prefix argument 1, Iedit mode is limited on the
+current symbol or the active region, which means just one
+instance is highlighted.  This behavior serves as a start point
+of incremental selection work flow.
 
 If Iedit mode is on and region is active, Iedit mode is
 restricted in the region, e.g. the occurrences outside of the
@@ -68,8 +73,8 @@ Toggle Iedit mode on current function.
 
 ;;;***
 
-;;;### (autoloads nil "iedit-rect" "iedit-rect.el" (22347 49577 737193
-;;;;;;  470000))
+;;;### (autoloads nil "iedit-rect" "iedit-rect.el" (22366 21596 125386
+;;;;;;  344000))
 ;;; Generated autoloads from iedit-rect.el
 
 (autoload 'iedit-rectangle-mode "iedit-rect" "\
@@ -86,8 +91,8 @@ Commands:
 
 ;;;***
 
-;;;### (autoloads nil nil ("iedit-lib.el" "iedit-pkg.el") (22347
-;;;;;;  49577 748806 675000))
+;;;### (autoloads nil nil ("iedit-lib.el" "iedit-pkg.el") (22366
+;;;;;;  21596 134577 669000))
 
 ;;;***
 

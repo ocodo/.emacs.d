@@ -3,10 +3,10 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2016-05-24 10:36:51 Victor Ren>
+;; Time-stamp: <2016-06-11 23:31:41 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
-;; Version: 0.97
+;; Version: 0.9.9
 ;; X-URL: http://www.emacswiki.org/emacs/Iedit
 ;; Compatibility: GNU Emacs: 22.x, 23.x, 24.x
 
@@ -580,6 +580,27 @@ value of `iedit-occurrence-context-lines' is used for this time."
   (iedit-barf-if-buffering)
   (iedit-apply-on-occurrences 'upcase-region))
 
+(when (require 'multiple-cursors-core nil t)
+  (defun iedit-switch-to-mc-mode ()
+    "Switch to multiple-cursors-mode.  So that you can navigate
+out of the occurrence and edit simutaneously with multiple
+cursors."
+    (interactive "*")
+    (iedit-barf-if-buffering)
+    (let* ((ov (iedit-find-current-occurrence-overlay))
+           (offset (- (point) (overlay-start ov)))
+           (master (point)))
+      (mc/save-excursion
+       (dolist (occurrence iedit-occurrences-overlays)
+         (goto-char (+ (overlay-start occurrence) offset))
+         (unless (= master (point))
+           (mc/create-fake-cursor-at-point))
+         ))
+      (multiple-cursors-mode 1)
+      (run-hooks 'iedit-aborting-hook)))
+
+  (define-key iedit-occurrence-keymap-default (kbd "M-M") 'iedit-switch-to-mc-mode))
+
 (defun iedit-downcase-occurrences()
   "Covert occurrences to lower case."
   (interactive "*")
@@ -888,7 +909,8 @@ it just means mark is active."
   (and (if iedit-transient-mark-sensitive
            transient-mark-mode
          t)
-       mark-active (not (equal (mark) (point)))))
+       mark-active
+       (not (equal (mark) (point)))))
 
 (defun iedit-barf-if-lib-active()
   "Signal error if Iedit lib is active."
