@@ -1,0 +1,73 @@
+/* format.c -- a text formatter for trr19
+*/
+#include <stdlib.h>
+#include <stdio.h>
+#include <signal.h>
+#include <errno.h>
+#if defined(HAVE_STRING_H)
+#include <string.h>
+#else
+#include <strings.h>
+#endif /* HAVE_STRING_H */  
+int
+main(int argc, char **argv){
+char textfile[256], formattedfile[256], lockfile[256], *tmpfname;
+char command[256], line[1024];
+FILE *fd, *tmpfd;
+int i;
+/* ignore signals */
+signal(SIGHUP, SIG_IGN);
+signal(SIGINT, SIG_IGN);
+signal(SIGQUIT, SIG_IGN);
+signal(SIGTERM, SIG_IGN);
+strcpy(textfile, TEXT_DIR);
+strcat(textfile, argv[1]);
+strcpy(formattedfile, textfile);
+strcat(formattedfile, ".formed");
+strcpy(lockfile, textfile);
+strcat(lockfile, ".lock");
+umask(18);
+/* if previous process is formatting same target text,
+wait for that process to finish formatting. */
+if (open(lockfile, O_CREAT|O_EXCL, 420) == -1)
+if (errno == EEXIST){
+i = 0;
+while (open(lockfile, O_CREAT|O_EXCL, 420) == -1){
+if (errno == EEXIST){
+sleep(1);
+/* if failed 20 times, then remove lockfile and exit abnormally */
+if (i++ == 20){
+unlink(lockfile);
+exit(1);
+}
+} else{
+perror(lockfile);
+exit(1);
+}
+}
+/* successfully formatted */
+unlink(lockfile);
+return 0;
+} else{
+perror(lockfile);
+exit(1);
+}
+else{
+/* format a text */
+tmpfname = tmpnam(NULL);
+unlink(formattedfile);
+sprintf(command, "%s -v '^[ \t]*$' %s | %s 's/\\([.?!;]\\) *$/\\1/' | %s 's/^  *\\(.*\\)$/\\1/' > %s",
+GREP, textfile, SED, SED, tmpfname);
+system(command);
+tmpfd = fopen(tmpfname, "r");
+fd = fopen(formattedfile, "w");
+while(fgets(line, 1024, tmpfd))
+fputs(line, fd);
+fclose(tmpfd);
+fclose(fd);
+unlink(tmpfname);
+/* release lock */
+unlink(lockfile);
+return 0;
+}
+}

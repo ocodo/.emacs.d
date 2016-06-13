@@ -1,0 +1,21 @@
+# This is the trr CONTENTS file.
+# line which begins with # or \newline stands a comment line.
+# Each entry of this file MUST have the following form.
+
+# form: Title Level Comment file-name ID
+# where IDs must differ from any other ID.
+
+# ex. Golden_Goose  easy  one_of_grim's golden.goose.txt GG
+# note: notice that each element must not have space or tab.
+
+# The entries begin at the next line.
+ICCAD                   Normal          Recommend             Iccad_90 IC
+Japan_Constitution      Hard            Stable                The_Constitution_Of_JAPAN CJ
+USA_Constitution        Normal          Lots_of_headers       Constitution_of_the_USA CA
+
+# more text from debian maintainer
+C                       Hard            C_programs            C_programs TR
+Emacs_Lisp              Hard            Lots_of_parentheses   Elisp_programs EL
+Java                    Hard            Java_programs         Java_programs JV
+Ocaml                   Hard            Some_symbols          Ocaml_programs OC
+Python                  Normal          Python_programs       Python_programs PY

@@ -1,0 +1,88 @@
+(add-hook 'latex-mode-hook 'turn-on-auto-fill)
+(add-hook 'latex-mode-hook 'turn-on-reftex)
+(defun set-latex-command ()
+  (and buffer-file-name
+       (or (file-exists-p "makefile")
+	   (file-exists-p "Makefile"))
+       (let ((pdf (concat (file-name-sans-extension buffer-file-name) ".pdf")))
+	 (setq tex-command (concat "make "
+				   (file-name-nondirectory pdf)
+				   "; echo")
+	       tex-start-commands ""
+	       tex-compile-history '("make ")))))
+(setq tex-dvi-view-command
+      '(if (not buffer-file-name)
+	   "xdvi"
+	 (let ((dvi (concat (file-name-sans-extension buffer-file-name) ".dvi"))
+	       (pdf (concat (file-name-sans-extension buffer-file-name) ".pdf")))
+	   (if (or (file-exists-p "makefile")
+		   (file-exists-p "Makefile"))
+	       ;; using latex-make
+	       (cond ((file-exists-p pdf)
+		      (concat "evince " (file-name-nondirectory pdf)))
+		     ((file-exists-p dvi)
+		      (concat "xdvi " (file-name-nondirectory dvi)))
+		     (t (concat "make " (file-name-nondirectory pdf))))
+	     "xdvi"))))
+(add-hook 'latex-mode-hook 'set-latex-command)
+(autoload 'set-latex-tool-bar "latex-tool-bar")
+(add-hook 'latex-mode-hook 'set-latex-tool-bar)
+(add-hook 'latex-mode-hook (lambda () (require 'texcomp)))
+(autoload 'texcomp:insert-symbol "texcomp" nil t)
+(autoload 'texcomp:insert-environment "texcomp" nil t)
+(add-hook 'tex-mode-hook (lambda () (setq ispell-parser 'tex)))
+
+;; * c-mode
+(defvar cc-command "gcc")
+(defvar compile-options "-Wall")
+
+(defun site-c-mode-hook ()
+  (let ((map (current-global-map)))
+    (Define-key map "\C-c\C-c" 'compile)
+    (define-key map [menu-bar C compile] '("Compile..." . compile))
+    (make-local-variable 'compile-command)
+    (if buffer-file-name
+	(setq compile-command
+	      (if (or (file-exists-p "makefile")
+		      (file-exists-p "Makefile"))
+		  (concat "make -k "
+			  (file-name-nondirectory (file-name-sans-extension buffer-file-name)))
+		(let ((fname (file-name-nondirectory buffer-file-name)))
+		  (format  "%s %s -o -O2 %s %s"
+			   cc-command
+			   compile-options
+			   (file-name-nondirectory (file-name-sans-extension fname))
+			   fname)))))))
+
+(add-hook 'c-mode-hook 'flymake-mode-on)
+(add-hook 'c-mode-hook
+  (lambda ()
+    (define-key c-mode-map "\C-c\C-c" 'compile)
+    (define-key c-mode-map [menu-bar C compile] '("Compile..." . compile))
+    (make-local-variable 'compile-command)
+    (if buffer-file-name
+	(setq compile-command
+	      (if (or (file-exists-p "makefile")
+		      (file-exists-p "Makefile"))
+		  (concat "make -k "
+			  (file-name-nondirectory (file-name-sans-extension buffer-file-name)))
+		(let ((fname (file-name-nondirectory buffer-file-name)))
+		  (format  "%s %s -o %s %s"
+			   cc-command
+			   compile-options
+			   (file-name-nondirectory (file-name-sans-extension fname))
+			   fname)))))))
+
+;; * debian-changelog-mode
+(autoload 'debian-changelog-mode "debian-changelog-mode" nil t)
+(push '("/debian/changelog\\'" . debian-changelog-mode) auto-mode-alist)
+
+;; * dired-mode
+(add-hook 'dired-mode-hook
+  (lambda () 
+    (setenv "LANG" "C")
+    (setenv "LC_ALL" "C")))
+
+;; * flyspell
+;; flyspell should be loaded after some package support input system
+
