@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# contributor: jasonm23
+# name: import
+# group: es6
+# key: import
+# --
+import ${1:*} ${2:as ${3:mod}} from ${4:"lib/package"};
+$0

@@ -214,7 +214,7 @@
 		((:url . "http://elpa.gnu.org/packages/dbus-codegen.html")
 		 (:keywords "comm" "dbus" "convenience"))])
  (debbugs .
-	  [(0 9 5)
+	  [(0 9 6)
 	   ((soap-client
 	     (3 1 1))
 	    (cl-lib
