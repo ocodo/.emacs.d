@@ -28,12 +28,6 @@
     (flymake-goto-prev-error)
     (flymake-display-current-warning/error)))
 
-(require 'flymake-jshint)
-(add-hook 'js-mode-hook
-          (lambda ()
-            (flymake-mode)
-            (flymake-jshint-load)))
-
 (eval-after-load "flymake"
   `(flymake-settings))
 

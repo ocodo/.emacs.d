@@ -1,4 +1,4 @@
 ;; use-flycheck
 (add-hook 'after-use-hook #'global-flycheck-mode)
 
-(provide 'use-flycheck)
+(add-hook 'prog-mode-hook #'flycheck-mode)
