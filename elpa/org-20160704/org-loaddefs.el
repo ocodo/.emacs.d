@@ -923,7 +923,7 @@ tree can be found.
 
 ;;;### (autoloads (org-element-context org-element-at-point org-element-cache-refresh
 ;;;;;;  org-element-cache-reset org-element-interpret-data org-element-update-syntax)
-;;;;;;  "org-element" "org-element.el" "54a3a77d31b0c99c7ce9827c94b05491")
+;;;;;;  "org-element" "org-element.el" "8eac9a703a05497197f8757b0bf91021")
 ;;; Generated autoloads from org-element.el
 
 (autoload 'org-element-update-syntax "org-element" "\
@@ -2003,7 +2003,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22366 15829))
+;;;;;;  (22393 60757))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
@@ -2029,7 +2029,7 @@ The location of ODT styles.")
 ;;;;;;  org-run-like-in-org-mode turn-on-orgstruct++ turn-on-orgstruct
 ;;;;;;  orgstruct-mode org-global-cycle org-cycle org-mode org-clock-persistence-insinuate
 ;;;;;;  turn-on-orgtbl org-version org-babel-load-file org-babel-do-load-languages)
-;;;;;;  "org" "org.el" (22364 61103))
+;;;;;;  "org" "org.el" (22382 4650))
 ;;; Generated autoloads from org.el
 
 (autoload 'org-babel-do-load-languages "org" "\
@@ -2250,7 +2250,7 @@ Call the customize function with org as argument.
 
 ;;;***
 
-;;;### (autoloads nil "ox" "ox.el" "b179c517456780a4806f9b43dc76c0dd")
+;;;### (autoloads nil "ox" "ox.el" "1e064981fa88f34a7ac4acf52b6417d7")
 ;;; Generated autoloads from ox.el
 
 (autoload 'org-export-as "ox" "\
@@ -2660,7 +2660,7 @@ Return output file name.
 
 ;;;### (autoloads (org-html-publish-to-html org-html-export-to-html
 ;;;;;;  org-html-convert-region-to-html org-html-export-as-html org-html-htmlize-generate-css)
-;;;;;;  "ox-html" "ox-html.el" "bf5ed80a1ca861d6cdc19fd513514c2e")
+;;;;;;  "ox-html" "ox-html.el" "8828ae87fd70d75413d144fa6f4f2db6")
 ;;; Generated autoloads from ox-html.el
 
 (put 'org-html-head-include-default-style 'safe-local-variable 'booleanp)
@@ -3233,7 +3233,7 @@ this command to convert it.
 
 ;;;### (autoloads (org-export-dispatch org-export-to-file org-export-to-buffer
 ;;;;;;  org-export-insert-default-template org-export-replace-region-by
-;;;;;;  org-export-string-as org-export-as) "ox" "ox.el" "b179c517456780a4806f9b43dc76c0dd")
+;;;;;;  org-export-string-as org-export-as) "ox" "ox.el" "1e064981fa88f34a7ac4acf52b6417d7")
 ;;; Generated autoloads from ox.el
 
 (autoload 'org-export-as "ox" "\

@@ -11921,7 +11921,8 @@ prefix argument (`C-u C-u C-u C-c C-w')."
 					(replace-regexp-in-string
 					 org-bracket-link-regexp
 					 "\\3"
-					 (nth 4 (org-heading-components)))))
+					 (or (nth 4 (org-heading-components))
+					     ""))))
 				(org-refile-get-location
 				 (cond ((and arg (listp arg)) "Goto")
 				       (regionp (concat actionmsg " region to"))
@@ -15700,8 +15701,8 @@ When INCREMENT is non-nil, set the property to the next allowed value."
 	       (t
 		(let (org-completion-use-ido org-completion-use-iswitchb)
 		  (org-completing-read
-		   (concat "Effort " (if (and cur (string-match "\\S-" cur))
-					 (concat "[" cur "]") "")
+		   (concat "Effort" (and cur (string-match "\\S-" cur)
+					 (concat " [" cur "]"))
 			   ": ")
 		   existing nil nil "" nil cur))))))
     (unless (equal (org-entry-get nil prop) val)
@@ -15710,7 +15711,7 @@ When INCREMENT is non-nil, set the property to the next allowed value."
      '((effort . identity)
        (effort-minutes . org-duration-string-to-minutes))
      val)
-    (when (string= heading org-clock-current-task)
+    (when (equal heading (org-bound-and-true-p org-clock-current-task))
       (setq org-clock-effort (get-text-property (point-at-bol) 'effort))
       (org-clock-update-mode-line))
     (message "%s is now %s" prop val)))
@@ -19073,66 +19074,65 @@ for all fragments in the buffer."
   (when (display-graphic-p)
     (catch 'exit
       (save-excursion
-	(let ((window-start (window-start)) msg)
-	  (save-restriction
-	    (cond
-	     ((or (equal arg '(16))
-		  (and (equal arg '(4))
-		       (org-with-limited-levels (org-before-first-heading-p))))
-	      (if (org-remove-latex-fragment-image-overlays)
-		  (progn (message "LaTeX fragments images removed from buffer")
-			 (throw 'exit nil))
-		(setq msg "Creating images for buffer...")))
-	     ((equal arg '(4))
-	      (org-with-limited-levels (org-back-to-heading t))
-	      (let ((beg (point))
-		    (end (progn (org-end-of-subtree t) (point))))
-		(if (org-remove-latex-fragment-image-overlays beg end)
-		    (progn
-		      (message "LaTeX fragment images removed from subtree")
-		      (throw 'exit nil))
-		  (setq msg "Creating images for subtree...")
-		  (narrow-to-region beg end))))
-	     ((let ((datum (org-element-context)))
-		(when (memq (org-element-type datum)
-			    '(latex-environment latex-fragment))
-		  (let* ((beg (org-element-property :begin datum))
-			 (end (org-element-property :end datum)))
-		    (if (org-remove-latex-fragment-image-overlays beg end)
-			(progn (message "LaTeX fragment image removed")
-			       (throw 'exit nil))
-		      (narrow-to-region beg end)
-		      (setq msg "Creating image..."))))))
-	     (t
-	      (org-with-limited-levels
-	       (let ((beg (if (org-at-heading-p) (line-beginning-position)
-			    (outline-previous-heading)
-			    (point)))
-		     (end (progn (outline-next-heading) (point))))
-		 (if (org-remove-latex-fragment-image-overlays beg end)
-		     (progn
-		       (message "LaTeX fragment images removed from section")
+	(let (beg end msg)
+	  (cond
+	   ((or (equal arg '(16))
+		(and (equal arg '(4))
+		     (org-with-limited-levels (org-before-first-heading-p))))
+	    (if (org-remove-latex-fragment-image-overlays)
+		(progn (message "LaTeX fragments images removed from buffer")
 		       (throw 'exit nil))
-		   (setq msg "Creating images for section...")
-		   (narrow-to-region beg end))))))
-	    (let ((file (buffer-file-name (buffer-base-buffer))))
-	      (org-format-latex
-	       (concat org-latex-preview-ltxpng-directory
-		       (file-name-sans-extension (file-name-nondirectory file)))
-	       ;; Emacs cannot overlay images from remote hosts.
-	       ;; Create it in `temporary-file-directory' instead.
-	       (if (file-remote-p file) temporary-file-directory
-		 default-directory)
-	       'overlays msg 'forbuffer
-	       org-latex-create-formula-image-program)))
-	  ;; Work around a bug that doesn't restore window's start
-	  ;; when widening back the buffer.
-	  (set-window-start nil window-start)
+	      (setq msg "Creating images for buffer...")))
+	   ((equal arg '(4))
+	    (org-with-limited-levels (org-back-to-heading t))
+	    (setq beg (point))
+	    (setq end (progn (org-end-of-subtree t) (point)))
+	    (if (org-remove-latex-fragment-image-overlays beg end)
+		(progn
+		  (message "LaTeX fragment images removed from subtree")
+		  (throw 'exit nil))
+	      (setq msg "Creating images for subtree...")))
+	   ((let ((datum (org-element-context)))
+	      (when (memq (org-element-type datum)
+			  '(latex-environment latex-fragment))
+		(setq beg (org-element-property :begin datum))
+		(setq end (org-element-property :end datum))
+		(if (org-remove-latex-fragment-image-overlays beg end)
+		    (progn (message "LaTeX fragment image removed")
+			   (throw 'exit nil))
+		  (setq msg "Creating image...")))))
+	   (t
+	    (org-with-limited-levels
+	     (setq beg (if (org-at-heading-p) (line-beginning-position)
+			 (outline-previous-heading)
+			 (point)))
+	     (setq end (progn (outline-next-heading) (point)))
+	     (if (org-remove-latex-fragment-image-overlays beg end)
+		 (progn
+		   (message "LaTeX fragment images removed from section")
+		   (throw 'exit nil))
+	       (setq msg "Creating images for section...")))))
+	  (let ((file (buffer-file-name (buffer-base-buffer))))
+	    (org-format-latex
+	     (concat org-latex-preview-ltxpng-directory
+		     (file-name-sans-extension (file-name-nondirectory file)))
+	     beg end
+	     ;; Emacs cannot overlay images from remote hosts.  Create
+	     ;; it in `temporary-file-directory' instead.
+	     (if (file-remote-p file) temporary-file-directory
+	       default-directory)
+	     'overlays msg 'forbuffer
+	     org-latex-create-formula-image-program))
 	  (message (concat msg "done")))))))
 
 (defun org-format-latex
-    (prefix &optional dir overlays msg forbuffer processing-type)
-  "Replace LaTeX fragments with links to an image, and produce images.
+    (prefix &optional beg end dir overlays msg forbuffer processing-type)
+  "Replace LaTeX fragments with links to an image.
+
+The function takes care of creating the replacement image.
+
+Only consider fragments between BEG and END when those are
+provided.
 
 When optional argument OVERLAYS is non-nil, display the image on
 top of the fragment instead of replacing it.
@@ -19146,11 +19146,11 @@ Some of the options can be changed using the variable
     (let* ((math-regexp "\\$\\|\\\\[([]\\|^[ \t]*\\\\begin{[A-Za-z0-9*]+}")
 	   (cnt 0)
 	   checkdir-flag)
-      (goto-char (point-min))
+      (goto-char (or beg (point-min)))
       ;; Optimize overlay creation: (info "(elisp) Managing Overlays").
       (when (and overlays (memq processing-type '(dvipng imagemagick)))
-	(overlay-recenter (point-max)))
-      (while (re-search-forward math-regexp nil t)
+	(overlay-recenter (or end (point-max))))
+      (while (re-search-forward math-regexp end t)
 	(unless (and overlays
 		     (eq (get-char-property (point) 'org-overlay-type)
 			 'org-latex-overlay))
@@ -22720,7 +22720,9 @@ The function returns the new ALIST."
     rtn))
 
 (defun org-delete-all (elts list)
-  "Remove all elements in ELTS from LIST."
+  "Remove all elements in ELTS from LIST.
+Comparison is done with `equal'.  It is a destructive operation
+that may remove elements by altering the list structure."
   (while elts
     (setq list (delete (pop elts) list)))
   list)
