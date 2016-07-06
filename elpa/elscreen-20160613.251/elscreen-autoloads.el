@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "elscreen" "elscreen.el" (22366 21682 928865
-;;;;;;  710000))
+;;;### (autoloads nil "elscreen" "elscreen.el" (22396 29124 221707
+;;;;;;  734000))
 ;;; Generated autoloads from elscreen.el
 
 (autoload 'elscreen-start "elscreen" "\
@@ -18,7 +18,7 @@
 ;;;;;;  "elscreen-dired.el" "elscreen-dnd.el" "elscreen-gf.el" "elscreen-goby.el"
 ;;;;;;  "elscreen-howm.el" "elscreen-pkg.el" "elscreen-server.el"
 ;;;;;;  "elscreen-speedbar.el" "elscreen-w3m.el" "elscreen-wl.el")
-;;;;;;  (22366 21682 958274 636000))
+;;;;;;  (22396 29124 248903 326000))
 
 ;;;***
 
