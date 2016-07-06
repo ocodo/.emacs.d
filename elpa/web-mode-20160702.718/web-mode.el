@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.8
-;; Package-Version: 20160611.1226
+;; Version: 14.0.13
+;; Package-Version: 20160702.718
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.8"
+(defconst web-mode-version "14.0.13"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -229,6 +229,12 @@ See web-mode-block-face."
   :group 'web-mode
   :type '(choice (const :tag "Auto-close on </" 1)
                  (const :tag "Auto-close on > and </" 2)))
+
+(defcustom web-mode-auto-quote-style 1
+  "Auto-quoting style."
+  :group 'web-mode
+  :type '(choice (const :tag "Auto-quotes with double quote" 1)
+                 (const :tag "Auto-quotes with single quote" 2)))
 
 (defcustom web-mode-extra-expanders '()
   "A list of additional expanders."
@@ -826,7 +832,7 @@ Must be used in conjunction with web-mode-enable-block-face."
     ("php"              . "\\.\\(p[hs]p\\|ctp\\|inc\\)\\'")
     ("python"           . "\\.pml\\'")
     ("razor"            . "\\.\\(cs\\|vb\\)html\\'")
-    ("riot"           .  "\\.tag\\'")
+    ("riot"             . "\\.tag\\'")
     ("smarty"           . "\\.tpl\\'")
     ("template-toolkit" . "\\.tt.?\\'")
     ("thymeleaf"        . "\\.thtml\\'")
@@ -2221,7 +2227,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
 (eval-and-compile
 
-  ;; compatibility with emacs 22
+  ;; compatibility with emacs < 23
   (defun web-mode-string-match-p (regexp string &optional start)
     "Same as `string-match' except it does not change the match data."
     (let ((inhibit-changing-match-data t))
@@ -6810,7 +6816,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
              (reg-col (plist-get ctx :reg-col))
              (token (plist-get ctx :token))
              (options (plist-get ctx :options))
-             (chars (list curr-char prev-char)))
+             (chars (list curr-char prev-char))
+             (tmp nil))
 
         ;;(message "%S" language)
         ;;(message "curr-char=[%c] prev-char=[%c]\n%S" curr-char prev-char ctx)
@@ -7140,38 +7147,6 @@ another auto-completion with different ac-sources (e.g. ac-php)")
            ) ;cond
           )
 
-         ;; TODO : prev-pos : se plasser sur ), remonter sur ( et
-         ;; verifer que ca n'est pas if
-         ((and (member language '("javascript" "jsx" "ejs" "php"))
-               (or (and (eq prev-char ?\))
-                        (string-match-p "^\\(for\\|if\\|while\\)[ ]*(" prev-line)
-                        ;;(progn (message "point=%S" (point)) t)
-                        )
-                   (and (member language '("javascript" "jsx"))
-                        (web-mode-part-is-opener prev-pos reg-beg))
-                   (string-match-p "^else$" prev-line))
-               (not (string-match-p "^\\([{.]\\|->\\)" curr-line)))
-          ;;(message "ici")
-          (cond
-           ((and (eq prev-char ?\))
-                 (string-match-p "^\\(for\\|if\\|while\\)[ ]*(" prev-line))
-            (setq offset (+ prev-indentation web-mode-code-indent-offset))
-            )
-           ((member language '("javascript" "jsx" "ejs"))
-            (setq offset
-                  (+ (car (web-mode-javascript-indentation pos
-                                                           reg-col
-                                                           curr-indentation
-                                                           language
-                                                           reg-beg))
-                     web-mode-code-indent-offset))
-            )
-           (t
-            (setq offset (+ prev-indentation web-mode-code-indent-offset))
-            )
-           )
-          )
-
          ((and (member language '("javascript" "jsx" "ejs"))
                (or (member ?\, chars)
                    (member prev-char '(?\( ?\[))))
@@ -7193,7 +7168,64 @@ another auto-completion with different ac-sources (e.g. ac-php)")
             (goto-char pos)
             (looking-at ",[ \t\n]*")
             (setq offset (- offset (length (match-string-no-properties 0)))))
-           ))
+           ) ;cond
+          )
+
+         ((and (member language '("javascript" "jsx" "ejs"))
+               (or (eq prev-char ?\))
+                   (string-match-p "^else$" prev-line))
+               )
+          ;;(message "js-ici")
+          (cond
+           ((string-match-p "^else$" prev-line)
+            (setq offset (+ prev-indentation web-mode-code-indent-offset))
+            )
+           ((setq tmp (web-mode-part-is-opener prev-pos reg-beg))
+            ;;(message "is-opener")
+            (setq offset (+ tmp web-mode-code-indent-offset))
+            ;;(setq offset (+ prev-indentation web-mode-code-indent-offset))
+            )
+           (t
+            (setq offset
+                  (car (web-mode-javascript-indentation pos
+                                                        reg-col
+                                                        curr-indentation
+                                                        language
+                                                        reg-beg)))
+            ) ;t
+           ) ;cond
+
+          )
+
+         ;; TODO : a retoucher completement car le code js a ete place ci-dessus
+         ;;((and (member language '("javascript" "jsx" "ejs" "php"))
+         ((and (member language '("php"))
+               (or (and (eq prev-char ?\))
+                        (string-match-p "^\\(for\\|if\\|while\\)[ ]*(" prev-line))
+                   (and (member language '("javascript" "jsx" "ejs"))
+                        (web-mode-part-is-opener prev-pos reg-beg))
+                   (string-match-p "^else$" prev-line))
+               (not (string-match-p "^\\([{.]\\|->\\)" curr-line)))
+          ;;(message "ici")
+          (cond
+           ((and (eq prev-char ?\))
+                 (string-match-p "^\\(for\\|if\\|while\\)[ ]*(" prev-line))
+            (setq offset (+ prev-indentation web-mode-code-indent-offset))
+            )
+           ((member language '("javascript" "jsx"))
+            (setq offset
+                  (+ (car (web-mode-javascript-indentation pos
+                                                           reg-col
+                                                           curr-indentation
+                                                           language
+                                                           reg-beg))
+                     web-mode-code-indent-offset))
+            )
+           (t
+            (setq offset (+ prev-indentation web-mode-code-indent-offset))
+            )
+           )
+          )
 
          ((and (member language '("php" "blade")) (string-match-p "^->" curr-line))
           (cond
@@ -7536,11 +7568,14 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 (defun web-mode-part-is-opener (pos reg-beg)
   (save-excursion
     (save-match-data
-      (and pos
-           (web-mode-go (web-mode-part-opening-paren-position pos))
-           (>= (point) reg-beg)
-           ;;(progn (message "%S %S" pos (point)))
-           (looking-back "if[ ]*")))))
+      (if (and pos
+               (web-mode-go (web-mode-part-opening-paren-position pos))
+               (>= (point) reg-beg)
+               ;;(progn (message "%S %S" pos (point)))
+               (looking-back "\\(^\\|[ \t]\\)\\(if\\|for\\|while\\)[ ]*"))
+          (current-indentation)
+        nil)
+      )))
 
 (defun web-mode-part-previous-live-line (reg-beg)
   (unless reg-beg (setq reg-beg (point-min)))
@@ -9487,7 +9522,9 @@ Prompt user if TAG-NAME isn't provided."
       (cond
        ((and (eq char ?\=)
              (not (looking-at-p "[ ]*[\"']")))
-        (insert "\"\"")
+        (if (= web-mode-auto-quote-style 2)
+            (insert "''")
+          (insert "\"\""))
         (backward-char)
         (setq auto-quoted t))
        ((and (eq char ?\")
@@ -10197,6 +10234,8 @@ Prompt user if TAG-NAME isn't provided."
     nil)
    ((get-text-property pos 'tag-attr-beg)
     pos)
+   ((and (> pos (point-min)) (get-text-property (1- pos) 'tag-attr-beg))
+    (1- pos))
    (t
     (setq pos (previous-single-property-change pos 'tag-attr-beg))
     (setq pos (1- pos)))
@@ -10282,13 +10321,20 @@ Prompt user if TAG-NAME isn't provided."
   (unless pos (setq pos (point)))
   (unless limit (setq limit (point-min)))
   (let (continue depth)
-    (when (get-text-property pos 'tag-attr-beg)
-      (setq pos (1- pos)))
-    (if (> pos limit)
-        (setq continue t
-              depth (get-text-property pos 'jsx-depth))
-      (setq continue nil
-            pos nil))
+    (cond
+     ((and (> pos (point-min)) (get-text-property (1- pos) 'tag-attr-beg))
+      (setq pos (1- pos)
+            continue nil))
+     (t
+      (when (get-text-property pos 'tag-attr-beg)
+        (setq pos (1- pos)))
+      (if (> pos limit)
+          (setq continue t
+                depth (get-text-property pos 'jsx-depth))
+        (setq continue nil
+              pos nil))
+      ) ;t
+     ) ;cond
     (while continue
       (setq pos (previous-single-property-change pos 'tag-attr-beg))
       (cond
@@ -10297,13 +10343,17 @@ Prompt user if TAG-NAME isn't provided."
        ((< pos limit)
         (setq continue nil
               pos nil))
-       ((null depth)
-        (setq continue nil))
-       ((eq depth (get-text-property pos 'jsx-depth))
-        (setq continue nil))
+       ;;((null depth)
+       ;; (setq continue nil))
+       ((and depth (eq depth (get-text-property pos 'jsx-depth)))
+        (setq  pos (1- pos)
+               continue nil))
+       (depth
+        (setq pos nil
+              continue (> pos limit)))
        (t
         (setq pos (1- pos)
-              continue (> pos limit)))
+              continue nil))
        ) ;cond
       ) ;while
     pos))
