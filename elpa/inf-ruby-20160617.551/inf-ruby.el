@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20160423.837
+;; Package-Version: 20160617.551
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.4.0
@@ -721,7 +721,8 @@ Gemfile, it should use the `gemspec' instruction."
           (setq args (concat " -r " feature))
         ;; Let's require all non-directory files under lib, instead.
         (dolist (item (directory-files "lib"))
-          (unless (file-directory-p (format "lib/%s" item))
+          (when (and (not (file-directory-p (format "lib/%s" item)))
+                     (string-match-p "\\.rb\\'" item))
             (push item files)))
         (setq args
               (mapconcat
