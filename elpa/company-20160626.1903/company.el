@@ -5,7 +5,7 @@
 ;; Author: Nikolaj Schumacher
 ;; Maintainer: Dmitry Gutov <dgutov@yandex.ru>
 ;; URL: http://company-mode.github.io/
-;; Version: 0.9.0-cvs
+;; Version: 0.9.0
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -186,9 +186,13 @@ buffer-local wherever it is set."
 (defun company-frontends-set (variable value)
   ;; Uniquify.
   (let ((value (delete-dups (copy-sequence value))))
-    (and (memq 'company-pseudo-tooltip-unless-just-one-frontend value)
-         (memq 'company-pseudo-tooltip-frontend value)
-         (error "Pseudo tooltip frontend cannot be used twice"))
+    (and (or (and (memq 'company-pseudo-tooltip-unless-just-one-frontend value)
+                  (memq 'company-pseudo-tooltip-frontend value))
+             (and (memq 'company-pseudo-tooltip-unless-just-one-frontend-with-delay value)
+                  (memq 'company-pseudo-tooltip-frontend value))
+             (and (memq 'company-pseudo-tooltip-unless-just-one-frontend-with-delay value)
+                  (memq 'company-pseudo-tooltip-unless-just-one-frontend value)))
+         (error "Pseudo tooltip frontend cannot be used more than once"))
     (and (memq 'company-preview-if-just-one-frontend value)
          (memq 'company-preview-frontend value)
          (error "Preview frontend cannot be used twice"))
@@ -233,6 +237,8 @@ The visualized data is stored in `company-prefix', `company-candidates',
                                 company-pseudo-tooltip-frontend)
                          (const :tag "pseudo tooltip, multiple only"
                                 company-pseudo-tooltip-unless-just-one-frontend)
+                         (const :tag "pseudo tooltip, multiple only, delayed"
+                                company-pseudo-tooltip-unless-just-one-frontend-with-delay)
                          (const :tag "preview" company-preview-frontend)
                          (const :tag "preview, unique only"
                                 company-preview-if-just-one-frontend)
@@ -420,11 +426,11 @@ call is dispatched to the backend the candidate came from.  In other
 cases (except for `duplicates' and `sorted'), the first non-nil value among
 all the backends is returned.
 
-The group can also contain keywords.  Currently, `:with' and `:sorted'
+The group can also contain keywords.  Currently, `:with' and `:separate'
 keywords are defined.  If the group contains keyword `:with', the backends
 listed after this keyword are ignored for the purpose of the `prefix'
-command.  If the group contains keyword `:sorted', the final list of
-candidates is not sorted after concatenation.
+command.  If the group contains keyword `:separate', the candidates that
+come from different backends are sorted separately in the combined list.
 
 Asynchronous backends
 =====================
@@ -555,6 +561,13 @@ A character that is part of a valid candidate never triggers auto-completion."
   "The idle delay in seconds until completion starts automatically.
 The prefix still has to satisfy `company-minimum-prefix-length' before that
 happens.  The value of nil means no idle completion."
+  :type '(choice (const :tag "never (nil)" nil)
+                 (const :tag "immediate (0)" 0)
+                 (number :tag "seconds")))
+
+(defcustom company-tooltip-idle-delay .5
+  "The idle delay in seconds until tooltip is shown when using
+`company-pseudo-tooltip-unless-just-one-frontend-with-delay'."
   :type '(choice (const :tag "never (nil)" nil)
                  (const :tag "immediate (0)" 0)
                  (number :tag "seconds")))
@@ -722,9 +735,6 @@ keymap during active completions (`company-active-map'):
   nil company-lighter company-mode-map
   (if company-mode
       (progn
-        (when (eq company-idle-delay t)
-          (setq company-idle-delay 0)
-          (warn "Setting `company-idle-delay' to t is deprecated.  Set it to 0 instead."))
         (add-hook 'pre-command-hook 'company-pre-command nil t)
         (add-hook 'post-command-hook 'company-post-command nil t)
         (mapc 'company-init-backend company-backends))
@@ -907,19 +917,19 @@ matches IDLE-BEGIN-AFTER-RE, return it wrapped in a cons."
   (let ((backends (cl-loop for b in backends
                            when (not (and (symbolp b)
                                           (eq 'failed (get b 'company-init))))
-                           collect b)))
+                           collect b))
+        (separate (memq :separate backends)))
 
     (when (eq command 'prefix)
       (setq backends (butlast backends (length (member :with backends)))))
 
-    (unless (memq command '(sorted))
-      (setq backends (cl-delete-if #'keywordp backends)))
+    (setq backends (cl-delete-if #'keywordp backends))
 
     (pcase command
       (`candidates
-       (company--multi-backend-adapter-candidates backends (car args)))
-      (`sorted (memq :sorted backends))
-      (`duplicates t)
+       (company--multi-backend-adapter-candidates backends (car args) separate))
+      (`sorted separate)
+      (`duplicates (not separate))
       ((or `prefix `ignore-case `no-cache `require-match)
        (let (value)
          (cl-dolist (backend backends)
@@ -933,25 +943,34 @@ matches IDLE-BEGIN-AFTER-RE, return it wrapped in a cons."
                               (car backends))))
              (apply backend command args))))))))
 
-(defun company--multi-backend-adapter-candidates (backends prefix)
-  (let ((pairs (cl-loop for backend in (cdr backends)
+(defun company--multi-backend-adapter-candidates (backends prefix separate)
+  (let ((pairs (cl-loop for backend in backends
                         when (equal (company--prefix-str
                                      (funcall backend 'prefix))
                                     prefix)
                         collect (cons (funcall backend 'candidates prefix)
-                                      (let ((b backend))
-                                        (lambda (candidates)
-                                          (mapcar
-                                           (lambda (str)
-                                             (propertize str 'company-backend b))
-                                           candidates)))))))
-    (when (equal (company--prefix-str (funcall (car backends) 'prefix)) prefix)
-      ;; Small perf optimization: don't tag the candidates received
-      ;; from the first backend in the group.
-      (push (cons (funcall (car backends) 'candidates prefix)
-                  'identity)
-            pairs))
+                                      (company--multi-candidates-mapper
+                                       backend
+                                       separate
+                                       ;; Small perf optimization: don't tag the
+                                       ;; candidates received from the first
+                                       ;; backend in the group.
+                                       (not (eq backend (car backends))))))))
     (company--merge-async pairs (lambda (values) (apply #'append values)))))
+
+(defun company--multi-candidates-mapper (backend separate tag)
+  (lambda (candidates)
+    (when separate
+      (let ((company-backend backend))
+        (setq candidates
+              (company--preprocess-candidates candidates))))
+    (when tag
+      (setq candidates
+            (mapcar
+             (lambda (str)
+               (propertize str 'company-backend backend))
+             candidates)))
+    candidates))
 
 (defun company--merge-async (pairs merger)
   (let ((async (cl-loop for pair in pairs
@@ -1019,6 +1038,7 @@ Controlled by `company-auto-complete'.")
 (defvar-local company-point nil)
 
 (defvar company-timer nil)
+(defvar company-tooltip-timer nil)
 
 (defsubst company-strip-prefix (str)
   (substring str (length company-prefix)))
@@ -1334,9 +1354,9 @@ from the rest of the backends in the group, if any, will be left at the end."
                    (or (not b1) (not (memq b1 low-priority)))))))))))
 
 (defun company-sort-prefer-same-case-prefix (candidates)
-  "Prefer CANDIDATES with the same case sensitive prefix.
+  "Prefer CANDIDATES with the exact same prefix.
 If a backend returns case insensitive matches, candidates with the an exact
-prefix match will be prioritized even if this changes the lexical order."
+prefix match (same case) will be prioritized."
   (cl-loop for candidate in candidates
            if (string-prefix-p company-prefix candidate)
            collect candidate into same-case
@@ -1615,11 +1635,13 @@ prefix match will be prioritized even if this changes the lexical order."
               (company--perform)))
           (if company-candidates
               (company-call-frontends 'post-command)
-            (and (numberp company-idle-delay)
+            (and (or (numberp company-idle-delay)
+                     ;; Deprecated.
+                     (eq company-idle-delay t))
                  (not defining-kbd-macro)
                  (company--should-begin)
                  (setq company-timer
-                       (run-with-timer company-idle-delay nil
+                       (run-with-timer (company--idle-delay) nil
                                        'company-idle-begin
                                        (current-buffer) (selected-window)
                                        (buffer-chars-modified-tick) (point))))))
@@ -1627,6 +1649,11 @@ prefix match will be prioritized even if this changes the lexical order."
              (message "%s" (error-message-string err))
              (company-cancel))))
   (company-install-map))
+
+(defun company--idle-delay ()
+  (if (memql company-idle-delay '(t 0 0.0))
+      0.01
+    company-idle-delay))
 
 (defvar company--begin-inhibit-commands '(company-abort
                                           company-complete-mouse
@@ -1954,15 +1981,23 @@ With ARG, move by that many elements."
   "Select the candidate one page further."
   (interactive)
   (when (company-manual-begin)
-    (company-set-selection (+ company-selection
-                              company-tooltip-limit))))
+    (if (and company-selection-wrap-around
+             (= company-selection (1- company-candidates-length)))
+        (company-set-selection 0)
+      (let (company-selection-wrap-around)
+        (company-set-selection (+ company-selection
+                                  company-tooltip-limit))))))
 
 (defun company-previous-page ()
   "Select the candidate one page earlier."
   (interactive)
   (when (company-manual-begin)
-    (company-set-selection (- company-selection
-                              company-tooltip-limit))))
+    (if (and company-selection-wrap-around
+             (zerop company-selection))
+        (company-set-selection (1- company-candidates-length))
+      (let (company-selection-wrap-around)
+        (company-set-selection (- company-selection
+                                  company-tooltip-limit))))))
 
 (defvar company-pseudo-tooltip-overlay)
 
@@ -2059,6 +2094,15 @@ With ARG, move by that many elements."
       (when (and (eq old-point (point))
                  (eq old-tick (buffer-chars-modified-tick)))
         (company-complete-common))))))
+
+(defun company-select-next-if-tooltip-visible-or-complete-selection ()
+  "Insert selection if appropriate, or select the next candidate.
+Insert selection if only preview is showing or only one candidate,
+otherwise select the next candidate."
+  (interactive)
+  (if (and (company-tooltip-visible-p) (> company-candidates-length 1))
+      (call-interactively 'company-select-next)
+    (call-interactively 'company-complete-selection)))
 
 ;;;###autoload
 (defun company-complete ()
@@ -2830,6 +2874,30 @@ Returns a negative number if the tooltip should be displayed above point."
                (company--show-inline-p))
     (company-pseudo-tooltip-frontend command)))
 
+(defun company-pseudo-tooltip-unless-just-one-frontend-with-delay (command)
+  "`compandy-pseudo-tooltip-frontend', but shown after a delay.
+Delay is determined by `company-tooltip-idle-delay'."
+  (defvar company-preview-overlay)
+  (when (and (memq command '(pre-command hide))
+             company-tooltip-timer)
+    (cancel-timer company-tooltip-timer)
+    (setq company-tooltip-timer nil))
+  (cl-case command
+    (post-command
+     (if (or company-tooltip-timer
+             (overlayp company-pseudo-tooltip-overlay))
+         (if (not (overlayp company-preview-overlay))
+             (company-pseudo-tooltip-unless-just-one-frontend command)
+           (let (company-tooltip-timer)
+             (company-call-frontends 'pre-command))
+           (company-call-frontends 'post-command))
+       (setq company-tooltip-timer
+             (run-with-timer company-tooltip-idle-delay nil
+                             'company-pseudo-tooltip-unless-just-one-frontend-with-delay
+                             'post-command))))
+    (t
+     (company-pseudo-tooltip-unless-just-one-frontend command))))
+
 ;;; overlay ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar-local company-preview-overlay nil)
@@ -2903,6 +2971,11 @@ Returns a negative number if the tooltip should be displayed above point."
        company-common
        (or (eq (company-call-backend 'ignore-case) 'keep-prefix)
            (string-prefix-p company-prefix company-common))))
+
+(defun company-tooltip-visible-p ()
+  "Returns whether the tooltip is visible."
+  (when (overlayp company-pseudo-tooltip-overlay)
+    (not (overlay-get company-pseudo-tooltip-overlay 'invisible))))
 
 ;;; echo ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
