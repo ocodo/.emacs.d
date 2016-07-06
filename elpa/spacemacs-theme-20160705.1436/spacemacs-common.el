@@ -34,8 +34,8 @@
 
 ;;; Code:
 
-(defmacro dyn-let (varlist fn body)
-  (list 'let (append varlist (funcall fn)) body))
+(defmacro dyn-let (varlist fn setfaces setvars)
+  (list 'let (append varlist (funcall fn)) setfaces setvars))
 
 (defgroup spacemacs-theme nil
   "Spacemacs-theme options."
@@ -128,7 +128,7 @@
         (red-bg-s      (if (eq variant 'dark) (if (true-color-p) "#512e31" "#262626") (if (true-color-p) "#eed9d2" "#ffffff")))
         (blue          (if (eq variant 'dark) (if (true-color-p) "#4f97d7" "#268bd2") (if (true-color-p) "#3a81c3" "#268bd2")))
         (blue-bg       (if (eq variant 'dark) (if (true-color-p) "#293239" "#262626") (if (true-color-p) "#edf1ed" "#ffffff")))
-        (violet        (if (eq variant 'dark) (if (true-color-p) "#a31db1" "#af00df") (if (true-color-p) "#a31db1" "#800080")))
+        (magenta        (if (eq variant 'dark) (if (true-color-p) "#a31db1" "#af00df") (if (true-color-p) "#a31db1" "#800080")))
         (yellow        (if (eq variant 'dark) (if (true-color-p) "#b1951d" "#875f00") (if (true-color-p) "#b1951d" "#875f00")))
         (yellow-bg     (if (eq variant 'dark) (if (true-color-p) "#32322c" "#262626") (if (true-color-p) "#f6f1e1" "#ffffff")))
         )
@@ -159,7 +159,7 @@
      `(font-lock-type-face ((,class (:foreground ,type :inherit bold))))
      `(font-lock-variable-name-face ((,class (:foreground ,var))))
      `(font-lock-warning-face ((,class (:foreground ,war :background ,bg1))))
-     `(fringe ((,class (:background ,bg1 :foreground ,base))))
+     `(fringe ((,class (:background ,bg2 :foreground ,base))))
      `(highlight ((,class (:foreground ,base :background ,highlight))))
      `(hl-line ((,class (:background ,bg2))))
      `(isearch ((,class (:foreground ,bg1 :background ,mat))))
@@ -225,9 +225,9 @@
      `(diff-removed           ((,class :background nil :foreground ,red)))
 
 ;;;;; diff-hl
-     `(diff-hl-change ((,class :background ,keyword :foreground nil)))
-     `(diff-hl-delete ((,class :background ,err :foreground nil)))
-     `(diff-hl-insert ((,class :background ,suc :foreground nil)))
+     `(diff-hl-change ((,class :background ,blue-bg :foreground ,blue)))
+     `(diff-hl-delete ((,class :background ,red-bg :foreground ,red)))
+     `(diff-hl-insert ((,class :background ,green-bg :foreground ,green)))
 
 ;;;;; dired
      `(dired-directory ((,class (:foreground ,keyword :background ,bg1 :inherit bold))))
@@ -235,7 +235,7 @@
      `(dired-header ((,class (:foreground ,comp :inherit bold))))
      `(dired-ignored ((,class (:inherit shadow))))
      `(dired-mark ((,class (:foreground ,comp :inherit bold))))
-     `(dired-marked ((,class (:foreground ,violet :inherit bold))))
+     `(dired-marked ((,class (:foreground ,magenta :inherit bold))))
      `(dired-perm-write ((,class (:foreground ,base :underline t))))
      `(dired-symlink ((,class (:foreground ,cyan :background ,bg1 :inherit bold))))
      `(dired-warning ((,class (:foreground ,war))))
@@ -353,6 +353,7 @@
      `(helm-candidate-number ((,class (:background ,bg1 :foreground ,keyword :inherit bold))))
      `(helm-ff-directory ((,class (:foreground ,keyword :background ,bg1 :inherit bold))))
      `(helm-ff-dotted-directory ((,class (:foreground ,keyword :background ,bg1 :inherit bold))))
+     `(helm-ff-dotted-symlink-directory ((,class (:foreground ,cyan :background ,bg1 :inherit bold))))
      `(helm-ff-executable ((,class (:foreground ,suc :background ,bg1 :weight normal))))
      `(helm-ff-file ((,class (:foreground ,base :background ,bg1 :weight normal))))
      `(helm-ff-invalid-symlink ((,class (:foreground ,red :background ,bg1 :inherit bold))))
@@ -453,7 +454,7 @@
      `(magit-log-head-label-head ((,class (:background ,yellow :foreground ,bg1 :inherit bold))))
      `(magit-log-head-label-local ((,class (:background ,keyword :foreground ,bg1 :inherit bold))))
      `(magit-log-head-label-remote ((,class (:background ,suc :foreground ,bg1 :inherit bold))))
-     `(magit-log-head-label-tags ((,class (:background ,violet :foreground ,bg1 :inherit bold))))
+     `(magit-log-head-label-tags ((,class (:background ,magenta :foreground ,bg1 :inherit bold))))
      `(magit-log-head-label-wip ((,class (:background ,cyan :foreground ,bg1 :inherit bold))))
      `(magit-log-sha1 ((,class (:foreground ,str))))
      `(magit-process-ng ((,class (:foreground ,war :inherit bold))))
@@ -479,6 +480,14 @@
      `(mode-line           ((,class (:foreground ,base :background ,act1 :box (:color ,border :line-width 1)))))
      `(mode-line-inactive  ((,class (:foreground ,base :background ,bg1  :box (:color ,border :line-width 1)))))
      `(mode-line-buffer-id ((,class (:inherit bold :foreground ,func))))
+
+;;;;; mu4e
+     `(mu4e-cited-1-face ((,class (:foreground ,base))))
+     `(mu4e-cited-7-face ((,class (:foreground ,base))))
+     `(mu4e-header-marks-face ((,class (:foreground ,comp))))
+     `(mu4e-header-key-face ((,class (:foreground ,head2 :inherit bold))))
+     `(mu4e-view-url-number-face ((,class (:foreground ,comp))))
+     `(mu4e-unread-face ((,class (:foreground ,yellow :inherit bold))))
 
 ;;;;; neotree
      `(neo-dir-link-face ((,class (:foreground ,keyword :inherit bold))))
@@ -568,8 +577,8 @@
      `(shm-quarantine-face ((,class (:background ,red-bg-s))))
 
 ;;;;; show-paren
-     `(show-paren-match ((,class (:background ,green))))
-     `(show-paren-mismatch ((,class (:background ,red))))
+     `(show-paren-match ((,class (:background ,green-bg-s))))
+     `(show-paren-mismatch ((,class (:background ,red-bg-s))))
 
 ;;;;; smartparens
      `(sp-pair-overlay-face ((,class (:background ,highlight :foreground nil))))
@@ -594,10 +603,25 @@
      `(term-color-blue ((,class (:foreground ,keyword))))
      `(term-color-cyan ((,class (:foreground ,cyan))))
      `(term-color-green ((,class (:foreground ,green))))
-     `(term-color-magenta ((,class (:foreground ,violet))))
+     `(term-color-magenta ((,class (:foreground ,magenta))))
      `(term-color-red ((,class (:foreground ,red))))
      `(term-color-white ((,class (:foreground ,base))))
      `(term-color-yellow ((,class (:foreground ,yellow))))
+
+;;;;; web-mode
+     `(web-mode-builtin-face ((,class (:inherit ,font-lock-builtin-face))))
+     `(web-mode-comment-face ((,class (:inherit ,font-lock-comment-face))))
+     `(web-mode-constant-face ((,class (:inherit ,font-lock-constant-face))))
+     `(web-mode-doctype-face ((,class (:inherit ,font-lock-comment-face))))
+     `(web-mode-function-name-face ((,class (:inherit ,font-lock-function-name-face))))
+     `(web-mode-html-attr-name-face ((,class (:foreground ,func))))
+     `(web-mode-html-attr-value-face ((,class (:foreground ,keyword))))
+     `(web-mode-html-tag-face ((,class (:foreground ,keyword))))
+     `(web-mode-keyword-face ((,class (:foreground ,keyword))))
+     `(web-mode-string-face ((,class (:foreground ,str))))
+     `(web-mode-symbol-face ((,class (:foreground ,type))))
+     `(web-mode-type-face ((,class (:inherit ,font-lock-type-face))))
+     `(web-mode-warning-face ((,class (:inherit ,font-lock-warning-face))))
 
 ;;;;; which-key
      `(which-key-command-description-face ((,class (:foreground ,base))))
@@ -643,29 +667,18 @@
      `(js3-instance-member-face ((,class (:foreground ,const))))
      `(js3-jsdoc-tag-face ((,class (:foreground ,keyword))))
      `(js3-warning-face ((,class (:underline ,keyword))))
-     `(mu4e-cited-1-face ((,class (:foreground ,base))))
-     `(mu4e-cited-7-face ((,class (:foreground ,base))))
-     `(mu4e-header-marks-face ((,class (:foreground ,comp))))
-     `(mu4e-header-key-face ((,class (:foreground ,head2 :inherit bold))))
-     `(mu4e-view-url-number-face ((,class (:foreground ,comp))))
      `(slime-repl-inputed-output-face ((,class (:foreground ,comp))))
      `(trailing-whitespace ((,class :foreground nil :background ,err)))
      `(undo-tree-visualizer-current-face ((,class :foreground ,keyword)))
      `(undo-tree-visualizer-default-face ((,class :foreground ,base)))
      `(undo-tree-visualizer-register-face ((,class :foreground ,comp)))
-     `(undo-tree-visualizer-unmodified-face ((,class :foreground ,var)))
-     `(web-mode-builtin-face ((,class (:inherit ,font-lock-builtin-face))))
-     `(web-mode-comment-face ((,class (:inherit ,font-lock-comment-face))))
-     `(web-mode-constant-face ((,class (:inherit ,font-lock-constant-face))))
-     `(web-mode-doctype-face ((,class (:inherit ,font-lock-comment-face))))
-     `(web-mode-function-name-face ((,class (:inherit ,font-lock-function-name-face))))
-     `(web-mode-html-attr-name-face ((,class (:foreground ,func))))
-     `(web-mode-html-attr-value-face ((,class (:foreground ,keyword))))
-     `(web-mode-html-tag-face ((,class (:foreground ,keyword))))
-     `(web-mode-keyword-face ((,class (:foreground ,keyword))))
-     `(web-mode-string-face ((,class (:foreground ,str))))
-     `(web-mode-type-face ((,class (:inherit ,font-lock-type-face))))
-     `(web-mode-warning-face ((,class (:inherit ,font-lock-warning-face)))))))
+     `(undo-tree-visualizer-unmodified-face ((,class :foreground ,var))))
+
+    (custom-theme-set-variables
+     theme-name
+     `(ansi-color-names-vector [,bg4 ,red ,green ,yellow ,blue ,magenta ,cyan ,base]))
+
+    ))
 
 
 ;;;###autoload
