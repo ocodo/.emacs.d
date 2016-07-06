@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160526.832
+;; Package-Version: 20160629.2359
 ;; Keywords: project, convenience
 ;; Version: 0.14.0-cvs
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -898,7 +898,7 @@ Files are returned as relative paths to the project root."
   :type 'string
   :package-version '(projectile "0.14.0"))
 
-(defcustom projectile-hg-command "hg locate -0 -I ."
+(defcustom projectile-hg-command "hg locate -f -0 -I ."
   "Command used by projectile to get the files in a hg project."
   :group 'projectile
   :type 'string)
@@ -1121,7 +1121,7 @@ this case unignored files will be absent from FILES."
          (string-equal (file-remote-p default-directory)
                        (file-remote-p project-root))
          (not (string-match-p "^http\\(s\\)?://" default-directory))
-         (string-prefix-p project-root (file-truename default-directory)))))
+         (string-prefix-p project-root (file-truename default-directory) (eq system-type 'windows-nt)))))
 
 (defun projectile-ignored-buffer-p (buffer)
   "Check if BUFFER should be ignored."
@@ -1834,6 +1834,7 @@ a COMPILE-CMD, a TEST-CMD, and a RUN-CMD."
 (projectile-register-project-type 'r '("DESCRIPTION") "R CMD INSTALL --with-keep.source ." (concat "R CMD check -o " temporary-file-directory " ."))
 (projectile-register-project-type 'go #'projectile-go "go build ./..." "go test ./...")
 (projectile-register-project-type 'racket '("info.rkt") nil "raco test .")
+(projectile-register-project-type 'elixir '("mix.exs") "mix compile" "mix test")
 
 (defun projectile-cabal ()
   "Check if a project contains *.cabal files but no stack.yaml file."
@@ -1985,10 +1986,11 @@ It assumes the test/ folder is at the same level as src/."
    ((member project-type '(rebar)) "_SUITE")
    ((member project-type '(emacs-cask)) "-test")
    ((member project-type '(rails-rspec ruby-rspec)) "_spec")
-   ((member project-type '(rails-test ruby-test lein-test boot-clj go)) "_test")
+   ((member project-type '(rails-test ruby-test lein-test boot-clj go elixir)) "_test")
    ((member project-type '(scons)) "test")
    ((member project-type '(maven symfony)) "Test")
-   ((member project-type '(gradle gradlew grails)) "Spec")))
+   ((member project-type '(gradle gradlew grails)) "Spec")
+   ((member project-type '(sbt)) "Spec")))
 
 (defun projectile-dirname-matching-count (a b)
   "Count matching dirnames ascending file paths."
