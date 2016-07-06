@@ -66,7 +66,7 @@
 (defmethod logito-log ((api gh-api) level tag string &rest objects)
   (apply 'logito-log (oref api :log) level tag string objects))
 
-(defmethod constructor :static ((api gh-api) &rest args)
+(defmethod initialize-instance ((api gh-api) &rest args)
   (call-next-method))
 
 (defmethod gh-api-set-default-auth ((api gh-api) auth)
@@ -107,15 +107,14 @@
                  (const :tag "OAuth" gh-oauth-authenticator))
   :group 'gh-api)
 
-(defmethod constructor :static ((api gh-api-v3) &rest args)
-  (let ((obj (call-next-method))
-        (gh-profile-current-profile (gh-profile-current-profile)))
-    (oset obj :profile (gh-profile-current-profile))
-    (oset obj :base (gh-profile-url))
-    (gh-api-set-default-auth obj
-                             (or (oref obj :auth)
-                                 (funcall gh-api-v3-authenticator "auth")))
-    obj))
+(defmethod initialize-instance ((api gh-api-v3) &rest args)
+  (call-next-method)
+  (let ((gh-profile-current-profile (gh-profile-current-profile)))
+    (oset api :profile (gh-profile-current-profile))
+    (oset api :base (gh-profile-url))
+    (gh-api-set-default-auth api
+                             (or (oref api :auth)
+                                 (funcall gh-api-v3-authenticator "auth")))))
 
 (defclass gh-api-request (gh-url-request)
   ((default-response-cls :allocation :class :initform gh-api-response)))
@@ -136,7 +135,8 @@
   (call-next-method resp (gh-api-json-decode data)))
 
 (defclass gh-api-paged-request (gh-api-request)
-  ((default-response-cls :allocation :class :initform gh-api-paged-response)))
+  ((default-response-cls :allocation :class :initform gh-api-paged-response)
+   (page-limit :initarg :page-limit :initform -1)))
 
 (defclass gh-api-paged-response (gh-api-response)
   ())
@@ -155,13 +155,25 @@
     (call-next-method)
     (oset resp :data (append previous-data (oref resp :data)))
     (when (and next (not (equal 304 (oref resp :http-status))))
-      (let ((req (oref resp :-req)))
-        (oset resp :data-received nil)
-        (oset req :url next)
-        (gh-url-run-request req resp)))))
+      (let* ((req (oref resp :-req))
+             (last-page-limit (oref req :page-limit))
+             (this-page-limit (if (numberp last-page-limit) (- last-page-limit 1) -1)))
+        (oset req :page-limit this-page-limit)
+        (unless (eq (oref req :page-limit) 0)
+          ;; We use an explicit check for 0 since -1 indicates that
+          ;; paging should continue forever.
+          (oset resp :data-received nil)
+          (oset req :url next)
+          ;; Params need to be set to nil because the next uri will
+          ;; already have query params. If params are non-nil this will
+          ;; cause another set of params to be added to the end of the
+          ;; string which will override the params that are set in the
+          ;; next link.
+          (oset req :query nil)
+          (gh-url-run-request req resp))))))
 
 (defmethod gh-api-authenticated-request
-  ((api gh-api) transformer method resource &optional data params)
+  ((api gh-api) transformer method resource &optional data params page-limit)
   (let* ((fmt (oref api :data-format))
          (headers (cond ((eq fmt :form)
                          '(("Content-Type" .
@@ -200,10 +212,11 @@
                                               (gh-api-json-encode data))
                                          (and (eq fmt :form)
                                               (gh-url-form-encode data))
-                                         ""))))))
+                                         "")
+                               :page-limit page-limit)))))
     (cond ((and has-value ;; got value from cache
                 (not is-outdated))
-           (gh-api-response "cached" :data-received t :data value))
+           (make-instance 'gh-api-response :data-received t :data value))
           (cache-key ;; no value, but cache exists and method is safe
            (let ((resp (make-instance (oref req default-response-cls)
                                       :transform transformer)))

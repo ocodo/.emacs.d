@@ -70,13 +70,14 @@
    (mirror-url :initarg :mirror-url)
    (owner :initarg :owner :initform nil)
    (id :initarg :id)
-   (full-name :initarg full-name)
+   (full-name :initarg :full-name)
    (language :initarg :language)
    (fork :initarg :fork)
    (forks :initarg :forks)
-   (forks-count :initarg forks-count)
+   (forks-count :initarg :forks-count)
    (watchers :initarg :watchers)
-   (watchers-count :initarg watchers-count)
+   (watchers-count :initarg :watchers-count)
+   (stargazers-count :initarg :stargazers-count)
    (size :initarg :size)
    (master-branch :initarg :master-branch)
    (open-issues :initarg :open-issues)
@@ -217,7 +218,7 @@
 
 (defmethod gh-repos-repo-rename ((api gh-repos-api) repo-stub new-name
                                  &optional user)
-  (let ((new-stub (gh-repos-repo-stub "repo" :name new-name)))
+  (let ((new-stub (make-instance 'gh-repos-repo-stub :name new-name)))
     (gh-api-authenticated-request
      api (gh-object-reader (oref api repo-cls)) "PATCH"
      (format "/repos/%s/%s"
@@ -269,7 +270,41 @@
                          (oref repo :name))))
 
 ;;; TODO gh-repos-repo-branch-commits
-;;; TODO Collaborators sub-API
+
+;;; Collaborators sub-API
+
+(defmethod gh-repos-collaborators-list ((api gh-repos-api) repo)
+  (gh-api-authenticated-request
+   api (gh-object-list-reader (oref api user-cls)) "GET" (format "/repos/%s/%s/collaborators"
+                         (oref (oref repo :owner) :login)
+                         (oref repo :name))))
+
+(defmethod gh-repos-collaborators-p ((api gh-repos-api) repo user)
+  (eq (oref (gh-api-authenticated-request
+             api nil "GET"
+             (format "/repos/%s/%s/collaborators/%s"
+                     (oref (oref repo :owner) :login)
+                     (oref repo :name)
+                     user))
+            :http-status)
+      204))
+
+(defmethod gh-repos-collaborators-add ((api gh-repos-api) repo user)
+  (gh-api-authenticated-request
+   api nil "PUT"
+   (format "/repos/%s/%s/collaborators/%s"
+           (oref (oref repo :owner) :login)
+           (oref repo :name)
+           user)))
+
+(defmethod gh-repos-collaborators-delete ((api gh-repos-api) repo user)
+  (gh-api-authenticated-request
+   api nil "DELETE"
+   (format "/repos/%s/%s/collaborators/%s"
+           (oref (oref repo :owner) :login)
+           (oref repo :name)
+           user)))
+
 ;;; TODO Comments sub-API
 ;;; TODO Commits sub-API
 ;;; TODO Contents sub-API
