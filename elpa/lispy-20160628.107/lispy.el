@@ -1564,6 +1564,7 @@ When this function is called:
   '((lisp-mode . ("[#`',.@]+" "#[0-9]*" "#[.,Ss+-]" "#[0-9]+[=Aa]"))
     (emacs-lisp-mode . ("[#`',@]+" "#s" "#[0-9]+="))
     (clojure-mode . ("[`'~@]+" "#" "#\\?@?"))
+    (clojurescript-mode . ("[`'~@]+" "#" "#\\?@?"))
     (t . ("[`',@]+")))
   "An alist of `major-mode' to a list of regexps.
 Each regexp describes valid syntax that can precede an opening paren in that
@@ -1572,6 +1573,7 @@ major mode. These regexps are used to determine whether to insert a space for
 
 (defvar lispy-brackets-preceding-syntax-alist
   '((clojure-mode . ("[`']" "#[A-z.]*"))
+    (clojurescript-mode . ("[`']" "#[A-z.]*"))
     (t . nil))
   "An alist of `major-mode' to a list of regexps.
 Each regexp describes valid syntax that can precede an opening bracket in that
@@ -1580,6 +1582,7 @@ major mode. These regexps are used to determine whether to insert a space for
 
 (defvar lispy-braces-preceding-syntax-alist
   '((clojure-mode . ("[`'^]" "#[A-z.]*"))
+    (clojurescript-mode . ("[`'^]" "#[A-z.]*"))
     (t . nil))
   "An alist of `major-mode' to a list of regexps.
 Each regexp describes valid syntax that can precede an opening brace in that
@@ -2772,46 +2775,67 @@ Also works from inside the list."
       (lispy--move-down-special arg)
       (forward-char offset))))
 
+(defun lispy--move-up-region (arg)
+  "Swap the marked region ARG positions up.
+Precondition: the region is active and the point is at `region-beginning'."
+  (cond
+    ((and (looking-at "\\_<")
+          (save-excursion
+            (goto-char (region-end))
+            (looking-at "-"))))
+    ((lispy-after-string-p "-")
+     (let ((bnd1 (lispy--bounds-dwim))
+           bnd2)
+       (lispy-up arg)
+       (setq bnd2 (lispy--bounds-dwim))
+       (lispy--swap-regions bnd1 bnd2)
+       (setq deactivate-mark nil)
+       (set-mark (point))
+       (forward-char (- (cdr bnd1) (car bnd1)))))
+    ((= arg 1)
+     (let ((bnd1 (lispy--bounds-dwim))
+           (bnd0 (save-excursion
+                   (deactivate-mark)
+                   (if (ignore-errors (up-list) t)
+                       (lispy--bounds-dwim)
+                     (cons (point-min) (point-max)))))
+           bnd2)
+       (goto-char (car bnd1))
+       (if (re-search-backward "[^ \t\n`'#({[]" (car bnd0) t)
+           (progn
+             (deactivate-mark)
+             (if (lispy--in-comment-p)
+                 (setq bnd2 (lispy--bounds-comment))
+               (when (eq (char-after) ?\")
+                 (forward-char)
+                 (backward-sexp))
+               (when (memq (char-after) '(?\) ?\] ?\}))
+                 (forward-char))
+               (setq bnd2 (lispy--bounds-dwim)))
+             (lispy--swap-regions bnd1 bnd2)
+             (setq deactivate-mark nil)
+             (goto-char (car bnd2))
+             (set-mark (point))
+             (forward-char (- (cdr bnd1) (car bnd1))))
+         (setq deactivate-mark nil)
+         (lispy--mark bnd1)))
+     (exchange-point-and-mark))
+    (t
+     (let ((bnd1 (lispy--bounds-dwim)))
+       (lispy-up arg)
+       (lispy--mark
+        (car
+         (lispy--swap-regions
+          bnd1 (lispy--bounds-dwim)))))
+     (exchange-point-and-mark))))
+
 (defun lispy--move-up-special (arg)
   "Move current expression up ARG times.  Don't exit parent list."
   (let ((at-start (lispy--leftp)))
     (unless (or at-start (looking-at lispy-outline))
       (lispy-different))
     (cond ((region-active-p)
-           (if (= arg 1)
-               (let ((bnd1 (lispy--bounds-dwim))
-                     (bnd0 (save-excursion
-                             (deactivate-mark)
-                             (if (ignore-errors (up-list) t)
-                                 (lispy--bounds-dwim)
-                               (cons (point-min) (point-max)))))
-                     bnd2)
-                 (goto-char (car bnd1))
-                 (if (re-search-backward "[^ \t\n`'#({[]" (car bnd0) t)
-                     (progn
-                       (deactivate-mark)
-                       (if (lispy--in-comment-p)
-                           (setq bnd2 (lispy--bounds-comment))
-                         (when (eq (char-after) ?\")
-                           (forward-char)
-                           (backward-sexp))
-                         (when (memq (char-after) '(?\) ?\] ?\}))
-                           (forward-char))
-                         (setq bnd2 (lispy--bounds-dwim)))
-                       (lispy--swap-regions bnd1 bnd2)
-                       (setq deactivate-mark nil)
-                       (goto-char (car bnd2))
-                       (set-mark (point))
-                       (forward-char (- (cdr bnd1) (car bnd1))))
-                   (setq deactivate-mark nil)
-                   (lispy--mark bnd1)))
-             (let ((bnd1 (lispy--bounds-dwim)))
-               (lispy-up arg)
-               (lispy--mark
-                (car
-                 (lispy--swap-regions
-                  bnd1 (lispy--bounds-dwim))))))
-           (exchange-point-and-mark))
+           (lispy--move-up-region arg))
           ((looking-at lispy-outline)
            (lispy-dotimes arg
              (let ((bnd1 (lispy--bounds-outline))
@@ -2833,44 +2857,67 @@ Also works from inside the list."
            (lispy-different)))
     (unless at-start (lispy-different))))
 
+(defun lispy--move-down-region (arg)
+  "Swap the marked region ARG positions down.
+Precondition: the region is active and the point is at `region-beginning'."
+  (cond
+    ((and (lispy-after-string-p "-")
+          (save-excursion
+            (goto-char (region-end))
+            (looking-at "\\_>"))))
+    ((save-excursion
+       (goto-char (region-end))
+       (looking-at "-"))
+     (let ((bnd1 (lispy--bounds-dwim))
+           bnd2)
+       (lispy-down arg)
+       (setq bnd2 (lispy--bounds-dwim))
+       (lispy--swap-regions bnd1 bnd2)
+       (goto-char (cdr bnd2))
+       (setq deactivate-mark nil)
+       (set-mark (point))
+       (forward-char (- (car bnd1) (cdr bnd1)))))
+    ((= arg 1)
+     (let ((bnd1 (lispy--bounds-dwim))
+           (bnd0 (save-excursion
+                   (deactivate-mark)
+                   (if (ignore-errors (up-list) t)
+                       (lispy--bounds-dwim)
+                     (cons (point-min) (point-max)))))
+           bnd2)
+       (goto-char (cdr bnd1))
+       (if (re-search-forward "[^ \t\n]" (max (1- (cdr bnd0))
+                                              (point)) t)
+           (progn
+             (deactivate-mark)
+             (if (lispy--in-comment-p)
+                 (setq bnd2 (lispy--bounds-comment))
+               (when (memq (char-before) '(?\( ?\" ?\[ ?\{))
+                 (backward-char))
+               (setq bnd2 (lispy--bounds-dwim)))
+             (lispy--swap-regions bnd1 bnd2)
+             (setq deactivate-mark nil)
+             (goto-char (cdr bnd2))
+             (set-mark (point))
+             (backward-char (- (cdr bnd1) (car bnd1))))
+         (lispy--mark bnd1)
+         (exchange-point-and-mark))))
+    (t
+     (let ((bnd1 (lispy--bounds-dwim)))
+       (lispy-down arg)
+       (lispy--mark
+        (cdr
+         (lispy--swap-regions
+          bnd1 (lispy--bounds-dwim))))
+       (lispy-different)))))
+
 (defun lispy--move-down-special (arg)
   "Move current expression down ARG times.  Don't exit parent list."
   (let ((at-start (lispy--leftp)))
     (unless (or at-start (looking-at lispy-outline))
       (lispy-different))
     (cond ((region-active-p)
-           (if (= arg 1)
-               (let ((bnd1 (lispy--bounds-dwim))
-                     (bnd0 (save-excursion
-                             (deactivate-mark)
-                             (if (ignore-errors (up-list) t)
-                                 (lispy--bounds-dwim)
-                               (cons (point-min) (point-max)))))
-                     bnd2)
-                 (goto-char (cdr bnd1))
-                 (if (re-search-forward "[^ \t\n]" (max (1- (cdr bnd0))
-                                                        (point)) t)
-                     (progn
-                       (deactivate-mark)
-                       (if (lispy--in-comment-p)
-                           (setq bnd2 (lispy--bounds-comment))
-                         (when (memq (char-before) '(?\( ?\" ?\[ ?\{))
-                           (backward-char))
-                         (setq bnd2 (lispy--bounds-dwim)))
-                       (lispy--swap-regions bnd1 bnd2)
-                       (setq deactivate-mark nil)
-                       (goto-char (cdr bnd2))
-                       (set-mark (point))
-                       (backward-char (- (cdr bnd1) (car bnd1))))
-                   (lispy--mark bnd1)
-                   (exchange-point-and-mark)))
-             (let ((bnd1 (lispy--bounds-dwim)))
-               (lispy-down arg)
-               (lispy--mark
-                (cdr
-                 (lispy--swap-regions
-                  bnd1 (lispy--bounds-dwim))))
-               (lispy-different))))
+           (lispy--move-down-region arg))
           ((looking-at lispy-outline)
            (lispy-dotimes arg
              (let ((bnd1 (lispy--bounds-outline))
@@ -3325,14 +3372,14 @@ When QUOTED is not nil, assume that EXPR is quoted and ignore some rules."
                   (push '(ly-raw newline) res)))
                ((and (memq elt '(let let*))
                      expr
-                     (or (eq major-mode 'clojure-mode)
+                     (or (memq major-mode lispy-clojure-modes)
                          (and
                           (listp (car expr))
                           (listp (cdar expr)))))
                 (push elt res)
                 (let ((body (pop expr)))
                   (push
-                   (if (eq major-mode 'clojure-mode)
+                   (if (memq major-mode lispy-clojure-modes)
                        (apply #'vector
                               (lispy-interleave '(ly-raw newline)
                                                 (mapcar #'lispy--multiline-1 body) 2))
@@ -3415,6 +3462,19 @@ When SILENT is non-nil, don't issue messages."
         (lispy--normalize-1))
     (fill-paragraph)))
 
+(defcustom lispy-move-after-commenting t
+  "When non-nil, adjust point to next sexp after commenting out a
+  sexp. If at last sexp in list, move out and backwards to
+  enclosing sexp."
+  :type 'boolean
+  :group 'lispy)
+
+(defcustom lispy-comment-use-single-semicolon nil
+  "When non-nil, prefer single semicolons for comments at the
+  right of the source code (after lispy-right or at eol)."
+  :type 'boolean
+  :group 'lispy)
+
 (defun lispy-comment (&optional arg)
   "Comment ARG sexps."
   (interactive "p")
@@ -3429,34 +3489,57 @@ When SILENT is non-nil, don't issue messages."
                (when (lispy--in-string-or-comment-p)
                  (lispy--out-backward 1)))
               ((lispy--in-string-or-comment-p)
-               (if (and (eq major-mode 'emacs-lisp-mode)
-                        (lispy-after-string-p ";; "))
-                   (progn
-                     (delete-char -1)
-                     (insert ";###autoload")
-                     (forward-char 1))
-                 (self-insert-command 1)))
+               (cond ((and (eq major-mode 'emacs-lisp-mode)
+                           (lispy-after-string-p ";; "))
+                      (delete-char -1)
+                      (insert ";###autoload")
+                      (forward-char 1))
+                     ((and lispy-comment-use-single-semicolon
+                           (lispy-after-string-p "; "))
+                      (delete-region
+                       (point)
+                       (progn
+                         (skip-chars-backward "; \n")
+                         (point)))
+                      (insert " ;; "))
+                     (t
+                      (self-insert-command 1))))
               ((lispy-left-p)
                (setq bnd (lispy--bounds-dwim))
-               (lispy-down 1)
+               (when lispy-move-after-commenting
+                 (lispy-down 1))
                (comment-region (car bnd) (cdr bnd))
-               (when (or (lispy--in-string-or-comment-p)
-                         (looking-at ";"))
-                 (lispy--out-backward 1)))
+               (when lispy-move-after-commenting
+                 (when (or (lispy--in-string-or-comment-p)
+                           (looking-at ";"))
+                   (lispy--out-backward 1))))
               ((lispy-right-p)
-               (newline-and-indent)
-               (insert ";; ")
-               (unless (eolp)
-                 (newline)
-                 (lispy--reindent 1)
-                 (skip-chars-backward "\n\t ")
-                 (forward-char 1)))
+               (if lispy-comment-use-single-semicolon
+                   (progn
+                     (unless (eolp)
+                       (newline-and-indent)
+                       (skip-chars-backward "\n\t "))
+                     (comment-dwim nil)
+                     (just-one-space))
+                 (progn
+                   (newline-and-indent)
+                   (insert ";; ")
+                   (unless (eolp)
+                     (newline)
+                     (lispy--reindent 1)
+                     (skip-chars-backward "\n\t ")
+                     (forward-char 1)))))
               ((eolp)
                (comment-dwim nil))
               ((looking-at " *[])}]")
-               (unless (lispy-bolp)
-                 (insert "\n"))
-               (insert ";;\n")
+               (if lispy-comment-use-single-semicolon
+                   (if (lispy-bolp)
+                       (insert ";;\n")
+                     (insert ";\n"))
+                 (progn
+                   (unless (lispy-bolp)
+                     (insert "\n"))
+                   (insert ";;\n")))
                (when (lispy--out-forward 1)
                  (lispy--normalize-1))
                (move-end-of-line 0)
@@ -5912,7 +5995,7 @@ so that no other packages disturb the match data."
                    (cdr (assoc mode lispy-tag-arity))))
           "\\)"
           "\\_>"))
-        ((eq major-mode 'clojure-mode)
+        ((memq major-mode lispy-clojure-modes)
          "^(\\([a-z-A-Z0-0]+\\)")
         (t (error "%s isn't supported" mode))))
 
@@ -6044,7 +6127,7 @@ This is `semantic-tag-name', amended with extra info.
 For example, a `setq' statement is amended with variable name that it uses."
   (let ((str (cond ((memq major-mode lispy-elisp-modes)
                     (lispy--tag-name-elisp x file))
-                   ((eq major-mode 'clojure-mode)
+                   ((memq major-mode lispy-clojure-modes)
                     (lispy--tag-name-clojure x))
                    ((eq major-mode 'scheme-mode)
                     ;; (lispy--tag-name-scheme x)
@@ -6289,7 +6372,7 @@ Ignore the matches in strings and comments."
                 (while (re-search-forward "[^\\],[^@\"]" nil t)
                   (unless (lispy--in-string-or-comment-p)
                     (backward-char 2)
-                    (if (eq major-mode 'clojure-mode)
+                    (if (memq major-mode lispy-clojure-modes)
                         (progn
                           (delete-char 1)
                           (insert "(ly-raw clojure-comma)"))
@@ -6848,7 +6931,7 @@ ACTION is called for the selected candidate."
            (if (overlayp ov)
                (overlay-start ov)
              (aref ov 0))))
-        (when (and (eq major-mode 'clojure-mode)
+        (when (and (memq major-mode lispy-clojure-modes)
                    (not (looking-at "(")))
           (forward-char -1))
         (require 'find-func)
