@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20160608.156
+;; Package-Version: 20160630.303
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -155,13 +155,12 @@
 ;; and password.
 (defadvice url-http-handle-authentication (around restclient-fix)
   (if restclient-within-call
-      (setq success t ad-return-value t)
+      (setq ad-return-value t)
     ad-do-it))
 (ad-activate 'url-http-handle-authentication)
 
 (defadvice url-cache-extract (around restclient-fix-2)
-  (if restclient-within-call
-      (setq success t)
+  (unless restclient-within-call
     ad-do-it))
 (ad-activate 'url-cache-extract)
 
