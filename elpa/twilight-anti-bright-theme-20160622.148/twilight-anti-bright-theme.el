@@ -3,8 +3,8 @@
 ;; Copyright (c) 2014 Jim Myhrberg.
 ;;
 ;; Author: Jim Myhrberg <contact@jimeh.me>
-;; Version: 0.3.0
-;; Package-Version: 20140810.34
+;; Version: 0.3.1
+;; Package-Version: 20160622.148
 ;; Keywords: themes
 ;; URL: https://github.com/jimeh/twilight-anti-bright-theme.el
 ;;
@@ -42,6 +42,9 @@
 ;; Twilight Bright. This is the result :)
 ;;
 ;;; Change Log:
+;;
+;; 2016-06-22 (0.3.1):
+;;    - Add support for highlight-indent-guide-mode.
 ;;
 ;; 2014-08-10 (0.3.0):
 ;;    - Tweaked fringe foreground color.
@@ -162,6 +165,10 @@
    ;; highlight-indentation-mode
    `(highlight-indentation-face ((t (:background ,gray-1bg))))
    `(highlight-indentation-current-column-face ((t (:background ,gray-4))))
+
+   ;; highlight-indent-guide-model
+   `(highlight-indent-guides-odd-face ((t (:background ,gray-1bg))))
+   `(highlight-indent-guides-even-face ((t (:background ,gray-6))))
 
    ;; yascroll
    `(yascroll:thumb-fringe ((t (:foreground ,gray-2 :background ,gray-2))))
