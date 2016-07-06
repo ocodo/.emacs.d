@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2013 by Shingo Fukuyama
 
-;; Version: 1.7.1
-;; Package-Version: 20160417.1457
+;; Version: 1.7.2
+;; Package-Version: 20160619.953
 ;; Author: Shingo Fukuyama - http://fukuyama.co
 ;; URL: https://github.com/ShingoFukuyama/helm-swoop
 ;; Created: Oct 24 2013
@@ -93,6 +93,9 @@
 (require 'helm-grep)
 
 (declare-function migemo-search-pattern-get "migemo")
+(declare-function projectile-buffers-with-file-or-process "projectile")
+(declare-function projectile-project-buffers "projectile")
+(defvar projectile-buffers-filter-function)
 
 ;;; @ helm-swoop ----------------------------------------------
 
@@ -970,6 +973,8 @@ If $linum is number, lines are separated by $linum"
         (helm-exit-and-execute-action 'helm-multi-swoop--exec)))
     (delq nil $map)))
 
+(defvar helm-multi-swoop-projectile-buffers-filter
+  #'projectile-buffers-with-file-or-process)
 ;; action -----------------------------------------------------
 
 (defadvice helm-next-line (around helm-multi-swoop-next-line disable)
@@ -1215,6 +1220,21 @@ If $linum is number, lines are separated by $linum"
     (match . ,(helm-swoop-match-functions))
     (search . ,(helm-swoop-search-functions))))
 
+(defun helm-multi-swoop--get-query ($query)
+  (cond ($query
+         (setq helm-multi-swoop-query $query))
+        (mark-active
+         (let (($st (buffer-substring-no-properties
+                     (region-beginning) (region-end))))
+           (if (string-match "\n" $st)
+               (message "Multi line region is not allowed")
+             (setq helm-multi-swoop-query
+                   (helm-swoop-pre-input-optimize $st)))))
+        ((setq helm-multi-swoop-query
+               (helm-swoop-pre-input-optimize
+                (funcall helm-swoop-pre-input-function))))
+        (t (setq helm-multi-swoop-query ""))))
+
 ;;;###autoload
 (defun helm-multi-swoop (&optional $query $buflist)
   "\
@@ -1228,19 +1248,7 @@ If you have done helm-multi-swoop before, you can skip select buffers step.
 Last selected buffers will be applied to helm-multi-swoop.
 "
   (interactive)
-  (cond ($query
-         (setq helm-multi-swoop-query $query))
-        (mark-active
-         (let (($st (buffer-substring-no-properties
-                     (region-beginning) (region-end))))
-           (if (string-match "\n" $st)
-               (message "Multi line region is not allowed")
-             (setq helm-multi-swoop-query
-                   (helm-swoop-pre-input-optimize $st)))))
-        ((setq helm-multi-swoop-query
-               (helm-swoop-pre-input-optimize
-                (funcall helm-swoop-pre-input-function))))
-        (t (setq helm-multi-swoop-query "")))
+  (setq helm-multi-swoop-query (helm-multi-swoop--get-query $query))
   (if (equal current-prefix-arg '(4))
       (helm-multi-swoop--exec nil
                               :$query helm-multi-swoop-query
@@ -1257,19 +1265,7 @@ Last selected buffers will be applied to helm-multi-swoop.
 (defun helm-multi-swoop-all (&optional $query)
   "Apply all buffers to helm-multi-swoop"
   (interactive)
-  (cond ($query
-         (setq helm-multi-swoop-query $query))
-        (mark-active
-         (let (($st (buffer-substring-no-properties
-                     (region-beginning) (region-end))))
-           (if (string-match "\n" $st)
-               (message "Multi line region is not allowed")
-             (setq helm-multi-swoop-query
-                   (helm-swoop-pre-input-optimize $st)))))
-        ((setq helm-multi-swoop-query
-               (helm-swoop-pre-input-optimize
-                (funcall helm-swoop-pre-input-function))))
-        (t (setq helm-multi-swoop-query "")))
+  (setq helm-multi-swoop-query (helm-multi-swoop--get-query $query))
   (helm-multi-swoop--exec nil
                           :$query helm-multi-swoop-query
                           :$buflist (helm-multi-swoop--get-buffer-list)))
@@ -1287,19 +1283,7 @@ Last selected buffers will be applied to helm-multi-swoop.
 
 (defun helm-multi-swoop-by-mode ($mode &optional $query)
   "Apply all buffers whose mode is MODE to helm-multi-swoop"
-  (cond ($query
-         (setq helm-multi-swoop-query $query))
-        (mark-active
-         (let (($st (buffer-substring-no-properties
-                     (region-beginning) (region-end))))
-           (if (string-match "\n" $st)
-               (message "Multi line region is not allowed")
-             (setq helm-multi-swoop-query
-                   (helm-swoop-pre-input-optimize $st)))))
-        ((setq helm-multi-swoop-query
-               (helm-swoop-pre-input-optimize
-                (funcall helm-swoop-pre-input-function))))
-        (t (setq helm-multi-swoop-query "")))
+  (setq helm-multi-swoop-query (helm-multi-swoop--get-query $query))
   (if (get-buffers-matching-mode $mode)
       (helm-multi-swoop--exec nil
                               :$query helm-multi-swoop-query
@@ -1317,6 +1301,22 @@ Last selected buffers will be applied to helm-multi-swoop.
   "Applies all buffers of the same mode as the current buffer to helm-multi-swoop"
   (interactive)
   (helm-multi-swoop-by-mode major-mode $query))
+
+;;;###autoload
+(defun helm-multi-swoop-projectile (&optional $query)
+  "Apply all opened buffers of the current project to helm-multi-swoop"
+  (interactive)
+  (setq helm-multi-swoop-query (helm-multi-swoop--get-query $query))
+  (if (require 'projectile nil 'noerror)
+      ;; set filter function that is used in projectile-project-buffers
+      (let ((projectile-buffers-filter-function
+             helm-multi-swoop-projectile-buffers-filter))
+        (helm-multi-swoop--exec nil
+                                :$query helm-multi-swoop-query
+                                :$buflist (mapcar #'buffer-name
+                                                  (projectile-project-buffers))))
+    (error "Package 'projectile' is not available")))
+
 
 (defun helm-swoop--wrap-function-with-pre-input-function ($target-func $pre-input-func)
   (let (($restore helm-swoop-pre-input-function))
