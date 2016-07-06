@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/hydra
-;; Version: 0.13.5
+;; Version: 0.13.6
 ;; Keywords: bindings
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -598,7 +598,7 @@ HEAD's binding is returned as a string wrapped with [] or {}."
 (defconst hydra-width-spec-regex " ?-?[0-9]*?"
   "Regex for the width spec in keys and %` quoted sexps.")
 
-(defvar hydra-key-regex "\\[\\|]\\|[-[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"]+?"
+(defvar hydra-key-regex "\\[\\|]\\|[-[:alnum:] ~.,;:/|?<>={}*+#%@!&^↑↓←→⌫⌦⏎'`()\"$]+?"
   "Regex for the key quoted in the docstring.")
 
 (defun hydra--format (_name body docstring heads)
