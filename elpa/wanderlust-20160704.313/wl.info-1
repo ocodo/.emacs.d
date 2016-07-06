@@ -2481,7 +2481,7 @@ File: wl.info,  Node: Sticky Summary,  Next: Summary View,  Prev: Auto Refile,  
 The buffer of the 'sticky summary' does not killed by typing 'q'.
 
    By entering the summary by typing 'Shift RET' in Folder mode or 'G'
-in some suummary sticky summary buffer is created.  Also typing 'M-s'
+in some summary sticky summary buffer is created.  Also typing 'M-s'
 ('wl-summary-stick') on the normal summary makes current one sticky.
 
    The buffer name of the sticky summary becomes like
@@ -7126,7 +7126,7 @@ Customizable variables that have not been described yet:
      'iso-2022-jp'.)
 
 'wl-highlight-folder-with-icon'
-     This is meaningful for XEmacs or Emacs 21..  The initial setting
+     This is meaningful for XEmacs or Emacs 21.  The initial setting
      depends on Emacsen ('t' for XEmacs or Emacs 21 with icons).
 
 'wl-strict-diff-folders'
