@@ -1,4 +1,4 @@
-(define-package "lentic" "20160607.1331" "One buffer as a view of another"
+(define-package "lentic" "20160701.1549" "One buffer as a view of another"
   '((emacs "24.4")
     (m-buffer "0.13")
     (dash "2.5.0")

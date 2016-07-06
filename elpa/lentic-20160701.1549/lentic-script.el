@@ -1,4 +1,4 @@
-;;; lentic-cookie.el -- Lentic with a magic cookie -*- lexical-binding: t -*-
+;;; lentic-script.el -- Config for scripts -*- lexical-binding: t -*-
 
 ;;; Header:
 
@@ -33,13 +33,20 @@
 (defvar lentic-script-temp-location
   temporary-file-directory "/lentic-script")
 
-(defun lentic-script-hook (mode-hook init)
-  (add-to-list 'lentic-init-functions
-               init)
-  (add-hook mode-hook
-            (lambda ()
-              (unless lentic-init
-                (setq lentic-init init)))))
+;;;###autoload
+;; We need to copy this entire form into the autoloads file. If we use a
+;; normal autoload, it force loading of the entire package when it is called
+;; during autoload which defeats the point. Unfortunately, autoload files are
+;; normally dynamically bound, and we use closures. The eval form addresses
+;; both of these simultaneously.
+(eval
+ '(defun lentic-script-hook (mode-hook init)
+    (add-to-list 'lentic-init-functions init)
+    (add-hook mode-hook
+              (lambda nil
+                (unless lentic-init
+                  (setq lentic-init init)))))
+ t)
 
 (defun lentic-script--lentic-file-1 (file)
   (concat
@@ -50,7 +57,10 @@
    ".org"))
 
 (defun lentic-script-lentic-file ()
-  (lentic-script--lentic-file-1 (buffer-file-name)))
+  (let ((l
+         (lentic-script--lentic-file-1 (buffer-file-name))))
+    (make-directory (file-name-nondirectory l) t)
+    l))
 
 ;;;###autoload
 (defun lentic-python-script-init ()
@@ -60,36 +70,37 @@
     :lentic-file
     (lentic-script-lentic-file))))
 
+;;;###autoload
 (lentic-script-hook 'python-mode-hook
                     'lentic-python-script-init)
 
 ;;;###autoload
 (defun lentic-bash-script-init ()
-  (lentic-m-oset
-   (lentic-cookie-unmatched-commented-chunk-configuration
-    "temp"
-    :this-buffer (current-buffer)
-    :comment "## "
-    :comment-start "#\\\+BEGIN_SRC sh"
-    :comment-stop "#\\\+END_SRC"
-    :lentic-file
-    (lentic-script-lentic-file))))
+  (lentic-cookie-unmatched-commented-chunk-configuration
+   "temp"
+   :this-buffer (current-buffer)
+   :comment "## "
+   :comment-stop "#\\\+BEGIN_SRC sh"
+   :comment-start "#\\\+END_SRC"
+   :lentic-file
+   (lentic-script-lentic-file)))
 
+;;;###autoload
 (lentic-script-hook 'shell-mode-hook
                     'lentic-bash-script-init)
 
 ;;;###autoload
 (defun lentic-lua-script-init ()
-  (lentic-m-oset
-   (lentic-cookie-unmatched-commented-chunk-configuration
-    "temp"
-    :this-buffer (current-buffer)
-    :comment "-- "
-    :comment-start "#\\\+BEGIN_SRC lua"
-    :comment-stop "#\\\+END_SRC"
-    :lentic-file
-    (lentic-script-lentic-file))))
+  (lentic-cookie-unmatched-commented-chunk-configuration
+   "temp"
+   :this-buffer (current-buffer)
+   :comment "-- "
+   :comment-stop "#\\\+BEGIN_SRC lua"
+   :comment-start "#\\\+END_SRC"
+   :lentic-file
+   (lentic-script-lentic-file)))
 
+;;;###autoload
 (lentic-script-hook 'lua-mode-hook
                     #'lentic-lua-script-init)
 

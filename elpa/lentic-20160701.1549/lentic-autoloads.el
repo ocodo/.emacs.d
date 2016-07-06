@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "lentic" "lentic.el" (22366 21575 505521 700000))
+;;;### (autoloads nil "lentic" "lentic.el" (22396 28979 256868 607000))
 ;;; Generated autoloads from lentic.el
 
 (autoload 'lentic-default-init "lentic" "\
@@ -14,8 +14,8 @@ see `lentic-init' for details.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-asciidoc" "lentic-asciidoc.el" (22366
-;;;;;;  21575 489521 806000))
+;;;### (autoloads nil "lentic-asciidoc" "lentic-asciidoc.el" (22396
+;;;;;;  28979 244869 274000))
 ;;; Generated autoloads from lentic-asciidoc.el
 
 (autoload 'lentic-clojure-asciidoc-init "lentic-asciidoc" "\
@@ -30,8 +30,8 @@ see `lentic-init' for details.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-dev" "lentic-dev.el" (22366 21575 485521
-;;;;;;  833000))
+;;;### (autoloads nil "lentic-dev" "lentic-dev.el" (22396 28979 236869
+;;;;;;  718000))
 ;;; Generated autoloads from lentic-dev.el
 
 (autoload 'lentic-dev-after-change-function "lentic-dev" "\
@@ -97,7 +97,7 @@ Enable font locking properties for inserted text.
 ;;;***
 
 ;;;### (autoloads nil "lentic-latex-code" "lentic-latex-code.el"
-;;;;;;  (22366 21575 505521 700000))
+;;;;;;  (22396 28979 256868 607000))
 ;;; Generated autoloads from lentic-latex-code.el
 
 (autoload 'lentic-clojure-latex-init "lentic-latex-code" "\
@@ -122,8 +122,8 @@ Enable font locking properties for inserted text.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-mode" "lentic-mode.el" (22366 21575
-;;;;;;  501521 726000))
+;;;### (autoloads nil "lentic-mode" "lentic-mode.el" (22396 28979
+;;;;;;  252868 829000))
 ;;; Generated autoloads from lentic-mode.el
 
 (autoload 'lentic-mode-create-from-init "lentic-mode" "\
@@ -222,8 +222,8 @@ See `lentic-mode' for more information on Lentic mode.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-org" "lentic-org.el" (22366 21575 485521
-;;;;;;  833000))
+;;;### (autoloads nil "lentic-org" "lentic-org.el" (22396 28979 240869
+;;;;;;  496000))
 ;;; Generated autoloads from lentic-org.el
 
 (autoload 'lentic-org-el-init "lentic-org" "\
@@ -268,29 +268,37 @@ See `lentic-mode' for more information on Lentic mode.
 
 ;;;***
 
-;;;### (autoloads nil "lentic-script" "lentic-script.el" (22366 21575
-;;;;;;  481521 860000))
+;;;### (autoloads nil "lentic-script" "lentic-script.el" (22396 28979
+;;;;;;  228870 163000))
 ;;; Generated autoloads from lentic-script.el
+
+(eval '(defun lentic-script-hook (mode-hook init) (add-to-list 'lentic-init-functions init) (add-hook mode-hook (lambda nil (unless lentic-init (setq lentic-init init))))) t)
 
 (autoload 'lentic-python-script-init "lentic-script" "\
 
 
 \(fn)" nil nil)
 
+(lentic-script-hook 'python-mode-hook 'lentic-python-script-init)
+
 (autoload 'lentic-bash-script-init "lentic-script" "\
 
 
 \(fn)" nil nil)
+
+(lentic-script-hook 'shell-mode-hook 'lentic-bash-script-init)
 
 (autoload 'lentic-lua-script-init "lentic-script" "\
 
 
 \(fn)" nil nil)
 
+(lentic-script-hook 'lua-mode-hook #'lentic-lua-script-init)
+
 ;;;***
 
 ;;;### (autoloads nil nil ("lentic-chunk.el" "lentic-cookie.el" "lentic-doc.el"
-;;;;;;  "lentic-pkg.el" "lentic-rot13.el") (22366 21575 517464 179000))
+;;;;;;  "lentic-pkg.el" "lentic-rot13.el") (22396 28979 264011 668000))
 
 ;;;***
 
