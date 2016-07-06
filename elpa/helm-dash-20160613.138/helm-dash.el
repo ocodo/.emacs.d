@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20160416.1708
+;; Package-Version: 20160613.138
 ;; Version: 1.3.0
 ;; Package-Requires: ((helm "1.9.2") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -331,6 +331,47 @@ Report an error unless a valid docset is selected."
     (url-copy-file (helm-dash-get-docset-url feed-tmp-path) docset-tmp-path t)
 
     (helm-dash-install-docset-from-file docset-tmp-path))))
+
+;;;###autoload
+(defun helm-dash-async-install-docset (docset-name)
+  "Asynchronously download docset with specified DOCSET-NAME and move its stuff to docsets-path."
+  (interactive (list (helm-dash-read-docset "Install docset" (helm-dash-available-docsets))))
+  (when (helm-dash--ensure-created-docsets-path (helm-dash-docsets-path))
+    (let ((feed-url (format "%s/%s.xml" helm-dash-docsets-url docset-name)))
+
+      (message (concat "The docset \"" docset-name "\" will now be installed asynchronously."))
+
+      (async-start ; First async call gets the docset meta data
+       (lambda ()
+         ;; Beware! This lambda is run in it's own instance of emacs.
+         (url-file-local-copy feed-url))
+       (lambda (filename)
+         (let ((docset-url (helm-dash-get-docset-url filename)))
+           (async-start     ; Second async call gets the docset itself
+            (lambda ()
+              ;; Beware! This lambda is run in it's own instance of emacs.
+              (url-file-local-copy docset-url))
+            (lambda (docset-tmp-path)
+              (helm-dash-async-install-docset-from-file docset-tmp-path)))))))))
+
+;;;###autoload
+(defun helm-dash-async-install-docset-from-file (docset-tmp-path)
+  (interactive (list (car (find-file-read-args "Docset Tarball: " t))))
+  (let ((docset-tar-path (expand-file-name docset-tmp-path))
+        (docset-out-path (helm-dash-docsets-path)))
+    (async-start
+     (lambda ()
+       ;; Beware! This lambda is run in it's own instance of emacs.
+       (shell-command-to-string
+        (format "tar xvf %s -C %s"
+                (shell-quote-argument docset-tar-path)
+                (shell-quote-argument docset-out-path))))
+     (lambda (shell-output)
+       (let ((docset-folder (helm-dash-docset-folder-name shell-output)))
+         (helm-dash-activate-docset docset-folder)
+         (message (format
+                   "Docset installed. Add \"%s\" to helm-dash-common-docsets or helm-dash-docsets."
+                   docset-folder)))))))
 
 (defalias 'helm-dash-update-docset 'helm-dash-install-docset)
 

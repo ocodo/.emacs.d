@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-dash" "helm-dash.el" (22291 19199 856613
-;;;;;;  2000))
+;;;### (autoloads nil "helm-dash" "helm-dash.el" (22396 29050 301144
+;;;;;;  740000))
 ;;; Generated autoloads from helm-dash.el
 
 (autoload 'helm-dash-activate-docset "helm-dash" "\
@@ -31,6 +31,16 @@ Deactivate DOCSET.  If called interactively prompts for the docset name.
 Download docset with specified DOCSET-NAME and move its stuff to docsets-path.
 
 \(fn DOCSET-NAME)" t nil)
+
+(autoload 'helm-dash-async-install-docset "helm-dash" "\
+Asynchronously download docset with specified DOCSET-NAME and move its stuff to docsets-path.
+
+\(fn DOCSET-NAME)" t nil)
+
+(autoload 'helm-dash-async-install-docset-from-file "helm-dash" "\
+
+
+\(fn DOCSET-TMP-PATH)" t nil)
 
 (autoload 'helm-dash "helm-dash" "\
 Bring up a `helm-dash' search interface.
