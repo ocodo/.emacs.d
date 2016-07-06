@@ -4,8 +4,8 @@
 
 ;; Author: Alex Dunn <dunn.alex@gmail.com>
 ;; URL: https://github.com/dunn/homebrew-mode
-;; Package-Version: 20160406.925
-;; Version: 1.3.5
+;; Package-Version: 20160615.620
+;; Version: 1.3.6
 ;; Package-Requires: ((emacs "24.4") (inf-ruby "2.4.0") (dash "1.2.0"))
 ;; Keywords: homebrew brew ruby
 ;; Prefix: homebrew
@@ -100,7 +100,7 @@
 
 ;; Version string
 
-(defconst homebrew-mode-version "1.3.5")
+(defconst homebrew-mode-version "1.3.6")
 
 ;; Custom variables
 
@@ -147,7 +147,7 @@
 
 (defvar homebrew-executable (concat homebrew-prefix "/bin/brew"))
 
-(defcustom homebrew-cache-dir "/Library/Caches/Homebrew/"
+(defcustom homebrew-cache-dir "~/Library/Caches/Homebrew/"
   "The cache directory for Homebrew."
   :group 'homebrew-mode
   :type 'string)
