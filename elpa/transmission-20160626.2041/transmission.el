@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.9
-;; Package-Version: 20160611.1703
+;; Package-Version: 20160626.2041
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -226,7 +226,7 @@ caching built in or is otherwise slow."
     "downloadedEver" "corruptEver" "haveValid" "totalSize" "percentDone"
     "seedRatioLimit" "seedRatioMode" "bandwidthPriority" "downloadDir"
     "uploadLimit" "uploadLimited" "downloadLimit" "downloadLimited"
-    "honorsSessionLimits"))
+    "honorsSessionLimits"  "rateDownload" "rateUpload"))
 
 (defconst transmission-file-symbols
   '(:files-wanted :files-unwanted :priority-high :priority-low :priority-normal)
@@ -249,13 +249,13 @@ caching built in or is otherwise slow."
 Should accept the torrent ID as an argument, e.g. `transmission-torrent-id'.")
 
 (define-error 'transmission-conflict
-  "Wrong or missing header \"X-Transmission-Session-Id\"" 'error)
+  "Wrong or missing header \"X-Transmission-Session-Id\"")
 
 (define-error 'transmission-unauthorized
-  "Unauthorized user.  Check `transmission-rpc-auth'" 'error)
+  "Unauthorized user.  Check `transmission-rpc-auth'")
 
 (define-error 'transmission-wrong-rpc-path
-  "Bad RPC path.  Check `transmission-rpc-path'" 'error)
+  "Bad RPC path.  Check `transmission-rpc-path'")
 
 (defvar transmission-timer nil
   "Timer for repeating `revert-buffer' in a visible Transmission buffer.")
@@ -356,12 +356,20 @@ Return JSON object parsed from content."
 When creating a new connection, the address is determined by the
 custom variables `transmission-host' and `transmission-service'."
   (let ((socket (if (file-name-absolute-p transmission-host)
-                    (expand-file-name transmission-host))))
-    (make-network-process
-     :name "transmission" :buffer (generate-new-buffer " *transmission*")
-     :host (unless socket transmission-host)
-     :service (or socket transmission-service)
-     :family (if socket 'local))))
+                    (expand-file-name transmission-host)))
+        buffer process)
+    (unwind-protect
+        (prog1
+            (setq buffer (generate-new-buffer " *transmission*")
+                  process
+                  (make-network-process
+                   :name "transmission" :buffer buffer
+                   :host (unless socket transmission-host)
+                   :service (or socket transmission-service)
+                   :family (if socket 'local) :noquery t))
+          (setq buffer nil process nil))
+      (if (process-live-p process) (kill-process process))
+      (if (buffer-live-p buffer) (kill-buffer buffer)))))
 
 (defun transmission-request (method &optional arguments tag)
   "Send a request to Transmission.
@@ -472,9 +480,7 @@ of \"fields\" in the arguments of the \"torrent-get\" request."
 
 (defun transmission-percent (have total)
   "Return the percentage of HAVE by TOTAL."
-  (condition-case nil
-      (/ (* 100.0 have) total)
-    (arith-error 0)))
+  (if (zerop total) 0 (/ (* 100.0 have) total)))
 
 (defun transmission-files-directory-base (filename)
   "Return the top-most parent directory in string FILENAME."
@@ -653,9 +659,7 @@ Returns a list of non-blank inputs."
   "Return a file name, URL, or info hash at point, otherwise nil."
   (or (get-text-property (point) 'shr-url)
       (get-text-property (point) :nt-link)
-      (let ((fn (or (ffap-guess-file-name-at-point)
-                    (if (fboundp 'dired-file-name-at-point)
-                        (dired-file-name-at-point)))))
+      (let ((fn (run-hook-with-args-until-success 'file-name-at-point-functions)))
         (unless (transmission-directory-name-p fn) fn))
       (url-get-url-at-point)
       (transmission-btih-p (thing-at-point 'word))))
@@ -690,15 +694,15 @@ Returns a list of non-blank inputs."
 (defun transmission-files-file-at-point ()
   "Return the absolute path of the torrent file at point, or nil.
 If the file named \"foo\" does not exist, try \"foo.part\" before returning."
-  (let* ((dir (file-name-as-directory
-               (cdr (assq 'downloadDir (elt transmission-torrent-vector 0)))))
-         (base (cdr (assq 'name (tabulated-list-get-id))))
-         (full (and dir base (concat dir base))))
-    (if full
-        (or (and (file-exists-p full) full)
-            (and (file-exists-p (concat full ".part"))
-                 (concat full ".part")))
-      (user-error "No file at point"))))
+  (let* ((dir (cdr (assq 'downloadDir (elt transmission-torrent-vector 0))))
+         (base (or (and dir (cdr (assq 'name (tabulated-list-get-id))))
+                   (user-error "No file at point")))
+         (filename (and base (expand-file-name base dir))))
+    (setq filename (or (and (file-exists-p filename) filename)
+                       (let ((part (concat filename ".part")))
+                         (and (file-exists-p part) part))))
+    (if filename (abbreviate-file-name filename)
+      (user-error "File does not exist"))))
 
 (defun transmission-files-sort (torrent)
   "Return a list derived from the \"files\" and \"fileStats\" arrays in TORRENT.
@@ -850,7 +854,8 @@ point or in region--is non-nil, then BINDINGS and BODY are fed to
   "Add TORRENT by filename, URL, magnet link, or info hash.
 When called with a prefix, prompt for DIRECTORY."
   (interactive
-   (let* ((def (run-hook-with-args-until-success 'transmission-torrent-functions))
+   (let* ((f (run-hook-with-args-until-success 'transmission-torrent-functions))
+          (def (and f (file-relative-name f)))
           (prompt (concat "Add torrent" (if def (format " [%s]" def)) ": ")))
      (list (read-file-name prompt nil def)
            (if current-prefix-arg
@@ -1094,18 +1099,18 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
 (defun transmission-files-command (command file)
   "Run a command COMMAND on the FILE at point."
   (interactive
-   (let* ((fap (transmission-files-file-at-point))
+   (let* ((fap (run-hook-with-args-until-success 'file-name-at-point-functions))
           (prompt (and fap (format "! on %s: " (file-name-nondirectory fap)))))
      (if fap (list (read-shell-command prompt) fap)
        (user-error "File does not exist"))))
-  (let* ((args (nconc (split-string command) (list file)))
+  (let* ((args (nconc (split-string command) (list (expand-file-name file))))
          (prog (car args)))
     (apply #'start-process prog nil args)))
 
 (defun transmission-find-file ()
   "Visit the file at point with `find-file-read-only'."
   (interactive)
-  (let ((file (transmission-files-file-at-point)))
+  (let ((file (run-hook-with-args-until-success 'file-name-at-point-functions)))
     (if file (find-file-read-only file)
       (user-error "File does not exist"))))
 
@@ -1234,6 +1239,18 @@ TRACKERS should be the \"trackerStats\" array."
   (if (zerop (length trackers)) "Trackers: none\n"
     (concat (mapconcat #'transmission-format-tracker trackers "\n") "\n")))
 
+(defun transmission-format-speed-limit (speed limit limited)
+  "Format speed limit data into a string"
+  (cond
+   ((not (eq limited t)) (format "%d kB/s" (transmission-rate speed)))
+   (t (format "%d / %d kB/s" (transmission-rate speed) limit))))
+
+(defun transmission-format-limits (session rx tx rx-lim tx-lim rx-thr tx-thr)
+  "Format download and upload rate and limits into a string."
+  (concat (transmission-format-speed-limit rx rx-lim rx-thr) " down, "
+          (transmission-format-speed-limit tx tx-lim tx-thr) " up"
+          (if (eq session t) ", session limited")))
+
 
 ;; Drawing
 
@@ -1309,13 +1326,10 @@ Each form in BODY is a column descriptor."
       (format "Percent done: %.1f%%" (* 100 .percentDone))
       (format "Bandwidth priority: %s"
               (car (rassoc .bandwidthPriority transmission-priority-alist)))
-      (concat "Speed limits: "
-              (pcase .honorsSessionLimits
-                (:json-false
-                 (format "%s download, %s upload"
-                         (transmission-format-rate .downloadLimit .downloadLimited)
-                         (transmission-format-rate .uploadLimit .uploadLimited)))
-                (_ "session limits")))
+      (concat "Speed: "
+              (transmission-format-limits
+               .honorsSessionLimits .rateDownload .rateUpload
+               .downloadLimit .uploadLimit .downloadLimited .uploadLimited))
       (format "Ratio: %.3f / %s" (if (= .uploadRatio -1) 0 .uploadRatio)
               (transmission-torrent-seed-ratio .seedRatioMode .seedRatioLimit))
       (unless (zerop .error)
@@ -1403,7 +1417,7 @@ Also run the timer for timer object `transmission-timer'."
 ;; Major mode definitions
 
 (defvar transmission-peers-mode-map
-  (let ((map (copy-keymap tabulated-list-mode-map)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "i" 'transmission-info)
     map)
   "Keymap used in `transmission-peers-mode' buffers.")
@@ -1458,7 +1472,7 @@ Key bindings:
   "Default expressions to highlight in `transmission-info-mode' buffers.")
 
 (defvar transmission-info-mode-map
-  (let ((map (copy-keymap special-mode-map)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "p" 'previous-line)
     (define-key map "n" 'next-line)
     (define-key map "c" 'transmission-copy-magnet)
@@ -1519,7 +1533,7 @@ Key bindings:
   (transmission-context transmission-info-mode))
 
 (defvar transmission-files-mode-map
-  (let ((map (copy-keymap tabulated-list-mode-map)))
+  (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'transmission-find-file)
     (define-key map "!" 'transmission-files-command)
     (define-key map "e" 'transmission-peers)
@@ -1566,6 +1580,7 @@ Key bindings:
            :right-align t :transmission-size t)
           ("Name" 0 t)])
   (transmission-tabulated-list-format)
+  (setq-local file-name-at-point-functions #'transmission-files-file-at-point)
   (setq transmission-refresh-function #'transmission-draw-files)
   (setq-local revert-buffer-function #'transmission-refresh)
   (add-hook 'post-command-hook #'transmission-timer-check nil t)
@@ -1577,7 +1592,7 @@ Key bindings:
   (transmission-context transmission-files-mode))
 
 (defvar transmission-mode-map
-  (let ((map (copy-keymap tabulated-list-mode-map)))
+  (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'transmission-files)
     (define-key map "a" 'transmission-add)
     (define-key map "d" 'transmission-set-download)
