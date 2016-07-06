@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "showkey" "showkey.el" (22160 38775 308254
-;;;;;;  368000))
+;;;### (autoloads nil "showkey" "showkey.el" (22396 28877 251062
+;;;;;;  746000))
 ;;; Generated autoloads from showkey.el
 
 (let ((loads (get 'Show-Key 'custom-loads))) (if (member '"showkey" loads) nil (put 'Show-Key 'custom-loads (cons '"showkey" loads))))
