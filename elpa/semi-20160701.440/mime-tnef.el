@@ -773,7 +773,7 @@
        ((eq type 'ATTACHDATA)
 	(when (assq 'start file)
 	  (mime-tnef-debug "Multiple ATTACHDATA for single ATTACHRENDDATA"))
-	(setq file (nconc
+	(setq file (append
 		    `(,(assq 'start (car elements))
 		      ,(assq 'end (car elements))
 		      )
@@ -794,7 +794,7 @@
 		   (name (cdr (assq 'name elt))))
 	      (cond
 	       ((eq name 'ATTACH_LONG_FILENAME)
-		(setq file (nconc `((name . ,(mime-tnef-mapi-string elt tnef))
+		(setq file (append `((name . ,(mime-tnef-mapi-string elt tnef))
 				    (longname . t))
 				  (delq (assq 'longname file)
 					(delq (assq 'name file) file)))))
