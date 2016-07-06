@@ -4,7 +4,7 @@
 
 ;; Author: Roman Parykin <donderom@ymail.com>
 ;; URL: https://github.com/donderom/jazz-theme
-;; Package-Version: 20160412.1036
+;; Package-Version: 20160629.855
 ;; Version: 1.0
 
 ;; Based on zenburn-theme.el
@@ -179,6 +179,14 @@
 
    ;;; external
 
+   ;; ace-jump
+   `(ace-jump-face-background ((,class (:foreground ,jazz-bg+2))))
+   `(ace-jump-face-foreground ((,class (:foreground ,jazz-yellow+1 :underline nil))))
+
+   ;; anzu
+   `(anzu-mode-line ((,class (:foreground ,jazz-orange :weigth bold))))
+   `(anzu-replace-to ((,class :foreground ,jazz-orange)))
+
    ;; full-ack
    `(ack-separator ((,class (:foreground ,jazz-fg))))
    `(ack-file ((,class (:foreground ,jazz-blue))))
@@ -205,6 +213,18 @@
    `(popup-scroll-bar-foreground-face ((,class (:background ,jazz-blue-5))))
    `(popup-scroll-bar-background-face ((,class (:background ,jazz-bg-1))))
    `(popup-isearch-match ((,class (:background ,jazz-bg :foreground ,jazz-fg))))
+
+   ;; company
+   `(company-tooltip ((,class (:background ,jazz-bg+3 :foreground ,jazz-bg))))
+   `(company-tooltip-common ((,class (:foreground ,jazz-bg :underline t))))
+   `(company-tooltip-common-selection ((,class (:background ,jazz-blue-4 :foreground ,jazz-fg :underline t))))
+   `(company-tooltip-selection ((,class (:background ,jazz-blue-4 :foreground ,jazz-fg))))
+   `(company-preview ((,class (:background ,jazz-blue :foreground ,jazz-fg))))
+   `(company-preview-common ((,class (:inherit company-preview))))
+   `(company-preview-search ((,class (:inherit company-preview :background ,jazz-blue+1))))
+   `(company-scrollbar-fg ((,class (:background ,jazz-bg+1))))
+   `(company-scrollbar-bg ((,class (:background ,jazz-bg+2))))
+   `(company-tooltip-annotation ((,class (:background nil :foreground ,jazz-yellow))))
 
    ;; diff
    `(diff-added ((,class (:foreground ,jazz-green+4))))
@@ -575,6 +595,17 @@
 
    ;; SLIME
    `(slime-repl-inputed-output-face ((,class (:foreground ,jazz-red))))
+
+   ;; term
+   `(term ((,class (:foreground ,jazz-fg))))
+   `(term-color-black ((,class (:foreground ,jazz-bg))))
+   `(term-color-blue ((,class (:foreground ,jazz-blue))))
+   `(term-color-cyan ((,class (:foreground ,jazz-cyan))))
+   `(term-color-green ((,class (:foreground ,jazz-green))))
+   `(term-color-magenta ((,class (:foreground ,jazz-magenta))))
+   `(term-color-red ((,class (:foreground ,jazz-red))))
+   `(term-color-white ((,class (:foreground ,jazz-fg))))
+   `(term-color-yellow ((,class (:foreground ,jazz-yellow))))
 
    ;; undo-tree
    `(undo-tree-visualizer-active-branch-face ((,class (:foreground ,jazz-blue))))
