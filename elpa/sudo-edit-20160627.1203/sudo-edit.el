@@ -4,7 +4,7 @@
 
 ;; Author: Nathaniel Flath <flat0103@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20160303.2226
+;; Package-Version: 20160627.1203
 
 ;; This file is not part of GNU Emacs.
 
@@ -43,6 +43,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun sudo-edit (&optional arg)
   "Find a file and open it as root."
   (interactive "p")
@@ -50,6 +51,7 @@
       (find-file (concat "/sudo:root@localhost:" (read-file-name "File: ")))
     (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
+;;;###autoload
 (defun sudo-edit-current-file ()
   "Edit the current file as root."
   (interactive)
