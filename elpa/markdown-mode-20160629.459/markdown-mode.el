@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160610.1745
+;; Package-Version: 20160629.459
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -6275,8 +6275,12 @@ See `markdown-wiki-link-p' and `markdown-follow-wiki-link'."
 (defun markdown-unfontify-region-wiki-links (from to)
   "Remove wiki link faces from the region specified by FROM and TO."
   (interactive "*r")
-  (remove-text-properties from to '(font-lock-face markdown-link-face))
-  (remove-text-properties from to '(font-lock-face markdown-missing-link-face)))
+  (let ((modified (buffer-modified-p)))
+    (remove-text-properties from to '(font-lock-face markdown-link-face))
+    (remove-text-properties from to '(font-lock-face markdown-missing-link-face))
+    ;; remove-text-properties marks the buffer modified in emacs 24.3,
+    ;; undo that if it wasn't originally marked modified
+    (set-buffer-modified-p modified)))
 
 (defun markdown-fontify-region-wiki-links (from to)
   "Search region given by FROM and TO for wiki links and fontify them.
