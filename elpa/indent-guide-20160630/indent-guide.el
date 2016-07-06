@@ -18,7 +18,7 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20160606.2318
+;; Package-Version: 20160630
 ;; Version: 2.3.0
 
 ;;; Commentary:
