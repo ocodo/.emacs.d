@@ -4,7 +4,7 @@
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
 ;; Keywords: languages
-;; Package-Version: 20160610.1240
+;; Package-Version: 20160620.823
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -82,7 +82,7 @@
     ;; Loops
     "while" "for" "do" "continue" "break"
     ;; Miscellaneous
-    "when" "is" "in" "as"))
+    "when" "is" "in" "as" "return"))
 
 (defconst kotlin-mode--context-variables-keywords
   '("this" "super"))
@@ -100,26 +100,33 @@
   '("null" "true" "false"))
 
 (defconst kotlin-mode--modifier-keywords
-  '("open" "private" "protected" "public"
+  '("open" "private" "protected" "public" "lateinit"
     "override" "abstract" "final" "companion"
-    "annotation" "internal")) ;; "in" "out"
+    "annotation" "internal" "const" "in" "out")) ;; "in" "out"
 
 (defconst kotlin-mode--property-keywords
-  '()) ;; "by" "get" "set"
+  '("by")) ;; "by" "get" "set"
 
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
 
-(defvar kotlin-mode-font-lock-keywords
+(defvar kotlin-mode--font-lock-keywords
   `(;; Keywords
     (,(rx-to-string
      `(and bow (group (or ,@kotlin-mode--keywords)) eow)
      t)
      1 font-lock-keyword-face)
 
+    ;; Package names
+    (,(rx-to-string
+       `(and (or ,@kotlin-mode--misc-keywords) (+ space)
+             (group (+ (any word ?.))))
+       t)
+     1 font-lock-string-face)
+
     ;; Types
     (,(rx-to-string
-      `(and (* space) ":" (* space) (group (+ (or word "<" ">" "." "?" "!"))))
+      `(and bow upper (group (* (or word "<" ">" "." "?" "!"))))
       t)
      0 font-lock-type-face)
 
@@ -174,16 +181,14 @@
        t)
      1 font-lock-keyword-face)
 
-    ;; Package names
-    (,(rx-to-string
-       `(and (or ,@kotlin-mode--misc-keywords) (+ space)
-             (group (+ (any word ?.))))
-       t)
-     1 font-lock-string-face)
-
     ;; String interpolation
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
   "Default highlighting expression for `kotlin-mode'")
+
+(defun kotlin-mode--new-font-lock-keywords ()
+  '(
+    ("package\\|import" . font-lock-keyword-face)
+    ))
 
 (defun kotlin-mode--syntax-propertize-interpolation ()
   (let* ((pos (match-beginning 0))
@@ -229,9 +234,22 @@
       (progn
         (kotlin-mode--beginning-of-buffer-indent))
     (let ((not-indented t) cur-indent)
-      (cond ((looking-at "^[ \t]*}")
+      (cond ((looking-at "^[ \t]*\\.")
              (save-excursion
                (forward-line -1)
+               (cond ((looking-at "^[ \t]*\\.")
+                      (setq cur-indent (current-indentation)))
+
+                     (t
+                      (setq cur-indent (+ (current-indentation) (* 2 kotlin-tab-width)))))
+               (if (< cur-indent 0)
+                   (setq cur-indent 0))))
+
+            ((looking-at "^[ \t]*}")
+             (save-excursion
+               (forward-line -1)
+               (while (and (looking-at "^[ \t]*\\.") (not (bobp)))
+                 (forward-line -1))
                (setq cur-indent (- (current-indentation) kotlin-tab-width)))
              (if (< cur-indent 0)
                  (setq cur-indent 0)))
@@ -281,7 +299,7 @@
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
 
-  (setq font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
+  (setq font-lock-defaults '((kotlin-mode--font-lock-keywords) nil nil))
   (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
   (set (make-local-variable 'comment-start) "//")
   (set (make-local-variable 'comment-padding) 1)
