@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "flyspell-correct" "flyspell-correct.el" (22366
-;;;;;;  21218 916453 409000))
+;;;### (autoloads nil "flyspell-correct" "flyspell-correct.el" (22396
+;;;;;;  29092 335139 548000))
 ;;; Generated autoloads from flyspell-correct.el
 
 (autoload 'flyspell-correct-word-generic "flyspell-correct" "\
@@ -20,6 +20,11 @@ But don't look beyond what's visible on the screen.
 Uses `flyspell-correct-word-generic' function for correction.
 
 \(fn POSITION)" t nil)
+
+(autoload 'flyspell-correct-auto-mode "flyspell-correct" "\
+Minor mode for automatically correcting word at point.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 

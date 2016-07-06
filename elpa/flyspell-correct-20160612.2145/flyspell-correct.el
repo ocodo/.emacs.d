@@ -4,7 +4,7 @@
 ;;
 ;; Author: Boris Buliga <d12frosted@gmail.com>
 ;; URL: https://github.com/d12frosted/flyspell-correct
-;; Package-Version: 20160608.1238
+;; Package-Version: 20160612.2145
 ;; Package-X-Original-version: 0.1
 ;;
 ;; This file is not part of GNU Emacs.
@@ -171,6 +171,65 @@ Uses `flyspell-correct-word-generic' function for correction."
               (flyspell-correct-word-generic))
             ;; the point may have moved so reset this
             (setq flyspell-correct-previous-word--pos (point))))))))
+
+;;; Automatically correct
+;; based on `flyspell-popup-auto-correct-mode'
+
+(defcustom flyspell-correct-auto-delay 1.6
+  "Delay in seconds before `flyspell-correct-previous-word-generic' is called.
+Use floating point numbers to express fractions of seconds."
+  :group 'flyspell
+  :type 'number
+  :safe #'numberp)
+
+(defvar flyspell-correct-auto-mode-interface nil
+  "Interface to use in `flyspell-correct-auto-mode'.
+When set to nil `flyspell-correct-interface' is used.")
+
+(defvar flyspell-correct--auto-timer nil
+  "Timer to automatically call `flyspell-correct-previous-word-generic'.")
+(make-variable-buffer-local 'flyspell-correct--auto-timer)
+
+(defvar flyspell-correct--auto-active-p nil)
+(make-variable-buffer-local 'flyspell-correct--auto-active-p)
+
+(defun flyspell-correct-auto-cancel-timer ()
+  (when flyspell-correct--auto-timer
+    (cancel-timer flyspell-correct--auto-timer)
+    (setq flyspell-correct--auto-timer nil)))
+
+(defun flyspell-correct-auto-soon ()
+  "Call `flyspell-correct-previous-word-generic' delayed."
+  (flyspell-correct-auto-cancel-timer)
+  (when (and flyspell-mode
+             (not (bound-and-true-p flyspell-correct--auto-active-p)))
+    (setq
+     flyspell-correct--auto-timer
+     (run-at-time
+      flyspell-correct-auto-delay
+      nil
+      (lambda ()
+        (flyspell-correct-auto-cancel-timer)
+        (when (and flyspell-mode
+                   (not (bound-and-true-p flyspell-correct--auto-active-p)))
+          (setq flyspell-correct--auto-active-p t)
+          (with-local-quit
+            (let ((flyspell-correct-interface
+                   (if (bound-and-true-p flyspell-correct-auto-mode-interface)
+                       flyspell-correct-auto-mode-interface
+                     flyspell-correct-interface)))
+              (call-interactively #'flyspell-correct-previous-word-generic)))
+          (setq flyspell-correct--auto-active-p nil)))))))
+
+;;;###autoload
+(define-minor-mode flyspell-correct-auto-mode
+  "Minor mode for automatically correcting word at point."
+  :group 'flyspell
+  :lighter "auto-correct"
+  (if flyspell-correct-auto-mode
+      (progn
+        (add-hook 'post-command-hook 'flyspell-correct-auto-soon nil 'local))
+    (remove-hook 'post-command-hook 'flyspell-correct-auto-soon 'local)))
 
 (provide 'flyspell-correct)
 
