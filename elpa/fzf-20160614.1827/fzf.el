@@ -3,7 +3,7 @@
 ;; Copyright (C) 2015 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/fzf.el
-;; Package-Version: 20151129.633
+;; Package-Version: 20160614.1827
 ;; Filename: fzf.el
 ;; Description: A front-end for fzf
 ;; Created: 2015-09-18
@@ -86,6 +86,7 @@
       ;; disable various settings known to cause artifacts, see #1 for more details
       (setq-local scroll-margin 0)
       (setq-local scroll-conservatively 0)
+      (setq-local term-suppress-hard-newline t) ;for paths wider than the window
       (face-remap-add-relative 'mode-line '(:box nil))
 
       (term-char-mode)
