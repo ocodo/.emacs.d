@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, evil
-;; Package-Version: 20160510.1009
+;; Package-Version: 20160617.1840
 ;; Version: 20160228
 ;; URL: https://github.com/pythonnut/evil-easymotion
 ;; Package-Requires: ((emacs "24") (avy "0.3.0") (cl-lib "0.5"))
@@ -108,17 +108,31 @@
     (avy--process points
                   (avy--style-fn avy-style))))
 
-(defun evilem--collect (func &optional scope all-windows initial-point)
+(defun evilem--default-collect-postprocess (points)
+  (cl-stable-sort
+   points
+   #'<
+   :key (lambda (pt)
+          (if (equal (selected-window) (cdr pt))
+              (abs (- (point) (car pt)))
+            most-positive-fixnum))))
+
+(defun evilem--collect (func &optional
+                             scope
+                             all-windows
+                             initial-point
+                             sort-key
+                             collect-postprocess)
   "Repeatedly execute func, and collect the cursor positions into a list"
   (require 'avy)
-  (if (functionp func)
-      (cl-letf ((points nil)
-                (point nil)
-                (avy-all-windows all-windows)
-                ;; make sure the motion doesn't move the window
-                (scroll-conservatively 101)
-                (smooth-scrolling-mode nil)
-                (scroll-margin 0))
+  (cl-letf ((points nil)
+            (point nil)
+            (avy-all-windows all-windows)
+            ;; make sure the motion doesn't move the window
+            (scroll-conservatively 101)
+            (smooth-scrolling-mode nil)
+            (scroll-margin 0))
+    (if (functionp func)
         (avy-dowindows current-prefix-arg
           (save-excursion
             (save-restriction
@@ -144,11 +158,13 @@
                           (setq point (cons (point) (get-buffer-window)))
                           (not (member point points))
                           (push point points))))))
-        (nreverse points))
-    (cl-remove-duplicates
-     (cl-mapcan (lambda (f)
-                  (evilem--collect f scope all-windows))
-                func))))
+      (setq points (cl-remove-duplicates
+                    (cl-mapcan (lambda (f)
+                                 (evilem--collect f scope all-windows))
+                               func))))
+    (funcall (or collect-postprocess
+                 #'evilem--default-collect-postprocess)
+             points)))
 
 (cl-defmacro evilem-make-motion (name
                                  funcs
@@ -158,25 +174,27 @@
                                  bind
                                  scope
                                  all-windows
-                                 initial-point)
+                                 initial-point
+                                 collect-postprocess)
   "Automatically define an evil easymotion for `func', naming it `name'"
   `(,(if all-windows
          'evil-define-command
        'evil-define-motion)
     ,name (&optional _count)
-     (evil-without-repeat
-       (setq evil-this-type 'inclusive)
-       (cl-letf* ,bind
-         ,(when pre-hook `(funcall ,(if (functionp pre-hook)
-                                        pre-hook
-                                        `(lambda () ,pre-hook))))
-         (evilem--jump (evilem--collect ,funcs
-                                        ,scope
-                                        ,all-windows
-                                        ,initial-point))
-         ,(when post-hook `(funcall ,(if (functionp post-hook)
-                                         post-hook
-                                         `(lambda () ,post-hook))))))))
+    (evil-without-repeat
+      (setq evil-this-type 'inclusive)
+      (cl-letf* ,bind
+        ,(when pre-hook `(funcall ,(if (functionp pre-hook)
+                                       pre-hook
+                                     `(lambda () ,pre-hook))))
+        (evilem--jump (evilem--collect ,funcs
+                                       ,scope
+                                       ,all-windows
+                                       ,initial-point
+                                       ,collect-postprocess))
+        ,(when post-hook `(funcall ,(if (functionp post-hook)
+                                        post-hook
+                                      `(lambda () ,post-hook))))))))
 
 (cl-defmacro evilem-make-motion-plain (name
                                        funcs
@@ -186,7 +204,8 @@
                                        bind
                                        scope
                                        all-windows
-                                       initial-point)
+                                       initial-point
+                                       collect-postprocess)
   "Automatically define a plain easymotion for `func', naming it `name'"
   `(defun ,name ()
      (interactive)
@@ -197,7 +216,8 @@
        (evilem--jump (evilem--collect ,funcs
                                       ,scope
                                       ,all-windows
-                                      ,initial-point))
+                                      ,initial-point
+                                      ,collect-postprocess))
        ,(when post-hook `(funcall ,(if (functionp post-hook)
                                        post-hook
                                        `(lambda () ,post-hook)))))))
@@ -209,7 +229,8 @@
                             bind
                             scope
                             all-windows
-                            initial-point)
+                            initial-point
+                            collect-postprocess)
   `(evilem-make-motion
     ,(intern (evilem--make-name motions))
     ,motions
@@ -218,7 +239,8 @@
     :bind ,bind
     :scope ,scope
     :all-windows ,all-windows
-    :initial-point ,initial-point))
+    :initial-point ,initial-point
+    :collect-postprocess ,collect-postprocess))
 
 (cl-defmacro evilem-create-plain (motions
                                   &key
@@ -227,7 +249,8 @@
                                   bind
                                   scope
                                   all-windows
-                                  initial-point)
+                                  initial-point
+                                  collect-postprocess)
   `(evilem-make-motion-plain
     ,(intern (evilem--make-name motions))
     ,motions
@@ -236,7 +259,8 @@
     :bind ,bind
     :scope ,scope
     :all-windows ,all-windows
-    :initial-point ,initial-point))
+    :initial-point ,initial-point
+    :collect-postprocess ,collect-postprocess))
 
 (cl-defmacro evilem-define (key
                             motions
@@ -246,7 +270,8 @@
                             bind
                             scope
                             all-windows
-                            initial-point)
+                            initial-point
+                            collect-postprocess)
   "Automatically create and bind an evil motion"
   `(define-key ,(if all-windows
                     'evil-normal-state-map
@@ -258,7 +283,8 @@
                     :bind ,bind
                     :scope ,scope
                     :all-windows ,all-windows
-                    :initial-point ,initial-point)))
+                    :initial-point ,initial-point
+                    :collect-postprocess ,collect-postprocess)))
 
 ;;;###autoload
 (defun evilem-default-keybindings (prefix)
