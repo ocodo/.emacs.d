@@ -5,7 +5,7 @@
 ;; Authors: Matus Goljer <matus.goljer@gmail.com>
 ;;          Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.2.0
-;; Package-Version: 20160601.1018
+;; Package-Version: 20160615.1351
 ;; Package-Requires: ((dash "2.0.0") (emacs "24"))
 ;; Keywords: lisp functions combinators
 
@@ -97,7 +97,10 @@ See SRFI-26 for detailed description."
          (args (mapcar (lambda (_) (setq i (1+ i)) (make-symbol (format "D%d" i)))
                        (-filter (-partial 'eq '<>) params))))
     `(lambda ,args
-       ,(--map (if (eq it '<>) (pop args) it) params))))
+       ,(let ((body (--map (if (eq it '<>) (pop args) it) params)))
+          (if (eq (car params) '<>)
+              (cons 'funcall body)
+            body)))))
 
 (defun -not (pred)
   "Take a unary predicate PRED and return a unary predicate
@@ -146,11 +149,11 @@ will increment indefinitely.
 
 The closure accepts any number of arguments, which are discarded."
   (let ((inc (or inc 1))
-	(n (or beg 0)))
+    (n (or beg 0)))
     (lambda (&rest _)
       (when (or (not end) (< n end))
-	(prog1 n
-	  (setq n (+ n inc)))))))
+    (prog1 n
+      (setq n (+ n inc)))))))
 
 (defvar -fixfn-max-iterations 1000
   "The default maximum number of iterations performed by `-fixfn'
@@ -183,18 +186,18 @@ cdr the final output from HALT-TEST.
 
 In types: (a -> a) -> a -> a."
   (let ((eqfn   (or equal-test 'equal))
-	(haltfn (or halt-test
-		    (-not
-		      (-counter 0 -fixfn-max-iterations)))))
+    (haltfn (or halt-test
+            (-not
+              (-counter 0 -fixfn-max-iterations)))))
     (lambda (x)
       (let ((re (funcall fn x))
-	    (halt? (funcall haltfn x)))
-	(while (and (not halt?) (not (funcall eqfn x re)))
-	  (setq x     re
-		re    (funcall fn re)
-		halt? (funcall haltfn re)))
-	(if halt? (cons 'halted halt?)
-	  re)))))
+        (halt? (funcall haltfn x)))
+    (while (and (not halt?) (not (funcall eqfn x re)))
+      (setq x     re
+        re    (funcall fn re)
+        halt? (funcall haltfn re)))
+    (if halt? (cons 'halted halt?)
+      re)))))
 
 (defun -prodfn (&rest fns)
   "Take a list of n functions and return a function that takes a
