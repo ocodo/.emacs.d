@@ -3,8 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil nil ("github-issues.el") (22309 47056 864479
-;;;;;;  0))
+;;;### (autoloads nil "github-issues" "github-issues.el" (22396 29079
+;;;;;;  595732 718000))
+;;; Generated autoloads from github-issues.el
+
+(autoload 'github-issues "github-issues" "\
+Display a list of issues list for a GitHub repository.
+
+\(fn USER REPO)" t nil)
 
 ;;;***
 
