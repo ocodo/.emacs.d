@@ -3,13 +3,18 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "tide" "tide.el" (22366 21498 394072 681000))
+;;;### (autoloads nil "tide" "tide.el" (22396 28856 488462 233000))
 ;;; Generated autoloads from tide.el
 
 (autoload 'company-tide "tide" "\
 
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+(autoload 'tide-format-before-save "tide" "\
+Before save hook to format the buffer before each save.
+
+\(fn)" t nil)
 
 (autoload 'tide-format "tide" "\
 Format the current region or buffer.
@@ -30,7 +35,7 @@ Minor mode for Typescript Interactive Development Environment.
 
 ;;;***
 
-;;;### (autoloads nil nil ("tide-pkg.el") (22366 21498 404147 90000))
+;;;### (autoloads nil nil ("tide-pkg.el") (22396 28856 493316 977000))
 
 ;;;***
 
