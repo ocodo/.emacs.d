@@ -4,7 +4,7 @@
 
 ;; Author: Marko Bencun <mbencun@gmail.com>
 ;; URL: https://github.com/benma/visual-regexp.el/
-;; Package-Version: 20160520.400
+;; Package-Version: 20160624.320
 ;; Version: 1.0
 ;; Package-Requires: ((cl-lib "0.2"))
 ;; Keywords: regexp, replace, visual, feedback
@@ -199,7 +199,15 @@ If nil, don't limit the number of matches shown in visual feedback."
   :type 'symbol
   :group 'visual-regexp)
 
-(defcustom vr/query-replace-defaults-variable 'query-replace-defaults
+(setq vr--is-emacs24 (version< emacs-version "25"))
+
+(defvar vr--query-replace-defaults nil
+  "Same as query-replace-defaults from Emacs 25, for compatibility with Emacs 24.")
+
+(defcustom vr/query-replace-defaults-variable
+  (if vr--is-emacs24
+      'vr--query-replace-defaults
+    'query-replace-defaults)
   "History of search/replace pairs"
   :type 'symbol
   :group 'visual-regexp)
@@ -716,8 +724,7 @@ visible all the time in the minibuffer."
                  nil vr/minibuffer-keymap
                  nil vr/query-replace-to-history-variable))
           (add-to-history vr/query-replace-to-history-variable vr--replace-string nil t)
-          (add-to-history vr/query-replace-defaults-variable (cons vr--regexp-string vr--replace-string))
-          )))))
+          (add-to-history vr/query-replace-defaults-variable (cons vr--regexp-string vr--replace-string)))))))
 
 (defun vr--interactive-get-args (mode calling-func)
   "Get interactive args for the vr/replace and vr/query-replace functions."
