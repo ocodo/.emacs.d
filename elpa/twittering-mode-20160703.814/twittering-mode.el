@@ -12,8 +12,8 @@
 ;;	Xavier Maillard <xavier@maillard.im>
 ;; Created: Sep 4, 2007
 ;; Version: HEAD
-;; Package-Version: 20160313.936
-;; Identity: $Id: 96223e6423633ff924e04ef83befa560826fe47e $
+;; Package-Version: 20160703.814
+;; Identity: $Id: 69936b80373255888bb32e5d945d28fcd848fb40 $
 ;; Keywords: twitter web
 ;; URL: http://twmode.sf.net/
 
@@ -96,7 +96,7 @@
   :group 'hypermedia)
 
 (defconst twittering-mode-version "HEAD")
-(defconst twittering-mode-identity "$Id: 96223e6423633ff924e04ef83befa560826fe47e $")
+(defconst twittering-mode-identity "$Id: 69936b80373255888bb32e5d945d28fcd848fb40 $")
 (defvar twittering-api-host "api.twitter.com")
 (defvar twittering-api-search-host "search.twitter.com")
 (defvar twittering-web-host "twitter.com")
@@ -2061,7 +2061,7 @@ The alist consists of pairs of field-name and field-value, such as
 	 (status-line (car lines))
 	 (header-lines (cdr lines)))
     (when (string-match
-	   "^\\(HTTP/[12]\.[01]\\) \\([0-9][0-9][0-9]\\)\\(.*\\)$"
+	   "^\\(HTTP/1\\.[01]\\|HTTP/2\\(?:\\.0\\)?\\) \\([0-9][0-9][0-9]\\)\\(.*\\)$"
 	   status-line)
       (append `((status-line . ,status-line)
 		(http-version . ,(match-string 1 status-line))
@@ -2561,10 +2561,10 @@ The method to perform the request is determined from
 	  (goto-char (point-min))
 	  (let ((first-regexp
 		 ;; successful HTTP response
-		 "\\`HTTP/[12]\.[01] 2[0-9][0-9].*?\r?\n")
+		 "\\`HTTP/\\(1\\.[01]\\|2\\(\\.0\\)?\\) 2[0-9][0-9].*?\r?\n")
 		(next-regexp
 		 ;; following HTTP response
-		 "^\\(\r?\n\\)HTTP/[12]\.[01] [0-9][0-9][0-9].*?\r?\n"))
+		 "^\\(\r?\n\\)HTTP/\\(1\\.[01]\\|2\\(\\.0\\)?\\) [0-9][0-9][0-9].*?\r?\n"))
 	    (when (and (search-forward-regexp first-regexp nil t)
 		       (search-forward-regexp next-regexp nil t))
 	      (let ((beg (point-min))
@@ -3611,7 +3611,7 @@ function."
   (with-current-buffer buffer
     (goto-char (point-min))
     (when (search-forward-regexp
-	   "\\`\\(\\(HTTP/[12]\.[01]\\) \\([0-9][0-9][0-9]\\)\\(.*?\\)\\)\r?\n"
+	   "\\`\\(\\(HTTP/1\\.[01]\\|HTTP/2\\(?:\\.0\\)?\\) \\([0-9][0-9][0-9]\\)\\(.*?\\)\\)\r?\n"
 	   nil t)
       (let ((status-line (match-string 1))
 	    (http-version (match-string 2))
@@ -11847,7 +11847,6 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
   (interactive)
   (let ((id (get-text-property (point) 'id))
 	(text (copy-sequence (get-text-property (point) 'text)))
-	(user (get-text-property (point) 'username))
 	(width (max 40 ;; XXX
 		    (- (frame-width)
 		       1 ;; margin for wide characters
@@ -11856,17 +11855,15 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 		    )))
     (set-text-properties 0 (length text) nil text)
     (if id
-	(if (not (string= user twittering-username))
-	    (let ((mes (format "Retweet \"%s\"? "
-			       (if (< width (string-width text))
-				   (concat
-				    (truncate-string-to-width text (- width 3))
-				    "...")
-				 text))))
-	      (if (y-or-n-p mes)
-		  (twittering-call-api 'retweet `((id . ,id)))
-		(message "Request canceled")))
-	  (message "Cannot retweet your own tweet"))
+	(let ((mes (format "Retweet \"%s\"? "
+			   (if (< width (string-width text))
+			       (concat
+				(truncate-string-to-width text (- width 3))
+				"...")
+			     text))))
+	  (if (y-or-n-p mes)
+	      (twittering-call-api 'retweet `((id . ,id)))
+	    (message "Request canceled")))
       (message "No status selected"))))
 
 ;;;; Commands for browsing information related to a status
