@@ -83,7 +83,7 @@ much more convenient to use a simple boolean value here."
 (defun helm-add-face-text-properties (beg end face &optional append object)
   "Add the face property to the text from START to END.
 It is a compatibility function which behave exactly like
-`add-face-text-property' is available otherwise like `add-text-properties'.
+`add-face-text-property' if available otherwise like `add-text-properties'.
 When only `add-text-properties' is available APPEND is ignored."
   (if (fboundp 'add-face-text-property)
       (add-face-text-property beg end face append object)
@@ -482,18 +482,18 @@ Add spaces at end if needed to reach WIDTH when STR is shorter than WIDTH."
 
 (defun helm-describe-function (func)
   "FUNC is symbol or string."
-  (describe-function (helm-symbolify func))
-  (message nil))
+  (cl-letf (((symbol-function 'message) #'ignore))
+    (describe-function (helm-symbolify func))))
 
 (defun helm-describe-variable (var)
   "VAR is symbol or string."
-  (describe-variable (helm-symbolify var))
-  (message nil))
+  (cl-letf (((symbol-function 'message) #'ignore))
+    (describe-variable (helm-symbolify var))))
 
 (defun helm-describe-face (face)
-  "VAR is symbol or string."
-  (describe-face (helm-symbolify face))
-  (message nil))
+  "FACE is symbol or string."
+  (cl-letf (((symbol-function 'message) #'ignore))
+    (describe-face (helm-symbolify face))))
 
 (defun helm-find-function (func)
   "FUNC is symbol or string."

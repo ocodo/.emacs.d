@@ -1001,6 +1001,10 @@ because they are automatically added.
 You should not modify this yourself unless you know what you are doing.")
 ;; Same as `ffap-url-regexp' but keep it here to ensure `ffap-url-regexp' is not nil.
 (defvar helm--url-regexp "\\(news\\(post\\)?:\\|mailto:\\|file:\\|\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://\\)")
+(defvar helm--ignore-errors nil
+  "Flag to prevent helm popping up errors in candidates functions.
+Should be set in candidates functions if needed, will be restored
+at end of session.")
 
 ;; Utility: logging
 (defun helm-log (format-string &rest args)
@@ -1885,7 +1889,11 @@ ANY-KEYMAP ANY-DEFAULT ANY-HISTORY See `helm'."
   (helm-log "any-history = %S" any-history)
   (setq helm--prompt (or any-prompt "pattern: "))
   (let ((non-essential t)
+        ;; Prevent mouse jumping to the upper-right
+        ;; hand corner of the frame (#1538).
         mode-line-in-non-selected-windows
+        mouse-autoselect-window
+        focus-follows-mouse
         (input-method-verbose-flag helm-input-method-verbose-flag)
         (old--cua cua-mode)
         (helm--maybe-use-default-as-input
@@ -1941,6 +1949,7 @@ ANY-KEYMAP ANY-DEFAULT ANY-HISTORY See `helm'."
       ;; Reset helm-pattern so that lambda's using it
       ;; before running helm will not start with its old value.
       (setq helm-pattern "")
+      (setq helm--ignore-errors nil)
       (and old--cua (cua-mode 1))
       (helm-log-save-maybe))))
 
@@ -1954,7 +1963,9 @@ Call with a prefix arg to choose among existing helm
 buffers (sessions). When calling from lisp, specify a buffer-name
 as a string with ARG."
   (interactive "P")
-  (let (any-buffer helm-full-frame cur-dir)
+  (let (any-buffer
+        cur-dir
+        (helm-full-frame (default-value 'helm-full-frame)))
     (if arg
         (if (and (stringp arg) (bufferp (get-buffer arg)))
             (setq any-buffer arg)
@@ -2611,7 +2622,7 @@ map)."
                         [drag-mouse-1] [drag-mouse-2] [drag-mouse-3]
                         [double-mouse-1] [double-mouse-2] [double-mouse-3]
                         [triple-mouse-1] [triple-mouse-2] [triple-mouse-3])
-             do (define-key map k 'undefined))
+             do (define-key map k 'ignore))
     map))
 
 (define-minor-mode helm--remap-mouse-mode
@@ -2752,7 +2763,8 @@ Helm plug-ins are realized by this function."
            ;; Candidates will be filtered later in process filter.
            candidates)
           ;; An error occured in candidates function.
-          (cfn-error (funcall notify-error cfn-error))
+          (cfn-error (unless helm--ignore-errors
+                       (funcall notify-error cfn-error)))
           ;; Candidates function returns no candidates.
           ((or (null candidates)
                ;; Can happen when the output of a process
@@ -3727,25 +3739,36 @@ DIRECTION is either 'next or 'previous."
     ;; Setup mode-line.
     (if helm-mode-line-string
         (setq mode-line-format
-              `(" " mode-line-buffer-identification " "
-                    (:eval (format "L%-3d" (helm-candidate-number-at-point)))
-                    ,follow
-                    (:eval ,(and marked
-                                 (concat
-                                  " "
+              `(:propertize
+                (" " mode-line-buffer-identification " "
+                     (:eval (format "L%-3d" (helm-candidate-number-at-point)))
+                     ,follow
+                     " "
+                     (:eval ,(and marked
                                   (propertize
                                    (format "M%d" (length marked))
-                                   'face 'helm-visible-mark))))
-                    (:eval (when ,helm--mode-line-display-prefarg
-                             (let ((arg (prefix-numeric-value
-                                         (or prefix-arg current-prefix-arg))))
-                               (unless (= arg 1)
-                                 (propertize (format " [prefarg:%s]" arg)
-                                             'face 'helm-prefarg)))))
-                    " "
-                    (:eval (helm-show-candidate-number
-                            (car-safe helm-mode-line-string)))
-                    " " helm--mode-line-string-real " " mode-line-end-spaces)
+                                   'face 'helm-visible-mark)))
+                     (:eval (when ,helm--mode-line-display-prefarg
+                              (let ((arg (prefix-numeric-value
+                                          (or prefix-arg current-prefix-arg))))
+                                (unless (= arg 1)
+                                  (propertize (format " [prefarg:%s]" arg)
+                                              'face 'helm-prefarg)))))
+                     " "
+                     (:eval (helm-show-candidate-number
+                             (car-safe helm-mode-line-string)))
+                     " " helm--mode-line-string-real " "
+                     (:eval (make-string (window-width) ? )))
+                keymap (keymap (mode-line keymap
+                                          (mouse-1 . ignore)
+                                          (down-mouse-1 . ignore)
+                                          (drag-mouse-1 . ignore)
+                                          (mouse-2 . ignore)
+                                          (down-mouse-2 . ignore)
+                                          (drag-mouse-2 . ignore)
+                                          (mouse-3 . ignore)
+                                          (down-mouse-3 . ignore)
+                                          (drag-mouse-3 . ignore))))
               helm--mode-line-string-real
               (substitute-command-keys (if (listp helm-mode-line-string)
                                            (cadr helm-mode-line-string)
