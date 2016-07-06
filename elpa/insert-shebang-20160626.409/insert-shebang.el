@@ -4,9 +4,9 @@
 
 ;; Author: Sachin Patil <iclcoolster@gmail.com>
 ;; URL: http://github.com/psachin/insert-shebang
-;; Package-Version: 20160413.712
+;; Package-Version: 20160626.409
 ;; Keywords: shebang, tool, convenience
-;; Version: 0.9.4
+;; Version: 0.9.5
 
 ;; This file is NOT a part of GNU Emacs.
 
