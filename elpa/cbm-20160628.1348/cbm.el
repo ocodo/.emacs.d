@@ -4,7 +4,7 @@
 
 ;; Author: Lukas Fürmetz <fuermetz@mailbox.org>
 ;; URL: http://github.com/akermu/cbm.el
-;; Package-Version: 20160131.906
+;; Package-Version: 20160628.1348
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 0.3
 ;; Keywords: buffers
@@ -47,6 +47,7 @@
 (require 'cl-lib)
 
 (declare-function org-agenda-files "org")
+(declare-function rcirc-mode "rcirc")
 
 (defvar cbm-buffers nil
   "Holds current cycling-list.")
@@ -110,8 +111,8 @@
   "Switch to a file in function `org-agenda-files'."
   (interactive)
   (unless (and (fboundp #'org-agenda-files)
-               (> (length (org-agenda-files)) 1))
-    (error "Cannot find another org-agend-file"))
+               (> (length (org-agenda-files t)) 1))
+    (error "Cannot find another org-agenda-file"))
   (let* ((file-alist (mapcar #'(lambda (elem)
                                  `(,(file-name-nondirectory elem) . ,elem))
                              (remove (buffer-file-name)
