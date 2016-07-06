@@ -5,7 +5,7 @@
 ;; Author: Lorenzo Bolla <lbolla@gmail.com>
 ;; Created: 26 March 2016
 ;; Version: 1.0
-;; Package-Version: 20160404.31
+;; Package-Version: 20160629.59
 ;; Package-Requires: ((flycheck "0.25"))
 
 ;;; Commentary:
@@ -49,7 +49,7 @@
   "Elixir checker."
   :command ("elixirc"
             "--ignore-module-conflict"  ; Avoid module conflict warnings
-            source-original)
+            source-inplace)  ; Check as soon as possible, not just on file-save
   :error-patterns
   ((warning line-start
             (file-name)
