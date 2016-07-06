@@ -4,8 +4,8 @@
 
 ;; Author: steckerhalter
 ;; Package-Requires: ((helm "0") (google "0"))
+;; Package-Version: 20160620.1149
 ;; URL: https://github.com/steckerhalter/helm-google
-;; Package-Version: 20160226.1220
 ;; Keywords: helm google search browse
 
 ;; This file is not part of GNU Emacs.
@@ -30,6 +30,7 @@
 ;;; Code:
 
 (require 'helm)
+(require 'helm-net)
 (require 'google)
 
 (defgroup helm-google '()
