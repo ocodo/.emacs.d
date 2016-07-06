@@ -682,6 +682,10 @@ Hook `ycmd-mode' into modes in `ycmd-file-type-map'."
   ycmd--maybe-enable-mode
   :init-value nil)
 
+(defun ycmd-unload-function ()
+  "Unload function for ycmd."
+  (global-ycmd-mode -1)
+  (remove-hook 'kill-emacs-hook #'ycmd-close))
 
 (defun ycmd--conditional-parse (&optional condition)
   "Reparse the buffer under CONDITION.
@@ -1261,7 +1265,7 @@ MODE is a major mode for fontifaction."
    (ycmd--with-view-buffer
     (->>
      (--group-by (cdr (assq 'filepath it)) result)
-     (--map (ycmd--view-insert-location it mode))))))
+     (mapc (lambda (it) (ycmd--view-insert-location it mode)))))))
 
 (define-button-type 'ycmd--location-button
   'action #'ycmd--view-jump
@@ -1804,5 +1808,4 @@ anything like that.)
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; byte-compile-warnings: (not mapcar)
 ;; End:
