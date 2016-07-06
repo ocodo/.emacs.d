@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "eclim-tip" "eclim-tip.el" (22253 5340 359295
-;;;;;;  564000))
+;;;### (autoloads nil "eclim-tip" "eclim-tip.el" (22396 29094 659032
+;;;;;;  669000))
 ;;; Generated autoloads from eclim-tip.el
 
 (autoload 'eclim-tip-cycle "eclim-tip" "\
@@ -19,9 +19,15 @@
 
 ;;;***
 
-;;;### (autoloads nil "error-tip" "error-tip.el" (22253 5340 359295
-;;;;;;  564000))
+;;;### (autoloads nil "error-tip" "error-tip.el" (22396 29094 655032
+;;;;;;  854000))
 ;;; Generated autoloads from error-tip.el
+
+(autoload 'error-tip-error-p "error-tip" "\
+Return non-nil if error is occurred in current buffer.
+This function can catch error against flycheck, flymake and emcas-eclim.
+
+\(fn)" nil nil)
 
 (autoload 'error-tip-cycle-dwim "error-tip" "\
 Showing error function.
@@ -38,8 +44,8 @@ Same as ‘error-tip-cycle-dwim’, but it jumps to inverse direction.
 
 ;;;***
 
-;;;### (autoloads nil "flycheck-tip" "flycheck-tip.el" (22253 5340
-;;;;;;  351295 559000))
+;;;### (autoloads nil "flycheck-tip" "flycheck-tip.el" (22396 29094
+;;;;;;  647033 221000))
 ;;; Generated autoloads from flycheck-tip.el
 
 (autoload 'flycheck-tip-cycle "flycheck-tip" "\
@@ -56,8 +62,8 @@ Do `flycheck-tip-cycle by reverse order.
 
 ;;;***
 
-;;;### (autoloads nil "flymake-tip" "flymake-tip.el" (22253 5340
-;;;;;;  359295 564000))
+;;;### (autoloads nil "flymake-tip" "flymake-tip.el" (22396 29094
+;;;;;;  651033 37000))
 ;;; Generated autoloads from flymake-tip.el
 
 (autoload 'flymake-tip-cycle "flymake-tip" "\
@@ -72,8 +78,8 @@ Do `flycheck-tip-cycle by reverse order.
 
 ;;;***
 
-;;;### (autoloads nil nil ("flycheck-tip-pkg.el") (22253 5340 362987
-;;;;;;  833000))
+;;;### (autoloads nil nil ("flycheck-tip-pkg.el") (22396 29094 665395
+;;;;;;  954000))
 
 ;;;***
 

@@ -183,6 +183,7 @@ appeared.  The POINT arg is a point to show up error(s)."
   (when (timerp error-tip-timer-object)
     (cancel-timer error-tip-timer-object)))
 
+;;;###autoload
 (defun error-tip-error-p ()
   "Return non-nil if error is occurred in current buffer.
 This function can catch error against flycheck, flymake and emcas-eclim."
