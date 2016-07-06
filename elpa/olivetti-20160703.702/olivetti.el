@@ -1,10 +1,10 @@
-;;; olivetti.el --- Minor mode for a nice writing environment
+;;; olivetti.el --- Minor mode for a nice writing environment -*- lexical-binding: t; -*-
 
 ;; Copyright (c) 2014-2016 Paul Rankin
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20160412.2122
+;; Package-Version: 20160703.702
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -80,6 +80,7 @@
 
 ;; [releases]: https://github.com/rnkn/olivetti/releases "Olivetti releases"
 
+
 ;;; Code:
 
 (defgroup olivetti ()
@@ -87,7 +88,15 @@
   :prefix "olivetti-"
   :group 'wp)
 
-;;; Customizable Variables =====================================================
+
+;;; Variables
+
+(defvar-local olivetti--visual-line-mode
+  nil
+  "Non-nil if `visual-line-mode' is active when `olivetti-mode' is turned on.")
+
+
+;;; Options
 
 (defcustom olivetti-body-width
   80
@@ -122,6 +131,12 @@ This option does not affect file contents."
   :type 'boolean
   :group 'olivetti)
 
+(defcustom olivetti-lighter
+  " Olv"
+  "Mode-line indicator for `olivetti-mode'."
+  :type '(choice (const :tag "No lighter" "") string)
+  :group 'olivetti)
+
 (defcustom olivetti-recall-visual-line-mode-entry-state
   t
   "Recall the state of `visual-line-mode' upon exiting.
@@ -132,13 +147,8 @@ exiting. The reverse is not true."
   :type 'boolean
   :group 'olivetti)
 
-;;; Variables ==================================================================
-
-(defvar-local olivetti--visual-line-mode
-  nil
-  "Non-nil if `visual-line-mode' is active when `olivetti-mode' is turned on.")
-
-;;; Functions ==================================================================
+
+;;; Functions
 
 (defun olivetti-set-mode-line (&optional arg)
   "Set the mode line formating appropriately.
@@ -193,7 +203,7 @@ face, scale N by that factor, otherwise scale by 1."
              (max width min-width)))
           ((message "`olivetti-body-width' must be an integer or a float")
            (setq olivetti-body-width
-                 (car (get 'olivetti-body-width 'standard-value)))))))
+                 (eval (car (get 'olivetti-body-width 'standard-value))))))))
 
 (defun olivetti-set-width (n)
   "Set text body width to N with relative margins.
@@ -255,26 +265,35 @@ If prefixed with ARG, incrementally decrease."
     (setq olivetti-body-width (olivetti-safe-width n)))
   (olivetti-set-environment)
   (message "Text body width set to %s" olivetti-body-width)
-  (set-temporary-overlay-map
+  (set-transient-map
    (let ((map (make-sparse-keymap)))
      (define-key map "]" 'olivetti-expand)
      (define-key map "[" 'olivetti-shrink) map)))
 
 (defun olivetti-shrink (&optional arg)
-  "incrementally decrease the value of `olivetti-body-width'.
+  "Incrementally decrease the value of `olivetti-body-width'.
 
 If prefixed with ARG, incrementally increase."
   (interactive "P")
   (let ((p (unless arg t)))
     (olivetti-expand p)))
 
-;;; Mode Definition ============================================================
+
+;;; Mode Definition
 
 ;;;###autoload
 (defun turn-on-olivetti-mode ()
   "Turn on `olivetti-mode' unconditionally."
   (interactive)
   (olivetti-mode 1))
+
+(defvar olivetti-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c [") #'olivetti-shrink)
+    (define-key map (kbd "C-c ]") #'olivetti-expand)
+    (define-key map (kbd "C-c \\") #'olivetti-set-width)
+    map)
+  "Mode map for `olivetti-mode'.")
 
 ;;;###autoload
 (define-minor-mode olivetti-mode
@@ -286,17 +305,15 @@ body width set with `olivetti-body-width'.
 When `olivetti-hide-mode-line' is non-nil, the mode line is also
 hidden."
   :init-value nil
-  :lighter " Olv"
-  :keymap '(([?\C-c ?\[] . olivetti-shrink)
-            ([?\C-c ?\]] . olivetti-expand))
+  :lighter olivetti-lighter
   (if olivetti-mode
       (progn
         (add-hook 'window-configuration-change-hook
-                  'olivetti-set-environment nil t)
+                  #'olivetti-set-environment nil t)
         (add-hook 'after-setting-font-hook
-                  'olivetti-set-environment nil t)
+                  #'olivetti-set-environment nil t)
         (add-hook 'text-scale-mode-hook
-                  'olivetti-set-environment nil t)
+                  #'olivetti-set-environment nil t)
         (setq olivetti--visual-line-mode visual-line-mode)
         (unless olivetti--visual-line-mode
           (visual-line-mode 1))
@@ -304,17 +321,20 @@ hidden."
             (olivetti-set-mode-line))
         (olivetti-set-environment))
     (remove-hook 'window-configuration-change-hook
-                 'olivetti-set-environment t)
+                 #'olivetti-set-environment t)
     (remove-hook 'after-setting-font-hook
-                 'olivetti-set-environment t)
+                 #'olivetti-set-environment t)
     (remove-hook 'text-scale-mode-hook
-                 'olivetti-set-environment t)
+                 #'olivetti-set-environment t)
     (olivetti-set-mode-line 'exit)
     (olivetti-set-environment 'exit)
     (if (and olivetti-recall-visual-line-mode-entry-state
-             (null olivetti--visual-line-mode))
+             (not olivetti--visual-line-mode))
         (visual-line-mode 0))
     (kill-local-variable 'olivetti--visual-line-mode)))
 
+
+
 (provide 'olivetti)
+
 ;;; olivetti.el ends here
