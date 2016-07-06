@@ -50,6 +50,7 @@
 (defvar trr-japanese)
 (defvar trr-steps)
 (defvar trr-eval)
+(defvar trr-whole-char-count)
 (defvar trr-cheat-flag)
 (defvar trr-secret-flag)
 (defvar trr-typist-flag)

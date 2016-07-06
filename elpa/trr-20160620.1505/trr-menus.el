@@ -29,6 +29,7 @@
 (defvar trr-list-of-average)
 (defvar trr-list-of-time)
 (defvar trr-list-of-times)
+(defvar trr-list-of-value)
 (defvar trr-text-lines)
 (defvar trr-record-file)
 (defvar trr-text-file-buffer)
