@@ -6,8 +6,8 @@
 ;;; Author: Paul Huff <paul.huff@gmail.com>, Stefano Mazzucco <MY FIRST NAME - AT - CURSO - DOT - RE>
 ;;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;;; Created: 15 Feb 2014
-;;; Version: 0.0.4
-;; Package-Version: 20160220.350
+;;; Version: 0.0.5
+;; Package-Version: 20160622.2316
 ;;; URL: https://github.com/redguardtoo/js-comint
 ;;; Package-Requires: ((nvm "0.2.0"))
 ;;; Keywords: javascript, node, inferior-mode, convenience
@@ -63,10 +63,10 @@
 
 ;;  If you have nvm, you can select the versions of node.js installed and run
 ;;  them.  This is done thanks to nvm.el
-;;  To enable nvm support, run (js-do-use-nvm)
+;;  To enable nvm support, run `js-do-use-nvm'.
 ;;  The first time you start the JS interpreter with run-js, you will be asked
 ;;  to select a version of node.js
-;;  If you want to change version of node js, run (js-select-node-version)
+;;  If you want to change version of node js, run `js-select-node-version'
 
 ;;  You can add  the following couple of lines to your .emacs to take advantage of
 ;;  cool keybindings for sending things to the javascript interpreter inside
@@ -81,7 +81,6 @@
 
 ;;; Code:
 
-(require 'nvm)
 (require 'comint)
 
 (defgroup inferior-js nil
@@ -89,7 +88,7 @@
   :group 'inferior-js)
 
 (defcustom inferior-js-program-command "node"
-  "JavScript interpreter."
+  "JavaScript interpreter."
   :group 'inferior-js)
 
 (defcustom inferior-js-program-arguments '("--interactive")
@@ -179,6 +178,8 @@ is run).
                            inferior-js-program-arguments)
                           " ")))
       (when js-use-nvm
+        (unless (featurep 'nvm)
+          (require 'nvm))
         (unless js-nvm-current-version
           (js-select-node-version)))
       (setq inferior-js-program-arguments (split-string cmd))
