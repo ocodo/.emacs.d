@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-chrome" "helm-chrome.el" (22145 57566
-;;;;;;  838768 331000))
+;;;### (autoloads nil "helm-chrome" "helm-chrome.el" (22396 29054
+;;;;;;  44960 453000))
 ;;; Generated autoloads from helm-chrome.el
 
 (autoload 'helm-chrome-bookmarks "helm-chrome" "\

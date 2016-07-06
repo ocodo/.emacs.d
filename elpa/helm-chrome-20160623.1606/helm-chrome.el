@@ -5,7 +5,7 @@
 ;; Author: KAWABATA, Taichi <kawabata.taichi_at_gmail.com>
 ;; Created: 2013-12-25
 ;; Version: 1.151223
-;; Package-Version: 20151222.1758
+;; Package-Version: 20160623.1606
 ;; Package-Requires: ((helm "1.5") (cl-lib "0.3") (emacs "24"))
 ;; Keywords: tools
 ;; Human-Keywords: chrome bookmarks
@@ -48,8 +48,8 @@
     'file-exists-p
     `("~/Library/Application Support/Google/Chrome/Default/Bookmarks"
       "~/AppData/Local/Google/Chrome/User Data/Default/Bookmarks"
-      "~/.config/chromium/Default/Bookmarks"
       "~/.config/google-chrome/Default/Bookmarks"
+      "~/.config/chromium/Default/Bookmarks"
       ,(substitute-in-file-name
         "$LOCALAPPDATA/Google/Chrome/User Data/Default/Bookmarks")
       ,(substitute-in-file-name
