@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "merlin" "merlin.el" (22246 12258 374503 61000))
+;;;### (autoloads nil "merlin" "merlin.el" (22396 28953 742318 305000))
 ;;; Generated autoloads from merlin.el
 
 (autoload 'merlin-mode "merlin" "\
@@ -15,16 +15,10 @@ Short cuts:
 
 \(fn &optional ARG)" t nil)
 
-(eval-after-load 'company '(require 'merlin-company))
-
-(eval-after-load 'auto-complete '(require 'merlin-ac))
-
-(eval-after-load 'iedit '(require 'merlin-iedit))
-
 ;;;***
 
-;;;### (autoloads nil "merlin-company" "merlin-company.el" (22246
-;;;;;;  12258 378503 57000))
+;;;### (autoloads nil "merlin-company" "merlin-company.el" (22396
+;;;;;;  28953 746318 73000))
 ;;; Generated autoloads from merlin-company.el
 
 (autoload 'merlin-company-backend "merlin-company" "\
@@ -32,12 +26,10 @@ Short cuts:
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
-(eval-after-load 'company '(add-to-list 'company-backends 'merlin-company-backend))
-
 ;;;***
 
 ;;;### (autoloads nil nil ("merlin-ac.el" "merlin-cap.el" "merlin-compat.el"
-;;;;;;  "merlin-iedit.el" "merlin-pkg.el") (22246 12258 391239 36000))
+;;;;;;  "merlin-iedit.el" "merlin-pkg.el") (22396 28953 762148 822000))
 
 ;;;***
 

@@ -5,9 +5,9 @@
 ;;         Frédéric Bour <frederic.bour(_)lakaban.net>
 ;;         Thomas Refis <thomas.refis(_)gmail.com>
 ;; Created: 18 April 2013
-;; Version: 1.4
+;; Version: 2.5
 ;; Keywords: ocaml languages
-;; URL: http://github.com/the-lambda-church/merlin
+;; URL: https://github.com/the-lambda-church/merlin
 
 ;;; Commentary:
 ;; Description:
@@ -79,9 +79,9 @@
   "If non-nil, suppress process startup message."
   :group 'merlin :type 'boolean)
 
-(defcustom merlin-command "ocamlmerlin"
+(defcustom merlin-command 'opam
   "The path to merlin in your installation."
-  :group 'merlin :type '(choice (file :tag "Filename")
+  :group 'merlin :type '(choice (file :tag "Filename (default binary is \"ocamlmerlin\")")
                                 (const :tag "Use current opam switch" opam)))
 
 (defcustom merlin-completion-with-doc nil
@@ -189,7 +189,9 @@ field logfile (see `merlin-start-process')"
   "When user attention is required, merlin will use `sit-for' only if `merlin-allow-sit-for' is `t'."
   :group 'merlin :type 'boolean)
 
-
+(defalias 'merlin-find-file 'find-file-other-window
+  "The function called when merlin try to open a file (doesn't apply to
+merlin-locate, see `merlin-locate-in-new-window').")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal variables ;;
@@ -214,7 +216,7 @@ field logfile (see `merlin-start-process')"
 (defvar-local merlin--grouping nil
   "Configuration returned by merlin-grouping-function.")
 
-(defvar-local merlin--dirty-point 0
+(defvar-local merlin--dirty-point 1
   "Position after which buffer content may differ.")
 
 ;; Errors related variables
@@ -541,7 +543,7 @@ Try to find a satisfying default directory."
   (when merlin-mode
     (when (merlin-process-buffer) (ignore-errors (merlin-kill-process)))
     (setq merlin-erroneous-buffer nil)
-    (setq merlin--dirty-point 0)
+    (setq merlin--dirty-point 1)
     (merlin-setup)
     (message "Restarted merlin %S" merlin-instance)))
 
@@ -600,28 +602,37 @@ the merlin buffer of the current buffer."
 (defun merlin--send-command-async-handler (closure answer)
   "Callback sent by merlin/send-command-async to tq-enqueue."
   (let ((promise       (elt closure 0))
-        (cb-if-success (elt closure 1))
-        (cb-if-exn     (elt closure 2))
-        (command       (elt closure 3))
-        (buffer        (elt closure 4)))
+	(cb-if-success (elt closure 1))
+	(cb-if-exn     (elt closure 2))
+	(command       (elt closure 3))
+	(buffer        (elt closure 4)))
     (setcar promise t)
     (with-current-buffer buffer
       (with-demoted-errors "Error in merlin/send-command-async callback: %S"
-        (when merlin-debug (merlin-debug (format "<%s" answer)))
-        (setq answer (car (read-from-string answer)))
-        (cond ((not answer)
-               (message "Invalid answer received from merlin."))
-              ((string-equal (elt answer 0) "return")
-               (setcdr promise (funcall cb-if-success (elt answer 1))))
-              ((string-equal (elt answer 0) "exception")
-               (message "Merlin failed with exception: %s" (elt answer 1))
-               (when (functionp cb-if-exn)
-                 (setcdr promise (funcall cb-if-exn (elt answer 1)))))
-              ((and (string-equal (elt answer 0) "error")
-                    (assoc 'message (elt answer 1)))
-               (message "Merlin failed with error: \"%s\""
-                        (cdr (assoc 'message (elt answer 1)))))
-              (t (error "Command %s failed with error %s" command (elt answer 1))))))))
+	(when merlin-debug (merlin-debug (format "<%s" answer)))
+	;; Parse answer
+	(setq answer (car (read-from-string answer)))
+	;; Display notifications
+	(dolist (notification (cdr-safe (assoc 'notifications answer)))
+	  (message "(merlin) %s: %s"
+		   (cdr-safe (assoc 'section notification))
+		   (cdr-safe (assoc 'message notification))))
+	;; Dispatch result
+	(let ((class (cdr-safe (assoc 'class answer)))
+	      (value (cdr-safe (assoc 'value answer))))
+	  (cond ((not answer)
+		 (message "Invalid answer received from merlin."))
+		((string-equal class "return")
+		 (setcdr promise (funcall cb-if-success value)))
+		((string-equal class "exception")
+		 (message "Merlin failed with exception: %s" value)
+		 (when (functionp cb-if-exn)
+		   (setcdr promise (funcall cb-if-exn value))))
+		((and (string-equal class "error")
+		      (assoc 'message value))
+		 (message "Merlin failed with error: \"%s\""
+			  (cdr (assoc 'message value))))
+		(t (error "Command %s failed with error %s" command value))))))))
 
 (defun merlin--sexp-remove-string-properties (sexp)
   "Workaround retarded emacs objects printing API.
@@ -642,7 +653,7 @@ the error message otherwise print a generic error message."
   (unless (listp command) (setq command (list command)))
   (setq command (merlin--sexp-remove-string-properties command))
   (setq command (list (cons 'assoc nil)
-                      (cons 'context (merlin--context))
+                      (cons 'document (merlin--context))
                       (cons 'query command)))
   (let* ((string (concat (prin1-to-string command) "\n"))
          (promise (cons nil nil))
@@ -689,19 +700,6 @@ the error message otherwise print a generic error message."
         (merlin--process-busy-set nil))
       (cdr promise))))
 
-;; SPECIAL CASE OF COMMANDS
-
-(defun merlin--parse-position (result)
-  "Returns a pair whose first member is a point set at merlin cursor position
-  and second member is the state of the marker"
-  (cons (merlin/make-point (lookup-default 'cursor result nil))
-        (when (equal (lookup-default 'marker result nil) 'true) t)))
-
-(defun merlin--send-cursor-command (command &optional callback-if-exn)
-  "Send COMMAND (with arguments ARGS) to merlin and returns the result parsed
-  as a position."
-  (merlin--parse-position (merlin/send-command command callback-if-exn)))
-
 ;;;;;;;;;;;;;;;;;;;;
 ;; FILE SWITCHING ;;
 ;;;;;;;;;;;;;;;;;;;;
@@ -715,8 +713,12 @@ the error message otherwise print a generic error message."
   (let* ((exts (if (listp ext) ext (list ext)))
          (names (mapcar (lambda (ext) (concat name ext)) exts))
          (file (merlin/send-command `(which path ,names)
-                 #'(lambda (err) (message "No such file (message: %s)" err)))))
-    (when file (find-file-other-window file))))
+                 #'(lambda (err)
+                     (if (equal err "Not_found")
+                         (message "No such file")
+                       (message "No such file (message: %s)" err))
+                     nil))))
+    (when file (merlin-find-file file))))
 
 (defun merlin-switch-to-ml (name)
   "Switch to the ML file corresponding to the module NAME (fallback to MLI if no ML is provided)."
@@ -766,35 +768,25 @@ the error message otherwise print a generic error message."
   "Retract merlin--dirty-point, used when the buffer is edited."
   (when merlin-mode
     (setq merlin--last-edit (cons start end))
-    (when (< (1- start) merlin--dirty-point)
-      (setq merlin--dirty-point (1- start)))))
+    (when (< start merlin--dirty-point)
+      (setq merlin--dirty-point start))))
 
 (defun merlin/sync ()
   "Synchronize buffer with merlin"
-  (unless (eq merlin--dirty-point (point-max))
-    (let ((point (merlin/unmake-point merlin--dirty-point)))
-      (setq point (car (merlin--send-cursor-command
-                         (list 'tell 'start 'at point))))
-      (setq merlin--dirty-point (point-max))
-      (merlin--send-cursor-command
-        (list 'tell 'source-eof (merlin/buffer-substring point (point-max)))))))
+  (merlin/send-command
+   `(tell start end ,(merlin/buffer-substring (point-min) (point-max))))
+  (setq merlin--dirty-point (point-max)))
 
 (defun merlin/sync-async (k &optional kerr)
   "Asynchronous synchronization of buffer with merlin"
   (if (eq merlin--dirty-point (point-max)) (funcall k)
     (lexical-let ((k k) (kerr kerr))
       (merlin/send-command-async
-        (list 'tell 'start 'at (merlin/unmake-point merlin--dirty-point))
-        (lambda (answer)
-          (let* ((point (car (merlin--parse-position answer)))
-                 (source (merlin/buffer-substring point (point-max))))
-            (merlin/send-command-async
-              (list 'tell 'source-eof source)
-              (lambda (answer)
-                (setq merlin--dirty-point (point-max))
-                (funcall k))
-              kerr)))
-        kerr))))
+       `(tell start end ,(merlin/buffer-substring (point-min) (point-max)))
+       (lambda (answer)
+         (setq merlin--dirty-point (point-max))
+         (funcall k))
+       kerr))))
 
 ;;;;;;;;;;;;;;;;;;
 ;; ERROR REPORT ;;
@@ -846,33 +838,51 @@ the error message otherwise print a generic error message."
     (setq point (previous-single-char-property-change point prop nil limit)))
   point)
 
-(defun merlin--error-prev-cycle ()
+;; group is dynamically scoped
+(defun merlin--error-group-pred (err)
+  (eq (overlay-get err 'merlin-error-group) group))
+
+(defun merlin--error-group-next (point group &optional limit)
+  (let ((point (merlin--overlay-next-property-set point 'merlin-pending-error limit)))
+    (when group
+      (while (not (or (eq point (point-max))
+                      (find-if 'merlin--error-group-pred (overlays-at point))))
+        (setq point (merlin--overlay-next-property-set point 'merlin-pending-error limit))))
+    point))
+
+(defun merlin--error-group-prev (point group &optional limit)
+  (let ((point (merlin--overlay-previous-property-set point 'merlin-pending-error limit)))
+    (when group
+      (while (not (or (eq point (point-min))
+                      (find-if 'merlin--error-group-pred (overlays-at point))))
+        (setq point (merlin--overlay-next-property-set point 'merlin-pending-error limit))))
+    point))
+
+(defun merlin--errors-at-position (point)
+  (remove nil (mapcar 'merlin--overlay-pending-error (overlays-at point))))
+
+(defun merlin--error-prev-cycle (group)
   "Returns previous error, cycling when reaching beginning of buffer"
   (let ((point (point)) (errors nil) (err nil))
-    (setq point (merlin--overlay-previous-property-set point 'merlin-pending-error))
-    (unless (eq point (point))
-      (setq errors (overlays-at point))
-      (setq errors (remove nil (mapcar 'merlin--overlay-pending-error errors))))
+    (setq point (merlin--error-group-prev point group))
+    (unless (eq point (point)) (setq errors (merlin--errors-at-position point))
     (unless errors
-      (setq point (merlin--overlay-previous-property-set (point-max) 'merlin-pending-error (point)))
-      (setq errors (overlays-at point))
-      (setq errors (remove nil (mapcar 'merlin--overlay-pending-error errors))))
+      (setq point (merlin--error-group-prev (point-max) group (point)))
+      (setq errors (merlin--errors-at-position point)))
     (setq err (merlin--error-at-position point errors))
-    (if err (cons point err) nil)))
+    (if err (cons point err) nil))))
 
-(defun merlin--error-next-cycle ()
+(defun merlin--error-next-cycle (group)
   "Returns next error, cycling when reaching end of buffer"
   (let ((point (point)) (errors nil) (err nil))
-    (setq point (merlin--overlay-next-property-set point 'merlin-pending-error))
+    (setq point (merlin--error-group-next point group))
     (when (eq point (point-max))
       (setq point (point-min))
-      (setq errors (overlays-at point))
-      (setq errors (remove nil (mapcar 'merlin--overlay-pending-error errors)))
+      (setq errors (merlin--errors-at-position point))
       (unless errors
-        (setq point (merlin--overlay-next-property-set (point-min) 'merlin-pending-error (point)))))
+        (setq point (merlin--error-group-next (point-min) group (point)))))
     (unless errors
-      (setq errors (overlays-at point))
-      (setq errors (remove nil (mapcar 'merlin--overlay-pending-error errors))))
+      (setq errors (merlin--errors-at-position point)))
     (setq err (merlin--error-at-position point errors))
     (if err (cons point err) nil)))
 
@@ -883,12 +893,12 @@ the error message otherwise print a generic error message."
   "The save hook is called only if buffer was modified, but user might want fresh errors anyway"
   (merlin--after-save))
 
-(defun merlin-error-prev ()
+(defun merlin-error-prev (&optional group)
   "Jump back to previous error."
   (interactive)
   (let ((old-errors merlin-erroneous-buffer))
     (merlin--error-check nil)
-    (let ((err (merlin--error-prev-cycle)))
+    (let ((err (merlin--error-prev-cycle group)))
       (unless (or err merlin-erroneous-buffer) (message "No errors"))
       (when err
         (if (and merlin-error-check-then-move
@@ -900,12 +910,12 @@ the error message otherwise print a generic error message."
           (message "%s" (cdr (assoc 'message (cdr err))))
           (merlin--highlight (cdr (assoc 'bounds (cdr err))) 'next-error))))))
 
-(defun merlin-error-next ()
+(defun merlin-error-next (&optional group)
   "Jump to next error."
   (interactive)
   (let ((old-errors merlin-erroneous-buffer))
     (merlin--error-check nil)
-    (let ((err (merlin--error-next-cycle)))
+    (let ((err (merlin--error-next-cycle group)))
       (unless (or err merlin-erroneous-buffer) (message "No errors"))
       (when err
         (if (and merlin-error-check-then-move
@@ -916,6 +926,20 @@ the error message otherwise print a generic error message."
           (goto-char (car err))
           (message "%s" (cdr (assoc 'message (cdr err))))
           (merlin--highlight (cdr (assoc 'bounds (cdr err))) 'next-error))))))
+
+(defun merlin-error-next-in-group ()
+  "Jump to next error in same group, if any, next error otherwise."
+  (interactive)
+  (let ((err (merlin--error-at-position (point)
+                                            (merlin--errors-at-position (point)))))
+    (merlin-error-next (when err (overlay-get err 'merlin-error-group)))))
+
+(defun merlin-error-prev-in-group ()
+  "Jump to previous error in same group, if any, previous error otherwise."
+  (interactive)
+  (let ((err (merlin--error-at-position (point)
+                                        (merlin--errors-at-position (point)))))
+    (merlin-error-prev (when err (overlay-get err 'merlin-error-group)))))
 
 (defun merlin--error-warning-p (msg)
   "Tell if the message MSG is a warning."
@@ -939,43 +963,49 @@ the error message otherwise print a generic error message."
   "Remove an error from the pending error lists if it is edited by the user."
   (when is-after (delete-overlay overlay)))
 
+(defun merlin--transform-add-error-bounds (err)
+  (let ((bounds (merlin--make-bounds err))
+        (subs (cdr-safe (assoc 'sub err))))
+    (when merlin-error-on-single-line
+      (setq bounds (cons (car bounds)
+                         (min (cdr bounds)
+                              (save-excursion
+                                (goto-char (car bounds))
+                                (line-end-position))))))
+    (when (= (car bounds) (cdr bounds))
+      (setq bounds (if (> (car bounds) (point-min))
+                       (cons (1- (car bounds)) (cdr bounds))
+                     (cons (car bounds) (1+ (cdr bounds))))))
+    (setq bounds (cons (copy-marker (car bounds))
+                       (copy-marker (cdr bounds))))
+    (acons 'sub (mapcar 'merlin--transform-add-error-bounds subs)
+           (acons 'bounds bounds err))))
+
 (defun merlin-transform-display-errors (errors)
   "Populate the error list with ERRORS, transformed into an emacs-friendly
 form. Do display of error list."
-  (setq errors (mapcar (lambda (err)
-                         (let ((bounds (merlin--make-bounds err)))
-                           (when merlin-error-on-single-line
-                             (setq bounds (cons (car bounds)
-                                                (min (cdr bounds)
-                                                     (save-excursion
-                                                       (goto-char (car bounds))
-                                                       (line-end-position))))))
-                           (when (= (car bounds) (cdr bounds))
-                             (setq bounds (if (> (car bounds) (point-min))
-                                              (cons (1- (car bounds)) (cdr bounds))
-                                            (cons (car bounds) (1+ (cdr bounds))))))
-                           (setq bounds (cons (copy-marker (car bounds))
-                                              (copy-marker (cdr bounds))))
-                           (acons 'bounds bounds err)))
-                       errors))
-  (dolist (err errors)
-    (let* ((bounds (cdr (assoc 'bounds err)))
-           (overlay (make-overlay (car bounds) (cdr bounds))))
-      (overlay-put overlay 'merlin-kind 'error)
-      (overlay-put overlay 'merlin-pending-error err)
-      (push #'merlin--kill-error-if-edited
-            (overlay-get overlay 'modification-hooks))
-      (when merlin-error-in-fringe
-        (if (merlin--error-warning-p (cdr (assoc 'message err)))
+  (setq errors (mapcar 'merlin--transform-add-error-bounds errors))
+  (dolist (main errors)
+    (let ((subs (cdr-safe (assoc 'sub main))))
+      (dolist (err (cons main subs))
+        (let* ((bounds (cdr (assoc 'bounds err)))
+               (overlay (make-overlay (car bounds) (cdr bounds))))
+        (overlay-put overlay 'merlin-kind 'error)
+        (overlay-put overlay 'merlin-pending-error err)
+        (overlay-put overlay 'merlin-error-group main)
+        (push #'merlin--kill-error-if-edited
+              (overlay-get overlay 'modification-hooks))
+        (when (and merlin-error-in-fringe
+                   (not (and (eq err main) subs)))
+          (if (merlin--error-warning-p (cdr (assoc 'message err)))
+              (merlin-add-display-properties overlay
+                                             'question-mark
+                                             "?"
+                                             'merlin-compilation-warning-face)
             (merlin-add-display-properties overlay
-                                           'question-mark
-                                           "?"
-                                           'merlin-compilation-warning-face)
-          (merlin-add-display-properties overlay
-                                         'exclamation-mark
-                                         "!"
-                                         'merlin-compilation-error-face)))
-      overlay))
+                                           'exclamation-mark
+                                           "!"
+                                           'merlin-compilation-error-face)))))))
   errors)
 
 (defun merlin--error-check (view-errors-p)
@@ -1402,7 +1432,7 @@ loading"
   (let* ((dot_merlins (car (merlin--project-get)))
          (file (if (listp dot_merlins) (car dot_merlins) nil)))
     (if file
-        (find-file-other-window file)
+        (merlin-find-file file)
       (message "No project file for the current buffer."))))
 
 (defun merlin-flags-set (flag-string)
@@ -1636,14 +1666,34 @@ Empty string defaults to jumping to all these."
 ;; SEMANTIC MOVEMENT ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun merlin--phrase-goto (command)
+(defun merlin--traverse-update (point cell pos)
+  (let ((set-l (and pos (< pos point)
+                    (or (not (car cell)) (<= (car cell) pos))))
+        (set-r (and pos (> pos (1+ point))
+                    (or (not (cdr cell)) (>= (cdr cell) pos)))))
+    (when set-l (setcar cell pos))
+    (when set-r (setcdr cell pos))
+    (or set-l set-r)))
+
+
+(defun merlin--traverse-shape (point cell shape)
+  (let* ((bounds (merlin--make-bounds shape))
+         (set-l (when (car bounds)
+                  (merlin--traverse-update point cell (car bounds))))
+         (set-r (when (cdr bounds)
+                  (merlin--traverse-update point cell (cdr bounds)))))
+    (when (or set-l set-r)
+      (dolist (child (cdr (assoc 'children shape)))
+        (merlin--traverse-shape point cell child)))))
+
+(defun merlin--phrase-goto ()
   "Go to the phrase indicated by COMMAND.
 Returns the position."
-  (let ((r (merlin/send-command
-             (list 'boundary command 'at (merlin/unmake-point (point))))))
-    (unless (equal r 'null)
-      (merlin--goto-point (car r))
-      (point))))
+  (let ((cell (cons nil nil)))
+    (merlin/sync-to-end)
+    (dolist (shape (merlin/send-command (list 'shape (merlin/unmake-point (point)))))
+      (merlin--traverse-shape (point) cell shape))
+    cell))
 
 (defun merlin-phrase-next ()
   "Go to the beginning of the next phrase."
@@ -1692,9 +1742,11 @@ Returns the position."
 (defun merlin-command ()
   "Return path of ocamlmerlin binary selected by configuration"
   (if (equal merlin-command 'opam)
-    (concat (replace-regexp-in-string "\n$" ""
-              (shell-command-to-string "opam config var bin"))
-       "/ocamlmerlin")
+      (with-temp-buffer
+        (if (eq (call-process "opam" nil (current-buffer) nil "config" "var" "bin") 0)
+            (concat (replace-regexp-in-string "\n$" "" (buffer-string)) "/ocamlmerlin")
+          (message "merlin-command: opam config failed, falling back to 'ocamlmerlin' (message: %S)" (buffer-string))
+          "ocamlmerlin"))
     merlin-command))
 
 ;;;;;;;;;;;;;;;
@@ -1704,7 +1756,7 @@ Returns the position."
 (defun merlin-dump (arg)
   (interactive "sWhat to dump: ")
   (let ((res (merlin/send-command (list 'dump arg))))
-    (print res)))
+    (pp res)))
 
 ;;;;;;;;;;;;;;;;
 ;; MODE SETUP ;;
@@ -1767,6 +1819,9 @@ Returns the position."
   (list
     (cons 'name (file-name-directory (expand-file-name (buffer-file-name (buffer-base-buffer)))))))
 
+(defconst merlin-protocol-version 3
+  "Version of the protocol spoken by this version of the emacs mode.")
+
 (defun merlin-setup ()
   "Set up a buffer for use with merlin."
   (interactive)
@@ -1777,6 +1832,19 @@ Returns the position."
     (when (merlin-process-dead-p instance)
       (merlin-start-process merlin-default-flags conf))
     (add-to-list 'after-change-functions 'merlin--sync-edit)
+    (merlin/send-command-async
+      `(protocol version ,merlin-protocol-version)
+      (lambda (v)
+        (let ((selected (cdr-safe (assoc 'selected v)))
+              (latest   (cdr-safe (assoc 'latest   v))))
+         (if (not (eq selected merlin-protocol-version))
+           (message
+            "Unsupported version of Merlin binary, please update (protocol version %S, expected %S)"
+            selected merlin-protocol-version)
+           (if (not (eq latest merlin-protocol-version))
+             (message "Merlin version is more recent than the emacs mode, consider updating")))))
+      (lambda (exn)
+        (message "Unsupported version of Merlin binary, please update (%S)" exn)))
     (merlin--idle-timer)
     ;; Synchronizing will only do parsing and no typing.
     ;; That should be fast enough that the user don't realize.
@@ -1793,7 +1861,7 @@ Returns the position."
   "Jump to the log file of merlin."
   (interactive)
   (let ((file (lookup-default 'logfile (merlin-process-data) nil)))
-    (if file (find-file-other-window file)
+    (if file (merlin-find-file file)
       (message "No log file for this instance."))))
 
 (defun merlin-lighter ()
@@ -1838,11 +1906,8 @@ Short cuts:
 (provide 'merlin)
 
 ;; Load these after (provide 'merlin) because they (require 'merlin)
-;;;###autoload
 (eval-after-load 'company '(require 'merlin-company))
-;;;###autoload
 (eval-after-load 'auto-complete '(require 'merlin-ac))
-;;;###autoload
 (eval-after-load 'iedit '(require 'merlin-iedit))
 (require 'merlin-cap)
 
