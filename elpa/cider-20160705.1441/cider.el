@@ -547,9 +547,10 @@ gets associated with it."
 (defun cider-select-endpoint ()
   "Interactively select the host and port to connect to."
   (dolist (ep cider-known-endpoints)
-    (unless (stringp (nth ep 2))
+    (unless (stringp (or (nth 2 ep)
+                         (nth 1 ep)))
       (user-error "The port for %s in `cider-known-endpoints' should be a string"
-                  (nth ep 0))))
+                  (nth 0 ep))))
   (let* ((ssh-hosts (cider--ssh-hosts))
          (hosts (seq-uniq (append (when cider-host-history
                                     ;; history elements are strings of the form "host:port"
@@ -659,7 +660,7 @@ choose."
                 (member cider-preferred-build-tool choices))
            cider-preferred-build-tool)
           (multiple-project-choices
-           (completing-read (format "Which command should be used (default %s)" default)
+           (completing-read (format "Which command should be used (default %s): " default)
                             choices nil t nil nil default))
           (choices
            (car choices))
