@@ -9,9 +9,9 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160604.1048
+;; Package-Version: 20160626.2320
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 5.5.0-cvs
+;; Version: 5.6.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -79,7 +79,7 @@
   :link '(url-link :tag "Github" "https://github.com/clojure-emacs/clojure-mode")
   :link '(emacs-commentary-link :tag "Commentary" "clojure-mode"))
 
-(defconst clojure-mode-version "5.5.0-snapshot"
+(defconst clojure-mode-version "5.6.0-snapshot"
   "The current version of `clojure-mode'.")
 
 (defface clojure-keyword-face
@@ -1091,6 +1091,9 @@ Implementation function for `clojure--find-indent-spec'."
         (when (numberp method)
           (setq method (list method)))
         (pcase method
+          ((pred functionp)
+           (when (= pos 0)
+             method))
           ((pred sequencep)
            (pcase (length method)
              (`0 nil)
@@ -1103,9 +1106,6 @@ Implementation function for `clojure--find-indent-spec'."
           ((or `defun `:defn)
            (when (= pos 0)
              :defn))
-          ((pred functionp)
-           (when (= pos 0)
-             method))
           (_
            (message "Invalid indent spec for `%s': %s" function method)
            nil))))))
@@ -1280,10 +1280,11 @@ Requires the macro's NAME and a VALUE."
   "List of additional symbols with defun-style indentation in Clojure.
 
 You can use this to let Emacs indent your own macros the same way
-that it indents built-in macros like with-open.  To manually set
-it from Lisp code, use (put-clojure-indent 'some-symbol :defn)."
+that it indents built-in macros like with-open.  This variable
+only works when set via the customize interface (`setq' won't
+work).  To set it from Lisp code, use
+     (put-clojure-indent \\='some-symbol :defn)."
   :type '(repeat symbol)
-  :safe #'listp
   :set 'add-custom-clojure-indents)
 
 (define-clojure-indent
@@ -1313,8 +1314,8 @@ it from Lisp code, use (put-clojure-indent 'some-symbol :defn)."
   (as-> 2)
 
   (reify '(:defn (1)))
-  (deftype '(2 nil nil (1)))
-  (defrecord '(2 nil nil (1)))
+  (deftype '(2 nil nil (:defn)))
+  (defrecord '(2 nil nil (:defn)))
   (defprotocol '(1 (:defn)))
   (extend 1)
   (extend-protocol '(1 :defn))
