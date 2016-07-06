@@ -1,10 +1,10 @@
 ;;; find-file-in-project.el --- Find files in a project quickly, on any OS
 
-;; Copyright (C) 2006-2009, 2011-2012, 2015
-;;   Phil Hagelberg, Doug Alcorn, and Will Farrington
+;; Copyright (C) 2006-2009, 2011-2012, 2015, 2016
+;;   Phil Hagelberg, Doug Alcorn, Will Farrington, Chen Bin
 ;;
-;; Version: 5.0.1
-;; Package-Version: 20160608.2311
+;; Version: 5.1.0
+;; Package-Version: 20160625.619
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -80,6 +80,9 @@
 ;; The output is inserted into *ffip-diff* buffer.
 ;; In the buffer, press "o/C-c C-c"/ENTER" or `M-x ffip-diff-find-file'
 ;; to open correspong file.
+;;
+;; `ffip-diff-find-file-before-hook' is called before `ffip-diff-find-file'.
+;;
 ;; If you use evil-mode, insert below code into ~/.emacs,
 ;;   (defun ffip-diff-mode-hook-setup ()
 ;;       (evil-local-set-key 'normal "p" 'diff-hunk-prev)
@@ -122,7 +125,10 @@
 (defvar ffip-filename-rules
   '(ffip-filename-identity
     (ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes))
-  "Rules to create extra file names for `find'")
+  "Rules to create extra file names for GNU Find.")
+
+(defvar ffip-diff-find-file-before-hook nil
+  "Hook run before `ffip-diff-find-file' move focus out of *ffip-diff* buffer.")
 
 (defvar ffip-diff-backends
   '((if (require 'ivy nil t)
@@ -143,18 +149,19 @@
     "svn diff")
   "The list of back-ends.
 If back-end is string, it is run in `shell-command-to-string'.
-If it's a function or lisp expression, it will be executed.
+If it's a function or lisp expression, it will be executed and return a string.
 
-The output of excution is inserted into *ffip-diff* buffer with `diff-mode' on")
+The output of execution is inserted into *ffip-diff* buffer with `ffip-diff-mode' on.
+`ffip-diff-mode' inherits from `diff-mode'.")
 
-(defvar ffip-find-executable nil "Path of GNU find.  If nil, we will find `find' path automatically.")
+(defvar ffip-find-executable nil "Path of GNU find.  If nil, `ffip--guess-gnu-find' is called.")
 
 (defvar ffip-project-file '(".svn" ".hg" ".git")
-  "The file that should be used to define a project root.
+  "The file/directory used to locate project root.
 May be set using .dir-locals.el.  Checks each entry if set to a list.")
 
 (defvar ffip-prefer-ido-mode (not (require 'ivy nil t))
-  "Use `ido-mode' instead of `ivy-mode' for displaying candidates.")
+  "Use `ido-mode' instead of `ivy-mode' to display candidates.")
 
 (defvar ffip-patterns nil
   "List of patterns to look for with `find-file-in-project'.")
@@ -415,6 +422,7 @@ If CHECK-ONLY is true, only do the check."
      (ivy-read prompt collection
                :action action))))
 
+;;;###autoload
 (defun ffip-project-search (keyword find-directory)
   "Return an alist of all filenames in the project and their path.
 
@@ -472,6 +480,7 @@ If KEYWORD is list, it's the list of file names."
     (goto-char (point-min))
     (forward-line (1- lnum))))
 
+;;;###autoload
 (defun ffip-find-files (keyword open-another-window &optional find-directory fn)
   "The API to find files."
   (let* (project-files
@@ -654,7 +663,8 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
 ;;;###autoload
 (defun ffip-diff-quit ()
   (interactive)
-  (quit-window kill-buffer))
+  ;; kill buffer instead of bury it
+  (quit-window t))
 
 ;;;###autoload
 (defun ffip-diff-find-file (&optional open-another-window)
@@ -678,6 +688,7 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
                          (lambda (opened-file)
                            ;; use line number in new file since there is only one file name candidate
                            (ffip--forward-line blnum)))
+      (run-hook-with-args 'ffip-diff-find-file-before-hook)
       (ffip-find-files files
                        open-another-window
                        nil
@@ -723,15 +734,14 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
 ;;;###autoload
 (defun ffip-show-diff (&optional num)
   "Show the diff output by excuting selected `ffip-diff-backends'.
-NUM is the index selected backend from `ffip-diff-backends'.  NUM is 1 based"
+NUM is the index selected backend from `ffip-diff-backends'.
+NUM is zero based.  Its default value is zero."
   (interactive "P")
   (cond
-   ((or (not num) (< num 1))
+   ((or (not num) (< num 0))
     (setq num 0))
    ((> num (length ffip-diff-backends))
-    (setq num (1- (length ffip-diff-backends))))
-   (t
-    (setq num (1- num))))
+    (setq num (1- (length ffip-diff-backends)))))
 
   (let* ((backend (nth num ffip-diff-backends))
          content
