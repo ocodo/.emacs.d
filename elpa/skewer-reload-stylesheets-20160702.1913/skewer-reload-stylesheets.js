@@ -13,7 +13,8 @@ skewer.reloadStylesheets = (function () {
     /**
      * Ensure `link`'s associated contents are refreshed from server.
      *
-     * We do this by adding (or updating) a query parameter
+     * We do this by adding (or updating) a query parameter to the link tag's
+     * href attribute.
      *
      * @param {Element} link - link tag to refresh from server.
      */
