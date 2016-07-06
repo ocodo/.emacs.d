@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 26 Sep 2015
 ;; Version: 2.1
-;; Package-Version: 20160403.1129
+;; Package-Version: 20160705.1331
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -45,6 +45,7 @@
 (require 'diminish nil t)
 (require 'bytecomp)
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'regexp-opt))
 
 (declare-function package-installed-p 'package)
 
@@ -144,9 +145,9 @@ the user specified."
     :defines
     :functions
     :defer
+    :init
     :after
     :demand
-    :init
     :config
     :diminish
     :delight)
@@ -167,6 +168,29 @@ The only advantage is that, if you know your configuration works,
 then your byte-compiled init file is as minimal as possible."
   :type 'boolean
   :group 'use-package)
+
+(defcustom use-package-enable-imenu-support nil
+  "If non-nil, adjust `lisp-imenu-generic-expression' to include
+support for finding `use-package' and `require' forms.
+
+Must be set before loading use-package."
+  :type 'boolean
+  :group 'use-package)
+
+(when use-package-enable-imenu-support
+  ;; Not defined in Emacs 24
+  (defvar lisp-mode-symbol-regexp
+    "\\(?:\\sw\\|\\s_\\|\\\\.\\)+")
+  (add-to-list
+   'lisp-imenu-generic-expression
+   (list "Package"
+         (purecopy (concat "^\\s-*("
+                           (eval-when-compile
+                             (regexp-opt
+                              '("use-package" "require")
+                              t))
+                           "\\s-+\\(" lisp-mode-symbol-regexp "\\)"))
+         2)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -910,7 +934,7 @@ deferred until the prefix key sequence is pressed."
         (lambda (feat)
           `(eval-after-load
                (quote ,feat)
-             (quote (require (quote ,name)))))
+             (quote (require (quote ,name) nil t))))
         features)))
 
 (defun use-package-handler/:after (name keyword arg rest state)
