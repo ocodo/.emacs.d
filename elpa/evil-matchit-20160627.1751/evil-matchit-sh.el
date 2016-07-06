@@ -1,6 +1,6 @@
-;;; evil-matchit-c.el --c like language (c/c++/perl/java/javascript) plugin of evil-matchit
+;;; evil-matchit-sh.el ---sh (bash/zsh) plugin of evil-matchit
 
-;; Copyright (C) 2014  Chen Bin <chenbin.sh@gmail.com>
+;; Copyright (C) 2014-2016 Chen Bin <chenbin.sh@gmail.com>
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 
@@ -25,25 +25,34 @@
 
 
 ;;; Code:
+
+;; OPTIONAL, you don't need SDK to write a plugin for evil-matchit
+;; but SDK don make you write less code, isn't it?
+;; All you need to do is just define the match-tags for SDK algorithm to lookup.
 (require 'evil-matchit-sdk)
 
 ;; ruby/bash/lua/vimrc
-(defvar evilmi-c-match-tags
-  '((("# *ifdef" "# *ifndef" "# *if") ("# *elif" "# *else")  "# *endif" "MONOGAMY")
-    ("switch" "case" "default" "MONOGAMY")
+(defvar evilmi-sh-match-tags
+  '((("if") ("elif" "else") ("fi"))
+    ("case" (";;") ("esac"))
+    ("function" ("exit") ("\}") "FN_EXIT")
+    (("for" "do" "while" "until") () ("done"))
     ))
 
-(defvar evilmi-c-extract-keyword-howtos
-  '(("^[ \t]*\\(# *[a-z]+\\)" 1)
-    ("^[ \t]*\\([a-z]+\\)\\([ (:].*\\| *\\)$" 1)
+(defvar evilmi-sh-extract-keyword-howtos
+  '(("^[ \t]*\\([a-z]+\\)\\( .*\\| *\\)$" 1)
+    ("^.*\\(;;\\) *$" 1)
+    ("^\\(\} *\\)" 1)
     ))
 
 ;;;###autoload
-(defun evilmi-c-get-tag ()
-  (evilmi-sdk-get-tag evilmi-c-match-tags evilmi-c-extract-keyword-howtos))
+(defun evilmi-sh-get-tag ()
+  (evilmi-sdk-get-tag evilmi-sh-match-tags evilmi-sh-extract-keyword-howtos)
+  )
 
 ;;;###autoload
-(defun evilmi-c-jump (rlt NUM)
-  (evilmi-sdk-jump rlt NUM evilmi-c-match-tags evilmi-c-extract-keyword-howtos))
+(defun evilmi-sh-jump (rlt NUM)
+  (evilmi-sdk-jump rlt NUM evilmi-sh-match-tags evilmi-sh-extract-keyword-howtos)
+  )
 
-(provide 'evil-matchit-c)
+(provide 'evil-matchit-sh)

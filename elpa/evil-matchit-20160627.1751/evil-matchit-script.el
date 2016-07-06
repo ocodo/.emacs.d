@@ -1,6 +1,6 @@
-;;; evil-matchit-sh.el ---sh (bash/zsh) plugin of evil-matchit
+;;; evil-matchit-script.el ---script (ruby/lua) plugin of evil-matchit
 
-;; Copyright (C) 2014  Chen Bin <chenbin.sh@gmail.com>
+;; Copyright (C) 2014-2016 Chen Bin <chenbin.sh@gmail.com>
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 
@@ -32,27 +32,28 @@
 (require 'evil-matchit-sdk)
 
 ;; ruby/bash/lua/vimrc
-(defvar evilmi-sh-match-tags
-  '((("if") ("elif" "else") ("fi"))
-    ("case" (";;") ("esac"))
-    ("function" ("exit") ("\}") "FN_EXIT")
-    (("for" "do" "while" "until") () ("done"))
+(defvar evilmi-script-match-tags
+  '((("unless" "if") ("elif" "elsif" "elseif" "else") ("end" "fi" "endif"))
+    ("begin" ("rescue" "ensure") "end")
+    ("case" ("when" "else") ("esac" "end"))
+    ("for" () "end")
+    (("fun!" "function!" "class" "def" "while" "function" "do") () ("end" "endfun" "endfunction"))
+    ("repeat" ()  "until")
     ))
 
-(defvar evilmi-sh-extract-keyword-howtos
-  '(("^[ \t]*\\([a-z]+\\)\\( .*\\| *\\)$" 1)
-    ("^.*\\(;;\\) *$" 1)
-    ("^\\(\} *\\)" 1)
-    ))
+(defvar evilmi-script-extract-keyword-howtos
+  '(("^.*\\(=\\|local\s\\)\s*\\(function\\)\s*.*$" 2)
+    ("^\s*\\([a-z]+\!?\\)\\(\s.*\\| *\\)$" 1)
+    ("^.*\s\\(do\\)\s|[a-z0-9A-Z,|]+|$" 1)))
 
 ;;;###autoload
-(defun evilmi-sh-get-tag ()
-  (evilmi-sdk-get-tag evilmi-sh-match-tags evilmi-sh-extract-keyword-howtos)
+(defun evilmi-script-get-tag ()
+  (evilmi-sdk-get-tag evilmi-script-match-tags evilmi-script-extract-keyword-howtos)
   )
 
 ;;;###autoload
-(defun evilmi-sh-jump (rlt NUM)
-  (evilmi-sdk-jump rlt NUM evilmi-sh-match-tags evilmi-sh-extract-keyword-howtos)
+(defun evilmi-script-jump (rlt NUM)
+  (evilmi-sdk-jump rlt NUM evilmi-script-match-tags evilmi-script-extract-keyword-howtos)
   )
 
-(provide 'evil-matchit-sh)
+(provide 'evil-matchit-script)

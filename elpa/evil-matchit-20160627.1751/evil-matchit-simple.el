@@ -1,6 +1,7 @@
-;;; evil-matchit-javascript.el --- simple match plugin of evil-matchit
+;;; evil-matchit-simple.el --- simple match plugin of evil-matchit
 
-;; Copyright (C) 2014  Chen Bin <chenbin.sh@gmail.com>
+;; Copyright (C) 2014-2016 Chen Bin <chenbin.sh@gmail.com>
+
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 
@@ -28,65 +29,70 @@
 
 (require 'evil-matchit)
 
-;; TODO, fn.then().({}, find the second (
-(defun evilmi--javascript-find-open-brace (cur-line)
+(defun evilmi--simple-find-open-brace (cur-line)
   (let (rlt)
     ;; javascript code line "(function(...) { ..."
     ;; C code line "} else {"
-    (if (or (string-match "^[ \t]*[\(\}]?[$_a-zA-Z0-9]+.*{ *\\(\/\/.*\\)?$" cur-line)
-            (string-match "^[ \t]*[\(\}]?[$_a-zA-Z0-9]+.*{ *\\(\/\*[^/]*\*\/\\)?$" cur-line))
+    (if (or (string-match "^[ \t]*[\(\}]?[_a-zA-Z0-9]+.*{ *\\(\/\/.*\\)?$" cur-line)
+            (string-match "^[ \t]*[\(\}]?[_a-zA-Z0-9]+.*{ *\\(\/\*[^/]*\*\/\\)?$" cur-line))
         (setq rlt 1)
       (save-excursion
         (forward-line)
         (setq cur-line (buffer-substring-no-properties
                         (line-beginning-position) (line-end-position)))
         (if (string-match "^[ \t]*{ *$" cur-line)
-            (setq rlt 2)
-          )
-        )
-      )
+            (setq rlt 2))
+        ))
     rlt))
 
 ;;;###autoload
-(defun evilmi-javascript-get-tag ()
+(defun evilmi-simple-get-tag ()
   (let (p
+        tmp
+        ch
         forward-line-num
         rlt
         (cur-line (buffer-substring-no-properties
-                   (line-beginning-position) (line-end-position)))
-        )
-    ;; only handle open tag
-    (if (not (memq (following-char) (string-to-list "{[(}}])")))
-        (if (setq forward-line-num (evilmi--javascript-find-open-brace cur-line))
-            (when forward-line-num
-              (setq p (line-beginning-position))
-              (forward-line (1- forward-line-num))
-              (search-forward "{" nil nil)
-              (backward-char)
-              (setq rlt (list p))
-              )
-          )
-      (setq rlt (list (point)))
-      )
+                   (line-beginning-position) (line-end-position))))
+
+    ;; Only handle open tag
+    (setq tmp (evilmi--get-char-under-cursor))
+    (if tmp (setq ch (car tmp)))
+    (if evilmi-debug (message "evilmi-simple-get-tag called => %s" ch))
+
+    (cond
+     ;; In evil-visual-state, the (preceding-char) is actually the character under cursor
+     ((not (evilmi--char-is-simple ch))
+      (if (setq forward-line-num (evilmi--simple-find-open-brace cur-line))
+          (when forward-line-num
+            (setq p (line-beginning-position))
+            (forward-line (1- forward-line-num))
+            (search-forward "{" nil nil)
+            (backward-char)
+            (setq rlt (list p))
+            )))
+     (t
+      ;; use evil's own evilmi--simple-jump
+      (setq rlt (list (point)))))
+
+    (if (and evilmi-debug rlt) (message "evilmi-simple-get-tag called rlt=%s" rlt))
     rlt))
 
 ;;;###autoload
-(defun evilmi-javascript-jump (rlt NUM)
+(defun evilmi-simple-jump (rlt NUM)
   (let (cur-line)
     (when rlt
-      (evilmi--simple-jump)
+      (if evilmi-debug (message "evilmi-simple-jump called"))
 
+      (evilmi--simple-jump)
       (setq cur-line (buffer-substring-no-properties
                       (line-beginning-position)
                       (line-end-position)))
       ;; hack for javascript
-      (if (or (string-match "^[ \t]*}\)\(.*\)\; *$" cur-line)
-              (string-match "^[ \t]*}\(.*\))\; *$" cur-line)
-              (string-match "^[ \t]*}\])\; *$" cur-line))
+      (if (string-match "^[ \t]*})(.*)\; *$" cur-line)
           (line-end-position)
-        (1+ (point))
-        )
+        (1+ (point)))
       )
     ))
 
-(provide 'evil-matchit-javascript)
+(provide 'evil-matchit-simple)
