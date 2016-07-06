@@ -6,7 +6,7 @@
 
 ;; Author: Takafumi Arakaki <aka.tkf at gmail.com>
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
-;; Package-Version: 20160424.2032
+;; Package-Version: 20160623.1938
 ;; Version: 0.2.0
 
 ;; This file is NOT part of GNU Emacs.
@@ -201,7 +201,7 @@ for older Emacs versions.")
              concat sep
              concat (url-hexify-string (format "%s" k))
              concat "="
-             concat (url-hexify-string v))))
+             concat (url-hexify-string (format "%s" v)))))
 
 
 ;;; Header parser
