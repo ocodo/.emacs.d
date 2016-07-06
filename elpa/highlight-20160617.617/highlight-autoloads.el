@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "highlight" "highlight.el" (22160 38942 21210
-;;;;;;  401000))
+;;;### (autoloads nil "highlight" "highlight.el" (22396 29041 49605
+;;;;;;  43000))
 ;;; Generated autoloads from highlight.el
 
 (defvar hlt-auto-face-foreground nil "\
@@ -409,7 +409,10 @@ Other arguments:
 
 (autoload 'hlt-highlight-symbol "highlight" "\
 Highlight occurrences of SYMBOL.
-Use the region if active, or the buffer otherwise.
+The symbol at point is used by default, or the symbol under the mouse
+pointer if the command is invoked using the mouse.
+
+Highlight over the region if active, or the buffer otherwise.
 With a prefix arg, use all buffers that are visible or iconified.
 \(This first unhighlights occurrences, to prevent stacking up multiple
 highlighting on the same occurrences.)
@@ -418,7 +421,10 @@ highlighting on the same occurrences.)
 
 (autoload 'hlt-unhighlight-symbol "highlight" "\
 Unhighlight occurrences of SYMBOL.
-Use the region if active, or the buffer otherwise.
+The symbol at point is used by default, or the symbol under the mouse
+pointer if the command is invoked using the mouse.
+
+Unhighlight over the region if active, or the buffer otherwise.
 With a prefix arg, use all buffers that are visible or iconified.
 
 \(fn SYMBOL &optional START END ALL-BUFFERS-P)" t nil)
