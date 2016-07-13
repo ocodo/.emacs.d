@@ -40,14 +40,7 @@
       (helm-make-info-source source it)
     source))
 
-(add-to-list 'helm-compile-source-functions 'helm-compile-source--info-index)
-
-(helm-document-attribute 'info-index "info-index plugin"
-  "  Create a source of info index very easily.
-
-  Example:
-
-  (defvar helm-source-info-wget '((info-index . \"wget\"))")
+;; (add-to-list 'helm-compile-source-functions 'helm-compile-source--info-index)
 
 
 ;;; Plug-in: `candidates-file'
@@ -63,7 +56,7 @@
         (candidates-in-buffer)
         ,@source)
     source))
-(add-to-list 'helm-compile-source-functions 'helm-compile-source--candidates-file)
+;; (add-to-list 'helm-compile-source-functions 'helm-compile-source--candidates-file)
 
 (defun helm-p-candidates-file-init ()
   (cl-destructuring-bind (file &optional updating)
@@ -76,21 +69,6 @@
         (font-lock-mode -1)
         (auto-revert-mode 1)))))
 
-(helm-document-attribute 'candidates-file "candidates-file plugin"
-  "  Use a file as the candidates buffer.
-
-  1st argument is a filename, string or function name or variable
-  name. If optional 2nd argument is non-nil, the file is opened with
-  `auto-revert-mode' enabled.
-
-  Example:
-
-  \(defvar helm-source-test-file
-    '((name . \"test1\")
-      (candidates-file \"~/.emacs.el\" t)))
-
-  Will list all lines in .emacs.el.")
-
 
 ;;; Plug-in: `persistent-help'
 ;;
@@ -99,7 +77,7 @@
   (if (assoc 'header-line source)
       source
       (append source '((header-line . helm-persistent-help-string)))))
-(add-to-list 'helm-compile-source-functions 'helm-compile-source--persistent-help)
+;; (add-to-list 'helm-compile-source-functions 'helm-compile-source--persistent-help)
 
 (defun helm-persistent-help-string ()
   (substitute-command-keys
@@ -117,13 +95,6 @@
                "")
            " (keeping session)")))
 
-
-;;; Document new attributes
-;;
-;;
-(helm-document-attribute 'persistent-help "persistent-help plug-in"
-  "  A string to explain persistent-action of this source. It also
-  accepts a function or a variable name.")
 
 
 (provide 'helm-plugin)
