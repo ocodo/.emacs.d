@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "jist" "jist.el" (22160 38896 604975 191000))
+;;;### (autoloads nil "jist" "jist.el" (22405 60872 620492 368000))
 ;;; Generated autoloads from jist.el
 
 (autoload 'jist-dired "jist" "\
@@ -74,6 +74,11 @@ Delete gist identified by ID.
 
 \(fn ID)" t nil)
 
+(autoload 'jist-print-gist "jist" "\
+Show a gist identified by ID and put into `kill-ring'.
+
+\(fn ID)" t nil)
+
 (autoload 'jist-browse-gist "jist" "\
 Show a gist identified by ID in a browser using `browse-url'.
 
@@ -104,10 +109,15 @@ Refetch the gists of a jist-list-mode buffer.
 
 \(fn)" t nil)
 
+(autoload 'jist-fetch-next-page "jist" "\
+Fetch the next page of the gists of a jist-list-mode buffer.
+
+\(fn)" t nil)
+
 (autoload 'jist-list "jist" "\
 Show the list of gists.
 
-\(fn &key (user nil) (public nil) (starred nil))" t nil)
+\(fn &key (page nil) (user nil) (public nil) (starred nil))" t nil)
 
 (autoload 'jist-list-user "jist" "\
 Show a list of gist of a github USER.
