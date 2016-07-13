@@ -3,8 +3,8 @@
 ;; Copyright (C) 2006-2009, 2011-2012, 2015, 2016
 ;;   Phil Hagelberg, Doug Alcorn, Will Farrington, Chen Bin
 ;;
-;; Version: 5.1.0
-;; Package-Version: 20160625.619
+;; Version: 5.2.0
+;; Package-Version: 20160712.1541
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -99,7 +99,11 @@
 ;; a regex "\\(dec\\).*\\(fun\\).*\\(pro\\)"
 ;; `C-h i g (ivy)' for more key-binding tips.
 ;;
-;; You switch to ido-mode by `(setq ffip-prefer-ido-mode t)'
+;; `ffip-save-ivy-last' saves the most recent search result.
+;; `ffip-ivy-resume' re-use the save result. Both requires `ivy-mode'
+;; installed. You can use `ivy-resume' too.
+;;
+;; You can switch to ido-mode by `(setq ffip-prefer-ido-mode t)'
 
 ;; GNU Find can be installed,
 ;;   - through `Brew' on OS X
@@ -248,6 +252,9 @@ Use this to exclude portions of your project: \"-not -regex \\\".*svn.*\\\"\".")
 
 This overrides variable `ffip-project-root' when set.")
 
+(defvar ffip-ivy-last-saved nil
+  "Backup of `ivy-last'.  Requires ivy-mode.")
+
 (defvar ffip-full-paths t
   "If non-nil, show fully project-relative paths.")
 
@@ -299,6 +306,22 @@ If the result is true, return the function."
 
     rlt))
 
+;;;###autoload
+(defun ffip-save-ivy-last ()
+  "Save `ivy-last' into `ffip-ivy-last-saved'.  Requires `ivy-mode'."
+  (interactive)
+  (if (boundp 'ivy-last)
+      (setq ffip-ivy-last-saved ivy-last)
+    (message "Sorry. You need install `ivy-mode' first.")))
+
+;;;###autoload
+(defun ffip-ivy-resume ()
+  "Wrapper of `ivy-resume'.  Resume the search saved at `ffip-ivy-last-saved'."
+  (interactive)
+  (let* ((ivy-last ffip-ivy-last-saved))
+    (if (fboundp 'ivy-resume)
+        (ivy-resume)
+      (message "Sorry. You need install `ivy-mode' first."))))
 
 ;;;###autoload
 (defun ffip-filename-identity (keyword)
@@ -484,7 +507,6 @@ If KEYWORD is list, it's the list of file names."
 (defun ffip-find-files (keyword open-another-window &optional find-directory fn)
   "The API to find files."
   (let* (project-files
-         files
          lnum
          file
          root)
@@ -496,30 +518,28 @@ If KEYWORD is list, it's the list of file names."
       (setq keyword (match-string 1 keyword)))
 
     (setq project-files (ffip-project-search keyword find-directory))
-    (setq files (mapcar 'car project-files))
-    (if (> (length files) 0)
+    (if (> (length project-files) 0)
         (progn
           (setq root (file-name-nondirectory
                       (directory-file-name
                        (or ffip-project-root (ffip-project-root)))))
           (ffip-completing-read
            (format "Find in %s/: " root)
-           files
+           project-files
            (lambda (file)
-             (let ((rlt (cdr (assoc file project-files))))
-               (if find-directory
-                   ;; open dired because this rlt is a directory
-                   (if open-another-window
-                       (dired-other-window rlt)
-                     (switch-to-buffer (dired rlt)))
-                 ;; open file
+             ;; only one item in project files
+             (if (listp file) (setq file (cdr file)))
+             (if find-directory
                  (if open-another-window
-                     (find-file-other-window rlt)
-                   (find-file rlt))
-                 ;; goto line if needed
-                 (ffip--forward-line lnum)
-                 (if fn (funcall fn rlt))
-                 )))))
+                     (dired-other-window file)
+                   (switch-to-buffer (dired file)))
+               ;; open file
+               (if open-another-window
+                   (find-file-other-window file)
+                 (find-file file))
+               ;; goto line if needed
+               (ffip--forward-line lnum)
+               (if fn (funcall fn file))))))
       (message "Nothing found!"))))
 
 (defun ffip--prepare-root-data-for-project-file (root)

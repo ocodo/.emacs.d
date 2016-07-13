@@ -4,13 +4,23 @@
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22396 29107 518448 514000))
+;;;;;;  (22405 60906 752433 510000))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-project-root "find-file-in-project" "\
 Return the root of the project.
 
 \(fn)" nil nil)
+
+(autoload 'ffip-save-ivy-last "find-file-in-project" "\
+Save `ivy-last' into `ffip-ivy-last-saved'.  Requires `ivy-mode'.
+
+\(fn)" t nil)
+
+(autoload 'ffip-ivy-resume "find-file-in-project" "\
+Wrapper of `ivy-resume'.  Resume the search saved at `ffip-ivy-last-saved'.
+
+\(fn)" t nil)
 
 (autoload 'ffip-filename-identity "find-file-in-project" "\
 Return identical KEYWORD.
