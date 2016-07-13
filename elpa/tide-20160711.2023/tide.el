@@ -4,7 +4,7 @@
 
 ;; Author: Anantha kumaran <ananthakumaran@gmail.com>
 ;; URL: http://github.com/ananthakumaran/tide
-;; Version: 1.8.10
+;; Version: 2.0.0-beta
 ;; Keywords: typescript
 ;; Package-Requires: ((dash "2.10.0") (flycheck "27") (emacs "24.1") (typescript-mode "0.1") (cl-lib "0.5"))
 
@@ -49,6 +49,15 @@
 (defcustom tide-tsserver-process-environment '()
   "List of extra environment variables to use when starting tsserver."
   :type '(repeat string)
+  :group 'tide)
+
+(defcustom tide-tsserver-executable nil
+  "Name of tsserver executable to run instead of the bundled tsserver.
+
+This may either be a path or a name to be looked up in
+`exec-path'. Note that this option only works with TypeScript
+version 2.0 and above."
+  :type '(choice (const nil) string)
   :group 'tide)
 
 (defvar tide-format-options '()
@@ -286,7 +295,10 @@ LINE is one based, OFFSET is one based and column is zero based"
   (let* ((default-directory (tide-project-root))
          (process-environment (append tide-tsserver-process-environment process-environment))
          (buf (generate-new-buffer tide-server-buffer-name))
-         (process (start-file-process "tsserver" buf "node" (expand-file-name "tsserver.js" tide-tsserver-directory))))
+         (process
+          (if tide-tsserver-executable
+              (start-file-process "tsserver" buf tide-tsserver-executable)
+            (start-file-process "tsserver" buf "node" (expand-file-name "tsserver.js" tide-tsserver-directory)))))
     (set-process-coding-system process 'utf-8-unix 'utf-8-unix)
     (set-process-filter process #'tide-net-filter)
     (set-process-sentinel process #'tide-net-sentinel)
@@ -345,8 +357,18 @@ LINE is one based, OFFSET is one based and column is zero based"
 
 (defun tide-file-format-options ()
   (tide-combine-plists
-   `(:tabSize ,tab-width)
+   `(:tabSize ,tab-width :indentSize ,(tide-current-indentsize))
    tide-format-options))
+
+(defun tide-current-indentsize ()
+  (pcase major-mode
+    (`typescript-mode typescript-indent-level)
+    (`js2-mode js2-basic-offset)
+    (`js-mode js-indent-level)
+    (`js3-mode js3-indent-level)
+    (`web-mode web-mode-code-indent-offset)
+    (`js2-jsx-mode sgml-basic-offset)
+    (_ standard-indent)))
 
 (defun tide-command:configure ()
   (tide-send-command "configure" `(:hostInfo ,(emacs-version) :file ,buffer-file-name :formatOptions ,(tide-file-format-options))))
@@ -590,7 +612,7 @@ With a prefix arg, Jump to the type definition."
   (let* ((file-location
           `(:file ,buffer-file-name :line ,(tide-line-number-at-pos) :offset ,(- (tide-current-offset) (length prefix)))))
     (when (not (tide-member-completion-p prefix))
-      (plist-put file-location :prefix prefix))
+      (setq file-location (plist-put file-location :prefix prefix)))
     (tide-send-command
      "completions"
      file-location
@@ -937,10 +959,36 @@ number."
 ;;; Error highlighting
 
 (defun tide-command:geterr (cb)
-  (tide-send-command
-   "geterr"
-   `(:responseType "response" :files (,buffer-file-name))
-   cb))
+  (let* ((result '())
+         (resolved nil)
+         (err nil))
+    (cl-flet
+        ((resolve ()
+                  (when (not resolved)
+                    (if err
+                        (progn
+                          (setq resolved t)
+                          (funcall cb err))
+                      (when (and (plist-member result :syntaxDiag)
+                                 (plist-member result :semanticDiag))
+                        (setq resolved t)
+                        (funcall cb `(:body (,result) :success t)))))))
+      (tide-send-command
+       "syntacticDiagnosticsSync"
+       `(:file ,buffer-file-name)
+       (lambda (response)
+         (if (tide-response-success-p response)
+             (setq result (plist-put result :syntaxDiag (plist-get response :body)))
+           (setq err response))
+         (resolve)))
+      (tide-send-command
+       "semanticDiagnosticsSync"
+       `(:file ,buffer-file-name)
+       (lambda (response)
+         (if (tide-response-success-p response)
+             (setq result (plist-put result :semanticDiag (plist-get response :body)))
+           (setq err response))
+         (resolve))))))
 
 (defun tide-parse-error (response checker)
   (-map
