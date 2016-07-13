@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "flyspell-correct" "flyspell-correct.el" (22396
-;;;;;;  29092 335139 548000))
+;;;### (autoloads nil "flyspell-correct" "flyspell-correct.el" (22405
+;;;;;;  60901 608442 324000))
 ;;; Generated autoloads from flyspell-correct.el
 
 (autoload 'flyspell-correct-word-generic "flyspell-correct" "\

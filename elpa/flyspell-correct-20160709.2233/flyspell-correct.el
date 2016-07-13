@@ -4,7 +4,7 @@
 ;;
 ;; Author: Boris Buliga <d12frosted@gmail.com>
 ;; URL: https://github.com/d12frosted/flyspell-correct
-;; Package-Version: 20160612.2145
+;; Package-Version: 20160709.2233
 ;; Package-X-Original-version: 0.1
 ;;
 ;; This file is not part of GNU Emacs.
@@ -59,6 +59,8 @@ or (command, word) tuple that will be passed to
   "Correct word before point using `flyspell-correct-interface'.
 Adapted from `flyspell-correct-word-before-point'."
   (interactive)
+  (unless flyspell-correct-interface
+    (error "Could not correct word because `flyspell-correct-interface' is not set."))
   ;; use the correct dictionary
   (flyspell-accept-buffer-local-defs)
   (let ((cursor-location (point))
@@ -104,18 +106,7 @@ Adapted from `flyspell-correct-word-before-point'."
           (ispell-pdict-save t)))))
 
 ;;; Previous word correction
-;; mostly stolen from flyspell.el
-
-(defvar flyspell-correct-previous-word--pos nil
-  "Holds the start of the first incorrect word before point.")
-
-(defun flyspell-correct-previous-word-hook ()
-  "Hook to track successive calls to `flyspell-correct-previous-word-generic'.
-Sets `flyspell-correct-previous-word--pos' to nil"
-  (interactive)
-  (remove-hook 'pre-command-hook (function flyspell-correct-previous-word-hook) t)
-  (unless (eq this-command (function flyspell-correct-previous-word-generic))
-    (setq flyspell-correct-previous-word--pos nil)))
+;;
 
 ;;;###autoload
 (defun flyspell-correct-previous-word-generic (position)
@@ -124,53 +115,34 @@ But don't look beyond what's visible on the screen.
 
 Uses `flyspell-correct-word-generic' function for correction."
   (interactive "d")
-
   (let ((top (window-start))
-        (bot (window-end)))
+        (bot (window-end))
+        (incorrect-word-pos)
+        (position-at-incorrect-word))
     (save-excursion
       (save-restriction
         (narrow-to-region top bot)
         (overlay-recenter (point))
 
-        (add-hook 'pre-command-hook
-                  (function flyspell-correct-previous-word-hook) t t)
+        (let ((overlay-list (overlays-in (point-min) (+ position 1)))
+              (overlay 'dummy-value))
 
-        (unless flyspell-correct-previous-word--pos
-          ;; only reset if a new overlay exists
-          (setq flyspell-correct-previous-word--pos nil)
+          (while overlay
+            (setq overlay (car-safe overlay-list))
+            (setq overlay-list (cdr-safe overlay-list))
+            (when (and overlay
+                       (flyspell-overlay-p overlay))
+              (setq position-at-incorrect-word (and (<= (overlay-start overlay) position)
+                                                    (>= (overlay-end overlay) position)))
+              (setq incorrect-word-pos (overlay-start overlay))
+              (setq overlay nil)))
 
-          (let ((overlay-list (overlays-in (point-min) (+ position 1)))
-                (point-at-incorrect (not (null (overlays-in position (+ position 1)))))
-                (new-overlay 'dummy-value))
-
-            (when point-at-incorrect
-              (setq new-overlay (car (last overlay-list))))
-
-            ;; search for previous (new) flyspell overlay
-            (while (and new-overlay
-                        (not point-at-incorrect)
-                        (or (not (flyspell-overlay-p new-overlay))
-                            ;; check if its face has changed
-                            (not (eq (get-char-property
-                                      (overlay-start new-overlay) 'face)
-                                     'flyspell-incorrect))))
-              (setq new-overlay (car-safe overlay-list))
-              (setq overlay-list (cdr-safe overlay-list)))
-
-            ;; if nothing new exits new-overlay should be nil
-            (if new-overlay ;; the length of the word may change so go to the start
-                (setq flyspell-correct-previous-word--pos
-                      (overlay-start new-overlay)))))
-
-        (when flyspell-correct-previous-word--pos
-          (save-excursion
-            (goto-char flyspell-correct-previous-word--pos)
-            (let ((ispell-following-word t)) ;; point is at start
-              (if (numberp flyspell-correct-previous-word--pos)
-                  (goto-char flyspell-correct-previous-word--pos))
-              (flyspell-correct-word-generic))
-            ;; the point may have moved so reset this
-            (setq flyspell-correct-previous-word--pos (point))))))))
+          (when incorrect-word-pos
+            (save-excursion
+              (goto-char incorrect-word-pos)
+              (flyspell-correct-word-generic))))))
+    (when position-at-incorrect-word
+      (forward-word))))
 
 ;;; Automatically correct
 ;; based on `flyspell-popup-auto-correct-mode'
