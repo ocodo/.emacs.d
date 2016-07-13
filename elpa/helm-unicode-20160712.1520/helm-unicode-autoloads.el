@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-unicode" "helm-unicode.el" (21826 33820
-;;;;;;  467401 0))
+;;;### (autoloads nil "helm-unicode" "helm-unicode.el" (22405 60878
+;;;;;;  508482 158000))
 ;;; Generated autoloads from helm-unicode.el
 
 (autoload 'helm-unicode "helm-unicode" "\
