@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "company-nim" "company-nim.el" (22396 28940
-;;;;;;  463098 30000))
+;;;### (autoloads nil "company-nim" "company-nim.el" (22405 60837
+;;;;;;  880553 133000))
 ;;; Generated autoloads from company-nim.el
 
 (autoload 'company-nim "company-nim" "\
@@ -19,8 +19,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "nim-compile" "nim-compile.el" (22396 28940
-;;;;;;  451098 743000))
+;;;### (autoloads nil "nim-compile" "nim-compile.el" (22405 60837
+;;;;;;  872553 148000))
 ;;; Generated autoloads from nim-compile.el
 
 (autoload 'nim-compile "nim-compile" "\
@@ -30,8 +30,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22396 28940 451098
-;;;;;;  743000))
+;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22405 60837 868553
+;;;;;;  155000))
 ;;; Generated autoloads from nim-eldoc.el
 
 (autoload 'nim-eldoc-setup "nim-eldoc" "\
@@ -43,8 +43,8 @@ Setup eldoc configuration for nim-mode.
 
 ;;;***
 
-;;;### (autoloads nil "nim-mode" "nim-mode.el" (22396 28940 475097
-;;;;;;  318000))
+;;;### (autoloads nil "nim-mode" "nim-mode.el" (22405 60837 888553
+;;;;;;  120000))
 ;;; Generated autoloads from nim-mode.el
 
 (autoload 'nim-mode "nim-mode" "\
@@ -56,8 +56,8 @@ A major mode for the Nim programming language.
 
 ;;;***
 
-;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22396
-;;;;;;  28940 447098 980000))
+;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22405
+;;;;;;  60837 868553 155000))
 ;;; Generated autoloads from nimscript-mode.el
 
 (autoload 'nimscript-mode "nimscript-mode" "\
@@ -80,7 +80,7 @@ instead.  The default regex’s matching word is [Package].
 
 ;;;***
 
-;;;### (autoloads nil "ob-nim" "ob-nim.el" (22396 28940 431099 930000))
+;;;### (autoloads nil "ob-nim" "ob-nim.el" (22405 60837 852553 183000))
 ;;; Generated autoloads from ob-nim.el
 
 (autoload 'org-babel-execute:nim "ob-nim" "\
@@ -94,7 +94,7 @@ This function is called by `org-babel-execute-src-block'.
 ;;;### (autoloads nil nil ("flycheck-nim-async.el" "nim-fill.el"
 ;;;;;;  "nim-helper.el" "nim-mode-pkg.el" "nim-rx.el" "nim-smie.el"
 ;;;;;;  "nim-suggest.el" "nim-syntax.el" "nim-thing-at-point.el"
-;;;;;;  "nim-util.el" "nim-vars.el") (22396 28940 484248 390000))
+;;;;;;  "nim-util.el" "nim-vars.el") (22405 60837 895633 449000))
 
 ;;;***
 
