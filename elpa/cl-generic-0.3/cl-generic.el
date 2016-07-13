@@ -1,10 +1,10 @@
 ;;; cl-generic.el --- Forward cl-generic compatibility for Emacs<25
 
-;; Copyright (C) 2015  Free Software Foundation, Inc
+;; Copyright (C) 2015, 2016  Free Software Foundation, Inc
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; vcomment: Emacs-25's version is 1.0 so this has to stay below.
-;; Version: 0.2
+;; Version: 0.3
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -84,18 +84,32 @@
   ;; `cl-no-applicable-method' errors.
   (push 'cl-no-applicable-method (get 'no-method-definition 'error-conditions))
 
+  (defalias 'cl-generic-apply #'apply)
+
   (defmacro cl-defmethod (name args &rest body)
     (let ((qualifiers nil))
       (while (not (listp args))
         (push args qualifiers)
         (setq args (pop body)))
-      (let ((arg1 (car args)))
-        (when (eq (car-safe (car (cdr-safe arg1))) 'subclass)
-          ;; There's no exact equivalent to `subclass', but :static
-          ;; provides a superset which should work just as well in practice.
-          (push :static qualifiers)
-          (setf (cadr arg1) (cadr (cadr arg1)))))
       (let ((docstring (if (and (stringp (car body)) (cdr body)) (pop body))))
+        ;; Backward compatibility for `no-next-method' and
+        ;; `no-applicable-method', which have slightly different calling
+        ;; convention than their cl-generic counterpart.
+        (pcase name
+          (`cl-no-next-method
+           (setq name 'no-next-method)
+           (setq args (cddr args)))
+          (`cl-no-applicable-method
+           (setq name 'no-applicable-method)
+           (setq args `(,(nth 1 args) ,(nth 0 args)
+                        ,(make-symbol "_ignore") . ,(nthcdr 2 args)))))
+        (let ((arg1 (car args)))
+          (when (eq (car-safe (car (cdr-safe arg1))) 'subclass)
+            ;; There's no exact equivalent to `subclass', but :static
+            ;; provides a superset which should work just as well in practice.
+            (push :static qualifiers)
+            (setf (cadr arg1) (cadr (cadr arg1)))))
+
         `(defmethod ,name ,@qualifiers ,args
            ,@(if docstring (list docstring))
            ;; We could just alias `cl-call-next-method' to `call-next-method',
@@ -112,10 +126,17 @@
                       ((cl-call-next-method (&rest args)
                                             (apply #'call-next-method args))
                        (cl-next-method-p () (next-method-p)))
-                   ,@body))))))))
+                  ,@body))))))))
 
 ;;;; ChangeLog:
 
+;; 2016-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+;; 
+;; 	* cl-generic/cl-generic.el (cl-defmethod): Improve compatibility
+;; 
+;; 	More specifically, map cl-no-applicable-method to no-applicable-method.
+;; 	(cl-generic-apply): New function.
+;; 
 ;; 2015-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 ;; 
 ;; 	* cl-generic/cl-generic.el (cl-defmethod): Use cl-flet if available.
