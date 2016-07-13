@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22396 29135 909201
-;;;;;;  169000))
+;;;### (autoloads nil "counsel" "counsel.el" (22405 60908 752430
+;;;;;;  82000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -121,8 +121,11 @@ INITIAL-INPUT can be given as the initial minibuffer input.
 (autoload 'counsel-ag "counsel" "\
 Grep for a string in the current directory using ag.
 INITIAL-INPUT can be given as the initial minibuffer input.
+INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
+EXTRA-AG-ARGS string, if non-nil, is appended to `counsel-ag-base-command'.
+AG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument.
 
-\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
+\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY EXTRA-AG-ARGS AG-PROMPT)" t nil)
 
 (autoload 'counsel-pt "counsel" "\
 Grep for a string in the current directory using pt.
