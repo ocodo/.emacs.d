@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "avy" "avy.el" (22396 29158 8268 969000))
+;;;### (autoloads nil "avy" "avy.el" (22405 60928 772395 952000))
 ;;; Generated autoloads from avy.el
 
 (autoload 'avy-goto-char "avy" "\
@@ -158,6 +158,44 @@ The window scope is determined by `avy-all-windows' or
 Select two lines and move the text between them here.
 
 \(fn)" t nil)
+
+(autoload 'avy-kill-region "avy" "\
+Select two lines and kill the region between them.
+
+The window scope is determined by `avy-all-windows' or
+`avy-all-windows-alt' when ARG is non-nil.
+
+\(fn ARG)" t nil)
+
+(autoload 'avy-kill-ring-save-region "avy" "\
+Select two lines and save the region between them to the kill ring.
+
+\(fn ARG)" t nil)
+
+(autoload 'avy-kill-whole-line "avy" "\
+Select line and kill the whole selected line.
+
+With a numerical prefix ARG, kill ARG line(s) starting from the
+selected line. If ARG is negative, kill backward.
+
+If ARG is zero, kill the selected line but exclude the trailing
+newline.
+
+\\[universal-argument] 3 \\[avy-kil-whole-line] kill three lines
+starting from the selected line.  \\[universal-argument] -3
+
+\\[avy-kill-whole-line] kill three lines backward including the
+selected line.
+
+\(fn ARG)" t nil)
+
+(autoload 'avy-kill-ring-save-whole-line "avy" "\
+Select line and Save the whole selected line as if killed, but don’t kill it.
+
+This command is similar to `avy-kill-whole-line', except that it
+saves the line(s) as if killed, but does not kill it(them).
+
+\(fn ARG)" t nil)
 
 (autoload 'avy-setup-default "avy" "\
 Setup the default shortcuts.
