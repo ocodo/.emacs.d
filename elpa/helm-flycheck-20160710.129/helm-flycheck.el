@@ -3,10 +3,10 @@
 ;; Copyright (C) 2013-2016 Yasuyuki Oka <yasuyk@gmail.com>
 
 ;; Author: Yasuyuki Oka <yasuyk@gmail.com>
-;; Version: 0.3
-;; Package-Version: 20160318.2317
+;; Version: 0.4
+;; Package-Version: 20160710.129
 ;; URL: https://github.com/yasuyk/helm-flycheck
-;; Package-Requires: ((dash "2.12.1") (flycheck "0.25.1") (helm "1.9.3"))
+;; Package-Requires: ((dash "2.12.1") (flycheck "28") (helm-core "1.9.8"))
 ;; Keywords: helm, flycheck
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -46,7 +46,9 @@
     (candidates . helm-flycheck-candidates)
     (action-transformer helm-flycheck-action-transformer)
     (multiline)
-    (action . (("Go to" . helm-flycheck-action-goto-error)))))
+    (action . (("Go to" . helm-flycheck-action-goto-error)))
+    (follow . 1)))
+
 
 (defvar helm-flycheck-candidates nil)
 
@@ -137,11 +139,14 @@ Inspect the *Messages* buffer for details.")
                (-map #'overlay-start)
                -uniq
                (-sort #'<=))))
-      (goto-char error-pos))))
+      (goto-char error-pos)
+      (let ((recenter-redisplay nil))
+        (recenter)))))
 
 (defun helm-flycheck-action-reexecute (candidate)
   "Reexecute `helm-flycheck' without CANDIDATE."
-  (helm-run-after-exit 'helm-flycheck))
+  (catch 'exit
+    (helm-run-after-exit 'helm-flycheck)))
 
 (defun helm-flycheck-action-switch-to-messages-buffer (candidate)
   "Switch to *Messages* buffer without CANDIDATE."

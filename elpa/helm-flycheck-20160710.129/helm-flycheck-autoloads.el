@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "helm-flycheck" "helm-flycheck.el" (22271 10535
-;;;;;;  446727 664000))
+;;;### (autoloads nil "helm-flycheck" "helm-flycheck.el" (22405 60885
+;;;;;;  112470 732000))
 ;;; Generated autoloads from helm-flycheck.el
 
 (autoload 'helm-flycheck "helm-flycheck" "\
