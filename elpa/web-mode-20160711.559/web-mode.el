@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.13
-;; Package-Version: 20160702.718
+;; Version: 14.0.17
+;; Package-Version: 20160711.559
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.13"
+(defconst web-mode-version "14.0.17"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -1846,6 +1846,9 @@ Must be used in conjunction with web-mode-enable-block-face."
   (list
    '("\\(throws\\|new\\|extends\\)[ ]+\\([[:alnum:].]+\\)" 2 'web-mode-type-face)
    (cons (concat "\\_<\\(" web-mode-jsp-keywords "\\)\\_>") '(0 'web-mode-keyword-face))
+   '("\\(public\\|private\\)[ ]+\\([[:alpha:]]+\\)[ ]+\\([[:alnum:]._]+\\)[ ]?("
+     (2 'web-mode-type-face)
+     (3 'web-mode-function-name-face))
    '("\\_<\\([[:alnum:]._]+\\)[ ]?(" 1 'web-mode-function-call-face)
    '("@\\(\\sw*\\)" 1 'web-mode-variable-name-face)
    '("\\_<\\([[:alnum:].]+\\)[ ]+[{[:alpha:]]+" 1 'web-mode-type-face)
@@ -3665,6 +3668,9 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
        ((member web-mode-engine '("aspx" "underscore"))
         (cond
+         ((and (web-mode-block-starts-with "}" reg-beg)
+               (web-mode-block-ends-with "{" reg-beg))
+          (setq controls (append controls (list (cons 'inside "{")))))
          ((web-mode-block-starts-with "}" reg-beg)
           (setq controls (append controls (list (cons 'close "{")))))
          ((web-mode-block-ends-with "{" reg-beg)
@@ -9388,6 +9394,7 @@ Prompt user if TAG-NAME isn't provided."
         (unless (looking-at-p "[ ]*>")
           (setq ins (concat ins ">")))
         (insert ins)
+        (setq tag (downcase tag))
         (save-excursion
           (search-backward "<")
           (setq jump (and (eq (char-before) ?\>)
