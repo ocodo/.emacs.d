@@ -1083,7 +1083,7 @@ Has the following fields:
         (maphash #'(lambda (k v)
                      (let ((template (gethash name v)))
                        (when (and template
-                                  (eq uuid (yas--template-uuid template)))
+                                  (equal uuid (yas--template-uuid template)))
                          (remhash name v)
                          (when (zerop (hash-table-count v))
                            (push k empty-keys)))))
@@ -1916,7 +1916,8 @@ prefix argument."
 
 (defun yas-escape-text (text)
   "Escape TEXT for snippet."
-  (replace-regexp-in-string "[\\$]" "\\\\\\&" text))
+  (when text
+    (replace-regexp-in-string "[\\$]" "\\\\\\&" text)))
 
 
 ;;; Snippet compilation function
@@ -3415,14 +3416,15 @@ field start.  This hook does nothing if an undo is in progress."
     (let* ((inhibit-modification-hooks t)
            (field (overlay-get overlay 'yas--field))
            (snippet (overlay-get yas--active-field-overlay 'yas--snippet)))
-      (when (yas--skip-and-clear-field-p field beg end length)
-        ;; We delete text starting from the END of insertion.
-        (yas--skip-and-clear field end))
-      (setf (yas--field-modified-p field) t)
-      (yas--advance-end-maybe field (overlay-end overlay))
-      (save-excursion
-        (yas--field-update-display field))
-      (yas--update-mirrors snippet))))
+      (save-match-data
+        (when (yas--skip-and-clear-field-p field beg end length)
+          ;; We delete text starting from the END of insertion.
+          (yas--skip-and-clear field end))
+        (setf (yas--field-modified-p field) t)
+        (yas--advance-end-maybe field (overlay-end overlay))
+        (save-excursion
+          (yas--field-update-display field))
+        (yas--update-mirrors snippet)))))
 
 ;;; Apropos protection overlays:
 ;;
@@ -4008,8 +4010,11 @@ With optional string TEXT do it in string instead of the buffer."
 (defun yas--save-backquotes ()
   "Save all the \"`(lisp-expression)`\"-style expressions
 with their evaluated value into `yas--backquote-markers-and-strings'."
-  (let* ((yas--change-detected nil)
-         (detect-change (lambda (_beg _end) (setq yas--change-detected t))))
+  (let* ((yas--snippet-buffer (current-buffer))
+         (yas--change-detected nil)
+         (detect-change (lambda (_beg _end)
+                          (when (eq (current-buffer) yas--snippet-buffer)
+                            (setq yas--change-detected t)))))
     (while (re-search-forward yas--backquote-lisp-expression-regexp nil t)
       (let ((current-string (match-string-no-properties 1)) transformed)
         (save-restriction (widen)
