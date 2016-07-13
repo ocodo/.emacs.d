@@ -4,9 +4,9 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160629.2359
+;; Package-Version: 20160711.143
 ;; Keywords: project, convenience
-;; Version: 0.14.0-cvs
+;; Version: 0.14.0
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -218,6 +218,26 @@ Otherwise consider the current directory the project root."
   "The command Projectile's going to use to generate a TAGS file."
   :group 'projectile
   :type 'string)
+
+(defcustom projectile-tags-backend 'auto
+  "The tag backend that Projectile should use.
+
+If set to 'auto', `projectile-find-tag' will automatically choose
+which backend to use. Preference order is ggtags -> etags-select
+-> find-tag. Variable can also be set to specify which backend to
+use. If selected backend is unavailable, fall back to `find-tag'.
+
+If this variable is set to 'auto' and ggtags is available, or if
+set to 'ggtags', then ggtags will be used for
+`projectile-regenerate-tags'. For all other settings
+`projectile-tags-command' will be used."
+  :group 'projectile
+  :type '(radio
+          (const :tag "auto" auto)
+          (const :tag "ggtags" ggtags)
+          (const :tag "etags" etags-select)
+          (const :tag "standard" find-tag))
+  :package-version '(projectile . "0.14.0"))
 
 (defcustom projectile-sort-order 'default
   "The sort order used for a project's files."
@@ -703,8 +723,11 @@ The cache is created both in memory and on the hard drive."
 ;; cache opened files automatically to reduce the need for cache invalidation
 (defun projectile-cache-files-find-file-hook ()
   "Function for caching files with `find-file-hook'."
-  (when (and projectile-enable-caching (projectile-project-p))
-    (projectile-cache-current-file)))
+  (let ((project-root (projectile-project-p)))
+    (when (and projectile-enable-caching
+               project-root
+               (not (projectile-ignored-project-p project-root)))
+      (projectile-cache-current-file))))
 
 (defun projectile-cache-projects-find-file-hook ()
   "Function for caching projects with `find-file-hook'."
@@ -721,6 +744,23 @@ The cache is created both in memory and on the hard drive."
   (when (or force (file-newer-than-file-p (projectile-dirconfig-file)
                                           projectile-cache-file))
     (projectile-invalidate-cache nil)))
+
+;;;###autoload
+(defun projectile-discover-projects-in-directory (directory)
+  "Discover any projects in DIRECTORY and add them to the projectile cache.
+This function is not recursive and only adds projects with roots
+at the top level of DIRECTORY."
+  (interactive
+   (list (read-directory-name "Starting directory: ")))
+  (let ((subdirs (directory-files directory t)))
+    (mapcar
+     (lambda (dir)
+       (when (and (file-directory-p dir)
+                  (not (member (file-name-nondirectory dir) '(".." "."))))
+         (let ((default-directory dir))
+           (when (projectile-project-p)
+             (projectile-add-known-project (projectile-project-root))))))
+     subdirs)))
 
 
 (defadvice delete-file (before purge-from-projectile-cache (filename &optional trash))
@@ -2156,7 +2196,8 @@ regular expression."
 (defun projectile-regenerate-tags ()
   "Regenerate the project's [e|g]tags."
   (interactive)
-  (if (boundp 'ggtags-mode)
+  (if (and (boundp 'ggtags-mode)
+       (memq projectile-tags-backend '(auto ggtags)))
       (progn
         (let* ((ggtags-project-root (projectile-project-root))
                (default-directory ggtags-project-root))
@@ -2175,7 +2216,8 @@ regular expression."
                             (buffer-substring (point-min) (point-max)))))
       (unless (zerop exit-code)
         (error shell-output))
-      (visit-tags-table tags-file))))
+      (visit-tags-table tags-file)
+      (message "Regenerated %s" tags-file))))
 
 (defun projectile-visit-project-tags-table ()
   "Visit the current project's tags table."
@@ -2185,19 +2227,31 @@ regular expression."
         (with-demoted-errors "Error loading tags-file: %s"
           (visit-tags-table tags-file t))))))
 
+(defun projectile-determine-find-tag-fn ()
+  "Determine which function to use for a call to `projectile-find-tag'."
+  (cond
+    ((eq projectile-tags-backend 'auto)
+      (cond
+        ((fboundp 'ggtags-find-tag-dwim)
+          'ggtags-find-tag-dwim)
+        ((fboundp 'etags-select-find-tag)
+          'etags-select-find-tag)
+        (t 'find-tag)))
+    ((eq projectile-tags-backend 'ggtags)
+      (if (fboundp 'ggtags-find-tag-dwim)
+        'ggtags-find-tag-dwim 'find-tag))
+    ((eq projectile-tags-backend 'etags-select)
+      (if (fboundp 'etags-select-find-tag)
+        'etags-select-find-tag 'find-tag))
+    (t 'find-tag)))
+
 ;;;###autoload
 (defun projectile-find-tag ()
   "Find tag in project."
   (interactive)
   (projectile-visit-project-tags-table)
   ;; Auto-discover the user's preference for tags
-  (let ((find-tag-fn (cond
-                      ((fboundp 'ggtags-find-tag-dwim)
-                       'ggtags-find-tag-dwim)
-                      ((fboundp 'etags-select-find-tag)
-                       'etags-select-find-tag)
-                      (t
-                       'find-tag))))
+  (let ((find-tag-fn (projectile-determine-find-tag-fn)))
     (call-interactively find-tag-fn)))
 
 (defmacro projectile-with-default-dir (dir &rest body)
@@ -3082,6 +3136,7 @@ is chosen."
    ["Open project in dired" projectile-dired]
    ["Switch to project" projectile-switch-project]
    ["Switch to open project" projectile-switch-open-project]
+   ["Discover projects in directory" projectile-discover-projects-in-directory]
    ["Search in project (grep)" projectile-grep]
    ["Search in project (ag)" projectile-ag]
    ["Replace in project" projectile-replace]

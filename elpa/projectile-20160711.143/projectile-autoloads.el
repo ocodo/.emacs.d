@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "projectile" "projectile.el" (22396 28891 318142
-;;;;;;  763000))
+;;;### (autoloads nil "projectile" "projectile.el" (22405 60805 52611
+;;;;;;  411000))
 ;;; Generated autoloads from projectile.el
 
 (autoload 'projectile-version "projectile" "\
@@ -44,6 +44,13 @@ Purge DIR from the cache of the current project.
 Add the currently visited file to the cache.
 
 \(fn)" t nil)
+
+(autoload 'projectile-discover-projects-in-directory "projectile" "\
+Discover any projects in DIRECTORY and add them to the projectile cache.
+This function is not recursive and only adds projects with roots
+at the top level of DIRECTORY.
+
+\(fn DIRECTORY)" t nil)
 
 (autoload 'projectile-switch-to-buffer "projectile" "\
 Switch to a project buffer.
