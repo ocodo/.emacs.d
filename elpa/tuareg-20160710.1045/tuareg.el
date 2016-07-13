@@ -1,4 +1,4 @@
-;; tuareg.el --- OCaml mode for Emacs.  -*- coding: utf-8 -*-
+;;; tuareg.el --- OCaml mode for Emacs.  -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
@@ -645,7 +645,7 @@ Regexp match data 0 points to the chars."
       ("\\({\\)[a-z_]*|"
        (1 (prog1 "|" (tuareg--syntax-quotation end))))
       )
-     start end)))
+     (point) end)))
 
 (defun tuareg--syntax-quotation (end)
   (let ((ppss (syntax-ppss)))
@@ -653,7 +653,7 @@ Regexp match data 0 points to the chars."
       (ecase (char-after (nth 8 ppss))
         (?<
          ;; We're indeed inside a quotation.
-         (when (re-search-forward ">>" end t)
+         (when (re-search-forward ">>" end 'move)
            (put-text-property (1- (point)) (point)
                               'syntax-table (string-to-syntax "|"))))
         (?\{
@@ -664,7 +664,7 @@ Regexp match data 0 points to the chars."
                      (buffer-substring (point)
                                        (progn (skip-chars-forward "a-z_")
                                               (point))))))
-           (when (search-forward (concat "|" id "}") end t)
+	   (when (search-forward (concat "|" id "}") end 'move)
              (put-text-property (1- (point)) (point)
                                 'syntax-table (string-to-syntax "|")))))))))
 
