@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "slack" "slack.el" (22396 28870 671500 797000))
+;;;### (autoloads nil "slack" "slack.el" (22405 60798 40623 961000))
 ;;; Generated autoloads from slack.el
 
 (autoload 'slack-start "slack" "\
@@ -13,8 +13,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "slack-team" "slack-team.el" (22396 28870 675500
-;;;;;;  529000))
+;;;### (autoloads nil "slack-team" "slack-team.el" (22405 60798 44623
+;;;;;;  954000))
 ;;; Generated autoloads from slack-team.el
 
 (autoload 'slack-register-team "slack-team" "\
@@ -32,10 +32,10 @@ you can change current-team with `slack-change-current-team'
 ;;;;;;  "slack-channel.el" "slack-file.el" "slack-group.el" "slack-im.el"
 ;;;;;;  "slack-message-editor.el" "slack-message-formatter.el" "slack-message-notification.el"
 ;;;;;;  "slack-message-reaction.el" "slack-message-sender.el" "slack-message.el"
-;;;;;;  "slack-pkg.el" "slack-reaction.el" "slack-reply.el" "slack-request.el"
-;;;;;;  "slack-room.el" "slack-search.el" "slack-user-message.el"
-;;;;;;  "slack-user.el" "slack-util.el" "slack-websocket.el") (22396
-;;;;;;  28870 687448 203000))
+;;;;;;  "slack-pkg.el" "slack-reaction.el" "slack-reminder.el" "slack-reply.el"
+;;;;;;  "slack-request.el" "slack-room.el" "slack-search.el" "slack-user-message.el"
+;;;;;;  "slack-user.el" "slack-util.el" "slack-websocket.el") (22405
+;;;;;;  60798 57116 707000))
 
 ;;;***
 
