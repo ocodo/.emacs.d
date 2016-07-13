@@ -178,18 +178,6 @@
       (setq header-line-format
             (propertize header-msg 'face 'helm-perldoc:header-module-name)))))
 
-(defvar helm-perldoc:history-source
-  '((name . "Perldoc History")
-    (candidates . helm-perldoc:module-history)
-    (volatile)
-    (type . perldoc)))
-
-;;;###autoload
-(defun helm-perldoc:history ()
-  (interactive)
-  (helm :sources '(helm-perldoc:history-source)
-        :buffer "*helm-perldoc:history*"))
-
 (defsubst helm-perldoc:register-history (module)
   (add-to-list 'helm-perldoc:module-history module nil 'string=))
 
@@ -332,6 +320,18 @@
     ("View Source Code" . helm-perldoc:action-view-source)
     ("Import Modules" . helm-perldoc:action-insert-modules)
     ("Check by corelist" . helm-perldoc:action-check-corelist)))
+
+(defvar helm-perldoc:history-source
+  (helm-build-sync-source "Perldoc History"
+    :candidates 'helm-perldoc:module-history
+    :volatile t
+    :action helm-perldoc:actions))
+
+;;;###autoload
+(defun helm-perldoc:history ()
+  (interactive)
+  (helm :sources '(helm-perldoc:history-source)
+        :buffer "*helm-perldoc:history*"))
 
 (defvar helm-perldoc:imported-source
   (helm-build-sync-source "Imported Modules"
