@@ -4,7 +4,7 @@
 
 ;; Author: Xu Ma <magicdirac@gmail.com>
 ;; URL: https://github.com/magicdirac/flycheck
-;; Package-Version: 20160702.716
+;; Package-Version: 20160706.2343
 ;; keywords: tools, convenience, avy, flycheck
 ;; Version: 0.0.1-cvs
 ;; Package-Requires: ((emacs "24.1") (flycheck "0.14") (seq "1.11") (avy "0.4.0"))
@@ -63,7 +63,26 @@
 
 (defgroup avy-flycheck nil
   "Jump to and fix syntax errors `flycheck' with `avy' interface"
-  :group 'flycheck)
+  :group 'flycheck
+  :group 'avy
+  :prefix "avy-flycheck-")
+
+(defcustom avy-flycheck-dispatch-alist '((?m . avy-action-mark))
+  "List of actions for `avy-handler-default'.
+
+Each item is (KEY . ACTION).  When KEY not on `avy-keys' is
+pressed during the dispatch, ACTION is set to replace the default
+`avy-action-goto' once a candidate is finally selected."
+  :type
+  '(alist
+    :key-type (choice (character :tag "Char"))
+    :value-type (choice
+                 (const :tag "Mark" avy-action-mark)
+                 (const :tag "Copy" avy-action-copy)
+                 (const :tag "Kill and move point" avy-action-kill-move)
+                 (const :tag "Kill" avy-action-kill-stay)
+                 (const :tag "Spell Check" avy-action-ispell)
+                 )))
 
 (defcustom avy-flycheck-style 'pre
   "Method for displaying avy overlays.
@@ -141,24 +160,34 @@ Defaults to pre."
                     (append ;; sort per window basis.
                      (sort new-candidates
                            #'(lambda (a b) (<= (car a) (car b))))
-                     candidates)))))))
+                     (seq-uniq candidates))))))))
     candidates))
 
-(defun avy--flycheck (&optional arg beg end)
-  "Select a flycheck syntax error.
-The window scope is determined by `avy-all-windows' (ARG negates it).
-Narrow the scope to BEG END."
-  (let ((avy-action #'identity)
-        (candidates (avy--flycheck--cands arg beg end)))
-    (if candidates
-        (progn
-          (if (= 1 (length candidates))
-              (message "There is only one Syntax error and jump to it"))
-          (avy--process
-           candidates
-           (avy--style-fn avy-flycheck-style)))
-      (message "There is no Syntax error found.")
-      nil)))
+;; (defun avy--flycheck (&optional arg beg end)
+;;   "Select a flycheck syntax error.
+;; The window scope is determined by `avy-all-windows' (ARG negates it).
+;; Narrow the scope to BEG END."
+;;   (let ((avy-action #'identity)
+;;         (candidates (avy--flycheck--cands arg beg end)))
+;;     (if candidates
+;;         (progn
+;;           (if (= 1 (length candidates))
+;;               (message "There is only one Syntax error and jump to it"))
+;;           (avy--process
+;;            candidates
+;;            (avy--style-fn avy-flycheck-style)))
+;;       (message "There is no Syntax error found.")
+;;       nil)))
+
+;; ;;;###autoload
+;; (defun avy-flycheck-goto-error (&optional arg)
+;;   "Jump to a flycheck syntax error.
+;; The window scope is determined by `avy-all-windows' (ARG negates it)."
+;;   (interactive (list current-prefix-arg))
+;;   (avy-with avy-flycheck-goto-error
+;;     (let* ((r (avy--flycheck (eq arg 4))))
+;;       (unless (or (not r) (eq r t))
+;;         (avy-action-goto r)))))
 
 ;;;###autoload
 (defun avy-flycheck-goto-error (&optional arg)
@@ -166,9 +195,28 @@ Narrow the scope to BEG END."
 The window scope is determined by `avy-all-windows' (ARG negates it)."
   (interactive (list current-prefix-arg))
   (avy-with avy-flycheck-goto-error
-    (let* ((r (avy--flycheck (eq arg 4))))
-      (unless (or (not r) (eq r t))
-        (avy-action-goto r)))))
+    (let ((avy-dispatch-alist avy-flycheck-dispatch-alist)) ;; By-pass avy-action
+      (avy--process
+       (avy--flycheck--cands (eq arg 4))
+       (avy--style-fn avy-flycheck-style)))))
+
+;; ;;;###autoload
+;; (defun avy-flycheck-goto-error (&optional arg beg end)
+;;   "Jump to a flycheck syntax error.
+;; The window scope is determined by `avy-all-windows' (ARG negates it)."
+;;   (interactive (list current-prefix-arg))
+;;   (avy-with avy-flycheck-goto-error
+;;     (let ((avy-handler-function  ;; By-pass avy-action
+;;            (lambda (char)
+;;              (cond ((memq char '(27 ?\C-g))
+;;                     ;; exit silently
+;;                     (throw 'done 'exit))
+;;                    (t
+;;                     (signal 'user-error (list "No such candidate" char))
+;;                     (throw 'done nil))))))
+;;       (avy--process
+;;        (avy--flycheck--cands (eq arg 4) beg end)
+;;        (avy--style-fn avy-flycheck-style)))))
 
 ;;;###autoload
 (defun avy-flycheck-setup ()

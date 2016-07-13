@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "avy-flycheck" "avy-flycheck.el" (22396 28723
-;;;;;;  115747 978000))
+;;;### (autoloads nil "avy-flycheck" "avy-flycheck.el" (22405 60926
+;;;;;;  608399 628000))
 ;;; Generated autoloads from avy-flycheck.el
 
 (autoload 'avy-flycheck-goto-error "avy-flycheck" "\
