@@ -17,7 +17,7 @@
 
 ;; Author: Daniel E. Doherty <ded-commify@ddoherty.net>
 ;; Version: 1.1.2
-;; Package-Version: 20151110.138
+;; Package-Version: 20160711.511
 ;; Package-Requires: ((s "1.9.0"))
 ;; Keywords: convenience, editing, numbers, grouping, commas
 ;; URL: https://github.com/ddoherty03/commify
@@ -65,7 +65,7 @@
   :group 'commify)
 
 (defcustom commify-decimal-char "."
-  "Character to use for decimal point."
+  "Character recognized as the decimal point."
   :type 'string
   :group 'commify)
 
