@@ -1,0 +1,93 @@
+2016-05-30  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '3007b2917d71a7d66eb94876536dfd80b0661d40' from
+	context-coloring
+
+2016-02-21  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit 'f0b45f4a010d8e5680f66c9a22f433386d023466' from
+	context-coloring
+
+2015-11-12  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '1a7c480d1e15133b942201f5964fda5e7d74919f' from
+	context-coloring
+
+2015-10-18  Jackson Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '0c3a48f05d17f486a0c522f0f9ec316dce24d86d' from
+	context-coloring
+
+2015-06-21  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '32b276e96118f9e34f4cf9a5a2ae6cae3e772144' from
+	context-coloring
+
+2015-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* context-coloring/benchmark/fixtures: Tweak copyright lines
+
+2015-06-18  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '294b5117b42d2622f4fb0a1da219d45d98566b6e' from
+	context-coloring
+
+2015-06-13  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '5825163e2a8520bbb2751f9692f51a1b73cb81ad' from
+	context-coloring
+
+2015-06-13  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '40f67bf039c143758ac070f9693bb0af87b98aba' from
+	context-coloring
+
+2015-05-18  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '3bf805df83fe6f110f3e7e8ce2dc37e0cf6c14cb' from
+	context-coloring
+
+2015-05-05  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '283a006be8e96c7e011dedddb460b289d335a9fb' from
+	context-coloring
+
+2015-03-22  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '901db7732bf61d9809712e8adfad9f84adc2eb56' from
+	context-coloring
+
+2015-03-14  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit 'f062d5a55496e22cf89f2ef9778a24a840a5a68e' from
+	context-coloring
+
+2015-02-14  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit 'f4e1cbc5386fbf197ff8bcb6a9275f17c9cbe8e4' from
+	context-coloring
+
+2015-02-08  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '6f3ad757155b9b3089aba55ee6102ecc9bed647d' from
+	context-coloring
+
+2015-02-07  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '59de0b7591713d38c6d5c99cb49c4a4cc434a272' from
+	context-coloring
+
+2015-02-05  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit 'fedf88552990afa269366dfa4c3f5af6d1cdb7c2' from
+	context-coloring
+
+2015-02-04  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Add 'packages/context-coloring/' from commit
+	'f2b5d796d4dffc71b10503a8ae119bfa3274978e'
+
+	git-subtree-dir: packages/context-coloring git-subtree-mainline:
+	3c57fa96866983e1cf20ca2ab2f0db7c140ccd4d git-subtree-split:
+	f2b5d796d4dffc71b10503a8ae119bfa3274978e
+
