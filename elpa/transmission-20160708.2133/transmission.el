@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.9
-;; Package-Version: 20160626.2041
+;; Package-Version: 20160708.2133
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -209,16 +209,16 @@ caching built in or is otherwise slow."
     (seeding . 6))
   "Alist of possible Transmission torrent statuses.")
 
-(defconst transmission-torrent-get-fields
+(defconst transmission-draw-torrents-keys
   '("id" "name" "status" "eta" "error"
     "rateDownload" "rateUpload"
     "percentDone" "sizeWhenDone"
     "uploadRatio"))
 
-(defconst transmission-files-fields
+(defconst transmission-draw-files-keys
   '("name" "files" "fileStats" "downloadDir"))
 
-(defconst transmission-info-fields
+(defconst transmission-draw-info-keys
   '("name" "hashString" "magnetLink" "activityDate" "addedDate"
     "dateCreated" "doneDate" "startDate" "peers" "pieces" "pieceCount"
     "pieceSize" "trackerStats" "peersConnected" "peersGettingFromUs" "peersFrom"
@@ -846,6 +846,30 @@ point or in region--is non-nil, then BINDINGS and BODY are fed to
            ,@body)
        (user-error "No torrent selected"))))
 
+(defmacro transmission-with-window-maybe (window &rest body)
+  "If WINDOW is non-nil, execute BODY with WINDOW current.
+Otherwise, just execute BODY."
+  (declare (indent 1) (debug t))
+  `(if (null ,window) (progn ,@body)
+     (with-selected-window ,window
+       ,@body)))
+
+(defun transmission-window->state (window)
+  "Return a list containing some state of WINDOW.
+A simplification of `window-state-get', the list associates
+WINDOW with `window-start' and the line/column coordinates of `point'."
+  (transmission-with-window-maybe window
+    (list window (window-start) (line-number-at-pos) (current-column))))
+
+(defun transmission-restore-state (state)
+  "Set `window-start' and `window-point' according to STATE."
+  (pcase-let ((`(,window ,start ,line ,column) state))
+    (transmission-with-window-maybe window
+      (goto-char (point-min))
+      (goto-char (point-at-bol line))
+      (move-to-column column)
+      (setf (window-start) start))))
+
 
 ;; Interactive
 
@@ -1274,7 +1298,7 @@ Each form in BODY is a column descriptor."
          ,seq))
 
 (defun transmission-draw-torrents (_id)
-  (let* ((arguments `(:fields ,transmission-torrent-get-fields))
+  (let* ((arguments `(:fields ,transmission-draw-torrents-keys))
          (response (transmission-request "torrent-get" arguments)))
     (setq transmission-torrent-vector (transmission-torrents response)))
   (setq tabulated-list-entries nil)
@@ -1292,7 +1316,7 @@ Each form in BODY is a column descriptor."
   (tabulated-list-print))
 
 (defun transmission-draw-files (id)
-  (let* ((arguments `(:ids ,id :fields ,transmission-files-fields))
+  (let* ((arguments `(:ids ,id :fields ,transmission-draw-files-keys))
          (response (transmission-request "torrent-get" arguments)))
     (setq transmission-torrent-vector (transmission-torrents response)))
   (let* ((files (transmission-files-sort transmission-torrent-vector))
@@ -1310,7 +1334,7 @@ Each form in BODY is a column descriptor."
   (tabulated-list-print))
 
 (defun transmission-draw-info (id)
-  (let* ((arguments `(:ids ,id :fields ,transmission-info-fields))
+  (let* ((arguments `(:ids ,id :fields ,transmission-draw-info-keys))
          (response (transmission-request "torrent-get" arguments)))
     (setq transmission-torrent-vector (transmission-torrents response)))
   (erase-buffer)
@@ -1374,20 +1398,16 @@ Each form in BODY is a column descriptor."
 (defun transmission-refresh (&optional _arg _noconfirm)
   "Refresh the current buffer, restoring window position, point, and mark.
 Also run the timer for timer object `transmission-timer'."
-  (let* ((old-window-start (window-start))
-         (old-column (current-column))
-         (old-line (line-number-at-pos))
+  (let* ((old-states (or (mapcar #'transmission-window->state
+                                 (get-buffer-window-list nil nil t))
+                         (list (transmission-window->state nil))))
          (old-mark (when (region-active-p)
                      (let ((beg (region-beginning)))
                        (if (= (window-point) beg) (region-end) beg)))))
     (run-hooks 'before-revert-hook)
     (transmission-draw)
-    (goto-char (save-excursion
-                 (goto-char (point-min))
-                 (forward-line (1- old-line))
-                 (point)))
-    (move-to-column old-column)
-    (setf (window-start) old-window-start)
+    (run-hooks 'after-revert-hook)
+    (mapc #'transmission-restore-state old-states)
     (and old-mark (set-mark old-mark)))
   (transmission-timer-check))
 
@@ -1467,8 +1487,8 @@ Key bindings:
 (defvar transmission-info-font-lock-keywords
   (eval-when-compile
     `((,(rx bol (group (*? nonl) ":") (* blank) (group (* nonl)) eol)
-       (1 font-lock-type-face)
-       (2 font-lock-keyword-face))))
+       (1 'font-lock-type-face)
+       (2 'font-lock-keyword-face))))
   "Default expressions to highlight in `transmission-info-mode' buffers.")
 
 (defvar transmission-info-mode-map
