@@ -1,11 +1,9 @@
 ;;; oauth2-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads (oauth2-url-retrieve oauth2-url-retrieve-synchronously
-;;;;;;  oauth2-auth-and-store oauth2-auth oauth2-refresh-access)
-;;;;;;  "oauth2" "oauth2.el" (21236 38623 0 0))
+;;;### (autoloads nil "oauth2" "oauth2.el" (22405 60834 992558 228000))
 ;;; Generated autoloads from oauth2.el
 
 (autoload 'oauth2-refresh-access "oauth2" "\
@@ -39,15 +37,9 @@ when finished.  See `url-retrieve'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("oauth2-pkg.el") (21236 38623 362722 0))
-
-;;;***
-
-(provide 'oauth2-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; oauth2-autoloads.el ends here
