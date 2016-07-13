@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.10.0
-;; Package-Version: 20160508.2357
+;; Package-Version: 20160711.525
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -71,13 +71,13 @@ See also `s-split'."
         (setq op (goto-char (point-min)))
         (while (and (re-search-forward separator nil t)
                     (< 0 n))
-          (let ((sub (buffer-substring-no-properties op (match-beginning 0))))
+          (let ((sub (buffer-substring op (match-beginning 0))))
             (unless (and omit-nulls
                          (equal sub ""))
               (push sub r)))
           (setq op (goto-char (match-end 0)))
           (setq n (1- n)))
-        (let ((sub (buffer-substring-no-properties op (point-max))))
+        (let ((sub (buffer-substring op (point-max))))
           (unless (and omit-nulls
                        (equal sub ""))
             (push sub r))))
@@ -185,7 +185,7 @@ See also `s-split'."
     (insert s)
     (let ((fill-column len))
       (fill-region (point-min) (point-max)))
-    (buffer-substring-no-properties (point-min) (point-max))))
+    (buffer-substring (point-min) (point-max))))
 
 (defun s-center (len s)
   "If S is shorter than LEN, pad it with spaces so it is centered."
