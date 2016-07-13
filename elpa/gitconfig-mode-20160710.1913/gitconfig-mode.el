@@ -7,7 +7,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/git-modes
 ;; Keywords: convenience vc git
-;; Package-Version: 20160319.302
+;; Package-Version: 20160710.1913
 
 ;; This file is not part of GNU Emacs.
 
@@ -99,7 +99,8 @@
      (1 'font-lock-type-face t nil)
      (2 'font-lock-function-name-face t t))
     (,(rx line-start (zero-or-more (syntax whitespace)) symbol-start
-          (group (one-or-more (or (syntax word) (syntax symbol))))
+          (group alphanumeric
+                 (zero-or-more (or (syntax word) (syntax symbol))))
           symbol-end (zero-or-more (syntax whitespace))
           (optional "=" (zero-or-more not-newline)) line-end)
      (1 'font-lock-variable-name-face))
