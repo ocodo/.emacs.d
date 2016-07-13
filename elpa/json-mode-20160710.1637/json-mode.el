@@ -4,7 +4,7 @@
 
 ;; Author: Josh Johnston
 ;; URL: https://github.com/joshwnj/json-mode
-;; Package-Version: 20160601.356
+;; Package-Version: 20160710.1637
 ;; Version: 1.6.0
 ;; Package-Requires: ((json-reformat "0.0.5") (json-snatcher "1.0.0"))
 
@@ -80,10 +80,12 @@
       ;; delete the window if we have one,
       ;; so we can recreate it in the correct position
       (if temp-window
-          (delete-window temp-window))
+	  (delete-window temp-window))
 
       ;; always put the temp window below the json window
-      (set-window-buffer (split-window-below) temp-name))
+      (set-window-buffer (if (fboundp 'split-window-below)
+			     (split-window-below)
+			   (split-window-vertically)) temp-name))
     ))
 
 (define-key json-mode-map (kbd "C-c C-p") 'json-mode-show-path)
