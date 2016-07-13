@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/Malabarba/emacs-google-this
-;; Package-Version: 20160513.1012
+;; Package-Version: 20160710.1720
 ;; Version: 1.10
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: convenience hypermedia
@@ -136,25 +136,25 @@ Possible values include: `browse-url', `browse-url-generic',
 
 (defvar google-this-mode-submap)
 (define-prefix-command 'google-this-mode-submap)
-(define-key google-this-mode-submap [return] 'google-this-search)
-(define-key google-this-mode-submap " " 'google-this-region)
-(define-key google-this-mode-submap "t" 'google-this)
-(define-key google-this-mode-submap "n" 'google-this-noconfirm)
-(define-key google-this-mode-submap "g" 'google-this-lucky-search)
-(define-key google-this-mode-submap "i" 'google-this-lucky-and-insert-url)
-(define-key google-this-mode-submap "w" 'google-this-word)
-(define-key google-this-mode-submap "s" 'google-this-symbol)
-(define-key google-this-mode-submap "l" 'google-this-line)
-(define-key google-this-mode-submap "e" 'google-this-error)
-(define-key google-this-mode-submap "f" 'google-this-forecast)
-(define-key google-this-mode-submap "r" 'google-this-cpp-reference)
-(define-key google-this-mode-submap "m" 'google-this-maps)
-(define-key google-this-mode-submap "a" 'google-this-ray)
-(define-key google-this-mode-submap "m" 'google-maps)
+(define-key google-this-mode-submap [return] #'google-this-search)
+(define-key google-this-mode-submap " " #'google-this-region)
+(define-key google-this-mode-submap "t" #'google-this)
+(define-key google-this-mode-submap "n" #'google-this-noconfirm)
+(define-key google-this-mode-submap "g" #'google-this-lucky-search)
+(define-key google-this-mode-submap "i" #'google-this-lucky-and-insert-url)
+(define-key google-this-mode-submap "w" #'google-this-word)
+(define-key google-this-mode-submap "s" #'google-this-symbol)
+(define-key google-this-mode-submap "l" #'google-this-line)
+(define-key google-this-mode-submap "e" #'google-this-error)
+(define-key google-this-mode-submap "f" #'google-this-forecast)
+(define-key google-this-mode-submap "r" #'google-this-cpp-reference)
+(define-key google-this-mode-submap "m" #'google-this-maps)
+(define-key google-this-mode-submap "a" #'google-this-ray)
+(define-key google-this-mode-submap "m" #'google-maps)
 ;; "c" is for "convert language" :-P
-(define-key google-this-mode-submap "c" 'google-this-translate-query-or-region)
+(define-key google-this-mode-submap "c" #'google-this-translate-query-or-region)
 
-(defun translate-query-or-region ()
+(defun google-this-translate-query-or-region ()
   "If region is active `google-translate-at-point', otherwise `google-translate-query-translate'."
   (interactive)
   (unless (require 'google-translate nil t)
