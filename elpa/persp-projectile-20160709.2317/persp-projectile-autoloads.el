@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "persp-projectile" "persp-projectile.el" (22145
-;;;;;;  57081 958183 282000))
+;;;### (autoloads nil "persp-projectile" "persp-projectile.el" (22405
+;;;;;;  60808 952604 437000))
 ;;; Generated autoloads from persp-projectile.el
 
 (autoload 'projectile-persp-switch-project "persp-projectile" "\

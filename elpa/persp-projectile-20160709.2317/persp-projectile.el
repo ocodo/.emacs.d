@@ -1,12 +1,12 @@
 ;;; persp-projectile.el --- Perspective integration with Projectile
 
-;; Copyright (C) 2014 Daniel Wu
+;; Copyright (C) 2014-2016 Daniel Wu, Bozhidar Batsov
 
 ;; Author: Daniel Wu
 ;; Created: 2014-04-14
 ;; Keywords: project, convenience
-;; Package-Version: 20151220.430
-;; Version: 0.1.0
+;; Package-Version: 20160709.2317
+;; Version: 0.2.0
 ;; Package-Requires: ((perspective "1.9") (projectile "0.11.0") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
