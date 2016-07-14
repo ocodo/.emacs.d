@@ -53,7 +53,10 @@
 
 (define-abbrev-table 'git-gutter+-commit-mode-abbrev-table '())
 
-(define-abbrev-table 'global-abbrev-table '())
+(define-abbrev-table 'global-abbrev-table '(
+("ghub" "https://github.com")
+("gpiv" "https://github.com/pivotal-sg")
+))
 
 (define-abbrev-table 'grep-mode-abbrev-table '())
 
@@ -229,4 +232,3 @@
 (define-abbrev-table 'vc-git-log-view-mode-abbrev-table '())
 
 (define-abbrev-table 'vc-svn-log-view-mode-abbrev-table '())
-
