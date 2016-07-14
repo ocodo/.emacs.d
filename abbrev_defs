@@ -53,10 +53,16 @@
 
 (define-abbrev-table 'git-gutter+-commit-mode-abbrev-table '())
 
-(define-abbrev-table 'global-abbrev-table '(
-("ghub" "https://github.com")
-("gpiv" "https://github.com/pivotal-sg")
-))
+(define-abbrev-table 'global-abbrev-table
+  '(
+    ("(c)" "©" nil 0)
+    ("(r)" "®" nil 0)
+    ("(tm)" "™" nil 0)
+    ("@gml" "@gmail.com" nil 0)
+    ("@piv" "@pivotal.io" nil 0)
+    ("ghub" "https://github.com" nil 0)
+    ("gpiv" "https://github.com/pivotal-sg" nil 0)
+   ))
 
 (define-abbrev-table 'grep-mode-abbrev-table '())
 
@@ -77,6 +83,8 @@
 (define-abbrev-table 'js2-jsx-mode-abbrev-table '())
 
 (define-abbrev-table 'js2-mode-abbrev-table '())
+
+(define-abbrev-table 'kotlin-mode-abbrev-table '())
 
 (define-abbrev-table 'lisp-mode-abbrev-table '())
 
@@ -101,6 +109,8 @@
 (define-abbrev-table 'magit-reflog-mode-abbrev-table '())
 
 (define-abbrev-table 'magit-refs-mode-abbrev-table '())
+
+(define-abbrev-table 'magit-repolist-mode-abbrev-table '())
 
 (define-abbrev-table 'magit-revision-mode-abbrev-table '())
 
@@ -161,6 +171,8 @@
 (define-abbrev-table 'snippet-mode-abbrev-table '())
 
 (define-abbrev-table 'special-mode-abbrev-table '())
+
+(define-abbrev-table 'speedbar-mode-abbrev-table '())
 
 (define-abbrev-table 'tabulated-list-mode-abbrev-table '())
 
@@ -232,3 +244,4 @@
 (define-abbrev-table 'vc-git-log-view-mode-abbrev-table '())
 
 (define-abbrev-table 'vc-svn-log-view-mode-abbrev-table '())
+
