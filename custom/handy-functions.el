@@ -713,6 +713,21 @@ Use negative prefix P to go backward."
         (search-forward-regexp regexp)
       (search-backward-regexp regexp))))
 
+(defun get-position-of-nearest-matching (s)
+  "Get the position of nearest S."
+  (let* ((after        (save-excursion (search-forward s)))
+         (before       (save-excursion (search-backward s)))
+         (dist-after   (- after  (point)))
+         (dist-before  (- (point) before)))
+    (if (< dist-after dist-before)
+        (progn (- after (length s)))
+      before)))
+
+(defun search-nearest (s)
+  "Find the nearest match of S."
+  (interactive "sFind: ")
+  (goto-char (get-position-of-nearest-matching s)))
+
 (defun snippy-comment ()
   "Insert a snip line - - 8< - - - comment."
   (interactive)
