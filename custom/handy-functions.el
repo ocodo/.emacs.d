@@ -803,6 +803,14 @@ Use negative prefix P to go backward."
   (interactive "sGithub Repo [format: user/repo]: ")
   (browse-url (format "https://github.com/%s" repo)))
 
+(require 'github-browse-file)
+(defun github-browse-this-repo ()
+  "Browse the current github."
+  (interactive)
+  (if (github-browse-file--relative-url)
+      (browse-url (concat "https://github.com/" (github-browse-file--relative-url))))
+  (message "Not a github repo"))
+
 (defun open-this-in-intellij-idea-15-osx ()
   "Open the current file in intellij IDEA 15 (OS X specific)."
   (interactive)
