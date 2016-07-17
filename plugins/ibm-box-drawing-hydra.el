@@ -36,17 +36,17 @@
                 (defhydra hydra-draw-box (:color pink)
                   "Draw box with IBM single line box characters (ESC to Quit)."
                   ("ESC" nil :color blue) ;; Esc to exit.
-                  ("q" (lambda () (interactive) (insert "┌")) "top left ┌")
-                  ("w" (lambda () (interactive) (insert "┬")) "top ┬")
-                  ("e" (lambda () (interactive) (insert "┐")) "top right ┐")
-                  ("a" (lambda () (interactive) (insert "├")) "left ├")
-                  ("s" (lambda () (interactive) (insert "┼")) "center ┼")
-                  ("d" (lambda () (interactive) (insert "┤")) "right ┤")
-                  ("z" (lambda () (interactive) (insert "└")) "bottom left └")
-                  ("x" (lambda () (interactive) (insert "┴")) "bottom ┴")
-                  ("c" (lambda () (interactive) (insert "┘")) "bottom right ┘")
-                  ("r" (lambda () (interactive) (insert "─")) "horizontal ─")
-                  ("v" (lambda () (interactive) (insert "│")) "vertical │")))
+                  ("q" (insert "┌") "top left ┌")
+                  ("w" (insert "┬") "top ┬")
+                  ("e" (insert "┐") "top right ┐")
+                  ("a" (insert "├") "left ├")
+                  ("s" (insert "┼") "center ┼")
+                  ("d" (insert "┤") "right ┤")
+                  ("z" (insert "└") "bottom left └")
+                  ("x" (insert "┴") "bottom ┴")
+                  ("c" (insert "┘") "bottom right ┘")
+                  ("r" (insert "─") "horizontal ─")
+                  ("v" (insert "│") "vertical │")))
 
 (provide 'ibm-box-drawing-hydra)
 
