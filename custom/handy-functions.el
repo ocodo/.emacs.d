@@ -1,4 +1,4 @@
-;;; handy-functions --- a collection of functions I'm too lazy to organize properly...
+();;; handy-functions --- a collection of functions I'm too lazy to organize properly...
 ;;; Commentary:
 ;;
 ;;  A collection of miscellaneous functions, which are either
@@ -713,20 +713,26 @@ Use negative prefix P to go backward."
         (search-forward-regexp regexp)
       (search-backward-regexp regexp))))
 
-(defun get-position-of-nearest-matching (s)
-  "Get the position of nearest S."
-  (let* ((after        (save-excursion (search-forward s)))
+(defun get-position-of-nearest-matching (s &optional arg)
+  "Get the position of nearest S.
+
+optional ARG when less than zero, default to the before match
+when matches are equidistant from the current point."
+  (let* ((after      (- (save-excursion (search-forward s)) (length s)))
          (before       (save-excursion (search-backward s)))
          (dist-after   (- after  (point)))
          (dist-before  (- (point) before)))
-    (if (< dist-after dist-before)
-        (progn (- after (length s)))
-      before)))
+    (if (eq dist-after dist-before)
+        (if (and arg (>= 0 arg)) after before)
+      (if (< dist-after dist-before)
+          after
+        before))))
 
-(defun search-nearest (s)
+(defun jump-to-nearest (s)
   "Find the nearest match of S."
-  (interactive "sFind: ")
-  (goto-char (get-position-of-nearest-matching s)))
+  (interactive "sJump to nearest: ")
+  (let ((u (prefix-numeric-value current-prefix-arg)))
+    (goto-char (get-position-of-nearest-matching s u))))
 
 (defun snippy-comment ()
   "Insert a snip line - - 8< - - - comment."
