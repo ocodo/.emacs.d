@@ -34,7 +34,7 @@
 
 (global-set-key (kbd "C-x d")
                 (defhydra hydra-draw-box (:color pink)
-                  "Draw box with IBM single line box characters."
+                  "Draw box with IBM single line box characters (ESC to Quit)."
                   ("ESC" nil :color blue) ;; Esc to exit.
                   ("q" (lambda () (interactive) (insert "┌")) "top left ┌")
                   ("w" (lambda () (interactive) (insert "┬")) "top ┬")
