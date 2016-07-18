@@ -729,7 +729,7 @@ when matches are equidistant from the current point."
         before))))
 
 (defun jump-to-nearest (s)
-  "Find the nearest match of S."
+  "Jump to the nearest match of S."
   (interactive "sJump to nearest: ")
   (let ((u (prefix-numeric-value current-prefix-arg)))
     (goto-char (get-position-of-nearest-matching s u))))
