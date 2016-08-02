@@ -3,11 +3,11 @@
 ;;; Code:
 (add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
 
-;;;### (autoloads nil "ag" "ag.el" (22396 29162 296091 891000))
+;;;### (autoloads nil "ag" "ag.el" (22271 10683 299402 137000))
 ;;; Generated autoloads from ag.el
 
 (autoload 'ag "ag" "\
-Search using ag in a given DIRECTORY for a given literal search STRING,
+Search using ag in a given DIRECTORY for a given search STRING,
 with STRING defaulting to the symbol under point.
 
 If called with a prefix, prompts for flags to pass to ag.
@@ -15,9 +15,9 @@ If called with a prefix, prompts for flags to pass to ag.
 \(fn STRING DIRECTORY)" t nil)
 
 (autoload 'ag-files "ag" "\
-Search using ag in a given DIRECTORY for a given literal search STRING,
-limited to files that match FILE-TYPE. STRING defaults to the
-symbol under point.
+Search using ag in a given DIRECTORY for a given search STRING,
+limited to files that match FILE-TYPE. STRING defaults to
+the symbol under point.
 
 If called with a prefix, prompts for flags to pass to ag.
 
@@ -33,14 +33,14 @@ If called with a prefix, prompts for flags to pass to ag.
 
 (autoload 'ag-project "ag" "\
 Guess the root of the current project and search it with ag
-for the given literal search STRING.
+for the given string.
 
 If called with a prefix, prompts for flags to pass to ag.
 
 \(fn STRING)" t nil)
 
 (autoload 'ag-project-files "ag" "\
-Search using ag for a given literal search STRING,
+Search using ag for a given search STRING,
 limited to files that match FILE-TYPE. STRING defaults to the
 symbol under point.
 
@@ -62,7 +62,7 @@ If called with a prefix, prompts for flags to pass to ag.
 (defalias 'ag-regexp-project-at-point 'ag-project-regexp)
 
 (autoload 'ag-dired "ag" "\
-Recursively find files in DIR matching literal search STRING.
+Recursively find files in DIR matching PATTERN.
 
 The PATTERN is matched against the full path to the file, not
 only against the file name.
@@ -72,7 +72,7 @@ The results are presented as a `dired-mode' buffer with
 
 See also `ag-dired-regexp'.
 
-\(fn DIR STRING)" t nil)
+\(fn DIR PATTERN)" t nil)
 
 (autoload 'ag-dired-regexp "ag" "\
 Recursively find files in DIR matching REGEXP.
