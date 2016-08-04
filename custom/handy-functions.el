@@ -1,4 +1,4 @@
-();;; handy-functions --- a collection of functions I'm too lazy to organize properly...
+;;; handy-functions --- a collection of functions I'm too lazy to organize properly...
 ;;; Commentary:
 ;;
 ;;  A collection of miscellaneous functions, which are either
@@ -656,9 +656,9 @@ FN should be either `describe-variable' or `describe-function'."
 (defun zap-to-string (&optional arg)
   "Zap text up to a string, ARG can be minus to zap backwards."
   (interactive "p")
-  (let ((str (read-from-minibuffer "Zap to string: ")))
+  (let ((text (read-from-minibuffer "Zap to string: ")))
     (kill-region (point) (progn
-                           (search-forward str nil nil arg)
+                           (search-forward text nil nil arg)
                            (point)))))
 
 (defun zap-to-regexp (&optional arg)
@@ -673,10 +673,10 @@ FN should be either `describe-variable' or `describe-function'."
 (defun zap-up-to-string (&optional arg)
   "Zap text up to a string, ARG can be minus to zap backwards."
   (interactive "p")
-  (let ((str (read-from-minibuffer "Zap up to string: ")))
+  (let ((text (read-from-minibuffer "Zap up to string: ")))
     (kill-region (point) (progn
-                           (search-forward str nil nil arg)
-                           (backward-char (* arg (length str)))
+                           (search-forward text nil nil arg)
+                           (backward-char (* arg (length text)))
                            (point)))))
 
 (defun zap-up-to-regexp (&optional arg)
@@ -867,14 +867,15 @@ when matches are equidistant from the current point."
     (insert table)))
 
 (defun my-multi-occur-in-matching-buffers (regexp &optional allbufs)
-  "Show all lines matching REGEXP in all buffers."
+  "Show all lines matching REGEXP in all buffers.
+Optionally check ALLBUFS."
   (interactive (occur-read-primary-args))
   (multi-occur-in-matching-buffers ".*" regexp))
 
 (global-set-key (kbd "M-s-/") 'my-multi-occur-in-matching-buffers)
 
 (defun my-isearch-buffers ()
-  "isearch multiple buffers."
+  "Incremental search through open buffers."
   (interactive)
   (multi-isearch-buffers
    (delq nil (mapcar (lambda (buf)
@@ -911,6 +912,8 @@ when matches are equidistant from the current point."
 (global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
 (global-set-key (kbd "ESC C-M-z") 'zap-up-to-regexp)
+
+
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
