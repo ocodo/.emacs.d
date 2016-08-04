@@ -37,6 +37,7 @@
                diff-region
                highlight-indentation
                kurecolor
+               teletype-text
                iedit
                js2-refactor
                kill-buffer-without-confirm

@@ -106,5 +106,33 @@ pause times."
                 (error "Error: use a prefix arg register (C-1 - C-9)"))))
     (teletype-text text teletype-short-pause-time teletype-long-pause-time)))
 
+;;;###autoload
+(defun teletype-from-shell-command (command)
+  "Run a shell COMMAND and Teletype the result.
+If the region is selected we will use it as the STDIN of the
+  shell command, and kill the region before inserting.  Thus
+  replacing the region with the teletype output."
+  (interactive "sShell Command: ")
+  (if (region-active-p)
+      (let ((b (region-beginning))
+            (e (region-end))
+            (teletype-string)
+            (cur-buf (current-buffer))
+            (temp-buf (make-temp-name "teletype")))
+            (shell-command-on-region
+             b e
+             command
+             (get-buffer-create temp-buf))
+            (message "---")
+            (delete-region b e)
+            (deactivate-mark)
+            (switch-to-buffer temp-buf)
+            (setq teletype-string (buffer-string))
+            (switch-to-buffer cur-buf)
+            (kill-buffer temp-buf)
+            (goto-char b)
+            (teletype-insert-text teletype-string))
+    (teletype-insert-text (shell-command-to-string command))))
+
 (provide 'teletype-text)
 ;;; teletype-text.el ends here
