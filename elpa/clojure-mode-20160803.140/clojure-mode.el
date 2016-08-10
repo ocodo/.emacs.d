@@ -9,9 +9,9 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160626.2320
+;; Package-Version: 20160803.140
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 5.6.0-cvs
+;; Version: 5.5.2
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -79,7 +79,7 @@
   :link '(url-link :tag "Github" "https://github.com/clojure-emacs/clojure-mode")
   :link '(emacs-commentary-link :tag "Commentary" "clojure-mode"))
 
-(defconst clojure-mode-version "5.6.0-snapshot"
+(defconst clojure-mode-version "5.5.2"
   "The current version of `clojure-mode'.")
 
 (defface clojure-keyword-face
@@ -255,15 +255,15 @@ Out-of-the box clojure-mode understands lein, boot and gradle."
 
 (defvar clojure-mode-syntax-table
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
-    (modify-syntax-entry ?~ "'   " table)
     (modify-syntax-entry ?\{ "(}" table)
     (modify-syntax-entry ?\} "){" table)
     (modify-syntax-entry ?\[ "(]" table)
     (modify-syntax-entry ?\] ")[" table)
+    (modify-syntax-entry ?? "_ p" table) ; ? is a prefix outside symbols
+    (modify-syntax-entry ?# "_ p" table) ; # is allowed inside keywords (#399)
+    (modify-syntax-entry ?~ "'" table)
     (modify-syntax-entry ?^ "'" table)
     (modify-syntax-entry ?@ "'" table)
-    ;; Make hash a usual word character
-    (modify-syntax-entry ?# "_ p" table)
     table)
   "Syntax table for Clojure mode.
 Inherits from `emacs-lisp-mode-syntax-table'.")
@@ -345,9 +345,7 @@ instead of to `clojure-mode-map'."
 
 (defun clojure-mode-variables ()
   "Set up initial buffer-local variables for Clojure mode."
-  (setq-local imenu-create-index-function
-              (lambda ()
-                (imenu--generic-function '((nil clojure-match-next-def 0)))))
+  (add-to-list 'imenu-generic-expression '(nil clojure-match-next-def 0))
   (setq-local indent-tabs-mode nil)
   (setq-local paragraph-ignore-fill-prefix t)
   (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\)\\|(")
@@ -753,7 +751,7 @@ highlighted region)."
   (setq font-lock-defaults
         '(clojure-font-lock-keywords    ; keywords
           nil nil
-          (("+-*/.<>=!?$%_&~^:@" . "w")) ; syntax alist
+          (("+-*/.<>=!?$%_&:" . "w")) ; syntax alist
           nil
           (font-lock-mark-block-function . mark-defun)
           (font-lock-syntactic-face-function
@@ -1317,6 +1315,7 @@ work).  To set it from Lisp code, use
   (deftype '(2 nil nil (:defn)))
   (defrecord '(2 nil nil (:defn)))
   (defprotocol '(1 (:defn)))
+  (definterface '(1 (:defn)))
   (extend 1)
   (extend-protocol '(1 :defn))
   (extend-type '(1 :defn))
