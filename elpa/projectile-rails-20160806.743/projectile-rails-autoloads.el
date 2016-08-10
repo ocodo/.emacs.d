@@ -1,10 +1,10 @@
 ;;; projectile-rails-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "projectile-rails" "projectile-rails.el" (22396
-;;;;;;  28888 518324 97000))
+;;;### (autoloads nil "projectile-rails" "projectile-rails.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from projectile-rails.el
 
 (autoload 'projectile-rails-mode "projectile-rails" "\
@@ -16,6 +16,8 @@ Rails mode based on projectile
 Enable `projectile-rails-mode' minor mode if this is a rails project.
 
 \(fn)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "projectile-rails" '("projectile-rails-")))
 
 ;;;***
 
