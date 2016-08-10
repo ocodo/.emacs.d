@@ -1,4 +1,4 @@
-(define-package "markdown-toc" "20160227.308" "A simple TOC generator for markdown file"
+(define-package "markdown-toc" "20160727.908" "A simple TOC generator for markdown file"
   '((s "1.9.0")
     (dash "2.11.0")
     (markdown-mode "2.1")))
