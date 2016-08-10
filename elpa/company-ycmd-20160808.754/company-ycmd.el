@@ -5,9 +5,9 @@
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
 ;; version: 0.1
-;; Package-Version: 20160624.823
+;; Package-Version: 20160808.754
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((ycmd "0.1") (company "0.9.0") (deferred "0.2.0") (s "1.9.0") (dash "1.2.0") (let-alist "1.0.4"))
+;; Package-Requires: ((ycmd "0.1") (company "0.9.0") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (let-alist "1.0.4"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -76,27 +76,23 @@
   "When non-nil, insert function arguments as a template after completion.
 
 Only supported by modes in `company-ycmd--extended-features-modes'"
-  :type 'boolean
-  :group 'company-ycmd)
+  :type 'boolean)
 
 (defcustom company-ycmd-enable-fuzzy-matching t
   "When non-nil, use fuzzy matching for completion candidates.
 
 Setting this to nil enables the `company-mode' internal cache
 feature."
-  :type 'boolean
-  :group 'company-ycmd)
+  :type 'boolean)
 
 (defcustom company-ycmd-show-completion-kind t
   "Show kind of completion entry."
-  :type 'boolean
-  :group 'company-ycmd)
+  :type 'boolean)
 
 (defcustom company-ycmd-request-sync-timeout 0.05
   "Timeout for synchronous ycmd completion request.
 When 0, do not use synchronous completion request at all."
-  :type 'number
-  :group 'company-ycmd)
+  :type 'number)
 
 (defconst company-ycmd--extended-features-modes
   '(c++-mode c-mode go-mode objc-mode rust-mode python-mode)
