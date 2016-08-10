@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20160331.754
+;; Package-Version: 20160807.1756
 ;; Version: 0.2.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -86,6 +86,14 @@ You can reset the cache by calling `helm-make-reset-db'."
   "When non-nil, don't allow selecting a target that's not on the list."
   :type 'boolean)
 
+(defcustom helm-make-named-buffer nil
+  "When non-nil, name compilation buffer based on make target."
+  :type 'boolean)
+
+(defcustom helm-make-comint nil
+  "When non-nil, run helm-make in Comint mode instead of Compilation mode."
+  :type 'boolean)
+
 (defvar helm-make-command nil
   "Store the make command.")
 
@@ -98,7 +106,20 @@ An exception is \"GNUmakefile\", only GNU make unterstand it.")
 
 (defun helm--make-action (target)
   "Make TARGET."
-  (compile (format helm-make-command target)))
+  (let* ((make-command (format helm-make-command target))
+         (compile-buffer (compile make-command helm-make-comint)))
+    (when helm-make-named-buffer
+      (helm--make-rename-buffer compile-buffer target))))
+
+(defun helm--make-rename-buffer (buffer target)
+  "Rename the compilation BUFFER based on the make TARGET."
+  (let ((buffer-name (format "*compilation (%s)*" target)))
+    (when (get-buffer-window buffer-name)
+      (delete-window (get-buffer-window buffer-name)))
+    (when (get-buffer buffer-name)
+      (kill-buffer buffer-name))
+    (with-current-buffer buffer
+      (rename-buffer buffer-name))))
 
 (defcustom helm-make-completion-method 'helm
   "Method to select a candidate from a list of strings."

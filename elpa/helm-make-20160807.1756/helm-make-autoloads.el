@@ -1,10 +1,9 @@
 ;;; helm-make-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-make" "helm-make.el" (22271 10528 946694
-;;;;;;  435000))
+;;;### (autoloads nil "helm-make" "helm-make.el" (0 0 0 0))
 ;;; Generated autoloads from helm-make.el
 
 (autoload 'helm-make "helm-make" "\
@@ -28,6 +27,8 @@ You can specify an additional directory to search for a makefile by
 setting the buffer local variable `helm-make-build-dir'.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-make" '("helm-")))
 
 ;;;***
 
