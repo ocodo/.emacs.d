@@ -157,7 +157,7 @@ name@domain.com => name <at> domain <dot> com"
   "Encode STRING to legal URL. Why we do not use `url-encode-url' to encode the
 string, is that `url-encode-url' will convert all not allowed characters into
 encoded ones, like %3E, but we do NOT want this kind of url."
-  (downcase (replace-regexp-in-string "[ :/\\]+" "-" string)))
+  (downcase (replace-regexp-in-string "[ :/\\\\?\\#]+" "-" string)))
 
 (defun ego--get-full-url (uri)
   "Get the full url of URI, by joining site-domain with URI."

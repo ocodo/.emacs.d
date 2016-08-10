@@ -1,9 +1,9 @@
 ;;; ego-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ego" "ego.el" (22366 21690 984821 126000))
+;;;### (autoloads nil "ego" "ego.el" (0 0 0 0))
 ;;; Generated autoloads from ego.el
 
 (autoload 'ego-do-publication "ego" "\
@@ -48,10 +48,25 @@ responsibility to guarantee the two parameters are valid.
 
 \(fn &optional PROJECT-NAME CATEGORY FILENAME INSERT-FALLBACK-TEMPLATE)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego" '("ego-")))
+
 ;;;***
 
-;;;### (autoloads nil "ego-export" "ego-export.el" (22366 21690 980821
-;;;;;;  148000))
+;;;### (autoloads nil "ego-config" "ego-config.el" (0 0 0 0))
+;;; Generated autoloads from ego-config.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego-config" '("ego-")))
+
+;;;***
+
+;;;### (autoloads nil "ego-devtools" "ego-devtools.el" (0 0 0 0))
+;;; Generated autoloads from ego-devtools.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego-devtools" '("ego--devtools-update-config")))
+
+;;;***
+
+;;;### (autoloads nil "ego-export" "ego-export.el" (0 0 0 0))
 ;;; Generated autoloads from ego-export.el
 
 (autoload 'ego-link-type-process-html "ego-export" "\
@@ -64,10 +79,18 @@ Completion function for EGO-LINK. ARG does nothing.
 
 \(fn &optional ARG)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego-export" '("ego--")))
+
 ;;;***
 
-;;;### (autoloads nil "ego-mode" "ego-mode.el" (22366 21690 992821
-;;;;;;  82000))
+;;;### (autoloads nil "ego-git" "ego-git.el" (0 0 0 0))
+;;; Generated autoloads from ego-git.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego-git" '("ego--")))
+
+;;;***
+
+;;;### (autoloads nil "ego-mode" "ego-mode.el" (0 0 0 0))
 ;;; Generated autoloads from ego-mode.el
 
 (autoload 'ego-list-posts "ego-mode" "\
@@ -75,11 +98,32 @@ list posts
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego-mode" '("ego-mode")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("ego-config.el" "ego-devtools.el" "ego-git.el"
-;;;;;;  "ego-pkg.el" "ego-resource.el" "ego-template.el" "ego-util.el")
-;;;;;;  (22366 21691 58422 710000))
+;;;### (autoloads nil "ego-resource" "ego-resource.el" (0 0 0 0))
+;;; Generated autoloads from ego-resource.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego-resource" '("ego--prepare-theme-resources")))
+
+;;;***
+
+;;;### (autoloads nil "ego-template" "ego-template.el" (0 0 0 0))
+;;; Generated autoloads from ego-template.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego-template" '("ego--")))
+
+;;;***
+
+;;;### (autoloads nil "ego-util" "ego-util.el" (0 0 0 0))
+;;; Generated autoloads from ego-util.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ego-util" '("ego-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("ego-pkg.el") (0 0 0 0))
 
 ;;;***
 
