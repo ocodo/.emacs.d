@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20160711.858
+;; Package-Version: 20160803.636
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -486,7 +486,8 @@ multiple DISPLAY-FN invokations."
 
 (defun avy-resume ()
   "Stub to hold last avy command.
-Commands using `avy-with' macro can be resumed.")
+Commands using `avy-with' macro can be resumed."
+  (interactive))
 
 (defmacro avy-with (command &rest body)
   "Set `avy-keys' according to COMMAND and execute BODY.
@@ -1063,6 +1064,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
                         ((and avy-word-punc-regexp
                               (string-match avy-word-punc-regexp str))
                          (regexp-quote str))
+                        ((<= char 26)
+                         str)
                         (t
                          (concat
                           (if symbol "\\_<" "\\b")
