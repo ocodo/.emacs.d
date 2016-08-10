@@ -1,10 +1,10 @@
 ;;; writegood-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "writegood-mode" "writegood-mode.el" (21780
-;;;;;;  6795 667401 0))
+;;;### (autoloads nil "writegood-mode" "writegood-mode.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from writegood-mode.el
 
 (autoload 'writegood-reading-ease "writegood-mode" "\
@@ -21,6 +21,8 @@ Flesch-Kincaid grade level test. Converts reading ease score to a grade level (S
 Colorize issues with the writing in the buffer.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "writegood-mode" '("writegood-")))
 
 ;;;***
 
