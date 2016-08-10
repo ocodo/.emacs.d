@@ -7,7 +7,7 @@
 ;; Author: Phillip Lord <phillip.lord@russet.org.uk>
 ;; Maintainer: Phillip Lord <phillip.lord@russet.rg.uk>
 ;; Version: 0.14
-;; Package-Requires: ((dash "2.8.0")(emacs "24.3"))
+;; Package-Requires: ((emacs "25.0"))
 
 ;; The contents of this file are subject to the GPL License, Version 3.0.
 
@@ -63,9 +63,10 @@
 ;;; Code:
 
 ;; #+begin_src emacs-lisp
-
-(require 'dash)
+(require 'seq)
 (require 'm-buffer-macro)
+
+(defvar m-buffer-doc-html-files '("m-buffer-doc.css"))
 ;; #+end_src
 
 ;; ** Regexp Matching
@@ -229,11 +230,11 @@ MATCH-WITH are these args. This is an internal function."
   (let* (
          ;; split up into keyword and non keyword limits
          (args
-          (-take-while
+          (seq-take-while
            (lambda (x) (not (keywordp x)))
            match-with))
          (pargs
-          (-drop-while
+          (seq-drop-while
            (lambda (x) (not (keywordp x)))
            match-with))
          ;; sort actual actual parameters
@@ -324,10 +325,10 @@ args, assume they are of the form accepted by
 
 (defun m-buffer-match-nth-group (n match-data)
   "Fetch the Nth group from MATCH-DATA."
-  (-map
+  (seq-map
    (lambda (m)
      (let ((drp
-            (-drop (* 2 n) m)))
+            (seq-drop m (* 2 n))))
        (list
         (car drp) (cadr drp))))
    match-data))
@@ -337,7 +338,7 @@ args, assume they are of the form accepted by
 MATCH may be of any form accepted by `m-buffer-ensure-match'. Use
 `m-buffer-nil-marker' after the markers have been finished with
 or they will slow future use of the buffer until garbage collected."
-  (-map
+  (seq-map
    (lambda (m)
      (nth
       (* 2 n) m))
@@ -371,7 +372,7 @@ function. See `m-buffer-nil-marker' for details."
 MATCH may be of any form accepted by `m-buffer-ensure-match'.
 If `match-data' is passed markers will be set to nil after this
 function. See `m-buffer-nil-marker' for details."
-  (-map
+  (seq-map
    (lambda (m)
      (nth
       (+ 1 (* 2 n))
@@ -435,9 +436,9 @@ Matches are equivalent if overall they match the same
 area; subgroups are ignored.
 See also `m-buffer-match-exact-subtract' which often
 runs faster but has some restrictions."
-  (-remove
+  (seq-remove
    (lambda (o)
-     (-any?
+     (seq-some
       (lambda (p)
         (m-buffer-match-equal o p))
       n))
@@ -456,7 +457,7 @@ in M."
       ;; n-eaten contains the remaining elements of n that we haven't tested
       ;; for yet. We throw them away as we go
       (let ((n-eaten n))
-        (-remove
+        (seq-remove
          (lambda (o)
            (cond
             ;; n-eaten has been eaten. Check here or later "<" comparison crashes.
@@ -469,7 +470,7 @@ in M."
             ((m-buffer-match-equal
               (car n-eaten) o)
              (progn
-               (setq n-eaten (-drop 1 n-eaten))
+               (setq n-eaten (seq-drop n-eaten 1))
                t))
             ;; we should discard also if n-eaten 1 is less than o because, both
             ;; are sorted, so we will never match
@@ -479,14 +480,14 @@ in M."
               ;; first half of match
               (car o))
              (progn
-               (setq n-eaten (-drop 1 n-eaten))
+               (setq n-eaten (seq-drop n-eaten 1))
                t))))
          m))
     m))
 
 (defun m-buffer-in-match-p (matches position)
   "Returns true is any of MATCHES contain POSITION."
-  (-any?
+  (seq-some
    (lambda (match)
      (and
       (<= (car match) position)
@@ -501,15 +502,24 @@ in M."
 ;; pairs of markers.
 
 ;; #+begin_src emacs-lisp
-(defun m-buffer--split-partition (partition)
-  (let ((current nil))
-    (lambda (n)
-      (when
-          (and partition
-               (<= (car partition) n))
-        (setq current (car partition))
-        (setq partition (-drop 1 partition)))
-      current)))
+(defun m-buffer--partition-by-marker(list partition)
+  "Given LIST, split at markers in PARTITION.
+
+This is the main implementation for `m-buffer-partition-by-marker',
+but assumes that partition starts with a very low value (or nil)."
+  (let* ((p-top (car-safe partition))
+         (p-val (car-safe (cdr-safe partition)))
+         (p-fn (lambda (n)
+                 (or (not p-val)
+                     (< n p-val)))))
+    (when list
+        (cons
+         (cons
+          p-top
+          (seq-take-while p-fn list))
+         (m-buffer--partition-by-marker
+          (seq-drop-while p-fn list)
+          (cdr partition))))))
 
 (defun m-buffer-partition-by-marker (list partition)
   "Given LIST of markers, split at markers in PARTITION.
@@ -520,7 +530,8 @@ buffer than the element from PARTITION, but before the next
 element from PARTITION.
 
 Both LIST and PARTITION must be sorted."
-  (-group-by (m-buffer--split-partition partition) list))
+  ;; TODO!
+  (m-buffer--partition-by-marker list (cons nil partition)))
 ;; #+end_src
 
 
@@ -537,17 +548,19 @@ Both LIST and PARTITION must be sorted."
 Markers slow buffer movement while they are pointing at a
 specific location, until they have been garbage collected. Niling
 them prevents this. See Info node `(elisp) Overview of Markers'."
-  (-map
+  (seq-map
    (lambda (marker)
-     (set-marker marker nil))
-   (-flatten markers)))
+     (if (seqp marker)
+         (m-buffer-nil-marker marker)
+       (set-marker marker nil)))
+   markers))
 
 (defun m-buffer-marker-to-pos (markers &optional postnil)
   "Transforms a list of MARKERS to a list of positions.
 If the markers are no longer needed, set POSTNIL to true, or call
 `m-buffer-nil-marker' manually after use to speed future buffer
 movement. Or use `m-buffer-marker-to-pos-nil'."
-  (-map
+  (seq-map
    (lambda (marker)
      (prog1
          (marker-position marker)
@@ -564,12 +577,14 @@ See also `m-buffer-nil-markers'"
   "Transforms a tree of markers to equivalent positions.
 MARKER-TREE is the tree.
 POSTNIL sets markers to nil afterwards."
-  (-tree-map
+  (seq-map
    (lambda (marker)
-     (prog1
-         (marker-position marker)
-       (when postnil
-         (set-marker marker nil))))
+     (if (seqp marker)
+         (m-buffer-marker-tree-to-pos marker postnil)
+       (prog1
+           (marker-position marker)
+         (when postnil
+           (set-marker marker nil)))))
    marker-tree))
 
 (defun m-buffer-marker-tree-to-pos-nil (marker-tree)
@@ -581,14 +596,16 @@ MARKER-TREE is the tree. Markers are niled afterwards."
   "Return a clone of MARKER-TREE.
 The optional argument TYPE specifies the insertion type. See
 `copy-marker' for details."
-  (-tree-map
+  (seq-map
    (lambda (marker)
-     (copy-marker marker type))
+     (if (seqp marker)
+         (m-buffer-marker-clone marker type)
+       (copy-marker marker type)))
    marker-tree))
 
 (defun m-buffer-pos-to-marker (buffer positions)
   "In BUFFER translates a list of POSITIONS to markers."
-  (-map
+  (seq-map
    (lambda (pos)
      (set-marker
       (make-marker) pos buffer))
@@ -609,7 +626,7 @@ markers are part of MATCH-DATA, so niling them will percolate backward.
 
 See also `replace-match'."
   (save-excursion
-    (-map
+    (seq-map
      (lambda (match)
        (with-current-buffer
            (marker-buffer (car match))
@@ -631,7 +648,7 @@ markers are part of MATCH_DATA, so niling them will percolate backward."
 
 (defun m-buffer-match-string (match-data &optional subexp)
   "Return strings for MATCH-DATA optionally of group SUBEXP."
-  (-map
+  (seq-map
    (lambda (match)
      (with-current-buffer
          (marker-buffer (car match))
@@ -644,7 +661,7 @@ markers are part of MATCH_DATA, so niling them will percolate backward."
 (defun m-buffer-match-string-no-properties (match-data &optional subexp)
   "Return strings for MATCH-DATA optionally of group SUBEXP.
 Remove all properties from return."
-  (-map
+  (seq-map
    'substring-no-properties
    (m-buffer-match-string
     match-data subexp)))
@@ -664,19 +681,19 @@ Remove all properties from return."
 (defun m-buffer-apply-join (fn match &rest more-match)
   (let*
       ((args
-        (-take-while
+        (seq-take-while
          (lambda (x) (not (keywordp x)))
          match))
        (pargs
-        (-drop-while
+        (seq-drop-while
          (lambda (x) (not (keywordp x)))
          match))
        (more-keywords
-        (-map
+        (seq-map
          'car
-         (-partition 2 more-match))))
+         (seq-partition more-match 2))))
     (when
-        (-first
+        (seq-find
          (lambda (keyword)
            (plist-member pargs keyword))
          more-keywords)
@@ -841,7 +858,7 @@ further details."
 Note empty lines do not contain any non-whitespace lines.
 MATCH is of form BUFFER-OR-WINDOW MATCH-OPTIONS. See
 `m-buffer-match' for further details."
-  (-difference
+  (seq-difference
    (apply 'm-buffer-match-line match)
    (apply 'm-buffer-match-whitespace-line match)))
 
@@ -878,7 +895,7 @@ MATCH-DATA can be any list of lists with two elements (or more)."
   "Apply FN to the Nth group of MATCH-DATA.
 FN should take two args, the start and stop of each region.
 MATCH-DATA can be any list of lists with two elements (or more)."
-  (-map
+  (seq-map
    (lambda (x)
      (apply fn x))
    (m-buffer-match-nth-group n match-data)))
@@ -932,7 +949,7 @@ Info node `(elisp) Text Properties' for further details."
   "To MATCH-DATA add FACE to the face property.
 This is for use in buffers which do not have function `font-lock-mode'
 enabled; otherwise use `m-buffer-overlay-font-lock-face-match'."
-  (-map
+  (seq-map
    (lambda (ovly)
      (overlay-put ovly 'face face))
    (m-buffer-overlay-match match-data)))
@@ -941,7 +958,7 @@ enabled; otherwise use `m-buffer-overlay-font-lock-face-match'."
   "To MATCH-DATA add FACE to the face property.
 This is for use in buffers which have variable `font-lock-mode' enabled;
 otherwise use `m-buffer-overlay-face-match'."
-  (-map
+  (seq-map
    (lambda (ovly)
      (overlay-put ovly 'face face))
    (m-buffer-overlay-match match-data)))

@@ -1,9 +1,8 @@
-
 #+TITLE: Manipulate the Contents of Emacs Buffers
 #+AUTHOR: Phillip Lord
 
 #+INFOJS_OPT: view:info toc:nil
-
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="m-buffer-doc.css" />
 
 * Introduction
 
@@ -25,7 +24,9 @@ The individual files have statements about their stability.
 ** Caveat to Documentation
 
 This is the first version of m-buffer with full [[http://github.com/phillord/lentic][lenticular]] documentation. Both
-lentic and this documentation are a work in progress. They will improve.
+lentic and this documentation are a work in progress. In particular, the
+"Header" sections a) look terrible and b) are pointless. I just have not
+worked out how to remove them yet.
 
 
 * m-buffer
@@ -36,7 +37,6 @@ overlays or text-properties or, most generically of all, call any function on
 matches.
 
 #+include: "m-buffer.org" :minlevel 2
-
 
 * m-buffer-at
 
@@ -62,6 +62,7 @@ m-buffer-benchmark.el provides no functions, but is a set of benchmarks to
 give some idea of how much overhead various m-buffer functions entail.
 
 #+include: "m-buffer-benchmark.org" :minlevel 2
+
 
 * Roadmap
 
