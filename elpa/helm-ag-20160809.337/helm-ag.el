@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20160702.324
+;; Package-Version: 20160809.337
 ;; Version: 0.56
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -242,6 +242,14 @@ Default behaviour shows finish and result in mode-line."
       (while (re-search-forward "\xd" nil t)
         (replace-match "")))))
 
+(defun helm-ag--abbreviate-file-name ()
+  (unless (helm-ag--windows-p)
+    (save-excursion
+      (goto-char (point-min))
+      (forward-line 1)
+      (while (re-search-forward "^\\([^:]+\\)" nil t)
+        (replace-match (abbreviate-file-name (match-string-no-properties 1)))))))
+
 (defun helm-ag--init ()
   (let ((buf-coding buffer-file-coding-system))
     (helm-attrset 'recenter t)
@@ -260,6 +268,8 @@ Default behaviour shows finish and result in mode-line."
               (unless (executable-find (car cmds))
                 (error "'ag' is not installed."))
               (error "Failed: '%s'" helm-ag--last-query))))
+        (when helm-ag--buffer-search
+          (helm-ag--abbreviate-file-name))
         (helm-ag--remove-carrige-returns)
         (helm-ag--save-current-context)))))
 
@@ -578,6 +588,9 @@ Default behaviour shows finish and result in mode-line."
     (define-key map (kbd "C-c C-u") 'helm-ag--unmark)
     map))
 
+(defsubst helm-ag--edit-func-to-keys (func)
+  (key-description (car-safe (where-is-internal func helm-ag-edit-map))))
+
 (defun helm-ag--edit (_candidate)
   (let* ((helm-buf-dir (or helm-ag--default-directory
                            helm-ag--last-default-directory
@@ -607,8 +620,10 @@ Default behaviour shows finish and result in mode-line."
         (let ((inhibit-read-only t)
               (regexp (helm-ag--match-line-regexp)))
           (setq header-line-format
-                (format "[%s] C-c C-c: Commit, C-c C-k: Abort"
-                        (abbreviate-file-name helm-ag--default-directory)))
+                (format "[%s] %s: Commit, %s: Abort"
+                        (abbreviate-file-name helm-ag--default-directory)
+                        (helm-ag--edit-func-to-keys #'helm-ag--edit-commit)
+                        (helm-ag--edit-func-to-keys #'helm-ag--edit-abort)))
           (goto-char (point-min))
           (while (re-search-forward regexp nil t)
             (let ((file-line-begin (match-beginning 4))
@@ -710,6 +725,8 @@ Special commands:
                    (apply #'process-file (car helm-ag--last-command) nil t nil
                           (cdr helm-ag--last-command))
                    (helm-ag--remove-carrige-returns)
+                   (when helm-ag--buffer-search
+                     (helm-ag--abbreviate-file-name))
                    (helm-ag--propertize-candidates helm-ag--last-query)
                    (buffer-string))))
     (helm-ag--put-result-in-save-buffer result helm-ag--search-this-file-p)
@@ -890,6 +907,8 @@ Continue searching the parent directory? "))
 (defun helm-ag--do-ag-propertize (input)
   (with-helm-window
     (helm-ag--remove-carrige-returns)
+    (when helm-ag--buffer-search
+      (helm-ag--abbreviate-file-name))
     (helm-ag--propertize-candidates input)
     (when helm-ag-show-status-function
       (funcall helm-ag-show-status-function)
@@ -1089,7 +1108,7 @@ Continue searching the parent directory? "))
         (helm-do-ag--helm)))))
 
 (defun helm-ag--project-root ()
-  (cl-loop for dir in '(".git/" ".hg/" ".svn/")
+  (cl-loop for dir in '(".git/" ".hg/" ".svn/" ".git")
            when (locate-dominating-file default-directory dir)
            return it))
 
