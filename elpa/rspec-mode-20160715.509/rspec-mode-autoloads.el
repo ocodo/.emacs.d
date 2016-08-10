@@ -1,10 +1,9 @@
 ;;; rspec-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "rspec-mode" "rspec-mode.el" (22309 38839 707829
-;;;;;;  516000))
+;;;### (autoloads nil "rspec-mode" "rspec-mode.el" (0 0 0 0))
 ;;; Generated autoloads from rspec-mode.el
 
 (autoload 'rspec-mode "rspec-mode" "\
@@ -42,10 +41,11 @@ Return true if the current buffer is a spec.
 
 (add-hook 'rails-minor-mode-hook 'rspec-verifiable-mode)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "rspec-mode" '("rspec")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("rspec-mode-pkg.el") (22309 38839 784404
-;;;;;;  541000))
+;;;### (autoloads nil nil ("rspec-mode-pkg.el") (0 0 0 0))
 
 ;;;***
 
