@@ -105,7 +105,7 @@ as a prefix. "
     (with-current-buffer
         (find-file-noselect
          (lentic-doc-package-start-source package))
-      (let ((org-export-htmlize-generate-css 'css))
+      (let ((org-html-htmlize-output-type 'css))
         (org-html-export-to-html)))))
 ;; #+end_src
 
@@ -160,7 +160,19 @@ EXT must not be nil or empty."
    (lentic-doc-package-start-source package)
    "html"))
 
+
+(defvar lentic-doc-allowed-files nil)
+
+(defun lentic-doc-ensure-allowed-html (package)
+  (let ((var (intern (concat package "-doc-html-files"))))
+    (if (boundp var)
+        (mapc
+         (lambda (f)
+           (add-to-list 'lentic-doc-allowed-files f))
+         (symbol-value var)))))
+
 (defun lentic-doc-ensure-doc (package)
+  (lentic-doc-ensure-allowed-html package)
   (unless (f-exists?
            (lentic-doc-package-doc-file package))
     (lentic-doc-htmlify-package package)))

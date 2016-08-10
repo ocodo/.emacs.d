@@ -157,6 +157,7 @@
 (require 'f)
 
 (defvar lentic-doc "lenticular.org")
+(defvar lentic-doc-html-files '("lenticular.css"))
 ;; #+end_src
 
 ;; ** State
@@ -209,6 +210,7 @@ resilient to changes of mode in the current buffer.")
   "Given BUFFER, return a name for the configuration object."
   (format "lentic \"%s:%s\"" buffer (setq lentic-counter (+ 1 lentic-counter))))
 
+;;;###autoload
 (defvar lentic-init-functions nil
   "All functions that can be used as `lentic-init' function.")
 ;; #+end_src

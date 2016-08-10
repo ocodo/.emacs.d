@@ -1,10 +1,13 @@
 ;;; lentic-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "lentic" "lentic.el" (22396 28979 256868 607000))
+;;;### (autoloads nil "lentic" "lentic.el" (0 0 0 0))
 ;;; Generated autoloads from lentic.el
+
+(defvar lentic-init-functions nil "\
+All functions that can be used as `lentic-init' function.")
 
 (autoload 'lentic-default-init "lentic" "\
 Default init function.
@@ -12,10 +15,12 @@ see `lentic-init' for details.
 
 \(fn)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic" '("lentic-")))
+
 ;;;***
 
-;;;### (autoloads nil "lentic-asciidoc" "lentic-asciidoc.el" (22396
-;;;;;;  28979 244869 274000))
+;;;### (autoloads nil "lentic-asciidoc" "lentic-asciidoc.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from lentic-asciidoc.el
 
 (autoload 'lentic-clojure-asciidoc-init "lentic-asciidoc" "\
@@ -28,10 +33,25 @@ see `lentic-init' for details.
 
 \(fn)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-asciidoc" '("lentic-")))
+
 ;;;***
 
-;;;### (autoloads nil "lentic-dev" "lentic-dev.el" (22396 28979 236869
-;;;;;;  718000))
+;;;### (autoloads nil "lentic-chunk" "lentic-chunk.el" (0 0 0 0))
+;;; Generated autoloads from lentic-chunk.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-chunk" '("lentic-")))
+
+;;;***
+
+;;;### (autoloads nil "lentic-cookie" "lentic-cookie.el" (0 0 0 0))
+;;; Generated autoloads from lentic-cookie.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-cookie" '("lentic-")))
+
+;;;***
+
+;;;### (autoloads nil "lentic-dev" "lentic-dev.el" (0 0 0 0))
 ;;; Generated autoloads from lentic-dev.el
 
 (autoload 'lentic-dev-after-change-function "lentic-dev" "\
@@ -94,10 +114,19 @@ Enable font locking properties for inserted text.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-dev" '("lentic-dev-")))
+
+;;;***
+
+;;;### (autoloads nil "lentic-doc" "lentic-doc.el" (0 0 0 0))
+;;; Generated autoloads from lentic-doc.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-doc" '("lentic-")))
+
 ;;;***
 
 ;;;### (autoloads nil "lentic-latex-code" "lentic-latex-code.el"
-;;;;;;  (22396 28979 256868 607000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from lentic-latex-code.el
 
 (autoload 'lentic-clojure-latex-init "lentic-latex-code" "\
@@ -120,10 +149,11 @@ Enable font locking properties for inserted text.
 
 \(fn)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-latex-code" '("lentic-")))
+
 ;;;***
 
-;;;### (autoloads nil "lentic-mode" "lentic-mode.el" (22396 28979
-;;;;;;  252868 829000))
+;;;### (autoloads nil "lentic-mode" "lentic-mode.el" (0 0 0 0))
 ;;; Generated autoloads from lentic-mode.el
 
 (autoload 'lentic-mode-create-from-init "lentic-mode" "\
@@ -200,8 +230,9 @@ Documentation
 \(fn INIT-FUNCTION)" t nil)
 
 (defvar global-lentic-mode nil "\
-Non-nil if Global-Lentic mode is enabled.
-See the command `global-lentic-mode' for a description of this minor mode.
+Non-nil if Global Lentic mode is enabled.
+See the `global-lentic-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-lentic-mode'.")
@@ -210,7 +241,7 @@ or call the function `global-lentic-mode'.")
 
 (autoload 'global-lentic-mode "lentic-mode" "\
 Toggle Lentic mode in all buffers.
-With prefix ARG, enable Global-Lentic mode if ARG is positive;
+With prefix ARG, enable Global Lentic mode if ARG is positive;
 otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
@@ -220,10 +251,11 @@ See `lentic-mode' for more information on Lentic mode.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-mode" '("lentic-mode-")))
+
 ;;;***
 
-;;;### (autoloads nil "lentic-org" "lentic-org.el" (22396 28979 240869
-;;;;;;  496000))
+;;;### (autoloads nil "lentic-org" "lentic-org.el" (0 0 0 0))
 ;;; Generated autoloads from lentic-org.el
 
 (autoload 'lentic-org-el-init "lentic-org" "\
@@ -266,10 +298,18 @@ See `lentic-mode' for more information on Lentic mode.
 
 \(fn)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-org" '("lentic-")))
+
 ;;;***
 
-;;;### (autoloads nil "lentic-script" "lentic-script.el" (22396 28979
-;;;;;;  228870 163000))
+;;;### (autoloads nil "lentic-rot13" "lentic-rot13.el" (0 0 0 0))
+;;; Generated autoloads from lentic-rot13.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-rot13" '("lentic-")))
+
+;;;***
+
+;;;### (autoloads nil "lentic-script" "lentic-script.el" (0 0 0 0))
 ;;; Generated autoloads from lentic-script.el
 
 (eval '(defun lentic-script-hook (mode-hook init) (add-to-list 'lentic-init-functions init) (add-hook mode-hook (lambda nil (unless lentic-init (setq lentic-init init))))) t)
@@ -295,10 +335,11 @@ See `lentic-mode' for more information on Lentic mode.
 
 (lentic-script-hook 'lua-mode-hook #'lentic-lua-script-init)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-script" '("lentic-script-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("lentic-chunk.el" "lentic-cookie.el" "lentic-doc.el"
-;;;;;;  "lentic-pkg.el" "lentic-rot13.el") (22396 28979 264011 668000))
+;;;### (autoloads nil nil ("lentic-pkg.el") (0 0 0 0))
 
 ;;;***
 
