@@ -5,7 +5,7 @@
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
 ;; Version    : 0.9.0
-;; Package-Version: 20160615.1119
+;; Package-Version: 20160808.1235
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2016-May-28
@@ -1396,6 +1396,14 @@ This regexp is assumed to not match any non-operator identifier."
           (c-lang-const c-cpp-matchers)))
 
 
+;; allow strings as switch-case values by leaving out string
+;; delimiters in this definition
+(c-lang-defconst c-nonlabel-token-key
+  csharp (c-make-keywords-re t
+           (cl-set-difference (c-lang-const c-keywords)
+                              (append (c-lang-const c-label-kwds)
+                                      (c-lang-const c-protection-kwds))
+                              :test 'string-equal)))
 
 (defconst csharp-font-lock-keywords-1 (c-lang-const c-matchers-1 csharp)
   "Minimal highlighting for C# mode.")
@@ -2990,8 +2998,13 @@ Key bindings:
   (set (make-local-variable 'comment-auto-fill-only-comments) t)
 
   (set (make-local-variable 'syntax-propertize-function)
-       'csharp-mode-syntax-propertize-function))
+       'csharp-mode-syntax-propertize-function)
+
+  ;; required since Emacs git master
+  ;; https://github.com/emacs-mirror/emacs/commit/edcdf64960a2ab4e8d9ce4419874e43b6d3ccee4
+  (csharp-mode-syntax-propertize-function (point-min) (point-max)))
 
 (provide 'csharp-mode)
 
 ;;; csharp-mode.el ends here
+
