@@ -1,10 +1,9 @@
 ;;; projectile-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "projectile" "projectile.el" (22405 60805 52611
-;;;;;;  411000))
+;;;### (autoloads nil "projectile" "projectile.el" (0 0 0 0))
 ;;; Generated autoloads from projectile.el
 
 (autoload 'projectile-version "projectile" "\
@@ -425,7 +424,8 @@ Otherwise behave as if called interactively.
 
 (defvar projectile-global-mode nil "\
 Non-nil if Projectile-Global mode is enabled.
-See the command `projectile-global-mode' for a description of this minor mode.
+See the `projectile-global-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `projectile-global-mode'.")
@@ -443,6 +443,8 @@ Projectile mode is enabled in all buffers where
 See `projectile-mode' for more information on Projectile mode.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "projectile" '("projectile-" "??" "def-projectile-commander-method")))
 
 ;;;***
 

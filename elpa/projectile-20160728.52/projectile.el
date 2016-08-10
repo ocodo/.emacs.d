@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160711.143
+;; Package-Version: 20160728.52
 ;; Keywords: project, convenience
 ;; Version: 0.14.0
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -1616,6 +1616,8 @@ With FLEX-MATCHING, match any file that contains the base name of current file"
                                 candidates))
                      file-list)))
          (candidates
+          (-filter (lambda (file) (not (backup-file-name-p file))) candidates))
+         (candidates
           (-sort (lambda (file _)
                    (let ((candidate-dirname (file-name-nondirectory (directory-file-name (file-name-directory file)))))
                      (unless (equal fulldirname (file-name-directory file))
@@ -1845,6 +1847,22 @@ a COMPILE-CMD, a TEST-CMD, and a RUN-CMD."
                               'run-command run-cmd)
            projectile-project-types))
 
+(defun projectile-cabal ()
+  "Check if a project contains *.cabal files but no stack.yaml file."
+  (and (projectile-verify-file "*.cabal")
+       (not (projectile-verify-file "stack.yaml"))))
+
+(defun projectile-go ()
+  "Check if a project contains Go source files."
+  (-any? (lambda (file)
+           (string= (file-name-extension file) "go"))
+         (projectile-current-project-files)))
+
+(defcustom projectile-go-function 'projectile-go
+  "Function to determine if project's type is go."
+  :group 'projectile
+  :type 'function)
+
 (projectile-register-project-type 'emacs-cask '("Cask") "cask install")
 (projectile-register-project-type 'rails-rspec '("Gemfile" "app" "lib" "db" "config" "spec") "bundle exec rails server" "bundle exec rspec")
 (projectile-register-project-type 'rails-test '("Gemfile" "app" "lib" "db" "config" "test") "bundle exec rails server" "bundle exec rake test")
@@ -1872,25 +1890,9 @@ a COMPILE-CMD, a TEST-CMD, and a RUN-CMD."
 (projectile-register-project-type 'haskell-cabal #'projectile-cabal "cabal build" "cabal test")
 (projectile-register-project-type 'rust-cargo '("Cargo.toml") "cargo build" "cargo test")
 (projectile-register-project-type 'r '("DESCRIPTION") "R CMD INSTALL --with-keep.source ." (concat "R CMD check -o " temporary-file-directory " ."))
-(projectile-register-project-type 'go #'projectile-go "go build ./..." "go test ./...")
+(projectile-register-project-type 'go projectile-go-function "go build ./..." "go test ./...")
 (projectile-register-project-type 'racket '("info.rkt") nil "raco test .")
 (projectile-register-project-type 'elixir '("mix.exs") "mix compile" "mix test")
-
-(defun projectile-cabal ()
-  "Check if a project contains *.cabal files but no stack.yaml file."
-  (and (projectile-verify-file "*.cabal")
-       (not (projectile-verify-file "stack.yaml"))))
-
-(defun projectile-go ()
-  "Check if a project contains Go source files."
-  (-any? (lambda (file)
-           (string= (file-name-extension file) "go"))
-         (projectile-current-project-files)))
-
-(defcustom projectile-go-function 'projectile-go
-  "Function to determine if project's type is go."
-  :group 'projectile
-  :type 'function)
 
 (defvar-local projectile-project-type nil
   "Buffer local var for overriding the auto-detected project type.
@@ -1942,13 +1944,15 @@ PROJECT-ROOT is the targeted directory.  If nil, use
   (cond
    ((projectile-file-exists-p (expand-file-name ".git" project-root)) 'git)
    ((projectile-file-exists-p (expand-file-name ".hg" project-root)) 'hg)
-   ((projectile-file-exists-p (expand-file-name ".fossil" project-root)) 'fossil)
+   ((projectile-file-exists-p (expand-file-name ".fslckout" project-root)) 'fossil)
+   ((projectile-file-exists-p (expand-file-name "_FOSSIL_" project-root)) 'fossil)
    ((projectile-file-exists-p (expand-file-name ".bzr" project-root)) 'bzr)
    ((projectile-file-exists-p (expand-file-name "_darcs" project-root)) 'darcs)
    ((projectile-file-exists-p (expand-file-name ".svn" project-root)) 'svn)
    ((projectile-locate-dominating-file project-root ".git") 'git)
    ((projectile-locate-dominating-file project-root ".hg") 'hg)
-   ((projectile-locate-dominating-file project-root ".fossil") 'fossil)
+   ((projectile-locate-dominating-file project-root ".fslckout") 'fossil)
+   ((projectile-locate-dominating-file project-root "_FOSSIL_") 'fossil)
    ((projectile-locate-dominating-file project-root ".bzr") 'bzr)
    ((projectile-locate-dominating-file project-root "_darcs") 'darcs)
    ((projectile-locate-dominating-file project-root ".svn") 'svn)
@@ -2197,7 +2201,7 @@ regular expression."
   "Regenerate the project's [e|g]tags."
   (interactive)
   (if (and (boundp 'ggtags-mode)
-       (memq projectile-tags-backend '(auto ggtags)))
+           (memq projectile-tags-backend '(auto ggtags)))
       (progn
         (let* ((ggtags-project-root (projectile-project-root))
                (default-directory ggtags-project-root))
@@ -2230,20 +2234,20 @@ regular expression."
 (defun projectile-determine-find-tag-fn ()
   "Determine which function to use for a call to `projectile-find-tag'."
   (cond
-    ((eq projectile-tags-backend 'auto)
-      (cond
-        ((fboundp 'ggtags-find-tag-dwim)
-          'ggtags-find-tag-dwim)
-        ((fboundp 'etags-select-find-tag)
-          'etags-select-find-tag)
-        (t 'find-tag)))
-    ((eq projectile-tags-backend 'ggtags)
-      (if (fboundp 'ggtags-find-tag-dwim)
+   ((eq projectile-tags-backend 'auto)
+    (cond
+     ((fboundp 'ggtags-find-tag-dwim)
+      'ggtags-find-tag-dwim)
+     ((fboundp 'etags-select-find-tag)
+      'etags-select-find-tag)
+     (t 'find-tag)))
+   ((eq projectile-tags-backend 'ggtags)
+    (if (fboundp 'ggtags-find-tag-dwim)
         'ggtags-find-tag-dwim 'find-tag))
-    ((eq projectile-tags-backend 'etags-select)
-      (if (fboundp 'etags-select-find-tag)
+   ((eq projectile-tags-backend 'etags-select)
+    (if (fboundp 'etags-select-find-tag)
         'etags-select-find-tag 'find-tag))
-    (t 'find-tag)))
+   (t 'find-tag)))
 
 ;;;###autoload
 (defun projectile-find-tag ()
@@ -2293,8 +2297,8 @@ regular expression."
   "Invoke `eshell' in the project's root."
   (interactive)
   (let ((eshell-buffer-name (concat "*eshell " (projectile-project-name) "*")))
-     (projectile-with-default-dir (projectile-project-root)
-       (eshell))))
+    (projectile-with-default-dir (projectile-project-root)
+      (eshell))))
 
 ;;;###autoload
 (defun projectile-run-term (program)
@@ -2885,7 +2889,7 @@ overwriting each other's changes."
     (projectile-save-known-projects)))
 
 (define-ibuffer-filter projectile-files
-  "Show Ibuffer with all buffers in the current project."
+    "Show Ibuffer with all buffers in the current project."
   (:reader (read-directory-name "Project root: " (ignore-errors (projectile-project-root)))
            :description nil)
   (with-current-buffer buf
