@@ -127,7 +127,7 @@
         (red-bg        (if (eq variant 'dark) (if (true-color-p) "#3c2a2c" "#262626") (if (true-color-p) "#faede4" "#ffffff")))
         (red-bg-s      (if (eq variant 'dark) (if (true-color-p) "#512e31" "#262626") (if (true-color-p) "#eed9d2" "#ffffff")))
         (blue          (if (eq variant 'dark) (if (true-color-p) "#4f97d7" "#268bd2") (if (true-color-p) "#3a81c3" "#268bd2")))
-        (blue-bg       (if (eq variant 'dark) (if (true-color-p) "#293239" "#262626") (if (true-color-p) "#edf1ed" "#ffffff")))
+        (blue-bg       (if (eq variant 'dark) (if (true-color-p) "#293239" "#262626") (if (true-color-p) "#edf1ed" "#d7d7ff")))
         (magenta       (if (eq variant 'dark) (if (true-color-p) "#a31db1" "#af00df") (if (true-color-p) "#a31db1" "#800080")))
         (yellow        (if (eq variant 'dark) (if (true-color-p) "#b1951d" "#875f00") (if (true-color-p) "#b1951d" "#875f00")))
         (yellow-bg     (if (eq variant 'dark) (if (true-color-p) "#32322c" "#262626") (if (true-color-p) "#f6f1e1" "#ffffff")))
@@ -164,7 +164,7 @@
      `(highlight ((,class (:foreground ,base :background ,highlight))))
      `(hl-line ((,class (:background ,bg2))))
      `(isearch ((,class (:foreground ,bg1 :background ,mat))))
-     `(lazy-highlight ((,class (:background ,highlight :weight normal))))
+     `(lazy-highlight ((,class (:background ,blue-bg :weight normal))))
      `(link ((,class (:foreground ,comment :underline t))))
      `(link-visited ((,class (:foreground ,comp :underline t))))
      `(match ((,class (:background ,highlight :foreground ,mat))))
@@ -176,7 +176,6 @@
      `(tooltip ((,class (:background ,ttip-sl :foreground ,base :bold nil :italic nil :underline nil))))
      `(vertical-border ((,class (:foreground ,bg4))))
      `(warning ((,class (:foreground ,war))))
-     `(warning ((,class (:foreground ,war))))
 
 ;;;;; ahs
      `(ahs-face ((,class (:background ,highlight))))
@@ -187,6 +186,12 @@
 
 ;;;;; auto-complete
      `(ac-completion-face ((,class (:background ,ttip-bg :foreground ,ttip))))
+
+;;;;; avy
+     `(avy-lead-face   ((,class (:background ,blue-bg :foreground ,magenta))))
+     `(avy-lead-face-0 ((,class (:background ,blue-bg :foreground ,blue))))
+     `(avy-lead-face-1 ((,class (:background ,blue-bg :foreground ,magenta))))
+     `(avy-lead-face-2 ((,class (:background ,blue-bg :foreground ,blue))))
 
 ;;;;; cider
      `(cider-enlightened ((,class (:background nil :box (:color ,yellow :line-width -1 :style nil) :foreground ,yellow))))
@@ -364,13 +369,13 @@
      `(helm-grep-cmd-line ((,class (:foreground ,base :background ,bg1))))
      `(helm-grep-file ((,class (:foreground ,base :background ,bg1))))
      `(helm-grep-finish ((,class (:foreground ,base :background ,bg1))))
-     `(helm-grep-lineno ((,class (:foreground ,base :background ,bg1))))
+     `(helm-grep-lineno ((,class (:foreground ,type :background ,bg1 :inherit bold))))
      `(helm-grep-match ((,class (:foreground nil :background nil :inherit helm-match))))
      `(helm-header ((,class (:foreground ,base :background ,bg1 :underline nil :box nil))))
      `(helm-header-line-left-margin ((,class (:foreground ,keyword :background ,nil))))
      `(helm-match ((,class (:background ,head1-bg :foreground ,head1))))
      `(helm-match-item ((,class (:background ,head1-bg :foreground ,head1))))
-     `(helm-moccur-buffer ((,class (:foreground ,func :background ,bg1))))
+     `(helm-moccur-buffer ((,class (:foreground ,var :background ,bg1))))
      `(helm-selection ((,class (:background ,highlight))))
      `(helm-selection-line ((,class (:background ,bg2))))
      `(helm-separator ((,class (:foreground ,comp :background ,bg1))))
@@ -424,6 +429,19 @@
      `(ivy-minibuffer-match-face-4 ((,class (:foreground ,head3 :underline t))))
      `(ivy-remote ((,class (:foreground ,cyan))))
 
+;;;;; latex
+     `(font-latex-bold-face ((,class (:foreground ,comp))))
+     `(font-latex-italic-face ((,class (:foreground ,keyword :italic t))))
+     `(font-latex-match-reference-keywords ((,class (:foreground ,const))))
+     `(font-latex-match-variable-keywords ((,class (:foreground ,var))))
+     `(font-latex-sectioning-0-face ((,class (:inherit bold :foreground ,head3 :height ,(if spacemacs-theme-org-height 1.3 1.0) :background ,(when spacemacs-theme-org-highlight head3-bg)))))
+     `(font-latex-sectioning-1-face ((,class (:inherit bold :foreground ,head4 :height ,(if spacemacs-theme-org-height 1.3 1.0) :background ,(when spacemacs-theme-org-highlight head4-bg)))))
+     `(font-latex-sectioning-2-face ((,class (:inherit bold :foreground ,head1 :height ,(if spacemacs-theme-org-height 1.3 1.0) :background ,(when spacemacs-theme-org-highlight head1-bg)))))
+     `(font-latex-sectioning-3-face ((,class (:inherit bold :foreground ,head2 :height ,(if spacemacs-theme-org-height 1.2 1.0) :background ,(when spacemacs-theme-org-highlight head2-bg)))))
+     `(font-latex-sectioning-4-face ((,class (:bold nil :foreground ,head3 :height ,(if spacemacs-theme-org-height 1.1 1.0) :background ,(when spacemacs-theme-org-highlight head3-bg)))))
+     `(font-latex-sectioning-5-face ((,class (:bold nil :foreground ,head4 :background ,(when spacemacs-theme-org-highlight head4-bg)))))
+     `(font-latex-string-face ((,class (:foreground ,str))))
+
 ;;;;; linum-mode
      `(linum ((,class (:foreground ,lnum :background ,bg2))))
 
@@ -475,12 +493,12 @@
      `(Man-underline ((,class (:foreground ,comp :underline t))))
 
 ;;;;; markdown
-     `(markdown-header-face-1 ((,class (:inherit bold :foreground ,head1))))
-     `(markdown-header-face-2 ((,class (:inherit bold :foreground ,head2))))
-     `(markdown-header-face-3 ((,class (:inherit bold :foreground ,head3))))
-     `(markdown-header-face-4 ((,class (:foreground ,head4))))
-     `(markdown-header-face-5 ((,class (:foreground ,head1))))
-     `(markdown-header-face-6 ((,class (:foreground ,head2))))
+     `(markdown-header-face-1 ((,class (:inherit bold :foreground ,head1 :height ,(if spacemacs-theme-org-height 1.3 1.0) :background ,(when spacemacs-theme-org-highlight head1-bg)))))
+     `(markdown-header-face-2 ((,class (:inherit bold :foreground ,head2 :height ,(if spacemacs-theme-org-height 1.2 1.0) :background ,(when spacemacs-theme-org-highlight head2-bg)))))
+     `(markdown-header-face-3 ((,class (:bold nil :foreground ,head3 :height ,(if spacemacs-theme-org-height 1.1 1.0) :background ,(when spacemacs-theme-org-highlight head3-bg)))))
+     `(markdown-header-face-4 ((,class (:bold nil :foreground ,head4 :background ,(when spacemacs-theme-org-highlight head4-bg)))))
+     `(markdown-header-face-5 ((,class (:bold nil :foreground ,head1))))
+     `(markdown-header-face-6 ((,class (:bold nil :foreground ,head2))))
 
 ;;;;; mode-line
      `(mode-line           ((,class (:foreground ,base :background ,act1 :box (:color ,border :line-width 1)))))
@@ -657,11 +675,6 @@
      `(ac-completion-face ((,class (:underline t :foreground ,keyword))))
      `(ffap ((,class (:foreground ,base))))
      `(flx-highlight-face ((,class (:foreground ,comp :underline nil))))
-     `(font-latex-bold-face ((,class (:foreground ,comp))))
-     `(font-latex-italic-face ((,class (:foreground ,keyword :italic t))))
-     `(font-latex-match-reference-keywords ((,class (:foreground ,const))))
-     `(font-latex-match-variable-keywords ((,class (:foreground ,var))))
-     `(font-latex-string-face ((,class (:foreground ,str))))
      `(icompletep-determined ((,class :foreground ,keyword)))
      `(js2-external-variable ((,class (:foreground ,comp))))
      `(js2-function-param ((,class (:foreground ,const))))
