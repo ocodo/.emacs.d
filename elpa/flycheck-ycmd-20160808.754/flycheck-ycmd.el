@@ -3,9 +3,9 @@
 ;;
 ;; Author: Austin Bingham <austin.bingham@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20160320.424
+;; Package-Version: 20160808.754
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((emacs "24") (dash "1.2.0") (flycheck "0.22") (ycmd "0.9") (let-alist "1.0.4"))
+;; Package-Requires: ((emacs "24") (dash "2.12.1") (flycheck "0.22") (ycmd "0.9") (let-alist "1.0.4"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -60,7 +60,7 @@
   '(("ERROR" . error)
     ("WARNING" . warning)))
 
-(defvar flycheck-ycmd--cache nil
+(defvar-local flycheck-ycmd--cache nil
   "Cache for parse results.")
 
 (defun flycheck-ycmd--result-to-error (result checker)
@@ -72,7 +72,7 @@
        :column .location.column_num
        :buffer (current-buffer)
        :filename .location.filepath
-       :message (concat .text (when (eq .fixit_available t) " (FixIt)"))
+       :message (concat .text (when (eq .fixit_available t) " (FixIt available)"))
        :checker checker
        :level (assoc-default .kind flycheck-ycmd--level-map 'string-equal 'error)))))
 
@@ -107,12 +107,17 @@ display."
 This adds a hook to watch for ycmd parse results, and it adds the
 ycmd checker to the list of flycheck checkers."
   (add-hook 'ycmd-file-parse-result-hook 'flycheck-ycmd--cache-parse-results)
-  (add-to-list 'flycheck-checkers 'ycmd))
+  (add-to-list 'flycheck-checkers 'ycmd)
+  (add-hook 'ycmd-after-teardown-hook #'flycheck-ycmd--teardown))
 
 (flycheck-define-generic-checker 'ycmd
   "A flycheck checker using parse results from ycmd."
   :start #'flycheck-ycmd--start
   :predicate #'flycheck-ycmd--in-supported-mode)
+
+(defun flycheck-ycmd--teardown ()
+  "Reset `flycheck-ycmd--cache'."
+  (setq flycheck-ycmd--cache nil))
 
 (provide 'flycheck-ycmd)
 
