@@ -311,6 +311,7 @@ names to which it refers are bound."
       (slime-repl-prompt-face (:underline nil :weight bold :foreground ,purple))
       (slime-repl-result-face (:foreground ,green))
       (slime-repl-output-face (:foreground ,blue :background ,background))
+      (slime-repl-inputed-output-face (:foreground ,comment))
 
       (csv-separator-face (:foreground ,orange))
 
@@ -489,7 +490,7 @@ names to which it refers are bound."
       (org-hide (:foreground ,background :background ,background))
       (org-link (:foreground ,blue :underline t))
       (org-scheduled (:foreground ,green))
-      (org-scheduled-previously (:foreground ,orange))
+      (org-scheduled-previously (:foreground ,aqua))
       (org-scheduled-today (:foreground ,green))
       (org-special-keyword (:foreground ,orange))
       (org-table (:foreground ,purple))
