@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/company-tern
-;; Package-Version: 20160510.651
+;; Package-Version: 20160713.541
 ;; Version: 0.2.0
 ;; Package-Requires: ((company "0.8.0") (tern "0.0.1") (dash "2.8.0") (dash-functional "2.8.0") (s "1.9.0") (cl-lib "0.5.0"))
 
@@ -34,11 +34,22 @@
 (require 'dash-functional)
 (require 's)
 
-(defvar company-tern-property-marker " ○"
-  "String to indicate object own properties.")
+(defgroup company-tern nil
+  "Tern backend for company-mode"
+  :group 'languages
+  :prefix "company-tern-")
 
-(defvar company-tern-meta-as-single-line nil
-  "Trim candidate type information to length of frame width.")
+(defcustom company-tern-property-marker " ○"
+  "A string to indicate an object's own properties.
+This also can be nil to disable property markers."
+  :type '(choice (string :tag "Property suffix")
+                 (const :tag "None" nil))
+  :group 'company-tern)
+
+(defcustom company-tern-meta-as-single-line nil
+  "Trim candidate type information to frame width?"
+  :type 'boolean
+  :group 'company-tern)
 
 (defun company-tern-prefix ()
   "Grab prefix for tern."
