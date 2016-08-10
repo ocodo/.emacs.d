@@ -1,9 +1,9 @@
 ;;; tern-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "tern" "tern.el" (22366 21500 14060 339000))
+;;;### (autoloads nil "tern" "tern.el" (0 0 0 0))
 ;;; Generated autoloads from tern.el
 
 (autoload 'tern-use-server "tern" "\
@@ -15,6 +15,8 @@
 Minor mode binding to the Tern JavaScript analyzer
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tern" '("tern-")))
 
 ;;;***
 
