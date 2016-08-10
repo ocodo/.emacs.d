@@ -1,10 +1,10 @@
 ;;; highlight-numbers-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "highlight-numbers" "highlight-numbers.el"
-;;;;;;  (22338 19842 35377 30000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from highlight-numbers.el
 
 (autoload 'highlight-numbers-mode "highlight-numbers" "\
@@ -17,6 +17,8 @@ positive, and disable it otherwise. If called from Lisp, enable
 the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "highlight-numbers" '("highlight-numbers-")))
 
 ;;;***
 
