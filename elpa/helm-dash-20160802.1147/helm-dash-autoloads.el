@@ -1,10 +1,9 @@
 ;;; helm-dash-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-dash" "helm-dash.el" (22396 29050 301144
-;;;;;;  740000))
+;;;### (autoloads nil "helm-dash" "helm-dash.el" (0 0 0 0))
 ;;; Generated autoloads from helm-dash.el
 
 (autoload 'helm-dash-activate-docset "helm-dash" "\
@@ -51,6 +50,8 @@ Bring up a `helm-dash' search interface.
 Bring up a `helm-dash' search interface with symbol at point.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-dash" '("helm-")))
 
 ;;;***
 

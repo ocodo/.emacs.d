@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20160613.138
+;; Package-Version: 20160802.1147
 ;; Version: 1.3.0
 ;; Package-Requires: ((helm "1.9.2") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -39,7 +39,6 @@
 (eval-when-compile (require 'cl))
 (require 'cl-lib)
 (require 'helm)
-(require 'helm-plugin)
 (require 'helm-multi-match)
 (require 'json)
 (require 'xml)
@@ -460,7 +459,7 @@ candidate opts."
 	(list (car docset) row)))
 
 (defun helm-dash-result-url (docset-name filename &optional anchor)
-  "Return the full, absolute URL to documentation: either a file:// URL joining
+  "Return the full, absolute URL to documentation: either a file:/// URL joining
 DOCSET-NAME, FILENAME & ANCHOR with sanitization of spaces or a http(s):// URL
 formed as-is if FILENAME is a full HTTP(S) URL."
   (let ((path (format "%s%s" filename (if anchor (format "#%s" anchor) ""))))
@@ -470,7 +469,7 @@ formed as-is if FILENAME is a full HTTP(S) URL."
        " "
        "%20"
        (concat
-	"file://"
+	"file:///"
 	(expand-file-name "Contents/Resources/Documents/" (helm-dash-docset-path docset-name))
 	path)))))
 
