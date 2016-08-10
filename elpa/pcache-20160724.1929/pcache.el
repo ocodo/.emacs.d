@@ -4,8 +4,8 @@
 
 ;; Author: Yann Hodique <yann.hodique@gmail.com>
 ;; Keywords:
-;; Package-Version: 20160624.736
-;; Version: 0.4.0
+;; Package-Version: 20160724.1929
+;; Version: 0.4.1
 ;; Package-Requires: ((eieio "1.3"))
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -67,7 +67,10 @@
 
 (defconst pcache-default-save-delay 300)
 
-(defconst pcache-version-constant "0.4")
+(defconst pcache-internal-version-constant "0.4")
+
+(defconst pcache-version-constant
+  (format "%s/%s" emacs-version pcache-internal-version-constant))
 
 (defclass pcache-repository (eieio-persistent eieio-named)
   ((version :initarg :version :initform nil)
