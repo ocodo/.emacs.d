@@ -3,8 +3,8 @@
 ;; Copyright (C) 2013 Yasuyuki Oka <yasuyk@gmail.com>
 
 ;; Author: Yasuyuki Oka <yasuyk@gmail.com>
-;; Version: 20131013.2329
-;; X-Original-Version: DEV
+;; Version: DEV
+;; Package-Version: 20160713.531
 ;; URL: https://github.com/yasuyk/helm-emmet
 ;; Package-Requires: ((helm "1.0") (emmet-mode "1.0.2"))
 ;; Keywords: convenience, helm, emmet
@@ -89,45 +89,39 @@
           (setq snippet (funcall snippet "")))
         (prin1 snippet)))))
 
-(define-helm-type-attribute 'emmet
-  '((action . (("Preview" . (lambda (c)
-                              (insert c)
-                              (call-interactively 'emmet-expand-line)))
-               ("Expand" . (lambda (c)
-                             (insert c)
-                             (emmet-expand-line c)))))
-    (real-to-display . helm-emmet-real-to-display)
-    (persistent-action . helm-emmet-persistent-action)
-    (persistent-help . "Describe this snippet")))
+(defclass helm-source-emmet (helm-source-sync)
+  ((action :initform '(("Preview" . (lambda (c)
+                                      (insert c)
+                                      (call-interactively 'emmet-expand-line)))
+                       ("Expand" . (lambda (c)
+                                     (insert c)
+                                     (emmet-expand-line c)))))
+   (real-to-display :initform #'helm-emmet-real-to-display)
+   (persistent-action :initform #'helm-emmet-persistent-action)
+   (persistent-help :initform "Describe this snippet")))
 
 (defvar helm-source-emmet-html-snippets
-  '((name . "emmet html snippets")
-    (init . (lambda ()
-              (setq helm-emmet-html-snippets-keys
-                    (helm-emmet-snippets-init helm-emmet-html-snippets-hash))))
-    (candidates . helm-emmet-html-snippets-keys)
-    (lgst-len)
-    (type . emmet))
+  (helm-make-source "emmet html snippets" 'helm-source-emmet
+    :init (lambda ()
+            (setq helm-emmet-html-snippets-keys
+                  (helm-emmet-snippets-init helm-emmet-html-snippets-hash)))
+    :candidates 'helm-emmet-html-snippets-keys)
   "Show emmet-mode's html snippets.")
 
 (defvar helm-source-emmet-html-aliases
-  '((name . "emmet html aliases")
-    (init . (lambda ()
+  (helm-make-source "emmet html aliases" 'helm-source-emmet
+    :init (lambda ()
               (setq helm-emmet-html-aliases-keys
-                    (helm-emmet-snippets-init helm-emmet-html-aliases-hash))))
-    (candidates . helm-emmet-html-aliases-keys)
-    (lgst-len)
-    (type . emmet))
+                    (helm-emmet-snippets-init helm-emmet-html-aliases-hash)))
+    :candidates 'helm-emmet-html-aliases-keys)
   "Show emmet-mode's html aliases.")
 
 (defvar helm-source-emmet-css-snippets
-  '((name . "emmet css snippets")
-    (init . (lambda ()
+  (helm-make-source "emmet css snippets" 'helm-source-emmet
+    :init (lambda ()
               (setq helm-emmet-css-snippets-keys
-                    (helm-emmet-snippets-init helm-emmet-css-snippets-hash))))
-    (candidates . helm-emmet-css-snippets-keys)
-    (lgst-len)
-    (type . emmet))
+                    (helm-emmet-snippets-init helm-emmet-css-snippets-hash)))
+    :candidates 'helm-emmet-css-snippets-keys)
   "Show emmet-mode's css snippets.")
 
 ;;;###autoload
