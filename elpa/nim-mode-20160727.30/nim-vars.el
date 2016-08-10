@@ -113,6 +113,11 @@ other tokens like ’:’ or ’=’."
   :type 'hook
   :group 'nim)
 
+(defcustom nim-common-init-hook nil
+  "A hook for both nim-mode and nimscript-mode."
+  :type 'hook
+  :group 'nim)
+
 (defcustom nim-pretty-triple-double-quotes
   ;; What character should be default? („…“, “…”, ‘…’, or etc.?)
   (cons ?“ ?”)
@@ -160,7 +165,6 @@ specific directory or buffer.  See also ‘dir-locals-file’.")
     (define-key map (kbd "M-.") 'nim-goto-sym)
     (define-key map (kbd "C-c h") 'nim-explain-sym)
     (define-key map (kbd "C-c C-c") 'nim-compile)
-    (define-key map ":" 'nim-indent-electric-colon)
     (define-key map "\C-c<" 'nim-indent-shift-left)
     (define-key map "\C-c>" 'nim-indent-shift-right)
     map))
@@ -175,7 +179,7 @@ See also ‘nim-syntax-disable-keywords-list’."
   :group 'nim)
 
 ;; Syntax table
-(defconst nim-mode-syntax-table
+(defvar nim-mode-syntax-table
   (let ((table (make-syntax-table)))
     ;; Give punctuation syntax to ASCII that normally has symbol
     ;; syntax or has word syntax and isn't a letter.
@@ -384,6 +388,11 @@ which supports ‘chk’ option for EPC.")
 
 (make-obsolete-variable
  'nimsuggest-vervosity 'nimsuggest-check-vervosity "0.1.0")
+
+;; flycheck-nimsuggest
+(defvar nim-use-flycheck-nimsuggest t
+  "Set nil if you really don’t want to use flycheck-nimsuggest.
+Mainly this variable is debug purpose.")
 
 (provide 'nim-vars)
 ;;; nim-vars.el ends here

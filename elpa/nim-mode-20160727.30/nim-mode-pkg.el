@@ -1,4 +1,4 @@
-(define-package "nim-mode" "20160708.744" "A major mode for the Nim programming language"
+(define-package "nim-mode" "20160727.30" "A major mode for the Nim programming language"
   '((emacs "24.4")
     (epc "0.1.1")
     (let-alist "1.0.1")
