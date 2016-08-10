@@ -4,7 +4,7 @@
 
 ;; Author: Josh Johnston
 ;; URL: https://github.com/joshwnj/json-mode
-;; Package-Version: 20160710.1637
+;; Package-Version: 20160803.1606
 ;; Version: 1.6.0
 ;; Package-Requires: ((json-reformat "0.0.5") (json-snatcher "1.0.0"))
 
@@ -68,6 +68,7 @@
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.json$" . json-mode))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.jsonld$" . json-mode))
 
 ;;;###autoload
