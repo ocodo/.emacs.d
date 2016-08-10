@@ -1,10 +1,9 @@
 ;;; avy-flycheck-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "avy-flycheck" "avy-flycheck.el" (22405 60926
-;;;;;;  608399 628000))
+;;;### (autoloads nil "avy-flycheck" "avy-flycheck.el" (0 0 0 0))
 ;;; Generated autoloads from avy-flycheck.el
 
 (autoload 'avy-flycheck-goto-error "avy-flycheck" "\
@@ -17,6 +16,8 @@ The window scope is determined by `avy-all-windows' (ARG negates it).
 Set up default keybindings.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "avy-flycheck" '("avy-")))
 
 ;;;***
 

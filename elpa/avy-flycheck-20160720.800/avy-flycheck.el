@@ -3,8 +3,8 @@
 ;; Copyright (C) 2016  Xu Ma
 
 ;; Author: Xu Ma <magicdirac@gmail.com>
-;; URL: https://github.com/magicdirac/flycheck
-;; Package-Version: 20160706.2343
+;; URL: https://github.com/magicdirac/avy-flycheck
+;; Package-Version: 20160720.800
 ;; keywords: tools, convenience, avy, flycheck
 ;; Version: 0.0.1-cvs
 ;; Package-Requires: ((emacs "24.1") (flycheck "0.14") (seq "1.11") (avy "0.4.0"))
@@ -158,10 +158,11 @@ Defaults to pre."
                                     intersting-overlay)))
               (setq candidates
                     (append ;; sort per window basis.
-                     (sort new-candidates
-                           #'(lambda (a b) (<= (car a) (car b))))
-                     (seq-uniq candidates))))))))
-    candidates))
+                     (seq-uniq
+                      (sort new-candidates
+                            #'(lambda (a b) (> (car a) (car b)))))
+                     candidates)))))))
+    (nreverse candidates)))
 
 ;; (defun avy--flycheck (&optional arg beg end)
 ;;   "Select a flycheck syntax error.
