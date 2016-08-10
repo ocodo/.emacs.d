@@ -1,10 +1,9 @@
 ;;; coffee-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "coffee-mode" "coffee-mode.el" (22338 19919
-;;;;;;  11903 267000))
+;;;### (autoloads nil "coffee-mode" "coffee-mode.el" (0 0 0 0))
 ;;; Generated autoloads from coffee-mode.el
 
 (autoload 'coffee-mode "coffee-mode" "\
@@ -21,6 +20,8 @@ Major mode for editing CoffeeScript.
 (add-to-list 'auto-mode-alist '("\\.cson\\'" . coffee-mode))
 
 (add-to-list 'interpreter-mode-alist '("coffee" . coffee-mode))
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "coffee-mode" '("coffee-" "iced-coffee-cs-keywords" "js2coffee-command")))
 
 ;;;***
 
