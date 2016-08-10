@@ -3,9 +3,10 @@
 ;; Copyright (C) 2013 Wilfred Hughes
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
-;; Version: 2.0
-;; Package-Version: 20150830.1115
+;; Version: 2.2
+;; Package-Version: 20160806.1753
 ;; Keywords: hash table, hash map, hash
+;; Package-Requires: ((dash "2.12.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,13 +23,13 @@
 
 ;;; Commentary:
 
-;; The missing hash table utility library for Emacs.
+;; The missing hash table library for Emacs.
 ;;
-;; See documentation on https://github.com/Wilfred/ht.el
+;; See documentation at https://github.com/Wilfred/ht.el
 
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; dolist
+(require 'dash)
 
 (defmacro ht (&rest pairs)
   "Create a hash table with the key-value pairs given.
@@ -36,10 +37,10 @@ Keys are compared with `equal'.
 
 \(fn (KEY-1 VALUE-1) (KEY-2 VALUE-2) ...)"
   (let* ((table-symbol (make-symbol "ht-temp"))
-        (assignments
-         (mapcar
-          (lambda (pair) `(ht-set! ,table-symbol ,@pair))
-          pairs)))
+         (assignments
+          (mapcar
+           (lambda (pair) `(ht-set! ,table-symbol ,@pair))
+           pairs)))
     `(let ((,table-symbol (ht-create)))
        ,@assignments
        ,table-symbol)))
@@ -284,6 +285,20 @@ FUNCTION is called with two arguments, KEY and VALUE."
        (when (funcall function key value)
          (throw 'break (list key value))))
      table)))
+
+(defun ht-equal? (table1 table2)
+  "Return t if TABLE1 and TABLE2 have the same keys and values.
+Does not compare equality predicates."
+  (let ((keys1 (ht-keys table1))
+        (keys2 (ht-keys table2))
+        (sentinel (make-symbol "ht-sentinel")))
+    (and (equal (length keys1) (length keys2))
+         (--all?
+          (equal (ht-get table1 it)
+                 (ht-get table2 it sentinel))
+          keys1))))
+
+(defalias 'ht-equal-p 'ht-equal?)
 
 (provide 'ht)
 ;;; ht.el ends here
