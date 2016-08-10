@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20160628.1809
+;; Package-Version: 20160726.840
 ;; Version: 0.61
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
@@ -409,7 +409,7 @@
 (defconst anzu--from-to-separator
   (propertize
    (or (ignore-errors
-	 (if (char-displayable-p ?\u2192) " \u2192 " " -> "))
+         (if (char-displayable-p ?\u2192) " \u2192 " " -> "))
        " -> ")
    'face 'minibuffer-prompt))
 
