@@ -2,7 +2,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/auto-yasnippet
-;; Package-Version: 20160524.618
+;; Package-Version: 20160809.46
 ;; Version: 0.3
 ;; Package-Requires: ((yasnippet "0.8.0"))
 
@@ -219,7 +219,8 @@ with words prefixed by `aya-marker' as fields, and mirrors properly set up."
 (defun aya-expand ()
   "Insert the last yasnippet created by `aya-create'."
   (interactive)
-  (yas-global-mode)
+  (unless yas-global-mode
+    (yas-global-mode))
   (if (region-active-p)
       (let ((str (buffer-substring-no-properties
                   (region-beginning)
@@ -283,7 +284,10 @@ move to the next field.  Call `open-line' if nothing else applies."
            (setq aya-invokation-point (point))
            (setq aya-invokation-buffer (current-buffer))
            (setq aya-tab-position (- (point) (line-beginning-position)))
-           (yas-expand)))
+           (let ((yas-fallback-behavior 'return-nil))
+             (yas-expand))))
+        ((and (fboundp 'tiny-expand)
+              (funcall 'tiny-expand)))
         (t
          (open-line 1))))
 
