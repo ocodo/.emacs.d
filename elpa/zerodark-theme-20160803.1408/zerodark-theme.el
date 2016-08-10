@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: themes
-;; Package-Version: 20160518.627
+;; Package-Version: 20160803.1408
 ;; URL: https://github.com/NicolasPetton/zerodark-theme
 ;; Version: 1.0
 
@@ -37,6 +37,7 @@
 
 (let ((class '((class color) (min-colors 89)))
       (default "#abb2bf")
+      (light "#ccd4e3")
       (background "#282c34")
       (background-darker "#21252b")
       (background-lighter "#3a3f4b")
@@ -153,7 +154,16 @@
    `(link-visited ((,class (:foreground ,blue :underline t))))
 
    ;; widget faces
-   `(widget-field ((,class (:background ,highlight))))
+   `(widget-field ((,class (:background ,highlight :box (:line-width 1 :color ,comment)))))
+   `(widget-button ((,class (:inherit link))))
+
+   ;; custom
+   `(custom-button ((,class (:background ,background-lighter :box (:line-width 2 :style released-button)))))
+   `(custom-button-mouse ((,class (:background ,highlight :box (:line-width 2 :style released-button)))))
+   `(custom-button-pressed ((,class (:background ,highlight :box (:line-width 2 :style pressed-button)))))
+   `(custom-group-tag ((,class (:foreground ,purple :weight bold :height 1.4))))
+   `(custom-variable-tag ((,class (:foreground ,purple :weight bold))))
+   `(custom-state ((,class (:foreground ,green))))
 
    ;; compilation
    `(compilation-info ((,class (:foreground ,purple :weight bold))))
@@ -200,6 +210,8 @@
    `(git-commit-summary ((,class (:weight bold))))
 
    `(magit-tag ((,class (:foreground ,purple :weight bold :box 1 :background "#202020"))))
+   `(magit-sequence-part ((,class (:foreground ,orange :weight bold))))
+   `(magit-sequence-head ((,class (:foreground ,green :weight bold))))
 
    ;; Message faces
    `(message-header-name ((,class (:foreground ,blue :weight bold))))
@@ -217,13 +229,18 @@
 
    ;; notmuch
    `(notmuch-message-summary-face ((,class (:background ,highlight :box (:line-width 2 :color ,background)))))
+   `(notmuch-search-count ((,class (:foreground ,red :weight bold))))
+   `(notmuch-search-matching-authors ((,class (:foreground ,comment))))
+   `(notmuch-search-subject ((,class (:foreground ,default))))
+   `(notmuch-search-unread-face ((,class (:weight bold))))
+   `(notmuch-search-date ((,class (:foreground ,purple))))
    `(notmuch-crypto-part-header ((,class (:foreground ,blue))))
    `(notmuch-crypto-decryption ((,class (:foreground ,purple))))
    `(notmuch-crypto-signature-unknown ((,class (:foreground ,red))))
    `(notmuch-crypto-signature-good ((,class (:background ,blue :foreground ,background :weight bold))))
    `(notmuch-crypto-signature-good-key ((,class (:background ,blue :foreground ,background :weight bold))))
    `(notmuch-crypto-signature-bad ((,class (:background ,red :foreground ,background :weight bold))))
-   `(notmuch-tag-face ((,class (:foreground ,blue :weight bold))))
+   `(notmuch-tag-face ((,class (:foreground ,green :weight bold))))
 
    ;; company
    `(company-preview ((,class (:background ,background-darker :foreground ,default))))
