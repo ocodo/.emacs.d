@@ -1,16 +1,17 @@
 ;;; git-messenger-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "git-messenger" "git-messenger.el" (22366 21660
-;;;;;;  112995 275000))
+;;;### (autoloads nil "git-messenger" "git-messenger.el" (0 0 0 0))
 ;;; Generated autoloads from git-messenger.el
 
 (autoload 'git-messenger:popup-message "git-messenger" "\
 
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "git-messenger" '("git-messenger")))
 
 ;;;***
 
