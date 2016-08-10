@@ -7,8 +7,8 @@
 
 ;; Author: mechairoi
 ;; Maintainer: Yasuyuki Oka <yasuyk@gmail.com>
-;; Version: 0.7.0
-;; Package-Version: 20160529.423
+;; Version: 0.8.0
+;; Package-Version: 20160713.521
 ;; URL: https://github.com/yasuyk/helm-git-grep
 ;; Package-Requires: ((helm "1.9.3"))
 ;; Keywords: helm, git
@@ -502,30 +502,37 @@ You can save your results in a helm-git-grep-mode buffer, see below.
     (delq nil map))
   "Keymap used in Git Grep sources.")
 
-(define-helm-type-attribute 'git-grep
-  `((default-directory . nil)
-    (requires-pattern . 3)
-    (volatile)
-    (delayed)
-    (filtered-candidate-transformer
-     helm-git-grep-filtered-candidate-transformer-file-line)
-    (action . ,helm-git-grep-actions)
-    (history . ,'helm-git-grep-history)
-    (persistent-action . helm-git-grep-persistent-action)
-    (persistent-help . "Jump to line (`C-u' Record in mark ring)")
-    (keymap . ,helm-git-grep-map)
-    (mode-line . helm-git-grep-mode-line-string)
-    (init . helm-git-grep-init)))
+(eval `(defclass helm-git-grep-source (helm-source-async)
+         ((default-directory
+            :initform nil)
+          (requires-pattern
+           :initform 3)
+          (volatile
+           :initform t)
+          (filtered-candidate-transformer
+           :initform helm-git-grep-filtered-candidate-transformer-file-line)
+          (action
+           :initform ,helm-git-grep-actions)
+          (history
+           :initform ,'helm-git-grep-history)
+          (persistent-action
+           :initform helm-git-grep-persistent-action)
+          (persistent-help
+           :initform "Jump to line (`C-u' Record in mark ring)")
+          (keymap
+           :initform ,helm-git-grep-map)
+          (mode-line
+           :initform helm-git-grep-mode-line-string)
+          (init
+           :initform helm-git-grep-init))))
 
 (defvar helm-source-git-grep
-  '((name . "Git Grep")
-    (candidates-process . helm-git-grep-process)
-    (type . git-grep)))
+  (helm-make-source "Git Grep" 'helm-git-grep-source
+    :candidates-process 'helm-git-grep-process))
 
 (defvar helm-source-git-submodule-grep
-  '((name . "Git Submodule Grep")
-    (candidates-process . helm-git-submodule-grep-process)
-    (type . git-grep)))
+  (helm-make-source "Git Submodule Grep" 'helm-git-grep-source
+    :candidates-process 'helm-git-submodule-grep-process))
 
 (defun helm-git-grep-1 (&optional input)
   "Execute helm git grep.

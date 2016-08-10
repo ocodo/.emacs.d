@@ -1,10 +1,9 @@
 ;;; helm-git-grep-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (22347 49585
-;;;;;;  297200 876000))
+;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (0 0 0 0))
 ;;; Generated autoloads from helm-git-grep.el
 
 (autoload 'helm-git-grep-run-persistent-action "helm-git-grep" "\
@@ -92,6 +91,8 @@ Invoke `helm-git-grep' from other helm.
 \(fn)" t nil)
 
 (define-obsolete-function-alias 'helm-git-grep-from-here 'helm-git-grep-at-point "0.5")
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-git-grep" '("helm-")))
 
 ;;;***
 
