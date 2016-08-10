@@ -4,7 +4,7 @@
 
 ;; Author: Roman Parykin <donderom@ymail.com>
 ;; URL: https://github.com/donderom/jazz-theme
-;; Package-Version: 20160629.855
+;; Package-Version: 20160715.829
 ;; Version: 1.0
 
 ;; Based on zenburn-theme.el
@@ -431,10 +431,10 @@
 
    ;; markdown
    `(markdown-header-face ((,class (:inherit variable-pitch))))
-   `(markdown-header-face-1 ((,class (:height 200 :inherit markdown-header-face))))
-   `(markdown-header-face-2 ((,class (:height 150 :inherit markdown-header-face))))
-   `(markdown-header-face-3 ((,class (:height 100 :inherit markdown-header-face))))
-   `(markdown-header-face-4 ((,class (:height 90  :inherit markdown-header-face))))
+   `(markdown-header-face-1 ((,class (:height 1.8 :inherit markdown-header-face))))
+   `(markdown-header-face-2 ((,class (:height 1.4 :inherit markdown-header-face))))
+   `(markdown-header-face-3 ((,class (:height 1.2 :inherit markdown-header-face))))
+   `(markdown-header-face-4 ((,class (:height 1.0 :inherit markdown-header-face))))
 
    ;; message-mode
    `(message-cited-text ((,class (:inherit font-lock-comment))))
