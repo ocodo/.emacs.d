@@ -4,7 +4,7 @@
 
 ;; Author: Xah Lee ( http://xahlee.org/ )
 ;; Version: 2.3.4
-;; Package-Version: 20160711.840
+;; Package-Version: 20160714.125
 ;; Created: 18 April 2013
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: languages, convenience, css, color
@@ -30,7 +30,7 @@
 
 ;; • Keyword completion with `ido-mode' interface. Press Tab ↹ after a word to complete. All CSS words are supported: {html5 tags, property names, property value keywords, units, colors, pseudo selectors, “at keywords”, …}.
 
- ;; • Single Key Prettify Code Format. Press Tab ↹ before word to reformat current block of code. That is, all lines enclosed by curly brackets {}.
+;; • Single Key Prettify Code Format. Press Tab ↹ before word to reformat current block of code. That is, all lines enclosed by curly brackets {}.
 
 ;; • Syntax coloring of hexadecimal color format #rrggbb , #rgb , and HSL Color format hsl(0,68%,42%).
 
@@ -63,6 +63,7 @@
 
 (require 'color) ; part of emacs 24.1
 (require 'newcomment)
+(require 'ido)
 (require 'lisp-mode) ; for indent-sexp. todo possibly write own customized for css
 
 (defvar xah-css-mode-hook nil "Standard hook for `xah-css-mode'")

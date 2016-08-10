@@ -1,10 +1,9 @@
 ;;; xah-css-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "xah-css-mode" "xah-css-mode.el" (22405 60738
-;;;;;;  252732 756000))
+;;;### (autoloads nil "xah-css-mode" "xah-css-mode.el" (0 0 0 0))
 ;;; Generated autoloads from xah-css-mode.el
 
 (autoload 'xah-css-mode "xah-css-mode" "\
@@ -15,6 +14,8 @@ URL `http://ergoemacs.org/emacs/xah-css-mode.html'
 \\{xah-css-mode-map}
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "xah-css-mode" '("xah-css-")))
 
 ;;;***
 
