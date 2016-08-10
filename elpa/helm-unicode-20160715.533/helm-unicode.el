@@ -2,9 +2,9 @@
 
 ;; Copyright © 2015 Emanuel Evans
 
-;; Version: 0.0.1
-;; Package-Version: 20160712.1520
-;; Package-Requires: ((helm "1.6") (emacs "24.4"))
+;; Version: 0.0.4
+;; Package-Version: 20160715.533
+;; Package-Requires: ((helm "1.9.8") (emacs "24.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,18 +28,26 @@
 (require 'helm-utils)
 
 (defvar helm-unicode-names nil
-  "Internal variable for unicode characters.")
+  "Internal cache variable for unicode characters.  Should not be changed by the user.")
 
-(defun helm-source-unicode ()
-  "Builds the helm Unicode source"
+(defun helm-unicode-format-char-pair (char-pair)
+  "Formats a char pair for helm unicode search."
+             (let ((name (car char-pair))
+                   (symbol (cdr char-pair)))
+                   (format "%s %c" name symbol)))
+
+(defun helm-unicode-build-candidates ()
+    "Builds the candidate list."
+  (sort
+   (mapcar 'helm-unicode-format-char-pair (ucs-names))
+   #'string-lessp))
+
+(defun helm-unicode-source ()
+  "Builds the helm Unicode source.  Initialize the lookup cache if necessary."
+
   (unless helm-unicode-names
-    (setq helm-unicode-names
-          (sort (mapcar (lambda (char-pair)
-                          (format "%s %c"
-                                  (car char-pair)
-                                  (cdr char-pair)))
-                        (ucs-names))
-                #'string-lessp)))
+    (setq helm-unicode-names (helm-unicode-build-candidates)))
+
   (helm-build-sync-source "unicode-characters"
     :candidates helm-unicode-names
     :filtered-candidate-transformer (lambda (candidates _source) (sort candidates #'helm-generic-sort-fn))
@@ -56,7 +64,7 @@
 With prefix ARG, reinitialize the cache."
   (interactive "P")
   (when arg (setq helm-unicode-names nil))
-  (helm :sources (helm-source-unicode)
+  (helm :sources (helm-unicode-source)
         :buffer "*helm-unicode-search*"))
 
 (provide 'helm-unicode)
