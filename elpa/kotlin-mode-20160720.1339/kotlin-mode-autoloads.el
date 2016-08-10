@@ -1,10 +1,9 @@
 ;;; kotlin-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "kotlin-mode" "kotlin-mode.el" (22396 28983
-;;;;;;  816616 53000))
+;;;### (autoloads nil "kotlin-mode" "kotlin-mode.el" (0 0 0 0))
 ;;; Generated autoloads from kotlin-mode.el
 
 (autoload 'kotlin-mode "kotlin-mode" "\
@@ -13,6 +12,8 @@ Major mode for editing Kotlin.
 \(fn)" t nil)
 
 (add-to-list 'auto-mode-alist '("\\.kt\\'" . kotlin-mode) t)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "kotlin-mode" '("kotlin-")))
 
 ;;;***
 
