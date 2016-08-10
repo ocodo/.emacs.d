@@ -4,7 +4,7 @@
 
 ;; Author: Marko Bencun <mbencun@gmail.com>
 ;; URL: https://github.com/benma/visual-regexp.el/
-;; Package-Version: 20160624.320
+;; Package-Version: 20160806.610
 ;; Version: 1.0
 ;; Package-Requires: ((cl-lib "0.2"))
 ;; Keywords: regexp, replace, visual, feedback
@@ -379,7 +379,7 @@ visible all the time in the minibuffer."
 
 (defun vr--minibuffer-help-text ()
   (let ((help ""))
-    (setq help (concat help (substitute-command-keys "\\<vr/minibuffer-keymap>\\[vr--minibuffer-help]: help, \\[vr--shortcut-toggle-limit]: toggle show all")))
+    (setq help (concat help (substitute-command-keys "\\<vr/minibuffer-keymap>\\[vr--minibuffer-help]: help, \\[vr--shortcut-toggle-limit]: toggle show all, \\[previous-history-element]: previous")))
     (when (vr--in-replace)
       (setq help (concat help (substitute-command-keys ", \\[vr--shortcut-toggle-preview]: toggle preview"))))
     help

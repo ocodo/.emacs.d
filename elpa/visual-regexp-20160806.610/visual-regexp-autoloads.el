@@ -1,10 +1,9 @@
 ;;; visual-regexp-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "visual-regexp" "visual-regexp.el" (22396 28833
-;;;;;;  22105 982000))
+;;;### (autoloads nil "visual-regexp" "visual-regexp.el" (0 0 0 0))
 ;;; Generated autoloads from visual-regexp.el
 
 (autoload 'vr/mc-mark "visual-regexp" "\
@@ -21,6 +20,8 @@ Regexp-replace with live visual feedback.
 Use vr/query-replace like you would use query-replace-regexp.
 
 \(fn REGEXP REPLACE START END)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "visual-regexp" '("vr/" "vr--")))
 
 ;;;***
 
