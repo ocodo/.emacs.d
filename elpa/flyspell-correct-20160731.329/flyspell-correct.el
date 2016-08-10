@@ -4,8 +4,7 @@
 ;;
 ;; Author: Boris Buliga <d12frosted@gmail.com>
 ;; URL: https://github.com/d12frosted/flyspell-correct
-;; Package-Version: 20160709.2233
-;; Package-X-Original-version: 0.1
+;; Package-version: 0.1
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -19,22 +18,27 @@
 ;; correct any visible word before point. In most cases second function is more
 ;; convenient, so don't forget to bind it.
 ;;
-;; (define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-previous-word-generic)
+;;   (define-key flyspell-mode-map (kbd "C-;") 'flyspell-correct-previous-word-generic)
 ;;
 ;; When invoked, it will show the list of corrections suggested by Flyspell.
 ;; Most interfaces also allow you to save new word to your dictionary, accept
 ;; this spelling in current buffer or for a whole session.
 ;;
-;; Since this package does not provide any interface for correcting words, it's
-;; better to use one of the following packages: `flyspell-correct-ivy',
-;; `flyspell-correct-helm' and `flyspell-correct-popup'. The all depend on
-;; `flyspell-correct' and just provide interface for it's functionality.
+;; Default interface is implemented using `completing-read', but it's highly
+;; advised to use `flyspell-correct-ido' (which comes bundled with this package)
+;; or any interface provided by following packages: `flyspell-correct-ivy',
+;; `flyspell-correct-helm' and `flyspell-correct-popup'.
 ;;
-;; But one can easily implement it's own interface for `flyspell-correct'.
-;; Checkout documentation for `flyspell-correct-interface' variable.
+;; In order to use `flyspell-correct-ido' interface instead of default
+;; `flyspell-correct-dummy', place following snippet in your 'init.el' file.
 ;;
-;; For more information about this and related package, please read attached
-;; README.org file.
+;;   (require 'flyspell-correct-ido)
+;;
+;; It's easy to implement your own interface for `flyspell-correct'. Checkout
+;; documentation for `flyspell-correct-interface' variable.
+;;
+;; For more information about this and related packages, please refer to
+;; attached README.org file.
 ;;
 ;;; Code:
 ;;
@@ -45,12 +49,23 @@
 
 ;; Variables
 
-(defvar flyspell-correct-interface nil
+(defvar flyspell-correct-interface #'flyspell-correct-dummy
   "Interface for `flyspell-correct-word-generic'.
 It has to be function that accepts two arguments - candidates and
 misspelled word. It has to return either replacement word
 or (command, word) tuple that will be passed to
 `flyspell-do-correct'.")
+
+;; Default interface
+
+(defun flyspell-correct-dummy (candidates word)
+  "Run `completing-read' for the given CANDIDATES.
+
+List of CANDIDATES is given by flyspell for the WORD.
+
+Return a selected word to use as a replacement or a tuple
+of (command, word) to be used by `flyspell-do-correct'."
+  (completing-read (format "Correcting '%s': " word) candidates))
 
 ;; On point word correction
 
@@ -121,6 +136,10 @@ Uses `flyspell-correct-word-generic' function for correction."
         (position-at-incorrect-word))
     (save-excursion
       (save-restriction
+        ;; make sure that word under point is checked first
+        (forward-word)
+
+        ;; narrow the region
         (narrow-to-region top bot)
         (overlay-recenter (point))
 

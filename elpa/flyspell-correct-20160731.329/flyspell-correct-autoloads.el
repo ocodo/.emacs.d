@@ -1,10 +1,10 @@
 ;;; flyspell-correct-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flyspell-correct" "flyspell-correct.el" (22405
-;;;;;;  60901 608442 324000))
+;;;### (autoloads nil "flyspell-correct" "flyspell-correct.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from flyspell-correct.el
 
 (autoload 'flyspell-correct-word-generic "flyspell-correct" "\
@@ -25,6 +25,20 @@ Uses `flyspell-correct-word-generic' function for correction.
 Minor mode for automatically correcting word at point.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flyspell-correct" '("flyspell-correct-")))
+
+;;;***
+
+;;;### (autoloads nil "flyspell-correct-ido" "flyspell-correct-ido.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from flyspell-correct-ido.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flyspell-correct-ido" '("flyspell-correct-ido")))
+
+;;;***
+
+;;;### (autoloads nil nil ("flyspell-correct-pkg.el") (0 0 0 0))
 
 ;;;***
 
