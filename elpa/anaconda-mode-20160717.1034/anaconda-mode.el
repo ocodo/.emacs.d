@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20160527.512
+;; Package-Version: 20160717.1034
 ;; Version: 0.1.2
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
@@ -92,8 +92,18 @@
 (defvar anaconda-mode-server-version "0.1.2"
   "Server version needed to run anaconda-mode.")
 
-(defvar anaconda-mode-server-script "anaconda_mode.py"
-  "Script file with anaconda-mode server.")
+(defvar anaconda-mode-server-command "
+import sys, site
+site.addsitedir('.')  # Adds eggs installed by easy_install
+import anaconda_mode
+try:
+    anaconda_mode.main(sys.argv[1:])
+except AttributeError:
+    # Compatibility layer.
+    host = sys.argv[1] if len(sys.argv) == 2 else '127.0.0.1'
+    anaconda_mode.service_factory(anaconda_mode.app, host, 'auto',
+                                  'anaconda_mode port {port}')
+" "Run `anaconda-mode' server.")
 
 (defvar anaconda-mode-process-name "anaconda-mode"
   "Process name for anaconda-mode processes.")
@@ -124,22 +134,41 @@ if not os.path.exists(directory):
 " "Create `anaconda-mode-server-directory' if necessary.")
 
 (defvar anaconda-mode-check-installation-command "
-import sys, os
+import sys, os, site
 from pkg_resources import find_distributions
 directory = os.path.expanduser(sys.argv[-1])
-for dist in find_distributions(directory, only=True):
-    if dist.project_name == 'anaconda-mode':
+site.addsitedir(directory)
+candidates = [ directory ]
+candidates.extend(map(lambda subdir: os.path.join(directory, subdir),
+                      os.listdir(directory)))
+location = None
+for path_item in candidates:
+    for dist in find_distributions(path_item, only=True):
+        if dist.project_name == 'anaconda-mode':
+            location = path_item
+            break
+    if location:
         break
 else:
     # IPython patch sys.exit, so we can't use it.
     os._exit(1)
+# Check if the detected location was added properly to sys.path.
+# This is required for egg-based installation to work correctly.
+for path_item in sys.path:
+    if os.path.abspath(path_item) == os.path.abspath(location):
+        break
+else:
+    os._exit(1)
 " "Check if `anaconda-mode' server is installed or not.")
 
 (defvar anaconda-mode-install-server-command "
-import os, sys, pip
+import os, sys
+from setuptools.command import easy_install
 directory = os.path.expanduser(sys.argv[-2])
 version = sys.argv[-1]
-pip.main(['install', '-t', directory, 'anaconda_mode==' + version])
+sys.path.append(directory)
+easy_install.main(['-d', directory, '-S', directory, '-a',
+                   'anaconda_mode==' + version])
 " "Install `anaconda_mode' server.")
 
 (defun anaconda-mode-server-directory ()
@@ -274,7 +303,8 @@ be bound."
                         :sentinel 'anaconda-mode-bootstrap-sentinel
                         :query-on-exit nil
                         :args (delq nil
-                                    (list anaconda-mode-server-script
+                                    (list "-c"
+                                          anaconda-mode-server-command
                                           (when (pythonic-remote-p)
                                             "0.0.0.0")))))
   (process-put anaconda-mode-process 'server-directory (anaconda-mode-server-directory)))
