@@ -1,10 +1,9 @@
 ;;; git-link-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "git-link" "git-link.el" (22272 29787 912324
-;;;;;;  922000))
+;;;### (autoloads nil "git-link" "git-link.el" (0 0 0 0))
 ;;; Generated autoloads from git-link.el
 
 (autoload 'git-link "git-link" "\
@@ -26,6 +25,8 @@ With a prefix argument prompt for the remote's name.
 Defaults to \"origin\".
 
 \(fn REMOTE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "git-link" '("git-link-")))
 
 ;;;***
 
