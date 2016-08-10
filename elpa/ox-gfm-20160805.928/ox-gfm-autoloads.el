@@ -1,9 +1,9 @@
 ;;; ox-gfm-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ox-gfm" "ox-gfm.el" (22338 19737 223550 397000))
+;;;### (autoloads nil "ox-gfm" "ox-gfm.el" (0 0 0 0))
 ;;; Generated autoloads from ox-gfm.el
 
 (autoload 'org-gfm-export-as-markdown "ox-gfm" "\
@@ -61,6 +61,8 @@ contents of hidden elements.
 Return output file's name.
 
 \(fn &optional ASYNC SUBTREEP VISIBLE-ONLY)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ox-gfm" '("org-gfm-" "gfm-table-" "width-cookies")))
 
 ;;;***
 

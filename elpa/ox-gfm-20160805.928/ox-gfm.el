@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito
 ;; Keywords: org, wp, markdown, github
-;; Package-Version: 20160520.1442
+;; Package-Version: 20160805.928
 
 ;; This file is not part of GNU Emacs.
 
@@ -45,7 +45,6 @@
 ;;; Define Back-End
 
 (org-export-define-derived-backend 'gfm 'md
-  :export-block '("GFM" "GITHUB FLAVORED MARKDOWN")
   :filters-alist '((:filter-parse-tree . org-md-separate-elements))
   :menu-entry
   '(?g "Export to Github Flavored Markdown"
@@ -57,7 +56,7 @@
               (if a (org-gfm-export-to-markdown t s v)
                 (org-open-file (org-gfm-export-to-markdown nil s v)))))))
   :translate-alist '((inner-template . org-gfm-inner-template)
-		     (paragraph . org-gfm-paragraph)
+                     (paragraph . org-gfm-paragraph)
                      (strike-through . org-gfm-strike-through)
                      (src-block . org-gfm-src-block)
                      (table-cell . org-gfm-table-cell)
@@ -75,12 +74,11 @@
 CONTENTS is the paragraph contents.  INFO is a plist used as a
 communication channel."
   (unless (plist-get info :preserve-breaks)
-    (setq contents (concat (mapconcat 'identity (split-string contents) " ")
-                 "\n")))
+    (setq contents (concat (mapconcat 'identity (split-string contents) " ") "\n")))
   (let ((first-object (car (org-element-contents paragraph))))
     ;; If paragraph starts with a #, protect it.
     (if (and (stringp first-object) (string-match "\\`#" first-object))
-	(replace-regexp-in-string "\\`#" "\\#" contents nil t)
+        (replace-regexp-in-string "\\`#" "\\#" contents nil t)
       contents)))
 
 
@@ -227,8 +225,8 @@ contextual information."
                                   columns
                                   gfm-table-separator)
                        gfm-table-right-border "\n"))))))
-  (concat (when no-header (funcall build-dummy-header))
-          (replace-regexp-in-string "\n\n" "\n" contents))))
+    (concat (when no-header (funcall build-dummy-header))
+            (replace-regexp-in-string "\n\n" "\n" contents))))
 
 
 ;;;; Table of contents
@@ -241,12 +239,40 @@ plist used as a communication channel."
          (level (1- (org-element-property :level headline)))
          (indent (concat (make-string (* level 2) ? )))
          (anchor (or (org-element-property :custom_id headline)
-                     (concat "sec-" (mapconcat 'number-to-string
-                                               (org-export-get-headline-number
-                                                headline info) "-")))))
+                     (org-export-get-reference headline info))))
     (concat indent "- [" title "]" "(#" anchor ")")))
 
 
+;;;; Footnote section
+
+(defun org-gfm-footnote-section (info)
+  "Format the footnote section.
+INFO is a plist used as a communication channel."
+  (let* ((fn-alist (org-export-collect-footnote-definitions info))
+         (fn-alist
+          (loop for (n type raw) in fn-alist collect
+                (cons n (org-trim (org-export-data raw info))))))
+    (when fn-alist
+      (format
+       "## %s\n%s"
+       "Footnotes"
+       (format
+        "\n%s\n"
+        (mapconcat
+         (lambda (fn)
+           (let ((n (car fn)) (def (cdr fn)))
+             (format
+              "%s %s\n"
+              (format
+               (plist-get info :html-footnote-format)
+               (org-html--anchor
+                (format "fn.%d" n)
+                n
+                (format " class=\"footnum\" href=\"#fnr.%d\"" n)
+                info))
+              def)))
+         fn-alist
+         "\n"))))))
 
 
 ;;;; Template
@@ -259,7 +285,9 @@ holding export options."
          (headlines (and depth (org-export-collect-headlines info depth)))
          (toc-string (or (mapconcat 'org-gfm-format-toc headlines "\n") ""))
          (toc-tail (if headlines "\n\n" "")))
-    (concat toc-string toc-tail contents)))
+    (org-trim (concat toc-string toc-tail contents "\n" (org-gfm-footnote-section info)))))
+        
+
 
 
 
