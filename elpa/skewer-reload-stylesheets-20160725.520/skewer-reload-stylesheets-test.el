@@ -22,15 +22,15 @@
   (setq debug-on-error t)
 
   (setq httpd-port 9000)
-  (run-skewer)
+
+  (add-hook 'css-mode-hook
+            'skewer-reload-stylesheets-start-editing)
 
   (let* ((project-dir (file-name-directory skewer-reload-stylesheets-test-file))
          (test-html-file (concat project-dir "/test/css-reloading.html"))
          (test-html-url (concat "file:///" test-html-file))
          (test-css-file (concat project-dir "/test/overrides.css")))
     (find-file test-css-file)
-    (skewer-reload-stylesheets-mode t)
-    (skewer-reload-stylesheets-reload-on-save)
 
     (browse-url test-html-url)))
 

@@ -5,7 +5,7 @@
 ;; Author: Nate Eagleson <nate@nateeag.com>
 ;; Created: November 23, 2013
 ;; Package-Requires: ((skewer-mode "1.5.3"))
-;; Version: 0.2.0
+;; Version: 0.3.0
 
 ;;; Commentary:
 
@@ -32,13 +32,13 @@
 
 ;;; Setup
 
-;; Put the following in your css-mode-hook:
-;;
-;;     (skewer-reload-stylesheets-mode)
-;;     (skewer-reload-stylesheets-reload-on-save)
+;; Install from MELPA, then put the following somewhere in your init file:
 
-;; If you're live-editing Less, SCSS, or similar, just set
-;; skewer-reload-css-compile-command to your compile command:
+;; (add-hook 'css-mode-hook 'skewer-reload-stylesheets-start-editing)
+
+;; If you're live-editing Less, SCSS, or similar, add
+;; `skewer-reload-stylesheets-start-editing' to the appropriate hook variable,
+;; then set `skewer-reload-css-compile-command' to your transpile command:
 ;;
 ;;     (setq skewer-reload-stylesheets-compile-command "gulp css")
 ;;
@@ -47,12 +47,12 @@
 
 ;;; Usage
 
-;; Start skewer. Open browser windows for the URLs whose CSS you want to
-;; live-edit and skewer those windows.
+;; Open a browser window for the URL whose stylesheets you want to live-edit.
+;; Skewer that window.
 
-;; Open the stylesheet(s) you want to work in.
+;; In emacs, open the stylesheet(s) you want to live-edit.
 
-;; Make some changes in a stylesheet and save it. The updates will immediately
+;; Make some changes in the stylesheet and save it. The updates will immediately
 ;; be reflected in the skewered windows.
 
 ;; and there you are - cross-browser live-editing for arbitrarily complex
@@ -160,6 +160,22 @@ Call this in your css-mode-hook to automatically reload stylesheets on save."
    (expand-file-name "skewer-reload-stylesheets.js" skewer-reload-stylesheets-data-root)))
 
 (add-hook 'skewer-js-hook 'skewer-reload-stylesheets-skewer-js-hook)
+
+;;;###autoload
+(defun skewer-reload-stylesheets-start-editing ()
+  "Configure current buffer for live-editing.
+
+Add this to your stylesheet editing mode hook to make every
+stylesheet live-editable by default."
+
+  ;; Check for "is simple-httpd running?" snagged from simple-httpd.el's
+  ;; stop-httpd function.
+  ;; TODO Submit a PR to simple-httpd for checking if the server is running.
+  (unless (process-status "httpd")
+    (run-skewer))
+
+  (skewer-reload-stylesheets-mode)
+  (skewer-reload-stylesheets-reload-on-save))
 
 ;; Minor mode definition
 
