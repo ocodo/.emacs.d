@@ -8,7 +8,7 @@
 ;; Copyright (C) 2009, 2010 rubikitch, all rights reserved.
 ;; Created: 2009-01-06 12:41:17
 ;; Version: 0.1.2
-;; Package-Version: 20150712.421
+;; Package-Version: 20160717.2212
 ;; Package-X-Original-Version: 20150521.1841
 ;; Last-Updated: 2015/21/05 2:40
 ;;           By: Michael Abrahams
@@ -1415,11 +1415,11 @@ unless option FORCED is non-nil."
         (funcall handle-function wikiname pagename))
     ;; Otherwise get page name.
     (let* ((url (yaoddmuse-get-url wikiname))
+           (url-request-method "GET")
            (coding (yaoddmuse-get-coding wikiname))
            retrieve-buffer
            retrieve-buffer-name)
       ;; Initialize url request parameter.
-      (yaoddmuse-retrieve-request "GET")
       (setq url (yaoddmuse-format yaoddmuse-args-index coding url))
       ;; Get unique buffer for handle information.
       (setq retrieve-buffer (yaoddmuse-get-unique-buffer))
@@ -1460,13 +1460,13 @@ HANDLE-FUNCTION is function that handle download content."
 WIKINAME is the name of the wiki as defined in `yaoddmuse-wikis',
 PAGENAME is the pagename of the page you want to edit."
   (let* ((url (yaoddmuse-get-url wikiname))
+         (url-request-method "GET")
          (coding (yaoddmuse-get-coding wikiname))
          (yaoddmuse-wikiname wikiname)
          (yaoddmuse-pagename pagename)
          retrieve-buffer
          retrieve-buffer-name)
     ;; Initialize url request parameter.
-    (yaoddmuse-retrieve-request "GET")
     (setq url (yaoddmuse-format yaoddmuse-args-get coding url))
     ;; Get unique buffer for handle information.
     (setq retrieve-buffer (yaoddmuse-get-unique-buffer))
@@ -1563,12 +1563,16 @@ If BROWSE-PAGE is non-nil, will browse page after post successful."
     (setq browse-page current-prefix-arg))
   ;; Post.
   (let* ((url (yaoddmuse-get-url wikiname))
-         (coding (yaoddmuse-get-coding wikiname))
+         (url-request-method "POST")
+         (url-request-extra-headers
+          '(("Content-type: application/x-www-form-urlencoded;")))
+         (url-request-data
+          (yaoddmuse-format (yaoddmuse-get-post-args wikiname)
+                            (yaoddmuse-get-coding wikiname)))
          (yaoddmuse-minor (if yaoddmuse-minor "on" "off"))
          (yaoddmuse-wikiname wikiname)
          (yaoddmuse-pagename pagename)
          (text post-string))
-    (yaoddmuse-retrieve-request "POST" (yaoddmuse-format (yaoddmuse-get-post-args wikiname) coding))
     (url-retrieve url
                   'yaoddmuse-post-callback
                   (list wikiname pagename browse-page))))
@@ -1906,16 +1910,6 @@ Otherwise return nil."
              (string-match "\\[\\[image:\\(\\([^\\[]\\|[^\\]]\\)+\\)\\]\\]" str))
         (match-string 1 str)
       nil)))
-
-(defun yaoddmuse-retrieve-request (method &optional data)
-  "Initialize url request parameter.
-METHOD is require method.
-DATA is data for post."
-  (setq url-request-extra-headers
-        (and (string= method "POST")
-             '(("Content-type: application/x-www-form-urlencoded;"))))
-  (setq url-request-method method)
-  (setq url-request-data data))
 
 (defun yaoddmuse-retrieve-decode (retrieve-buffer-name coding)
   "Decode the coding with retrieve page.

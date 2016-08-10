@@ -1,10 +1,9 @@
 ;;; yaoddmuse-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "yaoddmuse" "yaoddmuse.el" (21998 34580 579401
-;;;;;;  0))
+;;;### (autoloads nil "yaoddmuse" "yaoddmuse.el" (0 0 0 0))
 ;;; Generated autoloads from yaoddmuse.el
 
 (autoload 'yaoddmuse-edit "yaoddmuse" "\
@@ -132,6 +131,8 @@ PAGENAME is the pagename of the page you want to edit.
 Use a PREFIX argument to force a reload of the page.
 
 \(fn &optional PAGENAME PREFIX)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "yaoddmuse" '("yaoddmuse-" "emacswiki-post")))
 
 ;;;***
 
