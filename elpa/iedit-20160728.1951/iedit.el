@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2016-06-23 13:55:31 Victor Ren>
+;; Time-stamp: <2016-07-12 15:03:42 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous refactoring
 ;; Version: 0.9.9
@@ -64,9 +64,6 @@
 ;; The code was developed and fully tested on Gnu Emacs 24.0.93, partially
 ;; tested on Gnu Emacs 22. If you have any compatible problem, please let me
 ;; know.
-
-;;; todo:
-;; - Add more easy access keys for whole occurrence
 
 ;;; Contributors
 ;; Adam Lindberg <eproxus@gmail.com> added a case sensitivity option that can be toggled.
@@ -134,7 +131,7 @@ point should be included in the replacement region.")
 point should be included in the replacement region.")
 
 (defvar iedit-default-occurrence-local nil
-  "This is a buffer local function get a string as occurrence candidate.
+  "This is a function which returns a string as occurrence candidate.
 It is called in `iedit-default-occurrence'.  This buffer local
 varialbe can be configured in some modes.  An example of how to
 use this variable:

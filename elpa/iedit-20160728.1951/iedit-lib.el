@@ -3,7 +3,7 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2016-06-21 22:53:48 Victor Ren>
+;; Time-stamp: <2016-06-24 14:02:51 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
 ;; Version: 0.9.9
@@ -29,11 +29,16 @@
 ;;; Commentary:
 
 ;; This package is iedit APIs library that allow you to write your own minor mode.
+;; The functionalities of the APIs:
+;; - Create occurrence overlays
+;; - Navigate in the occurrence overlays
+;; - Modify the occurrences
+;; - Hide/unhide
+;; - Other basic support APIs
 
 ;;; todo:
 ;; - Update comments for APIs
 ;; - Add more easy access keys for whole occurrence
-;; - More APIs: extend occurrences,
 
 ;;; Code:
 
