@@ -170,7 +170,7 @@ second key is always an alphabetic character.
 common to all popups.  To avoid conflicts with suffix commands, the
 bindings of these common commands are not alphabetic characters.  This
 section is shown by default so that documentation-resistant users get a
-change to notice them.
+chance to notice them.
 
  -- User Option: magit-popup-show-common-commands
 
