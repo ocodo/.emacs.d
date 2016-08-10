@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.2.0
-;; Package-Version: 20160517.346
+;; Package-Version: 20160726.720
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -1259,8 +1259,10 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
     (erase-buffer)
     (insert-buffer-substring buf)
     (if (zerop (call-process-region (point-min) (point-max) rust-rustfmt-bin t t nil))
-        (progn (copy-to-buffer buf (point-min) (point-max))
-               (kill-buffer))
+        (progn
+          (if (not (string= (buffer-string) (with-current-buffer buf (buffer-string))))
+              (copy-to-buffer buf (point-min) (point-max)))
+          (kill-buffer))
       (error "Rustfmt failed, see *rustfmt* buffer for details"))))
 
 (defun rust-format-buffer ()
@@ -1360,13 +1362,13 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
 ;; Issue #104: When reverting the buffer, make sure all fontification is redone
 ;; so that we don't end up missing a non-angle-bracket '<' or '>' character.
 (defun rust--after-revert-hook ()
-  (let
-      ;; Newer emacs versions (25 and later) make `font-lock-fontify-buffer'
-      ;; interactive-only, and want lisp code to call `font-lock-flush' or
-      ;; `font-lock-ensure'.  But those don't exist in emacs 24 and earlier.
-      ((font-lock-ensure-fn (if (fboundp 'font-lock-ensure) 'font-lock-ensure 'font-lock-fontify-buffer)))
-    (funcall font-lock-ensure-fn))
-  )
+  ;; In Emacs 25 and later, the preferred method to force fontification is
+  ;; to use `font-lock-ensure', which doesn't exist in Emacs 24 and earlier.
+  ;; If it's not available, fall back to calling `font-lock-fontify-region'
+  ;; on the whole buffer.
+  (if (fboundp 'font-lock-ensure)
+      (font-lock-ensure)
+    (font-lock-fontify-region (point-min) (point-max))))
 
 (defun rust--before-save-hook ()
   (when rust-format-on-save (rust-format-buffer)))
