@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20160706.1216
-;; Version: 1.1.12
+;; Package-Version: 20160728.621
+;; Version: 1.1.14
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -233,6 +233,15 @@ a percentage out of the frame's height."
   "Maximum height of which-key popup when type is frame."
   :group 'which-key
   :type 'integer)
+
+(defcustom which-key-allow-imprecise-window-fit nil
+  "If non-nil allow which-key to use a less intensive method of
+fitting the popup window to the buffer. If you are noticing lag
+when the which-key popup displays turning this on may help.
+
+See https://github.com/justbur/emacs-which-key/issues/130"
+  :group 'which-key
+  :type 'boolean)
 
 (defcustom which-key-show-remaining-keys nil
   "Show remaining keys in last slot, when keys are hidden."
@@ -960,11 +969,17 @@ call signature in different emacs versions"
   (let ((fit-window-to-buffer-horizontally t))
     (apply #'fit-window-to-buffer window params)))
 
-(defun which-key--show-buffer-side-window (_act-popup-dim)
+(defun which-key--show-buffer-side-window (act-popup-dim)
   "Show which-key buffer when popup type is side-window."
-  (let* ((side which-key-side-window-location)
-         (alist '((window-width . which-key--fit-buffer-to-window-horizontally)
-                  (window-height . (lambda (w) (fit-window-to-buffer w nil 1))))))
+  (let* ((height (car act-popup-dim))
+         (width (cdr act-popup-dim))
+         (side which-key-side-window-location)
+         (alist
+          (if which-key-allow-imprecise-window-fit
+              `((window-width .  ,(which-key--text-width-to-total width))
+                (window-height . ,height))
+            '((window-width . which-key--fit-buffer-to-window-horizontally)
+              (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))))))
     ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
     ;; were added in Emacs 24.3
 
@@ -1642,18 +1657,21 @@ is the width of the live window."
     (setcar (cdr (assq 'which-key-mode minor-mode-alist)) which-key--lighter-backup)))
 
 (defun which-key--echo (text)
-  "Echo TEXT to minibuffer without logging.
-Slight delay gets around evil functions that clear the echo
-area."
+  "Echo TEXT to minibuffer without logging."
   (let* ((minibuffer (eq which-key-popup-type 'minibuffer))
-         (delay (if minibuffer
-                    0.2
-                  (+ (or echo-keystrokes 0) 0.001)))
+         ;; (delay (if minibuffer
+         ;;            0.2
+         ;;          (+ (or echo-keystrokes 0) 0.001)))
          message-log-max)
     (unless minibuffer (message "%s" text))
-    (run-with-idle-timer
-     delay nil (lambda () (let (message-log-max)
-                            (message "%s" text))))))
+
+    ;; Caused some completion commands in the minibuffer to be overwritten, so
+    ;; disable the hack for now
+
+    ;; (run-with-idle-timer
+    ;;  delay nil (lambda () (let (message-log-max)
+    ;;                         (message "%s" text))))
+    ))
 
 (defun which-key--next-page-hint (prefix-keys)
   "Return string for next page hint."
