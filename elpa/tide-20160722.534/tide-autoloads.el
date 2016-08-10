@@ -1,9 +1,9 @@
 ;;; tide-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "tide" "tide.el" (22405 60790 60638 301000))
+;;;### (autoloads nil "tide" "tide.el" (0 0 0 0))
 ;;; Generated autoloads from tide.el
 
 (autoload 'company-tide "tide" "\
@@ -33,9 +33,11 @@ Minor mode for Typescript Interactive Development Environment.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tide" '("tide-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("tide-pkg.el") (22405 60790 69326 358000))
+;;;### (autoloads nil nil ("tide-pkg.el") (0 0 0 0))
 
 ;;;***
 
