@@ -1,10 +1,9 @@
 ;;; neotree-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "neotree" "neotree.el" (22396 28947 318693
-;;;;;;  285000))
+;;;### (autoloads nil "neotree" "neotree.el" (0 0 0 0))
 ;;; Generated autoloads from neotree.el
 
 (autoload 'neotree-find "neotree" "\
@@ -47,10 +46,11 @@ Show the NeoTree window, and change root to PATH.
 (defalias 'neotree 'neotree-show "\
 Show the NeoTree window.")
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "neotree" '("neo")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("neotree-pkg.el") (22396 28947 340669
-;;;;;;  718000))
+;;;### (autoloads nil nil ("neotree-pkg.el") (0 0 0 0))
 
 ;;;***
 
