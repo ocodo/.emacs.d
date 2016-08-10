@@ -419,7 +419,7 @@
 	 ((:keywords "bindings")
 	  (:url . "https://github.com/abo-abo/hydra"))])
  (hyperbole .
-	    [(6 0 1)
+	    [(6 0 2)
 	     ((emacs
 	       (24 4)))
 	     "GNU Hyperbole: The Everyday Hypertextual Information Manager" tar
@@ -487,7 +487,7 @@
        nil "Lexical analyser construction" tar
        ((:url . "http://elpa.gnu.org/packages/lex.html"))])
  (lmc .
-      [(1 3)
+      [(1 4)
        nil "Little Man Computer in Elisp" single
        ((:url . "http://elpa.gnu.org/packages/lmc.html")
 	(:keywords))])
@@ -586,8 +586,12 @@
 	 ((:keywords "extensions" "lisp")
 	  (:url . "https://github.com/Malabarba/names"))])
  (nhexl-mode .
-	     [(0 1)
-	      nil "Minor mode to edit files via hex-dump format" single
+	     [(0 2)
+	      ((emacs
+		(24))
+	       (cl-lib
+		(0 5)))
+	      "Minor mode to edit files via hex-dump format" single
 	      ((:url . "http://elpa.gnu.org/packages/nhexl-mode.html")
 	       (:keywords "data"))])
  (nlinum .
@@ -627,7 +631,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160801)
+      [(20160808)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -687,7 +691,11 @@
 	    (loc-changes
 	     (1 2))
 	    (test-simple
-	     (1 2 0)))
+	     (1 2 0))
+	    (cl-lib
+	     (0 5))
+	    (emacs
+	     (24)))
 	   "A modular front-end for interacting with external debuggers" tar
 	   ((:url . "http://github.com/realgud/realgud/"))])
  (register-list .
@@ -752,7 +760,11 @@
 	       (:keywords "convenience"))])
  (sml-mode .
 	   [(6 7)
-	    nil "Major mode for editing (Standard) ML" single
+	    ((emacs
+	      (24))
+	     (cl-lib
+	      (0 5)))
+	    "Major mode for editing (Standard) ML" single
 	    ((:url . "http://elpa.gnu.org/packages/sml-mode.html")
 	     (:keywords "sml"))])
  (soap-client .
@@ -810,8 +822,10 @@
 	((:url . "http://www.dr-qubit.org/emacs.php")
 	 (:keywords "extensions" "matching" "data structures tnfa" "nfa" "dfa" "finite state automata" "automata" "regexp"))])
  (temp-buffer-browse .
-		     [(1 4)
-		      nil "temp buffer browse mode" single
+		     [(1 5)
+		      ((emacs
+			(24)))
+		      "temp buffer browse mode" single
 		      ((:url . "http://elpa.gnu.org/packages/temp-buffer-browse.html")
 		       (:keywords "convenience"))])
  (test-simple .
