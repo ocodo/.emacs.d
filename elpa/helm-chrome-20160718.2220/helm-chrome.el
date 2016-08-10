@@ -5,7 +5,7 @@
 ;; Author: KAWABATA, Taichi <kawabata.taichi_at_gmail.com>
 ;; Created: 2013-12-25
 ;; Version: 1.151223
-;; Package-Version: 20160623.1606
+;; Package-Version: 20160718.2220
 ;; Package-Requires: ((helm "1.5") (cl-lib "0.3") (emacs "24"))
 ;; Keywords: tools
 ;; Human-Keywords: chrome bookmarks
@@ -31,6 +31,14 @@
 ;; Warning: Multiple bookmarks with the same name will be overridden.
 ;; This restriction is for better performance.  If we use Bookmark IDs with
 ;; candidate-transformer, then the speed would be quite slow.
+;;
+;; It's also possible to scan through urls of the bookmarks.
+;; To do so one need to customize helm-chrome-use-urls variable
+;; for the helm-chrome group or just set it's value in config file:
+;; (setq helm-chrome-use-urls t).
+;; Then reload bookmarks using function helm-chrome-reload-bookmarks.
+;;
+;; Warning: On a big number of bookmark it may be quite slow.
 
 ;;; Code:
 
@@ -59,6 +67,11 @@
   :group 'helm-chrome
   :type 'file)
 
+(defcustom helm-chrome-use-urls nil
+  "Use bookmark urls as source of the data for helm"
+  :group 'helm-chrome
+  :type 'boolean)
+
 (defvar helm-chrome--json nil)
 (defvar helm-chrome--bookmarks nil)
 
@@ -73,8 +86,17 @@
       (cl-loop for item across (cdr (assoc 'children json))
                do (helm-chrome--add-bookmark item)))
      ((equal (cdr (assoc 'type json)) "url")
-      (puthash (cdr (assoc 'name json)) (cdr (assoc 'url json))
-               helm-chrome--bookmarks)))))
+      (let ((helm-chrome-name
+             (if (and helm-chrome-use-urls
+                      (string-prefix-p  "http" (cdr (assoc 'url json))) t)
+                 (concat (cdr (assoc 'name json)) " [" (cdr (assoc 'url json)) "]")
+               (cdr (assoc 'name json)))))
+        (puthash
+         helm-chrome-name
+         (cdr (assoc 'url json))
+         helm-chrome--bookmarks)))
+     )))
+
 
 (defun helm-chrome-reload-bookmarks ()
   "Reload Chrome bookmarks."
