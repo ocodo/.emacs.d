@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(require 'evil-matchit-sdk)
 (require 'evil-matchit)
 
 (defun evilmi--simple-find-open-brace (cur-line)
@@ -38,8 +39,7 @@
         (setq rlt 1)
       (save-excursion
         (forward-line)
-        (setq cur-line (buffer-substring-no-properties
-                        (line-beginning-position) (line-end-position)))
+        (setq cur-line (evilmi-sdk-curline))
         (if (string-match "^[ \t]*{ *$" cur-line)
             (setq rlt 2))
         ))
@@ -47,13 +47,12 @@
 
 ;;;###autoload
 (defun evilmi-simple-get-tag ()
-  (let (p
-        tmp
-        ch
-        forward-line-num
-        rlt
-        (cur-line (buffer-substring-no-properties
-                   (line-beginning-position) (line-end-position))))
+  (let* (p
+         tmp
+         ch
+         forward-line-num
+         rlt
+         (cur-line (evilmi-sdk-curline)))
 
     ;; Only handle open tag
     (setq tmp (evilmi--get-char-under-cursor))
@@ -84,10 +83,13 @@
     (when rlt
       (if evilmi-debug (message "evilmi-simple-jump called"))
 
-      (evilmi--simple-jump)
-      (setq cur-line (buffer-substring-no-properties
-                      (line-beginning-position)
-                      (line-end-position)))
+      ;; In latex-mode `scan-sexps' does NOT work properly between "[]"
+      ;; so we have to fallback to evil's API.
+      (if (memq major-mode '(latex-mode))
+          (evil-jump-item)
+        (evilmi--simple-jump))
+
+      (setq cur-line (evilmi-sdk-curline))
       ;; hack for javascript
       (if (string-match "^[ \t]*})(.*)\; *$" cur-line)
           (line-end-position)
