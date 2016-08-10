@@ -5,7 +5,7 @@
 ;; Author: Peter Vasil <mail@petervasil.net>
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Version: 0.1
-;; Package-Requires: ((ycmd "0.1") (deferred "0.2.0") (s "1.9.0") (dash "1.2.0") (cl-lib "0.5") (let-alist "1.0.4"))
+;; Package-Requires: ((ycmd "0.1") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (cl-lib "0.5") (let-alist "1.0.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -132,10 +132,11 @@ foo(bar, |baz); -> foo|(bar, baz);"
                     #'ycmd-eldoc--documentation-function)
     (set (make-local-variable 'eldoc-documentation-function)
          'ycmd-eldoc--documentation-function))
+  (add-hook 'ycmd-after-teardown-hook #'ycmd-eldoc--teardown)
   (eldoc-mode +1))
 
-(defadvice ycmd--teardown (after ycmd-teardown-after activate)
-  "Reset ycmd-eldoc--cache on `ycmd--teardown'."
+(defun ycmd-eldoc--teardown ()
+  "Reset `ycmd-eldoc--cache'."
   (setq ycmd-eldoc--cache nil))
 
 (provide 'ycmd-eldoc)

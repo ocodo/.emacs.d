@@ -1,9 +1,9 @@
 ;;; ycmd-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ycmd" "ycmd.el" (22405 60753 356704 973000))
+;;;### (autoloads nil "ycmd" "ycmd.el" (0 0 0 0))
 ;;; Generated autoloads from ycmd.el
 
 (autoload 'ycmd-mode "ycmd" "\
@@ -28,8 +28,9 @@ Hook `ycmd-mode' into modes in `ycmd-file-type-map'.
 \(fn)" t nil)
 
 (defvar global-ycmd-mode nil "\
-Non-nil if Global-Ycmd mode is enabled.
-See the command `global-ycmd-mode' for a description of this minor mode.
+Non-nil if Global Ycmd mode is enabled.
+See the `global-ycmd-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-ycmd-mode'.")
@@ -38,7 +39,7 @@ or call the function `global-ycmd-mode'.")
 
 (autoload 'global-ycmd-mode "ycmd" "\
 Toggle Ycmd mode in all buffers.
-With prefix ARG, enable Global-Ycmd mode if ARG is positive;
+With prefix ARG, enable Global Ycmd mode if ARG is positive;
 otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
@@ -48,10 +49,11 @@ See `ycmd-mode' for more information on Ycmd mode.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ycmd" '("ycmd-")))
+
 ;;;***
 
-;;;### (autoloads nil "ycmd-eldoc" "ycmd-eldoc.el" (22405 60753 368704
-;;;;;;  951000))
+;;;### (autoloads nil "ycmd-eldoc" "ycmd-eldoc.el" (0 0 0 0))
 ;;; Generated autoloads from ycmd-eldoc.el
 
 (autoload 'ycmd-eldoc-setup "ycmd-eldoc" "\
@@ -59,10 +61,19 @@ Setup eldoc for `ycmd-mode'.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ycmd-eldoc" '("ycmd-eldoc-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("ycmd-next-error.el" "ycmd-pkg.el") (22405
-;;;;;;  60753 375355 382000))
+;;;### (autoloads nil "ycmd-next-error" "ycmd-next-error.el" (0 0
+;;;;;;  0 0))
+;;; Generated autoloads from ycmd-next-error.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ycmd-next-error" '("ycmd-next-error-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("ycmd-pkg.el") (0 0 0 0))
 
 ;;;***
 
