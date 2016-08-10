@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20160630.303
+;; Package-Version: 20160801.707
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -413,7 +413,7 @@ The buffer contains the raw HTTP response sent by the server."
     (buffer-string)))
 
 (defun restclient-parse-body (entity vars)
-  (if (string-match restclient-file-regexp entity)
+  (if (= 0 (or (string-match restclient-file-regexp entity) 1))
       (restclient-read-file (match-string 1 entity))
     (restclient-replace-all-in-string vars entity)))
   
@@ -507,6 +507,11 @@ Optional argument STAY-IN-WINDOW do not move focus to response buffer if t."
   (backward-char 1)
   (setq deactivate-mark nil))
 
+(defun restclient-narrow-to-current ()
+  "Narrow to region of current request"
+  (interactive)
+  (narrow-to-region (restclient-current-min) (restclient-current-max)))
+
 (defconst restclient-mode-keywords
   (list (list restclient-method-url-regexp '(1 'restclient-method-face) '(2 'restclient-url-face))
         (list restclient-svar-regexp '(1 'restclient-variable-name-face) '(2 'restclient-variable-string-face))
@@ -533,6 +538,7 @@ Optional argument STAY-IN-WINDOW do not move focus to response buffer if t."
   (local-set-key (kbd "C-c C-p") 'restclient-jump-prev)
   (local-set-key (kbd "C-c C-.") 'restclient-mark-current)
   (local-set-key (kbd "C-c C-u") 'restclient-copy-curl-command)
+  (local-set-key (kbd "C-c n n") 'restclient-narrow-to-current)
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-start-skip) "# *")
   (set (make-local-variable 'comment-column) 48)
