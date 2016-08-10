@@ -3,8 +3,8 @@
 ;; Copyright (C) 2006-2009, 2011-2012, 2015, 2016
 ;;   Phil Hagelberg, Doug Alcorn, Will Farrington, Chen Bin
 ;;
-;; Version: 5.2.0
-;; Package-Version: 20160712.1541
+;; Version: 5.2.4
+;; Package-Version: 20160809.526
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -134,21 +134,30 @@
 (defvar ffip-diff-find-file-before-hook nil
   "Hook run before `ffip-diff-find-file' move focus out of *ffip-diff* buffer.")
 
+;;;###autoload
+(defun ffip-diff-backend-git-show-commit ()
+  (let* ((git-cmd "git --no-pager log --date=short --pretty=format:'%h|%ad|%s|%an'")
+         (collection (split-string (shell-command-to-string git-cmd) "\n" t)))
+    (ffip-completing-read "git log:"
+                          collection
+                          (lambda (line)
+                            (shell-command-to-string (format "git show %s" (car (split-string line "|" t))))))))
+
+;;;###autoload
+(defun ffip-diff-backend-hg-show-commit ()
+  (let* ((hg-cmd "hg log --template '{node|short}|{date|shortdate}|{desc|strip|firstline}|{author|user}\n'")
+         (collection (split-string (shell-command-to-string hg-cmd) "\n" t)))
+    (ffip-completing-read "hg log:"
+                          collection
+                          (lambda (line)
+                            (shell-command-to-string (format "hg log -p -g -r %s" (car (split-string line "|" t))))))))
+
 (defvar ffip-diff-backends
-  '((if (require 'ivy nil t)
-        (let ((line (ivy-read "git log:"
-                  (split-string (shell-command-to-string "git --no-pager log --date=short --pretty=format:'%h|%ad|%s|%an'") "\n" t))))
-          (shell-command-to-string (format "git show %s" (car (split-string line "|" t)))))
-        "git show")
+  '(ffip-diff-backend-git-show-commit
     "cd $(git rev-parse --show-toplevel) && git diff"
     "cd $(git rev-parse --show-toplevel) && git diff --cached"
     (car kill-ring)
-    (if (require 'ivy nil t)
-        (let ((line (ivy-read "git log:"
-                              (split-string (shell-command-to-string "hg log --template '{node|short}|{date|shortdate}|{desc|strip|firstline}|{author|user}\n'
-") "\n" t))))
-          (shell-command-to-string (format "hg log -p -g -r %s" (car (split-string line "|" t)))))
-      "hg log -p -g -r tip")
+    ffip-diff-backend-hg-show-commit
     "cd $(hg root) && hg diff"
     "svn diff")
   "The list of back-ends.
@@ -195,6 +204,8 @@ May be set using .dir-locals.el.  Checks each entry if set to a list.")
     "*/cscope.files"
     ;; html/javascript/css
     "*/.npm/*"
+    "*/.tmp/*" ; TypeScript
+    "*/.sass-cache/*" ; SCSS/SASS
     "*/.idea/*"
     "*min.js"
     "*min.css"
@@ -318,7 +329,9 @@ If the result is true, return the function."
 (defun ffip-ivy-resume ()
   "Wrapper of `ivy-resume'.  Resume the search saved at `ffip-ivy-last-saved'."
   (interactive)
-  (let* ((ivy-last ffip-ivy-last-saved))
+  (let* ((ivy-last (if ffip-ivy-last-saved ffip-ivy-last-saved ivy-last))
+         (default-directory (or ffip-project-root (ffip-project-root)
+                                (error "No project root found"))))
     (if (fboundp 'ivy-resume)
         (ivy-resume)
       (message "Sorry. You need install `ivy-mode' first."))))
@@ -433,17 +446,34 @@ If CHECK-ONLY is true, only do the check."
   (mapconcat (lambda (pat) (format "-iwholename \"%s\"" pat))
              ffip-prune-patterns " -or "))
 
+;;;###autoload
 (defun ffip-completing-read (prompt collection action)
   (cond
-    ((= 1 (length collection))
-     ;; open file directly
-     (funcall action (car collection)))
-    ;; support ido-mode
-    ((and ffip-prefer-ido-mode (boundp 'ido-mode) ido-mode)
-     (funcall action (ido-completing-read prompt collection)))
-    (t
-     (ivy-read prompt collection
-               :action action))))
+   ((= 1 (length collection))
+    ;; open file directly
+    (funcall action (car collection)))
+   ;; if user prefer `ido-mode' or `ivy-read' is not defined,
+   ;; we use `ido-completing-read'.
+   ((or ffip-prefer-ido-mode (not (fboundp 'ivy-read)))
+    ;; friendly UI for ido
+    (let* ((list-of-pair (consp (car collection)))
+           (ido-collection (if list-of-pair
+                               (mapcar 'car collection)
+                             collection))
+           (ido-selected (ido-completing-read prompt ido-collection)))
+      (if ido-selected
+          (funcall action
+                   (if list-of-pair
+                       (cdar (delq nil
+                                   (mapcar (lambda (x)
+                                             (and (string= (car x)
+                                                           ido-selected)
+                                                  x))
+                                           collection)))
+                     ido-selected)))))
+   (t
+    (ivy-read prompt collection
+              :action action))))
 
 ;;;###autoload
 (defun ffip-project-search (keyword find-directory)
@@ -526,20 +556,20 @@ If KEYWORD is list, it's the list of file names."
           (ffip-completing-read
            (format "Find in %s/: " root)
            project-files
-           (lambda (file)
+           `(lambda (file)
              ;; only one item in project files
              (if (listp file) (setq file (cdr file)))
-             (if find-directory
-                 (if open-another-window
+             (if ,find-directory
+                 (if ,open-another-window
                      (dired-other-window file)
                    (switch-to-buffer (dired file)))
                ;; open file
-               (if open-another-window
+               (if ,open-another-window
                    (find-file-other-window file)
                  (find-file file))
                ;; goto line if needed
-               (ffip--forward-line lnum)
-               (if fn (funcall fn file))))))
+               (ffip--forward-line ,lnum)
+               (if ,fn (funcall ,fn file))))))
       (message "Nothing found!"))))
 
 (defun ffip--prepare-root-data-for-project-file (root)
@@ -739,17 +769,21 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
 
 (defun ffip-show-content-in-diff-mode (content)
   "Insert content into *ffip-diff* buffer."
-  (let (rlt-buf)
-    (if (get-buffer "*ffip-diff*")
-        (kill-buffer "*ffip-diff*"))
-    (setq rlt-buf (get-buffer-create "*ffip-diff*"))
-    (save-current-buffer
-      (switch-to-buffer-other-window rlt-buf)
-      (set-buffer rlt-buf)
-      (erase-buffer)
-      (insert content)
-      (ffip-diff-mode)
-      (goto-char (point-min)))))
+  (cond
+   ((and content (not (string= content "")))
+    (let (rlt-buf)
+      (if (get-buffer "*ffip-diff*")
+          (kill-buffer "*ffip-diff*"))
+      (setq rlt-buf (get-buffer-create "*ffip-diff*"))
+      (save-current-buffer
+        (switch-to-buffer-other-window rlt-buf)
+        (set-buffer rlt-buf)
+        (erase-buffer)
+        (insert content)
+        (ffip-diff-mode)
+        (goto-char (point-min)))))
+   (t
+    (message "Output is empty!"))))
 
 ;;;###autoload
 (defun ffip-show-diff (&optional num)
@@ -764,27 +798,19 @@ NUM is zero based.  Its default value is zero."
     (setq num (1- (length ffip-diff-backends)))))
 
   (let* ((backend (nth num ffip-diff-backends))
-         content
          rlt-buf)
 
-    ;; (message "ffip backend %S executed." backend)
     (when backend
       (cond
        ;; shell command
        ((stringp backend)
-        (setq content (shell-command-to-string backend))
-        )
+        (ffip-show-content-in-diff-mode (shell-command-to-string backend)))
        ;; command
        ((functionp backend)
         (ffip-show-content-in-diff-mode (funcall backend)))
        ;; lisp exipression
        ((consp backend)
-        (ffip-show-content-in-diff-mode (funcall `(lambda () ,backend)))))
-
-      ;; show diff now!
-      (if (and content (not (string= content "")))
-          (ffip-show-content-in-diff-mode content)
-        (message "Output of %S is empty!" backend)))
+        (ffip-show-content-in-diff-mode (funcall `(lambda () ,backend))))))
     ))
 
 ;; safe locals

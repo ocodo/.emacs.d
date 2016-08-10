@@ -1,11 +1,21 @@
 ;;; find-file-in-project-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22405 60906 752433 510000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from find-file-in-project.el
+
+(autoload 'ffip-diff-backend-git-show-commit "find-file-in-project" "\
+
+
+\(fn)" nil nil)
+
+(autoload 'ffip-diff-backend-hg-show-commit "find-file-in-project" "\
+
+
+\(fn)" nil nil)
 
 (autoload 'ffip-project-root "find-file-in-project" "\
 Return the root of the project.
@@ -38,6 +48,11 @@ Convert KEYWORD from dash seperated to camel cased.
 If CHECK-ONLY is true, only do the check.
 
 \(fn KEYWORD &optional CHECK-ONLY)" nil nil)
+
+(autoload 'ffip-completing-read "find-file-in-project" "\
+
+
+\(fn PROMPT COLLECTION ACTION)" nil nil)
 
 (autoload 'ffip-project-search "find-file-in-project" "\
 Return an alist of all filenames in the project and their path.
@@ -145,6 +160,8 @@ NUM is the index selected backend from `ffip-diff-backends'.
 NUM is zero based.  Its default value is zero.
 
 \(fn &optional NUM)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-file-in-project" '("ffip-")))
 
 ;;;***
 
