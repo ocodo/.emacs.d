@@ -1,10 +1,9 @@
 ;;; go-errcheck-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "go-errcheck" "go-errcheck.el" (21998 34812
-;;;;;;  71401 0))
+;;;### (autoloads nil "go-errcheck" "go-errcheck.el" (0 0 0 0))
 ;;; Generated autoloads from go-errcheck.el
 
 (autoload 'go-errcheck "go-errcheck" "\
@@ -20,6 +19,8 @@ can be specified as arguments. If DIRECTORY is nil, it will
 default to the buffer's directory.
 
 \(fn DIRECTORY IGNOREPKG IGNORE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-errcheck" '("go-")))
 
 ;;;***
 

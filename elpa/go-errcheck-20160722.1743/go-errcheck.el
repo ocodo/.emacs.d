@@ -4,7 +4,7 @@
 
 ;; Author: Dominik Honnef <dominikh@fork-bomb.org>
 ;; Version: 1.1.2
-;; Package-Version: 20150828.1135
+;; Package-Version: 20160722.1743
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -48,12 +48,6 @@ Note that this uses RE2 regex syntax, not Emacs regex syntax."
   :type 'string
   :group 'go-errcheck
   :safe 'stringp)
-
-
-(defun go-errcheck--compilation-hook (p)
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       (cons '("^\\(.+?\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)[ \t].+$" 1 2 3 1 1) compilation-error-regexp-alist)))
-
 
 (defun go-errcheck--build-arguments (ignorepkg ignore)
   (list (unless (string= "" ignore)
@@ -110,7 +104,6 @@ For an explanation of the arguments other than PKG, see
   (setq directory (or directory (if buffer-file-name
                                     (file-name-directory buffer-file-name)
                                   default-directory)))
-  (add-hook 'compilation-start-hook 'go-errcheck--compilation-hook)
   (let ((default-directory directory))
     (compile (concat
               "errcheck -abspath "
