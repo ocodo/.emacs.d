@@ -1,10 +1,9 @@
 ;;; counsel-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22405 60908 752430
-;;;;;;  82000))
+;;;### (autoloads nil "counsel" "counsel.el" (0 0 0 0))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -118,6 +117,22 @@ INITIAL-INPUT can be given as the initial minibuffer input.
 
 \(fn &optional INITIAL-INPUT)" t nil)
 
+(autoload 'counsel-file-jump "counsel" "\
+Jump to a file from a list of all files directories
+below the current one.  INITIAL-INPUT can be given as the initial
+minibuffer input.  INITIAL-DIRECTORY, if non-nil, is used as the
+root directory for search.
+
+\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
+
+(autoload 'counsel-dired-jump "counsel" "\
+Jump to a directory (in dired) from a list of all directories
+below the current one.  INITIAL-INPUT can be given as the initial
+minibuffer input.  INITIAL-DIRECTORY, if non-nil, is used as the
+root directory for search.
+
+\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
+
 (autoload 'counsel-ag "counsel" "\
 Grep for a string in the current directory using ag.
 INITIAL-INPUT can be given as the initial minibuffer input.
@@ -210,7 +225,8 @@ Complete using `company-candidates'.
 
 (defvar counsel-mode nil "\
 Non-nil if Counsel mode is enabled.
-See the command `counsel-mode' for a description of this minor mode.
+See the `counsel-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `counsel-mode'.")
@@ -224,6 +240,8 @@ mode remaps built-in emacs functions that have counsel
 replacements.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel" '("counsel-" "tmm-km-list")))
 
 ;;;***
 

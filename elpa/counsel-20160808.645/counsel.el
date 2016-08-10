@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160708.1107
+;; Package-Version: 20160808.645
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -823,8 +823,23 @@ Describe the selected candidate."
             :action #'counsel-descbinds-action-describe
             :history 'counsel-descbinds-history
             :caller 'counsel-descbinds))
+;;** `counsel-describe-face'
+(defun counsel-describe-face ()
+  "Completion for `describe-face'."
+  (interactive)
+  (let (cands)
+    (mapatoms
+     (lambda (s)
+       (if (facep s)
+           (push (symbol-name s) cands))))
+    (ivy-read "Face: " cands
+              :preselect (face-at-point t)
+              :action #'describe-face)))
 ;;* Git
 ;;** `counsel-git'
+(defvar counsel-git-cmd "git ls-files --full-name --"
+  "Command for `counsel-git'.")
+
 (defvar counsel--git-dir nil
   "Store the base git directory.")
 
@@ -847,8 +862,7 @@ Describe the selected candidate."
                             counsel--git-dir))
     (let* ((default-directory counsel--git-dir)
            (cands (split-string
-                   (shell-command-to-string
-                    "git ls-files --full-name --")
+                   (shell-command-to-string counsel-git-cmd)
                    "\n"
                    t)))
       (ivy-read "Find file" cands
@@ -887,7 +901,7 @@ Describe the selected candidate."
   "History for `counsel-git-grep'.")
 
 (defvar counsel-git-grep-cmd-history
-  '("git --no-pager grep --full-name -n --no-color -i -e %S")
+  (list counsel-git-grep-cmd-default)
   "History for `counsel-git-grep' shell commands.")
 
 (defun counsel-prompt-function-dir ()
@@ -966,6 +980,11 @@ Describe the selected candidate."
                          str))
   str)
 
+(defvar counsel-git-grep-projects-alist nil
+  "An alist of project directory to \"git-grep\" command.
+Allows to automatically use a custom \"git-grep\" command for all
+files in a project.")
+
 ;;;###autoload
 (defun counsel-git-grep (&optional cmd initial-input)
   "Grep for a string in the current git repository.
@@ -974,31 +993,53 @@ When CMD is non-nil, prompt for a specific \"git grep\" command.
 INITIAL-INPUT can be given as the initial minibuffer input."
   (interactive "P")
   (ivy-set-prompt 'counsel-git-grep counsel-prompt-function)
-  (cond
-    ((stringp cmd)
-     (setq counsel-git-grep-cmd cmd))
-    (cmd
-     (setq counsel-git-grep-cmd
-           (ivy-read "cmd: " counsel-git-grep-cmd-history
-                     :history 'counsel-git-grep-cmd-history))
-     (setq counsel-git-grep-cmd-history
-           (delete-dups counsel-git-grep-cmd-history)))
-    (t
-     (setq counsel-git-grep-cmd counsel-git-grep-cmd-default)))
-  (setq counsel--git-grep-dir
-        (locate-dominating-file default-directory ".git"))
-  (if (null counsel--git-grep-dir)
-      (error "Not in a git repository")
-    (setq counsel--git-grep-count (counsel--gg-count "" t))
-    (ivy-read "git grep" 'counsel-git-grep-function
-              :initial-input initial-input
-              :matcher #'counsel-git-grep-matcher
-              :dynamic-collection (> counsel--git-grep-count 20000)
-              :keymap counsel-git-grep-map
-              :action #'counsel-git-grep-action
-              :unwind #'swiper--cleanup
-              :history 'counsel-git-grep-history
-              :caller 'counsel-git-grep)))
+  (let ((dd (expand-file-name default-directory))
+        proj)
+    (cond
+      ((stringp cmd)
+       (setq counsel-git-grep-cmd cmd))
+      (cmd
+       (if (setq proj
+                 (cl-find-if
+                  (lambda (x)
+                    (string-match (car x) dd))
+                  counsel-git-grep-projects-alist))
+           (setq counsel-git-grep-cmd (cdr proj))
+         (setq counsel-git-grep-cmd
+               (ivy-read "cmd: " counsel-git-grep-cmd-history
+                         :history 'counsel-git-grep-cmd-history
+                         :re-builder #'ivy--regex))
+         (setq counsel-git-grep-cmd-history
+               (delete-dups counsel-git-grep-cmd-history))))
+      (t
+       (setq counsel-git-grep-cmd counsel-git-grep-cmd-default)))
+    (setq counsel--git-grep-dir
+          (if proj
+              (car proj)
+            (locate-dominating-file default-directory ".git")))
+    (if (null counsel--git-grep-dir)
+        (error "Not in a git repository")
+      (unless proj
+        (setq counsel--git-grep-count (counsel--gg-count "" t)))
+      (ivy-read "git grep" (if proj
+                               'counsel-git-grep-proj-function
+                             'counsel-git-grep-function)
+                :initial-input initial-input
+                :matcher #'counsel-git-grep-matcher
+                :dynamic-collection (or proj (> counsel--git-grep-count 20000))
+                :keymap counsel-git-grep-map
+                :action #'counsel-git-grep-action
+                :unwind #'swiper--cleanup
+                :history 'counsel-git-grep-history
+                :caller 'counsel-git-grep))))
+
+(defun counsel-git-grep-proj-function (str)
+  (if (< (length str) 3)
+      (counsel-more-chars 3)
+    (let ((regex (setq ivy--old-re
+                       (ivy--regex str))))
+      (counsel--async-command (format counsel-git-grep-cmd regex))
+      nil)))
 
 (defun counsel-git-grep-switch-cmd ()
   "Set `counsel-git-grep-cmd' to a different value."
@@ -1222,7 +1263,8 @@ done") "\n" t)))
 (ivy-set-actions
  'counsel-find-file
  '(("j" find-file-other-window "other window")
-   ("b" counsel-find-file-cd-bookmark-action "cd bookmark")))
+   ("b" counsel-find-file-cd-bookmark-action "cd bookmark")
+   ("x" counsel-find-file-extern "open externally")))
 
 (defcustom counsel-find-file-at-point nil
   "When non-nil, add file-at-point to the list of candidates."
@@ -1362,15 +1404,19 @@ string - the full shell command to run."
   "History for `counsel-locate'.")
 
 (defun counsel-locate-action-extern (x)
-  "Use xdg-open shell command on X."
+  "Use xdg-open shell command, or corresponding system command, on X."
+  (interactive (list (read-file-name "File: ")))
   (call-process shell-file-name nil
                 nil nil
                 shell-command-switch
                 (format "%s %s"
-                        (if (eq system-type 'darwin)
-                            "open"
-                          "xdg-open")
+                        (cl-case system-type
+                          (darwin "open")
+                          (windows-nt "start")
+                          (t "xdg-open"))
                         (shell-quote-argument x))))
+
+(defalias 'counsel-find-file-extern 'counsel-locate-action-extern)
 
 (declare-function dired-jump "dired-x")
 
@@ -1420,6 +1466,56 @@ INITIAL-INPUT can be given as the initial minibuffer input."
                           (find-file file))))
             :unwind #'counsel-delete-process
             :caller 'counsel-locate))
+
+;;** File Jump and Dired Jump
+
+;;;###autoload
+(defun counsel-file-jump (&optional initial-input initial-directory)
+  "Jump to a file from a list of all files directories
+below the current one.  INITIAL-INPUT can be given as the initial
+minibuffer input.  INITIAL-DIRECTORY, if non-nil, is used as the
+root directory for search."
+  (interactive
+   (list nil
+         (when current-prefix-arg
+           (read-directory-name "From directory: "))))
+  (let* ((default-directory (or initial-directory default-directory)))
+    (ivy-read "Find file: "
+              (split-string
+               (shell-command-to-string "find * -type f -not -path '*\/.git*'")
+               "\n" t)
+              :matcher #'counsel--find-file-matcher
+              :initial-input initial-input
+              :action (lambda (x)
+                        (with-ivy-window
+                          (find-file (expand-file-name x ivy--directory))))
+              :preselect (when counsel-find-file-at-point
+                           (require 'ffap)
+                           (let ((f (ffap-guesser)))
+                             (when f (expand-file-name f))))
+              :require-match 'confirm-after-completion
+              :history 'file-name-history
+              :keymap counsel-find-file-map
+              :caller 'counsel-file-jump)))
+
+;;;###autoload
+(defun counsel-dired-jump (&optional initial-input initial-directory)
+  "Jump to a directory (in dired) from a list of all directories
+below the current one.  INITIAL-INPUT can be given as the initial
+minibuffer input.  INITIAL-DIRECTORY, if non-nil, is used as the
+root directory for search."
+  (interactive
+   (list nil
+         (when current-prefix-arg
+           (read-directory-name "From directory: "))))
+  (let* ((default-directory (or initial-directory default-directory)))
+    (ivy-read "Directory: "
+              (split-string
+               (shell-command-to-string "find * -type d -not -path '*\/.git*'")
+               "\n" t)
+              :initial-input initial-input
+              :action (lambda (d) (dired-jump nil (expand-file-name d)))
+              :caller 'counsel-dired-jump)))
 
 ;;* Grep
 ;;** `counsel-ag'
@@ -1945,11 +2041,13 @@ INITIAL-INPUT can be given as the initial minibuffer input."
                 (point))))
     (setq ivy-completion-beg (point))
     (setq ivy-completion-end (point)))
-  (let ((candidates (cl-remove-if
-                     (lambda (s)
-                       (or (< (length s) 3)
-                           (string-match "\\`[\n[:blank:]]+\\'" s)))
-                     (delete-dups kill-ring))))
+  (let ((candidates
+         (mapcar #'ivy-cleanup-string
+                 (cl-remove-if
+                  (lambda (s)
+                    (or (< (length s) 3)
+                        (string-match "\\`[\n[:blank:]]+\\'" s)))
+                  (delete-dups kill-ring)))))
     (let ((ivy-format-function #'counsel--yank-pop-format-function)
           (ivy-height 5))
       (ivy-read "kill-ring: " candidates
@@ -2124,6 +2222,10 @@ And insert it into the minibuffer. Useful during
               :action #'call-interactively)
     (hydra-keyboard-quit)))
 ;;** `counsel-semantic'
+(declare-function semantic-tag-start "tag")
+(declare-function semantic-tag-of-class-p "tag")
+(declare-function semantic-fetch-tags "semantic")
+
 (defun counsel-semantic-action (tag)
   (with-ivy-window
     (goto-char (semantic-tag-start tag))))
@@ -2144,6 +2246,29 @@ And insert it into the minibuffer. Useful during
           (semantic-fetch-tags))))
     (ivy-read "tag: " tags
               :action 'counsel-semantic-action)))
+
+;;** `counsel-outline'
+(defun counsel-outline-candidates ()
+  (let (cands)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward outline-regexp nil t)
+        (skip-chars-forward " ")
+        (push (cons (buffer-substring-no-properties
+                     (point) (line-end-position))
+                    (line-beginning-position))
+              cands))
+      (nreverse cands))))
+
+(defun counsel-outline-action (x)
+  (with-ivy-window
+    (goto-char (cdr x))))
+
+(defun counsel-outline ()
+  "Jump to outline with completion."
+  (interactive)
+  (ivy-read "outline: " (counsel-outline-candidates)
+            :action #'counsel-outline-action))
 
 ;;* Misc OS
 ;;** `counsel-rhythmbox'
@@ -2238,26 +2363,26 @@ And insert it into the minibuffer. Useful during
         (insert-file-contents (expand-file-name file "/usr/share/applications"))
         (let (name comment exec)
           (goto-char (point-min))
-          (if (re-search-forward "^Name *= *\\(.*\\)$" nil t)
-              (setq name (match-string 1))
-            (error "File %s has no Name" file))
-          (goto-char (point-min))
-          (when (re-search-forward "^Comment *= *\\(.*\\)$" nil t)
-            (setq comment (match-string 1)))
-          (goto-char (point-min))
-          (when (re-search-forward "^Exec *= *\\(.*\\)$" nil t)
-            (setq exec (match-string 1)))
-          (if (and exec (not (equal exec "")))
-              (add-to-list
-               'counsel-linux-apps-alist
-               (cons (format "% -45s: %s%s"
-                             (propertize exec 'face 'font-lock-builtin-face)
-                             name
-                             (if comment
-                                 (concat " - " comment)
-                               ""))
-                     file))
-            (add-to-list 'counsel-linux-apps-faulty file))))))
+          (if (null (re-search-forward "^Name *= *\\(.*\\)$" nil t))
+              (message "Warning: File %s has no Name" file)
+            (setq name (match-string 1))
+            (goto-char (point-min))
+            (when (re-search-forward "^Comment *= *\\(.*\\)$" nil t)
+              (setq comment (match-string 1)))
+            (goto-char (point-min))
+            (when (re-search-forward "^Exec *= *\\(.*\\)$" nil t)
+              (setq exec (match-string 1)))
+            (if (and exec (not (equal exec "")))
+                (add-to-list
+                 'counsel-linux-apps-alist
+                 (cons (format "% -45s: %s%s"
+                               (propertize exec 'face 'font-lock-builtin-face)
+                               name
+                               (if comment
+                                   (concat " - " comment)
+                                 ""))
+                       file))
+              (add-to-list 'counsel-linux-apps-faulty file)))))))
   counsel-linux-apps-alist)
 
 (defun counsel-linux-app-action-default (desktop-shortcut)
