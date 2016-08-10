@@ -1,9 +1,9 @@
 ;;; jist-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "jist" "jist.el" (22405 60872 620492 368000))
+;;;### (autoloads nil "jist" "jist.el" (0 0 0 0))
 ;;; Generated autoloads from jist.el
 
 (autoload 'jist-dired "jist" "\
@@ -11,7 +11,7 @@ Create a gist from marked files(s) in dired.
 
 With prefix ARG create a gist from file at point.
 
-\(fn ARG &key (public nil) (authorized nil))" t nil)
+\(fn ARG &key (PUBLIC nil) (AUTHORIZED nil))" t nil)
 
 (autoload 'jist-dired-auth "jist" "\
 Create a authenticated gist from marked files(s) in dired.
@@ -32,7 +32,7 @@ Create a private gist from BEG and END region.
 
 When PUBLIC is not nil creates a public gist.
 
-\(fn &key (beg (and (use-region-p) (region-beginning))) (end (and (use-region-p) (region-end))) (public nil) (authorized nil))" t nil)
+\(fn &key (BEG (and (use-region-p) (region-beginning))) (END (and (use-region-p) (region-end))) (PUBLIC nil) (AUTHORIZED nil))" t nil)
 
 (autoload 'jist-auth-region "jist" "\
 Create an authorized gist from an active region.
@@ -104,6 +104,11 @@ Clone gist identified by ID.
 
 \(fn ID)" t nil)
 
+(autoload 'jist-edit-description "jist" "\
+Set description to a gist identified by ID.
+
+\(fn ID)" t nil)
+
 (autoload 'jist-refetch-gists "jist" "\
 Refetch the gists of a jist-list-mode buffer.
 
@@ -117,7 +122,7 @@ Fetch the next page of the gists of a jist-list-mode buffer.
 (autoload 'jist-list "jist" "\
 Show the list of gists.
 
-\(fn &key (page nil) (user nil) (public nil) (starred nil))" t nil)
+\(fn &key (PAGE nil) (USER nil) (PUBLIC nil) (STARRED nil))" t nil)
 
 (autoload 'jist-list-user "jist" "\
 Show a list of gist of a github USER.
@@ -133,6 +138,8 @@ Show a list of public gists.
 Show a list of starred gists of the configured user.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "jist" '("jist-")))
 
 ;;;***
 

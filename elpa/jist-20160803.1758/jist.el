@@ -4,7 +4,7 @@
 
 ;; Author: Mario Rodas <marsam@users.noreply.github.com>
 ;; URL: https://github.com/emacs-pe/jist.el
-;; Package-Version: 20160708.759
+;; Package-Version: 20160803.1758
 ;; Keywords: convenience
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.4") (pkg-info "0.4") (dash "2.12.0") (let-alist "1.0.4") (magit "2.1.0") (request "0.2.0"))
@@ -244,7 +244,6 @@
            :data data
            :params params
            :headers headers
-           :data data
            :parser parser
            :success success
            :error error
@@ -289,27 +288,27 @@ DESCRIPTION and PUBLIC."
   (or jist-gists
       (-if-let (buffer (get-buffer jist-buffer-name))
           (buffer-local-value 'jist-gists buffer)
-        (message "Not gist buffer found be sure to call `jist-list' first")
+        (message "Not gist buffer found, be sure to call `jist-list' first")
         nil)))
 
 (defun jist--read-gist-description (items)
   "Return an gist id from description from jist ITEMS."
-  (let* ((jists (mapcar 'cdr-safe items))
-         (description (completing-read "Gist description: " (mapcar 'jist-gist-description jists) nil t)))
-    (-if-let (jist (seq-find (lambda (e)
-                               (string= (jist-gist-description e) description))
-                             jists))
-        (jist-gist-id jist)
+  (let* ((gists (mapcar 'cdr-safe items))
+         (description (completing-read "Gist description: " (mapcar 'jist-gist-description gists) nil t)))
+    (-if-let (gist (seq-find (lambda (g)
+                               (string= (jist-gist-description g) description))
+                             gists))
+        (jist-gist-id gist)
       (user-error "Not found gist with description: \"%s\"" description))))
 
 (defun jist--read-gist-id ()
   "Read gist id."
-  (let ((jist-id (and (derived-mode-p 'jist-gist-list-mode) (tabulated-list-get-id))))
-    (list (or (and (not current-prefix-arg) jist-id)
+  (let ((gist-id (and (derived-mode-p 'jist-gist-list-mode) (tabulated-list-get-id))))
+    (list (or (and (not current-prefix-arg) gist-id)
               (let ((items (jist--jist-items)))
                 (if (and jist-use-descriptions (> (length items) 0) (> (prefix-numeric-value current-prefix-arg) 0))
                     (jist--read-gist-description items)
-                  (completing-read "Gist id: " items nil nil nil 'jist-id-history jist-id)))))))
+                  (completing-read "Gist id: " items nil nil nil 'jist-id-history gist-id)))))))
 
 (defun jist--kill-gist-html-url (data)
   "Given a Gist DATA api response, kill its html url."
@@ -434,7 +433,7 @@ When PUBLIC is not nil creates a public gist."
 (defun jist-delete-gist (id)
   "Delete gist identified by ID."
   (interactive (jist--read-gist-id))
-  (let ((gist (assoc-default id jist-gists)))
+  (let ((gist (assoc-default id (jist--jist-items))))
     (when (or jist-disable-asking
               (y-or-n-p (if gist
                             (format "Do you really want to delete gist %s: \"%s\"? " id (jist-gist-description gist))
@@ -448,7 +447,7 @@ When PUBLIC is not nil creates a public gist."
 (defun jist-print-gist (id)
   "Show a gist identified by ID and put into `kill-ring'."
   (interactive (jist--read-gist-id))
-  (-if-let (gist (assoc-default id jist-gists))
+  (-if-let (gist (assoc-default id (jist--jist-items)))
       (kill-new (message (jist-gist-html-url gist)))
     (jist--github-request (format "/gists/%s" id)
                           :type "GET"
@@ -462,7 +461,7 @@ When PUBLIC is not nil creates a public gist."
 (defun jist-browse-gist (id)
   "Show a gist identified by ID in a browser using `browse-url'."
   (interactive (jist--read-gist-id))
-  (-if-let (gist (assoc-default id jist-gists))
+  (-if-let (gist (assoc-default id (jist--jist-items)))
       (browse-url (jist-gist-html-url gist))
     (jist--github-request (format "/gists/%s" id)
                           :type "GET"
@@ -511,7 +510,7 @@ When PUBLIC is not nil creates a public gist."
   (let ((directory (expand-file-name id jist-gist-directory)))
     (if (magit-git-repo-p directory)
         (magit-status-internal directory)
-      (-if-let (gist (assoc-default id jist-gists))
+      (-if-let (gist (assoc-default id (jist--jist-items)))
           (magit-clone (jist-gist-git-pull-url gist) directory)
         (jist--github-request (format "/gists/%s" id)
                               :type "GET"
@@ -521,6 +520,18 @@ When PUBLIC is not nil creates a public gist."
                                         (lambda (&key data &allow-other-keys)
                                           (let-alist data
                                             (magit-clone .git_pull_url directory)))))))))
+
+;;;###autoload
+(defun jist-edit-description (id)
+  "Set description to a gist identified by ID."
+  (interactive (jist--read-gist-id))
+  (let* ((gist (assoc-default id (jist--jist-items)))
+         (description (read-string "Description: " (and gist (jist-gist-description gist)))))
+    (jist--github-request (format "/gists/%s" id)
+                          :type "PATCH"
+                          :authorized t
+                          :parser #'json-read
+                          :data (json-encode `(("description" . ,description))))))
 
 (defun jist--menu-mark-delete (&optional _num)
   "Mark a gist for deletion and move to the next line."
@@ -590,6 +601,7 @@ Where ITEM is a cons cell `(id . jist-gist)`."
     (define-key map "y" 'jist-print-gist)
     (define-key map "b" 'jist-browse-gist)
     (define-key map "k" 'jist-delete-gist)
+    (define-key map "e" 'jist-edit-description)
     (define-key map "*" 'jist-star-gist)
     (define-key map "^" 'jist-unstar-gist)
     (define-key map "+" 'jist-fetch-next-page)
@@ -661,9 +673,9 @@ Where ITEM is a cons cell `(id . jist-gist)`."
                                             (setq jist-page page
                                                   jist-gists-already-fetched t)
                                             (let ((gists (mapcar #'jist--item-from-response data)))
-                                              (setq jist-gists (if (null jist-page)
-                                                                   (setq jist-gists gists)
-                                                                 (append jist-gists gists))))
+                                              (setq jist-gists (if jist-page
+                                                                   (append jist-gists gists)
+                                                                 gists)))
                                             (setq tabulated-list-entries (jist--generate-table-entries jist-gists))
                                             (tabulated-list-print t))))))))
 
