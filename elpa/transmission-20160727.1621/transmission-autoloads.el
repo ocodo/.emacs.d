@@ -1,10 +1,9 @@
 ;;; transmission-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "transmission" "transmission.el" (22405 60781
-;;;;;;  56654 551000))
+;;;### (autoloads nil "transmission" "transmission.el" (0 0 0 0))
 ;;; Generated autoloads from transmission.el
 
 (autoload 'transmission-add "transmission" "\
@@ -17,6 +16,8 @@ When called with a prefix, prompt for DIRECTORY.
 Open a `transmission-mode' buffer.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "transmission" '("transmission-")))
 
 ;;;***
 

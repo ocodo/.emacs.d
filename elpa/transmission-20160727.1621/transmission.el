@@ -4,7 +4,7 @@
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Version: 0.9
-;; Package-Version: 20160708.2133
+;; Package-Version: 20160727.1621
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3"))
 ;; Keywords: comm, tools
 
@@ -451,7 +451,7 @@ of \"fields\" in the arguments of the \"torrent-get\" request."
 (defun transmission-timer-revert ()
   "Revert the buffer or cancel `transmission-timer'."
   (if (and (memq major-mode transmission-refresh-modes)
-           (not (or isearch-mode (use-region-p))))
+           (not (or isearch-mode (buffer-narrowed-p) (use-region-p))))
       (revert-buffer)
     (cancel-timer transmission-timer)))
 
@@ -495,7 +495,8 @@ of \"fields\" in the arguments of the \"torrent-get\" request."
 
 (defun transmission-slice (str k)
   "Slice STRING into K strings of somewhat equal size.
-The result can have no more elements than STRING."
+The result can have no more elements than STRING.
+\n(fn STRING K)"
   (let ((len (length str)))
     (let ((quotient (/ len k))
           (remainder (% len k))
@@ -529,22 +530,21 @@ If none are found, return nil."
   "Return a string showing SECONDS in human-readable form;
 otherwise some other estimate indicated by SECONDS and PERCENT."
   (if (<= seconds 0)
-      (pcase percent
-        (1 "Done")
-        (_ (if (char-displayable-p ?∞) (eval-when-compile (char-to-string ?∞)) "Inf")))
+      (if (eql percent 1) "Done"
+        (if (char-displayable-p ?∞) (eval-when-compile (char-to-string ?∞)) "Inf"))
     (let* ((minute 60.0)
            (hour 3600.0)
            (day 86400.0)
            (month (* 29.53 day))
            (year (* 365.25 day)))
       (apply #'format "%.0f%s"
-             (pcase seconds
-               ((pred (> minute)) (list seconds "s"))
-               ((pred (> hour)) (list (/ seconds minute) "m"))
-               ((pred (> day)) (list (/ seconds hour) "h"))
-               ((pred (> month)) (list (/ seconds day) "d"))
-               ((pred (> year)) (list (/ seconds month) "mo"))
-               (_ (list (/ seconds year) "y")))))))
+             (cond
+              ((> minute seconds) (list seconds "s"))
+              ((> hour seconds) (list (/ seconds minute) "m"))
+              ((> day seconds) (list (/ seconds hour) "h"))
+              ((> month seconds) (list (/ seconds day) "d"))
+              ((> year seconds) (list (/ seconds month) "mo"))
+              (t (list (/ seconds year) "y")))))))
 
 (defun transmission-when (seconds)
   "The `transmission-eta' of time between `current-time' and SECONDS."
@@ -561,7 +561,7 @@ The rate is calculated from BYTES according to `transmission-units'."
 (defun transmission-throttle-torrent (ids limit n)
   "Set transfer speed limit for IDS.
 LIMIT is a symbol; either uploadLimit or downloadLimit.
-N is the desired threshold. A negative value of N means to disable the limit."
+N is the desired threshold.  A negative value of N means to disable the limit."
   (cl-assert (memq limit '(uploadLimit downloadLimit)))
   (let* ((limit (intern (concat ":" (symbol-name limit))))
          (limited (intern (concat (symbol-name limit) "ed")))
@@ -803,7 +803,7 @@ MODE is which seed ratio to use; TLIMIT is the torrent-level limit."
     (2 "unlimited")))
 
 (defun transmission-group-digits (n)
-  "Group digits of positive number N with `transmission-digit-delimiter''"
+  "Group digits of positive number N with `transmission-digit-delimiter'."
   (if (< n 10000) (number-to-string n)
     (let ((calc-group-char transmission-digit-delimiter))
       (math-group-float (number-to-string n)))))
@@ -859,7 +859,9 @@ Otherwise, just execute BODY."
 A simplification of `window-state-get', the list associates
 WINDOW with `window-start' and the line/column coordinates of `point'."
   (transmission-with-window-maybe window
-    (list window (window-start) (line-number-at-pos) (current-column))))
+    (save-restriction
+      (widen)
+      (list window (window-start) (line-number-at-pos) (current-column)))))
 
 (defun transmission-restore-state (state)
   "Set `window-start' and `window-point' according to STATE."
@@ -912,12 +914,14 @@ When called with a prefix, prompt for DIRECTORY."
       ((arguments (list :ids ids :move t :location (expand-file-name location)))
        (prompt (format "Move torrent%s to %s? " (if (cdr ids) "s" "") location)))
     (when (y-or-n-p prompt)
+      (setq deactivate-mark t)
       (transmission-request-async nil "torrent-set-location" arguments))))
 
 (defun transmission-reannounce ()
   "Reannounce torrent at point or in region."
   (interactive)
   (transmission-let*-ids nil
+    (setq deactivate-mark t)
     (transmission-request-async nil "torrent-reannounce" (list :ids ids))))
 
 (defun transmission-remove (&optional unlink)
@@ -927,6 +931,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   (transmission-let*-ids ((arguments `(:ids ,ids :delete-local-data ,(and unlink t))))
     (when (yes-or-no-p (concat "Remove " (and unlink "and unlink ")
                                "torrent" (and (< 1 (length ids)) "s") "? "))
+      (setq deactivate-mark t)
       (transmission-request-async nil "torrent-remove" arguments))))
 
 (defun transmission-set-bandwidth-priority ()
@@ -1002,11 +1007,12 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   "Toggle torrent between started and stopped."
   (interactive)
   (transmission-let*-ids nil
+    (setq deactivate-mark t)
     (transmission-request-async
      (lambda (content)
        (let* ((torrents (transmission-torrents (json-read-from-string content)))
               (status (cdr (assq 'status (elt torrents 0))))
-              (method (pcase status (0 "torrent-start") (_ "torrent-stop"))))
+              (method (if (zerop status) "torrent-start" "torrent-stop")))
          (transmission-request-async nil method (list :ids ids))))
      "torrent-get" (list :ids ids :fields '("status")))))
 
@@ -1091,6 +1097,7 @@ When called with a prefix UNLINK, also unlink torrent data on disk."
   (interactive)
   (transmission-let*-ids nil
     (when (y-or-n-p (concat "Verify torrent" (if (cdr ids) "s") "? "))
+      (setq deactivate-mark t)
       (transmission-request-async nil "torrent-verify" (list :ids ids)))))
 
 (defun transmission-quit ()
@@ -1195,15 +1202,17 @@ PIECES and COUNT are the same as in `transmission-format-pieces'."
                  (_ #'transmission-ratio->glyph))
                ratios "")))
 
-(defun transmission-format-pieces-internal (pieces count)
+(defun transmission-format-pieces-internal (pieces count size)
   "Format piece data into a string.
-PIECES and COUNT are the same as in `transmission-format-pieces'."
+PIECES and COUNT are the same as in `transmission-format-pieces'.
+SIZE is the file size in bytes of a single piece."
   (let ((have (apply #'+ (mapcar #'transmission-hamming-weight
                                  (base64-decode-string pieces)))))
     (concat
      "Piece count: " (transmission-group-digits have)
      " / " (transmission-group-digits count)
-     " (" (format "%.1f" (transmission-percent have count)) "%)"
+     " (" (format "%.1f" (transmission-percent have count)) "%) * "
+     (transmission-format-size size) " each"
      (when (and (functionp transmission-pieces-function)
                 (/= have 0) (< have count))
        (let ((str (funcall transmission-pieces-function pieces count)))
@@ -1264,7 +1273,9 @@ TRACKERS should be the \"trackerStats\" array."
     (concat (mapconcat #'transmission-format-tracker trackers "\n") "\n")))
 
 (defun transmission-format-speed-limit (speed limit limited)
-  "Format speed limit data into a string"
+  "Format speed limit data into a string.
+SPEED and LIMIT are rates in bytes per second.  LIMITED, if t,
+indicates that the speed limit is enabled."
   (cond
    ((not (eq limited t)) (format "%d kB/s" (transmission-rate speed)))
    (t (format "%d / %d kB/s" (transmission-rate speed) limit))))
@@ -1327,7 +1338,7 @@ Each form in BODY is a column descriptor."
     (transmission-do-entries files
       (format "%d%%" (transmission-percent .bytesCompleted .length))
       (symbol-name (car (rassoc .priority transmission-priority-alist)))
-      (pcase .wanted (:json-false "no") (_ "yes"))
+      (if (eq .wanted :json-false) "no" "yes")
       (transmission-size .length)
       (if truncate (string-remove-prefix directory .name) .name)))
   (setq tabulated-list-entries (reverse tabulated-list-entries))
@@ -1371,8 +1382,7 @@ Each form in BODY is a column descriptor."
       (unless (zerop .corruptEver)
         (concat "Corrupt: " (transmission-format-size .corruptEver)))
       (concat "Total size: " (transmission-format-size .totalSize))
-      (format "Piece size: %s each" (transmission-format-size .pieceSize))
-      (transmission-format-pieces-internal .pieces .pieceCount)))))
+      (transmission-format-pieces-internal .pieces .pieceCount .pieceSize)))))
 
 (defun transmission-draw-peers (id)
   (let* ((arguments `(:ids ,id :fields ("peers")))
@@ -1401,14 +1411,16 @@ Also run the timer for timer object `transmission-timer'."
   (let* ((old-states (or (mapcar #'transmission-window->state
                                  (get-buffer-window-list nil nil t))
                          (list (transmission-window->state nil))))
-         (old-mark (when (region-active-p)
+         (old-mark (if (not (region-active-p)) (mark)
                      (let ((beg (region-beginning)))
-                       (if (= (window-point) beg) (region-end) beg)))))
+                       (if (= (window-point) beg) (region-end) beg))))
+         (old-mark-active mark-active))
     (run-hooks 'before-revert-hook)
     (transmission-draw)
     (run-hooks 'after-revert-hook)
     (mapc #'transmission-restore-state old-states)
-    (and old-mark (set-mark old-mark)))
+    (and old-mark (set-mark old-mark))
+    (unless old-mark-active (deactivate-mark)))
   (transmission-timer-check))
 
 (defmacro transmission-context (mode)
