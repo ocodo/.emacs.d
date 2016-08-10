@@ -282,7 +282,8 @@ The child Emacs send data to this process on
    :host 'local
    :service port
    :family nil
-   :nowait t
+   ;; Broken on Emacs 25
+   ;; :nowait t
    :stop nil
    :buffer esup-server-log-buffer
    :coding 'utf-8
@@ -359,7 +360,6 @@ The child Emacs send data to this process on
   (let ((process-args `("*esup-child*"
                         "*esup-child*"
                         ,esup-emacs-path
-                        "--debug-init"
                         "-q"
                         "-L" ,esup-load-path
                         "-l" "esup-child"
