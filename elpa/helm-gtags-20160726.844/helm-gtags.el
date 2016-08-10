@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-gtags
-;; Package-Version: 20160417.555
+;; Package-Version: 20160726.844
 ;; Version: 1.5.6
 ;; Package-Requires: ((emacs "24.3") (helm "1.7.7"))
 
@@ -71,6 +71,10 @@
 
 (defcustom helm-gtags-ignore-case nil
   "Ignore case in each search."
+  :type 'boolean)
+
+(defcustom helm-gtags-cygwin-use-global-w32-port t
+  "Use the GNU global win32 port in Cygwin."
   :type 'boolean)
 
 (defcustom helm-gtags-read-only nil
@@ -293,6 +297,9 @@ Always update if value of this variable is nil."
                for libpath = (file-name-as-directory (expand-file-name path))
                thereis (string= tagroot libpath))))
 
+(defsubst helm-gtags--convert-cygwin-windows-file-name-p ()
+  (and (eq system-type 'cygwin) helm-gtags-cygwin-use-global-w32-port))
+
 (defun helm-gtags--tag-directory ()
   (with-temp-buffer
     (helm-aif (getenv "GTAGSROOT")
@@ -303,7 +310,7 @@ Always update if value of this variable is nil."
       (when (looking-at "^\\([^\r\n]+\\)")
         (let ((tag-path (match-string-no-properties 1)))
           (file-name-as-directory
-           (if (eq system-type 'cygwin)
+           (if (helm-gtags--convert-cygwin-windows-file-name-p)
                (cygwin-convert-file-name-from-windows tag-path)
              tag-path)))))))
 
@@ -547,7 +554,7 @@ Always update if value of this variable is nil."
     (let* ((filename (helm-gtags--real-file-name))
            (from-here-opt (format "--from-here=%d:%s"
                                   (line-number-at-pos)
-                                  (if (eq system-type 'cygwin)
+                                  (if (helm-gtags--convert-cygwin-windows-file-name-p)
                                       (cygwin-convert-file-name-to-windows filename)
                                     filename))))
       (setq helm-gtags--last-input token)
@@ -975,7 +982,7 @@ Always update if value of this variable is nil."
         (message "Failed: %s TAGS(%d)" action (process-exit-status process))))))
 
 (defsubst helm-gtags--read-gtagslabel ()
-  (let ((labels '("default" "native" "ctags" "pygments")))
+  (let ((labels '("default" "native" "ctags" "new-ctags" "pygments")))
     (completing-read "GTAGSLABEL(Default: default): " labels nil t nil nil "default")))
 
 (defsubst helm-gtags--label-option (label)
@@ -1001,9 +1008,9 @@ Always update if value of this variable is nil."
                (label (helm-gtags--read-gtagslabel))
                (default-directory tagroot))
           (message "gtags is generating tags....")
-          (unless (zerop (process-file "gtags" nil nil nil
-                                       "-q" (helm-gtags--label-option label)))
-            (error "Faild: 'gtags -q'"))
+          (let ((label-opt (helm-gtags--label-option label)))
+            (unless (zerop (process-file "gtags" nil nil nil "-q" label-opt))
+              (error "Failed: 'gtags -q %s'" label-opt)))
           tagroot))))
 
 (defun helm-gtags--current-file-and-line ()

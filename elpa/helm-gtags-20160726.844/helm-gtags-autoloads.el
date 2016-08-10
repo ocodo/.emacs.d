@@ -1,10 +1,9 @@
 ;;; helm-gtags-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-gtags" "helm-gtags.el" (22309 38945 436000
-;;;;;;  810000))
+;;;### (autoloads nil "helm-gtags" "helm-gtags.el" (0 0 0 0))
 ;;; Generated autoloads from helm-gtags.el
 
 (autoload 'helm-gtags-clear-all-cache "helm-gtags" "\
@@ -137,6 +136,8 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 \\{helm-gtags-mode-map}
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-gtags" '("helm-")))
 
 ;;;***
 
