@@ -9,7 +9,7 @@
                             (setq rng-schema-locating-files (list "~/.emacs.d/nxml-schemas/schemas.xml" "schemas.xml"))))
 
 (add-to-list 'auto-mode-alist
-             '("\\.\\(x[ms]l\\|rng\\|x?html?\\)\\'" . nxml-mode))
+             '("\\.\\(x[ms]l\\|rng\\)\\'" . nxml-mode))
 
 (setq
  nxml-child-indent 2
