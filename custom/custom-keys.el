@@ -58,12 +58,6 @@
 ;; Completion / Abbreviation
 (global-set-key [(control tab)]      'completion-at-point)
 
-;; Move line / region
-(global-set-key [M-up]               'move-text-up)
-(global-set-key [M-down]             'move-text-down)
-(global-set-key (kbd "<ESC> <up>")   'move-text-up)
-(global-set-key (kbd "<ESC> <down>") 'move-text-down)
-
 ;; Eval
 (global-set-key (kbd "C-x <ESC> e")  'eval-buffer)
 (global-set-key (kbd "M-<ESC> e")    'eval-buffer)
@@ -89,9 +83,8 @@
 
   ;; Cmd-o to find-file...
   (global-set-key (kbd "s-o")               'find-file)
-  ;; duplicate region/line
-  (global-set-key [s-down]                  'duplicate-current-line-or-region)
 
+  ;; rotate layout/window
   (global-set-key (kbd "s-8")               'rotate-window)
   (global-set-key (kbd "s-7")               'rotate-layout)
   ;; Cmd-Shift-s : write-file (not use save-as dialog)
