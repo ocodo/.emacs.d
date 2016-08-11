@@ -1,3 +1,5 @@
+**(for use with Emacs 25.x)**
+
 # Quick start guide...
 
 Fork this repo, and then add it as upstream.
