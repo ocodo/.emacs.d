@@ -52,6 +52,20 @@ Note: this won't turn off face properties in a font-locked buffer."
    (buffer-list))
   (delete-other-windows))
 
+(defun nuke-all-buffers-execept-current ()
+  "Kill all the open buffers except the current one.
+Leave *scratch* and *Messages* alone too."
+  (interactive)
+  (mapc
+   (lambda (buffer)
+     (unless (or
+              (eq (current-buffer) buffer)
+              (string= (buffer-name buffer) "*scratch*")
+              (string= (buffer-name buffer) "*Messages*"))
+       (kill-buffer buffer)))
+   (buffer-list))
+  (delete-other-windows))
+
 (defun -sample (list)
   "Return a random element from the LIST."
     (nth (random (length list)) list))
