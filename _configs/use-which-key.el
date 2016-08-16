@@ -5,7 +5,7 @@
 (use-package which-key
   :init (progn
           (which-key-mode t)
-          (which-key-setup-minibuffer))
+          (which-key-setup-side-window-bottom))
   :bind ("C-x n g" . which-key-mode))
 
 (provide 'use-which-key)

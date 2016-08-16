@@ -939,7 +939,6 @@ Optionally check ALLBUFS."
         (yas-reload-all))
     (error "An active region is needed to make a snippet")))
 
-
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
@@ -955,8 +954,6 @@ Optionally check ALLBUFS."
 (global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
 (global-set-key (kbd "ESC C-M-z") 'zap-up-to-regexp)
-
-
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
