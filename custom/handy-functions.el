@@ -840,7 +840,7 @@ when matches are equidistant from the current point."
                                            (line-number-at-pos)
                                            (buffer-file-name)))
       (start-process-shell-command "switch-to-intellij" nil
-                                   "osascript -e 'activate application \"IntelliJ IDEA 15\"'")))
+                                   "osascript -e 'activate application \"IntelliJ IDEA\"'")))
 
 (defun csv--to-lists (string)
   (mapcar (lambda (line) (split-string line ","))
@@ -909,6 +909,35 @@ Optionally check ALLBUFS."
 
 (fset 'pad-inside-braces
    [?\C-s ?\{ return ?  ?\C-s ?\} return left ?  right])
+
+
+;;; WIP
+
+(defun make-yas-from-region (b e)
+  "Make a parameterless yasnippet from the current region B E."
+  (interactive "r")
+  (if (region-active-p)
+      (progn
+        ;; TODO make a new buffer with yas headers
+        ;; ask for a name
+        (let* ((name (read-from-minibuffer "Name: "))
+              (key (read-from-minibuffer "Key: "))
+              (snippet (buffer-substring b e))
+              (template (format "# -*- mode: snippet -*-
+# name: %s
+# key: %s
+# --
+%s
+"
+                                name
+                                key
+                                snippet)))
+          ;; body... make a temp buffer and save it to snippets (kill the buffer on save)
+
+          )
+
+        (yas-reload-all))
+    (error "An active region is needed to make a snippet")))
 
 
 ;; Key bindings
