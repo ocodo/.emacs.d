@@ -1,10 +1,10 @@
 ;;; with-editor-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil nil ("with-editor-pkg.el" "with-editor.el")
-;;;;;;  (22291 19003 653000 646000))
+;;;;;;  (22452 25445 270465 302000))
 
 ;;;***
 

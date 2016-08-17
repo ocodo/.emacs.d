@@ -61,7 +61,7 @@
 ;; appropriate mode hooks:
 ;;
 ;;   (add-hook 'shell-mode-hook  'with-editor-export-editor)
-;;   (add-hook 'term-mode-hook   'with-editor-export-editor)
+;;   (add-hook 'term-exec-hook   'with-editor-export-editor)
 ;;   (add-hook 'eshell-mode-hook 'with-editor-export-editor)
 
 ;; Some variants of this function exist, these two forms are
@@ -184,7 +184,27 @@ Where the latter uses a socket to communicate with Emacs' server,
 this substitute prints edit requests to its standard output on
 which a process filter listens for such requests.  As such it is
 not a complete substitute for a proper Emacsclient, it can only
-be used as $EDITOR of child process of the current Emacs instance."
+be used as $EDITOR of child process of the current Emacs instance.
+
+Some shells do not execute traps immediately when waiting for a
+child process, but by default we do use such a blocking child
+process.
+
+If you use such a shell (e.g. `csh' on FreeBSD, but not Debian),
+then you have to edit this option.  You can either replace \"sh\"
+with \"bash\" (and install that), or you can use the older, less
+performant implementation:
+
+  \"sh -c '\\
+  echo \\\"WITH-EDITOR: $$ OPEN $0\\\"; \\
+  trap \\\"exit 0\\\" USR1; \\
+  trap \\\"exit 1\" USR2; \\
+  while true; do sleep 1; done'\"
+
+Note that this leads to a delay of up to a second.  The delay can
+be shortened by replacing \"sleep 1\" with \"sleep 0.01\", or if your
+implementation does not support floats, then by using `nanosleep'
+instead."
   :group 'with-editor
   :type 'string)
 
@@ -637,27 +657,34 @@ else like the former."
 
 (defun shell-command--shell-command-with-editor-mode
     (fn command &optional output-buffer error-buffer)
-  (cond ((or (not (or with-editor--envvar shell-command-with-editor-mode))
-             (not (string-match-p "&\\'" command)))
-         (funcall fn command output-buffer error-buffer))
-        ((and with-editor-emacsclient-executable
-              (not (file-remote-p default-directory)))
-         (with-editor (funcall fn command output-buffer error-buffer)))
-        (t
-         (apply fn (format "%s=%s %s"
-                           (or with-editor--envvar "EDITOR")
-                           (shell-quote-argument with-editor-sleeping-editor)
-                           command)
-                output-buffer error-buffer)
-         (ignore-errors
-           (let ((process (get-buffer-process
-                           (or output-buffer
-                               (get-buffer "*Async Shell Command*")))))
-             (set-process-filter
-              process (lambda (proc str)
-                        (comint-output-filter proc str)
-                        (with-editor-process-filter proc str t)))
-             process)))))
+  ;; `shell-mode' and its hook are intended for buffers in which an
+  ;; interactive shell is running, but `shell-command' also turns on
+  ;; that mode, even though it only runs the shell to run a single
+  ;; command.  The `with-editor-export-editor' hook function is only
+  ;; intended to be used in buffers in which an interactive shell is
+  ;; running, so it has to be remove here.
+  (let ((shell-mode-hook (remove 'with-editor-export-editor shell-mode-hook)))
+    (cond ((or (not (or with-editor--envvar shell-command-with-editor-mode))
+               (not (string-match-p "&\\'" command)))
+           (funcall fn command output-buffer error-buffer))
+          ((and with-editor-emacsclient-executable
+                (not (file-remote-p default-directory)))
+           (with-editor (funcall fn command output-buffer error-buffer)))
+          (t
+           (apply fn (format "%s=%s %s"
+                             (or with-editor--envvar "EDITOR")
+                             (shell-quote-argument with-editor-sleeping-editor)
+                             command)
+                  output-buffer error-buffer)
+           (ignore-errors
+             (let ((process (get-buffer-process
+                             (or output-buffer
+                                 (get-buffer "*Async Shell Command*")))))
+               (set-process-filter
+                process (lambda (proc str)
+                          (comint-output-filter proc str)
+                          (with-editor-process-filter proc str t)))
+               process))))))
 
 (advice-add 'shell-command :around
             'shell-command--shell-command-with-editor-mode)

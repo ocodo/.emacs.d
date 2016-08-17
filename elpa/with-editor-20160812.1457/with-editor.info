@@ -171,7 +171,25 @@ it receives a signal.
      not a complete substitute for a proper Emacsclient, it can only be
      used as ‘$EDITOR’ of child process of the current Emacs instance.
 
-     It is unlikely that you should ever have to customize this option.
+     Some shells do not execute traps immediately when waiting for a
+     child process, but by default we do use such a blocking child
+     process.
+
+     If you use such a shell (e.g.  ‘csh’ on FreeBSD, but not Debian),
+     then you have to edit this option.  You can either replace ‘sh’
+     with ‘bash’ (and install that), or you can use the older, less
+     performant implementation:
+
+          "sh -c '\
+          echo \"WITH-EDITOR: $$ OPEN $0\"; \
+          trap \"exit 0\" USR1; \
+          trap \"exit 1\" USR2; \
+          while true; do sleep 1; done'"
+
+     This leads to a delay of up to a second.  The delay can be
+     shortened by replacing ‘sleep 1’ with ‘sleep 0.01’, or if your
+     implementation does not support floats, then by using ‘nanosleep
+     0.01’ instead.
 
 
 File: with-editor.info,  Node: Using With-Editor commands,  Prev: Configuring With-Editor,  Up: Using the With-Editor package
@@ -225,7 +243,7 @@ needs the editor set, or always arrange for the current Emacs instance
 to be used as editor by adding it to the appropriate mode hooks:
 
      (add-hook 'shell-mode-hook  'with-editor-export-editor)
-     (add-hook 'term-mode-hook   'with-editor-export-editor)
+     (add-hook 'term-exec-hook   'with-editor-export-editor)
      (add-hook 'eshell-mode-hook 'with-editor-export-editor)
 
    Some variants of this function exist; these two forms are equivalent:
@@ -310,9 +328,9 @@ Tag Table:
 Node: Top1545
 Node: Using the With-Editor package3236
 Node: Configuring With-Editor3852
-Node: Using With-Editor commands7459
-Node: Using With-Editor as a library10622
-Node: Debugging12294
+Node: Using With-Editor commands8201
+Node: Using With-Editor as a library11364
+Node: Debugging13036
 
 End Tag Table
 
