@@ -946,7 +946,10 @@ Example use:
                           (consp (car collection))
                           ;; Previously, the cdr of the selected candidate would be returned.
                           ;; Now, the whole candidate is returned.
-                          (assoc ivy--current collection)))
+                          (let (idx)
+                            (if (setq idx (get-text-property 0 'idx ivy--current))
+                                (nth idx collection)
+                              (assoc ivy--current collection)))))
                     ((equal ivy--current "")
                      ivy-text)
                     (t
@@ -1443,6 +1446,8 @@ customizations apply to the current completion session."
             (when recursive-ivy-last
               (ivy--reset-state (setq ivy-last recursive-ivy-last)))))
       (ivy-call)
+      (when (> (length ivy--current) 0)
+        (remove-text-properties 0 1 '(idx) ivy--current))
       (when (and recursive-ivy-last
                  ivy-recursive-restore)
         (ivy--reset-state (setq ivy-last recursive-ivy-last))))))
@@ -1539,7 +1544,11 @@ This is useful for recursive `ivy-read'."
                                       (cl-sort
                                        (copy-sequence collection)
                                        sort-fn))))
-               (setq coll (all-completions "" collection predicate))))
+               (setq coll (all-completions "" collection predicate)))
+             (let ((i 0))
+               (dolist (cm coll)
+                 (add-text-properties 0 1 `(idx ,i) cm)
+                 (cl-incf i))))
             ((or (functionp collection)
                  (byte-code-function-p collection)
                  (vectorp collection)
@@ -1560,7 +1569,8 @@ This is useful for recursive `ivy-read'."
                 (setq coll (cl-sort (copy-sequence coll) sort-fn))))))
       (setq coll (ivy--set-candidates coll))
       (when preselect
-        (unless (or (and require-match
+        (unless (or (not (stringp preselect))
+                    (and require-match
                          (not (eq collection 'internal-complete-buffer)))
                     dynamic-collection
                     (let ((re (regexp-quote preselect)))
@@ -1805,6 +1815,29 @@ Minibuffer bindings:
 
 ;;* Implementation
 ;;** Regex
+(defun ivy-re-match (re-seq str)
+  "Return non-nil if RE-SEQ matches STR.
+
+RE-SEQ is a list of (RE . MATCH-P).
+
+RE is a regular expression.
+
+MATCH-P is t when RE should match STR and nil when RE should not
+match STR.
+
+Each element of RE-SEQ must match for the funtion to return true.
+
+This concept is used to generalize regular expressions for
+`ivy--regex-plus' and `ivy--regex-ignore-order'."
+  (let ((res t)
+        re)
+    (while (and res (setq re (pop re-seq)))
+      (setq res
+            (if (cdr re)
+                (string-match-p (car re) str)
+              (not (string-match-p (car re) str)))))
+    res))
+
 (defvar ivy--regex-hash
   (make-hash-table :test #'equal)
   "Store pre-computed regex.")
@@ -2173,6 +2206,7 @@ Should be run via minibuffer `post-command-hook'."
   "Insert TEXT into minibuffer with appropriate cleanup."
   (let ((resize-mini-windows nil)
         (update-fn (ivy-state-update-fn ivy-last))
+        (old-mark (marker-position (mark-marker)))
         deactivate-mark)
     (ivy--cleanup)
     (when update-fn
@@ -2185,7 +2219,10 @@ Should be run via minibuffer `post-command-hook'."
           (forward-line 1)
           (insert text))))
     (when (display-graphic-p)
-      (ivy--resize-minibuffer-to-fit))))
+      (ivy--resize-minibuffer-to-fit))
+    ;; prevent region growing due to text remove/add
+    (when (region-active-p)
+      (set-mark old-mark))))
 
 (defun ivy--resize-minibuffer-to-fit ()
   "Resize the minibuffer window size to fit the text in the minibuffer."
@@ -2444,9 +2481,8 @@ Prefer first \"^*NAME\", then \"^NAME\"."
                   (cl-position (nth ivy--index ivy--old-cands)
                                cands))
              (funcall func re-str cands))))
-    (when (and (or (string= name "")
-                   (string= name "^"))
-               (not (equal ivy--old-re "")))
+    (when (or (string= name "")
+              (string= name "^"))
       (setq ivy--index
             (or (ivy--preselect-index
                  (ivy-state-preselect ivy-last)
@@ -3147,7 +3183,7 @@ buffer would modify `ivy-last'.")
 (defvar ivy-occur-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] 'ivy-occur-click)
-    (define-key map (kbd "RET") 'ivy-occur-press)
+    (define-key map (kbd "RET") 'ivy-occur-press-and-switch)
     (define-key map (kbd "j") 'ivy-occur-next-line)
     (define-key map (kbd "k") 'ivy-occur-previous-line)
     (define-key map (kbd "h") 'backward-char)
@@ -3372,6 +3408,11 @@ EVENT gives the mouse position."
               (when (timerp ivy-occur-timer)
                 (cancel-timer ivy-occur-timer))
               (setq ivy-occur-timer (run-at-time 1.0 nil 'swiper--cleanup))))))))
+
+(defun ivy-occur-press-and-switch ()
+  (interactive)
+  (ivy-occur-press)
+  (select-window (ivy--get-window ivy-occur-last)))
 
 (defvar ivy-help-file (let ((default-directory
                              (if load-file-name

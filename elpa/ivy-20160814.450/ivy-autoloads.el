@@ -3,14 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "colir" "colir.el" (0 0 0 0))
-;;; Generated autoloads from colir.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "colir" '("colir-")))
-
-;;;***
-
-;;;### (autoloads nil "ivy" "ivy.el" (0 0 0 0))
+;;;### (autoloads nil "ivy" "ivy.el" (22452 31699 180742 468000))
 ;;; Generated autoloads from ivy.el
 
 (autoload 'ivy-resume "ivy" "\
@@ -125,11 +118,10 @@ Find a file on `recentf-list'.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ivy" '("ivy-" "with-ivy-window")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("ivy-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("colir.el" "ivy-pkg.el") (22452 31699
+;;;;;;  120742 273000))
 
 ;;;***
 
