@@ -1,17 +1,18 @@
 ;;; showkey-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "showkey" "showkey.el" (22396 28877 251062
-;;;;;;  746000))
+;;;### (autoloads nil "showkey" "showkey.el" (22452 31607 696441
+;;;;;;  224000))
 ;;; Generated autoloads from showkey.el
 
 (let ((loads (get 'Show-Key 'custom-loads))) (if (member '"showkey" loads) nil (put 'Show-Key 'custom-loads (cons '"showkey" loads))))
 
 (defvar showkey-tooltip-mode nil "\
 Non-nil if Showkey-Tooltip mode is enabled.
-See the command `showkey-tooltip-mode' for a description of this minor mode.
+See the `showkey-tooltip-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `showkey-tooltip-mode'.")
@@ -29,7 +30,8 @@ are not logged.
 
 (defvar showkey-log-mode nil "\
 Non-nil if Showkey-Log mode is enabled.
-See the command `showkey-log-mode' for a description of this minor mode.
+See the `showkey-log-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `showkey-log-mode'.")
