@@ -3,8 +3,8 @@
 ;; Copyright (C) 2013 Wilfred Hughes
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
-;; Version: 1.3
-;; Package-Version: 20160808.1709
+;; Version: 1.4
+;; Package-Version: 20160813.707
 ;; Keywords: loop, while, for each, break, continue
 
 ;; This program is free software; you can redistribute it and/or modify
