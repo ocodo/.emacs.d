@@ -1,12 +1,12 @@
 ;;; suggest.el --- suggest elisp functions that give the output requested  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016  
+;; Copyright (C) 2016
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
-;; Version: 0.1
-;; Package-Version: 20160801.1445
+;; Version: 0.2
+;; Package-Version: 20160814.1048
 ;; Keywords: convenience
-;; Package-Requires: ((loop "1.3") (dash "2.12.0") (s "1.11.0") (f "0.18.2"))
+;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -51,6 +51,11 @@
    #'list
    #'length
    #'reverse
+   #'append
+   #'butlast
+   #'make-list
+   ;; Sequence functions
+   #'elt
    ;; CL list functions.
    #'cl-first
    #'cl-second
@@ -103,6 +108,7 @@
    #'assoc
    ;; plist functions
    #'plist-get
+   #'lax-plist-get
    #'plist-member
    ;; hash tables
    #'gethash
@@ -175,6 +181,7 @@
    #'file-name-directory
    #'file-name-extension
    #'expand-file-name
+   #'abbreviate-file-name
    ;; Paths with f.el
    #'f-join
    #'f-split
@@ -217,10 +224,15 @@ need multiple examples to ensure they do what the user wants.")
 (defun suggest--insert-heading (text)
   "Highlight TEXT as a heading and insert in the current buffer."
   ;; Make a note of where the heading starts.
-  (let ((start (point))
+  (let ((excluding-last (substring text 0 (1- (length text))))
+        (last-char (substring text (1- (length text))))
+        (start (point))
         end)
     ;; Insert the heading, ensuring it's not editable.
-    (insert (propertize text 'read-only t))
+    ;; TODO: this still allows users to delete the :, but
+    ;; at least it lets users press enter after heading.
+    (insert (propertize excluding-last 'read-only t))
+    (insert last-char)
     ;; Point is now at the end of the heading, save that position.
     (setq end (point))
     ;; Start the overlay after the ";; " bit.
@@ -316,11 +328,39 @@ N counts from 1."
       ;; Insert the text, ensuring it can't be edited.
       (insert (propertize text 'read-only t)))))
 
+(defun suggest--format-output (value)
+  "Format VALUE as the output to a function."
+  (let* ((lines (s-lines (suggest--pretty-format value)))
+         (prefixed-lines
+          (--map-indexed
+           (if (zerop it-index) (concat ";=> " it) (concat ";   " it))
+           lines)))
+    (s-join "\n" prefixed-lines)))
+
+;; TODO: why does SUGGESTION get *fontified* strings?
+(defun suggest--format-suggestion (suggestion output)
+  "Format SUGGESTION as a lisp expression returning OUTPUT."
+  ;; SUGGESTION is a list that may contain strings, so we can show
+  ;; e.g. #'foo rather than 'foo.
+  (let* ((formatted-suggestion (format "%s" suggestion))
+         ;; A string of spaces the same length as the suggestion.
+         (matching-spaces (s-repeat (length formatted-suggestion) " "))
+         (formatted-output (suggest--format-output output))
+         ;; Append the output to the formatted suggestion. If the
+         ;; output runs over multiple lines, indent appropriately.
+         (formatted-lines
+          (--map-indexed
+           (if (zerop it-index)
+               (format "%s %s" formatted-suggestion it)
+             (format "%s %s" matching-spaces it))
+           (s-lines formatted-output))))
+    (s-join "\n" formatted-lines)))
+
 (defun suggest--write-suggestions (suggestions output)
   "Write SUGGESTIONS to the current *suggest* buffer.
 SUGGESTIONS is a list of forms."
   (->> suggestions
-       (--map (format "%s ;=> %s" it output))
+       (--map (suggest--format-suggestion it output))
        (s-join "\n")
        (suggest--write-suggestions-string)))
 
@@ -332,6 +372,7 @@ SUGGESTIONS is a list of forms."
                         (cl-prettyprint value)
                         (s-trim (buffer-string)))))
     (cond ((stringp value)
+           ;; TODO: we should format newlines as \n
            (format "\"%s\"" value))
           ;; Print nil and t as-is.'
           ((or (eq t value) (eq nil value))
@@ -407,7 +448,7 @@ than their values."
           ;; Try to evaluate the function.
           (ignore-errors
             (let ((func-output (apply func inputs-perm)))
-              ;; If the function gaves us the output we wanted:
+              ;; If the function gave us the output we wanted:
               (when (equal func-output output)
                 ;; Save the function with the raw inputs.
                 (push (cons func raws-perm) possibilities)
@@ -415,7 +456,19 @@ than their values."
                 ;; function.  This saves us returning multiple results
                 ;; for functions that don't care about ordering, like
                 ;; +.
-                (loop-break)))))))
+                (loop-break))))))
+      ;; If the input is a single list, try calling the function
+      ;; variadically.
+      (when (and
+             (equal (length inputs) 1)
+             (listp (-first-item inputs)))
+        (ignore-errors
+          (let ((func-output (apply func (-first-item inputs))))
+            ;; If the function gave us the output we wanted:
+            (when (equal func-output output)
+              ;; Save the funcall form of calling this function.
+              (push (list 'apply (format "#'%s" func) (-first-item raw-inputs))
+                    possibilities))))))
     (nreverse possibilities)))
 
 ;;;###autoload
@@ -434,7 +487,7 @@ than their values."
          possibilities
          ;; We show the evalled output, not the raw input, so if
          ;; users use variables, we show the value of that variable.
-         (suggest--pretty-format desired-output))
+         desired-output)
       (suggest--write-suggestions-string ";; No matches found.")))
   (suggest--update-needed nil)
   (set-buffer-modified-p nil))

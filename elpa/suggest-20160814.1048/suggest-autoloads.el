@@ -1,9 +1,10 @@
 ;;; suggest-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "suggest" "suggest.el" (22435 10443 0 0))
+;;;### (autoloads nil "suggest" "suggest.el" (22452 31595 604400
+;;;;;;  720000))
 ;;; Generated autoloads from suggest.el
 
 (autoload 'suggest "suggest" "\
