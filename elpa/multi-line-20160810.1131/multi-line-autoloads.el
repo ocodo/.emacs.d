@@ -1,10 +1,10 @@
 ;;; multi-line-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "multi-line" "multi-line.el" (22366 21549 465699
-;;;;;;  615000))
+;;;### (autoloads nil "multi-line" "multi-line.el" (22452 31669 104644
+;;;;;;  398000))
 ;;; Generated autoloads from multi-line.el
 
 (autoload 'multi-line "multi-line" "\
@@ -23,7 +23,7 @@ Single-line the statement at point.
 
 ;;;### (autoloads nil nil ("multi-line-decorator.el" "multi-line-enter.el"
 ;;;;;;  "multi-line-find.el" "multi-line-pkg.el" "multi-line-respace.el"
-;;;;;;  "multi-line-shared.el") (22366 21549 488617 779000))
+;;;;;;  "multi-line-shared.el") (22452 31669 124644 465000))
 
 ;;;***
 

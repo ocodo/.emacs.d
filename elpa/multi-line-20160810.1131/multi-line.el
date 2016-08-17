@@ -151,6 +151,20 @@ FIND-STRATEGY is a class with the method multi-line-find-next."
                   :respace multi-line-skip-fill-respacer))
 
   (multi-line-set-strategy
+   multi-line-master-strategy 'clojure-mode
+   (make-instance multi-line-strategy
+                  :find
+                  (make-instance
+                   multi-line-forward-sexp-find-strategy
+                   :split-regex "[[:space:]\n]+"
+                   :done-regex "[[:space:]]*)}]"
+                   :split-advance-fn 'multi-line-lisp-advance-fn)
+                  :enter
+                  (make-instance
+                   multi-line-up-list-enter-strategy)
+                  :respace multi-line-skip-fill-respacer))
+
+  (multi-line-set-strategy
    multi-line-master-strategy 'go-mode
    (make-instance multi-line-strategy
                   :respace
