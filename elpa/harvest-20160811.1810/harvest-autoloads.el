@@ -1,10 +1,10 @@
 ;;; harvest-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "harvest" "harvest.el" (22291 19219 880664
-;;;;;;  411000))
+;;;### (autoloads nil "harvest" "harvest.el" (22452 31744 508888
+;;;;;;  625000))
 ;;; Generated autoloads from harvest.el
 
 (autoload 'harvest "harvest" "\
