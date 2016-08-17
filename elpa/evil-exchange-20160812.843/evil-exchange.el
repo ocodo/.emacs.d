@@ -4,7 +4,7 @@
 
 ;; Author: Dewdrops <v_v_4474@126.com>
 ;; URL: http://github.com/Dewdrops/evil-exchange
-;; Package-Version: 20160407.2118
+;; Package-Version: 20160812.843
 ;; Version: 0.40
 ;; Keywords: evil, plugin
 ;; Package-Requires: ((evil "1.2.8") (cl-lib "0.3"))
@@ -185,7 +185,7 @@
 
 (defun evil-exchange/cx ()
   (interactive)
-  (when (memq evil-this-operator '(evil-change evil-cp-change))
+  (when (memq evil-this-operator '(evil-change evil-cp-change lispyville-change))
     (setq evil-inhibit-operator t)
     (define-key evil-operator-shortcut-map "c" 'evil-exchange-cancel)
     (call-interactively #'evil-exchange)

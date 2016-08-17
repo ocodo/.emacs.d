@@ -1,10 +1,10 @@
 ;;; evil-exchange-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-exchange" "evil-exchange.el" (22291 19243
-;;;;;;  448722 424000))
+;;;### (autoloads nil "evil-exchange" "evil-exchange.el" (22452 31783
+;;;;;;  397012 560000))
 ;;; Generated autoloads from evil-exchange.el
 
 (autoload 'evil-exchange "evil-exchange" "\
