@@ -291,12 +291,12 @@
 	     ((:url . "http://elpa.gnu.org/packages/ediprolog.html")
 	      (:keywords "languages" "processes"))])
  (el-search .
-	    [(0 2 1)
+	    [(0 2 2)
 	     ((emacs
 	       (25)))
-	     "Expression based incremental search for emacs-lisp-mode" single
-	     ((:url . "http://elpa.gnu.org/packages/el-search.html")
-	      (:keywords "lisp"))])
+	     "Expression based incremental search for emacs-lisp-mode" tar
+	     ((:keywords "lisp")
+	      (:url . "http://elpa.gnu.org/packages/el-search.html"))])
  (eldoc-eval .
 	     [(0 1)
 	      nil "Enable eldoc support when minibuffer is in use." single
@@ -340,9 +340,9 @@
 	       ((:keywords "calendar")
 		(:url . "http://elpa.gnu.org/packages/excorporate.html"))])
  (exwm .
-       [(0 8)
+       [(0 9)
 	((xelb
-	  (0 10)))
+	  (0 11)))
 	"Emacs X Window Manager" tar
 	((:keywords "unix")
 	 (:url . "https://github.com/ch11ng/exwm"))])
@@ -631,7 +631,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160808)
+      [(20160815)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -656,7 +656,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/pinentry.html")
 	     (:keywords "gnupg"))])
  (poker .
-	[(0 1)
+	[(0 2)
 	 nil "Texas hold 'em poker" single
 	 ((:url . "http://elpa.gnu.org/packages/poker.html")
 	  (:keywords "games"))])
@@ -954,7 +954,7 @@
 	 ((:url . "http://elpa.gnu.org/packages/xclip.html")
 	  (:keywords "convenience" "tools"))])
  (xelb .
-       [(0 10)
+       [(0 11)
 	((emacs
 	  (24 4))
 	 (cl-generic
