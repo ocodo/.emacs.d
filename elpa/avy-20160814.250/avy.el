@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20160803.636
+;; Package-Version: 20160814.250
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -633,14 +633,14 @@ Use OVERLAY-FN to visualize the decision overlay."
 (defun avy--next-visible-point ()
   "Return the next closest point without 'invisible property."
   (let ((s (point)))
-    (while (and (not (= (point-max) (setq s (next-overlay-change s))))
+    (while (and (not (= (point-max) (setq s (next-char-property-change s))))
                 (get-char-property s 'invisible)))
     s))
 
 (defun avy--next-invisible-point ()
   "Return the next closest point with 'invisible property."
   (let ((s (point)))
-    (while (and (not (= (point-max) (setq s (next-overlay-change s))))
+    (while (and (not (= (point-max) (setq s (next-char-property-change s))))
                 (not (get-char-property s 'invisible))))
     s))
 
