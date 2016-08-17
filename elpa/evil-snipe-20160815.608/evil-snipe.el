@@ -5,9 +5,9 @@
 ;; Author: Henrik Lissner <http://github/hlissner>
 ;; Maintainer: Henrik Lissner <henrik@lissner.net>
 ;; Created: December 5, 2014
-;; Modified: April 13, 2016
-;; Version: 2.0.2
-;; Package-Version: 20160413.1049
+;; Modified: August 13, 2016
+;; Version: 2.0.3
+;; Package-Version: 20160815.608
 ;; Keywords: emulation, vim, evil, sneak, seek
 ;; Homepage: https://github.com/hlissner/evil-snipe
 ;; Package-Requires: ((evil "1.0.8") (cl-lib "0.5"))
@@ -140,6 +140,13 @@ via cl and S with cc (or C).
 
 MUST BE SET BEFORE EVIL-SNIPE IS LOADED.")
 
+(defvar evil-snipe-use-vim-sneak-bindings nil
+  "Uses only Z and z under operator state, as vim-sneak does. This frees the
+x binding in operator state, if user wishes to use cx for evil-exchange or
+anything else.
+
+MUST BE SET BEFORE EVIL-SNIPE IS LOADED.")
+
 (defcustom evil-snipe-skip-leading-whitespace t
   "If non-nil, single char sniping (f/F/t/T) will skip over leading whitespaces
 in a line (when you snipe for whitespace, e.g. f<space> or f<tab>)."
@@ -208,36 +215,34 @@ yourself too."
     (unwind-protect
         (catch 'abort
           (while (> i 0)
-            (let ((key (read-event
-                        (and evil-snipe-show-prompt
-                             (format "%d>%s" i (mapconcat 'char-to-string keys ""))))))
+            (let* ((prompt (format "%d>%s" i (mapconcat 'char-to-string keys "")))
+                   (key (evil-read-key (if evil-snipe-show-prompt prompt))))
               (cond
-               ;; Tab = adds more characters if `evil-snipe-tab-increment'
-               ((and evil-snipe-tab-increment (eq key 'tab))
-                (setq i (1+ i)))
-               ;; Enter = do search with current chars
-               ((eq key 'return)
+               ;; TAB adds more characters if `evil-snipe-tab-increment'
+               ((and evil-snipe-tab-increment (eq key ?\t))  ;; TAB
+                (cl-incf i))
+               ;; Enter starts search with current chars
+               ((memq key '(?\r ?\n))  ;; RET
                 (throw 'abort (if (= i evil-snipe--match-count) 'repeat keys)))
                ;; Abort
-               ((eq key 'escape)
+               ((eq key ?\e)  ;; ESC
                 (evil-snipe--cleanup)
                 (throw 'abort 'abort))
                (t ; Otherwise, process key
-                (cond ((eq key 'backspace)  ; if backspace, delete a character
+                (cond ((eq key ?\d)  ; DEL (backspace) deletes a character
                        (cl-incf i)
                        (if (<= (length keys) 1)
                            (progn (evil-snipe--cleanup)
                                   (throw 'abort 'abort))
                          (nbutlast keys)))
                       (t ;; Otherwise add it
-                       (when (eq key 'tab) (setq key ?\t)) ; literal tabs
-                       (setq keys (push key keys))
+                       (setq keys (append keys (list key)))
                        (cl-decf i)))
                 (when evil-snipe-enable-incremental-highlight
                   (evil-snipe--cleanup)
                   (evil-snipe--highlight-all count keys)
                   (add-hook 'pre-command-hook 'evil-snipe--cleanup))))))
-          (reverse keys)))))
+          keys))))
 
 (defun evil-snipe--bounds (&optional forward-p count)
   "Returns a cons cell containing (beg . end), which represents the search scope
@@ -501,10 +506,17 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
   (let ((map (make-sparse-keymap)))
     (evil-define-key 'motion map "s" 'evil-snipe-s)
     (evil-define-key 'motion map "S" 'evil-snipe-S)
-    (evil-define-key 'operator map "z" 'evil-snipe-s)
-    (evil-define-key 'operator map "Z" 'evil-snipe-S)
-    (evil-define-key 'operator map "x" 'evil-snipe-x)
-    (evil-define-key 'operator map "X" 'evil-snipe-X)
+
+    ;; Bind in operator state
+    (if evil-snipe-use-vim-sneak-bindings
+        (progn
+          (evil-define-key 'operator map "z" 'evil-snipe-x)
+          (evil-define-key 'operator map "Z" 'evil-snipe-X))
+      (progn
+        (evil-define-key 'operator map "z" 'evil-snipe-s)
+        (evil-define-key 'operator map "Z" 'evil-snipe-S)
+        (evil-define-key 'operator map "x" 'evil-snipe-x)
+        (evil-define-key 'operator map "X" 'evil-snipe-X)))
 
     ;; Disable s/S (substitute)
     (when evil-snipe-auto-disable-substitute

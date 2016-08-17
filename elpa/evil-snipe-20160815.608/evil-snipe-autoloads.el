@@ -1,10 +1,10 @@
 ;;; evil-snipe-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (22291 19236 444705
-;;;;;;  458000))
+;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (22452 31780 357002
+;;;;;;  919000))
 ;;; Generated autoloads from evil-snipe.el
  (autoload 'evil-snipe-s "evil-snipe" nil t)
  (autoload 'evil-snipe-S "evil-snipe" nil t)
@@ -17,7 +17,8 @@
 
 (defvar evil-snipe-mode nil "\
 Non-nil if Evil-Snipe mode is enabled.
-See the command `evil-snipe-mode' for a description of this minor mode.
+See the `evil-snipe-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `evil-snipe-mode'.")
@@ -38,7 +39,8 @@ See `evil-snipe-local-mode' for more information on Evil-Snipe-Local mode.
 
 (defvar evil-snipe-override-mode nil "\
 Non-nil if Evil-Snipe-Override mode is enabled.
-See the command `evil-snipe-override-mode' for a description of this minor mode.
+See the `evil-snipe-override-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `evil-snipe-override-mode'.")
