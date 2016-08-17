@@ -2,7 +2,7 @@
 
 ;; Author: Marijn Haverbeke
 ;; URL: http://ternjs.net/
-;; Package-Version: 20160718.57
+;; Package-Version: 20160816.818
 ;; Version: 0.0.1
 ;; Package-Requires: ((json "1.2") (cl-lib "0.5") (emacs "24"))
 
@@ -18,6 +18,7 @@
 (defvar tern-explicit-port nil)
 (defvar tern-project-dir nil)
 (defvar tern-last-file-name nil)
+(defvar tern-last-project-dir nil)
 
 (defun tern-message (fmt &rest objects)
   (apply 'message fmt objects))
@@ -66,12 +67,20 @@
   (setf tern-last-file-name (buffer-file-name))
   tern-project-dir)
 
+(defun tern-known-port ()
+  ;; Invalidate the port when the project directory changes, since a new
+  ;; directory may yield a new .tern-port file.
+  (if (equal tern-last-project-dir (tern-project-dir))
+      tern-known-port
+    (setf tern-last-project-dir (tern-project-dir)
+          tern-known-port nil)))
+
 (defun tern-find-server (c &optional ignore-port)
   (cl-block nil
-    (when tern-known-port
-      (cl-return (if (consp tern-known-port)
-                     (funcall c nil (cdr tern-known-port))
-                   (funcall c tern-known-port nil))))
+    (when (tern-known-port)
+      (cl-return (if (consp (tern-known-port))
+                     (funcall c nil (cdr (tern-known-port)))
+                   (funcall c (tern-known-port) nil))))
     (if tern-explicit-port
         (funcall c tern-explicit-port nil)
       (unless (buffer-file-name)
@@ -110,9 +119,9 @@ list of strings, giving the binary name and arguments.")
                                  (run-at-time "30 sec" nil
                                               (lambda (buf)
                                                 (with-current-buffer buf
-                                                  (when (consp tern-known-port) (setf tern-known-port nil))))
+                                                  (when (consp (tern-known-port)) (setf tern-known-port nil))))
                                               (current-buffer))
-                                 (funcall c nil tern-known-port)))
+                                 (funcall c nil (tern-known-port))))
     (set-process-filter proc (lambda (proc output)
                                (if (not (string-match "Listening on port \\([0-9][0-9]*\\)" output))
                                    (setf all-output (concat all-output output))
@@ -121,7 +130,7 @@ list of strings, giving the binary name and arguments.")
                                                               (delete-process proc)
                                                               (setf tern-known-port nil)))
                                  (set-process-filter proc nil)
-                                 (funcall c tern-known-port nil))))))
+                                 (funcall c (tern-known-port) nil))))))
 
 (defvar tern-command-generation 0)
 (defvar tern-activity-since-command -1)
@@ -188,7 +197,7 @@ list of strings, giving the binary name and arguments.")
                                  (or (eq (cl-cadar err) 'connection-failed)
                                      (eq (caar err) 'file-error)))
                             (setf retrying t)
-                            (let ((old-port tern-known-port))
+                            (let ((old-port (tern-known-port)))
                               (setf tern-known-port nil)
                               (if tern-explicit-port
                                   (funcall callback nil err)
@@ -583,6 +592,7 @@ list of strings, giving the binary name and arguments.")
   (set (make-local-variable 'tern-explicit-port) nil)
   (set (make-local-variable 'tern-project-dir) nil)
   (set (make-local-variable 'tern-last-file-name) nil)
+  (set (make-local-variable 'tern-last-project-dir) nil)
   (set (make-local-variable 'tern-last-point-pos) nil)
   (set (make-local-variable 'tern-last-completions) nil)
   (set (make-local-variable 'tern-last-argument-hints) nil)
