@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "anzu" "anzu.el" (0 0 0 0))
+;;;### (autoloads nil "anzu" "anzu.el" (22452 31819 797127 439000))
 ;;; Generated autoloads from anzu.el
 
 (autoload 'anzu-mode "anzu" "\
@@ -67,8 +67,6 @@ See `anzu-mode' for more information on Anzu mode.
 
 
 \(fn ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "anzu" '("anzu-")))
 
 ;;;***
 

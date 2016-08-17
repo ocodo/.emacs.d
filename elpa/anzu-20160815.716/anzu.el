@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20160726.840
+;; Package-Version: 20160815.716
 ;; Version: 0.61
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 
@@ -389,6 +389,8 @@
                   (if (eobp)
                       (setq finish t)
                     (forward-char 1)))
+                (when (and replace-end (> (point) replace-end))
+                  (setq finish t))
                 (when (and (>= beg overlay-beg) (<= end overlay-end) (not finish))
                   (cl-incf overlayed)
                   (anzu--add-overlay beg end))))
@@ -724,7 +726,9 @@
                (when (= (match-beginning 0) (match-end 0))
                  (if (eobp)
                      (cl-return nil)
-                   (forward-char 1)))))))
+                   (forward-char 1)))
+               (when (and end (> (point) end))
+                 (cl-return nil))))))
 
 (cl-defun anzu--query-replace-common (use-regexp
                                       &key at-cursor thing prefix-arg (query t) isearch-p)
