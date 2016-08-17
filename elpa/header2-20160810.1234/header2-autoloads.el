@@ -1,9 +1,9 @@
 ;;; header2-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "header2" "header2.el" (22160 38969 833346
+;;;### (autoloads nil "header2" "header2.el" (22452 31724 156823
 ;;;;;;  237000))
 ;;; Generated autoloads from header2.el
 
@@ -23,13 +23,16 @@ Prepare for a new history revision.  Insert history line if inexistant.
 
 (autoload 'make-divider "header2" "\
 Insert a comment divider line: the comment start, filler, and end.
-END-COL is the last column of the divider line.
+The width is `fill-column', by default.  With a numeric prefix arg,
+use that as the width, except use at least 4 columns.
 
 \(fn &optional END-COL)" t nil)
 
 (autoload 'make-box-comment "header2" "\
 Insert an empty (mode dependent) box comment.
-END-COL is the last column of the divider line.
+The maxium width is `fill-column', by default.  With a numeric prefix
+arg, use that as the maximum width, except use at least 2 + the length
+returned by function `header-prefix-string'.
 
 \(fn &optional END-COL)" t nil)
 

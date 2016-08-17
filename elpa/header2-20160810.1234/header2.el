@@ -10,11 +10,11 @@
 ;; Copyright (C) 1988 Lynn Randolph Slater, Jr.
 ;; Created: Tue Aug  4 17:06:46 1987
 ;; Version: 0
-;; Package-Version: 20151231.1326
+;; Package-Version: 20160810.1234
 ;; Package-Requires: ()
-;; Last-Updated: Thu Dec 31 13:31:02 2015 (-0800)
+;; Last-Updated: Wed Aug 10 12:33:54 2016 (-0700)
 ;;           By: dradams
-;;     Update #: 1892
+;;     Update #: 1947
 ;; URL: http://www.emacswiki.org/header2.el
 ;; Doc URL: http://emacswiki.org/AutomaticFileHeaders
 ;; Keywords: tools, docs, maint, abbrev, local
@@ -34,7 +34,8 @@
 ;; Commands (interactive functions) defined here:
 ;;
 ;;   `make-header', `make-revision', `make-divider',
-;;   `make-box-comment', `update-file-header'.
+;;   `make-box-comment', `make-box-comment-region',
+;;   `update-file-header'.
 ;;
 ;; Other functions defined here:
 ;;
@@ -63,7 +64,9 @@
 ;; User options (variables) defined here:
 ;;
 ;;   `header-copyright-notice', `header-date-format',
-;;   `header-history-label', `header-max', `make-header-hook'.
+;;   `header-history-label', `header-max',
+;;   `make-box-comment-region-replace-prefix-flag',
+;;   `make-header-hook'.
 ;;
 ;; Other variables defined here:
 ;;
@@ -171,6 +174,11 @@
 ;;
 ;;; Change Log:
 ;;
+;; 2016/08/10 dadams
+;;     Added: make-box-comment-region, make-box-comment-region-replace-prefix-flag
+;;            (suggestion from Stephen Barrett).
+;;     make-divider, make-box-comment:
+;;       Added prefix arg.  Better doc string.  Do not subtract 2 (dunno why it was done).
 ;; 2014/07/23 dadams
 ;;     header-free-software: Updated per latest GNU boilerplate.
 ;; 2014/01/13 dadams
@@ -482,6 +490,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>."
 
   "*Text saying that this is free software"
   :type 'string :group 'Automatic-File-Header)
+
+(defcustom make-box-comment-region-replace-prefix-flag nil
+  "Non-nil means remove any comment prefix from lines, before boxing."
+  :type 'boolean :group 'Automatic-File-Header)
  
 ;;; Internal variables -------------------------------------
 
@@ -814,7 +826,7 @@ work even when the value has embedded spaces or other junk."
 
 (defun header-prefix-string ()
   "Return a mode-specific prefix string for use in headers.
-Is sensitive to language-dependent comment conventions."
+It is sensitive to language-dependent comment conventions."
   (cond
     ;; E.g. Lisp.
     ((and comment-start (= 1 (length comment-start)))
@@ -921,37 +933,64 @@ the comment."
 ;;;###autoload
 (defun make-divider (&optional end-col)
   "Insert a comment divider line: the comment start, filler, and end.
-END-COL is the last column of the divider line."
-  (interactive)
+The width is `fill-column', by default.  With a numeric prefix arg,
+use that as the width, except use at least 4 columns."
+  (interactive "P")
+  (setq end-col  (if end-col (prefix-numeric-value end-col) fill-column))
   (insert comment-start)
   (when (= 1 (length comment-start)) (insert comment-start))
-  (insert (make-string (max 2 (- (or end-col (- fill-column 2))
-                                 (length comment-end) 2 (current-column)))
-                       (aref comment-start
-                             (if (= 1 (length comment-start)) 0 1))))
-  (insert (concat comment-end "\n")))
+  (insert (make-string (max 2 (- end-col (length comment-end) (current-column)))
+                       (aref comment-start (if (= 1 (length comment-start)) 0 1)))
+          comment-end
+          "\n"))
 
 ;;;###autoload
 (defun make-box-comment (&optional end-col)
   "Insert an empty (mode dependent) box comment.
-END-COL is the last column of the divider line."
-  (interactive)
+The maxium width is `fill-column', by default.  With a numeric prefix
+arg, use that as the maximum width, except use at least 2 + the length
+returned by function `header-prefix-string'."
+  (interactive "P")
+  (setq end-col  (if end-col (prefix-numeric-value end-col) fill-column))
   (unless (= 0 (current-column)) (forward-line 1))
   (insert comment-start)
   (when (= 1 (length comment-start)) (insert comment-start))
-  (unless (char-equal (preceding-char) ? ) (insert ? ))
-  (insert (make-string (max 2 (- (or end-col fill-column ) (length comment-end)
-                                 2 (current-column)))
-                       (aref comment-start
-                             (if (= 1 (length comment-start)) 0 1))))
-  (insert "\n" (header-prefix-string) )
+  (unless (char-equal (preceding-char) ?\  ) (insert ?\  ))
+  (insert (make-string (max 2 (- end-col (length comment-end) (current-column)))
+                       (aref comment-start (if (= 1 (length comment-start)) 0 1)))
+          "\n"
+          (header-prefix-string))
   (save-excursion
-    (insert "\n" (header-prefix-string)
-            (make-string (max 2 (- (or end-col fill-column)
-                                   (length comment-end) 2 (current-column)))
-                         (aref comment-start
-                               (if (= 1 (length comment-start)) 0 1)))
-            comment-end "\n")))
+    (insert "\n"
+            (header-prefix-string)
+            (make-string (max 2 (- end-col (length comment-end) (current-column)))
+                         (aref comment-start (if (= 1 (length comment-start)) 0 1)))
+            comment-end
+            "\n")))
+
+(defun make-box-comment-region (&optional end-col start end)
+  "Wrap active region in a box comment, or make an empty box comment.
+The maxium width is `fill-column', by default.  With a numeric prefix
+arg, use that as the maximum width, except use at least 2 + the length
+returned by function `header-prefix-string'.
+Respects `make-box-comment-region-remove-comments'."
+  (interactive "P\nr")
+  (setq end-col  (if end-col (prefix-numeric-value end-col) fill-column))
+  (if (not (and mark-active  (mark)  (> (region-end) (region-beginning))))
+      (make-box-comment end-col)
+    (let ((selection    (buffer-substring start end)))
+      (kill-region start end)
+      (make-box-comment end-col)
+      (insert
+       (replace-regexp-in-string "\n"
+                                 (concat "\n" (header-prefix-string))
+                                 (if make-box-comment-region-replace-prefix-flag
+                                     (replace-regexp-in-string 
+                                      (concat "^[ \t]*[" (nonempty-comment-start) "]*")
+                                      ""
+                                      selection)
+                                   selection))))))
+
 
 
 ;; Automatic Header update code
