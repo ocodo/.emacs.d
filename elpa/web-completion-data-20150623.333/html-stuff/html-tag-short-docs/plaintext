@@ -1,4 +1,0 @@
-!OBSOLETE!
-The HTML Plaintext Element (<plaintext>) renders everything following the start tag as raw text, without interpreting any HTML. There is no closing tag, since everything after it is considered raw text.
-
-The <pre> and <code> elements to be used instead.

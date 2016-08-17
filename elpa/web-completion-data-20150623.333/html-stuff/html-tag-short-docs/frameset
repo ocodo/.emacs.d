@@ -1,6 +1,0 @@
-Deprecated.
-
-<frameset> is an HTML element which is used to contain <frame> elements.
-
-Note: 
-Because the use of frames is now discouraged in favor of using <iframe>, this element is not typically used by modern web sites.

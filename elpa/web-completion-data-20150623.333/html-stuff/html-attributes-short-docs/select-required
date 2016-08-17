@@ -1,3 +1,0 @@
-required [HTML5]
-
-A Boolean attribute indicating that an option with a non-empty string value must be selected.

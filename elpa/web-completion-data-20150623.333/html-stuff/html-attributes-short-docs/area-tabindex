@@ -1,3 +1,0 @@
-tabindex [HTML4 only] [Obsolete since Gecko 5.0]
-
-A numeric value specifying the position of the defined area in the browser tabbing order. This attribute is global in HTML5.

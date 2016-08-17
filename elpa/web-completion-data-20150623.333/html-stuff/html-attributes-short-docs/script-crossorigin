@@ -1,3 +1,0 @@
-crossorigin [!]
-
-Normal script tags will pass minimal information to the window.onerror for scripts which do not pass the standard CORS checks. To allow error logging for sites which use a separate domain for static media, several browsers have enabled the crossorigin attribute for scripts using the same definition as the standard img crossorigin attribute. Efforts to standardize this attribute are underway on the WHATWG mailing list.

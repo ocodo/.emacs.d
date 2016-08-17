@@ -1,4 +1,0 @@
-This attribute indicates the kind of command, and can be one of three values.
-  command: A regular command with an associated action. This is the missing value default.
-  checkbox: Represents a command that can be toggled between two different states.
-  radio: Represent one selection from a group of commands that can be toggled as radio buttons.

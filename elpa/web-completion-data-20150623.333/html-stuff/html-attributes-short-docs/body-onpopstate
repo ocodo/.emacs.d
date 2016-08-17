@@ -1,3 +1,0 @@
-onpopstate [HTML5]
-
-Function to call when the user has navigated session history.

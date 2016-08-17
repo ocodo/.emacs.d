@@ -1,3 +1,0 @@
-src
-
-If the value of the type attribute is image, this attribute specifies a URI for the location of an image to display on the graphical submit button; otherwise it is ignored.

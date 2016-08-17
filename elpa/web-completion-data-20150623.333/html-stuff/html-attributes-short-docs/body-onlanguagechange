@@ -1,3 +1,0 @@
-onlanguagechange [experimental]
-
-Function to call when the preferred languages changed.

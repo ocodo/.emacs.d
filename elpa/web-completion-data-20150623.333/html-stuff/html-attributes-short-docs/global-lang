@@ -1,7 +1,0 @@
-Defines the language used in the element.
-
-This attribute participates in defining the language of the element, the language that non-editable elements are written in or the language that editable elements should be written in. The tag contains one single entry value in the format defines in the Tags for Identifying Languages (BCP47) IETF document. If the tag content is the empty string the language is set to unknown; if the tag content is not valid, regarding to BCP47, it is set to invalid.
-
-Usage note:
-Even if the lang attribute is set, it may not be taken into account, as the xml:lang attribute has priority. Read the algorithm determining the language of an element's content to see how the language is determined in all cases.
-For the CSS pseudo-class :lang, two invalid language names are different if their names are different.

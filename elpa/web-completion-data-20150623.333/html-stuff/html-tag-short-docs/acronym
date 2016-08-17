@@ -1,4 +1,0 @@
-!Obsolete!
-The HTML Acronym Element (<acronym>) allows authors to clearly indicate a sequence of characters that compose an acronym or abbreviation for a word.
-
-THIS ELEMENT HAS BEEN REMOVED IN HTML5 AND SHOULDN'T BE USED ANYMORE. INSTEAD WEB DEVELOPERS SHOULD USE THE <ABBR> ELEMENT.

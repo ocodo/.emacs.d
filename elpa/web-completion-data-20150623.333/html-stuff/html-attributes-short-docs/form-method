@@ -1,6 +1,0 @@
-method
-
-The HTTP method that the browser uses to submit the form. Possible values are:
-  post: Corresponds to the HTTP POST method ; form data are included in the body of the form and sent to the server.
-  get: Corresponds to the HTTP GET method; form data are appended to the action attribute URI with a '?' as separator, and the resulting URI is sent to the server. Use this method when the form has no side-effects and contains only ASCII characters.
-This value can be overridden by a formmethod attribute on a <button> or <input> element.

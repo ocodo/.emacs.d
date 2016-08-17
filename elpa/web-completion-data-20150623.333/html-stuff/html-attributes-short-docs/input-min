@@ -1,3 +1,0 @@
-min [HTML5]
-
-The minimum (numeric or date-time) value for this item, which must not be greater than its maximum (max attribute) value.
