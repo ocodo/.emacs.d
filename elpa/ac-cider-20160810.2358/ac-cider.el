@@ -7,7 +7,7 @@
 ;;         Sam Aaron <samaaron@gmail.com>
 ;;
 ;; URL: https://github.com/clojure-emacs/ac-cider
-;; Package-Version: 20160611.304
+;; Package-Version: 20160810.2358
 ;; Keywords: languages, clojure, nrepl, cider, compliment
 ;; Version: 0.2.3
 ;; Package-Requires: ((cider "0.8.0") (auto-complete "1.4") (cl-lib "0.3"))
@@ -47,6 +47,11 @@
 ;;          (add-to-list 'ac-modes 'cider-mode)
 ;;          (add-to-list 'ac-modes 'cider-repl-mode)))
 
+;; By default, entries in the popup menu will also display the namespace that
+;; the symbol belongs to. To disable this behavior, add to your init file:
+
+;;     (setq ac-cider-show-ns nil)
+
 ;; If you want to trigger auto-complete using TAB in CIDER buffers, add this to
 ;; your configuration file, but note that it is incompatible with (setq
 ;; tab-always-indent 'complete):
@@ -69,11 +74,35 @@
 
 (defvar ac-cider-documentation-cache '())
 
+;; customization group
+(defgroup ac-cider nil
+  "auto-complete sources for cider."
+  :prefix "ac-cider-"
+  :group 'completion)
+
+(defcustom ac-cider-show-ns t
+  "Non-nil means rows in the AC popup menu will show the namespace of the item."
+  :type 'boolean
+  :group 'ac-cider)
+
+(defun ac-cider-prepare-candidates (candidates)
+  "Apply changes for auto-complete to the candidates returned from cider-complete."
+  (if ac-cider-show-ns
+      (mapcar
+       (lambda (candidate)
+         (let ((ns (get-text-property 0 'ns candidate)))
+           ;; Copy the 'ns' value to 'summary' for auto-complete to display
+           (when ns
+             (add-text-properties 0 1 `(summary ,ns) candidate))
+           candidate))
+       candidates)
+    candidates))
+
 (defun ac-cider-candidates-everything ()
   "Return all candidates for a symbol at point."
   (setq ac-cider-documentation-cache nil)
   (when (cider-connected-p)
-    (cider-complete ac-prefix)))
+    (ac-cider-prepare-candidates (cider-complete ac-prefix))))
 
 (defun ac-cider-documentation (symbol)
   "Return documentation for the given SYMBOL, if available.
