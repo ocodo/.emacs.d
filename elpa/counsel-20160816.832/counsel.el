@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160808.645
+;; Package-Version: 20160816.832
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -939,6 +939,7 @@ Describe the selected candidate."
         (goto-char (point-min))
         (forward-line (1- (string-to-number line-number)))
         (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
+        (swiper--ensure-visible)
         (unless (eq ivy-exit 'done)
           (swiper--cleanup)
           (swiper--add-overlays (ivy--regex ivy-text)))))))
@@ -1037,7 +1038,7 @@ INITIAL-INPUT can be given as the initial minibuffer input."
   (if (< (length str) 3)
       (counsel-more-chars 3)
     (let ((regex (setq ivy--old-re
-                       (ivy--regex str))))
+                       (ivy--regex str t))))
       (counsel--async-command (format counsel-git-grep-cmd regex))
       nil)))
 
@@ -1307,6 +1308,9 @@ Skip some dotfiles unless `ivy-text' requires them."
 
 (declare-function ffap-guesser "ffap")
 
+(defvar counsel-find-file-speedup-remote t
+  "Speed up opening remote files by disabling `find-file-hook' for them.")
+
 ;;;###autoload
 (defun counsel-find-file (&optional initial-input)
   "Forward to `find-file'.
@@ -1318,7 +1322,12 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
             :action
             (lambda (x)
               (with-ivy-window
-                (find-file (expand-file-name x ivy--directory))))
+                (let ((find-file-hook (if (and
+                                           counsel-find-file-speedup-remote
+                                           (file-remote-p ivy--directory))
+                                          nil
+                                        find-file-hook)))
+                  (find-file (expand-file-name x ivy--directory)))))
             :preselect (when counsel-find-file-at-point
                          (require 'ffap)
                          (let ((f (ffap-guesser)))
@@ -1466,6 +1475,27 @@ INITIAL-INPUT can be given as the initial minibuffer input."
                           (find-file file))))
             :unwind #'counsel-delete-process
             :caller 'counsel-locate))
+
+;;** `counsel-dpkg'
+;;;###autoload
+(defun counsel-dpkg ()
+  "Call the \"dpkg\" shell command."
+  (interactive)
+  (let ((cands (mapcar
+                (lambda (x)
+                  (let ((y (split-string x "  +")))
+                    (setq col1 (max col1 (length (nth 1 y))))
+                    (cons (format "%-40s   %s"
+                                  (ivy--truncate-string
+                                   (nth 1 y) 40)
+                                  (nth 4 y))
+                          (mapconcat #'identity y " "))))
+                (split-string
+                 (shell-command-to-string "dpkg -l | tail -n+6") "\n" t))))
+    (ivy-read "dpkg: " cands
+              :action (lambda (x)
+                        (message (cdr x)))
+              :caller 'counsel-dpkg)))
 
 ;;** File Jump and Dired Jump
 

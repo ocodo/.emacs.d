@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (0 0 0 0))
+;;;### (autoloads nil "counsel" "counsel.el" (22452 31794 753048
+;;;;;;  512000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -116,6 +117,11 @@ Call the \"locate\" shell command.
 INITIAL-INPUT can be given as the initial minibuffer input.
 
 \(fn &optional INITIAL-INPUT)" t nil)
+
+(autoload 'counsel-dpkg "counsel" "\
+Call the \"dpkg\" shell command.
+
+\(fn)" t nil)
 
 (autoload 'counsel-file-jump "counsel" "\
 Jump to a file from a list of all files directories
@@ -240,8 +246,6 @@ mode remaps built-in emacs functions that have counsel
 replacements.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel" '("counsel-" "tmm-km-list")))
 
 ;;;***
 
