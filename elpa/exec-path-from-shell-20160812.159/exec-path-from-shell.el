@@ -5,7 +5,7 @@
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: environment
 ;; URL: https://github.com/purcell/exec-path-from-shell
-;; Package-Version: 20160112.2246
+;; Package-Version: 20160812.159
 ;; Package-X-Original-Version: 0
 
 ;; This file is not part of GNU Emacs.
@@ -98,7 +98,7 @@ Environment variables should be set in .profile or .zshenv rather than
   (concat "\"" (replace-regexp-in-string "\"" "\\\\\"" s) "\""))
 
 (defcustom exec-path-from-shell-arguments
-  (if (string-match-p "t?csh$" (getenv "SHELL"))
+  (if (string-match-p "t?csh$" (or (getenv "SHELL") ""))
       (list "-d")
     (list "-l" "-i"))
   "Additional arguments to pass to the shell.
