@@ -5264,7 +5264,16 @@ function `buffer-file-name'."
       (when (seq-some (apply-partially #'flycheck-same-files-p
                                        (expand-file-name filename cwd))
                       buffer-files)
-        (setf (flycheck-error-filename err) (buffer-file-name)))))
+        (let ((new-filename (buffer-file-name)))
+          (setf (flycheck-error-filename err) new-filename)
+          (when new-filename
+            (setf (flycheck-error-message err)
+                  (replace-regexp-in-string
+                   (regexp-quote filename)
+                   new-filename
+                   (flycheck-error-message err)
+                   'fixed-case
+                   'literal)))))))
   err)
 
 
@@ -6151,8 +6160,6 @@ See URL `http://coffeescript.org/'."
 (flycheck-define-checker coffee-coffeelint
   "A CoffeeScript style checker using coffeelint.
 
-This syntax checker requires coffeelint 1.0 or newer.
-
 See URL `http://www.coffeelint.org/'."
   :command
   ("coffeelint"
@@ -6838,8 +6845,7 @@ See URL `http://golang.org/cmd/go'."
 (flycheck-define-checker go-errcheck
   "A Go checker for unchecked errors.
 
-Requires an errcheck version from commit 8515d34 (Aug 28th, 2015)
-or newer.
+Requires errcheck newer than commit 8515d34 (Aug 28th, 2015).
 
 See URL `https://github.com/kisielk/errcheck'."
   :command ("errcheck" "-abspath" ".")
@@ -7408,7 +7414,7 @@ See URL `https://docs.python.org/3.5/library/json.html#command-line-interface'."
 (flycheck-define-checker less
   "A LESS syntax checker using lessc.
 
-At least version 1.4 of lessc is required.
+Requires lessc 1.4 or newer.
 
 See URL `http://lesscss.org'."
   :command ("lessc" "--lint" "--no-color"
@@ -8153,8 +8159,7 @@ See URL `http://batsov.com/rubocop/'."
 (flycheck-define-checker ruby-rubylint
   "A Ruby syntax and code analysis checker using ruby-lint.
 
-Requires ruby-lint 2.0 or newer.  To use `flycheck-rubylintrc',
-ruby-lint 2.0.2 or newer is required.  See URL
+Requires ruby-lint 2.0.2 or newer.  See URL
 `https://github.com/YorickPeterse/ruby-lint'."
   :command ("ruby-lint" "--presenter=syntastic"
             (config-file "--config" flycheck-rubylintrc)
@@ -8277,7 +8282,8 @@ Relative paths are relative to the file being checked."
 (flycheck-define-checker rust-cargo
   "A Rust syntax checker using Cargo.
 
-This syntax checker needs Cargo with rustc subcommand."
+This syntax checker needs Rust 1.0 or newer, and Cargo with the
+rustc command.  See URL `https://www.rust-lang.org'."
   :command ("cargo" "rustc"
             (eval (cond
                    ((string= flycheck-rust-crate-type "lib") "--lib")
@@ -8313,9 +8319,8 @@ This syntax checker needs Cargo with rustc subcommand."
 (flycheck-define-checker rust
   "A Rust syntax checker using Rust compiler.
 
-This syntax checker needs Rust 1.0.0 alpha or newer.
-
-See URL `https://www.rust-lang.org'."
+This syntax checker needs Rust 1.0 or newer.  See URL
+`https://www.rust-lang.org'."
   :command ("rustc" "-Z" "no-trans"
             (option "--crate-type" flycheck-rust-crate-type)
             (option-flag "--test" flycheck-rust-check-tests)
