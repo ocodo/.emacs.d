@@ -40,7 +40,8 @@
 
 ;; It recognizes headings, the GPL license disclaimer which is
 ;; replaced by a shorter notice linking to the GNU project's license
-;; website, lists, and normal paragraphs. Lists are somewhat tricky to
+;; website, lists, and normal paragraphs. It escapes `backtick-quoted'
+;; names so they will display correctly. Lists are somewhat tricky to
 ;; recognize automatically, and the program employs a very simple
 ;; heuristic currently.
 
@@ -106,6 +107,7 @@ the copy."
 \\1")
   (goto-char (point-min))
   (mdr-find-and-replace-disclaimer)
+  (mdr-escape-quoted-names)
   (while (< (line-number-at-pos) (line-number-at-pos (point-max)))
     (when (looking-at ";;")
       (delete-char 2)
@@ -153,6 +155,18 @@ one-line note linked to the GPL website."
       		       nil t)))
       	(delete-region start-line end-line)
       	(insert "Licensed under the [GPL version 3](http://www.gnu.org/licenses/) or later.")))))
+
+(defun mdr-escape-quoted-names ()
+  "Escape elisp-style backtick-quoted identifiers for use in a Markdown document.
+
+Backticks have their own quoting semantics in Markdown, and they are at odds
+with the ones used by Emacs Lisp.
+
+Thus, this escaping is necessary."
+
+  (save-excursion
+    (goto-char (point-min))
+    (replace-regexp "`\\(\\_<.*\\_>\\)'" "`` `\\1' ``")))
 
 (provide 'md-readme)
 ;;; md-readme.el ends here
