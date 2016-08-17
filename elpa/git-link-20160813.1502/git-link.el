@@ -1,8 +1,8 @@
 ;;; git-link.el --- Get the GitHub/Bitbucket/GitLab URL for a buffer location
 
 ;; Author: Skye Shaw <skye.shaw@gmail.com>
-;; Version: 0.4.2
-;; Package-Version: 20160808.2110
+;; Version: 0.4.3
+;; Package-Version: 20160813.1502
 ;; Keywords: git, vc
 ;; URL: http://github.com/sshaw/git-link
 
@@ -34,8 +34,11 @@
 
 ;;; Change Log:
 
+;; 2016-08-13 - v0.4.3
+;; * Added support for git-timemachine (Issue #22, thanks Diego Berrocal)
+;;
 ;; 2016-08-09 - v0.4.2
-;; * Fix for URLs with ports (Bug #32)
+;; * Fix for URLs with ports (Issue #32)
 ;;
 ;; 2016-04-01 - v0.4.1
 ;; * Better handling for branches that have no explicit remote
@@ -75,7 +78,7 @@
 ;; * Use --short option when calling symbolic-ref (Thanks Steven Huwig)
 ;;
 ;; 2014-02-27 - v0.0.2
-;; * Fix for buffers visiting files through symlinks (Bug #1, thanks Evgeniy Dolzhenko)
+;; * Fix for buffers visiting files through symlinks (Issue #1, thanks Evgeniy Dolzhenko)
 
 ;;; Code:
 
@@ -128,6 +131,11 @@
 (defun git-link--last-commit ()
   (car (git-link--exec "--no-pager" "log" "-n1" "--pretty=format:%H")))
 
+(defun git-link--commit ()
+  (if (git-link--using-git-timemachine)
+      (car git-timemachine-revision)
+    (git-link--last-commit)))
+
 (defun git-link--current-branch ()
   (car (git-link--exec "symbolic-ref" "--short" "HEAD")))
 
@@ -152,7 +160,7 @@
 		     (git-link--branch-remote branch))))
 
     ;; Git defaults to "." if the branch has no remote.
-    ;; If we branch has no remote we try master's, which may be set.
+    ;; If the branch has no remote we try master's, which may be set.
     (if (or (null remote)
 	    (and (string= remote ".")
 		 (not (string= branch "master"))))
@@ -178,6 +186,10 @@
   (let ((url (git-link--remote-url remote-name)))
     (if (and url (string-match git-link-remote-regex url))
         (match-string 2 url))))
+
+(defun git-link--using-git-timemachine ()
+  (and (boundp 'git-timemachine-revision)
+       git-timemachine-revision))
 
 (defun git-link--read-remote ()
   (let ((remotes (git-link--remotes))
@@ -285,7 +297,7 @@
 ;;;###autoload
 (defun git-link (remote start end)
   "Create a URL representing the current buffer's location in its
-GitHub/Bitbucket/Gitorious/... repository at the current line number
+GitHub/Bitbucket/GitLab/... repository at the current line number
 or active region. The URL will be added to the kill ring.
 
 With a prefix argument prompt for the remote's name.
@@ -298,7 +310,7 @@ Defaults to \"origin\"."
   (let* ((remote-host (git-link--remote-host remote))
 	 (filename    (git-link--relative-filename))
 	 (branch      (git-link--branch))
-	 (commit      (git-link--last-commit))
+	 (commit      (git-link--commit))
 	 (handler     (cadr (assoc remote-host git-link-remote-alist))))
 
     (cond ((null filename)
@@ -313,7 +325,9 @@ Defaults to \"origin\"."
 		     remote-host
 		     (git-link--remote-dir remote)
 		     filename
-		     (if git-link-use-commit nil branch)
+		     (if (or (git-link--using-git-timemachine) git-link-use-commit)
+			 nil
+		       branch)
 		     commit
 		     start
 		     end))))))
