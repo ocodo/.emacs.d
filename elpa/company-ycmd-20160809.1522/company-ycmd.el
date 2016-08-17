@@ -5,7 +5,7 @@
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
 ;; version: 0.1
-;; Package-Version: 20160808.754
+;; Package-Version: 20160809.1522
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((ycmd "0.1") (company "0.9.0") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (let-alist "1.0.4"))
 ;;
@@ -174,24 +174,25 @@ When 0, do not use synchronous completion request at all."
 Returns a list with one candidate or multiple candidates for
 overloaded functions."
   (company-ycmd--with-destructured-candidate candidate
-    (let* ((overloaded-functions (and company-ycmd-insert-arguments
-                                      (stringp .detailed_info)
-                                      (s-split "\n" .detailed_info t)))
-           (items (or overloaded-functions (list .menu_text)))
+    (let* ((overloads (and company-ycmd-insert-arguments
+                           (stringp .detailed_info)
+                           (s-split "\n" .detailed_info t)))
+           (items (or overloads (list .menu_text)))
            candidates)
       (when (eq major-mode 'objc-mode)
         (setq .insertion_text (s-chop-suffix ":" .insertion_text)))
       (dolist (it (delete-dups items) candidates)
-        (let* ((meta (if overloaded-functions it .detailed_info))
+        (let* ((meta (if overloads it .detailed_info))
                (kind (company-ycmd--convert-kind-clang .kind))
-               (params (and (string= kind "fn")
+               (params (and (or (string= kind "fn") (string= kind "class"))
                             (company-ycmd--extract-params-clang it)))
-               (return-type (or (and overloaded-functions
-                                     (string-match
-                                      (concat "\\(.*\\) "
-                                              (regexp-quote .insertion_text))
-                                      it)
-                                     (match-string 1 it))
+               (return-type (or (and overloads
+                                     (let ((case-fold-search nil))
+                                       (string-match
+                                        (concat "\\(.*\\) "
+                                                (regexp-quote .insertion_text))
+                                        it)
+                                       (match-string 1 it)))
                                 .extra_menu_info))
                (doc .extra_data.doc_string))
           (setq candidates
