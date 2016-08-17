@@ -4,7 +4,7 @@
 ;;
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20160521.1206
+;; Package-Version: 20160816.713
 ;; Version: 0.4.0
 ;;
 ;;; Commentary:
@@ -261,6 +261,17 @@
 
    ;; flx-ido
    `(flx-highlight-face ((t (:inherit (link) :weight bold))))
+   
+   ;; rpm-spec-mode
+   `(rpm-spec-tag-face ((t (:foreground ,atom-one-dark-blue))))
+   `(rpm-spec-obsolete-tag-face ((t (:foreground "#FFFFFF" :background ,atom-one-dark-red-2))))
+   `(rpm-spec-macro-face ((t (:foreground ,atom-one-dark-orange-2))))
+   `(rpm-spec-var-face ((t (:foreground ,atom-one-dark-red-1))))
+   `(rpm-spec-doc-face ((t (:foreground ,atom-one-dark-purple))))
+   `(rpm-spec-dir-face ((t (:foreground ,atom-one-dark-cyan))))
+   `(rpm-spec-package-face ((t (:foreground ,atom-one-dark-red-2))))
+   `(rpm-spec-ghost-face ((t (:foreground ,atom-one-dark-red-2))))
+   `(rpm-spec-section-face ((t (:foreground ,atom-one-dark-orange-2))))
 
    ;; term
    `(term-color-black ((t :foreground ,atom-one-dark-mono-1)))
