@@ -1,9 +1,9 @@
 ;;; xmlgen-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads (xmlgen) "xmlgen" "xmlgen.el" (20805 43684 0 0))
+;;;### (autoloads nil "xmlgen" "xmlgen.el" (22452 25436 546485 639000))
 ;;; Generated autoloads from xmlgen.el
 
 (autoload 'xmlgen "xmlgen" "\
@@ -14,15 +14,9 @@ Convert a sexp to xml:
 
 ;;;***
 
-;;;### (autoloads nil nil ("xmlgen-pkg.el") (20805 43684 41993 0))
-
-;;;***
-
-(provide 'xmlgen-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; xmlgen-autoloads.el ends here

@@ -4,6 +4,7 @@
 
 ;; Author: Philip Jackson <phil@shellarchive.co.uk>
 ;; Version: 0.4
+;; Package-Version: 20160810.331
 
 ;; This file is not currently part of GNU Emacs.
 
@@ -107,9 +108,9 @@ elements content.")
   "Escape STRING for inclusion in some XML."
   (when (stringp string)
     (mapc
-     '(lambda (e)
-       (setq string
-        (replace-regexp-in-string (car e) (cdr e) string)))
+     (lambda (e)
+      (setq string
+       (replace-regexp-in-string (car e) (cdr e) string)))
      xmlgen-escapees))
   string)
 
@@ -139,15 +140,15 @@ the plist and the plist."
         (plist '())
         (last-keyword nil))
     (mapc
-     '(lambda (item)
+     (lambda (item)
        (let ((item (pop list)))
          (cond
-           (last-keyword
-            (setq plist (append plist (list last-keyword)))
-            (setq plist (append plist (list item)))
-            (setq last-keyword nil))
-           ((keywordp item) (setq last-keyword item))
-           (t (setq nlist (append nlist (list item)))))))
+          (last-keyword
+           (setq plist (append plist (list last-keyword)))
+           (setq plist (append plist (list item)))
+           (setq last-keyword nil))
+          ((keywordp item) (setq last-keyword item))
+          (t (setq nlist (append nlist (list item)))))))
      list)
     (when last-keyword
       (error "No value to satisfy keyword '%s'"
