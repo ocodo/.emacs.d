@@ -123,6 +123,10 @@ If NO-SERIALIZE is non-nil then don't serialize RESULT with
                            result
                          (prin1-to-string result))))
 
+(defun esup-child-send-eof ()
+  "Make process see end-of-file in its input."
+  (process-send-eof esup-child-parent-log-process))
+
 (defvar esup-child-result-separator "\n;;ESUP-RESULT-SEPARATOR;;\n"
   "The separator between results.
 The parent Emacs uses the separator to know when the child has
@@ -165,7 +169,7 @@ LEVEL is the number of `load's or `require's we've stepped into."
           ;; TODO: A file with no sexps (either nothing or comments) will
           ;; cause an error.
           (message "esup: loading %s" abs-file-path)
-          (esup-child-send-log (format "loading %s" abs-file-path))
+          (esup-child-send-log (format "loading %s\n" abs-file-path))
           (esup-child-profile-buffer (find-file-noselect abs-file-path) level))
       ;; The file doesn't exist, return an empty list of `esup-result'
       '())))
@@ -179,28 +183,36 @@ LEVEL is the number of `load's or `require's we've stepped into."
   "Profile BUFFER and return the benchmarked expressions.
 LEVEL is the number of `load's or `require's we've stepped into."
   (unless level (setq level 0))
-  (with-current-buffer buffer
-    (goto-char (point-min))
-    ;; The only way to reliably figure out if we're done is to compare
-    ;; sexp positions.  `forward-sexp' handles all the complexities of
-    ;; white-space and comments.
-    (let ((buffer-read-only t)
-          (last-start -1)
-          (end (progn (forward-sexp 1) (point)))
-          (start (progn (forward-sexp -1) (point)))
-          results)
-
-      (while (> start last-start)
-        (setq results (append results
-                              (esup-child-profile-sexp start end level)))
-        (setq last-start start)
-        (goto-char end)
+  (condition-case error-message
+      (with-current-buffer buffer
+        (goto-char (point-min))
+        (forward-comment (buffer-size))
         (esup-child-skip-byte-code-dynamic-docstrings)
-        (forward-sexp 1)
-        (setq end (point))
-        (forward-sexp -1)
-        (setq start (point)))
-      results)))
+        ;; The only way to reliably figure out if we're done is to compare
+        ;; sexp positions.  `forward-sexp' handles all the complexities of
+        ;; white-space and comments.
+        (let ((buffer-read-only t)
+              (last-start -1)
+              (end (progn (forward-sexp 1)
+                          (point)))
+              (start (progn (forward-sexp -1)
+                            (point)))
+              results)
+          (while (> start last-start)
+            (setq results (append results
+                                  (esup-child-profile-sexp start end level)))
+            (setq last-start start)
+            (goto-char end)
+            (esup-child-skip-byte-code-dynamic-docstrings)
+            (forward-sexp 1)
+            (setq end (point))
+            (forward-sexp -1)
+            (setq start (point)))
+          results))
+    (error
+     (message "ERROR(profile-buffer): %s" error-message)
+     (esup-child-send-log "ERROR(profile-buffer) at %s %s" buffer error-message)
+     (esup-child-send-eof))))
 
 (defun esup-child-profile-sexp (start end &optional level)
   "Profile the sexp between START and END in the current buffer.
@@ -208,36 +220,48 @@ Returns a list of class `esup-result'.
 LEVEL is the number of `load's or `require's we've stepped into."
   (unless level (setq level 0))
   (let* ((sexp-string (esup-child-chomp (buffer-substring start end)))
-         (sexp (if (string-equal sexp-string "")
-                   ""
-                 (car-safe (read-from-string sexp-string))))
          (line-number (line-number-at-pos start))
          (file-name (buffer-file-name))
+         (location-information
+          (format "%s:%s %d-%d" file-name line-number start end))
+         sexp
          esup--profile-results)
+    (condition-case error-message
+        (progn
+          (esup-child-send-log
+           "profiling sexp %s %s\n"
+           location-information
+           (buffer-substring-no-properties start (min end (+ 30 start))))
 
-    (esup-child-send-log
-     "profiling sexp %s:%s %s\n" file-name line-number
-     (buffer-substring-no-properties start (min end (+ 30 start))))
+          (setq sexp (if (string-equal sexp-string "")
+                         ""
+                       (car-safe (read-from-string sexp-string))))
 
-    (cond
-     ((string-equal sexp-string "")
-      '())
-     ;; Recursively profile loaded files.
-     ((looking-at "(load ")
-      (goto-char (match-end 0))
-      (esup-child-profile-file (eval (nth 1 sexp)) (1+ level)))
+          (cond
+           ((string-equal sexp-string "")
+            '())
+           ;; Recursively profile loaded files.
+           ((looking-at "(load ")
+            (goto-char (match-end 0))
+            (esup-child-profile-file (eval (nth 1 sexp)) (1+ level)))
 
-     ((and (< level esup-child-profile-require-level)
-           (looking-at "(require "))
-      (esup-child-profile-file (esup-child-require-to-load sexp) (1+ level)))
+           ((and (< level esup-child-profile-require-level)
+                 (looking-at "(require "))
+            ;; TODO: See if symbol already provided.  #38
+            (esup-child-profile-file (esup-child-require-to-load sexp) (1+ level)))
 
-     (t
-      (setq esup--profile-results
-            (list (esup-child-profile-string
-                   sexp-string file-name line-number start end)))
-      (esup-child-send-result esup--profile-results)
-      (esup-child-send-result esup-child-result-separator 'no-serialize)
-      esup--profile-results))))
+           (t
+            (setq esup--profile-results
+                  (list (esup-child-profile-string
+                         sexp-string file-name line-number start end)))
+            (esup-child-send-result esup--profile-results)
+            (esup-child-send-result esup-child-result-separator 'no-serialize)
+            esup--profile-results)))
+      (error
+       (message "ERROR: %s" error-message)
+       (esup-child-send-log "ERROR(profile-sexp) at %s: %s"
+                            location-information error-message)
+       (esup-child-send-eof)))))
 
 (defun esup-child-profile-string (sexp-string
                                   &optional file-name line-number
