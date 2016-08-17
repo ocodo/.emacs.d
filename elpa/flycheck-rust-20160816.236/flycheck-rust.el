@@ -4,7 +4,7 @@
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/flycheck/flycheck-rust
-;; Package-Version: 20160614.1130
+;; Package-Version: 20160816.236
 ;; Keywords: tools, convenience
 ;; Version: 0.1-cvs
 ;; Package-Requires: ((emacs "24.1") (flycheck "0.20") (dash "2.4.0") (seq "2.15") (let-alist "1.0.4"))
@@ -40,6 +40,10 @@
 ;; Note: You must run `cargo build` initially to install all dependencies.  If
 ;; you add new dependencies to `Cargo.toml` you need to run `cargo build`
 ;; again. Otherwise you will see spurious errors about missing crates.
+;;
+;; This extension also provides a convenience function for looking up
+;; explanations of the compiler error under point
+;; (`flycheck-rust-explain-error') that is not bound by default.
 
 ;;; Code:
 
@@ -159,6 +163,19 @@ Flycheck according to the Cargo project layout."
         (setq-local flycheck-rust-library-path
                     (list (expand-file-name "target/debug" root)
                           (expand-file-name "target/debug/deps" root)))))))
+
+;;;###autoload
+(defun flycheck-rust-explain-error (error-code)
+  "Explain ERROR-CODE by invoking `rustc --explain'.
+
+ERROR-CODE defaults to the code of the error under point."
+  (interactive
+   (list (let ((errors-at-point (flycheck-overlay-errors-at (point))))
+           (and errors-at-point (flycheck-error-id (car errors-at-point))))))
+  (when error-code
+    (with-help-window (get-buffer-create "*rustc-explain*")
+      (with-current-buffer standard-output
+        (call-process "rustc" nil t nil "--explain" error-code)))))
 
 (provide 'flycheck-rust)
 

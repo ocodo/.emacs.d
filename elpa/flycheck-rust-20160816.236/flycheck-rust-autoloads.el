@@ -1,10 +1,10 @@
 ;;; flycheck-rust-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flycheck-rust" "flycheck-rust.el" (22396 29096
-;;;;;;  910929 483000))
+;;;### (autoloads nil "flycheck-rust" "flycheck-rust.el" (22452 31755
+;;;;;;  356923 328000))
 ;;; Generated autoloads from flycheck-rust.el
 
 (autoload 'flycheck-rust-setup "flycheck-rust" "\
@@ -14,6 +14,13 @@ If the current file is part of a Cargo project, configure
 Flycheck according to the Cargo project layout.
 
 \(fn)" t nil)
+
+(autoload 'flycheck-rust-explain-error "flycheck-rust" "\
+Explain ERROR-CODE by invoking `rustc --explain'.
+
+ERROR-CODE defaults to the code of the error under point.
+
+\(fn ERROR-CODE)" t nil)
 
 ;;;***
 
