@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160808.645
+;; Package-Version: 20160816.226
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (ivy "0.8.0"))
 ;; Keywords: matching
@@ -114,6 +114,28 @@
            (move-beginning-of-line 1)
            (perform-replace from to
                             t t nil)))))))
+
+(defun swiper-all-query-replace ()
+  "Start `query-replace' with string to replace from last search string."
+  (interactive)
+  (if (null (window-minibuffer-p))
+      (user-error
+       "Should only be called in the minibuffer through `swiper-all-map'")
+    (let* ((enable-recursive-minibuffers t)
+           (from (ivy--regex ivy-text))
+           (to (query-replace-read-to from "Query replace" t)))
+      (swiper--cleanup)
+      (ivy-exit-with-action
+       (lambda (_)
+         (let ((wnd-conf (current-window-configuration))
+               (inhibit-message t))
+           (unwind-protect
+                (dolist (cand ivy--old-cands)
+                  (let ((buffer (get-text-property 0 'buffer cand)))
+                    (switch-to-buffer buffer)
+                    (goto-char (point-min))
+                    (perform-replace from to t t nil)))
+             (set-window-configuration wnd-conf))))))))
 
 (defvar avy-background)
 (defvar avy-all-windows)
@@ -641,7 +663,6 @@ WND, when specified is the window."
          re
          regexp-search-ring-max)))))
 
-;; (define-key isearch-mode-map (kbd "C-o") 'swiper-from-isearch)
 (defun swiper-from-isearch ()
   "Invoke `swiper' from isearch."
   (interactive)
@@ -719,10 +740,13 @@ Run `swiper' for those buffers."
                            (eq (with-current-buffer b
                                  major-mode) 'dired-mode)))
                      (buffer-list)))
-           (re (funcall ivy--regex-function str))
-           (re (if (consp re) (caar re) re))
-           cands
-           match)
+           (re-full (funcall ivy--regex-function str))
+           re re-tail
+           cands match)
+      (if (stringp re-full)
+          (setq re re-full)
+        (setq re (caar re-full))
+        (setq re-tail (cdr re-full)))
       (dolist (buffer buffers)
         (with-current-buffer buffer
           (save-excursion
@@ -740,8 +764,9 @@ Run `swiper' for those buffers."
                (buffer-name)
                match)
               (put-text-property 0 1 'point (point) match)
-              (push match cands)))))
-      (setq ivy--old-re nil)
+              (when (or (null re-tail) (ivy-re-match re-tail match))
+                (push match cands))))))
+      (setq ivy--old-re re-full)
       (if (null cands)
           (list "")
         (setq ivy--old-cands (nreverse cands))))))
@@ -776,16 +801,23 @@ Run `swiper' for those buffers."
      cands
      "\n")))
 
+(defvar swiper-all-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-q") 'swiper-all-query-replace)
+    map)
+  "Keymap for `swiper-all'.")
+
 (defun swiper-all ()
   "Run `swiper' for all opened buffers."
   (interactive)
   (let ((ivy-format-function #'swiper--all-format-function))
-    (ivy-read "Swiper: " 'swiper-all-function
+    (ivy-read "swiper-all: " 'swiper-all-function
               :action 'swiper-all-action
               :unwind #'swiper--cleanup
               :update-fn (lambda ()
                            (swiper-all-action ivy--current))
               :dynamic-collection t
+              :keymap swiper-all-map
               :caller 'swiper-multi)))
 
 (defun swiper-all-action (x)
