@@ -1,10 +1,10 @@
 ;;; olivetti-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "olivetti" "olivetti.el" (22396 28937 815255
-;;;;;;  621000))
+;;;### (autoloads nil "olivetti" "olivetti.el" (22452 31666 364635
+;;;;;;  420000))
 ;;; Generated autoloads from olivetti.el
 
 (autoload 'turn-on-olivetti-mode "olivetti" "\
