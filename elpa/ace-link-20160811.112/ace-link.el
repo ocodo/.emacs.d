@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20160529.2350
+;; Package-Version: 20160811.112
 ;; Version: 0.4.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: convenience, links
@@ -71,10 +71,10 @@
   "Open a visible link in an `Info-mode' buffer."
   (interactive)
   (let ((pt (avy-with ace-link-info
-               (avy--process
-                (mapcar #'cdr
-                        (ace-link--info-collect))
-                #'avy--overlay-post))))
+              (avy--process
+               (mapcar #'cdr
+                       (ace-link--info-collect))
+               (avy--style-fn avy-style)))))
     (ace-link--info-action pt)))
 
 (defun ace-link--info-action (pt)
@@ -123,7 +123,7 @@
   (let ((pt (avy-with ace-link-help
               (avy--process
                (mapcar #'cdr (ace-link--help-collect))
-               #'avy--overlay-post))))
+               (avy--style-fn avy-style)))))
     (ace-link--help-action pt)))
 
 (defun ace-link--help-action (pt)
@@ -153,7 +153,7 @@
   (let ((pt (avy-with ace-link-woman
               (avy--process
                (mapcar #'cdr (ace-link--woman-collect))
-               #'avy--overlay-post))))
+               (avy--style-fn avy-style)))))
     (ace-link--woman-action pt)))
 
 (defun ace-link--woman-action (pt)
@@ -182,7 +182,7 @@
   (let ((pt (avy-with ace-link-eww
               (avy--process
                (mapcar #'cdr (ace-link--eww-collect))
-               #'avy--overlay-post))))
+               (avy--style-fn avy-style)))))
     (ace-link--eww-action pt)))
 
 (declare-function eww-follow-link "eww")
@@ -223,7 +223,7 @@
   (let ((pt (avy-with ace-link-compilation
               (avy--process
                (mapcar #'cdr (ace-link--eww-collect))
-               #'avy--overlay-post))))
+               (avy--style-fn avy-style)))))
     (ace-link--compilation-action pt)))
 
 (defun ace-link--compilation-action (pt)
@@ -243,7 +243,7 @@
   (let ((pt (avy-with ace-link-gnus
               (avy--process
                (ace-link--gnus-collect)
-               #'avy--overlay-post))))
+               (avy--style-fn avy-style)))))
     (ace-link--gnus-action pt)))
 
 (defun ace-link--gnus-action (pt)
@@ -283,7 +283,7 @@
   (let ((pt (avy-with ace-link-org
                (avy--process
                 (mapcar #'cdr (ace-link--org-collect))
-                #'avy--overlay-pre))))
+                (avy--style-fn avy-style)))))
     (ace-link--org-action pt)))
 
 (declare-function org-open-at-point "org")
@@ -322,7 +322,7 @@
   (let ((pt (avy-with ace-link-custom
               (avy--process
                (ace-link--custom-collect)
-               #'avy--overlay-pre))))
+               (avy--style-fn avy-style)))))
     (ace-link--custom-action pt)))
 
 (declare-function Custom-newline "cus-edit")
@@ -357,7 +357,7 @@
   (let ((pt (avy-with ace-link-addr
                (avy--process
                 (ace-link--addr-collect)
-                #'avy--overlay-pre))))
+                (avy--style-fn avy-style)))))
     (ace-link--addr-action pt)))
 
 (defun ace-link--addr-action (pt)
@@ -381,6 +381,24 @@
 (defun ace-link-setup-default (&optional key)
   "Bind KEY to appropriate functions in appropriate keymaps."
   (setq key (or key "o"))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-info . post))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-help . post))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-woman . post))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-eww . post))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-compilation . post))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-gnus . post))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-org . pre))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-custom . pre))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-addr . pre))
   (eval-after-load "info"
     `(define-key Info-mode-map ,key 'ace-link-info))
   (eval-after-load "compile"
