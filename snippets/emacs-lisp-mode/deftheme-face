@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: theme face
+# group: deftheme
+# key: dtf
+# --
+`(${1:face-name} ((t(${2:theme} $0))))
