@@ -26,16 +26,24 @@
 ;; r -> horizontal   ─
 ;; v -> vertical     │
 
-;; You can use Artist mode for things like this too, this is just yet another way. I built it for me.
+;; You can use Artist mode for things like this too, this is just yet
+;; another way.
+;;
+;; I built this for me, and while it's GPL, I keep it in my config.
+;;
+;; Also good is aa2u mode - which converts artist-mode boxes to
+;; unicode (or to me `IBM Box chars' - aka. Code Page 437)
 
 ;;; Licence: GPL v3
 
 ;;; Code:
 
 (global-set-key (kbd "C-x d")
-                (defhydra hydra-draw-box (:color pink)
+                (defhydra ibm-draw-box-hydra (:color pink)
                   "Draw box with IBM single line box characters (ESC to Quit)."
                   ("ESC" nil :color blue) ;; Esc to exit.
+                  ("S-<space>" (search-backward "+") "next '+'")
+                  ("<space>" (search-forward "+") "next '+'")
                   ("q" (insert "┌") "top left ┌")
                   ("w" (insert "┬") "top ┬")
                   ("e" (insert "┐") "top right ┐")
@@ -48,6 +56,23 @@
                   ("r" (insert "─") "horizontal ─")
                   ("v" (insert "│") "vertical │")))
 
-(provide 'ibm-box-drawing-hydra)
+(global-set-key (kbd "C-x D")
+                (defhydra ibm-draw-box-overwrite-hydra (:color pink)
+                  "Draw box (overwrite) with IBM single line box characters (ESC to Quit)."
+                  ("ESC" nil :color blue) ;; Esc to exit.
+                  ("S-<space>" (search-backward "+") "next '+'")
+                  ("<space>" (search-forward "+") "next '+'")
+                  ("q" (progn (kill-char 1) (insert "┌")) "top left ┌")
+                  ("w" (progn (kill-char 1) (insert "┬")) "top ┬")
+                  ("e" (progn (kill-char 1) (insert "┐")) "top right ┐")
+                  ("a" (progn (kill-char 1) (insert "├")) "left ├")
+                  ("s" (progn (kill-char 1) (insert "┼")) "center ┼")
+                  ("d" (progn (kill-char 1) (insert "┤")) "right ┤")
+                  ("z" (progn (kill-char 1) (insert "└")) "bottom left └")
+                  ("x" (progn (kill-char 1) (insert "┴")) "bottom ┴")
+                  ("c" (progn (kill-char 1) (insert "┘")) "bottom right ┘")
+                  ("r" (progn (kill-char 1) (insert "─")) "horizontal ─")
+                  ("v" (progn (kill-char 1) (insert "│")) "vertical │")))
 
+(provide 'ibm-box-drawing-hydra)
 ;;; ibm-box-drawing-hydra.el ends here
