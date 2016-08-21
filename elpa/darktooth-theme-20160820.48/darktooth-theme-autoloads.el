@@ -1,10 +1,10 @@
 ;;; darktooth-theme-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "darktooth-theme" "darktooth-theme.el" (22347
-;;;;;;  49629 745241 631000))
+;;;### (autoloads nil "darktooth-theme" "darktooth-theme.el" (22457
+;;;;;;  3449 0 0))
 ;;; Generated autoloads from darktooth-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
