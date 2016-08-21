@@ -10,14 +10,12 @@
 ;; TODO: add a buffer local var via on load hook to flag a file which
 ;; is already tabbed, we should not untabify these.
 
-(defcustom suspend-whitespace-cleanup nil
-  "Suspend buffer cleanup if t")
+(defcustom suspend-whitespace-cleanup nil "Suspend buffer cleanup if t.")
 
 (defun safe-buffer-cleanup ()
   "Clean whitespace, kill tabs, set to UTF8."
   (unless suspend-whitespace-cleanup
-    (unless
-        (eq (with-current-buffer (current-buffer) major-mode) 'makefile-bsdmake-mode)
+    (unless (s-contains-p "makefile" (symbol-name (with-current-buffer (current-buffer) major-mode)))
       (untabify (point-min) (point-max)))
     (delete-trailing-whitespace)
     (set-buffer-file-coding-system 'utf-8)))
