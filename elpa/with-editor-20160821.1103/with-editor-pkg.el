@@ -1,7 +1,7 @@
-(define-package "with-editor" "20160812.1457" "Use the Emacsclient as $EDITOR"
+(define-package "with-editor" "20160821.1103" "Use the Emacsclient as $EDITOR"
   '((emacs "24.4")
-    (async "1.5")
-    (dash "2.12.1"))
+    (async "1.9")
+    (dash "2.13.0"))
   :url "https://github.com/magit/with-editor" :keywords
   '("tools"))
 ;; Local Variables:
