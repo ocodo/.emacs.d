@@ -1,10 +1,10 @@
 ;;; counsel-osx-app-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel-osx-app" "counsel-osx-app.el" (22366
-;;;;;;  21221 816457 411000))
+;;;### (autoloads nil "counsel-osx-app" "counsel-osx-app.el" (22459
+;;;;;;  4336 458004 283000))
 ;;; Generated autoloads from counsel-osx-app.el
 
 (autoload 'counsel-osx-app "counsel-osx-app" "\

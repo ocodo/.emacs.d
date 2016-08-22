@@ -4,7 +4,7 @@
 ;;
 ;; Author: Boris Buliga <d12frosted@gmail.com>
 ;; URL: https://github.com/d12frosted/counsel-osx-app
-;; Package-Version: 20160525.305
+;; Package-Version: 20160821.109
 ;; Version: 0.1.0
 ;; Package-Requires: ((ivy "0.8.0") (emacs "24.3"))
 ;;
@@ -40,7 +40,7 @@
 (require 'ivy)
 
 (defvar counsel-osx-app-location "/Applications"
-  "Path to directory containing applications.")
+  "Path (or list of paths) to directories containing applications.")
 
 (defvar counsel-osx-app-pattern "*.app"
   "Pattern for applications in `counsel-osx-app-location'.
@@ -48,10 +48,13 @@
 Use \"*\" if all files in `counsel-osx-app-location' are considered
 applications.")
 
-(defvar counsel-osx-app-launch-cmd (lambda (app &optional file)
-                                     (if (bound-and-true-p file)
-                                         (format "open %s -a %s" (shell-quote-argument file) (shell-quote-argument app))
-                                       (format "open %s" (shell-quote-argument app))))
+(defvar counsel-osx-app-launch-cmd
+  (lambda (app &optional file)
+    (if (bound-and-true-p file)
+        (format "open %s -a %s"
+                (shell-quote-argument file)
+                (shell-quote-argument app))
+      (format "open %s" (shell-quote-argument app))))
   "Command for launching application.
 
 Can be either format string or function that accepts path to
@@ -67,7 +70,8 @@ argument and returns command.")
                           (file-expand-wildcards
                            (concat path "/" counsel-osx-app-pattern)))
                         locs)))
-    (apply #'append files)))
+    (mapcar (lambda (path) (cons (file-name-base path) path))
+            (apply #'append files))))
 
 (defun counsel-osx-app-action-default (app)
   "Launch APP using `counsel-osx-app-launch-cmd'."
@@ -78,7 +82,8 @@ argument and returns command.")
     ((functionp counsel-osx-app-launch-cmd)
      (funcall counsel-osx-app-launch-cmd app))
     (t
-     (user-error "Could not construct cmd from `counsel-osx-app-launch-cmd'")))))
+     (user-error
+      "Could not construct cmd from `counsel-osx-app-launch-cmd'")))))
 
 (defun counsel-osx-app-action-file (app)
   "Open file in APP using `counsel-osx-app-launch-cmd'."
@@ -90,24 +95,35 @@ argument and returns command.")
         (call-process-shell-command
          (cond
           ((stringp counsel-osx-app-launch-cmd)
-           (format "%s %s %s" counsel-osx-app-launch-cmd (shell-quote-argument app) (shell-quote-argument file)))
+           (format "%s %s %s"
+                   counsel-osx-app-launch-cmd
+                   (shell-quote-argument app)
+                   (shell-quote-argument file)))
           ((functionp counsel-osx-app-launch-cmd)
            (funcall counsel-osx-app-launch-cmd app file))
           (t
-           (user-error "Could not construct cmd from `counsel-osx-app-launch-cmd'"))))
+           (user-error
+            "Could not construct cmd from `counsel-osx-app-launch-cmd'"))))
       (user-error "Cancelled"))))
+
+(defmacro counsel-osx-app--use-cdr (f)
+  "Return a function that operates on the cdr of its argument instead."
+  `(lambda (cons-cell) (,f (cdr cons-cell))))
 
 (ivy-set-actions
  'counsel-osx-app
- '(("f" counsel-osx-app-action-file "run on a file")))
+ `(("f"
+    ,(counsel-osx-app--use-cdr counsel-osx-app-action-file)
+    "run on a file")))
 
 ;;;###autoload
 (defun counsel-osx-app ()
   "Launch an application via ivy interface."
   (interactive)
   (ivy-read "Run application: " (counsel-osx-app-list)
-            :action #'counsel-osx-app-action-default
+            :action (counsel-osx-app--use-cdr counsel-osx-app-action-default)
             :caller 'counsel-app))
 
 (provide 'counsel-osx-app)
+
 ;;; counsel-osx-app.el ends here
