@@ -1,10 +1,10 @@
 ;;; actionscript-mode.el --- A simple mode for editing Actionscript 3 files
-;; Version: 20140605.1128
 
 ;; Copyright (C) 2011 Austin Haas
 
 ;; Author: Austin Haas
 ;; Keywords: language modes
+;; Package-Version: 20160820.1731
 
 ;; Tabbing stolen from: Aemon Cannon, http://github.com/aemoncannon/as3-mode/tree/master/as3-mode.el
 ;; Copyright (C) 2007 Aemon Cannon
@@ -29,7 +29,7 @@
 ;; Add this to your .emacs:
 ;;
 ;; (autoload 'actionscript-mode "actionscript-mode" "Major mode for actionscript." t)
-;; (add-to-list 'auto-mode-alist '("\\.as$" . actionscript-mode))
+;; (add-to-list 'auto-mode-alist '("\\.as\\'" . actionscript-mode))
 ;;
 ;;------------------
 ;;; TODO
@@ -47,9 +47,9 @@
 
 ;;; Code:
 
-(require 'cl)
 (require 'font-lock)
 (eval-when-compile
+  (require 'cl)
   (require 'regexp-opt))
 
 (defconst actionscript-mode-version "7.2.2"
@@ -563,7 +563,7 @@ whitespace. Keep point at same relative point in the line."
 (add-to-list 'hs-special-modes-alist '(actionscript-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.as$" . actionscript-mode))
+(add-to-list 'auto-mode-alist '("\\.as\\'" . actionscript-mode))
 
 (provide 'actionscript-mode)
 
