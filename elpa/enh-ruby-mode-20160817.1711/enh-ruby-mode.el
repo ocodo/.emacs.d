@@ -477,7 +477,7 @@ the value changes.
     (while (and pos (< pos end))
       (goto-char pos)
       (when (and (eq prop 'b) (looking-at enh-ruby-defun-and-name-re))
-        (push (cons (concat (match-string 1) " "(match-string 2)) pos) index-alist))
+        (push (cons (concat (match-string 1) " " (match-string 2)) pos) index-alist))
 
       (setq prop (and (setq pos (enh-ruby-next-indent-change pos))
                       (get-text-property pos 'indent))))
@@ -1125,7 +1125,8 @@ With ARG, do it that many times."
 
               (move-end-of-line nil)
               (skip-chars-backward " \n\t\r\v\f")
-              (while (eq 'font-lock-comment-face (get-text-property (point) 'font-lock-face))
+              (while (and (> (point) (point-min))
+                          (eq 'font-lock-comment-face (get-text-property (point) 'font-lock-face)))
                 (backward-char))
               (skip-chars-backward " \n\t\r\v\f")
               (setq end (point))
