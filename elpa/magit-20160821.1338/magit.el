@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20160408.201") (git-commit "20160425.430") (magit-popup "20160512.328"))
+;; Package-Requires: ((emacs "24.4") (async "20160711.223") (dash "20160820.501") (with-editor "20160812.1457") (git-commit "20160519.950") (magit-popup "20160813.642"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -868,13 +868,13 @@ Insert a header line with the name and description of the
 current branch.  The description is taken from the Git variable
 `branch.<NAME>.description'; if that is undefined then no header
 line is inserted at all."
-  (-when-let* ((branch (magit-get-current-branch))
-               (desc (magit-get "branch" branch "description"))
-               (desc-lines (split-string desc "\n")))
-    (magit-insert-section (branchdesc branch t)
-      (magit-insert-heading branch ": " (car desc-lines))
-      (insert (mapconcat 'identity (cdr desc-lines) "\n"))
-      (insert "\n\n"))))
+  (let ((branch (magit-get-current-branch)))
+    (--when-let (magit-git-lines
+                 "config" (format "branch.%s.description" branch))
+      (magit-insert-section (branchdesc branch t)
+        (magit-insert-heading branch ": " (car it))
+        (insert (mapconcat 'identity (cdr it) "\n"))
+        (insert "\n\n")))))
 
 (defconst magit-refs-branch-line-re
   (concat "^"
