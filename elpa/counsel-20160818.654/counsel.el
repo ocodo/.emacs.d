@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160816.832
+;; Package-Version: 20160818.654
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -1383,6 +1383,19 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
           (format "http://debbugs.gnu.org/cgi/bugreport.cgi?bug=%s"
                   (substring url 1)))))))
 
+;;** `counsel-recentf'
+(defvar recentf-list)
+
+;;;###autoload
+(defun counsel-recentf ()
+  "Find a file on `recentf-list'."
+  (interactive)
+  (ivy-read "Recentf: " recentf-list
+            :action (lambda (f)
+                      (with-ivy-window
+                        (find-file f)))
+            :caller 'counsel-recentf))
+
 ;;** `counsel-locate'
 (defcustom counsel-locate-cmd (cond ((eq system-type 'darwin)
                                      'counsel-locate-cmd-noregex)
@@ -1484,7 +1497,6 @@ INITIAL-INPUT can be given as the initial minibuffer input."
   (let ((cands (mapcar
                 (lambda (x)
                   (let ((y (split-string x "  +")))
-                    (setq col1 (max col1 (length (nth 1 y))))
                     (cons (format "%-40s   %s"
                                   (ivy--truncate-string
                                    (nth 1 y) 40)

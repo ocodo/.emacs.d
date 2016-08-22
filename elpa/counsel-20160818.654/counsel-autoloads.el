@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22452 31794 753048
-;;;;;;  512000))
+;;;### (autoloads nil "counsel" "counsel.el" (22459 4339 434000 36000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -111,6 +110,11 @@ Forward to `find-file'.
 When INITIAL-INPUT is non-nil, use it in the minibuffer during completion.
 
 \(fn &optional INITIAL-INPUT)" t nil)
+
+(autoload 'counsel-recentf "counsel" "\
+Find a file on `recentf-list'.
+
+\(fn)" t nil)
 
 (autoload 'counsel-locate "counsel" "\
 Call the \"locate\" shell command.
