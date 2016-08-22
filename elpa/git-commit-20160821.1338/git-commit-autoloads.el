@@ -1,15 +1,16 @@
 ;;; git-commit-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "git-commit" "git-commit.el" (22338 19881 775310
-;;;;;;  608000))
+;;;### (autoloads nil "git-commit" "git-commit.el" (22459 4294 234065
+;;;;;;  299000))
 ;;; Generated autoloads from git-commit.el
 
 (defvar global-git-commit-mode t "\
-Non-nil if Global-Git-Commit mode is enabled.
-See the command `global-git-commit-mode' for a description of this minor mode.
+Non-nil if Global Git-Commit mode is enabled.
+See the `global-git-commit-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-git-commit-mode'.")
