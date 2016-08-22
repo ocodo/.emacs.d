@@ -4,7 +4,7 @@
 ;;
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; URL: https://github.com/purcell/less-css-mode
-;; Package-Version: 20150511.319
+;; Package-Version: 20160819.9
 ;; Keywords: less css mode
 ;; Version: DEV
 ;;
@@ -186,7 +186,6 @@ default.")
                               less-css-lessc-options
                               (list (shell-quote-argument
                                      (or less-css-input-file-name buffer-file-name))
-                                    ">"
                                     (shell-quote-argument (less-css--output-path))))
                       " "))
         (add-hook 'compilation-finish-functions

@@ -1,10 +1,10 @@
 ;;; less-css-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "less-css-mode" "less-css-mode.el" (21841 22655
-;;;;;;  251401 0))
+;;;### (autoloads nil "less-css-mode" "less-css-mode.el" (22459 4233
+;;;;;;  874155 311000))
 ;;; Generated autoloads from less-css-mode.el
 
 (autoload 'less-css-compile "less-css-mode" "\
