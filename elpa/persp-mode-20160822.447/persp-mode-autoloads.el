@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "persp-mode" "persp-mode.el" (0 0 0 0))
+;;;### (autoloads nil "persp-mode" "persp-mode.el" (22459 4145 834293
+;;;;;;  246000))
 ;;; Generated autoloads from persp-mode.el
 
 (autoload 'def-auto-persp "persp-mode" "\
@@ -32,8 +33,6 @@ When active, keeps track of multiple 'perspectives',
 named collections of buffers and window configurations.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "persp-mode" '("persp" "iswitchb-toggle-persp-filter" "ido-toggle-persp-filter" "find-other-frame-with-persp" "safe-persp-" "set-" "get-" "clear-window-persp" "with-persp-buffer-list" "window-persp-set-p" "delete-persp-parameter" "modify-persp-parameters" "*persp-")))
 
 ;;;***
 
