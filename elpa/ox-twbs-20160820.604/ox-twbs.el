@@ -7,9 +7,9 @@
 ;;         Jambunathan K <kjambunathan at gmail dot com>
 ;;         Brandon van Beekum <marsmining at gmail dot com>
 ;; URL: https://github.com/marsmining/ox-twbs
-;; Package-Version: 20160306.2258
+;; Package-Version: 20160820.604
 ;; Keywords: org, html, publish, twitter, bootstrap
-;; Version: 1.0.8
+;; Version: 1.0.9
 
 ;; This file is not part of GNU Emacs.
 
@@ -2257,9 +2257,12 @@ http://orgmode.org/w/?p=org-mode.git;a=commit;h=8daf4a89f1a157c0ee2c91e5b9902036
 Call 7-arity first, then 6-arity if first fails."
   (with-no-warnings
     (condition-case nil
-        (org-format-latex prefix dir overlays msg at forbuffer processing-type)
+        (org-format-latex prefix nil nil dir overlays msg forbuffer processing-type)
       (error
-       (org-format-latex prefix dir overlays msg forbuffer processing-type)))))
+       (condition-case nil
+           (org-format-latex prefix dir overlays msg at forbuffer processing-type)
+         (error
+          (org-format-latex prefix dir overlays msg forbuffer processing-type)))))))
 
 (defun org-twbs-format-latex (latex-frag processing-type info)
   "Format a LaTeX fragment LATEX-FRAG into HTML.

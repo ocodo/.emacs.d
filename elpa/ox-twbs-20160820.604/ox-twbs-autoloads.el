@@ -1,10 +1,9 @@
 ;;; ox-twbs-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ox-twbs" "ox-twbs.el" (22246 12207 954546
-;;;;;;  394000))
+;;;### (autoloads nil "ox-twbs" "ox-twbs.el" (22459 4149 670287 56000))
 ;;; Generated autoloads from ox-twbs.el
 
 (put 'org-twbs-head-include-default-style 'safe-local-variable 'booleanp)
