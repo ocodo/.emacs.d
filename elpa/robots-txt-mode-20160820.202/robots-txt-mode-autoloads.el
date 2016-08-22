@@ -1,10 +1,10 @@
 ;;; robots-txt-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "robots-txt-mode" "robots-txt-mode.el" (22246
-;;;;;;  12067 338657 572000))
+;;;### (autoloads nil "robots-txt-mode" "robots-txt-mode.el" (22459
+;;;;;;  4130 338318 431000))
 ;;; Generated autoloads from robots-txt-mode.el
 
 (autoload 'robots-txt-mode "robots-txt-mode" "\

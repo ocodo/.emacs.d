@@ -4,8 +4,8 @@
 
 ;; Author: USAMI Kenta <tadsan@zonu.me>
 ;; Created: 9 Mar 2016
-;; Version: 0.0.1
-;; Package-Version: 20160312.751
+;; Version: 0.0.2
+;; Package-Version: 20160820.202
 ;; Keywords: web
 
 ;; This file is NOT part of GNU Emacs.
@@ -65,7 +65,7 @@
 ;;;###autoload
 (define-derived-mode robots-txt-mode prog-mode "[o_-]"
   "Major mode for editing `robots.txt'"
-  (setq font-lock-defaults '(robots-txt-mode-syntax-keywords)))
+  (setq font-lock-defaults '(robots-txt-mode-syntax-keywords nil t)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("/robots\\.txt\\'" . robots-txt-mode))
