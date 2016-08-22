@@ -4,8 +4,8 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20160728.621
-;; Version: 1.1.14
+;; Package-Version: 20160817.817
+;; Version: 1.1.15
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -55,7 +55,9 @@
   :prefix "which-key-")
 
 (defcustom which-key-idle-delay 1.0
-  "Delay (in seconds) for which-key buffer to popup."
+  "Delay (in seconds) for which-key buffer to popup. A value of zero
+might lead to issues, so a non-zero value is recommended
+(see https://github.com/justbur/emacs-which-key/issues/134)."
   :group 'which-key
   :type 'float)
 
@@ -1658,20 +1660,21 @@ is the width of the live window."
 
 (defun which-key--echo (text)
   "Echo TEXT to minibuffer without logging."
-  (let* ((minibuffer (eq which-key-popup-type 'minibuffer))
-         ;; (delay (if minibuffer
-         ;;            0.2
-         ;;          (+ (or echo-keystrokes 0) 0.001)))
-         message-log-max)
-    (unless minibuffer (message "%s" text))
+  (let (message-log-max)
+    (message "%s" text)))
 
-    ;; Caused some completion commands in the minibuffer to be overwritten, so
-    ;; disable the hack for now
-
-    ;; (run-with-idle-timer
-    ;;  delay nil (lambda () (let (message-log-max)
-    ;;                         (message "%s" text))))
-    ))
+;; Caused some completion commands in the minibuffer to be overwritten, so
+;; disable the hack for now
+;; (defun which-key--echo (text)
+;;   "Echo TEXT to minibuffer without logging."
+;;   (let* ((minibuffer (eq which-key-popup-type 'minibuffer))
+;;          (delay (if minibuffer
+;;                     0.2
+;;                   (+ (or echo-keystrokes 0) 0.001)))
+;;          message-log-max)
+;;     (run-with-idle-timer
+;;      delay nil (lambda () (let (message-log-max)
+;;                             (message "%s" text))))))
 
 (defun which-key--next-page-hint (prefix-keys)
   "Return string for next page hint."
