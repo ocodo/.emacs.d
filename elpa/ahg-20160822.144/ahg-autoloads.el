@@ -1,9 +1,9 @@
 ;;; ahg-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("ahg.el") (22338 19949 673249 27000))
+;;;### (autoloads nil nil ("ahg.el") (22459 4361 433968 880000))
 
 ;;;***
 
