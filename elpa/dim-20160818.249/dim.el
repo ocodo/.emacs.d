@@ -1,11 +1,11 @@
 ;;; dim.el --- Change mode-line names of major/minor modes  -*- lexical-binding: t -*-
 
-;; Copyright © 2015 Alex Kost
+;; Copyright © 2015, 2016 Alex Kost
 
 ;; Author: Alex Kost <alezost@gmail.com>
 ;; Created: 24 Dec 2015
 ;; Version: 0.1
-;; Package-Version: 20151226.115
+;; Package-Version: 20160818.249
 ;; URL: https://github.com/alezost/dim.el
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4"))
@@ -53,6 +53,18 @@
 
 ;;; Code:
 
+(defgroup dim nil
+  "Change mode-line names of major and minor modes."
+  :group 'convenience)
+
+(defcustom dim-everywhere nil
+  "If non-nil, just set `mode-name' to the 'dimmed' name.
+If nil, try to be more clever to change the name only for the
+mode-line.  Particularly, display the original `mode-name' in the
+mode description (\\[describe-mode])."
+  :type 'boolean
+  :group 'dim)
+
 (defvar dim-major-names nil
   "List of specifications for changing `mode-name'.
 Each element of the list should be a list of arguments taken by
@@ -81,7 +93,9 @@ be workaround-ed by using the following advice:
   (let ((new-name (dim-get-major-name major-mode)))
     (when new-name
       (setq mode-name
-            `(dim-inhibit-major-name ,mode-name ,new-name)))))
+            (if dim-everywhere
+                new-name
+              `(dim-inhibit-major-name ,mode-name ,new-name))))))
 
 (add-hook 'after-change-major-mode-hook 'dim-set-major-name)
 

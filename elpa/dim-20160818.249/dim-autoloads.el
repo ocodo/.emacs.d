@@ -1,9 +1,9 @@
 ;;; dim-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dim" "dim.el" (22145 57679 958879 157000))
+;;;### (autoloads nil "dim" "dim.el" (22459 4329 934013 610000))
 ;;; Generated autoloads from dim.el
 
 (autoload 'dim-major-name "dim" "\
