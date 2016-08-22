@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.2.0
-;; Package-Version: 20160726.720
+;; Package-Version: 20160820.255
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -1271,10 +1271,16 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
   (unless (executable-find rust-rustfmt-bin)
     (error "Could not locate executable \"%s\"" rust-rustfmt-bin))
 
-  (let ((cur-point (point))
+  (let ((cur-line (line-number-at-pos))
+        (cur-column (current-column))
         (cur-win-start (window-start)))
     (rust--format-call (current-buffer))
-    (goto-char cur-point)
+    ;; Move to the same line and column as before.  This is best
+    ;; effort: if rustfmt inserted lines before point, we end up in
+    ;; the wrong place. See issue #162.
+    (goto-char (point-min))
+    (forward-line (1- cur-line))
+    (forward-char cur-column)
     (set-window-start (selected-window) cur-win-start))
 
   ;; Issue #127: Running this on a buffer acts like a revert, and could cause
@@ -1366,9 +1372,10 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
   ;; to use `font-lock-ensure', which doesn't exist in Emacs 24 and earlier.
   ;; If it's not available, fall back to calling `font-lock-fontify-region'
   ;; on the whole buffer.
-  (if (fboundp 'font-lock-ensure)
-      (font-lock-ensure)
-    (font-lock-fontify-region (point-min) (point-max))))
+  (save-excursion
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure)
+      (font-lock-fontify-region (point-min) (point-max)))))
 
 (defun rust--before-save-hook ()
   (when rust-format-on-save (rust-format-buffer)))
@@ -1422,7 +1429,7 @@ See `compilation-error-regexp-alist' for help on their format.")
         (let ((start-of-error
                (save-excursion
                  (beginning-of-line)
-                 (while (not (looking-at "^[a-z]+:"))
+                 (while (not (looking-at "^[a-z]+:\\|^[a-z]+\\[E[0-9]+\\]:"))
                    (forward-line -1))
                  (point))))
           (set-window-start (selected-window) start-of-error))))))
