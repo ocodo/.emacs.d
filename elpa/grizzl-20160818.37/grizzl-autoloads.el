@@ -1,9 +1,9 @@
 ;;; grizzl-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "grizzl" "grizzl.el" (22200 34492 661244 70000))
+;;;### (autoloads nil "grizzl" "grizzl.el" (22459 4290 34071 456000))
 ;;; Generated autoloads from grizzl.el
 
 (autoload 'grizzl-make-index "grizzl" "\

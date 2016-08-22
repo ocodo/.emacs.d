@@ -6,7 +6,7 @@
 ;; Author:     Chris Corbyn <chris@w3style.co.uk>
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL:        https://github.com/grizzl/grizzl
-;; Package-Version: 20160130.2351
+;; Package-Version: 20160818.37
 ;; Version:    0.1.2
 ;; Keywords:   convenience, usability
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24.3"))
@@ -268,6 +268,10 @@ If the :END option is specified, up to :END results are returned."
   "Face for selected result."
   :group 'grizzl-mode)
 
+(defface grizzl-prompt-face
+  `((t :inherit 'mode-line-inactive))
+  "Face used for grizzl prompt."
+   :group 'grizzl-mode)
 
 ;;; --- Minor Mode Definition
 
@@ -380,12 +384,13 @@ if this is the current selection."
   (let* ((count (grizzl-result-count *grizzl-current-result*))
          (match-info (format " (%d candidate%s) ---- *-"
                              count (if (= count 1) "" "s"))))
-    (concat (propertize (format "-*%s *-" prompt) 'face 'modeline-inactive)
+    (concat (propertize (format "-*%s *-" prompt) 'face 'grizzl-prompt-face)
+
             (propertize " "
-                        'face    'modeline-inactive
+                        'face    'grizzl-prompt-face
                         'display `(space :align-to (- right
                                                       ,(1+ (length match-info)))))
-            (propertize match-info 'face 'modeline-inactive))))
+            (propertize match-info 'face 'grizzl-prompt-face))))
 
 (defun grizzl-current-selection ()
   "Get the currently selected index in `grizzl-completing-read'."
