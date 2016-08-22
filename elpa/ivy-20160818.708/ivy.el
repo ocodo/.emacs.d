@@ -1546,9 +1546,11 @@ This is useful for recursive `ivy-read'."
                                        sort-fn))))
                (setq coll (all-completions "" collection predicate)))
              (let ((i 0))
-               (dolist (cm coll)
-                 (add-text-properties 0 1 `(idx ,i) cm)
-                 (cl-incf i))))
+               (ignore-errors
+                 ;; cm can be read-only
+                 (dolist (cm coll)
+                   (add-text-properties 0 1 `(idx ,i) cm)
+                   (cl-incf i)))))
             ((or (functionp collection)
                  (byte-code-function-p collection)
                  (vectorp collection)
@@ -3095,16 +3097,7 @@ Skip buffers that match `ivy-ignore-buffers'."
             :keymap ivy-switch-buffer-map
             :caller 'ivy-switch-buffer-other-window))
 
-;;;###autoload
-(defun ivy-recentf ()
-  "Find a file on `recentf-list'."
-  (interactive)
-  (ivy-read "Recentf: " recentf-list
-            :action
-            (lambda (f)
-              (with-ivy-window
-                (find-file f)))
-            :caller 'ivy-recentf))
+(define-obsolete-function-alias 'ivy-recentf 'counsel-recentf "0.8.0")
 
 (defun ivy-yank-word ()
   "Pull next word from buffer into search string."
