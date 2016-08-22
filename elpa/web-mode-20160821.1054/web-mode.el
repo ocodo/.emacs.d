@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.19
-;; Package-Version: 20160717.1201
+;; Version: 14.0.21
+;; Package-Version: 20160821.1054
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.19"
+(defconst web-mode-version "14.0.21"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -325,7 +325,7 @@ See web-mode-block-face."
   :group 'web-mode-faces)
 
 (defface web-mode-symbol-face
-  '((t :foreground "gold"))
+  '((t :foreground "goldenrod2"))
   "Face for symbols."
   :group 'web-mode-faces)
 
@@ -1173,30 +1173,19 @@ Must be used in conjunction with web-mode-enable-block-face."
     (cdr (assoc "comment" web-mode-extra-keywords))
     '("FIXME" "TODO" "BUG" "KLUDGE" "WORKAROUND" "OPTIMIZE" "HACK" "REFACTOR" "REVIEW"))))
 
-(defvar web-mode-file-extensions
-  (list
-   '("\.png$" 0 nil)
-   '("\.jpe?g$" 0 nil)
-   '("\.gif$" 0 nil)
-   '("\.svg$" 1 nil)
-   '("\.js$" 2 t)
-   '("\.css$" 3 t))
-  "List of regexps matching filetypes in `web-mode-file-link'. Second value of each list should be the index of list containing matching tags in `web-mode-file-elements', and the third one should be t if the link is supposed to be in head or nil.")
-
 (defvar web-mode-links
-  '(("<img src=\"|\" />" . "\\.\\(png\\|jpe?g\\|gif\\)$")
-    ("<object data=\"|\" type=\"image/svg+xml\"></object>" . "\\.svg$")
-    ("<script type=\"text/javascript\" src=\"|\"></script>" . "\\.js$")
-    ("<link rel=\"stylesheet\" type=\"text/css\" href=\"|\" />" . "\\.css$"))
-  "List of tags to be used by `web-mode-file-link'.")
-
-(defvar web-mode-file-elements
-  (list
-   '("<img src=\"" "\" />")
-   '("<object data=\"" "\" type=\"image/svg+xml\"></object>")
-   '("<script type=\"text/javascript\" src=\"" "\"></script>")
-   '("<link rel=\"stylesheet\" type=\"text/css\" href=\"" "\" />"))
-  "List of tags to be used by `web-mode-file-link'.")
+  '(("\\.\\(png\\|jpe?g\\|gif\\|webp\\)$" "<img src=\"%s\" alt=\"\" />" nil 4)
+    ("\\.svg$" "<object data=\"%s\" type=\"image/svg+xml\"></object>" nil 0)
+    ("\\.js$" "<script type=\"text/javascript\" src=\"%s\"></script>" t 0)
+    ("\\.css$" "<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\" />" t 0)
+    ("\\.html?$" "<a href=\"%s\"></a>" nil 4))
+  "List of elements and extensions for `web-mode-file-link'. It
+consists of a string that contains the regular expression that
+matches the appropriate files, a format string with element that
+contains the link (%s should be put where the path goes,) a bool
+that tells if the element belongs in the <head> element, and
+number of characters to move back if needed (or 0 if point
+shouldn't be moved back.)")
 
 (defvar web-mode-sql-queries
   (regexp-opt
@@ -4555,20 +4544,20 @@ another auto-completion with different ac-sources (e.g. ac-php)")
       (put-text-property (1- reg-end) reg-end 'jsx-end depth)
       (put-text-property reg-beg reg-end 'jsx-depth depth)
       (goto-char reg-beg)
-      (while (web-mode-part-sf "/*" reg-end t)
-        (goto-char (match-beginning 0))
-        (if (looking-back "{")
-            (progn
-              (backward-char)
-              (setq regexp "*/}"))
-          (setq regexp "*/"))
-        (setq token-beg (point))
-        (if (not (web-mode-part-sf regexp reg-end t))
-            (goto-char reg-end)
-          (setq token-end (point))
-          (put-text-property token-beg token-end 'part-token 'comment)
-          ) ;if
-        ) ;while
+      ;;(while (web-mode-part-sf "/*" reg-end t)
+      ;;  (goto-char (match-beginning 0))
+      ;;  (if (looking-back "{")
+      ;;      (progn
+      ;;        (backward-char)
+      ;;        (setq regexp "*/}"))
+      ;;    (setq regexp "*/"))
+      ;;  (setq token-beg (point))
+      ;;  (if (not (web-mode-part-sf regexp reg-end t))
+      ;;      (goto-char reg-end)
+      ;;    (setq token-end (point))
+      ;;    (put-text-property token-beg token-end 'part-token 'comment)
+      ;;    ) ;if
+      ;;  ) ;while
       (web-mode-scan-elements reg-beg reg-end)
       (web-mode-jsx-scan-expression reg-beg reg-end (1+ depth))
       )))
@@ -5757,16 +5746,24 @@ another auto-completion with different ac-sources (e.g. ac-php)")
               (setq exp-beg (car pair)
                     exp-end (cdr pair))
               (when (eq (char-after exp-beg) ?\{)
-                (setq exp-depth (get-text-property exp-beg 'jsx-depth))
-                (remove-list-of-text-properties exp-beg exp-end '(font-lock-face))
-                (put-text-property exp-beg (1+ exp-beg) 'font-lock-face 'web-mode-block-delimiter-face)
-                (when (and (eq (get-text-property exp-beg 'tag-attr-beg) 4) (web-mode-looking-at-p "\.\.\." (1+ exp-beg)))
+                ;;(message "%S : %c %c" exp-beg (char-after (+ exp-beg 1)) (char-after (+ exp-beg 2)))
+                (cond
+                 ;;((and (eq (char-after (+ exp-beg 1)) ?\/) (eq (char-after (+ exp-beg 2)) ?\*))
+                 ;; (put-text-property exp-beg (1+ exp-end) 'font-lock-face 'web-mode-part-comment-face)
+                 ;; )
+                 (t
+                  (setq exp-depth (get-text-property exp-beg 'jsx-depth))
+                  (remove-list-of-text-properties exp-beg exp-end '(font-lock-face))
+                  (put-text-property exp-beg (1+ exp-beg) 'font-lock-face 'web-mode-block-delimiter-face)
+                  (when (and (eq (get-text-property exp-beg 'tag-attr-beg) 4) (web-mode-looking-at-p "\.\.\." (1+ exp-beg)))
                   (put-text-property exp-beg (+ exp-beg 4) 'font-lock-face 'web-mode-block-delimiter-face))
-                (put-text-property exp-end (1+ exp-end) 'font-lock-face 'web-mode-block-delimiter-face)
-                (web-mode-highlight-tags (1+ exp-beg) exp-end (1+ exp-depth))
-                (web-mode-part-highlight (1+ exp-beg) exp-end exp-depth)
-                (web-mode-fontify-region (1+ exp-beg) exp-end web-mode-javascript-font-lock-keywords)
-                )
+                  (put-text-property exp-end (1+ exp-end) 'font-lock-face 'web-mode-block-delimiter-face)
+                  (web-mode-highlight-tags (1+ exp-beg) exp-end (1+ exp-depth))
+                  (web-mode-part-highlight (1+ exp-beg) exp-end exp-depth)
+                  (web-mode-fontify-region (1+ exp-beg) exp-end web-mode-javascript-font-lock-keywords)
+                  ) ;t
+                 ) ;cond
+                ) ;when
               (goto-char (1+ exp-beg))
               ) ;while exp
 
@@ -6970,6 +6967,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
           ;;(message "html")
           (cond
            ((get-text-property pos 'tag-beg)
+            ;;(message "ici")
             (setq offset (web-mode-markup-indentation pos))
             )
            ((and web-mode-indentless-elements
@@ -7335,10 +7333,19 @@ another auto-completion with different ac-sources (e.g. ac-php)")
     ))
 
 (defun web-mode-markup-indentation (pos)
-  (let ((offset 0) beg ret)
+  (let ((offset 0) beg ret depth-beg depth-pos)
     (when (setq beg (web-mode-markup-indentation-origin pos))
-      (when (and (get-text-property pos 'jsx-depth)
-                 (not (get-text-property beg 'jsx-depth)))
+      (when (and (setq depth-pos (get-text-property pos 'jsx-depth))
+                 (setq depth-beg (get-text-property beg 'jsx-depth))
+                 (progn
+                   (when (and (get-text-property pos 'jsx-beg)
+                              (not (get-text-property pos 'tag-beg)))
+                     (setq depth-pos (1- depth-pos)))
+                   t)
+                 ;;(progn (message "%S" depth-pos) t)
+                 ;;(not (get-text-property beg 'jsx-depth)))
+                 (not (eq depth-beg depth-pos)))
+        ;;(message "2 - %S" beg)
         (setq beg (web-mode-jsx-depth-beginning-position pos)))
       (cond
        ((null (setq ret (web-mode-element-is-opened beg pos)))
@@ -12142,33 +12149,37 @@ Prompt user if TAG-NAME isn't provided."
    (remove-hook 'change-major-mode-hook 'web-mode-on-exit t)
    ))
 
-(defun web-mode-file-link ()
-  "Insert a link to the file in html document. This function can be extended to support more filetypes by customizing `web-mode-file-extensions' and `web-mode-file-elements'."
+(defun web-mode-file-link (file)
+  "Insert a link to a file in html document. This function can be
+extended to support more filetypes by customizing
+`web-mode-links'."
   (interactive
-   (let ((type nil)
-         (file (file-relative-name (read-file-name "Link file: ")))
-         (matched nil)
-         (point-line (line-number-at-pos))
-         (point-column (current-column)))
-     (dolist (type web-mode-file-extensions)		;for every element in web-mode-type-list
-       (when (string-match (nth 0 type) file)
-         (setq matched t)
-         ;; move to head if the link requires it
-         (when (nth 2 type)
-           (goto-char (point-min))
-           (search-forward "</head>")
-           (backward-char 7)
-           (open-line 1))
-         (insert (nth 0 (nth (nth 1 type) web-mode-file-elements)) file (nth 1 (nth (nth 1 type) web-mode-file-elements)))
-         (indent-for-tab-command)
-         ;; fix indentation and return point where it was
-         (when (nth 2 type)
-           (forward-line)
-           (indent-for-tab-command)
-           (forward-line (+ point-line 1))
-           (move-to-column point-column))))
-     (when (not matched)		;return an error if filetype is unknown
-       (error "Unknown file type")))))
+   (list (file-relative-name (read-file-name "Link file: "))))
+  (let ((matched nil)
+        (point-line (line-number-at-pos))
+        (point-column (current-column)))
+    (dolist (type web-mode-links)
+      (when (string-match (car type) file)
+        (setq matched t)
+        (when (nth 2 type)
+          (goto-char (point-min))
+          (search-forward "</head>")
+          (backward-char 7)
+          (open-line 1))
+        (insert (format (cadr type) file))
+        (indent-for-tab-command)
+        (when (nth 2 type)
+          ;; return point where it was and fix indentation
+          (forward-line)
+          (indent-for-tab-command)
+          (if (> point-line (- (line-number-at-pos) 2))
+              (forward-line (+ (- point-line (line-number-at-pos)) 1))
+            (forward-line (- point-line (line-number-at-pos))))
+          (move-to-column point-column))
+        ;; move point back if needed
+        (backward-char (nth 3 type))))
+    (when (not matched)
+      (user-error "Unknown file type"))))
 
 (defun web-mode-reload ()
   "Reload web-mode."
