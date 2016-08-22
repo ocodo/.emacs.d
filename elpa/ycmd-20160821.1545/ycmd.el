@@ -169,6 +169,10 @@ Example value:
   "Extra arguments to pass to the ycmd server."
   :type '(repeat string))
 
+(defcustom ycmd-server-port nil
+  "The ycmd server port.  If nil, use random port."
+  :type '(number))
+
 (defcustom ycmd-file-parse-result-hook nil
   "Functions to run with file-parse results.
 
@@ -184,7 +188,7 @@ re-parsing the contents."
   :type '(number)
   :safe #'numberp)
 
-(defcustom ycmd-keepalive-period 30
+(defcustom ycmd-keepalive-period 600
   "Number of seconds between keepalive messages."
   :type '(number))
 
@@ -294,7 +298,8 @@ list
     (ruby-mode . ("ruby"))
     (rust-mode . ("rust"))
     (scala-mode . ("scala"))
-    (tuareg-mode . ("ocaml")))
+    (tuareg-mode . ("ocaml"))
+    (typescript-mode . ("typescript")))
   "Mapping from major modes to ycmd file-type strings.
 
 Used to determine a) which major modes we support and b) how to
@@ -492,13 +497,14 @@ Keywords source: https://github.com/auto-complete/auto-complete/tree/master/dict
 
 (defvar ycmd--server-actual-port 0
   "The actual port being used by the ycmd server.
-This is set based on the output from the server itself.")
+This is set based on the value of `ycmd-server-port' or the
+return value of `ycmd--get-unused-port'.")
 
 (defvar ycmd--hmac-secret nil
   "This is populated with the hmac secret of the current connection.
 Users should never need to modify this, hence the defconst.  It is
-not, however, treated as a constant by this code.  This value
-gets set in ycmd-open.")
+not, however, treated as a constant by this code.  This value gets
+set in ycmd-open.")
 
 (defconst ycmd--server-process-name "ycmd-server"
   "The Emacs name of the server process.
@@ -547,6 +553,7 @@ and `delete-process'.")
     (define-key map "gm" 'ycmd-goto-implementation)
     (define-key map "gp" 'ycmd-goto-imprecise)
     (define-key map "gr" 'ycmd-goto-references)
+    (define-key map "gt" 'ycmd-goto-type)
     (define-key map "s" 'ycmd-toggle-force-semantic-completion)
     (define-key map "v" 'ycmd-show-debug-info)
     (define-key map "d" 'ycmd-show-documentation)
@@ -555,6 +562,7 @@ and `delete-process'.")
     (define-key map "t" 'ycmd-get-type)
     (define-key map "T" 'ycmd-get-parent)
     (define-key map "f" 'ycmd-fixit)
+    (define-key map "r" 'ycmd-refactor-rename)
     map)
   "Keymap for `ycmd-mode' interactive commands.")
 
@@ -765,15 +773,12 @@ diagnostics) for MODE."
   "Start a new ycmd server.
 
 This kills any ycmd server already running (under ycmd.el's
-control.) The newly started server will have a new HMAC secret."
+control.)."
   (interactive)
-
   (ycmd-close)
-
-  (let ((hmac-secret (ycmd--generate-hmac-secret)))
-    (when (ycmd--start-server hmac-secret)
-      (setq ycmd--hmac-secret hmac-secret)
-      (ycmd--start-keepalive-timer))))
+  (ycmd--start-server)
+  (when (ycmd--wait-until-server-ready)
+    (ycmd--start-keepalive-timer)))
 
 (defun ycmd-close ()
   "Shutdown any running ycmd server.
@@ -792,26 +797,51 @@ Send a `shutdown' request to the ycmd server and wait for the
 ycmd server to stop.  If the ycmd server is still running after a
 timeout specified by `ycmd-delete-process-delay', then kill the
 process with `delete-process'."
-  (condition-case nil
-      (let ((start-time (float-time)))
-        (ycmd--request "/shutdown" nil :parser 'json-read :sync t)
-        (while (and (ycmd-running?)
-                    (> ycmd-delete-process-delay
-                       (- (float-time) start-time)))
-          (sit-for 0.05))
-        (delete-process ycmd--server-process-name))
-    (error nil)))
+  (let ((start-time (float-time)))
+    (ycmd--request
+     "/shutdown" nil
+     :parser 'json-read :sync t :timeout 0.1)
+    (while (and (ycmd-running?)
+                (> ycmd-delete-process-delay
+                   (- (float-time) start-time)))
+      (sit-for 0.05))
+    (ignore-errors
+      (delete-process ycmd--server-process-name))))
 
 (defun ycmd-running? ()
   "Return t if a ycmd server is already running."
   (--when-let (get-process ycmd--server-process-name)
     (and (processp it) (process-live-p it) t)))
 
+(defmacro ycmd--ignore-errors (&rest body)
+  "Execute BODY and ignore errors and request errors."
+  `(let ((request-message-level -1)
+         (request-log-level -1))
+     (ignore-errors
+       ,@body)))
+
 (defun ycmd--keepalive ()
   "Sends an unspecified message to the server.
 
 This is simply for keepalive functionality."
-  (ycmd--request "/healthy" '() :type "GET"))
+  (ycmd--ignore-errors
+   (ycmd--request "/healthy" nil :type "GET" :sync t)))
+
+(defun ycmd--server-ready? (&optional include-subserver)
+  "Send request for server ready state.
+
+If INCLUDE-SUBSERVER is non-nil, also request ready state for
+semantic subserver."
+  (let ((file-type
+         (and include-subserver
+              (car-safe (ycmd-major-mode-to-file-types
+                         major-mode)))))
+    (ycmd--ignore-errors
+     (ycmd--request
+      "/ready" nil
+      :params (and file-type
+                   (list (cons "subserver" file-type)))
+      :type "GET" :parser 'json-read :sync t))))
 
 (defun ycmd-load-conf-file (filename)
   "Tell the ycmd server to load the configuration file FILENAME."
@@ -943,10 +973,10 @@ and blocks until the request has finished."
   (when ycmd-mode
     (let* ((buffer (current-buffer))
            (pos (point))
-           (extra-content (and ycmd-force-semantic-completion
-                               'force-semantic))
-           (content (ycmd--standard-content-with-extras
-                     buffer pos extra-content)))
+           (content
+            (append (ycmd--standard-content buffer pos)
+                    (and ycmd-force-semantic-completion
+                         (list (cons "force_semantic" t))))))
       (ycmd--request
        "/completions"
        content
@@ -1041,6 +1071,11 @@ Useful in case compile-time is considerable."
   "Get references."
   (interactive)
   (ycmd--goto "GoToReferences"))
+
+(defun ycmd-goto-type ()
+  "Go to the type of the symbol at the current position."
+  (interactive)
+  (ycmd--goto "GoToType"))
 
 (defun ycmd--save-marker ()
   "Save marker."
@@ -1153,9 +1188,8 @@ prompt for the Python binary."
 
 ;;; FixIts
 
-(defun ycmd--show-fixits (fixit buffer)
-  "Select a buffer and display FIXIT.
-BUFFER is the target buffer for the fixit."
+(defun ycmd--show-fixits (fixit)
+  "Select a buffer and display FIXIT."
   (let ((fixit-num 1)
         (title
          (and (> (length fixit) 1)
@@ -1171,7 +1205,7 @@ BUFFER is the target buffer for the fixit."
               (let-alist it
                 (ycmd--insert-fixit-button
                  (format "%d: %s\n" fixit-num .text)
-                 .chunks .location buffer))
+                 .chunks .location))
               (setq fixit-num (1+ fixit-num)))
             fixit)
       (goto-char (point-min))
@@ -1184,21 +1218,18 @@ BUFFER is the target buffer for the fixit."
   'action #'ycmd--apply-fixit
   'face nil)
 
-(defun ycmd--insert-fixit-button (name fixit location buffer)
-  "Insert a button with NAME and FIXIT for LOCATION.
-BUFFER is the buffer to apply the fixit on."
+(defun ycmd--insert-fixit-button (name fixit location)
+  "Insert a button with NAME and FIXIT for LOCATION."
   (insert-text-button
    name
    'type 'ycmd--fixit-button
    'fixit fixit
-   'location location
-   'buffer buffer))
+   'location location))
 
 (defun ycmd--apply-fixit (button)
   "Apply BUTTON's FixIt chunk."
-  (-when-let* ((chunk (button-get button 'fixit))
-               (buffer (button-get button 'buffer)))
-    (ycmd--replace-chunk-list (append chunk nil) buffer)
+  (-when-let* ((chunk (button-get button 'fixit)))
+    (ycmd--replace-chunk-list (append chunk nil))
     (quit-window t (get-buffer-window "*ycmd-fixits*"))))
 
 (define-derived-mode ycmd-fixit-mode ycmd-view-mode "ycmd-fixits"
@@ -1259,7 +1290,7 @@ working buffer."
         (and (= line-num-1 line-num-2)
              (< column-num-1 column-num-2)))))
 
-(defun ycmd--replace-chunk-list (chunks buffer)
+(defun ycmd--replace-chunk-list (chunks)
   "Replace list of CHUNKS.
 
 If BUFFER is spacified use it as working buffer, else use current
@@ -1269,17 +1300,20 @@ buffer."
         (line-delta 0)
         (char-delta 0))
     (dolist (c chunks-sorted)
-      (-when-let* ((chunk-start (ycmd--get-chunk-start-line-and-column c))
-                   (chunk-end (ycmd--get-chunk-end-line-and-column c))
-                   (replacement-text (cdr (assq 'replacement_text c))))
-        (unless (= (car chunk-start) last-line)
-          (setq last-line (car chunk-end))
-          (setq char-delta 0))
-        (let ((new-deltas (ycmd--replace-chunk
-                           chunk-start chunk-end replacement-text
-                           line-delta char-delta buffer)))
-          (setq line-delta (+ line-delta (car new-deltas)))
-          (setq char-delta (+ char-delta (cdr new-deltas))))))))
+      (let-alist c
+        (-when-let* ((chunk-start (ycmd--get-chunk-start-line-and-column c))
+                     (chunk-end (ycmd--get-chunk-end-line-and-column c))
+                     (replacement-text .replacement_text)
+                     (chunk-filepath .range.start.filepath)
+                     (buffer (find-file-noselect chunk-filepath)))
+          (unless (= (car chunk-start) last-line)
+            (setq last-line (car chunk-end))
+            (setq char-delta 0))
+          (let ((new-deltas (ycmd--replace-chunk
+                             chunk-start chunk-end replacement-text
+                             line-delta char-delta buffer)))
+            (setq line-delta (+ line-delta (car new-deltas)))
+            (setq char-delta (+ char-delta (cdr new-deltas)))))))))
 
 (defun ycmd--fixits-have-same-location-p (fixits)
   "Check if mutiple FIXITS have the same location."
@@ -1294,20 +1328,43 @@ buffer."
   "Handle a successful FixIt response for RESULT."
   (-if-let* ((fixits (cdr (assq 'fixits result)))
              (fixits (append fixits nil)))
-      (let ((buffer (current-buffer)))
-        (if (and (not ycmd-confirm-fixit)
-                 (not (ycmd--fixits-have-same-location-p fixits)))
-            (dolist (fixit fixits)
-              (--when-let (cdr (assq 'chunks fixit))
-                (ycmd--replace-chunk-list (append it nil) buffer)))
-          (save-current-buffer
-            (ycmd--show-fixits fixits buffer))))
+      (if (and (not ycmd-confirm-fixit)
+               (not (ycmd--fixits-have-same-location-p fixits)))
+          (dolist (fixit fixits)
+            (--when-let (cdr (assq 'chunks fixit))
+              (ycmd--replace-chunk-list (append it nil))))
+        (save-current-buffer
+          (ycmd--show-fixits fixits)))
     (message "No FixIts available")))
 
 (defun ycmd-fixit()
   "Get FixIts for current line."
   (interactive)
   (ycmd--send-request "FixIt" 'ycmd--handle-fixit-success))
+
+(defun ycmd--handle-refactor-rename-success (response &optional no-confirm)
+  "Handle a successful RenameRefactor RESPONSE."
+  (-if-let* ((fixits (cdr (assq 'fixits response)))
+             (fixits (append fixits nil)))
+      (dolist (fixit fixits)
+        (-when-let (chunks (cdr (assq 'chunks fixit)))
+          (let ((chunks-by-filepath
+                 (--group-by (let-alist it .range.start.filepath)
+                             (append chunks nil))))
+            (when (or no-confirm
+                      (y-or-n-p (format "Apply %d renames in %d files? "
+                                        (length chunks)
+                                        (length chunks-by-filepath))))
+              (dolist (file-chunks chunks-by-filepath)
+                (ycmd--replace-chunk-list (cdr file-chunks)))))))
+    (message "No candidates available to rename.")))
+
+(defun ycmd-refactor-rename (new-name)
+  "Refactor current context with NEW-NAME."
+  (interactive "MNew variable name: ")
+  (when (not (s-blank? new-name))
+    (ycmd--send-request (list "RefactorRename" new-name)
+                        'ycmd--handle-refactor-rename-success)))
 
 (defun ycmd-show-documentation (&optional arg)
   "Show documentation for current point in buffer.
@@ -1404,7 +1461,8 @@ cdr is a list of location objects."
        (when line-num-format
          (insert (format line-num-format .line_num)))
        (insert "    ")
-       (let ((description (or .description
+       (let ((description (or (and (not (s-blank? .description))
+                                   (s-trim-left .description))
                               (ycmd--get-line-from-location it))))
          (ycmd--view-insert-button
           (ycmd--fontify-code (or description "") mode) it))
@@ -1588,13 +1646,15 @@ functions in `ycmd-file-parse-result-hook'."
   (when (and ycmd-mode (not (ycmd-parsing-in-progress-p)))
     (let* ((buff (current-buffer))
            (pos (point))
-           (extra-content (append (when ycmd-tag-files
-                                    (list 'tags))
-                                  (when ycmd-seed-identifiers-with-keywords
-                                    (list 'syntax-keywords))))
-           (content (cons '("event_name" . "FileReadyToParse")
-                          (ycmd--standard-content-with-extras
-                           buff pos extra-content))))
+           (content
+            (append '(("event_name" . "FileReadyToParse"))
+                    (ycmd--standard-content buff pos)
+                    (--when-let (and ycmd-tag-files
+                                     (ycmd--get-tag-files buff))
+                      (list (cons "tag_files" it)))
+                    (--when-let (and ycmd-seed-identifiers-with-keywords
+                                     (ycmd--get-keywords buff))
+                      (list (cons "syntax_keywords" it))))))
       (deferred:$
         ;; try
         (deferred:$
@@ -1711,6 +1771,19 @@ the name of the newly created file."
       (insert (ycmd--json-encode options)))
     options-file))
 
+(defun ycmd--get-unused-port ()
+  "Return unused localhost port."
+  (let* ((p (make-network-process
+             :name "get-unused-port"
+             :server t
+             :service t
+             :host "127.0.0.1"))
+         (port (process-contact p :service)))
+    (when p (delete-process p))
+    (unless port
+      (error "Could not retrieve unused localhost port"))
+    port))
+
 (defun ycmd--exit-code-as-string (code)
   "Return exit status message for CODE."
   (pcase code
@@ -1739,8 +1812,8 @@ the name of the newly created file."
       (ycmd--with-all-ycmd-buffers
         (ycmd--report-status status)))))
 
-(defun ycmd--start-server (hmac-secret)
-  "Start a new server using HMAC-SECRET."
+(defun ycmd--start-server ()
+  "Start a new server and return the process."
   (unless ycmd-server-command
     (user-error "Error: The variable `ycmd-server-command' is not set.  \
 See the docstring of the variable for an example"))
@@ -1748,35 +1821,46 @@ See the docstring of the variable for an example"))
     (with-current-buffer proc-buff
       (buffer-disable-undo)
       (erase-buffer))
-    (let* ((options-file (ycmd--create-options-file hmac-secret))
-           (args (apply 'list (concat "--options_file=" options-file)
+    (let* ((port (or (and (numberp ycmd-server-port)
+                          (> ycmd-server-port 0))
+                     (ycmd--get-unused-port)))
+           (hmac-secret (ycmd--generate-hmac-secret))
+           (options-file (ycmd--create-options-file hmac-secret))
+           (args (apply 'list (format "--port=%d" port)
+                        (concat "--options_file=" options-file)
                         ycmd-server-args))
            (server-program+args (append ycmd-server-command args))
            (proc (apply #'start-process ycmd--server-process-name proc-buff
-                        server-program+args))
-           (server-start-time (float-time))
-           time-since-server-start server-started)
+                        server-program+args)))
       (set-process-query-on-exit-flag proc nil)
       (set-process-sentinel proc #'ycmd--server-process-sentinel)
-      (while (and (not server-started) (process-live-p proc))
-        (accept-process-output proc 0 100 t)
-        (let ((proc-output (with-current-buffer proc-buff
-                             (buffer-string))))
-          (cond
-           ((string-match "^serving on http://.*:\\\([0-9]+\\\)$" proc-output)
-            (setq ycmd--server-actual-port
-                  (string-to-number (match-string 1 proc-output)))
-            (ycmd--with-all-ycmd-buffers (ycmd--report-status 'unparsed))
+      (setq ycmd--server-actual-port port)
+      (setq ycmd--hmac-secret hmac-secret)
+      proc)))
+
+(defun ycmd--wait-until-server-ready ()
+  "Wait until server is ready.
+
+Return t when server is ready.  Signal error in case of timeout.
+The timeout can be set with the variable
+`ycmd-startup-timeout'."
+  (let ((server-start-time (float-time))
+         server-started)
+    (while (and (not server-started) (ycmd-running?))
+      (sit-for 0.1)
+      (if (ycmd--server-ready? :include-subserver)
+          (progn
+            (ycmd--with-all-ycmd-buffers
+              (ycmd--report-status 'unparsed))
             (setq server-started t))
-           (t
-            ;; timeout after specified period
-            (setq time-since-server-start (- (float-time) server-start-time))
-            (when (> time-since-server-start ycmd-startup-timeout)
-              (ycmd-close)
-              (ycmd--with-all-ycmd-buffers
-                (ycmd--report-status 'errored))
-              (error "ERROR: Ycmd server timeout"))))))
-      server-started)))
+        ;; timeout after specified period
+        (when (< ycmd-startup-timeout
+                 (- (float-time) server-start-time))
+          (ycmd-close)
+          (ycmd--with-all-ycmd-buffers
+            (ycmd--report-status 'errored))
+          (error "ERROR: Ycmd server timeout"))))
+    server-started))
 
 (defun ycmd--column-in-bytes ()
   "Calculate column offset in bytes for the current position and buffer."
@@ -1813,24 +1897,6 @@ will be passed to the ycmd server."
         ("filepath" . ,full-path)
         ("line_num" . ,line-num)
         ("column_num" . ,column-num)))))
-
-(defun ycmd--standard-content-with-extras (buffer pos &optional extras)
-  "Generate 'standard' content for BUFFER at POS with EXTRAS."
-  (let ((standard-content (ycmd--standard-content buffer pos)))
-    (unless (listp extras)
-      (setq extras (list extras)))
-    (dolist (extra extras standard-content)
-      (--when-let (pcase extra
-                    (`force-semantic
-                     (cons "force_semantic" t))
-                    (`tags
-                     (--when-let (ycmd--get-tag-files buffer)
-                       (cons "tag_files" it)))
-                    (`syntax-keywords
-                     (--when-let (ycmd--get-keywords buffer)
-                       (cons "syntax_keywords" it))))
-        (push it standard-content)))))
-
 
 (defvar ycmd--log-enabled nil
   "If non-nil, http content will be logged.
@@ -1899,7 +1965,9 @@ This is useful for debugging.")
                          &key
                          (parser 'buffer-string)
                          (type "POST")
-                         (sync nil))
+                         (params nil)
+                         (sync nil)
+                         (timeout request-timeout))
   "Send an asynchronous HTTP request to the ycmd server.
 
 This starts the server if necessary.
@@ -1935,24 +2003,23 @@ anything like that.)
          (response-fn (lambda (response)
                         (let ((data (request-response-data response)))
                           (ycmd--log-content "HTTP RESPONSE CONTENT" data)
-                          data))))
+                          data)))
+         (request-args (list :type type :params params :data content
+                             :parser parser :headers headers
+                             :timeout timeout)))
     (ycmd--log-content "HTTP REQUEST CONTENT" content)
 
     (if sync
-        (let (result)
+        (let* (result
+               (cb (cl-function
+                    (lambda (&key response &allow-other-keys)
+                      (setq result (funcall response-fn response))))))
           (with-local-quit
-            (request
-             url :headers headers :parser parser :data content :type type
-             :sync t
-             :complete
-             (lambda (&rest args)
-               (setq result (funcall response-fn (plist-get args :response))))))
+            (apply #'request url :sync t :complete cb request-args))
           result)
       (deferred:$
-        (request-deferred
-         url :headers headers :parser parser :data content :type type)
-        (deferred:nextc it
-          response-fn)))))
+        (apply #'request-deferred url request-args)
+        (deferred:nextc it response-fn)))))
 
 (provide 'ycmd)
 
