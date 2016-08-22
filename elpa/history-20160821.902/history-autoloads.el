@@ -1,9 +1,9 @@
 ;;; history-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "history" "history.el" (22176 24841 0 0))
+;;;### (autoloads nil "history" "history.el" (22459 4245 250138 82000))
 ;;; Generated autoloads from history.el
 
 (autoload 'history-add-history "history" "\
@@ -12,7 +12,7 @@ SAVE-THING? is t, it will cache the symbol string at point (if any) and use it a
 a comparison in checking algorithm when navigating to it. If they are not matched,
 the history will be deleted immediately.
 
-\(fn &optional SAVE-THING\\?)" t nil)
+\(fn &optional SAVE-THING\\=\\?)" t nil)
 
 (autoload 'history-show-history "history" "\
 Show histories in a pretty way.
@@ -47,7 +47,8 @@ See `history-window-local-history'.
 
 (defvar history-mode nil "\
 Non-nil if History mode is enabled.
-See the command `history-mode' for a description of this minor mode.
+See the `history-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `history-mode'.")
@@ -61,8 +62,7 @@ Add menus, toolbar buttons and more.
 
 ;;;***
 
-;;;### (autoloads nil nil ("history-pkg.el") (22176 24841 230643
-;;;;;;  0))
+;;;### (autoloads nil nil ("history-pkg.el") (22459 4245 254138 76000))
 
 ;;;***
 
