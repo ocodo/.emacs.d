@@ -8,7 +8,7 @@
 ;; Author: mechairoi
 ;; Maintainer: Yasuyuki Oka <yasuyk@gmail.com>
 ;; Version: 0.8.0
-;; Package-Version: 20160713.521
+;; Package-Version: 20160820.635
 ;; URL: https://github.com/yasuyk/helm-git-grep
 ;; Package-Requires: ((helm "1.9.3"))
 ;; Keywords: helm, git
@@ -563,7 +563,7 @@ if submodules exists, grep submodules too."
   (interactive)
   (let* ((symbol (if (not mark-active) (thing-at-point 'symbol)
                    (when (use-region-p) (buffer-substring (region-beginning) (region-end)))))
-         (input (if symbol (concat symbol " ") nil)))
+         (input (if symbol (concat symbol " ") "")))
     (when (and helm-git-grep-at-point-deactivate-mark mark-active)
       (deactivate-mark)) ;; remove any active regions
     (helm-git-grep-1 input)))
