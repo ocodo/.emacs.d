@@ -4,7 +4,7 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20160814.334
+;; Package-Version: 20160822.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -231,8 +231,7 @@ fraction of the window width."
 
 Cycle through all windows displaying current buffer and:
 
-If ARG is 'exit then cycle through all windows displaying the
-current buffer and set window margins to nil.
+If ARG is 'exit set window margins to nil.
 
 If ARG is nil, first find the `olivetti-safe-width' to which to
 set `olivetti-body-width', then find the appropriate margin size
@@ -296,10 +295,10 @@ If prefixed with ARG, incrementally increase."
   :group 'olivetti)
 
 (defun split-window-right-force (&optional size)
-  "Filter arguments to `split-window-right' to force split.
+  "Filter arguments to `split-window-right' to force splitting window.
 
-If optional argument SIZE is ommitted or nil, split window
-exactly in half.
+If optional argument SIZE is ommitted or nil, both windows get
+the same width.
 
 Workaround for known Emacs bug in `window-min-size'.
 See <http://debbugs.gnu.org/24193>."
@@ -313,9 +312,10 @@ Adds advice to `split-window-right' to workaround changes in
 width when using large margins.
 See <http://debbugs.gnu.org/24193>."
   (unless (or (advice-member-p 'split-window-right-force 'split-window-right)
-              (< (string-to-number emacs-version) 25))
-      (advice-add 'split-window-right :filter-args
-                  'split-window-right-force)))
+              (version< emacs-version "25"))
+    (advice-add 'split-window-right :filter-args
+                'split-window-right-force)
+    (message "olivetti: Function `split-window-right' has been patched")))
 
 
 ;;; Mode Definition
