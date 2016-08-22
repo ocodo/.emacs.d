@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160728.52
+;; Package-Version: 20160820.136
 ;; Keywords: project, convenience
 ;; Version: 0.14.0
 ;; Package-Requires: ((dash "2.11.0") (pkg-info "0.4"))
@@ -289,6 +289,7 @@ If variable `projectile-project-name' is non-nil, this function will not be used
     "build.sbt"          ; SBT project file
     "gradlew"            ; Gradle wrapper script
     "build.gradle"       ; Gradle project file
+    ".ensime"            ; Ensime configuration file
     "Gemfile"            ; Bundler file
     "requirements.txt"   ; Pip file
     "setup.py"           ; Setuptools file
@@ -364,6 +365,7 @@ containing a root file."
 
 (defcustom projectile-globally-ignored-directories
   '(".idea"
+    ".ensime_cache"
     ".eunit"
     ".git"
     ".hg"

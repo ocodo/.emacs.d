@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "projectile" "projectile.el" (0 0 0 0))
+;;;### (autoloads nil "projectile" "projectile.el" (22459 4133 438313
+;;;;;;  370000))
 ;;; Generated autoloads from projectile.el
 
 (autoload 'projectile-version "projectile" "\
@@ -443,8 +444,6 @@ Projectile mode is enabled in all buffers where
 See `projectile-mode' for more information on Projectile mode.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "projectile" '("projectile-" "??" "def-projectile-commander-method")))
 
 ;;;***
 
