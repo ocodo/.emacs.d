@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 2016 Danil <danil@kutkevich.org>.
 ;; Author: Danil <danil@kutkevich.org>, Josuah Demangeon <sshbio>, sebasar
-;; Version: 0.1.4
-;; Package-Version: 20160527.409
-;; Package-Requires: ((dash "2.11.0"))
+;; Version: 0.2.0
+;; Package-Version: 20160820.740
+;; Package-Requires: ((dash "2.13.0"))
 ;; Keywords: inner buffer search
 ;; URL: https://github.com/danil/ido-occur
 
@@ -149,6 +149,22 @@ When non-nil, QUERY is the initial search pattern."
            (ido-occur--run query))))
 
   (when (fboundp 'ido-clever-match-enable) (ido-clever-match-enable)))
+
+;;;###autoload
+(defun ido-occur-at-point ()
+  "Open `ido-occur' at point."
+
+  (interactive)
+
+  (ido-occur (if (symbol-at-point) (symbol-name (symbol-at-point)) "")))
+
+;;;###autoload
+(defun ido-occur-from-isearch ()
+  "Open `ido-occur' from `isearch'."
+
+  (interactive)
+
+  (ido-occur (if isearch-regexp isearch-string (regexp-quote isearch-string))))
 
 (provide 'ido-occur)
 
