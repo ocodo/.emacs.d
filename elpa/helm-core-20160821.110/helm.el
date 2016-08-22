@@ -415,11 +415,23 @@ NOTE: this have no effect if `helm-split-window-preferred-function' is not
   :group 'helm
   :type 'symbol)
 
-(defcustom helm-display-buffer-default-size nil
+(defcustom helm-display-buffer-default-height nil
   "Initial height of `helm-buffer', specified as an integer or a function.
+
 The function should take one arg and the responsibility for
-re-sizing the window; function's return value is ignored. See
-`display-buffer' for more info."
+re-sizing the window; function's return value is ignored.
+Note that this have no effect when the split is vertical.
+See `display-buffer' for more info."
+  :group 'helm
+  :type '(choice integer function))
+
+(defcustom helm-display-buffer-default-width nil
+  "Initial width of `helm-buffer', specified as an integer or a function.
+
+The function should take one arg and the responsibility for
+re-sizing the window; function's return value is ignored.
+Note that this have no effect when the split is horizontal.
+See `display-buffer' for more info."
   :group 'helm
   :type '(choice integer function))
 
@@ -762,9 +774,6 @@ If `nil', `helm-debug-output' includes only variables with
   "If non-`nil', write log message to `helm-debug-buffer'.
 Default is `nil', which disables writing log messages because the
 size of `helm-debug-buffer' grows quickly.")
-
-(defvar helm-compile-source-functions nil 
-  "Functions to compile elements of `helm-sources' (plug-in).")
 
 (defvar helm-mode-line-string "\
 \\<helm-map>\
@@ -1821,12 +1830,8 @@ example, :candidate-number-limit is bound to
 For ANY-SOURCES ANY-INPUT ANY-PROMPT ANY-RESUME ANY-PRESELECT ANY-BUFFER and
 ANY-KEYMAP ANY-DEFAULT ANY-HISTORY See `helm'."
   ;; Activate the advice for `tramp-read-passwd'.
-  (if (fboundp 'advice-add)
-      (progn
-        (advice-add 'tramp-read-passwd :around #'helm--advice-tramp-read-passwd)
-        (advice-add 'ange-ftp-get-passwd :around #'helm--advice-ange-ftp-get-passwd))
-      (ad-activate 'tramp-read-passwd)
-      (ad-activate 'ange-ftp-get-passwd))
+  (advice-add 'tramp-read-passwd :around #'helm--advice-tramp-read-passwd)
+  (advice-add 'ange-ftp-get-passwd :around #'helm--advice-ange-ftp-get-passwd)
   (helm-log (concat "[Start session] " (make-string 41 ?+)))
   (helm-log "any-prompt = %S" any-prompt)
   (helm-log "any-preselect = %S" any-preselect)
@@ -1882,14 +1887,8 @@ ANY-KEYMAP ANY-DEFAULT ANY-HISTORY See `helm'."
             (helm-restore-position-on-quit)
             (helm-log (concat "[End session (quit)] " (make-string 34 ?-)))
             nil))
-      (if (fboundp 'advice-add)
-          (progn
-            (advice-remove 'tramp-read-passwd
-                           #'helm--advice-tramp-read-passwd)
-            (advice-remove 'ange-ftp-get-passwd
-                           #'helm--advice-ange-ftp-get-passwd))
-          (ad-deactivate 'tramp-read-passwd)
-          (ad-deactivate 'ange-ftp-get-passwd))
+      (advice-remove 'tramp-read-passwd #'helm--advice-tramp-read-passwd)
+      (advice-remove 'ange-ftp-get-passwd #'helm--advice-ange-ftp-get-passwd)
       (helm-log "helm-alive-p = %S" (setq helm-alive-p nil))
       (helm--remap-mouse-mode -1)       ; Reenable mouse bindings.
       (setq helm-alive-p nil)
@@ -2173,7 +2172,8 @@ value of `helm-full-frame' or `helm-split-window-default-side'."
                (not helm-split-window-in-side-p))
       (delete-other-windows))
     (display-buffer
-     buffer `(nil . ((window-height . ,helm-display-buffer-default-size))))
+     buffer `(nil . ((window-height . ,helm-display-buffer-default-height)
+                     (window-width  . ,helm-display-buffer-default-width))))
     (helm-log-run-hook 'helm-window-configuration-hook)))
 
 
@@ -2497,20 +2497,6 @@ This can be useful for example for quietly writing a complex regexp."
                "Helm update re-enabled!"))))
 (put 'helm-toggle-suspend-update 'helm-only t)
 
-(defadvice tramp-read-passwd (around disable-helm-update)
-  ;; Suspend update when prompting for a tramp password.
-  (setq helm-suspend-update-flag t)
-  (setq overriding-terminal-local-map nil)
-  (setq helm--reading-passwd-or-string t)
-  (let (stimers)
-    (unwind-protect
-         (progn
-           (setq stimers (with-timeout-suspend))
-           ad-do-it)
-      (with-timeout-unsuspend stimers)
-      (setq helm--reading-passwd-or-string nil)
-      (setq helm-suspend-update-flag nil))))
-
 (defun helm--advice-tramp-read-passwd (old--fn &rest args)
   ;; Suspend update when prompting for a tramp password.
   (setq helm-suspend-update-flag t)
@@ -2530,16 +2516,6 @@ This can be useful for example for quietly writing a complex regexp."
   (setq helm--reading-passwd-or-string t)
   (unwind-protect
        (apply old--fn args)
-    (setq helm--reading-passwd-or-string nil)
-    (setq helm-suspend-update-flag nil)))
-
-(defadvice ange-ftp-get-passwd (around disable-helm-update)
-  ;; Suspend update when prompting for a ange password.
-  (setq helm-suspend-update-flag t)
-  (setq overriding-terminal-local-map nil)
-  (setq helm--reading-passwd-or-string t)
-  (unwind-protect
-       ad-do-it
     (setq helm--reading-passwd-or-string nil)
     (setq helm-suspend-update-flag nil)))
 
@@ -2792,11 +2768,11 @@ functions if some, otherwise return CANDIDATES."
   (helm-aif (assoc-default 'real-to-display source)
       (setq candidates (helm-funcall-with-source
                         source 'mapcar
-                        (lambda (cand_)
-                          (if (consp cand_)
+                        (lambda (cand)
+                          (if (consp cand)
                               ;; override DISPLAY from candidate-transformer
-                              (cons (funcall it (cdr cand_)) (cdr cand_))
-                            (cons (funcall it cand_) cand_)))
+                              (cons (funcall it (cdr cand)) (cdr cand))
+                            (cons (funcall it cand) cand)))
                         candidates))
     candidates))
 
@@ -3270,8 +3246,7 @@ to a particular place after finishing update."
 (defun helm-update-source-p (source)
   "Whether SOURCE need updating or not."
   (let ((len (string-width
-              (if (or (assoc 'matchplugin source)
-                      (null (assoc 'no-matchplugin source)))
+              (if (assoc 'multimatch source)
                   ;; Don't count spaces entered when using
                   ;; multi-match.
                   (replace-regexp-in-string " " "" helm-pattern)
