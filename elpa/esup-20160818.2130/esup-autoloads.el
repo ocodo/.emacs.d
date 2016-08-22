@@ -3,18 +3,19 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "esup" "esup.el" (22452 31785 909020 523000))
+;;;### (autoloads nil "esup" "esup.el" (22459 4323 758022 474000))
 ;;; Generated autoloads from esup.el
 
 (autoload 'esup "esup" "\
 Profile the startup time of Emacs in the background.
+If INIT-FILE is non-nil, profile that instead of USER-INIT-FILE.
 
 \(fn &optional INIT-FILE)" t nil)
 
 ;;;***
 
-;;;### (autoloads nil nil ("esup-child.el" "esup-pkg.el") (22452
-;;;;;;  31785 913020 535000))
+;;;### (autoloads nil nil ("esup-child.el" "esup-pkg.el") (22459
+;;;;;;  4323 758022 474000))
 
 ;;;***
 
