@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: spmoney
+# key: spmon
+# --
+<%= Spree::Money.new(${1:amount}, currency: ${2:order.currency}).to_html %>

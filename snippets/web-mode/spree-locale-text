@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: spree-locale-text
+# key: splt
+# --
+<%= Spree.t(:${1:locale-key}) %>
