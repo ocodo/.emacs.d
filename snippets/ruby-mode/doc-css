@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: doc-css
+# key: dcss
+# --
+doc.css('$1').text

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: order__id
+# key: oid
+# --
+order__$1__${2:$$(yas/choose-value '("value" "label"))}
