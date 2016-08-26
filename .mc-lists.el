@@ -7,6 +7,7 @@
         autopair-insert-or-skip-quote
         autopair-skip-close-maybe
         beginning-of-visual-line
+        cua-copy-region
         cua-cut-region
         cua-delete-region
         cua-paste
@@ -30,4 +31,6 @@
         end-of-buffer
         iedit-mode
         mac-mwheel-scroll
+        repeat
+        smex
         ))
