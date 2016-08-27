@@ -66,8 +66,8 @@
 ;;   (ocodo-svg-modelines-init)
 ;;   (smt/set-theme 'ocodo-mesh-retro-aqua-smt))
 
-(require 'amitp-mode-line)
-(amitp-mode-line)
+;; (require 'amitp-mode-line)
+;; (amitp-mode-line)
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
