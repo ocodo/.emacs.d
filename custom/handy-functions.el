@@ -935,6 +935,13 @@ Optionally check ALLBUFS."
         (yas-reload-all))
         (error "An active region is needed to make a snippet")))
 
+(defun reload-emacs ()
+  (interactive)
+  (if (bufferp (get-file-buffer "init.el"))
+      (save-buffer (get-buffer "init.el")))
+  (load-file "~/.emacs.d/init.el")
+  (message "Reloaded Emacs configuration successfully."))
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
