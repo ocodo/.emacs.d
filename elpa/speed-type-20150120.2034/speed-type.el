@@ -120,7 +120,7 @@ Total errors:\t%d
           corrections
           (+ errors corrections)
           speed-type-explaining-message))
-  
+
 
 (defvar speed-type--gb-url-format
   "https://www.gutenberg.org/cache/epub/%d/pg%d.txt")
@@ -225,21 +225,24 @@ Total errors:\t%d
   "Update stats and buffer contents with result of changes in text."
   (let ((start0 (1- start))
         (end0 (1- end))
-        (color nil))
+        (color nil)
+        (bg-color nil))
     (dotimes (i (- end start) nil)
       (let ((pos0 (+ start0 i))
             (pos (+ start i)))
         (if (speed-type--check-same i orig new)
             (progn (setq color "green")
+                   (setq bg-color "#224422")
                    (store-substring speed-type--mod-str pos0 1))
           (progn (cl-incf speed-type--errors)
                  (setq color "red")
+                 (setq bg-color "#442222")
                  (store-substring speed-type--mod-str pos0 2)))
         (cl-incf speed-type--entries)
         (cl-decf speed-type--remaining)
-	(if (fboundp 'add-face-text-property)
-	    (add-face-text-property pos (1+ pos) `(:foreground ,color))
-	  (add-text-properties pos (1+ pos) `(face (:foreground ,color))))))))
+  (if (fboundp 'add-face-text-property)
+      (add-face-text-property pos (1+ pos) `(:foreground ,color :background ,bg-color))
+    (add-text-properties pos (1+ pos) `(face (:foreground ,color :background ,bg-color))))))))
 
 (defun speed-type--change (start end length)
   "Handle buffer changes.
@@ -329,8 +332,8 @@ are color coded and stats are gathered about the typing performance."
          (fwd t)
          (p (point))
          (tries 20)
-	 (author nil)
-	 (title nil))
+   (author nil)
+   (title nil))
     (with-current-buffer (speed-type--gb-retrieve book-num)
       (goto-char 0)
       (when (re-search-forward "^Title: " nil t)
