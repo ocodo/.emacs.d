@@ -549,6 +549,20 @@ be firm when reaching for your keys."))
         (message "%s - Lesson [%s] finished" speed-type-keyboard-drill-message-prefix speed-type-keyboard-drill-last-lesson-attempted))
     (error speed-type-keyboard-drill-start-lessons-error)))
 
+(defun speed-type-keyboard-drill-repeat-exercise ()
+  "Repeat the current speed-type exercise."
+  (interactive)
+  (if (speed-type-keyboard-drill-has-last-attempted-p)
+      (let ((exercise speed-type-keyboard-drill-last-exercise-attempted))
+        (speed-type-keyboard-drill-close-buffers)
+        (speed-type--setup exercise))
+    (error speed-type-keyboard-drill-start-lessons-error)))
+
+(defun speed-type-keyboard-drill-quit ()
+  "Quit Speed type, and close all it's buffers."
+  (interactive)
+  (speed-type-keyboard-drill-close-buffers))
+
 ;;;###autoload
 (defun speed-type-keyboard-drill-select ()
   "Speed type a keyboard drill from the collection."
