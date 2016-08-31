@@ -24,9 +24,9 @@
 
 ;;; Commentary:
 ;;
-;; Speed-type allows you to practice your touch typing skills. You can
+;; Speed-type allows you to practice your touch typing skills.  You can
 ;; test yourself by typing snippets from online books or use any piece
-;; of text or code you have in emacs. Speed-type keeps track of your
+;; of text or code you have in Emacs.  Speed-type keeps track of your
 ;; stats (WPM, CPM, accuracy) while you are typing.
 
 ;;; Code:
@@ -84,7 +84,8 @@ Accuracy is computed as (CORRECT-ENTRIES - CORRECTIONS) / TOTAL-ENTRIES."
   (cond ((< wpm 25) "Beginner")
         ((< wpm 30) "Intermediate")
         ((< wpm 40) "Average")
-        ((< wpm 55) "Pro")
+        ((< wpm 50) "Good")
+        ((< wpm 60) "Pro")
         ((< wpm 80) "Master")
         (t          "Racer")))
 
@@ -123,7 +124,7 @@ Total errors:\t%d
 
 
 (defvar speed-type--gb-url-format
-  "https://www.gutenberg.org/cache/epub/%d/pg%d.txt")
+  "http://www.gutenberg.org/cache/epub/%d/pg%d.txt")
 
 (defvar speed-type--gb-book-list
   '(1342 11 1952 1661 74 1232 23 135 5200 2591 844 84 98 2701 1400 16328 174
