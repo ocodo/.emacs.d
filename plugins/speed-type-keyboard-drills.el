@@ -1,5 +1,5 @@
 ;;; speed-type-keyboard-drills --- keyboard drills (for use with speed type)
-;;; Package-Requires: ((emacs "24.0") (speed-type "0.1"))
+;;; Package-Requires: ((emacs "24.0") (speed-type "0.1") (hydra "0.1"))
 ;;; Commentary:
 ;;; Code:
 (require 'speed-type)
@@ -564,6 +564,35 @@ be firm when reaching for your keys."))
      speed-type-keyboard-drill-last-lesson-attempted lesson
      speed-type-keyboard-drill-last-exercise-attempted exercise)
     (speed-type--setup exercise)))
+
+(defun speed-type-keyboard-drill-repeat-exercise ()
+  "Repeat the current exercise."
+  (interactive)
+  (if (speed-type-keyboard-drill-has-last-attempted-p)
+      (progn
+        (speed-type-keyboard-drill-close-buffers)
+        (speed-type--setup speed-type-keyboard-drill-last-exercise-attempted))
+    (error speed-type-keyboard-drill-start-lessons-error)))
+
+(defun speed-type-keyboard-drill-quit ()
+  "Quit speed-type."
+  (interactive)
+  (speed-type-keyboard-drill-close-buffers))
+
+(require 'hydra)
+
+(defhydra speed-type-keyboard-drill-menu-hydra (:color amaranth)
+  "Select an option from the menu."
+  ("r" speed-type-keyboard-drill-repeat-exercise "Repeat this exercise" :color blue)
+  ("n" speed-type-keyboard-drill-next-exercise "Next exercise" :color blue)
+  ("l" speed-type-keyboard-drill-next-lesson "Next lesson" :color blue)
+  ("s" speed-type-keyboard-drill-select "Select a new lesson" :color blue)
+  ("q" speed-type-keyboard-drill-quit "Quit" :color blue))
+
+(defadvice speed-type--handle-complete (after speed-type-keyboard-drill-show-hydra activate)
+  "Show the menu hyda when a speed-type exercise is complete."
+  (message "Speed Type exercise complete...")
+  (speed-type-keyboard-drill-menu-hydra/body))
 
 ;; Local Variables:
 ;; nameless-current-name: "speed-type-keyboard-drill"
