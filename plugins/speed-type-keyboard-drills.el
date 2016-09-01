@@ -369,27 +369,31 @@
     (:lesson
      "Paragraph 1"
      :exercises
-     ("When you strike the enter key at the end of a line it is called a hard return. If you just"))
+     ("When you strike the enter key at the end of a line it is
+called a hard return. If you just continue to key without
+striking the enter key the computer will automatically go to the
+next line. This is called a soft return."))
 
     (:lesson
      "Paragraph 2"
      :exercises
-     ("There is another phrase for soft return. It is called wordwrap. It is much easier to
-use and saves you time and effort. Strike the enter key at the end of each
-paragraph."))
+     ("There is another phrase for soft return. It is called
+wordwrap. It is much easier to use and saves you time and
+effort. Strike the enter key at the end of each paragraph."))
 
     (:lesson
      "Paragraph 3"
      :exercises
-     ("Always use good form when keying. It will help build speed and accuracy. Always look
-at what you are keying instead of the keyboard. Keep your wrists flat and fingers
-curved over the home keys."))
+     ("Always use good form when keying. It will help build speed
+and accuracy. Always look at what you are keying instead of the
+keyboard. Keep your wrists flat and fingers curved over the home
+keys."))
 
     (:lesson
      "Paragraph 4"
      :exercises
-     ("Bouncing hands will cause more errors and slows the typist down. Stay in control and
-be firm when reaching for your keys."))
+     ("Bouncing hands will cause more errors and slows the typist
+down. Stay in control and be firm when reaching for your keys."))
 
     (:lesson
      "Review 4"
