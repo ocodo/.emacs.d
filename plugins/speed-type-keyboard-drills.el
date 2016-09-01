@@ -27,6 +27,8 @@
       ";; ll kk jj ;; ll kk jj"
       "ad ad as as ask ask ad ad as as ask ask"
       ";;; lll kkk jjj ;;; lll kkk jjj"
+      "asdf ;lkj asdf ;lkj asdf ;lkj"
+      ";;aallsskkddjjff ffjjddkkssllaa;;"
       "add add fad fad jak jak sad sad fall fall jak jak"
       "add fad; add fad; add jak; add jak; sad fall; sad fall;"
       "a a as as fad fad dad dad ;; ;; ja ja ka ka la la"
@@ -42,6 +44,16 @@
       "fad fad; ads ads; all all; fad ads all lads;"
       "ask a lad; a fall ad; ask a dad;"
       "as a lad; as a dad; as a sad lass;"))
+
+    ((:lesson
+      "Malabar Beach Drills"
+      :exercises (
+                  ".z nv mc ,x jf nv ie ow pq ;a a; qp wo ei vn fj x, cm vn z."
+                  "wp wp ri ri fe ol se ol fe ri ri wp wp"
+                  "nv mc ,x .z z. x, cm vn"
+                  "pqwerytuiop pqwerytuiop pqwerytuiop pqweruiop pqweruiop pqweruiop pqwerytuiop pqwerytuiop pqwerytuiop"
+                  "bbvvvcccxxxzzz mmmnnn nnnmmm bbvvcxz bvvvcxz bvvvcxz zxcvvvb zxcvvvb zxcvvbb mmmnnn nnnmmm zzzxxxcccvvvbb"
+                  )))
 
     (:lesson
      "H and E"
