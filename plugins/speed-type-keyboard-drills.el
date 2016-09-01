@@ -45,16 +45,13 @@
       "ask a lad; a fall ad; ask a dad;"
       "as a lad; as a dad; as a sad lass;"))
 
-    ((:lesson
-      "Malabar Beach Drills"
-      :exercises (
-                  ".z nv mc ,x jf nv ie ow pq ;a a; qp wo ei vn fj x, cm vn z."
-                  "wp wp ri ri fe ol se ol fe ri ri wp wp"
-                  "nv mc ,x .z z. x, cm vn"
-                  "pqwerytuiop pqwerytuiop pqwerytuiop pqweruiop pqweruiop pqweruiop pqwerytuiop pqwerytuiop pqwerytuiop"
-                  "bbvvvcccxxxzzz mmmnnn nnnmmm bbvvcxz bvvvcxz bvvvcxz zxcvvvb zxcvvvb zxcvvbb mmmnnn nnnmmm zzzxxxcccvvvbb"
-                  )))
-
+    (:lesson
+     "Malabar Beach Drills"
+     :exercises (".z nv mc ,x jf nv ie ow pq ;a a; qp wo ei vn fj x, cm vn z."
+                 "wp wp ri ri fe ol se ol fe ri ri wp wp"
+                 "nv mc ,x .z z. x, cm vn"
+                 "pqwerytuiop pqwerytuiop pqwerytuiop pqweruiop pqweruiop pqweruiop pqwerytuiop pqwerytuiop pqwerytuiop"
+                 "bbvvvcccxxxzzz mmmnnn nnnmmm bbvvcxz bvvvcxz bvvvcxz zxcvvvb zxcvvvb zxcvvbb mmmnnn nnnmmm zzzxxxcccvvvbb"))
     (:lesson
      "H and E"
      :exercises
