@@ -667,6 +667,17 @@ FN should be either `describe-variable' or `describe-function'."
              (buffer-string)))))
     (pos-tip-show description 'popup-tip-face nil nil -1)))
 
+(defun describe-at-cursor-position-in-popup ()
+  "Open a popup containing detailed info about the current cursor position."
+  (interactive)
+  (pos-tip-show (replace-regexp-in-string
+                 "\\[BACK\\]" ""
+                 (save-window-excursion
+                   (what-cursor-position t)
+                   (switch-to-buffer "*Help*")
+                   (buffer-string)))
+                'popup-tip-face nil nil -1))
+
 (defun zap-to-string (&optional arg)
   "Zap text up to a string, ARG can be minus to zap backwards."
   (interactive "p")
