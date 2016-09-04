@@ -4,7 +4,7 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20160808.1509
+;; Package-Version: 20160825.1644
 ;; Keywords: project, convenience
 ;; Version: 0.2.1
 ;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0") (go-guru "0"))
@@ -199,10 +199,17 @@ PATH defaults to GOPATH via getenv, used to determine if buffer is in current GO
 When `projectile-project-type' set to `go', GOPATH is checked, calling `go-projectile-switch-project' if needed."
   (if (and (eq projectile-project-type 'go)
            (null (active-minibuffer-window)))
-      (let ((caller (second (backtrace-frame 6))))
-        (if (and (eq caller 'select-window)
-                 (not (go-projectile-directory-gopath-p)))
-            (go-projectile-switch-project)))))
+      (let* ((index 5)
+             (frame (backtrace-frame index))
+             (found 0))
+        (while (not (equal found 2))
+          (setq frame (backtrace-frame (incf index)))
+          (when (equal t (first frame))
+            (incf found)))
+        (let ((caller (second frame)))
+          (if (and (eq caller 'select-window)
+                   (not (go-projectile-directory-gopath-p)))
+              (go-projectile-switch-project))))))
 
 (defun go-projectile-rewrite-pattern-args (n)
   "Generate function call pattern with N arguments for `go-projectile-rewrite-pattern'."
