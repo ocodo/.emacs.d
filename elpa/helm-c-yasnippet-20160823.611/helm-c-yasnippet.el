@@ -6,7 +6,7 @@
 
 ;; Author: Kenji.I (Kenji Imakado) <ken.imakaado@gmail.com>
 ;; Version: 0.6.7
-;; Package-Version: 20151231.10
+;; Package-Version: 20160823.611
 ;; Package-Requires: ((helm "1.7.7") (yasnippet "0.8.0") (cl-lib "0.3"))
 ;; Keywords: convenience, emulation
 
@@ -170,10 +170,10 @@ If SNIPPET-FILE does not contain directory, it is placed in default snippet dire
              do (if (and (funcall predfunc file)
                          (string-match regexp file))
                     (progn (setq found t)
-                           (return (file-name-as-directory file)))
+                           (cl-return (file-name-as-directory file)))
                   (when (file-directory-p file)
                     (setq result (helm-yas-find-recursively regexp file predicate))))
-             finally (return result))))
+             finally (cl-return result))))
 
 
 (defun helm-yas-build-cur-snippets-alist (&optional table)
@@ -230,8 +230,8 @@ like `yas--current-key'"
             (error ""))
           (skip-syntax-backward syntax)
           (setq start (point))
-          (values (buffer-substring-no-properties start end) start end))
-      (error (values "" (point) (point))))))
+          (cl-values (buffer-substring-no-properties start end) start end))
+      (error (cl-values "" (point) (point))))))
 
 (defun helm-yas-get-key-by-template (template alist) ;str template
   "Return key"
@@ -297,7 +297,7 @@ space match anyword greedy"
   `((name . "Yasnippet")
     (init . (lambda ()
               (setq helm-yas-selected-text (if mark-active (buffer-substring-no-properties (region-beginning) (region-end)) ""))
-              (multiple-value-setq
+              (cl-multiple-value-setq
                (helm-yas-initial-input helm-yas-point-start helm-yas-point-end) (helm-yas-get-cmp-context)) ;return values(str point point)
               (setq helm-yas-cur-snippets-alist (helm-yas-build-cur-snippets-alist))))
     (candidates . (helm-yas-get-candidates helm-yas-cur-snippets-alist))
