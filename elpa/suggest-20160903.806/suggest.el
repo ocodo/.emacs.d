@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.2
-;; Package-Version: 20160821.2025
+;; Package-Version: 20160903.806
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 
@@ -114,6 +114,9 @@
    #'gethash
    #'hash-table-keys
    #'hash-table-values
+   ;; vectors
+   ;; TODO: there must be more worth using
+   #'vconcat
    ;; Arithmetic
    #'+
    #'-
@@ -140,10 +143,14 @@
    #'1+
    #'1-
    ;; Strings
+   #'string
+   #'make-string
+   #'string-to-list
    #'upcase
    #'downcase
    #'substring
    #'concat
+   #'split-string
    #'capitalize
    #'replace-regexp-in-string
    ;; s.el string functions
