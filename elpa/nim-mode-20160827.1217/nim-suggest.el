@@ -33,15 +33,23 @@
 (defvar nimsuggest-get-option-function nil
   "Function to get options for nimsuggest.")
 
-(defun nimsuggest-get-options (main-file)
+(defun nimsuggest-get-options (project-path)
+  "Get prerequisite options for EPC mode.
+
+PROJECT-PATH is added as the last option."
   (delq nil
         (append nim-suggest-options nim-suggest-local-options
-                (when (eq 'nimscript-mode major-mode)
-                  '("--define:nimscript" "--define:nimconfig"))
+                ;; FIXME:
+                ;; In recent nim’s update, this configuration no
+                ;; longer can use.
+                ;; (when (eq 'nimscript-mode major-mode)
+                ;;   '("--define:nimscript" "--define:nimconfig"))
                 (list (with-no-warnings nimsuggest-vervosity)
-                      "--epc" main-file))))
+                      "--epc" project-path))))
 
-(defun nim-find-project-main-file ()
+(defun nim-find-project-path ()
+  "Return project-path."
+  ;; project-path is something like default directory, which nimsuggest treats.
   (or (and (eq 'nimscript-mode major-mode)
            buffer-file-name)
       (nim-find-config-file)
@@ -49,25 +57,28 @@
 
 (defun nim-find-or-create-epc ()
   "Get the epc responsible for the current buffer."
-  (let ((main-file (nim-find-project-main-file)))
-    (or (let ((epc-process (cdr (assoc main-file nim-epc-processes-alist))))
+  (let ((ppath (nim-find-project-path)))
+    (or (let ((epc-process (cdr (assoc ppath nim-epc-processes-alist))))
           (if (eq 'run (epc:manager-status-server-process epc-process))
               epc-process
             (prog1 ()
-              (nim-suggest-kill-zombie-processes main-file))))
+              (nim-suggest-kill-zombie-processes ppath))))
         (let ((epc-process
                (epc:start-epc
                 nim-nimsuggest-path
-                (nimsuggest-get-options main-file))))
-          (push (cons main-file epc-process) nim-epc-processes-alist)
+                (nimsuggest-get-options ppath))))
+          (push (cons ppath epc-process) nim-epc-processes-alist)
           epc-process))))
 
 ;;;###autoload
 (defun nim-suggest-available-p ()
+  "Return non-nil if nimsuggest is available in current buffer."
   (and nim-nimsuggest-path
        (not nim-inside-compiler-dir-p)
        ;; Prevent turn on nimsuggest related feature on org-src block
-       (not (eq major-mode 'org-mode))
+       ;; or nimscript-mode (nimsuggest doesn't support yet).
+       ;; https://github.com/nim-lang/nimsuggest/issues/29
+       (not (memq major-mode '(org-mode nimscript-mode)))
        (not (and (fboundp 'org-in-src-block-p)
                  (or (org-in-src-block-p)
                      (org-in-src-block-p t))))))
@@ -108,7 +119,10 @@ The CALLBACK is called with a list of ‘nim-epc’ structs."
         (deferred:watch it
           (lambda (_)
             (unless (get-buffer buf)
-              (delete-file tempfile))))))))
+              (delete-file tempfile))))
+        (deferred:error it
+          (lambda (err)
+            (message "%s" (error-message-string err))))))))
 
 (defvar nim-dirty-directory
   ;; Even users changed the temp directory name,
@@ -119,29 +133,28 @@ The CALLBACK is called with a list of ‘nim-epc’ structs."
 Note that this directory is removed when you exit from Emacs.")
 
 (defun nim-suggest-get-temp-file-name ()
+  "Get temp file name."
   (mapconcat 'directory-file-name
-             `(,nim-dirty-directory ,(nim-suggest--temp-file-name))
+             `(,nim-dirty-directory
+               ,(cl-case system-type
+                  ((ms-dos windows-nt cygwin)
+                   ;; For bug #119, convert ":" to "꞉" (U+A789)
+                   (concat "/"
+                           (replace-regexp-in-string
+                            ":" (char-to-string #xA789)
+                            buffer-file-name)))
+                  (t ; for *nix system
+                   buffer-file-name)))
              ""))
 
-(defun nim-suggest--temp-file-name ()
-  (cl-case system-type
-    ((ms-dos windows-nt cygwin)
-     ;; For bug #119, convert ":" to "꞉" (U+A789)
-     (concat "/"
-             (replace-regexp-in-string
-              ":" (char-to-string #xA789)
-              buffer-file-name)))
-    (t ; for *nix system
-     buffer-file-name)))
-
 (defun nim-make-tempdir (tempfile)
+  "Make temporary directory for TEMPFILE."
   (let* ((tempdir (file-name-directory tempfile)))
     (unless (file-exists-p tempdir)
       (make-directory tempdir t))))
 
 (defun nim-save-buffer-temporarly ()
-  "Save the current buffer and return the location, so we
-can pass it to epc."
+  "Save the current buffer and return the location."
   (let* ((temporary-file-directory nim-dirty-directory)
          (filename (nim-suggest-get-temp-file-name)))
     (nim-make-tempdir filename)
@@ -156,12 +169,13 @@ can pass it to epc."
   (when (file-exists-p nim-dirty-directory)
     (delete-directory (file-name-directory nim-dirty-directory) t)))
 
-(defun nim-suggest-kill-zombie-processes (&optional mfile)
+(defun nim-suggest-kill-zombie-processes (&optional ppath)
+  "Kill needless zombie processes, which correspond to PPATH."
   (setq nim-epc-processes-alist
         (cl-loop for (file . manager) in nim-epc-processes-alist
                  if (and (epc:live-p manager)
-                         (or (and mfile (equal mfile file))
-                             (not mfile)))
+                         (or (and ppath (equal ppath file))
+                             (not ppath)))
                  collect (cons file manager)
                  else do (epc:stop-epc manager))))
 
@@ -171,7 +185,7 @@ can pass it to epc."
   (nim-call-epc 'def
                 (lambda (defs)
                   (let ((def (cl-first defs)))
-                    (when (not def) (error "Symbol not found"))
+                    (when (not def) (error "Definition not found"))
                     (find-file (nim-epc-filePath def))
                     (goto-char (point-min))
                     (forward-line (1- (nim-epc-line def)))))))
