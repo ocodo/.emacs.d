@@ -210,6 +210,14 @@
      "do" "else" "elsif"  "end" "ensure" "false" "for" "if" "in" "module"
      "next" "nil" "not" "or" "redo" "rescue" "retry" "return" "self" "super"
      "then" "true" "undef" "unless" "until" "when" "while" "yield")
+    ;; From https://doc.rust-lang.org/grammar.html#keywords
+    ;; but excluding unused reserved words: https://www.reddit.com/r/rust/comments/34fq0k/is_there_a_good_list_of_rusts_keywords/cqucvnj
+    (rust-mode
+     "Self"
+     "as" "box" "break" "const" "continue" "crate" "else" "enum" "extern"
+     "false" "fn" "for" "if" "impl" "in" "let" "loop" "macro" "match" "mod"
+     "move" "mut" "pub" "ref" "return" "self" "static" "struct" "super"
+     "trait" "true" "type" "unsafe" "use" "where" "while")
     (scala-mode
      "abstract" "case" "catch" "class" "def" "do" "else" "extends" "false"
      "final" "finally" "for" "forSome" "if" "implicit" "import" "lazy" "match"
@@ -225,8 +233,10 @@
      )
     ;; aliases
     (js2-mode . javascript-mode)
+    (js2-jsx-mode . javascript-mode)
     (espresso-mode . javascript-mode)
     (js-mode . javascript-mode)
+    (js-jsx-mode . javascript-mode)
     (cperl-mode . perl-mode)
     (jde-mode . java-mode)
     (ess-julia-mode . julia-mode))
