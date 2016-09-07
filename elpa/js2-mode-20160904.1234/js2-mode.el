@@ -6403,6 +6403,8 @@ its relevant fields and puts it into `js2-ti-tokens'."
         flags
         (continue t)
         (token (js2-new-token 0)))
+    (js2-record-text-property (1- js2-ts-cursor) js2-ts-cursor
+                              'syntax-table (string-to-syntax "\"/"))
     (setq js2-ts-string-buffer nil)
     (if (eq start-tt js2-ASSIGN_DIV)
         ;; mis-scanned /=
@@ -6429,6 +6431,8 @@ its relevant fields and puts it into `js2-ti-tokens'."
             (setq in-class nil)))
           (js2-add-to-string c))))
     (unless err
+      (js2-record-text-property (1- js2-ts-cursor) js2-ts-cursor
+                                'syntax-table (string-to-syntax "\"/"))
       (while continue
         (cond
          ((js2-match-char ?g)
@@ -10430,8 +10434,7 @@ array-literals, array comprehensions and regular expressions."
                                   :len (- end px-pos)
                                   :value (js2-current-token-string)
                                   :flags flags)
-          (js2-set-face px-pos end 'font-lock-string-face 'record)
-          (js2-record-text-property px-pos end 'syntax-table '(2)))))
+          (js2-set-face px-pos end 'font-lock-string-face 'record))))
      ((or (= tt js2-NULL)
           (= tt js2-THIS)
           (= tt js2-SUPER)
@@ -10743,7 +10746,8 @@ If ONLY-OF-P is non-nil, only the 'for (foo of bar)' form is allowed."
                                   :name name
                                   :extends extends
                                   :elems elems))
-    (apply #'js2-node-add-children pn (js2-class-node-elems pn))
+    (apply #'js2-node-add-children
+           pn name extends (js2-class-node-elems pn))
     pn))
 
 (defun js2-parse-object-literal ()
