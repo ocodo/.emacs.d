@@ -25,3 +25,5 @@ var
 /.persistent-scratch
 
 .DS_Store
+/eshell/lastdir
+/eshell/history
