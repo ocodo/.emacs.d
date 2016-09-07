@@ -6,7 +6,7 @@
 ;;         Marshall T. Vandegrift <llasram@gmail.com>
 ;; Maintainer: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; Package-Requires: ((emacs "24.1"))
-;; Package-Version: 20160528.1400
+;; Package-Version: 20160902.1142
 ;; Keywords: data yaml
 ;; Version: 0.0.12
 
@@ -149,7 +149,7 @@ that key is pressed to begin a block literal."
 (defconst yaml-scalar-context-re
   (concat "\\(?:^\\(?:--- \\)?\\|{\\|\\(?: *[-,] +\\)+\\) *"
           "\\(?:" yaml-bare-scalar-re " *: \\)?")
-  "Regexp indicating the begininng of a scalar context.")
+  "Regexp indicating the beginning of a scalar context.")
 
 (defconst yaml-nested-map-re
   (concat ".*: *\\(?:&.*\\|{ *\\|" yaml-tag-re " *\\)?$")
@@ -433,7 +433,7 @@ cross boundaries of block literals."
   yaml-mode-version)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.e?ya?ml\\'" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.\\(e?ya?\\|ra\\)ml\\'" . yaml-mode))
 
 (provide 'yaml-mode)
 
