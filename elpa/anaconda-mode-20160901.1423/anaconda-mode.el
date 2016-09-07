@@ -4,8 +4,8 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20160717.1034
-;; Version: 0.1.2
+;; Package-Version: 20160901.1423
+;; Version: 0.1.5
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -89,20 +89,14 @@
 
 ;;; Server.
 
-(defvar anaconda-mode-server-version "0.1.2"
+(defvar anaconda-mode-server-version "0.1.5"
   "Server version needed to run anaconda-mode.")
 
 (defvar anaconda-mode-server-command "
 import sys, site
-site.addsitedir('.')  # Adds eggs installed by easy_install
+site.addsitedir('.')
 import anaconda_mode
-try:
-    anaconda_mode.main(sys.argv[1:])
-except AttributeError:
-    # Compatibility layer.
-    host = sys.argv[1] if len(sys.argv) == 2 else '127.0.0.1'
-    anaconda_mode.service_factory(anaconda_mode.app, host, 'auto',
-                                  'anaconda_mode port {port}')
+anaconda_mode.main(sys.argv[1:])
 " "Run `anaconda-mode' server.")
 
 (defvar anaconda-mode-process-name "anaconda-mode"
