@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160806.743
+;; Package-Version: 20160830.858
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -599,6 +599,7 @@ The bound variable is \"filename\"."
     ,(concat "/app/assets/stylesheets/\\(?:.+/\\)?\\(.+\\)" projectile-rails-stylesheet-re)
     "/db/migrate/.*create_\\(.+\\)\\.rb\\'"
     "/spec/.*/\\([a-z_]+?\\)\\(?:_controller\\)?_spec\\.rb\\'"
+    "/test/.*/\\([a-z_]+?\\)\\(?:_controller\\)?_test\\.rb\\'"
     "/\\(?:test\\|spec\\)/\\(?:fixtures\\|factories\\|fabricators\\)/\\(.+?\\)\\(?:_fabricator\\)?\\.\\(?:yml\\|rb\\)\\'")
   "List of regexps for extracting a resource name from a buffer file name."
   :group 'projectile-rails
@@ -735,7 +736,7 @@ The bound variable is \"filename\"."
           (sqli-program    (sql-get-product-feature product :sqli-program))
           (sql-comint-func (sql-get-product-feature product :sqli-comint-func))
           (commands (s-split " " (projectile-rails-with-preloader
-                                  :spring (concat projectile-rails-spring-command " dbconsole")
+                                  :spring (concat projectile-rails-spring-command " rails dbconsole")
                                   :zeus (concat projectile-rails-zeus-command " dbconsole")
                                   :vanilla (concat projectile-rails-vanilla-command " dbconsole")))))
      (sql-set-product-feature product :sqli-login '())
