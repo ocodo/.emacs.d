@@ -1,9 +1,9 @@
 ;;; alert-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "alert" "alert.el" (22318 43654 540473 990000))
+;;;### (autoloads nil "alert" "alert.el" (22479 32552 69957 103000))
 ;;; Generated autoloads from alert.el
 
 (autoload 'alert-add-rule "alert" "\

@@ -6,7 +6,7 @@
 ;; Created: 24 Aug 2011
 ;; Updated: 16 Mar 2015
 ;; Version: 1.2
-;; Package-Version: 20160506.1821
+;; Package-Version: 20160824.821
 ;; Package-Requires: ((gntp "0.1") (log4e "0.3.0"))
 ;; Keywords: notification emacs message
 ;; X-URL: https://github.com/jwiegley/alert
@@ -570,7 +570,9 @@ fringe gets colored whenever people chat on BitlBee:
                     )
 
 (defun alert-message-notify (info)
-  (message (plist-get info :message))
+  ;; the message text might contain `%' and we don't want them to be
+  ;; interpreted as format specifiers:
+  (message "%s" (plist-get info :message))
   ;;(if (memq (plist-get info :severity) '(high urgency))
   ;;    (ding))
   )
