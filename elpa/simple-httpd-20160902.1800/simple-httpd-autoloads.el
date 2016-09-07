@@ -1,10 +1,10 @@
 ;;; simple-httpd-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "simple-httpd" "simple-httpd.el" (21833 28625
-;;;;;;  355401 0))
+;;;### (autoloads nil "simple-httpd" "simple-httpd.el" (22479 30232
+;;;;;;  844192 749000))
 ;;; Generated autoloads from simple-httpd.el
 
 (autoload 'httpd-start "simple-httpd" "\
