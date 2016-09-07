@@ -4,7 +4,7 @@
 
 ;; Author: Ivan Malison <IvanMalison@gmail.com>
 ;; Keywords: org projectile todo
-;; Package-Version: 20160617.1206
+;; Package-Version: 20160822.2123
 ;; URL: https://github.com/IvanMalison/org-projectile
 ;; Version: 0.2.1
 ;; Package-Requires: ((projectile "0.11.0") (dash "2.10.0") (emacs "24"))
@@ -153,8 +153,10 @@
          (current-value (assoc project-name project-to-org-filepath)))
     (when (or (not (file-exists-p org-file-truename)) (file-directory-p org-file-truename))
       (throw "The provided filepath is invalid" org-file))
-    (if current-value (setcdr current-value org-file-truename)
-      (cl-pushnew 'project-to-org-filepath `(,project-name . ,org-file-truename)))
+    (if current-value
+        (setcdr current-value org-file-truename)
+      (push (cons project-name org-file-truename)
+            project-to-org-filepath))
     (org-projectile:write-project-to-org-filepath
      project-to-org-filepath project-to-org-filepath-filepath)))
 
@@ -269,7 +271,9 @@ location of the filepath cache."
 
 (defun org-projectile:file-truename (filepath)
   (when filepath
-    (file-truename filepath)))
+    (if (find-file-name-handler filepath 'file-truename)
+        filepath ;; skip if the file requires special handling
+      (file-truename filepath))))
 
 (defun org-projectile:project-root-of-filepath (filepath)
   (org-projectile:file-truename

@@ -1,10 +1,10 @@
 ;;; org-projectile-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "org-projectile" "org-projectile.el" (22396
-;;;;;;  28910 120947 411000))
+;;;### (autoloads nil "org-projectile" "org-projectile.el" (22479
+;;;;;;  30257 440269 611000))
 ;;; Generated autoloads from org-projectile.el
 
 (autoload 'org-projectile:toggle-subheading "org-projectile" "\
