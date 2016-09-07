@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito
 ;; Keywords: org, wp, markdown, github
-;; Package-Version: 20160805.928
+;; Package-Version: 20160906.1035
 
 ;; This file is not part of GNU Emacs.
 
@@ -29,8 +29,7 @@
 ;;; Code:
 
 (require 'ox-md)
-
-
+(require 'ox-publish)
 
 ;;; User-Configurable Variables
 
@@ -355,6 +354,15 @@ Return output file's name."
   (interactive)
   (let ((outfile (org-export-output-file-name ".md" subtreep)))
     (org-export-to-file 'gfm outfile async subtreep visible-only)))
+
+;;;###autoload
+(defun org-gfm-publish-to-gfm (plist filename pub-dir)
+  "Publish an org file to Markdown.
+FILENAME is the filename of the Org file to be published.  PLIST
+is the property list for the given project.  PUB-DIR is the
+publishing directory.
+Return output file name."
+  (org-publish-org-to 'gfm filename ".md" plist pub-dir))
 
 (provide 'ox-gfm)
 

@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ox-gfm" "ox-gfm.el" (0 0 0 0))
+;;;### (autoloads nil "ox-gfm" "ox-gfm.el" (22479 30253 844258 526000))
 ;;; Generated autoloads from ox-gfm.el
 
 (autoload 'org-gfm-export-as-markdown "ox-gfm" "\
@@ -62,7 +62,14 @@ Return output file's name.
 
 \(fn &optional ASYNC SUBTREEP VISIBLE-ONLY)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ox-gfm" '("org-gfm-" "gfm-table-" "width-cookies")))
+(autoload 'org-gfm-publish-to-gfm "ox-gfm" "\
+Publish an org file to Markdown.
+FILENAME is the filename of the Org file to be published.  PLIST
+is the property list for the given project.  PUB-DIR is the
+publishing directory.
+Return output file name.
+
+\(fn PLIST FILENAME PUB-DIR)" nil nil)
 
 ;;;***
 
