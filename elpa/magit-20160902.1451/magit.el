@@ -590,11 +590,12 @@ detached `HEAD'."
   "Insert a header line about branch usually pulled into current branch."
   (when pull
     (magit-insert-section (branch pull)
-      (insert (format "%-10s"
-                      (or keyword
-                          (if (magit-get-boolean "branch" branch "rebase")
-                              "Rebase: "
-                            "Merge: "))))
+      (let ((rebase (magit-git-string "config"
+                                      (format "branch.%s.rebase" branch))))
+        (if (equal rebase "false")
+            (setq rebase nil)
+          (setq rebase (magit-get-boolean "pull.rebase")))
+        (insert (format "%-10s" (or keyword (if rebase "Rebase: " "Merge: ")))))
       (--when-let (and magit-status-show-hashes-in-headers
                        (magit-rev-format "%h" pull))
         (insert (propertize it 'face 'magit-hash) ?\s))
@@ -2809,7 +2810,7 @@ Usually this is just its basename."
                ;; If there are no tags, use the date in MELPA format.
                (magit-git-string "show" "--no-patch" "--format=%cd-g%h"
                                  "--date=format:%Y%m%d.%H%M"))))
-    (if (string-match-p "\\`[0-9]" v)
+    (if (and v (string-match-p "\\`[0-9]" v))
         (concat " " v)
       v)))
 

@@ -524,6 +524,8 @@ should.
    Instead of requiring the feature ‘magit’, you could load just the
 autoload definitions, by loading the file ‘magit-autoloads.el’.
 
+     (load "/path/to/magit/lisp/magit-autoloads")
+
    Instead of running Magit directly from the repository by adding that
 to the ‘load-path’, you might want to instead install it in some other
 directory using ‘sudo make install’ and setting ‘load-path’ accordingly.
