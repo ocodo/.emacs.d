@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160816.226
+;; Package-Version: 20160905.940
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (ivy "0.8.0"))
 ;; Keywords: matching
@@ -228,7 +228,8 @@
     (recenter-top-bottom arg)))
 
 (defvar swiper-font-lock-exclude
-  '(package-menu-mode
+  '(bookmark-bmenu-mode
+    package-menu-mode
     gnus-summary-mode
     gnus-article-mode
     gnus-group-mode
@@ -358,6 +359,7 @@ When non-nil, INITIAL-INPUT is the initial search pattern."
   (swiper--ivy (swiper--candidates) initial-input))
 
 (declare-function string-trim-right "subr-x")
+(defvar swiper--current-window-start nil)
 
 (defun swiper-occur (&optional revert)
   "Generate a custom occur buffer for `swiper'.
@@ -393,6 +395,7 @@ When REVERT is non-nil, regenerate the current *ivy-occur* buffer."
     (unless (eq major-mode 'ivy-occur-grep-mode)
       (ivy-occur-grep-mode)
       (font-lock-mode -1))
+    (setq swiper--current-window-start nil)
     (insert (format "-*- mode:grep; default-directory: %S -*-\n\n\n"
                     default-directory))
     (insert (format "%d candidates:\n" (length cands)))
@@ -405,7 +408,7 @@ When REVERT is non-nil, regenerate the current *ivy-occur* buffer."
 
 (ivy-set-occur 'swiper 'swiper-occur)
 
-(declare-function evil-jumper--set-jump "ext:evil-jumper")
+(declare-function evil-set-jump "ext:evil-jumps")
 
 (defvar swiper--current-line nil)
 (defvar swiper--current-match-start nil)
@@ -414,9 +417,10 @@ When REVERT is non-nil, regenerate the current *ivy-occur* buffer."
   "Perform initialization common to both completion methods."
   (setq swiper--current-line nil)
   (setq swiper--current-match-start nil)
+  (setq swiper--current-window-start nil)
   (setq swiper--opoint (point))
-  (when (bound-and-true-p evil-jumper-mode)
-    (evil-jumper--set-jump)))
+  (when (bound-and-true-p evil-mode)
+    (evil-set-jump)))
 
 (defun swiper--re-builder (str)
   "Transform STR into a swiper regex.
@@ -574,7 +578,8 @@ Matched candidates should have `swiper-invocation-face'."
                                      (line-end-position))
             (unless (and (>= (point) (window-start))
                          (<= (point) (window-end (ivy-state-window ivy-last) t)))
-              (recenter))))
+              (recenter))
+            (setq swiper--current-window-start (window-start))))
         (swiper--add-overlays re)))))
 
 (defun swiper--add-overlays (re &optional beg end wnd)
@@ -609,24 +614,32 @@ WND, when specified is the window."
           ;; RE can become an invalid regexp
           (while (and (ignore-errors (re-search-forward re end t))
                       (> (- (match-end 0) (match-beginning 0)) 0))
-            (let ((i 0))
-              (while (<= i ivy--subexps)
-                (when (match-beginning i)
-                  (let ((overlay (make-overlay (match-beginning i)
-                                               (match-end i)))
-                        (face
-                         (cond ((zerop ivy--subexps)
-                                (cadr swiper-faces))
-                               ((zerop i)
-                                (car swiper-faces))
-                               (t
-                                (nth (1+ (mod (+ i 2) (1- (length swiper-faces))))
-                                     swiper-faces)))))
-                    (push overlay swiper--overlays)
-                    (overlay-put overlay 'face face)
-                    (overlay-put overlay 'window wnd)
-                    (overlay-put overlay 'priority i)))
-                (cl-incf i)))))))))
+            (swiper--add-overlay (match-beginning 0) (match-end 0)
+                                 (if (zerop ivy--subexps)
+                                     (cadr swiper-faces)
+                                   (car swiper-faces))
+                                 wnd 0)
+            (let ((i 1)
+                  (j 0))
+              (while (<= (cl-incf j) ivy--subexps)
+                (let ((bm (match-beginning j))
+                      (em (match-end j)))
+                  (while (and (< j ivy--subexps)
+                              (= em (match-beginning (+ j 1))))
+                    (setq em (match-end (cl-incf j))))
+                  (swiper--add-overlay
+                   bm em
+                   (nth (1+ (mod (+ i 2) (1- (length swiper-faces))))
+                        swiper-faces)
+                   wnd i)
+                  (cl-incf i))))))))))
+
+(defun swiper--add-overlay (beg end face wnd priority)
+  (let ((overlay (make-overlay beg end)))
+    (push overlay swiper--overlays)
+    (overlay-put overlay 'face face)
+    (overlay-put overlay 'window wnd)
+    (overlay-put overlay 'priority priority)))
 
 (defcustom swiper-action-recenter nil
   "When non-nil, recenter after exiting `swiper'."
@@ -651,8 +664,10 @@ WND, when specified is the window."
                  ln)
         (re-search-forward re (line-end-position) t)
         (swiper--ensure-visible)
-        (when swiper-action-recenter
-          (recenter))
+        (cond (swiper-action-recenter
+               (recenter))
+              (swiper--current-window-start
+               (set-window-start (selected-window) swiper--current-window-start)))
         (when (/= (point) swiper--opoint)
           (unless (and transient-mark-mode mark-active)
             (when (eq ivy-exit 'done)
