@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "lispy" "lispy.el" (22459 4223 374171 328000))
+;;;### (autoloads nil "lispy" "lispy.el" (22479 30341 192514 87000))
 ;;; Generated autoloads from lispy.el
 
 (autoload 'lispy-mode "lispy" "\
@@ -34,7 +34,7 @@ backward through lists, which is useful to move into special.
 
 ;;;### (autoloads nil nil ("elpa.el" "le-clojure.el" "le-hy.el" "le-julia.el"
 ;;;;;;  "le-lisp.el" "le-python.el" "le-scheme.el" "lispy-inline.el"
-;;;;;;  "lispy-pkg.el" "lispy-tags.el") (22459 4223 382171 316000))
+;;;;;;  "lispy-pkg.el" "lispy-tags.el") (22479 30341 196514 98000))
 
 ;;;***
 

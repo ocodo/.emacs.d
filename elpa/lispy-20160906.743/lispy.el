@@ -1013,7 +1013,8 @@ If position isn't special, move to previous or error."
                         (memq (char-syntax (char-after))
                               '(?w ?_))))
           (forward-char 1))
-        (delete-horizontal-space)
+        (unless (lispy-bolp)
+          (delete-horizontal-space))
         (if (setq bnd (lispy--bounds-string))
             (save-restriction
               (narrow-to-region (1+ (car bnd)) (1- (cdr bnd)))
@@ -2909,25 +2910,36 @@ Precondition: the region is active and the point is at `region-beginning'."
     (cond ((region-active-p)
            (lispy--move-up-region arg))
           ((looking-at lispy-outline)
-           (lispy-dotimes arg
-             (let ((bnd1 (lispy--bounds-outline))
-                   (bnd2 (progn
-                           (backward-char)
-                           (lispy--bounds-outline))))
-               (if (or (equal bnd1 bnd2)
-                       (and (eq (car bnd2) (point-min))
-                            (not (save-excursion
-                                   (goto-char (point-min))
-                                   (looking-at lispy-outline)))))
-                   (goto-char (car bnd1))
-                 (lispy--swap-regions bnd1 bnd2)
-                 (goto-char (car bnd2))))))
+           (lispy-move-outline-up arg))
           (t
            (lispy--mark (lispy--bounds-dwim))
            (lispy-move-up arg)
            (deactivate-mark)
            (lispy-different)))
     (unless at-start (lispy-different))))
+
+(declare-function zo-up "zoutline")
+(defun lispy-move-outline-up (arg)
+  (interactive)
+  (require 'zoutline)
+  (lispy-dotimes arg
+    (let ((lvl1 (lispy-outline-level))
+          (lvl2 (save-excursion
+                  (backward-char)
+                  (lispy-outline-level))))
+      (when (<= lvl1 lvl2)
+        (let ((bnd1 (lispy--bounds-outline))
+              (bnd2 (progn
+                      (zo-up 1)
+                      (lispy--bounds-outline))))
+          (if (or (equal bnd1 bnd2)
+                  (and (eq (car bnd2) (point-min))
+                       (not (save-excursion
+                              (goto-char (point-min))
+                              (looking-at lispy-outline)))))
+              (goto-char (car bnd1))
+            (lispy--swap-regions bnd1 bnd2)
+            (goto-char (car bnd2))))))))
 
 (defun lispy--move-down-region (arg)
   "Swap the marked region ARG positions down.
@@ -4021,7 +4033,8 @@ When ARG is 2, insert the result as a comment."
                 outline-end))))
     (cond ((null res)
            (lispy-message lispy-eval-error))
-          ((equal res ""))
+          ((equal res "")
+           (message "(ok)"))
           ((= ?: (char-before (line-end-position)))
            (goto-char outline-end)
            (lispy--insert-eval-result res)
@@ -4032,7 +4045,11 @@ When ARG is 2, insert the result as a comment."
 (defun lispy-message (str)
   "Display STR in the echo area.
 If STR is too large, pop it to a buffer instead."
-  (if (> (cl-count ?\n str) 15)
+  (if (or (> (length str) 10000)
+          (> (cl-count ?\n str)
+             (or
+              14
+              (* (window-height (frame-root-window)) max-mini-window-height))))
       (progn
         (pop-to-buffer "*lispy-message*")
         (special-mode)
@@ -4102,9 +4119,14 @@ When ARG isn't nil, try to pretty print the sexp."
     (save-restriction
       (narrow-to-region (point) (point))
       (insert str)
+      (delete-trailing-whitespace)
+      (while (lispy-after-string-p "\n")
+        (delete-char -1))
       (save-excursion
         (if (and (lispy-right-p)
-                 (not (memq major-mode '(python-mode julia-mode))))
+                 (memq major-mode (append lispy-elisp-modes
+                                          lispy-clojure-modes
+                                          '(scheme-mode lisp-mode))))
             (progn
               ;; avoid "Lisp nesting exceeds `max-lisp-eval-depth'"
               (ignore-errors
@@ -4115,10 +4137,23 @@ When ARG isn't nil, try to pretty print the sexp."
           (insert "=> ")
           (forward-line 1)
           (while (< (point) (point-max))
-            (insert "   ")
+            (unless (eolp)
+              (insert "   "))
             (forward-line 1))))
-      (comment-region (point-min) (point-max))
+      (lispy-comment-region (point-min) (point-max))
       (goto-char (point-max)))))
+
+(defun lispy-comment-region (beg end)
+  "Comment the region between BEG and END.
+Unlike `comment-region', ensure a contiguous comment."
+  (interactive "r")
+  (goto-char beg)
+  (beginning-of-line)
+  (while (< (point) end)
+    (insert lispy-outline-header)
+    (unless (eolp)
+      (insert " "))
+    (beginning-of-line 2)))
 
 (defun lispy-eval-and-replace ()
   "Eval last sexp and replace it with the result."
@@ -4230,14 +4265,14 @@ When ARG is non-nil, force select the window."
               (selected-window))))
          res)
     (if (eq major-mode 'lisp-mode)
-        (message (lispy--eval (prin1-to-string expr)))
+        (lispy-message (lispy--eval (prin1-to-string expr)))
       (with-selected-window target-window
-        (setq res (lispy--eval-elisp-form expr lexical-binding))
-        (if (equal res lispy--eval-cond-msg)
-            (message res)
-          (if (and (fboundp 'object-p) (object-p res))
-              (message "(eieio object length %d)" (length res))
-            (message "%S" res)))))))
+        (setq res (lispy--eval-elisp-form expr lexical-binding)))
+      (if (equal res lispy--eval-cond-msg)
+          (lispy-message res)
+        (if (and (fboundp 'object-p) (object-p res))
+            (message "(eieio object length %d)" (length res))
+          (lispy-message (format "%S" res)))))))
 
 (defun lispy-follow ()
   "Follow to `lispy--current-function'."
@@ -5066,7 +5101,10 @@ ARG is 4: `eval-defun' on the function from this sexp."
          (let* ((ldsi-sxp (lispy--setq-expression))
                 (ldsi-fun (car ldsi-sxp)))
            (cond
-             ((memq ldsi-fun '(mapcar mapc cl-find-if))
+             ((memq ldsi-fun '(mapcar mapc mapcan
+                               cl-remove-if cl-remove-if-not
+                               cl-find-if cl-find-if-not
+                               cl-some cl-every cl-any cl-notany))
               (let ((fn (nth 1 ldsi-sxp))
                     (lst (nth 2 ldsi-sxp)))
                 (when (eq (car-safe fn) 'lambda)
@@ -5670,7 +5708,7 @@ Return start of string it is."
    (buffer-substring
     (max
      (- (point) (length str))
-     1)
+     (point-min))
     (point))
    str))
 
@@ -5792,23 +5830,29 @@ Otherwise return cons of current string, symbol or list bounds."
                     (forward-word 1)
                     (bounds-of-thing-at-point 'symbol))))))))))
 
+(declare-function python-nav-end-of-statement "python")
 (defun lispy--bounds-c-toplevel ()
   "Return a cons of the bounds of a C-like top-level expression."
   (cons
    (point)
    (save-excursion
-     (let ((end (line-end-position))
-           pt)
-       (while (= ?\\ (char-before end))
-         (setq end (line-end-position 2)))
-       (while (< (point) end)
-         (setq pt (point))
-         (if (looking-at " \\*")
-             (forward-char 2)
-           (forward-sexp 1)))
-       (if (<= (point) end)
-           (point)
-         pt)))))
+     (if (looking-at " *\\(\\sw\\|\\s_\\)+ *=")
+         (progn
+           (python-nav-end-of-statement)
+           (point))
+       (let ((end (line-end-position))
+             pt)
+         (while (= ?\\ (char-before end))
+           (goto-char end)
+           (setq end (line-end-position 2)))
+         (while (< (point) end)
+           (setq pt (point))
+           (if (looking-at " \\*")
+               (forward-char 2)
+             (forward-sexp 1)))
+         (if (<= (point) end)
+             (point)
+           pt))))))
 
 (defun lispy--bounds-list ()
   "Return the bounds of smallest list that includes the point.
@@ -5876,8 +5920,29 @@ First, try to return `lispy--bounds-string'."
 
 (defun lispy--bounds-outline ()
   "Return bounds of current outline."
-  (cons (lispy--outline-beg)
-        (lispy--outline-end)))
+  (save-excursion
+    (save-match-data
+      (condition-case e
+          (cons
+           (progn
+             (org-back-to-heading t)
+             (point))
+           (progn
+             (org-end-of-subtree t t)
+             (when (and (org-at-heading-p)
+                        (not (eobp)))
+               (backward-char 1))
+             (point)))
+        (error
+         (if (string-match
+              "^Before first headline"
+              (error-message-string e))
+             (cons (point-min)
+                   (or (ignore-errors
+                         (org-speed-move-safe 'outline-next-visible-heading)
+                         (point))
+                       (point-max)))
+           (signal (car e) (cdr e))))))))
 
 (defun lispy--outline-beg ()
   "Return the current outline start."
@@ -5967,8 +6032,10 @@ Return nil on failure, t otherwise."
   (end-of-line)
   (comment-beginning)
   (let ((cs (comment-search-backward (line-beginning-position) t)))
-    (when cs
-      (goto-char cs))))
+    (or
+     (when cs
+       (goto-char cs))
+     (looking-at (concat "^" lispy-outline-header)))))
 
 (defun lispy--comment-search-forward (dir)
   "Search for a first comment in direction DIR.
@@ -6017,6 +6084,8 @@ When ADD-OUTPUT is t, append the output to the result."
          ((eq major-mode 'julia-mode)
           (require 'le-julia)
           'lispy--eval-julia)
+         ((eq major-mode 'matlab-mode)
+          'matlab-eval)
          (t (error "%s isn't supported currently" major-mode)))
    e-str))
 
@@ -8541,7 +8610,6 @@ When ARG is non-nil, unquote the current string."
     (define-key map (kbd "σ") 'lispy-braces)
     (define-key map (kbd "ρ") 'lispy-brackets)
     (define-key map (kbd "θ") 'lispy-quotes)
-    (define-key map (kbd "C-φ") 'lispy-parens-down)
     (define-key map (kbd "χ") 'lispy-right)
     (define-key map (kbd "C-M-a") 'lispy-beginning-of-defun)
     (define-key map (kbd "<return>") 'lispy-alt-line)
