@@ -953,7 +953,7 @@ Optionally check ALLBUFS."
   (load-file "~/.emacs.d/init.el")
   (message "Reloaded Emacs configuration successfully."))
 
-(defun elpa-package-helpers-ends-here ()
+(defun elpa-package-insert-ends-here ()
   "Insert the ELPA package file ending string.
 
 \(When it's missing\)"

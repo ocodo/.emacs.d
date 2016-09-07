@@ -1,5 +1,7 @@
+;;; Code:
+
 (defun init-set-custom ()
-  "Custom set and loaded from local (non-git) or regular (git-shared)"
+  "Custom set and loaded from local (non-git) or regular (git-shared)."
   (let* ((default-directory user-emacs-directory)
         (local-custom (expand-file-name "local/custom.el")))
     (if (file-readable-p local-custom)
@@ -14,7 +16,7 @@
     (menu-bar-mode -1)))
 
 (defun manage-history ()
-  "Manage history"
+  "Manage history."
   (require 'savehist)
   (eval-after-load "savehist-mode"
     (progn
@@ -28,7 +30,8 @@
   (interactive)
   (set-face-attribute 'mode-line nil
                     :inherit 'mode-line-face
-                    :font "Menlo"
+                    :font "SauceCodePro Nerd Font"
+                    :weight 'ultra-light
                     :foreground "gray60"
                     :background "gray20"
                     :height 120
@@ -39,7 +42,8 @@
                                        :style nil))
 (set-face-attribute 'mode-line-inactive nil
                     :inherit 'mode-line-face
-                    :font "Menlo"
+                    :font "SauceCodePro Nerd Font"
+                    :weight 'ultra-light
                     :foreground "gray80"
                     :background "gray40"
                     :inverse-video nil
@@ -49,3 +53,4 @@
                                        :style nil)))
 
 (provide 'quick-init-helpers)
+;;; quick-init-helpers.el ends here

@@ -40,14 +40,18 @@
     ;; Mac OS X
     (when (eq system-type 'darwin)
       ;;
-      ;;(set-face-font 'default "SauceCodePro Nerd Font Light")
       ;;(set-face-font 'default "Monaco")
       ;;(set-face-font 'default "Menlo")
       ;;(set-face-font 'default "Source Code Pro")
       ;;(set-face-font 'default "Source Code Pro Light")
       ;;(set-face-font 'default "Inconsolata")
       ;;(set-face-font 'default "Bitstream Vera Sans Mono")
-      (set-face-font 'default "SauceCodePro Nerd Font Light")
+
+      ;; ================================================
+      ;; a copy of SauceCodePro is kept in emacs.d/fonts
+      (set-face-attribute 'default nil
+                          :font "SauceCodePro Nerd Font"
+                          :weight 'ultra-light)
       ;;
       )
     ;; Sample Text for font viewing
