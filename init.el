@@ -69,28 +69,7 @@
 ;; (require 'amitp-mode-line)
 ;; (amitp-mode-line)
 
-(set-face-attribute 'mode-line nil
-                    :inherit 'mode-line-face
-                    :font "Menlo"
-                    :foreground "gray60"
-                    :background "gray20"
-                    :height 120
-                    :inverse-video nil
-                    :box '(
-                           :line-width 6
-                                       :color "gray20"
-                                       :style nil))
-(set-face-attribute 'mode-line-inactive nil
-                    :inherit 'mode-line-face
-                    :font "Menlo"
-                    :foreground "gray80"
-                    :background "gray40"
-                    :inverse-video nil
-                    :box '(
-                           :line-width 6
-                                       :color "gray40"
-                                       :style nil))
-
+(simple-mode-line-modification)
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.

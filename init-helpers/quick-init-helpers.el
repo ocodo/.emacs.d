@@ -23,4 +23,29 @@
         (setq savehist-file (expand-file-name "tmp/savehist")))))
   (savehist-mode 1))
 
+(defun simple-mode-line-modification ()
+  "Very simple mode line modification that I like to use."
+  (interactive)
+  (set-face-attribute 'mode-line nil
+                    :inherit 'mode-line-face
+                    :font "Menlo"
+                    :foreground "gray60"
+                    :background "gray20"
+                    :height 120
+                    :inverse-video nil
+                    :box '(
+                           :line-width 6
+                                       :color "gray20"
+                                       :style nil))
+(set-face-attribute 'mode-line-inactive nil
+                    :inherit 'mode-line-face
+                    :font "Menlo"
+                    :foreground "gray80"
+                    :background "gray40"
+                    :inverse-video nil
+                    :box '(
+                           :line-width 6
+                                       :color "gray40"
+                                       :style nil)))
+
 (provide 'quick-init-helpers)
