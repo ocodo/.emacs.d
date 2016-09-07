@@ -1,10 +1,10 @@
 ;;; helm-spotify-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-spotify" "helm-spotify.el" (21713 57858
-;;;;;;  963401 0))
+;;;### (autoloads nil "helm-spotify" "helm-spotify.el" (22479 30396
+;;;;;;  844663 263000))
 ;;; Generated autoloads from helm-spotify.el
 
 (defvar helm-source-spotify-track-search '((name . "Spotify") (volatile) (delayed) (multiline) (requires-pattern . 2) (candidates-process . helm-spotify-search) (action-transformer . helm-spotify-actions-for-track)))
