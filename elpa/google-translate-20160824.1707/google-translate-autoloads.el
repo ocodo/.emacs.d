@@ -1,10 +1,10 @@
 ;;; google-translate-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "google-translate-default-ui" "google-translate-default-ui.el"
-;;;;;;  (22338 19874 347323 49000))
+;;;;;;  (22479 30448 156792 521000))
 ;;; Generated autoloads from google-translate-default-ui.el
 
 (autoload 'google-translate-query-translate "google-translate-default-ui" "\
@@ -64,7 +64,7 @@ reverse direction.
 ;;;***
 
 ;;;### (autoloads nil "google-translate-smooth-ui" "google-translate-smooth-ui.el"
-;;;;;;  (22338 19874 359323 29000))
+;;;;;;  (22479 30448 172792 560000))
 ;;; Generated autoloads from google-translate-smooth-ui.el
 
 (autoload 'google-translate-smooth-translate "google-translate-smooth-ui" "\
@@ -93,7 +93,7 @@ one respectively.
 
 ;;;### (autoloads nil nil ("google-translate-core-ui.el" "google-translate-core.el"
 ;;;;;;  "google-translate-pkg.el" "google-translate-tk.el" "google-translate.el")
-;;;;;;  (22338 19874 372174 690000))
+;;;;;;  (22479 30448 180792 580000))
 
 ;;;***
 
