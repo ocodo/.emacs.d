@@ -1,10 +1,10 @@
 ;;; el2markdown-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "el2markdown" "el2markdown.el" (21849 28454
-;;;;;;  175401 0))
+;;;### (autoloads nil "el2markdown" "el2markdown.el" (22479 30482
+;;;;;;  44873 913000))
 ;;; Generated autoloads from el2markdown.el
 
 (autoload 'el2markdown-view-buffer "el2markdown" "\

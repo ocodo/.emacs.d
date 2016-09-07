@@ -3,8 +3,8 @@
 ;; Copyright (C) 2013-2014 Anders Lindgren
 
 ;; Author: Anders Lindgren
-;; Version: 0.0.5
-;; Package-Version: 20150516.1338
+;; Version: 0.0.6
+;; Package-Version: 20160822.1135
 ;; Created: 2013-03-26
 ;; URL: https://github.com/Lindydancer/el2markdown
 
@@ -43,7 +43,7 @@
 ;; written using plain text, as they always have been written.
 ;;
 ;; However, some things are recognized. A single line ending with a
-;; colon is cosidered a *heading*. If this line is at the start of a
+;; colon is considered a *heading*. If this line is at the start of a
 ;; comment block, it is considered a main (level 2) heading. Otherwise
 ;; it is considered a (level 3) subheading. Note that the line
 ;; precedes a bullet list or code, it will not be treated as a
@@ -80,7 +80,7 @@
 ;;
 ;;     ;; This is another heading:
 ;;     ;;
-;;     ;; This is a pararaph!
+;;     ;; This is a paragraph!
 ;;     ;;
 ;;     ;; A subheading:
 ;;     ;;
@@ -321,10 +321,12 @@ things in comments.")
 
 
 (defun el2markdown-is-at-bullet-list ()
+  "Non-nil when next non-empty comment line is a bullet list."
   (save-excursion
     (while (looking-at "^;;$")
       (forward-line))
-    (looking-at ";;+ *[-*]")))
+    ;; When more then 4 spaces, the line is a code block.
+    (looking-at ";;+ \\{0,4\\}[-*]")))
 
 (defun el2markdown-emit-rest-of-comment ()
   (let ((first t))
@@ -352,8 +354,7 @@ things in comments.")
           (progn
             (el2markdown-emit-header (if first 2 3)
                                      (match-string-no-properties 1))
-            (forward-line 2)
-            (setq first nil))
+            (forward-line 2))
         ;; Section of text. (Things starting with a parenthesis is
         ;; assumes to be code.)
         (let ((is-code (looking-at ";;+ *("))
@@ -370,7 +371,8 @@ things in comments.")
           (if (and is-bullet
                    (el2markdown-is-at-bullet-list))
               nil
-            (terpri)))))))
+            (terpri))))
+      (setq first nil))))
 
 (provide 'el2markdown)
 
