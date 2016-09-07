@@ -208,18 +208,23 @@ can contain following parameters:
 %y: year of creation date
 %m: month of creation date
 %d: day of creation date
-%t: title of current buffer"
+%t: title of current buffer
+%f: file name of current buffer"
   (let ((uri-template (or (ego--read-org-option "URI")
-                          default-uri-template))
-        (date-list (split-string (if creation-date
-                                     (ego--fix-timestamp-string creation-date)
-                                   (format-time-string "%Y-%m-%d"))
-                                 "-"))
-        (encoded-title (ego--encode-string-to-url title)))
-    (format-spec uri-template `((?y . ,(car date-list))
-                                (?m . ,(cadr date-list))
-                                (?d . ,(cl-caddr date-list))
-                                (?t . ,encoded-title)))))
+                        default-uri-template))
+      (date-list (split-string (if creation-date
+                                   (ego--fix-timestamp-string creation-date)
+                                 (format-time-string "%Y-%m-%d"))
+                               "-"))
+      (encoded-title (ego--encode-string-to-url title))
+      (encoded-file-name (ego--encode-string-to-url
+                          ;; 获取buffer的文件名
+                          (replace-regexp-in-string "^.*/\\|\\.org$" "" (buffer-file-name)))))
+  (format-spec uri-template `((?y . ,(car date-list))
+                              (?m . ,(cadr date-list))
+                              (?d . ,(cl-caddr date-list))
+                              (?t . ,encoded-title)
+                              (?f . ,encoded-file-name)))))
 
 
 (defun ego--get-file-category (org-file)
