@@ -2,7 +2,7 @@
 
 ;; Author:  <m.sakurai at kiwanami.net>
 ;; Version: 0.0.1
-;; Package-Version: 20151123.653
+;; Package-Version: 20160906.1204
 ;; Package-Requires: ((tern "0.0.1") (auto-complete "1.4") (cl-lib "0.5") (emacs "24"))
 
 ;;; Commentary:
@@ -121,7 +121,7 @@ Remember to add ac-source-tern-completion to ac-sources."
       (define-key tern-mode-keymap "." 'tern-ac-dot-complete)
     (define-key tern-mode-keymap "." nil)))
 
-(defvar tern-ac-js-major-modes '(js2-mode js-mode javascript-mode))
+(defvar tern-ac-js-major-modes '(js2-mode js2-jsx-mode js-mode javascript-mode))
 
 (defadvice auto-complete (around add-tern-ac-candidates first activate)
   "Load tern-js canditates before ac-start."

@@ -1,10 +1,10 @@
 ;;; tern-auto-complete-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "tern-auto-complete" "tern-auto-complete.el"
-;;;;;;  (22108 42287 625176 480000))
+;;;;;;  (22479 30216 952141 761000))
 ;;; Generated autoloads from tern-auto-complete.el
 
 (autoload 'tern-ac-setup "tern-auto-complete" "\
