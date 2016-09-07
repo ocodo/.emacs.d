@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Package-Requires: ((cl-lib "0.3"))
-;; Package-Version: 20160523.545
+;; Package-Version: 20160902.513
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
 
@@ -411,57 +411,70 @@ being undefined is being bound to nil like B above."
 (defmacro kmu-define-keys (mapvar feature &rest args)
   "Define all keys in ARGS in the keymap stored in MAPVAR.
 
-MAPVAR is a variable whose value is (or will be) a keymap.
-FEATURE, if non-nil, is the feature provided by the library that
-defines MAPVAR.
+MAPVAR is a variable whose value is a keymap.  If FEATURE is nil,
+then that keymap is modified immediately.  If FEATURE is a symbol
+or string, then the keymap isn't modified until after that
+library/file has been loaded.  The FEATURE has to be specified if
+it isn't always loaded and MAPVAR does not exist until after it
+has been loaded.
 
-ARGS basically has the form (KEY DEF ...), but in place of a KEY
-the symbol `_' can appear in which case the folloing element has
-to be a KEY.  This is useful for alignment.
+Conceptually ARGS is a plist of the form (KEY DEF ...), but see
+below for details.
 
 Each KEY is a either an event sequence vector or a string as
-returned by `key-description'.  Each DEF can be anything that can
-be a key's definition (see `define-key').  Alternatively a DEF
-can be `:remove' or `>' in which case the existing definition (if
-any) is removed from KEYMAP using `kmu-remove-key' (which see).
-Finally a DEF can be `=' or `~' in which case it and the
-preceding KEY are ignored.  This is useful for documentation
-purposes.
+returned by `key-description'.
 
-When FEATURE is nil MAPVAR's value is modified right away.
-Otherwise it is modified immediately after FEATURE is loaded.
-FEATURE may actually be a string, see `eval-after-load', though
-normally it is a symbol.
+Each DEF can be anything that can be a key's definition according
+to `kmu-define-key' and `define-key'.
 
-Arguments aren't evaluated and therefore don't have to be quoted.
-Also see `kmu-define-keys-1' which does evaluate its arguments."
+A DEF can also the symbol `:remove' in which case the KEY's
+existing definition (if any) is removed from KEYMAP using
+`kmu-remove-key'.
+
+The symbol `>' is a synonym for `:remove', which is useful when
+you want to move a binding from one key to another and make that
+explicit:
+
+  (kmu-define-keys foo-mode-map foo
+    \"a\" > \"b\" moved-command)
+
+A DEF can also be the symbol `=' in which case the binding of the
+preceding KEY is *not* changes.  This is useful when you want to
+make it explicit that an existing binding is kept when creating a
+new binding:
+
+  (kmu-define-keys foo-mode-map foo
+    \"a\" = \"b\" copied-command)
+
+Finally the symbol `_' can appear anywhere in ARGS and this macro
+just treats it as whitespace.  This is useful because it allows
+aligning keys and commands without having to fight the automatic
+indentation mechanism:
+
+  (kmu-define-keys foo-mode-map foo
+    \"a\" > \"b\" moved-command
+    _     \"c\" newly-bound-command)"
   (declare (indent 2))
-  (if feature
-      `(eval-after-load ',feature
-         '(progn
-            (when kmu-save-vanilla-keymaps-mode
-              ;; `kmu-save-vanilla-keymaps' comes later in
-              ;; `after-load-functions'.
-              (kmu-save-vanilla-keymap ',mapvar))
-            (kmu-define-keys-1 ',mapvar ',args)))
-    `(kmu-define-keys-1 ',mapvar ',args)))
-
-(defun kmu-define-keys-1 (keymap args)
-  "Define all keys in ARGS in the keymap KEYMAP.
-KEYMAP may also be a variable whose value is a keymap.
-Also see `kmu-define-keys'."
-  (when (symbolp keymap)
-    (setq keymap (symbol-value keymap)))
-  (unless (keymapp keymap)
-    (error "Not a keymap"))
-  (while args
-    (let ((key (pop args)))
-      (unless (eq key '_)
-        (let ((def (pop args)))
-          (pcase def
-            ((or '= '~))
-            ((or '> :remove) (kmu-remove-key keymap key))
-            (_               (kmu-define-key keymap key def))))))))
+  (let (body)
+    (while args
+      (let ((key (pop args)))
+        (unless (eq key '_)
+          (let ((def (pop args)))
+            (while (eq def '_)
+              (setq def (pop args)))
+            (cl-case def
+              (=)
+              ((> :remove)
+               (unless (cl-member-if (lambda (form)
+                                       (and (eq (car form) 'kmu-define-key)
+                                            (equal (car (cddr form)) key)))
+                                     body)
+                 (push `(kmu-remove-key ,mapvar ,key) body)))
+              (t
+               (push `(kmu-define-key ,mapvar ,key ',def) body)))))))
+    (if feature
+        `(with-eval-after-load ',feature ,@(nreverse body))
+      (macroexp-progn (nreverse body)))))
 
 ;;; Keymap Mapping
 
@@ -573,10 +586,9 @@ bindings turn on this mode as early as possible."
 
 (defun kmu-save-vanilla-keymap (mapvar)
   (interactive (list (kmu-read-mapvar "Save keymap: ")))
-  (let ((e (assoc mapvar kmu-vanilla-keymaps)))
-    (unless e
-      (push (cons mapvar (copy-keymap (symbol-value mapvar)))
-            kmu-vanilla-keymaps))))
+  (unless (assoc mapvar kmu-vanilla-keymaps)
+    (push (cons mapvar (copy-keymap (symbol-value mapvar)))
+          kmu-vanilla-keymaps)))
 
 (defun kmu-restore-vanilla-keymap (mapvar)
   (let ((vanilla (assoc mapvar kmu-vanilla-keymaps)))
