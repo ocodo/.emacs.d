@@ -4,8 +4,8 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20160822.226
-;; Version: 2.2.0
+;; Package-Version: 20160901.2339
+;; Version: 2.2.1
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/rnkn/fountain-mode
 
@@ -122,7 +122,7 @@
 ;;; Code:
 
 (defconst fountain-version
-  "2.2.0")
+  "2.2.1")
 
 
 ;;; Requirements
@@ -440,7 +440,7 @@ if you prefer the latter, set this option to non-nil."
 
 (defcustom fountain-note-template
   " {{time}} - {{fullname}}: "
-  "\\<fountain-mode-map>Template for inserting notes with \\[fountain-insert-note].
+  "\\<fountain-mode-map>Template for inserting notes with `fountain-insert-note' (\\[fountain-insert-note]).
 
 To include an item in a template you must use the full `{{KEY}}'
 syntax.
@@ -1018,7 +1018,8 @@ comments."
   (unless (fountain-match-scene-heading)
     (save-excursion
       (forward-line 0)
-      (and (let ((case-fold-search nil))
+      (and (not (looking-at fountain-forced-action-mark-regexp))
+           (let ((case-fold-search nil))
              (looking-at fountain-character-regexp))
            (save-match-data
              (save-restriction
@@ -1657,7 +1658,11 @@ Includes child elements."
     (list 'action
           (list 'begin beg
                 'end end)
-          (buffer-substring-no-properties beg end)))) ; FIXME: remove s
+          (buffer-substring-no-properties
+           (if (string-match fountain-forced-action-mark-regexp
+                             (buffer-substring beg end))
+               (1+ beg) beg)
+           end))))
 
 (defun fountain-parse-element ()
   "Call appropropriate element parsing function for matched element at point."
@@ -2897,9 +2902,10 @@ If prefixed with ARG, insert `.' at beginning of line to force
 a scene heading."
   (interactive "P")
   (if arg
-      (save-excursion
-        (forward-line 0)
-        (insert-char ?.)))
+      (unless (fountain-match-scene-heading)
+        (save-excursion
+          (forward-line 0)
+          (insert-char ?.))))
   (upcase-region (line-beginning-position) (point))
   (insert-char ?\n))
 
@@ -3247,7 +3253,7 @@ fountain-hide-ELEMENT is non-nil, adds fountain-ELEMENT to
               :invisible fountain-syntax-chars
               :override t
               :laxmatch t)
-      (:level 1 :subexp 4
+      (:level 2 :subexp 4
               :display (- right-margin fountain-align-scene-number)
               :laxmatch t)))
     ("character"
