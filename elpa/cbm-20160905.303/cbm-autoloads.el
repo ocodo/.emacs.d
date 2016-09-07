@@ -1,9 +1,9 @@
 ;;; cbm-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "cbm" "cbm.el" (22396 29155 404377 108000))
+;;;### (autoloads nil "cbm" "cbm.el" (22479 32527 569895 298000))
 ;;; Generated autoloads from cbm.el
 
 (autoload 'cbm-cycle "cbm" "\
@@ -17,7 +17,7 @@ Switch to buffer, filtered by `major-mode'.
 \(fn)" t nil)
 
 (autoload 'cbm-find-org-agenda-file "cbm" "\
-Switch to a file in function `org-agenda-files'.
+Switch to a file from `org-agenda-files'.
 
 \(fn)" t nil)
 
