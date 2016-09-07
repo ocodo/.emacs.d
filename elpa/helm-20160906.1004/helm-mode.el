@@ -19,6 +19,7 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-lib)
 (require 'helm-files)
 
 
@@ -219,13 +220,13 @@ If COLLECTION is an `obarray', a TEST should be needed. See `obarray'."
                  ;; Also, the history collections generally collect their
                  ;; elements as string, so intern them to call predicate.
                  ((and (symbolp collection) (boundp collection) test)
-                  (let ((predicate `(lambda (elm)
-                                      (condition-case err
-                                          (if (eq (quote ,test) 'commandp)
-                                              (funcall (quote ,test) (intern elm))
-                                              (funcall (quote ,test) elm))
-                                        (wrong-type-argument
-                                         (funcall (quote ,test) (intern elm)))))))
+                  (let ((predicate (lambda (elm)
+                                     (condition-case _err
+                                         (if (eq test 'commandp)
+                                             (funcall test (intern elm))
+                                             (funcall test elm))
+                                       (wrong-type-argument
+                                        (funcall test (intern elm)))))))
                     (all-completions input (symbol-value collection) predicate)))
                  ((and (symbolp collection) (boundp collection))
                   (all-completions input (symbol-value collection)))
@@ -826,6 +827,7 @@ Keys description:
           (and helm-ff-auto-update-initial-value
                (not (minibuffer-window-active-p (minibuffer-window)))))
          helm-full-frame
+         helm-follow-mode-persistent
          (hist (and history (helm-comp-read-get-candidates
                              history nil nil alistp)))
          (minibuffer-completion-confirm must-match)

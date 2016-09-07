@@ -435,8 +435,9 @@ Should be called after others transformers i.e (boring buffers)."
 
 (defun helm-buffers-mark-similar-buffers-1 ()
   (with-helm-window
-    (let ((type (get-text-property
-                 0 'type (helm-get-selection nil 'withprop))))
+    (let* ((src (helm-get-current-source))
+           (type (get-text-property
+                  0 'type (helm-get-selection nil 'withprop src))))
       (save-excursion
         (goto-char (helm-get-previous-header-pos))
         (helm-next-line)
@@ -449,13 +450,13 @@ Should be called after others transformers i.e (boring buffers)."
                (maxpoint  (or end (point-max))))
           (while (< (point) maxpoint)
             (helm-mark-current-line)
-            (let ((cand (helm-get-selection nil 'withprop)))
+            (let ((cand (helm-get-selection nil 'withprop src)))
               (when (and (not (helm-this-visible-mark))
                          (eq (get-text-property 0 'type cand) type))
                 (helm-make-visible-mark)))
             (forward-line 1) (end-of-line))))
       (helm-mark-current-line)
-      (helm-display-mode-line (helm-get-current-source) t)
+      (helm-display-mode-line src t)
       (message "%s candidates marked" (length helm-marked-candidates)))))
 
 (defun helm-buffers-mark-similar-buffers ()
@@ -593,11 +594,10 @@ If REGEXP-FLAG is given use `query-replace-regexp'."
 
 (defun helm-buffer-toggle-diff (candidate)
   "Toggle diff buffer CANDIDATE with it's file."
-  (let (helm-persistent-action-use-special-display)
-    (helm-aif (get-buffer-window "*Diff*")
-        (progn (kill-buffer "*Diff*")
-               (set-window-buffer it helm-current-buffer))
-      (diff-buffer-with-file (get-buffer candidate)))))
+  (helm-aif (get-buffer-window "*Diff*")
+      (progn (kill-buffer "*Diff*")
+             (set-window-buffer it helm-current-buffer))
+    (diff-buffer-with-file (get-buffer candidate))))
 
 (defun helm-buffer-diff-persistent ()
   "Toggle diff buffer without quitting helm."
@@ -783,7 +783,8 @@ If REGEXP-FLAG is given use `query-replace-regexp'."
 
 (defun helm-buffers-list-persistent-action (candidate)
   (let ((current (window-buffer helm-persistent-action-display-window)))
-    (if (or (eql current (get-buffer helm-current-buffer))
+    (if (or (helm-follow-mode-p)
+            (eql current (get-buffer helm-current-buffer))
             (not (eql current (get-buffer candidate))))
         (switch-to-buffer candidate)
         (switch-to-buffer helm-current-buffer))))

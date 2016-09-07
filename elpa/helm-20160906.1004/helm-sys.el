@@ -40,20 +40,36 @@
   "Top command used to display output of top.
 A format string where %s will be replaced with `frame-width'.
 
-To use top command, a version supporting batch mode (-b option) is needed.
-On Mac OSX top command doesn't support this, so ps command
-is used by default instead.
-If you modify this the number and order of elements displayed
-should be the same as top command to have the sort commands
-working properly, that is 12 elements with the 2 first being
-PID and USER and the last 4 being %CPU, %MEM, TIME and COMMAND.
-Ensure also that no elements contain spaces (e.g use start_time and not start)
-and \"env COLUMNS=%s\" is specified at beginning of command."
+To use 'top' command, a version supporting batch mode (-b option) is needed.
+On Mac OSX 'top' command doesn't support this, so ps command
+is used instead by default.
+Normally 'top' command output have 12 columns, but in some versions you may
+have less than this, so you can either customize top to use 12 columns with the
+interactives 'f' and 'W' commands of top, or modify
+`helm-top-sort-colums-alist' to fit with the number of columns
+your 'top' command is using.
+
+If you modify 'ps' command be sure that 'pid' comes in first
+and \"env COLUMNS=%s\" is specified at beginning of command.
+Ensure also that no elements contain spaces (e.g use start_time and not start).
+Same as for 'top' you can customize `helm-top-sort-colums-alist' to make sort commands
+working properly according to your settings."
   :group 'helm-sys
   :type 'string)
 
+(defcustom helm-top-sort-colums-alist '((com . 11)
+                                        (mem . 9)
+                                        (cpu . 8)
+                                        (user . 1))
+  "Allow defining which column to use when sorting output of top/ps command.
+Only com, mem, cpu and user are sorted, so no need to put something else there,
+it will have no effect.
+Note that column numbers are counted from zero, i.e column 1 is the nth 0 column."
+  :group 'helm-sys
+  :type '(alist :key-type symbol :value-type (integer :tag "Column number")))
+
 (defcustom helm-top-poll-delay 1.5
-  "Helm top poll after this dealy when `helm-top-poll-mode' is enabled.
+  "Helm top poll after this delay when `helm-top-poll-mode' is enabled.
 The minimal delay allowed is 1.5, if less than this helm-top will use 1.5."
   :group 'helm-sys
   :type  'float)
@@ -67,7 +83,8 @@ being idle."
 
 (defcustom helm-top-poll-preselection 'linum
   "Stay on same line or follow candidate when `helm-top-poll' update display.
-Possible values are 'candidate or 'linum."
+Possible values are 'candidate or 'linum.
+This affect also sorting functions in the same way."
   :group'helm-sys
   :type '(radio :tag "Preferred preselection action for helm-top"
           (const :tag "Follow candidate" candidate)
@@ -167,6 +184,7 @@ Possible values are 'candidate or 'linum."
     :persistent-action #'helm-top-sh-persistent-action
     :persistent-help "SIGTERM"
     :help-message 'helm-top-help-message
+    :mode-line 'helm-top-mode-line
     :follow 'never
     :keymap helm-top-map
     :filtered-candidate-transformer #'helm-top-sort-transformer
@@ -186,10 +204,11 @@ Return empty string for non--valid candidates."
                            (cons helm-top--line lst))))
 
 (defun helm-top--skip-top-line ()
-  (let ((src-name (assoc-default 'name (helm-get-current-source))))
+  (let* ((src (helm-get-current-source))
+         (src-name (assoc-default 'name src)))
     (helm-aif (and (stringp src-name)
                    (string= src-name "Top")
-                   (helm-get-selection nil t))
+                   (helm-get-selection nil t src))
         (when (string-match-p "^ *PID" it)
           (helm-next-line)))))
 
@@ -261,38 +280,49 @@ Show actions only on line starting by a PID."
 (defun helm-top-sort-by-com (s1 s2)
   (let* ((split-1 (split-string s1))
          (split-2 (split-string s2))
-         (com-1 (nth 11 split-1))
-         (com-2 (nth 11 split-2)))
+         (col (cdr (assq 'com helm-top-sort-colums-alist)))
+         (com-1 (nth col split-1))
+         (com-2 (nth col split-2)))
     (string< com-1 com-2)))
 
 (defun helm-top-sort-by-mem (s1 s2)
   (let* ((split-1 (split-string s1))
          (split-2 (split-string s2))
-         (mem-1 (string-to-number (nth 9 split-1)))
-         (mem-2 (string-to-number (nth 9 split-2))))
+         (col (cdr (assq 'mem helm-top-sort-colums-alist)))
+         (mem-1 (string-to-number (nth col split-1)))
+         (mem-2 (string-to-number (nth col split-2))))
     (> mem-1 mem-2)))
 
 (defun helm-top-sort-by-cpu (s1 s2)
   (let* ((split-1 (split-string s1))
          (split-2 (split-string s2))
-         (cpu-1 (string-to-number (nth 8 split-1)))
-         (cpu-2 (string-to-number (nth 8 split-2))))
+         (col (cdr (assq 'cpu helm-top-sort-colums-alist)))
+         (cpu-1 (string-to-number (nth col split-1)))
+         (cpu-2 (string-to-number (nth col split-2))))
     (> cpu-1 cpu-2)))
 
 (defun helm-top-sort-by-user (s1 s2)
   (let* ((split-1 (split-string s1))
          (split-2 (split-string s2))
-         (user-1 (nth 1 split-1))
-         (user-2 (nth 1 split-2)))
+         (col (cdr (assq 'user helm-top-sort-colums-alist)))
+         (user-1 (nth col split-1))
+         (user-2 (nth col split-2)))
     (string< user-1 user-2)))
+
+(defun helm-top--preselect-fn ()
+  (if (eq helm-top-poll-preselection 'linum)
+      `(lambda ()
+         (goto-char (point-min))
+         (forward-line ,(helm-candidate-number-at-point)))
+      (replace-regexp-in-string
+       "[0-9]+" "[0-9]+"
+       (regexp-quote (helm-get-selection nil t)))))
 
 (defun helm-top-run-sort-by-com ()
   (interactive)
   (helm-top-set-mode-line "COM")
   (setq helm-top-sort-fn 'helm-top-sort-by-com)
-  (helm-update (replace-regexp-in-string
-                "[0-9]+" "[0-9]+"
-                (regexp-quote (helm-get-selection nil t)))))
+  (helm-update (helm-top--preselect-fn)))
 
 (defun helm-top-run-sort-by-cpu ()
   (interactive)
@@ -300,25 +330,19 @@ Show actions only on line starting by a PID."
     (helm-top-set-mode-line "CPU")
     (setq helm-top-sort-fn (and (null (string= com "top"))
                                 'helm-top-sort-by-cpu))
-    (helm-update (replace-regexp-in-string
-                  "[0-9]+" "[0-9]+"
-                  (regexp-quote (helm-get-selection nil t))))))
+    (helm-update (helm-top--preselect-fn))))
 
 (defun helm-top-run-sort-by-mem ()
   (interactive)
   (helm-top-set-mode-line "MEM")
   (setq helm-top-sort-fn 'helm-top-sort-by-mem)
-  (helm-update (replace-regexp-in-string
-                "[0-9]+" "[0-9]+"
-                (regexp-quote (helm-get-selection nil t)))))
+  (helm-update (helm-top--preselect-fn)))
 
 (defun helm-top-run-sort-by-user ()
   (interactive)
   (helm-top-set-mode-line "USER")
   (setq helm-top-sort-fn 'helm-top-sort-by-user)
-  (helm-update (replace-regexp-in-string
-                "[0-9]+" "[0-9]+"
-                (regexp-quote (helm-get-selection nil t)))))
+  (helm-update (helm-top--preselect-fn)))
 
 
 ;;; X RandR resolution change
