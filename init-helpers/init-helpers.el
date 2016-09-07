@@ -67,3 +67,5 @@
       (set-face-font 'default "DejaVu Sans Mono"))))
 
 (provide 'init-helpers)
+
+;;; init-helpers.el ends here

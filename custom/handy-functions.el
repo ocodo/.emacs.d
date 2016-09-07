@@ -953,6 +953,21 @@ Optionally check ALLBUFS."
   (load-file "~/.emacs.d/init.el")
   (message "Reloaded Emacs configuration successfully."))
 
+(defun elpa-package-helpers-ends-here ()
+  "Insert the ELPA package file ending string.
+
+\(When it's missing\)"
+  (interactive)
+  (if (and buffer-file-name (string-match "emacs-lisp" (format "%s" major-mode)))
+      (let* ((filename (file-name-base))
+            (end-file-message (format  ";;; %s.el ends here" filename)))
+        (goto-char (point-max))
+        (unless (looking-back end-file-message nil)
+          (insert end-file-message)))
+    (message "Not a lisp file.")))
+
+
+
 ;; Key bindings
 
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
