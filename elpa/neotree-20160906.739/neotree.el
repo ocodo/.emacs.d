@@ -538,6 +538,7 @@ The car of the pair will store fullpath, and cdr will store line number.")
                                      :file-fn 'neo-open-file-horizontal-split))
     (define-key map (kbd "d")       (neotree-make-executor
                                      :dir-fn 'neo-open-dired))
+    (define-key map (kbd "SPC")     'neotree-quick-look)
     (define-key map (kbd "g")       'neotree-refresh)
     (define-key map (kbd "q")       'neotree-hide)
     (define-key map (kbd "p")       'neotree-previous-line)
@@ -909,14 +910,17 @@ This procedure does not work when CONDP is the `null' function."
         (setq r-path (expand-file-name r-path current-dir))
         r-path)))
 
-(defun neo-path--shorten (path length)
-  "Shorten a given PATH to a specified LENGTH.
+(defun neo-path--shorten (path len)
+  "Shorten a given PATH to a specified LEN.
 This is needed for paths, which are to long for the window to display
 completely.  The function cuts of the first part of the path to remain
 the last folder (the current one)."
-  (if (> (string-width path) length)
-      (concat "<" (substring path (- (- length 1))))
-    path))
+  (let ((result
+         (if (> (length path) len)
+             (concat "<" (substring path (- (- len 2))))
+           path)))
+    (when result
+      (decode-coding-string result 'utf-8))))
 
 (defun neo-path--insert-chroot-button (label path face)
   (insert-button
@@ -1349,19 +1353,23 @@ Return the new expand state for NODE (t for expanded, nil for collapsed)."
 (defun neo-buffer--refresh (save-pos-p)
   "Refresh the NeoTree buffer.
 If SAVE-POS-P is non-nil, it will be auto save current line number."
-  (let ((start-node neo-buffer--start-node))
-    (neo-buffer--with-editing-buffer
-     ;; save context
-     (when save-pos-p
-       (neo-buffer--save-cursor-pos))
-     ;; starting refresh
-     (erase-buffer)
-     (neo-buffer--node-list-clear)
-     (neo-buffer--insert-banner)
-     (setq neo-buffer--start-line neo-header-height)
-     (neo-buffer--insert-tree start-node 1))
-    ;; restore context
-    (neo-buffer--goto-cursor-pos)))
+  (save-excursion
+    (let ((start-node neo-buffer--start-node))
+      (unless start-node
+        (setq start-node default-directory))
+
+      (neo-buffer--with-editing-buffer
+       ;; save context
+       (when save-pos-p
+         (neo-buffer--save-cursor-pos))
+       ;; starting refresh
+       (erase-buffer)
+       (neo-buffer--node-list-clear)
+       (neo-buffer--insert-banner)
+       (setq neo-buffer--start-line neo-header-height)
+       (neo-buffer--insert-tree start-node 1))
+      ;; restore context
+      (neo-buffer--goto-cursor-pos))))
 
 (defun neo-buffer--post-move ()
   "Reset current directory when position moved."
@@ -1570,8 +1578,8 @@ If DIR-FN is non-nil, it will executed when a dir node."
                                              0 (- msg-directory-max-length 3))
                                   "...")))
     (propertize
-     (concat msg-index msg-directory msg-ndirs msg-nfiles)
-     'help-echo parent)))
+     (decode-coding-string (concat msg-index msg-directory msg-ndirs msg-nfiles) 'utf-8)
+     'help-echo (decode-coding-string parent 'utf-8))))
 
 ;;
 ;; Window methods
@@ -1937,6 +1945,13 @@ automatically."
 ARG are the same as `neo-open-file'."
   (interactive "P")
   (neo-buffer--execute arg 'neo-open-file 'neo-open-dir))
+
+(defun neotree-quick-look (&optional arg)
+  "Quick Look like NeoTree open event.
+ARG are the same as `neo-open-file'."
+  (interactive "P")
+  (neotree-enter arg)
+  (neo-global--select-window))
 
 (defun neotree-enter-vertical-split ()
   "NeoTree open event, file node will opened in new vertically split window."
