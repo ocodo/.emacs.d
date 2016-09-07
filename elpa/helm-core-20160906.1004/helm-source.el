@@ -469,9 +469,7 @@
     :custom integer
     :documentation
     "  Enable `helm-follow-mode' for this source only.
-  You must give it a value of 1 or -1, though giving a -1 value
-  is surely not what you want, e.g: (follow . 1)
-
+With a value of 1 enable, a value of -1 or nil disable the mode.
   See `helm-follow-mode' for more infos.")
 
    (follow-delay
@@ -802,11 +800,11 @@ an eieio class."
   (let* ((actions     (slot-value source 'action))
          (action-transformers (slot-value source 'action-transformer))
          (new-action  (list (cons name fn)))
-         (transformer `(lambda (actions candidate)
-                         (cond ((funcall (quote ,predicate) candidate)
-                                (helm-append-at-nth
-                                 actions (quote ,new-action) ,index))
-                               (t actions)))))
+         (transformer (lambda (actions candidate)
+                        (cond ((funcall predicate candidate)
+                               (helm-append-at-nth
+                                actions new-action index))
+                              (t actions)))))
     (if (functionp actions)
         (setf (slot-value source 'action) (list (cons "Default action" actions)))
         (setf (slot-value source 'action) (helm-interpret-value actions source)))
