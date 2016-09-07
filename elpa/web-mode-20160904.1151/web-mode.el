@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.21
-;; Package-Version: 20160821.1054
+;; Version: 14.0.23
+;; Package-Version: 20160904.1151
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.21"
+(defconst web-mode-version "14.0.23"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -850,6 +850,12 @@ Must be used in conjunction with web-mode-enable-block-face."
 
     )
   "Engine file extensions.")
+
+(defvar web-mode-engines-alist nil
+  "Alist of filename patterns and corresponding web-mode engine. For example,
+(setq web-mode-engines-alist
+      '((\"php\"    . \"\\\\.phtml\\\\'\")
+        (\"blade\"  . \"\\\\.blade\\\\.\")))")
 
 (defvar web-mode-smart-quotes
   '("«" . "»")
@@ -4004,7 +4010,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
             (cond
              ((string-match-p " type[ ]*=[ ]*[\"']text/\\(jsx\\|babel\\)" script)
               (setq element-content-type "jsx"))
-             ((string-match-p " type[ ]*=[ ]*[\"']text/\\(x-handlebars\\|x-jquery-tmpl\\|html\\|ng-template\\|template\\|mustache\\)" script)
+             ((string-match-p " type[ ]*=[ ]*[\"']text/\\(x-handlebars\\|x-jquery-tmpl\\|html\\|ng-template\\|template\\|mustache\\|x-dust-template\\)" script)
               (setq element-content-type "html"
                     part-close-tag nil))
              ((string-match-p " type[ ]*=[ ]*[\"']application/\\(ld\\+json\\|json\\)" script)
@@ -4040,11 +4046,11 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
       )))
 
-;; tag flags
+;; FLAGS: tag
 ;; (1)attrs (2)custom (4)slash-beg (8)slash-end (16)bracket-end
 ;; (32)namespaced
 
-;; attr flags
+;; FLAGS: attr
 ;; (1)custom-attr (2)engine-attr (4)spread-attr[jsx] (8)code-value
 
 ;; attr states
@@ -5416,6 +5422,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                     (t                      'web-mode-html-attr-name-face)))
         ;;(setq end (if (get-text-property beg 'tag-attr-end) beg (web-mode-attribute-end-position beg)))
         (setq end (web-mode-attribute-end-position beg))
+        ;;(message "beg=%S end=%S" beg end)
         (cond
          ((or (null end) (>= end reg-end))
           (setq continue nil))
@@ -6935,14 +6942,17 @@ another auto-completion with different ac-sources (e.g. ac-php)")
           (cond
            ((and (get-text-property pos 'tag-attr)
                  (get-text-property (1- pos) 'tag-attr)
-                 (web-mode-attribute-beginning))
-
+                 (web-mode-attribute-beginning)
+                 ;;(progn (message "%S" pos) t)
+                 )
+            ;;(message "la")
             (cond
              ((eq (logand (get-text-property (point) 'tag-attr-beg) 8) 8)
               (setq offset nil))
              ((and web-mode-attr-value-indent-offset (web-mode-tag-beginning))
               (setq offset (+ (current-column) web-mode-attr-value-indent-offset)))
              (t
+              ;;(message "ici")
               (web-mode-dom-rsf "=[ ]*[\"']?" pos)
               (setq offset (current-column)))
              ) ;cond
@@ -10266,7 +10276,8 @@ Prompt user if TAG-NAME isn't provided."
 ;;       web-mode-attribute-next-position
 (defun web-mode-attribute-end-position (&optional pos)
   (unless pos (setq pos (point)))
-  (let (end depth)
+  (let (beg end depth)
+    ;;(message "pos=%S" pos)
     (setq depth (get-text-property pos 'jsx-depth))
     (cond
      ((null pos)
@@ -10275,6 +10286,13 @@ Prompt user if TAG-NAME isn't provided."
       (setq end pos))
      ((get-text-property pos 'tag-attr)
       (setq end (next-single-property-change pos 'tag-attr-end))
+      (when (and depth
+                 end
+                 (setq beg (web-mode-attribute-beginning-position end))
+                 (eq (logand (get-text-property pos 'tag-attr-beg) 4) 4))
+        (setq depth (1- (get-text-property beg 'jsx-depth)))
+        ;;(message "%S %S" beg end)
+        )
       (cond
        ((not (get-text-property end 'tag-attr-end))
         (setq end nil))
@@ -10308,6 +10326,8 @@ Prompt user if TAG-NAME isn't provided."
      ) ;cond
     end))
 
+;; attention si pos est au debut d'un spread attributes, cela
+;; risque de poser pb
 (defun web-mode-attribute-next-position (&optional pos limit)
   (unless pos (setq pos (point)))
   (unless limit (setq limit (point-max)))
@@ -10328,6 +10348,9 @@ Prompt user if TAG-NAME isn't provided."
         (setq continue nil
               pos nil))
        ((null depth)
+        (setq continue nil))
+       ((and (eq (get-text-property pos 'tag-attr-beg) 4)
+             (eq (1+ depth) (get-text-property pos 'jsx-depth)))
         (setq continue nil))
        ((eq depth (get-text-property pos 'jsx-depth))
         (setq continue nil))
