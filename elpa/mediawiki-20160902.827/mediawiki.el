@@ -7,11 +7,11 @@
 ;;      Uwe Brauer <oub at mat.ucm.es> for wikimedia.el
 ;; Author: Mark A. Hershberger <mah@everybody.org>
 ;; Version: 2.2.7
-;; Package-Version: 20160425.702
+;; Package-Version: 20160902.827
 ;; Created: Sep 17 2004
 ;; Keywords: mediawiki wikipedia network wiki
 ;; URL: http://github.com/hexmode/mediawiki-el
-;; Last Modified: <2016-04-25 09:50:50 mah>
+;; Last Modified: <2016-09-02 11:25:04 mah>
 
 (defconst mediawiki-version "2.2.7"
   "Current version of mediawiki.el.")
@@ -156,7 +156,8 @@
 (require 'ring)
 (eval-when-compile
   (require 'cl)
-  ;; Below copied from url-http to avoid compilation warnings
+  (require 'mml)
+;; Below copied from url-http to avoid compilation warnings
   (defvar url-http-extra-headers)
   (defvar url-http-target-url)
   (defvar url-http-proxy)
@@ -549,12 +550,13 @@ per-session later."
   :group 'mediawiki)
 
 (defcustom mediawiki-site-alist '(("Wikipedia"
-                                   "http://en.wikipedia.org/w/"
+                                   "https://en.wikipedia.org/w/"
                                    "username"
                                    "password"
                                    nil
 				   "Main Page"))
   "A list of MediaWiki websites."
+  :tag "MediaWiki sites"
   :group 'mediawiki
   :type '(alist :tag "Site Name"
                 :key-type (string :tag "Site Name")

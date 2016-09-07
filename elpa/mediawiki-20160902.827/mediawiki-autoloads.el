@@ -1,10 +1,10 @@
 ;;; mediawiki-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "mediawiki" "mediawiki.el" (22309 38896 35922
-;;;;;;  294000))
+;;;### (autoloads nil "mediawiki" "mediawiki.el" (22479 30319 844454
+;;;;;;  164000))
 ;;; Generated autoloads from mediawiki.el
 
 (autoload 'mediawiki-draft "mediawiki" "\
