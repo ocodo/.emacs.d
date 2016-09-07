@@ -1,9 +1,10 @@
 ;;; jenkins-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "jenkins" "jenkins.el" (22095 53571 73795 236000))
+;;;### (autoloads nil "jenkins" "jenkins.el" (22479 30363 752575
+;;;;;;  749000))
 ;;; Generated autoloads from jenkins.el
 
 (autoload 'jenkins "jenkins" "\

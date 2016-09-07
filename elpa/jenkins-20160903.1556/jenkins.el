@@ -4,7 +4,7 @@
 
 ;; Author: Rustem Muslimov <r.muslimov@gmail.com>
 ;; Keywords: jenkins, convenience
-;; Package-Version: 20151114.1908
+;; Package-Version: 20160903.1556
 ;; Package-Requires: ((dash "2.12") (emacs "24.3") (json "1.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -51,8 +51,10 @@
 (defvar jenkins-job-view-mode-map
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap (kbd "1") 'jenkins-job-details-toggle)
+    (define-key keymap (kbd "g") 'jenkins--refresh-job-from-job-screen)
     (define-key keymap (kbd "b") 'jenkins--call-build-job-from-job-screen)
     (define-key keymap (kbd "v") 'jenkins--visit-job-from-job-screen)
+    (define-key keymap (kbd "$") 'jenkins--show-console-output-from-job-screen)
     keymap)
   "Jenkins jobs status mode keymap.")
 
@@ -151,7 +153,7 @@
   (format (concat
            "%sjob/%s/"
            "api/json?depth=1&tree=builds"
-           "[id,timestamp,result,url,building,"
+           "[number,timestamp,result,url,building,"
            "culprits[fullName]]")
           (get-jenkins-url) jobname))
 
@@ -289,7 +291,7 @@
                         (cdr (assoc attr item)))
               (convert-item (item)
                   (list
-                   (string-to-number (retrieve 'id item))
+                   (retrieve 'number item)
                    :author (let ((culprits (cdr (assoc 'culprits values))))
                              (if (> (length culprits) 0)
                                  (cdar (aref culprits 0)) "---"))
@@ -330,6 +332,17 @@
   (interactive)
   (browse-url (format "%s/job/%s/" (get-jenkins-url) jobname)))
 
+(defun jenkins-get-console-output (jobname build)
+  "Show the console output for the current job"
+  (let ((url-request-extra-headers (jenkins--get-auth-headers))
+        (console-buffer (get-buffer-create (format "*jenkins-console-%s-%s*" jobname build)))
+        (url (format "%sjob/%s/%s/consoleText" (get-jenkins-url) jobname build)))
+    (with-current-buffer console-buffer
+      (erase-buffer)
+      (with-current-buffer (url-retrieve-synchronously url)
+        (copy-to-buffer console-buffer (point-min) (point-max))))
+    (pop-to-buffer console-buffer)))
+
 (defun jenkins--visit-job-from-main-screen ()
   "Open browser for current job."
   (interactive)
@@ -339,6 +352,17 @@
   "Open browser for current job."
   (interactive)
   (jenkins-visit-job jenkins-local-jobname))
+
+(defun jenkins--show-console-output-from-job-screen ()
+  "Show the console output for the currently selected build"
+  (interactive)
+  (let* ((props (text-properties-at (point) (current-buffer)))
+         (jenkins-tag (member 'jenkins-build-number props))
+         (build-number (and jenkins-tag
+                          (cadr jenkins-tag))))
+    (if build-number
+        (jenkins-get-console-output jenkins-local-jobname build-number)
+      (error "Not on a Jenkins build line"))))
 
 ;; emacs major mode funcs and variables
 (define-derived-mode jenkins-mode tabulated-list-mode "Jenkins"
@@ -404,6 +428,11 @@
   (interactive)
   (jenkins-job-call-build jenkins-local-jobname))
 
+(defun jenkins--refresh-job-from-job-screen ()
+  "Refresh the current job"
+  (interactive)
+  (jenkins-job-render jenkins-local-jobname))
+
 (defun jenkins-job-details-screen (jobname)
   "Jenkins job detailization screen, JOBNAME."
   (let* ((job-details (jenkins-get-job-details jobname))
@@ -435,6 +464,8 @@
                             (plist-get (cdr it) :author)
                             (plist-get (cdr it) :timestring)
                             )
+                    'jenkins-build-number
+                    (car it)
                     'face
                     (jenkins--get-proper-face-for-result
                      (plist-get (cdr it) :result)
