@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 2.5
-;; Package-Version: 20160822.447
+;; Version: 2.7
+;; Package-Version: 20160830.228
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -119,8 +119,18 @@
 
 (defvar persp-mode nil)
 
-(unless (boundp 'iswitchb-mode)
-  (setq iswitchb-mode nil))
+(unless (fboundp 'read-multiple-choice)
+  (defun read-multiple-choice (prompt choices)
+    (let ((choice-chars (mapcar #'car choices)))
+      (when choice-chars
+        (assq (read-char-choice
+               (format "%s(%s): "
+                       (substring prompt 0 (string-match ": $" prompt ))
+                       (mapconcat #'(lambda (ch)
+                                      (format "[%c] - %s" (car ch) (cadr ch)))
+                                  choices "; "))
+               choice-chars)
+              choices)))))
 
 ;; Customization variables:
 
@@ -146,7 +156,8 @@
                (destructuring-bind (frames . windows)
                    (persp-frames-and-windows-with-persp (persp-get-by-name persp-nil-name))
                  (dolist (win windows)
-                   (set-window-parameter win 'persp val))))
+                   (when (string= persp-nil-name (get-window-persp* win))
+                     (set-window-persp* win val)))))
              (set-default sym val))))
 
 (defface persp-face-lighter-buffer-not-in-persp
@@ -302,43 +313,73 @@ Constrain with a function which take buffer as an argument."
                    (add-hook 'persp-mode-hook #'persp-update-frames-buffer-predicate)))
              (persp-update-frames-buffer-predicate t))))
 
+;; TODO: remove this var
 (defcustom persp-hook-up-emacs-buffer-completion nil
   "If t -- try to restrict read-buffer function of the current completion system."
   :group 'persp-mode
   :type 'boolean)
+(make-obsolete-variable
+ 'persp-hook-up-emacs-buffer-completion
+ "`persp-set-read-buffer-function', `persp-set-ido-hooks', `persp-interactive-completion-function'"
+ "persp-mode 2.6")
 
-(defvar persp-interactive-completion-function
-  (cond (ido-mode      #'ido-completing-read)
-        (iswitchb-mode #'persp-iswitchb-completing-read)
-        (t             #'completing-read))
+(defsubst persp-set-read-buffer-function (&optional opt)
+  (if opt
+      (when (not (eq read-buffer-function #'persp-read-buffer))
+        (setq persp-saved-read-buffer-function read-buffer-function)
+        (setq read-buffer-function #'persp-read-buffer))
+    (when (eq read-buffer-function #'persp-read-buffer)
+      (setq read-buffer-function persp-saved-read-buffer-function))))
+(defcustom persp-set-read-buffer-function nil
+  "If t -- set the read-buffer-function to persp-read-buffer."
+  :group 'persp-mode
+  :type 'boolean
+  :set #'(lambda (sym val)
+           (set-default sym val)
+           (when persp-mode
+             (persp-set-read-buffer-function val))))
+
+(defsubst persp-set-ido-hooks (&optional opt)
+  (if opt
+      (progn
+        (add-hook 'ido-make-buffer-list-hook #'persp-restrict-ido-buffers)
+        (add-hook 'ido-setup-hook            #'persp-ido-setup))
+    (remove-hook 'ido-make-buffer-list-hook #'persp-restrict-ido-buffers)
+    (remove-hook 'ido-setup-hook            #'persp-ido-setup)))
+(defcustom persp-set-ido-hooks nil
+  "If t -- set the ido hooks for buffer list restriction."
+  :group 'persp-mode
+  :type 'boolean
+  :set #'(lambda (sym val)
+           (set-default sym val)
+           (when persp-mode
+             (persp-set-ido-hooks val))))
+
+;; TODO: remove this var, just call the completing-read
+(defvar persp-interactive-completion-function #'completing-read
   "The function which is used by the persp-mode
 to interactivly read user input with completion.")
+(make-obsolete-variable
+ 'persp-interactive-completion-function
+ "`completing-read-function'" "persp-mode 2.7")
 
-(defun persp-update-completion-system (system &optional remove)
-  (interactive)
+(defun persp-update-completion-system (&optional system remove)
+  (interactive "i")
   (when (and (not system) (not remove))
     (setq
      system
      (intern
       (funcall persp-interactive-completion-function
                "Set the completion system for persp-mode: "
-               '("ido" "iswitchb" "completing-read")
+               '("ido" "completing-read")
                nil t))))
   (if remove
       (progn
         (when (boundp 'persp-interactive-completion-system)
           (when persp-hook-up-emacs-buffer-completion
             (case persp-interactive-completion-system
-              (ido
-               (remove-hook 'ido-make-buffer-list-hook   #'persp-restrict-ido-buffers)
-               (remove-hook 'ido-setup-hook              #'persp-ido-setup))
-              (iswitchb
-               (remove-hook 'iswitchb-minibuffer-setup-hook #'persp-iswitchb-setup)
-               (remove-hook 'iswitchb-make-buflist-hook     #'persp-iswitchb-filter-buflist)
-               (remove-hook 'iswitchb-define-mode-map-hook  #'persp-iswitchb-define-mode-map))
-              (t
-               (when (eq read-buffer-function #'persp-read-buffer)
-                 (setq read-buffer-function persp-saved-read-buffer-function))))))
+              (ido (persp-set-ido-hooks))
+              (t nil))))
         (setq persp-interactive-completion-function #'completing-read)
         (set-default 'persp-interactive-completion-system 'completing-read))
     (persp-update-completion-system nil t)
@@ -347,33 +388,26 @@ to interactivly read user input with completion.")
       (when persp-hook-up-emacs-buffer-completion
         (case persp-interactive-completion-system
           (ido
-           (add-hook 'ido-make-buffer-list-hook        #'persp-restrict-ido-buffers)
-           (add-hook 'ido-setup-hook                   #'persp-ido-setup)
+           (persp-set-ido-hooks t)
            (setq persp-interactive-completion-function #'ido-completing-read))
-          (iswitchb
-           (add-hook 'iswitchb-minibuffer-setup-hook   #'persp-iswitchb-setup)
-           (add-hook 'iswitchb-make-buflist-hook       #'persp-iswitchb-filter-buflist)
-           (setq persp-interactive-completion-function #'persp-iswitchb-completing-read)
-           (add-hook 'iswitchb-define-mode-map-hook    #'persp-iswitchb-define-mode-map))
-          (t
-           (setq persp-saved-read-buffer-function read-buffer-function)
-           (setq read-buffer-function #'persp-read-buffer)))
+          (t nil))
         (persp-set-toggle-read-persp-filter-keys persp-toggle-read-persp-filter-keys)))))
 
-(defcustom persp-interactive-completion-system
-  (cond (ido-mode      'ido)
-        (iswitchb-mode 'iswitchb)
-        (t             'completing-read))
+;; TODO: remove this var
+(defcustom persp-interactive-completion-system 'completing-read
   "What completion system to use."
   :group 'persp-mode
   :type '(choice
           (const :tag "ido"             :value ido)
-          (const :tag "iswitchb"        :value iswitchb)
           (const :tag "completing-read" :value completing-read))
   :set #'(lambda (sym val)
            (if persp-mode
                (persp-update-completion-system val)
              (set-default sym val))))
+(make-obsolete-variable
+ 'persp-interactive-completion-system
+ "`persp-set-read-buffer-function', `persp-set-ido-hooks', `persp-interactive-completion-function'"
+ "persp-mode 2.6")
 
 (define-widget 'persp-init-frame-behaviour-choices 'lazy
   "Choices of the init-frame behavoiurs for the persp-mode."
@@ -433,8 +467,9 @@ leave only windows displaing files for edit" :value only-file-windows-for-client
              (persp-update-frame-server-switch-hook)
             (add-hook 'persp-mode-hook #'persp-update-frame-server-switch-hook))))
 
+;; TODO: remove this var
 (defcustom persp-ignore-wconf-of-frames-created-to-edit-file t
-  "[Deprecated] If t -- set the persp-ignore-wconf frame parameter
+  "If t -- set the persp-ignore-wconf frame parameter
 to t for frames that were created by emacsclient with file arguments.
 Also delete windows not showing that files
 (this is because server-switch-hook runs after after-make-frames);
@@ -443,12 +478,10 @@ If function -- run that function."
   :type '(choice
           (const    :tag "Ignore window configuration" :value t)
           (const    :tag "Do as usual"  :value nil)
-          (function :tag "Run function" :value (lambda () nil)))
-  :set #'(lambda (sym val)
-           (when (boundp sym)
-             (message "[persp-mode] Warning: the `persp-ignore-wconf-of-frames-created-to-edit-file`
-variable is depricated. Use the `persp-emacsclient-frame-to-edit-file-behavoiur`."))
-            (set-default sym val)))
+          (function :tag "Run function" :value (lambda () nil))))
+(make-obsolete-variable
+ 'persp-ignore-wconf-of-frames-created-to-edit-file
+ "`persp-emacsclient-frame-to-edit-file-behavoiur'" "persp-mode 2.0")
 
 (defcustom persp-add-buffer-on-find-file t
   "If t -- add a buffer with opened file to current perspective."
@@ -899,6 +932,7 @@ to a wrong one.")
   :set #'(lambda (sym val)
            (persp-set-toggle-read-persp-filter-keys val)))
 
+
 ;; Perspective struct:
 
 (defstruct (perspective
@@ -1006,6 +1040,12 @@ to a wrong one.")
                               pblf-body)))
          ,@body))))
 
+(defmacro with-persp-ido-hooks (&rest body)
+  `(let ((ido-make-buffer-list-hook ido-make-buffer-list-hook)
+         (ido-setup-hook ido-setup-hook))
+     (persp-set-ido-hooks t)
+     ,@body))
+
 (defun safe-persp-name (p)
   (if p (persp-name p)
     persp-nil-name))
@@ -1072,7 +1112,18 @@ to a wrong one.")
 
 (defun persp-asave-on-exit ()
   (when (> persp-auto-save-opt 0)
-    (persp-save-state-to-file)))
+    (condition-case-unless-debug err
+        (persp-save-state-to-file)
+      (error
+       (message "[persp-mode] Error: Can not autosave perspectives -- %s"
+                err)
+       (if (or noninteractive
+               (progn
+                 (when (null (persp-frame-list-without-daemon))
+                   (make-frame))
+                 (null (persp-frame-list-without-daemon))))
+           t
+         (yes-or-no-p "persp-mode can not save perspectives, do you want to exit anyway?"))))))
 
 (defun persp-special-last-buffer-make-current ()
   (setq persp-special-last-buffer (current-buffer)))
@@ -1359,25 +1410,35 @@ named collections of buffers and window configurations."
           (add-hook 'before-make-frame-hook      #'persp-before-make-frame)
           (add-hook 'after-make-frame-functions  #'persp-init-new-frame)
           (add-hook 'delete-frame-functions      #'persp-delete-frame)
-          (add-hook 'kill-emacs-hook             #'persp-asave-on-exit)
+          (add-hook 'kill-emacs-query-functions  #'persp-asave-on-exit)
           (add-hook 'server-switch-hook          #'persp-server-switch)
           (when persp-add-buffer-on-after-change-major-mode
             (add-hook 'after-change-major-mode-hook #'persp-after-change-major-mode-h))
 
-          (mapc #'persp-init-frame (persp-frame-list-without-daemon))
+          (persp-set-ido-hooks persp-set-ido-hooks)
+          (persp-set-read-buffer-function persp-set-read-buffer-function)
+
+          (persp-update-completion-system persp-interactive-completion-system)
+
+          (condition-case-unless-debug err
+              (mapc #'persp-init-frame (persp-frame-list-without-daemon))
+            (error
+             (message "[persp-mode] Error: Can not initialize frame -- %s"
+                      err)))
 
           (when (fboundp 'tabbar-mode)
             (setq tabbar-buffer-list-function #'persp-buffer-list))
-
-          (persp-update-completion-system
-           persp-interactive-completion-system)
 
           (if (> persp-auto-resume-time 0)
               (run-at-time persp-auto-resume-time nil
                            #'(lambda ()
                                (remove-hook 'find-file-hook #'persp-special-last-buffer-make-current)
                                (when (> persp-auto-resume-time 0)
-                                 (persp-load-state-from-file)
+                                 (condition-case-unless-debug err
+                                     (persp-load-state-from-file)
+                                   (error
+                                    (message "[persp-mode] Error: Can not autoresume perspectives -- %s"
+                                             err)))
                                  (when (buffer-live-p persp-special-last-buffer)
                                    (persp-switch-to-buffer persp-special-last-buffer)))))
             (remove-hook 'find-file-hook #'persp-special-last-buffer-make-current))))
@@ -1385,24 +1446,23 @@ named collections of buffers and window configurations."
     (run-hooks 'persp-mode-deactivated-hook)
     (when (> persp-auto-save-opt 1) (persp-save-state-to-file))
 
-    (remove-hook 'find-file-hook              #'persp-add-or-not-on-find-file)
-    (remove-hook 'kill-buffer-query-functions #'persp-kill-buffer-query-function)
-    (remove-hook 'kill-buffer-hook            #'persp-kill-buffer-h)
-    (remove-hook 'before-make-frame-hook      #'persp-before-make-frame)
-    (remove-hook 'after-make-frame-functions  #'persp-init-new-frame)
-    (remove-hook 'delete-frame-functions      #'persp-delete-frame)
-    (remove-hook 'kill-emacs-hook             #'persp-asave-on-exit)
-    (remove-hook 'server-switch-hook          #'persp-server-switch)
-    (when persp-add-buffer-on-after-change-major-mode
-      (remove-hook 'after-change-major-mode-hook #'persp-after-change-major-mode-h))
+    (remove-hook 'find-file-hook               #'persp-add-or-not-on-find-file)
+    (remove-hook 'kill-buffer-query-functions  #'persp-kill-buffer-query-function)
+    (remove-hook 'kill-buffer-hook             #'persp-kill-buffer-h)
+    (remove-hook 'before-make-frame-hook       #'persp-before-make-frame)
+    (remove-hook 'after-make-frame-functions   #'persp-init-new-frame)
+    (remove-hook 'delete-frame-functions       #'persp-delete-frame)
+    (remove-hook 'kill-emacs-query-functions   #'persp-asave-on-exit)
+    (remove-hook 'server-switch-hook           #'persp-server-switch)
+    (remove-hook 'after-change-major-mode-hook #'persp-after-change-major-mode-h)
+
+    (persp-set-ido-hooks)
+    (persp-set-read-buffer-function)
+    (persp-update-frames-buffer-predicate t)
+    (persp-update-completion-system nil t)
 
     (when (fboundp 'tabbar-mode)
       (setq tabbar-buffer-list-function #'tabbar-buffer-list))
-
-    (when persp-set-frame-buffer-predicate
-      (persp-update-frames-buffer-predicate t))
-
-    (persp-update-completion-system nil t)
 
     (mapc #'(lambda (b)
               (with-current-buffer b
@@ -1521,12 +1581,16 @@ and then killed.\nWhat do you really want to do? "
         (t (persp-add-buffer buf))))))
 
 (defun persp-server-switch ()
-  (let* ((frame (selected-frame))
-         (persp-server-switch-hook (frame-parameter frame 'persp-server-switch-hook)))
-    (when persp-server-switch-hook
-      (unless (string-match-p "^.*magit.*$" (symbol-name last-command))
-        (funcall persp-server-switch-hook frame))
-      (set-frame-parameter frame 'persp-server-switch-hook nil))))
+  (condition-case-unless-debug err
+      (let* ((frame (selected-frame))
+             (persp-server-switch-hook (frame-parameter frame 'persp-server-switch-hook)))
+        (when persp-server-switch-hook
+          (unless (string-match-p "^.*magit.*$" (symbol-name last-command))
+            (funcall persp-server-switch-hook frame))
+          (set-frame-parameter frame 'persp-server-switch-hook nil)))
+    (error
+     (message "[persp-mode] Error: error in server-switch-hook -- %s"
+              err))))
 
 
 ;; Misc funcs:
@@ -1561,15 +1625,20 @@ and then killed.\nWhat do you really want to do? "
         (reverse ret)
       ret)))
 
+(defun set-window-persp* (persp-name &optional window)
+  (when persp-name
+    (set-window-parameter window 'persp persp-name)))
+(defun get-window-persp* (&optional window)
+  (window-parameter window 'persp))
 (defun set-window-persp (persp &optional window)
   (let ((frame (window-frame window)))
     (if (eq persp (get-frame-persp frame))
         (clear-window-persp window)
-      (set-window-parameter window 'persp (safe-persp-name persp)))))
+      (set-window-persp* (safe-persp-name persp) window))))
 (defun window-persp-set-p (&optional window)
-  (window-parameter window 'persp))
+  (get-window-persp* window))
 (defun get-window-persp (&optional window)
-  (let ((pn (window-parameter window 'persp)))
+  (let ((pn (get-window-persp* window)))
     (when pn (persp-get-by-name pn))))
 (defun clear-window-persp (&optional window)
   (set-window-parameter window 'persp nil))
@@ -2196,17 +2265,18 @@ M-x: customize-variable RET persp-nil-name RET")
 If there is no perspective with that name it will be created.
 Return `NAME'."
   (interactive "i")
-  (unless name
-    (setq name (persp-prompt nil "to switch" nil nil nil t)))
-  (unless frame (setq frame (window-frame window)))
-  (if (or (window-persp-set-p window)
-          (and called-interactively-p current-prefix-arg))
-      (persp-window-switch name window)
-    (persp-frame-switch name frame)))
+  (let ((switch-type 'frame))
+    (if (or (window-persp-set-p window)
+            (and called-interactively-p current-prefix-arg))
+        (setq switch-type 'window)
+      (unless frame (setq frame (window-frame window))))
+    (if (eq 'window switch-type)
+        (persp-window-switch name window)
+      (persp-frame-switch name frame))))
 (defun* persp-frame-switch (name &optional (frame (selected-frame)))
   (interactive "i")
   (unless name
-    (setq name (persp-prompt nil "to switch" nil nil nil t)))
+    (setq name (persp-prompt nil "to switch(in frame)" nil nil nil t)))
   (unless (memq frame persp-inhibit-switch-for)
     (run-hook-with-args 'persp-before-switch-functions name frame)
     (let ((persp-inhibit-switch-for (cons frame persp-inhibit-switch-for)))
@@ -2215,7 +2285,7 @@ Return `NAME'."
 (defun* persp-window-switch (name &optional (window (selected-window)))
   (interactive "i")
   (unless name
-    (setq name (persp-prompt nil "to switch for this window" nil nil nil t)))
+    (setq name (persp-prompt nil "to switch(in window)" nil nil nil t)))
   (unless (memq window persp-inhibit-switch-for)
     (run-hook-with-args 'persp-before-switch-functions name window)
     (let ((persp-inhibit-switch-for (cons window persp-inhibit-switch-for)))
@@ -2227,6 +2297,8 @@ Return `NAME'."
                                  persp-last-persp-name)
                             persp-nil-name) *persp-hash* :+-123emptynooo)))
     (when (eq persp :+-123emptynooo)
+      (when persp-set-last-persp-for-new-frames
+        (setq persp-last-persp-name persp-nil-name))
       (setq persp (persp-add-new persp-nil-name)))
     (persp-save-state persp nil t)))
 
@@ -2302,7 +2374,11 @@ Return `NAME'."
              (run-hook-with-args 'persp-activated-functions 'window))))))))
 
 (defun persp-init-new-frame (frame)
-  (persp-init-frame frame t (frame-parameter frame 'client)))
+  (condition-case-unless-debug err
+      (persp-init-frame frame t (frame-parameter frame 'client))
+    (error
+     (message "[persp-mode] Error: Can not initialize frame -- %s"
+              err))))
 (defun* persp-init-frame (frame &optional new-frame-p client)
   (let ((persp-init-frame-behaviour
          (cond
@@ -2353,7 +2429,11 @@ Return `NAME'."
         (persp-activate persp frame new-frame-p)))))
 
 (defun persp-delete-frame (frame)
-  (persp--deactivate frame :+-123emptynooo))
+  (condition-case-unless-debug err
+      (persp--deactivate frame :+-123emptynooo)
+    (error
+     (message "[persp-mode] Error: Can not deactivate frame -- %s"
+              err))))
 
 (defun* find-other-frame-with-persp (&optional (persp (get-frame-persp))
                                                (exframe (selected-frame))
@@ -2574,39 +2654,6 @@ Return `NAME'."
         (persp-frame-list-without-daemon)))
 
 
-(defun persp-iswitchb-completing-read
-    (prompt choices
-            &optional predicate require-match
-            initial-input hist def inherit-input-method)
-  "Support for the `iswitchb-mode'."
-  (let ((iswitchb-make-buflist-hook
-         #'(lambda () (setq iswitchb-temp-buflist choices))))
-    (iswitchb-read-buffer prompt def require-match initial-input nil)))
-
-(defun persp-iswitchb-setup ()
-  (setq persp-disable-buffer-restriction-once nil))
-
-(defun persp-iswitchb-define-mode-map ()
-  (define-key
-    iswitchb-mode-map
-    persp-toggle-read-persp-filter-keys
-    #'iswitchb-toggle-persp-filter))
-
-(defun persp-iswitchb-filter-buflist ()
-  "Support for the `iswitchb-mode'."
-  (setq iswitchb-temp-buflist
-        (if persp-disable-buffer-restriction-once
-            (persp-buffer-list-restricted nil -1 nil)
-          (persp-buffer-list-restricted))))
-
-(defun iswitchb-toggle-persp-filter ()
-  (interactive)
-  (setq persp-disable-buffer-restriction-once
-        (not persp-disable-buffer-restriction-once))
-  (iswitchb-make-buflist iswitchb-default)
-  (setq iswitchb-rescan t))
-
-
 (defun persp-ido-setup ()
   (when (eq ido-cur-item 'buffer)
     (setq persp-disable-buffer-restriction-once nil)))
@@ -2707,7 +2754,7 @@ Return `NAME'."
                   (progn
                     (delete-other-windows)
                     (set-window-dedicated-p nil nil)
-                    (condition-case err
+                    (condition-case-unless-debug err
                         (funcall persp-window-state-put-function pwc frame)
                       (error (message "[persp-mode] Warning: Can not restore the window configuration, because of the error -- %s" err)))
                     (when (and new-frame-p persp-is-ibc-as-f-supported)
@@ -2725,6 +2772,8 @@ Return `NAME'."
           (when gr-mode
             (golden-ratio-mode 1)))))))
 
+
+;; Save funcs
 
 (defun* persp-frame-save-state (&optional (frame (selected-frame)) set-persp-special-last-buffer)
   (when (and frame
@@ -2746,12 +2795,6 @@ Return `NAME'."
       (setq frame (find-other-frame-with-persp persp exfr t)))
     (when frame (persp-frame-save-state frame set-persp-special-last-buffer))))
 
-
-(defsubst persp-save-all-persps-state ()
-  (mapc #'persp-save-state (persp-persps)))
-
-
-;; Save funcs
 
 (defun persp-buffers-to-savelist (persp)
   (let (ret)
@@ -2839,7 +2882,7 @@ of the perspective %s can't be saved."
                     (file-directory-p p-save-dir)))
           (message "[persp-mode] Error: Can't save perspectives -- `persp-save-dir' \
 does not exists or not a directory %S." p-save-dir)
-        (persp-save-all-persps-state)
+        (mapc #'persp-save-state (persp-persps phash))
         (if respect-persp-file-parameter
             (let ((fg (persp-group-by (apply-partially #'persp-parameter 'persp-file)
                                       (persp-persps phash)))
@@ -2902,7 +2945,7 @@ does not exists or not a directory %S." p-save-dir)
                   (when (and
                          (or (featurep 'tramp-sh) (require 'tramp-sh nil t))
                          (fboundp 'tramp-compute-multi-hops)
-                         (setq tmh (condition-case err
+                         (setq tmh (condition-case-unless-debug err
                                        (tramp-compute-multi-hops dissected-f-name)
                                      (error nil))))
                     (let ((persp-tramp-file-name tramp-prefix-format))
@@ -2940,7 +2983,7 @@ does not exists or not a directory %S." p-save-dir)
   (let ((kar (gensym "lst-car")))
     `(let* ((,kar (car-safe ,lst))
             (args (cdr-safe ,lst))
-            (fun (or (condition-case err
+            (fun (or (condition-case-unless-debug err
                          (symbol-function ,kar)
                        (error nil))
                      (symbol-value ,kar))))
