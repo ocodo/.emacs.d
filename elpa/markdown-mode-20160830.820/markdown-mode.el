@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160803.1848
+;; Package-Version: 20160830.820
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -6422,9 +6422,9 @@ This is an exact copy of `line-number-at-pos' for use in emacs21."
       (forward-line 0)
       (1+ (count-lines start (point))))))
 
-(defun markdown-inside-link-text-p ()
-  "Return nil if not currently within link anchor text."
-  (looking-back "\\[[^]]*" nil))
+(defun markdown-inside-link-p ()
+  "Return t if point is within a link."
+  (thing-at-point-looking-at (markdown-make-regex-link-generic)))
 
 (defun markdown-line-is-reference-definition-p ()
   "Return whether the current line is a (non-footnote) reference defition."
@@ -6746,6 +6746,7 @@ or \\[markdown-toggle-inline-images]."
                 ; options really only handle paragraph-starting prefixes,
                 ; not paragraph-ending suffixes:
                 ".*  $" ; line ending in two spaces
+                "^#+"
                 "[ \t]*\\[\\^\\S-*\\]:[ \t]*$") ; just the start of a footnote def
               "\\|"))
   (set (make-local-variable 'adaptive-fill-first-line-regexp)
@@ -6767,7 +6768,7 @@ or \\[markdown-toggle-inline-images]."
   ;; Separating out each condition into a separate function so that users can
   ;; override if desired (with remove-hook)
   (add-hook 'fill-nobreak-predicate
-            'markdown-inside-link-text-p nil t)
+            'markdown-inside-link-p nil t)
   (add-hook 'fill-nobreak-predicate
             'markdown-line-is-reference-definition-p nil t)
 
