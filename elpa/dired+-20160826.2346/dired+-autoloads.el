@@ -1,9 +1,9 @@
 ;;; dired+-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22347 49624 297236 884000))
+;;;### (autoloads nil "dired+" "dired+.el" (22479 30490 480893 713000))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -575,11 +575,25 @@ this Dired buffer and all subdirs, recursively.
 \(fn &optional ARG)" t nil)
 
 (autoload 'diredp-do-query-replace-regexp-recursive "dired+" "\
-Do `query-replace-regexp' of FROM with TO, on all marked files.
-If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue].
+Do `query-replace-regexp' on marked files, including in marked subdirs.
+Query-replace FROM with TO.
 
-\(fn FROM TO &optional IGNORE-MARKS-P)" t nil)
+Like `dired-do-query-replace', but act recursively on subdirs.
+The files included are those that are marked in the current Dired
+buffer, or all files in the directory if none are marked.  Marked
+subdirectories are handled recursively in the same way.
+
+With an (explicit) numeric prefix argument:
+
+* >= 0 means ignore all marks - include ALL files in this Dired buffer
+  and all subdirs, recursively.
+
+* <= 0 means replace only word-delimited matches.
+
+If you exit (`\\[keyboard-quit]', `RET' or `q'), you can resume the query replacement
+using `\\[tags-loop-continue]'.
+
+\(fn FROM TO &optional ARG)" t nil)
 
 (autoload 'diredp-do-grep-recursive "dired+" "\
 Run `grep' on marked files, including those in marked subdirs.
