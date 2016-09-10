@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.2.0
-;; Package-Version: 20160820.255
+;; Package-Version: 20160909.935
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -202,14 +202,20 @@ function or trait.  When nil, where will be aligned with fn or trait."
 (defun rust-paren-level () (nth 0 (syntax-ppss)))
 (defun rust-in-str-or-cmnt () (nth 8 (syntax-ppss)))
 (defun rust-rewind-past-str-cmnt () (goto-char (nth 8 (syntax-ppss))))
+
 (defun rust-rewind-irrelevant ()
-  (let ((starting (point)))
-    (skip-chars-backward "[:space:]\n")
-    (if (rust-looking-back-str "*/") (backward-char))
-    (if (rust-in-str-or-cmnt)
-        (rust-rewind-past-str-cmnt))
-    (if (/= starting (point))
-        (rust-rewind-irrelevant))))
+  (let ((continue t))
+    (while continue
+      (let ((starting (point)))
+        (skip-chars-backward "[:space:]\n")
+        (when (rust-looking-back-str "*/")
+          (backward-char))
+        (when (rust-in-str-or-cmnt)
+          (rust-rewind-past-str-cmnt))
+        ;; Rewind until the point no longer moves
+        (setq continue (/= starting (point)))))))
+
+
 (defun rust-in-macro ()
   (save-excursion
     (when (> (rust-paren-level) 0)
