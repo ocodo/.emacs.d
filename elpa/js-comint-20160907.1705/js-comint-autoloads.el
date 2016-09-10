@@ -1,10 +1,10 @@
 ;;; js-comint-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "js-comint" "js-comint.el" (22396 28993 688075
-;;;;;;  904000))
+;;;### (autoloads nil "js-comint" "js-comint.el" (22483 30656 984050
+;;;;;;  134000))
 ;;; Generated autoloads from js-comint.el
 
 (autoload 'js-do-use-nvm "js-comint" "\
@@ -85,7 +85,7 @@ A javascript process can be fired up with M-x run-js.
 Customization: Entry to this mode runs the hooks on comint-mode-hook and
 inferior-js-mode-hook (in that order).
 
-You can send text to the inferior Javascript process from othber buffers containing
+You can send text to the inferior Javascript process from other buffers containing
 Javascript source.
     switch-to-js switches the current buffer to the Javascript process buffer.
     js-send-region sends the current region to the Javascript process.
