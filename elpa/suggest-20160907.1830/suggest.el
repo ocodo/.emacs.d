@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.2
-;; Package-Version: 20160903.806
+;; Package-Version: 20160907.1830
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 
@@ -236,11 +236,13 @@ need multiple examples to ensure they do what the user wants.")
         (last-char (substring text (1- (length text))))
         (start (point))
         end)
-    ;; Insert the heading, ensuring it's not editable.
-    ;; TODO: this still allows users to delete the :, but
-    ;; at least it lets users press enter after heading.
-    (insert (propertize excluding-last 'read-only t))
-    (insert last-char)
+    ;; Insert the heading, ensuring it's not editable,
+    (insert (propertize excluding-last
+                        'read-only t))
+    ;; but allow users to type immediately after the heading.
+    (insert (propertize last-char
+                        'read-only t
+                        'rear-nonsticky t))
     ;; Point is now at the end of the heading, save that position.
     (setq end (point))
     ;; Start the overlay after the ";; " bit.
