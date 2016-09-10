@@ -132,6 +132,7 @@ an alternate theme for use in the terminal.")
      (isearch                                      :foreground base0A :background base01 :inverse-video t)
      (isearch-lazy-highlight-face                  :foreground base0C :background base01 :inverse-video t)
      (isearch-fail                                 :background base01 :inverse-video t :inherit font-lock-warning-face)
+     (anzu-mode-line                               :foreground base0E)
      (evil-search-highlight-persist-highlight-face :background base01 :inverse-video t :inherit font-lock-warning-face)
 
      ;; Popups
@@ -221,6 +222,14 @@ an alternate theme for use in the terminal.")
      (rainbow-delimiters-depth-8-face              :foreground base03)
      (rainbow-delimiters-depth-9-face              :foreground base05)
 
+     ;; spaceline
+     (spaceline-evil-emacs                         :foreground base01 :background base0D)
+     (spaceline-evil-insert                        :foreground base01 :background base0D)
+     (spaceline-evil-motion                        :foreground base01 :background base0E)
+     (spaceline-evil-normal                        :foreground base01 :background base0B)
+     (spaceline-evil-replace                       :foreground base01 :background base08)
+     (spaceline-evil-visual                        :foreground base01 :background base09)
+
      ;; IDO
      (ido-subdir                                   :foreground base04)
      (ido-first-match                              :foreground base09 :weight bold)
@@ -266,13 +275,13 @@ an alternate theme for use in the terminal.")
      (csv-separator-face                           :foreground base09)
 
      (diff-added                                   :foreground base0B)
-     (diff-changed                                 :foreground base0A)
+     (diff-changed                                 :foreground base0E)
      (diff-removed                                 :foreground base08)
      (diff-header                                  :background base01)
      (diff-file-header                             :background base02)
      (diff-hunk-header                             :foreground base0E :background base01)
 
-     (diff-hl-change                               :foreground base0A)
+     (diff-hl-change                               :foreground base0E)
      (diff-hl-delete                               :foreground base08)
      (diff-hl-insert                               :foreground base0B)
 
