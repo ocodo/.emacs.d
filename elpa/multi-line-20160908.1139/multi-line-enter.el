@@ -36,5 +36,14 @@
     (forward-char)))
   (forward-char))
 
+(defclass multi-line-looking-at-enter-strategy ()
+  ((enter-regex :initarg :enter-regex :initform "[[:space]]*[{([]")))
+
+(defmethod multi-line-can-enter ((strategy multi-line-looking-at-enter-strategy))
+  (looking-at (oref strategy enter-regex)))
+
+(defmethod multi-line-enter ((strategy multi-line-looking-at-enter-strategy))
+  (re-search-forward (oref strategy enter-regex)))
+
 (provide 'multi-line-enter)
 ;;; multi-line-enter.el ends here

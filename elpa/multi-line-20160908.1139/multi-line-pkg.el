@@ -1,4 +1,4 @@
-(define-package "multi-line" "20160831.1826" "multi-line statements"
+(define-package "multi-line" "20160908.1139" "multi-line statements"
   '((emacs "24")
     (s "1.9.0")
     (cl-lib "0.5")

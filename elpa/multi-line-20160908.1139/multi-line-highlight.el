@@ -31,7 +31,8 @@
 
 (defvar multi-line-overlays-to-remove nil)
 
-(defun multi-line-clean-regions ()
+;;;###autoload
+(defun multi-line-clear-highlights ()
   "Remove any existing multi-line highlight overlays."
   (interactive)
   (cl-loop for overlay in multi-line-overlays-to-remove
@@ -42,7 +43,7 @@
   "Highlight the positions at which multi-line will consider adding newlines."
   (interactive)
   (let ((candidates (save-excursion
-                      (multi-line-find (oref multi-line-current-strategy find)))))
+                      (multi-line-candidates multi-line-current-strategy))))
     (setq multi-line-overlays-to-remove
           (nconc
            (cl-loop for candidate in candidates
@@ -50,7 +51,7 @@
 
 (defun multi-line-highlight-candidate (candidate)
   (let* ((position (multi-line-candidate-position candidate))
-         (overlay (make-overlay position (1+ position))))
+         (overlay (make-overlay (1- position) position)))
     (overlay-put overlay 'face 'highlight)
     overlay))
 

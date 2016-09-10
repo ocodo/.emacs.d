@@ -55,10 +55,10 @@
            candidates))
 
 (defmacro multi-line-pre-decorator (name &rest forms)
-  "Build a constructor with name NAME that builds respacers that
-execute FORMS before respacing.  FORMS can use the variables index
-and candidates which will be appropriately populated by the
-executor."
+  "Build respacer decorator NAME that execute FORMS before each respacing.
+
+FORMS can use the variables index and candidates which will be
+appropriately populated by the executor."
   `(defun ,name (decorated-respacer)
      (make-instance 'multi-line-each-decorator
                     :respacer decorated-respacer
@@ -67,10 +67,10 @@ executor."
                                  (multi-line-respace-one respacer index candidates)))))
 
 (defmacro multi-line-post-decorator (name &rest forms)
-  "Build a constructor with name NAME that builds respacers that
-execute FORMS after respacing.  FORMS can use the variables index
-and candidates which will be appropriately populated by the
-executor."
+  "Build respacer decorator NAME that execute FORMS after each respacing.
+
+FORMS can use the variables index and candidates which will be
+appropriately populated by the executor."
   `(defun ,name (respacer)
      (make-instance 'multi-line-each-decorator
                     :respacer respacer
@@ -79,10 +79,10 @@ executor."
                                  ,@forms))))
 
 (defmacro multi-line-post-all-decorator (name &rest forms)
-  "Build a constructor with name NAME that builds respacers that
-execute FORMS after respacing all splits.  FORMS can use the
-variables index and candidates which will be appropriately populated
-by the executor."
+  "Build respacer decorator NAME that execute FORMS after all respacing.
+
+FORMS can use the variables index and candidates which will be
+appropriately populated by the executor."
   `(multi-line-post-decorator
      ,name (when (equal index (- (length candidates) 1))
              (goto-char (multi-line-candidate-position (car (last candidates))))

@@ -77,8 +77,9 @@ character classes that will be used to find whitespace."
   (up-list) (backward-sexp))
 
 (defun multi-line-comma-advance ()
-  "Advance to the next comma."
-  (re-search-forward ","))
+  "Pass over a comma when it is present."
+  (when (looking-at "[[:space:]\n]*,")
+   (re-search-forward ",")))
 
 (defun multi-line-is-newline-between-markers (first second)
   (s-contains? "\n"

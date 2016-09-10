@@ -115,8 +115,7 @@
 
 (defun multi-line-lisp-advance-fn ()
   "Advance to the start of the next multi-line split for Lisp."
-  (re-search-forward "[^[:space:]\n]")
-  (backward-char))
+  nil)
 
 (eval-and-compile
   (defvar multi-line-defhook-prefix "multi-line-"))
@@ -160,7 +159,7 @@
    :find multi-line-lisp-find-strategy
    :enter (make-instance 'multi-line-up-list-enter-strategy
                          :skip-chars "`',@")
-   :respace multi-line-lisp-respacer) t)
+   :respace multi-line-lisp-respacer))
 
 (defvar multi-line-add-trailing-comma-strategy
   (make-instance 'multi-line-strategy
@@ -172,6 +171,8 @@
 
 (multi-line-defhook python multi-line-add-trailing-comma-strategy t)
 (multi-line-defhook go multi-line-add-trailing-comma-strategy t)
+(multi-line-defhook ruby multi-line-add-trailing-comma-strategy t)
+
 (multi-line-defhook lisp multi-line-lisp-strategy t)
 (multi-line-defhook emacs-lisp multi-line-lisp-strategy t)
 
