@@ -30,6 +30,7 @@
 
 (require 'ox)
 (require 'ht)
+(require 'subr-x)
 
 (defgroup ego nil
   "Options for generating static pages using ego."
