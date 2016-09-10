@@ -311,6 +311,11 @@ This variable is used in `neo-vc-for-node' when
   :type '(alist :key-type symbol
                 :value-type character))
 
+(defcustom neo-toggle-window-keep-p nil
+  "If not nil, not switch to *NeoTree* buffer when executing `neotree-toggle'."
+  :type 'boolean
+  :group 'neotree)
+
 ;;
 ;; Faces
 ;;
@@ -1350,26 +1355,27 @@ Return the new expand state for NODE (t for expanded, nil for collapsed)."
     (dolist (leaf leafs)
       (neo-buffer--insert-file-entry leaf depth))))
 
-(defun neo-buffer--refresh (save-pos-p)
+(defun neo-buffer--refresh (save-pos-p &optional non-neotree-buffer)
   "Refresh the NeoTree buffer.
 If SAVE-POS-P is non-nil, it will be auto save current line number."
-  (save-excursion
-    (let ((start-node neo-buffer--start-node))
-      (unless start-node
-        (setq start-node default-directory))
+  (let ((start-node neo-buffer--start-node))
+    (unless start-node
+      (setq start-node default-directory))
 
-      (neo-buffer--with-editing-buffer
-       ;; save context
-       (when save-pos-p
-         (neo-buffer--save-cursor-pos))
-       ;; starting refresh
-       (erase-buffer)
-       (neo-buffer--node-list-clear)
-       (neo-buffer--insert-banner)
-       (setq neo-buffer--start-line neo-header-height)
-       (neo-buffer--insert-tree start-node 1))
-      ;; restore context
-      (neo-buffer--goto-cursor-pos))))
+    (neo-buffer--with-editing-buffer
+     ;; save context
+     (when save-pos-p
+       (neo-buffer--save-cursor-pos))
+     (when non-neotree-buffer
+       (setq neo-buffer--start-node start-node))
+     ;; starting refresh
+     (erase-buffer)
+     (neo-buffer--node-list-clear)
+     (neo-buffer--insert-banner)
+     (setq neo-buffer--start-line neo-header-height)
+     (neo-buffer--insert-tree start-node 1))
+    ;; restore context
+    (neo-buffer--goto-cursor-pos)))
 
 (defun neo-buffer--post-move ()
   "Reset current directory when position moved."
@@ -1867,7 +1873,13 @@ If the current node is the first node then the last node is selected."
 (defun neotree-refresh ()
   "Refresh the NeoTree buffer."
   (interactive)
-  (neo-buffer--refresh t))
+  (if (eq (current-buffer) (neo-global--get-buffer))
+      (neo-buffer--refresh t)
+    (save-excursion
+      (let ((cw (selected-window)))  ;; save current window
+        (neo-buffer--refresh t t)
+        (when neo-toggle-window-keep-p
+          (select-window cw))))))
 
 (defun neotree-stretch-toggle ()
   "Make the NeoTree window toggle maximize/minimize."
@@ -1905,10 +1917,13 @@ automatically."
 (defun neotree-show ()
   "Show the NeoTree window."
   (interactive)
-  (if neo-smart-open
-      (neotree-find)
-    (neo-global--open))
-  (neo-global--select-window))
+  (let ((cw (selected-window)))  ;; save current window
+    (if neo-smart-open
+        (neotree-find)
+      (neo-global--open))
+    (neo-global--select-window)
+    (when neo-toggle-window-keep-p
+      (select-window cw))))
 
 ;;;###autoload
 (defun neotree-hide ()
