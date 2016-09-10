@@ -3,11 +3,11 @@
 ;; Copyright (C) 2015 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/fzf.el
-;; Package-Version: 20160714.557
+;; Package-Version: 20160908.806
 ;; Filename: fzf.el
 ;; Description: A front-end for fzf
 ;; Created: 2015-09-18
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: fzf fuzzy search
 ;;
