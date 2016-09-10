@@ -1,9 +1,9 @@
 ;;; rotate-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "rotate" "rotate.el" (22218 26260 587029 163000))
+;;;### (autoloads nil "rotate" "rotate.el" (22483 30635 96025 947000))
 ;;; Generated autoloads from rotate.el
 
 (autoload 'rotate-layout "rotate" "\
