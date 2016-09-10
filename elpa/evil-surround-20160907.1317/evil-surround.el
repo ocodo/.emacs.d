@@ -10,13 +10,13 @@
 ;; Maintainer: Please send bug reports to the mailing list (below).
 ;; Created: July 23 2011
 ;; Version: 0.1
-;; Package-Version: 20160501.1704
+;; Package-Version: 20160907.1317
 ;; Package-Requires: ((evil "1.2.12"))
-;; Keywords: emulation, vi, evil
 ;; Mailing list: <implementations-list at lists.ourproject.org>
 ;;      Subscribe: http://tinyurl.com/implementations-list
 ;;      Newsgroup: nntp://news.gmane.org/gmane.emacs.vim-emulation
 ;;      Archives: http://dir.gmane.org/gmane.emacs.vim-emulation
+;; Keywords: emulation, vi, evil
 ;;
 ;; This file is not part of GNU Emacs.
 
@@ -168,13 +168,13 @@ See also `evil-surround-outer-overlay'."
       range)))
 
 ;;;###autoload
-(defun evil-surround-delete (char &optional outer inner)
+(evil-define-command evil-surround-delete (char &optional outer inner)
   "Delete the surrounding delimiters represented by CHAR.
 Alternatively, the text to delete can be represented with
 the overlays OUTER and INNER, where OUTER includes the delimiters
 and INNER excludes them. The intersection (i.e., difference)
 between these overlays is what is deleted."
-  (interactive "c")
+  (interactive "<C>")
   (cond
    ((and outer inner)
     (delete-region (overlay-start outer) (overlay-start inner))
@@ -192,15 +192,15 @@ between these overlays is what is deleted."
         (when inner (delete-overlay inner)))))))
 
 ;;;###autoload
-(defun evil-surround-change (char &optional outer inner)
+(evil-define-command evil-surround-change (char &optional outer inner)
   "Change the surrounding delimiters represented by CHAR.
 Alternatively, the text to delete can be represented with the
 overlays OUTER and INNER, which are passed to `evil-surround-delete'."
-  (interactive "c")
+  (interactive "<C>")
   (cond
    ((and outer inner)
     (evil-surround-delete char outer inner)
-    (let ((key (read-char)))
+    (let ((key (evil-read-key)))
       (evil-surround-region (overlay-start outer)
                             (overlay-end outer)
                             nil (if (evil-surround-valid-char-p key) key char))))
@@ -293,7 +293,7 @@ Becomes this:
      :thing
    }"
 
-  (interactive "<R>c")
+  (interactive "<R><C>")
   (when (evil-surround-valid-char-p char)
     (let* ((overlay (make-overlay beg end nil nil t))
            (pair (or (and (boundp 'pair) pair) (evil-surround-pair char)))
@@ -349,7 +349,7 @@ Becomes this:
 
 (evil-define-operator evil-Surround-region (beg end type char)
   "Call surround-region, toggling force-new-line"
-  (interactive "<R>c")
+  (interactive "<R><C>")
   (evil-surround-region beg end type char t))
 
 ;;;###autoload
