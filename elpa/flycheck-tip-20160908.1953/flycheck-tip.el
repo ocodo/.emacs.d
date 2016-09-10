@@ -1,11 +1,11 @@
 ;;; flycheck-tip.el --- Show flycheck/flymake errors by tooltip -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013 by Yuta Yamada
+;; Copyright (C) 2016 by Yuta Yamada
 
 ;; Author: Yuta Yamada <cokesboy"at"gmail.com>
 ;; URL: https://github.com/yuutayamada/flycheck-tip
 ;; Version: 0.5.0
-;; Package-Requires: ((flycheck "0.13") (emacs "24.1") (popup "0.5.0"))
+;; Package-Requires: ((flycheck "29") (emacs "24.1") (popup "0.5.0"))
 ;; Keywords: flycheck
 
 ;;; License:
@@ -28,6 +28,7 @@
 ;;
 ;;   (require 'flycheck-tip)
 ;;   (define-key your-prog-mode (kbd "C-c C-n") 'flycheck-tip-cycle)
+;;   (setq flycheck-display-errors-function 'ignore)
 ;;
 ;; If you are still using flymake, you can use combined function that
 ;; show error by popup in flymake-mode or flycheck-mode.
@@ -36,7 +37,7 @@
 ;;   (define-key global-map (kbd "C-9") 'error-tip-cycle-dwim-reverse)
 ;;
 ;; If you build Emacs with D-Bus option, you may configure following setting.
-;; This keeps the errors on notification area. Please check
+;; This keeps the errors on notification area.  Please check
 ;; ‘error-tip-notify-timeout’ to change limit of the timeout as well.
 ;;
 ;;   (setq error-tip-notify-keep-messages t)
@@ -48,12 +49,6 @@
 
 (defvaralias 'flycheck-tip-timer-delay 'error-tip-timer-delay
   "Alias of `error-tip-timer-delay'.")
-
-(defcustom flycheck-tip-avoid-show-func t
-  "Avoid `flycheck-show-error-at-point' function's behavior.
-This variable is true by default."
-  :group 'flycheck-tip
-  :type 'boolean)
 
 ;; memo flycheck-current-errors
 ;; 0 : err name?
@@ -80,32 +75,6 @@ Move to previous error if REVERSE is non-nil."
   (interactive)
   (flycheck-tip-cycle t))
 
-(defadvice flycheck-display-error-at-point
-  (around flycheck-tip-avoid-function activate)
-  "Avoid flycheck's displaying feature on echo ares if you set non-nil to `flycheck-tip-avoid-show-func'."
-  (if flycheck-tip-avoid-show-func
-      nil
-    ad-do-it))
-
-(defun flycheck-tip-use-timer (order)
-  "You can set 'normal, 'verbose or nil to ORDER.
-The normal means, use error popup and using timer or not is configurable.
-The verbose means, use error popup and popup current-line error if it's exists
-after `error-tip-timer-delay' seconds.
-If you set nil, show popup error immediately after you invoke flycheck-tip-cycle
-or flycheck-tip-cycle-reverse."
-  (cl-case order
-    (normal
-     (setq flycheck-tip-avoid-show-func t))
-    (verbose
-     (setq flycheck-tip-avoid-show-func nil
-           flycheck-idle-change-delay error-tip-timer-delay
-           flycheck-display-errors-function
-           'flycheck-tip-display-current-line-error-message))
-    ;; do not use timer
-    (t (setq flycheck-tip-avoid-show-func t
-             error-tip-timer-delay nil))))
-
 (defun flycheck-tip-display-current-line-error-message (errors)
   "Show current line's ERRORS by popup.
 This function is used to replace ‘flycheck-display-errors-function’."
@@ -116,6 +85,44 @@ This function is used to replace ‘flycheck-display-errors-function’."
     (when current-line-errors
       (setq error-tip-current-errors current-line-errors)
       (error-tip-popup-error-message current-line-errors (point)))))
+
+;;;;;;;;;;;;;
+;; Obsolete
+;; FIXME: what is the proper way to obsolete?
+
+(defcustom flycheck-tip-avoid-show-func t
+  "Avoid `flycheck-show-error-at-point' function's behavior.
+This variable is true by default."
+  :group 'flycheck-tip
+  :type 'boolean)
+
+(make-obsolete-variable
+ 'flycheck-tip-avoid-show-func nil
+ "2017/9/30: Please set ‘flycheck-display-errors-function’ to ‘ignore’ if
+you want to avoid echoing error message instead of this
+value. This variable will be deleted on the future release.")
+
+(defun flycheck-tip-use-timer (order)
+  "You can set 'normal, 'verbose or nil to ORDER.
+The normal means, use error popup and using timer or not is configurable.
+The verbose means, use error popup and popup current-line error if it's exists
+after `error-tip-timer-delay' seconds.
+If you set nil, show popup error immediately after you invoke flycheck-tip-cycle
+or flycheck-tip-cycle-reverse."
+  (cl-case order
+    (normal
+     (setq flycheck-display-errors-function 'ignore))
+    (verbose
+     (setq flycheck-idle-change-delay error-tip-timer-delay
+           flycheck-display-errors-function
+           'flycheck-tip-display-current-line-error-message))
+    ;; do not use timer
+    (t (setq flycheck-display-errors-function 'ignore)
+       (setq error-tip-timer-delay nil))))
+
+(define-obsolete-function-alias 'flycheck-tip-use-timer nil
+  "2017/9/30: This function become obsolete in favor of official flycheck-pos-tip package.
+Please use that instead if you want just to show error messages at point by popup.")
 
 (provide 'flycheck-tip)
 
