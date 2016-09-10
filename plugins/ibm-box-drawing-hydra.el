@@ -16,11 +16,25 @@
 ;; You can use Artist mode for things like this too, this is just yet
 ;; another way.
 ;;
-;; I built this for me, and while it's GPL, I keep it in my config.
+;; I built this for me, and while it's GPL, I keep it in my config,
+;; and don't have any particular intent to spread it.  If you found
+;; it, enjoy.
 ;;
-;; Also good is aa2u mode - which converts artist-mode boxes to
-;; unicode (or to me `IBM Box chars' - aka. Code Page 437)
-
+;; Also good is aa2u mode - which converts ascii boxes to
+;; unicode (or as I think of them `IBM Box chars' - from Code Page 437)
+;;
+;; Sample boxes:
+;;
+;; ┌─────┬───┬────────┐
+;; │     │   ├─────┐  │
+;; │     ╞═══╪═════╧══╡
+;; └─────┴───┴────────┘
+;;
+;; ╔═══════╤═══╗  ┌───┐╔═══╕
+;; ╠═══════╪═══╬══╪═══╪╬═══╡
+;; ║       │   ║  │   │║   │
+;; ╚═══════╧═══╝  ╘═══╧╩═══╛
+;;
 ;;; Licence: GPL v3
 
 ;;; Code:
@@ -33,30 +47,35 @@
     (kill-char 1))
   (insert char))
 
-(global-set-key (kbd "C-x r B")
-                  (defhydra ibm-draw-box-hydra (:color pink) "Draw box using IBM Code Page 437"
-                    ("ESC" nil "exit\n" :color blue) ;; Esc to exit.
-                    ("<space>"   (search-backward "+")  "jump to prev \"+\"")
-                    ("S-<space>" (search-forward "+")  "next \"+\"\n")
-                    ("q" (ibm-box--insert "┌") "┌") ("w" (ibm-box--insert "┬") "┬") ("e" (ibm-box--insert "┐") "┐ - ")
-                    ("Q" (ibm-box--insert "╒") "╒") ("W" (ibm-box--insert "╤") "╤") ("E" (ibm-box--insert "╕") "╕ - ")
-                    ("t" (ibm-box--insert "╔") "╔") ("y" (ibm-box--insert "╦") "╦") ("u" (ibm-box--insert "╗") "╗ - ")
-                    ("T" (ibm-box--insert "╓") "╓") ("Y" (ibm-box--insert "╥") "╥") ("U" (ibm-box--insert "╖") "╖\n")
-                    ("a" (ibm-box--insert "├") "├") ("s" (ibm-box--insert "┼") "┼") ("d" (ibm-box--insert "┤") "┤ - ")
-                    ("A" (ibm-box--insert "╞") "╞") ("S" (ibm-box--insert "╪") "╪") ("D" (ibm-box--insert "╡") "╡ - ")
-                    ("g" (ibm-box--insert "╠") "╠") ("h" (ibm-box--insert "╬") "╬") ("j" (ibm-box--insert "╣") "╣ - ")
-                    ("G" (ibm-box--insert "╟") "╟") ("H" (ibm-box--insert "╫") "╫") ("J" (ibm-box--insert "╢") "╢\n")
-                    ("z" (ibm-box--insert "└") "└") ("x" (ibm-box--insert "┴") "┴") ("c" (ibm-box--insert "┘") "┘ - ")
-                    ("Z" (ibm-box--insert "╘") "╘") ("X" (ibm-box--insert "╧") "╧") ("C" (ibm-box--insert "╛") "╛ - ")
-                    ("b" (ibm-box--insert "╚") "╚") ("n" (ibm-box--insert "╩") "╩") ("m" (ibm-box--insert "╝") "╝ - ")
-                    ("B" (ibm-box--insert "╙") "╙") ("N" (ibm-box--insert "╨") "╨") ("M" (ibm-box--insert "╜") "╜\n")
-                    ("r" (ibm-box--insert "─") "─") ("R" (ibm-box--insert "│") "│                                      ")
-                    ("i" (ibm-box--insert "═") "═") ("I" (ibm-box--insert "║") "║\n")
-                    ("C-q" (ibm-box--insert "╭") "╭") ("C-w" (ibm-box--insert "╮") "╮\n")
-                    ("C-a" (ibm-box--insert "╰") "╰") ("C-s" (ibm-box--insert "╯") "╯\n")
-                    ("<f9>" (setq ibm-box--overwrite (not ibm-box--overwrite))
-                     (format "Toggle overwrite mode [%s]"
-                             (if  ibm-box--overwrite "ON" "OFF")))))
+(global-set-key
+ (kbd "C-x r B")
+ (defhydra ibm-draw-box-hydra (:color pink :hint nil) "
+IBM Box Chars  _r_ ─         _R_ ═         _v_ │         _V_ ║
+(CodePage 437) _q_ ┌ _w_ ┬ _e_ ┐ _Q_ ╒ _W_ ╤ _E_ ╕ _t_ ╔ _y_ ╦ _u_ ╗ _T_ ╓ _Y_ ╥ _U_ ╖  _C-q_ ╭ ╮ _C-w_
+               _a_ ├ _s_ ┼ _d_ ┤ _A_ ╞ _S_ ╪ _D_ ╡ _g_ ╠ _h_ ╬ _j_ ╣ _G_ ╟ _H_ ╫ _J_ ╢
+               _z_ └ _x_ ┴ _c_ ┘ _Z_ ╘ _X_ ╧ _C_ ╛ _b_ ╚ _n_ ╩ _m_ ╝ _B_ ╙ _N_ ╨ _M_ ╜  _C-a_ ╰ ╯ _C-s_
+_ESC_ to exit    _i_ Toggle Overwrite/Insert
+"
+   ("ESC" nil nil :color blue) ;; Esc to exit.
+   ("<space>"   (search-backward "+"))
+   ("S-<space>" (search-forward "+"))
+   ("q" (ibm-box--insert "┌")) ("w" (ibm-box--insert "┬")) ("e" (ibm-box--insert "┐"))
+   ("Q" (ibm-box--insert "╒")) ("W" (ibm-box--insert "╤")) ("E" (ibm-box--insert "╕"))
+   ("t" (ibm-box--insert "╔")) ("y" (ibm-box--insert "╦")) ("u" (ibm-box--insert "╗"))
+   ("T" (ibm-box--insert "╓")) ("Y" (ibm-box--insert "╥")) ("U" (ibm-box--insert "╖"))
+   ("a" (ibm-box--insert "├")) ("s" (ibm-box--insert "┼")) ("d" (ibm-box--insert "┤"))
+   ("A" (ibm-box--insert "╞")) ("S" (ibm-box--insert "╪")) ("D" (ibm-box--insert "╡"))
+   ("g" (ibm-box--insert "╠")) ("h" (ibm-box--insert "╬")) ("j" (ibm-box--insert "╣"))
+   ("G" (ibm-box--insert "╟")) ("H" (ibm-box--insert "╫")) ("J" (ibm-box--insert "╢"))
+   ("z" (ibm-box--insert "└")) ("x" (ibm-box--insert "┴")) ("c" (ibm-box--insert "┘"))
+   ("Z" (ibm-box--insert "╘")) ("X" (ibm-box--insert "╧")) ("C" (ibm-box--insert "╛"))
+   ("b" (ibm-box--insert "╚")) ("n" (ibm-box--insert "╩")) ("m" (ibm-box--insert "╝"))
+   ("B" (ibm-box--insert "╙")) ("N" (ibm-box--insert "╨")) ("M" (ibm-box--insert "╜"))
+   ("r" (ibm-box--insert "─")) ("R" (ibm-box--insert "═"))
+   ("v" (ibm-box--insert "│")) ("V" (ibm-box--insert "║"))
+   ("C-q" (ibm-box--insert "╭")) ("C-w" (ibm-box--insert "╮"))
+   ("C-a" (ibm-box--insert "╰")) ("C-s" (ibm-box--insert "╯"))
+   ("i" (setq ibm-box--overwrite (not ibm-box--overwrite)) )))
 
 (provide 'ibm-box-drawing-hydra)
 ;;; ibm-box-drawing-hydra.el ends here
