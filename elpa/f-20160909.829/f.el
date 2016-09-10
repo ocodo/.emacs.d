@@ -5,7 +5,7 @@
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 0.18.2
-;; Package-Version: 20160815.1253
+;; Package-Version: 20160909.829
 ;; Keywords: files, directories
 ;; URL: http://github.com/rejeep/f.el
 ;; Package-Requires: ((s "1.7.0") (dash "2.2.0"))
@@ -567,8 +567,6 @@ returned."
     (setq path default-directory))
   (when (f-relative? path)
     (setq path (f-expand path)))
-  (unless (f-exists? path)
-    (error "File %s does not exist" path))
   (if (funcall fn path)
       path
     (unless (f-root? path)
