@@ -6,7 +6,9 @@
   :init (progn
           (which-key-mode t)
           (which-key-setup-side-window-bottom))
-  :bind ("C-x n g" . which-key-mode))
+  :bind
+  ("C-x n g" . which-key-mode)
+  ("C-h M-t" . which-key-show-top-level))
 
 (provide 'use-which-key)
 ;;; use-which-key.el ends here
