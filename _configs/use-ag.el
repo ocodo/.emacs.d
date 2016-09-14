@@ -8,6 +8,7 @@
   (progn
     (add-to-list 'ag-arguments "--hidden")
     (bind-keys :prefix-map ag-global-prefix-map
+               ;; REFACTOR: make this a hydra
                :prefix "C-x g"
                ("g" . ag)
                ("a" . ag)
