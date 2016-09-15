@@ -51,7 +51,7 @@
       ;; a copy of SauceCodePro is kept in emacs.d/fonts
       (set-face-attribute 'default nil
                           :font "SauceCodePro Nerd Font"
-                          :weight 'ultra-light)
+                          :weight 'light)
       ;;
       )
     ;; Sample Text for font viewing
