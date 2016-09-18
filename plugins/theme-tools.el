@@ -119,16 +119,19 @@ easily select them and then edit them from their defaults.
 
 \(use C-spc to mark multiple faces\)"
   (interactive)
-  (helm :sources
-        `(((name . "HELM")
-           (candidates . ,(face-list))
-           (action . (("open" .
-                       (lambda (candidate)
-                         (mapc
-                          (lambda (face)
-                            (theme-tools-insert-theme-face-attributes face)
-                            (newline))
-                          (helm-marked-candidates))))))))))
+  (helm
+   :sources
+   `(((name . "HELM")
+      (candidates . ,(face-list))
+      (
+       action
+       . (("open" .
+           (lambda (candidate)
+             (mapc
+              (lambda (face)
+                (theme-tools-insert-theme-face-attributes face)
+                (newline))
+              (helm-marked-candidates))))))))))
 
 (defun theme-tools-insert-theme-faces-not-themed (prefix)
   "Insert theme face defintion for unthemed faces with PREFIX."
