@@ -1,12 +1,15 @@
 ;;; theme-tools -- A collection of tools to assist with the writing of themes
 ;;; Package-Requires: (s "1.10.0") (dash "2.13.0")
-;;; Version: 0.1.0
+;;; Version: 0.1.1
 ;;; Author: Jason Milkins
 ;;; Commentary:
 ;;
 ;;  A collection of tools to assist writing themes
 
 ;;; code:
+(require 's)
+(require 'dash)
+
 (defvar theme-tools-base-attributes '(:background :foreground :weight :underline :overline :box :family :height :inherit))
 
 (defun theme-tools-face-themed-p (face)
