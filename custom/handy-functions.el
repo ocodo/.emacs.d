@@ -984,7 +984,7 @@ Optionally check ALLBUFS."
 ;; Case transform hydra
 (global-set-key (kbd "C-c x") (defhydra case-transform ()
                                   "Transform case of word or region"
-                                 ("h" humanize-at-point-or-region "humanize")
+                                  ("h" humanize-at-point-or-region "humanize")
                                   ("d" dasherise-at-point-or-region "dasherise/kebab")
                                   ("u" upper-camelcase-at-point-or-region "upper-camel")
                                   ("l" lower-camelcase-at-point-or-region "lower-camel")
