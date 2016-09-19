@@ -966,10 +966,7 @@ Optionally check ALLBUFS."
           (insert end-file-message)))
     (message "Not a lisp file.")))
 
-
-
 ;; Key bindings
-
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
 (global-set-key (kbd "C-c M--")   'decrease-default-font-height)
 (global-set-key (kbd "C-c =")     'set-default-font-height)
@@ -983,6 +980,16 @@ Optionally check ALLBUFS."
 (global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
 (global-set-key (kbd "ESC C-M-z") 'zap-up-to-regexp)
+
+;; Case transform hydra
+(global-set-key (kbd "C-c x") (defhydra case-transform ()
+                                  "Transform case of word or region"
+                                 ("h" humanize-at-point-or-region "humanize")
+                                  ("d" dasherise-at-point-or-region "dasherise")
+                                  ("u" upper-camelcase-at-point-or-region "upper camel")
+                                  ("l" lower-camelcase-at-point-or-region "lower camel")
+                                  ("s" snake-case-at-point-or-region "snake")
+                                  ("t" titleized-at-point-or-region "titleized")))
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
