@@ -10,7 +10,15 @@
 (require 's)
 (require 'dash)
 
-(defvar theme-tools-base-attributes '(:background :foreground :weight :underline :overline :box :family :height :inherit))
+(defvar theme-tools-base-attributes '(:foreground
+                                      :background
+                                      :weight
+                                      :underline
+                                      :overline
+                                      :height
+                                      :family
+                                      :box
+                                      :inherit))
 
 (defun theme-tools-face-themed-p (face)
   "Return t if the FACE is themed."
@@ -106,6 +114,17 @@ This is useful for inserting the current values of a face into a theme for editi
 Use `theme-tools-base-attributes' to customize the face attributes that are given."
   (interactive
    (list (completing-read "Select face: " (face-list))))
+  (insert
+   (theme-tools-theme-face-attributes
+    (intern face)
+    theme-tools-base-attributes)))
+
+(defun theme-tools-insert-unthemed-face-attributes (face)
+  "Insert theme definition of a FACE.
+
+Use `theme-tools-base-attributes' to customize the face attributes that are given."
+  (interactive
+   (list (completing-read "Select unthemed face: " (--remove (theme-tools-face-themed-p it) (face-list)))))
   (insert
    (theme-tools-theme-face-attributes
     (intern face)
