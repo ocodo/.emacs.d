@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20160820.48
-;; Version: 0.1.44
+;; Package-Version: 20160918.940
+;; Version: 0.1.47
 
 ;;; Commentary:
 ;;  Color theme for Emacs, when soothe and gruvbox collide.
@@ -198,8 +198,12 @@
    `(rainbow-identifiers-identifier-15         ((t (:foreground ,darktooth-identifiers-15))))
 
    ;; ido
+   `(ido-indicator                             ((t (:background ,darktooth-bright_red :foreground ,darktooth-bright_yellow))))
    `(ido-first-match                           ((t (:foreground ,darktooth-faded_cyan :background ,darktooth-dark0_hard))))
    `(ido-only-match                            ((t (:foreground ,darktooth-darkslategray4))))
+   `(ido-vertical-match-face                   ((t (:bold t))))
+   `(ido-vertical-only-match-face              ((t (:foreground ,darktooth-bright_cyan))))
+   `(ido-vertical-first-match-face             ((t (:foreground ,darktooth-bright_cyan :background ,darktooth-dark_blue))))
 
    ;; linum-relative
    `(linum-relative-current-face               ((t (:foreground ,darktooth-light4 :background ,darktooth-dark1))))
@@ -216,8 +220,6 @@
 
    ;; Smartparens
    `(sp-pair-overlay-face                      ((t (:background ,darktooth-dark2))))
-   ;;`(sp-wrap-overlay-face                    ((t (:inherit sp-wrap-overlay-face))))
-   ;;`(sp-wrap-tag-overlay-face                ((t (:inherit sp-wrap-overlay-face))))
    `(sp-show-pair-match-face                   ((t (:background ,darktooth-dark2)))) ;; Pair tags highlight
    `(sp-show-pair-mismatch-face                ((t (:background ,darktooth-neutral_red)))) ;; Highlight for bracket without pair
 
@@ -232,6 +234,12 @@
    `(elscreen-tab-control-face                 ((t (:foreground ,darktooth-neutral_red :background ,darktooth-dark2 :box nil :underline nil)))) ;; The controls
    `(elscreen-tab-current-screen-face          ((t (:foreground ,darktooth-dark0 :background ,darktooth-dark4 :box nil)))) ;; Current tab
    `(elscreen-tab-other-screen-face            ((t (:foreground ,darktooth-light4 :background ,darktooth-dark2 :box nil :underline nil)))) ;; Inactive tab
+
+   ;; embrace
+   `(embrace-help-pair-face                    ((t (:foreground ,darktooth-bright_blue))))
+   `(embrace-help-separator-face               ((t (:foreground ,darktooth-bright_orange))))
+   `(embrace-help-key-face                     ((t (:weight bold ,darktooth-bright_aqua))))
+   `(embrace-help-mark-func-face               ((t (:foreground ,darktooth-bright_cyan))))
 
    ;; ag (The Silver Searcher)
    `(ag-hit-face                               ((t (:foreground ,darktooth-neutral_blue))))
@@ -347,6 +355,13 @@
    `(show-paren-match                          ((t (:foreground ,darktooth-light0 :background ,darktooth-faded_blue))))
    `(show-paren-mismatch                       ((t (:foreground ,darktooth-light0_hard :background ,darktooth-faded_red))))
    `(anzu-mode-line                            ((t (:foreground ,darktooth-light0 :height 100 :background ,darktooth-faded_blue))))
+
+   ;; Anzu
+   `(anzu-match-1                              ((t (:foreground ,darktooth-dark0 :background ,darktooth-bright_green))))
+   `(anzu-match-2                              ((t (:foreground ,darktooth-dark0 :background ,darktooth-bright_yellow))))
+   `(anzu-match-3                              ((t (:foreground ,darktooth-dark0 :background ,darktooth-bright_cyan))))
+   `(anzu-replace-highlight                    ((t (:background ,darktooth-dark_aqua))))
+   `(anzu-replace-to                           ((t (:background ,darktooth-dark_cyan))))
 
    ;; Avy
    `(avy-lead-face-0                           ((t (:foreground ,darktooth-bright_blue ))))
@@ -534,91 +549,24 @@
    `(magit-whitespace-warning-face             ((t (:background ,darktooth-faded_red))))
    `(magit-bisect-bad                          ((t (:foreground ,darktooth-faded_red))))
    `(magit-bisect-good                         ((t (:foreground ,darktooth-neutral_green))))
-   `(magit-bisect-skip                         ((t (:foreground ,darktooth-light2))))
-
-   ;; TODO: Many new magit faces to theme
-
-   ;;magit-diff-conflict-heading
-   ;;magit-diff-base
-   ;;magit-diff-base-highlight
-   ;;magit-diff-file-heading
-   ;;magit-diff-file-heading-highlight
-   ;;magit-diff-file-heading-selection
-   ;;magit-diff-hunk-heading
-   ;;magit-diff-hunk-heading-highlight
-   ;;magit-diff-hunk-heading-selection
-   ;;magit-diff-lines-boundary
-   ;;magit-diff-lines-heading
-   ;;magit-diff-our
-   ;;magit-diff-our-highlight
-   ;;magit-diff-their
-   ;;magit-diff-their-highlight
-   ;;magit-diff-whitespace-warning
-   ;;magit-diffstat-added
-   ;;magit-diffstat-removed
-
-   ;;magit-blame-date
-   ;;magit-blame-hash
-   ;;magit-blame-heading
-   ;;magit-blame-name
-   ;;magit-blame-summary
-
-   ;;magit-branch-current
-   ;;magit-branch-local
-   ;;magit-branch-remote
-
-   ;;magit-cherry-equivalent
-   ;;magit-cherry-unmatched
-
-   ;;magit-dimmed
-   ;;magit-filename
-   ;;magit-hash
-   ;;magit-head
-   ;;magit-header-line
-   ;;magit-log-author
-   ;;magit-log-date
-   ;;magit-log-graph
-   ;;magit-popup-argument
-   ;;magit-popup-disabled-argument
-   ;;magit-popup-heading
-   ;;magit-popup-key
-   ;;magit-popup-option-value
-
-   ;;magit-process-ng
-   ;;magit-process-ok
-
-   ;;magit-reflog-amend
-   ;;magit-reflog-checkout
-   ;;magit-reflog-cherry-pick
-   ;;magit-reflog-commit
-   ;;magit-reflog-merge
-   ;;magit-reflog-other
-   ;;magit-reflog-rebase
-   ;;magit-reflog-remote
-   ;;magit-reflog-reset
-
-   ;;magit-refname
-   ;;magit-refname-stash
-   ;;magit-refname-wip
-
-   ;;magit-section-heading
-   ;;magit-section-heading-selection
-   ;;magit-section-highlight
-   ;;magit-section-secondary-heading
-
-   ;;magit-sequence-done
-   ;;magit-sequence-drop
-   ;;magit-sequence-head
-   ;;magit-sequence-onto
-   ;;magit-sequence-part
-   ;;magit-sequence-pick
-   ;;magit-sequence-stop
-
-   ;;magit-signature-bad
-   ;;magit-signature-good
-   ;;magit-signature-untrusted
-
-   ;;magit-tag
+   `(magit-bisect-skip                         ((t (:foreground ,darktooth-light2))))   `(magit-blame-date                          ((t (:inherit magit-blame-heading))))
+   `(magit-blame-name                          ((t (:inherit magit-blame-heading))))
+   `(magit-blame-hash                          ((t (:inherit magit-blame-heading))))
+   `(magit-blame-summary                       ((t (:inherit magit-blame-heading))))
+   `(magit-blame-heading                       ((t (:background ,darktooth-dark1 :foreground ,darktooth-light0))))
+   `(magit-sequence-onto                       ((t (:inherit magit-sequence-done))))
+   `(magit-sequence-done                       ((t (:inherit magit-hash))))
+   `(magit-sequence-drop                       ((t (:foreground ,darktooth-faded_red))))
+   `(magit-sequence-head                       ((t (:foreground ,darktooth-faded_cyan))))
+   `(magit-sequence-part                       ((t (:foreground ,darktooth-bright_yellow))))
+   `(magit-sequence-stop                       ((t (:foreground ,darktooth-bright_aqua))))
+   `(magit-sequence-pick                       ((t (:inherit default))))
+   `(magit-filename                            ((t (:weight normal))))
+   `(magit-refname-wip                         ((t (:inherit magit-refname))))
+   `(magit-refname-stash                       ((t (:inherit magit-refname))))
+   `(magit-refname                             ((t (:foreground ,darktooth-light2))))
+   `(magit-head                                ((t (:inherit magit-branch-local))))
+   `(magit-popup-disabled-argument             ((t (:foreground ,darktooth-light4))))
 
    ;; Term
    `(term-color-black                          ((t (:foreground ,darktooth-dark1))))
@@ -633,10 +581,10 @@
    `(term-default-bg-color                     ((t (:background ,darktooth-dark0)))))
 
   ;; Elfeed
-  `(elfeed-search-date-face  ((t (:foreground ,darktooth-dark1))))
-  `(elfeed-search-feed-face  ((t (:foreground ,darktooth-dark1))))
-  `(elfeed-search-tag-face   ((t (:foreground ,darktooth-dark0))))
-  `(elfeed-search-title-face ((t (:foreground ,darktooth-dark0))))
+  `(elfeed-search-date-face                    ((t (:foreground ,darktooth-dark1))))
+  `(elfeed-search-feed-face                    ((t (:foreground ,darktooth-dark1))))
+  `(elfeed-search-tag-face                     ((t (:foreground ,darktooth-dark0))))
+  `(elfeed-search-title-face                   ((t (:foreground ,darktooth-dark0))))
 
   (custom-theme-set-variables
    'darktooth

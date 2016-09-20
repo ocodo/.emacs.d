@@ -631,7 +631,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160912)
+      [(20160919)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -716,7 +716,7 @@
 	    ((:url . "http://elpa.gnu.org/packages/rnc-mode.html")
 	     (:keywords "xml" "relaxng"))])
  (rudel .
-	[(0 3)
+	[(0 3 1)
 	 ((emacs
 	   (24))
 	  (cl-lib
@@ -792,7 +792,7 @@
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
  (stream .
-	 [(2 2 1)
+	 [(2 2 2)
 	  ((emacs
 	    (25)))
 	  "Implementation of streams" single
