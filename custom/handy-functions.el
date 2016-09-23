@@ -966,6 +966,18 @@ Optionally check ALLBUFS."
           (insert end-file-message)))
     (message "Not a lisp file.")))
 
+(defmacro defun-pcase (name arglist &optional docstring &rest body)
+  "A defun called NAME with a `pcase-lambda' ARGLIST.
+
+All your defun-pcases deserve a DOCSTRING.
+
+BODY is the form of the underlying `pcase-lambda'."
+  (declare (doc-string 3) (indent 2))
+  `(progn (defalias
+            (quote ,name)
+            (pcase-lambda ,arglist ,@body)
+            ,docstring)))
+
 ;; Key bindings
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
 (global-set-key (kbd "C-c M--")   'decrease-default-font-height)
