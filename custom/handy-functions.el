@@ -1,4 +1,5 @@
 ;;; handy-functions --- a collection of functions I'm too lazy to organize properly...
+;;; Author: Jason Milkins <jasonm23@gmail.com>
 ;;; Commentary:
 ;;
 ;;  A collection of miscellaneous functions, which are either
@@ -9,23 +10,6 @@
 ;;
 ;;; License:
 ;;  GPL3
-;;
-;;; Commentary:
-;;
-;; Some handy functions, homemade, pilfered, re-jigged, squeezed,
-;; shuffled... do what thou wilt.
-;;
-;; Global keys ...
-;;
-;; - C-S-o    open-line-above
-;; - C-o      open-line-below
-;; - C-a      smart-beginning-of-line
-;; - C-c R    pcre-regexp-from-list-of-words
-;; - ESC M-d  kill-whole-word
-;; - ESC M-p  describe-thing-in-popup (just does emacs lisp functions and variables)
-;; - C-c M-+  increase-default-font-height
-;; - C-c M--  decrease-default-font-height
-;; - C-c =    set-default-font-height
 ;;
 ;;; Code:
 
