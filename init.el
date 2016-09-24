@@ -55,7 +55,7 @@
                make-yasnippet-from-region
                markdown-extras-ocodo
                memory-values
-               super-f-one
+               super-hydras
                zappers
                ))
   (load-library (symbol-name lib)))

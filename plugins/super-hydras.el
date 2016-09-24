@@ -1,4 +1,4 @@
-;;; super-f-one.el --- A hydra bound to super-f1 which binds to misc useful things, add more commands as req'd
+;;; super-hydras.el --- A hydra bound to super-f1 which binds to misc useful things, add more commands as req'd
 
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 
@@ -19,21 +19,27 @@
 
 ;;; Commentary:
 ;;
-;;  Misc commands on a prominent GUI accessible key chord Super-f1 (cmd / win)
+;;  Misc commands on Super-f (cmd-f / win-f)
 ;;
 
 ;;; Code:
 
 (require 'handy-functions)
 
-(bind-key "s-<f1>" (defhydra super-f-one (:color blue)
-                     "Misc commands"
-                     ("s-<f1>" avy-goto-char "Avy goto char")
-                     ("s-m" rename-this-buffer-and-file "Rename this buffer & file")
-                     ("s-d" delete-this-buffer-and-file "Delete this buffer & file")
-                     ("s-r" reload-current-chrome-tab-osx "Reload current chrome tab OS X (uses inline AppleScript)")
-                     ("s-v" jasmine-coffee/verify-suite "Jasmine (Coffee) / Verify Suite")))
+(bind-key "s-r" (defhydra super-r (:color blue)
+                     "Region commands"
+                     ("SPC" er/expand-region "Expand region")
+                     ("t" case-transform/body "Case transform")))
 
-(provide 'super-f-one)
+(bind-key "s-f" (defhydra super-f (:color blue)
+                     "Find commands"
+                     ("f" avy-goto-char "Avy goto char")))
 
-;;; super-f-one.el ends here
+(bind-key "s-F" (defhydra super-F (:color blue)
+                     "File commands"
+                     ("r" rename-this-buffer-and-file "Rename this buffer & file")
+                     ("d" delete-this-buffer-and-file "Delete this buffer & file")))
+
+(provide 'super-f)
+
+;;; super-hydras.el ends here
