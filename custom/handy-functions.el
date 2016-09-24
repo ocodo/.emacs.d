@@ -910,42 +910,6 @@ Optionally check ALLBUFS."
                             buf))
                      (buffer-list)))))
 
-;; Kbd Macroland
-
-;; Pad a single space inside a braced expression,
-;;
-;; ie. {test} becomes { test }
-;;
-;; NOTE: cursor must start ahead of the target expression
-(fset 'pad-inside-braces
-   [?\C-s ?\{ return ?  ?\C-s ?\} return left ?  right])
-
-(defun make-yas-from-region (b e)
-  "Make a parameterless yasnippet from the current region B E."
-  (interactive "r")
-  (if (region-active-p)
-      (progn
-        ;; TODO make a new buffer with yas headers
-        ;; ask for a name
-        (let* ((name (read-from-minibuffer "Name: "))
-               (key (read-from-minibuffer "Key: "))
-               (filename (format "%ssnippets/%s/%s" user-emacs-directory major-mode name))
-               (snippet (buffer-substring b e))
-               (template (format "# -*- mode: snippet -*-
-# name: %s
-# key: %s
-# --
-%s
-"
-                                name
-                                key
-                                snippet)))
-          (with-temp-buffer
-            (insert template)
-            (write-file filename)))
-        (yas-reload-all))
-        (error "An active region is needed to make a snippet")))
-
 (defun reload-emacs ()
   (interactive)
   (if (bufferp (get-file-buffer "init.el"))
@@ -978,6 +942,16 @@ BODY is the form of the underlying `pcase-lambda'."
             (pcase-lambda ,arglist ,@body)
             ,docstring)))
 
+(defun insert-buffer-base-filename ()
+  "Insert the base filename for the current buffer.
+
+If your're in the minibuffer it will use the other buffer file name."
+  (interactive)
+  (let ((filename (buffer-file-name (if (window-minibuffer-p)
+                                        (window-buffer (previous-window))
+                                      (current-buffer)))))
+    (when filename (insert (file-name-base filename)))))
+
 ;; Key bindings
 (global-set-key (kbd "C-c M-+")   'increase-default-font-height)
 (global-set-key (kbd "C-c M--")   'decrease-default-font-height)
@@ -992,16 +966,17 @@ BODY is the form of the underlying `pcase-lambda'."
 (global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
 (global-set-key (kbd "ESC C-M-z") 'zap-up-to-regexp)
+(global-set-key (kbd "C-c C-x i") 'insert-buffer-base-filename)
 
 ;; Case transform hydra
-(global-set-key (kbd "C-c x") (defhydra case-transform ()
+(global-set-key (kbd "C-c C-x t") (defhydra case-transform (:color blue)
                                   "Transform case of word or region"
-                                  ("h" humanize-at-point-or-region "humanize")
+                                  ("h" humanize-at-point-or-region "Humanize text")
                                   ("d" dasherise-at-point-or-region "dasherise/kebab")
-                                  ("u" upper-camelcase-at-point-or-region "upper-camel")
-                                  ("l" lower-camelcase-at-point-or-region "lower-camel")
-                                  ("s" snake-case-at-point-or-region "snake/underscore")
-                                  ("t" titleized-at-point-or-region "titleized")))
+                                  ("u" upper-camelcase-at-point-or-region "UpperCamel")
+                                  ("l" lower-camelcase-at-point-or-region "lowerCamel")
+                                  ("s" snake-case-at-point-or-region "snake_underscore")
+                                  ("t" titleized-at-point-or-region "Titleized")))
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here
