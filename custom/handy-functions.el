@@ -17,6 +17,8 @@
 (require 'dash)
 (require 'find-func)
 (require 'popup)
+(require 'kurecolor)
+(require 'cua-base)
 
 (defun clear-buffer-text-properties ()
     "Clear all text face properties in the buffer.
@@ -487,7 +489,6 @@ css-value to the hex color found."
     (goto-char 0) (newline) (goto-char 0)
     (insert variable-definition)))
 
-;; TODO Make a Emacs interface to chrome-cli instead.
 (defun reload-current-chrome-tab-osx ()
   "Run a simple applescript to reload the current Google Chrome tab.
 
@@ -597,41 +598,6 @@ FN should be either `describe-variable' or `describe-function'."
                    (buffer-string)))
                 'popup-tip-face nil nil -1))
 
-(defun zap-to-string (&optional arg)
-  "Zap text up to a string, ARG can be minus to zap backwards."
-  (interactive "p")
-  (let ((text (read-from-minibuffer "Zap to string: ")))
-    (kill-region (point) (progn
-                           (search-forward text nil nil arg)
-                           (point)))))
-
-(defun zap-to-regexp (&optional arg)
-  "Zap text up to a regexp, ARG can be minus to zap backwards."
-  (interactive "p")
-  (let ((regexp (read-from-minibuffer "Zap to regexp: ")))
-    (kill-region (point) (progn
-                           (re-search-forward regexp nil nil arg)
-                           (point)))))
-
-;; Key bindings
-(defun zap-up-to-string (&optional arg)
-  "Zap text up to a string, ARG can be minus to zap backwards."
-  (interactive "p")
-  (let ((text (read-from-minibuffer "Zap up to string: ")))
-    (kill-region (point) (progn
-                           (search-forward text nil nil arg)
-                           (backward-char (* arg (length text)))
-                           (point)))))
-
-(defun zap-up-to-regexp (&optional arg)
-  "Zap text up to a regexp, ARG can be minus to zap backwards."
-  (interactive "p")
-  (let
-      ((regexp (read-from-minibuffer "Zap up to regexp: ")))
-    (kill-region (point) (progn
-                           (re-search-forward regexp nil nil arg)
-                           (re-search-backward regexp nil nil arg)
-                           (point)))))
 
 (defun make-kurecolor-hue-table ()
   "Make a hue table from hex color at top of kill ring, no error checking."
@@ -829,11 +795,15 @@ If your're in the minibuffer it will use the other buffer file name."
 (global-set-key (kbd "C-S-o")     'open-line-above)
 (global-set-key (kbd "C-o")       'open-line-below)
 (global-set-key (kbd "ESC M-p")   'describe-thing-in-popup)
+(global-set-key (kbd "ESC M-g")   'find-function-at-point)
+(global-set-key (kbd "ESC M-v")   'find-variable-at-point)
+(global-set-key (kbd "ESC M-k")   'find-function-on-key-other-window)
 (global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
 (global-set-key (kbd "ESC C-M-z") 'zap-up-to-regexp)
 (global-set-key (kbd "C-c C-x i") 'insert-buffer-base-filename)
-(global-set-key (kbd "<f12>") 'switch-to-minibuffer-window)
+(global-set-key (kbd "<f12>")     'switch-to-minibuffer-window)
 
 (provide 'handy-functions)
+
 ;;; handy-functions.el ends here

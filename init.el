@@ -55,7 +55,9 @@
                make-yasnippet-from-region
                markdown-extras-ocodo
                memory-values
-               super-num-zero-map))
+               super-f-one
+               zappers
+               ))
   (load-library (symbol-name lib)))
 
 (dolist (use-file
