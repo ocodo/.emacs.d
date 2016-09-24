@@ -4,8 +4,14 @@
 ;;; Code:
 (require 'yasnippet)
 
-(defun make-yas-from-region (b e)
-  "Make a parameterless yasnippet from the current region B E."
+(defun make-yas-from-region (begin end)
+  "Make a yasnippet from the current region BEGIN END.
+
+You should use standard snippet formatting in place, e.g. $1,
+${1:default value} and so on.  See the yasnippet docs for more info.
+
+You'll be prompted for a name, trigger key and when `prefix-arg' is
+specified, a snippet group."
   (interactive "r")
   (if (region-active-p)
       (progn
@@ -17,7 +23,7 @@
                         ""))
                (key (read-from-minibuffer "Key: "))
                (filename (format "%ssnippets/%s/%s" user-emacs-directory major-mode name))
-               (snippet (buffer-substring b e))
+               (snippet (buffer-substring begin end))
                (template (format "# -*- mode: snippet -*-
 # name: %s%s
 # key: %s
