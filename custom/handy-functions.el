@@ -425,7 +425,8 @@ the buffer."
 (defun kill-whole-word ()
   "Kill the current word at point."
   (interactive)
-  (backward-word)
+  (unless (looking-back "[\n\t. {\[(\"]" 1)
+    (backward-word))
   (kill-word 1))
 
 (defun sass-hex-color-to-var ()
@@ -638,12 +639,6 @@ when matches are equidistant from the current point."
           after
         before))))
 
-(defun jump-to-nearest (s)
-  "Jump to the nearest match of S."
-  (interactive "sJump to nearest: ")
-  (let ((u (prefix-numeric-value current-prefix-arg)))
-    (goto-char (get-position-of-nearest-matching s u))))
-
 (defun snippy-comment ()
   "Insert a snip line - - 8< - - - comment."
   (interactive)
@@ -663,6 +658,11 @@ when matches are equidistant from the current point."
   "Open handy-functions.el for editing."
   (interactive)
   (find-file "~/.emacs.d/custom/handy-functions.el"))
+
+(defun edit-init-el ()
+  "Open init.el for editing."
+  (interactive)
+  (find-file "~/.emacs.d/init.el"))
 
 (defun copy-region-to-other-window ()
   "Copy the current region to the other window."
@@ -785,12 +785,13 @@ If your're in the minibuffer it will use the other buffer file name."
     (when filename (insert (file-name-base filename)))))
 
 ;; Key bindings
-(global-set-key (kbd "C-c M-+")   'increase-default-font-height)
+(global-set-key (kbd "C-c M-=")   'increase-default-font-height)
 (global-set-key (kbd "C-c M--")   'decrease-default-font-height)
 (global-set-key (kbd "C-c =")     'set-default-font-height)
 (global-set-key (kbd "ESC M-d")   'kill-whole-word)
-(global-set-key (kbd "C-c ESC h") 'edit-handy-functions)
-(global-set-key (kbd "C-c ESC c") 'copy-region-to-other-window)
+(global-set-key (kbd "C-c M-h")   'edit-handy-functions)
+(global-set-key (kbd "C-c M-i")   'edit-init-el)
+(global-set-key (kbd "C-c M-c")   'copy-region-to-other-window)
 (global-set-key (kbd "C-a")       'smart-beginning-of-line)
 (global-set-key (kbd "C-S-o")     'open-line-above)
 (global-set-key (kbd "C-o")       'open-line-below)
@@ -800,7 +801,7 @@ If your're in the minibuffer it will use the other buffer file name."
 (global-set-key (kbd "ESC M-k")   'find-function-on-key-other-window)
 (global-set-key (kbd "ESC M-i")   'describe-thing-at-point)
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
-(global-set-key (kbd "ESC C-M-z") 'zap-up-to-regexp)
+(global-set-key (kbd "ESC M-Z")   'zap-up-to-regexp)
 (global-set-key (kbd "C-c C-x i") 'insert-buffer-base-filename)
 (global-set-key (kbd "<f12>")     'switch-to-minibuffer-window)
 
