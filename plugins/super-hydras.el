@@ -21,7 +21,6 @@
 ;;
 ;;  Misc commands on Super-f (cmd-f / win-f)
 ;;
-
 ;;; Code:
 
 (require 'handy-functions)
@@ -32,8 +31,16 @@
                      ("t" case-transform/body "Case transform")))
 
 (bind-key "s-f" (defhydra super-f (:color blue)
-                     "Find commands"
-                     ("f" avy-goto-char "Avy goto char")))
+                  "Avy commands"
+                  ("g" avy-goto-line "Avy goto line")
+                  ("c" avy-copy-line "Avy copy line")
+                  ("m" avy-move-line "Avy move line")
+                  ("r" avy-copy-region "Avy copy region")
+                  ("k" avy-kill-region "Avy kill region")
+                  ("z" avy-zap-up-to-char-dwim "Avy zap up to DWIM")
+                  ("Z" avy-zap-to-char-dwim "Avy zap to DWIM")
+                  ("f" avy-goto-char "Avy goto char")
+                  ("F" avy-flycheck-goto-error "Avy goto error")))
 
 (bind-key "s-F" (defhydra super-F (:color blue)
                      "File commands"
