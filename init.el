@@ -53,6 +53,7 @@
                xterm-256-to-hex
                text-transformers
                make-yasnippet-from-region
+               markdown-extras-ocodo
                super-num-zero-map))
   (load-library (symbol-name lib)))
 

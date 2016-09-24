@@ -487,22 +487,6 @@ css-value to the hex color found."
     (goto-char 0) (newline) (goto-char 0)
     (insert variable-definition)))
 
-(defun markdown-codefence-region (start end)
-  "Enclose the region (START END) in a GFM code-fence, ie. enclosed in three backticks."
-  (interactive "r")
-  (if (and start end)
-      (progn
-        (goto-char end)
-        (insert "\n```\n\n")
-        (delete-blank-lines) ; keep only a single blank line below
-        (goto-char start)
-        (insert "\n\n```\n")
-        (forward-line -2)
-        (delete-blank-lines) ; keep only a single blank line above
-        (goto-char end)
-        (forward-line))
-    (message "markdown-codefence-region requires a region")))
-
 ;; TODO Make a Emacs interface to chrome-cli instead.
 (defun reload-current-chrome-tab-osx ()
   "Run a simple applescript to reload the current Google Chrome tab.
@@ -795,42 +779,6 @@ when matches are equidistant from the current point."
   "Convert CSV to lists."
   (mapcar (lambda (line) (split-string line ","))
           (split-string (s-chomp csv) "\n")))
-
-(defun markdown--csv-to-table (csv)
-  "Turn a CSV into a markdown table."
-  (string-join (mapcar
-                (lambda (line)
-                  (setq line (format "| %s |" line))
-                  (s-replace "," " | " line))
-                (split-string (s-chomp csv) "\n")) "\n"))
-
-(defun markdown-csv-to-table (begin end)
-  "Convert the csv in region (BEGIN END) into a markdown table."
-  (interactive "r")
-  (unless (region-active-p)
-    (error "CSV text region must be selected"))
-  (let ((table (markdown--csv-to-table (buffer-substring begin end))))
-    (delete-region begin end)
-    (goto-char begin)
-    (insert table)))
-
-(defun markdown--table-header (table)
-  "Make the first row of a markdown TABLE a header."
-  (let* ((rows (split-string table "\n"))
-         (head (car rows))
-         (separator (replace-regexp-in-string "[^\|]" "-" head))
-         (tail (cdr rows)))
-    (string-join (-flatten (list  head separator tail)) "\n")))
-
-(defun markdown-table-header (begin end)
-  "Insert a markdown table header in the current region BEGIN to END."
-  (interactive "r")
-  (unless (region-active-p)
-    (error "Markdown table text region must be selected"))
-  (let ((table (markdown--table-header (buffer-substring begin end))))
-    (delete-region begin end)
-    (goto-char begin)
-    (insert table)))
 
 (defun my-multi-occur-in-matching-buffers (regexp &optional allbufs)
   "Show all lines matching REGEXP in all buffers.
