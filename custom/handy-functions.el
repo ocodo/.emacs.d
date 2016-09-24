@@ -726,30 +726,6 @@ when matches are equidistant from the current point."
   (interactive)
   (replace-regexp-and-return "[”“]" "\""))
 
-(defun kilobyte (n)
-  "N kilobytes to bytes."
-  (* n 1024))
-
-(defalias 'Kb 'kilobyte)
-
-(defun megabyte (n)
-  "N megabytes to bytes."
-  (* (kilobyte n) 1024))
-
-(defalias 'Mb 'megabyte)
-
-(defun gigabyte (n)
-  "N gigabytes to bytes."
-  (* (megabyte n) 1024))
-
-(defalias 'Gb 'gigabyte)
-
-(defun terabyte (n)
-  "N terabytes to bytes."
-  (* (gigabyte n) 1024))
-
-(defalias 'Tb 'terabyte)
-
 (defun github-browse-repo (repo)
   "Browse a github REPO by supplying the user/reponame."
   (interactive "sGithub Repo [format: user/repo]: ")

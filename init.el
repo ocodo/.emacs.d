@@ -9,8 +9,8 @@
 ;;; Code:
 ;; (package-initialize)
 
-;; 60mb garbage collection limit
-(setq gc-cons-threshold (* (* 1024 1024) 60))
+;; 1kb garbage collection limit
+(setq gc-cons-threshold 1024)
 
 (let ((default-directory user-emacs-directory))
   (add-to-list 'load-path (expand-file-name "init-helpers")))
@@ -54,6 +54,7 @@
                text-transformers
                make-yasnippet-from-region
                markdown-extras-ocodo
+               memory-values
                super-num-zero-map))
   (load-library (symbol-name lib)))
 
