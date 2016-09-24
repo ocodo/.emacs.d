@@ -18,6 +18,8 @@
 (require 'custom-mac-fn-keys)
 (require 'misc)
 
+(global-set-key (kbd "M-o w")        'other-window) ;; use as Esc, o, w (go Other Window)
+
 (global-set-key (kbd "s-g")          'minibuffer-keyboard-quit)
 
 (global-set-key (kbd "<home>")       'beginning-of-line)
