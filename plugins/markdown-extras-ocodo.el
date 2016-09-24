@@ -1,4 +1,4 @@
-;;; markdown-extras-ocodo --- initialize markdown-extras-ocodo
+;;; markdown-extras-ocodo --- markdown extras for my config
 ;;; Commentary:
 ;;; Code:
 (require 'subr-x)
