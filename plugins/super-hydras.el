@@ -32,7 +32,7 @@
 
 (bind-key "s-f" (defhydra super-f (:color blue)
                   "Avy commands"
-                  ("g" avy-goto-line "Avy goto line")
+                  ("j" avy-goto-line "Avy goto line")
                   ("c" avy-copy-line "Avy copy line")
                   ("m" avy-move-line "Avy move line")
                   ("r" avy-copy-region "Avy copy region")
