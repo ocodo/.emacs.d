@@ -7,14 +7,17 @@
   :init
   (progn
     (add-to-list 'ag-arguments "--hidden")
-    (bind-keys :prefix-map ag-global-prefix-map
-               :prefix "C-x g"
-               ("g" . ag)
-               ("a" . ag)
-               ("d" . ag-dired)
-               ("R" . ag-dired-regexp)
-               ("r" . ag-regexp)
-               ("k" . ag-kill-buffers))))
+    (setq ag-group-matches nil)
+    (bind-key
+     "C-x g" (defhydra ag-hydra (:hint nil) "
+[_g_] : Ag Search for string       [_r_] : Ag Search for regex
+[_d_] : Ag Dired search for string [_f_] : Ag Dired search for regex
+[_k_] : Ag Close all Ag buffers    [Powered by Ag / The Silver Searcher]"
+                ("g" ag)
+                ("r" ag-regexp)
+                ("d" ag-dired)
+                ("f" ag-dired-regexp)
+                ("k" ag-kill-buffers)))))
 
 (provide 'use-ag)
 ;;; use-ag ends here
