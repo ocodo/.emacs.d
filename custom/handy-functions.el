@@ -348,55 +348,6 @@ Return an error if no buffer file."
          (cmd-to-run (concat my-cmd " " (buffer-file-name))))
     (shell-command cmd-to-run)))
 
-(defun snake-case-at-point-or-region ()
-  "Snake_case the current word or text selection."
-  (interactive)
-  (operate-on-point-or-region 's-snake-case))
-
-(defun dasherise-at-point-or-region ()
-  "Dasherise-the-current CamelCase or snake_case word or text selection."
-  (interactive)
-  (operate-on-point-or-region 's-dashed-words))
-
-(defun upper-camelcase-at-point-or-region ()
-  "UpperCamelCaseTheCurrent dashed-or-snake_case_words or any words in text selection."
-  (interactive)
-  (operate-on-point-or-region 's-upper-camel-case))
-
-(defun lower-camelcase-at-point-or-region ()
-  "LowerCamelCaseTheCurrent dashed or snake_case word or any words in text selection."
-  (interactive)
-  (operate-on-point-or-region 's-lower-camel-case))
-
-(defun humanize-at-point-or-region ()
-  "Humanize variable names, insert spaces instead of - or _ or un-CamelCase humps to spaced words."
-  (interactive)
-  (operate-on-point-or-region 's-capitalized-words))
-
-(defun titleized-at-point-or-region ()
-  "Convert snaked, dashed, underscored, camelcase, or spaced words in region to Title Case."
-  (interactive)
-  (operate-on-point-or-region 's-titleized-words))
-
-(defun url-encode-string-at-point ()
-  "URL Encode the current string at point."
-  (interactive)
-  (operate-on-point-or-region 'url-encode-url))
-
-(defun operate-on-point-or-region (fn)
-  "Get the current unspaced string at point.
-Replace with the return value of the function FN"
-  (let (pos1 pos2 meat excerpt)
-    (if (and transient-mark-mode mark-active)
-        (setq pos1 (region-beginning)
-              pos2 (region-end))
-      (setq pos1 (car (bounds-of-thing-at-point 'symbol))
-            pos2 (cdr (bounds-of-thing-at-point 'symbol))))
-    (setq excerpt (buffer-substring-no-properties pos1 pos2))
-    (setq meat (funcall fn excerpt))
-    (delete-region pos1 pos2)
-    (insert  meat)))
-
 (defun yank-repeat (&optional arg)
   "Repeat yank n times ARG."
   (interactive "*p")
@@ -796,8 +747,6 @@ when matches are equidistant from the current point."
     (select-frame-set-input-focus (window-frame (active-minibuffer-window)))
     (select-window (active-minibuffer-window))))
 
-(global-set-key (kbd "<f12>") 'switch-to-minibuffer-window)
-
 (defun replace-regexp-and-return (from to)
   "Replace regexp FROM to TO and return cursor to point."
   (save-excursion
@@ -812,21 +761,25 @@ when matches are equidistant from the current point."
 (defun kilobyte (n)
   "N kilobytes to bytes."
   (* n 1024))
+
 (defalias 'Kb 'kilobyte)
 
 (defun megabyte (n)
   "N megabytes to bytes."
   (* (kilobyte n) 1024))
+
 (defalias 'Mb 'megabyte)
 
 (defun gigabyte (n)
   "N gigabytes to bytes."
   (* (megabyte n) 1024))
+
 (defalias 'Gb 'gigabyte)
 
 (defun terabyte (n)
   "N terabytes to bytes."
   (* (gigabyte n) 1024))
+
 (defalias 'Tb 'terabyte)
 
 (defun github-browse-repo (repo)
@@ -835,8 +788,9 @@ when matches are equidistant from the current point."
   (browse-url (format "https://github.com/%s" repo)))
 
 (require 'github-browse-file)
+
 (defun github-browse-this-repo ()
-  "Browse the current github."
+  "Browse the current github repo."
   (interactive)
   (if (github-browse-file--relative-url)
       (browse-url (concat "https://github.com/" (github-browse-file--relative-url))))
@@ -853,9 +807,10 @@ when matches are equidistant from the current point."
       (start-process-shell-command "switch-to-intellij" nil
                                    "osascript -e 'activate application \"IntelliJ IDEA\"'")))
 
-(defun csv--to-lists (string)
+(defun csv--to-lists (csv)
+  "Convert CSV to lists."
   (mapcar (lambda (line) (split-string line ","))
-          (split-string (s-chomp string) "\n")))
+          (split-string (s-chomp csv) "\n")))
 
 (defun markdown--csv-to-table (csv)
   "Turn a CSV into a markdown table."
@@ -866,16 +821,17 @@ when matches are equidistant from the current point."
                 (split-string (s-chomp csv) "\n")) "\n"))
 
 (defun markdown-csv-to-table (begin end)
+  "Convert the csv in region (BEGIN END) into a markdown table."
   (interactive "r")
   (unless (region-active-p)
-    (error "csv text region must be selected"))
+    (error "CSV text region must be selected"))
   (let ((table (markdown--csv-to-table (buffer-substring begin end))))
     (delete-region begin end)
     (goto-char begin)
     (insert table)))
 
 (defun markdown--table-header (table)
-  "Make the first row of a markdown table a header."
+  "Make the first row of a markdown TABLE a header."
   (let* ((rows (split-string table "\n"))
          (head (car rows))
          (separator (replace-regexp-in-string "[^\|]" "-" head))
@@ -883,9 +839,10 @@ when matches are equidistant from the current point."
     (string-join (-flatten (list  head separator tail)) "\n")))
 
 (defun markdown-table-header (begin end)
+  "Insert a markdown table header in the current region BEGIN to END."
   (interactive "r")
   (unless (region-active-p)
-    (error "markdown table text region must be selected"))
+    (error "Markdown table text region must be selected"))
   (let ((table (markdown--table-header (buffer-substring begin end))))
     (delete-region begin end)
     (goto-char begin)
@@ -911,6 +868,7 @@ Optionally check ALLBUFS."
                      (buffer-list)))))
 
 (defun reload-emacs ()
+  "Reload init.el."
   (interactive)
   (if (bufferp (get-file-buffer "init.el"))
       (save-buffer (get-buffer "init.el")))
@@ -931,9 +889,9 @@ Optionally check ALLBUFS."
     (message "Not a lisp file.")))
 
 (defmacro defun-pcase (name arglist &optional docstring &rest body)
-  "A defun called NAME with a `pcase-lambda' ARGLIST.
+  "Define a pcase function called NAME with ARGLIST.
 
-All your defun-pcases deserve a DOCSTRING.
+All `defun-pcase' should have a DOCSTRING.
 
 BODY is the form of the underlying `pcase-lambda'."
   (declare (doc-string 3) (indent 2))
@@ -967,16 +925,7 @@ If your're in the minibuffer it will use the other buffer file name."
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
 (global-set-key (kbd "ESC C-M-z") 'zap-up-to-regexp)
 (global-set-key (kbd "C-c C-x i") 'insert-buffer-base-filename)
-
-;; Case transform hydra
-(global-set-key (kbd "C-c C-x t") (defhydra case-transform (:color blue)
-                                  "Transform case of word or region"
-                                  ("h" humanize-at-point-or-region "Humanize text")
-                                  ("d" dasherise-at-point-or-region "dasherise/kebab")
-                                  ("u" upper-camelcase-at-point-or-region "UpperCamel")
-                                  ("l" lower-camelcase-at-point-or-region "lowerCamel")
-                                  ("s" snake-case-at-point-or-region "snake_underscore")
-                                  ("t" titleized-at-point-or-region "Titleized")))
+(global-set-key (kbd "<f12>") 'switch-to-minibuffer-window)
 
 (provide 'handy-functions)
 ;;; handy-functions.el ends here

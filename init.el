@@ -51,6 +51,8 @@
                squeeze-view
                switch-window
                xterm-256-to-hex
+               text-transformers
+               make-yasnippet-from-region
                super-num-zero-map))
   (load-library (symbol-name lib)))
 
