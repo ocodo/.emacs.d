@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: jekyll-post
+# group: jekyll
+# key: jkpost
+# --
+---
+layout: post
+title: ${1:Post Title}
+tags:
+  - emacs
+---
+
+$0
