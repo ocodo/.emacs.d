@@ -191,7 +191,7 @@ Requires pup https://github.com/ericchiang/pup."
   "Get the date substring from the tweet TIMESTAMP."
   (first
    (s-match
-    "[0-9]\\{2\\} [A-z]\\{3\\} [0-9]\\{4\\}$"
+    "[0-9]\\{1,2\\} [A-z]\\{3\\} [0-9]\\{4\\}$"
     timestamp)))
 
 (defun tweet-get-date-as-iso8601 (name status-id)
@@ -199,6 +199,13 @@ Requires pup https://github.com/ericchiang/pup."
   (date-thing-dd-mm-yyyy-to-iso8601
    (tweet-date-from-timestamp
     (tweet-get-timestamp name status-id))))
+
+(defun tweet-url-get-date-as-iso8601 (tweet-url)
+  "Get the iso8601 date for a tweet based on the TWEET-URL."
+  (date-thing-dd-mm-yyyy-to-iso8601
+   (tweet-date-from-timestamp
+    (apply 'tweet-get-timestamp
+           (cdr (s-match "https://twitter.com/\\(.*?\\)/status/\\(.*\\)" tweet-url))))))
 
 (provide 'date-thing)
 
