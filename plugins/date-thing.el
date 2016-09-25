@@ -202,10 +202,22 @@ Requires pup https://github.com/ericchiang/pup."
 
 (defun tweet-url-get-date-as-iso8601 (tweet-url)
   "Get the iso8601 date for a tweet based on the TWEET-URL."
-  (date-thing-dd-mm-yyyy-to-iso8601
-   (tweet-date-from-timestamp
-    (apply 'tweet-get-timestamp
-           (cdr (s-match "https://twitter.com/\\(.*?\\)/status/\\(.*\\)" tweet-url))))))
+  (interactive (list
+                (if (region-active-p)
+                    (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
+                      (save-mark-and-excursion
+                       (kill-region (region-beginning) (region-end))
+                       string))
+                  (read-string "Tweet URL: "))))
+  (let ((date
+         (date-thing-dd-mm-yyyy-to-iso8601
+          (tweet-date-from-timestamp
+           (apply 'tweet-get-timestamp
+                  (cdr (s-match "https://twitter.com/\\(.*?\\)/status/\\(.*\\)" tweet-url)))))))
+
+    (if (called-interactively-p 'interactive)
+        (insert date)
+      date)))
 
 (provide 'date-thing)
 
