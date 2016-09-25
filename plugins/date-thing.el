@@ -24,25 +24,28 @@
 (require 's)
 (require 'dash)
 
-(defvar month-names '((:number 1  :short "jan" :long "january"  )
-                      (:number 2  :short "feb" :long "february" )
-                      (:number 3  :short "mar" :long "march"    )
-                      (:number 4  :short "apr" :long "april"    )
-                      (:number 5  :short "may" :long "may"      )
-                      (:number 6  :short "jun" :long "june"     )
-                      (:number 7  :short "jul" :long "july"     )
-                      (:number 8  :short "aug" :long "august"   )
-                      (:number 9  :short "sep" :long "september")
-                      (:number 10 :short "oct" :long "october"  )
-                      (:number 11 :short "nov" :long "november" )
-                      (:number 12 :short "dec" :long "december" )))
+(defvar date-thing-generic-regexp "\\(.*?\\)[-/ ]\\(.*?\\)[-/ ]\\(.*\\)"
+  "A generic date reader regexp.")
 
-(defun date-year-p (year)
+(defvar date-thing-month-names '((:number 1  :short "jan" :long "january"  )
+                       (:number 2  :short "feb" :long "february" )
+                       (:number 3  :short "mar" :long "march"    )
+                       (:number 4  :short "apr" :long "april"    )
+                       (:number 5  :short "may" :long "may"      )
+                       (:number 6  :short "jun" :long "june"     )
+                       (:number 7  :short "jul" :long "july"     )
+                       (:number 8  :short "aug" :long "august"   )
+                       (:number 9  :short "sep" :long "september")
+                       (:number 10 :short "oct" :long "october"  )
+                       (:number 11 :short "nov" :long "november" )
+                       (:number 12 :short "dec" :long "december" )))
+
+(defun date-thing-year-p (year)
   "Naive YEAR detection."
   (and (stringp year)
        (= 4 (length (format "%s" year)))))
 
-(defun date-month-detect (value)
+(defun date-thing-month-detect (value)
   "Detect if VALUE is a month."
   (let* ((value-num (string-to-number value))
          (month (cond
@@ -52,34 +55,40 @@
                        (<= value-num 12))
                   (string-to-number value))
                  (t value))))
-    (and (--find (date-month-match it month) month-names) t)))
+    (--find (date-thing-month-match it month) date-thing-month-names)))
 
-(defun date-day-detect (year month values)
+(defun date-thing-day-detect (year month values)
   "Given a YEAR, MONTH and Pick the day from a list of VALUES."
   (first (--reject (or (string= it year) (string= it month)) values)))
 
-(defun-pcase date-month-match (`(:number ,num :short ,short :long ,long) month)
-  "Select plist for MONTH."
-  (or (and (numberp month) (= num month))
-      (and (stringp month) (string= (downcase month) short))
-      (and (stringp month) (string= (downcase month) long))))
+(defalias 'date-thing-month-match (pcase-lambda (`(:number ,num :short ,short :long ,long) month)
+                          "Select plist for MONTH."
+                          (or (and (numberp month) (= num month))
+                              (and (stringp month) (string= (downcase month) short))
+                              (and (stringp month) (string= (downcase month) long)))))
 
-(defun date-month-get (month)
+(defun date-thing-month-get (month)
   "Get MONTH (prop autodetected) as plist."
-  (--find
-   (date-month-match it  month)
-   month-names))
+  (--find (date-thing-month-match it  month)
+          date-thing-month-names))
 
-(defun date-month-prop (month prop)
+(defun date-thing-month-prop (month prop)
   "Get MONTH (prop autodetected) and pluck another PROP."
-  (plist-get
-   (--find
-    (date-month-match it  month)
-    month-names)
-   prop))
+  (plist-get (date-thing-month-get month) prop))
 
-(defun date-guess (date-string)
-  "Guess the format of a DATE-STRING.
+(defun date-thing-month-insert-number (month)
+  "Given MONTH insert the month number."
+  (interactive (list
+                (if (region-active-p)
+                    (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
+                      (save-mark-and-excursion
+                       (kill-region (region-beginning) (region-end))
+                       string))
+                  (completing-read "Month: " (mapcar (lambda (it) (s-capitalize (plist-get it :long))) date-thing-month-names)))))
+  (insert (format "%02i" (date-thing-month-prop month :number))))
+
+(defun date-thing-guess (date-thing-string)
+  "Guess the format of a DATE-THING-STRING.
 
 Will correctly guess from the following date formats.
 
@@ -106,18 +115,90 @@ yyyy-dd-mm
 yyyy-mm-dd
 dd-mm-yyyy
 mm-dd-yyyy"
-  (pcase-let* ((rxp "\\(.*?\\)[-/ ]\\(.*?\\)[-/ ]\\(.*\\)")
-               (`(,_ ,m1 ,m2 ,m3) (s-match rxp date-string))
-               (month (cond ((date-month-detect m1) m1)
-                            ((date-month-detect m2) m2)
-                            ((date-month-detect m3) m3)))
-               (year (cond ((date-year-p m1) m1)
-                           ((date-year-p m2) m2)
-                           ((date-year-p m3) m3)))
-               (day (date-day-detect year month (list m1 m2 m3))))
+  (pcase-let* ((rxp date-thing-generic-regexp)
+               (`(,_ ,m1 ,m2 ,m3) (s-match rxp date-thing-string))
+               (month (cond ((date-thing-month-detect m1) m1)
+                            ((date-thing-month-detect m2) m2)
+                            ((date-thing-month-detect m3) m3)))
+               (year (cond ((date-thing-year-p m1) m1)
+                           ((date-thing-year-p m2) m2)
+                           ((date-thing-year-p m3) m3)))
+               (day (date-thing-day-detect year month (list m1 m2 m3))))
     (list :day day
-          :month (date-month-get (string-to-number month))
+          :month (date-thing-month-get month)
           :year year)))
+
+(defun date-thing-dd-mm-yyyy-to-iso8601 (date-thing-dd-mm-yyyy-string)
+  "Convert DATE-THING-DD-MM-YYYY-STRING to an iso8601 date string."
+  (pcase-let* ((rxp date-thing-generic-regexp)
+               (`(,_
+                  ,day
+                  ,month
+                  ,year)
+                (s-match rxp date-thing-dd-mm-yyyy-string)))
+    (when (and day month year)
+      (format "%s-%s-%s"
+              year
+              (format "%02i"
+                      (date-thing-month-prop month :number))
+              day))))
+
+(defun date-thing-guess-convert-to-iso8601 (date-thing-string)
+  "Use `date-thing-guess' to convert DATE-THING-STRING to ISO8601."
+  (pcase-let ((`(:day ,day :month (:number ,month ,_ ,_ ,_ ,_) :year ,year) (date-thing-guess date-thing-string)))
+    (format "%s-%02i-%s" year month day)))
+
+(defun date-thing-guess-insert-iso8601 (date-thing-string)
+  "Use `date-thing-guess' to convert DATE-THING-STRING to ISO8601 and insert it."
+  (interactive (list
+                (if (region-active-p)
+                    (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
+                      (save-mark-and-excursion
+                       (kill-region (region-beginning) (region-end))
+                       string))
+                  (read-string "Date: "))))
+  (let ((date-thing-string-iso (date-thing-guess-convert-to-iso8601 date-thing-string)))
+    (if date-thing-string-iso
+        (insert date-thing-string-iso)
+      (insert date-thing-string))))
+
+(defun date-thing-dd-mm-yyyy-insert-iso8601 (dd-mm-yyyy)
+  "Convert a DD-MM-YYYY and insert as an iso8601 date string."
+  (interactive (list
+                (if (region-active-p)
+                    (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
+                      (save-mark-and-excursion
+                       (kill-region (region-beginning) (region-end))
+                       string))
+                  (read-string "Date (dd mm yyyy): "))))
+  (let ((date-thing-string-iso (date-thing-dd-mm-yyyy-to-iso8601 dd-mm-yyyy)))
+    (if date-thing-string-iso
+        (insert date-thing-string-iso)
+      (insert dd-mm-yyyy))))
+
+(defun tweet-get-timestamp (user status-id)
+  "Get the timestamp for a tweet given USER and STATUS-ID.
+Requires pup https://github.com/ericchiang/pup."
+  (s-chomp
+   (shell-command-to-string
+    (format
+     "curl -s https://twitter.com/%s/status/%s | pup 'a.tweet-timestamp[href*=%s] attr{title}'"
+     user
+     status-id
+     status-id ))))
+
+(defun tweet-date-from-timestamp (timestamp)
+  "Get the date substring from the tweet TIMESTAMP."
+  (first
+   (s-match
+    "[0-9]\\{2\\} [A-z]\\{3\\} [0-9]\\{4\\}$"
+    timestamp)))
+
+(defun tweet-get-date-as-iso8601 (name status-id)
+  "Get the iso8601 date for a tweet based on twitter NAME and STATUS-ID."
+  (date-thing-dd-mm-yyyy-to-iso8601
+   (tweet-date-from-timestamp
+    (tweet-get-timestamp name status-id))))
 
 (provide 'date-thing)
 
