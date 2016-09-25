@@ -784,6 +784,11 @@ If your're in the minibuffer it will use the other buffer file name."
                                       (current-buffer)))))
     (when filename (insert (file-name-base filename)))))
 
+(defun insert-iso8601-date (&optional date)
+  "Insert DATE."
+  (interactive)
+  (insert (format-time-string "%Y-%m-%d" date)))
+
 ;; Key bindings
 (global-set-key (kbd "C-c M-=")   'increase-default-font-height)
 (global-set-key (kbd "C-c M--")   'decrease-default-font-height)
@@ -803,6 +808,7 @@ If your're in the minibuffer it will use the other buffer file name."
 (global-set-key (kbd "ESC M-z")   'zap-up-to-string)
 (global-set-key (kbd "ESC M-Z")   'zap-up-to-regexp)
 (global-set-key (kbd "C-c C-x i") 'insert-buffer-base-filename)
+(global-set-key (kbd "C-c C-x d") 'insert-iso8601-date)
 (global-set-key (kbd "<f12>")     'switch-to-minibuffer-window)
 
 (provide 'handy-functions)
