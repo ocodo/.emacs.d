@@ -196,9 +196,6 @@ Requires pup https://github.com/ericchiang/pup."
 
 (defun tweet-get-date-as-iso8601 (name status-id)
   "Get the iso8601 date for a tweet based on twitter NAME and STATUS-ID."
-  (interactive (list
-                (read-string "Twitter Name: ")
-                (read-string "Status id: ")))
   (date-thing-dd-mm-yyyy-to-iso8601
    (tweet-date-from-timestamp
     (tweet-get-timestamp name status-id))))
