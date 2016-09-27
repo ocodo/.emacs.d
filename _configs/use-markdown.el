@@ -7,6 +7,8 @@
   :mode ("\\.md$" "\\.markdown$")
   :config
   (progn
+    (require 'jekyll-modes)
+
     (unbind-key "C-<up>"      markdown-mode-map)
     (unbind-key "C-<down>"    markdown-mode-map)
     (unbind-key "M-<up>"      markdown-mode-map)
