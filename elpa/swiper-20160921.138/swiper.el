@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160905.940
+;; Package-Version: 20160921.138
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (ivy "0.8.0"))
 ;; Keywords: matching
@@ -442,6 +442,8 @@ line numbers. For the buffer, use `ivy--regex' instead."
                       (prog1 (format "^ ?\\(%s\\)" re)
                         (setq ivy--subexps 1))
                     (format "^ %s" re))))
+               ((eq (bound-and-true-p search-default-mode) 'char-fold-to-regexp)
+                (mapconcat #'char-fold-to-regexp (ivy--split str) ".*"))
                (t
                 (funcall re-builder str)))))
     (cond ((stringp re)
@@ -726,7 +728,8 @@ Run `swiper' for those buffers."
                (swiper--multi-candidates
                 (mapcar #'get-buffer swiper-multi-buffers))))
         ((eq this-command 'ivy-call)
-         (delete-minibuffer-contents))))
+         (with-selected-window (active-minibuffer-window)
+           (delete-minibuffer-contents)))))
 
 (defun swiper-multi-action-2 (x)
   (when (> (length x) 0)
@@ -786,8 +789,10 @@ Run `swiper' for those buffers."
           (list "")
         (setq ivy--old-cands (nreverse cands))))))
 
+(defvar swiper-window-width 80)
+
 (defun swiper--all-format-function (cands)
-  (let* ((ww (window-width))
+  (let* ((ww swiper-window-width)
          (col2 1)
          (cands-with-buffer
           (mapcar (lambda (s)
@@ -825,7 +830,8 @@ Run `swiper' for those buffers."
 (defun swiper-all ()
   "Run `swiper' for all opened buffers."
   (interactive)
-  (let ((ivy-format-function #'swiper--all-format-function))
+  (let* ((swiper-window-width (- (frame-width) (if (display-graphic-p) 0 1)))
+         (ivy-format-function #'swiper--all-format-function))
     (ivy-read "swiper-all: " 'swiper-all-function
               :action 'swiper-all-action
               :unwind #'swiper--cleanup
