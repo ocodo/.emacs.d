@@ -1,9 +1,9 @@
 ;;; el-mock-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("el-mock.el") (21998 34863 166213 197000))
+;;;### (autoloads nil nil ("el-mock.el") (22507 31576 953229 107000))
 
 ;;;***
 
