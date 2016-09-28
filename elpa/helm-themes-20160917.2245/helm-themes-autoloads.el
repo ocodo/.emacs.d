@@ -1,10 +1,10 @@
 ;;; helm-themes-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-themes" "helm-themes.el" (22045 47987
-;;;;;;  853140 0))
+;;;### (autoloads nil "helm-themes" "helm-themes.el" (22507 31487
+;;;;;;  1228 556000))
 ;;; Generated autoloads from helm-themes.el
 
 (autoload 'helm-themes "helm-themes" "\
