@@ -4,7 +4,7 @@
 ;;
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20160816.713
+;; Package-Version: 20160914.1337
 ;; Version: 0.4.0
 ;;
 ;;; Commentary:
@@ -76,7 +76,7 @@
    `(font-lock-preprocessor-face ((t (:foreground ,atom-one-dark-mono-2))))
    `(font-lock-string-face ((t (:foreground ,atom-one-dark-green))))
    `(font-lock-type-face ((t (:foreground ,atom-one-dark-orange-2))))
-   `(font-lock-constant-face ((t (:foreground ,atom-one-dark-orange-1))))
+   `(font-lock-constant-face ((t (:foreground ,atom-one-dark-cyan))))
    `(font-lock-variable-name-face ((t (:foreground ,atom-one-dark-red-1))))
    `(font-lock-warning-face ((t (:foreground ,atom-one-dark-mono-3 :bold t))))
 
@@ -261,7 +261,7 @@
 
    ;; flx-ido
    `(flx-highlight-face ((t (:inherit (link) :weight bold))))
-   
+
    ;; rpm-spec-mode
    `(rpm-spec-tag-face ((t (:foreground ,atom-one-dark-blue))))
    `(rpm-spec-obsolete-tag-face ((t (:foreground "#FFFFFF" :background ,atom-one-dark-red-2))))
@@ -282,6 +282,13 @@
    `(term-color-red ((t :foreground ,atom-one-dark-red-1)))
    `(term-color-white ((t :foreground ,atom-one-dark-fg)))
    `(term-color-yellow ((t (:foreground ,atom-one-dark-orange-1))))
+   ))
+
+(atom-one-dark-with-color-variables
+  (custom-theme-set-variables
+   'atom-one-dark
+;;;;; fill-column-indicator
+   `(fci-rule-color ,atom-one-dark-gray)
    ))
 
 ;;;###autoload
