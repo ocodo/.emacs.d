@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22507 31565 401229 62000))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-diff-backend-git-show-commit "find-file-in-project" "\
@@ -160,8 +160,6 @@ NUM is the index selected backend from `ffip-diff-backends'.
 NUM is zero based.  Its default value is zero.
 
 \(fn &optional NUM)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-file-in-project" '("ffip-")))
 
 ;;;***
 
