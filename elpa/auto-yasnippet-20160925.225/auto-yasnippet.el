@@ -2,7 +2,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/auto-yasnippet
-;; Package-Version: 20160809.46
+;; Package-Version: 20160925.225
 ;; Version: 0.3
 ;; Package-Requires: ((yasnippet "0.8.0"))
 
@@ -115,10 +115,10 @@ Another good option is \\$, if you don't care about LaTeX")
 (defvar aya-marker-one-line "$"
   "Used to mark one mirror for `aya-create-one-line'.")
 
-(defvar aya-field-regex "\\([A-Za-z0-9-_]+\\)"
+(defvar aya-field-regex "\\sw\\|\\s_"
   "Defines how the filed looks like.
-With the default [A-Za-z0-9-], Foo_bar will expand to $1_bar.
-But if you set [A-Za-z0-9-_], Foo_bar will expand to $1.")
+With \"\\sw\", Foo_bar will expand to $1_bar.
+But \"\\sw\\|\\s_\", Foo_bar will expand to $1.")
 
 ;; you can chain `aya-create' with a function of your choosing,
 ;; e.g. copy current line/region if there's no snippet
@@ -167,8 +167,9 @@ menu.add_item(spamspamspam, \"spamspamspam\")"
         (mirror-idx 0)
         (mirror-tbl (make-hash-table :test 'equal))
         (regex (format
-                "\\(?:`\\(?1:[^']+\\)'\\|%s\\(?1:[A-Za-z0-9-_]+\\)\\)"
-                aya-marker))
+                "\\(?:`\\(?1:[^']+\\)'\\|%s\\(?1:\\(?:%s\\)+\\)\\)"
+                aya-marker
+                aya-field-regex))
         res)
     (while (string-match regex str start)
       (unless (= (match-beginning 0) start)
