@@ -12,7 +12,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
 ;; Package-Requires: ((emacs "24.4") (dash "20160820.501") (with-editor "20160812.1457"))
-;; Package-Version: 20160821.1338
+;; Package-Version: 20160920.1452
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -416,6 +416,9 @@ usually honor this wish and return non-nil."
   (setq-local comment-end-skip "\n")
   (setq-local comment-use-syntax nil)
   (setq-local font-lock-multiline t)
+  (add-hook 'font-lock-extend-region-functions
+            #'git-commit-extend-region-summary-line
+            t t)
   (font-lock-add-keywords nil (git-commit-mode-font-lock-keywords) t))
 
 (define-minor-mode git-commit-mode
@@ -614,6 +617,25 @@ With a numeric prefix ARG, go forward ARG comments."
    (format "\\(.\\{0,%d\\}\\)\\(.*\\)" git-commit-summary-max-length)
    ;; Non-empty non-comment second line
    (format "\\(?:\n%s\\|\n\\(.+\\)\\)?" comment-start)))
+
+;; These are let-bound while `font-lock-extend-region-functions' are
+;; run.
+(defvar font-lock-beg)
+(defvar font-lock-end)
+
+(defun git-commit-extend-region-summary-line ()
+  "Identify the multiline summary-regexp construct.
+Added to `font-lock-extend-region-functions'."
+  (save-excursion
+    (save-match-data
+      (goto-char (point-min))
+      (when (looking-at (git-commit-summary-regexp))
+        (let ((summary-beg (match-beginning 0))
+              (summary-end (match-end 0)))
+          (when (or (< summary-beg font-lock-beg summary-end)
+                    (< summary-beg font-lock-end summary-end))
+            (setq font-lock-beg (min font-lock-beg summary-beg)
+                  font-lock-end (max font-lock-end summary-end))))))))
 
 (defun git-commit-mode-font-lock-keywords ()
   `(;; Comments
