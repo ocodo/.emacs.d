@@ -7,7 +7,7 @@
 ;;          Greduan <me@greduan.com>
 ;; Maintainer: jasonm23 <jasonm23@gmail.com>
 ;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Package-Version: 20160908.1912
+;; Package-Version: 20160917.2225
 ;; Version: 0.16
 
 ;;; Commentary:
@@ -360,7 +360,33 @@
     `(sml/filename          ((t (:foreground ,gruvbox-bright_red :weight bold))))
     `(sml/prefix            ((t (:foreground ,gruvbox-light1))))
     `(sml/read-only         ((t (:foreground ,gruvbox-neutral_blue))))
-    `(persp-selected-face   ((t (:foreground ,gruvbox-neutral_orange)))))
+    `(persp-selected-face   ((t (:foreground ,gruvbox-neutral_orange))))
+
+        ;;isearch
+    `(isearch                       ((t (:foreground ,gruvbox-black :background ,gruvbox-neutral_orange))))
+    `(lazy-highlight           ((t (:foreground ,gruvbox-black :background ,gruvbox-neutral_yellow))))
+    `(isearch-fail                  ((t (:foreground ,gruvbox-light0 :background ,gruvbox-bright_red))))
+
+    ;; anzu-mode
+    `(anzu-mode-line        ((t (:foreground ,gruvbox-bright_yellow :weight bold))))
+    `(anzu-match-1          ((t (:background ,gruvbox-bright_green))))
+    `(anzu-match-2          ((t (:background ,gruvbox-faded_yellow))))
+    `(anzu-match-3          ((t (:background ,gruvbox-aquamarine4))))
+    `(anzu-replace-to       ((t (:foreground ,gruvbox-bright_yellow))))
+    `(anzu-replace-highlight ((t (:inherit isearch))))
+
+    ;; Ace-jump-mode
+    `(ace-jump-face-background  ((t (:foreground ,gruvbox-light4 :background ,gruvbox-bg :inverse-video nil))))
+    `(ace-jump-face-foreground  ((t (:foreground ,gruvbox-bright_red :background ,gruvbox-bg :inverse-video nil :box 1))))
+
+    ;; Ace-window
+    `(aw-background-face        ((t (:forground  ,gruvbox-light1 :background ,gruvbox-bg :inverse-video nil))))
+    `(aw-leading-char-face ((t (:foreground ,gruvbox-bright_orange :background ,gruvbox-bg :height 4.0 :box (:line-width 1 :color ,gruvbox-bright_orange)))))
+    
+    ;; show-paren
+    `(show-paren-match      ((t (:background ,gruvbox-dark3 :weight bold))))
+    `(show-paren-mismatch   ((t (:background ,gruvbox-bright_red :foreground ,gruvbox-dark3 :weight bold))))
+)
 
 
 (custom-theme-set-variables
