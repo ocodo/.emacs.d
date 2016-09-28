@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "tide" "tide.el" (22479 30215 580137 305000))
+;;;### (autoloads nil "tide" "tide.el" (22507 31312 649225 965000))
 ;;; Generated autoloads from tide.el
 
 (autoload 'company-tide "tide" "\
@@ -35,7 +35,7 @@ Minor mode for Typescript Interactive Development Environment.
 
 ;;;***
 
-;;;### (autoloads nil nil ("tide-pkg.el") (22479 30215 480136 979000))
+;;;### (autoloads nil nil ("tide-pkg.el") (22507 31312 493225 963000))
 
 ;;;***
 

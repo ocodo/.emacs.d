@@ -36,6 +36,19 @@
 (require 'flycheck)
 (require 'imenu)
 
+;; Silence compiler warnings
+
+(defvar js2-basic-offset)
+(defvar js-indent-level)
+(defvar js3-indent-level)
+(defvar web-mode-code-indent-offset)
+(defvar sgml-basic-offset)
+(defvar company-backends)
+
+(declare-function company-grab-symbol-cons "company.el" (idle-begin-after-re &optional max-len))
+(declare-function company-begin-backend "company.el" (backend &optional callback))
+(declare-function company-in-string-or-comment "company.el" nil)
+
 (defgroup tide nil
   "TypeScript Interactive Development Environment."
   :prefix "tide-"
@@ -55,8 +68,11 @@
   "Name of tsserver executable to run instead of the bundled tsserver.
 
 This may either be a path or a name to be looked up in
-`exec-path'. Note that this option only works with TypeScript
-version 2.0 and above."
+`exec-path'. Relative paths are resolved against the project root
+directory.
+
+Note that this option only works with TypeScript version 2.0 and
+above."
   :type '(choice (const nil) string)
   :group 'tide)
 
