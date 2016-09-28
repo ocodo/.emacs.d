@@ -1026,10 +1026,12 @@ which, as the name suggests always visits the actual file."
       (magit-display-file-buffer buffer)
       (with-current-buffer buffer
         (when line
-          (goto-char (point-min))
-          (forward-line (1- line))
-          (when col
-            (move-to-column col)))
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            (forward-line (1- line))
+            (when col
+              (move-to-column col))))
         (when unmerged-p
           (smerge-start-session))
         (run-hooks 'magit-diff-visit-file-hook)))))
@@ -2076,20 +2078,32 @@ are highlighted."
       (recurse magit-root-section))))
 
 
-;;; Highlight Region
+;;; Hunk Region
+
+(defun magit-diff-hunk-region-beginning ()
+  (save-excursion (goto-char (region-beginning))
+                  (line-beginning-position)))
+
+(defun magit-diff-hunk-region-end ()
+  (save-excursion (goto-char (region-end))
+                  (line-end-position)))
 
 (defvar magit-diff-unmarked-lines-keep-foreground t)
 
 (defun magit-diff-update-hunk-region (section)
   (when (and (eq (magit-diff-scope section t) 'region)
-             (not (and (eq this-command 'mouse-drag-region)
-                       (eq (mark) (point)))))
+             (not (and (if (version< emacs-version "25.1")
+                           (eq this-command 'mouse-drag-region)
+                         (or (eq last-command 'mouse-drag-region)
+                             ;; When another window was previously
+                             ;; selected then the last-command is
+                             ;; a byte-code function.
+                             (byte-code-function-p last-command)))
+                       (eq (region-end) (region-beginning)))))
     (let ((sbeg (magit-section-start section))
           (cbeg (magit-section-content section))
-          (rbeg (save-excursion (goto-char (region-beginning))
-                                (line-beginning-position)))
-          (rend (save-excursion (goto-char (region-end))
-                                (line-end-position)))
+          (rbeg (magit-diff-hunk-region-beginning))
+          (rend (magit-diff-hunk-region-end))
           (send (magit-section-end section))
           (face (if magit-diff-highlight-hunk-body
                     'magit-diff-context-highlight
@@ -2097,11 +2111,11 @@ are highlighted."
       (when magit-diff-unmarked-lines-keep-foreground
         (setq face (list :background (face-attribute face :background))))
       (cl-flet ((ov (start end &rest args)
-                  (let ((ov (make-overlay start end nil t)))
-                    (overlay-put ov 'evaporate t)
-                    (while args (overlay-put ov (pop args) (pop args)))
-                    (push ov magit-region-overlays)
-                    ov)))
+                    (let ((ov (make-overlay start end nil t)))
+                      (overlay-put ov 'evaporate t)
+                      (while args (overlay-put ov (pop args) (pop args)))
+                      (push ov magit-region-overlays)
+                      ov)))
         (ov sbeg cbeg 'face 'magit-diff-lines-heading
             'display (concat (magit-diff-hunk-region-header section) "\n"))
         (ov cbeg rbeg 'face face 'priority 2)
@@ -2132,9 +2146,7 @@ are highlighted."
 (defun magit-diff-hunk-region-patch (section &optional args)
   (let ((op (if (member "--reverse" args) "+" "-"))
         (sbeg (magit-section-start section))
-        (rbeg (save-excursion
-                (goto-char (region-beginning))
-                (line-beginning-position)))
+        (rbeg (magit-diff-hunk-region-beginning))
         (rend (region-end))
         (send (magit-section-end section))
         (patch nil))

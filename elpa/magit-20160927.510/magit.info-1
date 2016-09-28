@@ -4283,7 +4283,7 @@ e.g.:
      Take the red pill.
      >>>>>>> feature
 
-   In this case you have chosen to take the red pill on one bracnh and
+   In this case you have chosen to take the red pill on one branch and
 on another you picked the blue pill.  Now that you are merging these two
 diverging branches, Git cannot possibly know which pill you want to
 take.
@@ -4927,7 +4927,7 @@ Also see *note (gitman)git-stash:: .
      staged changes, apply without preserving the stash index and forgo
      removing the stash.
 
-‘z d’     (‘magit-stash-drop’)
+‘z k’     (‘magit-stash-drop’)
 
      Remove a stash from the stash list.  When the region is active,
      offer to drop all contained stashes.
@@ -6170,6 +6170,10 @@ into separate libraries/packages, so that they can be used by other
 packages, without having to depend on Magit.  These libraries are
 described in separate manuals, see *note (with-editor)Top:: and *note
 (magit-popup)Top::.
+
+   If you are trying to find an unused key that you can bound to a
+command provided by your own Magit extension, then checkout
+<https://github.com/magit/magit/wiki/Plugin-Dispatch-Key-Registry>.
 
 * Menu:
 
@@ -7781,10 +7785,10 @@ Appendix B Keystroke Index
 * z:                                     Stashing.            (line   8)
 * z a:                                   Stashing.            (line  58)
 * z b:                                   Stashing.            (line  84)
-* z d:                                   Stashing.            (line  71)
 * z f:                                   Stashing.            (line  88)
 * z i:                                   Stashing.            (line  20)
 * z I:                                   Stashing.            (line  46)
+* z k:                                   Stashing.            (line  71)
 * z l:                                   Stashing.            (line  76)
 * z p:                                   Stashing.            (line  64)
 * z v:                                   Stashing.            (line  80)
