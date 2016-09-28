@@ -1,10 +1,10 @@
 ;;; evil-search-highlight-persist-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "evil-search-highlight-persist" "evil-search-highlight-persist.el"
-;;;;;;  (22145 57612 818814 183000))
+;;;;;;  (22507 31570 53229 83000))
 ;;; Generated autoloads from evil-search-highlight-persist.el
 
 (autoload 'evil-search-highlight-persist "evil-search-highlight-persist" "\
@@ -23,8 +23,9 @@ Disable evil-search-highlight-persist in the current buffer.
 \(fn)" nil nil)
 
 (defvar global-evil-search-highlight-persist nil "\
-Non-nil if Global-Evil-Search-Highlight-Persist mode is enabled.
-See the command `global-evil-search-highlight-persist' for a description of this minor mode.
+Non-nil if Global Evil-Search-Highlight-Persist mode is enabled.
+See the `global-evil-search-highlight-persist' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-evil-search-highlight-persist'.")
@@ -33,7 +34,7 @@ or call the function `global-evil-search-highlight-persist'.")
 
 (autoload 'global-evil-search-highlight-persist "evil-search-highlight-persist" "\
 Toggle Evil-Search-Highlight-Persist mode in all buffers.
-With prefix ARG, enable Global-Evil-Search-Highlight-Persist mode if ARG is positive;
+With prefix ARG, enable Global Evil-Search-Highlight-Persist mode if ARG is positive;
 otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 

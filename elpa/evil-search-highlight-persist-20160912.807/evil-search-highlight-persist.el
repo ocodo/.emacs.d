@@ -1,6 +1,6 @@
 ;;; evil-search-highlight-persist.el --- Persistent highlights after search
 ;; Version: 20150107.4
-;; Package-Version: 20151215.238
+;; Package-Version: 20160912.807
 ;; X-Original-Version: 20140918
 
 ;; Author: Juanjo Alvarez <juanjo@juanjoalvarez.net>
@@ -49,6 +49,7 @@
 ;;; User Customizable Variables:
 (require 'advice)
 (require 'highlight)
+(require 'evil-search)
 
 (defvar evil-search-highlight-regex-flag t)
 (defun hlt-+/--highlight-regexp-region (unhighlightp start end regexp face msgp mousep nth &optional buffers)
@@ -170,13 +171,20 @@ really want to highlight up to %d chars?  "
   (setq evil-search-highlight-regex-flag t)
   )
 
+(make-variable-buffer-local 'evil-search-highlight-persist-enabled)
+
 (defadvice isearch-exit (after isearch--highlight-persist)
-  (evil-search-highlight-persist-remove-all)
-  (evil-search-highlight-persist-mark))
+  (when evil-search-highlight-persist-enabled
+    (evil-search-highlight-persist-remove-all)
+    (evil-search-highlight-persist-mark)))
 
 (defadvice evil-flash-search-pattern (after evil-flash-search--highlight-persist)
-  (evil-search-highlight-persist-remove-all)
-  (evil-search-highlight-persist-mark))
+  (when evil-search-highlight-persist-enabled
+    (evil-search-highlight-persist-remove-all)
+    (evil-search-highlight-persist-mark)))
+
+(ad-activate 'isearch-exit)
+(ad-activate 'evil-flash-search-pattern)
 
 ;;;###autoload
 (define-minor-mode evil-search-highlight-persist
@@ -185,14 +193,9 @@ really want to highlight up to %d chars?  "
             (define-key map (kbd "C-x SPC") 'evil-search-highlight-persist-remove-all)
             map)
   (if evil-search-highlight-persist
-      (progn
-        (ad-activate 'isearch-exit)
-        (ad-activate 'evil-flash-search-pattern))
-    (progn
-      (evil-search-highlight-persist-remove-all)
-      (ad-deactivate 'isearch-exit)
-      (ad-deactivate 'evil-flash-search-pattern))))
-
+      (setq evil-search-highlight-persist-enabled t)
+    (evil-search-highlight-persist-remove-all)
+    (setq evil-search-highlight-persist-enabled nil)))
 
 ;;;###autoload
 (defun turn-on-search-highlight-persist ()
