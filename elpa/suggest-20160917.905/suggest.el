@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.2
-;; Package-Version: 20160907.1830
+;; Package-Version: 20160917.905
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 
@@ -161,6 +161,7 @@
    #'s-collapse-whitespace
    #'s-word-wrap
    #'s-left
+   #'s-right
    #'s-chop-suffix
    #'s-shared-start
    #'s-shared-end
