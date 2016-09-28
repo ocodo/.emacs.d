@@ -219,7 +219,7 @@
 		((:url . "http://elpa.gnu.org/packages/dbus-codegen.html")
 		 (:keywords "comm" "dbus" "convenience"))])
  (debbugs .
-	  [(0 10)
+	  [(0 11)
 	   ((soap-client
 	     (3 1 1))
 	    (cl-lib
@@ -631,7 +631,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20160919)
+      [(20160926)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
@@ -792,7 +792,7 @@
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
  (stream .
-	 [(2 2 2)
+	 [(2 2 3)
 	  ((emacs
 	    (25)))
 	  "Implementation of streams" single
@@ -975,7 +975,7 @@
 	     ((:keywords "convenience" "emulation")
 	      (:url . "http://github.com/capitaomorte/yasnippet"))])
  (ztree .
-	[(1 0 3)
+	[(1 0 4)
 	 ((cl-lib
 	   (0)))
 	 "Text mode directory tree" tar
