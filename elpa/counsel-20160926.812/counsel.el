@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160906.750
+;; Package-Version: 20160926.812
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -29,7 +29,15 @@
 ;; Just call one of the interactive functions in this file to complete
 ;; the corresponding thing using `ivy'.
 ;;
-;; Currently available: Elisp symbols, Clojure symbols, Git files.
+;; Currently available:
+;; - Symbol completion for Elisp, Common Lisp, Python and Clojure.
+;; - Describe fuctions for Elisp: function, variable, library, command,
+;;   bindings, theme.
+;; - Navigation functions: imenu, ace-line, semantic, outline
+;; - Git utilities: git-files, git-grep, git-log, git-stash.
+;; - Grep utitilies: grep, ag, pt, recoll.
+;; - System utilities: process list, rhythmbox, linux-app.
+;; - Many more.
 
 ;;; Code:
 
@@ -353,13 +361,14 @@ Update the minibuffer with the amount of lines collected every
 (defun counsel-unicode-char ()
   "Insert a Unicode character at point."
   (interactive)
-  (let ((minibuffer-allow-text-properties t))
+  (let ((minibuffer-allow-text-properties t)
+        (ivy-sort-max-size (expt 256 6)))
     (setq ivy-completion-beg (point))
     (setq ivy-completion-end (point))
     (ivy-read "Unicode name: "
               (mapcar (lambda (x)
                         (propertize
-                         (format "% -6X% -60s%c" (cdr x) (car x) (cdr x))
+                         (format "%06X % -60s%c" (cdr x) (car x) (cdr x))
                          'result (cdr x)))
                       (ucs-names))
               :action (lambda (char)
@@ -368,7 +377,8 @@ Update the minibuffer with the amount of lines collected every
                           (setq ivy-completion-beg (point))
                           (insert-char (get-text-property 0 'result char))
                           (setq ivy-completion-end (point))))
-              :history 'counsel-unicode-char-history)))
+              :history 'counsel-unicode-char-history
+              :sort t)))
 
 ;;* Elisp symbols
 ;;** `counsel-describe-variable'
@@ -1021,7 +1031,10 @@ INITIAL-INPUT can be given as the initial minibuffer input."
     (if (null counsel--git-grep-dir)
         (error "Not in a git repository")
       (unless proj
-        (setq counsel--git-grep-count (counsel--gg-count "" t)))
+        (setq counsel--git-grep-count
+              (if (eq system-type 'windows-nt)
+                  0
+                (counsel--gg-count "" t))))
       (ivy-read "git grep" (if proj
                                'counsel-git-grep-proj-function
                              'counsel-git-grep-function)
@@ -1386,11 +1399,14 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
 
 ;;** `counsel-recentf'
 (defvar recentf-list)
+(declare-function recentf-mode "recentf")
 
 ;;;###autoload
 (defun counsel-recentf ()
   "Find a file on `recentf-list'."
   (interactive)
+  (require 'recentf)
+  (recentf-mode)
   (ivy-read "Recentf: " recentf-list
             :action (lambda (f)
                       (with-ivy-window
@@ -1429,15 +1445,16 @@ string - the full shell command to run."
 (defun counsel-locate-action-extern (x)
   "Use xdg-open shell command, or corresponding system command, on X."
   (interactive (list (read-file-name "File: ")))
-  (call-process shell-file-name nil
-                nil nil
-                shell-command-switch
-                (format "%s %s"
-                        (cl-case system-type
-                          (darwin "open")
-                          (windows-nt "start")
-                          (t "xdg-open"))
-                        (shell-quote-argument x))))
+  (if (eq system-type 'windows-nt)
+      (w32-shell-execute "open" x)
+    (call-process shell-file-name nil
+                  nil nil
+                  shell-command-switch
+                  (format "%s %s"
+                          (cl-case system-type
+                            (darwin "open")
+                            (t "xdg-open"))
+                          (shell-quote-argument x)))))
 
 (defalias 'counsel-find-file-extern 'counsel-locate-action-extern)
 
@@ -1594,8 +1611,10 @@ If non-nil, EXTRA-AG-ARGS string is appended to `counsel-ag-base-command'."
                             (concat extra-ag-args
                                     " -- "
                                     (shell-quote-argument regex)))))
-        (counsel--async-command ag-cmd))
-      nil)))
+        (if (file-remote-p default-directory)
+            (split-string (shell-command-to-string ag-cmd) "\n" t)
+          (counsel--async-command ag-cmd)
+          nil)))))
 
 ;;;###autoload
 (defun counsel-ag (&optional initial-input initial-directory extra-ag-args ag-prompt)
@@ -2050,6 +2069,11 @@ INITIAL-INPUT can be given as the initial minibuffer input."
           (mapconcat #'identity seq "\n")))
     (error str)))
 
+(defcustom counsel-yank-pop-separator "\n"
+  "Separator for the kill ring strings in `counsel-yank-pop'."
+  :group 'ivy
+  :type 'string)
+
 (defun counsel--yank-pop-format-function (cand-pairs)
   (ivy--format-function-generic
    (lambda (str)
@@ -2062,7 +2086,7 @@ INITIAL-INPUT can be given as the initial minibuffer input."
    (lambda (str)
      (counsel--yank-pop-truncate str))
    cand-pairs
-   "\n"))
+   counsel-yank-pop-separator))
 
 (defun counsel-yank-pop-action (s)
   "Insert S into the buffer, overwriting the previous yank."
@@ -2217,6 +2241,14 @@ And insert it into the minibuffer. Useful during
   (let ((enable-recursive-minibuffers t))
     (ivy-read "Expr: " (delete-dups read-expression-history)
               :action #'insert)))
+
+;;** `counsel-shell-command-history'
+;;;###autoload
+(defun counsel-shell-command-history ()
+  (interactive)
+  (ivy-read "cmd: " shell-command-history
+            :action #'insert
+            :caller 'counsel-shell-command-history))
 
 ;;** `counsel-esh-history'
 (defun counsel--browse-history (elements)
@@ -2526,9 +2558,14 @@ replacements. "
   :keymap counsel-mode-map
   :lighter " counsel"
   (if counsel-mode
-      (when (and (fboundp 'advice-add)
-                 counsel-mode-override-describe-bindings)
-        (advice-add #'describe-bindings :override #'counsel-descbinds))
+      (progn
+        (when (and (fboundp 'advice-add)
+                   counsel-mode-override-describe-bindings)
+          (advice-add #'describe-bindings :override #'counsel-descbinds))
+        (define-key minibuffer-local-shell-command-map (kbd "C-r")
+          'counsel-shell-command-history)
+        (define-key read-expression-map (kbd "C-r")
+          'counsel-expression-history))
     (when (fboundp 'advice-remove)
       (advice-remove #'describe-bindings #'counsel-descbinds))))
 
