@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Package-Version: 20160719.2353
+;; Package-Version: 20160923.9
 ;; Version: 0.1
 ;; Keywords: typescript languages
 ;; Package-Requires: ()
@@ -53,6 +53,7 @@
 ;;; Code:
 
 (eval-and-compile
+  (require 'compile)
   (require 'cc-mode)
   (require 'font-lock)
   (require 'newcomment)
@@ -1981,6 +1982,20 @@ the broken-down class name of the item to insert."
             (cons child (car pitem)))))
 
    (cdr pitem)))
+
+;;; compilation-mode support
+
+;; handle compiler-errors like the following when doing M-x compile<ret>tsc<ret>
+;; greeter.ts(24,9): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number' or an enum type.
+;; greeter.ts(30,12): error TS2339: Property 'indexOf' does not exist on type 'number'.
+(add-to-list 'compilation-error-regexp-alist 'typescript-mode)
+(add-to-list 'compilation-error-regexp-alist-alist
+             (list 'typescript-mode
+                   (concat
+                    "^[[:blank:]]*"
+                    "\\([^(\r\n)]+\\)(\\([0-9]+\\),\\([0-9]+\\)):[[:blank:]]+"
+                    "error [[:alnum:]]+: [^\r\n]+$")
+                   1 2 3 1))
 
 ;;; Main Function
 
