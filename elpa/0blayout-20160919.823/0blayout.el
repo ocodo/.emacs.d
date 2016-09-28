@@ -1,12 +1,12 @@
 ;;; 0blayout.el --- Layout grouping with ease
 
-;; Copyright (c) 2015 Elis Axelsson
+;; Copyright (c) 2015-2016 Elis Axelsson
 
 ;; Author: Elis "etu" Axelsson
 ;; URL: https://github.com/etu/0blayout
-;; Package-Version: 20160826.1522
-;; Package-X-Original-Version: 20151021.0
-;; Version: 1.0.0
+;; Package-Version: 20160919.823
+;; Package-X-Original-Version: 20160918.0
+;; Version: 1.0.2
 ;; Keywords: convenience, window-management
 
 ;;; Commentary:
@@ -51,8 +51,10 @@
 
 (defvar 0blayout-alist ()
   "List of the currently defined layouts.")
-(defvar 0blayout-default "default"
-  "Name of default layout used")
+
+(defcustom 0blayout-default "default"
+  "Name of default layout used."
+  :group '0blayout)
 
 (defvar 0blayout-keys-map '(("C-c" . 0blayout-new)
                             ("C-k" . 0blayout-kill)
@@ -61,6 +63,7 @@
 
 (defvar 0blayout-mode-map (make-sparse-keymap)
   "Keymap for 0blayout.")
+
 
 ;; Function to create a new layout
 (defun 0blayout-new (layout-name)
@@ -77,8 +80,7 @@ Argument LAYOUT-NAME Name of the layout."
   (switch-to-buffer "*scratch*")
 
   ;; Save the name of the new current layout
-  (0blayout-set-current layout-name))
-
+  (0blayout-set-current-name layout-name))
 
 
 ;; Function to kill current layout
@@ -86,25 +88,24 @@ Argument LAYOUT-NAME Name of the layout."
   "0blayout removal function."
   (interactive)
 
-  (message "Killing layout: '%s'" (0blayout-get-current))
+  (message "Killing layout: '%s'" (0blayout-get-current-name))
 
   ;; Remove current layout from known layouts
   (setq 0blayout-alist
-        (assq-delete-all (intern (0blayout-get-current)) 0blayout-alist))
+        (assq-delete-all (intern (0blayout-get-current-name)) 0blayout-alist))
 
   ;; Switch to next layout in the list
   (let ((new-layout (car (car 0blayout-alist))))
     (if (eq new-layout nil)
         ;; If there's no other layout, make a new default layout
         (progn
-          (0blayout-set-current 0blayout-default)
+          (0blayout-set-current-name 0blayout-default)
           (0blayout-new 0blayout-default))
 
       ;; Switch to some other saved layout
       (progn
         (set-window-configuration (cdr (car 0blayout-alist)))
-        (0blayout-set-current (symbol-name new-layout))))))
-
+        (0blayout-set-current-name (symbol-name new-layout))))))
 
 
 ;; Function to switch layout
@@ -126,10 +127,9 @@ Argument LAYOUT-NAME Name of the layout."
         (set-window-configuration (cdr layout))
 
         ;; Save the name of the currently active layout
-        (0blayout-set-current layout-name)
+        (0blayout-set-current-name layout-name)
 
         (message "Switch to layout: '%s'" layout-name)))))
-
 
 
 ;; Function to save layout
@@ -139,32 +139,35 @@ Argument LAYOUT-NAME Name of the layout."
   ;; Remove all saves of current layout before saving
   (setq 0blayout-alist
         (assq-delete-all
-         (intern (0blayout-get-current)) 0blayout-alist))
+         (intern (0blayout-get-current-name)) 0blayout-alist))
 
   ;; Add current layout to list
   (add-to-list '0blayout-alist
-               (cons (intern (0blayout-get-current))
+               (cons (intern (0blayout-get-current-name))
                      (current-window-configuration)))
 
-  (message "Saved the currently active layout: %s" (0blayout-get-current)))
+  (message "Saved the currently active layout: %s" (0blayout-get-current-name)))
 
 
-
-;; Save current layout
-(defun 0blayout-set-current (layout-name)
-  "Helper function to store layout name"
+;; Save current layout name
+(defun 0blayout-set-current-name (layout-name)
+  "Helper function to store current LAYOUT-NAME for this frame."
 
   (set-frame-parameter nil '0blayout-current layout-name))
 
 
+;; Get current layout name
+(defun 0blayout-get-current-name ()
+  "Helper function to get current LAYOUT-NAME for this frame."
 
-;; Get current layout
-(defun 0blayout-get-current ()
-  "Helper function to get layout name"
-
-  (frame-parameter nil '0blayout-current))
-
-
+  ;; Get variable from current frame
+  (let ((current-layout (frame-parameter nil '0blayout-current)))
+    ;; Check if it's nil
+    (if (eq current-layout nil)
+        ;; If so, return default value
+        0blayout-default
+      ;; else return current value
+      current-layout)))
 
 
 ;;;###autoload
@@ -179,13 +182,6 @@ Argument LAYOUT-NAME Name of the layout."
 (0blayout-add-keybindings-with-prefix "C-c C-l")
 
 
-
-;;;###autoload
-(add-to-list 'default-frame-alist (cons '0blayout-current 0blayout-default))
-(set-frame-parameter nil '0blayout-current 0blayout-default)
-
-
-
 ;;;###autoload
 (define-minor-mode 0blayout-mode
   "Handle layouts with ease"
@@ -193,6 +189,7 @@ Argument LAYOUT-NAME Name of the layout."
   :global t
   :group '0blayout
   :keymap 0blayout-mode-map)
+
 
 (provide '0blayout)
 
