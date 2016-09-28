@@ -4,7 +4,7 @@
 
 ;; Author: Akira Tamamori
 ;; URL: https://github.com/tam17aki/ace-isearch
-;; Package-Version: 20160804.1608
+;; Package-Version: 20160927.330
 ;; Version: 0.1.5
 ;; Created: Sep 25 2014
 ;; Package-Requires: ((ace-jump-mode "2.0") (avy "0.3") (helm-swoop "1.4") (emacs "24"))
@@ -49,9 +49,6 @@
 (require 'helm-swoop)
 (require 'ace-jump-mode)
 (require 'avy)
-
-(if (>= emacs-major-version 25)
-    (defvar isearch-regexp-function))
 
 (defgroup ace-isearch nil
   "Group of ace-isearch."
@@ -140,6 +137,10 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
 
 (defvar ace-isearch--ace-jump-or-avy)
 
+(defsubst ace-isearch--isearch-regexp-function ()
+  (or (bound-and-true-p isearch-regexp-function)
+      (bound-and-true-p isearch-word)))
+
 (defun ace-isearch-switch-function ()
   (interactive)
   (let ((func (completing-read
@@ -162,9 +163,7 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
 (defun ace-isearch--jumper-function ()
   (cond ((and (= (length isearch-string) 1)
               (not (or isearch-regexp
-                       (if (>= emacs-major-version 25)
-                           isearch-regexp-function
-                         isearch-word)))
+                       (ace-isearch--isearch-regexp-function)))
               (ace-isearch--fboundp ace-isearch-function
                 (or (eq ace-isearch-use-jump t)
                     (and (eq ace-isearch-use-jump 'printing-char)

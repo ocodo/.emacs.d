@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-isearch" "ace-isearch.el" (0 0 0 0))
+;;;### (autoloads nil "ace-isearch" "ace-isearch.el" (22507 31646
+;;;;;;  901229 238000))
 ;;; Generated autoloads from ace-isearch.el
 
 (autoload 'ace-isearch-jump-during-isearch "ace-isearch" "\
@@ -37,8 +38,6 @@ Ace-Isearch mode is enabled in all buffers where
 See `ace-isearch-mode' for more information on Ace-Isearch mode.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ace-isearch" '("ace-isearch-")))
 
 ;;;***
 
