@@ -5,7 +5,7 @@
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-perldoc
 ;; Version: 0.07
-;; Package-Requires: ((helm-core "1.7.7") (deferred "0.3.1") (cl-lib "0.5"))
+;; Package-Requires: ((helm-core "2.0") (deferred "0.3.1") (emacs "24.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@
 ;;; Code:
 
 (require 'cl-lib)
-
 (require 'helm)
 (require 'deferred)
+(require 'subr-x)
 
 (defgroup helm-perldoc nil
   "perldoc with helm interface"
@@ -72,14 +72,14 @@
   (let ((path (cl-gensym)))
     `(let ((process-environment process-environment)
            (,path (helm-perldoc:construct-perl5lib)))
-       (unless (string= ,path "")
+       (unless (string-empty-p ,path)
          (push (concat "PERL5LIB=" ,path) process-environment))
        ,@body)))
 
 (defun helm-perldoc:construct-perl5lib ()
   (if (null helm-perldoc:carton-paths)
       (or helm-perldoc:perl5lib "")
-    (let ((carton-paths-str (mapconcat 'identity helm-perldoc:carton-paths path-separator)))
+    (let ((carton-paths-str (string-join helm-perldoc:carton-paths path-separator)))
       (if (not helm-perldoc:perl5lib)
           carton-paths-str
         (concat carton-paths-str path-separator helm-perldoc:perl5lib)))))
