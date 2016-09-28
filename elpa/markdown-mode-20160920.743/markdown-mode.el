@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160830.820
+;; Package-Version: 20160920.743
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -4299,14 +4299,16 @@ before the current point, then exdent the line one level.
 Otherwise, do normal delete by repeating
 `backward-delete-char-untabify' ARG times."
   (interactive "*p")
-  (let ((cur-pos (current-column))
-        (start-of-indention (save-excursion
-                              (back-to-indentation)
-                              (current-column)))
-        (positions (markdown-calc-indents)))
-    (if (and (> cur-pos 0) (= cur-pos start-of-indention))
-        (indent-line-to (markdown-exdent-find-next-position cur-pos positions))
-      (backward-delete-char-untabify arg))))
+  (if (use-region-p)
+      (backward-delete-char-untabify arg)
+    (let ((cur-pos (current-column))
+          (start-of-indention (save-excursion
+                                (back-to-indentation)
+                                (current-column)))
+          (positions (markdown-calc-indents)))
+      (if (and (> cur-pos 0) (= cur-pos start-of-indention))
+          (indent-line-to (markdown-exdent-find-next-position cur-pos positions))
+        (backward-delete-char-untabify arg)))))
 
 (defun markdown-find-leftmost-column (beg end)
   "Find the leftmost column in the region from BEG to END."
