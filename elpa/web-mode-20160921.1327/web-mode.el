@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.23
-;; Package-Version: 20160904.1151
+;; Version: 14.0.26
+;; Package-Version: 20160921.1327
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.23"
+(defconst web-mode-version "14.0.26"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -707,7 +707,7 @@ Must be used in conjunction with web-mode-enable-block-face."
   '("area" "base" "br" "col" "command" "embed" "hr" "img" "input" "keygen"
     "link" "meta" "param" "source" "track" "wbr"))
 
-(defvar web-mode-part-content-types '("css" "javascript" "json" "jsx" "sql"))
+(defvar web-mode-part-content-types '("css" "javascript" "json" "jsx" "markdown" "sql"))
 
 (defvar web-mode-javascript-languages '("javascript" "jsx" "ejs"))
 
@@ -1670,6 +1670,12 @@ shouldn't be moved back.)")
    '("\\_<\\([[:alnum:]_-]+\\)[ ]?(" 1 'web-mode-function-call-face)
    ))
 
+(defvar web-mode-markdown-font-lock-keywords
+  (list
+   '("^[ ]*[*].*$" 0 'web-mode-variable-name-face)
+   '("^[ ]*#.*$" 0 'web-mode-comment-face)
+   ))
+
 (defvar web-mode-html-tag-font-lock-keywords
   (list
    '("\\(</?\\)\\([[:alnum:]]+\\)"
@@ -2208,6 +2214,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
     ;;--------------------------------------------------------------------------
 
+    ;;(define-key map (kbd "M-q")       'fill-paragraph)
     (define-key map (kbd "M-;")       'web-mode-comment-or-uncomment)
 
     ;;C-c C-a : attribute
@@ -2413,6 +2420,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                                  ((string= content-type "jsx") 'jsx)
                                  ((string= content-type "css") 'css)
                                  ((string= content-type "sql") 'sql)
+                                 ((string= content-type "markdown") 'markdown)
                                  ))
              (web-mode-scan-blocks beg end)
              (web-mode-part-scan beg end content-type))
@@ -4010,6 +4018,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
             (cond
              ((string-match-p " type[ ]*=[ ]*[\"']text/\\(jsx\\|babel\\)" script)
               (setq element-content-type "jsx"))
+             ((string-match-p " type[ ]*=[ ]*[\"']text/\\(markdown\\|template\\)" script)
+              (setq element-content-type "markdown"))
              ((string-match-p " type[ ]*=[ ]*[\"']text/\\(x-handlebars\\|x-jquery-tmpl\\|html\\|ng-template\\|template\\|mustache\\|x-dust-template\\)" script)
               (setq element-content-type "html"
                     part-close-tag nil))
@@ -5674,7 +5684,9 @@ another auto-completion with different ac-sources (e.g. ac-php)")
         (web-mode-css-rules-highlight reg-beg reg-end))
        ((string= content-type "sql")
         (web-mode-fontify-region reg-beg reg-end web-mode-sql-font-lock-keywords))
-       )
+       ((string= content-type "markdown")
+        (web-mode-fontify-region reg-beg reg-end web-mode-markdown-font-lock-keywords))
+       ) ;cond
 
       (goto-char reg-beg)
 
@@ -5996,7 +6008,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
         )
 
        ) ;cond
-;;      (message "beg(%S) end(%S)" beg end)
+      ;;(message "beg(%S) end(%S)" beg end)
       (when (and beg end)
         (fill-region beg end))
       t)))
@@ -6695,7 +6707,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
          ) ;cond
         ) ;block-side
 
-       ((and part-language (member part-language '("css" "javascript" "sql")))
+       ((and part-language (member part-language '("css" "javascript" "sql" "markdown")))
         (setq reg-beg (or (web-mode-part-beginning-position pos) (point-min)))
         (goto-char reg-beg)
         (search-backward "<" nil t)
@@ -6706,6 +6718,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
           (setq curr-indentation web-mode-css-indent-offset))
          ((string= language "sql")
           (setq curr-indentation web-mode-sql-indent-offset))
+         ((string= language "markdown")
+          (setq curr-indentation web-mode-code-indent-offset))
          (t
           (setq language "javascript"
                 curr-indentation web-mode-code-indent-offset))
@@ -6786,7 +6800,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
         )
        ((member language '("javascript" "jsx"))
         (setq reg-col (if web-mode-script-padding (+ reg-col web-mode-script-padding) 0)))
-       ((member language '("css" "sql"))
+       ((member language '("css" "sql" "markdown"))
         (setq reg-col (if web-mode-style-padding (+ reg-col web-mode-style-padding) 0)))
        ((not (member language '("html" "xml" "razor")))
         (setq reg-col (if web-mode-block-padding (+ reg-col web-mode-block-padding) 0)))
@@ -7065,6 +7079,13 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                                                       curr-indentation
                                                       language
                                                       reg-beg))))
+
+         ((string= language "markdown")
+          (setq offset (car (web-mode-markdown-indentation pos
+                                                           reg-col
+                                                           curr-indentation
+                                                           language
+                                                           reg-beg))))
 
          ((and (string= language "razor")
                (string-match-p "^\\." curr-line)
@@ -7392,6 +7413,14 @@ another auto-completion with different ac-sources (e.g. ac-php)")
      ) ;cond
     (cons (if (< offset initial-column) initial-column offset) open-ctx)
     ))
+
+(defun web-mode-markdown-indentation (pos initial-column language-offset language &optional limit)
+  (let (offset)
+    (save-excursion
+      (goto-char pos)
+      (setq offset (current-column)))
+    ;;(message "%S %S %S %S" pos (point) initial-column language-offset)
+    (cons (if (<= offset initial-column) initial-column offset) nil)))
 
 (defun web-mode-javascript-indentation (pos initial-column language-offset language &optional limit)
   (let (open-ctx indentation offset sub)
@@ -8721,29 +8750,30 @@ Prompt user if TAG-NAME isn't provided."
 (defun web-mode-toggle-comments ()
   "Toggle comments visbility."
   (interactive)
-  (save-excursion
-    (if web-mode-comments-invisible
-        (remove-overlays))
-    (setq web-mode-comments-invisible (null web-mode-comments-invisible))
-    (let ((continue t)
-          (pos (point-min))
-          (visibility web-mode-comments-invisible)
-          overlay end)
-      (while continue
-        (setq pos (next-single-property-change pos 'font-lock-face))
-        (if (null pos)
-            (setq continue nil)
-          (when (eq (get-text-property pos 'font-lock-face) 'web-mode-comment-face)
-            (setq end (next-single-property-change pos 'font-lock-face))
-            (put-text-property pos end 'invisible visibility)
-            (when visibility
-              (setq overlay (make-overlay pos end)))
-            (goto-char pos)
-            )
-          )
-        )
-      ) ;let
-    ))
+  (web-mode-with-silent-modifications
+   (save-excursion
+     (if web-mode-comments-invisible
+         (remove-overlays))
+     (setq web-mode-comments-invisible (null web-mode-comments-invisible))
+     (let ((continue t)
+           (pos (point-min))
+           (visibility web-mode-comments-invisible)
+           overlay end)
+       (while continue
+         (setq pos (next-single-property-change pos 'font-lock-face))
+         (if (null pos)
+             (setq continue nil)
+           (when (eq (get-text-property pos 'font-lock-face) 'web-mode-comment-face)
+             (setq end (next-single-property-change pos 'font-lock-face))
+             (put-text-property pos end 'invisible visibility)
+             (when visibility
+               (setq overlay (make-overlay pos end)))
+             (goto-char pos)
+             )
+           )
+         )
+       ) ;let
+     )))
 
 (defun web-mode-comment-or-uncomment-region (beg end &optional arg)
   (interactive)
@@ -9549,8 +9579,7 @@ Prompt user if TAG-NAME isn't provided."
                (not auto-closed)
                (not auto-paired)
                (not auto-expanded)
-               (get-text-property (- pos 2) 'tag-attr)
-               )
+               (get-text-property (- pos 2) 'tag-attr))
       (cond
        ((and (eq char ?\=)
              (not (looking-at-p "[ ]*[\"']")))
@@ -9569,6 +9598,13 @@ Prompt user if TAG-NAME isn't provided."
              (looking-back "=[ ]*'")
              (not (looking-at-p "[ ]*[']")))
         (insert-and-inherit "'")
+        (backward-char)
+        (setq auto-quoted t))
+       ((and (eq char ?\{)
+             (eq (get-text-property pos 'part-side) 'jsx)
+             (looking-back "=[ ]*{")
+             (not (looking-at-p "[ ]*[}]")))
+        (insert-and-inherit "}")
         (backward-char)
         (setq auto-quoted t))
        ((and (eq char ?\")
