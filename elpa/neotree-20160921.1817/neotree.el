@@ -206,6 +206,7 @@ it suitable for terminal.
   :type '(choice (const classic)
                  (const ascii)
                  (const arrow)
+                 (const icons)
                  (const nerd)))
 
 (defcustom neo-mode-line-type 'neotree
@@ -313,6 +314,11 @@ This variable is used in `neo-vc-for-node' when
 
 (defcustom neo-toggle-window-keep-p nil
   "If not nil, not switch to *NeoTree* buffer when executing `neotree-toggle'."
+  :type 'boolean
+  :group 'neotree)
+
+(defcustom neo-force-change-root nil
+  "If not nil, do not prompt when switching root."
   :type 'boolean
   :group 'neotree)
 
@@ -541,6 +547,8 @@ The car of the pair will store fullpath, and cdr will store line number.")
                                      :file-fn 'neo-open-file-vertical-split))
     (define-key map (kbd "-")       (neotree-make-executor
                                      :file-fn 'neo-open-file-horizontal-split))
+    (define-key map (kbd "a")       (neotree-make-executor
+                                     :file-fn 'neo-open-file-ace-window))
     (define-key map (kbd "d")       (neotree-make-executor
                                      :dir-fn 'neo-open-dired))
     (define-key map (kbd "SPC")     'neotree-quick-look)
@@ -726,6 +734,9 @@ The description of ARG is in `neotree-enter'."
          (fboundp 'select-window-by-number))
     (select-window-by-number arg))
    ;; open node in a new vertically split window
+   ((and (stringp arg) (string= arg "a")
+         (fboundp 'ace-select-window))
+    (ace-select-window))
    ((and (stringp arg) (string= arg "|"))
     (select-window (get-mru-window))
     (split-window-right)
@@ -1107,11 +1118,12 @@ Return nil if DIR is not an existing directory."
                  'xpm nil :ascent 'center :mask '(heuristic t)))
     image))
 
-(defun neo-buffer--insert-fold-symbol (name)
+(defun neo-buffer--insert-fold-symbol (name &optional node-name)
   "Write icon by NAME, the icon style affected by neo-theme.
 `open' write opened folder icon.
 `close' write closed folder icon.
-`leaf' write leaf icon."
+`leaf' write leaf icon.
+Optional NODE-NAME is used for the `icons' theme"
   (let ((n-insert-image (lambda (n)
                           (insert-image (neo-buffer--get-icon n))))
         (n-insert-symbol (lambda (n)
@@ -1129,6 +1141,13 @@ Return nil if DIR is not an existing directory."
       (or (and (equal name 'open)  (funcall n-insert-symbol "▾ "))
           (and (equal name 'close) (funcall n-insert-symbol "▸ "))
           (and (equal name 'leaf)  (funcall n-insert-symbol "  "))))
+     ((equal neo-theme 'icons)
+      (unless (require 'all-the-icons nil 'noerror)
+        (error "Package `all-the-icons' isn't installed"))
+      (setq-local tab-width 1)
+      (or (and (equal name 'open)  (insert (all-the-icons-icon-for-dir node-name "down")))
+          (and (equal name 'close) (insert (all-the-icons-icon-for-dir node-name "right")))
+          (and (equal name 'leaf)  (insert (format "\t\t\t%s\t" (all-the-icons-icon-for-file node-name))))))
      (t
       (or (and (equal name 'open)  (funcall n-insert-symbol "-"))
           (and (equal name 'close) (funcall n-insert-symbol "+")))))))
@@ -1249,7 +1268,7 @@ PATH is value."
     (when (memq 'char neo-vc-integration)
       (insert-char ?\s 2))
     (neo-buffer--insert-fold-symbol
-     (if expanded 'open 'close))
+     (if expanded 'open 'close) node)
     (insert-button (concat node-short-name "/")
                    'follow-link t
                    'face neo-dir-link-face
@@ -1265,7 +1284,7 @@ PATH is value."
     (when (memq 'char neo-vc-integration)
       (insert-char (car vc))
       (insert-char ?\s))
-    (neo-buffer--insert-fold-symbol 'leaf)
+    (neo-buffer--insert-fold-symbol 'leaf node-short-name)
     (insert-button node-short-name
                    'follow-link t
                    'face (if (memq 'face neo-vc-integration)
@@ -1643,7 +1662,8 @@ If path is nil and no buffer file name, then use DEFAULT-PATH,"
          (npath (if path path
                   (or (buffer-file-name) ndefault-path)))
          (do-open-p nil))
-    (if (and (not (neo-global--file-in-root-p npath))
+    (if (and (not neo-force-change-root)
+             (not (neo-global--file-in-root-p npath))
              (neo-global--window-exists-p))
         (setq do-open-p (yes-or-no-p "File not found in root path, do you want to change root?"))
       (setq do-open-p t))
@@ -1702,6 +1722,11 @@ FULL-PATH and ARG are the same as `neo-open-file'."
   "Open the current node is horizontally split window.
 FULL-PATH and ARG are the same as `neo-open-file'."
   (neo-open-file full-path "-"))
+
+(defun neo-open-file-ace-window (full-path arg)
+  "Open the current node in a window chosen by ace-window.
+FULL-PATH and ARG are the same as `neo-open-file'."
+  (neo-open-file full-path "a"))
 
 (defun neotree-change-root ()
   "Change root to current node dir.
@@ -1978,6 +2003,10 @@ ARG are the same as `neo-open-file'."
   (interactive)
   (neo-buffer--execute nil 'neo-open-file-horizontal-split 'neo-open-dir))
 
+(defun neotree-enter-ace-window ()
+  "NeoTree open event, file node will be opened in window chosen by ace-window."
+  (interactive)
+  (neo-buffer--execute nil 'neo-open-file-ace-window 'neo-open-dir))
 
 (provide 'neotree)
 ;;; neotree.el ends here
