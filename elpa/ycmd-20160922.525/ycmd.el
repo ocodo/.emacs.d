@@ -114,6 +114,7 @@
 (require 'request)
 (require 'request-deferred)
 (require 'etags)
+(require 'easymenu)
 
 
 (defgroup ycmd nil
@@ -598,6 +599,40 @@ explicitly re-define the prefix key:
     map)
   "Keymap for `ycmd-mode'.")
 
+(easy-menu-define ycmd-mode-menu ycmd-mode-map
+  "Menu used when `ycmd-mode' is active."
+  '("YCMd"
+    ["Start server" ycmd-open]
+    ["Stop server" ycmd-close]
+    "---"
+    ["Parse buffer" ycmd-parse-buffer]
+    "---"
+    ["GoTo" ycmd-goto]
+    ["GoToDefinition" ycmd-goto-definition]
+    ["GoToDeclaration" ycmd-goto-declaration]
+    ["GoToInclude" ycmd-goto-include]
+    ["GoToImplementation" ycmd-goto-implementation]
+    ["GoToReferences" ycmd-goto-references]
+    ["GoToType" ycmd-goto-type]
+    ["GoToImprecise" ycmd-goto-imprecise]
+    "---"
+    ["Show documentation" ycmd-show-documentation]
+    ["Show type" ycmd-get-type]
+    ["Show parent" ycmd-get-parent]
+    "---"
+    ["FixIt" ycmd-fixit]
+    ["RefactorRename" ycmd-refactor-rename]
+    "---"
+    ["Load extra config" ycmd-load-conf-file]
+    ["Restart semantic server" ycmd-restart-semantic-server]
+    ["Clear compilation flag cache" ycmd-clear-compilation-flag-cache]
+    ["Force semantic completion" ycmd-toggle-force-semantic-completion
+     :style toggle :selected ycmd-force-semantic-completion]
+    "---"
+    ["Show debug info" ycmd-show-debug-info]
+    ["Log enabled" ycmd-toggle-log-enabled
+     :style toggle :selected ycmd--log-enabled]))
+
 (defmacro ycmd--kill-timer (timer)
   "Cancel TIMER."
   `(when ,timer
@@ -618,6 +653,7 @@ explicitly re-define the prefix key:
   (let ((force-semantic
          (when ycmd-force-semantic-completion "/s"))
         (text (pcase ycmd--last-status-change
+                (`stopped "-")
                 (`unparsed "?")
                 (`parsing "*")
                 (`errored "!")
@@ -794,7 +830,8 @@ This does nothing if no server is running."
   (when (ycmd-running?)
     (ycmd--stop-server))
   (ycmd--global-teardown)
-  (ycmd--kill-timer ycmd--keepalive-timer))
+  (ycmd--kill-timer ycmd--keepalive-timer)
+  (ycmd--report-status 'stopped))
 
 (defun ycmd--stop-server ()
   "Stop the ycmd server process.
@@ -838,16 +875,17 @@ This is simply for keepalive functionality."
 
 If INCLUDE-SUBSERVER is non-nil, also request ready state for
 semantic subserver."
-  (let ((file-type
-         (and include-subserver
-              (car-safe (ycmd-major-mode-to-file-types
-                         major-mode)))))
-    (ycmd--ignore-errors
-     (ycmd--request
-      "/ready" nil
-      :params (and file-type
-                   (list (cons "subserver" file-type)))
-      :type "GET" :parser 'json-read :sync t))))
+  (when (ycmd-running?)
+    (let ((file-type
+           (and include-subserver
+                (car-safe (ycmd-major-mode-to-file-types
+                           major-mode)))))
+      (ycmd--ignore-errors
+       (ycmd--request
+        "/ready" nil
+        :params (and file-type
+                     (list (cons "subserver" file-type)))
+        :type "GET" :parser 'json-read :sync t)))))
 
 (defun ycmd-load-conf-file (filename)
   "Tell the ycmd server to load the configuration file FILENAME."
@@ -1788,15 +1826,16 @@ the name of the newly created file."
                 "PLEASE RECOMPILE by running the build.py "
                 "script. See the documentation for more details."))))
 
-(defun ycmd--server-process-sentinel (process _state)
-  "Ycmd server PROCESS sentinel."
+(defun ycmd--server-process-sentinel (process event)
+  "Handle Ycmd server PROCESS EVENT."
   (when (memq (process-status process) '(exit signal))
     (let* ((code (process-exit-status process))
            (status (if (eq code 0) 'unparsed 'errored)))
       (when (eq status 'errored)
-        (--if-let (ycmd--exit-code-as-string code)
-            (message "Ycmd error: %s" it)
-          (message "Ycmd server finished with exit code %d" code)))
+        (--if-let (and (eq (process-status process) 'exit)
+                       (ycmd--exit-code-as-string code))
+            (message "Ycmd server error: %s" it)
+          (message "Ycmd server %s" (s-replace "\n" "" event))))
       (ycmd--with-all-ycmd-buffers
         (ycmd--report-status status)))))
 
