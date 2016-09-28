@@ -1,5 +1,6 @@
-(define-package "haskell-snippets" "20160121.1458" "Yasnippets for Haskell"
-  '((yasnippet "0.8.0"))
+(define-package "haskell-snippets" "20160918.1722" "Yasnippets for Haskell"
+  '((cl-lib "0.5")
+    (yasnippet "0.8.0"))
   :url "https://github.com/haskell/haskell-snippets" :keywords
   '("snippets" "haskell"))
 ;; Local Variables:

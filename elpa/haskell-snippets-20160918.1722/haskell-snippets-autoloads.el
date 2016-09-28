@@ -1,10 +1,10 @@
 ;;; haskell-snippets-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "haskell-snippets" "haskell-snippets.el" (22200
-;;;;;;  34477 533191 83000))
+;;;### (autoloads nil "haskell-snippets" "haskell-snippets.el" (22507
+;;;;;;  31522 433228 829000))
 ;;; Generated autoloads from haskell-snippets.el
 
 (autoload 'haskell-snippets-initialize "haskell-snippets" "\
@@ -16,8 +16,8 @@
 
 ;;;***
 
-;;;### (autoloads nil nil ("haskell-snippets-pkg.el") (22200 34477
-;;;;;;  537143 931000))
+;;;### (autoloads nil nil ("haskell-snippets-pkg.el") (22507 31522
+;;;;;;  369228 828000))
 
 ;;;***
 

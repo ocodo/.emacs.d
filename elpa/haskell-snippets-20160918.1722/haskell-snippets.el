@@ -6,7 +6,7 @@
 ;; URL: https://github.com/haskell/haskell-snippets
 ;; Keywords: snippets, haskell
 ;; Version: 0.1.0
-;; Package-Requires: ((yasnippet "0.8.0"))
+;; Package-Requires: ((cl-lib "0.5") (yasnippet "0.8.0"))
 
 ;; Permission is hereby granted, free of charge, to any person obtaining
 ;; a copy of this software and associated documentation files (the
@@ -68,6 +68,9 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+(require 'yasnippet)
+
 (setq haskell-snippets-dir
       (file-name-directory load-file-name))
 
@@ -81,7 +84,6 @@
 (eval-after-load 'yasnippet
   '(haskell-snippets-initialize))
 
-(require 'yasnippet)
 (provide 'haskell-snippets)
 
 ;;; haskell-snippets.el ends here
