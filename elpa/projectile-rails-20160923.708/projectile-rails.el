@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160830.858
+;; Package-Version: 20160923.708
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -950,7 +950,7 @@ The bound variable is \"filename\"."
           ((string-match-p "^[a-z]" name)
            (projectile-rails-find-constant (singularize-string name)))
 
-          ((string-match-p "^[A-Z]" name)
+          ((string-match-p "^\\(::\\)?[A-Z]" name)
            (projectile-rails-goto-constant-at-point)))))
 
 (defun projectile-rails-goto-constant-at-point ()
@@ -970,13 +970,37 @@ The bound variable is \"filename\"."
      (point))))
 
 (defun projectile-rails-find-constant (name)
-  (let ((choices
-         (--filter (string-match-p (format ".*/%s\\.rb$" (projectile-rails-declassify name)) it)
-                   (-uniq
-                    (--mapcat (f-entries it #'f-file? t)
-                              (-filter #'f-exists?
-                                       (-map #'projectile-rails-expand-root
-                                             (projectile-rails--code-directories))))))))
+  (let* ((code-dirs (-filter #'f-exists? (-map #'projectile-rails-expand-root (projectile-rails--code-directories))))
+         (list-parent-dirs (lambda (some-file)
+                             (let ((parent-dirs '()))
+                               (f-traverse-upwards (lambda (parent-dir)
+                                                     (push (f-canonical parent-dir) parent-dirs)
+                                                     (equal (f-slash (f-canonical (projectile-rails-root))) (f-slash (f-canonical parent-dir))))
+                                                   (f-dirname some-file))
+                               parent-dirs)))
+         (file-name (format "%s.rb" (projectile-rails-declassify name)))
+         (lookup-dirs (if (f-absolute? file-name)
+                          ;; If top-level constant (e.g. ::Classname), i.e. derived filename (/classname) starts with a "/", then:
+                          ;; Look only in code directories
+                          code-dirs
+                        (-flatten (list
+                                   ;; Otherwise (relative constant):
+                                   ;; 1. Look in current file namespace
+                                   (f-no-ext buffer-file-name)
+                                   ;; 2. Look in local namespace hierarchy
+                                   (funcall list-parent-dirs buffer-file-name)
+                                   ;; 3. Look in code directories
+                                   code-dirs))))
+         ;; Strip leading "/" if present before generating lookup paths because it messes with f-join)
+         (relative-file-name (if (f-absolute? file-name)
+                                 (substring file-name 1)
+                               file-name))
+         (lookup-paths (--map (f-join it relative-file-name)
+                              lookup-dirs))
+         (choices
+          (-uniq
+           (-filter #'f-exists? lookup-paths))))
+
     (when (= (length choices) 0)
       (user-error "Could not find anything"))
 
@@ -1148,7 +1172,7 @@ If file does not exist and ASK in not nil it will ask user to proceed."
     (setq name (substring name 1 -1)))
   (when (s-starts-with? "./" name)
     (setq name (substring name 2)))
-  (when (or (s-starts-with? ":" name) (s-starts-with? "/" name))
+  (when (or (string-match-p "^:[^:]" name) (s-starts-with? "/" name))
     (setq name (substring name 1)))
   (when (s-ends-with? "," name)
     (setq name (substring name 0 -1)))
