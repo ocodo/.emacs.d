@@ -7,7 +7,7 @@
 
 ;; Author: Taiki SUGAWARA <buzz.taiki@gmail.com>
 ;; URL: https://github.com/emacs-helm/helm-descbinds
-;; Package-Version: 20160806.913
+;; Package-Version: 20160916.713
 ;; Keywords: helm, help
 ;; Version: 1.12
 ;; Package-Requires: ((helm "1.5"))
@@ -107,15 +107,6 @@ This function will be called with two arguments KEY and BINDING."
   "A list of section order by name regexp."
   :type '(repeat (regexp :tag "Regexp")))
 
-(defcustom helm-descbinds-source-template
-  `((candidate-transformer . helm-descbinds-transform-candidates)
-    (filtered-candidate-transformer . helm-fuzzy-highlight-matches)
-    (persistent-action . helm-descbinds-action:describe)
-    (action-transformer . helm-descbinds-action-transformer)
-    (action . ,helm-descbinds-actions))
-  "A template of `helm-descbinds' source."
-  :type 'sexp)
-
 (defvar helm-descbinds-Orig-describe-bindings (symbol-function 'describe-bindings))
 (defvar helm-descbind--initial-full-frame helm-full-frame)
 
@@ -125,8 +116,8 @@ This function will be called with two arguments KEY and BINDING."
   :group 'helm-descbinds
   :global t
   (if helm-descbinds-mode
-      (fset 'describe-bindings #'helm-descbinds) ;FIXME: why don't we just use an :override advice?
-    (fset 'describe-bindings helm-descbinds-Orig-describe-bindings)))
+      (advice-add 'describe-bindings :override #'helm-descbinds)
+      (advice-remove 'describe-bindings #'helm-descbinds)))
 
 ;;;###autoload
 (defun helm-descbinds-install ()
@@ -245,10 +236,17 @@ Provide a useful behavior for prefix commands."
       (< (helm-descbinds-order-section a)
          (helm-descbinds-order-section b))))))
 
+(defclass helm-descbinds-source-class (helm-source-sync) ())
+
 (defun helm-descbinds-source (name candidates)
-  (append (helm-build-sync-source name
-              :candidates candidates)
-            helm-descbinds-source-template))
+  (when (and name candidates)
+    (helm-make-source name 'helm-descbinds-source-class
+      :candidates candidates
+      :candidate-transformer #'helm-descbinds-transform-candidates
+      :filtered-candidate-transformer #'helm-fuzzy-highlight-matches
+      :persistent-action #'helm-descbinds-action:describe
+      :action-transformer #'helm-descbinds-action-transformer
+      :action 'helm-descbinds-actions)))
 
 ;;;###autoload
 (defun helm-descbinds (&optional prefix buffer)

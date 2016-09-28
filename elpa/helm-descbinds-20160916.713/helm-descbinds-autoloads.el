@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-descbinds" "helm-descbinds.el" (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil "helm-descbinds" "helm-descbinds.el" (22507
+;;;;;;  31498 997228 658000))
 ;;; Generated autoloads from helm-descbinds.el
 
 (defvar helm-descbinds-mode nil "\
@@ -54,8 +54,6 @@ For key translation maps, the default actions are not very
 useful, yet they are listed for completeness.
 
 \(fn &optional PREFIX BUFFER)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-descbinds" '("helm-descbind")))
 
 ;;;***
 
