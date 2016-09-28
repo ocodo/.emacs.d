@@ -81,7 +81,9 @@ set nil to this value by ‘nim-mode-init-hook’.")
   (format "\\_<\\(%s\\)\\_>"
           (mapconcat
            'nim--convert-to-non-casesensitive
-           (symbol-value keywords)
+           (cl-typecase keywords
+             (symbol (symbol-value keywords))
+             (list keywords))
            "\\|")))
 
 (defvar nim-font-lock-keywords-2
@@ -365,6 +367,14 @@ character address of the specified TYPE."
                    (eq ?.  (char-after (1+  ppss9-last)))
                    (1+  ppss9-last))))))))
 
+(defvar nim--pragma-regex
+  (let ((pragma (cl-loop for (kwd . _) in nim-pragmas collect kwd)))
+    (apply
+     `((lambda ()
+         (nim-rx (or (group (or (group (? ".") "}")
+                                (group "." (eval (cons 'or (list ,@pragma))))))
+                     (group (regexp ,(nim--format-keywords pragma))))))))))
+
 (defun nim-pragma-matcher (&optional _start-pos)
   "Highlight pragma."
   (nim-matcher-func
@@ -378,10 +388,7 @@ character address of the specified TYPE."
      (unless (nim-inside-pragma-p)
        (throw 'exit nil)))
    (lambda ()
-     (not (re-search-forward
-           (nim-rx (or (group (or (group (? ".") "}")
-                                  (group "." identifier)))
-                       (group identifier))) nil t)))
+     (not (re-search-forward nim--pragma-regex nil t)))
    (lambda (ppss)
      (cond
       ((nth 4 ppss)
