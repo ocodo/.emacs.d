@@ -1,18 +1,15 @@
 ;;; levenshtein-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("levenshtein-pkg.el" "levenshtein.el")
-;;;;;;  (20967 19542 205357 0))
+;;;### (autoloads nil nil ("levenshtein.el") (22507 31458 65228 277000))
 
 ;;;***
 
-(provide 'levenshtein-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; levenshtein-autoloads.el ends here
