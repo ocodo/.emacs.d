@@ -1,10 +1,10 @@
 ;;; dired-subtree-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired-subtree" "dired-subtree.el" (22010 16150
-;;;;;;  201140 0))
+;;;### (autoloads nil "dired-subtree" "dired-subtree.el" (22507 31578
+;;;;;;  457229 115000))
 ;;; Generated autoloads from dired-subtree.el
 
 (autoload 'dired-subtree-narrow "dired-subtree" "\
