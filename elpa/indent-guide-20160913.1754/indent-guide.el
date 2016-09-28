@@ -18,7 +18,7 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20160630
+;; Package-Version: 20160913.1754
 ;; Version: 2.3.0
 
 ;;; Commentary:
@@ -115,7 +115,7 @@
   :type 'number
   :group 'indent-guide)
 
-(defface indent-guide-face '((t (:foreground "#535353")))
+(defface indent-guide-face '((t (:foreground "#535353" :slant normal)))
   "Face used to indent guide lines."
   :group 'indent-guide)
 
