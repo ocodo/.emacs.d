@@ -3,7 +3,8 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "go-mode" "go-mode.el" (0 0 0 0))
+;;;### (autoloads nil "go-mode" "go-mode.el" (22507 31544 161228
+;;;;;;  965000))
 ;;; Generated autoloads from go-mode.el
 
 (autoload 'go-mode "go-mode" "\
@@ -93,11 +94,10 @@ Tries to look for a URL at point.
 
 \(fn URL)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-mode" '("gofmt" "god" "go-")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("go-mode-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("go-mode-pkg.el") (22507 31544 157228
+;;;;;;  965000))
 
 ;;;***
 
