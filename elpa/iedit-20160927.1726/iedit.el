@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2016-07-12 15:03:42 Victor Ren>
+;; Time-stamp: <2016-09-20 00:04:51 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous refactoring
 ;; Version: 0.9.9
@@ -76,7 +76,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (require 'sgml-mode))
 (require 'iedit-lib)
 
 (defcustom iedit-toggle-key-default (kbd "C-;")
@@ -380,15 +382,15 @@ Keymap used within overlays:
   "Start Iedit mode using last search string as the regexp."
   (interactive
    (let ((regexp (cond
-                  ((functionp isearch-word)
-                   (funcall isearch-word isearch-string))
-                  (isearch-word (word-search-regexp isearch-string))
+                  ((functionp isearch-regexp-function)
+                   (funcall isearch-regexp-function isearch-string))
+                  (isearch-regexp-function (word-search-regexp isearch-string))
                   (isearch-regexp isearch-string)
                   (t (regexp-quote isearch-string)))))
      (list regexp)))
   (or isearch-success
       (error "No match" ))
-  (if (or isearch-regexp isearch-word)
+  (if (or isearch-regexp isearch-regexp-function)
       nil
     (setq iedit-initial-string-local isearch-string))
   (let ((iedit-case-sensitive (not isearch-case-fold-search)))
