@@ -3,14 +3,15 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "git-link" "git-link.el" (22452 31749 696905
-;;;;;;  234000))
+;;;### (autoloads nil "git-link" "git-link.el" (22507 31545 697228
+;;;;;;  969000))
 ;;; Generated autoloads from git-link.el
 
 (autoload 'git-link "git-link" "\
 Create a URL representing the current buffer's location in its
 GitHub/Bitbucket/GitLab/... repository at the current line number
-or active region. The URL will be added to the kill ring.
+or active region. The URL will be added to the kill ring. If
+`git-link-open-in-browser' is non-`nil' also call `browse-url'.
 
 With a prefix argument prompt for the remote's name.
 Defaults to \"origin\".
@@ -19,11 +20,18 @@ Defaults to \"origin\".
 
 (autoload 'git-link-commit "git-link" "\
 Create a URL representing the commit for the hash under point
-in the current buffer's GitHub/Bitbucket/Gitorious/...
+in the current buffer's GitHub/Bitbucket/GitLab/...
 repository. The URL will be added to the kill ring.
 
 With a prefix argument prompt for the remote's name.
 Defaults to \"origin\".
+
+\(fn REMOTE)" t nil)
+
+(autoload 'git-link-homepage "git-link" "\
+Create a URL for the current buffer's repository homepage.
+The URL will be added to the kill ring. If `git-link-open-in-browser'
+is non-`nil' also call `browse-url'.
 
 \(fn REMOTE)" t nil)
 
