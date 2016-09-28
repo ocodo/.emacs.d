@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20160225.819
+;; Package-Version: 20160923.1117
 ;; Version: 0.9.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: window, location
@@ -395,7 +395,7 @@ Windows are numbered top down, left to right."
         (e2 (window-edges wnd2)))
     (cond ((string< (frame-parameter f1 'window-id)
                     (frame-parameter f2 'window-id))
-           t)
+           nil)
           ((< (car e1) (car e2))
            t)
           ((> (car e1) (car e2))
