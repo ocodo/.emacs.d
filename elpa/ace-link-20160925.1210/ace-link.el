@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20160811.112
+;; Package-Version: 20160925.1210
 ;; Version: 0.4.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: convenience, links
@@ -56,7 +56,7 @@
      (ace-link-eww))
     ((compilation-mode grep-mode)
      (ace-link-compilation))
-    (gnus-mode
+    (gnus-article-mode
      (ace-link-gnus))
     (org-mode
      (ace-link-org))
@@ -98,7 +98,7 @@
   (cons (cl-letf (((symbol-function #'Info-goto-node)
                    (lambda (node _) node)))
           (Info-try-follow-nearest-node))
-        (point)))
+        (1- (point))))
 
 (defun ace-link--info-collect ()
   "Collect the positions of visible links in the current `Info-mode' buffer."
@@ -382,7 +382,7 @@
   "Bind KEY to appropriate functions in appropriate keymaps."
   (setq key (or key "o"))
   (add-to-list 'avy-styles-alist
-               '(ace-link-info . post))
+               '(ace-link-info . at))
   (add-to-list 'avy-styles-alist
                '(ace-link-help . post))
   (add-to-list 'avy-styles-alist
