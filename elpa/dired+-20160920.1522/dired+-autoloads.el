@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22479 30490 480893 713000))
+;;;### (autoloads nil "dired+" "dired+.el" (22507 31582 957229 128000))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -74,6 +74,14 @@ special-display buffer by your Emacs setup, then a nil value of this
 option has no effect.)")
 
 (custom-autoload 'diredp-image-show-this-file-use-frame-flag "dired+" t)
+
+(defvar diredp-max-frames 200 "\
+*Max number of frames, for commands that find files in separate frames.
+These commands are `dired-do-find-marked-files' and
+`diredp-do-find-marked-files-recursive'.  See their descriptions for
+the circumstances in which they show the files in separate frames.")
+
+(custom-autoload 'diredp-max-frames "dired+" t)
 
 (defvar diredp-prompt-for-bookmark-prefix-flag nil "\
 *Non-nil means prompt for a prefix string for bookmark names.")
@@ -571,6 +579,12 @@ display them.
 
 With numeric prefix ARG <= 0, ignore all marks - include all files in
 this Dired buffer and all subdirs, recursively.
+
+Note that prefix-argument behavior is different for this command than
+for `dired-do-find-marked-files'.  In particular, a negative numeric
+prefix arg does not cause the files to be shown in separate frames.
+Only non-nil `pop-up-frames' (or equivalent configuration) causes
+the files to be shown in separate frames.
 
 \(fn &optional ARG)" t nil)
 
@@ -1393,23 +1407,36 @@ default value using \\<dired-mode-map>\\[dired-reset-subdir-switches].  See Info
 
 (autoload 'dired-do-find-marked-files "dired+" "\
 Find marked files, displaying all of them simultaneously.
-With a prefix ARG >= 0, just find the files but do not show them.
+With no prefix argument:
 
-If no prefix ARG, and variable `pop-up-frames' is non-nil, or
-if prefix ARG < 0, then each file is displayed in a separate frame.
+* If `pop-up-frames' is nil then split the current window across all
+  marked files, as evenly as possible.  Remaining lines go to the
+  bottom-most window.  The number of files that can be displayed this
+  way is restricted by the height of the current window and
+  `window-min-height'.
 
-Otherwise (no prefix ARG and nil `pop-up-frames'), the current window
-is split across all marked files, as evenly as possible.  Remaining
-lines go to the bottom-most window.  The number of files that can be
-displayed this way is restricted by the height of the current window
-and `window-min-height'.
+* If `pop-up-frames' is non-nil then show each marked file in a
+  separate frame (not window).
 
-Otherwise, a prefix arg behaves according to the ARG argument of
-`dired-get-marked-files'.  In particular, `C-u C-u' operates on all
-files in the Dired buffer.
+With a prefix argument:
 
-To keep the Dired buffer displayed, type \\[split-window-vertically] first.
-To display just the marked files, type \\[delete-other-windows] first.
+* One or more plain `C-u' behaves as for `dired-get-marked-files'.
+  In particular, `C-u C-u' means ignore any markings and operate on
+  ALL files and directories (except `.' and `..') in the Dired buffer.
+
+* A numeric prefix arg >= 0 means just find (visit) the marked files -
+  do not show them.
+
+* A numeric prefix arg < 0 means show each marked file in a separate
+  frame (not window).  (This is the same behavior as no prefix arg
+  with non-nil `pop-up-frames'.)
+
+Note that a numeric prefix argument acts differently with this command
+than it does with other `dired-do-*' commands: it does NOT act on the
+next or previous (abs ARG) files, ignoring markings.
+
+To keep the Dired buffer displayed, split the window (e.g., `C-x 2')
+first.  To show only the marked files, type `\\[delete-other-windows]' first.
 
 \(fn &optional ARG)" t nil)
 
