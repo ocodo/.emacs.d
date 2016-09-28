@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nameless" "nameless.el" (22466 49009 0 0))
+;;;### (autoloads nil "nameless" "nameless.el" (22507 31419 861227
+;;;;;;  825000))
 ;;; Generated autoloads from nameless.el
 
 (autoload 'nameless-mode "nameless" "\

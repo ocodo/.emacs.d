@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/nameless
-;; Package-Version: 20160403.1113
+;; Package-Version: 20160916.728
 ;; Keywords: convenience, lisp
 ;; Version: 1.0.1
 ;; Package-Requires: ((emacs "24.4"))
@@ -230,7 +230,9 @@ configured, or if `nameless-current-name' is nil."
         (user-error "No name for current buffer, see `nameless-current-name'")))))
 
 (defun nameless-insert-name-or-self-insert (&optional self-insert)
-  "Insert the name of current package, with a hyphen."
+  "Insert the name of current package, with a hyphen.
+If point is in an argument list, or if we're typing an escaped
+character, insert the current character literally instead."
   (interactive "P")
   (let ((l (point)))
     (call-interactively #'self-insert-command)
