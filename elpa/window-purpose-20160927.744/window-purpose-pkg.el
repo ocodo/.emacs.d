@@ -1,4 +1,4 @@
-(define-package "window-purpose" "20160727.655" "Purpose-based window management for Emacs"
+(define-package "window-purpose" "20160927.744" "Purpose-based window management for Emacs"
   '((emacs "24")
     (cl-lib "0.5")
     (let-alist "1.0.3")
