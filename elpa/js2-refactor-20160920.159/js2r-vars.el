@@ -1,7 +1,7 @@
 ;;; js2r-vars.el --- Variable declaration manipulation functions for js2-refactor
 
 ;; Copyright (C) 2012-2014 Magnar Sveen
-;; Copyright (C) 2015 Magnar Sveen and Nicolas Petton
+;; Copyright (C) 2015-2016 Magnar Sveen and Nicolas Petton
 
 ;; Author: Magnar Sveen <magnars@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -101,7 +101,7 @@
       (when (not (string-match "^/\\* *global " (current-line-contents)))
         (newline)
         (forward-line -1)
-        (insert "/*global */")
+        (insert "/* global */")
         (newline)
         (forward-line -1))
       (while (not (string-match "*/" (current-line-contents)))

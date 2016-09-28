@@ -1,7 +1,7 @@
 ;;; js2r-formatting.el --- Private helper functions for formatting
 
 ;; Copyright (C) 2012-2014 Magnar Sveen
-;; Copyright (C) 2015 Magnar Sveen and Nicolas Petton
+;; Copyright (C) 2015-2016 Magnar Sveen and Nicolas Petton
 
 ;; Author: Magnar Sveen <magnars@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -73,7 +73,8 @@
              (forward-char))
            (when (looking-at ,subexpr-str)
              (forward-char)
-             ,ws-fix-func)
+             (unless (js2-comment-node-p (js2-node-at-point))
+              ,ws-fix-func))
            (if (looking-at "\\s(")
                (forward-list)
              (forward-char)))

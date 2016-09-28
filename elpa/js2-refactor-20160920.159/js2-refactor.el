@@ -1,7 +1,7 @@
 ;;; js2-refactor.el --- The beginnings of a JavaScript refactoring library in emacs.
 
 ;; Copyright (C) 2012-2014 Magnar Sveen
-;; Copyright (C) 2015 Magnar Sveen and Nicolas Petton
+;; Copyright (C) 2015-2016 Magnar Sveen and Nicolas Petton
 
 ;; Author: Magnar Sveen <magnars@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -37,7 +37,7 @@
 ;; [expand-region](https://github.com/magnars/expand-region.el) to more easily mark
 ;; vars, method calls and functions for refactorings.
 
-;; Then add this to your emacs settings:
+;; Then add this to your Emacs settings:
 
 ;;     (require 'js2-refactor)
 ;;     (add-hook 'js2-mode-hook #'js2-refactor-mode)
@@ -70,7 +70,7 @@
 ;;  * `iv` is `inline-var`: Replaces all instances of a variable with its initial value.
 ;;  * `rv` is `rename-var`: Renames the variable on point and all occurrences in its lexical scope.
 ;;  * `vt` is `var-to-this`: Changes local `var a` to be `this.a` instead.
-;;  * `ao` is `arguments-to-object`: Replaces arguments to a function call with an object literal of named arguments. Requires yasnippets.
+;;  * `ao` is `arguments-to-object`: Replaces arguments to a function call with an object literal of named arguments.  Requires yasnippets.
 ;;  * `3i` is `ternary-to-if`: Converts ternary operator to if-statement.
 ;;  * `sv` is `split-var-declaration`: Splits a `var` with multiple vars declared, into several `var` statements.
 ;;  * `ss` is `split-string`: Splits a `string`.
@@ -78,7 +78,7 @@
 
 ;; There are also some minor conveniences bundled:
 
-;;  * `C-S-down` and `C-S-up` moves the current line up or down. If the line is an
+;;  * `C-S-down` and `C-S-up` moves the current line up or down.  If the line is an
 ;;    element in an object or array literal, it makes sure that the commas are
 ;;    still correctly placed.
 ;;  * `k` `kill-line`: Like `kill-line` but respecting the AST.
@@ -102,8 +102,8 @@
 ;; ## Contribute
 
 ;; This project is still in its infancy, and everything isn't quite sorted out
-;; yet. If you're eager to contribute, please add an issue here on github and we
-;; can discuss your changes a little before diving into the elisp. :-)
+;; yet.  If you're eager to contribute, please add an issue here on github and we
+;; can discuss your changes a little before diving into the elisp :-).
 
 ;; To fetch the test dependencies:
 
@@ -149,49 +149,50 @@
 
 (defun js2r--add-keybindings (key-fn)
   "Add js2r refactoring keybindings to `js2-mode-map' using KEY-FN to create each keybinding."
-  (define-key js2-refactor-mode-map (funcall key-fn "eo") 'js2r-expand-object)
-  (define-key js2-refactor-mode-map (funcall key-fn "co") 'js2r-contract-object)
-  (define-key js2-refactor-mode-map (funcall key-fn "eu") 'js2r-expand-function)
-  (define-key js2-refactor-mode-map (funcall key-fn "cu") 'js2r-contract-function)
-  (define-key js2-refactor-mode-map (funcall key-fn "ec") 'js2r-expand-call-args)
-  (define-key js2-refactor-mode-map (funcall key-fn "cc") 'js2r-contract-call-args)
-  (define-key js2-refactor-mode-map (funcall key-fn "ea") 'js2r-expand-array)
-  (define-key js2-refactor-mode-map (funcall key-fn "ca") 'js2r-contract-array)
-  (define-key js2-refactor-mode-map (funcall key-fn "wi") 'js2r-wrap-buffer-in-iife)
-  (define-key js2-refactor-mode-map (funcall key-fn "ig") 'js2r-inject-global-in-iife)
-  (define-key js2-refactor-mode-map (funcall key-fn "ev") 'js2r-extract-var)
-  (define-key js2-refactor-mode-map (funcall key-fn "iv") 'js2r-inline-var)
-  (define-key js2-refactor-mode-map (funcall key-fn "rv") 'js2r-rename-var)
-  (define-key js2-refactor-mode-map (funcall key-fn "vt") 'js2r-var-to-this)
-  (define-key js2-refactor-mode-map (funcall key-fn "ag") 'js2r-add-to-globals-annotation)
-  (define-key js2-refactor-mode-map (funcall key-fn "sv") 'js2r-split-var-declaration)
-  (define-key js2-refactor-mode-map (funcall key-fn "ss") 'js2r-split-string)
-  (define-key js2-refactor-mode-map (funcall key-fn "ef") 'js2r-extract-function)
-  (define-key js2-refactor-mode-map (funcall key-fn "em") 'js2r-extract-method)
-  (define-key js2-refactor-mode-map (funcall key-fn "ip") 'js2r-introduce-parameter)
-  (define-key js2-refactor-mode-map (funcall key-fn "lp") 'js2r-localize-parameter)
-  (define-key js2-refactor-mode-map (funcall key-fn "tf") 'js2r-toggle-function-expression-and-declaration)
-  (define-key js2-refactor-mode-map (funcall key-fn "ao") 'js2r-arguments-to-object)
-  (define-key js2-refactor-mode-map (funcall key-fn "uw") 'js2r-unwrap)
-  (define-key js2-refactor-mode-map (funcall key-fn "wl") 'js2r-wrap-in-for-loop)
-  (define-key js2-refactor-mode-map (funcall key-fn "3i") 'js2r-ternary-to-if)
-  (define-key js2-refactor-mode-map (funcall key-fn "lt") 'js2r-log-this)
-  (define-key js2-refactor-mode-map (funcall key-fn "dt") 'js2r-debug-this)
-  (define-key js2-refactor-mode-map (funcall key-fn "sl") 'js2r-forward-slurp)
-  (define-key js2-refactor-mode-map (funcall key-fn "ba") 'js2r-forward-barf)
-  (define-key js2-refactor-mode-map (funcall key-fn "k") 'js2r-kill)
-  (define-key js2-refactor-mode-map (kbd "<C-S-down>") 'js2r-move-line-down)
-  (define-key js2-refactor-mode-map (kbd "<C-S-up>") 'js2r-move-line-up))
+  (define-key js2-refactor-mode-map (funcall key-fn "eo") #'js2r-expand-object)
+  (define-key js2-refactor-mode-map (funcall key-fn "co") #'js2r-contract-object)
+  (define-key js2-refactor-mode-map (funcall key-fn "eu") #'js2r-expand-function)
+  (define-key js2-refactor-mode-map (funcall key-fn "cu") #'js2r-contract-function)
+  (define-key js2-refactor-mode-map (funcall key-fn "ec") #'js2r-expand-call-args)
+  (define-key js2-refactor-mode-map (funcall key-fn "cc") #'js2r-contract-call-args)
+  (define-key js2-refactor-mode-map (funcall key-fn "ea") #'js2r-expand-array)
+  (define-key js2-refactor-mode-map (funcall key-fn "ca") #'js2r-contract-array)
+  (define-key js2-refactor-mode-map (funcall key-fn "wi") #'js2r-wrap-buffer-in-iife)
+  (define-key js2-refactor-mode-map (funcall key-fn "ig") #'js2r-inject-global-in-iife)
+  (define-key js2-refactor-mode-map (funcall key-fn "ev") #'js2r-extract-var)
+  (define-key js2-refactor-mode-map (funcall key-fn "iv") #'js2r-inline-var)
+  (define-key js2-refactor-mode-map (funcall key-fn "rv") #'js2r-rename-var)
+  (define-key js2-refactor-mode-map (funcall key-fn "vt") #'js2r-var-to-this)
+  (define-key js2-refactor-mode-map (funcall key-fn "ag") #'js2r-add-to-globals-annotation)
+  (define-key js2-refactor-mode-map (funcall key-fn "sv") #'js2r-split-var-declaration)
+  (define-key js2-refactor-mode-map (funcall key-fn "ss") #'js2r-split-string)
+  (define-key js2-refactor-mode-map (funcall key-fn "ef") #'js2r-extract-function)
+  (define-key js2-refactor-mode-map (funcall key-fn "em") #'js2r-extract-method)
+  (define-key js2-refactor-mode-map (funcall key-fn "ip") #'js2r-introduce-parameter)
+  (define-key js2-refactor-mode-map (funcall key-fn "lp") #'js2r-localize-parameter)
+  (define-key js2-refactor-mode-map (funcall key-fn "tf") #'js2r-toggle-function-expression-and-declaration)
+  (define-key js2-refactor-mode-map (funcall key-fn "ta") #'js2r-toggle-arrow-function-and-expression)
+  (define-key js2-refactor-mode-map (funcall key-fn "ao") #'js2r-arguments-to-object)
+  (define-key js2-refactor-mode-map (funcall key-fn "uw") #'js2r-unwrap)
+  (define-key js2-refactor-mode-map (funcall key-fn "wl") #'js2r-wrap-in-for-loop)
+  (define-key js2-refactor-mode-map (funcall key-fn "3i") #'js2r-ternary-to-if)
+  (define-key js2-refactor-mode-map (funcall key-fn "lt") #'js2r-log-this)
+  (define-key js2-refactor-mode-map (funcall key-fn "dt") #'js2r-debug-this)
+  (define-key js2-refactor-mode-map (funcall key-fn "sl") #'js2r-forward-slurp)
+  (define-key js2-refactor-mode-map (funcall key-fn "ba") #'js2r-forward-barf)
+  (define-key js2-refactor-mode-map (funcall key-fn "k") #'js2r-kill)
+  (define-key js2-refactor-mode-map (kbd "<C-S-down>") #'js2r-move-line-down)
+  (define-key js2-refactor-mode-map (kbd "<C-S-up>") #'js2r-move-line-up))
 
 ;;;###autoload
 (defun js2r-add-keybindings-with-prefix (prefix)
   "Add js2r keybindings using the prefix PREFIX."
-  (js2r--add-keybindings (-partial 'js2r--key-pairs-with-prefix prefix)))
+  (js2r--add-keybindings (-partial #'js2r--key-pairs-with-prefix prefix)))
 
 ;;;###autoload
 (defun js2r-add-keybindings-with-modifier (modifier)
   "Add js2r keybindings using the modifier MODIFIER."
-  (js2r--add-keybindings (-partial 'js2r--key-pairs-with-modifier modifier)))
+  (js2r--add-keybindings (-partial #'js2r--key-pairs-with-modifier modifier)))
 
 (provide 'js2-refactor)
 ;;; js2-refactor.el ends here
