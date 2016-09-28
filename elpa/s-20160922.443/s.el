@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.10.0
-;; Package-Version: 20160711.525
+;; Package-Version: 20160922.443
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -292,6 +292,10 @@ This is a simple wrapper around the built-in `string-match-p'."
 (defun s-blank? (s)
   "Is S nil or the empty string?"
   (or (null s) (string= "" s)))
+
+(defun s-blank-str? (s)
+  "Is S nil or the empty string or string only contains whitespace?"
+  (or (s-blank? s) (s-blank? (s-trim s))))
 
 (defun s-present? (s)
   "Is S anything but nil or the empty string?"
