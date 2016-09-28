@@ -4,9 +4,9 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20160830.138
+;; Package-Version: 20160926.1133
 ;; Keywords: project, convenience
-;; Version: 0.14.0
+;; Version: 0.15.0-cvs
 ;; Package-Requires: ((pkg-info "0.4"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -38,11 +38,12 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'thingatpt)
-(require 'ibuffer)
-(require 'ibuf-ext)
 (require 'compile)
+(require 'eshell)
 (require 'grep)
+(require 'ibuf-ext)
+(require 'ibuffer)
+(require 'thingatpt)
 
 (eval-when-compile
   (defvar ag-ignore-list)
@@ -264,7 +265,7 @@ Two example filter functions are shipped by default -
 `projectile-buffers-with-file' and
 `projectile-buffers-with-file-or-process'."
   :group 'projectile
-  :type 'symbol)
+  :type 'function)
 
 (defcustom projectile-project-name nil
   "If this value is non-nil, it will be used as project name.
@@ -279,7 +280,7 @@ It has precedence over function `projectile-project-name-function'."
 
 If variable `projectile-project-name' is non-nil, this function will not be used."
   :group 'projectile
-  :type 'symbol
+  :type 'function
   :package-version '(projectile . "0.14.0"))
 
 (defcustom projectile-project-root-files
@@ -426,7 +427,7 @@ it for functions working with buffers."
 
 Any function that does not take arguments will do."
   :group 'projectile
-  :type 'symbol)
+  :type 'function)
 
 (defcustom projectile-find-dir-includes-top-level nil
   "If true, add top-level dir to options offered by `projectile-find-dir'."
@@ -584,7 +585,7 @@ just return nil."
   (if (require 'pkg-info nil t)
       (let ((version (pkg-info-version-info 'projectile)))
         (when show-version
-          (message "Projectile version: %s" version))
+          (message "Projectile %s" version))
         version)
     (error "Cannot determine version without package pkg-info")))
 
@@ -896,7 +897,7 @@ A thin wrapper around `file-truename' that handles nil."
 (defun projectile-get-project-directories ()
   "Get the list of project directories that are of interest to the user."
   (mapcar (lambda (subdir) (concat (projectile-project-root) subdir))
-        (or (nth 0 (projectile-parse-dirconfig-file)) '(""))))
+          (or (nth 0 (projectile-parse-dirconfig-file)) '(""))))
 
 (defun projectile-dir-files (directory)
   "List the files in DIRECTORY and in its sub-directories.
@@ -920,15 +921,15 @@ Files are returned as relative paths to the project root."
                   (propertize directory 'face 'font-lock-keyword-face)))))
     ;; we need the files with paths relative to the project root
     (mapcar (lambda (file) (file-relative-name file root))
-          (projectile-index-directory directory (projectile-filtering-patterns)
-                                      progress-reporter))))
+            (projectile-index-directory directory (projectile-filtering-patterns)
+                                        progress-reporter))))
 
 (defun projectile-dir-files-external (root directory)
   "Get the files for ROOT under DIRECTORY using external tools."
   (let ((default-directory directory))
     (mapcar (lambda (file)
-            (file-relative-name (expand-file-name file directory) root))
-          (projectile-get-repo-files))))
+              (file-relative-name (expand-file-name file directory) root))
+            (projectile-get-repo-files))))
 
 (defcustom projectile-git-command "git ls-files -zco --exclude-standard"
   "Command used by projectile to get the files in a git project."
@@ -999,7 +1000,8 @@ Files are returned as relative paths to the project root."
   (let ((vcs (projectile-project-vcs)))
     (cond
      ((eq vcs 'git) projectile-git-ignored-command)
-     (t (error "VCS command for ignored files not implemented yet")))))
+     ;; TODO: Add support for other VCS
+     (t nil))))
 
 (defun projectile-flatten (lst)
   "Take a nested list LST and return its contents as a single, flat list."
@@ -1072,11 +1074,32 @@ they are excluded from the results of this function."
 (defun projectile-get-repo-ignored-files ()
   "Get a list of the files ignored in the project."
   (let ((cmd (projectile-get-ext-ignored-command)))
-    (projectile-files-via-ext-command cmd)))
+    (when cmd
+      (projectile-files-via-ext-command cmd))))
+
+(defun projectile-call-process-to-string (program &rest args)
+  "Invoke the executable PROGRAM with ARGS and return the output as a string."
+  (with-temp-buffer
+    (apply 'call-process program nil (current-buffer) nil args)
+    (buffer-string)))
+
+(defun projectile-shell-command-to-string (command)
+  "Try to run COMMAND without actually using a shell and return the output.
+
+The function `eshell-search-path' will be used to search the PATH
+environment variable for an appropriate executable using the text
+occuring before the first space.  If no executable is found,
+fallback to `shell-command-to-string'."
+  (cl-destructuring-bind
+      (the-command . args) (split-string command " ")
+    (let ((binary-path (eshell-search-path the-command)))
+      (if binary-path
+          (apply 'projectile-call-process-to-string binary-path args)
+        (shell-command-to-string command)))))
 
 (defun projectile-files-via-ext-command (command)
   "Get a list of relative file names in the project root by executing COMMAND."
-  (split-string (shell-command-to-string command) "\0" t))
+  (split-string (projectile-shell-command-to-string command) "\0" t))
 
 (defun projectile-index-directory (directory patterns progress-reporter)
   "Index DIRECTORY taking into account PATTERNS.
@@ -1154,7 +1177,7 @@ this case unignored files will be absent from FILES."
 (defun projectile-buffers-with-file-or-process (buffers)
   "Return only those BUFFERS backed by files or processes."
   (cl-remove-if-not (lambda (b) (or (buffer-file-name b)
-                               (get-buffer-process b))) buffers))
+                                    (get-buffer-process b))) buffers))
 
 (defun projectile-project-buffers ()
   "Get a list of project buffers."
@@ -1298,10 +1321,10 @@ resulting paths.  The returned PATHS are absolute, based on the
 projectile project root."
   (let ((default-directory (projectile-project-root)))
     (projectile-flatten (mapcar
-               (lambda (pattern)
-                 (or (file-expand-wildcards pattern t)
-                     (projectile-expand-root pattern)))
-               paths))))
+                         (lambda (pattern)
+                           (or (file-expand-wildcards pattern t)
+                               (projectile-expand-root pattern)))
+                         paths))))
 
 (defun projectile-normalise-patterns (patterns)
   "Remove paths from PATTERNS."
@@ -1681,15 +1704,15 @@ With FLEX-MATCHING, match any file that contains the base name of current file"
                       project-file-list))
          (candidates
           (projectile-flatten (mapcar
-                     (lambda (file)
-                       (cl-remove-if-not
-                        (lambda (project-file)
-                          (string-match file
-                                        (concat (file-name-base project-file)
-                                                (unless (equal (file-name-extension project-file) nil)
-                                                  (concat "\." (file-name-extension project-file))))))
-                        candidates))
-                     file-list)))
+                               (lambda (file)
+                                 (cl-remove-if-not
+                                  (lambda (project-file)
+                                    (string-match file
+                                                  (concat (file-name-base project-file)
+                                                          (unless (equal (file-name-extension project-file) nil)
+                                                            (concat "\." (file-name-extension project-file))))))
+                                  candidates))
+                               file-list)))
          (candidates
           (cl-remove-if-not (lambda (file) (not (backup-file-name-p file))) candidates))
          (candidates
@@ -2277,10 +2300,10 @@ regular expression."
             (ag-ignore-list (unless (eq (projectile-project-vcs) 'git)
                               ;; ag supports git ignore files
                               (cl-union ag-ignore-list
-                                      (append
-                                       (projectile-ignored-files-rel) (projectile-ignored-directories-rel)
-                                       (projectile--globally-ignored-file-suffixes-glob)
-                                       grep-find-ignored-files grep-find-ignored-directories))))
+                                        (append
+                                         (projectile-ignored-files-rel) (projectile-ignored-directories-rel)
+                                         (projectile--globally-ignored-file-suffixes-glob)
+                                         grep-find-ignored-files grep-find-ignored-directories))))
             ;; reset the prefix arg, otherwise it will affect the ag-command
             (current-prefix-arg nil))
         (funcall ag-command search-term (projectile-project-root)))
@@ -2800,7 +2823,7 @@ An open project is a project with any open buffers."
   "Remove the current project (if any) from the list of PROJECTS."
   (if (projectile-project-p)
       (projectile-difference projects
-                   (list (abbreviate-file-name (projectile-project-root))))
+                             (list (abbreviate-file-name (projectile-project-root))))
     projects))
 
 (defun projectile-relevant-known-projects ()
@@ -2844,12 +2867,15 @@ With a prefix ARG invokes `projectile-commander' instead of
 Invokes the command referenced by `projectile-switch-project-action' on switch.
 With a prefix ARG invokes `projectile-commander' instead of
 `projectile-switch-project-action.'"
-  (let* ((default-directory project-to-switch)
-         (switch-project-action (if arg
-                                    'projectile-commander
-                                  projectile-switch-project-action)))
+  (let ((switch-project-action (if arg
+                                   'projectile-commander
+                                 projectile-switch-project-action)))
     (run-hooks 'projectile-before-switch-project-hook)
-    (funcall switch-project-action)
+    ;; use a temporary buffer to load PROJECT-TO-SWITCH's dir-locals before calling SWITCH-PROJECT-ACTION
+    (with-temp-buffer
+      (let ((default-directory project-to-switch))
+        (hack-dir-local-variables-non-file-buffer)
+        (funcall switch-project-action)))
     (run-hooks 'projectile-after-switch-project-hook)))
 
 ;;;###autoload
@@ -2960,6 +2986,7 @@ See `projectile-cleanup-known-projects'."
 
 (defun projectile-add-known-project (project-root)
   "Add PROJECT-ROOT to the list of known projects."
+  (interactive (list (read-directory-name "Add to known projects: ")))
   (unless (projectile-ignored-project-p project-root)
     (setq projectile-known-projects
           (delete-dups
