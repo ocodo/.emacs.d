@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "cbm" "cbm.el" (22479 32527 569895 298000))
+;;;### (autoloads nil "cbm" "cbm.el" (22507 31608 757229 196000))
 ;;; Generated autoloads from cbm.el
 
 (autoload 'cbm-cycle "cbm" "\

@@ -1,15 +1,15 @@
-;;; cbm.el --- Switch to "similiar" buffers.
+;;; cbm.el --- Switch to similar buffers.
 
 ;; Copyright 2015 Lukas Fürmetz
 
 ;; Author: Lukas Fürmetz <fuermetz@mailbox.org>
 ;; URL: http://github.com/akermu/cbm.el
-;; Package-Version: 20160905.303
+;; Package-Version: 20160926.1150
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 0.3
 ;; Keywords: buffers
 
-;; cmb.el is free software: you can redistribute it and/or modify
+;; cbm.el is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
@@ -40,8 +40,9 @@
 
 ;; Usage:
 
-;; This package provides one usefull commands for switching to
-;; "similiar" buffers.
+;; This package provides useful commands for switching to similar
+;; buffers. It's particularly handy for switching between buffers in
+;; the same major mode.
 
 ;;; Code:
 (require 'cl-lib)
@@ -104,7 +105,8 @@
                                       major-mode)))
                            (buffer-list))))))
     (switch-to-buffer
-     (completing-read "Switch to buffer: " buffer-list nil t))))
+     (completing-read (format "Switch to %s buffer: " mm)
+                      buffer-list nil t))))
 
 ;;;###autoload
 (defun cbm-find-org-agenda-file ()
