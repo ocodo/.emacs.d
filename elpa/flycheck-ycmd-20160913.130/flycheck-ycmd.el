@@ -3,7 +3,7 @@
 ;;
 ;; Author: Austin Bingham <austin.bingham@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20160808.754
+;; Package-Version: 20160913.130
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((emacs "24") (dash "2.12.1") (flycheck "0.22") (ycmd "0.9") (let-alist "1.0.4"))
 ;;
@@ -113,7 +113,8 @@ ycmd checker to the list of flycheck checkers."
 (flycheck-define-generic-checker 'ycmd
   "A flycheck checker using parse results from ycmd."
   :start #'flycheck-ycmd--start
-  :predicate #'flycheck-ycmd--in-supported-mode)
+  :predicate #'flycheck-ycmd--in-supported-mode
+  :modes '(c++-mode c-mode objc-mode csharp-mode))
 
 (defun flycheck-ycmd--teardown ()
   "Reset `flycheck-ycmd--cache'."

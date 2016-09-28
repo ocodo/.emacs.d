@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flycheck-ycmd" "flycheck-ycmd.el" (0 0 0 0))
+;;;### (autoloads nil "flycheck-ycmd" "flycheck-ycmd.el" (22507 31555
+;;;;;;  597229 18000))
 ;;; Generated autoloads from flycheck-ycmd.el
 
 (autoload 'flycheck-ycmd-setup "flycheck-ycmd" "\
@@ -13,8 +14,6 @@ This adds a hook to watch for ycmd parse results, and it adds the
 ycmd checker to the list of flycheck checkers.
 
 \(fn)" nil nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-ycmd" '("flycheck-ycmd--")))
 
 ;;;***
 
