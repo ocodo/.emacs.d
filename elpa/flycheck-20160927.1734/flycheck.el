@@ -197,7 +197,6 @@ attention to case differences."
     haskell-ghc
     haskell-hlint
     html-tidy
-    jade
     javascript-eslint
     javascript-jshint
     javascript-gjslint
@@ -214,6 +213,7 @@ attention to case differences."
     php-phpmd
     php-phpcs
     processing
+    pug
     puppet-parser
     puppet-lint
     python-flake8
@@ -231,11 +231,12 @@ attention to case differences."
     ruby-jruby
     rust-cargo
     rust
-    sass
     scala
     scala-scalastyle
     scheme-chicken
     scss-lint
+    sass/scss-sass-lint
+    sass
     scss
     sh-bash
     sh-posix-dash
@@ -1185,6 +1186,14 @@ if PATTERN did not match."
       (when (re-search-forward pattern nil 'no-error)
         (match-string-no-properties 1)))))
 
+(defun flycheck-buffer-empty-p (&optional buffer)
+  "Whether a BUFFER is empty.
+
+If buffer is nil or omitted check the current buffer.
+
+Return non-nil if so, or nil if the buffer has content."
+  (<= (buffer-size buffer) 0))
+
 (defun flycheck-ephemeral-buffer-p ()
   "Determine whether the current buffer is an ephemeral buffer.
 
@@ -1440,13 +1449,8 @@ have any `:modes', but a `:predicate' that returns non-nil for
 the current buffer."
   (let (checkers)
     (dolist (checker flycheck-checkers)
-      (let ((modes (flycheck-checker-get checker 'modes))
-            (predicate (flycheck-checker-get checker 'predicate)))
-        (when (or (memq major-mode modes)
-                  (and (not modes)
-                       (functionp predicate)
-                       (funcall predicate)))
-          (push checker checkers))))
+      (when (flycheck-checker-supports-major-mode-p checker major-mode)
+        (push checker checkers)))
     (nreverse checkers)))
 
 
@@ -1595,15 +1599,12 @@ are mandatory.
      A major mode symbol or a list thereof, denoting major modes
      to use this syntax checker in.
 
-     If given this syntax checker is only used in buffers whose
-     `major-mode' is `eq' to any mode in MODES.
+     This syntax checker will only be used in buffers whose
+     `major-mode' is contained in MODES.
 
-     If `:predicate' is also given, the syntax checker will only
+     If `:predicate' is also given the syntax checker will only
      be used in buffers for which the `:predicate' returns
      non-nil.
-
-     This property is optional, however at least one of `:modes'
-     or `:predicate' must be given.
 
 `:predicate FUNCTION'
      A function to determine whether to use the syntax checker in
@@ -1613,11 +1614,29 @@ are mandatory.
      non-nil if this syntax checker shall be used to check the
      current buffer.  Otherwise it shall return nil.
 
-     If `:modes' is also given, FUNCTION is only called in
-     matching major modes.
+     FUNCTION is only called in matching major modes.
 
-     This property is optional, however at least one of `:modes'
-     or `:predicate' must be given.
+     This property is optional.
+
+`:enabled FUNCTION'
+     A function to determine whether to use the syntax checker in
+     the current buffer.
+
+     This function behaves as `:predicate', except that it's only
+     called the first time a syntax checker is to be used in a buffer.
+
+     If the function returns a non-nil value the checker is put in a
+     whitelist in `flycheck-enabled-checkers' to prevent further
+     invocations of `:enabled'.  Otherwise it is disabled via
+     `flycheck-disabled-checkers' to prevent any further use of it.
+
+     FUNCTION is called with CHECKER argument and shall return
+     non-nil if this syntax checker shall be used to check the
+     current buffer.  Otherwise it shall return nil.
+
+     FUNCTION is only called in matching major modes.
+
+     This property is optional.
 
 `:error-filter FUNCTION'
      A function to filter the errors returned by this checker.
@@ -1681,6 +1700,7 @@ Signal an error, if any property has an invalid value."
         (modes (plist-get properties :modes))
         (predicate (plist-get properties :predicate))
         (verify (plist-get properties :verify))
+        (enabled (plist-get properties :enabled))
         (filter (or (plist-get properties :error-filter) #'identity))
         (next-checkers (plist-get properties :next-checkers))
         (file (flycheck-current-load-file))
@@ -1690,28 +1710,31 @@ Signal an error, if any property has an invalid value."
       (setq modes (list modes)))
 
     (unless (functionp start)
-      (error ":start %S of syntax checker %s is not a function" symbol start))
+      (error ":start %S of syntax checker %s is not a function" start symbol))
     (unless (or (null interrupt) (functionp interrupt))
       (error ":interrupt %S of syntax checker %s is not a function"
-             symbol interrupt))
+             interrupt symbol))
     (unless (or (null print-doc) (functionp print-doc))
       (error ":print-doc %S of syntax checker %s is not a function"
-             symbol print-doc))
+             print-doc symbol))
     (unless (or (null verify) (functionp verify))
       (error ":verify %S of syntax checker %S is not a function"
-             symbol verify))
-    (unless (or modes predicate)
-      (error "Missing :modes or :predicate in syntax checker %s" symbol))
+             verify symbol))
+    (unless (or (null enabled) (functionp enabled))
+      (error ":enabled %S of syntax checker %S is not a function"
+             enabled symbol))
+    (unless modes
+      (error "Missing :modes in syntax checker %s" symbol))
     (dolist (mode modes)
       (unless (symbolp mode)
         (error "Invalid :modes %s in syntax checker %s, %s must be a symbol"
                modes symbol mode)))
     (unless (or (null predicate) (functionp predicate))
       (error ":predicate %S of syntax checker %s  is not a function"
-             symbol predicate))
+             predicate symbol))
     (unless (functionp filter)
       (error ":error-filter %S of syntax checker %s is not a function"
-             symbol filter))
+             filter symbol))
     (dolist (checker next-checkers)
       (flycheck-validate-next-checker checker))
 
@@ -1732,6 +1755,7 @@ Try to reinstall the package defining this syntax checker." symbol)
                        (modes             . ,modes)
                        (predicate         . ,real-predicate)
                        (verify            . ,verify)
+                       (enabled           . ,enabled)
                        (error-filter      . ,filter)
                        (next-checkers     . ,next-checkers)
                        (documentation     . ,docstring)
@@ -1752,16 +1776,46 @@ A valid checker is a symbol defined as syntax checker with
        (= (or (get checker 'flycheck-generic-checker-version) 0)
           flycheck-generic-checker-version)))
 
+(defun flycheck-checker-supports-major-mode-p (checker mode)
+  "Whether CHECKER supports the given major MODE.
+
+CHECKER is a syntax checker symbol and MODE a major mode symbol.
+Look at the `modes' property of CHECKER to determine whether
+CHECKER supports buffers in the given major MODE.
+
+Return non-nil if CHECKER supports MODE and nil otherwise."
+  (memq mode (flycheck-checker-get checker 'modes)))
+
+(defvar-local flycheck-enabled-checkers nil
+  "Syntax checkers included in automatic selection.
+
+A list of Flycheck syntax checkers included in automatic
+selection for current buffer.")
+
+(defun flycheck-may-enable-checker (checker)
+  "Whether a generic CHECKER may be enabled for current buffer.
+
+Return non-nil if CHECKER may be used for the current buffer, and
+nil otherwise."
+  (let* ((enabled (flycheck-checker-get checker 'enabled))
+         (shall-enable (and (not (flycheck-disabled-checker-p checker))
+                            (or (memq checker flycheck-enabled-checkers)
+                                (null enabled)
+                                (funcall enabled checker)))))
+    (if shall-enable
+        (cl-pushnew checker flycheck-enabled-checkers)
+      (cl-pushnew checker flycheck-disabled-checkers))
+    shall-enable))
+
 (defun flycheck-may-use-checker (checker)
   "Whether a generic CHECKER may be used.
 
 Return non-nil if CHECKER may be used for the current buffer, and
 nil otherwise."
-  (let ((modes (flycheck-checker-get checker 'modes))
-        (predicate (flycheck-checker-get checker 'predicate)))
+  (let ((predicate (flycheck-checker-get checker 'predicate)))
     (and (flycheck-valid-checker-p checker)
-         (not (flycheck-disabled-checker-p checker))
-         (or (not modes) (memq major-mode modes))
+         (flycheck-checker-supports-major-mode-p checker major-mode)
+         (flycheck-may-enable-checker checker)
          (funcall predicate))))
 
 (defun flycheck-may-use-next-checker (next-checker)
@@ -1849,15 +1903,12 @@ Pop up a help buffer with the documentation of CHECKER."
         (let ((modes-start (with-current-buffer standard-output (point-max))))
           ;; Track the start of the modes documentation, to properly re-fill
           ;; it later
-          (if (not modes)
-              ;; Syntax checkers without modes must have a predicate
-              (princ "  This syntax checker checks syntax if a custom predicate holds")
-            (princ "  This syntax checker checks syntax in the major mode(s) ")
-            (princ (string-join
-                    (seq-map (apply-partially #'format "`%s'") modes)
-                    ", "))
-            (when predicate
-              (princ ", and uses a custom predicate")))
+          (princ "  This syntax checker checks syntax in the major mode(s) ")
+          (princ (string-join
+                  (seq-map (apply-partially #'format "`%s'") modes)
+                  ", "))
+          (when predicate
+            (princ ", and uses a custom predicate"))
           (princ ".")
           (when next-checkers
             (princ "  It runs the following checkers afterwards:"))
@@ -1950,14 +2001,10 @@ into the verification results."
                    (flycheck-verify-generic-checker checker))))
     (when with-mm
       (with-current-buffer buffer
-        (let* ((modes (flycheck-checker-get checker 'modes))
-               (mm-supported (memq major-mode modes))
-               (message-and-face
-                (cond
-                 ((not modes) '("No restriction" . success))
-                 (mm-supported (cons (format "`%s' supported" major-mode)
-                                     'success))
-                 (t (cons (format "`%s' not supported" major-mode) 'error)))))
+        (let ((message-and-face
+               (if (flycheck-checker-supports-major-mode-p checker major-mode)
+                   (cons (format "`%s' supported" major-mode) 'success)
+                 (cons (format "`%s' not supported" major-mode) 'error))))
           (push (flycheck-verification-result-new
                  :label "major mode"
                  :message (car message-and-face)
@@ -3746,12 +3793,22 @@ the beginning of the buffer."
     map)
   "The keymap of `flycheck-error-list-mode'.")
 
+(defun flycheck-error-list-make-last-column (message checker)
+  "Compute contents of the last error list cell.
+
+MESSAGE and CHECKER are displayed in a single column to allow the
+message to stretch arbitrarily far."
+  (let ((checker-name (propertize (symbol-name checker)
+                                  'face 'flycheck-error-list-checker-name)))
+    (format (propertize "%s (%s)" 'face 'default)
+            message checker-name)))
+
 (defconst flycheck-error-list-format
-  [("Line" 5 flycheck-error-list-entry-< :right-align t)
-   ("Col" 3 nil :right-align t)
-   ("Level" 8 flycheck-error-list-entry-level-<)
-   ("ID" 6 t)
-   ("Message (Checker)" 0 t)]
+  `[("Line" 5 flycheck-error-list-entry-< :right-align t)
+    ("Col" 3 nil :right-align t)
+    ("Level" 8 flycheck-error-list-entry-level-<)
+    ("ID" 6 t)
+    (,(flycheck-error-list-make-last-column "Message" 'Checker) 0 t)]
   "Table format for the error list.")
 
 (defconst flycheck-error-list-padding 1
@@ -3819,16 +3876,21 @@ the beginning of the buffer."
   "Go to the error at BUTTON."
   (flycheck-error-list-goto-error (button-start button)))
 
-(defsubst flycheck-error-list-make-cell (text &optional face)
+(defsubst flycheck-error-list-make-cell (text &optional face help-echo)
   "Make an error list cell with TEXT and FACE.
 
 If FACE is nil don't set a FACE on TEXT.  If TEXT already has
 face properties, do not specify a FACE.  Note though, that if
 TEXT gets truncated it will not inherit any previous face
 properties.  If you expect TEXT to be truncated in the error
-list, do specify a FACE explicitly!"
+list, do specify a FACE explicitly!
+
+If HELP-ECHO is non-nil, set a help-echo property on TEXT, with
+value HELP-ECHO.  This is convenient if you expect TEXT to be
+truncated."
   (append (list text 'type 'flycheck-error-list)
-          (and face (list 'face face))))
+          (and face (list 'face face))
+          (and help-echo (list 'help-echo help-echo))))
 
 (defsubst flycheck-error-list-make-number-cell (number face)
   "Make a table cell for a NUMBER with FACE.
@@ -3838,17 +3900,6 @@ string with attached text properties."
   (flycheck-error-list-make-cell
    (if (numberp number) (number-to-string number) "")
    face))
-
-(defun flycheck-error-list-make-last-column (message checker)
-  "Compute contents of the last error list cell.
-
-MESSAGE and CHECKER are displayed in a single column to allow the
-message to stretch arbitrarily far."
-  (let ((checker-name (propertize (symbol-name checker)
-                                  'face 'flycheck-error-list-checker-name)))
-    (format (propertize "%s (%s)" 'face 'default)
-            (flycheck-flush-multiline-message message)
-            checker-name)))
 
 (defun flycheck-error-list-make-entry (error)
   "Make a table cell for the given ERROR.
@@ -3860,8 +3911,11 @@ Return a list with the contents of the table cell."
          (column (flycheck-error-column error))
          (message (or (flycheck-error-message error)
                       (format "Unknown %s" (symbol-name level))))
+         (flushed-msg (flycheck-flush-multiline-message message))
          (id (flycheck-error-id error))
-         (checker (flycheck-error-checker error)))
+         (id-str (if id (format "%s" id) ""))
+         (checker (flycheck-error-checker error))
+         (msg-and-checker (flycheck-error-list-make-last-column flushed-msg checker)))
     (list error
           (vector (flycheck-error-list-make-number-cell
                    line 'flycheck-error-list-line-number)
@@ -3870,10 +3924,9 @@ Return a list with the contents of the table cell."
                   (flycheck-error-list-make-cell
                    (symbol-name (flycheck-error-level error)) level-face)
                   (flycheck-error-list-make-cell
-                   (if id (format "%s" id) "")
-                   'flycheck-error-list-id)
+                   id-str 'flycheck-error-list-id id-str)
                   (flycheck-error-list-make-cell
-                   (flycheck-error-list-make-last-column message checker))))))
+                   msg-and-checker nil msg-and-checker)))))
 
 (defun flycheck-flush-multiline-message (msg)
   "Prepare error message MSG for display in the error list.
@@ -4902,8 +4955,11 @@ Resolve all errors in OUTPUT using CWD as working directory."
       ;; might report errors from other files (e.g. includes) even if there
       ;; are no errors in the file being checked.
       (funcall callback 'suspicious
-               (format "Checker %S returned non-zero exit code %s, but no errors from \
-output: %s\nChecker definition probably flawed." checker exit-status output)))
+               (format "Flycheck checker %S returned non-zero \
+exit code %s, but its output contained no errors: %s\nTry \
+installing a more recent version of %S, and please open a bug \
+report if the issue persists in the latest release.  Thanks!"
+                       checker exit-status output checker)))
     (funcall callback 'finished
              ;; Fix error file names, by substituting them backwards from the
              ;; temporaries.
@@ -5652,6 +5708,7 @@ SYMBOL with `flycheck-def-executable-var'."
         (parser (plist-get properties :error-parser))
         (filter (plist-get properties :error-filter))
         (predicate (plist-get properties :predicate))
+        (enabled-fn (plist-get properties :enabled))
         (verify-fn (plist-get properties :verify)))
 
     `(progn
@@ -5669,6 +5726,8 @@ SYMBOL with `flycheck-def-executable-var'."
          ,@(when predicate
              `(:predicate #',predicate))
          :next-checkers ',(plist-get properties :next-checkers)
+         ,@(when enabled-fn
+             `(:enabled #',enabled-fn))
          ,@(when verify-fn
              `(:verify #',verify-fn))
          :standard-input ',(plist-get properties :standard-input)
@@ -7379,20 +7438,6 @@ See URL `https://github.com/htacg/tidy-html5'."
             " - Warning: " (message) line-end))
   :modes (html-mode nxhtml-mode))
 
-(flycheck-define-checker jade
-  "A Jade syntax checker using the Jade compiler.
-
-See URL `http://jade-lang.com'."
-  :command ("jade")
-  :standard-input t
-  :error-patterns
-  ((error line-start
-          "Error: Jade:" line (zero-or-more not-newline) "\n"
-          (one-or-more (and (zero-or-more not-newline) "|"
-                            (zero-or-more not-newline) "\n"))
-          (zero-or-more not-newline) "\n" (message) line-end))
-  :modes jade-mode)
-
 (flycheck-def-config-file-var flycheck-jshintrc javascript-jshint ".jshintrc"
   :safe #'stringp)
 
@@ -7447,16 +7492,11 @@ for more information about the custom directories."
   :safe #'flycheck-string-list-p
   :package-version '(flycheck . "29"))
 
-(flycheck-def-config-file-var flycheck-eslintrc javascript-eslint nil
-  :safe #'stringp
-  :package-version '(flycheck . "0.20"))
-
 (flycheck-define-checker javascript-eslint
   "A Javascript syntax and style checker using eslint.
 
 See URL `https://github.com/eslint/eslint'."
   :command ("eslint" "--format=checkstyle"
-            (config-file "--config" flycheck-eslintrc)
             (option-list "--rulesdir" flycheck-eslint-rules-directories)
             "--stdin" "--stdin-filename" source-original)
   :standard-input t
@@ -7476,6 +7516,12 @@ See URL `https://github.com/eslint/eslint'."
                                    (flycheck-error-message err))))
                           (flycheck-sanitize-errors errors))
                   errors)
+  :enabled (lambda (checker)
+             (let* ((default-directory (flycheck-compute-working-directory checker))
+                    (executable (flycheck-find-checker-executable checker))
+                    (exitcode (call-process executable nil nil nil
+                                            "--print-config" ".")))
+               (eq exitcode 0)))
   :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode)
   :next-checkers ((warning . javascript-jscs)))
 
@@ -7574,7 +7620,9 @@ See URL `https://docs.python.org/3.5/library/json.html#command-line-interface'."
           ;; Ignore the rest of the line which shows the char position.
           (one-or-more not-newline)
           line-end))
-  :modes json-mode)
+  :modes json-mode
+  ;; The JSON parser chokes if the buffer is empty and has no JSON inside
+  :predicate (lambda () (not (flycheck-buffer-empty-p))))
 
 (flycheck-define-checker less
   "A LESS syntax checker using lessc.
@@ -7765,7 +7813,7 @@ See URL `http://pear.php.net/package/PHP_CodeSniffer/'."
   :modes (php-mode php+-mode)
   ;; phpcs seems to choke on empty standard input, hence skip phpcs if the
   ;; buffer is empty, see https://github.com/flycheck/flycheck/issues/907
-  :predicate (lambda () (> (buffer-size) 0)))
+  :predicate (lambda () (not (flycheck-buffer-empty-p))))
 
 (flycheck-define-checker processing
   "Processing command line tool.
@@ -7783,6 +7831,32 @@ See https://github.com/processing/processing/wiki/Command-Line"
   :modes processing-mode
   ;; This syntax checker needs a file name
   :predicate (lambda () (buffer-file-name)))
+
+(flycheck-define-checker pug
+  "A Pug syntax checker using the pug compiler.
+
+See URL `https://pugjs.org/'."
+  :command ("pug" "-p" (eval (expand-file-name (buffer-file-name))))
+  :standard-input t
+  :error-patterns
+  ;; errors with includes/extends (e.g. missing files)
+  ((error "Error: " (message) (zero-or-more not-newline) "\n"
+          (zero-or-more not-newline) "at "
+          (zero-or-more not-newline) " line " line)
+   ;; syntax/runtime errors (e.g. type errors, bad indentation, etc.)
+   (error line-start
+          (optional "Type") "Error: "  (file-name) ":" line (optional ":" column)
+          (zero-or-more not-newline) "\n"
+          (one-or-more (or (zero-or-more not-newline) "|"
+                           (zero-or-more not-newline) "\n")
+                       (zero-or-more "-")  (zero-or-more not-newline) "|"
+                       (zero-or-more not-newline) "\n")
+          (zero-or-more not-newline) "\n"
+          (one-or-more
+           (zero-or-more not-newline) "|"
+           (zero-or-more not-newline) "\n") (zero-or-more not-newline) "\n"
+           (message) line-end))
+  :modes pug-mode)
 
 (flycheck-define-checker puppet-parser
   "A Puppet DSL syntax checker using puppet's own parser.
@@ -8380,6 +8454,9 @@ See URL `http://jruby.org/'."
   :modes (enh-ruby-mode ruby-mode)
   :next-checkers ((warning . ruby-rubylint)))
 
+(flycheck-def-args-var flycheck-cargo-rustc-args (rust-cargo)
+  :package-version '(flycheck . "30"))
+
 (flycheck-def-args-var flycheck-rust-args (rust-cargo rust)
   :package-version '(flycheck . "0.24"))
 
@@ -8454,6 +8531,7 @@ rustc command.  See URL `https://www.rust-lang.org'."
                    ((string= flycheck-rust-crate-type "lib") "--lib")
                    (flycheck-rust-binary-name
                     (list "--bin" flycheck-rust-binary-name))))
+            (eval flycheck-cargo-rustc-args)
             "--" "-Z" "no-trans"
             ;; Passing the "unstable-options" flag may raise an error in the
             ;; future.  For the moment, we need it to access JSON output in all
@@ -8543,6 +8621,24 @@ See URL `http://sass-lang.com'."
             " of " (one-or-more not-newline)
             line-end))
   :modes sass-mode)
+
+(flycheck-def-config-file-var flycheck-sass-lintrc sass/scss-sass-lint ".sass-lint.yml"
+  :safe #'stringp
+  :package-version '(flycheck . "30"))
+
+(flycheck-define-checker sass/scss-sass-lint
+  "A SASS/SCSS syntax checker using sass-Lint.
+
+See URL `https://github.com/sasstools/sass-lint'."
+  :command ("sass-lint"
+            "--verbose"
+            "--no-exit"
+            "--format" "Checkstyle"
+            (config-file "--config" flycheck-sass-lintrc)
+            source)
+  :standard-input nil
+  :error-parser flycheck-parse-checkstyle
+  :modes (sass-mode scss-mode))
 
 (flycheck-define-checker scala
   "A Scala syntax checker using the Scala compiler.
