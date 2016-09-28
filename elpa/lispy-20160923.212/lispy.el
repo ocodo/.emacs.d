@@ -3985,7 +3985,7 @@ When ARG is 2, insert the result as a comment."
           ((setq handler (cdr (assoc major-mode lispy-eval-alist)))
            (when (cadr handler)
              (require (cadr handler)))
-           (funcall (car handler)))
+           (funcall (car handler) (eq arg 3)))
           (t
            (save-excursion
              (unless (or (lispy-right-p) (region-active-p))
@@ -4272,7 +4272,9 @@ When ARG is non-nil, force select the window."
           (lispy-message res)
         (if (and (fboundp 'object-p) (object-p res))
             (message "(eieio object length %d)" (length res))
-          (lispy-message (format "%S" res)))))))
+          (lispy-message
+           (replace-regexp-in-string "%" "%%"
+                                     (format "%S" res))))))))
 
 (defun lispy-follow ()
   "Follow to `lispy--current-function'."
@@ -4802,21 +4804,27 @@ With ARG, use the contents of `lispy-store-region-and-buffer' instead."
   (interactive)
   (if (memq major-mode lispy-clojure-modes)
       (lispy-unbind-variable-clojure)
-    (forward-char 1)
-    (lispy-flet (message (&rest _x))
-      (iedit-mode 0))
-    (lispy-mark-symbol)
-    (lispy-move-down 1)
-    (iedit-mode)
-    (deactivate-mark)
-    (lispy-left 1)
-    (lispy-delete 1)
-    (when (looking-at "[ \n]*")
-      (delete-region (match-beginning 0)
-                     (match-end 0)))
-    (save-excursion
-      (lispy--out-backward 2)
-      (lispy--normalize-1))))
+    (let (beg end)
+      (save-excursion
+        (lispy--out-backward 2)
+        (setq beg (point))
+        (forward-list 1)
+        (setq end (point)))
+      (forward-char 1)
+      (cl-letf (((symbol-function #'message) (lambda (&rest _))))
+        (iedit-start (iedit-regexp-quote (lispy--string-dwim)) beg end))
+      (lispy-mark-symbol)
+      (lispy-move-down 1)
+      (iedit-mode)
+      (deactivate-mark)
+      (lispy-left 1)
+      (lispy-delete 1)
+      (when (looking-at "[ \n]*")
+        (delete-region (match-beginning 0)
+                       (match-end 0)))
+      (save-excursion
+        (lispy--out-backward 2)
+        (lispy--normalize-1)))))
 
 (defun lispy-unbind-variable-clojure ()
   "Subsititute let-bound variable in Clojure."
