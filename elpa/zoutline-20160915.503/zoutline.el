@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/zoutline
-;; Package-Version: 20160906.743
+;; Package-Version: 20160915.503
 ;; Version: 0.1.0
 ;; Keywords: outline
 
@@ -91,23 +91,23 @@ Return nil if moved 0 times."
   (let ((pt (point))
         (lvl-1 (funcall outline-level))
         lvl-2)
-    (if (outline-next-heading)
-        (progn
-          (setq lvl-2 (funcall outline-level))
-          (if (> lvl-2 lvl-1)
-              (progn
-                (goto-char pt)
-                nil)
-            1))
+    (if (and (outline-next-heading)
+             (setq lvl-2 (funcall outline-level))
+             (> lvl-2 lvl-1))
+        1
       (goto-char pt)
       nil)))
 
 (defun zo-right (arg)
+  "Try to move right ARG times.
+Return the actual amount of times moved.
+Return nil if moved 0 times."
   (let ((i 0))
     (while (and (< i arg)
                 (zo-right-once))
       (cl-incf i))
-    i))
+    (unless (= i 0)
+      i)))
 
 (provide 'zoutline)
 
