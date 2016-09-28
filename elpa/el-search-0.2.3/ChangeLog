@@ -1,0 +1,498 @@
+2016-09-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix replacement verification for splicing mode
+
+2016-08-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2016-08-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Simplify `el-search--transform-nontrivial-lpat'
+
+2016-08-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Simplify nested backquotes
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version to 0.2.2
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve `change' and `changed'
+
+	- Renew cache when saved file version has changed.
+
+	- Use markers as region boundaries so that replacing inside changed 
+	expressions works.
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add calling convention to el-search-defpattern's docstring
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--make-docstring: exclude some specially named patterns
+
+	Make patterns starting with a hyphen, or containing "--" not appear in 
+	the generated docstring of `el-search-pattern': patterns with these 
+	names are now considered internal.
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search-query-replace reindent wrongly in narrowed buffer
+
+2016-08-10  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Move some pattern definitions to new file "el-search-x"
+
+2016-08-10  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Update copyright
+
+2016-08-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add comment about (pcase) backquote inside (real) backquote
+
+2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
+
+	Fix some quoting problems in doc strings
+
+	Most of these are minor issues involving, e.g., quoting `like this' 
+	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
+	\= when the characters should not be turned into curved single quotes.
+
+2016-05-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rewrite the `change' and `changed' patterns
+
+	so that they don't rely on `diff-hl-mode's overlays.  Instead use the 
+	output of `diff-hl-changes' directly (and cache it).
+
+	Make both patterns accept an optional REVISION argument.
+
+2016-05-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search version 0.2
+
+2016-05-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--ensure-sexp-start: don't assume point-min==1
+
+	Thanks Stefan.
+
+2016-05-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Factor out `el-search--replace-hunk'
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve history handling
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Set initial input for replace when coming from el-search-pattern
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Clean up el-search-read-expression-map; add some doc
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make sure not to lose the minibuffer-prompt face
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Reduce duration of a `sit-for'
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rename a local variable
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make query-replace accept FROM -> TO style input
+
+	Use this format for history entries.
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Small fix in el-search--setup-minibuffer
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use `pp-to-string' to print replacement expression
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Give el-search--s a more meaningful name
+
+	Rename `el-search--s' to `el-search--transform-nontrivial-lpat'.
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make el-search-pattern accept an optional NO-ERROR arg
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search--ensure-sexp-start error at bob
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Clarify the operation scope of replacing
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Address compiler warnings
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add patterns for character properties
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rename two functions
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Handle replacements containing another match
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve documentation and argument names of el-search-query-replace
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Comment and whitespace changes only
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Replacing: make C-g an alternative key for quitting
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rewrite replacement layout restoration
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--check-pattern-args: make arg TYPE a string
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rewrite `string' pattern definition
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New user option: el-search-use-sloppy-strings
+
+2016-03-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New function el-search--macroexpand-1 for debugging
+
+2016-03-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Minor change in `string' pattern
+
+2016-03-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix for non-interactive calls of el-search-pattern
+
+2016-03-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Tweak docstring of el-search--ensure-sexp-start
+
+2016-03-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New user option: el-search-smart-case-fold-search
+
+2016-02-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	factor out minibuffer setup hook fun; treat empty input
+
+2016-02-14  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve doc of el-search-this-expression-identifier.
+
+2016-02-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Complete and document what a SYMBOL in `l' matches
+
+2016-02-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	use uninterned symbol in `el-search--matcher'
+
+2016-02-09  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Go to isearch left end when starting replace
+
+	with el-search from isearch
+
+	This partially reverts
+
+	"When coming from isearch, don't move to other end".
+
+2016-01-10  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Support highlighting of all visible matches
+
+2016-01-09  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: New pattern type `l'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version to 0.1.3
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	When coming from isearch, don't move to other end
+
+	when at match end
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: new pattern type `contains'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	use more newlines in `el-search--make-docstring'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	remove annoying message on how to repeat el-search
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	factor out `el-search--search-pattern-1'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: new pattern type `not'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	remove example using `message' in a guard
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: new pattern type `append'
+
+2015-12-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: some cleanup
+
+	- fix `help-fns--signature' call to make `el-search--make-docstring' 
+	work when loading the library as non-compiled source code
+
+	- refine definition of `kbd' pattern and documentation
+
+	- move stuff for defining additional patterns to a separate section
+
+	- add some commentaries
+
+	- bump version to 0.1.2
+
+2015-12-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--matcher: refine when to warn or error
+
+2015-11-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	bump version to 0.1.1
+
+2015-11-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search-query-replace: add s (toggle splicing) and ? (help) keys
+
+2015-11-18  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	prerequisites to allow replace with multiple expressions
+
+2015-11-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	add a to do
+
+2015-11-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	edit TODO list
+
+2015-11-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix compiler errors and warnings
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version to 0.1
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	simplify el-search-hl-post-command-fun
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	remove search wrapping functionality
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	improve docs; new: el-search-defpattern; add some pattern types
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix whitespace
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	spelling fixes
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--read-pattern: fix default(s)
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	give feedback in the echo area again
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix whitespace
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	document el-search--do-subsexps
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix el-search-hl-post-command-fun auto-removal
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix el-search--repair-replacement-layout: don't move when replacing
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a local variable
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	some doc tweaks
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	change a TODO entry; no code change
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	remove not so useful message of how to repeat search
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	allow search wrapping
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	arrange we can use `call-interactively' when coming from isearch
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	call syntax functions less often for better efficiency
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	whitespace clean up
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a local variable
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a function
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	new function el-search--end-of-sexp; use it
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	avoid repeated expansion of pcase forms
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a function
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	drop el-search-expression-contains-match-p
+
+	A correct implementation would have to be more complicated.  We didn't 
+	recurse on arrays for example, or we didn't find (2 3) in (1 . (2 3)).
+
+	And it wasn't that effective either, so I remove it.
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix a condition in el-search--do-subsexps
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: some comment changes
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a function
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	change default of el-search-this-expression-identifier
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	avoid looking-back in el-search--goto-next-sexp
+
+	because it extremely slows it down
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: some comment changes
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: add autoload cookies
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: remove redundant :group specs from custom defs
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: remove redundant package dependency on cl-lib
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: fix two typos
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: fix comment styles
+
+2015-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* el-search.el: Add missing footer
+
+2015-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* el-search.el: Fix first line convention
+
+2015-08-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: some small improvements
+
+2015-08-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	new package el-search for searching elisp
+
