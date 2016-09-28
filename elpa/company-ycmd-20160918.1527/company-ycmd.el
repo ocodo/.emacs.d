@@ -5,9 +5,9 @@
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
 ;; version: 0.1
-;; Package-Version: 20160821.1554
+;; Package-Version: 20160918.1527
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((ycmd "0.1") (company "0.9.0") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (let-alist "1.0.4"))
+;; Package-Requires: ((ycmd "0.1") (company "0.9.0") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (let-alist "1.0.4") (f "0.18.2"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -64,6 +64,7 @@
 (require 'deferred)
 (require 'ycmd)
 (require 's)
+(require 'f)
 (require 'dash)
 (require 'rx)
 
@@ -231,7 +232,7 @@ overloaded functions."
                   'meta meta 'kind kind 'params params))))
 
 (defun company-ycmd--remove-self-from-function-args (args)
-  "Remove function argument `self' from ARGS list."
+  "Remove function argument `self' from ARGS string."
   (if (s-contains? "self" args)
       (when (string-match "(\\(.*\\))" args)
         (->> (s-split "," (match-string 1 args) t)
@@ -240,6 +241,12 @@ overloaded functions."
              (s-trim-left)
              (s-prepend (substring args 0 (match-beginning 1)))
              (s-append (substring args (match-end 1)))))
+    args))
+
+(defun company-ycmd--remove-template-args-from-function-args (args)
+  "Remove template arguments from ARGS string."
+  (if (s-starts-with? "<" args)
+      (substring args (+ 1 (s-index-of ">" args)))
     args))
 
 (defun company-ycmd--extract-params-python (function-sig function-name)
@@ -285,6 +292,20 @@ with spaces."
       (propertize .insertion_text 'meta meta 'doc .detailed_info 'kind kind
                   'params params 'filepath filepath 'line_num line-num))))
 
+;; The next two function are taken from racer.el
+;; https://github.com/racer-rust/emacs-racer
+(defun company-ycmd--file-and-parent (path)
+  "Convert PATH /foo/bar/baz/q.txt to baz/q.txt."
+  (let ((file (f-filename path))
+        (parent (f-filename (f-parent path))))
+    (f-join parent file)))
+
+(defun company-ycmd--trim-up-to (needle s)
+  "Return content after the occurrence of NEEDLE in S."
+  (-if-let (idx (s-index-of needle s))
+      (substring s (+ idx (length needle)))
+    s))
+
 (defun company-ycmd--construct-candidate-rust (candidate)
   "Construct completion string from CANDIDATE for rust file-types."
   (company-ycmd--with-destructured-candidate candidate
@@ -293,14 +314,13 @@ with spaces."
                       ("Module"
                        (if (string= .insertion_text .extra_menu_info)
                            ""
-                         (concat " " .extra_menu_info)))
+                         (concat " " (company-ycmd--file-and-parent
+                                      .extra_menu_info))))
+                      ("StructField"
+                       (concat " " .extra_menu_info))
                       (_
                        (->> .extra_menu_info
-                            (funcall (lambda (needle s)
-                                       (-if-let (idx (s-index-of needle s))
-                                           (substring s (+ idx (length needle)))
-                                         s))
-                                     .insertion_text)
+                            (company-ycmd--trim-up-to .insertion_text)
                             (s-chop-suffixes '(" {" "," ";"))))))
            (annotation (concat context
                                (when (s-present? .kind)
@@ -519,7 +539,9 @@ If CB is non-nil, call it with candidates."
                    company-ycmd-insert-arguments
                    (get-text-property 0 'params candidate))
     (when (memq major-mode '(python-mode rust-mode))
-      (setq it (company-ycmd--remove-self-from-function-args it)))
+      (setq it (company-ycmd--remove-self-from-function-args it))
+      (when (eq major-mode 'rust-mode)
+        (setq it (company-ycmd--remove-template-args-from-function-args it))))
     (insert it)
     (if (string-match "\\`:[^:]" it)
         (company-template-objc-templatify it)
