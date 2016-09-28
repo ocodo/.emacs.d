@@ -10,7 +10,7 @@
 ;; Maintainer: Please send bug reports to the mailing list (below).
 ;; Created: July 23 2011
 ;; Version: 0.1
-;; Package-Version: 20160907.1317
+;; Package-Version: 20160911.1224
 ;; Package-Requires: ((evil "1.2.12"))
 ;; Mailing list: <implementations-list at lists.ourproject.org>
 ;;      Subscribe: http://tinyurl.com/implementations-list
@@ -167,7 +167,7 @@ See also `evil-surround-outer-overlay'."
       (evil-expand-range range)
       range)))
 
-;;;###autoload
+;;;###autoload (autoload 'evil-surround-delete "evil-surround" nil t)
 (evil-define-command evil-surround-delete (char &optional outer inner)
   "Delete the surrounding delimiters represented by CHAR.
 Alternatively, the text to delete can be represented with
@@ -191,7 +191,7 @@ between these overlays is what is deleted."
         (when outer (delete-overlay outer))
         (when inner (delete-overlay inner)))))))
 
-;;;###autoload
+;;;###autoload (autoload 'evil-surround-change "evil-surround" nil t)
 (evil-define-command evil-surround-change (char &optional outer inner)
   "Change the surrounding delimiters represented by CHAR.
 Alternatively, the text to delete can be represented with the
