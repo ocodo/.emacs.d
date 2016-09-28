@@ -1,10 +1,10 @@
 ;;; undo-tree-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads (global-undo-tree-mode undo-tree-mode) "undo-tree"
-;;;;;;  "undo-tree.el" (21358 7506 0 0))
+;;;### (autoloads nil "undo-tree" "undo-tree.el" (22507 31288 861225
+;;;;;;  426000))
 ;;; Generated autoloads from undo-tree.el
 
 (autoload 'undo-tree-mode "undo-tree" "\
@@ -28,8 +28,9 @@ Within the undo-tree visualizer, the following keys are available:
 \(fn &optional ARG)" t nil)
 
 (defvar global-undo-tree-mode nil "\
-Non-nil if Global-Undo-Tree mode is enabled.
-See the command `global-undo-tree-mode' for a description of this minor mode.
+Non-nil if Global Undo-Tree mode is enabled.
+See the `global-undo-tree-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-undo-tree-mode'.")
@@ -38,7 +39,7 @@ or call the function `global-undo-tree-mode'.")
 
 (autoload 'global-undo-tree-mode "undo-tree" "\
 Toggle Undo-Tree mode in all buffers.
-With prefix ARG, enable Global-Undo-Tree mode if ARG is positive;
+With prefix ARG, enable Global Undo-Tree mode if ARG is positive;
 otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
@@ -50,16 +51,9 @@ See `undo-tree-mode' for more information on Undo-Tree mode.
 
 ;;;***
 
-;;;### (autoloads nil nil ("undo-tree-pkg.el") (21358 7506 658164
-;;;;;;  0))
-
-;;;***
-
-(provide 'undo-tree-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; undo-tree-autoloads.el ends here
