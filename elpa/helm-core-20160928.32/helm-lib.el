@@ -441,6 +441,21 @@ ARGS is (cand1 cand2 ...) or ((disp1 . real1) (disp2 . real2) ...)
                if (listp elm) append elm
                else collect elm))))
 
+(defun helm-source-by-name (name &optional sources)
+  "Get a Helm source in SOURCES by NAME.
+
+Optional argument SOURCES is a list of Helm sources. The default
+value is computed with `helm-get-sources' which is faster
+than specifying SOURCES because sources are cached."
+  (cl-loop with src-list = (if sources
+                               (cl-loop for src in sources
+                                        collect (if (listp src)
+                                                    src
+                                                    (symbol-value src)))
+                               (helm-get-sources))
+           for source in src-list
+           thereis (and (string= name (assoc-default 'name source)) source)))
+
 
 ;;; Strings processing.
 ;;
@@ -534,8 +549,11 @@ Add spaces at end if needed to reach WIDTH when STR is shorter than WIDTH."
 
 (defun helm-describe-face (face)
   "FACE is symbol or string."
-  (cl-letf (((symbol-function 'message) #'ignore))
-    (describe-face (helm-symbolify face))))
+  (let ((faces (helm-marked-candidates)))
+    (cl-letf (((symbol-function 'message) #'ignore))
+      (describe-face (if (cdr faces)
+                         (mapcar 'helm-symbolify faces)
+                         (helm-symbolify face))))))
 
 (defun helm-find-function (func)
   "FUNC is symbol or string."
