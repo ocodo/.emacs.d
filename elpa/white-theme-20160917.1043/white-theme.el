@@ -4,7 +4,7 @@
 
 ;; Author: Anler Hernandez Peral <inbox@anler.me>
 ;; Keywords: color, theme, minimal, basic, simple, white
-;; Package-Version: 20160909.1400
+;; Package-Version: 20160917.1043
 ;; URL: http://github.com/anler/white-theme.el
 ;; Package-Requires: ((emacs "24"))
 
@@ -73,14 +73,14 @@
    `(button ((t (:foreground ,blue :underline nil :weight normal))))
    `(comint-highlight-input ((t (:foreground nil :background nil))))
    `(comint-highlight-prompt ((t (:foreground nil :background nil))))
-   `(compilation-column-number ((t (:foreground nil :background nil))))
-   `(compilation-error ((t (:foreground nil :background nil))))
-   `(compilation-info ((t (:foreground nil :background nil))))
-   `(compilation-line-number ((t (:foreground nil :background nil))))
+   `(compilation-error ((t (:foreground ,white :background ,red))))
+   `(compilation-info ((t (:foreground nil :background nil :weight bold))))
+   `(compilation-column-number ((t (:foreground ,red :background nil :weight bold))))
+   `(compilation-line-number ((t (:foreground ,red :background nil :weight bold))))
    `(compilation-mode-line-exit ((t (:inherit mode-line))))
    `(compilation-mode-line-fail ((t (:inherit mode-line))))
    `(compilation-mode-line-run ((t (:inherit mode-line))))
-   `(compilation-warning ((t (:foreground nil :background nil))))
+   `(compilation-warning ((t (:foreground ,white :background ,yellow))))
    `(cursor ((t (:foreground nil :background ,red))))
    `(default ((t (:foreground ,black :background ,white))))
    `(fringe ((t (:foreground ,gray6 :background ,white))))
@@ -163,15 +163,15 @@
    `(font-lock-builtin-face ((t :foreground nil :background nil :weight bold)))
    `(font-lock-comment-delimiter-face ((t :foreground ,gray4 :background ,gray7 :slant italic)))
    `(font-lock-comment-face ((t :foreground ,gray4 :background ,gray7 :slant italic)))
-   `(font-lock-constant-face ((t :foreground nil :background nil :weight bold)))
+   `(font-lock-preprocessor-face ((t :foreground nil :background nil :slant italic)))
+   `(font-lock-constant-face ((t :foreground nil :background nil :weight bold :slant italic)))
    `(font-lock-doc-face ((t :foreground nil :background ,gray7 :slant italic)))
    `(font-lock-function-name-face ((t :foreground nil :background nil :weight bold)))
-   `(font-lock-keyword-face ((t :foreground nil :background nil :weight bold)))
+   `(font-lock-keyword-face ((t :foreground ,gray3 :background nil)))
    `(font-lock-negation-char-face ((t :foreground nil :background nil)))
-   `(font-lock-preprocessor-face ((t :foreground nil :background nil :slant italic)))
    `(font-lock-regexp-grouping-backslash ((t :foreground nil :background nil)))
    `(font-lock-regexp-grouping-construct ((t :foreground nil :background nil)))
-   `(font-lock-string-face ((t :foreground nil :background ,gray7)))
+   `(font-lock-string-face ((t :foreground nil :background ,gray7 :slant italic)))
    `(font-lock-type-face ((t :foreground nil :background nil :weight bold)))
    `(font-lock-variable-name-face ((t :foreground nil :background ,gray7)))
    `(font-lock-warning-face ((t :foreground nil :background ,orange)))
