@@ -6,7 +6,7 @@
 ;; Author: Jonathan Kotta <jpkotta@gmail.com>
 ;; Contributors: Tomohiro Matsuyama, Le Wang
 ;; Keywords: convenience, search
-;; Package-Version: 20130508.1503
+;; Package-Version: 20160926.1630
 ;; Version: 20130508
 ;; URL: https://bitbucket.org/jpkotta/flex-isearch
 
@@ -49,6 +49,10 @@
 ;;; Code:
 
 
+
+;; changed in Emacs 25.1
+(unless (boundp 'isearch-regexp-function)
+  (defalias 'isearch-regexp-function 'isearch-word))
 
 (eval-when-compile
   (require 'cl))
@@ -158,7 +162,7 @@ a non-word character inserts '.*<char>'
 (defun flex-isearch-search-fun ()
   "Set to `isearch-search-fun-function' when `flex-isearch-mode' is
   enabled."
-  (cond (isearch-word
+  (cond (isearch-regexp-function
          (if isearch-forward 'word-search-forward 'word-search-backward))
         (isearch-regexp
          (if isearch-forward 're-search-forward 're-search-backward))
@@ -203,31 +207,31 @@ a non-word character inserts '.*<char>'
 ;; this is activated in flex-isearch-mode
 (defadvice isearch-toggle-regexp (around flex-isearch disable compile)
   "ISearch -> Regexp -> Flex -> Word -> ISearch"
-  
+
   ;; The status stack is left unchanged.
   (cond
    (isearch-regexp
     ;; turn on flex (or word)
     (if flex-isearch-mode
-        (progn 
+        (progn
           (flex-isearch-activate)
           (setq isearch-regexp nil
-                isearch-word nil))
+                isearch-regexp-function nil))
       (setq isearch-regexp nil
-            isearch-word t)))
+            isearch-regexp-function t)))
    (flex-isearch-activated
     ;; turnon word
     (flex-isearch-deactivate)
     (setq isearch-regexp nil
-          isearch-word t))
-   (isearch-word
+          isearch-regexp-function t))
+   (isearch-regexp-function
     ;; turn on normal
     (setq isearch-regexp nil
-          isearch-word nil))
+          isearch-regexp-function nil))
    (t
     ;; turn on regexp
     (setq isearch-regexp t
-          isearch-word nil)))
+          isearch-regexp-function nil)))
   (setq isearch-adjusted t
         isearch-success t)
   (isearch-update))

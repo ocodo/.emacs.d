@@ -1,10 +1,10 @@
 ;;; flex-isearch-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flex-isearch" "flex-isearch.el" (21818 58348
-;;;;;;  807401 0))
+;;;### (autoloads nil "flex-isearch" "flex-isearch.el" (22507 31563
+;;;;;;  897229 58000))
 ;;; Generated autoloads from flex-isearch.el
 
 (defvar flex-isearch-auto nil "\
@@ -50,8 +50,9 @@ searching during a normal isearch.
 \(fn)" t nil)
 
 (defvar global-flex-isearch-mode nil "\
-Non-nil if Global-Flex-Isearch mode is enabled.
-See the command `global-flex-isearch-mode' for a description of this minor mode.
+Non-nil if Global Flex-Isearch mode is enabled.
+See the `global-flex-isearch-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-flex-isearch-mode'.")
@@ -60,7 +61,7 @@ or call the function `global-flex-isearch-mode'.")
 
 (autoload 'global-flex-isearch-mode "flex-isearch" "\
 Toggle Flex-Isearch mode in all buffers.
-With prefix ARG, enable Global-Flex-Isearch mode if ARG is positive;
+With prefix ARG, enable Global Flex-Isearch mode if ARG is positive;
 otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
