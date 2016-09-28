@@ -1,9 +1,9 @@
 ;;; refine-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "refine" "refine.el" (22435 10444 0 0))
+;;;### (autoloads nil "refine" "refine.el" (22507 31345 561226 634000))
 ;;; Generated autoloads from refine.el
 
 (autoload 'refine "refine" "\
