@@ -599,7 +599,6 @@ FN should be either `describe-variable' or `describe-function'."
                    (buffer-string)))
                 'popup-tip-face nil nil -1))
 
-
 (defun make-kurecolor-hue-table ()
   "Make a hue table from hex color at top of kill ring, no error checking."
   (interactive)
@@ -788,6 +787,44 @@ If your're in the minibuffer it will use the other buffer file name."
   "Insert DATE."
   (interactive)
   (insert (format-time-string "%Y-%m-%d" date)))
+
+(defun git-open-changed-files ()
+  "Use git ls-files to open changed files."
+  (interactive)
+  (let ((git-modified-files (shell-command-to-string "git ls-files -m")))
+    (if (not (string-match "^fatal: Not a git repo" git-modified-files))
+        (let ((file-list (split-string git-modified-files "\n" t "[\r\n\t ]")))
+          (mapc (lambda (file) (find-file file)) file-list))
+      (error "Not in a git repository."))))
+
+(defun git-open-untracked-files ()
+  "Use git ls-files to open untracked files.
+
+    Open any untracked file in the repo (unless it's been .gitignored)"
+  (interactive)
+  (let ((git-untracked-files (shell-command-to-string "git ls-files --others --exclude-standard")))
+    (if (not (string-match "^fatal: Not a git repo" git-untracked-files))
+        (let ((file-list (split-string git-untracked-files "\n" t "[\r\n\t ]")))
+          (mapc (lambda (file) (find-file file)) file-list))
+      (error "Not in a git repository."))))
+
+(defun git-open-changed-and-new-files ()
+  "Use git ls-files to open changed files."
+  (interactive)
+  (let ((git-modified-files (shell-command-to-string "git ls-files -m --others --exclude-standard")))
+    (if (not (string-match "^fatal: Not a git repo" git-modified-files))
+        (let ((file-list (split-string git-modified-files "\n" t "[\r\n\t ]")))
+          (mapc (lambda (file) (find-file file)) file-list))
+      (error "Not in a git repository."))))
+
+(defun git-open-from-ls-files (git-ls-options)
+  "Use git ls-files to open changed files."
+  (interactive "sGit ls-files options: ")
+  (let ((git-modified-files (shell-command-to-string (format "git ls-files %s" git-ls-options))))
+    (if (not (string-match "^fatal: Not a git repo" git-modified-files))
+        (let ((file-list (split-string git-modified-files "\n" t "[\r\n\t ]")))
+          (mapc (lambda (file) (find-file file)) file-list))
+      (error "Not in a git repository."))))
 
 ;; Key bindings
 (global-set-key (kbd "C-c M-=")   'increase-default-font-height)
