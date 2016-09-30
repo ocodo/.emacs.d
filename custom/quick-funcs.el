@@ -20,7 +20,7 @@
 (defun duplicate-current-line-or-region-up (arg)
   "Duplicates the current line or region up ARG times."
   (interactive "p")
-  (duplicate-current-line-or-region arg ty))
+  (duplicate-current-line-or-region arg t))
 
 ;; Originally swiped from rejeep's emacs.d rejeep-defuns.el.
 (defun duplicate-current-line-or-region (arg &optional up)
