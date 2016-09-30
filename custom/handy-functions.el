@@ -795,7 +795,7 @@ If your're in the minibuffer it will use the other buffer file name."
     (if (not (string-match "^fatal: Not a git repo" git-modified-files))
         (let ((file-list (split-string git-modified-files "\n" t "[\r\n\t ]")))
           (mapc (lambda (file) (find-file file)) file-list))
-      (error "Not in a git repository."))))
+      (error "Not in a git repository"))))
 
 (defun git-open-untracked-files ()
   "Use git ls-files to open untracked files.
@@ -806,7 +806,7 @@ If your're in the minibuffer it will use the other buffer file name."
     (if (not (string-match "^fatal: Not a git repo" git-untracked-files))
         (let ((file-list (split-string git-untracked-files "\n" t "[\r\n\t ]")))
           (mapc (lambda (file) (find-file file)) file-list))
-      (error "Not in a git repository."))))
+      (error "Not in a git repository"))))
 
 (defun git-open-changed-and-new-files ()
   "Use git ls-files to open changed files."
@@ -815,16 +815,32 @@ If your're in the minibuffer it will use the other buffer file name."
     (if (not (string-match "^fatal: Not a git repo" git-modified-files))
         (let ((file-list (split-string git-modified-files "\n" t "[\r\n\t ]")))
           (mapc (lambda (file) (find-file file)) file-list))
-      (error "Not in a git repository."))))
+      (error "Not in a git repository"))))
 
 (defun git-open-from-ls-files (git-ls-options)
-  "Use git ls-files to open changed files."
+  "Use GIT-LS-OPTIONS to open changed files."
   (interactive "sGit ls-files options: ")
   (let ((git-modified-files (shell-command-to-string (format "git ls-files %s" git-ls-options))))
     (if (not (string-match "^fatal: Not a git repo" git-modified-files))
         (let ((file-list (split-string git-modified-files "\n" t "[\r\n\t ]")))
           (mapc (lambda (file) (find-file file)) file-list))
-      (error "Not in a git repository."))))
+      (error "Not in a git repository"))))
+
+(defun git-open-ls-files (git-ls-options)
+  "Use GIT-LS-OPTIONS to open changed files."
+  (interactive (list
+                (completing-read "Open changed files: " '("--modified"
+                                                          "--other --exclude-standard"
+                                                          "--other --exclude-standard --modified"
+                                                          "--unmerged"
+                                                          "--ignored"))))
+  (let ((git-modified-files (shell-command-to-string (format "git ls-files %s" git-ls-options))))
+    (if (not (string-match "^fatal: Not a git repo" git-modified-files))
+        (let ((file-list (split-string git-modified-files "\n" t "[\r\n\t ]")))
+          (if (> 0 (length file-list))
+              (mapc (lambda (file) (find-file file)) file-list)
+            (message "No files to open")))
+      (error "Not in a git repository"))))
 
 ;; Key bindings
 (global-set-key (kbd "C-c M-=")   'increase-default-font-height)
