@@ -43,9 +43,6 @@
                kill-buffer-without-confirm
                mac-frame-adjust
                multiple-cursors
-               opl-coffee
-               opl-rails
-               jasmine-locator
                resize-window
                scroll-bell-fix
                squeeze-view
