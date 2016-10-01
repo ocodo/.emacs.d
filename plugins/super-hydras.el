@@ -1,4 +1,4 @@
-;;; super-hydras.el --- A hydra bound to super-f1 which binds to misc useful things, add more commands as req'd
+;;; super-hydras.el --- A set of hydras bound to super
 
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 
@@ -26,9 +26,9 @@
 (require 'handy-functions)
 
 (bind-key "s-r" (defhydra region-commands (:color blue)
-                     "Region commands"
-                     ("SPC" er/expand-region "Expand region")
-                     ("t" case-transform/body "Case transform")))
+                  "Region commands"
+                  ("SPC" er/expand-region "Expand region")
+                  ("t" case-transform/body "Case transform")))
 
 (bind-key "s-f" (defhydra avy-commands (:color blue)
                   "Avy commands"
@@ -43,9 +43,9 @@
                   ("F" avy-flycheck-goto-error "Avy goto error")))
 
 (bind-key "s-F" (defhydra file-commands (:color blue)
-                     "File commands"
-                     ("r" rename-this-buffer-and-file "Rename this buffer & file")
-                     ("d" delete-this-buffer-and-file "Delete this buffer & file")))
+                  "File commands"
+                  ("r" rename-this-buffer-and-file "Rename this buffer & file")
+                  ("d" delete-this-buffer-and-file "Delete this buffer & file")))
 
 (provide 'super-f)
 
