@@ -9,8 +9,8 @@
 ;;; Code:
 ;; (package-initialize)
 
-;; 1kb garbage collection limit
-(setq gc-cons-threshold 1024)
+;; 512 byte garbage collection limit
+(setq gc-cons-threshold 512)
 
 (let ((default-directory user-emacs-directory))
   (add-to-list 'load-path (expand-file-name "init-helpers")))
