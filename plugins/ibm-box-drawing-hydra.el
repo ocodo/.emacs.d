@@ -47,8 +47,7 @@
     (kill-char 1))
   (insert char))
 
-(global-set-key
- (kbd "C-x r B")
+(bind-key "C-x r B"
  (defhydra ibm-draw-box-hydra (:color pink :hint nil) "
 IBM Box Chars  _r_ ─         _R_ ═         _v_ │         _V_ ║
 (CodePage 437) _q_ ┌ _w_ ┬ _e_ ┐ _Q_ ╒ _W_ ╤ _E_ ╕ _t_ ╔ _y_ ╦ _u_ ╗ _T_ ╓ _Y_ ╥ _U_ ╖  _C-q_ ╭ ╮ _C-w_

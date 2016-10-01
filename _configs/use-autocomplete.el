@@ -3,15 +3,20 @@
 ;;; Code:
 (require 'use-package)
 
+(use-package auto-complete-config)
+(use-package ac-dabbrev)
+(use-package dropdown-list)
+
 (use-package auto-complete
   :init
   (progn
-    (use-package auto-complete-config)
-    (use-package ac-dabbrev)
-    (use-package dropdown-list)
-    (global-set-key (kbd "M-RET") (lambda () (interactive)
-                                  (auto-complete-mode 1)
-                                  (ac-start)))
+    (defun ac-auto-complete-mode-start ()
+      "Start up ac-mode."
+      (interactive)
+      (auto-complete-mode 1)
+      (ac-start))
+
+    (bind-key "M-RET" 'ac-auto-complete-mode-start)
 
     (ac-config-default)
 

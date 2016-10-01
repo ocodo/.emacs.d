@@ -6,8 +6,11 @@
     (find-file (car (projectile-load-known-projects))))
 
 ;; Projectile find file - flx based
-(global-set-key (kbd "M-P")                 'projectile-find-file)
-(global-set-key (kbd "M-p")                 'projectile-find-file)
-(global-set-key (kbd "C-x p")               'projectile-find-file)
+(bind-keys
+ ("M-P" . projectile-find-file)
+ ("M-p" . projectile-find-file)
+ ("C-x p" . projectile-find-file))
 
 (provide 'use-projectile)
+
+;;; use-projectile.el ends here

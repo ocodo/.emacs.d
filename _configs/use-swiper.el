@@ -1,5 +1,12 @@
-;; use Swiper instead of isearch regexp
+;;; use-swiper --- Use swiper
+;;; Commentary:
+;;  use Swiper instead of isearch regexp
 
-(global-set-key (kbd "C-S-s") 'swiper)
+;;; Code:
+(require 'swiper)
+
+(bind-key "C-S-s" 'swiper)
 
 (provide 'use-swiper)
+
+;;; use-swiper.el ends here

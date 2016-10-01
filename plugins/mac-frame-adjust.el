@@ -341,18 +341,19 @@ height, top/center position."
 
 ;; Some defaults for quick access. (24 == C-x)
 
-(global-set-key (kbd "C-x M-<left>") 'mac-set-frame-left-w66-h100-percent)
-(global-set-key (kbd "C-x M-<right>") 'mac-set-frame-right-w66-h100-percent)
-(global-set-key (kbd "C-x M-<down>") 'mac-set-frame-to-footer)
-(global-set-key (kbd "C-x M-<up>") 'mac-toggle-kiosk-mode)
-(global-set-key (kbd "C-x C-M-<left>") 'mac-set-frame-left-w50-h100-percent)
-(global-set-key (kbd "C-x C-M-<right>") 'mac-set-frame-right-w50-h100-percent)
-(global-set-key (kbd "C-x C-M-<up>") 'mac-set-frame-top-w100-h50-percent)
-(global-set-key (kbd "C-x C-M-<down>") 'mac-set-frame-bottom-w100-h50-percent)
-
-(global-set-key (kbd "C-x M-s-<right>") 'mac-set-frame-right-w30-h100-percent)
-(global-set-key (kbd "C-x M-s-<left>") 'mac-set-frame-left-w25-h100-percent)
-(global-set-key (kbd "C-x M-s-<up>") 'mac-set-frame-center-w50-h100-percent)
-(global-set-key (kbd "C-x M-s-<down>") 'mac-set-frame-center-w75-h100-percent)
+(require 'bind-key)
+(bind-keys
+ ("C-x M-<left>"     . mac-set-frame-left-w66-h100-percent)
+ ("C-x M-<right>"    . mac-set-frame-right-w66-h100-percent)
+ ("C-x M-<down>"     . mac-set-frame-to-footer)
+ ("C-x M-<up>"       . mac-toggle-kiosk-mode)
+ ("C-x C-M-<left>"   . mac-set-frame-left-w50-h100-percent)
+ ("C-x C-M-<right>"  . mac-set-frame-right-w50-h100-percent)
+ ("C-x C-M-<up>"     . mac-set-frame-top-w100-h50-percent)
+ ("C-x C-M-<down>"   . mac-set-frame-bottom-w100-h50-percent)
+ ("C-x M-s-<right>"  . mac-set-frame-right-w30-h100-percent)
+ ("C-x M-s-<left>"   . mac-set-frame-left-w25-h100-percent)
+ ("C-x M-s-<up>"     . mac-set-frame-center-w50-h100-percent)
+ ("C-x M-s-<down>"   . mac-set-frame-center-w75-h100-percent))
 
 (provide 'mac-frame-adjust)

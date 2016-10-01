@@ -1,16 +1,14 @@
-(when
+;;; custom-mac-fn-keys --- initialize custom-mac-fn-keys
+;;; Commentary:
+;;; Code:
+(require 'bind-key)
 
-    (and (window-system) (eq system-type 'darwin))
-
-  ;;
-  ;; extended f keys on Apple keyboard (chicklet style, extended)
-  ;;
-
-  (global-set-key (kbd "<f13>") 'overwrite-mode )
-  (global-set-key (kbd "<f14>") 'ibuffer )
-  (global-set-key (kbd "<f15>") 'magit-status )
-  (global-set-key (kbd "<f16>") 'select-themes )
-
-  )
+(when (and (window-system) (eq system-type 'darwin))
+  (bind-keys
+   ("<f13>" . overwrite-mode)
+   ("<f14>" . ibuffer)
+   ("<f15>" . magit-status)))
 
 (provide 'custom-mac-fn-keys)
+
+;;; custom-mac-fn-keys ends here

@@ -55,15 +55,16 @@ Apply this  to FN.  Replace with the result."
 
 
 ;; Case transform hydra
-(global-set-key (kbd "C-c C-x t") (defhydra case-transform (:color blue)
-                                  "Transform case of word or region"
-                                  ("h" humanize-at-point-or-region "Humanize text")
-                                  ("d" dasherise-at-point-or-region "dasherise/kebab")
-                                  ("u" upper-camelcase-at-point-or-region "UpperCamel")
-                                  ("l" lower-camelcase-at-point-or-region "lowerCamel")
-                                  ("s" snake-case-at-point-or-region "snake_underscore")
-                                  ("t" titleized-at-point-or-region "Titleized")
-                                  ("U" url-encode-string-at-point "URL encode")))
+(bind-key "C-c C-x t"
+          (defhydra case-transform (:color blue)
+            "Transform case of word or region"
+            ("h" humanize-at-point-or-region "Humanize text")
+            ("d" dasherise-at-point-or-region "dasherise/kebab")
+            ("u" upper-camelcase-at-point-or-region "UpperCamel")
+            ("l" lower-camelcase-at-point-or-region "lowerCamel")
+            ("s" snake-case-at-point-or-region "snake_underscore")
+            ("t" titleized-at-point-or-region "Titleized")
+            ("U" url-encode-string-at-point "URL encode")))
 
 (provide 'text-transformers)
 

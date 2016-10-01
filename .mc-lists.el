@@ -13,6 +13,7 @@
         cua-paste
         cua-scroll-up
         dabbrev-expand
+        embrace-add
         end-of-visual-line
         indent-for-tab-command
         keyboard-escape-quit

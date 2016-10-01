@@ -1,6 +1,8 @@
-;; use-smartparens
+;;; use-smartparens --- configure smartparens
+;;; Commentary:
 ;;; Code:
 
+(require 'cua-base)
 (require 'smartparens)
 
 (smartparens-global-mode t)
@@ -47,15 +49,18 @@
 (sp-local-pair 'ruby-mode "|" "|" :wrap "C-c |")
 
 ;; Smartparens slurp / barf - use instead of paredit
-(global-set-key (kbd "C-x r <left>") 'sp-forward-slurp-sexp)
-(global-set-key (kbd "C-x r <right>") 'sp-forward-barf-sexp)
-(global-set-key (kbd "C-x r <S-left>") 'sp-backward-slurp-sexp)
-(global-set-key (kbd "C-x r <S-right>") 'sp-backward-barf-sexp)
-(global-set-key (kbd "C-x r r") 'sp-rewrap-sexp)
-(global-set-key (kbd "C-x r s") 'sp-split-sexp)
-(global-set-key (kbd "C-x r j") 'sp-join-sexp)
-(global-set-key (kbd "C-x r d") 'embrace-delete)
-(global-set-key (kbd "C-x r a") 'embrace-add)
-(global-set-key (kbd "C-x r c") 'embrace-change)
+(bind-keys
+ ("C-x r <left>"    . sp-forward-slurp-sexp)
+ ("C-x r <right>"   . sp-forward-barf-sexp)
+ ("C-x r <S-left>"  . sp-backward-slurp-sexp)
+ ("C-x r <S-right>" . sp-backward-barf-sexp)
+ ("C-x r r"         . sp-rewrap-sexp)
+ ("C-x r s"         . sp-split-sexp)
+ ("C-x r j"         . sp-join-sexp)
+ ("C-x r d"         . embrace-delete)
+ ("C-x r a"         . embrace-add)
+ ("C-x r c"         . embrace-change))
 
 (provide 'use-smartparens)
+
+;;; use-smartparens.el ends here

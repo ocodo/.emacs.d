@@ -15,7 +15,8 @@
     (and (= oldpos (point))
          (beginning-of-line))))
 
-(global-set-key (kbd "C-a") 'smart-beginning-of-line)
+(require 'bind-key)
+(bind-key  "C-a" 'smart-beginning-of-line)
 
 (provide 'quick-funcs)
 
