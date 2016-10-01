@@ -3,35 +3,55 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "move-text" "move-text.el" (22510 29111 0 0))
+;;;### (autoloads nil "move-text" "move-text.el" (22511 11700 0 0))
 ;;; Generated autoloads from move-text.el
 
-(autoload 'move-text-at-last-line-p "move-text" "\
-Predicate, point at the last line?
+(autoload 'move-text--total-lines "move-text" "\
+Convenience function to get the total lines in the buffer / or narrowed buffer.
 
 \(fn)" nil nil)
 
-(autoload 'move-line-up "move-text" "\
+(autoload 'move-text--at-first-line-p "move-text" "\
+Predicate, is the point at the first line?
+
+\(fn)" nil nil)
+
+(autoload 'move-text--at-penultimate-line-p "move-text" "\
+Predicate, is the point at the penultimate line?
+
+\(fn)" nil nil)
+
+(autoload 'move-text--last-line-is-just-newline "move-text" "\
+Predicate, is last line just a newline?
+
+\(fn)" nil nil)
+
+(autoload 'move-text--at-last-line-p "move-text" "\
+Predicate, is the point at the last line?
+
+\(fn)" nil nil)
+
+(autoload 'move-text-line-up "move-text" "\
 Move the current line up.
 
 \(fn)" t nil)
 
-(autoload 'move-line-down "move-text" "\
+(autoload 'move-text-line-down "move-text" "\
 Move the current line down.
 
 \(fn)" t nil)
 
-(autoload 'move-region "move-text" "\
+(autoload 'move-text-region "move-text" "\
 Move the current region (START END) up or down by N lines.
 
 \(fn START END N)" t nil)
 
-(autoload 'move-region-up "move-text" "\
+(autoload 'move-text-region-up "move-text" "\
 Move the current region (START END) up by N lines.
 
 \(fn START END N)" t nil)
 
-(autoload 'move-region-down "move-text" "\
+(autoload 'move-text-region-down "move-text" "\
 Move the current region (START END) down by N lines.
 
 \(fn START END N)" t nil)

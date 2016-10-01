@@ -2,11 +2,11 @@
 
 ;; filename: move-text.el
 ;; Description: Move current line or region with M-up or M-down.
-;; Author: Jason M <jasonm23@gmail.com>
+;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; Keywords: edit
 ;; Url: https://github.com/emacsfodder/move-text
 ;; Compatibility: GNU Emacs 25.1
-;; Version: 2.0.0
+;; Version: 2.0.4
 ;;
 ;;; This file is NOT part of GNU Emacs
 
@@ -55,21 +55,39 @@
 ;;; Code:
 
 ;;;###autoload
-(defun move-text-at-last-line-p ()
-  "Predicate, point at the last line?"
-  (equal (count-lines (point-min) (point)) (count-lines (point-min) (point-max))))
-
-(defun move-text-at-first-line-p ()
-  "Predicate, point at the first line?"
-  (pcase (count-lines (point-min) (+ (point) 1)) ((or 0 1) t)))
+(defun move-text--total-lines ()
+  "Convenience function to get the total lines in the buffer / or narrowed buffer."
+  (line-number-at-pos (point-max)))
 
 ;;;###autoload
-(defun move-line-up ()
+(defun move-text--at-first-line-p ()
+  "Predicate, is the point at the first line?"
+  (= (line-number-at-pos) 1))
+
+;;;###autoload
+(defun move-text--at-penultimate-line-p ()
+  "Predicate, is the point at the penultimate line?"
+  (= (line-number-at-pos) (1- (move-text--total-lines))))
+
+;;;###autoload
+(defun move-text--last-line-is-just-newline ()
+  "Predicate, is last line just a newline?"
+  (save-mark-and-excursion
+   (goto-char (point-max))
+   (beginning-of-line)
+   (= (point-max) (point))))
+
+;;;###autoload
+(defun move-text--at-last-line-p ()
+  "Predicate, is the point at the last line?"
+  (= (line-number-at-pos) (move-text--total-lines)))
+
+;;;###autoload
+(defun move-text-line-up ()
   "Move the current line up."
   (interactive)
-  (if (move-text-at-last-line-p)
+  (if (move-text--at-last-line-p)
       (let ((target-point))
-        (message "At last line")
         (kill-whole-line)
         (forward-line -1)
         (beginning-of-line)
@@ -82,15 +100,20 @@
            (forward-line -2))))
 
 ;;;###autoload
-(defun move-line-down ()
+(defun move-text-line-down ()
   "Move the current line down."
   (interactive)
-  (forward-line 1)
-  (transpose-lines 1)
-  (forward-line -1))
+  (unless (or
+           (move-text--at-last-line-p)
+           (and
+            (move-text--last-line-is-just-newline)
+            (move-text--at-penultimate-line-p)))
+    (forward-line 1)
+    (transpose-lines 1)
+    (forward-line -1)))
 
 ;;;###autoload
-(defun move-region (start end n)
+(defun move-text-region (start end n)
   "Move the current region (START END) up or down by N lines."
   (interactive "r\np")
   (let ((line-text (delete-and-extract-region start end)))
@@ -101,41 +124,40 @@
       (set-mark start))))
 
 ;;;###autoload
-(defun move-region-up (start end n)
+(defun move-text-region-up (start end n)
   "Move the current region (START END) up by N lines."
   (interactive "r\np")
-  (move-region start end (if (null n) -1 (- n))))
-
+  (move-text-region start end (if (null n) -1 (- n))))
 ;;;###autoload
-(defun move-region-down (start end n)
+(defun move-text-region-down (start end n)
   "Move the current region (START END) down by N lines."
   (interactive "r\np")
-  (move-region start end (if (null n) 1 n)))
+  (move-text-region start end (if (null n) 1 n)))
 
 ;;;###autoload
 (defun move-text-up (&optional start end n)
   "Move the line or region (START END) up by N lines."
   (interactive "r\np")
-  (if (not (move-text-at-first-line-p))
+  (if (not (move-text--at-first-line-p))
     (if (region-active-p)
-        (move-region-up start end n)
-      (move-line-up))))
+        (move-text-region-up start end n)
+      (move-text-line-up))))
 
 ;;;###autoload
 (defun move-text-down (&optional start end n)
   "Move the line or region (START END) down by N lines."
   (interactive "r\np")
   (if (region-active-p)
-      (move-region-down start end n)
-    (move-line-down)))
+      (move-text-region-down start end n)
+    (move-text-line-down)))
 
 ;;;###autoload
 (defun move-text-default-bindings ()
   "Use default bindings for move-text-up and move-text-down (M-up / M-down)."
   (interactive)
-  "Bind `move-text-up' and `move-text-down' to M-up and M-down."
+  "Bind `move-text-up' and `move-text-down' to M-up & M-down."
   (global-set-key [M-down] 'move-text-down)
-  (global-set-key [M-up] 'move-text-up))
+  (global-set-key [M-up]   'move-text-up))
 
 (provide 'move-text)
 
