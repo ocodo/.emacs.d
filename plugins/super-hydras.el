@@ -25,12 +25,12 @@
 
 (require 'handy-functions)
 
-(bind-key "s-r" (defhydra super-r (:color blue)
+(bind-key "s-r" (defhydra region-commands (:color blue)
                      "Region commands"
                      ("SPC" er/expand-region "Expand region")
                      ("t" case-transform/body "Case transform")))
 
-(bind-key "s-f" (defhydra super-f (:color blue)
+(bind-key "s-f" (defhydra avy-commands (:color blue)
                   "Avy commands"
                   ("j" avy-goto-line "Avy goto line")
                   ("c" avy-copy-line "Avy copy line")
@@ -42,7 +42,7 @@
                   ("f" avy-goto-char "Avy goto char")
                   ("F" avy-flycheck-goto-error "Avy goto error")))
 
-(bind-key "s-F" (defhydra super-F (:color blue)
+(bind-key "s-F" (defhydra file-commands (:color blue)
                      "File commands"
                      ("r" rename-this-buffer-and-file "Rename this buffer & file")
                      ("d" delete-this-buffer-and-file "Delete this buffer & file")))
