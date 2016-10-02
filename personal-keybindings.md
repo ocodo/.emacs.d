@@ -114,11 +114,11 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 | <kbd>Ctrl</kbd>-<kbd>x</kbd> <kbd>Ctrl</kbd>-<kbd>Meta</kbd>-<kbd>Up</kbd>     | `mac-set-frame-top-w100-h50-percent`    |                                  |
 | <kbd>Ctrl</kbd>-<kbd>x</kbd> <kbd>Meta</kbd>-<kbd>Up</kbd>                     | `mac-toggle-kiosk-mode`                 |                                  |
 | <kbd>F15</kbd>                                                                 | `magit-status`                          |                                  |
-| <kbd>Meta</kbd>-<kbd>\`</kbd>                                                  | `magit-status`                          | was `tmm-menubar`                |
+| <kbd>Meta</kbd>-<kbd>&grave;</kbd>                                             | `magit-status`                          | was `tmm-menubar`                |
 | <kbd>Super</kbd>-<kbd>a</kbd>                                                  | `mark-whole-buffer`                     |                                  |
-| <kbd>Ctrl</kbd>-<kbd>\<</kbd>                                                  | `mc/mark-all-like-this`                 |                                  |
-| <kbd>Ctrl</kbd>-<kbd>\></kbd>                                                  | `mc/mark-next-like-this`                |                                  |
-| <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>\<</kbd>                     | `mc/mark-previous-like-this`            |                                  |
+| <kbd>Ctrl</kbd>-<kbd>&lt;</kbd>                                                  | `mc/mark-all-like-this`                 |                                  |
+| <kbd>Ctrl</kbd>-<kbd>&gt;</kbd>                                                  | `mc/mark-next-like-this`                |                                  |
+| <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>&lt</kbd>                     | `mc/mark-previous-like-this`            |                                  |
 | <kbd>Super</kbd>-<kbd>g</kbd>                                                  | `minibuffer-keyboard-quit`              |                                  |
 | <kbd>Meta</kbd>-<kbd>Super</kbd>-<kbd>/</kbd>                                  | `my-multi-occur-in-matching-buffers`    |                                  |
 | <kbd>Return</kbd>                                                              | `newline-and-indent`                    | was `newline`                    |
@@ -147,7 +147,7 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 | <kbd>Hyper</kbd>-<kbd>Up</kbd>                                                 | `scroll-down-command`                   |                                  |
 | <kbd>Hyper</kbd>-<kbd>Down</kbd>                                               | `scroll-up-command`                     |                                  |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>=</kbd>                                      | `set-default-font-height`               |                                  |
-| <kbd>Super</kbd>-<kbd>\|</kbd>                                                 | `shell-command-on-region-replace`       |                                  |
+| <kbd>Super</kbd>-<kbd></kbd>                                                 | `shell-command-on-region-replace`       |                                  |
 | <kbd>Ctrl</kbd>-<kbd>Meta</kbd>-<kbd>,</kbd>                                   | `shrink-window-horizontally`            |                                  |
 | <kbd>Ctrl</kbd>-<kbd>a</kbd>                                                   | `smart-beginning-of-line`               | was `move-beginning-of-line`     |
 | <kbd>Hyper</kbd>-<kbd>Left</kbd>                                               | `smart-beginning-of-line`               |                                  |
@@ -165,10 +165,10 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 | <kbd>Ctrl</kbd>-<kbd>Shift</kbd>-<kbd>s</kbd>                                  | `swiper`                                |                                  |
 | <kbd>Super</kbd>-<kbd>b</kbd>                                                  | `switch-to-buffer`                      |                                  |
 | <kbd>F12</kbd>                                                                 | `switch-to-minibuffer-window`           |                                  |
-| <kbd>Ctrl</kbd>-<kbd>\`</kbd>                                                  | `switch-window`                         |                                  |
+| <kbd>Ctrl</kbd>-<kbd>&grave;</kbd>                                             | `switch-window`                         |                                  |
 | <kbd>Ctrl</kbd>-<kbd>x</kbd> <kbd>o</kbd>                                      | `switch-window`                         | was `other-window`               |
 | <kbd>Super</kbd>-<kbd>'</kbd>                                                  | `switch-window`                         |                                  |
-| <kbd>Super</kbd>-<kbd>\`</kbd>                                                 | `switch-window`                         |                                  |
+| <kbd>Super</kbd>-<kbd>&grave;</kbd>                                            | `switch-window`                         |                                  |
 | <kbd>Super</kbd>-<kbd>-</kbd>                                                  | `text-scale-decrease`                   |                                  |
 | <kbd>Super</kbd>-<kbd>=</kbd>                                                  | `text-scale-increase`                   |                                  |
 | <kbd>Shift</kbd>-<kbd>Super</kbd>-<kbd>Return</kbd>                            | `toggle-fullscreen`                     |                                  |
