@@ -118,7 +118,7 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 | <kbd>Super</kbd>-<kbd>a</kbd>                                                  | `mark-whole-buffer`                     |                                  |
 | <kbd>Ctrl</kbd>-<kbd>&lt;</kbd>                                                  | `mc/mark-all-like-this`                 |                                  |
 | <kbd>Ctrl</kbd>-<kbd>&gt;</kbd>                                                  | `mc/mark-next-like-this`                |                                  |
-| <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>&lt</kbd>                     | `mc/mark-previous-like-this`            |                                  |
+| <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>&lt;</kbd>                     | `mc/mark-previous-like-this`            |                                  |
 | <kbd>Super</kbd>-<kbd>g</kbd>                                                  | `minibuffer-keyboard-quit`              |                                  |
 | <kbd>Meta</kbd>-<kbd>Super</kbd>-<kbd>/</kbd>                                  | `my-multi-occur-in-matching-buffers`    |                                  |
 | <kbd>Return</kbd>                                                              | `newline-and-indent`                    | was `newline`                    |
