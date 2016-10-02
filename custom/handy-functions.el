@@ -890,6 +890,8 @@ If UP is non-nil, duplicate and move point to the top."
   (switch-to-buffer dired-buffer))
 
 
+(require 'html-entity-helper)
+
 ;; Key bindings
 (bind-keys
  ("<s-up>"     . duplicate-current-line-or-region-up)
@@ -901,6 +903,7 @@ If UP is non-nil, duplicate and move point to the top."
  ("C-x M-d"    . dired-menu)
  ("C-c M-h"    . edit-handy-functions)
  ("C-c M-i"    . edit-init-el)
+ ("C-x 8 h"    . html-entity-insert)
  ("C-c M-c"    . copy-region-to-other-window)
  ("C-a"        . smart-beginning-of-line)
  ("C-S-o"      . open-line-above)
