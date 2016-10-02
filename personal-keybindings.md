@@ -1,3 +1,27 @@
+---
+layout: page
+title: Custom key bindings
+---
+
+When I record EmacsGifs I try to avoid using these key bindings, but
+chances are my gonzo recording style means I'll probably slip up every
+now and then.
+
+Of course, if I've showing you something that has no standard key
+bindings, and I have something useful set already.  I'll use those
+here.
+
+Remember these have been assembled over many years and while I've
+internalized many of them in my muscle memory, there will always be a
+few that I set and forgot about.
+
+I've listed bucky bits (modifier key: Ctrl / Meta / Super / Hyper) in
+a non-Emacsen way so that they're easier to read for people who are
+new to Emacs.
+
+**TODO**: I'll be adding hyperlinks to the commands to allow quick
+cross referencing and knowledge acquisition for you.
+
 ## Global bindings
 
 | Key name | Command | Comments |
