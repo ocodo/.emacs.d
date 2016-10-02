@@ -7,15 +7,15 @@ When I record EmacsGifs I try to avoid using these key bindings, but
 chances are my gonzo recording style means I'll probably slip up every
 now and then.
 
-Of course, if I've showing you something that has no standard key
-bindings, and I have something useful set already.  I'll use those
+Of course, if I'm showing you something that has no standard key
+bindings and I have something useful set here already, I'll use them.
 here.
 
 Remember these have been assembled over many years and while I've
-internalized many of them in my muscle memory, there will always be a
-few that I set and forgot about.
+internalized many of them in my muscle memory, there will probably be
+several I set and forgot about.  There will also be a few duplicates.
 
-I've listed bucky bits (modifier key: Ctrl / Meta / Super / Hyper) in
+I've listed bucky bits (i.e. modifier keys: Ctrl / Meta / Super / Hyper) in
 a non-Emacsen way so that they're easier to read for people who are
 new to Emacs.
 
@@ -64,6 +64,7 @@ cross referencing and knowledge acquisition for you.
 | <kbd>Super</kbd>-<kbd>0</kbd>                                                  | `delete-window`                         |                                  |
 | <kbd>ESC</kbd> <kbd>Meta</kbd>-<kbd>i</kbd>                                    | `describe-thing-at-point`               |                                  |
 | <kbd>ESC</kbd> <kbd>Meta</kbd>-<kbd>p</kbd>                                    | `describe-thing-in-popup`               |                                  |
+| <kbd>C</kbd>-<kbd>c</kbd> <kbd>Meta</kbd>-<kbd>d</kbd>                         | `dired-menu`                            |                                  |
 | <kbd>Super</kbd>-<kbd>Up</kbd>                                                 | `duplicate-current-line-or-region-up`   |                                  |
 | <kbd>Super</kbd>-<kbd>Down</kbd>                                               | `duplicate-current-line-or-region`      |                                  |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Meta</kbd>-<kbd>h</kbd>                      | `edit-handy-functions`                  |                                  |
@@ -148,7 +149,7 @@ cross referencing and knowledge acquisition for you.
 | <kbd>Hyper</kbd>-<kbd>Up</kbd>                                                 | `scroll-down-command`                   |                                  |
 | <kbd>Hyper</kbd>-<kbd>Down</kbd>                                               | `scroll-up-command`                     |                                  |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>=</kbd>                                      | `set-default-font-height`               |                                  |
-| <kbd>Super</kbd>-<kbd>\|</kbd>                                                   | `shell-command-on-region-replace`       |                                  |
+| <kbd>Super</kbd>-<kbd>\|</kbd>                                                 | `shell-command-on-region-replace`       |                                  |
 | <kbd>Ctrl</kbd>-<kbd>Meta</kbd>-<kbd>,</kbd>                                   | `shrink-window-horizontally`            |                                  |
 | <kbd>Ctrl</kbd>-<kbd>a</kbd>                                                   | `smart-beginning-of-line`               | was `move-beginning-of-line`     |
 | <kbd>Hyper</kbd>-<kbd>Left</kbd>                                               | `smart-beginning-of-line`               |                                  |
