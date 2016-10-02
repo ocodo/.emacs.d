@@ -500,11 +500,6 @@ OSX specific of course."
                         end tell' | osascript" nil nil)
   (message "refreshed active Google Chrome tab"))
 
-(defun open-opsmanager ()
-  "Open OpsManager in dired."
-  (interactive)
-  (find-file "~/workspace/OpsManager"))
-
 (defun get-osx-display-resolution ()
   "Get the current display resolution in OSX."
   (--map (s-split "x" it)
