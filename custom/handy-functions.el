@@ -878,6 +878,17 @@ If UP is non-nil, duplicate and move point to the top."
                  (goto-char (- (point) (length region)))))
         (setq deactivate-mark nil)))))
 
+(defun dired-menu (dired-buffer)
+  "Go to DIRED-BUFFER, one of the currently open dired buffers."
+  (interactive (list
+                (completing-read
+                 "Select dired: "
+                 (--map (buffer-name it)
+                        (--filter
+                         (equal 'dired-mode (with-current-buffer it major-mode))
+                         (buffer-list))))))
+  (switch-to-buffer dired-buffer))
+
 
 ;; Key bindings
 (bind-keys
@@ -887,6 +898,7 @@ If UP is non-nil, duplicate and move point to the top."
  ("C-c M--"    . decrease-default-font-height)
  ("C-c ="      . set-default-font-height)
  ("ESC M-d"    . kill-whole-word)
+ ("C-x M-d"    . dired-menu)
  ("C-c M-h"    . edit-handy-functions)
  ("C-c M-i"    . edit-init-el)
  ("C-c M-c"    . copy-region-to-other-window)
