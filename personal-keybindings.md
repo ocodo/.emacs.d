@@ -15,11 +15,8 @@
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>c</kbd> <kbd>c</kbd>                         | `avy-copy-line`                         |                                  |
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>c</kbd> <kbd>r</kbd>                         | `avy-copy-region`                       |                                  |
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>s</kbd> <kbd>i</kbd>                         | `avy-goto-char-in-line`                 |                                  |
-| <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>i</kbd>         | `avy-goto-char-in-line`                 |                                  |
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>s</kbd> <kbd>c</kbd>                         | `avy-goto-char`                         |                                  |
-| <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>c</kbd>         | `avy-goto-char`                         |                                  |
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>s</kbd> <kbd>l</kbd>                         | `avy-goto-line`                         |                                  |
-| <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>l</kbd>         | `avy-goto-line`                         |                                  |
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>w</kbd>         | `avy-goto-word-0`                       |                                  |
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>s</kbd> <kbd>w</kbd>                         | `avy-goto-word-or-subword-1`            |                                  |
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>c</kbd> <kbd>m</kbd>                         | `avy-move-line`                         |                                  |

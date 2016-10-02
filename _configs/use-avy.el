@@ -23,11 +23,8 @@
     (setq avy-all-windows 'all-frames)
     (setq avy-style 'de-bruijn)
     (setq avy-keys (-concat (number-sequence ?a ?z) (number-sequence ?A ?Z))))
-  ;; FIXME: Probably better here to use bind-keys with :prefix-map
+
   :bind (("M-s M-s w" . avy-goto-word-0)
-         ("M-s M-s l" . avy-goto-line)
-         ("M-s M-s c" . avy-goto-char)
-         ("M-s M-s i" . avy-goto-char-in-line)
          ("M-s s w"   . avy-goto-word-or-subword-1)
          ("M-s s l"   . avy-goto-line)
          ("M-s s i"   . avy-goto-char-in-line)
