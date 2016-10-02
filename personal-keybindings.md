@@ -9,18 +9,16 @@ now and then.
 
 Of course, if I'm showing you something that has no standard key
 bindings and I have something useful set here already, I'll use them.
-here.
 
-Remember these have been assembled over many years and while I've
-internalized many of them in my muscle memory, there will probably be
-several I set and forgot about.  There will also be a few duplicates.
+Please bear in mind these have been assembled over many years and
+while I've added many to muscle memory, there will probably be several
+I set up and completely forgotten about.  There will also be a few
+duplicates, but I'll probably remove those in most cases.
 
-I've listed bucky bits (i.e. modifier keys: Ctrl / Meta / Super / Hyper) in
-a non-Emacsen way so that they're easier to read for people who are
-new to Emacs.
+I've listed bucky-bits (i.e. modifier keys: Ctrl / Meta / Super / Hyper) in
+a non-Emacsen way so that they're easier to read for people new to Emacs.
 
-**TODO**: I'll be adding hyperlinks to the commands to allow quick
-cross referencing and knowledge acquisition for you.
+**TODO**: I'll add hyperlinks to commands to help you learn more about them.
 
 ## Global bindings
 
