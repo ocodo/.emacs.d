@@ -878,17 +878,16 @@ If UP is non-nil, duplicate and move point to the top."
                  (goto-char (- (point) (length region)))))
         (setq deactivate-mark nil)))))
 
-(defun dired-menu (dired-buffer)
-  "Go to DIRED-BUFFER, one of the currently open dired buffers."
-  (interactive (list
-                (completing-read
-                 "Select dired: "
-                 (--map (buffer-name it)
-                        (--filter
-                         (equal 'dired-mode (with-current-buffer it major-mode))
-                         (buffer-list))))))
-  (switch-to-buffer dired-buffer))
-
+(defun dired-menu ()
+  "Go to one of the currently open dired buffers (if there is one)."
+  (interactive)
+  (let* ((dired-buffers (--map (buffer-name it)
+                               (--filter
+                                (equal 'dired-mode (with-current-buffer it major-mode))
+                                (buffer-list)))))
+    (if dired-buffers
+        (switch-to-buffer (completing-read "Select dired: " dired-buffers))
+      (message "There's no dired buffers open right now"))))
 
 (require 'html-entity-helper)
 
