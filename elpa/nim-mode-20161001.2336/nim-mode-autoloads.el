@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "flycheck-nimsuggest" "flycheck-nimsuggest.el"
-;;;;;;  (22507 31411 73227 703000))
+;;;;;;  (22519 51702 124319 592000))
 ;;; Generated autoloads from flycheck-nimsuggest.el
 
 (autoload 'flycheck-nim-nimsuggest-start "flycheck-nimsuggest" "\
@@ -23,8 +23,8 @@ Setup flycheck configuration for nimsuggest.
 
 ;;;***
 
-;;;### (autoloads nil "nim-capf" "nim-capf.el" (22507 31411 85227
-;;;;;;  703000))
+;;;### (autoloads nil "nim-capf" "nim-capf.el" (22519 51702 128319
+;;;;;;  598000))
 ;;; Generated autoloads from nim-capf.el
 
 (autoload 'nim-capf-nimsuggest-completion-at-point "nim-capf" "\
@@ -49,8 +49,8 @@ Setup.
 
 ;;;***
 
-;;;### (autoloads nil "nim-compile" "nim-compile.el" (22507 31411
-;;;;;;  101227 703000))
+;;;### (autoloads nil "nim-compile" "nim-compile.el" (22519 51702
+;;;;;;  140319 615000))
 ;;; Generated autoloads from nim-compile.el
 
 (autoload 'nim-compile "nim-compile" "\
@@ -60,8 +60,8 @@ Setup.
 
 ;;;***
 
-;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22507 31411 97227
-;;;;;;  703000))
+;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22519 51702 140319
+;;;;;;  615000))
 ;;; Generated autoloads from nim-eldoc.el
 
 (autoload 'nim-eldoc-function "nim-eldoc" "\
@@ -71,8 +71,8 @@ Return a doc string appropriate for the current context, or nil.
 
 ;;;***
 
-;;;### (autoloads nil "nim-mode" "nim-mode.el" (22507 31411 153227
-;;;;;;  705000))
+;;;### (autoloads nil "nim-mode" "nim-mode.el" (22519 51702 156319
+;;;;;;  638000))
 ;;; Generated autoloads from nim-mode.el
 
 (autoload 'nim-mode "nim-mode" "\
@@ -84,8 +84,8 @@ A major mode for the Nim programming language.
 
 ;;;***
 
-;;;### (autoloads nil "nim-suggest" "nim-suggest.el" (22507 31411
-;;;;;;  149227 705000))
+;;;### (autoloads nil "nim-suggest" "nim-suggest.el" (22519 51702
+;;;;;;  156319 638000))
 ;;; Generated autoloads from nim-suggest.el
 
 (autoload 'nim-suggest-available-p "nim-suggest" "\
@@ -100,8 +100,8 @@ Minor mode for nimsuggest.
 
 ;;;***
 
-;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22507
-;;;;;;  31411 93227 703000))
+;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22519
+;;;;;;  51702 136319 609000))
 ;;; Generated autoloads from nimscript-mode.el
 
 (autoload 'nimscript-mode "nimscript-mode" "\
@@ -126,8 +126,8 @@ instead.  The default regex’s matching word is [Package].
 
 ;;;### (autoloads nil nil ("company-nim.el" "nim-fill.el" "nim-helper.el"
 ;;;;;;  "nim-mode-pkg.el" "nim-rx.el" "nim-smie.el" "nim-syntax.el"
-;;;;;;  "nim-thing-at-point.el" "nim-util.el" "nim-vars.el") (22507
-;;;;;;  31411 145227 705000))
+;;;;;;  "nim-thing-at-point.el" "nim-util.el" "nim-vars.el") (22519
+;;;;;;  51702 152319 632000))
 
 ;;;***
 
