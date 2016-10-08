@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "which-key" "which-key.el" (22507 31279 797225
-;;;;;;  204000))
+;;;### (autoloads nil "which-key" "which-key.el" (22519 51611 988192
+;;;;;;  751000))
 ;;; Generated autoloads from which-key.el
 
 (defvar which-key-mode nil "\
@@ -46,11 +46,19 @@ Apply suggested settings for minibuffer.
 
 (autoload 'which-key-add-key-based-replacements "which-key" "\
 Replace the description of KEY-SEQUENCE with REPLACEMENT.
-Both KEY-SEQUENCE and REPLACEMENT should be strings.  For Example,
+KEY-SEQUENCE is a string suitable for use in `kbd'. REPLACEMENT
+may either be a string, as in
 
 \(which-key-add-key-based-replacements \"C-x 1\" \"maximize\")
 
-MORE allows you to specifcy additional KEY REPL pairs.  All
+or a cons of two strings as in
+
+\(which-key-add-key-based-replacements \"C-x 8\" '(\"unicode\" . \"Unicode keys\"))
+
+In the second case, the second string is used to provide a longer
+name for the keys under a prefix.
+
+MORE allows you to specifcy additional KEY REPLACEMENT pairs.  All
 replacements are added to
 `which-key-key-based-description-replacement-alist'.
 
@@ -63,43 +71,6 @@ be active for KEY-SEQUENCE and REPLACEMENT (MORE contains
 addition KEY-SEQUENCE REPLACEMENT pairs) to apply.
 
 \(fn MODE KEY-SEQUENCE REPLACEMENT &rest MORE)" nil nil)
-
-(autoload 'which-key-add-prefix-title "which-key" "\
-Deprecated in favor of `which-key-declare-prefixes'.
-
-Add title for KEY-SEQ-STR given by TITLE. FORCE, if non-nil, will
-add the new title even if one already exists. KEY-SEQ-STR should
-be a key sequence string suitable for `kbd' and TITLE should be a
-string.
-
-\(fn KEY-SEQ-STR TITLE &optional FORCE)" nil nil)
-
-(autoload 'which-key-declare-prefixes "which-key" "\
-Name the KEY-SEQUENCE prefix NAME.
-KEY-SEQUENCE should be a string, acceptable to `kbd'. NAME can be
-a string or a cons cell of two strings. In the first case, the
-string is used as both the name and the title (the title is
-displayed in the echo area only). For Example,
-
-\(which-key-declare-prefixes \"C-x 8\" \"unicode\")
-
-or
-
-\(which-key-declare-prefixes \"C-x 8\" (\"unicode\" . \"Unicode Chararcters\"))
-
-MORE allows you to specifcy additional KEY-SEQUENCE NAME pairs.
-All names are added to `which-key-prefix-names-alist' and titles
-to `which-key-prefix-title-alist'.
-
-\(fn KEY-SEQUENCE NAME &rest MORE)" nil nil)
-
-(autoload 'which-key-declare-prefixes-for-mode "which-key" "\
-Functions like `which-key-declare-prefixes'.
-The difference is that MODE specifies the `major-mode' that must
-be active for KEY-SEQUENCE and NAME (MORE contains
-addition KEY-SEQUENCE NAME pairs) to apply.
-
-\(fn MODE KEY-SEQUENCE NAME &rest MORE)" nil nil)
 
 (autoload 'which-key-reload-key-sequence "which-key" "\
 Simulate entering the key sequence KEY-SEQ.
