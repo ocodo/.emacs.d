@@ -1,10 +1,10 @@
 ;;; paradox-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "paradox" "paradox.el" (22347 49497 425105
-;;;;;;  521000))
+;;;### (autoloads nil "paradox" "paradox.el" (22519 51656 316255
+;;;;;;  87000))
 ;;; Generated autoloads from paradox.el
 
 (autoload 'paradox-list-packages "paradox" "\
@@ -63,7 +63,7 @@ empty.  Passing a non-nil REFRESH argument forces this update.
 
 ;;;### (autoloads nil nil ("paradox-commit-list.el" "paradox-core.el"
 ;;;;;;  "paradox-execute.el" "paradox-github.el" "paradox-menu.el"
-;;;;;;  "paradox-pkg.el") (22347 49497 437367 756000))
+;;;;;;  "paradox-pkg.el") (22519 51656 324255 98000))
 
 ;;;***
 
