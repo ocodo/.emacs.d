@@ -2003,7 +2003,7 @@ using three `C-u' prefix arguments.
 ;;;***
 
 ;;;### (autoloads (org-git-version org-release) "org-version" "org-version.el"
-;;;;;;  (22504 43863))
+;;;;;;  (22513 58839))
 ;;; Generated autoloads from org-version.el
 
 (autoload 'org-release "org-version" "\
