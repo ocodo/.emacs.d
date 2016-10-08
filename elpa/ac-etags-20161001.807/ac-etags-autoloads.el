@@ -1,10 +1,10 @@
 ;;; ac-etags-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ac-etags" "ac-etags.el" (22084 2032 812929
-;;;;;;  623000))
+;;;### (autoloads nil "ac-etags" "ac-etags.el" (22519 51875 144563
+;;;;;;  929000))
 ;;; Generated autoloads from ac-etags.el
 
 (autoload 'ac-etags-ac-setup "ac-etags" "\

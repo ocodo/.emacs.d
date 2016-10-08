@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-ac-etags
-;; Package-Version: 20151031.1921
+;; Package-Version: 20161001.807
 ;; Version: 0.06
 ;; Package-Requires: ((auto-complete "1.4"))
 
@@ -68,9 +68,14 @@
 (defvar ac-etags--completion-cache (make-hash-table :test 'equal))
 
 (defun ac-etags--cache-candidates (prefix)
-  (let ((candidates (all-completions prefix (tags-completion-table))))
-    (puthash prefix candidates ac-etags--completion-cache)
-    candidates))
+  (let ((candidates
+         (all-completions
+          prefix
+          (with-demoted-errors "%s"
+            (tags-completion-table)))))
+    (when candidates
+      (puthash prefix candidates ac-etags--completion-cache)
+      candidates)))
 
 (defun ac-etags--candidates ()
   (when tags-table-list
