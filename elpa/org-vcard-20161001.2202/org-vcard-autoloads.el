@@ -1,9 +1,10 @@
 ;;; org-vcard-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "org-vcard" "org-vcard.el" (22176 24812 0 0))
+;;;### (autoloads nil "org-vcard" "org-vcard.el" (22519 51659 708259
+;;;;;;  859000))
 ;;; Generated autoloads from org-vcard.el
 
 (autoload 'org-vcard-export "org-vcard" "\
@@ -47,8 +48,8 @@ User command for importing from vCard via Emacs' menu bar.
 
 ;;;***
 
-;;;### (autoloads nil nil ("org-vcard-pkg.el") (22176 24812 753943
-;;;;;;  0))
+;;;### (autoloads nil nil ("org-vcard-pkg.el") (22519 51659 744259
+;;;;;;  910000))
 
 ;;;***
 

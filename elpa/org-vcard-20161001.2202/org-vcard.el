@@ -153,6 +153,8 @@
 
 ;; * Add support for line folding when exporting.
 
+;; * Add support for multiple instances of EMAIL property.
+
 ;; * Add support for vCard PREF for style `flat'.
 
 ;; * Add support for vCard KINDs `group' and `org'.
@@ -255,7 +257,11 @@
 (defvar org-vcard-active-version ""
   "The currently-active version of vCard.")
 
-(defvar org-vcard-compound-properties '("ADR" "N")
+(defvar org-vcard-comma-separated-properties '("CATEGORIES" "NICKNAME")
+  "List of vCard properties which are non-compound and can contain
+one or more values, separated by commas.")
+
+(defvar org-vcard-compound-properties '("ADR" "N" "ORG")
   "List of vCard properties which can have a compound value, i.e.
 a value containing multiple components, with each component
 separated by a semicolon.")
@@ -537,9 +543,13 @@ from VALUE."
       (encode-coding-string (concat
                              property
                              separator
-                             (if (not (member property-name org-vcard-compound-properties))
-                                 (org-vcard-escape-value-string '("," ";" "\134") value)
+                             (cond
+                              ((member property-name org-vcard-comma-separated-properties)
+                               (org-vcard-escape-value-string '(";" "\134") value))
+                              ((member property-name org-vcard-compound-properties)
                                (org-vcard-escape-value-string '("," "\134") value))
+                              (t
+                               (org-vcard-escape-value-string '("," ";" "\134") value)))
                              "\u000D\u000A")
                             'utf-8))
      ((string= org-vcard-active-version "3.0")
@@ -549,9 +559,13 @@ from VALUE."
       (encode-coding-string (concat
                              property
                              separator
-                             (if (not (member property-name org-vcard-compound-properties))
-                                 (org-vcard-escape-value-string '("," ";") value)
-                               (org-vcard-escape-value-string '(",") value))
+                             (cond
+                              ((member property-name org-vcard-comma-separated-properties)
+                               (org-vcard-escape-value-string '(";" "\134") value))
+                              ((member property-name org-vcard-compound-properties)
+                               (org-vcard-escape-value-string '("," "\134") value))
+                              (t
+                               (org-vcard-escape-value-string '("," ";" "\134") value)))
                              "\015\012")
                             'utf-8))
      ((string= org-vcard-active-version "2.1")
