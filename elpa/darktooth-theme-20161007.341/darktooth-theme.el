@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20160929.1724
-;; Version: 0.1.49
+;; Package-Version: 20161007.341
+;; Version: 0.1.50
 
 ;;; Commentary:
 ;;  Color theme for Emacs, when soothe and gruvbox collide.
@@ -217,6 +217,17 @@
 
    ;; highlight-symbol
    `(highlight-symbol-face                     ((t (:foreground ,darktooth-neutral_purple))))
+
+   ;; hi-lock
+   `(hi-blue                                   ((t(:foreground ,darktooth-dark0_hard :background ,darktooth-bright_blue ))))
+   `(hi-green                                  ((t(:foreground ,darktooth-dark0_hard :background ,darktooth-bright_green ))))
+   `(hi-pink                                   ((t(:foreground ,darktooth-dark0_hard :background ,darktooth-bright_purple ))))
+   `(hi-yellow                                 ((t(:foreground ,darktooth-dark0_hard :background ,darktooth-bright_yellow ))))
+   `(hi-blue-b                                 ((t(:foreground ,darktooth-bright_blue :bold t ))))
+   `(hi-green-b                                ((t(:foreground ,darktooth-bright_green :bold t ))))
+   `(hi-red-b                                  ((t(:foreground ,darktooth-bright_red :bold t  ))))
+   `(hi-black-b                                ((t(:foreground ,darktooth-bright_orange :background ,darktooth-dark0_hard :bold t  ))))
+   `(hi-black-hb                               ((t(:foreground ,darktooth-bright_cyan :background ,darktooth-dark0_hard :bold t  ))))
 
    ;; Smartparens
    `(sp-pair-overlay-face                      ((t (:background ,darktooth-dark2))))
