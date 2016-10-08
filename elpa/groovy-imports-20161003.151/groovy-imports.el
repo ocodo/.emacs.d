@@ -4,8 +4,8 @@
 
 ;; Author: Miro Bezjak
 ;; URL: http://www.github.com/mbezjak/emacs-groovy-imports
-;; Package-Version: 20160920.237
-;; Version: 0.1
+;; Package-Version: 20161003.151
+;; Version: 1.0
 ;; Keywords: groovy
 ;; Package-Requires: ((emacs "24.4") (s "1.10.0") (pcache "0.3.2"))
 

@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "groovy-imports" "groovy-imports.el" (22507
-;;;;;;  31240 65224 149000))
+;;;### (autoloads nil "groovy-imports" "groovy-imports.el" (22519
+;;;;;;  51774 956422 323000))
 ;;; Generated autoloads from groovy-imports.el
 
 (autoload 'groovy-imports-scan-file "groovy-imports" "\
