@@ -112,6 +112,7 @@ Stripping them will produce code that's valid for an eval."
   (let ((proc-name "Python Internal[lispy]"))
     (if (process-live-p proc-name)
         (get-process proc-name)
+      (setq lispy--python-middleware-loaded-p nil)
       (let ((python-shell-font-lock-enable nil)
             (inferior-python-mode-hook nil))
         (get-buffer-process
@@ -211,6 +212,8 @@ Stripping them will produce code that's valid for an eval."
     (nreverse res)))
 
 (defun lispy--python-debug-step-in ()
+  (re-search-forward "(" (line-end-position))
+  (backward-char)
   (let* ((p-ar-beg (point))
          (p-ar-end (save-excursion
                      (forward-list)
@@ -278,13 +281,28 @@ Stripping them will produce code that's valid for an eval."
       (goto-char p-ar-beg)
       (message lispy-eval-error))))
 
-(defun lispy-goto-symbol-python (_symbol)
+(defun lispy-goto-symbol-python (symbol)
   (save-restriction
     (widen)
-    (deferred:sync!
-        (jedi:goto-definition))
-    (unless (looking-back "def " (line-beginning-position))
-      (jedi:goto-definition))))
+    (let ((res (ignore-errors (deferred:sync!
+                                  (jedi:goto-definition)))))
+      (if (member res '(nil "Definition not found."))
+          (let* ((symbol (python-info-current-symbol))
+                 (file (car
+                        (lispy--python-array-to-elisp
+                         (lispy--eval-python
+                          (format
+                           "import inspect\ninspect.getsourcefile(%s)" symbol))))))
+            (if file
+                (progn
+                  (find-file file)
+                  (goto-char (point-min))
+                  (re-search-forward
+                   (concat "^def.*" (car (last (split-string symbol "\\." t)))))
+                  (beginning-of-line))
+              (error "Both jedi and inspect failed")))
+        (unless (looking-back "def " (line-beginning-position))
+          (jedi:goto-definition))))))
 
 (defun lispy--python-docstring (symbol)
   "Look up the docstring for SYMBOL.
@@ -302,6 +320,28 @@ Otherwise, fall back to Jedi (static)."
       (plist-get (car (deferred:sync!
                           (jedi:call-deferred 'get_definition)))
                  :doc))))
+
+(defvar lispy--python-middleware-loaded-p nil
+  "Nil if the Python middleware in \"lispy-python.py\" wasn't loaded yet.")
+
+(defun lispy--python-middleware-load ()
+  "Load the custom Python code in \"lispy-python.py\"."
+  (unless lispy--python-middleware-loaded-p
+    (lispy--eval-python
+     (format "import imp;lp=imp.load_source('lispy-python','%s')"
+             (expand-file-name "lispy-python.py" lispy-site-directory)))
+    (setq lispy--python-middleware-loaded-p t)))
+
+(defun lispy--python-arglist (symbol)
+  (lispy--python-middleware-load)
+  (format "%s (%s)"
+          symbol
+          (mapconcat #'identity
+                     (delete "self"
+                             (lispy--python-array-to-elisp
+                              (lispy--eval-python
+                               (format "lp.arglist(%s)" symbol))))
+                     ", ")))
 
 (provide 'le-python)
 

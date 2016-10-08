@@ -4000,7 +4000,7 @@ When ARG is 2, insert the result as a comment."
 
 (defun lispy-forward-outline ()
   (let ((pt (point)))
-    (outline-next-visible-heading 1)
+    (outline-next-heading)
     (if (looking-at lispy-outline)
         (when (> (point) pt)
           (point))
@@ -5048,10 +5048,15 @@ Second region and buffer are the current ones."
                                (cons x!
                                      (let ((expr x!))
                                        (edebug-eval expr))))
-                             (delq '&key
-                                   (delq '&optional
-                                         (delq '&rest
-                                               (lispy--preceding-sexp))))))
+                             (mapcar (lambda (x)
+                                       (if (consp x)
+                                           (car x)
+                                         x))
+                                     (delq '&allow-other-keys
+                                           (delq '&key
+                                                 (delq '&optional
+                                                       (delq '&rest
+                                                             (lispy--preceding-sexp))))))))
                            (wnd (current-window-configuration))
                            (pt (point)))
                        (run-with-timer
@@ -8087,6 +8092,7 @@ FUNC is obtained from (`lispy--insert-or-call' DEF PLIST)."
     map))
 (eldoc-remove-command 'special-lispy-eval)
 (eldoc-remove-command 'special-lispy-x)
+(eldoc-add-command 'lispy-space)
 
 ;;* Parinfer compat
 (defun lispy--auto-wrap (func arg preceding-syntax-alist)

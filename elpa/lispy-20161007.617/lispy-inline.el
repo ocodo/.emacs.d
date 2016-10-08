@@ -120,7 +120,13 @@ The caller of `lispy--show' might use a substitute e.g. `describe-function'."
   "Display arglist for `lispy--current-function' inline."
   (interactive)
   (save-excursion
-    (lispy--back-to-paren)
+    (if (eq major-mode 'python-mode)
+        (let ((pt (point)))
+          (condition-case nil
+              (up-list -1)
+            (error (goto-char pt)))
+          (re-search-backward "\\_<" (line-beginning-position)))
+      (lispy--back-to-paren))
     (unless (and (prog1 (lispy--cleanup-overlay)
                    (when (window-minibuffer-p)
                      (window-resize (selected-window) -1)))
@@ -140,6 +146,12 @@ The caller of `lispy--show' might use a substitute e.g. `describe-function'."
              (require 'le-lisp)
              (setq lispy-hint-pos (point))
              (lispy--show (lispy--lisp-args (lispy--current-function))))
+
+            ((eq major-mode 'python-mode)
+             (require 'le-python)
+             (setq lispy-hint-pos (point))
+             (lispy--show (lispy--python-arglist
+                           (python-info-current-symbol))))
 
             (t (error "%s isn't supported currently" major-mode))))))
 
@@ -191,7 +203,7 @@ Return t if at least one was deleted."
             (setq lispy-hint-pos new-hint-pos)
             (when (setq doc (lispy--docstring (lispy--current-function)))
               (goto-char lispy-hint-pos)
-              (lispy--show (propertize doc 'face 'lispy-face-hint))))))
+              (lispy--show (string-trim-right doc))))))
     (error
      (lispy--cleanup-overlay))))
 
@@ -291,10 +303,14 @@ Return t if at least one was deleted."
 
 (defun lispy--join-pad (strs width)
   "Join STRS padding each line with WIDTH spaces."
-  (let ((padding (make-string width ?\ )))
-    (mapconcat (lambda (x) (concat padding x))
-               strs
-               "\n")))
+  (let* ((maxw (apply #'max (mapcar #'length strs)))
+         (padding (make-string width ?\ ))
+         (fstring (format "%%- %ds" maxw)))
+    (mapconcat
+     (lambda (x)
+       (concat padding (propertize (format fstring x) 'face 'lispy-face-hint)))
+     strs
+     "\n")))
 
 (defun lispy--show-fits-p (str)
   "Return nil if window isn't large enough to display STR whole."
