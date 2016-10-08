@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/zone-nyan
-;; Package-Version: 20160102.1456
+;; Package-Version: 20160928.2303
 ;; Version: 0.2.2
 ;; Package-Requires: ((esxml "0.3.1"))
 ;; Keywords: zone
@@ -729,6 +729,11 @@ vector with a X and Y component, width, height and fill color."
   :type '(repeat string)
   :group 'zone-nyan)
 
+(defcustom zone-nyan-hide-progress nil
+  "Won't report progress information if set."
+  :type 'boolean
+  :group 'zone-nyan)
+
 (defvar zone-nyan-bg-music-process nil
   "Current BG music process.")
 
@@ -743,8 +748,9 @@ It fires every 100ms.")
   "Progress function.
 It informs the user just how many seconds they've wasted on
 watching nyan cat run."
-  (message "You've nyaned for %.1f seconds"
-           (/ zone-nyan-progress 10.0))
+  (unless zone-nyan-hide-progress
+    (message "You've nyaned for %.1f seconds"
+             (/ zone-nyan-progress 10.0)))
   (setq zone-nyan-progress (1+ zone-nyan-progress)))
 
 ;;;###autoload

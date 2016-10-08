@@ -1,10 +1,10 @@
 ;;; zone-nyan-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "zone-nyan" "zone-nyan.el" (22160 38719 503870
-;;;;;;  394000))
+;;;### (autoloads nil "zone-nyan" "zone-nyan.el" (22519 51603 188180
+;;;;;;  387000))
 ;;; Generated autoloads from zone-nyan.el
 
 (autoload 'zone-nyan "zone-nyan" "\
