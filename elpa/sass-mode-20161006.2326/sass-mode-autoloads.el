@@ -1,10 +1,10 @@
 ;;; sass-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "sass-mode" "sass-mode.el" (22318 43473 301330
-;;;;;;  26000))
+;;;### (autoloads nil "sass-mode" "sass-mode.el" (22519 51643 136236
+;;;;;;  542000))
 ;;; Generated autoloads from sass-mode.el
 
 (autoload 'sass-mode "sass-mode" "\

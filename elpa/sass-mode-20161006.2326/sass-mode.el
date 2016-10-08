@@ -4,7 +4,7 @@
 
 ;; Author: Natalie Weizenbaum
 ;; URL: http://github.com/nex3/haml/tree/master
-;; Package-Version: 20160506.2045
+;; Package-Version: 20161006.2326
 ;; Version: 3.0.16
 ;; Created: 2007-03-15
 ;; By: Natalie Weizenbaum
@@ -44,6 +44,16 @@
 (defcustom sass-indent-offset 2
   "Amount of offset per level of indentation."
   :type 'integer
+  :group 'sass)
+
+(defcustom sass-command-options nil
+  "Options to pass to the `sass' command."
+  :type '(repeat string)
+  :group 'sass)
+
+(defcustom sass-before-eval-hook nil
+  "Hook run in the buffer used as input to the `sass' command."
+  :type 'hook
   :group 'sass)
 
 (defvar sass-non-block-openers
@@ -237,8 +247,12 @@ Called from a program, START and END specify the region to indent."
            (with-temp-buffer
              (insert region-contents)
              (newline-and-indent)
+             (run-hooks 'sass-before-eval-hook)
              (sass--remove-leading-indent)
-             (shell-command-on-region (point-min) (point-max) "sass --stdin"
+             (shell-command-on-region (point-min)
+                                      (point-max)
+                                      (mapconcat #'identity
+                                                 (append '("sass") sass-command-options '("--stdin")) " ")
                                       output-buffer
                                       nil
                                       errors-buffer
