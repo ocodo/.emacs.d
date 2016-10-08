@@ -327,7 +327,7 @@
 		  ((:keywords "convenience")
 		   (:url . "https://github.com/ergoemacs/ergoemacs-mode"))])
  (excorporate .
-	      [(0 7 5)
+	      [(0 7 6)
 	       ((emacs
 		 (24 1))
 		(fsm
@@ -335,7 +335,7 @@
 		(soap-client
 		 (3 1 1))
 		(url-http-ntlm
-		 (2 0 2)))
+		 (2 0 3)))
 	       "Exchange integration" tar
 	       ((:keywords "calendar")
 		(:url . "http://elpa.gnu.org/packages/excorporate.html"))])
@@ -604,7 +604,7 @@
 	      nil "Indexing system for on-line note-taking" tar
 	      ((:url . "http://elpa.gnu.org/packages/notes-mode.html"))])
  (ntlm .
-       [(2 0 0)
+       [(2 1 0)
 	nil "NTLM (NT LanManager) authentication support" single
 	((:url . "http://elpa.gnu.org/packages/ntlm.html")
 	 (:keywords "ntlm" "sasl" "comm"))])
@@ -878,11 +878,11 @@
 		   nil "Unicode confusables table" tar
 		   ((:url . "http://elpa.gnu.org/packages/uni-confusables.html"))])
  (url-http-ntlm .
-		[(2 0 2)
+		[(2 0 3)
 		 ((cl-lib
 		   (0 5))
 		  (ntlm
-		   (2 0 0)))
+		   (2 1 0)))
 		 "NTLM authentication for the url library" single
 		 ((:url . "http://elpa.gnu.org/packages/url-http-ntlm.html")
 		  (:keywords "comm" "data" "processes" "hypermedia"))])
