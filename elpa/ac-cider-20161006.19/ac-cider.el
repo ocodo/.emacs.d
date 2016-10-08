@@ -1,13 +1,13 @@
 ;;; ac-cider.el --- Clojure auto-complete sources using CIDER
 
-;; Copyright (C) 2012-2015 Alex Yakushev <alex@bytopia.org>
+;; Copyright (C) 2012-2016 Alex Yakushev <alex@bytopia.org>
 
 ;; Author: Alex Yakushev <alex@bytopia.org>
 ;;         Steve Purcell <steve@sanityinc.com>
 ;;         Sam Aaron <samaaron@gmail.com>
 ;;
 ;; URL: https://github.com/clojure-emacs/ac-cider
-;; Package-Version: 20160810.2358
+;; Package-Version: 20161006.19
 ;; Keywords: languages, clojure, nrepl, cider, compliment
 ;; Version: 0.2.3
 ;; Package-Requires: ((cider "0.8.0") (auto-complete "1.4") (cl-lib "0.3"))
@@ -28,7 +28,7 @@
 ;;; Commentary:
 
 ;; Provides a number of auto-complete sources for Clojure projects using CIDER
-;; and compliment. This is a replacement for now deprecated ac-nrepl project by
+;; and compliment.  This is a replacement for now deprecated ac-nrepl project by
 ;; Steve Purcell.
 
 ;;; Installation:
