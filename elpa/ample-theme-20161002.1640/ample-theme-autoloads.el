@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ample-flat-theme" "ample-flat-theme.el" (22507
-;;;;;;  31630 765229 228000))
+;;;### (autoloads nil "ample-flat-theme" "ample-flat-theme.el" (22519
+;;;;;;  51857 452538 902000))
 ;;; Generated autoloads from ample-flat-theme.el
 
 (when load-file-name (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
@@ -17,7 +17,7 @@ Apply the ample-flat-theme.
 ;;;***
 
 ;;;### (autoloads nil "ample-light-theme" "ample-light-theme.el"
-;;;;;;  (22507 31630 761229 228000))
+;;;;;;  (22519 51857 448538 897000))
 ;;; Generated autoloads from ample-light-theme.el
 
 (when load-file-name (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
@@ -29,8 +29,8 @@ Apply the ample-light-theme.
 
 ;;;***
 
-;;;### (autoloads nil "ample-theme" "ample-theme.el" (22507 31630
-;;;;;;  757229 228000))
+;;;### (autoloads nil "ample-theme" "ample-theme.el" (22519 51857
+;;;;;;  448538 897000))
 ;;; Generated autoloads from ample-theme.el
 
 (when load-file-name (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
@@ -42,8 +42,8 @@ Apply the ample-theme.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ample-theme-pkg.el") (22507 31630 765229
-;;;;;;  228000))
+;;;### (autoloads nil nil ("ample-theme-pkg.el") (22519 51857 452538
+;;;;;;  902000))
 
 ;;;***
 

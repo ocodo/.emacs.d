@@ -1,23 +1,23 @@
-;;; ample-theme.el --- Calm Dark Theme for Emacs
+;;; ample-light-theme.el --- Calm Light Theme for Emacs
 ;;
-;; Filename: ample-theme.el
-;; Description: Dark version of the ample themes.
+;; Filename: ample-light-theme.el
+;; Description: Light version of the ample themes.
 ;; Author: Jordon Biondo <jordonbiondo@gmail.com>
 ;; Created: Wed Jul 24 01:04:58 2013 (-0400)
 ;; Version: 0.3.0
-;; Last-Updated: Mon Nov  3 11:16:26 2014 (-0500)
+;; Last-Updated: Mon Nov  3 11:16:30 2014 (-0500)
 ;;           By: Jordon Biondo
-;;     Update #: 29
+;;     Update #: 33
 ;; URL: https://github.com/jordonbiondo/ample-theme
-;; Keywords: theme, dark
+;; Keywords: theme, light, ample
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
 ;;
-;;  ample-theme is part of the ample themes, a collection of 3 themes
+;;  ample-light-theme is part of the ample themes, a collection of 3 themes
 ;;  sharing a similar pallet with a light, dark, and flat version.
 ;;
-;;  Ample-theme is a calm dark theme with a focus on being easy on the eyes
+;;  Ample-light-theme is a calm light theme with a focus on being easy on the eyes
 ;;  during night and day.
 ;;
 ;;  Terminals with 256 colors and up will display this theme correctly.
@@ -42,49 +42,52 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Code:
-(deftheme ample "A smooth dark theme.")
+(deftheme ample-light "A smooth light theme to pair with ample-dark.")
 
 ;; Not a bad idea to define a palette...
-(let ((ample/green "#6aaf50")
-      (ample/dark-green "#057f40")
-      (ample/blue "#5180b3")
-      (ample/blue-bg "#102843")
-      (ample/light-blue "#528fd1")
-      (ample/lighter-blue "#68a5e9")
-      (ample/orange "#dF9522")
-      (ample/tan "#bdbc61")
-      (ample/dark-tan "#7d7c61")
-      (ample/yellow "#baba36")
-      (ample/bright-yellow "#fffe0a")
-      (ample/purple "#ab75c3")
-      (ample/gray "#757575")
-      (ample/dark-gray "#656565")
-      (ample/darker-gray "#454545")
-      (ample/darkest-gray "#252525")
-      (ample/brown "#987654")
-      (ample/red "#cd5542")
-      (ample/dark-red "#9d2512")
+(let* ((ample/green "#4A8F30")
+       (ample/dark-green "#057F40")
+       (ample/light-green-bg "#BBC8A1")
+       (ample/blue "#4170B3")
+       (ample/light-blue "#528FD1")
+       (ample/light-blue-bg "#BBB9B1")
+       (ample/lighter-blue "#68A5E9")
+       (ample/orange "#FF8512")
+       (ample/tan "#5D5C01")
+       (ample/dark-tan "#7D7C21")
+       (ample/yellow "#787800")
+       (ample/bright-yellow "#BFBE6A")
+       (ample/purple "#9B55C3")
+       (ample/gray "#959595")
+       (ample/dark-gray "#959595")
+       (ample/darker-gray "#757575")
+       (ample/darkest-gray "#252525")
+       (ample/red "#CD5542")
+       (ample/dark-red "#9D2512")
+       (ample/light-red-bg "#CAB9A1")
 
-      (ample/cursor "#f57e00")
-      (ample/fringe "#1f1f1f")
-      (ample/region "#303030")
+       (ample/cursor "#F57E00")
+       (ample/fringe "#CBC9B1")
 
-      (ample/rb0 "#81b0e3")
-      (ample/rb1 "#a5a5a5")
-      (ample/rb2 "#6190c3")
-      (ample/rb3 "#959595")
-      (ample/rb4 "#4170a3")
-      (ample/rb5 "#757575")
+       (ample/region "#BBB9A1")
+       (ample/region-dark "#ABA991")
+       (ample/region-light "#d2d0b1")
+       
+       (ample/rb0 "#215083")
+       (ample/rb1 "#555555")
+       (ample/rb2 "#515003")
+       (ample/rb3 "#555555")
+       (ample/rb4 "#215083")
+       (ample/rb5 "#515003")
 
-      (ample/bg "gray13")
-      (ample/fg "#bdbdb3"))
-
+       (ample/bg "#cBc9b1")
+       (ample/fg "gray43"))
 
 
 
   ;; Set faces
   (custom-theme-set-faces
-   `ample ;; you must use the same theme name here...
+   `ample-light ;; you must use the same theme name here...
    `(default ((t (:foreground ,ample/fg :background ,ample/bg))))
    `(cursor  ((t (:foreground ,ample/bg :background ,ample/cursor))))
    `(fringe  ((t (:background ,ample/fringe))))
@@ -106,16 +109,13 @@
    `(font-lock-doc-face			((t (:foreground ,ample/dark-tan))))
 
    ;; mode line & powerline
-   `(powerline-active1   ((t (:background ,ample/darkest-gray :foreground "cornsilk4"))))
-   `(powerline-active2   ((t (:background "cornsilk4" :foreground ,ample/darkest-gray ))))
-   `(powerline-inactive1 ((t (:background ,ample/bg :foreground "cornsilk4"))))
-   `(powerline-inactive2 ((t (:background ,ample/darker-gray :foreground "cornsilk4" ))))
-   `(mode-line-inactive  ((t (:background ,ample/darker-gray :foreground "cornsilk4"))))
-   `(mode-line           ((t (:background "cornsilk4" :foreground ,ample/darkest-gray))))
+   `(powerline-active1	((t (:foreground ,ample/darkest-gray))))
+   `(mode-line-inactive ((t (:background ,ample/region-dark :foreground ,ample/bg))))
+   `(mode-line		((t (:background ,ample/region :foreground ,ample/fg))))
 
    `(linum ((t (:background nil :foreground ,ample/gray))))
 
-   `(popup-tip-face ((t (:background ,ample/fg :foreground ,ample/bg))))
+   `(popup-tip-face ((t (:background ,ample/region-dark :foreground ,ample/dark-tan))))
 
    `(header-line ((t (:background ,ample/fg :foreground ,ample/bg))))
 
@@ -129,22 +129,22 @@
    `(evil-search-highlight-persist-highlight-face ((t (:background ,ample/blue :foreground ,ample/bg))))
 
    ;; ace-jump
-   `(ace-jump-face-background ((t (:inherit font-lock-comment-face))))
-   `(ace-jump-face-foreground ((t (:foreground ,ample/orange))))
+   `(ace-jump-face-background ((t (:inherit font-lock-comment-face :background nil))))
+   `(ace-jump-face-foreground ((t (:foreground ,ample/purple :bold t :background nil))))
 
    `(avy-background-face  ((t (:foreground ,ample/dark-gray :background nil))))
-   `(avy-lead-face  ((t (:foreground ,ample/fg :background ,ample/dark-red))))
-   `(avy-lead-face-0  ((t (:foreground ,ample/fg :background ,ample/blue))))
-   `(avy-lead-face-1  ((t (:foreground ,ample/bg :background ,ample/fg))))
+   `(avy-lead-face  ((t (:foreground "white" :background ,ample/purple))))
+   `(avy-lead-face-0  ((t (:foreground "white" :background ,ample/blue))))
+   `(avy-lead-face-1  ((t (:foreground "white" :background ,ample/fg))))
 
    `(vertical-border ((t (:background ,ample/darker-gray :foreground ,ample/darkest-gray))))
 
-   `(hl-line ((t (:background "#1f1f1f"))))
+   `(hl-line ((t (:background ,ample/region-light))))
 
    `(highlight-indentation-face ((t (:background ,ample/darkest-gray))))
 
    ;; mini buff
-   `(minibuffer-prompt ((t (:foreground ,ample/bright-yellow :bold t :background nil))))
+   `(minibuffer-prompt ((t (:foreground ,ample/purple :bold t :background nil))))
 
 
    `(compilation-error		((t (:foreground ,ample/red :bold t))))
@@ -165,8 +165,8 @@
    `(erc-nick-default-face ((t (:foreground ,ample/blue))))
    `(erc-my-nick-face ((t (:foreground ,ample/yellow))))
    `(erc-current-nick-face ((t (:foreground ,ample/light-blue))))
-   `(erc-notice-face ((t (:foreground ,ample/green))))
-   `(erc-input-face ((t (:foreground "white"))))
+   `(erc-notice-face ((t (:inherit font-lock-comment-face))))
+   `(erc-input-face ((t (:foreground ,ample/fg :background nil :underline nil :box nil))))
    `(erc-timestamp-face ((t (:foreground ,ample/darker-gray))))
    `(erc-prompt-face ((t (:foreground "#191919" :background ,ample/purple))))
 
@@ -189,8 +189,6 @@
    `(ido-first-match		((t (:foreground ,ample/blue))))
    `(ido-incomplete-regexp	((t (:foreground ,ample/red))))
    `(ido-subdir			((t (:foreground ,ample/yellow))))
-   ;; flx-ido
-   `(flx-highlight-face         ((t (:foreground ,ample/lighter-blue :background nil :underline nil :bold t))))
 
    ;;js2
    `(js2-external-variable		((t (:foreground ,ample/orange :background nil))))
@@ -206,57 +204,57 @@
    `(js2-warning			((t (:foreground nil :background nil :underline ,ample/orange))))
 
    ;;web-mode
-   `(web-mode-block-attr-name-face		((t (:foreground "#8fbc8f" :background nil))))
-   `(web-mode-block-attr-value-face		((t (:inherit font-lock-string-face))))
-   `(web-mode-block-comment-face		((t (:inherit font-lock-comment-face))))
-   `(web-mode-block-control-face		((t (:inherit font-lock-preprocessor-face))))
-   `(web-mode-block-delimiter-face		((t (:inherit font-lock-preprocessor-face))))
-   `(web-mode-block-face			((t (:foreground nil :background "LightYellow1"))))
-   `(web-mode-block-string-face			((t (:inherit font-lock-string-face))))
-   `(web-mode-builtin-face			((t (:inherit font-lock-builtin-face))))
-   `(web-mode-comment-face			((t (:inherit font-lock-comment-face))))
-   `(web-mode-comment-keyword-face		((t (:foreground nil :background nil :bold t))))
-   `(web-mode-constant-face			((t (:foreground ,ample/purple :background nil))))
-   `(web-mode-css-at-rule-face			((t (:foreground ,ample/purple :background nil))))
-   `(web-mode-css-color-face			((t (:foreground ,ample/light-blue :background nil))))
-   `(web-mode-css-comment-face			((t (:inherit font-lock-comment-face))))
-   `(web-mode-css-function-face			((t (:foreground ,ample/light-blue :background nil))))
-   `(web-mode-css-priority-face			((t (:foreground ,ample/light-blue :background nil))))
-   `(web-mode-css-property-name-face		((t (:inherit font-lock-variable-name-face))))
-   `(web-mode-css-pseudo-class-face		((t (:foreground ,ample/light-blue :background nil))))
-   `(web-mode-css-selector-face			((t (:foreground ,ample/blue :background nil))))
-   `(web-mode-css-string-face			((t (:foreground ,ample/tan :background nil))))
-   `(web-mode-current-element-highlight-face	((t (:foreground nil :background "#000000"))))
-   `(web-mode-doctype-face			((t (:inherit font-lock-doc-face))))
-   `(web-mode-error-face			((t (:inherit error))))
-   `(web-mode-folded-face			((t (:foreground nil :background nil :underline t))))
-   `(web-mode-function-call-face		((t (:inherit font-lock-function-name-face))))
-   `(web-mode-function-name-face		((t (:inherit font-lock-function-name-face))))
-   `(web-mode-html-attr-custom-face		((t (:inherit font-lock-comment-face))))
-   `(web-mode-html-attr-equal-face		((t (:inherit font-lock-comment-face))))
-   `(web-mode-html-attr-name-face		((t (:inherit font-lock-comment-face))))
-   `(web-mode-html-attr-value-face		((t (:inherit font-lock-string-face))))
-   `(web-mode-html-tag-bracket-face		((t (:inherit font-lock-comment-face))))
-   `(web-mode-html-tag-custom-face		((t (:inherit font-lock-comment-face))))
-   `(web-mode-html-tag-face			((t (:inherit font-lock-comment-face))))
-   `(web-mode-javascript-comment-face		((t (:inherit font-lock-comment-face))))
-   `(web-mode-javascript-string-face		((t (:inherit font-lock-string-face))))
-   `(web-mode-json-comment-face			((t (:inherit font-lock-comment-face))))
-   `(web-mode-json-context-face			((t (:foreground "orchid3" :background nil))))
-   `(web-mode-json-key-face			((t (:foreground "plum" :background nil))))
-   `(web-mode-json-string-face			((t (:inherit font-lock-string-face))))
-   `(web-mode-keyword-face			((t (:inherit font-lock-keyword-face))))
-   `(web-mode-param-name-face			((t (:foreground "Snow3" :background nil))))
-   `(web-mode-part-comment-face			((t (:inherit font-lock-comment-face))))
-   `(web-mode-part-face				((t (:foreground nil :background "LightYellow1"))))
-   `(web-mode-part-string-face			((t (:inherit font-lock-string-face))))
-   `(web-mode-preprocessor-face			((t (:inherit font-lock-preprocessor-face))))
-   `(web-mode-string-face			((t (:inherit font-lock-string-face))))
-   `(web-mode-symbol-face			((t (:foreground "gold" :background nil))))
-   `(web-mode-type-face				((t (:inherit font-lock-type-face))))
-   `(web-mode-variable-name-face		((t (:inherit font-lock-variable-name-face))))
-   `(web-mode-warning-face			((t (:inherit font-lock-warning-face))))
-   `(web-mode-whitespace-face			((t (:foreground nil :background "DarkOrchid4"))))
+   `(web-mode-block-attr-name-face              ((t (:foreground "#8fbc8f" :background nil))))
+   `(web-mode-block-attr-value-face             ((t (:inherit font-lock-string-face))))
+   `(web-mode-block-comment-face                ((t (:inherit font-lock-comment-face))))
+   `(web-mode-block-control-face                ((t (:inherit font-lock-preprocessor-face))))
+   `(web-mode-block-delimiter-face              ((t (:inherit font-lock-preprocessor-face))))
+   `(web-mode-block-face                        ((t (:foreground nil :background "LightYellow1"))))
+   `(web-mode-block-string-face                 ((t (:inherit font-lock-string-face))))
+   `(web-mode-builtin-face                      ((t (:inherit font-lock-builtin-face))))
+   `(web-mode-comment-face                      ((t (:inherit font-lock-comment-face))))
+   `(web-mode-comment-keyword-face              ((t (:foreground nil :background nil :bold t))))
+   `(web-mode-constant-face                     ((t (:foreground ,ample/purple :background nil))))
+   `(web-mode-css-at-rule-face                  ((t (:foreground ,ample/purple :background nil))))
+   `(web-mode-css-color-face                    ((t (:foreground ,ample/light-blue :background nil))))
+   `(web-mode-css-comment-face                  ((t (:inherit font-lock-comment-face))))
+   `(web-mode-css-function-face                 ((t (:foreground ,ample/light-blue :background nil))))
+   `(web-mode-css-priority-face                 ((t (:foreground ,ample/light-blue :background nil))))
+   `(web-mode-css-property-name-face            ((t (:inherit font-lock-variable-name-face))))
+   `(web-mode-css-pseudo-class-face             ((t (:foreground ,ample/light-blue :background nil))))
+   `(web-mode-css-selector-face                 ((t (:foreground ,ample/blue :background nil))))
+   `(web-mode-css-string-face                   ((t (:foreground ,ample/tan :background nil))))
+   `(web-mode-current-element-highlight-face    ((t (:foreground nil :background "#000000"))))
+   `(web-mode-doctype-face                      ((t (:inherit font-lock-doc-face))))
+   `(web-mode-error-face                        ((t (:inherit error))))
+   `(web-mode-folded-face                       ((t (:foreground nil :background nil :underline t))))
+   `(web-mode-function-call-face                ((t (:inherit font-lock-function-name-face))))
+   `(web-mode-function-name-face                ((t (:inherit font-lock-function-name-face))))
+   `(web-mode-html-attr-custom-face             ((t (:inherit font-lock-comment-face))))
+   `(web-mode-html-attr-equal-face              ((t (:inherit font-lock-comment-face))))
+   `(web-mode-html-attr-name-face               ((t (:inherit font-lock-keyword-face))))
+   `(web-mode-html-attr-value-face              ((t (:inherit font-lock-string-face))))
+   `(web-mode-html-tag-bracket-face             ((t (:inherit font-lock-comment-face))))
+   `(web-mode-html-tag-custom-face              ((t (:inherit font-lock-comment-face))))
+   `(web-mode-html-tag-face                     ((t (:inherit font-lock-comment-face ))))
+   `(web-mode-javascript-comment-face           ((t (:inherit font-lock-comment-face))))
+   `(web-mode-javascript-string-face            ((t (:inherit font-lock-string-face))))
+   `(web-mode-json-comment-face                 ((t (:inherit font-lock-comment-face))))
+   `(web-mode-json-context-face                 ((t (:foreground "orchid3" :background nil))))
+   `(web-mode-json-key-face                     ((t (:foreground "plum" :background nil))))
+   `(web-mode-json-string-face                  ((t (:inherit font-lock-string-face))))
+   `(web-mode-keyword-face                      ((t (:inherit font-lock-keyword-face))))
+   `(web-mode-param-name-face                   ((t (:foreground "Snow3" :background nil))))
+   `(web-mode-part-comment-face                 ((t (:inherit font-lock-comment-face))))
+   `(web-mode-part-face                         ((t (:foreground nil :background "LightYellow1"))))
+   `(web-mode-part-string-face                  ((t (:inherit font-lock-string-face))))
+   `(web-mode-preprocessor-face                 ((t (:inherit font-lock-preprocessor-face))))
+   `(web-mode-string-face                       ((t (:inherit font-lock-string-face))))
+   `(web-mode-symbol-face                       ((t (:foreground "gold" :background nil))))
+   `(web-mode-type-face                         ((t (:inherit font-lock-type-face))))
+   `(web-mode-variable-name-face                ((t (:inherit font-lock-variable-name-face))))
+   `(web-mode-warning-face                      ((t (:inherit font-lock-warning-face))))
+   `(web-mode-whitespace-face                   ((t (:foreground nil :background "DarkOrchid4"))))
 
    ;; helm
    `(helm-M-x-key			((t (:foreground ,ample/orange :underline nil))))
@@ -291,24 +289,24 @@
    ;;`(helm-history-remote		((t ())))
    ;;`(helm-lisp-completion-info	((t ())))
    ;;`(helm-lisp-show-completion	((t ())))
-   `(helm-match				((t (:foreground ,ample/blue :background ,ample/darkest-gray))))
+   `(helm-match				((t (:foreground ,ample/fg :background ,ample/light-green-bg))))
    ;;`(helm-moccur-buffer		((t ())))
-   `(helm-selection			((t (:foreground ,ample/yellow :background ,ample/region :bold t))))
+   `(helm-selection			((t (:foreground ,ample/red :background ,ample/light-green-bg :bold t))))
    ;;`(helm-selection-line		((t ())))
    ;;`(helm-separator			((t ())))
-   `(helm-source-header			((t (:foreground ,ample/darkest-gray :background ,ample/blue))))
-   `(helm-visible-mark		        ((t (:foreground ,ample/bg :background ,ample/green))))
+   `(helm-source-header			((t (:foreground ,ample/darkest-gray :background ,ample/region-dark))))
+   ;;`(helm-visible-mark		((t ())))
 
    ;; jabber
    `(jabber-activity-face		((t (:inherit font-lock-variable-name-face :bold t))))
    `(jabber-activity-personal-face	((t (:inherit font-lock-function-name-face :bold t))))
    `(jabber-chat-error			((t (:inherit error :bold t))))
-   `(jabber-chat-prompt-foreign		((t (:foreground ,ample/green  :background nil :underline nil :bold t))))
-   `(jabber-chat-prompt-local		((t (:foreground ,ample/light-blue   :background nil :underline nil :bold t))))
-   `(jabber-chat-prompt-system		((t (:foreground ,ample/yellow :background nil :underline nil :bold t))))
-   `(jabber-chat-text-foreign		((t (:inherit default :background nil))))
-   `(jabber-chat-text-local		((t (:inherit default :bold t))))
-   `(jabber-rare-time-face		((t (:foreground ,ample/purple :background nil :underline t))))
+   ;; `(jabber-chat-prompt-foreign	((t (:foreground "red" :background nil :bold t))))
+   ;;`(jabber-chat-prompt-local		((t (:foreground "blue" :background nil :bold t))))
+   ;;`(jabber-chat-prompt-system	((t (:foreground "green" :background nil :bold t))))
+   `(jabber-chat-text-foreign		((t (:inherit font-lock-function-name-face))))
+   `(jabber-chat-text-local		((t (:inherit font-lock-keyword-face))))
+   ;;`(jabber-rare-time-face		((t (:foreground "darkgreen" :background nil :underline t))))
    `(jabber-roster-user-away		((t (:inherit font-lock-string-face))))
    `(jabber-roster-user-chatty		((t (:foreground ,ample/orange :background nil :bold t))))
    ;;`(jabber-roster-user-dnd		((t (:foreground "red" :background nil))))
@@ -334,8 +332,8 @@
    `(rainbow-delimiters-unmatched-face ((t (:inherit error))))
 
    ;; auto complete
-   `(ac-candidate-face			((t (:foreground "black" :background ,ample/fg))))
-   `(ac-selection-face			((t (:foreground ,ample/fg :background ,ample/blue))))
+   `(ac-candidate-face			((t (:foreground ,ample/bg :background ,ample/region-dark))))
+   `(ac-selection-face			((t (:foreground ,ample/blue :background ,ample/region-dark))))
    `(ac-candidate-mouse-face		((t (:inherit ac-selection-face))))
    `(ac-clang-candidate-face		((t (:inherit ac-candidate-face))))
    `(ac-clang-selection-face		((t (:inherit ac-selection-face))))
@@ -346,20 +344,21 @@
    `(ac-slime-selection-face		((t (:inherit ac-selection-face))))
    `(ac-yasnippet-candidate-face	((t (:inherit ac-candidate-face))))
    `(ac-yasnippet-selection-face	((t (:inherit ac-selection-face))))
-   
-   ;;`(company-echo			((t (:foreground nil :background nil))))
-   ;;`(company-echo-common		((t (:foreground nil :background "firebrick4"))))
-   ;;`(company-preview			((t (:foreground "wheat" :background "blue4"))))
-   `(company-preview-common		((t (:inherit font-lock-comment-face))))
-   ;;`(company-preview-search		((t (:foreground "wheat" :background "blue1"))))
-   ;;`(company-template-field		((t (:foreground "black" :background "orange"))))
-   `(company-scrollbar-bg               ((t (:foreground nil :background ,ample/darkest-gray))))
+
+   ;;`(company-echo                        ((t (:foreground nil :background nil))))
+   ;;`(company-echo-common              ((t (:foreground nil :background "firebrick4"))))
+   ;;`(company-preview                  ((t (:foreground "wheat" :background "blue4"))))
+   `(company-preview-common             ((t (:inherit font-lock-comment-face))))
+   ;;`(company-preview-search           ((t (:foreground "wheat" :background "blue1"))))
+   ;;`(company-template-field           ((t (:foreground "black" :background "orange"))))
+   `(company-scrollbar-bg               ((t (:foreground nil :background ,ample/fg))))
    `(company-scrollbar-fg               ((t (:foreground nil :background ,ample/dark-gray))))
-   `(company-tooltip			((t (:foreground ,ample/bg :background ,ample/fg))))
-   `(company-tooltip-common		((t (:foreground ,ample/blue :background ,ample/fg))))
-   `(company-tooltip-common-selection	((t (:foreground ,ample/bg :background ,ample/blue))))
-   `(company-tooltip-mouse		((t (:foreground nil :background ,ample/light-blue))))
-   `(company-tooltip-selection		((t (:foreground ,ample/fg :background ,ample/blue))))
+   `(company-tooltip                    ((t (:foreground ,ample/bg :background ,ample/region-dark))))
+   `(company-tooltip-common             ((t (:foreground ,ample/light-blue :background ,ample/region-dark))))
+   `(company-tooltip-common-selection   ((t (:foreground ,ample/bg :background ,ample/region))))
+   `(company-tooltip-mouse              ((t (:foreground nil :background ,ample/light-red-bg))))
+   `(company-tooltip-selection          ((t (:foreground ,ample/fg :background ,ample/region-dark))))
+   `(company-tooltip-annotation         ((t (:foreground ,ample/red :background ,ample/region-dark))))
 
 
    ;; w3m
@@ -394,41 +393,41 @@
 
 
    ;; ediff
-   `(ediff-current-diff-A((t (:foreground nil :background "#482828"))))
-   `(ediff-current-diff-B((t (:foreground nil :background "#284828"))))
-   `(ediff-current-diff-C((t (:foreground nil :background "#484828"))))
+   `(ediff-current-diff-A((t (:foreground nil :background ,ample/light-red-bg))))
+   `(ediff-current-diff-B((t (:foreground nil :background ,ample/light-green-bg))))
+   `(ediff-current-diff-C((t (:foreground nil :background ,ample/light-blue-bg))))
    ;;`(ediff-current-diff-Ancestor((t ())))
-   `(ediff-even-diff-A			((t (:foreground nil :background "#191925"))))
-   `(ediff-even-diff-B			((t (:foreground nil :background "#191925"))))
-   `(ediff-even-diff-C			((t (:foreground nil :background "#191925"))))
+   `(ediff-even-diff-A			((t (:foreground nil :background ,ample/region-dark))))
+   `(ediff-even-diff-B			((t (:foreground nil :background ,ample/region-dark))))
+   `(ediff-even-diff-C			((t (:foreground nil :background ,ample/region-dark))))
    ;;`(ediff-even-diff-Ancestor		((t ())))
 
-   `(diff-added             ((t (:foreground nil :background "#284828"))))
-   `(diff-changed           ((t (:foreground nil :background "#484828"))))
-   `(diff-removed           ((t (:foreground nil :background "#482828"))))
-   `(diff-context           ((t (:foreground ,ample/gray :background nil))))
-   `(diff-file-header       ((t (:foreground ,ample/bg :background "grey60" :bold t))))
-   `(diff-function          ((t (:foreground ,ample/bg :background "grey50"))))
-   `(diff-header            ((t (:foreground ,ample/bg :background "grey50"))))
-   `(diff-hunk-header       ((t (:foreground ,ample/bg :background "grey50"))))
-   `(diff-index             ((t (:foreground ,ample/bg :background "grey50"))))
+   `(ediff-fine-diff-A			((t (:foreground ,ample/fg :background ,ample/red))))
+   `(ediff-fine-diff-B			((t (:foreground ,ample/fg :background ,ample/green))))
+   `(ediff-fine-diff-C			((t (:foreground ,ample/fg :background ,ample/blue))))
+   ;;`(ediff-fine-diff-Ancestor		((t ())))
+
+   `(ediff-odd-diff-A			((t (:foreground nil :background ,ample/region-dark))))
+   `(ediff-odd-diff-B			((t (:foreground nil :background ,ample/region-dark))))
+   `(ediff-odd-diff-C			((t (:foreground nil :background ,ample/region-dark))))
+   ;;`(ediff-odd-diff-Ancestor		((t ())))
+
+   `(diff-added             ((t (:foreground nil :background ,ample/light-green-bg))))
+   `(diff-changed           ((t (:foreground nil :background ,ample/light-blue-bg))))
+   `(diff-removed           ((t (:foreground nil :background ,ample/light-red-bg))))
+   `(diff-context           ((t (:foreground ,ample/fg :background nil))))
+   `(diff-file-header       ((t (:foreground ,ample/bg :background ,ample/region-dark :bold t))))
+   `(diff-function          ((t (:foreground ,ample/bg :background ,ample/region-dark))))
+   `(diff-header            ((t (:foreground ,ample/bg :background ,ample/region-dark))))
+   `(diff-hunk-header       ((t (:foreground ,ample/bg :background ,ample/region-dark))))
+   `(diff-index             ((t (:foreground ,ample/bg :background ,ample/region-dark))))
    `(diff-indicator-added   ((t (:inherit diff-added))))
    `(diff-indicator-changed ((t (:inherit diff-changed))))
    `(diff-indicator-removed ((t (:inherit diff-removed))))
-   `(diff-nonexistent       ((t (:foreground nil :background "grey70"))))
-   `(diff-refine-added      ((t (:foreground nil :background "#649694"))))
-   `(diff-refine-changed    ((t (:foreground nil :background "#8f8f40"))))
-   `(diff-refine-removed    ((t (:foreground nil :background "#694949"))))
-
-   `(ediff-fine-diff-A			((t (:foreground ,ample/fg :background "#694949"))))
-   `(ediff-fine-diff-B			((t (:foreground ,ample/fg :background "#496949"))))
-   `(ediff-fine-diff-C			((t (:foreground ,ample/fg :background "#696949"))))
-   ;;`(ediff-fine-diff-Ancestor		((t ())))
-
-   `(ediff-odd-diff-A			((t (:foreground nil :background "#171723"))))
-   `(ediff-odd-diff-B			((t (:foreground nil :background "#171723"))))
-   `(ediff-odd-diff-C			((t (:foreground nil :background "#171723"))))
-   ;;`(ediff-odd-diff-Ancestor		((t ())))
+   `(diff-nonexistent       ((t (:foreground ,ample/fg :background "grey70"))))
+   `(diff-refine-added      ((t (:foreground ,ample/fg :background ,ample/green))))
+   `(diff-refine-changed    ((t (:foreground ,ample/fg :background ,ample/blue))))
+   `(diff-refine-removed    ((t (:foreground ,ample/fg :background ,ample/red))))
 
    ;; man pages
    `(Man-overstrike ((t (:foreground ,ample/blue))))
@@ -501,7 +500,7 @@
    ;;`(org-table ((t (:foreground nil :background nil))))
    ;;`(org-tag ((t (:foreground nil :background nil))))
    ;;`(org-target ((t (:foreground nil :background nil))))
-   ;;`(org-time-grid ((t (:foreground nil :background nil))))   
+   ;;`(org-time-grid ((t (:foreground nil :background nil))))
    ;;`(org-upcoming-deadline ((t (:foreground nil :background nil))))
    ;;`(org-verbatim ((t (:foreground nil :background nil))))
    ;;`(org-verse ((t (:foreground nil :background nil))))
@@ -600,56 +599,32 @@
    `(twittering-username-face		((t (:foreground nil :background nil :inherit font-lock-keyword-face :underline t))))
 
    ;; whitespace mode
-   `(whitespace-empty			((t (:foreground ,ample/gray :background "gray10"))))
-   `(whitespace-hspace			((t (:foreground ,ample/gray :background "grey11"))))
-   `(whitespace-indentation		((t (:foreground ,ample/gray :background "gray12"))))
+   `(whitespace-empty			((t (:foreground ,ample/gray :background "gray70"))))
+   `(whitespace-hspace			((t (:foreground ,ample/gray :background "grey71"))))
+   `(whitespace-indentation		((t (:foreground ,ample/gray :background "gray72"))))
    `(whitespace-line			((t (:foreground ,ample/purple :background nil))))
    `(whitespace-newline			((t (:foreground ,ample/gray :background nil))))
    `(whitespace-space			((t (:foreground ,ample/gray :background nil))))
-   `(whitespace-space-after-tab		((t (:foreground ,ample/gray :background "gray13"))))
-   `(whitespace-space-before-tab	((t (:foreground ,ample/gray :background "gray14"))))
-   `(whitespace-tab			((t (:foreground ,ample/gray :background "grey15"))))
+   `(whitespace-space-after-tab		((t (:foreground ,ample/gray :background "gray73"))))
+   `(whitespace-space-before-tab	((t (:foreground ,ample/gray :background "gray74"))))
+   `(whitespace-tab			((t (:foreground ,ample/gray :background "grey75"))))
    `(whitespace-trailing		((t (:foreground ,ample/rb3 :background ,ample/bg :bold t))))
 
-   ;; magit
-   ;; new
-   `(magit-section-heading             ((t (:foreground ,ample/blue :background nil))))
-   `(magit-section-heading-selection   ((t (:foreground ,ample/lighter-blue))))
-   `(magit-hash                        ((t (:foreground ,ample/purple :background nil))))
-   `(magit-branch-local                ((t (:foreground ,ample/orange :background nil))))
-   `(magit-branch-remote               ((t (:foreground ,ample/yellow :background nil))))
-
-   `(magit-diff-added-highlight        ((t (:background ,ample/region :foreground ,ample/green))))
-   `(magit-diff-removed-highlight      ((t (:background ,ample/region :foreground ,ample/red))))
-   `(magit-diff-added                  ((t (:background nil :foreground ,ample/green))))
-   `(magit-diff-removed                ((t (:background nil :foreground ,ample/red))))
-   `(magit-diff-file-heading-selection ((t (:foreground ,ample/lighter-blue :inherit magit-diff-file-heading-highlight))))
-   `(magit-diff-hunk-heading-selection ((t (:foreground ,ample/lighter-blue :inherit magit-diff-hunk-heading-highlight))))
-   `(magit-diff-lines-heading          ((t (:background ,ample/light-blue :foreground ,ample/bg))))
-
-   `(magit-blame-date                  ((t (:foreground ,ample/purple :background "grey25"))))
-   `(magit-blame-hash                  ((t (:foreground ,ample/purple :background "grey25"))))
-   `(magit-blame-heading               ((t (:foreground ,ample/blue :background "grey25"))))
-   `(magit-blame-name                  ((t (:foreground ,ample/green :background "grey25"))))
-   `(magit-blame-summary               ((t (:foreground ,ample/blue :background "grey25"))))
-
-   `(magit-popup-argument              ((t (:foreground ,ample/red :inherit font-lock-warning-face))))
-
-   ;; old
+   ;;magit
    `(magit-branch				((t (:foreground ,ample/orange :background nil))))
    ;;`(magit-cherry-equivalent			((t (:foreground "cyan" :background nil))))
    ;;`(magit-cherry-unmatched			((t (:foreground "magenta" :background nil))))
-   `(magit-diff-add				((t (:foreground nil :background ,ample/dark-green))))
-   `(magit-diff-del				((t (:foreground nil :background ,ample/dark-red))))
-   `(magit-diff-file-header			((t (:foreground ,ample/bg :background ,ample/blue :bold t))))
-   `(magit-diff-hunk-header			((t (:foreground ,ample/bg :background ,ample/blue))))
+   `(magit-diff-add				((t (:foreground nil :background ,ample/light-green-bg))))
+   `(magit-diff-del				((t (:foreground nil :background ,ample/light-red-bg))))
+   `(magit-diff-file-header			((t (:foreground ,ample/fg :background ,ample/region :bold t))))
+   `(magit-diff-hunk-header			((t (:foreground ,ample/fg :background ,ample/light-blue-bg))))
    `(magit-diff-merge-current			((t (:foreground ,ample/orange :background nil))))
    `(magit-diff-merge-diff3-separator		((t (:foreground ,ample/orange :background nil))))
    `(magit-diff-merge-proposed			((t (:foreground ,ample/orange :background nil))))
    `(magit-diff-merge-separator			((t (:foreground ,ample/orange :background nil))))
-   `(magit-diff-none				((t (:foreground ,ample/fg :background ,ample/darker-gray))))
+   `(magit-diff-none				((t (:foreground ,ample/fg :background nil))))
    `(magit-header				((t (:foreground ,ample/blue :background nil))))
-   `(magit-item-highlight			((t (:foreground nil :background ,ample/darker-gray))))
+   `(magit-item-highlight			((t (:foreground nil :background ,ample/region-dark))))
    ;;`(magit-item-mark				((t (:foreground nil :background "darkolivegreen"))))
    ;;`(magit-key-mode-args-face			((t (:foreground "black" :background "yellow3"))))
    `(magit-key-mode-button-face			((t (:foreground ,ample/light-blue :background nil))))
@@ -681,37 +656,36 @@
    `(magit-section-title			((t (:foreground ,ample/blue :background nil))))
    `(magit-tag					((t (:foreground ,ample/blue :background nil))))
    ;;`(magit-valid-signature			((t (:foreground "PaleTurquoise" :background nil :bold t))))
-   `(magit-whitespace-warning-face		((t (:foreground ,ample/bg :background "white" :bold t))))
+   `(magit-whitespace-warning-face		((t (:foreground ,ample/bg :background ,ample/purple :bold t))))
 
    `(git-gutter:deleted   ((t (:foreground ,ample/red :background nil :bold t))))
    `(git-gutter:modified  ((t (:foreground ,ample/purple :background nil :bold t))))
    `(git-gutter:separator ((t (:foreground ,ample/orange :background nil :bold t))))
-   `(git-gutter:unchanged ((t (:foreground ,ample/yellow :background nil))))
+   `(git-gutter:unchanged ((t (:foreground ,ample/dark-tan :background nil))))
 
-   `(highlight-indentation-current-column-face ((t (:foreground nil :background ,ample/gray)))) 
-   `(highlight-indentation-face                ((t (:foreground nil :background ,ample/darkest-gray))))
+   `(highlight-indentation-current-column-face ((t (:foreground nil :background ,ample/region-light))))
+   `(highlight-indentation-face                ((t (:foreground nil :background ,ample/region-dark))))
 
    ;; trailing whitespace
    `(trailing-whitespace ((t (:background "white" :bold t))))
 
    ;; auctex
-   `(font-latex-bold-face                 ((t (:inherit bold :foreground ,ample/dark-green))))
+   `(font-latex-bold-face                 ((t (:inherit bold :foreground ,ample/gray))))
    `(font-latex-doctex-documentation-face ((t (:background unspecified))))
-   `(font-latex-doctex-preprocessor-face  ((t (:inherit (font-latex-doctex-documentation-face font-lock-preprocessor-face)))))
-   `(font-latex-italic-face               ((t (:inherit italic :foreground ,ample/dark-green))))
+   `(font-latex-doctex-preprocessor-face  ((t (:inherit (font-latex-doctex-documentation-face font-lock-builtin-face font-lock-preprocessor-face)))))
+   `(font-latex-italic-face               ((t (:inherit italic :foreground ,ample/gray))))
    `(font-latex-math-face                 ((t (:foreground ,ample/purple))))
-   ;;`(font-latex-sectioning-0-face       ((t (:inherit font-latex-sectioning-1-face :height 1.1))))
-   ;;`(font-latex-sectioning-1-face       ((t (:inherit font-latex-sectioning-2-face :height 1.1))))
-   ;;`(font-latex-sectioning-2-face       ((t (:inherit font-latex-sectioning-3-face :height 1.1))))
-   ;;`(font-latex-sectioning-3-face       ((t (:inherit font-latex-sectioning-4-face :height 1.1))))
-   ;;`(font-latex-sectioning-4-face       ((t (:inherit font-latex-sectioning-5-face :height 1.1))))
+   `(font-latex-sectioning-0-face         ((t (:inherit font-latex-sectioning-1-face :height 1.1))))
+   `(font-latex-sectioning-1-face         ((t (:inherit font-latex-sectioning-2-face :height 1.1))))
+   `(font-latex-sectioning-2-face         ((t (:inherit font-latex-sectioning-3-face :height 1.1))))
+   `(font-latex-sectioning-3-face         ((t (:inherit font-latex-sectioning-4-face :height 1.1))))
+   `(font-latex-sectioning-4-face         ((t (:inherit font-latex-sectioning-5-face :height 1.1))))
    `(font-latex-sectioning-5-face         ((t (:foreground ,ample/red :weight bold))))
-   `(font-latex-sedate-face               ((t (:foreground ,ample/brown))))
+   `(font-latex-sedate-face               ((t (:foreground ,ample/gray))))
    `(font-latex-slide-title-face          ((t (:inherit font-lock-type-face :weight bold :height 1.2))))
    `(font-latex-string-face               ((t (:inherit font-lock-string-face))))
-   ;;`(font-latex-subscript-face          ((t (:height 0.8))))
-   ;;`(font-latex-superscript-face        ((t (:height 0.8))))
-   `(font-latex-verbatim-face             ((t (:foreground ,ample/tan))))
+   `(font-latex-subscript-face            ((t (:height 0.8))))
+   `(font-latex-superscript-face          ((t (:height 0.8))))
    `(font-latex-warning-face              ((t (:inherit font-lock-warning-face))))
 
    ;; guide-key
@@ -766,14 +740,14 @@
    `(neo-vc-up-to-date-face       ((t (:foreground ,ample/fg :background nil))))
 
    ;; widget
-   `(widget-field  ((t (:foreground ,ample/fg :background ,ample/dark-gray))))
+   `(widget-field  ((t (:foreground ,ample/fg :background ,ample/region-dark))))
 
    ) ;; end of custom-theme-set-faces
 
   (custom-theme-set-variables
-   'ample
+   'ample-light
    `(ansi-color-names-vector
-     [,ample/darker-gray ,ample/red ,ample/green ,ample/yellow ,ample/blue ,ample/purple ,ample/tan ,ample/fg])))
+     [,ample/darker-gray ,ample/red ,ample/green ,ample/dark-tan ,ample/blue ,ample/purple ,ample/lighter-blue ,ample/fg])))
 
 ;;;###autoload
 (when load-file-name
@@ -781,12 +755,12 @@
                (file-name-as-directory (file-name-directory load-file-name))))
 
 ;;;###autoload
-(defun ample-theme()
-  "Apply the ample-theme."
+(defun ample-light-theme()
+  "Apply the ample-light-theme."
   (interactive)
-  (load-theme 'ample t))
+  (load-theme 'ample-light t))
 
 
-(provide-theme 'ample)
+(provide-theme 'ample-light)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; ample-theme.el ends here
+;;; ample-light-theme.el ends here
