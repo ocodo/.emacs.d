@@ -33,7 +33,9 @@
 (require 'swift-mode-indent)
 
 (defun swift-mode:beginning-of-defun (&optional arg)
-  "Move backward to the beginning of a defun."
+  "Move backward to the beginning of a defun.
+
+See `beginning-of-defun' for ARG."
   (interactive)
   (setq arg (or arg 1))
   (let (result
@@ -88,6 +90,9 @@
     result))
 
 (defun swift-mode:beginning-of-defun-1 (next-token-function)
+  "Goto the beginning of a defun.
+
+NEXT-TOKEN-FUNCTION skips the preceding/following token."
   (catch 'swift-mode:found-defun
     (while (not (eq (swift-mode:token:type (funcall next-token-function))
                     'outside-of-buffer))
@@ -98,8 +103,11 @@
 
 
 (defun swift-mode:is-point-before-body-of-defun ()
+  "Return t it the point is just before the body of a defun.
+
+Return nil otherwise."
   (and
-   (= (char-after) ?{)
+   (eq (char-after) ?{)
    (progn
      ;; Skips implicit ;
      (forward-comment (- (point)))
@@ -154,7 +162,9 @@ Intended for internal use."
       (swift-mode:skip-whitespaces))))
 
 (defun swift-mode:end-of-defun (&optional arg)
-  "Move forward to the end of a defun."
+  "Move forward to the end of a defun.
+
+See `end-of-defun' for ARG."
   (interactive)
   (setq arg (or arg 1))
   (let (result)
@@ -173,10 +183,13 @@ Intended for internal use."
     result))
 
 (defun swift-mode:end-of-defun-1 (next-token-function)
+  "Goto the end of a defun.
+
+NEXT-TOKEN-FUNCTION skips the preceding/following token."
   (catch 'swift-mode:found-defun
     (while (not (eq (swift-mode:token:type (funcall next-token-function))
                     'outside-of-buffer))
-      (when (and (= (char-before) ?})
+      (when (and (eq (char-before) ?})
                  (save-excursion
                    (backward-list)
                    (swift-mode:is-point-before-body-of-defun)))

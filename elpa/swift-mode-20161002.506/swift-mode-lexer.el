@@ -46,7 +46,12 @@
                    stop-at-bol-token-types))
 
 (defun swift-mode:token (type text start end)
-  "Construct and returns a token."
+  "Construct and return a token.
+
+TYPE is the type of the token such as `inix-operator' or {.
+TEXT is the text of the token.
+START is the start position of the token.
+END is the point after the token."
   (list type text start end))
 
 (defun swift-mode:token:type (token)
@@ -70,6 +75,7 @@
 ;; - prefix-operator (including try, try?, and try!)
 ;; - postfix-operator
 ;; - binary-operator (including as, as?, as!, is, =, ., and ->)
+;; - attribute (e.g. @objc, @abc(def))
 ;; - identifier (including keywords, numbers, implicit parameters, and unknown tokens)
 ;; - [
 ;; - ]
@@ -283,17 +289,7 @@
       t)
 
      ;; Supress implicit semicolon after attributes.
-     ((string-prefix-p "@" (swift-mode:token:text previous-token))
-      nil)
-
-     ;; Supress implicit semicolon after attributes with arguments.
-     ((and
-       (eq (swift-mode:token:type previous-token) '\))
-       (save-excursion
-         (backward-list)
-         (string-prefix-p
-          "@"
-          (swift-mode:token:text (swift-mode:backward-token-simple)))))
+     ((eq (swift-mode:token:type previous-token) 'attribute)
       nil)
 
      ;; Inserts implicit semicolon before keywords that behave like method
@@ -340,10 +336,6 @@
                      (swift-mode:forward-token-simple)
                      (swift-mode:forward-token-simple)))
                   "<")))
-
-    ;; Inserts implicit semicolon before attributes unless other condtions
-    ;; met.
-    ((string-prefix-p "@" (swift-mode:token:text previous-token)) t)
 
     ;; Inserts implicit semicolon before open square bracket.
     ;;
@@ -461,7 +453,9 @@ That is supertype declaration or type declaration of let or var."
      '{)))
 
 (defun swift-mode:fix-operator-type (token)
-  "Return new operator token with proper token type."
+  "Return new operator token with proper token type.
+
+Other properties are the same as the TOKEN."
   ;; Operator type (i.e. prefix, postfix, infix) is decided from spaces or
   ;; comments around the operator.
   ;; https://developer.apple.com/library/ios/documentation/Swift/Conceptual/Swift_Programming_Language/LexicalStructure.html#//apple_ref/doc/uid/TP40014097-CH30-ID410
@@ -504,7 +498,7 @@ That is supertype declaration or type declaration of let or var."
     (swift-mode:token type text start end)))
 
 (defun swift-mode:backquote-identifier-if-after-dot (token)
-  "Backquote identifiers including keywords if it is after dot.
+  "Backquote identifier TOKEN, including keywords, if it is after a dot.
 
 See SE-0071:
 https://github.com/apple/swift-evolution/blob/master/proposals/0071-member-keywords.md"
@@ -571,12 +565,12 @@ type `out-of-buffer'"
                  "in"
                  (swift-mode:token:start token)
                  (swift-mode:token:end token))))
-
         token)))))
 
 (defun swift-mode:forward-token-simple ()
-  "Like `swift-mode:forward-token' without recursion, and never produces
-`implicit-;' or `type-:'."
+  "Like `swift-mode:forward-token' without recursion.
+
+This function does not return `implicit-;' or `type-:'."
   (forward-comment (point-max))
   (cond
    ;; Outside of buffer
@@ -647,6 +641,24 @@ type `out-of-buffer'"
       (goto-char (scan-sexps (point) 1))
       (swift-mode:token
        'identifier
+       (buffer-substring-no-properties pos-after-comment (point))
+       pos-after-comment
+       (point))))
+
+   ;; Attribute
+   ((eq (char-after) ?@)
+    (let ((pos-after-comment (point)))
+      (forward-symbol 1)
+      (let ((pos (point)))
+        (forward-comment (point-max))
+        (if (eq (char-after) ?\()
+            (condition-case nil
+                (progn
+                  (forward-list 1))
+              (scan-error (goto-char pos)))
+          (goto-char pos)))
+      (swift-mode:token
+       'attribute
        (buffer-substring-no-properties pos-after-comment (point))
        pos-after-comment
        (point))))
@@ -744,13 +756,31 @@ type `out-of-buffer'."
         token)))))
 
 (defun swift-mode:backward-token-simple ()
-  "Like `swift-mode:backward-token' without recursion, and never produces
-`implicit-;' or `type-:'."
+  "Like `swift-mode:backward-token' without recursion.
+
+This function does not return `implicit-;' or `type-:'."
   (forward-comment (- (point)))
   (cond
    ;; Outside of buffer
    ((bobp)
     (swift-mode:token 'outside-of-buffer "" (point) (point)))
+
+   ;; Attribute or close-parenthesis
+   ((eq (char-before) ?\))
+     (let ((pos-before-comment (point)))
+       (condition-case nil
+           (progn
+             (backward-list)
+             (forward-comment (- (point)))
+             (forward-symbol -1)
+             (unless (eq (char-after) ?@)
+               (goto-char (1- pos-before-comment))))
+         (scan-error (goto-char (1- pos-before-comment))))
+       (swift-mode:token
+        (if (eq (char-after) ?@) 'attribute '\))
+        (buffer-substring-no-properties (point) pos-before-comment)
+        (point)
+        pos-before-comment)))
 
    ;; Separators and parentheses
    ((memq (char-before) '(?, ?\; ?\{ ?\} ?\[ ?\] ?\( ?\) ?:))
@@ -864,6 +894,11 @@ type `out-of-buffer'."
                           (+ (point) (length text))))
        ((equal text "try")
         (swift-mode:token 'prefix-operator
+                          text
+                          (point)
+                          (+ (point) (length text))))
+       ((string-prefix-p "@" text)
+        (swift-mode:token 'attribute
                           text
                           (point)
                           (+ (point) (length text))))
