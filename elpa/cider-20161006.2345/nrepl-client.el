@@ -1031,11 +1031,15 @@ the port, and the client buffer."
 
 ;;; Messages
 
-(defcustom nrepl-log-messages t
+(defcustom nrepl-log-messages nil
   "If non-nil, log protocol messages to an nREPL messages buffer.
 
 This is extremely useful for debug purposes, as it allows you to
-inspect the communication between Emacs and an nREPL server."
+inspect the communication between Emacs and an nREPL server.
+
+Enabling the logging might have a negative impact on performance,
+so it's not recommended to keep it enabled unless you need to
+debug something."
   :type 'boolean
   :group 'nrepl)
 
@@ -1098,6 +1102,16 @@ The message is logged to a buffer described by
       (when-let ((win (get-buffer-window)))
         (set-window-point win (point-max)))
       (setq buffer-read-only t))))
+
+(defun nrepl-toggle-message-logging ()
+  "Toggle the value of `nrepl-log-messages' between nil and t.
+
+This in effect enables or disables the logging of nREPL messages."
+  (interactive)
+  (setq nrepl-log-messages (not nrepl-log-messages))
+  (if nrepl-log-messages
+      (message "nREPL message logging enabled")
+    (message "nREPL message logging disabled")))
 
 (defcustom nrepl-message-colors
   '("red" "brown" "coral" "orange" "green" "deep sky blue" "blue" "dark violet")
