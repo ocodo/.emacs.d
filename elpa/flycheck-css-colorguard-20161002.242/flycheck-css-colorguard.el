@@ -5,9 +5,9 @@
 ;; Author: Saša Jovanić <info@simplify.ba>
 ;; URL: https://github.com/Simplify/flycheck-css-colorguard/
 ;; Keywords: flycheck, CSS, Colorguard
-;; Version: 0.20.0
-;; Package-Version: 20151122.147
-;; Package-X-Original-Version: 0.20.0
+;; Version: 0.20.1
+;; Package-Version: 20161002.242
+;; Package-X-Original-Version: 0.20.1
 ;; Package-Requires: ((flycheck "0.22") (emacs "24"))
 
 ;; This file is not part of GNU Emacs.
@@ -63,18 +63,18 @@
 (require 'flycheck)
 
 (flycheck-def-config-file-var flycheck-css-colorguard-config css-colorguard nil
-	:safe #'stringp
-	:package-version '(flycheck . "0.22"))
+  :safe #'stringp
+  :package-version '(flycheck . "0.22"))
 
 (flycheck-def-option-var flycheck-css-colorguard-threshold nil css-colorguard
-	  "CSS Colorguard threshold.
+  "CSS Colorguard threshold.
 
 From 0 to 100. The default value is 3.
   Examples:
     --threshold=6"
-		:type '(string :tag "Threshold")
-		:safe #'stringp
-		:package-version '(flycheck . "0.22"))
+  :type '(string :tag "Threshold")
+  :safe #'stringp
+  :package-version '(flycheck . "0.22"))
 
 ;;; CSS Colorguard output 1.0.0 or higher:
 ;;  line 2   col 3  #020202 collides with rgba(0,0,0,1)          (2:44)
@@ -101,20 +101,19 @@ From 0 to 100. The default value is 3.
 See URL
 `https://github.com/SlexAxton/css-colorguard'."
   :command ("colorguard"
-						(config-file "--options" flycheck-css-colorguard-config)
-						(option "--threshold" flycheck-css-colorguard-threshold)
-						"--file" source)
-	:error-patterns
-	((warning line-start
+            (config-file "--options" flycheck-css-colorguard-config)
+            (option "--threshold" flycheck-css-colorguard-threshold)
+            "--file" source)
+  :error-patterns
+  ((warning line-start
             "  line " line (one-or-more " ") " col " column (one-or-more " ") (message) line-end))
-	:error-filter
-	(lambda (errors)
-		(flycheck-collapse-error-message-whitespace
-		 (flycheck-sanitize-errors errors)))
+  :error-filter
+  (lambda (errors)
+    (flycheck-collapse-error-message-whitespace
+     (flycheck-sanitize-errors errors)))
   :modes (css-mode))
 
 (add-to-list 'flycheck-checkers 'css-colorguard 'append)
 
 (provide 'flycheck-css-colorguard)
-
 ;;; flycheck-css-colorguard.el ends here
