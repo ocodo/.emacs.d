@@ -1,7 +1,6 @@
-(define-package "tide" "20160911.2207" "Typescript Interactive Development Environment"
+(define-package "tide" "20161004.2019" "Typescript Interactive Development Environment"
   '((dash "2.10.0")
     (flycheck "27")
-    (emacs "24.1")
     (typescript-mode "0.1")
     (cl-lib "0.5"))
   :url "http://github.com/ananthakumaran/tide" :keywords
