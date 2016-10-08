@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.2
-;; Package-Version: 20160917.905
+;; Package-Version: 20160928.1741
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 
@@ -145,7 +145,6 @@
    ;; Strings
    #'string
    #'make-string
-   #'string-to-list
    #'upcase
    #'downcase
    #'substring
@@ -157,6 +156,8 @@
    #'s-trim
    #'s-trim-left
    #'s-trim-right
+   #'s-pad-left
+   #'s-pad-right
    #'s-chomp
    #'s-collapse-whitespace
    #'s-word-wrap
@@ -184,10 +185,17 @@
    ;; Symbols
    #'symbol-name
    #'symbol-value
+   ;; Converting between types
+   #'string-to-list
+   #'string-to-number
+   #'string-to-char
+   #'number-to-string
+   #'char-to-string
    ;; Paths
    #'file-name-as-directory
    #'file-name-base
    #'file-name-directory
+   #'file-name-nondirectory
    #'file-name-extension
    #'expand-file-name
    #'abbreviate-file-name
