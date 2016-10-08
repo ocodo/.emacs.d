@@ -4,7 +4,7 @@
 
 ;; Author: Tom Willemse <tom@ryuslash.org>
 ;; Keywords: faces
-;; Package-Version: 20160608.1423
+;; Package-Version: 20161006.1632
 ;; Version: 6.1.0
 ;; URL: http://projects.ryuslash.org/yoshi-theme/
 
@@ -33,7 +33,7 @@
 (deftheme yoshi
   "Created 2012-09-24")
 
-(let ((bgdefault   "#111111") (fgdefault   "#bfbfbf")
+(let ((bgdefault   "#111414") (fgdefault   "#bfbfbf")
       (bgbright    "#3d3d3d") (fgbright    "#ededed")
       (bgdim       "#222222") (fgdim       "#969696")
       (bgred       "#3f1a1a") (fgred       "#a85454")
@@ -73,9 +73,9 @@
    `(link ((t (:foreground ,fgorange :underline t))))
    `(link-visited ((t (:foreground ,fgmagenta :underline t))))
    `(minibuffer-prompt ((t (:foreground ,fgblue))))
-   `(mode-line ((t (:background ,bgblue :foreground ,fgbright :box (:color ,bgblue :line-width 2 :style nil)))))
+   `(mode-line ((t (:background ,bgblue :foreground ,fgbright :box (:color ,bgblue :line-width 5 :style nil)))))
    `(mode-line-buffer-id ((t (:foreground ,fggreen :weight bold))))
-   `(mode-line-inactive ((t (:weight normal :background ,bgbright :foreground ,fgdefault :box (:color ,bgbright :line-width 2 :style nil) :inherit unspecified))))
+   `(mode-line-inactive ((t (:weight normal :background ,bgbright :foreground ,fgdefault :box (:color ,bgbright :line-width 5 :style nil) :inherit unspecified))))
    `(region ((t (:background ,bgblue))))
    `(shadow ((t (:foreground ,fgdim))))
    `(success ((t (:foreground ,fggreen :weight bold))))
