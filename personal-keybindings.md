@@ -90,6 +90,7 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 | <kbd>Ctrl</kbd>-<kbd>x</kbd> <kbd>Ctrl</kbd>-<kbd>d</kbd>                      | `ido-dired`                             | was `list-directory`             |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>;</kbd>                                      | `iedit-mode`                            |                                  |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Meta</kbd>-<kbd>=</kbd>                      | `increase-default-font-height`          |                                  |
+| <kbd>Ctrl</kbd>-<kbd>x</kbd> <kbd>\</kbd>                                      | `indent-buffer`                         |                                  |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>x</kbd> <kbd>i</kbd>         | `insert-buffer-base-filename`           |                                  |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>x</kbd> <kbd>d</kbd>         | `insert-iso8601-date`                   |                                  |
 | <kbd>Super</kbd>-<kbd>i</kbd>                                                  | `ispell-complete-word`                  |                                  |
