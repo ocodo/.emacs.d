@@ -34,9 +34,6 @@
 (require 'helm-multi-match)
 (require 'helm-source)
 
-(declare-function face-remap-add-relative "face-remap.el")
-(declare-function face-remap-remove-relative "face-remap.el")
-
 
 ;;; Multi keys
 ;;
@@ -3579,7 +3576,7 @@ If action buffer is selected, back to the helm buffer."
                          (setq helm-pattern 'dummy)
                          (helm-check-minibuffer-input))))
                   (t (message "No Actions available")))
-          (helm-display-mode-line src)
+          (helm-display-mode-line (helm-get-current-source))
           (run-hooks 'helm-window-configuration-hook))))))
 (put 'helm-select-action 'helm-only t)
 
@@ -3595,7 +3592,7 @@ If action buffer is selected, back to the helm buffer."
             :nomark t
             :keymap 'helm-map
             :candidates actions
-            :mode-line '("Action(s)" "TAB:BackToCands RET/f1/f2/fn:NthAct")
+            :mode-line '("Action(s)" "\\<helm-map>\\[helm-select-action]:BackToCands RET/f1/f2/fn:NthAct")
             :candidate-transformer
              (lambda (candidates)
                (cl-loop for (i . j) in candidates
@@ -4859,9 +4856,7 @@ window to maintain visibility."
                           (not (functionp attr-val))
                           (cdr attr-val)))
            (cursor-in-echo-area t)
-           mode-line-in-non-selected-windows
-           mode-line-cookie
-           buf-in-pa-window)
+           mode-line-in-non-selected-windows)
       (when source
         (with-helm-window
           (save-selected-window
@@ -4869,12 +4864,6 @@ window to maintain visibility."
                 (helm-select-persistent-action-window)
                 (helm-select-persistent-action-window
                  (or split-onewindow helm-onewindow-p)))
-            (add-hook 'helm-goto-line-before-hook
-                      (lambda ()
-                        (setq mode-line-cookie
-                              (face-remap-add-relative
-                               'mode-line 'mode-line-inactive)
-                              buf-in-pa-window (current-buffer))))
             (helm-log "current-buffer = %S" (current-buffer))
             (let ((helm-in-persistent-action t)
                   (same-window-regexps '("."))
@@ -4882,9 +4871,6 @@ window to maintain visibility."
                   special-display-regexps special-display-buffer-names)
               (helm-execute-selection-action-1
                selection (or fn (helm-get-actions-from-current-source source)) t)
-              (helm-aif buf-in-pa-window
-                  (with-current-buffer it
-                    (face-remap-remove-relative mode-line-cookie)))
               (helm-log-run-hook 'helm-after-persistent-action-hook))
             ;; A typical case is when a persistent action delete
             ;; the buffer already displayed in
@@ -5368,7 +5354,9 @@ or `helm-follow-input-idle-delay' or `helm-input-idle-delay' secs."
                (helm-window)
                (helm-get-selection nil nil src))
       (helm-follow-mode-set-source 1 src)
-      (run-with-idle-timer at nil #'helm-execute-persistent-action))))
+      (run-with-idle-timer at nil (lambda ()
+                                    (when helm-alive-p
+                                      (helm-execute-persistent-action)))))))
 
 (defun helm-follow-mode-p (&optional source)
   (with-helm-buffer
