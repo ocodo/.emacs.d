@@ -45,6 +45,23 @@
   (and (stringp year)
        (= 4 (length (format "%s" year)))))
 
+(defun date-thing-datetime-string-to-time (datetime)
+  "DATETIME to a emacslisp time."
+  (apply 'encode-time (parse-time-string datetime)))
+
+(defun date-thing-datetime-to-unix-time (&optional datetime)
+  "DATETIME (using `parse-time-string') to unix epoch seconds."
+  (string-to-number
+   (format-time-string "%s" (date-thing-datetime-string-to-time datetime))))
+
+(defun date-thing-rails-migration-date-time (&optional datetime)
+  "Convert datetime now or DATETIME to a rails db migration filename timestamp."
+  (interactive (list (if current-prefix-arg
+                         (let ((str (read-string "Datetime: ")))
+                           (when (not (string= str "") str)))
+                       nil)))
+  (format-time-string "%Y%m%d%H%M%S" (when datetime (date-thing-datetime-string-to-time datetime))))
+
 (defun date-thing-month-detect (value)
   "Detect if VALUE is a month."
   (let* ((value-num (string-to-number value))
