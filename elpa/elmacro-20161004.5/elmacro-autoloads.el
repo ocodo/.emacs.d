@@ -1,34 +1,39 @@
 ;;; elmacro-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "elmacro" "elmacro.el" (22246 12453 97645 379000))
+;;;### (autoloads nil "elmacro" "elmacro.el" (22519 51799 76456 385000))
 ;;; Generated autoloads from elmacro.el
 
 (autoload 'elmacro-show-last-macro "elmacro" "\
-Show the last macro as elisp with NAME.
+Show the last macro as emacs lisp with NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'elmacro-show-last-commands "elmacro" "\
-Take the latest COUNT commands and show them as elisp.
+Take the latest COUNT commands and show them as emacs lisp.
 
-The default number of commands shown is 300. You can change this
-number by using a numeric prefix argument or by using the
-universal argument, in which case it'll ask for how many in the
-minibuffer. See also `kmacro-edit-lossage'.
+This is basically a better version of `kmacro-edit-lossage'.
+
+The default number of commands shown is modifiable in variable
+`elmacro-show-last-commands-default'.
+
+You can also modify this number by using a numeric prefix argument or
+by using the universal argument, in which case it'll ask for how many
+in the minibuffer.
 
 \(fn &optional COUNT)" t nil)
 
-(autoload 'elmacro-clear-recorded-commands "elmacro" "\
+(autoload 'elmacro-clear-command-history "elmacro" "\
 Clear the list of recorded commands.
 
 \(fn)" t nil)
 
 (defvar elmacro-mode nil "\
 Non-nil if elmacro mode is enabled.
-See the command `elmacro-mode' for a description of this minor mode.
+See the `elmacro-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `elmacro-mode'.")
