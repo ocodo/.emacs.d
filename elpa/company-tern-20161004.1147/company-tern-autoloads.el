@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "company-tern" "company-tern.el" (0 0 0 0))
+;;;### (autoloads nil "company-tern" "company-tern.el" (22519 51823
+;;;;;;  156490 410000))
 ;;; Generated autoloads from company-tern.el
 
 (autoload 'company-tern "company-tern" "\
@@ -11,8 +12,6 @@ Tern backend for company-mode.
 See `company-backends' for more info about COMMAND and ARG.
 
 \(fn COMMAND &optional ARG &rest ARGS)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-tern" '("company-tern-")))
 
 ;;;***
 
