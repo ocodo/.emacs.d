@@ -21,13 +21,13 @@
 (require 'cua-base)
 
 (defun clear-buffer-text-properties ()
-    "Clear all text face properties in the buffer.
+  "Clear all text face properties in the buffer.
 This is somewhat useful when dealing with text pasted from a
 propertied buffer.
 
 Note: this won't turn off face properties in a font-locked buffer."
-    (interactive)
-    (remove-text-properties 1 (point-max) '(face nil)))
+  (interactive)
+  (remove-text-properties 1 (point-max) '(face nil)))
 
 (defun nuke-all-buffers ()
   "Kill all buffers, leaving *scratch* only."
@@ -54,7 +54,7 @@ Leave *scratch* and *Messages* alone too."
 
 (defun -sample (list)
   "Return a random element from the LIST."
-    (nth (random (length list)) list))
+  (nth (random (length list)) list))
 
 (defun insert-sample (strings)
   "Insert a random item from a list of STRINGS."
@@ -704,12 +704,12 @@ when matches are equidistant from the current point."
   "Open the current file in intellij IDEA 15 (OS X specific)."
   (interactive)
   (when (file-exists-p (buffer-file-name))
-      (start-process-shell-command "intellij-idea" nil
-                                   (format "idea --line %s %s"
-                                           (line-number-at-pos)
-                                           (buffer-file-name)))
-      (start-process-shell-command "switch-to-intellij" nil
-                                   "osascript -e 'activate application \"IntelliJ IDEA\"'")))
+    (start-process-shell-command "intellij-idea" nil
+                                 (format "idea --line %s %s"
+                                         (line-number-at-pos)
+                                         (buffer-file-name)))
+    (start-process-shell-command "switch-to-intellij" nil
+                                 "osascript -e 'activate application \"IntelliJ IDEA\"'")))
 
 (defun csv--to-lists (csv)
   "Convert CSV to lists."
@@ -749,7 +749,7 @@ Optionally check ALLBUFS."
   (interactive)
   (if (and buffer-file-name (string-match "emacs-lisp" (format "%s" major-mode)))
       (let* ((filename (file-name-base))
-            (end-file-message (format  ";;; %s.el ends here" filename)))
+             (end-file-message (format  ";;; %s.el ends here" filename)))
         (goto-char (point-max))
         (unless (looking-back end-file-message nil)
           (insert end-file-message)))
@@ -895,6 +895,7 @@ If UP is non-nil, duplicate and move point to the top."
 (bind-keys
  ("<s-up>"     . duplicate-current-line-or-region-up)
  ("<s-down>"   . duplicate-current-line-or-region)
+ ("C-x \\"     . indent-buffer)
  ("C-c M-="    . increase-default-font-height)
  ("C-c M--"    . decrease-default-font-height)
  ("C-c ="      . set-default-font-height)
