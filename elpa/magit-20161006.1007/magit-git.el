@@ -613,11 +613,18 @@ Sorted from longest to shortest CYGWIN name."
       (concat win (substring filename (length cyg)))
     filename))
 
-(defun magit-convert-git-filename (filename)
-  (-if-let ((cyg . win)
-            (cl-rassoc filename magit-cygwin-mount-points
-                       :test (lambda (f win) (string-prefix-p win f))))
-      (concat cyg (substring filename (length win)))
+(defun magit-convert-filename-for-git (filename)
+  "Convert FILENAME so that it can be passed to git.
+1. If it's a remote filename, then remove the remote part.
+2. Expand \"~/\", git isn't a shell and does not understand it.
+3. Deal with an `windows-nt' Emacs vs. Cygwin Git incompatibility."
+  (if (file-name-absolute-p filename)
+      (-if-let ((cyg . win)
+                (cl-rassoc filename magit-cygwin-mount-points
+                           :test (lambda (f win) (string-prefix-p win f))))
+          (concat cyg (substring filename (length win)))
+        (or (file-remote-p filename 'localname)
+            filename))
     filename))
 
 (defun magit-decode-git-path (path)
@@ -1069,6 +1076,10 @@ where COMMITS is the number of commits in TAG but not in REV."
   (or (car (member rev (magit-list-local-branches)))
       (car (member rev (magit-list-local-branch-names)))))
 
+(defun magit-remote-branch-p (rev)
+  (or (car (member rev (magit-list-remote-branches)))
+      (car (member rev (magit-list-remote-branch-names)))))
+
 (defun magit-branch-set-face (branch)
   (propertize branch 'face (if (magit-local-branch-p branch)
                                'magit-branch-local
@@ -1189,9 +1200,8 @@ Return a list of two integers: (A>B B>A)."
 (defmacro magit-with-temp-index (tree arg &rest body)
   (declare (indent 2) (debug (form form body)))
   (let ((file (cl-gensym "file")))
-    `(let ((,file (magit-convert-git-filename
+    `(let ((,file (magit-convert-filename-for-git
                    (make-temp-name (magit-git-dir "index.magit.")))))
-       (setq ,file (or (file-remote-p ,file 'localname) ,file))
        (unwind-protect
            (progn (--when-let ,tree
                     (or (magit-git-success "read-tree" ,arg it
@@ -1426,6 +1436,9 @@ Return a list of two integers: (A>B B>A)."
                          (or default
                              (magit-remote-at-point)
                              (magit-get-remote))))
+
+(defun magit-read-module-path (prompt)
+  (magit-completing-read prompt (magit-get-submodules)))
 
 ;;; Variables
 

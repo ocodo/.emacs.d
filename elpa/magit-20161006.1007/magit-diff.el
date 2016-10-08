@@ -34,7 +34,7 @@
 ;; For `magit-diff-popup'
 (declare-function magit-stash-show 'magit-stash)
 ;; For `magit-diff-visit-file'
-(declare-function magit-dired-jump 'magit)
+(declare-function dired-jump 'dired-x)
 (declare-function magit-find-file-noselect 'magit)
 (declare-function magit-status-internal 'magit)
 ;; For `magit-diff-while-committing'
@@ -100,14 +100,61 @@ member of `magit-section-highlight-hook', which see."
   :type 'boolean)
 
 (defcustom magit-diff-show-lines-boundary t
-  "Whether to delimit hunk-internal region with thin lines.
-
-When a hunk-internal region (used to stage just the lines that
-fall into the region instead of the complete hunk) only covers
-context lines, then these lines are the only visual indicator
-for the region.  In character-only terminals it's not possible
-to draw thin lines."
+  "This option is obsolete.
+If you have set this to nil, then remove that customization, and
+instead customize `magit-diff-highlight-hunk-region-functions'."
   :package-version '(magit . "2.1.0")
+  :group 'magit-diff
+  :type 'boolean)
+
+(make-obsolete-variable 'magit-diff-show-lines-boundary
+                        'magit-diff-highlight-hunk-region-functions
+                        "Magit 2.9.0")
+
+(defcustom magit-diff-highlight-hunk-region-functions
+  `(magit-diff-highlight-hunk-region-dim-outside
+    ,@(and magit-diff-show-lines-boundary
+           (list (if t ;(version< emacs-version "25.1")
+                     'magit-diff-highlight-hunk-region-using-overlays
+                   'magit-diff-highlight-hunk-region-using-underline))))
+  "The functions used to highlight the hunk-internal region.
+
+`magit-diff-highlight-hunk-region-dim-outside' overlays the outside
+of the hunk internal selection with a face that causes the added and
+removed lines to have the same background color as context lines.
+This function should not be removed from the value of this option.
+
+  TEMPORARY NOTICE: there is a severe bug in
+  `magit-diff-highlight-hunk-region-using-underline'
+  and it has been temporarily removed.
+
+`magit-diff-highlight-hunk-region-using-overlays' and
+`magit-diff-highlight-hunk-region-using-underline' emphasize the
+region by placing delimiting horizonal lines before and after it.
+Which implementation is preferable depends on the Emacs version,
+and the more suitable one is part of the default value.
+
+Instead of, or in addition to, using delimiting horizontal lines,
+to emphasize the boundaries, you may which to emphasize the text
+itself, using `magit-diff-highlight-hunk-region-using-face'.
+
+In terminal frames it's not possible to draw lines as the overlay
+and underline variants normally do, so there they fall back to
+calling the face function instead."
+  :package-version '(magit . "2.9.0")
+  :set-after '(magit-diff-show-lines-boundaries)
+  :group 'magit-diff
+  :type 'hook
+  :options '(magit-diff-highlight-hunk-region-dim-outside
+             magit-diff-highlight-hunk-region-using-overlays
+             magit-diff-highlight-hunk-region-using-face))
+
+(defcustom magit-diff-unmarked-lines-keep-foreground t
+  "Whether `magit-diff-highlight-hunk-region-dim-outside' preserves foreground.
+When this is set to nil, then that function only adjusts the
+foreground color but added and removed lines outside the region
+keep their distinct foreground colors."
+  :package-version '(magit . "2.9.0")
   :group 'magit-diff
   :type 'boolean)
 
@@ -311,6 +358,18 @@ and https://debbugs.gnu.org/cgi/bugreport.cgi?bug=7847."
      :inherit magit-diff-hunk-heading-highlight
      :foreground "LightSalmon3"))
   "Face for selected diff hunk headings."
+  :group 'magit-faces)
+
+(defface magit-diff-hunk-region
+  '((t :inherit bold))
+  "Face used by `magit-diff-highlight-hunk-region-using-face'.
+
+This face is overlayed over text that uses other hunk faces,
+and those normally set the foreground and background colors.
+The `:foreground' and especially the `:background' properties
+should be avoided here.  Setting the latter would cause the
+lose of information.  Good properties to set here are `:weight'
+and `:slant'."
   :group 'magit-faces)
 
 (defface magit-diff-lines-heading
@@ -668,7 +727,7 @@ If no DWIM context is found, nil is returned."
                       (if (magit-anything-modified-p)
                           current
                         (cons 'commit current)))
-                  (format "%s..%s" atpoint current))))
+                  (format "%s...%s" current atpoint))))
       (commit (cons 'commit (magit-section-value it)))
       (stash (cons 'stash (magit-section-value it)))))))
 
@@ -1107,7 +1166,7 @@ or `HEAD'."
 (defun magit-diff-visit-directory (directory &optional other-window)
   (if (equal (magit-toplevel directory)
              (magit-toplevel))
-      (magit-dired-jump other-window)
+      (dired-jump other-window (concat directory "/."))
     (let ((display-buffer-overriding-action
            (if other-window
                '(nil (inhibit-same-window t))
@@ -1868,7 +1927,8 @@ selects a valid group of diff related sections, the type of these
 sections, i.e. `hunks' or `files'.  If SECTION, or if that is nil
 the current section, is a `hunk' section; and the region region
 starts and ends inside the body of a that section, then the type
-is `region'.
+is `region'.  If the region is empty after a mouse click, then
+`hunk' is returned instead of `region'.
 
 If optional STRICT is non-nil then return nil if the diff type of
 the section at point is `untracked' or the section at point is not
@@ -1883,7 +1943,7 @@ actually a `diff' but a `diffstat' section."
                                  'diffstat)))))
       (pcase (list (magit-section-type section)
                    (and siblings t)
-                   (and (region-active-p) t)
+                   (magit-diff-use-hunk-region-p)
                    ssection)
         (`(hunk nil   t  ,_)
          (if (magit-section-internal-region-p section) 'region 'hunk))
@@ -1893,6 +1953,20 @@ actually a `diff' but a `diffstat' section."
         (`(file  ,_  ,_  ,_) 'file)
         (`(,(or `staged `unstaged `untracked)
            nil ,_ ,_) 'list)))))
+
+(defun magit-diff-use-hunk-region-p ()
+  (and (region-active-p)
+       (not (and (if (version< emacs-version "25.1")
+                     (eq this-command 'mouse-drag-region)
+                   ;; TODO implement this from first principals
+                   ;; currently it's trial-and-error
+                   (or (eq this-command 'mouse-drag-region)
+                       (eq last-command 'mouse-drag-region)
+                       ;; When another window was previously
+                       ;; selected then the last-command is
+                       ;; some byte-code function.
+                       (byte-code-function-p last-command)))
+                 (eq (region-end) (region-beginning))))))
 
 ;;; Diff Highlight
 
@@ -2088,47 +2162,76 @@ are highlighted."
   (save-excursion (goto-char (region-end))
                   (line-end-position)))
 
-(defvar magit-diff-unmarked-lines-keep-foreground t)
-
 (defun magit-diff-update-hunk-region (section)
-  (when (and (eq (magit-diff-scope section t) 'region)
-             (not (and (if (version< emacs-version "25.1")
-                           (eq this-command 'mouse-drag-region)
-                         (or (eq last-command 'mouse-drag-region)
-                             ;; When another window was previously
-                             ;; selected then the last-command is
-                             ;; a byte-code function.
-                             (byte-code-function-p last-command)))
-                       (eq (region-end) (region-beginning)))))
-    (let ((sbeg (magit-section-start section))
-          (cbeg (magit-section-content section))
-          (rbeg (magit-diff-hunk-region-beginning))
-          (rend (magit-diff-hunk-region-end))
-          (send (magit-section-end section))
-          (face (if magit-diff-highlight-hunk-body
-                    'magit-diff-context-highlight
-                  'magit-diff-context)))
-      (when magit-diff-unmarked-lines-keep-foreground
-        (setq face (list :background (face-attribute face :background))))
-      (cl-flet ((ov (start end &rest args)
-                    (let ((ov (make-overlay start end nil t)))
-                      (overlay-put ov 'evaporate t)
-                      (while args (overlay-put ov (pop args) (pop args)))
-                      (push ov magit-region-overlays)
-                      ov)))
-        (ov sbeg cbeg 'face 'magit-diff-lines-heading
-            'display (concat (magit-diff-hunk-region-header section) "\n"))
-        (ov cbeg rbeg 'face face 'priority 2)
-        (when (and (window-system) magit-diff-show-lines-boundary)
-          (ov rbeg (1+ rbeg) 'before-string
-              (propertize (concat (propertize "\s" 'display '(space :height (1)))
-                                  (propertize "\n" 'line-height t))
-                          'face 'magit-diff-lines-boundary))
-          (ov rend (1+ rend) 'after-string
-              (propertize (concat (propertize "\s" 'display '(space :height (1)))
-                                  (propertize "\n" 'line-height t))
-                          'face 'magit-diff-lines-boundary)))
-        (ov (1+ rend) send 'face face 'priority 2)))))
+  (when (eq (magit-diff-scope section t) 'region)
+    (magit-diff--make-hunk-overlay
+     (magit-section-start section)
+     (1- (magit-section-content section))
+     'face 'magit-diff-lines-heading
+     'display (magit-diff-hunk-region-header section)
+     'after-string (magit-diff--hunk-after-string 'magit-diff-lines-heading))
+    (run-hook-with-args 'magit-diff-highlight-hunk-region-functions section)
+    t))
+
+(defun magit-diff-highlight-hunk-region-dim-outside (section)
+  "Dim the parts of the hunk that are outside the hunk-internal region.
+This is done by using the same foreground and background color
+for added and removed lines as for context lines."
+  (let ((face (if magit-diff-highlight-hunk-body
+                  'magit-diff-context-highlight
+                'magit-diff-context)))
+    (when magit-diff-unmarked-lines-keep-foreground
+      (setq face (list :background (face-attribute face :background))))
+    (magit-diff--make-hunk-overlay (magit-section-content section)
+                                   (magit-diff-hunk-region-beginning)
+                                   'face face
+                                   'priority 2)
+    (magit-diff--make-hunk-overlay (1+ (magit-diff-hunk-region-end))
+                                   (magit-section-end section)
+                                   'face face
+                                   'priority 2)))
+
+(defun magit-diff-highlight-hunk-region-using-face (_section)
+  "Highlight the hunk-internal region by making it bold.
+Or rather highlight using the face `magit-diff-hunk-region', though
+changing only the `:weight' and/or `:slant' is recommended for that
+face."
+  (magit-diff--make-hunk-overlay (magit-diff-hunk-region-beginning)
+                                 (1+ (magit-diff-hunk-region-end))
+                                 'face 'magit-diff-hunk-region))
+
+(defun magit-diff-highlight-hunk-region-using-overlays (section)
+  "Emphasize the hunk-internal region using delimiting horizontal lines.
+This is implemented as single-pixel newlines places inside overlays.
+Although creating overlays containing newlines is discouraged,
+this version turns out to be less glitchy on Emacs 24 than the
+other method."
+  (if (window-system)
+      (let ((beg (magit-diff-hunk-region-beginning))
+            (end (magit-diff-hunk-region-end))
+            (str (propertize
+                  (concat (propertize "\s" 'display '(space :height (1)))
+                          (propertize "\n" 'line-height t))
+                  'face 'magit-diff-lines-boundary)))
+        (magit-diff--make-hunk-overlay beg (1+ beg) 'before-string str)
+        (magit-diff--make-hunk-overlay end (1+ end) 'after-string  str))
+    (magit-diff-highlight-hunk-region-using-face section)))
+
+(defun magit-diff--make-hunk-overlay (start end &rest args)
+  (let ((ov (make-overlay start end nil t)))
+    (overlay-put ov 'evaporate t)
+    (while args (overlay-put ov (pop args) (pop args)))
+    (push ov magit-region-overlays)
+    ov))
+
+(defun magit-diff--hunk-after-string (face)
+  (propertize "\s"
+              'face face
+              'display (list 'space :align-to `(+ (,(window-body-width nil t))
+                                                  ,(window-hscroll)))
+              ;; This prevents the cursor from being rendered at the
+              ;; edge of the window.
+              'cursor t))
 
 ;;; Diff Extract
 

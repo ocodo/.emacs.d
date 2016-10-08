@@ -1957,8 +1957,12 @@ default the following functions are also members of that hook:
 
  -- Function: magit-insert-untracked-files
 
-     Maybe insert a list or tree of untracked files.  Do so depending on
-     the value of ‘status.showUntrackedFiles’.
+     Maybe insert a list or tree of untracked files.
+
+     Do so depending on the value of ‘status.showUntrackedFiles’.  Note
+     that even if the value is ‘all’, Magit still initially only shows
+     directories.  But the directory sections can then be expanded using
+     ‘TAB’.
 
  -- Function: magit-insert-unstaged-changes
 
@@ -2769,6 +2773,39 @@ File: magit.info,  Node: Diff options,  Next: Revision buffer,  Prev: Diff buffe
  -- User Option: magit-diff-hide-trailing-cr-characters
 
      Whether to hide ^M characters at the end of a line in diffs.
+
+ -- User Option: magit-diff-highlight-hunk-region-functions
+
+     This option specifies the functions used to highlight the
+     hunk-internal region.
+
+     ‘magit-diff-highlight-hunk-region-dim-outside’ overlays the outside
+     of the hunk internal selection with a face that causes the added
+     and removed lines to have the same background color as context
+     lines.  This function should not be removed from the value of this
+     option.
+
+     ‘magit-diff-highlight-hunk-region-using-overlays’ and
+     ‘magit-diff-highlight-hunk-region-using-underline’ emphasize the
+     region by placing delimiting horizonal lines before and after it.
+     Which implementation is preferable depends on the Emacs version,
+     and the more suitable one is part of the default value.
+
+     Instead of, or in addition to, using delimiting horizontal lines,
+     to emphasize the boundaries, you may which to emphasize the text
+     itself, using ‘magit-diff-highlight-hunk-region-using-face’.
+
+     In terminal frames it’s not possible to draw lines as the overlay
+     and underline variants normally do, so there they fall back to
+     calling the face function instead.
+
+ -- User Option: magit-diff-unmarked-lines-keep-foreground
+
+     This option controls whether added and removed lines outside the
+     hunk-internal region only lose their distinct background color or
+     also the foreground color.  Whether the outside of the region is
+     dimmed at all depends on
+     ‘magit-diff-highlight-hunk-region-functions’.
 
 
 File: magit.info,  Node: Revision buffer,  Prev: Diff options,  Up: Diffing
@@ -3964,6 +4001,17 @@ features are available from separate popups.
      upstream of the starting-point may be used as the upstream of the
      new branch, instead of the starting-point itself.
 
+     If optional FROM is non-nil, then the source branch is reset to
+     that commit, instead of to the last commit it shares with its
+     upstream.  Interactively, FROM is non-nil, when the region selects
+     some commits, and among those commits, FROM it is the commit that
+     is the fewest commits ahead of the source branch.
+
+     The commit at the other end of the selection actually does not
+     matter, all commits between FROM and ‘HEAD’ are moved to the new
+     branch.  If FROM is not reachable from ‘HEAD’ or is reachable from
+     the source branch’s upstream, then an error is raised.
+
 ‘b x’     (‘magit-branch-reset’)
 
      This command resets a branch, defaulting to the branch at point, to
@@ -4035,6 +4083,48 @@ features are available from separate popups.
      Which you prefer is a matter of personal preference.  If you do
      prefer the former, then you should add branches such as ‘master’,
      ‘next’, and ‘maint’ to the value of this options.
+
+ -- User Option: magit-branch-adjust-remote-upstream-alist
+
+     The value of this option is an alist of branches to be used as the
+     upstream when branching a remote branch.
+
+     When creating a local branch from an ephemeral branch located on a
+     remote, e.g.  a feature or hotfix branch, then that remote branch
+     should usually not be used as the upstream branch, since the
+     push-remote already allows accessing it and having both the
+     upstream and the push-remote reference the same related branch
+     would be wasteful.  Instead a branch like "maint" or "master"
+     should be used as the upstream.
+
+     This option allows specifing the branch that should be used as the
+     upstream when branching certain remote branches.  The value is an
+     alist of the form ‘((UPSTREAM . RULE)...)’.  The first matching
+     element is used, the following elements are ignored.
+
+     UPSTREAM is the branch to be used as the upstream for branches
+     specified by RULE. It can be a local or a remote branch.
+
+     RULE can either be a regular expression, matching branches whose
+     upstream should be the one specified by UPSTREAM. Or it can be a
+     list of the only branches that should *not* use UPSTREAM; all other
+     branches will.  Matching is done after stripping the remote part of
+     the name of the branch that is being branched from.
+
+     If you use a finite set of non-ephemeral branches across all your
+     repositories, then you might use something like:
+
+          (("origin/master" "master" "next" "maint"))
+
+     Or if the names of all your ephemeral branches contain a slash, at
+     least in some repositories, then a good value could be:
+
+          (("origin/master" . "/"))
+
+     Of course you can also fine-tune:
+
+          (("origin/maint" . "\\`hotfix/")
+           ("origin/master" . "\\`feature/"))
 
  -- Command: magit-branch-orphan
 
@@ -7447,14 +7537,14 @@ Appendix B Keystroke Index
 * b c:                                   The branch popup.    (line  47)
 * B g:                                   Bisecting.           (line  36)
 * B k:                                   Bisecting.           (line  41)
-* b k:                                   The branch popup.    (line  88)
+* b k:                                   The branch popup.    (line  99)
 * b n:                                   The branch popup.    (line  37)
 * B r:                                   Bisecting.           (line  47)
-* b r:                                   The branch popup.    (line  94)
+* b r:                                   The branch popup.    (line 105)
 * B s:                                   Bisecting.           (line  16)
 * b s:                                   The branch popup.    (line  54)
 * B u:                                   Bisecting.           (line  24)
-* b x:                                   The branch popup.    (line  71)
+* b x:                                   The branch popup.    (line  82)
 * c:                                     Initiating a commit. (line   8)
 * c <1>:                                 Editing rebase sequences.
                                                               (line  72)
