@@ -12,7 +12,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
 ;; Package-Requires: ((emacs "24.4") (dash "20160820.501") (with-editor "20160812.1457"))
-;; Package-Version: 20160920.1452
+;; Package-Version: 20160929.801
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -345,6 +345,8 @@ usually honor this wish and return non-nil."
 
 (eval-after-load 'recentf
   '(add-to-list 'recentf-exclude git-commit-filename-regexp))
+
+(add-to-list 'with-editor-file-name-history-exclude git-commit-filename-regexp)
 
 (defun git-commit-setup-font-lock-in-buffer ()
   (and buffer-file-name
