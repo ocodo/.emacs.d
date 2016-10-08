@@ -129,7 +129,7 @@ please see https://github.com/magit/magit/wiki/Emacsclient."))
                               (setq v (mapconcat #'identity (reverse v) "."))
                               (list v (concat "-" v) (concat ".emacs" v)))
                             (reverse version-lst))
-                 (list "" "-snapshot")))
+                 (list "" "-snapshot" ".emacs-snapshot")))
          (lambda (exec)
            (ignore-errors
              (string-match-p version-reg
@@ -251,6 +251,12 @@ REGEXP are selected using FUNCTION instead of the default in
 Note that when a package adds an entry here then it probably
 has a reason to disrespect `server-window' and it likely is
 not a good idea to change such entries.")
+
+(defvar with-editor-file-name-history-exclude nil
+  "List of regexps for filenames `server-visit' should no remember.
+When a filename matches any of the regexps, then `server-visit'
+does not add it to the variable `file-name-history', which is
+used when reading a filename in the minibuffer.")
 
 ;;; Mode Commands
 
@@ -529,6 +535,17 @@ which may or may not insert the text into the PROCESS' buffer."
     (with-editor-output-filter string))
   (unless no-default-filter
     (internal-default-process-filter process string)))
+
+(advice-add 'server-visit-files :after
+            'server-visit-files--with-editor-file-name-history-exclude)
+
+(defun server-visit-files--with-editor-file-name-history-exclude
+    (files _proc &optional _nowait)
+  (dolist (file files)
+    (setq  file (car file))
+    (when (--any (string-match-p it file)
+                 with-editor-file-name-history-exclude)
+      (setq file-name-history (delete file file-name-history)))))
 
 ;;; Augmentations
 
