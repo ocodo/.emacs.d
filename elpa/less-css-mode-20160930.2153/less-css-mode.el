@@ -4,7 +4,7 @@
 ;;
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; URL: https://github.com/purcell/less-css-mode
-;; Package-Version: 20160819.9
+;; Package-Version: 20160930.2153
 ;; Keywords: less css mode
 ;; Version: DEV
 ;;
@@ -29,7 +29,7 @@
 ;; `less-css-compile-at-save' to t.  To install "lessc" using the
 ;; Node.js package manager, run "npm install less"
 ;;
-;; Also make sure the "lessc" executable is in emacs' PATH, example:
+;; Also make sure the "lessc" executable is in Emacs' PATH, example:
 ;; (setq exec-path (cons (expand-file-name "~/.gem/ruby/1.8/bin") exec-path))
 ;; or customize `less-css-lessc-command' to point to your "lessc" executable.
 ;;
@@ -84,48 +84,57 @@
   :prefix "less-css-"
   :group 'css)
 
+;;;###autoload
 (defcustom less-css-lessc-command "lessc"
   "Command used to compile LESS files.
 Should be lessc or the complete path to your lessc executable,
   e.g.: \"~/.gem/ruby/1.8/bin/lessc\""
   :type 'file
-  :group 'less-css)
-(put 'less-css-lessc-command 'safe-local-variable t)
+  :group 'less-css
+  :safe 'stringp)
 
+;;;###autoload
 (defcustom less-css-compile-at-save nil
   "If non-nil, the LESS buffers will be compiled to CSS after each save."
   :type 'boolean
-  :group 'less-css)
-(put 'less-css-compile-at-save 'safe-local-variable t)
+  :group 'less-css
+  :safe 'booleanp)
 
+;;;###autoload
 (defcustom less-css-lessc-options '("--no-color")
   "Command line options for less executable.
 
 Use \"-x\" to minify output."
   :type '(repeat string)
-  :group 'less-css)
-(put 'less-css-compile-at-save 'safe-local-variable t)
+  :group 'less-css
+  :safe t)
 
-(defvar less-css-output-directory nil
+;;;###autoload
+(defcustom less-css-output-directory nil
   "Directory in which to save CSS, or nil to use the LESS file's directory.
 
 This path is expanded relative to the directory of the LESS file
 using `expand-file-name', so both relative and absolute paths
-will work as expected.")
+will work as expected."
+  :type 'directory
+  :group 'less-css
+  :safe 'stringp)
 
-(make-variable-buffer-local 'less-css-output-directory)
-
-(defvar less-css-output-file-name nil
+;;;###autoload
+(defcustom less-css-output-file-name nil
   "File name in which to save CSS, or nil to use <name>.css for <name>.less.
 
 This can be also be set to a full path, or a relative path.  If
 the path is relative, it will be relative to the value of
 `less-css-output-dir', if set, or the current directory by
-default.")
-
+default."
+  :type 'file
+  :group 'less-css
+  :safe 'stringp)
 (make-variable-buffer-local 'less-css-output-file-name)
 
-(defvar less-css-input-file-name nil
+;;;###autoload
+(defcustom less-css-input-file-name nil
   "File name which will be compiled to CSS.
 
 When the current buffer is saved `less-css-input-file-name' file
@@ -138,8 +147,10 @@ variables.
 
 This can be also be set to a full path, or a relative path. If
 the path is relative, it will be relative to the the current directory by
-default.")
-
+default."
+  :type 'file
+  :group 'less-css
+  :safe 'stringp)
 (make-variable-buffer-local 'less-css-input-file-name)
 
 (defconst less-css-default-error-regex
@@ -183,7 +194,7 @@ default.")
           (compile
            (mapconcat 'identity
                       (append (list (less-css--maybe-shell-quote-command less-css-lessc-command))
-                              less-css-lessc-options
+                              (mapcar 'shell-quote-argument less-css-lessc-options)
                               (list (shell-quote-argument
                                      (or less-css-input-file-name buffer-file-name))
                                     (shell-quote-argument (less-css--output-path))))
