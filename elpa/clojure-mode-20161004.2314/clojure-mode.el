@@ -9,9 +9,9 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20160803.140
+;; Package-Version: 20161004.2314
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 5.5.2
+;; Version: 5.6.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -192,38 +192,50 @@ Out-of-the box clojure-mode understands lein, boot and gradle."
           (and (listp value)
                (cl-every 'stringp value))))
 
+(defcustom clojure-refactor-map-prefix (kbd "C-c C-r")
+  "Clojure refactor keymap prefix."
+  :group 'clojure
+  :type 'string
+  :package-version '(clojure-mode . "5.6.0"))
+
+(defvar clojure-refactor-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-t") #'clojure-thread)
+    (define-key map (kbd "t") #'clojure-thread)
+    (define-key map (kbd "C-u") #'clojure-unwind)
+    (define-key map (kbd "u") #'clojure-unwind)
+    (define-key map (kbd "C-f") #'clojure-thread-first-all)
+    (define-key map (kbd "f") #'clojure-thread-first-all)
+    (define-key map (kbd "C-l") #'clojure-thread-last-all)
+    (define-key map (kbd "l") #'clojure-thread-last-all)
+    (define-key map (kbd "C-a") #'clojure-unwind-all)
+    (define-key map (kbd "a") #'clojure-unwind-all)
+    (define-key map (kbd "C-p") #'clojure-cycle-privacy)
+    (define-key map (kbd "p") #'clojure-cycle-privacy)
+    (define-key map (kbd "C-(") #'clojure-convert-collection-to-list)
+    (define-key map (kbd "(") #'clojure-convert-collection-to-list)
+    (define-key map (kbd "C-'") #'clojure-convert-collection-to-quoted-list)
+    (define-key map (kbd "'") #'clojure-convert-collection-to-quoted-list)
+    (define-key map (kbd "C-{") #'clojure-convert-collection-to-map)
+    (define-key map (kbd "{") #'clojure-convert-collection-to-map)
+    (define-key map (kbd "C-[") #'clojure-convert-collection-to-vector)
+    (define-key map (kbd "[") #'clojure-convert-collection-to-vector)
+    (define-key map (kbd "C-#") #'clojure-convert-collection-to-set)
+    (define-key map (kbd "#") #'clojure-convert-collection-to-set)
+    (define-key map (kbd "C-i") #'clojure-cycle-if)
+    (define-key map (kbd "i") #'clojure-cycle-if)
+    (define-key map (kbd "n i") #'clojure-insert-ns-form)
+    (define-key map (kbd "n h") #'clojure-insert-ns-form-at-point)
+    (define-key map (kbd "n u") #'clojure-update-ns)
+    (define-key map (kbd "n s") #'clojure-sort-ns))
+  "Keymap for Clojure refactoring commands.")
+(fset 'clojure-refactor-map clojure-refactor-map)
+
 (defvar clojure-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-:") #'clojure-toggle-keyword-string)
     (define-key map (kbd "C-c SPC") #'clojure-align)
-    (define-key map (kbd "C-c C-r C-t") #'clojure-thread)
-    (define-key map (kbd "C-c C-r t") #'clojure-thread)
-    (define-key map (kbd "C-c C-r C-u") #'clojure-unwind)
-    (define-key map (kbd "C-c C-r u") #'clojure-unwind)
-    (define-key map (kbd "C-c C-r C-f") #'clojure-thread-first-all)
-    (define-key map (kbd "C-c C-r f") #'clojure-thread-first-all)
-    (define-key map (kbd "C-c C-r C-l") #'clojure-thread-last-all)
-    (define-key map (kbd "C-c C-r l") #'clojure-thread-last-all)
-    (define-key map (kbd "C-c C-r C-a") #'clojure-unwind-all)
-    (define-key map (kbd "C-c C-r a") #'clojure-unwind-all)
-    (define-key map (kbd "C-c C-r C-p") #'clojure-cycle-privacy)
-    (define-key map (kbd "C-c C-r p") #'clojure-cycle-privacy)
-    (define-key map (kbd "C-c C-r C-(") #'clojure-convert-collection-to-list)
-    (define-key map (kbd "C-c C-r (") #'clojure-convert-collection-to-list)
-    (define-key map (kbd "C-c C-r C-'") #'clojure-convert-collection-to-quoted-list)
-    (define-key map (kbd "C-c C-r '") #'clojure-convert-collection-to-quoted-list)
-    (define-key map (kbd "C-c C-r C-{") #'clojure-convert-collection-to-map)
-    (define-key map (kbd "C-c C-r {") #'clojure-convert-collection-to-map)
-    (define-key map (kbd "C-c C-r C-[") #'clojure-convert-collection-to-vector)
-    (define-key map (kbd "C-c C-r [") #'clojure-convert-collection-to-vector)
-    (define-key map (kbd "C-c C-r C-#") #'clojure-convert-collection-to-set)
-    (define-key map (kbd "C-c C-r #") #'clojure-convert-collection-to-set)
-    (define-key map (kbd "C-c C-r C-i") #'clojure-cycle-if)
-    (define-key map (kbd "C-c C-r i") #'clojure-cycle-if)
-    (define-key map (kbd "C-c C-r n i") #'clojure-insert-ns-form)
-    (define-key map (kbd "C-c C-r n h") #'clojure-insert-ns-form-at-point)
-    (define-key map (kbd "C-c C-r n u") #'clojure-update-ns)
-    (define-key map (kbd "C-c C-r n s") #'clojure-sort-ns)
+    (define-key map clojure-refactor-map-prefix 'clojure-refactor-map)
     (easy-menu-define clojure-mode-menu map "Clojure Mode Menu"
       '("Clojure"
         ["Toggle between string & keyword" clojure-toggle-keyword-string]
@@ -248,7 +260,14 @@ Out-of-the box clojure-mode understands lein, boot and gradle."
          "--"
          ["Unwind once" clojure-unwind]
          ["Fully unwind a threading macro" clojure-unwind-all])
+        ("Documentation"
+         ["View a Clojure guide" clojure-view-guide]
+         ["View a Clojure reference section" clojure-view-reference-section]
+         ["View the Clojure cheatsheet" clojure-view-cheatsheet]
+         ["View the Clojure Grimoire" clojure-view-grimoire]
+         ["View the Clojure style guide" clojure-view-style-guide])
         "--"
+        ["Report a clojure-mode bug" clojure-mode-report-bug]
         ["Clojure-mode version" clojure-mode-display-version]))
     map)
   "Keymap for Clojure mode.")
@@ -281,6 +300,99 @@ CIDER provides a more complex version which does classpath analysis.")
   "Display the current `clojure-mode-version' in the minibuffer."
   (interactive)
   (message "clojure-mode (version %s)" clojure-mode-version))
+
+(defconst clojure-mode-report-bug-url "https://github.com/clojure-emacs/clojure-mode/issues/new"
+  "The URL to report a clojure-mode issue.")
+
+(defun clojure-mode-report-bug ()
+  "Report a bug in your default browser."
+  (interactive)
+  (browse-url clojure-mode-report-bug-url))
+
+(defconst clojure-guides-base-url "https://clojure.org/guides/"
+  "The base URL for official Clojure guides.")
+
+(defconst clojure-guides '(("Getting Started" . "getting_started")
+                           ("FAQ" . "faq")
+                           ("spec" . "spec")
+                           ("Destructuring" . "destructuring")
+                           ("Threading Macros" . "threading_macros")
+                           ("Comparators" . "comparators")
+                           ("Reader Conditionals" . "reader_conditionals"))
+  "A list of all official Clojure guides.")
+
+(defun clojure-view-guide ()
+  "Open a Clojure guide in your default browser.
+
+The command will prompt you to select one of the available guides."
+  (interactive)
+  (let ((guide (completing-read "Select a guide: " (mapcar #'car clojure-guides))))
+    (when guide
+      (let ((guide-url (concat clojure-guides-base-url (cdr (assoc guide clojure-guides)))))
+        (browse-url guide-url)))))
+
+(defconst clojure-reference-base-url "https://clojure.org/reference/"
+  "The base URL for the official Clojure reference.")
+
+(defconst clojure-reference-sections '(("The Reader" . "reader")
+                                       ("The REPL and main" . "repl_and_main")
+                                       ("Evaluation" . "evaluation")
+                                       ("Special Forms" . "special_forms")
+                                       ("Macros" . "macros")
+                                       ("Other Functions" . "other_functions")
+                                       ("Data Structures" . "data_structures")
+                                       ("Datatypes" . "datatypes")
+                                       ("Sequences" . "sequences")
+                                       ("Transients" . "transients")
+                                       ("Transducers" . "transducers")
+                                       ("Multimethods and Hierarchies" . "multimethods")
+                                       ("Protocols" . "protocols")
+                                       ("Metadata" . "metadata")
+                                       ("Namespaces" . "namespaces")
+                                       ("Libs" . "libs")
+                                       ("Vars and Environments" . "vars")
+                                       ("Refs and Transactions" . "refs")
+                                       ("Agents" . "agents")
+                                       ("Atoms" . "atoms")
+                                       ("Reducers" . "reducers")
+                                       ("Java Interop" . "java_interop")
+                                       ("Compilation and Class Generation" . "compilation")
+                                       ("Other Libraries" . "other_libraries")
+                                       ("Differences with Lisps" . "lisps")))
+
+(defun clojure-view-reference-section ()
+  "Open a Clojure reference section in your default browser.
+
+The command will prompt you to select one of the available sections."
+  (interactive)
+  (let ((section (completing-read "Select a reference section: " (mapcar #'car clojure-reference-sections))))
+    (when section
+      (let ((section-url (concat clojure-reference-base-url (cdr (assoc section clojure-reference-sections)))))
+        (browse-url section-url)))))
+
+(defconst clojure-cheatsheet-url "http://clojure.org/api/cheatsheet"
+  "The URL of the official Clojure cheatsheet.")
+
+(defun clojure-view-cheatsheet ()
+  "Open the Clojure cheatsheet in your default browser."
+  (interactive)
+  (browse-url clojure-cheatsheet-url))
+
+(defconst clojure-grimoire-url "https://www.conj.io/"
+  "The URL of the Grimoire community documentation site.")
+
+(defun clojure-view-grimoire ()
+  "Open the Clojure Grimoire in your default browser."
+  (interactive)
+  (browse-url clojure-grimoire-url))
+
+(defconst clojure-style-guide-url "https://github.com/bbatsov/clojure-style-guide"
+  "The URL of the Clojure style guide.")
+
+(defun clojure-view-style-guide ()
+  "Open the Clojure style guide in your default browser."
+  (interactive)
+  (browse-url clojure-style-guide-url))
 
 (defun clojure-space-for-delimiter-p (endp delim)
   "Prevent paredit from inserting useless spaces.
@@ -1001,9 +1113,9 @@ When called from lisp code align everything between BEG and END."
         (dotimes (_ count)
           (align-region (point) sexp-end nil
                         '((clojure-align (regexp . clojure--search-whitespace-after-next-sexp)
-                                  (group . 1)
-                                  (separate . "^ *$")
-                                  (repeat . t)))
+                                         (group . 1)
+                                         (separate . "^ *$")
+                                         (repeat . t)))
                         nil))
         ;; Reindent after aligning because of #360.
         (indent-region (point) sexp-end)))))

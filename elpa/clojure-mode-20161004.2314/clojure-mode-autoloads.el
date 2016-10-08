@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (0 0 0 0))
+;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (22519 51827
+;;;;;;  796496 966000))
 ;;; Generated autoloads from clojure-mode.el
 
 (autoload 'clojure-mode "clojure-mode" "\
@@ -109,8 +110,6 @@ Major mode for editing ClojureX code.
 (add-to-list 'auto-mode-alist '("\\.cljs\\'" . clojurescript-mode))
 
 (add-to-list 'auto-mode-alist '("\\(?:build\\|profile\\)\\.boot\\'" . clojure-mode))
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "clojure-mode" '("clojure" "add-custom-clojure-indents" "define-clojure-indent" "put-clojure-indent")))
 
 ;;;***
 
