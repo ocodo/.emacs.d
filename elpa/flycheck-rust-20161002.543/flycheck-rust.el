@@ -4,7 +4,7 @@
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/flycheck/flycheck-rust
-;; Package-Version: 20160920.100
+;; Package-Version: 20161002.543
 ;; Keywords: tools, convenience
 ;; Version: 0.1-cvs
 ;; Package-Requires: ((emacs "24.1") (flycheck "0.20") (dash "2.13.0") (seq "2.15"))
@@ -115,7 +115,7 @@ name)."
   (let ((json-array-type 'list))
     (-let [(&alist 'targets targets)
            (with-temp-buffer
-             (call-process "cargo" nil t nil "read-manifest")
+             (call-process (funcall flycheck-executable-find "cargo") nil t nil "read-manifest")
              (goto-char (point-min))
              (json-read))]
       ;; If there is a target that matches the file-name exactly, pick that
