@@ -53,21 +53,14 @@
 
 (require 'hydra)
 
-(defhydra tr-hydra (:color
-                    blue
-                    :body-pre
-                    (unless
-                        (region-active-p)
-                      (error "Region isn't set")))
+(defhydra tr-hydra (:color blue :body-pre (unless (region-active-p) (error "Region isn't set")))
   "Translate/tr: "
   ("t" tr-translate-in-region "Translate char in region (tr -t char to-char)")
   ("s" tr-squeeze-in-region "Squeeze char in region (tr -s char)")
   ("d" tr-delete-in-region "Delete char in region (tr -d char)"))
 
 (defun tr-bind-hydra ()
-  "Bind tr-hydra/body to default keymaping.
-
-C-x t"
+  "Bind tr-hydra/body to default keymaping - C-x t."
   (interactive)
   (global-set-key (kbd "C-x t") 'tr-hydra/body))
 

@@ -658,15 +658,31 @@ when matches are equidistant from the current point."
   (interactive)
   (find-file "~/.emacs.d/init.el"))
 
-(defun copy-region-to-other-window ()
+(defun copy-whole-line ()
+  "Copy the current line to the kill ring."
+  (interactive)
+  (save-mark-and-excursion
+   (move-beginning-of-line 1)
+   (cua-set-mark)
+   (move-end-of-line 1)
+   (kill-ring-save nil nil t)))
+
+(defun copy-rest-of-line ()
+  "Copy the current line to the kill ring."
+  (interactive)
+  (save-mark-and-excursion
+   (cua-set-mark)
+   (move-end-of-line 1)
+   (kill-ring-save nil nil t)))
+
+(defun copy-region-or-rest-of-line-to-other-window ()
   "Copy the current region to the other window."
   (interactive)
   (if (region-active-p)
-      (progn
-        (kill-ring-save (region-beginning) (region-end))
-        (other-window 1)
-        (cua-paste prefix-arg))
-    (message "no region selected")))
+      (kill-ring-save (region-beginning) (region-end))
+    (copy-rest-of-line))
+  (other-window 1)
+  (yank))
 
 (defun switch-to-minibuffer-window ()
   "Switch to minibuffer window (if active)."
@@ -889,6 +905,13 @@ If UP is non-nil, duplicate and move point to the top."
         (switch-to-buffer (completing-read "Select dired: " dired-buffers))
       (message "There's no dired buffers open right now"))))
 
+(defun package-install-from-url (url)
+    "Install a package from from a URL.
+URL must point to a plaintext elisp package."
+    (interactive "sURL: ")
+    (let ((package-buffer (browse-url-emacs url)))
+      (with-current-buffer package-buffer (package-install-from-buffer))))
+
 (require 'html-entity-helper)
 
 ;; Key bindings
@@ -904,7 +927,7 @@ If UP is non-nil, duplicate and move point to the top."
  ("C-c M-h"    . edit-handy-functions)
  ("C-c M-i"    . edit-init-el)
  ("C-x 8 h"    . html-entity-insert)
- ("C-c M-c"    . copy-region-to-other-window)
+ ("C-c M-c"    . copy-region-or-rest-of-line-to-other-window)
  ("C-a"        . smart-beginning-of-line)
  ("C-S-o"      . open-line-above)
  ("C-o"        . open-line-below)

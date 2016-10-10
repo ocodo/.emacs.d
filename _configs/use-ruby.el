@@ -86,7 +86,8 @@
   :config (progn (flymake-ruby-load)
                  (ruby-end-mode)
                  (robe-mode)
-                 (ac-robe-setup)))
+                 (eval-after-load 'company
+                   '(push 'company-robe company-backends))))
 
 (provide 'use-ruby)
 ;;; use-ruby ends here

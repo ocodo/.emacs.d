@@ -1,8 +1,8 @@
 # contributor: Jason Milkins <jasonm23@gmail.com>
-# name: init mode template
-# key: ini
+# name: use mode template
+# key: use
 # --
-;;; init-${1:mode-name} --- initialize $1
+;;; use-${1:package} --- configure $1
 ;;; Commentary:
 ;;; Code:
 (require 'use-package)
@@ -16,5 +16,5 @@
   $4
   )
 
-(provide 'init-$1)
-;;; init-$1 ends here
+(provide 'use-$1)
+;;; use-$1 ends here

@@ -23,7 +23,7 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 ## Global bindings
 
 | Key name | Command | Comments |
-|-----------------------------------------|--------------------------------------------------------------------------------|----------------------------------|
+|-----------------------------------------|-------------------------------------------------------------------------------:|----------------------------------|
 | <kbd>Meta</kbd>-<kbd>Return</kbd>                                              | `ac-auto-complete-mode-start`           |                                  |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Space</kbd>                                  | `ace-jump-mode`                         |                                  |
 | <kbd>Ctrl</kbd>-<kbd>x</kbd> <kbd>g</kbd>                                      | `ag-hydra/body`                         |                                  |
@@ -49,7 +49,7 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 | <kbd>Meta</kbd>-<kbd>;</kbd>                                                   | `comment-dwim-2`                        | was `comment-dwim`               |
 | <kbd>Super</kbd>-<kbd>Return</kbd>                                             | `completion-at-point`                   |                                  |
 | <kbd>Ctrl</kbd>-<kbd>tab</kbd>                                                 | `completion-at-point`                   |                                  |
-| <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Meta</kbd>-<kbd>c</kbd>                      | `copy-region-to-other-window`           |                                  |
+| <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Meta</kbd>-<kbd>c</kbd>                      | `copy-region-or-rest-of-line-to-other-window` |                            |
 | <kbd>Super</kbd>-<kbd>c</kbd>                                                  | `cua-copy-region`                       |                                  |
 | <kbd>Super</kbd>-<kbd>x</kbd>                                                  | `cua-cut-region`                        |                                  |
 | <kbd>Super</kbd>-<kbd>v</kbd>                                                  | `cua-paste`                             |                                  |
@@ -187,7 +187,7 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 ## coffee-mode-map
 
 | Key name | Command | Comments |
-|----------|---------|----------|
+|----------|--------:|----------|
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>r</kbd> | `coffee-compile-region`     | was `coffee-send-region` |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>,</kbd> | `coffee-indent-shift-left`  |                          |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>.</kbd> | `coffee-indent-shift-right` |                          |
@@ -198,32 +198,32 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 ## dired-mode-map
 
 | Key name | Command | Comments |
-|----------|---------|----------|
+|----------|--------:|----------|
 | <kbd>F</kbd> | `my-dired-find-file`           | was: `dired-do-find-marked-files` |
 | <kbd>W</kbd> | `wdired-change-to-wdired-mode` |                                   |
 
 ## eww-mode-map
 
 | Key name | Command | Comments |
-|----------|---------|----------|
+|----------|--------:|----------|
 | <kbd>L</kbd>                                                                   |  `browse-web`                                       |                                      |
 
 ## isearch-mode-map
 
 | Key name | Command | Comments |
-|----------|---------|----------|
+|----------|--------:|----------|
 | <kbd>Meta</kbd>-<kbd>s</kbd> <kbd>Meta</kbd>-<kbd>s</kbd>                      |  `avy-isearch`                                      |                                      |
 
 ## js2-mode-map
 
 | Key name | Command | Comments |
-|----------|---------|----------|
+|----------|--------:|----------|
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>Ctrl</kbd>-<kbd>c</kbd>                      |  `insert-semi-colon-at-eol`                         |                                      |
 
 ## ruby-mode-map
 
 | Key name | Command | Comments |
-|----------|---------|----------|
+|----------|--------:|----------|
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>#</kbd> | `ruby-make-interpolated-string-at-point-or-region` |   |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>{</kbd> | `ruby-toggle-block`                                |   |
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>+</kbd> | `ruby-toggle-hash-syntax`                          |   |
@@ -232,5 +232,5 @@ a non-Emacsen way so that they're easier to read for people new to Emacs.
 ## text-mode-map
 
 | Key name | Command | Comments |
-|----------|---------|----------|
+|----------|--------:|----------|
 | <kbd>Ctrl</kbd>-<kbd>c</kbd> <kbd>m</kbd>                                      |  `markdown-mode`                                    |                                      |

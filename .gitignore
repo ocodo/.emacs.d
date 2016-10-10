@@ -27,3 +27,5 @@ var
 .DS_Store
 /eshell/lastdir
 /eshell/history
+
+company-stats-cache.el
