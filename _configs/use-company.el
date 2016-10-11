@@ -9,7 +9,10 @@
              company-complete-common
              company-manual-begin
              company-grab-line)
-  :init
+  :config
+  (bind-key "C-s" 'company-search-candidates company-mode-map)
+  (bind-key "C-M-s" 'company-filter-candidates company-mode-map)
+
   (setq company-idle-delay 0.01
         company-minimum-prefix-length 2
         company-tooltip-limit 10
@@ -18,9 +21,30 @@
         company-dabbrev-code-other-buffers t
         company-tooltip-align-annotations t
         company-require-match 'never
-        company-global-modes '(not eshell-mode comint-mode erc-mode message-mode help-mode)
-        company-frontends '(company-pseudo-tooltip-frontend company-echo-metadata-frontend)
-        company-backends '(company-capf company-yasnippet)
+
+        company-frontends '(company-pseudo-tooltip-frontend
+                            company-echo-metadata-frontend)
+
+        company-backends '(company-bbdb
+                           company-nxml
+                           company-css
+                           company-eclim
+                           company-semantic
+                           company-clang
+                           company-xcode
+                           company-cmake
+                           company-capf
+                           company-files
+                           (company-dabbrev-code
+                            company-gtags
+                            company-etags
+                            company-keywords)
+                           company-oddmuse
+                           company-dabbrev
+                           company-ispell
+                           company-capf
+                           company-yasnippet)
+
         company-quickhelp-delay 0.5
         company-statistics-file (concat user-emacs-directory "/company-stats-cache.el"))
 
@@ -39,6 +63,10 @@
 
   (require 'company-statistics)
   (company-statistics-mode 1))
+
+(use-package company-flx
+  :init
+  (company-flx-mode 1))
 
 (use-package company-dabbrev
   :commands company-dabbrev)
