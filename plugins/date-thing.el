@@ -56,11 +56,15 @@
 
 (defun date-thing-rails-migration-date-time (&optional datetime)
   "Convert datetime now or DATETIME to a rails db migration filename timestamp."
+  (format-time-string "%Y%m%d%H%M%S" (when datetime (date-thing-datetime-string-to-time datetime))))
+
+(defun date-thing-insert-rails-migration-datetime (&optional datetime)
+  "Insert the DATETIME  (or time now) as a rails migration datestamp."
   (interactive (list (if current-prefix-arg
                          (let ((str (read-string "Datetime: ")))
                            (when (not (string= str "") str)))
                        nil)))
-  (format-time-string "%Y%m%d%H%M%S" (when datetime (date-thing-datetime-string-to-time datetime))))
+  (insert (date-thing-rails-migration-date-time datetime)))
 
 (defun date-thing-month-detect (value)
   "Detect if VALUE is a month."
