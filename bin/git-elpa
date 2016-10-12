@@ -35,9 +35,17 @@ Usage:
 
     git-elpa --list
 
+or 
+
+    git-elpa -l
+
 List all updated packages, not yet committed.
 
     git-elpa --commit=package-name
+
+or 
+
+    git-elpa -c package-name
 
 Commit the package update (and old version removal). The following
 automatic commit message pattern will be used:
@@ -46,7 +54,15 @@ automatic commit message pattern will be used:
 
     git-elpa --all
 
+or 
+
+    git-elpa -a
+
 Commit all updated packages (as individual commits)
+
+    git-elpa --cleanup
+
+Remove all stray package info .txt files (created when viewing package details)
 
 =end
 
@@ -217,6 +233,11 @@ option_parser = OptionParser.new do |opts|
 
   opts.on "-e", "--elpa-archive", "Commit updated elpa/melpa archive index" do
     elpa.commit_archives
+    exit 0
+  end
+
+  opts.on "-C", "--cleanup", "Cleanup stray elpa txt files" do
+    `rm ~/.emacs.d/elpa/*.txt`
     exit 0
   end
 end
