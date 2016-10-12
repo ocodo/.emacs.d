@@ -237,7 +237,16 @@ option_parser = OptionParser.new do |opts|
   end
 
   opts.on "-C", "--cleanup", "Cleanup stray elpa txt files" do
-    `rm ~/.emacs.d/elpa/*.txt`
+    puts "Cleaning out elpa .txt files"
+    `rm "$HOME/.emacs.d/elpa/*.txt"`
+    puts "done"
+    exit 0
+  end
+
+  opts.on "-R", "--reset-custom", "Reset custom.el" do
+    puts "resetting custom.el"
+    `cd "$HOME/.emacs.d"; git checkout custom/custom.el`
+    puts "done"
     exit 0
   end
 end
