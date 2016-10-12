@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flycheck-rust" "flycheck-rust.el" (22519 51783
-;;;;;;  712434 685000))
+;;;### (autoloads nil "flycheck-rust" "flycheck-rust.el" (0 0 0 0))
 ;;; Generated autoloads from flycheck-rust.el
 
 (autoload 'flycheck-rust-setup "flycheck-rust" "\
@@ -15,12 +14,7 @@ Flycheck according to the Cargo project layout.
 
 \(fn)" t nil)
 
-(autoload 'flycheck-rust-explain-error "flycheck-rust" "\
-Explain ERROR-CODE by invoking `rustc --explain'.
-
-ERROR-CODE defaults to the code of the error under point.
-
-\(fn ERROR-CODE)" t nil)
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-rust" '("flycheck-rust-")))
 
 ;;;***
 
