@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20160921.138
+;; Package-Version: 20161011.747
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (ivy "0.8.0"))
 ;; Keywords: matching
@@ -704,9 +704,10 @@ WND, when specified is the window."
 Run `swiper' for those buffers."
   (interactive)
   (setq swiper-multi-buffers nil)
-  (ivy-read (swiper-multi-prompt)
-            'internal-complete-buffer
-            :action 'swiper-multi-action-1)
+  (let ((ivy-use-virtual-buffers nil))
+    (ivy-read (swiper-multi-prompt)
+              'internal-complete-buffer
+              :action 'swiper-multi-action-1))
   (ivy-read "Swiper: " swiper-multi-candidates
             :action 'swiper-multi-action-2
             :unwind #'swiper--cleanup

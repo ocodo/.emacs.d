@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "swiper" "swiper.el" (22507 31317 61226 64000))
+;;;### (autoloads nil "swiper" "swiper.el" (0 0 0 0))
 ;;; Generated autoloads from swiper.el
 
 (autoload 'swiper-avy "swiper" "\
@@ -16,6 +16,8 @@ Jump to one of the current swiper candidates.
 When non-nil, INITIAL-INPUT is the initial search pattern.
 
 \(fn &optional INITIAL-INPUT)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swiper" '("swiper-")))
 
 ;;;***
 
