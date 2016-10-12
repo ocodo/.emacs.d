@@ -14,7 +14,7 @@
 				     (mapcar
 				      '(lambda (pfx)
 					 (try-src-prefix p pfx))
-				      '("/src/cljs/" "/src/clj/" "/src/")))))
+				      '("/src/cljs/" "/src/clj/" "/src/" "/test/")))))
 	      (p3 (file-name-sans-extension p2))
 	      (p4 (mapconcat '(lambda (x) x)
 			     (split-string p3 "/")
