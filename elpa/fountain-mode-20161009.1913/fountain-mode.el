@@ -4,8 +4,8 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20160930.642
-;; Version: 2.2.2
+;; Package-Version: 20161009.1913
+;; Version: 2.3.0
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/rnkn/fountain-mode
 
@@ -122,8 +122,7 @@
 ;;; Code:
 
 (defconst fountain-version
-  "2.2.2")
-  ;; (pkg-info-version-info 'fountain-mode))
+  "2.3.0")
 
 (defun fountain-version ()
   "Return `fountain-mode' version."
@@ -543,7 +542,9 @@ This option does affect file contents."
                 (car element))))))
 
 
-;;; Skeletons
+;;; Autoinsert
+
+(require 'autoinsert)
 
 (defvar fountain-metadata-skeleton
   '(nil
@@ -554,6 +555,9 @@ This option does affect file contents."
     "source: " (skeleton-read "Source: ") | -9 "\n"
     "date: " (skeleton-read "Date: " (format-time-string fountain-time-format)) | -7 "\n"
     "contact:\n" ("Contact details, %s: " "    " str | -4 "\n") | -9))
+
+(define-auto-insert '(fountain-mode . "Fountain metadata skeleton")
+  fountain-metadata-skeleton)
 
 
 ;;; Regular Expressions
@@ -566,11 +570,21 @@ Set with `fountain-init-scene-heading-regexp'.
     Group 1: match trimmed whitespace
     Group 2: match leading . (for forced element)
     Group 3: match scene heading without scene number (for export)
-    Group 4: match space between scene heading and scene number
-    Group 5: match scene number with # delimiters
+    Group 4: match space before scene number
+    Group 5: match first # delimiter
     Group 6: match scene number
+    Group 7: match last # delimiter
 
 Requires `fountain-match-scene-heading' for preceding blank line.")
+
+(defvar fountain-scene-number-regexp
+  "\\(?4:[\s\t]+\\)\\(?5:#\\)\\(?6:[a-z0-9\\.-]+\\)\\(?7:#\\)"
+  "Regular expression for matching scene numbers.
+
+    Group 4: match space before scene number
+    Group 5: match first # delimiter
+    Group 6: match scene number
+    Group 7: match last # delimiter")
 
 (defvar fountain-trans-regexp
   nil
@@ -822,32 +836,37 @@ To switch between these levels, customize the value of
 ;;; Initializing
 
 (defun fountain-init-scene-heading-regexp ()
-  "Initialize scene heading regular expression with `fountain-scene-heading-prefix-list'."
+  "Initialize scene heading regular expression.
+Uses `fountain-scene-heading-prefix-list' to create non-forced
+scene heading regular expression."
   (setq fountain-scene-heading-regexp
         (concat
-         ;; first match forced scene heading
+         ;; First match forced scene heading.
          "^\\(?1:\\(?2:\\.\\)\\(?3:\\<.*?\\)"
-         ;; scene number
-         "\\(?:\\(?4:[\s\t]+\\)\\(?5:#\\(?6:[a-z0-9\\.-]+\\)#\\)\\)?"
-         ;; eolp
+         "\\(?:" fountain-scene-number-regexp "\\)?"
          "\\)[\s\t]*$"
-         ;; or match regular scene heading
+         ;; Or match omitted scene.
+         "\\|"
+         "^\\(?1:\\(?3:OMIT\\(?:TED\\)?\\)"
+         "\\(?:" fountain-scene-number-regexp "\\)?"
+         "\\)[\s\t]*$"
+         ;; Or match regular scene heading.
          "\\|"
          "^\\(?1:\\(?3:"
          (regexp-opt fountain-scene-heading-prefix-list)
          "[.\s\t].*?\\)"
-         ;; scene number
-         "\\(?:\\(?4:[\s\t]+\\)\\(?5:#\\(?6:[a-z0-9\\.-]+\\)#\\)\\)?"
-         ;; eolp
+         "\\(?:" fountain-scene-number-regexp "\\)?"
          "\\)[\s\t]*$")))
 
 (defun fountain-init-trans-regexp ()
-  "Initialize transition regular expression with `fountain-trans-suffix-list'."
+  "Initialize transition regular expression.
+Uses `fountain-trans-suffix-list' to create non-forced tranistion
+regular expression."
   (setq fountain-trans-regexp
         (concat
-         ;; first match forced transition
+         ;; First match forced transition.
          "^[\s\t]*\\(?1:\\(?2:>[\s\t]*\\)\\(?3:[^<>\n]*?\\)\\)[\s\t]*$"
-         ;; or match regular transition
+         ;; Or match regular transition.
          "\\|"
          "^[\s\t]*\\(?1:\\(?3:[[:upper:]\s\t]*"
          (upcase (regexp-opt fountain-trans-suffix-list))
@@ -2851,27 +2870,27 @@ data reflects `outline-regexp'."
   "Move forward N scene headings (backward if N is negative).
 If N is 0, move to beginning of scene."
   (interactive "^p")
-  (let* ((i (or n 1))
-         (p (if (<= i 0) -1 1))
+  (or n (setq n 1))
+  (let* ((p (if (<= n 0) -1 1))
          (move-fun
           (lambda ()
             (while (not (or (eq (point) (buffer-end p))
                             (fountain-match-scene-heading)))
               (forward-line p)))))
-    (if (/= i 0)
-        (while (/= i 0)
+    (if (/= n 0)
+        (while (/= n 0)
           (if (fountain-match-scene-heading)
               (forward-line p))
           (funcall move-fun)
-          (setq i (- i p)))
+          (setq n (- n p)))
       (forward-line 0)
       (funcall move-fun))))
 
 (defun fountain-backward-scene (&optional n)
   "Move backward N scene headings (foward if N is negative)."
   (interactive "^p")
-  (let ((i (or n 1)))
-    (fountain-forward-scene (- i))))
+  (or n (setq n 1))
+  (fountain-forward-scene (- n)))
 
 (defun fountain-beginning-of-scene ()   ; FIXME: needed?
   "Move point to beginning of current scene."
@@ -2906,29 +2925,33 @@ If N is 0, move to beginning of scene."
     (fountain-forward-scene 1)
     (exchange-point-and-mark)))
 
-(defun fountain-goto-scene (n)          ; FIXME: scene numbering
-  "Move point to Nth scene."
+(defun fountain-goto-scene (n)
+  "Move point to Nth scene in current buffer.
+
+Ignores revised scene numbers scenes.
+
+    10  = 10
+    10B = 10
+    A10 =  9"
   (interactive "NGoto scene: ")
   (goto-char (point-min))
   (let ((scene (if (fountain-match-scene-heading)
-                   (or (string-to-number (match-string 6))
-                       1)
+                   (car (fountain-scene-number-to-list (match-string 6)))
                  0)))
     (while (and (< scene n)
-                (not (eobp)))
+                (< (point) (point-max)))
       (fountain-forward-scene 1)
-      (setq scene (if (match-string 6)
-                      (string-to-number (match-string 6))
-                    (1+ scene))))))
+      (if (fountain-match-scene-heading)
+          (setq scene (or (car (fountain-scene-number-to-list (match-string 6)))
+                          (1+ scene)))))))
 
 (defun fountain-forward-character (&optional n limit)
   "Goto Nth next character (or Nth previous is N is negative).
 If LIMIT is 'scene, halt at end of scene. If LIMIT is 'dialog,
 halt at end of dialog."
   (interactive "^p")
-  (let (p)
-    (setq n (or n 1)
-          p (if (< n 1) -1 1))
+  (or n (setq n 1))
+  (let ((p (if (< n 1) -1 1)))
     (while (/= n 0)
       (if (fountain-match-character)
           (forward-line p))
@@ -2964,7 +2987,9 @@ halt at end of dialog."
 (defun fountain-auto-upcase ()
   (if (and fountain-auto-upcase-scene-headings
            (fountain-match-scene-heading))
-      (upcase-region (line-beginning-position) (point))))
+      (upcase-region (line-beginning-position)
+                     (or (match-end 3)
+                         (point)))))
 
 (defun fountain-upcase-line (&optional arg)
   "Upcase the line.
@@ -3142,72 +3167,212 @@ then make the changes desired."
 
 ;;; Scene Numbers
 
-;; (defun fountain-get-scene-number ()
-;;   "Return the scene number of current scene."
-;;   (save-excursion
-;;     (save-restriction
-;;       (widen)
-;;       (fountain-forward-scene 0)
-;;       (or (match-string-no-properties 5)
-;;           (let ((pos (point))
-;;                 scn)
-;;             (goto-char (point-min))
-;;             (unless (fountain-match-scene-heading)
-;;               (fountain-forward-scene 1))
-;;             (setq scn 1)
-;;             (while (and (< (point) pos)
-;;                         (not (eobp)))
-;;               (fountain-forward-scene 1)
-;;               (setq scn (or (match-string-no-properties 5)
-;;                             (1+ scn)))
-;;             (number-to-string scn)))))))
+(defcustom fountain-prefix-revised-scene-numbers
+  nil
+  "If non-nil, prefix revision letters to new scene numbers.
 
-;; (defun fountain-add-scene-number (num)
-;;   "Add scene number NUM to current scene heading."
-;;   (when (fountain-match-scene-heading)
-;;     (end-of-line)
-;;     (unless (eq (char-before) ?\s) (insert ?\s))
-;;     (insert "#" num "#")))
+If nil, when inserting new scene headings after numbering
+existing scene headings, revised scene numbers work as follows:
 
-;; (defun fountain-add-scene-numbers (&optional arg)
-;;   "Add scene numbers to all scene headings.
-;; If prefaced with ARG, overwrite existing scene numbers."
-;;   (interactive)
-;;   (let ((job (make-progress-reporter "Adding scene numbers...")))
-;;     (save-excursion
-;;       (goto-char (point-min))
-;;       (unless (fountain-match-scene-heading)
-;;         (fountain-forward-scene 1))
-;;       (let ((prev-scene-num "0"))
-;;         (while (not (eobp))
-;;           (let ((current-scene-num (fountain-get-scene-number)))
-;;             (if current-scene-num
-;;                 (setq prev-scene-num current-scene-num)
-;;               (let* ((prev-scene-int (string-to-number prev-scene-num))
-;;                      (prev-scene-alpha
-;;                       (if (string-match "[a-z]+" prev-scene-num)
-;;                           (match-string 0 prev-scene-num)))
-;;                      (next-scene-num
-;;                       (save-excursion
-;;                         (while (not (or (eobp)
-;;                                         (fountain-get-scene-number)))
-;;                           (fountain-forward-scene 1))
-;;                         (fountain-get-scene-number)))
-;;                      (next-scene-int (if next-scene-num
-;;                                          (string-to-number next-scene-num)))
-;;                      (current-scene-num
-;;                       (if (or (not next-scene-int)
-;;                               (< (1+ prev-scene-int) next-scene-int))
-;;                           (int-to-string (1+ prev-scene-int))
-;;                         (concat (int-to-string prev-scene-int)
-;;                                 (if prev-scene-alpha
-;;                                     (string (1+ (string-to-char prev-scene-alpha)))
-;;                                   "A")))))
-;;                 (fountain-add-scene-number current-scene-num)
-;;                 (setq prev-scene-num current-scene-num))))
-;;           (fountain-forward-scene 1)
-;;           (progress-reporter-update job))))
-;;     (progress-reporter-done job)))
+    10
+    10A (new scene)
+    11
+
+If non-nil, revised scene numbers work as follows:
+
+    10
+    A11 (new scene)
+    11
+
+WARNING: Using conflicting revised scene numbers in the same
+script may result in errors in output."
+  :type 'boolean
+  :group 'fountain)
+
+(defun fountain-scene-number-to-list (string)
+  "Read scene number STRING and return a list.
+
+If `fountain-prefix-revised-scene-numbers' is non-nil:
+
+    \"10\" -> (10)
+    \"AA10\" -> (9 1 1)
+
+Or if nil:
+
+    \"10\" -> (10)
+    \"10AA\" -> (10 1 1)"
+  (let (number revision)
+    (when (stringp string)
+      (if fountain-prefix-revised-scene-numbers
+          (when (string-match "\\([a-z]*\\)[\\.-]*\\([0-9]+\\)[\\.-]*" string)
+            (setq number (string-to-number (match-string 2 string))
+                  revision (match-string 1 string))
+            (unless (string-empty-p revision) (setq number (1- number))))
+        (when (string-match "\\([0-9]+\\)[\\.-]*\\([a-z]*\\)[\\.-]*" string)
+          (setq number (string-to-number (match-string-no-properties 1 string))
+                revision (match-string-no-properties 2 string))))
+      (setq revision (mapcar #'(lambda (n) (- (upcase n) 64)) revision))
+      (cons number revision))))
+
+(defun fountain-scene-number-to-string (list)
+  "Read scene number LIST and return a string.
+
+If `fountain-prefix-revised-scene-numbers' is non-nil:
+
+    (10) -> \"10\"
+    (9 1 1) -> \"AA10\"
+
+Or, if nil:
+
+    (10) -> \"10\"
+    (9 1 1) -> \"9AA\""
+  (when (listp list)
+    (let ((number (car list))
+          (revision (mapconcat #'(lambda (char) (char-to-string (+ char 64)))
+                               (cdr list) nil)))
+      (if fountain-prefix-revised-scene-numbers
+          (progn
+            (unless (string-empty-p revision) (setq number (1+ number)))
+            (concat revision (number-to-string number)))
+        (concat (number-to-string number) revision)))))
+
+(defun fountain-get-scene-number (&optional n)
+  "Return the scene number of the Nth scene as a qualified list."
+  (or n (setq n 0))
+  (save-excursion
+    (save-restriction
+      (widen)
+      (fountain-forward-scene 0)
+      (unless (= n 0) (fountain-forward-scene n))
+      (unless (fountain-match-scene-heading)
+        (user-error "Before first scene heading"))
+      (let ((x (point))
+            ;; First, check if scene heading is already numbered.
+            (current-scene (fountain-scene-number-to-list (match-string 6)))
+            last-scene next-scene)
+        ;; Check if there is a next-scene. No previous scene number can be
+        ;; greater or equal to this.
+        (while (not (or next-scene (eobp)))
+          (fountain-forward-scene 1)
+          (if (fountain-match-scene-heading)
+              (setq next-scene (fountain-scene-number-to-list (match-string 6)))))
+        (cond
+         ;; If there's both a next-scene and current-scene, but next-scene is
+         ;; less or equal to current-scene, scene numbers are out of order.
+         ((and current-scene next-scene
+               (version-list-<= next-scene current-scene))
+          (user-error "Scene `%s' is out of order"
+                      (fountain-scene-number-to-string current-scene)))
+         ;; Otherwise, if there's a current scene and either no next-scene or
+         ;; there is and it's greater then current-scene, just return
+         ;; current-scene.
+         (current-scene)
+         ;; There is no current-scene yet...
+         (t
+          ;; Go to the first scene heading and if it's already numberd set it to
+          ;; that, or just (list 1). Also set last-scene.
+          (goto-char (point-min))
+          (unless (fountain-match-scene-heading)
+            (fountain-forward-scene 1))
+          (if (<= (point) x)
+              (setq current-scene
+                    (or (fountain-scene-number-to-list (match-string 6))
+                        (list 1))))
+          ;; While before point x, go forward through each scene heading,
+          ;; setting last-scene to current-scene and current-scene to an
+          ;; incement of the car of last-scene.
+          (while (< (point) x (point-max))
+            (fountain-forward-scene 1)
+            (when (fountain-match-scene-heading)
+              (setq last-scene current-scene
+                    current-scene (or (fountain-scene-number-to-list (match-string 6))
+                                      (list (1+ (car last-scene)))))
+              ;; However, this might make current-scene greater or equal to
+              ;; next-scene, so if there is a next-scene, for each current-scene
+              ;; check if next-scene is less or equal to current-scene. If so,
+              ;; pop the car from last-scene (which should always be less than
+              ;; next-scene) as n, set current-scene to (list scene (1+ n)) and
+              ;; set scene to (list scene n). Loop through this so that the last
+              ;; (or only) element of current-scene is incremented by 1, and
+              ;; scene is appended with n or 1. e.g.
+              ;;
+              ;;    current-scene (4 2) -> (4 3)
+              ;;    scene (4 2) -> (4 2 1)
+              ;;
+              ;; Return current-scene.
+              (let (n scene)
+                (while (and next-scene (version-list-<= next-scene current-scene))
+                  (setq n (pop last-scene)
+                        current-scene (append scene (list (1+ (or n 0))))
+                        scene (append scene (list (or n 1))))
+                  (if (version-list-<= next-scene scene)
+                      (user-error "Scene `%s' is out of order"
+                                  (fountain-scene-number-to-string current-scene)))))))
+          current-scene))))))
+
+(defun fountain-remove-scene-numbers ()
+  "Remove scene numbers from scene headings in current buffer."
+  (interactive)
+  (if (y-or-n-p "Are you sure you want to remove scene numbers? ")
+      (save-excursion
+        (save-restriction
+          (widen)
+          (let (buffer-invisibility-spec)
+            (goto-char (point-min))
+            (unless (fountain-match-scene-heading)
+              (fountain-forward-scene 1))
+            (while (and (fountain-match-scene-heading)
+                        (< (point) (point-max)))
+              (if (match-string 6)
+                  (delete-region (match-beginning 4)
+                                 (match-end 7)))
+              (fountain-forward-scene 1)))))))
+
+(defun fountain-add-scene-numbers ()
+  "Add scene numbers to scene headings in current buffer.
+
+Adding scene numbers to scene headings after numbering existing
+scene headings will use a prefix or suffix letter, depending on
+the value of `fountain-prefix-revised-scene-numbers':
+
+    10
+    10A <- new scene
+    10B <- new scene
+    11
+
+If further scene headings are inserted:
+
+    10
+    10A
+    10AA <- new scene
+    10B
+    11
+
+In this example, you can't automatically number a new scene
+between 10 and 10A (which might be numbered as 10aA). Instead,
+add these scene numbers manually. Note that if
+`fountain-auto-upcase-scene-headings' is non-nil you will need to
+insert the scene number delimiters (\"##\") first, to protect the
+scene number from being auto-upcased.."
+  (interactive)
+  (if (y-or-n-p "Are you sure you want to add scene numbers? ")
+      (save-excursion
+        (save-restriction
+          (widen)
+          (let ((job (make-progress-reporter "Adding scene numbers..."))
+                buffer-invisibility-spec)
+            (goto-char (point-min))
+            (unless (fountain-match-scene-heading)
+              (fountain-forward-scene 1))
+            (while (and (fountain-match-scene-heading)
+                        (< (point) (point-max)))
+              (unless (match-string 6)
+                (end-of-line)
+                (delete-horizontal-space t)
+                (insert "\s#" (fountain-scene-number-to-string (fountain-get-scene-number)) "#"))
+              (fountain-forward-scene 1)
+              (progress-reporter-update job))
+            (progress-reporter-done job))))))
 
 
 ;;; Font Lock
@@ -3516,7 +3681,8 @@ keywords suitable for Font Lock."
     (define-key map (kbd "C-c C-z") #'fountain-insert-note)
     (define-key map (kbd "C-c C-a") #'fountain-insert-synopsis)
     (define-key map (kbd "C-c C-x i") #'auto-insert)
-    ;; (define-key map (kbd "C-c C-x #") #'fountain-add-scene-nums)
+    (define-key map (kbd "C-c C-x #") #'fountain-add-scene-numbers)
+    (define-key map (kbd "C-c C-x _") #'fountain-remove-scene-numbers)
     (define-key map (kbd "C-c C-x f") #'fountain-set-font-lock-decoration)
     ;; navigation commands
     (define-key map (kbd "C-M-n") #'fountain-forward-scene)
@@ -3636,14 +3802,15 @@ fountain-hide-ELEMENT is non-nil, adds fountain-ELEMENT to
 (easy-menu-define fountain-mode-menu fountain-mode-map
   "Menu for `fountain-mode'."
   '("Fountain"
-    ("Navigate"
+    ("Navigation"
+     ["Go to Scene Heading..." fountain-goto-scene]
+     "---"
      ["Next Scene Heading" fountain-forward-scene]
      ["Previous Scene Heading" fountain-backward-scene]
      "---"
      ["Next Character" fountain-forward-character]
      ["Previous Character" fountain-backward-character])
-    "---"
-    ("Outline"
+    ("Outlining"
      ["Cycle Scene/Section Visibility" fountain-outline-cycle]
      ["Cycle Global Visibility" fountain-outline-cycle-global]
      "---"
@@ -3656,14 +3823,16 @@ fountain-hide-ELEMENT is non-nil, adds fountain-ELEMENT to
      ["Mark Section/Scene" fountain-outline-mark]
      ["Shift Section/Scene Up" fountain-outline-shift-up]
      ["Shift Section/Scene Down" fountain-outline-shift-down])
+    ("Locking"
+     ["Add Scene Numbers" fountain-add-scene-numbers]
+     ["Remove Scene Numbers" fountain-remove-scene-numbers])
     "---"
     ["Insert Metadata" auto-insert]
     ["Insert Synopsis" fountain-insert-synopsis]
     ["Insert Note" fountain-insert-note]
     ["Add/Remove Continued Dialog" fountain-continued-dialog-refresh]
-    ;; ["Add Scene Numbers" fountain-add-scene-nums]
     "---"
-    ("Export"
+    ("Exporting"
      ["Default" fountain-export-default]
      "---"
      ["Buffer to HTML" fountain-export-buffer-to-html]
@@ -3671,7 +3840,14 @@ fountain-hide-ELEMENT is non-nil, adds fountain-ELEMENT to
      ["Buffer to Final Draft" fountain-export-buffer-to-fdx]
      ["Buffer to Fountain" fountain-export-buffer-to-fountain]
      "---"
-     ["Run shell command" fountain-export-shell-command]
+     ["Run Shell Command" fountain-export-shell-command]
+     "---"
+     ["US Letter Page Size" (customize-set-variable 'fountain-export-page-size 'letter)
+      :style radio
+      :selected (eq fountain-export-page-size 'letter)]
+     ["A4 Page Size" (customize-set-variable 'fountain-export-page-size 'a4)
+      :style radio
+      :selected (eq fountain-export-page-size 'a4)]
      "---"
      ["Include Title Page"
       (fountain-toggle-custom-variable
@@ -3712,10 +3888,6 @@ fountain-hide-ELEMENT is non-nil, adds fountain-ELEMENT to
       'fountain-add-continued-dialog)
      :style toggle
      :selected fountain-add-continued-dialog]
-    ["Switch Default Comment Syntax"
-     fountain-toggle-comment-syntax
-     :style toggle
-     :selected fountain-switch-comment-syntax]
     "---"
     ("Syntax Highlighting"
      ["Minimum"
@@ -3758,11 +3930,6 @@ fountain-hide-ELEMENT is non-nil, adds fountain-ELEMENT to
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.fountain\\'" . fountain-mode))
-
-;;;###autoload
-(with-eval-after-load 'autoinsert
-  (define-auto-insert '(fountain-mode . "Fountain metadata skeleton")
-    fountain-metadata-skeleton))
 
 ;;;###autoload
 (define-derived-mode fountain-mode text-mode "Fountain"
