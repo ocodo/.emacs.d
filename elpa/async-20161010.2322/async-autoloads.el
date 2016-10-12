@@ -1,9 +1,9 @@
 ;;; async-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "async" "async.el" (22405 60935 116385 191000))
+;;;### (autoloads nil "async" "async.el" (0 0 0 0))
 ;;; Generated autoloads from async.el
 
 (autoload 'async-start-process "async" "\
@@ -66,10 +66,12 @@ returns nil.  It can still be useful, however, as an argument to
 
 \(fn START-FUNC &optional FINISH-FUNC)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "async" '("async-")))
+
 ;;;***
 
-;;;### (autoloads nil "async-bytecomp" "async-bytecomp.el" (22405
-;;;;;;  60935 116385 191000))
+;;;### (autoloads nil "async-bytecomp" "async-bytecomp.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from async-bytecomp.el
 
 (autoload 'async-byte-recompile-directory "async-bytecomp" "\
@@ -80,7 +82,8 @@ All *.elc files are systematically deleted before proceeding.
 
 (defvar async-bytecomp-package-mode nil "\
 Non-nil if Async-Bytecomp-Package mode is enabled.
-See the command `async-bytecomp-package-mode' for a description of this minor mode.
+See the `async-bytecomp-package-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `async-bytecomp-package-mode'.")
@@ -94,15 +97,17 @@ Async compilation of packages can be controlled by
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "async-bytecomp" '("async-byte")))
+
 ;;;***
 
-;;;### (autoloads nil "dired-async" "dired-async.el" (22405 60935
-;;;;;;  108385 204000))
+;;;### (autoloads nil "dired-async" "dired-async.el" (0 0 0 0))
 ;;; Generated autoloads from dired-async.el
 
 (defvar dired-async-mode nil "\
 Non-nil if Dired-Async mode is enabled.
-See the command `dired-async-mode' for a description of this minor mode.
+See the `dired-async-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `dired-async-mode'.")
@@ -114,10 +119,19 @@ Do dired actions asynchronously.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-async" '("dired-async-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("async-pkg.el" "smtpmail-async.el") (22405
-;;;;;;  60935 125289 333000))
+;;;### (autoloads nil "smtpmail-async" "smtpmail-async.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from smtpmail-async.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "smtpmail-async" '("async-smtpmail-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("async-pkg.el") (0 0 0 0))
 
 ;;;***
 
