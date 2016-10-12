@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20161005.850
+;; Package-Version: 20161009.53
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -843,7 +843,7 @@ Describe the selected candidate."
        (if (facep s)
            (push (symbol-name s) cands))))
     (ivy-read "Face: " cands
-              :preselect (face-at-point t)
+              :preselect (symbol-name (face-at-point t))
               :action #'describe-face)))
 ;;* Git
 ;;** `counsel-git'
