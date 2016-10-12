@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (22459 4247
-;;;;;;  846134 168000))
+;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (0 0 0 0))
 ;;; Generated autoloads from helm-git-grep.el
 
 (autoload 'helm-git-grep-run-persistent-action "helm-git-grep" "\
@@ -47,6 +46,21 @@ Toggle show leading and trailing lines option for git grep.
 
 \(fn)" t nil)
 
+(autoload 'helm-git-grep-toggle-base-directory "helm-git-grep" "\
+Toggle a value of `helm-git-grep-base-directory'for git grep command from `helm-git-grep'.
+
+\(fn)" t nil)
+
+(autoload 'helm-git-grep-pathspec-toggle-availability "helm-git-grep" "\
+Toggle availability of `helm-git-grep-pathspecs',if `helm-git-grep-pathspecs' is not nil.
+
+\(fn)" t nil)
+
+(autoload 'helm-git-grep-ls-files-limited-by-pathspec "helm-git-grep" "\
+Show result of `git ls-files' to check files limited by pathspec which is defined by `helm-git-grep-pathspecs'.
+
+\(fn)" t nil)
+
 (autoload 'helm-git-grep-help "helm-git-grep" "\
 Help command for `helm-git-grep'.
 
@@ -72,15 +86,6 @@ if submodules exists, grep submodules too.
 
 \(fn)" t nil)
 
-(autoload 'helm-git-grep-with-exclude-file-pattern "helm-git-grep" "\
-Helm git grep with exclude file pattern.
-
-file pattern is interpreted as an POSIX extended regular expression.
-
-if submodules exists, don't grep submodules.
-
-\(fn)" t nil)
-
 (autoload 'helm-git-grep-from-isearch "helm-git-grep" "\
 Invoke `helm-git-grep' from isearch.
 
@@ -91,7 +96,16 @@ Invoke `helm-git-grep' from other helm.
 
 \(fn)" t nil)
 
+(autoload 'helm-git-grep-with-exclude-file-pattern "helm-git-grep" "\
+Obsolete.
+
+\(fn)" t nil)
+
 (define-obsolete-function-alias 'helm-git-grep-from-here 'helm-git-grep-at-point "0.5")
+
+(make-obsolete 'helm-git-grep-with-exclude-file-pattern helm-git-grep-with-exclude-file-pattern-obsolete-message "0.10.0")
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-git-grep" '("helm-")))
 
 ;;;***
 
