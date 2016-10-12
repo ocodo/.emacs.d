@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20160822.144
+;; Package-Version: 20161010.9
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -2881,7 +2881,7 @@ Lets you step back in time for that line."
 (defun ahg-heads ()
   "Show the heads of the repository in a tabular view, similar to `ahg-short-log'."
   (interactive)
-  (ahg-short-log-impl "hg heads" "{if(tags, '[{tags}]  ')}{if(bookmarks, '\\{{bookmarks}}  ')}" "[Tags] {Bookmarks}"
+  (ahg-short-log-impl "hg heads" "{if(tags, '[{tags}]  ')}{if(bookmarks, '\\{{bookmarks}}  ')}{ifeq(branch, 'default', '', '({branch})')}" "[Tags] {Bookmarks} (Branch)"
                       "head() and tip:0" nil nil))
 
 
