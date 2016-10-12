@@ -4,7 +4,7 @@
 
 ;; Author: Elis "etu" Axelsson
 ;; URL: https://github.com/etu/0blayout
-;; Package-Version: 20160919.823
+;; Package-Version: 20161007.2307
 ;; Package-X-Original-Version: 20160918.0
 ;; Version: 1.0.2
 ;; Keywords: convenience, window-management
@@ -48,6 +48,9 @@
 ;; 02110-1301, USA.
 
 ;;; Code:
+
+(defgroup 0blayout nil
+  "Configuration settings for 0blayout-mode.")
 
 (defvar 0blayout-alist ()
   "List of the currently defined layouts.")

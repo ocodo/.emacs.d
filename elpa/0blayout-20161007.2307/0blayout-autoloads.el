@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "0blayout" "0blayout.el" (22507 31648 353229
-;;;;;;  238000))
+;;;### (autoloads nil "0blayout" "0blayout.el" (0 0 0 0))
 ;;; Generated autoloads from 0blayout.el
 
 (autoload '0blayout-add-keybindings-with-prefix "0blayout" "\
@@ -23,6 +22,8 @@ for a description of this minor mode.")
 Handle layouts with ease
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "0blayout" '("0blayout-")))
 
 ;;;***
 
