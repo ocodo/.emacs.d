@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-ag" "helm-ag.el" (22507 31506 97228 716000))
+;;;### (autoloads nil "helm-ag" "helm-ag.el" (0 0 0 0))
 ;;; Generated autoloads from helm-ag.el
 
 (autoload 'helm-ag-pop-stack "helm-ag" "\
@@ -55,6 +55,8 @@
 
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-ag" '("helm-")))
 
 ;;;***
 
