@@ -1,0 +1,13 @@
+2016-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* html5-schema: Add locating-rules.xml and setup nxml to use it
+
+2016-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add 'packages/html5-schema/' from commit
+	'6e7c7c331e7f6692be6c7d39fb9485792f0d3513'
+
+	git-subtree-dir: packages/html5-schema git-subtree-mainline:
+	9ac55abceb5888cca4942380ffddef1aab6275fc git-subtree-split:
+	6e7c7c331e7f6692be6c7d39fb9485792f0d3513
+

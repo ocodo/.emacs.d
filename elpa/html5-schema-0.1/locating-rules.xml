@@ -1,0 +1,9 @@
+<!-- <?xml version="1.0"?> -->
+<locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
+  <uri pattern="*.html" typeId="HTML5" />
+  <uri pattern="*.xhtml" typeId="XHTML5" />
+  <namespace ns="http://www.w3.org/1999/xhtml" typeId="XHTML5"/>
+  <documentElement localName="html" typeId="HTML5" />
+  <typeId id="XHTML5" uri="xhtml5.rnc" />
+  <typeId id="HTML5" uri="html5.rnc" />
+</locatingRules>
