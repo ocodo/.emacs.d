@@ -4,7 +4,7 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/evil-smartparens
-;; Package-Version: 20160502.155
+;; Package-Version: 20161010.322
 ;; Keywords: evil smartparens
 ;; Version: 0.3.0
 ;; Package-Requires: ((evil "1.0") (emacs "24.4") (smartparens "1.6.3"))
@@ -137,12 +137,19 @@ list of (fn args) to pass to `apply''"
         (evil-sp-delete beg end type register))
     ('error (progn (goto-char beg) (evil-sp--fail)))))
 
+(evil-define-operator evil-sp-substitute (beg end type register)
+  :motion evil-forward-char
+  (interactive "<R><x>")
+  (evil-sp-delete-char beg end type register)
+  (evil-insert-state))
+
 (defun evil-sp--add-bindings ()
   (when smartparens-strict-mode
     (evil-define-key 'normal evil-smartparens-mode-map
       (kbd "d") #'evil-sp-delete
       (kbd "c") #'evil-sp-change
       (kbd "y") #'evil-sp-yank
+      (kbd "s") #'evil-sp-substitute
       (kbd "S") #'evil-sp-change-whole-line
       (kbd "X") #'evil-sp-backward-delete-char
       (kbd "x") #'evil-sp-delete-char)
