@@ -3,9 +3,9 @@ layout: page
 title: Custom key bindings
 ---
 
-When I record EmacsGifs I try to avoid using these key bindings, but
+When recording EmacsGifs I try to avoid using most of these key bindings.  However,
 chances are my gonzo recording style means I'll probably slip up every
-now and then.
+pretty often.
 
 Of course, if I'm showing you something that has no standard key
 bindings and I have something useful set here already, I'll use them.
