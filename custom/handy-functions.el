@@ -912,8 +912,6 @@ URL must point to a plaintext elisp package."
     (let ((package-buffer (browse-url-emacs url)))
       (with-current-buffer package-buffer (package-install-from-buffer))))
 
-(require 'html-entity-helper)
-
 ;; Key bindings
 (bind-keys
  ("<s-up>"     . duplicate-current-line-or-region-up)

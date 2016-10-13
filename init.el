@@ -54,6 +54,11 @@
                memory-values
                super-hydras
                zappers
+               html-entity-helper
+               tr
+               packages-outdated-packages
+               date-thing
+               ibm-box-drawing-hydra
                ))
   (load-library (symbol-name lib)))
 
