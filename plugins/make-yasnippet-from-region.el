@@ -40,4 +40,6 @@ specified, a snippet group."
         (yas-reload-all))
         (error "An active region is needed to make a snippet")))
 
+(provide 'make-yasnippet-from-region)
+
 ;;; make-yasnippet-from-region.el ends here

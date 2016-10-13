@@ -43,16 +43,12 @@
   (mapcar (lambda (pack)
             (pcase-let* ((`[cl-struct-epl-package ,package ,package-desc] pack)
                          (`[cl-struct-package-desc ,name ,version-list ,summary ,_ ,_ ,_ ,path ,extras ,_] package-desc)
-                         (version (format "%s.%s" (car version-list) (car (cdr version-list))))
-                         (keywords (alist-get :keywords extras nil))
-                         (url (alist-get :url extras nil)))
+                         (version (format "%s.%s" (car version-list) (car (cdr version-list)))))
               (list pack
                     (vector
                      (or (symbol-name package) "")
-                     (or  version "")
-                     (or summary "")
-                     (or  url "")
-                     (or path "")))))
+                     (or version "")
+                     (or summary "")))))
           (epl-outdated-packages)))
 
 (defvar packages-outdated-packages-table-layout
@@ -66,11 +62,9 @@
 (tblui-define
  packages-outdated-packages
  packages-outdated-packages-get-list-entries
- [("Package" 25 t)
-  ("Version" 16 t)
-  ("Summary" 40 nil)
-  ("Url"     30 nil)
-  ("Path"    30 nil)]
+ [("Package" 18 t)
+  ("Version" 15 t)
+  ("Summary" 40 nil)]
  ((:key "x"
    :name packages-outdated-packages-upgrade-popup
    :funcs((?y "Confirm upgrade" packages-outdated-packages-upgrade-marked-packages)))))

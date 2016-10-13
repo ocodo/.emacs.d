@@ -47,6 +47,6 @@
                   ("r" rename-this-buffer-and-file "Rename this buffer & file")
                   ("d" delete-this-buffer-and-file "Delete this buffer & file")))
 
-(provide 'super-f)
+(provide 'super-hydras)
 
 ;;; super-hydras.el ends here

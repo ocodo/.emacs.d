@@ -56,11 +56,12 @@
                zappers
                html-entity-helper
                tr
+               kbd-gfm
                packages-outdated-packages
                date-thing
                ibm-box-drawing-hydra
                ))
-  (load-library (symbol-name lib)))
+  (require lib))
 
 (dolist (use-file
          (directory-files (ocodo-active-config-directory)))
