@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "gitlab-mode" "gitlab-mode.el" (22483 30683
-;;;;;;  884078 849000))
+;;;### (autoloads nil "gitlab-mode" "gitlab-mode.el" (22527 39934
+;;;;;;  0 0))
 ;;; Generated autoloads from gitlab-mode.el
 
 (autoload 'gitlab-show-project-description "gitlab-mode" "\
@@ -19,8 +19,8 @@ Show Gitlab issues.
 
 ;;;***
 
-;;;### (autoloads nil "gitlab-session" "gitlab-session.el" (22483
-;;;;;;  30683 888078 854000))
+;;;### (autoloads nil "gitlab-session" "gitlab-session.el" (22527
+;;;;;;  39934 0 0))
 ;;; Generated autoloads from gitlab-session.el
 
 (autoload 'gitlab-login "gitlab-session" "\
@@ -31,8 +31,7 @@ If it works, return the private token to perform HTTP request to Gitlab.
 
 ;;;***
 
-;;;### (autoloads nil "gitlab-ui" "gitlab-ui.el" (22483 30683 884078
-;;;;;;  849000))
+;;;### (autoloads nil "gitlab-ui" "gitlab-ui.el" (22527 39934 0 0))
 ;;; Generated autoloads from gitlab-ui.el
 
 (autoload 'gitlab-mode "gitlab-ui" "\
@@ -42,8 +41,8 @@ Special mode for Gitlab buffers.
 
 ;;;***
 
-;;;### (autoloads nil "gitlab-version" "gitlab-version.el" (22483
-;;;;;;  30683 860078 824000))
+;;;### (autoloads nil "gitlab-version" "gitlab-version.el" (22527
+;;;;;;  39934 0 0))
 ;;; Generated autoloads from gitlab-version.el
 
 (autoload 'gitlab-version "gitlab-version" "\
@@ -63,7 +62,7 @@ just return nil.
 ;;;### (autoloads nil nil ("gitlab-api.el" "gitlab-groups.el" "gitlab-http.el"
 ;;;;;;  "gitlab-issues.el" "gitlab-milestones.el" "gitlab-notes.el"
 ;;;;;;  "gitlab-pkg.el" "gitlab-projects.el" "gitlab-users.el" "gitlab-utils.el"
-;;;;;;  "gitlab.el") (22483 30683 892078 858000))
+;;;;;;  "gitlab.el") (22527 39934 0 0))
 
 ;;;***
 
