@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "base16-theme" "base16-theme.el" (22519 51840
-;;;;;;  916515 517000))
+;;;### (autoloads nil "base16-theme" "base16-theme.el" (22527 39065
+;;;;;;  0 0))
 ;;; Generated autoloads from base16-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
@@ -28,15 +28,16 @@
 ;;;;;;  "base16-ir-black-theme.el" "base16-isotope-theme.el" "base16-london-tube-theme.el"
 ;;;;;;  "base16-macintosh-theme.el" "base16-marrakesh-theme.el" "base16-materia-theme.el"
 ;;;;;;  "base16-mexico-light-theme.el" "base16-mocha-theme.el" "base16-monokai-theme.el"
-;;;;;;  "base16-ocean-theme.el" "base16-oceanicnext-theme.el" "base16-paraiso-theme.el"
-;;;;;;  "base16-phd-theme.el" "base16-pico-theme.el" "base16-pop-theme.el"
-;;;;;;  "base16-railscasts-theme.el" "base16-seti-ui-theme.el" "base16-shapeshifter-theme.el"
-;;;;;;  "base16-solar-flare-theme.el" "base16-solarized-dark-theme.el"
-;;;;;;  "base16-solarized-light-theme.el" "base16-spacemacs-theme.el"
-;;;;;;  "base16-summerfruit-dark-theme.el" "base16-summerfruit-light-theme.el"
-;;;;;;  "base16-theme-pkg.el" "base16-tomorrow-night-theme.el" "base16-tomorrow-theme.el"
+;;;;;;  "base16-ocean-theme.el" "base16-oceanicnext-theme.el" "base16-onedark-theme.el"
+;;;;;;  "base16-paraiso-theme.el" "base16-phd-theme.el" "base16-pico-theme.el"
+;;;;;;  "base16-pop-theme.el" "base16-railscasts-theme.el" "base16-seti-ui-theme.el"
+;;;;;;  "base16-shapeshifter-theme.el" "base16-solar-flare-theme.el"
+;;;;;;  "base16-solarized-dark-theme.el" "base16-solarized-light-theme.el"
+;;;;;;  "base16-spacemacs-theme.el" "base16-summerfruit-dark-theme.el"
+;;;;;;  "base16-summerfruit-light-theme.el" "base16-theme-pkg.el"
+;;;;;;  "base16-tomorrow-night-theme.el" "base16-tomorrow-theme.el"
 ;;;;;;  "base16-twilight-theme.el" "base16-unikitty-dark-theme.el"
-;;;;;;  "base16-unikitty-light-theme.el") (22519 51841 64515 727000))
+;;;;;;  "base16-unikitty-light-theme.el") (22527 39065 0 0))
 
 ;;;***
 
