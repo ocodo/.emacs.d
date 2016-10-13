@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito <larstvei@ifi.uio.no>
 ;; URL: http://github.com/larstvei/Focus
-;; Package-Version: 20160131.1418
+;; Package-Version: 20161013.401
 ;; Created: 11th May 2015
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
@@ -219,7 +219,7 @@ if active."
         (thing (focus-get-thing)))
     (forward-thing thing n)
     (when (equal current-bounds (focus-bounds))
-      (forward-thing thing (signum n)))
+      (forward-thing thing (cl-signum n)))
     (focus-goto-thing (focus-bounds))))
 
 (defun focus-prev-thing (&optional n)
