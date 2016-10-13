@@ -4,8 +4,8 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/aggressive-indent-mode
-;; Package-Version: 20160608.1625
-;; Version: 1.8.1
+;; Package-Version: 20161012.1344
+;; Version: 1.8.3
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: indent lisp maint tools
 ;; Prefix: aggressive-indent
@@ -125,6 +125,9 @@ Please include this in your report!"
     doc-view-mode
     dos-mode
     erc-mode
+    feature-mode
+    fortran-mode
+    f90-mode
     jabber-chat-mode
     haml-mode
     haskell-mode
@@ -185,7 +188,7 @@ change."
   :package-version '(aggressive-indent . "0.3"))
 
 ;;; Preventing indentation
-(defvar aggressive-indent--internal-dont-indent-if
+(defconst aggressive-indent--internal-dont-indent-if
   '((memq this-command aggressive-indent-protected-commands)
     (region-active-p)
     buffer-read-only
@@ -241,6 +244,12 @@ This is for internal use only.  For user customization, use
                 '(and (derived-mode-p 'coq-mode)
                       (not (string-match "\\.[[:space:]]*$"
                                          (thing-at-point 'line))))))
+(eval-after-load 'ruby-mode
+  '(add-to-list 'aggressive-indent--internal-dont-indent-if
+                '(when (derived-mode-p 'ruby-mode)
+                   (let ((line (thing-at-point 'line)))
+                     (and (stringp line)
+                          (string-match "\\b\\(if\\|case\\|do\\|begin\\) *$" line))))))
 
 (defcustom aggressive-indent-dont-indent-if '()
   "List of variables and functions to prevent aggressive indenting.
@@ -248,9 +257,31 @@ This variable is a list where each element is a Lisp form.
 As long as any one of these forms returns non-nil,
 aggressive-indent will not perform any indentation.
 
-See `aggressive-indent--internal-dont-indent-if' for usage examples."
+See `aggressive-indent--internal-dont-indent-if' for usage examples.
+
+Note that this is only used once, and only on the line where the
+point is when we're about to start indenting.  In order to
+prevent indentation of further lines, see
+`aggressive-indent-stop-here-hook'."
   :type '(repeat sexp)
   :package-version '(aggressive-indent . "0.2"))
+
+(defcustom aggressive-indent-stop-here-hook nil
+  "A hook that runs on each line before it is indented.
+If any function on this hook returns non-nil, it immediately
+prevents indentation of the current line and any further
+lines.
+
+Note that aggressive-indent does indentation in two stages.  The
+first stage indents the entire edited region, while the second
+stage keeps indenting further lines until its own logic decide to
+stop.  This hook only affects the second stage.  That is, it
+effectly lets you add your own predicates to the logic that
+decides when to stop.
+
+In order to prevent indentation before the first stage, see
+`aggressive-indent-dont-indent-if' instead."
+  :type 'hook)
 
 (defvar aggressive-indent--error-message "One of the forms in `aggressive-indent-dont-indent-if' had the following error, I've disabled it until you fix it: %S"
   "Error message thrown by `aggressive-indent-dont-indent-if'.")
@@ -297,6 +328,31 @@ messages.  L and R passed to `aggressive-indent-indent-defun'."
     (ignore-errors (aggressive-indent-indent-defun l r))))
 
 ;;; Indenting region
+(defun aggressive-indent--indent-current-balanced-line (column)
+  "Indent current balanced line, if it starts at COLUMN.
+Balanced line means anything contained in a sexp that starts at
+the current line, or starts at the same line that one of these
+sexps ends.
+
+Return non-nil only if the line's indentation actually changed."
+  (when (= (current-column) column)
+    (unless (= (point)
+               (progn (indent-according-to-mode)
+                      (point)))
+      (let ((line-end (line-end-position)))
+        (forward-sexp 1)
+        (comment-forward (point-max))
+        ;; We know previous sexp finished on a previous line when
+        ;; there's only be whitespace behind point.
+        (while (progn
+                 (skip-chars-backward "[:blank:]")
+                 (not (looking-at "^")))
+          (forward-sexp 1)
+          (comment-forward (point-max)))
+        (when (looking-at "^")
+          (indent-region line-end (1- (point))))
+        (skip-chars-forward "[:blank:]")))))
+
 ;;;###autoload
 (defun aggressive-indent-indent-region-and-on (l r)
   "Indent region between L and R, and then some.
@@ -321,23 +377,10 @@ until nothing more happens."
           ;; And then we indent each following line until nothing happens.
           (forward-line 1)
           (skip-chars-forward "[:blank:]\n\r\xc")
-          (let* ((eod (ignore-errors
-                        (save-excursion (end-of-defun)
-                                        (point-marker))))
-                 (point-limit (if (and eod (< (point) eod))
-                                  eod (point-max-marker))))
-            (while (and (null (eobp))
-                        (let ((op (point))
-                              (np (progn (indent-according-to-mode)
-                                         (point))))
-                          ;; As long as we're indenting things to the
-                          ;; left, keep indenting.
-                          (or (< np op)
-                              ;; If we're indenting to the right, or
-                              ;; not at all, stop at the limit.
-                              (< (point) point-limit))))
-              (forward-line 1)
-              (skip-chars-forward "[:blank:]\n\r\f"))))
+          (let ((base-column (current-column)))
+            (while (and (not (eobp))
+                        (not (run-hook-with-args-until-success 'aggressive-indent-stop-here-hook))
+                        (aggressive-indent--indent-current-balanced-line base-column)))))
       (goto-char p))))
 
 (defun aggressive-indent--softly-indent-region-and-on (l r &rest _)
@@ -369,6 +412,12 @@ or messages."
       (setq aggressive-indent--changed-list
             (cdr aggressive-indent--changed-list)))))
 
+(defcustom aggressive-indent-sit-for-time 0.05
+  "Time, in seconds, to wait before indenting.
+If you feel aggressive-indent is causing Emacs to hang while
+typing, try tweaking this number."
+  :type 'float)
+
 (defun aggressive-indent--indent-if-changed ()
   "Indent any region that changed in the last command loop."
   (when aggressive-indent--changed-list
@@ -377,6 +426,7 @@ or messages."
         (unless (or (run-hook-wrapped 'aggressive-indent--internal-dont-indent-if #'eval)
                     (aggressive-indent--run-user-hooks))
           (while-no-input
+            (sit-for aggressive-indent-sit-for-time t)
             (redisplay)
             (aggressive-indent--proccess-changed-list-and-indent)))))))
 
