@@ -5,8 +5,8 @@
 ;; Author: Ivan Malison <IvanMalison@gmail.com>
 ;; Keywords: multi line length whitespace programming
 ;; URL: https://github.com/IvanMalison/multi-line
-;; Package-Requires: ((emacs "24") (s "1.9.0") (cl-lib "0.5") (dash "2.12.0") (shut-up "0.3.2"))
-;; Version: 0.1.4
+;; Package-Requires: ((emacs "24.3") (s "1.9.0") (cl-lib "0.5") (dash "2.12.0") (shut-up "0.3.2"))
+;; Version: 0.1.5
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
