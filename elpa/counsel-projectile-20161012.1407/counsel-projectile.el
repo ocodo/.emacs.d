@@ -4,7 +4,7 @@
 
 ;; Author: Eric Danan
 ;; URL: https://github.com/ericdanan/counsel-projectile
-;; Package-Version: 20160926.547
+;; Package-Version: 20161012.1407
 ;; Created: 2016-04-11
 ;; Keywords: project, convenience
 ;; Version: 0.1
@@ -194,6 +194,34 @@ With a prefix ARG invalidates the cache first."
   (projectile-maybe-invalidate-cache arg)
   (counsel-projectile-switch-to-buffer t))
 
+;;; counsel-projectile-ag
+
+(defun counsel-projectile-ag (&optional options)
+  "Ivy version of `projectile-ag'."
+  (interactive)
+  (if (projectile-project-p)
+      (let* ((options
+              (if current-prefix-arg
+                  (read-string "options: ")
+                options))
+             (ignored
+              (unless (eq (projectile-project-vcs) 'git)
+                ;; ag supports git ignore files
+                (append
+                 (cl-union (projectile-ignored-files-rel) grep-find-ignored-files)
+                 (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories))))
+             (options
+              (concat options
+                      (mapconcat (lambda (i)
+                                   (concat "--ignore " i))
+                                 ignored
+                                 " "))))
+        (counsel-ag nil
+                    (projectile-project-root)
+                    options
+                    (projectile-prepend-project-name "ag")))
+    (user-error "You're not in a project")))
+
 ;;; counsel-projectile-switch-project
 
 ;;;###autoload
@@ -249,7 +277,11 @@ With a prefix ARG invokes `projectile-commander' instead of `projectile-switch-p
    ("e" (lambda (dir)
           (let ((projectile-switch-project-action 'projectile-run-eshell))
             (projectile-switch-project-by-name dir arg)))
-    "start eshell")))
+    "start eshell")
+   ("a" (lambda (dir)
+          (let ((projectile-switch-project-action 'counsel-projectile-ag))
+            (projectile-switch-project-by-name dir arg)))
+    "search with ag")))
 
 ;;; counsel-projectile
 
@@ -274,15 +306,15 @@ With a prefix ARG invalidates the cache first."
   (def-projectile-commander-method ?f
     "Find file in project."
     (counsel-projectile-find-file))
-
-  (def-projectile-commander-method ?b
-    "Switch to project buffer."
-    (counsel-projectile-switch-to-buffer))
-
   (def-projectile-commander-method ?d
     "Find directory in project."
     (counsel-projectile-find-dir))
-
+  (def-projectile-commander-method ?b
+    "Switch to project buffer."
+    (counsel-projectile-switch-to-buffer))
+  (def-projectile-commander-method ?A
+    "Search project files with ag."
+    (counsel-projectile-ag))
   (def-projectile-commander-method ?s
     "Switch project."
     (counsel-projectile-switch-project)))
@@ -293,18 +325,20 @@ With a prefix ARG invalidates the cache first."
       (progn
         (when (eq projectile-switch-project-action #'projectile-find-file)
           (setq projectile-switch-project-action #'counsel-projectile-find-file-or-buffer))
-        (define-key projectile-command-map (kbd "f") #'counsel-projectile-find-file)
-        (define-key projectile-command-map (kbd "d") #'counsel-projectile-find-dir)
-        (define-key projectile-command-map (kbd "p") #'counsel-projectile-switch-project)
-        (define-key projectile-command-map (kbd "b") #'counsel-projectile-switch-to-buffer)
+        (define-key projectile-mode-map [remap projectile-find-file] #'counsel-projectile-find-file)
+        (define-key projectile-mode-map [remap projectile-find-dir] #'counsel-projectile-find-dir)
+        (define-key projectile-mode-map [remap projectile-switch-project] #'counsel-projectile-switch-project)
+        (define-key projectile-mode-map [remap projectile-ag] #'counsel-projectile-ag)
+        (define-key projectile-mode-map [remap projectile-switch-to-buffer] #'counsel-projectile-switch-to-buffer)
         (counsel-projectile-commander-bindings))
     (progn
       (when (eq projectile-switch-project-action #'counsel-projectile-find-file-or-buffer)
         (setq projectile-switch-project-action #'projectile-find-file))
-      (define-key projectile-command-map (kbd "f") #'projectile-find-file)
-      (define-key projectile-command-map (kbd "d") #'projectile-find-dir)
-      (define-key projectile-command-map (kbd "p") #'projectile-switch-project)
-      (define-key projectile-command-map (kbd "b") #'projectile-switch-to-buffer)
+      (define-key projectile-mode-map [remap projectile-find-file] nil)
+      (define-key projectile-mode-map [remap projectile-find-dir] nil)
+      (define-key projectile-mode-map [remap projectile-switch-project] nil)
+      (define-key projectile-mode-map [remap projectile-ag] nil)
+      (define-key projectile-mode-map [remap projectile-switch-to-buffer] nil)
       (projectile-commander-bindings))))
 
 ;;;###autoload
