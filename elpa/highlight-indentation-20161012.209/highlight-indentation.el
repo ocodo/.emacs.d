@@ -1,8 +1,8 @@
 ;;; highlight-indentation.el --- Minor modes for highlighting indentation
 ;; Author: Anton Johansson <anton.johansson@gmail.com> - http://antonj.se
 ;; Created: Dec 15 23:42:04 2010
-;; Version: 20150307.208
-;; X-Original-Version: 0.7.0
+;; Version: 0.7.0
+;; Package-Version: 20161012.209
 ;; URL: https://github.com/antonj/Highlight-Indentation-for-Emacs
 ;;
 ;; This program is free software; you can redistribute it and/or
@@ -32,12 +32,16 @@
   "Basic face for highlighting indentation guides."
   :group 'highlight-indentation)
 
-(defcustom highlight-indentation-offset 4
+(defcustom highlight-indentation-offset
+  (if (and (boundp 'standard-indent) standard-indent) standard-indent 2)
   "Default indentation offset, used if no other can be found from
   major mode. This value is always used by
   `highlight-indentation-mode' if set buffer local. Set buffer
   local with `highlight-indentation-set-offset'"
   :group 'highlight-indentation)
+
+(defvar highlight-indentation-overlay-priority 1)
+(defvar highlight-indentation-current-column-overlay-priority 2)
 
 (defconst highlight-indentation-hooks
   '((after-change-functions (lambda (start end length)
@@ -111,34 +115,36 @@
       (setq pos (point)))))
 
 (defun highlight-indentation-guess-offset ()
-  "Get indentation offset of current buffer"
+  "Get indentation offset of current buffer."
   (cond ((and (eq major-mode 'python-mode) (boundp 'python-indent))
          python-indent)
         ((and (eq major-mode 'python-mode) (boundp 'py-indent-offset))
          py-indent-offset)
         ((and (eq major-mode 'python-mode) (boundp 'python-indent-offset))
          python-indent-offset)
-        ((eq major-mode 'ruby-mode)
+        ((and (eq major-mode 'ruby-mode) (boundp 'ruby-indent-level))
          ruby-indent-level)
         ((and (eq major-mode 'scala-mode) (boundp 'scala-indent:step))
          scala-indent:step)
         ((and (eq major-mode 'scala-mode) (boundp 'scala-mode-indent:step))
          scala-mode-indent:step)
-        ((or (eq major-mode 'scss-mode) (eq major-mode 'css-mode))
+        ((and (or (eq major-mode 'scss-mode) (eq major-mode 'css-mode)) (boundp 'css-indent-offset))
          css-indent-offset)
-        ((eq major-mode 'nxml-mode)
+        ((and (eq major-mode 'nxml-mode) (boundp 'nxml-child-indent))
          nxml-child-indent)
-        ((eq major-mode 'coffee-mode)
+        ((and (eq major-mode 'coffee-mode) (boundp 'coffee-tab-width))
          coffee-tab-width)
-        ((eq major-mode 'js-mode)
+        ((and (eq major-mode 'js-mode) (boundp 'js-indent-level))
          js-indent-level)
-        ((eq major-mode 'js2-mode)
+        ((and (eq major-mode 'js2-mode) (boundp 'js2-basic-offset))
          js2-basic-offset)
-        ((and (fboundp 'derived-mode-class) (eq (derived-mode-class major-mode) 'sws-mode))
+        ((and (fboundp 'derived-mode-class) (eq (derived-mode-class major-mode) 'sws-mode) (boundp 'sws-tab-width))
          sws-tab-width)
-        ((eq major-mode 'web-mode)
-         web-mode-html-offset) ; other similar vars: web-mode-{css-indent,scripts}-offset
-        ((local-variable-p 'c-basic-offset)
+        ((and (eq major-mode 'web-mode) (boundp 'web-mode-markup-indent-offset))
+         web-mode-markup-indent-offset) ; other similar vars: web-mode-{css-indent,scripts}-offset
+        ((and (eq major-mode 'web-mode) (boundp 'web-mode-html-offset)) ; old var
+         web-mode-html-offset)
+        ((and (local-variable-p 'c-basic-offset) (boundp 'c-basic-offset))
          c-basic-offset)
         (t
          (default-value 'highlight-indentation-offset))))
@@ -184,9 +190,6 @@ from major mode"
   '((t (:background "black")))
   "Basic face for highlighting indentation guides."
   :group 'highlight-indentation)
-
-(defvar highlight-indentation-overlay-priority 1)
-(defvar highlight-indentation-current-column-overlay-priority 2)
 
 (defconst highlight-indentation-current-column-hooks
   '((post-command-hook (lambda () 

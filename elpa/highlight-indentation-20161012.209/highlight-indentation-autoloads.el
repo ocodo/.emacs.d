@@ -1,10 +1,10 @@
 ;;; highlight-indentation-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "highlight-indentation" "highlight-indentation.el"
-;;;;;;  (21754 63284 731401 0))
+;;;;;;  (22527 38939 0 0))
 ;;; Generated autoloads from highlight-indentation.el
 
 (autoload 'highlight-indentation-mode "highlight-indentation" "\
