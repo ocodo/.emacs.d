@@ -161,6 +161,17 @@ command when there is no ambiguity."
   :group 'cider
   :package-version '(cider . "0.13.0"))
 
+(defcustom cider-allow-jack-in-without-project 'warn
+  "Controls what happens when doing `cider-jack-in' outside a project.
+When set to 'warn you'd prompted to confirm the command.
+When set to t `cider-jack-in' will quietly continue.
+When set to nil `cider-jack-in' will fail."
+  :type '(choice (const :tag "always" t)
+                 (const 'warn)
+                 (const :tag "never" nil))
+  :group 'cider
+  :package-version '(cider . "0.14.0"))
+
 (defcustom cider-known-endpoints nil
   "A list of connection endpoints where each endpoint is a list.
 For example: \\='((\"label\" \"host\" \"port\")).
@@ -513,12 +524,20 @@ own buffer."
                          params))
 
                (cmd (format "%s %s" command-resolved params)))
-          (when-let ((repl-buff (cider-find-reusable-repl-buffer nil project-dir)))
-            (let ((nrepl-create-client-buffer-function  #'cider-repl-create)
-                  (nrepl-use-this-as-repl-buffer repl-buff))
-              (nrepl-start-server-process
-               project-dir cmd
-               (when cljs-too #'cider-create-sibling-cljs-repl)))))
+          (if (or project-dir cider-allow-jack-in-without-project)
+              (progn
+                (when (or project-dir
+                          (eq cider-allow-jack-in-without-project t)
+                          (and (null project-dir)
+                               (eq cider-allow-jack-in-without-project 'warn)
+                               (y-or-n-p "Are you sure you want to run `cider-jack-in' without a Clojure project? ")))
+                  (when-let ((repl-buff (cider-find-reusable-repl-buffer nil project-dir)))
+                    (let ((nrepl-create-client-buffer-function  #'cider-repl-create)
+                          (nrepl-use-this-as-repl-buffer repl-buff))
+                      (nrepl-start-server-process
+                       project-dir cmd
+                       (when cljs-too #'cider-create-sibling-cljs-repl))))))
+            (user-error "`cider-jack-in' is not allowed without a Clojure project")))
       (user-error "The %s executable isn't on your `exec-path'" command))))
 
 ;;;###autoload
@@ -667,7 +686,7 @@ Use `cider-ps-running-nrepls-command' and `cider-ps-running-nrepl-path-regexp-li
 (defun cider-project-type ()
   "Determine the type, either leiningen, boot or gradle, of the current project.
 If more than one project file types are present, check for a preferred
-build tool in `cider-preferred-build-tool`, otherwise prompt the user to
+build tool in `cider-preferred-build-tool', otherwise prompt the user to
 choose."
   (let* ((choices (cider--identify-buildtools-present))
          (multiple-project-choices (> (length choices) 1))
@@ -688,25 +707,27 @@ choose."
   "Find `cider-lein-command' on `exec-path' if possible, or return `nil'.
 
 In case `default-directory' is non-local we assume the command is available."
-  (when-let ((command (or (file-remote-p default-directory)
+  (when-let ((command (or (and (file-remote-p default-directory) cider-lein-command)
                           (executable-find cider-lein-command)
                           (executable-find (concat cider-lein-command ".bat")))))
     (shell-quote-argument command)))
 
+;; TODO: Implement a check for `cider-boot-command' over tramp
 (defun cider--boot-resolve-command ()
   "Find `cider-boot-command' on `exec-path' if possible, or return `nil'.
 
 In case `default-directory' is non-local we assume the command is available."
-  (when-let ((command (or (file-remote-p default-directory)
+  (when-let ((command (or (and (file-remote-p default-directory) cider-boot-command)
                           (executable-find cider-boot-command)
                           (executable-find (concat cider-boot-command ".exe")))))
     (shell-quote-argument command)))
 
+;; TODO: Implement a check for `cider-gradle-command' over tramp
 (defun cider--gradle-resolve-command ()
   "Find `cider-gradle-command' on `exec-path' if possible, or return `nil'.
 
 In case `default-directory' is non-local we assume the command is available."
-  (when-let ((command (or (file-remote-p default-directory)
+  (when-let ((command (or (and (file-remote-p default-directory) cider-gradle-command)
                           (executable-find cider-gradle-command)
                           (executable-find (concat cider-gradle-command ".exe")))))
     (shell-quote-argument command)))
