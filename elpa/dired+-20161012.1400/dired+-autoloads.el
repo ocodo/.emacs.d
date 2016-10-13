@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22507 31582 957229 128000))
+;;;### (autoloads nil "dired+" "dired+.el" (22527 38983 0 0))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -22,7 +22,7 @@ It also has no effect for Emacs versions prior to Emacs 22.")
 
 (custom-autoload 'diredp-auto-focus-frame-for-thumbnail-tooltip-flag "dired+" t)
 
-(defvar diredp-compressed-extensions '(".tar" ".taz" ".tgz" ".arj" ".lzh" ".zip" ".z" ".Z" ".gz" ".bz2") "\
+(defvar diredp-compressed-extensions '(".tar" ".taz" ".tgz" ".arj" ".lzh" ".lzma" ".xz" ".zip" ".z" ".Z" ".gz" ".bz2") "\
 *List of compressed-file extensions, for highlighting.")
 
 (custom-autoload 'diredp-compressed-extensions "dired+" t)
@@ -744,7 +744,7 @@ Dired buffer and all subdirs, recursively.
 
 (autoload 'diredp-do-apply-function-recursive "dired+" "\
 Apply FUNCTION to the marked files.
-Like `diredp-do-apply-function' bit act recursively on subdirs.
+Like `diredp-do-apply-function' but act recursively on subdirs.
 
 The files acted on are those that are marked in the current Dired
 buffer, or all files in the directory if none are marked.  Marked
