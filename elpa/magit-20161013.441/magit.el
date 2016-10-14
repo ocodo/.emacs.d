@@ -1009,7 +1009,7 @@ reference, but it is not checked out."
          (let ((ref (magit-section-value (magit-current-section))))
            (if current-prefix-arg
                (magit-show-refs ref)
-             (if (magit-section-when [branch remote])
+             (if (magit-section-match [branch remote])
                  (let ((start ref)
                        (arg "-b"))
                    (string-match "^[^/]+/\\(.+\\)" ref)
@@ -2938,20 +2938,23 @@ Use the options `magit-repository-directories'
 and `magit-repository-directories-depth' to
 control which repositories are displayed."
   (interactive)
-  (with-current-buffer (get-buffer-create "*Magit Repositories*")
-    (magit-repolist-mode)
-    (setq tabulated-list-entries
-          (mapcar (-lambda ((id . path))
-                    (let ((default-directory path))
-                      (list path
-                            (vconcat (--map (or (funcall (nth 2 it) id) "")
-                                            magit-repolist-columns)))))
-                  (magit-list-repos-uniquify
-                   (--map (cons (file-name-nondirectory (directory-file-name it))
-                                it)
-                          (magit-list-repos)))))
-    (tabulated-list-print)
-    (switch-to-buffer (current-buffer))))
+  (if magit-repository-directories
+      (with-current-buffer (get-buffer-create "*Magit Repositories*")
+        (magit-repolist-mode)
+        (setq tabulated-list-entries
+              (mapcar (-lambda ((id . path))
+                        (let ((default-directory path))
+                          (list path
+                                (vconcat (--map (or (funcall (nth 2 it) id) "")
+                                                magit-repolist-columns)))))
+                      (magit-list-repos-uniquify
+                       (--map (cons (file-name-nondirectory (directory-file-name it))
+                                    it)
+                              (magit-list-repos)))))
+        (tabulated-list-print)
+        (switch-to-buffer (current-buffer)))
+    (message "You need to customize `magit-repository-directories' %s"
+             "before you can list repositories")))
 
 (defvar magit-repolist-mode-map
   (let ((map (make-sparse-keymap)))
