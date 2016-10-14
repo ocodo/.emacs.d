@@ -2694,14 +2694,21 @@ File: magit.info,  Node: Diff buffer,  Next: Diff options,  Prev: Refreshing dif
      where that line still existed.  Otherwise visit the blob for the
      commit whose changes are being shown.
 
-     When the diff is about a range of commits, then, for the time
-     being, the point this function jumps to often is only an
-     approximation.
-
      When the file or blob to be displayed is already being displayed in
      another window of the same frame, then just select that window and
      adjust point.  Otherwise, or with a prefix argument, display the
      buffer in another window.
+
+ -- User Option: magit-diff-visit-previous-blob
+
+     This option controls whether ‘magit-diff-visit-file’ may visit the
+     previous blob.  When this is ‘t’ and point is on a removed line in
+     a diff for a committed change, then ‘magit-diff-visit-file’ visits
+     the blob from the last revision which still had that line.
+
+     Currently this is only supported for committed changes, for staged
+     and unstaged changes ‘magit-diff-visit-file’ always visits the file
+     in the working tree.
 
 ‘C-<return>’     (‘magit-diff-visit-file-worktree’)
 
@@ -7579,7 +7586,7 @@ Appendix B Keystroke Index
 * c s:                                   Initiating a commit. (line  54)
 * c S:                                   Initiating a commit. (line  62)
 * c w:                                   Initiating a commit. (line  32)
-* C-<return>:                            Diff buffer.         (line  29)
+* C-<return>:                            Diff buffer.         (line  36)
 * C-<tab>:                               Section visibility.  (line  13)
 * C-c C-a:                               Editing commit messages.
                                                               (line 128)
@@ -7660,7 +7667,7 @@ Appendix B Keystroke Index
 * d w:                                   Diffing.             (line  43)
 * D w:                                   Refreshing diffs.    (line  28)
 * DEL:                                   Log Buffer.          (line  43)
-* DEL <1>:                               Diff buffer.         (line  56)
+* DEL <1>:                               Diff buffer.         (line  63)
 * DEL <2>:                               Blaming.             (line  44)
 * DEL <3>:                               Editing rebase sequences.
                                                               (line  28)
@@ -7694,7 +7701,7 @@ Appendix B Keystroke Index
                                                               (line  22)
 * G:                                     Automatic Refreshing of Magit Buffers.
                                                               (line  31)
-* j:                                     Diff buffer.         (line  46)
+* j:                                     Diff buffer.         (line  53)
 * k:                                     Viewing Git output.  (line  19)
 * k <1>:                                 Applying.            (line  40)
 * k <2>:                                 Editing rebase sequences.
@@ -7842,7 +7849,7 @@ Appendix B Keystroke Index
                                                               (line  59)
 * S-<tab>:                               Section visibility.  (line  22)
 * SPC:                                   Log Buffer.          (line  33)
-* SPC <1>:                               Diff buffer.         (line  52)
+* SPC <1>:                               Diff buffer.         (line  59)
 * SPC <2>:                               Blaming.             (line  34)
 * SPC <3>:                               Editing rebase sequences.
                                                               (line  21)
