@@ -323,9 +323,6 @@ see documentation for that variable for more details."
   (set (make-local-variable 'comment-end-skip) "[ \t]*\\(-}\\|\\s>\\)")
   (set (make-local-variable 'parse-sexp-ignore-comments) nil)
   (set (make-local-variable 'indent-line-function) 'purescript-mode-suggest-indent-choice)
-  ;; Set things up for eldoc-mode.
-  (set (make-local-variable 'eldoc-documentation-function)
-       'purescript-doc-current-info)
   ;; Set things up for font-lock.
   (set (make-local-variable 'font-lock-defaults)
        '(purescript-font-lock-choose-keywords
