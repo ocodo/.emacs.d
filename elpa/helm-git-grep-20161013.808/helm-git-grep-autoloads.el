@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (0 0 0 0))
+;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (22528 24119
+;;;;;;  0 0))
 ;;; Generated autoloads from helm-git-grep.el
 
 (autoload 'helm-git-grep-run-persistent-action "helm-git-grep" "\
@@ -72,7 +73,7 @@ String displayed in mode-line in `helm-git-grep'.")
 (autoload 'helm-git-grep "helm-git-grep" "\
 Helm git grep.
 
-if submodules exists, grep submodules too.
+`helm-git-grep-sources' is used as helm sources.
 
 \(fn)" t nil)
 
@@ -82,7 +83,7 @@ Helm git grep with symbol at point.
 Use region as input instead of the thing at point
 if region exists.
 
-if submodules exists, grep submodules too.
+`helm-git-grep-sources' is used as helm sources.
 
 \(fn)" t nil)
 
@@ -104,8 +105,6 @@ Obsolete.
 (define-obsolete-function-alias 'helm-git-grep-from-here 'helm-git-grep-at-point "0.5")
 
 (make-obsolete 'helm-git-grep-with-exclude-file-pattern helm-git-grep-with-exclude-file-pattern-obsolete-message "0.10.0")
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-git-grep" '("helm-")))
 
 ;;;***
 

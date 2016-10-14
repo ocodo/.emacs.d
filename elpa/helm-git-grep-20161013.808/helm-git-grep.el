@@ -8,7 +8,7 @@
 ;; Author: mechairoi
 ;; Maintainer: Yasuyuki Oka <yasuyk@gmail.com>
 ;; Version: 0.10.0-snapshot
-;; Package-Version: 20161011.744
+;; Package-Version: 20161013.808
 ;; URL: https://github.com/yasuyk/helm-git-grep
 ;; Package-Requires: ((helm-core "2.2.0"))
 ;; Keywords: helm, git
@@ -140,7 +140,7 @@ you can check limit paths by pathspec using
   "List of doc in name header for git-grep(1).
 list of following possible values:
     pathspec: if `helm-git-grep-pathspecs' is not nil, \
-availability of `helm-git-grep-pathspecs' and key of enable/disable command.
+availability of `helm-git-grep-pathspecs' and key of toggle command.
     basedir: value of `helm-git-grep-base-directory' \
 and key of toggle command.
     ignorecase: if `helm-git-grep-ignore-case' is t, show [i] \
@@ -182,12 +182,7 @@ and key of toggle command."
   (format "%s is nil, namely not activated."
           (symbol-name 'helm-git-grep-pathspecs)))
 
-(defvar helm-git-grep-history nil "The history list for `helm-git-grep'.")
-
-(defvar helm-git-grep-pathspec-available t
-  "Return t if `helm-git-grep-pathspec' is available in git-grep(1).")
-
-(defvar helm-git-grep-doc-order-in-name-header-plist
+(defconst helm-git-grep-doc-order-in-name-header-plist
   '(pathspec
     (:doc
      "[helm-git-grep-pathspec-toggle-availability]: pathspec%s"
@@ -207,6 +202,14 @@ and key of toggle command."
      "[helm-git-grep-toggle-ignore-case]: ignore case%s"
      :function
      (lambda (doc) (format doc (if helm-git-grep-ignore-case "[i]" ""))))))
+
+(defvar helm-git-grep-history nil "The history list for `helm-git-grep'.")
+
+(defvar helm-git-grep-pathspec-available t
+  "Return t if `helm-git-grep-pathspec' is available in git-grep(1).")
+
+(defvar helm-git-grep-pathspecs-set nil)
+
 
 
 (defun helm-git-grep-git-string (&rest args)
@@ -559,7 +562,7 @@ for git grep command from `helm-git-grep'."
   "Toggle availability of `helm-git-grep-pathspecs',\
 if `helm-git-grep-pathspecs' is not nil."
   (interactive)
-  (if helm-git-grep-pathspecs
+  (if helm-git-grep-pathspecs-set
       (progn
         (setq helm-git-grep-pathspec-available
               (not helm-git-grep-pathspec-available))
@@ -670,6 +673,9 @@ You can save your results in a helm-git-grep-mode buffer, see below.
 (defun helm-git-grep-1 (&optional input)
   "Execute helm git grep.
 Optional argument INPUT is initial input."
+  ;; directory local variables can't work in minibuffer
+  (setq helm-git-grep-pathspecs-set (not (not helm-git-grep-pathspecs)))
+  (helm-set-local-variable 'helm-git-grep-pathspecs helm-git-grep-pathspecs)
   (helm :sources helm-git-grep-sources
         :buffer "*helm git grep*"
         :input input
@@ -680,7 +686,7 @@ Optional argument INPUT is initial input."
 (defun helm-git-grep ()
   "Helm git grep.
 
-if submodules exists, grep submodules too."
+`helm-git-grep-sources' is used as helm sources."
   (interactive)
   (helm-git-grep-1))
 
@@ -691,7 +697,7 @@ if submodules exists, grep submodules too."
 Use region as input instead of the thing at point
 if region exists.
 
-if submodules exists, grep submodules too."
+`helm-git-grep-sources' is used as helm sources."
   (interactive)
   (let* ((symbol (helm-git-grep-get-input-symbol))
          (input (if symbol (concat symbol " ") "")))
