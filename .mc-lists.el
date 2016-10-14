@@ -22,6 +22,8 @@
         ruby-end-space
         slim-electric-backspace
         smart-beginning-of-line
+        yas-expand
+        zap-up-to-char
         ))
 
 (setq mc/cmds-to-run-once
@@ -33,5 +35,6 @@
         iedit-mode
         mac-mwheel-scroll
         repeat
+        set-fill-column
         smex
         ))
