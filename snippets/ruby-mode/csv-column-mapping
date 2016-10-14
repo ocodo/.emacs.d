@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: CSV Column Mapping
+# key: csvc
+# group: Active Admin
+# --
+column(:${1:csv_column_name}) { |${2:row}| $2.${3:model_column} }
