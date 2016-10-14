@@ -5,7 +5,7 @@
 ;; Author: Toby Cubitt <toby-undo-tree@dr-qubit.org>
 ;; Maintainer: Toby Cubitt <toby-undo-tree@dr-qubit.org>
 ;; Version: 0.6.6
-;; Package-Version: 20160922.853
+;; Package-Version: 20161012.701
 ;; Keywords: convenience, files, undo, redo, history, tree
 ;; URL: http://www.dr-qubit.org/emacs.php
 ;; Repository: http://www.dr-qubit.org/git/undo-tree.git
@@ -412,7 +412,7 @@
 ;;                       o  o     o     o     o     o
 ;;                       |  |\    |\    |\    |\    |
 ;;                       |  | \   | \   | \   | \   |
-;;                       o  o  |  |  o  o  o  |  o  o
+;;                       o  o  |  |  o  o  |  |  o  o
 ;;                       | /   |  |  | /   |  |  | /
 ;;                       |/    |  |  |/    |  |  |/
 ;;      (already undid   o     |  |  o<.   |  |  o
@@ -588,7 +588,7 @@
 ;; Finally, hitting "q" will quit the visualizer, leaving the parent buffer in
 ;; whatever state you ended at. Hitting "C-q" will abort the visualizer,
 ;; returning the parent buffer to whatever state it was originally in when the
-;; visualizer was .
+;; visualizer was invoked.
 ;;
 ;;
 ;;
