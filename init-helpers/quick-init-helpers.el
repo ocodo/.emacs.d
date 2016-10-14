@@ -3,7 +3,7 @@
 (defun init-set-custom ()
   "Custom set and loaded from local (non-git) or regular (git-shared)."
   (let* ((default-directory user-emacs-directory)
-        (local-custom (expand-file-name "local/custom.el")))
+         (local-custom (expand-file-name "local/custom.el")))
     (if (file-readable-p local-custom)
         (setq custom-file local-custom)
       (setq custom-file (expand-file-name "custom/custom.el")))
@@ -29,28 +29,29 @@
   "Very simple mode line modification that I like to use."
   (interactive)
   (set-face-attribute 'mode-line nil
-                    :inherit 'mode-line-face
-                    :font "SauceCodePro Nerd Font"
-                    :weight 'ultra-light
-                    :foreground "gray60"
-                    :background "gray20"
-                    :height 120
-                    :inverse-video nil
-                    :box '(
-                           :line-width 6
-                                       :color "gray20"
-                                       :style nil))
-(set-face-attribute 'mode-line-inactive nil
-                    :inherit 'mode-line-face
-                    :font "SauceCodePro Nerd Font"
-                    :weight 'ultra-light
-                    :foreground "gray80"
-                    :background "gray40"
-                    :inverse-video nil
-                    :box '(
-                           :line-width 6
-                                       :color "gray40"
-                                       :style nil)))
+                      :inherit 'mode-line-face
+                      :font "SauceCodePro Nerd Font"
+                      :weight 'ultra-light
+                      :foreground "gray60"
+                      :background "gray20"
+                      :height 120
+                      :inverse-video nil
+                      :box '(
+                             :line-width 6
+                                         :color "gray20"
+                                         :style nil))
+  (set-face-attribute 'mode-line-inactive nil
+                      :inherit 'mode-line-face
+                      :font "SauceCodePro Nerd Font"
+                      :weight 'ultra-light
+                      :foreground "gray80"
+                      :background "gray40"
+                      :height 120
+                      :inverse-video nil
+                      :box '(
+                             :line-width 6
+                                         :color "gray40"
+                                         :style nil)))
 
 (provide 'quick-init-helpers)
 ;;; quick-init-helpers.el ends here
