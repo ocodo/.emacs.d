@@ -1,15 +1,16 @@
 ;;; evil-commentary-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-commentary" "evil-commentary.el" (22218
-;;;;;;  26468 446521 389000))
+;;;### (autoloads nil "evil-commentary" "evil-commentary.el" (22531
+;;;;;;  28704 0 0))
 ;;; Generated autoloads from evil-commentary.el
 
 (defvar evil-commentary-mode nil "\
 Non-nil if Evil-Commentary mode is enabled.
-See the command `evil-commentary-mode' for a description of this minor mode.")
+See the `evil-commentary-mode' command
+for a description of this minor mode.")
 
 (custom-autoload 'evil-commentary-mode "evil-commentary" nil)
 
@@ -21,7 +22,7 @@ Commentary mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-commentary-integration" "evil-commentary-integration.el"
-;;;;;;  (22218 26468 458521 360000))
+;;;;;;  (22531 28704 0 0))
 ;;; Generated autoloads from evil-commentary-integration.el
 
 (autoload 'evil-commentary/org-comment-or-uncomment-region "evil-commentary-integration" "\
@@ -31,8 +32,8 @@ Comment function for `org-mode'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("evil-commentary-pkg.el") (22218 26468
-;;;;;;  482475 628000))
+;;;### (autoloads nil nil ("evil-commentary-pkg.el") (22531 28704
+;;;;;;  0 0))
 
 ;;;***
 

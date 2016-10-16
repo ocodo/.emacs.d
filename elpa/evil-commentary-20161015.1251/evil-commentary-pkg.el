@@ -1,4 +1,4 @@
-(define-package "evil-commentary" "20160221.1230" "Comment stuff out. A port of vim-commentary."
+(define-package "evil-commentary" "20161015.1251" "Comment stuff out. A port of vim-commentary."
   '((evil "1.0.0"))
   :url "http://github.com/linktohack/evil-commentary" :keywords
   '("evil" "comment" "commentary" "evil-commentary"))
