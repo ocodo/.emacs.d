@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/zone-nyan
-;; Package-Version: 20160928.2303
+;; Package-Version: 20161014.154
 ;; Version: 0.2.2
 ;; Package-Requires: ((esxml "0.3.1"))
 ;; Keywords: zone
@@ -744,13 +744,17 @@ It fires every 100ms.")
 (defvar zone-nyan-progress 0
   "Holds the current progress of the timer.")
 
+(defun zone-nyan-report-progress ()
+  "Report current nyan progress."
+  (message "You've nyaned for %.1f seconds"
+           (/ zone-nyan-progress 10.0)))
+
 (defun zone-nyan-progress ()
   "Progress function.
 It informs the user just how many seconds they've wasted on
 watching nyan cat run."
   (unless zone-nyan-hide-progress
-    (message "You've nyaned for %.1f seconds"
-             (/ zone-nyan-progress 10.0)))
+    (zone-nyan-report-progress))
   (setq zone-nyan-progress (1+ zone-nyan-progress)))
 
 ;;;###autoload
@@ -785,7 +789,9 @@ watching nyan cat run."
       (when zone-nyan-bg-music-process
         (delete-process zone-nyan-bg-music-process))
       (when zone-nyan-progress-timer
-        (cancel-timer zone-nyan-progress-timer)))))
+        (cancel-timer zone-nyan-progress-timer)
+        (when zone-nyan-hide-progress
+            (zone-nyan-report-progress))))))
 
 ;;;###autoload
 (defun zone-nyan-preview ()
