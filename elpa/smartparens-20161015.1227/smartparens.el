@@ -516,7 +516,19 @@ Symbol is defined as a chunk of text recognized by
                            slime-repl-mode
                            stumpwm-mode
                            )
-  "List of Lisp modes."
+  "List of Lisp-related modes."
+  :type '(repeat symbol)
+  :group 'smartparens)
+
+(defcustom sp-clojure-modes '(
+                              cider-repl-mode
+                              clojure-mode
+                              clojurec-mode
+                              clojurescript-mode
+                              clojurex-mode
+                              inf-clojure-mode
+                              )
+  "List of Clojure-related modes."
   :type '(repeat symbol)
   :group 'smartparens)
 
@@ -1300,8 +1312,10 @@ This can be used with `sp-local-pair' calls to automatically
 insert the modes."
   (declare (indent 1)
            (debug (form body)))
-  `(progn
-     ,@(mapcar (lambda (form) (append (list (car form) arg) (cdr form))) forms)))
+  (let ((modes (make-symbol "modes")))
+    `(let ((,modes ,arg))
+       (progn
+         ,@(mapcar (lambda (form) (append (list (car form) modes) (cdr form))) forms)))))
 
 (font-lock-add-keywords 'emacs-lisp-mode `((,(concat "("
                                                      (regexp-opt '("sp-with-modes"
@@ -1357,6 +1371,17 @@ sexp, otherwise the call may be very slow."
       (sp-get enc (string-match-p
                    "\\`[ \t\n]*\\'"
                    (buffer-substring-no-properties :beg-in :end-in))))))
+
+(defun sp-char-is-escaped-p (&optional point)
+  "Test if the char at POINT is escaped or not.
+
+POINT defaults to `point'."
+  (setq point (or point (point)))
+  (save-match-data
+    (when (save-excursion
+            (goto-char point)
+            (looking-back (concat sp-escape-char sp-escape-char "+") nil t))
+      (eq (logand (length (match-string 0)) 1) 1))))
 
 (defun sp--syntax-ppss (&optional p)
   "Memoize the last result of syntax-ppss."
@@ -2823,8 +2848,15 @@ see `sp-pair' for description."
               (condition-case err
                   (sp-wrap--initialize)
                 (user-error
-                 (delete-char -1)
                  (message (error-message-string err))
+                 ;; we need to remove the undo record of the insertion
+                 (unless (eq buffer-undo-list t)
+                   ;; pop all undo info until we hit an insertion node
+                   (sp--undo-pop-to-last-insertion-node)
+                   ;; get rid of it and insert an undo boundary marker
+                   (pop buffer-undo-list)
+                   (undo-boundary))
+                 (restore-buffer-modified-p sp-buffer-modified-p)
                  (throw 'done nil))))
             (cond
              (sp-wrap-overlays
@@ -3038,12 +3070,44 @@ overlay."
       ;; TODO: get rid of the following variables
       (setq sp-wrap-point (- (point) inserted-string-length))
       (setq sp-wrap-mark (mark))
-      (unless (or (sp-point-in-string (point))
-                  (sp-point-in-string (mark)))
-        (unless (sp-region-ok-p
-                 (if (> (point) (mark)) sp-wrap-point (point))
-                 (mark))
-          (user-error "Wrapping active region would break structure")))
+      ;; balance check
+      (with-silent-modifications
+        (let ((inserted-string
+               (prog1 (delete-and-extract-region sp-wrap-point (point))
+                 ;; HACK: in modes with string fences, the insertion
+                 ;; of the delimiter causes `syntax-propertize' to
+                 ;; fire, but the above deletion doesn't re-run it
+                 ;; because the cache tells it the state is OK.  We
+                 ;; need to destroy the cache and re-run the
+                 ;; `syntax-propertize' on the buffer.  This might be
+                 ;; expensive, but we only done this on wrap-init so
+                 ;; it's fine, I guess.
+                 (setq syntax-propertize--done -1)
+                 (syntax-propertize (point-max))))
+              (point-string-context (sp-get-quoted-string-bounds sp-wrap-point))
+              (mark-string-context (sp-get-quoted-string-bounds (mark))))
+          ;; If point and mark are inside the same string, we don't
+          ;; need to check if the region is OK.  If both are outisde
+          ;; strings, we have to.  If one is inside and the other is
+          ;; not, no matter what we would break, so we exit.
+          (cond
+           ;; inside the same string
+           ((and point-string-context mark-string-context
+                 (eq (car point-string-context)
+                     (car mark-string-context))))
+           ;; neither is inside string
+           ((and (not point-string-context)
+                 (not mark-string-context))
+            (unless (sp-region-ok-p sp-wrap-point (mark))
+              (user-error "Mismatched sexp state: wrapping would break structure")))
+           ;; one is in and the other isn't
+           ((if point-string-context (not mark-string-context) mark-string-context)
+            (user-error "Mismatched string state: point %sin string, mark %sin string"
+                        (if (car-safe point-string-context) "" "not ")
+                        (if (car-safe mark-string-context) "" "not ")))
+           ;; both are in but in different strings
+           (t (user-error "Mismatched string state: point and mark are inside different strings")))
+          (insert inserted-string)))
       ;; if point > mark, we need to move point to mark and reinsert the
       ;; just inserted character.
       (when (> (point) (mark))
@@ -3742,16 +3806,19 @@ sequence, not necessarily the longest possible."
           (to (point))
           (greedy (not not-greedy))
           has-match)
-      (set-match-data '(0 0))
       (if greedy
           (save-excursion
             (goto-char from)
-            (while (and (not has-match) (< (point) to))
-              (looking-at regexp)
-              (if (= (match-end 0) to)
-                  (setq has-match t)
-                (forward-char 1)))
-            has-match)
+            (save-match-data
+              (while (and (not has-match) (< (point) to))
+                ;; don't use looking-at because we can't limit that search
+                (if (and (save-excursion (re-search-forward regexp to t))
+                         (= (match-end 0) to))
+                    (setq has-match (match-data))
+                  (forward-char 1))))
+            (when has-match
+              (set-match-data has-match)
+              t))
         (save-excursion
           (not (null (search-backward-regexp (concat "\\(?:" regexp "\\)\\=") from t))))))))
 
@@ -3775,8 +3842,9 @@ pairs!"
       (while (> count 0)
         (when (search-backward-regexp regexp bound noerror)
           (goto-char (match-end 0))
-          (sp--looking-back regexp)
-          (setq r (goto-char (match-beginning 0))))
+          (if (sp--looking-back regexp)
+              (setq r (goto-char (match-beginning 0)))
+            (if noerror nil (error "Search failed: %s" regexp))))
         (setq count (1- count)))
       r)))
 
@@ -3786,19 +3854,24 @@ pairs!"
   (sp--with-case-sensitive
     (search-forward-regexp regexp bound noerror count)))
 
-(defun sp-get-quoted-string-bounds ()
-  "Return the bounds of the string around point.
+(defun sp-get-quoted-string-bounds (&optional point)
+  "Return the bounds of the string around POINT.
+
+POINT defaults to `point'.
 
 If the point is not inside a quoted string, return nil."
-  (let ((parse-data (syntax-ppss)))
-    (when (nth 3 parse-data)
-      (let* ((open (nth 8 parse-data))
-             (close (save-excursion
-                      (parse-partial-sexp
-                       (point) (point-max)
-                       nil nil parse-data 'syntax-table)
-                      (point))))
-        (cons open close)))))
+  (setq point (or point (point)))
+  (save-excursion
+    (goto-char point)
+    (let ((parse-data (syntax-ppss)))
+      (when (nth 3 parse-data)
+        (let* ((open (nth 8 parse-data))
+               (close (save-excursion
+                        (parse-partial-sexp
+                         (point) (point-max)
+                         nil nil parse-data 'syntax-table)
+                        (point))))
+          (cons open close))))))
 
 ;; TODO: the repeated conditions are ugly, refactor this!
 (defun sp-get-comment-bounds ()
@@ -5048,7 +5121,8 @@ expressions are considered."
                   (sp-get-sexp t))
                  ((sp--valid-initial-delimiter-p (sp--looking-back (sp--get-opening-regexp (sp--get-allowed-pair-list)) nil))
                   (sp-get-sexp t))
-                 ((eq (char-syntax (preceding-char)) 34)
+                 ((and (eq (char-syntax (preceding-char)) 34)
+                       (not (sp-char-is-escaped-p (1- (point)))))
                   (sp-get-string t))
                  ((and (sp--valid-initial-delimiter-p (sp--looking-back (sp--get-stringlike-regexp) nil))
                        (sp-get-expression t)))
@@ -5069,7 +5143,8 @@ expressions are considered."
                 (sp-get-sexp nil))
                ((sp--valid-initial-delimiter-p (sp--looking-at (sp--get-closing-regexp (sp--get-allowed-pair-list))))
                 (sp-get-sexp nil))
-               ((eq (char-syntax (following-char)) 34)
+               ((and (eq (char-syntax (following-char)) 34)
+                     (not (sp-char-is-escaped-p)))
                 (sp-get-string nil))
                ((and (sp--valid-initial-delimiter-p (sp--looking-at (sp--get-stringlike-regexp)))
                      (sp-get-expression nil)))
@@ -5538,6 +5613,11 @@ Examples:
 
 (put 'sp-end-of-previous-sexp 'CUA 'move)
 
+;; TODO: split the reindent code so we can call it inside strings on
+;; sexps like [foo ]... We can't reindent that by default because it
+;; can be a regular expression or something where the whitespace
+;; matters.  For now, disable reindent in strings if the sexp is not
+;; the string quote itself.
 (defun sp-up-sexp (&optional arg interactive)
   "Move forward out of one level of parentheses.
 
@@ -5577,12 +5657,18 @@ Examples:
                        (or (memq major-mode (assq 'always sp-navigate-reindent-after-up))
                            (and (memq major-mode (assq 'interactive sp-navigate-reindent-after-up))
                                 interactive))
-                       (if sp-navigate-reindent-after-up-in-string
-                           t
-                         (save-excursion
-                           (sp-get ok
-                             (goto-char :end-in)
-                             (not (sp-point-in-string))))))
+                       (or sp-navigate-reindent-after-up-in-string
+                           (sp-get ok (not (sp-point-in-string :end-in))))
+                       ;; if the sexp to be reindented is not a string
+                       ;; but is inside a string, we should rather do
+                       ;; nothing than break semantics (in e.g. regexp
+                       ;; [...])
+                       (let ((str (sp-point-in-string)))
+                         (or (not str)
+                             ;; op must be the delimiter of the string we're in
+                             (eq (sp-get ok :op)
+                                 (or (eq str t)
+                                     (char-to-string str))))))
               ;; TODO: this needs different indent rules for different
               ;; modes.  Should we concern with such things?  Lisp rules are
               ;; funny in HTML... :/
