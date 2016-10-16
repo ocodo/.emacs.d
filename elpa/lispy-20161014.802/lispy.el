@@ -1383,8 +1383,6 @@ When ARG is more than 1, mark ARGth element."
 (defvar-local lispy-bind-var-in-progress nil
   "When t, `lispy-mark-symbol' will exit `iedit'.")
 
-(defvar iedit-current-symbol)
-
 (defun lispy-mark-symbol ()
   "Mark current symbol."
   (interactive)
@@ -1393,7 +1391,7 @@ When ARG is more than 1, mark ARGth element."
            (iedit-mode)
            (setq lispy-bind-var-in-progress nil)
            (set-mark (point))
-           (search-backward (funcall iedit-current-symbol)))
+           (search-backward (iedit-default-occurrence)))
 
           ((lispy--in-comment-p)
            (if (and (looking-at "\\(?:\\w\\|\\s_\\)*'")
@@ -2556,7 +2554,7 @@ When lispy-left, will slurp ARG sexps forwards.
                          (lispy-flow 2)
                          (lispy--read (lispy--string-dwim))))
           (parent-binds
-           (mapcar #'car
+           (mapcar (lambda (x) (if (consp x) (car x) x))
                    (save-excursion
                      (lispy-up 1)
                      (lispy--read (lispy--string-dwim)))))
@@ -2566,8 +2564,7 @@ When lispy-left, will slurp ARG sexps forwards.
           (beg (save-excursion
                  (lispy-up 1)
                  (lispy-different)
-                 (lispy-flow 1)
-                 (point))))
+                 (1- (point)))))
       (save-excursion
         (forward-list)
         (delete-char -1))
@@ -2581,7 +2578,8 @@ When lispy-left, will slurp ARG sexps forwards.
               (replace-match "(let*")
               (lispy--out-backward 1)
               (indent-sexp))
-          (error "unexpected"))))
+          (error "unexpected")))
+      (lispy--normalize-1))
     t))
 
 (defun lispy-barf-to-point (arg)
@@ -5339,7 +5337,7 @@ X is an item of a radio- or choice-type defcustom."
 
 (declare-function projectile-find-file "ext:projectile")
 (declare-function projectile-find-file-other-window "ext:projectile")
-(declare-function projectile-global-mode "ext:projectile")
+(declare-function projectile-mode "ext:projectile")
 (declare-function projectile-project-root "ext:projectile")
 (defvar projectile-mode)
 (declare-function find-file-in-project "ext:find-file-in-project")
@@ -5350,7 +5348,7 @@ X is an item of a radio- or choice-type defcustom."
   (if (eq lispy-visit-method 'ffip)
       (find-file-in-project)
     (unless projectile-mode
-      (projectile-global-mode 1))
+      (projectile-mode 1))
     (cond ((= arg 1)
            (projectile-find-file nil))
           ((= arg 2)
@@ -6050,7 +6048,8 @@ Return nil on failure, t otherwise."
     (or
      (when cs
        (goto-char cs))
-     (looking-at (concat "^" lispy-outline-header)))))
+     (and (looking-at (concat "^" lispy-outline-header))
+          (point)))))
 
 (defun lispy--comment-search-forward (dir)
   "Search for a first comment in direction DIR.

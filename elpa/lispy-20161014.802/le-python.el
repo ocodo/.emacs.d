@@ -40,47 +40,52 @@ Stripping them will produce code that's valid for an eval."
 
 (defun lispy-eval-python-str ()
   (let (str res bnd)
-    (save-excursion
-      (cond ((region-active-p)
-             (setq str (buffer-substring-no-properties
-                        (region-beginning)
-                        (region-end)))
-             (if (= (cl-count ?\n str) 0)
-                 str
-               ;; get rid of "unexpected indent"
-               (replace-regexp-in-string
-                (concat
-                 "^"
-                 (save-excursion
-                   (goto-char (region-beginning))
-                   (buffer-substring-no-properties
-                    (line-beginning-position)
-                    (point))))
-                "" (lispy--string-dwim))))
-            ((looking-at lispy-outline)
-             (string-trim-right
-              (lispy--string-dwim
-               (lispy--bounds-dwim))))
-            ((setq bnd (lispy-bounds-python-block))
-             (lispy-trim-python
-              (lispy--string-dwim bnd)))
-            ((lispy-bolp)
-             (string-trim-left
-              (lispy--string-dwim
-               (lispy--bounds-c-toplevel))))
-            (t
-             (cond ((lispy-left-p))
-                   ((lispy-right-p)
-                    (backward-list))
-                   (t
-                    (error "Unexpected")))
-             (setq bnd (lispy--bounds-dwim))
-             (ignore-errors (backward-sexp))
-             (while (or (eq (char-before) ?.)
-                        (eq (char-after) ?\())
-               (backward-sexp))
-             (setcar bnd (point))
-             (lispy--string-dwim bnd))))))
+    (setq str
+          (save-excursion
+            (cond ((region-active-p)
+                   (setq str (buffer-substring-no-properties
+                              (region-beginning)
+                              (region-end)))
+                   (if (= (cl-count ?\n str) 0)
+                       str
+                     ;; get rid of "unexpected indent"
+                     (replace-regexp-in-string
+                      (concat
+                       "^"
+                       (save-excursion
+                         (goto-char (region-beginning))
+                         (buffer-substring-no-properties
+                          (line-beginning-position)
+                          (point))))
+                      "" (lispy--string-dwim))))
+                  ((looking-at lispy-outline)
+                   (string-trim-right
+                    (lispy--string-dwim
+                     (lispy--bounds-dwim))))
+                  ((setq bnd (lispy-bounds-python-block))
+                   (lispy-trim-python
+                    (lispy--string-dwim bnd)))
+                  ((lispy-bolp)
+                   (string-trim-left
+                    (lispy--string-dwim
+                     (lispy--bounds-c-toplevel))))
+                  (t
+                   (cond ((lispy-left-p))
+                         ((lispy-right-p)
+                          (backward-list))
+                         (t
+                          (error "Unexpected")))
+                   (setq bnd (lispy--bounds-dwim))
+                   (ignore-errors (backward-sexp))
+                   (while (or (eq (char-before) ?.)
+                              (eq (char-after) ?\())
+                     (backward-sexp))
+                   (setcar bnd (point))
+                   (lispy--string-dwim bnd)))))
+    (replace-regexp-in-string
+     ",\n +" ","
+     (replace-regexp-in-string
+      "\\\\\n +" "" str))))
 
 (defun lispy-bounds-python-block ()
   (if (save-excursion
@@ -96,7 +101,13 @@ Stripping them will produce code that's valid for an eval."
              (goto-char (match-beginning 1))
              (python-nav-end-of-block))
            (point))))
-    (cons (point) (line-end-position))))
+    (cons (point)
+          (save-excursion
+            (end-of-line)
+            (while (member (char-before)
+                           '(?\\ ?,))
+              (end-of-line 2))
+            (point)))))
 
 (defun lispy-eval-python (&optional plain)
   (let ((res (lispy--eval-python
@@ -114,10 +125,19 @@ Stripping them will produce code that's valid for an eval."
         (get-process proc-name)
       (setq lispy--python-middleware-loaded-p nil)
       (let ((python-shell-font-lock-enable nil)
-            (inferior-python-mode-hook nil))
+            (inferior-python-mode-hook nil)
+            (python-binary-name (python-shell-calculate-command)))
+        (save-excursion
+          (goto-char (point-min))
+          (when (looking-at "#!\\(.*\\)$")
+            (setq python-binary-name
+                  (concat
+                   (match-string-no-properties 1)
+                   " "
+                   python-shell-interpreter-args))))
         (get-buffer-process
          (python-shell-make-comint
-          (python-shell-calculate-command) proc-name nil t))))))
+          python-binary-name proc-name nil t))))))
 
 (defun lispy--eval-python (str &optional plain)
   "Eval STR as Python code."
@@ -167,11 +187,16 @@ Stripping them will produce code that's valid for an eval."
 
 (defun lispy--python-array-to-elisp (array-str)
   "Transform a Python string ARRAY-STR to an Elisp string array."
-  (split-string
-   (substring array-str 1 -1)
-   ", "
-   t
-   "u?'"))
+  (when (stringp array-str)
+    (mapcar (lambda (s)
+              (if (string-match "\\`\"" s)
+                  (read s)
+                s))
+            (split-string
+             (substring array-str 1 -1)
+             ", "
+             t
+             "u?'"))))
 
 (defun lispy-python-completion-at-point ()
   (cond ((looking-back "^\\(import\\|from\\) .*" (line-beginning-position))
@@ -284,8 +309,11 @@ Stripping them will produce code that's valid for an eval."
 (defun lispy-goto-symbol-python (symbol)
   (save-restriction
     (widen)
-    (let ((res (ignore-errors (deferred:sync!
-                                  (jedi:goto-definition)))))
+    (let ((res (ignore-errors
+                 (or
+                  (deferred:sync!
+                      (jedi:goto-definition))
+                  t))))
       (if (member res '(nil "Definition not found."))
           (let* ((symbol (python-info-current-symbol))
                  (file (car
