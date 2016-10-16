@@ -10,7 +10,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/lunaryorn/puppet-mode
-;; Package-Version: 20160416.936
+;; Package-Version: 20161014.952
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -52,7 +52,7 @@
 ;; Provides syntax highlighting, indentation, alignment, movement, Imenu and
 ;; code checking.
 
-;; Syntax highlighting: Fontification upports all of Puppet 3 syntax, including
+;; Syntax highlighting: Fontification supports all of Puppet 3 syntax, including
 ;; variable expansion in strings.
 
 ;; Indentation: Indent expressions automatically.
@@ -167,6 +167,24 @@ buffer-local wherever it is set."
   :group 'puppet
   :package-version '(puppet-mode . "0.3"))
 
+(defcustom puppet-repl-command "prepl"
+  "The Puppet REPL command used to interact with code."
+  :type 'string
+  :group 'puppet
+  :package-version '(puppet-mode . "0.4"))
+
+(defcustom puppet-repl-args '()
+  "The arguments to pass to `puppet-repl-command' to start a REPL."
+  :group 'puppet
+  :type '(repeat string)
+  :package-version '(puppet-mode . "0.4"))
+
+(defcustom puppet-repl-buffer "*Puppet-REPL*"
+  "The name of the Puppet REPL buffer."
+  :group 'puppet
+  :type 'string
+  :package-version '(puppet-mode . "0.4"))
+
 (defface puppet-regular-expression-literal
   '((t :inherit font-lock-constant-face))
   "Face for regular expression literals in Puppet."
@@ -226,6 +244,45 @@ Return nil, if there is no special context at POS, or one of
   "Determine whether POS is inside a string or comment."
   (not (null (puppet-syntax-context pos))))
 
+(defun puppet-get-repl-proc ()
+  (unless (comint-check-proc puppet-repl-buffer)
+    (puppet-repl))
+  (get-buffer-process puppet-repl-buffer))
+
+(defun puppet-repl-send-region (start end)
+  "Send the current region to the inferior Puppet REPL process."
+  (interactive "r")
+  (deactivate-mark t)
+  (let* ((string (buffer-substring-no-properties start end))
+         (proc (puppet-get-repl-proc)))
+    (comint-simple-send proc string)))
+
+(defun puppet-repl-send-line ()
+  "Send the current line to the inferior Puppet REPL process."
+  (interactive)
+  (puppet-repl-send-region (line-beginning-position) (line-end-position)))
+
+(defun puppet-repl-send-buffer ()
+  "Send the current buffer to the inferior Puppet REPL process."
+  (interactive)
+  (puppet-repl-send-region (point-min) (point-max)))
+
+(defun puppet-comint-filter (string)
+  (ansi-color-apply string))
+
+(defun puppet-repl ()
+  "Launch a Puppet REPL using `puppet-repl-command' as an inferior mode."
+  (interactive)
+
+  (unless (comint-check-proc puppet-repl-buffer)
+    (set-buffer
+     (apply 'make-comint "Puppet-REPL"
+            puppet-repl-command
+            puppet-repl-args))
+    ;; Workaround for ansi colors
+    (add-hook 'comint-preoutput-filter-functions 'puppet-comint-filter nil t))
+
+  (pop-to-buffer puppet-repl-buffer))
 
 ;;; Specialized rx
 
@@ -1086,6 +1143,10 @@ for each entry."
     (define-key map (kbd "C-c C-j") #'imenu)
     ;; Apply manifests
     (define-key map (kbd "C-c C-c") #'puppet-apply)
+    ;; REPL stuff
+    (define-key map (kbd "C-c C-z") #'puppet-repl)
+    (define-key map (kbd "C-c C-r") #'puppet-repl-send-region)
+    (define-key map (kbd "C-c C-b") #'puppet-repl-send-buffer)
     ;; Linting and validation
     (define-key map (kbd "C-c C-v") #'puppet-validate)
     (define-key map (kbd "C-c C-l") #'puppet-lint)
@@ -1104,6 +1165,14 @@ for each entry."
          :help "Jump to a resource or variable"]
         "-"
         ["Apply manifest" puppet-apply :help "Apply a Puppet manifest"]
+        "-"
+        ["Puppet REPL" puppet-repl :help "Start the Puppet REPL"]
+        ["Send Region to REPL" puppet-repl-send-region
+         :help "Send this region to the the Puppet REPL"]
+        ["Send Line to REPL" puppet-repl-send-line
+         :help "Send this line to the the Puppet REPL"]
+        ["Send Buffer to REPL" puppet-repl-send-buffer
+         :help "Send this buffer to the the Puppet REPL"]
         "-"
         ["Validate file syntax" puppet-validate
          :help "Validate the syntax of this file"]

@@ -1,10 +1,10 @@
 ;;; puppet-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "puppet-mode" "puppet-mode.el" (22291 19082
-;;;;;;  852269 352000))
+;;;### (autoloads nil "puppet-mode" "puppet-mode.el" (22530 960 0
+;;;;;;  0))
 ;;; Generated autoloads from puppet-mode.el
 
 (autoload 'puppet-mode "puppet-mode" "\
