@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/bbatsov/zenburn-emacs
-;; Package-Version: 20160914.135
+;; Package-Version: 20161014.2316
 ;; Version: 2.4
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -282,7 +282,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(bm-fringe-persistent-face ((t (:background ,zenburn-green-1 :foreground ,zenburn-bg))))
    `(bm-persistent-face ((t (:background ,zenburn-green-1 :foreground ,zenburn-bg))))
 ;;;;; cider
-   `(cider-result-overlay-face ((t (:foreground ,zenburn-fg-1 :background unspecified))))
+   `(cider-result-overlay-face ((t (:background unspecified))))
    `(cider-enlightened-face ((t (:box (:color ,zenburn-orange :line-width -1)))))
    `(cider-enlightened-local-face ((t (:weight bold :foreground ,zenburn-green+1))))
    `(cider-deprecated-face ((t (:background ,zenburn-yellow-2))))
