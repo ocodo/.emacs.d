@@ -1335,10 +1335,6 @@ than once should wrap them all in sp--with-case-sensitive."
   "Checks to see if the current `evil-state' is in visual mode."
   (and (fboundp 'evil-visual-state-p) (evil-visual-state-p)))
 
-(defun sp--reverse-string (str)
-  "Reverse the string STR."
-  (concat (reverse (append str nil))))
-
 (defun sp-point-in-blank-line (&optional p)
   "Return non-nil if line at point is blank (whitespace only).
 
@@ -1439,13 +1435,6 @@ TODO: fix this!"
      ((string-match-p "<.*?>" original) "ň")
      ((string-match-p "SPC" original) " ")
      (t original))))
-
-(defun sp--split-string (string by)
-  "Split STRING on BY.  This simply calls `split-string' and if it
-returns a list of length one, empty string is inserted to the
-beginning."
-  (let ((sp (split-string string by)))
-    (if (not (cdr sp)) (cons "" sp) sp)))
 
 ;; see https://github.com/Fuco1/smartparens/issues/125#issuecomment-20356176
 (defun sp--current-indentation ()
@@ -2973,9 +2962,6 @@ delimiter for any pair allowed in current context."
 (cl-defun sp--get-stringlike-regexp (&optional (pair-list (sp--get-allowed-stringlike-list)))
   (regexp-opt (--map (car it) pair-list)))
 
-(defun sp-pair-is-stringlike-p (delim)
-  (--first (equal delim (car it)) (sp--get-allowed-stringlike-list)))
-
 (defun sp--get-last-wraped-region (beg end open close)
   "Return `sp-get-sexp' style plist about the last wrapped region.
 
@@ -3249,11 +3235,6 @@ include separate pair node."
       (setq buffer-undo-list
             (append (list nil second-action nil first-action)
                     previous-undo-actions)))))
-
-(defun sp--string-empty-p (delimeter)
-  "Return t if point is inside an empty string."
-  (and (equal (char-after (1+ (point))) delimeter)
-       (equal (char-after (- (point) 2)) delimeter)))
 
 ;; TODO: remove ACTION argument and make the selection process more
 ;; unified (see also sp--pair-to-wrap which depends on buffer state
@@ -7895,7 +7876,7 @@ delimiter enclosing this sexp."
      ((sp-point-in-empty-string pos)))))
 
 (defun sp-point-in-empty-string (&optional pos)
-  "Return non-nil if point is in empty sexp or string.
+  "Return non-nil if point is in empty string.
 
 The return value is actually cons pair of opening and closing
 string delimiter enclosing this string."
@@ -7907,16 +7888,6 @@ string delimiter enclosing this string."
       (let* ((syntax (nth 3 (syntax-ppss pos)))
              (c (char-to-string (if (eq syntax t) (following-char) syntax))))
         (cons c c)))))
-
-(defun sp-zap-syntax (syntax &optional back)
-  "Delete characters forward until they match syntax class SYNTAX.
-
-If BACK is non-nil, delete backward."
-  (let ((p (point)))
-    (if back
-        (skip-syntax-backward syntax)
-      (skip-syntax-forward syntax))
-    (delete-region p (point))))
 
 (defun sp--use-subword ()
   "Return non-nil if word killing commands should kill subwords.
