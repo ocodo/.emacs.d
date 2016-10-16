@@ -709,6 +709,7 @@ It is safe to call this function multiple times on the same ID."
     (remhash id nrepl-pending-requests)))
 
 (defvar cider-buffer-ns)
+(defvar cider-special-mode-truncate-lines)
 (declare-function cider-need-input "cider-interaction")
 (declare-function cider-set-buffer-ns "cider-mode")
 
@@ -1072,7 +1073,8 @@ operations.")
 
 \\{nrepl-messages-mode-map}"
   (setq buffer-read-only t)
-  (setq-local truncate-lines t)
+  (when cider-special-mode-truncate-lines
+    (setq-local truncate-lines t))
   (setq-local electric-indent-chars nil)
   (setq-local comment-start ";")
   (setq-local comment-end "")
