@@ -5,7 +5,7 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20160404.2138
+;; Package-Version: 20161015.2329
 ;; Keywords: processes, clojure
 ;; Version: 1.5.0-cvs
 ;; Package-Requires: ((emacs "24.3") (clojure-mode "5.3"))
@@ -140,8 +140,14 @@ The following commands are available:
                #'inf-clojure-completion-at-point))
 
 (defcustom inf-clojure-program "lein repl"
-  "Program name for invoking an inferior Clojure in Inferior Clojure mode."
-  :type 'string
+  "The command used to start an inferior Clojure process in `inf-clojure-mode'.
+
+Alternative you can specify a TCP connection cons pair, instead
+of command, consisting of a host and port
+number (e.g. (\"localhost\" . 5555)).  That's useful if you're
+often connecting to a remote REPL process."
+  :type '(choice (string)
+                 (cons string integer))
   :group 'inf-clojure)
 
 (defcustom inf-clojure-load-command "(clojure.core/load-file \"%s\")\n"
@@ -323,7 +329,9 @@ of `inf-clojure-program').  Runs the hooks from
   (if (not (comint-check-proc "*inf-clojure*"))
       ;; run the new process in the project's root when in a project folder
       (let ((default-directory (inf-clojure-project-root))
-            (cmdlist (split-string cmd)))
+            (cmdlist (if (consp cmd)
+                         (list cmd)
+                       (split-string cmd))))
         (set-buffer (apply #'make-comint
                            "inf-clojure" (car cmdlist) nil (cdr cmdlist)))
         (inf-clojure-mode)))
