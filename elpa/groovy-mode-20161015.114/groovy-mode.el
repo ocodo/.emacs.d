@@ -419,6 +419,7 @@ need for `java-font-lock-extra-types'.")
 
 ;;----------------------------------------------------------------------------
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'" . groovy-mode))
+;;;###autoload (add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
 
 ;; Custom variables
 ;;;###autoload
