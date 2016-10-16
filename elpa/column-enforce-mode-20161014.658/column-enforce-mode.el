@@ -6,7 +6,7 @@
 ;; Maintainer:
 ;; Created: Fri Oct 11 12:14:25 2013 (-0400)
 ;; Version: 1.0.4
-;; Package-Version: 20140902.949
+;; Package-Version: 20161014.658
 ;; Package-Requires: ()
 ;; Last-Updated: Sun Dec  8 20:23:51 2013 (-0500)
 ;;           By: Jordon Biondo
@@ -55,7 +55,6 @@
 ;; don't judge me
 (require 'cl)
 
-
 (defgroup column-enforce nil
   "Highlight text that extends beyond a certain column (80 column rule)"
   :group 'convenience)
@@ -72,12 +71,31 @@ when using function `column-enforce-mode'."
   :type 'boolean
   :group 'column-enforce)
 
+(defcustom column-enforce-column-getter nil
+  "A function that will return the maximun column for the current line.
+
+Using this variable will override the value of `column-enforce-column',
+the function will be called with no arguments and will be expected to return a
+number to use in place of `column-enforce-column'. This can be used for
+changing the max column based on context, such as restricting the column count
+further on the first line."
+  :type 'function
+  :group 'column-enforce)
 
 (defun column-enforce-get-column ()
   "Gets the value of variable `column-enforce-column' or if nil, \
 the value of variable `fill-column', or if nil, 80."
-  (or column-enforce-column fill-column 80))
+  (let ((getter (if (functionp column-enforce-column-getter)
+                    column-enforce-column-getter
+                  'column-enforce-default-column-getter)))
+    (or
+     (ignore-errors
+       (save-excursion
+         (funcall column-enforce-column-getter)))
+     80)))
 
+(defun column-enforce-default-column-getter ()
+  (or column-enforce-column fill-column 80))
 
 (defface column-enforce-face
   `((t (:inherit font-lock-warning-face :underline t)))
@@ -104,7 +122,7 @@ text that extends beyond 70 columns."
   (interactive "P")
   (let ((n (if (and n (integerp n)) n column-enforce-column)))
     (setq column-enforce-mode-line-string
-	  (column-enforce-make-mode-line-string n))
+          (column-enforce-make-mode-line-string n))
     (column-enforce-mode -1)
     (set (make-local-variable 'column-enforce-column) n)
     (column-enforce-mode t)))
@@ -127,28 +145,23 @@ text that extends beyond 70 columns."
 		  (column-enforce-mode -1)
 		(column-enforce-n ,__n))))))
 
-
 (make-column-rule 100)
 (make-column-rule 90)
 (make-column-rule 80)
 (make-column-rule 70)
 (make-column-rule 60)
 
-
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mode
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defun column-enforce-make-mode-line-string(rule)
   "Returns the string to display in the mode line"
-  (format " %dcol" rule))
-
+  (format " %scol" rule))
 
 (defvar column-enforce-mode-line-string
   (column-enforce-make-mode-line-string (column-enforce-get-column))
   "The current string for the mode line.")
-
 
 ;;;###autoload
 (define-minor-mode column-enforce-mode
@@ -162,15 +175,15 @@ Variable `column-enforce-face' decides how to display the warnings"
   :keymap nil
   :global nil
   (setq column-enforce-mode-line-string
-	(column-enforce-make-mode-line-string (column-enforce-get-column)))
+        (column-enforce-make-mode-line-string (column-enforce-get-column)))
   (if column-enforce-mode
       ;; use add-hook so we can append it, (force it to run last)
       (progn
-	(jit-lock-register 'column-enforce-warn-on-region t)
-	(column-enforce-warn-on-region (point-min) (point-max)))
+        (jit-lock-register 'column-enforce-warn-on-region t)
+        (column-enforce-warn-on-region (point-min) (point-max)))
     (progn
       (dolist (ov (column-enforce-get-cem-overlays-in (point-min) (point-max)))
-	(delete-overlay ov))
+        (delete-overlay ov))
       (jit-lock-unregister 'column-enforce-warn-on-region))))
 
 (defun column-enforce-mode-toggle-if-applicable ()
@@ -179,6 +192,7 @@ Variable `column-enforce-face' decides how to display the warnings"
     (when (derived-mode-p  'prog-mode)
       (column-enforce-mode t))))
 
+;;;###autoload
 (define-global-minor-mode global-column-enforce-mode column-enforce-mode
   column-enforce-mode-toggle-if-applicable)
 
@@ -186,8 +200,7 @@ Variable `column-enforce-face' decides how to display the warnings"
 (defun column-enforce-get-cem-overlays-in (beg end)
   "Get all overlays between BEG and END that have a 'is-cem-ov property."
   (remove-if-not (lambda (ov) (overlay-get ov 'is-cem-ov))
-		 (overlays-in beg end)))
-
+                 (overlays-in beg end)))
 
 (defun column-enforce-warn-on-region (beg end)
   "Jit lock function for function `column-enforce-mode' that will \
@@ -197,19 +210,19 @@ mark text that extends beyond `column-enforce-column' with the \
     (goto-char beg)
     (while (< (point) end)
       (let ((cem-ovs (column-enforce-get-cem-overlays-in
-		   (point-at-bol) (point-at-eol))))
-	(dolist (ov cem-ovs) (delete-overlay ov))
-	(move-to-column (column-enforce-get-column))
-	(if (and (not (= (point) (point-at-eol)))
+                      (point-at-bol) (point-at-eol))))
+        (dolist (ov cem-ovs) (delete-overlay ov))
+        (move-to-column (column-enforce-get-column))
+        (if (and (not (= (point) (point-at-eol)))
                  (or column-enforce-comments
                      (not (equal (syntax-ppss-context (syntax-ppss (point)))
                                  'comment))))
-	  (let ((new-ov (make-overlay (point)
-				      (point-at-eol)
-				      nil t t)))
-	    (overlay-put new-ov 'face 'column-enforce-face)
-	    (overlay-put new-ov 'is-cem-ov t)))
-	(forward-line 1)))))
+            (let ((new-ov (make-overlay (point)
+                                        (point-at-eol)
+                                        nil t t)))
+              (overlay-put new-ov 'face 'column-enforce-face)
+              (overlay-put new-ov 'is-cem-ov t)))
+        (forward-line 1)))))
 
 
 (provide 'column-enforce-mode)

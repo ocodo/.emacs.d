@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "column-enforce-mode" "column-enforce-mode.el"
-;;;;;;  (22455 53496 0 0))
+;;;;;;  (22530 990 0 0))
 ;;; Generated autoloads from column-enforce-mode.el
 
 (autoload 'column-enforce-n "column-enforce-mode" "\
@@ -28,6 +28,28 @@ Minor mode for highlighting text that extends beyond a certain column.
 Variable `column-enforce-column' decides which column to start warning at.
  Default is 80
 Variable `column-enforce-face' decides how to display the warnings
+
+\(fn &optional ARG)" t nil)
+
+(defvar global-column-enforce-mode nil "\
+Non-nil if Global Column-Enforce mode is enabled.
+See the `global-column-enforce-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-column-enforce-mode'.")
+
+(custom-autoload 'global-column-enforce-mode "column-enforce-mode" nil)
+
+(autoload 'global-column-enforce-mode "column-enforce-mode" "\
+Toggle Column-Enforce mode in all buffers.
+With prefix ARG, enable Global Column-Enforce mode if ARG is positive;
+otherwise, disable it.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
+Column-Enforce mode is enabled in all buffers where
+`column-enforce-mode-toggle-if-applicable' would do it.
+See `column-enforce-mode' for more information on Column-Enforce mode.
 
 \(fn &optional ARG)" t nil)
 
