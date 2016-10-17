@@ -1,10 +1,9 @@
 ;;; kurecolor-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "kurecolor" "kurecolor.el" (21818 58294 283401
-;;;;;;  0))
+;;;### (autoloads nil "kurecolor" "kurecolor.el" (22532 20809 0 0))
 ;;; Generated autoloads from kurecolor.el
 
 (autoload 'kurecolor-increase-brightness-by-step "kurecolor" "\
