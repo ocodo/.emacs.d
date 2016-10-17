@@ -83,8 +83,8 @@
                      ("C-c {" . ruby-toggle-block)
                      ("C-c +" . ruby-toggle-hash-syntax)))
 
-  :config (progn (flymake-ruby-load)
-                 (ruby-end-mode)
+  :config (progn (ruby-end-mode)
+                 (rubocop-mode)
                  (robe-mode)))
 
 (provide 'use-ruby)
