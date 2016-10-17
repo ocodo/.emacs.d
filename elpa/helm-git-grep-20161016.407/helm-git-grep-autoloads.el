@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (22530 973
+;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (22532 20816
 ;;;;;;  0 0))
 ;;; Generated autoloads from helm-git-grep.el
 
@@ -38,6 +38,8 @@ Invoke `helm-git-grep' from isearch.
 Invoke `helm-git-grep' from other helm.
 
 \(fn)" t nil)
+
+(defconst helm-git-grep-with-exclude-file-pattern-obsolete-message "use `helm-git-grep-pathspecs' to exclude files form search result.")
 
 (autoload 'helm-git-grep-with-exclude-file-pattern "helm-git-grep" "\
 Obsolete.
