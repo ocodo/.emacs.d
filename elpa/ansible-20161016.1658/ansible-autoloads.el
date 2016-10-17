@@ -1,10 +1,9 @@
 ;;; ansible-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ansible" "ansible.el" (22271 10670 283348
-;;;;;;  467000))
+;;;### (autoloads nil "ansible" "ansible.el" (22532 20828 0 0))
 ;;; Generated autoloads from ansible.el
 
 (defvar ansible::key-map (make-sparse-keymap) "\
@@ -29,8 +28,7 @@ Ansible minor mode.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ansible-pkg.el") (22271 10670 294648
-;;;;;;  427000))
+;;;### (autoloads nil nil ("ansible-pkg.el") (22532 20828 0 0))
 
 ;;;***
 
