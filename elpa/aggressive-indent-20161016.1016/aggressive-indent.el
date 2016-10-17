@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/aggressive-indent-mode
-;; Package-Version: 20161012.1344
+;; Package-Version: 20161016.1016
 ;; Version: 1.8.3
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: indent lisp maint tools
@@ -249,7 +249,7 @@ This is for internal use only.  For user customization, use
                 '(when (derived-mode-p 'ruby-mode)
                    (let ((line (thing-at-point 'line)))
                      (and (stringp line)
-                          (string-match "\\b\\(if\\|case\\|do\\|begin\\) *$" line))))))
+                          (string-match "\\b\\(begin\\|case\\|d\\(?:ef\\|o\\)\\|if\\) *$" line))))))
 
 (defcustom aggressive-indent-dont-indent-if '()
   "List of variables and functions to prevent aggressive indenting.
@@ -418,22 +418,29 @@ If you feel aggressive-indent is causing Emacs to hang while
 typing, try tweaking this number."
   :type 'float)
 
+(defvar-local aggressive-indent--idle-timer nil
+  "Idle timer used for indentation")
+
 (defun aggressive-indent--indent-if-changed ()
   "Indent any region that changed in the last command loop."
-  (when aggressive-indent--changed-list
+  (when (and aggressive-indent-mode aggressive-indent--changed-list)
     (save-excursion
       (save-selected-window
         (unless (or (run-hook-wrapped 'aggressive-indent--internal-dont-indent-if #'eval)
                     (aggressive-indent--run-user-hooks))
           (while-no-input
-            (sit-for aggressive-indent-sit-for-time t)
-            (redisplay)
-            (aggressive-indent--proccess-changed-list-and-indent)))))))
+            (aggressive-indent--proccess-changed-list-and-indent)))))
+    (when (timerp aggressive-indent--idle-timer)
+      (cancel-timer aggressive-indent--idle-timer))))
 
 (defun aggressive-indent--keep-track-of-changes (l r &rest _)
   "Store the limits (L and R) of each change in the buffer."
   (when aggressive-indent-mode
-    (push (list l r) aggressive-indent--changed-list)))
+    (push (list l r) aggressive-indent--changed-list)
+    (when (timerp aggressive-indent--idle-timer)
+      (cancel-timer aggressive-indent--idle-timer))
+    (setq aggressive-indent--idle-timer
+          (run-with-idle-timer aggressive-indent-sit-for-time t #'aggressive-indent--indent-if-changed))))
 
 ;;; Minor modes
 ;;;###autoload
@@ -461,12 +468,12 @@ typing, try tweaking this number."
             (aggressive-indent--local-electric nil)
           (aggressive-indent--local-electric t))
         (add-hook 'after-change-functions #'aggressive-indent--keep-track-of-changes nil 'local)
-        (add-hook 'before-save-hook #'aggressive-indent--proccess-changed-list-and-indent nil 'local)
-        (add-hook 'post-command-hook #'aggressive-indent--indent-if-changed nil 'local))
+        (add-hook 'before-save-hook #'aggressive-indent--proccess-changed-list-and-indent nil 'local))
     ;; Clean the hooks
+    (when (timerp aggressive-indent--idle-timer)
+      (cancel-timer aggressive-indent--idle-timer))
     (remove-hook 'after-change-functions #'aggressive-indent--keep-track-of-changes 'local)
     (remove-hook 'before-save-hook #'aggressive-indent--proccess-changed-list-and-indent 'local)
-    (remove-hook 'post-command-hook #'aggressive-indent--indent-if-changed 'local)
     (remove-hook 'post-command-hook #'aggressive-indent--softly-indent-defun 'local)))
 
 (defun aggressive-indent--local-electric (on)
