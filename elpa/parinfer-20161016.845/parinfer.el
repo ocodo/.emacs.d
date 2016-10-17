@@ -175,12 +175,10 @@ used to match command.
 ;; Macros
 ;; -----------------------------------------------------------------------------
 
-;; (defmacro parinfer-silent (&rest body)
-;;   "Local set function `message' to `format', then execute BODY."
-;;   `(cl-letf (((symbol-function 'message) #'format))
-;;      ,@body))
 (defmacro parinfer-silent (&rest body)
-  `(progn ,@body))
+  "Local set function `message' to `format', then execute BODY."
+  `(cl-letf (((symbol-function 'message) #'format))
+     ,@body))
 
 (defmacro parinfer-paren-run (&rest body)
   "Run BODY in paren mode.  Keep S-sexp in correct indentation."
@@ -879,7 +877,6 @@ If there's any change, display a confirm message in minibuffer."
 
 (defun parinfer-paren ()
   "Do parinfer paren  on current & previous top level S-exp."
-  (message "%s" (parinfer--paren-balanced-p))
   (when (and (ignore-errors (parinfer--reindent-sexp))
              parinfer-auto-switch-indent-mode
              (parinfer--paren-balanced-p)
