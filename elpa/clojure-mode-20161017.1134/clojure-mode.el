@@ -9,7 +9,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20161004.2314
+;; Package-Version: 20161017.1134
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.6.0-cvs
 ;; Package-Requires: ((emacs "24.3"))
@@ -227,7 +227,8 @@ Out-of-the box clojure-mode understands lein, boot and gradle."
     (define-key map (kbd "n i") #'clojure-insert-ns-form)
     (define-key map (kbd "n h") #'clojure-insert-ns-form-at-point)
     (define-key map (kbd "n u") #'clojure-update-ns)
-    (define-key map (kbd "n s") #'clojure-sort-ns))
+    (define-key map (kbd "n s") #'clojure-sort-ns)
+    map)
   "Keymap for Clojure refactoring commands.")
 (fset 'clojure-refactor-map clojure-refactor-map)
 
