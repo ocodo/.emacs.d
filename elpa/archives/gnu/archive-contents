@@ -80,7 +80,7 @@
 	 ((:keywords "async")
 	  (:url . "http://elpa.gnu.org/packages/async.html"))])
  (auctex .
-	 [(11 89 5)
+	 [(11 89 6)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -291,10 +291,12 @@
 	     ((:url . "http://elpa.gnu.org/packages/ediprolog.html")
 	      (:keywords "languages" "processes"))])
  (el-search .
-	    [(0 2 3)
+	    [(1 0 1)
 	     ((emacs
-	       (25)))
-	     "Expression based incremental search for emacs-lisp-mode" tar
+	       (25))
+	      (stream
+	       (2 2 3)))
+	     "Expression based interactive search for emacs-lisp-mode" tar
 	     ((:keywords "lisp")
 	      (:url . "http://elpa.gnu.org/packages/el-search.html"))])
  (eldoc-eval .
@@ -631,7 +633,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20161010)
+      [(20161017)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
