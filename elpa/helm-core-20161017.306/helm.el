@@ -2287,6 +2287,7 @@ See :after-init-hook and :before-init-hook in `helm-source'."
         helm-saved-action nil
         helm-saved-selection nil
         helm-suspend-update-flag nil
+        ;; Ensure this is called BEFORE selecting helm-window.
         helm-current-buffer (helm--current-buffer)
         helm-buffer-file-name buffer-file-name
         helm-issued-errors nil
@@ -4808,10 +4809,10 @@ If N is positive enlarge, if negative narrow."
                    (delete-window w2)
                    (set-window-buffer
                     (setq w2 (split-window w1 nil helm--window-side-state)) b2)
-                   ;; Maybe resize the window holding helm-buffer.
+                   ;; Maybe resize the window holding `helm-current-buffer'.
                    (and resize (window-resize w2 resize split-state))
-                   (set-window-start w1 s2 t)
-                   (set-window-start w2 s1 t))
+                   (set-window-start w1 s1 t)
+                   (set-window-start w2 s2 t))
                  (setq helm--window-side-state (helm--get-window-side-state)))))
         (error "current window configuration not suitable for splitting"))))
 (put 'helm-swap-windows 'helm-only t)
