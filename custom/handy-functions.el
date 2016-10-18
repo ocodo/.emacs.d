@@ -905,6 +905,13 @@ If UP is non-nil, duplicate and move point to the top."
         (switch-to-buffer (completing-read "Select dired: " dired-buffers))
       (message "There's no dired buffers open right now"))))
 
+(defun dired-osx-open-this-file ()
+    "Use the OSX open command to launch the current dired file at point."
+    (interactive)
+    (shell-command-to-string (format "open %S" (dired-file-name-at-point))))
+
+(bind-key "M-o" 'dired-osx-open-this-file dired-mode-map)
+
 (defun package-install-from-url (url)
     "Install a package from from a URL.
 URL must point to a plaintext elisp package."
