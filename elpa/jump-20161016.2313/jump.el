@@ -3,12 +3,11 @@
 ;; Copyright (C) 2008 Eric Schulte
 
 ;; Author: Eric Schulte
-;; URL: http://github.com/eschulte/jump.el/tree/master
-;; Package-Version: 20151009.129
-;; Version: DEV
+;; URL: http://github.com/eschulte/jump.el
+;; Package-Version: 20161016.2313
 ;; Created: 2008-08-21
 ;; Keywords: project, convenience, navigation
-;; Package-Requires: ((findr "0.7") (inflections "1.1"))
+;; Package-Requires: ((findr "0.7") (inflections "2.4"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -64,8 +63,6 @@
 ;;   'ruby-add-log-current-method)
 
 ;;; Code:
-(if (featurep 'xemacs)
-  (add-to-list 'load-path (file-name-as-directory (or load-file-name buffer-file-name))))
 (require 'which-func)
 (require 'findr)
 (require 'inflections)
@@ -201,8 +198,8 @@ path).  If path ends in / then just look in that directory"
   (let ((terms (mapcar
 		(lambda (term)
 		  (delete-dups (list term
-				     (singularize-string term)
-				     (pluralize-string term))))
+				     (inflection-singularize-string term)
+				     (inflection-pluralize-string term))))
 		terms))
 	results interum-results)
     (dolist (group terms)
