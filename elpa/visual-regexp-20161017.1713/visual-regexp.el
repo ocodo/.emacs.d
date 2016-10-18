@@ -4,7 +4,7 @@
 
 ;; Author: Marko Bencun <mbencun@gmail.com>
 ;; URL: https://github.com/benma/visual-regexp.el/
-;; Package-Version: 20161008.520
+;; Package-Version: 20161017.1713
 ;; Version: 1.0
 ;; Package-Requires: ((cl-lib "0.2"))
 ;; Keywords: regexp, replace, visual, feedback
@@ -566,6 +566,9 @@ visible all the time in the minibuffer."
                                  (propertize replacement 'face current-face)))
             (overlay-put overlay 'priority (+ vr--overlay-priority 0))))))))
 
+(defun vr--mapcar-nonnil (rep list)
+  (mapcar (lambda (it) (when it (funcall rep it))) list))
+
 (defun vr--get-replacements (feedback feedback-limit)
   "Get replacements using emacs-style regexp."
   (setq vr--limit-reached nil)
@@ -595,7 +598,7 @@ visible all the time in the minibuffer."
                     (progn
                       (if (or (not feedback) (not feedback-limit) (< i feedback-limit))
                           (setq replacements (cons
-                                              (let ((match-data (mapcar 'marker-position (match-data))))
+                                              (let ((match-data (vr--mapcar-nonnil 'marker-position (match-data))))
                                                 (list (query-replace-compile-replacement replace-string t) match-data i))
                                               replacements))
                         (setq vr--limit-reached t))
@@ -659,7 +662,7 @@ visible all the time in the minibuffer."
       (unless (or silent (string= "" message-line))
         (vr--minibuffer-message message-line))
       ;; needed to correctly position the mark after query replace (finished with 'automatic ('!'))
-      (set-match-data (mapcar (lambda (el) (+ cumulative-offset el)) last-match-data))
+      (set-match-data (vr--mapcar-nonnil (lambda (el) (+ cumulative-offset el)) last-match-data))
       replace-count)))
 
 (defun vr--set-target-buffer-start-end ()
@@ -784,14 +787,15 @@ visible all the time in the minibuffer."
           (deactivate-mark nil)
           (first-fake-cursor nil))
       (vr--feedback-function (vr--get-regexp-string) t nil (lambda (i j begin end)
-                                                             (with-current-buffer vr--target-buffer
-                                                               (goto-char end)
-                                                               (push-mark begin)
-                                                               ;; temporarily enable transient mark mode
-                                                               (activate-mark)
-                                                               (let ((fc (mc/create-fake-cursor-at-point)))
-                                                                 (unless first-fake-cursor
-                                                                   (setq first-fake-cursor fc))))))
+                                                             (when (zerop j)
+                                                               (with-current-buffer vr--target-buffer
+                                                                 (goto-char end)
+                                                                 (push-mark begin)
+                                                                 ;; temporarily enable transient mark mode
+                                                                 (activate-mark)
+                                                                 (let ((fc (mc/create-fake-cursor-at-point)))
+                                                                   (unless first-fake-cursor
+                                                                     (setq first-fake-cursor fc)))))))
 
       ;; one fake cursor too many, replace first one with
       ;; the regular cursor.
@@ -903,7 +907,7 @@ E [not supported in visual-regexp]"
         (while (and keep-going vr--query-replacements)
           ;; Advance replacement list
           (cl-multiple-value-bind (replacement match-data i) (car vr--query-replacements)
-            (setq match-data (mapcar (lambda (el) (+ cumulative-offset el)) match-data))
+            (setq match-data (vr--mapcar-nonnil (lambda (el) (+ cumulative-offset el)) match-data))
             (let ((begin (cl-first match-data))
                   (end (cl-second match-data))
                   (next-replacement-orig replacement))
