@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20161016.750
+;; Package-Version: 20161017.907
 ;; Version: 0.62
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -100,6 +100,10 @@
 (defface anzu-mode-line
   '((t (:foreground "magenta" :weight bold)))
   "face of anzu modeline")
+
+(defface anzu-mode-line-no-match
+  '((t (:inherit anzu-mode-line)))
+  "face of anzu modeline in no match case")
 
 (defface anzu-replace-highlight
   '((t :inherit query-replace))
@@ -285,8 +289,11 @@
                                     (anzu--format-here-position here total)
                                     total (if anzu--overflow-p "+" "")))
                     (replace-query (format "(%d replace)" total))
-                    (replace (format "(%d/%d)" here total)))))
-      (propertize status 'face 'anzu-mode-line))))
+                    (replace (format "(%d/%d)" here total))))
+          (face (if (and (zerop total) (not (string= isearch-string "")))
+                    'anzu-mode-line-no-match
+                  'anzu-mode-line)))
+      (propertize status 'face face))))
 
 (defun anzu--update-mode-line ()
   (funcall anzu-mode-line-update-function anzu--current-position anzu--total-matched))
