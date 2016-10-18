@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 2.9.1
-;; Package-Version: 20161015.1102
+;; Version: 2.9.2
+;; Package-Version: 20161017.147
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -1708,12 +1708,13 @@ and then killed.\nWhat do you really want to do? "
                      (kv (assoc key result)))
                 (if kv
                     (setcdr kv (cons pd (cdr kv)))
-                  (push (list key pd) result))))
+                  (push (cons key (list pd)) result))))
           lst)
     (if reverse
         (nreverse
          (mapcar #'(lambda (gr)
-                     (setcdr gr (nreverse (cdr gr))))
+                     (destructuring-bind (key . pd) gr
+                       (cons key (nreverse pd))))
                  result))
       result)))
 
