@@ -1,3 +1,44 @@
+2016-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: more cleanup and minor tweaks; version 1.0.1
+
+2016-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add missing settings of some vars when restoring a previous search
+
+2016-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Call el-search--wrap-pattern at better places
+
+	Try to call `el-search--wrap-pattern' directly before compiling the 
+	pattern to avoid that the wrapped pattern appears in the histories.
+
+2016-10-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rewrite of el-search for version 1.0
+
+	Big rewrite and cleanup.  Add multi-search support.  Update and improve 
+	docs.
+
+2016-10-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Work around Emacs bug#24542
+
+	Avoid calling `scan-sexps' directly before the symbol `@' since it may 
+	error.
+
+2016-10-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add section "Patterns for stylistic rewriting" and pattern `iffy-if'
+
+2016-09-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make el-search--make-docstring require a NAME argument
+
+2016-09-13  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add `el-search--macroexpand'
+
 2016-09-07  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	Fix replacement verification for splicing mode
