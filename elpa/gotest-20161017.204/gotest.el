@@ -2,11 +2,11 @@
 
 ;; Author: Nicolas Lamirault <nicolas.lamirault@gmail.com>
 ;; URL: https://github.com/nlamirault/gotest.el
-;; Package-Version: 20160627.21
-;; Version: 0.12.0
+;; Package-Version: 20161017.204
+;; Version: 0.13.0
 ;; Keywords: languages, go, tests
 
-;; Package-Requires: ((emacs "24.3") (s "1.11.0") (f "0.17.3") (go-mode "1.3.1"))
+;; Package-Requires: ((emacs "24.3") (s "1.11.0") (f "0.19.0") (go-mode "1.4.0"))
 
 ;; Copyright (C) 2014, 2015, 2016 Nicolas Lamirault <nicolas.lamirault@gmail.com>
 
@@ -125,12 +125,14 @@ arguments in that order.")
     ("^\s*go test.*" . 'go-test--standard-face)
     ("^\s*Updating.*" . 'go-test--standard-face)
     (".*undefined.*" . 'go-test--warning-face)
-    ("FATAL.*" . 'go-test--error-face)
-    ("FAIL.*" . 'go-test--error-face)
-    ("=== RUN.*" . 'go-test--ok-face)
-    ("--- PASS.*" . 'go-test--ok-face)
-    ("PASS.*" . 'go-test--ok-face)
-    ("ok.*" . 'go-test--ok-face)
+    ("^\s*FATAL.*" . 'go-test--error-face)
+    ("^\s*FAIL.*" . 'go-test--error-face)
+    ("^\s*--- FATAL.*" . 'go-test--error-face)
+    ("^\s*--- FAIL:.*" . 'go-test--error-face)
+    ("^\s*=== RUN.*" . 'go-test--ok-face)
+    ("^\s*--- PASS.*" . 'go-test--ok-face)
+    ("^\s*PASS.*" . 'go-test--ok-face)
+    ("^\s*ok.*" . 'go-test--ok-face)
     )
   "Minimal highlighting expressions for go-test mode.")
 
@@ -161,9 +163,6 @@ arguments in that order.")
   "[[:alpha:][:digit:]_]*\\)("
   "The suffix of the go-test regular expression.")
 
-(defvar go-test-prefixes '("Test" "Example")
-  "Prefixes to use when searching for tests.")
-
 
 (defvar go-test-compilation-error-regexp-alist-alist
   '((go-test-testing . ("^\t\\([[:alnum:]-_/.]+\\.go\\):\\([0-9]+\\): .*$" 1 2)) ;; stdlib package testing
@@ -193,7 +192,7 @@ looked up in `go-testcompilation-error-regexp-alist-alist'.
 
 See also: `compilation-error-regexp-alist'."
   :type '(repeat (choice (symbol :tag "Predefined symbol")
-			 (sexp :tag "Error specification")))
+                         (sexp :tag "Error specification")))
   :group 'gotest)
 
 
@@ -220,14 +219,17 @@ When `ENV' concatenate before command."
   "Get optional arguments for go test or go run.
 DEFAULTS will be used when there is no prefix argument.
 When a prefix argument of '- is given, use the most recent HISTORY item.
-When any other prefix argument is given, prompt for arguments using HISTORY."
-  (if current-prefix-arg
-      (if (equal current-prefix-arg '-)
-          (car (symbol-value history))
-        (let* ((name (nth 1 (s-split "-" (symbol-name history))))
-               (prompt (s-concat "go " name " args: ")))
-          (read-shell-command prompt defaults history)))
-    defaults))
+When single prefix argument is given, prompt for arguments using HISTORY.
+When double prefix argument is given, run command in compilation buffer with
+`comint-mode' enabled.
+When triple prefix argument is given, prompt for arguments using HISTORY and
+run command in compilation buffer `comint-mode' enabled."
+  (pcase current-prefix-arg
+    (`nil defaults)
+    ((or `- `(16)) (car (symbol-value history)))
+    ((or `(4) `(64)) (let* ((name (nth 1 (s-split "-" (symbol-name history))))
+                            (prompt (s-concat "go " name " args: ")))
+                       (read-shell-command prompt defaults history)))))
 
 
 (defun go-test--get-root-directory()
@@ -273,11 +275,9 @@ For example, if the current buffer is `foo.go', the buffer for
   "Return the current test and suite name."
   (save-excursion
     (end-of-line)
-    (if (cl-loop for test-prefix in go-test-prefixes
-                 thereis (search-backward-regexp
-                          (format "%s%s%s"
-                                  go-test-regexp-prefix test-prefix
-                                  go-test-regexp-suffix) nil t))
+    (if (search-backward-regexp
+         (format "%s\\(Test\\|Example\\)%s" go-test-regexp-prefix go-test-regexp-suffix)
+         nil t)
         (let ((suite-match (match-string-no-properties 1))
               (test-match (match-string-no-properties 2)))
           (list
@@ -416,11 +416,12 @@ For example, if the current buffer is `foo.go', the buffer for
 
 (defun go-test--cleanup (buffer)
   "Clean up the old go-test process BUFFER when a similar process is run."
-  (when (get-buffer-process (get-buffer buffer))
-    (delete-process buffer))
   (when (get-buffer buffer)
-    (kill-buffer buffer)))
-
+    (when (get-buffer-process (get-buffer buffer))
+      (delete-process buffer))
+    (with-current-buffer buffer
+      (setq buffer-read-only nil)
+      (erase-buffer))))
 
 (defun go-test--gb-start (args)
   "Start the GB test command using `ARGS'."
@@ -459,8 +460,8 @@ For example, if the current buffer is `foo.go', the buffer for
                                              test-suite test-name) "")))
       (when test-name
         (if (go-test--is-gb-project)
-            (go-test--gb-start (s-concat "-test.v=true -test.run=" test-name "\\$"))
-          (go-test--go-test (s-concat test-flag test-name additional-arguments "\\$")))))))
+            (go-test--gb-start (s-concat "-test.v=true -test.run=" test-name "\\$ ."))
+          (go-test--go-test (s-concat test-flag test-name additional-arguments "\\$ .")))))))
 
 
 ;;;###autoload
@@ -470,7 +471,7 @@ For example, if the current buffer is `foo.go', the buffer for
   (let ((data (go-test--get-current-file-testing-data)))
     (if (go-test--is-gb-project)
         (go-test--gb-start (s-concat "-test.v=true -test.run='" data "'"))
-      (go-test--go-test (s-concat "-run='" data "'")))))
+      (go-test--go-test (s-concat "-run='" data "' .")))))
 
 
 ;;;###autoload
@@ -532,11 +533,13 @@ For example, if the current buffer is `foo.go', the buffer for
 
 
 ;;;###autoload
-(defun go-run ()
+(defun go-run (&optional args)
   "Launch go run on current buffer file."
   (interactive)
   ;;(add-hook 'compilation-start-hook 'go-test-compilation-hook)
-  (compile (go-test--go-run-get-program (go-test--go-run-arguments)))
+  (compile (go-test--go-run-get-program (go-test--go-run-arguments))
+           (pcase current-prefix-arg
+             ((or `(16) `(64)) t)))
   ;;(remove-hook 'compilation-start-hook 'go-test-compilation-hook))
   )
 

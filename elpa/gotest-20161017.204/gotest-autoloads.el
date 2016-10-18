@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "gotest" "gotest.el" (22474 20485 0 0))
+;;;### (autoloads nil "gotest" "gotest.el" (22533 41864 0 0))
 ;;; Generated autoloads from gotest.el
 
 (autoload 'go-test-current-test "gotest" "\
@@ -44,7 +44,7 @@ Launch go test coverage on the current project.
 (autoload 'go-run "gotest" "\
 Launch go run on current buffer file.
 
-\(fn)" t nil)
+\(fn &optional ARGS)" t nil)
 
 ;;;***
 
