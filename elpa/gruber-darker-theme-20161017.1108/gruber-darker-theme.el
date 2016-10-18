@@ -1,10 +1,11 @@
 ;;; gruber-darker-theme.el --- Gruber Darker color theme for Emacs 24.
 
-;; Copyright (C) 2013 Alexey Kutepov a.k.a rexim
+;; Copyright (C) 2013-2016 Alexey Kutepov a.k.a rexim
+;; Copyright (C) 2009-2010 Jason R. Blevins
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20160417.430
+;; Package-Version: 20161017.1108
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
