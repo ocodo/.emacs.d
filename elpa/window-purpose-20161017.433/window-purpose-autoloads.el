@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "window-purpose" "window-purpose.el" (22507
-;;;;;;  31272 397225 19000))
+;;;### (autoloads nil "window-purpose" "window-purpose.el" (22533
+;;;;;;  41800 0 0))
 ;;; Generated autoloads from window-purpose.el
 
 (defvar purpose-mode nil "\
@@ -25,7 +25,7 @@ Toggle Purpose mode on or off according to the regular rules.
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-configuration" "window-purpose-configuration.el"
-;;;;;;  (22507 31272 413225 20000))
+;;;;;;  (22533 41800 0 0))
 ;;; Generated autoloads from window-purpose-configuration.el
 
 (autoload 'purpose-set-extension-configuration "window-purpose-configuration" "\
@@ -49,7 +49,7 @@ done.
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-core" "window-purpose-core.el"
-;;;;;;  (22507 31272 417225 19000))
+;;;;;;  (22533 41800 0 0))
 ;;; Generated autoloads from window-purpose-core.el
 
 (autoload 'purpose-toggle-window-buffer-dedicated "window-purpose-core" "\
@@ -61,7 +61,7 @@ WINDOW defaults to the selected window.
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-layout" "window-purpose-layout.el"
-;;;;;;  (22507 31272 417225 19000))
+;;;;;;  (22533 41800 0 0))
 ;;; Generated autoloads from window-purpose-layout.el
 
 (autoload 'purpose-save-window-layout-file "window-purpose-layout" "\
@@ -148,7 +148,7 @@ the right purpose in it, or creating a dummy buffer.
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-switch" "window-purpose-switch.el"
-;;;;;;  (22507 31272 401225 19000))
+;;;;;;  (22533 41800 0 0))
 ;;; Generated autoloads from window-purpose-switch.el
 
 (autoload 'purpose-switch-buffer "window-purpose-switch" "\
@@ -214,8 +214,8 @@ current buffer's purpose.
 
 ;;;***
 
-;;;### (autoloads nil "window-purpose-x" "window-purpose-x.el" (22507
-;;;;;;  31272 385225 19000))
+;;;### (autoloads nil "window-purpose-x" "window-purpose-x.el" (22533
+;;;;;;  41800 0 0))
 ;;; Generated autoloads from window-purpose-x.el
 
 (autoload 'purpose-x-code1-setup "window-purpose-x" "\
@@ -316,7 +316,7 @@ This is implemented by overriding `replace-buffer-in-windows' with
 
 ;;;### (autoloads nil nil ("window-purpose-fixes.el" "window-purpose-pkg.el"
 ;;;;;;  "window-purpose-prefix-overload.el" "window-purpose-utils.el")
-;;;;;;  (22507 31272 413225 20000))
+;;;;;;  (22533 41800 0 0))
 
 ;;;***
 
