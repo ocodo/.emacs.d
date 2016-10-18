@@ -931,10 +931,17 @@ If there's any change, display a confirm message in minibuffer."
   (parinfer-run
    (call-interactively 'kill-line)))
 
+(defun parinfer-raise-sexp ()
+  "Raise sexp and Indent code."
+  (interactive)
+  (call-interactively 'raise-sexp)
+  (parinfer--reindent-sexp))
+
 (defun parinfer-region-delete-region ()
   (interactive)
-  (parinfer-do
-   (call-interactively 'delete-region)))
+  (call-interactively 'delete-region)
+  (deactivate-mark t)
+  (parinfer-run))
 
 (defun parinfer-yank ()
   "Replacement in 'parinfer-mode' for 'yank' command."
