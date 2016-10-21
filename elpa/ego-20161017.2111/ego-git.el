@@ -90,7 +90,9 @@ presented by REPO-DIR."
 
 (defun ego--git-change-branch (repo-dir branch-name)
   "This function will change branch to BRANCH-NAME of git repository presented
-by REPO-DIR only if there is nothing uncommitted in the current branch."
+by REPO-DIR only if there is nothing uncommitted in the current branch.
+
+If there is no branch named BRANCH-NAME, It will create an empty brranch"
   (let ((repo-dir (file-name-as-directory repo-dir))
         (output (ego--shell-command
                  repo-dir
@@ -103,8 +105,10 @@ by REPO-DIR only if there is nothing uncommitted in the current branch."
                   (concat "env LC_ALL=C git checkout " branch-name)
                   t))
     (when (string-match "\\(\\`error\\|[^a-zA-Z]error\\)" output)
-      (error "Failed to change branch to '%s' of repository '%s'."
-             branch-name repo-dir))))
+      (if (string-prefix-p (format "error: pathspec '%s' did not match any file(s) known to git." branch-name) output)
+          (ego--git-new-empty-branch repo-dir branch-name)
+        (error "Failed to change branch to '%s' of repository '%s'."
+               branch-name repo-dir)))))
 
 (defun ego--git-new-empty-branch (repo-dir branch-name)
   "This function will create a new empty branch with BRANCH-NAME, and checkout it. "
