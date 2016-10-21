@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20161017.802
+;; Package-Version: 20161020.2248
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -583,7 +583,7 @@ input corresponding to the chosen variable."
 
 ;;;###autoload
 (defun counsel-info-lookup-symbol (symbol &optional mode)
-  "Forward to (`info-describe-symbol' SYMBOL MODE) with ivy completion."
+  "Forward to (`info-lookup-symbol' SYMBOL MODE) with ivy completion."
   (interactive
    (progn
      (require 'info-look)
@@ -599,6 +599,7 @@ input corresponding to the chosen variable."
             (value (ivy-read
                     "Describe symbol: "
                     (mapcar #'car completions)
+                    :preselect (ivy-thing-at-point)
                     :sort t)))
        (list value info-lookup-mode))))
   (require 'info-look)
