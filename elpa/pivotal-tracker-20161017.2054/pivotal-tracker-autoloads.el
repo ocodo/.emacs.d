@@ -1,10 +1,10 @@
 ;;; pivotal-tracker-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "pivotal-tracker" "pivotal-tracker.el" (22120
-;;;;;;  11635 228222 357000))
+;;;### (autoloads nil "pivotal-tracker" "pivotal-tracker.el" (22538
+;;;;;;  11458 0 0))
 ;;; Generated autoloads from pivotal-tracker.el
 
 (defgroup pivotal nil "\
@@ -14,12 +14,12 @@ Pivotal Tracker" :group (quote external))
 API key found on the /profile page of pivotal tracker" :group (quote pivotal) :type (quote string))
 
 (autoload 'pivotal "pivotal-tracker" "\
-launch pivotal-projects window, or just switch to it
+Launch pivotal-projects window, or just switch to it.
 
 \(fn)" t nil)
 
 (autoload 'pivotal-get-projects "pivotal-tracker" "\
-show a buffer of all projects you have access to
+Show a buffer of all projects you have access to.
 
 \(fn)" t nil)
 
