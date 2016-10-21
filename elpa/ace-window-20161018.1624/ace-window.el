@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20160923.1117
+;; Package-Version: 20161018.1624
 ;; Version: 0.9.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: window, location
@@ -107,6 +107,11 @@ Use M-0 `ace-window' to toggle this value."
   "When non-nil, `ace-window' will issue a `read-char' even for one window.
 This will make `ace-window' act different from `other-window' for
   one or two windows."
+  :type 'boolean)
+
+(defcustom aw-reverse-frame-list nil
+  "When non-nil `ace-window' will order frames for selection in
+the reverse of `frame-list'"
   :type 'boolean)
 
 (defface aw-leading-char-face
@@ -395,7 +400,7 @@ Windows are numbered top down, left to right."
         (e2 (window-edges wnd2)))
     (cond ((string< (frame-parameter f1 'window-id)
                     (frame-parameter f2 'window-id))
-           nil)
+           aw-reverse-frame-list)
           ((< (car e1) (car e2))
            t)
           ((> (car e1) (car e2))
