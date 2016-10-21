@@ -5,7 +5,7 @@
 ;; license that can be found in the LICENSE file.
 
 ;; Version: 0.1
-;; Package-Version: 20161012.721
+;; Package-Version: 20161013.1055
 ;; Package-Requires: ((go-mode "1.3.1") (cl-lib "0.5"))
 ;; Keywords: tools
 
