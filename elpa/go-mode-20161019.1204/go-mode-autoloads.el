@@ -3,7 +3,7 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "go-guru" "go-guru.el" (22528 24123 0 0))
+;;;### (autoloads nil "go-guru" "go-guru.el" (22538 11519 0 0))
 ;;; Generated autoloads from go-guru.el
 
 (autoload 'go-guru-set-scope "go-guru" "\
@@ -100,7 +100,7 @@ timeout.
 
 ;;;***
 
-;;;### (autoloads nil "go-mode" "go-mode.el" (22528 24123 0 0))
+;;;### (autoloads nil "go-mode" "go-mode.el" (22538 11519 0 0))
 ;;; Generated autoloads from go-mode.el
 
 (autoload 'go-mode "go-mode" "\
@@ -192,7 +192,19 @@ Tries to look for a URL at point.
 
 ;;;***
 
-;;;### (autoloads nil nil ("go-mode-pkg.el") (22528 24123 0 0))
+;;;### (autoloads nil "go-rename" "go-rename.el" (22538 11519 0 0))
+;;; Generated autoloads from go-rename.el
+
+(autoload 'go-rename "go-rename" "\
+Rename the entity denoted by the identifier at point, using
+the `gorename' tool. With FORCE, call `gorename' with the
+`-force' flag.
+
+\(fn NEW-NAME &optional FORCE)" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("go-mode-pkg.el") (22538 11519 0 0))
 
 ;;;***
 
