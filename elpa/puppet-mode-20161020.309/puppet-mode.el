@@ -1,6 +1,6 @@
 ;;; puppet-mode.el --- Major mode for Puppet manifests  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013, 2014  Sebastian Wiesner <swiesner@lunaryorn.com>
+;; Copyright (C) 2013-2014, 2016  Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; Copyright (C) 2013, 2014  Bozhidar Batsov <bozhidar@batsov.com>
 ;; Copyright (C) 2011  Puppet Labs Inc
 
@@ -9,8 +9,8 @@
 ;;     Russ Allbery <rra@stanford.edu>
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
-;; URL: https://github.com/lunaryorn/puppet-mode
-;; Package-Version: 20161014.952
+;; URL: https://github.com/voxpupuli/puppet-mode
+;; Package-Version: 20161020.309
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -72,9 +72,9 @@
 ;; with `puppet-lint' on C-c C-l.  Apply the current buffer with `puppet-apply'
 ;; on C-c C-c.
 
-;; Flymake: Flymake support is _not_ provided. See Flycheck at
-;; http://flycheck.readthedocs.org/en/latest/ for on-the-fly validation and
-;; liniting of Puppet manifests.
+;; Syntax checking: Flymake support is _not_ provided.  See Flycheck at
+;; http://www.flycheck.org for on-the-fly validation and liniting of Puppet
+;; manifests.
 
 ;;; Code:
 
@@ -113,7 +113,7 @@ buffer-local wherever it is set."
   "Puppet mastering in Emacs"
   :prefix "puppet-"
   :group 'languages
-  :link '(url-link :tag "Github" "https://github.com/lunaryorn/puppet-mode")
+  :link '(url-link :tag "Github" "https://github.com/voxpupuli/puppet-mode")
   :link '(emacs-commentary-link :tag "Commentary" "puppet-mode"))
 
 (defcustom puppet-indent-level 2
