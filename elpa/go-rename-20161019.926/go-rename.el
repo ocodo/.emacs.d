@@ -5,7 +5,7 @@
 ;; license that can be found in the LICENSE file.
 
 ;; Version: 0.1
-;; Package-Version: 20160307.744
+;; Package-Version: 20161019.926
 ;; Package-Requires: ((go-mode "1.3.1"))
 ;; Keywords: tools
 
@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'compile)
 (require 'go-mode)
 (require 'thingatpt)
@@ -68,7 +69,7 @@ the `gorename' tool. With FORCE, call `gorename' with the
         (message "Command: %s:" args)
         (message "Running gorename...")
         ;; Use dynamic binding to modify/restore the environment
-        (setq success (zerop (let ((process-environment (list* goroot-env gopath-env process-environment)))
+        (setq success (zerop (let ((process-environment (cl-list* goroot-env gopath-env process-environment)))
           (apply #'call-process args))))
       (insert "\n")
       (compilation-mode)

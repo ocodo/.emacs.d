@@ -1,10 +1,9 @@
 ;;; go-rename-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "go-rename" "go-rename.el" (22246 12379 525962
-;;;;;;  587000))
+;;;### (autoloads nil "go-rename" "go-rename.el" (22538 11517 0 0))
 ;;; Generated autoloads from go-rename.el
 
 (autoload 'go-rename "go-rename" "\
