@@ -974,7 +974,8 @@ Example use:
           (if (eq action 'identity)
               (funcall action x)
             (select-window (ivy--get-window ivy-last))
-            (prog1 (funcall action x)
+            (prog1 (let ((default-directory (ivy-state-directory ivy-last)))
+                     (funcall action x))
               (unless (or (eq ivy-exit 'done)
                           (equal (selected-window)
                                  (active-minibuffer-window))
@@ -3337,6 +3338,7 @@ There is no limit on the number of *ivy-occur* buffers."
               (funcall occur-fn)
             (ivy-occur-mode)
             (insert (format "%d candidates:\n" (length ivy--old-cands)))
+            (read-only-mode)
             (ivy--occur-insert-lines
              (mapcar
               (lambda (cand) (concat "    " cand))
