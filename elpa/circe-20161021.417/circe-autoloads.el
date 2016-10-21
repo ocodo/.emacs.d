@@ -1,9 +1,9 @@
 ;;; circe-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "circe" "circe.el" (22366 21721 588657 92000))
+;;;### (autoloads nil "circe" "circe.el" (22538 11551 0 0))
 ;;; Generated autoloads from circe.el
 
 (autoload 'circe-version "circe" "\
@@ -36,7 +36,7 @@ See `circe-network-options' for a list of common options.
 ;;;***
 
 ;;;### (autoloads nil "circe-color-nicks" "circe-color-nicks.el"
-;;;;;;  (22366 21721 580657 135000))
+;;;;;;  (22538 11551 0 0))
 ;;; Generated autoloads from circe-color-nicks.el
 
 (autoload 'enable-circe-color-nicks "circe-color-nicks" "\
@@ -48,7 +48,7 @@ This module colors all encountered nicks in a cross-server fashion.
 ;;;***
 
 ;;;### (autoloads nil "circe-highlight-all-nicks" "circe-highlight-all-nicks.el"
-;;;;;;  (22366 21721 600657 30000))
+;;;;;;  (22538 11551 0 0))
 ;;; Generated autoloads from circe-highlight-all-nicks.el
 
 (autoload 'enable-circe-highlight-all-nicks "circe-highlight-all-nicks" "\
@@ -60,13 +60,14 @@ channel in messages of other people.
 
 ;;;***
 
-;;;### (autoloads nil "circe-lagmon" "circe-lagmon.el" (22366 21721
-;;;;;;  584657 114000))
+;;;### (autoloads nil "circe-lagmon" "circe-lagmon.el" (22538 11551
+;;;;;;  0 0))
 ;;; Generated autoloads from circe-lagmon.el
 
 (defvar circe-lagmon-mode nil "\
 Non-nil if Circe-Lagmon mode is enabled.
-See the command `circe-lagmon-mode' for a description of this minor mode.
+See the `circe-lagmon-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `circe-lagmon-mode'.")
@@ -83,7 +84,7 @@ in the mode-line.
 ;;;***
 
 ;;;### (autoloads nil "circe-new-day-notifier" "circe-new-day-notifier.el"
-;;;;;;  (22366 21721 612656 967000))
+;;;;;;  (22538 11551 0 0))
 ;;; Generated autoloads from circe-new-day-notifier.el
 
 (autoload 'enable-circe-new-day-notifier "circe-new-day-notifier" "\
@@ -98,8 +99,8 @@ in the mode-line.
 
 ;;;***
 
-;;;### (autoloads nil "lui-autopaste" "lui-autopaste.el" (22366 21721
-;;;;;;  592657 72000))
+;;;### (autoloads nil "lui-autopaste" "lui-autopaste.el" (22538 11551
+;;;;;;  0 0))
 ;;; Generated autoloads from lui-autopaste.el
 
 (autoload 'enable-lui-autopaste "lui-autopaste" "\
@@ -119,8 +120,8 @@ Disable the lui autopaste feature.
 
 ;;;***
 
-;;;### (autoloads nil "lui-irc-colors" "lui-irc-colors.el" (22366
-;;;;;;  21721 616656 946000))
+;;;### (autoloads nil "lui-irc-colors" "lui-irc-colors.el" (22538
+;;;;;;  11551 0 0))
 ;;; Generated autoloads from lui-irc-colors.el
 
 (autoload 'enable-lui-irc-colors "lui-irc-colors" "\
@@ -130,8 +131,8 @@ Enable IRC color interpretation for Lui.
 
 ;;;***
 
-;;;### (autoloads nil "lui-track-bar" "lui-track-bar.el" (22366 21721
-;;;;;;  584657 114000))
+;;;### (autoloads nil "lui-track-bar" "lui-track-bar.el" (22538 11551
+;;;;;;  0 0))
 ;;; Generated autoloads from lui-track-bar.el
 
 (autoload 'enable-lui-track-bar "lui-track-bar" "\
@@ -141,8 +142,7 @@ Enable a bar in Lui buffers that shows where you stopped reading.
 
 ;;;***
 
-;;;### (autoloads nil "shorten" "shorten.el" (22366 21721 604657
-;;;;;;  9000))
+;;;### (autoloads nil "shorten" "shorten.el" (22538 11551 0 0))
 ;;; Generated autoloads from shorten.el
 
 (autoload 'shorten-strings "shorten" "\
@@ -156,13 +156,13 @@ components back together into SHORTENED-STRING.  See also
 
 ;;;***
 
-;;;### (autoloads nil "tracking" "tracking.el" (22366 21721 576657
-;;;;;;  156000))
+;;;### (autoloads nil "tracking" "tracking.el" (22538 11551 0 0))
 ;;; Generated autoloads from tracking.el
 
 (defvar tracking-mode nil "\
 Non-nil if Tracking mode is enabled.
-See the command `tracking-mode' for a description of this minor mode.
+See the `tracking-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `tracking-mode'.")
@@ -211,7 +211,7 @@ Switch to the last active buffer.
 
 ;;;### (autoloads nil nil ("circe-chanop.el" "circe-compat.el" "circe-pkg.el"
 ;;;;;;  "irc.el" "lcs.el" "lui-format.el" "lui-logging.el" "lui.el"
-;;;;;;  "make-tls-process.el") (22366 21721 625142 723000))
+;;;;;;  "make-tls-process.el") (22538 11551 0 0))
 
 ;;;***
 
