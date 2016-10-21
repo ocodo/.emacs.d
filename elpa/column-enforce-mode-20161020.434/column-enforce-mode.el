@@ -6,7 +6,7 @@
 ;; Maintainer:
 ;; Created: Fri Oct 11 12:14:25 2013 (-0400)
 ;; Version: 1.0.4
-;; Package-Version: 20161014.658
+;; Package-Version: 20161020.434
 ;; Package-Requires: ()
 ;; Last-Updated: Sun Dec  8 20:23:51 2013 (-0500)
 ;;           By: Jordon Biondo
@@ -91,7 +91,7 @@ the value of variable `fill-column', or if nil, 80."
     (or
      (ignore-errors
        (save-excursion
-         (funcall column-enforce-column-getter)))
+         (funcall getter)))
      80)))
 
 (defun column-enforce-default-column-getter ()
