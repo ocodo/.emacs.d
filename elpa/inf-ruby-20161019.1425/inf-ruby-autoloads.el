@@ -1,10 +1,9 @@
 ;;; inf-ruby-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (22396 29003 255560
-;;;;;;  871000))
+;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (22538 11492 0 0))
 ;;; Generated autoloads from inf-ruby.el
 
 (defvar ruby-source-modes '(ruby-mode enh-ruby-mode) "\

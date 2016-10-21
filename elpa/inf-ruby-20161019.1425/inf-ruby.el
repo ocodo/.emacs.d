@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20160617.551
+;; Package-Version: 20161019.1425
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.4.0
@@ -710,7 +710,7 @@ Gemfile, it should use the `gemspec' instruction."
                 "bundle exec irb -I lib")
             "irb -I lib"))
          (name (inf-ruby-file-contents-match
-                gemspec "\\.name[ \t]*=[ \t]*\"\\([^\"]+\\)\"" 1))
+                gemspec "\\.name[ \t]*=[ \t]*['\"]\\([^'\"]+\\)['\"]" 1))
          args files)
     (unless (file-exists-p "lib")
       (error "The directory must contain a 'lib' subdirectory"))
