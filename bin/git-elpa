@@ -1,70 +1,69 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-=begin
-Git Elpa
-========
-
-This module is used to simplify updating Emacs ELPA packages.
-
-In a nutshell, this script will list names of packages which have been
-updated/added, or commit them all (each as separate commits), or
-commit a single package update (or addition) by it's package name.
-
-Abstract
-========
-
-In this Emacs config, unlike most, I maintain a repository history of
-the ELPA packages I install. Usually (99% of the time over many years
-so far) I have no issues with this at all.  Of course, hypothetically,
-it's quite possible that any feature of any package could be broken at
-any time.
-
-In case a breakage occurs, it's possible to roll back to a previous
-version of that package, and it's easy to do when we can identify the
-package. We can simply cherry-pick it from a previous commit, or just
-grab it from it's canonical source.
-
-However, if the breakage manifests as a side-effect, identifying
-the problem package is much harder.
-
-To this end, I wrote this script to make each package have it's own
-commit history, (starting today!)
-
-Usage:
-======
-
-    git-elpa --list
-
-or 
-
-    git-elpa -l
-
-List all updated packages, not yet committed.
-
-    git-elpa --commit=package-name
-
-or 
-
-    git-elpa -c package-name
-
-Commit the package update (and old version removal). The following
-automatic commit message pattern will be used:
-
-"[package-name upgraded] to NEW_VERSION from OLD_VERSION"
-
-    git-elpa --all
-
-or 
-
-    git-elpa -a
-
-Commit all updated packages (as individual commits)
-
-    git-elpa --cleanup
-
-Remove all stray package info .txt files (created when viewing package details)
-
-=end
+# Git Elpa
+# ========
+#
+# This module is used to simplify updating Emacs ELPA packages.
+#
+# In a nutshell, this script will list names of packages which have been
+# updated/added, or commit them all (each as separate commits), or
+# commit a single package update (or addition) by it's package name.
+#
+# Abstract
+# ========
+#
+# In this Emacs config, unlike most, I maintain a repository history of
+# the ELPA packages I install. Usually (99% of the time over many years
+# so far) I have no issues with this at all.  Of course, hypothetically,
+# it's quite possible that any feature of any package could be broken at
+# any time.
+#
+# In case a breakage occurs, it's possible to roll back to a previous
+# version of that package, and it's easy to do when we can identify the
+# package. We can simply cherry-pick it from a previous commit, or just
+# grab it from it's canonical source.
+#
+# However, if the breakage manifests as a side-effect, identifying
+# the problem package is much harder.
+#
+# To this end, I wrote this script to make each package have it's own
+# commit history, (starting today!)
+#
+# Usage:
+# ======
+#
+#     git-elpa --list
+#
+# or
+#
+#     git-elpa -l
+#
+# List all updated packages, not yet committed.
+#
+#     git-elpa --commit=package-name
+#
+# or
+#
+#     git-elpa -c package-name
+#
+# Commit the package update (and old version removal). The following
+# automatic commit message pattern will be used:
+#
+# "[package-name upgraded] to NEW_VERSION from OLD_VERSION"
+#
+#     git-elpa --all
+#
+# or
+#
+#     git-elpa -a
+#
+# Commit all updated packages (as individual commits)
+#
+#     git-elpa --cleanup
+#
+# Remove all stray package info .txt files (created when viewing package details)
+#
 
 require 'optparse'
 
@@ -77,55 +76,53 @@ It will commit each package separately.
 Usage: git-elpa [options]
 EOD
 
-ANSI_RESET       = "\x1b[0m"
-ANSI_COMMAND_LOG = "\x1b[36m"
-ANSI_MESSAGE     = "\x1b[32m"
-ANSI_WARNING     = "\x1b[33m"
-ANSI_ERROR       = "\x1b[31m"
+ANSI_RESET = '\x1b[0m'
+ANSI_COMMAND_LOG = '\x1b[36m'
+ANSI_MESSAGE = '\x1b[32m'
+ANSI_WARNING = '\x1b[33m'
+ANSI_ERROR = '\x1b[31m'
 
-def log str
+NO_UPDATES = "#{ANSI_WARNING}There are no updated packages / no commits required#{ANSI_RESET}"
+
+def log(str)
   puts "#{ANSI_MESSAGE}#{str}#{ANSI_RESET}"
 end
 
-def log_warning str
+def log_warning(str)
   puts "#{ANSI_WARNING}#{str}#{ANSI_RESET}"
 end
 
-def log_error str
+def log_error(str)
   puts "#{ANSI_WARNING}#{str}#{ANSI_RESET}"
 end
 
-def log_cmd str
+def log_cmd(str)
   puts "#{ANSI_COMMAND_LOG}#{str}#{ANSI_RESET}"
-  %x[#{str}]
+  `#{str}`
 end
 
 class GitElpa
-
-  EMACS_D = File.join(Dir.home, ".emacs.d")
+  EMACS_D = File.join(Dir.home, '.emacs.d')
 
   def initialize
   end
 
-  def shellescape str
-    str.gsub(/([^A-Za-z0-9_\-+.,:\/@\n]+)/) { $1 }
+  def shellescape(str)
+    str.gsub(%r{([^A-Za-z0-9_\-+.,:\/@\n]+)}) { Regexp.last_match(1) }
   end
 
   def updatable_files_from_git_status
-    %x[git status -s | grep -P -o '^( D | A |[?]{2} )elpa/.*?(\.signed$|/)' | uniq ].split("\n")
+    `git status -s |
+          grep -P -o '^( D | A |[?]{2} )elpa/.*?(\.signed$|/)' |
+          uniq`.split("\n")
   end
 
   def updated_packages
-    package_name = Regexp.new("^(.*)-.*?$")
-    updatable = updatable_files_from_git_status
-                .map{|name| name[8..name.length] }
-    updated_names = updatable.map {|u| package_name.match(u)[1] if package_name.match(u) }.sort.uniq
-
-    if updated_names.length > 0
-      updated_names
-    else
-      abort "#{ANSI_WARNING}There are no updated packages / no commits required#{ANSI_RESET}"
-    end
+    package_name = Regexp.new('^(.*)-.*?$')
+    updatable = updatable_files_from_git_status.map { |name| name[8..name.length] }
+    updated_names = updatable.map { |u| package_name.match(u).dig(1) }.sort.uniq
+    abort if updated_names.empty?
+    updated_names
   end
 
   def commit_all_packages
@@ -139,36 +136,37 @@ class GitElpa
     @rx = Regexp.new("(^elpa/)(#{Regexp.quote(@package)})-([^-]*?)(\.signed$|/)")
     @old = old_versions
     @ver = new_version
-    if do_commit
-      commit
-    end
+    commit if do_commit
+  end
+
+  def pluralise(word, amount)
+    word + (amount > 1 && 's') || ''
   end
 
   def commit_message
-    return "[Removing #{@package} version: #{@old.join(',')}]"                                  if @ver.nil? && @old.length == 1
-    return "[Removing #{@package} versions: #{@old.join(',')}]"                                 if @ver.nil? && @old.length > 1
-    return "[Updating #{@package} version: #{@ver}][removing old versions: #{@old.join(',')}]"  if @ver && @old.length > 1
-    return "[Updating #{@package} version: #{@ver}][removing old version: #{@old.first}]"       if @ver && @old.length == 1
-    return "[Adding #{@package} version: #{@ver}]"                                              if @ver && @old.length == 0
+    versions = pluralise('version', @old&.length) if @old&.length.positive?
+    return "[Removing #{@package} #{versions}: #{@old.join(',')}]" if @ver.nil?
+    return "[Updating #{@package} version: #{@ver}][removing old #{versions}: #{@old.join(',')}]" if @old.length.positive?
+    return "[Adding #{@package} version: #{@ver}]" if @old.length.zero?
   end
 
   def add_to_index
     new_version_files.each do |file|
-      log_cmd %Q[git add "#{shellescape file}"]
+      log_cmd %(git add "#{shellescape file}")
     end unless @ver.nil?
     old_version_files.each do |file|
-      log_cmd %Q[git rm -rf "#{shellescape file}"]
-    end if @old.length > 0
+      log_cmd %(git rm -rf "#{shellescape file}")
+    end unless @old.empty?
   end
 
   def commit(message = commit_message)
     add_to_index
     log message
-    %x[git commit -m "#{message}"]
+    `git commit -m "#{message}"`
   end
 
   def new_version
-    versions = new_version_files.map{|f| @rx.match(f)[3] }.uniq
+    versions = new_version_files.map { |f| @rx.match(f)[3] }.uniq
     if versions.length > 1
       abort "#{ANSI_WARNING}There are more than one new versions of #{@package}#{ANSI_RESET}"
     end
@@ -176,19 +174,18 @@ class GitElpa
   end
 
   def old_versions
-    old_version_files.map{|f| @rx.match(f)[3] }.uniq
+    old_version_files.map { |f| @rx.match(f)[3] }.uniq
   end
 
-  def cleanup_version_file_names list
-    list.map{|f| f.gsub(/^.{3}elpa\//, '')}
-      .select{|f| f != "" }
+  def cleanup_version_file_names(list)
+    list.map { |f| f.gsub(%r{^.{3}elpa/}, '') }.select { |f| f != '' }
   end
 
-  def filter_version_files status_rx
+  def filter_version_files(status_rx)
     cleanup_version_file_names updatable_files_from_git_status
-                                .select{|file| status_rx.match file }
-                                .map{|file| file.gsub status_rx, ''}
-                                .select{|f| @rx.match(f) }
+      .select { |file| status_rx.match file }
+      .map { |file| file.gsub status_rx, '' }
+      .select { |f| @rx.match(f) }
   end
 
   def new_version_files
@@ -202,51 +199,51 @@ class GitElpa
   end
 
   def commit_archives
-    log_cmd %Q[git add elpa/archives]
-    %x[git commit -m "Updating elpa archives"]
+    log_cmd %(git add elpa/archives)
+    `git commit -m "Updating elpa archives"`
   end
 end
 
 option_parser = OptionParser.new do |opts|
-  elpa = GitElpa.new()
+  elpa = GitElpa.new
   opts.banner = BANNER
 
-  opts.on "-l", "--list", "List updated packages" do
-    log "Listing updated ELPA packages...(to be committed)"
+  opts.on '-l', '--list', 'List updated packages' do
+    log 'Listing updated ELPA packages...(to be committed)'
     puts elpa.updated_packages
     exit 0
   end
 
-  opts.on "-cPACKAGE", "--commit=PACKAGE", "Commit a new/updated elpa package" do |package|
+  opts.on '-cPACKAGE', '--commit=PACKAGE', 'Commit a new/updated elpa package' do |package|
     elpa.commit_package package
     exit 0
   end
 
-  opts.on "-A", "--all", "Commit all updated elpa packages (as individual commits)" do
-    puts <<-EOD.gsub(/^ */,'')
+  opts.on '-A', '--all', 'Commit all updated elpa packages (as individual commits)' do
+    puts <<-EOD.gsub(/^ */, '')
         #{ANSI_MESSAGE}Commit all updated packages
-        Current commit (for reset): #{ANSI_COMMAND_LOG}#{%x[git log --pretty=oneline -1]}#{ANSI_RESET}
+        Current commit (for reset): #{ANSI_COMMAND_LOG}#{`git log --pretty=oneline -1`}#{ANSI_RESET}
     EOD
     elpa.commit_all_packages
     exit 0
   end
 
-  opts.on "-e", "--elpa-archive", "Commit updated elpa/melpa archive index" do
+  opts.on '-e', '--elpa-archive', 'Commit updated elpa/melpa archive index' do
     elpa.commit_archives
     exit 0
   end
 
-  opts.on "-C", "--cleanup", "Cleanup stray elpa txt files" do
-    puts "Cleaning out elpa .txt files"
+  opts.on '-C', '--cleanup', 'Cleanup stray elpa txt files' do
+    puts 'Cleaning out elpa .txt files'
     `rm "$HOME/.emacs.d/elpa/*.txt"`
-    puts "done"
+    puts 'done'
     exit 0
   end
 
-  opts.on "-R", "--reset-custom", "Reset custom.el" do
-    puts "resetting custom.el"
+  opts.on '-R', '--reset-custom', 'Reset custom.el' do
+    puts 'resetting custom.el'
     `cd "$HOME/.emacs.d"; git checkout custom/custom.el`
-    puts "done"
+    puts 'done'
     exit 0
   end
 end

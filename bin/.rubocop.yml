@@ -1,0 +1,9 @@
+Metrics/LineLength:
+  Max: 122
+
+Style/Documentation:
+  Exclude:
+    - 'git-elpa'
+
+AllCops:
+  TargetRubyVersion: 2.3
