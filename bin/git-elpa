@@ -140,7 +140,8 @@ class GitElpa
   end
 
   def pluralise(word, amount)
-    word + (amount > 1 && 's') || ''
+    # The world's most minimalistic English pluralisation engine.
+    word + (amount > 1 ? 's' : '')
   end
 
   def commit_message
