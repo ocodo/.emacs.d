@@ -3,15 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "mc-cycle-cursors" "mc-cycle-cursors.el" (0
-;;;;;;  0 0 0))
-;;; Generated autoloads from mc-cycle-cursors.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "mc-cycle-cursors" '("mc/")))
-
-;;;***
-
-;;;### (autoloads nil "mc-edit-lines" "mc-edit-lines.el" (0 0 0 0))
+;;;### (autoloads nil "mc-edit-lines" "mc-edit-lines.el" (22539 14374
+;;;;;;  0 0))
 ;;; Generated autoloads from mc-edit-lines.el
 
 (autoload 'mc/edit-lines "mc-edit-lines" "\
@@ -38,12 +31,10 @@ Add one cursor to the beginning of each line in the active region.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "mc-edit-lines" '("mc/edit-lines-empty-lines")))
-
 ;;;***
 
 ;;;### (autoloads nil "mc-hide-unmatched-lines-mode" "mc-hide-unmatched-lines-mode.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22539 14374 0 0))
 ;;; Generated autoloads from mc-hide-unmatched-lines-mode.el
 
 (autoload 'mc-hide-unmatched-lines-mode "mc-hide-unmatched-lines-mode" "\
@@ -55,11 +46,10 @@ mode. To leave this mode press <return> or \"C-g\"
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "mc-hide-unmatched-lines-mode" '("hum/")))
-
 ;;;***
 
-;;;### (autoloads nil "mc-mark-more" "mc-mark-more.el" (0 0 0 0))
+;;;### (autoloads nil "mc-mark-more" "mc-mark-more.el" (22539 14374
+;;;;;;  0 0))
 ;;; Generated autoloads from mc-mark-more.el
 
 (autoload 'mc/mark-next-like-this "mc-mark-more" "\
@@ -254,11 +244,10 @@ Mark the tag we're in and its pair for renaming.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "mc-mark-more" '("mc/" "mc--")))
-
 ;;;***
 
-;;;### (autoloads nil "mc-mark-pop" "mc-mark-pop.el" (0 0 0 0))
+;;;### (autoloads nil "mc-mark-pop" "mc-mark-pop.el" (22539 14374
+;;;;;;  0 0))
 ;;; Generated autoloads from mc-mark-pop.el
 
 (autoload 'mc/mark-pop "mc-mark-pop" "\
@@ -270,7 +259,7 @@ to the popped mark.
 ;;;***
 
 ;;;### (autoloads nil "mc-separate-operations" "mc-separate-operations.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22539 14374 0 0))
 ;;; Generated autoloads from mc-separate-operations.el
 
 (autoload 'mc/insert-numbers "mc-separate-operations" "\
@@ -307,12 +296,10 @@ Aligns all cursors with whitespace like `mc/vertical-align' does
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "mc-separate-operations" '("mc/insert-numbers-default" "mc--")))
-
 ;;;***
 
 ;;;### (autoloads nil "multiple-cursors-core" "multiple-cursors-core.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22539 14374 0 0))
 ;;; Generated autoloads from multiple-cursors-core.el
 
 (autoload 'multiple-cursors-mode "multiple-cursors-core" "\
@@ -320,12 +307,10 @@ Mode while multiple cursors are active.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "multiple-cursors-core" '("multiple-cursors-mode" "unsupported-cmd" "deactivate-cursor-after-undo" "activate-cursor-for-undo")))
-
 ;;;***
 
 ;;;### (autoloads nil "rectangular-region-mode" "rectangular-region-mode.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22539 14374 0 0))
 ;;; Generated autoloads from rectangular-region-mode.el
 
 (autoload 'set-rectangular-region-anchor "rectangular-region-mode" "\
@@ -341,12 +326,10 @@ A mode for creating a rectangular region to edit
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "rectangular-region-mode" '("rectangular-region-mode" "rrm/")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("multiple-cursors-pkg.el" "multiple-cursors.el")
-;;;;;;  (0 0 0 0))
+;;;### (autoloads nil nil ("mc-cycle-cursors.el" "multiple-cursors-pkg.el"
+;;;;;;  "multiple-cursors.el") (22539 14374 0 0))
 
 ;;;***
 
