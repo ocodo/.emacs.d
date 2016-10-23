@@ -76,11 +76,11 @@ It will commit each package separately.
 Usage: git-elpa [options]
 EOD
 
-ANSI_RESET = '\x1b[0m'
-ANSI_COMMAND_LOG = '\x1b[36m'
-ANSI_MESSAGE = '\x1b[32m'
-ANSI_WARNING = '\x1b[33m'
-ANSI_ERROR = '\x1b[31m'
+ANSI_RESET = "\x1b[0m"
+ANSI_COMMAND_LOG = "\x1b[36m"
+ANSI_MESSAGE = "\x1b[32m"
+ANSI_WARNING = "\x1b[33m"
+ANSI_ERROR = "\x1b[31m"
 
 NO_UPDATES = "#{ANSI_WARNING}There are no updated packages / no commits required#{ANSI_RESET}"
 
@@ -120,7 +120,7 @@ class GitElpa
   def updated_packages
     package_name = Regexp.new('^(.*)-.*?$')
     updatable = updatable_files_from_git_status.map { |name| name[8..name.length] }
-    updated_names = updatable.map { |u| package_name.match(u).dig(1) }.sort.uniq
+    updated_names = updatable.map { |u| package_name.match(u).to_a.dig(1) }.sort.uniq
     abort if updated_names.empty?
     updated_names
   end
