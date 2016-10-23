@@ -12,10 +12,12 @@
 
 (defcustom suspend-whitespace-cleanup nil "Suspend buffer cleanup if t.")
 
+(defcustom skip-buffer-untabify nil "Skip untabify buffer on save if t.")
+
 (defun safe-buffer-cleanup ()
   "Clean whitespace, kill tabs, set to UTF8."
   (unless suspend-whitespace-cleanup
-    (unless (s-contains-p "makefile" (symbol-name (with-current-buffer (current-buffer) major-mode)))
+    (unless (or skip-buffer-untabify (s-contains-p "makefile" (symbol-name (with-current-buffer (current-buffer) major-mode))))
       (untabify (point-min) (point-max)))
     (delete-trailing-whitespace)
     (set-buffer-file-coding-system 'utf-8)))
