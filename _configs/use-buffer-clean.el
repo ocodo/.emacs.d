@@ -14,6 +14,12 @@
 
 (defcustom skip-buffer-untabify nil "Skip untabify buffer on save if t.")
 
+(defun toggle-skip-buffer-untabify ()
+    "Toggle skip-buffer-untabify in the current buffer."
+  (interactive)
+  (setq-local skip-buffer-untabify (not skip-buffer-untabify))
+  (message "skip-buffer-untabify: %s" (if skip-buffer-untabify "yes" "no")))
+
 (defun safe-buffer-cleanup ()
   "Clean whitespace, kill tabs, set to UTF8."
   (unless suspend-whitespace-cleanup
