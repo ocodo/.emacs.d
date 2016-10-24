@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20160823.106
+;; Package-Version: 20161022.848
 ;; Version: 1.1.7
 
 ;; This file is NOT part of GNU Emacs.
@@ -463,6 +463,7 @@ depending on DISPLAY for keys which are either :foreground or
 
    ;; anzu
    (anzu-mode-line :foreground orange :weight bold)
+   (anzu-mode-line-no-match :foreground red :weight bold)
    (anzu-replace-highlight :foreground base6 :background red)
    (anzu-match-1 :foreground base0 :background green)
    (anzu-match-2 :foreground base0 :background yellow)
