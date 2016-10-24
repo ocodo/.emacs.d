@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "counsel-projectile" "counsel-projectile.el"
-;;;;;;  (22527 38986 0 0))
+;;;;;;  (22540 33752 0 0))
 ;;; Generated autoloads from counsel-projectile.el
 
 (autoload 'counsel-projectile-find-file "counsel-projectile" "\
@@ -26,14 +26,7 @@ With a prefix ARG invalidates the cache first.
 Switch to a project buffer.
 If optional argument VIRTUAL is non-nil, add project files as virtual buffers.
 
-\(fn &optional VIRTUAL)" t nil)
-
-(autoload 'counsel-projectile-find-file-or-buffer "counsel-projectile" "\
-Visit a project file or buffer.
-
-With a prefix ARG invalidates the cache first.
-
-\(fn &optional ARG)" t nil)
+\(fn)" t nil)
 
 (autoload 'counsel-projectile-switch-project "counsel-projectile" "\
 Switch to a project we have visited before.
