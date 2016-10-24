@@ -3123,7 +3123,7 @@ Also see *note (gitman)git-bisect:: .
    When bisecting is not in progress, then the popup buffer features the
 following commands.
 
-‘B s’     (‘magit-bisect-start’)
+‘B B’     (‘magit-bisect-start’)
 
      Start a bisect session.
 
@@ -3131,7 +3131,7 @@ following commands.
      command starts such a bisect session by asking for a known good and
      a bad commit.
 
-‘B u’     (‘magit-bisect-run’)
+‘B s’     (‘magit-bisect-run’)
 
      Bisect automatically by running commands after each step.
 
@@ -7561,6 +7561,7 @@ Appendix B Keystroke Index
 * A s:                                   Cherry picking.      (line  39)
 * B:                                     Bisecting.           (line   8)
 * b:                                     The branch popup.    (line  12)
+* B B:                                   Bisecting.           (line  16)
 * B b:                                   Bisecting.           (line  31)
 * b b:                                   The branch popup.    (line  29)
 * b c:                                   The branch popup.    (line  47)
@@ -7570,9 +7571,8 @@ Appendix B Keystroke Index
 * b n:                                   The branch popup.    (line  37)
 * B r:                                   Bisecting.           (line  47)
 * b r:                                   The branch popup.    (line 105)
-* B s:                                   Bisecting.           (line  16)
+* B s:                                   Bisecting.           (line  24)
 * b s:                                   The branch popup.    (line  54)
-* B u:                                   Bisecting.           (line  24)
 * b x:                                   The branch popup.    (line  82)
 * c:                                     Initiating a commit. (line   8)
 * c <1>:                                 Editing rebase sequences.
