@@ -6,6 +6,7 @@
 
 ;; Author: The go-mode Authors
 ;; Version: 1.4.0
+;; Package-Version: 20161022.1435
 ;; Keywords: languages go
 ;; URL: https://github.com/dominikh/go-mode.el
 ;;
@@ -1152,7 +1153,11 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
           (when (and (gofmt--is-goimports-p) buffer-file-name)
             (setq our-gofmt-args
                   (append our-gofmt-args
-                          (list "-srcdir" (file-name-directory (file-truename buffer-file-name))))))
+                          ;; srcdir, despite its name, supports
+                          ;; accepting a full path, and some features
+                          ;; of goimports rely on knowing the full
+                          ;; name.
+                          (list "-srcdir" (file-truename buffer-file-name)))))
           (setq our-gofmt-args (append our-gofmt-args
                                        gofmt-args
                                        (list "-w" tmpfile)))
