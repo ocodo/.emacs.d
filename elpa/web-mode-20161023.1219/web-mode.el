@@ -4,7 +4,7 @@
 ;; Copyright 2011-2016 François-Xavier Bois
 
 ;; Version: 14.0.27
-;; Package-Version: 20161008.22
+;; Package-Version: 20161023.1219
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -1588,7 +1588,7 @@ shouldn't be moved back.)")
   (regexp-opt
    (append
     (cdr (assoc "javascript" web-mode-extra-keywords))
-    '("async" "await" "break" "case" "catch" "class" "const" "continue"
+    '("as" "async" "await" "break" "case" "catch" "class" "const" "continue"
       "debugger" "default" "delete" "do" "else" "enum" "eval"
       "export" "extends" "finally" "for" "from" "function" "get" "if"
       "implements" "import" "in" "instanceof" "interface" "let"
