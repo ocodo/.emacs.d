@@ -3,7 +3,7 @@
 
 ;; Author: David Shepherd <davidshepherd7@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20160301.1414
+;; Package-Version: 20161023.321
 ;; Package-Requires: ((dash "2.10.0"))
 ;; URL: https://github.com/davidshepherd7/aggressive-fill-paragraph-mode
 ;; Keywords: fill-paragraph, automatic, comments
@@ -69,17 +69,20 @@ by *, + or -."
   "List of predicate functions of no arguments, if any of these
   functions returns false then paragraphs will not be
   automatically filled."
+  :type '(repeat function)
   :group 'aggressive-fill-paragraph)
 
 (defcustom afp-fill-comments-only-mode-list
   (list 'emacs-lisp-mode 'sh-mode 'python-mode 'js-mode)
   "List of major modes in which only comments should be filled."
-  :group 'aggressive-fill-paragraph)
+  :group 'aggressive-fill-paragraph
+  :type '(repeat symbol))
 
 (defcustom afp-fill-keys
   (list ?\ ?.)
   "List of keys after which to fill paragraph."
-  :group 'agressive-fill-paragraph)
+  :group 'agressive-fill-paragraph
+  :type '(repeat character))
 
 
 
