@@ -3,8 +3,9 @@
 ;; Copyright (C) 2011 Magnar Sveen
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
+;; Package-Requires: ((cl-lib "0.5"))
+;; Package-Version: 20161023.2346
 ;; Version: 0.1.0
-;; Package-Version: 20151113.902
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -21,46 +22,58 @@
 
 ;;; Commentary:
 
-;; Entering annoying-arrows-mode makes emacs ring the bell in your
+;; Entering annoying-arrows-mode makes Emacs ring the bell in your
 ;; face if you use the arrow keys to move long distances.
 
 ;; Set the `annoying-arrows-too-far-count' to adjust the length.
 
-;; Code:
+;;; Code:
+
+(require 'cl-lib)
 
 (defvar annoying-arrows-too-far-count 10
-  "Number of repeated arrow presses before emacs gets annoyed.")
+  "Number of repeated arrow presses before Emacs gets annoyed.")
 
-(setq annoying-commands '())
+(defvar annoying-arrows--commands '())
 
 (defvar annoying-arrows--current-count 0)
 
-(defun aa--commands-with-shortcuts (cmds)
-  (remove-if (lambda (cmd)
-               (string-equal
-                (substring (substitute-command-keys (format "\\[%S]" cmd)) 0 3)
-                "M-x")) cmds))
+(defun annoying-arrows--commands-with-shortcuts (cmds)
+  (cl-remove-if (lambda (cmd)
+                  (string-equal
+                   (substring (substitute-command-keys (format "\\[%S]" cmd)) 0 3)
+                   "M-x")) cmds))
 
-(defun aa--maybe-complain (cmd)
-  (if (and (memq this-command annoying-commands)
+(defun annoying-arrows--maybe-complain (cmd)
+  (if (and (memq this-command annoying-arrows--commands)
            (eq this-command last-command))
       (progn
-        (incf annoying-arrows--current-count)
+        (cl-incf annoying-arrows--current-count)
         (when (> annoying-arrows--current-count annoying-arrows-too-far-count)
           (beep 1)
-          (let* ((alts (aa--commands-with-shortcuts (get cmd 'aa--alts)))
+          (let* ((alts (annoying-arrows--commands-with-shortcuts (get cmd 'annoying-arrows--alts)))
                  (alt (nth (random (length alts)) alts))
                  (key (substitute-command-keys (format "\\[%S]" alt))))
             (message "Annoying! How about using %S (%s) instead?" alt key))))
     (setq annoying-arrows--current-count 0)))
 
+;;;###autoload
+(define-minor-mode annoying-arrows-mode
+  "Annoying-Arrows emacs minor mode."
+  nil "" nil)
+
+;;;###autoload
+(define-globalized-minor-mode global-annoying-arrows-mode
+  annoying-arrows-mode annoying-arrows-mode)
+
+
 (defmacro add-annoying-arrows-advice (cmd alternatives)
   `(progn
-     (add-to-list 'annoying-commands (quote ,cmd))
-     (put (quote ,cmd) 'aa--alts ,alternatives)
+     (add-to-list 'annoying-arrows--commands (quote ,cmd))
+     (put (quote ,cmd) 'annoying-arrows--alts ,alternatives)
      (defadvice ,cmd (before annoying-arrows activate)
        (when annoying-arrows-mode
-         (aa--maybe-complain (quote ,cmd))))))
+         (annoying-arrows--maybe-complain (quote ,cmd))))))
 
 (add-annoying-arrows-advice previous-line '(ace-jump-mode backward-paragraph isearch-backward ido-imenu smart-up))
 (add-annoying-arrows-advice next-line '(ace-jump-mode forward-paragraph isearch-forward ido-imenu smart-down))
@@ -73,28 +86,19 @@
 (add-annoying-arrows-advice backward-delete-char '(backward-kill-word kill-region-or-backward-word subword-backward-kill))
 ;;(add-annoying-arrows-advice delete-char '(subword-kill kill-line zap-to-char))
 
-;;;###autoload
-(define-minor-mode annoying-arrows-mode
-  "Annoying-Arrows emacs minor mode."
-  nil "" nil)
-
-;;;###autoload
-(define-globalized-minor-mode global-annoying-arrows-mode
-  annoying-arrows-mode annoying-arrows-mode)
-
 (defun aa-add-suggestion (cmd alternative)
-  (let ((old-alts (or (get cmd 'aa--alts)
+  (let ((old-alts (or (get cmd 'annoying-arrows--alts)
                       ())))
     (unless (memq alternative old-alts)
-      (put cmd 'aa--alts (cons alternative old-alts)))))
+      (put cmd 'annoying-arrows--alts (cons alternative old-alts)))))
 
 (defun aa-add-suggestions (cmd alternatives)
-  (let ((old-alts (or (get cmd 'aa--alts)
+  (let ((old-alts (or (get cmd 'annoying-arrows--alts)
                       ())))
-    (put cmd 'aa--alts (append
-                        (remove-if (lambda (cmd)
-                                     (memq cmd old-alts)) alternatives)
-                        old-alts))))
+    (put cmd 'annoying-arrows--alts (append
+                                     (cl-remove-if (lambda (cmd)
+                                                     (memq cmd old-alts)) alternatives)
+                                     old-alts))))
 
 (provide 'annoying-arrows-mode)
 ;;; annoying-arrows-mode.el ends here
