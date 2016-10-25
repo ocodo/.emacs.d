@@ -913,11 +913,14 @@ If UP is non-nil, duplicate and move point to the top."
 (bind-key "M-o" 'dired-osx-open-this-file dired-mode-map)
 
 (defun package-install-from-url (url)
-    "Install a package from from a URL.
+  "Install a package from from a URL.
 URL must point to a plaintext elisp package."
-    (interactive "sURL: ")
-    (let ((package-buffer (browse-url-emacs url)))
-      (with-current-buffer package-buffer (package-install-from-buffer))))
+  (interactive "sURL: ")
+  (let ((package-buffer (browse-url-emacs url)))
+    (with-current-buffer package-buffer
+      (read-only-mode -1)
+      (package-install-from-buffer)
+      (kill-buffer))))
 
 ;; Key bindings
 (bind-keys
