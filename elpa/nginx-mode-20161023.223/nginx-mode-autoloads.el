@@ -1,9 +1,9 @@
 ;;; nginx-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nginx-mode" "nginx-mode.el" (21998 34696 415401
+;;;### (autoloads nil "nginx-mode" "nginx-mode.el" (22541 57968 0
 ;;;;;;  0))
 ;;; Generated autoloads from nginx-mode.el
 

@@ -1,3 +1,4 @@
+
 ;;; nginx-mode.el --- major mode for editing nginx config files
 
 ;; Copyright 2010 Andrew J Cosgriff <andrew@cosgriff.name>
@@ -5,8 +6,8 @@
 ;; Author: Andrew J Cosgriff <andrew@cosgriff.name>
 ;; Maintainer: Andrew J Cosgriff <andrew@cosgriff.name>
 ;; Created: 15 Oct 2010
-;; Version: 1.1.3
-;; Package-Version: 20150824.1411
+;; Version: 1.1.6
+;; Package-Version: 20161023.223
 ;; Keywords: nginx
 
 ;; available from http://github.com/ajc/nginx-mode
@@ -57,11 +58,11 @@
 	;; uncomment the next one if you want your eyes to bleed
 	;; (it'll highlight parentheses and curly braces)
 	;;'("\\(\{\\|\}\\|\(\\|\)\\)" . font-lock-pseudo-keyword-face)
-	'("^\\([ \t]+\\)?rewrite[ \t]+.+[ \t]+\\(permanent\\|redirect\\|break\\|last\\);$" 2 font-lock-operator-face)
+	'("^\\([ \t]+\\)?rewrite[ \t]+.+[ \t]+\\(permanent\\|redirect\\|break\\|last\\);$" 2 font-lock-function-name-face)
 	'("\\(\$[0-9]+\\)[^0-9]" 1 font-lock-constant-face)
 	'("\$[A-Za-z0-9_\-]+" . font-lock-variable-name-face)
 	'("[ \t]+\\(on\\|off\\);$" 1 font-lock-constant-face)
-	'("[A-Za-z0-9_\-]+\\([ \t]+[^ \t\n]+\\)?[ \t]+\\([^ \t\n]+\\)[ \t]+{" 2 font-lock-operator-face)))
+	'("[A-Za-z0-9_\-]+\\([ \t]+[^ \t\n]+\\)?[ \t]+\\([^ \t\n]+\\)[ \t]+{" 2 font-lock-function-name-face)))
 
 
 ;;;;##########################################################################
