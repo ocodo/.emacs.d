@@ -1,10 +1,10 @@
 ;;; ido-describe-bindings-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "ido-describe-bindings" "ido-describe-bindings.el"
-;;;;;;  (22176 24836 0 0))
+;;;;;;  (22541 57979 0 0))
 ;;; Generated autoloads from ido-describe-bindings.el
 
 (autoload 'ido-describe-bindings "ido-describe-bindings" "\
