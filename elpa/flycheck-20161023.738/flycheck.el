@@ -979,9 +979,11 @@ Only has effect when variable `global-flycheck-mode' is non-nil."
    "Syntax Checking"
    '(["Enable on-the-fly syntax checking" flycheck-mode
       :style toggle :selected flycheck-mode
-      ;; Don't let users toggle the mode if there is no syntax checker for this
-      ;; buffer
-      :enable (or flycheck-mode (flycheck-get-checker-for-buffer))]
+      :enable (or flycheck-mode
+                  ;; Don't let users toggle the mode if there is no syntax
+                  ;; checker for this buffer
+                  (seq-find #'flycheck-checker-supports-major-mode-p
+                            flycheck-checkers))]
      ["Check current buffer" flycheck-buffer flycheck-mode]
      ["Clear errors in buffer" flycheck-clear t]
      "---"
@@ -1445,23 +1447,6 @@ A checker is registered if it is contained in
 A checker is disabled if it is contained in
 `flycheck-disabled-checkers'."
   (memq checker flycheck-disabled-checkers))
-
-(defun flycheck-possibly-suitable-checkers ()
-  "Find possibly suitable checkers for the current buffer.
-
-Return a list of all syntax checkers which could possibly be
-suitable for the current buffer, if any problems in their setup
-were fixed.
-
-Currently this function collects all registered syntax checkers
-whose `:modes' contain the current major mode or which do not
-have any `:modes', but a `:predicate' that returns non-nil for
-the current buffer."
-  (let (checkers)
-    (dolist (checker flycheck-checkers)
-      (when (flycheck-checker-supports-major-mode-p checker major-mode)
-        (push checker checkers)))
-    (nreverse checkers)))
 
 
 ;;; Generic syntax checkers
@@ -2161,7 +2146,9 @@ possible problems are shown."
     (save-buffer))
 
   (let ((buffer (current-buffer))
-        (checkers (flycheck-possibly-suitable-checkers)))
+        ;; Get all checkers that support the current major mode
+        (checkers (seq-filter #'flycheck-checker-supports-major-mode-p
+                              flycheck-checkers)))
 
     ;; Now print all applicable checkers
     (with-help-window (get-buffer-create " *Flycheck checkers*")
@@ -2607,7 +2594,7 @@ discarded."
              (error "Unknown status %s from syntax checker %s"
                     status checker))))))))
 
-(defun flycheck-finish-current-syntax-check (errors cwd)
+(defun flycheck-finish-current-syntax-check (errors working-dir)
   "Finish the current syntax-check in the current buffer with ERRORS.
 
 ERRORS is a list of `flycheck-error' objects reported by the
@@ -2615,18 +2602,19 @@ current syntax check in `flycheck-current-syntax-check'.
 
 Report all ERRORS and potentially start any next syntax checkers.
 
-If the current syntax checker reported excessive errors, it is disabled
-via `flycheck-disable-excessive-checker' for subsequent syntax
-checks.
+If the current syntax checker reported excessive errors, it is
+disabled via `flycheck-disable-excessive-checker' for subsequent
+syntax checks.
 
-Relative file names in ERRORS will be expanded relative to CWD directory."
+Relative file names in ERRORS will be expanded relative to
+WORKING-DIR."
   (let* ((syntax-check flycheck-current-syntax-check)
          (checker (flycheck-syntax-check-checker syntax-check))
          (errors (flycheck-relevant-errors
                   (flycheck-fill-and-expand-error-file-names
                    (flycheck-filter-errors
                     (flycheck-assert-error-list-p errors) checker)
-                   cwd))))
+                   working-dir))))
     (unless (flycheck-disable-excessive-checker checker errors)
       (flycheck-report-current-errors errors))
     (let ((next-checker (flycheck-get-next-checker-for-buffer checker)))
@@ -3117,18 +3105,18 @@ with `flycheck-process-error-functions'."
   (setq flycheck-current-errors nil)
   (flycheck-report-status 'not-checked))
 
-(defun flycheck-fill-and-expand-error-file-names (errors cwd)
-  "Fill and expand file names in ERRORS.
+(defun flycheck-fill-and-expand-error-file-names (errors directory)
+  "Fill and expand file names in ERRORS relative to DIRECTORY.
 
-Expand all file names of ERRORS against the CWD directory.
-If the file name of an error is nil fill in the result of
-function `buffer-file-name' in the current buffer.
+Expand all file names of ERRORS against DIRECTORY.  If the file
+name of an error is nil fill in the result of function
+`buffer-file-name' in the current buffer.
 
 Return ERRORS, modified in-place."
   (seq-do (lambda (err)
             (setf (flycheck-error-filename err)
                   (-if-let (filename (flycheck-error-filename err))
-                      (expand-file-name filename cwd)
+                      (expand-file-name filename directory)
                     (buffer-file-name))))
           errors)
   errors)
