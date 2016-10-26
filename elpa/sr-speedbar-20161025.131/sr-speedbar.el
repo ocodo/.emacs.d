@@ -7,13 +7,13 @@
 ;; Copyright (C) 2008, 2009, Andy Stewart, all rights reserved.
 ;; Copyright (C) 2009, Peter Lunicks, all rights reversed.
 ;; Created: 2008
-;; Version: 20140914.2339
-;; Package-Version: 20150804.1651
+;; Version: 20161025
+;; Package-Version: 20161025.131
 ;; X-Original-Version: 0.1.10
-;; Last-Updated: 2014-08-03 11:30:00
+;; Last-Updated: 2016-10-25
 ;; URL: http://www.emacswiki.org/emacs/download/sr-speedbar.el
 ;; Keywords: speedbar, sr-speedbar.el
-;; Compatibility: GNU Emacs 22 ~ GNU Emacs 24
+;; Compatibility: GNU Emacs 22 ~ GNU Emacs 25
 ;;
 ;; Features required by this library:
 ;;
@@ -79,6 +79,9 @@
 ;;      M-x customize-group RET sr-speedbar RET
 
 ;;; Change log:
+;; * 25 Oct 2016:
+;;   * Hong Xu <hong@topbug.net>
+;;      * Fix compilation warning when `helm-alive-p' is not defined.
 ;;
 ;; * 04 Aug 2015:
 ;;   * Tamas Levai <levait@tmit.bme.hu>:
@@ -629,9 +632,7 @@ And the example function that can occur above problem is `pop-to-buffer'."
              (sr-speedbar-window-dedicated-only-one-p) ;just have one `non-dedicated' window
              (sr-speedbar-window-exist-p sr-speedbar-window)
              (not (sr-speedbar-window-p)) ;not in `sr-speedbar' window
-             (if (featurep 'helm)
-		 (not helm-alive-p)
-	       t))
+             (not (bound-and-true-p helm-alive-p)))
     (split-window-vertically)
     (windmove-down)))
 
