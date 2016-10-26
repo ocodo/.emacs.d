@@ -4,7 +4,7 @@
 
 ;; Author: Shi Tianshu
 ;; Homepage: https://github.com/DogLooksGood/parinfer-mode
-;; Version: 0.2.0
+;; Version: 0.4.4
 ;; Package-Requires: ((dash "2.13.0") (cl-lib "0.5"))
 ;; Keywords: Parinfer
 
@@ -73,6 +73,9 @@
 (defvar parinfer-auto-switch-indent-mode nil
   "Auto switch back to Indent Mode after insert ).")
 
+(defvar parinfer-auto-switch-indent-mode-when-closing nil
+  "Auto switch back to Indent Mode when paren matches after we insert a close parens.")
+
 (defvar parinfer-lighters
   '(" Parinfer:Indent" . " Parinfer:Paren")
   "Parinfer lighters in mode line.
@@ -113,7 +116,7 @@ close-parens after it.")
 (defvar parinfer-strategy
   '((default
      self-insert-command delete-indentation kill-line
-     comment-dwim kill-word delete-char newline kill-region comment-or-uncomment-region)
+     comment-dwim kill-word delete-char newline kill-region comment-or-uncomment-region newline-and-indent)
     (instantly
      delete-region newline)
     (skip))
@@ -727,11 +730,13 @@ CONTEXT is the context for parinfer execution."
                      (current-column))))
       (when (and (plist-get result :success)
                  (plist-get result :changed-lines))
-          (delete-region start end)
+          (save-excursion
+            (delete-region start end))
           (insert (plist-get result :text))
           (parinfer--goto-line line-number)
           (forward-char (plist-get result :cursor-x))
-          (set-window-start (selected-window) window-start-pos))
+          (save-excursion
+            (set-window-start (selected-window) window-start-pos)))
       (parinfer--setq-text-modified nil))))
 
 (defun parinfer--execute-instantly (context)
@@ -758,6 +763,16 @@ CONTEXT is the context for parinfer execution."
                nil
                #'parinfer-indent-instantly))
       (parinfer--execute-instantly context))))
+
+(defun parinfer--auto-switch-indent-mode-p ()
+  (and (parinfer--paren-balanced-p)
+       (not parinfer--first-load)
+       (or parinfer-auto-switch-indent-mode
+           (and parinfer-auto-switch-indent-mode-when-closing
+                (let ((keys (this-command-keys)))
+                  (and (stringp keys)
+                       (string-match-p "\\s)" keys)))))))
+
 ;; -----------------------------------------------------------------------------
 ;; Parinfer commands
 ;; -----------------------------------------------------------------------------
@@ -806,8 +821,9 @@ Use this to remove tab indentation of your code."
                changed-lines)
       (cl-loop for l in changed-lines do
                (parinfer--goto-line (1+ (plist-get l :line-no)))
-               (delete-region (line-beginning-position)
-                              (line-end-position))
+               (save-excursion
+                 (delete-region (line-beginning-position)
+                                (line-end-position)))
                (insert (plist-get l :line)))
       (parinfer--goto-line (1+ cursor-line))
       (forward-char (plist-get result :cursor-x))
@@ -878,9 +894,7 @@ If there's any change, display a confirm message in minibuffer."
 (defun parinfer-paren ()
   "Do parinfer paren  on current & previous top level S-exp."
   (when (and (ignore-errors (parinfer--reindent-sexp))
-             parinfer-auto-switch-indent-mode
-             (parinfer--paren-balanced-p)
-             (not parinfer--first-load))
+             (parinfer--auto-switch-indent-mode-p))
     (parinfer--switch-to-indent-mode-1)))
 
 (defun parinfer-ediff-quit ()
