@@ -906,7 +906,7 @@ If UP is non-nil, duplicate and move point to the top."
       (message "There's no dired buffers open right now"))))
 
 (defun dired-osx-open-this-file ()
-    "Use the OSX open command to launch the current dired file at point."
+    "Use the OSX `open' command to launch the current dired file at point."
     (interactive)
     (shell-command-to-string (format "open %S" (dired-file-name-at-point))))
 
@@ -921,6 +921,15 @@ URL must point to a plaintext elisp package."
       (read-only-mode -1)
       (package-install-from-buffer)
       (kill-buffer))))
+
+(defun set-internal-border (n)
+  "Set or reset the internal border width N of the selected frame."
+  (interactive (list (string-to-number (read-from-minibuffer "Border width: "))))
+  (let ((w (or n 0)))
+    (set-frame-parameter
+     (selected-frame)
+     'internal-border-width
+     w)))
 
 ;; Key bindings
 (bind-keys
