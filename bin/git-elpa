@@ -236,7 +236,15 @@ option_parser = OptionParser.new do |opts|
 
   opts.on '-C', '--cleanup', 'Cleanup stray elpa txt files' do
     puts 'Cleaning out elpa .txt files'
-    `rm "$HOME/.emacs.d/elpa/*.txt"`
+    unwanted_text_files_pattern = File.join ENV['HOME'], 'emacs.d', 'elpa', '*.txt'
+    if Dir.glob(unwanted_text_files_pattern).empty?
+      puts 'There are no unwanted .txt files in elpa.'
+    else
+      Dir.glob(unwanted_text_files_pattern).each do |file|
+        puts "Deleting: #{file}"
+        File.delete file
+      end
+    end
     puts 'done'
     exit 0
   end
