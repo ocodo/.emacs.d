@@ -2170,7 +2170,7 @@ definition, this will override the global closing delimiter.
 
 The list arguments can optionally be of form starting with
 \":add\" or \":rem\" when these mean \"add to the global list\"
-and \"remove from the global list\" respectivelly.  Otherwise,
+and \"remove from the global list\" respectively.  Otherwise,
 the global list is replaced.  If you wish to both add and remove
 things with single call, use \"((:add ...) (:rem ...))\" as an
 argument.  Therefore,
@@ -2325,19 +2325,31 @@ string and the action."
 
 (defface sp-wrap-overlay-face
   '((t (:inherit sp-pair-overlay-face)))
-  "The face used to highlight wrap overlays."
+  "The face used to highlight wrap overlays.
+
+When the user wraps a region with multi-character pair a special
+insertion mode is entered.  This face is used for the overlays
+where the possible wrappings are displayed.
+
+The opening and closing delimiters use
+`sp-wrap-overlay-opening-pair' and `sp-wrap-overlay-closing-pair'
+respectively."
   :group 'smartparens)
 
 (defface sp-wrap-overlay-opening-pair
   '((t (:inherit sp-wrap-overlay-face
         :foreground "green")))
-  "The face used to highlight wrap overlays."
+  "The face used to highlight opening pairs for wrapping.
+
+See `sp-wrap-overlay-face'."
   :group 'smartparens)
 
 (defface sp-wrap-overlay-closing-pair
   '((t (:inherit sp-wrap-overlay-face
         :foreground "red")))
-  "The face used to highlight wrap overlays."
+  "The face used to highlight closing pairs for wrapping.
+
+See `sp-wrap-overlay-face'."
   :group 'smartparens)
 
 (defface sp-wrap-tag-overlay-face
