@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22507 31565 401229 62000))
+;;;;;;  (22544 10660 0 0))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-diff-backend-git-show-commit "find-file-in-project" "\
@@ -16,6 +16,23 @@
 
 
 \(fn)" nil nil)
+
+(autoload 'ffip-copy-without-change "find-file-in-project" "\
+
+
+\(fn P)" nil nil)
+
+(autoload 'ffip-copy-reactjs-import "find-file-in-project" "\
+
+
+\(fn P)" nil nil)
+
+(autoload 'ffip-copy-org-file-link "find-file-in-project" "\
+
+
+\(fn P)" nil nil)
+
+(defvar ffip-find-relative-path-callback 'ffip-copy-without-change)
 
 (autoload 'ffip-project-root "find-file-in-project" "\
 Return the root of the project.
@@ -126,6 +143,16 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 Like `find-file-in-project-by-selected'.  But search only in current directory.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+
+(autoload 'find-relative-path "find-file-in-project" "\
+Find file/directory and copy its relative path into `kill-ring'.
+Optional prefix FIND-DIRECTORY copy the directory path; file path by default.
+
+You can set `ffip-find-relative-path-callback' to format the string before copying,
+  (setq ffip-find-relative-path-callback 'ffip-copy-reactjs-import)
+  (setq ffip-find-relative-path-callback 'ffip-copy-org-file-link)
+
+\(fn &optional FIND-DIRECTORY)" t nil)
 
 (autoload 'find-directory-in-project-by-selected "find-file-in-project" "\
 Similar to `find-file-in-project-by-selected'.

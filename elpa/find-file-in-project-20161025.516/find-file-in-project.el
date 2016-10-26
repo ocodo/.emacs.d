@@ -3,8 +3,8 @@
 ;; Copyright (C) 2006-2009, 2011-2012, 2015, 2016
 ;;   Phil Hagelberg, Doug Alcorn, Will Farrington, Chen Bin
 ;;
-;; Version: 5.2.4
-;; Package-Version: 20160909.1355
+;; Version: 5.2.5
+;; Package-Version: 20161025.516
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -85,25 +85,31 @@
 ;;
 ;; If you use evil-mode, insert below code into ~/.emacs,
 ;;   (defun ffip-diff-mode-hook-setup ()
-;;       (evil-local-set-key 'normal "p" 'diff-hunk-prev)
-;;       (evil-local-set-key 'normal "n" 'diff-hunk-next)
+;;       (evil-local-set-key 'normal "K" 'diff-hunk-prev)
+;;       (evil-local-set-key 'normal "J" 'diff-hunk-next)
 ;;       (evil-local-set-key 'normal "P" 'diff-file-prev)
 ;;       (evil-local-set-key 'normal "N" 'diff-file-next)
 ;;       (evil-local-set-key 'normal (kbd "RET") 'ffip-diff-find-file)
 ;;       (evil-local-set-key 'normal "o" 'ffip-diff-find-file))
 ;;   (add-hook 'ffip-diff-mode-hook 'ffip-diff-mode-hook-setup)
 
-;; ivy-mode is used for filter/search UI
-;; In ivy-mode, SPACE is translated to regex ".*".
+;; `find-relative-path' find file/directory and copy its relative path
+;; into `kill-ring'. You can customize `ffip-find-relative-path-callback'
+;; to format the relative path,
+;;   (setq ffip-find-relative-path-callback 'ffip-copy-reactjs-import)
+;;   (setq ffip-find-relative-path-callback 'ffip-copy-org-file-link)
+
+;; `ivy-mode' is used for filter/search UI
+;; In `ivy-mode', SPACE is translated to regex ".*".
 ;; For example, the search string "dec fun pro" is transformed into
 ;; regular expression "\\(dec\\).*\\(fun\\).*\\(pro\\)"
 ;; `C-h i g (ivy)' for more key-binding tips.
 ;;
 ;; `ffip-save-ivy-last' saves the most recent search result.
 ;; `ffip-ivy-resume' re-use the save result. Both requires `ivy-mode'
-;; installed. You can use `ivy-resume' too.
+;; installed.
 ;;
-;; You can switch to ido-mode by `(setq ffip-prefer-ido-mode t)'
+;; You can switch to `ido-mode' by `(setq ffip-prefer-ido-mode t)'
 
 ;; GNU Find can be installed,
 ;;   - through `Brew' on OS X
@@ -118,7 +124,7 @@
 ;; Windows setup is as easy as installing Cygwin into default directory on
 ;; ANY driver. That's all.
 ;;
-;; See https://github.com/technomancy/find-file-in-project for advanced tips
+;; See https://github.com/technomancy/find-file-in-project for advanced tips.
 
 ;; Recommended binding: (global-set-key (kbd "C-x f") 'find-file-in-project)
 
@@ -270,6 +276,26 @@ This overrides variable `ffip-project-root' when set.")
   "If nil only file names in search results are visible.")
 
 (defvar ffip-debug nil "Print debug information.")
+
+;;;###autoload
+(defun ffip-copy-without-change (p)
+  (kill-new p)
+  (message "%s => kill-ring" p))
+
+;;;###autoload
+(defun ffip-copy-reactjs-import(p)
+  (setq p (format "import str from '%s';" p))
+  (kill-new p)
+  (message "%s => kill-ring" p))
+
+;;;###autoload
+(defun ffip-copy-org-file-link(p)
+  (setq p (format "[[file:%s]]" p))
+  (kill-new p)
+  (message "%s => kill-ring" p))
+
+;;;###autoload
+(defvar ffip-find-relative-path-callback 'ffip-copy-without-change)
 
 ;;;###autoload
 (defun ffip-project-root ()
@@ -663,7 +689,7 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
   (interactive "P")
   (let* ((keyword (if (region-active-p)
                       (buffer-substring-no-properties (region-beginning) (region-end))
-                    (read-string "Enter keyword:"))))
+                    (read-string "Enter keyword (or press ENTER):"))))
     (ffip-find-files keyword open-another-window)))
 
 ;;;###autoload
@@ -672,6 +698,36 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
   (interactive "P")
   (let* ((ffip-project-root default-directory))
     (find-file-in-project-by-selected open-another-window)))
+
+;;;###autoload
+(defun find-relative-path(&optional find-directory)
+  "Find file/directory and copy its relative path into `kill-ring'.
+Optional prefix FIND-DIRECTORY copy the directory path; file path by default.
+
+You can set `ffip-find-relative-path-callback' to format the string before copying,
+  (setq ffip-find-relative-path-callback 'ffip-copy-reactjs-import)
+  (setq ffip-find-relative-path-callback 'ffip-copy-org-file-link)"
+  (interactive "P")
+  (let* ((keyword (if (region-active-p)
+                      (buffer-substring-no-properties (region-beginning) (region-end))
+                    (read-string "Enter keyword (or press ENTER):")))
+         (project-files (ffip-project-search keyword find-directory)))
+    (if (> (length project-files) 0)
+        (progn
+          (setq root (file-name-nondirectory
+                      (directory-file-name
+                       (or ffip-project-root (ffip-project-root)))))
+          (ffip-completing-read
+           (format "Find in %s/: " root)
+           project-files
+           `(lambda (p)
+              ;; only one item in project files
+              (if (listp p) (setq p (cdr p)))
+              (if ,find-directory
+                  (setq p (file-name-as-directory p)))
+              (setq p (file-relative-name p (file-name-directory buffer-file-name)))
+              (funcall ffip-find-relative-path-callback p))))
+      (message "Nothing found!"))))
 
 ;;;###autoload
 (defun find-directory-in-project-by-selected (&optional open-another-window)
@@ -689,7 +745,7 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
   (interactive "P")
   (let* ((keyword (if (region-active-p)
                       (buffer-substring-no-properties (region-beginning) (region-end))
-                    (read-string "Enter keyword:"))))
+                    (read-string "Enter keyword (or press ENTER):"))))
     (ffip-find-files keyword open-another-window t)))
 
 ;;;###autoload
@@ -738,8 +794,9 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
 (defvar ffip-diff-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map diff-mode-map)
-    (define-key map "p" 'diff-hunk-prev)
-    (define-key map "n" 'diff-hunk-next)
+    ;; EVIL friendly. ffip-diff-mode is read-only
+    (define-key map "K" 'diff-hunk-prev)
+    (define-key map "J" 'diff-hunk-next)
     (define-key map "P" 'diff-file-prev)
     (define-key map "N" 'diff-file-next)
     (define-key map [remap diff-goto-source] 'ffip-diff-find-file)
