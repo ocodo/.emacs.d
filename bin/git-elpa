@@ -144,11 +144,23 @@ class GitElpa
     word + (amount > 1 ? 's' : '')
   end
 
-  def commit_message
-    versions = pluralise('version', @old&.length) if @old&.length.positive?
-    return "[Removing #{@package} #{versions}: #{@old.join(',')}]" if @ver.nil?
-    return "[Updating #{@package} version: #{@ver}][removing old #{versions}: #{@old.join(',')}]" if @old.length.positive?
-    return "[Adding #{@package} version: #{@ver}]" if @old.length.zero?
+  def remove_package_message(versions_label)
+    "[Removing #{@package} #{versions_label}: #{@old.join(',')}]"
+  end
+
+  def updating_new_and_remove_old_package_message(versions_label)
+    "[Updating #{@package} version: #{@ver}][removing old #{versions_label}: #{@old.join(',')}]"
+  end
+
+  def adding_new_package_message
+    "[Adding #{@package} version: #{@ver}]"
+  end
+
+  def generate_commit_message
+    versions_label = pluralise('version', @old&.length) if @old&.length.positive?
+    return remove_package_message(versions_label) if @ver.nil? && @old.length.positive?
+    return updating_new_and_remove_old_package_message(versions_label) if @old.length.positive?
+    return adding_new_package_message if @old.length.zero?
   end
 
   def add_to_index
@@ -160,7 +172,7 @@ class GitElpa
     end unless @old.empty?
   end
 
-  def commit(message = commit_message)
+  def commit(message = generate_commit_message)
     add_to_index
     log message
     `git commit -m "#{message}"`
