@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20160923.708
+;; Package-Version: 20161024.1043
 ;; Version:           0.5.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -1366,6 +1366,11 @@ If file does not exist and ASK in not nil it will ask user to proceed."
          (not (projectile-rails--ignore-buffer-p))
          (projectile-rails-root))
     (projectile-rails-mode +1)))
+
+;;;###autoload
+(define-globalized-minor-mode projectile-rails-global-mode
+  projectile-rails-mode
+  projectile-rails-on)
 
 (defun projectile-rails-off ()
   "Disable `projectile-rails-mode' minor mode."
