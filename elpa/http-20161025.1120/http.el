@@ -4,10 +4,10 @@
 
 ;; Author: Mario Rodas <marsam@users.noreply.github.com>
 ;; URL: https://github.com/emacs-pe/http.el
-;; Package-Version: 20160701.2025
+;; Package-Version: 20161025.1120
 ;; Keywords: convenience
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "24.4") (request "0.2.0"))
+;; Package-Requires: ((emacs "24.4") (request "0.2.0") (edit-indirect "0.1.4"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -116,6 +116,7 @@
 (require 'request)
 (require 'rfc2231)
 (require 'url-util)
+(require 'edit-indirect)
 
 (defgroup http nil
   "Yet another HTTP client."
@@ -314,6 +315,11 @@ Used to fontify the response buffer and comment the response headers.")
       (funcall object)
       (buffer-string))))
 
+(defun http-mode-from-headers (headers)
+  "Return a major mode from HEADERS based on its content-type."
+  (or (assoc-default (assoc-default "content-type" headers) http-content-type-mode-alist)
+      'normal-mode))
+
 ;; Stolen from `ansible-doc'.
 (defun http-fontify-text (text mode)
   "Add `font-lock-face' properties to TEXT using MODE.
@@ -357,11 +363,12 @@ Return a fontified copy of TEXT."
   "Capture a http request.
 
 Return a list of the form: \(URL TYPE PARAMS DATA HEADERS\)"
-  (interactive)
   (let* ((start (http-start-definition))
          (type (match-string-no-properties 1))
          (endpoint (match-string-no-properties 2))
          (url (if (and http-hostname (not (string-match-p url-nonrelative-link endpoint)))
+                  ;; FIXME: endpoint needs to be escaped here, else
+                  ;;        `url-expand-file-name' strips whitespaces
                   (url-expand-file-name endpoint http-hostname)
                 endpoint))
          (urlobj (url-generic-parse-url url))
@@ -373,6 +380,18 @@ Return a list of the form: \(URL TYPE PARAMS DATA HEADERS\)"
         (setf (url-filename urlobj) path)
         (cl-multiple-value-bind (headers data) (http-capture-headers-and-body start end)
           (list (url-recreate-url urlobj) type params data headers))))))
+
+;;;###autoload
+(defun http-edit-body-indirect ()
+  "Edit body in a indirect buffer."
+  (interactive)
+  (let* ((start (http-start-definition))
+         (end (http-end-definition start))
+         (sep-point (save-excursion (goto-char start) (re-search-forward http-header-body-sep-regexp end t)))
+         (headers (http-parse-headers start (or sep-point end)))
+         (edit-indirect-guess-mode-function (lambda (_parent-buffer _beg _end)
+                                              (funcall (http-mode-from-headers headers)))))
+    (edit-indirect-region (if (and sep-point (< sep-point end)) (1+ sep-point) end) end 'display-buffer)))
 
 ;;;###autoload
 (defun http-curl-command ()
@@ -429,6 +448,7 @@ If SYNC is non-nil executes the request synchronously."
 
 (defvar http-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c '") 'http-edit-body-indirect)
     (define-key map (kbd "C-c C-c") 'http-process)
     (define-key map (kbd "C-c C-u") 'http-curl-command)
     (define-key map (kbd "C-c C-n") 'outline-next-heading)

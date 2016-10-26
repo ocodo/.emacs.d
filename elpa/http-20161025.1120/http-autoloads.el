@@ -3,13 +3,18 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "http" "http.el" (22533 41769 0 0))
+;;;### (autoloads nil "http" "http.el" (22544 10641 0 0))
 ;;; Generated autoloads from http.el
 
 (defvar-local http-hostname nil "\
 Default hostname used when url is an endpoint.")
 
 (put 'http-hostname 'safe-local-variable #'stringp)
+
+(autoload 'http-edit-body-indirect "http" "\
+Edit body in a indirect buffer.
+
+\(fn)" t nil)
 
 (autoload 'http-curl-command "http" "\
 Kill current http request as curl command.
