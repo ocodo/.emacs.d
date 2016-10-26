@@ -378,13 +378,16 @@ responsibility to guarantee the two parameters are valid."
   (interactive
    (let* ((p (or ego--default-project-name
                  (completing-read "Which project do you want post? "
-                                  (delete-dups
+                                  (-uniq
                                    (mapcar 'car ego-project-config-alist))
                                   nil t nil nil ego--last-project-name)))
-          (c (read-string (format "Category of \"%s\" project: " p)
-                          (progn (setq ego--current-project-name p)
-                                 (setq ego--last-project-name p)
-                                 (ego--get-config-option :default-category))))
+          (c (let* ((prompt (format "Category of \"%s\" project: " p))
+                    (categories (mapcar #'file-name-nondirectory (cl-remove-if-not #'file-directory-p (directory-files (ego--get-config-option :repository-directory) t))))
+                    (init-category (unless categories
+                                     (setq ego--current-project-name p)
+                                     (setq ego--last-project-name p)
+                                     (ego--get-config-option :default-category))))
+               (completing-read prompt categories nil 'confirm init-category nil)))
           (f (read-string (format "Filename of \"%s\" project: " p) "new-post.org" p))
           (d (yes-or-no-p "Insert fallback template? ")))
      (list p c f d)))

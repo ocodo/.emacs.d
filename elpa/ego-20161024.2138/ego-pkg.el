@@ -1,4 +1,4 @@
-(define-package "ego" "20161017.2111" "a static site generator based on org mode, forked from org-page."
+(define-package "ego" "20161024.2138" "a static site generator based on org mode, forked from org-page."
   '((emacs "24.5")
     (ht "1.5")
     (mustache "0.22")
