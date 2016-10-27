@@ -1,10 +1,9 @@
 ;;; vmd-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "vmd-mode" "vmd-mode.el" (22366 21211 916443
-;;;;;;  739000))
+;;;### (autoloads nil "vmd-mode" "vmd-mode.el" (22545 29213 0 0))
 ;;; Generated autoloads from vmd-mode.el
 
 (autoload 'vmd-mode "vmd-mode" "\
