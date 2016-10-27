@@ -10,7 +10,7 @@
 ;; Maintainer: Please send bug reports to the mailing list (below).
 ;; Created: July 23 2011
 ;; Version: 0.1
-;; Package-Version: 20160911.1224
+;; Package-Version: 20161026.755
 ;; Package-Requires: ((evil "1.2.12"))
 ;; Mailing list: <implementations-list at lists.ourproject.org>
 ;;      Subscribe: http://tinyurl.com/implementations-list
@@ -34,7 +34,7 @@
 ;;
 ;; This package uses Evil as its vi layer. It is available from:
 ;;
-;;     http://gitorious.org/evil
+;;     https://bitbucket.org/lyro/evil/
 
 ;;; Code:
 
