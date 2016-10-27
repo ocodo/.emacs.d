@@ -4,7 +4,7 @@
 ;;   Phil Hagelberg, Doug Alcorn, Will Farrington, Chen Bin
 ;;
 ;; Version: 5.2.5
-;; Package-Version: 20161025.516
+;; Package-Version: 20161026.145
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -711,7 +711,8 @@ You can set `ffip-find-relative-path-callback' to format the string before copyi
   (let* ((keyword (if (region-active-p)
                       (buffer-substring-no-properties (region-beginning) (region-end))
                     (read-string "Enter keyword (or press ENTER):")))
-         (project-files (ffip-project-search keyword find-directory)))
+         (project-files (ffip-project-search keyword find-directory))
+         root)
     (if (> (length project-files) 0)
         (progn
           (setq root (file-name-nondirectory
