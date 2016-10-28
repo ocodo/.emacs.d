@@ -210,7 +210,6 @@ NOTE: SUBKEY and OTHER-SUBKEYS bindings support char syntax only
     (define-key map (kbd "M-U")        'helm-unmark-all)
     (define-key map (kbd "C-M-a")      'helm-show-all-in-this-source-only)
     (define-key map (kbd "C-M-e")      'helm-display-all-sources)
-    (define-key map (kbd "C-r")        'undefined)
     (define-key map (kbd "C-s")        'undefined)
     (define-key map (kbd "M-s")        'undefined)
     (define-key map (kbd "C-}")        'helm-narrow-window)
@@ -4989,8 +4988,9 @@ See `scroll-other-window-down'."
 Meaning of prefix ARG is the same as in `recenter-top-bottom'."
   (interactive "P")
   (with-helm-alive-p
-    (with-selected-window (helm-persistent-action-display-window)
-      (recenter-top-bottom arg))))
+    (with-helm-window
+      (with-selected-window (helm-persistent-action-display-window)
+        (recenter-top-bottom arg)))))
 (put 'helm-recenter-top-bottom-other-window 'helm-only t)
 
 (defun helm-reposition-window-other-window (&optional arg)
@@ -4998,8 +4998,9 @@ Meaning of prefix ARG is the same as in `recenter-top-bottom'."
 Meaning of prefix ARG is the same as in `reposition-window'."
   (interactive "P")
   (with-helm-alive-p
-    (with-selected-window (helm-persistent-action-display-window)
-      (reposition-window arg))))
+    (with-helm-window
+      (with-selected-window (helm-persistent-action-display-window)
+        (reposition-window arg)))))
 (put 'helm-reposition-window-other-window 'helm-only t)
 
 
