@@ -11,7 +11,7 @@
 (setq rspec-use-rvm t)
 
 ;; Use C-x C-q to switch to interactive mode, for example with pry/debugger
-(add-hook 'after-init-hook 'inf-ruby-switch-setup)
+;; (add-hook 'after-init-hook 'inf-ruby-switch-setup)
 
 ;; Run in iTerm with `rspec-verify-single-iterm'
 (defcustom iterm-command

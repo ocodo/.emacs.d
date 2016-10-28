@@ -78,8 +78,6 @@
 ;; (require 'amitp-mode-line)
 ;; (amitp-mode-line)
 
-(creamsody-modeline)
-
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
 (setq debug-on-error nil)

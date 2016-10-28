@@ -24,8 +24,6 @@
   :init (progn
           (use-package handy-functions)
 
-          (inf-ruby-switch-setup)
-
           (defun string-as-ruby-hash-key-symbol (s)
             "Convert S to a hash key (symbol)."
             (format "[:%s]" (s-snake-case s)))
@@ -81,7 +79,10 @@
                      ("C-c #" . ruby-make-interpolated-string-at-point-or-region)
                      ("C-c :" . ruby-toggle-symbol-at-point)
                      ("C-c {" . ruby-toggle-block)
-                     ("C-c +" . ruby-toggle-hash-syntax)))
+                     ("C-c +" . ruby-toggle-hash-syntax))
+
+          ;(add-hook 'after-init-hook 'inf-ruby-switch-setup)
+          )
 
   :config (progn (ruby-end-mode)
                  (rubocop-mode)
