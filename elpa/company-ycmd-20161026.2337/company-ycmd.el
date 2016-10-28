@@ -5,7 +5,7 @@
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
 ;; version: 0.1
-;; Package-Version: 20160918.1527
+;; Package-Version: 20161026.2337
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((ycmd "0.1") (company "0.9.0") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (let-alist "1.0.4") (f "0.18.2"))
 ;;
@@ -387,11 +387,11 @@ with spaces."
   "Generic function to construct completion string from a CANDIDATE."
   (company-ycmd--with-destructured-candidate candidate .insertion_text))
 
-(defun company-ycmd--construct-candidates (completion-vector
+(defun company-ycmd--construct-candidates (completions
                                            prefix
                                            start-col
                                            construct-candidate-fn)
-  "Construct candidates list from COMPLETION-VECTOR.
+  "Construct candidates list from COMPLETIONS.
 
 PREFIX is the prefix we calculated for doing the completion, and
 START-COL is the column on which ycmd indicates we should place
@@ -408,7 +408,7 @@ candidates list."
          (prefix-size (- start-col prefix-start-col))
          (prefix-diff (substring-no-properties prefix 0 prefix-size))
          candidates)
-    (dolist (candidate (append completion-vector nil) (nreverse candidates))
+    (dolist (candidate completions (nreverse candidates))
       (when (s-present? prefix-diff)
         (let ((it (assq 'insertion_text candidate)))
           (setcdr it (concat prefix-diff
@@ -449,8 +449,7 @@ If CB is non-nil, call it with candidates."
 
 (defun company-ycmd--get-candidates-synchronously (prefix)
   "Get completion candidates with PREFIX synchronously."
-  (--when-let (and (ycmd-running?)
-                   (ycmd-get-completions :sync))
+  (--when-let (ycmd-get-completions :sync)
     (company-ycmd--get-candidates it prefix)))
 
 (defun company-ycmd--get-candidates-deferred (prefix cb)
@@ -462,8 +461,7 @@ If CB is non-nil, call it with candidates."
     (deferred:$
       (deferred:try
         (deferred:$
-          (when (ycmd-running?)
-            (ycmd-get-completions)))
+          (ycmd-get-completions))
         :catch (lambda (_err) nil))
       (deferred:nextc it
         (lambda (c)
