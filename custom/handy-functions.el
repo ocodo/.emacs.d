@@ -783,6 +783,22 @@ BODY is the form of the underlying `pcase-lambda'."
             (pcase-lambda ,arglist ,@body)
             ,docstring)))
 
+(defun insert-kill (string)
+  "Insert STRING and copy to the kill ring."
+  (interactive)
+  (kill-new string)
+  (insert string))
+
+(defun insert-buffer-filename ()
+  "Insert the filename for the current buffer.
+
+If your're in the minibuffer it will use the other buffer file name."
+  (interactive)
+  (let ((filename (buffer-file-name (if (window-minibuffer-p)
+                                        (window-buffer (previous-window))
+                                      (current-buffer)))))
+    (when filename (insert-kill filename))))
+
 (defun insert-buffer-base-filename ()
   "Insert the base filename for the current buffer.
 
@@ -791,7 +807,7 @@ If your're in the minibuffer it will use the other buffer file name."
   (let ((filename (buffer-file-name (if (window-minibuffer-p)
                                         (window-buffer (previous-window))
                                       (current-buffer)))))
-    (when filename (insert (file-name-base filename)))))
+    (when filename (insert-kill (file-name-base filename)))))
 
 (defun insert-iso8601-date (&optional date)
   "Insert DATE."
@@ -906,9 +922,9 @@ If UP is non-nil, duplicate and move point to the top."
       (message "There's no dired buffers open right now"))))
 
 (defun dired-osx-open-this-file ()
-    "Use the OSX `open' command to launch the current dired file at point."
-    (interactive)
-    (shell-command-to-string (format "open %S" (dired-file-name-at-point))))
+  "Use the OSX `open' command to launch the current dired file at point."
+  (interactive)
+  (shell-command-to-string (format "open %S" (dired-file-name-at-point))))
 
 (bind-key "M-o" 'dired-osx-open-this-file dired-mode-map)
 
@@ -931,8 +947,15 @@ URL must point to a plaintext elisp package."
      'internal-border-width
      w)))
 
+(defun buffer-file-name-to-kill-ring ()
+  "Save the buffer file name to the kill ring."
+  (interactive)
+  (when (buffer-file-name)
+    (kill-new (buffer-file-name))))
+
 ;; Key bindings
 (bind-keys
+ ("<mode-line> <S-mouse-1>" . buffer-file-name-to-kill-ring)
  ("<s-up>"     . duplicate-current-line-or-region-up)
  ("<s-down>"   . duplicate-current-line-or-region)
  ("C-x \\"     . indent-buffer)
@@ -956,6 +979,7 @@ URL must point to a plaintext elisp package."
  ("ESC M-z"    . zap-up-to-string)
  ("ESC M-Z"    . zap-up-to-regexp)
  ("C-c C-x i"  . insert-buffer-base-filename)
+ ("C-c C-x I"  . insert-buffer-filename)
  ("C-c C-x d"  . insert-iso8601-date)
  ("<f12>"      . switch-to-minibuffer-window)
  ("M-s-/"      . my-multi-occur-in-matching-buffers))
