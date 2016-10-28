@@ -76,6 +76,7 @@
             (rvm-activate-corresponding-ruby))
 
           (bind-keys :map ruby-mode-map
+                     ("C-c v" . helm-bundle-show)
                      ("C-c #" . ruby-make-interpolated-string-at-point-or-region)
                      ("C-c :" . ruby-toggle-symbol-at-point)
                      ("C-c {" . ruby-toggle-block)
