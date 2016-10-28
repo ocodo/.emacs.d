@@ -78,7 +78,7 @@
 ;; (require 'amitp-mode-line)
 ;; (amitp-mode-line)
 
-(simple-mode-line-modification)
+(creamsody-modeline)
 
 ;; This is set by some packages erroneously. (e.g. AsciiDoc)
 ;; send fix patches to package authors who do this.
