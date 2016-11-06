@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20161009.1046
+;; Package-Version: 20161028.29
 ;; Version: 0.1.6
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
@@ -728,7 +728,7 @@ PRESENTER is the function used to format buffer content."
   (setq next-error-function #'anaconda-mode-next-definition))
 
 (defun anaconda-mode-next-definition (num _reset)
-  "Navigate tot the next definition in the view buffer.
+  "Navigate to the next definition in the view buffer.
 NUM is the number of definitions to move forward.  RESET mean go
 to the beginning of buffer before definitions navigation."
   (forward-button num)
