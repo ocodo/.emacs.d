@@ -302,7 +302,7 @@ the upstream isn't ahead of the current branch) show."
                (?o "Order commits by"        "++order=" magit-log-select-order)
                (?g "Search messages"         "--grep=")
                (?G "Search changes"          "-G")
-               (?S "Search occurences"       "-S")
+               (?S "Search occurrences"      "-S")
                (?L "Trace line evolution"    "-L" magit-read-file-trace))
     :actions  ((?l "Log current"             magit-log-current)
                (?L "Log local branches"      magit-log-branches)
@@ -333,7 +333,7 @@ the upstream isn't ahead of the current branch) show."
                (?o "Order commits by"        "++order=" magit-log-select-order)
                (?g "Search messages"         "--grep=")
                (?G "Search changes"          "-G")
-               (?S "Search occurences"       "-S")
+               (?S "Search occurrences"      "-S")
                (?L "Trace line evolution"    "-L" magit-read-file-trace))
     :actions  ((?g "Refresh"       magit-log-refresh)
                (?t "Toggle margin" magit-toggle-margin)
@@ -819,7 +819,7 @@ Do not add this to a hook variable."
           "\\(?4:[-_/|\\*o. ]*\\)"                 ; graph
           "\\(?1:[0-9a-fA-F]+\\) "                 ; sha1
           "\\(?:\\(?3:([^()]+)\\) \\)?"            ; refs
-          "\\(?7:[BGUN]\\)?"                       ; gpg
+          "\\(?7:[BGUXYREN]\\)?"                   ; gpg
           "\\[\\(?5:[^]]*\\)\\]"                   ; author
           "\\[\\(?6:[^]]*\\)\\]"                   ; date
           "\\(?2:.*\\)$"))                         ; msg
@@ -919,7 +919,10 @@ Do not add this to a hook variable."
       (magit-delete-line)
       (magit-insert-section section (commit hash)
         (pcase style
-          (`stash      (setf (magit-section-type section) 'stash))
+          (`stash      (setf (magit-section-type section) 'stash)
+                       ;; Replace blank space with nil for
+                       ;; `magit-format-log-margin'.
+                       (setq author nil))
           (`module     (setf (magit-section-type section) 'module-commit))
           (`bisect-log (setq hash (magit-rev-parse "--short" hash))))
         (when cherry
@@ -952,7 +955,11 @@ Do not add this to a hook variable."
                               (pcase (and gpg (aref gpg 0))
                                 (?G 'magit-signature-good)
                                 (?B 'magit-signature-bad)
-                                (?U 'magit-signature-untrusted)))))
+                                (?U 'magit-signature-untrusted)
+                                (?X 'magit-signature-expired)
+                                (?Y 'magit-signature-expired-key)
+                                (?R 'magit-signature-revoked)
+                                (?E 'magit-signature-error)))))
         (when (and refs magit-log-show-refname-after-summary)
           (insert ?\s)
           (insert (magit-format-ref-labels refs)))

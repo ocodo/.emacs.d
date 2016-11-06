@@ -4388,9 +4388,9 @@ please also consult Git’s own documentation as well as other resources.
 it puts both versions into the affected file along with special markers
 whose purpose is to denote the boundaries of the unresolved part of the
 file and between the different versions.  These boundary lines begin
-with the strings "<<<<", "|||||||", "=======", and ">>>>" and are
-followed by information about the source of the respective versions,
-e.g.:
+with the strings consisting of six times the same character, one of ‘<’,
+‘|’, ‘=’ and ‘>’ and are followed by information about the source of the
+respective versions, e.g.:
 
      <<<<<<< HEAD
      Take the blue pill.
