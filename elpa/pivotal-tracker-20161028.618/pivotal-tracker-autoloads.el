@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "pivotal-tracker" "pivotal-tracker.el" (22538
-;;;;;;  11458 0 0))
+;;;### (autoloads nil "pivotal-tracker" "pivotal-tracker.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from pivotal-tracker.el
 
 (defgroup pivotal nil "\
@@ -22,6 +22,8 @@ Launch pivotal-projects window, or just switch to it.
 Show a buffer of all projects you have access to.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "pivotal-tracker" '("pivotal-" "assert-pivotal-api-token" "*pivotal-iteration*")))
 
 ;;;***
 

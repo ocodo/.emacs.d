@@ -2,7 +2,7 @@
 
 ;; Author: John Andrews
 ;; URL: http://github.com/jxa/pivotal-tracker
-;; Package-Version: 20161017.2054
+;; Package-Version: 20161028.618
 ;; Created: 2010.11.14
 ;; Version: 1.3.1
 
@@ -551,11 +551,16 @@ ESTIMATE the story points estimation."
 
 (defun pivotal-get-xml-from-current-buffer ()
   "Get Pivotal API XML from the current buffer."
-  (let ((xml (if (functionp 'xml-parse-fragment)
-                 (cdr (xml-parse-fragment))
-               (xml-parse-region))))
-    (kill-buffer)
-    xml))
+  (let ((nb (get-buffer-create (make-temp-name "scratch")))
+	(cb (current-buffer)))
+    (decode-coding-region (point-min) (point-max) 'utf-8 nb)
+    (with-current-buffer nb
+      (kill-buffer cb)
+      (let ((xml (if (functionp 'xml-parse-fragment)
+		     (cdr (xml-parse-fragment))
+		   (xml-parse-region))))
+	(kill-buffer)
+	xml))))
 
 (defun pivotal-insert-projects (project-list-xml)
   "Render projects one per line in their own buffer, from source PROJECT-LIST-XML."
