@@ -4,10 +4,9 @@
 
 ;; Author: Ivan Malison <IvanMalison@gmail.com>
 ;; Keywords: org projectile todo
-;; Package-Version: 20160822.2123
 ;; URL: https://github.com/IvanMalison/org-projectile
-;; Version: 0.2.1
-;; Package-Requires: ((projectile "0.11.0") (dash "2.10.0") (emacs "24"))
+;; Version: 0.2.5
+;; Package-Requires: ((projectile "0.11.0") (dash "2.10.0") (emacs "24") (pcache "0.4.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,23 +29,98 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'org-capture)
+(require 'eieio)
+(require 'org-category-capture)
+(require 'pcache)
 (require 'projectile)
+(require 'dash)
 
-(defvar org-projectile:projects-file "~/org/projects.org")
-(defvar org-projectile:per-repo-filename "todo.org")
+(defgroup org-projectile ()
+  "Customizations for org-projectile."
+  :group 'org
+  :prefix "org-projectile-")
 
-(defvar org-projectile:capture-template "* TODO %?\n")
-(defvar org-projectile:linked-capture-template "* TODO %? %A\n")
+(defcustom org-projectile:projects-file "~/org/projects.org"
+  "The path to the file in which projectile TODOs will be stored."
+  :type '(string)
+  :group 'org-projectile)
 
-(defvar org-projectile:force-linked t)
-(defvar org-projectile:counts-in-heading t)
-(defvar org-projectile:subheading-selection t)
+(defcustom org-projectile:per-repo-filename "TODO.org"
+  "The path (relative to the project repository) to project TODOs."
+  :type '(string)
+  :group 'org-projectile)
+
+(defcustom org-projectile:capture-template "* TODO %?\n"
+  "The default capture template to use for org-projectile TODOs."
+  :type '(string)
+  :group 'org-projectile)
+
+(defcustom org-projectile:linked-capture-template "* TODO %? %A\n"
+  "The default linked capture template to use for org-projectile TODOs."
+  :type '(string)
+  :group 'org-projectile)
+
+(defcustom org-projectile:force-linked t
+  "Whether to make project category headings links to their projects."
+  :type '(boolean)
+  :group 'org-projectile)
+
+(defcustom org-projectile:counts-in-heading t
+  "Whether or not to make projectile category headings display counts."
+  :type '(boolean)
+  :group 'org-projectile)
+
+(defcustom org-projectile:subheading-selection t
+  "Controls whether or not project subheading selection is enabled."
+  :type '(boolean)
+  :group 'org-projectile)
+
+(defcustom org-projectile:allow-tramp-projects nil
+  "Whether to make project category headings links to their projects."
+  :type '(boolean)
+  :group 'org-projectile)
+
+
+
+(defvar org-projectile:path-to-category
+  (pcache-repository "org-projectile:path-to-category"))
+
+(defvar org-projectile:target-entry t)
+
+(defclass org-projectile:migration-strategy (occ-strategy) nil)
+
+(defmethod occ-get-categories ((strategy org-projectile:migration-strategy))
+  (org-projectile:known-projects))
+
+(defmethod occ-get-todo-files ((strategy org-projectile:migration-strategy))
+  (org-projectile:todo-files))
+
+(defmethod occ-get-capture-file ((strategy org-projectile:migration-strategy) context)
+  (with-slots (category) context
+      (funcall org-projectile:project-name-to-org-file category)))
+
+(defmethod occ-get-capture-marker ((strategy org-projectile:migration-strategy) context)
+  "Return a marker that corresponds to the capture location for CONTEXT."
+  (with-slots (category) context
+    (let ((filepath (occ-get-capture-file strategy context)))
+      (save-excursion (with-current-buffer (find-file-noselect filepath t)
+        (funcall org-projectile:project-name-to-location category)
+        (point-marker))))))
+
+(defmethod occ-target-entry-p ((strategy org-projectile:migration-strategy) context)
+  org-projectile:target-entry)
+
+(defvar org-projectile:capture-strategy
+  (make-instance 'org-projectile:migration-strategy))
+
+
 
 (defvar org-projectile:project-name-to-org-file
   'org-projectile:project-name-to-org-file-one-file)
+
 (defvar org-projectile:project-name-to-location
   'org-projectile:project-name-to-location-one-file)
+
 (defvar org-projectile:todo-files 'org-projectile:default-todo-files)
 
 ;; For a single projects file
@@ -66,7 +140,8 @@
   (setq org-projectile:project-name-to-org-file
         'org-projectile:project-name-to-org-file-one-file)
   (setq org-projectile:project-name-to-location
-        'org-projectile:project-name-to-location-one-file))
+        'org-projectile:project-name-to-location-one-file)
+  (setq org-projectile:target-entry t))
 
 ;; For repo files in the projectile project path
 (defun org-projectile:project-name-to-org-file-per-repo (project-name)
@@ -80,6 +155,7 @@
 (defun org-projectile:per-repo ()
   "Use org-projectile in per-repo mode."
   (interactive)
+  (setq org-projectile:target-entry nil)
   (setq org-projectile:todo-files 'org-projectile:default-todo-files)
   (setq org-projectile:project-name-to-org-file
         'org-projectile:project-name-to-org-file-per-repo)
@@ -246,6 +322,8 @@ location of the filepath cache."
 (defun org-projectile:prompt ()
   "Use the prompt mode of org-projectile."
   (interactive)
+  ;; TODO this needs to be more nuanced.
+  (setq org-projectile:target-entry t)
   (setq org-projectile:todo-files
         'org-projectile:todo-files-project-to-org-filepath)
   (setq org-projectile:project-name-to-org-file
@@ -258,17 +336,6 @@ location of the filepath cache."
     (switch-to-buffer (find-file-noselect filename))
     (funcall org-projectile:project-name-to-location project-name)))
 
-(defun org-projectile:target-subheading-and-return-marker ()
-  (org-end-of-line)
-  (org-projectile:end-of-properties)
-  ;; It sucks that this has to be done, but we have to insert a
-  ;; subheading if the entry does not have one in order to convince
-  ;; capture to actually insert the template as a subtree of the
-  ;; selected entry. We return a marker where the dummy subheading
-  ;; was created so that it can be deleted later.
-  (when (not (save-excursion (org-goto-first-child)))
-    (save-excursion (org-insert-subheading nil) (point-marker))))
-
 (defun org-projectile:file-truename (filepath)
   (when filepath
     (if (find-file-name-handler filepath 'file-truename)
@@ -276,17 +343,18 @@ location of the filepath cache."
       (file-truename filepath))))
 
 (defun org-projectile:project-root-of-filepath (filepath)
-  (org-projectile:file-truename
-   (let ((dir (file-name-directory filepath)))
-     (--some (let* ((cache-key (format "%s-%s" it dir))
-                    (cache-value (gethash
-                                  cache-key projectile-project-root-cache)))
-               (if cache-value
-                   cache-value
-                 (let ((value (funcall it (org-projectile:file-truename dir))))
-                   (puthash cache-key value projectile-project-root-cache)
-                   value)))
-             projectile-project-root-files-functions))))
+  (let ((no-handler (eq nil (find-file-name-handler filepath 'file-truename))))
+    (when (or no-handler org-projectile:allow-tramp-projects)
+      (let ((dir (file-name-directory filepath)))
+        (--some (let* ((cache-key (format "%s-%s" it dir))
+                       (cache-value (gethash
+                                     cache-key projectile-project-root-cache)))
+                  (if cache-value
+                      cache-value
+                    (let ((value (funcall it (org-projectile:file-truename dir))))
+                      (puthash cache-key value projectile-project-root-cache)
+                      value)))
+                projectile-project-root-files-functions)))))
 
 (defun org-projectile:project-todo-entry
     (&optional capture-character capture-template capture-heading
@@ -316,12 +384,13 @@ location of the filepath cache."
         (match-string-no-properties 4) heading)))
 
 (defun org-projectile:known-projects ()
-  (remove-if
-   #'null
+  (cl-remove-if
+   'null
    (delete-dups
-    `(,@(mapcar #'org-projectile:project-heading-from-file
+    (nconc
+     (mapcar #'org-projectile:project-heading-from-file
                 (projectile-relevant-known-projects))
-      ,@(org-map-entries
+     (org-map-entries
          (lambda () (org-projectile:get-link-description
                      (nth 4 (org-heading-components)))) nil
                      (funcall org-projectile:todo-files)
@@ -350,57 +419,6 @@ location of the filepath cache."
 
 (defun org-projectile:project-location-from-name (name)
   (cdr (assoc name (org-projectile:project-name-to-location-alist))))
-
-(defvar dired-buffers)
-
-(defun org-projectile:capture-for-project
-    (project-name &optional capture-template &rest additional-options)
-  (org-capture-set-plist
-   (apply #'org-projectile:project-todo-entry
-          nil capture-template nil additional-options))
-  ;; TODO: super gross that this had to be copied from org-capture,
-  ;; Unfortunately, it does not seem to be possible to call into org-capture
-  ;; because it makes assumptions that make it impossible to set things up
-  ;; properly
-  (let ((orig-buf (current-buffer))
-        (annotation (if (and (boundp 'org-capture-link-is-already-stored)
-                             org-capture-link-is-already-stored)
-                        (plist-get org-store-link-plist :annotation)
-                      (ignore-errors (org-store-link nil))))
-        org-projectile:subheading-cleanup-marker
-        org-projectile:do-target-entry)
-    (org-capture-put :original-buffer orig-buf
-                     :original-file (or (buffer-file-name orig-buf)
-                                        (and (featurep 'dired)
-                                             (car (rassq orig-buf dired-buffers))))
-                     :original-file-nondirectory
-                     (and (buffer-file-name orig-buf)
-                          (file-name-nondirectory
-                           (buffer-file-name orig-buf)))
-                     :annotation annotation
-                     :initial ""
-                     :return-to-wconf (current-window-configuration)
-                     :default-time
-                     (or org-overriding-default-time
-                         (org-current-time)))
-    (org-capture-put :template (org-capture-fill-template capture-template))
-    (org-capture-set-target-location
-     `(function ,(lambda () (setq org-projectile:do-target-entry
-                                  (org-projectile:location-for-project project-name)))))
-    ;; Apparently this needs to be forced because (org-at-heading-p)
-    ;; will not be true and so `org-capture-set-target-location` will
-    ;; set this value to nil.
-    ;; TODO(@IvanMalison): Perhaps there is a better way to do this?
-    ;; Maybe something that would allow us to get rid of the horrible
-    ;; subheading-cleanup-marker hack?
-    (org-capture-put :target-entry-p org-projectile:do-target-entry)
-    (when org-projectile:do-target-entry
-      (setq org-projectile:subheading-cleanup-marker
-            (org-projectile:target-subheading-and-return-marker)))
-    (org-capture-place-template)
-    (when org-projectile:subheading-cleanup-marker
-      (org-projectile:cleanup-subheading
-       org-projectile:subheading-cleanup-marker))))
 
 (defun org-projectile:cleanup-subheading (marker)
   (with-current-buffer (marker-buffer marker)
@@ -480,17 +498,23 @@ location of the filepath cache."
                   (helm :sources (org-projectile:helm-subheadings-source
                                   subheadings-to-point))))
              (goto-char selection)))))
+
   (defun org-projectile:helm-subheadings-source (subheadings-to-point)
     (helm-build-sync-source "Choose a subheading:"
       :candidates subheadings-to-point))
+
   (defun org-projectile:helm-source (&optional capture-template)
     (helm-build-sync-source "Org Capture Options:"
       :candidates (cl-loop for project in (org-projectile:known-projects)
                            collect `(,project . ,project))
       :action `(("Do capture" .
                  ,(lambda (project)
-                    (org-projectile:capture-for-project
-                     project capture-template)))))))
+                    (occ-capture
+                     (make-instance 'occ-context
+                                    :category project
+                                    :options nil
+                                    :template (or capture-template org-projectile:capture-template)
+                                    :strategy org-projectile:capture-strategy))))))))
 
 (defun org-projectile:get-subheadings (&optional scope)
   (unless scope (setq scope 'tree))
@@ -536,11 +560,13 @@ as the capture template."
 
 If CAPTURE-TEMPLATE is provided use it as the capture template for the TODO."
   (interactive)
-  (apply
-   #'org-projectile:capture-for-project
-   (projectile-completing-read "Record TODO for project: "
-                               (org-projectile:known-projects))
-   capture-template additional-options))
+  (occ-capture
+   (make-instance 'occ-context
+                  :category (projectile-completing-read "Record TODO for project: "
+
+                  :template (or capture-template org-projectile:capture-template)
+                  :options additional-options
+                  :strategy org-projectile:capture-strategy))))
 
 ;;;###autoload
 (defun org-projectile:capture-for-current-project
@@ -551,8 +577,12 @@ If CAPTURE-TEMPLATE is provided use it as the capture template for the TODO."
   (interactive)
   (let ((project-name (projectile-project-name)))
     (if (projectile-project-p)
-        (apply #'org-projectile:capture-for-project
-               project-name capture-template additional-options)
+        (occ-capture
+         (make-instance 'occ-context
+                        :category project-name
+                        :template (or capture-template org-projectile:capture-template)
+                        :options additional-options
+                        :strategy org-projectile:capture-strategy))
       (error (format "%s is not a recognized projectile project." project-name)))))
 
 (provide 'org-projectile)
