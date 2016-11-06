@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20161008.47
+;; Package-Version: 20161105.834
 ;; Keywords: project, convenience
 ;; Version: 0.15.0-cvs
 ;; Package-Requires: ((pkg-info "0.4"))
@@ -308,6 +308,7 @@ If variable `projectile-project-name' is non-nil, this function will not be used
     "mix.exs"            ; Elixir mix project file
     "stack.yaml"         ; Haskell's stack tool based project
     "info.rkt"           ; Racket package description file
+    "DESCRIPTION"        ; R package description file
     "TAGS"               ; etags/ctags are usually in the root of project
     "GTAGS"              ; GNU Global tags
     )
@@ -1598,12 +1599,15 @@ project-root for every file."
            ((eq projectile-completion-system 'helm)
             (if (fboundp 'helm)
                 (helm :sources
-                      `((name . ,prompt)
-                        (candidates . ,choices)
-                        (action . ,(if action
-                                       (prog1 action
-                                         (setq action nil))
-                                     #'identity))))
+                      (helm-make-source "Projectile" 'helm-source-sync
+                        :candidates choices
+                        :action (if action
+                                    (prog1 action
+                                      (setq action nil))
+                                  #'identity))
+                      :prompt prompt
+                      :input initial-input
+                      :buffer "*helm-projectile*")
               (user-error "Please install helm from \
 https://github.com/emacs-helm/helm")))
            ((eq projectile-completion-system 'grizzl)
