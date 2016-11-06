@@ -6,7 +6,7 @@
 ;; URL: https://github.com/Simplify/flycheck-css-colorguard/
 ;; Keywords: flycheck, CSS, Colorguard
 ;; Version: 0.20.1
-;; Package-Version: 20161002.242
+;; Package-Version: 20161031.422
 ;; Package-X-Original-Version: 0.20.1
 ;; Package-Requires: ((flycheck "0.22") (emacs "24"))
 
@@ -113,7 +113,12 @@ See URL
      (flycheck-sanitize-errors errors)))
   :modes (css-mode))
 
-(add-to-list 'flycheck-checkers 'css-colorguard 'append)
+;;;###autoload
+(defun flycheck-css-colorguard-setup ()
+  "Setup Flycheck CSS Colorguard.
+Add `css-colorguard' to `flycheck-checkers'."
+  (interactive)
+  (add-to-list 'flycheck-checkers 'css-colorguard 'append))
 
 (provide 'flycheck-css-colorguard)
 ;;; flycheck-css-colorguard.el ends here
