@@ -1,12 +1,14 @@
-;;; xterm-color.el --- ANSI & XTERM 256 color support
+;;; xterm-color.el --- ANSI & XTERM 256 color support -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2010 xristos@sdf.lonestar.org
+;; Copyright (C) 2010-2016 xristos@sdf.lonestar.org
 ;; All rights reserved
 ;;
-;; Version: 1.0 - 2012-07-07
-;; Package-Version: 20161013.1627
+;; Version: 1.5 - 2016-10-28
+;; Package-Version: 20161104.1949
 ;; Author: xristos@sdf.lonestar.org
+;; URL: https://github.com/atomontage/xterm-color
 ;; Package-Requires: ((cl-lib "0.5"))
+;; Keywords: faces
 ;;
 ;; Redistribution and use in source and binary forms, with or without
 ;; modification, are permitted provided that the following conditions
@@ -36,10 +38,17 @@
 ;;
 ;; Translates ANSI control sequences into text properties.
 ;;
-;; * Regular ANSI
-;; * XTERM 256 color
+;; * Regular ANSI colors
 ;;
-;; xterm-color.el should perform much better than ansi-color.el
+;; * XTERM 256 colors
+;;
+;; * Works with compilation-mode (experimental)
+;;
+;; * Works with eshell
+;;
+;; * More accurate than ansi-color.el
+;;
+;; * Should perform much better than ansi-color.el
 ;;
 ;;; Usage:
 ;;
@@ -54,7 +63,9 @@
 ;; (xterm-color-filter ";mThis is only a test")
 ;; (xterm-color-filter "[0m")
 ;;
-;; You can replace ansi-color.el with xterm-color for all comint buffers:
+;;
+;; * You can replace ansi-color.el with xterm-color for all comint buffers:
+;;
 ;;
 ;; + comint install
 ;;
@@ -66,9 +77,11 @@
 ;; (progn (remove-hook 'comint-preoutput-filter-functions 'xterm-color-filter)
 ;;        (add-to-list 'comint-output-filter-functions 'ansi-color-process-output))
 ;;
-;; Also set TERM accordingly (xterm-256color)
+;; If running a shell (M-x shell) also set TERM accordingly (xterm-256color)
 ;;
-;; + You can also use it with eshell (and thus get color output from system ls):
+;;
+;; * You can also use it with eshell (and thus get color output from system ls):
+;;
 ;;
 ;; (require 'eshell)
 ;;
@@ -79,7 +92,36 @@
 ;;  (add-to-list 'eshell-preoutput-filter-functions 'xterm-color-filter)
 ;;  (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions))
 ;;
-;;  Don't forget to setenv TERM xterm-256color
+;;  Don't forget to setenv TERM xterm-256color too
+;;
+;;
+;; * Compilation buffers
+;;
+;;
+;; You may use `compilation-shell-minor-mode' with comint-mode buffers (e.g. M-x shell)
+;; and the comint configuration previously described.
+;;
+;; For standalone compilation-mode buffers, you may use the following
+;; configuration:
+;;
+;; (setq compilation-environment '("TERM=xterm-256color"))
+;;
+;; (add-hook 'compilation-start-hook
+;;           (lambda (proc)
+;;             ;; We need to differentiate between compilation-mode buffers
+;;             ;; and running as part of comint (which at this point we assume
+;;             ;; has been configured separately for xterm-color)
+;;             (when (eq (process-filter proc) 'compilation-filter)
+;;               ;; This is a process associated with a compilation-mode buffer.
+;;               ;; We may call `xterm-color-filter' before its own filter function.
+;;               (set-process-filter
+;;                proc
+;;                (lambda (proc string)
+;;                  (funcall 'compilation-filter proc (xterm-color-filter string)))))))
+;;
+;; Standalone compilation-mode buffer support is experimental, report any
+;; issues that may arise.
+;;
 ;;
 ;;; Test:
 ;;
@@ -93,9 +135,6 @@
 ;;
 ;;
 ;;; Code:
-
-(eval-when-compile
-  (require 'cl))                        ; for lexical-let
 
 (require 'cl-lib)
 
@@ -151,7 +190,7 @@
 (defvar xterm-color-preserve-properties nil
   "If T, preserve existing text properties on input about to be filtered.
 This should be NIL most of the time as it can mess up the internal state
-machine if it encounters ANSI data with text properties applied. It is
+machine if it encounters ANSI data with text properties applied.  It is
 really meant for and works fine with eshell.")
 
 (make-variable-buffer-local 'xterm-color-preserve-properties)
@@ -205,7 +244,7 @@ Once that happens, we generate a single text property for the entire string.")
 		   (push (list pos (text-properties-at pos string) (substring string pos next-pos)) res)
 		   (setq pos next-pos))
 	       (push (list pos (text-properties-at pos string) (substring string pos)) res)
-	       (return-from xterm-color--string-properties (nreverse res))))))
+	       (cl-return-from xterm-color--string-properties (nreverse res))))))
 
 (defun xterm-color--message (format-string &rest args)
   "Call `message' with FORMAT-STRING and ARGS if `xterm-color-debug' is T."
@@ -216,7 +255,7 @@ Once that happens, we generate a single text property for the entire string.")
 
 (defun xterm-color--dispatch-csi (csi)
   (cl-labels ((dispatch-SGR (elems)
-             (let ((init (first elems)))
+             (let ((init (cl-first elems)))
                (cond ((= 0 init)
                       ;; Reset
                       (clrhash xterm-color--current)
@@ -225,13 +264,13 @@ Once that happens, we generate a single text property for the entire string.")
                      ((= 38 init)
                       ;; XTERM 256 FG color
                       (setf (gethash 'foreground-color xterm-color--current)
-                            (xterm-color--256 (third elems)))
-                      (cdddr elems))
+                            (xterm-color--256 (cl-third elems)))
+                      (cl-cdddr elems))
                      ((= 48 init)
                       ;; XTERM 256 BG color
                       (setf (gethash 'background-color xterm-color--current)
-                            (xterm-color--256 (third elems)))
-                      (cdddr elems))
+                            (xterm-color--256 (cl-third elems)))
+                      (cl-cdddr elems))
                      ((= 39 init)
                       ;; Reset to default FG color
                       (remhash 'foreground-color xterm-color--current)
@@ -407,7 +446,7 @@ Once that happens, we generate a single text property for the entire string.")
   (let ((ret nil)
         (fg (gethash 'foreground-color xterm-color--current))
         (bg (gethash 'background-color xterm-color--current)))
-    (macrolet ((is-set? (attrib) `(> (logand ,attrib xterm-color--attributes) 0)))
+    (cl-macrolet ((is-set? (attrib) `(> (logand ,attrib xterm-color--attributes) 0)))
       (when (is-set? +xterm-color--italic+)
         (push `(:slant italic) ret))
       (when (is-set? +xterm-color--underline+)
@@ -440,18 +479,18 @@ This function strips text properties that may be present in STRING."
   (when (null xterm-color--current)
     (setq xterm-color--current (make-hash-table)))
   (let ((result nil))
-    (macrolet ((output (x) `(push ,x result))
-               (update (x place) `(setq ,place (concat ,place (string ,x))))
-               (new-state (state) `(setq xterm-color--state ,state))
-               (has-color? () `(or (> (hash-table-count xterm-color--current) 0)
-                                   (not (= xterm-color--attributes 0))))
-               (maybe-fontify ()
-                `(when (> (length xterm-color--char-buffer) 0)
-                   (if (has-color?)
-                       (output (propertize xterm-color--char-buffer 'xterm-color t
-                                           (if font-lock-mode 'font-lock-face 'face) (xterm-color--make-property)))
-                    (output xterm-color--char-buffer))
-                  (setq xterm-color--char-buffer ""))))
+    (cl-macrolet ((output (x) `(push ,x result))
+                  (update (x place) `(setq ,place (concat ,place (string ,x))))
+                  (new-state (state) `(setq xterm-color--state ,state))
+                  (has-color? () `(or (> (hash-table-count xterm-color--current) 0)
+                                      (not (= xterm-color--attributes 0))))
+                  (maybe-fontify ()
+                                 `(when (> (length xterm-color--char-buffer) 0)
+                                    (if (has-color?)
+                                        (output (propertize xterm-color--char-buffer 'xterm-color t
+                                                            (if font-lock-mode 'font-lock-face 'face) (xterm-color--make-property)))
+                                      (output xterm-color--char-buffer))
+                                    (setq xterm-color--char-buffer ""))))
       (cl-loop for char across string do
 	       (cl-case xterm-color--state
 		 (:char
@@ -508,7 +547,7 @@ Returns new STRING with text properties applied.
 This function will check if `xterm-color-preserve-properties' is
 set to T and only call `xterm-color-filter-real' on substrings
 that do not have text properties applied (passing through the rest
-unmodified). Preserving properties in this fashion is really a hack
+unmodified).  Preserving properties in this fashion is really a hack
 and not very robust as there may be situations where text properties
 are applied on ANSI data, which will mess up the state machine.
 It works fine with and is really meant for eshell though.
@@ -520,20 +559,20 @@ This can be inserted into `comint-preoutput-filter-functions'."
 	     for (_ props substring) in (xterm-color--string-properties string) do
 	     (push (if props substring (xterm-color-filter-real substring))
 		   res)
-	     finally (return (mapconcat 'identity (nreverse res) "")))))
+	     finally return (mapconcat 'identity (nreverse res) ""))))
 
 ;;
 ;; Tests
 ;;
 
-(lexical-let ((test-attributes
-               '((1  . "bright")
-                 (51 . "frame")
-                 (3  . "italic")
-                 (4  . "underline")
-                 (7  . "negative")
-                 (9  . "strike through")
-                 (53 . "overline"))))
+(let ((test-attributes
+       '((1  . "bright")
+         (51 . "frame")
+         (3  . "italic")
+         (4  . "underline")
+         (7  . "negative")
+         (9  . "strike through")
+         (53 . "overline"))))
 
   (defun xterm-color--test-ansi ()
     ;; System colors
