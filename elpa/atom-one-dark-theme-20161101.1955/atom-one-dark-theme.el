@@ -4,7 +4,7 @@
 ;;
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20160914.1337
+;; Package-Version: 20161101.1955
 ;; Version: 0.4.0
 ;;
 ;;; Commentary:
@@ -22,6 +22,8 @@
     ("atom-one-dark-bg"       . "#282C34")
     ("atom-one-dark-bg-1"     . "#121417")
     ("atom-one-dark-bg-hl"    . "#2F343D")
+    ("atom-one-dark-gutter"   . "#666D7A")
+    ("atom-one-dark-accent"   . "#AEB9F5")
     ("atom-one-dark-mono-1"   . "#ABB2BF")
     ("atom-one-dark-mono-2"   . "#828997")
     ("atom-one-dark-mono-3"   . "#5C6370")
@@ -175,6 +177,14 @@
    `(git-commit-comment-branch  ((t (:foreground ,atom-one-dark-blue :weight bold))))
    `(git-commit-comment-heading ((t (:foreground ,atom-one-dark-orange-2 :weight bold))))
 
+   ;; js2-mode
+   `(js2-function-call ((t (:inherit (font-lock-function-name-face)))))
+   `(js2-function-param ((t (:foreground ,atom-one-dark-mono-1))))
+   `(js2-jsdoc-tag ((t (:foreground ,atom-one-dark-purple))))
+   `(js2-jsdoc-type ((t (:foreground ,atom-one-dark-orange-2))))
+   `(js2-jsdoc-value((t (:foreground ,atom-one-dark-red-1))))
+   `(js2-object-property ((t (:foreground ,atom-one-dark-red-1))))
+
    ;; magit
    `(magit-section-highlight ((t (:background ,atom-one-dark-bg-hl))))
    `(magit-section-heading ((t (:foreground ,atom-one-dark-orange-2 :weight bold))))
@@ -282,6 +292,11 @@
    `(term-color-red ((t :foreground ,atom-one-dark-red-1)))
    `(term-color-white ((t :foreground ,atom-one-dark-fg)))
    `(term-color-yellow ((t (:foreground ,atom-one-dark-orange-1))))
+
+   ;; linum
+   `(linum ((t (:foreground ,atom-one-dark-gutter :background ,atom-one-dark-bg))))
+   ;; hlinum
+   `(linum-highlight-face ((t (:foreground ,atom-one-dark-accent :background ,atom-one-dark-bg))))
    ))
 
 (atom-one-dark-with-color-variables
@@ -290,6 +305,40 @@
 ;;;;; fill-column-indicator
    `(fci-rule-color ,atom-one-dark-gray)
    ))
+
+(defvar atom-one-dark-theme-force-faces-for-mode t
+  "If t, atom-one-dark-theme will use Face Remapping to alter the theme faces for
+the current buffer based on its mode in an attempt to mimick the Atom One Dark
+Theme from Atom.io as best as possible.
+The reason this is required is because some modes (html-mode, jyaml-mode, ...)
+do not provide the necessary faces to do theming without conflicting with other
+modes.
+Current modes, and their faces, impacted by this variable:
+* js2-mode: font-lock-constant-face, font-lock-doc-face, font-lock-variable-name-face
+")
+
+;; Many modes in Emacs do not define their own faces and instead use standard Emacs faces when it comes to theming.
+;; That being said, to have a real "Atom One Dark Theme" for Emacs, we need to work around this so that these themes look
+;; as much like "Atom One Dark Theme" as possible.  This means using per-buffer faces via "Face Remapping":
+;;
+;;   http://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Remapping.html
+;;
+;; Of course, this might be confusing to some when in one mode they see keywords highlighted in one face and in another
+;; mode they see a different face.  That being said, you can set the `atom-one-dark-theme-force-faces-for-mode` variable to
+;; `nil` to disable this feature.
+(defun atom-one-dark-theme-change-faces-for-mode ()
+  (interactive)
+  (and (eq atom-one-dark-theme-force-faces-for-mode t)
+       (cond
+        ((member major-mode '(js2-mode))
+         ;; atom-one-dark-orange-1
+         (face-remap-add-relative 'font-lock-constant-face :foreground "#D19A66")
+         (face-remap-add-relative 'font-lock-doc-face '(:inherit (font-lock-comment-face)))
+         ;; atom-one-dark-mono-1
+         (face-remap-add-relative 'font-lock-variable-name-face :foreground "#ABB2BF"))
+        )))
+
+(add-hook 'after-change-major-mode-hook 'atom-one-dark-theme-change-faces-for-mode)
 
 ;;;###autoload
 (and load-file-name
