@@ -6,9 +6,9 @@
 ;;         Marshall T. Vandegrift <llasram@gmail.com>
 ;; Maintainer: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; Package-Requires: ((emacs "24.1"))
-;; Package-Version: 20160902.1142
+;; Package-Version: 20161105.814
 ;; Keywords: data yaml
-;; Version: 0.0.12
+;; Version: 0.0.13
 
 ;; This file is not part of Emacs
 
@@ -118,7 +118,7 @@ that key is pressed to begin a block literal."
 
 ;; Constants
 
-(defconst yaml-mode-version "0.0.12" "Version of `yaml-mode'.")
+(defconst yaml-mode-version "0.0.13" "Version of `yaml-mode'.")
 
 (defconst yaml-blank-line-re "^ *$"
   "Regexp matching a line containing only (valid) whitespace.")
@@ -191,7 +191,7 @@ that key is pressed to begin a block literal."
     (define-key map ">" 'yaml-electric-bar-and-angle)
     (define-key map "-" 'yaml-electric-dash-and-dot)
     (define-key map "." 'yaml-electric-dash-and-dot)
-    (define-key map [backspace] 'yaml-electric-backspace)
+    (define-key map (kbd "DEL") 'yaml-electric-backspace)
     map)
   "Keymap used in `yaml-mode' buffers.")
 
@@ -202,7 +202,7 @@ that key is pressed to begin a block literal."
     (modify-syntax-entry ?# "<" syntax-table)
     (modify-syntax-entry ?\n ">" syntax-table)
     (modify-syntax-entry ?\\ "\\" syntax-table)
-    (modify-syntax-entry ?- "w" syntax-table)
+    (modify-syntax-entry ?- "_" syntax-table)
     (modify-syntax-entry ?_ "_" syntax-table)
     (modify-syntax-entry ?\( "." syntax-table)
     (modify-syntax-entry ?\) "." syntax-table)
