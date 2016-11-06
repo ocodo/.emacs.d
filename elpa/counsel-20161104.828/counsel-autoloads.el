@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (22538 11548 0 0))
+;;;### (autoloads nil "counsel" "counsel.el" (0 0 0 0))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -53,7 +53,7 @@ Forward to (`info-lookup-symbol' SYMBOL MODE) with ivy completion.
 \(fn SYMBOL &optional MODE)" t nil)
 
 (autoload 'counsel-bookmark "counsel" "\
-Forward to `bookmark-jump'.
+Forward to `bookmark-jump' or `bookmark-set' if bookmark doesn't exist.
 
 \(fn)" t nil)
 
@@ -127,6 +127,11 @@ Call the \"dpkg\" shell command.
 
 \(fn)" t nil)
 
+(autoload 'counsel-rpm "counsel" "\
+Call the \"rpm\" shell command.
+
+\(fn)" t nil)
+
 (autoload 'counsel-file-jump "counsel" "\
 Jump to a file from a list of all files directories
 below the current one.  INITIAL-INPUT can be given as the initial
@@ -157,7 +162,7 @@ Grep for a string in the current directory using pt.
 This uses `counsel-ag' with `counsel-pt-base-command' replacing
 `counsel-ag-base-command'.
 
-\(fn)" t nil)
+\(fn &optional INITIAL-INPUT)" t nil)
 
 (autoload 'counsel-grep "counsel" "\
 Grep for a string in the current file.
@@ -255,6 +260,8 @@ mode remaps built-in emacs functions that have counsel
 replacements.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel" '("counsel-" "tmm-km-list")))
 
 ;;;***
 

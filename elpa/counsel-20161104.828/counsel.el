@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20161020.2248
+;; Package-Version: 20161104.828
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -619,16 +619,22 @@ input corresponding to the chosen variable."
 
 ;;;###autoload
 (defun counsel-bookmark ()
-  "Forward to `bookmark-jump'."
+  "Forward to `bookmark-jump' or `bookmark-set' if bookmark doesn't exist."
   (interactive)
   (require 'bookmark)
-  (ivy-read "Jump to bookmark: "
+  (ivy-read "Create or jump to bookmark: "
             (bookmark-all-names)
             :action (lambda (x)
-                      (with-ivy-window
-                        (bookmark-jump x)))
-            :require-match t
+                      (if (member x (bookmark-all-names))
+                          (with-ivy-window
+                            (bookmark-jump x))
+                        (bookmark-set x)))
             :caller 'counsel-bookmark))
+
+(ivy-set-actions
+ 'counsel-bookmark
+ '(("d" bookmark-delete "delete")
+   ("e" bookmark-rename "edit")))
 
 (defun counsel-M-x-transformer (cmd)
   "Return CMD appended with the corresponding binding in the current window."
@@ -1455,7 +1461,8 @@ string - the full shell command to run."
 (defun counsel-locate-action-extern (x)
   "Use xdg-open shell command, or corresponding system command, on X."
   (interactive (list (read-file-name "File: ")))
-  (if (eq system-type 'windows-nt)
+  (if (and (eq system-type 'windows-nt)
+           (fboundp 'w32-shell-execute))
       (w32-shell-execute "open" x)
     (call-process shell-file-name nil
                   nil nil
@@ -1536,6 +1543,26 @@ INITIAL-INPUT can be given as the initial minibuffer input."
               :action (lambda (x)
                         (message (cdr x)))
               :caller 'counsel-dpkg)))
+
+;;** `counsel-rpm'
+;;;###autoload
+(defun counsel-rpm ()
+  "Call the \"rpm\" shell command."
+  (interactive)
+  (let ((cands (mapcar
+                (lambda (x)
+                  (let ((y (split-string x "|")))
+                    (cons (format "%-40s   %s"
+                                  (ivy--truncate-string
+                                   (nth 0 y) 40)
+                                  (nth 1 y))
+                          (mapconcat #'identity y " "))))
+                (split-string
+                 (shell-command-to-string "rpm -qa --qf \"%{NAME}|%{SUMMARY}\\n\"") "\n" t))))
+    (ivy-read "rpm: " cands
+              :action (lambda (x)
+                        (message (cdr x)))
+              :caller 'counsel-rpm)))
 
 ;;** File Jump and Dired Jump
 
@@ -1686,13 +1713,13 @@ pt using `counsel-ag'."
   :group 'ivy)
 
 ;;;###autoload
-(defun counsel-pt ()
+(defun counsel-pt (&optional initial-input)
   "Grep for a string in the current directory using pt.
 This uses `counsel-ag' with `counsel-pt-base-command' replacing
 `counsel-ag-base-command'."
   (interactive)
   (let ((counsel-ag-base-command counsel-pt-base-command))
-    (call-interactively 'counsel-ag)))
+    (counsel-ag initial-input)))
 
 ;;** `counsel-grep'
 (defcustom counsel-grep-base-command "grep -nE \"%s\" %s"
