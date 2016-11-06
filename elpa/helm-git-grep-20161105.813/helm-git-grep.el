@@ -8,10 +8,9 @@
 ;; Author: mechairoi
 ;; Maintainer: Yasuyuki Oka <yasuyk@gmail.com>
 ;; Version: 0.10.0-snapshot
-;; Package-Version: 20161016.407
+;; Package-Version: 20161105.813
 ;; URL: https://github.com/yasuyk/helm-git-grep
 ;; Package-Requires: ((helm-core "2.2.0"))
-;; Keywords: helm, git
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -61,13 +60,13 @@
   :group 'helm)
 
 (defcustom helm-git-grep-sources
-  '(helm-source-git-grep helm-source-git-submodule-grep)
+  '(helm-git-grep-source helm-git-grep-submodule-source)
   "Default helm sources for `helm-git-grep'.
 
 If you don't want to search in submodules, \
-Set only `helm-source-git-grep' like this:
+Set only `helm-git-grep-source' like this:
 
-    (setq helm-git-grep-sources '(helm-source-git-grep))"
+    (setq helm-git-grep-sources '(helm-git-grep-source))"
   :group 'helm-gi-grep
   :type '(repeat (choice symbol)))
 
@@ -262,7 +261,7 @@ newline return an empty string."
                   (split-string helm-pattern " +" t))))
          (helm-git-grep-pathspec-args))))
 
-(defun helm-git-submodule-grep-command ()
+(defun helm-git-grep-submodule-grep-command ()
   "Create command of `helm-git-submodule-grep-process' in `helm-git-grep'."
   (list "git" "--no-pager" "submodule" "--quiet" "foreach"
        (format "git grep -n --no-color %s %s %s | sed s!^!$path/!"
@@ -279,12 +278,12 @@ newline return an empty string."
       (let ((default-directory it))
         (apply 'start-process "git-grep-process" nil "git" (helm-git-grep-args))) '()))
 
-(defun helm-git-submodule-grep-process ()
+(defun helm-git-grep-submodule-grep-process ()
   "Retrieve candidates from result of git grep submodules."
   (helm-aif (helm-attr 'base-directory)
       (let ((default-directory it))
         (apply 'start-process "git-submodule-grep-process" nil
-               (helm-git-submodule-grep-command)))
+               (helm-git-grep-submodule-grep-command)))
     '()))
 
 (define-compilation-mode helm-git-grep-mode "Helm Git Grep"
@@ -643,7 +642,7 @@ You can save your results in a helm-git-grep-mode buffer, see below.
     (delq nil map))
   "Keymap used in Git Grep sources.")
 
-(eval `(defclass helm-git-grep-source (helm-source-async)
+(eval `(defclass helm-git-grep-class (helm-source-async)
          ((header-name :initform helm-git-grep-header-name)
           (default-directory :initform nil)
           (requires-pattern :initform 2)
@@ -658,13 +657,13 @@ You can save your results in a helm-git-grep-mode buffer, see below.
           (keymap :initform ,helm-git-grep-map)
           (init :initform helm-git-grep-init))))
 
-(defvar helm-source-git-grep
-  (helm-make-source "Git Grep" 'helm-git-grep-source
+(defvar helm-git-grep-source
+  (helm-make-source "Git Grep" 'helm-git-grep-class
     :candidates-process 'helm-git-grep-process))
 
-(defvar helm-source-git-submodule-grep
-  (helm-make-source "Git Submodule Grep" 'helm-git-grep-source
-    :candidates-process 'helm-git-submodule-grep-process))
+(defvar helm-git-grep-submodule-source
+  (helm-make-source "Git Submodule Grep" 'helm-git-grep-class
+    :candidates-process 'helm-git-grep-submodule-grep-process))
 
 (defun helm-git-grep-1 (&optional input)
   "Execute helm git grep.
@@ -735,6 +734,15 @@ if region exists.
 (make-obsolete
  'helm-git-grep-with-exclude-file-pattern
  helm-git-grep-with-exclude-file-pattern-obsolete-message "0.10.0")
+
+(define-obsolete-function-alias 'helm-git-submodule-grep-command
+  'helm-git-grep-submodule-grep-command "0.10.0")
+
+(define-obsolete-function-alias 'helm-git-submodule-grep-process
+  'helm-git-grep-submodule-grep-process "0.10.0")
+
+(define-obsolete-variable-alias 'helm-source-git-grep
+  'helm-git-grep-source "0.10.0")
 
 
 (provide 'helm-git-grep)

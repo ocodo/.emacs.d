@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (22532 20816
-;;;;;;  0 0))
+;;;### (autoloads nil "helm-git-grep" "helm-git-grep.el" (0 0 0 0))
 ;;; Generated autoloads from helm-git-grep.el
 
 (autoload 'helm-git-grep-ls-files-limited-by-pathspec "helm-git-grep" "\
@@ -49,6 +48,8 @@ Obsolete.
 (define-obsolete-function-alias 'helm-git-grep-from-here 'helm-git-grep-at-point "0.5")
 
 (make-obsolete 'helm-git-grep-with-exclude-file-pattern helm-git-grep-with-exclude-file-pattern-obsolete-message "0.10.0")
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-git-grep" '("helm-git-grep-")))
 
 ;;;***
 
