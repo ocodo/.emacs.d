@@ -91,14 +91,16 @@ The SLOTs value is captured with variable `this-slot'."
 (defmacro etable-save-table-excursion (table &rest forms)
   (declare (indent 1)
            (debug (symbolp body)))
-  `(if (etable-has-focus ,table)
-       (let ((tpos (etable-get-selected-cell-position ,table)))
-         (unwind-protect
-             (progn
-               ,@forms)
-           (etable-goto-cell-position ,table tpos)))
-     (save-excursion
-       ,@forms)))
+  (let ((tbl (make-symbol "table")))
+    `(let ((,tbl ,table))
+       (if (etable-has-focus ,tbl)
+           (let ((tpos (etable-get-selected-cell-position ,tbl)))
+             (unwind-protect
+                 (progn
+                   ,@forms)
+               (etable-goto-cell-position ,tbl tpos)))
+         (save-excursion
+           ,@forms)))))
 
 ;;; etable view implementation
 (defclass etable ()
