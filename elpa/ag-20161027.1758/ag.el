@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.48
-;; Package-Version: 20161021.2133
+;; Package-Version: 20161027.1758
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -195,9 +195,9 @@ different window, according to `ag-reuse-window'."
 (defun ag/buffer-name (search-string directory regexp)
   "Return a buffer name formatted according to ag.el conventions."
   (cond
-   (ag-reuse-buffers "*ag search")
-   (regexp (format "*ag search regexp:%s dir:%s" search-string directory))
-   (:else (format "*ag search text:%s dir:%s" search-string directory))))
+   (ag-reuse-buffers "*ag search*")
+   (regexp (format "*ag search regexp:%s dir:%s*" search-string directory))
+   (:else (format "*ag search text:%s dir:%s*" search-string directory))))
 
 (defun ag/format-ignore (ignores)
   "Prepend '--ignore' to every item in IGNORES."
