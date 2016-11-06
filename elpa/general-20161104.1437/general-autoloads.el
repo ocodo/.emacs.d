@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "general" "general.el" (22538 11523 0 0))
+;;;### (autoloads nil "general" "general.el" (0 0 0 0))
 ;;; Generated autoloads from general.el
 
 (autoload 'general-define-key "general" "\
@@ -35,13 +35,20 @@ MAPS. This may be particularly useful if you are using default prefixes in a
 wrapper so that you can add to them without needing to re-specify all of them.
 If none of the other prefix arguments are specified, INFIX will have no effect.
 
+If PREFIX-COMMAND is specified, a prefix keymap/command will be created using
+`define-prefix-command' as long as the symbol specified is not already bound (to
+ensure that an existing prefix keymap is not overwritten if the
+`general-define-key' function is re-evaluated). All prefixes will then be bound
+to PREFIX-COMMAND. PREFIX-MAP and PREFIX-NAME can additionally be specified and
+are used as the last two arguments to `define-prefix-command'.
+
 Unlike with normal key definitions functions, the keymaps in KEYMAPS should be
 quoted (this makes it easy to check if there is only one keymap instead of a
 list of keymaps).
 
 MAPS will be recorded for later use with `general-describe-keybindings'.
 
-\(fn &rest MAPS &key (PREFIX general-default-prefix) (NON-NORMAL-PREFIX general-default-non-normal-prefix) (GLOBAL-PREFIX general-default-global-prefix) (INFIX nil) (STATES general-default-states) (KEYMAPS general-default-keymaps) (PREDICATE nil) (PACKAGE nil) (MAJOR-MODE nil) &allow-other-keys)" nil nil)
+\(fn &rest MAPS &key (PREFIX general-default-prefix) (NON-NORMAL-PREFIX general-default-non-normal-prefix) (GLOBAL-PREFIX general-default-global-prefix) INFIX PREFIX-COMMAND PREFIX-MAP PREFIX-NAME (STATES general-default-states) (KEYMAPS general-default-keymaps) PREDICATE PACKAGE MAJOR-MODE &allow-other-keys)" nil nil)
 
 (autoload 'general-create-definer "general" "\
 A helper macro to create key definitions functions.
@@ -109,7 +116,7 @@ automatically generated name and docstring for the created function and are
 potentially useful if you want to create multiple, different commands using the
 same FALLBACK-COMMAND (e.g. `self-insert-command').
 
-\(fn FALLBACK-COMMAND &rest MAPS &key NAME DOCSTRING &allow-other-keys)" nil t)
+\(fn FALLBACK-COMMAND &rest MAPS &key TIMEOUT INHERIT-KEYMAP NAME DOCSTRING &allow-other-keys)" nil t)
 
 (function-put 'general-key-dispatch 'lisp-indent-function '1)
 
@@ -138,10 +145,11 @@ aliases such as `nmap' for `general-nmap'.
 
 \(fn &optional SHORT-NAMES DEFAULT-TO-STATES)" nil t)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "general" '("general-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("elpa.el" "general-pkg.el") (22538 11523
-;;;;;;  0 0))
+;;;### (autoloads nil nil ("elpa.el" "general-pkg.el") (0 0 0 0))
 
 ;;;***
 
