@@ -1,10 +1,9 @@
 ;;; highlight-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "highlight" "highlight.el" (22396 29041 49605
-;;;;;;  43000))
+;;;### (autoloads nil "highlight" "highlight.el" (0 0 0 0))
 ;;; Generated autoloads from highlight.el
 
 (defvar hlt-auto-face-foreground nil "\
@@ -417,7 +416,11 @@ With a prefix arg, use all buffers that are visible or iconified.
 \(This first unhighlights occurrences, to prevent stacking up multiple
 highlighting on the same occurrences.)
 
-\(fn SYMBOL &optional START END ALL-BUFFERS-P)" t nil)
+When called from Lisp:
+* ALL-BUFFERS-P corresponds to the prefix-argument behavior.
+* FACE is the face to use.
+
+\(fn SYMBOL &optional ALL-BUFFERS-P FACE)" t nil)
 
 (autoload 'hlt-unhighlight-symbol "highlight" "\
 Unhighlight occurrences of SYMBOL.
@@ -427,7 +430,11 @@ pointer if the command is invoked using the mouse.
 Unhighlight over the region if active, or the buffer otherwise.
 With a prefix arg, use all buffers that are visible or iconified.
 
-\(fn SYMBOL &optional START END ALL-BUFFERS-P)" t nil)
+When called from Lisp:
+* ALL-BUFFERS-P corresponds to the prefix-argument behavior.
+* FACE is the face to unhighlight.
+
+\(fn SYMBOL &optional ALL-BUFFERS-P FACE)" t nil)
 
 (autoload 'hlt-highlight-enclosing-list "highlight" "\
 Highlight the ARGth level sexp enclosing point.
@@ -562,6 +569,8 @@ arg during Isearch exits Isearch.
 Non-interactively, FACE = nil means unhighlight all faces.
 
 \(fn &optional FACE MSGP MOUSEP BUFFERS STRING)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "highlight" '("hlt-" "menu-bar-edit-menu")))
 
 ;;;***
 
