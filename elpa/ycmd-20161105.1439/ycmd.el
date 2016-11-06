@@ -115,6 +115,8 @@
 (require 'request-deferred)
 (require 'etags)
 (require 'easymenu)
+(require 'diff)
+(require 'diff-mode)
 
 
 (defgroup ycmd nil
@@ -1075,7 +1077,7 @@ This function handles `UnknownExtraConf', `ValueError' and
   "Check whether RESPONSE is an exception."
   (assq 'exception response))
 
-(defun ycmd--send-request (subcommand success-handler)
+(defun ycmd--run-completer-command (subcommand success-handler)
   "Send SUBCOMMAND to the `ycmd' server.
 
 SUCCESS-HANDLER is called when for a successful response."
@@ -1095,14 +1097,21 @@ SUCCESS-HANDLER is called when for a successful response."
           (deferred:nextc it
             (lambda (response)
               (when response
-                (if (ycmd--exception? response)
-                    (progn
+                (cond
+                 ((ycmd--exception? response)
+                  (let-alist response
+                    (if (and (string= "ValueError" .exception.TYPE)
+                             (or (string-prefix-p "Supported commands are:\n" .message)
+                                 (string= "This Completer has no supported subcommands."
+                                          .message)))
+                        (message "%s is not supported by current Completer"
+                                 (car subcommand))
                       (ycmd--handle-exception response)
                       (run-hook-with-args 'ycmd-after-exception-hook
-                                          subcommand (plist-get data :buffer)
-                                          (plist-get data :pos) response))
-                  (when success-handler
-                    (funcall success-handler response)))))))))))
+                                          (car subcommand) (plist-get data :buffer)
+                                          (plist-get data :pos) response))))
+                 (success-handler
+                  (funcall success-handler response)))))))))))
 
 (defun ycmd-goto ()
   "Go to the definition or declaration of the symbol at current position."
@@ -1171,7 +1180,7 @@ Useful in case compile-time is considerable."
   (save-excursion
     (--when-let (bounds-of-thing-at-point 'symbol)
       (goto-char (car it)))
-    (ycmd--send-request type 'ycmd--handle-goto-success)))
+    (ycmd--run-completer-command type 'ycmd--handle-goto-success)))
 
 (defun ycmd--goto-location (location find-function)
   "Move cursor to LOCATION with FIND-FUNCTION.
@@ -1207,7 +1216,7 @@ Use BUFFER if non-nil or `current-buffer'."
 (defun ycmd-clear-compilation-flag-cache ()
   "Clear the compilation flags cache."
   (interactive)
-  (ycmd--send-request "ClearCompilationFlagCache" nil))
+  (ycmd--run-completer-command "ClearCompilationFlagCache" nil))
 
 (defun ycmd-restart-semantic-server (&optional arg)
   "Send request to restart the semantic completion backend server.
@@ -1219,7 +1228,7 @@ prompt for the Python binary."
                    (read-string "Python binary: "))))
     (when (not (s-blank? args))
       (setq subcommand (list subcommand args)))
-    (ycmd--send-request subcommand nil)))
+    (ycmd--run-completer-command subcommand nil)))
 
 (cl-defun ycmd--fontify-code (code &optional (mode major-mode))
   "Fontify CODE."
@@ -1250,14 +1259,14 @@ prompt for the Python binary."
 (defun ycmd-get-parent ()
   "Get semantic parent for symbol at point."
   (interactive)
-  (ycmd--send-request
+  (ycmd--run-completer-command
    "GetParent" 'ycmd--handle-get-parent-or-type-success))
 
 (defun ycmd-get-type (&optional arg)
   "Get type for symbol at point.
 If optional ARG is non-nil, get type without reparsing buffer."
   (interactive "P")
-  (ycmd--send-request
+  (ycmd--run-completer-command
    (if arg "GetTypeImprecise" "GetType")
    #'ycmd--handle-get-parent-or-type-success))
 
@@ -1279,9 +1288,28 @@ If optional ARG is non-nil, get type without reparsing buffer."
       (mapc (lambda (it)
               (let-alist it
                 (ycmd--insert-fixit-button
-                 (format "%d: %s\n" fixit-num .text)
-                 .chunks .location))
-              (setq fixit-num (1+ fixit-num)))
+                 (format "%d: %s\n" fixit-num .text) .chunks .location)
+                (setq fixit-num (1+ fixit-num))
+                (let* ((buffer (find-file-noselect .location.filepath))
+                       (buffertext (with-current-buffer buffer (buffer-string)))
+                       diff)
+                  (with-temp-buffer
+                    (insert buffertext)
+                    (ycmd--replace-chunk-list .chunks (current-buffer))
+                    (with-current-buffer
+                        (diff-no-select .location.filepath (current-buffer)
+                                        "-U0 --strip-trailing-cr" t)
+                      (goto-char (point-min))
+                      (unless (eobp)
+                        (ignore-errors
+                          (diff-beginning-of-hunk t))
+                        (when (looking-at diff-hunk-header-re-unified)
+                          (forward-line)
+                          (let ((beg (point))
+                                (end (diff-end-of-hunk)))
+                            (setq diff (buffer-substring-no-properties beg end)))))))
+                  (when diff
+                    (insert (format "%s\n" (ycmd--fontify-code diff 'diff-mode)))))))
             fixit)
       (goto-char (point-min))
       (when title (forward-line 1))
@@ -1365,11 +1393,11 @@ working buffer."
         (and (= line-num-1 line-num-2)
              (< column-num-1 column-num-2)))))
 
-(defun ycmd--replace-chunk-list (chunks)
+(defun ycmd--replace-chunk-list (chunks &optional buffer)
   "Replace list of CHUNKS.
 
-If BUFFER is spacified use it as working buffer, else use current
-buffer."
+If BUFFER is specified use it as working buffer, else use buffer
+specified in fixit chunk."
   (let ((chunks-sorted (sort chunks 'ycmd--chunk-<))
         (last-line -1)
         (line-delta 0)
@@ -1379,8 +1407,8 @@ buffer."
         (-when-let* ((chunk-start (ycmd--get-chunk-start-line-and-column c))
                      (chunk-end (ycmd--get-chunk-end-line-and-column c))
                      (replacement-text .replacement_text)
-                     (chunk-filepath .range.start.filepath)
-                     (buffer (find-file-noselect chunk-filepath)))
+                     (buffer (or buffer (find-file-noselect
+                                         .range.start.filepath))))
           (unless (= (car chunk-start) last-line)
             (setq last-line (car chunk-end))
             (setq char-delta 0))
@@ -1414,13 +1442,12 @@ buffer."
 (defun ycmd-fixit()
   "Get FixIts for current line."
   (interactive)
-  (ycmd--send-request "FixIt" 'ycmd--handle-fixit-success))
+  (ycmd--run-completer-command "FixIt" 'ycmd--handle-fixit-success))
 
 (defun ycmd--handle-refactor-rename-success (response &optional no-confirm)
   "Handle a successful RenameRefactor RESPONSE.
 If NO-CONFIRM is non-nil, don't ask the user to confirm the rename."
-  (-if-let* ((fixits (cdr (assq 'fixits response)))
-             (fixits (append fixits nil)))
+  (-if-let (fixits (cdr (assq 'fixits response)))
       (dolist (fixit fixits)
         (-when-let (chunks (cdr (assq 'chunks fixit)))
           (let ((chunks-by-filepath
@@ -1438,7 +1465,7 @@ If NO-CONFIRM is non-nil, don't ask the user to confirm the rename."
   "Refactor current context with NEW-NAME."
   (interactive "MNew variable name: ")
   (when (not (s-blank? new-name))
-    (ycmd--send-request (list "RefactorRename" new-name)
+    (ycmd--run-completer-command (list "RefactorRename" new-name)
                         'ycmd--handle-refactor-rename-success)))
 
 (defun ycmd-show-documentation (&optional arg)
@@ -1447,7 +1474,7 @@ If NO-CONFIRM is non-nil, don't ask the user to confirm the rename."
 If optional ARG is non-nil do not reparse buffer before getting
 the documentation."
   (interactive "P")
-  (ycmd--send-request
+  (ycmd--run-completer-command
    (if arg "GetDocImprecise" "GetDoc")
    'ycmd--handle-get-doc-success))
 
