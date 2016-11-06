@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 17 Oct 2016
 ;; Version: 2.3
-;; Package-Version: 20161017.1640
+;; Package-Version: 20161031.1025
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -48,6 +48,7 @@
 (eval-when-compile (require 'regexp-opt))
 
 (declare-function package-installed-p "package")
+(declare-function package-read-all-archive-contents "package" ())
 
 (defgroup use-package nil
   "A use-package declaration for simplifying your `.emacs'."

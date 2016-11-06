@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "use-package" "use-package.el" (22533 41805
-;;;;;;  0 0))
+;;;### (autoloads nil "use-package" "use-package.el" (0 0 0 0))
 ;;; Generated autoloads from use-package.el
 
 (autoload 'use-package "use-package" "\
@@ -61,6 +60,8 @@ this file.  Usage:
 \(fn NAME &rest ARGS)" nil t)
 
 (function-put 'use-package 'lisp-indent-function '1)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "use-package" '("use-package-")))
 
 ;;;***
 
