@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "showkey" "showkey.el" (22452 31607 696441
-;;;;;;  224000))
+;;;### (autoloads nil "showkey" "showkey.el" (0 0 0 0))
 ;;; Generated autoloads from showkey.el
 
 (let ((loads (get 'Show-Key 'custom-loads))) (if (member '"showkey" loads) nil (put 'Show-Key 'custom-loads (cons '"showkey" loads))))
@@ -47,6 +46,8 @@ Note that keys such as `C-g' that quit, and keys that raise an error,
 are not logged.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "showkey" '("showkey-")))
 
 ;;;***
 

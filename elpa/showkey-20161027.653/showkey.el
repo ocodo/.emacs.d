@@ -7,11 +7,11 @@
 ;; Copyright (C) 2014-2016, Drew Adams, all rights reserved.
 ;; Created: Sun Mar 22 16:24:39 2015 (-0700)
 ;; Version: 0
-;; Package-Version: 20160816.2247
+;; Package-Version: 20161027.653
 ;; Package-Requires: ()
-;; Last-Updated: Tue Aug 16 22:46:45 2016 (-0700)
+;; Last-Updated: Thu Oct 27 06:54:35 2016 (-0700)
 ;;           By: dradams
-;;     Update #: 123
+;;     Update #: 135
 ;; URL: http://www.emacswiki.org/showkey.el
 ;; Doc URL: http://www.emacswiki.org/ShowKey
 ;; Keywords: help keys mouse
@@ -19,7 +19,7 @@
 ;; 
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   `fit-frame'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 
@@ -60,22 +60,26 @@
 ;;  * `showkey-tooltip-key-only-flag' non-nil means show only the key
 ;;    used, not also its description.  The default value is nil.
 ;;
+;;  * `showkey-tooltip-timeout' is the number of seconds to show the
+;;    tooltip, before hiding it.  (It is also hidden upon any user
+;;    event, such as hitting another key.)
 ;;
+;;
+;;
+;;  Commands defined here:
+;;
+;;    `showkey-log-mode', `showkey-tooltip-mode'.
 ;;
 ;;  User options defined here:
 ;;
 ;;    `showkey-log-erase-keys', `showkey-log-frame-alist',
 ;;    `showkey-tooltip-height', `showkey-log-ignored-events',
 ;;    `showkey-tooltip-ignored-events',
-;;    `showkey-tooltip-key-only-flag'.
+;;    `showkey-tooltip-key-only-flag', `showkey-tooltip-timeout'.
 ;;
 ;;  Faces defined here:
 ;;
-;     `showkey-log-latest'.
-;;
-;;  Commands defined here:
-;;
-;;    `showkey-log-mode', `showkey-tooltip-mode'.
+;;    `showkey-log-latest'.
 ;;
 ;;  Non-interactive functions defined here:
 ;;
@@ -91,6 +95,9 @@
 ;; 
 ;;; Change Log:
 ;;
+;; 2016/10/27 dadams
+;;     Added: showkey-tooltip-timeout.
+;;     showkey-show-tooltip: Use showkey-tooltip-timeout.
 ;; 2016/08/16 dadams
 ;;     showkey-log-frame-alist: Commented out font spec.
 ;; 2016/07/04 dadams
@@ -170,13 +177,6 @@ This is used by `showkey-log-mode'."
   "Alist of frame parameters for the `*KEYS*' frame of `showkey-log-mode'."
   :type 'alist :group 'Show-Key)
 
-(defcustom showkey-tooltip-height 100
-  "The height of the tooltip text, in units of 1/10 point."
-  :type '(restricted-sexp
-          :match-alternatives ((lambda (x) (and (integerp x)  (> x 0))))
-          :value 100)
-  :group 'Show-Key)
-
 (defcustom showkey-log-ignored-events '("^<mouse-movement>")
   "List of strings naming events to ignore for `showkey-log-mode'.
 These events are not logged in buffer `*KEYS*'.
@@ -185,6 +185,13 @@ Each string is used as a regexp to match the user-friendly description
 of an event.  It should be `^' followed by the event name enclosed in
 angle brackets.  Example: \"^<mouse-movement>\"."
   :type '(repeat string) :group 'Show-Key)
+
+(defcustom showkey-tooltip-height 100
+  "The height of the tooltip text, in units of 1/10 point."
+  :type '(restricted-sexp
+          :match-alternatives ((lambda (x) (and (integerp x)  (> x 0))))
+          :value 100)
+  :group 'Show-Key)
 
 (defcustom showkey-tooltip-ignored-events '("^<mouse-movement>"
                                             "^<vertical-scroll-bar>"
@@ -200,6 +207,11 @@ angle brackets.  Example: \"^<mouse-movement>\"."
 (defcustom showkey-tooltip-key-only-flag nil
   "Non-nil means show only the key used, not also its description."
   :type 'boolean :group 'Show-Key)
+
+(defcustom showkey-tooltip-timeout 5
+  "Hide tooltip after this many seconds.
+\(It is also hidden upon any user event, such as hitting another key.)"
+  :type 'integer :group 'Show-Key)
 
 (defvar showkey-nb-consecutives 1
   "Counter of how many times the current key has been pressed.")
@@ -275,8 +287,11 @@ are not indicated."
                (y    (cdr x.y)))
           (when (string= "" mouse-msg)
             (set-mouse-position (selected-frame) (+ 3 x) (+ 2 y))))
-        (x-show-tip
-         (propertize cmd-desc 'face `(:foreground "red" :height ,showkey-tooltip-height)))))))
+        (x-show-tip (propertize cmd-desc
+                                'face `(:foreground "red" :height ,showkey-tooltip-height))
+                    nil
+                    nil
+                    showkey-tooltip-timeout)))))
 ;;;###autoload
 (define-minor-mode showkey-log-mode
     "Global minor mode that logs the keys you use.
