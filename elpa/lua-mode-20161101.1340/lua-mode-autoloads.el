@@ -3,8 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "lua-mode" "lua-mode.el" (22459 4218 66179
-;;;;;;  468000))
+;;;### (autoloads nil "init-tryout" "init-tryout.el" (0 0 0 0))
+;;; Generated autoloads from init-tryout.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "init-tryout" '("add-trace-for")))
+
+;;;***
+
+;;;### (autoloads nil "lua-mode" "lua-mode.el" (0 0 0 0))
 ;;; Generated autoloads from lua-mode.el
 
 (autoload 'lua-mode "lua-mode" "\
@@ -25,10 +31,11 @@ When called interactively, switch to the process buffer.
 
 \(fn &optional NAME PROGRAM STARTFILE &rest SWITCHES)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lua-mode" '("lua-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("init-tryout.el" "lua-mode-pkg.el") (22459
-;;;;;;  4218 62179 474000))
+;;;### (autoloads nil nil ("lua-mode-pkg.el") (0 0 0 0))
 
 ;;;***
 
