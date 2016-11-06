@@ -1,10 +1,10 @@
 ;;; evil-nerd-commenter-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "evil-nerd-commenter" "evil-nerd-commenter.el"
-;;;;;;  (22347 49597 313212 357000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from evil-nerd-commenter.el
 
 (autoload 'evilnc-comment-or-uncomment-paragraphs "evil-nerd-commenter" "\
@@ -62,8 +62,20 @@ Then we operate the expanded region.  NUM is ignored.
 
 \(fn &optional NUM)" t nil)
 
+(autoload 'evilnc-comment-and-kill-ring-save "evil-nerd-commenter" "\
+Comment lines save origin lines into `kill-ring'.
+NUM could be negative.
+
+Case 1: If no region selected, operate on current line.
+;; if NUM>1, comment/uncomment extra N-1 lines from next line
+
+Case 2: Selected region is expanded to make it contain whole lines.
+Then we operate the expanded region.  NUM is ignored.
+
+\(fn &optional NUM)" t nil)
+
 (autoload 'evilnc-copy-to-line "evil-nerd-commenter" "\
-Copy from the current line to LINENUM line.  For non-evil user only.
+Copy from current line to LINENUM line. For non-evil user only.
 
 \(fn &optional LINENUM)" t nil)
 
@@ -82,10 +94,12 @@ Set the hotkeys of evil-nerd-comment.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-nerd-commenter" '("evilnc-")))
+
 ;;;***
 
 ;;;### (autoloads nil nil ("evil-nerd-commenter-operator.el" "evil-nerd-commenter-pkg.el")
-;;;;;;  (22347 49597 326757 46000))
+;;;;;;  (0 0 0 0))
 
 ;;;***
 
