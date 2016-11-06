@@ -132,7 +132,7 @@
 
 (eieio-defclass-autoload 'gh-issues-api '(gh-api-v3 gh-comments-api-mixin) "gh-issues" "Github Issues api")
 
-(gh-defclass gh-issues-issue (gh-ref-object) ((number :initarg :number) (state :initarg :state) (title :initarg :title) (body :initarg :body) (user :initarg :user :initform nil :marshal-type gh-user) (labels :initarg :labels :initform nil :marshal-type (list gh-issues-label)) (assignee :initarg :assignee :initform nil :marshal-type gh-user) (milestone :initarg :milestone :initform nil :marshal-type gh-issues-milestone) (comments :initarg :comments :initform 0) (pull-request :initarg :pull-request :marshal-type gh-issues-pull-request) (closed-at :initarg :created-at) (created-at :initarg :created-at) (updated-at :initarg :updated-at)) "issues request")
+(gh-defclass gh-issues-issue (gh-ref-object) ((number :initarg :number) (state :initarg :state) (title :initarg :title) (body :initarg :body) (user :initarg :user :initform nil :marshal-type gh-user) (labels :initarg :labels :initform nil :marshal-type (list gh-issues-label)) (assignees :initarg :assignees :initform nil :marshal-type (list gh-user)) (assignee :initarg :assignee :initform nil :marshal-type gh-user) (milestone :initarg :milestone :initform nil :marshal-type gh-issues-milestone) (comments :initarg :comments :initform 0) (pull-request :initarg :pull-request :marshal-type gh-issues-pull-request) (closed-at :initarg :closed-at) (created-at :initarg :created-at) (updated-at :initarg :updated-at)) "issues request")
 
 (gh-defclass gh-issues-pull-request (gh-object) ((html-url :initarg :html-url) (diff-url :initarg :diff-url) (patch-url :initarg :patch-url)))
 
