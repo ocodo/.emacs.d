@@ -608,10 +608,19 @@ See `helm-log-save-maybe' for more info."
 
 (defcustom helm-show-action-window-other-window nil
   "Show action buffer beside `helm-buffer' when non-nil.
+
+If nil don't split and replace helm-buffer by the action buffer
+in same window.
+If left display the action buffer at the left of helm-buffer.
+If right or any other value, split at right.
+
 Note that this may not fit well with some helm window configurations,
 so it have only effect when `helm-always-two-windows' is non-nil."
   :group 'helm
-  :type 'boolean)
+  :type '(choice
+          (const :tag "Split at left" left)
+          (const :tag "Don't split" nil)
+          (other :tag "Split at right" right)))
 
 ;;; Faces
 ;;
@@ -654,7 +663,13 @@ so it have only effect when `helm-always-two-windows' is non-nil."
 (defface helm-candidate-number
   '((((background dark)) :background "Yellow" :foreground "black")
     (((background light)) :background "#faffb5" :foreground "black"))
-  "Face for candidate number in mode-line." :group 'helm-faces)
+  "Face for candidate number in mode-line."
+  :group 'helm-faces)
+
+(defface helm-candidate-number-suspended
+  '((t (:inherit helm-candidate-number :inverse-video t)))
+  "Face for candidate number in mode-line when helm is suspended."
+  :group 'helm-faces)
 
 (defface helm-selection
   '((((background dark)) :background "ForestGreen"
@@ -2499,7 +2514,9 @@ This can be useful for example for quietly writing a complex regexp."
       (setq helm-pattern ""))
     (message (if helm-suspend-update-flag
                  "Helm update suspended!"
-               "Helm update re-enabled!"))))
+               "Helm update re-enabled!"))
+    (helm-aif (helm-get-current-source)
+        (with-helm-buffer (helm-display-mode-line it t)))))
 (put 'helm-toggle-suspend-update 'helm-only t)
 
 (defun helm--advice-tramp-read-passwd (old--fn &rest args)
@@ -3304,16 +3321,17 @@ pattern has changed.
 
 Selection is preserved to current candidate or moved to
 PRESELECT, if specified."
-  (let* ((source    (helm-get-current-source))
-         (selection (helm-aif (helm-get-selection nil t source)
-                        (regexp-quote it)
-                      it)))
-    (setq helm--force-updating-p t)
-    (when source
-      (mapc 'helm-force-update--reinit
-            (helm-get-sources)))
-    (helm-update (or preselect selection) source)
-    (with-helm-window (recenter))))
+  (with-helm-window
+    (let* ((source    (helm-get-current-source))
+           (selection (helm-aif (helm-get-selection nil t source)
+                          (regexp-quote it)
+                        it)))
+      (setq helm--force-updating-p t)
+      (when source
+        (mapc 'helm-force-update--reinit
+              (helm-get-sources)))
+      (helm-update (or preselect selection) source)
+      (recenter))))
 
 (defun helm-refresh ()
   "Force recalculation and update of candidates."
@@ -3536,7 +3554,8 @@ If PRESERVE-SAVED-ACTION is non-`nil', then save the action."
                     (if (get-buffer helm-action-buffer)
                         (helm-get-selection helm-action-buffer)
                       (helm-get-actions-from-current-source)))))
-  (helm-aif (get-buffer helm-action-buffer)
+  (helm-aif (and (not helm-in-persistent-action)
+                 (get-buffer helm-action-buffer))
       (kill-buffer it))
   (let ((source (or helm-saved-current-source
                     (helm-get-current-source)))
@@ -3620,7 +3639,8 @@ If action buffer is selected, back to the helm buffer."
     (buffer-disable-undo)
     (set-window-buffer (if (and helm-show-action-window-other-window
                                 helm-always-two-windows)
-                           (split-window (get-buffer-window helm-buffer) nil 'right)
+                           (split-window (get-buffer-window helm-buffer)
+                                         nil helm-show-action-window-other-window)
                            (get-buffer-window helm-buffer))
                        helm-action-buffer)
     (set (make-local-variable 'helm-sources)
@@ -3628,6 +3648,8 @@ If action buffer is selected, back to the helm buffer."
           (helm-build-sync-source "Actions"
             :volatile t
             :nomark t
+            :persistent-action (lambda (_candidate) (ignore))
+            :persistent-help "Do nothing"
             :keymap 'helm-map
             :candidates actions
             :mode-line '("Action(s)" "\\<helm-map>\\[helm-select-action]:BackToCands RET/f1/f2/fn:NthAct")
@@ -3816,7 +3838,9 @@ it is \"Candidate\(s\)\" by default."
                  (format "[%s %s]"
                          (helm-get-candidate-number 'in-current-source)
                          cand-name))
-         'face 'helm-candidate-number)))))
+         'face (if helm-suspend-update-flag
+                   'helm-candidate-number-suspended
+                   'helm-candidate-number))))))
 
 (cl-defun helm-move-selection-common (&key where direction (follow t))
   "Move the selection marker to a new position.
@@ -4698,13 +4722,13 @@ Returns the resulting buffer."
                 buffer)))) ; a symbol.
     (with-current-buffer buf
       (erase-buffer)
-      (if (listp data)
-          (insert (mapconcat (lambda (i)
-                               (cond ((symbolp i) (symbol-name i))
-                                     ((numberp i) (number-to-string i))
-                                     (t i)))
-                             data "\n"))
-        (and (stringp data) (insert data))))
+      (cond ((listp data)
+             (insert (mapconcat (lambda (i)
+                                  (cond ((symbolp i) (symbol-name i))
+                                        ((numberp i) (number-to-string i))
+                                        (t i)))
+                                data "\n")))
+            ((stringp data) (insert data))))
     buf))
 
 
