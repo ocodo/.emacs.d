@@ -3,7 +3,7 @@
 ;;
 ;; Author: Vlad Piersec <vlad.piersec@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20150314.122
+;; Package-Version: 20161028.816
 ;; Keywords: themes
 ;; URL: https://github.com/caisah/seti-theme
 ;;
@@ -109,6 +109,52 @@
    `(dired-perm-write ((t (:foreground ,yellow :weight ultra-bold))))
    `(dired-symlink ((t (:foreground ,light-blue :weight normal))))
    `(dired-warning ((t (:inherit (font-lock-warning-face)))))
+
+   ;; helm
+   `(helm-bookmark-directory ((t (:inherit helm-ff-directory))))
+   `(helm-bookmark-file ((t (:foreground ,text))))
+   `(helm-bookmark-gnus ((t (:foreground ,text-2))))
+   `(helm-bookmark-info ((t (:foreground ,text-2))))
+   `(helm-bookmark-man ((t (:foreground ,text-2))))
+   `(helm-bookmark-w3m ((t (:foreground ,text-2))))
+   `(helm-buffer-directory ((t (:foreground ,text :background ,background))))
+   `(helm-buffer-file ((t (:foreground ,text :background ,background))))
+   `(helm-buffer-not-saved ((t (:foreground ,text-2 :background ,background))))
+   `(helm-buffer-process ((t (:foreground ,green :background ,background))))
+   `(helm-buffer-saved-out ((t (:foreground ,text :background ,background))))
+   `(helm-buffer-size ((t (:foreground ,text :background ,background))))
+   `(helm-candidate-number ((t (:background ,background :foreground ,green :inherit bold))))
+   `(helm-ff-directory ((t (:foreground ,green :background ,background :inherit bold))))
+   `(helm-ff-dotted-directory ((t (:foreground ,green :background ,background :inherit bold))))
+   `(helm-ff-dotted-symlink-directory ((t (:foreground ,light-blue :background ,background :inherit bold))))
+   `(helm-ff-executable ((t (:foreground ,intense-green :background ,background :weight normal))))
+   `(helm-ff-file ((t (:foreground ,text :background ,background :weight normal))))
+   `(helm-ff-invalid-symlink ((t (:foreground ,red :background ,background :inherit bold))))
+   `(helm-ff-prefix ((t (:foreground ,background :background ,green :weight normal))))
+   `(helm-ff-symlink ((t (:foreground ,light-blue :background ,background :inherit bold))))
+   `(helm-grep-cmd-line ((t (:foreground ,text :background ,background))))
+   `(helm-grep-file ((t (:foreground ,text :background ,background))))
+   `(helm-grep-finish ((t (:foreground ,text :background ,background))))
+   `(helm-grep-lineno ((t (:foreground ,text-4 :background ,background :inherit bold))))
+   `(helm-grep-match ((t (:foreground nil :background nil :inherit helm-match))))
+   `(helm-header ((t (:foreground ,text :background ,background-3 :underline (:color ,dark-blue :style line)))))
+   `(helm-header-line-left-margin ((t (:foreground ,green :background ,nil))))
+   `(helm-match ((t (:background ,text-highlight :foreground ,text-2))))
+   `(helm-match-item ((t (:background ,text-highlight :foreground ,intense-green))))
+   `(helm-moccur-buffer ((t (:foreground ,text-3 :background ,background))))
+   `(helm-selection ((t (:background ,text-region))))
+   `(helm-selection-line ((t (:background ,background-2))))
+   `(helm-separator ((t (:foreground ,text-2 :background ,background))))
+   `(helm-source-header ((t (:foreground ,text :background ,background-3 :underline (:color ,dark-blue :style line)))))
+   `(helm-time-zone-current ((t (:foreground ,green :background ,background))))
+   `(helm-time-zone-home ((t (:foreground ,text-2 :background ,background))))
+   `(helm-visible-mark ((t (:foreground ,green :background ,background-3))))
+
+   ;; helm-swoop
+   `(helm-swoop-target-line-block-face ((t (:foreground ,text :background ,text-highlight))))
+   `(helm-swoop-target-line-face ((t (:background ,text-highlight))))
+   `(helm-swoop-target-word-face ((t (:background ,text-highlight :foreground ,text-2))))
+
 
    ;; Lines
    `(linum ((t (:foreground ,text-4  :weight light :height 0.9))))
