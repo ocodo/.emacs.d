@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "diff-hl" "diff-hl.el" (22541 58013 0 0))
+;;;### (autoloads nil "diff-hl" "diff-hl.el" (0 0 0 0))
 ;;; Generated autoloads from diff-hl.el
 
 (autoload 'diff-hl-mode "diff-hl" "\
@@ -38,10 +38,11 @@ See `diff-hl-mode' for more information on Diff-Hl mode.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl" '("diff-hl-")))
+
 ;;;***
 
-;;;### (autoloads nil "diff-hl-amend" "diff-hl-amend.el" (22541 58013
-;;;;;;  0 0))
+;;;### (autoloads nil "diff-hl-amend" "diff-hl-amend.el" (0 0 0 0))
 ;;; Generated autoloads from diff-hl-amend.el
 
 (autoload 'diff-hl-amend-mode "diff-hl-amend" "\
@@ -74,10 +75,11 @@ See `diff-hl-amend-mode' for more information on Diff-Hl-Amend mode.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl-amend" '("turn-on-diff-hl-amend-mode" "diff-hl-amend-setup")))
+
 ;;;***
 
-;;;### (autoloads nil "diff-hl-dired" "diff-hl-dired.el" (22541 58013
-;;;;;;  0 0))
+;;;### (autoloads nil "diff-hl-dired" "diff-hl-dired.el" (0 0 0 0))
 ;;; Generated autoloads from diff-hl-dired.el
 
 (autoload 'diff-hl-dired-mode "diff-hl-dired" "\
@@ -90,10 +92,12 @@ Toggle VC diff highlighting on the side of a Dired window.
 
 \(fn)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl-dired" '("diff-hl-dired-")))
+
 ;;;***
 
-;;;### (autoloads nil "diff-hl-flydiff" "diff-hl-flydiff.el" (22541
-;;;;;;  58013 0 0))
+;;;### (autoloads nil "diff-hl-flydiff" "diff-hl-flydiff.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from diff-hl-flydiff.el
 
 (defvar diff-hl-flydiff-mode nil "\
@@ -111,10 +115,12 @@ Highlight diffs on-the-fly
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl-flydiff" '("diff-hl-flydiff")))
+
 ;;;***
 
-;;;### (autoloads nil "diff-hl-margin" "diff-hl-margin.el" (22541
-;;;;;;  58013 0 0))
+;;;### (autoloads nil "diff-hl-margin" "diff-hl-margin.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from diff-hl-margin.el
 
 (defvar diff-hl-margin-mode nil "\
@@ -132,9 +138,11 @@ Toggle displaying `diff-hl-mode' highlights on the margin.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl-margin" '("diff-hl-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("diff-hl-pkg.el") (22541 58013 0 0))
+;;;### (autoloads nil nil ("diff-hl-pkg.el") (0 0 0 0))
 
 ;;;***
 
