@@ -5,7 +5,7 @@
 ;; license that can be found in the LICENSE file.
 
 ;; Version: 0.1
-;; Package-Version: 20161013.1055
+;; Package-Version: 20161103.1316
 ;; Package-Requires: ((go-mode "1.3.1") (cl-lib "0.5"))
 ;; Keywords: tools
 
@@ -71,9 +71,9 @@
   nil
   "History of values supplied to `go-guru-set-scope'.")
 
-(defcustom go-guru-build-tags ""
+(defcustom go-guru-build-tags '()
   "Build tags passed to guru."
-  :type 'string
+  :type '(repeat string)
   :group 'go-guru)
 
 (defface go-guru-hl-identifier-face
@@ -242,7 +242,7 @@ output of the Go guru tool."
   "Erase default output header inserted by `compilation-mode'."
   (with-current-buffer (process-buffer proc)
     (let ((inhibit-read-only t))
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (delete-region (point) (point-max)))))
 
 (defun go-guru--start (mode)
