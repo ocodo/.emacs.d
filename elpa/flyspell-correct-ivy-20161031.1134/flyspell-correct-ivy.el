@@ -2,11 +2,11 @@
 ;;
 ;; Copyright (c) 2016 Boris Buliga
 ;;
-;; Author: Boris Buliga <d12frosted@gmail.com>
+;; Author: Boris Buliga <boris@d12frosted.io>
 ;; URL: https://github.com/d12frosted/flyspell-correct
-;; Package-Version: 20160730.201
-;; Package-X-Original-Version: 0.1.0
-;; Package-Requires: ((flyspell-correct "0.1.0") (ivy "0.8.0"))
+;; Package-Version: 20161031.1134
+;; Package-X-Original-Version: 0.4.0
+;; Package-Requires: ((flyspell-correct "0.4.0") (ivy "0.8.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
