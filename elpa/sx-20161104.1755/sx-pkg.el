@@ -1,4 +1,4 @@
-(define-package "sx" "20160125.1601" "StackExchange client. Ask and answer questions on Stack Overflow, Super User, and the likes"
+(define-package "sx" "20161104.1755" "StackExchange client. Ask and answer questions on Stack Overflow, Super User, and the likes"
   '((emacs "24.1")
     (cl-lib "0.5")
     (json "1.3")
