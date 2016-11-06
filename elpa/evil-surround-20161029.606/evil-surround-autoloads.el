@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-surround" "evil-surround.el" (22545 29259
-;;;;;;  0 0))
+;;;### (autoloads nil "evil-surround" "evil-surround.el" (0 0 0 0))
 ;;; Generated autoloads from evil-surround.el
  (autoload 'evil-surround-delete "evil-surround" nil t)
  (autoload 'evil-surround-change "evil-surround" nil t)
@@ -45,6 +44,8 @@ Evil-Surround mode is enabled in all buffers where
 See `evil-surround-mode' for more information on Evil-Surround mode.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-surround" '("evil-surround-")))
 
 ;;;***
 
