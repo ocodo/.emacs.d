@@ -161,6 +161,9 @@
                          :skip-chars "`',@")
    :respace multi-line-lisp-respacer))
 
+(multi-line-defhook lisp multi-line-lisp-strategy t)
+(multi-line-defhook emacs-lisp multi-line-lisp-strategy t)
+
 (defvar multi-line-add-trailing-comma-strategy
   (make-instance 'multi-line-strategy
    :respace (multi-line-respacers-with-single-line
@@ -173,8 +176,20 @@
 (multi-line-defhook go multi-line-add-trailing-comma-strategy t)
 (multi-line-defhook ruby multi-line-add-trailing-comma-strategy t)
 
-(multi-line-defhook lisp multi-line-lisp-strategy t)
-(multi-line-defhook emacs-lisp multi-line-lisp-strategy t)
+(defvar multi-line-leading-commas-find-strategy
+  (make-instance 'multi-line-forward-sexp-find-strategy
+                 :split-advance-fn (lambda ())))
+
+(defvar multi-line-leading-commas-strategy
+  (make-instance
+   'multi-line-strategy
+   :find multi-line-leading-commas-find-strategy
+   :respace
+   (multi-line-default-respacers
+    (multi-line-clearing-reindenting-respacer
+     (make-instance 'multi-line-always-newline)))))
+
+(multi-line-defhook haskell multi-line-leading-commas-strategy t)
 
 (defvar multi-line-clojure-find-strategy
   (make-instance

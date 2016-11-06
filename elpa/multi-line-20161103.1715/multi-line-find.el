@@ -37,28 +37,20 @@
 (defmethod multi-line-at-end-of-candidates
   ((strategy multi-line-forward-sexp-find-strategy))
   (or (looking-at (oref strategy done-regex))
-      (condition-case _ignored
-          (progn (forward-sexp)
-                 ;; If the forward-sexp succeeds, check if we are looking at the
-                 ;; done-regex again.
-                 (looking-at (oref strategy done-regex)))
-        ('scan-error t))))
+      (save-excursion
+        ;; Check to see if we get a scan error when trying to move forward
+        (condition-case _ignored (forward-sexp) ('scan-error t)))))
 
-(defmethod multi-line-find-next
+(defmethod multi-line-advance
   ((strategy multi-line-forward-sexp-find-strategy) &optional _context)
-  (let (last last-point)
-    (cl-loop
-     for this-point = (point)
-     until (equal this-point last-point)
-     do (setq last-point this-point)
-     ;; When we are at the end of the candidates simply return the current
-     ;; candidate.
-     when (or (multi-line-at-end-of-candidates strategy)
-              (when (looking-at (oref strategy split-regex))
-                (funcall (oref strategy split-advance-fn))
-                t))
-     return (make-instance 'multi-line-candidate)
-     finally (error "No candidate found"))))
+  (cl-loop
+   for failed = (condition-case _ignored (forward-sexp)
+                  ('error t))
+   when (or failed
+            (when (looking-at (oref strategy split-regex))
+              (funcall (oref strategy split-advance-fn))
+              t))
+   return nil))
 
 (defmethod multi-line-find ((strategy multi-line-forward-sexp-find-strategy)
                             &optional context)
@@ -70,10 +62,12 @@
            ;; hash body.
            (re-search-forward "[^[:space:]\n]") (backward-char)
            (cl-loop
-            for last-point = this-point
-            for this-point = (point)
-            until (equal this-point last-point)
-            collect (multi-line-find-next strategy context)))))
+            do (multi-line-advance strategy context)
+            ;; Make sure we're not adding the same point twice
+            until (and last-point (equal (point) last-point))
+            for last-point = (point)
+            collect (make-instance 'multi-line-candidate)
+            until (multi-line-at-end-of-candidates strategy)))))
 
 ;; A finder decorator that removes candidates that follow "keyword" arguments,
 ;; so that things like:

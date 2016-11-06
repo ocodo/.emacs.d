@@ -95,9 +95,8 @@
   "Compute the minimum line length of the current expression,
 assuming that no newline is inserted at the current candidate."
 
-  (let* ((candidate-length (length candidates))
-         (next-index (+ index 1))
-         (final-index (multi-line-final-index respacer candidate-length))
+  (let* ((next-index (+ index 1))
+         (final-index (multi-line-final-index respacer (length candidates)))
          (next-candidate (nth next-index candidates))
          (next-candidate-position
           (if next-candidate
