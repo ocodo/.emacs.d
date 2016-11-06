@@ -120,7 +120,7 @@ class GitElpa
   def updated_packages
     package_name = Regexp.new('^(.*)-.*?$')
     updatable = updatable_files_from_git_status.map { |name| name[8..name.length] }
-    updated_names = updatable.map { |u| package_name.match(u).to_a.dig(1) }.sort.uniq
+    updated_names = updatable.map { |u| package_name.match(u).to_a[1] rescue nil }.sort.uniq
     abort if updated_names.empty?
     updated_names
   end
@@ -157,7 +157,7 @@ class GitElpa
   end
 
   def generate_commit_message
-    versions_label = pluralise('version', @old&.length) if @old&.length.positive?
+    versions_label = pluralise('version', @old.length) if @old && @old.length.positive?
     return remove_package_message(versions_label) if @ver.nil? && @old.length.positive?
     return updating_new_and_remove_old_package_message(versions_label) if @old.length.positive?
     return adding_new_package_message if @old.length.zero?
