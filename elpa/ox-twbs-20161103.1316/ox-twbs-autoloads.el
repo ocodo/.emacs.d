@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ox-twbs" "ox-twbs.el" (22507 31365 61226 987000))
+;;;### (autoloads nil "ox-twbs" "ox-twbs.el" (0 0 0 0))
 ;;; Generated autoloads from ox-twbs.el
 
 (put 'org-twbs-head-include-default-style 'safe-local-variable 'booleanp)
@@ -106,6 +106,8 @@ publishing directory.
 Return output file name.
 
 \(fn PLIST FILENAME PUB-DIR)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ox-twbs" '("org-twbs-")))
 
 ;;;***
 
