@@ -1,3 +1,40 @@
+;;; noctilux-theme.el --- Dark theme inspired by LightTable
+
+;; Copyright (C) 2013-2016  Simon Manning
+
+;; Author: Simon Manning <simon@ecksdee.org>
+;; Maintainer: Simon Manning <simon@ecksdee.org>
+;; Package-Requires: ((emacs "24"))
+;; Package-Version: 20161029.810
+;; Homepage: https://github.com/sjrmanning/noctilux-theme
+
+;; This file is not part of GNU Emacs.
+
+;; This file is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This file is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; For a full copy of the GNU General Public License
+;; see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; A dark color theme for Emacs 24+ (using deftheme), inspired by the
+;; default dark theme in Light Table 0.4.0. This color theme is based
+;; off the definitions and format in sellout's awesome
+;; emacs-color-theme-solarized, providing support for a lot of modes.
+
+;; This is still pretty rough around the edges; I think some color
+;; tweaks are still needed, and pull requests are definitely welcome.
+
+;;; Code:
+
 (eval-when-compile
   (require 'cl))
 
@@ -649,4 +686,8 @@ the \"Gen RGB\" column in noctilux-definitions.el to improve them further."
   (add-to-list 'custom-theme-load-path
                (file-name-as-directory (file-name-directory load-file-name))))
 
-(provide 'noctilux-definitions)
+(create-noctilux-theme)
+
+(provide-theme 'noctilux)
+
+;;; noctilux-theme.el ends here
