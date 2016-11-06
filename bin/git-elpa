@@ -157,9 +157,9 @@ class GitElpa
   end
 
   def generate_commit_message
-    versions_label = pluralise('version', @old.length) if @old && @old.length.positive?
-    return remove_package_message(versions_label) if @ver.nil? && @old.length.positive?
-    return updating_new_and_remove_old_package_message(versions_label) if @old.length.positive?
+    versions_label = pluralise('version', @old.length) if @old && @old.length > 0
+    return remove_package_message(versions_label) if @ver.nil? && @old.length > 0
+    return updating_new_and_remove_old_package_message(versions_label) if @old.length > 0
     return adding_new_package_message if @old.length.zero?
   end
 
