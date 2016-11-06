@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20161005.1154
+;; Package-Version: 20161031.1056
 ;; Version: 1.1.15
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -150,6 +150,25 @@ This is a list of lists for replacing descriptions."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 
+(defcustom which-key-binding-filter-function nil
+  "Optional function to use to filter key bindings before they
+are processed by which-key. The function should accept a cons
+cell of the form (\"KEY\" . \"BINDING\") and the current prefix
+sequence as a string. If it returns nil, the key binding is
+ignored by which-key. Otherwise it should a cons cell of the same
+form. To leave the key binding unchanged simply return the
+original cons cell. Here's an example
+
+\(defun my-filter \(cell prefix\)
+  \(if \(and \(string-equal prefix \"SPC\"\)
+           \(string-equal \(car cell\) \"?\"\)\)
+      \(cons \"?\" \"NEW DESCRIPTION\")
+    cell\)\)
+
+\(setq which-key-binding-filter-function 'my-filter\)"
+  :group 'which-key
+  :type 'function)
+
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
 commands. If the element is a string, assume it is a regexp
@@ -212,6 +231,20 @@ location is tried."
                 (const (right bottom))
                 (const (bottom right))))
 
+(defcustom which-key-side-window-slot 0
+  "The `slot' to use for `display-buffer-in-side-window' when
+`which-key-popup-type' is 'side-window. Quoting from the
+docstring of `display-buffer-in-side-window',
+
+‘slot’ if non-nil, specifies the window slot where to display
+  BUFFER.  A value of zero or nil means use the middle slot on
+  the specified side.  A negative value means use a slot
+  preceding (that is, above or on the left of) the middle slot.
+  A positive value means use a slot following (that is, below or
+  on the right of) the middle slot.  The default is zero."
+  :group 'which-key
+  :type 'integer)
+
 (defcustom which-key-side-window-max-width 0.333
   "Maximum width of which-key popup when type is side-window and
 location is left or right.
@@ -268,6 +301,13 @@ See the README and the docstrings for those functions for more
 information."
   :group 'which-key
   :type 'function)
+
+(defcustom which-key-sort-uppercase-first t
+  "If non-nil, uppercase comes before lowercase in sorting
+function chosen in `which-key-sort-order'. Otherwise, the order
+is reversed."
+  :group 'which-key
+  :type 'boolean)
 
 (defcustom which-key-paging-prefixes '()
   "Enable paging for these prefixes."
@@ -941,37 +981,28 @@ call signature in different emacs versions"
   "Show which-key buffer when popup type is side-window."
   (let* ((height (car act-popup-dim))
          (width (cdr act-popup-dim))
-         (side which-key-side-window-location)
          (alist
           (if which-key-allow-imprecise-window-fit
               `((window-width .  ,(which-key--text-width-to-total width))
-                (window-height . ,height))
-            '((window-width . which-key--fit-buffer-to-window-horizontally)
-              (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))))))
-    ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
-    ;; were added in Emacs 24.3
-
-    ;; If two side windows exist in the same side, `display-buffer-in-side-window'
-    ;; will use on of them, which isn't desirable. `display-buffer-in-major-side-window'
-    ;; will pop a new window, so we use that.
-    ;; +-------------------------+         +-------------------------+
-    ;; |     regular window      |         |     regular window      |
-    ;; |                         |         +------------+------------+
-    ;; +------------+------------+   -->   | side-win 1 | side-win 2 |
-    ;; | side-win 1 | side-win 2 |         |------------+------------|
-    ;; |            |            |         |     which-key window    |
-    ;; +------------+------------+         +------------+------------+
-    ;; (display-buffer which-key--buffer (cons 'display-buffer-in-side-window alist))
-    ;; side defaults to bottom
+                (window-height . ,height)
+                (side . ,which-key-side-window-location)
+                (slot . ,which-key-side-window-slot))
+            `((window-width . which-key--fit-buffer-to-window-horizontally)
+              (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))
+              (side . ,which-key-side-window-location)
+              (slot . ,which-key-side-window-slot)))))
+    ;; Previously used `display-buffer-in-major-side-window' here, but
+    ;; apparently that is meant to be an internal function. See emacs bug #24828
+    ;; and advice given there.
     (cond
      ((eq which-key--multiple-locations t)
       ;; possibly want to switch sides in this case so we can't reuse the window
       (delete-windows-on which-key--buffer)
-      (display-buffer-in-major-side-window which-key--buffer side 0 alist))
+      (display-buffer-in-side-window which-key--buffer alist))
      ((get-buffer-window which-key--buffer)
       (display-buffer-reuse-window which-key--buffer alist))
      (t
-      (display-buffer-in-major-side-window which-key--buffer side 0 alist)))))
+      (display-buffer-in-side-window which-key--buffer alist)))))
 
 (defun which-key--show-buffer-frame (act-popup-dim)
   "Show which-key buffer when popup type is frame."
@@ -1086,13 +1117,14 @@ width) in lines and characters respectively."
 ;;; Sorting functions
 
 (defun which-key--string< (a b &optional alpha)
-  (if alpha
-      (let ((da (downcase a))
-            (db (downcase b)))
-        (if (string-equal da db)
-            (not (string-lessp a b))
-          (string-lessp da db)))
-    (string-lessp a b)))
+  (let* ((da (downcase a))
+         (db (downcase b)))
+    (cond ((string-equal da db)
+           (if which-key-sort-uppercase-first
+               (string-lessp a b)
+             (not (string-lessp a b))))
+          (alpha (string-lessp da db))
+          (t (string-lessp a b)))))
 
 (defun which-key--key-description< (a b &optional alpha)
   "Sorting function used for `which-key-key-order' and
@@ -1117,7 +1149,7 @@ width) in lines and characters respectively."
             ((and asp? bsp?)
              (if (string-equal (substring a 0 3) (substring b 0 3))
                  (which-key--key-description< (substring a 3) (substring b 3) alpha)
-               (string-lessp a b)))
+               (which-key--string< a b alpha)))
             ((or asp? bsp?) asp?)
             ((and a1? b1?) (which-key--string< a b alpha))
             ((or a1? b1?) a1?)
@@ -1128,9 +1160,9 @@ width) in lines and characters respectively."
             ((and apr? bpr?)
              (if (string-equal (substring a 0 2) (substring b 0 2))
                  (which-key--key-description< (substring a 2) (substring b 2) alpha)
-               (string-lessp a b)))
+               (which-key--string< a b alpha)))
             ((or apr? bpr?) apr?)
-            (t (string-lessp a b))))))
+            (t (which-key--string< a b alpha))))))
 
 (defsubst which-key-key-order-alpha (acons bcons)
   "Order key descriptions A and B.
@@ -1167,6 +1199,16 @@ coming before a prefix. Within these categories order using
         (bpref? (which-key--group-p (cdr bcons))))
     (if (not (eq apref? bpref?))
         (and (not apref?) bpref?)
+      (which-key-key-order acons bcons))))
+
+(defun which-key-prefix-then-key-order-reverse (acons bcons)
+  "Order first by whether A and/or B is a prefix with prefix
+coming before a prefix. Within these categories order using
+`which-key-key-order'."
+  (let ((apref? (which-key--group-p (cdr acons)))
+        (bpref? (which-key--group-p (cdr bcons))))
+    (if (not (eq apref? bpref?))
+        (and apref? (not bpref?))
       (which-key-key-order acons bcons))))
 
 (defun which-key-local-then-key-order (acons bcons)
@@ -1463,7 +1505,14 @@ BUFFER that follow the key sequence KEY-SEQ."
   (let* ((unformatted (if bindings bindings (which-key--get-current-bindings))))
     (when which-key-sort-order
       (setq unformatted
-            (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
+            (sort unformatted which-key-sort-order)))
+    (when which-key-binding-filter-function
+      (setq unformatted
+            (delq nil (mapcar
+                       (lambda (cell)
+                         (funcall which-key-binding-filter-function
+                                  cell (which-key--current-key-string)))
+                       unformatted))))
     (which-key--format-and-replace unformatted)))
 
 ;;; Functions for laying out which-key buffer pages
