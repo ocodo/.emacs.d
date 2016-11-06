@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-creamsody
-;; Package-Version: 20161024.2339
-;; Version: 0.1.3
+;; Package-Version: 20161105.144
+;; Version: 0.1.4
 
 ;;; Commentary:
 ;;  Straight from the soda fountain.
@@ -709,8 +709,8 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(defun creamsody-modeline ()
-  "Optional modeline styling for creamsody."
+(defun creamsody-modeline-one ()
+  "Optional modeline style one for creamsody."
   (interactive)
   (set-face-attribute 'mode-line nil
                       :inherit 'mode-line-face
@@ -726,6 +726,62 @@
                       :height 120
                       :inverse-video nil
                       :box '(:line-width 6 :color "#327789" :style nil)))
+
+(defun creamsody-modeline-two ()
+  "Optional modeline style two for creamsody."
+  (interactive)
+  (set-face-attribute 'mode-line nil
+                      :inherit 'mode-line-face
+                      :foreground "#86C9D3"
+                      :background "#327789"
+                      :height 120
+                      :inverse-video nil
+                      :box '(:line-width 6 :color "#327789" :style nil))
+  (set-face-attribute 'mode-line-inactive nil
+                      :inherit 'mode-line-face
+                      :foreground "#7DBCC6"
+                      :background "#0E252D"
+                      :height 120
+                      :inverse-video nil
+                      :box '(:line-width 6 :color "#0E252D" :style nil)))
+
+(defun creamsody-modeline-three ()
+  "Optional modeline style three for creamsody."
+  (interactive)
+  (set-face-attribute 'mode-line nil
+                      :inherit 'mode-line-face
+                      :foreground "#0E252D"
+                      :background "#327789"
+                      :height 120
+                      :inverse-video nil
+                      :box '(:line-width 6 :color "#327789" :style nil))
+  (set-face-attribute 'mode-line-inactive nil
+                      :inherit 'mode-line-face
+                      :foreground "#537D85"
+                      :background "#0E252D"
+                      :height 120
+                      :inverse-video nil
+                      :box '(:line-width 6 :color "#0E252D" :style nil)))
+
+(defun creamsody-modeline-four ()
+  "Optional modeline style four for creamsody."
+  (interactive)
+  (set-face-attribute 'mode-line nil
+                      :inherit 'mode-line-face
+                      :foreground "#FFFFFF"
+                      :background "#327789"
+                      :height 120
+                      :inverse-video nil
+                      :box '(:line-width 6 :color "#327789" :style nil))
+  (set-face-attribute 'mode-line-inactive nil
+                      :inherit 'mode-line-face
+                      :foreground "#327789"
+                      :background "#000000"
+                      :height 120
+                      :inverse-video nil
+                      :box '(:line-width 6 :color "#000000" :style nil)))
+
+(defalias 'creamsody-modeline 'creamsody-modeline-one)
 
 (provide-theme 'creamsody)
 
