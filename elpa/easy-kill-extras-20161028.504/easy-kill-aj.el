@@ -1,6 +1,6 @@
 ;;; easy-kill-aj.el --- ace-jump integration for easy-kill.
 
-;; Copyright (c) 2015 Akinori MUSHA
+;; Copyright (c) 2015-2016 Akinori MUSHA
 ;;
 ;; All rights reserved.
 ;;
@@ -68,10 +68,9 @@
   (setq easy-kill-aj--easy-command nil
         easy-kill-aj--original-pos nil))
 
-(defun easy-kill-aj--after-jump (command orig-pos)
+(defun easy-kill-aj--after-jump (command orig-pos line-mode)
   (let* ((pos (point))
          (backward (> orig-pos pos))
-         (line-mode (eq ace-jump-current-mode 'ace-jump-line-mode))
          (beg orig-pos)
          (end (if line-mode pos
                 (if backward pos (1+ pos)))))
@@ -95,13 +94,16 @@
       (let ((command easy-kill-aj--easy-command)
             (orig-pos easy-kill-aj--original-pos))
         ad-do-it
-        (if (/= (point) orig-pos)
-            ;; jumped directly
-            (easy-kill-aj--after-jump command orig-pos))))))
+        (and orig-pos
+             (/= (point) orig-pos)
+             ;; jumped directly
+             (easy-kill-aj--after-jump command orig-pos
+                                       ,(eq mode 'ace-jump-line-mode)))))))
 
 (defadvice ace-jump-move (around easy-kill-extras activate)
   (let ((command easy-kill-aj--easy-command)
-        (orig-pos easy-kill-aj--original-pos))
+        (orig-pos easy-kill-aj--original-pos)
+        (line-mode (eq ace-jump-current-mode 'ace-jump-line-mode)))
     ad-do-it
     (cond
      ((null command)
@@ -109,11 +111,12 @@
       )
      (easy-kill-aj--easy-command
       ;; ace-jump-done not called
-      (or ace-jump-mode ;; still in ace-jump-mode; branch mode
-          (/= (point) orig-pos)
-          (easy-kill-aj--after-jump command orig-pos)))
+      (and (not ace-jump-mode) ;; not in ace-jump-mode (=branch mode)
+           orig-pos
+           (/= (point) orig-pos)
+           (easy-kill-aj--after-jump command orig-pos line-mode)))
      (t
-      (easy-kill-aj--after-jump command orig-pos)))))
+      (easy-kill-aj--after-jump command orig-pos line-mode)))))
 
 (defadvice ace-jump-done (after easy-kill-extras activate)
   (easy-kill-aj--clear-state))

@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "easy-kill-aj" "easy-kill-aj.el" (22519 51801
-;;;;;;  980460 488000))
+;;;### (autoloads nil "easy-kill-aj" "easy-kill-aj.el" (0 0 0 0))
 ;;; Generated autoloads from easy-kill-aj.el
 
 (defvar easy-kill-ace-jump-enable-p t "\
@@ -12,10 +11,12 @@ If non-nil, ace-jump commands can be used in easy-kill/easy-mark mode for select
 
 (custom-autoload 'easy-kill-ace-jump-enable-p "easy-kill-aj" t)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "easy-kill-aj" '("easy-kill-aj--")))
+
 ;;;***
 
-;;;### (autoloads nil "easy-kill-buffer" "easy-kill-buffer.el" (22519
-;;;;;;  51801 984460 493000))
+;;;### (autoloads nil "easy-kill-buffer" "easy-kill-buffer.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from easy-kill-buffer.el
 
 (autoload 'easy-kill-on-buffer "easy-kill-buffer" "\
@@ -37,8 +38,8 @@ The +/- operation determines inclusion/exclusion of the current line.
 
 ;;;***
 
-;;;### (autoloads nil "easy-kill-extras" "easy-kill-extras.el" (22519
-;;;;;;  51801 992460 505000))
+;;;### (autoloads nil "easy-kill-extras" "easy-kill-extras.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from easy-kill-extras.el
 
 (let ((loads (get 'easy-kill-extras 'custom-loads))) (if (member '"easy-kill-extras" loads) nil (put 'easy-kill-extras 'custom-loads (cons '"easy-kill-extras" loads))))
@@ -61,7 +62,7 @@ Start easy-mark with a sexp selected.
 ;;;***
 
 ;;;### (autoloads nil "easy-kill-line-edge" "easy-kill-line-edge.el"
-;;;;;;  (22519 51801 988460 499000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from easy-kill-line-edge.el
 
 (autoload 'forward-line-edge "easy-kill-line-edge" "\
@@ -100,7 +101,7 @@ Provide an easy-kill target `backward-line-edge', which works like vi's `^'/`0' 
 ;;;***
 
 ;;;### (autoloads nil "easy-kill-to-char" "easy-kill-to-char.el"
-;;;;;;  (22519 51801 992460 505000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from easy-kill-to-char.el
 
 (autoload 'easy-mark-to-char "easy-kill-to-char" "\
@@ -117,10 +118,11 @@ Start easy-mark with string-up-to-char-forward.
  (autoload 'easy-kill-on-string-up-to-char-forward "easy-kill-extras")
  (autoload 'easy-kill-on-string-up-to-char-backward "easy-kill-extras")
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "easy-kill-to-char" '("easy-kill-defun-string-to-char")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("easy-kill-extras-pkg.el") (22519 51801
-;;;;;;  988460 499000))
+;;;### (autoloads nil nil ("easy-kill-extras-pkg.el") (0 0 0 0))
 
 ;;;***
 

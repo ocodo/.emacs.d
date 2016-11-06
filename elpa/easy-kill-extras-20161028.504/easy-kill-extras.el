@@ -1,6 +1,6 @@
 ;;; easy-kill-extras.el --- Extra functions for easy-kill.
 
-;; Copyright (c) 2014-2015 Akinori MUSHA
+;; Copyright (c) 2014-2016 Akinori MUSHA
 ;;
 ;; All rights reserved.
 ;;
@@ -28,7 +28,7 @@
 ;; Author: Akinori MUSHA <knu@iDaemons.org>
 ;; URL: https://github.com/knu/easy-kill-extras.el
 ;; Created: 29 Jul 2014
-;; Version: 0.9.4
+;; Version: 0.9.4.1
 ;; Package-Requires: ((easy-kill "0.9.4"))
 ;; Keywords: killing, convenience
 
