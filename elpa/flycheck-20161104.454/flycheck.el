@@ -2191,7 +2191,8 @@ current buffer as BUFFER.
 
 Return non-nil if the BUFFER is backed by a file, and not
 modified, or nil otherwise."
-  (and (buffer-file-name buffer) (not (buffer-modified-p buffer))))
+  (let ((file-name (buffer-file-name buffer)))
+    (and file-name (file-exists-p file-name) (not (buffer-modified-p buffer)))))
 
 
 ;;; Extending generic checkers
@@ -3632,7 +3633,6 @@ Return the created overlay."
       (error "Undefined error level: %S" level))
     (setf (overlay-get overlay 'flycheck-overlay) t)
     (setf (overlay-get overlay 'flycheck-error) err)
-    ;; TODO: Consider hooks to re-check if overlay contents change
     (setf (overlay-get overlay 'category) category)
     (unless flycheck-highlighting-mode
       ;; Erase the highlighting from the overlay if requested by the user
@@ -3878,8 +3878,11 @@ message to stretch arbitrarily far."
         ;; `revert-buffer' updates the mode line for us, so all we need to do is
         ;; set the corresponding mode line construct.
         mode-line-buffer-identification flycheck-error-list-mode-line)
-  ;; See https://github.com/flycheck/flycheck/issues/1101
-  (setq-local truncate-string-ellipsis "…")
+  ;; Guard `truncate-string-ellipsis' for Emacs 24.
+  ;; TODO: Remove when dropping Emacs 24 compatibility
+  (when (boundp 'truncate-string-ellipsis)
+    ;; See https://github.com/flycheck/flycheck/issues/1101
+    (setq-local truncate-string-ellipsis "…"))
   (tabulated-list-init-header))
 
 (defvar-local flycheck-error-list-source-buffer nil
@@ -5569,8 +5572,6 @@ See URL `http://phpmd.org/' for more information about phpmd."
                 (pcase node
                   (`(violation ,vio-attrs ,(and message (pred stringp)))
                    (let-alist vio-attrs
-                     ;; TODO: Map priority to an error level?
-                     ;; TODO: Respect endline
                      (push
                       (flycheck-error-new-at
                        (flycheck-string-to-number-safe .beginline)
@@ -8797,7 +8798,6 @@ See URL `https://github.com/sasstools/sass-lint'."
             "--format" "Checkstyle"
             (config-file "--config" flycheck-sass-lintrc)
             source)
-  :standard-input nil
   :error-parser flycheck-parse-checkstyle
   :modes (sass-mode scss-mode))
 
