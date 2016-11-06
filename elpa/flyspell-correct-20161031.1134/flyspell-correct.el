@@ -2,9 +2,9 @@
 ;;
 ;; Copyright (c) 2016 Boris Buliga
 ;;
-;; Author: Boris Buliga <d12frosted@gmail.com>
+;; Author: Boris Buliga <boris@d12frosted.io>
 ;; URL: https://github.com/d12frosted/flyspell-correct
-;; Package-version: 0.1
+;; Package-version: 0.4
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
