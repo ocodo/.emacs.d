@@ -4,7 +4,7 @@
 
 ;; Author: Christopher Wellons <wellons@nullprogram.com>
 ;; URL: https://github.com/skeeto/emacsql
-;; Version: 2.0.1
+;; Version: 2.0.2
 ;; Package-Requires: ((emacs "24.3") (cl-lib "0.3") (finalize "1.0.0"))
 
 ;;; Commentary:
@@ -69,7 +69,7 @@
   "The EmacSQL SQL database front-end."
   :group 'comm)
 
-(defvar emacsql-version "2.0.1")
+(defvar emacsql-version "2.0.2")
 
 (defvar emacsql-global-timeout 30
   "Maximum number of seconds to wait before bailing out on a SQL command.
@@ -156,7 +156,8 @@ MESSAGE should not have a newline on the end."
          (end (when real-timeout (+ (float-time) real-timeout))))
     (while (and (or (null real-timeout) (< (float-time) end))
                 (not (emacsql-waiting-p connection)))
-      (accept-process-output (emacsql-process connection) real-timeout))
+      (save-match-data
+        (accept-process-output (emacsql-process connection) real-timeout)))
     (unless (emacsql-waiting-p connection)
       (signal 'emacsql-timeout (list "Query timed out" real-timeout)))))
 
