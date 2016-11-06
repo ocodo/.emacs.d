@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (22519 51792 460447
-;;;;;;  40000))
+;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (0 0 0 0))
 ;;; Generated autoloads from evil-snipe.el
  (autoload 'evil-snipe-s "evil-snipe" nil t)
  (autoload 'evil-snipe-S "evil-snipe" nil t)
@@ -88,6 +87,8 @@ Disable evil-snipe-mode in the current buffer.
 Disable evil-snipe-override-mode in the current buffer.
 
 \(fn)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-snipe" '("evil-snipe-")))
 
 ;;;***
 

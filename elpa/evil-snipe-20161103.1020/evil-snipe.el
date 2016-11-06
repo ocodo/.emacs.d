@@ -7,7 +7,7 @@
 ;; Created: December 5, 2014
 ;; Modified: September 28, 2016
 ;; Version: 2.0.4
-;; Package-Version: 20160928.508
+;; Package-Version: 20161103.1020
 ;; Keywords: emulation, vim, evil, sneak, seek
 ;; Homepage: https://github.com/hlissner/evil-snipe
 ;; Package-Requires: ((evil "1.0.8") (cl-lib "0.5"))
@@ -132,6 +132,12 @@ mode use:
   :type '(repeat (cons (character :tag "Key")
                        (regexp :tag "Pattern"))))
 (define-obsolete-variable-alias 'evil-snipe-symbol-groups 'evil-snipe-aliases "v2.0.0")
+
+(defcustom evil-snipe-disabled-modes '()
+  "A list of modes in which the global evil-snipe minor modes
+will not be turned on."
+  :group 'evil-snipe
+  :type  '(list symbol))
 
 (defvar evil-snipe-auto-disable-substitute t
   "Disables evil's native s/S functionality (substitute) if non-nil. By default
@@ -598,12 +604,14 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
 ;;;###autoload
 (defun turn-on-evil-snipe-mode ()
   "Enable evil-snipe-mode in the current buffer."
-  (evil-snipe-local-mode 1))
+  (unless (apply 'derived-mode-p evil-snipe-disabled-modes)
+    (evil-snipe-local-mode 1)))
 
 ;;;###autoload
 (defun turn-on-evil-snipe-override-mode ()
   "Enable evil-snipe-mode in the current buffer."
-  (evil-snipe-override-local-mode 1))
+  (unless (apply 'derived-mode-p evil-snipe-disabled-modes)
+    (evil-snipe-override-local-mode 1)))
 
 ;;;###autoload
 (defun turn-off-evil-snipe-mode ()
