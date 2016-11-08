@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "focus" "focus.el" (22527 39937 0 0))
+;;;### (autoloads nil "focus" "focus.el" (22561 51298 0 0))
 ;;; Generated autoloads from focus.el
 
 (autoload 'focus-mode "focus" "\
