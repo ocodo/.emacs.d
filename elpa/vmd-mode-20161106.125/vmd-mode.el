@@ -4,7 +4,7 @@
 
 ;; Author: Blake Miller <blak3mill3r@gmail.com>
 ;; Version: 0.2.0
-;; Package-Version: 20161026.1359
+;; Package-Version: 20161106.125
 ;; Keywords: markdown, preview, live, vmd
 ;; URL: https://github.com/blak3mill3r/vmd-mode
 ;; Package-Requires: ((emacs "24.3"))
@@ -61,12 +61,12 @@ See https://developer.github.com/v3/emojis/"
       (insert "\n"))))
 
 (defvar vmd-mode-github-emojis-list
-  (with-temp-buffer
-    (insert-file-contents vmd-mode--emojis-file)
-    (split-string (buffer-string) "\n" t))
+  (and (file-exists-p vmd-mode--emojis-file)
+       (with-temp-buffer
+         (insert-file-contents vmd-mode--emojis-file)
+         (split-string (buffer-string) "\n" t)))
   "Emoji for GitHub.")
 
-
 (defun vmd-mode-start-vmd-process ()
   "Start an asynchronous `vmd' process to generate the `vmd-preview-file' file."
   (setq vmd-preview-file (make-temp-file "vmd-preview"))
