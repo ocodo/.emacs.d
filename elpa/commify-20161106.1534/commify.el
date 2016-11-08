@@ -17,7 +17,7 @@
 
 ;; Author: Daniel E. Doherty <ded-commify@ddoherty.net>
 ;; Version: 1.2.1
-;; Package-Version: 20160724.2032
+;; Package-Version: 20161106.1534
 ;; Package-Requires: ((s "1.9.0"))
 ;; Keywords: convenience, editing, numbers, grouping, commas
 ;; URL: https://github.com/ddoherty03/commify
@@ -85,8 +85,8 @@
 
 A valid number has a mandatory whole number part, which it
 captures as the second group.  The number may contain the
-commify-group-char in the whole number part and uses
-commify-decimal-char as the separator between the whole and
+`commify-group-char' in the whole number part and uses
+`commify-decimal-char' as the separator between the whole and
 fractional part of the number.  A leading sign, `+' or `-' is
 optional, as is a trailing exponent introduced by `e' or `E'.
 
@@ -124,7 +124,6 @@ The matched sub-parts are:
 (defun commify--on-zero-filled-p ()
   "Does text to the right of the cursor start with zero?"
   (looking-at-p "0"))
-
 
 (defun commify--on-hex-p ()
   "Is text to the right of the cursor part of a hexadecimal number?"
@@ -170,6 +169,8 @@ The matched sub-parts are:
               (num-beg (match-beginning 2))
               (num-end (match-end 2)))
           (delete-region num-beg num-end)
+          ;; We may have point at a +/- sign, skip over
+          (skip-chars-forward "+-")
           (if (s-contains? commify-group-char num)
               (insert (commify--uncommas num))
             (insert (commify--commas num)))))))

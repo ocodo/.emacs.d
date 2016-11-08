@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "commify" "commify.el" (0 0 0 0))
+;;;### (autoloads nil "commify" "commify.el" (22561 51311 0 0))
 ;;; Generated autoloads from commify.el
 
 (autoload 'commify-toggle-at-point "commify" "\
@@ -21,8 +21,6 @@ Do so for all numbers in the region between BEG and END.
 Toggle commas at point or on the region from BEG to END.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "commify" '("commify-")))
 
 ;;;***
 
