@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-isearch" "ace-isearch.el" (22507 31646
-;;;;;;  901229 238000))
+;;;### (autoloads nil "ace-isearch" "ace-isearch.el" (22561 51316
+;;;;;;  0 0))
 ;;; Generated autoloads from ace-isearch.el
 
 (autoload 'ace-isearch-jump-during-isearch "ace-isearch" "\
