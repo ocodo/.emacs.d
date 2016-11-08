@@ -1,10 +1,10 @@
 ;;; cheatsheet-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "cheatsheet" "cheatsheet.el" (22120 11794 737787
-;;;;;;  445000))
+;;;### (autoloads nil "cheatsheet" "cheatsheet.el" (22561 51315 0
+;;;;;;  0))
 ;;; Generated autoloads from cheatsheet.el
 
 (autoload 'cheatsheet-add "cheatsheet" "\

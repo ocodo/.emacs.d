@@ -4,7 +4,7 @@
 ;;
 ;; Author: Shirin Nikita <shirin.nikita@gmail.com> and contributors
 ;; URL: http://github.com/darksmile/cheatsheet/
-;; Package-Version: 20151203.151
+;; Package-Version: 20161106.1219
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Version: 1.0
 ;; Keywords: convenience, usability
@@ -36,11 +36,6 @@
 (defconst cheatsheet--key-face
   '(:foreground "orange")
   "Cheat key font face.")
-
-(defconst cheatsheet--keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-q") 'kill-buffer-and-window)
-    map))
 
 
 (defvar cheatsheet--cheat-list '()
@@ -136,10 +131,15 @@
   "Create buffer and show cheatsheet."
   (interactive)
   (switch-to-buffer-other-window "*cheatsheet*")
-  (use-local-map cheatsheet--keymap)
+  (cheatsheet-mode)
   (erase-buffer)
   (insert (cheatsheet--format))
   (setq buffer-read-only t))
+
+(define-derived-mode cheatsheet-mode fundamental-mode "Cheat Sheet"
+  "Set major mode for viewing cheat sheets.")
+
+(define-key cheatsheet-mode-map (kbd "C-q") 'kill-buffer-and-window)
 
 (provide 'cheatsheet)
 ;;; cheatsheet.el ends here
