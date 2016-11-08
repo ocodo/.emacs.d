@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "el-search" "el-search.el" (22533 41871 0 0))
+;;;### (autoloads nil "el-search" "el-search.el" (22561 51305 0 0))
 ;;; Generated autoloads from el-search.el
 
 (autoload 'el-search-pattern "el-search" "\
@@ -49,6 +49,13 @@ This command recursively searches all elisp files under
 
 \(fn PATTERN)" t nil)
 
+(autoload 'el-search-load-path "el-search" "\
+Search PATTERN in the elisp files in all directories of `load-path'.
+nil elements in `load-path' (standing for `default-directory')
+are ignored.
+
+\(fn PATTERN)" t nil)
+
 (autoload 'el-search-dired-marked-files "el-search" "\
 el-search marked files and directories in dired.
 With RECURSIVELY given (the prefix arg in an interactive call),
@@ -86,8 +93,8 @@ Reuse already given input.
 
 ;;;***
 
-;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (22533
-;;;;;;  41871 0 0))
+;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (22561
+;;;;;;  51305 0 0))
 
 ;;;***
 

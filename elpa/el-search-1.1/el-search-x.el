@@ -128,6 +128,19 @@ have at least one mandatory, but also optional arguments, you
 could use this pattern:
 
     (l ^ 'defun hl (l _ &optional))"
+  (declare
+   (heuristical-matcher
+    (lambda (&rest lpats)
+      (lambda (atoms)
+        (cl-every
+         (lambda (lpat)
+           (pcase lpat
+             ((or '__ '_ '_? '^ '$) t)
+             ((pred symbolp)
+              (funcall (el-search-heuristical-matcher `(symbol ,(symbol-name lpat))) atoms))
+             (_ (funcall (el-search-heuristical-matcher (el-search--transform-nontrivial-lpat lpat))
+                         atoms))))
+         lpats)))))
   (let ((match-start nil) (match-end nil))
     (when (eq (car-safe lpats) '^)
       (setq match-start t)
@@ -156,7 +169,15 @@ could use this pattern:
 (defvar-local el-search--cached-changes nil)
 
 
-(defvar el-search-change-revision-transformer-function #'identity)
+(defcustom el-search-change-revision-transformer-function nil
+  "Transformer function for the REVISION argument of `change' and `changed'.
+
+When specified, this function is called on the REVISION argument
+of `change' and `changed' before passing it to git.  The default
+value is nil."
+  :group 'el-search
+  :type '(choice (const :tag "No transformer" nil)
+                 (function :tag "User specified function")))
 
 (defun el-search--changes-from-diff-hl (revision)
   "Return a list of changed regions (as conses of positions) since REVISION.
@@ -174,7 +195,7 @@ Use variable `el-search--cached-changes' for caching."
       (widen)
       (save-excursion
         (let ((diff-hl-reference-revision
-               (funcall el-search-change-revision-transformer-function revision))
+               (funcall (or el-search-change-revision-transformer-function #'identity) revision))
               (current-line-nbr 1) change-beg)
           (goto-char 1)
           (cdr (setq el-search--cached-changes
@@ -224,15 +245,19 @@ Use variable `el-search--cached-changes' for caching."
   "Matches the object if its text is part of a file change.
 
 Requires library \"diff-hl\".  REVISION defaults to the file's
-repository's HEAD commit."
-  `(guard (el-search--change-p (point) ,revision)))
+repository's HEAD commit and is a git revision string.  Customize
+`el-search-change-revision-transformer-function' to control how
+REVISION is interpreted."
+  `(guard (el-search--change-p (point) ,(or revision "HEAD"))))
 
 (el-search-defpattern changed (&optional revision)
   "Matches the object if its text contains a file change.
 
 Requires library \"diff-hl\".  REVISION defaults to the file's
-repository's HEAD commit."
-  `(guard (el-search--changed-p (point) ,revision)))
+repository's HEAD commit and is a git revision string.  Customize
+`el-search-change-revision-transformer-function' to control how
+REVISION is interpreted."
+  `(guard (el-search--changed-p (point) ,(or revision "HEAD"))))
 
 
 ;;;; `keys'

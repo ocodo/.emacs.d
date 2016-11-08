@@ -1,3 +1,27 @@
+2016-11-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2016-11-06  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Speed up multi searching; version 1.1
+
+2016-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New command `el-search-load-path'
+
+2016-10-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Document change-revision transformer function; make a defcustom
+
+2016-10-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Inhibit logging of some messages
+
+2016-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	`change', `changed': make "HEAD" as default explicit
+
 2016-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	el-search: more cleanup and minor tweaks; version 1.0.1
