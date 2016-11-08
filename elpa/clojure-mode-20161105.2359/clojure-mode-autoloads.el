@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (22533 41877
+;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (22561 51313
 ;;;;;;  0 0))
 ;;; Generated autoloads from clojure-mode.el
 
@@ -77,6 +77,29 @@ Convert collection at (point) to set.
 Change a surrounding if to if-not, or vice-versa.
 
 See: https://github.com/clojure-emacs/clj-refactor.el/wiki/cljr-cycle-if
+
+\(fn)" t nil)
+
+(autoload 'clojure-let-backward-slurp-sexp "clojure-mode" "\
+Slurp the s-expression before the let form into the let form.
+With a numberic prefix argument slurp the previous N s-expression into the let form.
+
+\(fn &optional N)" t nil)
+
+(autoload 'clojure-let-forward-slurp-sexp "clojure-mode" "\
+Slurp the next s-expression after the let form into the let form.
+With a numeric prefix argument slurp the next N s-expressions into the let form.
+
+\(fn &optional N)" t nil)
+
+(autoload 'clojure-introduce-let "clojure-mode" "\
+Create a let form, binding the form at point.
+With a numeric prefix argument the let is introduced N lists up.
+
+\(fn &optional N)" t nil)
+
+(autoload 'clojure-move-to-let "clojure-mode" "\
+Move the form at point to a binding in the nearest let.
 
 \(fn)" t nil)
 
