@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flycheck" "flycheck.el" (0 0 0 0))
+;;;### (autoloads nil "flycheck" "flycheck.el" (22561 51301 0 0))
 ;;; Generated autoloads from flycheck.el
 
 (autoload 'flycheck-manual "flycheck" "\
@@ -224,26 +224,10 @@ Use this together with the `option', `option-list' and
 
 (function-put 'flycheck-def-option-var 'doc-string-elt '4)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck" '("flycheck-" "list-flycheck-errors" "help-flycheck-checker-d" "read-flycheck-")))
-
 ;;;***
 
-;;;### (autoloads nil "flycheck-buttercup" "flycheck-buttercup.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from flycheck-buttercup.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-buttercup" '("flycheck-buttercup-format-error-list")))
-
-;;;***
-
-;;;### (autoloads nil "flycheck-ert" "flycheck-ert.el" (0 0 0 0))
-;;; Generated autoloads from flycheck-ert.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-ert" '("flycheck-ert-")))
-
-;;;***
-
-;;;### (autoloads nil nil ("flycheck-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("flycheck-buttercup.el" "flycheck-ert.el"
+;;;;;;  "flycheck-pkg.el") (22561 51301 0 0))
 
 ;;;***
 
