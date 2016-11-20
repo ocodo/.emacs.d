@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "rake" "rake.el" (22479 30237 44206 46000))
+;;;### (autoloads nil "rake" "rake.el" (0 0 0 0))
 ;;; Generated autoloads from rake.el
 
 (autoload 'rake-rerun "rake" "\
@@ -25,6 +25,8 @@ Finds a rake task.
 Runs rake command.
 
 \(fn ARG &optional COMPILATION-MODE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "rake" '("rake-")))
 
 ;;;***
 

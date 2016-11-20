@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/rake.el
-;; Package-Version: 20160830.245
+;; Package-Version: 20161114.605
 ;; Version:           0.3.3
 ;; Keywords:          rake, ruby
 ;; Package-Requires:  ((f "0.13.0") (dash "1.5.0") (cl-lib "0.5"))
@@ -96,7 +96,7 @@
   (file-exists-p (expand-file-name ".zeus.sock" root)))
 
 (defun rake--bundler-p (root)
-  (file-exists-p (expand-file-name "Gemfile" root)))
+  (locate-dominating-file root "Gemfile"))
 
 (defun rake--vertical-ido-on-p ()
   (and
