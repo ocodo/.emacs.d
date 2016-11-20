@@ -3134,7 +3134,11 @@ otherwise."
     (let ((file-name (flycheck-error-filename err))
           (message (flycheck-error-message err)))
       (and
-       (or (not file-name) (flycheck-same-files-p file-name (buffer-file-name)))
+       ;; The error is relevant for the current buffer if it's got no file-name
+       ;; and the current buffer has no file name, too, or if it refers to the
+       ;; same file as the current buffer.
+       (or (and (not file-name) (not buffer-file-name))
+           (flycheck-same-files-p file-name (buffer-file-name)))
        message
        (not (string-empty-p message))
        (flycheck-error-line err)))))
@@ -7090,6 +7094,7 @@ See URL `https://golang.org/cmd/go/' and URL
             (option "-printfuncs=" flycheck-go-vet-print-functions concat
                     flycheck-option-comma-separated-list)
             (option-flag "-shadow" flycheck-go-vet-shadow)
+            (option-list "-tags=" flycheck-go-build-tags concat)
             (eval (when (eq flycheck-go-vet-shadow 'strict) "-shadowstrict"))
             source)
   :error-patterns
@@ -7176,6 +7181,7 @@ Requires Go 1.6 or newer.  See URL `https://golang.org/cmd/go'."
 Requires Go 1.6 or newer.  See URL `https://golang.org/cmd/go'."
   :command ("go" "test"
             (option-flag "-i" flycheck-go-build-install-deps)
+            (option-list "-tags=" flycheck-go-build-tags concat)
             "-c" "-o" null-device)
   :error-patterns
   ((error line-start (file-name) ":" line ": "
@@ -7195,7 +7201,10 @@ Requires Go 1.6 or newer.  See URL `https://golang.org/cmd/go'."
 Requires errcheck newer than commit 8515d34 (Aug 28th, 2015).
 
 See URL `https://github.com/kisielk/errcheck'."
-  :command ("errcheck" "-abspath" ".")
+  :command ("errcheck"
+            "-abspath"
+            (option-list "-tags=" flycheck-go-build-tags concat)
+            ".")
   :error-patterns
   ((warning line-start
             (file-name) ":" line ":" column (or (one-or-more "\t") ": " ":\t")
@@ -7597,7 +7606,7 @@ See URL `http://www.jshint.com'."
   (lambda (errors)
     (flycheck-remove-error-file-names
      "stdin" (flycheck-dequalify-error-ids errors)))
-  :modes (js-mode js2-mode js3-mode)
+  :modes (js-mode js2-mode js3-mode rjsx-mode)
   :next-checkers ((warning . javascript-jscs)))
 
 (flycheck-def-option-var flycheck-eslint-rules-directories nil javascript-eslint
@@ -7646,7 +7655,7 @@ See URL `https://github.com/eslint/eslint'."
             (flycheck-sanitize-errors errors))
     errors)
   :enabled (lambda () (flycheck-eslint-config-exists-p))
-  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode)
+  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode rjsx-mode)
   :next-checkers ((warning . javascript-jscs))
   :verify
   (lambda (_)
@@ -7672,7 +7681,7 @@ See URL `https://developers.google.com/closure/utilities'."
   :error-patterns ((warning
                     line-start (file-name) ":" line ":("
                     (id (one-or-more digit)) ") " (message) line-end))
-  :modes (js-mode js2-mode js3-mode)
+  :modes (js-mode js2-mode js3-mode rjsx-mode)
   :next-checkers ((warning . javascript-jscs)))
 
 (defun flycheck-parse-jscs (output checker buffer)
@@ -7706,7 +7715,7 @@ See URL `http://www.jscs.info'."
                   (flycheck-remove-error-ids
                    (flycheck-sanitize-errors
                     (flycheck-remove-error-file-names "input" errors))))
-  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode))
+  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode rjsx-mode))
 
 (flycheck-define-checker javascript-standard
   "A Javascript code and style checker for the (Semi-)Standard Style.
@@ -7721,7 +7730,7 @@ See URL `https://github.com/feross/standard' and URL
   :standard-input t
   :error-patterns
   ((error line-start "  <text>:" line ":" column ":" (message) line-end))
-  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode))
+  :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode rjsx-mode))
 
 (flycheck-define-checker json-jsonlint
   "A JSON syntax and style checker using jsonlint.
@@ -7932,6 +7941,10 @@ Needs PHP Code Sniffer 2.6 or newer.
 
 See URL `http://pear.php.net/package/PHP_CodeSniffer/'."
   :command ("phpcs" "--report=checkstyle"
+            ;; Use -q flag to force quiet mode
+            ;; Quiet mode prevents errors from extra output when phpcs has
+            ;; been configured with show_progress enabled
+            "-q"
             (option "--standard=" flycheck-phpcs-standard concat)
             ;; Pass original file name to phpcs.  We need to concat explicitly
             ;; here, because phpcs really insists to get option and argument as
