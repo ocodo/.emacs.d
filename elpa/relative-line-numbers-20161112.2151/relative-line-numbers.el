@@ -2,13 +2,13 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/relative-line-numbers
-;; Package-Version: 20151006.1446
-;; Version: 0.3.2
+;; Package-Version: 20161112.2151
+;; Version: 0.3.3
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is NOT part of GNU Emacs.
 
-;; Copyright (c) 2014, Fanael Linithien
+;; Copyright (c) 2014-2016, Fanael Linithien
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -212,6 +212,10 @@ WINDOW is the window to show overlays in."
     (when relative-line-numbers-mode
       (relative-line-numbers--update-or-schedule-current-buffer))))
 
+(defvar relative-line-numbers--overlays nil
+  "The list of overlays in the current buffer.")
+(make-variable-buffer-local 'relative-line-numbers--overlays)
+
 (defun relative-line-numbers--on ()
   "Set up `relative-line-numbers-mode'."
   (add-hook 'post-command-hook #'relative-line-numbers--update-or-schedule-current-buffer nil t)
@@ -228,6 +232,7 @@ WINDOW is the window to show overlays in."
   (remove-hook 'change-major-mode-hook #'relative-line-numbers--off t)
   (kill-local-variable 'relative-line-numbers--width)
   (relative-line-numbers--delete-overlays)
+  (kill-local-variable 'relative-line-numbers--overlays)
   (relative-line-numbers--set-current-buffer-margin))
 
 (defun relative-line-numbers--set-margin-width ()
@@ -246,13 +251,19 @@ The function operates on the selected window."
 
 (defun relative-line-numbers--delete-window-overlays (window)
   "Delete all overlays belonging to WINDOW."
-  (mapc #'delete-overlay (window-parameter window 'relative-line-numbers--used-overlays))
-  (set-window-parameter window 'relative-line-numbers--used-overlays nil))
+  (let ((it relative-line-numbers--overlays))
+    (while it
+      (let ((ov (car it)))
+        (when (eq window (overlay-get ov 'window))
+          (delete-overlay ov)
+          (setcar it nil)))
+      (setq it (cdr it))))
+  (setq relative-line-numbers--overlays (delq nil relative-line-numbers--overlays)))
 
 (defun relative-line-numbers--delete-overlays ()
   "Delete all used overlays."
-  (dolist (window (get-buffer-window-list nil nil t))
-    (relative-line-numbers--delete-window-overlays window)))
+  (mapc #'delete-overlay relative-line-numbers--overlays)
+  (setq relative-line-numbers--overlays nil))
 
 (defun relative-line-numbers--make-overlay (str face window)
   "Make a line number overlay at point.
@@ -270,9 +281,7 @@ This function changes the margin width if STR would not fit."
     (overlay-put overlay 'before-string
                  (propertize " " 'display `((margin left-margin)
                                             ,(propertize str 'face face))))
-    (set-window-parameter window 'relative-line-numbers--used-overlays
-                          (cons overlay
-                                (window-parameter window 'relative-line-numbers--used-overlays)))))
+    (push overlay relative-line-numbers--overlays)))
 
 (provide 'relative-line-numbers)
 ;;; relative-line-numbers.el ends here
