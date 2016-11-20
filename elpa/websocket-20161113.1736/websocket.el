@@ -4,7 +4,7 @@
 
 ;; Author: Andrew Hyatt <ahyatt@gmail.com>
 ;; Keywords: Communication, Websocket, Server
-;; Package-Version: 20161022.2054
+;; Package-Version: 20161113.1736
 ;; Version: 1.7
 ;;
 ;; This program is free software; you can redistribute it and/or
@@ -849,6 +849,7 @@ connection, which should be kept in order to pass to
                 :name (format "websocket server on port %s" port)
                 :server t
                 :family 'ipv4
+                :noquery t
                 :filter 'websocket-server-filter
                 :log 'websocket-server-accept
                 :filter-multibyte nil
