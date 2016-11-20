@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22541 58008 0 0))
+;;;### (autoloads nil "dired+" "dired+.el" (0 0 0 0))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -362,8 +362,6 @@ A prefix arg specifies files to use instead of the marked files:
  * C-u C-u C-u: All files and directories, except `.' and `..'
  * C-u C-u C-u C-u: All files and directories, including `.' and `..'
  * Any other prefix arg: The current line's file only.
-
-\(Note that a prefix arg acts
 
 You can use `RET' or `mouse-2' to visit any of the files.
 If `tooltip-mode' is on then moving the mouse over image-file names
@@ -2030,6 +2028,8 @@ Describe Dired+.
 Send a bug report about a Dired+ problem.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired+" '("dired")))
 
 ;;;***
 
