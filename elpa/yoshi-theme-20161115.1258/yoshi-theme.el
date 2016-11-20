@@ -4,7 +4,7 @@
 
 ;; Author: Tom Willemse <tom@ryuslash.org>
 ;; Keywords: faces
-;; Package-Version: 20161006.1632
+;; Package-Version: 20161115.1258
 ;; Version: 6.1.0
 ;; URL: http://projects.ryuslash.org/yoshi-theme/
 
@@ -68,6 +68,7 @@
    `(font-lock-variable-name-face ((t (:foreground ,fgyellow))))
    `(font-lock-warning-face ((t (:foreground ,fgorange :inherit unspecified :weight bold))))
    `(fringe ((t (:background unspecified :inherit default))))
+   `(header-line ((t (:background ,bgblue :foreground ,fgbright :box (:color ,bgblue :line-width 5 :style nil)))))
    `(highlight ((t (:background ,bgcyan))))
    `(italic ((t (:slant italic))))
    `(link ((t (:foreground ,fgorange :underline t))))
@@ -123,8 +124,10 @@
    ;;; Ediff
    `(ediff-current-diff-A ((t (:inherit diff-removed))))
    `(ediff-current-diff-B ((t (:inherit diff-added))))
+   `(ediff-current-diff-C ((t (:inherit diff-changed))))
    `(ediff-fine-diff-A ((t (:inherit diff-refine-removed))))
    `(ediff-fine-diff-B ((t (:inherit diff-refine-added))))
+   `(ediff-fine-diff-C ((t (:inherit diff-refine-change))))
 
    ;;; ERC
    `(erc-button ((t (:weight unspecified :inherit button))))
@@ -192,7 +195,7 @@
    `(gnus-header-subject ((t (:foreground ,fgyellow))))
    `(gnus-signature ((t (:foreground ,fgdim :slant italic))))
    `(gnus-splash ((t (:foreground ,fgdefault))))
-   `(gnus-summary-cancelled ((t (:foreground ,fgyellow :background ,bgbright))))
+   `(gnus-summary-cancelled ((t (:foreground ,fgdim :background unspecified :strike-through t))))
    `(gnus-summary-high-ancient ((t (:inherit gnus-summary-normal-ancient :weight bold))))
    `(gnus-summary-high-read ((t (:inherit gnus-summary-normal-read :weight bold))))
    `(gnus-summary-high-ticked ((t (:inherit gnus-summary-normal-ticked :weight bold))))
@@ -462,6 +465,17 @@
    `(widget-button-pressed ((t (:inherit widget-button :weight bold))))
    `(widget-documentation ((t (:inherit font-lock-doc-face))))
    `(widget-field ((t (:background ,bgblue :box (:color ,bgblue :line-width 2)))))
+
+   ;;; rpm-spec-mode
+   `(rpm-spec-tag-face ((t (:foreground ,fgblue))))
+   `(rpm-spec-obsolete-tag-face ((t (:background ,bgred))))
+   `(rpm-spec-macro-face ((t (:foreground ,fgyellow))))
+   `(rpm-spec-var-face ((t (:foreground ,fgcyan))))
+   `(rpm-spec-doc-face ((t (:foreground ,fgmagenta))))
+   `(rpm-spec-dir-face ((t (:foreground ,fgturquoise))))
+   `(rpm-spec-package-face ((t (:foreground ,fgred))))
+   `(rpm-spec-ghost-face ((t (:foreground ,fgred))))
+   `(rpm-spec-section-face ((t (:foreground ,fgyellow :underline t))))
 
    )
 
