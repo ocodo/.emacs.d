@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 2.9.4
-;; Package-Version: 20161025.507
+;; Version: 2.9.5
+;; Package-Version: 20161119.505
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -133,11 +133,16 @@
                                   choices "; "))
                choice-chars)
               choices)))))
+(unless (fboundp 'alist-get)
+  (defun alist-get (key alist &optional default remove)
+    (ignore remove) ;;Silence byte-compiler.
+    (let ((x (assq key alist)))
+      (if x (cdr x) default))))
 
 ;; Customization variables:
 
 (unless
-    (find 'custom-group (symbol-plist 'session))
+    (memq 'custom-group (symbol-plist 'session))
   (defgroup session nil
     "Emacs' state(opened files, buffers, windows, etc.)"
     :group 'environment))
@@ -931,7 +936,7 @@ to a wrong one.")
    (list
     (read-key-sequence
      "Now press a key sequence to be used for toggling persp filters during the read-buffer: ")))
-  (setf (cdr (assq 'toggle-persp-buffer-filter persp-read-multiple-keys)) keys)
+  (setcdr (assq 'toggle-persp-buffer-filter persp-read-multiple-keys) keys)
   (set-default 'persp-toggle-read-buffer-filter-keys keys))
 (define-obsolete-function-alias
   'persp-set-toggle-read-persp-filter-keys 'persp-set-toggle-read-buffer-filter-keys
@@ -1106,7 +1111,7 @@ to a wrong one.")
   (let* ((params (safe-persp-parameters persp))
          (old-cons (assq param-name params)))
     (if old-cons
-        (setf (cdr old-cons) value)
+        (setcdr old-cons value)
       (if persp
           (setf (persp-parameters persp)
                 (acons param-name value params))
@@ -1114,7 +1119,7 @@ to a wrong one.")
               (acons param-name value params))))))
 
 (defun* persp-parameter (param-name &optional (persp (get-current-persp)))
-  (cdr (assq param-name (safe-persp-parameters persp))))
+  (alist-get param-name (safe-persp-parameters persp)))
 
 (defun* delete-persp-parameter (param-name &optional (persp (get-current-persp)))
   (when (and (not (null param-name)) (symbolp param-name))
@@ -1155,8 +1160,10 @@ to a wrong one.")
   (persp-asave-on-exit nil))
 
 (defun persp-kill-emacs-query-function ()
-  (when (persp-asave-on-exit t)
-    (remove-hook 'kill-emacs-hook #'persp-kill-emacs-h)
+  (if persp-mode
+      (when (persp-asave-on-exit t)
+        (remove-hook 'kill-emacs-hook #'persp-kill-emacs-h)
+        t)
     t))
 
 (defun persp-special-last-buffer-make-current ()
@@ -1166,11 +1173,11 @@ to a wrong one.")
 ;; Auto persp functions:
 
 (defun persp--auto-persp-pickup-buffer (a-p-def buffer)
-  (let ((action (cdr (assq :main-action a-p-def))))
+  (let ((action (alist-get :main-action a-p-def)))
     (when (functionp action)
       (funcall action buffer))))
 (defun persp-auto-persp-pickup-bufferlist-for (name bufferlist)
-  (let ((a-p-def (assoc name persp-auto-persp-alist)))
+  (let ((a-p-def (cdr (assoc name persp-auto-persp-alist))))
     (when a-p-def
       (mapc (apply-partially #'persp--auto-persp-pickup-buffer a-p-def)
             bufferlist))))
@@ -1184,51 +1191,96 @@ to a wrong one.")
   (interactive)
   (persp-auto-persps-pickup-bufferlist (funcall persp-buffer-list-function)))
 
-(defun persp-buffer-match-autopersp-p (buffer-or-name)
-  (let ((buffer (get-buffer buffer-or-name))
-        (a-p-list persp-auto-persp-alist)
-        ret pred)
-    (while (and (null ret) a-p-list)
-      (destructuring-bind (name . def) (car a-p-list)
-        (setq pred (cdr (assq :generated-predicate def)))
-        (if (and pred (funcall pred buffer))
-            (setq ret name)
-          (setq a-p-list (cdr a-p-list)))))
-    ret))
+(defun persp-buffer-match-auto-persp-p (buffer-or-name)
+  (let ((buffer (persp-get-buffer-or-null buffer-or-name))
+        pred)
+    (car-safe
+     (find-if #'(lambda (a-p-def)
+                  (and (setq pred (alist-get :generated-predicate a-p-def))
+                       (funcall pred buffer)))
+              persp-auto-persp-alist
+              :key #'cdr))))
+(defun persp-auto-persps-for-buffer (buffer-or-name)
+  (let ((buffer (persp-get-buffer-or-null buffer-or-name)))
+    (remove-if #'(lambda (pred) (funcall pred buffer))
+               persp-auto-persp-alist
+               :key #'(lambda (a-p-cons)
+                        (alist-get :generated-predicate (cdr a-p-cons))))))
 
+(defsubst persp--generate-predicate-loop-any-all (items-list condition &rest body)
+  (if items-list
+      (let (all noquote)
+        (setq items-list
+              (typecase items-list
+                (function (list items-list))
+                (list (if (persp-regexp-p items-list) (list items-list) items-list))
+                (t (list items-list))))
+        (setq noquote (eq :noquote (car items-list)))
+        (when noquote (setq items-list (cadr items-list)))
+        (when (listp items-list)
+          (setq all (eq :all (car items-list)))
+          (when all (pop items-list))
+          (unless noquote (setq items-list `',items-list)))
+        (let ((cnd `(member-if #'(lambda (item) ,(if all
+                                                `(not ,condition)
+                                              condition))
+                               ,items-list)))
+          `(when ,(if all `(not ,cnd) cnd)
+             ,@body)))
+    `(progn
+       ,@body)))
 (defun* persp--generate-buffer-predicate
     (&key buffer-name file-name mode mode-name minor-mode minor-mode-name predicate &allow-other-keys)
   (let ((predicate-body t))
     (when predicate
-      (setq predicate-body `(when (funcall (with-no-warnings ',predicate) buffer)
-                              ,predicate-body)))
+      (setq predicate-body
+            (persp--generate-predicate-loop-any-all predicate '(funcall item buffer) predicate-body)))
     (when file-name
-      (setq predicate-body `(when (string-match-p ,file-name (buffer-file-name buffer))
-                              ,predicate-body)))
+      (setq predicate-body
+            (persp--generate-predicate-loop-any-all
+             file-name '(persp-string-match-p item (buffer-file-name buffer)) predicate-body)))
     (when buffer-name
-      (setq predicate-body `(when (string-match-p ,buffer-name (buffer-name buffer))
-                              ,predicate-body)))
+      (setq predicate-body
+            (persp--generate-predicate-loop-any-all
+             buffer-name '(persp-string-match-p item (buffer-name buffer)) predicate-body)))
     (when minor-mode-name
-      (setq predicate-body `(let ((not-found t) (mm-list minor-mode-alist)
-                                  item name)
-                              (while (and not-found mm-list)
-                                (setq item (car mm-list)
-                                      mm-list (cdr mm-list)
-                                      name (format-mode-line item))
-                                (when (string-match-p ,minor-mode-name (format-mode-line name))
-                                  (setq not-found nil)))
-                              (unless not-found ,predicate-body))))
+      (setq predicate-body
+            (persp--generate-predicate-loop-any-all
+             minor-mode-name
+             `(let ((regexp item))
+                ,(persp--generate-predicate-loop-any-all
+                  '(:noquote minor-mode-alist)
+                  '(persp-string-match-p regexp (format-mode-line item))
+                  t))
+             predicate-body)))
     (when minor-mode
-      (setq predicate-body `(when (bound-and-true-p ,minor-mode)
-                              ,predicate-body)))
+      (setq predicate-body
+            (persp--generate-predicate-loop-any-all
+             minor-mode
+             `(cond
+               ((symbolp item) (bound-and-true-p item))
+               ((persp-regexp-p item) (let ((regexp item))
+                                        ,(persp--generate-predicate-loop-any-all
+                                          '(:noquote minor-mode-list)
+                                          '(and
+                                            (bound-and-true-p item)
+                                            (persp-string-match-p regexp item))
+                                          t)))
+               (t nil))
+             predicate-body)))
 
     (when mode-name
-      (setq predicate-body `(when (string-match-p ,mode-name (format-mode-line mode-name))
-                              ,predicate-body)))
+      (setq predicate-body
+            (persp--generate-predicate-loop-any-all
+             mode-name '(persp-string-match-p item (format-mode-line mode-name)) predicate-body)))
     (when mode
-      (setq predicate-body `(when (eq ',mode major-mode)
-                              ,predicate-body)))
-
+      (setq predicate-body
+            (persp--generate-predicate-loop-any-all
+             mode '(cond
+                    ((symbolp item) (eq item major-mode))
+                    ((persp-regexp-p item) (persp-string-match-p item (symbol-name major-mode)))
+                    (t nil))
+             predicate-body)))
     (eval `(lambda (buffer) (with-current-buffer buffer ,predicate-body)))))
 
 ;;;###autoload
@@ -1346,13 +1398,13 @@ to a wrong one.")
                                                (funcall (with-no-warnings ',main-action) nil ',hook hook-args)))))))
                 (add-hook hook generated-hook)
                 (let ((aparams-hooks (assq :hooks auto-persp-parameters)))
-                  (setf (cdr aparams-hooks) (delete hook (cdr aparams-hooks)))
+                  (setcdr aparams-hooks (delete hook (cdr aparams-hooks)))
                   (push (cons hook generated-hook) (cdr aparams-hooks))))
             (message "[persp-mode] Warning: def-auto-persp -- no such hook %s." hook))))
 
       (let ((auto-persp-definition (assoc name persp-auto-persp-alist)))
         (if auto-persp-definition
-            (setf (cdr auto-persp-definition) auto-persp-parameters)
+            (setcdr auto-persp-definition auto-persp-parameters)
           (setq auto-persp-definition (cons name auto-persp-parameters))
           (push auto-persp-definition persp-auto-persp-alist)))
 
@@ -1369,42 +1421,59 @@ to a wrong one.")
            tag-symbol save-vars save-function
            load-function after-load-function append)
   (let ((generated-save-predicate (apply #'persp--generate-buffer-predicate keyargs))
-        save-body load-body)
+        save-body load-fun)
+    (when save-vars
+      (unless (listp save-vars) (setq save-vars (list save-vars)))
+      (when (and (or mode mode-name) (not (memq 'major-mode save-vars)))
+        (push 'major-mode save-vars)))
     (unless tag-symbol (setq tag-symbol 'def-buffer-with-vars))
-    (setq save-body (if save-function
-                        `(funcall (with-no-warnings ',save-function) buffer)
-                      `(let (vars-list)
-                         (with-current-buffer buffer
-                           (mapc #'(lambda (var)
-                                     (when (eq (variable-binding-locus var) buffer)
-                                       (push (cons var (symbol-value var)) vars-list)))
-                                 ',save-vars))
-                         (list ',tag-symbol (buffer-name buffer) vars-list)))
+
+    (setq save-body `(let ((vars-list
+                            (with-current-buffer buffer
+                              (delete-if-not #'(lambda (lvar)
+                                                 ,(persp--generate-predicate-loop-any-all
+                                                   save-vars
+                                                   '(and (if (persp-regexp-p item)
+                                                             (persp-string-match-p item (symbol-name lvar))
+                                                           (eq item lvar))
+                                                         (persp-elisp-object-readable-p (symbol-value lvar)))
+                                                   t))
+                                             (buffer-local-variables)
+                                             :key #'car-safe))))
+                       ,(if save-function
+                            `(funcall (with-no-warnings ',save-function) buffer ',tag-symbol vars-list)
+                          `(list ',tag-symbol (buffer-name buffer) vars-list)))
           save-body `(when (funcall (with-no-warnings ',generated-save-predicate) buffer)
                        ,save-body))
 
-    (setq load-body (if load-function
-                        `(funcall (with-no-warnings ',load-function) savelist)
-                      `(destructuring-bind (buffer-name vars-list) (cdr savelist)
-                         (let ((buf-file (cdr (assq 'buffer-file-name vars-list)))
-                               (buf-mmode (cdr (assq 'major-mode vars-list))))
-                           (lexical-let ((persp-loaded-buffer
-                                          (persp-buffer-from-savelist
-                                           (list 'def-buffer buffer-name buf-file buf-mmode
-                                                 (list (cons 'local-vars vars-list)))))
-                                         (persp-after-load-function (with-no-warnings ',after-load-function))
-                                         persp-after-load-lambda)
-                             (when (and persp-loaded-buffer persp-after-load-function)
-                               (setq persp-after-load-lambda #'(lambda (&rest pall-args)
-                                                                 (apply persp-after-load-function persp-loaded-buffer pall-args)
-                                                                 (remove-hook 'persp-after-load-state-functions
-                                                                              persp-after-load-lambda)))
-                               (add-hook 'persp-after-load-state-functions persp-after-load-lambda))
-                             persp-loaded-buffer))))
-          load-body `(when (eq (car savelist) ',tag-symbol)
-                       ,load-body))
+    (setq load-fun `(lambda (savelist)
+                      (destructuring-bind (buffer-name vars-list &rest _rest) (cdr savelist)
+                        (let ((buf-file (alist-get 'buffer-file-name vars-list))
+                              (buf-mmode (alist-get 'major-mode vars-list)))
+                          (lexical-let ((persp-loaded-buffer
+                                         (persp-buffer-from-savelist
+                                          (list 'def-buffer buffer-name buf-file buf-mmode
+                                                (list (cons 'local-vars vars-list)))))
+                                        (persp-after-load-function (with-no-warnings ',after-load-function))
+                                        persp-after-load-lambda)
+                            (when (and persp-loaded-buffer persp-after-load-function)
+                              (setq persp-after-load-lambda #'(lambda (&rest pall-args)
+                                                                (apply persp-after-load-function persp-loaded-buffer pall-args)
+                                                                (remove-hook 'persp-after-load-state-functions
+                                                                             persp-after-load-lambda)))
+                              (add-hook 'persp-after-load-state-functions persp-after-load-lambda t))
+                            persp-loaded-buffer)))))
+
     (add-hook 'persp-save-buffer-functions (eval `(lambda (buffer) ,save-body)) append)
-    (add-hook 'persp-load-buffer-functions (eval `(lambda (savelist) ,load-body)) append)))
+    (add-hook 'persp-load-buffer-functions
+              (eval `(lambda (savelist)
+                       (when (eq (car savelist) ',tag-symbol)
+                         (let ((default-load-fun (with-no-warnings ',load-fun)))
+                           ,(if load-function
+                                `(funcall (with-no-warnings ',load-function) savelist
+                                          default-load-fun (with-no-warnings ',after-load-function))
+                              `(funcall default-load-fun savelist))))))
+              append)))
 
 
 ;; Mode itself:
@@ -1500,6 +1569,7 @@ named collections of buffers and window configurations."
     (when (fboundp 'tabbar-mode)
       (setq tabbar-buffer-list-function #'tabbar-buffer-list))
 
+    ;; TODO: do it properly -- remove buffers, kill perspectives
     (mapc #'(lambda (b)
               (with-current-buffer b
                 (setq persp-buffer-in-persps nil)))
@@ -1592,14 +1662,14 @@ and then killed.\nWhat do you really want to do? "
     (and (case persp-add-buffer-on-find-file
            ('nil nil)
            (if-not-autopersp
-            (let ((ret (not (persp-buffer-match-autopersp-p (current-buffer)))))
+            (let ((ret (not (persp-buffer-match-auto-persp-p (current-buffer)))))
               (unless (or ret no-select)
                 (setq persp-special-last-buffer (window-buffer))
                 (add-hook 'window-configuration-change-hook #'persp--restore-buffer-on-find-file))
               ret))
            (add-but-not-switch-if-autopersp
             (when (and (not no-select)
-                       (persp-buffer-match-autopersp-p (current-buffer)))
+                       (persp-buffer-match-auto-persp-p (current-buffer)))
               (setq no-select t)
               (setq persp-special-last-buffer (window-buffer))
               (add-hook 'window-configuration-change-hook #'persp--restore-buffer-on-find-file))
@@ -1693,7 +1763,8 @@ and then killed.\nWhat do you really want to do? "
     (set-frame-persp persp)))
 
 (defun persp-names-current-frame-fast-ordered ()
-  (mapcar #'caddr (cddddr persp-minor-mode-menu)))
+  (or (mapcar #'caddr (cddddr persp-minor-mode-menu))
+      (list persp-nil-name)))
 
 (defun* persp-get-by-name (name &optional (phash *persp-hash*) default)
   (gethash name phash default))
@@ -1719,20 +1790,24 @@ and then killed.\nWhat do you really want to do? "
                  result))
       result)))
 
+(defun persp-regexp-p (obj)
+  (or (stringp obj) (and (consp obj) (stringp (cdr obj)))))
+(defun persp-string-match-p (regexp string &optional start)
+  (when (and regexp (not (consp regexp)))
+    (setq regexp (cons t regexp)))
+  (let ((ret (string-match-p (cdr regexp) string start)))
+    (if (eq :not (car regexp))
+        (not ret)
+      ret)))
+
 (defun* persp-persps (&optional (phash *persp-hash*) &optional names-regexp reverse)
   (when (and names-regexp (not (consp names-regexp)))
     (setq names-regexp (cons t names-regexp)))
   (let (ret)
     (maphash #'(lambda (k p)
                  (if names-regexp
-                     (destructuring-bind (op . regexp) names-regexp
-                       (case op
-                         (not
-                          (unless (string-match-p regexp k)
-                            (push p ret)))
-                         (t
-                          (when (string-match-p regexp k)
-                            (push p ret)))))
+                     (when (persp-string-match-p names-regexp k)
+                       (push p ret))
                    (push p ret)))
              phash)
     (if reverse
@@ -1749,9 +1824,9 @@ and then killed.\nWhat do you really want to do? "
         ret)
     (when buf
       (setq ret (delete-if-not
-                 #'(lambda (p) (when p
-                            (memq buf (persp-buffers p))))
-                 (delq persp (delq nil (persp-persps phash)))))
+                 (apply-partially #'memq buf)
+                 (delq persp (delq nil (persp-persps phash)))
+                 :key #'persp-buffers))
       (when del-weak
         (setq ret (delete-if #'persp-weak ret))))
     ret))
@@ -1762,9 +1837,7 @@ and then killed.\nWhat do you really want to do? "
       (when persp
         (setq persps (remove (persp-name persp) persps)))
       (when del-weak
-        (setq persps (remove-if
-                      #'(lambda (pn) (safe-persp-weak (persp-get-by-name pn)))
-                      persps)))
+        (setq persps (remove-if #'safe-persp-weak persps :key #'persp-get-by-name)))
       persps)))
 
 (defun* persp-buffer-in-other-p
@@ -1777,9 +1850,9 @@ and then killed.\nWhat do you really want to do? "
 
 
 (defun* persp-frames-with-persp (&optional (persp (get-frame-persp)))
-  (delete-if-not #'(lambda (f)
-                     (eq persp (get-frame-persp f)))
-                 (persp-frame-list-without-daemon)))
+  (delete-if-not (apply-partially #'eq persp)
+                 (persp-frame-list-without-daemon)
+                 :key #'get-frame-persp))
 (defun* persp-frames-and-windows-with-persp (&optional (persp (get-current-persp)))
   (let (frames windows)
     (dolist (frame (persp-frame-list-without-daemon))
@@ -1808,16 +1881,15 @@ and then killed.\nWhat do you really want to do? "
       (when blist
         (unless rest-args-p
           (setq rest-args (read--expression "Rest arguments: " "nil")))
-        (let (reslist)
-          (mapc #'(lambda (b)
-                    (when (string-match-p regexp (buffer-name b))
-                      (push (buffer-name b) reslist)))
-                blist)
-          (when (and reslist
-                     (or noask (y-or-n-p (format "Do %s on these buffers:\n%s?\n"
-                                                 func
-                                                 (mapconcat 'identity reslist "\n")))))
-            (mapc #'(lambda (b) (apply func b rest-args)) reslist)))))))
+        (setq blist
+              (remove-if-not
+               (apply-partially #'persp-string-match-p regexp)
+               blist))
+        (when (and blist
+                   (or noask (y-or-n-p (format "Do %s on these buffers:\n%s?\n"
+                                               func
+                                               (mapconcat 'identity blist "\n")))))
+          (mapcar #'(lambda (b) (apply func b rest-args)) blist))))))
 
 
 ;; Perspective funcs:
@@ -1911,11 +1983,11 @@ Return the created perspective."
   (when buffer-or-name
     (with-current-buffer buffer-or-name
       (unless persp-buffer-in-persps
-        (mapc #'(lambda (p)
-                  (when p
-                    (when (memq buffer-or-name (persp-buffers p))
-                      (push (persp-name p) persp-buffer-in-persps))))
-              (persp-persps))))))
+        (setq persp-buffer-in-persps
+              (mapcar #'persp-name
+                      (delete-if-not (apply-partially #'memq buffer-or-name)
+                                     (delq nil (persp-persps))
+                                     :key #'persp-buffers)))))))
 
 (defun* persp-contain-buffer-p
     (&optional (buff-or-name (current-buffer)) (persp (get-current-persp)) delweak)
@@ -2056,10 +2128,8 @@ Return removed buffers."
                       (persp-read-buffer "Kill buffers: " (current-buffer) t nil t)
                     (read-buffer "Kill buffer: " (current-buffer) t)))))
   (unless (listp buffers-or-names) (setq buffers-or-names (list buffers-or-names)))
-  (mapc #'(lambda (bon)
-            (when (persp-get-buffer-or-null bon)
-              (kill-buffer bon)))
-        buffers-or-names)
+  (mapc #'kill-buffer
+        (remove-if-not #'persp-get-buffer-or-null buffers-or-names))
   buffers-or-names)
 
 (defun persp-switch-to-buffer (buffer-or-name &optional norecord force-same-window)
@@ -2095,9 +2165,9 @@ Return removed buffers."
   (unless (listp names) (setq names (list names)))
   (unless names
     (setq names (persp-read-persp "to import buffers from" t nil t nil t)))
-  (mapc #'(lambda (pn)
-            (persp-import-buffers-from (persp-get-by-name pn phash) persp-to))
-        names))
+  (mapc #'(lambda (persp-from)
+            (persp-import-buffers-from persp-from persp-to))
+        (mapcar #'(lambda (pn) (persp-get-by-name pn phash)) names)))
 
 (defun* persp-import-win-conf
     (name
@@ -2155,14 +2225,13 @@ Return removed buffers."
                                (append (persp-buffers current-persp) nil)
                              (safe-persp-buffers current-persp)))))
            (new-persp (persp-add-new new-name)))
-      (when (listp choosen-buffers)
-        (setq new-buffers (mapcar #'get-buffer choosen-buffers)))
       (when new-persp
         (persp-save-state current-persp)
-        (setf (persp-buffers new-persp) new-buffers
-              (persp-window-conf new-persp) (safe-persp-window-conf current-persp)
+        (setf (persp-window-conf new-persp) (safe-persp-window-conf current-persp)
               (persp-parameters new-persp) (append (safe-persp-parameters current-persp) nil)
               (persp-weak new-persp) (if current-persp (persp-weak current-persp) nil))
+        (when (listp choosen-buffers)
+          (persp-add-buffer choosen-buffers new-persp nil nil))
         (case switch
           (window (persp-window-switch new-name))
           (frame (persp-frame-switch new-name))
@@ -2192,19 +2261,13 @@ perspective buffers or nil."
                     (cons
                      persp-common-buffer-filter-functions
                      filters)
-                  persp-common-buffer-filter-functions))
-  (block pbfop
-    (let ((buf (get-buffer buff-or-name))
-          filter f)
-      (while (setq filter (pop filters))
-        (when
-            (if (functionp filter)
-                (funcall filter buf)
-              (while (setq f (pop filter))
-                (when (funcall f buf)
-                  (return-from pbfop t))))
-          (return-from pbfop t)))
-      nil)))
+                  persp-common-buffer-filter-functions)
+        buff-or-name (get-buffer buff-or-name))
+  (find-if #'(lambda (filter)
+               (if (functionp filter)
+                   (funcall filter buff-or-name)
+                 (find-if #'(lambda (f) (funcall f buff-or-name)) filter)))
+           filters))
 
 (defun persp-buffer-free-p (&optional buff-or-name del-weak)
   (unless buff-or-name (setq buff-or-name (current-buffer)))
@@ -2212,9 +2275,7 @@ perspective buffers or nil."
     (if persp-buffer-in-persps
         (if del-weak
             (not
-             (find-if-not #'safe-persp-weak
-                          (mapcar #'persp-get-by-name
-                                  persp-buffer-in-persps)))
+             (find-if-not #'safe-persp-weak persp-buffer-in-persps :key #'persp-get-by-name))
           nil)
       t)))
 
@@ -2411,7 +2472,7 @@ Return `NAME'."
       (setq persp (persp-add-new persp-nil-name)))
     (persp-save-state persp nil t)))
 
-(defsubst persp--do-auto-action-if-needed (persp)
+(defun persp--do-auto-action-if-needed (persp)
   (when (and (safe-persp-auto persp)
              persp-autokill-persp-when-removed-last-buffer
              (null (safe-persp-buffers persp)))
@@ -2593,10 +2654,7 @@ Return `NAME'."
     (when delcur
       (setq persps (delete (safe-persp-name (get-current-persp)) persps)))
     (unless show-hidden
-      (setq persps (delete-if #'(lambda (pn)
-                                  (safe-persp-hidden
-                                   (persp-get-by-name pn)))
-                              persps)))
+      (setq persps (delete-if #'safe-persp-hidden persps :key #'persp-get-by-name)))
     (when (and default (not (member default persps)))
       (setq default nil))
     (let (retlst)
@@ -2612,8 +2670,8 @@ Return `NAME'."
         (if multiple
             (let ((done_str "[>done<]") (not-finished default-mode)
                   exit-minibuffer-function mb-local-key-map
-                  (push-keys (cdr (assq 'push-item persp-read-multiple-keys)))
-                  (pop-keys (cdr (assq 'pop-item persp-read-multiple-keys)))
+                  (push-keys (alist-get 'push-item persp-read-multiple-keys))
+                  (pop-keys (alist-get 'pop-item persp-read-multiple-keys))
                   push-keys-backup pop-keys-backup)
               (while (member done_str persps)
                 (setq done_str (concat ">" done_str)))
@@ -2859,8 +2917,9 @@ Return `NAME'."
   (when prompt
     (setq prompt (car (split-string prompt ": *$" t))))
 
-  (let ((buffer-names (delete-if #'persp-buffer-filtered-out-p
-                                 (mapcar #'buffer-name (persp-buffer-list-restricted))))
+  (let ((buffer-names (mapcar #'buffer-name
+                              (delete-if #'persp-buffer-filtered-out-p
+                                         (persp-buffer-list-restricted))))
         retlst)
     (macrolet ((call-pif ()
                          `(funcall persp-interactive-completion-function
@@ -2873,9 +2932,9 @@ Return `NAME'."
       (if multiple
           (let ((done_str "[>done<]") (not-finished default-mode)
                 exit-minibuffer-function mb-local-key-map
-                (push-keys (cdr (assq 'push-item persp-read-multiple-keys)))
-                (pop-keys (cdr (assq 'pop-item persp-read-multiple-keys)))
-                (toggle-filter-keys (cdr (assq 'toggle-persp-buffer-filter persp-read-multiple-keys)))
+                (push-keys (alist-get 'push-item persp-read-multiple-keys))
+                (pop-keys (alist-get 'pop-item persp-read-multiple-keys))
+                (toggle-filter-keys (alist-get 'toggle-persp-buffer-filter persp-read-multiple-keys))
                 push-keys-backup pop-keys-backup toggle-filter-keys-backup)
             (while (member done_str buffer-names)
               (setq done_str (concat ">" done_str)))
@@ -3040,21 +3099,19 @@ Return `NAME'."
 
 
 (defun persp-buffers-to-savelist (persp)
-  (let (ret)
-    (mapc #'(lambda (b)
-              (block 'persp-buffer-to-savelist
-                (let (tmp)
-                  (dolist (s-f persp-save-buffer-functions)
-                    (setq tmp (funcall s-f b))
-                    (when tmp
-                      (when (eq tmp 'skip) (return-from 'persp-buffer-to-savelist))
-                      (push tmp ret)
-                      (return-from 'persp-buffer-to-savelist))))))
-          (if persp
-              (persp-buffers persp)
-            (delete-if-not #'persp-buffer-free-p
-                           (funcall persp-buffer-list-function))))
-    ret))
+  (delete-if #'symbolp
+             (let (find-ret)
+               (mapcar #'(lambda (b)
+                           (setq find-ret nil)
+                           (find-if #'(lambda (sl) (when sl (setq find-ret sl)))
+                                    persp-save-buffer-functions
+                                    :key #'(lambda (s-f) (with-current-buffer b
+                                                      (funcall s-f b))))
+                           find-ret)
+                       (if persp
+                           (persp-buffers persp)
+                         (delete-if-not #'persp-buffer-free-p
+                                        (funcall persp-buffer-list-function)))))))
 
 (defun persp-window-conf-to-savelist (persp)
   `(def-wconf ,(if (or persp-use-workgroups
@@ -3062,12 +3119,15 @@ Return `NAME'."
                    (safe-persp-window-conf persp)
                  nil)))
 
+(defun persp-elisp-object-readable-p (obj)
+  (let (print-length print-level)
+    (or (stringp obj)
+        (not (string-match-p "#<.*?>" (prin1-to-string obj))))))
+
 (defun persp-parameters-to-savelist (persp)
   `(def-params ,(remove-if
                  #'(lambda (param)
-                     (and (not (stringp param))
-                          (string-match-p "#<.*?>"
-                                          (prin1-to-string param))
+                     (and (not (persp-elisp-object-readable-p param))
                           (message "[persp-mode] Info: The parameter %S \
 of the perspective %s can't be saved."
                                    param (safe-persp-name persp))
@@ -3075,7 +3135,7 @@ of the perspective %s can't be saved."
                  (safe-persp-parameters persp))))
 
 (defun persp-to-savelist (persp)
-  `(def-persp ,(and persp (safe-persp-name persp))
+  `(def-persp ,(and persp (persp-name persp))
      ,(persp-buffers-to-savelist persp)
      ,(persp-window-conf-to-savelist persp)
      ,(persp-parameters-to-savelist persp)
@@ -3130,10 +3190,9 @@ does not exists or not a directory %S." p-save-dir)
             nil)
         (mapc #'persp-save-state (persp-persps phash))
         (run-hook-with-args 'persp-before-save-state-to-file-functions fname phash respect-persp-file-parameter)
-        (if respect-persp-file-parameter
-            (let ((fg (persp-group-by (apply-partially #'persp-parameter 'persp-file)
-                                      (persp-persps phash nil t) t))
-                  persp-auto-save-persps-to-their-file
+        (if (and respect-persp-file-parameter
+                 (member-if (apply-partially #'persp-parameter 'persp-file) (persp-persps phash nil)))
+            (let (persp-auto-save-persps-to-their-file
                   persp-before-save-state-to-file-functions)
               (mapc #'(lambda (gr)
                         (destructuring-bind (pfname . pl) gr
@@ -3141,10 +3200,14 @@ does not exists or not a directory %S." p-save-dir)
                             (if pfname
                                 (persp-save-to-file-by-names pfname phash names 'yes nil)
                               (persp-save-to-file-by-names p-save-file phash names 'no nil)))))
-                    fg))
+                    (persp-group-by (apply-partially #'persp-parameter 'persp-file)
+                                    (persp-persps phash nil t) t)))
           (with-temp-buffer
+            (buffer-disable-undo)
             (erase-buffer)
             (goto-char (point-min))
+            (insert ";; -*- mode: emacs-lisp; eval: (progn (pp-buffer) (indent-buffer)) -*-")
+            (newline)
             (insert (let (print-length print-level)
                       (prin1-to-string (persps-to-savelist phash))))
             (persp-save-with-backups p-save-file)))))))
@@ -3175,19 +3238,20 @@ does not exists or not a directory %S." p-save-dir)
                            (with-current-buffer b
                              (cons b persp-buffer-in-persps)))
                        (funcall persp-buffer-list-function))))
-          (persp-load-state-from-file fname temphash (cons 'not (regexp-opt names)))
-          (setq bufferlist-diff (delete-if #'(lambda (b)
-                                               (destructuring-bind (buf . buf-persps) (assq b bufferlist-pre)
+          (persp-load-state-from-file fname temphash (cons :not (regexp-opt names)))
+          (setq bufferlist-diff (delete-if #'(lambda (bcons)
+                                               (destructuring-bind (buf . buf-persps) bcons
                                                  (when buf
                                                    (with-current-buffer buf
                                                      (setq persp-buffer-in-persps buf-persps))
                                                    t)))
-                                           (funcall persp-buffer-list-function)))))
-      (mapc #'(lambda (pn)
-                (let ((p (persp-add (persp-get-by-name pn phash) temphash)))
-                  (when (and p persp-auto-save-persps-to-their-file)
-                    (set-persp-parameter 'persp-file fname p))))
-            names)
+                                           (funcall persp-buffer-list-function)
+                                           :key #'(lambda (b) (assq b bufferlist-pre))))))
+      (mapc #'(lambda (p)
+                (persp-add p temphash)
+                (when (and p persp-auto-save-persps-to-their-file)
+                  (set-persp-parameter 'persp-file fname p)))
+            (mapcar #'(lambda (pn) (persp-get-by-name pn phash)) names))
       (persp-save-state-to-file fname temphash nil)
       (mapc #'kill-buffer bufferlist-diff))))
 
@@ -3229,12 +3293,13 @@ does not exists or not a directory %S." p-save-dir)
 
 ;; Load funcs
 
-(defsubst persp-update-frames-window-confs (&optional persp-names)
-  (mapc #'(lambda (f) (if persp-names
-                     (when (member (safe-persp-name (get-frame-persp f)) persp-names)
-                       (persp-restore-window-conf f))
-                   (persp-restore-window-conf f)))
-        (persp-frame-list-without-daemon)))
+(defun persp-update-frames-window-confs (&optional persp-names)
+  (mapc #'persp-restore-window-conf
+        (if persp-names
+            (delete-if-not #'(lambda (pn) (member pn persp-names))
+                           (persp-frame-list-without-daemon)
+                           :key #'(lambda (f) (safe-persp-name (get-frame-persp f))))
+          (persp-frame-list-without-daemon))))
 
 (defmacro persp-car-as-fun-cdr-as-args (lst)
   (let ((kar (gensym "lst-car")))
@@ -3268,35 +3333,34 @@ does not exists or not a directory %S." p-save-dir)
                         (message "[persp-mode] Warning: The file %s is no longer exists." fname))
                       (setq buf (get-buffer-create name))))
                   (when (buffer-live-p buf)
-                    (with-current-buffer buf
-                      (mapc #'(lambda (varcons)
-                                (destructuring-bind (vname . vvalue) varcons
-                                  (unless (or (eq vname 'buffer-file-name)
-                                              (eq vname 'major-mode))
-                                    (set (make-local-variable vname) vvalue))))
-                            (cdr (assq 'local-vars parameters)))
-                      (typecase mode
-                        (function (when (and (not (eq major-mode mode))
-                                             (not (eq major-mode 'not-loaded-yet)))
-                                    (funcall mode))))))
+                    (macrolet ((restorevars ()
+                                            `(mapc #'(lambda (varcons)
+                                                       (destructuring-bind (vname . vvalue) varcons
+                                                         (unless (or (eq vname 'buffer-file-name)
+                                                                     (eq vname 'major-mode))
+                                                           (set (make-local-variable vname) vvalue))))
+                                                   (alist-get 'local-vars parameters))))
+                      (with-current-buffer buf
+                        (restorevars)
+                        (typecase mode
+                          (function (when (and (not (eq major-mode mode))
+                                               (not (eq major-mode 'not-loaded-yet)))
+                                      (funcall mode)
+                                      (restorevars)))))))
                   buf))))
       (persp-car-as-fun-cdr-as-args savelist))))
 
 (defun persp-buffers-from-savelist-0 (savelist)
-  (let (ret)
-    (mapc #'(lambda (saved-buf)
-              (block 'persp-buffer-from-savelist
-                (let (tmp)
-                  (dolist (l-f persp-load-buffer-functions)
-                    (setq tmp (funcall l-f saved-buf))
-                    (when tmp
-                      (when (eq tmp 'skip)
-                        (return-from 'persp-buffer-from-savelist))
-                      (when (buffer-live-p tmp)
-                        (push tmp ret))
-                      (return-from 'persp-buffer-from-savelist))))))
-          savelist)
-    ret))
+  (delete-if-not
+   #'persp-get-buffer-or-null
+   (let (find-ret)
+     (mapcar #'(lambda (saved-buf)
+                 (setq find-ret nil)
+                 (find-if #'(lambda (lb) (when lb (setq find-ret lb)))
+                          persp-load-buffer-functions
+                          :key #'(lambda (l-f) (funcall l-f saved-buf)))
+                 find-ret)
+             savelist))))
 
 (defun persp-window-conf-from-savelist-0 (savelist)
   (let ((def-wconf #'identity))
@@ -3340,23 +3404,14 @@ does not exists or not a directory %S." p-save-dir)
   (mapcar #'(lambda (pd)
               (persp-from-savelist-0 pd phash (and set-persp-file persp-file)))
           (if names-regexp
-              (destructuring-bind (op . regexp) names-regexp
-                (delete-if-not
-                 (case op
-                   (not
-                    #'(lambda (pd)
-                        (not (string-match-p regexp
-                                             (or (cadr pd) persp-nil-name)))))
-                   (t
-                    #'(lambda (pd)
-                        (string-match-p regexp
-                                        (or (cadr pd) persp-nil-name)))))
-                 savelist))
+              (delete-if-not
+               (apply-partially #'persp-string-match-p names-regexp)
+               savelist
+               :key #'(lambda (pd) (or (cadr pd) persp-nil-name)))
             savelist)))
 
 (defun persp-names-from-savelist-0 (savelist)
-  (mapcar #'(lambda (pd)
-              (or (cadr pd) persp-nil-name)) savelist))
+  (mapcar #'(lambda (pd) (or (cadr pd) persp-nil-name)) savelist))
 
 (defun persps-savelist-version-string (savelist)
   (let* ((version-list (car savelist))
@@ -3395,8 +3450,9 @@ does not exists or not a directory %S." p-save-dir)
 
 (defun persp-list-persp-names-in-file (fname)
   (when (and fname (file-exists-p fname))
-    (let* ((buf (find-file-noselect fname))
-           (pslist (with-current-buffer buf
+    (let* ((pslist (with-temp-buffer
+                     (buffer-disable-undo)
+                     (insert-file-contents fname nil nil nil t)
                      (goto-char (point-min))
                      (read (current-buffer)))))
       (destructuring-bind (fun s-list)
@@ -3418,11 +3474,12 @@ does not exists or not a directory %S." p-save-dir)
       (if (not (file-exists-p p-save-file))
           (progn (message "[persp-mode] Error: No such file -- %S." p-save-file)
                  nil)
-        (let (readed-list)
-          (with-current-buffer (find-file-noselect p-save-file)
-            (goto-char (point-min))
-            (setq readed-list (read (current-buffer)))
-            (kill-buffer))
+        (let ((readed-list
+               (with-temp-buffer
+                 (buffer-disable-undo)
+                 (insert-file-contents p-save-file nil nil nil t)
+                 (goto-char (point-min))
+                 (read (current-buffer)))))
           (persps-from-savelist
            readed-list phash p-save-file set-persp-file names-regexp))))))
 
