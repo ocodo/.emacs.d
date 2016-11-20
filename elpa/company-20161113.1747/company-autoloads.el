@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "company" "company.el" (22479 32504 881837
-;;;;;;  285000))
+;;;### (autoloads nil "company" "company.el" (0 0 0 0))
 ;;; Generated autoloads from company.el
 
 (autoload 'company-mode "company" "\
@@ -72,10 +71,12 @@ inserted.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company" '("company-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-abbrev" "company-abbrev.el" (22479
-;;;;;;  32504 929837 409000))
+;;;### (autoloads nil "company-abbrev" "company-abbrev.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from company-abbrev.el
 
 (autoload 'company-abbrev "company-abbrev" "\
@@ -83,10 +84,11 @@ inserted.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-abbrev" '("company-abbrev-insert")))
+
 ;;;***
 
-;;;### (autoloads nil "company-bbdb" "company-bbdb.el" (22479 32504
-;;;;;;  917837 378000))
+;;;### (autoloads nil "company-bbdb" "company-bbdb.el" (0 0 0 0))
 ;;; Generated autoloads from company-bbdb.el
 
 (autoload 'company-bbdb "company-bbdb" "\
@@ -94,10 +96,32 @@ inserted.
 
 \(fn COMMAND &optional ARG &rest IGNORE)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-bbdb" '("company-bbdb-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-css" "company-css.el" (22479 32504
-;;;;;;  877837 275000))
+;;;### (autoloads nil "company-capf" "company-capf.el" (0 0 0 0))
+;;; Generated autoloads from company-capf.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-capf" '("company-")))
+
+;;;***
+
+;;;### (autoloads nil "company-clang" "company-clang.el" (0 0 0 0))
+;;; Generated autoloads from company-clang.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-clang" '("company-clang")))
+
+;;;***
+
+;;;### (autoloads nil "company-cmake" "company-cmake.el" (0 0 0 0))
+;;; Generated autoloads from company-cmake.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-cmake" '("company-cmake")))
+
+;;;***
+
+;;;### (autoloads nil "company-css" "company-css.el" (0 0 0 0))
 ;;; Generated autoloads from company-css.el
 
 (autoload 'company-css "company-css" "\
@@ -105,10 +129,12 @@ inserted.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-css" '("company-css-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-dabbrev" "company-dabbrev.el" (22479
-;;;;;;  32504 901837 337000))
+;;;### (autoloads nil "company-dabbrev" "company-dabbrev.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from company-dabbrev.el
 
 (autoload 'company-dabbrev "company-dabbrev" "\
@@ -116,10 +142,12 @@ dabbrev-like `company-mode' completion backend.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-dabbrev" '("company-dabbrev-")))
+
 ;;;***
 
 ;;;### (autoloads nil "company-dabbrev-code" "company-dabbrev-code.el"
-;;;;;;  (22479 32504 893837 316000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from company-dabbrev-code.el
 
 (autoload 'company-dabbrev-code "company-dabbrev-code" "\
@@ -129,10 +157,18 @@ comments or strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-dabbrev-code" '("company-dabbrev-code-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-elisp" "company-elisp.el" (22479 32504
-;;;;;;  937837 429000))
+;;;### (autoloads nil "company-eclim" "company-eclim.el" (0 0 0 0))
+;;; Generated autoloads from company-eclim.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-eclim" '("company-eclim")))
+
+;;;***
+
+;;;### (autoloads nil "company-elisp" "company-elisp.el" (0 0 0 0))
 ;;; Generated autoloads from company-elisp.el
 
 (autoload 'company-elisp "company-elisp" "\
@@ -140,10 +176,11 @@ comments or strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-elisp" '("company-elisp-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-etags" "company-etags.el" (22479 32504
-;;;;;;  885837 296000))
+;;;### (autoloads nil "company-etags" "company-etags.el" (0 0 0 0))
 ;;; Generated autoloads from company-etags.el
 
 (autoload 'company-etags "company-etags" "\
@@ -151,10 +188,11 @@ comments or strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-etags" '("company-etags-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-files" "company-files.el" (22479 32504
-;;;;;;  905837 347000))
+;;;### (autoloads nil "company-files" "company-files.el" (0 0 0 0))
 ;;; Generated autoloads from company-files.el
 
 (autoload 'company-files "company-files" "\
@@ -164,10 +202,11 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-files" '("company-file")))
+
 ;;;***
 
-;;;### (autoloads nil "company-gtags" "company-gtags.el" (22479 32504
-;;;;;;  853837 213000))
+;;;### (autoloads nil "company-gtags" "company-gtags.el" (0 0 0 0))
 ;;; Generated autoloads from company-gtags.el
 
 (autoload 'company-gtags "company-gtags" "\
@@ -175,10 +214,12 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-gtags" '("company-gtags-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-ispell" "company-ispell.el" (22479
-;;;;;;  32504 933837 419000))
+;;;### (autoloads nil "company-ispell" "company-ispell.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from company-ispell.el
 
 (autoload 'company-ispell "company-ispell" "\
@@ -186,10 +227,12 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-ispell" '("company-ispell-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-keywords" "company-keywords.el" (22479
-;;;;;;  32504 913837 368000))
+;;;### (autoloads nil "company-keywords" "company-keywords.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from company-keywords.el
 
 (autoload 'company-keywords "company-keywords" "\
@@ -197,10 +240,11 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-keywords" '("company-keywords-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-nxml" "company-nxml.el" (22479 32504
-;;;;;;  921837 388000))
+;;;### (autoloads nil "company-nxml" "company-nxml.el" (0 0 0 0))
 ;;; Generated autoloads from company-nxml.el
 
 (autoload 'company-nxml "company-nxml" "\
@@ -208,10 +252,12 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-nxml" '("company-nxml-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-oddmuse" "company-oddmuse.el" (22479
-;;;;;;  32504 869837 254000))
+;;;### (autoloads nil "company-oddmuse" "company-oddmuse.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from company-oddmuse.el
 
 (autoload 'company-oddmuse "company-oddmuse" "\
@@ -219,10 +265,12 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-oddmuse" '("company-oddmuse-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-semantic" "company-semantic.el" (22479
-;;;;;;  32504 861837 234000))
+;;;### (autoloads nil "company-semantic" "company-semantic.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from company-semantic.el
 
 (autoload 'company-semantic "company-semantic" "\
@@ -230,10 +278,19 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-semantic" '("company-semantic-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-tempo" "company-tempo.el" (22479 32504
-;;;;;;  897837 326000))
+;;;### (autoloads nil "company-template" "company-template.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from company-template.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-template" '("company-template-")))
+
+;;;***
+
+;;;### (autoloads nil "company-tempo" "company-tempo.el" (0 0 0 0))
 ;;; Generated autoloads from company-tempo.el
 
 (autoload 'company-tempo "company-tempo" "\
@@ -241,10 +298,11 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-tempo" '("company-tempo-")))
+
 ;;;***
 
-;;;### (autoloads nil "company-xcode" "company-xcode.el" (22479 32504
-;;;;;;  929837 409000))
+;;;### (autoloads nil "company-xcode" "company-xcode.el" (0 0 0 0))
 ;;; Generated autoloads from company-xcode.el
 
 (autoload 'company-xcode "company-xcode" "\
@@ -252,10 +310,12 @@ File paths with spaces are only supported inside strings.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-xcode" '("company-xcode-")))
+
 ;;;***
 
 ;;;### (autoloads nil "company-yasnippet" "company-yasnippet.el"
-;;;;;;  (22479 32504 925837 398000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from company-yasnippet.el
 
 (autoload 'company-yasnippet "company-yasnippet" "\
@@ -283,11 +343,11 @@ shadow backends that come after it.  Recommended usages:
 
 \(fn COMMAND &optional ARG &rest IGNORE)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-yasnippet" '("company-yasnippet--")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("company-capf.el" "company-clang.el" "company-cmake.el"
-;;;;;;  "company-eclim.el" "company-pkg.el" "company-template.el")
-;;;;;;  (22479 32504 917837 378000))
+;;;### (autoloads nil nil ("company-pkg.el") (0 0 0 0))
 
 ;;;***
 

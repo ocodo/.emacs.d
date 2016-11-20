@@ -5,9 +5,9 @@
 ;; Author: Nikolaj Schumacher
 ;; Maintainer: Dmitry Gutov <dgutov@yandex.ru>
 ;; URL: http://company-mode.github.io/
-;; Version: 0.9.0
+;; Version: 0.9.2
 ;; Keywords: abbrev, convenience, matching
-;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is part of GNU Emacs.
 
@@ -63,28 +63,9 @@
 (require 'newcomment)
 (require 'pcase)
 
-;; FIXME: Use `user-error'.
-(add-to-list 'debug-ignored-errors "^.* frontend cannot be used twice$")
-(add-to-list 'debug-ignored-errors "^Echo area cannot be used twice$")
-(add-to-list 'debug-ignored-errors "^No \\(document\\|loc\\)ation available$")
-(add-to-list 'debug-ignored-errors "^Company not ")
-(add-to-list 'debug-ignored-errors "^No candidate number ")
-(add-to-list 'debug-ignored-errors "^Cannot complete at point$")
-(add-to-list 'debug-ignored-errors "^No other backend$")
-
 ;;; Compatibility
 (eval-and-compile
-  ;; `defvar-local' for Emacs 24.2 and below
-  (unless (fboundp 'defvar-local)
-    (defmacro defvar-local (var val &optional docstring)
-      "Define VAR as a buffer-local variable with default value VAL.
-Like `defvar' but additionally marks the variable as being automatically
-buffer-local wherever it is set."
-      (declare (debug defvar) (doc-string 3))
-      `(progn
-         (defvar ,var ,val ,docstring)
-         (make-variable-buffer-local ',var))))
-
+  ;; Defined in Emacs 24.4
   (unless (fboundp 'string-suffix-p)
     (defun string-suffix-p (suffix string  &optional ignore-case)
       "Return non-nil if SUFFIX is a suffix of STRING.
@@ -206,13 +187,13 @@ attention to case differences."
                   (memq 'company-pseudo-tooltip-frontend value))
              (and (memq 'company-pseudo-tooltip-unless-just-one-frontend-with-delay value)
                   (memq 'company-pseudo-tooltip-unless-just-one-frontend value)))
-         (error "Pseudo tooltip frontend cannot be used more than once"))
+         (user-error "Pseudo tooltip frontend cannot be used more than once"))
     (and (memq 'company-preview-if-just-one-frontend value)
          (memq 'company-preview-frontend value)
-         (error "Preview frontend cannot be used twice"))
+         (user-error "Preview frontend cannot be used twice"))
     (and (memq 'company-echo value)
          (memq 'company-echo-metadata-frontend value)
-         (error "Echo area cannot be used twice"))
+         (user-error "Echo area cannot be used twice"))
     ;; Preview must come last.
     (dolist (f '(company-preview-if-just-one-frontend company-preview-frontend))
       (when (cdr (memq f value))
@@ -697,6 +678,12 @@ asynchronous call into synchronous.")
       (unless (keywordp b)
         (company-init-backend b))))))
 
+(defun company--maybe-init-backend (backend)
+  (or (not (symbolp backend))
+      (eq t (get backend 'company-init))
+      (unless (get backend 'company-init)
+        (company-init-backend backend))))
+
 (defcustom company-lighter-base "company"
   "Base string to use for the `company-mode' lighter."
   :type 'string
@@ -789,7 +776,7 @@ means that `company-mode' is always turned on except in `message-mode' buffers."
 (defsubst company-assert-enabled ()
   (unless company-mode
     (company-uninstall-map)
-    (error "Company not enabled")))
+    (user-error "Company not enabled")))
 
 ;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -932,8 +919,8 @@ matches IDLE-BEGIN-AFTER-RE, return it wrapped in a cons."
 
 (defun company--multi-backend-adapter (backends command &rest args)
   (let ((backends (cl-loop for b in backends
-                           when (not (and (symbolp b)
-                                          (eq 'failed (get b 'company-init))))
+                           when (or (keywordp b)
+                                    (company--maybe-init-backend b))
                            collect b))
         (separate (memq :separate backends)))
 
@@ -1431,7 +1418,7 @@ prefix match (same case) will be prioritized."
       (when (ignore-errors (company-begin-backend backend))
         (cl-return t))))
   (unless company-candidates
-    (error "No other backend")))
+    (user-error "No other backend")))
 
 (defun company-require-match-p ()
   (let ((backend-value (company-call-backend 'require-match)))
@@ -1442,7 +1429,7 @@ prefix match (same case) will be prioritized."
                (eq company-require-match t))))))
 
 (defun company-auto-complete-p (input)
-  "Return non-nil, if input starts with punctuation or parentheses."
+  "Return non-nil if INPUT should trigger auto-completion."
   (and (if (functionp company-auto-complete)
            (funcall company-auto-complete)
          company-auto-complete)
@@ -1451,7 +1438,8 @@ prefix match (same case) will be prioritized."
          (if (consp company-auto-complete-chars)
              (memq (char-syntax (string-to-char input))
                    company-auto-complete-chars)
-           (string-match (substring input 0 1) company-auto-complete-chars)))))
+           (string-match (regexp-quote (substring input 0 1))
+                          company-auto-complete-chars)))))
 
 (defun company--incremental-p ()
   (and (> (point) company-point)
@@ -1535,10 +1523,7 @@ prefix match (same case) will be prioritized."
       (setq prefix
             (if (or (symbolp backend)
                     (functionp backend))
-                (when (or (not (symbolp backend))
-                          (eq t (get backend 'company-init))
-                          (unless (get backend 'company-init)
-                            (company-init-backend backend)))
+                (when (company--maybe-init-backend backend)
                   (funcall backend 'prefix))
               (company--multi-backend-adapter backend 'prefix)))
       (when prefix
@@ -1778,7 +1763,7 @@ each one wraps a part of the input string."
                company-search-filtering
                (lambda (candidate) (string-match re candidate))))
          (cc (company-calculate-candidates company-prefix)))
-    (unless cc (error "No match"))
+    (unless cc (user-error "No match"))
     (company-update-candidates cc)))
 
 (defun company--search-update-string (new)
@@ -1791,7 +1776,7 @@ each one wraps a part of the input string."
 (defun company--search-assert-input ()
   (company--search-assert-enabled)
   (when (string= company-search-string "")
-    (error "Empty search string")))
+    (user-error "Empty search string")))
 
 (defun company-search-repeat-forward ()
   "Repeat the incremental search in completion candidates forward."
@@ -1918,7 +1903,7 @@ Don't start this directly, use `company-search-candidates' or
   (company-assert-enabled)
   (unless company-search-mode
     (company-uninstall-map)
-    (error "Company not in search mode")))
+    (user-error "Company not in search mode")))
 
 (defun company-search-candidates ()
   "Start searching the completion candidates incrementally.
@@ -2104,6 +2089,9 @@ With ARG, move by that many elements."
   (cond
    ((use-region-p)
     (indent-region (region-beginning) (region-end)))
+   ((memq indent-line-function
+          '(indent-relative indent-relative-maybe))
+    (company-complete-common))
    ((let ((old-point (point))
           (old-tick (buffer-chars-modified-tick))
           (tab-always-indent t))
@@ -2152,7 +2140,7 @@ character, stripping the modifiers.  That character must be a digit."
   (when (company-manual-begin)
     (and (or (< n 1) (> n (- company-candidates-length
                              company-tooltip-offset)))
-         (error "No candidate number %d" n))
+         (user-error "No candidate number %d" n))
     (cl-decf n)
     (company-finish (nth (+ n company-tooltip-offset)
                          company-candidates))))
@@ -2244,7 +2232,7 @@ character, stripping the modifiers.  That character must be a digit."
     (company--electric-do
       (let* ((selected (nth company-selection company-candidates))
              (doc-buffer (or (company-call-backend 'doc-buffer selected)
-                             (error "No documentation available")))
+                             (user-error "No documentation available")))
              start)
         (when (consp doc-buffer)
           (setq start (cdr doc-buffer)
@@ -2261,7 +2249,7 @@ character, stripping the modifiers.  That character must be a digit."
     (company--electric-do
       (let* ((selected (nth company-selection company-candidates))
              (location (company-call-backend 'location selected))
-             (pos (or (cdr location) (error "No location available")))
+             (pos (or (cdr location) (user-error "No location available")))
              (buffer (or (and (bufferp (car location)) (car location))
                          (find-file-noselect (car location) t))))
         (setq other-window-scroll-buffer (get-buffer buffer))
@@ -2298,7 +2286,7 @@ character, stripping the modifiers.  That character must be a digit."
   (setq company-backend backend)
   ;; Return non-nil if active.
   (or (company-manual-begin)
-      (error "Cannot complete at point")))
+      (user-error "Cannot complete at point")))
 
 (defun company-begin-with (candidates
                            &optional prefix-length require-match callback)
