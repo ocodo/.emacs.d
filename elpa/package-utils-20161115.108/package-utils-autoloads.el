@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "package-utils" "package-utils.el" (22527 17422
-;;;;;;  0 0))
+;;;### (autoloads nil "package-utils" "package-utils.el" (0 0 0 0))
 ;;; Generated autoloads from package-utils.el
 
 (autoload 'package-utils-list-upgrades "package-utils" "\
@@ -18,9 +17,8 @@ With prefix argument NO-FETCH, do not call `package-refresh-contents'.
 Upgrade all packages that can be upgraded.
 
 With prefix argument NO-FETCH, do not call `package-refresh-contents'.
-When DRY-RUN is true, only display what packages would be upgraded.
 
-\(fn &optional NO-FETCH DRY-RUN)" t nil)
+\(fn &optional NO-FETCH)" t nil)
 
 (autoload 'package-utils-upgrade-all-no-fetch "package-utils" "\
 Upgrade all packages that can be upgraded without calling `package-refresh-contents' first.
@@ -30,8 +28,6 @@ Upgrade all packages that can be upgraded without calling `package-refresh-conte
 (autoload 'package-utils-upgrade-by-name "package-utils" "\
 Upgrade the package NAME.
 
-NAME can be a string or a symbol.
-
 With prefix argument NO-FETCH, do not call `package-refresh-contents'.
 
 \(fn NAME &optional NO-FETCH)" t nil)
@@ -39,26 +35,21 @@ With prefix argument NO-FETCH, do not call `package-refresh-contents'.
 (autoload 'package-utils-upgrade-by-name-no-fetch "package-utils" "\
 Upgrade the package NAME, without calling `package-refresh-contents' first.
 
-NAME can be a string or a symbol.
-
 \(fn NAME)" t nil)
 
 (autoload 'package-utils-remove-by-name "package-utils" "\
 Uninstall the package NAME.
 
-NAME can be a string or a symbol.
-
 \(fn NAME)" t nil)
 
-(autoload 'package-utils-list-packages-async "package-utils" "\
-Like `package-list-packages', but works asynchronously.
-
-\(fn)" t nil)
-
 (autoload 'package-utils-install-async "package-utils" "\
-Like `package-install', but works asynchronously.
+Install PACKAGE asynchronously.
+
+Contrary to `package-install', PACKAGE can only be a symbol.
 
 \(fn PACKAGE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "package-utils" '("package-utils-")))
 
 ;;;***
 
