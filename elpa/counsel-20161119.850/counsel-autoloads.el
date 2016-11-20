@@ -164,6 +164,13 @@ This uses `counsel-ag' with `counsel-pt-base-command' replacing
 
 \(fn &optional INITIAL-INPUT)" t nil)
 
+(autoload 'counsel-rg "counsel" "\
+Grep for a string in the current directory using rg.
+This uses `counsel-ag' with `counsel-rg-base-command' replacing
+`counsel-ag-base-command'.
+
+\(fn &optional INITIAL-INPUT)" t nil)
+
 (autoload 'counsel-grep "counsel" "\
 Grep for a string in the current file.
 

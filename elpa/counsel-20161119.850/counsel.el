@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20161104.828
+;; Package-Version: 20161119.850
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -1419,7 +1419,7 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
   (interactive)
   (require 'recentf)
   (recentf-mode)
-  (ivy-read "Recentf: " recentf-list
+  (ivy-read "Recentf: " (mapcar #'substring-no-properties recentf-list)
             :action (lambda (f)
                       (with-ivy-window
                        (find-file f)))
@@ -1721,6 +1721,22 @@ This uses `counsel-ag' with `counsel-pt-base-command' replacing
   (let ((counsel-ag-base-command counsel-pt-base-command))
     (counsel-ag initial-input)))
 
+;;** `counsel-rg'
+(defcustom counsel-rg-base-command "rg -i --no-heading %s"
+  "Used to in place of `counsel-rg-base-command' to search with
+ripgrep using `counsel-rg'."
+  :type 'string
+  :group 'ivy)
+
+;;;###autoload
+(defun counsel-rg (&optional initial-input)
+  "Grep for a string in the current directory using rg.
+This uses `counsel-ag' with `counsel-rg-base-command' replacing
+`counsel-ag-base-command'."
+  (interactive)
+  (let ((counsel-ag-base-command counsel-rg-base-command))
+    (counsel-ag initial-input)))
+
 ;;** `counsel-grep'
 (defcustom counsel-grep-base-command "grep -nE \"%s\" %s"
   "Format string to use in `cousel-grep-function' to construct
@@ -1808,9 +1824,10 @@ the command."
                              :dynamic-collection t
                              :preselect (format "%d:%s"
                                                 (line-number-at-pos)
-                                                (buffer-substring-no-properties
-                                                 (line-beginning-position)
-                                                 (line-end-position)))
+                                                (regexp-quote
+                                                 (buffer-substring-no-properties
+                                                  (line-beginning-position)
+                                                  (line-end-position))))
                              :history 'counsel-git-grep-history
                              :update-fn (lambda ()
                                           (counsel-grep-action ivy--current))
