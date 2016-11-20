@@ -8,7 +8,7 @@
 ;;               Phil Hagelberg
 ;;               Dan McKinley
 ;; Version: 1.3.1
-;; Package-Version: 20160118.1656
+;; Package-Version: 20161118.2026
 ;; Package-Requires: ((emacs "24.1") (gh "0.9.2"))
 ;; Keywords: tools
 ;; Homepage: https://github.com/defunkt/gist.el
@@ -364,7 +364,7 @@ for the gist."
         (creation (gist--get-time gist))
         (desc (or (oref gist :description) ""))
         (public (eq t (oref gist :public)))
-        (fnames (mapcar (lambda (f) (oref f :filename)) (oref gist :files))))
+        (fnames (mapcar (lambda (f) (when f (oref f :filename))) (oref gist :files))))
     (loop for (id label width sort format) in gist-list-format
           collect (let ((string-formatter (if (eq id 'created)
                                               'format-time-string
