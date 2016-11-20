@@ -5,7 +5,7 @@
 ;; Author: Simon Manning <simon@ecksdee.org>
 ;; Maintainer: Simon Manning <simon@ecksdee.org>
 ;; Package-Requires: ((emacs "24"))
-;; Package-Version: 20161029.810
+;; Package-Version: 20161113.642
 ;; Homepage: https://github.com/sjrmanning/noctilux-theme
 
 ;; This file is not part of GNU Emacs.
@@ -682,9 +682,11 @@ the \"Gen RGB\" column in noctilux-definitions.el to improve them further."
        (provide-theme ',theme-name))))
 
 ;;;###autoload
-(when (boundp 'custom-theme-load-path)
-  (add-to-list 'custom-theme-load-path
-               (file-name-as-directory (file-name-directory load-file-name))))
+(and load-file-name
+     (boundp 'custom-theme-load-path)
+     (add-to-list 'custom-theme-load-path
+                  (file-name-as-directory
+                   (file-name-directory load-file-name))))
 
 (create-noctilux-theme)
 
