@@ -4,7 +4,7 @@
 ;; All rights reserved
 ;;
 ;; Version: 1.5 - 2016-10-28
-;; Package-Version: 20161104.1949
+;; Package-Version: 20161110.1630
 ;; Author: xristos@sdf.lonestar.org
 ;; URL: https://github.com/atomontage/xterm-color
 ;; Package-Requires: ((cl-lib "0.5"))
@@ -62,6 +62,10 @@
 ;; (xterm-color-filter ";35")
 ;; (xterm-color-filter ";mThis is only a test")
 ;; (xterm-color-filter "[0m")
+;;
+;;
+;; You may also use xterm-color-colorize-buffer, interactively or from elisp,
+;; to colorize an entire buffer.
 ;;
 ;;
 ;; * You can replace ansi-color.el with xterm-color for all comint buffers:
@@ -561,6 +565,26 @@ This can be inserted into `comint-preoutput-filter-functions'."
 		   res)
 	     finally return (mapconcat 'identity (nreverse res) ""))))
 
+
+;;
+;; Interactive
+;;
+
+
+(cl-defun xterm-color-colorize-buffer (buffer)
+  "Apply `xterm-color-filter' to BUFFER, and replace its contents.
+When called interactively use the current buffer."
+  (interactive (list (current-buffer)))
+  (let ((read-only-p buffer-read-only))
+    (when read-only-p
+      (unless (y-or-n-p "Buffer is read only, continue colorizing? ")
+        (cl-return-from xterm-color-colorize-buffer))
+      (read-only-mode -1))
+    (insert (xterm-color-filter (delete-and-extract-region (point-min) (point-max))))
+    (goto-char (point-min))
+    (when read-only-p (read-only-mode 1))))
+
+
 ;;
 ;; Tests
 ;;
@@ -637,6 +661,7 @@ This can be inserted into `comint-preoutput-filter-functions'."
   (xterm-color--test-ansi)
   (xterm-color--test-xterm)
   (setq buffer-read-only t))
+
 
 (provide 'xterm-color)
 ;;; xterm-color.el ends here
