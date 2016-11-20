@@ -4,8 +4,8 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20161024.1043
-;; Version:           0.5.0
+;; Package-Version: 20161118.530
+;; Version:           0.12.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
 
@@ -30,12 +30,13 @@
 
 ;;; Commentary:
 ;;
-;; To make it start alongside projectile-mode:
+;; To start it for the rails projects:
 ;;
-;;    (add-hook 'projectile-mode-hook 'projectile-rails-on)
+;;    (projectile-rails-global-mode)
 ;;
 ;;; Code:
 
+(require 'cl)
 (require 'projectile)
 (require 'inf-ruby)
 (require 'inflections)
