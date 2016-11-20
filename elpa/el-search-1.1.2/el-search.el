@@ -7,7 +7,7 @@
 ;; Created: 29 Jul 2015
 ;; Keywords: lisp
 ;; Compatibility: GNU Emacs 25
-;; Version: 1.1
+;; Version: 1.1.2
 ;; Package-Requires: ((emacs "25") (stream "2.2.3"))
 
 
@@ -683,10 +683,10 @@ a string or comment."
       (let ((combined-doc (buffer-string)))
         (if ud (help-add-fundoc-usage combined-doc (car ud)) combined-doc)))))
 
-(defvar el-search--heuristical-matchers ()
-  "Alist of heuristical matchers.
+(defvar el-search--heuristic-matchers ()
+  "Alist of heuristic matchers.
 Keys are pattern names (i.e. symbols), and values the associated
-heuristical matcher functions.")
+heuristic matcher functions.")
 
 (defmacro el-search-defpattern (name args &rest body)
   "Like `pcase-defmacro', but for defining el-search patterns.
@@ -699,42 +699,41 @@ pattern as well as any defined el-search pattern.
 The docstring may be followed by a `defun' style declaration list
 DECL.  There is only one respected specification, it has the form
 
-  \(heuristical-matcher MATCHER-FUNCTION\)
+  \(heuristic-matcher MATCHER-FUNCTION\)
 
-and specifies the heuristical MATCHER-FUNCTION to be associated
+and specifies the heuristic MATCHER-FUNCTION to be associated
 with the defined pattern NAME.
 
-The purpose of a heuristical matcher function is to speed up
-multi buffer searching.  When specified, the MATCHER-FUNCTION
-should be a function accepting the same arguments as the defined
-pattern.  When called with the ARGS, this function should return
-a function that accepts a list of atoms, which is the complete
-list of atoms found in the buffer to search, and that returns
-non-nil when this buffer could contain a match for the
-pattern (NAME . ARGS), and nil when we can be sure that it
-contains no match (whereby an atom here is anything whose parts
-aren't searched by el-searching, like integers or strings, but
-unlike arrays).  When in doubt, this function must return
-non-nil.  When el-searching is started with a certain PATTERN, a
-heuristical matcher function is constructed by recursively
-destructuring PATTERN and combining the heuristical matchers of
-the subpatterns.  The resulting function is then used to dismiss
-any buffer for that can be proved that it can not contain any
-match.
+The purpose of a heuristic matcher function is to speed up multi
+buffer searching.  When specified, the MATCHER-FUNCTION should be
+a function accepting the same arguments as the defined pattern.
+When called with the ARGS, this function should return a function
+that accepts a list of atoms, which is the complete list of atoms
+found in the buffer to search, and that returns non-nil when this
+buffer could contain a match for the pattern (NAME . ARGS), and
+nil when we can be sure that it contains no match (whereby an
+atom here is anything whose parts aren't searched by
+el-searching, like integers or strings, but unlike arrays).  When
+in doubt, this function must return non-nil.  When el-searching
+is started with a certain PATTERN, a heuristic matcher function
+is constructed by recursively destructuring PATTERN and combining
+the heuristic matchers of the subpatterns.  The resulting
+function is then used to dismiss any buffer for that can be
+proved that it can not contain any match.
 
 \(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
   (declare (indent 2) (debug defun))
-  (let ((doc nil) (set-heuristical-matcher ()))
+  (let ((doc nil) (set-heuristic-matcher ()))
     (when (stringp (car body))
       (setq doc       (car body)
             body (cdr body)))
     (pcase (car body)
-      (`(declare (heuristical-matcher ,heuristical-matcher))
-       (setq set-heuristical-matcher
-             `((setf (alist-get ',name el-search--heuristical-matchers) ,heuristical-matcher)))
+      (`(declare (heuristic-matcher ,heuristic-matcher))
+       (setq set-heuristic-matcher
+             `((setf (alist-get ',name el-search--heuristic-matchers) ,heuristic-matcher)))
        (setq body (cdr body))))
     `(progn
-       ,@set-heuristical-matcher
+       ,@set-heuristic-matcher
        (setf (alist-get ',name el-search--pcase-macros)
              (lambda ,args ,doc ,@body)))))
 
@@ -838,12 +837,12 @@ MESSAGE are used to construct the error message."
   )
 
 (cl-defstruct el-search-head
-  matcher                    ;for the search pattern
-  heuristical-buffer-matcher ;for the search pattern
-  buffer                     ;currently searched buffer, or nil meaning "continue in next buffer"
-  file                       ;name of currently searched file, or nil
-  position                   ;where to continue search in this buffer
-  buffers                    ;stream of buffers and/or files yet to search
+  matcher                  ;for the search pattern
+  heuristic-buffer-matcher ;for the search pattern
+  buffer                   ;currently searched buffer, or nil meaning "continue in next buffer"
+  file                     ;name of currently searched file, or nil
+  position                 ;where to continue search in this buffer
+  buffers                  ;stream of buffers and/or files yet to search
   )
 
 (defun el-search-kill-left-over-search-buffers (&optional not-current-buffer)
@@ -855,8 +854,8 @@ MESSAGE are used to construct the error message."
                   (and not-current-buffer (eq buffer (current-buffer))))
         (kill-buffer buffer)))))
 
-(defun el-search-heuristical-matcher (pattern)
-  "Return a heuristical matcher for PATTERN.
+(defun el-search-heuristic-matcher (pattern)
+  "Return a heuristic matcher for PATTERN.
 This is a predicate accepting a list of a file's or buffer's
 atoms and returns nil when we can be sure that this file or
 buffer can't contain a match for PATTERN, and non-nil else."
@@ -866,37 +865,37 @@ buffer can't contain a match for PATTERN, and non-nil else."
     (`',tree
      (pcase (el-search--flatten-tree tree)
        (`(,tree)  (apply-partially #'member tree))
-       (flattened (let ((matchers (mapcar (lambda (atom) (el-search-heuristical-matcher `',atom))
+       (flattened (let ((matchers (mapcar (lambda (atom) (el-search-heuristic-matcher `',atom))
                                           flattened)))
                     (lambda (atoms) (cl-every (lambda (matcher) (funcall matcher atoms)) matchers))))))
     (``,qpat
      (cond
-      ((eq (car-safe qpat) '\,) (el-search-heuristical-matcher (cadr qpat)))
+      ((eq (car-safe qpat) '\,) (el-search-heuristic-matcher (cadr qpat)))
       ((vectorp qpat)
-       (let ((matchers (mapcar (lambda (inner-qpat) (el-search-heuristical-matcher (list '\` inner-qpat)))
+       (let ((matchers (mapcar (lambda (inner-qpat) (el-search-heuristic-matcher (list '\` inner-qpat)))
                                qpat)))
          (lambda (atoms) (cl-every (lambda (matcher) (funcall matcher atoms)) matchers))))
       ((consp qpat)
-       (el-search-heuristical-matcher
+       (el-search-heuristic-matcher
         `(and
           ,(list '\` (car qpat))
           ,(if (cdr qpat) (list '\` (cdr qpat)) '_))))
       ((or (stringp qpat) (integerp qpat) (symbolp qpat)) (apply-partially #'member qpat))
       (t #'el-search-true)))
     (`(and . ,patterns)
-     (let ((matchers (mapcar #'el-search-heuristical-matcher patterns)))
+     (let ((matchers (mapcar #'el-search-heuristic-matcher patterns)))
        (lambda (atoms) (cl-every (lambda (matcher) (funcall matcher atoms)) matchers))))
     (`(or . ,patterns)
-     (let ((matchers (mapcar #'el-search-heuristical-matcher patterns)))
+     (let ((matchers (mapcar #'el-search-heuristic-matcher patterns)))
        (lambda (atoms) (cl-some (lambda (matcher) (funcall matcher atoms)) matchers))))
     (`(,(or 'app 'let 'pred 'guard) . ,_) #'el-search-true)
     ((and `(,name . ,args)
-          (let matcher (alist-get name el-search--heuristical-matchers)) (guard matcher))
+          (let matcher (alist-get name el-search--heuristic-matchers)) (guard matcher))
      (ignore name) ;quite byte compiler
      (apply matcher args))
     ((and (app el-search--macroexpand-1 expanded)
           (guard (not (eq expanded pattern))))
-     (el-search-heuristical-matcher expanded))
+     (el-search-heuristic-matcher expanded))
     (_ #'el-search-true)))
 
 (defun el-search-atom-list (buffer)
@@ -929,8 +928,8 @@ buffer can't contain a match for PATTERN, and non-nil else."
       (walker tree)
       elements)))
 
-(defun el-search-heuristical-buffer-matcher (pattern)
-  (let ((heuristical-matcher (el-search-heuristical-matcher pattern)))
+(defun el-search-heuristic-buffer-matcher (pattern)
+  (let ((heuristic-matcher (el-search-heuristic-matcher pattern)))
     (lambda (file-name-or-buffer)
       (el-search--message-no-log "Searching in %s"
                                  (if (stringp file-name-or-buffer)
@@ -938,10 +937,10 @@ buffer can't contain a match for PATTERN, and non-nil else."
                                    (buffer-name file-name-or-buffer)))
       (if (bufferp file-name-or-buffer)
           (and (buffer-live-p file-name-or-buffer)
-               (funcall heuristical-matcher (el-search-atom-list (current-buffer))))
-        (with-current-buffer (generate-new-buffer " *temp*")
+               (funcall heuristic-matcher (el-search-atom-list (current-buffer))))
+        (with-temp-buffer
           (insert-file-contents file-name-or-buffer)
-          (funcall heuristical-matcher (el-search-atom-list (current-buffer))))))))
+          (funcall heuristic-matcher (el-search-atom-list (current-buffer))))))))
 
 (defvar warning-minimum-level)
 (defun el-search--next-buffer (search &optional predicate)
@@ -952,13 +951,13 @@ buffer can't contain a match for PATTERN, and non-nil else."
   (el-search-hl-remove)
   (el-search-kill-left-over-search-buffers t)
   (let ((original-predicate (or predicate #'el-search-true))
-        (heuristical-buffer-matcher
-         (el-search-head-heuristical-buffer-matcher (el-search-object-head search))))
+        (heuristic-buffer-matcher
+         (el-search-head-heuristic-buffer-matcher (el-search-object-head search))))
     (setq predicate
           (lambda (file-name-or-buffer)
             (and (funcall original-predicate file-name-or-buffer)
                  (or (not el-search-optimized-search)
-                     (funcall heuristical-buffer-matcher file-name-or-buffer))))))
+                     (funcall heuristic-buffer-matcher file-name-or-buffer))))))
   (let ((head (el-search-object-head search)))
     (let ((buffer-stream (el-search-head-buffers head))
           (buffer-list-before (buffer-list))
@@ -1007,7 +1006,7 @@ search."
          (head (make-el-search-head
                 :matcher matcher
                 :buffers stream
-                :heuristical-buffer-matcher (el-search-heuristical-buffer-matcher pattern))))
+                :heuristic-buffer-matcher (el-search-heuristic-buffer-matcher pattern))))
     (letrec ((search
               (make-el-search-object
                :head head
@@ -1109,7 +1108,7 @@ let-style list of variable bindings.
 Example: (((case-fold-search nil)) \"foo\") is an extended regexp
 matching \"foo\", but not \"Foo\" even when `case-fold-search' is
 currently enabled."
-  (declare (heuristical-matcher
+  (declare (heuristic-matcher
             (lambda (&rest eregexps)
               (let ((matchers
                      (mapcar (lambda (eregexp) (apply-partially #'el-search--string-match-p eregexp))
@@ -1130,7 +1129,7 @@ currently enabled."
   "Matches any symbol whose name is matched by all REGEXPS.
 Any of the REGEXPS can be an extended regexp of the form
 \(bindings regexp\) like in the \"string\" pattern."
-  (declare (heuristical-matcher
+  (declare (heuristic-matcher
             (lambda (&rest eregexps)
               (let ((matchers
                      (mapcar (lambda (eregexp) (apply-partially #'el-search--string-match-p eregexp))
@@ -1172,9 +1171,9 @@ matches
 
 The expression itself is included, so for example `1' is matched
 by \(contains 1\)."
-  (declare (heuristical-matcher
+  (declare (heuristic-matcher
             (lambda (&rest patterns)
-              (let ((matchers (mapcar #'el-search-heuristical-matcher patterns)))
+              (let ((matchers (mapcar #'el-search-heuristic-matcher patterns)))
                 (lambda (atoms) (cl-every (lambda (matcher) (funcall matcher atoms)) matchers))))))
   (cond
    ((null patterns) '_)
@@ -1186,7 +1185,7 @@ by \(contains 1\)."
 
 (el-search-defpattern not (pattern)
   "Matches any object that is not matched by PATTERN."
-  (declare (heuristical-matcher ;We can't just negate the hm of the PATTERN!
+  (declare (heuristic-matcher ;We can't just negate the hm of the PATTERN!
             (lambda (_pattern) #'el-search-true)))
   `(app ,(apply-partially #'el-search--match-p (el-search--matcher pattern))
         (pred not)))

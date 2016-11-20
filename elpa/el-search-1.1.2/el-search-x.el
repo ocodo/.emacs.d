@@ -129,7 +129,7 @@ could use this pattern:
 
     (l ^ 'defun hl (l _ &optional))"
   (declare
-   (heuristical-matcher
+   (heuristic-matcher
     (lambda (&rest lpats)
       (lambda (atoms)
         (cl-every
@@ -137,8 +137,8 @@ could use this pattern:
            (pcase lpat
              ((or '__ '_ '_? '^ '$) t)
              ((pred symbolp)
-              (funcall (el-search-heuristical-matcher `(symbol ,(symbol-name lpat))) atoms))
-             (_ (funcall (el-search-heuristical-matcher (el-search--transform-nontrivial-lpat lpat))
+              (funcall (el-search-heuristic-matcher `(symbol ,(symbol-name lpat))) atoms))
+             (_ (funcall (el-search-heuristic-matcher (el-search--transform-nontrivial-lpat lpat))
                          atoms))))
          lpats)))))
   (let ((match-start nil) (match-end nil))

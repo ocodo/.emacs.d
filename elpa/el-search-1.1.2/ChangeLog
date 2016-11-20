@@ -1,3 +1,11 @@
+2016-11-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix leaving behind helper buffers
+
+2016-11-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Don't use the non-word "heuristical"
+
 2016-11-07  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	Some details
