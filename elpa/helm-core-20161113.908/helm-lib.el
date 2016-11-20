@@ -357,17 +357,26 @@ Default is `eq'."
         unless (gethash elm cont)
         collect (puthash elm elm cont)))
 
+(defsubst helm--string-join (strings &optional separator)
+  "Join all STRINGS using SEPARATOR."
+  (mapconcat 'identity strings separator))
+
+(defun helm--concat-regexps (regexp-list)
+  "Return a regexp which matches any of the regexps in REGEXP-LIST."
+  (if regexp-list
+      (concat "\\(?:" (helm--string-join regexp-list "\\)\\|\\(?:") "\\)")
+    "\\<\\>"))                          ; Match nothing
+
 (defun helm-skip-entries (seq black-regexp-list &optional white-regexp-list)
   "Remove entries which matches one of REGEXP-LIST from SEQ."
-  (cl-loop for i in seq
-           unless (and (cl-loop for re in black-regexp-list
-                                thereis (and (stringp i)
-                                             (string-match-p re i)))
-                       (null
-                        (cl-loop for re in white-regexp-list
-                                thereis (and (stringp i)
-                                             (string-match-p re i)))))
-           collect i))
+  (let ((black-regexp (helm--concat-regexps black-regexp-list))
+        (white-regexp (helm--concat-regexps white-regexp-list)))
+    (cl-loop for i in seq
+             unless (and (stringp i)
+                         (string-match-p black-regexp i)
+                         (null
+                          (string-match-p white-regexp i)))
+             collect i)))
 
 (defun helm-boring-directory-p (directory black-list)
   "Check if one regexp in BLACK-LIST match DIRECTORY."
@@ -560,28 +569,27 @@ Add spaces at end if needed to reach WIDTH when STR is shorter than WIDTH."
 Argument NAME is used internally to know which command to use when
 symbol CANDIDATE refers at the same time to variable and a function.
 See `helm-elisp--show-help'."
-  (with-selected-window (previous-window (helm-window))
-    (let ((hbuf (get-buffer (help-buffer))))
-      (cond  ((helm-follow-mode-p)
-              (if name
-                  (funcall fun candidate name)
-                  (funcall fun candidate)))
-             ((or (and (helm-attr 'help-running-p)
-                       (string= candidate (helm-attr 'help-current-symbol))))
-              (progn
-                ;; When started from a help buffer,
-                ;; Don't kill this buffer as it is helm-current-buffer.
-                (unless (equal hbuf helm-current-buffer)
-                  (kill-buffer hbuf)
-                  (set-window-buffer (get-buffer-window hbuf)
-                                     helm-current-buffer))
-                (helm-attrset 'help-running-p nil)))
-             (t
-              (if name
-                  (funcall fun candidate name)
-                  (funcall fun candidate))
-              (helm-attrset 'help-running-p t)))
-      (helm-attrset 'help-current-symbol candidate))))
+  (let ((hbuf (get-buffer (help-buffer))))
+    (cond  ((helm-follow-mode-p)
+            (if name
+                (funcall fun candidate name)
+                (funcall fun candidate)))
+           ((or (and (helm-attr 'help-running-p)
+                     (string= candidate (helm-attr 'help-current-symbol))))
+            (progn
+              ;; When started from a help buffer,
+              ;; Don't kill this buffer as it is helm-current-buffer.
+              (unless (equal hbuf helm-current-buffer)
+                (kill-buffer hbuf)
+                (set-window-buffer (get-buffer-window hbuf)
+                                   helm-current-buffer))
+              (helm-attrset 'help-running-p nil)))
+           (t
+            (if name
+                (funcall fun candidate name)
+                (funcall fun candidate))
+            (helm-attrset 'help-running-p t)))
+    (helm-attrset 'help-current-symbol candidate)))
 
 (defun helm-find-function (func)
   "FUNC is symbol or string."
@@ -924,7 +932,7 @@ as emacs-25 version of `ansi-color-apply' is partially broken."
 (provide 'helm-lib)
 
 ;; Local Variables:
-;; byte-compile-warnings: (not cl-functions obsolete)
+;; byte-compile-warnings: (not obsolete)
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
 ;; End:
