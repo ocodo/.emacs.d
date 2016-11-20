@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "js-comint" "js-comint.el" (22483 30656 984050
-;;;;;;  134000))
+;;;### (autoloads nil "js-comint" "js-comint.el" (0 0 0 0))
 ;;; Generated autoloads from js-comint.el
 
 (autoload 'js-do-use-nvm "js-comint" "\
@@ -91,6 +90,8 @@ Javascript source.
     js-send-region sends the current region to the Javascript process.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "js-comint" '("inferior-js-" "js-")))
 
 ;;;***
 

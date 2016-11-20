@@ -7,7 +7,7 @@
 ;;; Maintainer: Chen Bin <chenbin.sh AT gmail DOT com>
 ;;; Created: 15 Feb 2014
 ;;; Version: 0.0.5
-;; Package-Version: 20160907.1705
+;; Package-Version: 20161117.1413
 ;;; URL: https://github.com/redguardtoo/js-comint
 ;;; Package-Requires: ()
 ;;; Keywords: javascript, node, inferior-mode, convenience
@@ -194,8 +194,9 @@ is run).
                  nil inferior-js-program-arguments)
         (inferior-js-mode)))
   (setq inferior-js-buffer "*js*")
-  (if (not dont-switch-p)
-      (pop-to-buffer "*js*")))
+  (if dont-switch-p
+      (display-buffer "*js*")
+    (pop-to-buffer "*js*")))
 
 ;;;###autoload
 (defun js-send-region (start end)
