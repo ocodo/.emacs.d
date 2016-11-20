@@ -1,10 +1,9 @@
 ;;; smart-compile-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "smart-compile" "smart-compile.el" (21856 5177
-;;;;;;  659401 0))
+;;;### (autoloads nil "smart-compile" "smart-compile.el" (0 0 0 0))
 ;;; Generated autoloads from smart-compile.el
 
 (autoload 'smart-compile "smart-compile" "\
@@ -13,6 +12,8 @@ It calls `compile' or other compile function,
 which is defined in `smart-compile-alist'.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "smart-compile" '("smart-compile-")))
 
 ;;;***
 
