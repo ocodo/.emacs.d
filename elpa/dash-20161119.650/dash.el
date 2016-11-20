@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 2.13.0
-;; Package-Version: 20161108.301
+;; Package-Version: 20161119.650
 ;; Keywords: lists
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -579,10 +579,26 @@ Alias: `-any'"
 
 \(fn LIST)")
 
+;; TODO: emacs23 support, when dropped remove the condition
+(eval-when-compile
+  (require 'cl)
+  (if (fboundp 'gv-define-simple-setter)
+      (gv-define-simple-setter -first-item setcar)
+    (require 'cl)
+    (with-no-warnings
+      (defsetf -first-item (x) (val) `(setcar ,x ,val)))))
+
 (defun -last-item (list)
   "Return the last item of LIST, or nil on an empty list."
   (declare (pure t) (side-effect-free t))
   (car (last list)))
+
+;; TODO: emacs23 support, when dropped remove the condition
+(eval-when-compile
+  (if (fboundp 'gv-define-setter)
+      (gv-define-setter -last-item (val x) `(setcar (last ,x) ,val))
+    (with-no-warnings
+      (defsetf -last-item (x) (val) `(setcar (last ,x) ,val)))))
 
 (defun -butlast (list)
   "Return a list of all items in list except for the last."
@@ -1209,18 +1225,15 @@ of the result.  This is equivalent to calling:
 but the implementation here is much more efficient.
 
 See also: `-flatten-n', `-table'"
-  (when lists                           ;Just in case.
-    (let* ((list1 (pop lists))
-           (restore-lists (copy-sequence lists))
-           (last-list (last lists))
-           re)
-      (while (car last-list)
-        (let ((tail (-map #'car lists)))
-          (dolist (head list1)
-            (push (apply fn head tail) re)))
-        (pop (car lists))
-        (dash--table-carry lists restore-lists))
-      (nreverse re))))
+  (let ((restore-lists (copy-sequence lists))
+        (last-list (last lists))
+        re)
+    (while (car last-list)
+      (let ((item (apply fn (-map 'car lists))))
+        (push item re)
+        (setcar lists (cdar lists)) ;; silence byte compiler
+        (dash--table-carry lists restore-lists)))
+    (nreverse re)))
 
 (defun -partial (fn &rest args)
   "Take a function FN and fewer than the normal arguments to FN,
@@ -1342,7 +1355,7 @@ last item in second form, etc."
 signified by the token `it' in the first form. If there are more
 forms, insert the first form at the position signified by `it' in
 in second form, etc."
-  (declare (debug ->))
+  (declare (debug (form &rest [&or symbolp (sexp &rest [&or "it" form])])))
   (if (null more)
       (if (listp form)
           (--map-when (eq it 'it) x form)
@@ -1958,6 +1971,22 @@ or with `-compare-fn' if that's non-nil."
 The test for equality is done with `equal',
 or with `-compare-fn' if that's non-nil."
   (--filter (not (-contains? list2 it)) list))
+
+(defun -powerset (list)
+  "Return the power set of LIST."
+  (if (null list) '(())
+    (let ((last (-powerset (cdr list))))
+      (append (mapcar (lambda (x) (cons (car list) x)) last)
+              last))))
+
+(defun -permutations (list)
+  "Return the permutations of LIST."
+  (if (null list) '(())
+    (apply #'append
+           (mapcar (lambda (x)
+                     (mapcar (lambda (perm) (cons x perm))
+                             (-permutations (remove x list))))
+                   list))))
 
 (defun -contains? (list element)
   "Return non-nil if LIST contains ELEMENT.
