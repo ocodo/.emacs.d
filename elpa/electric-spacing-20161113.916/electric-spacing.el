@@ -4,7 +4,7 @@
 
 ;; Author: William Xu <william.xwl@gmail.com>
 ;; Version: 5.0
-;; Package-Version: 20151209.736
+;; Package-Version: 20161113.916
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -193,6 +193,9 @@ so let's not get too insert-happy."
                       "\\)\\ *")
               (line-beginning-position)))
         (derived-mode-p 'sgml-mode))
+    (if (and c-buffer-is-cc-mode
+             (looking-back "^#\\(include\\|import\\) *"))
+        (electric-spacing-insert " " 'middle))
     (insert "<>")
     (backward-char))
    (t
@@ -250,10 +253,16 @@ so let's not get too insert-happy."
          ;; | char *a = &b;
          ;; | int c = a & b;
          ;; | a && b;
+         ;; | scanf ("%d", &i);
+         ;; | func(&i)
          ;; `----
          (cond ((looking-back (concat (electric-spacing-c-types) " *" ))
                 (electric-spacing-insert "&" 'after))
                ((looking-back "= *")
+                (electric-spacing-insert "&" 'before))
+               ((looking-back "( *")
+                (electric-spacing-insert "&" 'middle))
+               ((looking-back ", *")
                 (electric-spacing-insert "&" 'before))
                (t
                 (electric-spacing-insert "&"))))
@@ -270,6 +279,8 @@ so let's not get too insert-happy."
          ;; | (*a)->func();
          ;; | *p++;
          ;; | *a = *b;
+         ;; | printf("%d", *ip);
+         ;; | func(*p);
          ;; `----
          (cond ((looking-back (concat (electric-spacing-c-types) " *" ))
                 (electric-spacing-insert "*" 'before))
@@ -278,6 +289,10 @@ so let's not get too insert-happy."
                ((looking-back "^[ (]*")
                 (electric-spacing-insert "*" 'middle)
                 (indent-according-to-mode))
+               ((looking-back "( *")
+                (electric-spacing-insert "*" 'middle))
+               ((looking-back ", *")
+                (electric-spacing-insert "*" 'before))
                ((looking-back "= *")
                 (electric-spacing-insert "*" 'before))
                (t
@@ -312,6 +327,15 @@ so let's not get too insert-happy."
              (delete-horizontal-space)))
          (electric-spacing-insert "+" 'middle)
          (indent-according-to-mode))
+
+        ;; func(++i);
+        ((looking-back "( *")
+         (electric-spacing-insert "+" 'middle))
+
+        ;; j = ++i;
+        ((looking-back "= *")
+         (electric-spacing-insert "+" 'before))
+
         (t
          (electric-spacing-insert "+"))))
 
@@ -333,6 +357,10 @@ so let's not get too insert-happy."
         ((and (looking-back (concat electric-spacing-operators-regexp " *"))
               (not (looking-back "- *")))
           (electric-spacing-insert "-" 'before))
+
+        ;; func(--i)
+        ((looking-back "( *")
+         (electric-spacing-insert "-" 'middle))
 
         (t
          (electric-spacing-insert "-"))))
