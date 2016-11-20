@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20160807.1756
+;; Package-Version: 20161109.1107
 ;; Version: 0.2.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -299,16 +299,19 @@ You can specify an additional directory to search for a makefile by
 setting the buffer local variable `helm-make-build-dir'."
   (interactive "p")
   (require 'projectile)
-  (setq helm-make-command (format "%s -j%d %%s" helm-make-executable arg))
   (let ((makefile (helm--make-makefile-exists
                    (projectile-project-root)
                    (if (and (stringp helm-make-build-dir)
                             (not (string-match-p "\\`[ \t\n\r]*\\'" helm-make-build-dir)))
                        `(,helm-make-build-dir "" "build")
                      `(,@helm-make-build-dir "" "build")))))
-    (if makefile
-        (helm--make makefile)
-      (error "No Makefile found for project %s" (projectile-project-root)))))
+    (if (not makefile)
+        (error "No Makefile found for project %s" (projectile-project-root))
+      (setq helm-make-command (format "%s -C %s -j%d %%s"
+                                      helm-make-executable
+                                      (file-name-directory makefile)
+                                      arg))
+      (helm--make makefile))))
 
 (provide 'helm-make)
 
