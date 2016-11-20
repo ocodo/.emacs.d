@@ -552,7 +552,7 @@ selection, non-nil otherwise."
     (if (null (ivy--actionp actions))
         t
       (let* ((hint (funcall ivy-read-action-format-function (cdr actions)))
-             (resize-mini-windows 'grow-only)
+             (resize-mini-windows t)
              (key (string (read-key hint)))
              (action-idx (cl-position-if
                           (lambda (x) (equal (car x) key))
@@ -567,11 +567,17 @@ selection, non-nil otherwise."
                (setcar actions (1+ action-idx))
                (ivy-set-action actions)))))))
 
+(defun ivy-shrink-after-dispatching ()
+  "Shrink the window after dispatching when action list is too large."
+  (let ((window (selected-window)))
+    (window-resize window (- ivy-height (window-height window)))))
+
 (defun ivy-dispatching-done ()
   "Select one of the available actions and call `ivy-done'."
   (interactive)
   (when (ivy-read-action)
-    (ivy-done)))
+    (ivy-done))
+  (ivy-shrink-after-dispatching))
 
 (defun ivy-dispatching-call ()
   "Select one of the available actions and call `ivy-call'."
@@ -581,7 +587,8 @@ selection, non-nil otherwise."
     (unwind-protect
         (when (ivy-read-action)
           (ivy-call))
-      (ivy-set-action actions))))
+      (ivy-set-action actions)))
+  (ivy-shrink-after-dispatching))
 
 (defun ivy-build-tramp-name (x)
   "Reconstruct X into a path.
@@ -630,6 +637,9 @@ When ARG is t, exit with current text, ignoring the candidates."
         (setq dir (ivy-expand-file-if-directory ivy--current)))
        (ivy--cd dir)
        (ivy--exhibit))
+      ((and (not (string= ivy-text ""))
+            (file-exists-p ivy-text))
+       (ivy--cd (file-name-as-directory ivy-text)))
       ((or (and (equal ivy--directory "/")
                 (string-match "\\`[^/]+:.*:.*\\'" ivy-text))
            (string-match "\\`/[^/]+:.*:.*\\'" ivy-text))
@@ -1539,7 +1549,7 @@ This is useful for recursive `ivy-read'."
                                      (not (equal (expand-file-name preselect-directory)
                                                  (expand-file-name ivy--directory))))
                             (setf (ivy-state-preselect state) (setq preselect nil))))))
-                     ((file-exists-p (file-name-directory initial-input))
+                     ((ignore-errors (file-exists-p (file-name-directory initial-input)))
                       (setq ivy--directory (file-name-directory initial-input))
                       (setf (ivy-state-preselect state) (file-name-nondirectory initial-input)))))
              (require 'dired)
@@ -1951,16 +1961,27 @@ When GREEDY is non-nil, join words in a greedy way."
                             ".*?")))))
                     ivy--regex-hash)))))
 
+(defun ivy--legal-regex-p (str)
+  "Return t if STR is valid regular expression."
+  (condition-case nil
+      (progn
+        (string-match-p str "")
+        t)
+    (invalid-regexp nil)))
+
 (defun ivy--regex-ignore-order--part (str &optional discard)
   "Re-build regex from STR by splitting at spaces.
-Ignore the order of each group."
+Ignore the order of each group. If any substring is not a valid
+regex, treat it as a literal string."
   (let* ((subs (split-string str " +" t))
          (len (length subs)))
     (cl-case len
       (0
        "")
       (t
-       (mapcar (lambda (x) (cons x (not discard)))
+       (mapcar (lambda (s)
+                 (cons (if (ivy--legal-regex-p s) s (regexp-quote s))
+                       (not discard)))
                subs)))))
 
 (defun ivy--regex-ignore-order (str)
