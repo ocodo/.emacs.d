@@ -3381,7 +3381,8 @@ This is useful for escaping of \" inside strings when its pairing
 is disabled.  This way, we can control autoescape and closing
 delimiter insertion separately."
   (-when-let (open (plist-get (sp--pair-to-insert 'escape) :open))
-    (when (sp--do-action-p open 'escape)
+    (when (and (sp--do-action-p open 'escape)
+               sp-point-inside-string)
       (sp--escape-region (list open) (- (point) (length open)) (point)))))
 
 ;; kept to not break people's config... remove later
@@ -3393,6 +3394,7 @@ delimiter insertion separately."
 (make-obsolete 'sp-match-sgml-tags "do not use this function as the tag system has been removed." "2015-02-07")
 
 (defun sp--is-number-cons (c)
+  "Return non-nil if C is a cons cell with numbers at `car' and `cdr'."
   (and (consp c) (numberp (car c)) (numberp (cdr c))))
 
 ;; TODO: more research is needed
@@ -3785,12 +3787,7 @@ achieve this by using `sp-pair' or `sp-local-pair' with
                          ;; should not skip as that would leave the
                          ;; string broken.
                          (or (not (sp-point-in-string))
-                             (if (save-excursion
-                                   (backward-char 1)
-                                   (sp--search-backward-regexp
-                                    (concat sp-escape-char sp-escape-char "+") nil t))
-                                 (eq (logand (length (match-string 0)) 1) 0) ;; even? = we can skip
-                               t)))
+                             (not (sp-char-is-escaped-p (1- (point))))))
                 (-when-let (re (cond
                                 ((= (point) (sp-get active-sexp :beg))
                                  ;; we are in front of a string-like sexp
