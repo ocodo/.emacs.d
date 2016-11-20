@@ -3,7 +3,7 @@
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
-;; Version: 1.7.1
+;; Version: 1.7.3
 ;; URL: https://github.com/Malabarba/spinner.el
 ;; Keywords: processes mode-line
 
@@ -158,7 +158,7 @@ below).
 If TYPE is nil, the frames of this spinner are given by the first
 element of `spinner-types'.
 If TYPE is a symbol, it specifies an element of `spinner-types'.
-If TYPE is 'random, use a random element of `spinner-types'.
+If TYPE is `random', use a random element of `spinner-types'.
 If TYPE is a list, it should be a list of symbols, and a random
 one is chosen as the spinner type.
 If TYPE is a vector, it should be a vector of strings and these
@@ -183,7 +183,7 @@ own spinner animations."
   (frames (spinner--type-to-frames type))
   (counter 0)
   (fps (or frames-per-second spinner-frames-per-second))
-  (timer (timer-create) :read-only)
+  (timer (timer-create))
   (active-p nil)
   (buffer (when buffer-local
             (if (bufferp buffer-local)
@@ -275,7 +275,7 @@ stop the SPINNER's timer."
 If TYPE-OR-OBJECT is an object created with `make-spinner',
 simply activate it.  This method is designed for minor modes, so
 they can use the spinner as part of their lighter by doing:
-    '(:eval (spinner-print THE-SPINNER))
+    \\='(:eval (spinner-print THE-SPINNER))
 To stop this spinner, call `spinner-stop' on it.
 
 If TYPE-OR-OBJECT is anything else, a buffer-local spinner is
@@ -331,6 +331,18 @@ active spinner."
 
 ;;;; ChangeLog:
 
+;; 2016-11-17  Artur Malabarba  <bruce.connor.am@gmail.com>
+;; 
+;; 	Merge commit '0637791f005f747532b4439439a81c3415961377'
+;; 
+;; 2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
+;; 
+;; 	Fix some quoting problems in doc strings
+;; 
+;; 	Most of these are minor issues involving, e.g., quoting `like this' 
+;; 	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
+;; 	\= when the characters should not be turned into curved single quotes.
+;; 
 ;; 2016-04-01  Artur Malabarba  <bruce.connor.am@gmail.com>
 ;; 
 ;; 	Remove reference to thread-last
