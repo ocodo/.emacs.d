@@ -1,4 +1,4 @@
-(define-package "general" "20161104.1437" "Convenience wrappers for keybindings."
+(define-package "general" "20161108.2042" "Convenience wrappers for keybindings."
   '((cl-lib "0.5"))
   :url "https://github.com/noctuid/general.el" :keywords
   '("vim" "evil" "leader" "keybindings" "keys"))
