@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.29
-;; Package-Version: 20161106.132
+;; Version: 14.0.30
+;; Package-Version: 20161119.924
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.29"
+(defconst web-mode-version "14.0.30"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -4439,6 +4439,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
          ((eq ?\< ch-at)
           ;;(message "before [%S>%S|%S] pt=%S" reg-beg reg-end depth (point))
+          (search-backward "<")
           (if (web-mode-jsx-skip reg-end)
               (web-mode-jsx-scan-element beg (point) depth)
             (forward-char))
@@ -4531,12 +4532,54 @@ another auto-completion with different ac-sources (e.g. ac-php)")
       )))
 
 (defun web-mode-jsx-skip (reg-end)
-  (let ((continue t) (pos nil) (i 0))
+  (let ((continue t) (pos nil) (i 0) tag)
+    (looking-at "<\\([[:alpha:]][[:alnum:]:-]*\\)")
+    (setq tag (match-string-no-properties 1))
+    ;;(message "point=%S tag=%S" (point) tag)
     (save-excursion
       (while continue
         (cond
          ((> (setq i (1+ i)) 100)
           (message "jsx-skip ** warning **")
+          (setq continue nil))
+         ((looking-at "<[[:alpha:]][[:alnum:]:-]*[ ]*/>")
+          (goto-char (match-end 0))
+          (setq pos (point))
+          (setq continue nil))
+         ((not (web-mode-dom-rsf ">\\([ \t\n]*[\];,)':}]\\)\\|{" reg-end))
+          (setq continue nil)
+          )
+         ((eq (char-before) ?\{)
+          (backward-char)
+          (web-mode-closing-paren reg-end)
+          (forward-char)
+          )
+         (t
+          (setq continue nil)
+          (setq pos (match-beginning 1))
+          ) ;t
+         ) ;cond
+        ) ;while
+      ) ;save-excursion
+    (when pos (goto-char pos))
+    ;;(message "jsx-skip: %S" pos)
+    pos))
+
+(defun web-mode-jsx-skip2 (reg-end)
+  (let ((continue t) (pos nil) (i 0) (tag nil) (regexp nil) (counter 1))
+    (looking-at "<\\([[:alpha:]][[:alnum:]:-]*\\)")
+    (setq tag (match-string-no-properties 1))
+    (setq regexp (concat "</?" tag))
+    ;;(message "point=%S tag=%S" (point) tag)
+    (save-excursion
+      (while continue
+        (cond
+         ((> (setq i (1+ i)) 100)
+          (message "jsx-skip ** warning **")
+          (setq continue nil))
+         ((looking-at "<[[:alpha:]][[:alnum:]:-]*[ ]*/>")
+          (goto-char (match-end 0))
+          (setq pos (point))
           (setq continue nil))
          ((not (web-mode-dom-rsf ">\\([ \t\n]*[\];,)':}]\\)\\|{" reg-end))
           (setq continue nil)
@@ -9448,13 +9491,19 @@ Prompt user if TAG-NAME isn't provided."
   (interactive)
   (unless pos (setq pos (point)))
   (let (regexp)
-    (setq regexp (concat "</?" (get-text-property pos 'tag-name)))
-    (when (member (get-text-property pos 'tag-type) '(start end))
-      (web-mode-tag-beginning)
-      (setq pos (point)))
-    (if (eq (get-text-property pos 'tag-type) 'end)
-        (web-mode-tag-fetch-opening regexp pos)
-      (web-mode-tag-fetch-closing regexp pos))
+    (cond
+     ((eq (get-text-property pos 'tag-type) 'void)
+      (web-mode-tag-beginning))
+     (t
+      (setq regexp (concat "</?" (get-text-property pos 'tag-name)))
+      (when (member (get-text-property pos 'tag-type) '(start end))
+        (web-mode-tag-beginning)
+        (setq pos (point)))
+      (if (eq (get-text-property pos 'tag-type) 'end)
+          (web-mode-tag-fetch-opening regexp pos)
+        (web-mode-tag-fetch-closing regexp pos))
+      ) ;t
+     ) ;cond
     t))
 
 (defun web-mode-tag-fetch-opening (regexp pos)
@@ -11546,19 +11595,19 @@ Prompt user if TAG-NAME isn't provided."
         (if (and (web-mode-element-parent)
                  (web-mode-tag-match)
                  (web-mode-tag-next)
-                 (eq (get-text-property (point) 'tag-type) 'start))
+                 (member (get-text-property (point) 'tag-type) '(start void comment)))
             (setq pos (point))
           (setq pos nil))
         )
-       ((eq (get-text-property pos 'tag-type) 'start)
+       ((member (get-text-property pos 'tag-type) '(start void))
         (if (and (web-mode-tag-match)
                  (web-mode-tag-next)
-                 (eq (get-text-property (point) 'tag-type) 'start))
+                 (member (get-text-property (point) 'tag-type) '(start void comment)))
             (setq pos (point))
           (setq pos nil))
         )
        ((and (web-mode-tag-next)
-             (eq (get-text-property (point) 'tag-type) 'start))
+             (member (get-text-property (point) 'tag-type) '(start void comment)))
         (setq pos (point)))
        (t
         (setq pos nil))
