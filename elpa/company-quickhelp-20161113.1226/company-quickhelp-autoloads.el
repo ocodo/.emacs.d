@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "company-quickhelp" "company-quickhelp.el"
-;;;;;;  (22479 32501 489828 545000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from company-quickhelp.el
 
 (defvar company-quickhelp-mode nil "\
@@ -21,6 +21,8 @@ or call the function `company-quickhelp-mode'.")
 Provides documentation popups for `company-mode' using `pos-tip'.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-quickhelp" '("company-quickhelp-")))
 
 ;;;***
 
