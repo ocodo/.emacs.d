@@ -4,9 +4,9 @@
 ;;
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
-;; Version: 0.9.1
+;; Version: 0.9.2-cvs
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (s "1.10.0") (deferred "0.3.2") (cl-lib "0.5") (let-alist "1.0.4") (request "0.2.0") (request-deferred "0.2.0"))
+;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (s "1.10.0") (deferred "0.3.2") (cl-lib "0.5") (let-alist "1.0.4") (request "0.2.0") (request-deferred "0.2.0") (pkg-info "0.4"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -118,6 +118,7 @@
 (require 'diff)
 (require 'diff-mode)
 
+(declare-function pkg-info-version-info "pkg-info" (package))
 
 (defgroup ycmd nil
   "a ycmd emacs client"
@@ -548,7 +549,6 @@ and `delete-process'.")
     (window-configuration-change-hook . ycmd--on-window-configuration-change)
     (kill-buffer-hook                 . ycmd--on-close-buffer)
     (before-revert-hook               . ycmd--teardown)
-    (window-configuration-change-hook . ycmd--perform-deferred-parse)
     (post-command-hook                . ycmd--perform-deferred-parse))
   "Hooks which ycmd hooks in.")
 
@@ -569,6 +569,7 @@ and `delete-process'.")
     (define-key map "gt" 'ycmd-goto-type)
     (define-key map "s" 'ycmd-toggle-force-semantic-completion)
     (define-key map "v" 'ycmd-show-debug-info)
+    (define-key map "V" 'ycmd-version)
     (define-key map "d" 'ycmd-show-documentation)
     (define-key map "C" 'ycmd-clear-compilation-flag-cache)
     (define-key map "O" 'ycmd-restart-semantic-server)
@@ -636,6 +637,7 @@ explicitly re-define the prefix key:
      :style toggle :selected ycmd-force-semantic-completion]
     "---"
     ["Show debug info" ycmd-show-debug-info]
+    ["Show version" ycmd-version t]
     ["Log enabled" ycmd-toggle-log-enabled
      :style toggle :selected ycmd--log-enabled]))
 
@@ -659,11 +661,12 @@ explicitly re-define the prefix key:
   (let ((force-semantic
          (when ycmd-force-semantic-completion "/s"))
         (text (pcase ycmd--last-status-change
-                (`stopped "-")
-                (`unparsed "?")
+                (`parsed "")
                 (`parsing "*")
-                (`errored "!")
-                (`parsed ""))))
+                (`unparsed "?")
+                (`stopped "-")
+                (`starting ">")
+                (`errored "!"))))
     (concat " ycmd" force-semantic text)))
 
 ;;;###autoload
@@ -705,6 +708,26 @@ Hook `ycmd-mode' into modes in `ycmd-file-type-map'."
     (add-hook (intern (format "%s-hook" (symbol-name (car it)))) 'ycmd-mode)))
 (make-obsolete 'ycmd-setup 'global-ycmd-mode "0.9.1")
 
+(defun ycmd-version (&optional show-version)
+  "Get the `emacs-ycmd' version as string.
+
+If called interactively or if SHOW-VERSION is non-nil, show the
+version in the echo area and the messages buffer.
+
+The returned string includes both, the version from package.el
+and the library version, if both a present and different.
+
+If the version number could not be determined, signal an error,
+if called interactively, or if SHOW-VERSION is non-nil, otherwise
+just return nil."
+  (interactive (list t))
+  (if (require 'pkg-info nil :no-error)
+      (let ((version (pkg-info-version-info 'ycmd)))
+        (when show-version
+          (message "emacs-ycmd version: %s" version))
+        version)
+    (error "Cannot determine version without package pkg-info")))
+
 (defun ycmd--maybe-enable-mode ()
   "Enable `ycmd-mode' according `ycmd-global-modes'."
   (when (pcase ycmd-global-modes
@@ -736,13 +759,17 @@ Return t if parsing is to be deferred, or nil otherwise."
       (ycmd-parsing-in-progress-p)
       revert-buffer-in-progress-p))
 
+(defun ycmd--deferred-parse? ()
+  "Return non-nil if current buffer has a deferred parse."
+  ycmd--deferred-parse)
+
 (defun ycmd--parse-deferred ()
   "Defer parse notification for current buffer."
   (setq ycmd--deferred-parse t))
 
 (defun ycmd--perform-deferred-parse ()
   "Perform the deferred parse."
-  (when ycmd--deferred-parse
+  (when (ycmd--deferred-parse?)
     (setq ycmd--deferred-parse nil)
     (ycmd--conditional-parse)))
 
@@ -790,15 +817,18 @@ _LEN is ununsed."
 
 (defun ycmd--on-window-configuration-change ()
   "Function to run by `window-configuration-change-hook'."
-  (when (and ycmd-mode
-             (eq ycmd--last-status-change 'unparsed)
-             (memq 'buffer-focus ycmd-parse-conditions))
-    (ycmd--kill-timer ycmd--on-focus-timer)
-    (let ((on-buffer-focus-fn
-           (apply-partially 'ycmd--on-unparsed-buffer-focus
-                            (current-buffer))))
-      (setq ycmd--on-focus-timer
-            (run-at-time 1.0 nil on-buffer-focus-fn)))))
+  (if (ycmd--deferred-parse?)
+      (ycmd--perform-deferred-parse)
+    (when (and ycmd-mode
+               (pcase ycmd--last-status-change
+                 ((or `unparsed `starting) t))
+               (memq 'buffer-focus ycmd-parse-conditions))
+      (ycmd--kill-timer ycmd--on-focus-timer)
+      (let ((on-buffer-focus-fn
+             (apply-partially 'ycmd--on-unparsed-buffer-focus
+                              (current-buffer))))
+        (setq ycmd--on-focus-timer
+              (run-at-time 1.0 nil on-buffer-focus-fn))))))
 
 (defmacro ycmd--with-all-ycmd-buffers (&rest body)
   "Execute BODY with each `ycmd-mode' enabled buffer."
@@ -858,12 +888,11 @@ control.)."
   (ycmd--start-keepalive-timer))
 
 (defun ycmd-close (&optional status)
-  "Shutdown any running ycmd server."
+  "Shutdown any running ycmd server.
+STATUS is a status symbol for `ycmd--report-status',
+defaulting to `stopped'."
   (interactive)
-  (if (ycmd-is-server-alive?)
-      (ycmd--stop-server)
-    (ignore-errors
-      (delete-process ycmd--server-process-name)))
+  (ycmd--stop-server)
   (ycmd--global-teardown)
   (ycmd--kill-timer ycmd--keepalive-timer)
   (ycmd--kill-timer ycmd--server-timeout-timer)
@@ -877,14 +906,15 @@ Send a `shutdown' request to the ycmd server and wait for the
 ycmd server to stop.  If the ycmd server is still running after a
 timeout specified by `ycmd-delete-process-delay', then kill the
 process with `delete-process'."
-  (let ((start-time (float-time)))
-    (ycmd--request "/shutdown" nil :sync t :timeout 0.1)
-    (while (and (ycmd-running?)
-                (> ycmd-delete-process-delay
-                   (- (float-time) start-time)))
-      (sit-for 0.05))
-    (ignore-errors
-      (delete-process ycmd--server-process-name))))
+  (when (ycmd-is-server-alive?)
+    (let ((start-time (float-time)))
+      (ycmd--request "/shutdown" nil :sync t :timeout 0.1)
+      (while (and (ycmd-running?)
+                  (> ycmd-delete-process-delay
+                     (- (float-time) start-time)))
+        (sit-for 0.05))))
+  (ignore-errors
+    (delete-process ycmd--server-process-name)))
 
 (defun ycmd-running? ()
   "Return t if a ycmd server is already running."
@@ -907,7 +937,7 @@ process with `delete-process'."
 
 This is simply for keepalive functionality."
   (ycmd--ignore-errors
-   (ycmd--request "/healthy" nil :type "GET" :sync t)))
+   (ycmd--request "/healthy" nil :type "GET")))
 
 (defun ycmd--server-ready? (&optional include-subserver)
   "Send request for server ready state.
@@ -947,9 +977,11 @@ it might be interesting for some users."
     (ycmd-get-completions)
     (deferred:nextc it
       (lambda (completions)
-        (pop-to-buffer "*ycmd-completions*")
-        (erase-buffer)
-        (insert (pp-to-string completions))))))
+        (if (not completions)
+            (message "No completions available")
+          (pop-to-buffer "*ycmd-completions*")
+          (erase-buffer)
+          (insert (pp-to-string completions)))))))
 
 (defun ycmd-complete (&optional _ignored)
   "Completion candidates at point."
@@ -1054,12 +1086,11 @@ To see what the returned structure looks like, you can use
 
 If SYNC is non-nil the function does not return a deferred object
 and blocks until the request has finished."
-  (when (and ycmd-mode (ycmd-is-server-alive?))
-    (let ((content
-           (append (plist-get (ycmd--get-request-data) :content)
-                   (and ycmd-force-semantic-completion
-                        (list (cons "force_semantic" t))))))
-      (ycmd--request "/completions" content :sync sync))))
+  (let ((content
+         (append (plist-get (ycmd--get-request-data) :content)
+                 (and ycmd-force-semantic-completion
+                      (list (cons "force_semantic" t))))))
+    (ycmd--request "/completions" content :sync sync)))
 
 (defun ycmd--handle-exception (response)
   "Handle exception in completion RESPONSE.
@@ -1895,7 +1926,7 @@ the name of the newly created file."
   "Handle Ycmd server PROCESS EVENT."
   (when (memq (process-status process) '(exit signal))
     (let* ((code (process-exit-status process))
-           (status (if (eq code 0) 'unparsed 'errored)))
+           (status (if (eq code 0) 'stopped 'errored)))
       (when (eq status 'errored)
         (--if-let (and (eq (process-status process) 'exit)
                        (ycmd--exit-code-as-string code))
@@ -1950,6 +1981,8 @@ See the docstring of the variable for an example"))
            (server-program+args (append ycmd-server-command args))
            (proc (apply #'start-process ycmd--server-process-name proc-buff
                         server-program+args)))
+      (ycmd--with-all-ycmd-buffers
+        (ycmd--report-status 'starting))
       (setq ycmd--server-actual-port nil
             ycmd--hmac-secret hmac-secret)
       (set-process-query-on-exit-flag proc nil)
@@ -2036,29 +2069,51 @@ This is useful for debugging.")
 (defun ycmd-show-debug-info ()
   "Show debug information."
   (interactive)
-  (when ycmd-mode
-    (let ((data (ycmd--get-request-data)))
-      (deferred:$
-        (ycmd--request "/debug_info" (plist-get data :content))
-        (deferred:nextc it
-          (lambda (res)
-            (when res
-              (with-help-window (get-buffer-create " *ycmd-debug-info*")
-                (with-current-buffer standard-output
-                  (princ "ycmd debug information for buffer ")
-                  (insert (propertize (buffer-name (plist-get data :buffer))
-                                      'face 'bold))
-                  (princ " in ")
-                  (let ((mode (buffer-local-value
-                               'major-mode (plist-get data :buffer))))
-                    (insert-button (symbol-name mode)
-                                   'type 'help-function
-                                   'help-args (list mode)))
-                  (princ ":\n\n")
-                  (insert res)
-                  (princ "\n\n")
-                  (insert (format "Server running at: %s:%d"
-                                  ycmd-host ycmd--server-actual-port)))))))))))
+  (let* ((data (ycmd--get-request-data))
+         (buffer (plist-get data :buffer)))
+    (with-help-window (get-buffer-create " *ycmd-debug-info*")
+      (with-current-buffer standard-output
+        (princ "Ycmd debug information for buffer ")
+        (insert (propertize (buffer-name buffer) 'face 'bold))
+        (princ " in ")
+        (let ((mode (buffer-local-value 'major-mode buffer)))
+          (insert-button (symbol-name mode)
+                         'type 'help-function
+                         'help-args (list mode)))
+        (princ ":\n\n")
+        (--if-let (and (ycmd-is-server-alive?)
+                       (deferred:sync!
+                         (deferred:$
+                           (ycmd--request "/debug_info"
+                                          (plist-get data :content))
+                           (deferred:nextc it
+                             (lambda (result)
+                               result)))))
+            (princ it)
+          (princ "No debug info available from server"))
+        (princ "\n\n")
+        (princ "Server is ")
+        (let ((running (ycmd-is-server-alive?)))
+          (insert (propertize (if running "running" "not running")
+                              'face (if running 'success '(warning bold))))
+          (when running
+            (insert
+             (format " at: %s:%d" ycmd-host ycmd--server-actual-port))))
+        (princ "\n\n")
+        (princ "Ycmd Mode is ")
+        (let ((enabled (buffer-local-value 'ycmd-mode buffer)))
+          (insert (propertize (if enabled "enabled" "disabled")
+                              'face (if enabled 'success '(warning bold)))))
+        (save-excursion
+          (let ((end (point)))
+            (backward-paragraph)
+            (fill-region-as-paragraph (point) end)))
+
+        (princ "\n\n--------------------\n\n")
+        (princ (format "Ycmd version:   %s\n" (ignore-errors (ycmd-version))))
+        (princ (format "Emacs version:  %s\n" emacs-version))
+        (princ (format "System:         %s\n" system-configuration))
+        (princ (format "Window system:  %S\n" window-system))))))
 
 (defun ycmd--get-request-hmac (method path body)
   "Generate HMAC for request from METHOD, PATH and BODY."
@@ -2094,9 +2149,11 @@ PARSER specifies the function that will be used to parse the
 response to the message. Typical values are buffer-string and
 json-read. This function will be passed an the completely
 unmodified contents of the response (i.e. not JSON-decoded or
-anything like that.)
-"
-  (unless (ycmd-is-server-alive?) (cl-return-from ycmd--request))
+anything like that)."
+  (unless (ycmd-is-server-alive?)
+    (message "Ycmd server is not running. Can't send `%s' request!"
+             location)
+    (cl-return-from ycmd--request (unless sync (deferred:next))))
 
   (let* ((url-show-status (not ycmd-hide-url-status))
          (url-proxy-services (unless ycmd-bypass-url-proxy-services
