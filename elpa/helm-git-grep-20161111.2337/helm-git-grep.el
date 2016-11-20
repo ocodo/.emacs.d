@@ -8,7 +8,7 @@
 ;; Author: mechairoi
 ;; Maintainer: Yasuyuki Oka <yasuyk@gmail.com>
 ;; Version: 0.10.0-snapshot
-;; Package-Version: 20161105.813
+;; Package-Version: 20161111.2337
 ;; URL: https://github.com/yasuyk/helm-git-grep
 ;; Package-Requires: ((helm-core "2.2.0"))
 
@@ -67,7 +67,7 @@ If you don't want to search in submodules, \
 Set only `helm-git-grep-source' like this:
 
     (setq helm-git-grep-sources '(helm-git-grep-source))"
-  :group 'helm-gi-grep
+  :group 'helm-git-grep
   :type '(repeat (choice symbol)))
 
 (defcustom helm-git-grep-candidate-number-limit 300
@@ -251,7 +251,7 @@ newline return an empty string."
   "Create arguments of `helm-git-grep-process' in `helm-git-grep'."
   (delq nil
         (append
-         (list "--no-pager" "grep" "-n" "--no-color"
+         (list "--no-pager" "grep" "--null" "-n" "--no-color"
                (if helm-git-grep-ignore-case "-i" nil)
                (helm-git-grep-showing-leading-and-trailing-lines-option))
          (nbutlast
@@ -399,19 +399,12 @@ Argument SOURCE is not used."
                     candidates)))
 
 (defun helm-git-grep-filtered-candidate-transformer-display
-    (filename separator lineno content)
-  "Propertize FILENAME SEPARATOR LINENO CONTENT and concatenate them."
-  (let ((colonp (string= separator ":")))
-    (format "%s%s%s%s%s"
-            (if colonp
-                (propertize filename 'face 'helm-git-grep-file)
-              filename)
-            separator
-            (if colonp
-                (propertize lineno 'face 'helm-git-grep-line)
-              lineno)
-            separator
-            (helm-git-grep-highlight-match content))))
+    (filename lineno content)
+  "Propertize FILENAME LINENO CONTENT and concatenate them."
+  (format "%s:%s:%s"
+	  (propertize filename 'face 'helm-git-grep-file)
+	  (propertize lineno 'face 'helm-git-grep-line)
+	  (helm-git-grep-highlight-match content)))
 
 (defun helm-git-grep-highlight-match (content)
   "Highlight matched text with `helm-git-grep-match' face in CONTENT."
@@ -423,13 +416,12 @@ Argument SOURCE is not used."
 
 (defun helm-git-grep-filtered-candidate-transformer-file-line-1 (candidate)
   "Transform CANDIDATE to `helm-git-grep-mode' format."
-  (when (string-match "^\\(.+?\\)\\([:\\-]\\)\\([0-9]+\\)[:\\-]\\(.*\\)$" candidate)
+  (when (string-match "^\\(.+\\)\x00\\([0-9]+\\)\x00\\(.*\\)$" candidate)
     (let ((filename (match-string 1 candidate))
-          (separator (match-string 2 candidate))
-          (lineno (match-string 3 candidate))
-          (content (match-string 4 candidate)))
+          (lineno (match-string 2 candidate))
+          (content (match-string 3 candidate)))
       (cons (helm-git-grep-filtered-candidate-transformer-display
-             filename separator lineno content)
+             filename lineno content)
             (list (string-to-number lineno) content
                   (expand-file-name
                    filename
