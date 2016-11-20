@@ -4,9 +4,9 @@
 
 ;; Author: Lars Tveito <larstvei@ifi.uio.no>
 ;; URL: http://github.com/larstvei/Focus
-;; Package-Version: 20161106.702
+;; Package-Version: 20161113.1145
 ;; Created: 11th May 2015
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -92,19 +92,6 @@ The timer calls `focus-read-only-hide-cursor' after
                focus-read-only-blink-timer))
   (make-local-variable var))
 
-;; Changing major-mode should not affect Focus mode.
-(dolist (var '(focus-current-thing
-               focus-pre-overlay
-               focus-post-overlay
-               focus-mode
-               focus-read-only-mode))
-  (put var 'permanent-local t))
-
-(dolist (var '(focus-read-only-cursor-blink
-               focus-read-only-terminate
-               focus-move-focus))
-  (put var 'permanent-local-hook t))
-
 (defun focus-any (f lst)
   "Apply F to each element of LST and return first NON-NIL."
   (when lst
@@ -170,7 +157,8 @@ adds `focus-move-focus' to `post-command-hook'."
     (let ((color (focus-make-dim-color)))
       (mapc (lambda (o) (overlay-put o 'face (cons 'foreground-color color)))
             (list focus-pre-overlay focus-post-overlay)))
-    (add-hook 'post-command-hook 'focus-move-focus nil t)))
+    (add-hook 'post-command-hook 'focus-move-focus nil t)
+    (add-hook 'change-major-mode-hook 'focus-terminate)))
 
 (defun focus-terminate ()
   "This function is run when command `focus-mode' is disabled.
