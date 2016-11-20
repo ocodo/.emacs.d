@@ -2418,8 +2418,8 @@ you want to decide destination by other header fields, set the variable
              "newsgroups"))
 
 By this setting, Wanderlust saves extra fields in the msgdb.  You have
-to type 's all' to get extra fields for the messages that are already
-exists in the summary.
+to type 's all' to get extra fields for the messages that are already in
+the summary.
 
    Then, specify the refile rule.  The refile target folder of auto
 refiling is decided by the value of 'wl-refile-rule-alist'.
@@ -4695,7 +4695,7 @@ expiration, so be careful.  I advise you to set 'wl-expire-use-log' to
                                 ;; archive by year and month (numbers discarded)
              ))
 
-   Items in the list has the format of:
+   Items in the list have the format of:
 
      (REGEXP-FOR-FOLDERS SPECIFICATION-OF-MESSAGES-TO-BE-DELETED DESTINATION)
 
@@ -4705,7 +4705,7 @@ not match any of them, nothing will happen.  And if either the second or
 the third element of the item is 'nil', expiration will not take place.
 
    You can use any one of the following for
-SPECIFICATION-OF-MESSAGE-TO-BE-DELETED:
+SPECIFICATION-OF-MESSAGES-TO-BE-DELETED:
 
 '(number N1 [N2])'
      deletes messages depending on the number of messages in the folder.
@@ -4746,7 +4746,7 @@ SPECIFICATION-OF-MESSAGE-TO-BE-DELETED:
      deletes the messages instantly.
 
 'hide'
-     hide the messages from summary (messages are not deleted).
+     hides the messages from summary (messages are not deleted).
 
 'trash'
      moves the messages to 'wl-trash-folder'.
@@ -4765,8 +4765,8 @@ FUNCTION
      of messages to be deleted, and msgdb information of the summary.
      You can specify function-specific arguments after the name of the
      FUNCTION.  Note that the list contains messages with marks in
-     'wl-summary-expire-reserve-marks', be careful in writing your own
-     function.
+     'wl-summary-expire-reserve-marks', so be careful in writing your
+     own function.
 
      These are four standard functions; three of them move messages to
      an archive folder in the specified way.  This means old messages
@@ -4835,8 +4835,8 @@ FUNCTION
           assigned for each archiving folder.
 
      'wl-expire-localdir-date'
-          divedes messages depending on its date (year and month) to MH
-          folders e.g.  to '+ml/wl/1999_11/', '+ml/wl/1999_12/'.
+          divides messages depending on their date (year and month) to
+          MH folders e.g.  to '+ml/wl/1999_11/', '+ml/wl/1999_12/'.
 
 9.2.2 Treatment for Important or Unread Messages
 ------------------------------------------------
@@ -4845,7 +4845,7 @@ If you specify any of 'remove', 'trash', a folder name, or a standard
 function, messages with marks in 'wl-summary-expire-reserve-marks'
 (which are called "reserved messages" thereafter) are retained.
 
-   Per default, this variable include the important, new, and unread
+   By default, this variable includes the important, new, and unread
 marks, so that messages with these marks are not removed.  Note that you
 cannot include the temporary mark (i.e.  temporary marks are removed
 anyway), and be sure to process temporary marks before you invoke
@@ -5587,7 +5587,7 @@ buffer after Wanderlust is invoked.
      # Format of each line:
      # EMAIL-ADDRESS  "NICKNAME "REALNAME"
      #
-     teranisi@gohome.org            "Yuuichi"      "Yuuichi Teranishi"
+     teranisi@gohome.org            "Yuuichi"    "Yuuichi Teranishi"
      foo@bar.gohome.org             "Mr. Foo"    "John Foo"
      bar@foo.gohome.org             "Mr. Bar"    "Michael Bar"
 
