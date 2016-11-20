@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.3
-;; Package-Version: 20161104.1314
+;; Package-Version: 20161119.1334
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 ;; URL: https://github.com/Wilfred/suggest.el
@@ -44,19 +44,25 @@
 (defvar suggest-functions
   (list
    #'identity
-   ;; Built-in list functions.
+   ;; Built-in functions that access or examine lists.
    #'car
    #'cdr
    #'cadr
    #'cdar
+   #'last
    #'cons
    #'nth
    #'list
    #'length
+   #'safe-length
    #'reverse
+   #'remove
+   #'remq
    #'append
    #'butlast
+   ;; Built-in functions that create lists.
    #'make-list
+   #'number-sequence
    ;; Sequence functions
    #'elt
    #'aref
@@ -110,6 +116,7 @@
    #'-butlast
    ;; alist functions
    #'assoc
+   #'alist-get
    ;; plist functions
    #'plist-get
    #'lax-plist-get
