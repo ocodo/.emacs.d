@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20161010.9
+;; Package-Version: 20161110.455
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -2882,21 +2882,21 @@ Lets you step back in time for that line."
   "Show the heads of the repository in a tabular view, similar to `ahg-short-log'."
   (interactive)
   (ahg-short-log-impl "hg heads" "{if(tags, '[{tags}]  ')}{if(bookmarks, '\\{{bookmarks}}  ')}{ifeq(branch, 'default', '', '({branch})')}" "[Tags] {Bookmarks} (Branch)"
-                      "head() and tip:0" nil nil))
+                      "reverse(head() and tip:0)" nil nil))
 
 
 (defun ahg-tags ()
   "Show the tags of the repository in a tabular view, similar to `ahg-short-log'."
   (interactive)
   (ahg-short-log-impl "hg tags" "{tags}" "Tag Name"
-                      "tag(\"re:.*\") and tip:0" nil nil))
+                      "reverse(tag(\"re:.*\") and tip:0)" nil nil))
 
 
 (defun ahg-bookmarks ()
   "Show the bookmarks of the repository in a tabular view, similar to `ahg-short-log'."
   (interactive)
   (ahg-short-log-impl "hg bookmarks" "{bookmarks}" "Bookmark Name"
-                      "bookmark() and tip:0" nil nil))
+                      "reverse(bookmark() and tip:0)" nil nil))
 
 
 ;;-----------------------------------------------------------------------------
