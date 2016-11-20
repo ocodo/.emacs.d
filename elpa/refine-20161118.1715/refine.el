@@ -6,7 +6,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.4
-;; Package-Version: 20161104.804
+;; Package-Version: 20161118.1715
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.3") (s "1.11.0") (dash "2.12.0") (list-utils "0.4.4") (loop "1.2"))
 
@@ -190,6 +190,23 @@ index."
                            formatted-elements)))
       (s-join "\n" propertized-elements)))))
 
+(define-button-type 'refine-buffer-button
+  'action 'refine--switch-to-buffer
+  'follow-link t
+  'help-echo "Switch to this buffer")
+
+(defun refine--switch-to-buffer (button)
+  (switch-to-buffer (button-get button 'buffer)))
+
+(defun refine--buffer-button (buffer)
+  "Return a button that switches to BUFFER.."
+  (with-temp-buffer
+    (insert-text-button
+     (buffer-name buffer)
+     :type 'refine-buffer-button
+     'buffer buffer)
+    (buffer-string)))
+
 (define-button-type 'refine-help-button
   'action 'refine--open-help
   'follow-link t
@@ -224,16 +241,15 @@ index."
      'symbol symbol)
     (buffer-string)))
 
-(defun refine--update (buffer symbol)
-  "Update BUFFER with the current value of SYMBOL."
-  (let ((orig-buffer (current-buffer))
-        (value (symbol-value symbol)))
-    (with-current-buffer buffer
+(defun refine--update (result-buffer target-buffer symbol)
+  "Update RESULT-BUFFER with the current value of SYMBOL in TARGET-BUFFER."
+  (let ((value (with-current-buffer target-buffer (symbol-value symbol))))
+    (with-current-buffer result-buffer
       (let* ((current-line (line-number-at-pos))
              (current-column (current-column))
              buffer-read-only)
         (erase-buffer)
-        (insert (format "%s:\n\n" (refine--describe symbol value orig-buffer)))
+        (insert (format "%s:\n\n" (refine--describe symbol value target-buffer)))
         (insert (refine--format-with-index value))
         (insert "\n\n")
         (insert (refine--help-button symbol) " " (refine--definition-button symbol))
@@ -246,12 +262,15 @@ index."
 (defvar-local refine--symbol nil
   "The symbol being inspected in the current buffer.")
 
+(defvar-local refine--target-buffer nil
+  "When inspecting buffer-local variable, use this buffer.")
+
 (defun refine-update ()
   "Update the current refine buffer."
   (interactive)
   (unless (eq major-mode #'refine-mode)
     (user-error "refine-update must be run in a refine buffer"))
-  (refine--update (current-buffer) refine--symbol))
+  (refine--update (current-buffer) refine--target-buffer refine--symbol))
 
 (defun refine--insert-list (list index value)
   "Insert VALUE at INDEX in LIST.
@@ -523,15 +542,16 @@ If CURRENT is at the end, or not present, use the first item."
   (let ((index (or (-elem-index current items) -1)))
     (nth (1+ index) (-cycle items))))
 
-(defun refine--buffer (symbol)
-  "Get or create a refine buffer for SYMBOL."
+(defun refine--buffer (symbol buffer)
+  "Get or create a refine buffer for SYMBOL in BUFFER."
   (assert (symbolp symbol))
-  (let ((buffer (get-buffer-create (format "*refine: %s*" symbol))))
-    (with-current-buffer buffer
+  (let ((result-buffer (get-buffer-create (format "*refine: %s*" symbol))))
+    (with-current-buffer result-buffer
       ;; Need to set the major mode before we set local variables.
       (refine-mode)
-      (setq-local refine--symbol symbol))
-    buffer))
+      (setq-local refine--symbol symbol)
+      (setq-local refine--target-buffer buffer))
+    result-buffer))
 
 ;; TODO: replace calls with just list-utils-improper-p
 (defun refine--dotted-pair-p (value)
@@ -545,9 +565,10 @@ If CURRENT is at the end, or not present, use the first item."
   (let ((pretty-symbol
          (propertize (format "%s" symbol)
                      'face 'font-lock-variable-name-face))
-        (symbol-descripton
-         (if (local-variable-p symbol)
-             (format "a local variable in buffer %s" buffer)
+        (symbol-description
+         (if (local-variable-p symbol buffer)
+             (format "a local variable in buffer %s"
+                     (refine--buffer-button buffer))
            "a global variable"))
         (type-description
          (cond
@@ -566,9 +587,9 @@ If CURRENT is at the end, or not present, use the first item."
              (format "a %s containing %d %s"
                      type length units)))
           (:else "an unsupported type"))))
-    (s-word-wrap 60
+    (s-word-wrap 65
                  (format "%s is %s. Its current value is %s"
-                         pretty-symbol symbol-descripton
+                         pretty-symbol symbol-description
                          type-description))))
 
 ;; TODO: add demo in readme of this command.
@@ -613,9 +634,9 @@ For booleans, toggle nil/t."
                                             nil nil nil nil
                                             (-if-let (variable (variable-at-point))
                                                 (and (symbolp variable) (symbol-name variable)))))))
-  (let* ((buf (refine--buffer symbol)))
-    (refine--update buf symbol)
-    (switch-to-buffer buf)
+  (let* ((results-buffer (refine--buffer symbol (current-buffer))))
+    (refine--update results-buffer (current-buffer) symbol)
+    (switch-to-buffer results-buffer)
     (goto-char (point-min))))
 
 (define-derived-mode refine-mode fundamental-mode "Refine"
