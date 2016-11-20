@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "emmet-mode" "emmet-mode.el" (22480 8088 0
-;;;;;;  0))
+;;;### (autoloads nil "emmet-mode" "emmet-mode.el" (0 0 0 0))
 ;;; Generated autoloads from emmet-mode.el
 
 (autoload 'emmet-expand-line "emmet-mode" "\
@@ -67,6 +66,8 @@ Wrap region with markup.
 
 
 \(fn COUNT)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "emmet-mode" '("emmet-")))
 
 ;;;***
 

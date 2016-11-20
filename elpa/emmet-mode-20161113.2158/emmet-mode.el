@@ -6,7 +6,7 @@
 ;; Copyright (C) 2009-2012 Chris Done
 
 ;; Version: 1.0.10
-;; Package-Version: 20160906.1919
+;; Package-Version: 20161113.2158
 ;; Author: Shin Aoyama <smihica@gmail.com>
 ;; URL: https://github.com/smihica/emmet-mode
 ;; Last-Updated: 2014-08-11 Mon
@@ -344,7 +344,7 @@ This minor mode defines keys for quick access:
 Home page URL `http://www.emacswiki.org/emacs/Emmet'.
 
 See also `emmet-expand-line'."
-  :lighter " Emmet"
+  :lighter (" Emmet" (:eval (if emmet-preview-mode "[P]" "")))
   :keymap emmet-mode-keymap
   :after-hook (emmet-after-hook))
 
@@ -526,6 +526,34 @@ accept it or skip it."
         (add-hook 'before-change-functions 'emmet-preview-before-change t t)
         (goto-char here)
         (add-hook 'post-command-hook 'emmet-preview-post-command t t)))))
+
+(defun emmet-preview-online ()
+  "Display `emmet-preview' on the fly as the user types.
+
+To use this, add the function as a local hook:
+
+  (add-hook 'post-self-insert-hook 'emmet-preview-online t t)
+
+or enable `emmet-preview-mode'."
+  (ignore-errors
+    (let* ((expr (emmet-expr-on-line))
+           (text (nth 0 expr))
+           (beg (nth 1 expr))
+           (end (nth 2 expr)))
+      (let ((wap (word-at-point)))
+        (when (and (not (equal wap text))
+                   (emmet-transform text))
+          (emmet-preview beg end))))))
+
+(define-minor-mode emmet-preview-mode
+  "When enabled, automatically show `emmet-preview' as the user types.
+
+See `emmet-preview-online'."
+  :init-value nil
+  :group 'emmet
+  (if emmet-preview-mode
+      (add-hook 'post-self-insert-hook 'emmet-preview-online :append :local)
+    (remove-hook 'post-self-insert-hook 'emmet-preview-online :local)))
 
 (defvar emmet-preview-pending-abort nil)
 (make-variable-buffer-local 'emmet-preview-pending-abort)
