@@ -4,9 +4,9 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/paradox
-;; Version: 2.5
+;; Version: 2.5.1
 ;; Keywords: package packages
-;; Package-Requires: ((emacs "24.4") (seq "1.7") (let-alist "1.0.3") (spinner "1.4") (hydra "0.13.2"))
+;; Package-Requires: ((emacs "24.4") (seq "1.7") (let-alist "1.0.3") (spinner "1.7.3") (hydra "0.13.2"))
 ;; Prefix: paradox
 ;; Separator: -
 
@@ -107,7 +107,7 @@
 (require 'paradox-execute)
 (require 'paradox-menu)
 
-(defconst paradox-version "2.5" "Version of the paradox.el package.")
+(defconst paradox-version "2.5.1" "Version of the paradox.el package.")
 (defun paradox-bug-report ()
   "Opens github issues page in a web browser.  Please send any bugs you find.
 Please include your Emacs and paradox versions."
@@ -152,14 +152,14 @@ for packages.
       (unless no-fetch
         (if is-25
             (add-to-list 'package--downloads-in-progress 'paradox--data)
-          (paradox--refresh-star-count)))
+          (paradox--refresh-remote-data)))
       (package-list-packages no-fetch)
       (unless no-fetch
         (when (stringp paradox-github-token)
           (paradox--refresh-user-starred-list
            (bound-and-true-p package-menu-async)))
         (when is-25
-          (paradox--refresh-star-count))))))
+          (paradox--refresh-remote-data))))))
 
 ;;;###autoload
 (defun paradox-upgrade-packages (&optional no-fetch)
