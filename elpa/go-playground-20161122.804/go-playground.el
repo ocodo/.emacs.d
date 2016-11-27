@@ -4,7 +4,7 @@
 
 ;; Author: Alexander I.Grafov (axel) <grafov@gmail.com>
 ;; URL: https://github.com/grafov/go-playground
-;; Package-Version: 20160426.1228
+;; Package-Version: 20161122.804
 ;; Keywords: tools, golang
 ;; Package-Requires: ((emacs "24") (go-mode "1.0.0") (gotest "0.40.0"))
 
@@ -99,7 +99,6 @@ By default it will be created as snippet.go"
   "Base directory for playground snippets.  Better to set it under GOPATH."
   :group 'go-playground)
 
-;;;###autoload
 (defun go-playground ()
   "Run playground for Go language in a new buffer."
   (interactive)
@@ -107,10 +106,13 @@ By default it will be created as snippet.go"
     (switch-to-buffer (create-file-buffer snippet-file-name))
     (insert "// -*- mode:go;mode:go-playground -*-
 // snippet of code @ " (time-stamp-string "%:y-%02m-%02d %02H:%02M:%02S") "
-//
-// run snippet with Ctl-Return
-
 package main
+
+// === Go Playground ===
+// Execute the snippet with Ctl-Return
+// Remove this snippet completely with M-x `go-playground-rm`
+
+import ()
 
 func main() {
 
@@ -122,12 +124,18 @@ func main() {
     (set-visited-file-name snippet-file-name t)))
 
 ;;;###autoload
-(defun go-playground-remove-current-snippet ()
+(defun go-playground-rm ()  
   "Remove files of the current snippet together with directory of this snippet."
   (interactive)
   (save-buffer)
   (delete-directory (file-name-directory (buffer-file-name)) t t)
   (kill-buffer))
+
+;;;###autoload
+(defun go-playground-remove-current-snippet ()
+    "Obsoleted by `go-playground-rm'."
+  (interactive)
+  (go-playground-rm))
 
 (defun go-playground-snippet-unique-dir (prefix)
   "Get unique directory under GOPATH/`go-playground-basedir`."
