@@ -69,6 +69,12 @@ The libraries are offered from `load-path'.
 
 \(fn)" t nil)
 
+(autoload 'counsel-find-library "counsel" "\
+Visit a selected the Emacs Lisp library.
+The libraries are offered from `load-path'.
+
+\(fn)" t nil)
+
 (autoload 'counsel-load-theme "counsel" "\
 Forward to `load-theme'.
 Usable with `ivy-resume', `ivy-next-line-and-call' and
@@ -166,10 +172,12 @@ This uses `counsel-ag' with `counsel-pt-base-command' replacing
 
 (autoload 'counsel-rg "counsel" "\
 Grep for a string in the current directory using rg.
-This uses `counsel-ag' with `counsel-rg-base-command' replacing
-`counsel-ag-base-command'.
+INITIAL-INPUT can be given as the initial minibuffer input.
+INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
+EXTRA-RG-ARGS string, if non-nil, is appended to `counsel-rg-base-command'.
+RG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument.
 
-\(fn &optional INITIAL-INPUT)" t nil)
+\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY EXTRA-RG-ARGS RG-PROMPT)" t nil)
 
 (autoload 'counsel-grep "counsel" "\
 Grep for a string in the current file.

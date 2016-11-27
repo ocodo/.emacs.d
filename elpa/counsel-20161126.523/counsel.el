@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20161119.850
+;; Package-Version: 20161126.523
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -703,10 +703,8 @@ Optional INITIAL-INPUT is the initial input in the minibuffer."
               :caller 'counsel-M-x)))
 
 ;;** `counsel-load-library'
-;;;###autoload
-(defun counsel-load-library ()
-  "Load a selected the Emacs Lisp library.
-The libraries are offered from `load-path'."
+(defun counsel-library-candidates ()
+  "Return a list of completion candidates for `counsel-load-library'."
   (interactive)
   (let ((dirs load-path)
         (suffix (concat (regexp-opt '(".el" ".el.gz") t) "\\'"))
@@ -745,10 +743,29 @@ The libraries are offered from `load-path'."
                                 'full-name (expand-file-name file dir))
                                dir) cands)))))))
     (maphash (lambda (_k v) (push (car v) res)) cands)
-    (ivy-read "Load library: " (nreverse res)
+    (nreverse res)))
+
+;;;###autoload
+(defun counsel-load-library ()
+  "Load a selected the Emacs Lisp library.
+The libraries are offered from `load-path'."
+  (interactive)
+  (let ((cands (counsel-library-candidates)))
+    (ivy-read "Load library: " cands
               :action (lambda (x)
                         (load-library
                          (get-text-property 0 'full-name x)))
+              :keymap counsel-describe-map)))
+
+;;** `counsel-find-library'
+;;;###autoload
+(defun counsel-find-library ()
+  "Visit a selected the Emacs Lisp library.
+The libraries are offered from `load-path'."
+  (interactive)
+  (let ((cands (counsel-library-candidates)))
+    (ivy-read "Find library: " cands
+              :action #'counsel--find-symbol
               :keymap counsel-describe-map)))
 
 ;;** `counsel-load-theme'
@@ -921,6 +938,12 @@ Describe the selected candidate."
   (list counsel-git-grep-cmd-default)
   "History for `counsel-git-grep' shell commands.")
 
+(defcustom counsel-grep-post-action-hook nil
+  "Hook that runs after the point moves to the next candidate.
+Typical value: '(recenter)."
+  :type 'hook
+  :group 'ivy)
+
 (defun counsel-prompt-function-dir ()
   "Return prompt appended with the parent directory."
   (ivy-add-prompt-count
@@ -957,6 +980,7 @@ Describe the selected candidate."
         (forward-line (1- (string-to-number line-number)))
         (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
         (swiper--ensure-visible)
+        (run-hooks 'counsel-grep-post-action-hook)
         (unless (eq ivy-exit 'done)
           (swiper--cleanup)
           (swiper--add-overlays (ivy--regex ivy-text)))))))
@@ -1633,9 +1657,9 @@ regex string. The default is \"ag --nocolor --nogroup %s\"."
 (ivy-set-occur 'counsel-ag 'counsel-ag-occur)
 (ivy-set-display-transformer 'counsel-ag 'counsel-git-grep-transformer)
 
-(defun counsel-ag-function (string extra-ag-args)
+(defun counsel-ag-function (string base-cmd extra-ag-args)
   "Grep in the current directory for STRING.
-If non-nil, EXTRA-AG-ARGS string is appended to `counsel-ag-base-command'."
+If non-nil, EXTRA-AG-ARGS string is appended to BASE-CMD."
   (when (null extra-ag-args)
     (setq extra-ag-args ""))
   (if (< (length string) 3)
@@ -1644,7 +1668,7 @@ If non-nil, EXTRA-AG-ARGS string is appended to `counsel-ag-base-command'."
           (regex (counsel-unquote-regex-parens
                   (setq ivy--old-re
                         (ivy--regex string)))))
-      (let ((ag-cmd (format counsel-ag-base-command
+      (let ((ag-cmd (format base-cmd
                             (concat extra-ag-args
                                     " -- "
                                     (shell-quote-argument regex)))))
@@ -1670,7 +1694,7 @@ AG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument. "
   (setq counsel--git-grep-dir (or initial-directory default-directory))
   (ivy-read (or ag-prompt (car (split-string counsel-ag-base-command)))
             (lambda (string)
-              (counsel-ag-function string extra-ag-args))
+              (counsel-ag-function string counsel-ag-base-command extra-ag-args))
             :initial-input initial-input
             :dynamic-collection t
             :keymap counsel-ag-map
@@ -1722,20 +1746,67 @@ This uses `counsel-ag' with `counsel-pt-base-command' replacing
     (counsel-ag initial-input)))
 
 ;;** `counsel-rg'
-(defcustom counsel-rg-base-command "rg -i --no-heading %s"
+(defcustom counsel-rg-base-command "rg -i --no-heading --line-number %s ."
   "Used to in place of `counsel-rg-base-command' to search with
 ripgrep using `counsel-rg'."
   :type 'string
   :group 'ivy)
 
+(counsel-set-async-exit-code 'counsel-rg 1 "No matches found")
+(ivy-set-occur 'counsel-rg 'counsel-rg-occur)
+(ivy-set-display-transformer 'counsel-rg 'counsel-git-grep-transformer)
+
 ;;;###autoload
-(defun counsel-rg (&optional initial-input)
+(defun counsel-rg (&optional initial-input initial-directory extra-rg-args rg-prompt)
   "Grep for a string in the current directory using rg.
-This uses `counsel-ag' with `counsel-rg-base-command' replacing
-`counsel-ag-base-command'."
-  (interactive)
-  (let ((counsel-ag-base-command counsel-rg-base-command))
-    (counsel-ag initial-input)))
+INITIAL-INPUT can be given as the initial minibuffer input.
+INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
+EXTRA-RG-ARGS string, if non-nil, is appended to `counsel-rg-base-command'.
+RG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument. "
+  (interactive
+   (list nil
+         (when current-prefix-arg
+           (read-directory-name (concat
+                                 (car (split-string counsel-rg-base-command))
+                                 " in directory: ")))))
+  (ivy-set-prompt 'counsel-rg counsel-prompt-function)
+  (setq counsel--git-grep-dir (or initial-directory default-directory))
+  (ivy-read (or rg-prompt (car (split-string counsel-rg-base-command)))
+            (lambda (string)
+              (counsel-ag-function string counsel-rg-base-command extra-rg-args))
+            :initial-input initial-input
+            :dynamic-collection t
+            :keymap counsel-ag-map
+            :history 'counsel-git-grep-history
+            :action #'counsel-git-grep-action
+            :unwind (lambda ()
+                      (counsel-delete-process)
+                      (swiper--cleanup))
+            :caller 'counsel-rg))
+
+(defun counsel-rg-occur ()
+  "Generate a custom occur buffer for `counsel-rg'."
+  (unless (eq major-mode 'ivy-occur-grep-mode)
+    (ivy-occur-grep-mode))
+  (setq default-directory counsel--git-grep-dir)
+  (let* ((regex (counsel-unquote-regex-parens
+                 (setq ivy--old-re
+                       (ivy--regex
+                        (progn (string-match "\"\\(.*\\)\"" (buffer-name))
+                               (match-string 1 (buffer-name)))))))
+         (cands (split-string
+                 (shell-command-to-string
+                  (format counsel-rg-base-command (shell-quote-argument regex)))
+                 "\n"
+                 t)))
+    ;; Need precise number of header lines for `wgrep' to work.
+    (insert (format "-*- mode:grep; default-directory: %S -*-\n\n\n"
+                    default-directory))
+    (insert (format "%d candidates:\n" (length cands)))
+    (ivy--occur-insert-lines
+     (mapcar
+      (lambda (cand) (concat "./" cand))
+      cands))))
 
 ;;** `counsel-grep'
 (defcustom counsel-grep-base-command "grep -nE \"%s\" %s"
@@ -1777,6 +1848,7 @@ the command."
           (forward-line (- line-number counsel-grep-last-line))
           (setq counsel-grep-last-line line-number))
         (re-search-forward (ivy--regex ivy-text t) (line-end-position) t)
+        (run-hooks 'counsel-grep-post-action-hook)
         (if (eq ivy-exit 'done)
             (swiper--ensure-visible)
           (isearch-range-invisible (line-beginning-position)
@@ -2587,6 +2659,7 @@ And insert it into the minibuffer. Useful during
                 (describe-function . counsel-describe-function)
                 (describe-variable . counsel-describe-variable)
                 (find-file . counsel-find-file)
+                (find-library . counsel-find-library)
                 (imenu . counsel-imenu)
                 (load-library . counsel-load-library)
                 (load-theme . counsel-load-theme)
