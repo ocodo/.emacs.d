@@ -4,7 +4,7 @@
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: http://github.com/redguardtoo/evil-matchit
-;; Version: 2.1.6
+;; Version: 2.1.9
 ;; Keywords: matchit vim evil
 ;; Package-Requires: ((evil "1.0.7"))
 ;;
@@ -275,7 +275,7 @@ If font-face-under-cursor is NOT nil, the quoted string is being processed"
           (plist-put evilmi-plugins mode '((evilmi-simple-get-tag evilmi-simple-jump)
                                            (evilmi-javascript-get-tag evilmi-javascript-jump)
                                            (evilmi-html-get-tag evilmi-html-jump))))
-        '(js-mode json-mode js2-mode js3-mode javascript-mode))
+        '(js-mode json-mode js2-mode js3-mode javascript-mode rjsx-mode))
 
   ;; Html
   (autoload 'evilmi-template-get-tag "evil-matchit-template" nil)
@@ -340,6 +340,11 @@ If font-face-under-cursor is NOT nil, the quoted string is being processed"
   (autoload 'evilmi-sh-get-tag "evil-matchit-sh" nil)
   (autoload 'evilmi-sh-jump "evil-matchit-sh" nil)
   (plist-put evilmi-plugins 'sh-mode '((evilmi-sh-get-tag evilmi-sh-jump)))
+
+  ;; verilog-mode
+  (autoload 'evilmi-verilog-get-tag "evil-matchit-verilog" nil)
+  (autoload 'evilmi-verilog-jump "evil-matchit-verilog" nil)
+  (plist-put evilmi-plugins 'verilog-mode '((evilmi-verilog-get-tag evilmi-verilog-jump)))
 
   ;; Lua or any fine script
   (autoload 'evilmi-script-get-tag "evil-matchit-script" nil)
@@ -449,7 +454,7 @@ If font-face-under-cursor is NOT nil, the quoted string is being processed"
     (evilmi--operate-on-item NUM))))
 
 ;;;###autoload
-(defun evilmi-version() (interactive) (message "2.1.6"))
+(defun evilmi-version() (interactive) (message "2.1.9"))
 
 ;;;###autoload
 (define-minor-mode evil-matchit-mode
