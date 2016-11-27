@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "jump" "jump.el" (22533 41847 0 0))
+;;;### (autoloads nil "jump" "jump.el" (0 0 0 0))
 ;;; Generated autoloads from jump.el
 
 (autoload 'defjump "jump" "\
@@ -34,6 +34,8 @@ Optional argument METHOD-COMMAND overrides the function used to
 find the current method which defaults to `which-function'.
 
 \(fn NAME SPECS ROOT &optional DOC MAKE METHOD-COMMAND)" nil t)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "jump" '("jump-")))
 
 ;;;***
 
