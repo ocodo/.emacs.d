@@ -12,7 +12,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
 ;; Package-Requires: ((emacs "24.4") (dash "20160820.501") (with-editor "20160929.734"))
-;; Package-Version: 20161108.1335
+;; Package-Version: 20161123.2204
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -204,7 +204,7 @@ usually honor this wish and return non-nil."
 
 (defcustom git-commit-style-convention-checks '(non-empty-second-line)
   "List of checks performed by `git-commit-check-style-conventions'.
-Valid members are `non-empty-second-line' and `overlong-first-line'.
+Valid members are `non-empty-second-line' and `overlong-summary-line'.
 That function is a member of `git-commit-finish-query-functions'."
   :options '(non-empty-second-line overlong-summary-line)
   :type '(list :convert-widget custom-hook-convert-widget)
