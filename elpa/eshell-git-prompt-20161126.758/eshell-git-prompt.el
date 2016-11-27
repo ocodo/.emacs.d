@@ -1,13 +1,13 @@
 ;;; eshell-git-prompt.el --- Some Eshell prompt for Git users  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Chunyang Xu
+;; Copyright (C) 2015-2016  Chunyang Xu
 
-;; Author: Chunyang Xu <xuchunyang56@gmail.com>
+;; Author: Chunyang Xu <mail@xuchunyang.me>
 ;; URL: https://github.com/xuchunyang/eshell-git-prompt
-;; Package-Version: 20160509.138
-;; Package-Requires: ((emacs "24.1") (cl-lib "0.5") (dash "2.11.0") (s "1.9.0"))
+;; Package-Version: 20161126.758
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.5") (dash "2.11.0"))
 ;; Keywords: eshell git
-;; Version: 0.1
+;; Version: 0.1.1
 ;; Created: 09/11/2015
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -52,9 +52,9 @@
 
 (require 'cl-lib)
 (require 'dash)
-(require 's)
 
-(declare-function eshell/pwd "em-dirs")
+(declare-function eshell/pwd "em-dirs" (&rest args))
+(declare-function eshell-printn "esh-io" (object))
 
 (eval-when-compile
   (defvar eshell-last-command-status)
@@ -284,7 +284,7 @@ It looks like:
     (setq end (propertize "$" 'invisible t))
 
     ;; Build prompt
-    (concat (s-join " " (-non-nil (list beg dir git-branch git-dirty)))
+    (concat (mapconcat #'identity (-non-nil (list beg dir git-branch git-dirty)) " ")
             end
             " ")))
 
@@ -478,7 +478,6 @@ usage: use-theme: (&optional theme)"
 (provide 'eshell-git-prompt)
 
 ;; Local Variables:
-;; eval: (when (require 'rainbow-mode nil t) (rainbow-mode 1))
 ;; coding: utf-8
 ;; End:
 ;;; eshell-git-prompt.el ends here

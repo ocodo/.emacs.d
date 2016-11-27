@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "eshell-git-prompt" "eshell-git-prompt.el"
-;;;;;;  (22480 9541 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from eshell-git-prompt.el
 
 (autoload 'eshell-git-prompt-use-theme "eshell-git-prompt" "\
@@ -16,6 +16,8 @@ Pick up a Eshell prompt theme from `eshell-git-prompt-themes' to use.
 List all available themes and pick one from Eshell.
 
 \(fn &optional THEME)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "eshell-git-prompt" '("eshell-git-prompt-" "with-face")))
 
 ;;;***
 
