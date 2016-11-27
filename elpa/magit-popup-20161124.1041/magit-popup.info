@@ -174,10 +174,12 @@ chance to notice them.
 
  -- User Option: magit-popup-show-common-commands
 
-     This option controls whether the section which lists the commands
-     that are common to all popups is initially show.  We recommend you
-     set this to ‘nil’ - after you have memorized that it can be shown
-     on demand using ‘C-t’.
+     This option controls whether the section that lists the commands
+     that are common to all popups is initially shown.
+
+     By default this is not the case, but note that you can temporarily
+     show this section using ‘C-t’, which therefore is the only common
+     command you actually have to memorize.
 
 ‘C-t’     (‘magit-popup-toggle-show-common-commands’)
 
@@ -389,16 +391,7 @@ File: magit-popup.info,  Node: Other options,  Prev: Customizing existing popups
  -- User Option: magit-popup-use-prefix-argument
 
      This option controls the effect that the use of a prefix argument
-     before entering a popup has.  The *intended* default is ‘default’,
-     but the *actual* default is ‘disabled’.  This is necessary because
-     the old popup implementation did simply forward such a pre-popup
-     prefix argument to the suffix command invoked from the popup, and
-     changing that without users being aware of it could lead to tears.
-
-        • ‘disabled’
-
-          Bring up a Custom option buffer so that the user reads this
-          and then makes an informed choice.
+     before entering a popup has.
 
         • ‘default’
 
@@ -545,12 +538,6 @@ commands have to be defined separately using plain ‘defun’.
           list whose members have the form (KEY DESC COMMAND), see
           ‘magit-define-popup-action’ for details.
 
-          How the actions are split into rows and columns currently
-          depends on the available space and ‘:max-action-columns’.
-
-          WARNING: This will likely be change to use a more explicit
-          format (((KEY DESC COMMAND)…)…) before the release.
-
           Actions are regular Emacs commands, which usually have an
           ‘interactive’ form setup to consume the values of the popup
           ‘:switches’ and ‘:options’ when invoked from the corresponding
@@ -585,6 +572,14 @@ commands have to be defined separately using plain ‘defun’.
           The value, if specified, should be one of ‘default’ or
           ‘prefix’.
 
+        • ‘:max-action-columns’
+
+          The maximum number of actions to display on a single line, a
+          number or a function that return a number and takes the name
+          of the section currently being inserted as argument.  If there
+          isn’t enough room to display as many columns as specified
+          here, then fewer are used.
+
         • ‘:switches’
 
           The popup arguments which can be toggled on and off.  VALUE is
@@ -594,20 +589,20 @@ commands have to be defined separately using plain ‘defun’.
         • ‘:options’
 
           The popup arguments which take a value, as in "–opt~OPTVAL".
-          VALUE is a list whose members have the form (KEY DESC OPTION
-          READER), see ‘magit-define-popup-option’ for details.
-
-        • ‘:variables’
-
-          Git variables which can be set from the popup.  VALUE is a
-          list whose members have the form (KEY DESC COMMAND FORMATTER),
-          see ‘magit-define-popup-variable’ for details.
+          VALUE is a list whose members have the form ‘(KEY DESC OPTION
+          READER)’, see ‘magit-define-popup-option’ for details.
 
         • ‘:default-arguments’
 
           The default arguments, a list of switches (which are then
           enabled by default) and options with there default values, as
-          in "–OPT~OPTVAL\".
+          in ‘"--OPT=OPTVAL"’.
+
+        • ‘:variables’
+
+          Git variables which can be set from the popup.  VALUE is a
+          list whose members have the form ‘(KEY DESC COMMAND
+          FORMATTER)’, see ‘magit-define-popup-variable’ for details.
 
         • ‘:sequence-predicate’
 
@@ -698,11 +693,11 @@ Tag Table:
 Node: Top994
 Node: Introduction2170
 Node: Usage4747
-Node: Customizing existing popups9404
-Node: Other options14932
-Node: Defining prefix and suffix commands16981
-Node: Defining prefix commands19077
-Node: Defining suffix commands25757
+Node: Customizing existing popups9471
+Node: Other options14999
+Node: Defining prefix and suffix commands16573
+Node: Defining prefix commands18669
+Node: Defining suffix commands25450
 
 End Tag Table
 
