@@ -2,7 +2,7 @@
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/package-utils
-;; Package-Version: 20161115.108
+;; Package-Version: 20161125.930
 ;; Keywords: package, convenience
 ;; Version: 0.4.2
 ;; Package-Requires: ((async "1.6"))
@@ -31,7 +31,6 @@
 ;;; Code:
 
 (require 'package)
-(require 'async)
 
 (defmacro package-utils-with-packages-list (packages &rest body)
   "List PACKAGES inside a `package-list-packages' buffer and evaluate BODY.
@@ -141,6 +140,7 @@ With prefix argument NO-FETCH, do not call `package-refresh-contents'."
 
 Contrary to `package-install', PACKAGE can only be a symbol."
   (interactive (list (car (eval (cadr (interactive-form 'package-install))))))
+  (require 'async)
   (async-start
    `(lambda ()
       ,(async-inject-variables "^package-archives$")
