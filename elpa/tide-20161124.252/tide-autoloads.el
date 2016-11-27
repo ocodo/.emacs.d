@@ -33,6 +33,11 @@ Minor mode for Typescript Interactive Development Environment.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'tide-project-errors "tide" "\
+
+
+\(fn)" t nil)
+
 (autoload 'tide-unhighlight-identifiers "tide" "\
 Remove highlights from previously highlighted identifier.
 
