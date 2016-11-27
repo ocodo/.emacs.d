@@ -349,7 +349,7 @@ Ivy-based interface to standard commands
                (global-set-key (kbd "C-x C-f") 'counsel-find-file)
                (global-set-key (kbd "<f1> f") 'counsel-describe-function)
                (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-               (global-set-key (kbd "<f1> l") 'counsel-load-library)
+               (global-set-key (kbd "<f1> l") 'counsel-find-library)
                (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
                (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
 
@@ -532,9 +532,9 @@ version of the regular commands that enables applying multiple actions.
      line.
 
      Comes in handy when opening multiple files from
-     ‘counsel-find-file’, ‘counsel-git-grep’, ‘counsel-ag’, or
-     ‘counsel-locate’ lists.  Just hold ‘C-M-n’ for rapid-fire default
-     action on each successive element of the list.
+     ‘counsel-find-file’, ‘counsel-git-grep’, ‘counsel-ag’,
+     ‘counsel-rg’, or ‘counsel-locate’ lists.  Just hold ‘C-M-n’ for
+     rapid-fire default action on each successive element of the list.
 
 ‘C-M-p’ (‘ivy-previous-line-and-call’)
 ......................................
@@ -1823,38 +1823,38 @@ Node: Minibuffer key bindings11660
 Node: Key bindings for navigation12894
 Node: Key bindings for single selection action then exit minibuffer14101
 Node: Key bindings for multiple selections and actions keep minibuffer open16818
-Node: Key bindings that alter the minibuffer input19192
-Node: Other key bindings21080
-Node: Hydra in the minibuffer21458
-Node: Saving the current completion session to a buffer23535
-Node: Completion Styles24947
-Node: ivy--regex-plus26705
-Node: ivy--regex-ignore-order28191
-Node: ivy--regex-fuzzy28559
-Node: Customization29056
-Node: Faces29242
-Node: Defcustoms31379
-Node: Actions32556
-Node: What are actions?32882
-Node: How can different actions be called?33715
-Node: How to modify the actions list?34286
-Node: Example - add two actions to each command34946
-Node: How to undo adding the two actions35905
-Node: How to add actions to a specific command36357
-Node: Example - define a new command with several actions36773
-Node: Test the above function with ‘ivy-occur’37716
-Node: Packages38564
-Node: Commands39422
-Node: File Name Completion39607
-Node: Buffer Name Completion41933
-Node: Counsel commands42553
-Node: API43200
-Node: Required arguments for ‘ivy-read’43777
-Node: Optional arguments for ‘ivy-read’44442
-Node: Example - ‘counsel-describe-function’47676
-Node: Example - ‘counsel-locate’51080
-Node: Variable Index54928
-Node: Keystroke Index61829
+Node: Key bindings that alter the minibuffer input19210
+Node: Other key bindings21098
+Node: Hydra in the minibuffer21476
+Node: Saving the current completion session to a buffer23553
+Node: Completion Styles24965
+Node: ivy--regex-plus26723
+Node: ivy--regex-ignore-order28209
+Node: ivy--regex-fuzzy28577
+Node: Customization29074
+Node: Faces29260
+Node: Defcustoms31397
+Node: Actions32574
+Node: What are actions?32900
+Node: How can different actions be called?33733
+Node: How to modify the actions list?34304
+Node: Example - add two actions to each command34964
+Node: How to undo adding the two actions35923
+Node: How to add actions to a specific command36375
+Node: Example - define a new command with several actions36791
+Node: Test the above function with ‘ivy-occur’37734
+Node: Packages38582
+Node: Commands39440
+Node: File Name Completion39625
+Node: Buffer Name Completion41951
+Node: Counsel commands42571
+Node: API43218
+Node: Required arguments for ‘ivy-read’43795
+Node: Optional arguments for ‘ivy-read’44460
+Node: Example - ‘counsel-describe-function’47694
+Node: Example - ‘counsel-locate’51098
+Node: Variable Index54946
+Node: Keystroke Index61847
 
 End Tag Table
 
