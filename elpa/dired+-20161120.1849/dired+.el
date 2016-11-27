@@ -7,11 +7,11 @@
 ;; Copyright (C) 1999-2016, Drew Adams, all rights reserved.
 ;; Created: Fri Mar 19 15:58:58 1999
 ;; Version: 2013.07.23
-;; Package-Version: 20161108.1023
+;; Package-Version: 20161120.1849
 ;; Package-Requires: ()
-;; Last-Updated: Tue Nov  8 10:24:32 2016 (-0800)
+;; Last-Updated: Sun Nov 20 18:50:41 2016 (-0800)
 ;;           By: dradams
-;;     Update #: 9693
+;;     Update #: 9709
 ;; URL: http://www.emacswiki.org/dired+.el
 ;; Doc URL: http://www.emacswiki.org/DiredPlus
 ;; Keywords: unix, mouse, directories, diredp, dired
@@ -654,6 +654,10 @@
 ;;
 ;;; Change Log:
 ;;
+;; 2016/11/20 dadams
+;;     diredp-menu-bar-operate-search-menu: Added dired-do-find-regexp and dired-do-find-regexp-and-replace.
+;;     Bind dired-do-search to M-a and dired-do-query(-replace)-regexp to M-q.
+;;     diredp-dired-plus-description: Added dired-do-find-regexp and dired-do-find-regexp-and-replace.
 ;; 2016/10/12 dadams
 ;;     diredp-compressed-extensions: Added extensions .xz and .lzma.  Thx to xuhdev (https://www.topbug.net/).
 ;; 2016/09/20 dadams
@@ -3373,11 +3377,19 @@ If no one is selected, symmetric encryption will be performed.  "
   (define-key diredp-menu-bar-operate-search-menu [isearch]
     '(menu-item "Isearch Files..." dired-do-isearch
       :help "Incrementally search marked files for string")))
+(when (fboundp 'dired-do-find-regexp-and-replace)
+  (define-key diredp-menu-bar-operate-search-menu [find-query-replace]
+    '(menu-item "Query Replace using `find'..." dired-do-find-regexp-and-replace
+      :help "Replace regexp in marked files using `find'")))
 (define-key diredp-menu-bar-operate-search-menu [query-replace]
   (if (< emacs-major-version 21)
       '(menu-item "Query Replace..." dired-do-query-replace)
     '(menu-item "Query Replace..." dired-do-query-replace-regexp
       :help "Replace regexp in marked files")))
+(when (fboundp 'dired-do-find-regexp)
+  (define-key diredp-menu-bar-operate-search-menu [find-regexp]
+    '(menu-item "Search Files using `find'..." dired-do-find-regexp
+      :help "Search marked files for regexp using `find'")))
 (define-key diredp-menu-bar-operate-search-menu [search]
   '(menu-item "Search Files..." dired-do-search :help "Search marked files for regexp"))
 (define-key diredp-menu-bar-operate-search-menu [grep]
@@ -4031,6 +4043,7 @@ If no one is selected, symmetric encryption will be performed.  "
 ;; This replaces the `dired-x.el' binding of `dired-mark-extension'.
 (define-key dired-mode-map "*."      'diredp-mark/unmark-extension)                 ; `* .'
 (define-key dired-mode-map [(control meta ?*)] 'diredp-marked-other-window)         ; `C-M-*'
+(define-key dired-mode-map "\M-a"    'dired-do-search)                              ; `M-a'
 (define-key dired-mode-map "\M-b"    'diredp-do-bookmark)                           ; `M-b'
 (define-key dired-mode-map "\C-\M-b" 'diredp-set-bookmark-file-bookmark-for-marked) ; `C-M-b'
 (define-key dired-mode-map [(control meta shift ?b)]                                ; `C-M-B' (aka `C-M-S-b')
@@ -4038,6 +4051,9 @@ If no one is selected, symmetric encryption will be performed.  "
 (define-key dired-mode-map "\M-g"    'diredp-do-grep)                               ; `M-g'
 (when (fboundp 'mkhtml-dired-files)     ; In `mkhtml.el'.
   (define-key dired-mode-map "\M-h"  'mkhtml-dired-files))                          ; `M-h'
+(define-key dired-mode-map "\M-q"    (if (< emacs-major-version 21)
+                                         'dired-do-query-replace
+                                       'dired-do-query-replace-regexp))             ; `M-q'
 (define-key dired-mode-map [(control meta shift ?r)]                                ; `C-M-R' (aka `C-M-S-r')
   'diredp-toggle-find-file-reuse-dir)
 (define-key dired-mode-map "U"       'dired-unmark-all-marks)                       ; `U'
@@ -10755,11 +10771,18 @@ Marked (or next prefix arg) files & subdirs here
 * \\[diredp-do-grep]\t\t- Run `grep'
 * \\[dired-do-search]\t\t- Search
 "
+    (and (fboundp 'dired-do-find-regexp) ; Emacs 25+
+         "* \\[dired-do-find-regexp]\t\t- Search using `find'
+")
 
     (if (fboundp 'dired-do-query-replace-regexp) ; Emacs 22+
         "* \\[dired-do-query-replace-regexp]\t\t- Query-replace
 "
       "* \\[dired-do-query-replace]\t\t- Query-replace
+")
+
+    (and (fboundp 'dired-do-find-regexp-and-replace)
+         "* \\[dired-do-find-regexp-and-replace]\t\t- Query-replace using `find'
 ")
 
     (and (fboundp 'dired-do-isearch)
