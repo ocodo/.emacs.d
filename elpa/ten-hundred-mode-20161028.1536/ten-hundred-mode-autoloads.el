@@ -1,10 +1,10 @@
 ;;; ten-hundred-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ten-hundred-mode" "ten-hundred-mode.el" (22291
-;;;;;;  18945 759753 943000))
+;;;### (autoloads nil "ten-hundred-mode" "ten-hundred-mode.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from ten-hundred-mode.el
 
 (autoload 'ten-hundred-mode "ten-hundred-mode" "\
@@ -17,10 +17,11 @@ to say.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ten-hundred-mode" '("ten-hundred-mode-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("ten-hundred-mode-pkg.el") (22291 18945
-;;;;;;  766106 385000))
+;;;### (autoloads nil nil ("ten-hundred-mode-pkg.el") (0 0 0 0))
 
 ;;;***
 
