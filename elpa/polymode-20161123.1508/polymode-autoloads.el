@@ -28,6 +28,7 @@
 
 ;;;### (autoloads nil "poly-c" "poly-c.el" (0 0 0 0))
 ;;; Generated autoloads from poly-c.el
+ (autoload 'poly-noweb+c-mode "poly-c")
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "poly-c" '("pm-" "poly-noweb+c-mode")))
 
@@ -35,6 +36,9 @@
 
 ;;;### (autoloads nil "poly-erb" "poly-erb.el" (0 0 0 0))
 ;;; Generated autoloads from poly-erb.el
+ (autoload 'poly-coffee+erb-mode "poly-erb")
+ (autoload 'poly-javascript+erb-mode "poly-erb")
+ (autoload 'poly-html+erb-mode "poly-erb")
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "poly-erb" '("pm-" "poly-")))
 
@@ -73,6 +77,7 @@
 
 ;;;### (autoloads nil "poly-slim" "poly-slim.el" (0 0 0 0))
 ;;; Generated autoloads from poly-slim.el
+ (autoload 'poly-slim-mode "poly-slim")
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "poly-slim" '("pm-" "poly-slim-mode")))
 
