@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20161028.29
+;; Package-Version: 20161121.1137
 ;; Version: 0.1.6
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
@@ -86,6 +86,11 @@
   :group 'anaconda-mode
   :type 'boolean)
 
+(defcustom anaconda-mode-lighter " Anaconda"
+  "Text displayed in the mode line when `anaconda-mode’ is active."
+  :group 'anaconda-mode
+  :type 'sexp)
+
 
 ;;; Server.
 
@@ -161,7 +166,7 @@ from setuptools.command import easy_install
 directory = os.path.expanduser(sys.argv[-2])
 version = sys.argv[-1]
 sys.path.append(directory)
-easy_install.main(['-d', directory, '-S', directory, '-a',
+easy_install.main(['-d', directory, '-S', directory, '-a', '-Z',
                    'anaconda_mode==' + version])
 " "Install `anaconda_mode' server.")
 
@@ -760,7 +765,7 @@ to the beginning of buffer before definitions navigation."
   "Code navigation, documentation lookup and completion for Python.
 
 \\{anaconda-mode-map}"
-  :lighter " Anaconda"
+  :lighter anaconda-mode-lighter
   :keymap anaconda-mode-map)
 
 ;;;###autoload
