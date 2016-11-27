@@ -7,7 +7,7 @@
 ;; Created:			14 Feb 2012
 ;; Updated:			13 December 2015
 ;; Version:                     1.8
-;; Package-Version: 20151213.234
+;; Package-Version: 20161120.1303
 ;; Url:                         https://github.com/joddie/pcre2el
 ;; Package-Requires:            ((emacs "24") (cl-lib "0.3"))
 
@@ -882,7 +882,7 @@ emulated PCRE regexps when `isearch-regexp' is true."
               (pcre-decorate-search-function real-search-function)))
     ad-do-it))
 
-(eval-after-load "evil"
+(eval-after-load 'evil
   '(when pcre-mode
     (ad-enable-advice 'evil-search-function 'around 'pcre-mode)
     (ad-activate 'evil-search-function)))

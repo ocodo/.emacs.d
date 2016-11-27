@@ -1,14 +1,15 @@
 ;;; pcre2el-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "pcre2el" "pcre2el.el" (22127 55801 22812 225000))
+;;;### (autoloads nil "pcre2el" "pcre2el.el" (0 0 0 0))
 ;;; Generated autoloads from pcre2el.el
 
 (defvar pcre-mode nil "\
 Non-nil if PCRE mode is enabled.
-See the command `pcre-mode' for a description of this minor mode.
+See the `pcre-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `pcre-mode'.")
@@ -185,7 +186,8 @@ Turn on `rxt-mode' in the current buffer.
 
 (defvar rxt-global-mode nil "\
 Non-nil if Rxt-Global mode is enabled.
-See the command `rxt-global-mode' for a description of this minor mode.
+See the `rxt-global-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `rxt-global-mode'.")
@@ -203,6 +205,8 @@ Rxt mode is enabled in all buffers where
 See `rxt-mode' for more information on Rxt mode.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "pcre2el" '("rxt-" "pcre-")))
 
 ;;;***
 
