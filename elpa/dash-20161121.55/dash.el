@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 2.13.0
-;; Package-Version: 20161119.650
+;; Package-Version: 20161121.55
 ;; Keywords: lists
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -2354,7 +2354,7 @@ structure such as plist or alist."
 
 (defun dash-enable-font-lock ()
   "Add syntax highlighting to dash functions, macros and magic values."
-  (eval-after-load "lisp-mode"
+  (eval-after-load 'lisp-mode
     '(progn
        (let ((new-keywords '(
                              "-each"
