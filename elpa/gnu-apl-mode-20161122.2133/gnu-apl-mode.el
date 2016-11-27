@@ -193,7 +193,7 @@ The ∇s are always flush-left, as are all lines outside of functions."
                 ,@(mapcar #'(lambda (command)
                               `(defun ,(gnu-apl--make-key-command-sym (car command)) ()
                                  (interactive)
-                                 (insert-string ,(cadr command))))
+                                 (insert ,(cadr command))))
                           gnu-apl--symbols))))
   (make-insert-functions))
 
