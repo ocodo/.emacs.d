@@ -1,4 +1,4 @@
-(define-package "macrostep" "20160925.505" "interactive macro expander"
+(define-package "macrostep" "20161120.1306" "interactive macro expander"
   '((cl-lib "0.5"))
   :url "https://github.com/joddie/macrostep" :keywords
   '("lisp" "languages" "macro" "debugging"))
