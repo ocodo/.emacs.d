@@ -4,7 +4,7 @@
 
 ;; Author: Mario Rodas <marsam@users.noreply.github.com>
 ;; URL: https://github.com/emacs-pe/http.el
-;; Package-Version: 20161025.1120
+;; Package-Version: 20161125.739
 ;; Keywords: convenience
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.4") (request "0.2.0") (edit-indirect "0.1.4"))
@@ -180,7 +180,7 @@ Used only when was not possible to guess a response content-type."
   (mapcar (lambda (method) (cons method 1)) http-methods-list))
 
 (defconst http-request-line-regexp
-  (rx-to-string `(: line-start
+  (rx-to-string `(: line-start (* space)
                     (group (or ,@http-methods-list))
                     (+ space)
                     (group (+ not-newline))
@@ -195,7 +195,7 @@ Used only when was not possible to guess a response content-type."
           http-methods-list))
 
 (defconst http-header-regexp
-  (rx line-start (group (+ (in "_-" alnum))) ":" (* space) (group (+ not-newline)) line-end))
+  (rx line-start (* space) (group (+ (in "_-" alnum))) ":" (* space) (group (+ not-newline)) line-end))
 
 (defconst http-header-body-sep-regexp
   (rx line-start (* blank) line-end))
@@ -320,6 +320,25 @@ Used to fontify the response buffer and comment the response headers.")
   (or (assoc-default (assoc-default "content-type" headers) http-content-type-mode-alist)
       'normal-mode))
 
+(defun http-in-request-line-p (&optional pos)
+  "Whether current point POS is at the request line."
+  (save-excursion
+    (and pos (goto-char pos))
+    (beginning-of-line)
+    (looking-at http-request-line-regexp)))
+
+(defun http-in-headers-line-p (&optional pos)
+  "Whether current point POS is at the request headers line."
+  (save-excursion
+    (and pos (goto-char pos))
+    (beginning-of-line)
+    (looking-at http-header-regexp)))
+
+(defun http-indent-line ()
+  "Indent current line as http mode."
+  (interactive)
+  (and (or (http-in-request-line-p) (http-in-headers-line-p)) (indent-line-to 0)))
+
 ;; Stolen from `ansible-doc'.
 (defun http-fontify-text (text mode)
   "Add `font-lock-face' properties to TEXT using MODE.
@@ -441,10 +460,10 @@ If SYNC is non-nil executes the request synchronously."
 (defvar http-font-lock-keywords
   `((,http-request-line-regexp
      (1 font-lock-keyword-face)
-     (2 font-lock-function-name-face))
+     (2 font-lock-function-name-face t))
     (,http-header-regexp
      (1 font-lock-variable-name-face)
-     (2 font-lock-string-face))))
+     (2 font-lock-string-face t))))
 
 (defvar http-mode-map
   (let ((map (make-sparse-keymap)))
@@ -465,6 +484,7 @@ If SYNC is non-nil executes the request synchronously."
   (setq-local comment-start-skip "#+\\s-*")
   (setq-local beginning-of-defun-function #'http-nav-beginning-of-defun)
   (setq-local end-of-defun-function #'http-nav-end-of-defun)
+  (setq-local indent-line-function 'http-indent-line)
   (setq font-lock-defaults '(http-font-lock-keywords))
   (setq outline-regexp http-mode-outline-regexp)
   (setq outline-heading-alist http-mode-outline-regexp-alist)
