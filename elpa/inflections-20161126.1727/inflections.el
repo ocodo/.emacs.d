@@ -4,7 +4,7 @@
 
 ;; Author: Dmitry Galinsky, Howard Yeh
 ;; URL: https://github.com/eschulte/jump.el
-;; Package-Version: 20161017.157
+;; Package-Version: 20161126.1727
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 ;; Version: 1.1
 ;; Created: 2007-11-02
@@ -48,7 +48,7 @@
 
 (defmacro inflection--string=~ (regex string &rest body)
   "Regex matching similar to the =~ operator found in other languages."
-  (let ((str (gensym)))
+  (let ((str (cl-gensym)))
     `(let ((,str ,string))
        (when (string-match ,regex ,str)
          (cl-symbol-macrolet ,(cl-loop for i to 9 collect
@@ -135,10 +135,10 @@
   "Return the singularized version of STR."
   (when (stringp str)
     (or (car (member str inflection-uncountables))
-        (caar (member* (downcase str) inflection-irregulars :key 'cadr :test 'equal))
+        (caar (cl-member (downcase str) inflection-irregulars :key 'cadr :test 'equal))
         (cl-loop for (from to) in inflection-singulars
                  for singular = (inflection--string=~ from str (sub to))
-                 when singular do (return singular))
+                 when singular return singular)
         str)))
 
 ;;;###autoload
@@ -149,10 +149,10 @@
   "Return the pluralized version of STR."
   (when (stringp str)
     (or (car (member str inflection-uncountables))
-        (cadar (member* (downcase str) inflection-irregulars :key 'car :test 'equal))
+        (cl-cadar (cl-member (downcase str) inflection-irregulars :key 'car :test 'equal))
         (cl-loop for (from to) in inflection-plurals
                  for plurals = (inflection--string=~ from str (sub to))
-                 when plurals do (return plurals))
+                 when plurals return plurals)
         str)))
 
 ;;;###autoload
