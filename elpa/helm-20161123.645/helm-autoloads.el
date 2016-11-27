@@ -55,7 +55,13 @@ Preconfigured `helm' for bookmarks.
 (autoload 'helm-filtered-bookmarks "helm-bookmark" "\
 Preconfigured helm for bookmarks (filtered by category).
 Optional source `helm-source-bookmark-addressbook' is loaded
-only if external library addressbook-bookmark.el is available.
+only if external addressbook-bookmark package is installed.
+
+\(fn)" t nil)
+
+(autoload 'helm-addressbook-bookmarks "helm-bookmark" "\
+Preconfigured helm for addressbook bookmarks.
+Need addressbook-bookmark package as dependencie.
 
 \(fn)" t nil)
 
