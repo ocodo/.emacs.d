@@ -4,7 +4,7 @@
 ;;
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
-;; Version: 0.9.2-cvs
+;; Version: 1.1-cvs
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (s "1.10.0") (deferred "0.3.2") (cl-lib "0.5") (let-alist "1.0.4") (request "0.2.0") (request-deferred "0.2.0") (pkg-info "0.4"))
 ;;
@@ -706,7 +706,7 @@ Hook `ycmd-mode' into modes in `ycmd-file-type-map'."
   (interactive)
   (dolist (it ycmd-file-type-map)
     (add-hook (intern (format "%s-hook" (symbol-name (car it)))) 'ycmd-mode)))
-(make-obsolete 'ycmd-setup 'global-ycmd-mode "0.9.1")
+(make-obsolete 'ycmd-setup 'global-ycmd-mode "1.0")
 
 (defun ycmd-version (&optional show-version)
   "Get the `emacs-ycmd' version as string.
@@ -785,8 +785,10 @@ If FORCE-DEFERRED is non-nil perform parse notification later."
                  (memq condition ycmd-parse-conditions)))
     (if (or force-deferred (ycmd--must-defer-parse))
         (ycmd--parse-deferred)
-      (ycmd--on-visit-buffer)
-      (ycmd-notify-file-ready-to-parse))))
+      (deferred:$
+        (deferred:next #'ycmd--on-visit-buffer)
+        (deferred:nextc it
+          #'ycmd-notify-file-ready-to-parse)))))
 
 (defun ycmd--on-save ()
   "Function to run when the buffer has been saved."
@@ -840,10 +842,16 @@ _LEN is ununsed."
 
 (defun ycmd--on-visit-buffer ()
   "If `ycmd--buffer-visit-flag' is nil send BufferVisit event."
-  (when (and (ycmd-is-server-alive?)
-             (not ycmd--buffer-visit-flag))
-    (ycmd--notify-server "BufferVisit")
-    (setq ycmd--buffer-visit-flag t)))
+  (when (and (not ycmd--buffer-visit-flag)
+             (ycmd-is-server-alive?))
+    (let ((data (ycmd--get-request-data)))
+      (ycmd--event-notification
+       "BufferVisit" (plist-get data :content)
+       (lambda (response)
+         ;; The request is successful if response is nil
+         (unless response
+           (with-current-buffer (plist-get data :buffer)
+             (setq ycmd--buffer-visit-flag t))))))))
 
 (defun ycmd--on-close-buffer ()
   "Notify server that the current buffer is no longer open, and cleanup emacs-ycmd variables."
@@ -2089,7 +2097,9 @@ This is useful for debugging.")
                            (deferred:nextc it
                              (lambda (result)
                                result)))))
-            (princ it)
+            (princ (with-temp-buffer
+                     (cl-prettyprint it)
+                     (buffer-string)))
           (princ "No debug info available from server"))
         (princ "\n\n")
         (princ "Server is ")
