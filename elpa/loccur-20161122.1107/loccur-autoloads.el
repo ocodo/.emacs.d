@@ -1,9 +1,9 @@
 ;;; loccur-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "loccur" "loccur.el" (22200 34411 700959 83000))
+;;;### (autoloads nil "loccur" "loccur.el" (0 0 0 0))
 ;;; Generated autoloads from loccur.el
 
 (autoload 'loccur-mode "loccur" "\
@@ -12,6 +12,8 @@ Hides all lines without matches like `occur' does, but without opening
 a new window.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "loccur" '("loccur")))
 
 ;;;***
 
