@@ -1805,6 +1805,9 @@ When the region is active, toggle a ~ at the start of the region."
         ((eq major-mode 'cider-clojure-interaction-mode)
          (setq this-command 'cider-eval-print-last-sexp)
          (cider-eval-print-last-sexp))
+        ((eq major-mode 'cider-repl-mode)
+         (setq this-command 'cider-repl-newline-and-indent)
+         (cider-repl-newline-and-indent))
         ((eq major-mode 'inferior-emacs-lisp-mode)
          (setq this-command 'ielm-return)
          (ielm-return))
@@ -3618,7 +3621,9 @@ When SILENT is non-nil, don't issue messages."
                      (skip-chars-backward "\n\t ")
                      (forward-char 1)))))
               ((eolp)
-               (comment-dwim nil))
+               (comment-dwim nil)
+               (when lispy-comment-use-single-semicolon
+                 (just-one-space)))
               ((looking-at " *[])}]")
                (if lispy-comment-use-single-semicolon
                    (if (lispy-bolp)
@@ -5287,7 +5292,7 @@ If already there, return it to previous position."
   (interactive)
   (lispy-from-left
    (let ((window-line (count-lines (window-start) (point))))
-     (if (or (= window-line 0)
+     (if (or (= window-line scroll-margin)
              (and (not (bolp)) (= window-line (1+ scroll-margin))))
          (recenter (or (get 'lispy-recenter :line) 0))
        (put 'lispy-recenter :line window-line)
