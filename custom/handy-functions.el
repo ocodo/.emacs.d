@@ -953,6 +953,23 @@ URL must point to a plaintext elisp package."
   (when (buffer-file-name)
     (kill-new (buffer-file-name))))
 
+(defun format-thousands-separators (n)
+  "Format N to have thousand separators."
+  (let* ((parts (split-string (number-to-string n) "[.]"))
+         (characteristic (first parts))
+         (separated
+          (reverse
+           (string-join (--reject (string= it "")
+                                  (split-string (replace-regexp-in-string
+                                                 "[0-9]\\{3\\}"
+                                                 "\\& "
+                                                 (reverse characteristic))
+                                                " "))
+                        ","))))
+    (if (eq (length parts) 1)
+        separated
+      (format "%s.%s" separated (second parts)))))
+
 ;; Key bindings
 (bind-keys
  ("<mode-line> <S-mouse-1>" . buffer-file-name-to-kill-ring)
