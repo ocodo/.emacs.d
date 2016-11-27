@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "inf-clojure" "inf-clojure.el" (22531 28693
-;;;;;;  0 0))
+;;;### (autoloads nil "inf-clojure" "inf-clojure.el" (0 0 0 0))
 ;;; Generated autoloads from inf-clojure.el
 
 (autoload 'inf-clojure-minor-mode "inf-clojure" "\
@@ -28,6 +27,8 @@ of `inf-clojure-program').  Runs the hooks from
 \(fn CMD)" t nil)
 
 (defalias 'run-clojure 'inf-clojure)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inf-clojure" '("inf-clojure-")))
 
 ;;;***
 
