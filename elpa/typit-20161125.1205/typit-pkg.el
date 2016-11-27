@@ -1,4 +1,4 @@
-(define-package "typit" "20160531.931" "Typing game similar to tests on 10 fast fingers"
+(define-package "typit" "20161125.1205" "Typing game similar to tests on 10 fast fingers"
   '((emacs "24.4")
     (f "0.18")
     (mmt "0.1.1"))

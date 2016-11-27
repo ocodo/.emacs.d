@@ -1,9 +1,9 @@
 ;;; typit-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "typit" "typit.el" (22366 21484 274181 819000))
+;;;### (autoloads nil "typit" "typit.el" (0 0 0 0))
 ;;; Generated autoloads from typit.el
 
 (autoload 'typit-test "typit" "\
@@ -30,9 +30,11 @@ See `typit-test' for more information.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "typit" '("typit-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("typit-pkg.el") (22366 21484 285700 755000))
+;;;### (autoloads nil nil ("typit-pkg.el") (0 0 0 0))
 
 ;;;***
 

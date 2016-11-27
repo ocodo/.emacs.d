@@ -79,7 +79,8 @@
 (defcustom typit-dict "english.txt"
   "Name of dictionary file to use."
   :tag  "Dictionary to use"
-  :type '(choice (const :tag "English" "english.txt")))
+  :type '(choice (const :tag "English" "english.txt")
+                 (const :tag "German"  "deutsch.txt")))
 
 (defcustom typit-dict-dir
   (when load-file-name
