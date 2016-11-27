@@ -1,4 +1,4 @@
-(define-package "org-projectile" "20161103.2316" "Repository todo management for org-mode"
+(define-package "org-projectile" "20161124.1110" "Repository todo management for org-mode"
   '((projectile "0.11.0")
     (dash "2.10.0")
     (emacs "24")
