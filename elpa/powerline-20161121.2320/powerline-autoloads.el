@@ -1,10 +1,9 @@
 ;;; powerline-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "powerline" "powerline.el" (22396 28895 657863
-;;;;;;  428000))
+;;;### (autoloads nil "powerline" "powerline.el" (0 0 0 0))
 ;;; Generated autoloads from powerline.el
 
 (autoload 'powerline-hud "powerline" "\
@@ -45,10 +44,20 @@ Return empty space using FACE and leaving RESERVE space on the right.
  (autoload 'powerline-process "powerline")
  (autoload 'powerline-selected-window-active "powerline")
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "powerline" '("pl/" "powerline-")))
+
 ;;;***
 
-;;;### (autoloads nil "powerline-themes" "powerline-themes.el" (22396
-;;;;;;  28895 641864 455000))
+;;;### (autoloads nil "powerline-separators" "powerline-separators.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from powerline-separators.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "powerline-separators" '("pl/")))
+
+;;;***
+
+;;;### (autoloads nil "powerline-themes" "powerline-themes.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from powerline-themes.el
 
 (autoload 'powerline-default-theme "powerline-themes" "\
@@ -71,10 +80,11 @@ Setup a nano-like mode-line.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "powerline-themes" '("powerline-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("powerline-pkg.el" "powerline-separators.el")
-;;;;;;  (22396 28895 664535 352000))
+;;;### (autoloads nil nil ("powerline-pkg.el") (0 0 0 0))
 
 ;;;***
 
