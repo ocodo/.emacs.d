@@ -3,13 +3,15 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "go-impl" "go-impl.el" (22474 20488 0 0))
+;;;### (autoloads nil "go-impl" "go-impl.el" (0 0 0 0))
 ;;; Generated autoloads from go-impl.el
 
 (autoload 'go-impl "go-impl" "\
 
 
 \(fn RECEIVER INTERFACE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-impl" '("go-impl-")))
 
 ;;;***
 
