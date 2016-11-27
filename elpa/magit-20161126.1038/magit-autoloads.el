@@ -813,7 +813,7 @@ Show changes between any two files on disk.
 \(fn A B)" t nil)
 
 (autoload 'magit-show-commit "magit-diff" "\
-Show the revision at point.
+Visit the revision at point in another buffer.
 If there is no revision at point or with a prefix argument prompt
 for a revision.
 
@@ -1718,6 +1718,20 @@ Extract the history of the subtree PREFIX.
 
 ;;;### (autoloads nil "magit-utils" "magit-utils.el" (0 0 0 0))
 ;;; Generated autoloads from magit-utils.el
+
+(autoload 'Info-follow-nearest-node--magit-gitman "magit-utils" "\
+
+
+\(fn FN &optional FORK)" nil nil)
+
+(advice-add 'Info-follow-nearest-node :around 'Info-follow-nearest-node--magit-gitman)
+
+(autoload 'org-man-export--magit-gitman "magit-utils" "\
+
+
+\(fn FN LINK DESCRIPTION FORMAT)" nil nil)
+
+(advice-add 'org-man-export :around 'org-man-export--magit-gitman)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "magit-utils" '("whitespace-dont-turn-on-in-magit-mode" "magit-")))
 

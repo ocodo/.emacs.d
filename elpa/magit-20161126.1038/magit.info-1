@@ -73,7 +73,6 @@ itself deserve to be called porcelains.
 
 Installation
 
-* Updating from an older release::
 * Installing from an Elpa archive::
 * Installing from the Git repository::
 * Post-installation tasks::
@@ -272,28 +271,31 @@ Conventions
 
 FAQ
 
+* FAQ - How to …?::
+* FAQ - Issues and errors::
+
+FAQ - How to …?
+
+* How to show git's output?::
+* How to install the gitman info manual?::
+* How to show diffs for gpg-encrypted files?::
+* How does branching and pushing work?::
+* Can Magit be used as ‘ediff-version-control-package’?::
+
+
+FAQ - Issues and errors
+
 * Magit is slow::
 * I changed several thousand files at once and now Magit is unusable::
 * I am having problems committing::
 * Diffs are collapsed after un-/staging::
-* I don't understand how branching and pushing work::
-* I don’t like the key binding in v2.4: I don't like the key binding in v24. 
-* I cannot install the pre-requisites for Magit v2::
-* I am using an Emacs release older than v24.4: I am using an Emacs release older than v244. 
-* I am using a Git release older than v1.9.4: I am using a Git release older than v194. 
 * I am using MS Windows and cannot push with Magit::
 * I am using OS X and SOMETHING works in shell, but not in Magit: I am using OS X and SOMETHING works in shell but not in Magit. 
-* How to install the gitman info manual?::
-* How can I show Git's output?::
 * Diffs contain control sequences::
 * Expanding a file to show the diff causes it to disappear::
 * Point is wrong in the ‘COMMIT_EDITMSG’ buffer::
 * The mode-line information isn't always up-to-date::
-* Can Magit be used as ‘ediff-version-control-package’?::
-* How to show diffs for gpg-encrypted files?::
 * Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
-* Symbol's value as function is void ‘--some’::
-* Where is the branch manager::
 
 
 File: magit.info,  Node: Introduction,  Next: Installation,  Prev: Top,  Up: Top
@@ -390,54 +392,17 @@ development repository.
 
 * Menu:
 
-* Updating from an older release::
 * Installing from an Elpa archive::
 * Installing from the Git repository::
 * Post-installation tasks::
 
 
-File: magit.info,  Node: Updating from an older release,  Next: Installing from an Elpa archive,  Up: Installation
+File: magit.info,  Node: Installing from an Elpa archive,  Next: Installing from the Git repository,  Up: Installation
 
-2.1 Updating from an older release
-==================================
-
-When updating from ‘1.2.*’ or ‘1.4.*’, you should first uninstall Magit
-and some of its dependencies and restart Emacs before installing the
-latest release.
-
-   • The old Magit installation has to be removed because some macros
-     have changed and using the old definitions when building the new
-     release would lead to very strange results, including compile
-     errors.  This is due to a limitation in Emacs’ package manager or
-     rather Emacs itself: it’s not possible to reliably unload a feature
-     or even all features belonging to a package.
-
-   • Furthermore the old dependencies ‘git-commit-mode’ and
-     ‘git-rebase-mode’ have to be removed because they are no longer
-     used by the ‘2.1.0’ release and later, and get in the way of their
-     successors ‘git-commit’ and ‘git-rebase’.
-
-   So please uninstall the packages ‘magit’, ‘git-commit-mode’, and
-‘git-rebase-mode’.  Then quit Emacs and start a new instance.  Only then
-follow the instructions in either one of the next two sections.
-
-   Also note that starting with the ‘2.1.0’ release, Magit requires at
-least Emacs ‘24.4’ and Git ‘1.9.4’.  You should make sure you have at
-least these releases installed before updating Magit.  And if you
-connect to remote hosts using Tramp, then you should also make sure to
-install a recent enough Git version on these hosts.
-
-
-File: magit.info,  Node: Installing from an Elpa archive,  Next: Installing from the Git repository,  Prev: Updating from an older release,  Up: Installation
-
-2.2 Installing from an Elpa archive
+2.1 Installing from an Elpa archive
 ===================================
 
-If you are updating from a release older than ‘2.1.0’, then you have to
-first uninstall the old version.  See *note Updating from an older
-release: Updating from an older release.
-
-   Magit is available from Melpa and Melpa-Stable.  If you haven’t used
+Magit is available from Melpa and Melpa-Stable.  If you haven’t used
 Emacs’ package manager before, then it is high time you familiarize
 yourself with it by reading the documentation in the Emacs manual, see
 *note (emacs)Packages::.  Then add one of the archives to
@@ -470,14 +435,10 @@ using:
 
 File: magit.info,  Node: Installing from the Git repository,  Next: Post-installation tasks,  Prev: Installing from an Elpa archive,  Up: Installation
 
-2.3 Installing from the Git repository
+2.2 Installing from the Git repository
 ======================================
 
-If you are updating from a release older than ‘2.1.0’, then you have to
-first uninstall the old version.  See *note Updating from an older
-release: Updating from an older release.
-
-   Magit depends on the ‘dash’ and ‘with-editor’ library which are
+Magit depends on the ‘dash’ and ‘with-editor’ library which are
 available from Melpa and Melpa-Stable.  Install them using ‘M-x
 package-install RET <package> RET’.  Of course you may also install them
 manually from their development repository, but I won’t cover that here.
@@ -544,7 +505,7 @@ directory using ‘sudo make install’ and setting ‘load-path’ accordingly.
 
 File: magit.info,  Node: Post-installation tasks,  Prev: Installing from the Git repository,  Up: Installation
 
-2.4 Post-installation tasks
+2.3 Post-installation tasks
 ===========================
 
 After installing Magit you should verify that you are indeed using the
@@ -556,7 +517,7 @@ outdated value for ‘load-path’.
 
    should display something like
 
-     Magit 2.8.0, Git 2.9.0, Emacs 24.5.1
+     Magit 2.8.0, Git 2.10.2, Emacs 25.1.1, gnu/linux
 
    Then you might also want to read about options that many users likely
 want to customize.  See *note Essential settings: Essential settings.
@@ -570,11 +531,8 @@ install the gitman info manual?.
    If you are completely new to Magit then see *note Getting started:
 Getting started.
 
-   If you have used an older Magit release before, then you should have
-a look at the release notes <https://github.com/magit/magit/releases>.
-
    And last but not least please consider making a donation, to ensure
-that I can keep working on Magit.  See <http://magit.vc/donations.html>
+that I can keep working on Magit.  See <https://magit.vc/donations>.
 for various donation options.
 
 
@@ -1373,21 +1331,19 @@ but all you need to get started are the next two.
 
      Cycle the visibility of all sections in the current buffer.
 
- -- Command: magit-section-show-level-1
- -- Command: magit-section-show-level-2
- -- Command: magit-section-show-level-3
- -- Command: magit-section-show-level-4
+‘1’     (‘magit-section-show-level-1’)
+‘2’     (‘magit-section-show-level-2’)
+‘3’     (‘magit-section-show-level-3’)
+‘4’     (‘magit-section-show-level-4’)
 
-     To show sections surrounding the current section, up to level N,
-     press the respective number key (‘1’, ‘2’, ‘3’, or ‘4’).
+     Show sections surrounding the current section up to level N.
 
- -- Command: magit-section-show-level-1-all
- -- Command: magit-section-show-level-2-all
- -- Command: magit-section-show-level-3-all
- -- Command: magit-section-show-level-4-all
+‘M-1’     (‘magit-section-show-level-1-all’)
+‘M-2’     (‘magit-section-show-level-2-all’)
+‘M-3’     (‘magit-section-show-level-3-all’)
+‘M-4’     (‘magit-section-show-level-4-all’)
 
-     To show all sections up to level N, press the respective number key
-     and meta (‘M-1’, ‘M-2’, ‘M-3’, or ‘M-4’).
+     Show all sections up to level N.
 
    Some functions, which are used to implement the above commands, are
 also exposed as commands themselves.  By default no keys are bound to
@@ -1790,7 +1746,7 @@ File: magit.info,  Node: Global Git arguments,  Prev: Git executable,  Up: Runni
      The arguments set here are used every time the git executable is
      run as a subprocess.  They are placed right after the executable
      itself and before the git command - as in ‘git HERE... COMMAND
-     REST’.  For valid arguments see *note (gitman)git:: .
+     REST’.  For valid arguments see *note (gitman)git::.
 
      Be careful what you add here, especially if you are using Tramp to
      connect to servers with ancient Git versions.  Never remove
@@ -2257,7 +2213,9 @@ invoked while no log buffer exists for the current repository yet, then
 the default value of ‘magit-log-arguments’ is used instead.
 
    For information about the various arguments, see *note
-(gitman)git-log:: .  The switch ‘++order=VALUE’ is converted to one of
+(gitman)git-log::.
+
+   The switch ‘++order=VALUE’ is converted to one of
 ‘--author-date-order’, ‘--date-order’, or ‘--topo-order’ before being
 passed to ‘git log’.
 
@@ -2482,7 +2440,7 @@ File: magit.info,  Node: Reflog,  Prev: Select from log,  Up: Logging
 5.3.4 Reflog
 ------------
 
-Also see *note (gitman)git-reflog:: .
+Also see *note (gitman)git-reflog::.
 
    These reflog commands are available from the log popup.  See *note
 Logging: Logging.
@@ -2517,7 +2475,7 @@ in use in the current repository’s diff buffer.  When the diff popup is
 invoked while no diff buffer exists for the current repository yet, then
 the default value of ‘magit-diff-arguments’ is used instead.
 
-   Also see *note (gitman)git-diff:: .
+   Also see *note (gitman)git-diff::.
 
 ‘d’     (‘magit-diff-popup’)
 
@@ -3040,39 +2998,80 @@ you should also change the others to keep things aligned.  The following
      Indentation of cherries in refs buffers.  This should be N-1 where
      N is taken from "%Nc" in the above format strings.
 
-   Everywhere in Magit ‘RET’ visits the thing represented by the section
-at point.  In almost all cases visiting is done by showing some
-information in another buffer and *not* doing anything else.  In refs
-buffers ‘RET’ behaves differently, and because many users have grown
-accustomed to that inconsistency we are keeping it that way.
-
 ‘RET’     (‘magit-visit-ref’)
 
-     Everywhere except in refs buffers this command behaves exactly like
-     ‘magit-show-commit’; it shows the commit at point in another
+     This command visits the reference or revision at point in another
+     buffer.  If there is no revision at point or with a prefix argument
+     then it prompts for a revision.
+
+     This command behaves just like ‘magit-show-commit’ as described
+     above, except if point is on a reference in a ‘magit-refs-mode’
+     buffer, in which case the behavior may be different, but only if
+     you have customized the option ‘magit-visit-ref-behavior’.
+
+ -- User Option: magit-visit-ref-behavior
+
+     This option controls how ‘magit-visit-ref’ behaves in
+     ‘magit-refs-mode’ buffers.
+
+     By default ‘magit-visit-ref’ behaves like ‘magit-show-commits’, in
+     all buffers, including ‘magit-refs-mode’ buffers.  When the type of
+     the section at point is ‘commit’ then "RET" is bound to
+     ‘magit-show-commit’, and when the type is either ‘branch’ or ‘tag’
+     then it is bound to ‘magit-visit-ref’.
+
+     "RET" is one of Magit’s most essential keys and at least by default
+     it should behave consistently across all of Magit, especially
+     because users quickly learn that it does something very harmless;
+     it shows more information about the thing at point in another
      buffer.
 
-     In refs buffers, when there is a local branch at point, then this
-     command instead checks out that branch.  When there is a remote
-     branch or a tag at point then the respective commit is checked out
-     causing ‘HEAD’ to be detached.
+     However "RET" used to behave differently in ‘magit-refs-mode’
+     buffers, doing surprising things, some of which cannot really be
+     described as "visit this thing".  If you’ve grown accustomed this
+     behavior, you can restore it by adding one or more of the below
+     symbols to the value of this option.  But keep in mind that by
+     doing so you don’t only introduce inconsistencies, you also lose
+     some functionality and might have to resort to ‘M-x
+     magit-show-commit’ to get it back.
 
-     When a prefix argument it used, then this command only *focuses* on
-     the reference at point, i.e.  the commit counts and cherries are
-     updated to be relative to that reference, but nothing is checked
-     out.
+     ‘magit-visit-ref’ looks for these symbols in the order in which
+     they are described here.  If the presence of a symbol applies to
+     the current situation, then the symbols that follow do not affect
+     the outcome.
 
- -- User Option: magit-visit-ref-create
+        • ‘focus-on-ref’
 
-     When this is non-nil and ‘magit-visit-ref’ is called inside a refs
-     buffer, then it "visits" the remote branch at point by creating a
-     new local branch which tracks that remote branch and then checking
-     out the newly created branch.
+          With a prefix argument update the buffer to show commit counts
+          and lists of cherry commits relative to the reference at point
+          instead of relative to the current buffer or ‘HEAD’.
 
-     This is not enabled by default because one has to use an extremely
-     loose definition of the verb "to visit" to be able to argue that
-     creating and then checking out a new local branch is a form of
-     visiting a remote branch.
+          Instead of adding this symbol, consider pressing "C-u y o
+          RET".
+
+        • ‘create-branch’
+
+          If point is on a remote branch, then create a new local branch
+          with the same name, use the remote branch as its upstream, and
+          then check out the local branch.
+
+          Instead of adding this symbol, consider pressing "b c RET
+          RET", like you would do in other buffers.
+
+        • ‘checkout-any’
+
+          Check out the reference at point.  If that reference is a tag
+          or a remote branch, then this results in a detached ‘HEAD’.
+
+          Instead of adding this symbol, consider pressing "b b RET",
+          like you would do in other buffers.
+
+        • ‘checkout-branch’
+
+          Check out the local branch at point.
+
+          Instead of adding this symbol, consider pressing "b b RET",
+          like you would do in other buffers.
 
 * Menu:
 
@@ -3113,7 +3112,7 @@ File: magit.info,  Node: Bisecting,  Next: Visiting blobs,  Prev: References buf
 5.7 Bisecting
 =============
 
-Also see *note (gitman)git-bisect:: .
+Also see *note (gitman)git-bisect::.
 
 ‘B’     (‘magit-bisect-popup’)
 
@@ -3189,7 +3188,7 @@ File: magit.info,  Node: Blaming,  Prev: Visiting blobs,  Up: Inspecting
 5.9 Blaming
 ===========
 
-Also see *note (gitman)git-blame:: .
+Also see *note (gitman)git-blame::.
 
 ‘M-x magit-blame’     (‘magit-blame’)
 
@@ -3540,7 +3539,7 @@ File: magit.info,  Node: Initiating a commit,  Next: Editing commit messages,  U
 6.4.1 Initiating a commit
 -------------------------
 
-Also see *note (gitman)git-commit:: .
+Also see *note (gitman)git-commit::.
 
 ‘c’     (‘magit-commit-popup’)
 
@@ -3969,11 +3968,9 @@ features are available from separate popups.
 
  -- User Option: magit-branch-popup-show-variables
 
-     Whether the ‘magit-branch-popup’ shows Git variables.  This
-     defaults to t to avoid changing key bindings.  When set to nil, no
-     variables are displayed directly in this popup, and the sub-popup
-     ‘magit-branch-config-popup’ has to be used indead to view and
-     change branch related variables.
+     When this is ‘nil’ then no variables are displayed directly in this
+     popup, and the sub-popup ‘magit-branch-config-popup’ has to be used
+     instead to view and change branch related variables.
 
 ‘b b’     (‘magit-checkout’)
 
@@ -4291,9 +4288,8 @@ e.g.:
 
    For more information about these variables you should also see
 
-   *note (gitman)git-config:: .  Also see *note (gitman)git-branch:: ,
-
-   *note (gitman)git-checkout:: , and *note Pushing: Pushing.
+   *note (gitman)git-config::.  Also see *note (gitman)git-branch::.  ,
+*note (gitman)git-checkout::.  and *note Pushing: Pushing.
 
  -- User Option: magit-prefer-remote-upstream
 
@@ -4312,7 +4308,7 @@ File: magit.info,  Node: Merging,  Next: Resolving conflicts,  Prev: Branching, 
 6.6 Merging
 ===========
 
-Also see *note (gitman)git-merge:: .  For information on how to resolve
+Also see *note (gitman)git-merge::.  For information on how to resolve
 merge conflicts see the next section.
 
 ‘m’     (‘magit-merge-popup’)
@@ -4482,7 +4478,7 @@ File: magit.info,  Node: Rebasing,  Next: Cherry picking,  Prev: Resolving confl
 6.8 Rebasing
 ============
 
-Also see *note (gitman)git-rebase:: .  For information on how to resolve
+Also see *note (gitman)git-rebase::.  For information on how to resolve
 conflicts that occur during rebases see the preceding section.
 
 ‘r’     (‘magit-rebase-popup’)
@@ -4602,14 +4598,14 @@ File: magit.info,  Node: Editing rebase sequences,  Next: Information about in-p
      Show the commit on the current line in another buffer and select
      that buffer.
 
-‘SPC’     (‘magit-diff-show-or-scroll-up’)
+‘SPC’     (‘git-rebase-show-or-scroll-up’)
 
      Show the commit on the current line in another buffer without
      selecting that buffer.  If the revision buffer is already visible
      in another window of the current frame, then instead scroll that
      window up.
 
-‘DEL’     (‘magit-diff-show-or-scroll-down’)
+‘DEL’     (‘git-rebase-show-or-scroll-down’)
 
      Show the commit on the current line in another buffer without
      selecting that buffer.  If the revision buffer is already visible
@@ -4838,7 +4834,7 @@ File: magit.info,  Node: Cherry picking,  Next: Resetting,  Prev: Rebasing,  Up:
 6.9 Cherry picking
 ==================
 
-Also see *note (gitman)git-cherry-pick:: .
+Also see *note (gitman)git-cherry-pick::.
 
 ‘A’     (‘magit-cherry-pick-popup’)
 
@@ -4933,7 +4929,7 @@ File: magit.info,  Node: Resetting,  Next: Stashing,  Prev: Cherry picking,  Up:
 6.10 Resetting
 ==============
 
-Also see *note (gitman)git-reset:: .
+Also see *note (gitman)git-reset::.
 
 ‘x’     (‘magit-reset’)
 
@@ -4977,7 +4973,7 @@ File: magit.info,  Node: Stashing,  Prev: Resetting,  Up: Manipulating
 6.11 Stashing
 =============
 
-Also see *note (gitman)git-stash:: .
+Also see *note (gitman)git-stash::.
 
 ‘z’     (‘magit-stash-popup’)
 
@@ -5088,7 +5084,7 @@ File: magit.info,  Node: Remotes,  Next: Fetching,  Up: Transferring
 7.1 Remotes
 ===========
 
-Also see *note (gitman)git-remote:: .
+Also see *note (gitman)git-remote::.
 
 ‘M’     (‘magit-remote-popup’)
 
@@ -5134,7 +5130,7 @@ File: magit.info,  Node: Fetching,  Next: Pulling,  Prev: Remotes,  Up: Transfer
 For information about the differences between the _upstream_ and the
 _push-remote_, see *note Branching: Branching.
 
-   Also see *note (gitman)git-fetch:: .
+   Also see *note (gitman)git-fetch::.
 
 ‘f’     (‘magit-fetch-popup’)
 
@@ -5185,7 +5181,7 @@ File: magit.info,  Node: Pulling,  Next: Pushing,  Prev: Fetching,  Up: Transfer
 For information about the differences between the _upstream_ and the
 _push-remote_, see *note Branching: Branching.
 
-   Also see *note (gitman)git-pull:: .
+   Also see *note (gitman)git-pull::.
 
 ‘F’     (‘magit-pull-popup’)
 
@@ -5217,7 +5213,7 @@ File: magit.info,  Node: Pushing,  Next: Creating and sending patches,  Prev: Pu
 For information about the differences between the _upstream_ and the
 _push-remote_, see *note Branching: Branching.
 
-   Also see *note (gitman)git-push:: .
+   Also see *note (gitman)git-push::.
 
 ‘P’     (‘magit-push-popup’)
 
@@ -5353,7 +5349,7 @@ File: magit.info,  Node: Applying patches,  Prev: Creating and sending patches, 
 7.6 Applying patches
 ====================
 
-Also see *note (gitman)git-am:: .
+Also see *note (gitman)git-am::.
 
 ‘w’     (‘magit-am-popup’)
 
@@ -5406,7 +5402,7 @@ File: magit.info,  Node: Tagging,  Next: Notes,  Up: Miscellaneous
 8.1 Tagging
 ===========
 
-Also see *note (gitman)git-tag:: .
+Also see *note (gitman)git-tag::.
 
 ‘t’     (‘magit-tag-popup’)
 
@@ -5434,7 +5430,7 @@ File: magit.info,  Node: Notes,  Next: Submodules,  Prev: Tagging,  Up: Miscella
 8.2 Notes
 =========
 
-Also see *note (gitman)git-notes:: .
+Also see *note (gitman)git-notes::.
 
 ‘T’     (‘magit-notes-popup’)
 
@@ -5508,7 +5504,7 @@ File: magit.info,  Node: Submodules,  Next: Subtree,  Prev: Notes,  Up: Miscella
 8.3 Submodules
 ==============
 
-Also see *note (gitman)git-submodule:: .
+Also see *note (gitman)git-submodule::.
 
 * Menu:
 
@@ -5608,7 +5604,7 @@ File: magit.info,  Node: Subtree,  Next: Common commands,  Prev: Submodules,  Up
 8.4 Subtree
 ===========
 
-Also see *note (gitman)git-subtree:: .
+Also see *note (gitman)git-subtree::.
 
 ‘O’     (‘magit-tree-popup’)
 
@@ -6005,7 +6001,7 @@ variables as well as Emacs options.
 
    To set a Git variable for one repository only, simply set it in
 ‘/path/to/repo/.git/config’ instead of ‘$HOME/.gitconfig’ or
-‘/etc/gitconfig’.  See *note (gitman)git-config:: .
+‘/etc/gitconfig’.  See *note (gitman)git-config::.
 
    Similarly, Emacs options can be set for one repository only by
 editing ‘/path/to/repo/.dir-locals.el’.  See *note (emacs)Directory
@@ -7081,267 +7077,35 @@ File: magit.info,  Node: FAQ,  Next: Keystroke Index,  Prev: Plumbing,  Up: Top
 Appendix A FAQ
 **************
 
-Below you find a list of frequently asked questions.  For a list of
+The next two nodes lists frequently asked questions.  For a list of
 frequently *and recently* asked questions, i.e.  questions that haven’t
 made it into the manual yet, see
 <https://github.com/magit/magit/wiki/FAQ>.
 
 * Menu:
 
-* Magit is slow::
-* I changed several thousand files at once and now Magit is unusable::
-* I am having problems committing::
-* Diffs are collapsed after un-/staging::
-* I don't understand how branching and pushing work::
-* I don’t like the key binding in v2.4: I don't like the key binding in v24. 
-* I cannot install the pre-requisites for Magit v2::
-* I am using an Emacs release older than v24.4: I am using an Emacs release older than v244. 
-* I am using a Git release older than v1.9.4: I am using a Git release older than v194. 
-* I am using MS Windows and cannot push with Magit::
-* I am using OS X and SOMETHING works in shell, but not in Magit: I am using OS X and SOMETHING works in shell but not in Magit. 
+* FAQ - How to …?::
+* FAQ - Issues and errors::
+
+
+File: magit.info,  Node: FAQ - How to …?,  Next: FAQ - Issues and errors,  Up: FAQ
+
+A.1 FAQ - How to …?
+===================
+
+* Menu:
+
+* How to show git's output?::
 * How to install the gitman info manual?::
-* How can I show Git's output?::
-* Diffs contain control sequences::
-* Expanding a file to show the diff causes it to disappear::
-* Point is wrong in the ‘COMMIT_EDITMSG’ buffer::
-* The mode-line information isn't always up-to-date::
-* Can Magit be used as ‘ediff-version-control-package’?::
 * How to show diffs for gpg-encrypted files?::
-* Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
-* Symbol's value as function is void ‘--some’::
-* Where is the branch manager::
+* How does branching and pushing work?::
+* Can Magit be used as ‘ediff-version-control-package’?::
 
 
-File: magit.info,  Node: Magit is slow,  Next: I changed several thousand files at once and now Magit is unusable,  Up: FAQ
+File: magit.info,  Node: How to show git's output?,  Next: How to install the gitman info manual?,  Up: FAQ - How to …?
 
-A.1 Magit is slow
-=================
-
-See *note Performance: Performance.
-
-
-File: magit.info,  Node: I changed several thousand files at once and now Magit is unusable,  Next: I am having problems committing,  Prev: Magit is slow,  Up: FAQ
-
-A.2 I changed several thousand files at once and now Magit is unusable
-======================================================================
-
-Magit is *currently* not expected to work under such conditions.  It
-sure would be nice if it did, and v2.5 will hopefully be a big step into
-that direction.  But it might take until v3.1 to accomplish fully
-satisfactory performance, because that requires some heavy refactoring.
-
-   But for now we recommend you use the command line to complete this
-one commit.  Also see *note Performance: Performance.
-
-
-File: magit.info,  Node: I am having problems committing,  Next: Diffs are collapsed after un-/staging,  Prev: I changed several thousand files at once and now Magit is unusable,  Up: FAQ
-
-A.3 I am having problems committing
-===================================
-
-That likely means that Magit is having problems finding an appropriate
-emacsclient executable.  See *note (with-editor)Configuring
-With-Editor:: and *note (with-editor)Debugging::.
-
-
-File: magit.info,  Node: Diffs are collapsed after un-/staging,  Next: I don't understand how branching and pushing work,  Prev: I am having problems committing,  Up: FAQ
-
-A.4 Diffs are collapsed after un-/staging
-=========================================
-
-This typically happens on Windows and/or large repositories where
-preparing diffs takes longer than ‘magit-diff-expansion-threshold’.  The
-default is one second, try increasing it to a larger value.
-
-   Currently when one part of a Magit buffer has to be updated the whole
-buffer is recreated from scratch.  That obviously isn’t good for
-performance and will be fixed eventually.  Meanwhile we need a kludge
-that prevents the update from taking very long under certain
-circumstances, e.g.  when showing the difference for hundrets of changes
-files.
-
-   For that reason the variable ‘magit-diff-expansion-threshold’ was
-added, defaulting to one second.  If it takes longer than that to
-recreate a Magit buffer, then no further diff sections are expanded
-because that’s one of the steps that take the longest.  If a diff is not
-expanded, then some work can be delayed until it actually is.
-
-   You can then still expand sections manually, but when you refresh the
-complete buffer explicitly using ‘g’ or by performing an action which
-triggers a refresh, then previously expanded diffs could be collapsed.
-You can set ‘magit-diff-expansion-threshold’ to a higher value to
-prevent that from happening.
-
-
-File: magit.info,  Node: I don't understand how branching and pushing work,  Next: I don't like the key binding in v24,  Prev: Diffs are collapsed after un-/staging,  Up: FAQ
-
-A.5 I don’t understand how branching and pushing work
-=====================================================
-
-Please see *note Branching: Branching. and
-<http://emacsair.me/2016/01/18/magit-2.4>
-
-
-File: magit.info,  Node: I don't like the key binding in v24,  Next: I cannot install the pre-requisites for Magit v2,  Prev: I don't understand how branching and pushing work,  Up: FAQ
-
-A.6 I don’t like the key binding in v2.4
-========================================
-
-Please see <http://emacsair.me/2016/01/1/restore-old-bindings>.
-
-
-File: magit.info,  Node: I cannot install the pre-requisites for Magit v2,  Next: I am using an Emacs release older than v244,  Prev: I don't like the key binding in v24,  Up: FAQ
-
-A.7 I cannot install the pre-requisites for Magit v2
-====================================================
-
-An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies is
-available from <http://magit.vc/elpa/v1>.  But note that v1.4.2 is
-obsolete and no longer maintained.
-
-
-File: magit.info,  Node: I am using an Emacs release older than v244,  Next: I am using a Git release older than v194,  Prev: I cannot install the pre-requisites for Magit v2,  Up: FAQ
-
-A.8 I am using an Emacs release older than v24.4
-================================================
-
-At least Emacs v24.4 is required.  There is no way around it, if you
-want to use Magit v2.
-
-   If you own the machine you work on, then consider updating to the
-latest release provided by your distribution.  If it doesn’t feature a
-recent enough release, then you will have to use a backport package or
-build Emacs from source.
-
-   Installing Emacs from source is quite simple.  See the instructions
-at <http://git.savannah.gnu.org/cgit/emacs.git/tree/INSTALL> and
-<http://git.savannah.gnu.org/cgit/emacs.git/tree/INSTALL.REPO> to get an
-idea of that this involves.  But when you perform the installation then
-use the instructions for the release you are actually installing.
-
-   Unfortunately these instructions do not cover the hardest part (which
-is the hardest part exactly because it is not covered there): installing
-the build time dependencies.
-
-   For that you’ll need to perform a web search and find an appropriate
-tutorial for your distribution.  If you think you should not have had to
-do that yourself, then consider informing me about the resources that
-helped you figure what to do for your specific setup, so that I can post
-a link here.  That way those coming after you have it easier.
-
-   An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies
-is available from <http://magit.vc/elpa/v1>.
-
-
-File: magit.info,  Node: I am using a Git release older than v194,  Next: I am using MS Windows and cannot push with Magit,  Prev: I am using an Emacs release older than v244,  Up: FAQ
-
-A.9 I am using a Git release older than v1.9.4
-==============================================
-
-At least Git v1.9.4 is required.  There is no way around it, if you want
-to use Magit v2.
-
-   If you own the machine, then consider updating to the latest release
-provided by your distribution.  If it doesn’t feature a recent enough
-release, then you will have to use a backport package or build Git from
-source.
-
-   Installing Git from source is quite simple.  See the instructions at
-<https://github.com/git/git/blob/master/INSTALL> to get an idea of that
-this involves.  But when you perform the installation then use the
-instructions for the release you are actually installing.
-
-   An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies
-is available from <http://magit.vc/elpa/v1>.
-
-
-File: magit.info,  Node: I am using MS Windows and cannot push with Magit,  Next: I am using OS X and SOMETHING works in shell but not in Magit,  Prev: I am using a Git release older than v194,  Up: FAQ
-
-A.10 I am using MS Windows and cannot push with Magit
-=====================================================
-
-It’s almost certain that Magit is only incidental to this issue.  It is
-much more likely that this is a configuration issue, even if you can
-push on the command line.
-
-   Detailed setup instructions can be found at
-<https://github.com/magit/magit/wiki/Pushing-with-Magit-from-Windows>.
-
-
-File: magit.info,  Node: I am using OS X and SOMETHING works in shell but not in Magit,  Next: How to install the gitman info manual?,  Prev: I am using MS Windows and cannot push with Magit,  Up: FAQ
-
-A.11 I am using OS X and SOMETHING works in shell, but not in Magit
-===================================================================
-
-This usually occurs because Emacs doesn’t have the same environment
-variables as your shell.  Try installing and configuring
-<https://github.com/purcell/exec-path-from-shell>.  By default it
-synchronizes ‘$PATH’, which helps Magit find the same ‘git’ as the one
-you are using on the shell.
-
-   If SOMETHING is "passphrase caching with gpg-agent for commit and/or
-tag signing", then you’ll also need to synchronize ‘$GPG_AGENT_INFO’.
-
-
-File: magit.info,  Node: How to install the gitman info manual?,  Next: How can I show Git's output?,  Prev: I am using OS X and SOMETHING works in shell but not in Magit,  Up: FAQ
-
-A.12 How to install the gitman info manual?
-===========================================
-
-Git’s manpages can be exported as an info manual called ‘gitman’.
-Magit’s own info manual links to nodes in that manual instead of the
-actual manpages because texinfo sadly doesn’t support linking to
-manpages.
-
-   Unfortunately many distributions do not install the ‘gitman’ manual
-by default.  Some distributions may provide a separate package
-containing the info manual.  Please let me know the name of that package
-for your distribution, so that I can mention here.
-
-   If the distribution you are using does not offer a package that
-contains the ‘gitman’ manual, then you have to install it manually.
-Clone Git’s own Git repository, checkout the tag corresponding to the
-Git release you have installed, and follow the instructions in
-‘INSTALL’.  The relevant make targets are ‘info’ and ‘install-info’.
-
-   Alternatively you may add this advice to your ‘init.el’ file.
-
-     (defadvice Info-follow-nearest-node (around gitman activate)
-       "When encountering a cross reference to the `gitman' info
-     manual, then instead of following that cross reference show
-     the actual manpage using the function `man'."
-       (let ((node (Info-get-token
-     	       (point) "\\*note[ \n\t]+"
-     	       "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?")))
-         (if (and node (string-match "^(gitman)\\(.+\\)" node))
-     	(progn (require 'man)
-     	       (man (match-string 1 node)))
-           ad-do-it)))
-
-   Or if you are using MS Windows and ‘man’ is not available, use this
-variation with used the Emacs Lisp implementation provided by the
-‘woman’ package.
-
-     (defadvice Info-follow-nearest-node (around gitman activate)
-       "When encountering a cross reference to the `gitman' info
-     manual, then instead of following that cross reference show
-     the actual manpage using the function `woman'."
-       (let ((node (Info-get-token
-     	       (point) "\\*note[ \n\t]+"
-     	       "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?")))
-         (if (and node (string-match "^(gitman)\\(.+\\)" node))
-     	(progn (require 'woman)
-     	       (woman (match-string 1 node)))
-           ad-do-it)))
-
-   Did I mention that texinfo cross reference are just awful?  (This is
-just one of many issues.)
-
-
-File: magit.info,  Node: How can I show Git's output?,  Next: Diffs contain control sequences,  Prev: How to install the gitman info manual?,  Up: FAQ
-
-A.13 How can I show Git’s output?
-=================================
+A.1.1 How to show git’s output?
+-------------------------------
 
 To show the output of recently run git commands, press ‘$’ (or, if that
 isn’t available, ‘M-x magit-process-buffer’).  This will show a buffer
@@ -7355,92 +7119,53 @@ For debugging purposes it’s possible to do so anyway by setting
 ‘magit-git-debug’ to ‘t’.
 
 
-File: magit.info,  Node: Diffs contain control sequences,  Next: Expanding a file to show the diff causes it to disappear,  Prev: How can I show Git's output?,  Up: FAQ
+File: magit.info,  Node: How to install the gitman info manual?,  Next: How to show diffs for gpg-encrypted files?,  Prev: How to show git's output?,  Up: FAQ - How to …?
 
-A.14 Diffs contain control sequences
-====================================
+A.1.2 How to install the gitman info manual?
+--------------------------------------------
 
-This happens when you configure Git to always color diffs and/or all of
-its output.  The valid values for relevant Git variables ‘color.ui’ and
-‘color.diff’ are ‘false’, ‘true’ and ‘always’, and the default is
-‘true’.  You should leave it that because then you get colorful output
-in terminals but git’s output is consumed by something else, then no
-colors are used.
+Git’s manpages can be exported as an info manual called ‘gitman’.
+Magit’s own info manual links to nodes in that manual instead of the
+actual manpages because Info doesn’t support linking to manpages.
 
-   If you actually use some other tool which expects that requires that
-you force git to output control sequences (which is highly unlikely),
-then you can override these settings just for Magit by using:
+   Unfortunately some distributions do not install the ‘gitman’ manual
+by default and you will have to install a separate documentation package
+to get it.
 
-     (setq magit-git-global-arguments
-           (nconc magit-git-global-arguments
-     	     '("-c" "color.ui=false"
-     	       "-c" "color.diff=false")))
+   Magit patches Info adding the ability to visit links to the ‘gitman’
+Info manual by instead viewing the respective manpage.  If you prefer
+that approach, then set the value of ‘magit-view-git-manual-method’ to
+one of the supported packages ‘man’ or ‘woman’, e.g.:
 
-
-File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Prev: Diffs contain control sequences,  Up: FAQ
-
-A.15 Expanding a file to show the diff causes it to disappear
-=============================================================
-
-This is probably caused by a change of a ‘diff.*’ Git variable.  You
-probably set that variable for a reason, and should therefore only undo
-that setting in Magit by customizing ‘magit-git-global-arguments’.
+     (setq magit-view-git-manual-method 'man)
 
 
-File: magit.info,  Node: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Next: The mode-line information isn't always up-to-date,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ
+File: magit.info,  Node: How to show diffs for gpg-encrypted files?,  Next: How does branching and pushing work?,  Prev: How to install the gitman info manual?,  Up: FAQ - How to …?
 
-A.16 Point is wrong in the ‘COMMIT_EDITMSG’ buffer
-==================================================
+A.1.3 How to show diffs for gpg-encrypted files?
+------------------------------------------------
 
-Neither Magit nor ‘git-commit‘ fiddle with point in the buffer used to
-write commit messages, so something else must be doing it.
+Git supports showing diffs for encrypted files, but has to be told to do
+so.  Since Magit just uses Git to get the diffs, configuring Git also
+affects the diffs displayed inside Magit.
 
-   You have probably globally enabled a mode which does restore point in
-file-visiting buffers.  It might be a bit surprising, but when you write
-a commit message, then you are actually editing a file.
-
-   So you have to figure out which package is doing.  ‘saveplace’,
-‘pointback’, and ‘session’ are likely candidates.  These snippets might
-help:
-
-     (setq session-name-disable-regexp "\\(?:\\`'\\.git/[A-Z_]+\\'\\)")
-
-     (with-eval-after-load 'pointback
-       (lambda ()
-         (when (or git-commit-mode git-rebase-mode)
-           (pointback-mode -1))))
+     git config --global diff.gpg.textconv "gpg --no-tty --decrypt"
+     echo "*.gpg filter=gpg diff=gpg" > .gitattributes
 
 
-File: magit.info,  Node: The mode-line information isn't always up-to-date,  Next: Can Magit be used as ‘ediff-version-control-package’?,  Prev: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Up: FAQ
+File: magit.info,  Node: How does branching and pushing work?,  Next: Can Magit be used as ‘ediff-version-control-package’?,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ - How to …?
 
-A.17 The mode-line information isn’t always up-to-date
-======================================================
+A.1.4 How does branching and pushing work?
+------------------------------------------
 
-Magit is not responsible for the version control information that is
-being displayed in the mode-line and looks something like ‘Git-master’.
-The built-in "Version Control" package, also known as "VC", updates that
-information, and can be told to do so more often:
-
-     (setq auto-revert-check-vc-info t)
-
-   But doing so isn’t good for performance.  For more (overly
-optimistic) information see *note (emacs)VC Mode Line::.
-
-   If you don’t really care about seeing that information in the
-mode-line, but just don’t want to see _incorrect_ information, then
-consider disabling VC when using Git:
-
-     (setq vc-handled-backends (delq 'Git vc-handled-backends))
-
-   Or to disable it completely:
-
-     (setq vc-handled-backends nil)
+Please see *note Branching: Branching. and
+<http://emacsair.me/2016/01/18/magit-2.4>
 
 
-File: magit.info,  Node: Can Magit be used as ‘ediff-version-control-package’?,  Next: How to show diffs for gpg-encrypted files?,  Prev: The mode-line information isn't always up-to-date,  Up: FAQ
+File: magit.info,  Node: Can Magit be used as ‘ediff-version-control-package’?,  Prev: How does branching and pushing work?,  Up: FAQ - How to …?
 
-A.18 Can Magit be used as ‘ediff-version-control-package’?
-==========================================================
+A.1.5 Can Magit be used as ‘ediff-version-control-package’?
+-----------------------------------------------------------
 
 No, it cannot.  For that to work the functions ‘ediff-magit-internal’
 and ‘ediff-magit-merge-internal’ would have to be implemented, and they
@@ -7472,46 +7197,207 @@ Instead we provide the more useful command ‘magit-ediff-resolve’ which
 only shows yet-to-be resolved conflicts.
 
 
-File: magit.info,  Node: How to show diffs for gpg-encrypted files?,  Next: Emacs 245 hangs when loading Magit,  Prev: Can Magit be used as ‘ediff-version-control-package’?,  Up: FAQ
+File: magit.info,  Node: FAQ - Issues and errors,  Prev: FAQ - How to …?,  Up: FAQ
 
-A.19 How to show diffs for gpg-encrypted files?
-===============================================
+A.2 FAQ - Issues and errors
+===========================
 
-Git supports showing diffs for encrypted files, but has to be told to do
-so.  Since Magit just uses Git to get the diffs, configuring Git also
-affects the diffs displayed inside Magit.
+* Menu:
 
-     git config --global diff.gpg.textconv "gpg --no-tty --decrypt"
-     echo "*.gpg filter=gpg diff=gpg" > .gitattributes
+* Magit is slow::
+* I changed several thousand files at once and now Magit is unusable::
+* I am having problems committing::
+* Diffs are collapsed after un-/staging::
+* I am using MS Windows and cannot push with Magit::
+* I am using OS X and SOMETHING works in shell, but not in Magit: I am using OS X and SOMETHING works in shell but not in Magit. 
+* Diffs contain control sequences::
+* Expanding a file to show the diff causes it to disappear::
+* Point is wrong in the ‘COMMIT_EDITMSG’ buffer::
+* The mode-line information isn't always up-to-date::
+* Emacs 24.5 hangs when loading Magit: Emacs 245 hangs when loading Magit. 
 
 
-File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Next: Symbol's value as function is void ‘--some’,  Prev: How to show diffs for gpg-encrypted files?,  Up: FAQ
+File: magit.info,  Node: Magit is slow,  Next: I changed several thousand files at once and now Magit is unusable,  Up: FAQ - Issues and errors
 
-A.20 Emacs 24.5 hangs when loading Magit
-========================================
+A.2.1 Magit is slow
+-------------------
+
+See *note Performance: Performance.
+
+
+File: magit.info,  Node: I changed several thousand files at once and now Magit is unusable,  Next: I am having problems committing,  Prev: Magit is slow,  Up: FAQ - Issues and errors
+
+A.2.2 I changed several thousand files at once and now Magit is unusable
+------------------------------------------------------------------------
+
+Magit is *currently* not expected to work under such conditions.  It
+sure would be nice if it did, and v2.5 will hopefully be a big step into
+that direction.  But it might take until v3.1 to accomplish fully
+satisfactory performance, because that requires some heavy refactoring.
+
+   But for now we recommend you use the command line to complete this
+one commit.  Also see *note Performance: Performance.
+
+
+File: magit.info,  Node: I am having problems committing,  Next: Diffs are collapsed after un-/staging,  Prev: I changed several thousand files at once and now Magit is unusable,  Up: FAQ - Issues and errors
+
+A.2.3 I am having problems committing
+-------------------------------------
+
+That likely means that Magit is having problems finding an appropriate
+emacsclient executable.  See *note (with-editor)Configuring
+With-Editor:: and *note (with-editor)Debugging::.
+
+
+File: magit.info,  Node: Diffs are collapsed after un-/staging,  Next: I am using MS Windows and cannot push with Magit,  Prev: I am having problems committing,  Up: FAQ - Issues and errors
+
+A.2.4 Diffs are collapsed after un-/staging
+-------------------------------------------
+
+This typically happens on Windows and/or large repositories where
+preparing diffs takes longer than ‘magit-diff-expansion-threshold’.  The
+default is one second, try increasing it to a larger value.
+
+   Currently when one part of a Magit buffer has to be updated the whole
+buffer is recreated from scratch.  That obviously isn’t good for
+performance and will be fixed eventually.  Meanwhile we need a kludge
+that prevents the update from taking very long under certain
+circumstances, e.g.  when showing the difference for hundrets of changes
+files.
+
+   For that reason the variable ‘magit-diff-expansion-threshold’ was
+added, defaulting to one second.  If it takes longer than that to
+recreate a Magit buffer, then no further diff sections are expanded
+because that’s one of the steps that take the longest.  If a diff is not
+expanded, then some work can be delayed until it actually is.
+
+   You can then still expand sections manually, but when you refresh the
+complete buffer explicitly using ‘g’ or by performing an action which
+triggers a refresh, then previously expanded diffs could be collapsed.
+You can set ‘magit-diff-expansion-threshold’ to a higher value to
+prevent that from happening.
+
+
+File: magit.info,  Node: I am using MS Windows and cannot push with Magit,  Next: I am using OS X and SOMETHING works in shell but not in Magit,  Prev: Diffs are collapsed after un-/staging,  Up: FAQ - Issues and errors
+
+A.2.5 I am using MS Windows and cannot push with Magit
+------------------------------------------------------
+
+It’s almost certain that Magit is only incidental to this issue.  It is
+much more likely that this is a configuration issue, even if you can
+push on the command line.
+
+   Detailed setup instructions can be found at
+<https://github.com/magit/magit/wiki/Pushing-with-Magit-from-Windows>.
+
+
+File: magit.info,  Node: I am using OS X and SOMETHING works in shell but not in Magit,  Next: Diffs contain control sequences,  Prev: I am using MS Windows and cannot push with Magit,  Up: FAQ - Issues and errors
+
+A.2.6 I am using OS X and SOMETHING works in shell, but not in Magit
+--------------------------------------------------------------------
+
+This usually occurs because Emacs doesn’t have the same environment
+variables as your shell.  Try installing and configuring
+<https://github.com/purcell/exec-path-from-shell>.  By default it
+synchronizes ‘$PATH’, which helps Magit find the same ‘git’ as the one
+you are using on the shell.
+
+   If SOMETHING is "passphrase caching with gpg-agent for commit and/or
+tag signing", then you’ll also need to synchronize ‘$GPG_AGENT_INFO’.
+
+
+File: magit.info,  Node: Diffs contain control sequences,  Next: Expanding a file to show the diff causes it to disappear,  Prev: I am using OS X and SOMETHING works in shell but not in Magit,  Up: FAQ - Issues and errors
+
+A.2.7 Diffs contain control sequences
+-------------------------------------
+
+This happens when you configure Git to always color diffs and/or all of
+its output.  The valid values for relevant Git variables ‘color.ui’ and
+‘color.diff’ are ‘false’, ‘true’ and ‘always’, and the default is
+‘true’.  You should leave it that because then you get colorful output
+in terminals but git’s output is consumed by something else, then no
+colors are used.
+
+   If you actually use some other tool which expects that requires that
+you force git to output control sequences (which is highly unlikely),
+then you can override these settings just for Magit by using:
+
+     (setq magit-git-global-arguments
+           (nconc magit-git-global-arguments
+     	     '("-c" "color.ui=false"
+     	       "-c" "color.diff=false")))
+
+
+File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Prev: Diffs contain control sequences,  Up: FAQ - Issues and errors
+
+A.2.8 Expanding a file to show the diff causes it to disappear
+--------------------------------------------------------------
+
+This is probably caused by a change of a ‘diff.*’ Git variable.  You
+probably set that variable for a reason, and should therefore only undo
+that setting in Magit by customizing ‘magit-git-global-arguments’.
+
+
+File: magit.info,  Node: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Next: The mode-line information isn't always up-to-date,  Prev: Expanding a file to show the diff causes it to disappear,  Up: FAQ - Issues and errors
+
+A.2.9 Point is wrong in the ‘COMMIT_EDITMSG’ buffer
+---------------------------------------------------
+
+Neither Magit nor ‘git-commit‘ fiddle with point in the buffer used to
+write commit messages, so something else must be doing it.
+
+   You have probably globally enabled a mode which does restore point in
+file-visiting buffers.  It might be a bit surprising, but when you write
+a commit message, then you are actually editing a file.
+
+   So you have to figure out which package is doing.  ‘saveplace’,
+‘pointback’, and ‘session’ are likely candidates.  These snippets might
+help:
+
+     (setq session-name-disable-regexp "\\(?:\\`'\\.git/[A-Z_]+\\'\\)")
+
+     (with-eval-after-load 'pointback
+       (lambda ()
+         (when (or git-commit-mode git-rebase-mode)
+           (pointback-mode -1))))
+
+
+File: magit.info,  Node: The mode-line information isn't always up-to-date,  Next: Emacs 245 hangs when loading Magit,  Prev: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Up: FAQ - Issues and errors
+
+A.2.10 The mode-line information isn’t always up-to-date
+--------------------------------------------------------
+
+Magit is not responsible for the version control information that is
+being displayed in the mode-line and looks something like ‘Git-master’.
+The built-in "Version Control" package, also known as "VC", updates that
+information, and can be told to do so more often:
+
+     (setq auto-revert-check-vc-info t)
+
+   But doing so isn’t good for performance.  For more (overly
+optimistic) information see *note (emacs)VC Mode Line::.
+
+   If you don’t really care about seeing that information in the
+mode-line, but just don’t want to see _incorrect_ information, then
+consider disabling VC when using Git:
+
+     (setq vc-handled-backends (delq 'Git vc-handled-backends))
+
+   Or to disable it completely:
+
+     (setq vc-handled-backends nil)
+
+
+File: magit.info,  Node: Emacs 245 hangs when loading Magit,  Prev: The mode-line information isn't always up-to-date,  Up: FAQ - Issues and errors
+
+A.2.11 Emacs 24.5 hangs when loading Magit
+------------------------------------------
 
 This is actually triggered by loading Tramp.  See
 <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=20015> for details.  You
 can work around the problem by setting
 ‘tramp-ssh-controlmaster-options’.  Changing your DNS server (e.g.  to
 Google’s ‘8.8.8.8’) may also be sufficient to work around the issue.
-
-
-File: magit.info,  Node: Symbol's value as function is void ‘--some’,  Next: Where is the branch manager,  Prev: Emacs 245 hangs when loading Magit,  Up: FAQ
-
-A.21 Symbol’s value as function is void ‘--some’
-================================================
-
-Update ‘dash’, restart Emacs, and then it will be defined.
-
-
-File: magit.info,  Node: Where is the branch manager,  Prev: Symbol's value as function is void ‘--some’,  Up: FAQ
-
-A.22 Where is the branch manager
-================================
-
-‘y’ is bound to the command that shows the "refs buffer", the successor
-of the "branch manager".
 
 
 File: magit.info,  Node: Keystroke Index,  Next: Command Index,  Prev: FAQ,  Up: Top
@@ -7546,9 +7432,9 @@ Appendix B Keystroke Index
 * -:                                     Refreshing diffs.    (line  54)
 * 0:                                     Refreshing diffs.    (line  62)
 * 1:                                     Section visibility.  (line  26)
-* 2:                                     Section visibility.  (line  26)
-* 3:                                     Section visibility.  (line  26)
-* 4:                                     Section visibility.  (line  26)
+* 2:                                     Section visibility.  (line  27)
+* 3:                                     Section visibility.  (line  28)
+* 4:                                     Section visibility.  (line  29)
 * =:                                     Log Buffer.          (line  53)
 * = <1>:                                 Log Buffer.          (line  63)
 * ^:                                     Section movement.    (line  31)
@@ -7563,17 +7449,17 @@ Appendix B Keystroke Index
 * b:                                     The branch popup.    (line  12)
 * B B:                                   Bisecting.           (line  16)
 * B b:                                   Bisecting.           (line  31)
-* b b:                                   The branch popup.    (line  29)
-* b c:                                   The branch popup.    (line  47)
+* b b:                                   The branch popup.    (line  27)
+* b c:                                   The branch popup.    (line  45)
 * B g:                                   Bisecting.           (line  36)
 * B k:                                   Bisecting.           (line  41)
-* b k:                                   The branch popup.    (line  99)
-* b n:                                   The branch popup.    (line  37)
+* b k:                                   The branch popup.    (line  97)
+* b n:                                   The branch popup.    (line  35)
 * B r:                                   Bisecting.           (line  47)
-* b r:                                   The branch popup.    (line 105)
+* b r:                                   The branch popup.    (line 103)
 * B s:                                   Bisecting.           (line  24)
-* b s:                                   The branch popup.    (line  54)
-* b x:                                   The branch popup.    (line  82)
+* b s:                                   The branch popup.    (line  52)
+* b x:                                   The branch popup.    (line  80)
 * c:                                     Initiating a commit. (line   8)
 * c <1>:                                 Editing rebase sequences.
                                                               (line  72)
@@ -7707,17 +7593,17 @@ Appendix B Keystroke Index
 * k <2>:                                 Editing rebase sequences.
                                                               (line  68)
 * k <3>:                                 Stashing.            (line  92)
-* l:                                     Logging.             (line  26)
+* l:                                     Logging.             (line  28)
 * L:                                     Refreshing logs.     (line  11)
 * L <1>:                                 Log Buffer.          (line   6)
-* l a:                                   Logging.             (line  56)
-* l b:                                   Logging.             (line  52)
+* l a:                                   Logging.             (line  58)
+* l b:                                   Logging.             (line  54)
 * L g:                                   Refreshing logs.     (line  16)
-* l h:                                   Logging.             (line  44)
+* l h:                                   Logging.             (line  46)
 * l H:                                   Reflog.              (line  19)
-* l l:                                   Logging.             (line  31)
-* l L:                                   Logging.             (line  48)
-* l o:                                   Logging.             (line  37)
+* l l:                                   Logging.             (line  33)
+* l L:                                   Logging.             (line  50)
+* l o:                                   Logging.             (line  39)
 * l O:                                   Reflog.              (line  15)
 * l r:                                   Reflog.              (line  11)
 * L s:                                   Refreshing logs.     (line  21)
@@ -7735,10 +7621,10 @@ Appendix B Keystroke Index
 * m p:                                   Merging.             (line  44)
 * M r:                                   Remotes.             (line  18)
 * M u:                                   Remotes.             (line  23)
-* M-1:                                   Section visibility.  (line  34)
+* M-1:                                   Section visibility.  (line  33)
 * M-2:                                   Section visibility.  (line  34)
-* M-3:                                   Section visibility.  (line  34)
-* M-4:                                   Section visibility.  (line  34)
+* M-3:                                   Section visibility.  (line  35)
+* M-4:                                   Section visibility.  (line  36)
 * M-<tab>:                               Section visibility.  (line  17)
 * M-n:                                   Section movement.    (line  26)
 * M-n <1>:                               Editing commit messages.
@@ -7762,7 +7648,7 @@ Appendix B Keystroke Index
 * M-x magit-find-file:                   Visiting blobs.      (line   6)
 * M-x magit-find-file-other-window:      Visiting blobs.      (line  11)
 * M-x magit-init:                        Repository setup.    (line   6)
-* M-x magit-log-buffer-file:             Logging.             (line  67)
+* M-x magit-log-buffer-file:             Logging.             (line  69)
 * M-x magit-reset-hard:                  Resetting.           (line  32)
 * M-x magit-reset-head:                  Resetting.           (line  21)
 * M-x magit-reset-index:                 Staging and unstaging.
@@ -7837,7 +7723,7 @@ Appendix B Keystroke Index
 * r u:                                   Rebasing.            (line  30)
 * r w:                                   Rebasing.            (line  74)
 * RET:                                   Diff buffer.         (line   6)
-* RET <1>:                               References buffer.   (line  99)
+* RET <1>:                               References buffer.   (line  93)
 * RET <2>:                               Blaming.             (line  29)
 * RET <3>:                               Editing rebase sequences.
                                                               (line  16)
@@ -7894,7 +7780,7 @@ Appendix B Keystroke Index
 * x:                                     Editing rebase sequences.
                                                               (line  76)
 * x <1>:                                 Resetting.           (line   8)
-* Y:                                     Logging.             (line  62)
+* Y:                                     Logging.             (line  64)
 * y:                                     References buffer.   (line   6)
 * y <1>:                                 Editing rebase sequences.
                                                               (line  85)
