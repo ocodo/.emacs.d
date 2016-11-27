@@ -13,7 +13,7 @@ Major mode for editing plain text stories
 
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "feature-mode" '("feature-" "expand-home-shellism" "compute-given-when-then-offset" "given-when-then-wordlength" "build-keyword-matcher" "parse-gherkin-l10n" "try-find-next" "load-gherkin-i10n")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "feature-mode" '("feature-" "expand-home-shellism" "can-run-bundle" "parse-gherkin-l10n" "project-file-exists" "given-when-then-wordlength" "build-keyword-matcher" "try-find-next" "load-gherkin-i10n")))
 
 ;;;***
 

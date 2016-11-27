@@ -84,10 +84,20 @@
 (require 'thingatpt)
 (require 'etags)
 
-(defcustom feature-cucumber-command "rake cucumber CUCUMBER_OPTS=\"{options}\" FEATURE=\"{feature}\""
-  "set this variable to the command, which should be used to execute cucumber scenarios."
+(defcustom feature-cucumber-command "cucumber {options} \"{feature}\""
+  "command used to run cucumber when there is no Rakefile"
   :group 'feature-mode
   :type 'string)
+
+(defcustom feature-rake-command "rake cucumber CUCUMBER_OPTS=\"{options}\" FEATURE=\"{feature}\""
+  "command used to run cucumber when there is a Rakefile"
+  :group 'feature-mode
+  :type 'string)
+
+(defcustom feature-enable-back-denting t
+  "when enabled, subsequent pressing the tab key back-dents the current line by `feature-indent-offset' spaces"
+  :type 'boolean
+  :group 'feature-mode)
 
 (defcustom feature-use-rvm nil
   "t when RVM is in use. (Requires rvm.el)"
@@ -105,7 +115,12 @@
   :group 'feature-mode)
 
 (defcustom feature-step-search-path "features/**/*steps.rb"
-  "Command to run ruby"
+  "Path to project step definitions"
+  :type 'string
+  :group 'feature-mode)
+
+(defcustom feature-step-search-gems-path "gems/ruby/*/gems/*/**/*steps.rb"
+  "Path to find step definitions in installed gems"
   :type 'string
   :group 'feature-mode)
 
@@ -192,17 +207,17 @@
 (defconst feature-keywords-per-language
   (if (file-readable-p feature-default-i18n-file)
       (load-gherkin-i10n feature-default-i18n-file)
-  '(("en" . ((feature    . "^ *\\(Feature\\):?")
-             (background . "^ *\\(Background\\):?")
-             (scenario   . "^ *\\(Scenario\\):?")
+  '(("en" . ((feature    . "^ *\\(Feature\\):")
+             (background . "^ *\\(Background\\):")
+             (scenario   . "^ *\\(Scenario\\):")
              (scenario_outline .
-                           "^ *\\(Scenario Outline\\):?")
-             (given      . "^ *\\(Given\\)")
-             (when       . "^ *\\(When\\)")
-             (then       . "^ *\\(Then\\)")
-             (but        . "^ *\\(But\\)")
-             (and        . "^ *\\(And\\)")
-             (examples   . "^ *\\(Examples\\|Scenarios\\):?"))))))
+                           "^ *\\(Scenario Outline\\):")
+             (given      . "^ *\\(Given\\) ")
+             (when       . "^ *\\(When\\) ")
+             (then       . "^ *\\(Then\\) ")
+             (but        . "^ *\\(But\\) ")
+             (and        . "^ *\\(And\\) ")
+             (examples   . "^ *\\(Examples\\|Scenarios\\):"))))))
 
 (defconst feature-font-lock-keywords
   '((feature      (0 font-lock-keyword-face)
@@ -261,8 +276,14 @@
 (defconst feature-blank-line-re "^[ \t]*\\(?:#.*\\)?$"
   "Regexp matching a line containing only whitespace.")
 
-(defconst feature-example-line-re "^[ \t]\\\\|"
+(defconst feature-example-line-re "^[ \t]*|"
   "Regexp matching a line containing scenario example.")
+
+(defconst feature-tag-line-re "^[ \t]*@"
+  "Regexp matching a tag/annotation")
+
+(defconst feature-pystring-re "^[ \t]*\"\"\"$"
+  "Regexp matching a pystring")
 
 (defun feature-feature-re (language)
   (cdr (assoc 'feature (cdr (assoc language feature-keywords-per-language)))))
@@ -275,6 +296,21 @@
 
 (defun feature-background-re (language)
   (cdr (assoc 'background (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-given-re (language)
+  (cdr (assoc 'given (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-when-re (language)
+  (cdr (assoc 'when (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-then-re (language)
+  (cdr (assoc 'then (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-and-re (language)
+  (cdr (assoc 'and (cdr (assoc language feature-keywords-per-language)))))
+
+(defun feature-but-re (language)
+  (cdr (assoc 'but (cdr (assoc language feature-keywords-per-language)))))
 
 ;;
 ;; Variables
@@ -360,16 +396,22 @@
             (feature-search-for-regex-match (lambda () (looking-at (feature-feature-re lang))))
             (current-indentation)
             ))
-         ((or (looking-at (feature-background-re lang)) (looking-at (feature-scenario-re lang)))
+         ((or (looking-at (feature-background-re lang))
+              (looking-at (feature-scenario-re lang))
+              (looking-at feature-tag-line-re))
           (progn
             (feature-search-for-regex-match
              (lambda () (or (looking-at (feature-feature-re lang))
+                            (looking-at feature-tag-line-re)
                             (looking-at (feature-background-re lang))
                             (looking-at (feature-scenario-re lang)))))
             (cond
-             ((looking-at (feature-feature-re lang)) (+ (current-indentation) feature-indent-offset))
+             ((or (looking-at (feature-feature-re lang))
+                  (looking-at feature-tag-line-re)
+                  ) feature-indent-level)
              ((or (looking-at (feature-background-re lang))
-                  (looking-at (feature-scenario-re lang))) (current-indentation))
+                  (looking-at (feature-scenario-re lang))
+                  ) (current-indentation))
              (t saved-indentation))
             ))
          ((looking-at (feature-examples-re lang))
@@ -381,13 +423,53 @@
                 (+ (current-indentation) feature-indent-offset)
               saved-indentation)
             ))
-         ((looking-at feature-example-line-re)
+         ((or (looking-at (feature-given-re lang))
+              (looking-at (feature-when-re lang))
+              (looking-at (feature-then-re lang))
+              (looking-at (feature-and-re lang))
+              (looking-at (feature-but-re lang)))
           (progn
             (feature-search-for-regex-match
-             (lambda () (looking-at (feature-examples-re lang))))
-            (if (looking-at (feature-examples-re lang))
-                (+ (current-indentation) feature-indent-offset)
-              saved-indentation)
+             (lambda () (or (looking-at (feature-background-re lang))
+                            (looking-at (feature-scenario-re lang))
+                            (looking-at (feature-given-re lang))
+                            (looking-at (feature-when-re lang))
+                            (looking-at (feature-then-re lang))
+                            (looking-at (feature-and-re lang))
+                            (looking-at (feature-but-re lang)))))
+            (cond
+             ((or (looking-at (feature-background-re lang)) (looking-at (feature-scenario-re lang)))
+              (+ (current-indentation) feature-indent-offset))
+             ((or (looking-at (feature-given-re lang))
+                  (looking-at (feature-when-re lang))
+                  (looking-at (feature-then-re lang))
+                  (looking-at (feature-and-re lang))
+                  (looking-at (feature-but-re lang)))
+              (current-indentation))
+             (t saved-indentation))
+            ))
+         ((or (looking-at feature-example-line-re) (looking-at feature-pystring-re))
+          (progn
+            (feature-search-for-regex-match
+             (lambda () (or (looking-at (feature-examples-re lang))
+                            (looking-at (feature-given-re lang))
+                            (looking-at (feature-when-re lang))
+                            (looking-at (feature-then-re lang))
+                            (looking-at (feature-and-re lang))
+                            (looking-at (feature-but-re lang))
+                            (looking-at feature-example-line-re))))
+            (cond
+             ((or (looking-at (feature-examples-re lang))
+                  (looking-at (feature-given-re lang))
+                  (looking-at (feature-when-re lang))
+                  (looking-at (feature-then-re lang))
+                  (looking-at (feature-and-re lang))
+                  (looking-at (feature-but-re lang)))
+              (+ (current-indentation) feature-indent-offset))
+             ((or (looking-at feature-example-line-re)
+                  (looking-at feature-pystring-re))
+              (current-indentation))
+             (t saved-indentation))
             ))
          (t
           (progn
@@ -414,7 +496,7 @@ back-dent the line by `feature-indent-offset' spaces.  On reaching column
     (save-excursion
       (beginning-of-line)
       (delete-horizontal-space)
-      (if (and (equal last-command this-command) (/= ci 0))
+      (if (and (equal last-command this-command) (/= ci 0) feature-enable-back-denting (called-interactively-p 'any))
           (indent-to (* (/ (- ci 1) feature-indent-offset) feature-indent-offset))
         (indent-to need)))
     (if (< (current-column) (current-indentation))
@@ -548,6 +630,24 @@ are loaded on startup.  If nil, don't load snippets.")
 
     (global-set-key (kbd "C-c ,r") redoer-cmd)))
 
+(defun project-file-exists (filename)
+  "Determines if the project has a file"
+  (file-exists-p (concat (feature-project-root) filename)))
+
+(defun can-run-bundle ()
+  "Determines if bundler is installed and a Gemfile exists"
+  (and (project-file-exists "Gemfile")
+       (executable-find "bundle")))
+
+(defun construct-cucumber-command (command-template opts-str feature-arg)
+  "Creates a complete command to launch cucumber"
+  (let ((base-command
+         (concat (replace-regexp-in-string
+                  "{options}" opts-str
+                  (replace-regexp-in-string "{feature}" feature-arg command-template) t t))))
+    (concat (if (can-run-bundle) "bundle exec " "")
+            base-command)))
+
 (defun* feature-run-cucumber (cuke-opts &key feature-file)
   "Runs cucumber with the specified options"
   (feature-register-verify-redo (list 'feature-run-cucumber
@@ -558,14 +658,16 @@ are loaded on startup.  If nil, don't load snippets.")
   (let ((opts-str    (mapconcat 'identity cuke-opts " "))
         (feature-arg (if feature-file
                          feature-file
-                       feature-default-directory)))
+                       feature-default-directory))
+        (command-template (if (project-file-exists "Rakefile")
+                              feature-rake-command
+                            feature-cucumber-command)))
     (ansi-color-for-comint-mode-on)
     (let ((default-directory (feature-project-root))
           (compilation-scroll-output t))
       (if feature-use-rvm
           (rvm-activate-corresponding-ruby))
-      (compile (concat (replace-regexp-in-string "{options}" opts-str
-                         (replace-regexp-in-string "{feature}" feature-arg feature-cucumber-command) t t)) t))))
+      (compile (construct-cucumber-command command-template opts-str feature-arg) t))))
 
 (defun feature-root-directory-p (a-directory)
   "Tests if a-directory is the root of the directory tree (i.e. is it '/' on unix)."
@@ -589,14 +691,15 @@ are loaded on startup.  If nil, don't load snippets.")
   (let* ((root (feature-project-root))
          (input (thing-at-point 'line))
          (_ (set-text-properties 0 (length input) nil input))
-         (result (shell-command-to-string (format "cd %S && %s %S/find_step.rb %s %s %S %s"
+         (result (shell-command-to-string (format "cd %S && %s %S/find_step.rb %s %s %S %s %s"
                                                   (expand-home-shellism)
                                                   feature-ruby-command
                                                   feature-support-directory
                                                   (feature-detect-language)
                                                   (buffer-file-name)
                                                   (line-number-at-pos)
-                                                  (shell-quote-argument feature-step-search-path))))
+                                                  (shell-quote-argument feature-step-search-path)
+                                                  (shell-quote-argument feature-step-search-gems-path))))
          (matches (read result))
          (matches-length (safe-length matches)))
 
