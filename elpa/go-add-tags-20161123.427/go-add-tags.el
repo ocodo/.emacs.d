@@ -4,9 +4,9 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-add-tags
-;; Package-Version: 20161005.948
-;; Version: 0.03
-;; Package-Requires: ((emacs "24") (s "1.11.0") (cl-lib "0.5"))
+;; Package-Version: 20161123.427
+;; Version: 0.04
+;; Package-Requires: ((emacs "24.3") (s "1.11.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@
   (deactivate-mark)
   (let ((inside-struct-p (go-add-tags--inside-struct-p begin)))
     (unless inside-struct-p
-      (error "Here is not struct"))
+      (user-error "Here is not struct"))
     (save-excursion
       (go-add-tags--insert-tags tags begin end (or conv-fn #'identity)))))
 
