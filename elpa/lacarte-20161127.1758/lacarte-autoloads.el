@@ -1,10 +1,9 @@
 ;;; lacarte-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "lacarte" "lacarte.el" (22160 38882 252897
-;;;;;;  205000))
+;;;### (autoloads nil "lacarte" "lacarte.el" (0 0 0 0))
 ;;; Generated autoloads from lacarte.el
 
 (let ((loads (get 'lacarte 'custom-loads))) (if (member '"lacarte" loads) nil (put 'lacarte 'custom-loads (cons '"lacarte" loads))))
@@ -51,6 +50,8 @@ If you use Icicles, then you can also sort the completion candidates
 in different ways, using `C-,'.
 
 \(fn MAPS)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lacarte" '("lacarte-")))
 
 ;;;***
 

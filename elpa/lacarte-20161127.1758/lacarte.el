@@ -7,11 +7,11 @@
 ;; Copyright (C) 2005-2016, Drew Adams, all rights reserved.
 ;; Created: Fri Aug 12 17:18:02 2005
 ;; Version: 0
-;; Package-Version: 20151231.1409
+;; Package-Version: 20161127.1758
 ;; Package-Requires: ()
-;; Last-Updated: Thu Dec 31 14:15:26 2015 (-0800)
+;; Last-Updated: Sun Nov 27 17:59:16 2016 (-0800)
 ;;           By: dradams
-;;     Update #: 924
+;;     Update #: 925
 ;; URL: http://www.emacswiki.org/lacarte.el
 ;; Doc URL: http://www.emacswiki.org/LaCarte
 ;; Keywords: menu-bar, menu, command, help, abbrev, minibuffer, keys,
@@ -253,7 +253,7 @@
 ;;  navigate around the sections of this doc.  Linkd mode will
 ;;  highlight this Index, as well as the cross-references and section
 ;;  headings throughout this file.  You can get `linkd.el' here:
-;;  http://dto.freeshell.org/notebook/Linkd.html.
+;;  http://www.emacswiki.org/emacs/download/linkd.el.
 ;;
 ;;  (@> "Change log")
 ;;  (@> "User Options")
