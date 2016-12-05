@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20160925.1210
+;; Package-Version: 20161203.1059
 ;; Version: 0.4.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: convenience, links
@@ -45,25 +45,27 @@
 (defun ace-link ()
   "Call the ace link function for the current `major-mode'"
   (interactive)
-  (cl-case major-mode
-    (Info-mode
-     (ace-link-info))
-    ((help-mode package-menu-mode)
-     (ace-link-help))
-    (woman-mode
-     (ace-link-woman))
-    (eww-mode
-     (ace-link-eww))
-    ((compilation-mode grep-mode)
-     (ace-link-compilation))
-    (gnus-article-mode
-     (ace-link-gnus))
-    (org-mode
-     (ace-link-org))
-    (Custom-mode
-     (ace-link-org))
-    (t
-     (error "%S isn't supported" major-mode))))
+  (cond ((eq major-mode 'Info-mode)
+         (ace-link-info))
+        ((member major-mode '(help-mode package-menu-mode))
+         (ace-link-help))
+        ((eq major-mode 'woman-mode)
+         (ace-link-woman))
+        ((eq major-mode 'eww-mode)
+         (ace-link-eww))
+        ((or (member major-mode '(compilation-mode grep-mode))
+             (bound-and-true-p compilation-shell-minor-mode))
+         (ace-link-compilation))
+        ((eq major-mode 'gnus-article-mode)
+         (ace-link-gnus))
+        ((eq major-mode 'org-mode)
+         (ace-link-org))
+        ((eq major-mode 'Custom-mode)
+         (ace-link-org))
+        (t
+         (error
+          "%S isn't supported"
+          major-mode))))
 
 ;;* `ace-link-info'
 ;;;###autoload
@@ -96,9 +98,11 @@
 (defun ace-link--info-current ()
   "Return the node at point."
   (cons (cl-letf (((symbol-function #'Info-goto-node)
-                   (lambda (node _) node)))
+                   (lambda (node _) node))
+                  (browse-url-browser-function
+                   (lambda (url &rest _) url)))
           (Info-try-follow-nearest-node))
-        (1- (point))))
+        (point)))
 
 (defun ace-link--info-collect ()
   "Collect the positions of visible links in the current `Info-mode' buffer."
