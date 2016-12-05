@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Package-Version: 20161123.6
+;; Package-Version: 20161130.1944
 ;; Version: 0.1
 ;; Keywords: typescript languages
 ;; Package-Requires: ()
@@ -1770,7 +1770,7 @@ nil."
     (widen)
     (let* ((parse-status
             (save-excursion (syntax-ppss (point-at-bol))))
-           (offset (- (point) (line-beginning-position) (current-indentation))))
+           (offset (- (current-column) (current-indentation))))
       (indent-line-to (typescript--proper-indentation parse-status))
       (when (> offset 0) (forward-char offset)))))
 
