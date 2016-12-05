@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/aggressive-indent-mode
-;; Package-Version: 20161016.1016
+;; Package-Version: 20161201.1001
 ;; Version: 1.8.3
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: indent lisp maint tools
@@ -189,7 +189,7 @@ change."
 
 ;;; Preventing indentation
 (defconst aggressive-indent--internal-dont-indent-if
-  '((memq this-command aggressive-indent-protected-commands)
+  '((memq last-command aggressive-indent-protected-commands)
     (region-active-p)
     buffer-read-only
     undo-in-progress

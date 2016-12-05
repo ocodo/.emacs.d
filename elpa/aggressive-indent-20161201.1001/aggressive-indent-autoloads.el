@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "aggressive-indent" "aggressive-indent.el"
-;;;;;;  (22532 20831 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from aggressive-indent.el
 
 (autoload 'aggressive-indent-indent-defun "aggressive-indent" "\
@@ -53,6 +53,8 @@ See `aggressive-indent-mode' for more information on Aggressive-Indent mode.
 \(fn &optional ARG)" t nil)
 
 (defalias 'aggressive-indent-global-mode #'global-aggressive-indent-mode)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "aggressive-indent" '("aggressive-indent-")))
 
 ;;;***
 
