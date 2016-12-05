@@ -4,7 +4,7 @@
 
 ;; Author: Eric Danan
 ;; URL: https://github.com/ericdanan/counsel-projectile
-;; Package-Version: 20161022.1525
+;; Package-Version: 20161204.1156
 ;; Created: 2016-04-11
 ;; Keywords: project, convenience
 ;; Version: 0.1
@@ -177,8 +177,7 @@ BUFFER may be a string or nil."
 
 ;;;###autoload
 (defun counsel-projectile-switch-to-buffer ()
-  "Switch to a project buffer.
-If optional argument VIRTUAL is non-nil, add project files as virtual buffers."
+  "Switch to a project buffer."
   (interactive)
   (ivy-read (projectile-prepend-project-name "Switch to buffer: ")
             (counsel-projectile--buffer-list)

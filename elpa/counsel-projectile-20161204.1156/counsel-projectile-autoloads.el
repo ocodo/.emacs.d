@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "counsel-projectile" "counsel-projectile.el"
-;;;;;;  (22540 33752 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from counsel-projectile.el
 
 (autoload 'counsel-projectile-find-file "counsel-projectile" "\
@@ -24,7 +24,6 @@ With a prefix ARG invalidates the cache first.
 
 (autoload 'counsel-projectile-switch-to-buffer "counsel-projectile" "\
 Switch to a project buffer.
-If optional argument VIRTUAL is non-nil, add project files as virtual buffers.
 
 \(fn)" t nil)
 
@@ -53,6 +52,8 @@ Turn on counsel-projectile key bindings.
 Turn off counsel-projectile key bindings.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel-projectile" '("counsel-projectile-")))
 
 ;;;***
 
