@@ -4017,11 +4017,15 @@ When ARG is 2, insert the result as a comment."
       nil)))
 
 (defun lispy-eval-outline ()
-  (let ((lvl (lispy-outline-level)))
-    (lispy-eval-single-outline)
+  "Evaluate the current outline and its children.
+Return the result of the last evaluation as a string."
+  (let ((lvl (lispy-outline-level))
+        ans)
+    (setq ans (lispy-eval-single-outline))
     (while (and (lispy-forward-outline)
                 (> (lispy-outline-level) lvl))
-      (lispy-eval-single-outline))))
+      (setq ans (lispy-eval-single-outline)))
+    ans))
 
 (defun lispy-eval-single-outline ()
   (let* ((outline-start (point))
@@ -4047,7 +4051,8 @@ When ARG is 2, insert the result as a comment."
           ((= ?: (char-before (line-end-position)))
            (goto-char outline-end)
            (lispy--insert-eval-result res)
-           (goto-char outline-start))
+           (goto-char outline-start)
+           res)
           (t
            (message res)))))
 
@@ -4161,9 +4166,10 @@ Unlike `comment-region', ensure a contiguous comment."
   (let ((elen (length lispy-outline-header)))
     (while (< (point) end)
       (insert lispy-outline-header)
-      (setq end (+ end elen))
+      (cl-incf end elen)
       (unless (eolp)
-        (insert " "))
+        (insert " ")
+        (cl-incf end 1))
       (beginning-of-line 2))))
 
 (defun lispy-eval-and-replace ()
