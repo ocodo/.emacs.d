@@ -33,6 +33,15 @@ see `lentic-init' for details.
 
 \(fn)" nil nil)
 
+(add-to-list 'lentic-init-functions 'lentic-asciidoc-clojure-init)
+
+(autoload 'lentic-asciidoc-el-init "lentic-asciidoc" "\
+
+
+\(fn)" nil nil)
+
+(add-to-list 'lentic-init-functions 'lentic-asciidoc-el-init)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-asciidoc" '("lentic-")))
 
 ;;;***
@@ -299,6 +308,13 @@ See `lentic-mode' for more information on Lentic mode.
 \(fn)" nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-org" '("lentic-")))
+
+;;;***
+
+;;;### (autoloads nil "lentic-ox" "lentic-ox.el" (0 0 0 0))
+;;; Generated autoloads from lentic-ox.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-ox" '("lentic-ox-")))
 
 ;;;***
 
