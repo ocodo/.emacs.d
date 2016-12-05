@@ -4,7 +4,7 @@
 
 ;; Author: Mario Rodas <marsam@users.noreply.github.com>
 ;; URL: https://github.com/emacs-pe/http.el
-;; Package-Version: 20161125.739
+;; Package-Version: 20161127.1449
 ;; Keywords: convenience
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.4") (request "0.2.0") (edit-indirect "0.1.4"))
@@ -284,7 +284,13 @@ Used to fontify the response buffer and comment the response headers.")
               (insert-image image))
           (when (stringp data)
             (setq data (decode-coding-string data (or coding-system 'utf-8)))
-            (let* ((text (if http-prettify-response (http-prettify-text data pretty-callback) data))
+            (let* ((text (if http-prettify-response
+                             (condition-case err
+                                 (http-prettify-text data pretty-callback)
+                               (error
+                                (message "Error while prettifying response: %S" err)
+                                data))
+                           data))
                    (fontified (http-fontify-text text guessed-mode)))
               (insert fontified)))))
       (when http-show-response-headers
