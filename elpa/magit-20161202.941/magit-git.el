@@ -33,6 +33,7 @@
 (require 'magit-utils)
 (require 'magit-section)
 
+(declare-function magit-maybe-make-margin-overlay 'magit-log)
 (declare-function magit-process-buffer 'magit-process)
 (declare-function magit-process-file 'magit-process)
 (declare-function magit-process-insert-section 'magit-process)
@@ -357,7 +358,8 @@ call function WASHER with no argument."
         (funcall washer args))
       (when (or (= (point) beg)
                 (= (point) (1+ beg)))
-        (magit-cancel-section)))))
+        (magit-cancel-section))
+      (magit-maybe-make-margin-overlay))))
 
 (defun magit-git-version (&optional raw)
   (--when-let (let (magit-git-global-arguments)
@@ -1127,7 +1129,9 @@ Return a list of two integers: (A>B B>A)."
                         "\t")))
 
 (defun magit-abbrev-length ()
-  (string-to-number (or (magit-get "core.abbrev") "7")))
+  (--if-let (magit-get "core.abbrev")
+      (string-to-number it)
+    (length (magit-rev-parse "--short" "HEAD"))))
 
 (defun magit-abbrev-arg (&optional arg)
   (format "--%s=%d" (or arg "abbrev") (magit-abbrev-length)))
@@ -1226,7 +1230,8 @@ Return a list of two integers: (A>B B>A)."
 (defmacro magit-with-temp-index (tree arg &rest body)
   (declare (indent 2) (debug (form form body)))
   (let ((file (cl-gensym "file")))
-    `(let ((,file (magit-convert-filename-for-git
+    `(let ((magit--refresh-cache nil)
+           (,file (magit-convert-filename-for-git
                    (make-temp-name (magit-git-dir "index.magit.")))))
        (unwind-protect
            (progn (--when-let ,tree

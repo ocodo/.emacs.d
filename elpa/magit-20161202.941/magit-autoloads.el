@@ -1719,6 +1719,11 @@ Extract the history of the subtree PREFIX.
 ;;;### (autoloads nil "magit-utils" "magit-utils.el" (0 0 0 0))
 ;;; Generated autoloads from magit-utils.el
 
+(autoload 'magit-emacs-Q-command "magit-utils" "\
+
+
+\(fn)" t nil)
+
 (autoload 'Info-follow-nearest-node--magit-gitman "magit-utils" "\
 
 
@@ -1733,7 +1738,7 @@ Extract the history of the subtree PREFIX.
 
 (advice-add 'org-man-export :around 'org-man-export--magit-gitman)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "magit-utils" '("whitespace-dont-turn-on-in-magit-mode" "magit-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "magit-utils" '("magit-" "whitespace-dont-turn-on-in-magit-mode")))
 
 ;;;***
 

@@ -147,6 +147,26 @@ The functions which respect this option are
   :group 'magit-status
   :type 'boolean)
 
+(defcustom magit-status-margin '(nil nil (nth 2 magit-log-margin))
+  "Format of the margin in `magit-status-mode' buffers.
+
+The value has the form (INIT NAME DATE-STYLE).
+
+If INIT is non-nil, then the margin is shown initially.
+If NAME is an integer, then the name of the author is shown
+  using an area of that width.  Otherwise it must be nil.
+DATE-STYLE can be `age', in which case the age of the commit
+is shown.  If it is `age-abbreviated', then the time unit is
+abbreviated to a single character.  DATE-STYLE can also be a
+format-string suitable for `format-time-string'."
+  :package-version '(magit . "2.9.0")
+  :group 'magit-status
+  :group 'magit-margin
+  :type magit-log-margin--custom-type
+  :initialize 'magit-custom-initialize-reset
+  :set-after '(magit-log-margin)
+  :set (apply-partially #'magit-margin-set-variable 'magit-status-mode))
+
 ;;;; Refs Mode
 
 (defgroup magit-refs nil
@@ -188,18 +208,35 @@ To change the value in an existing buffer use the command
 (put 'magit-refs-show-commit-count 'safe-local-variable 'symbolp)
 (put 'magit-refs-show-commit-count 'permanent-local t)
 
-(defcustom magit-refs-show-margin 'branch
-  "Whether to initially show the margin in refs buffers.
+(defcustom magit-refs-margin '(nil 18 (nth 2 magit-log-margin) nil)
+  "Format of the margin in `magit-refs-mode' buffers.
 
-When non-nil the committer name and date are initially displayed
-in the margin of refs buffers.  The margin can be shown or hidden
-in the current buffer using the command `magit-toggle-margin'."
-  :package-version '(magit . "2.1.0")
+The value has the form (INIT NAME DATE-STYLE TAGS).
+
+If INIT is non-nil, then the margin is shown initially.
+If NAME is an integer, then the name of the author is shown
+  using an area of that width.  Otherwise it must be nil.
+DATE-STYLE can be `age', in which case the age of the commit
+date is shown.  If it is `age-abbreviated', then the time
+unit is abbreviated to a single character.  DATE-STYLE can
+also be a format-string suitable for `format-time-string'.
+If TAGS is non-nil, then the margin shows information not
+only about branches, but also about tags."
+  :package-version '(magit . "2.9.0")
   :group 'magit-refs
+  :group 'magit-margin
   :safe (lambda (val) (memq val '(all branch nil)))
-  :type '(choice (const all    :tag "For branches and tags")
-                 (const branch :tag "For branches only")
-                 (const nil    :tag "Never")))
+  :type '(list (boolean :tag "Show initially")
+               (integer :tag "Show author name using width")
+               (choice  :tag "Show committer"
+                        (string :tag "date using format" "%Y-%m-%d %H:%m ")
+                        (const  :tag "date's age" age)
+                        (const  :tag "date's age (abbreviated)"
+                                age-abbreviated))
+               (boolean :tag "Show for tags too"))
+  :initialize 'magit-custom-initialize-reset
+  :set-after '(magit-log-margin)
+  :set (apply-partially #'magit-margin-set-variable 'magit-refs-mode))
 
 (defcustom magit-visit-ref-behavior nil
   "Control how `magit-visit-ref' behaves in `magit-refs-mode' buffers.
@@ -379,12 +416,13 @@ Of course you can also fine-tune:
                                (repeat :tag "except"
                                        (string :tag "branch"))))))
 
-(defcustom magit-branch-popup-show-variables nil
+(defcustom magit-branch-popup-show-variables t
   "Whether the `magit-branch-popup' shows Git variables.
-When this is nil then no variables are displayed directly in this
-popup.  Instead the sub-popup `magit-branch-config-popup' has to
-be used to view and change branch related variables."
-  :package-version '(magit . "2.9.0")
+This defaults to t to avoid changing key bindings.  When set to
+nil, no variables are displayed directly in this popup, instead
+the sub-popup `magit-branch-config-popup' has to be used to view
+and change branch related variables."
+  :package-version '(magit . "2.7.0")
   :group 'magit-commands
   :type 'boolean)
 
@@ -721,9 +759,10 @@ detached `HEAD'."
     (magit-insert-section (branch pull)
       (let ((rebase (magit-git-string "config"
                                       (format "branch.%s.rebase" branch))))
-        (if (equal rebase "false")
-            (setq rebase nil)
-          (setq rebase (magit-get-boolean "pull.rebase")))
+        (pcase rebase
+          ("true")
+          ("false" (setq rebase nil))
+          (_       (setq rebase (magit-get-boolean "pull.rebase"))))
         (insert (format "%-10s" (or keyword (if rebase "Rebase: " "Merge: ")))))
       (--when-let (and magit-status-show-hashes-in-headers
                        (magit-rev-format "%h" pull))
@@ -924,6 +963,7 @@ If there is no blob buffer in the same frame, then do nothing."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magit-mode-map)
     (define-key map "\C-y" 'magit-refs-set-show-commit-count)
+    (define-key map "L"    'magit-toggle-margin)
     map)
   "Keymap for `magit-refs-mode'.")
 
@@ -1133,7 +1173,8 @@ different, but only if you have customized the option
          ((string-match magit-refs-symref-line-re line)
           (magit-bind-match-strings (symref ref) line
             (magit-insert-symref symref ref 'magit-branch-local))))))
-    (insert ?\n)))
+    (insert ?\n)
+    (magit-make-margin-overlay nil t)))
 
 (defun magit-insert-remote-branches ()
   "Insert sections showing all remote-tracking branches."
@@ -1158,7 +1199,8 @@ different, but only if you have customized the option
            ((string-match magit-refs-symref-line-re line)
             (magit-bind-match-strings (symref ref) line
               (magit-insert-symref symref ref 'magit-branch-remote))))))
-      (insert ?\n))))
+      (insert ?\n)
+      (magit-make-margin-overlay nil t))))
 
 (defun magit-insert-branch (branch format &rest args)
   "For internal use, don't add to a hook."
@@ -1262,7 +1304,7 @@ different, but only if you have customized the option
                               (?c . ,(or mark count ""))
                               (?m . ,(or message "")))))
               (when (and magit-show-margin
-                         (eq magit-refs-show-margin 'all))
+                         (nth 3 magit-refs-margin))
                 (magit-refs-format-margin (concat tag "^{commit}")))
               (magit-refs-insert-cherry-commits head tag section)))))
       (insert ?\n))))
@@ -1279,7 +1321,8 @@ different, but only if you have customized the option
     (magit-git-wash (apply-partially 'magit-log-wash-log 'cherry)
       "cherry" "-v" "--abbrev" head ref magit-refresh-args)
     (unless (= (point) start)
-      (insert (propertize "\n" 'magit-section section)))))
+      (insert (propertize "\n" 'magit-section section))
+      (magit-make-margin-overlay nil t))))
 
 (defun magit-refs-format-commit-count (ref head format &optional tag-p)
   (and (string-match-p "%-?[0-9]+c" format)
@@ -1294,7 +1337,7 @@ different, but only if you have customized the option
   (save-excursion
     (goto-char (line-beginning-position 0))
     (let ((line (magit-rev-format "%ct%cN" commit)))
-      (magit-format-log-margin (substring line 10)
+      (magit-log-format-margin (substring line 10)
                                (substring line 0 10)))))
 
 ;;;; Files
@@ -1385,7 +1428,9 @@ An empty REV stands for index."
               (if (string= rev "") "{index}" (magit-rev-format "%H" rev))
               magit-buffer-refname rev
               magit-buffer-file-name (expand-file-name file topdir))
-        (setq default-directory (file-name-directory magit-buffer-file-name))
+        (setq default-directory
+              (let ((dir (file-name-directory magit-buffer-file-name)))
+                (if (file-exists-p dir) dir topdir)))
         (setq-local revert-buffer-function #'magit-revert-rev-file-buffer)
         (revert-buffer t t)
         (run-hooks hookvar))
@@ -2853,13 +2898,9 @@ Currently this only adds the following key bindings.
       (find-file blob-or-file)
     (-let [(rev file) blob-or-file]
       (magit-find-file rev file)
-      (let ((str (magit-rev-format "%ct%s" rev)))
-        (message "%s (%s ago)" (substring str 10)
-                 (magit-format-duration
-                  (abs (truncate (- (float-time)
-                                    (string-to-number
-                                     (substring str 0 10)))))
-                  magit-duration-spec)))))
+      (apply #'message "%s (%s %s ago)"
+             (magit-rev-format "%s" rev)
+             (magit--age (magit-rev-format "%ct" rev)))))
   (goto-char (point-min))
   (forward-line (1- line)))
 

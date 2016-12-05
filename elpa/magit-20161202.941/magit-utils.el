@@ -43,6 +43,7 @@
 
 (eval-when-compile (require 'ido))
 (declare-function ido-completing-read+ 'ido-completing-read+)
+(declare-function Info-get-token 'info)
 
 (defvar magit-wip-before-change-mode)
 
@@ -467,6 +468,28 @@ ACTION is a member of option `magit-slow-confirm'."
     (replace-regexp-in-string
      "-" " " (concat (upcase (substring prompt 0 1)) (substring prompt 1)))))
 
+;;; Debug Utilities
+
+;;;###autoload
+(defun magit-emacs-Q-command ()
+  (interactive)
+  (let ((cmd (mapconcat
+              #'shell-quote-argument
+              `(,(concat invocation-directory invocation-name)
+                "-Q" "--eval" "(setq debug-on-error t)"
+                ,@(cl-mapcan
+                   (lambda (dir) (list "-L" dir))
+                   (delete-dups
+                    (mapcar (lambda (lib)
+                              (file-name-directory (locate-library lib)))
+                            '("magit" "magit-popup" "with-editor"
+                              "git-commit" "dash"))))
+                "-l" "magit")
+              " ")))
+    (message "Uncustomized Magit command saved to kill-ring, %s"
+             "please run it in a terminal.")
+    (kill-new cmd)))
+
 ;;; Text Utilities
 
 (defmacro magit-bind-match-strings (varlist string &rest body)
@@ -509,6 +532,41 @@ Unless optional argument KEEP-EMPTY-LINES is t, trim all empty lines."
       (insert-file-contents file)
       (split-string (buffer-string) "\n" (not keep-empty-lines)))))
 
+;;; Time Utilities
+
+(defvar magit--age-spec
+  `((?Y "year"   "years"   ,(round (* 60 60 24 365.2425)))
+    (?M "month"  "months"  ,(round (* 60 60 24 30.436875)))
+    (?w "week"   "weeks"   ,(* 60 60 24 7))
+    (?d "day"    "days"    ,(* 60 60 24))
+    (?h "hour"   "hours"   ,(* 60 60))
+    (?m "minute" "minutes" 60)
+    (?s "second" "seconds" 1))
+  "Time units used when formatting relative commit ages.
+
+The value is a list of time units, beginning with the longest.
+Each element has the form (CHAR UNIT UNITS SECONDS).  UNIT is the
+time unit, UNITS is the plural of that unit.  CHAR is a character
+abbreviation.  And SECONDS is the number of seconds in one UNIT.
+
+This is defined as a variable to make it possible to use time
+units for a language other than English.  It is not defined
+as an option, because most other parts of Magit are always in
+English.")
+
+(defun magit--age (date &optional abbreviate)
+  (cl-labels ((fn (age spec)
+                  (-let [(char unit units weight) (car spec)]
+                    (let ((cnt (round (/ age weight 1.0))))
+                      (if (or (not (cdr spec))
+                              (>= (/ age weight) 1))
+                          (list cnt (cond (abbreviate char)
+                                          ((= cnt 1) unit)
+                                          (t units)))
+                        (fn age (cdr spec)))))))
+    (fn (abs (- (float-time) (string-to-number date)))
+        magit--age-spec)))
+
 ;;; Kludges
 
 (defun magit-file-accessible-directory-p (filename)
@@ -541,6 +599,24 @@ for an alternative."
 
 (advice-add 'whitespace-turn-on :before
             'whitespace-dont-turn-on-in-magit-mode)
+
+(defun magit-custom-initialize-reset (symbol exp)
+  "Initialize SYMBOL based on EXP.
+Set the symbol, using `set-default' (unlike
+`custom-initialize-reset' which uses the `:set' function if any.)
+The value is either the symbol's current value
+ (as obtained using the `:get' function), if any,
+or the value in the symbol's `saved-value' property if any,
+or (last of all) the value of EXP."
+  (set-default-toplevel-value
+   symbol
+   (condition-case nil
+       (let ((def (default-toplevel-value symbol))
+             (getter (get symbol 'custom-get)))
+         (if getter (funcall getter symbol) def))
+     (error
+      (eval (let ((sv (get symbol 'saved-value)))
+              (if sv (car sv) exp)))))))
 
 ;;; Kludges for Info Manuals
 
@@ -589,6 +665,10 @@ the %s(1) manpage.
             'org-man-export--magit-gitman)
 
 ;;; magit-utils.el ends soon
+
+(define-obsolete-variable-alias 'magit-duration-spec
+  'magit--age-spec "Magit 2.9.0")
+
 (provide 'magit-utils)
 ;; Local Variables:
 ;; coding: utf-8

@@ -412,13 +412,13 @@ yourself with it by reading the documentation in the Emacs manual, see
 
      (require 'package)
      (add-to-list 'package-archives
-     	     '("melpa" . "http://melpa.org/packages/") t)
+                  '("melpa" . "http://melpa.org/packages/") t)
 
    • To use Melpa-Stable:
 
      (require 'package)
      (add-to-list 'package-archives
-     	     '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+                  '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 
    Once you have added your preferred archive, you need to update the
 local package list using:
@@ -475,7 +475,7 @@ following content before running ‘make’:
      (with-eval-after-load 'info
        (info-initialize)
        (add-to-list 'Info-directory-list
-     	       "~/.emacs.d/site-lisp/magit/Documentation/"))
+                    "~/.emacs.d/site-lisp/magit/Documentation/"))
 
    Note that you have to add the ‘lisp’ subdirectory to the ‘load-path’,
 not the top-level of the repository, and that elements of ‘load-path’
@@ -1844,9 +1844,9 @@ that it should be bound globally.  We recommend using ‘C-x g’:
      To make this command available, use something like:
 
           (add-hook 'ido-setup-hook
-          	  (lambda ()
-          	    (define-key ido-completion-map
-          	      (kbd \"C-x g\") 'ido-enter-magit-status)))
+                    (lambda ()
+                      (define-key ido-completion-map
+                        (kbd \"C-x g\") 'ido-enter-magit-status)))
 
      Starting with Emacs 25.1 the Ido keymaps are defined just once
      instead of every time Ido is invoked, so now you can modify it like
@@ -2117,6 +2117,23 @@ File: magit.info,  Node: Status options,  Prev: Status header sections,  Up: Sta
  -- User Option: magit-status-refresh-hook
 
      Hook run after a status buffer has been refreshed.
+
+ -- User Option: magit-status-margin
+
+     This option specifies whether the margin is initially shown in
+     Magit-Status mode buffers and how it is formatted.
+
+     The value has the form ‘(INIT NAME DATE-STYLE)’.
+
+        • If INIT is non-nil, then the margin is shown initially.
+
+        • If NAME is an integer, then the name of the author is shown
+          using an area of that width.  Otherwise it must be ‘nil’.
+
+        • DATE-STYLE can be ‘age’, in which case the age of the commit
+          is shown.  If it is ‘age-abbreviated’, then the time unit is
+          abbreviated to a single character.  DATE-STYLE can also be a
+          format-string suitable for ‘format-time-string’.
 
  -- User Option: magit-log-section-args
 
@@ -2391,17 +2408,22 @@ File: magit.info,  Node: Log Buffer,  Next: Select from log,  Prev: Refreshing l
      entry.  Only considered when moving past the last entry with
      ‘magit-goto-*-section’ commands.
 
- -- User Option: magit-log-show-margin
+ -- User Option: magit-log-margin
 
-     Whether to initially show the margin in log buffers.
+     This option specifies whether the margin is initially shown in
+     Magit-Log mode buffers and how it is formatted.
 
-     When non-nil the author name and date are initially displayed in
-     the margin of log buffers.  The margin can be shown or hidden in
-     the current buffer using the command ‘magit-toggle-margin’.
+     The value has the form ‘(INIT NAME DATE-STYLE)’.
 
-     When a log buffer contains a verbose log, then the margin is never
-     displayed.  In status buffers this option is ignored, but it is
-     possible to show the margin using the mentioned command.
+        • If INIT is non-nil, then the margin is shown initially.
+
+        • If NAME is an integer, then the name of the author is shown
+          using an area of that width.  Otherwise it must be ‘nil’.
+
+        • DATE-STYLE can be ‘age’ in which case the age of the commit is
+          shown.  If it is ‘age-abbreviated’, then the time unit is
+          abbreviated to a single character.  DATE-STYLE can also be a
+          format-string suitable for ‘format-time-string’.
 
  -- User Option: magit-log-show-refname-after-summary
 
@@ -2419,8 +2441,14 @@ When the user has to select a recent commit that is reachable from
 humans cannot remember hashes or "HEAD~5", at least not without double
 checking).  Instead a log buffer is used to select the commit, which has
 the advantage that commits are presented in order and with the commit
-message.  The following additional key bindings are available when a log
-is used for selection:
+message.
+
+   Such selection logs are used when selecting the beginning of a rebase
+and when selecting the commit to be squashed into.
+
+   In addition to the key bindings available in all log buffers, the
+following additional key bindings are available in selection log
+buffers:
 
 ‘C-c C-c’     (‘magit-log-select-pick’)
 
@@ -2432,7 +2460,22 @@ is used for selection:
 
      Abort selecting a commit, don’t act on any commit.
 
-   This feature is used by rebase and squash commands.
+ -- User Option: magit-log-select-margin
+
+     This option specifies whether the margin is initially shown in
+     Magit-Log-Select mode buffers and how it is formatted.
+
+     The value has the form ‘(INIT NAME DATE-STYLE)’.
+
+        • If INIT is non-nil, then the margin is shown initially.
+
+        • If NAME is an integer, then the name of the author is shown
+          using an area of that width.  Otherwise it must be ‘nil’.
+
+        • DATE-STYLE can be ‘age’ in which case the age of the commit is
+          shown.  If it is ‘age-abbreviated’, then the time unit is
+          abbreviated to a single character.  DATE-STYLE can also be a
+          format-string suitable for ‘format-time-string’.
 
 
 File: magit.info,  Node: Reflog,  Prev: Select from log,  Up: Logging
@@ -2456,6 +2499,23 @@ Logging: Logging.
 ‘l H’     (‘magit-reflog-head’)
 
      Display the ‘HEAD’ reflog.
+
+ -- User Option: magit-reflog-margin
+
+     This option specifies whether the margin is initially shown in
+     Magit-Reflog mode buffers and how it is formatted.
+
+     The value has the form ‘(INIT NAME DATE-STYLE)’.
+
+        • If INIT is non-nil, then the margin is shown initially.
+
+        • If NAME is an integer, then the name of the author is shown
+          using an area of that width.  Otherwise it must be ‘nil’.
+
+        • DATE-STYLE can be ‘age’ in which case the age of the commit is
+          shown.  If it is ‘age-abbreviated’, then the time unit is
+          abbreviated to a single character.  DATE-STYLE can also be a
+          format-string suitable for ‘format-time-string’.
 
 
 File: magit.info,  Node: Diffing,  Next: Ediffing,  Prev: Logging,  Up: Inspecting
@@ -2945,13 +3005,25 @@ File: magit.info,  Node: References buffer,  Next: Bisecting,  Prev: Ediffing,  
         • ‘nil’ Never show counts.
      The default is ‘nil’ because anything else can be very expensive.
 
- -- User Option: magit-refs-show-margin
+ -- User Option: magit-refs-margin
 
-     Whether to initially show the margin in refs buffers.
+     This option specifies whether the margin is initially shown in
+     Magit-Refs mode buffers and how it is formatted.
 
-     When non-nil the committer name and date are initially displayed in
-     the margin of refs buffers.  The margin can be shown or hidden in
-     the current buffer using the command ‘magit-toggle-margin’.
+     The value has the form ‘(INIT NAME DATE-STYLE TAGS)’.
+
+        • If INIT is non-nil, then the margin is shown initially.
+
+        • If NAME is an integer, then the name of the author is shown
+          using an area of that width.  Otherwise it must be ‘nil’.
+
+        • DATE-STYLE can be ‘age’ in which case the age of the commit is
+          shown.  If it is ‘age-abbreviated’, then the time unit is
+          abbreviated to a single character.  DATE-STYLE can also be a
+          format-string suitable for ‘format-time-string’.
+
+        • If TAGS is non-nil, then the margin shows information not only
+          about branches, but also about tags.
 
    The following variables control how individual refs are displayed.
 If you change one of these variables (especially the "%c" part), then
@@ -3968,9 +4040,11 @@ features are available from separate popups.
 
  -- User Option: magit-branch-popup-show-variables
 
-     When this is ‘nil’ then no variables are displayed directly in this
-     popup, and the sub-popup ‘magit-branch-config-popup’ has to be used
-     instead to view and change branch related variables.
+     Whether the ‘magit-branch-popup’ shows Git variables.  This
+     defaults to t to avoid changing key bindings.  When set to nil, no
+     variables are displayed directly in this popup, and the sub-popup
+     ‘magit-branch-config-popup’ has to be used indead to view and
+     change branch related variables.
 
 ‘b b’     (‘magit-checkout’)
 
@@ -5043,10 +5117,6 @@ Also see *note (gitman)git-stash::.
      Remove a stash from the stash list.  When the region is active,
      offer to drop all contained stashes.
 
-‘z l’     (‘magit-stash-list’)
-
-     List all stashes in a buffer.
-
 ‘z v’     (‘magit-stash-show’)
 
      Show all diffs of a stash in a buffer.
@@ -5062,6 +5132,27 @@ Also see *note (gitman)git-stash::.
 ‘k’     (‘magit-stash-clear’)
 
      Remove all stashes saved in REF’s reflog by deleting REF.
+
+‘z l’     (‘magit-stash-list’)
+
+     List all stashes in a buffer.
+
+ -- User Option: magit-stashes-margin
+
+     This option specifies whether the margin is initially shown in
+     stashes buffers and how it is formatted.
+
+     The value has the form ‘(INIT NAME DATE-STYLE)’.
+
+        • If INIT is non-nil, then the margin is shown initially.
+
+        • If NAME is an integer, then the name of the author is shown
+          using an area of that width.  Otherwise it must be ‘nil’.
+
+        • DATE-STYLE can be ‘age’ in which case the age of the commit is
+          shown.  If it is ‘age-abbreviated’, then the time unit is
+          abbreviated to a single character.  DATE-STYLE can also be a
+          format-string suitable for ‘format-time-string’.
 
 
 File: magit.info,  Node: Transferring,  Next: Miscellaneous,  Prev: Manipulating,  Up: Top
@@ -6022,12 +6113,12 @@ example:
    • ‘/path/to/huge/repo/.git/config’
 
           [include]
-          	path = /path/to/huge-gitconfig
+                  path = /path/to/huge-gitconfig
 
    • ‘/path/to/huge-gitconfig’
 
           [status]
-          	showUntrackedFiles = no
+                  showUntrackedFiles = no
 
    • ‘$HOME/.emacs.d/init.el’
 
@@ -7324,8 +7415,8 @@ then you can override these settings just for Magit by using:
 
      (setq magit-git-global-arguments
            (nconc magit-git-global-arguments
-     	     '("-c" "color.ui=false"
-     	       "-c" "color.diff=false")))
+                  '("-c" "color.ui=false"
+                    "-c" "color.diff=false")))
 
 
 File: magit.info,  Node: Expanding a file to show the diff causes it to disappear,  Next: Point is wrong in the ‘COMMIT_EDITMSG’ buffer,  Prev: Diffs contain control sequences,  Up: FAQ - Issues and errors
@@ -7449,17 +7540,17 @@ Appendix B Keystroke Index
 * b:                                     The branch popup.    (line  12)
 * B B:                                   Bisecting.           (line  16)
 * B b:                                   Bisecting.           (line  31)
-* b b:                                   The branch popup.    (line  27)
-* b c:                                   The branch popup.    (line  45)
+* b b:                                   The branch popup.    (line  29)
+* b c:                                   The branch popup.    (line  47)
 * B g:                                   Bisecting.           (line  36)
 * B k:                                   Bisecting.           (line  41)
-* b k:                                   The branch popup.    (line  97)
-* b n:                                   The branch popup.    (line  35)
+* b k:                                   The branch popup.    (line  99)
+* b n:                                   The branch popup.    (line  37)
 * B r:                                   Bisecting.           (line  47)
-* b r:                                   The branch popup.    (line 103)
+* b r:                                   The branch popup.    (line 105)
 * B s:                                   Bisecting.           (line  24)
-* b s:                                   The branch popup.    (line  52)
-* b x:                                   The branch popup.    (line  80)
+* b s:                                   The branch popup.    (line  54)
+* b x:                                   The branch popup.    (line  82)
 * c:                                     Initiating a commit. (line   8)
 * c <1>:                                 Editing rebase sequences.
                                                               (line  72)
@@ -7480,7 +7571,7 @@ Appendix B Keystroke Index
 * C-c C-b <1>:                           Refreshing diffs.    (line  80)
 * C-c C-c:                               Popup buffers and prefix commands.
                                                               (line  20)
-* C-c C-c <1>:                           Select from log.     (line  14)
+* C-c C-c <1>:                           Select from log.     (line  20)
 * C-c C-c <2>:                           Editing commit messages.
                                                               (line  19)
 * C-c C-c <3>:                           Editing rebase sequences.
@@ -7492,7 +7583,7 @@ Appendix B Keystroke Index
 * C-c C-f <1>:                           Refreshing diffs.    (line  84)
 * C-c C-i:                               Editing commit messages.
                                                               (line 153)
-* C-c C-k:                               Select from log.     (line  20)
+* C-c C-k:                               Select from log.     (line  26)
 * C-c C-k <1>:                           Editing commit messages.
                                                               (line  24)
 * C-c C-k <2>:                           Editing rebase sequences.
@@ -7592,7 +7683,7 @@ Appendix B Keystroke Index
 * k <1>:                                 Applying.            (line  40)
 * k <2>:                                 Editing rebase sequences.
                                                               (line  68)
-* k <3>:                                 Stashing.            (line  92)
+* k <3>:                                 Stashing.            (line  88)
 * l:                                     Logging.             (line  28)
 * L:                                     Refreshing logs.     (line  11)
 * L <1>:                                 Log Buffer.          (line   6)
@@ -7723,7 +7814,7 @@ Appendix B Keystroke Index
 * r u:                                   Rebasing.            (line  30)
 * r w:                                   Rebasing.            (line  74)
 * RET:                                   Diff buffer.         (line   6)
-* RET <1>:                               References buffer.   (line  93)
+* RET <1>:                               References buffer.   (line 105)
 * RET <2>:                               Blaming.             (line  29)
 * RET <3>:                               Editing rebase sequences.
                                                               (line  16)
@@ -7789,14 +7880,14 @@ Appendix B Keystroke Index
 * y y:                                   References buffer.   (line  14)
 * z:                                     Stashing.            (line   8)
 * z a:                                   Stashing.            (line  58)
-* z b:                                   Stashing.            (line  84)
-* z f:                                   Stashing.            (line  88)
+* z b:                                   Stashing.            (line  80)
+* z f:                                   Stashing.            (line  84)
 * z i:                                   Stashing.            (line  20)
 * z I:                                   Stashing.            (line  46)
 * z k:                                   Stashing.            (line  71)
-* z l:                                   Stashing.            (line  76)
+* z l:                                   Stashing.            (line  92)
 * z p:                                   Stashing.            (line  64)
-* z v:                                   Stashing.            (line  80)
+* z v:                                   Stashing.            (line  76)
 * z w:                                   Stashing.            (line  25)
 * z W:                                   Stashing.            (line  51)
 * z x:                                   Stashing.            (line  32)
