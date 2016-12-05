@@ -10,7 +10,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/voxpupuli/puppet-mode
-;; Package-Version: 20161020.309
+;; Package-Version: 20161204.713
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -963,6 +963,12 @@ Used as `syntax-propertize-function' in Puppet Mode."
      (separate . entire)))
   "Align rules for Puppet Mode.")
 
+(defconst puppet-mode-align-exclude-rules
+  '((puppet-comment
+     (regexp . "^\\s-*\#\\(.*\\)")
+     (modes . '(puppet-mode))))
+  "Rules for excluding lines from alignment for Puppet Mode.")
+
 (defun puppet-align-block ()
   "Align the current block."
   (interactive)
@@ -1207,6 +1213,7 @@ for each entry."
   (setq-local syntax-propertize-function #'puppet-syntax-propertize-function)
   ;; Alignment
   (setq align-mode-rules-list puppet-mode-align-rules)
+  (setq align-mode-exclude-rules-list puppet-mode-align-exclude-rules)
   ;; IMenu
   (setq imenu-create-index-function #'puppet-imenu-create-index))
 
