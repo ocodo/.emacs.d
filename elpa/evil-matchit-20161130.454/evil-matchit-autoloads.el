@@ -7,22 +7,22 @@
 ;;; Generated autoloads from evil-matchit.el
 
 (autoload 'evilmi-select-items "evil-matchit" "\
-Select items/tags and the region between them
+Select items/tags and the region between them.
 
 \(fn &optional NUM)" t nil)
 
 (autoload 'evilmi-delete-items "evil-matchit" "\
-Delete items/tags and the region between them
+Delete items/tags and the region between them.
 
 \(fn &optional NUM)" t nil)
 
 (autoload 'evilmi-jump-to-percentage "evil-matchit" "\
-Re-implementation of evil's similar functionality
+Like Vim %.
 
 \(fn NUM)" t nil)
 
 (autoload 'evilmi-jump-items "evil-matchit" "\
-Jump between item/tag(s)
+Jump between items.
 
 \(fn &optional NUM)" t nil)
 
@@ -32,7 +32,7 @@ Jump between item/tag(s)
 \(fn)" t nil)
 
 (autoload 'evil-matchit-mode "evil-matchit" "\
-Buffer-local minor mode to emulate matchit.vim
+Buffer-local minor mode to emulate matchit.vim.
 
 \(fn &optional ARG)" t nil)
 
