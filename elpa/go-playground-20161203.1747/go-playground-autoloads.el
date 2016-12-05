@@ -6,6 +6,11 @@
 ;;;### (autoloads nil "go-playground" "go-playground.el" (0 0 0 0))
 ;;; Generated autoloads from go-playground.el
 
+(autoload 'go-playground "go-playground" "\
+Run playground for Go language in a new buffer.
+
+\(fn)" t nil)
+
 (autoload 'go-playground-rm "go-playground" "\
 Remove files of the current snippet together with directory of this snippet.
 
@@ -16,7 +21,13 @@ Obsoleted by `go-playground-rm'.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-playground" '("go-playground")))
+(autoload 'go-playground-download "go-playground" "\
+Download a paste from the play.golang.org and insert it in a new local playground buffer.
+Tries to look for a URL at point.
+
+\(fn URL)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-playground" '("go-playground-")))
 
 ;;;***
 
