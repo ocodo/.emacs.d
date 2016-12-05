@@ -785,10 +785,16 @@ If FORCE-DEFERRED is non-nil perform parse notification later."
                  (memq condition ycmd-parse-conditions)))
     (if (or force-deferred (ycmd--must-defer-parse))
         (ycmd--parse-deferred)
-      (deferred:$
-        (deferred:next #'ycmd--on-visit-buffer)
-        (deferred:nextc it
-          #'ycmd-notify-file-ready-to-parse)))))
+      (let ((buffer (current-buffer)))
+        (deferred:$
+          (deferred:next
+            (lambda ()
+              (with-current-buffer buffer
+                (ycmd--on-visit-buffer))))
+          (deferred:nextc it
+            (lambda ()
+              (with-current-buffer buffer
+                (ycmd-notify-file-ready-to-parse)))))))))
 
 (defun ycmd--on-save ()
   "Function to run when the buffer has been saved."
@@ -1110,7 +1116,8 @@ This function handles `UnknownExtraConf', `ValueError' and
       ("UnknownExtraConf"
        (ycmd--handle-extra-conf-exception .exception.extra_conf_file))
       ((or "ValueError" "RuntimeError")
-       (ycmd--handle-error-exception .message)))))
+       (ycmd--handle-error-exception .message))
+      (_ (message "%s: %s" .exception.TYPE .message)))))
 
 (defun ycmd--exception? (response)
   "Check whether RESPONSE is an exception."
@@ -1504,8 +1511,9 @@ If NO-CONFIRM is non-nil, don't ask the user to confirm the rename."
   "Refactor current context with NEW-NAME."
   (interactive "MNew variable name: ")
   (when (not (s-blank? new-name))
-    (ycmd--run-completer-command (list "RefactorRename" new-name)
-                        'ycmd--handle-refactor-rename-success)))
+    (ycmd--run-completer-command
+     (list "RefactorRename" new-name)
+     'ycmd--handle-refactor-rename-success)))
 
 (defun ycmd-show-documentation (&optional arg)
   "Show documentation for current point in buffer.
@@ -1985,7 +1993,7 @@ See the docstring of the variable for an example"))
            (options-file (ycmd--create-options-file hmac-secret))
            (args (append (and port (list (format "--port=%d" port)))
                          (list (concat "--options_file=" options-file))
-                        ycmd-server-args))
+                         ycmd-server-args))
            (server-program+args (append ycmd-server-command args))
            (proc (apply #'start-process ycmd--server-process-name proc-buff
                         server-program+args)))
