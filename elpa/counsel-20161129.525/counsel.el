@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20161126.523
+;; Package-Version: 20161129.525
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -1868,7 +1868,7 @@ the command."
                           (ivy--regex
                            (progn (string-match "\"\\(.*\\)\"" (buffer-name))
                                   (match-string 1 (buffer-name))) t)))
-                   counsel--git-grep-dir))
+                   (shell-quote-argument counsel--git-grep-dir)))
           "\n" t))
         (file (file-name-nondirectory counsel--git-grep-dir)))
     ;; Need precise number of header lines for `wgrep' to work.
