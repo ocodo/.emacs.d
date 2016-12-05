@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20161122.1853
+;; Package-Version: 20161203.523
 ;; Version: 0.57
 ;; Package-Requires: ((emacs "24.4") (helm "2.0"))
 
@@ -319,13 +319,15 @@ Default behaviour shows finish and result in mode-line."
            (goto-char (match-beginning 0))))))
 
 (defun helm-ag--open-file-with-temp-buffer (filename)
-  (switch-to-buffer (get-buffer-create " *helm-ag persistent*"))
-  (fundamental-mode)
-  (erase-buffer)
-  (insert-file-contents filename)
-  (let ((buffer-file-name filename))
-    (set-auto-mode)
-    (font-lock-fontify-region (point-min) (point-max))))
+  (let ((search-directory default-directory))
+    (switch-to-buffer (get-buffer-create " *helm-ag persistent*"))
+    (setq default-directory search-directory)
+    (fundamental-mode)
+    (erase-buffer)
+    (insert-file-contents filename)
+    (let ((buffer-file-name filename))
+      (set-auto-mode)
+      (font-lock-fontify-region (point-min) (point-max)))))
 
 (defsubst helm-ag--vimgrep-option ()
   (member "--vimgrep" helm-ag--last-command))
