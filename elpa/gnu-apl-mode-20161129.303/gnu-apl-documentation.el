@@ -272,9 +272,9 @@ if it is open."
         (let* ((buffer (or (when nil ; Make sure the buffer is always created
                              (get-buffer *gnu-apl-keymap-buffer-name*))
                            (gnu-apl--make-readable-keymap)))
-               (window (split-window nil (- (with-current-buffer buffer
-                                              (1+ (count-lines (point-min) (point-max))))))))
-          (set-window-buffer window buffer))))))
+               (window (split-window nil)))
+          (set-window-buffer window buffer)
+          (fit-window-to-buffer window))))))
 
 (defvar gnu-apl--function-regexp
   (regexp-opt (mapcan #'(lambda (v)
