@@ -343,6 +343,20 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
 
+(defcustom tuareg-opam-insinuate nil
+  "By default, Tuareg will use the environment that Emacs was
+launched in.  That environment may not contain an OCaml
+compiler (say, because Emacs was launched graphically and the
+path is set in ~/.bashrc) and will remain unchanged when one
+issue an \"opam switch\" in a shell.  If this variable is set to
+t, Tuareg will try to use opam to set the right environment for
+`compile', `run-ocaml' and `merlin-mode' based on the current
+opam switch at the time the command is run (provided opam is
+found).  You may also use `tuareg-opam-update-env' to set the
+environment for another compiler from within emacs (without
+changing the opam switch)."
+  :group 'tuareg :type 'boolean)
+
 (defgroup tuareg-faces nil
   "Special faces for the Tuareg mode."
   :group 'tuareg)
@@ -722,7 +736,7 @@ Regexp match data 0 points to the chars."
          (uid "\\<[A-Z][A-Za-z0-9_']*\\>")
 	 (attr-id1 "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
 	 (attr-id (concat attr-id1 "\\(?:\\." attr-id1 "\\)*"))
-	 (maybe-infix-attr (concat "\\(?:%" attr-id "\\)*"))
+	 (maybe-infix-attr (concat "\\(?:%" attr-id "\\)?")); at most 1
          ;; Matches braces balanced on max 3 levels.
          (balanced-braces
           (let ((b "\\(?:[^()]\\|(")
@@ -743,6 +757,8 @@ Regexp match data 0 points to the chars."
             (concat b b b "[^][]*" e e e)))
 	 (maybe-infix-ext
 	  (concat "\\(?:\\[@" attr-id balanced-brackets "\\]\\)*"))
+	 (maybe-infix-attr+ext
+	  (concat maybe-infix-attr maybe-infix-ext))
          (tuple (concat "(" balanced-braces ")")); much more than tuple!
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
@@ -764,9 +780,9 @@ Regexp match data 0 points to the chars."
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
                                 "reset" "every")))
-         (let-binding (concat "\\<\\(?:let" maybe-infix-attr "\\(?: +"
-			       (if (tuareg-editing-ls3) let-ls3 "rec")
-			       "\\)?\\|and\\)\\>"))
+         (let-binding (concat "\\<\\(?:let" maybe-infix-attr+ext
+			      "\\(?: +" (if (tuareg-editing-ls3) let-ls3 "rec")
+			       "\\)?\\|and\\) +"))
          ;; group of variables
          (gvars (concat "\\(\\(?:" tuareg--whitespace-re
                         "\\(?:" lid "\\|()\\|" tuple ; = any balanced (...)
@@ -785,11 +801,11 @@ Regexp match data 0 points to the chars."
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
       . tuareg-font-lock-attribute-face)
      ;; Extension nodes
-     (,(concat "\\[%%?" attr-id "\\]")
+     (,(concat "\\[%%?" attr-id balanced-brackets "\\]")
       . tuareg-font-lock-extension-node-face)
-     (,(concat "\\<" (regexp-opt '("let" "begin" "module" "val"
-				   "fun" "function"))
-	       "\\(" maybe-infix-attr "\\)")
+     (,(concat "\\(?:\\<" (regexp-opt '("let" "begin" "module" "val" "val!"
+					"fun" "function" "match"))
+	       "\\|;\\)\\(" maybe-infix-attr "\\)")
       1 tuareg-font-lock-extension-node-face)
      ;; cppo
      (,(concat "^ *#" (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
@@ -802,6 +818,7 @@ Regexp match data 0 points to the chars."
      (,(concat "( *\\(type\\) +\\(" lid "\\) *)")
       (1 font-lock-keyword-face)
       (2 font-lock-type-face))
+     ("let +exception" . tuareg-font-lock-governing-face)
      (,(regexp-opt '("module" "include" "sig" "struct" "functor"
                      "type" "constraint" "class" "in" "inherit"
                      "method" "external" "val" "open"
@@ -834,10 +851,11 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<module +type +of +\\(" module-path "\\)?")
       1 tuareg-font-lock-module-face keep t)
      ;; "!", "mutable", "virtual" treated as governing keywords
-     (,(concat "\\<\\(\\(?:val" maybe-infix-attr maybe-infix-ext
+     (,(concat "\\<\\(\\(?:val" maybe-infix-attr+ext
 	       (if (tuareg-editing-ls3) "\\|reset\\|do")
                "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
-               "\\|virtual\\(?: +mutable\\)?\\>\\)\\|val!\\)\\( *" lid "\\)?")
+               "\\|virtual\\(?: +mutable\\)?\\>\\)\\|val!"
+	       maybe-infix-attr+ext "\\)\\( *" lid "\\)?")
       (1 tuareg-font-lock-governing-face keep)
       (2 font-lock-variable-name-face nil t))
      ("\\<class\\>\\(?: +type\\>\\)?\\( +virtual\\>\\)?"
@@ -889,7 +907,7 @@ Regexp match data 0 points to the chars."
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
-     (,(concat "\\<module" maybe-infix-attr maybe-infix-ext
+     (,(concat "\\<module" maybe-infix-attr+ext
 	       "\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
      ;; (M: S) -- only color S here (may be "A.T with type t = s")
@@ -923,27 +941,27 @@ Regexp match data 0 points to the chars."
      (,(concat "`" id) . tuareg-font-lock-constructor-face)
      (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
      ;;; let-bindings
-     (,(concat let-binding " *\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
+     (,(concat let-binding "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
                "fun\\(?:ction\\)?\\>")
       (1 font-lock-function-name-face nil t)
       (2 font-lock-type-face keep t))
      (,(let* ((maybe-constr (concat "\\(?:" constructor " *\\)?"))
               (var (concat maybe-constr "\\(?:" lid "\\|" tuple "\\)"))
               (simple-patt (concat var "\\(?: *, *" var "\\)*")))
-         (concat let-binding " *\\(" simple-patt
+         (concat let-binding "\\(" simple-patt
                  "\\) *\\(?:: *\\([^=]+\\)\\)?="))
       ;; module paths, types, constructors already colored by the above
       (1 font-lock-variable-name-face keep)
       (2 font-lock-type-face keep t))
-     (,(concat let-binding " *\\(" lid "\\)" gvars "?\\(?: +:"
+     (,(concat let-binding "\\(" lid "\\)" gvars "?\\(?: +:"
                tuareg--whitespace-re "\\([a-z_]\\|[^ =][^=]*[^ =]\\) *=\\)?")
       (1 font-lock-function-name-face nil t)
       (2 font-lock-variable-name-face keep t)
       (3 font-lock-type-face keep t))
-     (,(concat "\\<function\\>" maybe-infix-attr maybe-infix-ext
+     (,(concat "\\<function\\>" maybe-infix-attr+ext
 	       tuareg--whitespace-re "\\(" lid "\\)")
       1 font-lock-variable-name-face)
-     (,(concat "\\<fun" maybe-infix-attr maybe-infix-ext " +" gvars " *->")
+     (,(concat "\\<fun" maybe-infix-attr+ext " +" gvars " *->")
       1 font-lock-variable-name-face keep nil)
      (,(concat class-gparams " *\\(" lid "\\)")
       (1 font-lock-type-face keep t)
@@ -964,7 +982,7 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<object *( *\\(" typevar "\\|_\\) *)")
       1 font-lock-type-face)
      ;; "val" without "!", "mutable" or "virtual"
-     (,(concat "\\<val" maybe-infix-attr maybe-infix-ext
+     (,(concat "\\<val" maybe-infix-attr+ext
 	       " +\\(" lid "\\)") 1 font-lock-function-name-face)
      (,(concat "\\<\\("
                (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
@@ -1005,6 +1023,7 @@ Regexp match data 0 points to the chars."
     ;;(define-key map "\M-\C-\\" 'indent-region)
     (define-key map "\C-c\C-a" 'tuareg-find-alternate-file)
     (define-key map "\C-c\C-c" 'compile)
+    (define-key map "\C-c\C-w" 'tuareg-opam-update-env)
     (define-key map "\C-xnd" 'tuareg-narrow-to-phrase)
     (define-key map "\M-\C-x" 'tuareg-eval-phrase)
     (define-key map [remap newline-and-indent] 'tuareg-newline-and-indent)
@@ -2410,8 +2429,10 @@ otherwise return non-nil."
 
 (defconst tuareg-opam-compilers
   (when (file-directory-p "~/.opam")
-    (cons "~/.opam/system"
-          (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
+    (let ((c (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
+      (if (file-directory-p "~/.opam/system")
+	  (cons "~/.opam/system" c)
+	c)))
   "The list of OPAM directories for the installed compilers.")
 
 (defvar tuareg-opam
@@ -2419,26 +2440,75 @@ otherwise return non-nil."
     (if opam opam
       (let ((opam (locate-file "bin/opam" tuareg-opam-compilers)))
         (if (and opam (file-executable-p opam)) opam)))) ; or nil
-  "The full path of the opam executable.")
+  "The full path of the opam executable or `nil' if opam wasn't found.")
 
-(when tuareg-opam
+(defun tuareg-shell-command-to-string (command)
+  "Similar to shell-command-to-string, but returns nil when the
+process return code is not 0 (shell-command-to-string returns the
+error message as a string)."
+  (let* ((return-value 0)
+         (return-string
+          (with-output-to-string
+	    (with-current-buffer standard-output
+	      (setq return-value
+		    (process-file shell-file-name nil t nil
+                                  shell-command-switch command))))))
+    (if (= return-value 0) return-string nil)))
+
+(defun tuareg-opam-config-env (&optional switch)
+  "Get the opam environment for the given switch (or the default
+switch if none is provied) and return a list of lists of the
+form (n v) where n is the name of the environment variable and v
+its value (both being strings).  If opam is not found or the
+switch is not installed, `nil' is returned."
+  (let* ((switch (if switch (concat " --switch " switch)))
+	 (get-env (concat tuareg-opam " config env --sexp" switch))
+	 (opam-env (tuareg-shell-command-to-string get-env)))
+    (if opam-env
+	(car (read-from-string opam-env)))))
+
+(defun tuareg-opam-installed-compilers ()
+  (let* ((cmd (concat tuareg-opam " switch -i -s"))
+	 (cpl (tuareg-shell-command-to-string cmd)))
+    (if cpl (split-string cpl) '())))
+
+(defun tuareg-opam-current-compiler ()
+  (let* ((cmd (concat tuareg-opam " switch show -s"))
+	 (cpl (tuareg-shell-command-to-string cmd)))
+    (when cpl
+      (replace-regexp-in-string "[ \t\n]*" "" cpl))))
+
+(defun tuareg-opam-update-env (switch)
+  "Update the environment to follow current OPAM switch configuration."
+  (interactive
+   (let* ((compl (tuareg-opam-installed-compilers))
+	  (current (tuareg-opam-current-compiler))
+	  (default (if current current "current"))
+	  (prompt (format "sopam switch (default: %s): " default)))
+     (list (completing-read prompt compl))))
+  (let* ((switch (if (string= switch "") nil switch))
+	 (env (tuareg-opam-config-env switch)))
+    (if env
+	(dolist (v env)
+	  (setenv (car v) (cadr v))
+	  (when (string= (car v) "PATH")
+	    (setq exec-path (split-string (cadr v) path-separator))))
+      (message "Switch %s does not exist (or opam not found)" switch))))
+
+
+(when (and tuareg-opam-insinuate tuareg-opam)
   (setq tuareg-interactive-program
         (concat tuareg-opam " config exec -- ocaml"))
-
-  (defun tuareg-opam-config-env()
-    (let* ((get-env (concat tuareg-opam " config env"))
-           (opam-env (shell-command-to-string get-env)))
-      (replace-regexp-in-string "; *export.*$" "" opam-env)))
 
   ;; OPAM compilation — one must update to the current compiler
   ;; before launching the compilation.
   (defadvice compile (before tuareg-compile-opam activate)
       "Run opam to update environment variables."
       (let* ((env (tuareg-opam-config-env)))
-	(set (make-local-variable 'compilation-environment)
-	     ;; Quotes MUST be removed.
-	     (split-string (replace-regexp-in-string "\"" "" env)
-                           "[\f\n\r]+" t))))
+	(when env
+	  (set (make-local-variable 'compilation-environment)
+	       (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
+		       (tuareg-opam-config-env))))))
 
   (defvar merlin-command)
   (defun merlin-command ()
@@ -2776,7 +2846,9 @@ current phrase else insert a newline and indent."
         (setq end (nth 2 pair))
         (tuareg-eval-region (nth 0 pair) (nth 1 pair))))
     (when tuareg-skip-after-eval-phrase
-      (goto-char end))))
+      (goto-char end)
+      (when (looking-at ";;[ \t\n]*")
+	(goto-char (match-end 0))))))
 
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
