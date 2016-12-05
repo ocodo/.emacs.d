@@ -3,8 +3,8 @@
 ;; Copyright (C) 2016  Peter Vasil
 
 ;; Author: Peter Vasil <mail@petervasil.net>
-;; Version: 0.1
-;; Package-Version: 20160530.1236
+;; Version: 0.2
+;; Package-Version: 20161202.1252
 ;; Package-Requires: ((emacs "24") (smex "3.0") (helm "1.7.7"))
 ;; Keywords: convenience
 
@@ -37,6 +37,15 @@
 (require 'helm)
 (require 'helm-elisp)
 (require 'helm-source)
+(require 'helm-command)
+
+(defgroup helm-smex nil
+  "Helm interface for smex"
+  :group 'helm)
+
+(defcustom helm-smex-show-bindings nil
+  "Show bindings next to the command if non-nil."
+  :type 'boolean)
 
 (defun helm-smex--init ()
   (unless smex-initialized-p
@@ -55,6 +64,10 @@
   (helm-elisp--persistent-help
    candidate 'helm-describe-function))
 
+(defun helm-smex--transformer (candidates _source)
+  "Transformer function for `helm-smex' CANDIDATES."
+  (helm-M-x-transformer-1 candidates))
+
 (defclass helm-smex-source (helm-source-sync)
   ((init :initform 'helm-smex--init)
    (candidates :initform 'smex-ido-cache)
@@ -63,7 +76,10 @@
    (coerce :initform 'intern)
    (persistent-action
     :initform helm-smex--persistent-action)
-   (persistent-help :initform "Describe command")))
+   (persistent-help :initform "Describe command")
+   (filtered-candidate-transformer
+    :initform (and helm-smex-show-bindings
+                   'helm-smex--transformer))))
 
 (defun helm-smex--major-mode-commands (mode map)
   (unless smex-initialized-p
