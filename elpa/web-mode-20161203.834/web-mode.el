@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.30
-;; Package-Version: 20161119.924
+;; Version: 14.0.31
+;; Package-Version: 20161203.834
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.30"
+(defconst web-mode-version "14.0.31"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -1653,7 +1653,7 @@ shouldn't be moved back.)")
 (defvar web-mode-javascript-font-lock-keywords
   (list
    '("@\\([[:alnum:]_]+\\)\\_>" 0 'web-mode-keyword-face)
-   (cons (concat "\\([ \t}{(]\\|^\\)\\(" web-mode-javascript-keywords "\\)\\_>") '(0 'web-mode-keyword-face))
+   (cons (concat "\\([ \t}{(]\\|^\\)\\(" web-mode-javascript-keywords "\\)\\_>") '(2 'web-mode-keyword-face))
    (cons (concat "\\_<\\(" web-mode-javascript-constants "\\)\\_>") '(0 'web-mode-constant-face))
    '("\\_<\\(new\\|instanceof\\|class\\|extends\\) \\([[:alnum:]_.]+\\)\\_>" 2 'web-mode-type-face)
    '("\\_<\\([[:alnum:]_]+\\):[ ]*function[ ]*(" 1 'web-mode-function-name-face)
@@ -5302,8 +5302,13 @@ another auto-completion with different ac-sources (e.g. ac-php)")
   ;;(if (fboundp 'font-lock-flush)
   ;;    (font-lock-flush)
   ;;  (font-lock-fontify-buffer))
-  (font-lock-flush)
-  (font-lock-ensure)
+  (if (fboundp 'font-lock-flush)
+      (progn
+        (font-lock-flush)
+        (font-lock-ensure))
+    ;;(font-lock-fontify-buffer)
+    (font-lock-fontify-region (point-min) (point-max)) ;emacs 24
+    ) ;if
   )
 
 (defun web-mode-extend-region ()
@@ -8713,12 +8718,12 @@ Prompt user if TAG-NAME isn't provided."
      ) ;cond
     ))
 
-(defun web-mode-element-rename ()
+(defun web-mode-element-rename (&optional tag-name)
   "Rename the current html element."
   (interactive)
   (save-excursion
-    (let (pos tag-name)
-      (setq tag-name (read-from-minibuffer "New tag name? "))
+    (let (pos)
+      (unless tag-name (setq tag-name (read-from-minibuffer "New tag name? ")))
       (when (and (> (length tag-name) 0)
                  (web-mode-element-beginning)
                  (looking-at "<\\([[:alnum:]]+\\(:?[-][[:alpha:]]+\\)?\\)"))
