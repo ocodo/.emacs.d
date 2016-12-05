@@ -50,9 +50,12 @@ may either be a string, as in
 
 \(which-key-add-key-based-replacements \"C-x 1\" \"maximize\")
 
-or a cons of two strings as in
+a cons of two strings as in
 
 \(which-key-add-key-based-replacements \"C-x 8\" '(\"unicode\" . \"Unicode keys\"))
+
+or a function that takes a (KEY . BINDING) cons and returns a
+replacement.
 
 In the second case, the second string is used to provide a longer
 name for the keys under a prefix.
