@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22545 29258 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-diff-backend-git-show-commit "find-file-in-project" "\
@@ -43,6 +43,11 @@ Return the root of the project.
 Save `ivy-last' into `ffip-ivy-last-saved'.  Requires `ivy-mode'.
 
 \(fn)" t nil)
+
+(autoload 'ffip-get-project-root-directory "find-file-in-project" "\
+Get the full path of project root directory.
+
+\(fn)" nil nil)
 
 (autoload 'ffip-ivy-resume "find-file-in-project" "\
 Wrapper of `ivy-resume'.  Resume the search saved at `ffip-ivy-last-saved'.
@@ -110,11 +115,6 @@ a `ffip-project-file' whose value is \".git\" by default.
 You can override this by setting the variable `ffip-project-root'.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
-
-(autoload 'ffip-get-project-root-directory "find-file-in-project" "\
-Get the full path of project root directory.
-
-\(fn)" nil nil)
 
 (autoload 'find-file-in-current-directory "find-file-in-project" "\
 Like `find-file-in-project'.  But search only in current directory.
@@ -187,6 +187,8 @@ NUM is the index selected backend from `ffip-diff-backends'.
 NUM is zero based.  Its default value is zero.
 
 \(fn &optional NUM)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-file-in-project" '("ffip-")))
 
 ;;;***
 
