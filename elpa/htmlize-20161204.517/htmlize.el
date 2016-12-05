@@ -1,11 +1,11 @@
-;;; htmlize.el --- Convert buffer text and decorations to HTML.
+;;; htmlize.el --- Convert buffer text and decorations to HTML. -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-2003,2005,2006,2009,2011,2012 Hrvoje Niksic
+;; Copyright (C) 1997-2003,2005,2006,2009,2011,2012,2014 Hrvoje Niksic
 
-;; Author: Hrvoje Niksic <hniksic@xemacs.org>
+;; Author: Hrvoje Niksic <hniksic@gmail.com>
 ;; Keywords: hypermedia, extensions
-;; Version: 20130207.2102
-;; X-Original-Version: 1.47
+;; Package-Version: 20161204.517
+;; Version: 1.49
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This package converts the buffer text and the associated
-;; decorations to HTML.  Mail to <hniksic@xemacs.org> to discuss
+;; decorations to HTML.  Mail to <hniksic@gmail.com> to discuss
 ;; features and additions.  All suggestions are more than welcome.
 
 ;; To use it, just switch to the buffer you want HTML-ized and type
@@ -66,18 +66,10 @@
 ;; with using the full power of the CL extensions, except that one
 ;; might learn to like them too much.
 
-;; The latest version is available as a git repository at:
+;; The latest version is available at:
 ;;
-;;        <http://fly.srk.fer.hr/~hniksic/emacs/htmlize.git>
+;;        <https://github.com/hniksic/emacs-htmlize>
 ;;
-;; The snapshot of the latest release can be obtained at:
-;;
-;;        <http://fly.srk.fer.hr/~hniksic/emacs/htmlize.el.cgi>
-;;
-;; You can find a sample of htmlize's output (possibly generated with
-;; an older version) at:
-;;
-;;        <http://fly.srk.fer.hr/~hniksic/emacs/htmlize.el.html>
 
 ;; Thanks go to the many people who have sent reports and contributed
 ;; comments, suggestions, and fixes.  They include Ron Gut, Bob
@@ -100,7 +92,7 @@
   (defvar font-lock-support-mode)
   (defvar global-font-lock-mode))
 
-(defconst htmlize-version "1.47")
+(defconst htmlize-version "1.48")
 
 (defgroup htmlize nil
   "Convert buffer text and faces to HTML."
@@ -152,7 +144,9 @@ embedded in the HTML as data URIs."
 Normally when htmlize encounters text covered by the `display' property
 that specifies an image, it generates an `alt' attribute containing the
 original text.  If the text is larger than `htmlize-max-alt-text' characters,
-this will not be done.")
+this will not be done."
+  :type 'integer
+  :group 'htmlize)
 
 (defcustom htmlize-transform-image 'htmlize-default-transform-image
   "Function called to modify the image descriptor.
@@ -1927,7 +1921,6 @@ corresponding source file."
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not cl-functions lexical unresolved obsolete)
-;; lexical-binding: t
 ;; End:
 
 ;;; htmlize.el ends here
