@@ -9,7 +9,7 @@
 ;;               Dan McKinley
 ;;               Marcelo Muñoz Araya <ma.munoz.araya@gmail.com>
 ;; Version: 1.3.2
-;; Package-Version: 20161125.2029
+;; Package-Version: 20161127.855
 ;; Package-Requires: ((emacs "24.1") (gh "0.9.2"))
 ;; Keywords: tools
 ;; Homepage: https://github.com/defunkt/gist.el
@@ -473,6 +473,7 @@ for the gist."
     (let* ((old-descr (oref gist :description))
            (new-descr (read-from-minibuffer "Description: " old-descr))
            (g (clone gist
+                     :files nil
                      :description new-descr))
            (resp (gh-gist-edit api g)))
       (gh-url-add-response-callback resp
