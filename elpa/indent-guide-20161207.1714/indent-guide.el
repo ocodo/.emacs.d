@@ -18,7 +18,7 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20160913.1754
+;; Package-Version: 20161207.1714
 ;; Version: 2.3.0
 
 ;;; Commentary:
@@ -93,7 +93,8 @@
     special-mode
     dired-mode
     eww-mode
-    eshell-mode)
+    eshell-mode
+    Custom-mode)
   "List of major-modes in which indent-guide should be turned off."
   :type '(repeat symbol)
   :group 'indent-guide)

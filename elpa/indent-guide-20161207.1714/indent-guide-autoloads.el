@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "indent-guide" "indent-guide.el" (22507 31477
-;;;;;;  57228 466000))
+;;;### (autoloads nil "indent-guide" "indent-guide.el" (22613 12859
+;;;;;;  120682 309000))
 ;;; Generated autoloads from indent-guide.el
 
 (autoload 'indent-guide-mode "indent-guide" "\
