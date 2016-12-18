@@ -57,6 +57,7 @@
       (ample/yellow "#baba36")
       (ample/bright-yellow "#fffe0a")
       (ample/purple "#ab75c3")
+      (ample/light-gray "#858585")
       (ample/gray "#757575")
       (ample/dark-gray "#656565")
       (ample/darker-gray "#454545")
@@ -90,6 +91,7 @@
    `(fringe  ((t (:background ,ample/fringe))))
    `(link    ((t (:foreground ,ample/lighter-blue :underline t))))
    `(region  ((t (:background ,ample/region))))
+   `(shadow  ((t (:foreground ,ample/light-gray))))
 
    ;; standard font lock
    `(font-lock-builtin-face		((t (:foreground ,ample/light-blue))))
@@ -133,9 +135,11 @@
    `(ace-jump-face-foreground ((t (:foreground ,ample/orange))))
 
    `(avy-background-face  ((t (:foreground ,ample/dark-gray :background nil))))
+   `(avy-goto-char-timer-face ((t (:foreground ,ample/fg :background ,ample/dark-green))))
    `(avy-lead-face  ((t (:foreground ,ample/fg :background ,ample/dark-red))))
    `(avy-lead-face-0  ((t (:foreground ,ample/fg :background ,ample/blue))))
    `(avy-lead-face-1  ((t (:foreground ,ample/bg :background ,ample/fg))))
+   `(avy-lead-face-2  ((t (:foreground ,ample/fg :background ,ample/purple))))
 
    `(vertical-border ((t (:background ,ample/darker-gray :foreground ,ample/darkest-gray))))
 
@@ -160,6 +164,18 @@
 
    ;; shell
    `(comint-highlight-prompt ((t (:foreground ,ample/green))))
+
+   ;; term
+   `(term-color-black ((t (:foreground ,ample/darkest-gray :background ,ample/darkest-gray))))
+   `(term-color-red ((t (:foreground ,ample/red :background ,ample/red))))
+   `(term-color-green ((t (:foreground ,ample/green :background ,ample/green))))
+   `(term-color-yellow ((t (:foreground ,ample/yellow :background ,ample/yellow))))
+   `(term-color-blue ((t (:foreground ,ample/blue :background ,ample/blue))))
+   `(term-color-magenta ((t (:foreground ,ample/purple :background ,ample/purple))))
+   `(term-color-cyan ((t (:foreground ,ample/lighter-blue :background ,ample/lighter-blue))))
+   `(term-color-white ((t (:foreground ,ample/fg :background ,ample/fg))))
+   `(term-default-fg-color ((t (:inherit ample/fg))))
+   `(term-default-bg-color ((t (:inherit ample/bg))))
 
    ;; erc
    `(erc-nick-default-face ((t (:foreground ,ample/blue))))
@@ -261,13 +277,14 @@
    ;; helm
    `(helm-M-x-key			((t (:foreground ,ample/orange :underline nil))))
    ;;`(helm-action			((t ())))
-   ;;`(helm-bookmark-addressbook	((t ())))
+   `(helm-bookmark-addressbook		((t (:foreground ,ample/red))))
    ;;`(helm-bookmark-directory		((t ())))
-   ;;`(helm-bookmark-file		((t ())))
-   ;;`(helm-bookmark-gnus		((t ())))
-   ;;`(helm-bookmark-info		((t ())))
-   ;;`(helm-bookmark-man		((t ())))
-   ;;`(helm-bookmark-w3m		((t ())))
+   `(helm-bookmark-file			((t (:foreground ,ample/lighter-blue))))
+   `(helm-bookmark-gnus			((t (:foreground ,ample/purple))))
+   `(helm-bookmark-info			((t (:foreground ,ample/green))))
+   `(helm-bookmark-man			((t (:foreground ,ample/orange))))
+   `(helm-bookmark-w3m			((t (:foreground ,ample/yellow))))
+   `(helm-buffer-directory		((t (:foreground ,ample/green))))
    ;;`(helm-buffer-not-saved		((t ())))
    ;;`(helm-buffer-process		((t ())))
    ;;`(helm-buffer-saved-out		((t ())))
@@ -280,9 +297,9 @@
    `(helm-ff-prefix			((t (:foreground ,ample/red))))
    ;;`(helm-ff-symlink			((t ())))
    ;;`(helm-grep-cmd-line		((t ())))
-   ;;`(helm-grep-file			((t ())))
-   ;;`(helm-grep-finish			((t ())))
-   ;;`(helm-grep-lineno			((t ())))
+   `(helm-grep-file			((t (:foreground ,ample/purple :underline t))))
+   `(helm-grep-finish			((t (:foreground ,ample/green))))
+   `(helm-grep-lineno			((t (:inherit compilation-line-number))))
    ;;`(helm-grep-match			((t ())))
    ;;`(helm-grep-running		((t ())))
    `(helm-header			((t (:foreground ,ample/bg :background ,ample/fg))))
@@ -291,9 +308,11 @@
    ;;`(helm-history-remote		((t ())))
    ;;`(helm-lisp-completion-info	((t ())))
    ;;`(helm-lisp-show-completion	((t ())))
+   `(helm-locate-finish			((t (:foreground ,ample/green))))
    `(helm-match				((t (:foreground ,ample/blue :background ,ample/darkest-gray))))
-   ;;`(helm-moccur-buffer		((t ())))
+   `(helm-moccur-buffer			((t (:inherit compilation-info))))
    `(helm-selection			((t (:foreground ,ample/yellow :background ,ample/region :bold t))))
+   `(helm-prefarg			((t (:foreground ,ample/green :bold t))))
    ;;`(helm-selection-line		((t ())))
    ;;`(helm-separator			((t ())))
    `(helm-source-header			((t (:foreground ,ample/darkest-gray :background ,ample/blue))))
@@ -626,7 +645,12 @@
    `(magit-diff-file-heading-selection ((t (:foreground ,ample/lighter-blue :inherit magit-diff-file-heading-highlight))))
    `(magit-diff-hunk-heading-selection ((t (:foreground ,ample/lighter-blue :inherit magit-diff-hunk-heading-highlight))))
    `(magit-diff-lines-heading          ((t (:background ,ample/light-blue :foreground ,ample/bg))))
+   `(magit-diffstat-added              ((t (:background nil :foreground ,ample/green))))
+   `(magit-diffstat-removed            ((t (:background nil :foreground ,ample/red))))
 
+   `(magit-bisect-bad                  ((t (:foreground ,ample/red))))
+   `(magit-bisect-good                 ((t (:foreground ,ample/green))))
+   `(magit-bisect-skip                 ((t (:foreground ,ample/orange))))
    `(magit-blame-date                  ((t (:foreground ,ample/purple :background "grey25"))))
    `(magit-blame-hash                  ((t (:foreground ,ample/purple :background "grey25"))))
    `(magit-blame-heading               ((t (:foreground ,ample/blue :background "grey25"))))
@@ -634,11 +658,35 @@
    `(magit-blame-summary               ((t (:foreground ,ample/blue :background "grey25"))))
 
    `(magit-popup-argument              ((t (:foreground ,ample/red :inherit font-lock-warning-face))))
+   `(magit-process-ng                  ((t (:foreground ,ample/red :bold t))))
+   `(magit-process-ok                  ((t (:foreground ,ample/green))))
+
+   `(magit-reflog-amend                ((t (:foreground ,ample/orange))))
+   `(magit-reflog-checkout             ((t (:foreground ,ample/blue))))
+   `(magit-reflog-cherry-pick          ((t (:foreground ,ample/green))))
+   `(magit-reflog-commit               ((t (:foreground ,ample/green))))
+   `(magit-reflog-merge                ((t (:foreground ,ample/green))))
+   `(magit-reflog-other                ((t (:foreground ,ample/light-blue))))
+   `(magit-reflog-rebase               ((t (:foreground ,ample/orange))))
+   `(magit-reflog-remote               ((t (:foreground ,ample/light-blue))))
+   `(magit-reflog-reset                ((t (:foreground ,ample/red))))
+
+   `(magit-sequence-head               ((t (:foreground ,ample/light-blue))))
+   `(magit-sequence-part               ((t (:foreground ,ample/orange))))
+   `(magit-sequence-stop               ((t (:foreground ,ample/green))))
+
+   ;;`(magit-signature-bad             ((t (:foreground "red" :bold t))))
+   `(magit-signature-error             ((t (:foreground ,ample/red))))
+   ;;`(magit-signature-expired         ((t (:foreground "orange"))))
+   ;;`(magit-signature-expired-key     ((t (:inherit magit-signature-expired))))
+   `(magit-signature-good              ((t (:foreground ,ample/green))))
+   `(magit-signature-revoked           ((t (:foreground ,ample/purple))))
+   `(magit-signature-untrusted         ((t (:foreground ,ample/light-blue))))
 
    ;; old
    `(magit-branch				((t (:foreground ,ample/orange :background nil))))
-   ;;`(magit-cherry-equivalent			((t (:foreground "cyan" :background nil))))
-   ;;`(magit-cherry-unmatched			((t (:foreground "magenta" :background nil))))
+   `(magit-cherry-equivalent			((t (:foreground ,ample/green :background nil))))
+   `(magit-cherry-unmatched			((t (:foreground ,ample/light-blue :background nil))))
    `(magit-diff-add				((t (:foreground nil :background ,ample/dark-green))))
    `(magit-diff-del				((t (:foreground nil :background ,ample/dark-red))))
    `(magit-diff-file-header			((t (:foreground ,ample/bg :background ,ample/blue :bold t))))
@@ -657,7 +705,7 @@
    ;;`(magit-key-mode-switch-face		((t (:foreground "red" :background nil :bold t))))
    `(magit-log-author				((t (:foreground ,ample/red :background nil))))
    `(magit-log-author-date-cutoff		((t (:foreground ,ample/red :background nil :bold t))))
-   `(magit-log-date				((t (:foreground nil :background nil))))
+   `(magit-log-date				((t (:foreground ,ample/blue :background nil))))
    `(magit-log-graph				((t (:foreground "grey80" :background nil))))
    ;;`(magit-log-head-label-bisect-bad		((t (:foreground "IndianRed4" :background "IndianRed1"))))
    ;;`(magit-log-head-label-bisect-good		((t (:foreground "dark olive green" :background "light green"))))
@@ -713,6 +761,9 @@
    ;;`(font-latex-superscript-face        ((t (:height 0.8))))
    `(font-latex-verbatim-face             ((t (:foreground ,ample/tan))))
    `(font-latex-warning-face              ((t (:inherit font-lock-warning-face))))
+   `(TeX-error-description-error          ((t (:inherit error :bold t))))
+   `(TeX-error-description-tex-said       ((t (:foreground ,ample/lighter-blue))))
+   `(TeX-error-description-warning        ((t (:foreground ,ample/orange :bold t))))
 
    ;; guide-key
    `(guide-key/prefix-command-face    ((t (:foreground ,ample/green))))
