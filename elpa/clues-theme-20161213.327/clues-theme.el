@@ -1,12 +1,17 @@
 ;;; clues-theme.el --- an Emacs 24 theme which may well be fully awesome...
 ;;
 ;; Author: Jason Milkins <jasonm23@gmail.com>
-;; Url: https://github.com/jasonm23/emacs-clues-theme
-;; Version: 20140922.2056
-;; X-Original-Version: 20140923.1012
+;; Url: https://github.com/emacsfodder/emacs-clues-theme
+;; Package-Version: 20161213.327
+;; Version: 1.0.1
 ;; Package-Requires: ((emacs "24.0"))
 ;;
-;;; Changelog :
+;;; Changelog
+;;
+;; 1.0.1 - Source URL fixed
+;;
+;; 1.0.0 - tagged for Debian.
+;;
 ;; 20140923.1012: Remove change to linum height, fix rainbow delimiters faces settings.
 ;;
 ;; 20140922.1722: Add highlight-indentation-mode support
