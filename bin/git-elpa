@@ -120,7 +120,7 @@ class GitElpa
   def updated_packages
     package_name = Regexp.new('^(.*)-.*?$')
     updatable = updatable_files_from_git_status.map { |name| name[8..name.length] }
-    updated_names = updatable.map { |u| package_name.match(u).to_a[1] rescue nil }.sort.uniq
+    updated_names = updatable.map { |u| package_name.match(u).to_a[1] rescue nil }.uniq.compact.sort
     abort if updated_names.empty?
     updated_names
   end
