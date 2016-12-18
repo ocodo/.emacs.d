@@ -291,7 +291,7 @@
 	     ((:url . "http://elpa.gnu.org/packages/ediprolog.html")
 	      (:keywords "languages" "processes"))])
  (el-search .
-	    [(1 1 2)
+	    [(1 2)
 	     ((emacs
 	       (25))
 	      (stream
@@ -472,6 +472,13 @@
 	    "Improved JavaScript editing mode" tar
 	    ((:keywords "languages" "javascript")
 	     (:url . "https://github.com/mooz/js2-mode/"))])
+ (json-mode .
+	    [(0 1)
+	     ((emacs
+	       (25 1)))
+	     "Major mode for editing JSON files" single
+	     ((:url . "http://elpa.gnu.org/packages/json-mode.html")
+	      (:keywords "data"))])
  (jumpc .
 	[(3 0)
 	 nil "jump to previous insertion points" single
@@ -638,7 +645,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20161118)
+      [(20161214)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
