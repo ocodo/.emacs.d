@@ -1,10 +1,10 @@
 ;;; bind-map-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "bind-map" "bind-map.el" (22366 21737 452575
-;;;;;;  266000))
+;;;### (autoloads nil "bind-map" "bind-map.el" (22613 6926 653184
+;;;;;;  953000))
 ;;; Generated autoloads from bind-map.el
 
 (autoload 'bind-map "bind-map" "\
@@ -94,7 +94,7 @@ and :evil-states. All others must be declared explicitly.
 
 \(fn MAP PARENT &rest ARGS)" nil t)
 
-(put 'bind-map-for-mode-inherit 'lisp-indent-function '2)
+(function-put 'bind-map-for-mode-inherit 'lisp-indent-function '2)
 
 (autoload 'bind-map-for-major-mode "bind-map" "\
 Short version of `bind-map' if you want to bind a map for a

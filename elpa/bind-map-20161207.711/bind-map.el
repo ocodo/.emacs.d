@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-bind-map
-;; Package-Version: 20160606.1343
+;; Package-Version: 20161207.711
 ;; Version: 1.1.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -110,20 +110,24 @@
 
 (defcustom bind-map-default-keys nil
   "Default for :keys when unspecified."
-  :group 'bind-map)
+  :group 'bind-map
+  :type  '(repeat string))
 
 (defcustom bind-map-default-evil-states '(normal motion visual)
   "Default states for evil bindings."
-  :group 'bind-map)
+  :group 'bind-map
+  :type  '(repeat symbol))
 
 (defcustom bind-map-default-evil-keys nil
   "Default for :evil-keys when unspecified."
-  :group 'bind-map)
+  :group 'bind-map
+  :type  '(repeat string))
 
 (defcustom bind-map-default-map-suffix "-bm-map"
   "Default suffix to use for `bind-map-for-major-mode' and
 `bind-map-for-minor-mode'."
-  :group 'bind-map)
+  :group 'bind-map
+  :type  'string)
 
 (defvar bind-map-evil-local-bindings '()
   "Each element takes the form (OVERRIDE-MODE STATE KEY DEF) and
