@@ -6,7 +6,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.4
-;; Package-Version: 20161118.1715
+;; Package-Version: 20161205.549
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.3") (s "1.11.0") (dash "2.12.0") (list-utils "0.4.4") (loop "1.2"))
 
@@ -158,6 +158,7 @@ If VALUE is a list or vector, show each list item along with its
 index."
   (cond
    ((vectorp value)
+    ;; TODO: this prints 'nil' for empty vectors
     (refine--format-with-index (refine--vector->list value)))
 
    ((null value)
