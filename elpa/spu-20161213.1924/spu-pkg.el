@@ -1,4 +1,4 @@
-(define-package "spu" "20160515.157" "Silently upgrade package in the background"
+(define-package "spu" "20161213.1924" "Silently upgrade package in the background"
   '((emacs "24.4")
     (signal "1.0")
     (timp "1.2.0"))

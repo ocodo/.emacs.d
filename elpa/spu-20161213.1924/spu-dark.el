@@ -161,7 +161,10 @@ packages marked for deletion are removed."
    (when (>= (length files) spu-max-log-number)
      (dotimes (_var (- (length files) (/ spu-max-log-number 2)))
        (delete-file (car files))
-       (setq files (cdr files))))))
+       (setq files (cdr files)))))
+  ;; Forbid async operations in package-menu, since Emacs 25.1
+  (when (bound-and-true-p package-menu-async)
+    (setq package-menu-async nil)))
 
 (provide 'spu-dark)
 ;;; spu-dark.el ends here
