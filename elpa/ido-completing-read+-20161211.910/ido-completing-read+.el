@@ -6,7 +6,7 @@
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
 ;; Version: 3.15
-;; Package-Version: 20160623.815
+;; Package-Version: 20161211.910
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
@@ -303,7 +303,7 @@ sets up C-j to be equivalent to TAB in the same situation."
        (not (member ido-text (with-no-warnings ido-cur-list))))
       (progn
         (ido-cr+--debug-message
-         "Overriding C-j behavior for require-match: performing completion instead of exiting.")
+         "Overriding C-j behavior for require-match: performing completion instead of exiting with current text. (This might still exit with a match if `ido-confirm-unique-completion' is nil)")
         (ido-complete))
     ad-do-it))
 
