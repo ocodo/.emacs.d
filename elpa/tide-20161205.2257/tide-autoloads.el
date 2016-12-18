@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "tide" "tide.el" (0 0 0 0))
+;;;### (autoloads nil "tide" "tide.el" (22613 12753 977628 676000))
 ;;; Generated autoloads from tide.el
 
 (autoload 'company-tide "tide" "\
@@ -55,11 +55,9 @@ timeout.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tide" '("tide-")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("tide-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("tide-pkg.el") (22613 12753 741621 816000))
 
 ;;;***
 
