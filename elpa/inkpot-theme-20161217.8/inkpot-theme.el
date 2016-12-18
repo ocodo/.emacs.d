@@ -1,47 +1,80 @@
-;;; inkpot-theme.el --- port of vim's inkpot theme 
+;;; inkpot-theme.el --- port of vim's inkpot theme
 
 ;; Author: Sarah Iovan <sarah@hwaetageek.com>
-;; URL: http://github.com/siovan/emacs24-inkpot.git
-;; Package-Version: 20120505.708
+;;         Campbell Barton <ideasman42@gmail.com>
+;; URL: http://github.com/ideasman42/emacs24-inkpot.git
+;; Package-Version: 20161217.8
 ;; Version: 0.1
+;; Keywords: color, theme
 
-; This file is based on Per Vognsen's port of the original vim theme. The original emacs color-theme version is found at http://www.emacswiki.org/emacs/ColorThemeInkpot. 
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-(deftheme inkpot)
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+;; This file is not part of Emacs.
+
+;;; Commentary:
+
+;; This file is based on Per Vognsen's port of the original vim theme.
+;; The original emacs color-theme version is found at http://www.emacswiki.org/emacs/ColorThemeInkpot.
+
+;;; Code:
+
+(deftheme inkpot "Dark color scheme with bright easily identifiable colors.")
 
 (custom-theme-set-faces
-  'inkpot 
+  'inkpot
         '(default ((t (:background "#1e1e27" :foreground "#cfbfad"))))
         '(font-lock-builtin-face ((t (:foreground "#cfbfad"))))
-        '(region ((t (:background "#404040"))))
+        '(region ((t (:background "#4e4e8f" :foreground "#ffffff"))))
+        '(secondary-selection ((t (:foreground "#b38363" :inverse-video t)))) ; match gvim secondary selection
         '(highlight ((t (:background "#404040"))))
-        '(fringe ((t (:background "#1e1e27" :foreground "#cfbfad"))))
-	'(cursor ((t (:background "#708090" :foreground "#cfdfef"))))
-        '(show-paren-match-face ((t (:background "#606060"))))
-        '(isearch ((t (:bold t :foreground "#303030" :background "#cd8b60"))))
-        '(modeline ((t (:bold t :foreground "#b9b9b9" :background "#3e3e5e"))))
-        '(modeline-inactive ((t (:foreground "#708090" :background "#3e3e5e"))))
-        '(modeline-buffer-id ((t (:bold t :foreground "#b9b9b9" :background "#3e3e5e"))))
+        '(hl-line ((t (:background "#2e2e37"))))
+        '(fringe ((t (:background "#2e2e2e" :foreground "#8b8bcd"))))
+        '(linum ((t (:background "#2e2e2e" :foreground "#8b8bcd"))))
+        '(cursor ((t (:background "#8b8bff" :foreground "#cfdfef"))))
+        '(show-paren-match-face ((t (:background "#4e4e8f"))))
+
+        ; isearch
+        ;
+        ; note: original theme doesn't show different colors here,
+        ; simply use bold for 'isearch'.
+        '(isearch ((t (:bold t :foreground "#303030" :background "#ad7b57"))))
+        '(lazy-highlight ((t  (:foreground "#303030" :background "#ad7b57"))))
+        '(isearch-fail ((t (:foreground "#ffffff" :background "#ce4e4e"))))
+
+        '(mode-line ((t (:bold t :foreground "#b9b9b9" :background "#3e3e5e"))))
+        '(mode-line-inactive ((t (:bold t :foreground "#708090" :background "#3e3e5e"))))
+        '(mode-line-buffer-id ((t (:bold t :foreground "#b9b9b9" :background "#3e3e5e"))))
         '(minibuffer-prompt ((t (:bold t :foreground "#708090"))))
         '(default-italic ((t (:italic t))))
-        '(font-lock-builtin-face ((t (:foreground "#c080d0"))))
-        '(font-lock-comment-face ((t (:foreground "#cd8b00")))) 
+        '(font-lock-builtin-face ((t (:foreground "#ff8bff"))))
+        '(font-lock-comment-face ((t (:foreground "#cd8b00"))))
         '(font-lock-comment-delimiter-face ((t (:foreground "#cd8b00"))))
-        ;'(font-lock-comment-face ((t (:foreground "#708090")))) ; alternate comment face
-        '(font-lock-constant-face ((t (:foreground "808bed"))))
-        '(font-lock-doc-face ((t (:foreground "#cd8b00"))))
-        '(font-lock-function-name-face ((t (:foreground "#87cefa"))))
-        '(font-lock-keyword-face ((t (:bold t :foreground "#c080d0"))))
+        ;'(font-lock-doc-face ((t (:foreground "#c080d0"))))
+        '(font-lock-doc-face ((t (:foreground "#808bed"))))  ; alternate comment face
+        '(font-lock-constant-face ((t (:foreground "#409090"))))
+        '(font-lock-function-name-face ((t (:foreground "#ff8bff"))))
+        '(font-lock-keyword-face ((t (:foreground "#808bed"))))
         '(font-lock-preprocessor-face ((t (:foreground "#409090"))))
         '(font-lock-reference-face ((t (:bold t :foreground "#808bed"))))
         '(font-lock-string-face ((t (:foreground "#ffcd8b" :background "#404040"))))
         '(font-lock-type-face ((t (:foreground "#ff8bff"))))
         '(font-lock-variable-name-face ((t nil)))
-        '(font-lock-warning-face ((t (:foreground "#ffffff" :background "#ff0000"))))
-	'(w3m-anchor ((t (:foreground "#c080d0"))))
-	'(info-xref ((t (:foreground "#409090")))) 
-        '(info-menu-star ((t (:foreground "#409090")))) 
-        '(message-cited-text ((t (:foreground "#cd8b00")))) 
+        '(font-lock-warning-face ((t (:foreground "#ffffff" :background "#6e2e2e"))))
+        '(w3m-anchor ((t (:foreground "#c080d0"))))
+        '(info-xref ((t (:foreground "#409090"))))
+        '(info-menu-star ((t (:foreground "#409090"))))
+        '(message-cited-text ((t (:foreground "#cd8b00"))))
         '(gnus-cite-face-1 ((t (:foreground "#708090"))))
         '(gnus-cite-face-2 ((t (:foreground "#df9f2d"))))
         '(gnus-cite-face-3 ((t (:foreground "#ad7fa8"))))
@@ -116,11 +149,29 @@
         '(org-agenda-date ((t (:foreground "#409090"))))
         '(org-agenda-date-weekend ((t (:weight normal :foreground "8b8bcd"))))
         '(org-agenda-date-today ((t (:weight bold :foreground "#cd8b00"))))
-	'(font-latex-bold-face ((t (:foreground "#cd8b00"))))
-	'(font-latex-italic-face ((t (:foreground "#808bed" :italic t))))
-	'(font-latex-string-face ((t (:foreground "#708090"))))
-	'(font-latex-match-reference-keywords ((t (:foreground "#708090"))))
-	'(font-latex-match-variable-keywords ((t (:foreground "#708090"))))
+        '(font-latex-bold-face ((t (:foreground "#cd8b00"))))
+        '(font-latex-italic-face ((t (:foreground "#808bed" :italic t))))
+        '(font-latex-string-face ((t (:foreground "#708090"))))
+        '(font-latex-match-reference-keywords ((t (:foreground "#708090"))))
+        '(font-latex-match-variable-keywords ((t (:foreground "#708090"))))
+
+        ;; Colors for popular plugins
+
+        ;; highlight-numbers (melpa)
+        '(highlight-numbers-number ((t (:foreground "#f0ad6d"))))
+
+        ;; ivy (melpa)
+        '(ivy-current-match ((t (:background "#4e4e8f" :foreground "#ffffff"))))
+        ;; highlight matching chars (same as isearch)
+        '(ivy-minibuffer-match-face-2 ((t (:background "#ad7b57" :foreground "#303030"))))
+
+        ;; helm (melpa)
+        '(helm-selection ((t (:background "#2e2e37"))))
+
+        ;; highlight-indent-guides (melpa)
+        '(highlight-indent-guides-odd-face ((t (:background "#252530"))))
+        '(highlight-indent-guides-even-face ((t (:background "#1b1b24"))))
+
 )
 ;;;###autoload
 (when load-file-name
