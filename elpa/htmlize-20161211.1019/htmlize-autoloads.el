@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "htmlize" "htmlize.el" (0 0 0 0))
+;;;### (autoloads nil "htmlize" "htmlize.el" (22613 12862 64767 734000))
 ;;; Generated autoloads from htmlize.el
 
 (autoload 'htmlize-buffer "htmlize" "\
@@ -65,8 +65,6 @@ corresponding source file.
 HTMLize dired-marked files.
 
 \(fn ARG &optional TARGET-DIRECTORY)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "htmlize" '("htmlize-")))
 
 ;;;***
 
