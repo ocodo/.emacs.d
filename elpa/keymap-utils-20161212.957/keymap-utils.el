@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Package-Requires: ((cl-lib "0.3"))
-;; Package-Version: 20160902.513
+;; Package-Version: 20161212.957
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
 
@@ -130,6 +130,17 @@ the parent keymap of any keymap a key in KEYMAP is bound to."
     (collect-parmaps (copy-keymap keymap))))
 
 ;;; Keymap Variables
+
+(defun kmu-current-local-mapvar ()
+  "Return the variable bound to the current local keymap.
+Interactively also show the variable in the echo area."
+  (interactive)
+  (let ((mapvar (kmu-keymap-variable (current-local-map))))
+    (when (called-interactively-p 'any)
+      (message (if mapvar
+                   (symbol-name mapvar)
+                 "Cannot determine current local keymap variable")))
+    mapvar))
 
 (defun kmu-keymap-variable (keymap &rest exclude)
   "Return a symbol whose value is KEYMAP.
@@ -396,16 +407,17 @@ being undefined is being bound to nil like B above."
   (define-key keymap key nil)
   (setq key (cl-mapcan (lambda (k)
                          (if (and (integerp k)
-                                  (/= (logand k ?\M-\^@) 0))
-                             (list ?\e (- k ?\M-\^@))
+                                  (/= (logand k ?\M-\0) 0))
+                             (list ?\e (- k ?\M-\0))
                            (list k)))
                        key))
   (if (= (length key) 1)
       (delete key keymap)
     (let* ((prefix (vconcat (butlast key)))
            (submap (lookup-key keymap prefix)))
-      (delete (last key) submap)
-      (when (= (length submap) 1)
+      (when (and (not (eq submap 'ESC-prefix))
+                 (= (length submap) 1))
+        (delete (last key) submap)
         (kmu-remove-key keymap prefix)))))
 
 (defmacro kmu-define-keys (mapvar feature &rest args)
@@ -473,7 +485,9 @@ indentation mechanism:
               (t
                (push `(kmu-define-key ,mapvar ,key ',def) body)))))))
     (if feature
-        `(with-eval-after-load ',feature ,@(nreverse body))
+        `(with-eval-after-load ',feature
+           (defvar ,mapvar)
+           ,@(nreverse body))
       (macroexp-progn (nreverse body)))))
 
 ;;; Keymap Mapping
@@ -603,22 +617,6 @@ bindings turn on this mode as early as possible."
 (defun kmu-vanilla-mapvar-p (mapvar)
   (equal (symbol-value mapvar)
          (assoc mapvar kmu-vanilla-keymaps)))
-
-;;; Various
-
-(defun kmu-merge-esc-into-global-map ()
-  (when (eq (lookup-key (current-global-map) [27]) 'ESC-prefix)
-    (global-set-key [27] esc-map)))
-
-(defun kmu-current-local-mapvar ()
-  "Echo the variable bound to the current local keymap."
-  (interactive)
-  (let ((mapvar (kmu-keymap-variable (current-local-map))))
-    (when (called-interactively-p 'any)
-      (message (if mapvar
-                   (symbol-name mapvar)
-                 "Cannot determine current local keymap variable")))
-    mapvar))
 
 (provide 'keymap-utils)
 ;; Local Variables:

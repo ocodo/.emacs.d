@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("keymap-utils.el") (22479 30352 644545
-;;;;;;  590000))
+;;;### (autoloads nil nil ("keymap-utils.el") (22613 12847 224337
+;;;;;;  86000))
 
 ;;;***
 
