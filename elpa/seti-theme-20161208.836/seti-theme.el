@@ -2,8 +2,8 @@
 ;;
 ;;
 ;; Author: Vlad Piersec <vlad.piersec@gmail.com>
-;; Version: 0.1
-;; Package-Version: 20161028.816
+;; Version: 0.2
+;; Package-Version: 20161208.836
 ;; Keywords: themes
 ;; URL: https://github.com/caisah/seti-theme
 ;;
@@ -26,7 +26,7 @@
 ;;
 ;;; Commentary
 ;;
-;; Dark theme inspired by Atom's Seti 
+;; Dark theme inspired by Atom's Seti
 ;;
 ;; Tries to reproduce the feel of https://github.com/jesseweed/seti-ui
 ;;; Code
@@ -40,7 +40,7 @@
       (red "#CE4045")
       (purple "#A074C4")
       (background "#151718")
-      (background-2 "#1E2326")      
+      (background-2 "#1E2326")
       (background-3 "#0D1011")
       (background-4 "#101112")
       (text "#D4D7D6")
@@ -54,7 +54,7 @@
       (light-blue "#75E5F4")
       (dark-blue "#4F99D3")
       (intense-green "#8BE03C"))
-    
+
   (custom-theme-set-faces
    'seti
 
@@ -65,7 +65,7 @@
    `(minibuffer-prompt ((t (:foreground ,dark-blue :weight bold))))
    `(region ((t (:background ,text-region))))
    `(error ((t (:foreground ,red :weight bold :underline (:color ,red :style line)))))
- 
+
    `(isearch ((t (:background ,background :foreground ,text :box (:line-width 1 :color ,dark-blue) :weight bold))))
    `(lazy-highlight ((t (:background ,background :foreground ,text-2 :box (:line-width 1 :color ,dark-blue)))))
    `(mode-line ((t (:foreground ,text :background ,background-3 :underline (:color ,dark-blue :style line)))))
@@ -155,6 +155,15 @@
    `(helm-swoop-target-line-face ((t (:background ,text-highlight))))
    `(helm-swoop-target-word-face ((t (:background ,text-highlight :foreground ,text-2))))
 
+   `(term ((t (:foreground ,text))))
+   `(term-color-black ((t (:foreground ,background))))
+   `(term-color-red ((t (:foreground ,red))))
+   `(term-color-green ((t (:foreground ,green))))
+   `(term-color-yellow ((t (:foreground ,yellow))))
+   `(term-color-blue ((t (:foreground ,blue))))
+   `(term-color-magenta ((t (:foreground ,purple))))
+   `(term-color-cyan ((t (:foreground ,blue))))
+   `(term-color-white ((t (:foreground ,text))))
 
    ;; Lines
    `(linum ((t (:foreground ,text-4  :weight light :height 0.9))))
@@ -162,14 +171,10 @@
    `(left-margin ((t (nil))))
    `(hl-line ((t (:background ,background-4)))))
 
-  
-(custom-theme-set-variables
- 'seti
- 
-  `(cursor-type 'bar)
-  `(ansi-color-names-vector [ ,background ,red ,green ,yellow ,blue ,purple ,blue ,text])
-  `(ansi-term-color-vector [unspecified ,background ,red ,green ,yellow ,blue ,purple ,blue ,text])))
- 
+
+  (custom-theme-set-variables
+   'seti
+   `(cursor-type 'bar)))
 
 ;;;###autoload
 (and load-file-name
@@ -177,6 +182,6 @@
   (add-to-list 'custom-theme-load-path
                (file-name-as-directory (file-name-directory load-file-name))))
 
-(provide-theme 'seti)
 
+(provide-theme 'seti)
 ;;; seti-theme.el ends here
