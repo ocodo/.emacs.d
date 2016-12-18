@@ -4,7 +4,7 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20161011.2319
+;; Package-Version: 20161207.141
 ;; Version: 2.3.0
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/rnkn/fountain-mode
@@ -645,7 +645,7 @@ Requires `fountain-match-paren' for preceding character or dialog.")
 ;;   "Regular expression for matching action.")
 
 (defconst fountain-page-break-regexp
-  "^[\s\t]*\\(=\\{3,\\}\\)[\s\t]*\\([a-z0-9\\.-]+\\)?.*$"
+  "^[\s\t]*\\(=\\{3,\\}\\)[\s\t]*\\([a-z0-9\\.-]+\\)?.*"
   "Regular expression for matching page breaks.")
 
 (defconst fountain-script-end-regexp
@@ -2604,7 +2604,6 @@ calculated."
   (fountain-export-buffer 'fountain))
 
 
-
 ;;; Outlining
 
 (require 'outline)
@@ -2974,6 +2973,103 @@ halt at end of dialog."
   (interactive "^p")
   (setq n (or n 1))
   (fountain-forward-character (- n)))
+
+
+;;; Endnotes
+
+(defgroup fountain-endnotes ()
+  "Options for displaying endnotes.
+
+Fountain endnotes are kept at the end of a script following an
+endotes page break, defined as three or more \"=\" and the word
+\"end\" (case-insensitive).
+
+    === end [===]
+
+The endnotes section is a good place to keep extensive notes or
+scenes you want to move out of the script, but still wish to
+reference. Endnotes are not exported.
+
+WARNING: if using other Fountain apps, check to make sure they
+support endnotes."
+  :group 'fountain)
+
+(defcustom fountain-endnotes-buffer-name
+  "%s<endnotes>"
+  "Name of buffer in which to display file endnotes.
+`%s' is replaced with `buffer-name'.
+
+To hide this buffer from the buffer list, prefix with a space."
+  :type 'string
+  :group 'fountain-endnotes)
+
+(defcustom fountain-endnotes-select-window
+  nil
+  "If non-nil, switch to endnotes window upon displaying it."
+  :type 'boolean
+  :group 'fountain-endnotes)
+
+(defcustom fountain-endnotes-window-side
+  'right
+  "Preferred side of frame to display endnotes window."
+  :type '(choice (const :tag "Left" left)
+                 (const :tag "Right" right)
+                 (const :tag "Top" top)
+                 (const :tag "Bottom" bottom))
+  :group 'fountain-endnotes)
+
+(defcustom fountain-endnotes-window-size
+  '(0.4 0.25)
+  "Height and width of the endnotes window as a fraction of root window."
+  :type '(list (float :tag "Height")
+               (float :tag "Width"))
+  :group 'fountain-endnotes)
+
+;; (defcustom fountain-endnotes-display-function
+;;   'display-buffer-pop-up-window
+;;   "Buffer display function used to display endnotes."
+;;   :type '(radio (const :tag "Pop-up new window" display-buffer-pop-up-window)
+;;                 (const :tag "Pop-up new frame" display-buffer-pop-up-frame)
+;;                 (const :tag "Show in same window" display-buffer-same-window))
+;;   :group 'fountain-endnotes)
+
+(defun fountain-show-or-hide-endnotes ()
+  "Pop up a window containing endnotes of current buffer.
+
+Display a window containing an indirect clone of the current
+buffer, narrowed to the first endnotes page break to the end of
+buffer.
+
+The window displayed is a special \"side\" window, which will
+persist even when calling \\[delete-other-windows]."
+  (interactive)
+  (set-buffer (or (buffer-base-buffer) (current-buffer)))
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      (let ((beg (if (re-search-forward fountain-script-end-regexp nil t)
+                     (point)))
+            (src (current-buffer))
+            (buf (format fountain-endnotes-buffer-name (buffer-name))))
+        (if beg
+            (if (get-buffer-window buf (selected-frame))
+                (delete-windows-on buf (selected-frame))
+              (display-buffer-in-side-window
+               (or (get-buffer buf)
+                   (make-indirect-buffer src buf t))
+               (list (cons 'inhibit-same-window t)
+                     (cons 'side fountain-endnotes-window-side)
+                     (cons 'window-height (car fountain-endnotes-window-size))
+                     (cons 'window-width (cadr fountain-endnotes-window-size))))
+              (with-current-buffer buf
+                (narrow-to-region (1+ beg) (point-max)))
+              (if fountain-endnotes-select-window
+                  (select-window (get-buffer-window buf (selected-frame))))
+              (message "Showing `%s' endnotes; %s to hide" src
+                       (key-description (where-is-internal this-command
+                                                           overriding-local-map t))))
+          (user-error "Buffer `%s' does not contain endnotes" (buffer-name)))))))
 
 
 ;;; Editing
@@ -3379,13 +3475,13 @@ scene number from being auto-upcased.."
 
 (defvar fountain-font-lock-keywords-plist
   (backquote
-   (;; Section Heading
+   (;; Section Headings
     (,fountain-section-heading-regexp
      ((:level 2 :subexp 0 :face fountain-section-heading
               :invisible section-heading)
       (:level 2 :subexp 2 :face fountain-non-printing
               :override t))
-     ,fountain-align-scene-heading)
+     fountain-align-scene-heading)
     ;; Scene Headings
     ((lambda (limit)
        (fountain-match-element 'fountain-match-scene-heading limit))
@@ -3408,7 +3504,7 @@ scene number from being auto-upcased.."
               :invisible fountain-syntax-chars
               :override append
               :laxmatch t))
-     ,fountain-align-scene-heading)
+     fountain-align-scene-heading)
     ;; Character
     ((lambda (limit)
        (fountain-match-element 'fountain-match-character limit))
@@ -3420,19 +3516,19 @@ scene number from being auto-upcased.."
       (:level 3 :subexp 5 :face highlight
               :override append
               :laxmatch t))
-     ,fountain-align-character)
+     fountain-align-character)
     ;; Parenthetical
     ((lambda (limit)
        (fountain-match-element 'fountain-match-paren limit))
      ((:level 3 :subexp 0 :face fountain-paren
               :invisible paren))
-     ,fountain-align-paren)
+     fountain-align-paren)
     ;; Dialog
     ((lambda (limit)
        (fountain-match-element 'fountain-match-dialog limit))
      ((:level 3 :subexp 0 :face fountain-dialog
               :invisible lines))
-     ,fountain-align-dialog)
+     fountain-align-dialog)
     ;; Transition
     ((lambda (limit)
        (fountain-match-element 'fountain-match-trans limit))
@@ -3442,7 +3538,7 @@ scene number from being auto-upcased.."
               :invisible fountain-syntax-chars
               :override t
               :laxmatch t))
-     ,fountain-align-trans)
+     fountain-align-trans)
     ;; Center text
     (,fountain-center-regexp
      ((:level 2 :subexp 2 :face fountain-comment
@@ -3453,7 +3549,7 @@ scene number from being auto-upcased.."
       (:level 2 :subexp 4 :face fountain-comment
               :invisible fountain-syntax-chars
               :override t))
-     ,fountain-align-center)
+     fountain-align-center)
     ;; Page-break
     (,fountain-page-break-regexp
      ((:level 2 :subexp 0 :face fountain-page-break
@@ -3468,7 +3564,7 @@ scene number from being auto-upcased.."
       (:level 2 :subexp 2 :face fountain-comment
               :invisible fountain-syntax-chars
               :override t))
-     ,fountain-align-synopsis)
+     fountain-align-synopsis)
     ;; Notes
     (,fountain-note-regexp
      ((:level 2 :subexp 0 :face fountain-note
@@ -3491,7 +3587,7 @@ scene number from being auto-upcased.."
               :invisible fountain-syntax-chars
               :override t
               :laxmatch t))
-     ,fountain-align-action)
+     fountain-align-action)
     ;; Non-breaking space
     (,fountain-nbsp-regexp
      ((:level 1 :subexp 2 :face fountain-non-printing
@@ -3643,9 +3739,9 @@ keywords suitable for Font Lock."
     (dolist (var fountain-font-lock-keywords-plist keywords)
       (let ((matcher (car var))
             (plist-list (nth 1 var))
-            (align (fountain-get-align (nth 2 var)))
+            (align (fountain-get-align (symbol-value (nth 2 var))))
             align-props facespec)
-        (if (and fountain-align-elements align)
+        (if (and align fountain-align-elements)
             (setq align-props (backquote (line-prefix (space :align-to ,align)
                                           wrap-prefix (space :align-to ,align)))))
         (dolist (var plist-list)
@@ -3726,6 +3822,8 @@ keywords suitable for Font Lock."
     (define-key map (kbd "TAB") #'fountain-outline-cycle)
     (define-key map (kbd "<backtab>") #'fountain-outline-cycle-global)
     (define-key map (kbd "S-TAB") #'fountain-outline-cycle-global)
+    ;; endnotes
+    (define-key map (kbd "M-s e") #'fountain-show-or-hide-endnotes)
     ;; exporting commands
     (define-key map (kbd "C-c C-e C-e") #'fountain-export-default)
     (define-key map (kbd "C-c C-e h") #'fountain-export-buffer-to-html)
