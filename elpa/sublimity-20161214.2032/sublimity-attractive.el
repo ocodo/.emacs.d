@@ -32,6 +32,7 @@
 (defcustom sublimity-attractive-centering-width 110
   "When non-nil, buffer width is truncated to this value and
 display centered."
+  :type 'integer
   :group 'sublimity)
 
 (defun sublimity-attractive-hide-bars ()
@@ -85,6 +86,11 @@ display centered."
           (when margin
             (set-window-margins window margin margin)))))))
 
+(defun sublimity-attractive--clear-window-margins ()
+  (dolist (window (window-list))
+    (set-window-margins window 0 0)))
+
+(add-hook 'sublimity-mode-turn-off-hook 'sublimity-attractive--clear-window-margins t)
 (add-hook 'sublimity--window-change-functions 'sublimity-attractive-window-change t)
 
 ;; + provide
