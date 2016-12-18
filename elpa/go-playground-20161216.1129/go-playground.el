@@ -4,7 +4,7 @@
 
 ;; Author: Alexander I.Grafov (axel) <grafov@gmail.com>
 ;; URL: https://github.com/grafov/go-playground
-;; Package-Version: 20161203.1747
+;; Package-Version: 20161216.1129
 ;; Keywords: tools, golang
 ;; Package-Requires: ((emacs "24") (go-mode "1.0.0") (gotest "0.40.0"))
 
@@ -44,16 +44,23 @@
 (require 'compile)
 (require 'time-stamp)
 
-(defcustom go-playground-ask-for-file-name nil
+(defgroup go-playground nil
+  "Options specific to Go Playground."
+  :group 'go)
+
+(defcustom go-playground-ask-file-name nil
   "Non-nil means we ask for a name for the snippet.
 
 By default it will be created as snippet.go"
   :type 'boolean
   :group 'go-playground)
 
-(defgroup go-playground nil
-  "Options specific to Go Playground."
-  :group 'go)
+(defcustom go-playground-confirm-deletion t
+  "Non-nil means you will be asked for confirmation on the snippet deletion with `go-playground-rm'.
+
+By default confirmation required."
+  :type 'boolean
+  :group 'go-playground)
 
 (defcustom go-playground-basedir "~/go/src/playground"
   "Base directory for playground snippets.  Better to set it under GOPATH."
@@ -68,7 +75,7 @@ By default it will be created as snippet.go"
 
 (defun go-playground-snippet-file-name(&optional snippet-name)
   (let ((file-name (cond (snippet-name)
-                         (go-playground-ask-for-file-name
+                         (go-playground-ask-file-name
                           (read-string "Go Playground filename: "))
                          ("snippet"))))
     (concat (go-playground-snippet-unique-dir file-name) "/" file-name ".go")))
@@ -126,7 +133,7 @@ func main() {
 
 // === Go Playground ===
 // Execute the snippet with Ctl-Return
-// Remove this snippet completely with M-x `go-playground-rm`
+// Remove the snippet completely with its dir and all files M-x `go-playground-rm`
 
 "))
 
@@ -134,9 +141,16 @@ func main() {
 (defun go-playground-rm ()  
   "Remove files of the current snippet together with directory of this snippet."
   (interactive)
-  (save-buffer)
-  (delete-directory (file-name-directory (buffer-file-name)) t t)
-  (kill-buffer))
+  (if (string-match-p (file-truename go-playground-basedir) (file-truename (buffer-file-name)))
+      (if (or (not go-playground-confirm-deletion)
+	       (y-or-n-p (format "Do you want delete whole snippet dir %s? "
+				 (file-name-directory (buffer-file-name)))))
+		  (progn
+			(save-buffer)
+			(delete-directory (file-name-directory (buffer-file-name)) t t)
+			(kill-buffer)))
+	(message "Won't delete this! Because %s is not under the path %s. Remove the snippet manually!"
+			 (buffer-file-name) go-playground-basedir)))
 
 ;;;###autoload
 (defun go-playground-remove-current-snippet ()
@@ -175,7 +189,7 @@ Tries to look for a URL at point."
 (defun go-playground-snippet-unique-dir (prefix)
   "Get unique directory under GOPATH/`go-playground-basedir`."
   (let ((dir-name (concat go-playground-basedir "/"
-                          (if (and prefix go-playground-ask-for-file-name) (concat prefix "-"))
+                          (if (and prefix go-playground-ask-file-name) (concat prefix "-"))
                           (time-stamp-string "at-%:y-%02m-%02d-%02H%02M%02S"))))
     (make-directory dir-name t)
     dir-name))
