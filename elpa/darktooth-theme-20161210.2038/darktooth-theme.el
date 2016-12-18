@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20161022.713
-;; Version: 0.1.60
+;; Package-Version: 20161210.2038
+;; Version: 0.1.62
 
 ;;; Commentary:
 ;;  A color theme for Emacs, from the darkness... it watches
@@ -39,7 +39,7 @@
       (darktooth-light4          (if (display-graphic-p) "#A89984" "color-246"))
 
       (darktooth-bright_red      (if (display-graphic-p) "#FB4933" "color-167"))
-      (darktooth-bright_green    (if (display-graphic-p) "#84BB26" "color-142"))
+      (darktooth-bright_green    (if (display-graphic-p) "#B8BB26" "color-142"))
       (darktooth-bright_yellow   (if (display-graphic-p) "#FABD2F" "color-214"))
       (darktooth-bright_blue     (if (display-graphic-p) "#83A598" "color-109"))
       (darktooth-bright_purple   (if (display-graphic-p) "#D3869B" "color-175"))
@@ -49,7 +49,7 @@
 
       ;; neutral, no 256-color code, requested, nice work-around meanwhile
       (darktooth-neutral_red     (if (display-graphic-p) "#FB4934" "#D75F5F"))
-      (darktooth-neutral_green   (if (display-graphic-p) "#84BB26" "#73AF00"))
+      (darktooth-neutral_green   (if (display-graphic-p) "#B8BB26" "#73AF00"))
       (darktooth-neutral_yellow  (if (display-graphic-p) "#FABD2F" "#FFAF00"))
       (darktooth-neutral_blue    (if (display-graphic-p) "#83A598" "#87AFAF"))
       (darktooth-neutral_purple  (if (display-graphic-p) "#D3869B" "#D787AF"))
@@ -58,7 +58,7 @@
       (darktooth-neutral_cyan    (if (display-graphic-p) "#17CCD5" "#17CCD5"))
 
       (darktooth-faded_red       (if (display-graphic-p) "#9D0006" "color-88"))
-      (darktooth-faded_green     (if (display-graphic-p) "#5A790E" "color-100"))
+      (darktooth-faded_green     (if (display-graphic-p) "#79740E" "color-100"))
       (darktooth-faded_yellow    (if (display-graphic-p) "#B57614" "color-136"))
       (darktooth-faded_blue      (if (display-graphic-p) "#076678" "color-24"))
       (darktooth-faded_purple    (if (display-graphic-p) "#8F3F71" "color-96"))
@@ -163,6 +163,10 @@
    `(font-lock-variable-name-face              ((t (:foreground ,darktooth-aquamarine4))))
    `(font-lock-type-face                       ((t (:foreground ,darktooth-lightblue4))))
    `(font-lock-warning-face                    ((t (:foreground ,darktooth-neutral_red :bold t))))
+
+   ;; MODE SUPPORT: elixir-mode
+   `(elixir-atom-face                          ((t (:foreground ,darktooth-lightblue4))))
+   `(elixir-attribute-face                     ((t (:foreground ,darktooth-burlywood4))))
 
    ;; MODE SUPPORT: whitespace-mode
    `(whitespace-space                          ((t (:foreground ,darktooth-dark4 :background ,darktooth-dark0))))
@@ -626,7 +630,8 @@
    `(magit-whitespace-warning-face             ((t (:background ,darktooth-faded_red))))
    `(magit-bisect-bad                          ((t (:foreground ,darktooth-faded_red))))
    `(magit-bisect-good                         ((t (:foreground ,darktooth-neutral_green))))
-   `(magit-bisect-skip                         ((t (:foreground ,darktooth-light2))))   `(magit-blame-date                          ((t (:inherit magit-blame-heading))))
+   `(magit-bisect-skip                         ((t (:foreground ,darktooth-light2))))
+   `(magit-blame-date                          ((t (:inherit magit-blame-heading))))
    `(magit-blame-name                          ((t (:inherit magit-blame-heading))))
    `(magit-blame-hash                          ((t (:inherit magit-blame-heading))))
    `(magit-blame-summary                       ((t (:inherit magit-blame-heading))))
