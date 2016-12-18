@@ -1,10 +1,10 @@
 ;;; buttercup-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "buttercup" "buttercup.el" (22338 19934 648289
-;;;;;;  222000))
+;;;### (autoloads nil "buttercup" "buttercup.el" (22613 6925 329143
+;;;;;;  229000))
 ;;; Generated autoloads from buttercup.el
 
 (autoload 'buttercup-run-at-point "buttercup" "\
@@ -28,7 +28,7 @@ current directory.
 ;;;***
 
 ;;;### (autoloads nil nil ("buttercup-compat.el" "buttercup-pkg.el")
-;;;;;;  (22338 19934 660406 301000))
+;;;;;;  (22613 6925 357144 112000))
 
 ;;;***
 
