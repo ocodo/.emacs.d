@@ -1,10 +1,10 @@
 ;;; smeargle-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "smeargle" "smeargle.el" (22047 3750 393140
-;;;;;;  0))
+;;;### (autoloads nil "smeargle" "smeargle.el" (22613 12764 997949
+;;;;;;  10000))
 ;;; Generated autoloads from smeargle.el
 
 (autoload 'smeargle-clear "smeargle" "\

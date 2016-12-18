@@ -1,12 +1,12 @@
 ;;; smeargle.el --- Highlighting region by last updated time -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 by Syohei YOSHIDA
+;; Copyright (C) 2016 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-smeargle
-;; Package-Version: 20151013.2242
-;; Version: 0.02
-;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
+;; Package-Version: 20161212.1558
+;; Version: 0.03
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -46,8 +46,7 @@
     (older-than-1year . "grey35"))
   "Alist of last updated era and background color."
   :type '(repeat (cons (symbol :tag "How old")
-                       (string :tag "Background color name")))
-  :group 'smeargle)
+                       (string :tag "Background color name"))))
 
 (defcustom smeargle-age-colors
   '((0 . nil)
@@ -60,13 +59,11 @@
     (7 . "grey30"))
   "Alist of age of changes and background color."
   :type '(repeat (cons (int :tag "Age of changes")
-                       (string :tag "Background color name")))
-  :group 'smeargle)
+                       (string :tag "Background color name"))))
 
 (defcustom smeargle-age-threshold 7
   "Threshould of age of changes"
-  :type 'integer
-  :group 'smeargle)
+  :type 'integer)
 
 (defun smeargle--updated-era (now updated-date)
   (let* ((delta (decode-time (time-subtract now updated-date)))
@@ -206,7 +203,7 @@
   (smeargle-clear)
   (let ((repo-type (smeargle--repo-type)))
     (unless repo-type
-      (error "Here is not 'git' or 'mercurial' repository"))
+      (user-error "Here is not 'git' or 'mercurial' repository"))
     (smeargle--start-blame-process
      repo-type (smergle--process-buffer (buffer-file-name))
      (or update-type 'by-time))))
