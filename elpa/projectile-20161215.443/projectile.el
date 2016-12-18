@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20161122.728
+;; Package-Version: 20161215.443
 ;; Keywords: project, convenience
 ;; Version: 0.15.0-cvs
 ;; Package-Requires: ((pkg-info "0.4"))
@@ -301,7 +301,6 @@ If variable `projectile-project-name' is non-nil, this function will not be used
     "requirements.txt"   ; Pip file
     "setup.py"           ; Setuptools file
     "tox.ini"            ; Tox file
-    "package.json"       ; npm package file
     "gulpfile.js"        ; Gulp build file
     "Gruntfile.js"       ; Grunt project file
     "bower.json"         ; Bower project file
@@ -1682,8 +1681,8 @@ https://github.com/abo-abo/swiper")))
     ("c" . ("h"))
     ("m" . ("h"))
     ("mm" . ("h"))
-    ("h" . ("c" "cpp" "ipp" "hpp" "cxx" "ixx" "hxx" "m" "mm"))
-    ("cc" . ("hh" "hpp"))
+    ("h" . ("c" "cc" "cpp" "ipp" "hpp" "cxx" "ixx" "hxx" "m" "mm"))
+    ("cc" . ("h" "hh" "hpp"))
     ("hh" . ("cc"))
 
     ;; vertex shader and fragment shader extensions in glsl
@@ -2170,11 +2169,14 @@ PROJECT-ROOT is the targeted directory.  If nil, use
 
 (defun projectile-create-test-file-for (impl-file-path)
   (let* ((test-file (projectile--test-name-for-impl-name impl-file-path))
-         (test-dir (replace-regexp-in-string "src/" "test/" (file-name-directory impl-file-path))))
-    (unless (file-exists-p (expand-file-name test-file test-dir))
+         (project-root (projectile-project-root))
+         (relative-dir (file-name-directory (file-relative-name impl-file-path project-root)))
+         (test-dir (expand-file-name (replace-regexp-in-string "src/" "test/" relative-dir) project-root))
+         (test-path (expand-file-name test-file test-dir)))
+    (unless (file-exists-p test-path)
       (progn (unless (file-exists-p test-dir)
                (make-directory test-dir :create-parents))
-             (concat test-dir test-file)))))
+             test-path))))
 
 (defcustom projectile-create-missing-test-files nil
   "During toggling, if non-nil enables creating test files if not found.
@@ -2339,6 +2341,15 @@ This is a subset of `grep-read-files', where either a matching entry from
   "Return ignored file suffixes as a list of glob patterns."
   (mapcar (lambda (pat) (concat "*" pat)) projectile-globally-ignored-file-suffixes))
 
+(defun projectile--read-search-string-with-default (prefix-label)
+  (let* ((prefix-label (projectile-prepend-project-name prefix-label))
+         (default-value (projectile-symbol-or-selection-at-point))
+         (default-label (if (or (not default-value)
+                                (string= default-value ""))
+                            ""
+                          (format " (default %s)" default-value))))
+    (read-string (format "%s%s: " prefix-label default-label) nil nil default-value)))
+
 ;;;###autoload
 (defun projectile-grep (&optional regexp arg)
   "Perform rgrep in the project.
@@ -2352,8 +2363,7 @@ With REGEXP given, don't query the user for a regexp."
   (require 'grep) ;; for `rgrep'
   (let* ((roots (projectile-get-project-directories))
          (search-regexp (or regexp
-                            (read-string (projectile-prepend-project-name "Grep for: ")
-                                         (projectile-symbol-or-selection-at-point))))
+                            (projectile--read-search-string-with-default "Grep for")))
          (files (and arg (or (and (equal current-prefix-arg '-)
                                   (projectile-grep-default-files))
                              (read-string (projectile-prepend-project-name "Grep in: ")
@@ -2387,9 +2397,8 @@ With REGEXP given, don't query the user for a regexp."
 With an optional prefix argument ARG SEARCH-TERM is interpreted as a
 regular expression."
   (interactive
-   (list (read-from-minibuffer
-          (projectile-prepend-project-name (format "Ag %ssearch for: " (if current-prefix-arg "regexp " "")))
-          (projectile-symbol-or-selection-at-point))
+   (list (projectile--read-search-string-with-default
+          (format "Ag %ssearch for" (if current-prefix-arg "regexp " "")))
          current-prefix-arg))
   (if (require 'ag nil 'noerror)
       (let ((ag-command (if arg 'ag-regexp 'ag))
