@@ -1,3 +1,7 @@
+2016-12-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Extend the heuristic matching approach; complete review
+
 2016-11-16  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	Fix leaving behind helper buffers

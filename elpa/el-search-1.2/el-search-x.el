@@ -33,7 +33,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'subr-x))
+(eval-when-compile
+  (require 'subr-x)
+  (require 'thunk))
 (require 'el-search)
 
 
@@ -97,6 +99,8 @@ matches the list (1 2 3 4 5 6 7 8 9) and binds `x' to (4 5 6)."
      `(or (symbol ,symbol-name)
           `',(symbol  ,symbol-name)
           `#',(symbol ,symbol-name)))
+    (`',(and (pred symbolp) symbol)
+     `(or ',symbol '',symbol '#',symbol))
     ((pred stringp) `(string ,expr))
     (_ expr)))
 
@@ -112,6 +116,8 @@ An LPAT can take the following forms:
 
 SYMBOL  Matches any symbol S matched by SYMBOL's name interpreted
         as a regexp.  Matches also 'S and #'S for any such S.
+'SYMBOL Matches SYMBOL, 'SYMBOL and #'SYMBOL (so it's like the above
+        without regexp matching).
 STRING  Matches any string matched by STRING interpreted as a
         regexp
 _       Matches any list element
@@ -131,15 +137,16 @@ could use this pattern:
   (declare
    (heuristic-matcher
     (lambda (&rest lpats)
-      (lambda (atoms)
+      (lambda (file-name-or-buffer atom-thunk)
         (cl-every
          (lambda (lpat)
            (pcase lpat
              ((or '__ '_ '_? '^ '$) t)
              ((pred symbolp)
-              (funcall (el-search-heuristic-matcher `(symbol ,(symbol-name lpat))) atoms))
+              (funcall (el-search-heuristic-matcher `(symbol ,(symbol-name lpat)))
+                       file-name-or-buffer atom-thunk))
              (_ (funcall (el-search-heuristic-matcher (el-search--transform-nontrivial-lpat lpat))
-                         atoms))))
+                         file-name-or-buffer atom-thunk))))
          lpats)))))
   (let ((match-start nil) (match-end nil))
     (when (eq (car-safe lpats) '^)
@@ -165,16 +172,18 @@ could use this pattern:
 
 (defvar diff-hl-reference-revision)
 (declare-function diff-hl-changes "diff-hl")
-(declare-function vc-git-command "vc-git")
 (defvar-local el-search--cached-changes nil)
 
 
 (defcustom el-search-change-revision-transformer-function nil
   "Transformer function for the REVISION argument of `change' and `changed'.
 
-When specified, this function is called on the REVISION argument
-of `change' and `changed' before passing it to git.  The default
-value is nil."
+When specified, this function is called with two arguments: the
+REVISION argument passed to `change' or `changed', and the
+current file name, and the returned value is used instead of
+REVISION.
+
+The default value is nil."
   :group 'el-search
   :type '(choice (const :tag "No transformer" nil)
                  (function :tag "User specified function")))
@@ -195,28 +204,25 @@ Use variable `el-search--cached-changes' for caching."
       (widen)
       (save-excursion
         (let ((diff-hl-reference-revision
-               (funcall (or el-search-change-revision-transformer-function #'identity) revision))
+               (if el-search-change-revision-transformer-function
+                   (funcall el-search-change-revision-transformer-function
+                            revision
+                            buffer-file-name)
+                 revision))
               (current-line-nbr 1) change-beg)
           (goto-char 1)
           (cdr (setq el-search--cached-changes
                      (cons (list revision (visited-file-modtime))
-                           (and
-                            (let ((file-name buffer-file-name))
-                              (with-temp-buffer
-                                (vc-git-command
-                                 (current-buffer) 128 file-name
-                                 "log" "--ignore-missing" "-1"
-                                 diff-hl-reference-revision "--" file-name)
-                                (> (point-max) 1)))
-                            (delq nil (mapcar (pcase-lambda (`(,start-line ,nbr-lines ,kind))
-                                                (if (eq kind 'delete) nil
-                                                  (forward-line (- start-line current-line-nbr))
-                                                  (setq change-beg (point))
-                                                  (forward-line (1- nbr-lines))
-                                                  (setq current-line-nbr (+ start-line nbr-lines -1))
-                                                  (cons (copy-marker change-beg)
-                                                        (copy-marker (line-end-position)))))
-                                              (ignore-errors (diff-hl-changes)))))))))))))
+                           (and (el-search--file-changed-p buffer-file-name diff-hl-reference-revision)
+                                (delq nil (mapcar (pcase-lambda (`(,start-line ,nbr-lines ,kind))
+                                                    (if (eq kind 'delete) nil
+                                                      (forward-line (- start-line current-line-nbr))
+                                                      (setq change-beg (point))
+                                                      (forward-line (1- nbr-lines))
+                                                      (setq current-line-nbr (+ start-line nbr-lines -1))
+                                                      (cons (copy-marker change-beg)
+                                                            (copy-marker (line-end-position)))))
+                                                  (ignore-errors (diff-hl-changes)))))))))))))
 
 (defun el-search--change-p (posn &optional revision)
   ;; Non-nil when sexp after POSN is part of a change
@@ -241,22 +247,47 @@ Use variable `el-search--cached-changes' for caching."
       (and changes
            (< (caar changes) (scan-sexps posn 1))))))
 
+(defun el-search--file-changed-p (file rev)
+  (cl-callf file-truename file)
+  (when-let ((backend (vc-backend file)))
+    (ignore-errors
+      (let ((default-directory (file-name-directory file)))
+        (and
+         (with-temp-buffer
+           (= 1 (vc-call-backend backend 'diff (list file) nil rev (current-buffer))))
+         (with-temp-buffer
+           (= 1 (vc-call-backend backend 'diff (list file) rev nil (current-buffer)))))))))
+
+(defun el-search-change--heuristic-matcher (&optional revision)
+  (lambda (file-name-or-buffer _)
+    (require 'vc)
+    (when-let ((file (if (stringp file-name-or-buffer)
+                         file-name-or-buffer
+                       (buffer-file-name file-name-or-buffer))))
+      (let ((default-directory (file-name-directory file)))
+        (el-search--file-changed-p
+         file
+         (funcall el-search-change-revision-transformer-function
+                  (or revision "HEAD") file))))))
+
 (el-search-defpattern change (&optional revision)
   "Matches the object if its text is part of a file change.
 
 Requires library \"diff-hl\".  REVISION defaults to the file's
-repository's HEAD commit and is a git revision string.  Customize
+repository's HEAD commit and is a revision string.  Customize
 `el-search-change-revision-transformer-function' to control how
 REVISION is interpreted."
+  (declare (heuristic-matcher #'el-search-change--heuristic-matcher))
   `(guard (el-search--change-p (point) ,(or revision "HEAD"))))
 
 (el-search-defpattern changed (&optional revision)
   "Matches the object if its text contains a file change.
 
 Requires library \"diff-hl\".  REVISION defaults to the file's
-repository's HEAD commit and is a git revision string.  Customize
+repository's HEAD commit and is a revision string.  Customize
 `el-search-change-revision-transformer-function' to control how
 REVISION is interpreted."
+  (declare (heuristic-matcher #'el-search-change--heuristic-matcher))
   `(guard (el-search--changed-p (point) ,(or revision "HEAD"))))
 
 
@@ -295,9 +326,9 @@ matches any of these expressions:
   `(pred (el-search--match-key-sequence ,key-sequence)))
 
 
-;;;; `but-not-parent' and `top-level'
+;;;; `outermost' and `top-level'
 
-(el-search-defpattern but-not-parent (pattern &optional not-pattern)
+(el-search-defpattern outermost (pattern &optional not-pattern)
     "Matches when PATTERN matches but the parent sexp does not.
 For toplevel expressions, this is equivalent to PATTERN.
 
@@ -308,10 +339,10 @@ NOT-PATTERN.
 
 This pattern is useful to match only the outermost expression
 when subexpressions would match recursively.  For
-example, (but-not-parent _) matches only top-level expressions.
+example, (outermost _) matches only top-level expressions.
 Another example: For the `change' pattern, any subexpression of a
 match is typically also an according change.  Wrapping the
-`change' pattern into `but-not-parent' prevents el-search from
+`change' pattern into `outermost' prevents el-search from
 descending into any found expression - only the outermost
 expression matching the `change' pattern will be matched."
     `(and ,pattern
@@ -326,7 +357,7 @@ expression matching the `change' pattern will be matched."
 
 (el-search-defpattern top-level ()
   "Matches any toplevel expression."
-  '(but-not-parent _))
+  '(outermost _))
 
 
 ;;; Patterns for stylistic rewriting
