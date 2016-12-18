@@ -3,16 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "org-category-capture" "org-category-capture.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from org-category-capture.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-category-capture" '("occ-")))
-
-;;;***
-
-;;;### (autoloads nil "org-projectile" "org-projectile.el" (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil "org-projectile" "org-projectile.el" (22613
+;;;;;;  12799 410948 886000))
 ;;; Generated autoloads from org-projectile.el
 
 (autoload 'org-projectile:toggle-subheading "org-projectile" "\
@@ -45,11 +37,10 @@ If CAPTURE-TEMPLATE is provided use it as the capture template for the TODO.
 
 \(fn &optional CAPTURE-TEMPLATE &rest ADDITIONAL-OPTIONS)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-projectile" '("occ-" "org-projectile:")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("org-projectile-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("org-category-capture.el" "org-projectile-pkg.el")
+;;;;;;  (22613 12799 426949 350000))
 
 ;;;***
 
