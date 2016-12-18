@@ -1,5 +1,5 @@
 ;;; xterm-frobs.el --- manipulate xterm when running emacs in tty mode
-;; Version: 20091212.55
+;; Package-Version: 20161207.1609
 
 ;; Copyright (C) 1998, 99, 00, 2004 Noah S. Friedman
 
@@ -7,7 +7,7 @@
 ;; Maintainer: friedman@splode.com
 ;; Created: 1998-03-21
 
-;; $Id: xterm-frobs.el,v 1.8 2009/10/22 00:08:31 friedman Exp $
+;; $Id: xterm-frobs.el,v 1.9 2016/11/24 20:24:53 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -203,8 +203,8 @@ characters from the upper left-hand corner of the window."
        (sit-for 0))
   (let* ((re "\e\\[\\([0-9]+\\);\\([0-9]+\\)R")
          (result (xterm-send-and-read-response "\e[6n" re t))
-         (pos (cons (string-to-int (xterm-substring 2 result))
-                    (string-to-int (xterm-substring 1 result)))))
+         (pos (cons (string-to-number (xterm-substring 2 result))
+                    (string-to-number (xterm-substring 1 result)))))
     (and (interactive-p)
          (message "COL=%d, ROW=%d" (car pos) (cdr pos)))
     pos))
@@ -225,8 +225,8 @@ Origin is (1 . 1)."
   (interactive)
   (let* ((re "\e\\[3;\\([0-9]+\\);\\([0-9]+\\)t")
          (result (xterm-send-and-read-response "\e[13t" re t))
-         (pos (cons (string-to-int (xterm-substring 1 result))
-                    (string-to-int (xterm-substring 2 result)))))
+         (pos (cons (string-to-number (xterm-substring 1 result))
+                    (string-to-number (xterm-substring 2 result)))))
     (and (interactive-p)
          (message "X=%d, Y=%d" (car pos) (cdr pos)))
     pos))
@@ -237,8 +237,8 @@ The result is a cons \(WIDTH . HEIGHT\) indicating the dimensions."
   (interactive)
   (let* ((re "\e\\[4;\\([0-9]+\\);\\([0-9]+\\)t")
          (result (xterm-send-and-read-response "\e[14t" re t))
-         (dim (cons (string-to-int (xterm-substring 2 result))
-                    (string-to-int (xterm-substring 1 result)))))
+         (dim (cons (string-to-number (xterm-substring 2 result))
+                    (string-to-number (xterm-substring 1 result)))))
     (and (interactive-p)
          (message "%dx%d" (car dim) (cdr dim)))
     dim))
@@ -249,8 +249,8 @@ The result is a cons \(WIDTH . HEIGHT\) indicating the dimensions."
   (interactive)
   (let* ((re "\e\\[8;\\([0-9]+\\);\\([0-9]+\\)t")
          (result (xterm-send-and-read-response "\e[18t" re t))
-         (dim (cons (string-to-int (xterm-substring 2 result))
-                    (string-to-int (xterm-substring 1 result)))))
+         (dim (cons (string-to-number (xterm-substring 2 result))
+                    (string-to-number (xterm-substring 1 result)))))
     (and (interactive-p)
          (message "%dx%d" (car dim) (cdr dim)))
     dim))

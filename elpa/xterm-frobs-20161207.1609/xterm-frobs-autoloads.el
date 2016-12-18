@@ -1,15 +1,10 @@
 ;;; xterm-frobs-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads (xterm-print-formatted-color-alist xterm-sync-emacs-colors
-;;;;;;  xterm-normal-video xterm-reverse-video xterm-set-highlight-color
-;;;;;;  xterm-set-mouse-background-color xterm-set-mouse-foreground-color
-;;;;;;  xterm-set-cursor-color xterm-set-foreground-color xterm-set-background-color
-;;;;;;  xterm-set-all-titles xterm-set-window-title xterm-set-icon-title
-;;;;;;  xterm-set-font xterm-deiconify xterm-iconify) "xterm-frobs"
-;;;;;;  "xterm-frobs.el" (21011 18203 0 0))
+;;;### (autoloads nil "xterm-frobs" "xterm-frobs.el" (22613 12708
+;;;;;;  676311 136000))
 ;;; Generated autoloads from xterm-frobs.el
 
 (autoload 'xterm-iconify "xterm-frobs" "\
@@ -117,16 +112,9 @@ reloaded later.
 
 ;;;***
 
-;;;### (autoloads nil nil ("xterm-frobs-pkg.el") (21011 18204 354936
-;;;;;;  0))
-
-;;;***
-
-(provide 'xterm-frobs-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; xterm-frobs-autoloads.el ends here
