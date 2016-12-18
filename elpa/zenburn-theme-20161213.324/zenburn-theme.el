@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/bbatsov/zenburn-emacs
-;; Package-Version: 20161018.437
+;; Package-Version: 20161213.324
 ;; Version: 2.4
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -144,6 +144,17 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(match ((t (:background ,zenburn-bg-1 :foreground ,zenburn-orange :weight bold))))
 ;;;;; info
    `(Info-quoted ((t (:inherit font-lock-constant-face))))
+;;;;; irfc
+   `(irfc-head-name-face ((t (:foreground ,zenburn-red :weight bold))))
+   `(irfc-head-number-face ((t (:foreground ,zenburn-red :weight bold))))
+   `(irfc-reference-face ((t (:foreground ,zenburn-blue-1 :weight bold))))
+   `(irfc-requirement-keyword-face ((t (:inherit font-lock-keyword-face))))
+   `(irfc-rfc-link-face ((t (:inherit link))))
+   `(irfc-rfc-number-face ((t (:foreground ,zenburn-cyan :weight bold))))
+   `(irfc-std-number-face ((t (:foreground ,zenburn-green+4 :weight bold))))
+   `(irfc-table-item-face ((t (:foreground ,zenburn-green+3))))
+   `(irfc-title-face ((t (:foreground ,zenburn-yellow
+                                      :underline t :weight bold))))
 ;;;;; isearch
    `(isearch ((t (:foreground ,zenburn-yellow-2 :weight bold :background ,zenburn-bg+2))))
    `(isearch-fail ((t (:foreground ,zenburn-fg :background ,zenburn-red-4))))
@@ -220,6 +231,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(android-mode-warning-face ((t (:foreground ,zenburn-yellow))))
 ;;;;; anzu
    `(anzu-mode-line ((t (:foreground ,zenburn-cyan :weight bold))))
+   `(anzu-mode-line-no-match ((t (:foreground ,zenburn-red :weight bold))))
    `(anzu-match-1 ((t (:foreground ,zenburn-bg :background ,zenburn-green))))
    `(anzu-match-2 ((t (:foreground ,zenburn-bg :background ,zenburn-orange))))
    `(anzu-match-3 ((t (:foreground ,zenburn-bg :background ,zenburn-blue))))
@@ -702,9 +714,13 @@ Also bind `class' to ((class color) (min-colors 89))."
 ;;;;; ledger-mode
    `(ledger-font-payee-uncleared-face ((t (:foreground ,zenburn-red-1 :weight bold))))
    `(ledger-font-payee-cleared-face ((t (:foreground ,zenburn-fg :weight normal))))
+   `(ledger-font-payee-pending-face ((t (:foreground ,zenburn-red :weight normal))))
    `(ledger-font-xact-highlight-face ((t (:background ,zenburn-bg+1))))
+   `(ledger-font-auto-xact-face ((t (:foreground ,zenburn-yellow-1 :weight normal))))
+   `(ledger-font-periodic-xact-face ((t (:foreground ,zenburn-green :weight normal))))
    `(ledger-font-pending-face ((t (:foreground ,zenburn-orange weight: normal))))
    `(ledger-font-other-face ((t (:foreground ,zenburn-fg))))
+   `(ledger-font-posting-date-face ((t (:foreground ,zenburn-orange :weight normal))))
    `(ledger-font-posting-account-face ((t (:foreground ,zenburn-blue-1))))
    `(ledger-font-posting-account-cleared-face ((t (:foreground ,zenburn-fg))))
    `(ledger-font-posting-account-pending-face ((t (:foreground ,zenburn-orange))))
@@ -1040,6 +1056,11 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(rcirc-track-keyword ((t (:bold t))))
    `(rcirc-url ((t (:bold t))))
    `(rcirc-keyword ((t (:foreground ,zenburn-yellow :bold t))))
+;;;;; re-builder
+   `(reb-match-0 ((t (:foreground ,zenburn-bg :background ,zenburn-magenta))))
+   `(reb-match-1 ((t (:foreground ,zenburn-bg :background ,zenburn-blue))))
+   `(reb-match-2 ((t (:foreground ,zenburn-bg :background ,zenburn-orange))))
+   `(reb-match-3 ((t (:foreground ,zenburn-bg :background ,zenburn-red))))
 ;;;;; rpm-mode
    `(rpm-spec-dir-face ((t (:foreground ,zenburn-green))))
    `(rpm-spec-doc-face ((t (:foreground ,zenburn-green))))
@@ -1153,6 +1174,13 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(undo-tree-visualizer-default-face ((t (:foreground ,zenburn-fg))))
    `(undo-tree-visualizer-register-face ((t (:foreground ,zenburn-yellow))))
    `(undo-tree-visualizer-unmodified-face ((t (:foreground ,zenburn-cyan))))
+;;;;; visual-regexp
+   `(vr/group-0 ((t (:foreground ,zenburn-bg :background ,zenburn-green :weight bold))))
+   `(vr/group-1 ((t (:foreground ,zenburn-bg :background ,zenburn-orange :weight bold))))
+   `(vr/group-2 ((t (:foreground ,zenburn-bg :background ,zenburn-blue :weight bold))))
+   `(vr/match-0 ((t (:inherit isearch))))
+   `(vr/match-1 ((t (:foreground ,zenburn-yellow-2 :background ,zenburn-bg-1 :weight bold))))
+   `(vr/match-separator-face ((t (:foreground ,zenburn-red :weight bold))))
 ;;;;; volatile-highlights
    `(vhl/default-face ((t (:background ,zenburn-bg-05))))
 ;;;;; web-mode
