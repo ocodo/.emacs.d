@@ -4,6 +4,7 @@
 
 ;; Author: Ingo Lohmar <i.lohmar@gmail.com>
 ;; URL: https://github.com/company-mode/company-statistics
+;; Package-Version: 20161213.159
 ;; Version: 0.2.2
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "24.3") (company "0.8.5"))
@@ -113,7 +114,7 @@ number)."
 (defun company-statistics--initialized-p ()
   (hash-table-p company-statistics--scores))
 
-(defun company-statistics--log-resize (option new-size)
+(defun company-statistics--log-resize (_option new-size)
   (when (company-statistics--initialized-p)
     ;; hash scoresheet auto-resizes, but log does not
     (let ((new-hist (make-vector new-size nil))
@@ -162,7 +163,7 @@ number)."
 
 ;; score calculation for insert/retrieval --- can be changed on-the-fly
 
-(defun company-statistics-score-change-light (cand)
+(defun company-statistics-score-change-light (_cand)
   "Count for global score and mode context."
   (list (cons nil 1)
         (cons major-mode 1)))           ;major-mode is never nil
@@ -212,7 +213,7 @@ May be separated by punctuation, but not by whitespace."
   (when buffer-file-name
     (list :file buffer-file-name)))
 
-(defun company-statistics-capture-context-heavy (manual)
+(defun company-statistics-capture-context-heavy (_manual)
   "Calculate some context, once for the whole completion run."
   (save-excursion
     (backward-char (length company-prefix))
@@ -222,7 +223,7 @@ May be separated by punctuation, but not by whitespace."
                       (company-statistics--parent-symbol)
                       (company-statistics--file-name))))))
 
-(defun company-statistics-score-change-heavy (cand)
+(defun company-statistics-score-change-heavy (_cand)
   "Count for global score, mode context, last keyword, parent symbol,
 buffer file name."
   (let ((last-kwd (assoc :keyword company-statistics--context))
