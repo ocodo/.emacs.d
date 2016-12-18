@@ -4,25 +4,25 @@
 
 ;; Author: Eric Danan
 ;; URL: https://github.com/ericdanan/counsel-projectile
-;; Package-Version: 20161204.1156
+;; Package-Version: 20161212.146
 ;; Created: 2016-04-11
 ;; Keywords: project, convenience
 ;; Version: 0.1
-;; Package-Requires: ((counsel "0.7.0") (projectile "0.13.0"))
+;; Package-Requires: ((counsel "0.8.0") (projectile "0.14.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
 ;;; License:
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3, or (at
+;; your option) any later version.
 ;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
@@ -32,10 +32,11 @@
 ;;; Commentary:
 ;;
 ;; Projectile has native support for using ivy as its completion
-;; system. Counsel-projectile provides further ivy integration into
+;; system.  Counsel-projectile provides further ivy integration into
 ;; projectile by taking advantage of ivy's mechanism to select from a
-;; list of actions and/or apply an action without leaving the comlpetion
-;; session. It is inspired by helm-projectile. See the README for more details.
+;; list of actions and/or apply an action without leaving the
+;; comlpetion session.  It is inspired by helm-projectile.  See the
+;; README for more details.
 ;;
 ;;; Code:
 
@@ -45,13 +46,15 @@
 ;;; counsel-projectile-map
 
 (defun counsel-projectile-drop-to-switch-project ()
-  "For use in minibuffer maps. Quit and call `counsel-projectile-switch-project'."
+  "For use in minibuffer maps.  Quit and call
+`counsel-projectile-switch-project'."
   (interactive)
   (ivy-quit-and-run
    (counsel-projectile-switch-project)))
 
 (defvar counsel-projectile-drop-to-switch-project-binding "M-SPC"
-  "Key binding for `counsel-projectile-drop-to-switch-project' in `counsel-projectile-map'.")
+  "Key binding for `counsel-projectile-drop-to-switch-project' in
+  `counsel-projectile-map'.")
 
 (defvar counsel-projectile-map
   (let ((map (make-sparse-keymap)))
@@ -66,7 +69,9 @@
 (defun counsel-projectile--file-list (&optional no-buffer)
   "Return a list of files for the current project.
 
-Like `projectile-current-project-files', but fontifies non-visited file names with the `ivy-virtual' face. With optional argument NO-BUFFER, only list non-visited files."
+Like `projectile-current-project-files', but fontifies
+non-visited file names with the `ivy-virtual' face.  With optional
+argument NO-BUFFER, only list non-visited files."
   (let ((root (projectile-project-root)))
     (cl-loop
      for name in (projectile-current-project-files)
@@ -86,15 +91,16 @@ Like `projectile-current-project-files', but fontifies non-visited file names wi
   (run-hooks 'projectile-find-file-hook))
 
 (defun counsel-projectile--find-file-other-window-action (file)
-  "Find FILE in another window and run `projectile-find-file-hook'."
+  "Find FILE in another window and run
+`projectile-find-file-hook'."
   (counsel-projectile--find-file-action file t))
 
 ;;;###autoload
 (defun counsel-projectile-find-file (&optional arg)
   "Jump to a project's file using completion.
 
-Replacement for `projectile-find-file'.
-With a prefix ARG invalidates the cache first."
+Replacement for `projectile-find-file'.  With a prefix ARG
+invalidates the cache first."
   (interactive "P")
   (projectile-maybe-invalidate-cache arg)
   (ivy-read (projectile-prepend-project-name "Find file: ")
@@ -117,7 +123,7 @@ With a prefix ARG invalidates the cache first."
   (if projectile-find-dir-includes-top-level
       (append '("./") (projectile-current-project-dirs))
     (projectile-current-project-dirs)))
-  
+
 (defun counsel-projectile--find-dir-action (dir &optional other-window)
   "Visit DIR with dired and run `projectile-find-dir-hook'."
   (funcall (if other-window
@@ -127,7 +133,8 @@ With a prefix ARG invalidates the cache first."
   (run-hooks 'projectile-find-dir-hook))
 
 (defun counsel-projectile--find-dir-other-window-action (dir)
-  "Visit DIR with dired in another window and run `projectile-find-dir-hook'."
+  "Visit DIR with dired in another window and run
+`projectile-find-dir-hook'."
   (counsel-projectile--find-dir-action dir t))
 
 ;;;###autoload
@@ -154,13 +161,15 @@ With a prefix ARG invalidates the cache first."
 (defun counsel-projectile--buffer-list ()
   "Get a list of project buffer names.
 
-Like `projectile-project-buffer-names', but propertize buffer names as in `ivy--buffer-list'."
+Like `projectile-project-buffer-names', but propertize buffer
+names as in `ivy--buffer-list'."
   (ivy--buffer-list "" nil
                     (lambda (x)
                       (member (car x) (projectile-project-buffer-names)))))
 
 (defun counsel-projectile--switch-buffer-action (buffer &optional other-window)
   "Switch to BUFFER.
+
 BUFFER may be a string or nil."
   (cond
    ((zerop (length buffer))
@@ -168,10 +177,11 @@ BUFFER may be a string or nil."
    (other-window
     (switch-to-buffer-other-window buffer))
    (t
-    (switch-to-buffer buffer nil 'force-same-window)))) 
+    (switch-to-buffer buffer nil 'force-same-window))))
 
 (defun counsel-projectile--switch-buffer-other-window-action (buffer)
   "Switch to BUFFER in other window.
+
 BUFFER may be a string or nil."
   (counsel-projectile--switch-buffer-action buffer t))
 
@@ -198,6 +208,7 @@ BUFFER may be a string or nil."
 
 ;;; counsel-projectile-ag
 
+;;;###autoload
 (defun counsel-projectile-ag (&optional options)
   "Ivy version of `projectile-ag'."
   (interactive)
@@ -213,7 +224,7 @@ BUFFER may be a string or nil."
                  (cl-union (projectile-ignored-files-rel) grep-find-ignored-files)
                  (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories))))
              (options
-              (concat options
+              (concat options " "
                       (mapconcat (lambda (i)
                                    (concat "--ignore " i))
                                  ignored
@@ -229,8 +240,11 @@ BUFFER may be a string or nil."
 ;;;###autoload
 (defun counsel-projectile-switch-project (&optional arg)
   "Switch to a project we have visited before.
-Invokes the command referenced by `projectile-switch-project-action' on switch.
-With a prefix ARG invokes `projectile-commander' instead of `projectile-switch-project-action.'"
+
+Invokes the command referenced by
+`projectile-switch-project-action' on switch.  With a prefix ARG
+invokes `projectile-commander' instead of
+`projectile-switch-project-action.'"
   (interactive "P")
   (ivy-read (projectile-prepend-project-name "Switch to project: ")
             projectile-known-projects
@@ -299,14 +313,17 @@ With a prefix ARG invokes `projectile-commander' instead of `projectile-switch-p
 
 (defun counsel-projectile--transformer (str)
   "Fontifies modified, file-visiting buffers.
+
 Relies on `ivy-switch-buffer-transformer'."
   (if (eq (get-text-property 0 'type str) 'buffer)
       (ivy-switch-buffer-transformer str)
     str))
-  
+
 (defun counsel-projectile--matcher (regexp candidates)
   "Return REGEXP-matching CANDIDATES.
-Relies on `ivy--switch-buffer-matcher` and `counsel--find-file-matcher'."
+
+Relies on `ivy--switch-buffer-matcher` and
+`counsel--find-file-matcher'."
   (let ((buffers (cl-remove-if-not (lambda (name)
                                      (eq (get-text-property 0 'type name) 'buffer))
                                    candidates))
