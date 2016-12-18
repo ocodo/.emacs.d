@@ -654,6 +654,15 @@
      `(swiper-match-face-3 ((,class (:foreground ,head4 :underline t))))
      `(swiper-match-face-4 ((,class (:foreground ,head3 :underline t))))
 
+;;;;; tabbar
+     `(tabbar-default ((,class (:background ,bg1 :foreground ,head1 :height 0.9))))
+     `(tabbar-button ((,class (:inherit tabbar-default ))))
+     `(tabbar-button-highlight ((,class (:inherit tabbar-default))))
+     `(tabbar-highlight ((,class (:underline t))))
+     `(tabbar-selected ((,class (:inherit tabbar-default :foreground ,func :weight bold))))
+     `(tabbar-separator ((,class (:inherit tabbar-default))))
+     `(tabbar-unselected ((,class (:inherit tabbar-default :background ,bg1 :slant italic :weight light))))
+
 ;;;;; term
      `(term ((,class (:foreground ,base :background ,bg1))))
      `(term-color-black ((,class (:foreground ,bg4))))
