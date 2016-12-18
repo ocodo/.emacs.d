@@ -304,6 +304,15 @@ is called for side-effects on the ENTRY object.")
                               (xml-query '(date *) entry)
                               (xml-query '(modified *) entry) ; Atom 0.3
                               (xml-query '(issued *) entry))) ; Atom 0.3
+                    (author-name (or (xml-query '(author name *) entry)
+                                     ;; Dublin Core
+                                     (xml-query '(creator *) entry)))
+                    (author-email (xml-query '(author email *) entry))
+                    (author (cond ((and author-name author-email)
+                                   (format "%s <%s>" author-name author-email))
+                                  (author-name)))
+                    (categories (mapcar #'cl-cdaadr
+                                        (xml-query-all '(category) entry)))
                     (content (elfeed--atom-content entry))
                     (id (or (xml-query '(id *) entry) link
                             (elfeed-generate-id content)))
@@ -329,7 +338,11 @@ is called for side-effects on the ENTRY object.")
                                :date (or (elfeed-float-time date) (float-time))
                                :content content
                                :enclosures enclosures
-                               :content-type content-type)))
+                               :content-type content-type
+                               :meta `(,@(when author
+                                           (list :author author))
+                                       ,@(when categories
+                                           (list :categories categories))))))
                (dolist (hook elfeed-new-entry-parse-hook)
                  (funcall hook :atom entry db-entry))
                db-entry))))
@@ -349,6 +362,10 @@ is called for side-effects on the ENTRY object.")
                     (link (or (xml-query '(link *) item) guid))
                     (date (or (xml-query '(pubDate *) item)
                               (xml-query '(date *) item)))
+                    (author (or (xml-query '(author *) item)
+                                ;; Dublin Core
+                                (xml-query '(creator *) item)))
+                    (categories (xml-query-all '(category *) item))
                     (content (or (xml-query-all '(encoded *) item)
                                  (xml-query-all '(description *) item)))
                     (description (apply #'concat content))
@@ -375,7 +392,11 @@ is called for side-effects on the ENTRY object.")
                                       original-date date)
                                :enclosures enclosures
                                :content description
-                               :content-type 'html)))
+                               :content-type 'html
+                               :meta `(,@(when author
+                                           (list :author author))
+                                       ,@(when categories
+                                           (list :categories categories))))))
                (dolist (hook elfeed-new-entry-parse-hook)
                  (funcall hook :rss item db-entry))
                db-entry))))

@@ -49,6 +49,11 @@ Possible alignments are :left and :right."
   :group 'elfeed
   :type '(list string integer (choice (const :left) (const :right))))
 
+(defcustom elfeed-search-compile-filter t
+  "If non-nil, compile search filters into bytecode on the fly."
+  :group 'elfeed
+  :type 'boolean)
+
 (defvar elfeed-search-filter-active nil
   "When non-nil, Elfeed is currently reading a filter from the minibuffer.
 When live editing the filter, it is bound to :live.")
@@ -374,6 +379,53 @@ This function must *only* be called within the body of
                             (and feed-title (string-match-p m feed-title))))
                       not-matches)))))
 
+(defun elfeed-search-compile-filter (filter)
+  "Compile FILTER into a lambda function for `byte-compile'.
+
+Executing a filter in bytecode form is generally faster than
+\"interpreting\" the filter with `elfeed-search-filter'."
+  (cl-destructuring-bind
+      (after must-have must-not-have matches not-matches limit) filter
+    `(lambda (,(if (or after matches not-matches must-have must-not-have)
+                   'entry
+                 '_entry)
+              ,(if (or matches not-matches)
+                   'feed
+                 '_feed)
+              ,(if limit
+                   'count
+                 '_count))
+       (let* (,@(when after
+                  '((date (elfeed-entry-date entry))
+                    (age (- (float-time) date))))
+              ,@(when (or must-have must-not-have)
+                  '((tags (elfeed-entry-tags entry))))
+              ,@(when (or matches not-matches)
+                  '((title (or (elfeed-meta entry :title)
+                               (elfeed-entry-title entry)))
+                    (link (elfeed-entry-link entry))
+                    (feed-title (or (elfeed-meta feed :title)
+                                    (elfeed-feed-title feed) "")))))
+         ,@(when after
+             `((when (> age ,after)
+                 (elfeed-db-return))))
+         ,@(when limit
+             `((when (>= count ,limit)
+                 (elfeed-db-return))))
+         (and ,@(cl-loop for forbid in must-not-have
+                         collect `(not (memq ',forbid tags)))
+              ,@(cl-loop for forbid in must-have
+                         collect `(memq ',forbid tags))
+              ,@(cl-loop for regex in matches collect
+                         `(or (string-match-p ,regex title)
+                              (string-match-p ,regex link)
+                              (string-match-p ,regex feed-title)))
+              ,@(cl-loop for regex in not-matches collect
+                         `(not
+                           (or (string-match-p ,regex title)
+                               (string-match-p ,regex link)
+                               (string-match-p ,regex feed-title)))))))))
+
 (defun elfeed-search--prompt (current)
   "Prompt for a new filter, starting with CURRENT."
   (read-from-minibuffer
@@ -420,11 +472,22 @@ expression, matching against entry link, title, and feed title."
          (head (list nil))
          (tail head)
          (count 0))
-    (with-elfeed-db-visit (entry feed)
-      (when (elfeed-search-filter filter entry feed count)
-        (setf (cdr tail) (list entry)
-              tail (cdr tail)
-              count (1+ count))))
+    (if elfeed-search-compile-filter
+        ;; Force lexical bindings regardless of the current
+        ;; buffer-local value. Lexical scope uses the faster
+        ;; stack-ref opcode instead of the traditional varref opcode.
+        (let ((lexical-binding t)
+              (func (byte-compile (elfeed-search-compile-filter filter))))
+          (with-elfeed-db-visit (entry feed)
+            (when (funcall func entry feed count)
+              (setf (cdr tail) (list entry)
+                    tail (cdr tail)
+                    count (1+ count)))))
+      (with-elfeed-db-visit (entry feed)
+        (when (elfeed-search-filter filter entry feed count)
+          (setf (cdr tail) (list entry)
+                tail (cdr tail)
+                count (1+ count)))))
     (setf elfeed-search-entries
           (if (eq elfeed-sort-order 'ascending)
               (nreverse (cdr head))
