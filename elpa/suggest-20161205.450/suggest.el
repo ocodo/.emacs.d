@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.3
-;; Package-Version: 20161119.1334
+;; Package-Version: 20161205.450
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 ;; URL: https://github.com/Wilfred/suggest.el
@@ -43,7 +43,6 @@
 ;; See also `cl--simple-funcs' and `cl--safe-funcs'.
 (defvar suggest-functions
   (list
-   #'identity
    ;; Built-in functions that access or examine lists.
    #'car
    #'cdr
@@ -163,6 +162,9 @@
    #'split-string
    #'capitalize
    #'replace-regexp-in-string
+   ;; Quoting strings
+   #'shell-quote-argument
+   #'regexp-quote
    ;; s.el string functions
    #'s-trim
    #'s-trim-left
@@ -196,6 +198,7 @@
    ;; Symbols
    #'symbol-name
    #'symbol-value
+   #'symbol-file
    ;; Converting between types
    #'string-to-list
    #'string-to-number
@@ -230,6 +233,12 @@
    #'f-files
    #'f-directories
    #'f-entries
+   ;; Keyboard codes
+   #'kbd
+   #'key-description
+   ;; Generic functions
+   #'identity
+   #'ignore
    )
   "Functions that suggest will consider.
 These functions must not produce side effects.
