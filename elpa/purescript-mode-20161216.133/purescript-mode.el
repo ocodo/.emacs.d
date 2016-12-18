@@ -431,7 +431,7 @@ is asked to show extra info for the items matching QUERY.."
                           "Pursuit query: ")
                         nil nil def)
            current-prefix-arg)))
-  (browse-url (format "http://pursuit.purescript.org/?q=%s" query)))
+  (browse-url (format "https://pursuit.purescript.org/search?q=%s" query)))
 
 (defcustom purescript-completing-read-function 'ido-completing-read
   "Default function to use for completion."
