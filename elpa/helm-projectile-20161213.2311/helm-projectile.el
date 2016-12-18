@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/helm-projectile
-;; Package-Version: 20161008.45
+;; Package-Version: 20161213.2311
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.14.0
@@ -227,6 +227,18 @@ It is there because Helm requires it."
     (interactive)
     (helm-run-after-exit 'helm-projectile-find-file nil)))
 
+(defun helm-projectile-file-persistent-action (candidate)
+  "Persistent action for file-related functionality.
+
+Previews the contents of a file in a temporary buffer."
+  (switch-to-buffer (get-buffer-create " *helm-projectile persistent*"))
+  (fundamental-mode)
+  (erase-buffer)
+  (insert-file-contents candidate)
+  (let ((buffer-file-name candidate))
+    (set-auto-mode)
+    (font-lock-ensure)))
+
 (defun helm-projectile-find-files-eshell-command-on-file-action (_candidate)
   (interactive)
   (let* ((helm-ff-default-directory (file-name-directory _candidate)))
@@ -423,7 +435,8 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :keymap helm-projectile-find-file-map
     :help-message helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
-    :action helm-projectile-file-actions))
+    :action helm-projectile-file-actions
+    :persistent-action #'helm-projectile-file-persistent-action))
 
 (defvar helm-source-projectile-files-list
   (helm-build-in-buffer-source "Projectile files"
@@ -437,6 +450,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
+    :persistent-action #'helm-projectile-file-persistent-action
     )
   "Helm source definition for Projectile files.")
 
@@ -451,6 +465,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
+    :persistent-action #'helm-projectile-file-persistent-action
     )
   "Helm source definition for all Projectile files in all projects.")
 
@@ -573,6 +588,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
+    :persistent-action #'helm-projectile-file-persistent-action
     )
   "Helm source definition for recent files in current project.")
 
@@ -659,7 +675,8 @@ Other file extensions can be customized with the variable `projectile-other-file
                                          map)
                                :help-message helm-ff-help-message
                                :mode-line helm-read-file-name-mode-line-string
-                               :action helm-projectile-file-actions)
+                               :action helm-projectile-file-actions
+                               :persistent-action #'helm-projectile-file-persistent-action)
                     :buffer "*helm projectile*"
                     :prompt (projectile-prepend-project-name "Find other file: ")))))
       (error "No other file found"))))
