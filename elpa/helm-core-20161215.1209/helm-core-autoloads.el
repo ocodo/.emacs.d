@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm" "helm.el" (0 0 0 0))
+;;;### (autoloads nil "helm" "helm.el" (22613 12869 160973 620000))
 ;;; Generated autoloads from helm.el
 
 (autoload 'helm-define-multi-key "helm" "\
@@ -185,33 +185,10 @@ Enable/disable helm debugging from outside of helm session.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm" '("helm-" "cua-delete-region--advice" "copy-region-as-kill--advice" "with-helm-")))
-
 ;;;***
 
-;;;### (autoloads nil "helm-lib" "helm-lib.el" (0 0 0 0))
-;;; Generated autoloads from helm-lib.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-lib" '("helm-" "with-helm-")))
-
-;;;***
-
-;;;### (autoloads nil "helm-multi-match" "helm-multi-match.el" (0
-;;;;;;  0 0 0))
-;;; Generated autoloads from helm-multi-match.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-multi-match" '("helm-m")))
-
-;;;***
-
-;;;### (autoloads nil "helm-source" "helm-source.el" (0 0 0 0))
-;;; Generated autoloads from helm-source.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-source" '("helm-")))
-
-;;;***
-
-;;;### (autoloads nil nil ("helm-core-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("helm-core-pkg.el" "helm-lib.el" "helm-multi-match.el"
+;;;;;;  "helm-source.el") (22613 12869 176974 84000))
 
 ;;;***
 
