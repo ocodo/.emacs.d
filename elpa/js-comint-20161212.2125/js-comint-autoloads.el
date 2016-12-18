@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "js-comint" "js-comint.el" (0 0 0 0))
+;;;### (autoloads nil "js-comint" "js-comint.el" (22613 12854 292542
+;;;;;;  204000))
 ;;; Generated autoloads from js-comint.el
 
 (autoload 'js-do-use-nvm "js-comint" "\
@@ -15,6 +16,11 @@ Enable nvm.
 Use a given VERSION of node from nvm.
 
 \(fn &optional VERSION)" t nil)
+
+(autoload 'js-clear "js-comint" "\
+Clear the *js* buffer.
+
+\(fn)" t nil)
 
 (autoload 'run-js "js-comint" "\
 Run an inferior Javascript process, input and output via buffer `*js*'.
@@ -67,6 +73,11 @@ Load a file in the javascript interpreter.
 
 \(fn FILENAME)" t nil)
 
+(autoload 'js-comint-process-output "js-comint" "\
+Cleaner output.
+
+\(fn STRING)" nil nil)
+
 (autoload 'switch-to-js "js-comint" "\
 Switch to the javascript process buffer.
 With argument, position cursor at end of buffer.
@@ -90,8 +101,6 @@ Javascript source.
     js-send-region sends the current region to the Javascript process.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "js-comint" '("inferior-js-" "js-")))
 
 ;;;***
 
