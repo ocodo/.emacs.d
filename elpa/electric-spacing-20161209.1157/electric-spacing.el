@@ -3,8 +3,8 @@
 ;; Copyright (C) 2004, 2005, 2007-2015 Free Software Foundation, Inc.
 
 ;; Author: William Xu <william.xwl@gmail.com>
-;; Version: 5.0
-;; Package-Version: 20161113.916
+;; Version: 5.0.1
+;; Package-Version: 20161209.1157
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -53,6 +53,21 @@
   :type 'boolean
   :group 'electricity)
 
+(defcustom electric-spacing-control-statement-parens t
+  "Enable electric-spacing for '(' in control statements like if, for, while, etc.
+
+See `electric-spacing-parens' to enable everywhere."
+  :type 'boolean
+  :group 'electricity)
+
+(defcustom electric-spacing-parens nil
+  "Enable electric-spacing for '(' everywhere. 
+
+See `electric-spacing-control-statement-parens'
+to enable only in control statements."
+  :type 'boolean
+  :group 'electricity)
+
 (defvar electric-spacing-rules
   '((?= . electric-spacing-self-insert-command)
     (?< . electric-spacing-<)
@@ -69,6 +84,7 @@
     (?, . electric-spacing-\,)
     (?~ . electric-spacing-~)
     (?. . electric-spacing-.)
+    (?\( . electric-spacing-left-paren)
     (?^ . electric-spacing-self-insert-command)))
 
 (defun electric-spacing-post-self-insert-function ()
@@ -218,6 +234,28 @@ so let's not get too insert-happy."
 (defun electric-spacing-\, ()
   "See `electric-spacing-insert'."
   (electric-spacing-insert "," 'after))
+
+(defun electric-spacing-left-paren ()
+  "See `electric-spacing-insert'."
+  (cond ((derived-mode-p 'emacs-lisp-mode)
+	 ;; Do nothing in Emacs lisp mode
+	 (insert "("))
+	((looking-back "[,;] *")
+	 (electric-spacing-insert "(" 'before))
+	((looking-back "[({!~] *")
+	 (electric-spacing-insert "(" 'middle))
+	((or electric-spacing-parens
+	     (and electric-spacing-control-statement-parens
+		  (looking-back
+		   (concat "\\("
+			   (regexp-opt
+			    '("if" "elif" "switch" "for" "while"))
+			   "\\)\\ *")
+		   (line-beginning-position))))
+	 (electric-spacing-insert "(" 'before))
+	(t
+	 (insert "("))))
+
 
 (defun electric-spacing-. ()
   "See `electric-spacing-insert'."

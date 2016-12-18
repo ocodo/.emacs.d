@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "electric-spacing" "electric-spacing.el" (0
-;;;;;;  0 0 0))
+;;;### (autoloads nil "electric-spacing" "electric-spacing.el" (22613
+;;;;;;  6881 227753 160000))
 ;;; Generated autoloads from electric-spacing.el
 
 (autoload 'electric-spacing-mode "electric-spacing" "\
@@ -18,8 +18,6 @@ inserts surrounding spaces.  e.g., `=' becomes ` = ',`+=' becomes ` += '.  This
 is very handy for many programming languages.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "electric-spacing" '("electric-spacing-")))
 
 ;;;***
 
