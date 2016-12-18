@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (0 0 0 0))
+;;;### (autoloads nil "counsel" "counsel.el" (22613 6916 616868 665000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -156,10 +156,10 @@ root directory for search.
 
 (autoload 'counsel-ag "counsel" "\
 Grep for a string in the current directory using ag.
-INITIAL-INPUT can be given as the initial minibuffer input.
-INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
-EXTRA-AG-ARGS string, if non-nil, is appended to `counsel-ag-base-command'.
-AG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument.
+  INITIAL-INPUT can be given as the initial minibuffer input.
+  INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
+  EXTRA-AG-ARGS string, if non-nil, is appended to `counsel-ag-base-command'.
+  AG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument.
 
 \(fn &optional INITIAL-INPUT INITIAL-DIRECTORY EXTRA-AG-ARGS AG-PROMPT)" t nil)
 
@@ -258,6 +258,27 @@ Complete using `company-candidates'.
 
 \(fn)" t nil)
 
+(autoload 'counsel-colors-emacs "counsel" "\
+Show a list of all supported colors for a particular frame.
+
+You can insert or kill the name or the hexadecimal rgb value of the
+selected candidate.
+
+\(fn)" t nil)
+
+(autoload 'counsel-colors-web "counsel" "\
+Show a list of all W3C web colors for use in CSS.
+
+You can insert or kill the name or the hexadecimal rgb value of the
+selected candidate.
+
+\(fn)" t nil)
+
+(autoload 'counsel-org-agenda-headlines "counsel" "\
+Choose from headers of `org-mode' files in the agenda.
+
+\(fn)" t nil)
+
 (defvar counsel-mode nil "\
 Non-nil if Counsel mode is enabled.
 See the `counsel-mode' command
@@ -275,8 +296,6 @@ mode remaps built-in emacs functions that have counsel
 replacements.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel" '("counsel-" "tmm-km-list")))
 
 ;;;***
 
