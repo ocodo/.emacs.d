@@ -3,8 +3,24 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "php-mode" "php-mode.el" (22507 31353 901226
-;;;;;;  788000))
+;;;### (autoloads nil "php-current" "php-current.el" (22613 12793
+;;;;;;  890788 539000))
+;;; Generated autoloads from php-current.el
+
+(autoload 'php-current-class "php-current" "\
+Insert current class name if cursor in class context.
+
+\(fn &optional STR ARG)" t nil)
+
+(autoload 'php-current-namespace "php-current" "\
+Insert current namespace if cursor in in namespace context.
+
+\(fn &optional STR ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "php-mode" "php-mode.el" (22613 12793 982791
+;;;;;;  209000))
 ;;; Generated autoloads from php-mode.el
 
 (let ((loads (get 'php 'custom-loads))) (if (member '"php-mode" loads) nil (put 'php 'custom-loads (cons '"php-mode" loads))))
@@ -23,7 +39,7 @@ Major mode for editing PHP code.
 
 \(fn)" t nil)
 
-(dolist (pattern '("\\.php[s345t]?\\'" "\\.phtml\\'" "/Amkfile\\'" "\\.amk\\'")) (add-to-list 'auto-mode-alist `(,pattern . php-mode) t))
+(dolist (pattern '("\\.php[s345t]?\\'" "/\\.php_cs\\(\\.dist\\)?\\'" "\\.phtml\\'" "/Amkfile\\'" "\\.amk\\'")) (add-to-list 'auto-mode-alist `(,pattern . php-mode) t))
 
 ;;;***
 
@@ -32,7 +48,7 @@ Major mode for editing PHP code.
 ;;;;;;  "php-exif.el" "php-ext.el" "php-filesystem.el" "php-gd.el"
 ;;;;;;  "php-math.el" "php-mode-pkg.el" "php-pcre.el" "php-regex.el"
 ;;;;;;  "php-simplexml.el" "php-strings.el" "php-var.el" "php-xmlparser.el"
-;;;;;;  "php-xmlreader.el") (22507 31353 917226 788000))
+;;;;;;  "php-xmlreader.el") (22613 12794 58793 417000))
 
 ;;;***
 

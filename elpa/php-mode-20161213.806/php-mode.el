@@ -1533,10 +1533,31 @@ The output will appear in the buffer *PHP*."
     (modify-syntax-entry ?\\ "w")
     ad-do-it
     (modify-syntax-entry ?\\ old-syntax)))
+
+
+(defcustom php-class-suffix-when-insert "::"
+  "Suffix for inserted class."
+  :type 'string)
+
+(defcustom php-namespace-suffix-when-insert "\\"
+  "Suffix for inserted namespace."
+  :type 'string)
+
+(defvar php--re-namespace-pattern
+  (php-create-regexp-for-classlike "namespace"))
+
+(defvar php--re-classlike-pattern
+  (php-create-regexp-for-classlike (regexp-opt '("class" "interface" "trait"))))
+
+(defun php-get-current-element (re-pattern)
+  "Return backward matched element by RE-PATTERN."
+  (save-excursion
+    (when (re-search-backward re-pattern nil t)
+      (match-string-no-properties 1))))
 
 
 ;;;###autoload
-(dolist (pattern '("\\.php[s345t]?\\'" "\\.phtml\\'" "/Amkfile\\'" "\\.amk\\'"))
+(dolist (pattern '("\\.php[s345t]?\\'" "/\\.php_cs\\(\\.dist\\)?\\'" "\\.phtml\\'" "/Amkfile\\'" "\\.amk\\'"))
   (add-to-list 'auto-mode-alist `(,pattern . php-mode) t))
 
 (provide 'php-mode)
