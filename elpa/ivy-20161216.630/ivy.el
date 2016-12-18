@@ -1,6 +1,6 @@
 ;;; ivy.el --- Incremental Vertical completYon -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
@@ -274,6 +274,7 @@ action functions.")
     (define-key map (kbd "C-r") 'ivy-reverse-i-search)
     (define-key map (kbd "SPC") 'self-insert-command)
     (define-key map [remap delete-backward-char] 'ivy-backward-delete-char)
+    (define-key map [remap backward-delete-char-untabify] 'ivy-backward-delete-char)
     (define-key map [remap backward-kill-word] 'ivy-backward-kill-word)
     (define-key map [remap delete-char] 'ivy-delete-char)
     (define-key map [remap forward-char] 'ivy-forward-char)
@@ -434,6 +435,9 @@ When non-nil, it should contain at least one %d.")
 
 (defvar ivy--regex-function 'ivy--regex
   "Current function for building a regex.")
+
+(defvar ivy--highlight-function 'ivy--highlight-default
+  "Current function for formatting the candidates.")
 
 (defvar ivy--subexps 0
   "Number of groups in the current `ivy--regex'.")
@@ -1297,6 +1301,11 @@ The matches will be filtered in a sequence, you can mix the
 regexps that should match and that should not match as you
 like.")
 
+(defvar ivy-highlight-functions-alist
+  '((ivy--regex-ignore-order . ivy--highlight-ignore-order)
+    (ivy--regex-fuzzy . ivy--highlight-fuzzy))
+  "An alist of highlighting functions for each regex buidler function.")
+
 (defvar ivy-initial-inputs-alist
   '((org-refile . "^")
     (org-agenda-refile . "^")
@@ -1536,6 +1545,15 @@ This is useful for recursive `ivy-read'."
     (setq ivy-text "")
     (setq ivy-calling nil)
     (setq ivy-use-ignore ivy-use-ignore-default)
+    (let (reb)
+      (setq ivy--highlight-function
+            (if (and (eq ivy--regex-function 'swiper--re-builder)
+                     (setq reb (cdr (assoc t ivy-re-builders-alist)))
+                     (setq reb (cdr (assoc reb ivy-highlight-functions-alist))))
+                reb
+              (or (cdr (assoc ivy--regex-function
+                              ivy-highlight-functions-alist))
+                  #'ivy--highlight-default))))
     (let (coll sort-fn)
       (cond ((eq collection 'Info-read-node-name-1)
              (if (equal Info-current-file "dir")
@@ -2439,7 +2457,7 @@ CANDIDATES are assumed to be static."
           (setq ivy--old-cands (ivy--sort name cands))
           (ivy--recompute-index name re-str ivy--old-cands))
         (setq ivy--old-re
-              (if (eq ivy--regex-function 'ivy--regex-ignore-order)
+              (if (eq ivy--highlight-function 'ivy--highlight-ignore-order)
                   re
                 (if ivy--old-cands
                     re-str
@@ -2773,63 +2791,64 @@ SEPARATOR is used to join the candidates."
     (font-lock-append-text-property
      start end 'face face str)))
 
-(defun ivy--format-minibuffer-line (str)
+(defun ivy--highlight-ignore-order (str)
+  "Highlight STR, using the ignore-order method."
+  (when (consp ivy--old-re)
+    (let ((i 1))
+      (dolist (re ivy--old-re)
+        (when (string-match (car re) str)
+          (ivy-add-face-text-property
+           (match-beginning 0) (match-end 0)
+           (nth (1+ (mod (+ i 2) (1- (length ivy-minibuffer-faces))))
+                ivy-minibuffer-faces)
+           str))
+        (cl-incf i))))
+  str)
+
+(defun ivy--highlight-fuzzy (str)
+  "Highlight STR, using the fuzzy method."
+  (if ivy--flx-featurep
+      (let ((flx-name (if (string-match "^\\^" ivy-text)
+                          (substring ivy-text 1)
+                        ivy-text)))
+        (ivy--flx-propertize
+         (cons (flx-score str flx-name ivy--flx-cache) str)))
+    (ivy--highlight-default str)))
+
+(defun ivy--highlight-default (str)
+  "Highlight STR, using the default method."
+  (unless ivy--old-re
+    (setq ivy--old-re (funcall ivy--regex-function ivy-text)))
   (let ((start
          (if (and (memq (ivy-state-caller ivy-last)
                         '(counsel-git-grep counsel-ag counsel-rg counsel-pt))
                   (string-match "^[^:]+:[^:]+:" str))
              (match-end 0)
-           0))
-        (str (copy-sequence str)))
-    (when (eq ivy-display-style 'fancy)
-      (cond ((eq ivy--regex-function 'ivy--regex-ignore-order)
-             (when (consp ivy--old-re)
-               (let ((i 1))
-                 (dolist (re ivy--old-re)
-                   (when (string-match (car re) str)
-                     (ivy-add-face-text-property
-                      (match-beginning 0) (match-end 0)
-                      (nth (1+ (mod (+ i 2) (1- (length ivy-minibuffer-faces))))
-                           ivy-minibuffer-faces)
-                      str))
-                   (cl-incf i)))))
-            ((and
-              ivy--flx-featurep
-              (or (eq ivy--regex-function 'ivy--regex-fuzzy)
-                  (and (eq ivy--regex-function 'swiper--re-builder)
-                       (let ((caller (ivy-state-caller ivy-last)))
-                         (eq (or (and caller
-                                      (cdr (assoc caller ivy-re-builders-alist)))
-                                 (cdr (assoc t ivy-re-builders-alist)))
-                             'ivy--regex-fuzzy)))))
-             (let ((flx-name (if (string-match "^\\^" ivy-text)
-                                 (substring ivy-text 1)
-                               ivy-text)))
-               (setq str
-                     (ivy--flx-propertize
-                      (cons (flx-score str flx-name ivy--flx-cache) str)))))
-            (t
-             (unless ivy--old-re
-               (setq ivy--old-re (funcall ivy--regex-function ivy-text)))
-             (ignore-errors
-               (while (and (string-match ivy--old-re str start)
-                           (> (- (match-end 0) (match-beginning 0)) 0))
-                 (setq start (match-end 0))
-                 (let ((i 0))
-                   (while (<= i ivy--subexps)
-                     (let ((face
-                            (cond ((zerop ivy--subexps)
-                                   (cadr ivy-minibuffer-faces))
-                                  ((zerop i)
-                                   (car ivy-minibuffer-faces))
-                                  (t
-                                   (nth (1+ (mod (+ i 2) (1- (length ivy-minibuffer-faces))))
-                                        ivy-minibuffer-faces)))))
-                       (ivy-add-face-text-property
-                        (match-beginning i) (match-end i)
-                        face str))
-                     (cl-incf i))))))))
-    str))
+           0)))
+    (ignore-errors
+      (while (and (string-match ivy--old-re str start)
+                  (> (- (match-end 0) (match-beginning 0)) 0))
+        (setq start (match-end 0))
+        (let ((i 0))
+          (while (<= i ivy--subexps)
+            (let ((face
+                   (cond ((zerop ivy--subexps)
+                          (cadr ivy-minibuffer-faces))
+                         ((zerop i)
+                          (car ivy-minibuffer-faces))
+                         (t
+                          (nth (1+ (mod (+ i 2) (1- (length ivy-minibuffer-faces))))
+                               ivy-minibuffer-faces)))))
+              (ivy-add-face-text-property
+               (match-beginning i) (match-end i)
+               face str))
+            (cl-incf i))))))
+  str)
+
+(defun ivy--format-minibuffer-line (str)
+  (if (eq ivy-display-style 'fancy)
+      (funcall ivy--highlight-function (copy-sequence str))
+    (copy-sequence str)))
 
 (ivy-set-display-transformer
  'counsel-find-file 'ivy-read-file-transformer)
@@ -2883,10 +2902,10 @@ CANDS is a list of strings."
   (unless recentf-mode
     (recentf-mode 1))
   (let ((bookmarks (and (boundp 'bookmark-alist)
-                        bookmark-alist))
+                        (copy-sequence bookmark-alist)))
         virtual-buffers)
     (dolist (head (append
-                   recentf-list
+                   (copy-sequence recentf-list)
                    (delq nil (mapcar (lambda (bookmark)
                                        (let (file)
                                          (when (setq file (assoc 'filename bookmark))
@@ -3374,7 +3393,9 @@ When `ivy-calling' isn't nil, call `ivy-occur-press'."
        highlight
        help-echo "mouse-1: call ivy-action")
      str)
-    (insert str "\n")))
+    (insert str "\n"))
+  (goto-char (point-min))
+  (forward-line 4))
 
 (defun ivy-occur ()
   "Stop completion and put the current matches into a new buffer.
