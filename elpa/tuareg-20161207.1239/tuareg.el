@@ -211,6 +211,16 @@ the default is 1.")
 ;; Automatic indentation
 ;; Using abbrev-mode and electric keys
 
+(defcustom tuareg-match-patterns-aligned nil
+  "Non-nil means that the pipes for multiple patterns of a single case
+are aligned instead of being slightly shifted to spot the multiple
+patterns better.
+         function          v.s.        function
+         | A                           | A
+           | B -> ...                  | B -> ...
+         | C -> ...                    | C -> ... "
+  :group 'tuareg :type 'boolean)
+
 (defcustom tuareg-use-abbrev-mode nil
   "*Non-nil means electrically indent lines starting with leading keywords.
 Leading keywords are such as `end', `done', `else' etc.
@@ -797,12 +807,12 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
-     ;; Attributes
+     ;; Attributes (`keep' to highlight except strings & chars)
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
-      . tuareg-font-lock-attribute-face)
+      0 tuareg-font-lock-attribute-face keep)
      ;; Extension nodes
      (,(concat "\\[%%?" attr-id balanced-brackets "\\]")
-      . tuareg-font-lock-extension-node-face)
+      0 tuareg-font-lock-extension-node-face keep)
      (,(concat "\\(?:\\<" (regexp-opt '("let" "begin" "module" "val" "val!"
 					"fun" "function" "match"))
 	       "\\|;\\)\\(" maybe-infix-attr "\\)")
@@ -1814,6 +1824,9 @@ Return values can be
              (save-excursion
                (smie-backward-sexp 'halfsexp)
                (cons 'column (smie-indent-virtual))))))
+	((and tuareg-match-patterns-aligned
+	      (equal token "|-or") (smie-rule-parent-p "|"))
+	 (smie-rule-parent))
         ;; If we're looking at the first class-field-spec
         ;; in a "object(type)...end", don't rely on the default behavior which
         ;; will treat (type) as a previous element with which to align.
