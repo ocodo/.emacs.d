@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.31
-;; Package-Version: 20161203.834
+;; Version: 14.0.33
+;; Package-Version: 20161210.243
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.31"
+(defconst web-mode-version "14.0.33"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -1653,6 +1653,7 @@ shouldn't be moved back.)")
 (defvar web-mode-javascript-font-lock-keywords
   (list
    '("@\\([[:alnum:]_]+\\)\\_>" 0 'web-mode-keyword-face)
+   (cons (concat "\\_<\\(function\\*\\)\\_>") '(1 'web-mode-keyword-face))
    (cons (concat "\\([ \t}{(]\\|^\\)\\(" web-mode-javascript-keywords "\\)\\_>") '(2 'web-mode-keyword-face))
    (cons (concat "\\_<\\(" web-mode-javascript-constants "\\)\\_>") '(0 'web-mode-constant-face))
    '("\\_<\\(new\\|instanceof\\|class\\|extends\\) \\([[:alnum:]_.]+\\)\\_>" 2 'web-mode-type-face)
@@ -4028,7 +4029,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
               (setq element-content-type "jsx"))
              ((string-match-p " type[ ]*=[ ]*[\"']text/\\(markdown\\|template\\)" script)
               (setq element-content-type "markdown"))
-             ((string-match-p " type[ ]*=[ ]*[\"']text/\\(x-handlebars\\|x-jquery-tmpl\\|html\\|ng-template\\|template\\|mustache\\|x-dust-template\\)" script)
+             ((string-match-p " type[ ]*=[ ]*[\"']text/\\(x-handlebars\\|x-jquery-tmpl\\|x-jsrender\\|html\\|ng-template\\|template\\|mustache\\|x-dust-template\\)" script)
               (setq element-content-type "html"
                     part-close-tag nil))
              ((string-match-p " type[ ]*=[ ]*[\"']application/\\(ld\\+json\\|json\\)" script)
@@ -4953,7 +4954,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
 ;; css rule = selector(s) + declaration (properties)
 (defun web-mode-css-rule-next (limit)
-  (let (at-rule sel-beg sel-end dec-beg dec-end chunk)
+  (let (at-rule var-rule sel-beg sel-end dec-beg dec-end chunk)
     (skip-chars-forward "\n\t ")
     (setq sel-beg (point))
     (when (and (< (point) limit)
@@ -4974,12 +4975,17 @@ another auto-completion with different ac-sources (e.g. ac-php)")
         )
        ) ;cond
       (setq chunk (buffer-substring-no-properties sel-beg sel-end))
-      (when (string-match "@\\([[:alpha:]-]+\\)" chunk)
+      (cond
+       ((string-match "@\\([[:alpha:]-]+\\)" chunk)
         (setq at-rule (match-string-no-properties 1 chunk)))
+       ((string-match "\\$\\([[:alpha:]-]+\\)" chunk)
+        (setq var-rule (match-string-no-properties 1 chunk)))
+       ) ;cond
       ) ;when
     (if (not sel-end)
         (progn (goto-char limit) nil)
       (list :at-rule at-rule
+            :var-rule var-rule
             :sel-beg sel-beg
             :sel-end sel-end
             :dec-beg dec-beg
@@ -5873,7 +5879,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 (defun web-mode-css-rules-highlight (part-beg part-end)
   (save-excursion
     (goto-char part-beg)
-    (let (rule (continue t) (i 0) (at-rule nil))
+    (let (rule (continue t) (i 0) (at-rule nil) (var-rule nil))
       (while continue
         (setq rule (web-mode-css-rule-next part-end))
         ;;(message "rule=%S" rule)
@@ -5955,7 +5961,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
       (setq plist (list :background str
                         :foreground (web-mode-colorize-foreground str)))
       (put-text-property beg end 'face plist))
-     ((string= (substring str 0 4) "rgb(")
+     ((or (string= (substring str 0 4) "rgb(") (string= (substring str 0 5) "rgba("))
       (setq str (format "#%02X%02X%02X"
                         (string-to-number (match-string-no-properties 1))
                         (string-to-number (match-string-no-properties 2))
