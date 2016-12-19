@@ -38,7 +38,7 @@
   ;; Default Font for different window systems
   (when (window-system)
     ;; Mac OS X
-    (when (eq system-type 'darwin)
+    (when (or (eq system-type 'gnu/linux) (eq system-type 'darwin))
       ;;
       ;;(set-face-font 'default "Monaco")
       ;;(set-face-font 'default "Menlo")
@@ -61,14 +61,7 @@
 
     ;; Windows whatever...
     (when (eq system-type 'windows-nt)
-      (set-face-font 'default "Consolas"))
-
-    ;; GNU Linux (Droid or Vera)
-    (when (eq system-type 'gnu/linux)
-      ;; for quick swapping.
-      ;; (set-face-font 'default "Bitstream Vera Sans Mono")
-      ;; (set-face-font 'default "Droid Sans Mono")
-      (set-face-font 'default "DejaVu Sans Mono"))))
+      (set-face-font 'default "Consolas"))))
 
 (provide 'init-helpers)
 
