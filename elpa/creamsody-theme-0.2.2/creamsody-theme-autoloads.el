@@ -7,8 +7,6 @@
 ;;;;;;  0 0))
 ;;; Generated autoloads from creamsody-theme.el
 
-(and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
-
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "creamsody-theme" '("creamsody")))
 
 ;;;***
