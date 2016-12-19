@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: jasmine-ng2-spec-element-text
+# key: specel
+# --
+it('should display ${1:something}', () => {
+    let de: DebugElement = fixture.debugElement.query(By.css('${2:selector}'));
+    let el: HTMLElement = de.nativeElement;
+    expect(el.textContent).toContain('${3:expectToContain}');
+});
