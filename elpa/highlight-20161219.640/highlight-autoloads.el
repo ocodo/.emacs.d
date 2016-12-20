@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "highlight" "highlight.el" (0 0 0 0))
+;;;### (autoloads nil "highlight" "highlight.el" (22617 16754 773160
+;;;;;;  170000))
 ;;; Generated autoloads from highlight.el
 
 (defvar hlt-auto-face-foreground nil "\
@@ -33,13 +34,17 @@ Either a list of properties (symbols) or `t', meaning all properties.")
 
 (custom-autoload 'hlt-default-copy/yank-props "highlight" t)
 
-(defvar hlt-face-prop 'font-lock-face "\
+(defvar hlt-face-prop (if (< emacs-major-version 22) 'face 'font-lock-face) "\
 *Face property used for highlighting: `face' or `font-lock-face'.
 If the value is `font-lock-face' then highlighting by library
 `highlight.el' disappears when `font-lock-mode' is turned off.
 
 If the value is `face', and if library`font-lock+.el' has been loaded,
-then highlighting persists - it is independent of font-locking.")
+then highlighting persists - it is independent of font-locking.
+
+For Emacs 20 or 21, font-locking does not recognize property
+`font-lock-face', so just use `face' (the default value for these
+versions), not `font-lock-face' - do not change the value.")
 
 (custom-autoload 'hlt-face-prop "highlight" t)
 
@@ -333,6 +338,31 @@ unhighlights the matches.
 
 \(fn REGEXP &optional FACE MSGP MOUSEP NTH)" t nil)
 
+(autoload 'hlt-highlight-regexp-groups-region "highlight" "\
+Like `hlt-highlight-regexp-region', but highlight regexp groups.
+Highlight regular expression REGEXP in region/buffer.
+Use the region if active, or the buffer otherwise.
+Up to 8 group levels are highlighted, using faces `hlt-regexp-level-1'
+through `hlt-regexp-level-8'.
+
+Optional args START and END are the limits of the area to act on.
+  They default to the region limits.
+Optional 4th arg MSGP:
+  t means to treat this as an interactive call when deciding to
+    display all messages.
+  non-nil & non-t means to display only error and warning messages.
+Optional 5th arg MOUSEP non-nil means to use `mouse-face' property,
+  not `face'.  Interactively, this is provided by the prefix arg.
+
+\(fn &optional START END REGEXP MSGP MOUSEP)" t nil)
+
+(autoload 'hlt-unhighlight-regexp-groups-region "highlight" "\
+Like `hlt-highlight-regexp-groups-region', but opposite.
+Where `hlt-highlight-regexp-groups-region' highlights REGEXP matches,
+this unhighlights the matches.
+
+\(fn &optional START END REGEXP MSGP MOUSEP)" t nil)
+
 (autoload 'hlt-unhighlight-region-for-face-in-buffers "highlight" "\
 Use `hlt-unhighlight-region-for-face' in each buffer of list BUFFERS.
 A prefix arg >= 0 means unhighlight `mouse-face', not `face'.
@@ -569,8 +599,6 @@ arg during Isearch exits Isearch.
 Non-interactively, FACE = nil means unhighlight all faces.
 
 \(fn &optional FACE MSGP MOUSEP BUFFERS STRING)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "highlight" '("hlt-" "menu-bar-edit-menu")))
 
 ;;;***
 
