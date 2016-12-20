@@ -381,10 +381,10 @@ responsibility to guarantee the two parameters are valid."
                                   (-uniq
                                    (mapcar 'car ego-project-config-alist))
                                   nil t nil nil ego--last-project-name)))
-          (c (let* ((prompt (format "Category of \"%s\" project: " p))
+          (c (let* ((prompt (progn (setq ego--current-project-name p)
+                                   (format "Category of \"%s\" project: " p)))
                     (categories (mapcar #'file-name-nondirectory (cl-remove-if-not #'file-directory-p (directory-files (ego--get-config-option :repository-directory) t))))
                     (init-category (unless categories
-                                     (setq ego--current-project-name p)
                                      (setq ego--last-project-name p)
                                      (ego--get-config-option :default-category))))
                (completing-read prompt categories nil 'confirm init-category nil)))

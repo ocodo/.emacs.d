@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; ego-devtools.el contains functions used to develop EGO.
+;; ego-devtools.el contains functions used up to develop EGO.
 
 ;;; Code:
 (require 'org)
@@ -37,7 +37,7 @@
    'ego-project-config-alist
    `(("EGO"
      :repository-directory ,ego-load-directory
-     :site-domain "http://emacs-china.github.io/EGO"
+     :site-domain "https://emacs-china.github.io/EGO"
      :site-main-title "EGO"
      :site-sub-title "Static site generator based on Emacs, Git and Org-mode"
      :theme (default)
