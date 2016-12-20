@@ -423,6 +423,13 @@ changing the opam switch)."
 (defvar tuareg-font-lock-constructor-face
   'tuareg-font-lock-constructor-face)
 
+(defface tuareg-font-lock-label-face
+  '((t (:inherit font-lock-constant-face keep)))
+  "Face description for labels."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-label-face
+  'tuareg-font-lock-label-face)
+
 (defface tuareg-font-lock-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
   "Face description for all errors reported to the source."
@@ -879,11 +886,11 @@ Regexp match data 0 points to the chars."
       . font-lock-keyword-face)
      ;;; labels
      (,(concat "\\([?~]" lid "\\)" tuareg--whitespace-re ":[^:>=]")
-      1 font-lock-constant-face keep)
+      1 tuareg-font-lock-label-face keep)
      ;;; label in a type signature
      (,(concat "\\(?:->\\|:[^:>=]\\)" tuareg--whitespace-re
                "\\(" lid "\\)[ \t]*:[^:>=]")
-      1 font-lock-constant-face)
+      1 tuareg-font-lock-label-face keep)
      (,(concat "\\<open\\(! +\\|\\> *\\)\\(" module-path "\\)?")
       (1 tuareg-font-lock-governing-face)
       (2 tuareg-font-lock-module-face keep t))
@@ -2497,7 +2504,7 @@ switch is not installed, `nil' is returned."
    (let* ((compl (tuareg-opam-installed-compilers))
 	  (current (tuareg-opam-current-compiler))
 	  (default (if current current "current"))
-	  (prompt (format "sopam switch (default: %s): " default)))
+	  (prompt (format "opam switch (default: %s): " default)))
      (list (completing-read prompt compl))))
   (let* ((switch (if (string= switch "") nil switch))
 	 (env (tuareg-opam-config-env switch)))
