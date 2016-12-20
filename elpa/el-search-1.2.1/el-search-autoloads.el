@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "el-search" "el-search.el" (22613 6681 37434
-;;;;;;  616000))
+;;;### (autoloads nil "el-search" "el-search.el" (22617 16762 709173
+;;;;;;  131000))
 ;;; Generated autoloads from el-search.el
 
 (autoload 'el-search-pattern "el-search" "\
@@ -96,8 +96,8 @@ Reuse already given input.
 
 ;;;***
 
-;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (22613
-;;;;;;  6681 49434 995000))
+;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (22617
+;;;;;;  16762 721173 150000))
 
 ;;;***
 

@@ -1,3 +1,23 @@
+2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add a helpful comment; bump version to 1.2.1
+
+2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Explicitly `error' when trying to jump to invalid search head
+
+	Give a meaningful error message when the user calls
+	`el-search-jump-to-search-head' but the search head points to a killed 
+	buffer.
+
+2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Set syntax table for temp buffers in el-search-atom-list
+
+2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix disregarding compressed elisp files
+
 2016-12-15  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	Extend the heuristic matching approach; complete review

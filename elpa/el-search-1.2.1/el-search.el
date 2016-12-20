@@ -7,7 +7,7 @@
 ;; Created: 29 Jul 2015
 ;; Keywords: lisp
 ;; Compatibility: GNU Emacs 25
-;; Version: 1.2
+;; Version: 1.2.1
 ;; Package-Requires: ((emacs "25") (stream "2.2.3"))
 
 
@@ -827,7 +827,7 @@ MESSAGE are used to construct the error message."
              type arg))))
 
 (defun el-search--elisp-file-name-p (file)
-  (and (string-match-p "\\.el\\'" file)
+  (and (string-match-p "\\.el\\(\\.\\(gz\\|Z\\)\\)?\\'" file)
        (file-exists-p file)
        (not (file-directory-p file))))
 
@@ -948,7 +948,9 @@ non-nil else."
                  (its-usable (equal (nth 5 (file-attributes file-name)) (car hash-entry))))
             (cdr hash-entry)
           (let ((atom-list (with-temp-buffer
-                             (insert-file-contents file-name-or-buffer)
+                             (let ((inhibit-message t))
+                               (insert-file-contents file-name-or-buffer))
+                             (set-syntax-table emacs-lisp-mode-syntax-table)
                              (funcall get-atoms))))
             (puthash file-name
                      (cons (nth 5 (file-attributes file-name)) atom-list)
@@ -1017,7 +1019,9 @@ non-nil else."
         (if (bufferp next)
             (setq buffer next)
           (setf (el-search-head-file head) next)
-          (setq buffer (let ((warning-minimum-level :error)) (find-file-noselect next))))
+          (setq buffer (let ((warning-minimum-level :error)
+                             (inhibit-message t))
+                         (find-file-noselect next))))
         (unless (memq buffer buffer-list-before)
           (with-current-buffer buffer
             (setq-local el-search--temp-buffer-flag t)))
@@ -1063,7 +1067,7 @@ non-nil else."
                                        (el-search--skip-expression nil t)
                                        (setf (el-search-head-position head)
                                              (copy-marker (point)))
-                                       (cons
+                                       (cons ;Return the cons defining the build recipe of the stream
                                         (list (el-search-head-buffer head)
                                               match
                                               (el-search-head-file head))
@@ -1503,7 +1507,8 @@ that the current search."
   (if-let ((search el-search--current-search)
            (current-head (el-search-object-head search))
            (current-search-buffer (el-search-head-buffer current-head)))
-      (progn
+      (if (not (buffer-live-p current-search-buffer))
+          (error "Search head points to a killed buffer")
         (setq this-command 'el-search-pattern)
         (let ((win (display-buffer current-search-buffer el-search-display-buffer-action)))
           (select-frame-set-input-focus (window-frame win))
