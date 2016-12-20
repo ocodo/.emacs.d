@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20161204.1637
+;; Package-Version: 20161218.1754
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.5.0
@@ -218,7 +218,7 @@ The following commands are available:
 \\{inf-ruby-minor-mode-map}"
   :lighter "" :keymap inf-ruby-minor-mode-map)
 
-(defvar inf-ruby-buffer nil "Last used Ruby process buffer.")
+(defvar inf-ruby-buffer nil "The oldest live Ruby process buffer.")
 
 (defvar inf-ruby-buffers nil "List of Ruby process buffers.")
 
@@ -373,7 +373,10 @@ Runs the hooks `comint-mode-hook' and `inf-ruby-mode-hook'.
     (setq inf-ruby-buffer-impl-name name
           inf-ruby-buffer-command command))
 
-  (pop-to-buffer (setq inf-ruby-buffer (current-buffer))))
+  (unless (and inf-ruby-buffer (comint-check-proc inf-ruby-buffer))
+    (setq inf-ruby-buffer (current-buffer)))
+
+  (pop-to-buffer (current-buffer)))
 
 (defun run-ruby-or-pop-to-buffer (command &optional name buffer)
   (if (not (and buffer
