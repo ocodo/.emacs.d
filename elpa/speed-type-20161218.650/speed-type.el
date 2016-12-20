@@ -3,10 +3,11 @@
 ;; Copyright (C) 2015 Gunther Hagleitner
 
 ;; Author: Gunther Hagleitner
-;; Version: 20150120.2034
-;; X-Original-Version: 0.1
+;; Maintainer: Julien Pagès <j.parkouss@gmail.com>
+;; Version: 1.0
+;; Package-Version: 20161218.650
 ;; Keywords: games
-;; URL: https://github.com/hagleitn/speed-type
+;; URL: https://github.com/parkouss/speed-type
 ;; Package-Requires: ((cl-lib "0.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -26,13 +27,95 @@
 ;;
 ;; Speed-type allows you to practice your touch typing skills.  You can
 ;; test yourself by typing snippets from online books or use any piece
-;; of text or code you have in Emacs.  Speed-type keeps track of your
+;; of text or code you have in emacs.  Speed-type keeps track of your
 ;; stats (WPM, CPM, accuracy) while you are typing.
 
 ;;; Code:
 
 (require 'url)
 (require 'cl-lib)
+
+(defvar speed-type-min-chars 200
+  "the minimum number of chars to type required when the text to type
+is picked randomly.")
+(defvar speed-type-max-chars 450
+    "the maximum number of chars to type required when the text to type
+is picked randomly.")
+(defvar speed-type-gb-book-list
+  '(1342 11 1952 1661 74 1232 23 135 5200 2591 844 84 98 2701 1400 16328 174
+         46 4300 345 1080 2500 829 1260 6130 1184 768 32032 521 1399 55)
+  "List of book numbers to use from the gutemberg web site. See
+speed-type--gb-url-format.")
+
+;; internal variables
+
+(defvar speed-type--gb-url-format
+  "https://www.gutenberg.org/cache/epub/%d/pg%d.txt")
+
+(defvar speed-type-explaining-message "
+Gross wpm/cpm ignore uncorrected errors and indicate raw speed.
+Net wpm/cpm take uncorrected errors into account and are a measure
+of effective or net speed.")
+
+(defvar speed-type-stats-format "\n
+Skill:        %s
+Net WPM:      %d
+Net CPM:      %d
+Gross WPM:    %d
+Gross CPM:    %d
+Accuracy:     %.2f%%
+Total time:   %s
+Total chars:  %d
+Corrections:  %d
+Total errors: %d
+%s")
+
+(defvar speed-type--completed-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "q") 'kill-this-buffer)
+    (define-key map (kbd "r") 'speed-type--replay)
+    (define-key map (kbd "n") 'speed-type--play-next)
+    map))
+
+;; buffer local internal variables
+
+(defvar speed-type--start-time nil)
+(make-variable-buffer-local 'speed-type--start-time)
+
+(defvar speed-type--orig-text nil)
+(make-variable-buffer-local 'speed-type--orig-text)
+
+(defvar speed-type--entries 0)
+(make-variable-buffer-local 'speed-type--entries)
+
+(defvar speed-type--errors 0)
+(make-variable-buffer-local 'speed-type--errors)
+
+(defvar speed-type--remaining 0)
+(make-variable-buffer-local 'speed-type--remaining)
+
+(defvar speed-type--mod-str nil)
+(make-variable-buffer-local 'speed-type--mod-str)
+
+(defvar speed-type--corrections 0)
+(make-variable-buffer-local 'speed-type--corrections)
+
+(defvar speed-type--title nil)
+(make-variable-buffer-local 'speed-type--title)
+
+(defvar speed-type--author nil)
+(make-variable-buffer-local 'speed-type--author)
+
+(defvar speed-type--opened-on-buffer nil)
+(make-variable-buffer-local 'speed-type--opened-on-buffer)
+
+;; save-mark-and-excursion in Emacs 25.1 and above works like save-excursion did before
+(eval-when-compile
+  (when (or
+         (< emacs-major-version 25)
+         (and (= emacs-major-version 25) (< emacs-minor-version 1)))
+    (defmacro save-mark-and-excursion (&rest body)
+`(save-excursion ,@body))))
 
 (defun speed-type--seconds-to-minutes (seconds)
   "Return minutes in float for SECONDS."
@@ -84,28 +167,9 @@ Accuracy is computed as (CORRECT-ENTRIES - CORRECTIONS) / TOTAL-ENTRIES."
   (cond ((< wpm 25) "Beginner")
         ((< wpm 30) "Intermediate")
         ((< wpm 40) "Average")
-        ((< wpm 50) "Good")
-        ((< wpm 60) "Pro")
+        ((< wpm 55) "Pro")
         ((< wpm 80) "Master")
         (t          "Racer")))
-
-(defvar speed-type-explaining-message "\n
-Gross wpm/cpm ignore uncorrected errors and indicate raw speed.
-Net wpm/cpm take uncorrected errors into account and are a measure
-of effective or net speed.")
-
-(defvar speed-type-stats-format "\n
-Skill:\t\t%s
-Net WPM:\t%d
-Net CPM:\t%d
-Gross WPM:\t%d
-Gross CPM:\t%d
-Accuracy:\t%.2f%%
-Total time:\t%s
-Total chars:\t%d
-Corrections:\t%d
-Total errors:\t%d
-%s")
 
 (defun speed-type--generate-stats (entries errors corrections seconds)
   "Return string of statistics."
@@ -122,14 +186,6 @@ Total errors:\t%d
           (+ errors corrections)
           speed-type-explaining-message))
 
-
-(defvar speed-type--gb-url-format
-  "http://www.gutenberg.org/cache/epub/%d/pg%d.txt")
-
-(defvar speed-type--gb-book-list
-  '(1342 11 1952 1661 74 1232 23 135 5200 2591 844 84 98 2701 1400 16328 174
-         46 4300 345 1080 2500 829 1260 6130 1184 768 32032 521 1399 55))
-
 (defun speed-type--gb-url (book-num)
   "Return url for BOOK-NUM."
   (format speed-type--gb-url-format book-num book-num))
@@ -141,40 +197,19 @@ Total errors:\t%d
         (url-request-method "GET"))
     (if (file-readable-p fn)
         (find-file-noselect fn t)
-      (let ((buf (url-retrieve-synchronously (speed-type--gb-url book-num))))
+      (let ((buf (url-retrieve-synchronously (speed-type--gb-url book-num)))
+            (new-buf (generate-new-buffer "temp-speed-type")))
+        ;; decoding the buffer content must be done in a new buffer
+        ;; to work properly
         (with-current-buffer buf
           (delete-trailing-whitespace)
+          (decode-coding-region (point-min) (point-max) 'utf-8 new-buf))
+        (kill-buffer buf)
+        (with-current-buffer new-buf
           (when (not (file-exists-p dr))
             (make-directory dr))
           (write-file fn)
-          buf)))))
-
-(defvar speed-type--start-time nil)
-(make-variable-buffer-local 'speed-type--start-time)
-
-(defvar speed-type--orig-text nil)
-(make-variable-buffer-local 'speed-type--orig-text)
-
-(defvar speed-type--entries 0)
-(make-variable-buffer-local 'speed-type--entries)
-
-(defvar speed-type--errors 0)
-(make-variable-buffer-local 'speed-type--errors)
-
-(defvar speed-type--remaining 0)
-(make-variable-buffer-local 'speed-type--remaining)
-
-(defvar speed-type--mod-str nil)
-(make-variable-buffer-local 'speed-type--mod-str)
-
-(defvar speed-type--corrections 0)
-(make-variable-buffer-local 'speed-type--corrections)
-
-(defvar speed-type--title nil)
-(make-variable-buffer-local 'speed-type--title)
-
-(defvar speed-type--author nil)
-(make-variable-buffer-local 'speed-type--author)
+          new-buf)))))
 
 (defun speed-type--elapsed-time ()
   "Return float with the total time since start."
@@ -205,6 +240,20 @@ Total errors:\t%d
                             (cl-incf speed-type--corrections))))
       (store-substring speed-type--mod-str pos 0))))
 
+(defun speed-type--replay ()
+  (interactive)
+  (let ((text speed-type--orig-text))
+    (kill-this-buffer)
+    (speed-type--setup text)))
+
+(defun speed-type--play-next ()
+  (interactive)
+  (let ((opened-on-buffer speed-type--opened-on-buffer))
+    (kill-this-buffer)
+    (if opened-on-buffer
+        (speed-type-buffer nil)
+      (speed-type-text))))
+
 (defun speed-type--handle-complete ()
   "Remove typing hooks from the buffer and print statistics."
   (remove-hook 'after-change-functions 'speed-type--change)
@@ -220,30 +269,43 @@ Total errors:\t%d
            speed-type--errors
            speed-type--corrections
            (speed-type--elapsed-time)))
-  (read-only-mode))
+  (insert "\n\n")
+  (insert (format "    [%s]uit\n"
+                  (propertize "q" 'face 'highlight)))
+  (insert (format "    [%s]eplay this sample\n"
+                  (propertize "r" 'face 'highlight)))
+  (insert (format "    [%s]ext random sample\n"
+                  (propertize "n" 'face 'highlight)))
+  (read-only-mode)
+  (use-local-map speed-type--completed-keymap))
 
 (defun speed-type--diff (orig new start end)
   "Update stats and buffer contents with result of changes in text."
   (let ((start0 (1- start))
         (end0 (1- end))
-        (color nil)
-        (bg-color nil))
+        (correct nil))
     (dotimes (i (- end start) nil)
       (let ((pos0 (+ start0 i))
             (pos (+ start i)))
         (if (speed-type--check-same i orig new)
-            (progn (setq color "green")
-                   (setq bg-color "#224422")
+            (progn (setq correct t)
                    (store-substring speed-type--mod-str pos0 1))
           (progn (cl-incf speed-type--errors)
-                 (setq color "red")
-                 (setq bg-color "#442222")
                  (store-substring speed-type--mod-str pos0 2)))
         (cl-incf speed-type--entries)
         (cl-decf speed-type--remaining)
-  (if (fboundp 'add-face-text-property)
-      (add-face-text-property pos (1+ pos) `(:foreground ,color :background ,bg-color))
-    (add-text-properties pos (1+ pos) `(face (:foreground ,color :background ,bg-color))))))))
+        (speed-type--set-char-color pos correct)))))
+
+(defun speed-type--set-char-color (pos correct)
+  (let* ((syntax
+          (char-syntax (aref (buffer-substring pos (1+ pos)) 0)))
+         (attrs
+          (if (and (not correct) (= syntax ?\s))
+              '(:underline "red")
+            `(:underline nil :foreground ,(if correct "green" "red")))))
+    (if (fboundp 'add-face-text-property)
+        (add-face-text-property pos (1+ pos) attrs)
+      (add-text-properties pos (1+ pos) `(face ,@attrs)))))
 
 (defun speed-type--change (start end length)
   "Handle buffer changes.
@@ -284,90 +346,95 @@ are color coded and stats are gathered about the typing performance."
   (with-temp-buffer
     (insert text)
     (delete-trailing-whitespace)
-    (setq text (buffer-string)))
-  (let* ((buf (generate-new-buffer "speed-type"))
-         (text (speed-type--trim text))
-         (len (length text)))
+    (setq text (speed-type--trim (buffer-string))))
+  (let ((buf (generate-new-buffer "speed-type"))
+        (len (length text)))
     (set-buffer buf)
     (setq speed-type--orig-text text)
     (setq speed-type--mod-str (make-string len 0))
-    (setq speed-type--remaining (length text))
-    (erase-buffer)
-    (insert speed-type--orig-text)
-    (not-modified)
-    (switch-to-buffer buf)
-    (goto-char 0)
+    (setq speed-type--remaining len)
     (setq speed-type--author author)
     (setq speed-type--title title)
-    (make-local-variable 'after-change-functions)
-    (make-local-variable 'first-change-hook)
-    (add-hook 'after-change-functions 'speed-type--change)
-    (add-hook 'first-change-hook 'speed-type--first-change)
+    (insert text)
+    (set-buffer-modified-p nil)
+    (switch-to-buffer buf)
+    (goto-char 0)
+    (add-hook 'after-change-functions 'speed-type--change nil t)
+    (add-hook 'first-change-hook 'speed-type--first-change nil t)
     (message "Timer will start when you type the first character.")))
+
+(defun speed-type--pick-text-to-type (&optional start end)
+  "Returns a random section of the buffer usable for playing
+
+START and END allow to limit to a buffer section - they default
+to (point-min) and (point-max)"
+  (unless start (setq start (point-min)))
+  (unless end (setq end (point-max)))
+  (save-mark-and-excursion
+    (goto-char start)
+    (forward-paragraph
+     ;; count the paragraphs, and pick a random one
+     (random (let ((nb 0))
+               (while (< (point) end)
+                 (forward-paragraph)
+                 (setq nb (+ 1 nb)))
+               (goto-char start)
+               nb)))
+    (mark-paragraph)
+    ;; select more paragraphs until there are more than speed-type-min-chars
+    ;; chars in the selection
+    (while (and (< (mark) end)
+                (< (- (mark) (point)) speed-type-min-chars))
+      (mark-paragraph 1 t))
+    (exchange-point-and-mark)
+    ;; and remove sentences if we are above speed-type-max-chars
+    (let ((continue t)
+          (sentence-end-double-space nil)
+          (fwd nil))
+      (while (and (< (point) end)
+                  (> (- (point) (mark)) speed-type-max-chars)
+                  continue)
+        (setq continue (re-search-backward (sentence-end) (mark) t))
+        (when continue (setq fwd t)))
+      (when fwd (forward-char)))
+    (buffer-substring-no-properties (region-beginning) (region-end))))
 
 ;;;###autoload
 (defun speed-type-region (start end)
   "Open copy of [START,END] in a new buffer to speed type the text."
   (interactive "r")
-  (speed-type--setup (buffer-substring start end)))
+  (speed-type--setup (buffer-substring-no-properties start end)))
 
 ;;;###autoload
-(defun speed-type-buffer ()
-  "Open copy of buffer contents in a new buffer to speed type the text."
-  (interactive)
-  (speed-type--setup (buffer-substring (point-min) (point-max))))
+(defun speed-type-buffer (full)
+  "Open copy of buffer contents in a new buffer to speed type the text.
 
-(defvar speed-type--min-chars 200)
-(defvar speed-type--max-chars 450)
-(defvar speed-type--skip-paragraphs 30)
-(defvar speed-type--max-paragraphs 200)
+If using a prefix while calling this function (C-u), then the full text
+will be used. Else some text will be picked randomly."
+  (interactive "P")
+  (if full
+      (speed-type--setup (buffer-substring-no-properties
+                          (point-min) (point-max)))
+    (speed-type--setup (speed-type--pick-text-to-type))
+    (setq speed-type--opened-on-buffer t)))
 
 ;;;###autoload
 (defun speed-type-text ()
   "Setup a new text sample to practice touch or speed typing."
   (interactive)
-  (let* ((rand-num (random (length speed-type--gb-book-list)))
-         (book-num (nth rand-num speed-type--gb-book-list))
-         (paragraph-num (+ speed-type--skip-paragraphs
-                           (random speed-type--max-paragraphs)))
-         (fwd t)
-         (p (point))
-         (tries 20)
-   (author nil)
-   (title nil))
+  (let ((book-num (nth (random (length speed-type-gb-book-list))
+                       speed-type-gb-book-list))
+        (author nil)
+        (title nil))
     (with-current-buffer (speed-type--gb-retrieve book-num)
       (goto-char 0)
       (when (re-search-forward "^Title: " nil t)
         (setq title (buffer-substring (point) (line-end-position))))
       (when (re-search-forward "^Author: " nil t)
         (setq author (buffer-substring (point) (line-end-position))))
-      (dotimes (i paragraph-num nil)
-        (setq p (point))
-        (if fwd (forward-paragraph)
-          (backward-paragraph))
-        (when (= p (point))
-          (setq fwd (not fwd))))
-      (mark-paragraph)
-      (exchange-point-and-mark)
-      (setq fwd nil)
-      (while (> tries 0)
-        (let ((size (- (point) (mark))))
-          (cond ((< size speed-type--min-chars)
-                 (progn (forward-paragraph)
-                        (when fwd
-                          (forward-paragraph)
-                          (mark-paragraph)
-                          (exchange-point-and-mark))
-                        (setq fwd nil)))
-                ((> size speed-type--max-chars)
-                 (progn (search-backward "." (mark) t)
-                        (setq fwd t)))
-                (t (setq tries 1))))
-        (cl-decf tries))
-      (when fwd (forward-char))
-      (speed-type--setup
-       (buffer-substring (region-beginning) (region-end))
-       author title))))
+
+      (speed-type--setup (speed-type--pick-text-to-type (point))
+                         author title))))
 
 (provide 'speed-type)
 
