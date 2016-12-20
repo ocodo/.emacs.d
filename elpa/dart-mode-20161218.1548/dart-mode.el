@@ -2,8 +2,8 @@
 
 ;; Author: Natalie Weizenbaum
 ;; URL: http://code.google.com/p/dart-mode
-;; Package-Version: 20161026.1510
-;; Version: 0.14
+;; Package-Version: 20161218.1548
+;; Version: 0.15
 ;; Package-Requires: ((cl-lib "0.5") (dash "2.10.0") (flycheck "0.23"))
 ;; Keywords: language
 
