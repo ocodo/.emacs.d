@@ -1,4 +1,4 @@
-(define-package "all-the-icons" "20161102.415" "A library for inserting Developer icons"
+(define-package "all-the-icons" "20161219.329" "A library for inserting Developer icons"
   '((dash "2.12.0")
     (emacs "24.3")
     (font-lock+ "0"))
