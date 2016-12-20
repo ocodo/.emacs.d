@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ansible" "ansible.el" (22532 20828 0 0))
+;;;### (autoloads nil "ansible" "ansible.el" (22617 16782 305209
+;;;;;;  313000))
 ;;; Generated autoloads from ansible.el
 
 (defvar ansible::key-map (make-sparse-keymap) "\
@@ -28,7 +29,8 @@ Ansible minor mode.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ansible-pkg.el") (22532 20828 0 0))
+;;;### (autoloads nil nil ("ansible-pkg.el") (22617 16782 297209
+;;;;;;  297000))
 
 ;;;***
 
