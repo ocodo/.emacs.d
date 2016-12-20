@@ -6,7 +6,7 @@
 ;; Maintainer: John Wiegley <jwiegley@gmail.com>
 ;; Created: 16 Jun 2012
 ;; Version: 1.0
-;; Package-Version: 20160227.48
+;; Package-Version: 20161218.1520
 ;; Keywords: keys keybinding config dotemacs
 ;; URL: https://github.com/jwiegley/use-package
 
@@ -91,6 +91,8 @@
 ;; This display will tell you if you've overriden a default keybinding, and
 ;; what the default was.  Also, it will tell you if the key was rebound after
 ;; your binding it with `bind-key', and what it was rebound it to.
+
+;;; Code:
 
 (require 'cl-lib)
 (require 'easy-mmode)
@@ -242,9 +244,9 @@ function symbol (unquoted)."
       (cl-flet
           ((wrap (map bindings)
                  (if (and map pkg (not (eq map 'global-map)))
-                     (if (boundp map)
-                         bindings
-                       `((eval-after-load
+                     `((if (boundp ',map)
+                           (progn ,@bindings)
+                         (eval-after-load
                              ,(if (symbolp pkg) `',pkg pkg)
                            '(progn ,@bindings))))
                    bindings)))
@@ -408,6 +410,7 @@ function symbol (unquoted)."
 (provide 'bind-key)
 
 ;; Local Variables:
+;; outline-regexp: ";;;\\(;* [^\s\t\n]\\|###autoload\\)\\|("
 ;; indent-tabs-mode: nil
 ;; End:
 
