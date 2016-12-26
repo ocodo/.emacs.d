@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 17 Oct 2016
 ;; Version: 2.3
-;; Package-Version: 20161218.1521
+;; Package-Version: 20161222.903
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -78,6 +78,11 @@ The check is performed by looking for the module using `locate-library'."
 
 (defcustom use-package-always-defer nil
   "If non-nil, assume `:defer t` unless `:demand t` is given."
+  :type 'boolean
+  :group 'use-package)
+
+(defcustom use-package-always-demand nil
+  "If non-nil, assume `:demand t` unless `:defer t` is given."
   :type 'boolean
   :group 'use-package)
 
@@ -1172,7 +1177,10 @@ this file.  Usage:
 
       (let ((body
              (macroexp-progn
-              (use-package-process-keywords name args*
+              (use-package-process-keywords name
+                (if use-package-always-demand
+                    (append args* '(:demand t))
+                  args*)
                 (and use-package-always-defer (list :deferred t))))))
         (if use-package-debug
             (display-buffer
