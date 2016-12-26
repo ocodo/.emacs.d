@@ -1446,18 +1446,20 @@ of \(action-display . function\)."
 Return nil when `helm-buffer' is empty."
   (or helm-current-source
       (with-helm-buffer
-        ;; This is needed to not loose selection.
-        (goto-char (overlay-start helm-selection-overlay))
-        (let ((header-pos (or (helm-get-previous-header-pos)
-                              (helm-get-next-header-pos))))
-          ;; Return nil when no--candidates.
-          (when header-pos
-            (cl-loop with source-name = (save-excursion
-                                          (goto-char header-pos)
-                                          (helm-current-line-contents))
-                     for source in (helm-get-sources) thereis
-                     (and (equal (assoc-default 'name source) source-name)
-                          source)))))))
+        (or (get-text-property (point) 'helm-cur-source)
+            (progn
+              ;; This is needed to not loose selection.
+              (goto-char (overlay-start helm-selection-overlay))
+              (let ((header-pos (or (helm-get-previous-header-pos)
+                                    (helm-get-next-header-pos))))
+                ;; Return nil when no--candidates.
+                (when header-pos
+                  (cl-loop with source-name = (save-excursion
+                                                (goto-char header-pos)
+                                                (helm-current-line-contents))
+                           for source in (helm-get-sources) thereis
+                           (and (equal (assoc-default 'name source) source-name)
+                                source)))))))))
 
 (defun helm-buffer-is-modified (buffer)
   "Return non-`nil' when BUFFER is modified since `helm' was invoked."
@@ -3180,7 +3182,7 @@ It is used for narrowing list of candidates to the
     (if (not (assq 'multiline source))
         (cl-loop for m in matches
                  for count from 1
-                 do (helm-insert-match m 'insert count))
+                 do (helm-insert-match m 'insert count source))
       (let ((start (point))
             (count 0)
             separate)
@@ -3189,7 +3191,7 @@ It is used for narrowing list of candidates to the
           (if separate
               (helm-insert-candidate-separator)
             (setq separate t))
-          (helm-insert-match match 'insert count))
+          (helm-insert-match match 'insert count source))
         (put-text-property start (point) 'helm-multiline t)))))
 
 (defmacro helm--maybe-use-while-no-input (&rest body)
@@ -3356,10 +3358,12 @@ PRESELECT, if specified."
   "Remove SOURCE from `helm-candidate-cache'."
   (remhash (assoc-default 'name source) helm-candidate-cache))
 
-(defun helm-insert-match (match insert-function &optional num)
-  "Insert MATCH into `helm-buffer' with INSERT-FUNCTION for SOURCE.
-If MATCH is a list then insert the string to display and store
-the real value in a text property."
+(defun helm-insert-match (match insert-function &optional num source)
+  "Insert MATCH into `helm-buffer' with INSERT-FUNCTION.
+If MATCH is a cons cell then insert the car as display with
+the cdr stored as real value in a `helm-realvalue' text property.
+Args NUM and SOURCE are also stored as text property when specified as
+respectively `helm-cand-num' and `helm-cur-source'."
   (let ((start     (point-at-bol (point)))
         (dispvalue (helm-candidate-get-display match))
         (realvalue (cdr-safe match)))
@@ -3374,6 +3378,8 @@ the real value in a text property."
                                 'helm-realvalue realvalue)))
       (when num
         (put-text-property start (point-at-eol) 'helm-cand-num num))
+      (when source
+        (put-text-property start (point-at-eol) 'helm-cur-source source))
       (funcall insert-function "\n"))))
 
 (defun helm-insert-header-from-source (source)
@@ -3447,10 +3453,12 @@ this additional info after the source name by overlay."
         (let ((start (point)))
           (helm-insert-candidate-separator)
           (helm-insert-match candidate 'insert-before-markers
-                             (1+ (cdr (assoc 'item-count source))))
+                             (1+ (cdr (assoc 'item-count source)))
+                             source)
           (put-text-property start (point) 'helm-multiline t))
         (helm-insert-match candidate 'insert-before-markers
-                           (1+ (cdr (assoc 'item-count source)))))
+                           (1+ (cdr (assoc 'item-count source)))
+                           source))
     (cl-incf (cdr (assoc 'item-count source)))
     (when (>= (assoc-default 'item-count source) limit)
       (helm-kill-async-process process)
@@ -4389,25 +4397,22 @@ Optional argument SOURCE is a Helm source object."
     (unless (helm-end-of-source-p t)
       (helm-mark-current-line))))
 
-(defun helm-end-of-source-p (&optional at-point)
-  "Return non-`nil' if we are at eob or end of source."
+(defun helm-end-of-source-1 (n at-point)
   (save-excursion
     (if (and (helm-pos-multiline-p) (null at-point))
         (null (helm-get-next-candidate-separator-pos))
-      (forward-line (if at-point 0 1))
-      (or (eq (point-at-bol) (point-at-eol))
-          (helm-pos-header-line-p)
-          (eobp)))))
+        (forward-line (if at-point 0 n))
+        (or (eq (point-at-bol) (point-at-eol))
+            (helm-pos-header-line-p)
+            (if (< n 0) (bobp) (eobp))))))
+
+(defun helm-end-of-source-p (&optional at-point)
+  "Return non-`nil' if we are at eob or end of source."
+  (helm-end-of-source-1 1 at-point))
 
 (defun helm-beginning-of-source-p (&optional at-point)
   "Return non-`nil' if we are at bob or beginning of source."
-  (save-excursion
-    (if (and (helm-pos-multiline-p) (null at-point))
-        (null (helm-get-previous-candidate-separator-pos))
-      (forward-line (if at-point 0 -1))
-      (or (eq (point-at-bol) (point-at-eol))
-          (helm-pos-header-line-p)
-          (bobp)))))
+  (helm-end-of-source-1 -1 at-point))
 
 (defun helm--edit-current-selection-internal (func)
   (with-helm-window
