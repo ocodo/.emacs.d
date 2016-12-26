@@ -4,7 +4,7 @@
 ;; Copyright 2011-2016 François-Xavier Bois
 
 ;; Version: 14.0.33
-;; Package-Version: 20161210.243
+;; Package-Version: 20161224.206
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -4547,7 +4547,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
           (goto-char (match-end 0))
           (setq pos (point))
           (setq continue nil))
-         ((not (web-mode-dom-rsf ">\\([ \t\n]*[\];,)':}]\\)\\|{" reg-end))
+         ((not (web-mode-dom-rsf ">\\([ \t\n]*[\];,)':}|&]\\)\\|{" reg-end))
           (setq continue nil)
           )
          ((eq (char-before) ?\{)
