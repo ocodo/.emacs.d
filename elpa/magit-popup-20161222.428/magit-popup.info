@@ -49,22 +49,22 @@ suffix commands.
 
 * Introduction::
 * Usage::
-* Defining prefix and suffix commands::
+* Defining Prefix and Suffix Commands::
 
 — The Detailed Node Listing —
 
 
 Usage
 
-* Customizing existing popups::
-* Other options::
+* Customizing Existing Popups::
+* Other Options::
 
 
 
-Defining prefix and suffix commands
+Defining Prefix and Suffix Commands
 
-* Defining prefix commands::
-* Defining suffix commands::
+* Defining Prefix Commands::
+* Defining Suffix Commands::
 
 
 File: magit-popup.info,  Node: Introduction,  Next: Usage,  Prev: Top,  Up: Top
@@ -142,7 +142,7 @@ packages that are not related to Magit.  But keep in mind that it will
 be deprecated eventually.
 
 
-File: magit-popup.info,  Node: Usage,  Next: Defining prefix and suffix commands,  Prev: Introduction,  Up: Top
+File: magit-popup.info,  Node: Usage,  Next: Defining Prefix and Suffix Commands,  Prev: Introduction,  Up: Top
 
 2 Usage
 *******
@@ -217,8 +217,8 @@ popup buffer.
 
    It is also possible to add additional arguments and commands to an
 existing popup, but that cannot be done directly from the popup (or the
-Custom interface).  See *note Customizing existing popups: Customizing
-existing popups.
+Custom interface).  See *note Customizing Existing Popups: Customizing
+Existing Popups.
 
    Documentation about a popup’s arguments and commands can be shown
 directly from the popup.
@@ -252,13 +252,13 @@ along with the other common commands.
 
 * Menu:
 
-* Customizing existing popups::
-* Other options::
+* Customizing Existing Popups::
+* Other Options::
 
 
-File: magit-popup.info,  Node: Customizing existing popups,  Next: Other options,  Up: Usage
+File: magit-popup.info,  Node: Customizing Existing Popups,  Next: Other Options,  Up: Usage
 
-2.1 Customizing existing popups
+2.1 Customizing Existing Popups
 ===============================
 
 It is possible to define additional infix arguments and suffix commands
@@ -376,16 +376,16 @@ to an existing popup using the following functions.
      which is to be unbound.
 
    It is also possible to change other aspects of a popup by setting a
-property using ‘plist-put’.  See *note Defining prefix commands:
-Defining prefix commands. for valid properties.  The most likely change
+property using ‘plist-put’.  See *note Defining Prefix Commands:
+Defining Prefix Commands. for valid properties.  The most likely change
 Magit users might want to make is:
 
      (plist-put magit-show-refs-popup :use-prefix nil)
 
 
-File: magit-popup.info,  Node: Other options,  Prev: Customizing existing popups,  Up: Usage
+File: magit-popup.info,  Node: Other Options,  Prev: Customizing Existing Popups,  Up: Usage
 
-2.2 Other options
+2.2 Other Options
 =================
 
  -- User Option: magit-popup-use-prefix-argument
@@ -409,8 +409,8 @@ File: magit-popup.info,  Node: Other options,  Prev: Customizing existing popups
      This option can be overridden for individual popups.
      ‘magit-show-refs-popup’ for example defaults to invoking the
      default action directly.  It only shows the popup buffer when a
-     prefix argument is used.  See *note Customizing existing popups:
-     Customizing existing popups.
+     prefix argument is used.  See *note Customizing Existing Popups:
+     Customizing Existing Popups.
 
  -- User Option: magit-popup-manpage-package
 
@@ -429,9 +429,9 @@ File: magit-popup.info,  Node: Other options,  Prev: Customizing existing popups
      (button-type-put 'magit-popup-action-button 'format " %k %D")
 
 
-File: magit-popup.info,  Node: Defining prefix and suffix commands,  Prev: Usage,  Up: Top
+File: magit-popup.info,  Node: Defining Prefix and Suffix Commands,  Prev: Usage,  Up: Top
 
-3 Defining prefix and suffix commands
+3 Defining Prefix and Suffix Commands
 *************************************
 
 If you write an extension for Magit then you should use this library now
@@ -476,13 +476,13 @@ infix arguments, and then also one of its suffix commands.
 
 * Menu:
 
-* Defining prefix commands::
-* Defining suffix commands::
+* Defining Prefix Commands::
+* Defining Suffix Commands::
 
 
-File: magit-popup.info,  Node: Defining prefix commands,  Next: Defining suffix commands,  Up: Defining prefix and suffix commands
+File: magit-popup.info,  Node: Defining Prefix Commands,  Next: Defining Suffix Commands,  Up: Defining Prefix and Suffix Commands
 
-3.1 Defining prefix commands
+3.1 Defining Prefix Commands
 ============================
 
 Prefix commands and their infix arguments are defined using the macro
@@ -519,10 +519,11 @@ commands have to be defined separately using plain ‘defun’.
      value of the variable by the same name.  See below for more
      information.
 
-     The optional argument GROUP specifies the Custom group in which the
-     option is placed.  If omitted then the option is placed in some
+     Optional argument GROUP specifies the Custom group into which the
+     option is placed.  If omitted then the option is placed into some
      group the same way it is done when directly using ‘defcustom’ and
-     omitting the group.
+     omitting the group, except when NAME begins with "magit-", in which
+     case the group ‘magit-git-arguments’ is used.
 
      The optional argument MODE specifies the mode used by the popup
      buffer.  If it is omitted or ‘nil’ then ‘magit-popup-mode’ is used.
@@ -633,9 +634,9 @@ commands have to be defined separately using plain ‘defun’.
           help for an argument.
 
 
-File: magit-popup.info,  Node: Defining suffix commands,  Prev: Defining prefix commands,  Up: Defining prefix and suffix commands
+File: magit-popup.info,  Node: Defining Suffix Commands,  Prev: Defining Prefix Commands,  Up: Defining Prefix and Suffix Commands
 
-3.2 Defining suffix commands
+3.2 Defining Suffix Commands
 ============================
 
 Commands intended to be invoked from a particular popup should determine
@@ -693,11 +694,11 @@ Tag Table:
 Node: Top994
 Node: Introduction2170
 Node: Usage4747
-Node: Customizing existing popups9471
-Node: Other options14999
-Node: Defining prefix and suffix commands16573
-Node: Defining prefix commands18725
-Node: Defining suffix commands25506
+Node: Customizing Existing Popups9471
+Node: Other Options14999
+Node: Defining Prefix and Suffix Commands16573
+Node: Defining Prefix Commands18725
+Node: Defining Suffix Commands25609
 
 End Tag Table
 
