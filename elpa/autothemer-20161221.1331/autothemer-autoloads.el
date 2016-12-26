@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "autothemer" "autothemer.el" (0 0 0 0))
+;;;### (autoloads nil "autothemer" "autothemer.el" (22624 31822 44032
+;;;;;;  509000))
 ;;; Generated autoloads from autothemer.el
 
 (autoload 'autothemer-deftheme "autothemer" "\
@@ -23,8 +24,6 @@ palette used in the most recent invocation of
 `autothemer-deftheme'.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "autothemer" '("autothemer--")))
 
 ;;;***
 

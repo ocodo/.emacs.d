@@ -4,8 +4,9 @@
 
 ;; Author: Sebastian Sturm
 ;; URL: https://github.com/sebastiansturm/autothemer
+;; Package-Version: 20161221.1331
 ;; Version: 0.2
-;; Package-Requires: ((dash "2.10.0") (emacs "24"))
+;; Package-Requires: ((dash "2.10.0") (emacs "24") (cl-lib "0.5"))
 
 ;;; Commentary:
 
@@ -14,7 +15,7 @@
 ;; face customization code using the theme's color palette.
 
 ;;; Code:
-(require 'cl-macs)
+(require 'cl-lib)
 (require 'dash)
 
 (cl-defstruct autothemer--color name value)
@@ -66,6 +67,7 @@ bindings within both the REDUCED-SPECS and the BODY."
     (setq face-customizer
           `(let ((,face-specs)
                  (,temp-defined-colors))
+             (deftheme ,name ,description)
              ,@(cl-loop for n from 0 to (1- n-displays)
                         collect
                         `(let* ,(autothemer--extract-let-block full-palette n)
@@ -96,7 +98,6 @@ bindings within both the REDUCED-SPECS and the BODY."
                                                     ,(autothemer--demote-heads (elt it 1))))
                                                  reduced-specs))
                                   ))))
-             (deftheme ,name ,description)
              (apply #'custom-theme-set-faces ',name
                     (cl-loop for ,temp-n from 0 to ,(1- n-faces)
                              collect (list (elt ',face-names ,temp-n)
@@ -164,7 +165,7 @@ unbound symbols, such as `normal' or `demibold'."
   (let ((colors (autothemer--theme-colors theme))
         (face (car reduced-spec))
         (spec (cdr reduced-spec)))
-    `(,face ,@(--tree-map (cond ((color-defined-p it)
+    `(,face ,@(--tree-map (cond ((and (stringp it) (color-defined-p it))
                                  (autothemer--color-name
                                   (autothemer--find-closest-color colors it)))
                                 ((stringp it) it)
@@ -180,7 +181,7 @@ unbound symbols, such as `normal' or `demibold'."
 
 (defun autothemer--replace-nil-by-precursor (palette-row)
   "Iterate over elements of PALETTE-ROW and replace every occurrence of nil by its most recent non-nil precursor.  The first element of PALETTE-ROW should be non-nil."
-  (assert (car palette-row))
+  (cl-assert (car palette-row))
   (let* ((color-name (car palette-row))
          (color-definitions (cdr palette-row))
          (last-definition))
@@ -228,7 +229,7 @@ palette used in the most recent invocation of
 
 (defun autothemer--append-column (list-of-lists new-column)
   "If LIST-OF-LISTS is nil, return NEW-COLUMN.  Otherwise, append to every element of LIST-OF-LISTS the corresponding element of NEW-COLUMN."
-  (assert (or (not list-of-lists) (eq (length list-of-lists) (length new-column))))
+  (cl-assert (or (not list-of-lists) (eq (length list-of-lists) (length new-column))))
   (if list-of-lists (-zip-with #'append list-of-lists new-column)
     new-column))
 
