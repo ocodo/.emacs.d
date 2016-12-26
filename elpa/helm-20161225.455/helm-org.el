@@ -58,7 +58,7 @@ Note this have no effect in `helm-org-in-buffer-headings'."
 (defcustom helm-org-headings-actions
   '(("Go to heading" . helm-org-goto-marker)
     ("Open in indirect buffer `C-c i'" . helm-org--open-heading-in-indirect-buffer)
-    ("Refile current heading to selected heading `C-c w`" . helm-org-heading-refile)
+    ("Refile current or marked heading to selection `C-c w`" . helm-org-heading-refile)
     ("Insert link to this heading `C-c l`" . helm-org-insert-link-to-heading-at-marker))
   "Default actions alist for
   `helm-source-org-headings-for-files'."
@@ -110,9 +110,9 @@ Note this have no effect in `helm-org-in-buffer-headings'."
 (defvar helm-org-headings-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
-    (define-key map (kbd "<C-c i>") 'helm-org-run-open-heading-in-indirect-buffer)
-    (define-key map (kbd "C-c w")   'helm-org-run-heading-refile)
-    (define-key map (kbd "C-c l")   'helm-org-run-insert-link-to-heading-at-marker)
+    (define-key map (kbd "C-c i") 'helm-org-run-open-heading-in-indirect-buffer)
+    (define-key map (kbd "C-c w") 'helm-org-run-heading-refile)
+    (define-key map (kbd "C-c l") 'helm-org-run-insert-link-to-heading-at-marker)
     map)
   "Keymap for `helm-source-org-headings-for-files'.")
 
@@ -128,6 +128,7 @@ Note this have no effect in `helm-org-in-buffer-headings'."
              (helm-aif (get-text-property 0 'helm-real-display candidate)
                  it
                candidate))))
+   (help-message :initform 'helm-org-headings-help-message)
    (action :initform 'helm-org-headings-actions)
    (keymap :initform 'helm-org-headings-map)))
 
@@ -225,16 +226,27 @@ Note this have no effect in `helm-org-in-buffer-headings'."
      'helm-org-insert-link-to-heading-at-marker)))
 
 (defun helm-org-heading-refile (marker)
-  (save-selected-window
-    (when (eq major-mode 'org-agenda-mode)
-      (org-agenda-switch-to))
-    (org-cut-subtree)
-    (let ((target-level (with-current-buffer (marker-buffer marker)
-                          (goto-char (marker-position marker))
-                          (org-current-level))))
-      (helm-org-goto-marker marker)
-      (org-end-of-subtree t t)
-      (org-paste-subtree (+ target-level 1)))))
+  "Refile current heading or marked to MARKER.
+The current heading is the heading where cursor was
+before entering helm session, it will be used unless
+you mark a candidate, in this case helm will go to this marked
+candidate in org buffer and refile this candidate to MARKER.
+NOTE that of course if you have marked more than one candidate,
+all the subsequent candidates will be ignored."
+  (let ((mkd (with-helm-buffer
+               (and helm-marked-candidates
+                    (car (helm-marked-candidates))))))
+    (save-selected-window
+      (when (eq major-mode 'org-agenda-mode)
+        (org-agenda-switch-to))
+      (when mkd (helm-org-goto-marker mkd))
+      (org-cut-subtree)
+      (let ((target-level (with-current-buffer (marker-buffer marker)
+                            (goto-char (marker-position marker))
+                            (org-current-level))))
+        (helm-org-goto-marker marker)
+        (org-end-of-subtree t t)
+        (org-paste-subtree (+ target-level 1))))))
 
 (defun helm-org-in-buffer-preselect ()
   (if (org-on-heading-p)
