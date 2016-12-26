@@ -80,7 +80,7 @@
 	 ((:keywords "async")
 	  (:url . "http://elpa.gnu.org/packages/async.html"))])
  (auctex .
-	 [(11 89 7)
+	 [(11 89 8)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -178,7 +178,7 @@
 		      ((:keywords "abbrev" "convenience" "matching")
 		       (:url . "https://github.com/company-mode/company-statistics"))])
  (context-coloring .
-		   [(8 0 1)
+		   [(8 1 0)
 		    ((emacs
 		      (24 3)))
 		    "Highlight by scope" tar
@@ -645,7 +645,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20161214)
+      [(20161224)
        nil "Outline-based notes management and organizer" tar nil])
  (osc .
       [(0 1)
