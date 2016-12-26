@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2016, Drew Adams, all rights reserved.
 ;; Created: Mon Feb 27 09:25:53 2006
-;; Last-Updated: Sun Nov 27 17:42:12 2016 (-0800)
+;; Last-Updated: Wed Dec 21 10:02:04 2016 (-0800)
 ;;           By: dradams
-;;     Update #: 15178
+;;     Update #: 15191
 ;; URL: http://www.emacswiki.org/icicles-fn.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: internal, extensions, help, abbrev, local, minibuffer,
@@ -428,10 +428,11 @@
 
 (require 'icicles-opt)                  ; (This is required anyway by `icicles-var.el'.)
   ;; icicle-add-proxy-candidates-flag, icicle-buffer-ignore-space-prefix-flag,
-  ;; icicle-Completions-display-min-input-chars, icicle-current-TAB-method, icicle-expand-input-to-common-match,
-  ;; icicle-hide-common-match-in-Completions-flag, icicle-hide-non-matching-lines-flag,
-  ;; icicle-highlight-historical-candidates-flag, icicle-highlight-input-initial-whitespace-flag,
-  ;; icicle-incremental-completion-delay, icicle-incremental-completion, icicle-incremental-completion-threshold,
+  ;; icicle-ffap-guesser, icicle-Completions-display-min-input-chars, icicle-current-TAB-method,
+  ;; icicle-expand-input-to-common-match, icicle-hide-common-match-in-Completions-flag,
+  ;; icicle-hide-non-matching-lines-flag, icicle-highlight-historical-candidates-flag,
+  ;; icicle-highlight-input-initial-whitespace-flag, icicle-incremental-completion-delay,
+  ;; icicle-incremental-completion, icicle-incremental-completion-threshold,
   ;; icicle-default-value, icicle-list-join-string, icicle-mark-position-in-candidate,
   ;; icicle-point-position-in-candidate, icicle-regexp-quote-flag, icicle-require-match-flag,
   ;; icicle-shell-command-candidates-cache, icicle-show-Completions-help-flag, icicle-sort-comparer,
@@ -1552,10 +1553,8 @@ and `read-file-name-function'."
 
               (fap
                (if (and (eq major-mode 'dired-mode)  (fboundp 'dired-get-file-for-visit))
-                   (condition-case nil
-                       (abbreviate-file-name (dired-get-file-for-visit))
-                     (error nil))
-                 (and ffap-available-p  (ffap-guesser))))
+                   (condition-case nil (abbreviate-file-name (dired-get-file-for-visit)) (error nil))
+                 (and ffap-available-p  (icicle-ffap-guesser))))
               (icicle-proxy-candidates
                (append
                 (and icicle-add-proxy-candidates-flag  (not icicle-exclude-default-proxies)
@@ -1593,7 +1592,7 @@ and `read-file-name-function'."
                                                (condition-case nil ; E.g. error: not on file line (ignore)
                                                    (abbreviate-file-name (dired-get-file-for-visit))
                                                  (error "No such file"))
-                                             (or (ffap-guesser)  (error "No such file"))))))))))
+                                             (or (icicle-ffap-guesser)  (error "No such file"))))))))))
          (icicle-unpropertize-completion result)
          (let* ((temp  (member (file-name-nondirectory result) icicle-proxy-candidates))
                 (symb  (and temp  (intern (substring (car temp) 1 (1- (length (car temp))))))))
@@ -4279,7 +4278,8 @@ Returns, e.g., \"a[^b]*b[^c]*c[^d]*d\" for input string \"abcd\"."
                      (concat "[^" (string ch) "]*" (regexp-quote (string ch)))
                    (setq first  nil)
                    (regexp-quote (string ch))))
-               string "")))
+               string
+               "")))
 
 (defun icicle-levenshtein-strict-match (s1 s2)
   "String S1 is within `icicle-levenshtein-distance' of string S2.
@@ -6882,7 +6882,6 @@ The non-nil value returned is the first element whose key matches."
     (dolist (key.val  alist)
       (when (string-match regexp (car key.val)) (throw 'icicle-alist-key-match key.val)))
     nil))
-
  
 ;;(@* "Icicles Functions - Sort Functions")
 
