@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20161215.532
+;; Package-Version: 20161219.731
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -2387,7 +2387,7 @@ An extra action allows to switch to the process buffer."
     (if (null collection)
         (error "%S is not supported" major-mode)
       (ivy-read "Ace-Link: " (funcall collection)
-                :action action
+                :action (lambda (x) (funcall action (cdr x)))
                 :require-match t
                 :caller 'counsel-ace-link))))
 ;;** `counsel-expression-history'
