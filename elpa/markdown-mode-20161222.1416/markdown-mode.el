@@ -33,7 +33,7 @@
 ;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
 ;; Created: May 24, 2007
 ;; Version: 2.1
-;; Package-Version: 20160928.932
+;; Package-Version: 20161222.1416
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -1278,7 +1278,7 @@ Group 2 matches only the label, without the surrounding markup.
 Group 3 matches the closing square bracket.")
 
 (defconst markdown-regex-header
-  "^\\(?:\\([^\r\n- ].*\\)\n\\(?:\\(=+\\)\\|\\(-+\\)\\)\\|\\(#+\\)[ \t]+\\(.*?\\)[ \t]*\\(#*\\)\\)$"
+  "^\\(?:\\([^\r\n\t -].*\\)\n\\(?:\\(=+\\)\\|\\(-+\\)\\)\\|\\(#+\\)[ \t]+\\(.*?\\)[ \t]*\\(#*\\)\\)$"
   "Regexp identifying Markdown headings.
 Group 1 matches the text of a setext heading.
 Group 2 matches the underline of a level-1 setext heading.
@@ -1288,7 +1288,7 @@ Group 5 matches the text, without surrounding whitespace, of an atx heading.
 Group 6 matches the closing hash marks of an atx heading.")
 
 (defconst markdown-regex-header-setext
-  "^\\([^\r\n- ].*\\)\n\\(=+\\|-+\\)$"
+  "^\\([^\r\n\t -].*\\)\n\\(=+\\|-+\\)$"
   "Regular expression for generic setext-style (underline) headers.")
 
 (defconst markdown-regex-header-atx
