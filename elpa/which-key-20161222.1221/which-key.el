@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20161215.658
+;; Package-Version: 20161222.1221
 ;; Version: 1.1.15
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -241,6 +241,7 @@ and nil. Nil turns the feature off."
                 (const :tag "In the first line" top)
                 (const :tag "In the last line" bottom)
                 (const :tag "In the echo area" echo)
+                (const :tag "In the mode-line" mode-line)
                 (const :tag "Hide" nil)))
 
 (defcustom which-key-popup-type 'side-window
@@ -254,6 +255,12 @@ and nil. Nil turns the feature off."
 (defcustom which-key-min-display-lines 1
   "The minimum number of horizontal lines to display in the
   which-key buffer."
+  :group 'which-key
+  :type 'integer)
+
+(defcustom which-key-max-display-columns nil
+  "The maximum number of columns to display in the which-key
+buffer. nil means don't impose a maximum."
   :group 'which-key
   :type 'integer)
 
@@ -1609,7 +1616,7 @@ Returns a plist that holds the page strings, as well as
 metadata."
   (let ((cols-w-widths (mapcar #'which-key--pad-column
                                (which-key--partition-list avl-lines keys)))
-        (page-width 0) (n-pages 0) (n-keys 0)
+        (page-width 0) (n-pages 0) (n-keys 0) (n-columns 0)
         page-cols pages page-widths keys/page col)
     (if (> (apply #'max (mapcar #'car cols-w-widths)) avl-width)
         ;; give up if no columns fit
@@ -1618,17 +1625,21 @@ metadata."
       (while cols-w-widths
         ;; start new page
         (cl-incf n-pages)
-        (setq col (pop cols-w-widths)
-              page-cols (list (cdr col))
-              page-width (car col)
-              n-keys (length (cdr col)))
+        (setq col (pop cols-w-widths))
+        (setq page-cols (list (cdr col)))
+        (setq page-width (car col))
+        (setq n-keys (length (cdr col)))
+        (setq n-columns 1)
         ;; add additional columns as long as they fit
         (while (and cols-w-widths
+                    (or (null which-key-max-display-columns)
+                        (< n-columns which-key-max-display-columns))
                     (<= (+ (caar cols-w-widths) page-width) avl-width))
           (setq col (pop cols-w-widths))
           (push (cdr col) page-cols)
           (cl-incf page-width (car col))
-          (cl-incf n-keys (length (cdr col))))
+          (cl-incf n-keys (length (cdr col)))
+          (cl-incf n-columns))
         (push (which-key--join-columns page-cols) pages)
         (push n-keys keys/page)
         (push page-width page-widths))
@@ -1816,9 +1827,17 @@ and a page count."
         nil))
       (`echo
        (cons page
-             (concat full-prefix (when prefix-keys " ")
-                     status-line (when status-line " ")
-                     nxt-pg-hint)))
+             (lambda ()
+               (which-key--echo
+                (concat full-prefix (when prefix-keys " ")
+                        status-line (when status-line " ")
+                        nxt-pg-hint)))))
+      (`mode-line
+       (cons page
+             (lambda ()
+               (with-current-buffer which-key--buffer
+                 (setq-local mode-line-format
+                             (concat " " full-prefix " " status-line " " nxt-pg-hint))))))
       (_ (cons page nil)))))
 
 (defun which-key--show-page (n)
@@ -1830,8 +1849,8 @@ and a page count."
     (if (= 0 n-pages)
         (message "%s- which-key can't show keys: There is not \
 enough space based on your settings and frame size." prefix-keys)
-      (setq page-n (mod n n-pages)
-            which-key--current-page-n page-n)
+      (setq page-n (mod n n-pages))
+      (setq which-key--current-page-n page-n)
       (when (= n-pages (1+ n)) (setq which-key--on-last-page t))
       (let ((page-echo (which-key--process-page page-n which-key--pages-plist))
             (height (plist-get which-key--pages-plist :page-height))
@@ -1843,7 +1862,7 @@ enough space based on your settings and frame size." prefix-keys)
             (erase-buffer)
             (insert (car page-echo))
             (goto-char (point-min)))
-          (when (cdr page-echo) (which-key--echo (cdr page-echo)))
+          (when (cdr page-echo) (funcall (cdr page-echo)))
           (which-key--show-popup (cons height width)))))
     ;; used for paging at top-level
     (if (fboundp 'set-transient-map)
