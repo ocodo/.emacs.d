@@ -4,9 +4,9 @@
 
 ;; Author: Alexander I.Grafov (axel) <grafov@gmail.com>
 ;; URL: https://github.com/grafov/go-playground
-;; Package-Version: 20161216.1129
+;; Package-Version: 20161225.1102
 ;; Keywords: tools, golang
-;; Package-Requires: ((emacs "24") (go-mode "1.0.0") (gotest "0.40.0"))
+;; Package-Requires: ((emacs "24") (go-mode "1.4.0") (gotest "0.13.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -69,9 +69,8 @@ By default confirmation required."
 (define-minor-mode go-playground-mode
   "A place for playing with golang code and export it in short snippets."
   :init-value nil
-  :lighter ""
-  :keymap '(([C-return] . go-playground-exec))
-  (setq mode-name "Play(Go)"))
+  :lighter "Play(Go)"
+  :keymap '(([C-return] . go-playground-exec)))
 
 (defun go-playground-snippet-file-name(&optional snippet-name)
   (let ((file-name (cond (snippet-name)
@@ -80,29 +79,19 @@ By default confirmation required."
                          ("snippet"))))
     (concat (go-playground-snippet-unique-dir file-name) "/" file-name ".go")))
 
-; obsoleted by go-playground-exec
+; 
 (defun go-playground-save-and-run ()
+  "Obsoleted by go-playground-exec."
   (interactive)  
   (go-playground-exec))
   
 (defun go-playground-exec ()
   "Save the buffer then runs Go compiler for executing the code."
   (interactive)
-  (save-buffer t)
-  (make-local-variable 'compile-command)
-  (compile (concat go-command " run *.go")))
-
-;; draft
-;; (defun go-playground-print-unused ()
-;;   "Uncompleted function in development.  Don't use it."
-;;   (interactive)
-;;   (save-buffer t)
-;;   (let ((snippet-buf (current-buffer)) (compile-buf (compile (go-run-get-program (go-run-arguments)))))
-;;     (set-buffer compile-buf)
-;;     (looking-at "^.*:[0-9]+: \\([_.a-zA-Z0-9]+\\) declared and not used")
-;;     (let ((not-used-var (match-string 0)))
-;;       (set-buffer snippet-buf)
-;;       (insert not-used-var))))
+  (if  (go-playground-inside)  
+	  (save-buffer t)
+	(make-local-variable 'compile-command)
+	(compile (concat go-command " run *.go"))))
 
 ;;;###autoload
 (defun go-playground ()
@@ -137,14 +126,13 @@ func main() {
 
 "))
 
-;;;###autoload
 (defun go-playground-rm ()  
   "Remove files of the current snippet together with directory of this snippet."
   (interactive)
-  (if (string-match-p (file-truename go-playground-basedir) (file-truename (buffer-file-name)))
+  (if (go-playground-inside)
       (if (or (not go-playground-confirm-deletion)
-	       (y-or-n-p (format "Do you want delete whole snippet dir %s? "
-				 (file-name-directory (buffer-file-name)))))
+			  (y-or-n-p (format "Do you want delete whole snippet dir %s? "
+								(file-name-directory (buffer-file-name)))))
 		  (progn
 			(save-buffer)
 			(delete-directory (file-name-directory (buffer-file-name)) t t)
@@ -182,9 +170,10 @@ Tries to look for a URL at point."
 (defun go-playground-upload ()
   "Upload the current buffer to play.golang.org and return the short URL of the playground."
   (interactive)
-  (goto-char (point-min))
-  (forward-line)
-  (insert (go-play-buffer)))
+  (if (go-playground-inside)
+	  (goto-char (point-min))
+	(forward-line)
+	(insert (go-play-buffer))))
 
 (defun go-playground-snippet-unique-dir (prefix)
   "Get unique directory under GOPATH/`go-playground-basedir`."
@@ -193,6 +182,11 @@ Tries to look for a URL at point."
                           (time-stamp-string "at-%:y-%02m-%02d-%02H%02M%02S"))))
     (make-directory dir-name t)
     dir-name))
+
+(defun go-playground-inside ()
+  "Is the current buffer is valid go-playground buffer."
+  (if (string-match-p (file-truename go-playground-basedir) (file-truename (buffer-file-name)))
+	  (bound-and-true-p go-playground-mode)))
 
 (provide 'go-playground)
 ;;; go-playground.el ends here

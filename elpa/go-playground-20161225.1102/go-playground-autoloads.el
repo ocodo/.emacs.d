@@ -3,17 +3,12 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "go-playground" "go-playground.el" (22613 12888
-;;;;;;  697540 328000))
+;;;### (autoloads nil "go-playground" "go-playground.el" (22624 31788
+;;;;;;  56031 932000))
 ;;; Generated autoloads from go-playground.el
 
 (autoload 'go-playground "go-playground" "\
 Run playground for Go language in a new buffer.
-
-\(fn)" t nil)
-
-(autoload 'go-playground-rm "go-playground" "\
-Remove files of the current snippet together with directory of this snippet.
 
 \(fn)" t nil)
 
