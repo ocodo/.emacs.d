@@ -1,3 +1,24 @@
+2016-12-23  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	Merge commit '1b30a28857727202d1f6a027f83ad66151fb1e92' from
+	context-coloring
+
+2016-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* context-coloring/fixtures: Undo last change
+
+2016-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fixtures/test/: Don't byte-compile
+
+2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
+
+	Fix some quoting problems in doc strings
+
+	Most of these are minor issues involving, e.g., quoting `like this' 
+	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
+	\= when the characters should not be turned into curved single quotes.
+
 2016-05-30  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
 
 	Merge commit '3007b2917d71a7d66eb94876536dfd80b0661d40' from

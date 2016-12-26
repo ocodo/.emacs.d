@@ -25,7 +25,9 @@ By default, comments and strings are still highlighted syntactically.
 ## Installation
 
 Requires Emacs 24.3+.  JavaScript language support requires
-[js2-mode](https://github.com/mooz/js2-mode).
+[js2-mode](https://github.com/mooz/js2-mode) (or, if you use
+[Tern](http://ternjs.net/), you may be interested in
+[tern-context-coloring](https://github.com/jacksonrayhamilton/tern-context-coloring)).
 
 To install, run the command `M-x package-install RET context-coloring RET`, and
 then add the following to your init file:

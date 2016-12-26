@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014-2016  Free Software Foundation, Inc.
 
 ;; Author: Jackson Ray Hamilton <jackson@jacksonrayhamilton.com>
-;; Version: 8.0.1
+;; Version: 8.1.0
 ;; Keywords: convenience faces tools
 ;; Package-Requires: ((emacs "24.3"))
 ;; URL: https://github.com/jacksonrayhamilton/context-coloring
@@ -40,6 +40,14 @@
 (defun context-coloring-join (strings delimiter)
   "Join a list of STRINGS with the string DELIMITER."
   (mapconcat #'identity strings delimiter))
+
+(defun context-coloring-check-predicates (predicates)
+  "Call PREDICATES until one returns t, otherwise return nil."
+  (let ((satisfied-p nil))
+    (while (and predicates
+                (not satisfied-p))
+      (setq satisfied-p (funcall (pop predicates))))
+    satisfied-p))
 
 
 ;;; Faces
@@ -279,7 +287,7 @@ KEYWORDS-P is non-nil, also color keywords from MIN to MAX."
   "Scope level at which to start coloring.
 
 If top-level variables and functions do not become global, but
-are scoped to a file (as in Node.js), set this to `1'."
+are scoped to a file (as in Node.js), set this to 1."
   :type 'integer
   :safe #'integerp
   :group 'context-coloring)
@@ -311,7 +319,11 @@ override `context-coloring-default-delay'.
 `context-coloring-mode' is enabled.
 
 `:teardown' - Arbitrary code to tear down this dispatch when
-`context-coloring-mode' is disabled.")
+`context-coloring-mode' is disabled.
+
+`:async-p' - Hint that code will be colorized asynchronously.
+Please call `context-coloring-after-colorize' when colorization
+completes.")
 
 (defun context-coloring-find-dispatch (predicate)
   "Find the first dispatch satisfying PREDICATE."
@@ -345,17 +357,45 @@ override `context-coloring-default-delay'.
   "Set up environment for colorization."
   (context-coloring-update-maximum-face))
 
+(defvar context-coloring-after-colorize-hook nil
+  "Functions to run after colorizing.")
+
+(defun context-coloring-after-colorize ()
+  "Do final business after colorization."
+  (run-hooks 'context-coloring-after-colorize-hook))
+
 (defun context-coloring-dispatch ()
   "Determine how to color the current buffer, and color it."
   (let* ((dispatch (context-coloring-get-current-dispatch))
-         (colorizer (plist-get dispatch :colorizer)))
+         (colorizer (plist-get dispatch :colorizer))
+         (async-p (plist-get dispatch :async-p)))
     (context-coloring-before-colorize)
     (when colorizer
       (catch 'interrupted
-        (funcall colorizer)))))
+        (funcall colorizer)))
+    (unless async-p
+      (context-coloring-after-colorize))))
 
 
 ;;; Colorization
+
+(defvar context-coloring-fontify-keywords-predicates
+  (list
+   (lambda () (and (boundp 'prettify-symbols-mode) prettify-symbols-mode)))
+  "Cases where the whole buffer should have keywords fontified.
+Necessary in cases where a mode relies on fontifications in
+regions where Context Coloring doesn't happen to touch.")
+
+(defun context-coloring-maybe-fontify-keywords ()
+  "Determine if the buffer ought to have keywords fontified."
+  (when (context-coloring-check-predicates
+         context-coloring-fontify-keywords-predicates)
+    (with-silent-modifications
+      (save-excursion
+        (font-lock-fontify-keywords-region (point-min) (point-max))))))
+
+(add-hook 'context-coloring-after-colorize-hook
+          #'context-coloring-maybe-fontify-keywords)
 
 (defun context-coloring-colorize ()
   "Color the current buffer by function context."
@@ -381,12 +421,8 @@ permissible.")
 
 (defun context-coloring-ignore-unavailable-message-p ()
   "Determine if the unavailable message should be silenced."
-  (let ((predicates context-coloring-ignore-unavailable-predicates)
-        (ignore-p nil))
-    (while (and predicates
-                (not ignore-p))
-      (setq ignore-p (funcall (pop predicates))))
-    ignore-p))
+  (context-coloring-check-predicates
+   context-coloring-ignore-unavailable-predicates))
 
 (defvar context-coloring-interruptable-p t
   "When non-nil, coloring may be interrupted by user input.")
@@ -428,6 +464,14 @@ Feature inspired by Douglas Crockford."
         (font-lock-set-defaults)
         ;; Safely change the value of this function as necessary.
         (make-local-variable 'font-lock-syntactic-face-function)
+        ;; Improve integration with `prettify-symbols-mode'.  It relies on Font
+        ;; Lock's automatic fontification to apply it's changes on mode change,
+        ;; so Context Coloring has to make those changes manually.
+        (add-hook 'prettify-symbols-mode-hook #'context-coloring-maybe-fontify-keywords nil t)
+        ;; Furthermore, on Emacs < 25.0, `prettify-symbols-mode' calls
+        ;; `font-lock-fontify-buffer-function' which would overwrite context
+        ;; coloring, so make it a no-op.
+        (set (make-local-variable 'font-lock-fontify-buffer-function) (lambda ()))
         (let ((setup (plist-get dispatch :setup)))
           (when setup
             (funcall setup))
@@ -442,6 +486,7 @@ Feature inspired by Douglas Crockford."
         (let ((teardown (plist-get dispatch :teardown)))
           (when teardown
             (funcall teardown)))))
+    (remove-hook 'prettify-symbols-mode-hook #'context-coloring-maybe-fontify-keywords t)
     (turn-on-font-lock-if-desired))))
 
 (provide 'context-coloring)

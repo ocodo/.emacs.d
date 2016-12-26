@@ -73,26 +73,33 @@ this for ES6 code; disable it elsewhere."
                        ;; `js2-prop-get-node', so this always works.
                        (eq node (js2-prop-get-node-right parent))))))))
 
+(defvar-local context-coloring-point-min nil
+  "Cached value of `point-min'.")
+
 (defvar-local context-coloring-point-max nil
   "Cached value of `point-max'.")
 
+(defsubst context-coloring-js2-bounded-point (point)
+  "Make POINT safe to set text properties.
+POINT may be unsafe if a JS2 node extends beyond the end of the
+buffer (in the case of an unterminated multiline comment).  The
+region could also be narrowed and the node thus obscured."
+  (min (max point context-coloring-point-min) context-coloring-point-max))
+
 (defsubst context-coloring-js2-colorize-node (node level)
   "Color NODE with the color for LEVEL."
-  (let ((start (js2-node-abs-pos node)))
+  (let* ((start (js2-node-abs-pos node))
+         (end (+ start (js2-node-len node))))
     (context-coloring-colorize-region
-     start
-     (min
-      ;; End
-      (+ start (js2-node-len node))
-      ;; Somes nodes (like the ast when there is an unterminated multiline
-      ;; comment) will stretch to the value of `point-max'.
-      context-coloring-point-max)
+     (context-coloring-js2-bounded-point start)
+     (context-coloring-js2-bounded-point end)
      level)))
 
 (defun context-coloring-js2-colorize-ast ()
   "Color the buffer using the `js2-mode' abstract syntax tree."
   ;; Reset the hash table; the old one could be obsolete.
   (setq context-coloring-js2-scope-level-hash-table (make-hash-table :test #'eq))
+  (setq context-coloring-point-min (point-min))
   (setq context-coloring-point-max (point-max))
   (with-silent-modifications
     (js2-visit-ast

@@ -1,10 +1,10 @@
 ;;; context-coloring-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "context-coloring" "context-coloring.el" (22405
-;;;;;;  60742 768724 427000))
+;;;### (autoloads nil "context-coloring" "context-coloring.el" (22624
+;;;;;;  31801 492032 156000))
 ;;; Generated autoloads from context-coloring.el
 
 (defvar context-coloring-dispatch-hash-table (make-hash-table :test #'eq) "\
@@ -30,7 +30,11 @@ override `context-coloring-default-delay'.
 `context-coloring-mode' is enabled.
 
 `:teardown' - Arbitrary code to tear down this dispatch when
-`context-coloring-mode' is disabled.")
+`context-coloring-mode' is disabled.
+
+`:async-p' - Hint that code will be colorized asynchronously.
+Please call `context-coloring-after-colorize' when colorization
+completes.")
 
 (autoload 'context-coloring-mode "context-coloring" "\
 Toggle contextual code coloring.
@@ -62,7 +66,7 @@ Feature inspired by Douglas Crockford.
 ;;;***
 
 ;;;### (autoloads nil "context-coloring-emacs-lisp" "context-coloring-emacs-lisp.el"
-;;;;;;  (22405 60742 772724 420000))
+;;;;;;  (22624 31801 504032 156000))
 ;;; Generated autoloads from context-coloring-emacs-lisp.el
 
 (autoload 'context-coloring-elisp-colorize "context-coloring-emacs-lisp" "\
@@ -87,7 +91,7 @@ Non-nil if the minibuffer is for `eval-expression'.
 ;;;***
 
 ;;;### (autoloads nil "context-coloring-javascript" "context-coloring-javascript.el"
-;;;;;;  (22405 60742 780724 405000))
+;;;;;;  (22624 31801 532032 157000))
 ;;; Generated autoloads from context-coloring-javascript.el
 
 (autoload 'context-coloring-js2-colorize "context-coloring-javascript" "\
@@ -99,8 +103,8 @@ Color the buffer using the `js2-mode'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("context-coloring-pkg.el") (22405 60742
-;;;;;;  797529 833000))
+;;;### (autoloads nil nil ("context-coloring-pkg.el") (22624 31801
+;;;;;;  508032 156000))
 
 ;;;***
 
