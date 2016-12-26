@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "highlight" "highlight.el" (22617 16754 773160
-;;;;;;  170000))
+;;;### (autoloads nil "highlight" "highlight.el" (22624 31768 980031
+;;;;;;  623000))
 ;;; Generated autoloads from highlight.el
 
 (defvar hlt-auto-face-foreground nil "\
@@ -342,8 +342,11 @@ unhighlights the matches.
 Like `hlt-highlight-regexp-region', but highlight regexp groups.
 Highlight regular expression REGEXP in region/buffer.
 Use the region if active, or the buffer otherwise.
+
 Up to 8 group levels are highlighted, using faces `hlt-regexp-level-1'
-through `hlt-regexp-level-8'.
+through `hlt-regexp-level-8'.  The current default highlighting face
+is used to highlight the non-group matches. You can change the default
+face using command `hlt-choose-default-face'.
 
 Optional args START and END are the limits of the area to act on.
   They default to the region limits.
