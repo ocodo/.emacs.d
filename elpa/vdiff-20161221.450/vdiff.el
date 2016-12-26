@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-vdiff
-;; Package-Version: 20160803.1035
+;; Package-Version: 20161221.450
 ;; Version: 0.1
 ;; Keywords: diff
 ;; Package-Requires: ((emacs "24.4") (hydra "0.13.0"))
@@ -796,6 +796,12 @@ of a \"word\"."
 
 ;; * Bitmaps
 
+;; emacs-nox users don't have this function. There's probably a better solution
+;; here, but this seems to work.
+(unless (fboundp 'define-fringe-bitmap)
+  (defun define-fringe-bitmap (&rest _)
+    nil))
+
 (define-fringe-bitmap
   'vdiff--vertical-bar
   (make-vector (frame-char-height) #b00100000)
@@ -834,7 +840,7 @@ of a \"word\"."
 
 (defun vdiff--make-subtraction-string (n-lines)
   "Make string to fill in space for lines missing in a buffer."
-  (let* ((width (1- (window-text-width (get-buffer-window (current-buffer)))))
+  (let* ((width (- (window-text-width (get-buffer-window (current-buffer))) 2))
          (win-height (window-height (get-buffer-window (current-buffer))))
          (max-lines (floor (* 0.7 win-height)))
          (truncate (> n-lines max-lines))
@@ -1663,6 +1669,7 @@ function for ON-QUIT to do something useful with the result."
         (vdiff-mode -1)
         (vdiff-3way-mode -1)
         (vdiff-mode 1)))
+    (setq vdiff--temp-session nil)
     (vdiff-refresh #'vdiff--scroll-function)))
 
 (defcustom vdiff-3way-layout-function 'vdiff-3way-layout-function-default
@@ -1719,6 +1726,7 @@ function for ON-QUIT to do something useful with the result."
         (vdiff-mode -1)
         (vdiff-3way-mode -1)
         (vdiff-3way-mode 1)))
+    (setq vdiff--temp-session nil)
     (vdiff-refresh #'vdiff--scroll-function)))
 
 ;;;###autoload

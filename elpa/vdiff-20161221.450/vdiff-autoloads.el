@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "vdiff" "vdiff.el" (0 0 0 0))
+;;;### (autoloads nil "vdiff" "vdiff.el" (22624 31670 752044 242000))
 ;;; Generated autoloads from vdiff.el
 
 (autoload 'vdiff-files "vdiff" "\
@@ -47,8 +47,6 @@ Start a vdiff session with 3 files. If called interactively,
 you will be asked to select two files.
 
 \(fn FILE-A FILE-B FILE-C &optional ON-QUIT)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "vdiff" '("vdiff-")))
 
 ;;;***
 
