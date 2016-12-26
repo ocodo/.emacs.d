@@ -2,7 +2,7 @@
 
 ;; Author: Marijn Haverbeke
 ;; URL: http://ternjs.net/
-;; Package-Version: 20160817.522
+;; Package-Version: 20161222.850
 ;; Version: 0.0.1
 ;; Package-Requires: ((json "1.2") (cl-lib "0.5") (emacs "24"))
 
@@ -226,7 +226,7 @@ list of strings, giving the binary name and arguments.")
     (push `(end . ,(1- pos)) (cdr (assq 'query doc)))
     (tern-run-request
      (lambda (err data)
-       (when (= tern-activity-since-command (1- generation))
+       (when (< tern-activity-since-command generation)
          (cond ((not err)
                 (dolist (file files)
                   (when (equal (cdr (assq 'type file)) "full")
