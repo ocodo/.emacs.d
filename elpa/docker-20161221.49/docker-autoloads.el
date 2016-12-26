@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "docker" "docker.el" (22613 6912 792748 144000))
+;;;### (autoloads nil "docker" "docker.el" (22624 31795 108032 51000))
 ;;; Generated autoloads from docker.el
 
 (autoload 'docker-mode "docker" "\
@@ -36,7 +36,7 @@ See `docker-mode' for more information on Docker mode.
 ;;;***
 
 ;;;### (autoloads nil "docker-containers" "docker-containers.el"
-;;;;;;  (22613 6912 756747 9000))
+;;;;;;  (22624 31795 72032 50000))
 ;;; Generated autoloads from docker-containers.el
 
 (autoload 'docker-start "docker-containers" "\
@@ -116,8 +116,8 @@ List docker containers.
 
 ;;;***
 
-;;;### (autoloads nil "docker-images" "docker-images.el" (22613 6912
-;;;;;;  764747 261000))
+;;;### (autoloads nil "docker-images" "docker-images.el" (22624 31795
+;;;;;;  80032 51000))
 ;;; Generated autoloads from docker-images.el
 
 (autoload 'docker-pull "docker-images" "\
@@ -150,8 +150,8 @@ List docker images.
 
 ;;;***
 
-;;;### (autoloads nil "docker-machine" "docker-machine.el" (22613
-;;;;;;  6912 748746 756000))
+;;;### (autoloads nil "docker-machine" "docker-machine.el" (22624
+;;;;;;  31795 64032 50000))
 ;;; Generated autoloads from docker-machine.el
 
 (autoload 'docker-machine-config "docker-machine" "\
@@ -221,8 +221,8 @@ List docker machines.
 
 ;;;***
 
-;;;### (autoloads nil "docker-networks" "docker-networks.el" (22613
-;;;;;;  6912 784747 892000))
+;;;### (autoloads nil "docker-networks" "docker-networks.el" (22624
+;;;;;;  31795 100032 51000))
 ;;; Generated autoloads from docker-networks.el
 
 (autoload 'docker-network-rm "docker-networks" "\
@@ -237,8 +237,8 @@ List docker networks.
 
 ;;;***
 
-;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (22613
-;;;;;;  6912 780747 765000))
+;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (22624
+;;;;;;  31795 92032 51000))
 ;;; Generated autoloads from docker-volumes.el
 
 (autoload 'docker-volume-rm "docker-volumes" "\
@@ -254,7 +254,7 @@ List docker volumes.
 ;;;***
 
 ;;;### (autoloads nil nil ("docker-pkg.el" "docker-process.el" "docker-utils.el")
-;;;;;;  (22613 6912 768747 388000))
+;;;;;;  (22624 31795 84032 51000))
 
 ;;;***
 
