@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2016 François-Xavier Bois
 
-;; Version: 14.0.33
-;; Package-Version: 20161224.206
+;; Version: 14.0.34
+;; Package-Version: 20161227.1153
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.33"
+(defconst web-mode-version "14.0.34"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -712,7 +712,7 @@ Must be used in conjunction with web-mode-enable-block-face."
   '("area" "base" "br" "col" "command" "embed" "hr" "img" "input" "keygen"
     "link" "meta" "param" "source" "track" "wbr"))
 
-(defvar web-mode-part-content-types '("css" "javascript" "json" "jsx" "markdown" "sql"))
+(defvar web-mode-part-content-types '("css" "javascript" "json" "jsx" "markdown" "sql" "stylus"))
 
 (defvar web-mode-javascript-languages '("javascript" "jsx" "ejs"))
 
@@ -1672,6 +1672,12 @@ shouldn't be moved back.)")
    '("\\_<\\([[:alnum:]_-]+\\)[ ]?(" 1 'web-mode-function-call-face)
    ))
 
+(defvar web-mode-stylus-font-lock-keywords
+  (list
+   ;;'("^[ \t]*\\([.].+\\)$" 1 'web-mode-css-selector-face)
+   ;;'("\\_<\\(\\(background\\|border\\)-[[:alpha:]]+\\)\\_>" 1 'web-mode-css-property-name-face)
+   ))
+
 (defvar web-mode-sql-font-lock-keywords
   (list
    (cons (concat "\\_<\\(" web-mode-sql-keywords "\\)\\_>") '(0 'web-mode-keyword-face))
@@ -2428,6 +2434,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                                  ((string= content-type "jsx") 'jsx)
                                  ((string= content-type "css") 'css)
                                  ((string= content-type "sql") 'sql)
+                                 ((string= content-type "stylus") 'stylus)
                                  ((string= content-type "markdown") 'markdown)
                                  ))
              (web-mode-scan-blocks beg end)
@@ -3393,16 +3400,24 @@ another auto-completion with different ac-sources (e.g. ac-php)")
          ((eq char ?\')
           (setq token-type 'string)
           (while (and continue (search-forward "'" reg-end t))
-            (if (looking-back "\\\\+'" reg-beg t)
-                (setq continue (= (mod (- (point) (match-beginning 0)) 2) 0))
-              (setq continue nil))))
+            ;;(if (looking-back "\\\\+'" reg-beg t)
+            ;;    (setq continue (= (mod (- (point) (match-beginning 0)) 2) 0))
+            ;;  (setq continue nil)
+            ;;  ) ;if
+            (setq continue (web-mode-string-continue-p reg-beg))
+            ) ;while
+          )
 
          ((eq char ?\")
           (setq token-type 'string)
           (while (and continue (search-forward "\"" reg-end t))
-            (if (looking-back "\\\\+\"" reg-beg t)
-                (setq continue (= (mod (- (point) (match-beginning 0)) 2) 0))
-              (setq continue nil))))
+            ;;(if (looking-back "\\\\+\"" reg-beg t)
+            ;;    (setq continue (= (mod (- (point) (match-beginning 0)) 2) 0))
+            ;;  (setq continue nil)
+            ;;  ) ;if
+            (setq continue (web-mode-string-continue-p reg-beg))
+            ) ;while
+          )
 
          ((string= match "//")
           (goto-char token-end))
@@ -4018,8 +4033,16 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
         (cond
          ((string= tname "style")
-          (setq element-content-type "css"
-                part-close-tag "</style>"))
+          (let (style)
+            (setq element-content-type "css"
+                  style (buffer-substring-no-properties tbeg tend)
+                  part-close-tag "</style>")
+            (cond
+             ((string-match-p " lang[ ]*=[ ]*[\"']stylus" style)
+              (setq element-content-type "stylus"))
+             ) ;cond
+            ) ;let
+          ) ;style
          ((string= tname "script")
           (let (script)
             (setq script (buffer-substring-no-properties tbeg tend)
@@ -4389,11 +4412,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
             (cond
              ((get-text-property (1- (point)) 'block-side)
               (setq continue t))
-             ((looking-back "\\\\+'" reg-beg t)
-              (setq continue (= (mod (- (point) (match-beginning 0)) 2) 0))
-              )
              (t
-              (setq continue nil))
+              (setq continue (web-mode-string-continue-p reg-beg)))
              )
             ) ;while
           (setq token-type 'string))
@@ -4403,10 +4423,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
             (cond
              ((get-text-property (1- (point)) 'block-side)
               (setq continue t))
-             ((looking-back "\\\\+`" reg-beg t)
-              (setq continue (= (mod (- (point) (match-beginning 0)) 2) 0)))
              (t
-              (setq continue nil))
+              (setq continue (web-mode-string-continue-p reg-beg)))
              )
             ) ;while
           (setq token-type 'string))
@@ -4416,10 +4434,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
             (cond
              ((get-text-property (1- (point)) 'block-side)
               (setq continue t))
-             ((looking-back "\\\\+\"" reg-beg t)
-              (setq continue (= (mod (- (point) (match-beginning 0)) 2) 0)))
              (t
-              (setq continue nil))
+              (setq continue (web-mode-string-continue-p reg-beg)))
              ) ;cond
             ) ;while
           (cond
@@ -4531,6 +4547,13 @@ another auto-completion with different ac-sources (e.g. ac-php)")
         ) ;while
 
       )))
+
+(defun web-mode-string-continue-p (reg-beg)
+  "Is `point' preceeded by an odd number of backslashes?"
+  (let* ((p (1- (point))))
+    (while (and (< reg-beg p) (eq ?\\ (char-before p)))
+      (setq p (1- p)))
+    (= (mod (- (point) p) 2) 0)))
 
 (defun web-mode-jsx-skip (reg-end)
   (let ((continue t) (pos nil) (i 0) tag)
@@ -5749,6 +5772,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
         (web-mode-css-rules-highlight reg-beg reg-end))
        ((string= content-type "sql")
         (web-mode-fontify-region reg-beg reg-end web-mode-sql-font-lock-keywords))
+       ((string= content-type "stylus")
+        (web-mode-fontify-region reg-beg reg-end web-mode-stylus-font-lock-keywords))
        ((string= content-type "markdown")
         (web-mode-fontify-region reg-beg reg-end web-mode-markdown-font-lock-keywords))
        ) ;cond
@@ -5813,6 +5838,14 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                                           'web-mode-style-face)
                                          (t
                                           'web-mode-part-face)))
+        )
+
+      (when (and web-mode-enable-css-colorization (string= content-type "stylus"))
+        (goto-char reg-beg)
+        (while (and (re-search-forward "#[0-9a-fA-F]\\{6\\}\\|#[0-9a-fA-F]\\{3\\}\\|rgba?([ ]*\\([[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\([[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\([[:digit:]]\\{1,3\\}\\)\\(.*?\\))" end t)
+                    (<= (point) reg-end))
+          (web-mode-colorize (match-beginning 0) (match-end 0))
+          )
         )
 
       (when (and (eq depth 0) (string= content-type "jsx"))
@@ -5927,6 +5960,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
         ) ;while
       ) ;let
     ))
+
+
 
 (defun web-mode-fontify-region (beg end keywords)
 ;;  (message "beg=%S end=%S" beg end);; (symbol-name keywords))
@@ -6778,7 +6813,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
          ) ;cond
         ) ;block-side
 
-       ((and part-language (member part-language '("css" "javascript" "sql" "markdown")))
+       ((and part-language (member part-language '("css" "javascript" "sql" "markdown" "stylus")))
         (setq reg-beg (or (web-mode-part-beginning-position pos) (point-min)))
         (goto-char reg-beg)
         (search-backward "<" nil t)
@@ -6790,6 +6825,8 @@ another auto-completion with different ac-sources (e.g. ac-php)")
          ((string= language "sql")
           (setq curr-indentation web-mode-sql-indent-offset))
          ((string= language "markdown")
+          (setq curr-indentation web-mode-code-indent-offset))
+         ((string= language "stylus")
           (setq curr-indentation web-mode-code-indent-offset))
          (t
           (setq language "javascript"
@@ -6871,7 +6908,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
         )
        ((member language '("javascript" "jsx"))
         (setq reg-col (if web-mode-script-padding (+ reg-col web-mode-script-padding) 0)))
-       ((member language '("css" "sql" "markdown"))
+       ((member language '("css" "sql" "markdown" "stylus"))
         (setq reg-col (if web-mode-style-padding (+ reg-col web-mode-style-padding) 0)))
        ((not (member language '("html" "xml" "razor")))
         (setq reg-col (if web-mode-block-padding (+ reg-col web-mode-block-padding) 0)))
@@ -7179,6 +7216,14 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                                                            curr-indentation
                                                            language
                                                            reg-beg))))
+
+         ((string= language "stylus")
+          (when debug (message "ISTYLUS"))
+          (setq offset (car (web-mode-stylus-indentation pos
+                                                         reg-col
+                                                         curr-indentation
+                                                         language
+                                                         reg-beg))))
 
          ((and (string= language "razor")
                (string-match-p "^\\." curr-line)
@@ -7565,6 +7610,14 @@ another auto-completion with different ac-sources (e.g. ac-php)")
     ))
 
 (defun web-mode-markdown-indentation (pos initial-column language-offset language &optional limit)
+  (let (offset)
+    (save-excursion
+      (goto-char pos)
+      (setq offset (current-column)))
+    ;;(message "%S %S %S %S" pos (point) initial-column language-offset)
+    (cons (if (<= offset initial-column) initial-column offset) nil)))
+
+(defun web-mode-stylus-indentation (pos initial-column language-offset language &optional limit)
   (let (offset)
     (save-excursion
       (goto-char pos)
