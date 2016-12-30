@@ -4,8 +4,9 @@
 
 ;; Author: Alexander I.Grafov (axel) <grafov@gmail.com>
 ;; URL: https://github.com/grafov/go-playground
-;; Package-Version: 20161225.1102
+;; Package-Version: 20161227.1105
 ;; Keywords: tools, golang
+;; Version: 1.1
 ;; Package-Requires: ((emacs "24") (go-mode "1.4.0") (gotest "0.13.0"))
 
 ;; This program is free software; you can redistribute it and/or modify

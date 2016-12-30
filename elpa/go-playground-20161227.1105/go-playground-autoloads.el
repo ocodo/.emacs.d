@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "go-playground" "go-playground.el" (22624 31788
-;;;;;;  56031 932000))
+;;;### (autoloads nil "go-playground" "go-playground.el" (22628 53732
+;;;;;;  0 0))
 ;;; Generated autoloads from go-playground.el
 
 (autoload 'go-playground "go-playground" "\
