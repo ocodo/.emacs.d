@@ -5,7 +5,7 @@
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: environment
 ;; URL: https://github.com/purcell/exec-path-from-shell
-;; Package-Version: 20160812.159
+;; Package-Version: 20161229.1338
 ;; Package-X-Original-Version: 0
 
 ;; This file is not part of GNU Emacs.
@@ -39,7 +39,7 @@
 
 ;; If you use a non-POSIX-standard shell like "tcsh" or "fish", your
 ;; shell will be asked to execute "sh" as a subshell in order to print
-;; out the variables in a format which can be reliably parsed. "sh"
+;; out the variables in a format which can be reliably parsed.  "sh"
 ;; must be a POSIX-compliant shell in this case.
 
 ;; Note that shell variables which have not been exported as
@@ -48,8 +48,9 @@
 
 ;; Installation:
 
-;; ELPA packages are available on Marmalade and MELPA. Alternatively, place
-;; this file on a directory in your `load-path', and explicitly require it.
+;; ELPA packages are available on Marmalade and MELPA.  Alternatively,
+;; place this file on a directory in your `load-path', and explicitly
+;; require it.
 
 ;; Usage:
 ;;
@@ -97,6 +98,10 @@ Environment variables should be set in .profile or .zshenv rather than
   "Double-quote S, escaping any double-quotes already contained in it."
   (concat "\"" (replace-regexp-in-string "\"" "\\\\\"" s) "\""))
 
+(defun exec-path-from-shell--shell ()
+  "Return the shell to use."
+  (or (getenv "SHELL") (error "SHELL environment variable is unset")))
+
 (defcustom exec-path-from-shell-arguments
   (if (string-match-p "t?csh$" (or (getenv "SHELL") ""))
       (list "-d")
@@ -133,12 +138,12 @@ shell-escaped, so they may contain $ etc."
           (concat printf-bin
                   " '__RESULT\\000" str "' "
                   (mapconcat #'exec-path-from-shell--double-quote args " ")))
+         (shell (exec-path-from-shell--shell))
          (shell-args (append exec-path-from-shell-arguments
                              (list "-c"
-                                   (if (exec-path-from-shell--standard-shell-p (getenv "SHELL"))
+                                   (if (exec-path-from-shell--standard-shell-p shell)
                                        printf-command
-                                     (concat "sh -c " (shell-quote-argument printf-command))))))
-         (shell (getenv "SHELL")))
+                                     (concat "sh -c " (shell-quote-argument printf-command)))))))
     (with-temp-buffer
       (exec-path-from-shell--debug "Invoking shell %s with args %S" shell shell-args)
       (let ((exit-code (apply #'call-process shell nil t nil shell-args)))
