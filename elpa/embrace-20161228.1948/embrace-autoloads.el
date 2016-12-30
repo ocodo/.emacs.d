@@ -1,10 +1,9 @@
 ;;; embrace-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "embrace" "embrace.el" (22338 19899 811413
-;;;;;;  772000))
+;;;### (autoloads nil "embrace" "embrace.el" (22628 53724 0 0))
 ;;; Generated autoloads from embrace.el
 
 (autoload 'embrace-delete "embrace" "\
