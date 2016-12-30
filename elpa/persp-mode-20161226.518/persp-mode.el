@@ -4,7 +4,7 @@
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
 ;; Version: 2.9.5
-;; Package-Version: 20161214.243
+;; Package-Version: 20161226.518
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -166,7 +166,7 @@
                    (when (string= persp-nil-name (get-window-persp* win))
                      (set-window-persp* win val))))
                (run-hook-with-args 'persp-renamed-functions nil persp-nil-name val))
-             (set-default sym val))))
+             (custom-set-default sym val))))
 
 (defface persp-face-lighter-buffer-not-in-persp
   '((default . (:background "#F00" :foreground "#00F" :weight bold)))
@@ -306,7 +306,7 @@ Constrain with persp-buffer-list-restricted."
 Constrain with a function which take buffer as an argument."
                     :value (lambda (b) b)))
   :set #'(lambda (sym val)
-           (set-default sym val)
+           (custom-set-default sym val)
            (if val
                (if persp-mode
                    (persp-update-frames-buffer-predicate)
@@ -343,7 +343,7 @@ Constrain with a function which take buffer as an argument."
   :group 'persp-mode
   :type 'boolean
   :set #'(lambda (sym val)
-           (set-default sym val)
+           (custom-set-default sym val)
            (when persp-mode
              (persp-set-read-buffer-function val))))
 
@@ -359,7 +359,7 @@ Constrain with a function which take buffer as an argument."
   :group 'persp-mode
   :type 'boolean
   :set #'(lambda (sym val)
-           (set-default sym val)
+           (custom-set-default sym val)
            (when persp-mode
              (persp-set-ido-hooks val))))
 
@@ -389,10 +389,10 @@ to interactivly read user input with completion.")
               (ido (persp-set-ido-hooks))
               (t nil))))
         (setq persp-interactive-completion-function #'completing-read)
-        (set-default 'persp-interactive-completion-system 'completing-read))
+        (custom-set-default 'persp-interactive-completion-system 'completing-read))
     (persp-update-completion-system nil t)
     (when system
-      (set-default 'persp-interactive-completion-system system)
+      (custom-set-default 'persp-interactive-completion-system system)
       (when persp-hook-up-emacs-buffer-completion
         (case persp-interactive-completion-system
           (ido
@@ -411,7 +411,7 @@ to interactivly read user input with completion.")
   :set #'(lambda (sym val)
            (if persp-mode
                (persp-update-completion-system val)
-             (set-default sym val))))
+             (custom-set-default sym val))))
 (make-obsolete-variable
  'persp-interactive-completion-system
  "`persp-set-read-buffer-function', `persp-set-ido-hooks', `persp-interactive-completion-function'"
@@ -470,7 +470,7 @@ emacsclient -[c|t]."
 leave only windows displaing files for edit" :value only-file-windows-for-client-frame)
           (function :tag "Run this function" :value (lambda (frame buflist) nil)))
   :set #'(lambda (sym val)
-           (set-default sym val)
+           (custom-set-default sym val)
            (if persp-mode
              (persp-update-frame-server-switch-hook)
             (add-hook 'persp-mode-hook #'persp-update-frame-server-switch-hook))))
@@ -518,7 +518,7 @@ function -- run that function."
 Add if the buffer is not already in any other persp" :value free)
           (function :tag "Run this function" :value (lambda () nil)))
   :set #'(lambda (sym val)
-           (set-default sym val)
+           (custom-set-default sym val)
            (when persp-mode
              (if val
                  (add-hook 'after-change-major-mode-hook #'persp-after-change-major-mode-h t)
@@ -586,14 +586,14 @@ If one of these functions returns a non nil value the buffer considered as 'filt
   :group 'persp-mode
   :type 'hook
   :set #'(lambda (sym val)
-           (set-default sym (mapcar #'byte-compile val))))
+           (custom-set-default sym (mapcar #'byte-compile val))))
 
 (defcustom persp-buffer-list-restricted-filter-functions nil
   "Additional filters for use inside pthe `persp-buffer-list-restricted'."
   :group 'persp-mode
   :type 'hook
   :set #'(lambda (sym val)
-           (set-default sym (mapcar #'byte-compile val))))
+           (custom-set-default sym (mapcar #'byte-compile val))))
 
 (defcustom persp-add-buffer-on-after-change-major-mode-filter-functions nil
   "Additional filters to know which buffers we dont want to add to the current perspective
@@ -601,7 +601,7 @@ after the `after-change-major-mode-hook' is fired."
   :group 'persp-mode
   :type 'hook
   :set #'(lambda (sym val)
-           (set-default sym (mapcar #'byte-compile val))))
+           (custom-set-default sym (mapcar #'byte-compile val))))
 
 (defcustom persp-filter-save-buffers-functions
   (list #'(lambda (b) (string-prefix-p "*" (buffer-name b))))
@@ -721,7 +721,7 @@ These functions must take 3 arguments:
   :group 'persp-mode
   :type 'boolean
   :set #'(lambda (sym val)
-           (set-default sym val)
+           (custom-set-default sym val)
            ;; require workgroups if we are going to use it
            (when persp-use-workgroups
              ;;(require 'workgroups)
@@ -922,7 +922,7 @@ to a wrong one.")
     (when (boundp 'persp-keymap-prefix)
       (substitute-key-definition 'persp-key-map nil persp-mode-map))
     (define-key persp-mode-map prefix 'persp-key-map)
-    (set-default 'persp-keymap-prefix prefix)))
+    (custom-set-default 'persp-keymap-prefix prefix)))
 
 (defcustom persp-keymap-prefix (kbd "C-c p")
   "The prefix for activating the persp-mode keymap."
@@ -937,7 +937,7 @@ to a wrong one.")
     (read-key-sequence
      "Now press a key sequence to be used for toggling persp filters during the read-buffer: ")))
   (setcdr (assq 'toggle-persp-buffer-filter persp-read-multiple-keys) keys)
-  (set-default 'persp-toggle-read-buffer-filter-keys keys))
+  (custom-set-default 'persp-toggle-read-buffer-filter-keys keys))
 (define-obsolete-function-alias
   'persp-set-toggle-read-persp-filter-keys 'persp-set-toggle-read-buffer-filter-keys
   "persp-mode 2.9")
@@ -2741,10 +2741,14 @@ Return `NAME'."
 (defsubst persp--set-frame-buffer-predicate-buffer-list-cache (buflist)
   (prog1
       (setq persp-frame-buffer-predicate-buffer-list-cache buflist)
+    (unless persp-frame-buffer-predicate-buffer-list-cache
+      (setq persp-frame-buffer-predicate-buffer-list-cache :nil))
     (run-at-time 2 nil #'(lambda () (setq persp-frame-buffer-predicate-buffer-list-cache nil)))))
 (defmacro persp--get-frame-buffer-predicate-buffer-list-cache (buflist)
   `(if persp-frame-buffer-predicate-buffer-list-cache
-       persp-frame-buffer-predicate-buffer-list-cache
+       (if (eq :nil persp-frame-buffer-predicate-buffer-list-cache)
+           nil
+         persp-frame-buffer-predicate-buffer-list-cache)
      (persp--set-frame-buffer-predicate-buffer-list-cache ,buflist)))
 (defun persp-generate-frame-buffer-predicate (opt)
   (if opt
