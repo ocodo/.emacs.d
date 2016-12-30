@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, helm, fuzzy, flx
-;; Package-Version: 20160227.1652
+;; Package-Version: 20161228.1732
 ;; Version: 20151013
 ;; URL: https://github.com/PythonNut/helm-flx
 ;; Package-Requires: ((emacs "24.4") (helm "1.7.9") (flx "0.5"))
@@ -101,8 +101,14 @@ candidates is greater than this number, only sort the first N (presorted by leng
                        (dotimes (_ end result)
                          (push (pop seq) result)))))
                   (lambda (c1 c2)
-                    (> (cdr c1)
-                       (cdr c2)))))))
+                    ;; break ties by length
+                    (if (/= (cdr c1) (cdr c2))
+                        (> (cdr c1)
+                           (cdr c2))
+                      (< (length (funcall display-string-fn
+                                          (car c1)))
+                         (length (funcall display-string-fn
+                                          (car c2))))))))))
 
 (defun helm-flx-helm-ff-sort-candidates (old-fun candidates source)
   "Sort function for `helm-source-find-files'.
