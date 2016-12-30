@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "gruvbox-theme" "gruvbox-theme.el" (22538 11515
+;;;### (autoloads nil "gruvbox-theme" "gruvbox-theme.el" (22628 53733
 ;;;;;;  0 0))
 ;;; Generated autoloads from gruvbox-theme.el
 
