@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20161223.2118
-;; Version: 0.3.1
+;; Package-Version: 20161227.655
+;; Version: 0.3.3
 ;; Package-Requires: ((autothemer "0.2"))
 
 ;;; Commentary:
@@ -21,10 +21,8 @@
 (unless (>= emacs-major-version 24)
   (error "Requires Emacs 24 or later"))
 
-(deftheme darktooth "From the darkness... it watches")
-
 (autothemer-deftheme
- darktooth "A color theme for Emacs, from the darkness... it watches"
+ darktooth "From the darkness... it watches"
 
  ((((class color) (min-colors #xFFFFFF)) ;; color column 1 GUI/24bit
    ((class color) (min-colors #xFF)))    ;; color column 2 Xterm/256
@@ -560,11 +558,16 @@
   (smerge-refined-removed                    (:background darktooth-dark_red))
 
   ;; MODE SUPPORT: git-gutter
-  (git-gutter:separator                      (:inherit 'git-gutter+-separator ))
-  (git-gutter:modified                       (:inherit 'git-gutter+-modified ))
-  (git-gutter:added                          (:inherit 'git-gutter+-added ))
-  (git-gutter:deleted                        (:inherit 'git-gutter+-deleted ))
-  (git-gutter:unchanged                      (:inherit 'git-gutter+-unchanged ))
+  (git-gutter:added                         (:foreground darktooth-faded_green :background darktooth-muted_green ))
+  (git-gutter:deleted                       (:foreground darktooth-faded_red :background darktooth-muted_red ))
+  (git-gutter:modified                      (:foreground darktooth-faded_purple :background darktooth-muted_purple ))
+  (git-gutter:separator                     (:foreground darktooth-faded_cyan :background darktooth-muted_cyan ))
+  (git-gutter:unchanged                     (:foreground darktooth-faded_yellow :background darktooth-muted_yellow ))
+
+  ;; MODE SUPPORT: git-gutter-fr
+  (git-gutter-fr:added                      (:inherit 'git-gutter:added))
+  (git-gutter-fr:deleted                    (:inherit 'git-gutter:deleted))
+  (git-gutter-fr:modified                   (:inherit 'git-gutter:modified))
 
   ;; MODE SUPPORT: git-gutter+
   (git-gutter+-commit-header-face            (:inherit 'font-lock-comment-face))
