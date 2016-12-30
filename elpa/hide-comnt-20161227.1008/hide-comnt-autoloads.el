@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "hide-comnt" "hide-comnt.el" (0 0 0 0))
+;;;### (autoloads nil "hide-comnt" "hide-comnt.el" (22628 53748 0
+;;;;;;  0))
 ;;; Generated autoloads from hide-comnt.el
 
 (defvar ignore-comments-flag t "\
@@ -16,6 +17,13 @@
 It does not hide empty lines (newline chars), however.")
 
 (custom-autoload 'hide-whitespace-before-comment-flag "hide-comnt" t)
+
+(defvar show-invisible-comments-shows-all nil "\
+Non-nil means `(hide/show-comments 'show ...)' shows all invisible text.
+The default value, nil, means it shows only text that was made
+invisible by `(hide/show-comments 'hide ...)'.")
+
+(custom-autoload 'show-invisible-comments-shows-all "hide-comnt" t)
 
 (autoload 'hide/show-comments "hide-comnt" "\
 Hide or show comments from START to END.
@@ -31,9 +39,16 @@ and `point-max'.
 
 Uses `save-excursion', restoring point.
 
-Be aware that using this command to show invisible text shows *ALL*
-such text, regardless of how it was hidden.  IOW, it does not just
-show invisible text that you previously hid using this command.
+Option `show-invisible-comments-shows-all':
+
+* If non-nil then using this command to show invisible text shows
+  *ALL* such text, regardless of how it was hidden.  IOW, it does not
+  just show invisible text that you previously hid using this command.
+
+* If nil (the default value) then using this command to show invisible
+  text makes visible only such text that was previously hidden by this
+  command.  (More precisely, it makes visible only text whose
+  `invisible' property has value `hide-comment'.)
 
 From Lisp, a HIDE/SHOW value of `hide' hides comments.  Other values
 show them.
@@ -42,8 +57,6 @@ This command does nothing in Emacs versions prior to Emacs 21, because
 it needs `comment-search-forward'.
 
 \(fn &optional HIDE/SHOW START END)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "hide-comnt" '("hide/show-comments-" "with-comments-hidden")))
 
 ;;;***
 

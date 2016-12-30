@@ -7,11 +7,11 @@
 ;; Copyright (C) 2011-2016, Drew Adams, all rights reserved.
 ;; Created: Wed May 11 07:11:30 2011 (-0700)
 ;; Version: 0
-;; Package-Version: 20151231.1333
+;; Package-Version: 20161227.1008
 ;; Package-Requires: ()
-;; Last-Updated: Thu Dec 31 13:39:18 2015 (-0800)
+;; Last-Updated: Tue Dec 27 10:10:51 2016 (-0800)
 ;;           By: dradams
-;;     Update #: 206
+;;     Update #: 218
 ;; URL: http://www.emacswiki.org/hide-comnt.el
 ;; Doc URL: http://www.emacswiki.org/HideOrIgnoreComments
 ;; Keywords: comment, hide, show
@@ -25,7 +25,10 @@
 ;;
 ;;; Commentary:
 ;;
-;;  Hide/show comments in code.
+;;    Hide/show comments in code.
+;;
+;;  Comments are hidden by giving them and `invisible' property of
+;;  value `hide-comment'.
 ;;
 ;;
 ;;  Macros defined here:
@@ -38,7 +41,8 @@
 ;;
 ;;  User options defined here:
 ;;
-;;    `hide-whitespace-before-comment-flag', `ignore-comments-flag'.
+;;    `hide-whitespace-before-comment-flag', `ignore-comments-flag',
+;;    `show-invisible-comments-shows-all'.
 ;;
 ;;  Non-interactive functions defined here:
 ;;
@@ -69,6 +73,10 @@
 ;;
 ;;; Change Log:
 ;;
+;; 2016/12/27 dadams
+;;     Added: show-invisible-comments-shows-all.
+;;     hide/show-comments(-1): Respect show-invisible-comments-shows-all.
+;;     NOTE: Default behavior has changed: other invisible text is no longer made visible.
 ;; 2015/08/01 dadams
 ;;     Added hide/show-comments-1.  (And removed save-excursion around looking-back etc.)
 ;;     hide/show-comments:
@@ -144,6 +152,13 @@
 It does not hide empty lines (newline chars), however."
   :type 'boolean :group 'matching)
 
+;;;###autoload
+(defcustom show-invisible-comments-shows-all nil
+  "Non-nil means `(hide/show-comments 'show ...)' shows all invisible text.
+The default value, nil, means it shows only text that was made
+invisible by `(hide/show-comments 'hide ...)'."
+  :type 'boolean :group 'matching)
+
 
 (defmacro with-comments-hidden (start end &rest body)
   "Evaluate the forms in BODY while comments are hidden from START to END.
@@ -179,15 +194,23 @@ and `point-max'.
 
 Uses `save-excursion', restoring point.
 
-Be aware that using this command to show invisible text shows *ALL*
-such text, regardless of how it was hidden.  IOW, it does not just
-show invisible text that you previously hid using this command.
+Option `show-invisible-comments-shows-all':
+
+* If non-nil then using this command to show invisible text shows
+  *ALL* such text, regardless of how it was hidden.  IOW, it does not
+  just show invisible text that you previously hid using this command.
+
+* If nil (the default value) then using this command to show invisible
+  text makes visible only such text that was previously hidden by this
+  command.  (More precisely, it makes visible only text whose
+  `invisible' property has value `hide-comment'.)
 
 From Lisp, a HIDE/SHOW value of `hide' hides comments.  Other values
 show them.
 
 This command does nothing in Emacs versions prior to Emacs 21, because
 it needs `comment-search-forward'."
+
   (interactive
    (cons (if current-prefix-arg 'show 'hide)
          (if (or (not mark-active)  (null (mark))  (= (point) (mark)))
@@ -237,7 +260,16 @@ it needs `comment-search-forward'."
           (when (and (= cbeg (point-min))  (= (char-after cend) ?\n))
             (setq cend  (min (1+ cend) end))))
         (when (and cbeg  cend)
-          (put-text-property cbeg cend 'invisible (eq 'hide hide/show)))
+          (if show-invisible-comments-shows-all
+              (put-text-property cbeg cend 'invisible (and (eq 'hide hide/show)
+                                                           'hide-comment))
+            (while (< cbeg cend)
+              ;; Do nothing to text that is already invisible for some other reason.
+              (unless (and (get-text-property cbeg 'invisible)
+                           (not (eq 'hide-comment (get-text-property cbeg 'invisible))))
+                (put-text-property cbeg (1+ cbeg) 'invisible (and (eq 'hide hide/show)
+                                                                  'hide-comment)))
+              (setq cbeg  (1+ cbeg)))))
         (goto-char (setq start  (or cend  end)))))))
 
 (defun hide/show-comments-toggle (&optional start end)
@@ -256,10 +288,14 @@ See `hide/show-comments' for more information."
   (interactive (if (or (not mark-active)  (null (mark))  (= (point) (mark)))
                    (list (point-min) (point-max))
                  (if (< (point) (mark)) (list (point) (mark)) (list (mark) (point)))))
-  (when (require 'newcomment nil t) ; `comment-search-forward', Emacs 21+.
-    (comment-normalize-vars)     ; Must call this first.
-    (if (save-excursion (goto-char start) (and (comment-search-forward end 'NOERROR)
-                                               (get-text-property (point) 'invisible)))
+  (when (require 'newcomment nil t)     ; `comment-search-forward', Emacs 21+.
+    (comment-normalize-vars)            ; Must call this first.
+    (if (save-excursion
+          (goto-char start)
+          (and (comment-search-forward end 'NOERROR)
+               (if show-invisible-comments-shows-all
+                   (get-text-property (point) 'invisible)
+                 (eq 'hide-comment (get-text-property (point) 'invisible)))))
         (hide/show-comments 'show start end)
       (hide/show-comments 'hide start end))))
 
