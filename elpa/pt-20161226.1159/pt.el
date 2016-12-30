@@ -3,7 +3,7 @@
 ;; Copyright (C) 2014 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/pt.el
-;; Package-Version: 20160119.817
+;; Package-Version: 20161226.1159
 ;; Filename: pt.el
 ;; Description: A front-end for pt, the Platinum Searcher
 ;; Created: 2014-04-27
@@ -139,7 +139,7 @@ This function is called from `compilation-filter-hook'."
   (if (fboundp 'projectile-project-root)
       (pt-regexp regexp
                  (projectile-project-root)
-                 (mapcar (lambda (val) (concat "--ignore=" val))
+                 (mapcar (lambda (val) (concat "--ignore=" (shell-quote-argument val)))
                          (append projectile-globally-ignored-files
                                  projectile-globally-ignored-directories)))
     (error "Projectile is not available")))

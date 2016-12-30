@@ -1,9 +1,9 @@
 ;;; pt-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "pt" "pt.el" (22175 12719 301299 497000))
+;;;### (autoloads nil "pt" "pt.el" (22628 53780 0 0))
 ;;; Generated autoloads from pt.el
 
 (autoload 'pt-regexp "pt" "\
