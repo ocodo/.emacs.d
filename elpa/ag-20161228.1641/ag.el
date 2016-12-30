@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.48
-;; Package-Version: 20161027.1758
+;; Package-Version: 20161228.1641
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -282,13 +282,10 @@ Returns an empty string otherwise."
 (defun ag/longest-string (&rest strings)
   "Given a list of strings and nils, return the longest string."
   (let ((longest-string nil))
-    (dolist (string strings)
-      (cond ((null longest-string)
-             (setq longest-string string))
-            ((stringp string)
-             (when (< (length longest-string)
-                      (length string))
-               (setq longest-string string)))))
+    (dolist (string (-non-nil strings))
+      (when (< (length longest-string)
+               (length string))
+        (setq longest-string string)))
     longest-string))
 
 (defun ag/replace-first (string before after)
