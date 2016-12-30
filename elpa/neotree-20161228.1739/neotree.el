@@ -254,6 +254,15 @@ the mode-line format."
   :type '(choice (const text)
                  (const button)))
 
+(defcustom neo-help-echo-style 'default
+  "The message NeoTree displays when the mouse moves onto nodes.
+`default' means the node name is displayed if it has a
+width (including the indent) larger than `neo-window-width', and
+`none' means NeoTree doesn't display any messages."
+  :group 'neotree
+  :type '(choice (const default)
+                 (const none)))
+
 (defcustom neo-click-changes-root nil
   "*If non-nil, clicking on a directory will change the current root to the directory."
   :type 'boolean
@@ -759,6 +768,11 @@ The description of ARG is in `neotree-enter'."
     (neo-window--zoom 'minimize))
   ;; select target window
   (cond
+   ;; select window with winum
+   ((and (integerp arg)
+         (bound-and-true-p winum-mode)
+         (fboundp 'winum-select-window-by-number))
+    (winum-select-window-by-number arg))
    ;; select window with window numbering
    ((and (integerp arg)
          (boundp 'window-numbering-mode)
@@ -1159,8 +1173,8 @@ Optional NODE-NAME is used for the `icons' theme"
           (and (equal name 'close) (insert (all-the-icons-icon-for-dir node-name "right")))
           (and (equal name 'leaf)  (insert (format "\t\t\t%s\t" (all-the-icons-icon-for-file node-name))))))
      (t
-      (or (and (equal name 'open)  (funcall n-insert-symbol "-"))
-          (and (equal name 'close) (funcall n-insert-symbol "+")))))))
+      (or (and (equal name 'open)  (funcall n-insert-symbol "- "))
+          (and (equal name 'close) (funcall n-insert-symbol "+ ")))))))
 
 (defun neo-buffer--save-cursor-pos (&optional node-path line-pos)
   "Save cursor position.
@@ -1272,6 +1286,15 @@ PATH is value."
                                   'neo-root-dir-face)))
   (neo-buffer--newline-and-begin))
 
+(defun neo-buffer--help-echo-message (node-name)
+  (cond
+   ((eq neo-help-echo-style 'default)
+    (if (<= (+ (current-column) (string-width node-name))
+            neo-window-width)
+        nil
+      node-name))
+   (t nil)))
+
 (defun neo-buffer--insert-dir-entry (node depth expanded)
   (let ((node-short-name (neo-path--file-short-name node)))
     (insert-char ?\s (* (- depth 1) 2)) ; indent
@@ -1283,7 +1306,8 @@ PATH is value."
                    'follow-link t
                    'face neo-dir-link-face
                    'neo-full-path node
-                   'keymap neotree-dir-button-keymap)
+                   'keymap neotree-dir-button-keymap
+                   'help-echo (neo-buffer--help-echo-message node-short-name))
     (neo-buffer--node-list-set nil node)
     (neo-buffer--newline-and-begin)))
 
@@ -1301,7 +1325,8 @@ PATH is value."
                              (cdr vc)
                            neo-file-link-face)
                    'neo-full-path node
-                   'keymap neotree-file-button-keymap)
+                   'keymap neotree-file-button-keymap
+                   'help-echo (neo-buffer--help-echo-message node-short-name))
     (neo-buffer--node-list-set nil node)
     (neo-buffer--newline-and-begin)))
 
@@ -1652,15 +1677,17 @@ NeoTree buffer is BUFFER."
 ;; Interactive functions
 ;;
 
-(defun neotree-next-line ()
-  "Move next line in NeoTree buffer."
-  (interactive)
-  (neo-buffer--forward-line 1))
+(defun neotree-next-line (&optional count)
+  "Move next line in NeoTree buffer.
+Optional COUNT argument, moves COUNT lines down."
+  (interactive "p")
+  (neo-buffer--forward-line (or count 1)))
 
-(defun neotree-previous-line ()
-  "Move previous line in NeoTree buffer."
-  (interactive)
-  (neo-buffer--forward-line -1))
+(defun neotree-previous-line (&optional count)
+  "Move previous line in NeoTree buffer.
+Optional COUNT argument, moves COUNT lines up."
+  (interactive "p")
+  (neo-buffer--forward-line (- (or count 1))))
 
 ;;;###autoload
 (defun neotree-find (&optional path default-path)
@@ -1717,7 +1744,7 @@ ARG is same as `neo-open-file'."
 
 FULL-PATH is the file path you want to open.
 If ARG is an integer then the node is opened in a window selected via
-`window-numbering' (if available) according to the passed number.
+`winum' or`window-numbering' (if available) according to the passed number.
 If ARG is `|' then the node is opened in new vertically split window.
 If ARG is `-' then the node is opened in new horizontally split window."
   (neo-global--select-mru-window arg)
