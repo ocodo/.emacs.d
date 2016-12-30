@@ -3,7 +3,7 @@
 ;; Copyright (C) 2015 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/fzf.el
-;; Package-Version: 20160908.806
+;; Package-Version: 20161226.936
 ;; Filename: fzf.el
 ;; Description: A front-end for fzf
 ;; Created: 2015-09-18
@@ -55,7 +55,7 @@
   :type 'string
   :group 'fzf)
 
-(defcustom fzf/args "-x"
+(defcustom fzf/args "-x --color bw --margin 1,0"
   "Additional arguments to pass into fzf."
   :type 'string
   :group 'fzf)
@@ -77,29 +77,30 @@
   (advice-remove 'term-handle-exit #'fzf/after-term-handle-exit))
 
 (defun fzf/start (directory)
-  (let ((default-directory directory))
-    (require 'term)
-    (window-configuration-to-register :fzf-windows)
-    (advice-add 'term-handle-exit :after #'fzf/after-term-handle-exit)
-    (let ((buf (get-buffer-create "*fzf*"))
-	  (window-height (if fzf/position-bottom (- fzf/window-height) fzf/window-height)))
-      (split-window-vertically window-height)
-      (when fzf/position-bottom (other-window 1))
-      (if fzf/args
-          (apply 'make-term "fzf" fzf/executable nil (split-string fzf/args " "))
-        (make-term "fzf" fzf/executable))
-      (switch-to-buffer buf)
-      (linum-mode 0)
-      (set-window-margins nil 1)
+  (require 'term)
+  (window-configuration-to-register :fzf-windows)
+  (advice-add 'term-handle-exit :after #'fzf/after-term-handle-exit)
+  (let ((buf (get-buffer-create "*fzf*"))
+        (window-height (if fzf/position-bottom (- fzf/window-height) fzf/window-height)))
+    (with-current-buffer buf
+      (setq default-directory directory))
+    (split-window-vertically window-height)
+    (when fzf/position-bottom (other-window 1))
+    (if fzf/args
+        (apply 'make-term "fzf" fzf/executable nil (split-string fzf/args " "))
+      (make-term "fzf" fzf/executable))
+    (switch-to-buffer buf)
+    (linum-mode 0)
+    (set-window-margins nil 1)
 
-      ;; disable various settings known to cause artifacts, see #1 for more details
-      (setq-local scroll-margin 0)
-      (setq-local scroll-conservatively 0)
-      (setq-local term-suppress-hard-newline t) ;for paths wider than the window
-      (face-remap-add-relative 'mode-line '(:box nil))
+    ;; disable various settings known to cause artifacts, see #1 for more details
+    (setq-local scroll-margin 0)
+    (setq-local scroll-conservatively 0)
+    (setq-local term-suppress-hard-newline t) ;for paths wider than the window
+    (face-remap-add-relative 'mode-line '(:box nil))
 
-      (term-char-mode)
-      (setq mode-line-format (format "   FZF  %s" directory)))))
+    (term-char-mode)
+    (setq mode-line-format (format "   FZF  %s" directory))))
 
 ;;;###autoload
 (defun fzf ()

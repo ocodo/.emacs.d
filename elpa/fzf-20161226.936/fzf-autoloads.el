@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "fzf" "fzf.el" (22483 30686 852081 952000))
+;;;### (autoloads nil "fzf" "fzf.el" (22628 53726 0 0))
 ;;; Generated autoloads from fzf.el
 
 (autoload 'fzf "fzf" "\
