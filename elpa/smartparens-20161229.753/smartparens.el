@@ -804,6 +804,7 @@ in mode's startup-hook etc.) by calling `smartparens-mode'."
   :type 'boolean
   :group 'smartparens)
 
+;; TODO: remove this in 1.12
 (defcustom sp-autoinsert-quote-if-followed-by-closing-pair nil
   "If non-nil autoinsert quotes when the point is followed by closing delimiter.
 
@@ -827,6 +828,9 @@ compatibility.  The intended meaning is \"insert the pair if
 followed by closing pair?\", t = yes."
   :type 'boolean
   :group 'smartparens)
+(make-obsolete-variable
+ 'sp-autoinsert-quote-if-followed-by-closing-pair
+ "the option was removed and no longer has any effect." "1.10")
 
 (defcustom sp-autoskip-closing-pair 'always-end
   "Determine the behaviour when skipping closing delimiters.
@@ -2999,11 +3003,8 @@ last form; otherwise do nothing."
               (sp--setaction action (sp-skip-closing-pair))
               (unless action (sp-escape-open-delimiter))
               ;; if nothing happened, we just inserted a character, so
-              ;; set the apropriate operation.  We also need to check
-              ;; for `sp--self-insert-no-escape' not to overwrite
-              ;; it.  See `sp-autoinsert-quote-if-followed-by-closing-pair'.
-              (when (and (not action)
-                         (not (eq sp-last-operation 'sp-self-insert-no-escape)))
+              ;; set the apropriate operation.
+              (unless action
                 (setq sp-last-operation 'sp-self-insert))))))))))
 
 ;; Unfortunately, some modes rebind "inserting" keys to their own
@@ -3381,6 +3382,20 @@ Return non-nil if at least one escaping was performed."
                          (- (point) (length open))
                          (+ (point) (length close))))))
 
+(defun sp--buffer-is-string-balanced-p ()
+  "Check if the buffer is string-balanced.
+
+A string-balanced buffer is one where where is no unclosed
+string, that is, the string state at the end of the buffer is
+\"closed\"."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-max))
+      (let ((syntax (sp--syntax-ppss)))
+        (or (< (car syntax) 0)
+            (nth 3 syntax))))))
+
 (defun sp-escape-open-delimiter ()
   "Escape just inserted opening pair if `sp-insert-pair' was skipped.
 
@@ -3389,7 +3404,11 @@ is disabled.  This way, we can control autoescape and closing
 delimiter insertion separately."
   (-when-let (open (plist-get (sp--pair-to-insert 'escape) :open))
     (when (and (sp--do-action-p open 'escape)
-               sp-point-inside-string)
+               sp-point-inside-string
+               ;; do not escape if we are looking at a closing
+               ;; delimiter, that means we closed an opened string,
+               ;; most likely.
+               (sp--buffer-is-string-balanced-p))
       (sp--escape-region (list open) (- (point) (length open)) (point)))))
 
 ;; kept to not break people's config... remove later
@@ -3571,22 +3590,6 @@ default."
                                   (not (sp-skip-closing-pair nil t)))
                             t)
                           (sp--do-action-p open-pair 'insert t)
-                          (if sp-autoinsert-quote-if-followed-by-closing-pair t
-                            (if (and (eq (char-syntax (preceding-char)) ?\")
-                                     ;; this is called *after* the character is
-                                     ;; inserted.  Therefore, if we are not in string, it
-                                     ;; must have been closed just now
-                                     (not (sp-point-in-string)))
-                                (let ((pattern (sp--get-closing-regexp)))
-                                  ;; If we simply insert closing ", we also
-                                  ;; don't want to escape it.  Therefore, we
-                                  ;; need to set `sp-last-operation'
-                                  ;; accordingly to be checked in
-                                  ;; `self-insert-command' advice.
-                                  (if (sp--looking-at pattern)
-                                      (progn (setq sp-last-operation 'sp-self-insert-no-escape) nil)
-                                    t))
-                              t))
                           ;; was sp-autoinsert-if-followed-by-same
                           (or (not (sp--get-active-overlay 'pair))
                               (not (sp--looking-at (sp--strict-regexp-quote open-pair)))
@@ -6178,7 +6181,8 @@ Examples:
          (arg (prefix-numeric-value arg))
          (orig-indent (save-excursion
                         (back-to-indentation)
-                        (current-column))))
+                        (current-column)))
+         (orig-column (current-column)))
     (cond
      ((= arg 0) (kill-line))
      ((and raw (= arg 16))
@@ -6210,9 +6214,34 @@ Examples:
       ;; to just one space
       (when (sp-point-in-blank-line)
         (delete-region (line-beginning-position) (line-end-position))
-        (let ((need-indent (- orig-indent (current-column))))
-          (when (> need-indent 0)
-            (insert (make-string need-indent ?\ )))))))))
+        (if (and (= 0 orig-column)
+                 kill-whole-line)
+            (delete-char 1) ;; delete the newline
+          (let ((need-indent (- orig-indent (current-column))))
+            (when (> need-indent 0)
+              (insert (make-string need-indent ?\ ))))))))))
+
+(defun sp-kill-whole-line ()
+  "Kill current line in sexp-aware manner.
+
+First, go to the beginning of current line and then try to kill
+as much as possible on the current line but without breaking
+balance.
+
+If there is a hanging sexp at the end of line the it is killed as
+well.
+
+If there is a closing delimiter for a sexp \"up\" current sexp,
+the kill is not extended after it.  For more details see
+`sp-kill-hybrid-sexp'.
+
+Examples:
+
+  (progn                    (progn
+    (some |long sexp))  ->    |)"
+  (interactive)
+  (beginning-of-line)
+  (sp-kill-hybrid-sexp nil))
 
 (defun sp--transpose-objects (first second)
   "Transpose FIRST and SECOND object while preserving the
@@ -7980,21 +8009,24 @@ it marks the next ARG sexps after the ones already marked.
 This command assumes point is not in a string or comment."
   (interactive "P\np")
   (cond ((and allow-extend
-	      (or (and (eq last-command this-command) (mark t))
-		  (and transient-mark-mode mark-active)))
-	 (setq arg (if arg (prefix-numeric-value arg)
-		     (if (< (mark) (point)) -1 1)))
-	 (set-mark
-	  (save-excursion
-	    (goto-char (mark))
-	    (sp-forward-sexp arg)
-	    (point))))
-	(t
-	 (push-mark
-	  (save-excursion
-	    (sp-forward-sexp (prefix-numeric-value arg))
-	    (point))
-	  nil t))))
+              (or (and (eq last-command this-command) (mark t))
+                  (and transient-mark-mode mark-active)))
+         (setq arg (if arg (prefix-numeric-value arg)
+                     (if (< (mark) (point)) -1 1)))
+         (set-mark
+          (save-excursion
+            (let ((p (point)))
+              (goto-char (mark))
+              (sp-forward-sexp arg)
+              (unless (sp-region-ok-p p (point))
+                (user-error "Can not extend selection: region invalid"))
+              (point)))))
+        (t
+         (push-mark
+          (save-excursion
+            (sp-forward-sexp (prefix-numeric-value arg))
+            (point))
+          nil t))))
 
 (defun sp-delete-char (&optional arg)
   "Delete a character forward or move forward over a delimiter.
