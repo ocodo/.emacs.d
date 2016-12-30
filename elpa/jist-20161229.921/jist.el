@@ -4,10 +4,10 @@
 
 ;; Author: Mario Rodas <marsam@users.noreply.github.com>
 ;; URL: https://github.com/emacs-pe/jist.el
-;; Package-Version: 20160803.1758
+;; Package-Version: 20161229.921
 ;; Keywords: convenience
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "24.4") (pkg-info "0.4") (dash "2.12.0") (let-alist "1.0.4") (magit "2.1.0") (request "0.2.0"))
+;; Package-Requires: ((emacs "24.4") (dash "2.12.0") (seq "1.11") (let-alist "1.0.4") (magit "2.1.0") (request "0.2.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -103,8 +103,6 @@
 ;; [Gist]: https://gist.github.com/
 
 ;;; Code:
-(declare-function pkg-info-version-info "pkg-info" (library))
-
 (eval-when-compile
   (require 'cl-lib)
   (require 'subr-x)
@@ -166,6 +164,8 @@
 (defconst jist-github-api-baseurl "https://api.github.com"
   "Base url for the github api.")
 
+(defconst jist-version "0.0.1")
+
 (defvar jist-gist-after-fork-hook nil)
 (defvar jist-gist-after-create-hook nil)
 
@@ -210,6 +210,14 @@
                    :html-url .html_url
                    :git-pull-url .git_pull_url)))
 
+(defun jist-json-read (&optional coding-system)
+  "Call `json-read' with CODING-SYSTEM."
+  (json-read-from-string (decode-coding-string (buffer-substring-no-properties (point) (point-max)) (or coding-system 'utf-8))))
+
+(defun jist-json-encode (object &optional coding-system)
+  "Return a JSON representation of OBJECT as a string with CODING-SYSTEM."
+  (encode-coding-string (json-encode object) (or coding-system 'utf-8)))
+
 ;; http://developer.github.com/v3/oauth/
 (defun jist--oauth-token ()
   "Return the configured github token."
@@ -220,7 +228,7 @@
 ;; XXX: https://developer.github.com/v3/#current-version
 (defconst jist-default-headers
   `(("Accept" . "application/vnd.github.v3+json")
-    ("User-Agent" . ,(format "jist.el/%s" (pkg-info-version-info 'jist)))))
+    ("User-Agent" . ,(format "jist.el/%s" jist-version))))
 
 (cl-defun jist--github-request (endpoint
                                 &key
@@ -271,9 +279,9 @@ DESCRIPTION and PUBLIC."
   (let ((public (if public t json-false))
         (files (cl-loop for (name . content) in files
                         collect `(,name . (("content" . ,content))))))
-    (json-encode `(("files" . ,files)
-                   ("public" . ,public)
-                   ("description" . ,description)))))
+    (jist-json-encode `(("files" . ,files)
+                        ("public" . ,public)
+                        ("description" . ,description)))))
 
 (defun jist--file-name (&optional buffer)
   "Create a gist name based in BUFFER name."
@@ -315,14 +323,14 @@ DESCRIPTION and PUBLIC."
   (let-alist data
     (kill-new (message .html_url))))
 
-(defun jist--collect-file (file)
-  "Return a cons cell \(file-name . contents\) from FILE."
-  (let* ((visiting (find-buffer-visiting file))
-         (buffer (or visiting (find-file-noselect file))))
-    (with-current-buffer buffer
-      (prog1
-          (cons (file-name-nondirectory file) (buffer-substring-no-properties (point-min) (point-max)))
-        (unless visiting (kill-buffer buffer))))))
+(defun jist--collect-file (filename)
+  "Return a cons cell \(file-name . contents\) from FILENAME."
+  (let* ((visiting (find-buffer-visiting filename))
+         (buffer (or visiting (find-file-noselect filename))))
+    (unwind-protect
+        (with-current-buffer buffer
+          (cons (file-name-nondirectory filename) (buffer-substring-no-properties (point-min) (point-max))))
+      (or visiting (kill-buffer buffer)))))
 
 (cl-defun jist--create-internal (data
                                  &key
@@ -331,7 +339,7 @@ DESCRIPTION and PUBLIC."
   (jist--github-request "/gists"
                         :type "POST"
                         :data data
-                        :parser #'json-read
+                        :parser #'jist-json-read
                         :authorized (or authorized jist-enable-default-authorized)
                         :success (cl-function
                                   (lambda (&key data &allow-other-keys)
@@ -348,13 +356,9 @@ DESCRIPTION and PUBLIC."
 
 With prefix ARG create a gist from file at point."
   (interactive "P")
-  (let (files)
-    (if arg
-        (setq files (list (dired-get-filename)))
-      (setq files (dired-get-marked-files)))
-    (let ((data (jist--create-gist-data :files (mapcar #'jist--collect-file files)
-                                        :public public)))
-      (jist--create-internal data :authorized authorized))))
+  (let* ((files (dired-get-marked-files t arg))
+         (data (jist--create-gist-data :public public :files (mapcar #'jist--collect-file files))))
+    (jist--create-internal data :authorized authorized)))
 
 ;;;###autoload
 (defun jist-dired-auth (arg)
@@ -451,7 +455,7 @@ When PUBLIC is not nil creates a public gist."
       (kill-new (message (jist-gist-html-url gist)))
     (jist--github-request (format "/gists/%s" id)
                           :type "GET"
-                          :parser #'json-read
+                          :parser #'jist-json-read
                           :success (cl-function
                                     (lambda (&key data &allow-other-keys)
                                       (let-alist data
@@ -465,7 +469,7 @@ When PUBLIC is not nil creates a public gist."
       (browse-url (jist-gist-html-url gist))
     (jist--github-request (format "/gists/%s" id)
                           :type "GET"
-                          :parser #'json-read
+                          :parser #'jist-json-read
                           :success (cl-function
                                     (lambda (&key data &allow-other-keys)
                                       (let-alist data
@@ -514,7 +518,7 @@ When PUBLIC is not nil creates a public gist."
           (magit-clone (jist-gist-git-pull-url gist) directory)
         (jist--github-request (format "/gists/%s" id)
                               :type "GET"
-                              :parser #'json-read
+                              :parser #'jist-json-read
                               :authorized t
                               :success (cl-function
                                         (lambda (&key data &allow-other-keys)
@@ -530,7 +534,7 @@ When PUBLIC is not nil creates a public gist."
     (jist--github-request (format "/gists/%s" id)
                           :type "PATCH"
                           :authorized t
-                          :parser #'json-read
+                          :parser #'jist-json-read
                           :data (json-encode `(("description" . ,description))))))
 
 (defun jist--menu-mark-delete (&optional _num)
@@ -663,7 +667,7 @@ Where ITEM is a cons cell `(id . jist-gist)`."
                              (and per-page `((per_page . ,(number-to-string per-page)))))))
         (jist--github-request endpoint
                               :type "GET"
-                              :parser 'json-read
+                              :parser #'jist-json-read
                               :params params
                               :authorized authorized
                               :success (cl-function
@@ -719,5 +723,4 @@ Where ITEM is a cons cell `(id . jist-gist)`."
   (jist-list :starred t))
 
 (provide 'jist)
-
 ;;; jist.el ends here

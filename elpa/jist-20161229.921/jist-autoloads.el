@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "jist" "jist.el" (0 0 0 0))
+;;;### (autoloads nil "jist" "jist.el" (22629 47255 0 0))
 ;;; Generated autoloads from jist.el
 
 (autoload 'jist-dired "jist" "\
@@ -138,8 +138,6 @@ Show a list of public gists.
 Show a list of starred gists of the configured user.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "jist" '("jist-")))
 
 ;;;***
 
