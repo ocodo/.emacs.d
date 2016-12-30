@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-impl
-;; Package-Version: 20161123.512
+;; Package-Version: 20161225.1819
 ;; Version: 0.13
 ;; Package-Requires: ((emacs "24.3") (go-mode "1.3.0"))
 
@@ -33,6 +33,10 @@
 (defgroup go-impl nil
   "`impl' integration for go-mode."
   :group 'go)
+
+(defcustom go-impl-command (executable-find "impl")
+  "Location of impl command."
+  :type 'file)
 
 (defcustom go-impl-aliases-alist nil
   "List of aliases for interface names"
@@ -96,7 +100,7 @@
 
 (defun go-impl--execute (receiver interface)
   (with-temp-buffer
-    (unless (zerop (process-file "impl" nil t nil receiver interface))
+    (unless (zerop (process-file go-impl-command nil t nil receiver interface))
       (error "Failed: impl '%s' %s" receiver interface))
     (buffer-string)))
 
