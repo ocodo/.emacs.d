@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2016-10-27 10:28:30 Victor Ren>
+;; Time-stamp: <2016-12-19 14:15:36 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous refactoring
 ;; Version: 0.9.9.9
@@ -150,6 +150,14 @@ use this variable:
                           (buffer-substring-no-properties (car bound) (cdr bound))))))))
 '$%@*' will be included in the occurrences in perl mode.")
 
+(defcustom iedit-mode-line
+  `(" Iedit:" (:eval (format ,(propertize "%d" 'face 'font-lock-warning-face)
+                             (iedit-counter))))
+  "Mode-line format for Iedit.
+This should be set before Iedit is loaded."
+  :group 'iedit)
+(put 'iedit-mode-line 'risky-local-variable t)
+
 (make-variable-buffer-local 'iedit-mode)
 (make-variable-buffer-local 'iedit-use-symbol-boundaries)
 (make-variable-buffer-local 'iedit-occurrence-type-local)
@@ -160,7 +168,7 @@ use this variable:
 
 (or (assq 'iedit-mode minor-mode-alist)
     (nconc minor-mode-alist
-           (list '(iedit-mode iedit-mode))))
+           (list `(iedit-mode ,iedit-mode-line))))
 
 ;;; Define iedit help map.
 (eval-when-compile (require 'help-macro))
@@ -222,6 +230,10 @@ This is like `describe-bindings', but displays only Iedit keys."
   (interactive)
   (let (same-window-buffer-names same-window-regexps)
     (describe-function 'iedit-mode)))
+
+(defun iedit-counter ()
+  "Return the number of active occurrences."
+  (length iedit-occurrences-overlays))
 
 ;;; Default key bindings:
 (when (and iedit-toggle-key-default (null (where-is-internal 'iedit-mode)))
@@ -289,7 +301,7 @@ propagated to all other occurrences simultaneously.
 If region is not active, `iedit-default-occurrence' is called to
 get an occurrence candidate, according to the thing at point.  It
 might be url, email address, markup tag or current symbol(or
-word) .
+word).
 
 In the above two situations, with digit prefix argument 0, only
 occurrences in current function are matched.  This is good for
@@ -425,12 +437,7 @@ Keymap used within overlays:
     (message "%d matches for \"%s\""
              counter
              (iedit-printable occurrence-regexp))
-    (setq iedit-mode
-          (propertize
-           (concat " Iedit:" (number-to-string counter))
-           'face
-           'font-lock-warning-face))
-    (force-mode-line-update))
+    (setq iedit-mode t))
   (run-hooks 'iedit-mode-hook)
   (add-hook 'before-revert-hook 'iedit-done nil t)
   (add-hook 'kbd-macro-termination-hook 'iedit-done nil t)
@@ -600,10 +607,6 @@ the initial string globally."
                          (point-min)))
             (iedit-add-next-occurrence-overlay
              (iedit-regexp-quote current-occurrence-string)))
-          (setq iedit-mode (propertize
-                            (concat " Iedit:" (number-to-string
-                                               (length iedit-occurrences-overlays)))
-                            'face 'font-lock-warning-face))
           (force-mode-line-update))))))
 
 (defun iedit-restrict-function(&optional arg)
@@ -629,9 +632,8 @@ the initial string globally."
   "Expands the top or bottom of the search region upwards or
 downwards by `amount' lines. The region being acted upon is
 controlled with `where' ('top to act on the top, anything else
-for the bottom). With a prefix, collapses the top or bottom of
-the search region by `amount' lines."
-  (interactive "P")
+for the bottom).  If amount is negative, collapses the top or
+bottom of the search region by `-amount' lines."
   (let ((occurrence (iedit-current-occurrence-string)))
     (iedit-cleanup)
     (if (eq where 'top)
@@ -648,23 +650,21 @@ the search region by `amount' lines."
              (length iedit-occurrences-overlays)
              (if (= 1 (length iedit-occurrences-overlays)) "" "es"))))
 
-(defun iedit-expand-up-a-line (&optional arg)
+(defun iedit-expand-up-a-line (&optional N)
   "After start iedit-mode only on current symbol or the active
-region, this function expands the search region upwards by one
-line.  With a prefix, bring the top of the region back down one
-line."
-  (interactive "P")
-  (iedit-expand-by-a-line 'top
-                          (if arg -1 1)))
-
-(defun iedit-expand-down-a-line (&optional arg)
+region, this function expands the search region upwards by N
+line.  N defaults to 1.  If N is negative, collapses the top of
+the search region by `-N' lines."
+  (interactive "p")
+  (iedit-expand-by-a-line 'top N))
+  
+(defun iedit-expand-down-a-line (&optional N)
   "After start iedit-mode only on current symbol or the active
-region, this function expands the search region downwards by one
-line.  With a prefix, bring the bottom of the region back up one
-line."
-  (interactive "P")
-  (iedit-expand-by-a-line 'bottom
-                          (if arg -1 1)))
+region, this function expands the search region downwards by N
+line.  N defaults to 1.  If N is negative, collapses the bottom
+of the search region by `-N' lines."
+  (interactive "p")
+  (iedit-expand-by-a-line 'bottom N))
 
 (defun iedit-expand-down-to-occurrence (&optional arg)
   "Expand the search region downwards until reaching a new occurrence.
@@ -702,10 +702,6 @@ prefix, bring the top of the region back down one occurrence."
                 forward)))
     (when pos
       (goto-char pos)
-      (setq iedit-mode (propertize
-                        (concat " Iedit:" (number-to-string
-                                           (length iedit-occurrences-overlays)))
-                        'face 'font-lock-warning-face))
       (force-mode-line-update))))
 
 (defun iedit-restrict-region (beg end &optional inclusive)
@@ -721,10 +717,6 @@ prefix, bring the top of the region back down one occurrence."
     (iedit-cleanup-occurrences-overlays beg end inclusive)
     (if iedit-unmatched-lines-invisible
         (iedit-hide-unmatched-lines iedit-occurrence-context-lines))
-    (setq iedit-mode (propertize
-                      (concat " Iedit:" (number-to-string
-                                         (length iedit-occurrences-overlays)))
-                      'face 'font-lock-warning-face))
     (force-mode-line-update)))
 
 (defun iedit-toggle-case-sensitive ()
@@ -747,11 +739,6 @@ prefix, bring the top of the region back down one occurrence."
                  "ignores case")
                counter
                (iedit-printable occurrence-regexp))
-      (setq iedit-mode
-            (propertize
-             (concat " Iedit:" (number-to-string counter))
-             'face
-             'font-lock-warning-face))
       (force-mode-line-update))))
 
 (provide 'iedit)
