@@ -12,7 +12,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
 ;; Package-Requires: ((emacs "24.4") (dash "20160820.501") (with-editor "20161201.925"))
-;; Package-Version: 20161222.428
+;; Package-Version: 20161227.1257
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -733,9 +733,5 @@ Added to `font-lock-extend-region-functions'."
                                 (get-text-property pos 'face)))
            (buffer-string)))))))
 
-;;; git-commit.el ends soon
 (provide 'git-commit)
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 ;;; git-commit.el ends here
