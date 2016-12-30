@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, company, fuzzy, flx
-;; Package-Version: 20160423.1713
+;; Package-Version: 20161228.1736
 ;; Version: 20151016
 ;; URL: https://github.com/PythonNut/company-flx
 ;; Package-Requires: ((emacs "24") (company "0.8.12") (flx "0.5"))
@@ -211,17 +211,21 @@
                    (if (< num-cands company-flx-limit)
                        cands
                      (let* ((seq (sort cands (lambda (c1 c2)
-                                              (< (length c1)
-                                                 (length c2)))))
-                           (end (min company-flx-limit
-                                     num-cands
-                                     (length seq)))
-                           (result nil))
+                                               (< (length c1)
+                                                  (length c2)))))
+                            (end (min company-flx-limit
+                                      num-cands
+                                      (length seq)))
+                            (result nil))
                        (dotimes (_ end  result)
                          (push (pop seq) result)))))
                   (lambda (c1 c2)
-                    (> (cdr c1)
-                       (cdr c2)))))))
+                    ;; break ties by length
+                    (if (/= (cdr c1) (cdr c2))
+                        (> (cdr c1)
+                           (cdr c2))
+                      (< (length (car c1))
+                         (length (car c2)))))))))
 
 ;;;###autoload
 (define-minor-mode company-flx-mode
