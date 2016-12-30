@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20161228.2301
+;; Package-Version: 20161229.44
 ;; Keywords: project, convenience
 ;; Version: 0.15.0-cvs
 ;; Package-Requires: ((pkg-info "0.4"))
@@ -2986,13 +2986,13 @@ Invokes the command referenced by `projectile-switch-project-action' on switch.
 With a prefix ARG invokes `projectile-commander' instead of
 `projectile-switch-project-action.'"
   (interactive "P")
-  (let (projects)
-    (if (setq projects (projectile-relevant-known-projects))
+  (let ((projects (projectile-relevant-known-projects)))
+    (if projects
         (projectile-completing-read
          "Switch to project: " projects
          :action (lambda (project)
                    (projectile-switch-project-by-name project arg)))
-      (error "There are no known projects"))))
+      (user-error "There are no known projects"))))
 
 ;;;###autoload
 (defun projectile-switch-open-project (&optional arg)
@@ -3001,12 +3001,12 @@ Invokes the command referenced by `projectile-switch-project-action' on switch.
 With a prefix ARG invokes `projectile-commander' instead of
 `projectile-switch-project-action.'"
   (interactive "P")
-  (let (projects)
-    (if (setq projects (projectile-relevant-open-projects))
+  (let ((projects (projectile-relevant-open-projects)))
+    (if projects
         (projectile-switch-project-by-name
          (projectile-completing-read "Switch to open project: " projects)
          arg)
-      (error "There are no open projects"))))
+      (user-error "There are no open projects"))))
 
 (defun projectile-switch-project-by-name (project-to-switch &optional arg)
   "Switch to project by project name PROJECT-TO-SWITCH.
@@ -3017,11 +3017,11 @@ With a prefix ARG invokes `projectile-commander' instead of
                                    'projectile-commander
                                  projectile-switch-project-action)))
     (run-hooks 'projectile-before-switch-project-hook)
-    ;; use a temporary buffer to load PROJECT-TO-SWITCH's dir-locals before calling SWITCH-PROJECT-ACTION
-    (with-temp-buffer
-      (let ((default-directory project-to-switch))
-        (hack-dir-local-variables-non-file-buffer)
-        (funcall switch-project-action)))
+    (let ((default-directory project-to-switch))
+      ;; use a temporary buffer to load PROJECT-TO-SWITCH's dir-locals before calling SWITCH-PROJECT-ACTION
+      (with-temp-buffer
+        (hack-dir-local-variables-non-file-buffer))
+      (funcall switch-project-action))
     (run-hooks 'projectile-after-switch-project-hook)))
 
 ;;;###autoload
