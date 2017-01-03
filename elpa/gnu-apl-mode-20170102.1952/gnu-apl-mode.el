@@ -361,7 +361,7 @@ Returns the name of the function or nil if the function could not be parsed."
       parsed)))
 
 (defun gnu-apl-indent ()
-  "Indent a function, controlled by ‘gnu-apl--indent-amounts’.
+  "Indent a function, controlled by ‘gnu-apl-indent-amounts’.
 Anything outside a function definition is not indented."
   (save-excursion
     (beginning-of-line)
