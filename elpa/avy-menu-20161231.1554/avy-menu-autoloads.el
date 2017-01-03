@@ -1,10 +1,9 @@
 ;;; avy-menu-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "avy-menu" "avy-menu.el" (22200 34272 452459
-;;;;;;  567000))
+;;;### (autoloads nil "avy-menu" "avy-menu.el" (0 0 0 0))
 ;;; Generated autoloads from avy-menu.el
 
 (autoload 'avy-menu "avy-menu" "\
@@ -26,6 +25,8 @@ he has cancelled the whole menu or pressed key that does not
 correspond to any available option.
 
 \(fn BUFFER-OR-NAME MENU &optional SHOW-PANE-HEADER)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "avy-menu" '("avy-menu--insert-strings")))
 
 ;;;***
 
