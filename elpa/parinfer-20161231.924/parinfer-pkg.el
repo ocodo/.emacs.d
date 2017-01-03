@@ -1,4 +1,4 @@
-(define-package "parinfer" "20161119.2133" "Simpler Lisp editing"
+(define-package "parinfer" "20161231.924" "Simpler Lisp editing"
   '((dash "2.13.0")
     (cl-lib "0.5"))
   :url "https://github.com/DogLooksGood/parinfer-mode" :keywords
