@@ -7,7 +7,7 @@
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; Maintainer: Peter Fraenkel <pnf@podsnap.com>
 ;; URL: https://github.com/clojure-emacs/squiggly-clojure
-;; Package-Version: 20160704.1221
+;; Package-Version: 20161231.836
 ;; Version: 1.1.0
 ;; Package-Requires: ((cider "0.8.1") (flycheck "0.22-cvs1") (let-alist "1.0.1") (emacs "24"))
 
@@ -49,7 +49,7 @@
   :group 'flycheck-clojure
   :type 'boolean)
 
-(defvar flycheck-clojure-dep-version "0.1.6"
+(defvar flycheck-clojure-dep-version "0.1.7"
   "Version of `acyclic/squiggly-clojure' compatible with this version of flycheck-clojure.")
 
 ;;;###autoload

@@ -1,10 +1,10 @@
 ;;; flycheck-clojure-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flycheck-clojure" "flycheck-clojure.el" (22396
-;;;;;;  29100 42786 609000))
+;;;### (autoloads nil "flycheck-clojure" "flycheck-clojure.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from flycheck-clojure.el
 
 (autoload 'flycheck-clojure-parse-cider-errors "flycheck-clojure" "\
@@ -18,6 +18,8 @@ Return a list of parsed `flycheck-error' objects.
 Setup Flycheck for Clojure.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-clojure" '("flycheck-clojure-" "cider-flycheck-eval")))
 
 ;;;***
 
