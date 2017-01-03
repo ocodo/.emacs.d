@@ -5,7 +5,7 @@
 ;; Author: Gunther Hagleitner
 ;; Maintainer: Julien Pagès <j.parkouss@gmail.com>
 ;; Version: 1.0
-;; Package-Version: 20161218.650
+;; Package-Version: 20161230.815
 ;; Keywords: games
 ;; URL: https://github.com/parkouss/speed-type
 ;; Package-Requires: ((cl-lib "0.3"))
@@ -27,7 +27,7 @@
 ;;
 ;; Speed-type allows you to practice your touch typing skills.  You can
 ;; test yourself by typing snippets from online books or use any piece
-;; of text or code you have in emacs.  Speed-type keeps track of your
+;; of text or code you have in Emacs.  Speed-type keeps track of your
 ;; stats (WPM, CPM, accuracy) while you are typing.
 
 ;;; Code:
@@ -35,17 +35,44 @@
 (require 'url)
 (require 'cl-lib)
 
-(defvar speed-type-min-chars 200
-  "the minimum number of chars to type required when the text to type
-is picked randomly.")
-(defvar speed-type-max-chars 450
-    "the maximum number of chars to type required when the text to type
-is picked randomly.")
-(defvar speed-type-gb-book-list
+(defgroup speed-type nil
+  "Practice touch-typing in emacs."
+  :group 'games)
+
+(defcustom speed-type-min-chars 200
+  "The minimum number of chars to type required when the text to type is picked randomly."
+  :group 'speed-type
+  :type 'integer)
+
+(defcustom speed-type-max-chars 450
+  "The maximum number of chars to type required when the text to type is picked randomly."
+  :group 'speed-type
+  :type 'integer)
+
+(defcustom speed-type-gb-book-list
   '(1342 11 1952 1661 74 1232 23 135 5200 2591 844 84 98 2701 1400 16328 174
          46 4300 345 1080 2500 829 1260 6130 1184 768 32032 521 1399 55)
-  "List of book numbers to use from the gutemberg web site. See
-speed-type--gb-url-format.")
+  "List of book numbers to use from the gutenberg web site.
+
+Book numbers can be picked from https://www.gutenberg.org, when looking at
+a book url.  E.G, https://www.gutenberg.org/ebooks/14577."
+  :group 'speed-type
+  :type '(repeat integer))
+
+(defcustom speed-type-gb-dir (locate-user-emacs-file "speed-type")
+  "Directory in which the gutenberg books will be saved."
+  :group 'speed-type
+  :type 'directory)
+
+(defface speed-type-correct
+  '((t :foreground "green"))
+  "Face for correctly typed characters."
+  :group 'speed-type)
+
+(defface speed-type-mistake
+  '((t :foreground "red" :underline "red"))
+  "Face for incorrectly typed characters."
+  :group 'speed-type)
 
 ;; internal variables
 
@@ -192,8 +219,9 @@ Accuracy is computed as (CORRECT-ENTRIES - CORRECTIONS) / TOTAL-ENTRIES."
 
 (defun speed-type--gb-retrieve (book-num)
   "Return buffer with book number BOOK-NUM in it."
-  (let ((dr (locate-user-emacs-file (format "speed-type")))
-        (fn (locate-user-emacs-file (format "speed-type/%d.txt" book-num)))
+  (let ((dr speed-type-gb-dir)
+        (fn (concat (file-name-as-directory speed-type-gb-dir)
+                    (format "%d.txt" book-num)))
         (url-request-method "GET"))
     (if (file-readable-p fn)
         (find-file-noselect fn t)
@@ -218,7 +246,7 @@ Accuracy is computed as (CORRECT-ENTRIES - CORRECTIONS) / TOTAL-ENTRIES."
         0 (- end-time speed-type--start-time))))
 
 (defun speed-type--check-same (pos a b)
-  "Return true iff both A[POS] B[POS] are white space or if they are the same."
+  "Return true if both A[POS] B[POS] are white space or if they are the same."
   (let ((q (aref a pos))
         (p (aref b pos)))
     (or (and (= (char-syntax p) ?\s)
@@ -241,17 +269,20 @@ Accuracy is computed as (CORRECT-ENTRIES - CORRECTIONS) / TOTAL-ENTRIES."
       (store-substring speed-type--mod-str pos 0))))
 
 (defun speed-type--replay ()
+  "Replay a speed-type session."
   (interactive)
   (let ((text speed-type--orig-text))
     (kill-this-buffer)
     (speed-type--setup text)))
 
 (defun speed-type--play-next ()
+  "Play a new speed-type session, based on the current one."
   (interactive)
   (let ((opened-on-buffer speed-type--opened-on-buffer))
     (kill-this-buffer)
     (if opened-on-buffer
-        (speed-type-buffer nil)
+        (with-current-buffer opened-on-buffer
+          (speed-type-buffer nil))
       (speed-type-text))))
 
 (defun speed-type--handle-complete ()
@@ -294,18 +325,10 @@ Accuracy is computed as (CORRECT-ENTRIES - CORRECTIONS) / TOTAL-ENTRIES."
                  (store-substring speed-type--mod-str pos0 2)))
         (cl-incf speed-type--entries)
         (cl-decf speed-type--remaining)
-        (speed-type--set-char-color pos correct)))))
-
-(defun speed-type--set-char-color (pos correct)
-  (let* ((syntax
-          (char-syntax (aref (buffer-substring pos (1+ pos)) 0)))
-         (attrs
-          (if (and (not correct) (= syntax ?\s))
-              '(:underline "red")
-            `(:underline nil :foreground ,(if correct "green" "red")))))
-    (if (fboundp 'add-face-text-property)
-        (add-face-text-property pos (1+ pos) attrs)
-      (add-text-properties pos (1+ pos) `(face ,@attrs)))))
+        (add-text-properties pos (1+ pos)
+                             `(face ,(if correct
+                                         'speed-type-correct
+                                       'speed-type-mistake)))))))
 
 (defun speed-type--change (start end length)
   "Handle buffer changes.
@@ -342,7 +365,10 @@ are color coded and stats are gathered about the typing performance."
                             str))
 
 (defun speed-type--setup (text &optional author title)
-  "Set up a new buffer for the typing exercise on TEXT."
+  "Set up a new buffer for the typing exercise on TEXT.
+
+AUTHOR and TITLE can be given, this happen when the text to type comes
+from a gutenberg book."
   (with-temp-buffer
     (insert text)
     (delete-trailing-whitespace)
@@ -364,7 +390,7 @@ are color coded and stats are gathered about the typing performance."
     (message "Timer will start when you type the first character.")))
 
 (defun speed-type--pick-text-to-type (&optional start end)
-  "Returns a random section of the buffer usable for playing
+  "Return a random section of the buffer usable for playing.
 
 START and END allow to limit to a buffer section - they default
 to (point-min) and (point-max)"
@@ -409,14 +435,15 @@ to (point-min) and (point-max)"
 (defun speed-type-buffer (full)
   "Open copy of buffer contents in a new buffer to speed type the text.
 
-If using a prefix while calling this function (C-u), then the full text
+If using a prefix while calling this function (C-u), then the FULL text
 will be used. Else some text will be picked randomly."
   (interactive "P")
   (if full
       (speed-type--setup (buffer-substring-no-properties
                           (point-min) (point-max)))
-    (speed-type--setup (speed-type--pick-text-to-type))
-    (setq speed-type--opened-on-buffer t)))
+    (let ((buf (current-buffer)))
+      (speed-type--setup (speed-type--pick-text-to-type))
+      (setq speed-type--opened-on-buffer buf))))
 
 ;;;###autoload
 (defun speed-type-text ()
