@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "header2" "header2.el" (22452 31724 156823
-;;;;;;  237000))
+;;;### (autoloads nil "header2" "header2.el" (0 0 0 0))
 ;;; Generated autoloads from header2.el
 
 (autoload 'make-header "header2" "\
@@ -45,6 +44,8 @@ The functions can use `match-beginning' and `match-end' to find
 the strings that cause them to be invoked.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "header2" '("update-" "uniquify-list" "header" "delete-and-forget-line" "auto-" "make-" "true-mode-name" "return-to" "register-file-header-action" "section-comment-start" "nonempty-comment-" "file-header-update-alist")))
 
 ;;;***
 
