@@ -1,3 +1,40 @@
+2017-01-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Work around more manifestations of Emacs bug #24542
+
+	Not only the symbol `@' but all symbols with names of the form "@+" 
+	cause trouble.	We need to avoid to call `scan-sexps' from the beginning
+	of any of these symbols.
+
+2016-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version to 1.2.2
+
+2016-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve handling of reader errors in el-search-atom-list
+
+2016-12-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Avoid infinite recursion in circular programs
+
+	Prevent heuristic matching go into an infinite recursion in circular 
+	programs like '#1=(1 . #1#).
+
+2016-12-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Call `user-error' instead of `error' where appropriate
+
+	Also improve some error messages.
+
+2016-12-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use regexp-opt on suffixes in el-search--elisp-file-name-p
+
+2016-12-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use jka-compr-load-suffixes instead of hardcoded suffixes
+
 2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	Add a helpful comment; bump version to 1.2.1

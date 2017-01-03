@@ -196,7 +196,7 @@ Use variable `el-search--cached-changes' for caching."
                   (list revision (visited-file-modtime))))
       (cdr el-search--cached-changes)
     (when (buffer-modified-p)
-      (error "Buffer is modified - please save"))
+      (user-error "Buffer is modified - please save"))
     (require 'vc)
     (require 'diff-hl)
     ;; `diff-hl-changes' returns line numbers.  We must convert them into positions.
@@ -238,7 +238,7 @@ Use variable `el-search--cached-changes' for caching."
 (defun el-search--changed-p (posn &optional revision)
   ;; Non-nil when sexp after POSN contains a change
   (when (buffer-modified-p)
-    (error "Buffer is modified - please save"))
+    (user-error "Buffer is modified - please save"))
   (save-restriction
     (widen)
     (let ((changes (el-search--changes-from-diff-hl revision)))

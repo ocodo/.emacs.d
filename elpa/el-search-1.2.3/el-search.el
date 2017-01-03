@@ -7,7 +7,7 @@
 ;; Created: 29 Jul 2015
 ;; Keywords: lisp
 ;; Compatibility: GNU Emacs 25
-;; Version: 1.2.1
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "25") (stream "2.2.3"))
 
 
@@ -568,7 +568,7 @@ matches the (only) argument (that should be a string)."
   (when (and (symbolp pattern)
              (not (eq pattern '_))
              (not (keywordp pattern)))
-    (error "Free symbol: `%S' (missing a quote?)" pattern)))
+    (user-error "Error: free variable `%S' (missing a quote?)" pattern)))
 
 (defun el-search--read-pattern (prompt &optional default histvar)
   (cl-callf or histvar 'el-search-pattern-history)
@@ -604,8 +604,8 @@ matches the (only) argument (that should be a string)."
   ;; point instead.
   (when read (setq expression (save-excursion (read (current-buffer)))))
   (cond
-   ((eq '@ expression) ;bug#24542
-    (forward-char))
+   ((and (symbolp expression)) (string-match-p "\\`@+\\'" (symbol-name expression)) ;bug#24542
+    (forward-char (length (symbol-name expression))))
    ((or (null expression)
         (equal [] expression)
         (not (or (listp expression) (vectorp expression))))
@@ -821,13 +821,13 @@ Raise an error if not.  The string arguments TYPE and optional
 MESSAGE are used to construct the error message."
   (dolist (arg args)
     (unless (funcall predicate arg)
-      (error (concat "Pattern `%s': "
-                     (or message (format "argument doesn't fulfill %S" predicate))
-                     ": %S")
-             type arg))))
+      (user-error (concat "Pattern `%s': "
+                          (or message (format "argument doesn't fulfill %S" predicate))
+                          ": %S")
+                  type arg))))
 
 (defun el-search--elisp-file-name-p (file)
-  (and (string-match-p "\\.el\\(\\.\\(gz\\|Z\\)\\)?\\'" file)
+  (and (string-match-p (concat "\\.el" (regexp-opt jka-compr-load-suffixes) "?\\'") file)
        (file-exists-p file)
        (not (file-directory-p file))))
 
@@ -934,8 +934,13 @@ non-nil else."
                                   (condition-case err
                                       (while t (push (read (current-buffer)) forms))
                                     (end-of-file forms)
-                                    (error "Unexpected error whilst reading %s position %s: %s"
-                                           buffer (point) err))))))))
+                                    (error
+                                     (message "%s in %S\nat position %d - skipping"
+                                              (error-message-string err)
+                                              file-name-or-buffer
+                                              (point))
+                                     (sit-for 3.)
+                                     '()))))))))
         (buffer (if (bufferp file-name-or-buffer)
                     file-name-or-buffer
                   (get-file-buffer file-name-or-buffer))))
@@ -952,25 +957,32 @@ non-nil else."
                                (insert-file-contents file-name-or-buffer))
                              (set-syntax-table emacs-lisp-mode-syntax-table)
                              (funcall get-atoms))))
-            (puthash file-name
-                     (cons (nth 5 (file-attributes file-name)) atom-list)
-                     el-search--atom-list-cache)
+            (when atom-list ;empty in case of error
+              (puthash file-name
+                       (cons (nth 5 (file-attributes file-name)) atom-list)
+                       el-search--atom-list-cache))
             atom-list))))))
 
 (defun el-search--flatten-tree (tree)
-  (let ((elements ()))
+  (let ((elements ())
+        (walked-objects ;to avoid infinite recursion for circular TREEs
+         (make-hash-table :test #'eq))
+        (gc-cons-percentage 0.8)) ;Why is binding it here more effective than binding it more top-level?
     (cl-labels ((walker (object)
                         (if (or (not (sequencep object)) (stringp object) (null object)
                                 (char-table-p object) (bool-vector-p object))
                             (push object elements)
-                          (if (consp object)
-                              (progn
-                                (while (consp object)
-                                  (walker (car object))
-                                  (setq object (cdr object)))
-                                (when object ;dotted list
-                                  (walker object)))
-                            (cl-loop for elt being the elements of object do (walker elt))))))
+                          (unless (gethash object walked-objects)
+                            (puthash object t walked-objects)
+                            (if (consp object)
+                                (progn
+                                  (while (consp object)
+                                    (walker (car object))
+                                    (setq object (cdr object))
+                                    (when (gethash object walked-objects) (setq object nil)))
+                                  (when object ;dotted list
+                                    (walker object)))
+                              (cl-loop for elt being the elements of object do (walker elt)))))))
       (walker tree)
       elements)))
 
@@ -1337,7 +1349,8 @@ expression, the absolute FILE-NAME is tested."
                              ('nil)
                              ((pred stringp) (apply-partially #'string-match-p regexp-or-predicate))
                              ((pred functionp) regexp-or-predicate)
-                             (_ (error "Pattern `file': illegal argument: %S" regexp-or-predicate)))))
+                             (_ (user-error "Pattern `file': illegal argument: %S"
+                                            regexp-or-predicate)))))
     (if (not regexp-or-predicate)
         (lambda (file-name-or-buffer _) (funcall get-file-name file-name-or-buffer))
       (let ((test-file-name-or-buffer
@@ -1508,7 +1521,7 @@ that the current search."
            (current-head (el-search-object-head search))
            (current-search-buffer (el-search-head-buffer current-head)))
       (if (not (buffer-live-p current-search-buffer))
-          (error "Search head points to a killed buffer")
+          (user-error "Search head points to a killed buffer")
         (setq this-command 'el-search-pattern)
         (let ((win (display-buffer current-search-buffer el-search-display-buffer-action)))
           (select-frame-set-input-focus (window-frame win))
@@ -1547,9 +1560,9 @@ continued."
          ((eq (current-buffer) current-search-buffer)
           (setf (el-search-head-position head) (copy-marker (point))))
          ((and current-search-buffer (buffer-live-p current-search-buffer))
-          (error "Please resume from buffer %s" (buffer-name current-search-buffer)))
+          (user-error "Please resume from buffer %s" (buffer-name current-search-buffer)))
          (current-search-buffer
-          (error "Search head points to a killed buffer")))))
+          (user-error "Search head points to a killed buffer")))))
     (unwind-protect
         (let ((stream-of-matches (el-search-object-matches el-search--current-search)))
           (if (not (stream-empty-p stream-of-matches))
@@ -1639,7 +1652,7 @@ additional pattern types are currently defined:"
       ;; FIXME: This case is tricky; the user would expect that when he hits
       ;; C-S afterwards, the search is restored with the old matches
       ;; "merged".  So for now, we raise this:
-      (error "Last search completed, please start a new search")
+      (user-error "Last search completed, please restart the search")
     (setq this-command 'el-search-pattern)
     (let ((last-match-beg (el-search-object-last-match el-search--current-search)))
       (if (< last-match-beg (point))
@@ -1813,7 +1826,7 @@ reindent."
   ;; layout of subexpressions shared with the original (replaced)
   ;; expression and the replace expression.
   (if (and splice (not (listp replacement)))
-      (error "Expression to splice in is an atom")
+      (error "Expression to splice in is not a list")
     (let ((orig-buffer (generate-new-buffer "orig-expr")))
       (with-current-buffer orig-buffer
         (emacs-lisp-mode)
