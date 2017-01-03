@@ -5,7 +5,7 @@
 ;; license that can be found in the LICENSE file.
 
 ;; Version: 0.1
-;; Package-Version: 20161103.1316
+;; Package-Version: 20161117.331
 ;; Package-Requires: ((go-mode "1.3.1") (cl-lib "0.5"))
 ;; Keywords: tools
 
@@ -273,11 +273,11 @@ effective name of the current buffer."
   (let* ((posn (if (use-region-p)
 		   (format "%s:#%d,#%d"
 			   filename
-			   (1- (go--position-bytes (region-beginning)))
-			   (1- (go--position-bytes (region-end))))
+			   (1- (position-bytes (region-beginning)))
+			   (1- (position-bytes (region-end))))
 		 (format "%s:#%d"
 			 filename
-			 (1- (go--position-bytes (point))))))
+			 (1- (position-bytes (point))))))
 	 (cmd (append (list go-guru-command
 			    "-modified"
 			    "-scope" go-guru-scope
