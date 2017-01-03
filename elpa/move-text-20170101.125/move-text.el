@@ -4,10 +4,10 @@
 ;; Description: Move current line or region with M-up or M-down.
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; Keywords: edit
-;; Package-Version: 20161002.2035
+;; Package-Version: 20170101.125
 ;; Url: https://github.com/emacsfodder/move-text
 ;; Compatibility: GNU Emacs 25.1
-;; Version: 2.0.5
+;; Version: 2.0.6
 ;;
 ;;; This file is NOT part of GNU Emacs
 
@@ -102,18 +102,20 @@ them when there's no region."
 (defun move-text-line-up ()
   "Move the current line up."
   (interactive)
-  (if (move-text--at-last-line-p)
-      (let ((target-point))
-        (kill-whole-line)
-        (forward-line -1)
-        (beginning-of-line)
-        (setq target-point (point))
-        (yank)
-        (unless (looking-at "\n")
-          (newline))
-        (goto-char target-point))
-    (progn (transpose-lines 1)
-           (forward-line -2))))
+    (if (move-text--at-last-line-p)
+        (let ((target-point))
+          (kill-whole-line)
+          (forward-line -1)
+          (beginning-of-line)
+          (setq target-point (point))
+          (yank)
+          (unless (looking-at "\n")
+            (newline))
+          (goto-char target-point))
+      (let ((col (current-column)))
+        (progn (transpose-lines 1)
+               (forward-line -2)
+               (move-to-column col)))))
 
 ;;;###autoload
 (defun move-text-line-down ()
@@ -124,9 +126,11 @@ them when there's no region."
            (and
             (move-text--last-line-is-just-newline)
             (move-text--at-penultimate-line-p)))
-    (forward-line 1)
-    (transpose-lines 1)
-    (forward-line -1)))
+    (let ((col (current-column)))
+      (forward-line 1)
+      (transpose-lines 1)
+      (forward-line -1)
+      (move-to-column col))))
 
 ;;;###autoload
 (defun move-text-region (start end n)

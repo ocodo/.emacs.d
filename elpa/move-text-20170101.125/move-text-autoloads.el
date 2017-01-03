@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "move-text" "move-text.el" (22516 40633 0 0))
+;;;### (autoloads nil "move-text" "move-text.el" (0 0 0 0))
 ;;; Generated autoloads from move-text.el
 
 (autoload 'move-text--total-lines "move-text" "\
@@ -70,6 +70,8 @@ Move the line or region (START END) down by N lines.
 Use default bindings for move-text-up and move-text-down (M-up / M-down).
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "move-text" '("move-text-get-region-and-prefix")))
 
 ;;;***
 
