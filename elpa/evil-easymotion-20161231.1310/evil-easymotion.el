@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, evil
-;; Package-Version: 20161023.2356
+;; Package-Version: 20161231.1310
 ;; Version: 20160228
 ;; URL: https://github.com/pythonnut/evil-easymotion
 ;; Package-Requires: ((emacs "24") (avy "0.3.0") (cl-lib "0.5"))
@@ -164,6 +164,12 @@
                  #'evilem--default-collect-postprocess)
              points)))
 
+(defun evilem--compute-inclusivity (funcs)
+  (when (and (= (length funcs) 1)
+             (evil-has-command-properties-p (car funcs)))
+    `(setq evil-this-type
+           ',(evil-get-command-property (car funcs) :type))))
+
 (cl-defmacro evilem-make-motion (name
                                  funcs
                                  &key
@@ -182,7 +188,7 @@
     (require 'avy)
     (avy-with ,name
       (evil-without-repeat
-        (setq evil-this-type 'inclusive)
+        ,(evilem--compute-inclusivity funcs)
         (cl-letf* ,bind
           ,(when pre-hook `(funcall ,(if (functionp pre-hook)
                                          pre-hook
@@ -226,6 +232,7 @@
 
 (cl-defmacro evilem-create (motions
                             &key
+                            name
                             pre-hook
                             post-hook
                             bind
@@ -234,7 +241,8 @@
                             initial-point
                             collect-postprocess)
   `(evilem-make-motion
-    ,(intern (evilem--make-name motions))
+    ,(or (evilem--unquote name)
+         (intern (evilem--make-name motions)))
     ,motions
     :pre-hook ,pre-hook
     :post-hook ,post-hook
@@ -246,6 +254,7 @@
 
 (cl-defmacro evilem-create-plain (motions
                                   &key
+                                  name
                                   pre-hook
                                   post-hook
                                   bind
@@ -254,7 +263,8 @@
                                   initial-point
                                   collect-postprocess)
   `(evilem-make-motion-plain
-    ,(intern (evilem--make-name motions))
+    ,(or (evilem--unquote name)
+         (intern (evilem--make-name motions)))
     ,motions
     :pre-hook ,pre-hook
     :post-hook ,post-hook
@@ -267,6 +277,7 @@
 (cl-defmacro evilem-define (key
                             motions
                             &key
+                            name
                             pre-hook
                             post-hook
                             bind
@@ -280,6 +291,7 @@
                   'evil-motion-state-map)
      ,key
      (evilem-create ,motions
+                    :name ,name
                     :pre-hook ,pre-hook
                     :post-hook ,post-hook
                     :bind ,bind
@@ -330,22 +342,30 @@
                         (line-move-visual t)))
 
   (evilem-define (kbd (concat prefix " t")) #'evil-repeat-find-char
+                 :name 'evilem--motion-evil-find-char-to
                  :pre-hook (save-excursion
+                             (setq evil-this-type 'inclusive)
                              (call-interactively #'evil-find-char-to))
                  :bind ((evil-cross-lines t)))
 
   (evilem-define (kbd (concat prefix " T")) #'evil-repeat-find-char
+                 :name 'evilem--motion-evil-find-char-to-backward
                  :pre-hook (save-excursion
+                             (setq evil-this-type 'exclusive)
                              (call-interactively #'evil-find-char-to-backward))
                  :bind ((evil-cross-lines t)))
 
   (evilem-define (kbd (concat prefix " f")) #'evil-repeat-find-char
+                 :name 'evilem--motion-evil-find-char
                  :pre-hook (save-excursion
+                             (setq evil-this-type 'inclusive)
                              (call-interactively #'evil-find-char))
                  :bind ((evil-cross-lines t)))
 
   (evilem-define (kbd (concat prefix " F")) #'evil-repeat-find-char
+                 :name 'evilem--motion-evil-find-char-backward
                  :pre-hook (save-excursion
+                             (setq evil-this-type 'exclusive)
                              (call-interactively #'evil-find-char-backward))
                  :bind ((evil-cross-lines t)))
 
