@@ -1,10 +1,10 @@
 ;;; dired-details+-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired-details+" "dired-details+.el" (22160
-;;;;;;  39030 597623 143000))
+;;;### (autoloads nil "dired-details+" "dired-details+.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from dired-details+.el
 
 (defvar dired-details-hidden-string "" "\
@@ -18,6 +18,8 @@ The last `dired-details-state' value set is used by the next Dired
 buffer created.")
 
 (custom-autoload 'dired-details-propagate-flag "dired-details+" t)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-details+" '("dired-details-")))
 
 ;;;***
 
