@@ -70,8 +70,8 @@
   "The database version this version of Elfeed expects to use.")
 
 (defvar elfeed-new-entry-hook ()
-  "Functions in this list are called with the new entry as its
-argument. This is a chance to add cutoms tags to new entries.")
+  "Functions in this list are called with the new entry as its argument.
+This is a chance to add custom tags to new entries.")
 
 (defvar elfeed-db-update-hook ()
   "Functions in this list are called with no arguments any time
@@ -166,8 +166,8 @@ update occurred, not counting content."
 
 (defun elfeed-normalize-tags (tags &rest more-tags)
   "Return the normalized tag list for TAGS."
-  (let ((all (copy-sequence (apply #'append tags more-tags))))
-    (cl-remove-duplicates (cl-sort all #'string< :key #'symbol-name))))
+  (let ((all (apply #'append tags (nconc more-tags (list ())))))
+    (cl-delete-duplicates (cl-sort all #'string< :key #'symbol-name))))
 
 (defun elfeed-tag (entry &rest tags)
   "Add TAGS to ENTRY."
@@ -179,11 +179,11 @@ update occurred, not counting content."
   "Remove TAGS from ENTRY."
   (setf (elfeed-entry-tags entry)
         (cl-loop for tag in (elfeed-entry-tags entry)
-                 unless (member tag tags) collect tag)))
+                 unless (memq tag tags) collect tag)))
 
 (defun elfeed-tagged-p (tag entry)
   "Return true if ENTRY is tagged by TAG."
-  (member tag (elfeed-entry-tags entry)))
+  (memq tag (elfeed-entry-tags entry)))
 
 (defun elfeed-db-last-update ()
   "Return the last database update time in (`float-time') seconds."
@@ -454,8 +454,8 @@ The FEED-OR-ID may be a feed struct or a feed ID (url)."
              elfeed-db-feeds)))
 
 (defun elfeed-db-gc (&optional stats-p)
-  "Clean up unused content from the content database. If STATS is
-true, return the space cleared in bytes."
+  "Clean up unused content from the content database.
+If STATS is true, return the space cleared in bytes."
   (elfeed-db-gc-empty-feeds)
   (let* ((data (expand-file-name "data" elfeed-db-directory))
          (dirs (directory-files data t "^[0-9a-z]\\{2\\}$"))
