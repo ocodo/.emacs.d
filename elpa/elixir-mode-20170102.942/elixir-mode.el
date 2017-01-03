@@ -167,7 +167,7 @@
                          (or "_" "__MODULE__" "__DIR__" "__ENV__" "__CALLER__"
                              "__block__" "__aliases__")
                          symbol-end))
-      (sigils . ,(rx "~" (or "B" "C" "D" "R" "S" "b" "c" "r" "s" "w")))))
+      (sigils . ,(rx "~" (or "B" "C" "D" "N" "R" "S" "T" "b" "c" "r" "s" "w")))))
 
   (defmacro elixir-rx (&rest sexps)
     (let ((rx-constituents (append elixir-rx-constituents rx-constituents)))
@@ -414,7 +414,7 @@ is used to limit the scan."
      1 font-lock-negation-char-face)))
 
 ;;;###autoload
-(defun elixir-mode-open-modegithub ()
+(defun elixir-mode-open-github ()
   "Elixir mode open GitHub page."
   (interactive)
   (browse-url "https://github.com/elixir-lang/emacs-elixir"))
@@ -493,12 +493,28 @@ just return nil."
       (when (looking-back "^\\s-*\\_<end" (line-beginning-position))
         (forward-line 1)))))
 
+(defun elixir--docstring-p (&optional pos)
+  "Check to see if there is a docstring at pos."
+  (let ((pos (or pos (nth 8 (parse-partial-sexp (point-min) (point))))))
+    (when pos
+      (save-excursion
+        (goto-char pos)
+        (and (looking-at "\"\"\"")(looking-back "@moduledoc[ \]+\\|@doc[ \]+"
+                                                (line-beginning-position)))))))
+
+(defun elixir-font-lock-syntactic-face-function (state)
+  (if (nth 3 state)
+      (if (elixir--docstring-p (nth 8 state))
+          font-lock-doc-face
+        font-lock-string-face)
+    font-lock-comment-face))
+
 (easy-menu-define elixir-mode-menu elixir-mode-map
   "Elixir mode menu."
   '("Elixir"
     ["Indent line" smie-indent-line]
     "---"
-    ["elixir-mode on GitHub" elixir-mode-open-modegithub]
+    ["elixir-mode on GitHub" elixir-mode-open-github]
     ["Elixir homepage" elixir-mode-open-elixir-home]
     ["About" elixir-mode-version]))
 
@@ -508,7 +524,10 @@ just return nil."
 
 \\{elixir-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
-       '(elixir-font-lock-keywords))
+       '(elixir-font-lock-keywords
+         nil nil nil nil
+         (font-lock-syntactic-face-function
+          . elixir-font-lock-syntactic-face-function)))
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "#+ *")
