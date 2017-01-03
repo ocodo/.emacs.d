@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "hl-line+" "hl-line+.el" (22455 52006 0 0))
+;;;### (autoloads nil "hl-line+" "hl-line+.el" (0 0 0 0))
 ;;; Generated autoloads from hl-line+.el
 
 (defface hl-line '((t (:background "SlateGray3"))) "\
@@ -56,6 +56,8 @@ Highlight the current line for `hl-line-flash-show-period' seconds.
 With a prefix argument, highlight for that many seconds.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "hl-line+" '("hl-line-")))
 
 ;;;***
 
