@@ -21,23 +21,23 @@
 ;; SOFTWARE.
 ;;
 ;; Author: DarthFennec <darthfennec@derpymail.org>
-;; Version: 0.6.6
-;; Package-Version: 20161214.1619
-;; Package-Requires: ((emacs "24"))
+;; Version: 0.7
+;; Package-Version: 20161230.1538
+;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/DarthFennec/highlight-indent-guides
 
 ;;; Commentary:
-;; This minor mode highlights indentation levels via font-lock. Indent widths
+;; This minor mode highlights indentation levels via font-lock.  Indent widths
 ;; are dynamically discovered, which means this correctly highlights in any
 ;; mode, regardless of indent width, even in languages with non-uniform
-;; indentation such as Haskell. This mode works properly around hard tabs and
+;; indentation such as Haskell.  This mode works properly around hard tabs and
 ;; mixed indentation, and it behaves well in large buffers.
 ;;
 ;; To install, put this file in your load-path, and require it:
 ;;
 ;;   (require 'highlight-indent-guides)
 ;;
-;; Then, do M-x highlight-indent-guides-mode to enable it. To enable it
+;; Then, do M-x highlight-indent-guides-mode to enable it.  To enable it
 ;; automatically in most programming modes, use the following:
 ;;
 ;;   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
@@ -48,34 +48,47 @@
 ;;
 ;; Where METHOD is either 'fill, 'column, or 'character.
 ;;
-;; To change the colors used for highlighting, use:
+;; By default, this mode automatically inspects your theme and chooses
+;; appropriate colors for highlighting.  To tweak the subtlety of these colors,
+;; use the following (all values are percentages):
+;;
+;;   (setq highlight-indent-guides-auto-odd-face-perc 15)
+;;   (setq highlight-indent-guides-auto-even-face-perc 15)
+;;   (setq highlight-indent-guides-auto-character-face-perc 20)
+;;
+;; Or, to manually set the colors used for highlighting, use:
+;;
+;;   (setq highlight-indent-guides-auto-enabled nil)
 ;;
 ;;   (set-face-background 'highlight-indent-guides-odd-face "color")
 ;;   (set-face-background 'highlight-indent-guides-even-face "color")
+;;   (set-face-foreground 'highlight-indent-guides-character-face "color")
 ;;
-;; To change the character and face used for drawing guide lines, use:
+;; To change the character used for drawing guide lines, use:
 ;;
 ;;   (setq highlight-indent-guides-character ?ch)
-;;   (set-face-foreground 'highlight-indent-guides-character-face "color")
 
 ;;; Code:
 
+(require 'color)
+(require 'seq)
+
 (defgroup highlight-indent-guides nil
   "Indentation highlighting."
-  :group 'basic-faces)
+  :group 'faces)
 
 (defface highlight-indent-guides-odd-face
-  '((t (:background "#303030")))
+  '((t nil))
   "Face to highlight odd indent levels."
   :group 'highlight-indent-guides)
 
 (defface highlight-indent-guides-even-face
-  '((t (:background "#3A3A3A")))
+  '((t nil))
   "Face to highlight even indent levels."
   :group 'highlight-indent-guides)
 
 (defface highlight-indent-guides-character-face
-  '((t (:foreground "#3A3A3A")))
+  '((t nil))
   "Face to highlight guide line characters."
   :group 'highlight-indent-guides)
 
@@ -90,10 +103,38 @@ This can be `fill', `column', or `character'."
   :type '(choice (const fill) (const column) (const character))
   :group 'highlight-indent-guides)
 
+(defcustom highlight-indent-guides-auto-enabled t
+  "Whether to automatically calculate faces.
+If this is enabled, highlight-indent-guides will use the current theme's
+background color to automatically calculate reasonable indent guide colors."
+  :type 'boolean
+  :group 'highlight-indent-guides)
+
+(defcustom highlight-indent-guides-auto-odd-face-perc 5
+  "Color adjustment percentage for highlight-indent-guides-odd-face.
+This is used to automatically calculate the indent guide faces from the
+background color."
+  :type 'number
+  :group 'highlight-indent-guides)
+
+(defcustom highlight-indent-guides-auto-even-face-perc 10
+  "Color adjustment percentage for highlight-indent-guides-even-face.
+This is used to automatically calculate the indent guide faces from the
+background color."
+  :type 'number
+  :group 'highlight-indent-guides)
+
+(defcustom highlight-indent-guides-auto-character-face-perc 10
+  "Color adjustment percentage for highlight-indent-guides-character-face.
+This is used to automatically calculate the indent guide faces from the
+background color."
+  :type 'number
+  :group 'highlight-indent-guides)
+
 (defun highlight-indent-guides--calc-guides (prev-guides indent)
   "Calculate the indent guides for a line.
-PREV-GUIDES are the previous line's indent guides,
-and INDENT is this line's indent width."
+PREV-GUIDES are the previous line's indent guides, and INDENT is this line's
+indent width."
   (let ((guides prev-guides))
     (while (and guides (< indent (car guides)))
       (setq guides (cdr guides)))
@@ -209,7 +250,7 @@ and INDENT is this line's indent width."
 
 (defun highlight-indent-guides--fill-keyword-matcher (limit)
   "Search for indent guides between the point and LIMIT.
-Find the next character that is part of any indentation. This is meant to be
+Find the next character that is part of any indentation.  This is meant to be
 used as a `font-lock-keywords' matcher."
   (let* ((pos (point))
          (prop 'highlight-indent-guides-prop)
@@ -253,8 +294,8 @@ it."
 
 (defun highlight-indent-guides--fill-highlighter ()
   "Apply highlighting to the indentation.
-Return highlighting information for the character at START. Highlights all
-indentation characters in alternating colors. This is meant to be used as a
+Return highlighting information for the character at START.  Highlights all
+indentation characters in alternating colors.  This is meant to be used as a
 `font-lock-keywords' face definition."
   (let ((prop (get-text-property start 'highlight-indent-guides-prop)))
     (highlight-indent-guides--cache-highlight
@@ -275,9 +316,9 @@ indentation characters in alternating colors. This is meant to be used as a
 
 (defun highlight-indent-guides--column-highlighter ()
   "Apply highlighting to the indentation.
-Return highlighting information for the character at START. Highlights the first
-column of each indentation level in alternating colors. This is meant to be used
-as a `font-lock-keywords' face definition."
+Return highlighting information for the character at START.  Highlights the
+first column of each indentation level in alternating colors.  This is meant to
+be used as a `font-lock-keywords' face definition."
   (let ((prop (get-text-property start 'highlight-indent-guides-prop)))
     (highlight-indent-guides--cache-highlight
      'column prop
@@ -299,9 +340,9 @@ as a `font-lock-keywords' face definition."
 
 (defun highlight-indent-guides--character-highlighter ()
   "Apply highlighting to the indentation.
-Return highlighting information for the character at START. Displays a character
-in place of the first column of each indentation level. This is meant to be used
-as a `font-lock-keywords' face definition."
+Return highlighting information for the character at START.  Displays a
+character in place of the first column of each indentation level.  This is meant
+to be used as a `font-lock-keywords' face definition."
   (let ((prop (get-text-property start 'highlight-indent-guides-prop)))
     (highlight-indent-guides--cache-highlight
      'character prop
@@ -322,6 +363,37 @@ as a `font-lock-keywords' face definition."
          `(face nil display ,showstr))))))
 
 ;;;###autoload
+(defun highlight-indent-guides-auto-set-faces (&rest _)
+  "Automatically calculate indent guide faces.
+If this feature is enabled, calculate reasonable values for the indent guide
+colors based on the current theme's colorscheme, and set them appropriately.
+This runs whenever a theme is loaded, but it can also be run interactively."
+  (interactive)
+  (when highlight-indent-guides-auto-enabled
+    (let* ((bk (face-background 'default nil 'default))
+           (fg (color-name-to-rgb (face-foreground 'default nil 'default)))
+           (bg (color-name-to-rgb bk))
+           (oddf 'highlight-indent-guides-odd-face)
+           (evenf 'highlight-indent-guides-even-face)
+           (charf 'highlight-indent-guides-character-face)
+           (oddp highlight-indent-guides-auto-odd-face-perc)
+           (evenp highlight-indent-guides-auto-even-face-perc)
+           (charp highlight-indent-guides-auto-character-face-perc)
+           mod fl bl)
+      (if (not (and fg bg))
+          (message "Error: %s: %s"
+                   "highlight-indent-guides cannot auto set faces"
+                   "`default' face is not set properly")
+        (setq fl (nth 2 (apply 'color-rgb-to-hsl fg)))
+        (setq bl (nth 2 (apply 'color-rgb-to-hsl bg)))
+        (setq mod (cond ((< fl bl) -1) ((> fl bl) 1) ((< 0.5 bl) -1) (t 1)))
+        (set-face-background oddf (color-lighten-name bk (* mod oddp)))
+        (set-face-background evenf (color-lighten-name bk (* mod evenp)))
+        (set-face-foreground charf (color-lighten-name bk (* mod charp)))))))
+
+(advice-add 'load-theme :after 'highlight-indent-guides-auto-set-faces)
+
+;;;###autoload
 (define-minor-mode highlight-indent-guides-mode
   "Display indent guides in a buffer."
   nil nil nil
@@ -336,6 +408,7 @@ as a `font-lock-keywords' face definition."
             0 (highlight-indent-guides--character-highlighter) t))))
     (if highlight-indent-guides-mode
         (progn
+          (highlight-indent-guides-auto-set-faces)
           (add-to-list 'font-lock-extra-managed-props 'display)
           (font-lock-add-keywords
            nil
