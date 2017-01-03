@@ -1,10 +1,10 @@
 ;;; kill-or-bury-alive-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "kill-or-bury-alive" "kill-or-bury-alive.el"
-;;;;;;  (22366 21580 213490 373000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from kill-or-bury-alive.el
 
 (defvar kill-or-bury-alive-must-die-list nil "\
@@ -82,6 +82,8 @@ When ARG is given and it's not NIL, ask to confirm killing of
 every buffer.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "kill-or-bury-alive" '("kill-or-bury-alive-")))
 
 ;;;***
 
