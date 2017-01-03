@@ -1,10 +1,9 @@
 ;;; zzz-to-char-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "zzz-to-char" "zzz-to-char.el" (22179 12957
-;;;;;;  259775 624000))
+;;;### (autoloads nil "zzz-to-char" "zzz-to-char.el" (0 0 0 0))
 ;;; Generated autoloads from zzz-to-char.el
 
 (autoload 'zzz-to-char "zzz-to-char" "\
@@ -22,6 +21,8 @@ This command is similar to `zap-up-to-char', it doesn't kill
 target character.
 
 \(fn CHAR)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "zzz-to-char" '("zzz-to-char-")))
 
 ;;;***
 
