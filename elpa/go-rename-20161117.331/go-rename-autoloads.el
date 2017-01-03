@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "go-rename" "go-rename.el" (22540 33748 0 0))
+;;;### (autoloads nil "go-rename" "go-rename.el" (0 0 0 0))
 ;;; Generated autoloads from go-rename.el
 
 (autoload 'go-rename "go-rename" "\
@@ -12,6 +12,8 @@ the `gorename' tool. With FORCE, call `gorename' with the
 `-force' flag.
 
 \(fn NEW-NAME &optional FORCE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-rename" '("go-")))
 
 ;;;***
 

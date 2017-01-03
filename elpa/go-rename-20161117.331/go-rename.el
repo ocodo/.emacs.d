@@ -5,7 +5,7 @@
 ;; license that can be found in the LICENSE file.
 
 ;; Version: 0.1
-;; Package-Version: 20161019.1204
+;; Package-Version: 20161117.331
 ;; Package-Requires: ((go-mode "1.3.1"))
 ;; Keywords: tools
 
@@ -56,7 +56,7 @@ the `gorename' tool. With FORCE, call `gorename' with the
                    (string= (file-name-extension (buffer-file-name)) ".go"))))
   (let* ((posflag (format "-offset=%s:#%d"
                           buffer-file-name
-                          (1- (go--position-bytes (point)))))
+                          (1- (position-bytes (point)))))
          (env-vars (go-root-and-paths))
          (goroot-env (concat "GOROOT=" (car env-vars)))
          (gopath-env (concat "GOPATH=" (mapconcat #'identity (cdr env-vars) ":")))
