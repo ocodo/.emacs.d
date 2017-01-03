@@ -3,8 +3,11 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("creamsody-theme.el") (22624 31799 364032
-;;;;;;  120000))
+;;;### (autoloads nil "creamsody-theme" "creamsody-theme.el" (0 0
+;;;;;;  0 0))
+;;; Generated autoloads from creamsody-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "creamsody-theme" '("creamsody-modeline")))
 
 ;;;***
 
