@@ -250,7 +250,7 @@ to be used as editor by adding it to the appropriate mode hooks:
    Some variants of this function exist; these two forms are equivalent:
 
      (add-hook 'shell-mode-hook
-     	  (apply-partially 'with-editor-export-editor "GIT_EDITOR"))
+               (apply-partially 'with-editor-export-editor "GIT_EDITOR"))
      (add-hook 'shell-mode-hook 'with-editor-export-git-editor)
 
  -- Command: with-editor-export-editor
@@ -332,8 +332,8 @@ Node: Top1545
 Node: Using the With-Editor package3236
 Node: Configuring With-Editor3852
 Node: Using With-Editor commands8258
-Node: Using With-Editor as a library11514
-Node: Debugging13232
+Node: Using With-Editor as a library11521
+Node: Debugging13239
 
 End Tag Table
 
