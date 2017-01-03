@@ -1,10 +1,10 @@
 ;;; fix-word.el --- Convenient word transformation -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2015 Mark Karpov <markkarpov@openmailbox.org>
+;; Copyright © 2015–2017 Mark Karpov <markkarpov@openmailbox.org>
 ;;
 ;; Author: Mark Karpov <markkarpov@openmailbox.org>
 ;; URL: https://github.com/mrkkrp/fix-word
-;; Package-Version: 20150716.602
+;; Package-Version: 20161231.1555
 ;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: word, convenience
