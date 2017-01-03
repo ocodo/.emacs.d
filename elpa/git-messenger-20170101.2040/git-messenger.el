@@ -1,12 +1,12 @@
-;;; git-messenger.el --- Pop up last commit information of current line
+;;; git-messenger.el --- Pop up last commit information of current line -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016 by Syohei YOSHIDA
+;; Copyright (C) 2017 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-git-messenger
-;; Package-Version: 20160815.1952
-;; Version: 0.17
-;; Package-Requires: ((popup "0.5.0") (cl-lib "0.5"))
+;; Package-Version: 20170101.2040
+;; Version: 0.18
+;; Package-Requires: ((emacs "24.3") (popup "0.5.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -37,6 +37,8 @@
 (require 'cl-lib)
 (require 'popup)
 
+(declare-function magit-show-commit "magit-diff")
+
 (defgroup git-messenger nil
   "git messenger"
   :group 'vc)
@@ -62,6 +64,10 @@
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control."
   :type '(repeat symbol))
+
+(defcustom git-messenger:use-magit-popup nil
+  "Use magit-show-commit instead pop-to-buffer"
+  :type 'boolean)
 
 (defvar git-messenger:last-message nil
   "Last message displayed by git-messenger.
@@ -250,9 +256,11 @@ and menus.")
     (erase-buffer)
     (unless (zerop (git-messenger:execute-command vcs args t))
       (error "Failed: '%s(args=%s)'" (git-messenger:vcs-command vcs) args))
-    (pop-to-buffer (current-buffer))
-    (when mode
-      (funcall mode))
+    (if git-messenger:use-magit-popup
+        (magit-show-commit git-messenger:last-commit-id)
+      (pop-to-buffer (current-buffer))
+      (when mode
+        (funcall mode)))
     (run-hooks 'git-messenger:popup-buffer-hook)
     (view-mode +1)
     (goto-char (point-min)))
@@ -342,9 +350,15 @@ and menus.")
 
 (defun git-messenger:prompt ()
   (mapconcat (lambda (fp)
-               (let ((key (git-messenger:function-to-key (car fp))))
-                 (format "[%s]%s" key (cdr fp))))
-             git-messenger:func-prompt " "))
+               (let* ((func (car fp))
+                      (desc (cdr fp))
+                      (key (git-messenger:function-to-key func)))
+                 (when (and git-messenger:use-magit-popup (eq func 'git-messenger:popup-show))
+                   (setq desc "magit-show-commit"))
+                 (unless (and git-messenger:use-magit-popup
+                              (memq func '(git-messenger:popup-show-verbose git-messenger:popup-diff)))
+                   (format "[%s]%s " key desc))))
+             git-messenger:func-prompt ""))
 
 (defun git-messenger:show-parent ()
   (interactive)
