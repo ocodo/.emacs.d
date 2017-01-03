@@ -1,10 +1,9 @@
 ;;; hl-spotlight-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "hl-spotlight" "hl-spotlight.el" (22160 38937
-;;;;;;  345186 967000))
+;;;### (autoloads nil "hl-spotlight" "hl-spotlight.el" (0 0 0 0))
 ;;; Generated autoloads from hl-spotlight.el
 
 (defface hl-spotlight '((t :inherit highlight)) "\
@@ -55,8 +54,9 @@ Hl-Spotlight mode also turns off Hl-Line mode.
 \(fn &optional ARG)" t nil)
 
 (defvar global-hl-spotlight-mode nil "\
-Non-nil if Global-Hl-Spotlight mode is enabled.
-See the command `global-hl-spotlight-mode' for a description of this minor mode.
+Non-nil if Global Hl-Spotlight mode is enabled.
+See the `global-hl-spotlight-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-hl-spotlight-mode'.")
@@ -87,6 +87,8 @@ A negative prefix arg means scan up, not down.
 With `C-u C-u', scan down the height of a full spotlight.
 
 \(fn ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "hl-spotlight" '("hl-spotlight-")))
 
 ;;;***
 
