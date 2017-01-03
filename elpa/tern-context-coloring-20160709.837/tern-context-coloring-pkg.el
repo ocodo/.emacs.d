@@ -1,1 +1,0 @@
-(define-package "tern-context-coloring" "20160709.837" "Use Tern for context coloring" '((emacs "24.3") (context-coloring "8.0.0") (tern "0.0.1")) :url "https://github.com/jacksonrayhamilton/tern-context-coloring" :keywords '("convenience" "faces" "tools"))

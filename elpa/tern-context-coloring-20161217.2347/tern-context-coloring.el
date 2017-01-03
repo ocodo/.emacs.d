@@ -4,9 +4,9 @@
 
 ;; Author: Jackson Ray Hamilton <jackson@jacksonrayhamilton.com>
 ;; Version: 0.0.0
-;; Package-Version: 20160709.837
+;; Package-Version: 20161217.2347
 ;; Keywords: convenience faces tools
-;; Package-Requires: ((emacs "24.3") (context-coloring "8.0.0") (tern "0.0.1"))
+;; Package-Requires: ((emacs "24.3") (context-coloring "8.1.0") (tern "0.0.1"))
 ;; URL: https://github.com/jacksonrayhamilton/tern-context-coloring
 
 ;;; Commentary:
@@ -42,7 +42,8 @@
   (context-coloring-before-colorize)
   (with-silent-modifications
     (tern-context-coloring-apply-tokens data)
-    (context-coloring-colorize-comments-and-strings)))
+    (context-coloring-colorize-comments-and-strings))
+  (context-coloring-after-colorize))
 
 (defun tern-context-coloring-colorize ()
   "Query tern for contextual colors and colorize the buffer."
@@ -70,7 +71,8 @@
    (list :predicate #'tern-context-coloring-predicate
          :colorizer #'tern-context-coloring-colorize
          :setup #'context-coloring-setup-idle-change-detection
-         :teardown #'context-coloring-teardown-idle-change-detection)
+         :teardown #'context-coloring-teardown-idle-change-detection
+         :async-p t)
    context-coloring-dispatch-hash-table))
 
 (provide 'tern-context-coloring)
