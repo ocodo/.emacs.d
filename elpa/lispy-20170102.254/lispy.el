@@ -945,7 +945,9 @@ If position isn't special, move to previous or error."
   "Kill line, keeping parens consistent."
   (interactive)
   (let (bnd)
-    (cond ((lispy--in-comment-p)
+    (cond ((or (lispy--in-comment-p)
+               (and (lispy-bolp)
+                    (looking-at " *;")))
            (kill-line))
 
           ((and (setq bnd (lispy--bounds-string))
@@ -989,6 +991,7 @@ If position isn't special, move to previous or error."
              (while (and (< (point) end)
                          (ignore-errors
                            (forward-sexp 1)
+                           (skip-chars-forward " ")
                            t)))
              (skip-chars-forward " \t")
              (kill-region beg (point)))))))
