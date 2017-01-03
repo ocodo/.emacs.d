@@ -1,1 +1,0 @@
-(define-package "mmt" "20150906.959" "Missing macro tools for Emacs Lisp" '((emacs "24.1") (cl-lib "0.3")) :stars '(#("2" 0 1 (font-lock-face paradox-star-face))) :url "https://github.com/mrkkrp/mmt" :keywords '("macro" "emacs-lisp"))
