@@ -1,10 +1,10 @@
 ;;; common-lisp-snippets-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "common-lisp-snippets" "common-lisp-snippets.el"
-;;;;;;  (22366 21713 108701 716000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from common-lisp-snippets.el
 
 (autoload 'common-lisp-snippets-initialize "common-lisp-snippets" "\
@@ -14,10 +14,12 @@ Initialize Common Lisp snippets, so Yasnippet can see them.
 
 (eval-after-load 'yasnippet '(common-lisp-snippets-initialize))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "common-lisp-snippets" '("common-lisp-snippets-root")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("common-lisp-snippets-pkg.el") (22366
-;;;;;;  21713 118606 904000))
+;;;### (autoloads nil nil ("common-lisp-snippets-pkg.el") (0 0 0
+;;;;;;  0))
 
 ;;;***
 
