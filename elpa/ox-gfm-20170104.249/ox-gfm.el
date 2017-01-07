@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito
 ;; Keywords: org, wp, markdown, github
-;; Package-Version: 20160906.1035
+;; Package-Version: 20170104.249
 
 ;; This file is not part of GNU Emacs.
 
@@ -249,8 +249,8 @@ plist used as a communication channel."
 INFO is a plist used as a communication channel."
   (let* ((fn-alist (org-export-collect-footnote-definitions info))
          (fn-alist
-          (loop for (n type raw) in fn-alist collect
-                (cons n (org-trim (org-export-data raw info))))))
+          (cl-loop for (n type raw) in fn-alist collect
+                   (cons n (org-trim (org-export-data raw info))))))
     (when fn-alist
       (format
        "## %s\n%s"
