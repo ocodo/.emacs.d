@@ -11,7 +11,7 @@
 ;;      Sean McLaughlin <seanmcl@gmail.com>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
-;; Version: 2.0.10
+;; Version: 2.1.0
 ;; Package-Requires: ((caml "3.12.0.1"))
 ;; Keywords: ocaml languages
 ;; URL: https://github.com/ocaml/tuareg
@@ -89,7 +89,7 @@
   "Tuareg revision from the control system used.")
 
 (defconst tuareg-mode-version
-  (let ((version "Tuareg Version 2.0.9"))
+  (let ((version "Tuareg Version 2.1.0"))
     (if (null tuareg-mode-revision)
         version
       (concat version " (" tuareg-mode-revision ")")
@@ -509,26 +509,33 @@ changing the opam switch)."
 (defcustom tuareg-font-lock-symbols nil
   "*Display fun and -> and such using symbols in fonts.
 This may sound like a neat trick, but note that it can change the
-alignment and can thus lead to surprises."
+alignment and can thus lead to surprises.  On recent Emacs >= 24.4,
+use `prettify-symbols-mode'."
   :group 'tuareg :type 'boolean)
 
 (when (fboundp 'prettify-symbols-mode)
   (make-obsolete-variable 'tuareg-font-lock-symbols
                           'prettify-symbols-mode "Emacs-24.4"))
 
-(defvar tuareg-font-lock-symbols-alist
-  (cond ((fboundp 'decode-char) ;; or a unicode font.
-         `(("fun" . ,(decode-char 'ucs 955))
-           ("sqrt" . ,(decode-char 'ucs 8730))
-           ("not" . ,(decode-char 'ucs 172))
+(defcustom tuareg-prettify-symbols-full nil
+  "It f, add fun and -> and such to be prettified with symbols.
+This may sound like a neat trick, but note that it can change the
+alignment and can thus lead to surprises.  By default, only symbols that
+do not perturb in essential ways the alignment are used.  See
+`tuareg-prettify-symbols-basic-alist' and
+`tuareg-prettify-symbols-extra-alist'."
+  :group 'tuareg :type 'boolean)
+
+(defvar tuareg-prettify-symbols-basic-alist
+  (cond ((fboundp 'decode-char) ;; use a unicode font.
+         `(("sqrt" . ,(decode-char 'ucs 8730))
            ("&&" . ,(decode-char 'ucs 8743)); 'LOGICAL AND' (U+2227)
-           ("or" . ,(decode-char 'ucs 8744)); 'LOGICAL OR' (U+2228)
-           ("||" . ,(decode-char 'ucs 8744))
-           ("[|" . ,(decode-char 'ucs 12314)) ;; 〚
-           ("|]" . ,(decode-char 'ucs 12315)) ;; 〛
-           ("*." . ,(decode-char 'ucs 215))
+           ("||" . ,(decode-char 'ucs 8744)); 'LOGICAL OR' (U+2228)
+           ("+." . ,(decode-char 'ucs 8724));DOT PLUS (U+2214)
+           ("-." . ,(decode-char 'ucs 8760));DOT MINUS (U+2238)
+           ;;("*." . ,(decode-char 'ucs 215))
+           ("*." . ,(decode-char 'ucs 8729)); BULLET OPERATOR
            ("/." . ,(decode-char 'ucs 247))
-           ("->" . ,(decode-char 'ucs 8594))
            ("<-" . ,(decode-char 'ucs 8592))
            ("<=" . ,(decode-char 'ucs 8804))
            (">=" . ,(decode-char 'ucs 8805))
@@ -536,7 +543,6 @@ alignment and can thus lead to surprises."
            ("==" . ,(decode-char 'ucs 8801))
            ("!=" . ,(decode-char 'ucs 8802))
            ("<=>" . ,(decode-char 'ucs 8660))
-           (":=" . ,(decode-char 'ucs 8656))
            ("infinity" . ,(decode-char 'ucs 8734))
            ;; Some greek letters for type parameters.
            ("'a" . ,(decode-char 'ucs 945))
@@ -556,22 +562,17 @@ alignment and can thus lead to surprises."
            ("'t" . ,(decode-char 'ucs 964))
            ("'x" . ,(decode-char 'ucs 958))))
         ((and (fboundp 'make-char) (fboundp 'charsetp) (charsetp 'symbol))
-         `(("fun" . ,(make-char 'symbol 108))
-           ("sqrt" . ,(make-char 'symbol 214))
-           ("not" . ,(make-char 'symbol 216))
+         `(("sqrt" . ,(make-char 'symbol 214))
            ("&&" . ,(make-char 'symbol 217))
-           ("or" . ,(make-char 'symbol 218))
            ("||" . ,(make-char 'symbol 218))
            ("*." . ,(make-char 'symbol 183))
            ("/." . ,(make-char 'symbol 184))
            ("<=" . ,(make-char 'symbol 163))
            ("<-" . ,(make-char 'symbol 172))
-           ("->" . ,(make-char 'symbol 174))
            (">=" . ,(make-char 'symbol 179))
            ("<>" . ,(make-char 'symbol 185))
            ("==" . ,(make-char 'symbol 186))
            ("<=>" . ,(make-char 'symbol 219))
-           (":=" . ,(make-char 'symbol 220))
            ("=>" . ,(make-char 'symbol 222))
            ("infinity" . ,(make-char 'symbol 165))
            ;; Some greek letters for type parameters.
@@ -591,6 +592,23 @@ alignment and can thus lead to surprises."
            ("'s" . ,(make-char 'symbol 115))
            ("'t" . ,(make-char 'symbol 116))
            ("'x" . ,(make-char 'symbol 120))))))
+
+(defvar tuareg-prettify-symbols-extra-alist
+  (cond ((fboundp 'decode-char) ;; use a unicode font.
+         `(("fun" . ,(decode-char 'ucs 955))
+           ("not" . ,(decode-char 'ucs 172))
+           ;;("or" . ,(decode-char 'ucs 8744)); should not be used as ||
+           ("[|" . ,(decode-char 'ucs 12314)) ;; 〚
+           ("|]" . ,(decode-char 'ucs 12315)) ;; 〛
+           ("->" . ,(decode-char 'ucs 8594))
+           (":=" . ,(decode-char 'ucs 8656))))
+         ((and (fboundp 'make-char) (fboundp 'charsetp) (charsetp 'symbol))
+          `(("fun" . ,(make-char 'symbol 108))
+            ("not" . ,(make-char 'symbol 216))
+            ;;("or" . ,(make-char 'symbol 218))
+            ("->" . ,(make-char 'symbol 174))
+            (":=" . ,(make-char 'symbol 220))))))
+
 
 (defun tuareg-font-lock-compose-symbol (alist)
   "Compose a sequence of ascii chars into a symbol.
@@ -614,8 +632,12 @@ Regexp match data 0 points to the chars."
 
 (defun tuareg-font-lock-symbols-keywords ()
   (when (fboundp 'compose-region)
-    (let ((alist nil))
-      (dolist (x tuareg-font-lock-symbols-alist)
+    (let ((alist nil)
+          (alist (if tuareg-prettify-symbols-full
+                     (append tuareg-prettify-symbols-basic-alist
+                             tuareg-prettify-symbols-extra-alist)
+                   tuareg-prettify-symbols-basic-alist)))
+      (dolist (x alist)
         (when (and (if (fboundp 'char-displayable-p)
                        (char-displayable-p (cdr x))
                      t)
@@ -742,7 +764,7 @@ Regexp match data 0 points to the chars."
   "Syntax changes for Font-Lock.")
 
 (defconst tuareg--whitespace-re
-  ;; FIXME: Why's not just "[ \t\n]*"?
+  ;; QUESTION: Why not just "[ \t\n]*"?
   ;; It used to be " *[\t\n]? *" but this is inefficient since it can match
   ;; N spaces in N+1 different ways :-(
   " *\\(?:[\t\n] *\\)?")
@@ -777,6 +799,7 @@ Regexp match data 0 points to the chars."
 	 (maybe-infix-attr+ext
 	  (concat maybe-infix-attr maybe-infix-ext))
          (tuple (concat "(" balanced-braces ")")); much more than tuple!
+	 ;; FIXME: module paths with functor applications
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
          (constructor (concat "\\(?:\\(?:" module-path "\\.\\)?" uid
@@ -1494,6 +1517,20 @@ by |, insert one |."
 		    nil))))))
     tok))
 
+(defun tuareg-smie--search-forward (tokens)
+  (let (tok)
+    (while (progn
+             (setq tok (tuareg-smie--forward-token))
+             (if (not (zerop (length tok)))
+                 (not (member tok tokens))
+	       (unless (eobp)
+		 (condition-case err
+		     (progn (forward-sexp) t)
+		   (scan-error
+		    (setq tok (buffer-substring (nth 2 err) (nth 3 err)))
+		    nil))))))
+    tok))
+
 (defconst tuareg-smie--type-label-leader
   '("->" ":" "=" ""))
 
@@ -1617,7 +1654,7 @@ Return values can be
   (save-excursion
     (let* ((pos (point))
            (telltale '("type" "let" "module" "class" "and" "external"
-                       "val" "method" "DEFINE" "="
+                       "val" "method" "DEFINE" "=" ":="
                        "if" "then" "else" "->" ";" ))
            (nearest (tuareg-smie--search-backward telltale)))
       (cond
@@ -1640,12 +1677,43 @@ Return values can be
                         (equal (tuareg-smie-backward-token) "t->")))
             (setq nearest (tuareg-smie--search-backward telltale)))
           nil))
+       ((and (member nearest '("=" ":="))
+             (member (tuareg-smie--search-backward telltale)
+                     '("type" "module")))
+        ;; Second equality in "type t = M.t = C" or after mod-constraint
+        "d=")
        ((not (member nearest '("type" "let" "module" "class" "and"
                                "external" "val" "method" "DEFINE")))
         "=…")
        ((and (member nearest '("type" "module"))
-             (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
+             ;; Maybe a module's type equality constraint?
+             (or (member (tuareg-smie--backward-token) '("with" "and"))
+                 ;; Or maybe an alias as part of a definition?
+                 (and (equal nearest "type")
+                      (goto-char (1+ pos)) ;"1+" to skip the `=' itself!
+                      (let ((tok (tuareg-smie--search-forward
+                                  (cons "=" (mapcar #'car
+                                                    tuareg-smie-grammar)))))
+                        (equal tok "=")))))
+        "c=")
        (t "d=")))))
+
+(defun tuareg-smie--:=-disambiguate ()
+  "Return which kind of \":=\" we've just found.
+Point is not moved and should be right in front of the equality.
+Return values can be
+  \":=\" for assignment definition,
+  \"c=\" for destructive equality constraint."
+  (save-excursion
+    (let* ((pos (point))
+           (telltale '("type" "let" "module" "class" "and" "external"
+                       "val" "method" "DEFINE" "=" ":="
+                       "if" "then" "else" "->" ";" ))
+           (nearest (tuareg-smie--search-backward telltale)))
+      (cond				;Issue #7
+       ((and (member nearest '("type" "module"))
+             (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
+       (t ":=")))))
 
 (defun tuareg-smie--|-or-p ()
   "Return non-nil if we're just in front of an or pattern \"|\"."
@@ -1723,6 +1791,7 @@ Return values can be
      ;; Distinguish a defining = from a comparison-=.
      ((equal tok "=")
       (tuareg-smie--=-disambiguate))
+     ((equal tok ":=") (tuareg-smie--:=-disambiguate))
      ((zerop (length tok))
       (if (not (and (memq (char-before) '(?\} ?\]))
                     (save-excursion (forward-char -2)
@@ -2150,7 +2219,10 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
              'tuareg-current-fun-name))
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (set (make-local-variable 'prettify-symbols-alist)
-       tuareg-font-lock-symbols-alist)
+       (if tuareg-prettify-symbols-full
+           (append tuareg-prettify-symbols-basic-alist
+                   tuareg-prettify-symbols-extra-alist)
+         tuareg-prettify-symbols-basic-alist))
   (tuareg-install-font-lock)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
 
@@ -2715,10 +2787,6 @@ Short cuts for interactions with the toplevel:
             tuareg-interactive-output-font-lock
             tuareg-interactive-error-font-lock)
     (font-lock-mode 1))
-  (when (boundp 'after-change-functions) ;FIXME: Why?
-    (remove-hook 'after-change-functions 'font-lock-after-change-function t))
-  (when (boundp 'pre-idle-hook)
-    (remove-hook 'pre-idle-hook 'font-lock-pre-idle-hook t))
 
   (easy-menu-add tuareg-interactive-mode-menu)
   (tuareg-update-options-menu))
@@ -2748,24 +2816,19 @@ I/O via buffer `*ocaml-toplevel*'."
             (read-shell-command "OCaml toplevel to run: "
                                 tuareg-interactive-program))))
   (unless (comint-check-proc tuareg-interactive-buffer-name)
-    (let ((cmdlist (tuareg-args-to-list tuareg-interactive-program))
+    (let ((cmdlist (tuareg--split-args tuareg-interactive-program))
           (process-connection-type nil))
       (set-buffer (apply (function make-comint) "ocaml-toplevel"
                          (car cmdlist) nil (cdr cmdlist)))
       (tuareg-interactive-mode)
       (sleep-for 1))))
 
-(defun tuareg-args-to-list (string)
-  (let ((where (string-match "[ \t]" string)))
-    (cond ((null where) (list string))
-          ((/= where 0)
-           (cons (substring string 0 where)
-                 (tuareg-args-to-list (substring string (+ 1 where)
-                                                 (length string)))))
-          (t (let ((pos (string-match "[^ \t]" string)))
-               (when pos
-                 (tuareg-args-to-list (substring string pos
-                                                 (length string)))))))))
+(defun tuareg--split-args (args)
+  (condition-case nil
+      (split-string-and-unquote args)
+      (error (progn
+               (message "Arguments ‘%s’ ill quoted.  Ignored." args)
+               nil))))
 
 (defun tuareg-interactive-get-old-input ()
   (save-excursion

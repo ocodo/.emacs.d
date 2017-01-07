@@ -12,7 +12,7 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for ocamldebug.  If you wish to change this, use
 the ocamldebug commands `cd DIR' and `directory'.
 
-\(fn PATH)" t nil)
+\(fn PGM-PATH)" t nil)
 
 (defalias 'camldebug 'ocamldebug)
 
@@ -107,7 +107,8 @@ Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("tuareg-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-pkg.el") (0 0 0
+;;;;;;  0))
 
 ;;;***
 

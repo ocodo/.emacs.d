@@ -135,6 +135,7 @@ C-x SPACE sets break point at current line."
   (set (make-local-variable 'comint-prompt-regexp) ocamldebug-prompt-pattern)
   (set (make-local-variable 'comint-dynamic-complete-functions)
        (cons #'ocamldebug-complete comint-dynamic-complete-functions))
+  (set (make-local-variable 'comint-prompt-read-only) t)
   (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
   (set (make-local-variable 'ocamldebug-last-frame-displayed-p) t)
   (set (make-local-variable 'shell-dirtrackp) t)
@@ -460,31 +461,46 @@ around point."
 (defvar ocamldebug-command-name "ocamldebug"
   "Pathname for executing the OCaml debugger.")
 
+(defvar ocamldebug-debuggee-args ""
+  "Default arguments to the program being debugged (space
+separated and possibly quoted as they would be passed on the
+command line).")
+
 ;;;###autoload
-(defun ocamldebug (path)
+(defun ocamldebug (pgm-path)
   "Run ocamldebug on program FILE in buffer *ocamldebug-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for ocamldebug.  If you wish to change this, use
 the ocamldebug commands `cd DIR' and `directory'."
   (interactive "fRun ocamldebug on file: ")
-  (setq path (expand-file-name path))
-  (let ((file (file-name-nondirectory path)))
-    (pop-to-buffer (concat "*ocamldebug-" file "*"))
-    (setq default-directory (file-name-directory path))
-    (message "Current directory is %s" default-directory)
-    (setq ocamldebug-command-name
-	  (read-from-minibuffer "OCaml debugguer to run: "
-				ocamldebug-command-name))
-    (make-comint (concat "ocamldebug-" file)
-		 (substitute-in-file-name ocamldebug-command-name)
-		 nil
-		 "-emacs" "-cd" default-directory path)
-    (set-process-filter (get-buffer-process (current-buffer))
-			'ocamldebug-filter)
-    (set-process-sentinel (get-buffer-process (current-buffer))
-			  'ocamldebug-sentinel)
-    (ocamldebug-mode)
-    (ocamldebug-set-buffer)))
+  (setq pgm-path (expand-file-name pgm-path))
+  (let* ((file (file-name-nondirectory pgm-path))
+         (name (concat "ocamldebug-" file))
+         (buffer-name (concat "*" name "*")))
+    (pop-to-buffer buffer-name)
+    (unless (comint-check-proc buffer-name)
+      (setq default-directory (file-name-directory pgm-path))
+      (setq ocamldebug-debuggee-args
+            (read-from-minibuffer (format "Args for %s: " file)
+                                  ocamldebug-debuggee-args))
+      (setq ocamldebug-command-name
+            (read-from-minibuffer "OCaml debugguer to run: "
+                                  ocamldebug-command-name))
+      (message "Current directory is %s" default-directory)
+      (let* ((args (tuareg--split-args ocamldebug-debuggee-args))
+             (cmdlist (tuareg--split-args ocamldebug-command-name))
+             (cmdlist (mapcar #'substitute-in-file-name cmdlist)))
+        (apply #'make-comint name
+               (car cmdlist)
+               nil
+               "-emacs" "-cd" default-directory
+               (append (cdr cmdlist) (cons pgm-path args)))
+        (set-process-filter (get-buffer-process (current-buffer))
+                            'ocamldebug-filter)
+        (set-process-sentinel (get-buffer-process (current-buffer))
+                              'ocamldebug-sentinel)
+        (ocamldebug-mode)))
+  (ocamldebug-set-buffer)))
 
 ;;;###autoload
 (defalias 'camldebug 'ocamldebug)
@@ -643,8 +659,12 @@ Obeying it means displaying in another window the specified file and line."
     (with-current-buffer buffer
       (save-restriction
 	(widen)
-        (setq spos (+ (point-min) schar))
-        (setq epos (+ (point-min) echar))
+        (setq spos (if (fboundp 'filepos-to-bufferpos)
+                       (filepos-to-bufferpos schar 'approximate)
+                     (+ (point-min) schar)))
+        (setq epos (if (fboundp 'filepos-to-bufferpos)
+                       (filepos-to-bufferpos echar 'approximate)
+                     (+ (point-min) echar)))
         (setq pos (if kind spos epos))
         (ocamldebug-set-current-event spos epos pos (current-buffer) kind))
       (cond ((or (< pos (point-min)) (> pos (point-max)))
