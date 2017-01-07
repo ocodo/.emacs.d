@@ -4,7 +4,7 @@
 
 ;; Author: Natalie Weizenbaum
 ;; URL: http://github.com/nex3/haml/tree/master
-;; Package-Version: 20150508.2011
+;; Package-Version: 20170104.2224
 ;; Package-Requires: ((ruby-mode "1.0"))
 ;; Version: DEV
 ;; Created: 2007-03-08
@@ -31,10 +31,7 @@
 (require 'css-mode nil t)
 (require 'textile-mode nil t)
 (require 'markdown-mode nil t)
-(or
- (require 'js nil t)
- (require 'javascript-mode "javascript" t))
-
+(require 'js nil t)
 
 ;; User definable variables
 
@@ -171,15 +168,15 @@ This requires that `css-mode' is available.
 This requires that Karl Landström's javascript mode be available, either as the
 \"js.el\" bundled with Emacs >= 23, or as \"javascript.el\" found in ELPA and
 elsewhere."
-  (let ((keywords (or (and (featurep 'js) js--font-lock-keywords-3)
-                      (and (featurep 'javascript-mode) js-font-lock-keywords-3)))
-        (syntax-table (or (and (featurep 'js) js-mode-syntax-table)
-                          (and (featurep 'javascript-mode) javascript-mode-syntax-table)))
-        (syntax-propertize (and (featurep 'js) 'js-syntax-propertize)))
-    (when keywords
-      (when (and (fboundp 'js--update-quick-match-re) (null js--quick-match-re-func))
-        (js--update-quick-match-re))
-      (haml-fontify-region beg end keywords syntax-table nil syntax-propertize))))
+  (when js--font-lock-keywords-3
+    (when (and (fboundp 'js--update-quick-match-re)
+	       (null js--quick-match-re-func))
+      (js--update-quick-match-re))
+    (haml-fontify-region beg end
+			 js--font-lock-keywords-3
+			 js-mode-syntax-table
+			 nil
+			 'js-syntax-propertize)))
 
 (defun haml-fontify-region-as-textile (beg end)
   "Highlight textile from BEG to END.
