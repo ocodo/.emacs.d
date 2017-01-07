@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "col-highlight" "col-highlight.el" (22456 25304
-;;;;;;  478308 151000))
+;;;### (autoloads nil "col-highlight" "col-highlight.el" (0 0 0 0))
 ;;; Generated autoloads from col-highlight.el
 
 (let ((loads (get 'column-highlight 'custom-loads))) (if (member '"col-highlight" loads) nil (put 'column-highlight 'custom-loads (cons '"col-highlight" loads))))
@@ -89,6 +88,8 @@ Highlight the current column for `col-highlight-period' seconds.
 With a prefix ARG, highlight for that many seconds.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "col-highlight" '("col-highlight-" "vline-show")))
 
 ;;;***
 
