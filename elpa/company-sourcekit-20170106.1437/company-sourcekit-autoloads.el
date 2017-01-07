@@ -1,16 +1,18 @@
 ;;; company-sourcekit-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "company-sourcekit" "company-sourcekit.el"
-;;;;;;  (22366 21704 956745 207000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from company-sourcekit.el
 
 (autoload 'company-sourcekit "company-sourcekit" "\
 Company backend for swift using sourcekitten.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-sourcekit" '("company-sourcekit-")))
 
 ;;;***
 
