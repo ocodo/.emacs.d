@@ -6,7 +6,7 @@
 ;; Maintainer:
 ;; Created: Fri Oct 11 12:14:25 2013 (-0400)
 ;; Version: 1.0.4
-;; Package-Version: 20161020.434
+;; Package-Version: 20170103.1231
 ;; Package-Requires: ()
 ;; Last-Updated: Sun Dec  8 20:23:51 2013 (-0500)
 ;;           By: Jordon Biondo
@@ -79,6 +79,18 @@ the function will be called with no arguments and will be expected to return a
 number to use in place of `column-enforce-column'. This can be used for
 changing the max column based on context, such as restricting the column count
 further on the first line."
+  :type 'function
+  :group 'column-enforce)
+
+(defcustom column-enforce-should-enable-p nil
+  "A function to determine if `column-enforce-mode' should be enabled.
+
+This function will be called once in the context of every buffer when
+`global-column-enforce-mode' is activated. The function should return non-nil
+when `column-enforce-mode' should be enabled for the current buffer.
+
+When this variable is nil the default behavior will apply. By default
+the mode will only be enabled in `prog-mode' derived buffers."
   :type 'function
   :group 'column-enforce)
 
@@ -189,8 +201,11 @@ Variable `column-enforce-face' decides how to display the warnings"
 (defun column-enforce-mode-toggle-if-applicable ()
   (if column-enforce-mode
       (column-enforce-mode -1)
-    (when (derived-mode-p  'prog-mode)
-      (column-enforce-mode t))))
+    (if (functionp column-enforce-should-enable-p)
+        (when (ignore-errors (funcall column-enforce-should-enable-p))
+          (column-enforce-mode t))
+      (when (derived-mode-p 'prog-mode)
+        (column-enforce-mode t)))))
 
 ;;;###autoload
 (define-global-minor-mode global-column-enforce-mode column-enforce-mode

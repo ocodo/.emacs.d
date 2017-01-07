@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "column-enforce-mode" "column-enforce-mode.el"
-;;;;;;  (22538 11549 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from column-enforce-mode.el
 
 (autoload 'column-enforce-n "column-enforce-mode" "\
@@ -52,6 +52,8 @@ Column-Enforce mode is enabled in all buffers where
 See `column-enforce-mode' for more information on Column-Enforce mode.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "column-enforce-mode" '("column-enforce-")))
 
 ;;;***
 
