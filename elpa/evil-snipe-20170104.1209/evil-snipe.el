@@ -7,7 +7,7 @@
 ;; Created: December 5, 2014
 ;; Modified: September 28, 2016
 ;; Version: 2.0.4
-;; Package-Version: 20161103.1020
+;; Package-Version: 20170104.1209
 ;; Keywords: emulation, vim, evil, sneak, seek
 ;; Homepage: https://github.com/hlissner/evil-snipe
 ;; Package-Requires: ((evil "1.0.8") (cl-lib "0.5"))
@@ -438,7 +438,7 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
                     (when evil-snipe-enable-highlight
                       (evil-snipe--highlight beg end t)))
                   ;; Activate the repeat keymap
-                  (when (and keymap)
+                  (when (and (boundp 'keymap) keymap)
                     (setq evil-snipe--transient-map-func (set-transient-map keymap)))))
             ;; Try to "spill over" into new scope on failed search
             (if evil-snipe-spillover-scope
