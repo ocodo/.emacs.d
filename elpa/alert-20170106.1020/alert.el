@@ -6,7 +6,7 @@
 ;; Created: 24 Aug 2011
 ;; Updated: 16 Mar 2015
 ;; Version: 1.2
-;; Package-Version: 20160824.821
+;; Package-Version: 20170106.1020
 ;; Package-Requires: ((gntp "0.1") (log4e "0.3.0"))
 ;; Keywords: notification emacs message
 ;; X-URL: https://github.com/jwiegley/alert
@@ -783,9 +783,9 @@ From https://github.com/alloy/terminal-notifier."
                     :notifier #'alert-notifier-notify)
 
 (defun alert-osx-notifier-notify (info)
-  (apply #'call-process (format "osascript -e 'display notification %S with title %S'"
-				(alert-encode-string (plist-get info :message))
-				(alert-encode-string (plist-get info :title))))
+  (apply #'call-process "osascript" nil nil nil "-e" (list (format "display notification %S with title %S"
+                (alert-encode-string (plist-get info :message))
+                (alert-encode-string (plist-get info :title)))))
   (alert-message-notify info))
 
 (alert-define-style 'osx-notifier :title "Notify using native OSX notification" :notifier #'alert-osx-notifier-notify)
