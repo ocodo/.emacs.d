@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20161229.44
+;; Package-Version: 20170106.606
 ;; Keywords: project, convenience
 ;; Version: 0.15.0-cvs
 ;; Package-Requires: ((pkg-info "0.4"))
@@ -143,8 +143,8 @@ attention to case differences."
 There are two indexing methods - native and alien.
 
 The native method is implemented in Emacs Lisp (therefore it is
-native to Emacs).  It's advantage is that is portable and will
-work everywhere that Emacs does.  It's disadvantage is that is a
+native to Emacs).  Its advantage is that it is portable and will
+work everywhere that Emacs does.  Its disadvantage is that it is a
 bit slow (especially for large projects).  Generally it's a good
 idea to pair the native indexing method with caching.
 
@@ -3021,7 +3021,16 @@ With a prefix ARG invokes `projectile-commander' instead of
       ;; use a temporary buffer to load PROJECT-TO-SWITCH's dir-locals before calling SWITCH-PROJECT-ACTION
       (with-temp-buffer
         (hack-dir-local-variables-non-file-buffer))
-      (funcall switch-project-action))
+      ;; Normally the project name is determined from the current
+      ;; buffer. However, when we're switching projects, we want to
+      ;; show the name of the project being switched to, rather than
+      ;; the current project, in the minibuffer. This is a simple hack
+      ;; to tell the `projectile-project-name' function to ignore the
+      ;; current buffer and the caching mechanism, and just return the
+      ;; value of the `projectile-project-name' variable.
+      (let ((projectile-project-name (funcall projectile-project-name-function
+                                              project-to-switch)))
+        (funcall switch-project-action)))
     (run-hooks 'projectile-after-switch-project-hook)))
 
 ;;;###autoload
