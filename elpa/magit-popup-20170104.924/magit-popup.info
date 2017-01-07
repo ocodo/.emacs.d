@@ -6,7 +6,7 @@ this library implements a similar abstraction; a new kind of prefix
 command that is associated with a specific set of infix arguments and
 suffix commands.
 
-     Copyright (C) 2015-2016 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -33,7 +33,7 @@ this library implements a similar abstraction; a new kind of prefix
 command that is associated with a specific set of infix arguments and
 suffix commands.
 
-     Copyright (C) 2015-2016 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
