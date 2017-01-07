@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-creamsody
-;; Package-Version: 20161231.2153
-;; Version: 0.3.4
+;; Package-Version: 20170105.2029
+;; Version: 0.3.6
 ;; Package-Requires: ((autothemer "0.2"))
 
 ;;; Commentary:
@@ -359,12 +359,12 @@
   (powerline-inactive2                       (:background creamsody-background2 :inherit 'mode-line-inactive))
 
   ;; MODE SUPPORT: spaceline)
-  (spaceline-evil-normal                     (:background creamsody-bright_blue :foreground creamsody-dark0))
-  (spaceline-evil-insert                     (:background creamsody-bright_yellow :foreground creamsody-dark0))
-  (spaceline-evil-visual                     (:background creamsody-bright_purple :foreground creamsody-dark0))
-  (spaceline-evil-motion                     (:background creamsody-bright_green :foreground creamsody-dark0))
-  (spaceline-evil-replace                    (:background creamsody-bright_orange :foreground creamsody-dark0))
-  (spaceline-evil-emacs                      (:background creamsody-bright_red :foreground creamsody-dark0))
+  (spaceline-evil-normal                     (:background creamsody-bright_blue :foreground creamsody-background0))
+  (spaceline-evil-insert                     (:background creamsody-bright_yellow :foreground creamsody-background0))
+  (spaceline-evil-visual                     (:background creamsody-bright_purple :foreground creamsody-background0))
+  (spaceline-evil-motion                     (:background creamsody-bright_green :foreground creamsody-background0))
+  (spaceline-evil-replace                    (:background creamsody-bright_orange :foreground creamsody-background0))
+  (spaceline-evil-emacs                      (:background creamsody-bright_red :foreground creamsody-background0))
 
   ;; MODE SUPPORT: smart-mode-line)
   (sml/modes                                 (:foreground creamsody-foreground0_hard :weight 'bold :bold t))
