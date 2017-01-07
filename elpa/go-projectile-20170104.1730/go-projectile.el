@@ -4,7 +4,7 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20160825.1644
+;; Package-Version: 20170104.1730
 ;; Keywords: project, convenience
 ;; Version: 0.2.1
 ;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0") (go-guru "0"))
@@ -57,7 +57,7 @@ current GOPATH, or 'never to leave GOPATH untouched."
   '("third_party" "vendor")
   "A list of regular expressions to ignore in `go-projectile-current-project-files'.")
 
-(defvar go-projectile-tools-path (concat (expand-file-name user-emacs-directory) "/gotools")
+(defvar go-projectile-tools-path (expand-file-name (concat user-emacs-directory "/gotools"))
   "GOPATH for Go tools used by Emacs.")
 
 (defvar go-projectile-url-file "go-projectile-url.eld"

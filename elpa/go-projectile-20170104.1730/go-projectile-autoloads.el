@@ -3,7 +3,10 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("go-projectile.el") (22474 20482 0 0))
+;;;### (autoloads nil "go-projectile" "go-projectile.el" (0 0 0 0))
+;;; Generated autoloads from go-projectile.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-projectile" '("go-projectile-")))
 
 ;;;***
 
