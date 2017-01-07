@@ -136,7 +136,7 @@
 	      ((:url . "http://elpa.gnu.org/packages/cl-generic.html")
 	       (:keywords))])
  (cl-lib .
-	 [(0 5)
+	 [(0 6 1)
 	  nil "Properly prefixed CL functions and macros" single
 	  ((:url . "http://elpa.gnu.org/packages/cl-lib.html")
 	   (:keywords))])
@@ -1000,7 +1000,7 @@
 	     ((:keywords "convenience" "emulation")
 	      (:url . "http://github.com/joaotavora/yasnippet"))])
  (ztree .
-	[(1 0 4)
+	[(1 0 5)
 	 ((cl-lib
 	   (0)))
 	 "Text mode directory tree" tar
