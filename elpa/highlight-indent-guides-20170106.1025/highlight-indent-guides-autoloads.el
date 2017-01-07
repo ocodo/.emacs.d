@@ -13,7 +13,7 @@ If this feature is enabled, calculate reasonable values for the indent guide
 colors based on the current theme's colorscheme, and set them appropriately.
 This runs whenever a theme is loaded, but it can also be run interactively.
 
-\(fn &rest _)" t nil)
+\(fn)" t nil)
 
 (autoload 'highlight-indent-guides-mode "highlight-indent-guides" "\
 Display indent guides in a buffer.

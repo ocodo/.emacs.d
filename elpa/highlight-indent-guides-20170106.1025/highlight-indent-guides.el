@@ -21,9 +21,9 @@
 ;; SOFTWARE.
 ;;
 ;; Author: DarthFennec <darthfennec@derpymail.org>
-;; Version: 0.7
-;; Package-Version: 20161230.1538
-;; Package-Requires: ((emacs "24.4"))
+;; Version: 0.7.3
+;; Package-Version: 20170106.1025
+;; Package-Requires: ((emacs "24"))
 ;; URL: https://github.com/DarthFennec/highlight-indent-guides
 
 ;;; Commentary:
@@ -33,12 +33,9 @@
 ;; indentation such as Haskell.  This mode works properly around hard tabs and
 ;; mixed indentation, and it behaves well in large buffers.
 ;;
-;; To install, put this file in your load-path, and require it:
-;;
-;;   (require 'highlight-indent-guides)
-;;
-;; Then, do M-x highlight-indent-guides-mode to enable it.  To enable it
-;; automatically in most programming modes, use the following:
+;; To install, put this file in your load-path, and do
+;; M-x highlight-indent-guides-mode to enable it.  To enable it automatically in
+;; most programming modes, use the following:
 ;;
 ;;   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
 ;;
@@ -47,6 +44,11 @@
 ;;   (setq highlight-indent-guides-method METHOD)
 ;;
 ;; Where METHOD is either 'fill, 'column, or 'character.
+;;
+;; To change the character used for drawing guide lines with the 'character
+;; method, use:
+;;
+;;   (setq highlight-indent-guides-character ?ch)
 ;;
 ;; By default, this mode automatically inspects your theme and chooses
 ;; appropriate colors for highlighting.  To tweak the subtlety of these colors,
@@ -63,15 +65,10 @@
 ;;   (set-face-background 'highlight-indent-guides-odd-face "color")
 ;;   (set-face-background 'highlight-indent-guides-even-face "color")
 ;;   (set-face-foreground 'highlight-indent-guides-character-face "color")
-;;
-;; To change the character used for drawing guide lines, use:
-;;
-;;   (setq highlight-indent-guides-character ?ch)
 
 ;;; Code:
 
 (require 'color)
-(require 'seq)
 
 (defgroup highlight-indent-guides nil
   "Indentation highlighting."
@@ -206,7 +203,10 @@ indent width."
         (setq oldprop (get-text-property currpt 'highlight-indent-guides-prop))
         (setq newprop (list currface props starter (- column currcol) nil))
         (when (and oldprop
-                   (equal (seq-subseq newprop 0 4) (seq-subseq oldprop 0 4)))
+                   (eq (car newprop) (car oldprop))
+                   (equal (nth 1 newprop) (nth 1 oldprop))
+                   (eq (nth 2 newprop) (nth 2 oldprop))
+                   (eq (nth 3 newprop) (nth 3 oldprop)))
           (setcar (cddr (cddr newprop)) (nth 4 oldprop)))
         (add-text-properties
          currpt (1+ currpt) `(highlight-indent-guides-prop ,newprop))
@@ -363,7 +363,7 @@ to be used as a `font-lock-keywords' face definition."
          `(face nil display ,showstr))))))
 
 ;;;###autoload
-(defun highlight-indent-guides-auto-set-faces (&rest _)
+(defun highlight-indent-guides-auto-set-faces ()
   "Automatically calculate indent guide faces.
 If this feature is enabled, calculate reasonable values for the indent guide
 colors based on the current theme's colorscheme, and set them appropriately.
@@ -391,7 +391,12 @@ This runs whenever a theme is loaded, but it can also be run interactively."
         (set-face-background evenf (color-lighten-name bk (* mod evenp)))
         (set-face-foreground charf (color-lighten-name bk (* mod charp)))))))
 
-(advice-add 'load-theme :after 'highlight-indent-guides-auto-set-faces)
+(defadvice load-theme (after highlight-indent-guides-auto-set-faces disable)
+  "Automatically calculate indent guide faces.
+If this feature is enabled, calculate reasonable values for the indent guide
+colors based on the current theme's colorscheme, and set them appropriately.
+This runs whenever a theme is loaded."
+  (highlight-indent-guides-auto-set-faces))
 
 ;;;###autoload
 (define-minor-mode highlight-indent-guides-mode
@@ -409,6 +414,9 @@ This runs whenever a theme is loaded, but it can also be run interactively."
     (if highlight-indent-guides-mode
         (progn
           (highlight-indent-guides-auto-set-faces)
+          (ad-enable-advice 'load-theme 'after
+                            'highlight-indent-guides-auto-set-faces)
+          (ad-activate 'load-theme)
           (add-to-list 'font-lock-extra-managed-props 'display)
           (font-lock-add-keywords
            nil
@@ -417,6 +425,9 @@ This runs whenever a theme is loaded, but it can also be run interactively."
              (`column column-method-keywords)
              (`character character-method-keywords)))
           (jit-lock-register 'highlight-indent-guides--guide-region))
+      (ad-disable-advice 'load-theme 'after
+                         'highlight-indent-guides-auto-set-faces)
+      (ad-activate 'load-theme)
       (font-lock-remove-keywords nil fill-method-keywords)
       (font-lock-remove-keywords nil column-method-keywords)
       (font-lock-remove-keywords nil character-method-keywords)
