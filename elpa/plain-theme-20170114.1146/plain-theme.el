@@ -4,8 +4,8 @@
 
 ;; Author: Yegor Timoshenko <yegortimoshenko@gmail.com>
 ;; URL: https://github.com/yegortimoshenko/plain-theme
-;; Package-Version: 20160903.1029
-;; Version: 1
+;; Package-Version: 20170114.1146
+;; Version: 2
 
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
@@ -48,6 +48,74 @@
     font-lock-type-face
     font-lock-variable-name-face
     font-lock-warning-face
+    web-mode-error-face
+    web-mode-warning-face
+    web-mode-preprocessor-face
+    web-mode-block-delimiter-face
+    web-mode-block-control-face
+    web-mode-builtin-face
+    web-mode-symbol-face
+    web-mode-doctype-face
+    web-mode-html-tag-face
+    web-mode-html-tag-custom-face
+    web-mode-html-tag-namespaced-face
+    web-mode-html-tag-bracket-face
+    web-mode-html-attr-name-face
+    web-mode-html-attr-custom-face
+    web-mode-html-attr-engine-face
+    web-mode-html-attr-equal-face
+    web-mode-html-attr-value-face
+    web-mode-block-attr-name-face
+    web-mode-block-attr-value-face
+    web-mode-variable-name-face
+    web-mode-css-selector-face
+    web-mode-css-pseudo-class-face
+    web-mode-css-at-rule-face
+    web-mode-css-property-name-face
+    web-mode-css-color-face
+    web-mode-css-priority-face
+    web-mode-css-function-face
+    web-mode-css-variable-face
+    web-mode-function-name-face
+    web-mode-filter-face
+    web-mode-function-call-face
+    web-mode-string-face
+    web-mode-block-string-face
+    web-mode-part-string-face
+    web-mode-javascript-string-face
+    web-mode-css-string-face
+    web-mode-json-key-face
+    web-mode-json-context-face
+    web-mode-json-string-face
+    web-mode-comment-face
+    web-mode-block-comment-face
+    web-mode-part-comment-face
+    web-mode-json-comment-face
+    web-mode-javascript-comment-face
+    web-mode-css-comment-face
+    web-mode-constant-face
+    web-mode-type-face
+    web-mode-keyword-face
+    web-mode-param-name-face
+    web-mode-whitespace-face
+    web-mode-inlay-face
+    web-mode-block-face
+    web-mode-part-face
+    web-mode-script-face
+    web-mode-style-face
+    web-mode-folded-face
+    web-mode-bold-face
+    web-mode-italic-face
+    web-mode-underline-face
+    web-mode-current-element-highlight-face
+    web-mode-current-column-highlight-face
+    web-mode-comment-keyword-face
+    web-mode-sql-keyword-face
+    web-mode-html-entity-face
+    web-mode-jsx-depth-1-face
+    web-mode-jsx-depth-2-face
+    web-mode-jsx-depth-3-face
+    web-mode-jsx-depth-4-face
     fringe
     mode-line))
 
