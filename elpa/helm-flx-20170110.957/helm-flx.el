@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, helm, fuzzy, flx
-;; Package-Version: 20161229.1056
+;; Package-Version: 20170110.957
 ;; Version: 20151013
 ;; URL: https://github.com/PythonNut/helm-flx
 ;; Package-Requires: ((emacs "24.4") (helm "1.7.9") (flx "0.5"))
@@ -59,13 +59,20 @@ candidates is greater than this number, only sort the first N (presorted by leng
   :type 'boolean
   :group 'helm-flx)
 
+(defcustom helm-flx-for-helm-locate nil
+  "Master toggle for helm-locate support"
+  :type 'boolean
+  :group 'helm-flx)
+
 (defvar helm-flx-cache nil
-  "Stores the current flx cache for helm-flx.")
+  "The current flx cache for helm-flx.")
 
 (defvar helm-flx-old-helm-fuzzy-sort-fn nil
-  "Stores the old value of helm-fuzzy-sort-fn")
+  "The old value of helm-fuzzy-sort-fn")
 (defvar helm-flx-old-helm-fuzzy-matching-highlight-fn nil
-  "Stored the old value of helm-fuzzy-matching-highlight-fn")
+  "The old value of helm-fuzzy-matching-highlight-fn")
+(defvar helm-flx-old-helm-locate-fuzzy-sort-fn nil
+  "The old value of helm-locate-fuzzy-sort-fn")
 
 (with-eval-after-load 'flx
   (setq helm-flx-cache (flx-make-filename-cache)))
@@ -203,6 +210,12 @@ Return candidates prefixed with basename of `helm-input' first."
                          (helm-basename helm-input))))))
     candidate))
 
+(defun helm-flx-helm-locate-fuzzy-sort-fn (candidates)
+  (helm-flx-sort candidates
+                 (or (bound-and-true-p helm-input)
+                     "")
+                 #'identity))
+
 ;;;###autoload
 (define-minor-mode helm-flx-mode
   "helm-flx minor mode"
@@ -218,13 +231,20 @@ Return candidates prefixed with basename of `helm-input' first."
                    #'helm-flx-fuzzy-matching-sort)
              (setq helm-fuzzy-matching-highlight-fn
                    #'helm-flx-fuzzy-highlight-match)
+
              (when helm-flx-for-helm-find-files
                (advice-add 'helm-ff-sort-candidates
                            :around
                            #'helm-flx-helm-ff-sort-candidates)
                (advice-add 'helm-ff-filter-candidate-one-by-one
                            :around
-                           #'helm-flx-helm-ff-filter-candidate-one-by-one)))
+                           #'helm-flx-helm-ff-filter-candidate-one-by-one))
+
+             (when helm-flx-for-helm-locate
+               (setq helm-flx-old-helm-locate-fuzzy-sort-fn
+                     (bound-and-true-p helm-locate-fuzzy-sort-fn))
+               (setq helm-locate-fuzzy-sort-fn
+                     #'helm-flx-helm-locate-fuzzy-sort-fn)))
 
     (setq helm-fuzzy-sort-fn
           (or helm-flx-old-helm-fuzzy-sort-fn
@@ -232,11 +252,15 @@ Return candidates prefixed with basename of `helm-input' first."
     (setq helm-fuzzy-matching-highlight-fn
           (or helm-flx-old-helm-fuzzy-matching-highlight-fn
               #'helm-fuzzy-default-highlight-match))
-    (when helm-flx-for-helm-find-files
-      (advice-remove 'helm-ff-sort-candidates
-                     #'helm-flx-helm-ff-sort-candidates)
-      (advice-remove 'helm-ff-filter-candidate-one-by-one
-                     #'helm-flx-helm-ff-filter-candidate-one-by-one))))
+
+    (advice-remove 'helm-ff-sort-candidates
+                   #'helm-flx-helm-ff-sort-candidates)
+    (advice-remove 'helm-ff-filter-candidate-one-by-one
+                   #'helm-flx-helm-ff-filter-candidate-one-by-one)
+
+    (when helm-flx-old-helm-locate-fuzzy-sort-fn
+      (setq helm-locate-fuzzy-sort-fn
+            helm-flx-old-helm-locate-fuzzy-sort-fn))))
 
 (provide 'helm-flx)
 
