@@ -4,11 +4,11 @@
 ;; Description: Change logs for Icicles libraries.
 ;; Author: Drew Adams
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
-;; Copyright (C) 2007-2016, Drew Adams, all rights reserved.
+;; Copyright (C) 2007-2017, Drew Adams, all rights reserved.
 ;; Created: Tue Nov 27 07:47:53 2007
-;; Last-Updated: Fri Dec 23 15:57:37 2016 (-0800)
+;; Last-Updated: Sun Jan 15 14:32:28 2017 (-0800)
 ;;           By: dradams
-;;     Update #: 11665
+;;     Update #: 11669
 ;; URL: http://www.emacswiki.org/icicles-chg.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -1176,6 +1176,8 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-cmd2.el'")
 ;;
+;; 2017/01/13 dadams
+;;     icicle-auto-complete-key: Do not complete if this-command-keys-vector is bound to a function.
 ;; 2016/12/23 dadams
 ;;     Accommodate renaming of palette-mode-map to palette-menu.
 ;; 2016/06/29 dadams
@@ -2259,6 +2261,8 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-fn.el'")
 ;;
+;; 2017/01/15 dadams
+;;     Use icicle-string-match-p, not its expansion, everywhere.
 ;; 2016/12/21 dadams
 ;;     icicle-read-file-name: Use icicle-ffap-guesser, not ffap-guesser.  Thx to Tino Calancha.
 ;; 2016/10/12 dadams
@@ -4611,6 +4615,9 @@
  
 ;;;(@* "CHANGE LOG FOR `icicles-mcmd.el'")
 ;;
+;; 2017/01/15 dadams
+;;     icicle-delete-windows-on:
+;;       Do not prevent deletion if no minibuffer frame parameter and minibuffer is not active.
 ;; 2016/08/30 dadams
 ;;     icicle-input-is-a-completion-p:
 ;;       Do not remove directory part if not icicle-file-name-input-p (e.g. for abs file names).
