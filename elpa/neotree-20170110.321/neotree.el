@@ -1861,6 +1861,8 @@ If the current node is the first node then the last node is selected."
       (when (and is-file
                  (funcall neo-confirm-create-file (format "Do you want to create file %S ?"
                                                           filename)))
+        ;; ensure parent directory exist before saving
+        (mkdir (substring filename 0 (+ 1 (position ?/ filename :from-end t))) t)
         ;; NOTE: create a empty file
         (write-region "" nil filename)
         (neo-buffer--save-cursor-pos filename)
@@ -1870,7 +1872,7 @@ If the current node is the first node then the last node is selected."
       (when (and (not is-file)
                  (funcall neo-confirm-create-directory (format "Do you want to create directory %S?"
                                                                filename)))
-        (mkdir filename)
+        (mkdir filename t)
         (neo-buffer--save-cursor-pos filename)
         (neo-buffer--refresh nil)))))
 
