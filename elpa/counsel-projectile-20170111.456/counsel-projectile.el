@@ -4,7 +4,7 @@
 
 ;; Author: Eric Danan
 ;; URL: https://github.com/ericdanan/counsel-projectile
-;; Package-Version: 20161212.146
+;; Package-Version: 20170111.456
 ;; Created: 2016-04-11
 ;; Keywords: project, convenience
 ;; Version: 0.1
@@ -226,7 +226,7 @@ BUFFER may be a string or nil."
              (options
               (concat options " "
                       (mapconcat (lambda (i)
-                                   (concat "--ignore " i))
+                                   (concat "--ignore " (shell-quote-argument i)))
                                  ignored
                                  " "))))
         (counsel-ag nil
