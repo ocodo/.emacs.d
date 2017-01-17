@@ -4,7 +4,7 @@
 
 ;; Author: Philip Jackson <phil@shellarchive.co.uk>
 ;; Version: 0.4
-;; Package-Version: 20160810.331
+;; Package-Version: 20170116.833
 
 ;; This file is not currently part of GNU Emacs.
 
@@ -53,15 +53,15 @@
 ;;   </body>
 ;; </html>
 
-(eval-when-compile (require 'cl))
+;;; Code:
+
+(require 'cl-lib)
 
 (defvar xmlgen-escape-attribute-vals t
-  "When non-nil xmlgen will escape the characters <>'\"&' in an
-attribute value.")
+  "When non-nil xmlgen will escape the characters <>\\='\"& in an attribute value.")
 
 (defvar xmlgen-escape-elm-vals t
-  "When non-nil xmlgen will escape the characters <>'\"&' in an
-elements content.")
+  "When non-nil xmlgen will escape the characters <>\\='\"& in an elements content.")
 
 (defvar xmlgen-escapees
   '(("&"  . "&amp;")
@@ -69,22 +69,23 @@ elements content.")
     ("\"" . "&quot;")
     ("<"  . "&lt;")
     (">"  . "&gt;"))
-    "List of (find . replace) pairs for escaping. See
-`xmlgen-escape-elm-vals' and `xmlgen-escape-attribute-vals'")
+    "List of (FIND . REPLACE) pairs for escaping.
+See `xmlgen-escape-elm-vals' and `xmlgen-escape-attribute-vals'.")
 
 ;;;###autoload
 (defun xmlgen (form &optional in-elm level)
-  "Convert a sexp to xml:
-  '(p :class \"big\")) => \"<p class=\\\"big\\\" />\""
+  "Convert a sexp FORM to xml:
+\\='(p :class \"big\")) => \"<p class=\\\"big\\\" />\".
+IN-ELM is ignored.  LEVEL is the element level and defaults to 0."
   (let ((level (or level 0)))
     (cond
       ((numberp form) (number-to-string form))
       ((stringp form) form)
       ((listp form)
-       (destructuring-bind (xml attrs) (xmlgen-extract-plist form)
+       (cl-destructuring-bind (xml attrs) (xmlgen-extract-plist form)
          (let ((el (car xml)))
            (unless (symbolp el)
-             (error "Element must be a symbol (got '%S')." el))
+             (error "Element must be a symbol (got %S)" el))
            (if (member el '(!unescape !escape))
                (let ((xmlgen-escape-elm-vals (if (equal '!escape el) t nil)))
                  (mapconcat
@@ -115,7 +116,7 @@ elements content.")
   string)
 
 (defun xmlgen-attr-to-string (plist)
-  "Convert a plist to xml style attributes."
+  "Convert a PLIST to xml style attributes."
   (let ((res ""))
     (while plist
       (let* ((sym (pop plist))
@@ -134,8 +135,7 @@ elements content.")
     res))
 
 (defun xmlgen-extract-plist (list)
-  "Extract a plist from LIST returning the original list without
-the plist and the plist."
+  "Extract a plist from LIST returning the original list without the plist and the plist."
   (let ((nlist '())
         (plist '())
         (last-keyword nil))
