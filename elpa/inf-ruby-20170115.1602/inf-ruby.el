@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20161218.1754
+;; Package-Version: 20170115.1602
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.5.0
@@ -119,7 +119,7 @@ Currently only affects `inf-ruby-console-rails'."
       "\\(^(byebug) *\\)"                 ; byebug
       "\\(^\\(irb([^)]+)"                 ; IRB default
       "\\([[0-9]+] \\)?[Pp]ry ?([^)]+)"   ; Pry
-      "\\(jruby-\\|JRUBY-\\)?[1-9]\\.[0-9]\\.[0-9]+\\(-?p?[0-9]+\\)?" ; RVM
+      "\\(jruby-\\|JRUBY-\\)?[1-9]\\.[0-9]\\(\\.[0-9]+\\)*\\(-?p?[0-9]+\\)?" ; RVM
       "^rbx-head\\)")                     ; RVM continued
     "\\|")
    ;; Statement and nesting counters, common to the last four.
