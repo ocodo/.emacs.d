@@ -1,4 +1,4 @@
-(define-package "slack" "20161212.300" "Slack client for Emacs"
+(define-package "slack" "20170111.732" "Slack client for Emacs"
   '((websocket "1.5")
     (request "0.2.0")
     (oauth2 "0.10")
