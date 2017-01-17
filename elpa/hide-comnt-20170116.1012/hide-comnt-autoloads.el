@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "hide-comnt" "hide-comnt.el" (0 0 0 0))
+;;;### (autoloads nil "hide-comnt" "hide-comnt.el" (22653 62727 958245
+;;;;;;  62000))
 ;;; Generated autoloads from hide-comnt.el
 
 (defvar ignore-comments-flag t "\
@@ -56,8 +57,6 @@ This command does nothing in Emacs versions prior to Emacs 21, because
 it needs `comment-search-forward'.
 
 \(fn &optional HIDE/SHOW START END)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "hide-comnt" '("hide/show-comments-" "with-comments-hidden")))
 
 ;;;***
 
