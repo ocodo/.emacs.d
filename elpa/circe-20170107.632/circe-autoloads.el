@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "circe" "circe.el" (0 0 0 0))
+;;;### (autoloads nil "circe" "circe.el" (22653 62806 719944 977000))
 ;;; Generated autoloads from circe.el
 
 (autoload 'circe-version "circe" "\
@@ -33,19 +33,10 @@ See `circe-network-options' for a list of common options.
 
 \(fn NETWORK-OR-SERVER &rest SERVER-OPTIONS)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "circe" '("circe-" "lui-logging-format-arguments" "with-circe-server-buffer")))
-
-;;;***
-
-;;;### (autoloads nil "circe-chanop" "circe-chanop.el" (0 0 0 0))
-;;; Generated autoloads from circe-chanop.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "circe-chanop" '("circe-command-")))
-
 ;;;***
 
 ;;;### (autoloads nil "circe-color-nicks" "circe-color-nicks.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22653 62806 695944 450000))
 ;;; Generated autoloads from circe-color-nicks.el
 
 (autoload 'enable-circe-color-nicks "circe-color-nicks" "\
@@ -54,12 +45,10 @@ This module colors all encountered nicks in a cross-server fashion.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "circe-color-nicks" '("circe-" "remove-circe-color-nicks" "add-circe-color-nicks" "disable-circe-color-nicks")))
-
 ;;;***
 
 ;;;### (autoloads nil "circe-highlight-all-nicks" "circe-highlight-all-nicks.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22653 62806 755945 768000))
 ;;; Generated autoloads from circe-highlight-all-nicks.el
 
 (autoload 'enable-circe-highlight-all-nicks "circe-highlight-all-nicks" "\
@@ -69,11 +58,10 @@ channel in messages of other people.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "circe-highlight-all-nicks" '("circe-highlight-all-nicks" "remove-circe-highlight-all-nicks" "add-circe-highlight-all-nicks" "disable-circe-highlight-all-nicks")))
-
 ;;;***
 
-;;;### (autoloads nil "circe-lagmon" "circe-lagmon.el" (0 0 0 0))
+;;;### (autoloads nil "circe-lagmon" "circe-lagmon.el" (22653 62806
+;;;;;;  707944 713000))
 ;;; Generated autoloads from circe-lagmon.el
 
 (defvar circe-lagmon-mode nil "\
@@ -93,12 +81,10 @@ in the mode-line.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "circe-lagmon" '("circe-lagmon-")))
-
 ;;;***
 
 ;;;### (autoloads nil "circe-new-day-notifier" "circe-new-day-notifier.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22653 62806 787946 471000))
 ;;; Generated autoloads from circe-new-day-notifier.el
 
 (autoload 'enable-circe-new-day-notifier "circe-new-day-notifier" "\
@@ -111,32 +97,10 @@ in the mode-line.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "circe-new-day-notifier" '("circe-new-day-notifi")))
-
 ;;;***
 
-;;;### (autoloads nil "irc" "irc.el" (0 0 0 0))
-;;; Generated autoloads from irc.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "irc" '("irc-")))
-
-;;;***
-
-;;;### (autoloads nil "lcs" "lcs.el" (0 0 0 0))
-;;; Generated autoloads from lcs.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lcs" '("lcs-")))
-
-;;;***
-
-;;;### (autoloads nil "lui" "lui.el" (0 0 0 0))
-;;; Generated autoloads from lui.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lui" '("lui-")))
-
-;;;***
-
-;;;### (autoloads nil "lui-autopaste" "lui-autopaste.el" (0 0 0 0))
+;;;### (autoloads nil "lui-autopaste" "lui-autopaste.el" (22653 62806
+;;;;;;  739945 417000))
 ;;; Generated autoloads from lui-autopaste.el
 
 (autoload 'enable-lui-autopaste "lui-autopaste" "\
@@ -154,19 +118,10 @@ Disable the lui autopaste feature.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lui-autopaste" '("lui-autopaste")))
-
 ;;;***
 
-;;;### (autoloads nil "lui-format" "lui-format.el" (0 0 0 0))
-;;; Generated autoloads from lui-format.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lui-format" '("lui-")))
-
-;;;***
-
-;;;### (autoloads nil "lui-irc-colors" "lui-irc-colors.el" (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil "lui-irc-colors" "lui-irc-colors.el" (22653
+;;;;;;  62806 807946 909000))
 ;;; Generated autoloads from lui-irc-colors.el
 
 (autoload 'enable-lui-irc-colors "lui-irc-colors" "\
@@ -174,18 +129,10 @@ Enable IRC color interpretation for Lui.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lui-irc-colors" '("lui-irc-" "disable-lui-irc-colors")))
-
 ;;;***
 
-;;;### (autoloads nil "lui-logging" "lui-logging.el" (0 0 0 0))
-;;; Generated autoloads from lui-logging.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lui-logging" '("lui-" "disable-lui-logging" "enable-lui-logging")))
-
-;;;***
-
-;;;### (autoloads nil "lui-track-bar" "lui-track-bar.el" (0 0 0 0))
+;;;### (autoloads nil "lui-track-bar" "lui-track-bar.el" (22653 62806
+;;;;;;  703944 626000))
 ;;; Generated autoloads from lui-track-bar.el
 
 (autoload 'enable-lui-track-bar "lui-track-bar" "\
@@ -193,19 +140,10 @@ Enable a bar in Lui buffers that shows where you stopped reading.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lui-track-bar" '("lui-track-bar-")))
-
 ;;;***
 
-;;;### (autoloads nil "make-tls-process" "make-tls-process.el" (0
-;;;;;;  0 0 0))
-;;; Generated autoloads from make-tls-process.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "make-tls-process" '("tls-" "make-tls-process")))
-
-;;;***
-
-;;;### (autoloads nil "shorten" "shorten.el" (0 0 0 0))
+;;;### (autoloads nil "shorten" "shorten.el" (22653 62806 763945
+;;;;;;  943000))
 ;;; Generated autoloads from shorten.el
 
 (autoload 'shorten-strings "shorten" "\
@@ -217,11 +155,10 @@ components back together into SHORTENED-STRING.  See also
 
 \(fn STRINGS)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "shorten" '("shorten-")))
-
 ;;;***
 
-;;;### (autoloads nil "tracking" "tracking.el" (0 0 0 0))
+;;;### (autoloads nil "tracking" "tracking.el" (22653 62806 679944
+;;;;;;  98000))
 ;;; Generated autoloads from tracking.el
 
 (defvar tracking-mode nil "\
@@ -272,12 +209,11 @@ Switch to the last active buffer.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tracking" '("tracking-")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("circe-compat.el" "circe-pkg.el") (0 0
-;;;;;;  0 0))
+;;;### (autoloads nil nil ("circe-chanop.el" "circe-compat.el" "circe-pkg.el"
+;;;;;;  "irc.el" "lcs.el" "lui-format.el" "lui-logging.el" "lui.el"
+;;;;;;  "make-tls-process.el") (22653 62806 815947 85000))
 
 ;;;***
 
