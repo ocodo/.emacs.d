@@ -1,10 +1,10 @@
 ;;; ssh-config-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ssh-config-mode" "ssh-config-mode.el" (22271
-;;;;;;  10385 849870 200000))
+;;;### (autoloads nil "ssh-config-mode" "ssh-config-mode.el" (22653
+;;;;;;  62663 260897 730000))
 ;;; Generated autoloads from ssh-config-mode.el
 
 (autoload 'ssh-config-mode "ssh-config-mode" "\

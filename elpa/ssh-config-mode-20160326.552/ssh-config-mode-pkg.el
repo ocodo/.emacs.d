@@ -1,1 +1,0 @@
-(define-package "ssh-config-mode" "20160326.552" "Mode for fontification of ~/.ssh/config" 'nil :stars '(#("14" 0 2 (font-lock-face paradox-star-face))) :url "http://www.mahalito.net/~harley/elisp/ssh-config-mode.el" :keywords '("ssh" "config" "emacs"))

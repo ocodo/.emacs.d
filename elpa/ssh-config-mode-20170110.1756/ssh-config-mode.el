@@ -7,7 +7,7 @@
 
 ;; Author:    Harley Gorrell <harley@panix.com>
 ;; URL:       http://www.mahalito.net/~harley/elisp/ssh-config-mode.el
-;; Package-Version: 20160326.552
+;; Package-Version: 20170110.1756
 ;; Github:    https://raw.github.com/jhgorrell/ssh-config-mode-el/master/ssh-config-mode.el
 ;; License:   GPL v2
 ;; Keywords:  ssh, config, emacs
@@ -71,26 +71,33 @@
 (eval-and-compile
 
   (defvar ssh-config-words-ssh
-    '("AddressFamily" "BatchMode" "BindAddress"
+    '("AddKeysToAgent" "AddressFamily" "BatchMode" "BindAddress"
+      "CanonicalDomains" "CanonicalizeFallbackLocal" "CanonicalizeHostname"
+      "CanonicalizeMaxDots" "CanonicalizePermittedCNAMEs" "CertificateFile"
       "ChallengeResponseAuthentication" "CheckHostIP" "Cipher"
       "Ciphers" "ClearAllForwardings" "Compression" "ControlPersist"
       "CompressionLevel" "ConnectionAttempts" "ConnectTimeout"
       "ControlMaster" "ControlPath" "DynamicForward" "EscapeChar"
-      "ExitOnForwardFailure" "ForwardAgent" "ForwardX11"
+      "ExitOnForwardFailure" "FingerprintHash" "ForwardAgent" "ForwardX11"
       "ForwardX11Timeout" "ForwardX11Trusted" "GatewayPorts"
       "GlobalKnownHostsFile" "GSSAPIAuthentication"
       "GSSAPIDelegateCredentials" "HashKnownHosts" "Host"
-      "HostbasedAuthentication" "HostKeyAlgorithms" "HostKeyAlias"
-      "HostName" "IdentityFile" "IdentitiesOnly" "IPQoS"
+      "HostbasedAuthentication" "HostbasedKeyTypes"
+      "HostKeyAlgorithms" "HostKeyAlias"
+      "HostName" "IdentityAgent" "IdentityFile" "IgnoreUnknown"
+      "Include" "IdentitiesOnly" "IPQoS"
       "KbdInteractiveAuthentication" "KbdInteractiveDevices"
       "KexAlgorithms" "LocalCommand" "LocalForward" "LogLevel" "MACs"
       "NoHostAuthenticationForLocalhost" "NumberOfPasswordPrompts"
       "PKCS11Provider" "PasswordAuthentication" "PermitLocalCommand"
       "Port" "PreferredAuthentications" "Protocol" "ProxyCommand"
+      "ProxyJump" "ProxyUseFdpass" "PubkeyAcceptedKeyTypes"
       "PubkeyAuthentication" "RekeyLimit" "RemoteForward" "RequestTTY"
-      "RhostsRSAAuthentication" "RSAAuthentication" "SendEnv"
+      "RevokedHostKeys" "RhostsRSAAuthentication" "RSAAuthentication" "SendEnv"
       "ServerAliveInterval" "ServerAliveCountMax"
+      "StreamLocalBindMask" "StreamLocalBindUnlink"
       "StrictHostKeyChecking" "TCPKeepAlive" "Tunnel" "TunnelDevice"
+      "UpdateHostKeys" "UseKeychain"
       "UsePrivilegedPort" "User" "UserKnownHostsFile"
       "VerifyHostKeyDNS" "VisualHostKey" "XAuthLocation"
 
