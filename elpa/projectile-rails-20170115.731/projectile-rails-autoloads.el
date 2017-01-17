@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "projectile-rails" "projectile-rails.el" (0
-;;;;;;  0 0 0))
+;;;### (autoloads nil "projectile-rails" "projectile-rails.el" (22653
+;;;;;;  62676 361166 661000))
 ;;; Generated autoloads from projectile-rails.el
 
 (autoload 'projectile-rails-mode "projectile-rails" "\
@@ -38,8 +38,6 @@ Projectile-Rails mode is enabled in all buffers where
 See `projectile-rails-mode' for more information on Projectile-Rails mode.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "projectile-rails" '("projectile-rails-")))
 
 ;;;***
 
