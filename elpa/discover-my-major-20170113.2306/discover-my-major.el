@@ -4,8 +4,8 @@
 
 ;; Author: steckerhalter
 ;; Package-Requires: ((makey "0.2"))
+;; Package-Version: 20170113.2306
 ;; URL: https://github.com/steckerhalter/discover-my-major
-;; Package-Version: 20160108.1041
 ;; Keywords: discover help major-mode keys
 
 ;; This file is not part of GNU Emacs.
@@ -79,19 +79,22 @@ BUFFER."
                         (intern mode))))
     (> (safe-length (dmm/mode-bindings mode-symbol (current-buffer))) 0)))
 
-(defun dmm/doc-summary (sym)
-  "Return the docstring summary for the symbol SYM.
-If SYM is not a function, return nil. If SYM is not documented,
-return the name of SYM with a notice that it is not documented."
-  (when (and sym (fboundp sym))
-    (let ((doc (documentation sym)))
+(defun dmm/doc-summary (f)
+  "Return the docstring for function F.
+
+If F is not a function, return nil.
+
+If F is is not documented, return a string indicating it is
+undocumented."
+  (when (functionp f)
+    (let ((doc (documentation f)))
       (if doc
           (let* ((docstring (cdr (help-split-fundoc doc nil)))
                  (get-summary (lambda (str)
                                 (string-match "^\\(.*\\)$" str)
                                 (match-string 0 str))))
             (funcall get-summary (if docstring docstring doc)))
-        (format "`%s' (not documented)" sym)))))
+        (format "`%s' (not documented)" f)))))
 
 (defun dmm/format-binding (item)
   "Check if ITEM has documention and return the formatted action for ITEM."
