@@ -4,7 +4,7 @@
 
 ;; Author: Nathan Kot <nk@nathankot.com>
 ;; URL: https://github.com/nathankot/company-sourcekit
-;; Package-Version: 20170106.1437
+;; Package-Version: 20170115.1551
 ;; Keywords: abbrev
 ;; Version: 0.1.7
 ;; Package-Requires: ((emacs "24.3") (company "0.8.12") (dash "2.12.1") (dash-functional "1.2.0") (sourcekit "0.1.7"))
@@ -145,7 +145,7 @@ It never actually gets sent to the completion engine."
     (lambda (port)
       (if (not port) (funcall callback nil)
         (let* ((tmpfile (company-sourcekit--tmp-file))
-                (offset (- (position-bytes (point)) (length prefix) (point-min))))
+                (offset (- (position-bytes (point)) (string-bytes prefix) (position-bytes (point-min)))))
           (write-region (point-min) (point-max) tmpfile nil 'silent)
           (when company-sourcekit-verbose
             (message "[company-sourcekit] prefix: `%s`, file: %s, offset: %d" prefix tmpfile offset))
