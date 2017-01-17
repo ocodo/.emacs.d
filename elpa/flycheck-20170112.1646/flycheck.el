@@ -177,6 +177,7 @@ attention to case differences."
     coq
     css-csslint
     d-dmd
+    dockerfile-hadolint
     elixir-dogma
     emacs-lisp
     emacs-lisp-checkdoc
@@ -5550,7 +5551,9 @@ about Cppcheck."
                           (push (flycheck-error-new-at
                                  (flycheck-string-to-number-safe .line)
                                  nil
-                                 level message
+                                 level
+                                 ;; cppcheck return newline characters as "\012"
+                                 (replace-regexp-in-string "\\\\012" "\n" message)
                                  :id id
                                  :checker checker
                                  :buffer buffer
@@ -6579,6 +6582,25 @@ Requires DMD 2.066 or newer.  See URL `http://dlang.org/'."
          (one-or-more " ") (message) line-end))
   :modes d-mode)
 
+(flycheck-define-checker dockerfile-hadolint
+  "A Dockerfile syntax checker using the hadolint.
+
+See URL `http://hadolint.lukasmartinelli.ch/'."
+  :command ("hadolint" "-")
+  :standard-input t
+  :error-patterns
+  ((error line-start
+          (file-name) ":" line ":" column " " (message)
+          line-end)
+   (warning line-start
+            (file-name) ":" line " " (id (one-or-more alnum)) " " (message)
+            line-end))
+  :error-filter
+  (lambda (errors)
+    (flycheck-sanitize-errors
+     (flycheck-remove-error-file-names "/dev/stdin" errors)))
+  :modes dockerfile-mode)
+
 (defun flycheck-elixir--find-default-directory (_checker)
   "Come up with a suitable default directory to run CHECKER in.
 
@@ -7425,7 +7447,9 @@ See URL `https://github.com/commercialhaskell/stack'."
             source)
   :error-patterns
   ((warning line-start (file-name) ":" line ":" column ":"
-            (or " " "\n    ") "Warning:" (optional "\n")
+            (or " " "\n    ") "Warning:"
+            (optional " " "[" (id (one-or-more not-newline)) "]")
+            (optional "\n")
             (message
              (one-or-more " ") (one-or-more not-newline)
              (zero-or-more "\n"
@@ -7473,7 +7497,9 @@ See URL `https://www.haskell.org/ghc/'."
             source)
   :error-patterns
   ((warning line-start (file-name) ":" line ":" column ":"
-            (or " " "\n    ") "Warning:" (optional "\n")
+            (or " " "\n    ") "Warning:"
+            (optional " " "[" (id (one-or-more not-newline)) "]")
+            (optional "\n")
             (message
              (one-or-more " ") (one-or-more not-newline)
              (zero-or-more "\n"
@@ -8710,6 +8736,15 @@ Relative paths are relative to the file being checked."
     (with-output-to-string
       (call-process "rustc" nil standard-output nil "--explain" error-code))))
 
+(defun flycheck-rust-error-filter (errors)
+  "Filter ERRORS from rustc output that have no explanatory value."
+  (seq-remove (lambda (err)
+                (string-match-p
+                 (rx "aborting due to " (optional (one-or-more num) " ")
+                     "previous error")
+                 (flycheck-error-message err)))
+              errors))
+
 (flycheck-define-checker rust-cargo
   "A Rust syntax checker using Cargo.
 
@@ -8731,6 +8766,7 @@ rustc command.  See URL `https://www.rust-lang.org'."
             (option-list "-L" flycheck-rust-library-path concat)
             (eval flycheck-rust-args))
   :error-parser flycheck-parse-rust
+  :error-filter flycheck-rust-error-filter
   :error-explainer flycheck-rust-error-explainer
   :modes rust-mode
   :predicate (lambda ()
@@ -8758,6 +8794,7 @@ This syntax checker needs Rust 1.7 or newer.  See URL
             (eval (or flycheck-rust-crate-root
                       (flycheck-substitute-argument 'source-original 'rust))))
   :error-parser flycheck-parse-rust
+  :error-filter flycheck-rust-error-filter
   :error-explainer flycheck-rust-error-explainer
   :modes rust-mode
   :predicate flycheck-buffer-saved-p)
