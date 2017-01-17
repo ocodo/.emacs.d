@@ -40,10 +40,10 @@
   :prefix "google-contacts-"
   :group 'comm)
 
-(defconst google-contacts-oauth-client-id "209584303760.apps.googleusercontent.com"
+(defconst google-contacts-oauth-client-id "209584303760-gel3qkmicn4ef93ku0509t0avoqsrhno.apps.googleusercontent.com"
   "Client ID for OAuth.")
 
-(defconst google-contacts-oauth-client-secret "5SR3nk46hplfl-nfsSSaMxKc"
+(defconst google-contacts-oauth-client-secret "TNooyLm4ad1tGP6l7J7iACur"
   "Google contacts secret key.  Please don't tell anyone.
 I AM SERIOUS!")
 
