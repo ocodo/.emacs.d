@@ -1610,9 +1610,9 @@ only."
             (helm-empty-source-p))
         0
         (save-excursion
-          (if in-current-source
-              (goto-char (helm-get-previous-header-pos))
-              (goto-char (point-min)))
+          (helm-aif (and in-current-source (helm-get-previous-header-pos))
+              (goto-char it)
+            (goto-char (point-min)))
           (forward-line 1)
           (if (helm-pos-multiline-p)
               (cl-loop with count-multi = 1
@@ -2948,14 +2948,15 @@ CANDIDATE. Contiguous matches get a coefficient of 2."
                              pat-lookup str-lookup :test 'equal))
                     2)))))
 
-(defun helm-fuzzy-matching-default-sort-fn-1 (candidates &optional use-real)
+(defun helm-fuzzy-matching-default-sort-fn-1 (candidates &optional use-real basename)
   "The transformer for sorting candidates in fuzzy matching.
 It sorts on the display part by default.
 
 Sorts CANDIDATES by their scores as calculated by
 `helm-score-candidate-for-pattern'. Ties in scores are sorted by
 length of the candidates. Set USE-REAL to non-`nil' to sort on the
-real part."
+real part.  If BASENAME is non-nil assume we are completing filenames
+and sort on basename of candidates."
   (if (string= helm-pattern "")
       candidates
     (let ((table-scr (make-hash-table :test 'equal)))
@@ -2964,12 +2965,16 @@ real part."
               ;; Score and measure the length on real or display part of candidate
               ;; according to `use-real'.
               (let* ((real-or-disp-fn (if use-real #'cdr #'car))
-                     (cand1 (if (consp s1)
-                                (funcall real-or-disp-fn s1)
-                              s1))
-                     (cand2 (if (consp s2)
-                                (funcall real-or-disp-fn s2)
-                              s2))
+                     (cand1 (cond ((and basename (consp s1))
+                                   (helm-basename (funcall real-or-disp-fn s1)))
+                                  ((consp s1) (funcall real-or-disp-fn s1))
+                                  (basename (helm-basename s1))
+                                  (t s1)))
+                     (cand2 (cond ((and basename (consp s2))
+                                   (helm-basename (funcall real-or-disp-fn s2)))
+                                  ((consp s2) (funcall real-or-disp-fn s2))
+                                  (basename (helm-basename s2))
+                                  (t s2)))
                      (data1 (or (gethash cand1 table-scr)
                                 (puthash cand1
                                          (list (helm-score-candidate-for-pattern
@@ -2991,6 +2996,7 @@ real part."
                       ((> scr1 scr2)))))))))
 
 (defun helm-fuzzy-matching-default-sort-fn (candidates _source &optional use-real)
+  "Default `filtered-candidate-transformer' to sort candidates in fuzzy matching."
   (helm-fuzzy-matching-default-sort-fn-1 candidates use-real))
 
 (defun helm--maybe-get-migemo-pattern (pattern)
@@ -3351,24 +3357,32 @@ PRESELECT, if specified."
         (helm-funcall-with-source source it)))
   (helm-remove-candidate-cache source))
 
-(defun helm-redisplay-buffer (functions)
-  "Modify candidates in `helm-buffer' with FUNCTIONS and redisplay them.
+(defun helm-redisplay-buffer ()
+  "Redisplay candidates in `helm-buffer'.
 
 Candidates are not recomputed, only redisplayed after modifying the
-whole list of candidates in each source with FUNCTIONS.  Note that
-candidates are redisplayed with their display part with all properties
-included only.
-This function is used in async sources to transform the whole list of candidates
-from the sentinel functions (i.e when all candidates have been computed) because
-other filters like `candidate-transformer' are modifying only each chunk of candidates
-from process-filter as they come in and not the whole list.
-Use this for e.g sorting the whole list of async candidates once computed."
+whole list of candidates in each source with functions found in
+`redisplay' attribute of current source.  Note that candidates are
+redisplayed with their display part with all properties included only.
+This function is used in async sources to transform the whole list of
+candidates from the sentinel functions (i.e when all candidates have
+been computed) because other filters like `candidate-transformer' are
+modifying only each chunk of candidates from process-filter as they
+come in and not the whole list.  Use this for e.g sorting the whole
+list of async candidates once computed.
+Note: To ensure redisplay is done in async sources after helm
+reached `candidate-number-limit' you will have also to redisplay your
+candidates from `helm-async-outer-limit-hook'."
   (with-helm-buffer
-    (goto-char (point-min))
-    (let ((get-cands (lambda (source fns)
-                       (let (candidates helm-move-to-line-cycle-in-source)
+    (let ((get-cands (lambda (source)
+                       (let ((fns (assoc-default 'redisplay source))
+                             candidates helm-move-to-line-cycle-in-source)
+                         (helm-goto-source source)
+                         (helm-next-line)
                          (helm-awhile (condition-case-unless-debug nil
-                                          (helm-get-selection nil 'withprop source)
+                                          (and (not (helm-pos-header-line-p))
+                                               (helm-get-selection
+                                                nil 'withprop source))
                                         (error nil))
                            (push it candidates)
                            (when (save-excursion
@@ -3376,10 +3390,26 @@ Use this for e.g sorting the whole list of async candidates once computed."
                              (cl-return nil))
                            (helm-next-line))
                          (helm-funcall-with-source
-                          source fns (nreverse candidates))))))
+                          source fns (nreverse candidates)))))
+          (get-sources (lambda ()
+                         (let (sources helm-move-to-line-cycle-in-source)
+                           (helm-awhile (helm-get-current-source)
+                             (push it sources)
+                             (when (save-excursion
+                                     (helm-move--end-of-source)
+                                     (forward-line 1) (eobp))
+                             (cl-return nil))
+                             (helm-next-source))
+                           (nreverse sources)))))
+      (goto-char (point-min))
       (helm-update nil (helm-get-current-source)
-                   (cl-loop for s in (helm-get-sources)
-                            collect (funcall get-cands s functions))))))
+                   (cl-loop with sources = (funcall get-sources)
+                            for s in (helm-get-sources)
+                            for name =  (assoc-default 'name s) collect
+                            (when (cl-loop for src in sources thereis
+                                           (string= name
+                                                    (assoc-default 'name src)))
+                                      (funcall get-cands s)))))))
 
 (defun helm-remove-candidate-cache (source)
   "Remove SOURCE from `helm-candidate-cache'."
