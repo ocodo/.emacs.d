@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 17 Oct 2016
 ;; Version: 2.3
-;; Package-Version: 20161222.903
+;; Package-Version: 20170116.1309
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -181,6 +181,16 @@ support for finding `use-package' and `require' forms.
 
 Must be set before loading use-package."
   :type 'boolean
+  :group 'use-package)
+
+(defcustom use-package-ensure-function 'use-package-ensure-elpa
+  "Function that ensures a package is installed.
+This function is called with one argument, the package name as a
+symbol, by the `:ensure' keyword.
+
+The default value uses package.el to install the package."
+  :type '(choice (const :tag "package.el" use-package-ensure-elpa)
+                 (function :tag "Custom"))
   :group 'use-package)
 
 (when use-package-enable-imenu-support
@@ -505,6 +515,7 @@ manually updated package."
                    "(an unquoted symbol name)")))))))
 
 (defun use-package-ensure-elpa (package &optional no-refresh)
+  (require 'package)
   (if (package-installed-p package)
       t
     (if (and (not no-refresh)
@@ -519,9 +530,8 @@ manually updated package."
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state))
          (package-name (or (and (eq ensure t) (use-package-as-symbol name)) ensure))
-         (ensure-form (if package-name
-                          `(progn (require 'package)
-                                  (use-package-ensure-elpa ',package-name)))))
+         (ensure-form (when package-name
+                        `(,use-package-ensure-function ',package-name))))
     ;; We want to avoid installing packages when the `use-package'
     ;; macro is being macro-expanded by elisp completion (see
     ;; `lisp--local-variables'), but still do install packages when
