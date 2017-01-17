@@ -363,10 +363,6 @@ Returns the name of the function or nil if the function could not be parsed."
 (defun gnu-apl-indent ()
   "Indent a function, controlled by ‘gnu-apl-indent-amounts’.
 Anything outside a function definition is not indented."
-  (save-excursion
-    (beginning-of-line)
-    (when (re-search-forward "\\=[ \t]*" nil t)
-      (replace-match "")))
   (let ((was-at-first-col (bolp)))
     (save-excursion
       (beginning-of-line)

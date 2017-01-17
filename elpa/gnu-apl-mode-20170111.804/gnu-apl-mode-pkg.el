@@ -1,4 +1,4 @@
-(define-package "gnu-apl-mode" "20170102.1952" "Integrate GNU APL with Emacs"
+(define-package "gnu-apl-mode" "20170111.804" "Integrate GNU APL with Emacs"
   '((emacs "24"))
   :keywords
   '("languages" "apl")
