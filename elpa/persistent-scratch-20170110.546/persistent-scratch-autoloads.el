@@ -1,10 +1,10 @@
 ;;; persistent-scratch-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "persistent-scratch" "persistent-scratch.el"
-;;;;;;  (22291 19100 492326 272000))
+;;;;;;  (22653 62680 665255 460000))
 ;;; Generated autoloads from persistent-scratch.el
 
 (autoload 'persistent-scratch-save "persistent-scratch" "\
@@ -55,7 +55,8 @@ See `persistent-scratch-restore'.
 
 (defvar persistent-scratch-autosave-mode nil "\
 Non-nil if Persistent-Scratch-Autosave mode is enabled.
-See the command `persistent-scratch-autosave-mode' for a description of this minor mode.
+See the `persistent-scratch-autosave-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `persistent-scratch-autosave-mode'.")

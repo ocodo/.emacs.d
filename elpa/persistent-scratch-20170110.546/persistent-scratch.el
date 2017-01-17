@@ -2,8 +2,8 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/persistent-scratch
-;; Package-Version: 20160404.915
-;; Package-X-Original-Version: 0.2.5
+;; Package-Version: 20170110.546
+;; Package-X-Original-Version: 0.3
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -198,7 +198,11 @@ same name as a saved buffer, the contents of that buffer will be overwritten."
             (set-mark (cdr point-and-mark))))
         (let ((narrowing (aref saved-buffer 4)))
           (when narrowing
-            (narrow-to-region (car narrowing) (cdr narrowing))))))))
+            (narrow-to-region (car narrowing) (cdr narrowing))))
+        ;; Handle version 2 fields if present.
+        (when (>= (length saved-buffer) 6)
+          (unless (aref saved-buffer 5)
+            (deactivate-mark)))))))
 
 ;;;###autoload
 (defun persistent-scratch-restore-from-file (file)
@@ -309,6 +313,7 @@ The returned object is printable and readable.
 The exact format is undocumented, but must be kept in sync with what
 `persistent-scratch-restore' expects."
   (vector
+   ;; Version 1 fields.
    (buffer-name)
    (save-restriction
      (widen)
@@ -321,7 +326,10 @@ The exact format is undocumented, but must be kept in sync with what
      major-mode)
    (when (and (buffer-narrowed-p)
               (memq 'narrowing persistent-scratch-what-to-save))
-     (cons (point-min) (point-max)))))
+     (cons (point-min) (point-max)))
+   ;; Version 2 fields.
+   (when (memq 'point persistent-scratch-what-to-save)
+     (or (not transient-mark-mode) (region-active-p)))))
 
 (defun persistent-scratch--update-backup ()
   "Copy the save file to the backup directory."
