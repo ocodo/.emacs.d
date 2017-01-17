@@ -7,11 +7,11 @@
 ;;      Uwe Brauer <oub at mat.ucm.es> for wikimedia.el
 ;; Author: Mark A. Hershberger <mah@everybody.org>
 ;; Version: 2.2.7
-;; Package-Version: 20160902.827
+;; Package-Version: 20170113.1308
 ;; Created: Sep 17 2004
 ;; Keywords: mediawiki wikipedia network wiki
-;; URL: http://github.com/hexmode/mediawiki-el
-;; Last Modified: <2016-09-02 11:25:04 mah>
+;; URL: https://github.com/hexmode/mediawiki-el
+;; Last Modified: <2017-01-13 12:55:34 mah>
 
 (defconst mediawiki-version "2.2.7"
   "Current version of mediawiki.el.")
@@ -29,13 +29,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; This version of mediawiki.el represents a merging of
 ;; wikipedia-mode.el (maintained by Uwe Brauer <oub at mat.ucm.es>)
-;; from http://www.emacswiki.org/emacs/wikipedia-mode.el for its
+;; from https://www.emacswiki.org/emacs/wikipedia-mode.el for its
 ;; font-lock code, menu, draft mode, replying and convenience
 ;; functions to produce mediawiki.el 2.0.
 
@@ -682,10 +682,10 @@ Two string arguments are expected: first is a title and then an
 action.")
 
 (defvar mediawiki-URI-pattern
-  "http://\\([^/:]+\\)\\(:\\([0-9]+\\)\\)?/"
+  "https?://\\([^/:]+\\)\\(:\\([0-9]+\\)\\)?/"
   "Pattern match for a URI.
 Expected to match something like this:
-	http://mediawiki.sf.net/index.php
+	https://mediawiki.sf.net/index.php
 Passwords in the URL are not supported yet")
 
 (defvar mediawiki-page-uri nil
@@ -1854,7 +1854,7 @@ starting point.  Generalise to make `previous-long-line'."
 
 (defun mediawiki-outline-magic-keys ()
   "Set up outline magic keys.
-See http://www.emacswiki.org/emacs/OutlineMagic"
+See https://www.emacswiki.org/emacs/OutlineMagic"
   (interactive)
   (unless  (featurep 'xemacs)
     (local-set-key [(shift iso-lefttab)] 'outline-cycle)
@@ -2007,7 +2007,9 @@ Most useful for mediawiki-drafting things from Netscape or other X Windows
 application."
   (interactive)
   (with-temp-buffer
-    (insert (x-get-clipboard))
+    (insert (if (fboundp 'gui-get-selection) ; Since 25.1
+                (gui-get-selection)
+              (x-get-clipboard)))
     (run-hook-with-args-until-success 'mediawiki-draft-handler-functions)))
 
 (defun mediawiki-draft-view-draft ()

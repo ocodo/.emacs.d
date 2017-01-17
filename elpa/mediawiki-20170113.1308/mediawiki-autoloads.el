@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "mediawiki" "mediawiki.el" (22479 30319 844454
-;;;;;;  164000))
+;;;### (autoloads nil "mediawiki" "mediawiki.el" (22653 62687 161389
+;;;;;;  898000))
 ;;; Generated autoloads from mediawiki.el
 
 (autoload 'mediawiki-draft "mediawiki" "\
