@@ -1,10 +1,10 @@
-;;; jazz-theme.el --- A warm color theme for Emacs 24.
+;;; jazz-theme.el --- A warm color theme for Emacs 24+.
 
 ;; Copyright (C) 2012-2014 Roman Parykin, Bozhidar Batsov
 
 ;; Author: Roman Parykin <donderom@ymail.com>
 ;; URL: https://github.com/donderom/jazz-theme
-;; Package-Version: 20160715.829
+;; Package-Version: 20170115.723
 ;; Version: 1.0
 
 ;; Based on zenburn-theme.el
@@ -35,7 +35,9 @@
 ;; (load-file "path/to/jazz-theme.el")
 ;; (load-theme 'jazz t)
 ;;
-;; Don't forget that the theme requires Emacs 24.
+;; Don't forget that the theme requires Emacs 24+.
+;;
+;; The more information on the project page at https://github.com/donderom/jazz-theme
 ;;
 ;;; Credits
 ;;
@@ -111,15 +113,17 @@
    ;;; compilation
    `(compilation-column-face ((,class (:foreground ,jazz-yellow))))
    `(compilation-enter-directory-face ((,class (:foreground ,jazz-green))))
-   `(compilation-error-face ((,class (:foreground ,jazz-red-1 :weight bold :underline t))))
+   `(compilation-error-face ((,class (:foreground ,jazz-red :weight bold :underline t))))
+   `(compilation-error ((,class (:foreground ,jazz-red :weight bold :underline t))))
    `(compilation-face ((,class (:foreground ,jazz-fg))))
    `(compilation-info-face ((,class (:foreground ,jazz-blue))))
-   `(compilation-info ((,class (:foreground ,jazz-green+4 :underline t))))
+   `(compilation-info ((,class (:foreground ,jazz-blue))))
    `(compilation-leave-directory-face ((,class (:foreground ,jazz-green))))
    `(compilation-line-face ((,class (:foreground ,jazz-yellow))))
    `(compilation-line-number ((,class (:foreground ,jazz-yellow))))
    `(compilation-message-face ((,class (:foreground ,jazz-blue))))
-   `(compilation-warning-face ((,class (:foreground ,jazz-yellow-1 :weight bold :underline t))))
+   `(compilation-warning-face ((,class (:foreground ,jazz-orange :weight bold :underline t))))
+   `(compilation-warning ((,class (:foreground ,jazz-orange :weight bold :underline t))))
 
    ;;; grep
    `(grep-context-face ((,class (:foreground ,jazz-fg))))
@@ -214,6 +218,10 @@
    `(popup-scroll-bar-background-face ((,class (:background ,jazz-bg-1))))
    `(popup-isearch-match ((,class (:background ,jazz-bg :foreground ,jazz-fg))))
 
+   ;; cheatsheet
+   `(cheatsheet-group-face ((,class (:foreground ,jazz-blue))))
+   `(cheatsheet-key-face ((,class (:foreground ,jazz-yellow))))
+
    ;; company
    `(company-tooltip ((,class (:background ,jazz-bg+3 :foreground ,jazz-bg))))
    `(company-tooltip-common ((,class (:foreground ,jazz-bg :underline t))))
@@ -233,6 +241,9 @@
    `(diff-header ((,class (:background ,jazz-bg+1))))
    `(diff-file-header
      ((,class (:background ,jazz-bg+2 :foreground ,jazz-fg :bold t))))
+
+   ;; ein
+   `(ein:cell-input-area ((,class (:background ,jazz-bg+1))))
 
    ;; ert
    `(ert-test-result-expected ((,class (:foreground ,jazz-green+4 :background ,jazz-bg))))
@@ -588,6 +599,11 @@
    `(rst-level-4-face ((,class (:foreground ,jazz-yellow-2))))
    `(rst-level-5-face ((,class (:foreground ,jazz-cyan))))
    `(rst-level-6-face ((,class (:foreground ,jazz-green-1))))
+
+   ;; sbt-mode
+   `(sbt:error ((,class (:foreground ,jazz-red))))
+   `(sbt:info ((,class (:foreground ,jazz-green))))
+   `(sbt:warning ((,class (:foreground ,jazz-orange))))
 
    ;; show-paren
    `(show-paren-mismatch ((,class (:foreground ,jazz-red-3 :background ,jazz-bg :weight bold))))
