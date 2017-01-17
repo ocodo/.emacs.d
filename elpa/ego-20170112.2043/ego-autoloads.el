@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ego" "ego.el" (22617 16765 349177 693000))
+;;;### (autoloads nil "ego" "ego.el" (22653 62779 95341 841000))
 ;;; Generated autoloads from ego.el
 
 (autoload 'ego-do-publication "ego" "\
@@ -50,8 +50,8 @@ responsibility to guarantee the two parameters are valid.
 
 ;;;***
 
-;;;### (autoloads nil "ego-export" "ego-export.el" (22617 16765 341177
-;;;;;;  678000))
+;;;### (autoloads nil "ego-export" "ego-export.el" (22653 62779 83341
+;;;;;;  582000))
 ;;; Generated autoloads from ego-export.el
 
 (autoload 'ego-link-type-process-html "ego-export" "\
@@ -66,8 +66,8 @@ Completion function for EGO-LINK. ARG does nothing.
 
 ;;;***
 
-;;;### (autoloads nil "ego-mode" "ego-mode.el" (22617 16765 373177
-;;;;;;  736000))
+;;;### (autoloads nil "ego-mode" "ego-mode.el" (22653 62779 127342
+;;;;;;  536000))
 ;;; Generated autoloads from ego-mode.el
 
 (autoload 'ego-list-posts "ego-mode" "\
@@ -79,7 +79,7 @@ list posts
 
 ;;;### (autoloads nil nil ("ego-config.el" "ego-devtools.el" "ego-git.el"
 ;;;;;;  "ego-pkg.el" "ego-resource.el" "ego-template.el" "ego-util.el")
-;;;;;;  (22617 16765 545178 49000))
+;;;;;;  (22653 62779 311346 531000))
 
 ;;;***
 
