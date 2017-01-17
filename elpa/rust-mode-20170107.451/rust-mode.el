@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.3.0
-;; Package-Version: 20161031.2109
+;; Package-Version: 20170107.451
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -33,6 +33,7 @@
 (defconst rust-re-lc-ident "[[:lower:][:multibyte:]_][[:word:][:multibyte:]_[:digit:]]*")
 (defconst rust-re-uc-ident "[[:upper:]][[:word:][:multibyte:]_[:digit:]]*")
 (defconst rust-re-vis "pub")
+(defconst rust-re-unsafe "unsafe")
 
 (defconst rust-re-non-standard-string
   (rx
@@ -147,7 +148,7 @@
 
 (defgroup rust-mode nil
   "Support for Rust code."
-  :link '(url-link "http://www.rust-lang.org/")
+  :link '(url-link "https://www.rust-lang.org/")
   :group 'languages)
 
 (defcustom rust-indent-offset 4
@@ -173,7 +174,7 @@ function or trait.  When nil, where will be aligned with fn or trait."
   "Format string to use when submitting code to the playpen"
   :type 'string
   :group 'rust-mode)
-(defcustom rust-shortener-url-format "http://is.gd/create.php?format=simple&url=%s"
+(defcustom rust-shortener-url-format "https://is.gd/create.php?format=simple&url=%s"
   "Format string to use for creating the shortened link of a playpen submission"
   :type 'string
   :group 'rust-mode)
@@ -188,11 +189,13 @@ function or trait.  When nil, where will be aligned with fn or trait."
 (defcustom rust-format-on-save nil
   "Format future rust buffers before saving using rustfmt."
   :type 'boolean
-  :safe #'booleanp)
+  :safe #'booleanp
+  :group 'rust-mode)
 
 (defcustom rust-rustfmt-bin "rustfmt"
   "Path to rustfmt executable."
-  :type 'string)
+  :type 'string
+  :group 'rust-mode)
 
 (defface rust-unsafe-face
   '((t :inherit font-lock-warning-face))
@@ -568,6 +571,7 @@ buffer."
 (defun rust-re-item-def-imenu (itype)
   (concat "^[[:space:]]*"
           (rust-re-shy (concat (rust-re-word rust-re-vis) "[[:space:]]+")) "?"
+          (rust-re-shy (concat (rust-re-word rust-re-unsafe) "[[:space:]]+")) "?"
           (rust-re-item-def itype)))
 
 (defconst rust-re-special-types (regexp-opt rust-special-types 'symbols))
@@ -1282,23 +1286,127 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
           (kill-buffer))
       (error "Rustfmt failed, see *rustfmt* buffer for details"))))
 
+(defconst rust--format-word "\\b\\(else\\|enum\\|fn\\|for\\|if\\|let\\|loop\\|match\\|struct\\|unsafe\\|while\\)\\b")
+(defconst rust--format-line "\\([\n]\\)")
+
+;; Counts number of matches of regex beginning up to max-beginning,
+;; leaving the point at the beginning of the last match.
+(defun rust--format-count (regex max-beginning)
+  (let ((count 0)
+        save-point
+        beginning)
+    (while (and (< (point) max-beginning)
+                (re-search-forward regex max-beginning t))
+      (setq count (1+ count))
+      (setq beginning (match-beginning 1)))
+    ;; try one more in case max-beginning lies in the middle of a match
+    (setq save-point (point))
+    (when (re-search-forward regex nil t)
+      (let ((try-beginning (match-beginning 1)))
+        (if (> try-beginning max-beginning)
+            (goto-char save-point)
+          (setq count (1+ count))
+          (setq beginning try-beginning))))
+    (when beginning (goto-char beginning))
+    count))
+
+;; Gets list describing pos or (point).
+;; The list contains:
+;; 1. the number of matches of rust--format-word,
+;; 2. the number of matches of rust--format-line after that,
+;; 3. the number of columns after that.
+(defun rust--format-get-loc (buffer &optional pos)
+  (with-current-buffer buffer
+    (save-excursion
+      (let ((pos (or pos (point)))
+            words lines columns)
+        (goto-char (point-min))
+        (setq words (rust--format-count rust--format-word pos))
+        (setq lines (rust--format-count rust--format-line pos))
+        (if (> lines 0)
+            (if (= (point) pos)
+                (setq columns -1)
+              (forward-char 1)
+              (goto-char pos)
+              (setq columns (current-column)))
+          (let ((initial-column (current-column)))
+            (goto-char pos)
+            (setq columns (- (current-column) initial-column))))
+        (list words lines columns)))))
+
+;; Moves the point forward by count matches of regex up to max-pos,
+;; and returns new max-pos making sure final position does not include another match.
+(defun rust--format-forward (regex count max-pos)
+  (when (< (point) max-pos)
+    (let ((beginning (point)))
+      (while (> count 0)
+        (setq count (1- count))
+        (re-search-forward regex nil t)
+        (setq beginning (match-beginning 1)))
+      (when (re-search-forward regex nil t)
+        (setq max-pos (min max-pos (match-beginning 1))))
+      (goto-char beginning)))
+  max-pos)
+
+;; Gets the position from a location list obtained using rust--format-get-loc.
+(defun rust--format-get-pos (buffer loc)
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (let ((max-pos (point-max))
+            (words (pop loc))
+            (lines (pop loc))
+            (columns (pop loc)))
+        (setq max-pos (rust--format-forward rust--format-word words max-pos))
+        (setq max-pos (rust--format-forward rust--format-line lines max-pos))
+        (when (> lines 0) (forward-char))
+        (let ((initial-column (current-column))
+              (save-point (point)))
+          (move-end-of-line nil)
+          (when (> (current-column) (+ initial-column columns))
+            (goto-char save-point)
+            (forward-char columns)))
+        (min (point) max-pos)))))
+
 (defun rust-format-buffer ()
   "Format the current buffer using rustfmt."
   (interactive)
   (unless (executable-find rust-rustfmt-bin)
     (error "Could not locate executable \"%s\"" rust-rustfmt-bin))
 
-  (let ((cur-line (line-number-at-pos))
-        (cur-column (current-column))
-        (cur-win-start (window-start)))
+  (let* ((current (current-buffer))
+         (base (or (buffer-base-buffer current) current))
+         buffer-loc
+         window-loc)
+    (dolist (buffer (buffer-list))
+      (when (or (eq buffer base)
+                (eq (buffer-base-buffer buffer) base))
+        (push (list buffer
+                    (rust--format-get-loc buffer nil))
+              buffer-loc)))
+    (dolist (window (window-list))
+      (let ((buffer (window-buffer window)))
+        (when (or (eq buffer base)
+                  (eq (buffer-base-buffer buffer) base))
+          (let ((start (window-start window))
+                (point (window-point window)))
+            (push (list window
+                        (rust--format-get-loc buffer start)
+                        (rust--format-get-loc buffer point))
+                  window-loc)))))
     (rust--format-call (current-buffer))
-    ;; Move to the same line and column as before.  This is best
-    ;; effort: if rustfmt inserted lines before point, we end up in
-    ;; the wrong place. See issue #162.
-    (goto-char (point-min))
-    (forward-line (1- cur-line))
-    (forward-char cur-column)
-    (set-window-start (selected-window) cur-win-start))
+    (dolist (loc buffer-loc)
+      (let* ((buffer (pop loc))
+             (pos (rust--format-get-pos buffer (pop loc))))
+        (with-current-buffer buffer
+          (goto-char pos))))
+    (dolist (loc window-loc)
+      (let* ((window (pop loc))
+             (buffer (window-buffer window))
+             (start (rust--format-get-pos buffer (pop loc)))
+             (pos (rust--format-get-pos buffer (pop loc))))
+        (set-window-start window start)
+        (set-window-point window pos))))
 
   ;; Issue #127: Running this on a buffer acts like a revert, and could cause
   ;; the fontification to get out of sync.  Call the same hook to ensure it is
