@@ -161,6 +161,7 @@ or automatically through a custom `company-clang-prefix-guesser'."
      ((null meta) nil)
      ((string-match "[^:]:[^:]" meta)
       (substring meta (1+ (match-beginning 0))))
+     ((string-match "(anonymous)" meta) nil)
      ((string-match "\\((.*)[ a-z]*\\'\\)" meta)
       (let ((paren (match-beginning 1)))
         (if (not (eq (aref meta (1- paren)) ?>))
@@ -209,7 +210,7 @@ or automatically through a custom `company-clang-prefix-guesser'."
         (erase-buffer)
         (setq buffer-undo-list t))
       (let* ((process-connection-type nil)
-             (process (apply #'start-process "company-clang" buf
+             (process (apply #'start-file-process "company-clang" buf
                              company-clang-executable args)))
         (set-process-sentinel
          process
