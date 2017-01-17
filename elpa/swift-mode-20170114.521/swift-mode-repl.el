@@ -1,13 +1,13 @@
 ;;; swift-mode-repl.el --- Run Apple's Swift processes in Emacs buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2016 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
+;; Copyright (C) 2014-2017 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
 
 ;; Authors: taku0 (http://github.com/taku0)
 ;;       Chris Barrett <chris.d.barrett@me.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;
-;; Version: 2.2
+;; Version: 2.2.1
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 
@@ -61,17 +61,20 @@ Runs the hook `swift-repl-mode-hook' \(after the `comint-mode-hook' is run).
    (list (if current-prefix-arg
              (read-string "Run swift REPL: " swift-mode:repl-executable)
            swift-mode:repl-executable)))
-  (unless (comint-check-proc (concat "*" cmd "*"))
-    (save-excursion
-      (let ((cmdlist (split-string cmd)))
-        (set-buffer
-         (apply 'make-comint cmd (car cmdlist) nil (cdr cmdlist)))
-        (swift-repl-mode))))
-  (setq-local swift-mode:repl-executable cmd)
-  (setq-local swift-mode:repl-buffer (concat "*" cmd "*"))
-  (setq-default swift-mode:repl-buffer swift-mode:repl-buffer)
-  (unless dont-switch
-    (pop-to-buffer swift-mode:repl-buffer)))
+  (let ((original-buffer (current-buffer))
+        (buffer (get-buffer-create (concat "*" cmd "*"))))
+    (unless dont-switch
+      (pop-to-buffer buffer))
+    (unless (comint-check-proc (concat "*" cmd "*"))
+      (save-excursion
+        (let ((cmdlist (split-string cmd)))
+          (apply 'make-comint-in-buffer
+                 cmd buffer (car cmdlist) nil (cdr cmdlist))
+          (swift-repl-mode))))
+    (with-current-buffer original-buffer
+      (setq-local swift-mode:repl-executable cmd)
+      (setq-local swift-mode:repl-buffer (concat "*" cmd "*"))
+      (setq-default swift-mode:repl-buffer swift-mode:repl-buffer))))
 
 ;;;###autoload
 (defalias 'run-swift 'swift-mode:run-repl)
