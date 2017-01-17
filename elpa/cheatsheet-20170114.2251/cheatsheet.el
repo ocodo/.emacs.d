@@ -4,7 +4,7 @@
 ;;
 ;; Author: Shirin Nikita <shirin.nikita@gmail.com> and contributors
 ;; URL: http://github.com/darksmile/cheatsheet/
-;; Package-Version: 20161106.1219
+;; Package-Version: 20170114.2251
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Version: 1.0
 ;; Keywords: convenience, usability
@@ -29,12 +29,12 @@
 
 (require 'cl-lib)
 
-(defconst cheatsheet--group-face
-  '(:foreground "red")
+(defface cheatsheet-group-face
+  '((t :foreground "red"))
   "Group name font face.")
 
-(defconst cheatsheet--key-face
-  '(:foreground "orange")
+(defface cheatsheet-key-face
+  '((t :foreground "orange"))
   "Cheat key font face.")
 
 
@@ -88,7 +88,7 @@
   (let* ((format-string (format "%%%ds - %%s\n" key-cell-length))
          (key (cheatsheet--cheat-key cheat))
          (description (cheatsheet--cheat-description cheat))
-         (faced-key (propertize key 'face cheatsheet--key-face)))
+         (faced-key (propertize key 'face 'cheatsheet-key-face)))
     (format format-string faced-key description)))
 
 (defun cheatsheet--format-group (group)
@@ -103,7 +103,7 @@
            (key-cell-length (+ 2 key-max-length))
            (format-cheat (apply-partially #'format-cheat key-cell-length))
            (formatted-cheats (apply 'concat (mapcar format-cheat cheats)))
-           (faced-group-name (propertize name 'face cheatsheet--group-face)))
+           (faced-group-name (propertize name 'face 'cheatsheet-group-face)))
       (concat faced-group-name "\n" formatted-cheats "\n"))))
 
 (defun cheatsheet--format ()
