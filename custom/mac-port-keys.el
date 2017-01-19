@@ -54,7 +54,13 @@
 ;; that.
 
 ;; Bind "Emacs Mac port" keys the same as Emacs NS/Cocoa
-(when (symbolp 'mac-super-modifier)
+(when
+    (or (symbolp 'mac-super-modifier)
+        ;; Allow a linux system with GUI set to super to use these
+        ;; bindings too:
+        (or (eq x-super-keysym  nil)
+            (eq x-super-keysym  'super)))
+
   (bind-keys
    ("s-s"    . save-buffer)
    ("s-z"    . undo)
