@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20170104.737
+;; Package-Version: 20170126.145
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -2617,16 +2617,23 @@ And insert it into the minibuffer. Useful during
 (defvar counsel-linux-apps-faulty nil
   "List of faulty data located in /usr/share/applications.")
 
+(defcustom counsel-linux-apps-directories
+  '("/usr/local/share/applications/" "/usr/share/applications/")
+  "Directories in which to search for applications (.desktop files)."
+  :group 'counsel
+  :type '(list directory))
+
 (defun counsel-linux-apps-list ()
-  (let ((files
-         (delete
-          ".." (delete
-                "." (file-expand-wildcards "/usr/share/applications/*.desktop")))))
+  (let ((files (apply 'append
+                      (mapcar
+                       (lambda (dir)
+                         (directory-files dir t ".*\\.desktop$"))
+                       counsel-linux-apps-directories))))
     (dolist (file (cl-set-difference files (append (mapcar 'car counsel-linux-apps-alist)
                                                    counsel-linux-apps-faulty)
                                      :test 'equal))
       (with-temp-buffer
-        (insert-file-contents (expand-file-name file "/usr/share/applications"))
+        (insert-file-contents file)
         (let (name comment exec)
           (goto-char (point-min))
           (if (null (re-search-forward "^Name *= *\\(.*\\)$" nil t))
@@ -2669,7 +2676,7 @@ And insert it into the minibuffer. Useful during
                      (format "Run %s on: " short-name)))))
     (if file
         (call-process-shell-command
-         (format "gtk-launch %s %s"
+         (format "gtk-launch %s \"%s\""
                  (file-name-nondirectory desktop-shortcut)
                  file))
       (user-error "cancelled"))))
