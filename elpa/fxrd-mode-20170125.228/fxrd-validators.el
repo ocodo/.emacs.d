@@ -93,7 +93,7 @@ specialized if necessary."
 
 (defclass fxrd-numeric-v (fxrd-validator)
   ((pad :initform "0")
-   (comp-transform :initform #'string-to-int)
+   (comp-transform :initform #'string-to-number)
    (regex :initform "[[:digit:]]*"))
   "Integer fields")
 (defmethod fxrd-validate :after ((val fxrd-numeric-v) field-value)

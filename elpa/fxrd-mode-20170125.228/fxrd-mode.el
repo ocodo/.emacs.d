@@ -1,6 +1,6 @@
 ;;; fxrd-mode.el --- Major mode for editing fixed field width files
 
-;; Copyright (C) 2015 Marc Sherry
+;; Copyright (C) 2015-2017 Marc Sherry
 
 ;; Author: Marc Sherry (msherry@gmail.com)
 ;; URL: https://github.com/msherry/fxrd-mode
@@ -40,6 +40,11 @@
 (defgroup fxrd nil
   "Major mode for editing fixed field width files"
   :group 'convenience)
+
+;; This changed around emacs 25
+(eval-when-compile
+  (when (not (boundp 'default-mode-line-format))
+    (defvar default-mode-line-format (default-value 'mode-line-format))))
 
 (defface fxrd-current-field-face
   '((t (:inherit highlight
@@ -95,11 +100,13 @@
 
 (defvar fxrd-mode-hook nil)
 
-(defun disable-fxrd-mode ()
-  (fxrd-field-name-mode -1)
-  (fxrd-clear-overlays))
+(defvar fxrd--current-field-priority 1)
 
+(defvar fxrd--invalid-field-priority 2)
 
+(defvar fxrd--last-buffer-modified-tick nil)
+
+(defvar fxrd--last-point nil)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Imports
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -116,6 +123,10 @@
     (defmacro save-mark-and-excursion (&rest body)
       `(save-excursion ,@body))))
 
+(defun disable-fxrd-mode ()
+  (fxrd-field-name-mode -1)
+  (fxrd--clear-overlays))
+
 (defun current-line-pos ()
   "Yields the current position within the line"
   ;; TODO: find a better way to find position within a line
@@ -129,21 +140,35 @@
       record-spec)))
 
 (defun first-spec-hit (record-spec pos)
-  "Given a record spec and a position, find and return the first spec-item hit.
+  "Given a record spec and a position within a line, return the first spec-item hit.
 
-Returns nil if no hit found"
+Returns nil if no hit found."
   (dolist (spec-item record-spec)
     (let ((start (nth 0 spec-item))
           (end (nth 1 spec-item)))
-      (when (and (<= start pos end))
+      (when (<= start pos end)
         (return spec-item)))))
+
+(defun get-field-boundaries (&optional field-spec)
+  "Find the (absolute) [start, end + 1] position of the field
+defined by `field-spec', or the field at point if none is supplied.
+
+`end' will actually be one more than the final position of the
+field, due to the way most elisp functions (make-overlay,
+buffer-substring, etc.) handle ranges."
+  (unless field-spec (setq field-spec (current-field-spec)))
+  (when field-spec
+    (let* ((line-start (line-beginning-position))
+           (start (1- (+ line-start (nth 0 field-spec))))
+           (end (+ line-start (nth 1 field-spec))))
+      (list start end))))
 
 (defun get-name-from-field-spec (field-spec)
   "Given a field spec, extract the name part."
   (nth 2 field-spec))
 
 (defun get-validator-from-field-spec (field-spec)
-  "Given a field spec, extract the validator, if present"
+  "Given a field spec, extract the validator, if present."
   (nth 3 field-spec))
 
 (defun line-type ()
@@ -152,52 +177,42 @@ Returns nil if no hit found"
          (type (if char (char-to-string char))))
     type))
 
-(defun get-current-field-spec ()
+(defun current-field-spec ()
   (let ((record-spec (get-spec-for-line)))
     (if record-spec
         (let ((field-spec (first-spec-hit record-spec (current-line-pos))))
           field-spec))))
 
-(defun current-field-name ()
-  "Find the name of the field at the current position in the current line."
-  (let ((field-spec (get-current-field-spec)))
-    (when field-spec
-      (get-name-from-field-spec field-spec))))
+(defun field-name (&optional field-spec)
+  "Find the name of the field defined by `field-spec', or the
+field at point if no field-spec is provided."
+  (unless field-spec (setq field-spec (current-field-spec)))
+  (when field-spec
+    (get-name-from-field-spec field-spec)))
 
-(defun current-field-boundaries ()
-  "Find the (absolute) [start, end + 1] position of the field at
-the current position.
-
-`end' will actually be one more than the final position of the
-field, due to the way most elisp functions (make-overlay,
-buffer-substring, etc.) handle ranges."
-  (let ((field-spec (get-current-field-spec)))
-    (when field-spec
-      (let* ((line-start (line-beginning-position))
-             (start (1- (+ line-start (nth 0 field-spec))))
-             (end (+ line-start (nth 1 field-spec))))
-        (list start end)))))
-
-(defun fxrd-current-field-value ()
-  "Find the contents of the current field"
-  (let ((field-boundaries (current-field-boundaries)))
-    (when field-boundaries
-      (let ((start (nth 0 field-boundaries))
-            (end (nth 1 field-boundaries)))
-        (when (and start end
-                   (<= start (point-max))
-                   (<= end (point-max)))
-          (buffer-substring start end))))))
+(defun fxrd-field-value (&optional field-boundaries)
+  "Find the contents of the field defined by `field-boundaries',
+or the current field if not supplied."
+  (unless field-boundaries (setq field-boundaries (get-field-boundaries)))
+  (when field-boundaries
+    (let ((start (nth 0 field-boundaries))
+          (end (nth 1 field-boundaries)))
+      (when (and start end
+                 (<= start (point-max))
+                 (<= end (point-max)))
+        (buffer-substring start end)))))
 
 (defun fxrd-current-field-valid-p ()
   "Returns t if the current field is valid, or nil otherwise."
-  (unless (fxrd-current-field-error) t))
+  (unless (fxrd-field-error) t))
 
-(defun fxrd-current-field-error ()
-  "Returns an error string if the current field is invalid, or nil otherwise."
-  (let* ((field-spec (get-current-field-spec))
+(defun fxrd-field-error (&optional field-spec)
+  "Returns an error string if the field defined by field-spec is invalid,
+ or nil otherwise."
+  (unless field-spec (setq field-spec (current-field-spec)))
+  (let* ((field-boundaries (get-field-boundaries field-spec))
          (validator (get-validator-from-field-spec field-spec))
-         (value (fxrd-current-field-value)))
+         (value (fxrd-field-value field-boundaries)))
     ;; If no validator defined, field is valid by default.
     (when validator
       (condition-case err
@@ -214,38 +229,73 @@ buffer-substring, etc.) handle ranges."
                   (signal 'validator-error "Unknown validator type for field"))))
         (validation-error (cdr err))))))
 
-(defun fxrd-point-in-field-boundaries-p (field-boundaries)
+(defun fxrd-point-in-field-boundaries-p (field-boundaries cur-pos)
   "Returns t if the point is inside the given field-boundaries, nil otherwise."
   (let ((begin (nth 0 field-boundaries))
         (end (nth 1 field-boundaries)))
     ;; Remember to account for `end' being off by one
     (<= begin cur-pos (1- end))))
 
-(defun fxrd-clear-overlays ()
+(defun fxrd--next-field-start-pos (field-boundaries)
+  "Return the start position of the field after the one defined by `field-boundaries'"
+  (let ((next-field-start (nth 1 field-boundaries)))
+    (min next-field-start (point-max))))
+
+(defun fxrd--make-overlay (begin end type)
+  (let (values)
+    (cond ((eq :current type) (setq values (list 'fxrd-current-overlay
+                                            fxrd-current-field-face
+                                            fxrd--current-field-priority)))
+          ((eq :invalid type) (setq values (list 'fxrd-invalid-overlay
+                                                 fxrd-invalid-field-face
+                                                 fxrd--invalid-field-priority)))
+          (t nil))
+    (let ((overlay (make-overlay begin end)))
+      (overlay-put overlay (nth 0 values) t)
+      (overlay-put overlay 'face (nth 1 values))
+      (overlay-put overlay 'priority (nth 2 values))
+      overlay)))
+
+(defun fxrd--clear-overlays ()
   (remove-overlays nil nil 'fxrd-current-overlay t)
   (remove-overlays nil nil 'fxrd-invalid-overlay t))
 
 
+(defun fxrd--buffer-changed-p ()
+  (let* ((tick (buffer-modified-tick))
+         (changed (not (eq tick fxrd--last-buffer-modified-tick))))
+    (setq fxrd--last-buffer-modified-tick tick)
+    changed))
+
+(defun fxrd--point-changed-p ()
+  (let* ((p (point))
+         (changed (not (eq p fxrd--last-point))))
+    (setq fxrd--last-point p)
+    changed))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Public functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun fxrd-next-field ()
-  "Move to the start of the next field."
+(defun fxrd-next-field (&optional field-boundaries)
+  "Move to the start of the next field, or the field following
+the one described by `field-boundaries'"
   (interactive)
-  (let ((field-boundaries (or (current-field-boundaries)
-                              (list (1+ (point)) (1+ (point))))))
-    (when field-boundaries
-      (let ((next-field-start (nth 1 field-boundaries)))
-        (goto-char (min next-field-start (point-max)))))))
+  (unless field-boundaries (setq field-boundaries
+                                 (or (get-field-boundaries)
+                                     (list (1+ (point)) (1+ (point))))))
+  (when field-boundaries
+    (goto-char (fxrd--next-field-start-pos field-boundaries))))
 
 (defun fxrd-previous-field ()
   "Move to the start of the previous field."
+
+  ;; TODO: fix near newlines at end of line
   (interactive)
-  (let ((field-boundaries (current-field-boundaries)))
+  (let ((field-boundaries (get-field-boundaries)))
     (when field-boundaries
       (let ((prev-field-end (1- (nth 0 field-boundaries))))
         (goto-char (max prev-field-end (point-min)))
-        (let ((prev-field-boundaries (current-field-boundaries)))
+        (let ((prev-field-boundaries (get-field-boundaries)))
           (when prev-field-boundaries
             (let ((begin (nth 0 prev-field-boundaries)))
               (goto-char begin))))))))
@@ -254,18 +304,18 @@ buffer-substring, etc.) handle ranges."
   "Move to the next invalid field."
   (interactive)
   ;; Stay here if we're already in an invalid field
-  (if (and (current-field-boundaries)
+  (if (and (get-field-boundaries)
            (fxrd-current-field-valid-p))
       (let ((found-error nil)
             (start-of-error nil))
-        (save-excursion
+        (save-mark-and-excursion
           (while (and (not found-error)
                       (not (equal (point) (point-max))))
             (fxrd-next-field)
-            (when (and (current-field-boundaries)
+            (when (and (get-field-boundaries)
                        (not (fxrd-current-field-valid-p)))
               (setq found-error t
-                    start-of-error (nth 0 (current-field-boundaries))))))
+                    start-of-error (nth 0 (get-field-boundaries))))))
         (when found-error
           (goto-char start-of-error)))))
 
@@ -298,11 +348,6 @@ buffer-substring, etc.) handle ranges."
   nil)
 (make-variable-buffer-local 'fxrd-field-boundaries-old)
 
-(defvar fxrd-point-old
-  "The last point"
-  nil)
-(make-variable-buffer-local 'fxrd-point-old)
-
 (define-minor-mode fxrd-field-name-mode
   ;; TODO: this probably shouldn't be a minor mode
   "Toggle FXRD-field-name mode.
@@ -327,7 +372,7 @@ When enabled, the name of the current field appears in the mode line."
                           (buffer-list)))
           (setq fxrd-field-name-idle-timer
                 (run-with-idle-timer fxrd-field-name-delay t
-                                     'fxrd-update-current-field)))
+                                     'fxrd--update-display)))
     ;; but if the mode is off then remove the display from the mode lines of
     ;; all FXRD buffers
     (mapc (lambda (buffer)
@@ -336,10 +381,18 @@ When enabled, the name of the current field appears in the mode line."
                 (setq fxrd-field-name-string nil
                       fxrd-field-name-string-old nil)
                 (force-mode-line-update)
-                (fxrd-clear-overlays))))
+                (fxrd--clear-overlays))))
           (buffer-list))))
 
-(defun fxrd-maybe-set-modeline (text)
+(defun fxrd--update-display ()
+  "Called by `fxrd-field-name-idle-timer' to update all displays."
+  (when (derived-mode-p 'fxrd-mode)
+    (when (fxrd--buffer-changed-p)
+      (fxrd-highlight-invalid-fields))
+    (when (fxrd--point-changed-p)
+      (fxrd-update-current-field))))
+
+(defun fxrd--maybe-set-modeline (text)
   (when (not (string= text fxrd-field-name-string-old))
         ;; Update modeline
         (setq fxrd-field-name-string-old text
@@ -349,67 +402,53 @@ When enabled, the name of the current field appears in the mode line."
         (force-mode-line-update)))
 
 (defun fxrd-update-current-field ()
-  "Construct `fxrd-field-name-string' to display in mode line.
-Called by `fxrd-field-name-idle-timer'."
-  (when (derived-mode-p 'fxrd-mode)
-    (let ((field-boundaries (current-field-boundaries)))
-      (if field-boundaries
-          (let ((field-name (current-field-name))
-                (field-value (fxrd-current-field-value)))
-            (fxrd-maybe-set-modeline field-name)
-            ;; Highlight current field, update modeline with error text if necessary
-            (let ((validation-error (fxrd-current-field-error)))
-              (when validation-error
-                ;; If not t, it's a validation error message
-                (fxrd-maybe-set-modeline (format "%s:%s" field-name validation-error)))
-              (when (not (and (string= fxrd-field-value-old
-                                       field-value)
-                              (equal fxrd-field-boundaries-old
-                                     field-boundaries)))
-                (setq fxrd-field-value-old field-value
-                      fxrd-field-boundaries-old field-boundaries)
-                (remove-overlays nil nil 'fxrd-current-overlay t)
-                (let* ((begin (nth 0 field-boundaries))
-                       (end (nth 1 field-boundaries))
-                       (overlay (make-overlay begin end)))
-                  (overlay-put overlay 'fxrd-current-overlay t)
-                  (overlay-put overlay 'face
-                               (cond ((not validation-error) fxrd-current-field-face)
-                                     (t fxrd-invalid-field-face)))))))
-        ;; Not in a field, clear the overlay and modeline
-        (progn
-          (setq fxrd-field-value-old nil
-                fxrd-field-boundaries-old nil)
-          (fxrd-maybe-set-modeline nil)
-          (remove-overlays nil nil 'fxrd-current-overlay t))))
-    (fxrd-highlight-invalid-fields)))
+  "Highlight the current field, and construct `fxrd-field-name-string' to display in the mode line."
+  (let* ((field-spec (current-field-spec))
+         (field-boundaries (get-field-boundaries field-spec)))
+    (if (and field-spec field-boundaries)
+        (let ((field-name (field-name field-spec))
+              (field-value (fxrd-field-value field-boundaries)))
+          (fxrd--maybe-set-modeline field-name)
+          ;; Highlight current field, update modeline with error text if necessary
+          (let ((validation-error (fxrd-field-error field-spec)))
+            (when validation-error
+              ;; If not t, it's a validation error message
+              (fxrd--maybe-set-modeline (format "%s:%s" field-name validation-error)))
+            (when (not (and (string= fxrd-field-value-old field-value)
+                            (equal fxrd-field-boundaries-old field-boundaries)))
+              (setq fxrd-field-value-old field-value
+                    fxrd-field-boundaries-old field-boundaries)
+              (remove-overlays nil nil 'fxrd-current-overlay t)
+              (let* ((begin (nth 0 field-boundaries))
+                     (end (nth 1 field-boundaries)))
+                (fxrd--make-overlay begin end :current)))))
+      ;; Not in a field, clear the overlay and modeline
+      (progn
+        (setq fxrd-field-value-old nil
+              fxrd-field-boundaries-old nil)
+        (fxrd--maybe-set-modeline nil)
+        (remove-overlays nil nil 'fxrd-current-overlay t)))))
 
 (defun fxrd-highlight-invalid-fields ()
-  "Highlight all invalid fields (except current field)"
-  (when (not (eq fxrd-point-old (point)))
-      (setq fxrd-point-old (point))
-      (let ((cur-pos (point)))
-        (save-mark-and-excursion
-         (goto-char (point-min))
-         (remove-overlays nil nil 'fxrd-invalid-overlay t)
-         (let ((done nil)
-               (last-pos (point)))
-           (while (not done)
-             (let ((field-boundaries (current-field-boundaries)))
-               (when (and field-boundaries
-                          ;; Skip current field, it will be handled elsewhere
-                          (not (fxrd-point-in-field-boundaries-p field-boundaries))
-                          ;; Field not valid
-                          (not (fxrd-current-field-valid-p)))
-                 (let* ((begin (nth 0 field-boundaries))
-                        (end (nth 1 field-boundaries))
-                        (overlay (make-overlay begin end)))
-                   (overlay-put overlay 'fxrd-invalid-overlay t)
-                   (overlay-put overlay 'face fxrd-invalid-field-face))))
-             (fxrd-next-field)
-             (if (eq (point) last-pos)
-                 (setq done t))
-             (setq last-pos (point))))))))
+  "Highlight all invalid fields"
+  (let ((cur-pos (point)))
+    (save-mark-and-excursion
+      (goto-char (point-min))
+      (remove-overlays nil nil 'fxrd-invalid-overlay t)
+      (let ((done nil)
+            (last-pos (point)))
+        (while (not done)
+          (let ((field-boundaries (get-field-boundaries)))
+            (when (and field-boundaries
+                       ;; Field not valid
+                       (not (fxrd-current-field-valid-p)))
+              (let* ((begin (nth 0 field-boundaries))
+                     (end (nth 1 field-boundaries)))
+                (fxrd--make-overlay begin end :invalid))))
+          (fxrd-next-field)
+          (if (eq (point) last-pos)
+              (setq done t))
+          (setq last-pos (point)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
