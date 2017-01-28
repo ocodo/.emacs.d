@@ -4,10 +4,10 @@
 
 ;; Author: Nathan Kot <nk@nathankot.com>
 ;; URL: https://github.com/nathankot/company-sourcekit
-;; Package-Version: 20160510.2017
+;; Package-Version: 20170126.353
 ;; Keywords: tools, processes
-;; Version: 0.1.7
-;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (dash-functional "1.2.0"))
+;; Version: 0.2.0
+;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (dash-functional "1.2.0") (request "0.2.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'dash-functional)
+(require 'request)
 
 (defgroup sourcekit nil
   "Library to interface with sourcekitten daemon"
@@ -43,12 +44,6 @@
   '(8081 8082 8083 8084 8085 8086 8087 8088 8089 8090)
   "The list of ports that sourcekittendaemon is permitted to listen on."
   :type 'integer
-  :group 'sourcekit)
-
-(defcustom sourcekit-curl-executable
-  (executable-find "curl")
-  "Location of curl."
-  :type 'file
   :group 'sourcekit)
 
 (defcustom sourcekit-sourcekittendaemon-executable
@@ -96,9 +91,8 @@ CB is called with the port as the first argument, nil if the daemon cannot be cr
                 sourcekit-last-daemon-port
                 (-first
                   (lambda (p)
-                    (string-equal project (sourcekit-lax-query-sync p "/project")))
+                    (string-equal project (sourcekit-query-sync p "/project")))
                   sourcekit-available-ports))))
-
     (if port
       ;; If we already have a port, give it to the callback
       (progn
@@ -108,9 +102,8 @@ CB is called with the port as the first argument, nil if the daemon cannot be cr
 
       ;; Otherwise try to spin up a new daemon
       (if (not sourcekit-start-daemon-lock)
-        (-when-let* (
-                      (unused-port (-first (lambda (p) (not (sourcekit-lax-query-sync p "/ping")))
-                                     sourcekit-available-ports))
+        (-when-let* ((unused-port (-first (lambda (p) (not (eq "OK" (sourcekit-query-sync p "/ping"))))
+                                    sourcekit-available-ports))
                       (_ (progn (setq sourcekit-start-daemon-lock t) t))
                       (process (start-process
                                  (format "sourcekit-daemon:%s" project)
@@ -137,17 +130,14 @@ CB is called with the port as the first argument, nil if the daemon cannot be cr
 
           (set-process-filter process
             (lambda (proc str)
-              (-when-let (found-port (save-match-data
-                                       (and
-                                         (string-match "Listening on port: *\\([0-9][0-9]*\\)" str)
-                                         (match-string 1 str))))
+              (when sourcekit-verbose (message "[sourcekit] process message: %s" str))
+              (-when-let (found-port (save-match-data (and (string-match "0.0.0.0:\\([0-9][0-9]*\\)" str) (match-string 1 str))))
                 (when sourcekit-verbose
                   (message "[sourcekit] daemon listening on port %d" (string-to-number found-port)))
                 (set-process-sentinel process nil)
                 (set-process-filter process nil)
                 (setq sourcekit-last-daemon-port (string-to-number found-port))
                 (setq sourcekit-start-daemon-lock nil)
-
                 ;; Now that we have a new daemon, re-run this function again
                 (sourcekit-with-daemon-for-project project cb)))))
 
@@ -155,62 +145,36 @@ CB is called with the port as the first argument, nil if the daemon cannot be cr
           (message "[sourcekit] skipping daemon startup due to existing lock"))
         (funcall cb nil)))))
 
-(defun sourcekit-lax-query-sync (port path &rest args)
+(defun sourcekit-query-sync (port path)
   "Run a query against the sourcekit daemon on PORT and PATH synchronously.
 Passes ARGS as additional arguments to curl.
 It returns either the response stdout or nil for error.
 This does not reset the cached daemon port, even on failures.
 This differs from sourcekit-query in that it does not consider error responses as failures either, hence the 'lax'"
-  (let* (
-          (buf (sourcekit-output-buffer))
-          (exit-code
-            (eval `(call-process ,sourcekit-curl-executable nil ,buf nil
-                     "--silent"
-                     ,@args
-                     ,(format "http://localhost:%d%s" port path)))))
-    (when (eq 0 exit-code)
-      (with-current-buffer buf
-        (buffer-substring-no-properties (point-min) (point-max))))))
+  (let ((response (request (format "http://localhost:%d%s" port path)
+                    :sync t :parser 'buffer-string :timeout 2)))
+    (if (request-response-error-thrown response) nil
+      (request-response-data response))))
 
-(defun sourcekit-query (port path cb &rest args)
+(defun sourcekit-query (port path headers cb)
   "Run a query against the sourcekit daemon on PORT and PATH, passing ARGS as additional arguments to curl.
-CB is the process sentinel for the query, with an additional third argument as the process stdout string.
-If a query ever fails, it will reset the cached daemon port."
-  (-when-let (p (get-process "sourcekit-query")) (delete-process p))
-  (let* (
-          (buf (sourcekit-output-buffer))
-          ;; Make HTTP request to the sourcekittendaemon, asynchronously
-          (process
-            (eval `(start-process
-                     "sourcekit-query" ,buf ,sourcekit-curl-executable
-                     "--silent"
-                     "--fail" ;; Exit code != 0 on error status responses
-                     ,@args
-                     ,(format "http://localhost:%d%s" port path)))))
-
-    (set-process-sentinel process
-      (lambda (proc status)
-        (when sourcekit-verbose (message "[sourcekit] query got status: %s" status))
-        (if (and
-              (or (string-match "exit" status) (string-match "finished" status))
-              (not (eq (process-exit-status proc) 0)))
-          ;; When exiting with an error, try get a new daemon
-          (setq sourcekit-last-daemon-port nil)
-          ;; Otherwise pass output to the given handler
-          (let ((stdout (with-current-buffer buf
-                          (buffer-substring-no-properties (point-min) (point-max)))))
-            (funcall cb proc status stdout)))))))
-
-(defun sourcekit-output-buffer ()
-  "Returns the designated output buffer used by sourcekit daemon requests.
-This function will clean the buffer before returning it."
-  (and
-    (get-buffer-create "*sourcekit-output*")
-    (with-current-buffer (get-buffer "*sourcekit-output*")
-      (erase-buffer)
-      (linum-mode -1)
-      (buffer-disable-undo)
-      (current-buffer))))
+CB will be given the response JSON on a successful request. If a query ever fails, it will reset the cached daemon port."
+  (let ((url (format "http://localhost:%d%s" port path)))
+    (when sourcekit-verbose
+      (message "[sourcekit] making request to %s" url)
+      (message "[sourcekit] with headers %S" headers))
+    (request url
+      :parser 'json-read
+      :headers headers
+      :success (cl-function
+                 (lambda (&key data &allow-other-keys)
+                   (message "[sourcekit] got query response")
+                   (funcall cb data)))
+      :error (cl-function
+               ;; When exiting with an error, try get a new daemon
+               (lambda (&rest args &key error-thrown &allow-other-keys)
+                 (when sourcekit-verbose (message "[sourcekit] got error %S" error-thrown))
+                 (setq sourcekit-last-daemon-port nil))))))
 
 (provide 'sourcekit)
 ;;; sourcekit.el ends here
