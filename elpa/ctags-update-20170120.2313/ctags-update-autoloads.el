@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ctags-update" "ctags-update.el" (22653 62792
-;;;;;;  987644 264000))
+;;;### (autoloads nil "ctags-update" "ctags-update.el" (0 0 0 0))
 ;;; Generated autoloads from ctags-update.el
 
 (autoload 'ctags-update "ctags-update" "\
@@ -25,6 +24,8 @@ auto update TAGS using `exuberant-ctags' in parent directory.
 turn on `ctags-auto-update-mode'.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ctags-update" '("ctags-")))
 
 ;;;***
 

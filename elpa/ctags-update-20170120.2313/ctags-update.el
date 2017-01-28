@@ -2,7 +2,7 @@
 
 ;; Created: 2011-10-16 13:17
 ;; Version: 1.0
-;; Package-Version: 20170111.2150
+;; Package-Version: 20170120.2313
 ;; Author: Joseph(纪秀峰)  jixiuf@gmail.com
 ;; Keywords: exuberant-ctags etags
 ;; URL: https://github.com/jixiuf/ctags-update
@@ -119,15 +119,20 @@ is enabled."
     (fset 'ctags-update-file-truename 'symlink-expand-file-name)
   (fset 'ctags-update-file-truename 'file-truename))
 
+
+(defsubst ctags-update-native-w32-p()
+  (and (equal system-type 'windows-nt)
+       (not (string-match-p "MINGW" (or (getenv "MSYSTEM") "")))))
+
 (defun ctags-update-command-args (tagfile-full-path &optional save-tagfile-to-as)
   "`tagfile-full-path' is the full path of TAGS file . when files in or under the same directory
 with `tagfile-full-path' changed ,then TAGS file need to be updated. this function will generate
 the command to update TAGS"
   (append
    (list "-R" "-e" )
-   (list "-f" (get-system-file-path (or save-tagfile-to-as tagfile-full-path)))
+   (list "-f" (ctags-update-get-system-path (or save-tagfile-to-as tagfile-full-path)))
    ctags-update-other-options
-   (if (equal system-type 'windows-nt)
+   (if (ctags-update-native-w32-p)
        ;; on windows "ctags -R d:/.emacs.d"  works , but "ctags -R d:/.emacs.d/" doesn't
        ;; On Windows, "gtags d:/tmp" work, but "gtags d:/tmp/" doesn't
        (list (directory-file-name
@@ -138,12 +143,11 @@ the command to update TAGS"
   "get the full command as string."
   (concat command " "(mapconcat 'identity  command-args " ")))
 
-
-(defun get-system-file-path(file-path)
+(defun ctags-update-get-system-path(file-path)
   "when on windows `expand-file-name' will translate from \\ to /
 some times it is not needed . then this function is used to translate /
 to \\ when on windows"
-  (if (equal system-type 'windows-nt)
+  (if (ctags-update-native-w32-p)
       (convert-standard-filename  file-path)
     file-path))
 
@@ -222,14 +226,14 @@ this return t if current buffer file name is TAGS."
         (setq ctags-update-last-update-time (float-time (current-time)));;update time
         (let ((orig-default-directory default-directory)
               (default-directory (file-name-directory tags)))
-          (when (equal system-type 'windows-nt)
+          (when (ctags-update-native-w32-p)
             (setq default-directory orig-default-directory))
           (cond
            ;;with prefix `C-uC-u' save the command to kill-ring
            ;; sometime the directory you select need root privilege
            ;; so save the command to kill-ring,
            ((= (prefix-numeric-value current-prefix-arg) 16)
-            (kill-new (format "cd %s && %s" (get-system-file-path default-directory)
+            (kill-new (format "cd %s && %s" (ctags-update-get-system-path default-directory)
                               (ctags-update-get-command
                                ctags-update-command (ctags-update-command-args tags))))
             (message "save ctags-upate command to king-ring. (C-y) yank it back."))
