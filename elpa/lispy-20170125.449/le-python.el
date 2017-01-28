@@ -148,9 +148,14 @@ Stripping them will produce code that's valid for an eval."
   (let ((single-line-p (= (cl-count ?\n str) 0)))
     (unless plain
       (setq str (string-trim-left str))
-      (when (and single-line-p
-                 (string-match "\\`\\(\\(?:[., ]\\|\\sw\\|\\s_\\|[][]\\)+\\) += " str))
-        (setq str (concat str (format "\nprint (repr ((%s)))" (match-string 1 str))))))
+      (cond ((and single-line-p
+                  (string-match "\\`\\(\\(?:[., ]\\|\\sw\\|\\s_\\|[][]\\)+\\) += " str))
+             (setq str (concat str (format "\nprint (repr ((%s)))" (match-string 1 str)))))
+            ((and single-line-p
+                  (string-match "\\`\\(.*\\) in \\(.*\\)\\'" str))
+             (let ((vars (match-string 1 str))
+                   (val (match-string 2 str)))
+               (setq str (format "%s = list (%s)[0]\nprint ((%s))" vars val vars))))))
     (let ((res
            (cond ((or single-line-p
                       (string-match "\n .*\\'" str)
@@ -192,15 +197,25 @@ Stripping them will produce code that's valid for an eval."
 (defun lispy--python-array-to-elisp (array-str)
   "Transform a Python string ARRAY-STR to an Elisp string array."
   (when (stringp array-str)
-    (mapcar (lambda (s)
-              (if (string-match "\\`\"" s)
-                  (read s)
-                s))
-            (split-string
-             (substring array-str 1 -1)
-             ", "
-             t
-             "u?'"))))
+    (let ((parts (with-temp-buffer
+                   (python-mode)
+                   (insert (substring array-str 1 -1))
+                   (goto-char (point-min))
+                   (let (beg res)
+                     (while (< (point) (point-max))
+                       (setq beg (point))
+                       (forward-sexp)
+                       (push (buffer-substring-no-properties beg (point)) res)
+                       (skip-chars-forward ", "))
+                     (nreverse res)))))
+      (mapcar (lambda (s)
+                (if (string-match "\\`\"" s)
+                    (read s)
+                  (if (string-match "\\`'\\(.*\\)'\\'" s)
+                      (match-string 1 s)
+                    s
+                    )))
+              parts))))
 
 (defun lispy-python-completion-at-point ()
   (cond ((looking-back "^\\(import\\|from\\) .*" (line-beginning-position))
@@ -219,7 +234,18 @@ Stripping them will produce code that's valid for an eval."
                 (end (if bnd (cdr bnd) (point))))
            (list beg end cands)))
         (t
-         (python-shell-completion-at-point (lispy--python-proc)))))
+         (let ((comp (python-shell-completion-at-point (lispy--python-proc))))
+           (list (nth 0 comp)
+                 (nth 1 comp)
+                 (mapcar (lambda (s)
+                           (if (string-match "(\\'" s)
+                               (substring s 0 (match-beginning 0))
+                             s))
+                         (all-completions
+                          (buffer-substring-no-properties
+                           (nth 0 comp)
+                           (nth 1 comp))
+                          (nth 2 comp))))))))
 
 (defvar lispy--python-arg-key-re "\\`\\(\\(?:\\sw\\|\\s_\\)+\\) ?= ?\\(.*\\)\\'"
   "Constant regexp for matching function keyword spec.")
