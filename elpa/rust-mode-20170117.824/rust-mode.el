@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.3.0
-;; Package-Version: 20170107.451
+;; Package-Version: 20170117.824
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -34,6 +34,7 @@
 (defconst rust-re-uc-ident "[[:upper:]][[:word:][:multibyte:]_[:digit:]]*")
 (defconst rust-re-vis "pub")
 (defconst rust-re-unsafe "unsafe")
+(defconst rust-re-extern "extern")
 
 (defconst rust-re-non-standard-string
   (rx
@@ -572,6 +573,8 @@ buffer."
   (concat "^[[:space:]]*"
           (rust-re-shy (concat (rust-re-word rust-re-vis) "[[:space:]]+")) "?"
           (rust-re-shy (concat (rust-re-word rust-re-unsafe) "[[:space:]]+")) "?"
+          (rust-re-shy (concat (rust-re-word rust-re-extern) "[[:space:]]+"
+                               (rust-re-shy "\"[^\"]+\"[[:space:]]+") "?")) "?"
           (rust-re-item-def itype)))
 
 (defconst rust-re-special-types (regexp-opt rust-special-types 'symbols))
