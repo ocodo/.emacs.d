@@ -1,10 +1,10 @@
 ;;; web-mode.el --- major mode for editing web templates
 ;;; -*- coding: utf-8 -*-
 
-;; Copyright 2011-2016 François-Xavier Bois
+;; Copyright 2011-2017 François-Xavier Bois
 
 ;; Version: 14.0.36
-;; Package-Version: 20170114.906
+;; Package-Version: 20170118.1211
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -15,7 +15,7 @@
 ;; Distribution: This file is not part of Emacs
 
 ;;==============================================================================
-;;WEB-MODE is sponsored by ** Kernix ** Best Digital Factory & Data Lab in Paris
+;; WEB-MODE is sponsored by ** Kernix ** Best DigitalFactory & DataLab in Paris
 ;;==============================================================================
 
 ;;; Code:
@@ -7238,19 +7238,19 @@ another auto-completion with different ac-sources (e.g. ac-php)")
           (search-backward "case ")
           (setq offset (current-column)))
 
-         ;;--ICI--
-
          ((and (member language '("javascript" "jsx" "ejs"))
                (member ?\. chars)
                (not (string-match-p "^\\.\\.\\." curr-line)))
           (when debug (message "I22"))
           (let (pair)
             (setq pair (web-mode-javascript-calls-beginning-position pos reg-beg))
+            ;;(message "%S" pair)
             (when pair
               (goto-char (car pair))
               ;;(message "%S %S" (point) pair)
               (cond
                ((cdr (assoc "lineup-calls" web-mode-indentation-params))
+                ;;(message "ici")
                 ;;(search-forward ".")
                 (if (cdr pair)
                     (progn
@@ -11333,11 +11333,13 @@ Prompt user if TAG-NAME isn't provided."
           (setq pos (1- pos)))
         ;;(message "pos=%S" pos)
         )
-       ((member char '(?\( ?\{ ?\} ?\[ ?\= ?\? ?\: ?\; ?\, ?\& ?\|))
+       ((member char '(?\( ?\{ ?\} ?\[ ?\= ?\? ?\: ?\; ?\, ?\& ?\| ?\>))
+        ;;(message "1--> %S" pos)
         (setq continue nil)
         (web-mode-looking-at ".[ \t\n]*" pos)
         (setq pos (+ pos (length (match-string-no-properties 0)))))
        ((web-mode-looking-back "\\_<\\(return\\|else\\)[ \n\t]*" pos)
+        ;;(message "2--> %S" pos)
         (setq continue nil))
        (t
         (setq pos (1- pos)))
