@@ -53,8 +53,9 @@
 
 (provide 'helm-C-x-b)
 
-(defvar helm-C-x-b-sources '(helm-source-buffers-list
-                             helm-source-session
+(defvar helm-C-x-b-sources `(helm-source-buffers-list
+                             ,@(when (featurep 'session)
+                                 (list 'helm-source-session))
                              helm-source-files-in-current-dir
                              helm-source-cmd-t
                              helm-source-buffer-not-found)
@@ -108,7 +109,7 @@ With universal prefix arg (C-u), run `helm-cmd-t-repos'.
     (let ((helm-ff-transformer-show-only-basename nil))
       (helm :sources (helm-C-x-b-sources)
             :candidate-number-limit 20
-            :buffer "*helm-cmd-t:*"))))
+            :buffer "*helm-C-x-b:*"))))
 
 
 
