@@ -1,11 +1,11 @@
 ;;; go-impl.el --- impl integration for go-mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016 by Syohei YOSHIDA
+;; Copyright (C) 2017 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-impl
-;; Package-Version: 20161225.1819
-;; Version: 0.13
+;; Package-Version: 20170125.752
+;; Version: 0.14
 ;; Package-Requires: ((emacs "24.3") (go-mode "1.3.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -48,6 +48,7 @@
   :type 'boolean)
 
 (defvar go-impl--interface-cache (make-hash-table :test #'equal))
+(defvar go-impl--receiver-cache nil)
 (defvar go-impl--receiver-history nil)
 (defvar go-impl--interface-history nil)
 
@@ -55,6 +56,29 @@
   (if (string-match "\\([^/-]+\\)\\'" package)
       (match-string-no-properties 1 package)
     package))
+
+(defun go-impl--collect-receiver-types-1 (buf)
+  (with-current-buffer buf
+    (save-excursion
+      (goto-char (point-min))
+      (let (types)
+        (while (re-search-forward "^type\\s-+\\(\\S-+\\)\\s-+\\(\\S-+\\)" nil t)
+          (unless (string= (match-string-no-properties 2) "interface")
+            (push (match-string-no-properties 1) types)))
+        types))))
+
+(defun go-impl--collect-receiver-types ()
+  (or go-impl--receiver-cache
+      (cl-loop with opened-bufs = (buffer-list)
+               for file in (directory-files default-directory nil "\\.go\\'")
+               unless (string-match-p "_test.go\\'" file)
+               append
+               (let ((buf (find-file-noselect file)))
+                 (prog1 (go-impl--collect-receiver-types-1 buf)
+                   (unless (memq buf opened-bufs)
+                     (kill-buffer buf))))
+               into types
+               finally return (setq go-impl--receiver-cache types))))
 
 (defun go-impl--collect-interface (package)
   (with-temp-buffer
@@ -104,6 +128,22 @@
       (error "Failed: impl '%s' %s" receiver interface))
     (buffer-string)))
 
+(defun go-impl--receiver-complete ()
+  (interactive)
+  (let ((input (minibuffer-contents)))
+    (when (string-match "\\`\\S-+\\s-+\\*?\\(\\S-*\\)" input)
+      (let* ((start-pos (+ (minibuffer-prompt-end) (match-beginning 1)))
+             (receiver (match-string-no-properties 1 input))
+             (candidates (go-impl--collect-receiver-types))
+             (matches (all-completions receiver candidates)))
+        (completion-in-region start-pos (point-max) matches)))))
+
+(defvar go-impl--local-command-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\t" #'go-impl--receiver-complete)
+    map))
+
 ;;;###autoload
 (defun go-impl (receiver interface)
   (interactive
@@ -112,8 +152,10 @@
                      (when (bound-and-true-p helm-mode)
                        (setq input (or (bound-and-true-p helm-input) input)))
                      (go-impl--completing-function packages input predicate code))))
+     (setq go-impl--receiver-cache nil)
      (list
-      (read-string "Receiver: " nil 'go-impl--receiver-history)
+      (read-from-minibuffer "Receiver: " nil go-impl--local-command-map nil
+                            'go-impl--receiver-history nil t)
       (completing-read "Interface: " comp-fn nil nil nil 'go-impl--interface-history))))
   (when go-impl-aliases-alist
     (setq interface (or (assoc-default interface go-impl-aliases-alist)
