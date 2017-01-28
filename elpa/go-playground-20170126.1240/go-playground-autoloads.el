@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "go-playground" "go-playground.el" (22628 53732
-;;;;;;  0 0))
+;;;### (autoloads nil "go-playground" "go-playground.el" (0 0 0 0))
 ;;; Generated autoloads from go-playground.el
 
 (autoload 'go-playground "go-playground" "\
@@ -22,6 +21,8 @@ Download a paste from the play.golang.org and insert it in a new local playgroun
 Tries to look for a URL at point.
 
 \(fn URL)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-playground" '("go-playground-")))
 
 ;;;***
 
