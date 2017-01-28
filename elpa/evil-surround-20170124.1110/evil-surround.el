@@ -1,16 +1,16 @@
 ;;; evil-surround.el --- emulate surround.vim from Vim
 
-;; Copyright (C) 2010, 2011 Tim Harper
+;; Copyright (C) 2010 - 2017 Tim Harper
 
-;; Licensed under the same terms as Emacs.
+;; Licensed under the same terms as Emacs (GPLv3)
 
 ;;
 ;; Author: Tim Harper <timcharper at gmail dot com>
 ;;      Vegard Øye <vegard_oye at hotmail dot com>
-;; Maintainer: Please send bug reports to the mailing list (below).
+;; Current Maintainer: ninrod (github.com/ninrod)
 ;; Created: July 23 2011
 ;; Version: 0.1
-;; Package-Version: 20170115.1604
+;; Package-Version: 20170124.1110
 ;; Package-Requires: ((evil "1.2.12"))
 ;; Mailing list: <implementations-list at lists.ourproject.org>
 ;;      Subscribe: http://tinyurl.com/implementations-list
@@ -34,7 +34,7 @@
 ;;
 ;; This package uses Evil as its vi layer. It is available from:
 ;;
-;;     https://bitbucket.org/lyro/evil/
+;;     https://github.com/emacs-evil/evil
 
 ;;; Code:
 
@@ -66,8 +66,11 @@ Each item is of the form (TRIGGER . (LEFT . RIGHT)), all strings.
 Alternatively, a function can be put in place of (LEFT . RIGHT).
 This only affects inserting pairs, not deleting or changing them."
   :group 'surround
-  :type '(repeat (cons (regexp :tag "Key")
-                       (symbol :tag "Surround pair"))))
+  :type '(alist
+          :key-type (character :tag "Key")
+          :value-type (choice
+                       (cons (string :tag "Opening") (string :tag "Closing"))
+                       (function :tag "Function"))))
 (make-variable-buffer-local 'evil-surround-pairs-alist)
 
 (defcustom evil-surround-operator-alist
