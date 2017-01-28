@@ -2,7 +2,7 @@
 
 ;; Author: Natalie Weizenbaum
 ;; URL: http://code.google.com/p/dart-mode
-;; Package-Version: 20161218.1548
+;; Package-Version: 20170127.1652
 ;; Version: 0.15
 ;; Package-Requires: ((cl-lib "0.5") (dash "2.10.0") (flycheck "0.23"))
 ;; Keywords: language
@@ -22,6 +22,39 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; This file contains several functions and variables adapted from the
+;; code in https://github.com/dominikh/go-mode.el
+;;
+;; go-mode.el uses this license:
+;;
+;; Copyright (c) 2014 The go-mode Authors. All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are
+;; met:
+;;
+;;    * Redistributions of source code must retain the above copyright
+;; notice, this list of conditions and the following disclaimer.
+;;    * Redistributions in binary form must reproduce the above
+;; copyright notice, this list of conditions and the following disclaimer
+;; in the documentation and/or other materials provided with the
+;; distribution.
+;;    * Neither the name of the copyright holder nor the names of its
+;; contributors may be used to endorse or promote products derived from
+;; this software without specific prior written permission.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+;; "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+;; LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+;; A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+;; OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+;; SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+;; LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+;; DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+;; THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+;; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 ;;; Commentary:
 
 ;; To install, see https://github.com/nex3/dart-mode/blob/master/README.md
@@ -37,6 +70,12 @@
 ;; * Sexp movement doesn't properly ignore quotes in interpolation.
 ;; * Methods using "=>" can cause indentation woes.
 ;; * C and C++ modes seem to be hosed.
+
+;; Definitions adapted from go-mode.el are
+;;
+;; gofmt-command gofmt-args gofmt-show-errors gofmt go--apply-rcs-patch
+;; gofmt--kill-error-buffer gofmt--process-errors gofmt-before-save
+;; go--goto-line go--delete-whole-line
 
 ;;; Code:
 
@@ -221,9 +260,6 @@
 
 (defvar dart-mode-map (c-make-inherited-keymap)
   "Keymap used in dart-mode buffers.")
-
-(define-key dart-mode-map (kbd "C-M-q") 'dart-format-statement)
-
 
 ;;; CC indentation support
 
@@ -790,6 +826,151 @@ reported to CALLBACK."
    ((string= severity "ERROR") 'error)))
 
 
+;;; Formatting
+
+(defcustom dartfmt-command "dartfmt"
+  "The 'dartfmt' command."
+  :type 'string
+  :group 'dart-mode)
+
+(defcustom dartfmt-args nil
+  "Additional arguments to pass to dartfmt."
+  :type '(repeat string)
+  :group 'dart-mode)
+
+(defcustom dartfmt-show-errors 'buffer
+  "Where to display dartfmt error output.
+It can either be displayed in its own buffer, in the echo area, or not at all.
+
+Please note that Emacs outputs to the echo area when writing
+files and will overwrite dartfmt's echo output if used from inside
+a `before-save-hook'."
+  :type '(choice
+          (const :tag "Own buffer" buffer)
+          (const :tag "Echo area" echo)
+          (const :tag "None" nil))
+  :group 'dart-mode)
+
+(defvar dartfmt-compilation-regexp
+  '("^line \\([0-9]+\\), column \\([0-9]+\\) of \\([^ \n]+\\):" 3 1 2)
+  "Specifications for matching errors in dartfmt's output.
+See `compilation-error-regexp-alist' for help on their format.")
+
+(add-to-list 'compilation-error-regexp-alist-alist
+             (cons 'dartfmt dartfmt-compilation-regexp))
+(add-to-list 'compilation-error-regexp-alist 'dartfmt)
+
+(defun dartfmt ()
+  "Format the current buffer according to the dartfmt tool."
+  (interactive)
+  (let ((tmpfile (make-temp-file "dartfmt" nil ".dart"))
+        (patchbuf (get-buffer-create "*Dartfmt patch*"))
+        (errbuf (if dartfmt-show-errors (get-buffer-create "*Dartfmt Errors*")))
+        (coding-system-for-read 'utf-8)
+        (coding-system-for-write 'utf-8)
+        our-dartfmt-args)
+    (unwind-protect
+        (save-restriction
+          (widen)
+          (if errbuf
+              (with-current-buffer errbuf
+                (setq buffer-read-only nil)
+                (erase-buffer)))
+          (with-current-buffer patchbuf
+            (erase-buffer))
+          (write-region nil nil tmpfile)
+          (setq our-dartfmt-args (append our-dartfmt-args
+                                       dartfmt-args
+                                       (list "-w" tmpfile)))
+          (message "Calling dartfmt: %s %s" dartfmt-command our-dartfmt-args)
+          (if (zerop (apply #'call-process dartfmt-command nil errbuf nil our-dartfmt-args))
+              (progn
+                (if (zerop (call-process-region (point-min) (point-max) "diff" nil patchbuf nil "-n" "-" tmpfile))
+                    (message "Buffer is already dartmted")
+                  (dart--apply-rcs-patch patchbuf)
+                  (message "Applied dartfmt"))
+                (if errbuf (dartfmt--kill-error-buffer errbuf)))
+            (message "Could not apply dartfmt")
+            (if errbuf (dartfmt--process-errors (buffer-file-name) tmpfile errbuf))))
+      (kill-buffer patchbuf)
+      (delete-file tmpfile))))
+
+(defun dart--apply-rcs-patch (patch-buffer)
+  "Apply an RCS-formatted diff from PATCH-BUFFER to the current buffer."
+  (let ((target-buffer (current-buffer))
+        ;; Relative offset between buffer line numbers and line numbers
+        ;; in patch.
+        ;;
+        ;; Line numbers in the patch are based on the source file, so
+        ;; we have to keep an offset when making changes to the
+        ;; buffer.
+        ;;
+        ;; Appending lines decrements the offset (possibly making it
+        ;; negative), deleting lines increments it. This order
+        ;; simplifies the forward-line invocations.
+        (line-offset 0))
+    (save-excursion
+      (with-current-buffer patch-buffer
+        (goto-char (point-min))
+        (while (not (eobp))
+          (unless (looking-at "^\\([ad]\\)\\([0-9]+\\) \\([0-9]+\\)")
+            (error "invalid rcs patch or internal error in dart--apply-rcs-patch"))
+          (forward-line)
+          (let ((action (match-string 1))
+                (from (string-to-number (match-string 2)))
+                (len  (string-to-number (match-string 3))))
+            (cond
+             ((equal action "a")
+              (let ((start (point)))
+                (forward-line len)
+                (let ((text (buffer-substring start (point))))
+                  (with-current-buffer target-buffer
+                    (cl-decf line-offset len)
+                    (goto-char (point-min))
+                    (forward-line (- from len line-offset))
+                    (insert text)))))
+             ((equal action "d")
+              (with-current-buffer target-buffer
+                (dart--goto-line (- from line-offset))
+                (cl-incf line-offset len)
+                (dart--delete-whole-line len)))
+             (t
+              (error "invalid rcs patch or internal error in dart--apply-rcs-patch")))))))))
+
+(defun dartfmt--kill-error-buffer (errbuf)
+  "Kill the dartfmt error buffer."
+  (let ((win (get-buffer-window errbuf)))
+    (if win
+        (quit-window t win)
+      (kill-buffer errbuf))))
+
+(defun dartfmt--process-errors (filename tmpfile errbuf)
+  "Display the dartfmt errors."
+  (message tmpfile)
+  (with-current-buffer errbuf
+    (if (eq dartfmt-show-errors 'echo)
+        (progn
+          (message "%s" (buffer-string))
+          (dartfmt--kill-error-buffer errbuf))
+      (goto-char (point-min))
+      (insert "dartfmt errors:\n")
+      (while (search-forward-regexp (concat "\\(" (regexp-quote tmpfile) "\\):") nil t)
+        (replace-match (file-name-nondirectory filename) t t nil 1))
+      (compilation-mode)
+      (display-buffer errbuf))))
+
+;;;###autoload
+(defun dartfmt-before-save ()
+  "Add this to .emacs to run dartfmt on the current buffer when saving:
+ (add-hook 'before-save-hook 'dartfmt-before-save).
+
+Note that this will cause dart-mode to get loaded the first time
+you save any file, kind of defeating the point of autoloading."
+
+  (interactive)
+  (when (eq major-mode 'dart-mode) (dartfmt)))
+
+
 ;;; Utility functions
 
 (defun dart-beginning-of-statement ()
@@ -824,6 +1005,38 @@ true for positions before the start of the statement, but on its line."
        (cl-case (char-before)
          ((?} ?\;) t)
          ((?{) (dart-in-block-p (c-guess-basic-syntax))))))))
+
+(defun dart--goto-line (line)
+  "Move to the specified line."
+  (goto-char (point-min))
+  (forward-line (1- line)))
+
+(defun dart--delete-whole-line (&optional arg)
+  "Delete the current line without putting it in the `kill-ring'.
+Derived from function `kill-whole-line'.  ARG is defined as for that
+function."
+  (setq arg (or arg 1))
+  (if (and (> arg 0)
+           (eobp)
+           (save-excursion (forward-visible-line 0) (eobp)))
+      (signal 'end-of-buffer nil))
+  (if (and (< arg 0)
+           (bobp)
+           (save-excursion (end-of-visible-line) (bobp)))
+      (signal 'beginning-of-buffer nil))
+  (cond ((zerop arg)
+         (delete-region (progn (forward-visible-line 0) (point))
+                        (progn (end-of-visible-line) (point))))
+        ((< arg 0)
+         (delete-region (progn (end-of-visible-line) (point))
+                        (progn (forward-visible-line (1+ arg))
+                               (unless (bobp)
+                                 (backward-char))
+                               (point))))
+        (t
+         (delete-region (progn (forward-visible-line 0) (point))
+                        (progn (forward-visible-line arg) (point))))))
+
 
 
 ;;; Initialization
