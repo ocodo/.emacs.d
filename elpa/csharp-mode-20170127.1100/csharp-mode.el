@@ -5,7 +5,7 @@
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
 ;; Version    : 0.9.1
-;; Package-Version: 20170111.1133
+;; Package-Version: 20170127.1100
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2017-Jan-11
@@ -300,6 +300,7 @@
 ;;          - Fix fontification of using and namespace-statements with
 ;;            underscores in them.
 ;;          - Derive csharp-mode-map from prog-mode-map.
+;;          - Fixes for indentation for many kinds of type-initializers.
 ;;
 ;;; Code:
 
@@ -2612,13 +2613,19 @@ are the string substitutions (see `format')."
                               (c-safe (c-forward-sexp -1))
                               (looking-at csharp-enum-decl-re))
 
-                            ;; no need to forward when looking here, because enum
-                            ;; check already did it!
+                            ;; type-initializers are not properly detected and
+                            ;; indented unless we help out. (no need to forward
+                            ;; when looking here, because enum-check already did
+                            ;; it!)
                             (looking-at csharp-type-initializer-statement-re))))
 
                   (setq bracepos (c-down-list-forward (point)))
-                  (not (c-crosses-statement-barrier-p (point)
-                                                      (- bracepos 2))))
+                  (or
+                   (not (c-crosses-statement-barrier-p (point)
+                                                       (- bracepos 2)))
+                   ;; this little hack (combined with the regexp-check above)
+                   ;; fixes indentation for all type-initializers.
+                   (c-major-mode-is 'csharp-mode)))
              (point)))))
 
    ;; this will pick up array/aggregate init lists, even if they are nested.
