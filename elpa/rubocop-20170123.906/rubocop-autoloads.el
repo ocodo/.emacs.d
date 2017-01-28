@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "rubocop" "rubocop.el" (22532 20721 0 0))
+;;;### (autoloads nil "rubocop" "rubocop.el" (0 0 0 0))
 ;;; Generated autoloads from rubocop.el
 
 (autoload 'rubocop-check-project "rubocop" "\
@@ -42,6 +42,8 @@ Run autocorrect on current file.
 Minor mode to interface with RuboCop.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "rubocop" '("rubocop-")))
 
 ;;;***
 

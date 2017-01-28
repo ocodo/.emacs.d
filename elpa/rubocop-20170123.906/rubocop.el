@@ -1,13 +1,13 @@
 ;;; rubocop.el --- An Emacs interface for RuboCop -*- lexical-binding: t -*-
 
-;; Copyright © 2011-2016 Bozhidar Batsov
+;; Copyright © 2011-2017 Bozhidar Batsov
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/rubocop-emacs
-;; Package-Version: 20161015.1200
-;; Version: 0.4.0
+;; Package-Version: 20170123.906
+;; Version: 0.5.0-cvs
 ;; Keywords: project, convenience
-;; Package-Requires: ((dash "1.0.0") (emacs "24"))
+;; Package-Requires: ((emacs "24"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -35,25 +35,34 @@
 ;;
 ;;; Code:
 
-(require 'dash)
 (require 'tramp)
 
 (defgroup rubocop nil
   "An Emacs interface for RuboCop."
   :group 'tools
-  :group 'convenience)
+  :group 'convenience
+  :prefix "rubocop-"
+  :link '(url-link :tag "GitHub" "https://github.com/bbatsov/rubocop-emacs"))
 
-(defvar rubocop-project-root-files
+(defcustom rubocop-project-root-files
   '(".projectile" ".git" ".hg" ".bzr" "_darcs" "Gemfile")
-  "A list of files considered to mark the root of a project.")
+  "A list of files considered to mark the root of a project."
+  :type '(repeat string))
 
-(defvar rubocop-check-command
+(defcustom rubocop-check-command
   "rubocop --format emacs"
-  "The command used to run RuboCop checks.")
+  "The command used to run RuboCop checks."
+  :type 'string)
 
-(defvar rubocop-autocorrect-command
+(defcustom rubocop-autocorrect-command
   "rubocop -a --format emacs"
-  "The command used to run RuboCop's autocorrection.")
+  "The command used to run RuboCop's autocorrection."
+  :type 'string)
+
+(defcustom rubocop-extensions
+  '()
+  "A list of extensions to be loaded by RuboCop."
+  :type '(repeat string))
 
 (defcustom rubocop-keymap-prefix (kbd "C-c C-r")
   "RuboCop keymap prefix."
@@ -67,18 +76,47 @@
         (t
          file-name)))
 
-(defun rubocop-project-root ()
+(defun rubocop-project-root (&optional no-error)
   "Retrieve the root directory of a project if available.
-The current directory is assumed to be the project's root otherwise."
-  (or (->> rubocop-project-root-files
-        (--map (locate-dominating-file default-directory it))
-        (-remove #'null)
-        (car))
-      (error "You're not into a project")))
+
+When NO-ERROR is non-nil returns nil instead of raise an error."
+  (or
+   (car
+    (mapcar #'expand-file-name
+            (delq nil
+                  (mapcar
+                   (lambda (f) (locate-dominating-file default-directory f))
+                   rubocop-project-root-files))))
+   (if no-error
+       nil
+     (error "You're not into a project"))))
 
 (defun rubocop-buffer-name (file-or-dir)
   "Generate a name for the RuboCop buffer from FILE-OR-DIR."
   (concat "*RuboCop " file-or-dir "*"))
+
+(defun rubocop-build-requires ()
+  "Build RuboCop requires from `rubocop-extensions'."
+  (if rubocop-extensions
+      (concat
+       " "
+       (mapconcat
+        (lambda (ext)
+          (format "--require %s" ext))
+        rubocop-extensions
+        " ")
+       " ")
+    ""))
+
+(defun rubocop-build-command (command path)
+  "Build the full command to be run based on COMMAND and PATH.
+The command will be prefixed with `bundle exec` if RuboCop is bundled."
+  (concat
+   (if (rubocop-bundled-p) "bundle exec " "")
+   command
+   (rubocop-build-requires)
+   " "
+   path))
 
 (defun rubocop--dir-command (command &optional directory)
   "Run COMMAND on DIRECTORY (if present).
@@ -86,11 +124,13 @@ Alternatively prompt user for directory."
   (rubocop-ensure-installed)
   (let ((directory
          (or directory
-             (read-directory-name "Select directory:"))))
-    (compilation-start
-     (concat command " " (rubocop-local-file-name directory))
-     'compilation-mode
-     (lambda (arg) (message arg) (rubocop-buffer-name directory)))))
+             (read-directory-name "Select directory: "))))
+    ;; make sure we run RuboCop from a project's root if the command is executed within a project
+    (let ((default-directory (or (rubocop-project-root 'no-error) default-directory)))
+      (compilation-start
+       (rubocop-build-command command (rubocop-local-file-name directory))
+       'compilation-mode
+       (lambda (arg) (message arg) (rubocop-buffer-name directory))))))
 
 ;;;###autoload
 (defun rubocop-check-project ()
@@ -123,10 +163,12 @@ Alternatively prompt user for directory."
   (rubocop-ensure-installed)
   (let ((file-name (buffer-file-name (current-buffer))))
     (if file-name
-        (compilation-start
-         (concat command " " (rubocop-local-file-name file-name))
-         'compilation-mode
-         (lambda (_arg) (rubocop-buffer-name file-name)))
+        ;; make sure we run RuboCop from a project's root if the command is executed within a project
+        (let ((default-directory (or (rubocop-project-root 'no-error) default-directory)))
+          (compilation-start
+           (rubocop-build-command command (rubocop-local-file-name file-name))
+           'compilation-mode
+           (lambda (_arg) (rubocop-buffer-name file-name))))
       (error "Buffer is not visiting a file"))))
 
 ;;;###autoload
@@ -141,9 +183,17 @@ Alternatively prompt user for directory."
   (interactive)
   (rubocop--file-command rubocop-autocorrect-command))
 
+(defun rubocop-bundled-p ()
+  "Check if RuboCop has been bundled."
+  (let ((gemfile-lock (expand-file-name "Gemfile.lock" (rubocop-project-root))))
+    (when (file-exists-p gemfile-lock)
+      (with-temp-buffer
+        (insert-file-contents gemfile-lock)
+        (re-search-forward "rubocop" nil t)))))
+
 (defun rubocop-ensure-installed ()
   "Check if RuboCop is installed."
-  (unless (executable-find "rubocop")
+  (unless (or (executable-find "rubocop") (rubocop-bundled-p))
     (error "RuboCop is not installed")))
 
 ;;; Minor mode
