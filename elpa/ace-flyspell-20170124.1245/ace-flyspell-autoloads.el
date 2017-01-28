@@ -1,16 +1,10 @@
 ;;; ace-flyspell-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-flyspell" "ace-flyspell.el" (21857 51001
-;;;;;;  3401 0))
+;;;### (autoloads nil "ace-flyspell" "ace-flyspell.el" (0 0 0 0))
 ;;; Generated autoloads from ace-flyspell.el
-
-(autoload 'ace-flyspell-correct-word "ace-flyspell" "\
-
-
-\(fn)" t nil)
 
 (autoload 'ace-flyspell-jump-word "ace-flyspell" "\
 
@@ -26,6 +20,8 @@
 Set up default keybindings.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ace-flyspell" '("ace-flyspell-")))
 
 ;;;***
 
