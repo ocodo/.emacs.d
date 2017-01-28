@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22653 62646 536557
-;;;;;;  417000))
+;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (0 0 0 0))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -17,9 +16,11 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 (defalias 'camldebug 'ocamldebug)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ocamldebug" '("ocamldebug-" "def-ocamldebug")))
+
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (22653 62646 500556 689000))
+;;;### (autoloads nil "tuareg" "tuareg.el" (0 0 0 0))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
@@ -80,11 +81,34 @@ Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'.
 
 (add-to-list 'interpreter-mode-alist '("ocaml" . tuareg-mode))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tuareg" '("tuareg-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el" "tuareg-pkg.el"
-;;;;;;  "tuareg-site-file.el" "tuareg_indent.el") (22653 62646 528557
-;;;;;;  255000))
+;;;### (autoloads nil "tuareg-light" "tuareg-light.el" (0 0 0 0))
+;;; Generated autoloads from tuareg-light.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tuareg-light" '("tuareg2-")))
+
+;;;***
+
+;;;### (autoloads nil "tuareg-site-file" "tuareg-site-file.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from tuareg-site-file.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tuareg-site-file" '("run-ocaml" "camldebug")))
+
+;;;***
+
+;;;### (autoloads nil "tuareg_indent" "tuareg_indent.el" (0 0 0 0))
+;;; Generated autoloads from tuareg_indent.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tuareg_indent" '("tuareg-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-pkg.el") (0 0 0
+;;;;;;  0))
 
 ;;;***
 

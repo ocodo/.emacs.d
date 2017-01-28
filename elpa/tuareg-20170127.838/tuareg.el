@@ -326,11 +326,13 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defvar tuareg-options-list
   `(("Automatic indentation of leading keywords" . 'tuareg-use-abbrev-mode)
     ("Automatic indentation of ), ] and }" . 'tuareg-electric-indent)
+    ["Prettify symbols" prettify-symbols-mode
+      :style toggle :selected prettify-symbols-mode :active t]
     ,@(unless tuareg-use-smie
         '(("Automatic matching of [| and {<" . 'tuareg-electric-close-vector)))
-    "---"
     ,@(unless tuareg-use-smie
-        '(("Indent body of comments" . 'tuareg-indent-comments)
+        '("---"
+          ("Indent body of comments" . 'tuareg-indent-comments)
           ("Indent first line of comments" . 'tuareg-indent-leading-comments)
           ("Leading-`*' comment style" . 'tuareg-support-leading-star-comments)
           )))
@@ -429,6 +431,13 @@ changing the opam switch)."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-label-face
   'tuareg-font-lock-label-face)
+
+(defface tuareg-font-double-colon-face
+  '((t (:foreground "OrangeRed")))
+  "Face description for ;; which is not needed in standard code."
+  :group 'tuareg-faces)
+(defvar tuareg-font-double-colon-face
+  'tuareg-font-double-colon-face)
 
 (defface tuareg-font-lock-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
@@ -836,6 +845,7 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
+     (";;+" 0 tuareg-font-double-colon-face)
      ;; Attributes (`keep' to highlight except strings & chars)
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
       0 tuareg-font-lock-attribute-face keep)
@@ -1731,7 +1741,7 @@ Return values can be
             (equal "|"
                    (setq tok
                          (tuareg-smie--search-backward
-                          '("|" "->" "with" "function" "=" "of" "in" "then")))))
+                          '("|" "with" "function" "=" "of" "in" "then")))))
         (cond
          ((equal tok "=")
           (not (equal (tuareg-smie--=-disambiguate) "d=")))
@@ -1768,11 +1778,11 @@ Return values can be
         (let (nearest)
           (while (progn
                    (setq nearest (tuareg-smie--search-backward
-                                  '("with" "|" "fun" "functor"
+                                  '("with" "|" "fun" "function" "functor"
 				    "type" ":" "of")))
                    (and (equal nearest ":")
                         (tuareg-smie--label-colon-p))))
-          (if (member nearest '("with" "|" "fun" "functor"))
+          (if (member nearest '("with" "|" "fun" "function" "functor"))
               tok "t->"))))
      ;; Handle "module type" and mod-constraint's "with/and type".
      ((equal tok "type")
@@ -1837,8 +1847,12 @@ Return values can be
    ((and (eq kind :after) (member token '("." ";"))
          (smie-rule-parent-p "with")
          (tuareg-smie--with-module-fields-rule)))
+   ((and (eq kind :after) (equal token ";;"))
+    0)
    ;; Special indentation for monadic >>>, >>|, >>=, and >|= operators.
    ((and (eq kind :before) (tuareg-smie--monadic-rule token)))
+   ((and (equal token "and") (smie-rule-parent-p "type"))
+    0)
    ((member token '(";" "|" "," "and" "m-and"))
     (cond
      ((and (eq kind :before) (member token '("|" ";"))
@@ -2018,16 +2032,16 @@ Return values can be
                      (cond
                       ((car parent-data) (member (nth 2 parent-data) '("->")))
                       ((member (nth 2 parent-data) '(";" "d=")) nil)
-                      ((member (nth 2 parent-data) '("fun" '"function"))
+                      ((member (nth 2 parent-data) '("fun" "function"))
                        (if (member (tuareg-smie--backward-token)
-                                   '(">>|" ">>=" ">>>" ">|="))
+                                   tuareg-smie--monadic-operators)
                            (progn
                              (setq indent (cons 'column
                                                 (smie-indent-virtual)))
                              nil)
                          t)))))
                indent)))
-      ;; In "foo >>= fun x => bar" indent `bar' relative to `foo'.
+      ;; In "foo >>= fun x -> bar" indent `bar' relative to `foo'.
       (and (member token '("fun" "function")) (not (smie-rule-bolp))
            (save-excursion
              (let ((prev (tuareg-smie-backward-token)))
@@ -2077,8 +2091,9 @@ Return values can be
 
 (defun tuareg-smie--inside-string ()
   (when (nth 3 (syntax-ppss))
-    (goto-char (1+ (nth 8 (syntax-ppss))))
-    (current-column)))
+    (save-excursion
+      (goto-char (1+ (nth 8 (syntax-ppss))))
+      (current-column))))
 
 (defcustom tuareg-indent-align-with-first-arg t
   "Non-nil if indentation should try to align arguments on the first one.
