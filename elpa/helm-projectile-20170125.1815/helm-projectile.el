@@ -1,10 +1,10 @@
-;;; helm-projectile.el --- Helm integration for Projectile
+;;; helm-projectile.el --- Helm integration for Projectile         -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2016 Bozhidar Batsov
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/helm-projectile
-;; Package-Version: 20170113.209
+;; Package-Version: 20170125.1815
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.14.0
@@ -70,10 +70,6 @@
 This needs to be set before loading helm-projectile."
   :group 'helm-projectile
   :type 'boolean)
-
-(defun helm-projectile-coerce-file (candidate)
-  (with-current-buffer (helm-candidate-buffer)
-    (expand-file-name candidate (projectile-project-root))))
 
 (defmacro helm-projectile-define-key (keymap key def &rest bindings)
   "In KEYMAP, define key sequence KEY1 as DEF1, KEY2 as DEF2 ..."
@@ -215,12 +211,12 @@ It is there because Helm requires it."
   :type '(alist :key-type string :value-type function))
 
 (defvar helm-source-projectile-projects
-  (helm-build-in-buffer-source "Projectile projects"
-    :data (lambda ()
-            (if (projectile-project-p)
-                (cons (abbreviate-file-name (projectile-project-root))
-                      (projectile-relevant-known-projects))
-              projectile-known-projects))
+  (helm-build-sync-source "Projectile projects"
+    :candidates (lambda ()
+                  (if (projectile-project-p)
+                      (cons (abbreviate-file-name (projectile-project-root))
+                            (projectile-relevant-known-projects))
+                    projectile-known-projects))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-projects-map
     :mode-line helm-read-file-name-mode-line-string
@@ -267,17 +263,17 @@ It is there because Helm requires it."
    to have a nice display in Helm."
   (message "Checking for dirty known projects...")
   (let* ((status (projectile-check-vcs-status-of-known-projects))
-         (proj-dir (loop for stat in status
-                         collect (car stat)))
-         (status-display (loop for stat in status collect
-                               (propertize (format "[%s]" (mapconcat 'identity (car (cdr stat)) ", ")) 'face 'helm-match)))
-         (max-status-display-length (loop for sd in status-display
-                                          maximize (length sd)))
-         (status-display (loop for sd in status-display collect
-                               (format "%s%s    " sd (make-string (- max-status-display-length (length sd)) ? ))))
+         (proj-dir (cl-loop for stat in status
+                            collect (car stat)))
+         (status-display (cl-loop for stat in status collect
+                                  (propertize (format "[%s]" (mapconcat 'identity (car (cdr stat)) ", ")) 'face 'helm-match)))
+         (max-status-display-length (cl-loop for sd in status-display
+                                             maximize (length sd)))
+         (status-display (cl-loop for sd in status-display collect
+                                  (format "%s%s    " sd (make-string (- max-status-display-length (length sd)) ? ))))
          (full-display (cl-mapcar 'concat status-display proj-dir))
          (helm-list (cl-pairlis full-display proj-dir)))
-     helm-list))
+    helm-list))
 
 (define-key helm-etags-map (kbd "C-c p f")
   (lambda ()
@@ -288,13 +284,24 @@ It is there because Helm requires it."
   "Persistent action for file-related functionality.
 
 Previews the contents of a file in a temporary buffer."
-  (switch-to-buffer (get-buffer-create " *helm-projectile persistent*"))
-  (fundamental-mode)
-  (erase-buffer)
-  (insert-file-contents candidate)
-  (let ((buffer-file-name candidate))
-    (set-auto-mode)
-    (font-lock-ensure)))
+  (let ((buf (get-buffer-create " *helm-projectile persistent*")))
+    (cl-flet ((preview (candidate)
+                       (switch-to-buffer buf)
+                       (setq inhibit-read-only t)
+                       (erase-buffer)
+                       (insert-file-contents candidate)
+                       (let ((buffer-file-name candidate))
+                         (set-auto-mode))
+                       (font-lock-ensure)
+                       (setq inhibit-read-only nil)))
+      (if (and (helm-attr 'previewp)
+               (string= candidate (helm-attr 'current-candidate)))
+          (progn
+            (kill-buffer buf)
+            (helm-attrset 'previewp nil))
+        (preview candidate)
+        (helm-attrset 'previewp t)))
+    (helm-attrset 'current-candidate candidate)))
 
 (defun helm-projectile-find-files-eshell-command-on-file-action (_candidate)
   (interactive)
@@ -481,49 +488,36 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
      . "Add files to Dired buffer `C-c a'"))
   "Action for files.")
 
-(defun helm-projectile-build-dwim-source (candidates)
-  "Dynamically build a Helm source definition for Projectile files based on context with CANDIDATES."
-  ""
-  (helm-build-in-buffer-source "Projectile files"
-    :data candidates
-    :fuzzy-match helm-projectile-fuzzy-match
-    :coerce 'helm-projectile-coerce-file
-    :action-transformer 'helm-find-files-action-transformer
-    :keymap helm-projectile-find-file-map
-    :help-message helm-ff-help-message
-    :mode-line helm-read-file-name-mode-line-string
-    :action helm-projectile-file-actions
-    :persistent-action #'helm-projectile-file-persistent-action))
-
 (defvar helm-source-projectile-files-list
-  (helm-build-in-buffer-source "Projectile files"
-    :data (lambda ()
-            (condition-case nil
-                (projectile-current-project-files)
-              (error nil)))
+  (helm-build-sync-source "Projectile files"
+    :candidates (lambda ()
+                  (condition-case nil
+                      (cl-loop with root = (projectile-project-root)
+                               for display in (projectile-current-project-files)
+                               collect (cons display (expand-file-name display root)))
+                    (error nil)))
     :fuzzy-match helm-projectile-fuzzy-match
-    :coerce 'helm-projectile-coerce-file
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     :persistent-action #'helm-projectile-file-persistent-action
-    )
+    :persistent-help "Preview file")
   "Helm source definition for Projectile files.")
 
 (defvar helm-source-projectile-files-in-all-projects-list
-  (helm-build-in-buffer-source "Projectile files in all Projects"
-    :data (lambda ()
-            (condition-case nil
-                (let ((projectile-require-project-root nil))
-                  (projectile-all-project-files))
-              (error nil)))
+  (helm-build-sync-source "Projectile files in all Projects"
+    :candidates (lambda ()
+                  (condition-case nil
+                      (let ((projectile-require-project-root nil))
+                        (projectile-all-project-files))
+                    (error nil)))
     :keymap helm-find-files-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     :persistent-action #'helm-projectile-file-persistent-action
-    )
+    :persistent-help "Preview file")
   "Helm source definition for all Projectile files in all projects.")
 
 (defvar helm-projectile-dired-file-actions
@@ -539,15 +533,11 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                 (if (and (file-remote-p (projectile-project-root))
                          (not helm-projectile-virtual-dired-remote-enable))
                     nil
-                  (let ((default-directory (projectile-project-root)))
-                    (when (eq major-mode 'dired-mode)
-                      (mapcar (lambda (file)
-                                (replace-regexp-in-string default-directory "" file))
-                              (helm-projectile-files-in-current-dired-buffer)))))
+                  (when (eq major-mode 'dired-mode)
+                    (helm-projectile-files-in-current-dired-buffer)))
               (error nil)))
-    :coerce 'helm-projectile-coerce-file
     :filter-one-by-one (lambda (file)
-                         (let ((default-directory (projectile-project-root)))
+                         (let ((helm-ff-transformer-show-only-basename t))
                            (helm-ff-filter-candidate-one-by-one file)))
     :action-transformer 'helm-find-files-action-transformer
     :keymap (let ((map (copy-keymap helm-projectile-find-file-map)))
@@ -570,15 +560,15 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
   (run-hooks 'projectile-find-dir-hook))
 
 (defvar helm-source-projectile-directories-list
-  (helm-build-in-buffer-source "Projectile directories"
-    :data (lambda ()
-            (condition-case nil
-                (if projectile-find-dir-includes-top-level
-                    (append '("./") (projectile-current-project-dirs))
-                  (projectile-current-project-dirs))
-              (error nil)))
+  (helm-build-sync-source "Projectile directories"
+    :candidates (lambda ()
+                  (condition-case nil
+                      (let ((dirs (if projectile-find-dir-includes-top-level
+                                      (append '("./") (projectile-current-project-dirs))
+                                    (projectile-current-project-dirs))))
+                        (helm-projectile--files-display-real dirs (projectile-project-root)))
+                    (error nil)))
     :fuzzy-match helm-projectile-fuzzy-match
-    :coerce 'helm-projectile-coerce-file
     :action-transformer 'helm-find-files-action-transformer
     :keymap (let ((map (make-sparse-keymap)))
               (set-keymap-parent map helm-map)
@@ -634,19 +624,19 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
 (defvar helm-source-projectile-buffers-list (helm-make-source "Project buffers" 'helm-source-projectile-buffer))
 
 (defvar helm-source-projectile-recentf-list
-  (helm-build-in-buffer-source "Projectile recent files"
-    :data (lambda ()
-            (condition-case nil
-                (projectile-recentf-files)
-              (error nil)))
+  (helm-build-sync-source "Projectile recent files"
+    :candidates (lambda ()
+                  (condition-case nil
+                      (helm-projectile--files-display-real (projectile-recentf-files)
+                                                           (projectile-project-root))
+                    (error nil)))
     :fuzzy-match helm-projectile-fuzzy-match
-    :coerce 'helm-projectile-coerce-file
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     :persistent-action #'helm-projectile-file-persistent-action
-    )
+    :persistent-help "Preview file")
   "Helm source definition for recent files in current project.")
 
 (defvar helm-source-projectile-files-and-dired-list
@@ -696,17 +686,34 @@ With a prefix ARG invalidates the cache first."
 (helm-projectile-command "switch-to-buffer" 'helm-source-projectile-buffers-list "Switch to buffer: ")
 (helm-projectile-command "browse-dirty-projects" 'helm-source-projectile-dirty-projects "Select a project: " t)
 
+(defun helm-projectile--files-display-real (files root)
+  "Create (DISPLAY . REAL) pairs with FILES and ROOT.
+
+  DISPLAY is the short file name.  REAL is the full path."
+  (cl-loop for display in files
+           collect (cons display (expand-file-name display root))))
+
 ;;;###autoload
 (defun helm-projectile-find-file-dwim ()
   "Find file at point based on context."
   (interactive)
-  (let* ((project-files (projectile-current-project-files))
+  (let* ((project-root (projectile-project-root))
+         (project-files (projectile-current-project-files))
          (files (projectile-select-files project-files)))
     (if (= (length files) 1)
         (find-file (expand-file-name (car files) (projectile-project-root)))
-      (helm :sources (helm-projectile-build-dwim-source (if (> (length files) 1)
-                                                            files
-                                                          project-files))
+      (helm :sources (helm-build-sync-source "Projectile files"
+                       :candidates (if (> (length files) 1)
+                                       (helm-projectile--files-display-real files project-root)
+                                     (helm-projectile--files-display-real project-files project-root))
+                       :fuzzy-match helm-projectile-fuzzy-match
+                       :action-transformer 'helm-find-files-action-transformer
+                       :keymap helm-projectile-find-file-map
+                       :help-message helm-ff-help-message
+                       :mode-line helm-read-file-name-mode-line-string
+                       :action helm-projectile-file-actions
+                       :persistent-action #'helm-projectile-file-persistent-action
+                       :persistent-help "Preview file")
             :buffer "*helm projectile*"
             :prompt (projectile-prepend-project-name "Find file: ")))))
 
@@ -716,17 +723,17 @@ With a prefix ARG invalidates the cache first."
 With FLEX-MATCHING, match any file that contains the base name of current file.
 Other file extensions can be customized with the variable `projectile-other-file-alist'."
   (interactive "P")
-  (let ((other-files (projectile-get-other-files (buffer-file-name)
-                                                 (projectile-current-project-files)
-                                                 flex-matching)))
+  (let* ((project-root (projectile-project-root))
+         (other-files (projectile-get-other-files (buffer-file-name)
+                                                  (projectile-current-project-files)
+                                                  flex-matching)))
     (if other-files
         (if (= (length other-files) 1)
-            (find-file (expand-file-name (car other-files) (projectile-project-root)))
+            (find-file (expand-file-name (car other-files) project-root))
           (progn
             (let* ((helm-ff-transformer-show-only-basename nil))
-              (helm :sources (helm-build-in-buffer-source "Projectile other files"
-                               :data other-files
-                               :coerce 'helm-projectile-coerce-file
+              (helm :sources (helm-build-sync-source "Projectile other files"
+                               :candidates (helm-projectile--files-display-real other-files project-root)
                                :keymap (let ((map (copy-keymap helm-find-files-map)))
                                          (define-key map (kbd "<left>") 'helm-previous-source)
                                          (define-key map (kbd "<right>") 'helm-next-source)
@@ -734,7 +741,8 @@ Other file extensions can be customized with the variable `projectile-other-file
                                :help-message helm-ff-help-message
                                :mode-line helm-read-file-name-mode-line-string
                                :action helm-projectile-file-actions
-                               :persistent-action #'helm-projectile-file-persistent-action)
+                               :persistent-action #'helm-projectile-file-persistent-action
+                               :persistent-help "Preview file")
                     :buffer "*helm projectile*"
                     :prompt (projectile-prepend-project-name "Find other file: ")))))
       (error "No other file found"))))
