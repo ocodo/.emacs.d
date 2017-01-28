@@ -4,7 +4,7 @@
 
 ;; Author: Christopher Wellons <wellons@nullprogram.com>
 ;; URL: https://github.com/skeeto/emacs-http-server
-;; Package-Version: 20160902.1800
+;; Package-Version: 20170125.1910
 ;; Version: 1.4.6
 ;; Package-Requires: ((cl-lib "0.3"))
 
@@ -340,7 +340,7 @@ instance per Emacs instance."
    :family   httpd-ip-family
    :filter   'httpd--filter
    :filter-multibyte nil
-   :coding   'utf-8-unix  ; *should* be ISO-8859-1 but that doesn't work
+   :coding   'binary
    :log      'httpd--log)
   (run-hooks 'httpd-start-hook))
 
@@ -395,34 +395,55 @@ emacs -Q -batch -l simple-httpd.elc -f httpd-batch-start"
 
 ;; Networking code
 
-(defun httpd--filter (proc string)
+(defun httpd--filter (proc chunk)
   "Runs each time client makes a request."
-  (setf string (concat (process-get proc :previous-string) string))
-  (let* ((request (httpd-parse string))
-         (content-length (cadr (assoc "Content-Length" request)))
-         (uri (cl-cadar request))
-         (content (cadr (assoc "Content" request)))
-         (parsed-uri (httpd-parse-uri (concat uri)))
-         (uri-path (nth 0 parsed-uri))
-         (uri-query (append (nth 1 parsed-uri) (httpd-parse-args content)))
-         (servlet (httpd-get-servlet uri-path)))
-    (if (and content-length
-             (< (string-bytes content) (string-to-number content-length)))
-        (process-put proc :previous-string string)
-      (process-put proc :previous-string nil)
-      (httpd-log `(request (date ,(httpd-date-string))
-                           (address ,(car (process-contact proc)))
-                           (get ,uri-path)
-                           ,(cons 'headers request)))
-      (if (null servlet)
-          (httpd--error-safe proc 404)
-        (condition-case error-case
-            (funcall servlet proc uri-path uri-query request)
-          (error (httpd--error-safe proc 500 error-case)))))))
+  (with-current-buffer (process-get proc :request-buffer)
+    (setf (point) (point-max))
+    (insert chunk)
+    (let ((request (process-get proc :request)))
+      (unless request
+        (when (setf request (httpd-parse))
+          (delete-region (point-min) (point))
+          (process-put proc :request request)))
+      (when request
+        (let ((content-length (cadr (assoc "Content-Length" request))))
+          (when (or (null content-length)
+                    (= (buffer-size) (string-to-number content-length)))
+            (let* ((content (buffer-string))
+                   (uri (cl-cadar request))
+                   (parsed-uri (httpd-parse-uri (concat uri)))
+                   (uri-path (nth 0 parsed-uri))
+                   (uri-query (append (nth 1 parsed-uri)
+                                      (httpd-parse-args content)))
+                   (servlet (httpd-get-servlet uri-path)))
+              (erase-buffer)
+              (process-put proc :request nil)
+              (setf request (nreverse (cons (list "Content" content)
+                                            (nreverse request))))
+              (httpd-log `(request (date ,(httpd-date-string))
+                                   (address ,(car (process-contact proc)))
+                                   (get ,uri-path)
+                                   ,(cons 'headers request)))
+              (if (null servlet)
+                  (httpd--error-safe proc 404)
+                (condition-case error-case
+                    (funcall servlet proc uri-path uri-query request)
+                  (error (httpd--error-safe proc 500 error-case)))))))))))
 
 (defun httpd--log (server proc message)
   "Runs each time a new client connects."
+  (with-current-buffer (generate-new-buffer " *httpd-client*")
+    (set-buffer-multibyte nil)
+    (process-put proc :request-buffer (current-buffer)))
+  (set-process-sentinel proc #'httpd--sentinel)
   (httpd-log (list 'connection (car (process-contact proc)))))
+
+(defun httpd--sentinel (proc message)
+  "Runs when a client closes the connection."
+  (unless (string-match-p "^open " message)
+    (let ((buffer (process-get proc :request-buffer)))
+      (when buffer
+        (kill-buffer buffer)))))
 
 ;; Logging
 
@@ -610,17 +631,26 @@ actually serve up files."
   "Destructively capitalize the components of HEADER."
   (mapconcat #'capitalize (split-string header "-") "-"))
 
-(defun httpd-parse (string)
-  "Parse client http header into alist."
-  (let* ((lines (split-string string "[\n\r]+"))
-         (req (list (split-string (car lines))))
-         (post (cadr (split-string string "\r\n\r\n"))))
-    (dolist (line (butlast (cdr lines)))
-      (push (list (httpd--normalize-header (car (split-string line ": ")))
-                  (mapconcat #'identity
-                             (cdr (split-string line ": ")) ": ")) req))
-    (push (list "Content" post) req)
-    (reverse req)))
+(defun httpd-parse ()
+  "Parse HTTP header in current buffer into association list.
+Leaves the point at the start of the request content. Returns nil
+if it failed to parse a complete HTTP header."
+  (setf (point) (point-min))
+  (when (looking-at "\\([^ ]+\\) +\\([^ ]+\\) +\\([^\r]+\\)\r\n")
+    (let ((method (match-string 1))
+          (path (decode-coding-string (match-string 2) 'iso-8859-1))
+          (version (match-string 3))
+          (headers ()))
+      (setf (point) (match-end 0))
+      (while (looking-at "\\([-!#-'*+.0-9A-Z^_`a-z|~]+\\): *\\([^\r]+\\)\r\n")
+        (setf (point) (match-end 0))
+        (let ((name (match-string 1))
+              (value (match-string 2)))
+          (push (list (httpd--normalize-header name)
+                      (decode-coding-string value 'iso-8859-1)) headers)))
+      (when (looking-at "\r\n")
+        (setf (point) (match-end 0))
+        (cons (list method path version) (nreverse headers))))))
 
 (defun httpd-unhex (str)
   "Fully decode the URL encoding in STR (including +'s)."

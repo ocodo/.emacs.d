@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "simple-httpd" "simple-httpd.el" (22479 30232
-;;;;;;  844192 749000))
+;;;### (autoloads nil "simple-httpd" "simple-httpd.el" (0 0 0 0))
 ;;; Generated autoloads from simple-httpd.el
 
 (autoload 'httpd-start "simple-httpd" "\
@@ -23,6 +22,8 @@ Stop the web server if it is currently running, otherwise do nothing.
 Start the web server with given `directory' as `httpd-root'.
 
 \(fn DIRECTORY)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "simple-httpd" '("httpd" "defservlet" "with-httpd-buffer")))
 
 ;;;***
 
