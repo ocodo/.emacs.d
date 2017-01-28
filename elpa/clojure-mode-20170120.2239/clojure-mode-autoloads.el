@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (22624 31803
-;;;;;;  564032 192000))
+;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (0 0 0 0))
 ;;; Generated autoloads from clojure-mode.el
 
 (autoload 'clojure-mode "clojure-mode" "\
@@ -80,6 +79,11 @@ See: https://github.com/clojure-emacs/clj-refactor.el/wiki/cljr-cycle-if
 
 \(fn)" t nil)
 
+(autoload 'clojure-cycle-when "clojure-mode" "\
+Change a surrounding when to when-not, or vice-versa.
+
+\(fn)" t nil)
+
 (autoload 'clojure-let-backward-slurp-sexp "clojure-mode" "\
 Slurp the s-expression before the let form into the let form.
 With a numberic prefix argument slurp the previous N s-expression into the let form.
@@ -133,6 +137,8 @@ Major mode for editing ClojureX code.
 (add-to-list 'auto-mode-alist '("\\.cljs\\'" . clojurescript-mode))
 
 (add-to-list 'auto-mode-alist '("\\(?:build\\|profile\\)\\.boot\\'" . clojure-mode))
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "clojure-mode" '("clojure" "add-custom-clojure-indents" "define-clojure-indent" "put-clojure-indent")))
 
 ;;;***
 
