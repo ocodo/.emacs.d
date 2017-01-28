@@ -155,7 +155,7 @@ aliases such as `nmap' for `general-nmap'.
 
 \(fn &optional SHORT-NAMES DEFAULT-TO-STATES)" nil t)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "general" '("general-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "general" '("general-" "lispyville--repeat-info")))
 
 ;;;***
 
