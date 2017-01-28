@@ -363,38 +363,48 @@ Returns the name of the function or nil if the function could not be parsed."
 (defun gnu-apl-indent ()
   "Indent a function, controlled by ‘gnu-apl-indent-amounts’.
 Anything outside a function definition is not indented."
-  (let ((was-at-first-col (bolp)))
+  (let ((was-at-first-col (save-excursion
+                            (let ((p (point)))
+                              (beginning-of-line)
+                              (let ((b (point)))
+                                (re-search-forward "\\=[ \t]*" nil t)
+                                (and (<= b p)
+                                     (<= p (point))))))))
     (save-excursion
       (beginning-of-line)
       (re-search-forward "\\=[ \t]*" nil t)
-      (destructuring-bind (i-header i-comment i-label i-other)
-          gnu-apl-indent-amounts
-        (cond ((looking-at "∇")
-               (indent-to-column 0)
-               (re-search-forward "∇[ \t]*" nil t)
-               (when (not (char-equal (char-after) ?\n))
-                 (replace-match (format "∇%s" (make-string i-header 32)))))
-              ((looking-at (format "%s:" gnu-apl--apl-symbol-pattern))
-               (indent-to-column i-label))
-              (t
-               (let ((function-start (save-excursion
-                                       (search-backward-regexp
-                                        "^[ \t]*∇[ \t]*[^ \t]" nil t)))
-                     (function-end (save-excursion
-                                     (or (search-forward-regexp "^[ \t]*∇[ \t]*$" nil t)
-                                         (point-max))))
-                     (prev-function-end (save-excursion
-                                          (search-backward-regexp
-                                           "^[ \t]*∇[ \t]*$" nil t))))
-                 (if (and function-start
-                          function-end
-                          (or (not prev-function-end)
-                              (< prev-function-end function-start))
-                          (< function-start function-end))
-                     (if (looking-at "⍝")
-                         (indent-to-column i-comment)
-                       (indent-to-column i-other))
-                   (indent-to-column 0)))))))
+      (let ((indent-amount (destructuring-bind (i-header i-comment i-label i-other)
+                               gnu-apl-indent-amounts
+                             (cond ((looking-at "∇")
+                                    0)
+                                   ((looking-at (format "%s:" gnu-apl--apl-symbol-pattern))
+                                    i-label)
+                                   (t
+                                    (let ((function-start (save-excursion
+                                                            (search-backward-regexp
+                                                             "^[ \t]*∇[ \t]*[^ \t]" nil t)))
+                                          (function-end (save-excursion
+                                                          (or (search-forward-regexp "^[ \t]*∇[ \t]*$" nil t)
+                                                              (point-max))))
+                                          (prev-function-end (save-excursion
+                                                               (search-backward-regexp
+                                                                "^[ \t]*∇[ \t]*$" nil t))))
+                                      (if (and function-start
+                                               function-end
+                                               (or (not prev-function-end)
+                                                   (< prev-function-end function-start))
+                                               (< function-start function-end))
+                                          (if (looking-at "⍝")
+                                              i-comment
+                                            i-other)
+                                        0)))))))
+        (when indent-amount
+          (save-excursion
+            (beginning-of-line)
+            (when (re-search-forward "\\=[ \t]*" nil t)
+              (unless (eql (current-column) indent-amount)
+                (replace-match "")
+                (indent-to-column indent-amount)))))))
     (when was-at-first-col
       (re-search-forward "[ \t]*" (point-at-eol) t))
     nil))

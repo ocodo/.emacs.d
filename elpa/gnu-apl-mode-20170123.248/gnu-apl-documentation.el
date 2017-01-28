@@ -299,7 +299,7 @@ if it is open."
                 do (backward-char 1))
           (let ((symbol (char-after (point))))
             (and (not (string-match gnu-apl--function-regexp (char-to-string symbol)))
-                 (not (cl-find symbol " \t\n")))))
+                 (not (cl-find symbol " \t\n[(")))))
       ;; No stuff to the left of point, that means the function is monadic
       nil)))
 
