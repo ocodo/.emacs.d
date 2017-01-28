@@ -10,7 +10,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/voxpupuli/puppet-mode
-;; Package-Version: 20161204.713
+;; Package-Version: 20170120.1813
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -106,6 +106,8 @@ buffer-local wherever it is set."
   (require 'rx))
 
 (require 'align)
+(require 'ansi-color)
+(require 'comint)
 
 
 ;;; Customization
@@ -986,7 +988,7 @@ Used as `syntax-propertize-function' in Puppet Mode."
 ;;; Dealing with strings
 (defun puppet-looking-around (back at)
   "Check if looking backwards at BACK and forward at AT."
-  (and (looking-at-p at) (looking-back back)))
+  (and (looking-at-p at) (looking-back back nil)))
 
 (defun puppet-string-at-point-p ()
   "Check if cursor is at a string or not."
