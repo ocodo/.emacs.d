@@ -1,11 +1,11 @@
 ;;; evil-anzu.el --- anzu for evil-mode
 
-;; Copyright (C) 2015 by Syohei YOSHIDA
+;; Copyright (C) 2017 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;;         Fredrik Bergroth <fbergroth@gmail.com>
 ;; URL: https://github.com/syohex/emacs-evil-anzu
-;; Package-Version: 20150124.1609
+;; Package-Version: 20170123.2318
 ;; Version: 0.02
 ;; Package-Requires: ((evil "1.0.0") (anzu "0.46"))
 
