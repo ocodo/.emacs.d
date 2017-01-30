@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-ag
-;; Package-Version: 20161203.523
+;; Package-Version: 20170127.2155
 ;; Version: 0.57
 ;; Package-Requires: ((emacs "24.4") (helm "2.0"))
 
@@ -457,6 +457,7 @@ Default behaviour shows finish and result in mode-line."
     :fuzzy-match helm-ag-fuzzy-match
     :action helm-ag--actions
     :candidate-number-limit 9999
+    :keymap helm-ag-map
     :follow (and helm-follow-mode-persistent 1)))
 
 ;;;###autoload
@@ -1045,6 +1046,7 @@ Continue searching the parent directory? "))
     :nohighlight t
     :requires-pattern 3
     :candidate-number-limit 9999
+    :keymap helm-do-ag-map
     :follow (and helm-follow-mode-persistent 1)))
 
 (defun helm-ag--do-ag-up-one-level ()
