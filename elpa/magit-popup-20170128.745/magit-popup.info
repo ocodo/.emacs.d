@@ -83,19 +83,19 @@ argument is prefixes with the key sequence that can be used to toggle it
 or change its value.  Likewise each suffix command is prefixed with the
 key used to invoke it.  Such a popup buffer might look like this:
 
-,-----------------------------------------
-|Switches
-| -l Show graph (--graph)
-| -d Show refnames (--decorate)
-|
-|Options
-| =m Search messages (--grep="popup")
-| =p Search patches (-G)
-|
-|Action
-| l Show log for current branch
-| o Show log for another branch
-'-----------------------------------------
+     ,-----------------------------------------
+     |Switches
+     | -l Show graph (--graph)
+     | -d Show refnames (--decorate)
+     |
+     |Options
+     | =m Search messages (--grep="popup")
+     | =p Search patches (-G)
+     |
+     |Action
+     | l Show log for current branch
+     | o Show log for another branch
+     '-----------------------------------------
 
    The user could then for example type ‘-l’ to toggle the ‘--graph’
 *switch* (when it is on then it is shown in green, otherwise in gray),
@@ -112,24 +112,24 @@ This should illustrate the most basic differences:
 
    • A regular prefix commands
 
-             /- command1
-     prefix --- command2
-             \- command3
+                  /- command1
+          prefix --- command2
+                  \- command3
 
    • Prefix arguments
 
-              /- command1
-     C-u ... --- command2
-              \- well *any* command
+                   /- command1
+          C-u ... --- command2
+                   \- well *any* command
 
    • A Prefix-Infix-Suffix combo
 
-              /- argument1 -\ /- suffix1
-     prefix----- argument2 --+-- suffix2
-            ^ \- argument3 -/
-            |        |
-            '--------'
-         (refresh buffer)
+                   /- argument1 -\ /- suffix1
+          prefix----- argument2 --+-- suffix2
+                 ^ \- argument3 -/
+                 |        |
+                 '--------'
+              (refresh buffer)
 
    This library was written as a replacement for ‘magit-key-mode’ which
 was used in Magit releases before 2.1.0.  It is used to implement all
@@ -693,12 +693,12 @@ directly.
 Tag Table:
 Node: Top994
 Node: Introduction2170
-Node: Usage4747
-Node: Customizing Existing Popups9471
-Node: Other Options14999
-Node: Defining Prefix and Suffix Commands16573
-Node: Defining Prefix Commands18725
-Node: Defining Suffix Commands25609
+Node: Usage4872
+Node: Customizing Existing Popups9596
+Node: Other Options15124
+Node: Defining Prefix and Suffix Commands16698
+Node: Defining Prefix Commands18850
+Node: Defining Suffix Commands25734
 
 End Tag Table
 
