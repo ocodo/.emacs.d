@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: type-alias
+# key: alias
+# expand-env: ((yas-indent-line 'fixed))
+# --
+{-| $1
+-}
+type alias $2 =
+  { $0
+  }
