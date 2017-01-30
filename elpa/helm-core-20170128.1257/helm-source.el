@@ -130,7 +130,7 @@
     :custom sexp
     :documentation
     "  Specific keymap for this source.
-  Default value is `helm-map'.")
+  default value is `helm-map'.")
 
    (action
     :initarg :action
