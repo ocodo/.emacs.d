@@ -75,15 +75,15 @@ with goflymake (see URL `https://github.com/dougm/goflymake'), gocode
 
 (autoload 'gofmt-before-save "go-mode" "\
 Add this to .emacs to run gofmt on the current buffer when saving:
- (add-hook 'before-save-hook 'gofmt-before-save).
+\(add-hook 'before-save-hook 'gofmt-before-save).
 
-Note that this will cause go-mode to get loaded the first time
+Note that this will cause ‘go-mode’ to get loaded the first time
 you save any file, kind of defeating the point of autoloading.
 
 \(fn)" t nil)
 
 (autoload 'godoc "go-mode" "\
-Show Go documentation for QUERY, much like M-x man.
+Show Go documentation for QUERY, much like \\<go-mode-map>\\[man].
 
 \(fn QUERY)" t nil)
 

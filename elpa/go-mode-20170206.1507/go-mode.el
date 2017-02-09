@@ -1,12 +1,14 @@
 ;;; go-mode.el --- Major mode for the Go programming language
 
-;; Copyright 2013 The go-mode Authors. All rights reserved.
+;;; Commentary:
+
+;; Copyright 2013 The go-mode Authors.  All rights reserved.
 ;; Use of this source code is governed by a BSD-style
 ;; license that can be found in the LICENSE file.
 
 ;; Author: The go-mode Authors
 ;; Version: 1.4.0
-;; Package-Version: 20161231.1134
+;; Package-Version: 20170206.1507
 ;; Keywords: languages go
 ;; URL: https://github.com/dominikh/go-mode.el
 ;;
@@ -176,14 +178,13 @@ a `before-save-hook'."
   :group 'go)
 
 (defcustom go-packages-function 'go-packages-native
-  "Function called by `go-packages' to determine the list of
-available packages. This is used in e.g. tab completion in
-`go-import-add'.
+  "Function called by `go-packages' to determine the list of available packages.
+This is used in e.g. tab completion in `go-import-add'.
 
 This package provides two functions: `go-packages-native' uses
 elisp to find all .a files in all /pkg/ directories.
 `go-packages-go-list' uses 'go list all' to determine all Go
-packages. `go-packages-go-list' generally produces more accurate
+packages.  `go-packages-go-list' generally produces more accurate
 results, but can be slower than `go-packages-native'."
   :type 'function
   :package-version '(go-mode . 1.4.0)
@@ -196,30 +197,31 @@ results, but can be slower than `go-packages-native'."
   "Functions to call in sequence to detect a project's GOPATH.
 
 The functions in this list will be called one after another,
-until a function returns non-nil. The order of the functions in
+until a function returns non-nil.  The order of the functions in
 this list is important, as some project layouts may superficially
-look like others. For example, a subset of wgo projects look like
-gb projects. That's why we need to detect wgo first, to avoid
+look like others.  For example, a subset of wgo projects look like
+gb projects.  That's why we need to detect wgo first, to avoid
 mis-identifying them as gb projects."
   :type '(repeat function)
   :group 'go)
 
 (defcustom godoc-command "go doc"
-  "Which executable to use for `godoc'. This can either be
-'godoc' or 'go doc', both as an absolute path or an executable in
-PATH."
+  "Which executable to use for `godoc'.
+This can either be 'godoc' or 'go doc', both as an absolute path
+or an executable in PATH."
   :type 'string
   :group 'go)
 
 (defcustom godoc-and-godef-command "godoc"
-  "Which executable to use for `godoc' in
-`godoc-and-godef-command'. Must be 'godoc' and not 'go doc' and
-can be an absolute path or an executable in PATH."
+  "Which executable to use for `godoc' in `godoc-and-godef-command'.
+Must be 'godoc' and not 'go doc' and can be an absolute path or
+an executable in PATH."
   :type 'string
   :group 'go)
 
 (defcustom godoc-use-completing-read nil
-  "Provide auto-completion for godoc. Only really desirable when using `godoc' instead of `go doc'."
+  "Provide auto-completion for godoc.
+Only really desirable when using `godoc' instead of `go doc'."
   :type 'boolean
   :group 'godoc)
 
@@ -228,24 +230,24 @@ can be an absolute path or an executable in PATH."
 identifier at a given position.
 
 This package provides two functions: `godoc-and-godef' uses a
-combination of godef and godoc to find the documentation. This
-approach has several caveats. See its documentation for more
-information. The second function, `godoc-gogetdoc' uses an
+combination of godef and godoc to find the documentation.  This
+approach has several caveats.  See its documentation for more
+information.  The second function, `godoc-gogetdoc' uses an
 additional tool that correctly determines the documentation for
-any identifier. It provides better results than
-`godoc-and-godef'. "
+any identifier.  It provides better results than
+`godoc-and-godef'."
   :type 'function
   :group 'godoc)
 
 (defun godoc-and-godef (point)
-  "Use a combination of godef and godoc to guess the documentation.
+  "Use a combination of godef and godoc to guess the documentation at POINT.
 
 Due to a limitation in godoc, it is not possible to differentiate
 between functions and methods, which may cause `godoc-at-point'
-to display more documentation than desired. Furthermore, it
+to display more documentation than desired.  Furthermore, it
 doesn't work on package names or variables.
 
-Consider using godoc-gogetdoc instead for more accurate results."
+Consider using ‘godoc-gogetdoc’ instead for more accurate results."
   (condition-case nil
       (let* ((output (godef--call point))
              (file (car output))
@@ -262,7 +264,7 @@ Consider using godoc-gogetdoc instead for more accurate results."
     (file-error (message "Could not run godef binary"))))
 
 (defun godoc-gogetdoc (point)
-  "Use the gogetdoc tool to find the documentation for an identifier.
+  "Use the gogetdoc tool to find the documentation for an identifier at POINT.
 
 You can install gogetdoc with 'go get -u github.com/zmb3/gogetdoc'."
   (if (not (buffer-file-name (go--coverage-origin-buffer)))
@@ -439,7 +441,7 @@ For mode=set, all covered lines will have this weight."
     (define-key m (kbd "C-c C-d") #'godef-describe)
     (define-key m (kbd "C-c C-f") 'go-goto-map)
     m)
-  "Keymap used by go-mode.")
+  "Keymap used by ‘go-mode’.")
 
 (easy-menu-define go-mode-menu go-mode-map
   "Menu for Go mode."
@@ -538,9 +540,9 @@ STOP-AT-STRING is not true, over strings."
 function definition.
 
 We do this by first calling (beginning-of-defun), which will take
-us to the start of *some* function. We then look for the opening
+us to the start of *some* function.  We then look for the opening
 curly brace of that function and compare its position against the
-curly brace we are checking. If they match, we return non-nil."
+curly brace we are checking.  If they match, we return non-nil."
   (if (= (char-after) ?\{)
       (save-excursion
         (let ((old-point (point))
@@ -743,8 +745,8 @@ of last search.  Return t if search succeeded."
       (nconc regions (go--match-function-result end))))))
 
 (defun go--parameter-list-type (end)
-  "Return `present' if the parameter list has names, or `absent' if
-not, assuming point is at the beginning of a parameter list, just
+  "Return `present' if the parameter list has names, or `absent' if not.
+Assumes point is at the beginning of a parameter list, just
 after '('."
   (save-excursion
     (skip-chars-forward "[:space:]\n" end)
@@ -875,7 +877,7 @@ Function result is a unparenthesized type or a parameter list."
          (go--match-parameter-list end))
         (t nil)))
 
-(defun go--reset-dangling-cache-before-change (&optional unused-beg unused-end)
+(defun go--reset-dangling-cache-before-change (&optional _beg _end)
   "Reset `go-dangling-cache'.
 
 This is intended to be called from `before-change-functions'."
@@ -1023,7 +1025,7 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
         (goto-char (point-min))
         (while (not (eobp))
           (unless (looking-at "^\\([ad]\\)\\([0-9]+\\) \\([0-9]+\\)")
-            (error "invalid rcs patch or internal error in go--apply-rcs-patch"))
+            (error "Invalid rcs patch or internal error in go--apply-rcs-patch"))
           (forward-line)
           (let ((action (match-string 1))
                 (from (string-to-number (match-string 2)))
@@ -1044,7 +1046,7 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
                 (cl-incf line-offset len)
                 (go--delete-whole-line len)))
              (t
-              (error "invalid rcs patch or internal error in go--apply-rcs-patch")))))))))
+              (error "Invalid rcs patch or internal error in go--apply-rcs-patch")))))))))
 
 (defun gofmt--is-goimports-p ()
   (string-equal (file-name-base gofmt-command) "goimports"))
@@ -1131,9 +1133,9 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
 ;;;###autoload
 (defun gofmt-before-save ()
   "Add this to .emacs to run gofmt on the current buffer when saving:
- (add-hook 'before-save-hook 'gofmt-before-save).
+\(add-hook 'before-save-hook 'gofmt-before-save).
 
-Note that this will cause go-mode to get loaded the first time
+Note that this will cause ‘go-mode’ to get loaded the first time
 you save any file, kind of defeating the point of autoloading."
 
   (interactive)
@@ -1147,7 +1149,7 @@ you save any file, kind of defeating the point of autoloading."
     (read-from-minibuffer "godoc: " nil nil nil 'go-godoc-history)))
 
 (defun godoc--get-buffer (query)
-  "Get an empty buffer for a godoc query."
+  "Get an empty buffer for a godoc QUERY."
   (let* ((buffer-name (concat "*godoc " query "*"))
          (buffer (get-buffer buffer-name)))
     ;; Kill the existing buffer if it already exists.
@@ -1172,7 +1174,7 @@ you save any file, kind of defeating the point of autoloading."
 
 ;;;###autoload
 (defun godoc (query)
-  "Show Go documentation for QUERY, much like M-x man."
+  "Show Go documentation for QUERY, much like \\<go-mode-map>\\[man]."
   (interactive (list (godoc--read-query)))
   (go--godoc query godoc-command))
 
@@ -1243,7 +1245,7 @@ declaration."
   (go-play-region (point-min) (point-max)))
 
 (defun go-play-region (start end)
-  "Send the region to the Playground.
+  "Send the region between START and END to the Playground.
 If non-nil `go-play-browse-function' is called with the
 Playground URL."
   (interactive "r")
@@ -1366,8 +1368,8 @@ If IGNORE-CASE is non-nil, the comparison is case-insensitive."
   (funcall go-packages-function))
 
 (defun go-packages-native ()
-  "Return a list of all installed Go packages. It looks for
-archive files in /pkg/"
+  "Return a list of all installed Go packages.
+It looks for archive files in /pkg/."
   (sort
    (delete-dups
     (cl-mapcan
@@ -1386,7 +1388,7 @@ archive files in /pkg/"
    #'string<))
 
 (defun go-packages-go-list ()
-  "Return a list of all Go packages, using `go list'"
+  "Return a list of all Go packages, using `go list'."
   (process-lines go-command "list" "-e" "all"))
 
 (defun go-unused-imports-lines ()
@@ -1725,7 +1727,7 @@ If ARG is non-nil, anonymous functions are ignored."
       (go--goto-opening-curly-brace)
 
       (unless (looking-at "{")
-        (error "expected to be looking at opening curly brace"))
+        (error "Expected to be looking at opening curly brace"))
       (forward-list 1)
       (and (>= compare-point start)
            (<= compare-point (point))))))
@@ -1794,7 +1796,7 @@ If ARG is non-nil, anonymous functions are skipped."
 If there is none, add parenthesis to add one.
 
 Anonymous functions cannot have method receivers, so when this is called
-interactively anonymous functions will be skipped. If called programmatically,
+interactively anonymous functions will be skipped.  If called programmatically,
 an error is raised unless ARG is non-nil."
   (interactive "P")
 
@@ -1816,7 +1818,7 @@ an error is raised unless ARG is non-nil."
 If there is none, add one beginning with the name of the current function.
 
 Anonymous functions do not have docstrings, so when this is called
-interactively anonymous functions will be skipped. If called programmatically,
+interactively anonymous functions will be skipped.  If called programmatically,
 an error is raised unless ARG is non-nil."
   (interactive "P")
 
@@ -1854,7 +1856,7 @@ an error is raised unless ARG is non-nil."
   "Return the name of the surrounding function.
 
 If ARG is non-nil, anonymous functions will be ignored and the
-name returned will be that of the top-level function. If ARG is
+name returned will be that of the top-level function.  If ARG is
 nil and the surrounding function is anonymous, nil will be
 returned."
   (when (or (not (go--in-anonymous-funcion-p))
