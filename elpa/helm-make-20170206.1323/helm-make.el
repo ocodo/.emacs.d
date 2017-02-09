@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20161109.1107
+;; Package-Version: 20170206.1323
 ;; Version: 0.2.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -32,7 +32,6 @@
 ;;; Code:
 
 (require 'helm)
-(require 'helm-multi-match)
 
 (declare-function ivy-read "ext:ivy")
 
@@ -92,6 +91,10 @@ You can reset the cache by calling `helm-make-reset-db'."
 
 (defcustom helm-make-comint nil
   "When non-nil, run helm-make in Comint mode instead of Compilation mode."
+  :type 'boolean)
+
+(defcustom helm-make-fuzzy-matching nil
+  "When non-nil, enable fuzzy matching in helm make target(s) buffer."
   :type 'boolean)
 
 (defvar helm-make-command nil
@@ -170,7 +173,7 @@ An exception is \"GNUmakefile\", only GNU make unterstand it.")
         (let ((str (match-string 1)))
           (unless (string-match "^\\." str)
             (push str targets)))))
-    targets))
+    (nreverse targets)))
 
 (defcustom helm-make-list-target-method 'default
   "Method of obtaining the list of Makefile targets."
@@ -265,13 +268,13 @@ and cache targets of MAKEFILE, if `helm-make-cache-targets' is t."
     (delete-dups helm-make-target-history)
     (cl-case helm-make-completion-method
       (helm
-       (helm :sources
-             `((name . "Targets")
-               (candidates . ,targets)
-               (action . helm--make-action))
+       (helm :sources (helm-build-sync-source "Targets"
+                        :candidates 'targets
+                        :fuzzy-match helm-make-fuzzy-matching
+                        :action 'helm--make-action)
              :history 'helm-make-target-history
              :preselect (when helm-make-target-history
-                          (format "^%s$" (car helm-make-target-history)))))
+                          (car helm-make-target-history))))
       (ivy
        (ivy-read "Target: "
                  targets
