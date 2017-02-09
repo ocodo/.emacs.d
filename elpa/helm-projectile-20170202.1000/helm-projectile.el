@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/helm-projectile
-;; Package-Version: 20170125.1815
+;; Package-Version: 20170202.1000
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.14.0
@@ -923,7 +923,7 @@ DIR is the project root, if not set then current directory is used"
     "Find recently visited file in project."
     (helm-projectile-recentf))
 
-  (def-projectile-commander-method ?v
+  (def-projectile-commander-method ?V
     "Find dirty projects."
     (helm-projectile-browse-dirty-projects)))
 
