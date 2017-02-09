@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "swift-mode" "swift-mode.el" (22653 62661 392859
-;;;;;;  547000))
+;;;### (autoloads nil "swift-mode" "swift-mode.el" (0 0 0 0))
 ;;; Generated autoloads from swift-mode.el
 
 (let ((loads (get 'swift 'custom-loads))) (if (member '"swift-mode" loads) nil (put 'swift 'custom-loads (cons '"swift-mode" loads))))
@@ -17,10 +16,28 @@ Major mode for editing Swift code.
 \(fn)" t nil)
  (add-to-list 'auto-mode-alist '("\\.swift\\'" . swift-mode))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode" '("swift-mode")))
+
+;;;***
+
+;;;### (autoloads nil "swift-mode-beginning-of-defun" "swift-mode-beginning-of-defun.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from swift-mode-beginning-of-defun.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-beginning-of-defun" '("swift-mode:")))
+
+;;;***
+
+;;;### (autoloads nil "swift-mode-font-lock" "swift-mode-font-lock.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from swift-mode-font-lock.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-font-lock" '("swift-mode:f")))
+
 ;;;***
 
 ;;;### (autoloads nil "swift-mode-indent" "swift-mode-indent.el"
-;;;;;;  (22653 62661 376859 220000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from swift-mode-indent.el
 
 (defvar swift-mode:basic-offset 4 "\
@@ -65,10 +82,20 @@ Intended for debugging.")
 
 (custom-autoload 'swift-mode:highlight-anchor "swift-mode-indent" t)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-indent" '("siwft-mode:tokens-not-in-generic-parameter-list" "swift-mode:")))
+
 ;;;***
 
-;;;### (autoloads nil "swift-mode-repl" "swift-mode-repl.el" (22653
-;;;;;;  62661 384859 384000))
+;;;### (autoloads nil "swift-mode-lexer" "swift-mode-lexer.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from swift-mode-lexer.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-lexer" '("swift-mode:")))
+
+;;;***
+
+;;;### (autoloads nil "swift-mode-repl" "swift-mode-repl.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from swift-mode-repl.el
 
 (autoload 'swift-mode:run-repl "swift-mode-repl" "\
@@ -98,11 +125,11 @@ Send the buffer to the Swift REPL process.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-repl" '("swift-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("swift-mode-beginning-of-defun.el" "swift-mode-font-lock.el"
-;;;;;;  "swift-mode-lexer.el" "swift-mode-pkg.el") (22653 62661 420860
-;;;;;;  120000))
+;;;### (autoloads nil nil ("swift-mode-pkg.el") (0 0 0 0))
 
 ;;;***
 

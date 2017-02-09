@@ -7,7 +7,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;
-;; Version: 2.2.1
+;; Version: 2.2.3
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 
@@ -217,46 +217,6 @@ declaration and its offset is `swift-mode:basic-offset'."
       (goto-char (swift-mode:token:start previous-token))
       (swift-mode:calculate-indent-after-comma))
 
-     ;; Before "in" on the same line
-     ((and next-is-on-same-line (equal next-text "in"))
-      ;; When it is for-in statement, align with the token after "for":
-      ;;
-      ;; for
-      ;;   x
-      ;;   in
-      ;;   foo
-      ;;
-      ;; for x
-      ;;     in
-      ;;     foo
-      ;;
-      ;; When it is anonymous function, align with the token after {:
-      ;;
-      ;; foo {
-      ;;   x
-      ;;   in
-      ;;   ...
-      ;; }
-      ;;
-      ;;
-      ;; foo { x
-      ;;       in
-      ;;  ...
-      ;; }
-      ;;
-      ;; foo { [
-      ;;         weak self
-      ;;       ]
-      ;;       (
-      ;;         x,
-      ;;         y
-      ;;       )
-      ;;       -> Void
-      ;;       in
-      ;;   a
-      ;; }
-      (swift-mode:find-and-align-with-parents '("for" {)))
-
      ;; Before "case" or "default" on the same line, for switch statement
      ((and
        next-is-on-same-line
@@ -340,6 +300,59 @@ declaration and its offset is `swift-mode:basic-offset'."
        swift-mode:statement-parent-tokens
        swift-mode:multiline-statement-offset))
 
+     ;; After {
+     ((eq previous-type '{)
+      (goto-char (swift-mode:token:start previous-token))
+      (swift-mode:calculate-indent-after-open-curly-brace
+       swift-mode:basic-offset))
+
+     ;; After ( or [
+     ((memq previous-type '(\( \[))
+      (goto-char (swift-mode:token:start previous-token))
+      (swift-mode:calculate-indent-of-expression
+       swift-mode:parenthesized-expression-offset
+       swift-mode:parenthesized-expression-offset))
+
+     ;; Before "in" on the same line
+     ((and next-is-on-same-line (equal next-text "in"))
+      ;; When it is for-in statement, align with the token after "for":
+      ;;
+      ;; for
+      ;;   x
+      ;;   in
+      ;;   foo
+      ;;
+      ;; for x
+      ;;     in
+      ;;     foo
+      ;;
+      ;; When it is anonymous function, align with the token after {:
+      ;;
+      ;; foo {
+      ;;   x
+      ;;   in
+      ;;   ...
+      ;; }
+      ;;
+      ;;
+      ;; foo { x
+      ;;       in
+      ;;  ...
+      ;; }
+      ;;
+      ;; foo { [
+      ;;         weak self
+      ;;       ]
+      ;;       (
+      ;;         x,
+      ;;         y
+      ;;       )
+      ;;       -> Void
+      ;;       in
+      ;;   a
+      ;; }
+      (swift-mode:find-and-align-with-parents '("for" {)))
+
      ;; Before "where" on the same line
      ((and next-is-on-same-line (equal next-text "where"))
       ;; switch {
@@ -410,19 +423,6 @@ declaration and its offset is `swift-mode:basic-offset'."
            (append swift-mode:statement-parent-tokens
                    '(<))
            swift-mode:multiline-statement-offset)))))
-
-     ;; After {
-     ((eq previous-type '{)
-      (goto-char (swift-mode:token:start previous-token))
-      (swift-mode:calculate-indent-after-open-curly-brace
-       swift-mode:basic-offset))
-
-     ;; After ( or [
-     ((memq previous-type '(\( \[))
-      (goto-char (swift-mode:token:start previous-token))
-      (swift-mode:calculate-indent-of-expression
-       swift-mode:parenthesized-expression-offset
-       swift-mode:parenthesized-expression-offset))
 
      ;; After "where"
      ((equal previous-text "where")
@@ -1455,7 +1455,10 @@ See `indent-new-comment-line' for SOFT."
       (insert-before-markers-and-inherit
        (cond
         (is-single-line-comment
-         "// ")
+         (save-excursion
+           (goto-char comment-beginning-position)
+           (looking-at "/+")
+           (concat (match-string-no-properties 0) space-after-asterisk)))
 
         (comment-multi-line
          (save-excursion
