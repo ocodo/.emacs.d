@@ -3,8 +3,8 @@
 
 ;; Copyright 2011-2017 François-Xavier Bois
 
-;; Version: 14.0.36
-;; Package-Version: 20170118.1211
+;; Version: 14.0.38
+;; Package-Version: 20170131.1400
 ;; Author: François-Xavier Bois <fxbois AT Google Mail Service>
 ;; Maintainer: François-Xavier Bois
 ;; URL: http://web-mode.org
@@ -22,7 +22,7 @@
 
 ;;---- CONSTS ------------------------------------------------------------------
 
-(defconst web-mode-version "14.0.36"
+(defconst web-mode-version "14.0.38"
   "Web Mode version.")
 
 ;;---- GROUPS ------------------------------------------------------------------
@@ -757,7 +757,7 @@ Must be used in conjunction with web-mode-enable-block-face."
     ("clip"             . ())
     ("closure"          . ("soy"))
     ("ctemplate"        . ("mustache" "handlebars" "hapax" "ngtemplate" "ember"
-                           "kite" "meteor" "blaze" "ractive"))
+                           "kite" "meteor" "blaze" "ractive" "velvet"))
     ("django"           . ("dtl" "twig" "swig" "jinja" "erlydtl" "liquid"
                            "clabango" "selmer" "nunjucks"))
     ("dust"             . ("dustjs"))
@@ -1084,12 +1084,15 @@ Must be used in conjunction with web-mode-enable-block-face."
               ("switch"  . "<?php switch (|): ?>\n<?php case 1: ?>\n\n<?php break ;?>\n<?php case 2: ?>\n\n<?php break ;?>\n<?php endswitch;?>")))
     ("django" . (("block"      . "{% block | %}\n\n{% endblock %}")
                  ("comment"    . "{% comment | %}\n\n{% endcomment %}")
+                 ("css"        . "{% stylesheet  %}\n\n{% endstylesheet  %}")
                  ("cycle"      . "{% cycle | as  %}\n\n{% endcycle  %}")
                  ("filter"     . "{% filter | %}\n\n{% endfilter %}")
                  ("for"        . "{% for | in  %}\n\n{% endfor %}")
                  ("if"         . "{% if | %}\n\n{% endif %}")
                  ("ifequal"    . "{% ifequal | %}\n\n{% endifequal %}")
                  ("ifnotequal" . "{% ifnotequal | %}\n\n{% endifnotequal %}")
+                 ("js"         . "{% javascript | %}\n\n{% endjavascript %}")
+                 ("schema"         . "{% javascript | %}\n\n{% endschema %}")
                  ("safe"       . "{% safe | %}\n\n{% endsafe %}")))
     ("template-toolkit" . (("if"      . "[% IF | %]\n\n[% END %]")))
     (nil . (("html5" . "<!doctype html>\n<html>\n<head>\n<title></title>\n<meta charset=\"utf-8\" />\n</head>\n<body>\n|\n</body>\n</html>")
@@ -1286,7 +1289,7 @@ shouldn't be moved back.)")
      '("charset" "import" "media" "page" "font-face"
        "namespace" "supports" "document"
        "keyframes" "-moz-keyframes" "-webkit-keyframes"
-       "mixin"))))
+       "mixin" "viewport"))))
 
 (defvar web-mode-css-pseudo-classes
   (eval-when-compile
@@ -1536,6 +1539,12 @@ shouldn't be moved back.)")
      "elif" "else" "elseif" "elsif" "empty" "extends"
      "firstof" "include" "load" "lorem" "now" "regroup" "ssi"
      "trans" "templatetag" "url" "widthratio"
+
+     ;; #805
+     "graph" "endgraph"
+     "javascript" "endjavascript"
+     "schema" "endschema"
+     "stylesheet" "endstylesheet"
 
      )))
 
@@ -3003,13 +3012,25 @@ another auto-completion with different ac-sources (e.g. ac-php)")
              ((and (string= web-mode-engine "mako")
                    (looking-at-p "<%block filter=\"collect_css\">"))
               (setq tagopen "<%block filter=\"collect_css\">"))
+             ((and (string= web-mode-engine "django")
+                   (looking-at-p "{% javascript %}"))
+              (setq tagopen "{% javascript %}"))
+             ((and (string= web-mode-engine "django")
+                   (looking-at-p "{% schema %}"))
+              (setq tagopen "{% schema %}"))
+             ((and (string= web-mode-engine "django")
+                   (looking-at-p "{% stylesheet %}"))
+              (setq tagopen "{% stylesheet %}"))
              )
             ;;(message "%S %s" (point) tagopen)
             (when (and (member tagopen '("<r:script" "<r:style"
                                          "<c:js" "<c:css"
                                          "<%= javascript_tag do %>"
                                          "<%block filter=\"collect_js\">"
-                                         "<%block filter=\"collect_css\">"))
+                                         "<%block filter=\"collect_css\">"
+                                         "{% javascript %}"
+                                         "{% schema %}"
+                                         "{% stylesheet %}"))
                        (setq part-beg close)
                        (setq tagclose
                              (cond
@@ -3017,6 +3038,9 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                               ((string= tagopen "<r:style") "</r:style")
                               ((string= tagopen "<c:js") "</c:js")
                               ((string= tagopen "<c:css") "</c:css")
+                              ((string= tagopen "{% javascript %}") "{% endjavascript %}")
+                              ((string= tagopen "{% schema %}") "{% endschema %}")
+                              ((string= tagopen "{% stylesheet %}") "{% endstylesheet %}")
                               ((string= tagopen "<%= javascript_tag do %>") "<% end %>")
                               ((member tagopen '("<%block filter=\"collect_js\">"
                                                  "<%block filter=\"collect_css\">")) "</%block")
@@ -3024,10 +3048,11 @@ another auto-completion with different ac-sources (e.g. ac-php)")
                        (web-mode-sf tagclose)
                        (setq part-end (match-beginning 0))
                        (> part-end part-beg))
+              ;;(message "end=%S" (point))
               (put-text-property part-beg part-end
                                  'part-side
                                  (cond
-                                  ((member tagopen '("<r:style" "<c:css" "<%block filter=\"collect_css\">")) 'css)
+                                  ((member tagopen '("<r:style" "<c:css" "<%block filter=\"collect_css\">" "{% stylesheet %}")) 'css)
                                   (t 'javascript)))
               (setq pos part-beg
                     part-beg nil
@@ -4095,7 +4120,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 ;; FLAGS: attr
 ;; (1)custom-attr (2)engine-attr (4)spread-attr[jsx] (8)code-value
 
-;; attr states
+;; STATES: attr
 ;; (0)nil (1)space (2)name (3)space-before (4)equal (5)space-after
 ;; (6)value-uq (7)value-sq (8)value-dq (9)value-bq : jsx attr={}
 
@@ -4498,10 +4523,20 @@ another auto-completion with different ac-sources (e.g. ac-php)")
           )
 
          ((eq ?\/ ch-next)
-          (unless (eq ?\\ ch-before)
-            (setq token-type 'comment)
-            (goto-char (if (< reg-end (line-end-position)) reg-end (line-end-position)))
+          ;;(message "%S" (point))
+          (cond
+           ((and (string= content-type "css")
+                 (eq ?/ ch-at)
+                 (eq ?: ch-before))
             )
+           (t
+            (unless (eq ?\\ ch-before)
+             (setq token-type 'comment)
+             (goto-char (if (< reg-end (line-end-position)) reg-end (line-end-position)))
+             )
+            )
+           )
+
           )
 
          ((eq ?\* ch-next)
@@ -4550,7 +4585,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
 (defun web-mode-string-continue-p (reg-beg)
   "Is `point' preceeded by an odd number of backslashes?"
-  (let* ((p (1- (point))))
+  (let ((p (1- (point))))
     (while (and (< reg-beg p) (eq ?\\ (char-before p)))
       (setq p (1- p)))
     (= (mod (- (point) p) 2) 0)))
@@ -4635,20 +4670,6 @@ another auto-completion with different ac-sources (e.g. ac-php)")
       (put-text-property (1- reg-end) reg-end 'jsx-end depth)
       (put-text-property reg-beg reg-end 'jsx-depth depth)
       (goto-char reg-beg)
-      ;;(while (web-mode-part-sf "/*" reg-end t)
-      ;;  (goto-char (match-beginning 0))
-      ;;  (if (looking-back "{")
-      ;;      (progn
-      ;;        (backward-char)
-      ;;        (setq regexp "*/}"))
-      ;;    (setq regexp "*/"))
-      ;;  (setq token-beg (point))
-      ;;  (if (not (web-mode-part-sf regexp reg-end t))
-      ;;      (goto-char reg-end)
-      ;;    (setq token-end (point))
-      ;;    (put-text-property token-beg token-end 'part-token 'comment)
-      ;;    ) ;if
-      ;;  ) ;while
       (web-mode-scan-elements reg-beg reg-end)
       (web-mode-jsx-scan-expression reg-beg reg-end (1+ depth))
       )))
@@ -5923,7 +5944,7 @@ another auto-completion with different ac-sources (e.g. ac-php)")
          ((null rule)
           (setq continue nil))
          ((and (setq at-rule (plist-get rule :at-rule))
-               (not (member at-rule '("charset" "font-face" "import")))
+               (not (member at-rule '("charset" "font-face" "import" "viewport")))
                (plist-get rule :dec-end))
           (web-mode-css-rule-highlight (plist-get rule :sel-beg)
                                        (plist-get rule :sel-end)
@@ -5942,26 +5963,24 @@ another auto-completion with different ac-sources (e.g. ac-php)")
 
 (defun web-mode-css-rule-highlight (sel-beg sel-end dec-beg dec-end)
   (save-excursion
-    (let ((end sel-end))
-      ;;(message "sel-beg=%S sel-end=%S dec-beg=%S dec-end=%S" sel-beg sel-end dec-beg dec-end)
-      (web-mode-fontify-region sel-beg sel-end
-                               web-mode-selector-font-lock-keywords)
-      (when (and dec-beg dec-end)
-        (setq end dec-end)
-        (web-mode-fontify-region dec-beg dec-end
-                                 web-mode-declaration-font-lock-keywords)
-        ) ;when
-      (goto-char sel-beg)
+    ;;(let ((end sel-end))
+    ;;(message "sel-beg=%S sel-end=%S dec-beg=%S dec-end=%S" sel-beg sel-end dec-beg dec-end)
+    (web-mode-fontify-region sel-beg sel-end web-mode-selector-font-lock-keywords)
+    (when (and dec-beg dec-end)
+      ;;(setq end dec-end)
+      (web-mode-fontify-region dec-beg dec-end web-mode-declaration-font-lock-keywords)
+      ) ;when
+    (when (and dec-beg dec-end)
+      (goto-char dec-beg)
       (while (and web-mode-enable-css-colorization
-                  (re-search-forward "#[0-9a-fA-F]\\{6\\}\\|#[0-9a-fA-F]\\{3\\}\\|rgba?([ ]*\\([[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\([[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\([[:digit:]]\\{1,3\\}\\)\\(.*?\\))" end t)
+                  (re-search-forward "#[0-9a-fA-F]\\{6\\}\\|#[0-9a-fA-F]\\{3\\}\\|rgba?([ ]*\\([[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\([[:digit:]]\\{1,3\\}\\)[ ]*,[ ]*\\([[:digit:]]\\{1,3\\}\\)\\(.*?\\))" dec-end t)
                   ;;(progn (message "%S %S" end (point)) t)
-                  (<= (point) end))
+                  (<= (point) dec-end))
         (web-mode-colorize (match-beginning 0) (match-end 0))
         ) ;while
-      ) ;let
+      ) ;when
+    ;;) ;let
     ))
-
-
 
 (defun web-mode-fontify-region (beg end keywords)
 ;;  (message "beg=%S end=%S" beg end);; (symbol-name keywords))
@@ -9942,7 +9961,7 @@ Prompt user if TAG-NAME isn't provided."
     (when (and web-mode-enable-auto-indentation
                (member this-command '(self-insert-command))
                (member (get-text-property (point) 'part-side) '(javascript jsx))
-               (looking-back "^[ \t]+[]})]"))
+               (looking-back "^[ \t]+[]})]" (point-min)))
       (indent-according-to-mode)
       ;;(message "%S" (point))
       (when (and web-mode-change-end (> web-mode-change-end (point-max)))
