@@ -1,4 +1,4 @@
-(define-package "docker-tramp" "20161020.2220" "TRAMP integration for docker containers"
+(define-package "docker-tramp" "20170206.1925" "TRAMP integration for docker containers"
   '((emacs "24")
     (cl-lib "0.5"))
   :url "https://github.com/emacs-pe/docker-tramp.el" :keywords

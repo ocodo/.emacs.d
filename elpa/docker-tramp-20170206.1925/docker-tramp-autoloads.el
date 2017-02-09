@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "docker-tramp" "docker-tramp.el" (22538 11541
-;;;;;;  0 0))
+;;;### (autoloads nil "docker-tramp" "docker-tramp.el" (0 0 0 0))
 ;;; Generated autoloads from docker-tramp.el
 
 (defvar docker-tramp-docker-options nil "\
@@ -30,10 +29,12 @@ Add docker tramp method.
 
 (eval-after-load 'tramp '(progn (docker-tramp-add-method) (tramp-set-completion-function docker-tramp-method docker-tramp-completion-function-alist)))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-tramp" '("docker-tramp-")))
+
 ;;;***
 
 ;;;### (autoloads nil nil ("docker-tramp-compat.el" "docker-tramp-pkg.el")
-;;;;;;  (22538 11541 0 0))
+;;;;;;  (0 0 0 0))
 
 ;;;***
 
