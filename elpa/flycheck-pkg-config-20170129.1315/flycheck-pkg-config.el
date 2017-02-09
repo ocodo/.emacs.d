@@ -4,9 +4,9 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Keywords: flycheck
-;; Package-Version: 20160610.1335
-;; Version: 0.1
-;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
+;; Package-Version: 20170129.1315
+;; Version: 0.2
+;; Package-Requires: ((dash "2.8.0") (s "1.9.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ Raises an error if pkg-config can't find any paths for this library."
 	(let (ret)
 	  (dolist (x (s-split " " cc-args) ret)
 	    (if (s-starts-with? "-I" x) (setq ret (cons (s-chop-prefix "-I" x) ret)))))
-      (user-error cc-args))))
+      (user-error "Could not find an -I include in: %s" cc-args))))
 
 ;;;###autoload
 (defun flycheck-pkg-config ()
@@ -78,8 +78,8 @@ when checking the current buffer."
     ;; already present.
     (setq flycheck-clang-include-path
           (-union flycheck-clang-include-path include-paths))
-    (message "flycheck-clang-include-path: %s"
-             flycheck-clang-include-path)))
+    (message "Added to flycheck-clang-include-path: %s"
+             (s-join " " (--map (format "\"%s\"" it) include-paths)))))
 
 (provide 'flycheck-pkg-config)
 ;;; flycheck-pkg-config.el ends here
