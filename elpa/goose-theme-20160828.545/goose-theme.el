@@ -4,7 +4,7 @@
 
 ;; Author: Stephen Whipple <shw@wicdmedia.org>
 ;; URL: https://github.com/thwg/goose-theme
-;; Package-Version: 20160331.2233
+;; Package-Version: 20160828.545
 ;; Version: 2.0.0
 ;; Package-Requires: ((emacs "24.1"))
 
@@ -59,8 +59,8 @@
  '(link ((t (:foreground "#0000AA" :underline t))))
  '(link-visited ((t (:inherit link :foreground "#440044"))))
  '(minibuffer-prompt ((t (:weight bold))))
- '(mode-line ((t (:background "#999999"))))
- '(mode-line-inactive ((t (:inherit mode-line :background "#B0B0B0"))))
+ '(mode-line ((t (:background "#A0A0A0"))))
+ '(mode-line-inactive ((t (:inherit mode-line))))
  '(region ((t (:background "#C0C0C0"))))
  '(secondary-selection ((t (:background "#C0C0C0"))))
  '(underline ((t nil)))
@@ -124,15 +124,33 @@
  '(gnus-summary-normal-read ((t nil)))
  '(gnus-summary-normal-unread ((t (:weight bold))))
  '(gnus-summary-selected ((t (:background "#DEDEDE"))))
+ ;; info
+ '(Info-quoted ((t (:inherit font-lock-string-face))))
+ '(info-header-node ((t (:inherit font-lock-keyword-face))))
+ '(info-menu-header ((t (:inherit font-lock-keyword-face))))
+ '(info-menu-star ((t nil)))
+ '(info-title-1 ((t (:inherit outline-1))))
+ '(info-title-2 ((t (:inherit outline-2))))
+ '(info-title-3 ((t (:inherit outline-3))))
+ '(info-title-4 ((t (:inherit outline-4))))
+ '(info-xref ((t (:inherit link))))
+ '(info-xref-visited ((t (:inherit (link-visited info-xref)))))
  ;; ivy
  '(ivy-current-match ((t (:inherit highlight))))
  '(ivy-modified-buffer ((t (:weight bold))))
  ;; js2
+ '(js2-error ((t (:inherit error))))
  '(js2-external-variable ((t nil)))
  '(js2-function-param ((t nil)))
+ '(js2-instance-member ((t nil)))
+ '(js2-jsdoc-html-tag-delimiter ((t nil)))
+ '(js2-jsdoc-html-tag-name ((t nil)))
  '(js2-jsdoc-tag ((t (:inherit font-lock-preprocessor-face))))
  '(js2-jsdoc-type ((t (:inherit font-lock-doc-face))))
  '(js2-jsdoc-value ((t (:inherit font-lock-doc-face))))
+ '(js2-private-function-call ((t nil)))
+ '(js2-private-member ((t nil)))
+ '(js2-warning ((t (:inherit warning))))
  ;; magit
  '(magit-section-highlight ((t (:background "#DEDEDE"))))
  ;; markdown
@@ -166,6 +184,23 @@
  '(outline-6 ((t (:weight bold))))
  '(outline-7 ((t (:weight bold))))
  '(outline-8 ((t (:weight bold))))
+ ;; rcirc
+ '(rcirc-bright-nick ((t (:inherit font-lock-keyword-face))))
+ '(rcirc-dim-nick ((t (:inherit font-lock-comment-face))))
+ '(rcirc-keyword ((t (:inherit font-lock-keyword-face))))
+ '(rcirc-my-nick ((t (:inherit rcirc-other-nick))))
+ '(rcirc-nick-in-message ((t (:inherit rcirc-keyword))))
+ '(rcirc-nick-in-message-full-line ((t nil)))
+ '(rcirc-other-nick ((t nil)))
+ '(rcirc-prompt ((t (:inherit font-lock-keyword-face))))
+ '(rcirc-server ((t (:foreground "#006600"))))
+ '(rcirc-track-keyword ((t (:inherit rcirc-keyword))))
+ '(rcirc-track-nick ((t (:inherit rcirc-track-keyword))))
+ '(rcirc-url ((t (:inherit link))))
+ ;; rst
+ '(rst-level-1 ((t (:inherit outline-1))))
+ '(rst-level-2 ((t (:inherit outline-2))))
+ '(rst-level-3 ((t (:inherit outline-3))))
  ;; show-paren
  '(show-paren-match ((t (:background "#AAAAAA"))))
  '(show-paren-mismatch ((t (:background "#444444" :foreground "#FFFFFF"))))
@@ -195,7 +230,11 @@
  '(whitespace-space ((t (:foreground "#999999"))))
  '(whitespace-space-after-tab ((t (:foreground "#AAAAAA"))))
  '(whitespace-tab ((t (:foreground "#AAAAAA"))))
- '(whitespace-trailing ((t (:inherit whitespace-space)))))
+ '(whitespace-trailing ((t (:inherit whitespace-space))))
+ ;; window-divider
+ '(window-divider ((t (:foreground "#A0A0A0"))))
+ '(window-divider-first-pixel ((t (:inherit window-divider))))
+ '(window-divider-last-pixel ((t (:inherit window-divider)))))
 
 ;; Add theme directory to `custom-theme-load-path'
 ;;;###autoload
