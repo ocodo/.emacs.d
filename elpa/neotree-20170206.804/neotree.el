@@ -5,6 +5,7 @@
 ;; Author: jaypei <jaypei97159@gmail.com>
 ;; URL: https://github.com/jaypei/emacs-neotree
 ;; Version: 0.5
+;; Package-Requires: ((cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -34,6 +35,8 @@
 ;;
 
 ;;; Code:
+
+(require 'cl-lib)
 
 ;;
 ;; Constants
@@ -1533,9 +1536,12 @@ If RECURSIVE-P is non nil, find files will recursively."
         (when (neo-path--file-equal-p iter-curr-dir neo-buffer--start-node)
           (setq file-node-find-p t)
           (throw 'return nil))
-        (when (neo-path--file-equal-p iter-curr-dir "/")
-          (setq file-node-find-p nil)
-          (throw 'return nil))))
+        (let ((niter-curr-dir (file-remote-p iter-curr-dir 'localname)))
+          (unless niter-curr-dir
+            (setq niter-curr-dir iter-curr-dir))
+          (when (neo-path--file-equal-p niter-curr-dir "/")
+            (setq file-node-find-p nil)
+            (throw 'return nil)))))
     (when file-node-find-p
       (dolist (p file-node-list)
         (neo-buffer--set-expand p t))
@@ -1862,7 +1868,7 @@ If the current node is the first node then the last node is selected."
                  (funcall neo-confirm-create-file (format "Do you want to create file %S ?"
                                                           filename)))
         ;; ensure parent directory exist before saving
-        (mkdir (substring filename 0 (+ 1 (position ?/ filename :from-end t))) t)
+        (mkdir (substring filename 0 (+ 1 (cl-position ?/ filename :from-end t))) t)
         ;; NOTE: create a empty file
         (write-region "" nil filename)
         (neo-buffer--save-cursor-pos filename)

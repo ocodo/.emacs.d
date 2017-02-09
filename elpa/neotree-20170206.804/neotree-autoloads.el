@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "neotree" "neotree.el" (22653 62685 661358
-;;;;;;  814000))
+;;;### (autoloads nil "neotree" "neotree.el" (0 0 0 0))
 ;;; Generated autoloads from neotree.el
 
 (autoload 'neotree-find "neotree" "\
@@ -47,10 +46,11 @@ Show the NeoTree window, and change root to PATH.
 (defalias 'neotree 'neotree-show "\
 Show the NeoTree window.")
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "neotree" '("neo" "off-p")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("neotree-pkg.el") (22653 62685 701359
-;;;;;;  642000))
+;;;### (autoloads nil nil ("neotree-pkg.el") (0 0 0 0))
 
 ;;;***
 
