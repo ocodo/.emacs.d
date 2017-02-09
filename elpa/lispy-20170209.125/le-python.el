@@ -121,7 +121,9 @@ Stripping them will produce code that's valid for an eval."
         (lispy-message
          (replace-regexp-in-string
           "%" "%%" res))
-      (lispy-message lispy-eval-error))))
+      (lispy-message
+       (replace-regexp-in-string
+        "%" "%%" lispy-eval-error)))))
 
 (defun lispy--python-proc ()
   (let ((proc-name "Python Internal[lispy]"))
@@ -148,14 +150,21 @@ Stripping them will produce code that's valid for an eval."
   (let ((single-line-p (= (cl-count ?\n str) 0)))
     (unless plain
       (setq str (string-trim-left str))
-      (cond ((and single-line-p
-                  (string-match "\\`\\(\\(?:[., ]\\|\\sw\\|\\s_\\|[][]\\)+\\) += " str))
+      (cond ((and (string-match "\\`\\(\\(?:[., ]\\|\\sw\\|\\s_\\|[][]\\)+\\) += " str)
+                  (save-match-data
+                    (or single-line-p
+                        (and (not (string-match-p "lp\\." str))
+                             (lispy--eval-python
+                              (format "x=lp.is_assignment(\"\"\"%s\"\"\")\nprint (x)" str)
+                              t)))))
              (setq str (concat str (format "\nprint (repr ((%s)))" (match-string 1 str)))))
             ((and single-line-p
-                  (string-match "\\`\\(.*\\) in \\(.*\\)\\'" str))
+                  (string-match "\\`\\([A-Z_a-z,0-9 ()]+\\) in \\(.*\\)\\'" str))
              (let ((vars (match-string 1 str))
                    (val (match-string 2 str)))
-               (setq str (format "%s = list (%s)[0]\nprint ((%s))" vars val vars))))))
+               (setq str (format "%s = list (%s)[0]\nprint ((%s))" vars val vars)))))
+      (when (and single-line-p (string-match "\\`return \\(.*\\)\\'" str))
+        (setq str (match-string 1 str))))
     (let ((res
            (cond ((or single-line-p
                       (string-match "\n .*\\'" str)
@@ -217,6 +226,15 @@ Stripping them will produce code that's valid for an eval."
                     )))
               parts))))
 
+(defun lispy-dir-string< (a b)
+  (if (string-match "/$" a)
+      (if (string-match "/$" b)
+          (string< a b)
+        t)
+    (if (string-match "/$" b)
+        nil
+      (string< a b))))
+
 (defun lispy-python-completion-at-point ()
   (cond ((looking-back "^\\(import\\|from\\) .*" (line-beginning-position))
          (let* ((line (buffer-substring-no-properties
@@ -233,6 +251,17 @@ Stripping them will produce code that's valid for an eval."
                 (beg (if bnd (car bnd) (point)))
                 (end (if bnd (cdr bnd) (point))))
            (list beg end cands)))
+        ((lispy--in-string-p)
+         (let* ((bnd-1 (lispy--bounds-string))
+                (bnd-2 (or (bounds-of-thing-at-point 'symbol)
+                           (cons (point) (point))))
+                (str (buffer-substring-no-properties
+                      (1+ (car bnd-1))
+                      (1- (cdr bnd-1)))))
+           (list (car bnd-2)
+                 (cdr bnd-2)
+                 (cl-sort (delete "./" (all-completions str #'read-file-name-internal))
+                          #'lispy-dir-string<))))
         (t
          (let ((comp (python-shell-completion-at-point (lispy--python-proc))))
            (list (nth 0 comp)

@@ -4109,7 +4109,10 @@ When ARG isn't nil, try to pretty print the sexp."
 (defun lispy-eval-and-comment ()
   "Eval last sexp and insert the result as a comment."
   (interactive)
-  (let ((str (lispy--eval (lispy--string-dwim)))
+  (let ((str (lispy--eval
+              (if (eq major-mode 'python-mode)
+                  (lispy-eval-python-str)
+                (lispy--string-dwim))))
         re-bnd)
     (save-excursion
       (cond ((region-active-p)
@@ -7873,7 +7876,7 @@ checked and nil will be returned."
             (cond
               ((and lispy-safe-actions-ignore-strings
                     (save-excursion
-                      (backward-char)
+                      (goto-char match-beginning)
                       (setq string-bounds (lispy--bounds-string))
                       (setq string-end (cdr string-bounds))))
                (setq matched-left-quote-p (= (1- (point))
@@ -7890,7 +7893,9 @@ checked and nil will be returned."
                         (push match-beginning left-positions))
                       (goto-char end))))
               ((and lispy-safe-actions-ignore-comments
-                    (setq comment-end (cdr (lispy--bounds-comment))))
+                    (save-excursion
+                      (goto-char match-beginning)
+                      (setq comment-end (cdr (lispy--bounds-comment)))))
                (if (< comment-end end)
                    (goto-char comment-end)
                  (goto-char end)))
