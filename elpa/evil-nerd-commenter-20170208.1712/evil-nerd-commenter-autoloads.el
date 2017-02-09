@@ -90,9 +90,10 @@ The version number.
 \(fn)" t nil)
 
 (autoload 'evilnc-default-hotkeys "evil-nerd-commenter" "\
-Set the hotkeys of evil-nerd-comment.
+Set up the key bindings of evil-nerd-comment.
+If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in evil-mode.
 
-\(fn)" t nil)
+\(fn &optional NO-EVIL-KEYBINDINGS)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-nerd-commenter" '("evilnc-")))
 
