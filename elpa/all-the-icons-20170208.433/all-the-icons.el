@@ -3,7 +3,7 @@
 ;; Copyright (C) 2016  Dominic Charlesworth <dgc336@gmail.com>
 
 ;; Author: Dominic Charlesworth <dgc336@gmail.com>
-;; Version: 2.2.0
+;; Version: 2.3.0
 ;; Package-Requires: ((dash "2.12.0") (emacs "24.3") (font-lock+ "0"))
 ;; URL: https://github.com/domtronn/all-the-icons.el
 ;; Keywords: convenient, lisp
@@ -35,11 +35,12 @@
 
 ;; Currently, this package provides an interface to the following Icon Fonts
 
-;; - Atom File Icons,   found at https://atom.io/packages/file-icons
-;; - FontAwesome Icons, found at http://fontawesome.io/
-;; - GitHub Octicons,   found at http://octicons.github.com
-;; - Weather Icons,     found at https://erikflowers.github.io/weather-icons/
-;; - AllTheIcons,       a custom Icon Font maintained as part of this package
+;; - Atom File Icons,       found at https://atom.io/packages/file-icons
+;; - FontAwesome Icons,     found at http://fontawesome.io/
+;; - GitHub Octicons,       found at http://octicons.github.com
+;; - Material Design Icons, found at http://google.github.io/material-design-icons/
+;; - Weather Icons,         found at https://erikflowers.github.io/weather-icons/
+;; - AllTheIcons,           a custom Icon Font maintained as part of this package
 
 ;; Requests for new icons will be accepted and added to the AllTheIcons Icon Font
 
@@ -69,6 +70,7 @@
 ;;   `all-the-icons-faicon'         // Font Awesome Icons
 ;;   `all-the-icons-fileicon'       // File Icons from the Atom File Icons package
 ;;   `all-the-icons-octicon'        // GitHub Octicons
+;;   `all-the-icons-material'       // Material Design Icons
 ;;   `all-the-icons-wicon'          // Weather Icons
 
 ;; You can call these functions with the icon name you want to insert, e.g.
@@ -91,6 +93,7 @@
 (require 'data-fileicons    "./data/data-fileicons.el")
 (require 'data-octicons     "./data/data-octicons.el")
 (require 'data-weathericons "./data/data-weathericons.el")
+(require 'data-material     "./data/data-material.el")
 
 (require 'all-the-icons-faces)
 
@@ -335,20 +338,20 @@
 (defvar all-the-icons-dir-icon-alist
   '(
     ("trash"            all-the-icons-faicon "trash-o"          :height 1.2 :v-adjust -0.1)
-    ("dropbox"          all-the-icons-faicon "dropbox"          :height 1.2 :v-adjust -0.1)
+    ("dropbox"          all-the-icons-faicon "dropbox"          :height 1.0 :v-adjust -0.1)
     ("google[ _-]drive" all-the-icons-alltheicon "google-drive" :height 1.3 :v-adjust -0.1)
     ("atom"             all-the-icons-alltheicon "atom"         :height 1.2 :v-adjust -0.1)
-    ("documents"        all-the-icons-faicon "book"             :height 1.2 :v-adjust -0.1)
-    ("download"         all-the-icons-octicon "cloud-download"  :height 1.2 :v-adjust -0.1)
-    ("desktop"          all-the-icons-faicon "desktop"          :height 1.2 :v-adjust -0.1)
-    ("pictures"         all-the-icons-faicon "picture-o"        :height 1.2 :v-adjust -0.1)
-    ("photos"           all-the-icons-faicon "camera-retro"     :height 1.2 :v-adjust -0.1)
-    ("music"            all-the-icons-faicon "headphones"       :height 1.2 :v-adjust -0.1)
-    ("movies"           all-the-icons-faicon "video-camera"     :height 1.2 :v-adjust -0.1)
-    ("code"             all-the-icons-octicon "code"            :height 1.2 :v-adjust -0.1)
-    ("workspace"        all-the-icons-octicon "code"            :height 1.2 :v-adjust -0.1)
-    (".git"             all-the-icons-alltheicon "git"          :height 0.9)
-    ("."                all-the-icons-octicon "file-directory"  :height 1.2)
+    ("documents"        all-the-icons-faicon "book"             :height 1.0 :v-adjust -0.1)
+    ("download"         all-the-icons-faicon "cloud-download"   :height 0.9 :v-adjust -0.2)
+    ("desktop"          all-the-icons-octicon "device-desktop"  :height 1.0 :v-adjust -0.1)
+    ("pictures"         all-the-icons-faicon "picture-o"        :height 0.9 :v-adjust -0.2)
+    ("photos"           all-the-icons-faicon "camera-retro"     :height 1.0 :v-adjust -0.1)
+    ("music"            all-the-icons-faicon "music"            :height 1.0 :v-adjust -0.1)
+    ("movies"           all-the-icons-faicon "film"             :height 0.9 :v-adjust -0.1)
+    ("code"             all-the-icons-octicon "code"            :height 1.1 :v-adjust -0.1)
+    ("workspace"        all-the-icons-octicon "code"            :height 1.1 :v-adjust -0.1)
+    (".git"             all-the-icons-alltheicon "git"          :height 1.0)
+    ("."                all-the-icons-octicon "file-directory"  :height 1.0 :v-adjust -0.1)
     ))
 
 (defvar all-the-icons-weather-icon-alist
@@ -460,13 +463,13 @@ directory contents"
          (padding (or padding "\t"))
          (icon (cond
                 ((file-symlink-p path)
-                 (all-the-icons-octicon "file-symlink-directory" :height 1.2))
+                 (all-the-icons-octicon "file-symlink-directory" :height 1.0))
                 ((all-the-icons-dir-is-submodule path)
-                 (all-the-icons-octicon "file-submodule" :height 1.2))
+                 (all-the-icons-octicon "file-submodule" :height 1.0))
                 ((file-exists-p (format "%s/.git" path))
-                 (all-the-icons-octicon "repo" :height 1.2))
+                 (format "%s" (all-the-icons-octicon "repo" :height 1.1)))
                 (t (apply (car matcher) (cdr matcher))))))
-    (format "%s%s%s%s " padding chevron padding icon)))
+    (format "%s%s%s%s%s" padding chevron padding icon padding)))
 
 (defun all-the-icons-icon-for-buffer ()
   "Get the formatted icon for the current buffer.
@@ -663,11 +666,12 @@ FAMILY is the font family to use for the icons."
        (interactive "P")
        (all-the-icons-insert arg (quote ,name)))))
 
-(define-icon alltheicon all-the-icons-data/alltheicons-alist "all-the-icons")
-(define-icon octicon all-the-icons-data/octicons-alist       "github-octicons")
-(define-icon fileicon all-the-icons-data/file-icon-alist     "file-icons")
-(define-icon faicon all-the-icons-data/fa-icon-alist         "FontAwesome")
-(define-icon wicon all-the-icons-data/weather-icons-alist    "Weather Icons")
+(define-icon alltheicon all-the-icons-data/alltheicons-alist    "all-the-icons")
+(define-icon octicon    all-the-icons-data/octicons-alist       "github-octicons")
+(define-icon fileicon   all-the-icons-data/file-icon-alist      "file-icons")
+(define-icon faicon     all-the-icons-data/fa-icon-alist        "FontAwesome")
+(define-icon wicon      all-the-icons-data/weather-icons-alist  "Weather Icons")
+(define-icon material   all-the-icons-data/material-icons-alist "Material Icons")
 
 (provide 'all-the-icons)
 
