@@ -4,7 +4,6 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-vdiff
-;; Package-Version: 20170116.1154
 ;; Version: 0.1
 ;; Keywords: diff
 ;; Package-Requires: ((emacs "24.4") (hydra "0.13.0"))
@@ -96,7 +95,7 @@ break vdiff. It is empty by default."
   :type 'integer)
 
 (defcustom vdiff-may-close-fold-on-point t
-  "If non-nil, avoid closing new folds around point."
+  "If non-nil, allow closing new folds around point after updates."
   :group 'vdiff
   :type 'boolean)
 
@@ -112,7 +111,7 @@ text on the first line, and the width of the buffer."
 \"words\" in \`vdiff-refine-this-hunk'. Some useful options are
 
 \"w\"   (default) words
-\"w_\"  symbols \(really words plus symbol constituents\)
+\"w_\"  symbols \(words plus symbol constituents\)
 
 For more information see
 https://www.gnu.org/software/emacs/manual/html_node/elisp/Syntax-Class-Table.html"
@@ -140,6 +139,15 @@ indicate the subtraction location in the fringe."
 `vdiff-subtraction-style'."
   :group 'vdiff
   :type 'integer)
+
+(defcustom vdiff-use-ancestor-as-merge-buffer nil
+  "When in a merge conflict file and text from the ancestor file
+is included, `vdiff-merge-conflict' will use the ancestor file as
+the merge buffer (or target buffer) that will be saved when the
+merge is finished. The default is to show the original file with
+conflicts as the merge buffer."
+  :group 'vdiff
+  :type 'boolean)
 
 (defface vdiff-addition-face
   '((t :inherit diff-added))
@@ -283,8 +291,10 @@ because those are handled differently.")
         ((vdiff--buffer-c-p) 'c)))
 
 (defun vdiff--unselected-buffers ()
-  (remq (current-buffer)
-        (vdiff-session-buffers vdiff--session)))
+  (cl-remove-if
+   (lambda (buf) (or (eq buf (current-buffer))
+                     (not (buffer-live-p buf))))
+   (vdiff-session-buffers vdiff--session)))
 
 (defun vdiff--unselected-windows ()
   (mapcar #'get-buffer-window
@@ -1356,10 +1366,12 @@ buffer)."
    (lambda ()
      (unless vdiff--setting-vscroll
        (let ((vdiff--setting-vscroll t))
-         (when (and vscroll
-                    (eq vdiff-subtraction-style 'full))
-           (set-window-vscroll window vscroll))
-         (force-window-update window))))))
+         (when (and (windowp window)
+                    (window-live-p window))
+           (when (and vscroll
+                      (eq vdiff-subtraction-style 'full))
+             (set-window-vscroll window vscroll))
+           (force-window-update window)))))))
 
 (defun vdiff--flag-new-command ()
   (setq vdiff--new-command t))
@@ -1734,6 +1746,80 @@ function for ON-QUIT to do something useful with the result."
     (vdiff-refresh #'vdiff--scroll-function)))
 
 ;;;###autoload
+(defun vdiff-merge-conflict (file &optional restore-windows-on-quit)
+  "Start vdiff session using merge conflicts marked in FILE."
+  (interactive (list buffer-file-name))
+  (with-current-buffer (find-file-noselect file)
+    (require 'smerge-mode)
+    (let* ((smerge-buffer (current-buffer))
+           (mode major-mode)
+           (filename (file-name-directory (or buffer-file-name "-")))
+           (mine (generate-new-buffer
+                  (concat "*" filename " "
+                          (smerge--get-marker smerge-begin-re "MINE")
+                          "*")))
+           (other (generate-new-buffer
+                   (concat "*" filename " "
+                           (smerge--get-marker smerge-end-re "OTHER")
+                           "*")))
+           (ancestor (generate-new-buffer
+                  (concat "*" filename " "
+                          (smerge--get-marker smerge-end-re "ANCESTOR")
+                          "*")))
+           ancestor-used merge-buffer)
+      (with-current-buffer mine
+        (buffer-disable-undo)
+        (insert-buffer-substring smerge-buffer)
+        (goto-char (point-min))
+        (while (smerge-find-conflict)
+          (smerge-keep-n 1))
+        (buffer-enable-undo)
+        (set-buffer-modified-p nil)
+        (funcall mode))
+
+      (with-current-buffer ancestor
+        (buffer-disable-undo)
+        (insert-buffer-substring smerge-buffer)
+        (goto-char (point-min))
+        (while (smerge-find-conflict)
+          (when (match-beginning 2)
+            (setq ancestor-used t)
+            (smerge-keep-n 2)))
+        (buffer-enable-undo)
+        (set-buffer-modified-p nil)
+        (funcall mode))
+
+      (with-current-buffer other
+        (buffer-disable-undo)
+        (insert-buffer-substring smerge-buffer)
+        (goto-char (point-min))
+        (while (smerge-find-conflict)
+          (smerge-keep-n 3))
+        (buffer-enable-undo)
+        (set-buffer-modified-p nil)
+        (funcall mode))
+
+      (setq merge-buffer
+            (if (and ancestor-used vdiff-use-ancestor-as-merge-buffer)
+                ancestor
+              smerge-buffer))
+
+      (vdiff-buffers3
+       mine other merge-buffer
+       `(lambda (mine other merge-buffer)
+          (with-current-buffer ,smerge-buffer
+            (when (yes-or-no-p (format "Conflict resolution finished; save %s?"
+                                       buffer-file-name))
+              (when ,(and ancestor-used vdiff-use-ancestor-as-merge-buffer)
+                (erase-buffer)
+                (insert-buffer-substring merge-buffer))
+              (save-buffer)))
+          (when (buffer-live-p mine) (kill-buffer mine))
+          (when (buffer-live-p ,ancestor) (kill-buffer ,ancestor))
+          (when (buffer-live-p other) (kill-buffer other)))
+       restore-windows-on-quit))))
+
+;;;###autoload
 (defun vdiff-files3 (file-a file-b file-c &optional on-quit)
   "Start a vdiff session with 3 files. If called interactively,
 you will be asked to select two files."
@@ -1756,6 +1842,49 @@ you will be asked to select two files."
                   (find-file-noselect file-c)
                   on-quit))
 
+;;;###autoload
+(defun vdiff-current-file ()
+  "Start vdiff between current buffer and its file on disk.
+This command can be used instead of `revert-buffer'.  If there is
+nothing to revert then this command fails."
+  (interactive)
+  ;; Taken from `ediff-current-file'
+  (unless (or (not (eq revert-buffer-function 'revert-buffer--default))
+              (not (eq revert-buffer-insert-file-contents-function
+               'revert-buffer-insert-file-contents--default-function))
+              (and buffer-file-number
+                   (or (buffer-modified-p)
+                       (not (verify-visited-file-modtime
+                             (current-buffer))))))
+    (error "Nothing to revert"))
+  (let* ((auto-save-p (and (recent-auto-save-p)
+                           buffer-auto-save-file-name
+                           (file-readable-p buffer-auto-save-file-name)
+                           (y-or-n-p
+                            "Buffer has been auto-saved recently.  Compare with auto-save file? ")))
+         (file-name (if auto-save-p
+                        buffer-auto-save-file-name
+                      buffer-file-name))
+         (revert-buf-name (concat "FILE=" file-name))
+         (revert-buf (get-buffer revert-buf-name))
+         (current-major major-mode))
+    (unless file-name
+      (error "Buffer does not seem to be associated with any file"))
+    (when revert-buf
+      (kill-buffer revert-buf)
+      (setq revert-buf nil))
+    (setq revert-buf (get-buffer-create revert-buf-name))
+    (with-current-buffer revert-buf
+      (insert-file-contents file-name)
+      ;; Assume same modes:
+      (funcall current-major))
+    (vdiff-buffers revert-buf (current-buffer)
+                   nil
+                   (lambda (rbuf _)
+                     (when (buffer-live-p rbuf)
+                       (kill-buffer rbuf)))
+                   t)))
+
 ;; (defvar vdiff-quit-hook nil)
 
 (defun vdiff-quit ()
@@ -1775,12 +1904,13 @@ you will be asked to select two files."
           (kill-process (get-buffer-process buf)))
         (when (buffer-live-p buf) (kill-buffer buf)))
       (dolist (buf (vdiff-session-buffers ses))
-        (with-current-buffer buf
-          (if vdiff-3way-mode
-              (vdiff-3way-mode -1)
-            (vdiff-mode -1)))
-        (when (vdiff-session-kill-buffers-on-quit ses)
-          (kill-buffer buf)))
+        (when (buffer-live-p buf)
+          (with-current-buffer buf
+            (if vdiff-3way-mode
+                (vdiff-3way-mode -1)
+              (vdiff-mode -1)))
+          (when (vdiff-session-kill-buffers-on-quit ses)
+            (kill-buffer buf))))
       ;; (run-hooks 'vdiff-quit-hook)
       (when (vdiff-session-prior-window-config ses)
         (set-window-configuration
@@ -1835,8 +1965,7 @@ you will be asked to select two files."
   (remove-hook 'after-save-hook #'vdiff-refresh t)
   (remove-hook 'after-change-functions #'vdiff--after-change-function t)
   (remove-hook 'pre-command-hook #'vdiff--flag-new-command t)
-  (when vdiff-scroll-lock-mode
-    (vdiff-scroll-lock-mode -1)))
+  (remove-hook 'window-scroll-functions #'vdiff--scroll-function t))
 
 (define-minor-mode vdiff-mode
   "Minor mode active in a vdiff session involving two
@@ -1848,7 +1977,7 @@ automatically after calling commands like `vdiff-files' or
   (cond (vdiff-mode
          (vdiff--buffer-init)
          (when vdiff-lock-scrolling
-           (vdiff-scroll-lock-mode 1)))
+          (add-hook 'window-scroll-functions #'vdiff--scroll-function nil t)))
         (t
          (vdiff--buffer-cleanup))))
 
@@ -1862,7 +1991,7 @@ automatically after calling commands like `vdiff-files3' or
   (cond (vdiff-3way-mode
          (vdiff--buffer-init)
          (when vdiff-lock-scrolling
-           (vdiff-scroll-lock-mode 1)))
+           (add-hook 'window-scroll-functions #'vdiff--scroll-function nil t)))
         (t
          (vdiff--buffer-cleanup))))
 
