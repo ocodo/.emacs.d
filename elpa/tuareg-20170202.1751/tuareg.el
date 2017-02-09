@@ -1541,7 +1541,7 @@ by |, insert one |."
 		    nil))))))
     tok))
 
-(defun tuareg--skip-blank-and-comments ()
+(defun tuareg-skip-blank-and-comments ()
   (forward-comment (point-max)))
 
 (defconst tuareg-smie--type-label-leader
@@ -1554,7 +1554,7 @@ by |, insert one |."
 (defconst tuareg-smie--float-re "[0-9]+\\(?:\\.[0-9]*\\)?\\(?:e[-+]?[0-9]+\\)")
 
 (defun tuareg-smie--forward-token ()
-  (tuareg--skip-blank-and-comments)
+  (tuareg-skip-blank-and-comments)
   (buffer-substring-no-properties
    (point)
    (progn (if (zerop (skip-syntax-forward "."))
@@ -1876,7 +1876,7 @@ Return values can be
       ;; FIXME: Don't use smie--parent.
       (goto-char (cadr smie--parent))
       (smie-indent-forward-token)
-      (tuareg--skip-blank-and-comments)
+      (tuareg-skip-blank-and-comments)
       `(column . ,(- (current-column) 2)))
      (t (smie-rule-separator kind))))
    (t
@@ -2204,7 +2204,7 @@ whereas with a non value you get
           (while (progn
                    (smie-forward-sexp 'halfsexp)
                    (setq end (point))
-                   (tuareg--skip-blank-and-comments)
+                   (tuareg-skip-blank-and-comments)
                    (< (point) pos))
             ;; Looks like tuareg--beginning-of-phrase went too far back!
             (setq begin (point)))
@@ -2212,16 +2212,89 @@ whereas with a non value you get
           (goto-char begin)
           ;; ";;" is not part of the phrase and neither comments
           (tuareg--skip-double-colon)
-          (tuareg--skip-blank-and-comments)
+          (tuareg-skip-blank-and-comments)
           (list (point) end end-comment)))))
+
+  (defun tuareg--string-boundaries ()
+    "Assume point is inside a string and return (START . END), the
+positions delimiting the string (including its delimiters)."
+    (save-excursion
+      (let ((start (nth 8 (syntax-ppss)))
+            end)
+        (goto-char start)
+        (smie-forward-sexp)
+        (setq end (1- (point)))
+        (cons start end))))
+
+  (defun tuareg--fill-string ()
+    "Assume the point is inside a string delimited by \" and jusfify it.
+This function moves the point."
+    (let* ((start-end (tuareg--string-boundaries))
+           (start (set-marker (make-marker) (car start-end)))
+           (end   (set-marker (make-marker) (cdr start-end)))
+           fill-prefix
+           (fill-individual-varying-indent t)
+           (use-hard-newlines t))
+      (indent-region (marker-position start) (marker-position end))
+      ;; Delete all backslash protected newlines except those without
+      ;; a preceding space that serve to cut a long word.
+      (goto-char (marker-position start))
+      ;(indent-according-to-mode)
+      (setq fill-prefix (make-string (1+ (current-column)) ?\ ))
+      (if (looking-at "\"\\\\ *[\n\r] *")
+          (replace-match "\""))
+      (while (re-search-forward " +\\\\ *[\n\r] *" (marker-position end) t)
+        (replace-match " "))
+      (set-hard-newline-properties (marker-position start)
+                                   (marker-position end))
+      ;; Do not include the final \" not to remove space before it:
+      (fill-region (marker-position start) (1- (marker-position end)))
+      ;; Protect all soft newlines
+      (goto-char (marker-position start))
+      (end-of-line)
+      (while (< (point) (marker-position end))
+        (unless (get-char-property (point) 'hard)
+          (insert " \\"))
+        (forward-char)
+        (end-of-line))
+      (set-marker start nil)
+      (set-marker end nil)))
+
+  (defun tuareg--fill-comment ()
+    "Assumes the point is inside a comment and justify it.
+This function moves the point."
+    (let* ((start (set-marker (make-marker) (nth 8 (syntax-ppss))))
+           (end (make-marker))
+           fill-prefix
+           (use-hard-newlines t))
+      (goto-char (marker-position start))
+      (indent-according-to-mode)
+      (setq fill-prefix (make-string (+ 3 (current-column)) ?\ ))
+      (forward-comment 1)
+      (set-marker end (point))
+      (goto-char (marker-position start))
+      (let ((e (marker-position end)))
+        (while (re-search-forward "\n\n" e t)
+          (put-text-property (match-beginning 0) (match-end 0) 'hard 't)))
+      (fill-region start end)
+      (remove-text-properties (marker-position start) (marker-position end)
+                              '(hard))
+      (set-marker start nil)
+      (set-marker end nil)))
 
   (defun tuareg-indent-phrase ()
     "Depending of the context: justify and indent a comment,
 or indent all lines in the current phrase."
     (interactive)
     (save-excursion
-      (let ((phrase (tuareg-discover-phrase)))
-        (indent-region (car phrase) (cadr phrase)))))
+      (let ((ppss (syntax-ppss)))
+        (cond
+         ((equal ?\"(nth 3 ppss))
+          (tuareg--fill-string))
+         ((nth 4 ppss)
+          (tuareg--fill-comment))
+         (t (let ((phrase (tuareg-discover-phrase)))
+              (indent-region (car phrase) (cadr phrase))))))))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2256,7 +2329,7 @@ file outside _build? ")
 	      (kill-buffer)
 	      (find-file fpath)
 	      t)
-	  (toggle-read-only); Obsolete.  Better portable way?
+          (read-only-mode)
 	  (message "File under _build.  C-x C-q to edit.")
 	  nil)))))
 
@@ -2440,11 +2513,11 @@ Short cuts for interactions with the toplevel:
 (defun tuareg-beginning-of-defun ()
   (when (tuareg-find-matching-starter tuareg-starters-syms)
 	(save-excursion (tuareg-smie-forward-token)
-                        (tuareg--skip-blank-and-comments)
+                        (tuareg-skip-blank-and-comments)
                         (let ((name (tuareg-smie-forward-token)))
                           (if (not (member name '("rec" "type")))
                               name
-                            (tuareg--skip-blank-and-comments)
+                            (tuareg-skip-blank-and-comments)
                         (tuareg-smie-forward-token))))))
 
 (defcustom tuareg-max-name-components 3
@@ -2487,6 +2560,11 @@ Short cuts for interactions with the toplevel:
           "\\(?::\\(\nWarning\\)?\\|[-,:]\\|$\\)")            ;Warning/error.
   "Regular expression matching the error messages produced by ocamlc.")
 
+(defconst tuareg--error-regexp-newstyle
+  (concat "^[ A-\377]+ \"\\([^\"\n]+\\)\", line \\([0-9]+\\), "
+          "characters \\([0-9]+\\)-\\([0-9]+\\):")
+  "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
+
 (when (boundp 'compilation-error-regexp-alist)
   (or (assoc tuareg-error-regexp
              compilation-error-regexp-alist)
@@ -2498,7 +2576,12 @@ Short cuts for interactions with the toplevel:
                   ;; Other error format used for unhandled match case.
                   (cons '("^Fatal error: exception [^ \n]*(\"\\([^\"]*\\)\", \\([0-9]+\\), \\([0-9]+\\))"
                           1 2 3)
-                        compilation-error-regexp-alist)))))
+                        compilation-error-regexp-alist))))
+  (unless (assoc tuareg--error-regexp-newstyle
+                 compilation-error-regexp-alist)
+    (setq compilation-error-regexp-alist
+          (cons (list tuareg--error-regexp-newstyle 1 2 '(3 . 4))
+                compilation-error-regexp-alist))))
 
 ;; A regexp to extract the range info.
 
@@ -2548,9 +2631,13 @@ Short cuts for interactions with the toplevel:
                  ;; ocaml-module-symbols contains an unexplained call to
                  ;; pop-to-buffer within save-window-excursion.  Let's try and
                  ;; avoid it pops up a stupid frame.
-                 (special-display-buffer-names
-                  (cons '("*caml-help*" (same-frame . t))
-                        special-display-buffer-names)))
+                 (display-buffer-alist
+                  (cons '("^\\*caml-help\\*$"
+                          (display-buffer-reuse-window
+                           display-buffer-pop-up-window)
+                          (reusable-frames . nil); only the selected frame
+                          (window-height . 0.25))
+                        display-buffer-alist)))
              (if (eq (car-safe action) 'boundaries)
                  `(boundaries ,(if dot (1+ dot) 0)
                               ,@(string-match "\\." (cdr action)))
@@ -2876,7 +2963,7 @@ Short cuts for interactions with the toplevel:
     (font-lock-mode 1))
   (unless tuareg-use-smie
     (display-warning
-     'tuareg "SMIE not enabled, some things may not work properly"))
+     'tuareg "SMIE not enabled, some things may not work as expected."))
 
   (easy-menu-add tuareg-interactive-mode-menu)
   (tuareg-update-options-menu))
@@ -2937,24 +3024,26 @@ I/O via buffer `*ocaml-toplevel*'."
   (indent-according-to-mode)
   (message tuareg-interactive--send-warning))
 
-(defun tuareg-interactive-send-input ()
-  "Send the current phrase to the OCaml toplevel or insert a newline.
-If the point is after \";;\", the phrase is sent to the toplevel,
+(when tuareg-use-smie
+  (defun tuareg-interactive-send-input ()
+    "Send the current phrase to the OCaml toplevel or insert a newline.
+If the point is next to \";;\", the phrase is sent to the toplevel,
 otherwise a newline is inserted and the lines are indented."
-  (interactive)
-  (cond
-   ((tuareg-in-literal-or-comment-p) (tuareg-interactive--indent-line))
-   ((or (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
-        (equal ";;" (save-excursion (caddr (smie-forward-sexp)))))
-    (comint-send-input))
-   (t (tuareg-interactive--indent-line))))
+    (interactive)
+    (cond
+     ((tuareg-in-literal-or-comment-p) (tuareg-interactive--indent-line))
+     ((or (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
+          (equal ";;" (save-excursion (caddr (smie-forward-sexp)))))
+      (comint-send-input))
+     (t (tuareg-interactive--indent-line))))
 
-(defun tuareg-interactive-send-input-end-of-phrase ()
-  (interactive)
-  (goto-char (point-max))
-  (unless (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
-    (insert ";;"))
-  (comint-send-input))
+  (defun tuareg-interactive-send-input-end-of-phrase ()
+    (interactive)
+    (goto-char (point-max))
+    (unless (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
+      (insert ";;"))
+    (comint-send-input))
+  )
 
 (defun tuareg-interactive--send-region (start end)
   "Send the region between `start' and `end' to the OCaml toplevel.
@@ -3007,7 +3096,7 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
     (when tuareg-skip-after-eval-phrase
       (goto-char end)
       (tuareg--skip-double-colon)
-      (tuareg--skip-blank-and-comments))))
+      (tuareg-skip-blank-and-comments))))
 
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
@@ -3313,7 +3402,7 @@ Short cuts for interaction within the toplevel:
                0))
         (kw) (value-list) (type-list) (module-list) (class-list) (misc-list))
     (goto-char (point-min))
-    (tuareg--skip-blank-and-comments)
+    (tuareg-skip-blank-and-comments)
     (while (not (eobp))
       (when (looking-at tuareg-definitions-regexp)
         (setq kw (tuareg-match-string 0))
@@ -3322,10 +3411,10 @@ Short cuts for interaction within the toplevel:
           (setq kw "let"))
         ;; Skip optional elements
         (goto-char (match-end 0))
-        (tuareg--skip-blank-and-comments)
+        (tuareg-skip-blank-and-comments)
         (when (looking-at tuareg-definitions-bind-skip-regexp)
           (goto-char (match-end 0)))
-        (tuareg--skip-blank-and-comments)
+        (tuareg-skip-blank-and-comments)
         (when (looking-at tuareg-identifier-regexp)
           (let ((ref (cons (tuareg-match-string 0) (point-marker))))
             (if (not (integerp cpt))
