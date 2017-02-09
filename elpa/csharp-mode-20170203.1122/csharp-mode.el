@@ -5,7 +5,7 @@
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
 ;; Version    : 0.9.1
-;; Package-Version: 20170127.1100
+;; Package-Version: 20170203.1122
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2017-Jan-11
@@ -2922,7 +2922,7 @@ The mode provides fontification and indent for C# syntax, as well
 as some other handy features.
 
 At mode startup, there are two interesting hooks that run:
-`c-mode-common-hook' is run with no args, then `csharp-mode-hook' is run after
+`prog-mode-hook' is run with no args, then `csharp-mode-hook' is run after
 that, also with no args.
 
 To run your own logic after csharp-mode starts, do this:
