@@ -254,8 +254,8 @@ an alternate theme for use in the terminal.")
      (whitespace-trailing                          :foreground base0A :background base08)
 
      ;; Parenthesis matching (built-in)
-     (show-paren-match                             :foreground base03 :background base0D)
-     (show-paren-mismatch                          :foreground base03 :background base09)
+     (show-paren-match                             :foreground base01 :background base0D)
+     (show-paren-mismatch                          :foreground base01 :background base09)
 
      ;; Parenthesis matching (mic-paren)
      (paren-face-match                             :foreground nil :background nil :inherit show-paren-match)
@@ -337,6 +337,7 @@ an alternate theme for use in the terminal.")
      (diredp-write-priv                            :foreground base0A :background nil)
 
      ;; term and ansi-term
+     (term                                         :foreground base05 :background base00)
      (term-color-black                             :foreground base02 :background base00)
      (term-color-white                             :foreground base05 :background base07)
      (term-color-red                               :foreground base08 :background base08)
