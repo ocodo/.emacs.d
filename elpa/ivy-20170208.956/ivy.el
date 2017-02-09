@@ -286,6 +286,8 @@ action functions.")
     (define-key map (kbd "C-g") 'minibuffer-keyboard-quit)
     (define-key map [remap scroll-up-command] 'ivy-scroll-up-command)
     (define-key map [remap scroll-down-command] 'ivy-scroll-down-command)
+    (define-key map (kbd "C-v") 'ivy-scroll-up-command)
+    (define-key map (kbd "M-v") 'ivy-scroll-down-command)
     (define-key map (kbd "C-M-n") 'ivy-next-line-and-call)
     (define-key map (kbd "C-M-p") 'ivy-previous-line-and-call)
     (define-key map (kbd "M-r") 'ivy-toggle-regexp-quote)
@@ -1770,9 +1772,10 @@ INHERIT-INPUT-METHOD is currently ignored."
               :history history
               :keymap nil
               :sort
-              (let ((sort (or (ivy--sort-function this-command)
-                              (ivy--sort-function t))))
-                (or sort t)))))
+              (let ((sort (assoc this-command ivy-sort-functions-alist)))
+                (if sort
+                    (ivy--sort-function (car sort))
+                  (or (ivy--sort-function t) t))))))
 
 (defvar ivy-completion-beg nil
   "Completion bounds start.")
