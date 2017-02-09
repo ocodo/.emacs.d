@@ -274,7 +274,7 @@ entirely.")
 
 (custom-autoload 'cider-mode-line "cider-mode" t)
 
-(eval-after-load 'clojure-mode '(easy-menu-define cider-clojure-mode-menu-open clojure-mode-map "Menu for Clojure mode.\n  This is displayed in `clojure-mode' buffers, if `cider-mode' is not active." `("CIDER" :visible (not cider-mode) ["Start a REPL" cider-jack-in :help "Starts an nREPL server (with lein, boot, or maven) and connects a REPL to it."] ["Connect to a REPL" cider-connect :help "Connects to a REPL that's already running."] ["Start a Clojure REPL, and a ClojureScript REPL" cider-jack-in-clojurescript :help "Starts an nREPL server, connects a Clojure REPL to it, and then a ClojureScript REPL.\n  Configure `cider-cljs-lein-repl' to change the ClojureScript REPL to use."] "--" ["View manual online" cider-view-manual])))
+(eval-after-load 'clojure-mode '(easy-menu-define cider-clojure-mode-menu-open clojure-mode-map "Menu for Clojure mode.\n  This is displayed in `clojure-mode' buffers, if `cider-mode' is not active." `("CIDER" :visible (not cider-mode) ["Start a REPL" cider-jack-in :help "Starts an nREPL server (with lein, boot, or maven) and connects a REPL to it."] ["Connect to a REPL" cider-connect :help "Connects to a REPL that's already running."] ["Start a Clojure REPL, and a ClojureScript REPL" cider-jack-in-clojurescript :help "Starts an nREPL server, connects a Clojure REPL to it, and then a ClojureScript REPL.\n  Configure `cider-cljs-lein-repl', `cider-cljs-boot-repl' and `cider-cljs-gradle-repl' to change the ClojureScript REPL to use."] "--" ["View manual online" cider-view-manual])))
 
 (autoload 'cider-mode "cider-mode" "\
 Minor mode for REPL interaction from a Clojure buffer.
