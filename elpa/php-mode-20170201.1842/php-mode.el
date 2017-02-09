@@ -6,13 +6,13 @@
 
 ;; Author: Eric James Michael Ritz
 ;; URL: https://github.com/ejmr/php-mode
-;; Version: 1.18.0
+;; Version: 1.18.2
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
-(defconst php-mode-version-number "1.18.0"
+(defconst php-mode-version-number "1.18.2"
   "PHP Mode version number.")
 
-(defconst php-mode-modified "2017-01-27"
+(defconst php-mode-modified "2017-02-02"
   "PHP Mode build date.")
 
 ;;; License
@@ -523,6 +523,9 @@ PHP does not have an \"enum\"-like keyword."
   php '("function"
         "use"))
 
+(c-lang-defconst c-other-block-decl-kwds
+  php '("namespace"))
+
 (c-lang-defconst c-other-kwds
   "Keywords not accounted for by any other `*-kwds' language constant."
   php '(
@@ -608,11 +611,12 @@ but only if the setting is enabled"
                        (arglist-cont-nonempty . (first php-lineup-cascaded-calls c-lineup-arglist))
                        (arglist-intro . php-lineup-arglist-intro)
                        (case-label . +)
-                       (class-open . -)
+                       (class-open . 0)
                        (comment-intro . 0)
                        (inlambda . 0)
-                       (lambda-intro-cont . +)
                        (inline-open . 0)
+                       (namespace-open . 0)
+                       (lambda-intro-cont . +)
                        (label . +)
                        (statement-cont . (first php-lineup-cascaded-calls php-lineup-string-cont +))
                        (substatement-open . 0)
@@ -1349,8 +1353,7 @@ a completion list."
     (,(rx "$" (in "A-Za-z_") (* (in "0-9A-Za-z_")))
      0 font-lock-variable-name-face prepend nil)
     (,(concat "\\s-@" (regexp-opt php-phpdoc-type-tags) "\\s-+"
-              "\\(" (rx (+ (? "\\") (+ (in "0-9A-Za-z")) (? "[]") (? "|"))) "\\)+"
-              "\\(?:\\s-\\|$\\)")
+              "\\(" (rx (+ (? "\\") (+ (in "0-9A-Z_a-z")) (? "[]") (? "|"))) "\\)+")
      1 font-lock-string-face prepend nil)
     (,(concat "\\(?:|\\|\\s-\\)\\("
               (regexp-opt php-phpdoc-type-keywords)
