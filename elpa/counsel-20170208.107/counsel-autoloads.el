@@ -24,7 +24,7 @@ Clojure completion at point.
 (autoload 'counsel-unicode-char "counsel" "\
 Insert a Unicode character at point.
 
-\(fn)" t nil)
+\(fn &optional COUNT)" t nil)
 
 (autoload 'counsel-describe-variable "counsel" "\
 Forward to `describe-variable'.
