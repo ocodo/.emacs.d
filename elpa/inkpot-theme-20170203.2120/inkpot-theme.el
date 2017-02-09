@@ -3,7 +3,7 @@
 ;; Author: Sarah Iovan <sarah@hwaetageek.com>
 ;;         Campbell Barton <ideasman42@gmail.com>
 ;; URL: https://github.com/ideasman42/emacs-inkpot-theme
-;; Package-Version: 20161220.2134
+;; Package-Version: 20170203.2120
 ;; Version: 0.1
 ;; Keywords: color, theme
 
@@ -155,6 +155,23 @@
  '(font-latex-string-face ((t (:foreground "#708090"))))
  '(font-latex-match-reference-keywords ((t (:foreground "#708090"))))
  '(font-latex-match-variable-keywords ((t (:foreground "#708090"))))
+
+ ;; reStructuredText
+ '(rst-external ((t (:foreground "#ff8bff"))))
+ '(rst-definition ((t (:foreground "#409090"))))
+ '(rst-directive ((t (:foreground "#808bed"))))
+ '(rst-emphasis1 ((t (:italic t))))
+ '(rst-emphasis2 ((t (:weight bold t))))
+ '(rst-reference ((t (:foreground "#ff8bff"))))
+ ;; titles baseline
+ '(rst-adornment ((t (:foreground "#af4f4b"))))
+ ;; titles
+ '(rst-level-1 ((t (:foreground "#af4f4b"))))
+ '(rst-level-2 ((t (:foreground "#af4f4b"))))
+ '(rst-level-3 ((t (:foreground "#af4f4b"))))
+ '(rst-level-4 ((t (:foreground "#af4f4b"))))
+ '(rst-level-5 ((t (:foreground "#af4f4b"))))
+ '(rst-level-6 ((t (:foreground "#af4f4b"))))
 
  ;; Colors for popular plugins
 
