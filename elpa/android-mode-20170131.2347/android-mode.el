@@ -5,7 +5,7 @@
 ;; Author: R.W. van 't Veer
 ;; Created: 20 Feb 2009
 ;; Keywords: tools processes
-;; Package-Version: 20160408.523
+;; Package-Version: 20170131.2347
 ;; Version: 0.4.0
 ;; URL: https://github.com/remvee/android-mode
 
@@ -75,7 +75,7 @@ available."
   :type '(repeat string)
   :group 'android-mode)
 
-(defcustom android-mode-builder 'ant
+(defcustom android-mode-builder 'gradle
   "Builder for building an android application.
 When customizing `android-mode-builder' it's important to make
 sure that a corresponding entry exists in
@@ -86,7 +86,7 @@ sure that a corresponding entry exists in
 
 (defcustom android-mode-root-file-plist '(ant "AndroidManifest.xml"
                                           maven  "AndroidManifest.xml"
-                                          gradle "build.gradle")
+                                          gradle "gradlew")
   "Plist of mapping between different builders and the file that
   signifies the root of a project that uses that builder."
   :type '(plist :key-type symbol

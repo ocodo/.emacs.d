@@ -1,1 +1,0 @@
-(define-package "android-mode" "20160408.523" "Minor mode for Android application development" 'nil :stars '(#("160" 0 3 (font-lock-face paradox-star-face))) :url "https://github.com/remvee/android-mode" :keywords '("tools" "processes"))
