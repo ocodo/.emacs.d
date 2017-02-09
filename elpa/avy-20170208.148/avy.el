@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20160814.250
+;; Package-Version: 20170208.148
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -507,7 +507,10 @@ Set `avy-style' according to COMMMAND as well."
 
 (defun avy-action-goto (pt)
   "Goto PT."
-  (goto-char pt))
+  (let ((frame (window-frame (selected-window))))
+    (select-frame-set-input-focus frame)
+    (raise-frame frame)
+    (goto-char pt)))
 
 (defun avy-action-mark (pt)
   "Mark sexp at PT."
@@ -839,6 +842,10 @@ LEAF is normally ((BEG . END) . WND)."
                           (end-of-visual-line)
                           (point))
                       (line-end-position)))
+               ;; `end-of-visual-line' is bugged sometimes
+               (lep (if (< lep beg)
+                        (line-end-position)
+                      lep))
                (len-and-str (avy--update-offset-and-str len str lep)))
           (setq len (car len-and-str))
           (setq str (cdr len-and-str))
