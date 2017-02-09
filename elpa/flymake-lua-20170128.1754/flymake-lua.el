@@ -1,11 +1,11 @@
 ;;; flymake-lua.el --- Flymake for Lua
-;; Version: 20140310.230
 
 ;; Copyright (C) 2009-2014 Sébastien Roccaserra
 
 ;; Author: Sébastien Roccaserra (format "<%s%s@%s.%s>" "s" "roccaserra" "yahoo" "com")
 ;; Created: 07 Dec 2009
 ;; Keywords: lua
+;; Package-Version: 20170128.1754
 
 ;; This file is not part of GNU Emacs.
 
