@@ -126,10 +126,10 @@ Stripping them will produce code that's valid for an eval."
         "%" "%%" lispy-eval-error)))))
 
 (defun lispy--python-proc ()
-  (let ((proc-name "Python Internal[lispy]"))
-    (if (process-live-p proc-name)
-        (get-process proc-name)
-      (setq lispy--python-middleware-loaded-p nil)
+  (let* ((proc-name "Python Internal[lispy]")
+         (process (get-process proc-name)))
+    (if (process-live-p process)
+        process
       (let ((python-shell-font-lock-enable nil)
             (inferior-python-mode-hook nil)
             (python-binary-name (python-shell-calculate-command)))
@@ -141,9 +141,12 @@ Stripping them will produce code that's valid for an eval."
                    (match-string-no-properties 1)
                    " "
                    python-shell-interpreter-args))))
-        (get-buffer-process
-         (python-shell-make-comint
-          python-binary-name proc-name nil t))))))
+        (setq process (get-buffer-process
+                       (python-shell-make-comint
+                        python-binary-name proc-name nil t))))
+      (setq lispy--python-middleware-loaded-p nil)
+      (lispy--python-middleware-load)
+      process)))
 
 (defun lispy--eval-python (str &optional plain)
   "Eval STR as Python code."
@@ -205,7 +208,8 @@ Stripping them will produce code that's valid for an eval."
 
 (defun lispy--python-array-to-elisp (array-str)
   "Transform a Python string ARRAY-STR to an Elisp string array."
-  (when (stringp array-str)
+  (when (and (stringp array-str)
+             (not (string= array-str "")))
     (let ((parts (with-temp-buffer
                    (python-mode)
                    (insert (substring array-str 1 -1))
@@ -329,9 +333,12 @@ Stripping them will produce code that's valid for an eval."
          (fn-defaults
           (mapcar
            (lambda (x)
-             (if (null x)
-                 "None"
-               (prin1-to-string x)))
+             (cond ((null x)
+                    "None")
+                   ((eq x t)
+                    "True")
+                   (t
+                    (prin1-to-string x))))
            (elt fn-data 3)))
          (fn-alist
           (cl-mapcar #'cons
