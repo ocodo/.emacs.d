@@ -1,10 +1,9 @@
 ;;; scad-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "scad-mode" "scad-mode.el" (22200 34350 952742
-;;;;;;  756000))
+;;;### (autoloads nil "scad-mode" "scad-mode.el" (0 0 0 0))
 ;;; Generated autoloads from scad-mode.el
 
 (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode))
@@ -21,6 +20,8 @@ Key bindings:
 \\{scad-mode-map}
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "scad-mode" '("scad-")))
 
 ;;;***
 

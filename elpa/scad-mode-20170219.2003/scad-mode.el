@@ -5,7 +5,7 @@
 ;; Created:    March 2010
 ;; Modified:   28 Mar 2015
 ;; Keywords:   languages
-;; Package-Version: 20160205.1043
+;; Package-Version: 20170219.2003
 ;; URL:        https://raw.github.com/openscad/openscad/master/contrib/scad-mode.el
 ;; Version:    91.0
 
@@ -142,9 +142,6 @@
     (modify-syntax-entry ?|  "." st)
     (modify-syntax-entry ?=  "." st)
     (modify-syntax-entry ?\;  "." st)
-
-    ;; _ allowed in word (alternatively "_" as symbol constituent?)
-    (modify-syntax-entry ?_  "w" st)
 
     st)
   "Syntax table for `scad-mode'.")
