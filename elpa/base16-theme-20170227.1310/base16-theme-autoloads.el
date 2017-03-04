@@ -483,6 +483,14 @@
 
 ;;;***
 
+;;;### (autoloads nil "base16-nord-theme" "base16-nord-theme.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from base16-nord-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "base16-nord-theme" '("base16-nord-colors")))
+
+;;;***
+
 ;;;### (autoloads nil "base16-ocean-theme" "base16-ocean-theme.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from base16-ocean-theme.el
@@ -544,6 +552,14 @@
 ;;; Generated autoloads from base16-railscasts-theme.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "base16-railscasts-theme" '("base16-railscasts-colors")))
+
+;;;***
+
+;;;### (autoloads nil "base16-rebecca-theme" "base16-rebecca-theme.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from base16-rebecca-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "base16-rebecca-theme" '("base16-rebecca-colors")))
 
 ;;;***
 
