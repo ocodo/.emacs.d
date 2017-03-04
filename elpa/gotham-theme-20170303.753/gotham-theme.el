@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20161022.848
+;; Package-Version: 20170303.753
 ;; Version: 1.1.7
 
 ;; This file is NOT part of GNU Emacs.
@@ -129,7 +129,6 @@ depending on DISPLAY for keys which are either :foreground or
    (cursor :background base6)
    (region :foreground unspecified :background base3)
    (secondary-selection :foreground unspecified :background violet)
-   (hl-line :background base1)
    (linum :foreground base4 :background base1)
    (fringe :foreground base6 :background base1)
    (vertical-border :foreground base4)
@@ -382,6 +381,12 @@ depending on DISPLAY for keys which are either :foreground or
    (rcirc-server :foreground cyan)
    (rcirc-url :inherit link)
 
+   ;; re-builder
+   (reb-match-0 :foreground base0 :background base6)
+   (reb-match-1 :foreground base0 :background green)
+   (reb-match-2 :foreground base0 :background yellow)
+   (reb-match-3 :foreground base0 :background cyan)
+
    ;; ruler
    (ruler-mode-column-number :foreground base6)
    (ruler-mode-comment-column :foreground base4)
@@ -625,6 +630,23 @@ depending on DISPLAY for keys which are either :foreground or
    (hydra-face-pink :foreground orange :bold t)
    (hydra-face-amaranth :foreground magenta :bold t)
 
+   ;; info+
+   (info-command-ref-item :foreground green :background base2)
+   (info-constant-ref-item :foreground cyan :background base2)
+   (info-double-quoted-name :inherit font-lock-comment-face)
+   (info-file :foreground yellow :background base2)
+   (info-function-ref-item :inherit font-lock-function-name-face :background base2)
+   (info-macro-ref-item :foreground yellow :background base2)
+   (info-menu :foreground yellow)
+   (info-quoted-name :inherit font-lock-constant-face)
+   (info-reference-item :background base2)
+   (info-single-quote :inherit font-lock-keyword-face)
+   (info-special-form-ref-item :foreground yellow :background base2)
+   (info-string :inherit font-lock-string-face)
+   (info-syntax-class-item :foreground blue :background base2)
+   (info-user-option-ref-item :foreground red :background base2)
+   (info-variable-ref-item :inherit font-lock-variable-name-face :background base2)
+
    ;; ivy
    (ivy-confirm-face :foreground cyan)
    (ivy-current-match :foreground base7 :background base3)
@@ -773,7 +795,7 @@ depending on DISPLAY for keys which are either :foreground or
    (macrostep-gensym-5 :foreground magenta :weight bold :box t)
 
    ;; mu4e
-   (mu4e-header-highlight-face :inherit hl-line)
+   (mu4e-header-highlight-face :inherit highlight)
    (mu4e-region-code :inherit region)
 
    ;; neotree
@@ -850,14 +872,14 @@ depending on DISPLAY for keys which are either :foreground or
 
    ;; rainbow-delimiters
    (rainbow-delimiters-depth-1-face :foreground base6)
-   (rainbow-delimiters-depth-2-face :inherit outline-1)
-   (rainbow-delimiters-depth-3-face :inherit outline-2)
-   (rainbow-delimiters-depth-4-face :inherit outline-3)
-   (rainbow-delimiters-depth-5-face :inherit outline-4)
-   (rainbow-delimiters-depth-6-face :inherit outline-5)
-   (rainbow-delimiters-depth-7-face :inherit outline-6)
-   (rainbow-delimiters-depth-8-face :inherit outline-7)
-   (rainbow-delimiters-depth-9-face :inherit outline-8)
+   (rainbow-delimiters-depth-2-face :foreground cyan)
+   (rainbow-delimiters-depth-3-face :foreground orange)
+   (rainbow-delimiters-depth-4-face :foreground magenta)
+   (rainbow-delimiters-depth-5-face :foreground green)
+   (rainbow-delimiters-depth-6-face :foreground blue)
+   (rainbow-delimiters-depth-7-face :foreground yellow)
+   (rainbow-delimiters-depth-8-face :foreground violet)
+   (rainbow-delimiters-depth-9-face :foreground red)
    (rainbow-delimiters-unmatched-face :foreground base2 :background base6)
 
    ;; rst-mode
@@ -877,8 +899,8 @@ depending on DISPLAY for keys which are either :foreground or
    (slime-repl-inputed-output-face :foreground red)
 
    ;; smartparens
-   (sp-show-pair-match-face :inherit show-paren-match)
-   (sp-show-pair-mismatch-face :inherit show-paren-mismatch)
+   (sp-show-pair-match-face :foreground base2 :background orange)
+   (sp-show-pair-mismatch-face :foreground base2 background red)
 
    ;; smart-mode-line
    (sml/charging :foreground green)
@@ -894,6 +916,34 @@ depending on DISPLAY for keys which are either :foreground or
 
    ;; volatile-highlights
    (vhl/default-face :inherit highlight)
+
+   ;; w3m
+   (w3m-anchor :inherit link)
+   (w3m-arrived-anchor :inherit link-visited)
+   (w3m-form :background base1 :foreground magenta)
+   (w3m-form-button :background base1 :foreground cyan)
+   (w3m-form-button-mouse :background base1 :foreground green)
+   (w3m-form-button-pressed :background base1 :foreground green)
+   (w3m-form-inactive :background base1 :foreground base6)
+   (w3m-insert :background base2 :foreground magenta)
+   (w3m-error :background base1 :foreground red)
+   (w3m-header-line-location-title :background base2 :foreground yellow)
+   (w3m-header-line-location-content :background base2 :foreground base4)
+   (w3m-bold :weight bold)
+   (w3m-image-anchor :background base3 :foreground cyan :inherit link)
+   (w3m-image :background base3 :foreground cyan)
+   (w3m-lnum-minibuffer-prompt :foreground base1)
+   (w3m-lnum-match :background base2)
+   (w3m-lnum :underline nil :bold nil :foreground red)
+   (w3m-session-select :foreground base0)
+   (w3m-session-selected :foreground base1 :bold t :underline t)
+   (w3m-tab-background :background base3 :foreground base0)
+   (w3m-tab-selected-background :background base3 :foreground base0)
+   (w3m-tab-mouse :background base2 :foreground yellow)
+   (w3m-tab-selected :background base2 :foreground yellow :bold t)
+   (w3m-tab-unselected :background base2 :foreground violet)
+   (w3m-tab-selected-retrieving :background base2 :foreground red)
+   (w3m-tab-unselected-retrieving :background base2 :foreground orange)
 
    ;; web-mode
    (web-mode-block-attr-name-face :foreground green)
@@ -912,7 +962,7 @@ depending on DISPLAY for keys which are either :foreground or
    (web-mode-json-key-face :foreground magenta)
    (web-mode-param-name-face :foreground base5)
    (web-mode-symbol-face :foreground yellow)
-   (web-mode-whitespace-face :inherit whitespace-space-after-tab)
+   (web-mode-whitespace-face :foreground base7 :background red)
 
    ;; undo-tree
    (undo-tree-visualizer-default-face :inherit shadow)
