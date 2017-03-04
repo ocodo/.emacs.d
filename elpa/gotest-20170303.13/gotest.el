@@ -2,7 +2,7 @@
 
 ;; Author: Nicolas Lamirault <nicolas.lamirault@gmail.com>
 ;; URL: https://github.com/nlamirault/gotest.el
-;; Package-Version: 20161017.204
+;; Package-Version: 20170303.13
 ;; Version: 0.13.0
 ;; Keywords: languages, go, tests
 
@@ -528,7 +528,7 @@ For example, if the current buffer is `foo.go', the buffer for
     (let ((args (s-concat
                  "--coverprofile="
                  (expand-file-name
-                  (read-file-name "Coverage file" nil "cover.out")) " ./...")))
+                  (read-file-name "Coverage file" nil "cover.out")) " ./.")))
       (go-test--go-test args))))
 
 
