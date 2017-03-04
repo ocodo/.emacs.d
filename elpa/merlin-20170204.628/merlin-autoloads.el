@@ -60,6 +60,13 @@ Short cuts:
 
 ;;;***
 
+;;;### (autoloads nil "merlin-imenu" "merlin-imenu.el" (0 0 0 0))
+;;; Generated autoloads from merlin-imenu.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin-imenu" '("merlin-")))
+
+;;;***
+
 ;;;### (autoloads nil nil ("merlin-pkg.el") (0 0 0 0))
 
 ;;;***
