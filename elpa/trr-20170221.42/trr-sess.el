@@ -63,6 +63,11 @@
   ;; (t
   ;;  (error "no read-event"))))
 
+(defun trr-insert-char (ch)
+  (if (characterp ch)
+      (insert-char ch)
+    (insert (propertize " " 'display (key-description (vector ch))))))
+
 (defun trr-one-session ()
   (other-window -1)
   (trr-write-graph trr-list-of-eval 0
@@ -117,12 +122,12 @@
 			(/= trr-ch 13))
 		    (/= trr-ch 13))
 		  (progn
-		    (insert-char trr-ch 1)
+		    (trr-insert-char trr-ch)
 		    (and window-system
 			 (put-text-property (1- (point)) (point) 'face
 					    'trr-correct-face))
 		    (setq trr-ch (trr-get-event)))
-		(insert-char 13 1)         ; cr mark
+		(trr-insert-char 13) ; cr mark
 		(and window-system
 		     (put-text-property (1- (point)) (point) 'face
 					'trr-correct-face))
@@ -136,7 +141,7 @@
 	      (insert " ")
 	    (if (= trr-ch 7)
 		(setq quit-flag 'nil))
-	    (insert-char trr-ch 1))
+	    (trr-insert-char trr-ch))
 	  (and trr-ding-when-miss (ding))
 	  (backward-char 1) ; if incorrect typed
 	  (while (and (if trr-return-is-space
@@ -157,7 +162,7 @@
 		(insert " ")
 	      (if (= trr-ch 7)
 		  (setq quit-flag 'nil))
-	      (insert-char trr-ch 1))
+	      (trr-insert-char trr-ch))
 	    (backward-char 1)) ; end of while
 	  (picture-move-down 1)
 	  (insert "^")
@@ -174,13 +179,13 @@
 		(/= trr-ch 13))
 	      (if (or (= trr-ch 3) (= trr-ch 18))
 		  (setq lines 0)
-		(insert-char trr-ch 1)        ; blink or reverse mode
+		(trr-insert-char trr-ch) ; blink or reverse mode
 		(and window-system
 		     (put-text-property (1- (point))  (point)
 					'face 'trr-miss-face))
 		(setq trr-ch (trr-get-event)))
 	    (setq lines (1- lines))
-	    (insert-char 13 1)             ; cr mark
+	    (trr-insert-char 13) ; cr mark
 	    (and window-system
 		 (put-text-property (1- (point))  (point)
 				    'face 'trr-miss-face))
