@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20170106.606
+;; Package-Version: 20170225.2320
 ;; Keywords: project, convenience
 ;; Version: 0.15.0-cvs
 ;; Package-Requires: ((pkg-info "0.4"))
@@ -1404,11 +1404,13 @@ Only buffers not visible in windows are returned."
    (projectile-project-buffers)))
 
 ;;;###autoload
-(defun projectile-multi-occur ()
-  "Do a `multi-occur' in the project's buffers."
-  (interactive)
+(defun projectile-multi-occur (&optional nlines)
+  "Do a `multi-occur' in the project's buffers.
+With a prefix argument, show NLINES of context."
+  (interactive "P")
   (multi-occur (projectile-project-buffers)
-               (car (occur-read-primary-args))))
+               (car (occur-read-primary-args))
+               nlines))
 
 (defun projectile-normalise-paths (patterns)
   "Remove leading `/' from the elements of PATTERNS."
@@ -2097,7 +2099,7 @@ a COMPILE-CMD, a TEST-CMD, and a RUN-CMD."
 (projectile-register-project-type 'django '("manage.py") "python manage.py runserver" "python manage.py test")
 (projectile-register-project-type 'python-pip '("requirements.txt") "python setup.by build" "python -m unittest discover")
 (projectile-register-project-type 'python-pkg '("setup.py") "python setup.py build" "python -m unittest discover")
-(projectile-register-project-type 'python-tox '("tox.ini") nil "tox")
+(projectile-register-project-type 'python-tox '("tox.ini") "tox -r --notest" "tox")
 (projectile-register-project-type 'scons '("SConstruct") "scons" "scons test")
 (projectile-register-project-type 'maven '("pom.xml") "mvn clean install" "mvn test")
 (projectile-register-project-type 'gradle '("build.gradle") "gradle build" "gradle test")

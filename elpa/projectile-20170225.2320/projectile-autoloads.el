@@ -74,8 +74,9 @@ Only buffers not visible in windows are returned.
 
 (autoload 'projectile-multi-occur "projectile" "\
 Do a `multi-occur' in the project's buffers.
+With a prefix argument, show NLINES of context.
 
-\(fn)" t nil)
+\(fn &optional NLINES)" t nil)
 
 (autoload 'projectile-find-other-file "projectile" "\
 Switch between files with the same name but different extensions.
