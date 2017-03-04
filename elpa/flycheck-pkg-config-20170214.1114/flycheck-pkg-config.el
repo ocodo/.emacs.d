@@ -4,9 +4,9 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Keywords: flycheck
-;; Package-Version: 20170129.1315
+;; Package-Version: 20170214.1114
 ;; Version: 0.2
-;; Package-Requires: ((dash "2.8.0") (s "1.9.0"))
+;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (flycheck "29"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
 
 ;;; Commentary:
 
-;; Flycheck defines a `flycheck-clang-include-path' variable that it
-;; searches for headers when checking C/C++ code.
+;; Flycheck defines a several include path variables that it searches
+;; for headers when checking C/C++ code.
 ;;
 ;; This package provides a convenient way of adding libraries to that
 ;; list, using pkg-config and completion.
@@ -74,11 +74,16 @@ when checking the current buffer."
          (include-paths (flycheck-pkg-config--include-paths lib-name)))
     ;; Only set in this buffer.
     (make-local-variable 'flycheck-clang-include-path)
-    ;; Add include paths to `flycheck-clang-include-path' unless
-    ;; already present.
+    (make-local-variable 'flycheck-gcc-include-path)
+    (make-local-variable 'flycheck-cppcheck-include-path)
+    ;; Add include paths unless already present.
     (setq flycheck-clang-include-path
           (-union flycheck-clang-include-path include-paths))
-    (message "Added to flycheck-clang-include-path: %s"
+    (setq flycheck-gcc-include-path
+          (-union flycheck-gcc-include-path include-paths))
+    (setq flycheck-cppcheck-include-path
+          (-union flycheck-cppcheck-include-path include-paths))
+    (message "Added to include paths: %s"
              (s-join " " (--map (format "\"%s\"" it) include-paths)))))
 
 (provide 'flycheck-pkg-config)
