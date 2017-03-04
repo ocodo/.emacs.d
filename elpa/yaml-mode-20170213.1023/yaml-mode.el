@@ -6,7 +6,7 @@
 ;;         Marshall T. Vandegrift <llasram@gmail.com>
 ;; Maintainer: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; Package-Requires: ((emacs "24.1"))
-;; Package-Version: 20161105.814
+;; Package-Version: 20170213.1023
 ;; Keywords: data yaml
 ;; Version: 0.0.13
 
@@ -427,7 +427,7 @@ cross boundaries of block literals."
 
 
 (defun yaml-mode-version ()
-  "Diplay version of `yaml-mode'."
+  "Display version of `yaml-mode'."
   (interactive)
   (message "yaml-mode %s" yaml-mode-version)
   yaml-mode-version)
