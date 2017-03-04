@@ -12,7 +12,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (async "20161103.1036") (dash "20161121.55"))
+;; Package-Requires: ((emacs "24.4") (async "20161103.1036") (dash "20170207.2056"))
 ;; Keywords: bindings
 ;; Homepage: https://github.com/magit/magit
 
@@ -54,7 +54,8 @@
 (require 'format-spec)
 
 (and (require 'async-bytecomp nil t)
-     (memq 'magit (bound-and-true-p async-bytecomp-allowed-packages))
+     (cl-intersection '(all magit)
+                      (bound-and-true-p async-bytecomp-allowed-packages))
      (fboundp 'async-bytecomp-package-mode)
      (async-bytecomp-package-mode 1))
 
