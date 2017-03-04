@@ -32,6 +32,14 @@ Uses `flyspell-correct-word-generic' function for correction.
 (autoload 'flyspell-correct-auto-mode "flyspell-correct" "\
 Minor mode for automatically correcting word at point.
 
+Take my advice and don't use this functionality unless you find
+`flyspell-correct-previous-word-generic' function useless for
+your purposes. Seriously, just try named function for completion.
+You can find more info in comment[1].
+
+\[1]:
+https://github.com/syl20bnr/spacemacs/issues/6209#issuecomment-274320376
+
 \(fn &optional ARG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flyspell-correct" '("flyspell-correct-")))
