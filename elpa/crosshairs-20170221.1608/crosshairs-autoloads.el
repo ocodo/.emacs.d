@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "crosshairs" "crosshairs.el" (22455 52008 0
-;;;;;;  0))
+;;;### (autoloads nil "crosshairs" "crosshairs.el" (0 0 0 0))
 ;;; Generated autoloads from crosshairs.el
 
 (let ((loads (get 'crosshairs 'custom-loads))) (if (member '"crosshairs" loads) nil (put 'crosshairs 'custom-loads (cons '"crosshairs" loads))))
@@ -77,6 +76,8 @@ Turn off crosshairs highlighting of current position.
 Optional arg nil means do nothing if this event is a frame switch.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "crosshairs" '("crosshairs-")))
 
 ;;;***
 
