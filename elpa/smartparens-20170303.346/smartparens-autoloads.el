@@ -243,11 +243,11 @@ Turn off `show-smartparens-mode'.
 
 ;;;***
 
-;;;### (autoloads nil "smartparens-ocaml" "smartparens-ocaml.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from smartparens-ocaml.el
+;;;### (autoloads nil "smartparens-ml" "smartparens-ml.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from smartparens-ml.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "smartparens-ocaml" '("sp-ocaml-pre-slurp-handler")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "smartparens-ml" '("sp-ml-pre-slurp-handler")))
 
 ;;;***
 
