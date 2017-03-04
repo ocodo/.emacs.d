@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20170208.2028
+;; Package-Version: 20170225.356
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (ivy "0.8.0"))
 ;; Keywords: matching
@@ -255,6 +255,9 @@
     twittering-mode
     vc-dir-mode
     rcirc-mode
+    circe-channel-mode
+    circe-server-mode
+    circe-query-mode
     sauron-mode
     w3m-mode)
   "List of major-modes that are incompatible with font-lock-ensure.")
@@ -421,6 +424,8 @@ When REVERT is non-nil, regenerate the current *ivy-occur* buffer."
   (setq swiper--point-max (point-max))
   (when (bound-and-true-p evil-mode)
     (evil-set-jump)))
+
+(declare-function char-fold-to-regexp "char-fold")
 
 (defun swiper--re-builder (str)
   "Transform STR into a swiper regex.
@@ -612,7 +617,9 @@ WND, when specified is the window."
                           (point))))
            (end (or end (save-excursion
                           (forward-line wh)
-                          (point)))))
+                          (point))))
+           (case-fold-search (and ivy-case-fold-search
+                                  (string= re (downcase re)))))
       (when (>= (length re) swiper-min-highlight)
         (save-excursion
           (goto-char beg)
@@ -649,6 +656,11 @@ WND, when specified is the window."
 (defcustom swiper-action-recenter nil
   "When non-nil, recenter after exiting `swiper'."
   :type 'boolean)
+(defvar evil-search-module)
+(defvar evil-ex-search-pattern)
+(defvar evil-ex-search-persistent-highlight)
+(declare-function evil-ex-search-activate-highlight "evil-ex")
+
 
 (defun swiper--action (x)
   "Goto line X."
@@ -681,7 +693,13 @@ WND, when specified is the window."
         (add-to-history
          'regexp-search-ring
          re
-         regexp-search-ring-max)))))
+         regexp-search-ring-max)
+        (when (and (bound-and-true-p evil-mode)
+                   (eq evil-search-module 'evil-search))
+          (add-to-history 'evil-ex-search-history re)
+          (setq evil-ex-search-pattern (list re t t))
+          (when evil-ex-search-persistent-highlight
+            (evil-ex-search-activate-highlight evil-ex-search-pattern)))))))
 
 (defun swiper-from-isearch ()
   "Invoke `swiper' from isearch."
@@ -775,7 +793,10 @@ Run `swiper' for those buffers."
     (let* ((buffers (cl-remove-if-not #'swiper-all-buffer-p (buffer-list)))
            (re-full (funcall ivy--regex-function str))
            re re-tail
-           cands match)
+           cands match
+           (case-fold-search
+            (and ivy-case-fold-search
+                 (string= str (downcase str)))))
       (if (stringp re-full)
           (setq re re-full)
         (setq re (caar re-full))
