@@ -9,7 +9,7 @@
 (autoload 'emamux:send-command "emamux" "\
 Send command to target-session of tmux
 
-\(fn)" t nil)
+\(fn &optional COMMAND TARGET)" t nil)
 
 (autoload 'emamux:send-region "emamux" "\
 Send region to target-session of tmux

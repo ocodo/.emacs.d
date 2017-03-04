@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-emamux
-;; Package-Version: 20161123.414
+;; Package-Version: 20170226.1937
 ;; Version: 0.14
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -225,17 +225,17 @@ match \"buffer[0-9]+\" in its first subexp as well."
     (error "'tmux' does not run on this machine!!")))
 
 ;;;###autoload
-(defun emamux:send-command ()
+(defun emamux:send-command (&optional command target)
   "Send command to target-session of tmux"
   (interactive)
   (emamux:check-tmux-running)
   (condition-case nil
       (progn
-        (if (or current-prefix-arg (not (emamux:set-parameters-p)))
-            (emamux:set-parameters))
+        (when (and (not target) (or current-prefix-arg (not (emamux:set-parameters-p))))
+          (emamux:set-parameters))
         (let* ((target (emamux:target-session))
                (prompt (format "Command [Send to (%s)]: " target))
-               (input  (emamux:read-command prompt t)))
+               (input  (or command (emamux:read-command prompt t))))
           (emamux:reset-prompt target)
           (emamux:send-keys input)))
       (quit (emamux:unset-parameters))))
