@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Package-Requires: ((helm "1.7.8"))
-;; Package-Version: 20161122.241
+;; Package-Version: 20170214.525
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -84,7 +84,8 @@ Glob are enclosed in single quotes by default."
   :type 'string)
 
 (defcustom helm-ls-git-ls-switches '("ls-files" "--full-name" "--")
-  "A list of arguments to pass to `git-ls-files'."
+  "A list of arguments to pass to `git-ls-files'.
+To see files in submodules add the option \"--recurse-submodules\"."
   :type '(repeat string)
   :group 'helm-ls-git)
 
