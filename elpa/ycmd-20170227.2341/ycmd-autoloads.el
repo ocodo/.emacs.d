@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ycmd" "ycmd.el" (22653 62636 80346 418000))
+;;;### (autoloads nil "ycmd" "ycmd.el" (0 0 0 0))
 ;;; Generated autoloads from ycmd.el
 
 (autoload 'ycmd-mode "ycmd" "\
@@ -49,10 +49,11 @@ See `ycmd-mode' for more information on Ycmd mode.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ycmd" '("ycmd-")))
+
 ;;;***
 
-;;;### (autoloads nil "ycmd-eldoc" "ycmd-eldoc.el" (22653 62636 96346
-;;;;;;  740000))
+;;;### (autoloads nil "ycmd-eldoc" "ycmd-eldoc.el" (0 0 0 0))
 ;;; Generated autoloads from ycmd-eldoc.el
 
 (autoload 'ycmd-eldoc-setup "ycmd-eldoc" "\
@@ -60,10 +61,19 @@ Setup eldoc for `ycmd-mode'.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ycmd-eldoc" '("ycmd-eldoc-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("ycmd-next-error.el" "ycmd-pkg.el") (22653
-;;;;;;  62636 104346 901000))
+;;;### (autoloads nil "ycmd-next-error" "ycmd-next-error.el" (0 0
+;;;;;;  0 0))
+;;; Generated autoloads from ycmd-next-error.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ycmd-next-error" '("ycmd-next-error-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("ycmd-pkg.el") (0 0 0 0))
 
 ;;;***
 
