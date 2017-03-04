@@ -188,6 +188,12 @@ See https://github.com/abo-abo/swiper/wiki/ivy-display-function."
   '((ivy-completion-in-region . ivy-display-function-overlay))
   "An alist for customizing `ivy-display-function'.")
 
+(defcustom ivy-completing-read-handlers-alist
+  '((tmm-menubar . completing-read-default)
+    (tmm-shortcut . completing-read-default))
+  "An alist of handlers to replace `completing-read' in `ivy-mode'."
+  :type '(alist :key-type function :value-type function))
+
 (defvar ivy--actions-list nil
   "A list of extra actions per command.")
 
@@ -1277,8 +1283,7 @@ See also `ivy-sort-max-size'."
 
 (defun ivy--sort-function (collection)
   "Retrieve sort function from `ivy-sort-functions-alist'"
-  (let ((res (cdr (assoc collection ivy-sort-functions-alist))))
-    (or (car-safe res) res)))
+  (cdr (assoc collection ivy-sort-functions-alist)))
 
 (defun ivy-rotate-sort ()
   "Rotate through sorting functions available for current collection.
@@ -1660,10 +1665,10 @@ This is useful for recursive `ivy-read'."
                  (setq sort-fn (ivy--sort-function collection)))
             (when (not (eq collection 'read-file-name-internal))
               (setq coll (cl-sort coll sort-fn)))
-          (unless (eq history 'org-refile-history)
-            (if (and (setq sort-fn (ivy--sort-function t))
-                     (<= (length coll) ivy-sort-max-size))
-                (setq coll (cl-sort (copy-sequence coll) sort-fn))))))
+          (when (and (not (eq history 'org-refile-history))
+                     (<= (length coll) ivy-sort-max-size)
+                     (setq sort-fn (ivy--sort-function caller)))
+            (setq coll (cl-sort (copy-sequence coll) sort-fn)))))
       (setq coll (ivy--set-candidates coll))
       (when preselect
         (unless (or (not (stringp preselect))
@@ -1746,36 +1751,35 @@ INITIAL-INPUT is a string inserted into the minibuffer initially.
 HISTORY is a list of previously selected inputs.
 DEF is the default value.
 INHERIT-INPUT-METHOD is currently ignored."
-  (if (memq this-command '(tmm-menubar tmm-shortcut))
-      (completing-read-default prompt collection
-                               predicate require-match
-                               initial-input history
-                               def inherit-input-method)
-    ;; See the doc of `completing-read'.
-    (when (consp history)
-      (when (numberp (cdr history))
-        (setq initial-input (nth (1- (cdr history))
-                                 (symbol-value (car history)))))
-      (setq history (car history)))
-    (ivy-read (replace-regexp-in-string "%" "%%" prompt)
-              collection
-              :predicate predicate
-              :require-match require-match
-              :initial-input (if (consp initial-input)
-                                 (car initial-input)
-                               (if (and (stringp initial-input)
-                                        (string-match "\\+" initial-input))
-                                   (replace-regexp-in-string
-                                    "\\+" "\\\\+" initial-input)
-                                 initial-input))
-              :preselect (if (listp def) (car def) def)
-              :history history
-              :keymap nil
-              :sort
-              (let ((sort (assoc this-command ivy-sort-functions-alist)))
-                (if sort
-                    (ivy--sort-function (car sort))
-                  (or (ivy--sort-function t) t))))))
+  (let ((handler (assoc this-command ivy-completing-read-handlers-alist)))
+    (if handler
+        (funcall (cdr handler)
+                 prompt collection
+                 predicate require-match
+                 initial-input history
+                 def inherit-input-method)
+      ;; See the doc of `completing-read'.
+      (when (consp history)
+        (when (numberp (cdr history))
+          (setq initial-input (nth (1- (cdr history))
+                                   (symbol-value (car history)))))
+        (setq history (car history)))
+      (ivy-read (replace-regexp-in-string "%" "%%" prompt)
+                collection
+                :predicate predicate
+                :require-match require-match
+                :initial-input (if (consp initial-input)
+                                   (car initial-input)
+                                 (if (and (stringp initial-input)
+                                          (string-match "\\+" initial-input))
+                                     (replace-regexp-in-string
+                                      "\\+" "\\\\+" initial-input)
+                                   initial-input))
+                :preselect (if (listp def) (car def) def)
+                :history history
+                :keymap nil
+                :sort t
+                :caller this-command))))
 
 (defvar ivy-completion-beg nil
   "Completion bounds start.")
@@ -3431,7 +3435,9 @@ When `ivy-calling' isn't nil, call `ivy-occur-press'."
   "Major mode for output from \\[ivy-occur].
 
 \\{ivy-occur-grep-mode-map}"
-  (setq-local view-read-only nil))
+  (setq-local view-read-only nil)
+  (when (fboundp 'wgrep-setup)
+    (wgrep-setup)))
 
 (defvar ivy--occurs-list nil
   "A list of custom occur generators per command.")
@@ -3513,7 +3519,8 @@ updated original buffer."
                (error "buffer was killed"))
              (let ((inhibit-read-only t))
                (erase-buffer)
-               (funcall (plist-get ivy--occurs-list caller) t))))
+               (funcall (plist-get ivy--occurs-list caller) t)
+               (ivy-occur-grep-mode))))
           ((memq caller '(counsel-git-grep counsel-grep counsel-ag counsel-rg))
            (let ((inhibit-read-only t))
              (erase-buffer)
