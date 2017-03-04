@@ -39,6 +39,21 @@
   :type 'number
   :group 'helm-adapt)
 
+(defcustom helm-adaptive-sort-by-frequent-recent-usage t
+  "Try to sort on an average of frequent and recent usage when non-nil.
+
+When nil sort on frequency usage only.
+
+Only frequency:
+When candidate have low frequency, you have to hit on it many times to
+make it going up on top.
+
+Frequency+recent:
+Even with a low frequency, candidate go up on top. If a candidate
+have a high frequency but it is not used since some time, it goes
+down slowly, but as soon you reuse it it go up on top quickly."
+  :group 'helm-adapt
+  :type 'boolean)
 
 ;; Internal
 (defvar helm-adaptive-done nil
@@ -48,6 +63,9 @@ selection.")
 (defvar helm-adaptive-history nil
   "Contains the stored history information.
 Format: ((SOURCE-NAME (SELECTED-CANDIDATE (PATTERN . NUMBER-OF-USE) ...) ...) ...)")
+
+(defconst helm-adaptive-freq-coefficient 5)
+(defconst helm-adaptive-recent-coefficient 2)
 
 (defun helm-adaptive-done-reset ()
   (setq helm-adaptive-done nil))
@@ -122,7 +140,6 @@ Format: ((SOURCE-NAME (SELECTED-CANDIDATE (PATTERN . NUMBER-OF-USE) ...) ...) ..
                                           (if (not found)
                                               ;; new entry
                                               (cons helm-pattern 0)
-
                                             ;; move entry to the beginning of the
                                             ;; list, so if two patterns used the
                                             ;; same number of times then the one
@@ -131,12 +148,16 @@ Format: ((SOURCE-NAME (SELECTED-CANDIDATE (PATTERN . NUMBER-OF-USE) ...) ...) ..
                                                     (delete found (cdr selection-info)))
                                             found))
                                         (cdr selection-info)))
-                               (cadr selection-info))))
-
-          ;; increase usage count
+                               (cadr selection-info)))
+               (timestamp-info (helm-aif (assq 'timestamp (cdr selection-info))
+                                   it
+                                 (setcdr selection-info (cons (cons 'timestamp 0) (cdr selection-info)))
+                                 (cadr selection-info))))
+          ;; Increase usage count.
           (setcdr pattern-info (1+ (cdr pattern-info)))
-
-          ;; truncate history if needed
+          ;; Update timestamp.
+          (setcdr timestamp-info (float-time))
+          ;; Truncate history if needed.
           (if (> (length (cdr selection-info)) helm-adaptive-history-length)
               (setcdr selection-info
                       (cl-subseq (cdr selection-info) 0 helm-adaptive-history-length))))))))
@@ -169,35 +190,53 @@ This is a filtered candidate transformer you can use with the
          (source-info (assoc source-name helm-adaptive-history)))
     (if source-info
         (let ((usage
-               ;; Assemble a list containing the (CANDIDATE . USAGE-COUNT) pairs.
-               (cl-loop with count = 0
-                        for (sn . infos) in (cdr source-info)
-                        do (cl-loop for (pattern . score) in infos
-                                    if (not (equal pattern helm-pattern))
-                                    do (cl-incf count score)
-                                    else return
-                                    ;; If current pattern is equal to the previously
-                                    ;; used one then this candidate has priority
-                                    ;; (that's why its count is boosted by 10000) and
-                                    ;; it only has to compete with other candidates
-                                    ;; which were also selected with the same pattern.
-                                    (setq count (+ 10000 score)))
-                        and collect (cons sn count) into results
-                        ;; Sort the list in descending order, so candidates with highest
-                        ;; priority come first.
-                        finally return (sort results (lambda (first second)
-                                                       (> (cdr first) (cdr second)))))))
+               ;; Loop in the SOURCE entry of `helm-adaptive-history'
+               ;; and assemble a list containing the (CANDIDATE
+               ;; . USAGE-COUNT) pairs.
+               (cl-loop with cf = (if helm-adaptive-sort-by-frequent-recent-usage
+                                      helm-adaptive-freq-coefficient 1)
+                        with cr = helm-adaptive-recent-coefficient
+                        for (src-cand . infos) in (cdr source-info)
+                        for count-freq = 0
+                        for count-rec =
+                        (helm-aif (and helm-adaptive-sort-by-frequent-recent-usage
+                                       (assq 'timestamp infos))
+                            (* cr (+ (float-time) (cdr it)))
+                          0)
+                        do (cl-loop for (pattern . score) in
+                                    (remove (assq 'timestamp infos) infos)
+                                    ;; If current pattern is equal to
+                                    ;; the previously used one then
+                                    ;; this candidate has priority
+                                    ;; (that's why its count-freq is
+                                    ;; boosted by 10000) and it only
+                                    ;; has to compete with other
+                                    ;; candidates which were also
+                                    ;; selected with the same pattern.
+                                    if (equal pattern helm-pattern)
+                                    return (setq count-freq (+ 10000 score))
+                                    else do (cl-incf count-freq score))
+                        and collect (cons src-cand (+ (* count-freq cf) count-rec))
+                        into results
+                        ;; Sort the list in descending order, so
+                        ;; candidates with highest priority come
+                        ;; first.
+                        finally return
+                        (sort results (lambda (first second)
+                                        (> (cdr first) (cdr second)))))))
           (if (consp usage)
               ;; Put those candidates first which have the highest usage count.
-              (cl-loop for (info . _freq) in usage
-                       for mlinfo = (and (assq 'multiline source)
-                                         (replace-regexp-in-string "\n\\'" "" info))
-                       for member = (cl-member (or mlinfo info) candidates
-                                               :test 'helm-adaptive-compare)
-                       when member collect (car member) into sorted
-                       and do
-                       (setq candidates (cl-remove (or mlinfo info) candidates
-                                                   :test 'helm-adaptive-compare))
+              (cl-loop for (cand . _freq) in usage
+                       for info = (or (and (assq 'multiline source)
+                                           (replace-regexp-in-string
+                                            "\n\\'" "" cand))
+                                      cand)
+                       when (cl-member info candidates
+                                       :test 'helm-adaptive-compare)
+                       collect (car it) into sorted
+                       and do (setq candidates
+                                    (cl-remove info candidates
+                                               :test 'helm-adaptive-compare))
                        finally return (append sorted candidates))
               (message "Your `%s' is maybe corrupted or too old, \
 you should reinitialize it with `helm-reset-adaptive-history'"

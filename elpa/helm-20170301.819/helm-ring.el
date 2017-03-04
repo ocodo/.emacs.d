@@ -53,7 +53,8 @@ will not have anymore separators between candidates."
 
 (defcustom helm-kill-ring-actions
   '(("Yank" . helm-kill-ring-action-yank)
-    ("Delete" . helm-kill-ring-action-delete))
+    ("Delete" . helm-kill-ring-action-delete)
+    ("Append" . helm-kill-ring-append))
   "List of actions for kill ring source."
   :group 'helm-ring
   :type '(alist :key-type string :value-type function))
@@ -68,6 +69,7 @@ will not have anymore separators between candidates."
     (define-key map (kbd "M-y")     'helm-next-line)
     (define-key map (kbd "M-u")     'helm-previous-line)
     (define-key map (kbd "M-D")     'helm-kill-ring-delete)
+    (define-key map (kbd "C-M-w")   'helm-kill-ring-run-append)
     (define-key map (kbd "C-]")     'helm-kill-ring-toggle-truncated)
     (define-key map (kbd "C-c C-k") 'helm-kill-ring-kill-selection)
     map)
@@ -142,34 +144,36 @@ Same as `helm-kill-selection-and-quit' called with a prefix arg."
 If this action is executed just after `yank',
 replace with STR as yanked string."
   (with-helm-current-buffer
-    (setq kill-ring (delete str kill-ring))
-    ;; Adding a `delete-selection' property
-    ;; to `helm-kill-ring-action' is not working
-    ;; because `this-command' will be `helm-maybe-exit-minibuffer',
-    ;; so use this workaround (Issue #1520).
-    (when (and (region-active-p) delete-selection-mode)
-      (delete-region (region-beginning) (region-end)))
-    (if (not (eq (helm-attr 'last-command helm-source-kill-ring) 'yank))
-        (insert-for-yank str)
-      ;; from `yank-pop'
-      (let ((inhibit-read-only t)
-            (before (< (point) (mark t))))
-        (if before
-            (funcall (or yank-undo-function 'delete-region) (point) (mark t))
-          (funcall (or yank-undo-function 'delete-region) (mark t) (point)))
-        (setq yank-undo-function nil)
-        (set-marker (mark-marker) (point) helm-current-buffer)
-        (insert-for-yank str)
-        ;; Set the window start back where it was in the yank command,
-        ;; if possible.
-        (set-window-start (selected-window) yank-window-start t)
-        (when before
-          ;; This is like exchange-point-and-mark, but doesn't activate the mark.
-          ;; It is cleaner to avoid activation, even though the command
-          ;; loop would deactivate the mark because we inserted text.
-          (goto-char (prog1 (mark t)
-                       (set-marker (mark-marker) (point) helm-current-buffer))))))
-    (kill-new str)))
+    (unwind-protect
+         (progn
+           (setq kill-ring (delete str kill-ring))
+           ;; Adding a `delete-selection' property
+           ;; to `helm-kill-ring-action' is not working
+           ;; because `this-command' will be `helm-maybe-exit-minibuffer',
+           ;; so use this workaround (Issue #1520).
+           (when (and (region-active-p) delete-selection-mode)
+             (delete-region (region-beginning) (region-end)))
+           (if (not (eq (helm-attr 'last-command helm-source-kill-ring) 'yank))
+               (insert-for-yank str)
+               ;; from `yank-pop'
+               (let ((inhibit-read-only t)
+                     (before (< (point) (mark t))))
+                 (if before
+                     (funcall (or yank-undo-function 'delete-region) (point) (mark t))
+                     (funcall (or yank-undo-function 'delete-region) (mark t) (point)))
+                 (setq yank-undo-function nil)
+                 (set-marker (mark-marker) (point) helm-current-buffer)
+                 (insert-for-yank str)
+                 ;; Set the window start back where it was in the yank command,
+                 ;; if possible.
+                 (set-window-start (selected-window) yank-window-start t)
+                 (when before
+                   ;; This is like exchange-point-and-mark, but doesn't activate the mark.
+                   ;; It is cleaner to avoid activation, even though the command
+                   ;; loop would deactivate the mark because we inserted text.
+                   (goto-char (prog1 (mark t)
+                                (set-marker (mark-marker) (point) helm-current-buffer)))))))
+      (kill-new str))))
 (define-obsolete-function-alias 'helm-kill-ring-action 'helm-kill-ring-action-yank "2.4.0")
 
 (defun helm-kill-ring-action-delete (_candidate)
@@ -186,6 +190,19 @@ This is a command for `helm-kill-ring-map'."
   (with-helm-alive-p
     (helm-exit-and-execute-action 'helm-kill-ring-action-delete)))
 
+(defun helm-kill-ring-append (_candidate)
+  "Yank concatenated marked candidates."
+  (let ((marked (helm-marked-candidates)))
+    (helm-kill-ring-action-yank
+     (cl-loop for cand in marked
+              for sep = (if (string-match "\n\\'" cand) "" "\n")
+              concat (concat cand sep)))))
+
+(defun helm-kill-ring-run-append ()
+  "Yank concatenated marked candidates."
+  (interactive)
+  (with-helm-alive-p
+    (helm-exit-and-execute-action 'helm-kill-ring-append)))
 
 ;;;; <Mark ring>
 ;; DO NOT use these sources with other sources use
@@ -198,6 +215,7 @@ This is a command for `helm-kill-ring-map'."
     (goto-char pos)
     (forward-line 0)
     (let ((line (car (split-string (thing-at-point 'line) "[\n\r]"))))
+      (remove-text-properties 0 (length line) '(read-only) line)
       (if (string= "" line)
           "<EMPTY LINE>"
         line))))
@@ -250,6 +268,7 @@ This is a command for `helm-kill-ring-map'."
                         (guard (not (string-match-p "\\`\n?\\'" line))))
                    (car (split-string line "[\n\r]")))
                   (_ "<EMPTY LINE>"))))
+      (remove-text-properties 0 (length line) '(read-only) line)
       (format "%7d:%s:    %s"
               (line-number-at-pos) (marker-buffer marker) line))))
 
