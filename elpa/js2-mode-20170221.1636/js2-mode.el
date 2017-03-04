@@ -1359,9 +1359,6 @@ the correct number of ARGS must be provided."
 (js2-msg "msg.bad.yield"
          "yield must be in a function.")
 
-(js2-msg "msg.yield.parenthesized"
-         "yield expression must be parenthesized.")
-
 (js2-msg "msg.bad.await"
          "await must be in async functions.")
 
@@ -9363,7 +9360,7 @@ Last matched token must be js2-CONST or js2-VAR."
   (js2-parse-return-or-yield (js2-current-token-type) nil))
 
 (defconst js2-parse-return-stmt-enders
-  (list js2-SEMI js2-RC js2-EOF js2-EOL js2-ERROR js2-RB js2-RP js2-YIELD))
+  (list js2-SEMI js2-RC js2-EOF js2-EOL js2-ERROR js2-RB js2-RP))
 
 (defsubst js2-now-all-set (before after mask)
   "Return whether or not the bits in the mask have changed to all set.
@@ -9391,7 +9388,9 @@ but not BEFORE."
       (setq yield-star-p t))
     ;; This is ugly, but we don't want to require a semicolon.
     (unless (memq (js2-peek-token-or-eol) js2-parse-return-stmt-enders)
-      (setq e (js2-parse-expr)
+      (setq e (if (eq gen-type 'STAR)
+                  (js2-parse-assign-expr)
+                (js2-parse-expr))
             end (js2-node-end e)))
     (cond
      ((eq tt js2-RETURN)
@@ -9772,8 +9771,6 @@ If NODE is non-nil, it is the AST node associated with the symbol."
     (while (and (not oneshot)
                 (js2-match-token js2-COMMA))
       (setq op-pos (- (js2-current-token-beg) pos))  ; relative
-      (if (= (js2-peek-token) js2-YIELD)
-          (js2-report-error "msg.yield.parenthesized"))
       (setq right (js2-parse-assign-expr)
             left pn
             pn (make-js2-infix-node :type js2-COMMA
@@ -10162,8 +10159,6 @@ Returns the list in reverse order.  Consumes the right-paren token."
     (unless (js2-match-token js2-RP)
       (cl-loop do
                (let ((tt (js2-get-token)))
-                 (if (= tt js2-YIELD)
-                     (js2-report-error "msg.yield.parenthesized"))
                  (if (and (= tt js2-TRIPLEDOT)
                           (>= js2-language-version 200))
                      (push (js2-make-unary tt 'js2-parse-assign-expr) result)
@@ -10895,7 +10890,7 @@ expression)."
        ;; Found a key/value property (of any sort)
        ((member tt (list js2-NAME js2-STRING js2-NUMBER js2-LB))
         (setq after-comma nil
-              elem (js2-parse-named-prop tt previous-token))
+              elem (js2-parse-named-prop tt previous-token class-p))
         (if (and (null elem)
                  (not js2-recover-from-parse-errors))
             (setq continue nil)))
@@ -10954,7 +10949,7 @@ expression)."
     (js2-must-match js2-RC "msg.no.brace.prop")
     (nreverse elems)))
 
-(defun js2-parse-named-prop (tt previous-token)
+(defun js2-parse-named-prop (tt previous-token &optional class-p)
   "Parse a name, string, or getter/setter object property.
 When `js2-is-in-destructuring' is t, forms like {a, b, c} will be permitted."
   (let ((key (js2-parse-prop-name tt))
@@ -10977,17 +10972,18 @@ When `js2-is-in-destructuring' is t, forms like {a, b, c} will be permitted."
         ;; highlight function name properties
         (js2-record-face 'font-lock-function-name-face))
       (js2-parse-method-prop pos key property-type))
-     ;; binding element with initializer
+     ;; class field or binding element with initializer
      ((and (= (js2-peek-token) js2-ASSIGN)
            (>= js2-language-version 200))
-      (if (not js2-is-in-destructuring)
+      (if (not (or class-p
+                   js2-is-in-destructuring))
           (js2-report-error "msg.init.no.destruct"))
       (js2-parse-initialized-binding key))
      ;; regular prop
      (t
       (let ((beg (js2-current-token-beg))
             (end (js2-current-token-end))
-            (expr (js2-parse-plain-property key)))
+            (expr (js2-parse-plain-property key class-p)))
         (when (and (= tt js2-NAME)
                    (not js2-is-in-destructuring)
                    js2-highlight-external-variables
@@ -11029,20 +11025,22 @@ When `js2-is-in-destructuring' is t, forms like {a, b, c} will be permitted."
    ;; Anything else is an error
    (t (js2-report-error "msg.bad.prop"))))
 
-(defun js2-parse-plain-property (prop)
+(defun js2-parse-plain-property (prop &optional class-p)
   "Parse a non-getter/setter property in an object literal.
 PROP is the node representing the property: a number, name,
 string or expression."
-  (let* ((tt (js2-get-token))
+  (let* (tt
          (pos (js2-node-pos prop))
          colon expr result)
     (cond
-     ;; Abbreviated property, as in {foo, bar}
+     ;; Abbreviated property, as in {foo, bar} or class {a; b}
      ((and (>= js2-language-version 200)
-           (or (= tt js2-COMMA)
-               (= tt js2-RC))
-           (not (js2-number-node-p prop)))
-      (js2-unget-token)
+           (if class-p
+               (and (setq tt (js2-peek-token-or-eol))
+                    (member tt (list js2-EOL js2-RC js2-SEMI)))
+             (and (setq tt (js2-peek-token))
+                  (member tt (list js2-COMMA js2-RC))
+                  (js2-name-node-p prop))))
       (setq result (make-js2-object-prop-node
                     :pos pos
                     :left prop
@@ -11053,6 +11051,7 @@ string or expression."
       result)
      ;; Normal property
      (t
+      (setq tt (js2-get-token))
       (if (= tt js2-COLON)
           (setq colon (- (js2-current-token-beg) pos)
                 expr (js2-parse-assign-expr))
