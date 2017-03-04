@@ -4,10 +4,10 @@
 ;; Description: Move current line or region with M-up or M-down.
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; Keywords: edit
-;; Package-Version: 20170101.125
+;; Package-Version: 20170213.2128
 ;; Url: https://github.com/emacsfodder/move-text
 ;; Compatibility: GNU Emacs 25.1
-;; Version: 2.0.6
+;; Version: 2.0.7
 ;;
 ;;; This file is NOT part of GNU Emacs
 
@@ -84,6 +84,12 @@ them when there's no region."
 (defun move-text--at-penultimate-line-p ()
   "Predicate, is the point at the penultimate line?"
   (= (line-number-at-pos) (1- (move-text--total-lines))))
+
+;; save-mark-and-excursion in Emacs 25 works like save-excursion did before
+(eval-when-compile
+  (when (< emacs-major-version 25)
+    (defmacro save-mark-and-excursion (&rest body)
+      `(save-excursion ,@body))))
 
 ;;;###autoload
 (defun move-text--last-line-is-just-newline ()
