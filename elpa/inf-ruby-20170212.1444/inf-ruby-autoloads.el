@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (22653 62714 765966
-;;;;;;  523000))
+;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (0 0 0 0))
 ;;; Generated autoloads from inf-ruby.el
 
 (defvar ruby-source-modes '(ruby-mode enh-ruby-mode) "\
@@ -101,6 +100,8 @@ Run custom console.rb, Pry, or bundle console, in DIR.
 
 \(fn FILE REGEXP &optional MATCH-GROUP)" nil nil)
  (dolist (mode ruby-source-modes) (add-hook (intern (format "%s-hook" mode)) 'inf-ruby-minor-mode))
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inf-ruby" '("inf-ruby-" "run-ruby-or-pop-to-buffer" "ruby-")))
 
 ;;;***
 
