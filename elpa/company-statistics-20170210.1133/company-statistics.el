@@ -1,11 +1,11 @@
 ;;; company-statistics.el --- Sort candidates using completion history  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2014-2017  Free Software Foundation, Inc.
 
 ;; Author: Ingo Lohmar <i.lohmar@gmail.com>
 ;; URL: https://github.com/company-mode/company-statistics
-;; Package-Version: 20161213.159
-;; Version: 0.2.2
+;; Package-Version: 20170210.1133
+;; Version: 0.2.3
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "24.3") (company "0.8.5"))
 
@@ -142,15 +142,18 @@ number)."
 (defun company-statistics--save ()
   "Save statistics."
   (with-temp-buffer
+    (set-buffer-multibyte nil)
     (let (print-level print-length)
-      (insert
+      (encode-coding-string
        (format
         "%S"
         `(setq
           company-statistics--scores ,company-statistics--scores
           company-statistics--log ,company-statistics--log
-          company-statistics--index ,company-statistics--index))))
-    (write-file company-statistics-file)))
+          company-statistics--index ,company-statistics--index))
+       'utf-8 nil (current-buffer))
+      (let ((coding-system-for-write 'binary))
+        (write-region nil nil company-statistics-file)))))
 
 (defun company-statistics--maybe-save ()
   (when (and (company-statistics--initialized-p)
