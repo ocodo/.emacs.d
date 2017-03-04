@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "indent-guide" "indent-guide.el" (22628 53752
-;;;;;;  0 0))
+;;;### (autoloads nil "indent-guide" "indent-guide.el" (0 0 0 0))
 ;;; Generated autoloads from indent-guide.el
 
 (autoload 'indent-guide-mode "indent-guide" "\
@@ -33,6 +32,8 @@ Indent-Guide mode is enabled in all buffers where
 See `indent-guide-mode' for more information on Indent-Guide mode.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "indent-guide" '("indent-guide-")))
 
 ;;;***
 

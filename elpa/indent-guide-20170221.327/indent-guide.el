@@ -1,6 +1,6 @@
 ;;; indent-guide.el --- show vertical lines to guide indentation
 
-;; Copyright (C) 2013-2015 zk_phi
+;; Copyright (C) 2013- zk_phi
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20161226.2332
-;; Version: 2.3.0
+;; Package-Version: 20170221.327
+;; Version: 2.3.1
 
 ;;; Commentary:
 
@@ -70,12 +70,13 @@
 ;; 2.1.6 add option "indent-guide-recursive"
 ;; 2.2.0 add option "indent-guide-threshold"
 ;; 2.3.0 use regexp search to find the beginning of level
+;; 2.3.1 add option "indent-guide-lispy-modes"
 
 ;;; Code:
 
 (require 'cl-lib)
 
-(defconst indent-guide-version "2.3.0")
+(defconst indent-guide-version "2.3.1")
 
 ;; * customs
 
@@ -114,6 +115,15 @@
   "Guide lines are drawn only when the column number is over this
   value."
   :type 'number
+  :group 'indent-guide)
+
+(defcustom indent-guide-lispy-modes
+  '(lisp-mode emacs-lisp-mode scheme-mode
+              lisp-interaction-mode gauche-mode scheme-mode
+              clojure-mode racket-mode egison-mode)
+  "List of lisp-like language modes, in which the last brace of
+blocks are NOT placed at beginning of line."
+  :type '(repeat symbol)
   :group 'indent-guide)
 
 (defface indent-guide-face '((t (:foreground "#535353" :slant normal)))
@@ -238,8 +248,7 @@ the point. When no such points are found, just return nil."
               (active-minibuffer-window))
     (let ((win-start (window-start))
           (win-end (window-end nil t))
-          line-col line-start line-end
-          last-col)
+          line-col line-start line-end)
       ;; decide line-col, line-start
       (save-excursion
         (indent-guide--beginning-of-level)
@@ -258,12 +267,13 @@ the point. When no such points are found, just return nil."
                       (forward-line 1)
                       (not (eobp))
                       (<= (point) win-end)))
-          (when (>= line-col (setq last-col (current-column)))
-            (forward-line -1)
-            (while (and (looking-at "[\s\t\n]*$")
-                        (> (point) line-start)
-                        (zerop (forward-line -1)))))
-          (setq line-end (line-number-at-pos)))
+          (cond ((< line-col (current-column))
+                 (setq line-end (line-number-at-pos)))
+                ((not (memq major-mode indent-guide-lispy-modes))
+                 (setq line-end (1- (line-number-at-pos))))
+                (t
+                 (skip-chars-backward "\s\t\n")
+                 (setq line-end (line-number-at-pos)))))
         ;; draw line
         (dotimes (tmp (- (1+ line-end) line-start))
           (indent-guide--make-overlay (+ line-start tmp) line-col))
@@ -286,6 +296,8 @@ the point. When no such points are found, just return nil."
                                    (setq indent-guide--timer-object nil)))))))
 
 (defun indent-guide-pre-command-hook ()
+  ;; some commands' behavior may affected by indent-guide overlays, so
+  ;; remove all overlays in pre-command-hook.
   (indent-guide-remove))
 
 ;;;###autoload
