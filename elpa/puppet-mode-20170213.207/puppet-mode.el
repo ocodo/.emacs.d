@@ -10,7 +10,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/voxpupuli/puppet-mode
-;; Package-Version: 20170120.1813
+;; Package-Version: 20170213.207
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -169,7 +169,7 @@ buffer-local wherever it is set."
   :group 'puppet
   :package-version '(puppet-mode . "0.3"))
 
-(defcustom puppet-repl-command "prepl"
+(defcustom puppet-repl-command "pdb"
   "The Puppet REPL command used to interact with code."
   :type 'string
   :group 'puppet
