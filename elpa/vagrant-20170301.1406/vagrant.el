@@ -1,7 +1,7 @@
 ;;; vagrant.el --- Manage a vagrant box from emacs
 
-;;; Version: 0.6.1
-;; Package-Version: 20160505.130
+;;; Version: 0.6.2
+;; Package-Version: 20170301.1406
 ;;; Author: Robert Crim <rob@servermilk.com>
 ;;; Url: https://github.com/ottbot/vagrant.el
 ;;; Keywords: vagrant chef
@@ -89,6 +89,12 @@
   "Halt the vagrant box."
   (interactive)
   (vagrant-command "vagrant halt"))
+
+;;;###autoload
+(defun vagrant-rsync ()
+  "Rsync the vagrant box."
+  (interactive)
+  (vagrant-command "vagrant rsync"))
 
 ;;;###autoload
 (defun vagrant-edit ()

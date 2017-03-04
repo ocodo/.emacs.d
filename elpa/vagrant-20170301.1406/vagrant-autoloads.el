@@ -1,10 +1,9 @@
 ;;; vagrant-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "vagrant" "vagrant.el" (22318 43463 501359
-;;;;;;  753000))
+;;;### (autoloads nil "vagrant" "vagrant.el" (0 0 0 0))
 ;;; Generated autoloads from vagrant.el
 
 (autoload 'vagrant-up "vagrant" "\
@@ -52,10 +51,17 @@ Halt the vagrant box.
 
 \(fn)" t nil)
 
+(autoload 'vagrant-rsync "vagrant" "\
+Rsync the vagrant box.
+
+\(fn)" t nil)
+
 (autoload 'vagrant-edit "vagrant" "\
 Edit the Vagrantfile.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "vagrant" '("vagrant-")))
 
 ;;;***
 
