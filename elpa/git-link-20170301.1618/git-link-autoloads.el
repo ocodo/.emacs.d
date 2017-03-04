@@ -28,9 +28,9 @@ Defaults to \"origin\".
 \(fn REMOTE)" t nil)
 
 (autoload 'git-link-homepage "git-link" "\
-Create a URL for the current buffer's repository homepage.
-The URL will be added to the kill ring. If `git-link-open-in-browser'
-is non-`nil' also call `browse-url'.
+Create a URL for the current buffer's REMOTE repository homepage.
+The URL will be added to the kill ring.  If `git-link-open-in-browser'
+is non-nil also call `browse-url'.
 
 \(fn REMOTE)" t nil)
 
