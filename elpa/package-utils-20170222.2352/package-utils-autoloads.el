@@ -42,13 +42,6 @@ Uninstall the package NAME.
 
 \(fn NAME)" t nil)
 
-(autoload 'package-utils-install-async "package-utils" "\
-Install PACKAGE asynchronously.
-
-Contrary to `package-install', PACKAGE can only be a symbol.
-
-\(fn PACKAGE)" t nil)
-
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "package-utils" '("package-utils-")))
 
 ;;;***

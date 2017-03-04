@@ -2,10 +2,9 @@
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/package-utils
-;; Package-Version: 20161125.930
+;; Package-Version: 20170222.2352
 ;; Keywords: package, convenience
-;; Version: 0.4.2
-;; Package-Requires: ((async "1.6"))
+;; Version: 0.5.0
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -133,23 +132,6 @@ With prefix argument NO-FETCH, do not call `package-refresh-contents'."
                                   nil
                                   'require-match))))
   (package-delete (cadr (assoc name package-alist))))
-
-;;;###autoload
-(defun package-utils-install-async (package)
-  "Install PACKAGE asynchronously.
-
-Contrary to `package-install', PACKAGE can only be a symbol."
-  (interactive (list (car (eval (cadr (interactive-form 'package-install))))))
-  (require 'async)
-  (async-start
-   `(lambda ()
-      ,(async-inject-variables "^package-archives$")
-      ;; Initialize the package system if necessary.
-      (package-initialize t)
-      (package-install ',package))
-   `(lambda (result)
-      (package-initialize nil)
-      (message "%s installed" ',package))))
 
 (provide 'package-utils)
 
