@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20161227.655
-;; Version: 0.3.3
+;; Package-Version: 20170216.2034
+;; Version: 0.3.4
 ;; Package-Requires: ((autothemer "0.2"))
 
 ;;; Commentary:
@@ -165,6 +165,9 @@
   (font-lock-variable-name-face                      (:foreground darktooth-aquamarine4))
   (font-lock-type-face                               (:foreground darktooth-lightblue4))
   (font-lock-warning-face                            (:foreground darktooth-neutral_red :bold t))
+
+  ;; MODE SUPPORT: which-key
+  (which-key-key-face                        (:inherit 'font-lock-variable-name-face))
 
   ;; MODE SUPPORT: elixir-mode
   (elixir-atom-face                          (:foreground darktooth-lightblue4))
