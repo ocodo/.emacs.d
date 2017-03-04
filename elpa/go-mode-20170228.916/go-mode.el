@@ -8,7 +8,7 @@
 
 ;; Author: The go-mode Authors
 ;; Version: 1.4.0
-;; Package-Version: 20170206.1507
+;; Package-Version: 20170228.916
 ;; Keywords: languages go
 ;; URL: https://github.com/dominikh/go-mode.el
 ;;
@@ -23,6 +23,7 @@
 (require 'find-file)
 (require 'ring)
 (require 'url)
+(require 'xref nil :noerror)  ; xref is new in Emacs 25.1
 
 
 (eval-when-compile
@@ -70,6 +71,12 @@ function."
 
 
 (defconst go-dangling-operators-regexp "[^-]-\\|[^+]\\+\\|[/*&><.=|^]")
+(defconst go--max-dangling-operator-length 2
+  "The maximum length of dangling operators.
+This must be at least the length of the longest string matched by
+‘go-dangling-operators-regexp.’, and must be updated whenever
+that constant is changed.")
+
 (defconst go-identifier-regexp "[[:word:][:multibyte:]]+")
 (defconst go-type-name-no-prefix-regexp "\\(?:[[:word:][:multibyte:]]+\\.\\)?[[:word:][:multibyte:]]+")
 (defconst go-qualified-identifier-regexp (concat go-identifier-regexp "\\." go-identifier-regexp))
@@ -496,13 +503,13 @@ STOP-AT-STRING is not true, over strings."
   (let (pos (start-pos (point)))
     (skip-chars-backward "\n\s\t")
     (if (and (save-excursion (beginning-of-line) (go-in-string-p))
-             (looking-back "`")
+             (= (char-before) ?`)
              (not stop-at-string))
         (backward-char))
     (if (and (go-in-string-p)
              (not stop-at-string))
         (go-goto-beginning-of-string-or-comment))
-    (if (looking-back "\\*/")
+    (if (looking-back "\\*/" (line-beginning-position))
         (backward-char))
     (if (go-in-comment-p)
         (go-goto-beginning-of-string-or-comment))
@@ -530,7 +537,8 @@ STOP-AT-STRING is not true, over strings."
         (save-excursion
           (beginning-of-line)
           (go--backward-irrelevant t)
-          (setq val (looking-back go-dangling-operators-regexp))
+          (setq val (looking-back go-dangling-operators-regexp
+                                  (- (point) go--max-dangling-operator-length)))
           (if (not (go--buffer-narrowed-p))
               (puthash cur-line val go-dangling-cache))))
     val))
@@ -585,7 +593,9 @@ current line will be returned."
         (if (go-previous-line-has-dangling-op-p)
             (- (current-indentation) tab-width)
           (go--indentation-for-opening-parenthesis)))
-       ((progn (go--backward-irrelevant t) (looking-back go-dangling-operators-regexp))
+       ((progn (go--backward-irrelevant t)
+               (looking-back go-dangling-operators-regexp
+                             (- (point) go--max-dangling-operator-length)))
         ;; only one nesting for all dangling operators in one operation
         (if (go-previous-line-has-dangling-op-p)
             (current-indentation)
@@ -660,7 +670,8 @@ current line will be returned."
       (skip-chars-forward "^{")
       (forward-char)
       (or (go-in-string-or-comment-p)
-          (looking-back "\\(struct\\|interface\\)\\s-*{"))))
+          (looking-back "\\(struct\\|interface\\)\\s-*{"
+                        (line-beginning-position)))))
     (setq orig-level (go-paren-level))
     (while (>= (go-paren-level) orig-level)
       (skip-chars-forward "^}")
@@ -1506,7 +1517,10 @@ description at POINT."
         (if (not (godef--successful-p file))
             (message "%s" (godef--error file))
           (push-mark)
-          (ring-insert find-tag-marker-ring (point-marker))
+          (if (eval-when-compile (fboundp 'xref-push-marker-stack))
+              ;; TODO: Integrate this facility with XRef.
+              (xref-push-marker-stack)
+            (ring-insert find-tag-marker-ring (point-marker)))
           (godef--find-file-line-column file other-window)))
     (file-error (message "Could not run godef binary"))))
 
@@ -1715,7 +1729,8 @@ If ARG is non-nil, anonymous functions are ignored."
            (skip-chars-forward "^{")
            (forward-char)
            (or (go-in-string-or-comment-p)
-               (looking-back "\\(struct\\|interface\\)\\s-*{"))))
+               (looking-back "\\(struct\\|interface\\)\\s-*{"
+                             (line-beginning-position)))))
   (backward-char))
 
 (defun go--in-function-p (compare-point)
