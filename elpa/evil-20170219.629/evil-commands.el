@@ -32,10 +32,6 @@
 (require 'evil-command-window)
 (require 'evil-jumps)
 
-;;; Compatibility for Emacs 23
-(unless (fboundp 'window-body-width)
-  (defalias 'window-body-width 'window-width))
-
 ;;; Motions
 
 ;; Movement commands, or motions, are defined with the macro
@@ -815,7 +811,8 @@ If COUNT is not specified the function uses
   (progn
     (setq count (or count evil-scroll-line-count))
     (setq evil-scroll-line-count count)
-    (scroll-down count)))
+    (let ((scroll-preserve-screen-position nil))
+      (scroll-down count))))
 
 (evil-define-command evil-scroll-line-down (count)
   "Scrolls the window COUNT lines downwards.
@@ -827,7 +824,8 @@ If COUNT is not specified the function uses
   (progn
     (setq count (or count evil-scroll-line-count))
     (setq evil-scroll-line-count count)
-    (scroll-up count)))
+    (let ((scroll-preserve-screen-position nil))
+      (scroll-up count))))
 
 (evil-define-command evil-scroll-count-reset ()
   "Sets `evil-scroll-count' to 0.
@@ -1301,7 +1299,7 @@ Save in REGISTER or in the kill-ring with YANK-HANDLER."
    (t
     (delete-region beg end)))
   ;; place cursor on beginning of line
-  (when (and (evil-called-interactively-p)
+  (when (and (called-interactively-p 'any)
              (eq type 'line))
     (evil-first-non-blank)))
 
@@ -2126,7 +2124,7 @@ lines.  This is the default behaviour for Visual-state insertion."
                   (prog1 (count-lines evil-visual-beginning evil-visual-end)
                     (set-mark m)))))
          (evil-visual-state-p)))
-  (if (and (evil-called-interactively-p)
+  (if (and (called-interactively-p 'any)
            (evil-visual-state-p))
       (cond
        ((eq (evil-visual-type) 'line)
@@ -2169,7 +2167,7 @@ the lines."
                   (evil-visual-rotate 'upper-left)
                   (prog1 (count-lines evil-visual-beginning evil-visual-end)
                     (set-mark m)))))))
-  (if (and (evil-called-interactively-p)
+  (if (and (called-interactively-p 'any)
            (evil-visual-state-p))
       (cond
        ((or (eq (evil-visual-type) 'line)

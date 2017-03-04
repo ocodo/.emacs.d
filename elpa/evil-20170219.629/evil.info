@@ -67,7 +67,7 @@ File: evil.info,  Node: Installation,  Next: Modes and states,  Up: Overview
 
 Evil lives in a Git repository.  To download Evil, do:
 
-     git clone git://gitorious.org/evil/evil.git
+     git clone https://github.com/emacs-evil/evil.git
 
 Move Evil to '~/.emacs.d/evil'.  Then add the following lines to
 '~/.emacs':
@@ -1188,24 +1188,24 @@ Node: Top819
 Node: Overview1092
 Ref: Overview-Footnote-11440
 Node: Installation1668
-Ref: Installation-Footnote-12267
-Node: Modes and states2317
-Node: Settings3370
-Ref: Settings-Footnote-15821
-Node: The cursor5978
-Node: The initial state7183
-Node: Keymaps7642
-Node: 'evil-define-key'9506
-Node: Hooks10692
-Node: Macros12214
-Node: Motions12494
-Node: Operators14431
-Node: Text objects16764
-Node: Types19777
-Node: States21259
-Node: Other internals22358
-Node: Command properties22535
-Node: GNU Free Documentation License23862
+Ref: Installation-Footnote-12272
+Node: Modes and states2322
+Node: Settings3375
+Ref: Settings-Footnote-15826
+Node: The cursor5983
+Node: The initial state7188
+Node: Keymaps7647
+Node: 'evil-define-key'9511
+Node: Hooks10697
+Node: Macros12219
+Node: Motions12499
+Node: Operators14436
+Node: Text objects16769
+Node: Types19782
+Node: States21264
+Node: Other internals22363
+Node: Command properties22540
+Node: GNU Free Documentation License23867
 
 End Tag Table
 
