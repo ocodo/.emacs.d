@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired+" "dired+.el" (22653 62789 959578 189000))
+;;;### (autoloads nil "dired+" "dired+.el" (0 0 0 0))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -2029,6 +2029,8 @@ Describe Dired+.
 Send a bug report about a Dired+ problem.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired+" '("dired")))
 
 ;;;***
 
