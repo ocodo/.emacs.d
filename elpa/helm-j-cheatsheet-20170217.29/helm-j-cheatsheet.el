@@ -4,8 +4,8 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-j-cheatsheet
-;; Version: 20131228.441
-;; X-Original-Version: 0.2
+;; Package-Version: 20170217.29
+;; Version: 0.2
 ;; Package-Requires: ((helm "1.5.3"))
 
 ;; This file is not part of GNU Emacs
@@ -48,6 +48,16 @@ while \"insert\" action is secondary (C-e).
 When t, the opposite."
   :group 'helm-j-cheatsheet
   :type 'boolean)
+
+(defcustom jc-local-dictionary-url ""
+  "Path to the local instance of the j-dictionary"
+  :type 'string
+  :group 'helm-j-cheatsheet)
+
+(defcustom jc-remote-dictionary-url "http://www.jsoftware.com/help/dictionary"
+  "Path to the remote instance of the j-dictionary"
+  :type 'string
+  :group 'helm-j-cheatsheet)
 
 (defface jc-verb-face
     '((t (:foreground "#110099")))
@@ -190,9 +200,18 @@ When t, the opposite."
     ("a:" "Ace" "" "dadot")
     ("NB." "Comment" "" "dnb")))
 
+(defun jc-valid-dictionary ()
+  "Return best defined dictionary"
+  (replace-regexp-in-string
+   "/$" ""
+   (cond ((not (string= "" jc-local-dictionary-url))
+          jc-local-dictionary-url)
+         ((not (string= "" jc-remote-dictionary-url))
+          jc-remote-dictionary-url))))
+
 (defun jc-action-show-doc (x)
   "Look up X doc on the internet."
-  (let ((url (format "http://www.jsoftware.com/help/dictionary/%s.htm" (caadr x))))
+  (let ((url (format "%s/%s.htm" (jc-valid-dictionary) (caadr x))))
     (message "Loading %s ..." url)
     (browse-url url)))
 
@@ -206,7 +225,7 @@ When t, the opposite."
             n "1st"))
     (message
      "Loading %s doc %s ..." n
-     (setq url (format "http://www.jsoftware.com/help/dictionary/%s.htm" bit)))
+     (setq url (format "%s/%s.htm" (jc-valid-dictionary) bit)))
     (browse-url url)))
 
 (defun jc-action-insert (x)
