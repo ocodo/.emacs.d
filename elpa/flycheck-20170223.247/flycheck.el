@@ -5613,7 +5613,7 @@ about TSLint."
                   :filename .name)))
              ;; Don't try to parse empty output as JSON
              (and (not (string-empty-p output))
-                  (json-read-from-string output)))))
+                  (car (flycheck-parse-json output))))))
 
 (defun flycheck-parse-rust-collect-spans (span)
   "Return a list of spans contained in a SPAN object."
@@ -5673,6 +5673,7 @@ https://github.com/rust-lang/rust/blob/master/src/libsyntax/json.rs#L67-L139"
             error-level (pcase .level
                           (`"error" 'error)
                           (`"warning" 'warning)
+                          (`"note" 'info)
                           (_ 'error))
             ;; The 'code' field of the diagnostic contains the actual error
             ;; code and an optional explanation that we ignore
@@ -6947,7 +6948,8 @@ See Info Node `(elisp)Byte Compilation'."
     checkdoc-package-keywords-flag
     checkdoc-spellcheck-documentation-flag
     checkdoc-verb-check-experimental-flag
-    checkdoc-max-keyref-before-warn)
+    checkdoc-max-keyref-before-warn
+    sentence-end-double-space)
   "Variables inherited by the checkdoc subprocess.")
 
 (defun flycheck-emacs-lisp-checkdoc-variables-form ()
@@ -7016,7 +7018,8 @@ See URL `http://www.erlang.org/'."
   :error-patterns
   ((warning line-start (file-name) ":" line ": Warning:" (message) line-end)
    (error line-start (file-name) ":" line ": " (message) line-end))
-  :modes erlang-mode)
+  :modes erlang-mode
+  :enabled (lambda () (string-suffix-p ".erl" (buffer-file-name))))
 
 (flycheck-define-checker eruby-erubis
   "A eRuby syntax checker using the `erubis' command.
