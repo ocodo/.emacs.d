@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-helm-open-github
-;; Package-Version: 20161203.604
+;; Package-Version: 20170219.1759
 ;; Version: 0.15
 ;; Package-Requires: ((emacs "24.4") (helm-core "1.7.7") (gh "0.8.2"))
 
@@ -278,7 +278,8 @@ If this value is non-nil, delayed search is disabled."
       (let ((issues (gh-issues-issue-list-closed helm-open-github-issues-api user repo)))
         (if (null issues)
             (error "This repository has no issues!!")
-            (oref issues data))))))
+            (sort (oref issues data)
+                  (lambda (a b) (> (oref a number) (oref b number)))))))))
 
 (defun helm-open-github--convert-issue-api-url (url)
   (replace-regexp-in-string
