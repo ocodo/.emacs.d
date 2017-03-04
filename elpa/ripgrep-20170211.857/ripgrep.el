@@ -3,8 +3,8 @@
 ;; Copyright (C) 2016 Nicolas Lamirault <nicolas.lamirault@gmail.com>
 ;;
 ;; Author: Nicolas Lamirault <nicolas.lamirault@gmail.com>
-;; Version: 0.3.0
-;; Package-Version: 20170116.47
+;; Version: 0.4.0
+;; Package-Version: 20170211.857
 ;; Keywords : ripgrep ack pt ag sift grep search
 ;; Homepage: https://github.com/nlamirault/ripgrep.el
 
