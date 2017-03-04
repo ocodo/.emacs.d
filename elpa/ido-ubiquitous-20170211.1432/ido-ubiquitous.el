@@ -4,7 +4,7 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Package-Version: 20160623.815
+;; Package-Version: 20170211.1432
 ;; Version: 3.15
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
@@ -365,6 +365,8 @@ You can restore these using the command `ido-ubiquitous-restore-default-override
     (enable exact "imenu--completion-buffer")
     ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/74
     (enable-old exact "auto-insert")
+    ;; https://github.com/DarwinAwardWinner/ido-ubiquitous/issues/116
+    (enable exact "project--completing-read-strict")
     ) ; Close paren on separate line for better VC diffs
   "Default value of `ido-ubiquitous-function-overrides'.
 
