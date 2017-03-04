@@ -6,7 +6,7 @@
 ;; Created: 24 Aug 2011
 ;; Updated: 16 Mar 2015
 ;; Version: 1.2
-;; Package-Version: 20170106.1020
+;; Package-Version: 20170223.1030
 ;; Package-Requires: ((gntp "0.1") (log4e "0.3.0"))
 ;; Keywords: notification emacs message
 ;; X-URL: https://github.com/jwiegley/alert
@@ -774,7 +774,6 @@ From https://github.com/alloy/terminal-notifier."
   (if alert-notifier-command
       (let ((args
              (list "-title"   (alert-encode-string (plist-get info :title))
-                   "-sender"  "org.gnu.Emacs"
                    "-message" (alert-encode-string (plist-get info :message)))))
         (apply #'call-process alert-notifier-command nil nil nil args))
     (alert-message-notify info)))
