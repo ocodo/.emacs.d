@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "tablist" "tablist.el" (22519 50649 138885
-;;;;;;  318000))
+;;;### (autoloads nil "tablist" "tablist.el" (0 0 0 0))
 ;;; Generated autoloads from tablist.el
 
 (autoload 'tablist-minor-mode "tablist" "\
@@ -21,10 +20,19 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tablist" '("tablist-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("tablist-filter.el" "tablist-pkg.el")
-;;;;;;  (22519 50649 134885 313000))
+;;;### (autoloads nil "tablist-filter" "tablist-filter.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from tablist-filter.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tablist-filter" '("tablist-filter-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("tablist-pkg.el") (0 0 0 0))
 
 ;;;***
 
