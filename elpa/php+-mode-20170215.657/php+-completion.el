@@ -1,4 +1,4 @@
-;;; php-completion.el --- PHP completion engine
+;;; php+-completion.el --- PHP completion engine
 
 ;; Vrsion: 1.0
 ;; Created: 7-5-2011
@@ -238,4 +238,4 @@ shows up on the minibuffer."
   (interactive)
   (customize-group "php-completion"))
 
-(provide 'php-completion)
+(provide 'php+-completion)

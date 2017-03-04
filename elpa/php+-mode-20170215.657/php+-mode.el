@@ -42,9 +42,9 @@
 (require 'font-lock)
 (require 'cc-mode)
 (require 'cc-langs)
-(require 'php-completion)
+(require 'php+-completion)
 (require 'php-const)
-(require 'php-doc)
+(require 'php+-doc)
 (require 'php-edit)
 (require 'php-font-lock)
 (require 'php-format)
@@ -59,7 +59,7 @@
 (require 'php-tags)
 (require 'php-test)
 (require 'php-utils)
-(require 'string-utils)
+(require 'php+-string-utils)
 (require 'php+-zf)
 
 ;;; *********

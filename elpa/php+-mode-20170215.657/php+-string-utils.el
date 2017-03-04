@@ -1,4 +1,4 @@
-;;; string-utils.el --- String utility functions
+;;; php+-string-utils.el --- String utility functions
 
 ;; Version: 1.0
 ;; Created: 2011-07-17
@@ -373,4 +373,4 @@ forward N lines, without all the exceptions that
   (when (re-search-forward non-ws-re nil t)
     (backward-char)))
 
-(provide 'string-utils)
+(provide 'php+-string-utils)

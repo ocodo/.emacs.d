@@ -1,4 +1,4 @@
-;;; php-doc.el --- Makes phpdoc blocks more automated and easier.
+;;; php+-doc.el --- Makes phpdoc blocks more automated and easier.
 
 ;; Version: 2.0
 ;; Created: 10-26-2010
@@ -19,10 +19,10 @@
 ;; ************
 ;; REQUIREMENTS
 ;; ************
-(require 'php-completion)
+(require 'php+-completion)
 (require 'php-funcs)
 (require 'php-project)
-(require 'string-utils)
+(require 'php+-string-utils)
 
 ;; ******
 ;; CUSTOM
@@ -500,4 +500,4 @@ description."
 removing the beginning ' * '."
   (replace-regexp-in-string (concat ws-re "*\\*" ws-re "*") " " string))
 
-(provide 'php-doc)
+(provide 'php+-doc)

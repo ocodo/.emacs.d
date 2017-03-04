@@ -21,7 +21,7 @@
 (require 'php-edit)
 (require 'php-format)
 (require 'php-parse)
-(require 'string-utils)
+(require 'php+-string-utils)
 
 (defvar php-refactor-last-buffer nil "Last buffer selected.")
 

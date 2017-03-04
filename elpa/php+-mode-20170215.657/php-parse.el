@@ -26,7 +26,7 @@
 ;; REQUIREMENTS
 ;; ************
 (require 'cl)
-(require 'string-utils)
+(require 'php+-string-utils)
 
 ;; *********
 ;; CUSTOMIZE
