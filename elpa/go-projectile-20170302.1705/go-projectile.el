@@ -4,7 +4,7 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20170104.1730
+;; Package-Version: 20170302.1705
 ;; Keywords: project, convenience
 ;; Version: 0.2.1
 ;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0") (go-guru "0"))
@@ -68,6 +68,8 @@ current GOPATH, or 'never to leave GOPATH untouched."
     (golint    . "github.com/golang/lint/golint")
     (godef     . "github.com/rogpeppe/godef")
     (errcheck  . "github.com/kisielk/errcheck")
+    (godoc     . "golang.org/x/tools/cmd/godoc")
+    (gogetdoc  . "github.com/zmb3/gogetdoc")
     (goimports . "golang.org/x/tools/cmd/goimports")
     (gorename  . "golang.org/x/tools/cmd/gorename")
     (gomvpkg   . "golang.org/x/tools/cmd/gomvpkg")
@@ -81,7 +83,11 @@ current GOPATH, or 'never to leave GOPATH untouched."
       (add-to-list 'exec-path path)
       (setenv "PATH" (concat (getenv "PATH") path-separator path))
       (setq go-guru-command (concat path "/guru"))
-      (setq go-rename-command (concat path "/gorename")))))
+      (setq go-rename-command (concat path "/gorename"))
+      (let ((gogetdoc (executable-find "gogetdoc")))
+        (when gogetdoc
+          (setq godoc-at-point-function #'godoc-gogetdoc
+                godoc-use-completing-read t))))))
 
 (defun go-projectile-get-tools (&optional flag)
   "Install go related tools via go get.  Optional FLAG to update."
