@@ -3,13 +3,15 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "refine" "refine.el" (22613 12780 438397 716000))
+;;;### (autoloads nil "refine" "refine.el" (0 0 0 0))
 ;;; Generated autoloads from refine.el
 
 (autoload 'refine "refine" "\
 Interactively edit the value of a symbol (usually a list).
 
 \(fn SYMBOL)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "refine" '("refine-")))
 
 ;;;***
 
