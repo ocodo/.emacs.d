@@ -1,10 +1,10 @@
 ;;; imenu-list.el --- Show imenu entries in a seperate buffer
 
-;; Copyright (C) 2015 Bar Magal
+;; Copyright (C) 2015-2017 Bar Magal & Contributors
 
 ;; Author: Bar Magal (2015)
-;; Version: 0.5
-;; Package-Version: 20160211.341
+;; Version: 0.7
+;; Package-Version: 20170215.125
 ;; Homepage: https://github.com/bmag/imenu-list
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -233,10 +233,11 @@ See `hs-minor-mode' for information on what is hide/show."
   "Insert a line for ENTRY with DEPTH."
   (if (imenu--subalist-p entry)
       (progn
-        (insert-button (format "%s+ %s"
-                               (imenu-list--depth-string depth)
-                               (car entry))
+        (insert (imenu-list--depth-string depth))
+        (insert-button (format "+ %s" (car entry))
                        'face (imenu-list--get-face depth t)
+                       'help-echo (format "Toggle: %s"
+                                          (car entry))
                        'follow-link t
                        'action ;; #'imenu-list--action-goto-entry
                        #'imenu-list--action-toggle-hs
@@ -245,6 +246,8 @@ See `hs-minor-mode' for information on what is hide/show."
     (insert (imenu-list--depth-string depth))
     (insert-button (format "%s" (car entry))
                    'face (imenu-list--get-face depth nil)
+                   'help-echo (format "Go to: %s"
+                                      (car entry))
                    'follow-link t
                    'action #'imenu-list--action-goto-entry)
     (insert "\n")))
@@ -452,7 +455,7 @@ If it doesn't exist, create it."
     (mapc #'fit-window-to-buffer
           (get-buffer-window-list (imenu-list-get-buffer-create)))))
 
-(defun imenu-list-update (&optional raise-imenu-errors)
+(defun imenu-list-update (&optional raise-imenu-errors force-update)
   "Update the imenu-list buffer.
 If the imenu-list buffer doesn't exist, create it.
 If RAISE-IMENU-ERRORS is non-nil, any errors encountered while trying to
@@ -461,12 +464,15 @@ instead.
 When RAISE-IMENU-ERRORS is nil, then the return value indicates if an
 error has occured.  If the return value is nil, then there was no error.
 Oherwise `imenu-list-update' will return the error that has occured, as
- (ERROR-SYMBOL . SIGNAL-DATA)."
+ (ERROR-SYMBOL . SIGNAL-DATA).
+If FORCE-UPDATE is non-nil, the imenu-list buffer is updated even if the
+imenu entries did not change since the last update."
   (catch 'index-failure
       (let ((old-entries imenu-list--imenu-entries)
             (location (point-marker)))
         ;; don't update if `point' didn't move - fixes issue #11
-        (unless (and imenu-list--last-location
+        (unless (and (null force-update)
+                     imenu-list--last-location
                      (marker-buffer imenu-list--last-location)
                      (= location imenu-list--last-location))
           (setq imenu-list--last-location location)
@@ -477,7 +483,11 @@ Oherwise `imenu-list-update' will return the error that has occured, as
               (error
                (message "imenu-list: couldn't create index because of error: %S" err)
                (throw 'index-failure err))))
-          (unless (equal old-entries imenu-list--imenu-entries)
+          (when (or force-update
+                    ;; check if Ilist buffer is alive, in case it was killed
+                    ;; since last update
+                    (null (get-buffer imenu-list-buffer-name))
+                    (not (equal old-entries imenu-list--imenu-entries)))
             (with-current-buffer (imenu-list-get-buffer-create)
               (imenu-list-insert-entries)))
           (imenu-list--show-current-entry)
@@ -485,6 +495,12 @@ Oherwise `imenu-list-update' will return the error that has occured, as
             (imenu-list-resize-window))
           (run-hooks 'imenu-list-update-hook)
           nil))))
+
+(defun imenu-list-refresh ()
+  "Refresh imenu-list buffer."
+  (interactive)
+  (with-current-buffer imenu-list--displayed-buffer
+    (imenu-list-update nil t)))
 
 (defun imenu-list-show ()
   "Show the imenu-list buffer.
@@ -514,6 +530,18 @@ If the imenu-list buffer doesn't exist, create it."
   (imenu-list-update)
   (imenu-list-show))
 
+(defun imenu-list-quit-window ()
+  "Disable `imenu-list-minor-mode' and hide the imenu-list buffer.
+If `imenu-list-minor-mode' is already disabled, just call `quit-window'."
+  (interactive)
+  ;; the reason not to call `(imenu-list-minor-mode -1)' regardless of current
+  ;; state, is that it quits all of imenu-list windows instead of just the
+  ;; current one.
+  (if imenu-list-minor-mode
+      ;; disabling `imenu-list-minor-mode' also quits the window
+      (imenu-list-minor-mode -1)
+    (quit-window)))
+
 (defvar imenu-list-major-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") #'imenu-list-goto-entry)
@@ -522,6 +550,8 @@ If the imenu-list buffer doesn't exist, create it."
     (define-key map (kbd "p") #'previous-line)
     (define-key map (kbd "TAB") #'hs-toggle-hiding)
     (define-key map (kbd "f") #'hs-toggle-hiding)
+    (define-key map (kbd "g") #'imenu-list-refresh)
+    (define-key map (kbd "q") #'imenu-list-quit-window)
     map))
 
 (define-derived-mode imenu-list-major-mode special-mode "Ilist"
@@ -598,12 +628,24 @@ ARG is ignored."
               (imenu-list-show)
             (imenu-list-show-noselect))
           (with-current-buffer orig-buffer
-            (imenu-list-update))))
+            (imenu-list-update nil t))))
     (imenu-list-stop-timer)
     (ignore-errors (quit-windows-on imenu-list-buffer-name))
     ;; make sure *Ilist* is buried even if it wasn't shown in any window
     (when (get-buffer imenu-list-buffer-name)
       (bury-buffer (get-buffer imenu-list-buffer-name)))))
+
+;;;###autoload
+(defun imenu-list-smart-toggle ()
+  "Enable or disable `imenu-list-minor-mode' according to buffer's visibility.
+If the imenu-list buffer is displayed in any window, disable
+`imenu-list-minor-mode', otherwise enable it.
+Note that all the windows in every frame searched, even invisible ones, not
+only those in the selected frame."
+  (interactive)
+  (if (get-buffer-window imenu-list-buffer-name t)
+      (imenu-list-minor-mode -1)
+    (imenu-list-minor-mode 1)))
 
 (provide 'imenu-list)
 
