@@ -1,12 +1,12 @@
 ;;; go-eldoc.el --- eldoc for go-mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016 by Syohei YOSHIDA
+;; Copyright (C) 2017 by Syohei YOSHIDA
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-eldoc
-;; Package-Version: 20161012.616
-;; Version: 0.28
-;; Package-Requires: ((go-mode "1.0.0") (cl-lib "0.5"))
+;; Package-Version: 20170211.721
+;; Version: 0.30
+;; Package-Requires: ((emacs "24.3") (go-mode "1.0.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -420,8 +420,7 @@
 (defun go-eldoc-setup ()
   "Set up eldoc function and enable eldoc-mode."
   (interactive)
-  (set (make-local-variable 'eldoc-documentation-function)
-       'go-eldoc--documentation-function)
+  (setq-local eldoc-documentation-function #'go-eldoc--documentation-function)
   (eldoc-mode +1))
 
 (provide 'go-eldoc)
