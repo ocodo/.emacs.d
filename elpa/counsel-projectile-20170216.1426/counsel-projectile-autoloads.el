@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "counsel-projectile" "counsel-projectile.el"
-;;;;;;  (22653 62796 559722 318000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from counsel-projectile.el
 
 (autoload 'counsel-projectile-find-file "counsel-projectile" "\
@@ -29,6 +29,11 @@ Switch to a project buffer.
 
 (autoload 'counsel-projectile-ag "counsel-projectile" "\
 Ivy version of `projectile-ag'.
+
+\(fn &optional OPTIONS)" t nil)
+
+(autoload 'counsel-projectile-rg "counsel-projectile" "\
+Ivy version of `projectile-rg'.
 
 \(fn &optional OPTIONS)" t nil)
 
@@ -60,6 +65,8 @@ Turn on counsel-projectile key bindings.
 Turn off counsel-projectile key bindings.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel-projectile" '("counsel-projectile-")))
 
 ;;;***
 
