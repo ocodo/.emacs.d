@@ -1,10 +1,9 @@
 ;;; shift-number-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "shift-number" "shift-number.el" (22309 38726
-;;;;;;  879631 648000))
+;;;### (autoloads nil "shift-number" "shift-number.el" (0 0 0 0))
 ;;; Generated autoloads from shift-number.el
 
 (autoload 'shift-number-up "shift-number" "\
@@ -16,6 +15,8 @@ Increase the number at point (or on the current line) by ARG.
 Decrease the number at point (or on the current line) by ARG.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "shift-number" '("shift-number")))
 
 ;;;***
 

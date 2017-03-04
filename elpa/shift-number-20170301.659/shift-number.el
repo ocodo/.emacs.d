@@ -1,11 +1,11 @@
 ;;; shift-number.el --- Increase/decrease the number at point
 
-;; Copyright © 2016 Alex Kost
+;; Copyright © 2016–2017 Alex Kost
 
 ;; Author: Alex Kost <alezost@gmail.com>
 ;; Created: 12 Apr 2016
 ;; Version: 0.1
-;; Package-Version: 20160419.1257
+;; Package-Version: 20170301.659
 ;; URL: https://github.com/alezost/shift-number.el
 ;; Keywords: convenience
 
@@ -13,12 +13,12 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
-
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -83,13 +83,21 @@ the current line and change it."
     (or (shift-number-in-regexp-p shift-number-regexp)
         (re-search-forward shift-number-regexp (line-end-position) t)
         (error "No number on the current line"))
-    (let* ((beg     (match-beginning 1))
-           (end     (match-end       1))
-           (old-num (string-to-number
-                     (buffer-substring-no-properties beg end)))
-           (new-num (+ old-num n)))
+    (let* ((beg         (match-beginning 1))
+           (end         (match-end       1))
+           (old-num-str (buffer-substring-no-properties beg end))
+           (old-num     (string-to-number old-num-str))
+           (new-num     (+ old-num n))
+           (new-num-str (number-to-string new-num)))
       (delete-region beg end)
-      (insert (number-to-string new-num))
+      ;; If there are leading zeros, preserve them keeping the same
+      ;; length of the original number.
+      (when (string-match-p "\\`0" old-num-str)
+        (let ((len-diff (- (length old-num-str)
+                           (length new-num-str))))
+          (when (> len-diff 0)
+            (insert (make-string len-diff ?0)))))
+      (insert new-num-str)
       (goto-char old-pos)
       (when shift-number-display-message
         (message "Number %d has been changed to number %d."
