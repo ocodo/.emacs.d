@@ -1,10 +1,10 @@
 ;;; go-playground.el --- Local Golang playground for short snippets.
 
-;; Copyright (C) 2015-2016  Alexander I.Grafov (axel)
+;; Copyright (C) 2015-2017  Alexander I.Grafov (axel)
 
 ;; Author: Alexander I.Grafov (axel) <grafov@gmail.com>
 ;; URL: https://github.com/grafov/go-playground
-;; Package-Version: 20170126.1240
+;; Package-Version: 20170226.43
 ;; Keywords: tools, golang
 ;; Version: 1.1
 ;; Package-Requires: ((emacs "24") (go-mode "1.4.0") (gotest "0.13.0"))
@@ -65,6 +65,7 @@ By default confirmation required."
 
 (defcustom go-playground-basedir "~/go/src/playground"
   "Base directory for playground snippets.  Better to set it under GOPATH."
+  :type 'file
   :group 'go-playground)
 
 (define-minor-mode go-playground-mode
@@ -80,12 +81,12 @@ By default confirmation required."
                          ("snippet"))))
     (concat (go-playground-snippet-unique-dir file-name) "/" file-name ".go")))
 
-; 
+;
 (defun go-playground-save-and-run ()
   "Obsoleted by go-playground-exec."
-  (interactive)  
+  (interactive)
   (go-playground-exec))
-  
+
 (defun go-playground-exec ()
   "Save the buffer then runs Go compiler for executing the code."
   (interactive)
@@ -105,12 +106,11 @@ By default confirmation required."
 (insert "package main
 
 import (
-    \"fmt\"
+	\"fmt\"
 )
 
 func main() {
-    fmt.Println(\"Results:\")
-
+	fmt.Println(\"Results:\")
 }
 ")
     (backward-char 3)
@@ -128,7 +128,7 @@ func main() {
 
 "))
 
-(defun go-playground-rm ()  
+(defun go-playground-rm ()
   "Remove files of the current snippet together with directory of this snippet."
   (interactive)
   (if (go-playground-inside)
