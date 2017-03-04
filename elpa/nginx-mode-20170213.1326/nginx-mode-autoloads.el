@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nginx-mode" "nginx-mode.el" (22541 57968 0
-;;;;;;  0))
+;;;### (autoloads nil "nginx-mode" "nginx-mode.el" (0 0 0 0))
 ;;; Generated autoloads from nginx-mode.el
 
 (autoload 'nginx-mode "nginx-mode" "\
@@ -18,6 +17,8 @@ The variable nginx-indent-level controls the amount of indentation.
 (add-to-list 'auto-mode-alist '("nginx\\.conf\\'" . nginx-mode))
 
 (add-to-list 'auto-mode-alist '("/nginx/.+\\.conf\\'" . nginx-mode))
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nginx-mode" '("nginx-")))
 
 ;;;***
 
