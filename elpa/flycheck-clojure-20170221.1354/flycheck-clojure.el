@@ -7,8 +7,8 @@
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; Maintainer: Peter Fraenkel <pnf@podsnap.com>
 ;; URL: https://github.com/clojure-emacs/squiggly-clojure
-;; Package-Version: 20161231.836
-;; Version: 1.1.0
+;; Package-Version: 20170221.1354
+;; Version: 1.8.0
 ;; Package-Requires: ((cider "0.8.1") (flycheck "0.22-cvs1") (let-alist "1.0.1") (emacs "24"))
 
 ;; This file is not part of GNU Emacs.
@@ -49,7 +49,7 @@
   :group 'flycheck-clojure
   :type 'boolean)
 
-(defvar flycheck-clojure-dep-version "0.1.7"
+(defvar flycheck-clojure-dep-version "0.1.9-SNAPSHOT"
   "Version of `acyclic/squiggly-clojure' compatible with this version of flycheck-clojure.")
 
 ;;;###autoload
@@ -199,7 +199,8 @@ See URL `https://github.com/clojure-emacs/cider/' and URL
 If injecting the dependencies is not preferred set `flycheck-clojure-inject-dependencies-at-jack-in' to nil."
   (when (and flycheck-clojure-inject-dependencies-at-jack-in
              (boundp 'cider-jack-in-dependencies))
-    (add-to-list 'cider-jack-in-dependencies `("acyclic/squiggly-clojure" ,flycheck-clojure-dep-version))))
+    (cider-add-to-alist 'cider-jack-in-dependencies "acyclic/squiggly-clojure" flycheck-clojure-dep-version)
+    (cider-add-to-alist 'cider-jack-in-dependencies-exclusions "acyclic/squiggly-clojure" '("org.clojure/tools.reader"))))
 
 ;;;###autoload
 (defun flycheck-clojure-setup ()
