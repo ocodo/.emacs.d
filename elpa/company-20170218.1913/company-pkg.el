@@ -1,4 +1,4 @@
-(define-package "company" "20170112.2005" "Modular text completion framework"
+(define-package "company" "20170218.1913" "Modular text completion framework"
   '((emacs "24.3"))
   :url "http://company-mode.github.io/" :keywords
   '("abbrev" "convenience" "matching"))
