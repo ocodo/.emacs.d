@@ -7,12 +7,12 @@
 ;; Copyright (C) 2014-2017, Drew Adams, all rights reserved.
 ;; Created: Sun Mar 22 16:24:39 2015 (-0700)
 ;; Version: 0
-;; Package-Version: 20170101.1132
+;; Package-Version: 20170307.1528
 ;; Package-Requires: ()
-;; Last-Updated: Sun Jan  1 11:34:31 2017 (-0800)
+;; Last-Updated: Tue Mar  7 15:28:38 2017 (-0800)
 ;;           By: dradams
-;;     Update #: 136
-;; URL: http://www.emacswiki.org/showkey.el
+;;     Update #: 138
+;; URL: https://www.emacswiki.org/emacs/download/showkey.el
 ;; Doc URL: http://www.emacswiki.org/ShowKey
 ;; Keywords: help keys mouse
 ;; Compatibility: GNU Emacs: 23.x, 24.x, 25.x
