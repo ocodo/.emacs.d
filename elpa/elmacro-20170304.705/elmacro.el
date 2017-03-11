@@ -2,7 +2,7 @@
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/elmacro
-;; Package-Version: 20161004.5
+;; Package-Version: 20170304.705
 ;; Keywords: macro, elisp, convenience
 ;; Version: 1.0.1
 ;; Package-Requires: ((s "1.11.0") (dash "2.13.0"))
@@ -183,7 +183,7 @@ commands in variable `command-history'."
            (cmd (car sexp)))
       (when record
         (elmacro-debug-message "[%s] recording %s" function cmd)
-        (when (eq cmd 'self-insert-command)
+        (when (or (eq cmd 'self-insert-command) (command-remapping 'self-insert-command))
           (!cons (elmacro-setq-last-command-event) elmacro-command-history))
         (!cons sexp elmacro-command-history)
         (!cdr command-history)
