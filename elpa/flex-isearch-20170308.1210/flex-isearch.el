@@ -6,7 +6,7 @@
 ;; Author: Jonathan Kotta <jpkotta@gmail.com>
 ;; Contributors: Tomohiro Matsuyama, Le Wang
 ;; Keywords: convenience, search
-;; Package-Version: 20160926.1630
+;; Package-Version: 20170308.1210
 ;; Version: 20130508
 ;; URL: https://bitbucket.org/jpkotta/flex-isearch
 
@@ -185,29 +185,35 @@ a non-word character inserts '.*<char>'
   enabled."
   (flex-isearch-deactivate))
 
-(defadvice isearch-message-prefix (after flex-isearch-message-prefix activate)
+(defun flex-isearch--isearch-message-prefix (ret)
+  "Prepend `flex-isearch-message-prefix' to `isearch-message-prefix'."
   (if flex-isearch-activated
-      (setq ad-return-value (concat flex-isearch-message-prefix ad-return-value))
-    ad-return-value))
+      (concat flex-isearch-message-prefix ret)
+    ret))
 
-(defadvice isearch-forward (around flex-isearch activate)
-  (when (and flex-isearch-mode
-           (equal (ad-get-arg 0) '(16)))
-    (flex-isearch-activate)
-    (ad-set-arg 0 nil))
-  ad-do-it)
+(advice-add
+ #'isearch-message-prefix :filter-return
+ #'flex-isearch--isearch-message-prefix)
 
-(defadvice isearch-backward (around flex-isearch activate)
+(defun flex-isearch--isearch-forward-advice (orig &rest args)
+  "Activate flex searching in `isearch-forward'."
   (when (and flex-isearch-mode
-           (equal (ad-get-arg 0) '(16)))
+           (equal (nth 0 args) '(16)))
     (flex-isearch-activate)
-    (ad-set-arg 0 nil))
-  ad-do-it)
+    (setq args (cons nil (cdr args))))
+  (apply orig args))
+
+(advice-add
+ #'isearch-forward :around
+ #'flex-isearch--isearch-forward-advice)
+
+(advice-add
+ #'isearch-backward :around
+ #'flex-isearch--isearch-forward-advice)
 
 ;; this is activated in flex-isearch-mode
-(defadvice isearch-toggle-regexp (around flex-isearch disable compile)
+(defun flex-isearch--isearch-toggle-regexp (orig &rest args)
   "ISearch -> Regexp -> Flex -> Word -> ISearch"
-
   ;; The status stack is left unchanged.
   (cond
    (isearch-regexp
@@ -261,13 +267,13 @@ searching during a normal isearch."
       (progn
         (set (make-local-variable 'isearch-search-fun-function) 'flex-isearch-search-fun)
         (add-hook 'isearch-mode-end-hook 'flex-isearch-end-hook)
-        (ad-enable-advice 'isearch-toggle-regexp 'around 'flex-isearch)
-        (ad-activate 'isearch-toggle-regexp)
+        (advice-add #'isearch-toggle-regexp :around
+                    #'flex-isearch--isearch-toggle-regexp)
         (flex-isearch-deactivate))
     (kill-local-variable 'isearch-search-fun-function)
     (remove-hook 'isearch-mode-end-hook 'flex-isearch-end-hook)
-    (ad-disable-advice 'isearch-toggle-regexp 'around 'flex-isearch)
-    (ad-activate 'isearch-toggle-regexp)
+    (advice-remove #'isearch-toggle-regexp
+                   #'flex-isearch--isearch-toggle-regexp)
     (flex-isearch-deactivate)))
 
 ;;;###autoload
