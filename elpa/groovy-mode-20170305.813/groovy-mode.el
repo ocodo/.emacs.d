@@ -418,7 +418,7 @@ need for `java-font-lock-extra-types'.")
 ;                (cons "Groovy" (c-lang-const c-mode-menu groovy)))
 
 ;;----------------------------------------------------------------------------
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'" . groovy-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'\\|Jenkinsfile\\'" . groovy-mode))
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
 
 ;; Custom variables
