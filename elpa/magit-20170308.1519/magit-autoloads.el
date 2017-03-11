@@ -1459,13 +1459,13 @@ Rebase the current branch onto its upstream branch.
 
 (autoload 'magit-rebase "magit-sequence" "\
 Rebase the current branch onto a branch read in the minibuffer.
-All commits that are reachable from head but not from the
+All commits that are reachable from `HEAD' but not from the
 selected branch TARGET are being rebased.
 
 \(fn TARGET ARGS)" t nil)
 
 (autoload 'magit-rebase-subset "magit-sequence" "\
-Rebase a subset of the current branches history onto a new base.
+Rebase a subset of the current branch's history onto a new base.
 Rebase commits from START to `HEAD' onto NEWBASE.
 START has to be selected from a list of recent commits.
 

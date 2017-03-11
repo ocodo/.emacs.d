@@ -90,9 +90,9 @@ Then show the status buffer for the new repository."
 
 If `ask', then always ask.  If `ask-if-unset', then ask, but only
 if the variable isn't set already.  If nil, then don't ever set.
-If the value is a string, then set without asking, provided the
-name of the name of the added remote is equal to that string and
-the variable isn't already set."
+If the value is a string, then set without asking, provided that
+the name of the added remote is equal to that string and the
+variable isn't already set."
   :package-version '(magit . "2.4.0")
   :group 'magit-commands
   :type '(choice (const  :tag "ask if unset" ask-if-unset)
@@ -121,7 +121,7 @@ the variable isn't already set."
   (interactive (list (magit-read-string-ns "Remote name")
                      (magit-read-url "Remote url")))
   (if (pcase (list magit-remote-add-set-remote.pushDefault
-                   (magit-get "remote.defaultPush"))
+                   (magit-get "remote.pushDefault"))
         (`(,(pred stringp) ,_) t)
         ((or `(ask ,_) `(ask-if-unset nil))
          (y-or-n-p (format "Set `remote.pushDefault' to \"%s\"? " remote))))
