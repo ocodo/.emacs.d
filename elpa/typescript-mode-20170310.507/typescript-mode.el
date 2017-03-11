@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Package-Version: 20161130.1944
+;; Package-Version: 20170310.507
 ;; Version: 0.1
 ;; Keywords: typescript languages
 ;; Package-Requires: ()
@@ -1656,7 +1656,18 @@ See `font-lock-keywords'.")
          (or (not (looking-at ":"))
              (save-excursion
                (and (typescript--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
-                    (looking-at "?")))))))
+                    (looking-at "?"))))
+         (not (and
+               (looking-at "*")
+               ;; Generator method (possibly using computed property).
+               (looking-at (concat "\\* *\\(?:\\[\\|" typescript--name-re
+                                   " *(\\)"))
+               (save-excursion
+                 (typescript--backward-syntactic-ws)
+                 ;; We might misindent some expressions that would
+                 ;; return NaN anyway.  Shouldn't be a problem.
+                 (memq (char-before) '(?, ?} ?{ ?\;)))))))
+)
 
 
 (defun typescript--continued-expression-p ()
