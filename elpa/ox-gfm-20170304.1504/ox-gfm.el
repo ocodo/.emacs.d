@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito
 ;; Keywords: org, wp, markdown, github
-;; Package-Version: 20170104.249
+;; Package-Version: 20170304.1504
 
 ;; This file is not part of GNU Emacs.
 
@@ -237,7 +237,7 @@ plist used as a communication channel."
                  (org-export-get-alt-title headline info) info))
          (level (1- (org-element-property :level headline)))
          (indent (concat (make-string (* level 2) ? )))
-         (anchor (or (org-element-property :custom_id headline)
+         (anchor (or (org-element-property :CUSTOM_ID headline)
                      (org-export-get-reference headline info))))
     (concat indent "- [" title "]" "(#" anchor ")")))
 
