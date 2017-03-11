@@ -53,6 +53,14 @@ The alist is bidirectional, i.e no need to add '((foo . bar) (bar . foo))
 only '((foo . bar)) is needed."
   :type '(alist :key-type symbol :value-type symbol)
   :group 'helm-imenu)
+
+(defcustom helm-imenu-in-all-buffers-separate-sources t
+  "Display imenu index of each buffer in its own sources when non-nil.
+
+When nil all candidates are displayed in a single source."
+  :type 'boolean
+  :group 'helm-imenu)
+
 
 ;;; keymap
 (defvar helm-imenu-map
@@ -61,8 +69,10 @@ only '((foo . bar)) is needed."
     (define-key map (kbd "M-<down>") 'helm-imenu-next-section)
     (define-key map (kbd "M-<up>")   'helm-imenu-previous-section)
     (when helm-imenu-lynx-style-map
-      (define-key map (kbd "<left>")  'helm-maybe-exit-minibuffer)
-      (define-key map (kbd "<right>") 'helm-execute-persistent-action))
+      (define-key map (kbd "<left>")    'helm-maybe-exit-minibuffer)
+      (define-key map (kbd "<right>")   'helm-execute-persistent-action)
+      (define-key map (kbd "M-<left>")  'helm-previous-source)
+      (define-key map (kbd "M-<right>") 'helm-next-source))
     (delq nil map)))
 
 (defun helm-imenu-next-or-previous-section (n)
@@ -100,6 +110,7 @@ only '((foo . bar)) is needed."
 (defvar helm-cached-imenu-tick nil)
 (make-variable-buffer-local 'helm-cached-imenu-tick)
 
+(defvar helm-imenu--in-all-buffers-cache nil)
 
 (defvar helm-source-imenu nil "See (info \"(emacs)Imenu\")")
 (defvar helm-source-imenu-all nil)
@@ -171,23 +182,30 @@ only '((foo . bar)) is needed."
                         (delete (assoc "*Rescan*" index) index))))
           (setq helm-cached-imenu-tick tick))))))
 
-(defun helm-imenu-candidates-in-all-buffers ()
+(defun helm-imenu-candidates-in-all-buffers (&optional build-sources)
   (let* ((lst (buffer-list))
          (progress-reporter (make-progress-reporter
                              "Imenu indexing buffers..." 1 (length lst))))
     (prog1
-        (cl-loop for b in lst
+        (cl-loop with cur-buf = (if build-sources
+                                    (current-buffer) helm-current-buffer)
+                 for b in lst
                  for count from 1
-                 when
-                 (and (with-current-buffer b
-                        (derived-mode-p 'prog-mode))
-                      (with-current-buffer b
-                        (helm-same-major-mode-p helm-current-buffer
-                                                helm-imenu-all-buffer-assoc)))
-                 do (progress-reporter-update progress-reporter count)
-                 and
+                 when (with-current-buffer b
+                        (and (derived-mode-p 'prog-mode)
+                             (helm-same-major-mode-p
+                              cur-buf helm-imenu-all-buffer-assoc)))
+                 if build-sources
+                 collect (helm-make-source
+                             (format "Imenu in %s" (buffer-name b))
+                             'helm-imenu-source
+                           :candidates (with-current-buffer b
+                                         (helm-imenu-candidates b))
+                           :fuzzy-match helm-imenu-fuzzy-match)
+                 else
                  append (with-current-buffer b
-                          (helm-imenu-candidates b)))
+                          (helm-imenu-candidates b))
+                 do (progress-reporter-update progress-reporter count))
       (progress-reporter-done progress-reporter))))
 
 (defun helm-imenu--candidates-1 (alist)
@@ -206,8 +224,15 @@ only '((foo . bar)) is needed."
                   ((listp (cdr elm))
                    (and elm (list elm)))
                   (t
-                   (and (cdr elm) ; bug in imenu, should not be needed.
-                        (setcdr elm (copy-marker (cdr elm))) ; Same as [1].
+                   ;; bug in imenu, should not be needed.
+                   (and (cdr elm)
+                        ;; Semantic uses overlays whereas imenu uses
+                        ;; markers (issue #1706).
+                        (setcdr elm (pcase (cdr elm) ; Same as [1].
+                                      ((and ov (pred overlayp))
+                                       (copy-overlay ov))
+                                      ((and mk (pred markerp))
+                                       (copy-marker mk))))
                         (list elm))))))
 
 (defun helm-imenu--get-prop (item)
@@ -227,15 +252,19 @@ only '((foo . bar)) is needed."
   (cl-loop for (k . v) in candidates
         for types = (or (helm-imenu--get-prop k)
                         (list "Function" k))
-        for bufname = (and (markerp v) (buffer-name (marker-buffer v)))
+        for bufname = (buffer-name
+                       (pcase v
+                         ((pred overlayp) (overlay-buffer v))
+                         ((pred markerp) (marker-buffer v))))
         for disp1 = (mapconcat
                      (lambda (x)
                        (propertize
-                        x 'face (cond ((string= x "Variables")
+                        x 'face (cond ((member x '("Variables" "Classes"))
                                        'font-lock-variable-name-face)
-                                      ((string= x "Function")
+                                      ((member x '("Function" "Functions" "Defuns"))
                                        'font-lock-function-name-face)
-                                      ((string= x "Types")
+                                      ((member x '("Types" "Provides" "Requires"
+                                                   "Includes" "Imports" "Misc" "Code"))
                                        'font-lock-type-face))))
                      types helm-imenu-delimiter)
         for disp = (propertize disp1 'help-echo bufname)
@@ -265,16 +294,29 @@ only '((foo . bar)) is needed."
 A mode is similar as current if it is the same, it is derived i.e `derived-mode-p'
 or it have an association in `helm-imenu-all-buffer-assoc'."
   (interactive)
-  (unless helm-source-imenu-all
-    (setq helm-source-imenu-all
-          (helm-make-source "Imenu in all buffers" 'helm-imenu-source
-            :candidates 'helm-imenu-candidates-in-all-buffers
-            :fuzzy-match helm-imenu-fuzzy-match)))
+  (unless helm-imenu-in-all-buffers-separate-sources
+    (unless helm-source-imenu-all
+      (setq helm-source-imenu-all
+            (helm-make-source "Imenu in all buffers" 'helm-imenu-source
+              :init (lambda ()
+                      ;; Use a cache to avoid repeatedly sending
+                      ;; progress-reporter message when updating
+                      ;; (Issue #1704).
+                      (setq helm-imenu--in-all-buffers-cache
+                            (helm-imenu-candidates-in-all-buffers)))
+              :candidates 'helm-imenu--in-all-buffers-cache
+              :fuzzy-match helm-imenu-fuzzy-match))))
   (let ((imenu-auto-rescan t)
         (str (thing-at-point 'symbol))
         (helm-execute-action-at-once-if-one
-         helm-imenu-execute-action-at-once-if-one))
-    (helm :sources 'helm-source-imenu-all
+         helm-imenu-execute-action-at-once-if-one)
+        (helm--maybe-use-default-as-input
+         (not (null (memq 'helm-source-imenu-all
+                          helm-sources-using-default-as-input))))
+        (sources (if helm-imenu-in-all-buffers-separate-sources
+                     (helm-imenu-candidates-in-all-buffers 'build-sources)
+                     '(helm-source-imenu-all))))
+    (helm :sources sources
           :default (list (concat "\\_<" str "\\_>") str)
           :preselect (unless (memq 'helm-source-imenu-all
                                    helm-sources-using-default-as-input)
