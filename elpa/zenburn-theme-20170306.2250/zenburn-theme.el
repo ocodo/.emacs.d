@@ -1,11 +1,11 @@
 ;;; zenburn-theme.el --- A low contrast color theme for Emacs.
 
-;; Copyright (C) 2011-2016 Bozhidar Batsov
+;; Copyright (C) 2011-2017 Bozhidar Batsov
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/bbatsov/zenburn-emacs
-;; Package-Version: 20170219.1611
-;; Version: 2.4
+;; Package-Version: 20170306.2250
+;; Version: 2.5
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; A port of the popular Vim theme Zenburn for Emacs 24, built on top
+;; A port of the popular Vim theme Zenburn for Emacs 24+, built on top
 ;; of the new built-in theme support in Emacs 24.
 
 ;;; Credits:
@@ -679,6 +679,22 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(hydra-face-blue ((t (:foreground ,zenburn-blue :background ,zenburn-bg))))
    `(hydra-face-pink ((t (:foreground ,zenburn-magenta :background ,zenburn-bg))))
    `(hydra-face-teal ((t (:foreground ,zenburn-cyan :background ,zenburn-bg))))
+;;;;; info+
+   `(info-command-ref-item ((t (:background ,zenburn-bg-1 :foreground ,zenburn-orange))))
+   `(info-constant-ref-item ((t (:background ,zenburn-bg-1 :foreground ,zenburn-magenta))))
+   `(info-double-quoted-name ((t (:inherit font-lock-comment-face))))
+   `(info-file ((t (:background ,zenburn-bg-1 :foreground ,zenburn-yellow))))
+   `(info-function-ref-item ((t (:background ,zenburn-bg-1 :inherit font-lock-function-name-face))))
+   `(info-macro-ref-item ((t (:background ,zenburn-bg-1 :foreground ,zenburn-yellow))))
+   `(info-menu ((t (:foreground ,zenburn-yellow))))
+   `(info-quoted-name ((t (:inherit font-lock-constant-face))))
+   `(info-reference-item ((t (:background ,zenburn-bg-1))))
+   `(info-single-quote ((t (:inherit font-lock-keyword-face))))
+   `(info-special-form-ref-item ((t (:background ,zenburn-bg-1 :foreground ,zenburn-yellow))))
+   `(info-string ((t (:inherit font-lock-string-face))))
+   `(info-syntax-class-item ((t (:background ,zenburn-bg-1 :foreground ,zenburn-blue+1))))
+   `(info-user-option-ref-item ((t (:background ,zenburn-bg-1 :foreground ,zenburn-red))))
+   `(info-variable-ref-item ((t (:background ,zenburn-bg-1 :foreground ,zenburn-orange))))
 ;;;;; irfc
    `(irfc-head-name-face ((t (:foreground ,zenburn-red :weight bold))))
    `(irfc-head-number-face ((t (:foreground ,zenburn-red :weight bold))))
