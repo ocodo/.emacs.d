@@ -5,7 +5,7 @@
 ;; Author: rubikitch <rubikitch@ruby-lang.org>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 1.25.1
-;; Package-Version: 20170114.2257
+;; Package-Version: 20170305.2325
 ;; Keywords: lisp, testing, unittest
 ;; URL: http://github.com/rejeep/el-mock.el
 
@@ -95,7 +95,7 @@
        (put funcsym 'mock-call-count 0)
        (fset funcsym
                      `(lambda (&rest actual-args)
-                        (incf (get ',funcsym 'mock-call-count))
+                        (cl-incf (get ',funcsym 'mock-call-count))
                         (add-to-list 'mock-verify-list
                                      (list ',funcsym ',(cdr func-spec) actual-args ,times))
                         ,value))))))

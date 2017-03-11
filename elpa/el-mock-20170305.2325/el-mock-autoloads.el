@@ -3,7 +3,10 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("el-mock.el") (22653 62776 959295 507000))
+;;;### (autoloads nil "el-mock" "el-mock.el" (0 0 0 0))
+;;; Generated autoloads from el-mock.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "el-mock" '("stub" "mock" "not-called" "with-" "in-mocking" "-stubbed-functions" "-mocked-functions")))
 
 ;;;***
 
