@@ -4,7 +4,7 @@
 
 ;; Author: Junpeng Qiu <qjpchmail@gmail.com>
 ;; URL: https://github.com/cute-jumper/ace-flyspell
-;; Package-Version: 20170124.1245
+;; Package-Version: 20170308.2109
 ;; Version: 0.1.2
 ;; Package-Requires: ((avy "0.4.0"))
 ;; Keywords: extensions
@@ -164,6 +164,9 @@
   "face for ace-flyspell"
   :group 'ace-flyspell)
 
+(defvar ace-flyspell-new-word-no-query nil
+  "If t, don't ask for confirmation when adding new words.")
+
 (defvar ace-flyspell-handler nil)
 (defvar ace-flyspell--current-word nil)
 
@@ -217,7 +220,7 @@
     (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
     (when (fboundp 'flyspell-unhighlight-at)
       (flyspell-unhighlight-at start))
-    (ispell-pdict-save)
+    (ispell-pdict-save ace-flyspell-new-word-no-query)
     (ace-flyspell--reset)
     (goto-char (mark))))
 
