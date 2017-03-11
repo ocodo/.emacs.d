@@ -1,5 +1,5 @@
 ;;; textile-mode.el --- Textile markup editing major mode
-;; Package-Version: 20151203.53
+;; Package-Version: 20170304.916
 
 ;; Copyright (C) 2006 Free Software Foundation, Inc.
 
@@ -233,9 +233,9 @@ non-matching parentheses"
        `(,textile-url-regexp 0 'textile-link-face)
 
         ;; <pre> blocks
-       '("<pre>\\(.\\|\n\\)*?</pre>\n?" 0 'textile-pre-face t t)
+       '("<pre>\\(.\\|\n\\)*?</pre>\n?" 0 'textile-pre-face t)
        ;; <code> blocks
-       '("<code>\\(.\\|\n\\)*?</code>" 0 'textile-code-face t t))
+       '("<code>\\(.\\|\n\\)*?</code>\n?" 0 'textile-code-face t))
       "Keywords/Regexp for fontlocking of textile-mode")
 
 

@@ -1,16 +1,17 @@
 ;;; textile-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "textile-mode" "textile-mode.el" (22120 11614
-;;;;;;  927988 962000))
+;;;### (autoloads nil "textile-mode" "textile-mode.el" (0 0 0 0))
 ;;; Generated autoloads from textile-mode.el
 
 (autoload 'textile-mode "textile-mode" "\
 A major mode for editing textile files.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "textile-mode" '("textile-")))
 
 ;;;***
 
