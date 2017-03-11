@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-go-eldoc
-;; Package-Version: 20170211.721
+;; Package-Version: 20170305.627
 ;; Version: 0.30
 ;; Package-Requires: ((emacs "24.3") (go-mode "1.0.0"))
 
@@ -153,22 +153,24 @@
            finally return retval))
 
 (defun go-eldoc--invoke-autocomplete ()
-  (let ((temp-buffer (generate-new-buffer "*go-eldoc*"))
+  (let ((temp-buffer (get-buffer-create "*go-eldoc*"))
         (gocode-args (append go-eldoc-gocode-args
                              (list "-f=emacs"
                                    "autocomplete"
                                    (or (buffer-file-name) "")
                                    (concat "c" (int-to-string (- (point) 1)))))))
-    (prog2
-        (apply #'call-process-region
-               (point-min)
-               (point-max)
-               go-eldoc-gocode
-               nil
-               temp-buffer
-               nil
-               gocode-args)
-        (with-current-buffer temp-buffer (buffer-string))
+    (unwind-protect
+        (progn
+          (apply #'call-process-region
+                 (point-min)
+                 (point-max)
+                 go-eldoc-gocode
+                 nil
+                 temp-buffer
+                 nil
+                 gocode-args)
+          (with-current-buffer temp-buffer
+            (buffer-string)))
       (kill-buffer temp-buffer))))
 
 (defsubst go-eldoc--assignment-index (lhs)
