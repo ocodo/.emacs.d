@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20170303.753
+;; Package-Version: 20170310.349
 ;; Version: 1.1.7
 
 ;; This file is NOT part of GNU Emacs.
@@ -271,7 +271,7 @@ depending on DISPLAY for keys which are either :foreground or
    (gnus-header-subject :foreground base5)
    (gnus-x-face :foreground base0 :background base6)
    (gnus-signature :inherit italic :foreground blue)
-   (mm-uu-extract :foreground base6 :background red)
+   (mm-uu-extract :foreground green :background base1)
    (gnus-cite-1 :foreground base4)
    (gnus-cite-2 :foreground base5)
    (gnus-cite-3 :foreground base6)
@@ -543,6 +543,35 @@ depending on DISPLAY for keys which are either :foreground or
    (dired-async-message :inherit warning)
    (dired-async-mode-message :inherit success)
 
+   ;; dired plus
+   (diredp-autofile-name :background base3)
+   (diredp-compressed-file-name :foreground blue)
+   (diredp-compressed-file-suffix :foreground blue)
+   (diredp-date-time :foreground blue)
+   (diredp-deletion :foreground yellow :background red)
+   (diredp-deletion-file-name :background base3)
+   (diredp-dir-heading :foreground orange)
+   (diredp-dir-name :foreground cyan)
+   (diredp-executable-tag :foreground yellow)
+   (diredp-file-name :foreground base6)
+   (diredp-file-suffix :foreground green)
+   (diredp-flag-mark :foreground yellow :background blue)
+   (diredp-flag-mark-line :background base3)
+   (diredp-ignored-file-name :foreground base6)
+   (diredp-mode-line-flagged :foreground red)
+   (diredp-mode-line-marked :foreground red)
+   (diredp-number :foreground violet)
+   (diredp-symlink :foreground base6)
+   (diredp-tagged-autofile-name :foreground base6)
+   (diredp-no-priv :background base0)
+   (diredp-dir-priv :foreground cyan)
+   (diredp-read-priv :foreground magenta)
+   (diredp-write-priv :foreground green)
+   (diredp-exec-priv :foreground blue)
+   (diredp-link-priv :foreground yellow)
+   (diredp-rare-priv :foreground base6)
+   (diredp-other-priv :foreground base6)
+
    ;; ecb
    (ecb-default-highlight-face :background violet)
    (ecb-method-non-semantic-face :foreground orange)
@@ -600,7 +629,7 @@ depending on DISPLAY for keys which are either :foreground or
    (helm-buffer-size :foreground magenta)
    (helm-candidate-number :background base3)
    (helm-ff-directory :weight bold)
-   (helm-ff-executable :forground green)
+   (helm-ff-executable :foreground green)
    (helm-ff-invalid-symlink :foreground base2 :background red)
    (helm-ff-prefix :foreground base2 :background yellow)
    (helm-ff-symlink :foreground orange)
@@ -843,7 +872,7 @@ depending on DISPLAY for keys which are either :foreground or
    (org-habit-ready-face :background green)
    (org-habit-ready-future-face :background green)
    (org-headline-done :foreground yellow)
-   (org-hide :background base0)
+   (org-hide :foreground base0)
    (org-latex-and-related :foreground orange)
    (org-scheduled :foreground green)
    (org-scheduled-previously :foreground orange)
@@ -900,7 +929,7 @@ depending on DISPLAY for keys which are either :foreground or
 
    ;; smartparens
    (sp-show-pair-match-face :foreground base2 :background orange)
-   (sp-show-pair-mismatch-face :foreground base2 background red)
+   (sp-show-pair-mismatch-face :foreground base2 :background red)
 
    ;; smart-mode-line
    (sml/charging :foreground green)
