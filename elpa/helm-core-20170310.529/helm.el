@@ -188,6 +188,7 @@ NOTE: SUBKEY and OTHER-SUBKEYS bindings support char syntax only
     (define-key map (kbd "C-z")        'helm-execute-persistent-action)
     (define-key map (kbd "C-j")        'helm-execute-persistent-action)
     (define-key map (kbd "C-o")        'helm-next-source)
+    (define-key map (kbd "M-o")        'helm-previous-source)
     (define-key map (kbd "C-l")        'helm-recenter-top-bottom-other-window)
     (define-key map (kbd "M-C-l")      'helm-reposition-window-other-window)
     (define-key map (kbd "C-M-v")      'helm-scroll-other-window)
@@ -1849,7 +1850,7 @@ Buffer name for this Helm session. `helm-buffer' will take this value.
 
 *** :keymap
 
-[Obsolete]
+\[Obsolete]
 
 Keymap used at the start of this Helm session.
 
@@ -1866,11 +1867,8 @@ This keymap is not restored by `helm-resume'.
 Default value inserted into the minibuffer \ with
 \\<minibuffer-local-map>\\[next-history-element].
 
-One of the following:
-
-- String
-- List
-  - \\<minibuffer-local-map>\\[next-history-element] cycles through
+It can be a string or a list of strings, in this case
+\\<minibuffer-local-map>\\[next-history-element] cycles through
 the list items, starting with the first.
 
 If nil, `thing-at-point' is used.
