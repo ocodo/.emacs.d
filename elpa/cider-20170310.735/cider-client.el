@@ -207,7 +207,7 @@ such a link cannot be established automatically."
       (setq-local cider-connections (list conn)))))
 
 (defun cider-toggle-buffer-connection ()
-  "Toggles the current buffer's connection between Clojure and ClojureScript."
+  "Toggle the current buffer's connection between Clojure and ClojureScript."
   (interactive)
   (cider-ensure-connected)
   (let ((other-conn (cider-other-connection)))
@@ -230,7 +230,7 @@ such a link cannot be established automatically."
    (t "clj")))
 
 (defun cider-toggle-request-dispatch ()
-  "Toggles the value of `cider-request-dispatch' between static and dynamic.
+  "Toggle the value of `cider-request-dispatch' between static and dynamic.
 
 Handy when you're using dynamic dispatch, but you want to quickly force all
 evaluation commands to use a particular connection."
@@ -766,6 +766,7 @@ Return the REPL buffer given by `cider-current-connection'.")
   (cider-session-for-connection (cider-current-connection)))
 
 (defun cider-session-for-connection (connection)
+  "Create a CIDER session for CONNECTION."
   (with-current-buffer connection
     nrepl-session))
 
@@ -910,6 +911,12 @@ CONTEXT represents a completion context for compliment."
                                    "context" ,context)
                      (cider-nrepl-send-sync-request nil 'abort-on-input))))
     (nrepl-dict-get dict "completions")))
+
+(defun cider-sync-request:complete-flush-caches ()
+  "Send \"complete-flush-caches\" op to flush Compliment's caches."
+  (cider-nrepl-send-sync-request (list "op" "complete-flush-caches"
+                                       "session" (cider-current-session))
+                                 'abort-on-input))
 
 (defun cider-sync-request:info (symbol &optional class member)
   "Send \"info\" op with parameters SYMBOL or CLASS and MEMBER."

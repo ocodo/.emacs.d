@@ -249,7 +249,7 @@ If invoked with a PREFIX argument, use \\=`macroexpand\\=` instead of
 \(fn &optional PREFIX)" t nil)
 
 (autoload 'cider-macroexpand-all "cider-macroexpansion" "\
-Invoke \\=`clojure.walk/macroexpand-all\\=` on the expression preceding point.
+Invoke \\=`macroexpand-all\\=` on the expression preceding point.
 
 \(fn)" t nil)
 

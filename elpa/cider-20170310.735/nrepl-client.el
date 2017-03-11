@@ -529,30 +529,40 @@ key-values depending on the connection type."
         (nrepl--direct-connect (or host "localhost") port)
       ;; we're dealing with a remote host
       (if (and host (not nrepl-force-ssh-for-remote-hosts))
-          (nrepl--direct-connect host port 'no-error)
-        ;; direct connection failed or `nrepl-force-ssh-for-remote-hosts' is non-nil
-        (when (or nrepl-use-ssh-fallback-for-remote-hosts
-                  nrepl-force-ssh-for-remote-hosts)
-          (nrepl--ssh-tunnel-connect host port))))))
+          (or (nrepl--direct-connect host port 'no-error)
+              ;; direct connection failed
+              ;; fallback to ssh tunneling if enabled
+              (and nrepl-use-ssh-fallback-for-remote-hosts
+                   (message "[nREPL] Falling back to SSH tunneled connection ...")
+                   (nrepl--ssh-tunnel-connect host port))
+              ;; fallback is either not enabled or it failed as well
+              (error "[nREPL] Cannot connect to %s:%s" host port))
+        ;; `nrepl-force-ssh-for-remote-hosts' is non-nil
+        (nrepl--ssh-tunnel-connect host port)))))
 
 (defun nrepl--direct-connect (host port &optional no-error)
   "If HOST and PORT are given, try to `open-network-stream'.
 If NO-ERROR is non-nil, show messages instead of throwing an error."
   (if (not (and host port))
       (unless no-error
-        (error "Host (%s) and port (%s) must be provided" host port))
+        (when (not host)
+          (error "[nREPL] Host not provided"))
+        (when (not port)
+          (error "[nREPL] Port not provided")))
     (message "[nREPL] Establishing direct connection to %s:%s ..." host port)
     (condition-case nil
         (prog1 (list :proc (open-network-stream "nrepl-connection" nil host port)
                      :host host :port port)
-          (message "[nREPL] Direct connection established"))
-      (error (let ((mes "[nREPL] Direct connection failed"))
-               (if no-error (message mes) (error mes))
+          (message "[nREPL] Direct connection to %s:%s established" host port))
+      (error (let ((msg (format "[nREPL] Direct connection to %s:%s failed" host port)))
+               (if no-error
+                   (message msg)
+                 (error msg))
                nil)))))
 
 (defun nrepl--ssh-tunnel-connect (host port)
   "Connect to a remote machine identified by HOST and PORT through SSH tunnel."
-  (message "[nREPL] Establishing SSH tunneled connection ...")
+  (message "[nREPL] Establishing SSH tunneled connection to %s:%s ..." host port)
   (let* ((remote-dir (if host (format "/ssh:%s:" host) default-directory))
          (ssh (or (executable-find "ssh")
                   (error "[nREPL] Cannot locate 'ssh' executable")))
@@ -1105,6 +1115,11 @@ operations.")
 TYPE is either request or response.  The message is logged to a buffer
 described by `nrepl-message-buffer-name-template'."
   (when nrepl-log-messages
+    ;; append a time-stamp to the message before logging it
+    ;; the time-stamps are quite useful for debugging
+    (setq msg (cons (car msg)
+                    (lax-plist-put (cdr msg) "time-stamp"
+                                   (format-time-string "%Y-%m-%0d %H:%M:%S.%N"))))
     (with-current-buffer (nrepl-messages-buffer (current-buffer))
       (setq buffer-read-only nil)
       (when (> (buffer-size) nrepl-message-buffer-max-size)
@@ -1203,18 +1218,29 @@ FOREGROUND and BUTTON are as in `nrepl-log-pp-object'."
                                        (when foreground `(:foreground ,foreground))))))
     (let ((head (format "(%s" (car object))))
       (insert (color head))
-      (let ((indent (+ 2 (- (current-column) (length head))))
-            (l (point)))
-        (if (null (cdr object))
-            (insert ")\n")
-          (insert " \n")
-          (cl-loop for l on (cdr object) by #'cddr
-                   do (let ((str (format "%s%s  " (make-string indent ?\s)
-                                         (propertize (car l) 'face
-                                                     ;; Only highlight top-level keys.
-                                                     (unless (eq (car object) 'dict)
-                                                       'font-lock-keyword-face)))))
-                        (insert str)
+      (if (null (cdr object))
+          (insert ")\n")
+        (let* ((indent (+ 2 (- (current-column) (length head))))
+               (sorted-pairs (sort (seq-partition (cl-copy-list (cdr object)) 2)
+                                   (lambda (a b)
+                                     (string< (car a) (car b)))))
+               (name-lengths (seq-map (lambda (pair) (length (car pair))) sorted-pairs))
+               (longest-name (seq-max name-lengths))
+               ;; Special entries are displayed first
+               (specialq (lambda (pair) (seq-contains '("id" "op" "session" "time-stamp") (car pair))))
+               (special-pairs (seq-filter specialq sorted-pairs))
+               (not-special-pairs (seq-remove specialq sorted-pairs))
+               (all-pairs (seq-concatenate 'list special-pairs not-special-pairs))
+               (sorted-object (apply 'seq-concatenate 'list all-pairs)))
+          (insert "\n")
+          (cl-loop for l on sorted-object by #'cddr
+                   do (let ((indent-str (make-string indent ?\s))
+                            (name-str (propertize (car l) 'face
+                                                  ;; Only highlight top-level keys.
+                                                  (unless (eq (car object) 'dict)
+                                                    'font-lock-keyword-face)))
+                            (spaces-str (make-string (- longest-name (length (car l))) ?\s)))
+                        (insert (format "%s%s%s " indent-str name-str spaces-str))
                         (nrepl-log-pp-object (cadr l) nil button)))
           (when (eq (car object) 'dict)
             (delete-char -1))

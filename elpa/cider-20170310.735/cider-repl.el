@@ -805,7 +805,7 @@ text property `cider-old-input'."
            (if cider-repl-use-pretty-printing "enabled" "disabled")))
 
 (defun cider--pretty-print-width ()
-  "Returns the width to use for pretty-printing."
+  "Return the width to use for pretty-printing."
   (or cider-repl-pretty-print-width
       fill-column
       80))
@@ -1370,8 +1370,6 @@ constructs."
 
 \\{cider-repl-mode-map}"
   (clojure-mode-variables)
-  (setq-local lisp-indent-function #'clojure-indent-function)
-  (setq-local indent-line-function #'lisp-indent-line)
   (clojure-font-lock-setup)
   (font-lock-add-keywords nil cider--static-font-lock-keywords)
   (setq-local font-lock-fontify-region-function
