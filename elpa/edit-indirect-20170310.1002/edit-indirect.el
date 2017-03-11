@@ -2,7 +2,7 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/edit-indirect
-;; Package-Version: 20160528.651
+;; Package-Version: 20170310.1002
 ;; Version: 0.1.4
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -61,6 +61,16 @@ The functions are called with the edit-indirect buffer as the
 current buffer.
 
 Note that the buffer-local value from the parent buffer is used."
+  :type 'hook
+  :group 'edit-indirect)
+
+(defcustom edit-indirect-before-commit-hook nil
+  "Functions called before the edit-indirect buffer is committed.
+The functions are called with the edit-indirect buffer as the
+current buffer.
+
+Note that the buffer-local value from the edit-indirect buffer is
+used."
   :type 'hook
   :group 'edit-indirect)
 
@@ -297,6 +307,7 @@ No error is signaled if `inhibit-read-only' or
 
 (defun edit-indirect--commit ()
   "Commit the modifications done in an edit-indirect buffer."
+  (run-hooks 'edit-indirect-before-commit-hook)
   (let ((beg (overlay-start edit-indirect--overlay))
         (end (overlay-end edit-indirect--overlay))
         (buffer (current-buffer))

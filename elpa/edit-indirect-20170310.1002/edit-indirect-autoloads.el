@@ -1,10 +1,9 @@
 ;;; edit-indirect-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "edit-indirect" "edit-indirect.el" (22347 49617
-;;;;;;  585230 943000))
+;;;### (autoloads nil "edit-indirect" "edit-indirect.el" (0 0 0 0))
 ;;; Generated autoloads from edit-indirect.el
 
 (autoload 'edit-indirect-region "edit-indirect" "\
@@ -37,6 +36,8 @@ display the edit-indirect buffer in some window and select it.
 In any case, return the edit-indirect buffer.
 
 \(fn BEG END &optional DISPLAY-BUFFER)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "edit-indirect" '("edit-indirect-")))
 
 ;;;***
 
