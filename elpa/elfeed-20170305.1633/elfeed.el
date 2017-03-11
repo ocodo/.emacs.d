@@ -10,6 +10,13 @@
 ;; Elfeed is a web feed client for Emacs, inspired by notmuch. See
 ;; the README for full documentation.
 
+;; Notice: Before stamping a new release the following places need to
+;; be updated:
+;; * elfeed.el (`elfeed-version')
+;; * elfeed-pkg.el
+;; * web/elfeed-web-pkg.el
+;; * Makefile (VERSION)
+
 ;;; History:
 
 ;; Version 2.1.0: features and new database format
@@ -111,8 +118,15 @@
 (require 'xml-query)
 (require 'url-parse)
 (require 'url-queue)
+
+(require 'elfeed-db)
+(require 'elfeed-lib)
 (require 'elfeed-log)
 (require 'elfeed-curl)
+
+;; Interface to elfeed-search (lazy required)
+(declare-function elfeed-search-buffer 'elfeed-search ())
+(declare-function elfeed-search-mode   'elfeed-search ())
 
 (defgroup elfeed ()
   "An Emacs web feed reader."
@@ -162,13 +176,6 @@ Each function should accept no arguments, and return a string or nil."
   :group 'elfeed
   :type 'string)
 
-(provide 'elfeed)
-
-(require 'elfeed-search)
-(require 'elfeed-lib)
-(require 'elfeed-db)
-(require 'elfeed-csv)
-
 (defcustom elfeed-initial-tags '(unread)
   "Initial tags for new entries."
   :group 'elfeed
@@ -191,6 +198,14 @@ the failing feed. The second argument is the error message .")
 It is called with 1 argument: the URL of the feed that was just
 updated. The hook is called even when no new entries were
 found.")
+
+(defvar elfeed-update-init-hooks ()
+  "Hooks called when one or more feed updates have begun.
+Receivers may want to, say, update a display to indicate that
+updates are pending.")
+
+(defvar elfeed--inhibit-update-init-hooks nil
+  "When non-nil, don't run `elfeed-update-init-hooks'.")
 
 (defun elfeed-queue-count-active ()
   "Return the number of items in process."
@@ -260,7 +275,7 @@ This is a workaround for issues in `url-queue-retrieve'."
         (elfeed-log 'warn "Elfeed aborted feeds: %s"
                     (mapconcat #'identity fails " ")))
       (setf url-queue nil)))
-  (elfeed-search-update :force))
+  (run-hooks 'elfeed-update-init-hooks))
 
 ;; Parsing:
 
@@ -492,6 +507,8 @@ Only a list of strings will be returned."
 (defun elfeed-update-feed (url)
   "Update a specific feed."
   (interactive (list (completing-read "Feed: " (elfeed-feed-list))))
+  (unless elfeed--inhibit-update-init-hooks
+    (run-hooks 'elfeed-update-init-hooks))
   (elfeed-with-fetch url
     (if (or (and use-curl (null status)) ; nil = error
             (and (not use-curl) (eq (car status) :error)))
@@ -554,8 +571,7 @@ Only a list of strings will be returned."
   (cl-pushnew url elfeed-feeds)
   (when (called-interactively-p 'any)
     (customize-save-variable 'elfeed-feeds elfeed-feeds))
-  (elfeed-update-feed url)
-  (elfeed-search-update :force))
+  (elfeed-update-feed url))
 
 ;;;###autoload
 (defun elfeed-update ()
@@ -563,8 +579,9 @@ Only a list of strings will be returned."
   (interactive)
   (elfeed-log 'info "Elfeed update: %s"
               (format-time-string "%B %e %Y %H:%M:%S %Z"))
-  (mapc #'elfeed-update-feed (elfeed--shuffle (elfeed-feed-list)))
-  (elfeed-search-update :force)
+  (let ((elfeed--inhibit-update-init-hooks t))
+    (mapc #'elfeed-update-feed (elfeed--shuffle (elfeed-feed-list))))
+  (run-hooks 'elfeed-update-init-hooks)
   (elfeed-db-save))
 
 ;;;###autoload
@@ -573,8 +590,7 @@ Only a list of strings will be returned."
   (interactive)
   (switch-to-buffer (elfeed-search-buffer))
   (unless (eq major-mode 'elfeed-search-mode)
-    (elfeed-search-mode))
-  (elfeed-search-update))
+    (elfeed-search-mode)))
 
 ;; New entry filtering
 
@@ -670,5 +686,12 @@ saved to your customization file."
                                 for title = (or (elfeed-feed-title feed) "")
                                 collect `(outline ((xmlUrl . ,url)
                                                    (title . ,title)))))))))))
+
+(provide 'elfeed)
+
+(cl-eval-when (load eval)
+  (require 'elfeed-csv)
+  (require 'elfeed-show)
+  (require 'elfeed-search))
 
 ;;; elfeed.el ends here

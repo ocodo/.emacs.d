@@ -9,12 +9,12 @@
 (require 'wid-edit) ; widget-inactive face
 (require 'bookmark)
 
-(provide 'elfeed-search)
-
 (require 'elfeed)
 (require 'elfeed-db)
 (require 'elfeed-lib)
-(require 'elfeed-show)
+
+;; Interface to elfeed-show (lazy required)
+(declare-function elfeed-show-entry 'elfeed-show (entry))
 
 (defvar elfeed-search-entries ()
   "List of the entries currently on display.")
@@ -189,6 +189,7 @@ When live editing the filter, it is bound to :live.")
   (make-local-variable 'elfeed-search-entries)
   (make-local-variable 'elfeed-search-filter)
   (add-hook 'elfeed-update-hooks #'elfeed-search-update)
+  (add-hook 'elfeed-update-init-hooks #'elfeed-search-update--force)
   (add-hook 'kill-buffer-hook #'elfeed-db-save t t)
   (elfeed-search-update :force)
   (run-hooks 'elfeed-search-mode-hook))
@@ -599,9 +600,11 @@ Given a prefix, this function becomes `elfeed-search-fetch-visible'."
   (let ((n (cl-position entry elfeed-search-entries)))
     (when n (elfeed-search-update-line (+ elfeed-search--offset n)))))
 
-(defun elfeed-search-selected (&optional ignore-region)
-  "Return a list of the currently selected feeds."
-  (let ((use-region (and (not ignore-region) (use-region-p))))
+(defun elfeed-search-selected (&optional ignore-region-p)
+  "Return a list of the currently selected feeds.
+
+If IGNORE-REGION-P is non-nil, only return the entry under point."
+  (let ((use-region (and (not ignore-region-p) (use-region-p))))
     (let ((start (if use-region (region-beginning) (point)))
           (end   (if use-region (region-end)       (point))))
       (cl-loop for line from (line-number-at-pos start)
@@ -609,7 +612,9 @@ Given a prefix, this function becomes `elfeed-search-fetch-visible'."
                for offset = (- line elfeed-search--offset)
                when (and (>= offset 0) (nth offset elfeed-search-entries))
                collect it into selected
-               finally (return (if ignore-region (car selected) selected))))))
+               finally (return (if ignore-region-p
+                                   (car selected)
+                                 selected))))))
 
 (defun elfeed-search-browse-url (&optional use-generic-p)
   "Visit the current entry in your browser using `browse-url'.
@@ -673,6 +678,7 @@ browser defined by `browse-url-generic-program'."
 (defun elfeed-search-show-entry (entry)
   "Display the currently selected item in a buffer."
   (interactive (list (elfeed-search-selected :ignore-region)))
+  (require 'elfeed-show)
   (when (elfeed-entry-p entry)
     (elfeed-untag entry 'unread)
     (elfeed-search-update-entry entry)
@@ -782,5 +788,7 @@ Sets the :title key of the feed's metadata. See `elfeed-meta'."
 ;;;###autoload
 (add-to-list 'desktop-buffer-mode-handlers
              '(elfeed-search-mode . elfeed-search-desktop-restore))
+
+(provide 'elfeed-search)
 
 ;;; elfeed-search.el ends here
