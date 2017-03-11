@@ -5,7 +5,7 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20160918.740
+;; Package-Version: 20170309.329
 ;; Created: 14th February 2014
 ;; Package-requires: ((dash "2.7.0") (dired-hacks-utils "0.0.1"))
 ;; Keywords: files
@@ -38,10 +38,11 @@
 ;; available.  You can customize the binding by changing
 ;; `dired-narrow-map'.
 
-;; * `dired-narrow-next-file' (<down>) - move the point to the next file
-;; * `dired-narrow-previous-file' (<up>) - move the point to the
+;; * `dired-narrow-next-file' (<down> or C-n) - move the point to the
+;;   next file
+;; * `dired-narrow-previous-file' (<up> or C-p) - move the point to the
 ;;   previous file
-;; * `dired-narrow-enter-directory' (<right>) - descend into the
+;; * `dired-narrow-enter-directory' (<right> or C-j) - descend into the
 ;;   directory under point and immediately go back to narrowing mode
 
 ;; You can customize what happens after exiting the live filtering
@@ -81,6 +82,9 @@
     (define-key map (kbd "<up>") 'dired-narrow-previous-file)
     (define-key map (kbd "<down>") 'dired-narrow-next-file)
     (define-key map (kbd "<right>") 'dired-narrow-enter-directory)
+    (define-key map (kbd "C-p") 'dired-narrow-previous-file)
+    (define-key map (kbd "C-n") 'dired-narrow-next-file)
+    (define-key map (kbd "C-j") 'dired-narrow-enter-directory)
     (define-key map (kbd "C-g") 'minibuffer-keyboard-quit)
     (define-key map (kbd "RET") 'exit-minibuffer)
     (define-key map (kbd "<return>") 'exit-minibuffer)
@@ -117,7 +121,7 @@ Units are seconds."
 (defface dired-narrow-blink
   '((t :background "#eadc62"
        :foreground "black"))
-  "The face used to highlight a chosen file 
+  "The face used to highlight a chosen file
 when `dired-narrow-exit-when-one-left' and `dired-narrow-enable-blinking' are true."
   :group 'dired-narrow)
 

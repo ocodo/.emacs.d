@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired-narrow" "dired-narrow.el" (22507 31580
-;;;;;;  169229 118000))
+;;;### (autoloads nil "dired-narrow" "dired-narrow.el" (0 0 0 0))
 ;;; Generated autoloads from dired-narrow.el
 
 (autoload 'dired-narrow-regexp "dired-narrow" "\
@@ -31,6 +30,8 @@ A fuzzy string is constructed from the filter string by inserting
 expression against the file name.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-narrow" '("dired-narrow-")))
 
 ;;;***
 
