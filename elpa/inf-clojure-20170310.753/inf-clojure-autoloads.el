@@ -20,13 +20,11 @@ Run an inferior Clojure process, input and output via buffer `*inf-clojure*'.
 If there is a process already running in `*inf-clojure*', just switch
 to that buffer.
 With argument, allows you to edit the command line (default is value
-of `inf-clojure-program').  Runs the hooks from
+of `inf-clojure-*-cmd').  Runs the hooks from
 `inf-clojure-mode-hook' (after the `comint-mode-hook' is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)
 
 \(fn CMD)" t nil)
-
-(defalias 'run-clojure 'inf-clojure)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inf-clojure" '("inf-clojure-")))
 
