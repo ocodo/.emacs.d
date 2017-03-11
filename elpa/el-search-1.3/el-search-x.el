@@ -1,6 +1,6 @@
 ;;; el-search-x.el --- Additional pattern definitions for el-search    -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016 Free Software Foundation, Inc
+;; Copyright (C) 2016, 2017 Free Software Foundation, Inc
 
 ;; Author: Michael Heerdegen <michael_heerdegen@web.de>
 ;; Maintainer: Michael Heerdegen <michael_heerdegen@web.de>
@@ -29,6 +29,13 @@
 ;; This file contains additional definitions of el-search patterns.
 ;; You can just `require' this file, but doing so is not mandatory for
 ;; using el-search.
+;;
+;; TODO:
+;;
+;; - (l (and s) __ (and s)) should match (x y x 1) but
+;;   doesn't.  This seems to happen because `el-search--split'
+;;   considers only _one_ matching split, but we must consider
+;;   _all_.  And (l (and s) __ (pred (eq s))) even errors.
 
 
 ;;; Code:
@@ -191,38 +198,41 @@ The default value is nil."
 (defun el-search--changes-from-diff-hl (revision)
   "Return a list of changed regions (as conses of positions) since REVISION.
 Use variable `el-search--cached-changes' for caching."
-  (if (and (consp el-search--cached-changes)
-           (equal (car el-search--cached-changes)
-                  (list revision (visited-file-modtime))))
-      (cdr el-search--cached-changes)
-    (when (buffer-modified-p)
-      (user-error "Buffer is modified - please save"))
-    (require 'vc)
-    (require 'diff-hl)
-    ;; `diff-hl-changes' returns line numbers.  We must convert them into positions.
-    (save-restriction
-      (widen)
-      (save-excursion
-        (let ((diff-hl-reference-revision
-               (if el-search-change-revision-transformer-function
-                   (funcall el-search-change-revision-transformer-function
-                            revision
-                            buffer-file-name)
-                 revision))
-              (current-line-nbr 1) change-beg)
-          (goto-char 1)
-          (cdr (setq el-search--cached-changes
-                     (cons (list revision (visited-file-modtime))
-                           (and (el-search--file-changed-p buffer-file-name diff-hl-reference-revision)
-                                (delq nil (mapcar (pcase-lambda (`(,start-line ,nbr-lines ,kind))
-                                                    (if (eq kind 'delete) nil
-                                                      (forward-line (- start-line current-line-nbr))
-                                                      (setq change-beg (point))
-                                                      (forward-line (1- nbr-lines))
-                                                      (setq current-line-nbr (+ start-line nbr-lines -1))
-                                                      (cons (copy-marker change-beg)
-                                                            (copy-marker (line-end-position)))))
-                                                  (ignore-errors (diff-hl-changes)))))))))))))
+  (let ((buffer-file-name (file-truename buffer-file-name))) ;shouldn't be necessary, but it is...
+    (if (and (consp el-search--cached-changes)
+             (equal (car el-search--cached-changes)
+                    (list revision (visited-file-modtime))))
+        (cdr el-search--cached-changes)
+      (when (buffer-modified-p)
+        (user-error "Buffer is modified - please save"))
+      (require 'vc)
+      (require 'diff-hl)
+      ;; `diff-hl-changes' returns line numbers.  We must convert them into positions.
+      (save-restriction
+        (widen)
+        (save-excursion
+          (let ((diff-hl-reference-revision
+                 (if el-search-change-revision-transformer-function
+                     (funcall el-search-change-revision-transformer-function
+                              revision
+                              buffer-file-name)
+                   revision))
+                (current-line-nbr 1) change-beg)
+            (goto-char 1)
+            (cdr (setq el-search--cached-changes
+                       (cons (list revision (visited-file-modtime))
+                             (and (el-search--file-changed-p buffer-file-name diff-hl-reference-revision)
+                                  (delq nil (mapcar (pcase-lambda (`(,start-line ,nbr-lines ,kind))
+                                                      (if (eq kind 'delete) nil
+                                                        (forward-line (- start-line current-line-nbr))
+                                                        (setq change-beg (point))
+                                                        (forward-line (1- nbr-lines))
+                                                        (setq current-line-nbr (+ start-line nbr-lines -1))
+                                                        (cons (copy-marker change-beg)
+                                                              (copy-marker (line-end-position)))))
+                                                    (ignore-errors
+                                                      (let ((default-directory (file-name-directory buffer-file-name)))
+                                                        (diff-hl-changes)))))))))))))))
 
 (defun el-search--change-p (posn &optional revision)
   ;; Non-nil when sexp after POSN is part of a change
@@ -247,11 +257,15 @@ Use variable `el-search--cached-changes' for caching."
       (and changes
            (< (caar changes) (scan-sexps posn 1))))))
 
+(defvar vc-git-diff-switches)
 (defun el-search--file-changed-p (file rev)
+  ;; FIXME: it would be better to calculate once a list of all changed
+  ;; files in the repository
   (cl-callf file-truename file)
   (when-let ((backend (vc-backend file)))
     (ignore-errors
-      (let ((default-directory (file-name-directory file)))
+      (let ((default-directory (file-name-directory file))
+            (vc-git-diff-switches nil)) ;FIXME: necessary e.g. for my init file -- why?
         (and
          (with-temp-buffer
            (= 1 (vc-call-backend backend 'diff (list file) nil rev (current-buffer))))

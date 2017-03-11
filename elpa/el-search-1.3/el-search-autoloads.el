@@ -6,6 +6,11 @@
 ;;;### (autoloads nil "el-search" "el-search.el" (0 0 0 0))
 ;;; Generated autoloads from el-search.el
 
+(autoload 'el-search-install-shift-bindings "el-search" "\
+
+
+\(fn)" t nil)
+
 (autoload 'el-search-pattern "el-search" "\
 Start new or resume last elisp buffer search.
 
@@ -17,8 +22,9 @@ PATTERN is given, start a new single-buffer search from point.
 The minibuffer is put into `emacs-lisp-mode' for reading the
 input pattern, and there are some special key bindings:
 \\<el-search-read-expression-map>\\[newline] inserts a newline,
-and <up> and <down> are unbound to let you move the cursor
-vertically - see `el-search-read-expression-map' for details.
+and <up> and <down> are unbound in the local map to let you move
+the cursor vertically - see `el-search-read-expression-map' for
+details.
 
 PATTERN is an \"el-search\" pattern - which means, either a
 `pcase' pattern or complying with one of the additional pattern
@@ -26,6 +32,8 @@ types defined with `el-search-defpattern'.  The following
 additional pattern types are currently defined:
 
 \(fn PATTERN)" t nil)
+
+(function-put 'el-search-pattern 'interactive-only 'el-search-forward)
 
 (autoload 'el-search-buffers "el-search" "\
 Search all live elisp buffers for PATTERN.
@@ -53,11 +61,15 @@ are ignored.
 \(fn PATTERN)" t nil)
 
 (autoload 'el-search-dired-marked-files "el-search" "\
-El-search marked files and directories in dired.
+El-search files and directories marked in dired.
 With RECURSIVELY given (the prefix arg in an interactive call),
 search directories recursively.
 
-\(fn PATTERN &optional RECURSIVELY)" t nil)
+This function uses `el-search-stream-of-directory-files' to
+compute a the file stream - see there for a description of
+related user options.
+
+\(fn PATTERN FILES &optional RECURSIVELY)" t nil)
 
 (autoload 'el-search-query-replace "el-search" "\
 Replace some matches of \"el-search\" pattern FROM-PATTERN.
@@ -87,8 +99,20 @@ Reuse already given input.
 
 \(fn)" t nil)
 
+(autoload 'el-search-search-backwards-from-isearch "el-search" "\
+Switch to `el-search-pattern-backwards' from isearch.
+Reuse already given input.
+
+\(fn)" t nil)
+
 (autoload 'el-search-replace-from-isearch "el-search" "\
 Switch to `el-search-query-replace' from isearch.
+Reuse already given input.
+
+\(fn)" t nil)
+
+(autoload 'el-search-occur-from-isearch "el-search" "\
+Switch to `el-search-occur' from isearch.
 Reuse already given input.
 
 \(fn)" t nil)

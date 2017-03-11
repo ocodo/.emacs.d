@@ -1,3 +1,100 @@
+2017-03-09  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search version 1.3: Lots of fixes and improvements
+
+	This change mixes a bunch of new features and fixes:
+
+	* It is now possible to execute a search as non-interactive occur.
+
+	* Search patterns, matcher and the invoking command are now stored in 
+	the search object instead of separate variables.
+
+	* A search object doesn't use a stream of matches internally any more 
+	but can still export a stream finding all positions of matches of this 
+	search with the method `el-search-object-get-matches'.	This internal 
+	change was a prerequisite to implement a real backward search, bound to
+	C-R when using the default keys.
+
+	* More careful buffer killing: avoid killing file buffers opened for 
+	searching when they are still referenced by a search in the history.
+
+	* When opening files for searching, avoid `find-file' for better 
+	performance.
+
+	* Displaying buffers has been made customizable by using dedicated
+	`display-buffer' actions.
+
+	* "Generalized" regexps have been renamed to "regexp-likes".  They 
+	include function predicates now.
+
+	* `el-search-jump-to-search-head' now restarts completed searches 
+	automatically.
+
+	* `el-search-forward' now accepts a BOUND argument to make the signature
+	more similar to that of `search-forward'.
+
+	* A new pattern `in-buffer' (and synonymous `in-file') has been defined
+	that makes it possible to give the heuristic matcher explicit hints.
+
+	* The `file' pattern has been renamed to `filename' and accepts multiple
+	arguments now.
+
+	* Searching directories dismisses subdirectories containing a file named
+	".nosearch" now by default.
+
+	* Key bindings have been cleaned up.  The suggested key bindings can be
+	installed now by calling the new function
+	`el-search-install-shift-bindings'.
+
+	* `el-search-dired-marked-files' now accepts the list of marked files as
+	an argument and computes the list in the interactive spec instead of the
+	body so that repeating the command from the history works as expected
+	(i.e. uses the same file list).
+
+	* Improved introduction, lots of details and doc fixes.
+
+2017-01-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add a FILE argument to `el-search-dired-marked-files'
+
+	Make `el-search-dired-marked-files' accept the list of marked files as 
+	an argument and compute the list in the interactive spec instead of the
+	body so that repeating the command from the history works as expected
+	(i.e. uses the same file list).
+
+2017-01-26  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Update some copyrights
+
+2017-01-25  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use `read' to circumvent bug#24542
+
+	Use `read' to jump over symbols starting with an "@" character.	 This 
+	should fix the issues caused by bug#24542 completely instead of handling
+	only special cases.
+
+	Add some documentation for `el-search--end-of-sexp'.
+
+2017-01-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve half-baked introduction of key bindings
+
+	Define a helper function installing the suggested key bindings.	 Don't 
+	bind any keys by default, even not in `el-search-map'.
+
+2017-01-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve summary message of `el-search-overview'
+
+2017-01-18  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New command `el-search-from-beginning'
+
+2017-01-14  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Also count pattern types starting with "_" as internal
+
 2017-01-02  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	Work around more manifestations of Emacs bug #24542

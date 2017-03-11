@@ -1,13 +1,13 @@
-;;; el-search.el --- Expression based interactive search for emacs-lisp-mode -*- lexical-binding: t -*-
+;;; el-search.el --- Expression based interactive search for Emacs Lisp   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2016 Free Software Foundation, Inc
+;; Copyright (C) 2015-2017 Free Software Foundation, Inc
 
 ;; Author: Michael Heerdegen <michael_heerdegen@web.de>
 ;; Maintainer: Michael Heerdegen <michael_heerdegen@web.de>
 ;; Created: 29 Jul 2015
 ;; Keywords: lisp
 ;; Compatibility: GNU Emacs 25
-;; Version: 1.2.3
+;; Version: 1.3
 ;; Package-Requires: ((emacs "25") (stream "2.2.3"))
 
 
@@ -29,134 +29,195 @@
 
 ;;; Commentary:
 
+;; This package implements an expression based interactive search tool
+;; for Emacs Lisp files and buffers using pcase-style search patterns.
+;; It is multi file/buffer search capable.  It is designed to be fast
+;; and easy to use.  It offers an occur-like overview of matches and
+;; can do query-replace based on the same set of patterns.  All
+;; searches are added to a history and can be resumed or restarted
+;; later.  Finally, it allows you to define your own kinds of search
+;; patterns and your own multi-search commands.
+;;
+;;
 ;; Suggested key bindings
 ;; ======================
 ;;
-;; After loading this file, you can eval the following key definitions
-;; to try things out while reading this introduction.  These are the
-;; bindings I use personally:
+;; After loading this file, you can eval
+;; (el-search-install-shift-bindings) to install a set of key bindings
+;; to try things out (no other setup is needed).  Here is an overview
+;; of the most important bindings that this function will establish -
+;; most are of the form Control-Shift-Letter:
 ;;
-;;   (define-key emacs-lisp-mode-map [(control ?S)] #'el-search-pattern)
-;;   (define-key emacs-lisp-mode-map [(control ?%)] #'el-search-query-replace)
-;;   (define-key global-map          [(control ?J)] #'el-search-jump-to-search-head)
-;;   (define-key global-map          [(control ?N)] #'el-search-continue-in-next-buffer)
-;;   (define-key global-map          [(control ?O)] #'el-search-overview)
+;;   C-S (el-search-pattern)
+;;     Start a search in the current buffer/go to the next match.
 ;;
-;;   (define-key el-search-read-expression-map [(control ?S)] #'exit-minibuffer)
+;;   C-R (el-search-pattern-backwards)
+;;     Search backwards.
 ;;
-;;   (define-key isearch-mode-map [(control ?S)] #'el-search-search-from-isearch)
-;;   (define-key isearch-mode-map [(control ?%)] #'el-search-replace-from-isearch)
+;;   C-% (el-search-query-replace)
+;;     Do a query-replace.
 ;;
-;;   (with-eval-after-load 'dired
-;;     (define-key dired-mode-map [(control ?S)] #'el-search-dired-marked-files))
+;;   M-x el-search-directory
+;;     Prompt for a directory name and start a multi search for all
+;;     Emacs-Lisp files in that directory.  With prefix arg,
+;;     recursively search files in subdirectories.
 ;;
-;; These bindings may not work in a console (if you have an idea for
-;; official bindings that fit better into the Emacs ecosystem, please
-;; mail me).
+;;   C-S in Dired (el-search-dired-marked-files)
+;;     Like above but uses the marked files and directories.
 ;;
-;; The bindings in `isearch-mode-map' let you switch to "el-search"
-;; commands from isearch reusing already given input.  The binding in
-;; `el-search-read-expression-map' allows you to hit C-S twice to
-;; start a search using the last search pattern, similar to isearch.
+;;   C-O (el-search-occur)
+;;     Pop up an occur buffer for the current search.
 ;;
-;; Don't be afraid of the long introduction, it's only verbose (sorry)
-;; but not complicated.
+;;   C-O (from a search pattern prompt)
+;;     Execute this search command as occur.
+;;
+;;   C-N (el-search-continue-in-next-buffer)
+;;     Skip over current buffer or file.
+;;
+;;   C-D (el-search-skip-directory)
+;;     Prompt for a directory name and skip all subsequent files
+;;     located under this directory.
+;;
+;;   C-A (el-search-from-beginning) Go back to the first match in this
+;;     buffer or (with prefix arg) completely restart the current
+;;     search from the first file or buffer.
+;;
+;;   C-J (el-search-jump-to-search-head)
+;;     Resume the last search from the position of the last visited
+;;     match, or (with prefix arg) prompt for an old search to resume.
 ;;
 ;;
-;; Introduction
-;; ============
+;; These bindings may not work in a console (if you have a good idea
+;; for nice alternative bindings please mail me).
 ;;
-;; The main user entry point is `el-search-pattern'.  This command
-;; prompts for a `pcase' pattern and searches the current buffer for
-;; matching expressions by iteratively `read'ing buffer contents.  For
-;; any match, point is put at the beginning of the expression found
-;; (unlike isearch which puts point at the end of matches).
+;; The setup you'll need for your init file is trivial: just define
+;; the key bindings you want to use (all important commands are
+;; autoloaded) and you are done.  You can either just copy
+;; (el-search-install-shift-bindings) to your init file to use the
+;; above bindings or use its definition as a template for your own key
+;; binding definitions.
 ;;
-;; Why is it based on `pcase'?  Because pattern matching (and the
-;; ability to combine destructuring and condition testing) is well
-;; suited for this task.  In addition, pcase allows to add specialized
-;; pattern types and to combine them with other patterns in a natural
-;; and transparent way out of the box.
 ;;
-;; When searching, it doesn't matter how code is actually formatted.
-;; Comments are ignored, and strings are treated as atomic objects,
-;; their contents are not being searched.
+;; Usage
+;; =====
+;;
+;; The main user entry point `el-search-pattern' (C-S) is analogue to
+;; `isearch-forward'.  You are prompted for a `pcase'-style search
+;; pattern using an `emacs-lisp-mode' minibuffer.  After hitting RET
+;; it searches the current buffer from point for matching expressions.
+;; For any match, point is put at the beginning of the expression
+;; found (unlike isearch which puts point at the end of matches).  Hit
+;; C-S again to go to the next match etc.
+;;
+;; Syntax and semantics of search patterns are identical to that of
+;; `pcase' patterns, plus additionally defined pattern types
+;; especially useful for matching parts of programs.  The (only)
+;; difference to the `pcase' macro is that the expressions found in
+;; buffers and files are tried to be matched instead of a given
+;; expression.
+;;
+;; It doesn't matter how code is actually formatted.  Comments are
+;; ignored, and strings are treated as atomic objects (their contents
+;; are not being searched).
 ;;
 ;;
 ;; Example 1: if you enter
 ;;
 ;;    97
 ;;
-;; at the prompt, el-search will find any occurrence of the number 97
-;; in the code, but not 977 or (+ 90 7) or "My string containing 97"
-;; or symbol_97.  But it will find anything `equal' to 97 after
-;; reading, e.g. #x61 or ?a.
+;; at the prompt, el-search will find any occurrence of the integer 97
+;; in the code, but not 97.0 or 977 or (+ 90 7) or "My string
+;; containing 97" or symbol_97.  OTOH it will find any printed
+;; representation of 97, e.g. #x61 or ?a.
 ;;
 ;;
 ;; Example 2: If you enter the pattern
 ;;
 ;;   `(defvar ,_)
 ;;
-;; you search for all defvar forms that don't specify an init value.
+;; you search for all `defvar' forms that don't specify an init value.
 ;;
-;; The following pattern will search for defvar forms with a docstring
+;; The following pattern will search for `defvar's with a docstring
 ;; whose first line is longer than 70 characters:
 ;;
 ;;   `(defvar ,_ ,_
-;;      ,(and (pred stringp) s
+;;      ,(and (pred stringp)
+;;            s
 ;;            (guard (< 70 (length (car (split-string s "\n")))))))
 ;;
 ;;
-;; Convenience
-;; ===========
+;; You can define your own pattern types with `el-search-defpattern'
+;; which is analogue to `defmacro'.  See C-h f `el-search-pattern' for
+;; a list of predefined additional pattern types, and C-h f pcase for
+;; the basic pcase patterns.
 ;;
-;; For pattern input, the minibuffer is put into `emacs-lisp-mode'.
-;;
-;; Any input PATTERN is silently transformed into (and exp PATTERN)
-;; so that you can always refer to the whole currently tested
-;; expression via the variable `exp'.
-;;
-;;
-;; Example 3:
-;;
-;; If you wanted to search a buffer for symbols that are defined in
-;; "cl-lib", you could use this pattern
-;;
-;;   (guard (and (symbolp exp)
-;;               (when-let ((file (symbol-file exp)))
-;;                 (string-match-p "cl-lib\\.elc?$" file))))
+;; Some more pattern definitions can be found in the file
+;; "el-search-x" which is part of this package but not automatically
+;; loaded.
 ;;
 ;;
-;; ,----------------------------------------------------------------------
-;; | Q: "But I hate `pcase'!  Can't we just do without?"                 |
-;; |                                                                     |
-;; | A: Respect that you kept up until here! Just use (guard EXPR), where|
-;; | EXPR is any normal Elisp expression that returns non-nil when and   |
-;; | only when you have a match.  Use the variable `exp' to refer to     |
-;; | the currently tested expression.  Just like in the last example!    |
-;; `----------------------------------------------------------------------
+;; Multi Searching
+;; ===============
+;;
+;; "el-search" is capable of performing "multi searches" - searches
+;; spanning multiple files or buffers.  When no more matches can be
+;; found in the current file or buffer, the search automatically
+;; switches to the next.  Examples for search commands starting a
+;; multi search are `el-search-buffers' (search all living elisp mode
+;; buffers), `el-search-directory' (search all elisp files in a
+;; specified directory), `el-search-emacs-elisp-sources' (search all
+;; Emacs elisp sources) and `el-search-dired-marked-files'.  Actually,
+;; every search is internally a multi search.
+;;
+;; You can pause any (multi) search by just doing something different
+;; (no quitting is needed), the state of the search is automatically
+;; saved.  You can later continue searching by calling
+;; `el-search-jump-to-search-head' (C-J): this command jumps to the
+;; last match and re-activates the search.
+
+;; `el-search-continue-in-next-buffer' (C-N) skips all remaining
+;; matches in the current buffer and continues searching in the next
+;; buffer.  `el-search-skip-directory' even skips all subsequent files
+;; under a specified directory.
 ;;
 ;;
-;; It's cumbersome to write out the same complicated pattern
-;; constructs in the minibuffer again and again.  You can define your
-;; own `pcase' pattern types for the purpose of el-searching with
-;; `el-search-defpattern'.  It is just like `pcase-defmacro', but the
-;; effect is limited to this package (i.e. it uses a separate name
-;; space).  See C-h f `el-search-pattern' for a list of predefined
-;; pattern types.
+;; El-Occur
+;; ========
 ;;
-;; Some additional pattern definitions can be found in the file
-;; "el-search-x" which is part of this package.
+;; To get an occur-like overview buffer, you can use the usual
+;; commands to initiate a search.  You can either hit C-O from a
+;; pattern prompt instead of RET to confirm your input and start the
+;; search as noninteractive occur search.  Alternatively, you can
+;; always call `el-search-occur' (C-O) to start an occur for the
+;; latest started search.
+;;
+;; The *El Occur* buffer uses an adjusted emacs-lisp-mode.  RET on a
+;; match gives you a pop-up window displaying the position of the
+;; match in that buffer or file.  With S-tab you can (un)collapse all
+;; file sections like in `org-mode' to see only file names and the
+;; number of matches, or everything.  Tab folds and unfolds
+;; expressions (this uses hideshow; initially, all expressions are
+;; folded to one line) and sections at the beginning of headlines.
 ;;
 ;;
-;; Replacing
-;; =========
+;; Multiple multi searches
+;; =======================
+;;
+;; Every search is collected in a history.  You can resume older
+;; searches from the position of the last match by calling
+;; `el-search-jump-to-search-head' (C-J) with a prefix argument.  That
+;; let's you select an older search to resume and switches to the
+;; buffer and position where this search had been suspended.
+;;
+;;
+;; Query-replace
+;; =============
 ;;
 ;; You can replace expressions with command `el-search-query-replace'.
-;; You are queried for a (pcase) pattern and a replacement expression.
-;; For each match of the pattern, the replacement expression is
-;; evaluated with the bindings created by pattern matching in effect,
-;; and printed to a string to produce the replacement.
+;; You are queried for a pattern and a replacement expression.  For
+;; each match of the pattern, the replacement expression is evaluated
+;; with the bindings created by pattern matching in effect, and
+;; printed to a string to produce the replacement.
 ;;
 ;; Example: In some buffer you want to swap the two expressions at the
 ;; places of the first two arguments in all calls of function `foo',
@@ -175,96 +236,41 @@
 ;;    `(foo ,b ,a . ,rest) RET
 ;;
 ;; Type y to replace a match and go to the next one, r to replace
-;; without moving, SPC to go to the next match and ! to replace all
-;; remaining matches automatically.  q quits.  n is like SPC, so that
-;; y and n work like in isearch (meaning "yes" and "no") if you are
-;; used to that.
+;; without moving, SPC or n to go to the next match and ! to replace
+;; all remaining matches automatically.  q quits.
 ;;
 ;; It is possible to replace a match with multiple expressions using
 ;; "splicing mode".  When it is active, the replacement expression
-;; must evaluate to a list, and is spliced instead of inserted into
-;; the buffer for any replaced match.  Use s to toggle splicing mode
-;; in an `el-search-query-replace' session.
+;; must evaluate to a list, and is spliced into the buffer for any
+;; match.  Use s from the prompt to toggle splicing mode in an
+;; `el-search-query-replace' session.
 ;;
-;;
-;; Multi Searching
-;; ===============
-;;
-;; "el-search" is capable of performing "multi searches" - searches
-;; spanning multiple files or buffers.  When no more matches can be
-;; found in the current buffer, the search automatically switches to
-;; the next buffer.  Examples for search commands starting a multi
-;; search are `el-search-buffers' (search all living elisp mode
-;; buffers), `el-search-directory' (search all elisp files in a
-;; specified directory), `el-search-emacs-elisp-sources' (search all
-;; Emacs elisp sources) and `el-search-dired-marked-files'.  Actually,
-;; every search is internally a multi search.
-;;
-;; You can pause any (multi) search by just doing something different,
-;; the state of the search is automatically saved.  You can continue
-;; searching by calling `el-search-jump-to-search-head': this command
-;; jumps to the last match and re-activates the search.
-
-;; `el-search-continue-in-next-buffer' skips all remaining matches in
-;; the current buffer and continues searching in the next buffer.
-;; `el-search-skip-directory' even skips all subsequent files under a
-;; specified directory.
-;;
-;; Matches found in the current buffer are recorded; use
-;; `el-search-previous-match' to revisit them in reverse order (this
-;; is actually the poor-man's version of a backward search, since a
-;; real backward el-search would be slow).
-;;
-;; This package automatically uses techniques to speed up (multi)
-;; searching (without an impact on the matches you get, of course).
-;; The degree of possible optimizations varies very much depending on
-;; the nature of the search pattern, so the search speed can vary
-;; greatly.
-;;
-;; There are no special multi query-replace commands currently
+;; There are no special multi-file query-replace commands currently
 ;; implemented; I don't know if it would be that useful anyway.  If
-;; you want to query-replace in multiple buffers or files, call an
-;; appropriate multi-search command, and every time a first match is
-;; found in any buffer, start an ordinary `el-search-query-replace';
-;; after finishing, check that everything is ok, save etc, and resume
-;; the multi search with one of the above commands.
-;;
-;; I've not yet implemented a real "occur" for el-search.  For now,
-;; there is the command `el-search-overview' (C-O in the suggested key
-;; bindings above).  It will display an overview for the current
-;; search in a separate window showing a complete count of matches per
-;; file/buffer.
+;; you want to query-replace in multiple buffers or files, just call
+;; an appropriate multi-search command, and every time a first match
+;; is found in any buffer, start an ordinary
+;; `el-search-query-replace'; after finishing, check that everything
+;; is ok, save etc, and resume the multi search.
 ;;
 ;;
-;; Multiple multi searches
-;; =======================
+;; Advanced usage: Replacement rules for semi-automatic code rewriting
+;; ===================================================================
 ;;
-;; Every search is collected in a history.  You can resume older
-;; searches from the position of the last match by calling
-;; `el-search-jump-to-search-head' with a prefix argument.  That let's
-;; you select an older search to resume and switches to the buffer and
-;; position where this search had been suspended.
-;;
-;; There is no special command to restart a prior search from the
-;; beginning.  I suggest to use the pattern input history or
-;; `repeat-complex-command'.
-;;
-;;
-;; Writing replacement rules for semi-automatic code rewriting
-;; ===========================================================
-;;
-;; When you want to rewrite larger code parts programmatically, it is
-;; often useful to define dedicated patterns for performing the
+;; When you want to rewrite larger code parts programmatically, it can
+;; often be useful to define a dedicated pattern type to perform the
 ;; replacement.  Here is an example:
 ;;
 ;; You heard that in many situations, `dolist' is faster than an
 ;; equivalent `mapc'.  You use `mapc' quite often in your code and
 ;; want to query-replace many occurrences in your stuff.  Instead of
 ;; using an ad hoc replacing rule, it's cleaner to define a dedicated
-;; named pattern using `el-search-defpattern'.  Make this pattern
-;; accept an argument and use this argument to bind the replacement
-;; expression to a variable you specify.  In our case, the pattern
-;; could look like this:
+;; named pattern type using `el-search-defpattern'.  Make this pattern
+;; accept an argument and use it to bind a replacement expression to a
+;; variable you specify.  In query-replace, specify that variable as
+;; replacement expression.
+;;
+;; In our case, the pattern could look like this:
 ;;
 ;;   (el-search-defpattern el-search-mapc->dolist (new)
 ;;     (let ((var  (make-symbol "var"))
@@ -275,23 +281,23 @@
 ;;
 ;; The first condition in the `and' performs the matching and binds
 ;; the essential parts of the `mapc' form to helper variables.  The
-;; second, the `let' part, binds the specified variable NEW to the
+;; second, the `let', part, binds the specified variable NEW to the
 ;; rewritten expression - in our case, a `dolist' form is constructed
 ;; with the remembered code parts filled in.
 ;;
-;; Now, in `el-search-query-replace', you just specify the following
-;; rule:
+;; Now after this preparatory work, for `el-search-query-replace' you
+;; can simply specify (literally!) the following rule:
 ;;
-;;   (el-search-mapc->dolist replacement) -> replacement
+;;   (el-search-mapc->dolist repl) -> repl
 ;;
 ;;
 ;;
 ;; Bugs, Known Limitations
 ;; =======================
 ;;
-;; - Replacing: in some cases the reader syntax of forms is changing
-;; due to reading+printing.  "Some" because we can handle this problem
-;; in most cases.
+;; - Replacing: in some cases the read syntax of forms is changing due
+;; to reading-printing.  "Some" because we can handle this problem in
+;; most cases.
 ;;
 ;; - Similarly: Comments are normally preserved (where it makes
 ;; sense).  But when replacing like `(foo ,a ,b) -> `(foo ,b ,a)
@@ -312,48 +318,25 @@
 ;; Thanks to Stefan Monnier for corrections and advice.
 ;;
 ;;
-;;  Notes for developers
-;;  ====================
-;;
-;; We use the following model for multi buffer/file searches: a search
-;; (object) is represented by a struct "el-search-object" that
-;; contains a stream of matches M and a search head object H that
-;; contains a compiled matcher according to the given search pattern,
-;; the buffer and buffer position where to continue searching, and the
-;; stream of buffers or files yet to search.
-;;
-;; When elements are requested from M, H is updated accordingly.  H
-;; can be manipulated directly to influence how M will find further
-;; elements when requested (useful for skipping buffers on the fly).
-;;
-;;
 ;; TODO:
 ;;
 ;; - The default keys are not available in the terminal
 ;;
 ;; - Handle buffers killed/files closed when resuming a search
 ;;
-;; - Make el-search-previous-match behave correctly when a buffer has
-;;   been modified and data is outdated
-;;
-;; - Make the non-command `el-search-forward' accept an &optional
-;;   LIMIT argument
-;;
 ;; - Make searching work in comments, too? (->
 ;;   `parse-sexp-ignore-comments').  Related: should the pattern
 ;;   `symbol' also match strings that contain matches for a symbol so
-;;   that it's possible to replace also occurrences of a symbol in
+;;   that it's possible to replace occurrences of a symbol in
 ;;   docstrings?
 ;;
-;; - Implement an occur like interface
-;;
-;; - Port this to non Emacs Lisp modes?  How?  Would it already
-;;   work using only syntax tables, sexp scanning and font-lock?
+;; - Port this package to non Emacs Lisp modes?  How?  Would it
+;;   already work using only syntax tables, sexp scanning and
+;;   font-lock?
 ;;
 ;; - For query-replace, maybe we should save the original buffer
 ;;   string in a buffer-local variable, and make that ediff'able
-;;   against the new version.  Or should we even save multiple
-;;   versions when appropriate?
+;;   against the new version.
 ;;
 ;; - Replace: pause and warn when replacement might be wrong
 ;;   (ambiguous reader syntaxes; lost comments, comments that can't
@@ -376,29 +359,14 @@
 (require 'stream)
 (require 'help-fns) ;el-search--make-docstring
 (require 'ring)     ;el-search-history
+(require 'hideshow) ;folding in *El Occur*
 
 
 ;;;; Configuration stuff
 
 (defgroup el-search nil
-  "Expression based search and replace for `emacs-lisp-mode'."
+  "Expression based search and replace for Emacs Lisp."
   :group 'lisp)
-
-(defcustom el-search-this-expression-identifier 'exp
-  "Identifier ID referring to the current expression in pattern input.
-When entering a pattern in an interactive \"el-search\" command,
-the pattern actually used will be (and ID PATTERN).  The default
-value is `exp'."
-  :type 'symbol)
-
-(defvar el-search-optimized-search t
-  "Whether to use optimized searching.
-When turned on, use a fast pre-processing algorithm to sort out
-buffers that can be proved to not contain a match.
-
-Setting this to nil should not have any effect apart from making
-multi-buffer searching slower in most cases, so this is only
-useful for debugging.")
 
 (defface el-search-match '((((background dark))
                             ;; (:background "#0000A0")
@@ -412,10 +380,16 @@ useful for debugging.")
                                  (t (:background "DarkSlateGray1")))
   "Face for highlighting the other matches.")
 
-(defvar el-search-display-buffer-action
+(defcustom el-search-display-buffer-popup-action
   '((display-buffer-reuse-window display-buffer-pop-up-frame)
     (reusable-frames . visible))
-  "The `display-buffer' action used by `el-search-jump-to-search-head'.")
+  "`display-buffer' action used to display pop-up windows."
+  :type display-buffer--action-custom-type)
+
+(defcustom el-search-display-next-buffer-action
+  '(display-buffer-same-window (inhibit-same-window . nil))
+  "Action used to display the next buffer in multi searches."
+  :type display-buffer--action-custom-type)
 
 (defcustom el-search-ignored-directory-regexps
   (mapcar
@@ -424,20 +398,15 @@ useful for debugging.")
    '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}"))
   "List of regexps defining directories that el-search should ignore.
 
-The value influences the behavior of the commands that perform
-directory searches like `el-search-directory' or
+The value influences the behavior of the commands that
+perform directory searches like `el-search-directory' or
 `el-search-dired-marked-files'.  It is consulted by all streams
-`el-search-stream-of-directory-files' returns."
+`el-search-stream-of-directory-files' returns.
+
+The `file-name-nondirectory' of the directory file names is
+tested.  "
   :type '(choice (repeat :tag "Regexps for ignored directories" regexp)
 		 (const  :tag "No ignored directories" nil)))
-
-(defvar el-search-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?D)] #'el-search-skip-directory)
-    (define-key map [(control ?N)] #'el-search-continue-in-next-buffer)
-    (define-key map [(control ?R)] #'el-search-previous-match)
-    map)
-  "Used by search commands as transient-map.")
 
 (defvar el-search-read-expression-map
   (let ((map (make-sparse-keymap)))
@@ -447,33 +416,61 @@ directory searches like `el-search-directory' or
     (define-key map [down] nil)
     (define-key map [(control ?j)] #'newline)
     map)
-  "Map for reading input with `el-search-read-expression'.")
+  "Keymap for reading input with `el-search-read-expression'.")
+
+(defcustom el-search-respect-nosearch t
+  "Whether to disregard directories containing a .nosearch file.
+
+When turned on, directory searches skip directories containing a
+file named \".nosearch\".
+
+Setting this has an effect on commands that perform searches in
+directories, like `el-search-directory' or
+`el-search-dired-marked-files'.  The value of this variable is
+consulted by all streams `el-search-stream-of-directory-files'
+returns."
+  :type 'boolean)
 
 
 ;;;; Helpers and Definitions
 
-(defvar el-search--current-pattern nil
-  "Current search pattern or nil when no search in progress.")
+(defvar el-search-optimized-search t
+  "Whether to use optimized searching.
+When turned on, use a fast pre-processing algorithm to sort out
+buffers that can be proved to not contain a match.
+
+Setting this to nil should not have any effect apart from making
+multi-buffer searching much slower in most cases, so this is only
+useful for debugging.")
 
 (defvar el-search--current-search nil
-  "The currently active search, an `el-search-object'.")
-
-(defvar el-search--current-matcher nil
-  "The matcher according to `el-search--current-pattern'.")
+  "The currently active search, an `el-search-object', or nil.")
 
 (defvar-local el-search--temp-buffer-flag nil
-  "Non-nil tags (file) buffers as temporarily opened for searching.")
+  "Non-nil tags file visiting buffers as temporarily opened for searching."
+  ;; FIXME: maintaining a list of buffers to close would make
+  ;; `el-search-kill-left-over-search-buffers' more efficient.  And
+  ;; could we merge this with `el-search--temp-file-buffer-flag'?
+  )
+
+(defvar-local el-search--temp-file-buffer-flag nil
+  "Non-nil tags (file) buffers that should not be presented to the user.
+Buffers flagged this way contain the contents of a file but were
+not created with `find-file-noselect'.  The name of this file is
+used as non-nil value.")
 
 (defvar el-search--success nil
   "Non-nil when last search command was successful.")
 
-(defvar-local el-search--this-buffer-matches (stream-empty)
-  "Stream of the matches that were found in current buffer."
-  ;; Internally, simply the substream of the matches of the current
-  ;; search with all matches before current buffer cut off
-  )
+(defvar el-search--wrap-flag nil
+  "Non-nil when next search command should wrap the search.
+The non-nil value should be one of the symbols `forward' and
+`backward'.")
 
-(defun el-search-true (&rest _ignore)
+(defvar el-search-occur-flag nil
+  "Non-nil when next search should be performed as occur.")
+
+(defun el-search-true (&rest _args)
   "Ignore the arguments and return t."
   t)
 
@@ -485,24 +482,60 @@ directory searches like `el-search-directory' or
         (`(,(pred (equal args)) . ,result) result)
         (_ (cdr (setq cached (cons args (apply function args)))))))))
 
+;; FIXME: the next two should go to stream.el
+(defun el-search--stream-divide (stream fun)
+  "Divide STREAM after the first ELT for that (FUN ELT REST) returns nil.
+The return value is a list of two streams.
+Example:
+
+  (mapcar #'seq-into-sequence
+          (stream-divide
+           (stream (list 1 2 3 5 6 7 9 10 11 23))
+           (lambda (this rest) (< (- (stream-first rest) this) 2))))
+==> ((1 2 3)
+     (5 6 7 9 10 11 23))"
+  (if (stream-empty-p stream)
+      (list stream (stream-empty))
+    (let ((this (stream-pop stream)))
+      (letrec ((take-while
+                (lambda () (stream-make
+                       (cons this
+                             (if (or (stream-empty-p stream) (not (funcall fun this stream)))
+                                 nil
+                               (setq this (stream-pop stream))
+                               (funcall take-while)))))))
+        (let ((first-part (funcall take-while)))
+          (list first-part (stream-delay (progn (stream-flush first-part) stream))))))))
+
+(defun el-search--stream-partition (stream fun)
+  "Partition STREAM into bunches where FUN returns true for subsequent elements.
+The return value is a stream of streams.
+
+Example:
+
+  (seq-into-sequence
+   (seq-map #'seq-into-sequence
+            (stream-partition
+             (stream (list 1 2 3 5 6 7 9 10 15 23))
+                (lambda (x y) (< (- y x) 2)))))
+   ==> ((1 2 3)
+        (5 6 7)
+        (9 10)
+        (15)
+        (23))"
+  (stream-make
+   (if (stream-empty-p stream)
+       nil
+     (let ((divided (el-search--stream-divide stream
+                                              (lambda (x rest) (and (not (stream-empty-p rest))
+                                                               (funcall fun x (stream-first rest)))))))
+       (cons (car divided)
+             (el-search--stream-partition (cadr divided) fun))))))
+
 (defun el-search--message-no-log (format-string &rest args)
   "Like `message' but with `message-log-max' bound to nil."
   (let ((message-log-max nil))
     (apply #'message format-string args)))
-
-(defun el-search--string-matcher (eregexp)
-  "Return a compiled match predicate for EREGEXP.
-That's a predicate returning non-nil when extended regexp EREGEXP
-matches the (only) argument (that should be a string)."
-  (let ((match-bindings ()) regexp)
-    (pcase eregexp
-      ((pred stringp) (setq regexp eregexp))
-      (`(,binds ,real-regexp)
-       (setq regexp real-regexp)
-       (setq match-bindings binds)))
-    (byte-compile
-     (let ((string (make-symbol "string")))
-       `(lambda (,string) (let ,match-bindings (string-match-p ,regexp ,string)))))))
 
 (defun el-search--pp-to-string (expr)
   (let ((print-length nil)
@@ -529,27 +562,25 @@ matches the (only) argument (that should be a string)."
                           (cons minibuffer-default more-defaults)))))))
 
 (defun el-search-read-expression (prompt &optional initial-contents hist default read)
-  "Conveniently read an expression from the minibuffer."
+  "Read an expression from the minibuffer."
   (minibuffer-with-setup-hook #'el-search--setup-minibuffer
     (read-from-minibuffer prompt initial-contents el-search-read-expression-map read
                           (or hist 'read-expression-history) default)))
 
 (defvar el-search-pattern-history ()
-  "List of search pattern input strings.")
+  "History of search pattern input strings.")
 
-(defvar el-search-history (make-ring 10) ;$$$$FIXME: Make `10' customizable?
-  "History of previous searches."
-  ;; Elements have the form (search-object pattern)
-  )
+(defvar el-search-history (make-ring 10) ;FIXME: Make `10' customizable?
+  "History of previous searches.")
 
 (defvar el-search-query-replace-history ()
-  "List of input strings from `el-search-query-replace'.")
+  "History of input strings from `el-search-query-replace'.")
 
 (defvar el-search--initial-mb-contents nil)
 
 (defun el-search--pushnew-to-history (input histvar)
-  ;; Push INPUT to history in HISTVAR unless it's already "the same" as
-  ;; the history's head element
+  ;; Push string INPUT to HISTVAR unless empty or equal to the head
+  ;; element modulo `read'.  Reindent INPUT when multiline.
   (let ((hist-head (car (symbol-value histvar))))
     (unless (or (string-match-p "\\`\\'" input)
                 (and (stringp hist-head)
@@ -577,7 +608,7 @@ matches the (only) argument (that should be a string)."
     (if (not (string= input "")) input (car (symbol-value histvar)))))
 
 (defun el-search--read-pattern-for-interactive ()
-  (let* ((input (el-search--read-pattern "Find pcase pattern: " (car el-search-pattern-history)))
+  (let* ((input (el-search--read-pattern "El-search pattern: " (car el-search-pattern-history)))
          (pattern (read input)))
     ;; A very common mistake: input "foo" instead of "'foo"
     (el-search--maybe-warn-about-unquoted-symbol pattern)
@@ -588,8 +619,13 @@ matches the (only) argument (that should be a string)."
 
 
 (defun el-search--end-of-sexp ()
-  ;; Assumes point is at sexp beginning
-  (or (scan-sexps (point) 1) (point-max)))
+  "Return the value of point at the end of this sexp.
+Point should be at a sexp beginning."
+  (if (eql (char-after) ?@) ;bug#24542
+      (save-excursion
+        (ignore (read (current-buffer)))
+        (point))
+    (or (scan-sexps (point) 1) (point-max))))
 
 (defun el-search--skip-expression (expression &optional read)
   ;; Move forward at least one character.  Don't move into a string or
@@ -604,8 +640,6 @@ matches the (only) argument (that should be a string)."
   ;; point instead.
   (when read (setq expression (save-excursion (read (current-buffer)))))
   (cond
-   ((and (symbolp expression)) (string-match-p "\\`@+\\'" (symbol-name expression)) ;bug#24542
-    (forward-char (length (symbol-name expression))))
    ((or (null expression)
         (equal [] expression)
         (not (or (listp expression) (vectorp expression))))
@@ -617,9 +651,9 @@ matches the (only) argument (that should be a string)."
 (defun el-search--ensure-sexp-start ()
   "Move point to the next sexp beginning position.
 Do nothing if already at beginning of a sexp.  `read' the
-expression at that point and return it.  Point must not be inside
-a string or comment."
-  ;; We donn't catch end-of-buffer to keep the return value
+expression starting at that position and return it.  Point must
+not be inside a string or comment."
+  ;; We don't catch end-of-buffer to keep the return value
   ;; non-ambiguous
   (let ((not-done t) res)
     (while not-done
@@ -653,17 +687,19 @@ a string or comment."
 
 
 (defvar el-search--pcase-macros '()
-  "List of additional \"el-search\" pcase macros.")
+  "Alist of additional \"el-search\" pcase macros.
+Keys are pattern names (i.e. symbols) and values the associated
+expander functions.")
 
 (defun el-search--make-docstring (name)
-  ;; code mainly from `pcase--make-docstring'
+  ;; Code mainly from `pcase--make-docstring'
   (let* ((main (documentation (symbol-function name) 'raw))
          (ud (help-split-fundoc main name)))
     (with-temp-buffer
       (insert (or (cdr ud) main))
       (mapc
        (pcase-lambda (`(,symbol . ,fun))
-         (unless (string-match-p "\\`-\\|--" (symbol-name symbol)) ;let's consider these "internal"
+         (unless (string-match-p "\\`[-_]\\|--" (symbol-name symbol)) ;Let's consider these "internal"
            (when-let ((doc (documentation fun)))
              (insert "\n\n\n-- ")
              (setq doc (help-fns--signature symbol doc fun fun nil))
@@ -682,8 +718,8 @@ heuristic matcher functions.")
 (defmacro el-search-defpattern (name args &rest body)
   "Like `pcase-defmacro', but for defining el-search patterns.
 
-The semantics is very similar to that of `pcase-defmacro', but
-the scope of the definitions is limited to \"el-search\", using a
+The semantics is very similar to that of `pcase-defmacro' but the
+scope of the definitions is limited to \"el-search\", using a
 separate name space.  The expansion is allowed to use any defined
 `pcase' pattern as well as any defined el-search pattern.
 
@@ -694,30 +730,8 @@ has the form
   \(heuristic-matcher MATCHER-FUNCTION\)
 
 and specifies a heuristic MATCHER-FUNCTION to be associated with
-the defined pattern type NAME.
-
-The idea of heuristic matching is to speed up multi buffer
-searching without altering the matching behavior by discarding
-files and buffers which can't contain a match.  When specified,
-the MATCHER-FUNCTION should be a function accepting the same
-arguments as the defined pattern.  When called with arguments
-ARGS, this function should return either nil (meaning that for
-these specific arguments no heuristic matching should be done and
-normal matching should be used) or a (fast!) function that
-accepts two arguments: a file-name or buffer, and a thunk of a
-complete list of atoms in that file or buffer, and that returns
-non-nil when this file or buffer could contain a match for the
-pattern (NAME . ARGS), and nil when we can be sure that it
-contains no match (an atom here means anything whose parts aren't
-searched by el-searching, like integers or strings, but unlike
-arrays).  When in doubt, this returned function must return
-non-nil.
-
-When el-searching is started with a certain PATTERN, a heuristic
-matcher function is constructed by recursively destructuring
-PATTERN and combining the heuristic matchers of the subpatterns.
-The resulting function is then used to dismiss any buffer that
-can be proven that it can not contain any match.
+the defined pattern type NAME.  See `el-search-heuristic-matcher'
+for details.
 
 \(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
   (declare (indent 2) (debug defun))
@@ -732,7 +746,7 @@ can be proven that it can not contain any match.
     `(progn
        (setf (alist-get ',name el-search--heuristic-matchers)
              ,(car (alist-get 'heuristic-matcher declaration-list)))
-       (setf (alist-get ',name el-search--inverse-heuristic-matchers)
+       (setf (alist-get ',name el-search--inverse-heuristic-matchers) ;not official
              ,(car (alist-get 'inverse-heuristic-matcher declaration-list)))
        (setf (alist-get ',name el-search--pcase-macros)
              (lambda ,args ,@(and doc `(,doc)) ,@body)))))
@@ -743,14 +757,11 @@ can be proven that it can not contain any match.
      ,@body))
 
 (defun el-search--macroexpand-1 (pattern)
-  "Expand \"el-search\" PATTERN.
+  "Expand el-search PATTERN.
 This is like `pcase--macroexpand' but expands only patterns
 defined with `el-search-defpattern' and performs only one
-expansion step.
-
-Return PATTERN if it is no el-search pattern, i.e. if there is no
-expander for this pattern type found in
-`el-search--pcase-macros'."
+expansion step.  If no entry for this pattern type exists in
+`el-search--pcase-macros', PATTERN is returned."
   (if-let ((expander (alist-get (car-safe pattern) el-search--pcase-macros)))
       (apply expander (cdr pattern))
     pattern))
@@ -774,11 +785,9 @@ expander for this pattern type found in
 (defun el-search--match-p (matcher expression)
   (funcall matcher expression))
 
-(defun el-search--wrap-pattern (pattern)
-  `(and ,el-search-this-expression-identifier ,pattern))
 
-
-(defun el-search--search-pattern-1 (matcher &optional noerror)
+(defun el-search--search-pattern-1 (matcher &optional noerror bound)
+  "Like `el-search-forward' but accepts a matcher as first argument."
   (if (not (derived-mode-p 'emacs-lisp-mode))
       (if noerror nil (error "Buffer not in emacs-lisp-mode: %s" (buffer-name)))
     (let ((match-beg nil) (opoint (point)) current-expr)
@@ -794,7 +803,7 @@ expander for this pattern type found in
             (forward-line 1))))
 
       (if (catch 'no-match
-            (while (not match-beg)
+            (while (and (not match-beg) (or (not bound) (<= (point) bound)))
               (condition-case nil
                   (setq current-expr (el-search--ensure-sexp-start))
                 (end-of-buffer
@@ -804,21 +813,31 @@ expander for this pattern type found in
                   (setq match-beg (point)
                         opoint (point))
                 (el-search--skip-expression current-expr))))
-          (if noerror nil (signal 'end-of-buffer nil))
-        match-beg))))
+          (if noerror nil (signal 'search-failed nil))
+        (if (and bound match-beg)
+            (and (<= (scan-sexps match-beg 1) bound)
+                 match-beg)
+          match-beg)))))
 
-(defun el-search-forward (pattern &optional noerror)
+(defun el-search-forward (pattern &optional bound noerror)
   "Search for el-search PATTERN in current buffer from point.
-Set point to the beginning of the occurrence found and return the
-new value of point.  Optional second argument NOERROR, if
-non-nil, means if fail just return nil (no error)."
-  (el-search--search-pattern-1 (el-search--matcher pattern) noerror))
+Set point to the beginning of the occurrence found and return point.
+
+An optional second argument bounds the search; it is a buffer
+position.  The match found must not end after that position.  A
+value of nil means search to the end of the accessible portion of
+the buffer.
+
+Optional third argument NOERROR, if non-nil, means if fail just
+return nil (no error)."
+  (el-search--search-pattern-1 (el-search--matcher pattern) noerror bound))
 
 
+;; FIXME: make this also a declaration spec?
 (defun el-search-defpattern--check-args (type args predicate &optional message)
   "Check whether all ARGS fulfill PREDICATE.
-Raise an error if not.  The string arguments TYPE and optional
-MESSAGE are used to construct the error message."
+Raise a `user-error' if not.  The string arguments TYPE and
+optional MESSAGE are used to construct the error message."
   (dolist (arg args)
     (unless (funcall predicate arg)
       (user-error (concat "Pattern `%s': "
@@ -826,15 +845,18 @@ MESSAGE are used to construct the error message."
                           ": %S")
                   type arg))))
 
-(defun el-search--elisp-file-name-p (file)
+(defun el-search--elisp-file-p (file)
   (and (string-match-p (concat "\\.el" (regexp-opt jka-compr-load-suffixes) "?\\'") file)
        (file-exists-p file)
        (not (file-directory-p file))))
 
+
 (cl-defstruct (el-search-object (:copier copy-el-search-object--1))
-  head       ;an `el-search-head' instance, modified ("moved") while searching
-  matches    ;the stream of matches in the form (buffer position file)
-  last-match ;position of last match found
+  pattern     ;the search pattern
+  head        ;an `el-search-head' instance, modified ("moved") while searching
+  last-match  ;position of last match found
+  command     ;nil or invoking command + args
+  get-matches ;method returning a stream of all matches
   )
 
 (defun copy-el-search-object (search)
@@ -842,15 +864,24 @@ MESSAGE are used to construct the error message."
     (cl-callf copy-el-search-head (el-search-object-head copy))
     copy))
 
+(defun el-search--current-pattern ()
+  (and el-search--current-search
+       (el-search-object-pattern el-search--current-search)))
+
+(defun el-search--current-matcher ()
+  (and el-search--current-search
+       (el-search-head-matcher (el-search-object-head el-search--current-search))))
+
 (cl-defstruct el-search-head
   get-buffer-stream        ;a function of zero args returning a stream of files and/or buffers to search
   matcher                  ;for the search pattern
   heuristic-buffer-matcher ;for the search pattern
   buffer                   ;currently searched buffer, or nil meaning "continue in next buffer"
-  position                 ;where to continue search in this buffer
+  position                 ;where to continue searching this buffer
   file                     ;name of currently searched file, or nil
   buffers                  ;stream of buffers and/or files yet to search
   )
+
 
 (defun el-search-kill-left-over-search-buffers (&optional not-current-buffer)
   "Kill all buffers that were opened for searching."
@@ -858,18 +889,53 @@ MESSAGE are used to construct the error message."
   (dolist (buffer (buffer-list))
     (when (with-current-buffer buffer el-search--temp-buffer-flag)
       (unless (or (buffer-modified-p buffer)
-                  (and not-current-buffer (eq buffer (current-buffer))))
+                  (and not-current-buffer (eq buffer (current-buffer)))
+                  (cl-some (lambda (search) (eq buffer (el-search-head-buffer
+                                                   (el-search-object-head search))))
+                           (ring-elements el-search-history)))
         (kill-buffer buffer)))))
 
 
 (defun el-search-heuristic-matcher (pattern)
   "Return a heuristic matcher for PATTERN.
+
 This is a predicate accepting two arguments.  The first argument
-is a file name or a buffer.  The second argument is a thunk (see
+is a file name or buffer.  The second argument is a thunk (see
 \"thunk.el\") of a list of all of this file's or buffer's atoms.
 The predicate returns nil when we can be sure that this file or
 buffer can't contain a match for the PATTERN, and must return
-non-nil else."
+non-nil else.
+
+The idea behind heuristic matching is to speed up multi buffer
+searching without altering the matching behavior by discarding
+files and buffers that can't contain a match.  Most search
+patterns contain non-ambiguous information about properties of
+atoms that must be present in a buffer containing matches, and
+getting a list of atoms in a buffer is negligibly fast compared
+to searching that buffer directly.  Thus we spare expensively
+searching all buffers we can sort out, which is a majority of all
+buffers to search in most cases.
+
+When specified in an `el-search-defpattern' declaration, a
+MATCHER-FUNCTION should be a function accepting the same
+arguments as the defined pattern.  When called with arguments
+ARGS, this function should return either nil (meaning that for
+these specific arguments no heuristic matching should be
+performed and normal matching should be used) or a (fast!)
+function that accepts two arguments: a file-name or buffer, and a
+thunk of a complete list of atoms in that file or buffer, that
+returns non-nil when this file or buffer could contain a match
+for the pattern (NAME . ARGS), and nil when we can be sure that
+it doesn't contain a match.  \"Atom\" here means anything whose
+parts aren't searched by el-searching, like integers or strings,
+but unlike arrays.  When in doubt, this returned function must
+return non-nil.
+
+When el-searching is started with a certain PATTERN, a heuristic
+matcher function is constructed by recursively destructuring the
+PATTERN and combining the heuristic matchers of the subpatterns.
+The resulting function is then used to dismiss any buffer that
+can't contain any match."
   (pcase pattern
     ((pred symbolp) #'el-search-true)
     ((pred pcase--self-quoting-p) (lambda (_ atoms-thunk) (member pattern (thunk-force atoms-thunk))))
@@ -925,7 +991,7 @@ non-nil else."
 
 (defun el-search-atom-list (file-name-or-buffer)
   "Return a list of el-search-atomic expressions in FILE-NAME-OR-BUFFER."
-  (let ((get-atoms
+  (let ((get-buffer-atoms
          (lambda () (apply #'append
                       (mapcar #'el-search--flatten-tree
                               (save-excursion
@@ -940,13 +1006,15 @@ non-nil else."
                                               file-name-or-buffer
                                               (point))
                                      (sit-for 3.)
-                                     '()))))))))
+                                     ;; FIXME: we could also `throw' a tag that would force the
+                                     ;; buffer/file to be searched regularly
+                                     nil))))))))
         (buffer (if (bufferp file-name-or-buffer)
                     file-name-or-buffer
                   (get-file-buffer file-name-or-buffer))))
     (if buffer
         (if (buffer-live-p buffer)
-            (with-current-buffer buffer (funcall get-atoms))
+            (with-current-buffer buffer (funcall get-buffer-atoms))
           ())
       (let ((file-name file-name-or-buffer))
         (if-let ((hash-entry (gethash file-name el-search--atom-list-cache))
@@ -956,7 +1024,7 @@ non-nil else."
                              (let ((inhibit-message t))
                                (insert-file-contents file-name-or-buffer))
                              (set-syntax-table emacs-lisp-mode-syntax-table)
-                             (funcall get-atoms))))
+                             (funcall get-buffer-atoms))))
             (when atom-list ;empty in case of error
               (puthash file-name
                        (cons (nth 5 (file-attributes file-name)) atom-list)
@@ -998,13 +1066,12 @@ non-nil else."
                (thunk-delay (el-search-atom-list file-name-or-buffer))))))
 
 (defvar warning-minimum-level)
-(defun el-search--next-buffer (search &optional predicate)
+(defun el-search--next-buffer (search &optional predicate keep-highlighting)
   ;; Prepare to continue SEARCH in the next buffer in line.  Move
   ;; SEARCH's head accordingly.  When specified, PREDICATE should accept
-  ;; a file name or a buffer, and we skip all buffers and files not
+  ;; a file name or buffer, and we skip all buffers and files not
   ;; fulfilling it.  Return the new buffer to search in or nil if done.
-  (el-search-hl-remove)
-  (el-search-kill-left-over-search-buffers t)
+  (unless keep-highlighting (el-search-hl-remove))
   (let ((original-predicate (or predicate #'el-search-true))
         (heuristic-buffer-matcher
          (el-search-head-heuristic-buffer-matcher (el-search-object-head search))))
@@ -1033,19 +1100,25 @@ non-nil else."
           (setf (el-search-head-file head) next)
           (setq buffer (let ((warning-minimum-level :error)
                              (inhibit-message t))
-                         (find-file-noselect next))))
+                         (let ((fresh-buffer (generate-new-buffer " el-search-helper-buffer"))
+                               (inhibit-message t))
+                           (with-current-buffer fresh-buffer
+                             (insert-file-contents next)
+                             (emacs-lisp-mode)
+                             (setq-local el-search--temp-file-buffer-flag next)
+                             (setq-local buffer-file-name next) ;make `file' pattern work as expected
+                             (set-visited-file-modtime)
+                             (set-buffer-modified-p nil))
+                           fresh-buffer))))
         (unless (memq buffer buffer-list-before)
           (with-current-buffer buffer
             (setq-local el-search--temp-buffer-flag t)))
         (setf (el-search-head-buffer head) buffer)
-        (when (bufferp buffer)
+        (when (and (bufferp buffer) (not (eq buffer (current-buffer))));FIXME: Is this a good condition?
           (with-current-buffer buffer
-            (setq-local el-search--this-buffer-matches
-                        (el-search-object-matches search))
             (when (and (buffer-narrowed-p)
                        (y-or-n-p (format "Widen buffer \"%s\"? "
                                          (buffer-name))))
-              ;;FIXME: Is this always appropriate?
               (widen))))
         buffer))))
 
@@ -1054,60 +1127,73 @@ non-nil else."
   (el-search--next-buffer el-search--current-search predicate)
   (el-search-continue-search))
 
-(defun el-search--setup-matches-stream (search)
-  (let ((head (el-search-object-head search)))
-    (setf (el-search-object-matches search)
-          (seq-filter
-           #'identity ;we use `nil' as a "skip" tag
-           (funcall
-            (letrec ((get-stream
-                      (lambda ()
-                        (stream-make
-                         (if-let ((buffer (or (el-search-head-buffer head)
-                                              (el-search--next-buffer search))))
-                             (with-current-buffer buffer
-                               (save-excursion
-                                 (goto-char (el-search-head-position head))
-                                 (el-search--message-no-log "%s"
-                                                            (or (el-search-head-file head)
-                                                                (el-search-head-buffer head)))
-                                 (if-let ((match (el-search--search-pattern-1
-                                                  (el-search-head-matcher head) t)))
-                                     (progn
-                                       (setf (el-search-object-last-match search)
-                                             (copy-marker (point)))
-                                       (el-search--skip-expression nil t)
-                                       (setf (el-search-head-position head)
-                                             (copy-marker (point)))
-                                       (cons ;Return the cons defining the build recipe of the stream
-                                        (list (el-search-head-buffer head)
-                                              match
-                                              (el-search-head-file head))
-                                        (funcall get-stream)))
-                                   (setf (el-search-head-buffer head) nil
-                                         (el-search-head-file   head) nil)
-                                   (el-search--next-buffer search)
-                                   ;; retry with the next buffer
-                                   (cons nil (funcall get-stream)))))
-                           ;; end of stream (no buffers left to search in)
-                           nil)))))
-              get-stream))))
-    search))
+(defun el-search--all-matches (search)
+  "Return a stream of all matches of SEARCH.
+The returned stream will always start searching from the
+beginning anew even when SEARCH has been used interactively or
+elements of another stream returned by this function have already
+been requested.
+
+The elements of the returned stream will have the form
+
+  \(buffer match-beg file\)
+
+where BUFFER or FILE is the buffer or file where a match has been
+found (exactly one of the two will be nil), and MATCH-BEG is the
+position of the beginning of the match."
+  (let* ((search (el-search-reset-search search))
+         (head (el-search-object-head search)))
+    (seq-filter
+     #'identity ;we use `nil' as a "skip" tag
+     (funcall
+      (letrec ((get-stream
+                (lambda ()
+                  (stream-make
+                   (if-let ((buffer (or (el-search-head-buffer head)
+                                        (el-search--next-buffer search nil t))))
+                       (with-current-buffer buffer
+                         (save-excursion
+                           (goto-char (el-search-head-position head))
+                           (el-search--message-no-log "%s"
+                                                      (or (el-search-head-file head)
+                                                          (el-search-head-buffer head)))
+                           (if-let ((match (el-search--search-pattern-1
+                                            (el-search-head-matcher head) t)))
+                               (progn
+                                 (setf (el-search-object-last-match search)
+                                       (copy-marker (point)))
+                                 (el-search--skip-expression nil t)
+                                 (setf (el-search-head-position head)
+                                       (copy-marker (point)))
+                                 (cons ;Return the cons defining the build recipe of the stream
+                                  (list (el-search-head-buffer head)
+                                        match
+                                        (el-search-head-file head))
+                                  (funcall get-stream)))
+                             (setf (el-search-head-buffer head) nil
+                                   (el-search-head-file   head) nil)
+                             (el-search--next-buffer search nil t)
+                             ;; retry with the next buffer
+                             (cons nil (funcall get-stream)))))
+                     ;; end of stream (no buffers left to search in)
+                     nil)))))
+        get-stream)))))
 
 (defun el-search-make-search (pattern get-buffer-stream)
   "Create and return a new `el-search-object' instance.
 PATTERN is the pattern to search, and GET-BUFFER-STREAM a
 function that returns a stream of buffers and/or files to search
 in, in order, when called with no arguments."
-  (let* ((matcher (el-search--matcher pattern))
-         (head (make-el-search-head
-                :get-buffer-stream get-buffer-stream
-                :matcher matcher
-                :buffers (funcall get-buffer-stream)
-                :heuristic-buffer-matcher (el-search-heuristic-buffer-matcher pattern)))
-         (search (make-el-search-object :head head)))
-    (el-search--setup-matches-stream search)
-    search))
+  (let (self)
+    (setq self
+          (make-el-search-object
+           :pattern pattern
+           :head (make-el-search-head
+                  :get-buffer-stream get-buffer-stream
+                  :matcher (el-search--matcher pattern)
+                  :buffers (funcall get-buffer-stream)
+                  :heuristic-buffer-matcher (el-search-heuristic-buffer-matcher pattern))
+           :get-matches (lambda () (el-search--all-matches self))))))
 
 (defun el-search-reset-search (search)
   "Return a reset copy of SEARCH."
@@ -1118,8 +1204,19 @@ in, in order, when called with no arguments."
     (setf (el-search-head-buffer head)   nil)
     (setf (el-search-head-file head)     nil)
     (setf (el-search-head-position head) nil)
-    (el-search--setup-matches-stream copy)
+    (setf (el-search-object-last-match copy) nil)
     copy))
+
+(defun el-search-setup-search-1 (pattern get-buffer-stream  &optional from-here)
+  (setq el-search--success nil)
+  (setq el-search--current-search
+        (el-search-make-search pattern get-buffer-stream))
+  (let ((call
+         ;; (car command-history) ;FIXME: this is not always what we want!
+         nil))
+    (ring-insert el-search-history el-search--current-search)
+    (setf (el-search-object-command el-search--current-search) call))
+  (when from-here (setq el-search--temp-buffer-flag nil)))
 
 (defun el-search-setup-search (pattern get-buffer-stream &optional from-here)
   "Create and start a new el-search.
@@ -1130,89 +1227,140 @@ files (i.e. file names) to search in.
 With optional FROM-HERE non-nil, the first buffer in this stream
 should be the current buffer, and searching will start at the
 current buffer's point instead of its beginning."
-  (setq el-search--success nil)
-  (setq el-search--current-search
-        (el-search-make-search (el-search--wrap-pattern pattern) get-buffer-stream))
-  (setq el-search--current-matcher
-        (el-search-head-matcher (el-search-object-head el-search--current-search)))
-  (setq el-search--current-pattern pattern)
-  (ring-insert el-search-history (list el-search--current-search pattern))
-  (when from-here (setq el-search--temp-buffer-flag nil))
-  (el-search-continue-search from-here))
+  (el-search-setup-search-1 pattern get-buffer-stream)
+  (if (not el-search-occur-flag)
+      (el-search-continue-search from-here)
+    (setq el-search-occur-flag nil)
+    (el-search-occur)))
 
 (defun el-search-stream-of-directory-files (&optional directory recurse)
   "Return a stream of emacs-lisp files in DIRECTORY.
 DIRECTORY defaults to `default-directory'.  The returned stream
 will recurse into DIRECTORY's subdirectories when RECURSE is
-non-nil unless their name is matched by one of the
-`el-search-ignored-directory-regexps'."
+non-nil. Subdirectories whose name is matched by one of the
+`el-search-ignored-directory-regexps' are excluded.  When
+`el-search-respect-nosearch' has a non-nil value, subdirectories
+that contain a file named \".nosearch\" are excluded as well."
   (stream-of-directory-files
    (or directory default-directory)
    t nil
    (and recurse
         (lambda (dir-name)
-          (not (cl-some (lambda (regexp) (string-match-p regexp dir-name))
-                        el-search-ignored-directory-regexps))))
-   t #'el-search--elisp-file-name-p))
+          (not (or (cl-some (lambda (regexp) (string-match-p regexp (file-name-nondirectory dir-name)))
+                            el-search-ignored-directory-regexps)
+                   (and
+                    el-search-respect-nosearch
+                    (directory-files dir-name nil "\\`\\.nosearch\\'" t))))))
+   t #'el-search--elisp-file-p))
+
+;;;###autoload
+(defun el-search-install-shift-bindings ()
+  (interactive)
+
+  (define-key emacs-lisp-mode-map [(control ?S)] #'el-search-pattern)
+  (define-key emacs-lisp-mode-map [(control ?R)] #'el-search-pattern-backwards)
+  (define-key emacs-lisp-mode-map [(control ?%)] #'el-search-query-replace)
+  (define-key global-map          [(control ?J)] #'el-search-jump-to-search-head)
+  (define-key global-map          [(control ?A)] #'el-search-from-beginning)
+  (define-key global-map          [(control ?D)] #'el-search-skip-directory)
+  (define-key global-map          [(control ?N)] #'el-search-continue-in-next-buffer)
+
+  (define-key global-map          [(control ?O)] #'el-search-occur)
+
+  (define-key el-search-read-expression-map [(control ?S)] #'exit-minibuffer)
+  (define-key el-search-read-expression-map [(control ?R)] #'exit-minibuffer)
+  (define-key el-search-read-expression-map [(control ?O)]
+    #'el-search-set-occur-flag-exit-minibuffer)
+
+  (define-key isearch-mode-map [(control ?S)] #'el-search-search-from-isearch)
+  (define-key isearch-mode-map [(control ?R)] #'el-search-search-backwards-from-isearch)
+  (define-key isearch-mode-map [(control ?%)] #'el-search-replace-from-isearch)
+  (define-key isearch-mode-map [(control ?O)] #'el-search-occur-from-isearch)
+
+  (define-key global-map [(control ?E)] #'el-search-emacs-elisp-sources)
+  (define-key global-map [(control ?L)] #'el-search-load-path)
+  (define-key global-map [(control ?B)] #'el-search-buffers)
+
+  (defvar dired-mode-map)
+
+  (with-eval-after-load 'dired
+    (define-key dired-mode-map [(control ?S)] #'el-search-dired-marked-files)))
 
 
 ;;;; Additional pattern type definitions
 
-(defun el-search--eregexp-p (thing)
-  ;; Return non-nil when THING is an "extended regexp" in the sense of
-  ;; the "string" pattern type
-  (pcase thing
-    ((pred stringp) t)
-    (`(,(and (pred listp) bindings)
-       ,(pred stringp))
-     (cl-every
-      (lambda (binding) (pcase binding ((or (pred symbolp) `(,(pred symbolp)) `(,(pred symbolp) ,_)) t)))
-      bindings))))
+(defun el-search-regexp-like (thing)
+  "Return non-nil when THING is regexp like.
 
-(el-search-defpattern string (&rest regexps)
-  "Matches any string that is matched by all REGEXPS.
-
-Any of the REGEXPS can also be an \"extended\" regexp of the form
+In el-search, a regexp-like is either a normal regexp (i.e. a
+string), or a predicate accepting a string argument, or a list of
+the form
 
   \(bindings regexp\)
 
 where REGEXP is the actual regexp to match and BINDINGS is a
 let-style list of variable bindings.
 
-Example: (((case-fold-search nil)) \"foo\") is an extended regexp
+Example: (((case-fold-search nil)) \"foo\") is a regexp like
 matching \"foo\", but not \"Foo\" even when `case-fold-search' is
 currently enabled."
+  (pcase thing
+    ((or (pred stringp) (pred functionp)) t)
+    (`(,(and (pred listp) bindings)
+       ,(pred stringp))
+     (cl-every
+      (lambda (binding) (pcase binding ((or (pred symbolp) `(,(pred symbolp)) `(,(pred symbolp) ,_)) t)))
+      bindings))))
+
+(defun el-search--string-matcher (regexp-like)
+  "Return a compiled match predicate for REGEXP-LIKE.
+That's a predicate returning non-nil when the
+`el-search-regexp-like' REGEXP-LIKE matches the (only)
+argument (that should be a string)."
+  (let ((match-bindings ()) regexp)
+    (pcase regexp-like
+      ((pred stringp) (setq regexp regexp-like))
+      (`(,binds ,real-regexp)
+       (setq regexp real-regexp)
+       (setq match-bindings binds)))
+    (if (functionp regexp-like)
+        (if (or (symbolp regexp-like) (byte-code-function-p regexp-like))
+            regexp-like
+          (byte-compile regexp-like))
+      (byte-compile
+       (let ((string (make-symbol "string")))
+         `(lambda (,string) (let ,match-bindings (string-match-p ,regexp ,string))))))))
+
+(el-search-defpattern string (&rest regexps)
+  "Matches any string that is matched by all REGEXPS.
+Any of the REGEXPS is an `el-search-regexp-like'."
   (declare (heuristic-matcher
-            (lambda (&rest eregexps)
-              (let ((eregexp-matchers (mapcar #'el-search--string-matcher eregexps)))
+            (lambda (&rest regexps)
+              (let ((matchers (mapcar #'el-search--string-matcher regexps)))
                 (lambda (_ atoms-thunk)
                   (cl-some
                    (lambda (atom)
                      (and (stringp atom)
-                          (cl-every (lambda (matcher) (funcall matcher atom)) eregexp-matchers)))
+                          (cl-every (lambda (matcher) (funcall matcher atom)) matchers)))
                    (thunk-force atoms-thunk)))))))
-  (el-search-defpattern--check-args "string" regexps #'el-search--eregexp-p
-                                    "argument not a regexp")
+  (el-search-defpattern--check-args "string" regexps #'el-search-regexp-like)
   `(and (pred stringp)
         ,@(mapcar (lambda (regexp) `(pred ,(el-search--string-matcher regexp)))
                   regexps)))
 
 (el-search-defpattern symbol (&rest regexps)
   "Matches any symbol whose name is matched by all REGEXPS.
-Any of the REGEXPS can be an extended regexp of the form
-\(bindings regexp\) like in the \"string\" pattern."
+Any of the REGEXPS is an `el-search-regexp-like'."
   (declare (heuristic-matcher
-            (lambda (&rest eregexps)
-              (let ((eregexp-matchers
-                     (mapcar #'el-search--string-matcher eregexps)))
+            (lambda (&rest regexps)
+              (let ((matchers (mapcar #'el-search--string-matcher regexps)))
                 (lambda (_ atoms-thunk)
                   (cl-some
                    (lambda (atom)
                      (when-let ((symbol-name (and (symbolp atom) (symbol-name atom))))
-                       (cl-every (lambda (matcher) (funcall matcher symbol-name)) eregexp-matchers)))
+                       (cl-every (lambda (matcher) (funcall matcher symbol-name)) matchers)))
                    (thunk-force atoms-thunk)))))))
-  (el-search-defpattern--check-args "symbol" regexps #'el-search--eregexp-p
-                                    "argument not a regexp")
+  (el-search-defpattern--check-args "symbol" regexps #'el-search-regexp-like)
   `(and (pred symbolp) (app symbol-name (string ,@regexps))))
 
 (defun el-search--contains-p (matcher expr)
@@ -1236,9 +1384,9 @@ matching element found in EXPR."
                    (funcall try-match (cdr expr))) ;(1)
              (cl-some try-match expr))))))
 ;; (1) This means we consider (a b c) to "contain" (b c).  Because we
-;; want (a . (b c)) [such a style makes sense e.g. for alists] to
-;; "contain" (b c), and we don't want recursion to depend on actual
-;; reader syntax.
+;; want (a . (b c)) [a syntax common e.g. for notation of alists] to
+;; "contain" (b c), and we don't want the matching behavior to depend
+;; on actual reader syntax.
 
 (el-search-defpattern contains (&rest patterns)
   "Matches expressions that contain a match for all PATTERNs.
@@ -1251,8 +1399,8 @@ matches
 
   \((\"Hallo\") x (5 [1 17])).
 
-The expression itself is included, so for example `1' is matched
-by \(contains 1\)."
+The tested expression itself is included, so for example `1' is
+matched by \(contains 1\)."
   (declare (heuristic-matcher
             (lambda (&rest patterns)
               (let ((matchers (mapcar #'el-search-heuristic-matcher patterns)))
@@ -1267,12 +1415,37 @@ by \(contains 1\)."
             `(t ,,pattern)))) ; Match again to establish bindings PATTERN should create
    (t `(and ,@(mapcar (lambda (pattern) `(contains ,pattern)) patterns)))))
 
+(el-search-defpattern in-buffer (&rest atoms)
+  "Matches anything in buffers containing all ATOMS.
+
+This pattern matches anything, but only in files or buffers that
+contain all of the ATOMS.  In all other files and buffers it
+never matches."
+  (declare (heuristic-matcher (alist-get 'contains el-search--heuristic-matchers)))
+  (el-search-defpattern--check-args
+   "in-buffer" atoms
+   (lambda (arg)
+     (cl-flet ((atom-or-string-p (arg) (or (atom arg) (stringp arg))))
+       (pcase arg
+         ((or (pred atom-or-string-p) `',(pred atom-or-string-p) ``,(pred atom-or-string-p)) t))))
+   "argument not an atom or string")
+  (ignore atoms)
+  (unless el-search-optimized-search
+    (user-error "Pattern `in-buffer' can't be used with `el-search-optimized-search' turned off"))
+  '_)
+
+(el-search-defpattern in-file (&rest atoms)
+  "This is synonymous with `in-buffer'."
+  `(in-buffer ,@atoms))
+
 (el-search-defpattern not (pattern)
   "Matches anything that is not matched by PATTERN."
   (declare
    (heuristic-matcher ;We can't just negate the hm of the PATTERN...
     (lambda (pattern)
       (pcase pattern
+        ;; We currently only handle (not (PNAME . ARGS)) where PNAME is the
+        ;; name of a pattern type with an inverse heuristic matcher definition
         ((and `(,name . ,args)
               (let inverse-heuristic-matcher (alist-get name el-search--inverse-heuristic-matchers))
               (guard inverse-heuristic-matcher))
@@ -1287,15 +1460,13 @@ by \(contains 1\)."
 
 (defalias 'el-search--symbol-file-matcher
   (el-search-with-short-term-memory
-   (lambda (_current-load-history eregexp-or-predicate)
+   (lambda (_current-load-history regexp-like)
      ;; We enclosure a prepared hash table containing all the symbols "in"
      (let ((table (make-hash-table))
            (file-name-matches-p
-            (if (functionp eregexp-or-predicate)
-                eregexp-or-predicate
-              (let ((string-matcher (el-search--string-matcher eregexp-or-predicate)))
-                (lambda (file-name) (funcall string-matcher (file-name-sans-extension
-                                                        (file-name-nondirectory file-name))))))))
+            (let ((string-matcher (el-search--string-matcher regexp-like)))
+              (lambda (file-name) (funcall string-matcher (file-name-sans-extension
+                                                      (file-name-nondirectory file-name)))))))
        (pcase-dolist (`(,file-name . ,definitions) load-history)
          (when (and (stringp file-name)
                     (funcall file-name-matches-p file-name))
@@ -1309,69 +1480,66 @@ by \(contains 1\)."
                 (puthash symbol t table))))))
        (lambda (symbol) (and (symbolp symbol) (gethash symbol table)))))))
 
-(el-search-defpattern symbol-file (regexp-or-predicate)
-  "Matches any symbol whose `symbol-file' is matched by REGEXP-OR-PREDICATE.
+(el-search-defpattern symbol-file (regexp)
+  "Matches any symbol whose `symbol-file' is matched by REGEXP.
 
-When REGEXP-OR-PREDICATE is a regexp, this pattern matches when
-the object is a symbol for that `symbol-file' returns a (non-nil)
-FILE-NAME so that
+This pattern matches when the object is a symbol for that
+`symbol-file' returns a (non-nil) FILE-NAME so that
 
    (file-name-sans-extension (file-name-nondirectory FILENAME)))
 
-is matched by it.  If REGEXP-OR-PREDICATE is a function
-expression, the absolute FILE-NAME is tested."
+is matched by the `el-search-regexp-like' REGEXP."
   (declare
    (heuristic-matcher
-    (lambda (regexp-or-predicate)
+    (lambda (regexp)
       (lambda (_ atoms-thunk)
-        (cl-some (el-search--symbol-file-matcher (copy-sequence load-history) regexp-or-predicate)
+        (cl-some (el-search--symbol-file-matcher
+                  (copy-sequence load-history) ;FIXME: would the car of the load-history suffice?
+                  regexp)
                  (thunk-force atoms-thunk))))))
-  (el-search-defpattern--check-args "symbol-file" (list regexp-or-predicate)
-                                    (lambda (arg) (or (el-search--eregexp-p arg) (functionp arg)))
-                                    "argument not a regexp or predicate")
+  (el-search-defpattern--check-args "symbol-file" (list regexp) #'el-search-regexp-like)
   (let ((this (make-symbol "this")))
     `(and ,this
           (guard (funcall (el-search--symbol-file-matcher (copy-sequence load-history)
-                                                          ',regexp-or-predicate)
+                                                          ',regexp)
                           ,this)))))
 
-(defun el-search-file--matcher (&optional regexp-or-predicate)
-  ;; Return a file name matcher according to REGEXP-OR-PREDICATE.  This
-  ;; is a predicate accepting two arguments that returns non-nil when
-  ;; the first argument is a file name (i.e. a string) that is matched
-  ;; by/fulfills the REGEXP-OR-PREDICATE.  It ignores the second
-  ;; argument.
+(defun el-search--filename-matcher (&rest regexps)
+  ;; Return a file name matcher for the REGEXPS.  This is a predicate
+  ;; accepting two arguments that returns non-nil when the first
+  ;; argument is a file name (i.e. a string) that is matched by all
+  ;; REGEXPS, or a buffer whose associated file name matches
+  ;; accordingly.  It ignores the second argument.
+  ;; Any of the REGEXPS can also be an generalized regexp.
   (let ((get-file-name (lambda (file-name-or-buffer)
                          (if (bufferp file-name-or-buffer)
                              (buffer-file-name file-name-or-buffer)
-                           file-name-or-buffer)))
-        (file-name-matcher (pcase regexp-or-predicate
-                             ('nil)
-                             ((pred stringp) (apply-partially #'string-match-p regexp-or-predicate))
-                             ((pred functionp) regexp-or-predicate)
-                             (_ (user-error "Pattern `file': illegal argument: %S"
-                                            regexp-or-predicate)))))
-    (if (not regexp-or-predicate)
+                           file-name-or-buffer))))
+    (if (not regexps)
         (lambda (file-name-or-buffer _) (funcall get-file-name file-name-or-buffer))
-      (let ((test-file-name-or-buffer
-             (el-search-with-short-term-memory
-              (lambda (file-name-or-buffer)
-                (when-let ((file-name (funcall get-file-name file-name-or-buffer)))
-                  (funcall file-name-matcher file-name))))))
+      (let* ((regexp-matchers (mapcar #'el-search--string-matcher regexps))
+             (test-file-name-or-buffer
+              (el-search-with-short-term-memory
+               (lambda (file-name-or-buffer)
+                 (when-let ((file-name (funcall get-file-name file-name-or-buffer)))
+                   (cl-every (lambda (matcher) (funcall matcher file-name)) regexp-matchers))))))
         (lambda (file-name-or-buffer _) (funcall test-file-name-or-buffer file-name-or-buffer))))))
 
-(el-search-defpattern file (&optional function-or-regexp)
+(el-search-defpattern filename (&rest regexps)
   "Matches anything when the searched buffer has an associated file.
 
-With REGEXP-OR-PATTERN given, the file's absolute name must be
-matched by it."
-  (declare (heuristic-matcher #'el-search-file--matcher)
+With any REGEXPS given, the file's absolute name must be matched
+by all of them.  The REGEXPS are `el-search-regexp-like's."
+  ;;FIXME: should we also allow to match the f-n-nondirectory and
+  ;;f-n-sans-extension?  Maybe it could become a new pattern type named `feature'?
+  (declare (heuristic-matcher #'el-search--filename-matcher)
            (inverse-heuristic-matcher t))
-  (let ((file-name-matcher (el-search-file--matcher function-or-regexp)))
+  (el-search-defpattern--check-args "filename" regexps #'el-search-regexp-like)
+  (let ((file-name-matcher (apply #'el-search--filename-matcher regexps)))
     ;; We can't expand to just t because this would not work with `not'.
-    ;; `el-search-file--matcher' caches the result, so this is still a
+    ;; `el-search--filename-matcher' caches the result, so this is still a
     ;; pseudo constant
-    `(guard (funcall ',file-name-matcher buffer-file-name nil))))
+    `(guard (funcall ',file-name-matcher (current-buffer) nil))))
 
 
 ;;;; Highlighting
@@ -1381,7 +1549,10 @@ matched by it."
 (defvar-local el-search-hl-other-overlays '())
 
 (defvar el-search-keep-hl nil
-  "Non-nil indicates we should not remove any highlighting.")
+  "Non-nil indicates we should not remove any highlighting.
+
+If the non-nil value is the symbol `once', inhibit highlight
+removal only once.")
 
 (defun el-search-hl-sexp (&optional bounds)
   (let ((bounds (or bounds (list (point) (el-search--end-of-sexp)))))
@@ -1459,12 +1630,13 @@ local binding of `window-scroll-functions'."
   (add-hook 'window-scroll-functions #'el-search--after-scroll t t))
 
 (defun el-search--after-scroll (_win start)
-  (el-search--hl-other-matches-1 el-search--current-matcher
-                                 (save-excursion
-                                   (goto-char start)
-                                   (beginning-of-defun-raw)
-                                   (point))
-                                 (window-end nil t)))
+  (el-search--hl-other-matches-1
+   (el-search--current-matcher)
+   (save-excursion
+     (goto-char start)
+     (beginning-of-defun-raw)
+     (point))
+   (window-end nil t)))
 
 (defun el-search-hl-remove ()
   (when (overlayp el-search-hl-overlay)
@@ -1474,12 +1646,16 @@ local binding of `window-scroll-functions'."
   (setq el-search-hl-other-overlays '()))
 
 (defun el-search-hl-post-command-fun ()
-  (unless (or el-search-keep-hl
-              (eq this-command 'el-search-query-replace)
+  (unless (or (eq this-command 'el-search-query-replace)
               (eq this-command 'el-search-pattern))
-    (el-search-hl-remove)
-    (remove-hook 'post-command-hook 'el-search-hl-post-command-fun t)
-    (setq el-search--temp-buffer-flag nil)))
+    (setq el-search--wrap-flag nil)
+    (if el-search-keep-hl
+        (when (eq el-search-keep-hl 'once)
+          (setq el-search-keep-hl nil))
+      (el-search-hl-remove)
+      (remove-hook 'post-command-hook 'el-search-hl-post-command-fun t)
+      (setq el-search--temp-buffer-flag nil)
+      (el-search-kill-left-over-search-buffers))))
 
 
 ;;;; Core functions
@@ -1495,37 +1671,44 @@ With prefix arg, prompt for a prior search to resume, and make
 that the current search."
   (interactive "P")
   (when previous-search
+    ;; FIXME: would it be better to include some context around the search
+    ;; head - or to even use an overview buffer for selection?
     (let ((entry (ring-ref
                   el-search-history
                   (string-to-number
                    (let ((completion-extra-properties
                           `(:annotation-function
                             ,(lambda (elt)
-                               (format "  Search in %S for %S"
-                                       (el-search-head-buffer
-                                        (el-search-object-head
-                                         (car (ring-ref el-search-history (string-to-number elt)))))
-                                       (cadr (ring-ref el-search-history (string-to-number elt))))))))
+                               (let ((search (ring-ref el-search-history (string-to-number elt))))
+                                 (concat
+                                  " "
+                                  (if-let ((command (el-search-object-command search)))
+                                      (concat "`" (prin1-to-string (car command)) "'")
+                                    "Search")
+                                  (if-let ((buffer
+                                            (el-search-head-buffer
+                                             (el-search-object-head
+                                              search))))
+                                      (format " [paused in %s]"
+                                              (if (buffer-live-p buffer)
+                                                  (concat "buffer " (buffer-name buffer))
+                                                "a killed buffer"))
+                                    " [completed]")
+                                  "\n" (pp-to-string (el-search-object-pattern search))))))))
                      (completing-read
                       "Resume previous search: "
                       (mapcar #'prin1-to-string
                               (number-sequence 0 (1- (ring-length el-search-history))))))))))
-      (setq el-search--current-search  (car entry))
-      (setq el-search--current-pattern (cadr entry)))
-    (setq el-search--current-matcher
-          (el-search-head-matcher (el-search-object-head el-search--current-search)))
-    (el-search--pushnew-to-history
-     (el-search--pp-to-string el-search--current-pattern)
-     'el-search-pattern-history))
+      (setq el-search--current-search entry)
+      (setq el-search--success t)
+      (setq el-search--wrap-flag nil)))
   (if-let ((search el-search--current-search)
            (current-head (el-search-object-head search))
            (current-search-buffer (el-search-head-buffer current-head)))
       (if (not (buffer-live-p current-search-buffer))
           (user-error "Search head points to a killed buffer")
         (setq this-command 'el-search-pattern)
-        (let ((win (display-buffer current-search-buffer el-search-display-buffer-action)))
-          (select-frame-set-input-focus (window-frame win))
-          (select-window win))
+        (pop-to-buffer current-search-buffer el-search-display-buffer-popup-action)
         (let ((last-match (el-search-object-last-match search)))
           (if (not (and last-match
                         (eq (marker-buffer last-match) (current-buffer))))
@@ -1533,11 +1716,11 @@ that the current search."
               (goto-char (el-search-head-position current-head))
             (goto-char last-match)
             (el-search-hl-sexp)
-            (el-search-hl-other-matches el-search--current-matcher)
-            (set-transient-map el-search-map))))
-    (when (y-or-n-p "Last search finished; restart? ")
-      (cl-callf el-search-reset-search el-search--current-search)
-      (el-search-continue-search))))
+            (el-search-hl-other-matches (el-search--current-matcher)))))
+    (el-search--message-no-log "[Search completed - restarting]")
+    (sit-for 1.5)
+    (cl-callf el-search-reset-search el-search--current-search)
+    (el-search-continue-search)))
 
 (defun el-search-continue-search (&optional from-here)
   "Continue or resume the current search.
@@ -1548,40 +1731,73 @@ instead of the position where the search would normally be
 continued."
   (interactive "P")
   (setq this-command 'el-search-pattern)
-  (setq el-search--current-matcher
-        (el-search-head-matcher (el-search-object-head el-search--current-search)))
-  (let ((old-current-buffer (current-buffer)))
-    (when from-here
-      (let* ((head (el-search-object-head el-search--current-search))
+  (unwind-protect
+      (let* ((old-current-buffer (current-buffer))
+             (head (el-search-object-head el-search--current-search))
              (current-search-buffer
               (or (el-search-head-buffer head)
                   (el-search--next-buffer el-search--current-search))))
-        (cond
-         ((eq (current-buffer) current-search-buffer)
-          (setf (el-search-head-position head) (copy-marker (point))))
-         ((and current-search-buffer (buffer-live-p current-search-buffer))
-          (user-error "Please resume from buffer %s" (buffer-name current-search-buffer)))
-         (current-search-buffer
-          (user-error "Search head points to a killed buffer")))))
-    (unwind-protect
-        (let ((stream-of-matches (el-search-object-matches el-search--current-search)))
-          (if (not (stream-empty-p stream-of-matches))
-              (let ((match (stream-first stream-of-matches)))
-                (switch-to-buffer (car match))
-                (goto-char (cadr match))
-                (cl-callf stream-rest (el-search-object-matches el-search--current-search))
-                (el-search-hl-sexp)
-                (unless (and (eq this-command last-command)
-                             el-search--success
-                             (eq (current-buffer) old-current-buffer))
-                  (el-search-hl-other-matches el-search--current-matcher))
-                (set-transient-map el-search-map)
-                (setq el-search--success t))
-            (setq el-search--success nil)
-            (set-transient-map nil)
-            (el-search-kill-left-over-search-buffers)
-            (message "Done!")))
-      (unless el-search--success (setq el-search--current-pattern nil)))))
+        (when from-here
+          (cond
+           ((eq (current-buffer) current-search-buffer)
+            (setf (el-search-head-position head) (copy-marker (point))))
+           ((and current-search-buffer (buffer-live-p current-search-buffer))
+            (user-error "Please resume from buffer %s" (buffer-name current-search-buffer)))
+           (current-search-buffer
+            (user-error "Search head points to a killed buffer"))))
+        (let ((match nil)
+              (matcher (el-search--current-matcher)))
+          (while (and (el-search-head-buffer head)
+                      (not (setq match (with-current-buffer (el-search-head-buffer head)
+                                         (save-excursion
+                                           (goto-char (el-search-head-position head))
+                                           (el-search--search-pattern-1 matcher t))))))
+            (el-search--next-buffer el-search--current-search))
+          (if (not match)
+              (progn
+                (if (not (or el-search--success
+                             (and from-here
+                                  (save-excursion
+                                    (goto-char (point-min))
+                                    (el-search--search-pattern-1 matcher t)))))
+                    (progn
+                      (el-search--message-no-log "No matches")
+                      (sit-for .7))
+                  (setq el-search--wrap-flag 'forward)
+                  (let ((keys (car (where-is-internal 'el-search-pattern))))
+                    (el-search--message-no-log
+                     (if keys
+                         (format "No (more) matches - Hit %s to wrap search"
+                                 (key-description keys)))
+                     "No (more) matches"))))
+            (let (match-start)
+              ;; If (el-search-head-buffer head) is only a worker buffer, replace it
+              ;; with a buffer created with `find-file-noselect'
+              (with-current-buffer (el-search-head-buffer head)
+                (goto-char match)
+                (setq match-start (point))
+                (when el-search--temp-file-buffer-flag
+                  (let ((file-name buffer-file-name))
+                    (setq buffer-file-name nil) ;prevent f-f-ns to find this buffer
+                    (let ((buffer-list-before (buffer-list))
+                          (new-buffer (find-file-noselect file-name)))
+                      (setf (el-search-head-buffer head) new-buffer)
+                      (unless (memq new-buffer buffer-list-before)
+                        (with-current-buffer new-buffer
+                          (setq-local el-search--temp-buffer-flag t)))))))
+              (pop-to-buffer (el-search-head-buffer head) el-search-display-next-buffer-action)
+              (goto-char match-start))
+            (setf (el-search-object-last-match el-search--current-search)
+                  (copy-marker (point)))
+            (setf (el-search-head-position head)
+                  (copy-marker (point)))
+            (el-search-hl-sexp)
+            (unless (and (eq this-command last-command)
+                         el-search--success
+                         (eq (current-buffer) old-current-buffer))
+              (el-search-hl-other-matches matcher))
+            (setq el-search--success t))))
+    (el-search-kill-left-over-search-buffers)))
 
 (defun el-search-skip-directory (directory)
   "Skip all subsequent matches in files located under DIRECTORY."
@@ -1613,28 +1829,39 @@ PATTERN is given, start a new single-buffer search from point.
 The minibuffer is put into `emacs-lisp-mode' for reading the
 input pattern, and there are some special key bindings:
 \\<el-search-read-expression-map>\\[newline] inserts a newline,
-and <up> and <down> are unbound to let you move the cursor
-vertically - see `el-search-read-expression-map' for details.
+and <up> and <down> are unbound in the local map to let you move
+the cursor vertically - see `el-search-read-expression-map' for
+details.
 
 PATTERN is an \"el-search\" pattern - which means, either a
 `pcase' pattern or complying with one of the additional pattern
 types defined with `el-search-defpattern'.  The following
 additional pattern types are currently defined:"
-  (interactive (list (if (and (eq this-command last-command)
-                              el-search--success)
-                         el-search--current-pattern
+  (declare (interactive-only el-search-forward))
+  (interactive (list (if (or (memq #'el-search-hl-post-command-fun post-command-hook) ;FIXME: ugh!
+                             (and (eq this-command last-command)
+                                  (or el-search--success el-search--wrap-flag)))
+                         (el-search--current-pattern)
                        (el-search--read-pattern-for-interactive))))
   (cond
+   ((eq el-search--wrap-flag 'forward)
+    (progn
+      (setq el-search--wrap-flag nil)
+      (el-search--message-no-log "[Wrapped search]")
+      (sit-for .7)
+      (el-search-from-beginning 'restart)))
    ((and (eq this-command last-command)
-         (eq pattern el-search--current-pattern))
+         (eq pattern (el-search--current-pattern)))
     (progn
       (el-search--skip-expression nil t)
       (el-search-continue-search 'from-here)))
-   ((and (equal pattern el-search--current-pattern)
+   ((and (equal pattern (el-search--current-pattern))
          (eq (current-buffer)
              (el-search-head-buffer (el-search-object-head el-search--current-search))))
-    (el-search-continue-search 'from-here))
-   (t ;; create a new search single-buffer search
+    ;; FIXME: We don't want to create a new search here, but when a
+    ;; pattern definition has changed, this uses the old definition.
+     (el-search-continue-search 'from-here))
+   (t ;create a new search single-buffer search
     (el-search-setup-search
      pattern
      (let ((current-buffer (current-buffer)))
@@ -1643,67 +1870,355 @@ additional pattern types are currently defined:"
 
 (put 'el-search-pattern 'function-documentation '(el-search--make-docstring 'el-search-pattern))
 
-(defun el-search-previous-match ()
-  "Revisit found matches in the current buffer in reverse order."
-  ;; Implementing backward el-searching is very hard (or very slow,
-  ;; alternatively), so let's use this for now...
-  (interactive)
-  (if (not (el-search-head-buffer (el-search-object-head el-search--current-search)))
-      ;; FIXME: This case is tricky; the user would expect that when he hits
-      ;; C-S afterwards, the search is restored with the old matches
-      ;; "merged".  So for now, we raise this:
-      (user-error "Last search completed, please restart the search")
-    (setq this-command 'el-search-pattern)
-    (let ((last-match-beg (el-search-object-last-match el-search--current-search)))
-      (if (< last-match-beg (point))
-          (el-search-jump-to-search-head)
-        (let ((go-there nil) (matches el-search--this-buffer-matches))
-          (catch 'done
-            (while (and (not (stream-empty-p matches))
-                        (< (cadr (stream-first matches)) (point)))
-              (setq go-there (cadr (stream-first matches)))
-              (stream-pop matches)))
-          (if (not go-there)
-              (el-search--message-no-log "[Beginning of this buffer's recorded matches]")
-            (goto-char go-there)
-            (el-search-hl-sexp)
-            (set-transient-map el-search-map)))))))
+(defun el-search-from-beginning (&optional restart-search)
+  "Go to the first of this buffer's matches.
+With prefix arg, restart the current search."
+  (interactive "P")
+  (if (not restart-search)
+      (setf (el-search-head-position (el-search-object-head el-search--current-search))
+            (point-min))
+    (cl-callf el-search-reset-search el-search--current-search)
+    (setq el-search--success nil))
+  (el-search-continue-search))
 
-(defun el-search--occur (search)
-  ;; This is a poorly written stub!
-  (cl-letf ((occur-buffer (generate-new-buffer "*El Occur*"))
-            (last nil) (matches nil) (overall-matches 0)
-            (el-search-keep-hl t)
-            ((symbol-function 'el-search-hl-remove) #'ignore))
+(defun el-search-pattern-backwards (pattern)
+  "Search the current buffer backwards for matches of PATTERN."
+  (declare (interactive-only t))
+  (interactive (list (if (and (eq last-command 'el-search-pattern)
+                              (or el-search--success el-search--wrap-flag))
+                         (el-search--current-pattern)
+                       (el-search--read-pattern-for-interactive))))
+  (unless (eq pattern (el-search--current-pattern))
+    (el-search-setup-search-1
+     pattern
+     (let ((current-buffer (current-buffer)))
+       (lambda () (stream (list current-buffer))))
+     'from-here)
+    ;; Make this buffer the current search buffer so that a following C-S
+    ;; doesn't delete highlighting
+    (el-search--next-buffer el-search--current-search))
+  (setq this-command 'el-search-pattern)
+  (when (eq el-search--wrap-flag 'backward)
+    (setq el-search--wrap-flag nil)
+    (el-search--message-no-log "[Wrapped backward search]")
+    (sit-for .7)
+    (goto-char (point-max)))
+  (let ((outer-loop-done nil)
+        (original-point (point))
+        (matcher (el-search--current-matcher)))
+    ;; Strategy: search forwards (inner loop) for PATTERN, starting from
+    ;; this toplevel expression's beginning up to point, then if no match
+    ;; is found, search the top level expression before this one up to its
+    ;; end, etc (outer loop).
+    (while (not outer-loop-done)
+      (let ((last-match nil)
+            (limit (point))
+            (defun-start (or (syntax-ppss-toplevel-pos (syntax-ppss))
+                             (scan-sexps (point) -1)))
+            (done nil) defun-end)
+        (when defun-start
+          (goto-char defun-start)
+          (setq defun-end (scan-sexps defun-start 1))
+          (while (and (not done)
+                      (el-search--search-pattern-1 matcher 'no-error defun-end))
+            (if (>= (point) limit)
+                (setq done t)
+              (setq last-match (point))
+              (el-search--skip-expression nil t))))
+        (if (not last-match)
+            (if defun-start
+                (goto-char defun-start)
+              ;; reached bob
+              (goto-char original-point)
+              (setq outer-loop-done t)
+              (if (not (or el-search--success
+                           (save-excursion
+                             (goto-char (point-min))
+                             (el-search--search-pattern-1 matcher t))))
+                  (progn
+                    (ding)
+                    (el-search--message-no-log "No matches")
+                    (sit-for .7))
+                (let ((keys (car (where-is-internal 'el-search-pattern-backwards))))
+                  (el-search--message-no-log
+                   (if keys
+                       (format "No (more) match; hit %s to wrap search" (key-description keys))
+                     "No (more) match")))
+                (sit-for .7)
+                (goto-char original-point)
+                (setq el-search--wrap-flag 'backward)))
+          (setq outer-loop-done t)
+          (goto-char last-match)
+          (setf (el-search-head-position (el-search-object-head el-search--current-search))
+                (copy-marker (point)))
+          (setf (el-search-object-last-match el-search--current-search)
+                (copy-marker (point)))
+          (el-search-hl-sexp)
+          (unless (eq last-command 'el-search-pattern)
+            (el-search-hl-other-matches (el-search--current-matcher)))
+          (setq el-search--success t))))))
+
+(define-obsolete-function-alias 'el-search-previous-match 'el-search-pattern-backwards)
+
+
+;;;; El-Occur
+
+(defvar-local el-search-occur-search-object nil)
+
+
+(defvar orgstruct-heading-prefix-regexp)
+(declare-function org-back-to-heading 'org)
+(declare-function org-global-cycle    'org)
+(declare-function orgstruct-mode      'org)
+
+(defun el-search-occur-revert-function (&rest _)
+  (el-search--occur el-search-occur-search-object t))
+
+(defun el-search-occur-jump-to-match ()
+  (interactive)
+  (if (button-at (point))
+      (push-button)
+    (when-let ((data (get-text-property (point) 'match-data))
+               (pattern (el-search-object-pattern el-search-occur-search-object)))
+      (pcase-let ((`(,buffer ,position ,file) data))
+        (with-selected-window
+            (display-buffer (if file (find-file-noselect file) buffer)
+                            '((display-buffer-pop-up-window)))
+          (when (and (buffer-narrowed-p)
+                     (or (< position (point-min))
+                         (> position (point-max)))
+                     (not (and (y-or-n-p "Widen buffer? ")
+                               (progn (widen) t))))
+            (user-error "Can't jump to match"))
+          (goto-char position)
+          (el-search-setup-search
+           pattern
+           (let ((current-buffer (current-buffer)))
+             (lambda () (stream (list current-buffer))))
+           'from-here)
+          (setq-local el-search-keep-hl 'once))))))
+
+(declare-function orgstruct-hijacker-org-shifttab-2 'org)
+(defun el-search-occur-cycle ()
+  (interactive)
+  (cl-letf (((symbol-function 'org-context-p) #'el-search-true))
+    (call-interactively #'orgstruct-hijacker-org-shifttab-2)))
+
+(defvar el-search-occur-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [tab]           #'hs-toggle-hiding)
+    (define-key map "\t"            #'hs-toggle-hiding)
+    (define-key map [return]        #'el-search-occur-jump-to-match)
+    (define-key map "\r"            #'el-search-occur-jump-to-match)
+    (define-key map [S-iso-lefttab] #'el-search-occur-cycle)
+    (define-key map [(shift tab)]   #'el-search-occur-cycle)
+    (set-keymap-parent map (make-composed-keymap special-mode-map emacs-lisp-mode-map))
+    map))
+
+(define-derived-mode el-search-occur-mode emacs-lisp-mode "El-Occur"
+  (setq-local revert-buffer-function #'el-search-occur-revert-function)
+  (setq buffer-read-only t)
+  (hs-minor-mode +1)
+  (hs-hide-all)
+  (setq orgstruct-heading-prefix-regexp ";;; ")
+  (setq outline-regexp "^;;;\\ \\*+")
+  (orgstruct-mode +1))
+
+(put 'el-search-occur-mode 'mode-class 'special)
+
+
+(defun el-search--occur (search &optional buffer)
+  (let ((occur-buffer (or buffer (generate-new-buffer "*El Occur*"))))
     (setq this-command 'el-search-pattern)
     (setq-local el-search--temp-buffer-flag nil)
-    (with-selected-window (display-buffer
-                           occur-buffer
-                           '((display-buffer-pop-up-window display-buffer-use-some-window)))
-      (let ((done nil))
-        (unwind-protect
-            (progn
-              (seq-do
-               (pcase-lambda (`(,buffer ,_position ,file))
-                 (when buffer (cl-incf overall-matches))
-                 (if (equal last (list buffer file))
-                     (cl-incf matches)
-                   (when matches (insert (format "%3d matches in %S\n" matches (or (cadr last) (car last)))))
-                   (redisplay)
-                   (setq last (list buffer file))
-                   (setq matches 1)))
-               (stream-append (el-search-object-matches (el-search-reset-search search))
-                              (stream (list (list nil nil nil)))))
-              (insert (format "\n\n%d matches in total." overall-matches))
-              (setq done t))
-          (unless done (insert "\n\nAborted."))
-          (el-search--message-no-log ""))))))
+    (with-selected-window (if buffer (selected-window)
+                            (display-buffer
+                             occur-buffer
+                             '((display-buffer-pop-up-window display-buffer-use-some-window))))
+      (let ((inhibit-read-only t))
+        (if el-search-occur-search-object
+            (erase-buffer)
+          (el-search-occur-mode)
+          (setq el-search-occur-search-object search))
+        (insert (format ";;; * %s   -*- mode: el-search-occur -*-\n\n%s\n\n"
+                        (current-time-string)
+                        (if-let ((command-or-pattern
+                                  (or (el-search-object-command el-search-occur-search-object)
+                                      (el-search-object-pattern el-search-occur-search-object))))
+                            (el-search--pp-to-string command-or-pattern)
+                          "")))
+        (condition-case-unless-debug err
+            (let ((stream-of-matches
+                   (el-search--stream-partition
+                    (funcall (el-search-object-get-matches search))
+                    (lambda (this prev) (and (eq (car this) (car prev)) (equal (nth 2 this) (nth 2 prev))))))
+                  stream-of-buffer-matches  buffer-matches
+                  (matching-files 0) (matching-buffers 0) (overall-matches 0))
+              (while (setq stream-of-buffer-matches (stream-pop stream-of-matches))
+                (setq buffer-matches (seq-length stream-of-buffer-matches))
+                (cl-incf overall-matches buffer-matches)
+                (pcase-let ((`(,buffer ,_ ,file) (stream-first stream-of-buffer-matches)))
+                  (if file (cl-incf matching-files) (cl-incf matching-buffers))
+                  (insert "\n;;; ** ")
+                  (insert-button
+                   (or file (format "%S" buffer))
+                   'action
+                   (let ((pattern (el-search--current-pattern)))
+                     (lambda (_)
+                       (pop-to-buffer
+                        (if file (find-file-noselect file) buffer)
+                        el-search-display-buffer-popup-action)
+                       (widen)
+                       (goto-char (point-min))
+                       (let ((el-search-history (ring-copy el-search-history)))
+                         (funcall-interactively #'el-search-pattern pattern))
+                       (el-search--message-no-log "This is the first match in %S" (or file buffer)))))
+                  (insert (format "  (%d matches)\n" buffer-matches))
+                  (let* ((get-context
+                          (lambda (match-beg)
+                            (let ((context-beg nil)
+                                  (need-more-context-p
+                                   (lambda (start)
+                                     (let (end)
+                                       (pcase (save-excursion
+                                                (goto-char start)
+                                                (prog1 (read (current-buffer))
+                                                  (setq end (point))))
+                                         ((or (pred atom) `(,(pred atom))) t)
+                                         ((guard (< (- end start) 100))     t)))))
+                                  (try-go-upwards (lambda (pos) (condition-case nil (scan-lists pos -1 1)
+                                                             (scan-error)))))
+                              (with-current-buffer buffer
+                                (when (funcall need-more-context-p match-beg)
+                                  (setq context-beg (funcall try-go-upwards match-beg))
+                                  (when (and context-beg (funcall need-more-context-p context-beg))
+                                    (setq context-beg (or (funcall try-go-upwards context-beg)
+                                                          context-beg))))
+                                (cons (or context-beg match-beg)
+                                      (if context-beg (scan-lists context-beg 1 0)
+                                        (scan-sexps match-beg 1)))))))
+                         (buffer-matches+contexts
+                          (seq-map (pcase-lambda ((and match `(,_ ,match-beg ,_)))
+                                     (cons match (funcall get-context match-beg)))
+                                   stream-of-buffer-matches)))
+                    (while (not (stream-empty-p buffer-matches+contexts))
+                      (pcase-let ((`((,_ ,match-beg ,_) . (,context-beg . ,context-end))
+                                   (stream-first buffer-matches+contexts)))
+                        (let ((insertion-point (point)) matches
+                              (end-of-defun (with-current-buffer buffer
+                                              (goto-char match-beg)
+                                              (let ((paren-depth (car (syntax-ppss))))
+                                                (if (< 0 paren-depth)
+                                                    (scan-lists match-beg 1 paren-depth)
+                                                  (el-search--end-of-sexp))))))
+                          (let ((rest buffer-matches+contexts)
+                                (remaining-buffer-matches-+contexts buffer-matches+contexts))
+                            (with-current-buffer buffer
+                              (while (pcase (stream-first rest)
+                                       (`(,_ . (,(and cbeg (pred (> end-of-defun))) . ,_))
+                                        (prog1 t
+                                          (stream-pop rest)
+                                          (when (< cbeg context-end)
+                                            (setq remaining-buffer-matches-+contexts rest)
+                                            (when (< cbeg context-beg)
+                                              (setq context-beg cbeg)
+                                              (setq context-end
+                                                    (or (scan-sexps cbeg 1) context-end)))))))))
+                            (setq matches
+                                  (car (el-search--stream-divide
+                                        buffer-matches+contexts
+                                        (lambda (_ rest)
+                                          (not (eq rest remaining-buffer-matches-+contexts))))))
+                            (setq buffer-matches+contexts remaining-buffer-matches-+contexts))
+                          (cl-flet ((insert-match-and-advance
+                                     (match-beg)
+                                     (let ((insertion-point (point)))
+                                       (insert (propertize
+                                                (with-current-buffer buffer
+                                                  (buffer-substring-no-properties
+                                                   (goto-char match-beg)
+                                                   (goto-char (scan-sexps (point) 1))))
+                                                'match-data `(,buffer ,match-beg ,file)))
+                                       (let ((ov (make-overlay insertion-point (point) nil t)))
+                                         (overlay-put ov 'face 'el-search-match))
+                                       (with-current-buffer buffer (point)))))
+                            (let ((working-position context-beg))
+                              (while (not (stream-empty-p matches))
+                                (pcase-let ((`((,_ ,match-beg ,_) . ,_) (stream-pop matches)))
+                                  (insert-buffer-substring buffer working-position match-beg)
+                                  (setq working-position (insert-match-and-advance match-beg))
+                                  ;; Drop any matches inside the printed area.
+                                  ;; FIXME: Should we highlight matches inside matches specially?
+                                  ;; Should we display the number of matches included in a context?
+                                  (while (pcase (stream-first matches)
+                                           (`((,_ ,(pred (> working-position)) ,_) . ,_) t))
+                                    (stream-pop matches))))
+                              (insert
+                               (with-current-buffer buffer
+                                 (buffer-substring-no-properties (point) (scan-sexps context-beg 1))))))
 
-(defun el-search-overview ()
-  "Display an overview of matches of the current search."
+                          (let ((inhibit-message t) (message-log-max nil))
+                            (indent-region insertion-point (point))
+                            (save-excursion
+                              (goto-char insertion-point)
+                              (ignore-errors
+                                ;; This can error...
+                                (if nil ;if need-context
+                                    (hs-hide-level 1)
+                                  (hs-hide-block)))))
+                          (insert "\n")))))))
+
+              (insert
+               (if (zerop overall-matches)
+                   ";;; * No matches"
+                 (concat
+                  (format "\n\n;;; * %d matches in " overall-matches)
+                  (unless (zerop matching-files) (format "%d files" matching-files))
+                  (unless (or (zerop matching-files) (zerop matching-buffers)) " and ")
+                  (unless (zerop matching-buffers)  (format "%d buffers" matching-buffers))
+                  ".")))
+              (goto-char (point-min)))
+          (quit  (insert "\n\n;;; * Aborted"))
+          (error (insert "\n\n;;; * Error: " (error-message-string err)
+                         "\n;;; Please make a bug report to the maintainer.  Yes, really.
+;;; Thanks in advance!")))
+        (el-search--message-no-log "")
+        (set-buffer-modified-p nil))))
+  (el-search-kill-left-over-search-buffers))
+
+(defun el-search-occur ()
+  "Display an occur-like overview of matches of the current search.
+
+Buffers and files are separated by headlines.  Matches are
+highlighted with face `el-search-match'.  For short matches, some
+context is shown, and nearby matches are grouped.  Initially all
+expressions are folded to one line.
+\\<el-search-occur-mode-map>
+Clicking on a file or buffer name displays it in a different
+window and goes to the first match.
+\\[el-search-occur-jump-to-match] on a match displays that match
+in its buffer.  \\[revert-buffer] refreshes the buffer and
+restarts the search.  \\[hs-toggle-hiding] folds and unfolds
+expressions, while \\[el-search-occur-cycle] folds and unfolds
+buffer and file sections like in `org-mode'.  At the beginning of
+a headline, <tab> toggles folding the following section.
+
+Hit \\[quit-window] to leave without killing the buffer.
+
+The occur buffer is in `el-search-occur-mode' that is derived
+from `emacs-lisp-mode' and `special-mode'.  In addition it makes
+use of `hs-minor-mode' and `orgstruct-mode'."
   (interactive)
-  (el-search--occur el-search--current-search))
+  (el-search--message-no-log "Preparing occur buffer")
+  (if el-search--current-search
+      (el-search--occur el-search--current-search)
+    (user-error "No active search"))
+  (setq this-command 'el-search-pattern))
 
+(defun el-search-set-occur-flag-exit-minibuffer ()
+  (interactive)
+  (setq el-search-occur-flag t)
+  (exit-minibuffer))
 
 ;;;###autoload
 (defun el-search-buffers (pattern)
@@ -1713,7 +2228,8 @@ additional pattern types are currently defined:"
    pattern
    (lambda ()
      (seq-filter
-      (lambda (buffer) (with-current-buffer buffer (derived-mode-p 'emacs-lisp-mode)))
+      (lambda (buffer) (with-current-buffer buffer (and (derived-mode-p 'emacs-lisp-mode)
+                                                   (not (eq major-mode 'el-search-occur-mode)))))
       (stream (buffer-list))))))
 
 ;;;###autoload
@@ -1759,22 +2275,27 @@ are ignored."
 (declare-function dired-get-marked-files "dired")
 
 ;;;###autoload
-(defun el-search-dired-marked-files (pattern &optional recursively)
-  "El-search marked files and directories in dired.
+(defun el-search-dired-marked-files (pattern files &optional recursively)
+  "El-search files and directories marked in dired.
 With RECURSIVELY given (the prefix arg in an interactive call),
-search directories recursively."
-  (interactive (list (el-search--read-pattern-for-interactive) current-prefix-arg))
+search directories recursively.
+
+This function uses `el-search-stream-of-directory-files' to
+compute a the file stream - see there for a description of
+related user options."
+  (interactive (list (el-search--read-pattern-for-interactive)
+                     (dired-get-marked-files)
+                     current-prefix-arg))
   (el-search-setup-search
    pattern
-   (let ((files (dired-get-marked-files)))
-     (lambda ()
-       (stream-concatenate
-        (seq-map
-         (lambda (file)
-           (if (file-directory-p file)
-               (el-search-stream-of-directory-files file recursively)
-             (stream (list file))))
-         (stream files)))))))
+   (lambda ()
+     (stream-concatenate
+      (seq-map
+       (lambda (file)
+         (if (file-directory-p file)
+             (el-search-stream-of-directory-files file recursively)
+           (stream (list file))))
+       (stream files))))))
 
 
 ;;;; Query-replace
@@ -1851,7 +2372,7 @@ reindent."
                 (setq done nil orig-match-start nil)
                 (with-current-buffer orig-buffer
                   (goto-char 1)
-                  (if (el-search-forward `',this-sexp t)
+                  (if (el-search-forward `',this-sexp nil t)
                       (setq orig-match-start (point)
                             orig-match-end (progn (forward-sexp) (point)))
                     (setq done t)))
@@ -1869,8 +2390,9 @@ reindent."
                           ((invalid-read-syntax end-of-buffer end-of-file) nil)))
                       (setq end (point))
                     (setq done t)))
-                ;; FIXME: there could be another occurrence of THIS-SEXP in ORIG-BUFFER with more
-                ;; subsequent equal expressions after it
+                ;; FIXME: there could be another occurrence of THIS-SEXP in
+                ;; ORIG-BUFFER with more subsequent equal expressions after it
+                ;; FIXME: include any trailing comment?
                 (if orig-match-start
                     (el-search--replace-hunk
                      (list start end)
@@ -1906,12 +2428,12 @@ Hit any key to proceed."
   "Help string for ? in `el-search-query-replace'.")
 
 (defun el-search--search-and-replace-pattern (pattern replacement &optional splice to-input-string)
+  (el-search-setup-search-1 pattern (lambda () (current-buffer)) t) ;for side effect only
   (let ((replace-all nil) (nbr-replaced 0) (nbr-skipped 0) (done nil)
         (el-search-keep-hl t) (opoint (point))
         (get-replacement (el-search--matcher pattern replacement))
         (skip-matches-in-replacement 'ask)
-        (matcher (setq el-search--current-matcher
-                       (el-search--matcher (el-search--wrap-pattern pattern)))))
+        (matcher (el-search--matcher pattern)))
     (unwind-protect
         (progn
 
@@ -1940,7 +2462,7 @@ Hit any key to proceed."
                       (el-search--skip-expression new-expr)
                       (condition-case nil
                           (progn (el-search--ensure-sexp-start)
-                                 (el-search-forward pattern t))
+                                 (el-search-forward pattern nil t))
                         (end-of-buffer nil))))
                    (do-replace
                     (lambda ()
@@ -2091,7 +2613,6 @@ prompt and specify both expressions at once.  This format is also
 used for history entries."
   (interactive (el-search-query-replace--read-args)) ;this binds the optional argument
   (setq this-command 'el-search-query-replace) ;in case we come from isearch
-  (setq el-search--current-pattern from-pattern)
   (barf-if-buffer-read-only)
   (el-search--search-and-replace-pattern from-pattern to-expr nil textual-to))
 
@@ -2116,12 +2637,28 @@ Reuse already given input."
     (call-interactively #'el-search-pattern)))
 
 ;;;###autoload
+(defun el-search-search-backwards-from-isearch ()
+  "Switch to `el-search-pattern-backwards' from isearch.
+Reuse already given input."
+  (interactive)
+  (let ((el-search--initial-mb-contents (concat "'" (el-search--take-over-from-isearch))))
+    (call-interactively #'el-search-pattern-backwards)))
+
+;;;###autoload
 (defun el-search-replace-from-isearch ()
   "Switch to `el-search-query-replace' from isearch.
 Reuse already given input."
   (interactive)
   (let ((el-search--initial-mb-contents (concat "'" (el-search--take-over-from-isearch t))))
     (call-interactively #'el-search-query-replace)))
+
+;;;###autoload
+(defun el-search-occur-from-isearch ()
+  "Switch to `el-search-occur' from isearch.
+Reuse already given input."
+  (interactive)
+  (setq el-search-occur-flag t)
+  (call-interactively #'el-search-search-from-isearch))
 
 
 (provide 'el-search)
