@@ -99,8 +99,23 @@ If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in evil-mode.
 
 ;;;***
 
-;;;### (autoloads nil nil ("evil-nerd-commenter-operator.el" "evil-nerd-commenter-pkg.el")
+;;;### (autoloads nil "evil-nerd-commenter-operator" "evil-nerd-commenter-operator.el"
 ;;;;;;  (0 0 0 0))
+;;; Generated autoloads from evil-nerd-commenter-operator.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-nerd-commenter-operator" '("evilnc-")))
+
+;;;***
+
+;;;### (autoloads nil "evil-nerd-commenter-sdk" "evil-nerd-commenter-sdk.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from evil-nerd-commenter-sdk.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-nerd-commenter-sdk" '("evilnc-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("evil-nerd-commenter-pkg.el") (0 0 0 0))
 
 ;;;***
 
