@@ -4,7 +4,7 @@
 
 ;; Author: Tom Willemse <tom@ryuslash.org>
 ;; Keywords: faces
-;; Package-Version: 20161115.1258
+;; Package-Version: 20170307.906
 ;; Version: 6.1.0
 ;; URL: http://projects.ryuslash.org/yoshi-theme/
 
@@ -103,9 +103,9 @@
    `(diff-file-header ((t (:foreground ,fgbright :background unspecified :weight bold))))
    `(diff-function ((t (:inherit unspecified :foreground ,fgorange))))
    `(diff-header ((t (:background ,bgbright))))
-   `(diff-hl-change ((t (:foreground ,fgyellow :background unspecified :inherit diff-changed))))
-   `(diff-hl-delete ((t (:foreground ,fgred :inherit diff-removed))))
-   `(diff-hl-insert ((t (:foreground ,fggreen :inherit diff-added))))
+   `(diff-hl-change ((t (:foreground ,bgyellow :background unspecified :inherit diff-changed))))
+   `(diff-hl-delete ((t (:foreground ,bgred :inherit diff-removed))))
+   `(diff-hl-insert ((t (:foreground ,bggreen :inherit diff-added))))
    `(diff-hunk-header ((t (:inherit unspecified :weight bold :foreground ,fgyellow :underline t))))
    `(diff-indicator-added ((t (:foreground ,fggreen :weight bold :inherit unspecified))))
    `(diff-indicator-changed ((t (:foreground ,fgyellow :weight bold :inherit unspecified ))))
@@ -278,8 +278,12 @@
    `(jabber-roster-user-xa ((t (:foreground ,fgmagenta))))
 
    ;;; JS2 mode
+   `(js2-error ((t (:foreground unspecified :inherit error))))
    `(js2-external-variable ((t (:foreground ,fgmagenta))))
-   `(js2-function-param ((t (:foreground ,fggreen))))
+   `(js2-function-call ((t (:inherit font-lock-function-name-face))))
+   `(js2-function-param ((t (:foreground unspecified :inherit font-lock-variable-name-face))))
+   `(js2-object-property ((t (:inherit font-lock-variable-name-face))))
+   `(js2-warning ((t (:underline unspecified :inherit font-lock-warning-face))))
 
    ;;; Magit
    `(magit-bisect-bad ((t (:foreground ,fgred))))
@@ -353,9 +357,9 @@
    `(org-date ((t (:foreground ,fgpink :underline unspecified))))
    `(org-document-title ((t (:foreground ,fgorange :height 1.5))))
    `(org-headline-done ((t (:foreground ,fgdim))))
-   `(org-level-1 ((t (:foreground ,fggreen))))
-   `(org-level-2 ((t (:foreground ,fgcyan))))
-   `(org-level-3 ((t (:foreground ,fgred))))
+   `(org-level-1 ((t (:foreground ,fggreen :underline t))))
+   `(org-level-2 ((t (:foreground ,fgcyan :weight bold))))
+   `(org-level-3 ((t (:foreground ,fgred :slant italic))))
    `(org-level-4 ((t (:foreground ,fgblue))))
    `(org-level-5 ((t (:foreground ,fgyellow))))
    `(org-level-6 ((t (:foreground ,fgpurple))))
@@ -477,13 +481,20 @@
    `(rpm-spec-ghost-face ((t (:foreground ,fgred))))
    `(rpm-spec-section-face ((t (:foreground ,fgyellow :underline t))))
 
+   ;;; Window dividers
+   `(window-divider ((t (:foreground ,bgbright))))
+   `(window-divider-first-pixel ((t (:foreground unspecified :inherit window-divider))))
+   `(window-divider-last-pixel ((t (:foreground unspecified :inherit window-divider))))
    )
 
   (custom-theme-set-variables
    'yoshi
-   `(fci-rule-color ,bgred)
    `(ansi-color-names-vector [,bgdim ,fgred ,fggreen ,fgyellow
-                              ,fgblue ,fgmagenta ,fgcyan ,fgdim])))
+                              ,fgblue ,fgmagenta ,fgcyan ,fgdim])
+   `(fci-rule-color ,bgred)
+   '(org-fontify-whole-heading-line t)
+   '(window-divider-mode t)
+   '(window-divider-default-right-width 1)))
 
 ;;;###autoload
 (and load-file-name
