@@ -4,7 +4,7 @@
 ;;
 ;; Author: Mark Karpov <markkarpov@openmailbox.org>
 ;; URL: https://github.com/mrkkrp/kill-or-bury-alive
-;; Package-Version: 20161231.1559
+;; Package-Version: 20170316.509
 ;; Version: 0.1.2
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
 ;; Keywords: buffer, killing, convenience
@@ -128,7 +128,7 @@ If value of the variable is NIL,
                  (const :tag "Use Default" nil)))
 
 (defcustom kill-or-bury-alive-base-buffer "*scratch*"
-  "Name of buffer to switch to after `kill-or-bury-alive-purge-buffers'."
+  "Name of the buffer to switch to after `kill-or-bury-alive-purge-buffers'."
   :tag "Base buffer"
   :type 'string)
 
@@ -231,7 +231,7 @@ default."
     (if (or arg (kill-or-bury-alive--must-die-p buffer))
         (when (or (not (kill-or-bury-alive--long-lasting-p buffer))
                   (yes-or-no-p
-                   (format "Buffer ‘%s’ is long lasting one, kill?"
+                   (format "Buffer ‘%s’ is a long lasting one, kill?"
                            (buffer-name buffer))))
           (kill-or-bury-alive--kill-buffer buffer))
       (kill-or-bury-alive--bury-buffer buffer))))
@@ -254,7 +254,7 @@ every buffer."
                  (not (kill-or-bury-alive--long-lasting-p buffer))
                  (or (not arg)
                      (yes-or-no-p
-                      (format "Kill ‘%s’" buffer-name))))
+                      (format "Kill ‘%s’?" buffer-name))))
         (kill-or-bury-alive--kill-buffer buffer))))
   (when kill-or-bury-alive-base-buffer
     (switch-to-buffer kill-or-bury-alive-base-buffer)
