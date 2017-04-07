@@ -1,10 +1,10 @@
 ;;; eshell-git-prompt.el --- Some Eshell prompt for Git users  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2016  Chunyang Xu
+;; Copyright (C) 2015-2017  Chunyang Xu
 
 ;; Author: Chunyang Xu <mail@xuchunyang.me>
 ;; URL: https://github.com/xuchunyang/eshell-git-prompt
-;; Package-Version: 20161126.758
+;; Package-Version: 20170316.1051
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5") (dash "2.11.0"))
 ;; Keywords: eshell git
 ;; Version: 0.1.1
@@ -24,14 +24,15 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+;; This package provides some themes of Emacs Shell (Eshell) prompt.
 ;;
 ;; Usage:
-;; You can call `eshell-git-prompt-use-theme' to pick up a theme then launch
-;; Eshell.
+;; In Eshell, type ~use-theme~ to list and preview available themes, then
+;; type ~use-theme name~ to choose a theme.
 ;;
-;; Add the following to your initialization file to let Eshell to use it every
-;; time:
-;;   (eshell-git-prompt-use-theme 'robbyrussell)
+;; You can also choose a theme in your init file by using
+;; ~eshell-git-prompt-use-theme~, then Eshell will use theme at the
+;; startup. For example, put the following in you init file
 ;;
 ;; TODO
 ;; - [ ] For `eshell-prompt-regexp' hack, replace '$' with '' ('\x06')
@@ -73,6 +74,10 @@
     (powerline
      eshell-git-prompt-powerline
      eshell-git-prompt-powerline-regexp)
+    ;; Only a single $
+    (simple
+     eshell-git-prompt-simple
+     eshell-git-prompt-simple-regexp)
     (default
       eshell-git-prompt-default-func
       eshell-git-prompt-default-regexp))
@@ -81,6 +86,21 @@ You can add your own theme to this list, then run
 `eshell-git-prompt-use-theme' to use it."
   :group 'eshell-prompt
   :type '(repeat (list symbol symbol symbol)))
+
+(defface eshell-git-prompt-powerline-dir-face
+  '((t :background "steel blue"))
+  "Face for directory name in eshell git prompt theme `powerline`"
+  :group 'eshell-faces)
+
+(defface eshell-git-prompt-powerline-clean-face
+  '((t :background "forest green"))
+  "Face for git branch (clean) in eshell git prompt theme `powerline`"
+  :group 'eshell-faces)
+
+(defface eshell-git-prompt-powerline-not-clean-face
+  '((t :background "indian red"))
+  "Face for git branch (not clean) in eshell git prompt theme `powerline`"
+  :group 'eshell-faces)
 
 
 ;;; * Internal
@@ -239,6 +259,11 @@ If working directory is clean, return nil."
 
 ;;; * Themes
 
+(defun eshell-git-prompt-simple ()
+  (if (= (user-uid) 0) "# " "$ "))
+
+(defconst eshell-git-prompt-simple-regexp "^[#$] ")
+
 ;; the Eshell default prompt
 (defun eshell-git-prompt-default-func ()
   (concat (abbreviate-file-name (eshell/pwd))
@@ -382,37 +407,40 @@ It looks like:
         (cross             "\x2718")
         dir git git-bg)
     (setq dir
-          (with-face (concat
-                      " "
-                      (unless (eshell-git-prompt-exit-success-p)
-                        (concat cross " "))
-                      (abbreviate-file-name (eshell/pwd))
-                      " ")
-            :background "steel blue"))
+          (propertize
+           (concat
+            " "
+            (unless (eshell-git-prompt-exit-success-p)
+              (concat cross " "))
+            (abbreviate-file-name (eshell/pwd))
+            " ")
+           'face 'eshell-git-prompt-powerline-dir-face))
     (setq git
           (when (eshell-git-prompt--git-root-dir)
-            (setq git-bg
+            (setq git-face
                   (if (eshell-git-prompt--collect-status)
-                      "indian red" "forest green"))
+                      'eshell-git-prompt-powerline-not-clean-face
+                    'eshell-git-prompt-powerline-clean-face))
             (setq eshell-git-prompt-branch-name (eshell-git-prompt--branch-name))
-            (with-face
+            (propertize
                 (concat " "
                         (-if-let (branch-name eshell-git-prompt-branch-name)
                             (concat branch " " branch-name)
                           (concat detached " "(eshell-git-prompt--commit-short-sha)))
                         " ")
-              :background git-bg)))
+              'face git-face)))
     (concat
      (if git
          (concat dir
                  (with-face segment-separator
-                   :background git-bg
-                   :foreground "steel blue")
+                   :foreground (face-background 'eshell-git-prompt-powerline-dir-face)
+                   :background (face-background git-face))
                  git
                  (with-face segment-separator
-                   :foreground git-bg))
-       (concat dir (with-face segment-separator
-                     :foreground "steel blue")))
+                   :foreground (face-background git-face)))
+       (concat dir
+               (with-face segment-separator
+                 :foreground (face-background 'eshell-git-prompt-powerline-dir-face))))
      (propertize "$" 'invisible t) " ")))
 
 (defconst eshell-git-prompt-powerline-regexp "^[^$\n]*\\\$ ")
@@ -442,6 +470,8 @@ It looks like:
            (symbol-name theme))))
     (error "Theme \"%s\" is not available" theme)))
 
+;; TODO: Support the --help option
+;; TODO: Support completing (via pcomplete)
 ;;;###autoload
 (defun eshell/use-theme (&optional theme)
   "List all available themes and pick one from Eshell."
@@ -458,7 +488,8 @@ It looks like:
                               (funcall (cadr theme))))
                     eshell-git-prompt-themes "\n"))
         (eshell-printn (make-string 60 ?-))
-        (eshell-printn ""))
+        (eshell-printn "")
+        (eshell-printn "Type 'use-theme theme-name' to use a theme."))
     (when (numberp theme)
       (setq theme (number-to-string theme)))
     (setq theme (intern theme))
@@ -466,7 +497,8 @@ It looks like:
         (progn
           (setq eshell-prompt-function (symbol-function (car func-regexp))
                 eshell-prompt-regexp (symbol-value (cadr func-regexp)))
-          (setq eshell-git-prompt-current-theme theme))
+          (setq eshell-git-prompt-current-theme theme)
+          (eshell-printn ""))
       (error
        "Theme \"%s\" is not available.
 Run this command again without argument to view all available themes.
