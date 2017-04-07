@@ -4,8 +4,8 @@
 ;;
 ;; Author: Mark Karpov <markkarpov@openmailbox.org>
 ;; URL: https://github.com/mrkkrp/mmt
-;; Package-Version: 20161231.1556
-;; Version: 0.1.1
+;; Package-Version: 20170319.434
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.3"))
 ;; Keywords: macro, emacs-lisp
 ;;
@@ -31,7 +31,6 @@
 ;;
 ;; The following functions and macros are present:
 ;;
-;; * mmt-gensym
 ;; * mmt-make-gensym-list
 ;; * mmt-with-gensyms
 ;; * mmt-with-unique-names
@@ -42,33 +41,14 @@
 ;; Note that this code is much inspired by relevant pieces from Common Lisp
 ;; library Alexandria.
 
-(require 'cl-lib)
-
-(defalias 'mmt-gensym 'cl-gensym
-  "Create and return new uninterned symbol as if by calling `make-symbol'.
-
-The only difference between `mmt-gensym' and `make-symbol' is in
-how the new symbol's name is determined.  The name is
-concatenation of a prefix which defaults to \"G\" and a suffix
-which is decimal representation of a number that defaults to the
-value of `cl--gensym-counter'.
-
-If X is supplied and is a string, then that string is used as a
-prefix instead of \"G\" for this call to `mmt-gensym' only.
-
-If X is supplied and is an integer, then that integer is used
-instead of the value of `cl--gensym-counter' as the suffix for
-this call of `mmt-gensym' only.
-
-If and only if no explicit suffix is supplied
-`cl--gensym-counter' is incremented after it is used.")
+(eval-when-compile (require 'cl-lib))
 
 (defun mmt-make-gensym-list (length &optional x)
   "Return a list of LENGTH gensyms.
 
 Each element of the list is generated as if with a call to
-`mmt-gensym' using the second argument X (defaulting \"G\")."
-  (mapcar #'mmt-gensym (make-list length (or x "G"))))
+`cl-gensym' using the second argument X (defaulting \"G\")."
+  (mapcar #'cl-gensym (make-list length (or x "G"))))
 
 (defmacro mmt-with-gensyms (names &rest body)
   "Bind each variable in NAMES to a unique symbol and evaluate BODY.
@@ -82,7 +62,7 @@ Bare symbols appearing in NAMES are equivalent to:
   (SYMBOL SYMBOL)
 
 The STRING-OR-SYMBOL is used (converted to string if necessary)
-as the argument to `mmt-gensym' when constructing the unique
+as the argument to `cl-gensym' when constructing the unique
 symbol the named variable will be bound to."
   (declare (indent 1))
   `(let ,(mapcar (lambda (name)
@@ -91,7 +71,7 @@ symbol the named variable will be bound to."
                            (cons (car name) (cadr name))
                          (cons name name))
                      `(,symbol
-                       (mmt-gensym
+                       (cl-gensym
                         ,(if (symbolp prefix)
                              (symbol-name prefix)
                            prefix)))))
