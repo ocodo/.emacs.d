@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20170216.2034
-;; Version: 0.3.4
+;; Package-Version: 20170401.1521
+;; Version: 0.3.7
 ;; Package-Requires: ((autothemer "0.2"))
 
 ;;; Commentary:
@@ -168,6 +168,9 @@
 
   ;; MODE SUPPORT: which-key
   (which-key-key-face                        (:inherit 'font-lock-variable-name-face))
+
+  ;; MODE SUPPORT: which-func
+  (which-func                                (:inherit 'font-lock-function-name-face))
 
   ;; MODE SUPPORT: elixir-mode
   (elixir-atom-face                          (:foreground darktooth-lightblue4))
@@ -333,8 +336,11 @@
   (org-agenda-structure                      (:inherit 'font-lock-comment-face))
   (org-archived                              (:foreground darktooth-light0 :weight 'bold))
   (org-checkbox                              (:foreground darktooth-light2 :background darktooth-dark0 :box (:line-width 1 :style 'released-button)))
-  (org-date                                  (:foreground darktooth-faded_blue :underline t))
+  (org-date                                  (:foreground darktooth-faded_aqua :underline t))
   (org-deadline-announce                     (:foreground darktooth-faded_red))
+  (org-document-info-keyword                 (:foreground darktooth-light2))
+  (org-document-info                         (:foreground darktooth-identifiers-7))
+  (org-document-title                        (:foreground darktooth-bright_cyan :weight 'bold))
   (org-done                                  (:foreground darktooth-bright_green :bold t :weight 'bold))
   (org-formula                               (:foreground darktooth-bright_yellow))
   (org-headline-done                         (:foreground darktooth-bright_green))
@@ -587,6 +593,7 @@
   (git-gutter-fr+-modified                   (:inherit 'git-gutter+-modified))
 
   ;; MODE SUPPORT: magit
+  (magit-section-highlight                   (:background darktooth-dark0_soft))
   (magit-branch                              (:foreground darktooth-turquoise4 :background nil))
   (magit-branch-local                        (:foreground darktooth-turquoise4 :background nil))
   (magit-branch-remote                       (:foreground darktooth-aquamarine4 :background nil))
