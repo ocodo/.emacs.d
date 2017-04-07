@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Package-Version: 20170310.507
+;; Package-Version: 20170324.1301
 ;; Version: 0.1
 ;; Keywords: typescript languages
 ;; Package-Requires: ()
@@ -282,7 +282,7 @@ Match group 1 is the name of the macro.")
      "constructor" "continue" "declare" "default" "delete" "do" "else"
      "enum" "export" "extends" "extern" "false" "finally" "for"
      "function" "from" "get" "goto" "if" "implements" "import" "in" "instanceof"
-     "interface" "let" "module" "namespace" "new" "null" "number" "of"
+     "interface" "keyof" "let" "module" "namespace" "new" "null" "number" "of"
      "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
      "try" "type" "typeof" "var" "void"
@@ -1643,9 +1643,12 @@ See `font-lock-keywords'.")
      "each"))
   "Regexp matching keywords optionally followed by an opening brace.")
 
+(defconst typescript--indent-keyword-re
+  (typescript--regexp-opt-symbol '("in" "instanceof"))
+  "Regexp matching keywords that affect indentation of continued expressions.")
+
 (defconst typescript--indent-operator-re
-  (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|"
-          (typescript--regexp-opt-symbol '("in" "instanceof")))
+  (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|" typescript--indent-keyword-re)
   "Regexp matching operators that affect indentation of continued expressions.")
 
 
@@ -1657,6 +1660,21 @@ See `font-lock-keywords'.")
              (save-excursion
                (and (typescript--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
                     (looking-at "?"))))
+         ;; Do not identify forward slashes appearing in a "list" as
+         ;; an operator. The lists are: arrays, or lists of
+         ;; arguments. In this context, they must be part of regular
+         ;; expressions, and not math operators.
+         (not (and (looking-at "/")
+                   (save-excursion
+                     (typescript--backward-syntactic-ws)
+                     (memq (char-before) '(?, ?\[ ?\()))))
+         ;; Do not identify methods, or fields, that are named "in" or
+         ;; "instanceof" as being operator keywords.
+         (not (and
+               (looking-at typescript--indent-keyword-re)
+               (save-excursion
+                 (typescript--backward-syntactic-ws)
+                 (memq (char-before) '(?, ?{ ?} ?\;)))))
          (not (and
                (looking-at "*")
                ;; Generator method (possibly using computed property).
@@ -1674,16 +1692,20 @@ See `font-lock-keywords'.")
   "Return non-nil if the current line continues an expression."
   (save-excursion
     (back-to-indentation)
-    (or (typescript--looking-at-operator-p)
-        (and (typescript--re-search-backward "\n" nil t)
-	     (progn
-	       (skip-chars-backward " \t")
-	       (or (bobp) (backward-char))
-	       (and (> (point) (point-min))
-                    (save-excursion (backward-char) (not (looking-at "[/*]/")))
-                    (typescript--looking-at-operator-p)
-		    (and (progn (backward-char)
-				(not (looking-at "++\\|--\\|/[/*]"))))))))))
+    (and
+     ;; Don't identify the spread syntax or rest operator as a
+     ;; "continuation".
+     (not (looking-at "\\.\\.\\."))
+     (or (typescript--looking-at-operator-p)
+         (and (typescript--re-search-backward "\n" nil t)
+              (progn
+                (skip-chars-backward " \t")
+                (or (bobp) (backward-char))
+                (and (> (point) (point-min))
+                     (save-excursion (backward-char) (not (looking-at "[/*]/")))
+                     (typescript--looking-at-operator-p)
+                     (and (progn (backward-char)
+                                 (not (looking-at "++\\|--\\|/[/*]")))))))))))
 
 
 (defun typescript--end-of-do-while-loop-p ()
