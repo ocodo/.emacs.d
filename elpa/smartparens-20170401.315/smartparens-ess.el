@@ -24,6 +24,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
+;; This file provides some additional configuration for ESS.  To use
+;; it, simply add:
+;;
+;; (require 'smartparens-ess)
+;;
+;; into your configuration.  You can use this in conjunction with the
+;; default config or your own configuration.
+;;
 ;;; Code:
 
 (require 'smartparens)
@@ -44,7 +54,8 @@
 ;; see https://google.github.io/styleguide/Rguide.xml
 (defun sp-ess-pre-handler (id action context)
   "Remove spaces before opening parenthesis in a function call.
-Remove redundant space around commas."
+Remove redundant space around commas.
+ID, ACTION, CONTEXT."
   (when (equal action 'slurp-forward)
     (let ((sxp (sp-get-thing 'back)))
       (save-excursion
@@ -115,8 +126,9 @@ Remove redundant space around commas."
 ;; ##' \tabular{rrr}{
 ;; ##'   |
 ;; ##' }
-(defun sp-ess-open-sexp-indent (&rest _ignored)
-  "Open new brace or bracket with indentation."
+(defun sp-ess-open-sexp-indent (&rest args)
+  "Open new brace or bracket with indentation.
+ARGS."
   (if (and (fboundp 'ess-roxy-entry-p) (ess-roxy-entry-p))
       (progn
         (save-excursion (ess-roxy-indent-on-newline))
@@ -128,21 +140,23 @@ Remove redundant space around commas."
     (indent-according-to-mode)))
 
 (defun sp-ess-roxy-str-p (id action context)
+  "Test if looking back at `ess-roxy-re'.
+ID, ACTION, CONTEXT."
   (when (and (boundp 'ess-roxy-re) (eq action 'insert))
     (sp--looking-back-p ess-roxy-re)))
 
 (sp-with-modes 'ess-mode
   (sp-local-pair "{" nil
-		 :pre-handlers '(sp-ess-pre-handler)
-                 ;; the more reasonable C-j interferes with default binding for
-                 ;; `ess-eval-line'
-		 :post-handlers '((sp-ess-open-sexp-indent "M-j")))
+                 :pre-handlers '(sp-ess-pre-handler)
+    ;; the more reasonable C-j interferes with default binding for
+    ;; `ess-eval-line'
+                 :post-handlers '((sp-ess-open-sexp-indent "M-j")))
   (sp-local-pair "(" nil
-		 :pre-handlers '(sp-ess-pre-handler)
-		 :post-handlers '((sp-ess-open-sexp-indent "M-j")))
+                 :pre-handlers '(sp-ess-pre-handler)
+                 :post-handlers '((sp-ess-open-sexp-indent "M-j")))
   (sp-local-pair "[" nil
-		 :pre-handlers '(sp-ess-pre-handler)
-		 :post-handlers '((sp-ess-open-sexp-indent "M-j")))
+                 :pre-handlers '(sp-ess-pre-handler)
+                 :post-handlers '((sp-ess-open-sexp-indent "M-j")))
   (sp-local-pair "'" nil
                  :unless '(sp-ess-roxy-str-p)))
 
@@ -176,19 +190,19 @@ Remove redundant space around commas."
                  :trigger "\\pkg")
   (sp-local-pair "\\item{" "}"
                  :when '(sp-in-comment-p)
-		 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
+                 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
                  :trigger "\\item{")
   (sp-local-pair "\\enumerate{" "}"
                  :when '(sp-in-comment-p)
-		 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
+                 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
                  :trigger "\\enumerate")
   (sp-local-pair "\\itemize{" "}"
                  :when '(sp-in-comment-p)
-		 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
+                 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
                  :trigger "\\itemize")
   (sp-local-pair "\\describe{" "}"
                  :when '(sp-in-comment-p)
-		 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
+                 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
                  :trigger "\\describe")
   (sp-local-pair "\\eqn{" "}"
                  :when '(sp-in-comment-p)
@@ -199,7 +213,7 @@ Remove redundant space around commas."
   (sp-local-pair "\\tabular{" "}"
                  :when '(sp-in-comment-p)
                  :trigger "\\tabular"
-		 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
+                 :post-handlers '((sp-ess-open-sexp-indent "M-j"))
                  :suffix "{[^}]*}"))
 
 
