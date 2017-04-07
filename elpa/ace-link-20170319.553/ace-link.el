@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20161203.1059
+;; Package-Version: 20170319.553
 ;; Version: 0.4.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: convenience, links
@@ -47,7 +47,7 @@
   (interactive)
   (cond ((eq major-mode 'Info-mode)
          (ace-link-info))
-        ((member major-mode '(help-mode package-menu-mode))
+        ((member major-mode '(help-mode package-menu-mode geiser-doc-mode))
          (ace-link-help))
         ((eq major-mode 'woman-mode)
          (ace-link-woman))
