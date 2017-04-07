@@ -3,8 +3,8 @@
 ;; Copyright 2007 Ye Wenbin
 ;;
 ;; Author: wenbinye@gmail.com
-;; Version: 20080412.1455
-;; X-Original-Version: $Id: windata.el,v 0.0 2007/12/13 00:32:15 ywb Exp $
+;; Version: $Id: windata.el,v 0.0 2007/12/13 00:32:15 ywb Exp $
+;; Package-Version: 20090830.340
 ;; Keywords: convenience, frames
 ;; 
 ;; This file is part of PDE (Perl Development Environment).

@@ -1,10 +1,9 @@
 ;;; windata-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "windata" "windata.el" (21442 45835 282176
-;;;;;;  999000))
+;;;### (autoloads nil "windata" "windata.el" (0 0 0 0))
 ;;; Generated autoloads from windata.el
 
 (autoload 'windata-name-winconf "windata" "\
@@ -36,6 +35,8 @@ DELETE-P is non-nil, the other window will be deleted before
 display the BUF.
 
 \(fn BUF FRAME-P DIR SIZE &optional DELETE-P)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "windata" '("windata-")))
 
 ;;;***
 
