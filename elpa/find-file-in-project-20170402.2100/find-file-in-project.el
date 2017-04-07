@@ -1,10 +1,10 @@
 ;;; find-file-in-project.el --- Find files in a project quickly, on any OS
 
-;; Copyright (C) 2006-2009, 2011-2012, 2015, 2016
+;; Copyright (C) 2006-2009, 2011-2012, 2015, 2016, 2017
 ;;   Phil Hagelberg, Doug Alcorn, Will Farrington, Chen Bin
 ;;
 ;; Version: 5.2.7
-;; Package-Version: 20161202.2205
+;; Package-Version: 20170402.2100
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -111,18 +111,17 @@
 ;;
 ;; You can switch to `ido-mode' by `(setq ffip-prefer-ido-mode t)'
 
-;; GNU Find can be installed,
-;;   - through `Brew' on OS X
-;;   - through `Cygwin' or `MYSYS2' on Windows.
-;; Find executable will be automatically detected. But you can manually
-;; specify the executable location by insert below code into ~/.emacs,
+;; BSD/GNU Find can be installed through `Cygwin' or `MYSYS2' on Windows.
+;; Executable is automatically detected. But you can manually specify
+;; the executable location by insert below code into ~/.emacs,
 ;;
 ;;   (if (eq system-type 'windows-nt)
 ;;      (setq ffip-find-executable "c:\\\\cygwin64\\\\bin\\\\find"))
-;; This program works on Windows/Cygwin/Linux/Mac Emacs.
+;;
+;; This program works on Windows/Cygwin/Linux/Mac.
 ;;
 ;; Windows setup is as easy as installing Cygwin into default directory on
-;; ANY driver. That's all.
+;; ANY driver.
 ;;
 ;; See https://github.com/technomancy/find-file-in-project for advanced tips.
 
