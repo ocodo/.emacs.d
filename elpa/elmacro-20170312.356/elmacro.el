@@ -2,9 +2,9 @@
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/elmacro
-;; Package-Version: 20170304.705
+;; Package-Version: 20170312.356
 ;; Keywords: macro, elisp, convenience
-;; Version: 1.0.1
+;; Version: 1.1.0
 ;; Package-Requires: ((s "1.11.0") (dash "2.13.0"))
 
 ;; This file is NOT part of GNU Emacs.
