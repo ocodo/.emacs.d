@@ -2,11 +2,11 @@
 
 ;; TODO: prompt the user to choose between local and global variables
 
-;; Copyright (C) 2016  
+;; Copyright (C) 2016-2017
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.4
-;; Package-Version: 20170219.807
+;; Package-Version: 20170322.1527
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.3") (s "1.11.0") (dash "2.12.0") (list-utils "0.4.4") (loop "1.2"))
 
@@ -246,16 +246,20 @@ index."
 
 (defun refine--update (result-buffer target-buffer symbol)
   "Update RESULT-BUFFER with the current value of SYMBOL in TARGET-BUFFER."
-  (let ((value (with-current-buffer target-buffer (symbol-value symbol))))
+  (let (value)
+    (when (boundp symbol)
+      (with-current-buffer target-buffer
+        (setq value (symbol-value symbol))))
     (with-current-buffer result-buffer
       (let* ((current-line (line-number-at-pos))
              (current-column (current-column))
              buffer-read-only)
         (erase-buffer)
-        (insert (format "%s:\n\n" (refine--describe symbol value target-buffer)))
-        (insert (refine--format-with-index value))
-        (insert "\n\n")
-        (insert (refine--help-button symbol) " " (refine--definition-button symbol))
+        (insert (format "%s\n\n" (refine--describe symbol value target-buffer)))
+        (when (boundp symbol)
+          (insert (refine--format-with-index value))
+          (insert "\n\n")
+          (insert (refine--help-button symbol) " " (refine--definition-button symbol)))
         ;; We can't use `save-excursion' because we erased the whole
         ;; buffer. Go back to the previous position.
         (goto-char (point-min))
@@ -562,38 +566,70 @@ If CURRENT is at the end, or not present, use the first item."
   (and (consp value)
        (not (consp (cdr value))) (not (null (cdr value)))))
 
+(defun refine--local-values (symbol)
+  "Return a list of pairs (buffer, value) for all buffers
+where SYMBOL is set."
+  (let (result)
+    (dolist (buf (buffer-list) result)
+      (when (local-variable-p symbol buf)
+        (push (cons buf (buffer-local-value symbol buf))
+              result)))))
+
 ;; TODO: support hash maps
 (defun refine--describe (symbol value buffer)
   "Return a human-readable description for SYMBOL set to VALUE in BUFFER."
-  (let ((pretty-symbol
-         (propertize (format "%s" symbol)
-                     'face 'font-lock-variable-name-face))
-        (symbol-description
-         (if (local-variable-p symbol buffer)
-             (format "a local variable in buffer %s"
-                     (refine--buffer-button buffer))
-           "a global variable"))
-        (type-description
-         (cond
-          ((stringp value) "a string")
-          ((null value) "nil")
-          ((symbolp value) "a symbol")
-          ((numberp value) "a number")
-          ((and (consp value) (not (consp (cdr value))) (not (null (cdr value))))
-           "a pair")
-          ((and (consp value) (list-utils-cyclic-p value))
-           "an improper list")
-          ((sequencep value)
-           (let* ((type (if (vectorp value) "vector" "list"))
-                  (length (length value))
-                  (units (if (= length 1) "value" "values")))
-             (format "a %s containing %d %s"
-                     type length units)))
-          (:else "an unsupported type"))))
-    (s-word-wrap 65
-                 (format "%s is %s. Its current value is %s"
-                         pretty-symbol symbol-description
-                         type-description))))
+  (let* ((pretty-symbol
+          (propertize (format "%s" symbol)
+                      'face 'font-lock-variable-name-face))
+         (is-local (local-variable-p symbol buffer))
+         (symbol-description
+          (cond
+           ((not (boundp symbol))
+            "an unbound symbol")
+           (is-local
+            (format "a local variable in buffer %s"
+                    (refine--buffer-button buffer)))
+           (t
+            "a global variable")))
+         (local-description
+          (let ((locals (refine--local-values symbol)))
+            (if locals
+                (format " It has a buffer-local value in %d buffers."
+                        (length locals))
+              "")))
+         (type-description
+          (cond
+           ((stringp value) "a string")
+           ((null value) "nil")
+           ((symbolp value) "a symbol")
+           ((numberp value) "a number")
+           ((and (consp value) (not (consp (cdr value))) (not (null (cdr value))))
+            "a pair")
+           ((and (consp value) (list-utils-cyclic-p value))
+            "an improper list")
+           ;; TODO: it would be nice to say 'a list of symbols' etc
+           ;; when all the elements are the same type.
+           ((sequencep value)
+            (let* ((type (if (vectorp value) "vector" "list"))
+                   (length (length value))
+                   (units (if (= length 1) "value" "values")))
+              (format "a %s containing %d %s"
+                      type length units)))
+           (:else "an unsupported type")))
+         (value-intro
+          (if is-local
+              (format "local value in buffer %s"
+                      (refine--buffer-button buffer))
+            "current value"))
+         (value-description
+          (if (boundp symbol)
+              (format " Its %s is %s:"
+                      value-intro type-description)
+            "")))
+    (s-word-wrap
+     70
+     (format "%s is %s.%s"
+             pretty-symbol symbol-description value-description))))
 
 ;; TODO: add demo in readme of this command.
 (defun refine-cycle ()
