@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.3.0
-;; Package-Version: 20170117.824
+;; Package-Version: 20170405.707
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -1457,6 +1457,7 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
   (setq-local comment-start "// ")
   (setq-local comment-end   "")
   (setq-local indent-tabs-mode nil)
+  (setq-local open-paren-in-column-0-is-defun-start nil)
 
   ;; Auto indent on }
   (setq-local
