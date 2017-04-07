@@ -5,7 +5,7 @@
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 0.19.0
-;; Package-Version: 20161002.800
+;; Package-Version: 20170404.1039
 ;; Keywords: files, directories
 ;; URL: http://github.com/rejeep/f.el
 ;; Package-Requires: ((s "1.7.0") (dash "2.2.0"))
@@ -542,7 +542,7 @@ RECURSIVE - Search for files and directories recursive."
     ,recursive))
 
 (defun f-directories (path &optional fn recursive)
-  "Find all directories in PATH.  See `f-entries`."
+  "Find all directories in PATH.  See `f-entries'."
   (let ((directories (-select 'f-directory? (f--collect-entries path recursive))))
     (if fn (-select fn directories) directories)))
 
@@ -556,7 +556,7 @@ RECURSIVE - Search for files and directories recursive."
     ,recursive))
 
 (defun f-files (path &optional fn recursive)
-  "Find all files in PATH.  See `f-entries`."
+  "Find all files in PATH.  See `f-entries'."
   (let ((files (-select 'f-file? (f--collect-entries path recursive))))
     (if fn (-select fn files) files)))
 
