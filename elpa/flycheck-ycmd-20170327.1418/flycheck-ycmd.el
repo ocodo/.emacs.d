@@ -1,9 +1,9 @@
 ;;; flycheck-ycmd.el --- flycheck integration for ycmd
-;; Copyright (c) 2014-2016 Austin Bingham
+;; Copyright (c) 2014-2017 Austin Bingham
 ;;
 ;; Author: Austin Bingham <austin.bingham@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20160913.130
+;; Package-Version: 20170327.1418
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((emacs "24") (dash "2.12.1") (flycheck "0.22") (ycmd "0.9") (let-alist "1.0.4"))
 ;;
@@ -98,7 +98,7 @@ display."
 
 (defun flycheck-ycmd--in-supported-mode ()
   "Determines if buffer is in `ycmd-mode` and another mode supported by ycmd."
-  (and ycmd-mode (ycmd-diagnostic-file-types major-mode)))
+  (and ycmd-mode (ycmd-file-types-with-diagnostics major-mode)))
 
 ;;;###autoload
 (defun flycheck-ycmd-setup ()
@@ -114,7 +114,7 @@ ycmd checker to the list of flycheck checkers."
   "A flycheck checker using parse results from ycmd."
   :start #'flycheck-ycmd--start
   :predicate #'flycheck-ycmd--in-supported-mode
-  :modes '(c++-mode c-mode objc-mode csharp-mode))
+  :modes (ycmd-major-modes-with-diagnostics))
 
 (defun flycheck-ycmd--teardown ()
   "Reset `flycheck-ycmd--cache'."
