@@ -845,16 +845,18 @@ remember for the current GHCi session.
 
 What kind of Haskell REPL ‘haskell-interactive-mode’ will start up
 depends on the value of ‘haskell-process-type’.  This can be one of the
-symbols ‘auto’, ‘ghci’, ‘cabal-repl’, or ‘stack-ghci’.  If it’s ‘auto’,
-the directory contents and available programs will be used to make a
-best guess at the process type.  The actual process type will then
-determine which variables ‘haskell-interactive-mode’ will access to
-determine the program to start and its arguments:
+symbols ‘auto’, ‘ghci’, ‘cabal-repl’, ‘cabal-new-repl’, or ‘stack-ghci’.
+If it’s ‘auto’, the directory contents and available programs will be
+used to make a best guess at the process type.  The actual process type
+will then determine which variables ‘haskell-interactive-mode’ will
+access to determine the program to start and its arguments:
 
    • If it’s ‘ghci’, ‘haskell-process-path-ghci’ and
      ‘haskell-process-args-ghci’ will be used.
-   • If it’s ‘cabal-repl’, ‘haskell-process-path-ghci’ and
-     ‘haskell-process-args-ghci’.
+   • If it’s ‘cabal-repl’, ‘haskell-process-path-cabal’ and
+     ‘haskell-process-args-cabal-repl’.
+   • If it’s ‘cabal-new-repl’, ‘haskell-process-path-cabal’ and
+     ‘haskell-process-args-cabal-new-repl’.
    • If it’s ‘stack-ghci’, ‘haskell-process-path-stack’ and
      ‘haskell-process-args-stack-ghci’ will be used.
 
@@ -937,6 +939,7 @@ setting by running ‘M-x’ ‘customize-variable’ ‘RET’
 
    • ghci
    • cabal-repl
+   • cabal-new-repl
    • cabal-dev
    • cabal-ghci
    • stack-ghci
@@ -2065,7 +2068,7 @@ Concept index
  [index ]
 * Menu:
 
-* benchmarking:                          Interactive Haskell. (line 466)
+* benchmarking:                          Interactive Haskell. (line 469)
 * CUA mode:                              Indentation.         (line  49)
 * customizing:                           Installation.        (line  55)
 * customizing <1>:                       Interactive Haskell. (line  50)
@@ -2075,7 +2078,7 @@ Concept index
 * layout rule:                           Indentation.         (line   6)
 * off-side rule:                         Indentation.         (line   6)
 * rectangle:                             Indentation.         (line  49)
-* testing:                               Interactive Haskell. (line 464)
+* testing:                               Interactive Haskell. (line 467)
 * Unicode:                               Unicode support.     (line   6)
 
 
@@ -2094,7 +2097,7 @@ Function index
                                                               (line   6)
 * haskell-mode:                          Editing Haskell Code.
                                                               (line   6)
-* haskell-session-change-target:         Interactive Haskell. (line 457)
+* haskell-session-change-target:         Interactive Haskell. (line 460)
 * inferior-haskell-find-definition:      Inferior Haskell interpreter.
                                                               (line   6)
 * inferior-haskell-find-haddock:         Inferior Haskell interpreter.
@@ -2133,19 +2136,20 @@ Variable index
 * haskell-decl-scan-mode-hook:           Declaration scanning.
                                                               (line   6)
 * haskell-definition-face:               Syntax highlighting. (line  31)
-* haskell-interactive-mode-hook:         Interactive Haskell. (line 457)
+* haskell-interactive-mode-hook:         Interactive Haskell. (line 460)
 * haskell-keyword-face:                  Syntax highlighting. (line  28)
 * haskell-literate-comment-face:         Syntax highlighting. (line  35)
 * haskell-mode-hook:                     Installation.        (line  60)
 * haskell-operator-face:                 Syntax highlighting. (line  33)
 * haskell-pragma-face:                   Syntax highlighting. (line  34)
-* haskell-process-args-cabal-repl:       Interactive Haskell. (line  71)
-* haskell-process-args-ghci:             Interactive Haskell. (line  71)
-* haskell-process-args-stack-ghci:       Interactive Haskell. (line  70)
-* haskell-process-path-cabal:            Interactive Haskell. (line  71)
-* haskell-process-path-ghci:             Interactive Haskell. (line  71)
-* haskell-process-path-stack:            Interactive Haskell. (line  71)
-* haskell-process-type:                  Interactive Haskell. (line  71)
+* haskell-process-args-cabal-new-repl:   Interactive Haskell. (line  73)
+* haskell-process-args-cabal-repl:       Interactive Haskell. (line  73)
+* haskell-process-args-ghci:             Interactive Haskell. (line  73)
+* haskell-process-args-stack-ghci:       Interactive Haskell. (line  72)
+* haskell-process-path-cabal:            Interactive Haskell. (line  73)
+* haskell-process-path-ghci:             Interactive Haskell. (line  73)
+* haskell-process-path-stack:            Interactive Haskell. (line  73)
+* haskell-process-type:                  Interactive Haskell. (line  73)
 * haskell-program-name:                  Inferior Haskell interpreter.
                                                               (line   6)
 * haskell-quasi-quote-face:              Syntax highlighting. (line  36)
@@ -2171,15 +2175,15 @@ Node: Declaration scanning24740
 Node: Compilation28028
 Node: Inferior Haskell interpreter31041
 Node: Interactive Haskell31973
-Node: Editing Cabal files62610
-Node: Browsing Haddocks63357
-Node: Spell checking strings and comments66182
-Node: Aligning code67288
-Node: Rectangular commands69033
-Node: Getting Help and Reporting Bugs70580
-Node: Concept index71621
-Node: Function index72664
-Node: Variable index74682
+Node: Editing Cabal files62784
+Node: Browsing Haddocks63531
+Node: Spell checking strings and comments66356
+Node: Aligning code67462
+Node: Rectangular commands69207
+Node: Getting Help and Reporting Bugs70754
+Node: Concept index71795
+Node: Function index72838
+Node: Variable index74856
 
 End Tag Table
 
