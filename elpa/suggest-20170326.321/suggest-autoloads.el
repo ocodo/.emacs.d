@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "suggest" "suggest.el" (22613 12758 749767
-;;;;;;  400000))
+;;;### (autoloads nil "suggest" "suggest.el" (0 0 0 0))
 ;;; Generated autoloads from suggest.el
 
 (autoload 'suggest "suggest" "\
@@ -17,6 +16,8 @@ and outputs given.
 Update the suggestions according to the latest inputs/output given.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "suggest" '("suggest-")))
 
 ;;;***
 

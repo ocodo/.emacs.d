@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.3
-;; Package-Version: 20161205.450
+;; Package-Version: 20170326.321
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 ;; URL: https://github.com/Wilfred/suggest.el
@@ -37,7 +37,6 @@
 (eval-when-compile
   (require 'cl-lib)) ;; cl-incf
 
-;; TODO: add (format %s _) somehow
 ;; TODO: add #'read, but don't prompt for input when the example is nil.
 ;;
 ;; See also `cl--simple-funcs' and `cl--safe-funcs'.
@@ -177,6 +176,9 @@
    #'s-left
    #'s-right
    #'s-chop-suffix
+   #'s-chop-suffixes
+   #'s-chop-prefix
+   #'s-chop-prefixes
    #'s-shared-start
    #'s-shared-end
    #'s-repeat
