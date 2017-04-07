@@ -216,6 +216,8 @@ Return t if at least one was deleted."
     (setq lispy-overlay nil)
     t))
 
+(declare-function geiser-doc-symbol-at-point "geiser-doc")
+
 (defun lispy--describe-inline ()
   "Toggle the overlay hint."
   (condition-case nil
@@ -228,9 +230,11 @@ Return t if at least one was deleted."
             (when (= 0 (count-lines (window-start) (point)))
               (recenter 1))
             (setq lispy-hint-pos new-hint-pos)
-            (when (setq doc (lispy--docstring (lispy--current-function)))
-              (goto-char lispy-hint-pos)
-              (lispy--show (propertize doc 'face 'lispy-face-hint))))))
+            (if (eq major-mode 'scheme-mode)
+                (geiser-doc-symbol-at-point)
+              (when (setq doc (lispy--docstring (lispy--current-function)))
+                (goto-char lispy-hint-pos)
+                (lispy--show (propertize doc 'face 'lispy-face-hint)))))))
     (error
      (lispy--cleanup-overlay))))
 
@@ -318,6 +322,8 @@ Return t if at least one was deleted."
     (lispy--describe-inline)))
 
 (declare-function lispy--python-docstring "le-python")
+(declare-function lispy--python-arglist "le-python")
+(declare-function python-info-current-symbol "python")
 
 ;; ——— Utilities ———————————————————————————————————————————————————————————————
 (defun lispy--arglist (symbol)

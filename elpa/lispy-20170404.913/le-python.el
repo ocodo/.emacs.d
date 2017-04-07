@@ -38,67 +38,69 @@ Stripping them will produce code that's valid for an eval."
                (split-string str re t)))
     str))
 
-(defun lispy-eval-python-str ()
+(defun lispy-eval-python-bnd ()
   (let (str res bnd)
-    (setq str
-          (save-excursion
-            (cond ((region-active-p)
-                   (setq str (buffer-substring-no-properties
-                              (region-beginning)
-                              (region-end)))
-                   (if (= (cl-count ?\n str) 0)
-                       str
-                     ;; get rid of "unexpected indent"
-                     (replace-regexp-in-string
-                      (concat
-                       "^"
-                       (save-excursion
-                         (goto-char (region-beginning))
-                         (buffer-substring-no-properties
-                          (line-beginning-position)
-                          (point))))
-                      "" (lispy--string-dwim))))
-                  ((and (looking-at lispy-outline)
-                        (looking-at lispy-outline-header))
-                   (string-trim-right
-                    (lispy--string-dwim
-                     (lispy--bounds-outline))))
-                  ((setq bnd (lispy-bounds-python-block))
-                   (lispy-trim-python
-                    (lispy--string-dwim bnd)))
-                  ((lispy-bolp)
-                   (string-trim-left
-                    (lispy--string-dwim
-                     (lispy--bounds-c-toplevel))))
-                  (t
-                   (cond ((lispy-left-p))
-                         ((lispy-right-p)
-                          (backward-list))
-                         (t
-                          (error "Unexpected")))
-                   (setq bnd (lispy--bounds-dwim))
-                   (ignore-errors (backward-sexp))
-                   (while (or (eq (char-before) ?.)
-                              (eq (char-after) ?\())
-                     (backward-sexp))
-                   (setcar bnd (point))
-                   (lispy--string-dwim bnd)))))
+    (save-excursion
+      (cond ((region-active-p)
+             (cons
+              (if (> (count-lines (region-beginning) (region-end)) 1)
+                  (save-excursion
+                    (goto-char (region-beginning))
+                    (skip-chars-backward " ")
+                    (point))
+                (region-beginning))
+              (region-end)))
+            ((and (looking-at lispy-outline)
+                  (looking-at lispy-outline-header))
+             (lispy--bounds-outline))
+            ((setq bnd (lispy-bounds-python-block)))
+            ((lispy-bolp)
+             (lispy--bounds-c-toplevel))
+            (t
+             (cond ((lispy-left-p))
+                   ((lispy-right-p)
+                    (backward-list))
+                   (t
+                    (error "Unexpected")))
+             (setq bnd (lispy--bounds-dwim))
+             (ignore-errors (backward-sexp))
+             (while (or (eq (char-before) ?.)
+                        (eq (char-after) ?\())
+               (backward-sexp))
+             (setcar bnd (point))
+             bnd)))))
+
+(defun lispy-eval-python-str ()
+  (let ((bnd (lispy-eval-python-bnd)))
     (replace-regexp-in-string
      ",\n +" ","
      (replace-regexp-in-string
-      "\\\\\n +" "" str))))
+      "\\\\\n +" ""
+      (lispy-trim-python
+       (lispy--string-dwim bnd))))))
 
 (defun lispy-bounds-python-block ()
   (if (save-excursion
         (when (looking-at " ")
           (forward-char))
         (python-info-beginning-of-block-p))
-      (let ((indent (1+ (- (point) (line-beginning-position)))))
+      (let ((indent (if (bolp)
+                        0
+                      (1+ (- (point) (line-beginning-position))))))
         (cons
          (line-beginning-position)
          (save-excursion
            (python-nav-end-of-block)
-           (while (looking-at (format "[\n ]\\{%d,\\}\\(except\\|else\\)" indent))
+           (while (let ((pt (point))
+                        bnd)
+                    (skip-chars-forward "\n ")
+                    (when (setq bnd (lispy--bounds-comment))
+                      (goto-char (cdr bnd)))
+                    (beginning-of-line)
+                    (if (looking-at (format "[\n ]\\{%d,\\}\\(except\\|else\\|elif\\)" indent))
+                        t
+                      (goto-char pt)
+                      nil))
              (goto-char (match-beginning 1))
              (python-nav-end-of-block))
            (point))))
@@ -110,7 +112,7 @@ Stripping them will produce code that's valid for an eval."
                 (goto-char (cdr bnd))))
             (end-of-line)
             (while (member (char-before)
-                           '(?\\ ?,))
+                           '(?\\ ?\,))
               (end-of-line 2))
             (point)))))
 
@@ -126,8 +128,32 @@ Stripping them will produce code that's valid for an eval."
        (replace-regexp-in-string
         "%" "%%" lispy-eval-error)))))
 
-(defun lispy--python-proc ()
-  (let* ((proc-name "Python Internal[lispy]")
+(defvar-local lispy-python-proc nil)
+
+(defun lispy-set-python-process ()
+  "Associate a (possibly new) Python process to the current buffer.
+
+Each buffer can have only a single Python process associated with
+it at one time."
+  (interactive)
+  (let* ((process-names
+          (delq nil
+                (mapcar
+                 (lambda (x)
+                   (when (string-match "^lispy-python-\\(.*\\)" (process-name x))
+                     (match-string 1 (process-name x))))
+                 (process-list)))))
+    (ivy-read "Process: " process-names
+              :action (lambda (x)
+                        (setq lispy-python-proc
+                              (lispy--python-proc (concat "lispy-python-" x))))
+              :caller 'lispy-set-python-process)))
+
+(defun lispy--python-proc (&optional name)
+  (let* ((proc-name (or name
+                        (and (process-live-p lispy-python-proc)
+                             lispy-python-proc)
+                        "lispy-python-default"))
          (process (get-process proc-name)))
     (if (process-live-p process)
         process
@@ -144,7 +170,7 @@ Stripping them will produce code that's valid for an eval."
                    python-shell-interpreter-args))))
         (setq process (get-buffer-process
                        (python-shell-make-comint
-                        python-binary-name proc-name nil t))))
+                        python-binary-name proc-name nil nil))))
       (setq lispy--python-middleware-loaded-p nil)
       (lispy--python-middleware-load)
       process)))
@@ -153,15 +179,18 @@ Stripping them will produce code that's valid for an eval."
   "Eval STR as Python code."
   (let ((single-line-p (= (cl-count ?\n str) 0)))
     (unless plain
-      (setq str (string-trim-left str))
-      (cond ((and (string-match "\\`\\(\\(?:[., ]\\|\\sw\\|\\s_\\|[][]\\)+\\) += " str)
+      (setq str (string-trim str))
+      (cond ((and (or (string-match "\\`\\(\\(?:[., ]\\|\\sw\\|\\s_\\|[][]\\)+\\) += " str)
+                      (string-match "\\`\\(([^)]+)\\) *=" str))
                   (save-match-data
                     (or single-line-p
                         (and (not (string-match-p "lp\\." str))
-                             (lispy--eval-python
-                              (format "x=lp.is_assignment(\"\"\"%s\"\"\")\nprint (x)" str)
-                              t)))))
+                             (equal (lispy--eval-python
+                                     (format "x=lp.is_assignment(\"\"\"%s\"\"\")\nprint (x)" str)
+                                     t)
+                                    "True")))))
              (setq str (concat str (format "\nprint (repr ((%s)))" (match-string 1 str)))))
+            ;; match e.g. "x in array" part of  "for x in array:"
             ((and single-line-p
                   (string-match "\\`\\([A-Z_a-z,0-9 ()]+\\) in \\(.*\\)\\'" str))
              (let ((vars (match-string 1 str))
@@ -301,6 +330,9 @@ Stripping them will produce code that's valid for an eval."
     (nreverse res)))
 
 (defun lispy--python-debug-step-in ()
+  (when (looking-at " *(")
+    ;; tuple assignment
+    (forward-list 1))
   (re-search-forward "(" (line-end-position))
   (backward-char)
   (let* ((p-ar-beg (point))
@@ -310,13 +342,22 @@ Stripping them will produce code that's valid for an eval."
          (p-fn-end (progn
                      (skip-chars-backward " ")
                      (point)))
+         (method-p nil)
          (p-fn-beg (progn
                      (backward-sexp)
+                     (while (eq (char-before) ?.)
+                       (setq method-p t)
+                       (backward-sexp))
                      (point)))
          (fn (buffer-substring-no-properties
               p-fn-beg p-fn-end))
          (args
           (lispy--python-args (1+ p-ar-beg) (1- p-ar-end)))
+         (args (if (and method-p
+                        (string-match "\\`\\(.*?\\)\\.\\([^.]+\\)\\'" fn))
+                   (cons (match-string 1 fn)
+                         args)
+                 args))
          (args-key (cl-remove-if-not
                     (lambda (s)
                       (string-match lispy--python-arg-key-re s))
@@ -348,8 +389,11 @@ Stripping them will produce code that's valid for an eval."
                                            (length fn-defaults))
                                         nil)
                              fn-defaults)))
-         (fn-alist-x fn-alist)
-         dbg-cmd)
+         fn-alist-x dbg-cmd)
+    (when method-p
+      (unless (member '("self") fn-alist)
+        (push '("self") fn-alist)))
+    (setq fn-alist-x fn-alist)
     (dolist (arg args-normal)
       (setcdr (pop fn-alist-x) arg))
     (dolist (arg args-key)
@@ -369,7 +413,9 @@ Stripping them will produce code that's valid for an eval."
                      fn-alist
                      "; "))
     (if (lispy--eval-python dbg-cmd t)
-        (lispy-goto-symbol fn)
+        (progn
+          (goto-char p-fn-end)
+          (lispy-goto-symbol fn))
       (goto-char p-ar-beg)
       (message lispy-eval-error))))
 
@@ -383,19 +429,20 @@ Stripping them will produce code that's valid for an eval."
                   t))))
       (if (member res '(nil "Definition not found."))
           (let* ((symbol (python-info-current-symbol))
-                 (file (car
-                        (lispy--python-array-to-elisp
-                         (lispy--eval-python
-                          (format
-                           "import inspect\ninspect.getsourcefile(%s)" symbol))))))
-            (if file
-                (progn
-                  (find-file file)
-                  (goto-char (point-min))
-                  (re-search-forward
-                   (concat "^def.*" (car (last (split-string symbol "\\." t)))))
-                  (beginning-of-line))
-              (error "Both jedi and inspect failed")))
+                 (symbol-re (concat "^def.*" (car (last (split-string symbol "\\." t)))))
+                 (file (lispy--eval-python
+                        (format
+                         "import inspect\nprint(inspect.getsourcefile(%s))" symbol)))
+                 pt)
+            (cond ((and (equal file "None")
+                        (re-search-backward symbol-re nil t)))
+                  (file
+                   (find-file file)
+                   (goto-char (point-min))
+                   (re-search-forward symbol-re)
+                   (beginning-of-line))
+                  (t
+                   (error "Both jedi and inspect failed"))))
         (unless (looking-back "def " (line-beginning-position))
           (jedi:goto-definition))))))
 
@@ -422,10 +469,12 @@ Otherwise, fall back to Jedi (static)."
 (defun lispy--python-middleware-load ()
   "Load the custom Python code in \"lispy-python.py\"."
   (unless lispy--python-middleware-loaded-p
-    (lispy--eval-python
-     (format "import imp;lp=imp.load_source('lispy-python','%s')"
-             (expand-file-name "lispy-python.py" lispy-site-directory)))
-    (setq lispy--python-middleware-loaded-p t)))
+    (let ((r (lispy--eval-python
+              (format "import imp;lp=imp.load_source('lispy-python','%s');__name__='__repl__'"
+                      (expand-file-name "lispy-python.py" lispy-site-directory)))))
+      (if r
+          (setq lispy--python-middleware-loaded-p t)
+        (lispy-message lispy-eval-error)))))
 
 (defun lispy--python-arglist (symbol filename line column)
   (lispy--python-middleware-load)
