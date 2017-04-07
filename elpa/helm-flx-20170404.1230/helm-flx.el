@@ -4,7 +4,7 @@
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, helm, fuzzy, flx
-;; Package-Version: 20170110.957
+;; Package-Version: 20170404.1230
 ;; Version: 20151013
 ;; URL: https://github.com/PythonNut/helm-flx
 ;; Package-Requires: ((emacs "24.4") (helm "1.7.9") (flx "0.5"))
@@ -149,7 +149,7 @@ Return candidates prefixed with basename of `helm-input' first."
     (if (string= helm-pattern "")
         candidates
       (if (string-match-p " " helm-pattern)
-          (helm-fuzzy-matching-default-sort-fn candidates source use-real)
+          (helm-fuzzy-matching-default-sort-fn candidates source)
         (helm-flx-sort candidates
                        helm-pattern
                        (if use-real
