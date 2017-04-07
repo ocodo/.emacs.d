@@ -152,7 +152,8 @@ above."
        full-path))))
 
 (defun tide-project-name ()
-  (file-name-nondirectory (directory-file-name (tide-project-root))))
+  (let ((full-path (directory-file-name (tide-project-root))))
+    (concat (file-name-nondirectory full-path) "-" (substring (md5 full-path) 0 10))))
 
 ;;; Compatibility
 
@@ -219,6 +220,9 @@ ones and overrule settings in the other lists."
 
 (defun tide-command-unknown-p (response)
   (and response (string-equal (plist-get response :command) "unknown")))
+
+(defun tide-tsserver-version-not-supported ()
+  (error "Only tsserver 2.0 or greater is supported. Upgrade your tsserver or use older version of tide."))
 
 (defmacro tide-on-response-success (response &rest body)
   (declare (indent 1))
@@ -507,15 +511,28 @@ LINE is one based, OFFSET is one based and column is zero based"
 (defun tide-jump-to-definition (&optional arg)
   "Jump to the definition of the symbol at point.
 
-With a prefix arg, Jump to the type definition."
+If pointed at an abstract member-declaration, will proceed to look for
+implementations.  When invoked with a prefix arg, jump to the type definition."
   (interactive "P")
   (let ((cb (lambda (response)
               (tide-on-response-success response
                 (let ((filespan (car (plist-get response :body))))
-                  (tide-jump-to-filespan filespan tide-jump-to-definition-reuse-window))))))
+                  ;; if we're still at the same location...
+                  ;; maybe we're a abstract member which has impementations?
+                  (if (and (not arg)
+                           (tide-filespan-is-current-location-p filespan))
+                      (tide-jump-to-implementation)
+                    (tide-jump-to-filespan filespan tide-jump-to-definition-reuse-window)))))))
     (if arg
         (tide-command:typeDefinition cb)
       (tide-command:definition cb))))
+
+(defun tide-filespan-is-current-location-p (filespan)
+  (let* ((location (plist-get filespan :start))
+         (new-file-name (plist-get filespan :file))
+         (new-point (tide-location-to-point location)))
+    (and (equal new-point (point))
+         (string-equal new-file-name buffer-file-name))))
 
 (defun tide-move-to-location (location)
   (let* ((line (plist-get location :line))
@@ -795,10 +812,10 @@ Noise can be anything like braces, reserved keywords, etc."
 ;;; Auto completion
 
 (defun tide-completion-annotation (name)
-  (if tide-completion-detailed
+  (-if-let (meta (and tide-completion-detailed (tide-completion-meta name)))
       ;; Get everything before the first newline, if any, because company-mode
       ;; wants single-line annotations.
-      (car (split-string (tide-completion-meta name) "\n"))
+      (car (split-string meta "\n"))
     (pcase (plist-get (get-text-property 0 'completion name) :kind)
       ("keyword" " k")
       ("module" " M")
@@ -904,7 +921,7 @@ Noise can be anything like braces, reserved keywords, etc."
              (bound-and-true-p tide-mode)
              (-any-p #'derived-mode-p tide-supported-modes)
              (tide-current-server)
-             (not (company-in-string-or-comment))
+             (not (nth 4 (syntax-ppss)))
              (or (tide-completion-prefix) 'stop)))
     (candidates (cons :async
                       (lambda (cb)
@@ -1318,6 +1335,8 @@ code-analysis."
 (defun tide-flycheck-start (checker callback)
   (tide-command:geterr
    (lambda (response)
+     (when (tide-command-unknown-p response)
+       (tide-tsserver-version-not-supported))
      (if (tide-response-success-p response)
          (tide-flycheck-send-response callback checker response)
        (funcall callback 'errored (plist-get response :message))))))
