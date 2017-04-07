@@ -4,7 +4,7 @@
 
 ;; Author: Christopher Wellons <wellons@nullprogram.com>
 ;; URL: https://github.com/skeeto/elisp-json-rpc
-;; Package-Version: 20160427.807
+;; Package-Version: 20170402.955
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -89,6 +89,7 @@
     (with-temp-buffer
       (insert (format "POST %s HTTP/1.1\r\n" (url-encode-url endpoint)))
       (when auth (insert "Authorization: Basic " auth "\r\n"))
+      (insert "Content-Type: application/json\r\n")
       (insert (format "Content-Length: %d\r\n\r\n" (string-bytes encoded))
               encoded)
       (process-send-region process (point-min) (point-max)))
