@@ -4,7 +4,7 @@
 
 ;; Author: Hiroaki Otsu <ootsuhiroaki@gmail.com>
 ;; Keywords: org, completion
-;; Package-Version: 20140302.413
+;; Package-Version: 20170401.607
 ;; URL: https://github.com/aki2o/org-ac
 ;; Version: 0.0.2
 ;; Package-Requires: ((auto-complete-pcmp "0.0.1") (log4e "0.2.0") (yaxception "0.1"))
@@ -183,7 +183,9 @@
     (symbol . "l")
     (requires . 0)
     (cache)
-    (action . ac-pcmp/do-ac-action)))
+    (action . (lambda ()
+                (ac-pcmp/do-ac-action)
+                (ac-start)))))
 
 (defvar ac-source-org-ac-option
   '((candidates . ac-pcmp/get-ac-candidates)
@@ -212,6 +214,15 @@
     (cache)
     (action . ac-pcmp/do-ac-action)))
 
+(defvar ac-source-org-ac-file
+  '((init . (setq ac-filename-cache nil))
+    (candidates . org-ac/file-candidate)
+    (prefix . "\\[file:\\(.*\\)")
+    (symbol . "f")
+    (requires . 0)
+    (action . ac-start)
+    (limit . nil)))
+
 
 ;;;###autoload
 (defun org-ac/setup-current-buffer ()
@@ -228,6 +239,7 @@
     (add-to-list 'ac-sources 'ac-source-org-ac-option)
     (add-to-list 'ac-sources 'ac-source-org-ac-option-key)
     (add-to-list 'ac-sources 'ac-source-org-ac-option-options)
+    (add-to-list 'ac-sources 'ac-source-org-ac-file)
     (auto-complete-mode t)))
 
 ;;;###autoload
@@ -235,6 +247,15 @@
   "Do setting recommemded configuration."
   (add-to-list 'ac-modes 'org-mode)
   (add-hook 'org-mode-hook 'org-ac/setup-current-buffer t))
+
+
+(defun org-ac/file-candidate ()
+  "Adds [file: to the normal file completition, plus allows relative paths"
+  (if (string-match "^[~./]+" ac-prefix)
+      (ac-filename-candidate)
+    (let ((ac-prefix (concat "./" ac-prefix)))
+      (mapcar (lambda (path) (substring path 2))
+              (ac-filename-candidate)))))
 
 
 (provide 'org-ac)
