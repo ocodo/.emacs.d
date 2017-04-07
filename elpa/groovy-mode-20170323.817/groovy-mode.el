@@ -105,12 +105,12 @@
 
 ;;  Groovy allows `?.' as well as `.' for creating identifiers.
 (c-lang-defconst c-identifier-ops
-                 groovy '((left-assoc "." "?.")))
+                 groovy (list '(left-assoc "." "?.")))
 
 ;; Groovy allows operators such as `*.', `?.', `.&' and `.@'.  Java mode puts `*' here to deal with
 ;; import statement usage which we need for Groovy.
 (c-lang-defconst c-after-id-concat-ops
-  groovy '( "*" "&" "@" ))
+  groovy (list "*" "&" "@"))
 
 ;;;;  Should really do something with `c-string-escaped-newlines' and `c-multiline-string-start-char' to
 ;;;;  handle the triple delimeter multiline strings.
@@ -325,17 +325,17 @@ since CC Mode treats every identifier as an expression."
 ;; `def' modifier which Groovy introduces to support dynamic typing.  Should `const' be treated
 ;; as reserved here as it is in Java?
 (c-lang-defconst c-modifier-kwds
-                 groovy '( "abstract" "def" "final" "private" "protected" "public" "static" "synchronized" ))
+                 groovy (list "abstract" "def" "final" "private" "protected" "public" "static" "synchronized"))
 
 ;;  Java does not define these pseudo-kewords as keywords, why not?
 
 (c-lang-defconst c-constant-kwds
-  groovy '( "true" "false" "null" ))
+  groovy (list "true" "false" "null"))
 
 ;;  Why does Java mode not put `super' into the `c-primary-expr-kwds?
 
 (c-lang-defconst c-primary-expr-kwds
-  groovy '( "this" "super" ))
+  groovy (list "this" "super"))
 
 ;;  Groovy does not allow anonymous classes as Java does.
 (c-lang-defconst c-inexpr-class-kwds
@@ -349,7 +349,7 @@ since CC Mode treats every identifier as an expression."
 
 ;; We need to include the "as" for the cast and "in" for for.
 (c-lang-defconst c-other-kwds
-                 groovy '( "in" "as" ))
+                 groovy (list "in" "as"))
 
 
 (defconst groovy-font-lock-keywords-1 (c-lang-const c-matchers-1 groovy)
