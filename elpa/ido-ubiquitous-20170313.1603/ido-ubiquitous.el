@@ -4,12 +4,12 @@
 
 ;; Author: Ryan C. Thompson
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
-;; Package-Version: 20170211.1432
-;; Version: 3.15
+;; Package-Version: 20170313.1603
+;; Version: 3.16
 ;; Created: 2011-09-01
 ;; Keywords: convenience, completion, ido
 ;; EmacsWiki: InteractivelyDoThings
-;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.15") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.1") (ido-completing-read+ "3.16") (cl-lib "0.5"))
 ;; Filename: ido-ubiquitous.el
 
 ;; This file is NOT part of GNU Emacs.
@@ -70,7 +70,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-ubiquitous-version "3.15"
+(defconst ido-ubiquitous-version "3.16"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-ubiquitous, this variable may not
@@ -103,11 +103,9 @@ Debug info is printed to the *Messages* buffer."
   :global t
   :group 'ido-ubiquitous)
 
-;; Defined as a macro for efficiency (args are not evaluated unless
-;; debug mode is on)
-(defmacro ido-ubiquitous--debug-message (format-string &rest args)
-  `(when ido-ubiquitous-debug-mode
-     (message (concat "ido-ubiquitous: " ,format-string) ,@args)))
+(defun ido-ubiquitous--debug-message (format-string &rest args)
+  (when ido-ubiquitous-debug-mode
+     (apply #'message (concat "ido-ubiquitous: " format-string) args)))
 
 (defun ido-ubiquitous--explain-fallback (arg)
   ;; This function accepts a string, or an ido-ubiquitous-fallback
@@ -115,7 +113,7 @@ Debug info is printed to the *Messages* buffer."
   (when ido-ubiquitous-debug-mode
     (when (and (listp arg)
                (eq (car arg) 'ido-ubiquitous-fallback))
-      (setq arg (cdr arg)))
+      (setq arg (cadr arg)))
     (ido-ubiquitous--debug-message "Falling back to `%s' because %s."
                                    ido-cr+-fallback-function arg)))
 
@@ -668,7 +666,7 @@ completion for them."
               ;; If ido-ubiquitous is disabled this time, fall back
               (when (eq ido-ubiquitous-active-state 'disable)
                 (signal 'ido-ubiquitous-fallback
-                        "`ido-ubiquitous-active-state' is `disable'"))
+                        '("`ido-ubiquitous-active-state' is `disable'")))
               ;; Handle a collection that is a function: either expand
               ;; completion list now or fall back
               (when (functionp collection)
@@ -680,15 +678,20 @@ completion for them."
                           ;; so it now becomes redundant.
                           predicate nil)
                   (signal 'ido-ubiquitous-fallback
-                          "COLLECTION is a function and there is no override")))
+                          '("COLLECTION is a function and there is no override"))))
               (let ((ido-ubiquitous-enable-next-call t))
                 (ido-completing-read+
                  prompt collection predicate require-match
                  initial-input hist def inherit-input-method)))
+          ;; Pass through any known fallback signals to the outer
+          ;; `condition-case'
+          (ido-ubiquitous-fallback
+           (signal (car err) (cdr err)))
+          ;; Convert any other error into a fallback signal.
           (error
            (signal 'ido-ubiquitous-fallback
-                   (format "ido-ubiquitous encountered an unexpected error: %S"
-                           err))))
+                   (list (format "ido-ubiquitous encountered an unexpected error: %S"
+                                 err)))))
       ;; Handler for ido-ubiquitous-fallback signal
       (ido-ubiquitous-fallback
        (ido-ubiquitous--explain-fallback sig)
