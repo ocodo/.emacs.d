@@ -4,7 +4,7 @@
 
 ;; Author: Tom Willemse <tom@ryuslash.org>
 ;; Keywords: faces
-;; Package-Version: 20170307.906
+;; Package-Version: 20170330.0
 ;; Version: 6.1.0
 ;; URL: http://projects.ryuslash.org/yoshi-theme/
 
@@ -88,6 +88,18 @@
    `(circe-server-face ((t (:foreground ,fgdim))))
    `(lui-button-face ((t (:foreground unspecified :underline unspecified :inherit button))))
    `(lui-time-stamp-face ((t (:foreground ,fggreen :weight unspecified))))
+
+   ;;; Company
+   `(company-preview ((t (:background unspecified :foreground ,fgdim))))
+   `(company-preview-common ((t (:foreground ,bgcyan :inherit unspecified :weight bold))))
+   `(company-scrollbar-bg ((t (:background ,bgdim))))
+   `(company-scrollbar-fg ((t (:background ,bgbright))))
+   `(company-tooltip ((t (:foreground ,fgdefault :background ,bgdim))))
+   `(company-tooltip-annotation ((t (:foreground ,fgblue))))
+   `(company-tooltip-common ((t (:foreground ,fgcyan))))
+   `(company-tooltip-search ((t (:background ,bgyellow :inherit unspecified))))
+   `(company-tooltip-search-selection ((t (:background ,bgyellow :inherit unspecified))))
+   `(company-tooltip-selection ((t (:background ,bgblue))))
 
    ;;; Compilation
    `(compilation-info ((t (:foreground ,fgblue :inherit unspecified))))
@@ -261,6 +273,13 @@
    `(isearch ((t (:background ,bgyellow :foreground unspecified))))
    `(isearch-fail ((t (:background ,bgred))))
 
+   ;;; Ivy
+   `(ivy-current-match ((t (:background ,bgblue :foreground ,fgdefault))))
+   `(ivy-minibuffer-match-face-1 ((t (:background unspecified :underline t))))
+   `(ivy-minibuffer-match-face-2 ((t (:background unspecified :weight bold))))
+   `(ivy-minibuffer-match-face-3 ((t (:background unspecified :weight bold))))
+   `(ivy-minibuffer-match-face-4 ((t (:background unspecified :weight bold))))
+
    ;;; Jabber
    `(jabber-activity-face ((t (:foreground ,fgred :weight unspecified))))
    `(jabber-activity-personal-face ((t (:foreground ,fgblue :weight unspecified))))
@@ -357,8 +376,8 @@
    `(org-date ((t (:foreground ,fgpink :underline unspecified))))
    `(org-document-title ((t (:foreground ,fgorange :height 1.5))))
    `(org-headline-done ((t (:foreground ,fgdim))))
-   `(org-level-1 ((t (:foreground ,fggreen :underline t))))
-   `(org-level-2 ((t (:foreground ,fgcyan :weight bold))))
+   `(org-level-1 ((t (:foreground ,fggreen :underline t :height 1.2))))
+   `(org-level-2 ((t (:foreground ,fgcyan :weight bold :height 1.1))))
    `(org-level-3 ((t (:foreground ,fgred :slant italic))))
    `(org-level-4 ((t (:foreground ,fgblue))))
    `(org-level-5 ((t (:foreground ,fgyellow))))
