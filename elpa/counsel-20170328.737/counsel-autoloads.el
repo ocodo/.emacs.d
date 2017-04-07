@@ -279,6 +279,11 @@ Choose from headers of `org-mode' files in the agenda.
 
 \(fn)" t nil)
 
+(autoload 'counsel-irony "counsel" "\
+Inline C/C++ completion using Irony.
+
+\(fn)" t nil)
+
 (defvar counsel-mode nil "\
 Non-nil if Counsel mode is enabled.
 See the `counsel-mode' command

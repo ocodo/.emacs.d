@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20170225.356
+;; Package-Version: 20170328.737
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
 ;; Keywords: completion, matching
@@ -161,9 +161,10 @@ Or the time of the last minibuffer update.")
              (unless (stringp re)
                (setq re (caar re)))
              (if (null ivy--old-cands)
-                 (unless (setq ivy--index (ivy--preselect-index
-                                           (ivy-state-preselect ivy-last)
-                                           ivy--all-candidates))
+                 (unless (ivy-set-index
+                          (ivy--preselect-index
+                           (ivy-state-preselect ivy-last)
+                           ivy--all-candidates))
                    (ivy--recompute-index
                     ivy-text re ivy--all-candidates))
                (ivy--recompute-index
@@ -1251,7 +1252,7 @@ When REVERT is non-nil, regenerate the current *ivy-occur* buffer."
 (defun counsel-git-grep-recenter ()
   (interactive)
   (with-ivy-window
-    (counsel-git-grep-action ivy--current)
+    (counsel-git-grep-action (ivy-state-current ivy-last))
     (recenter-top-bottom)))
 
 ;;** `counsel-git-stash'
@@ -1849,7 +1850,7 @@ RG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument. "
       cands))))
 
 ;;** `counsel-grep'
-(defcustom counsel-grep-base-command "grep -nE \"%s\" %s"
+(defcustom counsel-grep-base-command "grep -nE '%s' %s"
   "Format string to use in `cousel-grep-function' to construct
 the command."
   :type 'string
@@ -1942,7 +1943,7 @@ the command."
                                                   (line-end-position))))
                              :history 'counsel-git-grep-history
                              :update-fn (lambda ()
-                                          (counsel-grep-action ivy--current))
+                                          (counsel-grep-action (ivy-state-current ivy-last)))
                              :re-builder #'ivy--regex
                              :action #'counsel-grep-action
                              :unwind (lambda ()
@@ -2809,13 +2810,15 @@ midpoint, then the chosen color is black, otherwise is white.  This
 helps to improve the contrast and readability of a text regardless of
 the background color."
   (let ((rgb (color-name-to-rgb color)))
-    (if (>
-         (+ (* (nth 0 rgb) 0.299)
-            (* (nth 1 rgb) 0.587)
-            (* (nth 2 rgb) 0.114))
-         0.5)
-        "#000000"
-      "#FFFFFF")))
+    (if rgb
+        (if (>
+             (+ (* (nth 0 rgb) 0.299)
+                (* (nth 1 rgb) 0.587)
+                (* (nth 2 rgb) 0.114))
+             0.5)
+            "#000000"
+          "#FFFFFF")
+      color)))
 
 (defun counsel-colors--update-highlight (cand)
   "Update the highlight face for the current candidate CAND.
@@ -2899,7 +2902,7 @@ selected candidate."
                       (list-colors-duplicates))
               :require-match t
               :update-fn (lambda ()
-                           (counsel-colors--update-highlight ivy--current))
+                           (counsel-colors--update-highlight (ivy-state-current ivy-last)))
               :action #'counsel-colors-action-insert-name
               :history 'counsel-colors-emacs-history
               :caller 'counsel-colors-emacs
@@ -3087,7 +3090,7 @@ selected candidate."
               :require-match t
               :action #'counsel-colors-action-insert-name
               :update-fn (lambda ()
-                           (counsel-colors--update-highlight ivy--current))
+                           (counsel-colors--update-highlight (ivy-state-current ivy-last)))
               :history 'counsel-colors-web-history
               :caller 'counsel-colors-web
               :sort t)))
@@ -3238,7 +3241,40 @@ candidate."
               :history 'counsel-org-agenda-headlines-history
               :caller 'counsel-org-agenda-headlines)))
 
-;** `counsel-mode'
+;;** `counsel-irony'
+;;;###autoload
+(defun counsel-irony ()
+  "Inline C/C++ completion using Irony."
+  (interactive)
+  (irony-completion-candidates-async 'counsel-irony-callback))
+
+(defun counsel-irony-callback ()
+  (interactive)
+  (let ((coll (irony-completion-at-point)))
+    (when coll
+      (setq ivy-completion-beg (nth 0 coll))
+      (setq ivy-completion-end (nth 1 coll))
+      (ivy-read "code: " (mapcar #'counsel-irony-annotate
+                                 (nth 2 coll))
+                :caller 'counsel-irony
+                :action 'ivy-completion-in-region-action))))
+
+(defun counsel-irony-annotate (x)
+  (cons
+   (condition-case nil
+       (concat
+        x " "
+        (irony-completion--at-point-annotate x))
+     (error x))
+   x))
+
+(add-to-list 'ivy-display-functions-alist '(counsel-irony . ivy-display-function-overlay))
+
+(declare-function irony-completion-candidates-async "ext:irony-completion")
+(declare-function irony-completion-at-point "ext:irony-completion")
+(declare-function irony-completion--at-point-annotate "ext:irony-completion")
+
+;;** `counsel-mode'
 (defvar counsel-mode-map
   (let ((map (make-sparse-keymap)))
     (dolist (binding
