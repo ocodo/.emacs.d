@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2016
 ;; Keywords: http helm
-;; Package-Version: 20160407.249
+;; Package-Version: 20170314.854
 ;; Package-Requires: ((restclient "0") (helm "1.9.4"))
 
 ;; This file is not part of GNU Emacs.
@@ -70,7 +70,5 @@
 (eval-after-load 'restclient
   '(progn
      (define-key restclient-mode-map (kbd "C-c C-g") #'helm-restclient)))
-
-;;; helm-restclient.el ends here
 
 ;;; restclient-helm.el ends here
