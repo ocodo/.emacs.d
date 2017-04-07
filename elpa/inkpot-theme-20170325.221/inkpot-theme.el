@@ -3,7 +3,7 @@
 ;; Author: Sarah Iovan <sarah@hwaetageek.com>
 ;;         Campbell Barton <ideasman42@gmail.com>
 ;; URL: https://github.com/ideasman42/emacs-inkpot-theme
-;; Package-Version: 20170203.2120
+;; Package-Version: 20170325.221
 ;; Version: 0.1
 ;; Keywords: color, theme
 
@@ -44,6 +44,12 @@
  '(cursor ((t (:background "#8b8bff" :foreground "#cfdfef"))))
  '(show-paren-match ((t (:background "#4e4e8f"))))
  '(show-paren-match-face ((t (:background "#4e4e8f"))))
+ '(link ((t (:foreground "#ff8bff"))))
+ '(link-visited ((t (:foreground "#cb6ecbv"))))  ; not a vim color, just a little darker
+
+ ; additions that fit in with the general theme
+ '(button ((t (:underline t :foreground "#ff8bff"))))
+ '(escape-glyph ((t (:foreground "#8b8bcd"))))   ; not matching gvim, just nice color
 
  ; isearch
  ;
@@ -155,6 +161,9 @@
  '(font-latex-string-face ((t (:foreground "#708090"))))
  '(font-latex-match-reference-keywords ((t (:foreground "#708090"))))
  '(font-latex-match-variable-keywords ((t (:foreground "#708090"))))
+
+ ;; Haskell
+ '(haskell-operator-face ((t (:foreground "#737dd5"))))
 
  ;; reStructuredText
  '(rst-external ((t (:foreground "#ff8bff"))))
