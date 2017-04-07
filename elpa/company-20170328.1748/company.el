@@ -1,11 +1,11 @@
 ;;; company.el --- Modular text completion framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2016  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2017  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 ;; Maintainer: Dmitry Gutov <dgutov@yandex.ru>
 ;; URL: http://company-mode.github.io/
-;; Version: 0.9.2
+;; Version: 0.9.3
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -1093,7 +1093,7 @@ can retrieve meta-data for them."
 
 (defun company--should-complete ()
   (and (eq company-idle-delay 'now)
-       (not (or buffer-read-only overriding-terminal-local-map
+       (not (or buffer-read-only
                 overriding-local-map))
        ;; Check if in the middle of entering a key combination.
        (or (equal (this-command-keys-vector) [])
@@ -1457,32 +1457,24 @@ prefix match (same case) will be prioritized."
               company-prefix)))
 
 (defun company--continue-failed (new-prefix)
-  (let ((input (buffer-substring-no-properties (point) company-point)))
-    (cond
-     ((company-auto-complete-p input)
-      ;; auto-complete
-      (save-excursion
-        (goto-char company-point)
-        (let ((company--auto-completion t))
-          (company-complete-selection))
-        nil))
-     ((and (or (not (company-require-match-p))
-               ;; Don't require match if the new prefix
-               ;; doesn't continue the old one, and the latter was a match.
-               (not (stringp new-prefix))
-               (<= (length new-prefix) (length company-prefix)))
-           (member company-prefix company-candidates))
-      ;; Last input was a success,
-      ;; but we're treating it as an abort + input anyway,
-      ;; like the `unique' case below.
-      (company-cancel 'non-unique))
-     ((company-require-match-p)
-      ;; Wrong incremental input, but required match.
-      (delete-char (- (length input)))
-      (ding)
-      (message "Matching input is required")
-      company-candidates)
-     (t (company-cancel)))))
+  (cond
+   ((and (or (not (company-require-match-p))
+             ;; Don't require match if the new prefix
+             ;; doesn't continue the old one, and the latter was a match.
+             (not (stringp new-prefix))
+             (<= (length new-prefix) (length company-prefix)))
+         (member company-prefix company-candidates))
+    ;; Last input was a success,
+    ;; but we're treating it as an abort + input anyway,
+    ;; like the `unique' case below.
+    (company-cancel 'non-unique))
+   ((company-require-match-p)
+    ;; Wrong incremental input, but required match.
+    (delete-char (- company-point (point)))
+    (ding)
+    (message "Matching input is required")
+    company-candidates)
+   (t (company-cancel))))
 
 (defun company--good-prefix-p (prefix)
   (and (stringp (company--prefix-str prefix)) ;excludes 'stop
@@ -1517,6 +1509,14 @@ prefix match (same case) will be prioritized."
       (setq company-prefix new-prefix)
       (company-update-candidates c)
       c)
+     ((company-auto-complete-p (buffer-substring-no-properties
+                                (point) company-point))
+      ;; auto-complete
+      (save-excursion
+        (goto-char company-point)
+        (let ((company--auto-completion t))
+          (company-complete-selection))
+        nil))
      ((not (company--incremental-p))
       (company-cancel))
      (t (company--continue-failed new-prefix)))))
@@ -2848,8 +2848,9 @@ Returns a negative number if the tooltip should be displayed above point."
       (overlay-put ov 'window (selected-window)))))
 
 (defun company-pseudo-tooltip-guard ()
-  (cons
+  (list
    (save-excursion (beginning-of-visual-line))
+   (window-width)
    (let ((ov company-pseudo-tooltip-overlay)
          (overhang (save-excursion (end-of-visual-line)
                                    (- (line-end-position) (point)))))
@@ -3014,10 +3015,16 @@ Delay is determined by `company-tooltip-idle-delay'."
 
 (defvar company-echo-delay .01)
 
+(defcustom company-echo-truncate-lines t
+  "Whether frontend messages written to the echo area should be truncated."
+  :type 'boolean
+  :package-version '(company . "0.9.3"))
+
 (defun company-echo-show (&optional getter)
   (when getter
     (setq company-echo-last-msg (funcall getter)))
-  (let ((message-log-max nil))
+  (let ((message-log-max nil)
+        (message-truncate-lines company-echo-truncate-lines))
     (if company-echo-last-msg
         (message "%s" company-echo-last-msg)
       (message ""))))
