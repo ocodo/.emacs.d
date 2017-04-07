@@ -85,6 +85,12 @@ merges."
   :group 'vdiff-magit
   :type 'boolean)
 
+(defcustom vdiff-magit-stage-is-2way nil
+  "If non-nil `vdiff-magit-stage' will only show two buffers, the
+file and the index with the HEAD omitted."
+  :group 'vdiff-magit
+  :type 'boolean)
+
 ;; (defvar magit-ediff-previous-winconf nil)
 
 ;;;###autoload (autoload 'vdiff-magit-popup "vdiff-magit" nil t)
@@ -129,37 +135,55 @@ FILE has to be relative to the top directory of the repository."
                                 (magit-tracked-files) nil nil nil
                                 (magit-current-file))))
   (magit-with-toplevel
-    (let* ((bufC (get-file-buffer file))
-           (fileBufC (or bufC (find-file-noselect file)))
+    (let* ((buf-a (or (magit-get-revision-buffer "HEAD" file)
+                      (magit-find-file-noselect "HEAD" file)))
+           (buf-b (with-current-buffer (magit-find-file-index-noselect file t)
+                    (setq buffer-read-only nil)
+                    (current-buffer)))
+           (buf-c (get-file-buffer file))
+           (file-buf-c (or buf-c (find-file-noselect file)))
            (coding-system-for-read
-            (with-current-buffer fileBufC buffer-file-coding-system)))
-      (vdiff-buffers3
-       (or (magit-get-revision-buffer "HEAD" file)
-           (magit-find-file-noselect "HEAD" file))
-       (with-current-buffer (magit-find-file-index-noselect file t)
-         (setq buffer-read-only nil)
-         (current-buffer))
-       fileBufC
-       `(lambda (buf-a buf-b buf-c)
-          (when (and (buffer-live-p buf-b)
-                     (buffer-modified-p buf-b))
-            (with-current-buffer buf-b
-              (magit-update-index))
-            (kill-buffer buf-b))
-          (when (and (buffer-live-p buf-c)
-                     (buffer-modified-p buf-c))
-            (with-current-buffer buf-c
-              (when (y-or-n-p
-                     (format "Save file %s? " buffer-file-name))
-                (save-buffer))))
-          ;; kill buf-c if it wasn't open originally
-          (unless ,bufC (kill-buffer buf-c))
-          (when (buffer-live-p buf-a)
-            (kill-buffer buf-a)))
-       t nil))))
+            (with-current-buffer file-buf-c buffer-file-coding-system)))
+      (if vdiff-magit-stage-is-2way
+          (vdiff-buffers
+           buf-b file-buf-c nil
+           `(lambda (buf-b buf-c)
+              (when (and (buffer-live-p buf-b)
+                         (buffer-modified-p buf-b))
+                (with-current-buffer buf-b
+                  (magit-update-index))
+                (kill-buffer buf-b))
+              (when (and (buffer-live-p buf-c)
+                         (buffer-modified-p buf-c))
+                (with-current-buffer buf-c
+                  (when (y-or-n-p
+                         (format "Save file %s? " buffer-file-name))
+                    (save-buffer))))
+              ;; kill buf-c if it wasn't open originally
+              (unless ,buf-c (kill-buffer buf-c)))
+           t nil)
+        (vdiff-buffers3
+         buf-a buf-b file-buf-c
+         `(lambda (buf-a buf-b buf-c)
+            (when (and (buffer-live-p buf-b)
+                       (buffer-modified-p buf-b))
+              (with-current-buffer buf-b
+                (magit-update-index))
+              (kill-buffer buf-b))
+            (when (and (buffer-live-p buf-c)
+                       (buffer-modified-p buf-c))
+              (with-current-buffer buf-c
+                (when (y-or-n-p
+                       (format "Save file %s? " buffer-file-name))
+                  (save-buffer))))
+            ;; kill buf-c if it wasn't open originally
+            (unless ,buf-c (kill-buffer buf-c))
+            (when (buffer-live-p buf-a)
+              (kill-buffer buf-a)))
+         t nil)))))
 
 ;; ;;;###autoload
-(defun vdiff-magit-compare (revA revB fileA fileB)
+(defun vdiff-magit-compare (rev-a rev-b file-a file-b)
   "Compare REVA:FILEA with REVB:FILEB using vdiff.
 
 FILEA and FILEB have to be relative to the top directory of the
@@ -171,22 +195,22 @@ line of the region.  With a prefix argument, instead of diffing
 the revisions, choose a revision to view changes along, starting
 at the common ancestor of both revisions (i.e., use a \"...\"
 range)."
-  (interactive (-let [(revA revB) (magit-ediff-compare--read-revisions
+  (interactive (-let [(rev-a rev-b) (magit-ediff-compare--read-revisions
                                    nil current-prefix-arg)]
-                 (nconc (list revA revB)
-                        (magit-ediff-read-files revA revB))))
+                 (nconc (list rev-a rev-b)
+                        (magit-ediff-read-files rev-a rev-b))))
   (magit-with-toplevel
     (vdiff-buffers
-     (if revA
-         (or (magit-get-revision-buffer revA fileA)
-             (magit-find-file-noselect revA fileA))
-       (or (get-file-buffer fileA)
-           (find-file-noselect fileA)))
-     (if revB
-         (or (magit-get-revision-buffer revB fileB)
-             (magit-find-file-noselect revB fileB))
-       (or (get-file-buffer fileB)
-           (find-file-noselect fileB)))
+     (if rev-a
+         (or (magit-get-revision-buffer rev-a file-a)
+             (magit-find-file-noselect rev-a file-a))
+       (or (get-file-buffer file-a)
+           (find-file-noselect file-a)))
+     (if rev-b
+         (or (magit-get-revision-buffer rev-b file-b)
+             (magit-find-file-noselect rev-b file-b))
+       (or (get-file-buffer file-b)
+           (find-file-noselect file-b)))
      nil t t)))
 
 ;;;###autoload
@@ -208,7 +232,7 @@ mind at all, then it asks the user for a command to run."
     (t
      (let ((range (magit-diff--dwim))
            (file (magit-current-file))
-           command revA revB)
+           command rev-a rev-b)
        (pcase range
          ((and (guard (not vdiff-magit-dwim-show-on-hunks))
                (or `unstaged `staged))
@@ -219,21 +243,21 @@ mind at all, then it asks the user for a command to run."
          (`staged (setq command #'vdiff-magit-show-staged))
          (`(commit . ,value)
           (setq command #'vdiff-magit-show-commit
-                revB value))
+                rev-b value))
          (`(stash . ,value)
           (setq command #'vdiff-magit-show-stash
-                revB value))
+                rev-b value))
          ((pred stringp)
           (-let [(a b) (magit-ediff-compare--read-revisions range)]
             (setq command #'vdiff-magit-compare
-                  revA a
-                  revB b)))
+                  rev-a a
+                  rev-b b)))
          (_
           (when (derived-mode-p 'magit-diff-mode)
             (pcase (magit-diff-type)
               (`committed (-let [(a b) (magit-ediff-compare--read-revisions
                                         (car magit-refresh-args))]
-                            (setq revA a revB b)))
+                            (setq rev-a a rev-b b)))
               ((guard (not vdiff-magit-dwim-show-on-hunks))
                (setq command #'vdiff-magit-stage))
               (`unstaged  (setq command #'vdiff-magit-show-unstaged))
@@ -249,12 +273,12 @@ mind at all, then it asks the user for a command to run."
                  (?s "[s]tage"   'vdiff-magit-stage)
                  (?v "resol[v]e" 'vdiff-magit-resolve))))
              ((eq command 'vdiff-magit-compare)
-              (apply 'vdiff-magit-compare revA revB
-                     (magit-ediff-read-files revA revB file)))
+              (apply 'vdiff-magit-compare rev-a rev-b
+                     (magit-ediff-read-files rev-a rev-b file)))
              ((eq command 'vdiff-magit-show-commit)
-              (vdiff-magit-show-commit revB))
+              (vdiff-magit-show-commit rev-b))
              ((eq command 'vdiff-magit-show-stash)
-              (vdiff-magit-show-stash revB))
+              (vdiff-magit-show-stash rev-b))
              (file
               (funcall command file))
              (t
@@ -318,11 +342,11 @@ FILE must be relative to the top directory of the repository."
 (defun vdiff-magit-show-commit (commit)
   "Show changes introduced by COMMIT using vdiff."
   (interactive (list (magit-read-branch-or-commit "Revision")))
-  (let ((revA (concat commit "^"))
-        (revB commit))
+  (let ((rev-a (concat commit "^"))
+        (rev-b commit))
     (apply #'vdiff-magit-compare
            (concat commit "^") commit
-           (magit-ediff-read-files revA revB (magit-current-file)))))
+           (magit-ediff-read-files rev-a rev-b (magit-current-file)))))
 
 ;; ;;;###autoload
 (defun vdiff-magit-show-stash (stash)
@@ -331,22 +355,22 @@ FILE must be relative to the top directory of the repository."
 three-buffer vdiff is used in order to distinguish changes in the
 stash that were staged."
   (interactive (list (magit-read-stash "Stash")))
-  (-let* ((revA (concat stash "^1"))
-          (revB (concat stash "^2"))
-          (revC stash)
-          ((fileA fileC) (magit-ediff-read-files revA revC))
-          (fileB fileC))
+  (-let* ((rev-a (concat stash "^1"))
+          (rev-b (concat stash "^2"))
+          (rev-c stash)
+          ((file-a file-c) (magit-ediff-read-files rev-a rev-c))
+          (file-b file-c))
     (if (and vdiff-magit-show-stash-with-index
-             (member fileA (magit-changed-files revB revA)))
-        (let ((bufA (magit-get-revision-buffer revA fileA))
-              (bufB (magit-get-revision-buffer revB fileB))
-              (bufC (magit-get-revision-buffer revC fileC)))
+             (member file-a (magit-changed-files rev-b rev-a)))
+        (let ((buf-a (magit-get-revision-buffer rev-a file-a))
+              (buf-b (magit-get-revision-buffer rev-b file-b))
+              (buf-c (magit-get-revision-buffer rev-c file-c)))
           (vdiff-buffers3
-           (or bufA (magit-find-file-noselect revA fileA))
-           (or bufB (magit-find-file-noselect revB fileB))
-           (or bufC (magit-find-file-noselect revC fileC))
+           (or buf-a (magit-find-file-noselect rev-a file-a))
+           (or buf-b (magit-find-file-noselect rev-b file-b))
+           (or buf-c (magit-find-file-noselect rev-c file-c))
            nil t t))
-      (vdiff-magit-compare revA revC fileA fileC))))
+      (vdiff-magit-compare rev-a rev-c file-a file-c))))
 
 (provide 'vdiff-magit)
 ;;; vdiff-magit.el ends here
