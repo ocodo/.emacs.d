@@ -104,6 +104,9 @@ variable isn't already set."
 (magit-define-popup magit-remote-popup
   "Popup console for remote commands."
   :man-page "git-remote"
+  :default-arguments '("-f")
+  :switches '("Switches for add"
+              (?f "Fetch after add" "-f"))
   :actions  '((?a "Add"     magit-remote-add)
               (?r "Rename"  magit-remote-rename)
               (?k "Remove"  magit-remote-remove)
@@ -116,19 +119,20 @@ variable isn't already set."
       url)))
 
 ;;;###autoload
-(defun magit-remote-add (remote url)
+(defun magit-remote-add (remote url &optional args)
   "Add a remote named REMOTE and fetch it."
   (interactive (list (magit-read-string-ns "Remote name")
-                     (magit-read-url "Remote url")))
+                     (magit-read-url "Remote url")
+                     (magit-remote-arguments)))
   (if (pcase (list magit-remote-add-set-remote.pushDefault
                    (magit-get "remote.pushDefault"))
         (`(,(pred stringp) ,_) t)
         ((or `(ask ,_) `(ask-if-unset nil))
          (y-or-n-p (format "Set `remote.pushDefault' to \"%s\"? " remote))))
-      (progn (magit-call-git "remote" "add" "-f" remote url)
+      (progn (magit-call-git "remote" "add" args remote url)
              (setf (magit-get "remote.pushDefault") remote)
              (magit-refresh))
-    (magit-run-git-async "remote" "add" "-f" remote url)))
+    (magit-run-git-async "remote" "add" args remote url)))
 
 ;;;###autoload
 (defun magit-remote-rename (old new)
@@ -575,9 +579,10 @@ only available for the part before the colon, or when no colon
 is used."
   (interactive
    (list (magit-read-remote "Push to remote")
-         (completing-read-multiple
-          "Push refspec,s: "
-          (cons "HEAD" (magit-list-local-branch-names)))
+         (split-string (magit-completing-read-multiple
+                        "Push refspec,s"
+                        (cons "HEAD" (magit-list-local-branch-names)))
+                       crm-default-separator t)
          (magit-push-arguments)))
   (run-hooks 'magit-credential-hook)
   (magit-run-git-async "push" "-v" args remote refspecs))
@@ -722,7 +727,7 @@ To add this command to the push popup add this to your init file:
 When a single commit is given for RANGE, create a patch for the
 changes introduced by that commit (unlike 'git format-patch'
 which creates patches for all commits that are reachable from
-HEAD but not from the specified commit)."
+`HEAD' but not from the specified commit)."
   (interactive
    (list (-if-let (revs (magit-region-values 'commit))
              (concat (car (last revs)) "^.." (car revs))

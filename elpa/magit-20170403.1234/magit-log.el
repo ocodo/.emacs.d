@@ -559,27 +559,18 @@ buffer."
 
 (defun magit-log-read-revs (&optional use-current)
   (or (and use-current (--when-let (magit-get-current-branch) (list it)))
-      (let* ((choose-completion-string-functions
-              '(crm--choose-completion-string))
-             (minibuffer-completion-table #'crm--collection-fn)
-             (minibuffer-completion-confirm t)
-             (crm-completion-table
-              `(,@(and (file-exists-p (magit-git-dir "FETCH_HEAD"))
-                       (list "FETCH_HEAD"))
-                ,@(magit-list-refnames)))
-             (crm-separator "\\(\\.\\.\\.?\\|[, ]\\)")
-             (default (or (magit-branch-or-commit-at-point)
-                          (unless use-current
-                            (magit-get-previous-branch))))
-             (input (read-from-minibuffer
-                     (format "Log rev,s%s: "
-                             (if default (format " (%s)" default) ""))
-                     nil magit-log-read-revs-map
-                     nil 'magit-revision-history default)))
-        (when (string-equal input "")
-          (or (setq input default)
-              (user-error "Nothing selected")))
-        (split-string input "[, ]" t))))
+      (let ((collection `(,@(and (file-exists-p (magit-git-dir "FETCH_HEAD"))
+                                 (list "FETCH_HEAD"))
+                          ,@(magit-list-refnames))))
+        (split-string
+         (magit-completing-read-multiple "Log rev,s" collection
+                                         "\\(\\.\\.\\.?\\|[, ]\\)"
+                                         (or (magit-branch-or-commit-at-point)
+                                             (unless use-current
+                                               (magit-get-previous-branch)))
+                                         'magit-revision-history
+                                         magit-log-read-revs-map)
+         "[, ]" t))))
 
 ;;;###autoload
 (defun magit-log-current (revs &optional args files)
@@ -786,7 +777,7 @@ to visit the commit at point.
 Type \\[magit-branch-popup] to see available branch commands.
 Type \\[magit-merge-popup] to merge the branch or commit at point.
 Type \\[magit-cherry-pick-popup] to apply the commit at point.
-Type \\[magit-reset] to reset HEAD to the commit at point.
+Type \\[magit-reset] to reset `HEAD' to the commit at point.
 
 \\{magit-log-mode-map}"
   :group 'magit-log
@@ -1353,7 +1344,7 @@ Type \\[magit-visit-thing] or \\[magit-diff-show-or-scroll-up] \
 to visit the commit at point.
 
 Type \\[magit-cherry-pick-popup] to apply the commit at point.
-Type \\[magit-reset] to reset HEAD to the commit at point.
+Type \\[magit-reset] to reset `HEAD' to the commit at point.
 
 \\{magit-reflog-mode-map}"
   :group 'magit-log

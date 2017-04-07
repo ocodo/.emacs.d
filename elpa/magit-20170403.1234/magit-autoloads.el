@@ -132,30 +132,43 @@ defaulting to the tag at point.
  (autoload 'magit-run-popup "magit" nil t)
 
 (autoload 'magit-git-command "magit" "\
-Execute a Git subcommand asynchronously, displaying the output.
-With a prefix argument run Git in the root of the current
-repository, otherwise in `default-directory'.
+Execute COMMAND asynchonously; display output.
 
-\(fn ARGS DIRECTORY)" t nil)
+Interactively, prompt for COMMAND in the minibuffer. \"git \" is
+used as initial input, but can be deleted to run another command.
+
+With a prefix argument COMMAND is run in the top-level directory
+of the current working tree, otherwise in `default-directory'.
+
+\(fn COMMAND)" t nil)
 
 (autoload 'magit-git-command-topdir "magit" "\
-Execute a Git subcommand asynchronously, displaying the output.
-Run Git in the top-level directory of the current repository.
+Execute COMMAND asynchonously; display output.
 
-\(fn)" t nil)
+Interactively, prompt for COMMAND in the minibuffer. \"git \" is
+used as initial input, but can be deleted to run another command.
+
+COMMAND is run in the top-level directory of the current
+working tree.
+
+\(fn COMMAND)" t nil)
 
 (autoload 'magit-shell-command "magit" "\
-Execute a shell command asynchronously, displaying the output.
-With a prefix argument run the command in the root of the current
-repository, otherwise in `default-directory'.
+Execute COMMAND asynchonously; display output.
 
-\(fn ARGS DIRECTORY)" t nil)
+Interactively, prompt for COMMAND in the minibuffer.  With a
+prefix argument COMMAND is run in the top-level directory of
+the current working tree, otherwise in `default-directory'.
+
+\(fn COMMAND)" t nil)
 
 (autoload 'magit-shell-command-topdir "magit" "\
-Execute a shell command asynchronously, displaying the output.
-Run the command in the top-level directory of the current repository.
+Execute COMMAND asynchonously; display output.
 
-\(fn)" t nil)
+Interactively, prompt for COMMAND in the minibuffer.  COMMAND
+is run in the top-level directory of the current working tree.
+
+\(fn COMMAND)" t nil)
 
 (autoload 'magit-version "magit" "\
 Return the version of Magit currently in use.
@@ -551,8 +564,8 @@ When `never' (the default) then the variable is never set.
 ;;; Generated autoloads from magit-commit.el
 
 (autoload 'magit-commit "magit-commit" "\
-Create a new commit on HEAD.
-With a prefix argument amend to the commit at HEAD instead.
+Create a new commit on `HEAD'.
+With a prefix argument, amend to the commit at `HEAD' instead.
 
 \(git commit [--amend] ARGS)
 
@@ -785,7 +798,7 @@ FILE must be relative to the top directory of the repository.
 \(fn FILE)" t nil)
 
 (autoload 'magit-ediff-show-working-tree "magit-ediff" "\
-Show changes between HEAD and working tree using Ediff.
+Show changes between `HEAD' and working tree using Ediff.
 FILE must be relative to the top directory of the repository.
 
 \(fn FILE)" t nil)
@@ -817,7 +830,7 @@ Run `git gui' for the current git repository.
 
 (autoload 'magit-run-git-gui-blame "magit-extras" "\
 Run `git gui blame' on the given FILENAME and COMMIT.
-Interactively run it for the current file and the HEAD, with a
+Interactively run it for the current file and the `HEAD', with a
 prefix or when the current file cannot be determined let the user
 choose.  When the current buffer is visiting FILENAME instruct
 blame to center around the line point is on.
@@ -1120,7 +1133,7 @@ Then show the status buffer for the new repository.
 (autoload 'magit-remote-add "magit-remote" "\
 Add a remote named REMOTE and fetch it.
 
-\(fn REMOTE URL)" t nil)
+\(fn REMOTE URL &optional ARGS)" t nil)
 
 (autoload 'magit-remote-rename "magit-remote" "\
 Rename the remote named OLD to NEW.
@@ -1323,7 +1336,7 @@ Create patches for the commits in RANGE.
 When a single commit is given for RANGE, create a patch for the
 changes introduced by that commit (unlike 'git format-patch'
 which creates patches for all commits that are reachable from
-HEAD but not from the specified commit).
+`HEAD' but not from the specified commit).
 
 \(fn RANGE ARGS)" t nil)
 
