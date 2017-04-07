@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "flycheck-nimsuggest" "flycheck-nimsuggest.el"
-;;;;;;  (22519 51702 124319 592000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from flycheck-nimsuggest.el
 
 (autoload 'flycheck-nim-nimsuggest-start "flycheck-nimsuggest" "\
@@ -21,10 +21,11 @@ Setup flycheck configuration for nimsuggest.
 
 (eval-after-load "flycheck" '(progn (flycheck-define-generic-checker 'nim-nimsuggest "A syntax checker for Nim lang using nimsuggest.\n\nSee URL `https://github.com/nim-lang/nimsuggest'." :start 'flycheck-nim-nimsuggest-start :modes '(nim-mode nimscript-mode) :predicate (lambda nil (and (bound-and-true-p nim-use-flycheck-nimsuggest) (nim-suggest-available-p)))) (add-to-list 'flycheck-checkers 'nim-nimsuggest)))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-nimsuggest" '("flycheck-nimsuggest-")))
+
 ;;;***
 
-;;;### (autoloads nil "nim-capf" "nim-capf.el" (22519 51702 128319
-;;;;;;  598000))
+;;;### (autoloads nil "nim-capf" "nim-capf.el" (0 0 0 0))
 ;;; Generated autoloads from nim-capf.el
 
 (autoload 'nim-capf-nimsuggest-completion-at-point "nim-capf" "\
@@ -47,10 +48,11 @@ Setup.
 
 \(fn)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-capf" '("nim-capf-")))
+
 ;;;***
 
-;;;### (autoloads nil "nim-compile" "nim-compile.el" (22519 51702
-;;;;;;  140319 615000))
+;;;### (autoloads nil "nim-compile" "nim-compile.el" (0 0 0 0))
 ;;; Generated autoloads from nim-compile.el
 
 (autoload 'nim-compile "nim-compile" "\
@@ -58,10 +60,11 @@ Setup.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-compile" '("nim-")))
+
 ;;;***
 
-;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (22519 51702 140319
-;;;;;;  615000))
+;;;### (autoloads nil "nim-eldoc" "nim-eldoc.el" (0 0 0 0))
 ;;; Generated autoloads from nim-eldoc.el
 
 (autoload 'nim-eldoc-function "nim-eldoc" "\
@@ -69,10 +72,25 @@ Return a doc string appropriate for the current context, or nil.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-eldoc" '("nim-eldoc-")))
+
 ;;;***
 
-;;;### (autoloads nil "nim-mode" "nim-mode.el" (22519 51702 156319
-;;;;;;  638000))
+;;;### (autoloads nil "nim-fill" "nim-fill.el" (0 0 0 0))
+;;; Generated autoloads from nim-fill.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-fill" '("nim-fill-")))
+
+;;;***
+
+;;;### (autoloads nil "nim-helper" "nim-helper.el" (0 0 0 0))
+;;; Generated autoloads from nim-helper.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-helper" '("nim-")))
+
+;;;***
+
+;;;### (autoloads nil "nim-mode" "nim-mode.el" (0 0 0 0))
 ;;; Generated autoloads from nim-mode.el
 
 (autoload 'nim-mode "nim-mode" "\
@@ -82,10 +100,18 @@ A major mode for the Nim programming language.
 
 (add-to-list 'auto-mode-alist '("\\.nim\\'" . nim-mode))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-mode" '("nim-")))
+
 ;;;***
 
-;;;### (autoloads nil "nim-suggest" "nim-suggest.el" (22519 51702
-;;;;;;  156319 638000))
+;;;### (autoloads nil "nim-smie" "nim-smie.el" (0 0 0 0))
+;;; Generated autoloads from nim-smie.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-smie" '("nim-")))
+
+;;;***
+
+;;;### (autoloads nil "nim-suggest" "nim-suggest.el" (0 0 0 0))
 ;;; Generated autoloads from nim-suggest.el
 
 (autoload 'nim-suggest-available-p "nim-suggest" "\
@@ -98,10 +124,41 @@ Minor mode for nimsuggest.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-suggest" '("nim")))
+
 ;;;***
 
-;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (22519
-;;;;;;  51702 136319 609000))
+;;;### (autoloads nil "nim-syntax" "nim-syntax.el" (0 0 0 0))
+;;; Generated autoloads from nim-syntax.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-syntax" '("nim")))
+
+;;;***
+
+;;;### (autoloads nil "nim-thing-at-point" "nim-thing-at-point.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from nim-thing-at-point.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-thing-at-point" '("nim-")))
+
+;;;***
+
+;;;### (autoloads nil "nim-util" "nim-util.el" (0 0 0 0))
+;;; Generated autoloads from nim-util.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-util" '("nim-")))
+
+;;;***
+
+;;;### (autoloads nil "nim-vars" "nim-vars.el" (0 0 0 0))
+;;; Generated autoloads from nim-vars.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-vars" '("nim")))
+
+;;;***
+
+;;;### (autoloads nil "nimscript-mode" "nimscript-mode.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from nimscript-mode.el
 
 (autoload 'nimscript-mode "nimscript-mode" "\
@@ -122,12 +179,12 @@ instead.  The default regex’s matching word is [Package].
 
 (add-to-list 'auto-mode-alist '("\\.nim\\(ble\\|s\\)\\'" . nimscript-mode-maybe))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nimscript-mode" '("nimscirpt-mode-syntax-table")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("company-nim.el" "nim-fill.el" "nim-helper.el"
-;;;;;;  "nim-mode-pkg.el" "nim-rx.el" "nim-smie.el" "nim-syntax.el"
-;;;;;;  "nim-thing-at-point.el" "nim-util.el" "nim-vars.el") (22519
-;;;;;;  51702 152319 632000))
+;;;### (autoloads nil nil ("company-nim.el" "nim-mode-pkg.el" "nim-rx.el")
+;;;;;;  (0 0 0 0))
 
 ;;;***
 
