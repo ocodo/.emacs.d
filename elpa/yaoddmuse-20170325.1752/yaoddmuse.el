@@ -8,7 +8,7 @@
 ;; Copyright (C) 2009, 2010 rubikitch, all rights reserved.
 ;; Created: 2009-01-06 12:41:17
 ;; Version: 0.1.2
-;; Package-Version: 20160717.2212
+;; Package-Version: 20170325.1752
 ;; Package-X-Original-Version: 20150521.1841
 ;; Last-Updated: 2015/21/05 2:40
 ;;           By: Michael Abrahams
@@ -607,7 +607,7 @@ Default is t."
   :group 'yaoddmuse)
 
 (defcustom yaoddmuse-wikis
-  '(("EmacsWiki" "http://www.emacswiki.org/emacs" utf-8 "uihnscuskc=1;")
+  '(("EmacsWiki" "https://www.emacswiki.org/emacs" utf-8 "uihnscuskc=1;")
     ("CommunityWiki" "http://www.communitywiki.org/cw" utf-8 "uihnscuskc=1;")
     ("RatpoisonWiki" "http://ratpoison.wxcvbn.org/cgi-bin/wiki.pl" utf-8 "uihnscuskc=1;")
     ("OddmuseWiki" "http://www.oddmuse.org/cgi-bin/oddmuse" utf-8 "uihnscuskc=1;"))
@@ -1566,16 +1566,16 @@ If BROWSE-PAGE is non-nil, will browse page after post successful."
          (url-request-method "POST")
          (url-request-extra-headers
           '(("Content-type: application/x-www-form-urlencoded;")))
-         (url-request-data
-          (yaoddmuse-format (yaoddmuse-get-post-args wikiname)
-                            (yaoddmuse-get-coding wikiname)))
+         (text post-string)
          (yaoddmuse-minor (if yaoddmuse-minor "on" "off"))
          (yaoddmuse-wikiname wikiname)
          (yaoddmuse-pagename pagename)
-         (text post-string))
+         (url-request-data
+          (yaoddmuse-format (yaoddmuse-get-post-args wikiname)
+                            (yaoddmuse-get-coding wikiname))))
     (url-retrieve url
-                  'yaoddmuse-post-callback
-                  (list wikiname pagename browse-page))))
+            'yaoddmuse-post-callback
+            (list wikiname pagename browse-page))))
 
 (defun yaoddmuse-post-callback (&optional redirect wikiname pagename browse-page)
   "The callback function for `yaoddmuse-post'.
@@ -1933,6 +1933,8 @@ Substitute oddmuse format flags according to `yaoddmuse-pagename',
 `summary', `yaoddmuse-username',`yaoddmuse-password', `text'
 Each ARGS is url-encoded with CODING.
 If URL is `non-nil' return new url concat with ARGS."
+  (unless (and (boundp 'text) (boundp 'yaoddmuse-pagename))
+    (error "No `text' or `yaoddmuse-pagename'!"))
   (dolist (pair '(("%t" . yaoddmuse-pagename)
                   ("%u" . yaoddmuse-username)
                   ("%m" . yaoddmuse-minor)
