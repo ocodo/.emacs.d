@@ -3,8 +3,8 @@
 ;; Author: Joseph(纪秀峰) <jixiuf@gmail.com>
 ;; Copyright (C) 2011,2012, Joseph(纪秀峰), all rights reserved.
 ;; Created: 2011-03-26
-;; Version: 1.1
-;; Package-Version: 20161023.806
+;; Version: 1.2
+;; Package-Version: 20170321.2201
 ;; X-URL:https://github.com/jixiuf/helm-dired-history
 ;; Keywords: helm, dired history
 ;; Package-Requires: ((helm "1.9.8")(cl-lib "0.5"))
@@ -68,28 +68,13 @@
 ;; or
 ;; (with-eval-after-load 'dired
 ;;   (require 'helm-dired-history)
-;;   (define-key dired-mode-map "," 'helm-dired-history-view))
+;;   (define-key dired-mode-map "," 'dired))
 
-;;
-;;; Commands:
-;;
-;; Below are complete command list:
-;;
-;;  `helm-dired-history-view'
-;;    call `helm' to show dired history.
-;;
-;;; Customizable Options:
-;;
-;; Below are customizable option list:
-;;
 
 ;;; Code:
 
 (require 'dired)
 (require 'dired-aux)
-(require 'helm)
-(require 'helm-types)
-(require 'helm-files)
 (require 'helm-mode)
 (require 'cl-lib)
 
@@ -97,11 +82,6 @@
   "dired history for Helm."
   :group 'helm)
 
-
-(defcustom helm-dired-history-fuzzy-match t
-  "Enable fuzzy matching in `helm-dired-history-source' when non--nil."
-  :type 'boolean
-  :group 'helm-dired-history)
 
 (defcustom helm-dired-history-max 200
   "length of history for helm-dired-history"
@@ -134,38 +114,11 @@
 ;;when you open dired buffer ,update `helm-dired-history-variable'.
 (add-hook 'dired-after-readin-hook 'helm-dired-history-update)
 
-(defun helm-dired-history-transform (candidates _source)
-  (cl-loop for c in candidates
-           if (file-remote-p (cdr c))
-           collect (cons (propertize (car c) 'face 'font-lock-warning-face) (cdr c))
-           else collect c))
-
-
 (defun helm-dired-history-trim ()
   "Retain only the first `helm-dired-history-max' items in VALUE."
   (if (> (length helm-dired-history-variable) helm-dired-history-max)
       (setcdr (nthcdr (1- helm-dired-history-max) helm-dired-history-variable) nil)))
 
-(defclass helm-dired-history-source (helm-source-sync helm-type-file)
-  ((candidates :initform (lambda () helm-dired-history-variable))
-   (keymap :initform helm-generic-files-map)
-   (filtered-candidate-transformer :initform 'helm-dired-history-transform)
-   (help-message :initform helm-generic-file-help-message)))
-
-(defvar helm-source-dired-history
-  (helm-make-source "Dired History" 'helm-dired-history-source
-    :fuzzy-match helm-dired-history-fuzzy-match))
-
-;;;###autoload
-(defun helm-dired-history-view()
-  "call `helm' to show dired history."
-  (interactive)
-  (let ((helm-execute-action-at-once-if-one t)
-        (helm-quit-if-no-candidate
-         (lambda () (message "No history record."))))
-    (helm '(helm-source-dired-history)
-          ;; Initialize input with current symbol
-          ""  nil nil)))
 
 ;; integrating dired history feature into commands like
 ;; dired-do-copy and dired-do-rename.
