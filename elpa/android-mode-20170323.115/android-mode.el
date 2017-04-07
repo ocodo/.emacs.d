@@ -5,8 +5,8 @@
 ;; Author: R.W. van 't Veer
 ;; Created: 20 Feb 2009
 ;; Keywords: tools processes
-;; Package-Version: 20170131.2347
-;; Version: 0.4.0
+;; Package-Version: 20170323.115
+;; Version: 0.5.0
 ;; URL: https://github.com/remvee/android-mode
 
 ;; Contributors:
@@ -20,6 +20,7 @@
 ;;   Hiroo Matsumoto
 ;;   K. Adam Christensen
 ;;   Haden Pike
+;;   Camilo QS
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -115,6 +116,24 @@ Each elt has the form (BUILDER COMMAND)."
   :type 'string
   :group 'android-mode)
 
+(defcustom android-mode-gradle-plugin "2.1.3"
+  "Version of gradle plugin for android.
+--------------------------------
+Plugin version | Gradle version
+--------------------------------
+ 1.0.0 - 1.1.3 | 2.2.1 - 2.3
+ 1.2.0 - 1.3.1 | 2.2.1 - 2.9
+ 1.5.0         | 2.2.1 - 2.13
+ 2.0.0 - 2.1.2 | 2.10 - 2.13
+ 2.1.3 - 2.2.3 | 2.14.1+
+ 2.3.0+        | 3.3+
+--------------------------------
+You need have installed Gradle version compatible with plugin,
+if using the gradle wrapper and have a error try editing the distributionUrl
+in YOUR_PROJECT/gradle/wrapper/gradle-wrapper.properties."
+  :type 'string
+  :group 'android-mode)
+
 (defface android-mode-verbose-face '((t (:foreground "DodgerBlue")))
   "Font Lock face used to highlight VERBOSE log records."
   :group 'android-mode)
@@ -175,15 +194,16 @@ doesn't exist, it does not contain the sdk-dir property or the
 referred directory does not exist, return the ANDROID_HOME
 environment value otherwise the `android-mode-sdk-dir' variable."
   (or
-   (android-in-root
-    (let ((local-properties "local.properties"))
-      (and (file-exists-p local-properties)
-           (with-temp-buffer
-             (insert-file-contents local-properties)
-             (goto-char (point-min))
-             (and (re-search-forward "^sdk\.dir=\\(.*\\)" nil t)
-                  (let ((sdk-dir (match-string 1)))
-                    (and (file-exists-p sdk-dir) sdk-dir)))))))
+   (ignore-errors
+     (android-in-root
+      (let ((local-properties "local.properties"))
+        (and (file-exists-p local-properties)
+             (with-temp-buffer
+               (insert-file-contents local-properties)
+               (goto-char (point-min))
+               (and (re-search-forward "^sdk\.dir=\\(.*\\)" nil t)
+                    (let ((sdk-dir (match-string 1)))
+                      (and (file-exists-p sdk-dir) sdk-dir))))))))
    (getenv "ANDROID_HOME")
    android-mode-sdk-dir
    (error "no SDK directory found")))
@@ -205,7 +225,9 @@ environment value otherwise the `android-mode-sdk-dir' variable."
 (defvar android-exclusive-processes ())
 (defun android-start-exclusive-command (name command &rest args)
   (and (not (cl-find (intern name) android-exclusive-processes))
-       (set-process-sentinel (apply 'start-process-shell-command name name command args)
+       (set-process-sentinel (apply #'start-process-shell-command name name
+                                    (shell-quote-argument command)
+                                    (mapcar #'shell-quote-argument args))
                              (lambda (proc msg)
                                (when (memq (process-status proc) '(exit signal))
                                  (setq android-exclusive-processes
@@ -222,6 +244,11 @@ environment value otherwise the `android-mode-sdk-dir' variable."
          (command (format "%s create project --path %S --package %s --activity %s --target %S"
                           (android-tool-path "android")
                           expanded-path package activity target))
+         (command (if (and (eq android-mode-builder 'gradle)
+                           (not (equal android-mode-gradle-plugin nil)))
+                      (concat command (format " --gradle --gradle-version %s"
+                                              android-mode-gradle-plugin))
+                    command))
          (output (shell-command-to-string command)))
     (if (string-equal "Error" (substring output 0 5))
         (error output)
