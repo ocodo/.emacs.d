@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20170310.349
+;; Package-Version: 20170320.1245
 ;; Version: 1.1.7
 
 ;; This file is NOT part of GNU Emacs.
@@ -244,16 +244,6 @@ depending on DISPLAY for keys which are either :foreground or
    (eshell-ls-symlink :foreground blue :weight bold)
    (eshell-ls-unreadable :foreground red)
 
-   ;; elfeed
-   (elfeed-log-error-level-face :inherit error)
-   (elfeed-log-info-level-face :inherit success)
-   (elfeed-log-warn-level-face :inherit warning)
-   (elfeed-search-feed-face :foreground orange)
-   (elfeed-search-tag-face :foreground green)
-   (elfeed-search-title-face :foreground base6)
-   (elfeed-search-title-unread-face :foreground base6 :weight bold)
-   (elfeed-search-date-face :foreground violet)
-
    ;; flymake
    (flymake-errline :underline (:style wave :color red))
    (flymake-warnline :underline (:style wave :color orange))
@@ -469,7 +459,7 @@ depending on DISPLAY for keys which are either :foreground or
    ;; anzu
    (anzu-mode-line :foreground orange :weight bold)
    (anzu-mode-line-no-match :foreground red :weight bold)
-   (anzu-replace-highlight :foreground base6 :background red)
+   (anzu-replace-highlight :foreground base6 :background base4)
    (anzu-match-1 :foreground base0 :background green)
    (anzu-match-2 :foreground base0 :background yellow)
    (anzu-match-3 :foreground base0 :background cyan)
@@ -502,6 +492,43 @@ depending on DISPLAY for keys which are either :foreground or
    (avy-lead-face-0 :foreground base0 :background base4)
    (avy-lead-face-1 :foreground base0 :background magenta)
    (avy-lead-face-2 :foreground base0 :background green)
+
+   ;; bookmark+
+   (bmkp-*-mark :foreground base2 :background yellow)
+   (bmkp->-mark :foreground yellow)
+   (bmkp-D-mark :foreground yellow :background red)
+   (bmkp-X-mark :foreground red)
+   (bmkp-a-mark :foreground base7 :background orange)
+   (bmkp-bad-bookmark :foreground red :background base2)
+   (bmkp-bookmark-file :foreground cyan :background base2)
+   (bmkp-bookmark-list :foreground green :background base2)
+   (bmkp-buffer :foreground green)
+   (bmkp-desktop :foreground orange :background base2)
+   (bmkp-file-handler :foreground base6 :background red)
+   (bmkp-function :foreground base5)
+   (bmkp-gnus :foreground orange)
+   (bmkp-heading :foreground yellow)
+   (bmkp-info :foreground base7)
+   (bmkp-light-autonamed :inherit highlight)
+   (bmkp-light-autonamed-region :foreground green :background base2)
+   (bmkp-light-fringe-autonamed :foreground green :background base2)
+   (bmkp-light-fringe-non-autonamed :foreground cyan :background base2)
+   (bmkp-light-mark :foreground base7 :background base1)
+   (bmkp-light-non-autonamed :foreground yellow :background base2)
+   (bmkp-light-non-autonamed-region :foreground cyan :background base2)
+   (bmkp-local-directory :foreground cyan)
+   (bmkp-local-file-with-region :foreground yellow)
+   (bmkp-local-file-without-region :foreground base6)
+   (bmkp-man :foreground magenta)
+   (bmkp-no-jump :foreground base4)
+   (bmkp-no-local :foreground yellow)
+   (bmkp-non-file :foreground base4)
+   (bmkp-remote-file :foreground orange)
+   (bmkp-sequence :foreground blue)
+   (bmkp-su-or-sudo :foreground red)
+   (bmkp-t-mark :foreground magenta)
+   (bmkp-url :foreground orange)
+   (bmkp-variable-list :foreground base5)
 
    ;; circe
    (circe-fool-face :inherit shadow)
@@ -579,6 +606,16 @@ depending on DISPLAY for keys which are either :foreground or
    (ecb-tag-header-face :foreground base2 :background cyan)
    (ecb-tree-guide-line-face :foreground base4)
    (ecb-type-tag-group-face :foreground magenta)
+
+   ;; elfeed
+   (elfeed-log-error-level-face :inherit error)
+   (elfeed-log-info-level-face :inherit success)
+   (elfeed-log-warn-level-face :inherit warning)
+   (elfeed-search-feed-face :foreground orange)
+   (elfeed-search-tag-face :foreground green)
+   (elfeed-search-title-face :foreground base6)
+   (elfeed-search-title-unread-face :foreground base6 :weight bold)
+   (elfeed-search-date-face :foreground violet)
 
    ;; emms
    (emms-playlist-track-face :foreground blue)
@@ -679,14 +716,15 @@ depending on DISPLAY for keys which are either :foreground or
    ;; ivy
    (ivy-confirm-face :foreground cyan)
    (ivy-current-match :foreground base7 :background base3)
+   (ivy-cursor :foreground base7 :background base3)
    (ivy-match-required :foreground red)
    (ivy-minibuffer-match-face-1 :foreground base0 :background base4)
    (ivy-minibuffer-match-face-2 :foreground base0 :background magenta)
    (ivy-minibuffer-match-face-3 :foreground base0 :background green)
    (ivy-minibuffer-match-face-4 :foreground base0 :background base5)
    (ivy-modified-buffer :foreground yellow)
-   (ivy-remote :foreground violet)
-   (ivy-subdir :foreground red)
+   (ivy-remote :foreground red)
+   (ivy-subdir :foreground base5)
    (ivy-virtual :foreground green)
 
    ;; jabber
