@@ -1,10 +1,10 @@
 ;;; paredit.el --- minor mode for editing parentheses  -*- Mode: Emacs-Lisp -*-
 
-;; Copyright (C) 2005--2016 Taylor R. Campbell
+;; Copyright (C) 2005--2017 Taylor R. Campbell
 
 ;; Author: Taylor R. Campbell <campbell+paredit@mumble.net>
 ;; Version: 25beta
-;; Package-Version: 20160615.1325
+;; Package-Version: 20170405.1149
 ;; Created: 2005-07-31
 ;; Keywords: lisp
 
@@ -2157,7 +2157,15 @@ If the point is on an S-expression, such as a string or a symbol, not
       (delete-region (point) (scan-sexps (point) 1))
       (let* ((indent-start (point))
              (indent-end (save-excursion (insert sexps) (point))))
-        (indent-region indent-start indent-end nil)))))
+        ;; If the expression spans multiple lines, its indentation is
+        ;; probably broken, so reindent it -- but don't reindent
+        ;; anything that we didn't touch outside the expression.
+        ;;
+        ;; XXX What if the *column* of the starting point was preserved
+        ;; too?  Should we avoid reindenting in that case?
+        (if (not (eq (save-excursion (goto-char indent-start) (point-at-eol))
+                     (save-excursion (goto-char indent-end) (point-at-eol))))
+            (indent-region indent-start indent-end nil))))))
 
 ;;; The effects of convolution on the surrounding whitespace are pretty
 ;;; random.  If you have better suggestions, please let me know.
