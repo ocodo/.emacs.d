@@ -6,15 +6,19 @@
 ;;;### (autoloads nil "persp-mode" "persp-mode.el" (0 0 0 0))
 ;;; Generated autoloads from persp-mode.el
 
-(autoload 'def-auto-persp "persp-mode" "\
+(autoload 'persp-def-auto-persp "persp-mode" "\
 
 
-\(fn NAME &rest KEYARGS &key BUFFER-NAME FILE-NAME MODE MODE-NAME MINOR-MODE MINOR-MODE-NAME PREDICATE HOOKS DYN-ENV GET-NAME-EXPR GET-BUFFER-EXPR GET-PERSP-EXPR SWITCH PARAMETERS NOAUTO WEAK ON-MATCH AFTER-MATCH DONT-PICK-UP-BUFFERS DELETE)" nil nil)
+\(fn NAME &rest KEYARGS &key BUFFER-NAME FILE-NAME MODE MODE-NAME MINOR-MODE MINOR-MODE-NAME PREDICATE HOOKS DYN-ENV GET-NAME GET-BUFFER GET-PERSP SWITCH PARAMETERS NOAUTO WEAK USER-DATA ON-MATCH AFTER-MATCH DONT-PICK-UP-BUFFERS DELETE)" nil nil)
 
-(autoload 'def-persp-buffer-save/load "persp-mode" "\
+(define-obsolete-function-alias 'def-auto-persp 'persp-def-auto-persp "persp-mode 2.9.6")
+
+(autoload 'persp-def-buffer-save/load "persp-mode" "\
 
 
 \(fn &rest KEYARGS &key BUFFER-NAME FILE-NAME MODE MODE-NAME MINOR-MODE MINOR-MODE-NAME PREDICATE TAG-SYMBOL SAVE-VARS SAVE-FUNCTION LOAD-FUNCTION AFTER-LOAD-FUNCTION APPEND)" nil nil)
+
+(define-obsolete-function-alias 'def-persp-buffer-save/load 'persp-def-buffer-save/load "persp-mode 2.9.6")
 
 (defvar persp-mode nil "\
 Non-nil if Persp mode is enabled.
@@ -30,6 +34,8 @@ or call the function `persp-mode'.")
 Toggle the persp-mode.
 When active, keeps track of multiple 'perspectives',
 named collections of buffers and window configurations.
+Here is a keymap of this minor mode:
+\\{persp-mode-map}
 
 \(fn &optional ARG)" t nil)
 
