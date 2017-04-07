@@ -16,7 +16,7 @@
 (put 'gnu-apl-network-proto-error 'error-message "Network common error")
 
 (defun gnu-apl--connect-to-remote (connect-mode addr)
-  "Connect to the remove apl interpreter.
+  "Connect to the remote apl interpreter.
 CONNECT-MODE is a string describing how to connect. ADDR is the
 address to connect to. The address is interpreted based on the
 connect mode in use."

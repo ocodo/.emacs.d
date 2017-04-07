@@ -30,9 +30,9 @@ R with the imaginary part negated.")
 
     ;; ========================================
 
-    ("⋆"
+    (("⋆" "*")
      (("Monadic" "Exponential" "e to the R power")
-      ("Dyadic" "Exponentiation]]" "L raised to the R power")))
+      ("Dyadic" "Exponentiation" "L raised to the R power")))
 
     ;; ========================================
 
@@ -71,19 +71,19 @@ following list of available operations:
     ;; ========================================
 
     ("⍷"
-     (("Find" "Find subsequence in array" "1 for position each position that contains the array L in R")))
+     (("Dyadic" "Find" "Find subsequence in array. 1 for position each position that contains the array L in R")))
 
     ;; ========================================
 
     ("⌈"
      (("Monadic" "Ceiling" "Least integer greater than or equal to R")
-      ("Dyadic" "Sample maximum and minimum" "The greater value of L or R")))
+      ("Dyadic" "Maximum" "The greater value of L or R")))
 
     ;; ========================================
 
     ("⌊"
      (("Monadic" "Floor" "Greatest integer less than or equal to R")
-      ("Dyadic" "Sample maximum and minimum" "The smaller value of L or R")))
+      ("Dyadic" "Minimum" "The smaller value of L or R")))
 
     ;; ========================================
 
@@ -94,7 +94,7 @@ following list of available operations:
     ;; ========================================
 
     ("↑"
-     (("Monadic" "Take" "Select the first element of R")
+     (("Monadic" "First" "Select the first element of R")
       ("Dyadic" "Take" "Select the first (or last) L elements of R according to ×L")))
 
     ;; ========================================
@@ -121,23 +121,43 @@ following list of available operations:
     ;; ========================================
 
     (","
-     (("Monadic" "Ravel" "Reshapes R into a vector")
-      ("Dyadic" "Catenation" "Elements of R appended to the elements of L")))
+     (("Monadic" "Ravel" "Reshapes R into a vector (in row-major order)")
+      ("Dyadic" "Catenation" "Elements of R appended to the elements of L (last axis)")
+      ;; TODO: axis specification
+      ))
 
     ;; ========================================
 
     ("\\"
-     (("Dyadic" "Expansion" "Insert zeros (or blanks) in R corresponding to zeros in L")))
+     (("Dyadic" "Expansion" "Insert zeros (or blanks) in R corresponding to zeros in L")
+      ("Monadic Operator" "Scan" "Reduce all prefixes of R along the last axis with function L")))
+
+    ;; ========================================
+
+    ("⍀"
+     (("Dyadic" "Expansion" "Insert zeros (or blanks) in R corresponding to zeros in L")
+      ("Monadic Operator" "Scan" "Reduce all prefixes of R along the first axis with function L")))
 
     ;; ========================================
 
     ("/"
-     (("Dyadic" "Compress" "Select elements in R corresponding to ones in L")))
+     (("Dyadic" "Compress" "Select elements in R corresponding to ones in L")
+      ("Monadic Operator" "Reduce" "Reduce R along the last axis with function L")
+      ;; TODO: n-wise reduction
+      ))
+
+    ;; ========================================
+
+    ("⌿"
+     (("Dyadic" "Compress" "Select elements in R corresponding to ones in L")
+      ("Monadic Operator" "Reduce" "Reduce R along the first axis with function L")
+      ;; TODO: n-wise reduction
+      ))
 
     ;; ========================================
 
     ("⍳"
-     (("Monadic" "Index generator" "Vector of the first R integers")
+     (("Monadic" "Index generator" "Vector of the first R integers (starting from 0 or 1, see ⎕IO)")
       ("Dyadic" "Index of" "The location (index) of R in L; 1+⌈/⍳⍴L if not found")))
 
     ;; ========================================
@@ -150,7 +170,7 @@ following list of available operations:
 
     ("⌽"
      (("Monadic" "Reversal" "Reverse elements of R along last axis")
-      ("Dyadic" "Rotation" "The elements of R are rotated L positions")))
+      ("Dyadic" "Rotation" "The elements of R are rotated L positions along the last axis")))
 
     ;; ========================================
 
@@ -180,47 +200,47 @@ following list of available operations:
 
     ("!"
      (("Monadic" "Factorial" "Product of integers 1 to R")
-      ("Dyadic" "Combinations" "Number of combinations of R taken L at a time")))
+      ("Dyadic" "Combinations" "Number of combinations of R items taken L at a time")))
 
     ;; ========================================
 
     ("<"
-     (("Dyadic" "Less than" "Comparison: 1 if true, 0 if false")))
+     (("Dyadic" "Less than" "1 if L is less than R, 0 otherwise")))
 
     ;; ========================================
 
     ("≤"
-     (("Dyadic" "Less than or equal" "Comparison: 1 if true, 0 if false")))
+     (("Dyadic" "Less than or equal" "1 if L is less than or equal to R, 0 otherwise")))
 
     ;; ========================================
 
     ("="
-     (("Dyadic" "Equality" "Comparison: 1 if true, 0 if false")))
+     (("Dyadic" "Equality" "Comparison: 1 if L and R are equal, 0 otherwise")))
 
     ;; ========================================
 
     ("≥"
-     (("Dyadic" "Greater than or equal" "Comparison: 1 if true, 0 if false")))
+     (("Dyadic" "Greater than or equal" "1 if L is greater than or equal to R, 0 otherwise")))
 
     ;; ========================================
 
     (">"
-     (("Dyadic" "Greater than" "Comparison: 1 if true, 0 if false")))
+     (("Dyadic" "Greater than" "1 if L is greater than R, 0 otherwise")))
 
     ;; ========================================
 
     ("≠"
-     (("Dyadic" "Not equal" "Comparison: 1 if true, 0 if false")))
+     (("Dyadic" "Not equal" "1 if L is different than R, 0 otherwise")))
 
     ;; ========================================
 
     ("∨"
-     (("Dyadic" "Logical disjunction" "Logic: 0 if L and R are 0; 1 otherwise")))
+     (("Dyadic" "Logical disjunction / GCD" "Boolean arguments: 0 if L and R are 0; 1 otherwise; Numeric arguments: greatest common divisor")))
 
     ;; ========================================
 
     ("∧"
-     (("Dyadic" "Logical conjunction" "Logic: 1 if L and R are 1; 0 otherwise")))
+     (("Dyadic" "Logical conjunction / LCM" "Boolean arguments: 1 if L and R are 1; 0 otherwise; Numeric arguments: least common multiple")))
 
     ;; ========================================
 
@@ -327,7 +347,42 @@ are not of the value 0 or 1, a DOMAIN ERROR will be raised.")
 
     ("⊣"
      (("Monadic" "Identity computed" "Returns R, marked as being computed.")
-      ("Dyadic" "Left" "Return L."))))
+      ("Dyadic" "Left" "Return L.")))
+
+    ;; ========================================
+
+    ("⍪"
+     (("Monadic" "Table" "Return a matrix by ravelling the subarrays of R")
+      ("Dyadic" "Catenation" "Elements of R appended to the elements of L (first axis)")))
+
+    ;; ========================================
+
+    ("⍨"
+     (("Monadic Operator" "Duplicate / Commute" "Modify the way arguments are passed to a function" "When called as a monadic function duplicate the argument. f⍨ X → X f X.
+When called as a dyadic function, arguments are switched. A f⍨ B → B f A")))
+
+    ;; ========================================
+
+    ("¨"
+     (("Monadic Operator" "Each" "Apply a function to each item." "Make L a function that when called as a monadic function
+applies L to each item in the argument.
+When called as a dyadic function,
+apply L to corresponding items of both arguments.")))
+
+    ;; ========================================
+
+    ("."
+     (("Dyadic Operator" "Inner/Outer Product" "If L is ∘, apply R to each combination." "Outer Product (∘.f): apply f to each combination of items in L and R."))
+     ;; TODO: inner product
+     )
+
+    ;; ========================================
+
+    ;; ("⍥"
+    ;;  (("Dyadic Operator" "Derive monadic/dyadic function" "TODO")))
+
+
+    )
 
   "Documentation for APL symbols. Each element is a list of six
 elements: The APL symbol, name of monadic operator, description
