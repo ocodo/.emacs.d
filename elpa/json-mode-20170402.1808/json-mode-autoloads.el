@@ -15,6 +15,8 @@ Major mode for editing JSON files
 
 (add-to-list 'auto-mode-alist '("\\.jsonld$" . json-mode))
 
+(add-to-list 'auto-mode-alist (cons (rx (or ".babelrc" ".bowerrc") eos) 'json-mode))
+
 (autoload 'json-mode-show-path "json-mode" "\
 
 

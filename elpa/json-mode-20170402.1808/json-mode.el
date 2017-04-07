@@ -4,7 +4,7 @@
 
 ;; Author: Josh Johnston
 ;; URL: https://github.com/joshwnj/json-mode
-;; Package-Version: 20160803.1606
+;; Package-Version: 20170402.1808
 ;; Version: 1.6.0
 ;; Package-Requires: ((json-reformat "0.0.5") (json-snatcher "1.0.0"))
 
@@ -70,6 +70,12 @@
 (add-to-list 'auto-mode-alist '("\\.json$" . json-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.jsonld$" . json-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist (cons (rx (or
+                                         ".babelrc"
+                                         ".bowerrc"
+                                         ) eos)
+                                    'json-mode))
 
 ;;;###autoload
 (defun json-mode-show-path ()
