@@ -5,7 +5,7 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20161017.1108
+;; Package-Version: 20170330.1211
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -286,6 +286,9 @@
                                     :foreground gruber-darker-white))))
    `(mode-line-inactive ((t ,(list :background gruber-darker-bg+1
                                    :foreground gruber-darker-quartz))))
+
+   ;; Neo Dir
+   `(neo-dir-link-face ((t (:foreground ,gruber-darker-niagara))))
 
    ;; Org Mode
    `(org-agenda-structure ((t (:foreground ,gruber-darker-niagara))))
