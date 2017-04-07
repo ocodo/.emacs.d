@@ -117,6 +117,8 @@ A list of additional strings to treat as PHP constants.")
 
 (add-to-list 'interpreter-mode-alist (cons "php" 'php-mode))
 
+(let ((loads (get 'php-faces 'custom-loads))) (if (member '"php-mode" loads) nil (put 'php-faces 'custom-loads (cons '"php-mode" loads))))
+
 (autoload 'php-mode "php-mode" "\
 Major mode for editing PHP code.
 
