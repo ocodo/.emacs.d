@@ -4,10 +4,10 @@
 
 ;; Author: codefalling <code.falling@gmail.com>
 ;; Keywords: languages
-;; Package-Version: 20170206.120
+;; Package-Version: 20170403.2159
 
 ;; Version: 0.2
-;; Package-Requires: ((mmm-mode "0.5.4"))
+;; Package-Requires: ((mmm-mode "0.5.4") (vue-html-mode "0.1") (ssass-mode "0.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 ;;; Code:
 
 (require 'mmm-mode)
+(require 'vue-html-mode)
+(require 'ssass-mode)
 
 (defgroup vue nil
   "Group for vue-mode"
@@ -38,8 +40,8 @@
   :link '(emacs-commentary-link :tag "Commentary" "vue-mode"))
 
 (defcustom vue-modes
-  '((:type template :name nil :mode web-mode)
-    (:type template :name html :mode html-mode)
+  '((:type template :name nil :mode vue-html-mode)
+    (:type template :name html :mode vue-html-mode)
     (:type template :name jade :mode jade-mode)
     (:type template :name pug :mode pug-mode)
     (:type script :name nil :mode js-mode)
@@ -53,7 +55,7 @@
     (:type style :name stylus :mode stylus-mode)
     (:type style :name less :mode less-css-mode)
     (:type style :name scss :mode scss-mode)
-    (:type style :name sass :mode sass-mode))
+    (:type style :name sass :mode ssass-mode))
   "A list of vue component languages, their type, and their corresponding major modes"
   :type '(list (plist :type 'symbol :name 'symbol :mode 'function))
   :group 'vue)
@@ -73,9 +75,8 @@
            (name (plist-get mode-binding :name))
            (mode (plist-get mode-binding :mode))
            (class (make-symbol (format "vue-%s" name)))
-           (front (if name (format "<%s *lang=\"%s\" *\\(scoped\\)?>\n" type name)
-                           (format (format "<%s *\\(scoped\\)?>\n" type))))
-           (back (format "</%s>" type)))
+           (front (format "<%s\\( +lang=\"%s\"\\)?\\( +scoped\\)? *>\n" type name))
+           (back (format "^</%s *>" type)))
       (mmm-add-classes `((,class :submode ,mode :front ,front :back ,back)))
       (mmm-add-mode-ext-class 'vue-mode nil class)))
   (setq vue-initialized t))
