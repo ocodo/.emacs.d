@@ -4,8 +4,8 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20170214.556
-;; Version: 0.1.7
+;; Package-Version: 20170405.301
+;; Version: 0.1.8
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -94,7 +94,7 @@
 
 ;;; Server.
 
-(defvar anaconda-mode-server-version "0.1.7"
+(defvar anaconda-mode-server-version "0.1.8"
   "Server version needed to run anaconda-mode.")
 
 (defvar anaconda-mode-server-command "
@@ -115,7 +115,8 @@ anaconda_mode.main(sys.argv[1:])
 
 (defun anaconda-mode-show-process-buffer ()
   "Display `anaconda-mode-process-buffer'."
-  (pop-to-buffer anaconda-mode-process-buffer))
+  (let ((buffer (get-buffer-create anaconda-mode-process-buffer)))
+    (display-buffer buffer)))
 
 (defvar anaconda-mode-process-fail-hook nil
   "Hook running when any of `anaconda-mode' fails by some reason.")
@@ -396,7 +397,7 @@ submitted."
                       (or (not (equal anaconda-mode-request-buffer (current-buffer)))
                           (not (equal anaconda-mode-request-point (point)))
                           (not (equal anaconda-mode-request-tick (buffer-chars-modified-tick))))))
-                (message "Skip anaconda-mode %s response" command)
+                (run-hook-with-args 'anaconda-mode-response-skip-hook command)
               (search-forward-regexp "\r?\n\r?\n" nil t)
               (let* ((json-array-type 'list)
                      (response (condition-case nil
@@ -440,6 +441,9 @@ virtual environment.")
 
 (defvar anaconda-mode-response-buffer "*anaconda-response*"
   "Buffer name for error report when `anaconda-mode' fail to read server response.")
+
+(defvar anaconda-mode-response-skip-hook nil
+  "Hook running when `anaconda-mode' decide to skip server response.")
 
 (defvar anaconda-mode-response-read-fail-hook nil
   "Hook running when `anaconda-mode' fail to read server response.")
