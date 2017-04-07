@@ -6,7 +6,7 @@
 ;; Maintainer: 7696122
 ;; Created: Sat Nov  2 12:17:13 2013 (+0900)
 ;; Version: 0.0.4
-;; Package-Version: 20160806.2236
+;; Package-Version: 20170401.142
 ;; Package-X-Original-Version: 20150819.907
 ;; Package-Requires: ((evil "1.0.8"))
 ;; Last-Updated: Wed Aug 26 23:21:36 2015 (+0900)
@@ -200,11 +200,14 @@ echo -n $TERM_PROFILE"))
         (bar-blink   "5")
         (bar         "6"))
     (cond ((eq shape 'box)
-           (concat prefix (if (and etcc-use-blink blink-cursor-mode) box-blink box) suffix))
+           (setq seq (concat prefix (if (and etcc-use-blink blink-cursor-mode) box-blink box) suffix)))
           ((eq shape 'bar)
-           (concat prefix (if (and etcc-use-blink blink-cursor-mode) bar-blink bar) suffix))
+           (setq seq (concat prefix (if (and etcc-use-blink blink-cursor-mode) bar-blink bar) suffix)))
           ((eq shape 'hbar)
-           (concat prefix (if (and etcc-use-blink blink-cursor-mode) hbar-blink hbar) suffix)))))
+           (setq seq (concat prefix (if (and etcc-use-blink blink-cursor-mode) hbar-blink hbar) suffix))))
+    (if (etcc--in-tmux?)
+        (etcc--make-tmux-seq seq)
+        seq)))
 
 (defun etcc--make-cursor-shape-seq (shape)
   "Make escape sequence for cursor shape."
@@ -249,10 +252,11 @@ echo -n $TERM_PROFILE"))
 
 (defun etcc--evil-set-cursor ()
   "Set cursor color type."
-  (if (symbolp cursor-type)
-      (etcc--apply-to-terminal (etcc--make-cursor-shape-seq cursor-type))
-    (if (listp cursor-type)
-        (etcc--apply-to-terminal (etcc--make-cursor-shape-seq (car cursor-type))))))
+  (unless (display-graphic-p)
+    (if (symbolp cursor-type)
+        (etcc--apply-to-terminal (etcc--make-cursor-shape-seq cursor-type))
+      (if (listp cursor-type)
+          (etcc--apply-to-terminal (etcc--make-cursor-shape-seq (car cursor-type)))))))
 
 ;; (defadvice evil-set-cursor-color (after etcc--evil-set-cursor (arg) activate)
 ;;   (unless (display-graphic-p)
