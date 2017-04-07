@@ -4,8 +4,8 @@
 
 ;; Author:     Paul Pogonyshev <pogonyshev@gmail.com>
 ;; Maintainer: Paul Pogonyshev <pogonyshev@gmail.com>
-;; Version:    0.2
-;; Package-Version: 20161007.1137
+;; Version:    0.2.1
+;; Package-Version: 20170318.254
 ;; Keywords:   lisp, i18n
 ;; Homepage:   https://github.com/doublep/datetime
 ;; Package-Requires: ((emacs "24.1"))
@@ -87,7 +87,10 @@
 ;;   timezone (?) -- currently not supported further than pattern parsing
 
 
-(define-error 'datetime-unsupported-timezone "Timezones are currently not supported")
+(if (fboundp 'define-error)
+    (define-error 'datetime-unsupported-timezone "Timezones are currently not supported")
+  (put 'datetime-unsupported-timezone 'error-conditions '(datetime-unsupported-timezone error))
+  (put 'datetime-unsupported-timezone 'error-message "Timezones are currently not supported"))
 
 
 ;; Set at the end of this file because the initializer is huge.
