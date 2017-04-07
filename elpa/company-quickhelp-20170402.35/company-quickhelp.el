@@ -4,9 +4,9 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/company-quickhelp
-;; Package-Version: 20170226.522
+;; Package-Version: 20170402.35
 ;; Keywords: company popup documentation quickhelp
-;; Version: 1.4.0
+;; Version: 2.2.0
 ;; Package-Requires: ((emacs "24.4") (company "0.8.9") (pos-tip "0.4.6"))
 
 ;; This file is not part of GNU Emacs.
@@ -77,10 +77,10 @@ be triggered manually using `company-quickhelp-show'."
                  (const :tag "Default" nil))
   :group 'company-quickhelp)
 
-(defvar company-quickhelp--timer nil
+(defvar-local company-quickhelp--timer nil
   "Quickhelp idle timer.")
 
-(defvar company-quickhelp--original-tooltip-width company-tooltip-minimum-width
+(defvar-local company-quickhelp--original-tooltip-width company-tooltip-minimum-width
   "The documentation popup breaks inexplicably when we transition
   from a large pseudo-tooltip to a small one.  We solve this by
   overriding `company-tooltip-minimum-width' and save the
@@ -161,39 +161,41 @@ currently active `company' completion candidate."
   (unless (company-quickhelp-pos-tip-available-p)
     (error "company-quickhelp is not available in this emacs version or frame"))
   (company-quickhelp--cancel-timer)
-  (let* ((selected (nth company-selection company-candidates))
-         (doc (company-quickhelp--doc selected))
-         (width 80)
-         (timeout 300)
-         (ovl company-pseudo-tooltip-overlay)
-         (overlay-width (* (frame-char-width)
-                           (if ovl (overlay-get ovl 'company-width) 0)))
-         (overlay-position (* (frame-char-width)
-                              (- (if ovl (overlay-get ovl 'company-column) 1) 1)))
-         (x-gtk-use-system-tooltips nil)
-	 (fg-bg `(,company-quickhelp-color-foreground
-		  . ,company-quickhelp-color-background)))
-    (when (and ovl doc)
-      (with-no-warnings
-        (if company-quickhelp-use-propertized-text
-            (let* ((frame (window-frame (selected-window)))
-                   (max-width (pos-tip-x-display-width frame))
-                   (max-height (pos-tip-x-display-height frame))
-                   (w-h (pos-tip-string-width-height doc)))
-              (cond
-               ((> (car w-h) width)
-                (setq doc (pos-tip-fill-string doc width nil 'none nil max-height)
-                      w-h (pos-tip-string-width-height doc)))
-               ((or (> (car w-h) max-width)
-                    (> (cdr w-h) max-height))
-                (setq doc (pos-tip-truncate-string doc max-width max-height)
-                      w-h (pos-tip-string-width-height doc))))
-              (pos-tip-show-no-propertize doc fg-bg (overlay-start ovl) nil timeout
-                                          (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
-                                          (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame) frame)
-                                          nil (+ overlay-width overlay-position) 1))
-          (pos-tip-show doc fg-bg (overlay-start ovl) nil timeout width nil
-                        (+ overlay-width overlay-position) 1))))))
+  (while-no-input
+    (let* ((selected (nth company-selection company-candidates))
+           (doc (let ((inhibit-message t))
+                  (company-quickhelp--doc selected)))
+           (width 80)
+           (timeout 300)
+           (ovl company-pseudo-tooltip-overlay)
+           (overlay-width (* (frame-char-width)
+                             (if ovl (overlay-get ovl 'company-width) 0)))
+           (overlay-position (* (frame-char-width)
+                                (- (if ovl (overlay-get ovl 'company-column) 1) 1)))
+           (x-gtk-use-system-tooltips nil)
+           (fg-bg `(,company-quickhelp-color-foreground
+                    . ,company-quickhelp-color-background)))
+      (when (and ovl doc)
+        (with-no-warnings
+          (if company-quickhelp-use-propertized-text
+              (let* ((frame (window-frame (selected-window)))
+                     (max-width (pos-tip-x-display-width frame))
+                     (max-height (pos-tip-x-display-height frame))
+                     (w-h (pos-tip-string-width-height doc)))
+                (cond
+                 ((> (car w-h) width)
+                  (setq doc (pos-tip-fill-string doc width nil 'none nil max-height)
+                        w-h (pos-tip-string-width-height doc)))
+                 ((or (> (car w-h) max-width)
+                      (> (cdr w-h) max-height))
+                  (setq doc (pos-tip-truncate-string doc max-width max-height)
+                        w-h (pos-tip-string-width-height doc))))
+                (pos-tip-show-no-propertize doc fg-bg (overlay-start ovl) nil timeout
+                                            (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
+                                            (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame) frame)
+                                            nil (+ overlay-width overlay-position) 1))
+            (pos-tip-show doc fg-bg (overlay-start ovl) nil timeout width nil
+                          (+ overlay-width overlay-position) 1)))))))
 
 (defun company-quickhelp--set-timer ()
   (when (null company-quickhelp--timer)
@@ -218,25 +220,29 @@ currently active `company' completion candidate."
    (not (memq window-system (list nil 'pc)))))
 
 (defun company-quickhelp--enable ()
-  (add-hook 'focus-out-hook #'company-quickhelp-hide)
-  (setq company-quickhelp--original-tooltip-width company-tooltip-minimum-width
-        company-tooltip-minimum-width (max company-tooltip-minimum-width 40))
+  (add-hook 'focus-out-hook #'company-quickhelp-hide nil t)
+  (setq-local company-quickhelp--original-tooltip-width company-tooltip-minimum-width)
+  (setq-local company-tooltip-minimum-width (max company-tooltip-minimum-width 40))
+  (make-local-variable 'company-frontends)
   (add-to-list 'company-frontends 'company-quickhelp-frontend :append))
 
 (defun company-quickhelp--disable ()
-  (remove-hook 'focus-out-hook #'company-quickhelp-hide)
+  (remove-hook 'focus-out-hook #'company-quickhelp-hide t)
   (company-quickhelp--cancel-timer)
-  (setq company-tooltip-minimum-width company-quickhelp--original-tooltip-width
-        company-frontends
-        (delq 'company-quickhelp-frontend company-frontends)))
+  (setq-local company-tooltip-minimum-width company-quickhelp--original-tooltip-width)
+  (setq-local company-frontends (delq 'company-quickhelp-frontend company-frontends)))
 
 ;;;###autoload
-(define-minor-mode company-quickhelp-mode
+(define-minor-mode company-quickhelp-local-mode
   "Provides documentation popups for `company-mode' using `pos-tip'."
-  :global t
-  (if company-quickhelp-mode
+  :global nil
+  (if company-quickhelp-local-mode
       (company-quickhelp--enable)
     (company-quickhelp--disable)))
+
+;;;###autoload
+(define-globalized-minor-mode company-quickhelp-mode
+  company-quickhelp-local-mode company-quickhelp-local-mode)
 
 (provide 'company-quickhelp)
 
