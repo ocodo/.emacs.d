@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20170301.1407
+;; Package-Version: 20170323.210
 ;; Version:           0.12.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -143,7 +143,7 @@
   :group 'projectile-rails
   :type '(repeat string))
 
-(defvar projectile-rails-keyword-face	'projectile-rails-keyword-face
+(defvar projectile-rails-keyword-face 'projectile-rails-keyword-face
   "Face name to use for keywords.")
 
 (defface projectile-rails-keyword-face '((t :inherit 'font-lock-keyword-face))
@@ -724,18 +724,20 @@ The mode of the output buffer will be `projectile-rails-compilation-mode'."
   (file-exists-p (projectile-rails-expand-root filepath)))
 
 (defun projectile-rails-console (arg)
-  "Call `run-ruby'."
+  "Start a rails console, asking for which if ARG is not nil."
   (interactive "P")
   (projectile-rails-with-root
    (let ((rails-console-command (projectile-rails-with-preloader
                                  :spring (concat projectile-rails-spring-command " rails console")
                                  :zeus "zeus console"
                                  :vanilla (concat projectile-rails-vanilla-command " console"))))
-     (with-current-buffer (run-ruby
-                           (if (>= (or (car arg) 0) 4)
-                               (read-string "rails console: " rails-console-command)
-                             rails-console-command))
-       (projectile-rails-mode +1)))))
+     (with-demoted-errors
+         (inf-ruby-console-run
+          (if (>= (or (car arg) 0) 4)
+              (read-string "rails console: " rails-console-command)
+            rails-console-command)
+          "rails"))
+     (projectile-rails-mode +1))))
 
 ;; Shamelessly stolen from rinari.el
 (defun projectile-rails--db-config ()
