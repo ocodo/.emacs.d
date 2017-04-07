@@ -46,7 +46,7 @@ Jump to one of the current isearch candidates.
 Jump to a word start.
 The window scope is determined by `avy-all-windows' (ARG negates it).
 
-\(fn ARG)" t nil)
+\(fn ARG &optional BEG END)" t nil)
 
 (autoload 'avy-goto-word-1 "avy" "\
 Jump to the currently visible CHAR at a word start.
@@ -155,7 +155,7 @@ The window scope is determined by `avy-all-windows' or
 \(fn ARG)" t nil)
 
 (autoload 'avy-move-region "avy" "\
-Select two lines and move the text between them here.
+Select two lines and move the text between them above the current line.
 
 \(fn)" t nil)
 

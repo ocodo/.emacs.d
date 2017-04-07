@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20170208.148
+;; Package-Version: 20170402.1214
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -135,6 +135,7 @@ If the commands isn't on the list, `avy-style' is used."
     (?X . avy-action-kill-stay)
     (?m . avy-action-mark)
     (?n . avy-action-copy)
+    (?y . avy-action-yank)
     (?i . avy-action-ispell))
   "List of actions for `avy-handler-default'.
 
@@ -532,6 +533,11 @@ Set `avy-style' according to COMMMAND as well."
      (window-frame (cdr dat)))
     (select-window (cdr dat))
     (goto-char (car dat))))
+
+(defun avy-action-yank (pt)
+  "Yank sexp starting at PT at the current point."
+  (avy-action-copy pt)
+  (yank))
 
 (defun avy-action-kill-move (pt)
   "Kill sexp at PT and move there."
@@ -1051,12 +1057,24 @@ the visible part of the current buffer following point."
       (isearch-done))))
 
 ;;;###autoload
-(defun avy-goto-word-0 (arg)
+(defun avy-goto-word-0 (arg &optional beg end)
   "Jump to a word start.
 The window scope is determined by `avy-all-windows' (ARG negates it)."
   (interactive "P")
   (avy-with avy-goto-word-0
-    (avy--generic-jump avy-goto-word-0-regexp arg avy-style)))
+    (avy--generic-jump avy-goto-word-0-regexp arg avy-style beg end)))
+
+(defun avy-goto-word-0-above (arg)
+  "Jump to a word start between window start and point."
+  (interactive "P")
+  (avy-with avy-goto-word-0
+    (avy-goto-word-0 arg (window-start) (point))))
+
+(defun avy-goto-word-0-below (arg)
+  "Jump to a word start between point and window end."
+  (interactive "P")
+  (avy-with avy-goto-word-0
+    (avy-goto-word-0 arg (point) (window-end (selected-window) t))))
 
 ;;;###autoload
 (defun avy-goto-word-1 (char &optional arg beg end symbol)
@@ -1464,19 +1482,23 @@ The window scope is determined by `avy-all-windows' or
 
 ;;;###autoload
 (defun avy-move-region ()
-  "Select two lines and move the text between them here."
+  "Select two lines and move the text between them above the current line."
   (interactive)
   (avy-with avy-move-region
-    (let* ((beg (avy--line))
-           (end (save-excursion
-                  (goto-char (avy--line))
-                  (forward-line)
-                  (point)))
-           (text (buffer-substring beg end))
-           (pad (if (bolp) "" "\n")))
+    (let* ((initial-window (selected-window))
+           (beg (avy--line))
+           (end (avy--line))
+           text)
+      (when (> beg end)
+        (cl-rotatef beg end))
+      (setq end (save-excursion
+                  (goto-char end)
+                  (1+ (line-end-position))))
+      (setq text (buffer-substring beg end))
       (move-beginning-of-line nil)
       (delete-region beg end)
-      (insert text pad))))
+      (select-window initial-window)
+      (insert text))))
 
 ;;;###autoload
 (defun avy-kill-region (arg)
