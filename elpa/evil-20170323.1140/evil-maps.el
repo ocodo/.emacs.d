@@ -29,6 +29,7 @@
 (require 'evil-ex)
 (require 'evil-commands)
 (require 'evil-command-window)
+(require 'evil-common)
 
 ;;; Code:
 
@@ -225,6 +226,8 @@
 (define-key evil-motion-state-map "])" 'evil-next-close-paren)
 (define-key evil-motion-state-map "[{" 'evil-previous-open-brace)
 (define-key evil-motion-state-map "]}" 'evil-next-close-brace)
+(define-key evil-motion-state-map "]s" 'evil-next-flyspell-error)
+(define-key evil-motion-state-map "[s" 'evil-prev-flyspell-error)
 (define-key evil-motion-state-map "*" 'evil-search-word-forward)
 (define-key evil-motion-state-map "g*" 'evil-search-unbounded-word-forward)
 (define-key evil-motion-state-map "," 'evil-repeat-find-char-reverse)
@@ -390,13 +393,13 @@ included in `evil-insert-state-bindings' by default."
      ((and remove
            (or force
                ;; Only remove if the default binding has not changed
-               (eq (lookup-key evil-insert-state-map (car binding))
+               (eq (evil-lookup-key evil-insert-state-map (car binding))
                    (cdr binding))))
       (define-key evil-insert-state-map (car binding) nil))
      ((and (null remove)
            (or force
                ;; Check to see that nothing is bound here before adding
-               (null (lookup-key evil-insert-state-map (car binding)))))
+               (not (evil-lookup-key evil-insert-state-map (car binding)))))
       (define-key evil-insert-state-map (car binding) (cdr binding))))))
 
 (define-key evil-insert-state-map [delete] 'delete-char)
@@ -450,7 +453,7 @@ included in `evil-insert-state-bindings' by default."
 (evil-ex-define-cmd "d[elete]" 'evil-delete)
 (evil-ex-define-cmd "y[ank]" 'evil-yank)
 (evil-ex-define-cmd "go[to]" 'evil-goto-char)
-(evil-ex-define-cmd "j[oin]" 'evil-join)
+(evil-ex-define-cmd "j[oin]" 'evil-ex-join)
 (evil-ex-define-cmd "le[ft]" 'evil-align-left)
 (evil-ex-define-cmd "ri[ght]" 'evil-align-right)
 (evil-ex-define-cmd "ce[nter]" 'evil-align-center)

@@ -550,6 +550,79 @@ and jump to the corresponding one."
        ((< open close) (goto-char open-pair))
        (t (goto-char close-pair)))))))
 
+(eval-when-compile
+  (require 'flyspell))
+
+(defun evil--flyspell-overlays-in-p (beg end)
+  (let ((ovs (overlays-in beg end))
+        done)
+    (while (and ovs (not done))
+      (when (flyspell-overlay-p (car ovs))
+        (setq done t))
+      (setq ovs (cdr ovs)))
+    done))
+
+(defun evil--flyspell-overlay-at (pos forwardp)
+  (when (not forwardp)
+    (setq pos (max (1- pos) (point-min))))
+  (let ((ovs (overlays-at pos))
+        done)
+    (while (and ovs (not done))
+      (if (flyspell-overlay-p (car ovs))
+          (setq done t)
+        (setq ovs (cdr ovs))))
+    (when done
+      (car ovs))))
+
+(defun evil--flyspell-overlay-after (pos limit forwardp)
+  (let (done)
+    (while (and (if forwardp
+                    (< pos limit)
+                  (> pos limit))
+                (not done))
+      (let ((ov (evil--flyspell-overlay-at pos forwardp)))
+        (when ov
+          (setq done ov)))
+      (setq pos (if forwardp
+                    (next-overlay-change pos)
+                  (previous-overlay-change pos))))
+    done))
+
+(defun evil--next-flyspell-error (forwardp)
+  (require 'flyspell)
+  (when (evil--flyspell-overlays-in-p (point-min) (point-max))
+    (let ((pos (point))
+          limit
+          ov)
+      (when (evil--flyspell-overlay-at pos forwardp)
+        (if (/= pos (point-min))
+            (setq pos (save-excursion (goto-char pos)
+                                      (forward-word (if forwardp 1 -1))
+                                      (point)))
+          (setq pos (point-max))))
+      (setq limit (if forwardp (point-max) (point-min))
+            ov (evil--flyspell-overlay-after pos limit forwardp))
+      (if ov
+          (goto-char (overlay-start ov))
+        (when evil-search-wrap
+          (setq limit pos
+                pos (if forwardp (point-min) (point-max))
+                ov (evil--flyspell-overlay-after pos limit forwardp))
+          (when ov
+            (goto-char (overlay-start ov))))))))
+
+(evil-define-motion evil-next-flyspell-error (count)
+  "Go to the COUNT'th spelling mistake after point."
+  (interactive "p")
+  (dotimes (_ count)
+    (evil--next-flyspell-error t)))
+
+(evil-define-motion evil-prev-flyspell-error (count)
+  "Go to the COUNT'th spelling mistake preceding point."
+  (interactive "p")
+  (dotimes (_ count)
+    (evil--next-flyspell-error nil)))
+
 (evil-define-motion evil-previous-open-paren (count)
   "Go to [count] previous unmatched '('."
   :type exclusive
@@ -1515,6 +1588,7 @@ of the block."
   (let ((count (count-lines beg end)))
     (when (> count 1)
       (setq count (1- count)))
+    (goto-char beg)
     (dotimes (var count)
       (join-line 1))))
 
@@ -1526,10 +1600,34 @@ but doesn't insert or remove any spaces."
   (let ((count (count-lines beg end)))
     (when (> count 1)
       (setq count (1- count)))
+    (goto-char beg)
     (dotimes (var count)
       (evil-move-end-of-line 1)
       (unless (eobp)
         (delete-char 1)))))
+
+(evil-define-operator evil-ex-join (beg end &optional count bang)
+  "Join the selected lines with optional COUNT and BANG."
+  (interactive "<r><a><!>")
+  (if (and count (not (string-match-p "^[1-9][0-9]*$" count)))
+      (user-error "Invalid count")
+    (let ((join-fn (if bang 'evil-join-whitespace 'evil-join)))
+      (cond
+       ((not count)
+        ;; without count - just join the given region
+        (funcall join-fn beg end))
+       (t
+        ;; emulate vim's :join when count is given - start from the
+        ;; end of the region and join COUNT lines from there
+        (let* ((count-num (string-to-number count))
+               (beg-adjusted (save-excursion
+                               (goto-char end)
+                               (forward-line -1)
+                               (point)))
+               (end-adjusted (save-excursion
+                               (goto-char end)
+                               (point-at-bol count-num))))
+          (funcall join-fn beg-adjusted end-adjusted)))))))
 
 (evil-define-operator evil-fill (beg end)
   "Fill text."
@@ -2306,6 +2404,13 @@ next VCOUNT - 1 lines below the current one."
                    (setq row nil)))
         rows))))
 
+(defun evil--self-insert-string (string)
+  "Insert STRING as if typed interactively."
+  (let ((chars (append string nil)))
+    (dolist (char chars)
+      (let ((last-command-event char))
+        (self-insert-command 1)))))
+
 (defun evil-copy-from-above (arg)
   "Copy characters from preceding non-blank line.
 The copied text is inserted before point.
@@ -2320,7 +2425,7 @@ See also \\<evil-insert-state-map>\\[evil-copy-from-below]."
      (list (prefix-numeric-value current-prefix-arg)))
     (t
      (list (prefix-numeric-value current-prefix-arg)))))
-  (insert (evil-copy-chars-from-line 1 (- arg))))
+  (evil--self-insert-string (evil-copy-chars-from-line arg -1)))
 
 (defun evil-copy-from-below (arg)
   "Copy characters from following non-blank line.
@@ -2335,7 +2440,7 @@ See also \\<evil-insert-state-map>\\[evil-copy-from-above]."
      (list (prefix-numeric-value current-prefix-arg)))
     (t
      (list (prefix-numeric-value current-prefix-arg)))))
-  (insert (evil-copy-chars-from-line 1 arg)))
+  (evil--self-insert-string (evil-copy-chars-from-line arg 1)))
 
 ;; adapted from `copy-from-above-command' in misc.el
 (defun evil-copy-chars-from-line (n num &optional col)
@@ -3026,7 +3131,7 @@ If FORCE is non-nil all local marks except 0-9 are removed.
       (while (< i n)
         (cond
          ;; skip spaces
-         ((= (aref i ?\ )) (cl-incf i))
+         ((= (aref marks i) ?\ ) (cl-incf i))
          ;; ranges of marks
          ((and (< (+ i 2) n)
                (= (aref marks (1+ i)) ?-)
