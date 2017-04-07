@@ -182,7 +182,8 @@ Note:
 (autoload 'diredp-dired-for-files "dired+" "\
 Dired file names that you enter, in a Dired buffer that you name.
 You are prompted for the name of the Dired buffer to use.
-You are then prompted for names of files and directories to list.
+You are then prompted for names of files and directories to list,
+ which can be located anywhere.
 Use `C-g' when you are done.
 
 With a prefix arg you are first prompted for the `ls' switches to use.
@@ -192,7 +193,7 @@ See also `dired' (including the advice).
 \(fn ARG &optional SWITCHES)" t nil)
 
 (autoload 'diredp-dired-for-files-other-window "dired+" "\
-Same as `diredp-dired-for-files' except uses another window.
+Same as `diredp-dired-for-files', except uses another window.
 
 \(fn ARG &optional SWITCHES)" t nil)
 
@@ -282,6 +283,11 @@ From Lisp:
 
 \(fn DIRED-NAME DIRBUFS &optional SWITCHES EXTRA)" t nil)
 
+(autoload 'diredp-dired-union-other-window "dired+" "\
+Same as `diredp-dired-union', except use other window.
+
+\(fn DIRED-NAME DIRBUFS &optional SWITCHES EXTRA)" t nil)
+
 (autoload 'diredp-add-to-dired-buffer "dired+" "\
 Add individual file and directory names to a Dired buffer.
 You are prompted for the buffer name.
@@ -303,6 +309,11 @@ From Lisp:
  DIRED-NAME is the name of the Dired buffer to modify.
  TO-ADD is the list of files and dirs to add to it.
  SWITCHES is the string of `ls' switches.
+
+\(fn DIRED-NAME TO-ADD &optional SWITCHES)" t nil)
+
+(autoload 'diredp-add-to-dired-buffer-other-window "dired+" "\
+Same as `diredp-add-to-dired-buffer', except use other window.
 
 \(fn DIRED-NAME TO-ADD &optional SWITCHES)" t nil)
 
@@ -336,6 +347,7 @@ With a prefix arg:
 
 (autoload 'diredp-dired-inserted-subdirs "dired+" "\
 Open Dired for each of the subdirs inserted in this Dired buffer.
+A separate Dired buffer is used for each of them.
 With a prefix arg, create the Dired buffers but do not display them.
 Markings and current Dired switches are preserved.
 
