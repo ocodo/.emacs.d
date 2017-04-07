@@ -5,8 +5,8 @@
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 3.15
-;; Package-Version: 20161211.910
+;; Version: 3.16
+;; Package-Version: 20170313.1603
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
@@ -42,7 +42,7 @@
 ;;
 ;;; Code:
 
-(defconst ido-completing-read+-version "3.15"
+(defconst ido-completing-read+-version "3.16"
   "Currently running version of ido-ubiquitous.
 
 Note that when you update ido-completing-read+, this variable may
@@ -61,11 +61,9 @@ Debug info is printed to the *Messages* buffer."
   :global t
   :group 'ido-completing-read-plus)
 
-;; Defined as a macro for efficiency (args are not evaluated unless
-;; debug mode is on)
-(defmacro ido-cr+--debug-message (format-string &rest args)
-  `(when ido-cr+-debug-mode
-     (message (concat "ido-completing-read+: " ,format-string) ,@args)))
+(defun ido-cr+--debug-message (format-string &rest args)
+  (when ido-cr+-debug-mode
+    (apply #'message (concat "ido-completing-read+: " format-string) args)))
 
 ;;; Core code
 
@@ -144,9 +142,9 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
   (when ido-cr+-debug-mode
     (when (and (listp arg)
                (eq (car arg) 'ido-cr+-fallback))
-      (setq arg (cdr arg)))
+      (setq arg (cadr arg)))
     (ido-cr+--debug-message "Falling back to `%s' because %s."
-                                   ido-cr+-fallback-function arg)))
+                            ido-cr+-fallback-function arg)))
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
@@ -170,22 +168,23 @@ completion for them."
           (cond
            (inherit-input-method
             (signal 'ido-cr+-fallback
-                    "ido cannot handle non-nil INHERIT-INPUT-METHOD"))
+                    '("ido cannot handle non-nil INHERIT-INPUT-METHOD")))
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
-                    "ido cannot handle non-nil `completion-extra-properties'"))
+                    '("ido cannot handle non-nil `completion-extra-properties'")))
            ((functionp collection)
             (signal 'ido-cr+-fallback
-                    "ido cannot handle COLLECTION being a function")))
+                    '("ido cannot handle COLLECTION being a function"))))
           ;; Expand all possible completions
           (setq collection (all-completions "" collection predicate))
           ;; Check for excessively large collection
           (when (and ido-cr+-max-items
                      (> (length collection) ido-cr+-max-items))
             (signal 'ido-cr+-fallback
-                    (format
-                     "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
-                     ido-cr+-max-items)))
+                    (list
+                     (format
+                      "there are more than %i items in COLLECTION (see `ido-cr+-max-items')"
+                      ido-cr+-max-items))))
           ;; ido doesn't natively handle DEF being a list. If DEF is a
           ;; list, prepend it to COLLECTION and set DEF to just the
           ;; car of the default list.
@@ -220,7 +219,7 @@ completion for them."
             ;; This detects when the user triggered fallback mode
             ;; manually.
             (when (eq ido-exit 'fallback)
-              (signal 'ido-cr+-fallback "user manually triggered fallback"))))
+              (signal 'ido-cr+-fallback '("user manually triggered fallback")))))
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
        (ido-cr+--explain-fallback sig)
