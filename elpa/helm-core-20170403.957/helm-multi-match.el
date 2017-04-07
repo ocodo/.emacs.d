@@ -72,7 +72,9 @@ If spaces in PATTERN are escaped, don't split at this place.
 i.e \"foo bar baz\"=> (\"foo\" \"bar\" \"baz\")
 but \"foo\\ bar baz\"=> (\"foo\\s-bar\" \"baz\")."
   (split-string
-   (replace-regexp-in-string helm-mm-space-regexp "\\\\s-" pattern)))
+   ;; Match spaces litteraly because candidate buffer syntax-table
+   ;; doesn't understand "\s-" properly.
+   (replace-regexp-in-string helm-mm-space-regexp "\\s-" pattern nil t)))
 
 (defun helm-mm-1-make-regexp (pattern)
   "Replace spaces in PATTERN with \"\.*\"."
