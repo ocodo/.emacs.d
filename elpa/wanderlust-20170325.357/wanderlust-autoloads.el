@@ -166,6 +166,13 @@ encode and decode a multibyte string.
 
 ;;;***
 
+;;;### (autoloads nil "elmo-passwd" "elmo-passwd.el" (0 0 0 0))
+;;; Generated autoloads from elmo-passwd.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elmo-passwd" '("elmo-passwd-")))
+
+;;;***
+
 ;;;### (autoloads nil "elmo-pipe" "elmo-pipe.el" (0 0 0 0))
 ;;; Generated autoloads from elmo-pipe.el
 

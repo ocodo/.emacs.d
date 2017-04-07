@@ -1107,6 +1107,7 @@ be assigned by 'elmo-search-default-engine'.
 
 * namazu::      namazu
 * grep::        grep
+* rgrep::       rgrep
 * mu::          mu
 * notmuch::     notmuch
 
@@ -1178,7 +1179,7 @@ index contained in the list is used as the namazu indices.
 the directory '~/.elmo/cache' and '~/documents'.
 
 
-File: wl.info,  Node: grep,  Next: mu,  Prev: namazu,  Up: Search Folder
+File: wl.info,  Node: grep,  Next: rgrep,  Prev: namazu,  Up: Search Folder
 
 3.10.3 grep
 -----------
@@ -1199,10 +1200,45 @@ SEARCH TARGET cannot be omitted.
          -> If ']' is included in regular expression,
             SEARCH CONDITION should be enclosed with '"'.
 
-
-File: wl.info,  Node: mu,  Next: notmuch,  Prev: grep,  Up: Search Folder
+   Because this method passes all target filenames to grep process as
+arguments, starting grep process may fail when there are too many files
+in the target directory.  If your find proram accepts '-maxdepth'
+option, adding the below code in '~/.wl' may resolve the problem.
 
-3.10.4 mu
+     (eval-after-load "elmo-search"
+       '(elmo-search-register-engine
+         'grep 'local-file
+         :prog "find"
+         :args '(elmo-search-rgrep-target
+                 "-maxdepth" "1" "-type" "f" "-exec" "grep" "-l" "-e"
+                 pattern "{}" "+")))
+
+   If your find program can't handle '-exec command {} +' option
+correctly, replacing the last '+' with ';' would do the trick, but it is
+probably very slow.
+
+
+File: wl.info,  Node: rgrep,  Next: mu,  Prev: grep,  Up: Search Folder
+
+3.10.4 rgrep
+------------
+
+Using grep with '-r' option to search files in subdirectories of the
+target directory.  Grep must accept '-r' option.
+
+   There is no limitation about the number of files such as grep method
+(*note grep::).  Syntax is similar to grep method.
+
+   Example:
+
+     [wanderlust]~/Mail/inbox!rgrep
+         -> search messages matched with "wanderlust"
+            from the directory "~/Mail/inbox" including subdirectories.
+
+
+File: wl.info,  Node: mu,  Next: notmuch,  Prev: rgrep,  Up: Search Folder
+
+3.10.5 mu
 ---------
 
 Search mail using mu (<http://www.djcbsoftware.nl/code/mu/>).
@@ -1233,7 +1269,7 @@ Search mail using mu (<http://www.djcbsoftware.nl/code/mu/>).
 
 File: wl.info,  Node: notmuch,  Prev: mu,  Up: Search Folder
 
-3.10.5 notmuch
+3.10.6 notmuch
 --------------
 
 Search mail using notmuch (<http://notmuchmail.org/>).
@@ -6758,9 +6794,9 @@ File: wl.info,  Node: Password Management,  Next: Split messages,  Prev: Biff,  
 =====================
 
 If you input passwords to connect servers, they are stored in the
-variable 'elmo-passwd-alist' per connection.  You should be careful that
-others might read your passwords if they can touch your Emacs, since
-encoded plain passwords are there.
+variable 'elmo-passwd-storage' per connection.  You should be careful
+that others might read your passwords if they can touch your Emacs,
+since encoded plain passwords are there.
 
    If you invoke 'M-x elmo-passwd-alist-save' while you have stored
 passwords, then they are saved on the file, and it will save you to
@@ -6780,6 +6816,31 @@ saved passwords on file, invoke 'M-x elmo-passwd-alist-clear' and then
      is set to remove password entry after 'elmo-passwd-life-time'
      seconds since you input the password.  'nil' means never to remove
      passwords.
+
+* Menu:
+
+* Auth-source:: Using auth-source for password managament
+
+
+File: wl.info,  Node: Auth-source,  Prev: Password Management,  Up: Password Management
+
+14.4.1 Using auth-source for password managament
+------------------------------------------------
+
+If you write as '(setq elmo-passwd-storage-type 'auth-source)' in your
+'~/.wl', you can use auth-source (*note (auth)Top::) for password
+management.
+
+14.4.1.1 Limitations of using auth-source
+.........................................
+
+Thre are some limitations for auth-source.
+
+   * password is not distinguished by protocol name nor authentication
+     mechanism.
+   * If you have multiple accounts on the one host, you have to prepare
+     password entry before use.  In such case, you can't input password
+     interactively.  It may be limitaion of netrc backend.
 
 
 File: wl.info,  Node: Split messages,  Next: Batch Processing,  Prev: Password Management,  Up: Advanced Issues
@@ -7584,6 +7645,7 @@ Concept Index
 * Archive variables:                     Archive Vars.        (line   6)
 * Archiver:                              Archiver.            (line   6)
 * Atom Folder:                           RSS Folder.          (line   6)
+* auth-source:                           Auth-source.         (line   6)
 * Backtrace:                             Mailing List.        (line   6)
 * Batch Processing:                      Batch Processing.    (line   6)
 * BBDB:                                  BBDB.                (line   6)
@@ -7609,6 +7671,7 @@ Concept Index
 * Expire Message:                        Expire.              (line   6)
 * File Folder:                           File Folder.         (line   6)
 * Filter Folder:                         Filter Folder.       (line   6)
+* find:                                  grep.                (line   6)
 * Flag:                                  Filter Folder.       (line   6)
 * Flag <1>:                              Internal Folder.     (line   6)
 * FLIM:                                  MIME Modules.        (line   6)

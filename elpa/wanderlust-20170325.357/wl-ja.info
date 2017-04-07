@@ -1107,6 +1107,7 @@ File: wl-ja.info,  Node: Search Folder,  Next: Multi Folder,  Prev: RSS Folder, 
 
 * namazu::      namazu
 * grep::        grep
+* rgrep::       rgrep
 * mu::          mu
 * notmuch::     notmuch
 
@@ -1178,7 +1179,7 @@ namazu (<http://www.namazu.org/>) を使って、インデックスに登録さ�
 として、キーワード 'wanderlust' で検索を行います。
 
 
-File: wl-ja.info,  Node: grep,  Next: mu,  Prev: namazu,  Up: Search Folder
+File: wl-ja.info,  Node: grep,  Next: rgrep,  Prev: namazu,  Up: Search Folder
 
 3.10.3 grep
 -----------
@@ -1199,10 +1200,45 @@ grep を使って、検索対象で指定されたディレクトリにあるフ
          -> 検索式が ']' を含む正規表現である場合は、
             '"' で囲む必要があります
 
-
-File: wl-ja.info,  Node: mu,  Next: notmuch,  Prev: grep,  Up: Search Folder
+   検索対象となるファイル名をすべて引数として grep を起動渡すため、 ファ
+イルが多すぎると失敗する場合があります。 find が '-maxdepth' オプション
+を受け付けるのであれば、 '~/.wl' に以下のように記載する事でこの問題を回
+避できます。
 
-3.10.4 mu
+     (eval-after-load "elmo-search"
+       '(elmo-search-register-engine
+         'grep 'local-file
+         :prog "find"
+         :args '(elmo-search-rgrep-target
+                 "-maxdepth" "1" "-type" "f" "-exec" "grep" "-l" "-e"
+                 pattern "{}" "+")))
+
+   find の '-exec command {} +' オプションが正しく動作しない 場合は 最後
+の '+' を ';' に変えると動作するかもしれませんが、 ものすごく遅いかもし
+れません。
+
+
+File: wl-ja.info,  Node: rgrep,  Next: mu,  Prev: grep,  Up: Search Folder
+
+3.10.4 rgrep
+------------
+
+grep の '-r' オプションをを使って、検索対象で指定された ディレクトリ以下
+にあるファイルを検索します。 '-r' オプションを受け付ける grep が必要です
+。
+
+   検索方式 grep とは異なり、対象ディレクトリのサブディレクトリにある フ
+ァイルも検索対象になります (*note grep::)。 また、ファイル数に関する制限
+は生じません。 その他、書式などは検索方式grepに準じます。
+
+     [wanderlust]~/Mail/inbox!rgrep
+         -> ディレクトリ "~/Mail/inbox" 以下から
+            "wanderlust" にマッチするものを探す
+
+
+File: wl-ja.info,  Node: mu,  Next: notmuch,  Prev: rgrep,  Up: Search Folder
+
+3.10.5 mu
 ---------
 
 mu (<http://www.djcbsoftware.nl/code/mu/>) を使って、文書を検索します。
@@ -1233,7 +1269,7 @@ mu (<http://www.djcbsoftware.nl/code/mu/>) を使って、文書を検索しま�
 
 File: wl-ja.info,  Node: notmuch,  Prev: mu,  Up: Search Folder
 
-3.10.5 notmuch
+3.10.6 notmuch
 --------------
 
 notmuch (<http://notmuchmail.org/>) を使って、文書を検索します。
@@ -6671,8 +6707,8 @@ File: wl-ja.info,  Node: Password Management,  Next: Split messages,  Prev: Biff
 14.4 パスワードの管理
 =====================
 
-サーバに接続する為に入力したパスワードは変数 'elmo-passwd-alist' に 接続
-毎に保持されます。この変数にはエンコードされた生のパスワードが保持さ れ
+サーバに接続する為に入力したパスワードは変数 'elmo-passwd-storage' に 接
+続毎に保持されます。この変数にはエンコードされた生のパスワードが保持さ れ
 ており、Emacs を他人に触られるとパスワードを見られる危険性があるので十 分
 に注意して下さい。
 
@@ -6693,6 +6729,30 @@ File: wl-ja.info,  Node: Password Management,  Next: Split messages,  Prev: Biff
      が入力されてから 'elmo-passwd-life-time' 秒後にパスワードを消去する
      タイマが、 セットされます。'nil' の場合は入力されたパスワードを消去
      しません。
+
+* Menu:
+
+* Auth-source:: auth-source を利用したパスワードの管理
+
+
+File: wl-ja.info,  Node: Auth-source,  Prev: Password Management,  Up: Password Management
+
+14.4.1 auth-source を利用したパスワードの管理
+---------------------------------------------
+
+'~/.wl' に '(setq elmo-passwd-storage-type 'auth-source)' のように記述す
+るとパスワードの管理に auth-source (*note (auth)Top::) を利用するように
+なります。
+
+14.4.1.1 auth-source 利用時の制限
+.................................
+
+auth-source 使用時は以下の制限があります。
+
+   * プロトコル名や認証メカニズムによるパスワードの区別を行いません。
+   * netrc バックエンドの制限かもしれませんが、 同一ホスト名に複数アカウ
+     ントが存在する場合、インタラクティブにパスワードを 入力することがで
+     きず、あらかじめエントリを作成しておく必要があります。
 
 
 File: wl-ja.info,  Node: Split messages,  Next: Batch Processing,  Prev: Password Management,  Up: Advanced Issues
@@ -7489,6 +7549,7 @@ File: wl-ja.info,  Node: Concept Index,  Next: Key Index,  Prev: Index,  Up: Ind
 * Archive variables:                     Archive Vars.        (line   6)
 * Archiver:                              Archiver.            (line   6)
 * Atom Folder:                           RSS Folder.          (line   6)
+* auth-source:                           Auth-source.         (line   6)
 * Backtrace:                             Mailing List.        (line   6)
 * Batch Processing:                      Batch Processing.    (line   6)
 * BBDB:                                  BBDB.                (line   6)
@@ -7514,6 +7575,7 @@ File: wl-ja.info,  Node: Concept Index,  Next: Key Index,  Prev: Index,  Up: Ind
 * Expire Message:                        Expire.              (line   6)
 * File Folder:                           File Folder.         (line   6)
 * Filter Folder:                         Filter Folder.       (line   6)
+* find:                                  grep.                (line   6)
 * Flag:                                  Filter Folder.       (line   6)
 * Flag <1>:                              Internal Folder.     (line   6)
 * FLIM:                                  MIME Modules.        (line   6)
@@ -8121,6 +8183,7 @@ File: wl-ja.info,  Node: Variable Index,  Next: Function Index,  Prev: Key Index
                                                               (line 221)
 * elmo-passwd-alist-file-name:           Password Management. (line  19)
 * elmo-passwd-life-time:                 Password Management. (line  24)
+* elmo-passwd-storage-type:              Auth-source.         (line   6)
 * elmo-plugged-condition:                Variables of Plugged Mode.
                                                               (line  29)
 * elmo-pop3-send-command-synchronously:  Customizable Valiables.
@@ -8522,6 +8585,8 @@ File: wl-ja.info,  Node: Function Index,  Prev: Variable Index,  Up: Index
 * Menu:
 
 * compose-mail:                          Minimal Settings.    (line  46)
+* elmo-passwd-alist-clear:               Password Management. (line  11)
+* elmo-passwd-alist-save:                Password Management. (line  11)
 * wl-addrmgr:                            Key Bindings of Draft.
                                                               (line  65)
 * wl-addrmgr-add:                        Address Manager.     (line  35)
@@ -8936,108 +9001,110 @@ Node: POP Folder26131
 Node: Shimbun Folder27586
 Node: RSS Folder28488
 Node: Search Folder29107
-Node: namazu29596
-Node: grep31150
-Node: mu31567
-Node: notmuch32388
-Node: Multi Folder32783
-Node: Filter Folder33317
-Node: Pipe Folder37191
-Node: Internal Folder38256
-Node: File Folder39272
-Node: Access Folder39570
-Node: Folder39884
-Node: Selecting Folder40142
-Node: Folder Manager46759
-Ref: Folder Manager-Footnote-153074
-Node: Summary53127
-Node: Usage of Summary Mode53671
-Node: Thread Operations57070
-Node: Cache57874
-Node: Auto Refile59354
-Node: Sticky Summary61454
-Node: Summary View62257
-Node: Mark and Action64360
-Node: Key Bindings of Summary65392
-Node: Variables of Summary80068
-Node: Message87455
-Node: Draft89720
-Node: Usage of Draft Mode90100
-Node: Parameters for Sending90588
-Node: Editing Header91681
-Node: Editing Message Body and Sending92583
-Node: Dynamical Message Re-arrangement93350
-Node: Template97460
-Node: POP-before-SMTP98972
-Node: Key Bindings of Draft100319
-Node: Variables of Draft Mode102094
-Node: Disconnected Operations111167
-Node: Off-line State111569
-Node: Enable Operations112129
-Node: Send Messages off-line112912
-Node: Re-file and Copy queue113341
-Node: Creation of Folders113850
-Node: Marking114168
-Node: Pre-fetching Reservations114427
-Node: Plugged Mode114702
-Node: Off-line State settings116615
-Node: Variables of Plugged Mode117541
-Node: Expire and Archive119853
-Node: Expire120087
-Node: Archive131477
-Node: Scoring133307
-Node: Score Commands133796
-Node: Score File Format139798
-Node: Address Book143833
-Node: Mail Addresses144076
-Node: Address Manager145194
-Node: Quick Search145830
-Node: Setup of Quick Search146382
-Node: Usage of Quick Search146829
-Node: Spam Filter148267
-Node: Usage of Spam Filter148607
-Node: Spam Filter Processors153950
-Node: bogofilter154464
-Node: spamfilter155457
-Node: bsfilter156093
-Node: SpamAssassin157269
-Node: SpamOracle158641
-Node: Regular Expressions Header Matching159733
-Node: Advanced Issues160565
-Node: Living with other packages161077
-Node: imput161750
-Node: BBDB162070
-Node: LSDB163191
-Node: supercite163660
-Node: mu-cite163981
-Node: X-Face164473
-Node: x-face-xmas164948
-Node: x-face-mule165329
-Node: dired-dd166067
-Node: MHC166800
-Node: Addrbook167325
-Node: mime-w3m167690
-Node: Highlights167993
-Node: Biff173841
-Node: Password Management174937
-Node: Split messages175808
-Node: Batch Processing178736
-Node: Advanced Settings179235
-Node: Draft for Reply179551
-Node: Thread Format182014
-Node: User-Agent Field183483
-Node: Customizable Valiables184105
-Node: Hooks189610
-Node: Migration189738
-Node: Before 2.12.0189985
-Node: Terminology191418
-Node: Mailing List192129
-Ref: Mailing List-Footnote-1193245
-Node: Addition193316
-Node: Index196006
-Node: Concept Index196238
-Node: Key Index211309
-Node: Variable Index239642
-Node: Function Index269699
+Node: namazu29618
+Node: grep31172
+Node: rgrep32103
+Node: mu32530
+Node: notmuch33352
+Node: Multi Folder33747
+Node: Filter Folder34281
+Node: Pipe Folder38155
+Node: Internal Folder39220
+Node: File Folder40236
+Node: Access Folder40534
+Node: Folder40848
+Node: Selecting Folder41106
+Node: Folder Manager47723
+Ref: Folder Manager-Footnote-154038
+Node: Summary54091
+Node: Usage of Summary Mode54635
+Node: Thread Operations58034
+Node: Cache58838
+Node: Auto Refile60318
+Node: Sticky Summary62418
+Node: Summary View63221
+Node: Mark and Action65324
+Node: Key Bindings of Summary66356
+Node: Variables of Summary81032
+Node: Message88419
+Node: Draft90684
+Node: Usage of Draft Mode91064
+Node: Parameters for Sending91552
+Node: Editing Header92645
+Node: Editing Message Body and Sending93547
+Node: Dynamical Message Re-arrangement94314
+Node: Template98424
+Node: POP-before-SMTP99936
+Node: Key Bindings of Draft101283
+Node: Variables of Draft Mode103058
+Node: Disconnected Operations112131
+Node: Off-line State112533
+Node: Enable Operations113093
+Node: Send Messages off-line113876
+Node: Re-file and Copy queue114305
+Node: Creation of Folders114814
+Node: Marking115132
+Node: Pre-fetching Reservations115391
+Node: Plugged Mode115666
+Node: Off-line State settings117579
+Node: Variables of Plugged Mode118505
+Node: Expire and Archive120817
+Node: Expire121051
+Node: Archive132441
+Node: Scoring134271
+Node: Score Commands134760
+Node: Score File Format140762
+Node: Address Book144797
+Node: Mail Addresses145040
+Node: Address Manager146158
+Node: Quick Search146794
+Node: Setup of Quick Search147346
+Node: Usage of Quick Search147793
+Node: Spam Filter149231
+Node: Usage of Spam Filter149571
+Node: Spam Filter Processors154914
+Node: bogofilter155428
+Node: spamfilter156421
+Node: bsfilter157057
+Node: SpamAssassin158233
+Node: SpamOracle159605
+Node: Regular Expressions Header Matching160697
+Node: Advanced Issues161529
+Node: Living with other packages162041
+Node: imput162714
+Node: BBDB163034
+Node: LSDB164155
+Node: supercite164624
+Node: mu-cite164945
+Node: X-Face165437
+Node: x-face-xmas165912
+Node: x-face-mule166293
+Node: dired-dd167031
+Node: MHC167764
+Node: Addrbook168289
+Node: mime-w3m168654
+Node: Highlights168957
+Node: Biff174805
+Node: Password Management175901
+Node: Auth-source176826
+Node: Split messages177372
+Node: Batch Processing180300
+Node: Advanced Settings180799
+Node: Draft for Reply181115
+Node: Thread Format183578
+Node: User-Agent Field185047
+Node: Customizable Valiables185669
+Node: Hooks191174
+Node: Migration191302
+Node: Before 2.12.0191549
+Node: Terminology192982
+Node: Mailing List193693
+Ref: Mailing List-Footnote-1194809
+Node: Addition194880
+Node: Index197570
+Node: Concept Index197802
+Node: Key Index213019
+Node: Variable Index241352
+Node: Function Index271482
 
 End Tag Table
