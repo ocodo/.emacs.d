@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20170225.356
+;; Package-Version: 20170405.2244
 ;; Version: 0.8.0
 ;; Package-Requires: ((emacs "24.1") (ivy "0.8.0"))
 ;; Keywords: matching
@@ -78,6 +78,11 @@
   :type 'boolean
   :group 'swiper)
 
+(defcustom swiper-goto-start-of-match nil
+  "When non-nil, go to the start of the match, not its end."
+  :type 'boolean
+  :group 'swiper)
+
 (defvar swiper-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-q") 'swiper-query-replace)
@@ -140,6 +145,7 @@
 (declare-function avy--process "ext:avy")
 (declare-function avy--overlay-post "ext:avy")
 (declare-function avy-action-goto "ext:avy")
+(declare-function avy-candidate-beg "ext:avy")
 (declare-function avy--done "ext:avy")
 (declare-function avy--make-backgrounds "ext:avy")
 (declare-function avy-window-list "ext:avy")
@@ -157,10 +163,28 @@
     (error "Package avy isn't installed"))
   (unless (string= ivy-text "")
     (let* ((avy-all-windows nil)
+           ;; We'll have overlapping overlays, so we sort all the
+           ;; overlays in the visible region by their start, and then
+           ;; throw out non-Swiper overlays or overlapping Swiper
+           ;; overlays.
+           (visible-overlays (cl-sort (with-ivy-window
+                                        (overlays-in (window-start)
+                                                     (window-end)))
+                                      #'< :key #'overlay-start))
+           (min-overlay-start 0)
+           (overlays-for-avy (cl-remove-if-not
+                              (lambda (ov)
+                                (when (and (>= (overlay-start ov)
+                                               min-overlay-start)
+                                           (memq (overlay-get ov 'face)
+                                                 swiper-faces))
+                                  (setq min-overlay-start (overlay-start ov))))
+                              visible-overlays))
            (candidates (append
-                        (with-ivy-window
-                          (avy--regex-candidates
-                           (ivy--regex ivy-text)))
+                        (mapcar (lambda (ov)
+                                  (cons (overlay-start ov)
+                                        (overlay-get ov 'window)))
+                                overlays-for-avy)
                         (save-excursion
                           (save-restriction
                             (narrow-to-region (window-start) (window-end))
@@ -193,7 +217,7 @@
             (ivy-done)
             (ivy-call))
         (ivy-quit-and-run
-         (avy-action-goto (caar candidate)))))))
+         (avy-action-goto (avy-candidate-beg candidate)))))))
 
 (declare-function mc/create-fake-cursor-at-point "ext:multiple-cursors-core")
 (declare-function multiple-cursors-mode "ext:multiple-cursors-core")
@@ -552,13 +576,13 @@ Matched candidates should have `swiper-invocation-face'."
   "Called when `ivy' input is updated."
   (with-ivy-window
     (swiper--cleanup)
-    (when (> (length ivy--current) 0)
+    (when (> (length (ivy-state-current ivy-last)) 0)
       (let* ((re (funcall ivy--regex-function ivy-text))
              (re (if (stringp re) re (caar re)))
              (re (replace-regexp-in-string
                   "    " "\t"
                   re))
-             (str (get-text-property 0 'swiper-line-number ivy--current))
+             (str (get-text-property 0 'swiper-line-number (ivy-state-current ivy-last)))
              (num (if (string-match "^[0-9]+" str)
                       (string-to-number (match-string 0 str))
                     0)))
@@ -679,7 +703,8 @@ WND, when specified is the window."
                      #'line-move
                    #'forward-line)
                  ln)
-        (re-search-forward re (line-end-position) t)
+        (when (and (re-search-forward re (line-end-position) t) swiper-goto-start-of-match)
+          (goto-char (match-beginning 0)))
         (swiper--ensure-visible)
         (cond (swiper-action-recenter
                (recenter))
@@ -698,6 +723,7 @@ WND, when specified is the window."
                    (eq evil-search-module 'evil-search))
           (add-to-history 'evil-ex-search-history re)
           (setq evil-ex-search-pattern (list re t t))
+          (setq evil-ex-search-direction 'forward)
           (when evil-ex-search-persistent-highlight
             (evil-ex-search-activate-highlight evil-ex-search-pattern)))))))
 
@@ -872,7 +898,7 @@ Run `swiper' for those buffers."
               :action 'swiper-all-action
               :unwind #'swiper--cleanup
               :update-fn (lambda ()
-                           (swiper-all-action ivy--current))
+                           (swiper-all-action (ivy-state-current ivy-last)))
               :dynamic-collection t
               :keymap swiper-all-map
               :caller 'swiper-multi)))
