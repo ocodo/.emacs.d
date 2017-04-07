@@ -39,7 +39,13 @@
 (defun ivy-left-pad (str width)
   "Pad STR from left with WIDTH spaces."
   (let ((padding (make-string width ?\ )))
-    (mapconcat (lambda (x) (concat padding x))
+    (mapconcat (lambda (x)
+                 (setq x (concat padding x))
+                 (if (> (length x) (window-width))
+                     (concat
+                      (substring x 0 (- (window-width) 4))
+                      "...")
+                   x))
                (split-string str "\n")
                "\n")))
 
@@ -97,11 +103,9 @@ Hide the minibuffer contents and cursor."
                (+ (if (eq major-mode 'org-mode)
                       (* org-indent-indentation-per-level (org-current-level))
                     0)
-                  (if (eq (ivy-state-caller ivy-last)
-                          'ivy-completion-in-region)
-                      (- ivy-completion-beg ivy-completion-end)
-                    0)
-                  (current-column))))))
+                  (save-excursion
+                    (goto-char ivy-completion-beg)
+                    (current-column)))))))
         (add-face-text-property cursor-pos (1+ cursor-pos)
                                 'ivy-cursor t overlay-str)
         (ivy-overlay-show-after overlay-str)))))
