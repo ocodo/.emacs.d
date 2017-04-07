@@ -10,7 +10,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/voxpupuli/puppet-mode
-;; Package-Version: 20170213.207
+;; Package-Version: 20170323.331
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -169,7 +169,7 @@ buffer-local wherever it is set."
   :group 'puppet
   :package-version '(puppet-mode . "0.3"))
 
-(defcustom puppet-repl-command "pdb"
+(defcustom puppet-repl-command "puppet debugger"
   "The Puppet REPL command used to interact with code."
   :type 'string
   :group 'puppet
@@ -276,11 +276,19 @@ Return nil, if there is no special context at POS, or one of
   "Launch a Puppet REPL using `puppet-repl-command' as an inferior mode."
   (interactive)
 
+  ;; the command (at least for now) is 'puppet debugger'
+  ;; but really it is 'puppet' with args 'debugger' + puppet-repl-args
+  ;; Even if it changes, we need to not break on multi-word commands
   (unless (comint-check-proc puppet-repl-buffer)
-    (set-buffer
-     (apply 'make-comint "Puppet-REPL"
-            puppet-repl-command
-            puppet-repl-args))
+    (let* ((command-list (split-string puppet-repl-command))
+           (real-puppet-repl-command (car command-list))
+           (real-puppet-repl-args (append (cdr command-list)
+                                          puppet-repl-args)))
+      (set-buffer
+       (apply 'make-comint "Puppet-REPL"
+              real-puppet-repl-command
+              nil
+              real-puppet-repl-args)))
     ;; Workaround for ansi colors
     (add-hook 'comint-preoutput-filter-functions 'puppet-comint-filter nil t))
 
@@ -707,8 +715,12 @@ of the initial include plus puppet-include-indent."
               (setq not-indented nil))
 
              ;; Indent an extra level after : since it introduces a resource.
+             ;; Unless the : is in a comment
              ((looking-at "^.*:\\s-*$")
-              (setq cur-indent (+ (current-indentation) puppet-indent-level))
+              (end-of-line)
+              (if (eq (puppet-syntax-context) 'comment)
+                  (setq cur-indent (current-indentation))
+                (setq cur-indent (+ (current-indentation) puppet-indent-level)))
               (setq not-indented nil))
 
              ;; Start of buffer.
