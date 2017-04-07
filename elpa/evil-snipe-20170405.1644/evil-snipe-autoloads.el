@@ -5,6 +5,12 @@
 
 ;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (0 0 0 0))
 ;;; Generated autoloads from evil-snipe.el
+
+(autoload 'evil-snipe-def "evil-snipe" "\
+Define a N-char snipe, and bind it to FORWARD-KEY and BACKWARD-KEY. TYPE can
+be inclusive or exclusive.
+
+\(fn N TYPE FORWARD-KEY BACKWARD-KEY)" nil t)
  (autoload 'evil-snipe-s "evil-snipe" nil t)
  (autoload 'evil-snipe-S "evil-snipe" nil t)
  (autoload 'evil-snipe-x "evil-snipe" nil t)
@@ -13,6 +19,36 @@
  (autoload 'evil-snipe-F "evil-snipe" nil t)
  (autoload 'evil-snipe-t "evil-snipe" nil t)
  (autoload 'evil-snipe-T "evil-snipe" nil t)
+
+(autoload 'turn-on-evil-snipe-mode "evil-snipe" "\
+Enable evil-snipe-mode in the current buffer.
+
+\(fn)" nil nil)
+
+(autoload 'turn-on-evil-snipe-override-mode "evil-snipe" "\
+Enable evil-snipe-mode in the current buffer.
+
+\(fn)" nil nil)
+
+(autoload 'turn-off-evil-snipe-mode "evil-snipe" "\
+Disable evil-snipe-mode in the current buffer.
+
+\(fn)" nil nil)
+
+(autoload 'turn-off-evil-snipe-override-mode "evil-snipe" "\
+Disable evil-snipe-override-mode in the current buffer.
+
+\(fn)" nil nil)
+
+(autoload 'evil-snipe-local-mode "evil-snipe" "\
+evil-snipe minor mode.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'evil-snipe-override-local-mode "evil-snipe" "\
+evil-snipe minor mode that overrides evil-mode f/F/t/T/;/, bindings.
+
+\(fn &optional ARG)" t nil)
 
 (defvar evil-snipe-mode nil "\
 Non-nil if Evil-Snipe mode is enabled.
@@ -57,36 +93,6 @@ Evil-Snipe-Override-Local mode is enabled in all buffers where
 See `evil-snipe-override-local-mode' for more information on Evil-Snipe-Override-Local mode.
 
 \(fn &optional ARG)" t nil)
-
-(autoload 'evil-snipe-local-mode "evil-snipe" "\
-evil-snipe minor mode.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'evil-snipe-override-local-mode "evil-snipe" "\
-evil-snipe minor mode that overrides evil-mode f/F/t/T/;/, bindings.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'turn-on-evil-snipe-mode "evil-snipe" "\
-Enable evil-snipe-mode in the current buffer.
-
-\(fn)" nil nil)
-
-(autoload 'turn-on-evil-snipe-override-mode "evil-snipe" "\
-Enable evil-snipe-mode in the current buffer.
-
-\(fn)" nil nil)
-
-(autoload 'turn-off-evil-snipe-mode "evil-snipe" "\
-Disable evil-snipe-mode in the current buffer.
-
-\(fn)" nil nil)
-
-(autoload 'turn-off-evil-snipe-override-mode "evil-snipe" "\
-Disable evil-snipe-override-mode in the current buffer.
-
-\(fn)" nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-snipe" '("evil-snipe-")))
 
