@@ -61,6 +61,11 @@ Setup eldoc for `ycmd-mode'.
 
 \(fn)" t nil)
 
+(autoload 'ycmd-eldoc-mode "ycmd-eldoc" "\
+Toggle ycmd eldoc mode.
+
+\(fn &optional ARG)" t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ycmd-eldoc" '("ycmd-eldoc-")))
 
 ;;;***
