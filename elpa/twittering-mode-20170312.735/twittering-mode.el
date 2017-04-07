@@ -12,8 +12,8 @@
 ;;	Xavier Maillard <xavier@maillard.im>
 ;; Created: Sep 4, 2007
 ;; Version: HEAD
-;; Package-Version: 20160921.1038
-;; Identity: $Id: 8f4426e6cc33e2530d7340d17db99c8d8b4ccc8c $
+;; Package-Version: 20170312.735
+;; Identity: $Id: a2fc6eb695ad0994e986ab0413e53f335d9a947b $
 ;; Keywords: twitter web
 ;; URL: http://twmode.sf.net/
 
@@ -96,7 +96,7 @@
   :group 'hypermedia)
 
 (defconst twittering-mode-version "HEAD")
-(defconst twittering-mode-identity "$Id: 8f4426e6cc33e2530d7340d17db99c8d8b4ccc8c $")
+(defconst twittering-mode-identity "$Id: a2fc6eb695ad0994e986ab0413e53f335d9a947b $")
 (defvar twittering-api-host "api.twitter.com")
 (defvar twittering-api-search-host "search.twitter.com")
 (defvar twittering-web-host "twitter.com")
@@ -310,7 +310,8 @@ automatically visited when invoking `twittering-mode' or `twit'.
 If it is a string, it specifies a timeline spec string.
 If it is a list of strings, it specifies multiple timeline spec strings."
   :type '(choice (const nil)
-		 string)
+		 string
+		 (repeat string))
   :group 'twittering-mode)
 
 (defvar twittering-timeline-spec nil
@@ -3859,7 +3860,7 @@ like following:
 
 (defun twittering-capable-of-encryption-p ()
   (and (or (require 'epa nil t) (require 'alpaca nil t))
-       (executable-find "gpg")))
+       (or (executable-find "gpg") (executable-find "gpg2"))))
 
 (eval-when-compile
   (require 'epa nil t)
@@ -10296,7 +10297,7 @@ FUNC is called as (apply FUNC ARGS)."
   (when twittering-timer-for-redisplaying
     (when twittering-idle-timer-for-redisplay
       (cancel-timer twittering-idle-timer-for-redisplay)
-      (setq twittering-idle-timer-for-redisplay))
+      (setq twittering-idle-timer-for-redisplay nil))
     (cancel-timer twittering-timer-for-redisplaying)
     (setq twittering-timer-for-redisplaying nil)))
 
