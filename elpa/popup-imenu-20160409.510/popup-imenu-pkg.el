@@ -1,1 +1,0 @@
-(define-package "popup-imenu" "20160409.510" "imenu index popup" '((dash "2.12.1") (popup "0.5.3") (flx-ido "0.6.1")) :stars '(#("7" 0 1 (font-lock-face paradox-star-face))) :url "https://github.com/ancane/popup-imenu" :keywords '("popup" "imenu"))

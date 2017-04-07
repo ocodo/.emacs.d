@@ -1,8 +1,8 @@
 ;;; popup-imenu.el --- imenu index popup
 
 ;; Author: Igor Shymko <igor.shimko@gmail.com>
-;; Version: 0.5
-;; Package-Version: 20160409.510
+;; Version: 0.6
+;; Package-Version: 20170326.340
 ;; Package-Requires: ((dash "2.12.1") (popup "0.5.3") (flx-ido "0.6.1"))
 ;; Keywords: popup, imenu
 ;; URL: https://github.com/ancane/popup-imenu
@@ -129,11 +129,15 @@ IMENU-INDEX - imenu index tree."
   (-mapcat
    (lambda (x)
      (if (imenu--subalist-p x)
-         (let ((cur-item (cons (car x) (cdr (car (cdr x)))))
-               (cur-subitems (if (string= "." (car (car (cdr x))))
-                                 (cdr (cdr x))
-                               (cdr x)
-                               )))
+         (let* ((first-subitem (car (cdr x)))
+		(first-subitem-rest (cdr first-subitem))
+                (cur-item (if (consp first-subitem-rest)
+			      (car first-subitem-rest)
+			    (cons (car x) first-subitem-rest)))
+                (cur-subitems (if (string= "." (car first-subitem))
+                                  (cdr (cdr x))
+                                (cdr x)
+                                )))
            (cons cur-item
                  (mapcar (lambda (y) (cons (concat (or indent "  ") (car y)) (cdr y)))
                          (popup-imenu--indent-index cur-subitems (concat indent "  ")))))
@@ -182,6 +186,15 @@ POPUP-ITEMS - items to be shown in the popup."
     (move-to-column column popup-imenu-force-position)
     (point)))
 
+(defun popup-imenu--jump-to (selected)
+    (pcase selected
+      (`(,name ,pos ,fn . ,args)
+       (push-mark nil t)
+       (apply fn name pos args)
+       (run-hooks 'imenu-after-jump-hook))
+      (`(,name . ,pos) (popup-imenu--jump-to (list name pos imenu-default-goto-function)))
+      (_ (error "Unknown imenu item: %S" selected))))
+
 ;;;###autoload
 (defun popup-imenu ()
   "Open the popup window with imenu items."
@@ -199,9 +212,10 @@ POPUP-ITEMS - items to be shown in the popup."
                     :margin-left 1
                     :margin-right 1
                     )))
-    (goto-char (cdr selected))))
+    (popup-imenu--jump-to selected)))
 
 (provide 'popup-imenu)
 
 ;;; popup-imenu.el ends here
+
 

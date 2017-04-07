@@ -1,16 +1,17 @@
 ;;; popup-imenu-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "popup-imenu" "popup-imenu.el" (22291 19090
-;;;;;;  496294 261000))
+;;;### (autoloads nil "popup-imenu" "popup-imenu.el" (0 0 0 0))
 ;;; Generated autoloads from popup-imenu.el
 
 (autoload 'popup-imenu "popup-imenu" "\
 Open the popup window with imenu items.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "popup-imenu" '("popup-imenu-")))
 
 ;;;***
 
