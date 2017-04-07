@@ -1,4 +1,4 @@
-(define-package "js2-refactor" "20161102.1108" "A JavaScript refactoring library for emacs."
+(define-package "js2-refactor" "20170315.1315" "A JavaScript refactoring library for emacs."
   '((js2-mode "20101228")
     (s "1.9.0")
     (multiple-cursors "1.0.0")
