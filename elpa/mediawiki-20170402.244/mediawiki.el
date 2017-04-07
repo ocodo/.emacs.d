@@ -7,11 +7,12 @@
 ;;      Uwe Brauer <oub at mat.ucm.es> for wikimedia.el
 ;; Author: Mark A. Hershberger <mah@everybody.org>
 ;; Version: 2.2.7
-;; Package-Version: 20170113.1308
+;; Package-Version: 20170402.244
+;; Package-X-Original-Version: 20170113.1308
 ;; Created: Sep 17 2004
 ;; Keywords: mediawiki wikipedia network wiki
 ;; URL: https://github.com/hexmode/mediawiki-el
-;; Last Modified: <2017-01-13 12:55:34 mah>
+;; Last Modified: <2017-04-02 11:44:30 mah>
 
 (defconst mediawiki-version "2.2.7"
   "Current version of mediawiki.el.")
@@ -415,19 +416,23 @@ Some provision is made for different versions of Emacs version.
 POST-PROCESS is the function to call for post-processing.
 BUFFER is the buffer to store the result in.  CALLBACK will be
 called in BUFFER with CBARGS, if given."
-  (cond ((boundp 'url-be-asynchronous) ; Sniff w3 lib capability
-	 (if callback
-	     (setq url-be-asynchronous t)
-	   (setq url-be-asynchronous nil))
-	 (url-retrieve url t)
-	 (when (not url-be-asynchronous)
-	   (let ((result (funcall post-process buffer)))
-	     result)))
-	(t (if callback
-	       (url-retrieve url post-process
-			     (list buffer callback cbargs))
-	     (with-current-buffer (url-retrieve-synchronously url)
-	       (funcall post-process buffer))))))
+  (let ((url-user-agent (concat (if (functionp url-user-agent)
+                                    (funcall url-user-agent)
+                                  url-user-agent)
+                                " mediawiki.el")))
+    (cond ((boundp 'url-be-asynchronous) ; Sniff w3 lib capability
+           (if callback
+               (setq url-be-asynchronous t)
+             (setq url-be-asynchronous nil))
+           (url-retrieve url t)
+           (when (not url-be-asynchronous)
+             (let ((result (funcall post-process buffer)))
+               result)))
+          (t (if callback
+                 (url-retrieve url post-process
+                               (list buffer callback cbargs))
+               (with-current-buffer (url-retrieve-synchronously url)
+                 (funcall post-process buffer)))))))
 
 (defvar url-http-get-post-process 'url-http-response-post-process)
 (defun url-http-get (url &optional headers buffer callback cbargs)
@@ -982,10 +987,9 @@ Right now, this only means replacing \"_\" with \" \"."
   "Wrapper for making an API call to SITENAME.
 ACTION is the API action.  ARGS is a list of arguments."
   (let* ((raw (url-http-post (mediawiki-make-api-url sitename)
-                        (delq nil
-                              (append args (list (cons "format" "xml")
-                                                 (cons "action" action))))
-                        (string= action "upload")))
+                             (append args (list (cons "format" "xml")
+                                                (cons "action" action))))
+              (string= action "upload")))
          (result (assoc 'api
                             (with-temp-buffer
                               (insert raw)
@@ -994,11 +998,25 @@ ACTION is the API action.  ARGS is a list of arguments."
       (error "There was an error parsing the result of the API call"))
 
     (when (assq 'error (cddr result))
-      (let* ((err (cadr (assq 'error (cddr result))))
-             (err-code (cdr (assq 'code err)))
-             (err-info (cdr (assq 'info err))))
-        (error "The server encountered an error: (%s) %s" err-code err-info)))
+      (mapc (lambda (err)
+              (let ((err-label (car err))
+                    (err-info (cddr err)))
+                (error "(%s) %s" err-label err-info)))
+            (cddr (assq 'error (cddr mah/res)))))
 
+    (when (assq 'warnings (cddr result))
+      (mapc (lambda (err)
+              (let ((err-label (car err))
+                    (err-info (cddr err)))
+                (message "Warning: (%s) %s" err-label err-info)))
+            (cddr (assq 'warnings (cddr mah/res)))))
+
+    (when (assq 'info (cddr result))
+      (mapc (lambda (err)
+              (let ((err-label (car err))
+                    (err-info (cddr err)))
+                (message "Info: (%s) %s" err-label err-info)))
+            (cddr (assq 'info (cddr mah/res)))))
 
     (if (cddr result)
         (let ((action-res (assq (intern action) (cddr result))))
