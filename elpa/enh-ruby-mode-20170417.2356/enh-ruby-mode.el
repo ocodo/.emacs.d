@@ -8,7 +8,8 @@
 ;; URL: http://github.com/zenspider/Enhanced-Ruby-Mode
 ;; Created: Sep 18 2010
 ;; Keywords: languages elisp, ruby
-;; Version: 1.0.1
+;; Package-Requires: ((emacs "24"))
+;; Version: 1.1.1
 
 ;; This file is not part of GNU Emacs.
 
@@ -229,13 +230,8 @@ the value changes.
     table)
   "Syntax table used by enh-ruby-mode buffers.")
 
-;;; Mode:
-
-(defalias 'enh-ruby-parent-mode
-  (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
-
 ;;;###autoload
-(define-derived-mode enh-ruby-mode enh-ruby-parent-mode "EnhRuby"
+(define-derived-mode enh-ruby-mode prog-mode "EnhRuby"
   "Enhanced Major mode for editing Ruby code.
 
 \\{enh-ruby-mode-map}"
@@ -489,13 +485,28 @@ the value changes.
 
 (defun enh-ruby-add-log-current-method ()
   "Return current method string."
-  ;; We un-confuse `parse-partial-sexp' by setting syntax-table properties
-  ;; for characters inside regexp literals.
   (condition-case nil
       (save-excursion
         (enh-ruby-beginning-of-defun 1)
         (when (looking-at enh-ruby-defun-and-name-re)
-          (concat (match-string 1) " " (match-string 2))))))
+          (let ((def-or-mod (match-string-no-properties 1))
+                (def-name   (match-string-no-properties 2)))
+            (if (string= "def" def-or-mod)
+                (progn
+                  (enh-ruby-up-sexp)
+                  (when (looking-at enh-ruby-defun-and-name-re)
+                    (let ((mod-or-class (match-string-no-properties 1))
+                          (mod-name   (match-string-no-properties 2)))
+                      (let* ((meth-name-re (concat
+                                            (regexp-opt (list "self" mod-name)
+                                                        'words)
+                                            "\\.\\(.+\\)"))
+                             (cls-meth (and (string-match meth-name-re def-name)
+                                            (match-string 2 def-name)))
+                             (name (or cls-meth def-name))
+                             (sep (if cls-meth "." "#")))
+                        (concat mod-name sep name)))))
+              nil))))))
 
 ;; Stolen shamelessly from James Clark's nxml-mode.
 (defmacro erm-with-unmodifying-text-property-changes (&rest body)
@@ -574,9 +585,12 @@ modifications to the buffer."
              (string= erm-process-delimiter (substring erm-response -5 nil)))
     (setq response (substring erm-response 0 -5))
     (setq erm-response "")
-    (with-current-buffer erm-parse-buff
-      (erm-with-unmodifying-text-property-changes
-       (erm-parse response)))))
+    (unless (buffer-live-p erm-parse-buff)
+      (erm-reset))
+    (when (buffer-live-p erm-parse-buff)
+      (with-current-buffer erm-parse-buff
+        (erm-with-unmodifying-text-property-changes
+         (erm-parse response))))))
 
 (defsubst erm-ready ()
   (if erm-full-parse-p
