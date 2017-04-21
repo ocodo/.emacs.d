@@ -218,10 +218,7 @@ merge failed to give the user the opportunity to inspect the
 merge.
 
 \(git merge --no-edit|--no-commit [ARGS] REV)"
-  (interactive (list (magit-read-other-branch-or-commit
-                      "Merge" nil
-                      (and (derived-mode-p 'magit-merge-preview-mode)
-                           (car magit-refresh-args)))
+  (interactive (list (magit-read-other-branch-or-commit "Merge")
                      (magit-merge-arguments)
                      current-prefix-arg))
   (magit-merge-assert)
@@ -563,7 +560,7 @@ defaulting to the tag at point.
   "Whether to show the working directory when reading a command.
 This affects `magit-git-command', `magit-git-command-topdir',
 `magit-shell-command', and `magit-shell-command-topdir'."
-  :package-version '(magit . "2.10.4")
+  :package-version '(magit . "2.11.0")
   :group 'magit-commands
   :type 'boolean)
 
@@ -881,11 +878,13 @@ above."
 Use the function by the same name instead of this variable.")
 
 ;;;###autoload
-(defun magit-version ()
+(defun magit-version (&optional print-dest)
   "Return the version of Magit currently in use.
-When called interactive also show the used versions of Magit,
-Git, and Emacs in the echo area."
-  (interactive)
+If optional argument PRINT-DEST is non-nil output
+stream (interactively, the echo area, or the current buffer with
+a prefix argument), also print the used versions of Magit, Git,
+and Emacs to it."
+  (interactive (list (if current-prefix-arg (current-buffer) t)))
   (let ((magit-git-global-arguments nil)
         (toplib (or load-file-name buffer-file-name))
         debug)
@@ -938,12 +937,18 @@ Git, and Emacs in the echo area."
                                     dirname)
                   (setq magit-version (match-string 1 dirname))))))))
     (if (stringp magit-version)
-        (when (called-interactively-p 'any)
-          (message "Magit %s, Git %s, Emacs %s, %s"
-                   (or magit-version "(unknown)")
-                   (or (magit-git-version t) "(unknown)")
-                   emacs-version
-                   system-type))
+        (when print-dest
+          (princ (format "Magit %s, Git %s, Emacs %s, %s"
+                         (or magit-version "(unknown)")
+                         (or (let ((magit-git-debug
+                                    (lambda (err)
+                                      (display-warning '(magit git)
+                                                       err :error))))
+                               (magit-git-version t))
+                             "(unknown)")
+                         emacs-version
+                         system-type)
+                 print-dest))
       (setq debug (reverse debug))
       (setq magit-version 'error)
       (when magit-version
@@ -952,6 +957,39 @@ Git, and Emacs in the echo area."
         ;; The repository is a sparse clone.
         (message "Cannot determine Magit's version %S" debug)))
     magit-version))
+
+(defun magit-debug-git-executable ()
+  "Display a buffer with information about `magit-git-executable'.
+See info node `(magit)Debugging Tools' for more information."
+  (interactive)
+  (with-current-buffer (get-buffer-create "*magit-git-debug*")
+    (pop-to-buffer (current-buffer))
+    (erase-buffer)
+    (insert (format "magit-git-executable: %S" magit-git-executable)
+            (unless (file-name-absolute-p magit-git-executable)
+              (format " [%S]" (executable-find magit-git-executable)))
+            (format " (%s)\n"
+                    (let* ((errmsg nil)
+                           (magit-git-debug (lambda (err) (setq errmsg err))))
+                      (or (magit-git-version t) errmsg))))
+    (insert (format "exec-path: %S\n" exec-path))
+    (--when-let (cl-set-difference
+                 (-filter #'file-exists-p (remq nil (parse-colon-path
+                                                     (getenv "PATH"))))
+                 (-filter #'file-exists-p (remq nil exec-path))
+                 :test #'file-equal-p)
+      (insert (format "  entries in PATH, but not in exec-path: %S\n" it)))
+    (dolist (execdir exec-path)
+      (insert (format "  %s (%s)\n" execdir (car (file-attributes execdir))))
+      (when (file-directory-p execdir)
+        (dolist (exec (directory-files
+                       execdir t (concat
+                                  "\\`git" (regexp-opt exec-suffixes) "\\'")))
+          (insert (format "    %s (%s)\n" exec
+                          (let* ((magit-git-executable exec)
+                                 (errmsg nil)
+                                 (magit-git-debug (lambda (err) (setq errmsg err))))
+                            (or (magit-git-version t) errmsg)))))))))
 
 ;;; (Asserts)
 

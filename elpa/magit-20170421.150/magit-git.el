@@ -201,7 +201,7 @@ displayed.  It only controls the order of the collection passed
 to `magit-completing-read' or, for commands that support reading
 multiple strings, `read-from-minibuffer'.  The completion
 framework ultimately determines how the collection is displayed."
-  :package-version '(magit . "2.10.4")
+  :package-version '(magit . "2.11.0")
   :group 'magit-miscellanous
   :type '(choice string (repeat string)))
 
@@ -312,9 +312,12 @@ add a section in the respective process buffer."
                       (setq msg (with-temp-buffer
                                   (insert-file-contents log)
                                   (goto-char (point-max))
-                                  (and (re-search-backward
-                                        magit-process-error-message-re nil t)
-                                       (match-string 1))))
+                                  (cond
+                                   ((functionp magit-git-debug)
+                                    (funcall magit-git-debug (buffer-string)))
+                                   ((re-search-backward
+                                     magit-process-error-message-re nil t)
+                                    (match-string 1)))))
                       (let ((magit-git-debug nil))
                         (with-current-buffer (magit-process-buffer t)
                           (magit-process-insert-section default-directory
@@ -872,7 +875,8 @@ string \"true\", otherwise return nil."
         (commit (let ((rev (magit-section-value it)))
                   (or (magit-get-shortname rev) rev)))
         (tag    (magit-section-value it)))
-      (and (derived-mode-p 'magit-revision-mode)
+      (and (derived-mode-p 'magit-revision-mode
+                           'magit-merge-preview-mode)
            (car magit-refresh-args))))
 
 (defun magit-tag-at-point ()
@@ -1257,8 +1261,15 @@ Return a list of two integers: (A>B B>A)."
                   'face (if (equal ref head) 'magit-branch-current face)))))
 
 (defun magit-format-ref-labels (string)
+  ;; To support Git <2.2.0, we remove the surrounding parentheses here
+  ;; rather than specifying that STRING should be generated with Git's
+  ;; "%D" placeholder.
+  (setq string (->> string
+                    (replace-regexp-in-string "\\`\\s-*(" "")
+                    (replace-regexp-in-string ")\\s-*\\'" "")))
   (save-match-data
-    (let ((regexp "\\(, \\|tag: \\| -> \\|[()]\\)") head names)
+    (let ((regexp "\\(, \\|tag: \\| -> \\)")
+          head names)
       (if (and (derived-mode-p 'magit-log-mode)
                (member "--simplify-by-decoration" (cadr magit-refresh-args)))
           (let ((branches (magit-list-local-branch-names))

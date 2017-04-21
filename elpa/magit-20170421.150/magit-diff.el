@@ -1131,9 +1131,22 @@ treated as such.")
   (funcall magit-display-file-buffer-function buffer))
 
 (defun magit-display-file-buffer-traditional (buffer)
+  "Display BUFFER in the current window.
+With a prefix argument display it in another window.
+Option `magit-display-file-buffer-function' controls
+whether `magit-diff-visit-file' uses this function."
   (if (or current-prefix-arg (get-buffer-window buffer))
       (pop-to-buffer buffer)
     (switch-to-buffer buffer)))
+
+(defun magit-display-file-buffer-other-window (buffer)
+  "Display BUFFER in another window.
+With a prefix argument display it the current window.
+Option `magit-display-file-buffer-function' controls
+whether `magit-diff-visit-file' uses this function."
+  (if (or current-prefix-arg (get-buffer-window buffer))
+      (switch-to-buffer buffer)
+    (pop-to-buffer buffer)))
 
 (defun magit-diff-visit-file-worktree (file &optional other-window)
   "From a diff, visit the corresponding file at the appropriate position.
@@ -1825,7 +1838,7 @@ or a ref which is not a branch, then it inserts nothing."
   (magit-insert-section (headers)
     ;; Before v2.2.0, "%D" was not supported.
     (--when-let (magit-rev-format "%d" rev "--decorate=full")
-      (insert (magit-format-ref-labels (substring it 2 -1)) ?\s))
+      (insert (magit-format-ref-labels it) ?\s))
     (insert (propertize (magit-rev-parse (concat rev "^{commit}"))
                         'face 'magit-hash))
     (magit-insert-heading)

@@ -63,6 +63,7 @@ itself deserve to be called porcelains.
 * Customizing::
 * Plumbing::
 * FAQ::
+* Debugging Tools::
 * Keystroke Index::
 * Command Index::
 * Function Index::
@@ -531,6 +532,9 @@ install the gitman info manual?.
 
    If you are completely new to Magit then see *note Getting Started:
 Getting Started.
+
+   If you run into problems, then please see the *note FAQ: FAQ.  Also
+see the *note Debugging Tools: Debugging Tools.
 
    And last but not least please consider making a donation, to ensure
 that I can keep working on Magit.  See <https://magit.vc/donations>.
@@ -1721,8 +1725,9 @@ one you think you are using.
 
 ‘M-x magit-version’     (‘magit-version’)
 
-     Shows the currently used versions of Magit, Git, and Emacs in the
-     echo area.  Non-interactively this just returns the Magit version.
+     This command shows the currently used versions of Magit, Git, and
+     Emacs in the echo area.  Non-interactively this just returns the
+     Magit version.
 
    When the ‘system-type’ is ‘windows-nt’, then ‘magit-git-executable’
 is set to an absolute path when Magit is first loaded.  This is
@@ -1735,14 +1740,20 @@ performance horribly.
 around that by setting ‘magit-git-executable’ to an absolute path.  But
 note that doing so is a kludge.  It is better to make sure the order in
 the environment variable ‘$PATH’ is correct, and that Emacs is started
-with that environment in effect.  If you have to connect from Windows to
-a non-Windows machine, then you must change the value to "git".
+with that environment in effect.  The command
+‘magit-debug-git-executable’ can be useful to find out where Emacs is
+searching for git.  If you have to connect from Windows to a non-Windows
+machine, then you must change the value to "git".
 
  -- User Option: magit-git-executable
 
      The git executable used by Magit, either the full path to the
      executable or the string "git" to let Emacs find the executable
      itself, using the standard mechanism for doing such things.
+
+‘M-x magit-debug-git-executable’     (‘magit-debug-git-executable’)
+
+     Display a buffer with information about ‘magit-git-executable’.
 
 
 File: magit.info,  Node: Global Git Arguments,  Prev: Git Executable,  Up: Running Git
@@ -6391,30 +6402,10 @@ repositories, then you might want to disable certain features on a
 per-repository or per-repository-class basis only.  See *note
 Per-Repository Configuration: Per-Repository Configuration.
 
-Microsoft Windows Performance
-.............................
+* Menu:
 
-In order to update the status buffer, ‘git’ has to be run a few dozen
-times.  That is only problematic on Microsoft Windows, because that
-operating system is exceptionally slow at starting processes.  Sadly
-this is an issue that can only be fixed by Microsoft itself, and they
-don’t appear to be particularly interested in doing so.
-
-   Beside the subprocess issue, there also exist other Window-specific
-performance issues, some of which can be worked around.  The maintainers
-of "Git for Windows" try to reduce their effect, and in order to benefit
-from the latest performance tweaks, should always use the latest
-release.  Magit too tries to work around some Windows-specific issues.
-
-   According to some sources setting the following Git variables can
-also help.
-
-     git config --global core.preloadindex true   # default since v2.1
-     git config --global core.fscache true        # default since v2.8
-     git config --global gc.auto 256
-
-   You should also check whether an anti-virus program is slowing things
-down.
+* Microsoft Windows Performance::
+* MacOS Performance::
 
 Log Performance
 ...............
@@ -6512,6 +6503,71 @@ performing unnecessary work:
 using another version control system:
 
      (setq vc-handled-backends (delq 'Git vc-handled-backends))
+
+
+File: magit.info,  Node: Microsoft Windows Performance,  Next: MacOS Performance,  Up: Performance
+
+Microsoft Windows Performance
+.............................
+
+In order to update the status buffer, ‘git’ has to be run a few dozen
+times.  That is problematic on Microsoft Windows, because that operating
+system is exceptionally slow at starting processes.  Sadly this is an
+issue that can only be fixed by Microsoft itself, and they don’t appear
+to be particularly interested in doing so.
+
+   Beside the subprocess issue, there also exist other Window-specific
+performance issues, some of which can be worked around.  The maintainers
+of "Git for Windows" try to reduce their effect, and in order to benefit
+from the latest performance tweaks, should always use the latest
+release.  Magit too tries to work around some Windows-specific issues.
+
+   According to some sources setting the following Git variables can
+also help.
+
+     git config --global core.preloadindex true   # default since v2.1
+     git config --global core.fscache true        # default since v2.8
+     git config --global gc.auto 256
+
+   You should also check whether an anti-virus program is slowing things
+down.
+
+
+File: magit.info,  Node: MacOS Performance,  Prev: Microsoft Windows Performance,  Up: Performance
+
+MacOS Performance
+.................
+
+On macOS Emacs currently creates child processes using ‘fork’.  It
+appears that this also copies GUI resources.  The result is that forking
+takes about 30 times as long on Darwin than on Linux.  And because Magit
+starts many ‘git’ processes even when doing simple things, that makes
+quite a difference.
+
+   On the ‘master’ branch Emacs now uses ‘vfork’ when possible, like
+this was already done on Linux, and now child creation only takes about
+twice as long on Darwin.  See (1) for more information.
+
+   Nobody knows when the changes on the ‘master’ branch will be released
+as ‘26.1’, but it is still a long way off.  You might want to get your
+hands on this change before then.  The easiest way to get a patched
+Emacs is to install the ‘emacs-plus’ formula (2) using ‘homebrew’.  The
+patch has been backported, so you get it not only when using ‘--HEAD’,
+but also when using ‘--devel’ or when installing the latest release (by
+not using a version argument).  The patch was added only recently, so
+you will likely have to reinstall Emacs.
+
+   Alternatively you have to apply the patch (3) manually.
+
+   ---------- Footnotes ----------
+
+   (1) 
+<https://lists.gnu.org/archive/html/bug-gnu-emacs/2017-04/msg00201.html>
+
+   (2) <https://github.com/d12frosted/homebrew-emacs-plus>
+
+   (3) 
+<https://github.com/emacs-mirror/emacs/commit/a13eaddce2ddbe3ba0b7f4c81715bc0fcdba99f6>
 
 
 File: magit.info,  Node: Plumbing,  Next: FAQ,  Prev: Customizing,  Up: Top
@@ -7318,7 +7374,7 @@ that if you do not get this right, this will in some cases look to users
 like bugs in Magit - so please do it right or not at all.
 
 
-File: magit.info,  Node: FAQ,  Next: Keystroke Index,  Prev: Plumbing,  Up: Top
+File: magit.info,  Node: FAQ,  Next: Debugging Tools,  Prev: Plumbing,  Up: Top
 
 Appendix A FAQ
 **************
@@ -7327,6 +7383,8 @@ The next two nodes lists frequently asked questions.  For a list of
 frequently *and recently* asked questions, i.e.  questions that haven’t
 made it into the manual yet, see
 <https://github.com/magit/magit/wiki/FAQ>.
+
+   Please also use the *note Debugging Tools: Debugging Tools.
 
 * Menu:
 
@@ -7616,9 +7674,55 @@ can work around the problem by setting
 Google’s ‘8.8.8.8’) may also be sufficient to work around the issue.
 
 
-File: magit.info,  Node: Keystroke Index,  Next: Command Index,  Prev: FAQ,  Up: Top
+File: magit.info,  Node: Debugging Tools,  Next: Keystroke Index,  Prev: FAQ,  Up: Top
 
-Appendix B Keystroke Index
+B Debugging Tools
+*****************
+
+Magit and its dependencies provide a few debugging tools, and we
+appreciate it very much if you use those tools before reporting an
+issue.  Please include all relevant output when reporting an issue.
+
+‘M-x magit-version’     (‘magit-version’)
+
+     This command shows the currently used versions of Magit, Git, and
+     Emacs in the echo area.  Non-interactively this just returns the
+     Magit version.
+
+‘M-x magit-emacs-Q-command’     (‘magit-emacs-Q-command’)
+
+     This command shows a debugging shell command in the echo area and
+     adds it to the kill ring.  Paste that command into a shell an run
+     it.
+
+     This shell command starts ‘emacs’ with only ‘magit’ and its
+     dependencies loaded.  Neither your configuration nor other
+     installed packages are loaded.  This makes it easier to determine
+     whether some issue lays with Magit or something else.
+
+‘M-x magit-debug-git-executable’     (‘magit-debug-git-executable’)
+
+     This command displays a buffer containing information about the
+     available and used ‘git’ executable(s), and can be useful when
+     investigating ‘exec-path’ issues.
+
+     Also see *note Git Executable: Git Executable.
+
+‘M-x with-editor-debug’     (‘with-editor-debug’)
+
+     This command displays a buffer containing information about the
+     available and used ‘git’ executable(s), and can be useful when
+     investigating why Magit (or rather ‘with-editor’) cannot find an
+     appropriate ‘emacsclient’ executable.
+
+     Also see *note (with-editor)Debugging::.
+
+   Please also see the *note FAQ: FAQ.
+
+
+File: magit.info,  Node: Keystroke Index,  Next: Command Index,  Prev: Debugging Tools,  Up: Top
+
+Appendix C Keystroke Index
 **************************
 
  [index ]
@@ -7861,9 +7965,12 @@ Appendix B Keystroke Index
 * M-x magit-blame:                       Blaming.             (line   8)
 * M-x magit-blame-popup:                 Blaming.             (line  24)
 * M-x magit-clone:                       Repository Setup.    (line  16)
+* M-x magit-debug-git-executable:        Git Executable.      (line  45)
+* M-x magit-debug-git-executable <1>:    Debugging Tools.     (line  27)
 * M-x magit-describe-section:            Section Types and Values.
                                                               (line  13)
 * M-x magit-describe-section <1>:        Matching Sections.   (line   6)
+* M-x magit-emacs-Q-command:             Debugging Tools.     (line  16)
 * M-x magit-file-checkout:               Resetting.           (line  37)
 * M-x magit-find-file:                   Visiting Blobs.      (line   6)
 * M-x magit-find-file-other-window:      Visiting Blobs.      (line  11)
@@ -7882,7 +7989,9 @@ Appendix B Keystroke Index
 * M-x magit-unstage-file:                Staging from File-Visiting Buffers.
                                                               (line  18)
 * M-x magit-version:                     Git Executable.      (line  17)
+* M-x magit-version <1>:                 Debugging Tools.     (line  10)
 * M-x magit-wip-commit:                  Wip Modes.           (line 129)
+* M-x with-editor-debug:                 Debugging Tools.     (line  35)
 * n:                                     Section Movement.    (line  16)
 * n <1>:                                 Blaming.             (line  54)
 * N:                                     Blaming.             (line  58)
