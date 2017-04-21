@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ssh-config-mode" "ssh-config-mode.el" (22653
-;;;;;;  62663 260897 730000))
+;;;### (autoloads nil "ssh-config-mode" "ssh-config-mode.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from ssh-config-mode.el
 
 (autoload 'ssh-config-mode "ssh-config-mode" "\
@@ -21,6 +21,19 @@ Major mode for fontifiying ssh config files.
 (add-to-list 'auto-mode-alist '("/known_hosts\\'" . ssh-known-hosts-mode))
 
 (add-to-list 'auto-mode-alist '("/authorized_keys\\'" . ssh-authorized-keys-mode))
+
+(autoload 'ssh-known-hosts-mode "ssh-config-mode" "\
+Major mode for fontifiying ssh known_hosts files.
+\\{ssh-known-hosts-mode}
+
+\(fn)" t nil)
+ (autoload 'ssh-authorized-keys-mode "ssh-config-mode" nil t)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ssh-config-mode" '("ssh-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("ssh-config-mode-pkg.el") (0 0 0 0))
 
 ;;;***
 

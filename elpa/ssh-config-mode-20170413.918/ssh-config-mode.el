@@ -7,12 +7,11 @@
 
 ;; Author:    Harley Gorrell <harley@panix.com>
 ;; URL:       http://www.mahalito.net/~harley/elisp/ssh-config-mode.el
-;; Package-Version: 20170110.1756
 ;; Github:    https://raw.github.com/jhgorrell/ssh-config-mode-el/master/ssh-config-mode.el
 ;; License:   GPL v2
 ;; Keywords:  ssh, config, emacs
 ;; Version:   $Revision: 1.14 $
-;; Tag:       20160326T0550
+;; Tag:       20170413T0010
 
 ;;; Commentary:
 ;; * Fontifys the ssh config keywords.
@@ -29,6 +28,48 @@
 ;; * This keeps checkdoc happy.
 
 ;;; Code:
+;; (eval-buffer)
+;; (progn (delete-trailing-whitespace) (indent-region 0 (point-max)))
+;; (byte-compile-file "ssh-config-mode.el" t)
+;; (load "ssh-config-mode")
+
+;; We use eval-and-compile so we can use them at compile
+;; time and call regexp-opt during compliation.
+
+(eval-and-compile
+  (defvar ssh-config-load-file-dir
+    (if load-file-name
+      (file-name-directory load-file-name)
+      default-directory)
+    "Where this file was loaded from."))
+
+(eval-and-compile
+  (defun ssh-config-read-keywords (&optional file-path)
+    ;; (message "ssh-config-read-keywords")
+    (let ((file-path
+           (or file-path
+               (concat
+                (file-name-as-directory ssh-config-load-file-dir)
+                "ssh-config-keywords.txt"))))
+      (with-temp-buffer
+        (insert-file-contents file-path)
+        (split-string (buffer-string) "\n" t)))))
+
+(eval-and-compile
+  (defvar ssh-config-keywords
+    (eval-when-compile
+      (ssh-config-read-keywords)))
+  "A list of keywords allowed in a user ssh config file.")
+
+(eval-and-compile
+  (defvar ssh-config-font-lock-keywords
+    (eval-when-compile
+      `((
+         ,(regexp-opt ssh-config-keywords 'words)
+         (1 font-lock-keyword-face)
+         )))
+    "Expressions to hilight in `ssh-config-mode'."))
+;; ssh-config-font-lock-keywords
 
 ;; Setup
 (defvar ssh-config-mode-load-hook nil
@@ -67,82 +108,6 @@
     (setq ssh-config-mode-syntax-table table)))
 
 ;; These keywords listed here to be fed into regexp-opt.
-;; (from ssh-v4)
-(eval-and-compile
-
-  (defvar ssh-config-words-ssh
-    '("AddKeysToAgent" "AddressFamily" "BatchMode" "BindAddress"
-      "CanonicalDomains" "CanonicalizeFallbackLocal" "CanonicalizeHostname"
-      "CanonicalizeMaxDots" "CanonicalizePermittedCNAMEs" "CertificateFile"
-      "ChallengeResponseAuthentication" "CheckHostIP" "Cipher"
-      "Ciphers" "ClearAllForwardings" "Compression" "ControlPersist"
-      "CompressionLevel" "ConnectionAttempts" "ConnectTimeout"
-      "ControlMaster" "ControlPath" "DynamicForward" "EscapeChar"
-      "ExitOnForwardFailure" "FingerprintHash" "ForwardAgent" "ForwardX11"
-      "ForwardX11Timeout" "ForwardX11Trusted" "GatewayPorts"
-      "GlobalKnownHostsFile" "GSSAPIAuthentication"
-      "GSSAPIDelegateCredentials" "HashKnownHosts" "Host"
-      "HostbasedAuthentication" "HostbasedKeyTypes"
-      "HostKeyAlgorithms" "HostKeyAlias"
-      "HostName" "IdentityAgent" "IdentityFile" "IgnoreUnknown"
-      "Include" "IdentitiesOnly" "IPQoS"
-      "KbdInteractiveAuthentication" "KbdInteractiveDevices"
-      "KexAlgorithms" "LocalCommand" "LocalForward" "LogLevel" "MACs"
-      "NoHostAuthenticationForLocalhost" "NumberOfPasswordPrompts"
-      "PKCS11Provider" "PasswordAuthentication" "PermitLocalCommand"
-      "Port" "PreferredAuthentications" "Protocol" "ProxyCommand"
-      "ProxyJump" "ProxyUseFdpass" "PubkeyAcceptedKeyTypes"
-      "PubkeyAuthentication" "RekeyLimit" "RemoteForward" "RequestTTY"
-      "RevokedHostKeys" "RhostsRSAAuthentication" "RSAAuthentication" "SendEnv"
-      "ServerAliveInterval" "ServerAliveCountMax"
-      "StreamLocalBindMask" "StreamLocalBindUnlink"
-      "StrictHostKeyChecking" "TCPKeepAlive" "Tunnel" "TunnelDevice"
-      "UpdateHostKeys" "UseKeychain"
-      "UsePrivilegedPort" "User" "UserKnownHostsFile"
-      "VerifyHostKeyDNS" "VisualHostKey" "XAuthLocation"
-
-      ;; obsoleted keywords
-      "SmartcardDevice")
-    "A list of keywords allowed in a user ssh config file.")
-
-  (defvar ssh-config-words-sshd
-    '("AcceptEnv" "AddressFamily" "AllowAgentForwarding" "AllowGroups"
-      "AllowTcpForwarding" "AllowUsers" "AuthorizedKeysFile"
-      "AuthorizedPrincipalsFile" "Banner"
-      "ChallengeResponseAuthentication" "ChrootDirectory" "Ciphers"
-      "ClientAliveInterval" "ClientAliveCountMax" "Compression"
-      "DebianBanner" "DenyGroups" "DenyUsers" "ForceCommand"
-      "GatewayPorts" "GSSAPIAuthentication" "GSSAPICleanupCredentials"
-      "GSSAPIKeyExchange" "HostbasedAuthentication"
-      "GSSAPIStrictAcceptorCheck" "HostKey"
-      "GSSAPIStoreCredentialsOnRekey" "IgnoreRhosts"
-      "HostbasedUsesNameFromPacketOnly" "IgnoreUserKnownHosts"
-      "HostCertificate" "KerberosAuthentication" "IPQoS"
-      "KerberosGetAFSToken" "KerberosOrLocalPasswd"
-      "KerberosTicketCleanup" "KexAlgorithms"
-      "KeyRegenerationInterval" "ListenAddress" "LoginGraceTime"
-      "LogLevel" "MACs" "Match" "MaxAuthTries" "MaxSessions"
-      "MaxStartups" "PasswordAuthentication" "PermitBlacklistedKeys"
-      "PermitEmptyPasswords" "PermitOpen" "PermitRootLogin"
-      "PermitTunnel" "PermitUserEnvironment" "PidFile" "Port"
-      "PrintLastLog" "PrintMotd" "Protocol" "PubkeyAuthentication"
-      "RevokedKeys" "RhostsRSAAuthentication" "RSAAuthentication"
-      "ServerKeyBits" "StrictModes" "Subsystem" "SyslogFacility"
-      "TCPKeepAlive" "TrustedUserCAKeys" "UseDNS" "UseLogin" "UsePAM"
-      "UsePrivilegeSeparation" "X11DisplayOffset" "X11Forwarding"
-      "X11UseLocalhost" "XAuthLocation")
-    "A list of keywords allowed in a system sshd config file.")
-  nil)
-
-(defvar ssh-config-font-lock-keywords
-  ;; how to put eval-when-compile without recursive require?
-  (eval-when-compile
-    `((
-       ,(regexp-opt (append ssh-config-words-ssh ssh-config-words-sshd) 'words)
-       (1 font-lock-keyword-face)
-       )))
-  "Expressions to hilight in `ssh-config-mode'.")
-;; ssh-config-font-lock-keywords
 
 ;;;###autoload
 (defun ssh-config-mode ()
@@ -204,6 +169,7 @@
   "Expressions to hilight in `ssh-config-mode'.")
 ;; ssh-config-font-lock-keywords
 
+;;;###autoload
 (defun ssh-known-hosts-mode ()
   "Major mode for fontifiying ssh known_hosts files.
 \\{ssh-known-hosts-mode}"
@@ -223,6 +189,7 @@
 
 ;;;;;
 
+;;;###autoload (autoload 'ssh-authorized-keys-mode "ssh-config-mode" nil t)
 (define-generic-mode ssh-authorized-keys-mode
   '(?\#)
   nil
