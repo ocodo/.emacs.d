@@ -110,7 +110,7 @@ for prefix arguments.
 prefix commands and prefix arguments, they are also quite different.
 This should illustrate the most basic differences:
 
-   • A regular prefix commands
+   • A regular prefix command
 
                   /- command1
           prefix --- command2
@@ -120,7 +120,7 @@ This should illustrate the most basic differences:
 
                    /- command1
           C-u ... --- command2
-                   \- well *any* command
+                   \- well any command
 
    • A Prefix-Infix-Suffix combo
 
@@ -131,7 +131,7 @@ This should illustrate the most basic differences:
                  '--------'
               (refresh buffer)
 
-   This library was written as a replacement for ‘magit-key-mode’ which
+   This library was written as a replacement for ‘magit-key-mode’, which
 was used in Magit releases before 2.1.0.  It is used to implement all
 "popups" in the current Magit release but a future release will switch
 to yet another implementation.
@@ -571,7 +571,8 @@ commands have to be defined separately using plain ‘defun’.
           the default action (if any) directly.  This overrides the
           global default set using ‘magit-popup-use-prefix-argument’.
           The value, if specified, should be one of ‘default’ or
-          ‘prefix’.
+          ‘prefix’, or a function that is called with no arguments and
+          returns one of these symbols.
 
         • ‘:max-action-columns’
 
@@ -693,12 +694,12 @@ directly.
 Tag Table:
 Node: Top994
 Node: Introduction2170
-Node: Usage4872
-Node: Customizing Existing Popups9596
-Node: Other Options15124
-Node: Defining Prefix and Suffix Commands16698
-Node: Defining Prefix Commands18850
-Node: Defining Suffix Commands25734
+Node: Usage4870
+Node: Customizing Existing Popups9594
+Node: Other Options15122
+Node: Defining Prefix and Suffix Commands16696
+Node: Defining Prefix Commands18848
+Node: Defining Suffix Commands25823
 
 End Tag Table
 
