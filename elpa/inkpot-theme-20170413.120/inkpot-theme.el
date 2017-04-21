@@ -3,7 +3,7 @@
 ;; Author: Sarah Iovan <sarah@hwaetageek.com>
 ;;         Campbell Barton <ideasman42@gmail.com>
 ;; URL: https://github.com/ideasman42/emacs-inkpot-theme
-;; Package-Version: 20170325.221
+;; Package-Version: 20170413.120
 ;; Version: 0.1
 ;; Keywords: color, theme
 
@@ -70,7 +70,7 @@
                                         ;'(font-lock-doc-face ((t (:foreground "#c080d0"))))
  '(font-lock-doc-face ((t (:foreground "#808bed"))))  ; alternate comment face
  '(font-lock-constant-face ((t (:foreground "#409090"))))
- '(font-lock-function-name-face ((t (:foreground "#ff8bff"))))
+ '(font-lock-function-name-face ((t (:foreground "#c080d0"))))
  '(font-lock-keyword-face ((t (:foreground "#808bed"))))
  '(font-lock-preprocessor-face ((t (:foreground "#409090"))))
  '(font-lock-reference-face ((t (:bold t :foreground "#808bed"))))
