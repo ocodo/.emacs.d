@@ -4,7 +4,7 @@
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
 ;; Version: 2.9.6
-;; Package-Version: 20170401.218
+;; Package-Version: 20170419.1022
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -1906,7 +1906,10 @@ killed, but just removed from a perspective(s)."
 (defun persp-kill-buffer-h ()
   (let ((buffer (current-buffer)))
     (when (and persp-mode (persp--buffer-in-persps buffer))
-      (let (persp-autokill-buffer-on-remove)
+      (let (persp-autokill-buffer-on-remove
+            (persp-when-remove-buffer-switch-to-other-buffer
+             (unless persp-set-frame-buffer-predicate
+               persp-when-remove-buffer-switch-to-other-buffer)))
         (persp--remove-buffer-2 nil buffer)))))
 
 (defun persp--restore-buffer-on-find-file ()
@@ -2636,24 +2639,21 @@ perspective buffers or nil."
 (defun* persp-set-another-buffer-for-window
     (&optional (old-buff-or-name (current-buffer)) (window (selected-window))
                (persp (get-current-persp nil window)))
-  (let ((new-buf (when persp-set-frame-buffer-predicate
-                   (switch-to-prev-buffer window))))
-    (if new-buf
-        new-buf
-      (let* ((old-buf (persp-get-buffer-or-null old-buff-or-name))
-             (p-bs (safe-persp-buffers persp))
-             (buffers (delete-if #'(lambda (bc)
-                                     (or
-                                      (and (bufferp bc) (eq bc old-buf))
-                                      (eq (car bc) old-buf)
-                                      (not (find (car bc) p-bs))))
-                                 (append (window-prev-buffers window)
-                                         (window-next-buffers window)))))
-        (set-window-buffer
-         window
-         (or (persp-get-buffer (and buffers (car (first buffers))) persp)
-             (car (persp-buffer-list-restricted (window-frame window) 2.5))
-             (car (buffer-list))))))))
+  (unless (window-minibuffer-p window)
+    (let* ((old-buf (persp-get-buffer-or-null old-buff-or-name))
+           (new-buf (if persp-set-frame-buffer-predicate
+                        (other-buffer old-buf)
+                      (find-if #'(lambda (bc)
+                                   (and (bufferp bc) (not (eq bc old-buf))
+                                        (persp-contain-buffer-p bc persp)))
+                               (append (mapcar #'car
+                                               (window-prev-buffers window))
+                                       (window-next-buffers window))))))
+      (set-window-buffer
+       window
+       (or (and (buffer-live-p new-buf) new-buf)
+           (car (persp-buffer-list-restricted (window-frame window) 2.5))
+           (car (buffer-list)))))))
 
 (defun* persp-switch-to-prev-buffer
     (&optional (old-buff-or-name (current-buffer)) (persp (get-current-persp)))
