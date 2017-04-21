@@ -1,8 +1,9 @@
+
 #+TITLE: Manipulate the Contents of Emacs Buffers
 #+AUTHOR: Phillip Lord
 
 #+INFOJS_OPT: view:info toc:nil
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="m-buffer-doc.css" />
+
 
 * Introduction
 
@@ -11,8 +12,37 @@ Emacs buffer. While Emacs already provides these features, m-buffer provides a
 higher-level interaction. It achieves this in several ways: many of the
 functions are list-orientated, so avoiding the need for iteration; it avoids
 the use of global emacs state whenever it can be avoided, so avoiding
-side-effects. And, it adds some macros for cleanup, so again, helping to
-manage the process of global state where it can be avoided.
+side-effects; and it provides a large library of functions supporting common
+operations.
+
+Core usage of buffer m-buffer is simple. For example, the following code
+returns a list of all matches to the /regexp/ "m-buffer" in the
+`current-buffer`.
+
+#+BEGIN_SRC elisp
+  (m-buffer-match
+   (current-buffer)
+   "m-buffer")
+#+END_SRC
+
+m-buffer is also expanding. Other parts of m-buffer provide stateless
+interaction with the existing buffer; for example, we can use the following to
+fetch the point of any buffer:
+
+#+BEGIN_SRC elisp
+  (m-buffer-at-point buffer)
+#+END_SRC
+
+These functions can help greatly when writing code which operates on two or
+more buffers. It is also possible to check whether the status of a location --
+either a buffer and position or a marker. For example, these calls are
+equivalent to `eolp`.
+
+#+BEGIN_SRC elisp
+ (m-buffer-at-eolp buffer position)
+ (m-buffer-at-eolp marker)
+#+END_SRC
+
 
 
 ** Status
@@ -21,12 +51,6 @@ manage the process of global state where it can be avoided.
 interface should change only in forward-compatible ways for 1.0 release.
 The individual files have statements about their stability.
 
-** Caveat to Documentation
-
-This is the first version of m-buffer with full [[http://github.com/phillord/lentic][lenticular]] documentation. Both
-lentic and this documentation are a work in progress. In particular, the
-"Header" sections a) look terrible and b) are pointless. I just have not
-worked out how to remove them yet.
 
 
 * m-buffer
@@ -37,6 +61,7 @@ overlays or text-properties or, most generically of all, call any function on
 matches.
 
 #+include: "m-buffer.org" :minlevel 2
+
 
 * m-buffer-at
 
