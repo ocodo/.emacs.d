@@ -1,4 +1,4 @@
-(define-package "with-editor" "20170111.609" "Use the Emacsclient as $EDITOR"
+(define-package "with-editor" "20170417.1458" "Use the Emacsclient as $EDITOR"
   '((emacs "24.4")
     (async "1.9")
     (dash "2.13.0"))
