@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "package-build" "package-build.el" (22530 964
-;;;;;;  0 0))
+;;;### (autoloads nil "package-build" "package-build.el" (0 0 0 0))
 ;;; Generated autoloads from package-build.el
 
 (autoload 'package-build-archive "package-build" "\
@@ -31,6 +30,11 @@ Returns the archive entry for the package.
 
 \(fn PACKAGE-NAME VERSION FILE-SPECS SOURCE-DIR TARGET-DIR)" nil nil)
 
+(autoload 'package-build-all "package-build" "\
+Build all packages in the `package-build-recipe-alist'.
+
+\(fn)" t nil)
+
 (autoload 'package-build-create-recipe "package-build" "\
 Create a new recipe for package NAME using FETCHER.
 
@@ -41,10 +45,7 @@ Build archive for the recipe defined in the current buffer.
 
 \(fn)" t nil)
 
-(autoload 'package-build-all "package-build" "\
-Build all packages in the `package-build-recipe-alist'.
-
-\(fn)" t nil)
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "package-build" '("package-build-")))
 
 ;;;***
 
