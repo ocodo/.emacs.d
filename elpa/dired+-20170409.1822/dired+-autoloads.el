@@ -1545,7 +1545,7 @@ non-empty directories is allowed.
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-mark-files-regexp "dired+" "\
-Mark all files matching REGEXP for use in later commands.
+Mark all file names matching REGEXP for use in later commands.
 `.' and `..' are never marked or unmarked by this command.
 
 Whether to mark or unmark, and what form of file name to match, are
