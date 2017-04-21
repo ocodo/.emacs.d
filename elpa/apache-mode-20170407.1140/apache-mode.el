@@ -6,7 +6,7 @@
 ;; Author: Karl Chen <quarl@nospam.quarl.org>
 
 ;; Keywords: languages, faces
-;; Package-Version: 20150828.714
+;; Package-Version: 20170407.1140
 ;; Last edit: 2005-01-06
 ;; Version: 2.0 $Id: apache-mode.el 8264 2005-06-29 23:34:41Z quarl $
 
@@ -57,7 +57,7 @@
 (require 'regexp-opt)
 
 (defvar apache-indent-level 4
-  "*Number of spaces to indent per level")
+  "*Number of spaces to indent per level.")
 
 (defvar apache-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -795,8 +795,7 @@
 
 
 (defun apache-previous-indentation ()
-  ;; Return the previous (non-empty/comment) indentation.  Doesn't save
-  ;; position.
+  "Return the previous (non-empty/comment) indentation.  Doesn't save position."
   (let (indent)
     (while (and (null indent)
                 (zerop (forward-line -1)))
@@ -805,7 +804,7 @@
     (or indent 0)))
 
 (defun apache-calculate-indentation ()
-  ;; Return the amount the current line should be indented.
+  "Return the amount the current line should be indented."
   (save-excursion
     (forward-line 0)
     (if (bobp)
@@ -819,11 +818,13 @@
             (setq indent (+ indent apache-indent-level)))
         indent))))
 
-;;;###autoload(add-to-list 'auto-mode-alist '("\\.htaccess\\'"   . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("httpd\\.conf\\'"  . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("srm\\.conf\\'"    . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("access\\.conf\\'" . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("sites-\\(available\\|enabled\\)/" . apache-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("/\\.htaccess\\'"   . apache-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("/httpd\\.conf\\'"  . apache-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("/srm\\.conf\\'"    . apache-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("/access\\.conf\\'" . apache-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("/apache2/.+\\.conf\\'" . apache-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("/httpd/conf/.+\\.conf\\'" . apache-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("/apache2/sites-\\(?:available\\|enabled\\)/" . apache-mode))
 
 (provide 'apache-mode)
 
