@@ -1,12 +1,12 @@
 ;;; counsel.el --- Various completion functions using Ivy -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20170328.737
-;; Version: 0.8.0
-;; Package-Requires: ((emacs "24.3") (swiper "0.8.0"))
+;; Package-Version: 20170418.118
+;; Version: 0.9.1
+;; Package-Requires: ((emacs "24.3") (swiper "0.9.0"))
 ;; Keywords: completion, matching
 
 ;; This file is part of GNU Emacs.
@@ -391,7 +391,7 @@ Update the minibuffer with the amount of lines collected every
 
 (ivy-set-actions
  'counsel-describe-variable
- '(("i" counsel-info-lookup-symbol "info")
+ '(("I" counsel-info-lookup-symbol "info")
    ("d" counsel--find-symbol "definition")))
 
 (defvar counsel-describe-symbol-history nil
@@ -430,7 +430,7 @@ Update the minibuffer with the amount of lines collected every
                  (find-library
                   (prin1-to-string sym)))
                 (t
-                 (error "Couldn't fild definition of %s"
+                 (error "Couldn't find definition of %s"
                         sym))))))))
 
 (define-obsolete-function-alias 'counsel-symbol-at-point
@@ -467,7 +467,7 @@ Update the minibuffer with the amount of lines collected every
 ;;** `counsel-describe-function'
 (ivy-set-actions
  'counsel-describe-function
- '(("i" counsel-info-lookup-symbol "info")
+ '(("I" counsel-info-lookup-symbol "info")
    ("d" counsel--find-symbol "definition")))
 
 ;;;###autoload
@@ -526,11 +526,12 @@ X is an item of a radio- or choice-type defcustom."
   (let (y)
     (when (and (listp x)
                (consp (setq y (last x))))
-      (setq x (car y))
-      (cons (prin1-to-string x)
-            (if (symbolp x)
-                (list 'quote x)
-              x)))))
+      (unless (equal y '(function))
+        (setq x (car y))
+        (cons (prin1-to-string x)
+              (if (symbolp x)
+                  (list 'quote x)
+                x))))))
 
 ;;;###autoload
 (defun counsel-set-variable ()
@@ -569,7 +570,9 @@ input corresponding to the chosen variable."
                   (if (assoc res cands)
                       (cdr (assoc res cands))
                     (read res)))
-            (eval `(setq ,sym ,res))))
+            (set sym (if (and (listp res) (eq (car res) 'quote))
+                         (cadr res)
+                       res))))
       (unless (boundp sym)
         (set sym nil))
       (counsel-read-setq-expression sym))))
@@ -823,7 +826,7 @@ Usable with `ivy-resume', `ivy-next-line-and-call' and
 (ivy-set-actions
  'counsel-descbinds
  '(("d" counsel-descbinds-action-find "definition")
-   ("i" counsel-descbinds-action-info "info")))
+   ("I" counsel-descbinds-action-info "info")))
 
 (defvar counsel-descbinds-history nil
   "History for `counsel-descbinds'.")
@@ -905,7 +908,7 @@ Describe the selected candidate."
 
 (ivy-set-actions
  'counsel-git
- '(("j" find-file-other-window "other")
+ '(("j" find-file-other-window "other window")
    ("x" counsel-find-file-extern "open externally")))
 
 ;;;###autoload
@@ -1334,11 +1337,34 @@ done") "\n" t)))
             :action (lambda (x)
                       (let ((default-directory (file-name-directory x)))
                         (counsel-find-file)))))
+
+(defcustom counsel-root-command "sudo"
+  "Command to gain root privileges."
+  :type 'string
+  :group 'ivy)
+
+(defun counsel-find-file-as-root (x)
+  "Find file with root privileges."
+  (let* ((host (file-remote-p x 'host))
+         (file-name (format "/%s:%s:%s"
+                            counsel-root-command
+                            (or host "")
+                            (expand-file-name
+                             (if host
+                                 (file-remote-p x 'localname)
+                               x)))))
+    ;; If the current buffer visits the same file we are about to open,
+    ;; replace the current buffer with the new one.
+    (if (eq (current-buffer) (get-file-buffer x))
+        (find-alternate-file file-name)
+      (find-file file-name))))
+
 (ivy-set-actions
  'counsel-find-file
  '(("j" find-file-other-window "other window")
    ("b" counsel-find-file-cd-bookmark-action "cd bookmark")
-   ("x" counsel-find-file-extern "open externally")))
+   ("x" counsel-find-file-extern "open externally")
+   ("r" counsel-find-file-as-root "open as root")))
 
 (defcustom counsel-find-file-at-point nil
   "When non-nil, add file-at-point to the list of candidates."
@@ -1475,7 +1501,7 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
             :caller 'counsel-recentf))
 (ivy-set-actions
  'counsel-recentf
- '(("j" find-file-other-window "other-window")
+ '(("j" find-file-other-window "other window")
    ("x" counsel-find-file-extern "open externally")))
 
 ;;** `counsel-locate'
@@ -2695,80 +2721,189 @@ And insert it into the minibuffer. Useful during
             :caller 'counsel-rhythmbox))
 
 ;;** `counsel-linux-app'
-(defvar counsel-linux-apps-alist nil
-  "List of data located in /usr/share/applications.")
-
-(defvar counsel-linux-apps-faulty nil
-  "List of faulty data located in /usr/share/applications.")
-
 (defcustom counsel-linux-apps-directories
   '("/usr/local/share/applications/" "/usr/share/applications/")
   "Directories in which to search for applications (.desktop files)."
   :group 'counsel
   :type '(list directory))
 
-(defun counsel-linux-apps-list ()
-  (let ((files (apply 'append
-                      (mapcar
-                       (lambda (dir)
-                         (when (file-exists-p dir)
-                           (directory-files dir t ".*\\.desktop$")))
-                       counsel-linux-apps-directories))))
-    (dolist (file (cl-set-difference files (append (mapcar 'car counsel-linux-apps-alist)
-                                                   counsel-linux-apps-faulty)
-                                     :test 'equal))
-      (with-temp-buffer
-        (insert-file-contents file)
-        (let (name comment exec)
+(defcustom counsel-linux-app-format-function 'counsel-linux-app-format-function-default
+  "Function to format linux application names the `counsel-linux-app' menu.
+The format function will be passed the application's name, comment, and command
+as arguments."
+  :group 'counsel
+  :type '(choice
+          (const :tag "Command : Name - Comment" counsel-linux-app-format-function-default)
+          (const :tag "Name - Comment (Command)" counsel-linux-app-format-function-name-first)
+          (const :tag "Name - Comment" counsel-linux-app-format-function-name-only)
+          (const :tag "Command" counsel-linux-app-format-function-command-only)
+          (function :tag "Custom")))
+
+(defvar counsel-linux-apps-faulty nil
+  "List of faulty desktop files.")
+
+(defvar counsel--linux-apps-cache nil
+  "Cache of desktop files data.")
+
+(defvar counsel--linux-apps-cached-files nil
+  "List of cached desktop files.")
+
+(defvar counsel--linux-apps-cache-timestamp nil
+  "Time when we last updated the cached application list.")
+
+(defvar counsel--linux-apps-cache-format-function nil
+  "The function used to format the cached Linux application menu.")
+
+(defun counsel-linux-app-format-function-default (name comment exec)
+  "Default linux application name formatter."
+  (format "% -45s: %s%s"
+          (propertize exec 'face 'font-lock-builtin-face)
+          name
+          (if comment
+              (concat " - " comment)
+            "")))
+
+(defun counsel-linux-app-format-function-name-first (name comment exec)
+  "Format linux application names with the name (and comment) first."
+  (format "%s%s (%s)"
+          name
+          (if comment
+              (concat " - " comment)
+            "")
+          (propertize exec 'face 'font-lock-builtin-face)))
+
+(defun counsel-linux-app-format-function-name-only (name comment _exec)
+  "Format linux application names with the name (and comment) only."
+  (format "%s%s"
+          name
+          (if comment
+              (concat " - " comment)
+            "")))
+
+(defun counsel-linux-app-format-function-command-only (_name _comment exec)
+  "Display only the command (Exec field) when formatting linux application names."
+  exec)
+
+(defun counsel-linux-apps-list-desktop-files ()
+  "Return an alist of (desktop-name . desktop-file) pairs for all Linux applications.
+
+   This function always returns it's elements in a stable order."
+  (let ((hash (make-hash-table :test #'equal))
+        result)
+    (dolist (dir counsel-linux-apps-directories)
+      (when (file-exists-p dir)
+        (let ((dir (file-name-as-directory dir)))
+          (dolist (file (directory-files-recursively dir ".*\\.desktop$"))
+            (let ((id (subst-char-in-string ?/ ?- (file-relative-name file dir))))
+              (unless (gethash id hash)
+                (push (cons id file) result)
+                (puthash id file hash)))))))
+    result))
+
+(defun counsel-linux-apps-parse (desktop-entries-alist)
+  "Parse the given alist of desktop entries ((id . file-name)).
+
+Any desktop entries that fail to parse are recorded in `counsel-linux-apps-faulty'."
+  (let (result)
+    (setq counsel-linux-apps-faulty nil)
+    (dolist (entry desktop-entries-alist result)
+      (let ((id (car entry))
+            (file (cdr entry)))
+        (with-temp-buffer
+          (insert-file-contents file)
           (goto-char (point-min))
-          (if (null (re-search-forward "^Name *= *\\(.*\\)$" nil t))
-              (message "Warning: File %s has no Name" file)
-            (setq name (match-string 1))
-            (goto-char (point-min))
-            (when (re-search-forward "^Comment *= *\\(.*\\)$" nil t)
-              (setq comment (match-string 1)))
-            (goto-char (point-min))
-            (when (re-search-forward "^Exec *= *\\(.*\\)$" nil t)
-              (setq exec (match-string 1)))
-            (if (and exec (not (equal exec "")))
-                (add-to-list
-                 'counsel-linux-apps-alist
-                 (cons (format "% -45s: %s%s"
-                               (propertize exec 'face 'font-lock-builtin-face)
-                               name
-                               (if comment
-                                   (concat " - " comment)
-                                 ""))
-                       file))
-              (add-to-list 'counsel-linux-apps-faulty file)))))))
-  counsel-linux-apps-alist)
+          (let ((start (re-search-forward "^\\[Desktop Entry\\] *$" nil t))
+                (end (re-search-forward "^\\[" nil t))
+                name comment exec)
+            (catch 'break
+              (unless start
+                (push file counsel-linux-apps-faulty)
+                (message "Warning: File %s has no [Desktop Entry] group" file)
+                (throw 'break nil))
+
+              (goto-char start)
+              (when (re-search-forward "^\\(Hidden\\|NoDisplay\\) *= *\\(1\\|true\\) *$" end t)
+                (throw 'break nil))
+              (setq name (match-string 1))
+
+              (goto-char start)
+              (unless (re-search-forward "^Type *= *Application *$" end t)
+                (throw 'break nil))
+              (setq name (match-string 1))
+
+              (goto-char start)
+              (unless (re-search-forward "^Name *= *\\(.+\\)$" end t)
+                (push file counsel-linux-apps-faulty)
+                (message "Warning: File %s has no Name" file)
+                (throw 'break nil))
+              (setq name (match-string 1))
+
+              (goto-char start)
+              (when (re-search-forward "^Comment *= *\\(.+\\)$" end t)
+                (setq comment (match-string 1)))
+
+              (goto-char start)
+              (unless (re-search-forward "^Exec *= *\\(.+\\)$" end t)
+                ;; Don't warn because this can technically be a valid desktop file.
+                (throw 'break nil))
+              (setq exec (match-string 1))
+
+              (goto-char start)
+              (when (re-search-forward "^TryExec *= *\\(.+\\)$" end t)
+                (let ((try-exec (match-string 1)))
+                  (unless (locate-file try-exec exec-path nil #'file-executable-p)
+                    (throw 'break nil))))
+
+              (push
+               (cons (funcall counsel-linux-app-format-function name comment exec) id)
+               result))))))))
+
+(defun counsel-linux-apps-list ()
+  (let* ((new-desktop-alist (counsel-linux-apps-list-desktop-files))
+         (new-files (mapcar 'cdr new-desktop-alist)))
+    (unless (and
+             (eq counsel-linux-app-format-function
+                 counsel--linux-apps-cache-format-function)
+             (equal new-files counsel--linux-apps-cached-files)
+             (null (cl-find-if
+                    (lambda (file)
+                      (time-less-p
+                       counsel--linux-apps-cache-timestamp
+                       (nth 5 (file-attributes file))))
+                    new-files)))
+      (setq counsel--linux-apps-cache (counsel-linux-apps-parse new-desktop-alist)
+            counsel--linux-apps-cache-format-function counsel-linux-app-format-function
+            counsel--linux-apps-cache-timestamp (current-time)
+            counsel--linux-apps-cached-files new-files)))
+  counsel--linux-apps-cache)
+
 
 (defun counsel-linux-app-action-default (desktop-shortcut)
   "Launch DESKTOP-SHORTCUT."
   (setq desktop-shortcut (cdr desktop-shortcut))
-  (call-process-shell-command
-   (format "gtk-launch %s" (file-name-nondirectory desktop-shortcut))))
+  (call-process "gtk-launch" nil nil nil desktop-shortcut))
 
 (defun counsel-linux-app-action-file (desktop-shortcut)
   "Launch DESKTOP-SHORTCUT with a selected file."
   (setq desktop-shortcut (cdr desktop-shortcut))
-  (let* ((entry (rassoc desktop-shortcut counsel-linux-apps-alist))
-         (short-name (and entry
-                          (string-match "\\([^ ]*\\) " (car entry))
-                          (match-string 1 (car entry))))
-         (file (and short-name
-                    (read-file-name
-                     (format "Run %s on: " short-name)))))
+  (let ((file (read-file-name "Open: ")))
     (if file
-        (call-process-shell-command
-         (format "gtk-launch %s \"%s\""
-                 (file-name-nondirectory desktop-shortcut)
-                 file))
+        (call-process "gtk-launch" nil nil nil desktop-shortcut file)
+      (user-error "cancelled"))))
+
+(defun counsel-linux-app-action-open-desktop (desktop-shortcut)
+  "Open DESKTOP-SHORTCUT"
+  (setq desktop-shortcut (cdr desktop-shortcut))
+  (let ((file
+         (cdr (assoc desktop-shortcut (counsel-linux-apps-list-desktop-files)))))
+    (if file
+        (find-file file)
       (user-error "cancelled"))))
 
 (ivy-set-actions
  'counsel-linux-app
- '(("f" counsel-linux-app-action-file "run on a file")))
+ '(("f" counsel-linux-app-action-file "run on a file")
+   ("d" counsel-linux-app-action-open-desktop "open desktop file")))
 
 ;;;###autoload
 (defun counsel-linux-app ()
@@ -2778,6 +2913,7 @@ And insert it into the minibuffer. Useful during
             :action #'counsel-linux-app-action-default
             :caller 'counsel-linux-app))
 
+;;** `counsel-company'
 (defvar company-candidates)
 (defvar company-point)
 (defvar company-common)
@@ -3282,6 +3418,7 @@ candidate."
                 (describe-bindings . counsel-descbinds)
                 (describe-function . counsel-describe-function)
                 (describe-variable . counsel-describe-variable)
+                (describe-face . counsel-describe-face)
                 (find-file . counsel-find-file)
                 (find-library . counsel-find-library)
                 (imenu . counsel-imenu)
