@@ -1,11 +1,11 @@
 ;;; darkburn-theme.el --- A not-so-low contrast color theme for Emacs.
 
-;; Copyright 2014, 2015 Jonas Gorauskas
+;; Copyright 2014 - 2017 Jonas Gorauskas
 
 ;; Author: Jonas Gorauskas <jgorauskas@gmail.com>
 ;; URL: http://github.com/gorauskas/darkburn-theme
-;; Package-Version: 20151003.100
-;; Version: 0.4
+;; Package-Version: 20170414.18
+;; Version: 0.5
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -260,6 +260,17 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(circe-server-face ((t (:foreground ,darkburn-green))))
    `(circe-topic-diff-new-face ((t (:foreground ,darkburn-orange :weight bold))))
    `(circe-prompt-face ((t (:foreground ,darkburn-orange :background ,darkburn-bg :weight bold))))
+;;;;; context-coloring
+   `(context-coloring-level-0-face ((t :foreground ,darkburn-fg)))
+   `(context-coloring-level-1-face ((t :foreground ,darkburn-cyan)))
+   `(context-coloring-level-2-face ((t :foreground ,darkburn-green+4)))
+   `(context-coloring-level-3-face ((t :foreground ,darkburn-yellow)))
+   `(context-coloring-level-4-face ((t :foreground ,darkburn-orange)))
+   `(context-coloring-level-5-face ((t :foreground ,darkburn-magenta)))
+   `(context-coloring-level-6-face ((t :foreground ,darkburn-blue+1)))
+   `(context-coloring-level-7-face ((t :foreground ,darkburn-green+2)))
+   `(context-coloring-level-8-face ((t :foreground ,darkburn-yellow-2)))
+   `(context-coloring-level-9-face ((t :foreground ,darkburn-red+1)))
 ;;;;; coq
    `(coq-solve-tactics-face ((t (:foreground nil :inherit font-lock-constant-face))))
 ;;;;; ctable
@@ -447,6 +458,11 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(gnus-header-name ((t (:inherit message-header-name))))
    `(gnus-header-newsgroups ((t (:inherit message-header-other))))
    `(gnus-header-subject ((t (:inherit message-header-subject))))
+   `(gnus-server-opened ((t (:foreground ,darkburn-green+2 :weight bold))))
+   `(gnus-server-denied ((t (:foreground ,darkburn-red+1 :weight bold))))
+   `(gnus-server-closed ((t (:foreground ,darkburn-blue :slant italic))))
+   `(gnus-server-offline ((t (:foreground ,darkburn-yellow :weight bold))))
+   `(gnus-server-agent ((t (:foreground ,darkburn-blue :weight bold))))
    `(gnus-summary-cancelled ((t (:foreground ,darkburn-orange))))
    `(gnus-summary-high-ancient ((t (:foreground ,darkburn-blue))))
    `(gnus-summary-high-read ((t (:foreground ,darkburn-green :weight bold))))
@@ -547,6 +563,16 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(hydra-face-blue ((t (:foreground ,darkburn-blue :background ,darkburn-bg))))
    `(hydra-face-pink ((t (:foreground ,darkburn-magenta :background ,darkburn-bg))))
    `(hydra-face-teal ((t (:foreground ,darkburn-cyan :background ,darkburn-bg))))
+;;;;; ivy
+   `(ivy-confirm-face ((t (:foreground ,darkburn-green :background ,darkburn-bg))))
+   `(ivy-match-required-face ((t (:foreground ,darkburn-red :background ,darkburn-bg))))
+   `(ivy-remote ((t (:foreground ,darkburn-blue :background ,darkburn-bg))))
+   `(ivy-subdir ((t (:foreground ,darkburn-yellow :background ,darkburn-bg))))
+   `(ivy-current-match ((t (:foreground ,darkburn-yellow :weight bold :underline t))))
+   `(ivy-minibuffer-match-face-1 ((t (:background ,darkburn-bg+1))))
+   `(ivy-minibuffer-match-face-2 ((t (:background ,darkburn-green-1))))
+   `(ivy-minibuffer-match-face-3 ((t (:background ,darkburn-green))))
+   `(ivy-minibuffer-match-face-4 ((t (:background ,darkburn-green+1))))
 ;;;;; ido-mode
    `(ido-first-match ((t (:foreground ,darkburn-yellow :weight bold))))
    `(ido-only-match ((t (:foreground ,darkburn-orange :weight bold))))
@@ -566,9 +592,13 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(jabber-roster-user-away ((t (:foreground ,darkburn-green+2))))
    `(jabber-roster-user-online ((t (:foreground ,darkburn-blue-1))))
    `(jabber-roster-user-dnd ((t (:foreground ,darkburn-red+1))))
+   `(jabber-roster-user-xa ((t (:foreground ,darkburn-magenta))))
+   `(jabber-roster-user-chatty ((t (:foreground ,darkburn-orange))))
+   `(jabber-roster-user-error ((t (:foreground ,darkburn-red+1))))
    `(jabber-rare-time-face ((t (:foreground ,darkburn-green+1))))
    `(jabber-chat-prompt-local ((t (:foreground ,darkburn-blue-1))))
    `(jabber-chat-prompt-foreign ((t (:foreground ,darkburn-red+1))))
+   `(jabber-chat-prompt-system ((t (:foreground ,darkburn-green+3))))
    `(jabber-activity-face((t (:foreground ,darkburn-red+1))))
    `(jabber-activity-personal-face ((t (:foreground ,darkburn-blue+1))))
    `(jabber-title-small ((t (:height 1.1 :weight bold))))
@@ -597,6 +627,14 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(lui-button-face ((t (:inherit hover-highlight))))
 ;;;;; linum-mode
    `(linum ((t (:foreground ,darkburn-green+2 :background ,darkburn-bg-15))))          ;; DB
+;;;;; ruler-mode
+   `(ruler-mode-column-number ((t (:inherit 'ruler-mode-default :foreground ,darkburn-fg))))
+   `(ruler-mode-fill-column ((t (:inherit 'ruler-mode-default :foreground ,darkburn-yellow))))
+   `(ruler-mode-goal-column ((t (:inherit 'ruler-mode-fill-column))))
+   `(ruler-mode-comment-column ((t (:inherit 'ruler-mode-fill-column))))
+   `(ruler-mode-tab-stop ((t (:inherit 'ruler-mode-fill-column))))
+   `(ruler-mode-current-column ((t (:foreground ,darkburn-yellow :box t))))
+   `(ruler-mode-default ((t (:foreground ,darkburn-green+2 :background ,darkburn-bg))))
 ;;;;; macrostep
    `(macrostep-gensym-1
      ((t (:foreground ,darkburn-green+2 :background ,darkburn-bg-1))))
