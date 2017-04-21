@@ -6,15 +6,13 @@
 ;;      Chong Yidong <cyd at stupidchicken com> for wikipedia.el,
 ;;      Uwe Brauer <oub at mat.ucm.es> for wikimedia.el
 ;; Author: Mark A. Hershberger <mah@everybody.org>
-;; Version: 2.2.7
-;; Package-Version: 20170402.244
-;; Package-X-Original-Version: 20170113.1308
 ;; Created: Sep 17 2004
 ;; Keywords: mediawiki wikipedia network wiki
+;; Package-Version: 20170418.1035
 ;; URL: https://github.com/hexmode/mediawiki-el
-;; Last Modified: <2017-04-02 11:44:30 mah>
+;; Last Modified: <2017-04-18 12:34:27 hershm>
 
-(defconst mediawiki-version "2.2.7"
+(defconst mediawiki-version "2.2.8"
   "Current version of mediawiki.el.")
 
 ;; This file is NOT (yet) part of GNU Emacs.
@@ -155,6 +153,7 @@
 (require 'mml)
 (require 'mm-url)
 (require 'ring)
+(require 'subr-x)
 (eval-when-compile
   (require 'cl)
   (require 'mml)
@@ -190,7 +189,7 @@
     (url-bit-for-url 'url-password "password" url)))
 
 (when (fboundp 'url-http-create-request)
-  (if (string= "GET / HTTP/1.0\nMIME-Version: 1.0\nConnection: close\nHost: example.com\nAccept: */*\nUser-Agent: URL/Emacs\nContent-length: 4\n\ntest"
+  (if (string= "GET / HTTP/1.0\r\nMIME-Version: 1.0\r\nConnection: close\r\nHost: example.com\r\nAccept: */*\r\nUser-Agent: URL/Emacs\r\nContent-length: 4\r\n\r\ntest"
 	       (let ((url-http-target-url (url-generic-parse-url "http://example.com/"))
 		     (url-http-data "test") (url-http-version "1.0")
 		     url-http-method url-http-attempt-keepalives url-extensions-header
@@ -213,8 +212,8 @@
 				    'url-http-proxy-basic-auth-storage))
 			       (url-get-authentication url-http-target-url nil 'any nil))))
 	       (real-fname (concat (url-filename url-http-target-url)
-				   (with-no-warnings
-                                     (url-recreate-url-attributes url-http-target-url))))
+				   (with-no-warnings 
+                                    (url-recreate-url-attributes url-http-target-url))))
 	       (host (url-host url-http-target-url))
 	       (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
 			 nil
@@ -416,10 +415,10 @@ Some provision is made for different versions of Emacs version.
 POST-PROCESS is the function to call for post-processing.
 BUFFER is the buffer to store the result in.  CALLBACK will be
 called in BUFFER with CBARGS, if given."
-  (let ((url-user-agent (concat (if (functionp url-user-agent)
-                                    (funcall url-user-agent)
-                                  url-user-agent)
-                                " mediawiki.el")))
+  (let ((url-user-agent (concat (string-trim (if (functionp url-user-agent)
+                                                 (funcall url-user-agent)
+                                               url-user-agent))
+                                " mediawiki.el " mediawiki-version "\r\n")))
     (cond ((boundp 'url-be-asynchronous) ; Sniff w3 lib capability
            (if callback
                (setq url-be-asynchronous t)
@@ -491,8 +490,7 @@ given."
       (cons "Connection" "close")
       (cons "Content-Type" content-type)))
 
-    (message "Posting to: %s" url)
-    (url-compat-retrieve url url-http-post-post-process
+     (url-compat-retrieve url url-http-post-post-process
 			 buffer callback cbargs)))
 
 (defun url-http-response-post-process (status &optional buffer
@@ -680,6 +678,9 @@ it is sometimes put on MediaWiki sites.")
 (defvar mediawiki-site nil
   "The current mediawiki site from `mediawiki-site-alist'.
 If not set, defaults to `mediawiki-site-default'.")
+
+(defvar mediawiki-site-info nil
+  "Holds the site information fetched in this session.")
 
 (defvar mediawiki-argument-pattern "?title=%s&action=%s"
   "Format of the string to append to URLs.
@@ -959,6 +960,8 @@ as group and page name.")
 
 (defvar mediawiki-draft-mode-map ())
 
+(defvar mediawiki-debug-buffer " *MediaWiki Debug*")
+
 (defun mediawiki-debug (buffer function)
   "The debug handler.
 When debugging is turned on, log the name of the BUFFER with the
@@ -967,9 +970,10 @@ examined.  If debugging is off, just kill the buffer.  This
 allows you to see what is being sent to and from the server."
   (if (not mediawiki-debug)
       (kill-buffer buffer)
-    (message "Examine the '%s' buffer called from '%s'."
-             (buffer-name buffer)
-             function)))
+    (with-current-buffer (get-buffer-create mediawiki-debug-buffer)
+      (goto-char (point-max))
+      (insert "\n")
+      (insert-buffer-substring buffer))))
 
 (defun mediawiki-translate-pagename (name)
   "Given NAME, return the typical name that MediaWiki would use.
@@ -983,13 +987,21 @@ Right now, this only means replacing \"_\" with \" \"."
   (format (concat (mediawiki-site-url (or sitename mediawiki-site))
                   "api.php")))
 
-(defun mediawiki-api-call (sitename action args)
+(defun mediawiki-raise (result type notif)
+  "Show a TYPE of information from the RESULT to the user using NOTIF"
+  (when (assq type (cddr result))
+    (mapc (lambda (err)
+            (let ((label (car err))
+                  (info (cddr err)))
+              (funcall notif label info)))
+          (cddr (assq type (cddr result))))))
+
+(defun mediawiki-api-call (sitename action &optional args)
   "Wrapper for making an API call to SITENAME.
 ACTION is the API action.  ARGS is a list of arguments."
   (let* ((raw (url-http-post (mediawiki-make-api-url sitename)
                              (append args (list (cons "format" "xml")
-                                                (cons "action" action))))
-              (string= action "upload")))
+                                                (cons "action" action)))))
          (result (assoc 'api
                             (with-temp-buffer
                               (insert raw)
@@ -997,26 +1009,10 @@ ACTION is the API action.  ARGS is a list of arguments."
     (unless result
       (error "There was an error parsing the result of the API call"))
 
-    (when (assq 'error (cddr result))
-      (mapc (lambda (err)
-              (let ((err-label (car err))
-                    (err-info (cddr err)))
-                (error "(%s) %s" err-label err-info)))
-            (cddr (assq 'error (cddr mah/res)))))
-
-    (when (assq 'warnings (cddr result))
-      (mapc (lambda (err)
-              (let ((err-label (car err))
-                    (err-info (cddr err)))
-                (message "Warning: (%s) %s" err-label err-info)))
-            (cddr (assq 'warnings (cddr mah/res)))))
-
-    (when (assq 'info (cddr result))
-      (mapc (lambda (err)
-              (let ((err-label (car err))
-                    (err-info (cddr err)))
-                (message "Info: (%s) %s" err-label err-info)))
-            (cddr (assq 'info (cddr mah/res)))))
+    (mediawiki-raise result 'error (lambda (label info) (error "(%s) %s" label info)))
+    (mediawiki-raise result 'warnings (lambda (label info) (message "Warning (%s) %s"
+                                                                    label info)))
+    (mediawiki-raise result 'info (lambda (label info) (message  "(%s) %s" label info)))
 
     (if (cddr result)
         (let ((action-res (assq (intern action) (cddr result))))
@@ -1181,7 +1177,7 @@ title or a list of titles.  PROPS are the revision properites to
 fetch.  LIMIT is the upper bound on the number of results to give."
   (cddr (mediawiki-api-call sitename "query"
                       (list (cons "prop" (mediawiki-api-param (list "info" "revisions")))
-                            (cons "intoken" (mediawiki-api-param "edit"))
+;                            (cons "intoken" (mediawiki-api-param "edit"))
                             (cons "titles" (mediawiki-api-param title))
                             (when limit
                               (cons "rvlimit" (mediawiki-api-param limit)))
@@ -1370,8 +1366,7 @@ Store cookies for future authentication."
                  (result (cadr (mediawiki-api-call sitename "login" args))))
     (when (string= (cdr (assq 'result result)) "NeedToken")
       (setq result
-            (cadr (mediawiki-api-call
-                   sitename "login"
+            (cadr (mediawiki-api-call sitename "login"
                    (append
                     args (list (cons "lgtoken"
                                      (cdr (assq 'token result)))))))))
