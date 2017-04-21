@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20170206.1323
+;; Package-Version: 20170412.1229
 ;; Version: 0.2.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -97,22 +97,37 @@ You can reset the cache by calling `helm-make-reset-db'."
   "When non-nil, enable fuzzy matching in helm make target(s) buffer."
   :type 'boolean)
 
+(defcustom helm-make-completion-method 'helm
+  "Method to select a candidate from a list of strings."
+  :type '(choice
+          (const :tag "Helm" helm)
+          (const :tag "Ido" ido)
+          (const :tag "Ivy" ivy)))
+
 (defvar helm-make-command nil
   "Store the make command.")
 
 (defvar helm-make-target-history nil
   "Holds the recently used targets.")
 
-(defvar helm-make-makefile-names '("Makefile" "makefile" "GNUmakefile")
+(defvar helm-make-makefile-names '("Makefile" "makefile" "GNUmakefile" "build.ninja")
   "List of Makefile names which make recognizes.
-An exception is \"GNUmakefile\", only GNU make unterstand it.")
+An exception is \"GNUmakefile\", only GNU make understands it.
+Also \"build.ninja\" is specific to the Ninja build tool.")
 
 (defun helm--make-action (target)
   "Make TARGET."
-  (let* ((make-command (format helm-make-command target))
+  (let* ((targets (and (eq helm-make-completion-method 'helm)
+                       (> (length (helm-marked-candidates)) 1)
+                       (mapconcat 'identity (helm-marked-candidates) " ")))
+         (make-command (format helm-make-command (or targets target)))
          (compile-buffer (compile make-command helm-make-comint)))
     (when helm-make-named-buffer
-      (helm--make-rename-buffer compile-buffer target))))
+      (helm--make-rename-buffer
+       compile-buffer
+       (if targets
+           (format "%s..." (substring targets 0 (string-match " " targets)))
+         target)))))
 
 (defun helm--make-rename-buffer (buffer target)
   "Rename the compilation BUFFER based on the make TARGET."
@@ -124,13 +139,6 @@ An exception is \"GNUmakefile\", only GNU make unterstand it.")
     (with-current-buffer buffer
       (rename-buffer buffer-name))))
 
-(defcustom helm-make-completion-method 'helm
-  "Method to select a candidate from a list of strings."
-  :type '(choice
-          (const :tag "Helm" helm)
-          (const :tag "Ido" ido)
-          (const :tag "Ivy" ivy)))
-
 ;;;###autoload
 (defun helm-make (&optional arg)
   "Call \"make -j ARG target\". Target is selected with completion."
@@ -140,6 +148,22 @@ An exception is \"GNUmakefile\", only GNU make unterstand it.")
     (if makefile
         (helm--make makefile)
       (error "No Makefile in %s" default-directory))))
+
+(defconst helm--make-ninja-target-regexp "^\\(.+\\): "
+  "Regexp to identify targets in the output of \"ninja -t targets\".")
+
+(defun helm--make-target-list-ninja (makefile)
+  "Return the target list for MAKEFILE by parsing the output of \"ninja -t targets\"."
+  (let ((default-directory (file-name-directory (expand-file-name makefile)))
+        (ninja-exe helm-make-executable) ; take a copy in case buffer-local
+        targets)
+    (with-temp-buffer
+      (call-process ninja-exe nil t t "-f" (file-name-nondirectory makefile)
+                    "-t" "targets" "all")
+      (goto-char (point-min))
+      (while (re-search-forward helm--make-ninja-target-regexp nil t)
+        (push (match-string 1) targets))
+      targets)))
 
 (defun helm--make-target-list-qp (makefile)
   "Return the target list for MAKEFILE by parsing the output of \"make -nqp\"."
@@ -179,7 +203,8 @@ An exception is \"GNUmakefile\", only GNU make unterstand it.")
   "Method of obtaining the list of Makefile targets."
   :type '(choice
           (const :tag "Default" default)
-          (const :tag "make -qp" qp)))
+          (const :tag "make -qp" qp)
+          (const :tag "Ninja" ninja)))
 
 (defun helm--make-makefile-exists (base-dir &optional dir-list)
   "Check if one of `helm-make-makefile-names' exist in BASE-DIR.
@@ -219,15 +244,16 @@ and cache targets of MAKEFILE, if `helm-make-cache-targets' is t."
          (entry (gethash makefile helm-make-db nil))
          (new-entry (make-helm-make-dbfile))
          (targets (cond
-                   ((and helm-make-cache-targets
-                         entry
-                         (equal modtime (helm-make-dbfile-modtime entry))
-                         (helm-make-dbfile-targets entry))
-                    (helm-make-dbfile-targets entry))
-                   (t
-                    (delete-dups (if (eq helm-make-list-target-method 'default)
-                                     (helm--make-target-list-default makefile)
-                                   (helm--make-target-list-qp makefile)))))))
+                    ((and helm-make-cache-targets
+                          entry
+                          (equal modtime (helm-make-dbfile-modtime entry))
+                          (helm-make-dbfile-targets entry))
+                     (helm-make-dbfile-targets entry))
+                    (t
+                     (delete-dups (cl-case helm-make-list-target-method
+                                    (default (helm--make-target-list-default makefile))
+                                    (qp (helm--make-target-list-qp makefile))
+                                    (ninja (helm--make-target-list-ninja makefile))))))))
     (when helm-make-sort-targets
       (unless (and helm-make-cache-targets
                    entry
