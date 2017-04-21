@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20170402.1214
+;; Package-Version: 20170411.608
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -490,6 +490,10 @@ multiple DISPLAY-FN invokations."
 Commands using `avy-with' macro can be resumed."
   (interactive))
 
+(defvar avy-command nil
+  "Store the current command symbol.
+E.g. 'avy-goto-line or 'avy-goto-char.")
+
 (defmacro avy-with (command &rest body)
   "Set `avy-keys' according to COMMAND and execute BODY.
 Set `avy-style' according to COMMMAND as well."
@@ -498,7 +502,8 @@ Set `avy-style' according to COMMMAND as well."
   `(let ((avy-keys (or (cdr (assq ',command avy-keys-alist))
                        avy-keys))
          (avy-style (or (cdr (assq ',command avy-styles-alist))
-                        avy-style)))
+                        avy-style))
+         (avy-command ',command))
      (setq avy-action nil)
      (setf (symbol-function 'avy-resume)
            (lambda ()
@@ -524,7 +529,9 @@ Set `avy-style' according to COMMMAND as well."
   (save-excursion
     (let (str)
       (goto-char pt)
-      (forward-sexp)
+      (if (eq avy-command 'avy-goto-line)
+          (end-of-line)
+        (forward-sexp))
       (setq str (buffer-substring pt (point)))
       (kill-new str)
       (message "Copied: %s" str)))
@@ -1619,10 +1626,10 @@ saves the line(s) as if killed, but does not kill it(them)."
 (defun avy--read-candidates ()
   "Read as many chars as possible and return their occurences.
 At least one char must be read, and then repeatedly one next char
-may be read if it is entered before `avy-timeout-seconds'.  `DEL'
-deletes the last char entered, and `RET' exits with the currently
-read string immediately instead of waiting for another char for
-`avy-timeout-seconds'.
+may be read if it is entered before `avy-timeout-seconds'.  `C-h'
+or `DEL' deletes the last char entered, and `RET' exits with the
+currently read string immediately instead of waiting for another
+char for `avy-timeout-seconds'.
 The format of the result is the same as that of `avy--regex-candidates'.
 This function obeys `avy-all-windows' setting."
   (let ((str "") char break overlays regex)
@@ -1645,8 +1652,8 @@ This function obeys `avy-all-windows' setting."
                ;; Handle RET
                ((= char 13)
                 (setq break t))
-               ;; Handle DEL
-               ((= char 127)
+               ;; Handle C-h, DEL
+               ((memq char '(8 127))
                 (let ((l (length str)))
                   (when (>= l 1)
                     (setq str (substring str 0 (1- l))))))
