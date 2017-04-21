@@ -3,11 +3,12 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "jazz-theme" "jazz-theme.el" (22653 62710 361873
-;;;;;;  957000))
+;;;### (autoloads nil "jazz-theme" "jazz-theme.el" (0 0 0 0))
 ;;; Generated autoloads from jazz-theme.el
 
 (when load-file-name (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "jazz-theme" '("jazz")))
 
 ;;;***
 
