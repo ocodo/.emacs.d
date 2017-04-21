@@ -547,6 +547,8 @@ and `delete-process'.")
 
 (defvar-local ycmd--buffer-visit-flag nil)
 
+(defvar ycmd--available-completers (make-hash-table :test 'eq))
+
 (defvar ycmd--mode-keywords-loaded nil
   "List of modes for which keywords have been loaded.")
 
@@ -883,6 +885,7 @@ _LEN is ununsed."
   "Teardown ycmd in all buffers."
   (ycmd--kill-timer ycmd--on-focus-timer)
   (setq ycmd--mode-keywords-loaded nil)
+  (clrhash ycmd--available-completers)
   (ycmd--with-all-ycmd-buffers
     (ycmd--teardown)
     (setq ycmd--buffer-visit-flag nil)))
@@ -1137,41 +1140,50 @@ This function handles `UnknownExtraConf', `ValueError' and
   "Check whether RESPONSE is an exception."
   (assq 'exception response))
 
+(defun ycmd--send-subcommand-request (subcommand request-data)
+  "Send SUBCOMMAND request for REQUEST-DATA.
+Run HANDLER with reponse."
+  (let* ((subcommand (if (listp subcommand)
+                         subcommand
+                       (list subcommand)))
+         (content (cons (append (list "command_arguments")
+                                subcommand)
+                        (plist-get request-data :content))))
+    (ycmd--request "/run_completer_command" content)))
+
 (defun ycmd--run-completer-command (subcommand success-handler)
   "Send SUBCOMMAND to the `ycmd' server.
 
 SUCCESS-HANDLER is called when for a successful response."
   (when ycmd-mode
-    (if (ycmd-parsing-in-progress-p)
-        (message "Can't send \"%s\" request while parsing is in progress!"
-                 subcommand)
-      (let* ((data (ycmd--get-request-data))
-             (subcommand (if (listp subcommand)
-                             subcommand
-                           (list subcommand)))
-             (content (cons (append (list "command_arguments")
-                                    subcommand)
-                            (plist-get data :content))))
+    (let ((data (ycmd--get-request-data)))
+      (if (ycmd-parsing-in-progress-p)
+          (message "Can't send \"%s\" request while parsing is in progress!"
+                   subcommand)
         (deferred:$
-          (ycmd--request "/run_completer_command" content)
+          (ycmd--send-subcommand-request subcommand data)
           (deferred:nextc it
             (lambda (response)
               (when response
                 (cond
                  ((ycmd--exception? response)
-                  (let-alist response
-                    (if (and (string= "ValueError" .exception.TYPE)
-                             (or (string-prefix-p "Supported commands are:\n" .message)
-                                 (string= "This Completer has no supported subcommands."
-                                          .message)))
-                        (message "%s is not supported by current Completer"
-                                 (car subcommand))
-                      (ycmd--handle-exception response)
-                      (run-hook-with-args 'ycmd-after-exception-hook
-                                          (car subcommand) (plist-get data :buffer)
-                                          (plist-get data :pos) response))))
+                  (if (ycmd--unsupported-subcommand? response)
+                      (message "%s is not supported by current Completer"
+                               subcommand)
+                    (ycmd--handle-exception response)
+                    (run-hook-with-args 'ycmd-after-exception-hook
+                                        subcommand (plist-get data :buffer)
+                                        (plist-get data :pos) response)))
                  (success-handler
                   (funcall success-handler response)))))))))))
+
+(defun ycmd--unsupported-subcommand? (response)
+  "Return t if RESPONSE is an unsupported subcommand exception."
+  (let-alist response
+    (and (string= "ValueError" .exception.TYPE)
+         (or (string-prefix-p "Supported commands are:\n" .message)
+             (string= "This Completer has no supported subcommands."
+                      .message)))))
 
 (defun ycmd-goto ()
   "Go to the definition or declaration of the symbol at current position."
@@ -1306,15 +1318,25 @@ prompt for the Python binary."
          (point-min) (point-max) nil))
       (buffer-string))))
 
+(defun ycmd--get-parent-or-type (response)
+  "Extract type or parent from RESPONSE.
+Return a cons cell with the type or parent as car. If cdr is
+non-nil, the result is a valid type or parent."
+  (--when-let (cdr (assq 'message response))
+    (pcase it
+      ((or `"Unknown semantic parent"
+           `"Unknown type"
+           `"Internal error: cursor not valid"
+           `"Internal error: no translation unit")
+       (cons it nil))
+      (_ (cons it t)))))
+
 (defun ycmd--handle-get-parent-or-type-success (response)
   "Handle a successful GetParent or GetType RESPONSE."
-  (--when-let (cdr (assq 'message response))
-    (message "%s" (pcase it
-                    ((or `"Unknown semantic parent"
-                         `"Unknown type"
-                         `"Internal error: cursor not valid"
-                         `"Internal error: no translation unit") it)
-                    (_ (ycmd--fontify-code it))))))
+  (--when-let (ycmd--get-parent-or-type response)
+    (message "%s" (if (cdr it)
+                      (ycmd--fontify-code (car it))
+                    (car it)))))
 
 (defun ycmd-get-parent ()
   "Get semantic parent for symbol at point."
@@ -2165,6 +2187,30 @@ If candidates is a list with identifiers, sort_property should be
 and empty string, however when candidates is a more complex
 structure it is used to specify the sort key."
   (ycmd--request "/filter_and_sort_candidates" request-data :sync t))
+
+(defun ycmd--send-completer-available-request (&optional mode sync)
+  "Send request to check if a semantic completer exists for MODE.
+Response is non-nil if semantic complettion is available. If
+optional SYNC is non-nil, send a synchronous request."
+  (let* ((data (ycmd--get-request-data))
+         (request-data (plist-get data :content)))
+    (when mode
+      (let* ((buffer (plist-get data :buffer))
+             (full-path (ycmd--encode-string (or (buffer-file-name buffer) "")))
+             (file-types (assoc "filetypes" (assoc full-path
+                                                   (assoc "file_data"
+                                                          request-data)))))
+        (when (consp file-types)
+          (setcdr file-types (ycmd-major-mode-to-file-types mode))))
+    (ycmd--request "/semantic_completion_available"
+                   request-data :sync sync))))
+
+(defun ycmd-semantic-completer-available? ()
+  "Return t if a semantic completer is available for current `major-mode'."
+  (let ((mode major-mode))
+    (or (gethash mode ycmd--available-completers)
+        (--when-let (ycmd--send-completer-available-request mode 'sync)
+          (puthash mode (or (eq it t) 'none) ycmd--available-completers)))))
 
 (defun ycmd--get-request-hmac (method path body)
   "Generate HMAC for request from METHOD, PATH and BODY."

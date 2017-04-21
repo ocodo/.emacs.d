@@ -1,11 +1,11 @@
 ;;; ycmd-eldoc.el --- Eldoc support for ycmd-mode    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016  Peter Vasil
+;; Copyright (C) 2016, 2017  Peter Vasil
 
 ;; Author: Peter Vasil <mail@petervasil.net>
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Version: 0.2
-;; Package-Requires: ((ycmd "0.1") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (cl-lib "0.5") (let-alist "1.0.4"))
+;; Package-Requires: ((ycmd "0.1") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (let-alist "1.0.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@
 
 (eval-when-compile
   (require 'let-alist))
-(require 'cl-lib)
 (require 'eldoc)
 (require 'ycmd)
 (require 'deferred)
@@ -55,20 +54,39 @@ the `car' of the list is `not', server query is sematic for all
 is only semantic after a semantic trigger."
   :type 'list)
 
-(defvar-local ycmd-eldoc--cache nil)
+(defvar-local ycmd-eldoc--cache (make-vector 2 nil))
+
+(defvar-local ycmd-eldoc--get-type-supported-p t)
 
 (defun ycmd-eldoc--documentation-function ()
   "Eldoc function for `ycmd-mode'."
-  (when ycmd-mode
+  (when (and ycmd-mode (not (ycmd-parsing-in-progress-p)))
     (deferred:$
-      (deferred:next
-        (lambda ()
-          (ycmd-eldoc--info-at-point)))
+      (ycmd-eldoc--check-if-semantic-completer-exists-for-mode)
+      (deferred:nextc it
+        (lambda (response)
+          (when response
+            (ycmd-eldoc--info-at-point))))
       (deferred:nextc it
         (lambda (text)
           (eldoc-message text))))
     ;; Don't show deferred object as ElDoc message
     nil))
+
+(defun ycmd-eldoc--check-if-semantic-completer-exists-for-mode ()
+  "Return a deferred object whose return value is t if semantic completer exists."
+  (deferred:$
+    (deferred:next
+      (lambda ()
+        (ycmd-semantic-completer-available?)))
+    (deferred:nextc it
+      (lambda (response)
+        (when (and response (eq response 'none))
+          (message (concat "No semantic completer exists for major-mode: `%s'."
+                           " Ycmd ELDoc mode disabled in current buffer.")
+                   major-mode)
+          (ycmd-eldoc-mode -1))
+        (eq response t)))))
 
 (defun ycmd-eldoc-always-semantic-server-query-p ()
   "Check whether server query should be semantic."
@@ -77,30 +95,48 @@ is only semantic after a semantic trigger."
     (`(not . ,modes) (not (memq major-mode modes)))
     (modes (memq major-mode modes))))
 
+(defmacro ycmd-eldoc--with-point-at-func-name (body)
+  "Move cursor to function name and evluate BODY."
+  (declare (indent 0) (debug t))
+  `(save-excursion
+     (ycmd-eldoc--goto-func-name)
+     ,body))
+
 (defun ycmd-eldoc--info-at-point ()
   "Get function info at point."
-  (save-excursion
-    (ycmd-eldoc--goto-func-name)
-    (-when-let (symbol (symbol-at-point))
-      (if (eq symbol (car ycmd-eldoc--cache))
-          (cadr ycmd-eldoc--cache)
-        (deferred:$
-          (deferred:next
-            (lambda ()
-              (save-excursion
-                (ycmd-eldoc--goto-func-name)
+  (let ((symbol (ycmd-eldoc--with-point-at-func-name (symbol-at-point))))
+    (if (and symbol (eq symbol (aref ycmd-eldoc--cache 0)))
+        (aref ycmd-eldoc--cache 1)
+      (deferred:$
+        (deferred:next
+          (lambda ()
+            (when symbol
+              (ycmd-eldoc--with-point-at-func-name
                 (let ((ycmd-force-semantic-completion
                        (or ycmd-force-semantic-completion
                            (ycmd-eldoc-always-semantic-server-query-p))))
-                  (ycmd-get-completions)))))
-          (deferred:nextc it
-            (lambda (completions)
-              (-when-let* ((candidates (cdr (assq 'completions completions)))
-                           (text (ycmd-eldoc--generate-message
-                                  (symbol-name symbol) candidates)))
-                (setq text (ycmd--fontify-code text))
-                (setq ycmd-eldoc--cache (list symbol text))
-                text))))))))
+                  (ycmd-get-completions))))))
+        (deferred:nextc it
+          (lambda (completions)
+            (-when-let (candidates (cdr (assq 'completions completions)))
+              (ycmd-eldoc--generate-message
+               (symbol-name symbol) candidates))))
+        (deferred:nextc it
+          (lambda (text)
+            (or text (and ycmd-eldoc--get-type-supported-p
+                          (ycmd-eldoc--get-type)))))
+        (deferred:nextc it
+          (lambda (text)
+            (when text
+              (setq text (ycmd--fontify-code text))
+              (ycmd-eldoc--cache-store symbol text))))))))
+
+(defun ycmd-eldoc--cache-store (symbol text)
+  "Store SYMBOL and TEXT to `ycmd-eldoc--cache'."
+  (aset ycmd-eldoc--cache 0 symbol)
+  ;; Store text only if we have a symbol for lookup
+  (aset ycmd-eldoc--cache 1 (and symbol text))
+  text)
 
 ;; Source: https://github.com/racer-rust/emacs-racer/blob/master/racer.el
 (defun ycmd-eldoc--goto-func-name ()
@@ -121,20 +157,31 @@ foo(bar, |baz); -> foo|(bar, baz);"
 (defun ycmd-eldoc--generate-message (symbol result)
   "Generate eldoc message for SYMBOL from RESULT."
   (-when-let* ((filtered-list
-                (cl-remove-if-not
-                 (lambda (val)
-                   (let-alist val
-                     (and (s-equals? .insertion_text symbol)
-                          (or (not .extra_menu_info)
-                              (not (-contains?
-                                    '("[ID]" "[File]" "[Dir]" "[File&Dir]")
-                                    .extra_menu_info))))))
+                (--filter
+                 (let-alist it
+                   (and (s-equals? .insertion_text symbol)
+                        (or (not .extra_menu_info)
+                            (not (-contains?
+                                  '("[ID]" "[File]" "[Dir]" "[File&Dir]")
+                                  .extra_menu_info)))))
                  result))
                (item (car filtered-list))
                (msg (or (cdr (assq 'detailed_info item))
                         (cdr (assq 'extra_menu_info item)))))
     (unless (s-blank? msg)
       (car (s-split-up-to "\n" msg 1)))))
+
+(defun ycmd-eldoc--get-type ()
+  "Get type at current position."
+  (let ((data (ycmd--get-request-data)))
+    (deferred:$
+      (ycmd--send-subcommand-request "GetType" data)
+      (deferred:nextc it
+        (lambda (response)
+          (if (ycmd--unsupported-subcommand? response)
+              (setq ycmd-eldoc--get-type-supported-p nil)
+            (--when-let (ycmd--get-parent-or-type response)
+              (when (cdr it) (car it)))))))))
 
 ;;;###autoload
 (defun ycmd-eldoc-setup ()
@@ -145,7 +192,8 @@ foo(bar, |baz); -> foo|(bar, baz);"
 
 (defun ycmd-eldoc--teardown ()
   "Reset `ycmd-eldoc--cache'."
-  (setq ycmd-eldoc--cache nil))
+  (ycmd-eldoc--cache-store nil nil)
+  (setq ycmd-eldoc--get-type-supported-p t))
 
 ;;;###autoload
 (define-minor-mode ycmd-eldoc-mode
@@ -158,10 +206,11 @@ foo(bar, |baz); -> foo|(bar, baz);"
         (eldoc-mode +1)
         (add-hook 'ycmd-after-teardown-hook
                   #'ycmd-eldoc--teardown nil 'local))
-    (kill-local-variable 'eldoc-documentation-function)
     (eldoc-mode -1)
+    (kill-local-variable 'eldoc-documentation-function)
     (remove-hook 'ycmd-after-teardown-hook
-                 #'ycmd-eldoc--teardown 'local)))
+                 #'ycmd-eldoc--teardown 'local)
+    (ycmd-eldoc--teardown)))
 
 (provide 'ycmd-eldoc)
 
