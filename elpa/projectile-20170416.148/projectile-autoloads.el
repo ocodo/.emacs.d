@@ -394,7 +394,7 @@ Edit or create a .dir-locals.el file of the project.
 
 \(fn)" t nil)
 
-(defvar projectile-mode-line '(:eval (if (file-remote-p default-directory) " Projectile" (format " Projectile[%s]" (projectile-project-name)))) "\
+(defvar projectile-mode-line '(:eval (format " Projectile[%s]" (projectile-project-name))) "\
 Mode line lighter for Projectile.
 
 The value of this variable is a mode line template as in
