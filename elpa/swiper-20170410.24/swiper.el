@@ -1,12 +1,12 @@
 ;;; swiper.el --- Isearch with an overview. Oh, man! -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2017  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20170405.2244
-;; Version: 0.8.0
-;; Package-Requires: ((emacs "24.1") (ivy "0.8.0"))
+;; Package-Version: 20170410.24
+;; Version: 0.9.1
+;; Package-Requires: ((emacs "24.1") (ivy "0.9.0"))
 ;; Keywords: matching
 
 ;; This file is part of GNU Emacs.
@@ -683,6 +683,7 @@ WND, when specified is the window."
 (defvar evil-search-module)
 (defvar evil-ex-search-pattern)
 (defvar evil-ex-search-persistent-highlight)
+(defvar evil-ex-search-direction)
 (declare-function evil-ex-search-activate-highlight "evil-ex")
 
 
