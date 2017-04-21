@@ -3356,17 +3356,23 @@ Return non-nil if at least one escaping was performed."
           (insert sp-escape-char)))
       re)))
 
+;; TODO: refactor the rewrap-sexp dependent parts out so that this
+;; function has less dependencies on the action
+;; TODO: add mode-dependent escape/unescape actions?
 (defun sp-escape-wrapped-region (id action _context)
-  "Escape quotes and special chars when a region is wrapped."
+  "Escape quotes and special chars when a region is (re)wrapped."
   (when (and sp-escape-wrapped-region
-             (eq action 'wrap))
+             (memq action '(wrap rewrap-sexp)))
     (sp-get sp-last-wrapped-region
       (let* ((parent-delim (save-excursion
                              (goto-char :beg)
                              (sp-get (sp-get-string)
-                               (when (and (< :beg (point))
-                                          (< (point) :end))
-                                 :op)))))
+                               (cond
+                                ((and (< :beg (point))
+                                      (< (point) :end))
+                                 :op)
+                                ((eq action 'rewrap-sexp)
+                                 (plist-get sp-handler-context :parent)))))))
         (cond
          ((equal parent-delim id)
           (sp--escape-region (list id sp-escape-char) :beg :end))
@@ -5972,6 +5978,24 @@ Examples:
 If the next command is `sp-kill-sexp', append the whitespace
 between the successive kills.")
 
+(defun sp--kill-or-copy-region (beg end &optional dont-kill)
+  "Kill or copy region between BEG and END according to DONT-KILL.
+If `evil-mode' is active, copying a region will also add it to the 0 register.
+Additionally, if command was prefixed with a register, copy the region
+to that register."
+  (interactive)
+  (let ((result
+         (if dont-kill
+             (copy-region-as-kill beg end)
+           (kill-region beg end))))
+    (when (bound-and-true-p evil-mode)
+      (when dont-kill
+        (evil-set-register ?0 (evil-get-register ?1)))
+      (when evil-this-register
+        (evil-set-register evil-this-register (evil-get-register ?1))
+        (setq evil-this-register nil)))
+    result))
+
 (defun sp-kill-sexp (&optional arg dont-kill)
   "Kill the balanced expression following point.
 
@@ -6034,8 +6058,7 @@ Note: prefix argument is shown after the example in
          (n (abs arg))
          (ok t)
          (b (point-max))
-         (e (point))
-         (kill-fn (if dont-kill 'copy-region-as-kill 'kill-region)))
+         (e (point)))
     (cond
      ;; kill to the end or beginning of list
      ((and raw
@@ -6047,8 +6070,10 @@ Note: prefix argument is shown after the example in
               (let ((del (sp-get-whitespace)))
                 (sp-get del (delete-region :beg :end))))
           (if (> arg 0)
-              (funcall kill-fn (sp-get next :beg-prf) (sp-get enc :end-in))
-            (funcall kill-fn (sp-get next :end) (sp-get enc :beg-in)))
+              (sp--kill-or-copy-region
+               (sp-get next :beg-prf) (sp-get enc :end-in) dont-kill)
+            (sp--kill-or-copy-region
+             (sp-get next :end) (sp-get enc :beg-in) dont-kill))
           (when (not dont-kill)
             (let ((del (sp-get-whitespace)))
               (sp-get del (delete-region :beg :end)))))))
@@ -6056,12 +6081,14 @@ Note: prefix argument is shown after the example in
      ((and raw
            (= n 16))
       (let ((lst (sp-backward-up-sexp)))
-        (sp-get lst (funcall kill-fn :beg-prf :end))))
+        (sp-get lst (sp--kill-or-copy-region
+                     :beg-prf :end dont-kill))))
      ;; kill inside of sexp
      ((= n 0)
       (let ((e (sp-get-enclosing-sexp)))
         (when e
-          (sp-get e (funcall kill-fn :beg-in :end-in)))))
+          (sp-get e (sp--kill-or-copy-region
+                     :beg-in :end-in dont-kill)))))
      ;; regular kill
      (t
       (save-excursion
@@ -6077,8 +6104,9 @@ Note: prefix argument is shown after the example in
               (progn
                 (when (member sp-successive-kill-preserve-whitespace '(1 2))
                   (kill-append sp-last-kill-whitespace nil))
-                (funcall kill-fn (if (> b (point)) (point) b) e))
-            (funcall kill-fn b e))
+                (sp--kill-or-copy-region
+                 (if (> b (point)) (point) b) e dont-kill))
+            (sp--kill-or-copy-region b e dont-kill))
           ;; kill useless junk whitespace, but only if we're actually
           ;; killing the region
           (when (not dont-kill)
@@ -7133,7 +7161,7 @@ Examples:
 
   (foo |bar baz) -> [(foo |bar baz)] ;; \\[universal-argument] ["
   (interactive (list
-                (let ((available-pairs (sp--get-pair-list-context))
+                (let ((available-pairs (sp--get-pair-list-context 'wrap))
                       ev ac (pair-prefix ""))
                   (while (not ac)
                     (setq ev (read-event (format "Rewrap with: %s" pair-prefix) t))
@@ -7153,8 +7181,17 @@ Examples:
         (goto-char :beg)
         (insert (car pair))
         (unless keep-old
-          (delete-char :op-l))))
-    (sp--run-hook-with-args (sp-get enc :op) :post-handlers 'rewrap-sexp)))
+          (delete-char :op-l))
+        (setq sp-last-wrapped-region
+              (sp--get-last-wraped-region
+               :beg (+ :end
+                      (length (car pair))
+                      (length (cdr pair))
+                      (- :op-l)
+                      (- :cl-l))
+                (car pair) (cdr pair)))))
+    (sp--run-hook-with-args (car pair) :post-handlers 'rewrap-sexp
+                            (list :parent (sp-get enc :op)))))
 
 (defun sp-swap-enclosing-sexp (&optional arg)
   "Swap the enclosing delimiters of this and the parent expression.
