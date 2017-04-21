@@ -3,7 +3,7 @@
 ;; Copyright (C) 2015-2016 Ivan Malison
 
 ;; Author: Ivan Malison <IvanMalison@gmail.com>
-;; Keywords: multi line length whitespace programming
+;; Keywords: multi line length whitespace programming tools convenience files
 ;; URL: https://github.com/IvanMalison/multi-line
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (cl-lib "0.5") (dash "2.12.0") (shut-up "0.3.2"))
 ;; Version: 0.1.5
