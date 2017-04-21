@@ -9,7 +9,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20170303.2310
+;; Package-Version: 20170407.312
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.7.0-snapshot
 ;; Package-Requires: ((emacs "24.4"))
@@ -665,7 +665,8 @@ Called by `imenu--generic-function'."
         (down-list)
         (forward-sexp)
         (while (not found?)
-          (forward-sexp)
+          (ignore-errors
+            (forward-sexp))
           (or (if (char-equal ?[ (char-after (point)))
                               (backward-sexp))
                   (if (char-equal ?) (char-after (point)))
@@ -868,13 +869,12 @@ highlighted region)."
                          (setq docelt (funcall docelt)))
                        (goto-char listbeg)
                        (forward-char 1)
-                       (condition-case nil
-                           (while (and (> docelt 0) (< (point) startpos)
-                                       (progn (forward-sexp 1) t))
-                             ;; ignore metadata and type hints
-                             (unless (looking-at "[ \n\t]*\\(\\^[A-Z:].+\\|\\^?{.+\\)")
-                               (setq docelt (1- docelt))))
-                         (error nil))
+                       (ignore-errors
+                         (while (and (> docelt 0) (< (point) startpos)
+                                     (progn (forward-sexp 1) t))
+                           ;; ignore metadata and type hints
+                           (unless (looking-at "[ \n\t]*\\(\\^[A-Z:].+\\|\\^?{.+\\)")
+                             (setq docelt (1- docelt)))))
                        (and (zerop docelt) (<= (point) startpos)
                             (progn (forward-comment (point-max)) t)
                             (= (point) (nth 8 state)))))
@@ -901,20 +901,17 @@ highlighted region)."
 Note that this means that there is no guarantee of proper font
 locking in def* forms that are not at top level."
   (goto-char point)
-  (condition-case nil
-      (beginning-of-defun)
-    (error nil))
+  (ignore-errors
+    (beginning-of-defun))
 
   (let ((beg-def (point)))
     (when (and (not (= point beg-def))
                (looking-at "(def"))
-      (condition-case nil
-          (progn
-            ;; move forward as much as possible until failure (or success)
-            (forward-char)
-            (dotimes (_ 4)
-              (forward-sexp)))
-        (error nil))
+      (ignore-errors
+        ;; move forward as much as possible until failure (or success)
+        (forward-char)
+        (dotimes (_ 4)
+          (forward-sexp)))
       (cons beg-def (point)))))
 
 (defun clojure-font-lock-extend-region-def ()
@@ -2217,24 +2214,26 @@ Assume that point is in the binding form of a let."
                      "[[:space:]\n\r]+")
           "\\([^[:word:]^-]\\)"))
 
-(defun clojure--replace-sexp-with-binding (bound-name init-expr end)
+(defun clojure--replace-sexp-with-binding (bound-name init-expr)
   (save-excursion
-    (while (re-search-forward (clojure--sexp-regexp init-expr) end t)
+    (while (re-search-forward
+            (clojure--sexp-regexp init-expr)
+            (clojure--point-after 'clojure--goto-let 'forward-sexp)
+            t)
       (replace-match (concat "\\1" bound-name "\\2")))))
 
-(defun clojure--replace-sexps-with-bindings (bindings end)
+(defun clojure--replace-sexps-with-bindings (bindings)
   "Replace bindings with their respective bound names in the let form.
-BINDINGS is the list of bound names and init expressions, END denotes the end of the let expression."
+BINDINGS is the list of bound names and init expressions."
   (let ((bound-name (pop bindings))
         (init-expr (pop bindings)))
     (when bound-name
-      (clojure--replace-sexp-with-binding bound-name init-expr end)
-      (clojure--replace-sexps-with-bindings bindings end))))
+      (clojure--replace-sexp-with-binding bound-name init-expr)
+      (clojure--replace-sexps-with-bindings bindings))))
 
 (defun clojure--replace-sexps-with-bindings-and-indent ()
   (clojure--replace-sexps-with-bindings
-   (clojure--read-let-bindings)
-   (clojure--point-after 'clojure--goto-let 'forward-sexp))
+   (clojure--read-let-bindings))
   (clojure-indent-region
    (clojure--point-after 'clojure--goto-let)
    (clojure--point-after 'clojure--goto-let 'forward-sexp)))
