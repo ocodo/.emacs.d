@@ -4,7 +4,7 @@
 
 ;; Author: Quang Linh LE <linktohack@gmail.com>
 ;; URL: http://github.com/linktohack/evil-commentary
-;; Version: 2.0.0
+;; Version: 2.1.1
 ;; Keywords: evil comment commentary evil-commentary
 ;; Package-Requires: ((evil "1.0.0"))
 
@@ -62,7 +62,8 @@ provided by major mode will be use instead.
 
 A comment functions has to accept BEG, END as its required
 parameter."
-  :group 'evil-commentary)
+  :group 'evil-commentary
+  :type '(alist :key-type symbol :value-type function))
 
 (evil-define-operator evil-commentary (beg end type)
   "Comment or uncomment region that {motion} moves over."
