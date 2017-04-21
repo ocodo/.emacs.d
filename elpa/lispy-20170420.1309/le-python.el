@@ -39,7 +39,7 @@ Stripping them will produce code that's valid for an eval."
     str))
 
 (defun lispy-eval-python-bnd ()
-  (let (str res bnd)
+  (let (bnd)
     (save-excursion
       (cond ((region-active-p)
              (cons
@@ -148,6 +148,9 @@ it at one time."
                         (setq lispy-python-proc
                               (lispy--python-proc (concat "lispy-python-" x))))
               :caller 'lispy-set-python-process)))
+
+(defvar lispy--python-middleware-loaded-p nil
+  "Nil if the Python middleware in \"lispy-python.py\" wasn't loaded yet.")
 
 (defun lispy--python-proc (&optional name)
   (let* ((proc-name (or name
@@ -269,6 +272,23 @@ it at one time."
         nil
       (string< a b))))
 
+(defun lispy-python-symbol-bnd ()
+  (let ((bnd (or (bounds-of-thing-at-point 'symbol)
+                 (cons (point) (point)))))
+    (save-excursion
+     (goto-char (car bnd))
+     (while (progn
+              (skip-chars-backward " ")
+              (lispy-after-string-p "."))
+      (backward-char 1)
+      (skip-chars-backward " ")
+      (if (lispy-after-string-p ")")
+          (backward-sexp 2)
+          (backward-sexp)))
+     (skip-chars-forward " ")
+     (setcar bnd (point)))
+    bnd))
+
 (defun lispy-python-completion-at-point ()
   (cond ((looking-back "^\\(import\\|from\\) .*" (line-beginning-position))
          (let* ((line (buffer-substring-no-properties
@@ -297,18 +317,25 @@ it at one time."
                  (cl-sort (delete "./" (all-completions str #'read-file-name-internal))
                           #'lispy-dir-string<))))
         (t
-         (let ((comp (python-shell-completion-at-point (lispy--python-proc))))
-           (list (nth 0 comp)
-                 (nth 1 comp)
+         (let* ((bnd (lispy-python-symbol-bnd))
+                (str (buffer-substring-no-properties
+                      (car bnd) (cdr bnd))))
+           (when (string-match "\\()\\)[^)]*\\'" str)
+             (let ((expr (format "__t__ = %s" (substring str 0 (match-end 1)))))
+               (setq str (concat "__t__" (substring str (match-end 1))))
+               (cl-incf (car bnd) (match-end 1))
+               (lispy--eval-python expr t)))
+           (list (car bnd)
+                 (cdr bnd)
                  (mapcar (lambda (s)
-                           (if (string-match "(\\'" s)
-                               (substring s 0 (match-beginning 0))
-                             s))
-                         (all-completions
-                          (buffer-substring-no-properties
-                           (nth 0 comp)
-                           (nth 1 comp))
-                          (nth 2 comp))))))))
+                           (replace-regexp-in-string
+                            "__t__" ""
+                            (if (string-match "(\\'" s)
+                                (substring s 0 (match-beginning 0))
+                              s)))
+                         (python-shell-completion-get-completions
+                          (lispy--python-proc)
+                          nil str)))))))
 
 (defvar lispy--python-arg-key-re "\\`\\(\\(?:\\sw\\|\\s_\\)+\\) ?= ?\\(.*\\)\\'"
   "Constant regexp for matching function keyword spec.")
@@ -419,7 +446,11 @@ it at one time."
       (goto-char p-ar-beg)
       (message lispy-eval-error))))
 
-(defun lispy-goto-symbol-python (symbol)
+(declare-function deferred:sync! "ext:deferred")
+(declare-function jedi:goto-definition "ext:jedi-core")
+(declare-function jedi:call-deferred "ext:jedi-core")
+
+(defun lispy-goto-symbol-python (_symbol)
   (save-restriction
     (widen)
     (let ((res (ignore-errors
@@ -432,8 +463,7 @@ it at one time."
                  (symbol-re (concat "^def.*" (car (last (split-string symbol "\\." t)))))
                  (file (lispy--eval-python
                         (format
-                         "import inspect\nprint(inspect.getsourcefile(%s))" symbol)))
-                 pt)
+                         "import inspect\nprint(inspect.getsourcefile(%s))" symbol))))
             (cond ((and (equal file "None")
                         (re-search-backward symbol-re nil t)))
                   (file
@@ -463,8 +493,10 @@ Otherwise, fall back to Jedi (static)."
                           (jedi:call-deferred 'get_definition)))
                  :doc))))
 
-(defvar lispy--python-middleware-loaded-p nil
-  "Nil if the Python middleware in \"lispy-python.py\" wasn't loaded yet.")
+(defun lispy-python-middleware-reload ()
+  (interactive)
+  (setq lispy--python-middleware-loaded-p nil)
+  (lispy--python-middleware-load))
 
 (defun lispy--python-middleware-load ()
   "Load the custom Python code in \"lispy-python.py\"."

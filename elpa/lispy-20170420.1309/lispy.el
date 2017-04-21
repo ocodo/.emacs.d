@@ -4042,24 +4042,25 @@ Return the result of the last evaluation as a string."
     ans))
 
 (defun lispy--eval-bounds-outline ()
-  (save-excursion
-    (let* ((bnd (lispy--bounds-comment))
-           (beg (if bnd
-                    (save-excursion (goto-char (1+ (cdr bnd))))
-                  (point))))
-      (cons beg
-            (progn
-              (end-of-line)
-              (if (re-search-forward outline-regexp nil t)
-                  (progn
-                    (goto-char
-                     (match-beginning 0))
-                    (skip-chars-backward "\n")
-                    (let (cbnd)
-                      (when (setq cbnd (lispy--bounds-comment))
-                        (goto-char (1- (car cbnd)))))
-                    (point))
-                (point-max)))))))
+  (let* ((beg (1+ (line-end-position)))
+         bnd
+         (end
+          (save-excursion
+            (forward-char)
+            (if (re-search-forward outline-regexp nil t)
+                (progn
+                  (goto-char (match-beginning 0)))
+              (goto-char (point-max)))
+            (skip-chars-backward "\n")
+            (while (and
+                    (> (point) beg)
+                    (setq bnd (lispy--bounds-comment)))
+              (goto-char (car bnd))
+              (skip-chars-backward "\n"))
+            (point))))
+    (if (> beg end)
+        (cons beg beg)
+      (cons beg end))))
 
 (defun lispy-eval-single-outline ()
   (let* ((bnd (lispy--eval-bounds-outline))
@@ -4071,10 +4072,16 @@ Return the result of the last evaluation as a string."
            (message "(ok)"))
           ((= ?: (char-before (line-end-position)))
            (goto-char (cdr bnd))
-           (when (looking-at outline-regexp)
-             (insert "\n")
-             (backward-char))
-           (lispy--insert-eval-result res)
+           (save-restriction
+             (narrow-to-region
+              (point)
+              (if (re-search-forward outline-regexp nil t)
+                  (1- (match-beginning 0))
+                (point-max)))
+             (goto-char (point-min))
+             (unless (looking-at (concat "\n" lispy-outline-header))
+               (newline))
+             (lispy--insert-eval-result res))
            (goto-char (car bnd))
            res)
           (t
@@ -4343,21 +4350,23 @@ When ARG is non-nil, force select the window."
   (let* ((expr (lispy--setq-expression))
          (aw-dispatch-always nil)
          (target-window
-          (if (and (null arg) (lispy-eval--last-live-p))
-              lispy-eval-other--window
-            (if (setq lispy-eval-other--window
-                      (aw-select " Ace - Eval in Window"))
-                (progn
-                  (setq lispy-eval-other--buffer
-                        (window-buffer lispy-eval-other--window))
-                  (setq lispy-eval-other--cfg
-                        (cl-mapcan #'window-list (frame-list)))
-                  lispy-eval-other--window)
-              (setq lispy-eval-other--buffer nil)
-              (setq lispy-eval-other--cfg nil)
-              (selected-window))))
+          (cond ((not (memq major-mode lispy-elisp-modes))
+                 (selected-window))
+                ((and (null arg) (lispy-eval--last-live-p))
+                 lispy-eval-other--window)
+                ((setq lispy-eval-other--window
+                       (aw-select " Ace - Eval in Window"))
+                 (setq lispy-eval-other--buffer
+                       (window-buffer lispy-eval-other--window))
+                 (setq lispy-eval-other--cfg
+                       (cl-mapcan #'window-list (frame-list)))
+                 lispy-eval-other--window)
+                (t
+                 (setq lispy-eval-other--buffer nil)
+                 (setq lispy-eval-other--cfg nil)
+                 (selected-window))))
          res)
-    (if (eq major-mode 'lisp-mode)
+    (if (memq major-mode '(lisp-mode scheme-mode))
         (lispy-message (lispy--eval (prin1-to-string expr)))
       (with-selected-window target-window
         (setq res (lispy--eval-elisp-form expr lexical-binding)))
@@ -6186,34 +6195,38 @@ or to the beginning of the line."
 The result is a string.
 
 When ADD-OUTPUT is t, append the output to the result."
-  (funcall
-   (cond ((memq major-mode lispy-elisp-modes)
-          'lispy--eval-elisp)
-         ((or (memq major-mode lispy-clojure-modes)
-              (memq major-mode '(nrepl-repl-mode
-                                 cider-clojure-interaction-mode)))
-          (require 'le-clojure)
-          (lambda (x)
-            (lispy--eval-clojure x add-output (region-active-p))))
-         ((eq major-mode 'scheme-mode)
-          (require 'le-scheme)
-          'lispy--eval-scheme)
-         ((eq major-mode 'lisp-mode)
-          (require 'le-lisp)
-          'lispy--eval-lisp)
-         ((eq major-mode 'hy-mode)
-          (require 'le-hy)
-          'lispy--eval-hy)
-         ((eq major-mode 'python-mode)
-          (require 'le-python)
-          'lispy--eval-python)
-         ((eq major-mode 'julia-mode)
-          (require 'le-julia)
-          'lispy--eval-julia)
-         ((eq major-mode 'matlab-mode)
-          'matlab-eval)
-         (t (error "%s isn't supported currently" major-mode)))
-   e-str))
+  (if (string= e-str "")
+      ""
+    (funcall
+     (cond ((memq major-mode lispy-elisp-modes)
+            'lispy--eval-elisp)
+           ((or (memq major-mode lispy-clojure-modes)
+                (memq major-mode '(nrepl-repl-mode
+                                   cider-clojure-interaction-mode)))
+            (require 'le-clojure)
+            (lambda (x)
+              (lispy--eval-clojure x add-output (region-active-p))))
+           ((eq major-mode 'scheme-mode)
+            (require 'le-scheme)
+            'lispy--eval-scheme)
+           ((eq major-mode 'lisp-mode)
+            (require 'le-lisp)
+            'lispy--eval-lisp)
+           ((eq major-mode 'hy-mode)
+            (require 'le-hy)
+            'lispy--eval-hy)
+           ((eq major-mode 'python-mode)
+            (require 'le-python)
+            'lispy--eval-python)
+           ((eq major-mode 'julia-mode)
+            (require 'le-julia)
+            'lispy--eval-julia)
+           ((eq major-mode 'ruby-mode)
+            'oval-ruby-eval)
+           ((eq major-mode 'matlab-mode)
+            'matlab-eval)
+           (t (error "%s isn't supported currently" major-mode)))
+     e-str)))
 
 (defvar lispy-eval-match-data nil)
 
@@ -7898,7 +7911,11 @@ Return an appropriate `setq' expression when in `let', `dolist',
              (looking-back
               "(\\(?:lexical-\\)?let\\(?:\\*\\|-when-compile\\)?[ \t\n]*"
               (line-beginning-position 0)))
-           (cons 'setq tsexp))
+           (cons
+            (if (eq major-mode 'scheme-mode)
+                'define
+              'setq)
+            tsexp))
 
           ((looking-back
             "(\\(?:cl-\\)?labels[ \t\n]*"
