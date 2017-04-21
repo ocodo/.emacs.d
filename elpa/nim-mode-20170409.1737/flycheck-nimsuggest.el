@@ -33,7 +33,10 @@
 (autoload 'nim-call-epc "nim-suggest")
 (autoload 'nim-suggest-available-p "nim-suggest")
 
-(defvar flycheck-nimsuggest-error-parser 'flycheck-nimsuggest-old-error-parser)
+(defvar flycheck-nimsuggest-error-parser 'flycheck-parse-with-patterns
+  "Error parser that parse nimsuggest's erorrs.
+You may use `flycheck-nimsuggest-error-parser` symbol if you use Nim's
+development version.")
 
 (defvar flycheck-nimsuggest-patterns
   (mapcar (lambda (p)
@@ -76,8 +79,9 @@ CALLBACK is the status callback passed by Flycheck."
 CHECKER and BUFFER are passed to flycheck's function."
   (cl-loop for e in errors
            for file   = (nth 3 e)
-           for line   = (1+ (nth 5 e))
-           for column = (nth 6 e)
+           for line   = (nth 5 e)
+           ;; column starts from 0 on nimsuggest, but emacs is not
+           for column = (1+ (nth 6 e))
            for msg    = (nth 7 e)
            for level  = (if (equal "Error" (nth 4 e))
                             'error
@@ -86,9 +90,6 @@ CHECKER and BUFFER are passed to flycheck's function."
                     line column level msg
                     :checker checker :buffer buffer :filename file)))
 
-(defun flycheck-nimsuggest-old-error-parser (errors checker buffer)
-  "This function may be removed on the future due to nimsuggest's error format change."
-  (flycheck-parse-with-patterns errors checker buffer))
 
 ;;;###autoload
 (defun flycheck-nimsuggest-setup ()
