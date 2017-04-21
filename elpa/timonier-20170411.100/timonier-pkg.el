@@ -1,4 +1,4 @@
-(define-package "timonier" "20170328.116" "Manage Kubernetes Applications"
+(define-package "timonier" "20170411.100" "Manage Kubernetes Applications"
   '((emacs "24.4")
     (s "1.11.0")
     (f "0.19.0")

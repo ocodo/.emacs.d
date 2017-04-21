@@ -38,9 +38,9 @@
 
 (defun timonier--get-headers ()
   "Generate HTTP headers for Travis API."
-  `(("User-Agent" . (concat timonier--user-agent
-                            "/"
-                            (timonier--library-version)))))
+  `(("User-Agent" . ,(concat timonier--user-agent
+                             "/"
+                             (timonier--library-version)))))
 
 
 (defun timonier--perform-http-request (method uri params status-code)
