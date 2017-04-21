@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20170323.210
+;; Package-Version: 20170411.152
 ;; Version:           0.12.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -233,6 +233,16 @@
 
 (defcustom projectile-rails-zeus-command "zeus"
   "The command for zeus."
+  :group 'projectile-rails
+  :type 'string)
+
+(defcustom projectile-rails-root-file "Gemfile"
+  "The file that is used to identify rails root."
+  :group 'projectile-rails
+  :type 'string)
+
+(defcustom projectile-rails-verify-root-file "config/routes.rb"
+  "The file that is used to verify rails root directory."
   :group 'projectile-rails
   :type 'string)
 
@@ -703,8 +713,8 @@ The mode of the output buffer will be `projectile-rails-compilation-mode'."
 (defun projectile-rails-root ()
   "Returns rails root directory if this file is a part of a Rails application else nil"
   (ignore-errors
-    (let ((root (projectile-locate-dominating-file default-directory "Gemfile")))
-      (when (file-exists-p (expand-file-name "config/routes.rb" root))
+    (let ((root (projectile-locate-dominating-file default-directory projectile-rails-root-file)))
+      (when (file-exists-p (expand-file-name projectile-rails-verify-root-file root))
         root))))
 
 (defun projectile-rails-root-relative-to-project-root ()
