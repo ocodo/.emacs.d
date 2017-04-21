@@ -6,7 +6,7 @@
 ;; Keywords: themes
 ;; Package-Requires: ((projectile "0.11.0"))
 ;; URL: http://github.com/purcell/ibuffer-projectile
-;; Package-Version: 20150121.837
+;; Package-Version: 20170410.1452
 ;; Package-X-Original-Version: 0
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -80,13 +80,15 @@ This option can be used to exclude certain files from the grouping mechanism."
        (funcall ibuffer-projectile-include-function file)))
 
 (defun ibuffer-projectile-root (buf)
-  "Return root-dir for BUF.
+  "Return a cons cell (project-name . root-dir) for BUF.
 If the file is not in a project, then nil is returned instead."
   (with-current-buffer buf
-    (let ((file-name (or buffer-file-name default-directory)))
-      (when (ibuffer-projectile--include-file-p file-name)
-        (let ((projectile-require-project-root nil))
-          (projectile-project-root))))))
+    (let ((file-name (buffer-file-name))
+          (root (ignore-errors (projectile-project-root))))
+      (when (and file-name
+                 root
+                 (ibuffer-projectile--include-file-p file-name))
+        (cons (projectile-project-name) root)))))
 
 (define-ibuffer-filter projectile-root
     "Toggle current view to buffers with projectile root dir QUALIFIER."
@@ -101,7 +103,7 @@ If the file is not in a project, then nil is returned instead."
   (let ((roots (ibuffer-remove-duplicates
                 (delq nil (mapcar 'ibuffer-projectile-root (buffer-list))))))
     (mapcar (lambda (root)
-              (cons (abbreviate-file-name root)
+              (cons (format "Projectile:%s" (car root))
                     `((projectile-root . ,root))))
             roots)))
 
