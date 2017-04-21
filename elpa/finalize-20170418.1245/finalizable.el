@@ -9,6 +9,7 @@
 
 ;;; Code:
 
+(require 'cl-generic)
 (require 'eieio)
 (require 'finalize)
 
@@ -20,10 +21,10 @@
 object. The copy is made after `initialize-instance'.")
   :abstract t)
 
-(defmethod initialize-instance :after ((object finalizable) &key)
+(cl-defmethod initialize-instance :after ((object finalizable) &key)
   (finalize-register object #'finalize (copy-sequence object)))
 
-(defgeneric finalize (object-copy)
+(cl-defgeneric finalize (object-copy)
   "Finalize OBJECT-COPY after it has been garbage collected.
 OBJECT-COPY is a copy made just after `initialize-instance' using
 `copy-sequence'. The object itself is unavailable to this method.")
