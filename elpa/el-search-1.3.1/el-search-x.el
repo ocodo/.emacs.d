@@ -374,7 +374,48 @@ expression matching the `change' pattern will be matched."
   '(outermost _))
 
 
-;;; Patterns for stylistic rewriting
+;;; Patterns for stylistic rewriting and syntactical simplification
+
+;;; de Morgan
+
+(el-search-defpattern de-morgan (&optional replacement)
+  "Matches forms that can be simplified by applying de Morgan.
+Matched are all expressions of the form
+
+  (or (not A1) (not A2) ...)
+
+and
+
+  (and (not B1) (not B2) ...)
+
+where at least two `not' expressions are present.
+
+REPLACEMENT, when specified, should be a variable, and will be
+bound to a semantically equivalent expression with de Morgan's
+law been applied, namely
+
+  (not (and A1 A2 ...))
+
+or
+
+  (not (or B1 B2 ...))
+
+respectively.
+
+Note that when `el-search-query-replace'ing with this pattern
+type, it's possible that de Morgan can be applied again, so you
+may want to check that."
+  (let ((functor (make-symbol "functor"))
+        (nots    (make-symbol "nots"))
+        (arg     (make-symbol "arg")))
+    `(and `(,(and (or 'or 'and) ,functor) . ,,nots)
+          (guard (and (consp ,nots) (not (cdr (last ,nots))))) ;check for a proper non-empty list
+          (guard (cl-every (lambda (,arg) (pcase ,arg (`(not ,_) t))) ,nots))
+          (let (pred identity) (cdr ,nots))
+          ,@(and replacement
+                 (not (eq '_ replacement))
+                 `((let ,replacement `(not (,(if (eq ,functor 'or) 'and 'or)
+                                            ,@(mapcar #'cadr ,nots)))))))))
 
 ;;;; Iffy `if's
 

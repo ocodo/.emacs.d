@@ -7,7 +7,7 @@
 ;; Created: 29 Jul 2015
 ;; Keywords: lisp
 ;; Compatibility: GNU Emacs 25
-;; Version: 1.3
+;; Version: 1.3.1
 ;; Package-Requires: ((emacs "25") (stream "2.2.3"))
 
 
@@ -25,6 +25,9 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+
+;; Dedicated to my Grandfather Fritz
 
 
 ;;; Commentary:
