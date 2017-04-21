@@ -3,7 +3,7 @@
 ;; Copyright (C) 2016  Dominic Charlesworth <dgc336@gmail.com>
 
 ;; Author: Dominic Charlesworth <dgc336@gmail.com>
-;; Version: 2.4.0
+;; Version: 2.5.0
 ;; Package-Requires: ((emacs "24.3") (font-lock+ "0"))
 ;; URL: https://github.com/domtronn/all-the-icons.el
 ;; Keywords: convenient, lisp
@@ -117,6 +117,9 @@
   :group 'all-the-icons
   :type 'number)
 
+(defvar all-the-icons-font-families '() "List of defined icon font families.")
+(defvar all-the-icons-font-names '() "List of defined font file names this package was built with.")
+
 (defvar all-the-icons-icon-alist
   '(
     ;; Meta
@@ -212,7 +215,7 @@
     ("\\.jl$"           all-the-icons-fileicon "julia"                  :v-adjust 0.0 :face all-the-icons-purple)
     ("\\.matlab$"       all-the-icons-fileicon "matlab"                 :face all-the-icons-orange)
 
-    ("\\.pl$"           all-the-icons-alltheicon "perl"                 :face all-the-icons-lorange)
+    ("\\.p[ml]$"        all-the-icons-alltheicon "perl"                 :face all-the-icons-lorange)
     ("\\.pl6$"          all-the-icons-fileicon "perl6"                  :face all-the-icons-cyan)
     ("\\.pod$"          all-the-icons-alltheicon "perldocs"             :height 1.2  :face all-the-icons-lgreen)
 
@@ -242,6 +245,8 @@
     ;; case phi
     ("\\.c$"            all-the-icons-alltheicon "c-line"               :face all-the-icons-blue)
     ("\\.h$"            all-the-icons-alltheicon "c-line"               :face all-the-icons-purple)
+    ("\\.m$"            all-the-icons-fileicon "apple"                  :v-adjust 0.0 :height 1.0)
+    ("\\.mm$"           all-the-icons-fileicon "apple"                  :v-adjust 0.0 :height 1.0)
 
     ("\\.c\\(c\\|pp\\|xx\\)$"   all-the-icons-alltheicon "cplusplus-line"       :v-adjust -0.2 :face all-the-icons-blue)
     ("\\.h\\(h\\|pp\\|xx\\)$"   all-the-icons-alltheicon "cplusplus-line"       :v-adjust -0.2 :face all-the-icons-purple)
@@ -435,7 +440,7 @@
     (makefile-mode                      all-the-icons-fileicon "gnu"              :face all-the-icons-dorange)
     (dockerfile-mode                    all-the-icons-fileicon "docker"           :face all-the-icons-blue)
     (xml-mode                           all-the-icons-faicon "file-code-o"        :height 0.95 :face all-the-icons-lorange)
-    (json-mode                          all-the-icons-alltheicon "settings"       :face all-the-icons-yellow)
+    (json-mode                          all-the-icons-octicon "settings"       :face all-the-icons-yellow)
     (yaml-mode                          all-the-icons-octicon "settings"          :v-adjust 0.0 :face all-the-icons-dyellow)
     (elisp-byte-code-mode               all-the-icons-octicon "file-binary"       :v-adjust 0.0 :face all-the-icons-dsilver)
     (archive-mode                       all-the-icons-octicon "file-zip"          :v-adjust 0.0 :face all-the-icons-lmaroon)
@@ -486,8 +491,6 @@
     (compilation-mode                   all-the-icons-faicon "cogs"               :v-adjust 0.0 :height 1.0)
     (objc-mode                          all-the-icons-faicon "apple"              :v-adjust 0.0 :height 1.0)
     ))
-(defvar all-the-icons-font-families nil "List of defined icon font families.")
-
 
 ;; ====================
 ;;   Functions Start
@@ -501,7 +504,7 @@
 
 (defun all-the-icons-match-to-alist (file alist)
   "Match FILE against an entry in ALIST using `string-match'."
-  (cdr (find-if (lambda (it) (string-match (car it) file)) alist)))
+  (cdr (cl-find-if (lambda (it) (string-match (car it) file)) alist)))
 
 (defun all-the-icons-dir-is-submodule (dir)
   "Checker whether or not DIR is a git submodule."
@@ -602,6 +605,10 @@ inserting functions."
   (let ((icon (cdr (assoc mode all-the-icons-mode-icon-alist))))
     (if icon (funcall (intern (format "%s-family" (car icon)))) nil)))
 
+(defun all-the-icons-icon-family (icon)
+  "Get a propertized ICON family programatically."
+  (plist-get (get-text-property 0 'face icon) :family))
+
 (defun all-the-icons--icon-info-for-buffer (&optional f)
   "Get icon info for the current buffer.
 
@@ -666,6 +673,29 @@ If SHOW-FAMILY is non-nil, displays the icons family in the candidate string."
          (cons candidate-name candidate-icon)))
      data)))
 
+;;;###autoload
+(defun all-the-icons-install-fonts (&optional pfx)
+  "Helper function to download and install the latests fonts based on OS.
+When PFX is non-nil, ignore the prompt and just install"
+  (interactive "P")
+  (when (or pfx (yes-or-no-p "This will download and install fonts, are you sure you want to do this?"))
+    (let* ((url-format "https://github.com/domtronn/all-the-icons.el/blob/master/fonts/%s?raw=true")
+           (font-dest (cl-case window-system
+                        (x  (concat (getenv "HOME") "/.fonts/"))                ;; Default Linux install directory
+                        (ns (concat (getenv "HOME") "/Library/Fonts/" ))))      ;; Default MacOS install directory
+           (known-dest? (stringp font-dest)))
+      (unless font-dest
+        (setq font-dest (read-directory-name "Font installation directory: " "~/")))
+      (mapc (lambda (font)
+              (url-copy-file (format url-format font) (concat font-dest font) t))
+            all-the-icons-font-names)
+      (when known-dest?
+        (message "Fonts downloaded, updating font cache... <fc-cache -f -v> ")
+        (shell-command-to-string (format "fc-cache -f -v")))
+      (message "%s Successfully %s `all-the-icons' fonts to `%s'!"
+               (all-the-icons-wicon "stars" :v-adjust 0.0) (if known-dest? "installed" "downloaded") font-dest))))
+
+;;;###autoload
 (defun all-the-icons-insert (&optional arg family)
   "Interactive icon insertion function.
 When Prefix ARG is non-nil, insert the propertized icon.
@@ -703,7 +733,7 @@ pause for DURATION seconds between printing each character."
        (when duration (sit-for duration 0)))
      data)))
 
-(defmacro define-icon (name alist family)
+(defmacro define-icon (name alist family &optional font-name)
   "Macro to generate functions for inserting icons for icon set NAME.
 
 NAME defines is the name of the iconset and will produce a
@@ -713,9 +743,11 @@ ALIST is the alist containing maps between icon names and the
 UniCode for the character.  All of these can be found in the data
 directory of this package.
 
-FAMILY is the font family to use for the icons."
+FAMILY is the font family to use for the icons.
+FONT-NAME is the name of the .ttf file providing the font, defaults to FAMILY."
   `(progn
      (add-to-list 'all-the-icons-font-families (quote ,name))
+     (add-to-list 'all-the-icons-font-names (quote ,(downcase (format "%s.ttf" (or font-name family)))))
 
      (defun ,(all-the-icons--family-name name) () ,family)
      (defun ,(all-the-icons--data-name name) () ,alist)
@@ -739,11 +771,11 @@ FAMILY is the font family to use for the icons."
        (all-the-icons-insert arg (quote ,name)))))
 
 (define-icon alltheicon all-the-icons-data/alltheicons-alist    "all-the-icons")
-(define-icon octicon    all-the-icons-data/octicons-alist       "github-octicons")
 (define-icon fileicon   all-the-icons-data/file-icon-alist      "file-icons")
 (define-icon faicon     all-the-icons-data/fa-icon-alist        "FontAwesome")
-(define-icon wicon      all-the-icons-data/weather-icons-alist  "Weather Icons")
-(define-icon material   all-the-icons-data/material-icons-alist "Material Icons")
+(define-icon octicon    all-the-icons-data/octicons-alist       "github-octicons" "octicons")
+(define-icon wicon      all-the-icons-data/weather-icons-alist  "Weather Icons"   "weathericons")
+(define-icon material   all-the-icons-data/material-icons-alist "Material Icons"  "material-design-icons")
 
 (provide 'all-the-icons)
 
