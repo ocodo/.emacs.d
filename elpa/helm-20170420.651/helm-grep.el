@@ -25,7 +25,6 @@
 (require 'wgrep-helm nil t)
 
 (declare-function helm-buffer-list "helm-buffers")
-(declare-function helm-elscreen-find-file "helm-elscreen" (file))
 (declare-function View-quit "view")
 (declare-function doc-view-goto-page "doc-view" (page))
 (declare-function helm-mm-split-pattern "helm-multi-match")
@@ -197,9 +196,6 @@ Possible value are:
   (helm-make-actions
    "Find File" 'helm-grep-action
    "Find file other frame" 'helm-grep-other-frame
-   (lambda () (and (locate-library "elscreen")
-                   "Find file in Elscreen"))
-   'helm-grep-jump-elscreen
    "Save results in grep buffer" 'helm-grep-save-results
    "Find file other window" 'helm-grep-other-window)
   "Actions for helm grep."
@@ -577,14 +573,14 @@ It is intended to use as a let-bound variable, DON'T set this globaly.")
 ;;
 (defun helm-grep-action (candidate &optional where mark)
   "Define a default action for `helm-do-grep-1' on CANDIDATE.
-WHERE can be one of other-window, elscreen, other-frame."
+WHERE can be one of other-window, other-frame."
   (let* ((split        (helm-grep-split-line candidate))
          (lineno       (string-to-number (nth 1 split)))
          (loc-fname        (or (with-current-buffer
                                    (if (eq major-mode 'helm-grep-mode)
                                        (current-buffer)
                                        helm-buffer)
-                                 (get-text-property (point-at-bol) 'help-echo))
+                                 (get-text-property (point-at-bol) 'helm-grep-fname))
                                (car split)))
          (tramp-method (file-remote-p (or helm-ff-default-directory
                                           default-directory) 'method))
@@ -595,7 +591,6 @@ WHERE can be one of other-window, elscreen, other-frame."
                            (concat tramp-prefix loc-fname) loc-fname)))
     (cl-case where
       (other-window (find-file-other-window fname))
-      (elscreen     (helm-elscreen-find-file fname))
       (other-frame  (find-file-other-frame fname))
       (grep         (helm-grep-save-results-1))
       (pdf          (if helm-pdfgrep-default-read-command
@@ -636,10 +631,6 @@ With a prefix arg record CANDIDATE in `mark-ring'."
   "Jump to result in other frame from helm grep."
   (helm-grep-action candidate 'other-frame))
 
-(defun helm-grep-jump-elscreen (candidate)
-  "Jump to result in elscreen from helm grep."
-  (helm-grep-action candidate 'elscreen))
-
 (defun helm-goto-next-or-prec-file (n)
   "Go to next or precedent candidate file in helm grep/etags buffers.
 If N is positive go forward otherwise go backward."
@@ -664,7 +655,7 @@ If N is positive go forward otherwise go backward."
         (unless (or (string= current-fname
                              (car (helm-grep-split-line sel)))
                     (and (eq major-mode 'helm-grep-mode)
-                         (not (get-text-property (point-at-bol) 'help-echo))))
+                         (not (get-text-property (point-at-bol) 'helm-grep-fname))))
           (funcall mark-maybe)
           (throw 'break nil))))
     (cond ((and (> n 0) (eobp))
@@ -672,7 +663,7 @@ If N is positive go forward otherwise go backward."
            (forward-line 0)
            (funcall mark-maybe))
           ((and (< n 0) (bobp))
-           (helm-aif (next-single-property-change (point-at-bol) 'help-echo)
+           (helm-aif (next-single-property-change (point-at-bol) 'helm-grep-fname)
                (goto-char it)
              (forward-line 1))
            (funcall mark-maybe)))
@@ -1124,7 +1115,8 @@ in recurse, and ignore EXTS, search being made recursively on files matching
     (if (and display-fname lineno str)
         (cons (concat (propertize display-fname
                                   'face 'helm-grep-file
-                                  'help-echo fname)
+                                  'help-echo fname
+                                  'helm-grep-fname fname)
                       ":"
                       (propertize lineno 'face 'helm-grep-lineno)
                       ":"
@@ -1528,7 +1520,7 @@ arg INPUT is what you will have by default at prompt on startup."
   (require 'vc)
   (let* (helm-grep-default-recurse-command
          ;; Expand filename of each candidate with the git root dir.
-         ;; The filename will be in the help-echo prop.
+         ;; The filename will be in the helm-grep-fname prop.
          (helm-grep-default-directory-fn (lambda ()
                                            (vc-find-root directory ".git")))
          (helm-ff-default-directory (funcall helm-grep-default-directory-fn)))

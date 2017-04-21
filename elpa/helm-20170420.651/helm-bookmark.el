@@ -45,7 +45,8 @@
   :type 'boolean)
 
 (defcustom helm-bookmark-default-filtered-sources
-  (append '(helm-source-bookmark-files&dirs
+  (append '(helm-source-bookmark-org
+            helm-source-bookmark-files&dirs
             helm-source-bookmark-helm-find-files
             helm-source-bookmark-info
             helm-source-bookmark-gnus
@@ -138,6 +139,11 @@
 
 (defface helm-bookmark-file
     '((t (:foreground "Deepskyblue2")))
+  "Face used for file bookmarks."
+  :group 'helm-bookmark)
+
+(defface helm-bookmark-file-not-found
+    '((t (:foreground "Slategray4")))
   "Face used for file bookmarks."
   :group 'helm-bookmark)
 
@@ -296,6 +302,11 @@ This excludes bookmarks of a more specific kind (Info, Gnus, and W3m)."
          (isnonfile  (equal filename helm-bookmark--non-file-filename))) 
     (and filename (not isnonfile) (not (bookmark-get-handler bookmark)))))
 
+(defun helm-bookmark-org-file-p (bookmark)
+  (let* ((filename (bookmark-get-filename bookmark)))
+    (or (string-suffix-p ".org" filename t)
+        (string-suffix-p ".org_archive" filename t))))
+
 (defun helm-bookmark-helm-find-files-p (bookmark)
   "Return non-nil if BOOKMARK bookmarks a `helm-find-files' session.
 BOOKMARK is a bookmark name or a bookmark record."
@@ -311,7 +322,8 @@ BOOKMARK is a bookmark name or a bookmark record."
 
 (defun helm-bookmark-uncategorized-bookmark-p (bookmark)
   "Return non--nil if BOOKMARK match no known category."
-  (cl-loop for pred in '(helm-bookmark-addressbook-p
+  (cl-loop for pred in '(helm-bookmark-org-file-p
+                         helm-bookmark-addressbook-p
                          helm-bookmark-gnus-bookmark-p
                          helm-bookmark-w3m-bookmark-p
                          helm-bookmark-woman-man-bookmark-p
@@ -411,6 +423,19 @@ than `w3m-browse-url' use it."
             (bookmark-maybe-load-default-file)
             (helm-init-candidates-in-buffer
                 'global (helm-bookmark-man-setup-alist)))))
+
+;;; Org files
+;;
+(defun helm-bookmark-org-setup-alist ()
+  "Specialized filter function for Org file bookmarks."
+  (helm-bookmark-filter-setup-alist 'helm-bookmark-org-file-p))
+
+(defvar helm-source-bookmark-org
+  (helm-make-source " Bookmarked Org files" 'helm-source-filtered-bookmarks
+    :init (lambda ()
+            (bookmark-maybe-load-default-file)
+            (helm-init-candidates-in-buffer
+                'global (helm-bookmark-org-setup-alist)))))
 
 ;;; Gnus
 ;;
@@ -592,6 +617,11 @@ than `w3m-browse-url' use it."
 
 (defvar helm-source-addressbook-set
   (helm-build-dummy-source "Addressbook add contact"
+    :filtered-candidate-transformer
+    (lambda (_candidates _source)
+      (list (or (and (not (string= helm-pattern ""))
+                     helm-pattern)
+                "Enter a contact name to record")))
     :action (lambda (candidate)
               (addressbook-bookmark-set-1 candidate))))
 
@@ -664,6 +694,16 @@ than `w3m-browse-url' use it."
                                     (and (not (file-remote-p isfile))
                                          (file-directory-p isfile))))
                            (propertize trunc 'face 'helm-bookmark-directory
+                                       'help-echo isfile))
+                          ( ;; Non existing files.
+                           (and isfile
+                                ;; Be safe and call `file-exists-p'
+                                ;; only if file is not remote or
+                                ;; remote but connected.
+                                (or (and (file-remote-p isfile)
+                                         (not (file-remote-p isfile nil t)))
+                                    (not (file-exists-p isfile))))
+                           (propertize trunc 'face 'helm-bookmark-file-not-found
                                        'help-echo isfile))
                           ( ;; regular files
                            t

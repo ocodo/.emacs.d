@@ -216,23 +216,6 @@ Same as `helm-list-elisp-packages' but don't fetch packages on remote.
 
 ;;;***
 
-;;;### (autoloads nil "helm-elscreen" "helm-elscreen.el" (0 0 0 0))
-;;; Generated autoloads from helm-elscreen.el
-
-(autoload 'helm-elscreen "helm-elscreen" "\
-Preconfigured helm to list elscreen.
-
-\(fn)" t nil)
-
-(autoload 'helm-elscreen-history "helm-elscreen" "\
-Preconfigured helm to list elscreen in history order.
-
-\(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-elscreen" '("helm-")))
-
-;;;***
-
 ;;;### (autoloads nil "helm-eshell" "helm-eshell.el" (0 0 0 0))
 ;;; Generated autoloads from helm-eshell.el
 
