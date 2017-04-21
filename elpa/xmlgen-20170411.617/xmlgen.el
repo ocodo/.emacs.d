@@ -3,8 +3,8 @@
 ;; Copyright (C) 2008 Philip Jackson
 
 ;; Author: Philip Jackson <phil@shellarchive.co.uk>
-;; Version: 0.4
-;; Package-Version: 20170116.833
+;; Version: 0.5
+;; Package-Version: 20170411.617
 
 ;; This file is not currently part of GNU Emacs.
 

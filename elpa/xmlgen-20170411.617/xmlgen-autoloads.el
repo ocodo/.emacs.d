@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "xmlgen" "xmlgen.el" (22653 62638 60386 267000))
+;;;### (autoloads nil "xmlgen" "xmlgen.el" (0 0 0 0))
 ;;; Generated autoloads from xmlgen.el
 
 (autoload 'xmlgen "xmlgen" "\
@@ -12,6 +12,8 @@ Convert a sexp FORM to xml:
 IN-ELM is ignored.  LEVEL is the element level and defaults to 0.
 
 \(fn FORM &optional IN-ELM LEVEL)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "xmlgen" '("xmlgen-")))
 
 ;;;***
 
