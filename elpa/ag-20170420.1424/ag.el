@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.48
-;; Package-Version: 20161228.1641
+;; Package-Version: 20170420.1424
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -542,7 +542,8 @@ See also `find-dired'."
                         (format "*ag dired pattern:%s dir:%s*" regexp dir)))
          (cmd (concat ag-executable " --nocolor -g '" regexp "' "
                       (shell-quote-argument dir)
-                      " | grep -v '^$' | sed s/\\'/\\\\\\\\\\'/ | xargs -I '{}' ls "
+                      " | grep -v '^$' | sed s/\\'/\\\\\\\\\\'/ | xargs -I '{}' "
+                      insert-directory-program " "
                       dired-listing-switches " '{}' &")))
     (with-current-buffer (get-buffer-create buffer-name)
       (switch-to-buffer (current-buffer))

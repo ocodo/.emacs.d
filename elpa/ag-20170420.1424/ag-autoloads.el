@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ag" "ag.el" (22628 53688 0 0))
+;;;### (autoloads nil "ag" "ag.el" (0 0 0 0))
 ;;; Generated autoloads from ag.el
 
 (autoload 'ag "ag" "\
@@ -111,6 +111,8 @@ Kill all `ag-mode' buffers.
 Kill all `ag-mode' buffers other than the current buffer.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ag" '("ag-" "ag/")))
 
 ;;;***
 
