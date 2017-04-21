@@ -10,7 +10,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/voxpupuli/puppet-mode
-;; Package-Version: 20170323.331
+;; Package-Version: 20170415.2259
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -659,7 +659,7 @@ of the initial include plus puppet-include-indent."
 
        ;; Class argument list ends with a closing paren and needs to be
        ;; indented to the level of the class token.
-       ((looking-at "^\s+\).*?{\s*$")
+       ((looking-at "^\s*\).*?{\s*$")
         ;; Find the indentation level of the opening line.
         (let ((prev-class-indentation nil))
           (save-excursion
@@ -682,9 +682,10 @@ of the initial include plus puppet-include-indent."
               (if (bobp)
                   (setq not-indented nil)))
 
-             ;; Brace or paren on a line by itself will already be indented to
-             ;; the right level, so we can cheat and stop there.
-             ((looking-at "^\\s-*[\)}]\\s-*\s?$")
+             ;; Brace (possibly followed by a comma) or paren on a
+             ;; line by itself will already be indented to the right
+             ;; level, so we can cheat and stop there.
+             ((looking-at "^\\s-*[\)}],?\\s-*\s?$")
               (setq cur-indent (current-indentation))
               (setq not-indented nil))
 
