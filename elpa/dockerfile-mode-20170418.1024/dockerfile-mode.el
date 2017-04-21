@@ -1,5 +1,5 @@
 ;;; dockerfile-mode.el --- Major mode for editing Docker's Dockerfiles
-;; Package-Version: 20170221.1317
+;; Package-Version: 20170418.1024
 
 ;; Copyright (c) 2013 Spotify AB
 ;;
@@ -82,6 +82,7 @@ Each element of the list will be passed as a separate
     (modify-syntax-entry ?# "<" table)
     (modify-syntax-entry ?\n ">" table)
     (modify-syntax-entry ?' "\"" table)
+    (modify-syntax-entry ?= "." table)
     table)
   "Syntax table for `dockerfile-mode'.")
 
