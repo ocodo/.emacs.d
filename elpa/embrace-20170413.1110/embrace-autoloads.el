@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "embrace" "embrace.el" (22628 53724 0 0))
+;;;### (autoloads nil "embrace" "embrace.el" (0 0 0 0))
 ;;; Generated autoloads from embrace.el
 
 (autoload 'embrace-delete "embrace" "\
@@ -40,6 +40,13 @@
 
 
 \(fn)" nil nil)
+
+(autoload 'embrace-emacs-lisp-mode-hook "embrace" "\
+
+
+\(fn)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "embrace" '("embrace-")))
 
 ;;;***
 

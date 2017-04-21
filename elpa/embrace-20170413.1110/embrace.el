@@ -4,7 +4,7 @@
 
 ;; Author: Junpeng Qiu <qjpchmail@gmail.com>
 ;; Package-Requires: ((cl-lib "0.5") (expand-region "0.10.0"))
-;; Package-Version: 20161228.1948
+;; Package-Version: 20170413.1110
 ;; Keywords: extensions
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -195,11 +195,15 @@
 ;;    >    "<"              ">"
 ;;    "    "\""             "\""
 ;;    '    "\'"             "\'"
+;;    `    "`"              "`"
 ;;    t    "<foo bar=100>"  "</foo>"
 ;;    f    "func("          ")"
 
-;;   Note that for `t' and `f' key, the real content is based on the user's
-;;   input.
+;;   Note that for `t' and `f' key, the real content is based on the
+;;   user's input. Also, you can override the closing quote when
+;;   entering a ` (backquote) in emacs-lisp to get a ' (apostrophe)
+;;   instead of a ` (backquote) by using
+;;   `embrace-emacs-lisp-mode-hook' (see below).
 
 
 ;; 2.4 `embrace-add'
@@ -287,7 +291,8 @@
 
 ;;   We have defined several example hook functions that provide additional
 ;;   key bindings which can be used in different major modes. Right now
-;;   there are hooks for `LaTeX-mode' and `org-mode':
+;;   there are hooks for `LaTeX-mode', `org-mode', `ruby-mode' (including
+;;   `enh-ruby-mode') and `emacs-lisp-mode':
 
 ;;   `LaTeX-mode':
 ;;    Key  Left      Right
@@ -306,20 +311,26 @@
 ;;    +    +                 +
 ;;    k    `@@html:<kbd>@@'  `@@html:</kbd>@@'
 
-;;   `ruby-mode and enh-ruby-mode':
+;;   `ruby-mode' and `enh-ruby-mode':
 ;;    Key  Left  Right
 ;;   ------------------
 ;;    #    #{     }
 ;;    d    do     end
+
+;;   `emacs-lisp-mode':
+;;    Key  Left  Right
+;;   ------------------
+;;    `    `      '
 
 ;;   To use them:
 ;;   ,----
 ;;   | (add-hook 'LaTeX-mode-hook 'embrace-LaTeX-mode-hook)
 ;;   | (add-hook 'org-mode-hook 'embrace-org-mode-hook)
 ;;   | (add-hook 'ruby-mode-hook 'embrace-ruby-mode-hook) ;; or enh-ruby-mode-hook
+;;   | (add-hook 'emacs-lisp-mode-hook 'embrace-emacs-lisp-mode-hook)
 ;;   `----
 
-;;   The code for the two hooks above (which are defined in `embrace.el'):
+;;   The code of two of the hooks above (which are defined in `embrace.el'):
 ;;   ,----
 ;;   | (defun embrace-LaTeX-mode-hook ()
 ;;   |   (dolist (lst '((?= "\\verb|" . "|")
@@ -496,7 +507,8 @@
                   (?< . ("<" . ">"))
                   (?> . ("< " . " >"))
                   (?\" . ("\"" . "\""))
-                  (?\' . ("\'" . "\'"))))
+                  (?\' . ("\'" . "\'"))
+                  (?` . ("`" . "`"))))
     (embrace-add-pair (car pair) (cadr pair) (cddr pair)))
   (embrace-add-pair-regexp ?t "<[^>]*?>" "</[^>]*?>" 'embrace-with-tag
                            (embrace-build-help "<tag attr>" "</tag>"))
@@ -920,6 +932,10 @@
   (dolist (lst '((?# "#{" "}")
                  (?d "do" "end")))
     (embrace-add-pair (car lst) (cadr lst) (cl-caddr lst))))
+
+;;;###autoload
+(defun embrace-emacs-lisp-mode-hook ()
+  (embrace-add-pair ?` "`" "'"))
 
 (provide 'embrace)
 ;;; embrace.el ends here
