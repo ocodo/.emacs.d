@@ -5,7 +5,7 @@
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Maintainer: Martin Yrjölä <martin.yrjola@gmail.com>
 ;; URL: <https://github.com/myrjola/diminish.el>
-;; Package-Version: 20151215.915
+;; Package-Version: 20170419.1036
 ;; Created: Th 19 Feb 98
 ;; Version: 0.45
 ;; Keywords: extensions, diminish, minor, codeprose
@@ -179,7 +179,8 @@ to TO-WHAT if it's > 1 char long & doesn't already begin with a space."
   (let ((minor (assq mode minor-mode-alist)))
     (when minor
         (progn (callf or to-what "")
-               (when (> (length to-what) 1)
+               (when (and (stringp to-what)
+                          (> (length to-what) 1))
                  (or (= (string-to-char to-what) ?\ )
                      (callf2 concat " " to-what)))
                (or (assq mode diminished-mode-alist)
