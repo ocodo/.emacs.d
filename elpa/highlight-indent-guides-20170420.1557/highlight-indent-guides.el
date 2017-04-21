@@ -22,7 +22,7 @@
 ;;
 ;; Author: DarthFennec <darthfennec@derpymail.org>
 ;; Version: 0.7.3
-;; Package-Version: 20170106.1025
+;; Package-Version: 20170420.1557
 ;; Package-Requires: ((emacs "24"))
 ;; URL: https://github.com/DarthFennec/highlight-indent-guides
 
@@ -418,6 +418,8 @@ This runs whenever a theme is loaded."
                             'highlight-indent-guides-auto-set-faces)
           (ad-activate 'load-theme)
           (add-to-list 'font-lock-extra-managed-props 'display)
+          (add-to-list 'text-property-default-nonsticky
+                       (cons 'highlight-indent-guides-prop t))
           (font-lock-add-keywords
            nil
            (pcase highlight-indent-guides-method
