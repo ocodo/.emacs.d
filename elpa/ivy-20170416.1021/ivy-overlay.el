@@ -1,6 +1,6 @@
-;;; ivy-overlay.el --- Overlay display functions for Ivy  -*- lexical-binding: t; -*-
+;;; ivy-overlay.el --- Overlay display functions for Ivy  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016  Oleh Krehel
+;; Copyright (C) 2016-2017  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Keywords: convenience
@@ -77,6 +77,10 @@ Then attach the overlay the character before point."
 
 (declare-function org-current-level "org")
 (defvar org-indent-indentation-per-level)
+(defvar ivy-last)
+(defvar ivy-text)
+(defvar ivy-completion-beg)
+(declare-function ivy--get-window "ivy")
 
 (defun ivy-display-function-overlay (str)
   "Called from the minibuffer, display STR in an overlay in Ivy window.
