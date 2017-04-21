@@ -211,11 +211,6 @@ Call `helm' only with ANY-SOURCES and ANY-BUFFER as args.
 
 \(fn ANY-SOURCES ANY-BUFFER)" nil nil)
 
-(autoload 'helm-debug-toggle "helm" "\
-Enable/disable helm debugging from outside of helm session.
-
-\(fn)" t nil)
-
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm" '("helm-" "cua-delete-region--advice" "copy-region-as-kill--advice" "with-helm-")))
 
 ;;;***
