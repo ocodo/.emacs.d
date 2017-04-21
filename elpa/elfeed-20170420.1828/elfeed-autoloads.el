@@ -60,6 +60,15 @@ Export the current feed listing to OPML-formatted FILE.
 
 ;;;***
 
+;;;### (autoloads nil "elfeed-link" "elfeed-link.el" (0 0 0 0))
+;;; Generated autoloads from elfeed-link.el
+
+(eval-after-load 'org '(require 'elfeed-link))
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elfeed-link" '("elfeed-link-")))
+
+;;;***
+
 ;;;### (autoloads nil "elfeed-log" "elfeed-log.el" (0 0 0 0))
 ;;; Generated autoloads from elfeed-log.el
 
