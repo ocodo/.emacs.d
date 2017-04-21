@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20170315.1055
+;; Package-Version: 20170418.501
 ;; Version: 2.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3"))
@@ -184,8 +184,10 @@ Finally, you can multiple replacements to occur for a given key
 binding by setting `which-key-allow-multiple-replacements' to a
 non-nil value."
   :group 'which-key
-  :type '(alist :key-type (alist :key-type regexp :value-type regexp)
-                :value-type (alist :key-type regexp :value-type regexp)))
+  :type '(alist :key-type (cons (choice regexp nil)
+                                (choice regexp nil))
+                :value-type (cons (choice string nil)
+                                  (choice string nil))))
 
 (when (bound-and-true-p which-key-key-replacement-alist)
   (mapc
@@ -2022,11 +2024,10 @@ prefix) if `which-key-use-C-h-commands' is non nil."
 
 (defun which-key--any-match-p (regexps string)
   "Non-nil if any of REGEXPS match STRING."
-  (let (match)
+  (catch 'match
     (dolist (regexp regexps)
       (when (string-match-p regexp string)
-        (setq match t)))
-    match))
+        (throw 'match t)))))
 
 (defun which-key--try-2-side-windows (keys page-n loc1 loc2 &rest _ignore)
   "Try to show KEYS (PAGE-N) in LOC1 first. Only if no keys fit fallback to LOC2."
